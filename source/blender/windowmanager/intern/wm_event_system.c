@@ -255,8 +255,12 @@ void wm_event_do_notifiers(bContext *C)
 		for (win = wm->windows.first; win; win = win->next) {
 			
 			/* filter out notifiers */
-			if (note->category == NC_SCREEN && note->reference && note->reference != win->screen) ;
-			else if (note->category == NC_SCENE && note->reference && note->reference != win->screen->scene) ;
+			if (note->category == NC_SCREEN && note->reference && note->reference != win->screen) {
+				/* pass */
+			}
+			else if (note->category == NC_SCENE && note->reference && note->reference != win->screen->scene) {
+				/* pass */
+			}
 			else {
 				ScrArea *sa;
 				ARegion *ar;

@@ -4106,8 +4106,12 @@ static void set_fullsample_trace_flag(Render *re, ObjectRen *obr)
 				vlr->flag |= R_FULL_OSA;
 			}
 			else if (trace) {
-				if (mode & MA_SHLESS);
-				else if (vlr->mat->material_type == MA_TYPE_VOLUME);
+				if (mode & MA_SHLESS) {
+					/* pass */
+				}
+				else if (vlr->mat->material_type == MA_TYPE_VOLUME) {
+					/* pass */
+				}
 				else if ((mode & MA_RAYMIRROR) || ((mode & MA_TRANSP) && (mode & MA_RAYTRANSP))) {
 					/* for blurry reflect/refract, better to take more samples 
 					 * inside the raytrace than as OSA samples */

@@ -97,8 +97,8 @@ int count_particles(ParticleSystem *psys)
 	int tot = 0;
 
 	LOOP_SHOWN_PARTICLES {
-		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) ;
-		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) ;
+		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) {}
+		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) {}
 		else tot++;
 	}
 	return tot;
@@ -110,8 +110,8 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur)
 	int tot = 0;
 
 	LOOP_SHOWN_PARTICLES {
-		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) ;
-		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) ;
+		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) {}
+		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) {}
 		else if (p % totgr == cur) tot++;
 	}
 	return tot;

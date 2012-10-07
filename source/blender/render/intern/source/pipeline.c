@@ -505,7 +505,9 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
 	if (re->r.scemode & R_PREVIEWBUTS) {
-		if (re->result && re->result->rectx == re->rectx && re->result->recty == re->recty) ;
+		if (re->result && re->result->rectx == re->rectx && re->result->recty == re->recty) {
+			/* pass */
+		}
 		else {
 			render_result_free(re->result);
 			re->result = NULL;
@@ -654,8 +656,12 @@ static void *do_part_thread(void *pa_v)
 		}
 		else if (render_display_draw_enabled(&R)) {
 			/* on break, don't merge in result for preview renders, looks nicer */
-			if (R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS)) ;
-			else render_result_merge(R.result, pa->result);
+			if (R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS)) {
+				/* pass */
+			}
+			else {
+				render_result_merge(R.result, pa->result);
+			}
 		}
 	}
 	

@@ -887,12 +887,12 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, const float n[3], 
 			fx = (t[0] + 1.0f) / 2.0f;
 			fy = (t[1] + 1.0f) / 2.0f;
 		}
-		else if (wrap==MTEX_TUBE) map_to_tube( &fx, &fy, t[0], t[1], t[2]);
-		else if (wrap==MTEX_SPHERE) map_to_sphere(&fx, &fy, t[0], t[1], t[2]);
+		else if (wrap == MTEX_TUBE)   map_to_tube( &fx, &fy, t[0], t[1], t[2]);
+		else if (wrap == MTEX_SPHERE) map_to_sphere(&fx, &fy, t[0], t[1], t[2]);
 		else {
-			if (texco==TEXCO_OBJECT) cubemap_ob(ob, n, t[0], t[1], t[2], &fx, &fy);
-			else if (texco==TEXCO_GLOB) cubemap_glob(n, t[0], t[1], t[2], &fx, &fy);
-			else cubemap(mtex, vlr, n, t[0], t[1], t[2], &fx, &fy);
+			if      (texco == TEXCO_OBJECT) cubemap_ob(ob, n, t[0], t[1], t[2], &fx, &fy);
+			else if (texco == TEXCO_GLOB)   cubemap_glob(n, t[0], t[1], t[2], &fx, &fy);
+			else                            cubemap(mtex, vlr, n, t[0], t[1], t[2], &fx, &fy);
 		}
 		
 		/* repeat */
@@ -953,10 +953,17 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, const float n[3], 
 			if (t[1]<=0.0f) {
 				fx= t[0]+dxt[0];
 				fy= t[0]+dyt[0];
-				if (fx>=0.0f && fy>=0.0f && t[0]>=0.0f);
-				else if (fx<=0.0f && fy<=0.0f && t[0]<=0.0f);
-				else ok= 0;
+				if (fx>=0.0f && fy>=0.0f && t[0]>=0.0f) {
+					/* pass */
+				}
+				else if (fx<=0.0f && fy<=0.0f && t[0]<=0.0f) {
+					/* pass */
+				}
+				else {
+					ok = 0;
+				}
 			}
+
 			if (ok) {
 				if (wrap==MTEX_TUBE) {
 					map_to_tube(area, area+1, t[0], t[1], t[2]);
@@ -1096,7 +1103,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	float tmpvec[3];
 	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */
 
-	texres->talpha= 0;	/* is set when image texture returns alpha (considered premul) */
+	texres->talpha = FALSE;  /* is set when image texture returns alpha (considered premul) */
 	
 	if (tex->use_nodes && tex->nodetree) {
 		retval = ntreeTexExecTree(tex->nodetree, texres, texvec, dxt, dyt, osatex, thread,
@@ -1193,7 +1200,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	if (tex->flag & TEX_COLORBAND) {
 		float col[4];
 		if (do_colorband(tex->coba, texres->tin, col)) {
-			texres->talpha= 1;
+			texres->talpha = TRUE;
 			texres->tr= col[0];
 			texres->tg= col[1];
 			texres->tb= col[2];
@@ -2445,7 +2452,9 @@ void do_material_tex(ShadeInput *shi, Render *re)
 
 							copy_v3_v3(nor, texres.nor);
 
-							if (mtex->normapspace == MTEX_NSPACE_CAMERA);
+							if (mtex->normapspace == MTEX_NSPACE_CAMERA) {
+								/* pass */
+							}
 							else if (mtex->normapspace == MTEX_NSPACE_WORLD) {
 								mul_mat3_m4_v3(re->viewmat, nor);
 							}
@@ -2922,10 +2931,14 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float col_r[4])
 	}
 	if (mtex->mapto & MAP_ALPHA) {
 		if (rgb) {
-			if (texres.talpha) texres.tin= texres.ta;
-			else texres.tin = rgb_to_bw(&texres.tr);
+			if (texres.talpha) {
+				texres.tin = texres.ta;
+			}
+			else {
+				texres.tin = rgb_to_bw(&texres.tr);
+			}
 		}
-				
+
 		col_r[3]*= texres.tin;
 	}
 }

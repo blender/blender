@@ -238,7 +238,9 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 	float indexf, t, idxf;
 	int index;
 
-	if (rr > (RD_TABLE_RANGE_2*RD_TABLE_RANGE_2));
+	if (rr > (RD_TABLE_RANGE_2 * RD_TABLE_RANGE_2)) {
+		/* pass */
+	}
 	else if (rr > RD_TABLE_RANGE) {
 		rr= sqrt(rr);
 		indexf= rr*(RD_TABLE_SIZE/RD_TABLE_RANGE_2);

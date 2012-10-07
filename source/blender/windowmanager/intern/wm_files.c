@@ -190,9 +190,12 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 	
 	/* cases 1 and 2 */
 	if (oldwmlist->first == NULL) {
-		if (G.main->wm.first) ;  /* nothing todo */
-		else
+		if (G.main->wm.first) {
+			/* nothing todo */
+		}
+		else {
 			wm_add_default(C);
+		}
 	}
 	else {
 		/* cases 3 and 4 */

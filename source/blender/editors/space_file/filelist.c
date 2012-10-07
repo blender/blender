@@ -748,7 +748,9 @@ static int file_is_blend_backup(const char *str)
 	a = strlen(str);
 	b = 7;
 	
-	if (a == 0 || b >= a) ;
+	if (a == 0 || b >= a) {
+		/* pass */
+	}
 	else {
 		char *loc;
 		

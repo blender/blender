@@ -3357,12 +3357,17 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 		if (EBONE_VISIBLE(arm, ebone)) {
 			/* we extrude per definition the tip */
 			do_extrude = FALSE;
-			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED))
+			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED)) {
 				do_extrude = TRUE;
+			}
 			else if (ebone->flag & BONE_ROOTSEL) {
 				/* but, a bone with parent deselected we do the root... */
-				if (ebone->parent && (ebone->parent->flag & BONE_TIPSEL)) ;
-				else do_extrude = 2;
+				if (ebone->parent && (ebone->parent->flag & BONE_TIPSEL)) {
+					/* pass */
+				}
+				else {
+					do_extrude = 2;
+				}
 			}
 			
 			if (do_extrude) {

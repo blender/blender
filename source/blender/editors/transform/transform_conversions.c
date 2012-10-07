@@ -3986,13 +3986,13 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 			*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
 
 			if (t->frame_side == 'R') {
-				if      (right <= cfra) *count = *flag = 0;  /* ignore */
-				else if (left   > cfra) ;                  /* keep the selection */
+				if      (right <= cfra) { *count = *flag = 0; }  /* ignore */
+				else if (left   > cfra) {                     }  /* keep the selection */
 				else *flag |= SEQ_RIGHTSEL;
 			}
 			else {
-				if      (left >= cfra) *count = *flag = 0;  /* ignore */
-				else if (right < cfra) ;                   /* keep the selection */
+				if      (left >= cfra) { *count = *flag = 0; }  /* ignore */
+				else if (right < cfra) {                     }  /* keep the selection */
 				else *flag |= SEQ_LEFTSEL;
 			}
 		}

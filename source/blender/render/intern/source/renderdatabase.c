@@ -976,10 +976,13 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
 
 	if (ma->mtex[0]) {
 
-		if ( (ma->mode & MA_HALOTEX) ) har->tex= 1;
-		else if (har->mat->septex & (1<<0));	/* only 1 level textures */
+		if (ma->mode & MA_HALOTEX) {
+			har->tex = 1;
+		}
+		else if (har->mat->septex & (1 << 0)) {
+			/* only 1 level textures */
+		}
 		else {
-
 			mtex= ma->mtex[0];
 			copy_v3_v3(texvec, vec);
 

@@ -579,7 +579,9 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 		seq2 = del_seq_find_replace_recurs(scene, seq->seq2);
 		seq3 = del_seq_find_replace_recurs(scene, seq->seq3);
 
-		if (seq1 == seq->seq1 && seq2 == seq->seq2 && seq3 == seq->seq3) ;
+		if (seq1 == seq->seq1 && seq2 == seq->seq2 && seq3 == seq->seq3) {
+			/* pass */
+		}
 		else if (seq1 || seq2 || seq3) {
 			seq->seq1 = (seq1) ? seq1 : (seq2) ? seq2 : seq3;
 			seq->seq2 = (seq2) ? seq2 : (seq1) ? seq1 : seq3;

@@ -1152,9 +1152,15 @@ static void ui_is_but_sel(uiBut *but, double *value)
 		}
 	}
 	
-	if (is_push == 2) ;
-	else if (is_push == 1) but->flag |= UI_SELECT;
-	else but->flag &= ~UI_SELECT;
+	if (is_push == 2) {
+		/* pass */
+	}
+	else if (is_push == 1) {
+		but->flag |= UI_SELECT;
+	}
+	else {
+		but->flag &= ~UI_SELECT;
+	}
 }
 
 static uiBut *ui_find_inlink(uiBlock *block, void *poin)

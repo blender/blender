@@ -299,7 +299,9 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 			else
 				resolu = nu->resolu;
 
-			if (!BKE_nurb_check_valid_u(nu)) ;
+			if (!BKE_nurb_check_valid_u(nu)) {
+				/* pass */
+			}
 			else if (nu->type == CU_BEZIER) {
 				/* count */
 				len = 0;

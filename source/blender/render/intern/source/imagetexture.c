@@ -150,8 +150,13 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		fx-= xs;
 		fy-= ys;
 
-		if ( (tex->flag & TEX_CHECKER_ODD)==0) {
-			if ((xs+ys) & 1);else return retval;
+		if ( (tex->flag & TEX_CHECKER_ODD) == 0) {
+			if ((xs + ys) & 1) {
+				/* pass */
+			}
+			else {
+				return retval;
+			}
 		}
 		if ( (tex->flag & TEX_CHECKER_EVEN)==0) {
 			if ((xs+ys) & 1) return retval;
@@ -474,7 +479,9 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 			
 			muly= 1.0;
 
-			if (starty==endy);
+			if (starty==endy) {
+				/* pass */
+			}
 			else {
 				if (y==starty) muly= 1.0f-(rf->ymin - y);
 				if (y==endy) muly= (rf->ymax - y);
@@ -1453,8 +1460,12 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	image_mipmap_test(tex, ibuf);
 
 	if (tex->imaflag & TEX_USEALPHA) {
-		if (tex->imaflag & TEX_CALCALPHA);
-		else texres->talpha= 1;
+		if (tex->imaflag & TEX_CALCALPHA) {
+			/* pass */
+		}
+		else {
+			texres->talpha = TRUE;
+		}
 	}
 	
 	texr.talpha= texres->talpha;
@@ -1550,11 +1561,17 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 
 			if (boundary==0) {
 				if ( (tex->flag & TEX_CHECKER_ODD)==0) {
-					if ((xs+ys) & 1);
-					else return retval;
+					if ((xs + ys) & 1) {
+						/* pass */
+					}
+					else {
+						return retval;
+					}
 				}
 				if ( (tex->flag & TEX_CHECKER_EVEN)==0) {
-					if ((xs+ys) & 1) return retval;
+					if ((xs + ys) & 1) {
+						return retval;
+					}
 				}
 				fx-= xs;
 				fy-= ys;

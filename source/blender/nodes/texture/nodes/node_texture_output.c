@@ -65,7 +65,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
 		
 			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
-			target->talpha = 1;
+			target->talpha = TRUE;
 		
 			if (target->nor) {
 				if (in[1] && in[1]->hasinput)

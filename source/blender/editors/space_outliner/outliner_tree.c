@@ -769,7 +769,9 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			else {
 				/* do not extend Armature when we have posemode */
 				tselem = TREESTORE(te->parent);
-				if (GS(tselem->id->name) == ID_OB && ((Object *)tselem->id)->mode & OB_MODE_POSE) ;
+				if (GS(tselem->id->name) == ID_OB && ((Object *)tselem->id)->mode & OB_MODE_POSE) {
+					/* pass */
+				}
 				else {
 					Bone *curBone;
 					for (curBone = arm->bonebase.first; curBone; curBone = curBone->next) {
@@ -811,9 +813,15 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	
 	te->parent = parent;
 	te->index = index;   // for data arays
-	if (ELEM3(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) ;
-	else if (ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) ;
-	else if (type == TSE_ANIM_DATA) ;
+	if (ELEM3(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
+		/* pass */
+	}
+	else if (ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
+		/* pass */
+	}
+	else if (type == TSE_ANIM_DATA) {
+		/* pass */
+	}
 	else {
 		te->name = id->name + 2; // default, can be overridden by Library or non-ID data
 		te->idcode = GS(id->name);
@@ -1055,8 +1063,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				if (key[0]) {
 					wmOperatorType *ot = NULL;
 					
-					if (kmi->propvalue) ;
-					else ot = WM_operatortype_find(kmi->idname, 0);
+					if (kmi->propvalue) {
+						/* pass */
+					}
+					else {
+						ot = WM_operatortype_find(kmi->idname, 0);
+					}
 					
 					if (ot || kmi->propvalue) {
 						TreeElement *ten = outliner_add_element(soops, &te->subtree, kmi, te, TSE_KEYMAP_ITEM, a);

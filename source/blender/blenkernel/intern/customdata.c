@@ -2866,7 +2866,9 @@ void CustomData_external_reload(CustomData *data, ID *UNUSED(id), CustomDataMask
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if (!(mask & CD_TYPE_AS_MASK(layer->type))) ;
+		if (!(mask & CD_TYPE_AS_MASK(layer->type))) {
+			/* pass */
+		}
 		else if ((layer->flag & CD_FLAG_EXTERNAL) && (layer->flag & CD_FLAG_IN_MEMORY)) {
 			if (typeInfo->free)
 				typeInfo->free(layer->data, totelem, typeInfo->size);
@@ -2892,10 +2894,15 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if (!(mask & CD_TYPE_AS_MASK(layer->type))) ;
-		else if (layer->flag & CD_FLAG_IN_MEMORY) ;
-		else if ((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read)
+		if (!(mask & CD_TYPE_AS_MASK(layer->type))) {
+			/* pass */
+		}
+		else if (layer->flag & CD_FLAG_IN_MEMORY) {
+			/* pass */
+		}
+		else if ((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read) {
 			update = 1;
+		}
 	}
 
 	if (!update)
@@ -2913,15 +2920,23 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if (!(mask & CD_TYPE_AS_MASK(layer->type))) ;
-		else if (layer->flag & CD_FLAG_IN_MEMORY) ;
+		if (!(mask & CD_TYPE_AS_MASK(layer->type))) {
+			/* pass */
+		}
+		else if (layer->flag & CD_FLAG_IN_MEMORY) {
+			/* pass */
+		}
 		else if ((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->read) {
 			blay = cdf_layer_find(cdf, layer->type, layer->name);
 
 			if (blay) {
 				if (cdf_read_layer(cdf, blay)) {
-					if (typeInfo->read(cdf, layer->data, totelem)) ;
-					else break;
+					if (typeInfo->read(cdf, layer->data, totelem)) {
+						/* pass */
+					}
+					else {
+						break;
+					}
 					layer->flag |= CD_FLAG_IN_MEMORY;
 				}
 				else
@@ -2952,9 +2967,12 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if (!(mask & CD_TYPE_AS_MASK(layer->type))) ;
-		else if ((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->write)
+		if (!(mask & CD_TYPE_AS_MASK(layer->type))) {
+			/* pass */
+		}
+		else if ((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->write) {
 			update = 1;
+		}
 	}
 
 	if (!update)
@@ -2995,11 +3013,16 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 			blay = cdf_layer_find(cdf, layer->type, layer->name);
 
 			if (cdf_write_layer(cdf, blay)) {
-				if (typeInfo->write(cdf, layer->data, totelem)) ;
-				else break;
+				if (typeInfo->write(cdf, layer->data, totelem)) {
+					/* pass */
+				}
+				else {
+					break;
+				}
 			}
-			else
+			else {
 				break;
+			}
 		}
 	}
 

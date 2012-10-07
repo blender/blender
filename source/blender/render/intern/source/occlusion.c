@@ -625,9 +625,12 @@ static void occ_build_sh_normalize(OccNode *node)
 		sh_mul(node->sh, 1.0f / node->area);
 
 	for (b = 0; b < TOTCHILD; b++) {
-		if (node->childflag & (1 << b)) ;
-		else if (node->child[b].node)
+		if (node->childflag & (1 << b)) {
+			/* pass */
+		}
+		else if (node->child[b].node) {
 			occ_build_sh_normalize(node->child[b].node);
+		}
 	}
 }
 

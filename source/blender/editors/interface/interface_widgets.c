@@ -891,8 +891,8 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 	
 	/* calculate blend color */
 	if (ELEM4(but->type, TOG, ROW, TOGN, LISTROW)) {
-		if (but->flag & UI_SELECT) ;
-		else if (but->flag & UI_ACTIVE) ;
+		if (but->flag & UI_SELECT) {}
+		else if (but->flag & UI_ACTIVE) {}
 		else alpha = 0.5f;
 	}
 	

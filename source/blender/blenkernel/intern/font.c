@@ -928,8 +928,12 @@ makebreak:
 		 * 3: curs down */
 		ct = chartransdata + cu->pos;
 		
-		if ((mode == FO_CURSUP || mode == FO_PAGEUP) && ct->linenr == 0) ;
-		else if ((mode == FO_CURSDOWN || mode == FO_PAGEDOWN) && ct->linenr == lnr) ;
+		if ((mode == FO_CURSUP || mode == FO_PAGEUP) && ct->linenr == 0) {
+			/* pass */
+		}
+		else if ((mode == FO_CURSDOWN || mode == FO_PAGEDOWN) && ct->linenr == lnr) {
+			/* pass */
+		}
 		else {
 			switch (mode) {
 				case FO_CURSUP:     lnr = ct->linenr - 1; break;

@@ -2038,7 +2038,9 @@ static void zmask_rect(int *rectz, int *rectp, int xs, int ys, int neg)
 
 	MEM_freeN(temprectp);
 	
-	if (neg); /* z values for negative are already correct */
+	if (neg) {
+		/* z values for negative are already correct */
+	}
 	else {
 		/* clear not filled z values */
 		for (len= xs*ys -1; len>=0; len--) {

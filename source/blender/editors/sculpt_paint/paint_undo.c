@@ -152,7 +152,9 @@ static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *
 	UndoElem *undo;
 
 	if (step == 1) {
-		if (stack->current == NULL) ;
+		if (stack->current == NULL) {
+			/* pass */
+		}
 		else {
 			if (!name || strcmp(stack->current->name, name) == 0) {
 				if (G.debug & G_DEBUG_WM) {
@@ -165,7 +167,9 @@ static int undo_stack_step(bContext *C, UndoStack *stack, int step, const char *
 		}
 	}
 	else if (step == -1) {
-		if ((stack->current != NULL && stack->current->next == NULL) || stack->elems.first == NULL) ;
+		if ((stack->current != NULL && stack->current->next == NULL) || stack->elems.first == NULL) {
+			/* pass */
+		}
 		else {
 			if (!name || strcmp(stack->current->name, name) == 0) {
 				undo = (stack->current && stack->current->next) ? stack->current->next : stack->elems.first;
@@ -254,7 +258,9 @@ int ED_undo_paint_valid(int type, const char *name)
 	else 
 		return 0;
 	
-	if (stack->current == NULL) ;
+	if (stack->current == NULL) {
+		/* pass */
+	}
 	else {
 		if (name && strcmp(stack->current->name, name) == 0)
 			return 1;

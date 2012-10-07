@@ -574,10 +574,12 @@ int modifiers_isCorrectableDeformed(Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md = md->next) {
-		if (ob->mode == OB_MODE_EDIT && (md->mode & eModifierMode_Editmode) == 0) ;
-		else 
-		if (modifier_isCorrectableDeformed(md))
+		if (ob->mode == OB_MODE_EDIT && (md->mode & eModifierMode_Editmode) == 0) {
+			/* pass */
+		}
+		else if (modifier_isCorrectableDeformed(md)) {
 			return 1;
+		}
 	}
 	return 0;
 }

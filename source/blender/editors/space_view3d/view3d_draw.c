@@ -355,7 +355,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				if (dx < GRID_MIN_PX_D) {
 					rv3d->gridview *= sublines;
 					dx *= sublines;
-					if (dx < GRID_MIN_PX_D) ;
+					if (dx < GRID_MIN_PX_D) {
+						/* pass */
+					}
 					else {
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx);

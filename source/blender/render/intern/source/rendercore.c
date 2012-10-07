@@ -271,16 +271,26 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 		har= R.sortedhalos[a];
 
 		/* layer test, clip halo with y */
-		if ((har->lay & lay)==0);
-		else if (testrect.ymin > har->maxy);
-		else if (testrect.ymax < har->miny);
+		if ((har->lay & lay) == 0) {
+			/* pass */
+		}
+		else if (testrect.ymin > har->maxy) {
+			/* pass */
+		}
+		else if (testrect.ymax < har->miny) {
+			/* pass */
+		}
 		else {
 			
 			minx= floor(har->xs-har->rad);
 			maxx= ceil(har->xs+har->rad);
 			
-			if (testrect.xmin > maxx);
-			else if (testrect.xmax < minx);
+			if (testrect.xmin > maxx) {
+				/* pass */
+			}
+			else if (testrect.xmax < minx) {
+				/* pass */
+			}
 			else {
 				
 				minx= MAX2(minx, testrect.xmin);
@@ -980,7 +990,9 @@ static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 		float *rectf= rlpp[sample]->rectf;
 		
 		for (y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
-			if (rectf[3] >= 1.0f);
+			if (rectf[3] >= 1.0f) {
+				/* pass */
+			}
 			else if (rectf[3] > 0.0f) {
 				rectf[0] /= rectf[3];
 				rectf[1] /= rectf[3];
@@ -1833,16 +1845,23 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 	har->miny= miny= haloys - har->rad/R.ycor;
 	har->maxy= maxy= haloys + har->rad/R.ycor;
 	
-	if (maxy<0);
-	else if (rr->recty<miny);
+	if (maxy < 0) {
+		/* pass */
+	}
+	else if (rr->recty < miny) {
+		/* pass */
+	}
 	else {
-		minx= floor(haloxs-har->rad);
-		maxx= ceil(haloxs+har->rad);
+		minx = floor(haloxs - har->rad);
+		maxx = ceil(haloxs + har->rad);
 			
-		if (maxx<0);
-		else if (rr->rectx<minx);
+		if (maxx < 0) {
+			/* pass */
+		}
+		else if (rr->rectx < minx) {
+			/* pass */
+		}
 		else {
-		
 			if (minx<0) minx= 0;
 			if (maxx>=rr->rectx) maxx= rr->rectx-1;
 			if (miny<0) miny= 0;
@@ -2099,7 +2118,9 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 
 			copy_v3_v3(nor, shi->vn);
 
-			if (R.r.bake_normal_space == R_BAKE_SPACE_CAMERA);
+			if (R.r.bake_normal_space == R_BAKE_SPACE_CAMERA) {
+				/* pass */
+			}
 			else if (R.r.bake_normal_space == R_BAKE_SPACE_TANGENT) {
 				float mat[3][3], imat[3][3];
 

@@ -3989,7 +3989,9 @@ void PE_undo_step(Scene *scene, int step)
 	}
 	else if (step==1) {
 		
-		if (edit->curundo==NULL || edit->curundo->prev==NULL);
+		if (edit->curundo==NULL || edit->curundo->prev==NULL) {
+			/* pass */
+		}
 		else {
 			if (G.debug & G_DEBUG) printf("undo %s\n", edit->curundo->name);
 			edit->curundo= edit->curundo->prev;
@@ -3999,7 +4001,9 @@ void PE_undo_step(Scene *scene, int step)
 	else {
 		/* curundo has to remain current situation! */
 		
-		if (edit->curundo==NULL || edit->curundo->next==NULL);
+		if (edit->curundo==NULL || edit->curundo->next==NULL) {
+			/* pass */
+		}
 		else {
 			get_PTCacheUndo(edit, edit->curundo->next);
 			edit->curundo= edit->curundo->next;

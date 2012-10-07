@@ -414,8 +414,9 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 					/* don't need to check for pin here, see above */
 					sima->image = tf->tpage;
 					
-					if (sima->flag & SI_EDITTILE) ;
-					else sima->curtile = tf->tile;
+					if ((sima->flag & SI_EDITTILE) == 0) {
+						sima->curtile = tf->tile;
+					}
 				}
 			}
 		}

@@ -123,30 +123,45 @@ float mistfactor(float zcor, float const co[3])
 {
 	float fac, hi;
 	
-	fac= zcor - R.wrld.miststa;	/* zcor is calculated per pixel */
+	fac = zcor - R.wrld.miststa;	/* zcor is calculated per pixel */
 
 	/* fac= -co[2]-R.wrld.miststa; */
 
-	if (fac>0.0f) {
-		if (fac< R.wrld.mistdist) {
+	if (fac > 0.0f) {
+		if (fac < R.wrld.mistdist) {
 			
-			fac= (fac/(R.wrld.mistdist));
+			fac = (fac / R.wrld.mistdist);
 			
-			if (R.wrld.mistype==0) fac*= fac;
-			else if (R.wrld.mistype==1);
-			else fac= sqrt(fac);
+			if (R.wrld.mistype == 0) {
+				fac *= fac;
+			}
+			else if (R.wrld.mistype == 1) {
+				/* pass */
+			}
+			else {
+				fac = sqrt(fac);
+			}
 		}
-		else fac= 1.0f;
+		else {
+			fac = 1.0f;
+		}
 	}
-	else fac= 0.0f;
+	else {
+		fac = 0.0f;
+	}
 	
 	/* height switched off mist */
 	if (R.wrld.misthi!=0.0f && fac!=0.0f) {
 		/* at height misthi the mist is completely gone */
 
-		hi= R.viewinv[0][2]*co[0]+R.viewinv[1][2]*co[1]+R.viewinv[2][2]*co[2]+R.viewinv[3][2];
+		hi = R.viewinv[0][2] * co[0] +
+		     R.viewinv[1][2] * co[1] +
+		     R.viewinv[2][2] * co[2] +
+		     R.viewinv[3][2];
 		
-		if (hi>R.wrld.misthi) fac= 0.0f;
+		if (hi > R.wrld.misthi) {
+			fac = 0.0f;
+		}
 		else if (hi>0.0f) {
 			hi= (R.wrld.misthi-hi)/R.wrld.misthi;
 			fac*= hi*hi;
@@ -1351,7 +1366,9 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	/* this complex construction screams for a nicer implementation! (ton) */
 	if (R.r.mode & R_SHADOW) {
 		if (ma->mode & MA_SHADOW) {
-			if (lar->type==LA_HEMI || lar->type==LA_AREA);
+			if (lar->type == LA_HEMI || lar->type == LA_AREA) {
+				/* pass */
+			}
 			else if ((ma->mode & MA_RAYBIAS) && (lar->mode & LA_SHAD_RAY) && (vlr->flag & R_SMOOTH)) {
 				float thresh= shi->obr->ob->smoothresh;
 				if (inp>thresh)
@@ -1466,8 +1483,10 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		
 		if (shadfac[3]>0.0f && shi->spec!=0.0f && !(lar->mode & LA_NO_SPEC) && !(lar->mode & LA_ONLYSHADOW)) {
 			
-			if (!(passflag & (SCE_PASS_COMBINED|SCE_PASS_SPEC)));
-			else if (lar->type==LA_HEMI) {
+			if (!(passflag & (SCE_PASS_COMBINED | SCE_PASS_SPEC))) {
+				/* pass */
+			}
+			else if (lar->type == LA_HEMI) {
 				float t;
 				/* hemi uses no spec shaders (yet) */
 				

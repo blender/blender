@@ -783,7 +783,9 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 				wmKeyMapItem *kmi = te->directdata;
 				
 				/* modal map? */
-				if (kmi->propvalue) ;
+				if (kmi->propvalue) {
+					/* pass */
+				}
 				else {
 					uiDefBlockBut(block, operator_search_menu, kmi, "", xstart, (int)te->ys + 1, butw1, UI_UNIT_Y - 1, "Assign new Operator");
 				}
@@ -1409,11 +1411,15 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		/* closed item, we draw the icons, not when it's a scene, or master-server list though */
 		if (!TSELEM_OPEN(tselem, soops)) {
 			if (te->subtree.first) {
-				if (tselem->type == 0 && te->idcode == ID_SCE) ;
-				else if (tselem->type != TSE_R_LAYER) { /* this tree element always has same amount of branches, so don't draw */
+				if (tselem->type == 0 && te->idcode == ID_SCE) {
+					/* pass */
+				}
+				else if (tselem->type != TSE_R_LAYER) {
+					/* this tree element always has same amount of branches, so don't draw */
+
 					int tempx = startx + offsx;
 					
-					// divider
+					/* divider */
 					UI_ThemeColorShade(TH_BACK, -40);
 					glRecti(tempx - 10, *starty + 4, tempx - 8, *starty + UI_UNIT_Y - 4);
 					
