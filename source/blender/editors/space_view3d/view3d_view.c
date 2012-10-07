@@ -863,7 +863,7 @@ eV3DProjStatus ED_view3d_project_base(struct ARegion *ar, struct Base *base)
 	eV3DProjStatus ret = ED_view3d_project_short_global(ar, base->object->obmat[3], &base->sx,
 	                                                    V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
 
-	if (ret != V3D_PROJ_RET_SUCCESS) {
+	if (ret != V3D_PROJ_RET_OK) {
 		base->sx = IS_CLIPPED;
 		base->sy = 0;
 	}
@@ -949,7 +949,7 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
 		return V3D_PROJ_RET_CLIP_NEAR;
 	}
 
-	return V3D_PROJ_RET_SUCCESS;
+	return V3D_PROJ_RET_OK;
 }
 
 eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], const int is_local,
@@ -957,7 +957,7 @@ eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], con
 {
 	float tvec[2];
 	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
-	if (ret == V3D_PROJ_RET_SUCCESS) {
+	if (ret == V3D_PROJ_RET_OK) {
 		if ((tvec[0] > -32700.0 && tvec[0] < 32700.0f) &&
 		    (tvec[1] > -32700.0 && tvec[1] < 32700.0f))
 		{
@@ -976,7 +976,7 @@ eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const
 {
 	float tvec[2];
 	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
-	if (ret == V3D_PROJ_RET_SUCCESS) {
+	if (ret == V3D_PROJ_RET_OK) {
 		if ((tvec[0] > -2140000000.0 && tvec[0] < 2140000000.0f) &&
 		    (tvec[1] > -2140000000.0 && tvec[1] < 2140000000.0f))
 		{
@@ -995,7 +995,7 @@ eV3DProjStatus ED_view3d_project_float_ex(ARegion *ar, float perspmat[4][4], con
 {
 	float tvec[2];
 	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
-	if (ret == V3D_PROJ_RET_SUCCESS) {
+	if (ret == V3D_PROJ_RET_OK) {
 		if (finite(tvec[0]) &&
 		    finite(tvec[1]))
 		{

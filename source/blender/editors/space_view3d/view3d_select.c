@@ -120,7 +120,7 @@ int view3d_get_view_aligned_coordinate(ViewContext *vc, float fp[3], const int m
 
 	initgrabz(vc->rv3d, fp[0], fp[1], fp[2]);
 
-	if (ret == V3D_PROJ_RET_SUCCESS) {
+	if (ret == V3D_PROJ_RET_OK) {
 		const float mval_f[2] = {(float)(mval_cpy[0] - mval[0]),
 		                         (float)(mval_cpy[1] - mval[1])};
 		ED_view3d_win_to_delta(vc->ar, mval_f, dvec);
@@ -1506,7 +1506,8 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 						}
 					}
 				}
-				else if (ED_do_pose_selectbuffer(scene, basact, buffer, hits, extend, deselect, toggle) ) {   /* then bone is found */
+				else if (ED_do_pose_selectbuffer(scene, basact, buffer, hits, extend, deselect, toggle) ) {
+					/* then bone is found */
 				
 					/* we make the armature selected: 
 					 * not-selected active object in posemode won't work well for tools */
@@ -2639,7 +2640,7 @@ static int object_circle_select(ViewContext *vc, int select, const int mval[2], 
 		if (((base->flag & SELECT) == 0) && BASE_SELECTABLE(vc->v3d, base)) {
 			float screen_co[2];
 			if (ED_view3d_project_float_global(vc->ar, base->object->obmat[3], screen_co,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 			{
 				if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
 					ED_base_object_select(base, select);

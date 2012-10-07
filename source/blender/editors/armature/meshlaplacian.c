@@ -1254,7 +1254,9 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 
 	hit.index = -1;
 	hit.dist = FLT_MAX;
-	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec, 0.0, &hit, harmonic_ray_callback, data) != -1) {
+	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
+	                         0.0, &hit, harmonic_ray_callback, data) != -1)
+	{
  		len= isect_mdef.labda;
 		isect_mdef.face = mface = mface1 + hit.index;
 

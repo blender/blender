@@ -149,7 +149,8 @@ static void gp_draw_stroke_buffer(tGPspoint *points, int totpoints, short thickn
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
 
 /* draw a given stroke - just a single dot (only one point) */
-static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dflag, short sflag, int offsx, int offsy, int winx, int winy)
+static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dflag, short sflag,
+                                 int offsx, int offsy, int winx, int winy)
 {
 	/* draw point */
 	if (sflag & GP_STROKE_3DSPACE) {
@@ -508,7 +509,8 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 				glDepthMask(0);
 				glEnable(GL_DEPTH_TEST);
 				
-				/* first arg is normally rv3d->dist, but this isn't available here and seems to work quite well without */
+				/* first arg is normally rv3d->dist, but this isn't
+				 * available here and seems to work quite well without */
 				bglPolygonOffset(1.0f, 1.0f);
 #if 0
 				glEnable(GL_POLYGON_OFFSET_LINE);
@@ -579,7 +581,8 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 		
 		/* draw 'onionskins' (frame left + right) */
 		if (gpl->flag & GP_LAYER_ONIONSKIN) {
-			/* drawing method - only immediately surrounding (gstep = 0), or within a frame range on either side (gstep > 0)*/			
+			/* drawing method - only immediately surrounding (gstep = 0),
+			 * or within a frame range on either side (gstep > 0)*/
 			if (gpl->gstep) {
 				bGPDframe *gf;
 				float fac;
@@ -640,7 +643,8 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 		if (ED_gpencil_session_active() && (gpl->flag & GP_LAYER_ACTIVE) &&
 		    (gpf->flag & GP_FRAME_PAINT))
 		{
-			/* Buffer stroke needs to be drawn with a different linestyle to help differentiate them from normal strokes. */
+			/* Buffer stroke needs to be drawn with a different linestyle
+			 * to help differentiate them from normal strokes. */
 			gp_draw_stroke_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag);
 		}
 	}
@@ -724,8 +728,8 @@ void draw_gpencil_2dimage(const bContext *C)
 }
 
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
- * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes, second time with onlyv2d=0 for screen-aligned strokes
- */
+ * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes,
+ * second time with onlyv2d=0 for screen-aligned strokes */
 void draw_gpencil_view2d(const bContext *C, short onlyv2d)
 {
 	ScrArea *sa = CTX_wm_area(C);
@@ -750,9 +754,8 @@ void draw_gpencil_view2d(const bContext *C, short onlyv2d)
 }
 
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
- * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes, second time with only3d=0 for screen-aligned strokes
- */
-
+ * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes,
+ * second time with only3d=0 for screen-aligned strokes */
 void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 {
 	bGPdata *gpd;

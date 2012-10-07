@@ -441,8 +441,9 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 	obedit = BKE_object_add(scene, OB_FONT);
 	base = scene->basact;
 
-	
-	ED_object_base_init_transform(C, base, NULL, rot); /* seems to assume view align ? TODO - look into this, could be an operator option */
+	/* seems to assume view align ? TODO - look into this, could be an operator option */
+	ED_object_base_init_transform(C, base, NULL, rot);
+
 	BKE_object_where_is_calc(scene, obedit);
 
 	obedit->loc[0] += offset[0];

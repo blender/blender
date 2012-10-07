@@ -558,7 +558,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	int co[2];
 
 	/* we don't want the clipping for cursor */
-	if (ED_view3d_project_int_global(ar, give_cursor(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_int_global(ar, give_cursor(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 		setlinestyle(0); 
 		cpack(0xFF);
 		circ((float)co[0], (float)co[1], 10.0);

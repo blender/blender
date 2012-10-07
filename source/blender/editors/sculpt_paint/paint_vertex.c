@@ -848,7 +848,7 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float vert_n
 {
 	float vertco[2];
 
-	if (ED_view3d_project_float_global(vc->ar, vert_nor, vertco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_float_global(vc->ar, vert_nor, vertco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 		float delta[2];
 		float dist_squared;
 

@@ -646,7 +646,7 @@ static SK_Point *sk_snapPointStroke(bContext *C, SK_Stroke *stk, int mval[2], in
 			short pval[2];
 			int pdist;
 
-			if (ED_view3d_project_short_global(ar, stk->points[i].p, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+			if (ED_view3d_project_short_global(ar, stk->points[i].p, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 
 				pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
@@ -682,7 +682,7 @@ static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones,
 		{
 			copy_v3_v3(vec, bone->head);
 			mul_m4_v3(ob->obmat, vec);
-			if (ED_view3d_project_short_noclip(ar, vec, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+			if (ED_view3d_project_short_noclip(ar, vec, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 
 				pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
@@ -699,7 +699,7 @@ static SK_Point *sk_snapPointArmature(bContext *C, Object *ob, ListBase *ebones,
 
 		copy_v3_v3(vec, bone->tail);
 		mul_m4_v3(ob->obmat, vec);
-		if (ED_view3d_project_short_noclip(ar, vec, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_short_noclip(ar, vec, pval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 
 			pdist = ABS(pval[0] - mval[0]) + ABS(pval[1] - mval[1]);
 
@@ -939,7 +939,7 @@ static void sk_projectDrawPoint(bContext *C, float vec[3], SK_Stroke *stk, SK_Dr
 	initgrabz(ar->regiondata, fp[0], fp[1], fp[2]);
 
 	/* method taken from editview.c - mouse_cursor() */
-	if (ED_view3d_project_short_global(ar, fp, cval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_short_global(ar, fp, cval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 		VECSUB2D(mval_f, cval, dd->mval);
 		ED_view3d_win_to_delta(ar, mval_f, dvec);
 		sub_v3_v3v3(vec, fp, dvec);
@@ -1793,8 +1793,8 @@ int sk_detectMergeGesture(bContext *C, SK_Gesture *gest, SK_Sketch *UNUSED(sketc
 		short start_val[2], end_val[2];
 		short dist;
 
-		if ((ED_view3d_project_short_global(ar, gest->stk->points[0].p,           start_val, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) &&
-		    (ED_view3d_project_short_global(ar, sk_lastStrokePoint(gest->stk)->p, end_val,   V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS))
+		if ((ED_view3d_project_short_global(ar, gest->stk->points[0].p,           start_val, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
+		    (ED_view3d_project_short_global(ar, sk_lastStrokePoint(gest->stk)->p, end_val,   V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
 		{
 
 			dist = MAX2(ABS(start_val[0] - end_val[0]), ABS(start_val[1] - end_val[1]));

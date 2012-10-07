@@ -661,7 +661,9 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	/* helpful warnings... */
 	/* TODO: add warnings to be careful about actions, applying deforms first, etc. */
 	if (ob->adt && ob->adt->action)
-		BKE_report(op->reports, RPT_WARNING, "Actions on this armature will be destroyed by this new rest pose as the transforms stored are relative to the old rest pose");
+		BKE_report(op->reports, RPT_WARNING,
+		           "Actions on this armature will be destroyed by this new rest pose as the "
+		           "transforms stored are relative to the old rest pose");
 
 	/* Get editbones of active armature to alter */
 	ED_armature_to_edit(ob);	
@@ -1591,7 +1593,8 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
-static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2], ListBase *edbo, int findunsel, int *selmask)
+static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
+                                           ListBase *edbo, int findunsel, int *selmask)
 {
 	EditBone *ebone;
 	rcti rect;
@@ -2556,7 +2559,8 @@ void updateDuplicateSubtarget(EditBone *dupBone, ListBase *editbones, Object *ob
 }
 
 
-EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
+EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase *editbones,
+                                   Object *src_ob, Object *dst_ob)
 {
 	EditBone *eBone = MEM_mallocN(sizeof(EditBone), "addup_editbone");
 	
@@ -3036,7 +3040,8 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	newbone->parent = start->parent;
 
 	/* TODO, copy more things to the new bone */
-	newbone->flag = start->flag & (BONE_HINGE | BONE_NO_DEFORM | BONE_NO_SCALE | BONE_NO_CYCLICOFFSET | BONE_NO_LOCAL_LOCATION | BONE_DONE);
+	newbone->flag = start->flag & (BONE_HINGE | BONE_NO_DEFORM | BONE_NO_SCALE |
+	                               BONE_NO_CYCLICOFFSET | BONE_NO_LOCAL_LOCATION | BONE_DONE);
 	
 	/* step 2a: reparent any side chains which may be parented to any bone in the chain of bones to merge 
 	 *	- potentially several tips for side chains leading to some tree exist...
@@ -4481,7 +4486,8 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 
 /* ***************** Pose tools ********************* */
 
-// XXX bone_looper is only to be used when we want to access settings (i.e. editability/visibility/selected) that context doesn't offer 
+/* XXX bone_looper is only to be used when we want to access settings
+ * (i.e. editability/visibility/selected) that context doesn't offer */
 static int bone_looper(Object *ob, Bone *bone, void *data,
                        int (*bone_func)(Object *, Bone *, void *))
 {
@@ -4511,7 +4517,8 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
-int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend, short deselect, short toggle)
+int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits,
+                            short extend, short deselect, short toggle)
 {
 	Object *ob = base->object;
 	Bone *nearBone;
@@ -4757,7 +4764,9 @@ static void add_vgroups__mapFunc(void *userData, int index, const float co[3],
 	copy_v3_v3(verts[index], co);
 }
 
-static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected, float scale)
+static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist,
+                                    bDeformGroup **dgrouplist, bDeformGroup **dgroupflip,
+                                    float (*root)[3], float (*tip)[3], int *selected, float scale)
 {
 	/* Create vertex group weights from envelopes */
 

@@ -3534,7 +3534,7 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 		/* flip = */ initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	}
 
-	if (ED_view3d_project_float_global(ar, fp, mval_fl, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_float_global(ar, fp, mval_fl, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 		short depth_used = FALSE;
 
 		if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */

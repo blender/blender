@@ -390,8 +390,8 @@ static BMEdge *vtx_slide_nrst_in_frame(VertexSlideOp *vso, const float mval[2])
 			mul_v3_m4v3(v2_proj, vso->obj->obmat, edge->v2->co);
 
 			/* we could use ED_view3d_project_float_object here, but for now dont since we dont have the context */
-			if ((ED_view3d_project_float_global(vso->active_region, v1_proj, v1_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) &&
-			    (ED_view3d_project_float_global(vso->active_region, v2_proj, v2_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS))
+			if ((ED_view3d_project_float_global(vso->active_region, v1_proj, v1_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
+			    (ED_view3d_project_float_global(vso->active_region, v2_proj, v2_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
 			{
 				const float dist = dist_to_line_segment_v2(mval, v1_proj, v2_proj);
 				if (dist < min_dist) {
@@ -458,8 +458,8 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 		mul_v3_m4v3(start_vtx_proj, vso->obj->obmat, vso->start_vtx->co);
 		mul_v3_m4v3(edge_other_proj, vso->obj->obmat, other->co);
 
-		if ((ED_view3d_project_float_global(vso->active_region, edge_other_proj, edge_other_proj, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) ||
-		    (ED_view3d_project_float_global(vso->active_region, start_vtx_proj, start_vtx_proj, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS))
+		if ((ED_view3d_project_float_global(vso->active_region, edge_other_proj, edge_other_proj, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) ||
+		    (ED_view3d_project_float_global(vso->active_region, start_vtx_proj, start_vtx_proj, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK))
 		{
 			/* not much we can do here */
 			return;

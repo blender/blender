@@ -279,7 +279,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			
 			/* method taken from editview.c - mouse_cursor() */
 			/* TODO, use ED_view3d_project_float_global */
-			if (ED_view3d_project_int_global(p->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+			if (ED_view3d_project_int_global(p->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 				VECSUB2D(mval_f, mval_prj, mval);
 				ED_view3d_win_to_delta(p->ar, mval_f, dvec);
 				sub_v3_v3v3(out, rvec, dvec);
@@ -395,8 +395,10 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure)
 			
 			pts = &gps->points[gps->totpoints - 1];
 			
-			/* special case for poly lines: normally, depth is needed only when creating new stroke from buffer,
-			 * but poly lines are converting to stroke instantly, so initialize depth buffer before converting coordinates 
+			/* special case for poly lines: normally,
+			 * depth is needed only when creating new stroke from buffer,
+			 * but poly lines are converting to stroke instantly,
+			 * so initialize depth buffer before converting coordinates
 			 */
 			if (gpencil_project_check(p)) {
 				View3D *v3d = p->sa->spacedata.first;
@@ -798,7 +800,7 @@ static void gp_point_to_xy(ARegion *ar, View2D *v2d, rctf *subrect, bGPDstroke *
 	int xyval[2];
 
 	if (gps->flag & GP_STROKE_3DSPACE) {
-		if (ED_view3d_project_int_global(ar, &pt->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_int_global(ar, &pt->x, xyval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 			*r_x = xyval[0];
 			*r_y = xyval[1];
 		}
@@ -1396,13 +1398,17 @@ static void gpencil_draw_status_indicators(tGPsdata *p)
 			/* print status info */
 			switch (p->paintmode) {
 				case GP_PAINTMODE_ERASER:
-					ED_area_headerprint(p->sa, "Grease Pencil Erase Session: Hold and drag LMB or RMB to erase | ESC/Enter to end");
+					ED_area_headerprint(p->sa,
+					                    "Grease Pencil Erase Session: Hold and drag LMB or RMB to erase |"
+					                    " ESC/Enter to end");
 					break;
 				case GP_PAINTMODE_DRAW_STRAIGHT:
-					ED_area_headerprint(p->sa, "Grease Pencil Line Session: Hold and drag LMB to draw | ESC/Enter to end");
+					ED_area_headerprint(p->sa, "Grease Pencil Line Session: Hold and drag LMB to draw | "
+					                    "ESC/Enter to end");
 					break;
 				case GP_PAINTMODE_DRAW:
-					ED_area_headerprint(p->sa, "Grease Pencil Freehand Session: Hold and drag LMB to draw | ESC/Enter to end");
+					ED_area_headerprint(p->sa, "Grease Pencil Freehand Session: Hold and drag LMB to draw | "
+					                    "ESC/Enter to end");
 					break;
 					
 				default: /* unhandled future cases */
@@ -1678,7 +1684,8 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	//printf("\t\tGP - start stroke\n");
 
 	/* we may need to set up paint env again if we're resuming */
-	/* XXX: watch it with the paintmode! in future, it'd be nice to allow changing paint-mode when in sketching-sessions */
+	/* XXX: watch it with the paintmode! in future,
+	 *      it'd be nice to allow changing paint-mode when in sketching-sessions */
 	/* XXX: with tablet events, we may event want to check for eraser here, for nicer tablet support */
 
 	if (gp_session_initdata(C, p))
@@ -1862,7 +1869,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 		
 		case OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH:
 			/* event doesn't need to be handled */
-			//printf("unhandled event -> %d (mmb? = %d | mmv? = %d)\n", event->type, event->type == MIDDLEMOUSE, event->type==MOUSEMOVE);
+#if 0
+			printf("unhandled event -> %d (mmb? = %d | mmv? = %d)\n",
+			       event->type, event->type == MIDDLEMOUSE, event->type==MOUSEMOVE);
+#endif
 			break;
 	}
 	

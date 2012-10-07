@@ -119,7 +119,7 @@ void  ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 
 /* return values for ED_view3d_project_...() */
 typedef enum {
-	V3D_PROJ_RET_SUCCESS   = 0,
+	V3D_PROJ_RET_OK   = 0,
 	V3D_PROJ_RET_CLIP_NEAR = 1,  /* can't avoid this when in perspective mode, (can't avoid) */
 	V3D_PROJ_RET_CLIP_BB   = 2,  /* bounding box clip - RV3D_CLIPPING */
 	V3D_PROJ_RET_CLIP_WIN  = 3,  /* outside window bounds */

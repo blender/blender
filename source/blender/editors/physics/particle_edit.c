@@ -411,7 +411,7 @@ static int key_test_depth(PEData *data, const float co[3], const int screen_co[2
 	/* used to calculate here but all callers have  the screen_co already, so pass as arg */
 #if 0
 	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co,
-	                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS)
+	                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK)
 	{
 		return 0;
 	}
@@ -448,7 +448,7 @@ static int key_inside_circle(PEData *data, float rad, const float co[3], float *
 	int screen_co[2];
 
 	/* TODO, should this check V3D_PROJ_TEST_CLIP_BB too? */
-	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK) {
 		return 0;
 	}
 
@@ -473,7 +473,7 @@ static int key_inside_rect(PEData *data, const float co[3])
 {
 	int screen_co[2];
 
-	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK) {
 		return 0;
 	}
 
@@ -1665,7 +1665,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, short
 			LOOP_KEYS {
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
-				if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS) &&
+				if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
 				    key_test_depth(&data, co, screen_co))
 				{
@@ -1685,7 +1685,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, short
 
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS) &&
+			if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
 			    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
 			    key_test_depth(&data, co, screen_co))
 			{
@@ -2797,7 +2797,7 @@ static void brush_cut(PEData *data, int pa_index)
 	if (edit->points[pa_index].flag & PEP_HIDE)
 		return;
 
-	if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS)
+	if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK)
 		return;
 
 	rad2= data->rad * data->rad;
@@ -2822,7 +2822,7 @@ static void brush_cut(PEData *data, int pa_index)
 		/* calculate path time closest to root that was inside the circle */
 		for (k=1, key++; k<=keys; k++, key++) {
 
-			if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) ||
+			if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) ||
 			    key_test_depth(data, key->co, screen_co) == 0)
 			{
 				x0 = (float)screen_co[0];

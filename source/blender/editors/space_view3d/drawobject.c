@@ -787,7 +787,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		                           (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
 		                           (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0,
 		                           vos->vec, vos->sco,
-		                           V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		                           V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 		{
 			tot++;
 		}
@@ -1885,7 +1885,7 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 		if (bp->hide == 0) {
 			int screen_co[2];
 			if (ED_view3d_project_int_object(vc->ar, dl ? co : bp->vec, screen_co,
-			                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_OK)
 			{
 				func(userData, bp, screen_co[0], screen_co[1]);
 			}
@@ -1995,7 +1995,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const flo
 		            V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN;
 		int screen_co[2];
 
-		if (ED_view3d_project_int_object(data->vc.ar, co, screen_co, flag) != V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_int_object(data->vc.ar, co, screen_co, flag) != V3D_PROJ_RET_OK) {
 			return;
 		}
 
@@ -2067,10 +2067,10 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 		            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN :
 		            V3D_PROJ_TEST_NOP;
 
-		if (ED_view3d_project_int_object(data->vc.ar, v0co, screen_co_a, flag) != V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_int_object(data->vc.ar, v0co, screen_co_a, flag) != V3D_PROJ_RET_OK) {
 			return;
 		}
-		if (ED_view3d_project_int_object(data->vc.ar, v1co, screen_co_b, flag) != V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_int_object(data->vc.ar, v1co, screen_co_b, flag) != V3D_PROJ_RET_OK) {
 			return;
 		}
 
@@ -2128,7 +2128,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		int screen_co[2];
 		if (ED_view3d_project_int_object(data->vc.ar, cent, screen_co,
-		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 		{
 			data->func(data->userData, efa, screen_co[0], screen_co[1], index);
 		}
@@ -2178,24 +2178,24 @@ void nurbs_foreachScreenVert(
 					
 					if (cu->drawflag & CU_HIDE_HANDLES) {
 						if (ED_view3d_project_int_object(vc->ar, bezt->vec[1], screen_co,
-						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_OK)
 						{
 							func(userData, nu, NULL, bezt, 1, screen_co[0], screen_co[1]);
 						}
 					}
 					else {
 						if (ED_view3d_project_int_object(vc->ar, bezt->vec[0], screen_co,
-						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_OK)
 						{
 							func(userData, nu, NULL, bezt, 0, screen_co[0], screen_co[1]);
 						}
 						if (ED_view3d_project_int_object(vc->ar, bezt->vec[1], screen_co,
-						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_OK)
 						{
 							func(userData, nu, NULL, bezt, 1, screen_co[0], screen_co[1]);
 						}
 						if (ED_view3d_project_int_object(vc->ar, bezt->vec[2], screen_co,
-						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_OK)
 						{
 							func(userData, nu, NULL, bezt, 2, screen_co[0], screen_co[1]);
 						}
@@ -2210,7 +2210,7 @@ void nurbs_foreachScreenVert(
 				if (bp->hide == 0) {
 					int screen_co[2];
 					if (ED_view3d_project_int_object(vc->ar, bp->vec, screen_co,
-					                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+					                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_OK)
 					{
 						func(userData, nu, bp, NULL, -1, screen_co[0], screen_co[1]);
 					}
@@ -2232,7 +2232,7 @@ void mball_foreachScreenElem(
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		int screen_co[2];
 		if (ED_view3d_project_int_object(vc->ar, &ml->x, screen_co,
-		                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 		{
 			func(userData, ml, screen_co[0], screen_co[1]);
 		}
@@ -2255,7 +2255,7 @@ void armature_foreachScreenBone(
 
 			/* project head location to screenspace */
 			if (ED_view3d_project_int_object(vc->ar, ebone->head, screen_co_a,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 			{
 				points_proj_tot++;
 			}
@@ -2266,7 +2266,7 @@ void armature_foreachScreenBone(
 
 			/* project tail location to screenspace */
 			if (ED_view3d_project_int_object(vc->ar, ebone->tail, screen_co_b,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 			{
 				points_proj_tot++;
 			}
@@ -2302,7 +2302,7 @@ void pose_foreachScreenBone(
 
 			/* project head location to screenspace */
 			if (ED_view3d_project_int_object(vc->ar, pchan->pose_head, screen_co_a,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 			{
 				points_proj_tot++;
 			}
@@ -2313,7 +2313,7 @@ void pose_foreachScreenBone(
 
 			/* project tail location to screenspace */
 			if (ED_view3d_project_int_object(vc->ar, pchan->pose_tail, screen_co_b,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 			{
 				points_proj_tot++;
 			}
