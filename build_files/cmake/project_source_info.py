@@ -85,7 +85,7 @@ def makefile_log():
     print("running make with --dry-run ...")
     process = subprocess.Popen(["make", "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
                                 stdout=subprocess.PIPE,
-                                )
+                               )
 
     while process.poll():
         time.sleep(1)

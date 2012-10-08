@@ -50,9 +50,9 @@ if builder.find('scons') != -1:
         install_dir = os.path.join('..', 'install', builder)
 
         scons_options += ['WITH_BF_NOBLENDER=True', 'WITH_BF_PLAYER=False',
-            'BF_BUILDDIR=' + build_dir,
-            'BF_INSTALLDIR=' + install_dir,
-            'WITHOUT_BF_INSTALL=True']
+                          'BF_BUILDDIR=' + build_dir,
+                          'BF_INSTALLDIR=' + install_dir,
+                          'WITHOUT_BF_INSTALL=True']
 
         config = None
         bits = None

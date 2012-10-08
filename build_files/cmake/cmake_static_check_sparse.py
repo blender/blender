@@ -48,7 +48,7 @@ def main():
                [c] +
                [("-I%s" % i) for i in inc_dirs] +
                [("-D%s" % d) for d in defs]
-              )
+               )
 
         check_commands.append((c, cmd))
 
