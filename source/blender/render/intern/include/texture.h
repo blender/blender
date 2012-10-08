@@ -76,7 +76,7 @@ void render_realtime_texture(struct ShadeInput *shi, struct Image *ima);
 
 /* imagetexture.h */
 
-int imagewraposa(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], const float dxt[3], const float dyt[3], struct TexResult *texres);
+int imagewraposa(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], const float dxt[2], const float dyt[2], struct TexResult *texres);
 int imagewrap(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], struct TexResult *texres);
 void image_sample(struct Image *ima, float fx, float fy, float dx, float dy, float result[4]);
 

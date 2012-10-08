@@ -1126,7 +1126,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 				if (MARKER_VISIBLE(sc, track, marker)) {
 					float npos[2];
-					copy_v4_v4(vec, track->bundle_pos);
+					copy_v3_v3(vec, track->bundle_pos);
 					vec[3] = 1;
 
 					mul_v4_m4v4(pos, mat, vec);

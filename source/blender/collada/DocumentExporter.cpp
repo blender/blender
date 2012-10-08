@@ -160,7 +160,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	clear_global_id_map();
 	
 	COLLADABU::NativeString native_filename =
-	    COLLADABU::NativeString(std::string(this->export_settings->filepath));
+	    COLLADABU::NativeString(std::string(this->export_settings->filepath), COLLADABU::NativeString::ENCODING_UTF8);
 	COLLADASW::StreamWriter sw(native_filename);
 
 	fprintf(stdout, "Collada export: %s\n", this->export_settings->filepath);

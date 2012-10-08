@@ -5928,8 +5928,8 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 
 	if (mb->editelems) {
 		if ((G.f & G_PICKSEL) == 0) {
-			unsigned char wire_col[3];
-			UI_GetThemeColor3ubv(TH_WIRE, wire_col);
+			unsigned char wire_col[4];
+			UI_GetThemeColor4ubv(TH_WIRE, wire_col);
 			glColor3ubv(wire_col);
 
 			drawDispList(scene, v3d, rv3d, base, dt, dflag, wire_col);

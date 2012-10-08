@@ -448,7 +448,7 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, int *dist, short sel, short stri
 }
 
 /* returns labda for closest distance v1 to line-piece v2 - v3 */
-float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3])
+float labda_PdistVL2Dfl(const float v1[2], const float v2[2], const float v3[2])
 {
 	float rc[2], len;
 	

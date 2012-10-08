@@ -1018,7 +1018,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 	
 }
 
-static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[3], float dyt[3], TexResult *texres)
+static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[2], float dyt[2], TexResult *texres)
 {
 	TexResult texr;
 	float fx, fy, minx, maxx, miny, maxy;
@@ -1412,17 +1412,17 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 }
 
 
-int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const float DXT[3], const float DYT[3], TexResult *texres)
+int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const float DXT[2], const float DYT[2], TexResult *texres)
 {
 	TexResult texr;
-	float fx, fy, minx, maxx, miny, maxy, dx, dy, dxt[3], dyt[3];
+	float fx, fy, minx, maxx, miny, maxy, dx, dy, dxt[2], dyt[2];
 	float maxd, pixsize, val1, val2, val3;
 	int curmap, retval, imaprepeat, imapextend;
 
 	/* TXF: since dxt/dyt might be modified here and since they might be needed after imagewraposa() call,
 	 * make a local copy here so that original vecs remain untouched */
-	copy_v3_v3(dxt, DXT);
-	copy_v3_v3(dyt, DYT);
+	copy_v2_v2(dxt, DXT);
+	copy_v2_v2(dyt, DYT);
 
 	/* anisotropic filtering */
 	if (tex->texfilter != TXF_BOX)

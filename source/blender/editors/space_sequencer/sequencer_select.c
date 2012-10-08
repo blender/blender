@@ -1109,7 +1109,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 
 	actseq->tmp = SET_INT_IN_POINTER(TRUE);
 
-	for (BKE_seqence_iterator_begin(ed, &iter, TRUE); iter.valid; BKE_seqence_iterator_next(&iter)) {
+	for (BKE_sequence_iterator_begin(ed, &iter, TRUE); iter.valid; BKE_sequence_iterator_next(&iter)) {
 		seq = iter.seq;
 
 		/* Ignore all seqs already selected! */
@@ -1137,8 +1137,8 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 			changed = TRUE;
 
 			/* Unfortunately, we must restart checks from the beginning. */
-			BKE_seqence_iterator_end(&iter);
-			BKE_seqence_iterator_begin(ed, &iter, TRUE);
+			BKE_sequence_iterator_end(&iter);
+			BKE_sequence_iterator_begin(ed, &iter, TRUE);
 		}
 
 		/* Video strips bellow active one, or any strip for audio (order do no matters here!). */
@@ -1147,7 +1147,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 			changed = TRUE;
 		}
 	}
-	BKE_seqence_iterator_end(&iter);
+	BKE_sequence_iterator_end(&iter);
 
 	return changed;
 }

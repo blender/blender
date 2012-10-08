@@ -3129,6 +3129,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 				break;
 			case KNF_MODAL_CUT_THROUGH_TOGGLE:
 				kcd->cut_through = !kcd->cut_through;
+				knifetool_update_mval(kcd, event->mval);  /* refresh knife path */
 				knife_update_header(C, kcd);
 				break;
 			case KNF_MODAL_NEW_CUT:

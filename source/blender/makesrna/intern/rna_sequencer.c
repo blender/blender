@@ -405,7 +405,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy_utf8(seq->name + 2, value, sizeof(seq->name) - 2);
 	
 	/* make sure the name is unique */
-	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 	
 	/* fix all the animation data which may link to this */
 

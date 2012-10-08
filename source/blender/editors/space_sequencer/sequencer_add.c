@@ -242,7 +242,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	strip->us = 1;
 	
 	BLI_strncpy(seq->name + 2, sce_seq->id.name + 2, sizeof(seq->name) - 2);
-	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
 
 	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
 
@@ -343,7 +343,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	strip->us = 1;
 	
 	BLI_strncpy(seq->name + 2, clip->id.name + 2, sizeof(seq->name) - 2);
-	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
 
 	BKE_sequence_calc_disp(scene, seq);
 	BKE_sequencer_sort(scene);
@@ -439,7 +439,7 @@ static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
 	strip->us = 1;
 
 	BLI_strncpy(seq->name + 2, mask->id.name + 2, sizeof(seq->name) - 2);
-	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
 
 	BKE_sequence_calc_disp(scene, seq);
 	BKE_sequencer_sort(scene);
@@ -820,7 +820,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	seq->type = type;
 
 	BLI_strncpy(seq->name + 2, BKE_sequence_give_name(seq), sizeof(seq->name) - 2);
-	BKE_seqence_base_unique_name_recursive(&ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&ed->seqbase, seq);
 
 	sh = BKE_sequence_get_effect(seq);
 

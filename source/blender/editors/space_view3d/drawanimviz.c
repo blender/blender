@@ -107,11 +107,6 @@ void draw_motion_path_instance(Scene *scene,
 	 * - abort if whole range is past ends of path
 	 * - otherwise clamp endpoints to extents of path
 	 */
-	if ((sfra > mpath->end_frame) || (efra < mpath->start_frame)) {
-		/* whole path is out of bounds */
-		return;
-	}
-	
 	if (sfra < mpath->start_frame) {
 		/* start clamp */
 		sfra = mpath->start_frame;
@@ -121,9 +116,14 @@ void draw_motion_path_instance(Scene *scene,
 		efra = mpath->end_frame;
 	}
 	
+	if ((sfra > mpath->end_frame) || (efra < mpath->start_frame)) {
+		/* whole path is out of bounds */
+		return;
+	}
+	
 	len = efra - sfra;
 	
-	if (len <= 0) {
+	if ((len <= 0) || (mpath->points == NULL)) {
 		return;
 	}
 	
@@ -180,7 +180,7 @@ void draw_motion_path_instance(Scene *scene,
 			UI_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
 		}	
 		
-		/* draw a vertex with this color */ 
+		/* draw a vertex with this color */
 		glVertex3fv(mpv->co);
 	}
 	
@@ -230,7 +230,7 @@ void draw_motion_path_instance(Scene *scene,
 		unsigned char col[4];
 		UI_GetThemeColor3ubv(TH_TEXT_HI, col);
 		col[3] = 255;
-
+		
 		for (i = 0, mpv = mpv_start; i < len; i += stepsize, mpv += stepsize) {
 			char numstr[32];
 			float co[3];

@@ -64,29 +64,29 @@ typedef struct SeqIterator {
 	int valid;
 } SeqIterator;
 
-void BKE_seqence_iterator_begin(struct Editing *ed, SeqIterator *iter, int use_pointer);
-void BKE_seqence_iterator_next(SeqIterator *iter);
-void BKE_seqence_iterator_end(SeqIterator *iter);
+void BKE_sequence_iterator_begin(struct Editing *ed, SeqIterator *iter, int use_pointer);
+void BKE_sequence_iterator_next(SeqIterator *iter);
+void BKE_sequence_iterator_end(SeqIterator *iter);
 
 #define SEQP_BEGIN(ed, _seq)                                                  \
 	{                                                                         \
 		SeqIterator iter;                                                     \
-		for (BKE_seqence_iterator_begin(ed, &iter, 1);                        \
+		for (BKE_sequence_iterator_begin(ed, &iter, 1);                       \
 		     iter.valid;                                                      \
-		     BKE_seqence_iterator_next(&iter)) {                              \
+		     BKE_sequence_iterator_next(&iter)) {                             \
 			_seq = iter.seq;
 			
 #define SEQ_BEGIN(ed, _seq)                                                   \
 	{                                                                         \
 		SeqIterator iter;                                                     \
-		for (BKE_seqence_iterator_begin(ed, &iter, 0);                        \
+		for (BKE_sequence_iterator_begin(ed, &iter, 0);                       \
 		     iter.valid;                                                      \
-		     BKE_seqence_iterator_next(&iter)) {                              \
+		     BKE_sequence_iterator_next(&iter)) {                             \
 			_seq = iter.seq;
 
 #define SEQ_END                                                               \
 		}                                                                     \
-		BKE_seqence_iterator_end(&iter);                                      \
+		BKE_sequence_iterator_end(&iter);                                     \
 	}
 
 typedef struct SeqRenderData {
@@ -307,7 +307,7 @@ int BKE_sequence_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char
 
 int BKE_sequence_check_depend(struct Sequence *seq, struct Sequence *cur);
 void BKE_sequence_invalidate_cache(struct Scene *scene, struct Sequence *seq);
-void BKE_sequence_invalidate_deendent(struct Scene *scene, struct Sequence *seq);
+void BKE_sequence_invalidate_dependent(struct Scene *scene, struct Sequence *seq);
 void BKE_sequence_invalidate_cache_for_modifier(struct Scene *scene, struct Sequence *seq);
 
 void BKE_sequencer_update_sound_bounds_all(struct Scene *scene);
@@ -315,9 +315,9 @@ void BKE_sequencer_update_sound_bounds(struct Scene *scene, struct Sequence *seq
 void BKE_sequencer_update_muting(struct Editing *ed);
 void BKE_sequencer_update_sound(struct Scene *scene, struct bSound *sound);
 
-void BKE_seqence_base_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
+void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void BKE_sequence_base_dupli_recursive(struct Scene *scene, struct Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);
-int  BKE_seqence_is_valid_check(struct Sequence *seq);
+int  BKE_sequence_is_valid_check(struct Sequence *seq);
 
 void BKE_sequencer_clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
 

@@ -2388,7 +2388,7 @@ int BKE_mball_center_bounds(MetaBall *mb, float r_cent[3])
 	return 0;
 }
 
-void BKE_mball_translate(MetaBall *mb, float offset[3])
+void BKE_mball_translate(MetaBall *mb, const float offset[3])
 {
 	MetaElem *ml;
 

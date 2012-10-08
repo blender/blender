@@ -57,7 +57,7 @@
 
 /* helper to find edge for edge_rip */
 static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
-                                   const float co1[3], const float co2[2], const float mvalf[2])
+                                   const float co1[3], const float co2[3], const float mvalf[2])
 {
 	float vec1[3], vec2[3];
 
