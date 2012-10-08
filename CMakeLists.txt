@@ -206,6 +206,7 @@ option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering" ON)
 
 # Audio/Video format support
+option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)" ON)
 option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
@@ -2123,6 +2124,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_OPENAL)
 	info_cfg_option(WITH_SDL)
 	info_cfg_option(WITH_JACK)
+	info_cfg_option(WITH_CODEC_AVI)
 	info_cfg_option(WITH_CODEC_FFMPEG)
 	info_cfg_option(WITH_CODEC_SNDFILE)
 

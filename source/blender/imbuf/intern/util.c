@@ -211,7 +211,12 @@ int IMB_ispic(const char *filename)
 
 static int isavi(const char *name)
 {
+#ifdef WITH_AVI
 	return AVI_is_avi(name);
+#else
+	(void)name;
+	return FALSE;
+#endif
 }
 
 #ifdef WITH_QUICKTIME

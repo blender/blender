@@ -25,7 +25,6 @@
 
 set(INC
 	.
-	../avi
 	../blenfont
 	../blenlib
 	../blenloader
@@ -290,6 +289,13 @@ endif()
 
 if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
+endif()
+
+if(WITH_CODEC_AVI)
+	list(APPEND INC
+		../avi
+	)
+	add_definitions(-DWITH_AVI)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
