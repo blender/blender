@@ -1324,7 +1324,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "BackgroundImage", NULL);
 	RNA_def_struct_sdna(srna, "BGpic");
-	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background");
+	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3D View background");
 
 	prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "source");

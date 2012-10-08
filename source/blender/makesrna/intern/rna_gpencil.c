@@ -312,9 +312,9 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
 
 	static EnumPropertyItem stroke_draw_mode_items[] = {
 		{0, "SCREEN", 0, "Screen", "Stroke is in screen-space"},
-		{GP_STROKE_3DSPACE, "3DSPACE", 0, "3d Space", "Stroke is in 3d-space"},
-		{GP_STROKE_2DSPACE, "2DSPACE", 0, "2d Space", "stroke is in 2d-space"},
-		{GP_STROKE_2DIMAGE, "2DIMAGE", 0, "2d Image", "Stroke is in 2d-space (but with special 'image' scaling)"},
+		{GP_STROKE_3DSPACE, "3DSPACE", 0, "3D Space", "Stroke is in 3D-space"},
+		{GP_STROKE_2DSPACE, "2DSPACE", 0, "2D Space", "Stroke is in 2D-space"},
+		{GP_STROKE_2DIMAGE, "2DIMAGE", 0, "2D Image", "Stroke is in 2D-space (but with special 'image' scaling)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	

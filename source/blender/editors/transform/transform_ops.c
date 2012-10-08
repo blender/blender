@@ -634,8 +634,8 @@ static void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 	ot->name = "Tilt";
 	/* optionals - 
 	 * "Tilt selected vertices"
-	 * "Specify an extra axis rotation for selected vertices of 3d curve" */
-	ot->description = "Tilt selected control vertices of 3d curve"; 
+	 * "Specify an extra axis rotation for selected vertices of 3D curve" */
+	ot->description = "Tilt selected control vertices of 3D curve"; 
 	ot->idname = OP_TILT;
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 

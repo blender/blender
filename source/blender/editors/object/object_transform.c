@@ -962,8 +962,10 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_set_center_types[] = {
 		{GEOMETRY_TO_ORIGIN, "GEOMETRY_ORIGIN", 0, "Geometry to Origin", "Move object geometry to object origin"},
-		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry", "Move object origin to center of object geometry"},
-		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor", "Move object origin to position of the 3d cursor"},
+		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry",
+		                     "Move object origin to center of object geometry"},
+		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor",
+		                   "Move object origin to position of the 3D cursor"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -975,7 +977,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name = "Set Origin";
-	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor";
+	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3D cursor";
 	ot->idname = "OBJECT_OT_origin_set";
 	
 	/* api callbacks */

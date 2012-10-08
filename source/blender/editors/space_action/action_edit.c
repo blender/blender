@@ -1372,7 +1372,7 @@ static EnumPropertyItem prop_actkeys_snap_types[] = {
 	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", 
 	 "Snap selected keyframes to the current frame"},
 	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", 
-	 "Snap selected keyframes to the nearest (whole) frame. Use to fix accidental sub-frame offsets"},
+	 "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame offsets)"},
 	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", 
 	 "Snap selected keyframes to the nearest second"},
 	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", 

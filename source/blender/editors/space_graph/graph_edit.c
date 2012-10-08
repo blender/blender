@@ -1829,7 +1829,7 @@ static EnumPropertyItem prop_graphkeys_snap_types[] = {
 	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value", 
 	 "Set values of selected keyframes to the cursor value (Y/Horizontal component)"},
 	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", 
-	 "Snap selected keyframes to the nearest (whole) frame. Use to fix accidental sub-frame offsets"},
+	 "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame offsets)"},
 	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", 
 	 "Snap selected keyframes to the nearest second"},
 	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", 
