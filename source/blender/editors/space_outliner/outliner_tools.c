@@ -1160,37 +1160,49 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 	event = RNA_enum_get(op->ptr, "type");
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 	
-	if (datalevel == TSE_POSE_CHANNEL) {
-		if (event > 0) {
+	if (event <= 0)
+		return OPERATOR_CANCELLED;
+	
+	switch (datalevel) {
+		case TSE_POSE_CHANNEL:
+		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "PoseChannel operation");
 		}
-	}
-	else if (datalevel == TSE_BONE) {
-		if (event > 0) {
+			break;
+		
+		case TSE_BONE:
+		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "Bone operation");
 		}
-	}
-	else if (datalevel == TSE_EBONE) {
-		if (event > 0) {
+			break;
+			
+		case TSE_EBONE:
+		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "EditBone operation");
 		}
-	}
-	else if (datalevel == TSE_SEQUENCE) {
-		if (event > 0) {
+			break;
+			
+		case TSE_SEQUENCE:
+		{
 			Scene *scene = CTX_data_scene(C);
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb, scene);
 		}
-	}
-	else if (datalevel == TSE_RNA_STRUCT) {
-		if (event == 5) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, data_select_linked_cb, C);
-		}
+			break;
+			
+		case TSE_RNA_STRUCT:
+			if (event == 5) {
+				outliner_do_data_operation(soops, datalevel, event, &soops->tree, data_select_linked_cb, C);
+			}
+			break;
+			
+		default:
+			break;
 	}
 	
 	return OPERATOR_FINISHED;
