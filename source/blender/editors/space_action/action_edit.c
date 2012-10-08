@@ -1480,7 +1480,7 @@ static EnumPropertyItem prop_actkeys_mirror_types[] = {
 	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", 
 	 "Flip times of selected keyframes using the current frame as the mirror line"},
 	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", 
-	 "Flip values of selected keyframes (i.e. negative values become positive, and vica versa)"},
+	 "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"},
 	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", 
 	 "Flip times of selected keyframes using the first selected marker as the reference point"},
 	{0, NULL, 0, NULL, NULL}

@@ -1941,11 +1941,11 @@ static EnumPropertyItem prop_graphkeys_mirror_types[] = {
 	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame", 
 	 "Flip times of selected keyframes using the current frame as the mirror line"},
 	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value", 
-	 "Flip values of selectd keyframes using the cursor value (Y/Horizontal component) as the mirror line"},
+	 "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"},
 	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", 
 	 "Flip times of selected keyframes, effectively reversing the order they appear in"},
 	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", 
-	 "Flip values of selected keyframes (i.e. negative values become positive, and vica versa)"},
+	 "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"},
 	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", 
 	 "Flip times of selected keyframes using the first selected marker as the reference point"},
 	{0, NULL, 0, NULL, NULL}
