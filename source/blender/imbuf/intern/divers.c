@@ -43,6 +43,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
+#include "BLI_threads.h"
+
 #include "MEM_guardedalloc.h"
 
 /**************************** Interlace/Deinterlace **************************/
@@ -599,9 +601,18 @@ void IMB_float_from_rect(ImBuf *ibuf)
 	if (ibuf->rect == NULL)
 		return;
 
+	/* lock the color management thread
+	 * need this because allocated but not filled float buffer will confuse
+	 * display transform which lead to black areas across the frame
+	 */
+	BLI_lock_thread(LOCK_COLORMANAGE);
+
 	if (ibuf->rect_float == NULL) {
-		if (imb_addrectfloatImBuf(ibuf) == 0)
+		if (imb_addrectfloatImBuf(ibuf) == 0) {
+			BLI_unlock_thread(LOCK_COLORMANAGE);
+
 			return;
+		}
 	}
 
 	/* first, create float buffer in non-linear space */
@@ -611,6 +622,8 @@ void IMB_float_from_rect(ImBuf *ibuf)
 	/* then make float be in linear space */
 	IMB_colormanagement_colorspace_to_scene_linear(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
 	                                               ibuf->rect_colorspace, predivide);
+
+	BLI_unlock_thread(LOCK_COLORMANAGE);
 }
 
 /* no profile conversion */

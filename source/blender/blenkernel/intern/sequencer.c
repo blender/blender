@@ -1965,13 +1965,16 @@ static ImBuf *copy_from_ibuf_still(SeqRenderData context, Sequence *seq, float n
 
 static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr, ImBuf *ibuf)
 {
+	/* warning: ibuf may be NULL if the video fails to load */
 	if (nr == 0 || nr == seq->len - 1) {
 		/* we have to store a copy, since the passed ibuf
 		 * could be preprocessed afterwards (thereby silently
 		 * changing the cached image... */
 		ibuf = IMB_dupImBuf(ibuf);
 
-		sequencer_imbuf_assign_spaces(context.scene, ibuf);
+		if (ibuf) {
+			sequencer_imbuf_assign_spaces(context.scene, ibuf);
+		}
 
 		if (nr == 0) {
 			BKE_sequencer_cache_put(context, seq, seq->start, SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);

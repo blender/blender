@@ -2111,6 +2111,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		/* note; the way it gets 32 bits rects is weak... */
 		if (ibuf->rect == NULL) {
 			ibuf->rect = MEM_mapallocN(sizeof(int) * rres.rectx * rres.recty, "temp 32 bits rect");
+			ibuf->mall |= IB_rect;
 			RE_ResultGet32(re, ibuf->rect);
 			do_free = TRUE;
 		}
@@ -2124,6 +2125,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		if (do_free) {
 			MEM_freeN(ibuf->rect);
 			ibuf->rect = NULL;
+			ibuf->mall &= ~IB_rect;
 		}
 
 		/* imbuf knows which rects are not part of ibuf */

@@ -2,18 +2,18 @@
 
 Import('env')
 
-sources = env.Glob('*.cpp')
+sources = env.Glob('*.cc')
 
 incs = '. ../guardedalloc ../../source/blender/blenlib'
+defs = []
 
 if env['WITH_BF_OCIO']:
-    sources.remove('ocio_capi_stub.cpp')
-
+    defs.append('WITH_OCIO')
     incs += ' ' + env['BF_OCIO_INC']
 
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
         incs += ' ' + env['BF_BOOST_INC']
 else:
-    sources.remove('ocio_capi.cpp')
+    sources.remove('ocio_impl.cc')
 
-env.BlenderLib( 'bf_intern_opencolorio', sources, Split(incs), [], libtype=['extern','player'], priority=[10, 185])
+env.BlenderLib( 'bf_intern_opencolorio', sources, Split(incs), defs, libtype=['extern','player'], priority=[10, 185])

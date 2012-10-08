@@ -96,6 +96,8 @@ void   BLI_file_free_lines(struct LinkNode *lines);
 #  ifndef O_BINARY
 #    define O_BINARY 0
 #  endif
+#else
+void BLI_get_short_name(char short_name[256], const char *filename);
 #endif
 
 #ifdef __cplusplus

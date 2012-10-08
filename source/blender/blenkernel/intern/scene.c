@@ -54,6 +54,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
+#include "BLI_string.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -175,6 +176,9 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		BKE_color_managed_display_settings_copy(&scen->display_settings, &sce->display_settings);
 		BKE_color_managed_view_settings_copy(&scen->view_settings, &sce->view_settings);
 		BKE_color_managed_view_settings_copy(&scen->r.im_format.view_settings, &sce->r.im_format.view_settings);
+
+		BLI_strncpy(scen->sequencer_colorspace_settings.name, sce->sequencer_colorspace_settings.name,
+		            sizeof(scen->sequencer_colorspace_settings.name));
 	}
 
 	/* tool settings */
@@ -350,6 +354,7 @@ Scene *BKE_scene_add(const char *name)
 	Scene *sce;
 	ParticleEditSettings *pset;
 	int a;
+	const char *colorspace_name;
 
 	sce = BKE_libblock_alloc(&bmain->scene, ID_SCE, name);
 	sce->lay = sce->layact = 1;
@@ -563,8 +568,13 @@ Scene *BKE_scene_add(const char *name)
 
 	sound_create_scene(sce);
 
+	/* color management */
+	colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
+
 	BKE_color_managed_display_settings_init(&sce->display_settings);
 	BKE_color_managed_view_settings_init(&sce->view_settings);
+	BLI_strncpy(sce->sequencer_colorspace_settings.name, colorspace_name,
+	            sizeof(sce->sequencer_colorspace_settings.name));
 
 	return sce;
 }

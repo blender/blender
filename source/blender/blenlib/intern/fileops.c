@@ -210,6 +210,22 @@ FILE *BLI_fopen(const char *filename, const char *mode)
 	return ufopen(filename, mode);
 }
 
+void BLI_get_short_name(char short_name[256], const char *filename)
+{
+	wchar_t short_name_16[256];
+	int i = 0;
+
+	UTF16_ENCODE(filename);
+
+	GetShortPathNameW(filename_16, short_name_16, 256);
+
+	for (i = 0; i < 256; i++) {
+		short_name[i] = (char)short_name_16[i];
+	}
+
+	UTF16_UN_ENCODE(filename);
+}
+
 void *BLI_gzopen(const char *filename, const char *mode)
 {
 	gzFile gzfile;
@@ -218,25 +234,15 @@ void *BLI_gzopen(const char *filename, const char *mode)
 		return 0;
 	}
 	else {
-		wchar_t short_name_16[256];
 		char short_name[256];
-		int i = 0;
 
 		/* xxx Creates file before transcribing the path */
 		if (mode[0] == 'w')
 			fclose(ufopen(filename, "a"));
 
-		UTF16_ENCODE(filename);
-
-		GetShortPathNameW(filename_16, short_name_16, 256);
-
-		for (i = 0; i < 256; i++) {
-			short_name[i] = (char)short_name_16[i];
-		}
+		BLI_get_short_name(short_name, filename);
 
 		gzfile = gzopen(short_name, mode);
-
-		UTF16_UN_ENCODE(filename);
 	}
 
 	return gzfile;
