@@ -223,8 +223,8 @@ class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
         layout.separator()
 
         obj = context.object
-        if (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and
-            obj.data.draw_type in {'BBONE', 'ENVELOPE'}):
+        if     (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and
+                obj.data.draw_type in {'BBONE', 'ENVELOPE'}):
             layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
 
         if context.edit_object and context.edit_object.type == 'ARMATURE':
@@ -580,7 +580,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.separator()
 
         layout.operator("mesh.select_by_number_vertices", text="By Number of Verts")
-        if context.scene.tool_settings.mesh_select_mode[2] == False:
+        if context.scene.tool_settings.mesh_select_mode[2] is False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
         layout.operator("mesh.select_loose_verts", text="Loose Verts/Edges")
         layout.operator_menu_enum("mesh.select_similar", "type", text="Similar")
@@ -2282,7 +2282,7 @@ class VIEW3D_PT_view3d_properties(Panel):
             if lock_object.type == 'ARMATURE':
                 col.prop_search(view, "lock_bone", lock_object.data,
                                 "edit_bones" if lock_object.mode == 'EDIT'
-                                             else "bones",
+                                else "bones",
                                 text="")
         else:
             col.prop(view, "lock_cursor", text="Lock to Cursor")

@@ -111,8 +111,14 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
         engine = context.scene.render.engine
         if not (hasattr(context, "texture_slot") or hasattr(context, "texture_node")):
             return False
-        return ((context.material or context.world or context.lamp or context.brush or context.texture or context.particle_system or isinstance(context.space_data.pin_id, ParticleSettings))
-            and (engine in cls.COMPAT_ENGINES))
+        return ((context.material or
+                 context.world or
+                 context.lamp or
+                 context.brush or
+                 context.texture or
+                 context.particle_system or
+                 isinstance(context.space_data.pin_id, ParticleSettings)) and
+                (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout

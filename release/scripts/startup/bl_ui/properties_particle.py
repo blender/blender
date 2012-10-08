@@ -21,12 +21,11 @@ import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
-from bl_ui.properties_physics_common import (
-    point_cache_ui,
-    effector_weights_ui,
-    basic_force_field_settings_ui,
-    basic_force_field_falloff_ui,
-    )
+from bl_ui.properties_physics_common import (point_cache_ui,
+                                             effector_weights_ui,
+                                             basic_force_field_settings_ui,
+                                             basic_force_field_falloff_ui,
+                                             )
 
 
 def particle_panel_enabled(context, psys):
@@ -52,7 +51,7 @@ def particle_panel_poll(cls, context):
     if not settings:
         return False
 
-    return settings.is_fluid == False and (engine in cls.COMPAT_ENGINES)
+    return settings.is_fluid is False and (engine in cls.COMPAT_ENGINES)
 
 
 def particle_get_settings(context):
@@ -133,13 +132,13 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             split = layout.split(percentage=0.32)
             col = split.column()
             col.label(text="Name:")
-            if part.is_fluid == False:
+            if part.is_fluid is False:
                 col.label(text="Settings:")
                 col.label(text="Type:")
 
             col = split.column()
             col.prop(psys, "name", text="")
-            if part.is_fluid == False:
+            if part.is_fluid is False:
                 row = col.row()
                 row.enabled = particle_panel_enabled(context, psys)
                 row.template_ID(psys, "settings", new="particle.new")
@@ -279,7 +278,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
 
         cloth = psys.cloth.settings
 
-        layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked == False
+        layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
 
         split = layout.split()
 
@@ -813,7 +812,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             sub.active = (part.use_strand_primitive is False)
             sub.prop(part, "use_render_adaptive")
             sub = col.column()
-            sub.active = part.use_render_adaptive or part.use_strand_primitive == True
+            sub.active = part.use_render_adaptive or part.use_strand_primitive is True
             sub.prop(part, "adaptive_angle")
             sub = col.column()
             sub.active = (part.use_render_adaptive is True and part.use_strand_primitive is False)
@@ -831,9 +830,9 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             row = layout.row()
             col = row.column()
 
-            if part.type == 'HAIR' and part.use_strand_primitive == True and part.child_type == 'INTERPOLATED':
+            if part.type == 'HAIR' and part.use_strand_primitive is True and part.child_type == 'INTERPOLATED':
                 layout.prop(part, "use_simplify")
-                if part.use_simplify == True:
+                if part.use_simplify is True:
                     row = layout.row()
                     row.prop(part, "simplify_refsize")
                     row.prop(part, "simplify_rate")
@@ -841,7 +840,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
                     row = layout.row()
                     row.prop(part, "use_simplify_viewport")
                     sub = row.row()
-                    sub.active = part.use_simplify_viewport == True
+                    sub.active = part.use_simplify_viewport is True
                     sub.prop(part, "simplify_viewport")
 
         elif part.render_type == 'OBJECT':
@@ -988,11 +987,11 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
 
         if part.draw_percentage != 100 and psys is not None:
             if part.type == 'HAIR':
-                if psys.use_hair_dynamics and psys.point_cache.is_baked == False:
+                if psys.use_hair_dynamics and psys.point_cache.is_baked is False:
                     layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
             else:
                 phystype = part.physics_type
-                if phystype != 'NO' and phystype != 'KEYED' and psys.point_cache.is_baked == False:
+                if phystype != 'NO' and phystype != 'KEYED' and psys.point_cache.is_baked is False:
                     layout.row().label(text="Display percentage makes dynamics inaccurate without baking!")
 
         row = layout.row()

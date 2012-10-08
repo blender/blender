@@ -129,6 +129,6 @@ class ConsoleLanguage(Operator):
 
         # insert a new blank line
         bpy.ops.console.history_append(text="", current_character=0,
-            remove_duplicates=True)
+                                       remove_duplicates=True)
 
         return {'FINISHED'}

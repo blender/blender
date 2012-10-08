@@ -160,7 +160,7 @@ if __name__ == "__main__":
     from bpyml_test import *
 
     draw = [
-         ui()[
+        ui()[
             split()[
                 column()[
                     prop(data='context.scene.render', property='use_stamp_time', text='Time'),

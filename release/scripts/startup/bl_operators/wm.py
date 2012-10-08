@@ -608,9 +608,9 @@ class WM_OT_context_collection_boolean_set(Operator):
             except:
                 continue
 
-            if value_orig == True:
+            if value_orig is True:
                 is_set = True
-            elif value_orig == False:
+            elif value_orig is False:
                 pass
             else:
                 self.report({'WARNING'}, "Non boolean value found: %s[ ].%s" %
@@ -1583,7 +1583,7 @@ class WM_OT_addon_enable(Operator):
                                           "version %d.%d.%d and might not "
                                           "function (correctly), "
                                           "though it is enabled") %
-                                         info_ver)
+                                          info_ver)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}

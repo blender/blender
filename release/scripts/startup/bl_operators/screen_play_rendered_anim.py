@@ -89,7 +89,7 @@ class PlayRenderedAnim(Operator):
         if player_path == "":
             player_path = guess_player_path(preset)
 
-        if is_movie == False and preset in {'FRAMECYCLER', 'RV', 'MPLAYER'}:
+        if is_movie is False and preset in {'FRAMECYCLER', 'RV', 'MPLAYER'}:
             # replace the number with '#'
             file_a = rd.frame_path(frame=0)
 

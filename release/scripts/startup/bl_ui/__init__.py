@@ -95,7 +95,7 @@ def register():
         items = [('All', "All", ""),
                  ('Enabled', "Enabled", ""),
                  ('Disabled', "Disabled", ""),
-                ]
+                 ]
 
         items_unique = set()
 
@@ -120,7 +120,7 @@ def register():
             items=[('OFFICIAL', "Official", "Officially supported"),
                    ('COMMUNITY', "Community", "Maintained by community developers"),
                    ('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)"),
-                  ],
+                   ],
             name="Support",
             description="Display support level",
             default={'OFFICIAL', 'COMMUNITY'},

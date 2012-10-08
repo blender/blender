@@ -20,10 +20,8 @@
 import bpy
 from bpy.types import Menu, Panel
 
-from bl_ui.properties_physics_common import (
-    point_cache_ui,
-    effector_weights_ui,
-    )
+from bl_ui.properties_physics_common import (point_cache_ui,
+                                             effector_weights_ui)
 
 
 def cloth_panel_enabled(md):
@@ -178,7 +176,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
         ob = context.object
         cloth = context.cloth.settings
 
-        layout.active = cloth.use_stiffness_scale	and cloth_panel_enabled(md)
+        layout.active = (cloth.use_stiffness_scale and cloth_panel_enabled(md))
 
         split = layout.split()
 

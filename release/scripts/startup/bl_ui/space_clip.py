@@ -942,7 +942,7 @@ class CLIP_MT_track(Menu):
         props.action = 'UPTO'
 
         props = layout.operator("clip.clear_track_path",
-            text="Clear Track Path")
+                                text="Clear Track Path")
         props.action = 'ALL'
 
         layout.separator()
@@ -957,7 +957,7 @@ class CLIP_MT_track(Menu):
 
         layout.separator()
         props = layout.operator("clip.track_markers",
-            text="Track Frame Backwards")
+                                text="Track Frame Backwards")
         props.backwards = True
 
         props = layout.operator("clip.track_markers", text="Track Backwards")

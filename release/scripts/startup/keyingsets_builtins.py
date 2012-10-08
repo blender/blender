@@ -360,10 +360,10 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
         # add rotation properties if they will
         if bone.lock_rotations_4d:
             # can check individually
-            if (bone.lock_rotation == (False, False, False)) and (bone.lock_rotation_w == False):
+            if (bone.lock_rotation == (False, False, False)) and (bone.lock_rotation_w is False):
                 ksi.addProp(ks, bone, prop)
             else:
-                if bone.lock_rotation_w == False:
+                if bone.lock_rotation_w is False:
                     ksi.addProp(ks, bone, prop, 0)  # w = 0
 
                 for i in range(3):

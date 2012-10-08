@@ -397,7 +397,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = layout.column()
 
-        if md.use_mirror_merge == True:
+        if md.use_mirror_merge is True:
             col.prop(md, "merge_threshold")
         col.label(text="Mirror Object:")
         col.prop(md, "mirror_object", text="")
@@ -559,7 +559,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         row = col.row()
-        row.active = (md.object is None or md.use_object_screw_offset == False)
+        row.active = (md.object is None or md.use_object_screw_offset is False)
         row.prop(md, "screw_offset")
         row = col.row()
         row.active = (md.object is not None)
