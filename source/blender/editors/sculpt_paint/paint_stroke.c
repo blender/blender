@@ -139,13 +139,13 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 }
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
-static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse_in[2])
+static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, const float mouse_in[2])
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = paint_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = op->customdata;
-	float mouse[3];
+	float mouse_out[2];
 	PointerRNA itemptr;
 	float location[3];
 	float pressure;
@@ -159,24 +159,24 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	if (stroke->vc.obact->sculpt) {
 		float delta[2];
 
-		BKE_brush_jitter_pos(scene, brush, mouse_in, mouse);
+		BKE_brush_jitter_pos(scene, brush, mouse_in, mouse_out);
 
 		/* XXX: meh, this is round about because
 		 * BKE_brush_jitter_pos isn't written in the best way to
 		 * be reused here */
 		if (brush->flag & BRUSH_JITTER_PRESSURE) {
-			sub_v2_v2v2(delta, mouse, mouse_in);
+			sub_v2_v2v2(delta, mouse_out, mouse_in);
 			mul_v2_fl(delta, pressure);
-			add_v2_v2v2(mouse, mouse_in, delta);
+			add_v2_v2v2(mouse_out, mouse_in, delta);
 		}
 	}
 	else {
-		copy_v2_v2(mouse, mouse_in);
+		copy_v2_v2(mouse_out, mouse_in);
 	}
 
 	/* TODO: can remove the if statement once all modes have this */
 	if (stroke->get_location)
-		stroke->get_location(C, location, mouse);
+		stroke->get_location(C, location, mouse_out);
 	else
 		zero_v3(location);
 
@@ -184,12 +184,11 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
 	RNA_float_set_array(&itemptr, "location", location);
-	RNA_float_set_array(&itemptr, "mouse", mouse);
+	RNA_float_set_array(&itemptr, "mouse", mouse_out);
 	RNA_boolean_set(&itemptr, "pen_flip", pen_flip);
 	RNA_float_set(&itemptr, "pressure", pressure);
 
-	stroke->last_mouse_position[0] = mouse[0];
-	stroke->last_mouse_position[1] = mouse[1];
+	copy_v2_v2(stroke->last_mouse_position, mouse_out);
 
 	stroke->update_step(C, stroke, &itemptr);
 }

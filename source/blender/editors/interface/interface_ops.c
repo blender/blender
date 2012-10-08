@@ -216,7 +216,7 @@ static void eyedropper_color_set(bContext *C, Eyedropper *eye, const float col[3
 /* set sample from accumulated values */
 static void eyedropper_color_set_accum(bContext *C, Eyedropper *eye)
 {
-	float col[4];
+	float col[3];
 	mul_v3_v3fl(col, eye->accum_col, 1.0f / (float)eye->accum_tot);
 	eyedropper_color_set(C, eye, col);
 }

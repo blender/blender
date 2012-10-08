@@ -3738,7 +3738,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
  * (This allows us to ignore the GL depth buffer)
  * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
  */
-int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2])
+int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 {
 	ViewContext vc;
 	Object *ob;
