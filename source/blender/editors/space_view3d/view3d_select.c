@@ -332,7 +332,7 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 	if ((ob->type != OB_ARMATURE) || (ob->pose == NULL)) return;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-		if (PBONE_VISIBLE(arm, pchan->bone) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
+		if (PBONE_SELECTABLE(arm, pchan->bone)) {
 			mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
 			ED_view3d_project_int(vc->ar, vec, sco1);
 			mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
@@ -576,7 +576,7 @@ static void do_lasso_select_armature(ViewContext *vc, int mcords[][2], short mov
 	/* set editdata in vc */
 	
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_UNSELECTABLE) == 0) {
+		if (EBONE_SELECTABLE(arm, ebone)) {
 			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
 			ED_view3d_project_short(vc->ar, vec, sco1);
 			mul_v3_m4v3(vec, vc->obedit->obmat, ebone->tail);
@@ -2373,7 +2373,7 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 		float vec[3];
 		
 		/* skip invisible bones */
-		if (PBONE_VISIBLE(arm, pchan->bone) == 0)
+		if (PBONE_SELECTABLE(arm, pchan->bone) == 0)
 			continue;
 		
 		/* project head location to screenspace */
@@ -2444,6 +2444,9 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 		short sco1[2], sco2[2], didpoint = 0;
 		float vec[3];
 		
+		if (EBONE_SELECTABLE(arm, ebone) == 0)
+			continue;
+
 		/* project head location to screenspace */
 		mul_v3_m4v3(vec, vc->obedit->obmat, ebone->head);
 		ED_view3d_project_short(vc->ar, vec, sco1);
