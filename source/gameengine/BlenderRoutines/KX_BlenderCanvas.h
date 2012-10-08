@@ -61,6 +61,7 @@ private:
 	/** Rect that defines the area used for rendering,
 	    relative to the context */
 	RAS_Rect m_displayarea;
+	int m_viewport[4];
 
 public:
 	/* Construct a new canvas.
@@ -150,6 +151,8 @@ public:
 		int x1, int y1,
 		int x2, int y2
 	);
+		const int*
+	GetViewPort();
 
 		void 
 	SetMouseState(

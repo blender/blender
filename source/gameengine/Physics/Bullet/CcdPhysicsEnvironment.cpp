@@ -57,7 +57,6 @@ btRaycastVehicle::btVehicleTuning	gTuning;
 #include "LinearMath/btAabbUtil2.h"
 #include "MT_Matrix4x4.h"
 #include "MT_Vector3.h"
-#include "GL/glew.h"
 
 #ifdef WIN32
 void DrawRasterizerLine(const float* from,const float* to,int color);
@@ -1309,22 +1308,19 @@ struct OcclusionBuffer
 		m[14] = btScalar(m1[ 2]*m2[12]+m1[ 6]*m2[13]+m1[10]*m2[14]+m1[14]*m2[15]);
 		m[15] = btScalar(m1[ 3]*m2[12]+m1[ 7]*m2[13]+m1[11]*m2[14]+m1[15]*m2[15]);
 	}
-	void		setup(int size)
+	void		setup(int size, const int *view, double modelview[16], double projection[16])
 	{
 		m_initialized=false;
 		m_occlusion=false;
 		// compute the size of the buffer
-		GLint		v[4];
-		GLdouble	m[16],p[16];
 		int			maxsize;
 		double		ratio;
-		glGetIntegerv(GL_VIEWPORT,v);
-		maxsize = (v[2] > v[3]) ? v[2] : v[3];
+		maxsize = (view[2] > view[3]) ? view[2] : view[3];
 		assert(maxsize > 0);
 		ratio = 1.0/(2*maxsize);
 		// ensure even number
-		m_sizes[0] = 2*((int)(size*v[2]*ratio+0.5));
-		m_sizes[1] = 2*((int)(size*v[3]*ratio+0.5));
+		m_sizes[0] = 2*((int)(size*view[2]*ratio+0.5));
+		m_sizes[1] = 2*((int)(size*view[3]*ratio+0.5));
 		m_scales[0]=btScalar(m_sizes[0]/2);
 		m_scales[1]=btScalar(m_sizes[1]/2);
 		m_offsets[0]=m_scales[0]+0.5f;
@@ -1332,10 +1328,8 @@ struct OcclusionBuffer
 		// prepare matrix
 		// at this time of the rendering, the modelview matrix is the 
 		// world to camera transformation and the projection matrix is
-		// camera to clip transformation. combine both so that 
-		glGetDoublev(GL_MODELVIEW_MATRIX,m);
-		glGetDoublev(GL_PROJECTION_MATRIX,p);
-		CMmat4mul(m_wtc,p,m);
+		// camera to clip transformation. combine both so that
+		CMmat4mul(m_wtc, projection, modelview);
 	}
 	void		initialize()
 	{
@@ -1795,7 +1789,7 @@ struct	DbvtCullingCallback : btDbvt::ICollide
 };
 
 static OcclusionBuffer gOcb;
-bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4 *planes, int nplanes, int occlusionRes)
+bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4 *planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16])
 {
 	if (!m_cullingTree)
 		return false;
@@ -1812,7 +1806,7 @@ bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* user
 	// if occlusionRes != 0 => occlusion culling
 	if (occlusionRes)
 	{
-		gOcb.setup(occlusionRes);
+		gOcb.setup(occlusionRes, viewport, modelview, projection);
 		dispatcher.m_ocb = &gOcb;
 		// occlusion culling, the direction of the view is taken from the first plan which MUST be the near plane
 		btDbvt::collideOCL(m_cullingTree->m_sets[1].m_root,planes_n,planes_o,planes_n[0],nplanes,dispatcher);

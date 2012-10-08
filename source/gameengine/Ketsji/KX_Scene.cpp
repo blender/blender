@@ -1502,7 +1502,15 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 		planes[4].setValue(cplanes[2].getValue());	// top
 		planes[5].setValue(cplanes[3].getValue());	// bottom
 		CullingInfo info(layer);
-		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res);
+
+		double mvmat[16] = {0};
+		cam->GetModelviewMatrix().getValue(mvmat);
+		double pmat[16] = {0};
+		cam->GetProjectionMatrix().getValue(pmat);
+
+		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res,
+														KX_GetActiveEngine()->GetCanvas()->GetViewPort(),
+														mvmat, pmat);
 	}
 	if (!dbvt_culling) {
 		// the physics engine couldn't help us, do it the hard way

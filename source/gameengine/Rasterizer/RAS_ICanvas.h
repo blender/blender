@@ -180,6 +180,13 @@ public:
 		int x2, int y2
 	) = 0; 
 
+	/**
+	 * Get the visible viewport
+	 */
+	virtual
+		const int*
+	GetViewPort() = 0;
+
 	virtual 
 		void 
 	SetMouseState(

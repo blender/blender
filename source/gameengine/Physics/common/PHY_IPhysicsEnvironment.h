@@ -161,7 +161,7 @@ class PHY_IPhysicsEnvironment
 		//culling based on physical broad phase
 		// the plane number must be set as follow: near, far, left, right, top, botton
 		// the near plane must be the first one and must always be present, it is used to get the direction of the view
-		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes) = 0;
+		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes, const int *viewport, double modelview[16], double projection[16]) = 0;
 
 		//Methods for gamelogic collision/physics callbacks
 		//todo:
