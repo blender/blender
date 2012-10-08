@@ -966,7 +966,6 @@ static int viewrotate_cancel(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
-
 	/* identifiers */
 	ot->name = "Rotate view";
 	ot->description = "Rotate the view";
@@ -2901,7 +2900,7 @@ static EnumPropertyItem prop_view_items[] = {
 	{RV3D_VIEW_RIGHT, "RIGHT", 0, "Right", "View From the Right"},
 	{RV3D_VIEW_TOP, "TOP", 0, "Top", "View From the Top"},
 	{RV3D_VIEW_BOTTOM, "BOTTOM", 0, "Bottom", "View From the Bottom"},
-	{RV3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the active camera"},
+	{RV3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the Active Camera"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3125,7 +3124,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "View numpad";
-	ot->description = "Set the view";
+	ot->description = "Use a preset viewpoint";
 	ot->idname = "VIEW3D_OT_viewnumpad";
 
 	/* api callbacks */
@@ -3135,8 +3134,8 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 
-	prop = RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "Preset viewpoint to use");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
@@ -3213,7 +3212,9 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = 0;
-	RNA_def_enum(ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
+	
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
 }
 
 static EnumPropertyItem prop_view_pan_items[] = {
@@ -3262,7 +3263,9 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = 0;
-	RNA_def_enum(ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
+	
+	/* Properties */
+	ot->prop = RNA_def_enum(ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
 }
 
 static int viewpersportho_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3290,7 +3293,7 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View Persp/Ortho";
-	ot->description = "Switch the current view from perspective/orthographic";
+	ot->description = "Switch the current view from perspective/orthographic projection";
 	ot->idname = "VIEW3D_OT_view_persportho";
 
 	/* api callbacks */
@@ -3406,7 +3409,8 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag   = 0;
-
+	
+	/* properties */
 	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Background image index to remove", 0, INT_MAX);
 }
 

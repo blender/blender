@@ -1647,7 +1647,6 @@ static int localview_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_localview(wmOperatorType *ot)
 {
-	
 	/* identifiers */
 	ot->name = "Local View";
 	ot->description = "Toggle display of selected object(s) separately and centered in view";
