@@ -108,7 +108,6 @@ def create_qtc_project_main():
         f.write("// ADD PREDEFINED MACROS TO %s_custom.config!\n" % FILE_NAME)
         qtc_custom_cfg = os.path.join(PROJECT_DIR, "%s_custom.config" % FILE_NAME)
         if os.path.exists(qtc_custom_cfg):
-            f.write(fc.read())
             fc = open(qtc_custom_cfg, 'r')
             f.write(fc.read())
             fc.close()
