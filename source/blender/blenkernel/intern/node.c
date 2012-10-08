@@ -326,10 +326,13 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 		ntype->initfunc(ntree, node, ntemp);
 
 	/* initialize the node name with the node label.
-	 * note: do this after the initfunc so nodes get
-	 * their data set which may be used in naming
+	 * note: do this after the initfunc so nodes get their data set which may be used in naming
 	 * (node groups for example) */
-	BLI_strncpy(node->name, nodeLabel(node), NODE_MAXSTR);
+	/* XXX Do not use nodeLabel() here, it returns translated content, which should *only* be used
+	 *     in UI, *never* in data...
+	 *     This solution may be a bit rougher than nodeLabel()'s returned string, but it's simpler
+	 *     than adding a "no translate" flag to this func (and labelfunc() as well). */
+	BLI_strncpy(node->name, node->typeinfo->name, NODE_MAXSTR);
 	nodeUniqueName(ntree, node);
 	
 	ntree->update |= NTREE_UPDATE_NODES;
