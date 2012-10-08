@@ -359,7 +359,8 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	glGetIntegerv(GL_LIGHTING, (GLint*)&light);
 	glDisable(GL_LIGHTING);
 
-	
+	glDisable(GL_DEPTH_TEST);
+
 	// Set up viewing settings
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
