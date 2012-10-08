@@ -4037,12 +4037,15 @@ int Tilt(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		sprintf(str, "Tilt: %s %s", &c[0], t->proptext);
+		sprintf(str, "Tilt: %s° %s", &c[0], t->proptext);
 
 		final = DEG2RADF(final);
+
+		/* XXX For some reason, this seems needed for this op, else RNA prop is not updated... :/ */
+		t->values[0] = final;
 	}
 	else {
-		sprintf(str, "Tilt: %.2f %s", RAD2DEGF(final), t->proptext);
+		sprintf(str, "Tilt: %.2f° %s", RAD2DEGF(final), t->proptext);
 	}
 
 	for (i = 0; i < t->total; i++, td++) {
