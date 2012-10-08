@@ -113,12 +113,14 @@ static void rna_GPencilLayer_info_set(PointerRNA *ptr, const char *value)
 
 static void rna_GPencil_stroke_point_add(bGPDstroke *stroke, int count)
 {
-	if (stroke->points == NULL)
-		stroke->points = MEM_callocN(sizeof(bGPDspoint) * count, "gp_stroke_points");
-	else
-		stroke->points = MEM_reallocN(stroke->points, sizeof(bGPDspoint) * (stroke->totpoints + count));
+	if (count > 0) {
+		if (stroke->points == NULL)
+			stroke->points = MEM_callocN(sizeof(bGPDspoint) * count, "gp_stroke_points");
+		else
+			stroke->points = MEM_reallocN(stroke->points, sizeof(bGPDspoint) * (stroke->totpoints + count));
 
-	stroke->totpoints += count;
+		stroke->totpoints += count;
+	}
 }
 
 static void rna_GPencil_stroke_point_pop(bGPDstroke *stroke, ReportList *reports, int index)
@@ -174,12 +176,14 @@ static void rna_GPencil_stroke_remove(bGPDframe *frame, ReportList *reports, bGP
 
 static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer, ReportList *reports, int frame_number)
 {
+	bGPDframe *frame;
+
 	if (BKE_gpencil_layer_find_frame(layer, frame_number)) {
 		BKE_reportf(reports, RPT_ERROR, "Frame already exists on this frame number");
 		return NULL;
 	}
 
-	bGPDframe *frame = gpencil_frame_addnew(layer, frame_number);
+	frame = gpencil_frame_addnew(layer, frame_number);
 
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 
@@ -293,7 +297,7 @@ static void rna_def_gpencil_stroke_points_api(BlenderRNA *brna, PropertyRNA *cpr
 
 	func = RNA_def_function(srna, "add", "rna_GPencil_stroke_point_add");
 	RNA_def_function_ui_description(func, "Add a new grease pencil stroke point");
-	RNA_def_int(func, "count", 1, 1, INT_MAX, "Number", "Number of points to add to the stroke", 1, INT_MAX);
+	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the stroke", 0, INT_MAX);
 
 	func = RNA_def_function(srna, "pop", "rna_GPencil_stroke_point_pop");
 	RNA_def_function_ui_description(func, "Remove a grease pencil stroke point");
