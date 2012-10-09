@@ -1586,7 +1586,8 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *ar)
 	 *   We multiply by two to speed up the odd/even time-in-seconds = on/off toggle.
 	 * - Always start with warning shown so that animators are more likely to notice when starting to transform
 	 */
-	show_warning = (int)(t->last_update * 2.0) & 1;
+
+	show_warning = ((int)((t->last_update - floor(t->last_update)) * 2.0) & 1);
 	
 	if ((show_warning) || (t->state == TRANS_STARTING)) {
 		const char printable[] = "Auto Keying On";
