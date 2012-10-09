@@ -1617,10 +1617,16 @@ static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, vo
 	Scene *scene = t->scene;
 	Object *ob = OBACT;
 	
-	/* draw autokeyframing hint in the corner */
+	/* draw autokeyframing hint in the corner 
+	 * - only draw if enabled (advanced users may be distracted/annoyed), 
+	 *   for objects that will be autokeyframed (no point ohterwise),
+	 *   AND only for the active region (as showing all is too overwhelming)
+	 */
 	if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
-		if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
-			drawAutoKeyWarning(t, ar);
+		if (ar == t->ar) {
+			if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
+				drawAutoKeyWarning(t, ar);
+			}
 		}
 	}
 }
