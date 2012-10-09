@@ -941,9 +941,14 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		/* As we have only 1D information (magnify value), feed both axes
 		 * with magnify information that is stored in x axis 
 		 */
-		fac = 0.01f * (event->x - event->prevx);
+		fac = 0.01f * (event->prevx - event->x);
 		dx = fac * BLI_rctf_size_x(&v2d->cur) / 10.0f;
 		dy = fac * BLI_rctf_size_y(&v2d->cur) / 10.0f;
+
+		if (U.uiflag & USER_ZOOM_INVERT) {
+			dx *= -1;
+			dy *= -1;
+		}
 
 		RNA_float_set(op->ptr, "deltax", dx);
 		RNA_float_set(op->ptr, "deltay", dy);
