@@ -2397,3 +2397,1502 @@ Removed
 * **ffmpeg_packetsize**
 * **ffmpeg_video_bitrate**
 
+2.62 to 2.63
+============
+
+bpy.types.ThemeView3D
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeView3D.camera`
+* :class:`bpy.types.ThemeView3D.empty`
+
+bpy.types.KeyingSet
+-------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.KeyingSet.bl_description`
+* :class:`bpy.types.KeyingSet.bl_idname`
+
+Renamed
+^^^^^^^
+
+* **name** -> :class:`bpy.types.KeyingSet.bl_label`
+
+bpy.types.BlendDataScenes
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BlendDataScenes.tag`
+
+bpy.types.RenderEngine
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderEngine.camera_override`
+
+bpy.types.BackgroundImage
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BackgroundImage.show_on_foreground`
+
+bpy.types.CyclesRenderSettings
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesRenderSettings.preview_active_layer`
+* :class:`bpy.types.CyclesRenderSettings.sample_clamp`
+
+bpy.types.ToolSettings
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ToolSettings.double_threshold`
+
+bpy.types.Image
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Image.render_slot`
+
+bpy.types.MovieTrackingStabilization
+------------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingStabilization.filter_type`
+
+bpy.types.DomainFluidSettings
+-----------------------------
+
+Removed
+^^^^^^^
+
+* **viscosity_preset**
+
+bpy.types.ParticleSettings
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ParticleSettings.use_rotations`
+
+bpy.types.SceneGameData
+-----------------------
+
+Renamed
+^^^^^^^
+
+* **dome_tesselation** -> :class:`bpy.types.SceneGameData.dome_tessellation`
+
+bpy.types.RegionView3D
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RegionView3D.update`
+
+bpy.types.Scene
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Scene.active_layer`
+
+bpy.types.ShaderNodeTexEnvironment
+----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShaderNodeTexEnvironment.projection`
+
+bpy.types.UserPreferencesEdit
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesEdit.fcurve_unselected_alpha`
+
+bpy.types.MeshTextureFace
+-------------------------
+
+Removed
+^^^^^^^
+
+* **pin_uv**
+* **select_uv**
+
+bpy.types.Menu
+--------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Menu.path_menu` (self, searchpaths, operator, props_default, filter_ext), *was (self, searchpaths, operator, props_default)*
+
+bpy.types.CompositorNodeDistanceMatte
+-------------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeDistanceMatte.channel`
+
+bpy.types.KeyingSetInfo
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.KeyingSetInfo.bl_description`
+
+bpy.types.KeyingSets
+--------------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.KeyingSets.new` (idname, name), *was (name)*
+
+bpy.types.CompositorNodeOutputFile
+----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeOutputFile.active_input`
+* :class:`bpy.types.CompositorNodeOutputFile.active_input_index`
+* :class:`bpy.types.CompositorNodeOutputFile.base_path`
+
+Removed
+^^^^^^^
+
+* **filepath**
+* **frame_end**
+* **frame_start**
+
+Renamed
+^^^^^^^
+
+* **image_settings** -> :class:`bpy.types.CompositorNodeOutputFile.format`
+
+bpy.types.CyclesCameraSettings
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesCameraSettings.aperture_fstop`
+* :class:`bpy.types.CyclesCameraSettings.aperture_type`
+
+bpy.types.Struct
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Struct.translation_context`
+
+bpy.types.ThemeSequenceEditor
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeSequenceEditor.movieclip_strip`
+* :class:`bpy.types.ThemeSequenceEditor.preview_back`
+
+bpy.types.TexMapping
+--------------------
+
+Renamed
+^^^^^^^
+
+* **location** -> :class:`bpy.types.TexMapping.translation`
+
+bpy.types.ArmatureActuator
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ArmatureActuator.influence`
+
+bpy.types.ThemeTextEditor
+-------------------------
+
+Removed
+^^^^^^^
+
+* **scroll_bar**
+
+bpy.types.ThemeUserInterface
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeUserInterface.wcol_tooltip`
+
+bpy.types.MeshEdge
+------------------
+
+Removed
+^^^^^^^
+
+* **is_fgon**
+
+bpy.types.Brush
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Brush.sculpt_capabilities`
+
+Renamed
+^^^^^^^
+
+* **use_space_atten** -> :class:`bpy.types.Brush.use_space_attenuation`
+
+bpy.types.ShaderNodeMapping
+---------------------------
+
+Renamed
+^^^^^^^
+
+* **location** -> :class:`bpy.types.ShaderNodeMapping.translation`
+
+bpy.types.Mesh
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Mesh.auto_texspace`
+* :class:`bpy.types.Mesh.calc_tessface`
+* :class:`bpy.types.Mesh.loops`
+* :class:`bpy.types.Mesh.polygons`
+* :class:`bpy.types.Mesh.tessface_uv_textures`
+* :class:`bpy.types.Mesh.tessface_vertex_colors`
+* :class:`bpy.types.Mesh.tessfaces`
+* :class:`bpy.types.Mesh.unit_test_compare`
+* :class:`bpy.types.Mesh.uv_layer_clone`
+* :class:`bpy.types.Mesh.uv_layer_clone_index`
+* :class:`bpy.types.Mesh.uv_layer_stencil`
+* :class:`bpy.types.Mesh.uv_layer_stencil_index`
+* :class:`bpy.types.Mesh.uv_layers`
+
+Removed
+^^^^^^^
+
+* **faces**
+* **layers_float**
+* **layers_string**
+
+Renamed
+^^^^^^^
+
+* **layers_int** -> :class:`bpy.types.Mesh.polygon_layers_float`
+* **layers_int** -> :class:`bpy.types.Mesh.polygon_layers_int`
+* **layers_int** -> :class:`bpy.types.Mesh.polygon_layers_string`
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Mesh.update` (calc_edges, calc_tessface), *was (calc_edges)*
+
+bpy.types.Key
+-------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Key.eval_time`
+
+bpy.types.LatticeModifier
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.LatticeModifier.strength`
+
+bpy.types.UserPreferencesView
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesView.quit_dialog`
+
+
+2.63 to 2.64
+============
+
+bpy.types.CyclesLampSettings
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesLampSettings.samples`
+
+bpy.types.Histogram
+-------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Histogram.show_line`
+
+bpy.types.ThemeView3D
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeView3D.bone_pose_active`
+* :class:`bpy.types.ThemeView3D.skin_root`
+
+bpy.types.GameObjectSettings
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.GameObjectSettings.fall_speed`
+* :class:`bpy.types.GameObjectSettings.jump_speed`
+* :class:`bpy.types.GameObjectSettings.step_height`
+
+
+bpy.types.BlendData
+-------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BlendData.masks`
+
+
+bpy.types.TextureNodeMixRGB
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.TextureNodeMixRGB.use_clamp`
+
+bpy.types.SmokeCollSettings
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SmokeCollSettings.collision_type`
+
+bpy.types.CompositorNodes
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodes.active`
+
+bpy.types.RenderEngine
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderEngine.resolution_x`
+* :class:`bpy.types.RenderEngine.resolution_y`
+* :class:`bpy.types.RenderEngine.tile_x`
+* :class:`bpy.types.RenderEngine.tile_y`
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.RenderEngine.begin_result` (x, y, w, h, layer), *was (x, y, w, h)*
+* :class:`bpy.types.RenderEngine.end_result` (result, cancel), *was (result)*
+
+bpy.types.BackgroundImage
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BackgroundImage.draw_depth`
+* :class:`bpy.types.BackgroundImage.frame_method`
+
+bpy.types.SmokeDomainSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SmokeDomainSettings.cell_size`
+* :class:`bpy.types.SmokeDomainSettings.density`
+* :class:`bpy.types.SmokeDomainSettings.domain_resolution`
+* :class:`bpy.types.SmokeDomainSettings.scale`
+* :class:`bpy.types.SmokeDomainSettings.start_point`
+
+bpy.types.CyclesRenderSettings
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesRenderSettings.aa_samples`
+* :class:`bpy.types.CyclesRenderSettings.ao_samples`
+* :class:`bpy.types.CyclesRenderSettings.blur_glossy`
+* :class:`bpy.types.CyclesRenderSettings.diffuse_samples`
+* :class:`bpy.types.CyclesRenderSettings.glossy_samples`
+* :class:`bpy.types.CyclesRenderSettings.mesh_light_samples`
+* :class:`bpy.types.CyclesRenderSettings.preview_aa_samples`
+* :class:`bpy.types.CyclesRenderSettings.preview_start_resolution`
+* :class:`bpy.types.CyclesRenderSettings.progressive`
+* :class:`bpy.types.CyclesRenderSettings.transmission_samples`
+
+Removed
+^^^^^^^
+
+* **blur_caustics**
+* **debug_min_size**
+
+bpy.types.ActionGroup
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ActionGroup.color_set`
+* :class:`bpy.types.ActionGroup.colors`
+
+Removed
+^^^^^^^
+
+* **custom_color**
+
+bpy.types.WipeSequence
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.WipeSequence.input_1`
+* :class:`bpy.types.WipeSequence.input_count`
+
+bpy.types.ToolSettings
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ToolSettings.snap_node_element`
+* :class:`bpy.types.ToolSettings.use_proportional_edit_mask`
+
+bpy.types.ThemeClipEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeClipEditor.space_list`
+* :class:`bpy.types.ThemeClipEditor.strips`
+* :class:`bpy.types.ThemeClipEditor.strips_selected`
+
+bpy.types.Image
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Image.colorspace_settings`
+* :class:`bpy.types.Image.frame_duration`
+* :class:`bpy.types.Image.gl_touch`
+* :class:`bpy.types.Image.scale`
+* :class:`bpy.types.Image.view_as_render`
+
+
+bpy.types.ThemeDopeSheet
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeDopeSheet.summary`
+
+bpy.types.MovieClipUser
+-----------------------
+
+Renamed
+^^^^^^^
+
+* **current_frame** -> :class:`bpy.types.MovieClipUser.frame_current`
+
+bpy.types.TransformSequence
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.TransformSequence.input_1`
+* :class:`bpy.types.TransformSequence.input_count`
+
+bpy.types.ImageSequence
+-----------------------
+
+Removed
+^^^^^^^
+
+* **color_balance**
+* **use_color_balance**
+
+bpy.types.DupliObject
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DupliObject.index`
+* :class:`bpy.types.DupliObject.particle_index`
+
+bpy.types.RenderSettings
+------------------------
+
+Removed
+^^^^^^^
+
+* **use_color_management**
+* **use_radiosity**
+
+bpy.types.Curve
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Curve.bevel_factor_end`
+* :class:`bpy.types.Curve.bevel_factor_start`
+
+bpy.types.MovieClip
+-------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieClip.colorspace_settings`
+* :class:`bpy.types.MovieClip.frame_duration`
+* :class:`bpy.types.MovieClip.frame_offset`
+* :class:`bpy.types.MovieClip.frame_start`
+
+bpy.types.CompositorNodeTree
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeTree.chunk_size`
+* :class:`bpy.types.CompositorNodeTree.edit_quality`
+* :class:`bpy.types.CompositorNodeTree.render_quality`
+* :class:`bpy.types.CompositorNodeTree.two_pass`
+* :class:`bpy.types.CompositorNodeTree.use_opencl`
+
+bpy.types.SpaceUVEditor
+-----------------------
+
+Removed
+^^^^^^^
+
+* **cursor_location**
+* **pivot_point**
+
+bpy.types.RemeshModifier
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RemeshModifier.use_smooth_shade`
+
+bpy.types.CurveMapping
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CurveMapping.update`
+
+bpy.types.CompositorNodeMixRGB
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeMixRGB.use_clamp`
+
+bpy.types.ParticleSettings
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ParticleSettings.use_scale_dupli`
+
+bpy.types.SceneGameData
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneGameData.deactivation_angular_threshold`
+* :class:`bpy.types.SceneGameData.deactivation_linear_threshold`
+* :class:`bpy.types.SceneGameData.deactivation_time`
+
+bpy.types.SoundSequence
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SoundSequence.show_waveform`
+
+bpy.types.Scene
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Scene.display_settings`
+* :class:`bpy.types.Scene.sequence_editor_clear`
+* :class:`bpy.types.Scene.sequence_editor_create`
+* :class:`bpy.types.Scene.sequencer_colorspace_settings`
+* :class:`bpy.types.Scene.view_settings`
+
+Removed
+^^^^^^^
+
+* **collada_export**
+
+bpy.types.Armature
+------------------
+
+Removed
+^^^^^^^
+
+* **use_deform_envelopes**
+* **use_deform_preserve_volume**
+* **use_deform_vertex_groups**
+
+bpy.types.MeshUVLoopLayer
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MeshUVLoopLayer.name`
+
+bpy.types.CurveMap
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CurveMap.evaluate`
+
+bpy.types.ShaderNodeTexEnvironment
+----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShaderNodeTexEnvironment.image_user`
+
+bpy.types.SolidifyModifier
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SolidifyModifier.use_flip_normals`
+
+bpy.types.TextureNodeMath
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.TextureNodeMath.use_clamp`
+
+bpy.types.SceneRenderLayer
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneRenderLayer.layers_exclude`
+* :class:`bpy.types.SceneRenderLayer.samples`
+
+bpy.types.CompositorNodeViewer
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeViewer.center_x`
+* :class:`bpy.types.CompositorNodeViewer.center_y`
+* :class:`bpy.types.CompositorNodeViewer.tile_order`
+
+bpy.types.ClothCollisionSettings
+--------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ClothCollisionSettings.vertex_group_self_collisions`
+
+bpy.types.SpeedControlSequence
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpeedControlSequence.input_1`
+* :class:`bpy.types.SpeedControlSequence.input_count`
+
+bpy.types.ActionConstraint
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ActionConstraint.use_bone_object_action`
+
+bpy.types.CompositorNodeScale
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeScale.frame_method`
+* :class:`bpy.types.CompositorNodeScale.offset_x`
+* :class:`bpy.types.CompositorNodeScale.offset_y`
+
+bpy.types.SpaceDopeSheetEditor
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceDopeSheetEditor.show_group_colors`
+
+bpy.types.MetaSequence
+----------------------
+
+Removed
+^^^^^^^
+
+* **color_balance**
+* **use_color_balance**
+
+bpy.types.ShaderNodeMixRGB
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShaderNodeMixRGB.use_clamp`
+
+bpy.types.FollowTrackConstraint
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.FollowTrackConstraint.frame_method`
+
+bpy.types.EffectSequence
+------------------------
+
+Removed
+^^^^^^^
+
+* **color_balance**
+* **use_color_balance**
+
+bpy.types.ThemeNLAEditor
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeNLAEditor.active_action`
+* :class:`bpy.types.ThemeNLAEditor.active_action_unset`
+* :class:`bpy.types.ThemeNLAEditor.meta_strips`
+* :class:`bpy.types.ThemeNLAEditor.meta_strips_selected`
+* :class:`bpy.types.ThemeNLAEditor.sound_strips`
+* :class:`bpy.types.ThemeNLAEditor.sound_strips_selected`
+* :class:`bpy.types.ThemeNLAEditor.transition_strips`
+* :class:`bpy.types.ThemeNLAEditor.transition_strips_selected`
+* :class:`bpy.types.ThemeNLAEditor.tweak`
+* :class:`bpy.types.ThemeNLAEditor.tweak_duplicate`
+
+Removed
+^^^^^^^
+
+* **bars**
+* **bars_selected**
+
+bpy.types.SculptCapabilities
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SculptCapabilities.has_overlay`
+* :class:`bpy.types.SculptCapabilities.has_texture_angle`
+* :class:`bpy.types.SculptCapabilities.has_texture_angle_source`
+
+bpy.types.ImageFormatSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ImageFormatSettings.display_settings`
+* :class:`bpy.types.ImageFormatSettings.view_settings`
+
+
+bpy.types.Property
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Property.is_library_editable`
+
+bpy.types.MovieTrackingTrack
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingTrack.grease_pencil`
+* :class:`bpy.types.MovieTrackingTrack.motion_model`
+* :class:`bpy.types.MovieTrackingTrack.use_alpha_preview`
+* :class:`bpy.types.MovieTrackingTrack.use_brute`
+* :class:`bpy.types.MovieTrackingTrack.use_mask`
+* :class:`bpy.types.MovieTrackingTrack.use_normalization`
+
+Removed
+^^^^^^^
+
+* **pattern_max**
+* **pattern_min**
+* **pyramid_levels**
+* **search_max**
+* **search_min**
+* **tracker**
+
+bpy.types.CompositorNodeBlur
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeBlur.use_variable_size`
+
+bpy.types.Object
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Object.dm_info`
+* :class:`bpy.types.Object.is_deform_modified`
+* :class:`bpy.types.Object.layers_local_view`
+
+Renamed
+^^^^^^^
+
+* **animation_visualisation** -> :class:`bpy.types.Object.animation_visualization`
+
+bpy.types.UserPreferencesSystem
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesSystem.use_gpu_mipmap`
+
+Removed
+^^^^^^^
+
+* **compute_device**
+* **compute_device_type**
+
+bpy.types.Sequence
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Sequence.modifiers`
+* :class:`bpy.types.Sequence.use_linear_modifiers`
+
+Removed
+^^^^^^^
+
+* **input_1**
+* **input_2**
+* **input_3**
+* **input_count**
+* **waveform**
+
+bpy.types.ConsoleLine
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ConsoleLine.type`
+
+bpy.types.Region
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Region.view2d`
+* :class:`bpy.types.Region.x`
+* :class:`bpy.types.Region.y`
+
+bpy.types.SpaceClipEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceClipEditor.grease_pencil_source`
+* :class:`bpy.types.SpaceClipEditor.mask`
+* :class:`bpy.types.SpaceClipEditor.mask_draw_type`
+* :class:`bpy.types.SpaceClipEditor.pivot_point`
+* :class:`bpy.types.SpaceClipEditor.show_graph_hidden`
+* :class:`bpy.types.SpaceClipEditor.show_graph_only_selected`
+* :class:`bpy.types.SpaceClipEditor.show_mask_smooth`
+* :class:`bpy.types.SpaceClipEditor.show_seconds`
+
+bpy.types.NodeSocket
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.NodeSocket.hide`
+* :class:`bpy.types.NodeSocket.is_linked`
+
+bpy.types.MovieClipSequence
+---------------------------
+
+Removed
+^^^^^^^
+
+* **color_balance**
+* **use_color_balance**
+
+bpy.types.Node
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Node.color`
+* :class:`bpy.types.Node.hide`
+* :class:`bpy.types.Node.mute`
+* :class:`bpy.types.Node.select`
+* :class:`bpy.types.Node.show_options`
+* :class:`bpy.types.Node.show_preview`
+* :class:`bpy.types.Node.use_custom_color`
+
+bpy.types.SceneSequence
+-----------------------
+
+Removed
+^^^^^^^
+
+* **color_balance**
+* **use_color_balance**
+
+bpy.types.CompositorNodeOutputFile
+----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeOutputFile.file_slots`
+* :class:`bpy.types.CompositorNodeOutputFile.layer_slots`
+
+Removed
+^^^^^^^
+
+* **active_input**
+
+bpy.types.ObjectBase
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ObjectBase.layers_local_view`
+
+bpy.types.CyclesCameraSettings
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesCameraSettings.fisheye_fov`
+* :class:`bpy.types.CyclesCameraSettings.fisheye_lens`
+* :class:`bpy.types.CyclesCameraSettings.panorama_type`
+
+bpy.types.CompositorNodeDefocus
+-------------------------------
+
+Removed
+^^^^^^^
+
+* **samples**
+
+bpy.types.KeyMapItems
+---------------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.KeyMapItems.new` (idname, type, value, any, shift, ctrl, alt, oskey, key_modifier, head), *was (idname, type, value, any, shift, ctrl, alt, oskey, key_modifier)*
+
+bpy.types.CollisionSettings
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CollisionSettings.stickiness`
+
+Removed
+^^^^^^^
+
+* **stickness**
+
+bpy.types.GlowSequence
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.GlowSequence.input_1`
+* :class:`bpy.types.GlowSequence.input_count`
+
+bpy.types.MouseSensor
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MouseSensor.use_pulse`
+
+bpy.types.MovieSequence
+-----------------------
+
+Removed
+^^^^^^^
+
+* **color_balance**
+* **use_color_balance**
+
+bpy.types.Pose
+--------------
+
+Renamed
+^^^^^^^
+
+* **animation_visualisation** -> :class:`bpy.types.Pose.animation_visualization`
+
+bpy.types.ThemeSequenceEditor
+-----------------------------
+
+Removed
+^^^^^^^
+
+* **plugin_strip**
+
+bpy.types.IMAGE_UV_sculpt
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.IMAGE_UV_sculpt.prop_unified_weight`
+
+bpy.types.SpaceImageEditor
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceImageEditor.cursor_location`
+* :class:`bpy.types.SpaceImageEditor.mask`
+* :class:`bpy.types.SpaceImageEditor.mask_draw_type`
+* :class:`bpy.types.SpaceImageEditor.mode`
+* :class:`bpy.types.SpaceImageEditor.pivot_point`
+* :class:`bpy.types.SpaceImageEditor.show_mask_smooth`
+* :class:`bpy.types.SpaceImageEditor.show_maskedit`
+
+Removed
+^^^^^^^
+
+* **curve**
+* **use_grease_pencil**
+* **use_image_paint**
+
+bpy.types.UserPreferencesFilePaths
+----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesFilePaths.i18n_branches_directory`
+
+Removed
+^^^^^^^
+
+* **sequence_plugin_directory**
+* **texture_plugin_directory**
+
+bpy.types.CompositorNodeDilateErode
+-----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeDilateErode.edge`
+* :class:`bpy.types.CompositorNodeDilateErode.falloff`
+* :class:`bpy.types.CompositorNodeDilateErode.type`
+
+bpy.types.ScrewModifier
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ScrewModifier.use_smooth_shade`
+
+bpy.types.SpaceNodeEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceNodeEditor.cursor_location`
+* :class:`bpy.types.SpaceNodeEditor.edit_tree`
+* :class:`bpy.types.SpaceNodeEditor.show_highlight`
+* :class:`bpy.types.SpaceNodeEditor.use_hidden_preview`
+
+bpy.types.SpaceView3D
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceView3D.layers_local_view`
+* :class:`bpy.types.SpaceView3D.show_backface_culling`
+
+bpy.types.Area
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Area.x`
+* :class:`bpy.types.Area.y`
+
+bpy.types.RenderLayer
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderLayer.layers_exclude`
+
+bpy.types.MovieTracking
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTracking.dopesheet`
+
+bpy.types.MovieTrackingSettings
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingSettings.default_motion_model`
+* :class:`bpy.types.MovieTrackingSettings.use_default_brute`
+* :class:`bpy.types.MovieTrackingSettings.use_default_mask`
+* :class:`bpy.types.MovieTrackingSettings.use_default_normalization`
+* :class:`bpy.types.MovieTrackingSettings.use_tripod_solver`
+
+Removed
+^^^^^^^
+
+* **default_pyramid_levels**
+* **default_tracker**
+
+bpy.types.CompositorNodeIDMask
+------------------------------
+
+Renamed
+^^^^^^^
+
+* **use_smooth_mask** -> :class:`bpy.types.CompositorNodeIDMask.use_antialiasing`
+
+bpy.types.UserPreferencesInput
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesInput.ndof_orbit_sensitivity`
+* :class:`bpy.types.UserPreferencesInput.ndof_view_rotate_method`
+
+bpy.types.Brush
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Brush.mask_tool`
+* :class:`bpy.types.Brush.weight`
+
+bpy.types.SpaceSequenceEditor
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceSequenceEditor.overlay_type`
+
+Removed
+^^^^^^^
+
+* **use_grease_pencil**
+
+bpy.types.MovieTrackingMarkers
+------------------------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.MovieTrackingMarkers.find_frame` (frame, exact), *was (frame)*
+
+bpy.types.UILayout
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UILayout.template_colormanaged_view_settings`
+* :class:`bpy.types.UILayout.template_colorspace_settings`
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.UILayout.template_image_settings` (image_settings, color_management), *was (image_settings)*
+
+bpy.types.ID
+------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ID.is_library_indirect`
+
+bpy.types.SpaceGraphEditor
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceGraphEditor.show_group_colors`
+
+bpy.types.Mesh
+--------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Mesh.skin_vertices`
+
+Removed
+^^^^^^^
+
+* **sticky**
+
+bpy.types.ShaderNodes
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShaderNodes.active`
+
+bpy.types.ColorSequence
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ColorSequence.input_count`
+
+bpy.types.ShaderNodeMath
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShaderNodeMath.use_clamp`
+
+bpy.types.Paint
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Paint.input_samples`
+
+bpy.types.ShaderNodeTexImage
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShaderNodeTexImage.image_user`
+* :class:`bpy.types.ShaderNodeTexImage.projection`
+* :class:`bpy.types.ShaderNodeTexImage.projection_blend`
+
+bpy.types.UserPreferencesView
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesView.use_mouse_depth_cursor`
+
+Renamed
+^^^^^^^
+
+* **use_mouse_auto_depth** -> :class:`bpy.types.UserPreferencesView.use_mouse_depth_navigate`
+
+bpy.types.CompositorNodeMath
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CompositorNodeMath.use_clamp`
+
+bpy.types.Material
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Material.use_uv_project`
+
+bpy.types.ThemeNodeEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeNodeEditor.frame_node`
+* :class:`bpy.types.ThemeNodeEditor.node_active`
+* :class:`bpy.types.ThemeNodeEditor.node_selected`
+
+bpy.types.Camera
+----------------
+
+Removed
+^^^^^^^
+
+* **use_panorama**
+
+bpy.types.UnifiedPaintSettings
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UnifiedPaintSettings.use_unified_weight`
+* :class:`bpy.types.UnifiedPaintSettings.weight`
+
+bpy.types.TextureNodes
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.TextureNodes.active`
+
+bpy.types.MovieTrackingMarker
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingMarker.pattern_bound_box`
+* :class:`bpy.types.MovieTrackingMarker.pattern_corners`
+* :class:`bpy.types.MovieTrackingMarker.search_max`
+* :class:`bpy.types.MovieTrackingMarker.search_min`
+
+bpy.types.CyclesWorldSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesWorldSettings.samples`
+
+bpy.types.LatticePoint
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.LatticePoint.select`
