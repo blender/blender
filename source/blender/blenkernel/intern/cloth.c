@@ -773,11 +773,13 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 			else
 				verts->goal= 0.0f;
 
+			/* Reset vertex flags */
+			verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
+			verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
+
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert ) {
-
 				for ( j = 0; j < dvert->totweight; j++ ) {
-					verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
 					if (( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1)) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) {
 						verts->goal = dvert->dw [j].weight;
 
@@ -789,7 +791,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						*/
 						
 						verts->goal  = powf(verts->goal, 4.0f);
-						if ( verts->goal >=SOFTGOALSNAP )
+						if ( verts->goal >= SOFTGOALSNAP )
 							 verts->flags |= CLOTH_VERT_FLAG_PINNED;
 					}
 					
@@ -804,7 +806,6 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						}
 					}
 
-					verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
 					if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF ) {
 						if ( dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol-1)) {
 							if (dvert->dw [j].weight > 0.0f) {
