@@ -149,6 +149,9 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const 
 
 void BlenderSync::sync_integrator()
 {
+#ifdef __CAMERA_MOTION__
+	BL::RenderSettings r = b_scene.render();
+#endif
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	experimental = (RNA_enum_get(&cscene, "feature_set") != 0);
@@ -175,7 +178,7 @@ void BlenderSync::sync_integrator()
 	integrator->layer_flag = render_layer.layer;
 
 	integrator->sample_clamp = get_float(cscene, "sample_clamp");
-#ifdef __MOTION__
+#ifdef __CAMERA_MOTION__
 	integrator->motion_blur = (!preview && r.use_motion_blur());
 #endif
 

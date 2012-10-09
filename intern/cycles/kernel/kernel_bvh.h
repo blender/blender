@@ -349,7 +349,7 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, co
 
 #ifdef __INTERSECTION_REFINE__
 	if(isect->object != ~0) {
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_itfm;
 #else
 		Transform tfm = object_fetch_transform(kg, isect->object, ray->time, OBJECT_INVERSE_TRANSFORM);
@@ -370,7 +370,7 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, co
 	P = P + D*rt;
 
 	if(isect->object != ~0) {
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_tfm;
 #else
 		Transform tfm = object_fetch_transform(kg, isect->object, ray->time, OBJECT_TRANSFORM);

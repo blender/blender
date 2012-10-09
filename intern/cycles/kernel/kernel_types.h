@@ -108,7 +108,8 @@ CCL_NAMESPACE_BEGIN
 #define __PASSES__
 #define __BACKGROUND_MIS__
 #define __AO__
-//#define __MOTION__
+#define __CAMERA_MOTION__
+//#define __OBJECT_MOTION__
 #endif
 
 //#define __SOBOL_FULL_SCREEN__
@@ -129,7 +130,7 @@ enum PathTraceDimension {
 	PRNG_FILTER_V = 1,
 	PRNG_LENS_U = 2,
 	PRNG_LENS_V = 3,
-#ifdef __MOTION__
+#ifdef __CAMERA_MOTION__
 	PRNG_TIME = 4,
 	PRNG_UNUSED = 5,
 	PRNG_BASE_NUM = 6,
@@ -426,7 +427,7 @@ typedef struct ShaderData {
 	/* length of the ray being shaded */
 	float ray_length;
 
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	/* object <-> world space transformations, cached to avoid
 	 * re-interpolating them constantly for shading */
 	Transform ob_tfm;

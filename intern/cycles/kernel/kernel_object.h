@@ -31,7 +31,7 @@ __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, 
 {
 	Transform tfm;
 
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	/* if we do motion blur */
 	if(sd->flag & SD_OBJECT_MOTION) {
 		/* fetch motion transforms */
@@ -70,7 +70,7 @@ __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, 
 
 __device_inline void object_position_transform(KernelGlobals *kg, ShaderData *sd, float3 *P)
 {
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	*P = transform_point(&sd->ob_tfm, *P);
 #else
 	Transform tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_TRANSFORM);
@@ -80,7 +80,7 @@ __device_inline void object_position_transform(KernelGlobals *kg, ShaderData *sd
 
 __device_inline void object_inverse_position_transform(KernelGlobals *kg, ShaderData *sd, float3 *P)
 {
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	*P = transform_point(&sd->ob_itfm, *P);
 #else
 	Transform tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_INVERSE_TRANSFORM);
@@ -90,7 +90,7 @@ __device_inline void object_inverse_position_transform(KernelGlobals *kg, Shader
 
 __device_inline void object_inverse_normal_transform(KernelGlobals *kg, ShaderData *sd, float3 *N)
 {
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	*N = normalize(transform_direction_transposed(&sd->ob_tfm, *N));
 #else
 	Transform tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_TRANSFORM);
@@ -100,7 +100,7 @@ __device_inline void object_inverse_normal_transform(KernelGlobals *kg, ShaderDa
 
 __device_inline void object_normal_transform(KernelGlobals *kg, ShaderData *sd, float3 *N)
 {
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	*N = normalize(transform_direction_transposed(&sd->ob_itfm, *N));
 #else
 	Transform tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_INVERSE_TRANSFORM);
@@ -110,7 +110,7 @@ __device_inline void object_normal_transform(KernelGlobals *kg, ShaderData *sd, 
 
 __device_inline void object_dir_transform(KernelGlobals *kg, ShaderData *sd, float3 *D)
 {
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	*D = transform_direction(&sd->ob_tfm, *D);
 #else
 	Transform tfm = object_fetch_transform(kg, sd->object, 0.0f, OBJECT_TRANSFORM);
@@ -120,7 +120,7 @@ __device_inline void object_dir_transform(KernelGlobals *kg, ShaderData *sd, flo
 
 __device_inline float3 object_location(KernelGlobals *kg, ShaderData *sd)
 {
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
 #else
 	Transform tfm = object_fetch_transform(kg, sd->object, 0.0f, OBJECT_TRANSFORM);

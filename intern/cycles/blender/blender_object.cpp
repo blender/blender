@@ -17,6 +17,7 @@
  */
 
 #include "camera.h"
+#include "integrator.h"
 #include "graph.h"
 #include "light.h"
 #include "mesh.h"
@@ -227,7 +228,9 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::DupliObject 
 				object->use_motion = true;
 			}
 
-			sync_mesh_motion(b_ob, object->mesh, motion);
+			/* mesh deformation blur not supported yet */
+			if(!scene->integrator->motion_blur)
+				sync_mesh_motion(b_ob, object->mesh, motion);
 		}
 
 		return;

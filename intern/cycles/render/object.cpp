@@ -220,6 +220,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 			memcpy(&objects[offset+8], &mtfm_pre, sizeof(float4)*4);
 			memcpy(&objects[offset+12], &mtfm_post, sizeof(float4)*4);
 		}
+#ifdef __OBJECT_MOTION__
 		else if(need_motion == Scene::MOTION_BLUR) {
 			if(ob->use_motion) {
 				/* decompose transformations for interpolation */
@@ -234,6 +235,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 				memcpy(&objects[offset+8], &no_motion, sizeof(float4));
 			}
 		}
+#endif
 
 		/* dupli object coords */
 		objects[offset+16] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], 0.0f);
@@ -297,7 +299,11 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 
 	/* counter mesh users */
 	map<Mesh*, int> mesh_users;
+#ifdef __OBJECT_MOTION__
 	bool motion_blur = scene->need_motion() == Scene::MOTION_BLUR;
+#else
+	bool motion_blur = false;
+#endif
 
 	foreach(Object *object, scene->objects) {
 		map<Mesh*, int>::iterator it = mesh_users.find(object->mesh);
