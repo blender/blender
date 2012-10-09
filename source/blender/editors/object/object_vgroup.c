@@ -431,7 +431,7 @@ static EnumPropertyItem WT_replace_mode_item[] = {
 };
 
 /*copy weight*/
-void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, WT_ReplaceMode replace_mode)
+static void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, WT_ReplaceMode replace_mode)
 {
 	switch (replace_mode) {
 
@@ -453,8 +453,9 @@ void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, 
 	}
 }
 
-int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene,
-                              WT_Method method, WT_ReplaceMode replace_mode, wmOperator *op)
+/* could be exposed externally */
+static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene,
+                                     WT_Method method, WT_ReplaceMode replace_mode, wmOperator *op)
 {
 	bDeformGroup *dg_dst;
 	Mesh *me_dst, *me_src;
@@ -536,7 +537,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* copy weight */
 				dw_src = defvert_find_index(*dv_src, index_src);
-				if(dw_src && dw_src->weight) {
+				if (dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
 				}
@@ -564,7 +565,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* copy weight that are not NULL including weight value 0. Existing target weights are overwritten prior to this in relevant cases. */
 				dw_src = defvert_find_index(dv_array_src[nearest.index], index_src);
-				if(dw_src && dw_src->weight) {
+				if (dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
 				}
@@ -620,7 +621,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				} while (f_index--);
 
 				/* copy weight that are not NULL including weight value 0. Existing target weights are overwritten prior to this in relevant cases. */
-				if(weight > 0) {
+				if (weight > 0) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, weight, replace_mode);
 				}
@@ -674,7 +675,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* copy weight that are not NULL including weight value 0. Existing target weights are overwritten prior to this in relevant cases. */
 				dw_src = defvert_find_index(dv_array_src[index_nearest_vertex], index_src);
-				if(dw_src && dw_src->weight) {
+				if (dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
 				}
@@ -3271,14 +3272,21 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 			switch (vertex_group_mode) {
 
 				case WT_REPLACE_ACTIVE_VERTEX_GROUP:
-					if (!ED_vgroup_transfer_weight(
-					        ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method, replace_mode, op)) fail++;
+					if (!ed_vgroup_transfer_weight(ob_act, ob_slc,
+					                               BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1),
+					                               scene, method, replace_mode, op))
+					{
+						fail++;
+					}
 					break;
 
 				case WT_REPLACE_ALL_VERTEX_GROUPS:
 					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
-						if (!ED_vgroup_transfer_weight(
-						        ob_act, ob_slc, dg_src, scene, method, replace_mode, op)) fail++;
+						if (!ed_vgroup_transfer_weight(ob_act, ob_slc,
+						                               dg_src, scene, method, replace_mode, op))
+						{
+							fail++;
+						}
 					}
 					break;
 
@@ -3296,8 +3304,12 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_END;
 
-	if (fail != 0) return OPERATOR_CANCELLED;
-	return OPERATOR_FINISHED;
+	if (fail != 0) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		return OPERATOR_FINISHED;
+	}
 }
 
 /* transfers weight from active to selected */
