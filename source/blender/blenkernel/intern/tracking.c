@@ -169,8 +169,6 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
 	tracking->settings.default_minimum_correlation = 0.75;
 	tracking->settings.default_pattern_size = 11;
 	tracking->settings.default_search_size = 61;
-	tracking->settings.keyframe1 = 1;
-	tracking->settings.keyframe2 = 30;
 	tracking->settings.dist = 1;
 	tracking->settings.object_distance = 1;
 
@@ -1179,6 +1177,8 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
 	tracking->objectnr = BLI_countlist(&tracking->objects) - 1;
 
 	object->scale = 1.0f;
+	object->keyframe1 = 1;
+	object->keyframe2 = 30;
 
 	BKE_tracking_object_unique_name(tracking, object);
 
@@ -2755,10 +2755,11 @@ static int reconstruct_refine_intrinsics_get_flags(MovieTracking *tracking, Movi
 	return flags;
 }
 
-static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking, ListBase *tracksbase)
+static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking, MovieTrackingObject *object)
 {
+	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 	int tot = 0;
-	int frame1 = tracking->settings.keyframe1, frame2 = tracking->settings.keyframe2;
+	int frame1 = object->keyframe1, frame2 = object->keyframe2;
 	MovieTrackingTrack *track;
 
 	track = tracksbase->first;
@@ -2779,13 +2780,11 @@ static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking, L
 int BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObject *object, char *error_msg, int error_size)
 {
 #ifdef WITH_LIBMV
-	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-
 	if (tracking->settings.motion_flag & TRACKING_MOTION_MODAL) {
 		/* TODO: check for number of tracks? */
 		return TRUE;
 	}
-	else if (reconstruct_count_tracks_on_both_keyframes(tracking, tracksbase) < 8) {
+	else if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
 		BLI_strncpy(error_msg, "At least 8 common tracks on both of keyframes are needed for reconstruction",
 		            error_size);
 

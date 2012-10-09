@@ -8016,6 +8016,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				do_version_ntree_tex_coord_from_dupli_264(NULL, NULL, ntree);
 	}
 
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 2)) {
+		MovieClip *clip;
+
+		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+			MovieTracking *tracking = &clip->tracking;
+			MovieTrackingObject *tracking_object;
+
+			for (tracking_object = tracking->objects.first;
+			     tracking_object;
+			     tracking_object = tracking_object->next)
+			{
+				if (tracking_object->keyframe1 == 0 && tracking_object->keyframe2 == 0) {
+					tracking_object->keyframe1 = tracking->settings.keyframe1;
+					tracking_object->keyframe2 = tracking->settings.keyframe2;
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

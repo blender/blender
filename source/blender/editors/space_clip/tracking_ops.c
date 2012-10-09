@@ -1343,7 +1343,6 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	Scene *scene = CTX_data_scene(C);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingSettings *settings = &clip->tracking.settings;
 	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 	int width, height;
 
@@ -1359,7 +1358,7 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	scj->user = sc->user;
 
 	scj->context = BKE_tracking_reconstruction_context_new(tracking, object,
-	                                                       settings->keyframe1, settings->keyframe2, width, height);
+	                                                       object->keyframe1, object->keyframe2, width, height);
 
 	tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
 
@@ -2859,14 +2858,14 @@ static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingSettings *settings = &tracking->settings;
+	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 	int keyframe = RNA_enum_get(op->ptr, "keyframe");
 	int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
 
 	if (keyframe == 0)
-		settings->keyframe1 = framenr;
+		object->keyframe1 = framenr;
 	else
-		settings->keyframe2 = framenr;
+		object->keyframe2 = framenr;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 

@@ -567,18 +567,6 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	                         "Limit speed of tracking to make visual feedback easier "
 	                         "(this does not affect the tracking quality)");
 
-	/* keyframe_a */
-	prop = RNA_def_property(srna, "keyframe_a", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_sdna(prop, NULL, "keyframe1");
-	RNA_def_property_ui_text(prop, "Keyframe A", "First keyframe used for reconstruction initialization");
-
-	/* keyframe_b */
-	prop = RNA_def_property(srna, "keyframe_b", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_sdna(prop, NULL, "keyframe2");
-	RNA_def_property_ui_text(prop, "Keyframe B", "Second keyframe used for reconstruction initialization");
-
 	/* intrinsics refinement during bundle adjustment */
 	prop = RNA_def_property(srna, "refine_intrinsics", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "refine_camera_intrinsics");
@@ -1393,6 +1381,18 @@ static void rna_def_trackingObject(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Scale", "Scale of object solution in camera space");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_trackingObject_flushUpdate");
+
+	/* keyframe_a */
+	prop = RNA_def_property(srna, "keyframe_a", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "keyframe1");
+	RNA_def_property_ui_text(prop, "Keyframe A", "First keyframe used for reconstruction initialization");
+
+	/* keyframe_b */
+	prop = RNA_def_property(srna, "keyframe_b", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "keyframe2");
+	RNA_def_property_ui_text(prop, "Keyframe B", "Second keyframe used for reconstruction initialization");
 }
 
 static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
