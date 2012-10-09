@@ -83,6 +83,19 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *defgroup);
 static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
 static void vgroup_delete_all(Object *ob);
 
+static int vertex_group_use_vert_sel(Object *ob)
+{
+	if (ob->mode == OB_MODE_EDIT) {
+		return TRUE;
+	}
+	else if (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
 	Lattice *lt = ob->data;
@@ -704,7 +717,7 @@ static void vgroup_normalize(Object *ob)
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
 
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1109,7 +1122,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
 
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1143,7 +1156,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
 
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (lock_active && !BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1221,7 +1234,7 @@ static void vgroup_invert(Object *ob, const short auto_assign, const short auto_
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1389,13 +1402,119 @@ static void vgroup_blend(Object *ob, const float fac)
 	}
 }
 
+static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
+{
+	/* qsort sorts in ascending order.  We want descending order to save a memcopy
+	 * so this compare function is inverted from the standard greater than comparison qsort needs.
+	 * A normal compare function is called with two pointer arguments and should return an integer less than, equal to,
+	 * or greater than zero corresponding to whether its first argument is considered less than, equal to,
+	 * or greater than its second argument.  This does the opposite. */
+	const struct MDeformWeight *dw1 = a1, *dw2 = a2;
+
+	if      (dw1->weight < dw2->weight) return  1;
+	else if (dw1->weight > dw2->weight) return -1;
+	else if (&dw1 < &dw2)               return  1; /* compare addresses so we have a stable sort algorithm */
+	else                                return -1;
+}
+
+/* Used for limiting the number of influencing bones per vertex when exporting
+ * skinned meshes.  if all_deform_weights is True, limit all deform modifiers
+ * to max_weights regardless of type, otherwise, only limit the number of influencing bones per vertex*/
+static int vertex_group_limit_total(Object *ob,
+                                    const int max_weights,
+                                    const int all_deform_weights)
+{
+	MDeformVert *dv, **dvert_array = NULL;
+	int i, dvert_tot = 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
+	int is_change = FALSE;
+
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+
+	if (dvert_array) {
+		int defbase_tot = BLI_countlist(&ob->defbase);
+		const char *vgroup_validmap = (all_deform_weights == FALSE) ?
+		            BKE_objdef_validmap_get(ob, defbase_tot) :
+		            NULL;
+		int num_to_drop = 0;
+
+		/* only the active group */
+		for (i = 0; i < dvert_tot; i++) {
+
+			/* in case its not selected */
+			if (!(dv = dvert_array[i])) {
+				continue;
+			}
+
+			if (all_deform_weights) {
+				/* keep only the largest weights, discarding the rest
+				 * qsort will put array in descending order because of  invCompare function */
+				num_to_drop = dv->totweight - max_weights;
+				if (num_to_drop > 0) {
+					qsort(dv->dw, dv->totweight, sizeof(MDeformWeight), inv_cmp_mdef_vert_weights);
+					dv->dw = MEM_reallocN(dv->dw, sizeof(MDeformWeight) * max_weights);
+					dv->totweight = max_weights;
+					is_change = TRUE;
+				}
+			}
+			else {
+				MDeformWeight *dw_temp;
+				int bone_count = 0, non_bone_count = 0;
+				int j;
+				/* only consider vgroups with bone modifiers attached (in vgroup_validmap) */
+
+				num_to_drop = dv->totweight - max_weights;
+
+				/* first check if we even need to test further */
+				if (num_to_drop > 0) {
+					/* re-pack dw array so that non-bone weights are first, bone-weighted verts at end
+					 * sort the tail, then copy only the truncated array back to dv->dw */
+					dw_temp = MEM_mallocN(sizeof(MDeformWeight) * (dv->totweight), __func__);
+					bone_count = 0; non_bone_count = 0;
+					for (j = 0; j < dv->totweight; j++) {
+						BLI_assert(dv->dw[j].def_nr < defbase_tot);
+						if (!vgroup_validmap[(dv->dw[j]).def_nr]) {
+							dw_temp[non_bone_count] = dv->dw[j];
+							non_bone_count += 1;
+						}
+						else {
+							dw_temp[dv->totweight - 1 - bone_count] = dv->dw[j];
+							bone_count += 1;
+						}
+					}
+					BLI_assert(bone_count + non_bone_count == dv->totweight);
+					num_to_drop = bone_count - max_weights;
+					if (num_to_drop > 0) {
+						qsort(&dw_temp[non_bone_count], bone_count, sizeof(MDeformWeight), inv_cmp_mdef_vert_weights);
+						dv->totweight -= num_to_drop;
+						/* Do we want to clean/normalize here? */
+						MEM_freeN(dv->dw);
+						dv->dw = MEM_reallocN(dw_temp, sizeof(MDeformWeight) * dv->totweight);
+						is_change = TRUE;
+					}
+					else {
+						MEM_freeN(dw_temp);
+					}
+				}
+			}
+		}
+		MEM_freeN(dvert_array);
+
+		if (vgroup_validmap) {
+			MEM_freeN((void *)vgroup_validmap);
+		}
+	}
+
+	return is_change;
+}
+
 static void vgroup_clean(Object *ob, const float epsilon, int keep_single)
 {
 	MDeformWeight *dw;
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1431,7 +1550,7 @@ static void vgroup_clean_all(Object *ob, const float epsilon, const int keep_sin
 {
 	MDeformVert **dvert_array = NULL;
 	int i, dvert_tot = 0;
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -2665,6 +2784,47 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	                "Keep verts assigned to at least one group when cleaning");
 }
 
+static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_context(C);
+
+	const int limit = RNA_int_get(op->ptr, "limit");
+	const int all_deform_weights = RNA_boolean_get(op->ptr, "all_deform_weights");
+
+	if (vertex_group_limit_total(ob, limit, all_deform_weights)) {
+
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_reportf(op->reports, RPT_WARNING, "No vertex groups limited");
+
+		/* note, would normally return cancelled, except we want the redo
+		 * UI to show up for users to change */
+		return OPERATOR_FINISHED;
+	}
+}
+
+void OBJECT_OT_vertex_group_limit_total(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Limit Number of Weights per Vertex";
+	ot->idname = "OBJECT_OT_vertex_group_limit_total";
+	ot->description = "Limits deform weights associated with a vertex to a specified number by removing lowest weights";
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_limit_total_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "limit", 4, 1, 32, "Limit", "Maximum number of deform weights", 1, 32);
+	RNA_def_boolean(ot->srna, "all_deform_weights", FALSE, "All Deform Weights", "Cull all deform weights, not just bones");
+}
 
 static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 {
