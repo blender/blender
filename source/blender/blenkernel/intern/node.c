@@ -1641,21 +1641,21 @@ int BKE_node_clipboard_get_type(void)
 /* ************** dependency stuff *********** */
 
 /* node is guaranteed to be not checked before */
-static int node_get_deplist_recurs(bNode *node, bNode ***nsort)
+static int node_get_deplist_recurs(bNodeTree *ntree, bNode *node, bNode ***nsort)
 {
 	bNode *fromnode;
-	bNodeSocket *sock;
+	bNodeLink *link;
 	int level = 0xFFF;
 	
 	node->done = TRUE;
 	
 	/* check linked nodes */
-	for (sock = node->inputs.first; sock; sock = sock->next) {
-		if (sock->link) {
-			fromnode = sock->link->fromnode;
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->tonode == node) {
+			fromnode = link->fromnode;
 			if (fromnode) {
 				if (fromnode->done == 0)
-					fromnode->level = node_get_deplist_recurs(fromnode, nsort);
+					fromnode->level = node_get_deplist_recurs(ntree, fromnode, nsort);
 				if (fromnode->level <= level)
 					level = fromnode->level - 1;
 			}
@@ -1665,7 +1665,7 @@ static int node_get_deplist_recurs(bNode *node, bNode ***nsort)
 	/* check parent node */
 	if (node->parent) {
 		if (node->parent->done == 0)
-			node->parent->level = node_get_deplist_recurs(node->parent, nsort);
+			node->parent->level = node_get_deplist_recurs(ntree, node->parent, nsort);
 		if (node->parent->level <= level)
 			level = node->parent->level - 1;
 	}
@@ -1699,7 +1699,7 @@ void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, in
 	/* recursive check */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->done == 0) {
-			node->level = node_get_deplist_recurs(node, &nsort);
+			node->level = node_get_deplist_recurs(ntree, node, &nsort);
 		}
 	}
 }
@@ -1717,7 +1717,7 @@ static void ntree_update_node_level(bNodeTree *ntree)
 	/* recursive check */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->done == 0) {
-			node->level = node_get_deplist_recurs(node, NULL);
+			node->level = node_get_deplist_recurs(ntree, node, NULL);
 		}
 	}
 }
