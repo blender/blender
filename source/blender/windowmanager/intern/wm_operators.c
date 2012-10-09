@@ -79,6 +79,7 @@
 #include "BIF_glutil.h" /* for paint cursor */
 #include "BLF_api.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -1838,6 +1839,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	
 	/* mark all library linked objects to be updated */
 	recalc_all_library_objects(bmain);
+	IMB_colormanagement_check_file_config(bmain);
 
 	/* append, rather than linking */
 	if ((flag & FILE_LINK) == 0) {
