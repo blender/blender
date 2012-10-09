@@ -75,30 +75,6 @@ void uv_find_nearest_edge(struct Scene *scene, struct Image *ima, struct BMEditM
 struct UvElement *ED_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
 void uvedit_live_unwrap_update(struct SpaceImage *sima, struct Scene *scene, struct Object *obedit);
 
-/* smart stitch */
-
-/* object that stores display data for previewing before accepting stitching */
-typedef struct StitchPreviewer {
-	/* here we'll store the preview triangle indices of the mesh */
-	float *preview_polys;
-	/* uvs per polygon. */
-	unsigned int *uvs_per_polygon;
-	/*number of preview polygons */
-	unsigned int num_polys;
-	/* preview data. These will be either the previewed vertices or edges depending on stitch mode settings */
-	float *preview_stitchable;
-	float *preview_unstitchable;
-	/* here we'll store the number of elements to be drawn */
-	unsigned int num_stitchable;
-	unsigned int num_unstitchable;
-	unsigned int preview_uvs;
-	/* ...and here we'll store the triangles*/
-	float *static_tris;
-	unsigned int num_static_tris;
-} StitchPreviewer;
-
-StitchPreviewer *uv_get_stitch_previewer(void);
-
 /* operators */
 
 void UV_OT_average_islands_scale(struct wmOperatorType *ot);
