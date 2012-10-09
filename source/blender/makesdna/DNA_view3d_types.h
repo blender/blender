@@ -44,7 +44,7 @@ struct MovieClipUser;
 struct RenderInfo;
 struct RenderEngine;
 struct bGPdata;
-struct SmoothViewStore;
+struct SmoothView3DStore;
 struct wmTimer;
 
 /* This is needed to not let VC choke on near and far... old
@@ -108,7 +108,7 @@ typedef struct RegionView3D {
 	struct ViewDepths *depths;
 
 	/* animated smooth view */
-	struct SmoothViewStore *sms;
+	struct SmoothView3DStore *sms;
 	struct wmTimer *smooth_timer;
 
 
@@ -133,11 +133,11 @@ typedef struct RegionView3D {
 	short rflag;
 	
 
-	/* last view */
+	/* last view (use when switching out of camera view) */
 	float lviewquat[4];
 	short lpersp, lview; /* lpersp can never be set to 'RV3D_CAMOB' */
+
 	float gridview;
-	
 	float twangle[3];
 
 

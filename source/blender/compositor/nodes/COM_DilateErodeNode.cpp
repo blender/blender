@@ -21,7 +21,6 @@
  */
 
 #include "COM_DilateErodeNode.h"
-#include "DNA_scene_types.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_DilateErodeOperation.h"
 #include "COM_AntiAliasOperation.h"
@@ -96,6 +95,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		operationx->setbNode(editorNode);
 		operationx->setData(data);
 		operationx->setQuality(quality);
+		operationx->setFalloff(PROP_SMOOTH);
 		this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
 		// this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph); // no size input yet
 		graph->addOperation(operationx);
@@ -103,11 +103,12 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		operationy->setbNode(editorNode);
 		operationy->setData(data);
 		operationy->setQuality(quality);
+		operationy->setFalloff(PROP_SMOOTH);
 		this->getOutputSocket(0)->relinkConnections(operationy->getOutputSocket());
 		graph->addOperation(operationy);
 		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
 		// addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1)); // no size input yet
-		addPreviewOperation(graph, operationy->getOutputSocket());
+		addPreviewOperation(graph, context, operationy->getOutputSocket());
 
 		/* TODO? */
 		/* see gaussian blue node for original usage */

@@ -29,17 +29,19 @@
 
 #include "zlib.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
+#include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 
-#include "BKE_utildefines.h"
+#include "BLO_blend_defs.h"
+
 #include "BKE_global.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_thumbs.h"
-
-#include "MEM_guardedalloc.h"
 
 /* extracts the thumbnail from between the 'REND' and the 'GLOB'
  * chunks of the header, don't use typical blend loader because its too slow */
@@ -78,7 +80,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 
 	while (gzread(gzfile, bhead, sizeof_bhead) == sizeof_bhead) {
 		if (endian_switch)
-			SWITCH_INT(bhead[1]);  /* length */
+			BLI_endian_switch_int32(&bhead[1]);  /* length */
 
 		if (bhead[0] == REND) {
 			gzseek(gzfile, bhead[1], SEEK_CUR); /* skip to the next */
@@ -97,8 +99,8 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 			return NULL;
 
 		if (endian_switch) {
-			SWITCH_INT(size[0]);
-			SWITCH_INT(size[1]);
+			BLI_endian_switch_int32(&size[0]);
+			BLI_endian_switch_int32(&size[1]);
 		}
 		/* length */
 		bhead[1] -= sizeof(int) * 2;

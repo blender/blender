@@ -523,7 +523,7 @@ int libmv_refineParametersAreValid(int parameters) {
 	                       LIBMV_REFINE_RADIAL_DISTORTION_K1));
 }
 
-void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntrinsics *intrinsics,
+static void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntrinsics *intrinsics,
 			libmv::EuclideanReconstruction *reconstruction, int refine_intrinsics,
 			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
 {
@@ -1027,7 +1027,7 @@ void libmv_InvertIntrinsics(double focal_length, double principal_x, double prin
 
 /* ************ point clouds ************ */
 
-void libmvTransformToMat4(libmv::Mat3 &R, libmv::Vec3 &S, libmv::Vec3 &t, double M[4][4])
+static void libmvTransformToMat4(libmv::Mat3 &R, libmv::Vec3 &S, libmv::Vec3 &t, double M[4][4])
 {
 	for (int j = 0; j < 3; ++j)
 		for (int k = 0; k < 3; ++k)

@@ -38,7 +38,7 @@ struct ImBuf;
 class ImageBuff : public ImageBase
 {
 private:
-	struct ImBuf* m_imbuf;		// temporary structure for buffer manipulation
+	struct ImBuf *m_imbuf;		// temporary structure for buffer manipulation
 public:
 	/// constructor
 	ImageBuff (void) : ImageBase(true), m_imbuf(NULL) {}

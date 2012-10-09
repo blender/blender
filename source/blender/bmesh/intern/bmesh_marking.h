@@ -60,6 +60,7 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select);
 void BM_face_select_set(BMesh *bm, BMFace *f, int select);
 
 void BM_mesh_select_mode_set(BMesh *bm, int selectmode);
+void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode);
 void BM_mesh_select_mode_flush(BMesh *bm);
 
 void BM_mesh_deselect_flush(BMesh *bm);
@@ -70,7 +71,7 @@ int BM_mesh_elem_hflag_count_disabled(BMesh *bm, const char htype, const char hf
 
 /* edit selection stuff */
 void    BM_active_face_set(BMesh *bm, BMFace *f);
-BMFace *BM_active_face_get(BMesh *bm, int sloppy);
+BMFace *BM_active_face_get(BMesh *bm, int sloppy, int selected);
 
 void    BM_editselection_center(BMEditSelection *ese, float r_center[3]);
 void    BM_editselection_normal(BMEditSelection *ese, float r_normal[3]);

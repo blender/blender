@@ -86,6 +86,8 @@ def read_blend_rend_chunk(path):
 
         scenes.append((start_frame, end_frame, scene_name))
 
+    blendfile.close()
+
     return scenes
 
 

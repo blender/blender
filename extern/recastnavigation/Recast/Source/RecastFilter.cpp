@@ -128,7 +128,7 @@ void rcFilterLedgeSpans(rcContext* ctx, const int walkableHeight, const int walk
 					rcSpan* ns = solid.spans[dx + dy*w];
 					int nbot = -walkableClimb;
 					int ntop = ns ? (int)ns->smin : MAX_HEIGHT;
-					// Skip neightbour if the gap between the spans is too small.
+					// Skip neighbor if the gap between the spans is too small.
 					if (rcMin(top,ntop) - rcMax(bot,nbot) > walkableHeight)
 						minh = rcMin(minh, nbot - bot);
 					
@@ -137,7 +137,7 @@ void rcFilterLedgeSpans(rcContext* ctx, const int walkableHeight, const int walk
 					{
 						nbot = (int)ns->smax;
 						ntop = ns->next ? (int)ns->next->smin : MAX_HEIGHT;
-						// Skip neightbour if the gap between the spans is too small.
+						// Skip neighbor if the gap between the spans is too small.
 						if (rcMin(top,ntop) - rcMax(bot,nbot) > walkableHeight)
 						{
 							minh = rcMin(minh, nbot - bot);

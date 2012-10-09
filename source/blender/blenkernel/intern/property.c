@@ -27,8 +27,11 @@
 
 /** \file blender/blenkernel/intern/property.c
  *  \ingroup bke
+ *
+ * This module deals with bProperty only,
+ * they are used on blender objects in the game engine
+ * (where they get converted into C++ classes - CValue and subclasses)
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +48,7 @@
 
 #include "BKE_property.h"
 
-void free_property(bProperty *prop)
+void BKE_bproperty_free(bProperty *prop)
 {
 	
 	if (prop->poin && prop->poin != &prop->data) MEM_freeN(prop->poin);
@@ -53,17 +56,17 @@ void free_property(bProperty *prop)
 	
 }
 
-void free_properties(ListBase *lb)
+void BKE_bproperty_free_list(ListBase *lb)
 {
 	bProperty *prop;
 	
 	while ( (prop = lb->first) ) {
 		BLI_remlink(lb, prop);
-		free_property(prop);
+		BKE_bproperty_free(prop);
 	}
 }
 
-bProperty *copy_property(bProperty *prop)
+bProperty *BKE_bproperty_copy(bProperty *prop)
 {
 	bProperty *propn;
 	
@@ -76,13 +79,13 @@ bProperty *copy_property(bProperty *prop)
 	return propn;
 }
 
-void copy_properties(ListBase *lbn, ListBase *lbo)
+void BKE_bproperty_copy_list(ListBase *lbn, ListBase *lbo)
 {
 	bProperty *prop, *propn;
-	free_properties(lbn); /* in case we are copying to an object with props */
+	BKE_bproperty_free_list(lbn); /* in case we are copying to an object with props */
 	prop = lbo->first;
 	while (prop) {
-		propn = copy_property(prop);
+		propn = BKE_bproperty_copy(prop);
 		BLI_addtail(lbn, propn);
 		prop = prop->next;
 	}
@@ -90,7 +93,7 @@ void copy_properties(ListBase *lbn, ListBase *lbo)
 	
 }
 
-void init_property(bProperty *prop)
+void BKE_bproperty_init(bProperty *prop)
 {
 	/* also use when property changes type */
 	
@@ -113,22 +116,22 @@ void init_property(bProperty *prop)
 }
 
 
-bProperty *new_property(int type)
+bProperty *BKE_bproperty_new(int type)
 {
 	bProperty *prop;
 
 	prop = MEM_callocN(sizeof(bProperty), "property");
 	prop->type = type;
 
-	init_property(prop);
+	BKE_bproperty_init(prop);
 	
 	strcpy(prop->name, "prop");
 
 	return prop;
 }
 
-/* used by unique_property() only */
-static bProperty *get_property__internal(bProperty *first, bProperty *self, const char *name)
+/* used by BKE_bproperty_unique() only */
+static bProperty *bproperty_get(bProperty *first, bProperty *self, const char *name)
 {
 	bProperty *p;
 	for (p = first; p; p = p->next) {
@@ -137,7 +140,7 @@ static bProperty *get_property__internal(bProperty *first, bProperty *self, cons
 	}
 	return NULL;
 }
-void unique_property(bProperty *first, bProperty *prop, int force)
+void BKE_bproperty_unique(bProperty *first, bProperty *prop, int force)
 {
 	bProperty *p;
 
@@ -151,13 +154,13 @@ void unique_property(bProperty *first, bProperty *prop, int force)
 
 	if (force) {
 		/* change other names to make them unique */
-		while ((p = get_property__internal(first, prop, prop->name))) {
-			unique_property(first, p, 0);
+		while ((p = bproperty_get(first, prop, prop->name))) {
+			BKE_bproperty_unique(first, p, 0);
 		}
 	}
 	else {
 		/* change our own name until its unique */
-		if (get_property__internal(first, prop, prop->name)) {
+		if (bproperty_get(first, prop, prop->name)) {
 			/* there is a collision */
 			char new_name[sizeof(prop->name)];
 			char base_name[sizeof(prop->name)];
@@ -175,33 +178,34 @@ void unique_property(bProperty *first, bProperty *prop, int force)
 				BLI_snprintf(num, sizeof(num), "%d", i++);
 				BLI_strncpy(new_name, base_name, sizeof(prop->name) - strlen(num));
 				strcat(new_name, num);
-			} while (get_property__internal(first, prop, new_name));
+			} while (bproperty_get(first, prop, new_name));
 
 			BLI_strncpy(prop->name, new_name, sizeof(prop->name));
 		}
 	}
 }
 
-bProperty *get_ob_property(Object *ob, const char *name)
+bProperty *BKE_bproperty_object_get(Object *ob, const char *name)
 {
 	return BLI_findstring(&ob->prop, name, offsetof(bProperty, name));
 }
 
-void set_ob_property(Object *ob, bProperty *propc)
+void BKE_bproperty_object_set(Object *ob, bProperty *propc)
 {
 	bProperty *prop;
-	prop = get_ob_property(ob, propc->name);
+	prop = BKE_bproperty_object_get(ob, propc->name);
 	if (prop) {
-		free_property(prop);
+		BKE_bproperty_free(prop);
 		BLI_remlink(&ob->prop, prop);
 	}
-	BLI_addtail(&ob->prop, copy_property(propc));
+	BLI_addtail(&ob->prop, BKE_bproperty_copy(propc));
 }
 
 /* negative: prop is smaller
  * positive: prop is larger
  */
-int compare_property(bProperty *prop, const char *str)
+#if 0  /* UNUSED */
+int BKE_bproperty_cmp(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 	float fvalue, ftest;
@@ -223,8 +227,8 @@ int compare_property(bProperty *prop, const char *str)
 
 		case GPROP_FLOAT:
 		case GPROP_TIME:
-			// WARNING: untested for GPROP_TIME
-			// function isn't used currently
+			/* WARNING: untested for GPROP_TIME
+			 * function isn't used currently */
 			fvalue = *((float *)&prop->data);
 			ftest = (float)atof(str);
 			if (fvalue > ftest) return 1;
@@ -237,8 +241,9 @@ int compare_property(bProperty *prop, const char *str)
 	
 	return 0;
 }
+#endif
 
-void set_property(bProperty *prop, const char *str)
+void BKE_bproperty_set(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 
@@ -262,7 +267,7 @@ void set_property(bProperty *prop, const char *str)
 	
 }
 
-void add_property(bProperty *prop, const char *str)
+void BKE_bproperty_add(bProperty *prop, const char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 
@@ -282,7 +287,7 @@ void add_property(bProperty *prop, const char *str)
 }
 
 /* reads value of property, sets it in chars in str */
-void set_property_valstr(bProperty *prop, char *str)
+void BKE_bproperty_set_valstr(bProperty *prop, char *str)
 {
 //	extern int Gdfra;		/* sector.c */
 
@@ -303,11 +308,13 @@ void set_property_valstr(bProperty *prop, char *str)
 	}
 }
 
+#if 0   /* UNUSED */
 void cp_property(bProperty *prop1, bProperty *prop2)
 {
 	char str[128];
 
-	set_property_valstr(prop2, str);
+	BKE_bproperty_set_valstr(prop2, str);
 
-	set_property(prop1, str);
+	BKE_bproperty_set(prop1, str);
 }
+#endif

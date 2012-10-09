@@ -184,6 +184,7 @@ void ACTION_OT_select_all_toggle(wmOperatorType *ot)
 	
 	/* props */
 	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -254,8 +255,8 @@ static void borderselect_action(bAnimContext *ac, rcti rect, short mode, short s
 		}
 		
 		/* perform vertical suitability check (if applicable) */
-		if ( (mode == ACTKEYS_BORDERSEL_FRAMERANGE) || 
-		     !((ymax < rectf.ymin) || (ymin > rectf.ymax)) )
+		if ((mode == ACTKEYS_BORDERSEL_FRAMERANGE) ||
+		    !((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 		{
 			/* loop over data selecting */
 			if (ale->type == ANIMTYPE_GPLAYER)
@@ -293,10 +294,7 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 		deselect_action_keys(&ac, 1, SELECT_SUBTRACT);
 	
 	/* get settings from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 		
 	gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 	if (gesture_mode == GESTURE_MODAL_SELECT)
@@ -311,7 +309,7 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
-		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))
+		if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
 			mode = ACTKEYS_BORDERSEL_FRAMERANGE;
 		else
 			mode = ACTKEYS_BORDERSEL_CHANNELS;
@@ -804,8 +802,8 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 			TimeMarker *marker;
 			
 			for (marker = markers->first; marker; marker = marker->next) {
-				if ( ((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
-				     ((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)) )
+				if (((leftright == ACTKEYS_LRSEL_LEFT)  && (marker->frame <  CFRA)) ||
+				    ((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA)))
 				{
 					marker->flag |= SELECT;
 				}
@@ -881,6 +879,8 @@ static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent 
 
 void ACTION_OT_select_leftright(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Select Left/Right";
 	ot->idname = "ACTION_OT_select_leftright";
@@ -894,9 +894,12 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
+	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_actkeys_leftright_select_types, ACTKEYS_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -908,9 +911,6 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
  * In addition to these basic options, the SHIFT modifier can be used to toggle the 
  * selection mode between replacing the selection (without) and inverting the selection (with).
  */
-
-/* sensitivity factor for frame-selections */
-#define FRAME_CLICK_THRESH      0.1f
 
 /* ------------------- */
  
@@ -1233,6 +1233,8 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
  
 void ACTION_OT_clickselect(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Mouse Select Keys";
 	ot->idname = "ACTION_OT_clickselect";
@@ -1245,9 +1247,11 @@ void ACTION_OT_clickselect(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "column", 0, "Column Select", ""); // ALTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************************************************************************** */

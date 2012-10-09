@@ -41,6 +41,8 @@
 
 #include "BIF_gl.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_image.h"
@@ -50,6 +52,7 @@
 #include "BKE_global.h" /* grr: G.main->name */
 
 #include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 #include "BIF_gl.h"
 #include "GPU_draw.h"
@@ -80,16 +83,20 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 			BKE_reportf(reports, RPT_ERROR, "Couldn't acquire buffer from image");
 		}
 		else {
-			/* temp swap out the color */
-			const unsigned char imb_planes_back = ibuf->planes;
-			const float dither_back = ibuf->dither;
-			ibuf->planes = scene->r.im_format.planes;
-			ibuf->dither = scene->r.dither_intensity;
-			if (!BKE_imbuf_write(ibuf, path, &scene->r.im_format)) {
+			ImBuf *write_ibuf;
+
+			write_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, TRUE, TRUE, &scene->view_settings,
+			                                                 &scene->display_settings, &scene->r.im_format);
+
+			write_ibuf->planes = scene->r.im_format.planes;
+			write_ibuf->dither = scene->r.dither_intensity;
+
+			if (!BKE_imbuf_write(write_ibuf, path, &scene->r.im_format)) {
 				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 			}
-			ibuf->planes = imb_planes_back;
-			ibuf->dither = dither_back;
+
+			if (write_ibuf != ibuf)
+				IMB_freeImBuf(write_ibuf);
 		}
 
 		BKE_image_release_ibuf(image, lock);
@@ -117,6 +124,8 @@ static void rna_Image_save(Image *image, ReportList *reports)
 
 			if (image->source == IMA_SRC_GENERATED)
 				image->source = IMA_SRC_FILE;
+
+			IMB_colormanagment_colorspace_from_ibuf_ftype(&image->colorspace_settings, ibuf);
 
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}

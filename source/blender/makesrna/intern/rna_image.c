@@ -42,6 +42,13 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
+EnumPropertyItem image_generated_type_items[] = {
+	{IMA_GENTYPE_BLANK, "BLANK", 0, "Blank", "Generate a blank image"},
+	{IMA_GENTYPE_GRID, "UV_GRID", 0, "UV Grid", "Generated grid to test UV mappings"},
+	{IMA_GENTYPE_GRID_COLOR, "COLOR_GRID", 0, "Color Grid", "Generated improved UV grid to test UV mappings"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static EnumPropertyItem image_source_items[] = {
 	{IMA_SRC_FILE, "FILE", 0, "Single Image", "Single image file"},
 	{IMA_SRC_SEQUENCE, "SEQUENCE", 0, "Image Sequence", "Multiple image files, as a sequence"},
@@ -140,7 +147,7 @@ static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 }
 
 
-char *rna_ImageUser_path(PointerRNA *ptr)
+static char *rna_ImageUser_path(PointerRNA *ptr)
 {
 	if (ptr->id.data) {
 		/* ImageUser *iuser= ptr->data; */
@@ -396,7 +403,6 @@ static void rna_def_imageuser(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "offset");
-	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Offset", "Offset the number of the frame to use in the animation");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 
@@ -434,12 +440,6 @@ static void rna_def_image(BlenderRNA *brna)
 		{IMA_TYPE_UV_TEST, "UV_TEST", 0, "UV Test", ""},
 		{IMA_TYPE_R_RESULT, "RENDER_RESULT", 0, "Render Result", ""},
 		{IMA_TYPE_COMPOSITE, "COMPOSITING", 0, "Compositing", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-	static const EnumPropertyItem prop_generated_type_items[] = {
-		{0, "BLANK", 0, "Blank", "Generate a blank image"},
-		{1, "UV_GRID", 0, "UV Grid", "Generated grid to test UV mappings"},
-		{2, "COLOR_GRID", 0, "Color Grid", "Generated improved UV grid to test UV mappings"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static const EnumPropertyItem prop_mapping_items[] = {
@@ -512,6 +512,11 @@ static void rna_def_image(BlenderRNA *brna)
 	                         "to avoid fringing for images with light backgrounds");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_free_update");
 
+	prop = RNA_def_property(srna, "view_as_render", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_VIEW_AS_RENDER);
+	RNA_def_property_ui_text(prop, "View as Render", "Apply render part of display transformation when displaying this image on the screen");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
+
 	prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Image_dirty_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -520,7 +525,7 @@ static void rna_def_image(BlenderRNA *brna)
 	/* generated image (image_generated_change_cb) */
 	prop = RNA_def_property(srna, "generated_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gen_type");
-	RNA_def_property_enum_items(prop, prop_generated_type_items);
+	RNA_def_property_enum_items(prop, image_generated_type_items);
 	RNA_def_property_ui_text(prop, "Generated Type", "Generated image type");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
 
@@ -650,6 +655,11 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pixels", "Image pixels in floating point values");
 	RNA_def_property_dynamic_array_funcs(prop, "rna_Image_pixels_get_length");
 	RNA_def_property_float_funcs(prop, "rna_Image_pixels_get", "rna_Image_pixels_set", NULL);
+
+	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
+	RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
 
 	RNA_api_image(srna);
 }

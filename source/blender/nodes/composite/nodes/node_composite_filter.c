@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_filter_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_filter_edge(CompBuf *out, CompBuf *in, float *filter, float fac)
 {
 	float *row1, *row2, *row3;
@@ -219,6 +221,7 @@ static void node_composit_exec_filter(void *data, bNode *node, bNodeStack **in, 
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_filter(bNodeTreeType *ttype)
 {
@@ -228,7 +231,9 @@ void register_node_type_cmp_filter(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_filter_in, cmp_node_filter_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_label(&ntype, node_filter_label);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_filter);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

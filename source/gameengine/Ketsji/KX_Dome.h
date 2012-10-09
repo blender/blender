@@ -119,7 +119,7 @@ public:
 	void RenderDomeFrame(KX_Scene* scene, KX_Camera* cam, int i);
 	void BindImages(int i);
 
-	void SetViewPort(GLuint viewport[4]);
+	void SetViewPort(const int viewport[4]);
 	void CalculateFrustum(KX_Camera* cam);
 	void RotateCamera(KX_Camera* cam, int i);
 

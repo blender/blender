@@ -78,9 +78,8 @@ variables on the UI for now
 #include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_deform.h"
-#include "BKE_mesh.h" 
-//XXX #include  "BIF_editdeform.h"
-//XXX #include  "BIF_graphics.h"
+#include "BKE_mesh.h"
+
 #include  "PIL_time.h"
 // #include  "ONL_opennl.h" remove linking to ONL for now
 
@@ -144,13 +143,15 @@ typedef struct  SB_thread_context {
 } SB_thread_context;
 
 #define NLF_BUILD  1
-#define NLF_SOLVE  2
+#if 0
+#  define NLF_SOLVE  2
+#endif
 
 #define MID_PRESERVE 1
 
 #define SOFTGOALSNAP  0.999f
 /* if bp-> goal is above make it a *forced follow original* and skip all ODE stuff for this bp
- * removes *unnecessary* stiffnes from ODE system
+ * removes *unnecessary* stiffness from ODE system
  */
 #define HEUNWARNLIMIT 1 /* 500 would be fine i think for detecting severe *stiff* stuff */
 
@@ -1718,15 +1719,15 @@ static int choose_winner(float*w, float* pos, float*a, float*b, float*c, float*c
 {
 	float mindist, cp;
 	int winner =1;
-	mindist = ABS(dot_v3v3(pos, a));
+	mindist = fabsf(dot_v3v3(pos, a));
 
-	cp = ABS(dot_v3v3(pos, b));
+	cp = fabsf(dot_v3v3(pos, b));
 	if ( mindist < cp ) {
 		mindist = cp;
 		winner =2;
 	}
 
-	cp = ABS(dot_v3v3(pos, c));
+	cp = fabsf(dot_v3v3(pos, c));
 	if (mindist < cp ) {
 		mindist = cp;
 		winner =3;
@@ -1942,7 +1943,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							}
 
 						}
-						if ((deflected < 2)&& (G.rt != 444)) { /* we did not hit a face until now */
+						if ((deflected < 2)&& (G.debug_value != 444)) { /* we did not hit a face until now */
 							/* see if 'outer' hits an edge */
 							float dist;
 
@@ -2292,7 +2293,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			/* done goal stuff */
 
 			/* gravitation */
-			if (sb && scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
+			if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 				float gravity[3];
 				copy_v3_v3(gravity, scene->physics_settings.gravity);
 				mul_v3_fl(gravity, sb_grav_force_scale(ob)*_final_mass(ob, bp)*sb->effector_weights->global_gravity); /* individual mass of node here */
@@ -2494,7 +2495,7 @@ static void softbody_calc_forcesEx(Scene *scene, Object *ob, float forcetime, fl
 static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, float timenow, int nl_flags)
 {
 	/* redirection to the new threaded Version */
-	if (!(G.rt & 0x10)) { // 16
+	if (!(G.debug_value & 0x10)) { // 16
 		softbody_calc_forcesEx(scene, ob, forcetime, timenow, nl_flags);
 		return;
 	}
@@ -2505,7 +2506,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 		/*backward compatibility note:
 		fixing bug [17428] which forces adaptive step size to tiny steps
 		in some situations
-		.. keeping G.rt==17 0x11 option for old files 'needing' the bug*/
+		.. keeping G.debug_value==17 0x11 option for old files 'needing' the bug*/
 
 		/* rule we never alter free variables :bp->vec bp->pos in here !
 		* this will ruin adaptive stepsize AKA heun! (BM)
@@ -2757,9 +2758,9 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 					if (sb_deflect_face(ob, bp->pos, facenormal, defforce, &cf, timenow, vel, &intrusion)) {
 						if ((!nl_flags)&&(intrusion < 0.0f)) {
-							if (G.rt & 0x01) { // 17 we did check for bit 0x10 before
+							if (G.debug_value & 0x01) { // 17 we did check for bit 0x10 before
 								/*fixing bug [17428] this forces adaptive step size to tiny steps
-								in some situations .. keeping G.rt==17 option for old files 'needing' the bug
+								in some situations .. keeping G.debug_value==17 option for old files 'needing' the bug
 								*/
 								/*bjornmose:  uugh.. what an evil hack
 								violation of the 'don't touch bp->pos in here' rule
@@ -2838,7 +2839,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 			nlEnd(NL_MATRIX);
 			nlEnd(NL_SYSTEM);
 
-			if ((G.rt == 32) && (nl_flags & NLF_BUILD)) {
+			if ((G.debug_value == 32) && (nl_flags & NLF_BUILD)) {
 				printf("####MEE#####\n");
 				nlPrintMatrix();
 			}
@@ -2850,7 +2851,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 				float f;
 				int index =0;
 				/* for debug purpose .. anyhow cropping B vector looks like working */
-				if (G.rt ==32)
+				if (G.debug_value ==32)
 					for (a=2*sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 						f=nlGetVariable(0, index);
 						printf("(%f ", f);index++;
@@ -2914,7 +2915,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	aabbmin[0]=aabbmin[1]=aabbmin[2] = 1e20f;
 	aabbmax[0]=aabbmax[1]=aabbmax[2] = -1e20f;
 
-	/* old one with homogenous masses  */
+	/* old one with homogeneous masses  */
 	/* claim a minimum mass for vertex */
 	/*
 	if (sb->nodemass > 0.009999f) timeovermass = forcetime/sb->nodemass;
@@ -3297,7 +3298,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		   /* I'd like to have it  .. if (sb->namedVG_Goal[0]) */
 
 			get_scalar_from_vertexgroup(ob, a, (short) (sb->vertgroup-1), &bp->goal);
-			/* do this always, regardless successfull read from vertex group */
+			/* do this always, regardless successful read from vertex group */
 			/* this is where '2.5 every thing is animatable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
 			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
@@ -3310,7 +3311,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 			if (ob->softflag & OB_SB_GOAL) {bp->goal = sb->defgoal;}
 		}
 
-		/* to proove the concept
+		/* to proof the concept
 		 * this enables per vertex *mass painting*
 		 */
 
@@ -3799,7 +3800,7 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 		/* vertexCos came from local world, go global */
 		mul_m4_v3(ob->obmat, bp->origE);
 		/* just to be save give bp->origT a defined value
-		 * will be calulated in interpolate_exciter()*/
+		 * will be calculated in interpolate_exciter() */
 		copy_v3_v3(bp->origT, bp->origE);
 	}
 }
@@ -3811,7 +3812,7 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
  * that is:
  * a precise position vector denoting the motion of the center of mass
  * give a rotation/scale matrix using averaging method, that's why estimate and not calculate
- * see: this is kind of reverse engeneering: having to states of a point cloud and recover what happend
+ * see: this is kind of reverse engineering: having to states of a point cloud and recover what happend
  * our advantage here we know the identity of the vertex
  * there are others methods giving other results.
  * lloc, lrot, lscale are allowed to be NULL, just in case you don't need it.
@@ -3924,7 +3925,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 
 	sst=PIL_check_seconds_timer();
 	/* Integration back in time is possible in theory, but pretty useless here.
-	 * So we refuse to do so. Since we do not know anything about 'outside' canges
+	 * So we refuse to do so. Since we do not know anything about 'outside' changes
 	 * especially colliders we refuse to go more than 10 frames.
 	 */
 	if (dtime < 0 || dtime > 10.5f) return;

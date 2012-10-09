@@ -285,10 +285,9 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
                 row.prop(itasc, "damping_max", text="Damp", slider=True)
                 row.prop(itasc, "damping_epsilon", text="Eps", slider=True)
 
-from bl_ui.properties_animviz import (
-    MotionPathButtonsPanel,
-    OnionSkinButtonsPanel,
-    )
+from bl_ui.properties_animviz import (MotionPathButtonsPanel,
+                                      OnionSkinButtonsPanel,
+                                      )
 
 
 class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
@@ -323,6 +322,7 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from
 
     def draw(self, context):
         ob = context.object
+
         self.draw_settings(context, ob.pose.animation_visualization, bones=True)
 
 

@@ -188,7 +188,7 @@ Eliminate(const BlockSparseMatrixBase* A,
         typename EigenTypes<kFBlockSize>::ConstVectorRef
             diag(D + bs->cols[i].position, block_size);
 
-        MutexLock l(&cell_info->m);
+        CeresMutexLock l(&cell_info->m);
         MatrixRef m(cell_info->values, row_stride, col_stride);
         m.block(r, c, block_size, block_size).diagonal()
             += diag.array().square().matrix();
@@ -387,7 +387,7 @@ UpdateRhs(const Chunk& chunk,
             row.block.size, block_size);
 
       const int block = block_id - num_eliminate_blocks_;
-      MutexLock l(rhs_locks_[block]);
+      CeresMutexLock l(rhs_locks_[block]);
       typename EigenTypes<kFBlockSize>::VectorRef
           (rhs + lhs_row_layout_[block], block_size).noalias()
           += b.transpose() * sj;
@@ -523,7 +523,7 @@ ChunkOuterProduct(const CompressedRowBlockStructure* bs,
       const typename EigenTypes<kEBlockSize, kFBlockSize>::ConstMatrixRef
           b2(buffer + it2->second, e_block_size, block2_size);
 
-      MutexLock l(&cell_info->m);
+      CeresMutexLock l(&cell_info->m);
       MatrixRef m(cell_info->values, row_stride, col_stride);
 
       // We explicitly construct a block object here instead of using
@@ -532,7 +532,29 @@ ChunkOuterProduct(const CompressedRowBlockStructure* bs,
       // like the Matrix class does.
       Eigen::Block<MatrixRef, kFBlockSize, kFBlockSize>
           block(m, r, c,  block1_size, block2_size);
-      block.noalias() -=  b1_transpose_inverse_ete * b2;
+#ifdef CERES_WORK_AROUND_ANDROID_NDK_COMPILER_BUG
+      // Removing the ".noalias()" annotation on the following statement is
+      // necessary to produce a correct build with the Android NDK, including
+      // versions 6, 7, 8, and 8b, when built with STLPort and the
+      // non-standalone toolchain (i.e. ndk-build). This appears to be a
+      // compiler bug; if the workaround is not in place, the line
+      //
+      //   block.noalias() -= b1_transpose_inverse_ete * b2;
+      //
+      // gets compiled to
+      //
+      //   block.noalias() += b1_transpose_inverse_ete * b2;
+      //
+      // which breaks schur elimination. Introducing a temporary by removing the
+      // .noalias() annotation causes the issue to disappear. Tracking this
+      // issue down was tricky, since the test suite doesn't run when built with
+      // the non-standalone toolchain.
+      //
+      // TODO(keir): Make a reproduction case for this and send it upstream.
+      block -= b1_transpose_inverse_ete * b2;
+#else
+      block.noalias() -= b1_transpose_inverse_ete * b2;
+#endif  // CERES_WORK_AROUND_ANDROID_NDK_COMPILER_BUG
     }
   }
 }
@@ -601,7 +623,7 @@ NoEBlockRowOuterProduct(const BlockSparseMatrixBase* A,
                                        &r, &c,
                                        &row_stride, &col_stride);
     if (cell_info != NULL) {
-      MutexLock l(&cell_info->m);
+      CeresMutexLock l(&cell_info->m);
       MatrixRef m(cell_info->values, row_stride, col_stride);
       m.block(r, c, block1_size, block1_size)
           .selfadjointView<Eigen::Upper>()
@@ -621,7 +643,7 @@ NoEBlockRowOuterProduct(const BlockSparseMatrixBase* A,
       }
 
       const int block2_size = bs->cols[row.cells[j].block_id].size;
-      MutexLock l(&cell_info->m);
+      CeresMutexLock l(&cell_info->m);
       MatrixRef m(cell_info->values, row_stride, col_stride);
       m.block(r, c, block1_size, block2_size).noalias() +=
           b1.transpose() * ConstMatrixRef(row_values + row.cells[j].position,
@@ -660,7 +682,7 @@ EBlockRowOuterProduct(const BlockSparseMatrixBase* A,
         continue;
       }
 
-      MutexLock l(&cell_info->m);
+      CeresMutexLock l(&cell_info->m);
       MatrixRef m(cell_info->values, row_stride, col_stride);
 
       Eigen::Block<MatrixRef, kFBlockSize, kFBlockSize>
@@ -687,7 +709,7 @@ EBlockRowOuterProduct(const BlockSparseMatrixBase* A,
              row.block.size,
              block2_size);
 
-      MutexLock l(&cell_info->m);
+      CeresMutexLock l(&cell_info->m);
       MatrixRef m(cell_info->values, row_stride, col_stride);
       Eigen::Block<MatrixRef, kFBlockSize, kFBlockSize>
           block(m, r, c,  block1_size, block2_size);

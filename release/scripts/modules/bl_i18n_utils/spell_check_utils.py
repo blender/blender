@@ -162,7 +162,7 @@ dict_uimsgs = {
     "unspill",
     "unstitchable",
     "vectorscope",
-    "whitespace",
+    "whitespace", "whitespaces",
     "worldspace",
     "workflow",
 
@@ -297,6 +297,7 @@ dict_uimsgs = {
     "gimbal",
     "grayscale",
     "icosphere",
+    "inpaint",
     "lightmap",
     "lossless", "lossy",
     "midtones",
@@ -328,6 +329,7 @@ dict_uimsgs = {
     "bweight",
     "colorband",
     "datablock", "datablocks",
+    "despeckle",
     "dopesheet",
     "dupliface", "duplifaces",
     "dupliframe", "dupliframes",
@@ -376,7 +378,7 @@ dict_uimsgs = {
     "chebychev",
     "kutta",
     "lennard",
-    "minkowsky",
+    "minkowski",
     "minnaert",
     "musgrave",
     "nayar",
@@ -414,7 +416,7 @@ dict_uimsgs = {
     "gpu", "gpus",
     "hc",
     "hdr",
-    "hh", "mm", "ss", "ff", # hh:mm:ss:ff timecode
+    "hh", "mm", "ss", "ff",  # hh:mm:ss:ff timecode
     "hsv", "hsva",
     "id",
     "itu",

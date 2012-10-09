@@ -62,6 +62,7 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_colormanagement.h"
 
 /* local include */
 #include "rayintersection.h"
@@ -107,11 +108,11 @@ void calc_view_vector(float *view, float x, float y)
 		}
 		
 		/* move x and y to real viewplane coords */
-		x= (x/(float)R.winx);
-		view[0]= R.viewplane.xmin + x*(R.viewplane.xmax - R.viewplane.xmin);
+		x = (x / (float)R.winx);
+		view[0] = R.viewplane.xmin + x * BLI_rctf_size_x(&R.viewplane);
 		
-		y= (y/(float)R.winy);
-		view[1]= R.viewplane.ymin + y*(R.viewplane.ymax - R.viewplane.ymin);
+		y = (y / (float)R.winy);
+		view[1] = R.viewplane.ymin + y * BLI_rctf_size_y(&R.viewplane);
 		
 //		if (R.flag & R_SEC_FIELD) {
 //			if (R.r.mode & R_ODDFIELD) view[1]= (y+R.ystart)*R.ycor;
@@ -270,16 +271,26 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 		har= R.sortedhalos[a];
 
 		/* layer test, clip halo with y */
-		if ((har->lay & lay)==0);
-		else if (testrect.ymin > har->maxy);
-		else if (testrect.ymax < har->miny);
+		if ((har->lay & lay) == 0) {
+			/* pass */
+		}
+		else if (testrect.ymin > har->maxy) {
+			/* pass */
+		}
+		else if (testrect.ymax < har->miny) {
+			/* pass */
+		}
 		else {
 			
 			minx= floor(har->xs-har->rad);
 			maxx= ceil(har->xs+har->rad);
 			
-			if (testrect.xmin > maxx);
-			else if (testrect.xmax < minx);
+			if (testrect.xmin > maxx) {
+				/* pass */
+			}
+			else if (testrect.xmax < minx) {
+				/* pass */
+			}
 			else {
 				
 				minx= MAX2(minx, testrect.xmin);
@@ -979,12 +990,38 @@ static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 		float *rectf= rlpp[sample]->rectf;
 		
 		for (y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
-			if (rectf[3] >= 1.0f);
+			if (rectf[3] >= 1.0f) {
+				/* pass */
+			}
 			else if (rectf[3] > 0.0f) {
 				rectf[0] /= rectf[3];
 				rectf[1] /= rectf[3];
 				rectf[2] /= rectf[3];
 			}
+		}
+	}
+}
+
+/* clamp alpha and RGB to 0..1 and 0..inf, can go outside due to filter */
+static void clamp_alpha_rgb_range(RenderPart *pa, RenderLayer *rl)
+{
+	RenderLayer *rlpp[RE_MAX_OSA];
+	int y, sample, totsample;
+	
+	totsample= get_sample_layers(pa, rl, rlpp);
+
+	/* not for full sample, there we clamp after compositing */
+	if (totsample > 1)
+		return;
+	
+	for (sample= 0; sample<totsample; sample++) {
+		float *rectf= rlpp[sample]->rectf;
+		
+		for (y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
+			rectf[0] = MAX2(rectf[0], 0.0f);
+			rectf[1] = MAX2(rectf[1], 0.0f);
+			rectf[2] = MAX2(rectf[2], 0.0f);
+			CLAMP(rectf[3], 0.0f, 1.0f);
 		}
 	}
 }
@@ -1269,6 +1306,9 @@ void zbufshadeDA_tile(RenderPart *pa)
 		
 		if (rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
+
+		/* clamp alpha to 0..1 range, can go outside due to filter */
+		clamp_alpha_rgb_range(pa, rl);
 		
 		/* de-premul alpha */
 		if (R.r.alphamode & R_ALPHAKEY)
@@ -1541,8 +1581,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 
 	copy_v3_v3(shi->facenor, nor);
 	shade_input_set_viewco(shi, x, y, sx, sy, z);
-	*area= len_v3(shi->dxco)*len_v3(shi->dyco);
-	*area= MIN2(*area, 2.0f*orthoarea);
+	*area = minf(len_v3(shi->dxco) * len_v3(shi->dyco), 2.0f * orthoarea);
 
 	shade_input_set_uv(shi);
 	shade_input_set_normals(shi);
@@ -1806,16 +1845,23 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 	har->miny= miny= haloys - har->rad/R.ycor;
 	har->maxy= maxy= haloys + har->rad/R.ycor;
 	
-	if (maxy<0);
-	else if (rr->recty<miny);
+	if (maxy < 0) {
+		/* pass */
+	}
+	else if (rr->recty < miny) {
+		/* pass */
+	}
 	else {
-		minx= floor(haloxs-har->rad);
-		maxx= ceil(haloxs+har->rad);
+		minx = floor(haloxs - har->rad);
+		maxx = ceil(haloxs + har->rad);
 			
-		if (maxx<0);
-		else if (rr->rectx<minx);
+		if (maxx < 0) {
+			/* pass */
+		}
+		else if (rr->rectx < minx) {
+			/* pass */
+		}
 		else {
-		
 			if (minx<0) minx= 0;
 			if (maxx>=rr->rectx) maxx= rr->rectx-1;
 			if (miny<0) miny= 0;
@@ -1994,6 +2040,8 @@ typedef struct BakeShade {
 	float dxco[3], dyco[3];
 
 	short *do_update;
+
+	struct ColorSpace *rect_colorspace;
 } BakeShade;
 
 static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int UNUSED(isect), int x, int y, float u, float v)
@@ -2070,7 +2118,9 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 
 			copy_v3_v3(nor, shi->vn);
 
-			if (R.r.bake_normal_space == R_BAKE_SPACE_CAMERA);
+			if (R.r.bake_normal_space == R_BAKE_SPACE_CAMERA) {
+				/* pass */
+			}
 			else if (R.r.bake_normal_space == R_BAKE_SPACE_TANGENT) {
 				float mat[3][3], imat[3][3];
 
@@ -2098,12 +2148,12 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 
 			normalize_v3(nor); /* in case object has scaling */
 
-			// The invert of the red channel is to make
-			// the normal map compliant with the outside world.
-			// It needs to be done because in Blender
-			// the normal used in the renderer points inward. It is generated
-			// this way in calc_vertexnormals(). Should this ever change
-			// this negate must be removed.
+			/* The invert of the red channel is to make
+			 * the normal map compliant with the outside world.
+			 * It needs to be done because in Blender
+			 * the normal used in the renderer points inward. It is generated
+			 * this way in calc_vertexnormals(). Should this ever change
+			 * this negate must be removed. */
 			shr.combined[0]= (-nor[0])/2.0f + 0.5f;
 			shr.combined[1]= nor[1]/2.0f + 0.5f;
 			shr.combined[2]= nor[2]/2.0f + 0.5f;
@@ -2169,8 +2219,12 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 	else {
 		unsigned char *col= (unsigned char *)(bs->rect + bs->rectx*y + x);
 
-		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE) && (R.r.color_mgt_flag & R_COLOR_MANAGEMENT)) {
-			linearrgb_to_srgb_uchar3(col, shr.combined);
+		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE)) {
+			float rgb[3];
+
+			copy_v3_v3(rgb, shr.combined);
+			IMB_colormanagement_scene_linear_to_colorspace_v3(rgb, bs->rect_colorspace);
+			rgb_float_to_uchar(col, rgb);
 		}
 		else {
 			rgb_float_to_uchar(col, shr.combined);
@@ -2504,6 +2558,7 @@ static void shade_tface(BakeShade *bs)
 	bs->rectx= bs->ibuf->x;
 	bs->recty= bs->ibuf->y;
 	bs->rect= bs->ibuf->rect;
+	bs->rect_colorspace= bs->ibuf->rect_colorspace;
 	bs->rect_float= bs->ibuf->rect_float;
 	bs->quad= 0;
 	
@@ -2614,8 +2669,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		ima->flag&= ~IMA_USED_FOR_RENDER;
 		if (ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
-			if (ibuf->rect_float)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 		}
 	}
 	

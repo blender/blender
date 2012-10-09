@@ -36,6 +36,10 @@ class MESH_OT_delete_edgeloop(Operator):
     bl_idname = "mesh.delete_edgeloop"
     bl_label = "Delete Edge Loop"
 
+    @classmethod
+    def poll(cls, context):
+        return bpy.ops.transform.edge_slide.poll()
+
     def execute(self, context):
         if 'FINISHED' in bpy.ops.transform.edge_slide(value=1.0):
             bpy.ops.mesh.select_more()
@@ -46,7 +50,7 @@ class MESH_OT_delete_edgeloop(Operator):
 
 rna_path_prop = StringProperty(
         name="Context Attributes",
-        description="rna context string",
+        description="RNA context string",
         maxlen=1024,
         )
 
@@ -97,7 +101,6 @@ def operator_value_is_undo(value):
     return (isinstance(id_data, bpy.types.ID) and
             (not isinstance(id_data, (bpy.types.WindowManager,
                                       bpy.types.Screen,
-                                      bpy.types.Scene,
                                       bpy.types.Brush,
                                       ))))
 
@@ -372,8 +375,8 @@ class WM_OT_context_toggle_enum(Operator):
 
 
 class WM_OT_context_cycle_int(Operator):
-    """Set a context value. Useful for cycling active material, """ \
-    """vertex keys, groups' etc"""
+    """Set a context value (useful for cycling active material, """ \
+    """vertex keys, groups, etc.)"""
     bl_idname = "wm.context_cycle_int"
     bl_label = "Context Int Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
@@ -605,9 +608,9 @@ class WM_OT_context_collection_boolean_set(Operator):
             except:
                 continue
 
-            if value_orig == True:
+            if value_orig is True:
                 is_set = True
-            elif value_orig == False:
+            elif value_orig is False:
                 pass
             else:
                 self.report({'WARNING'}, "Non boolean value found: %s[ ].%s" %
@@ -732,7 +735,7 @@ class WM_OT_context_modal_mouse(Operator):
 
         if not self._values:
             self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
-                    (self.data_path_iter, self.data_path_item))
+                        (self.data_path_iter, self.data_path_item))
 
             return {'CANCELLED'}
         else:
@@ -787,7 +790,7 @@ class WM_OT_path_open(Operator):
             return {'CANCELLED'}
 
         if sys.platform[:3] == "win":
-            subprocess.Popen(["start", filepath], shell=True)
+            os.startfile(filepath)
         elif sys.platform == "darwin":
             subprocess.Popen(["open", filepath])
         else:
@@ -844,41 +847,46 @@ class WM_OT_doc_view_manual(Operator):
     doc_id = doc_id
 
     @staticmethod
-    def _find_reference(rna_id, url_mapping):
-        print("online manual check for: '%s'... " % rna_id)
+    def _find_reference(rna_id, url_mapping, verbose=True):
+        if verbose:
+            print("online manual check for: '%s'... " % rna_id)
         from fnmatch import fnmatch
         for pattern, url_suffix in url_mapping:
             if fnmatch(rna_id, pattern):
-                print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
+                if verbose:
+                    print("            match found: '%s' --> '%s'" % (pattern, url_suffix))
                 return url_suffix
-        print("match not found")
+        if verbose:
+            print("match not found")
         return None
+
+    @staticmethod
+    def _lookup_rna_url(rna_id, verbose=True):
+        url = None
+        for prefix, url_manual_mapping in bpy.utils.manual_map():
+            rna_ref = WM_OT_doc_view_manual._find_reference(rna_id, url_manual_mapping, verbose=verbose)
+            if rna_ref is not None:
+                url = prefix + rna_ref
+                break
+        return url
 
     def execute(self, context):
         rna_id = _wm_doc_get_id(self.doc_id, do_url=False)
         if rna_id is None:
             return {'PASS_THROUGH'}
 
-        import rna_wiki_reference
-        rna_ref = self._find_reference(rna_id, rna_wiki_reference.url_manual_mapping)
+        url = self._lookup_rna_url(rna_id)
 
-        if rna_ref is None:
-            self.report({'WARNING'}, "No reference available '%s', "
-                                     "Update info in %r" %
-                                     (self.doc_id, rna_wiki_reference.__file__))
-
-        import sys
-        del sys.modules["rna_wiki_reference"]
-
-        if rna_ref is None:
+        if url is None:
+            self.report({'WARNING'}, "No reference available %r, "
+                                     "Update info in 'rna_wiki_reference.py' "
+                                     " or callback to bpy.utils.manual_map()" %
+                                     self.doc_id)
             return {'CANCELLED'}
         else:
-            url = rna_wiki_reference.url_manual_prefix + rna_ref
-
-        import webbrowser
-        webbrowser.open(url)
-
-        return {'FINISHED'}
+            import webbrowser
+            webbrowser.open(url)
+            return {'FINISHED'}
 
 
 class WM_OT_doc_view(Operator):
@@ -1020,7 +1028,7 @@ class WM_OT_properties_edit(Operator):
     min = rna_min
     max = rna_max
     description = StringProperty(
-            name="Tip",
+            name="Tooltip",
             )
 
     def execute(self, context):
@@ -1395,8 +1403,8 @@ class WM_OT_keyconfig_export(Operator):
         if not self.filepath:
             raise Exception("Filepath not set")
 
-        if not self.filepath.endswith('.py'):
-            self.filepath += '.py'
+        if not self.filepath.endswith(".py"):
+            self.filepath += ".py"
 
         wm = context.window_manager
 
@@ -1575,7 +1583,7 @@ class WM_OT_addon_enable(Operator):
                                           "version %d.%d.%d and might not "
                                           "function (correctly), "
                                           "though it is enabled") %
-                                         info_ver)
+                                          info_ver)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}

@@ -65,7 +65,7 @@ static int change_frame_poll(bContext *C)
 	ScrArea *curarea = CTX_wm_area(C);
 	
 	/* XXX temp? prevent changes during render */
-	if (G.rendering) return 0;
+	if (G.is_rendering) return 0;
 	
 	/* as long as there is an active area, and it isn't a Graph Editor 
 	 * (since the Graph Editor has its own version which does extra stuff),
@@ -185,15 +185,14 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	float sfra, efra;
-	int xmin, xmax;
+	rcti rect;
 	
 	/* get min/max values from border select rect (already in region coordinates, not screen) */
-	xmin = RNA_int_get(op->ptr, "xmin");
-	xmax = RNA_int_get(op->ptr, "xmax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 	
 	/* convert min/max values to frames (i.e. region to 'tot' rect) */
-	UI_view2d_region_to_view(&ar->v2d, xmin, 0, &sfra, NULL);
-	UI_view2d_region_to_view(&ar->v2d, xmax, 0, &efra, NULL);
+	UI_view2d_region_to_view(&ar->v2d, rect.xmin, 0, &sfra, NULL);
+	UI_view2d_region_to_view(&ar->v2d, rect.xmax, 0, &efra, NULL);
 	
 	/* set start/end frames for preview-range 
 	 *	- must clamp within allowable limits
@@ -232,12 +231,11 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* rna */
-	/* used to define frame range */
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	/* these are not used, but are needed by borderselect gesture operator stuff */
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	/* used to define frame range.
+	 *
+	 * note: border Y values are not used,
+	 * but are needed by borderselect gesture operator stuff */
+	WM_operator_properties_border(ot);
 }
 
 /* ****************** clear preview range operator ****************************/
@@ -292,8 +290,10 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_keyframe_delete);
 	WM_operatortype_append(ANIM_OT_keyframe_insert_menu);
 	WM_operatortype_append(ANIM_OT_keyframe_delete_v3d);
+	WM_operatortype_append(ANIM_OT_keyframe_clear_v3d);
 	WM_operatortype_append(ANIM_OT_keyframe_insert_button);
 	WM_operatortype_append(ANIM_OT_keyframe_delete_button);
+	WM_operatortype_append(ANIM_OT_keyframe_clear_button);
 	
 	
 	WM_operatortype_append(ANIM_OT_driver_button_add);

@@ -66,21 +66,21 @@ void FilterBlueScreen::setLimits (unsigned short minLimit, unsigned short maxLim
 
 
 // cast Filter pointer to FilterBlueScreen
-inline FilterBlueScreen * getFilter (PyFilter * self)
+inline FilterBlueScreen * getFilter (PyFilter *self)
 { return static_cast<FilterBlueScreen*>(self->m_filter); }
 
 
 // python methods and get/sets
 
 // get color
-static PyObject * getColor (PyFilter * self, void * closure)
+static PyObject *getColor (PyFilter *self, void *closure)
 {
 	return Py_BuildValue("[BBB]", getFilter(self)->getColor()[0],
 		getFilter(self)->getColor()[1], getFilter(self)->getColor()[2]);
 }
 
 // set color
-static int setColor (PyFilter * self, PyObject * value, void * closure)
+static int setColor (PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 3
@@ -100,14 +100,14 @@ static int setColor (PyFilter * self, PyObject * value, void * closure)
 }
 
 // get limits
-static PyObject * getLimits (PyFilter * self, void * closure)
+static PyObject *getLimits (PyFilter *self, void *closure)
 {
 	return Py_BuildValue("[II]", getFilter(self)->getLimits()[0],
 		getFilter(self)->getLimits()[1]);
 }
 
 // set limit
-static int setLimits (PyFilter * self, PyObject * value, void * closure)
+static int setLimits (PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2

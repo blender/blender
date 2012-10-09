@@ -27,21 +27,27 @@ MixGlareOperation::MixGlareOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixGlareOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MixGlareOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
 	float value;
 	
-	this->m_inputValueOperation->read(inputValue, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(inputColor2, x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(inputValue, x, y, sampler);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->read(inputColor2, x, y, sampler);
 	value = inputValue[0];
 	float mf = 2.f - 2.f * fabsf(value - 0.5f);
 	
-	outputValue[0] = mf * ((inputColor1[0]) + value * (inputColor2[0] - inputColor1[0]));
-	outputValue[1] = mf * ((inputColor1[1]) + value * (inputColor2[1] - inputColor1[1]));
-	outputValue[2] = mf * ((inputColor1[2]) + value * (inputColor2[2] - inputColor1[2]));
-	outputValue[3] = inputColor1[3];
+	if (inputColor1[0] < 0.0f) inputColor1[0] = 0.0f;
+	if (inputColor1[1] < 0.0f) inputColor1[1] = 0.0f;
+	if (inputColor1[2] < 0.0f) inputColor1[2] = 0.0f;
+
+	output[0] = mf * max(inputColor1[0] + value * (inputColor2[0] - inputColor1[0]), 0.0f);
+	output[1] = mf * max(inputColor1[1] + value * (inputColor2[1] - inputColor1[1]), 0.0f);
+	output[2] = mf * max(inputColor1[2] + value * (inputColor2[2] - inputColor1[2]), 0.0f);
+	output[3] = inputColor1[3];
+
+	clampIfNeeded(output);
 }

@@ -176,6 +176,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	psmd->dm->needsFree = 0;
 
 	/* report change in mesh structure */
+	DM_ensure_tessface(psmd->dm);
 	if (psmd->dm->getNumVerts(psmd->dm) != psmd->totdmvert ||
 	    psmd->dm->getNumEdges(psmd->dm) != psmd->totdmedge ||
 	    psmd->dm->getNumTessFaces(psmd->dm) != psmd->totdmface)
@@ -187,19 +188,17 @@ static void deformVerts(ModifierData *md, Object *ob,
 		psmd->totdmface = psmd->dm->getNumTessFaces(psmd->dm);
 	}
 
-	if (psys) {
-		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(md->scene, ob, psys);
-		psmd->flag |= eParticleSystemFlag_psys_updated;
-	}
+	psmd->flag &= ~eParticleSystemFlag_psys_updated;
+	particle_system_update(md->scene, ob, psys);
+	psmd->flag |= eParticleSystemFlag_psys_updated;
 }
 
 /* disabled particles in editmode for now, until support for proper derivedmesh
  * updates is coded */
 #if 0
 static void deformVertsEM(
-    ModifierData *md, Object *ob, EditMesh *editData,
-    DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        ModifierData *md, Object *ob, EditMesh *editData,
+        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 

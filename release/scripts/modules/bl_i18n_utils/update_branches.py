@@ -30,9 +30,14 @@ import os
 import sys
 import tempfile
 
-import settings
+try:
+    import settings
+except:
+    from . import settings
+
 
 PY3 = settings.PYTHON3_EXEC
+
 
 def main():
     import argparse
@@ -54,7 +59,6 @@ def main():
     parser.add_argument('langs', metavar='ISO_code', nargs='*',
                         help="Restrict processed languages to those.")
     args = parser.parse_args()
-
 
     ret = 0
 

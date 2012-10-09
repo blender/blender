@@ -29,8 +29,9 @@
  *  \ingroup nodes
  */
 
-
 #include "node_composite_util.h"
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 #include <limits.h>
 
@@ -145,7 +146,7 @@ CompBuf *get_cropped_compbuf(rcti *drect, float *rectf, int rectx, int recty, in
 	if (disprect.xmin>= disprect.xmax) return NULL;
 	if (disprect.ymin>= disprect.ymax) return NULL;
 	
-	cbuf= alloc_compbuf(disprect.xmax-disprect.xmin, disprect.ymax-disprect.ymin, type, 1);
+	cbuf= alloc_compbuf(BLI_rcti_size_x(&disprect), BLI_rcti_size_y(&disprect), type, 1);
 	outfp= cbuf->rect;
 	rectf += type*(disprect.ymin*rectx + disprect.xmin);
 	dx= type*cbuf->x;
@@ -605,6 +606,9 @@ static CompBuf *generate_procedural_preview(CompBuf *cbuf, int newx, int newy)
 	return outbuf;
 }
 
+/* OCIO_TODO: this function is only used by legacy compositor system only, which would likely be removed soon,
+ *            keep check for old color management flag for now
+ */
 void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 {
 	RenderData *rd= data;
@@ -647,7 +651,7 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 		if (stackbuf_use!=stackbuf)
 			free_compbuf(stackbuf_use);
 
-		BLI_lock_thread(LOCK_PREVIEW);
+		// BLI_lock_thread(LOCK_PREVIEW);
 
 		if (preview->rect)
 			MEM_freeN(preview->rect);
@@ -655,7 +659,7 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 		preview->ysize= ysize;
 		preview->rect= rect;
 
-		BLI_unlock_thread(LOCK_PREVIEW);
+		// BLI_unlock_thread(LOCK_PREVIEW);
 	}
 }
 
@@ -1117,7 +1121,7 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2)
 
 /*
  *
- * Utility functions qd_* should probably be intergrated better with other functions here.
+ * Utility functions qd_* should probably be integrated better with other functions here.
  *
  */
 // sets fcol to pixelcolor at (x, y)
@@ -1405,3 +1409,4 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 #undef YVV
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */

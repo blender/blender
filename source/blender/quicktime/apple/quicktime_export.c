@@ -202,7 +202,7 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd, ReportList *reports)
 
 	QuicktimeCodecData *qcd = rd->qtcodecdata;
 	
-	// check if current scene already has qtcodec settings, and clear them
+	/* check if current scene already has qtcodec settings, and clear them */
 	if (qcd) {
 		free_qtcodecdata(qcd);
 	}
@@ -210,26 +210,26 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd, ReportList *reports)
 		qcd = rd->qtcodecdata = MEM_callocN(sizeof(QuicktimeCodecData), "QuicktimeCodecData");
 	}
 
-	// obtain all current codec settings
+	/* obtain all current codec settings */
 	SCSetInfo(qtdata->theComponent, scTemporalSettingsType, &qtdata->gTemporalSettings);
 	SCSetInfo(qtdata->theComponent, scSpatialSettingsType,  &qtdata->gSpatialSettings);
 	SCSetInfo(qtdata->theComponent, scDataRateSettingsType, &qtdata->aDataRateSetting);
 
-	// retreive codecdata from quicktime in a atomcontainer
+	/* retreive codecdata from quicktime in a atomcontainer */
 	myErr = SCGetSettingsAsAtomContainer(qtdata->theComponent,  &myContainer);
 	if (myErr != noErr) {
-		BKE_reportf(reports, RPT_ERROR, "Quicktime: SCGetSettingsAsAtomContainer failed\n"); 
+		BKE_reportf(reports, RPT_ERROR, "Quicktime: SCGetSettingsAsAtomContainer failed\n");
 		goto bail;
 	}
 
-	// get the size of the atomcontainer
+	/* get the size of the atomcontainer */
 	mySize = GetHandleSize((Handle)myContainer);
 
-	// lock and convert the atomcontainer to a *valid* pointer
+	/* lock and convert the atomcontainer to a *valid* pointer */
 	QTLockContainer(myContainer);
 	myPtr = *(Handle)myContainer;
 
-	// copy the Quicktime data into the blender qtcodecdata struct
+	/* copy the Quicktime data into the blender qtcodecdata struct */
 	if (myPtr) {
 		qcd->cdParms = MEM_mallocN(mySize, "qt.cdParms");
 		memcpy(qcd->cdParms, myPtr, mySize);
@@ -258,21 +258,21 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd, ReportList *reports)
 
 	QuicktimeCodecData *qcd = rd->qtcodecdata;
 
-	// if there is codecdata in the blendfile, convert it to a Quicktime handle 
+	/* if there is codecdata in the blendfile, convert it to a Quicktime handle */
 	if (qcd) {
 		myHandle = NewHandle(qcd->cdSize);
 		PtrToHand(qcd->cdParms, &myHandle, qcd->cdSize);
 	}
 		
-	// restore codecsettings to the quicktime component
+	/* restore codecsettings to the quicktime component */
 	if (qcd->cdParms && qcd->cdSize) {
 		myErr = SCSetSettingsFromAtomContainer((GraphicsExportComponent)qtdata->theComponent, (QTAtomContainer)myHandle);
 		if (myErr != noErr) {
-			BKE_reportf(reports, RPT_ERROR, "Quicktime: SCSetSettingsFromAtomContainer failed\n"); 
+			BKE_reportf(reports, RPT_ERROR, "Quicktime: SCSetSettingsFromAtomContainer failed\n");
 			goto bail;
 		}
 
-		// update runtime codecsettings for use with the codec dialog
+		/* update runtime codecsettings for use with the codec dialog */
 		SCGetInfo(qtdata->theComponent, scDataRateSettingsType, &qtdata->aDataRateSetting);
 		SCGetInfo(qtdata->theComponent, scSpatialSettingsType,  &qtdata->gSpatialSettings);
 		SCGetInfo(qtdata->theComponent, scTemporalSettingsType, &qtdata->gTemporalSettings);
@@ -312,22 +312,22 @@ static OSErr QT_AddUserDataTextToMovie(Movie theMovie, char *theText, OSType the
 	long      myLength = strlen(theText);
 	OSErr     myErr = noErr;
 
-	// get the movie's user data list
+	/* get the movie's user data list */
 	myUserData = GetMovieUserData(theMovie);
 	if (myUserData == NULL)
 		return(paramErr);
-	
-	// copy the specified text into a new handle
+
+	/* copy the specified text into a new handle */
 	myHandle = NewHandleClear(myLength);
 	if (myHandle == NULL)
 		return(MemError());
 
 	BlockMoveData(theText, *myHandle, myLength);
 
-	// add the data to the movie's user data
+	/* add the data to the movie's user data */
 	myErr = AddUserDataText(myUserData, myHandle, theType, 1, (short)GetScriptManagerVariable(smRegionCode));
 
-	// clean up
+	/* clean up */
 	DisposeHandle(myHandle);
 	return(myErr);
 }
@@ -408,9 +408,9 @@ static void QT_StartAddVideoSamplesToMedia(const Rect *trackFrame, int rectx, in
 
 	SCDefaultPixMapSettings(qtdata->theComponent, qtexport->thePixMap, true);
 
-	// workaround for crash with H.264, which requires an upgrade to
-	// the new callback based api for proper encoding, but that's not
-	// really compatible with rendering out frames sequentially
+	/* workaround for crash with H.264, which requires an upgrade to
+	 * the new callback based api for proper encoding, but that's not
+	 * really compatible with rendering out frames sequentially */
 	gTemporalSettings = qtdata->gTemporalSettings;
 	if (qtdata->gSpatialSettings.codecType == kH264CodecType) {
 		if (gTemporalSettings.temporalQuality != codecMinQuality) {
@@ -662,7 +662,7 @@ void free_qtcomponentdata(void)
 
 static void check_renderbutton_framerate(RenderData *rd, ReportList *reports) 
 {
-	// to keep float framerates consistent between the codec dialog and frs/sec button.
+	/* to keep float framerates consistent between the codec dialog and frs/sec button. */
 	OSErr err;
 
 	err = SCGetInfo(qtdata->theComponent, scTemporalSettingsType,   &qtdata->gTemporalSettings);
@@ -722,17 +722,17 @@ void quicktime_verify_image_type(RenderData *rd, ImageFormatData *imf)
 int get_qtcodec_settings(RenderData *rd, ReportList *reports) 
 {
 	OSErr err = noErr;
-	// erase any existing codecsetting
+	/* erase any existing codecsetting */
 	if (qtdata) {
 		if (qtdata->theComponent) CloseComponent(qtdata->theComponent);
 		free_qtcomponentdata();
 	}
 
-	// allocate new
+	/* allocate new */
 	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeComponentData");
 	qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
 
-	// get previous selected codecsetting, from qtatom or detailed settings
+	/* get previous selected codecsetting, from qtatom or detailed settings */
 	if (rd->qtcodecdata && rd->qtcodecdata->cdParms) {
 		QT_GetCodecSettingsFromScene(rd, reports);
 	}
@@ -774,17 +774,17 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	RenderData *rd = &scene->r;
 
-	// erase any existing codecsetting
+	/* erase any existing codecsetting */
 	if (qtdata) {
 		if (qtdata->theComponent) CloseComponent(qtdata->theComponent);
 		free_qtcomponentdata();
 	}
-	
-	// allocate new
+
+	/* allocate new */
 	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeComponentData");
 	qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
-	
-	// get previous selected codecsetting, from qtatom or detailed settings
+
+	/* get previous selected codecsetting, from qtatom or detailed settings */
 	if (rd->qtcodecdata && rd->qtcodecdata->cdParms) {
 		QT_GetCodecSettingsFromScene(rd, op->reports);
 	}
@@ -813,14 +813,14 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 		err = SCSetInfo(qtdata->theComponent, scDataRateSettingsType,   &qtdata->aDataRateSetting);
 		CheckError(err, "SCSetInfo3 error", op->reports);
 	}
-	// put up the dialog box - it needs to be called from the main thread
+	/* put up the dialog box - it needs to be called from the main thread */
 	err = SCRequestSequenceSettings(qtdata->theComponent);
- 
+
 	if (err == scUserCancelled) {
 		return OPERATOR_FINISHED;
 	}
 
-	// update runtime codecsettings for use with the codec dialog
+	/* update runtime codecsettings for use with the codec dialog */
 	SCGetInfo(qtdata->theComponent, scDataRateSettingsType, &qtdata->aDataRateSetting);
 	SCGetInfo(qtdata->theComponent, scSpatialSettingsType,  &qtdata->gSpatialSettings);
 	SCGetInfo(qtdata->theComponent, scTemporalSettingsType, &qtdata->gTemporalSettings);
@@ -843,7 +843,7 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 	
 	QT_SaveCodecSettingsToScene(rd, op->reports);
 
-	// framerate jugglin'
+	/* framerate jugglin' */
 	if (qtdata->gTemporalSettings.frameRate == 1571553) {           // 23.98 fps
 		qtdata->kVideoTimeScale = 24000;
 		qtdata->duration = 1001;

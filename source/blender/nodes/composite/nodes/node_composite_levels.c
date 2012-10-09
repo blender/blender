@@ -45,7 +45,9 @@ static bNodeSocketTemplate cmp_node_view_levels_out[]={
 	{-1, 0, ""}
 };
 
-static void fill_bins(bNode* node, CompBuf* in, int* bins)
+#ifdef WITH_COMPOSITOR_LEGACY
+
+static void fill_bins(bNode *node, CompBuf* in, int* bins)
 {
 	float value[4];
 	int ivalue=0;
@@ -102,7 +104,7 @@ static void fill_bins(bNode* node, CompBuf* in, int* bins)
 	}	
 }
 
-static float brightness_mean(bNode* node, CompBuf* in)
+static float brightness_mean(bNode *node, CompBuf* in)
 {
 	float sum=0.0;
 	int numPixels=0.0;
@@ -153,7 +155,7 @@ static float brightness_mean(bNode* node, CompBuf* in)
 	return sum/numPixels;
 }
 
-static float brightness_standard_deviation(bNode* node, CompBuf* in, float mean)
+static float brightness_standard_deviation(bNode *node, CompBuf* in, float mean)
 {
 	float sum=0.0;
 	int numPixels=0.0;
@@ -309,7 +311,9 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 	free_compbuf(histogram);
 }
 
-static void node_composit_init_view_levels(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_view_levels(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1=1; /*All channels*/
 }
@@ -323,7 +327,9 @@ void register_node_type_cmp_view_levels(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_view_levels);
 	node_type_storage(&ntype, "ImageUser", NULL, NULL);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_view_levels);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

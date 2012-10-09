@@ -93,8 +93,18 @@ typedef struct EditBone {
 #define BONESEL_NOSEL   (1 << 31) /* Indicates a negative number */
 
 /* useful macros */
-#define EBONE_VISIBLE(arm, ebone) (((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A))
-#define EBONE_EDITABLE(ebone) (((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) 
+#define EBONE_VISIBLE(arm, ebone) ( \
+	CHECK_TYPE_INLINE(arm, bArmature), \
+	CHECK_TYPE_INLINE(ebone, EditBone), \
+	(((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A)) \
+	)
+
+#define EBONE_SELECTABLE(arm, ebone) (EBONE_VISIBLE(arm, ebone) && !(ebone->flag & BONE_UNSELECTABLE))
+
+#define EBONE_EDITABLE(ebone) ( \
+	CHECK_TYPE_INLINE(ebone, EditBone), \
+	(((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) \
+	)
 
 /* used in bone_select_hierachy() */
 #define BONE_SELECT_PARENT  0
@@ -148,6 +158,7 @@ void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
 void ED_pose_deselectall(struct Object *ob, int test);
 void ED_pose_recalculate_paths(struct Scene *scene, struct Object *ob);
+struct Object *ED_pose_object_from_context(struct bContext *C);
 
 /* sketch */
 
@@ -180,6 +191,3 @@ void mesh_deform_bind(struct Scene *scene,
 #endif
 
 #endif /* __ED_ARMATURE_H__ */
-
-
-

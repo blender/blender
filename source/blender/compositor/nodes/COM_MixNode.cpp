@@ -58,6 +58,8 @@ void MixNode::convertToOperations(ExecutionSystem *graph, CompositorContext *con
 	InputSocket *color2Socket = this->getInputSocket(2);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	bNode *editorNode = this->getbNode();
+	bool useAlphaPremultiply = this->getbNode()->custom2 & 1;
+	bool useClamp = this->getbNode()->custom2 & 2;
 	
 	MixBaseOperation *convertProg;
 	
@@ -119,13 +121,14 @@ void MixNode::convertToOperations(ExecutionSystem *graph, CompositorContext *con
 			convertProg = new MixBlendOperation();
 			break;
 	}
-	convertProg->setUseValueAlphaMultiply(this->getbNode()->custom2);
+	convertProg->setUseValueAlphaMultiply(useAlphaPremultiply);
+	convertProg->setUseClamp(useClamp);
 
 	valueSocket->relinkConnections(convertProg->getInputSocket(0), 0, graph);
 	color1Socket->relinkConnections(convertProg->getInputSocket(1), 1, graph);
 	color2Socket->relinkConnections(convertProg->getInputSocket(2), 2, graph);
 	outputSocket->relinkConnections(convertProg->getOutputSocket(0));
-	addPreviewOperation(graph, convertProg->getOutputSocket(0));
+	addPreviewOperation(graph, context, convertProg->getOutputSocket(0));
 	
 	convertProg->getInputSocket(2)->setResizeMode(color2Socket->getResizeMode());
 	

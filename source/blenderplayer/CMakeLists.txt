@@ -110,7 +110,7 @@ endif()
 		ge_scenegraph
 		bf_ikplugin
 		bf_intern_itasc
-		bf_intern_ik
+		bf_intern_iksolver
 		bf_intern_smoke
 		bf_modifiers
 		bf_intern_moto 
@@ -147,6 +147,7 @@ endif()
 		bf_intern_mikktspace
 		extern_recastnavigation
 		bf_intern_raskter
+		bf_intern_opencolorio
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
@@ -174,11 +175,10 @@ endif()
 
 	if(WITH_MOD_BOOLEAN)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_bsp)
-		list(APPEND BLENDER_SORTED_LIBS bf_intern_bop)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_moto)
 	endif()
 
-	if(WITH_CARVE)
+	if(WITH_MOD_BOOLEAN)
 		list(APPEND BLENDER_SORTED_LIBS extern_carve)
 	endif()
 

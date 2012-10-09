@@ -28,17 +28,17 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#include "glog/logging.h"
 #include "ceres/block_random_access_sparse_matrix.h"
 
 #include <algorithm>
 #include <set>
 #include <utility>
 #include <vector>
-#include <glog/logging.h>
-#include "ceres/mutex.h"
-#include "ceres/triplet_sparse_matrix.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/mutex.h"
+#include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
 
 namespace ceres {

@@ -210,7 +210,8 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, const ShaderClosur
 #endif
 				}
 			}
-		} else {
+		}
+		else {
 			// CAUTION: the i and o variables are inverted relative to the paper
 			// eq. 39 - compute actual refractive direction
 			float3 R, T;
@@ -443,7 +444,8 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, const ShaderC
 #endif
 				}
 			}
-		} else {
+		}
+		else {
 			// CAUTION: the i and o variables are inverted relative to the paper
 			// eq. 39 - compute actual refractive direction
 			float3 R, T;

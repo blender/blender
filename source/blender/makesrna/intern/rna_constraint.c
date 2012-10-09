@@ -1243,7 +1243,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "offset_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of bone");
+	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of curve");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "forward_axis", PROP_ENUM, PROP_NONE);
@@ -2207,6 +2207,13 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static const EnumPropertyItem frame_method_items[] = {
+		{FOLLOWTRACK_FRAME_STRETCH, "STRETCH", 0, "Stretch", ""},
+		{FOLLOWTRACK_FRAME_FIT, "FIT", 0, "Fit", ""},
+		{FOLLOWTRACK_FRAME_CROP, "CROP", 0, "Crop", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "FollowTrackConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Follow Track Constraint", "Lock motion to the target motion track");
 	RNA_def_struct_sdna_from(srna, "bFollowTrackConstraint", "data");
@@ -2261,6 +2268,13 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Constraint_followTrack_depthObject_set", NULL,
 	                               "rna_Constraint_followTrack_depthObject_poll");
+
+	/* frame method */
+	prop = RNA_def_property(srna, "frame_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "frame_method");
+	RNA_def_property_enum_items(prop, frame_method_items);
+	RNA_def_property_ui_text(prop, "Frame Method", "How the footage fits in the camera frame");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 }
 
 static void rna_def_constraint_camera_solver(BlenderRNA *brna)

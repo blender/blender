@@ -34,7 +34,7 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdlib.h>	
+#include <stdlib.h>
 
 #ifndef WIN32
 #include <dirent.h>
@@ -86,13 +86,10 @@
 
 #include "BLI_listbase.h"
 #include "BLI_linklist.h"
-#include "BLI_fileops.h"
-
-#include "BLI_fileops_types.h"
 #include "BLI_string.h"
 #include "BLI_fileops.h"
-
-#include "BKE_utildefines.h"
+#include "BLI_fileops_types.h"
+#include "BLI_path_util.h"
 
 /* vars: */
 static int totnum, actnum;

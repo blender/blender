@@ -25,7 +25,6 @@
  *  \ingroup edarmature
  */
 
-
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,8 +48,6 @@
 #include "BLI_rand.h"
 #include "BLI_threads.h"
 
-//#include "BDR_editobject.h"
-
 #include "BKE_constraint.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
@@ -60,10 +57,7 @@
 
 #include "BIF_retarget.h"
 
-
-//#include "mydevice.h"
-#include "reeb.h" // FIX ME
-//#include "blendef.h"
+#include "reeb.h" /* FIX ME */
 
 #include "armature_intern.h"
 
@@ -2385,7 +2379,7 @@ static void findCorrespondingArc(RigGraph *rigg, RigArc *start_arc, RigNode *sta
 //		printf("CANDIDATES\n");
 //		for (i = 0; i < enode->degree; i++)
 //		{
-//			next_earc = (ReebArc*)enode->arcs[i];
+//			next_earc = (ReebArc *)enode->arcs[i];
 //			printf("flag %i -- level %i -- flag %i -- group %i\n", next_earc->flag, next_earc->symmetry_level, next_earc->symmetry_flag, next_earc->symmetry_group);
 //		}
 		

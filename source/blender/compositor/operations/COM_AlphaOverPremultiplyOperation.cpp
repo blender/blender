@@ -27,30 +27,30 @@ AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation() : MixBaseOperatio
 	/* pass */
 }
 
-void AlphaOverPremultiplyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void AlphaOverPremultiplyOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputOverColor[4];
 	float value[4];
 	
-	this->m_inputValueOperation->read(value, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(inputOverColor, x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(value, x, y, sampler);
+	this->m_inputColor1Operation->read(inputColor1, x, y, sampler);
+	this->m_inputColor2Operation->read(inputOverColor, x, y, sampler);
 	
 	/* Zero alpha values should still permit an add of RGB data */
 	if (inputOverColor[3] < 0.0f) {
-		copy_v4_v4(outputValue, inputColor1);
+		copy_v4_v4(output, inputColor1);
 	}
 	else if (value[0] == 1.0f && inputOverColor[3] >= 1.0f) {
-		copy_v4_v4(outputValue, inputOverColor);
+		copy_v4_v4(output, inputOverColor);
 	}
 	else {
 		float mul = 1.0f - value[0] * inputOverColor[3];
 	
-		outputValue[0] = (mul * inputColor1[0]) + value[0] * inputOverColor[0];
-		outputValue[1] = (mul * inputColor1[1]) + value[0] * inputOverColor[1];
-		outputValue[2] = (mul * inputColor1[2]) + value[0] * inputOverColor[2];
-		outputValue[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
+		output[0] = (mul * inputColor1[0]) + value[0] * inputOverColor[0];
+		output[1] = (mul * inputColor1[1]) + value[0] * inputOverColor[1];
+		output[2] = (mul * inputColor1[2]) + value[0] * inputOverColor[2];
+		output[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
 	}
 }
 

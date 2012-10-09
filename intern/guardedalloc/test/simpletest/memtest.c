@@ -80,7 +80,7 @@ int main (int argc, char *argv[])
 	for (i = 0; i < NUM_BLOCKS; i++) {
 		int blocksize = 10000;
 		char tagstring[1000];
-		if (verbose >1) printf("|--* Allocating block %d\n", i);
+		if (verbose > 1) printf("|--* Allocating block %d\n", i);
 		sprintf(tagstring,"Memblock no. %d : ", i);
 		p[i]= MEM_callocN(blocksize, strdup(tagstring));
 	}
@@ -94,7 +94,8 @@ int main (int argc, char *argv[])
 	if (verbose) {
 		if (error_status) {
 			fprintf(stderr, "|--* Memory test FAILED\n|\n");
-		} else {
+		}
+		else {
 			fprintf(stderr, "|--* Memory tested as good (as it should be)\n|\n");
 		}
 	} 
@@ -112,7 +113,7 @@ int main (int argc, char *argv[])
 	for (i = 0; i < NUM_BLOCKS; i++) {
 		int blocksize = 10000;
 		char tagstring[1000];
-		if (verbose >1) printf("|--* Allocating block %d\n", i);
+		if (verbose > 1) printf("|--* Allocating block %d\n", i);
 		sprintf(tagstring,"Memblock no. %d : ", i);
 		p[i]= MEM_callocN(blocksize, strdup(tagstring));
 	}
@@ -130,7 +131,8 @@ int main (int argc, char *argv[])
 	if (verbose) {
 		if (retval) {
 			fprintf(stderr, "|--* Memory test failed (as it should be)\n");
-		} else {
+		}
+		else {
 			fprintf(stderr, "|--* Memory test FAILED to find corrupted blocks \n");
 		}
 	} 
@@ -147,7 +149,8 @@ int main (int argc, char *argv[])
 	if (verbose) {
 		if (error_status) {
 			fprintf(stderr,"|\n|--* Errors were detected\n");
-		} else {
+		}
+		else {
 			fprintf(stderr,"|\n|--* Test exited succesfully\n");
 		}
 		

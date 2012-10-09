@@ -69,6 +69,7 @@
 #include "BLI_heap.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_stack.h"
 #include "BLI_string.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -91,6 +92,7 @@ typedef enum {
 	CAP_START = 1,
 	CAP_END = 2,
 	SEAM_FRAME = 4,
+	ROOT = 8
 } SkinNodeFlag;
 
 typedef struct Frame {
@@ -235,7 +237,8 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 	 * selected after the operator is run */
 	BM_mesh_elem_hflag_disable_all(bm, BM_ALL, BM_ELEM_SELECT, 0);
 
-	BMO_op_initf(bm, &op, "convex_hull input=%hv", BM_ELEM_TAG);
+	BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	             "convex_hull input=%hv", BM_ELEM_TAG);
 	BMO_op_exec(bm, &op);
 
 	if (BMO_error_occurred(bm)) {
@@ -318,7 +321,9 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 
 	BMO_op_finish(bm, &op);
 
-	BMO_op_callf(bm, "delete geom=%hef context=%i", BM_ELEM_TAG, DEL_ONLYTAGGED);
+	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
+	             "delete geom=%hef context=%i",
+	             BM_ELEM_TAG, DEL_ONLYTAGGED);
 
 	return TRUE;
 }
@@ -350,7 +355,7 @@ static void merge_frame_corners(Frame **frames, int totframe)
 				BLI_assert(frames[i] != frames[k]);
 
 				side_b = frame_len(frames[k]);
-				thresh = MIN2(side_a, side_b) / 2.0f;
+				thresh = minf(side_a, side_b) / 2.0f;
 
 				/* Compare with each corner of all other frames... */
 				for (l = 0; l < 4; l++) {
@@ -502,6 +507,9 @@ static void end_node_frames(int v, SkinNode *skin_nodes, const MVert *mvert,
 		/* End frame */
 		create_frame(&skin_nodes[v].frames[0], mvert[v].co, rad, mat, 0);
 	}
+
+	if (nodes[v].flag & MVERT_SKIN_ROOT)
+		skin_nodes[v].flag |= ROOT;
 }
 
 /* Returns 1 for seam, 0 otherwise */
@@ -627,71 +635,107 @@ static void calc_edge_mat(float mat[3][3], const float a[3], const float b[3])
 	}
 }
 
-static void build_emats_rec(int *visited_e, EMat *emat,
-                            const MeshElemMap *emap, const MEdge *medge,
-                            const MVertSkin *vs, const MVert *mvert,
-                            int parent_v, float parent_mat[3][3])
+typedef struct {
+	float mat[3][3];
+	int parent_v;
+	int e;
+} EdgeStackElem;
+
+static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
+							  const MeshElemMap *emap, const MEdge *medge,
+							  const MVertSkin *vs, const MVert *mvert)
 {
+	EdgeStackElem stack_elem;
 	float axis[3], angle;
-	int i, e, v, parent_is_branch;
+	int i, e, v, parent_v, parent_is_branch;
+
+	BLI_stack_pop(stack, &stack_elem);
+	parent_v = stack_elem.parent_v;
+	e = stack_elem.e;
+
+	/* Skip if edge already visited */
+	if (visited_e[e])
+		return;
+
+	/* Mark edge as visited */
+	visited_e[e] = TRUE;
+	
+	/* Process edge */
 
 	parent_is_branch = ((emap[parent_v].count > 2) ||
 	                    (vs[parent_v].flag & MVERT_SKIN_ROOT));
 
-	for (i = 0; i < emap[parent_v].count; i++) {
-		e = emap[parent_v].indices[i];
+	v = BKE_mesh_edge_other_vert(&medge[e], parent_v);
+	emat[e].origin = parent_v;
 
-		/* Ignore edge if already visited */
-		if (visited_e[e]) continue;
-		visited_e[e] = 1;
+	/* If parent is a branch node, start a new edge chain */
+	if (parent_is_branch) {
+		calc_edge_mat(emat[e].mat, mvert[parent_v].co,
+					  mvert[v].co);
+	}
+	else {
+		/* Build edge matrix guided by parent matrix */
+		sub_v3_v3v3(emat[e].mat[0], mvert[v].co, mvert[parent_v].co);
+		normalize_v3(emat[e].mat[0]);
+		angle = angle_normalized_v3v3(stack_elem.mat[0], emat[e].mat[0]);
+		cross_v3_v3v3(axis, stack_elem.mat[0], emat[e].mat[0]);
+		normalize_v3(axis);
+		rotate_normalized_v3_v3v3fl(emat[e].mat[1], stack_elem.mat[1], axis, angle);
+		rotate_normalized_v3_v3v3fl(emat[e].mat[2], stack_elem.mat[2], axis, angle);
+	}
 
-		v = BKE_mesh_edge_other_vert(&medge[e], parent_v);
-		emat[e].origin = parent_v;
-
-		/* If parent is a branch node, start a new edge chain */
-		if (parent_is_branch) {
-			calc_edge_mat(emat[e].mat, mvert[parent_v].co,
-			              mvert[v].co);
-		}
-		else {
-			/* Build edge matrix guided by parent matrix */
-			sub_v3_v3v3(emat[e].mat[0], mvert[v].co, mvert[parent_v].co);
-			normalize_v3(emat[e].mat[0]);
-			angle = angle_normalized_v3v3(parent_mat[0], emat[e].mat[0]);
-			cross_v3_v3v3(axis, parent_mat[0], emat[e].mat[0]);
-			normalize_v3(axis);
-			rotate_normalized_v3_v3v3fl(emat[e].mat[1], parent_mat[1], axis, angle);
-			rotate_normalized_v3_v3v3fl(emat[e].mat[2], parent_mat[2], axis, angle);
-		}
-
-		build_emats_rec(visited_e, emat, emap, medge,
-		                vs, mvert, v, emat[e].mat);
+	/* Add neighbors to stack */
+	for (i = 0; i < emap[v].count; i++) {
+		/* Add neighbors to stack */
+		memcpy(stack_elem.mat, emat[e].mat, sizeof(float) * 3 * 3);
+		stack_elem.e = emap[v].indices[i];
+		stack_elem.parent_v = v;
+		BLI_stack_push(stack, &stack_elem);
 	}
 }
 
-static EMat *build_edge_mats(MVertSkin *vs, MVert *mvert, int totvert,
-                             MEdge *medge, MeshElemMap *emap, int totedge)
+static EMat *build_edge_mats(const MVertSkin *vs,
+							 const MVert *mvert,
+							 int totvert,
+                             const MEdge *medge,
+							 const MeshElemMap *emap,
+							 int totedge)
 {
+	BLI_Stack *stack;
 	EMat *emat;
-	float mat[3][3];
-	int *visited_e, v;
+	EdgeStackElem stack_elem;
+	int *visited_e, i, v;
+
+	stack = BLI_stack_new(sizeof(stack_elem), "build_edge_mats.stack");
 
 	visited_e = MEM_callocN(sizeof(int) * totedge, "build_edge_mats.visited_e");
 	emat = MEM_callocN(sizeof(EMat) * totedge, "build_edge_mats.emat");
 
-	/* Build edge matrices recursively from the root nodes */
+	/* Edge matrices are built from the root nodes, add all roots with
+	 * children to the stack */
 	for (v = 0; v < totvert; v++) {
 		if (vs[v].flag & MVERT_SKIN_ROOT) {
 			if (emap[v].count >= 1) {
 				const MEdge *e = &medge[emap[v].indices[0]];
-				calc_edge_mat(mat, mvert[v].co,
+				calc_edge_mat(stack_elem.mat, mvert[v].co,
 				              mvert[BKE_mesh_edge_other_vert(e, v)].co);
-				build_emats_rec(visited_e, emat, emap, medge, vs, mvert, v, mat);
+				stack_elem.parent_v = v;
+
+				/* Add adjacent edges to stack */
+				for (i = 0; i < emap[v].count; i++) {
+					stack_elem.e = emap[v].indices[i];
+					BLI_stack_push(stack, &stack_elem);
+				}
 			}
 		}
 	}
 
+	while (!BLI_stack_empty(stack)) {
+		build_emats_stack(stack, visited_e, emat, emap, medge, vs, mvert);
+	}
+
 	MEM_freeN(visited_e);
+	BLI_stack_free(stack);
 
 	return emat;
 }
@@ -1035,7 +1079,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		int i;
 
 		shortest_edge = BM_face_find_shortest_loop(f)->e;
-		BMO_op_initf(bm, &op, "weld_verts");
+		BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE), "weld_verts");
 
 		/* Note: could probably calculate merges in one go to be
 		 * faster */
@@ -1175,7 +1219,8 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	/* Extrude the split face */
 	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
 	BM_elem_flag_enable(split_face, BM_ELEM_TAG);
-	BMO_op_initf(bm, &op, "extrude_discrete_faces faces=%hf", BM_ELEM_TAG);
+	BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	             "extrude_discrete_faces faces=%hf", BM_ELEM_TAG);
 	BMO_op_exec(bm, &op);
 
 	/* Update split face (should only be one new face created
@@ -1198,7 +1243,8 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 		BM_mesh_elem_hflag_disable_all(bm, BM_EDGE, BM_ELEM_TAG, FALSE);
 		BM_elem_flag_enable(longest_edge, BM_ELEM_TAG);
 
-		BMO_op_callf(bm, "subdivide_edges edges=%he numcuts=%i quadcornertype=%i",
+		BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
+		             "subdivide_edges edges=%he numcuts=%i quadcornertype=%i",
 		             BM_ELEM_TAG, 1, SUBD_STRAIGHT_CUT);
 	}
 	else if (split_face->len > 4) {
@@ -1230,7 +1276,8 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 
 	/* Delete split face and merge */
 	BM_face_kill(bm, split_face);
-	BMO_op_init(bm, &op, "weld_verts");
+	BMO_op_init(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	            "weld_verts");
 	for (i = 0; i < 4; i++) {
 		BMO_slot_map_ptr_insert(bm, &op, "targetmap",
 		                        verts[i], frame->verts[best_order[i]]);
@@ -1395,7 +1442,9 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 		}
 	}
 
-	BMO_op_callf(so->bm, "delete geom=%hef context=%i", BM_ELEM_TAG, DEL_ONLYTAGGED);
+	BMO_op_callf(so->bm, BMO_FLAG_DEFAULTS,
+	             "delete geom=%hef context=%i",
+	             BM_ELEM_TAG, DEL_ONLYTAGGED);
 
 	BLI_heap_free(heap, NULL);
 }
@@ -1493,18 +1542,27 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes,
 		}
 
 		if (sn->flag & CAP_START) {
-			add_poly(so,
-			         sn->frames[0].verts[3],
-			         sn->frames[0].verts[2],
-			         sn->frames[0].verts[1],
-			         sn->frames[0].verts[0]);
+			if (sn->flag & ROOT) {
+				add_poly(so,
+						 sn->frames[0].verts[0],
+						 sn->frames[0].verts[1],
+						 sn->frames[0].verts[2],
+						 sn->frames[0].verts[3]);
+			}
+			else {
+				add_poly(so,
+						 sn->frames[0].verts[3],
+						 sn->frames[0].verts[2],
+						 sn->frames[0].verts[1],
+						 sn->frames[0].verts[0]);
+			}
 		}
 		if (sn->flag & CAP_END) {
 			add_poly(so,
-			         sn->frames[1].verts[3],
-			         sn->frames[1].verts[2],
+			         sn->frames[1].verts[0],
 			         sn->frames[1].verts[1],
-			         sn->frames[1].verts[0]);
+			         sn->frames[1].verts[2],
+			         sn->frames[1].verts[3]);
 		}
 	}
 }

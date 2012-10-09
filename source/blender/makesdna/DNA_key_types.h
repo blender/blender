@@ -105,7 +105,7 @@ typedef struct Key {
 
 /* Key->type: KeyBlocks are interpreted as... */
 enum {
-	/* Sequencial positions over time (using KeyBlock->pos and Key->ctime) */
+	/* Sequential positions over time (using KeyBlock->pos and Key->ctime) */
 	KEY_NORMAL      = 0,
 
 	/* States to blend between (default) */

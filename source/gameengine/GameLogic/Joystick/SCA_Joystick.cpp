@@ -81,7 +81,7 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 	return NULL;
 #else  /* WITH_SDL */
 	if (joyindex < 0 || joyindex >= JOYINDEX_MAX) {
-		echo("Error-invalid joystick index: " << joyindex);
+		ECHO("Error-invalid joystick index: " << joyindex);
 		return NULL;
 	}
 
@@ -96,7 +96,7 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 #  else
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) == -1 ) {
 #  endif
-			echo("Error-Initializing-SDL: " << SDL_GetError());
+			ECHO("Error-Initializing-SDL: " << SDL_GetError());
 			return NULL;
 		}
 		
@@ -242,7 +242,7 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 	if (m_isinit == false) {
 		if (m_joyindex>=m_joynum) {
 			// don't print a message, because this is done anyway
-			//echo("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
+			//ECHO("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
 			
 			// Need this so python args can return empty lists
 			m_axismax = m_buttonmax = m_hatmax = 0;
@@ -253,7 +253,7 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		SDL_JoystickEventState(SDL_ENABLE);
 		m_isinit = true;
 		
-		echo("Joystick " << m_joyindex << " initialized");
+		ECHO("Joystick " << m_joyindex << " initialized");
 		
 		/* must run after being initialized */
 		m_axismax =		SDL_JoystickNumAxes(m_private->m_joystick);
@@ -279,7 +279,7 @@ void SCA_Joystick::DestroyJoystickDevice(void)
 #ifdef WITH_SDL
 	if (m_isinit) {
 		if (SDL_JoystickOpened(m_joyindex)) {
-			echo("Closing-joystick " << m_joyindex);
+			ECHO("Closing-joystick " << m_joyindex);
 			SDL_JoystickClose(m_private->m_joystick);
 		}
 		m_isinit = false;
@@ -311,7 +311,7 @@ int SCA_Joystick::pAxisTest(int axisnum)
 	short i2= m_axis_array[(axisnum*2)+1];
 	
 	/* long winded way to do
-	 *   return MAX2(abs(i1), abs(i2))
+	 *   return maxf(absf(i1), absf(i2))
 	 * avoid abs from math.h */
 	if (i1 < 0) i1 = -i1;
 	if (i2 < 0) i2 = -i2;

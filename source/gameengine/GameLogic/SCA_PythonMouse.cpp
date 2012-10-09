@@ -90,9 +90,9 @@ PyAttributeDef SCA_PythonMouse::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("position", SCA_PythonMouse, pyattr_get_position, pyattr_set_position),
 	KX_PYATTRIBUTE_RW_FUNCTION("visible", SCA_PythonMouse, pyattr_get_visible, pyattr_set_visible),
 	{ NULL }	//Sentinel
-};	
+};
 
-PyObject* SCA_PythonMouse::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_PythonMouse::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonMouse* self = static_cast<SCA_PythonMouse*>(self_v);
 	
@@ -106,7 +106,7 @@ PyObject* SCA_PythonMouse::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_
 	return self->m_event_dict;
 }
 
-PyObject* SCA_PythonMouse::pyattr_get_active_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_PythonMouse::pyattr_get_active_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonMouse* self = static_cast<SCA_PythonMouse*>(self_v);
 
@@ -123,7 +123,7 @@ PyObject* SCA_PythonMouse::pyattr_get_active_events(void *self_v, const KX_PYATT
 	return self->m_event_dict;
 }
 
-PyObject* SCA_PythonMouse::pyattr_get_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_PythonMouse::pyattr_get_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonMouse* self = static_cast<SCA_PythonMouse*>(self_v);
 	const SCA_InputEvent & xevent = self->m_mouse->GetEventValue(SCA_IInputDevice::KX_MOUSEX);
@@ -134,7 +134,7 @@ PyObject* SCA_PythonMouse::pyattr_get_position(void *self_v, const KX_PYATTRIBUT
 	x_coord = self->m_canvas->GetMouseNormalizedX(xevent.m_eventval);
 	y_coord = self->m_canvas->GetMouseNormalizedY(yevent.m_eventval);
 
-	PyObject* ret = PyTuple_New(2);
+	PyObject *ret = PyTuple_New(2);
 
 	PyTuple_SET_ITEM(ret, 0, PyFloat_FromDouble(x_coord));
 	PyTuple_SET_ITEM(ret, 1, PyFloat_FromDouble(y_coord));
@@ -158,7 +158,7 @@ int SCA_PythonMouse::pyattr_set_position(void *self_v, const KX_PYATTRIBUTE_DEF 
 	return PY_SET_ATTR_SUCCESS;
 }
 
-PyObject* SCA_PythonMouse::pyattr_get_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_PythonMouse::pyattr_get_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_PythonMouse* self = static_cast<SCA_PythonMouse*>(self_v);
 

@@ -47,9 +47,11 @@
 #include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_linklist.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -64,6 +66,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_fcurve.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
@@ -132,6 +135,9 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		EDBM_mesh_make(scene->toolsettings, scene, obedit);
 
 		em = me->edit_btmesh;
+
+		EDBM_mesh_normals_update(em);
+		BMEdit_RecalcTessellation(em);
 
 		/* derivedMesh might be needed for solving parenting,
 		 * so re-create it here */
@@ -518,7 +524,8 @@ EnumPropertyItem prop_make_parent_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par, int partype)
+int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par,
+                         int partype, int xmirror, int keep_transform)
 {
 	bPoseChannel *pchan = NULL;
 	int pararm = ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
@@ -570,10 +577,14 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 		}
 		else {
 			Object workob;
-			
+
 			/* apply transformation of previous parenting */
-			/* BKE_object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
-			
+			if (keep_transform) {
+				 /* was removed because of bug [#23577],
+				  * but this can be handy in some cases too [#32616], so make optional */
+				BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+			}
+
 			/* set the parent (except for follow-path constraint option) */
 			if (partype != PAR_PATH_CONST) {
 				ob->parent = par;
@@ -641,12 +652,12 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			}
 			else if (pararm && ob->type == OB_MESH && par->type == OB_ARMATURE) {
 				if (partype == PAR_ARMATURE_NAME)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_NAME, FALSE);
 				else if (partype == PAR_ARMATURE_ENVELOPE)
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
 				else if (partype == PAR_ARMATURE_AUTO) {
 					WM_cursor_wait(1);
-					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_AUTO, 0);
+					create_vgroups_from_armature(reports, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
 					WM_cursor_wait(0);
 				}
 				/* get corrected inverse */
@@ -674,11 +685,13 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *par = ED_object_active_context(C);
 	int partype = RNA_enum_get(op->ptr, "type");
+	int xmirror = RNA_boolean_get(op->ptr, "xmirror");
+	int keep_transform = RNA_boolean_get(op->ptr, "keep_transform");
 	int ok = 1;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
+		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror, keep_transform)) {
 			ok = 0;
 			break;
 		}
@@ -702,25 +715,36 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 	Object *ob = ED_object_active_context(C);
 	uiPopupMenu *pup = uiPupMenuBegin(C, "Set Parent To", ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
-	
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_OBJECT);
-	
+
+	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_parent_set", TRUE);
+	PointerRNA opptr;
+
+#if 0
+	uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_OBJECT);
+#else
+	opptr = uiItemFullO_ptr(layout, ot, "Object", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "type", PAR_OBJECT);
+	RNA_boolean_set(&opptr, "keep_transform", FALSE);
+
+	opptr = uiItemFullO_ptr(layout, ot, "Object (Keep Transform)", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "type", PAR_OBJECT);
+	RNA_boolean_set(&opptr, "keep_transform", TRUE);
+#endif
 	/* ob becomes parent, make the associated menus */
 	if (ob->type == OB_ARMATURE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_NAME);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_AUTO);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_BONE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_NAME);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_AUTO);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE);
 	}
 	else if (ob->type == OB_CURVE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_CURVE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_FOLLOW);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_PATH_CONST);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_CURVE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_FOLLOW);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_PATH_CONST);
 	}
 	else if (ob->type == OB_LATTICE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_LATTICE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_LATTICE);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -728,6 +752,33 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 	return OPERATOR_CANCELLED;
 }
 
+static int parent_set_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+{
+	const char *prop_id = RNA_property_identifier(prop);
+	int type = RNA_enum_get(ptr, "type");
+
+	/* Only show XMirror for PAR_ARMATURE_ENVELOPE and PAR_ARMATURE_AUTO! */
+	if (strcmp(prop_id, "xmirror") == 0) {
+		if (ELEM(type, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO))
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+static void parent_set_ui(bContext *C, wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	wmWindowManager *wm = CTX_wm_manager(C);
+	PointerRNA ptr;
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+
+	/* Main auto-draw call. */
+	uiDefAutoButsRNA(layout, &ptr, parent_set_draw_check_prop, '\0');
+}
 
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
@@ -739,13 +790,18 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = parent_set_invoke;
 	ot->exec = parent_set_exec;
-	
 	ot->poll = ED_operator_object_active;
+	ot->ui = parent_set_ui;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "xmirror", FALSE, "X Mirror",
+	                "Apply weights symmetrically along X axis, for Envelope/Automatic vertex groups creation");
+	RNA_def_boolean(ot->srna, "keep_transform", FALSE, "Keep Transform",
+	                "Apply transformation before parenting");
+
 }
 
 /* ************ Make Parent Without Inverse Operator ******************* */
@@ -1238,6 +1294,9 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 
 	DAG_ids_flush_update(bmain, 0);
 
+	/* redraw the 3D view because the object center points are colored differently */
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
+
 	/* one day multiple scenes will be visible, then we should have some update function for them */
 	return OPERATOR_FINISHED;
 }
@@ -1246,31 +1305,42 @@ enum {
 	MAKE_LINKS_OBDATA = 1,
 	MAKE_LINKS_MATERIALS,
 	MAKE_LINKS_ANIMDATA,
+	MAKE_LINKS_GROUP,
 	MAKE_LINKS_DUPLIGROUP,
-	MAKE_LINKS_MODIFIERS
+	MAKE_LINKS_MODIFIERS,
+	MAKE_LINKS_FONTS
 };
 
 /* Return 1 if make link data is allow, zero otherwise */
-static int allow_make_links_data(int ev, Object *ob, Object *obt)
+static int allow_make_links_data(const int type, Object *ob_src, Object *ob_dst)
 {
-	switch (ev) {
+	switch (type) {
 		case MAKE_LINKS_OBDATA:
-			if (ob->type == obt->type && ob->type != OB_EMPTY)
+			if (ob_src->type == ob_dst->type && ob_src->type != OB_EMPTY)
 				return 1;
 			break;
 		case MAKE_LINKS_MATERIALS:
-			if (OB_TYPE_SUPPORT_MATERIAL(ob->type) &&
-			    OB_TYPE_SUPPORT_MATERIAL(obt->type))
+			if (OB_TYPE_SUPPORT_MATERIAL(ob_src->type) &&
+			    OB_TYPE_SUPPORT_MATERIAL(ob_dst->type))
 			{
 				return 1;
 			}
 			break;
 		case MAKE_LINKS_ANIMDATA:
+		case MAKE_LINKS_GROUP:
 		case MAKE_LINKS_DUPLIGROUP:
 			return 1;
 		case MAKE_LINKS_MODIFIERS:
-			if (ob->type != OB_EMPTY && obt->type != OB_EMPTY)
+			if (ob_src->type != OB_EMPTY && ob_dst->type != OB_EMPTY)
 				return 1;
+			break;
+		case MAKE_LINKS_FONTS:
+			if ((ob_src->data != ob_dst->data) &&
+			    (ob_src->type == OB_FONT) &&
+			    (ob_dst->type == OB_FONT))
+			{
+				return 1;
+			}
 			break;
 	}
 	return 0;
@@ -1279,60 +1349,120 @@ static int allow_make_links_data(int ev, Object *ob, Object *obt)
 static int make_links_data_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	int event = RNA_enum_get(op->ptr, "type");
-	Object *ob;
+	Scene *scene = CTX_data_scene(C);
+	const int type = RNA_enum_get(op->ptr, "type");
+	Object *ob_src;
 	ID *id;
 	int a;
 
-	ob = ED_object_active_context(C);
+	/* group */
+	LinkNode *ob_groups = NULL;
+	int is_cycle = FALSE;
 
-	CTX_DATA_BEGIN (C, Object *, obt, selected_editable_objects)
+	ob_src = ED_object_active_context(C);
+
+	/* avoid searching all groups in source object each time */
+	if (type == MAKE_LINKS_GROUP) {
+		ob_groups = BKE_object_groups(ob_src);
+	}
+
+	CTX_DATA_BEGIN (C, Base *, base_dst, selected_editable_bases)
 	{
-		if (ob != obt) {
-			if (allow_make_links_data(event, ob, obt)) {
-				switch (event) {
+		Object *ob_dst = base_dst->object;
+
+		if (ob_src != ob_dst) {
+			if (allow_make_links_data(type, ob_src, ob_dst)) {
+				switch (type) {
 					case MAKE_LINKS_OBDATA: /* obdata */
-						id = obt->data;
+						id = ob_dst->data;
 						id->us--;
 
-						id = ob->data;
+						id = ob_src->data;
 						id_us_plus(id);
-						obt->data = id;
+						ob_dst->data = id;
 
 						/* if amount of material indices changed: */
-						test_object_materials(obt->data);
+						test_object_materials(ob_dst->data);
 
-						obt->recalc |= OB_RECALC_DATA;
+						ob_dst->recalc |= OB_RECALC_DATA;
 						break;
 					case MAKE_LINKS_MATERIALS:
 						/* new approach, using functions from kernel */
-						for (a = 0; a < ob->totcol; a++) {
-							Material *ma = give_current_material(ob, a + 1);
-							assign_material(obt, ma, a + 1); /* also works with ma==NULL */
+						for (a = 0; a < ob_src->totcol; a++) {
+							Material *ma = give_current_material(ob_src, a + 1);
+							assign_material(ob_dst, ma, a + 1, BKE_MAT_ASSIGN_USERPREF); /* also works with ma==NULL */
 						}
 						break;
 					case MAKE_LINKS_ANIMDATA:
-						BKE_copy_animdata_id((ID *)obt, (ID *)ob, FALSE);
-						BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data, FALSE);
+						BKE_copy_animdata_id((ID *)ob_dst, (ID *)ob_src, FALSE);
+						BKE_copy_animdata_id((ID *)ob_dst->data, (ID *)ob_src->data, FALSE);
 						break;
+					case MAKE_LINKS_GROUP:
+					{
+						LinkNode *group_node;
+
+						/* first clear groups */
+						BKE_object_groups_clear(scene, base_dst, ob_dst);
+
+						/* now add in the groups from the link nodes */
+						for (group_node = ob_groups; group_node; group_node = group_node->next) {
+							if (ob_dst->dup_group != group_node->link) {
+								add_to_group(group_node->link, ob_dst, scene, base_dst);
+							}
+							else {
+								is_cycle = TRUE;
+							}
+						}
+					}
 					case MAKE_LINKS_DUPLIGROUP:
-						obt->dup_group = ob->dup_group;
-						if (obt->dup_group) {
-							id_lib_extern(&obt->dup_group->id);
-							obt->transflag |= OB_DUPLIGROUP;
+						ob_dst->dup_group = ob_src->dup_group;
+						if (ob_dst->dup_group) {
+							id_lib_extern(&ob_dst->dup_group->id);
+							ob_dst->transflag |= OB_DUPLIGROUP;
 						}
 						break;
 					case MAKE_LINKS_MODIFIERS:
-						BKE_object_link_modifiers(obt, ob);
-						obt->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+						BKE_object_link_modifiers(ob_dst, ob_src);
+						ob_dst->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 						break;
+					case MAKE_LINKS_FONTS:
+					{
+						Curve *cu_src = ob_src->data;
+						Curve *cu_dst = ob_dst->data;
+
+						if (cu_dst->vfont) cu_dst->vfont->id.us--;
+						cu_dst->vfont = cu_src->vfont;
+						id_us_plus((ID *)cu_dst->vfont);
+						if (cu_dst->vfontb) cu_dst->vfontb->id.us--;
+						cu_dst->vfontb = cu_src->vfontb;
+						id_us_plus((ID *)cu_dst->vfontb);
+						if (cu_dst->vfonti) cu_dst->vfonti->id.us--;
+						cu_dst->vfonti = cu_src->vfonti;
+						id_us_plus((ID *)cu_dst->vfonti);
+						if (cu_dst->vfontbi) cu_dst->vfontbi->id.us--;
+						cu_dst->vfontbi = cu_src->vfontbi;
+						id_us_plus((ID *)cu_dst->vfontbi);
+
+						ob_dst->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+						break;
+					}
 				}
 			}
 		}
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(bmain, CTX_data_scene(C));
+	if (type == MAKE_LINKS_GROUP) {
+		if (ob_groups) {
+			BLI_linklist_free(ob_groups, NULL);
+		}
+
+		if (is_cycle) {
+			BKE_report(op->reports, RPT_WARNING, "Skipped some groups because of cycle detected");
+		}
+	}
+
+	DAG_scene_sort(bmain, scene);
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
@@ -1369,8 +1499,10 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{MAKE_LINKS_OBDATA,     "OBDATA", 0, "Object Data", ""},
 		{MAKE_LINKS_MATERIALS,  "MATERIAL", 0, "Materials", ""},
 		{MAKE_LINKS_ANIMDATA,   "ANIMATION", 0, "Animation Data", ""},
+		{MAKE_LINKS_GROUP,      "GROUPS", 0, "Group", ""},
 		{MAKE_LINKS_DUPLIGROUP, "DUPLIGROUP", 0, "DupliGroup", ""},
 		{MAKE_LINKS_MODIFIERS,  "MODIFIERS", 0, "Modifiers", ""},
+		{MAKE_LINKS_FONTS,      "FONTS", 0, "Fonts", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -1408,7 +1540,7 @@ static void single_object_users(Scene *scene, View3D *v3d, int flag)
 		 */
 		ob->id.newid = NULL;
 		
-		if ( (base->flag & flag) == flag) {
+		if ((base->flag & flag) == flag) {
 			if (ob->id.lib == NULL && ob->id.us > 1) {
 				/* base gets copy of object */
 				obn = BKE_object_copy(ob);
@@ -1582,7 +1714,7 @@ static void single_mat_users(Scene *scene, int flag, int do_textures)
 						BKE_copy_animdata_id_action(&man->id);
 						
 						man->id.us = 0;
-						assign_material(ob, man, a);
+						assign_material(ob, man, a, BKE_MAT_ASSIGN_USERPREF);
 
 						if (do_textures) {
 							for (b = 0; b < MAX_MTEX; b++) {
@@ -1732,6 +1864,13 @@ static void make_local_makelocalmaterial(Material *ma)
 	/* nodetree? XXX */
 }
 
+enum {
+	MAKE_LOCAL_SELECT_OB,
+	MAKE_LOCAL_SELECT_OBDATA,
+	MAKE_LOCAL_SELECT_OBDATA_MATERIAL,
+	MAKE_LOCAL_ALL
+};
+
 static int make_local_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
@@ -1742,7 +1881,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	ID *id;
 	int a, b, mode = RNA_enum_get(op->ptr, "type");
 	
-	if (mode == 3) {
+	if (mode == MAKE_LOCAL_ALL) {
 		BKE_library_make_local(bmain, NULL, 0); /* NULL is all libs */
 		WM_event_add_notifier(C, NC_WINDOW, NULL);
 		return OPERATOR_FINISHED;
@@ -1770,7 +1909,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	{
 		id = ob->data;
 			
-		if (id && mode > 1) {
+		if (id && (ELEM(mode, MAKE_LOCAL_SELECT_OBDATA, MAKE_LOCAL_SELECT_OBDATA_MATERIAL))) {
 			id_make_local(id, 0);
 			adt = BKE_animdata_from_id(id);
 			if (adt) BKE_animdata_make_local(adt);
@@ -1794,7 +1933,7 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	if (mode > 1) {
+	if (mode == MAKE_LOCAL_SELECT_OBDATA_MATERIAL) {
 		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 		{
 			if (ob->type == OB_LAMP) {
@@ -1832,10 +1971,12 @@ static int make_local_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_make_local(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
-		{1, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
-		{2, "SELECTED_OBJECTS_DATA", 0, "Selected Objects and Data", ""},
-		{3, "ALL", 0, "All", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{MAKE_LOCAL_SELECT_OB, "SELECT_OBJECT", 0, "Selected Objects", ""},
+		{MAKE_LOCAL_SELECT_OBDATA, "SELECT_OBDATA", 0, "Selected Objects and Data", ""},
+		{MAKE_LOCAL_SELECT_OBDATA_MATERIAL, "SELECT_OBDATA_MATERIAL", 0, "Selected Objects, Data and Materials", ""},
+		{MAKE_LOCAL_ALL, "ALL", 0, "All", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Make Local";
@@ -1925,7 +2066,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	if (base == NULL || ma == NULL)
 		return OPERATOR_CANCELLED;
 	
-	assign_material(base->object, ma, 1);
+	assign_material(base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));

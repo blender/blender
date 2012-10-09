@@ -59,6 +59,7 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_object_deform.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_multires.h"
@@ -74,7 +75,7 @@
 static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #endif
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLO_sys_types.h" /* for intptr_t support */
 
 #include "GL/glew.h"
 
@@ -383,7 +384,7 @@ void DM_ensure_tessface(DerivedMesh *dm)
 		}
 	}
 
-	else if (dm->dirty && DM_DIRTY_TESS_CDLAYERS) {
+	else if (dm->dirty & DM_DIRTY_TESS_CDLAYERS) {
 		BLI_assert(CustomData_has_layer(&dm->faceData, CD_POLYINDEX));
 		DM_update_tessface_data(dm);
 	}
@@ -498,7 +499,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 			}
 		}
 		else {
-			/*if no object, set to INT_MAX so we don't mess up any shapekey layers*/
+			/* if no object, set to INT_MAX so we don't mess up any shapekey layers */
 			uid = INT_MAX;
 		}
 
@@ -541,7 +542,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	CustomData_free(&me->pdata, me->totpoly);
 
 	/* ok, this should now use new CD shapekey data,
-	 * which shouuld be fed through the modifier
+	 * which should be fed through the modifier
 	 * stack*/
 	if (tmp.totvert != me->totvert && !did_shapekeys && me->key) {
 		printf("%s: YEEK! this should be recoded! Shape key loss!: ID '%s'\n", __func__, tmp.id.name);
@@ -577,6 +578,13 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask)
 	CustomData_set_only_copy(&dm->vertData, mask);
 	CustomData_set_only_copy(&dm->edgeData, mask);
 	CustomData_set_only_copy(&dm->faceData, mask);
+	/* this wasn't in 2.63 and is disabled for 2.64 because it gives problems with
+	 * weight paint mode when there are modifiers applied, needs further investigation,
+	 * see replies to r50969, Campbell */
+#if 0
+	CustomData_set_only_copy(&dm->loopData, mask);
+	CustomData_set_only_copy(&dm->polyData, mask);
+#endif
 }
 
 void DM_add_vert_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
@@ -807,7 +815,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 	if (mti->isDisabled && mti->isDisabled(md, 0)) return NULL;
 	
 	if (build_shapekey_layers && me->key && (kb = BLI_findlink(&me->key->block, ob->shapenr - 1))) {
-		key_to_mesh(kb, me);
+		BKE_key_convert_to_mesh(kb, me);
 	}
 	
 	if (mti->type == eModifierTypeType_OnlyDeform) {
@@ -877,7 +885,7 @@ static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free
 		 * by a more flexible customdata system, but not simple */
 		if (!em) {
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			KeyBlock *kb = key_get_keyblock(ob_get_key(ob), clmd->sim_parms->shapekey_rest);
+			KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ob), clmd->sim_parms->shapekey_rest);
 
 			if (kb->data)
 				return kb->data;
@@ -956,22 +964,22 @@ void weight_to_rgb(float r_rgb[3], const float weight)
 {
 	const float blend = ((weight / 2.0f) + 0.5f);
 
-	if (weight <= 0.25f) {    // blue->cyan
+	if (weight <= 0.25f) {    /* blue->cyan */
 		r_rgb[0] = 0.0f;
 		r_rgb[1] = blend * weight * 4.0f;
 		r_rgb[2] = blend;
 	}
-	else if (weight <= 0.50f) {   // cyan->green
+	else if (weight <= 0.50f) {  /* cyan->green */
 		r_rgb[0] = 0.0f;
 		r_rgb[1] = blend;
 		r_rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
 	}
-	else if (weight <= 0.75f) { // green->yellow
+	else if (weight <= 0.75f) {  /* green->yellow */
 		r_rgb[0] = blend * ((weight - 0.50f) * 4.0f);
 		r_rgb[1] = blend;
 		r_rgb[2] = 0.0f;
 	}
-	else if (weight <= 1.0f) { // yellow->red
+	else if (weight <= 1.0f) {  /* yellow->red */
 		r_rgb[0] = blend;
 		r_rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
 		r_rgb[2] = 0.0f;
@@ -1015,14 +1023,14 @@ static void calc_weightpaint_vert_color(
         unsigned char r_col[4],
         MDeformVert *dv, ColorBand *coba,
         const int defbase_tot, const int defbase_act,
-        const char *dg_flags,
-        const int selected, const int draw_flag)
+        const char *defbase_sel, const int defbase_sel_tot,
+        const int draw_flag)
 {
 	float input = 0.0f;
 	
 	int make_black = FALSE;
 
-	if ((selected > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
+	if ((defbase_sel_tot > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
 		int was_a_nonzero = FALSE;
 		unsigned int i;
 
@@ -1031,7 +1039,7 @@ static void calc_weightpaint_vert_color(
 			/* in multipaint, get the average if auto normalize is inactive
 			 * get the sum if it is active */
 			if (dw->def_nr < defbase_tot) {
-				if (dg_flags[dw->def_nr]) {
+				if (defbase_sel[dw->def_nr]) {
 					if (dw->weight) {
 						input += dw->weight;
 						was_a_nonzero = TRUE;
@@ -1045,7 +1053,7 @@ static void calc_weightpaint_vert_color(
 			make_black = TRUE;
 		}
 		else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
-			input /= selected; /* get the average */
+			input /= defbase_sel_tot; /* get the average */
 		}
 	}
 	else {
@@ -1090,14 +1098,21 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
 		/* variables for multipaint */
 		const int defbase_tot = BLI_countlist(&ob->defbase);
 		const int defbase_act = ob->actdef - 1;
-		char *dg_flags = MEM_mallocN(defbase_tot * sizeof(char), __func__);
-		const int selected = get_selected_defgroups(ob, dg_flags, defbase_tot);
 
-		for (i = numVerts; i != 0; i--, wc += 4, dv++) {
-			calc_weightpaint_vert_color(wc, dv, coba, defbase_tot, defbase_act, dg_flags, selected, draw_flag);
+		int defbase_sel_tot = 0;
+		char *defbase_sel = NULL;
+
+		if (draw_flag & CALC_WP_MULTIPAINT) {
+			defbase_sel = BKE_objdef_selected_get(ob, defbase_tot, &defbase_sel_tot);
 		}
 
-		MEM_freeN(dg_flags);
+		for (i = numVerts; i != 0; i--, wc += 4, dv++) {
+			calc_weightpaint_vert_color(wc, dv, coba, defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
+		}
+
+		if (defbase_sel) {
+			MEM_freeN(defbase_sel);
+		}
 	}
 	else {
 		int col_i;
@@ -1188,7 +1203,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 			wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, coba);
 
 		/* Now copy colors in all face verts. */
-		/*first add colors to the tessellation faces*/
+		/* first add colors to the tessellation faces */
 		/* XXX Why update that layer? We have to update WEIGHT_MLOOPCOL anyway, 
 		 *     and tessellation recreates mface layers from mloop/mpoly ones, so no
 		 *     need to fill WEIGHT_MCOL here. */
@@ -1268,7 +1283,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 		}
 		
 		if (!kb) {
-			kb = add_keyblock(me->key, layer->name);
+			kb = BKE_keyblock_add(me->key, layer->name);
 			kb->uid = layer->uid;
 		}
 		
@@ -1793,7 +1808,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		{
 			finaldm->recalcTessellation(finaldm);
 		}
-		/* Even if tessellation is not needed, some modifiers migh have modified CD layers
+		/* Even if tessellation is not needed, some modifiers might have modified CD layers
 		 * (like mloopcol or mloopuv), hence we have to update those. */
 		else if (finaldm->dirty & DM_DIRTY_TESS_CDLAYERS) {
 			/* A tessellation already exists, it should always have a CD_POLYINDEX. */
@@ -2073,7 +2088,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	if ((*final_r)->type != DM_TYPE_EDITBMESH) {
 		DM_ensure_tessface(*final_r);
 	}
-	if (cage_r) {
+	if (cage_r && *cage_r) {
 		if ((*cage_r)->type != DM_TYPE_EDITBMESH) {
 			if (*cage_r != *final_r) {
 				DM_ensure_tessface(*cage_r);
@@ -2379,16 +2394,16 @@ float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 
 typedef struct {
 	float *precomputedFaceNormals;
-	MTFace *mtface;     // texture coordinates
-	MFace *mface;       // indices
-	MVert *mvert;       // vertices & normals
+	MTFace *mtface;     /* texture coordinates */
+	MFace *mface;       /* indices */
+	MVert *mvert;       /* vertices & normals */
 	float (*orco)[3];
-	float (*tangent)[4];    // destination
+	float (*tangent)[4];    /* destination */
 	int numTessFaces;
 
 } SGLSLMeshToTangent;
 
-// interface
+/* interface */
 #include "mikktspace.h"
 
 static int GetNumFaces(const SMikkTSpaceContext *pContext)
@@ -2508,7 +2523,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	BLI_memarena_use_calloc(arena);
 	vtangents = MEM_callocN(sizeof(VertexTangent *) * totvert, "VertexTangent");
 
-	// new computation method
+	/* new computation method */
 	iCalcNewMethod = 1;
 	if (iCalcNewMethod != 0) {
 		SGLSLMeshToTangent mesh2tangent = {0};
@@ -2532,7 +2547,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 		sInterface.m_getNormal = GetNormal;
 		sInterface.m_setTSpaceBasic = SetTSpace;
 
-		// 0 if failed
+		/* 0 if failed */
 		iCalcNewMethod = genTangSpaceDefault(&sContext);
 	}
 
@@ -2638,7 +2653,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					tex_coords[3] = mtface[f].uv[3];
 				}
 
-				// discard degenerate faces
+				/* discard degenerate faces */
 				is_degenerate = 0;
 				if (equals_v3v3(verts[0], verts[1]) || equals_v3v3(verts[0], verts[2]) || equals_v3v3(verts[1], verts[2]) ||
 				    equals_v2v2(tex_coords[0], tex_coords[1]) || equals_v2v2(tex_coords[0], tex_coords[2]) || equals_v2v2(tex_coords[1], tex_coords[2]))
@@ -2646,7 +2661,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					is_degenerate = 1;
 				}
 
-				// verify last vertex as well if this is a quad
+				/* verify last vertex as well if this is a quad */
 				if (is_degenerate == 0 && nr_verts == 4) {
 					if (equals_v3v3(verts[3], verts[0]) || equals_v3v3(verts[3], verts[1]) || equals_v3v3(verts[3], verts[2]) ||
 					    equals_v2v2(tex_coords[3], tex_coords[0]) || equals_v2v2(tex_coords[3], tex_coords[1]) || equals_v2v2(tex_coords[3], tex_coords[2]))
@@ -2654,7 +2669,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 						is_degenerate = 1;
 					}
 
-					// verify the winding is consistent
+					/* verify the winding is consistent */
 					if (is_degenerate == 0) {
 						float prev_edge[2];
 						int is_signed = 0;
@@ -2681,11 +2696,11 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 					}
 				}
 
-				// proceed if not a degenerate face
+				/* proceed if not a degenerate face */
 				if (is_degenerate == 0) {
 					int nr_tris_to_pile = 0;
-					// quads split at shortest diagonal
-					int offs = 0;       // initial triangulation is 0,1,2 and 0, 2, 3
+					/* quads split at shortest diagonal */
+					int offs = 0;  /* initial triangulation is 0,1,2 and 0, 2, 3 */
 					if (nr_verts == 4) {
 						float pos_len_diag0, pos_len_diag1;
 						float vtmp[3];
@@ -2743,7 +2758,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 			}
 		}
 
-		// finalize
+		/* finalize */
 		{
 			const float avg_area_ratio = (nr_accumulated > 0) ? ((float)(dsum / nr_accumulated)) : 1.0f;
 			const float use_as_render_bump_scale = sqrtf(avg_area_ratio);       // use width of average surface ratio as your bump scale
@@ -3185,6 +3200,27 @@ void DM_debug_print(DerivedMesh *dm)
 	puts(str);
 	fflush(stdout);
 	MEM_freeN(str);
+}
+
+void DM_debug_print_cdlayers(CustomData *data)
+{
+	int i;
+	CustomDataLayer *layer;
+
+	printf("{\n");
+
+	for (i = 0, layer = data->layers; i < data->totlayer; i++, layer++) {
+
+		const char *name = CustomData_layertype_name(layer->type);
+		const int size = CustomData_sizeof(layer->type);
+		const char *structname;
+		int structnum;
+		CustomData_file_write_info(layer->type, &structname, &structnum);
+		printf("        dict(name='%s', struct='%s', type=%d, ptr='%p', elem=%d, length=%d),\n",
+		       name, structname, layer->type, (void *)layer->data, size, (int)(MEM_allocN_len(layer->data) / size));
+	}
+
+	printf("}\n");
 }
 
 #endif /* NDEBUG */

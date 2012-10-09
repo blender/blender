@@ -46,7 +46,7 @@ struct StrandShadeCache;
 void fillrect(int *rect, int x, int y, int val);
 
 /**
- * Converts a world coordinate into a homogenous coordinate in view
+ * Converts a world coordinate into a homogeneous coordinate in view
  * coordinates. 
  */
 void projectvert(const float v1[3], float winmat[][4], float adr[4]);
@@ -55,7 +55,7 @@ int testclip(const float v[3]);
 
 void zbuffer_shadow(struct Render *re, float winmat[][4], struct LampRen *lar, int *rectz, int size, float jitx, float jity);
 void zbuffer_abuf_shadow(struct Render *re, struct LampRen *lar, float winmat[][4], struct APixstr *APixbuf, struct APixstrand *apixbuf, struct ListBase *apsmbase, int size, int samples, float (*jit)[2]);
-void zbuffer_solid(struct RenderPart *pa, struct RenderLayer *rl, void (*fillfunc)(struct RenderPart*, struct ZSpan*, int, void*), void *data);
+void zbuffer_solid(struct RenderPart *pa, struct RenderLayer *rl, void (*fillfunc)(struct RenderPart *, struct ZSpan *, int, void*), void *data);
 
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass, struct ListBase *psmlist);
 void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void*, int, int, int, int, int));
@@ -95,7 +95,7 @@ typedef struct ZSpan {
 	
 	float zmulx, zmuly, zofsx, zofsy;		/* transform from hoco to zbuf co */
 	
-	int *rectz, *arectz;					/* zbuffers, arectz is for transparant */
+	int *rectz, *arectz;					/* zbuffers, arectz is for transparent */
 	int *rectz1;							/* seconday z buffer for shadowbuffer (2nd closest z) */
 	int *rectp;								/* polygon index buffer */
 	int *recto;								/* object buffer */
@@ -138,6 +138,11 @@ void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec,
 /* exported to shadeinput.c */
 void zbuf_make_winmat(Render *re, float winmat[][4]);
 void zbuf_render_project(float winmat[][4], const float co[3], float ho[4]);
+
+/* sould not really be exposed, bad! */
+void hoco_to_zco(ZSpan *zspan, float zco[3], const float hoco[4]);
+void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float, float) );
+void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const float ho2[4]);
 
 #endif
 

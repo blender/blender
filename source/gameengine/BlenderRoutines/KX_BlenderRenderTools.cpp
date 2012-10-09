@@ -196,7 +196,7 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		//page 360/361 3D Game Engine Design, David Eberly for a discussion
 		// on screen aligned and axis aligned billboards
 		// assumed is that the preprocessor transformed all billboard polygons
-		// so that their normal points into the positive x direction (1.0 , 0.0 , 0.0)
+		// so that their normal points into the positive x direction (1.0, 0.0, 0.0)
 		// when new parenting for objects is done, this rotation
 		// will be moved into the object
 		
@@ -344,7 +344,7 @@ void KX_BlenderRenderTools::PopMatrix()
 
 int KX_BlenderRenderTools::applyLights(int objectlayer, const MT_Transform& viewmat)
 {
-	// taken from blender source, incompatibility between Blender Object / GameObject	
+	// taken from blender source, incompatibility between Blender Object / GameObject
 	KX_Scene* kxscene = (KX_Scene*)m_auxilaryClientInfo;
 	float glviewmat[16];
 	unsigned int count;
@@ -383,8 +383,7 @@ void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 			glAccum(GL_LOAD, 1.0);
 			rasterizer->SetMotionBlurState(2);
 		}
-		else if (motionblurvalue>=0.0 && motionblurvalue<=1.0)
-		{
+		else if (motionblurvalue >= 0.0f && motionblurvalue <= 1.0f) {
 			glAccum(GL_MULT, motionblurvalue);
 			glAccum(GL_ACCUM, 1-motionblurvalue);
 			glAccum(GL_RETURN, 1.0);

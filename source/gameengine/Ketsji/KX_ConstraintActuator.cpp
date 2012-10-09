@@ -166,7 +166,7 @@ bool KX_ConstraintActuator::NeedRayCast(KX_ClientObjectInfo* client)
 bool KX_ConstraintActuator::Update(double curtime, bool frame)
 {
 
-	bool result = false;	
+	bool result = false;
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 
@@ -462,7 +462,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 				// we expect a hit object
 				if (!m_hitObject)
 					result = false;
-				if (result)	
+				if (result)
 				{
 					MT_Vector3 newnormal = callback.m_hitNormal;
 					// compute new position & orientation
@@ -619,7 +619,7 @@ int KX_ConstraintActuator::pyattr_check_direction(void *self, const struct KX_PY
 		return 1;
 	}
 	act->m_refDirVector = dir/len;
-	return 0;	
+	return 0;
 }
 
 #endif

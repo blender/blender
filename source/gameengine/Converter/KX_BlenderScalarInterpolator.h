@@ -65,7 +65,7 @@ public:
 	BL_InterpolatorList(struct bAction *action);
 	~BL_InterpolatorList();
 
-	KX_IScalarInterpolator *GetScalarInterpolator(const char *rna_path, int array_index);	
+	KX_IScalarInterpolator *GetScalarInterpolator(const char *rna_path, int array_index);
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

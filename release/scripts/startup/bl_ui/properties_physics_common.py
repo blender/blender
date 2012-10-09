@@ -160,7 +160,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
         col = split.column()
 
-        if cache.is_baked == True:
+        if cache.is_baked is True:
             col.operator("ptcache.free_bake", text="Free Bake")
         else:
             col.operator("ptcache.bake", text="Bake").bake = True
@@ -186,11 +186,8 @@ def effector_weights_ui(self, context, weights):
 
     split = layout.split()
 
-    col = split.column()
-    col.prop(weights, "gravity", slider=True)
-
-    col = split.column()
-    col.prop(weights, "all", slider=True)
+    split.prop(weights, "gravity", slider=True)
+    split.prop(weights, "all", slider=True)
 
     layout.separator()
 

@@ -65,14 +65,24 @@ struct ImBuf;
 typedef struct wmJob wmJob;
 
 /* general API */
-void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
-void		WM_setinitialstate_fullscreen(void);
-void		WM_setinitialstate_normal(void);
+void		WM_init_state_size_set		(int stax, int stay, int sizx, int sizy);
+void		WM_init_state_fullscreen_set(void);
+void		WM_init_state_normal_set(void);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit_ext			(struct bContext *C, const short do_python);
-void		WM_exit				(struct bContext *C);
-void		WM_main				(struct bContext *C);
+
+void		WM_exit				(struct bContext *C)
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((noreturn))
+#endif
+;
+
+void		WM_main				(struct bContext *C)
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((noreturn))
+#endif
+;
 
 int 		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
@@ -82,7 +92,7 @@ void		WM_check			(struct bContext *C);
 
 struct wmWindow	*WM_window_open	(struct bContext *C, struct rcti *rect);
 
-			/* defines for 'type' WM_window_open_temp */
+		/* defines for 'type' WM_window_open_temp */
 #define WM_WINDOW_RENDER		0
 #define WM_WINDOW_USERPREFS		1
 #define WM_WINDOW_FILESEL		2
@@ -92,21 +102,21 @@ void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
 
 
 			/* files */
-int			WM_read_homefile_exec(struct bContext *C, struct wmOperator *op);
-int			WM_read_homefile	(struct bContext *C, struct ReportList *reports, short from_memory);
-int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
-void		WM_read_file		(struct bContext *C, const char *filepath, struct ReportList *reports);
-int			WM_write_file		(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
-void		WM_autosave_init	(struct wmWindowManager *wm);
+int			WM_homefile_read_exec(struct bContext *C, struct wmOperator *op);
+int			WM_homefile_read(struct bContext *C, struct ReportList *reports, short from_memory);
+int			WM_homefile_write_exec(struct bContext *C, struct wmOperator *op);
+void		WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
+int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
+void		WM_autosave_init(struct wmWindowManager *wm);
 
 			/* mouse cursors */
 void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(int val);
-void		WM_cursor_grab(struct wmWindow *win, int wrap, int hide, int *bounds);
-void		WM_cursor_ungrab(struct wmWindow *win);
-void		WM_timecursor		(struct wmWindow *win, int nr);
+void		WM_cursor_grab_enable(struct wmWindow *win, int wrap, int hide, int bounds[4]);
+void		WM_cursor_grab_disable(struct wmWindow *win, int mouse_ungrab_xy[2]);
+void		WM_cursor_time		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm,
                                       int (*poll)(struct bContext *C),
@@ -145,6 +155,7 @@ struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase
 
 			/* mouse */
 void		WM_event_add_mousemove(struct bContext *C);
+void		WM_event_add_mousemove_window(struct wmWindow *window);
 int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
 			/* notifiers */
@@ -182,7 +193,7 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-struct GHashIterator *WM_operatortype_iter(void);
+struct GHashIterator  *WM_operatortype_iter(void);
 void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
@@ -208,6 +219,8 @@ void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag, short display);
+void        WM_operator_properties_border(struct wmOperatorType *ot);
+void        WM_operator_properties_border_to_rcti(struct wmOperator *op, struct rcti *rect);
 void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
 void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);
 void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
@@ -241,11 +254,11 @@ void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 
 /* *************** menu types ******************** */
-void				WM_menutype_init(void);
-struct MenuType		*WM_menutype_find(const char *idname, int quiet);
-int					WM_menutype_add(struct MenuType* mt);
-void				WM_menutype_freelink(struct MenuType* mt);
-void				WM_menutype_free(void);
+void                WM_menutype_init(void);
+struct MenuType    *WM_menutype_find(const char *idname, int quiet);
+int                 WM_menutype_add(struct MenuType *mt);
+void                WM_menutype_freelink(struct MenuType *mt);
+void                WM_menutype_free(void);
 
 			/* default operator callbacks for border/circle/lasso */
 int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -260,7 +273,7 @@ int			WM_gesture_lines_cancel(struct bContext *C, struct wmOperator *op);
 int			WM_gesture_lasso_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_cancel(struct bContext *C, struct wmOperator *op);
-int       (*WM_gesture_lasso_path_to_array(struct bContext *C, struct wmOperator *op, int *mcords_tot))[2];
+const int (*WM_gesture_lasso_path_to_array(struct bContext *C, struct wmOperator *op, int *mcords_tot))[2];
 int			WM_gesture_straightline_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_straightline_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_straightline_cancel(struct bContext *C, struct wmOperator *op);
@@ -295,30 +308,51 @@ void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho2			(float x1, float x2, float y1, float y2);
 
 			/* utilities */
-void		WM_set_framebuffer_index_color(int index);
+void		WM_framebuffer_index_set(int index);
 int			WM_framebuffer_to_index(unsigned int col);
 
 			/* threaded Jobs Manager */
-#define WM_JOB_PRIORITY		1
-#define WM_JOB_EXCL_RENDER	2
-#define WM_JOB_PROGRESS		4
-#define WM_JOB_SUSPEND		8
+enum {
+	WM_JOB_PRIORITY     = (1 << 0),
+	WM_JOB_EXCL_RENDER  = (1 << 1),
+	WM_JOB_PROGRESS     = (1 << 2),
+	WM_JOB_SUSPEND      = (1 << 3)
+};
 
-struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag);
+/* identifying jobs by owner alone is unreliable, this isnt saved, order can change */
+enum {
+	WM_JOB_TYPE_ANY = -1,
+	WM_JOB_TYPE_COMPOSITE,
+	WM_JOB_TYPE_RENDER,
+	WM_JOB_TYPE_RENDER_PREVIEW,  /* UI preview */
+	WM_JOB_TYPE_SCREENCAST,
+	WM_JOB_TYPE_OBJECT_SIM_OCEAN,
+	WM_JOB_TYPE_OBJECT_SIM_FLUID,
+	WM_JOB_TYPE_OBJECT_BAKE_TEXTURE,
+	WM_JOB_TYPE_FILESEL_THUMBNAIL,
+	WM_JOB_TYPE_CLIP_BUILD_PROXY,
+	WM_JOB_TYPE_CLIP_TRACK_MARKERS,
+	WM_JOB_TYPE_CLIP_SOLVE_CAMERA,
+	WM_JOB_TYPE_SEQ_BUILD_PROXY,
+	/* add as needed, screencast, seq proxy build
+	 * if having hard coded values is a problem */
+};
 
-int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
+struct wmJob *WM_jobs_get(struct wmWindowManager *wm, struct wmWindow *win, void *owner, const char *name, int flag, int job_type);
+
+int			WM_jobs_test(struct wmWindowManager *wm, void *owner, int job_type);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
-char		*WM_jobs_name(struct wmWindowManager *wm, void *owner);
+char       *WM_jobs_name(struct wmWindowManager *wm, void *owner);
 
-int             WM_jobs_is_running(struct wmJob *);
-void*           WM_jobs_get_customdata(struct wmJob *);
-void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
-void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
-void		WM_jobs_callbacks(struct wmJob *, 
-							  void (*startjob)(void *, short *, short *, float *),
-							  void (*initjob)(void *),
-							  void (*update)(void *),
-							  void (*endjob)(void *));
+int         WM_jobs_is_running(struct wmJob *);
+void       *WM_jobs_customdata_get(struct wmJob *);
+void        WM_jobs_customdata_set(struct wmJob *, void *customdata, void (*free)(void *));
+void        WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
+void        WM_jobs_callbacks(struct wmJob *,
+                              void (*startjob)(void *, short *, short *, float *),
+                              void (*initjob)(void *),
+                              void (*update)(void *),
+                              void (*endjob)(void *));
 
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
@@ -328,8 +362,8 @@ void		WM_jobs_stop_all(struct wmWindowManager *wm);
 int			WM_jobs_has_running(struct wmWindowManager *wm);
 
 			/* clipboard */
-char		*WM_clipboard_text_get(int selection);
-void		WM_clipboard_text_set(char *buf, int selection);
+char       *WM_clipboard_text_get(int selection);
+void        WM_clipboard_text_set(char *buf, int selection);
 
 			/* progress */
 void		WM_progress_set(struct wmWindow *win, float progress);
@@ -337,6 +371,8 @@ void		WM_progress_clear(struct wmWindow *win);
 
 			/* Draw (for screenshot) */
 void		WM_redraw_windows(struct bContext *C);
+
+void        WM_main_playanim(int argc, const char **argv);
 
 /* debugging only, convenience function to write on crash */
 int write_crash_blend(void);

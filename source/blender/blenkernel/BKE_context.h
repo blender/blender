@@ -88,7 +88,7 @@ typedef struct bContextStore {
 	int used;
 } bContextStore;
 
-/* for the conrtext's rna mode enum
+/* for the context's rna mode enum
  * keep aligned with data_mode_strings in context.c */
 enum {
 	CTX_MODE_EDIT_MESH = 0,
@@ -174,7 +174,7 @@ void CTX_wm_operator_poll_msg_set(struct bContext *C, const char *msg);
  *
  * - listbases consist of CollectionPointerLink items and must be
  *   freed with BLI_freelistN!
- * - the dir listbase consits of LinkData items */
+ * - the dir listbase consists of LinkData items */
 
 /* data type, needed so we can tell between a NULL pointer and an empty list */
 enum {
@@ -221,7 +221,7 @@ void CTX_data_list_add(bContextDataResult *result, void *data);
 #define CTX_DATA_END                                                          \
 		}                                                                     \
 		BLI_freelistN(&ctx_data_list);                                        \
-	}
+} (void)0
 
 int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBase *));
 

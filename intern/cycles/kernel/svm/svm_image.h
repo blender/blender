@@ -50,7 +50,7 @@ __device_inline float svm_image_texture_frac(float x, int *ix)
 	return x - (float)i;
 }
 
-__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
+__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb)
 {
 	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id);
 	uint width = info.x;
@@ -82,15 +82,24 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 	r += ty*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + niy*width);
 	r += ty*tx*svm_image_texture_read(kg, offset + nix + niy*width);
 
+	if(srgb) {
+		r.x = color_srgb_to_scene_linear(r.x);
+		r.y = color_srgb_to_scene_linear(r.y);
+		r.z = color_srgb_to_scene_linear(r.z);
+	}
+
 	return r;
 }
 
 #else
 
-__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
+__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb)
 {
 	float4 r;
 
+#ifdef __KERNEL_CPU__
+	r = kernel_tex_image_interp(id, x, y);
+#else
 	/* not particularly proud of this massive switch, what are the
 	 * alternatives?
 	 * - use a single big 1D texture, and do our own lookup/filtering
@@ -101,11 +110,11 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 	 * we still need some for other storage */
 
 	switch(id) {
-		case 0: r = kernel_tex_image_interp(__tex_image_000, x, y); break;
-		case 1: r = kernel_tex_image_interp(__tex_image_001, x, y); break;
-		case 2: r = kernel_tex_image_interp(__tex_image_002, x, y); break;
-		case 3: r = kernel_tex_image_interp(__tex_image_003, x, y); break;
-		case 4: r = kernel_tex_image_interp(__tex_image_004, x, y); break;
+		case 0: r = kernel_tex_image_interp(__tex_image_float_000, x, y); break;
+		case 1: r = kernel_tex_image_interp(__tex_image_float_001, x, y); break;
+		case 2: r = kernel_tex_image_interp(__tex_image_float_002, x, y); break;
+		case 3: r = kernel_tex_image_interp(__tex_image_float_003, x, y); break;
+		case 4: r = kernel_tex_image_interp(__tex_image_float_004, x, y); break;
 		case 5: r = kernel_tex_image_interp(__tex_image_005, x, y); break;
 		case 6: r = kernel_tex_image_interp(__tex_image_006, x, y); break;
 		case 7: r = kernel_tex_image_interp(__tex_image_007, x, y); break;
@@ -196,14 +205,21 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 		case 92: r = kernel_tex_image_interp(__tex_image_092, x, y); break;
 		case 93: r = kernel_tex_image_interp(__tex_image_093, x, y); break;
 		case 94: r = kernel_tex_image_interp(__tex_image_094, x, y); break;
-		case 95: r = kernel_tex_image_interp(__tex_image_float_095, x, y); break;
-		case 96: r = kernel_tex_image_interp(__tex_image_float_096, x, y); break;
-		case 97: r = kernel_tex_image_interp(__tex_image_float_097, x, y); break;
-		case 98: r = kernel_tex_image_interp(__tex_image_float_098, x, y); break;
-		case 99: r = kernel_tex_image_interp(__tex_image_float_099, x, y); break;
+		case 95: r = kernel_tex_image_interp(__tex_image_095, x, y); break;
+		case 96: r = kernel_tex_image_interp(__tex_image_096, x, y); break;
+		case 97: r = kernel_tex_image_interp(__tex_image_097, x, y); break;
+		case 98: r = kernel_tex_image_interp(__tex_image_098, x, y); break;
+		case 99: r = kernel_tex_image_interp(__tex_image_099, x, y); break;
 		default: 
 			kernel_assert(0);
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+#endif
+
+	if(srgb) {
+		r.x = color_srgb_to_scene_linear(r.x);
+		r.y = color_srgb_to_scene_linear(r.y);
+		r.z = color_srgb_to_scene_linear(r.z);
 	}
 
 	return r;
@@ -219,20 +235,101 @@ __device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack
 	decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
 
 	float3 co = stack_load_float3(stack, co_offset);
-	float4 f = svm_image_texture(kg, id, co.x, co.y);
-	float3 r = make_float3(f.x, f.y, f.z);
-
-	if(srgb) {
-		r.x = color_srgb_to_scene_linear(r.x);
-		r.y = color_srgb_to_scene_linear(r.y);
-		r.z = color_srgb_to_scene_linear(r.z);
-	}
+	float4 f = svm_image_texture(kg, id, co.x, co.y, srgb);
 
 	if(stack_valid(out_offset))
-		stack_store_float3(stack, out_offset, r);
+		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
 	if(stack_valid(alpha_offset))
 		stack_store_float(stack, alpha_offset, f.w);
 }
+
+__device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+{
+	/* get object space normal */
+	float3 N = sd->N;
+
+	N = sd->N;
+	if(sd->object != ~0)
+		object_inverse_normal_transform(kg, sd, &N);
+
+	/* project from direction vector to barycentric coordinates in triangles */
+	N.x = fabsf(N.x);
+	N.y = fabsf(N.y);
+	N.z = fabsf(N.z);
+
+	N /= (N.x + N.y + N.z);
+
+	/* basic idea is to think of this as a triangle, each corner representing
+	 * one of the 3 faces of the cube. in the corners we have single textures,
+	 * in between we blend between two textures, and in the middle we a blend
+	 * between three textures.
+	 *
+	 * the Nxyz values are the barycentric coordinates in an equilateral
+	 * triangle, which in case of blending in the middle has a smaller
+	 * equilateral triangle where 3 textures blend. this divides things into
+	 * 7 zones, with an if() test for each zone */
+
+	float3 weight = make_float3(0.0f, 0.0f, 0.0f);
+	float blend = __int_as_float(node.w);
+	float limit = 0.5f*(1.0f + blend);
+
+	/* first test for corners with single texture */
+	if(N.x > limit*(N.x + N.y) && N.x > limit*(N.x + N.z)) {
+		weight.x = 1.0f;
+	}
+	else if(N.y > limit*(N.x + N.y) && N.y > limit*(N.y + N.z)) {
+		weight.y = 1.0f;
+	}
+	else if(N.z > limit*(N.x + N.z) && N.z > limit*(N.y + N.z)) {
+		weight.z = 1.0f;
+	}
+	else if(blend > 0.0f) {
+		/* in case of blending, test for mixes between two textures */
+		if(N.z < (1.0f - limit)*(N.y + N.x)) {
+			weight.x = N.x/(N.x + N.y);
+			weight.x = clamp((weight.x - 0.5f*(1.0f - blend))/blend, 0.0f, 1.0f);
+			weight.y = 1.0f - weight.x;
+		}
+		else if(N.x < (1.0f - limit)*(N.y + N.z)) {
+			weight.y = N.y/(N.y + N.z);
+			weight.y = clamp((weight.y - 0.5f*(1.0f - blend))/blend, 0.0f, 1.0f);
+			weight.z = 1.0f - weight.y;
+		}
+		else if(N.y < (1.0f - limit)*(N.x + N.z)) {
+			weight.x = N.x/(N.x + N.z);
+			weight.x = clamp((weight.x - 0.5f*(1.0f - blend))/blend, 0.0f, 1.0f);
+			weight.z = 1.0f - weight.x;
+		}
+		else {
+			/* last case, we have a mix between three */
+			weight.x = ((2.0f - limit)*N.x + (limit - 1.0f))/(2.0f*limit - 1.0f);
+			weight.y = ((2.0f - limit)*N.y + (limit - 1.0f))/(2.0f*limit - 1.0f);
+			weight.z = ((2.0f - limit)*N.z + (limit - 1.0f))/(2.0f*limit - 1.0f);
+		}
+	}
+
+	/* now fetch textures */
+	uint co_offset, out_offset, alpha_offset, srgb;
+	decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
+
+	float3 co = stack_load_float3(stack, co_offset);
+	uint id = node.y;
+
+	float4 f = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	if(weight.x > 0.0f)
+		f += weight.x*svm_image_texture(kg, id, co.y, co.z, srgb);
+	if(weight.y > 0.0f)
+		f += weight.y*svm_image_texture(kg, id, co.x, co.z, srgb);
+	if(weight.z > 0.0f)
+		f += weight.z*svm_image_texture(kg, id, co.y, co.x, srgb);
+
+	if(stack_valid(out_offset))
+		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
+	if(stack_valid(alpha_offset))
+		stack_store_float(stack, alpha_offset, f.w);
+}
+
 
 __device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
@@ -252,17 +349,10 @@ __device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float 
 	else
 		uv = direction_to_mirrorball(co);
 
-	float4 f = svm_image_texture(kg, id, uv.x, uv.y);
-	float3 r = make_float3(f.x, f.y, f.z);
-
-	if(srgb) {
-		r.x = color_srgb_to_scene_linear(r.x);
-		r.y = color_srgb_to_scene_linear(r.y);
-		r.z = color_srgb_to_scene_linear(r.z);
-	}
+	float4 f = svm_image_texture(kg, id, uv.x, uv.y, srgb);
 
 	if(stack_valid(out_offset))
-		stack_store_float3(stack, out_offset, r);
+		stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
 	if(stack_valid(alpha_offset))
 		stack_store_float(stack, alpha_offset, f.w);
 }

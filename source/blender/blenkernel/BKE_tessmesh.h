@@ -72,9 +72,11 @@ typedef struct BMEditMesh {
 	short selectmode;
 	short mat_nr;
 
-	/*Mesh structure this editmesh came from, if it came from one*/
-	struct Mesh *me;
+	/* Object this editmesh came from (if it came from one) */
 	struct Object *ob;
+
+	/* Unused for now, we could bring it back and assign in the same way 'ob' is */
+	// struct Mesh *me;
 
 	/*temp variables for x-mirror editing*/
 	int mirror_cdlayer; /* -1 is invalid */

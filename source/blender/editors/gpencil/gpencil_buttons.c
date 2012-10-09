@@ -75,17 +75,15 @@ static void gp_ui_activelayer_cb(bContext *C, void *gpd, void *gpl)
 	/* make sure the layer we want to remove is the active one */
 	gpencil_layer_setactive(gpd, gpl);
 	
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); /* XXX please work! */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
 /* delete 'active' layer */
 static void gp_ui_dellayer_cb(bContext *C, void *gpd, void *gpl)
 {
-	/* make sure the layer we want to remove is the active one */
-	gpencil_layer_setactive(gpd, gpl);
-	gpencil_layer_delactive(gpd);
+	gpencil_layer_delete((bGPdata *)gpd, (bGPDlayer *)gpl);
 	
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); /* XXX please work! */
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
 

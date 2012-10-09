@@ -58,7 +58,8 @@ __device float fresnel_dielectric(float eta, const float3 N,
 		neta = 1 / eta;
 		Nn   = N;
 		*is_inside = false;
-	} else {
+	}
+	else {
 		// we are inside the surface, 
 		cos  = -cos;
 		neta = eta;
@@ -74,7 +75,8 @@ __device float fresnel_dielectric(float eta, const float3 N,
 		*dTdy = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 		return 1; // total internal reflection
-	} else {
+	}
+	else {
 		float dnp = sqrtf(arg);
 		float nK = (neta * cos)- dnp;
 		*T = -(neta * I)+(nK * Nn);

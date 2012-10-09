@@ -62,7 +62,7 @@ PyTypeObject BL_ArmatureChannel::Type = {
 	py_base_new
 };
 
-PyObject* BL_ArmatureChannel::py_repr(void)
+PyObject *BL_ArmatureChannel::py_repr(void)
 {
 	return PyUnicode_FromString(m_posechannel->name);
 }
@@ -104,8 +104,8 @@ PyMethodDef BL_ArmatureChannel::Methods[] = {
 
 PyAttributeDef BL_ArmatureChannel::Attributes[] = {
 	// Keep these attributes in order of BCA_ defines!!! used by py_attr_getattr and py_attr_setattr
-	KX_PYATTRIBUTE_RO_FUNCTION("bone",BL_ArmatureChannel,py_attr_getattr),	
-	KX_PYATTRIBUTE_RO_FUNCTION("parent",BL_ArmatureChannel,py_attr_getattr),	
+	KX_PYATTRIBUTE_RO_FUNCTION("bone",BL_ArmatureChannel,py_attr_getattr),
+	KX_PYATTRIBUTE_RO_FUNCTION("parent",BL_ArmatureChannel,py_attr_getattr),
 	
 	{ NULL }	//Sentinel
 };
@@ -147,7 +147,7 @@ PyAttributeDef BL_ArmatureChannel::AttributesPtr[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* BL_ArmatureChannel::py_attr_getattr(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ArmatureChannel::py_attr_getattr(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ArmatureChannel* self= static_cast<BL_ArmatureChannel*>(self_v);
 	bPoseChannel* channel = self->m_posechannel;
@@ -200,7 +200,7 @@ int BL_ArmatureChannel::py_attr_setattr(void *self_v, const struct KX_PYATTRIBUT
 	return PY_SET_ATTR_FAIL;
 }
 
-PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	bPoseChannel* pchan = static_cast<bPoseChannel*>(self_v);
 	// decompose the pose matrix in euler rotation
@@ -223,7 +223,7 @@ PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 	}
 	// remove the rest pose to get the joint movement
 	transpose_m3(rest_mat);
-	mul_m3_m3m3(joint_mat, rest_mat, pose_mat);		
+	mul_m3_m3m3(joint_mat, rest_mat, pose_mat);
 	joints[0] = joints[1] = joints[2] = 0.f;
 	// returns a 3 element list that gives corresponding joint
 	int flag = 0;
@@ -258,7 +258,7 @@ PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 		joints[2] = -joint_mat[1][0];
 		norm = normalize_v3(joints);
 		if (norm < FLT_EPSILON) {
-			norm = (joint_mat[1][1] < 0.f) ? M_PI : 0.f;
+			norm = (joint_mat[1][1] < 0.0f) ? (float)M_PI : 0.0f;
 		} else {
 			norm = acos(joint_mat[1][1]);
 		}
@@ -275,7 +275,7 @@ PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 		joints[2] = (joint_mat[0][1]-joint_mat[1][0])*0.5f;
 		sa = len_v3(joints);
 		ca = (joint_mat[0][0]+joint_mat[1][1]+joint_mat[1][1]-1.0f)*0.5f;
-		if (sa > FLT_EPSILON) {
+		if (sa > (double)FLT_EPSILON) {
 			norm = atan2(sa,ca)/sa;
 		} else {
 			if (ca < 0.0) {
@@ -458,7 +458,7 @@ PyObject *BL_ArmatureBone::py_bone_get_children(void *self, const struct KX_PYAT
 	for (child=(Bone*)bone->childbase.first; child; child=(Bone*)child->next)
 		count++;
 
-	PyObject* childrenlist = PyList_New(count);
+	PyObject *childrenlist = PyList_New(count);
 
 	for (count = 0, child=(Bone*)bone->childbase.first; child; child=(Bone*)child->next, ++count)
 		PyList_SET_ITEM(childrenlist,count,NewProxyPlus_Ext(NULL,&Type,child,false));

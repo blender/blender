@@ -123,43 +123,6 @@ void paintface_flush_flags(Object *ob)
 	}
 }
 
-/* returns 0 if not found, otherwise 1 */
-static int facesel_face_pick(struct bContext *C, Mesh *me, Object *ob, const int mval[2], unsigned int *index, short rect)
-{
-	Scene *scene = CTX_data_scene(C);
-	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
-
-	if (!me || me->totpoly == 0)
-		return 0;
-
-	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH, 0);
-
-	// XXX  if (v3d->flag & V3D_INVALID_BACKBUF) {
-// XXX drawview.c!		check_backbuf();
-// XXX		persp(PERSP_VIEW);
-// XXX  }
-
-	if (rect) {
-		/* sample rect to increase changes of selecting, so that when clicking
-		 * on an edge in the backbuf, we can still select a face */
-
-		int dist;
-		*index = view3d_sample_backbuf_rect(&vc, mval, 3, 1, me->totpoly + 1, &dist, 0, NULL, NULL);
-	}
-	else {
-		/* sample only on the exact position */
-		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
-	}
-
-	if ((*index) <= 0 || (*index) > (unsigned int)me->totpoly)
-		return 0;
-
-	(*index)--;
-	
-	return 1;
-}
-
 void paintface_hide(Object *ob, const int unselected)
 {
 	Mesh *me;
@@ -174,10 +137,10 @@ void paintface_hide(Object *ob, const int unselected)
 	while (a--) {
 		if ((mpoly->flag & ME_HIDE) == 0) {
 			if (unselected) {
-				if ( (mpoly->flag & ME_FACE_SEL) == 0) mpoly->flag |= ME_HIDE;
+				if ((mpoly->flag & ME_FACE_SEL) == 0) mpoly->flag |= ME_HIDE;
 			}
 			else {
-				if ( (mpoly->flag & ME_FACE_SEL)) mpoly->flag |= ME_HIDE;
+				if ((mpoly->flag & ME_FACE_SEL)) mpoly->flag |= ME_HIDE;
 			}
 		}
 		if (mpoly->flag & ME_HIDE) mpoly->flag &= ~ME_FACE_SEL;
@@ -251,7 +214,9 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 		/* fill array by selection */
 		mp = me->mpoly;
 		for (a = 0; a < me->totpoly; a++, mp++) {
-			if (mp->flag & ME_HIDE) ;
+			if (mp->flag & ME_HIDE) {
+				/* pass */
+			}
 			else if (mp->flag & ME_FACE_SEL) {
 				hash_add_face(ehash, mp, me->mloop + mp->loopstart);
 				linkflag[a] = 1;
@@ -329,9 +294,9 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 	if (me == NULL || me->totpoly == 0) return;
 
 	if (mode == 0 || mode == 1) {
-		// XXX - Causes glitches, not sure why
+		/* XXX - Causes glitches, not sure why */
 #if 0
-		if (!facesel_face_pick(C, me, mval, &index, 1))
+		if (!ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
 			return;
 #endif
 	}
@@ -463,7 +428,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 	if (me == 0 ||  me->totpoly == 0) return;
 
 	if (mode == 0)
-		mode = pupmenu("Seams%t|Mark Border Seam %x1|Clear Seam %x2");
+		mode = pupmenu("Seams %t|Mark Border Seam %x1|Clear Seam %x2");
 
 	if (mode != 1 && mode != 2)
 		return;
@@ -502,7 +467,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 		BLI_edgehash_free(ehash2, NULL);
 	}
 
-// XXX	if (G.rt == 8)
+// XXX	if (G.debug_value == 8)
 //		unwrap_lscm(1);
 
 	me->drawflag |= ME_DRAWSEAMS;
@@ -518,10 +483,10 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	/* Get the face under the cursor */
 	me = BKE_mesh_from_object(ob);
 
-	if (!facesel_face_pick(C, me, ob, mval, &index, 1))
+	if (!ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
 		return 0;
 	
-	if (index >= me->totpoly || index < 0)
+	if (index >= me->totpoly)
 		return 0;
 
 	mpoly_sel = me->mpoly + index;
@@ -570,8 +535,8 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	unsigned int *rt;
 	char *selar;
 	int a, index;
-	int sx = rect->xmax - rect->xmin + 1;
-	int sy = rect->ymax - rect->ymin + 1;
+	int sx = BLI_rcti_size_x(rect) + 1;
+	int sy = BLI_rcti_size_y(rect) + 1;
 	
 	me = BKE_mesh_from_object(ob);
 
@@ -609,7 +574,9 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	mpoly = me->mpoly;
 	for (a = 1; a <= me->totpoly; a++, mpoly++) {
 		if (selar[a]) {
-			if (mpoly->flag & ME_HIDE) ;
+			if (mpoly->flag & ME_HIDE) {
+				/* pass */
+			}
 			else {
 				if (select) mpoly->flag |= ME_FACE_SEL;
 				else mpoly->flag &= ~ME_FACE_SEL;

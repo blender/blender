@@ -38,8 +38,6 @@
 
 #include "node_composite_util.h"
 
-#include "../../../../intern/raskter/raskter.h"
-
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_mask_out[] = {
@@ -47,10 +45,12 @@ static bNodeSocketTemplate cmp_node_mask_out[] = {
 	{   -1, 0, ""   }
 };
 
-static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
+#ifdef WITH_COMPOSITOR_LEGACY
+static void node_composit_exec_mask(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	if (node->id) {
 		Mask *mask = (Mask *)node->id;
+		MaskRasterHandle *mr_handle;
 		CompBuf *stackbuf;
 		RenderData *rd = data;
 		float *res;
@@ -70,16 +70,31 @@ static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **
 		stackbuf = alloc_compbuf(sx, sy, CB_VAL, TRUE);
 		res = stackbuf->rect;
 
-		BKE_mask_rasterize(mask, sx, sy, res, TRUE,
-		                   (node->custom1 & CMP_NODEFLAG_MASK_AA) != 0,
-		                   (node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
+		/* mask raster begin */
+		mr_handle = BKE_maskrasterize_handle_new();
+		BKE_maskrasterize_handle_init(mr_handle, mask,
+		                              sx, sy,
+		                              TRUE,
+		                              (node->custom1 & CMP_NODEFLAG_MASK_AA) != 0,
+		                              (node->custom1 & CMP_NODEFLAG_MASK_NO_FEATHER) == 0);
+		BKE_maskrasterize_buffer(mr_handle, sx, sy, res);
+		BKE_maskrasterize_handle_free(mr_handle);
+		/* mask raster end */
 
-		if (node->custom1) {
-			PLX_antialias_buffer(res,sx,sy);
-		}
 		/* pass on output and free */
 		out[0]->data = stackbuf;
 	}
+}
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+{
+	NodeMask *data = MEM_callocN(sizeof(NodeMask), STRINGIFY(NodeMask));
+	data->size_x = data->size_y = 256;
+	node->storage = data;
+
+	node->custom2 = 16;    /* samples */
+	node->custom3 = 0.5f;  /* shutter */
 }
 
 void register_node_type_cmp_mask(bNodeTreeType *ttype)
@@ -89,7 +104,12 @@ void register_node_type_cmp_mask(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_MASK, "Mask", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_mask_out);
 	node_type_size(&ntype, 140, 100, 320);
-	node_type_exec(&ntype, exec);
+	node_type_init(&ntype, node_composit_init_mask);
+#ifdef WITH_COMPOSITOR_LEGACY
+	node_type_exec(&ntype, node_composit_exec_mask);
+#endif
+
+	node_type_storage(&ntype, "NodeMask", node_free_standard_storage, node_copy_standard_storage);
 
 	nodeRegisterType(ttype, &ntype);
 }

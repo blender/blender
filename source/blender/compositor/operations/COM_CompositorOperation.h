@@ -23,14 +23,19 @@
 #ifndef _COM_CompositorOperation_h
 #define _COM_CompositorOperation_h
 #include "COM_NodeOperation.h"
-#include "DNA_scene_types.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 
 /**
  * @brief Compositor output operation
  */
 class CompositorOperation : public NodeOperation {
 private:
+	/**
+	 * @brief Scene name, used for getting the render output, includes 'SC' prefix.
+	 */
+	char m_sceneName[MAX_ID_NAME];
+
 	/**
 	 * @brief local reference to the scene
 	 */
@@ -42,6 +47,11 @@ private:
 	float *m_outputBuffer;
 
 	/**
+	 * @brief reference to the output depth float buffer
+	 */
+	float *m_depthBuffer;
+
+	/**
 	 * @brief local reference to the input image operation
 	 */
 	SocketReader *m_imageInput;
@@ -50,14 +60,20 @@ private:
 	 * @brief local reference to the input alpha operation
 	 */
 	SocketReader *m_alphaInput;
+
+	/**
+	 * @brief local reference to the depth operation
+	 */
+	SocketReader *m_depthInput;
 public:
 	CompositorOperation();
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
+	void setSceneName(const char *sceneName) { BLI_strncpy(this->m_sceneName, sceneName, sizeof(this->m_sceneName)); }
 	void setRenderData(const RenderData *rd) { this->m_rd = rd; }
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 };
 #endif

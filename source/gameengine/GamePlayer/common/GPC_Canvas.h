@@ -90,6 +90,8 @@ protected:
 	 * relative to the context */
 	RAS_Rect m_displayarea;
 
+	int *m_viewport;
+
 	/** Storage for the banners to display. */
 	TBannerMap m_banners;
 	/** State of banner display. */
@@ -103,7 +105,7 @@ public:
 
 	void Resize(int width, int height);
 
-	virtual void ResizeWindow(int width, int height){};
+	virtual void ResizeWindow(int width, int height) {}
 
 	/**
 	 * \section Methods inherited from abstract base class RAS_ICanvas.
@@ -153,6 +155,7 @@ public:
 	);
 	
 	void SetViewPort(int x1, int y1, int x2, int y2);
+	const int *GetViewPort();
 
 	void ClearColor(float r, float g, float b, float a);
 
@@ -163,7 +166,7 @@ public:
 	
 	void SetMouseState(RAS_MouseState mousestate)
 	{
-		// not yet		
+		// not yet
 	}
 
 	void SetMousePosition(int x, int y)
@@ -250,7 +253,7 @@ protected:
 		int oldWriteMask;
 	};
 
-		void			
+		void
 	PushRenderState(
 		CanvasRenderState & render_state
 	);

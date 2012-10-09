@@ -149,14 +149,16 @@ static void screenshot_crop(ImBuf *ibuf, rcti crop)
 {
 	unsigned int *to = ibuf->rect;
 	unsigned int *from = ibuf->rect + crop.ymin * ibuf->x + crop.xmin;
-	int y, cropw = crop.xmax - crop.xmin, croph = crop.ymax - crop.ymin;
+	int crop_x = BLI_rcti_size_x(&crop);
+	int crop_y = BLI_rcti_size_y(&crop);
+	int y;
 
-	if (cropw > 0 && croph > 0) {
-		for (y = 0; y < croph; y++, to += cropw, from += ibuf->x)
-			memmove(to, from, sizeof(unsigned int) * cropw);
+	if (crop_x > 0 && crop_y > 0) {
+		for (y = 0; y < crop_y; y++, to += crop_x, from += ibuf->x)
+			memmove(to, from, sizeof(unsigned int) * crop_x);
 
-		ibuf->x = cropw;
-		ibuf->y = croph;
+		ibuf->x = crop_x;
+		ibuf->y = crop_y;
 	}
 }
 
@@ -243,7 +245,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* image template */
 	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &scd->im_format, &ptr);
-	uiTemplateImageSettings(layout, &ptr);
+	uiTemplateImageSettings(layout, &ptr, FALSE);
 
 	/* main draw call */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
@@ -266,7 +268,8 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	
 	ot->flag = 0;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_SAVE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Screenshot the whole Blender window");
 }
 
@@ -395,7 +398,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 static int screencast_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen = CTX_wm_screen(C);
-	wmJob *steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen, "Screencast", 0);
+	wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen, "Screencast", 0, WM_JOB_TYPE_SCREENCAST);
 	ScreenshotJob *sj = MEM_callocN(sizeof(ScreenshotJob), "screenshot job");
 
 	/* setup sj */
@@ -419,11 +422,11 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	BKE_reports_init(&sj->reports, RPT_PRINT);
 
 	/* setup job */
-	WM_jobs_customdata(steve, sj, screenshot_freejob);
-	WM_jobs_timer(steve, 0.1, 0, NC_SCREEN | ND_SCREENCAST);
-	WM_jobs_callbacks(steve, screenshot_startjob, NULL, screenshot_updatejob, NULL);
+	WM_jobs_customdata_set(wm_job, sj, screenshot_freejob);
+	WM_jobs_timer(wm_job, 0.1, 0, NC_SCREEN | ND_SCREENCAST);
+	WM_jobs_callbacks(wm_job, screenshot_startjob, NULL, screenshot_updatejob, NULL);
 	
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 	
 	WM_event_add_notifier(C, NC_SCREEN | ND_SCREENCAST, screen);
 	

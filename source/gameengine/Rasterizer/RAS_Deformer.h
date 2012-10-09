@@ -49,8 +49,8 @@ class RAS_MeshObject;
 class RAS_Deformer
 {
 public:
-	RAS_Deformer() : m_pMesh(NULL), m_bDynamic(false) {};
-	virtual ~RAS_Deformer(){};
+	RAS_Deformer() : m_pMesh(NULL), m_bDynamic(false) {}
+	virtual ~RAS_Deformer() {}
 	virtual void Relink(CTR_Map<class CTR_HashedPtr, void*>*map)=0;
 	virtual bool Apply(class RAS_IPolyMaterial *polymat)=0;
 	virtual bool Update(void)=0;
@@ -91,7 +91,7 @@ public:
 
 protected:
 	class RAS_MeshObject	*m_pMesh;
-	bool  m_bDynamic;	
+	bool  m_bDynamic;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

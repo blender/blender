@@ -21,7 +21,6 @@
  */
 
 #include "COM_GammaNode.h"
-#include "DNA_scene_types.h"
 #include "COM_GammaOperation.h"
 #include "COM_ExecutionSystem.h"
 

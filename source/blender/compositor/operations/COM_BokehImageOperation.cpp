@@ -30,10 +30,8 @@ BokehImageOperation::BokehImageOperation() : NodeOperation()
 }
 void BokehImageOperation::initExecution()
 {
-	this->m_centerX = getWidth() / 2;
-	this->m_centerY = getHeight() / 2;
-	this->m_center[0] = this->m_centerX;
-	this->m_center[1] = this->m_centerY;
+	this->m_center[0] = getWidth() / 2;
+	this->m_center[1] = getHeight() / 2;
 	this->m_inverseRounding = 1.0f - this->m_data->rounding;
 	this->m_circularDistance = getWidth() / 2;
 	this->m_flapRad = (float)(M_PI * 2) / this->m_data->flaps;
@@ -47,14 +45,14 @@ void BokehImageOperation::initExecution()
 }
 void BokehImageOperation::detemineStartPointOfFlap(float r[2], int flapNumber, float distance)
 {
-	r[0] = sinf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_centerX;
-	r[1] = cosf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_centerY;
+	r[0] = sinf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_center[0];
+	r[1] = cosf(this->m_flapRad * flapNumber + this->m_flapRadAdd) * distance + this->m_center[1];
 }
 float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 {
 	float insideBokeh = 0.0f;
-	const float deltaX = x - this->m_centerX;
-	const float deltaY = y - this->m_centerY;
+	const float deltaX = x - this->m_center[0];
+	const float deltaY = y - this->m_center[1];
 	float closestPoint[2];
 	float lineP1[2];
 	float lineP2[2];
@@ -87,7 +85,7 @@ float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
 	}
 	return insideBokeh;
 }
-void BokehImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void BokehImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float shift = this->m_data->lensshift;
 	float shift2 = shift / 2.0f;
@@ -96,16 +94,16 @@ void BokehImageOperation::executePixel(float *color, float x, float y, PixelSamp
 	float insideBokehMed = isInsideBokeh(distance - fabsf(shift2 * distance), x, y);
 	float insideBokehMin = isInsideBokeh(distance - fabsf(shift * distance), x, y);
 	if (shift < 0) {
-		color[0] = insideBokehMax;
-		color[1] = insideBokehMed;
-		color[2] = insideBokehMin;
+		output[0] = insideBokehMax;
+		output[1] = insideBokehMed;
+		output[2] = insideBokehMin;
 	}
 	else {
-		color[0] = insideBokehMin;
-		color[1] = insideBokehMed;
-		color[2] = insideBokehMax;
+		output[0] = insideBokehMin;
+		output[1] = insideBokehMed;
+		output[2] = insideBokehMax;
 	}
-	color[3] = (insideBokehMax + insideBokehMed + insideBokehMin) / 3.0f;
+	output[3] = (insideBokehMax + insideBokehMed + insideBokehMin) / 3.0f;
 }
 
 void BokehImageOperation::deinitExecution()
@@ -118,8 +116,8 @@ void BokehImageOperation::deinitExecution()
 	}
 }
 
-void BokehImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void BokehImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
-	resolution[0] = 512;
-	resolution[1] = 512;
+	resolution[0] = COM_BLUR_BOKEH_PIXELS;
+	resolution[1] = COM_BLUR_BOKEH_PIXELS;
 }

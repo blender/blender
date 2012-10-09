@@ -72,18 +72,18 @@ public:
 	{
 	};
 
-	virtual 
+	virtual
 	~RAS_IRenderTools(
 	) {};
 
 	virtual 
-		void	
+		void
 	BeginFrame(
 		RAS_IRasterizer* rasty
 	)=0;
 
 	virtual 
-		void	
+		void
 	EndFrame(
 		RAS_IRasterizer* rasty
 	)=0;
@@ -94,7 +94,7 @@ public:
 	// so must be renamed to 'applyTransform' or something
 
 	virtual 
-		void	
+		void
 	applyTransform(
 		class RAS_IRasterizer* rasty,
 		double* oglmatrix,
@@ -112,15 +112,15 @@ public:
 	 * \param aspect	A scaling factor to compensate for the size.
 	 */
 	virtual 
-		void	
-	RenderText3D(int fontid,
-				 const char* text,
-				 int size,
-				 int dpi,
-				 float* color,
-				 double* mat,
-				 float aspect
-	) = 0;
+		void
+		RenderText3D(int fontid,
+		             const char* text,
+		             int size,
+		             int dpi,
+		             float* color,
+		             double* mat,
+		             float aspect
+		             ) = 0;
 
 
 	/**
@@ -133,7 +133,7 @@ public:
 	 * \param height	Height of the canvas to draw to.
 	 */
 	virtual 
-		void	
+		void
 	RenderText2D(
 		RAS_TEXT_RENDER_MODE mode,
 		const char* text,
@@ -145,7 +145,7 @@ public:
 
 	// 3d text, mapped on polygon
 	virtual 
-		void	
+		void
 	RenderText(
 		int mode,
 		RAS_IPolyMaterial* polymat,
@@ -156,8 +156,8 @@ public:
 		int glattrib
 	)=0;
 
-	virtual 
-		void		
+	virtual
+		void
 	ProcessLighting(
 		RAS_IRasterizer *rasty,
 		bool uselights,
@@ -165,35 +165,35 @@ public:
 	)=0;
 
 	virtual
-		void	
+		void
 	SetClientObject(
 		RAS_IRasterizer* rasty,
 		void* obj
 	);
 
-		void	
+		void
 	SetAuxilaryClientInfo(
 		void* inf
 	);
 
 	virtual 
-		void	
+		void
 	PushMatrix(
 	)=0;
 
 	virtual 
-		void	
+		void
 	PopMatrix(
 	)=0;
 
 	virtual 
-		void		
+		void
 	AddLight(
 		struct	RAS_LightObject* lightobject
 	);
 
 	virtual 
-		void		
+		void
 	RemoveLight(
 		struct RAS_LightObject* lightobject
 	);

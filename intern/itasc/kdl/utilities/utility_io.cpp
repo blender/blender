@@ -39,7 +39,7 @@ namespace KDL {
             }
     }
 // Eats until the end of the line
-	int _EatUntilEndOfLine( std::istream& is, int* countp=NULL) {
+static int _EatUntilEndOfLine( std::istream& is, int* countp=NULL) {
     int ch;
     int count;
     count = 0;
@@ -53,7 +53,7 @@ namespace KDL {
 }
 
 // Eats until the end of the comment
-	int _EatUntilEndOfComment( std::istream& is, int* countp=NULL) {
+static int _EatUntilEndOfComment( std::istream& is, int* countp=NULL) {
     int ch;
     int count;
     count = 0;
@@ -75,7 +75,7 @@ namespace KDL {
 
 // Eats space-like characters and comments
 // possibly returns the number of space-like characters eaten.
-int _EatSpace( std::istream& is,int* countp=NULL) {
+static int _EatSpace( std::istream& is,int* countp=NULL) {
     int ch;
     int count;
     count=-1;
@@ -106,7 +106,7 @@ int _EatSpace( std::istream& is,int* countp=NULL) {
 
 
 // Eats whites, returns, tabs and the delim character
-//  Checks wether delim char. is encountered.
+//  Checks whether delim char. is encountered.
 void Eat( std::istream& is, int delim )
 {   
     int ch;
@@ -119,7 +119,7 @@ void Eat( std::istream& is, int delim )
 }
 
 // Eats whites, returns, tabs and the delim character
-//  Checks wether delim char. is encountered.
+//  Checks whether delim char. is encountered.
 // EatEnd does not eat all space-like char's at the end.
 void EatEnd( std::istream& is, int delim )
 {   

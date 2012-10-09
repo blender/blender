@@ -129,7 +129,7 @@ class Graph {
   HashMap<Vertex, HashSet<Vertex> > edges_;
   HashMap<pair<Vertex, Vertex>, double> edge_weights_;
 
-  DISALLOW_COPY_AND_ASSIGN(Graph);
+  CERES_DISALLOW_COPY_AND_ASSIGN(Graph);
 };
 
 }  // namespace internal

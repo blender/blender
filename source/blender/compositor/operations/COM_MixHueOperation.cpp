@@ -31,15 +31,15 @@ MixHueOperation::MixHueOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixHueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MixHueOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
 
-	this->m_inputValueOperation->read(&value, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(&value, x, y, sampler);
+	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler);
+	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler);
 
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
@@ -53,9 +53,11 @@ void MixHueOperation::executePixel(float *outputValue, float x, float y, PixelSa
 		float tmpr, tmpg, tmpb;
 		rgb_to_hsv(inputColor1[0], inputColor1[1], inputColor1[2], &rH, &rS, &rV);
 		hsv_to_rgb(colH, rS, rV, &tmpr, &tmpg, &tmpb);
-		outputValue[0] = valuem * (inputColor1[0]) + value * tmpr;
-		outputValue[1] = valuem * (inputColor1[1]) + value * tmpg;
-		outputValue[2] = valuem * (inputColor1[2]) + value * tmpb;
+		output[0] = valuem * (inputColor1[0]) + value * tmpr;
+		output[1] = valuem * (inputColor1[1]) + value * tmpg;
+		output[2] = valuem * (inputColor1[2]) + value * tmpb;
 	}
-	outputValue[3] = inputColor1[3];
+	output[3] = inputColor1[3];
+
+	clampIfNeeded(output);
 }

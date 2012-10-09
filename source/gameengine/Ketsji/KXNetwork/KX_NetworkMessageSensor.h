@@ -80,7 +80,7 @@ public:
 	/* ------------------------------------------------------------- */
 
 	/* attributes */
-	static PyObject*	pyattr_get_bodies(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
+	static PyObject*	pyattr_get_bodies(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_subjects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
 #endif // WITH_PYTHON

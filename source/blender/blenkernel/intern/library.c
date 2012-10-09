@@ -107,7 +107,6 @@
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
 #include "BKE_speaker.h"
-#include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
 
@@ -360,6 +359,9 @@ int id_copy(ID *id, ID **newid, int test)
 			return 0; /* can't be copied from here */
 		case ID_GD:
 			return 0; /* not implemented */
+		case ID_MSK:
+			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
+			return 1;
 	}
 	
 	return 0;
@@ -798,6 +800,7 @@ static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
 void BKE_libblock_free(ListBase *lb, void *idv)
 {
+	Main *bmain = G.main;  /* should eventually be an arg */
 	ID *id = idv;
 
 #ifdef WITH_PYTHON
@@ -860,7 +863,7 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			BKE_text_free((Text *)id);
 			break;
 		case ID_SCRIPT:
-			//XXX free_script((Script *)id);
+			/* deprecated */
 			break;
 		case ID_SPK:
 			BKE_speaker_free((Speaker *)id);
@@ -897,7 +900,7 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			BKE_movieclip_free((MovieClip *)id);
 			break;
 		case ID_MSK:
-			BKE_mask_free((Mask *)id);
+			BKE_mask_free(bmain, (Mask *)id);
 			break;
 	}
 
@@ -909,7 +912,7 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 	BLI_remlink(lb, id);
 
 	/* this ID may be a driver target! */
-	BKE_animdata_main_cb(G.main, animdata_dtar_clear_cb, (void *)id);
+	BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
 
 	MEM_freeN(id);
 }
@@ -944,9 +947,52 @@ void free_main(Main *mainvar)
 		ID *id;
 		
 		while ( (id = lb->first) ) {
+#if 1
 			BKE_libblock_free(lb, id);
+#else
+			/* errors freeing ID's can be hard to track down,
+			 * enable this so valgrind will give the line number in its error log */
+			switch (a) {
+				case   0: BKE_libblock_free(lb, id); break;
+				case   1: BKE_libblock_free(lb, id); break;
+				case   2: BKE_libblock_free(lb, id); break;
+				case   3: BKE_libblock_free(lb, id); break;
+				case   4: BKE_libblock_free(lb, id); break;
+				case   5: BKE_libblock_free(lb, id); break;
+				case   6: BKE_libblock_free(lb, id); break;
+				case   7: BKE_libblock_free(lb, id); break;
+				case   8: BKE_libblock_free(lb, id); break;
+				case   9: BKE_libblock_free(lb, id); break;
+				case  10: BKE_libblock_free(lb, id); break;
+				case  11: BKE_libblock_free(lb, id); break;
+				case  12: BKE_libblock_free(lb, id); break;
+				case  13: BKE_libblock_free(lb, id); break;
+				case  14: BKE_libblock_free(lb, id); break;
+				case  15: BKE_libblock_free(lb, id); break;
+				case  16: BKE_libblock_free(lb, id); break;
+				case  17: BKE_libblock_free(lb, id); break;
+				case  18: BKE_libblock_free(lb, id); break;
+				case  19: BKE_libblock_free(lb, id); break;
+				case  20: BKE_libblock_free(lb, id); break;
+				case  21: BKE_libblock_free(lb, id); break;
+				case  22: BKE_libblock_free(lb, id); break;
+				case  23: BKE_libblock_free(lb, id); break;
+				case  24: BKE_libblock_free(lb, id); break;
+				case  25: BKE_libblock_free(lb, id); break;
+				case  26: BKE_libblock_free(lb, id); break;
+				case  27: BKE_libblock_free(lb, id); break;
+				case  28: BKE_libblock_free(lb, id); break;
+				case  29: BKE_libblock_free(lb, id); break;
+				case  30: BKE_libblock_free(lb, id); break;
+				case  31: BKE_libblock_free(lb, id); break;
+				case  32: BKE_libblock_free(lb, id); break;
+				default:
+					BLI_assert(0);
+			}
+#endif
 		}
 	}
+	a = set_listbasepointers(mainvar, lbarray);
 
 	MEM_freeN(mainvar);
 }
@@ -1342,7 +1388,7 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 		int a;
 
 #if 0   /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
-		// XXX old animation system! --------------------------------------
+		/* XXX old animation system! -------------------------------------- */
 		{
 			bActionStrip *strip;
 			for (strip = ob->nlastrips.first; strip; strip = strip->next) {
@@ -1351,7 +1397,7 @@ static void lib_indirect_test_id(ID *id, Library *lib)
 				LIBTAG(strip->ipo);
 			}
 		}
-		// XXX: new animation system needs something like this?
+		/* XXX: new animation system needs something like this? */
 #endif
 
 		for (a = 0; a < ob->totcol; a++) {
@@ -1525,7 +1571,7 @@ void BKE_library_filepath_set(Library *lib, const char *filepath)
 
 	/* not essential but set filepath is an absolute copy of value which
 	 * is more useful if its kept in sync */
-	if (strncmp(lib->filepath, "//", 2) == 0) {
+	if (BLI_path_is_rel(lib->filepath)) {
 		/* note that the file may be unsaved, in this case, setting the
 		 * filepath on an indirectly linked path is not allowed from the
 		 * outliner, and its not really supported but allow from here for now

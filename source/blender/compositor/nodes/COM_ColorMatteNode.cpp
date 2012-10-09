@@ -62,7 +62,7 @@ void ColorMatteNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	addLink(graph, operationRGBToHSV_Image->getInputSocket(0)->getConnection()->getFromSocket(), operationAlpha->getInputSocket(0));
 	addLink(graph, operation->getOutputSocket(), operationAlpha->getInputSocket(1));
 	graph->addOperation(operationAlpha);
-	addPreviewOperation(graph, operationAlpha->getOutputSocket());
+	addPreviewOperation(graph, context, operationAlpha->getOutputSocket());
 
 	if (outputSocketImage->isConnected()) {
 		outputSocketImage->relinkConnections(operationAlpha->getOutputSocket());

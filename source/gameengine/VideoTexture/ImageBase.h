@@ -82,7 +82,7 @@ public:
 	/// get source object
 	PyImage * getSource (const char * id);
 	/// set source object, return true, if source was set
-	bool setSource (const char * id, PyImage * source);
+	bool setSource (const char * id, PyImage *source);
 
 	/// get pixel filter
 	PyFilter * getFilter (void) { return m_pyfilter; }
@@ -276,7 +276,7 @@ public:
 	/// get source object
 	PyImage * getSource (void) { return m_source; }
 	/// set source object
-	void setSource (PyImage * source);
+	void setSource (PyImage *source);
 
 	/// get image from source
 	unsigned int * getImage (double ts=-1.0);
@@ -312,9 +312,9 @@ extern PyTypeList pyImageTypes;
 // functions for python interface
 
 // object initialization
-template <class T> static int Image_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+template <class T> static int Image_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
-	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// create source object
 	if (self->m_image != NULL) delete self->m_image;
 	self->m_image = new T();
@@ -323,37 +323,37 @@ template <class T> static int Image_init (PyObject * pySelf, PyObject * args, Py
 }
 
 // object allocation
-PyObject * Image_allocNew (PyTypeObject * type, PyObject * args, PyObject * kwds);
+PyObject *Image_allocNew (PyTypeObject *type, PyObject *args, PyObject *kwds);
 // object deallocation
-void Image_dealloc (PyImage * self);
+void Image_dealloc (PyImage *self);
 
 // get image data
-PyObject * Image_getImage (PyImage * self, char * mode);
+PyObject *Image_getImage (PyImage *self, char * mode);
 // get image size
-PyObject * Image_getSize (PyImage * self, void * closure);
+PyObject *Image_getSize (PyImage *self, void *closure);
 // refresh image - invalidate current content
-PyObject * Image_refresh (PyImage * self);
+PyObject *Image_refresh (PyImage *self);
 
 // get scale
-PyObject * Image_getScale (PyImage * self, void * closure);
+PyObject *Image_getScale (PyImage *self, void *closure);
 // set scale
-int Image_setScale (PyImage * self, PyObject * value, void * closure);
+int Image_setScale (PyImage *self, PyObject *value, void *closure);
 // get flip
-PyObject * Image_getFlip (PyImage * self, void * closure);
+PyObject *Image_getFlip (PyImage *self, void *closure);
 // set flip
-int Image_setFlip (PyImage * self, PyObject * value, void * closure);
+int Image_setFlip (PyImage *self, PyObject *value, void *closure);
 
 // get filter source object
-PyObject * Image_getSource (PyImage * self, PyObject * args);
+PyObject *Image_getSource (PyImage *self, PyObject *args);
 // set filter source object
-PyObject * Image_setSource (PyImage * self, PyObject * args);
+PyObject *Image_setSource (PyImage *self, PyObject *args);
 
 // get pixel filter object
-PyObject * Image_getFilter (PyImage * self, void * closure);
+PyObject *Image_getFilter (PyImage *self, void *closure);
 // set pixel filter object
-int Image_setFilter (PyImage * self, PyObject * value, void * closure);
+int Image_setFilter (PyImage *self, PyObject *value, void *closure);
 // check if a buffer can be extracted
-PyObject * Image_valid(PyImage * self, void * closure);
+PyObject *Image_valid(PyImage *self, void *closure);
 // for buffer access to PyImage objects
 extern PyBufferProcs imageBufferProcs;
 

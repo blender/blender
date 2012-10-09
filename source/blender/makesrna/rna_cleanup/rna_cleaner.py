@@ -60,7 +60,7 @@ def check_commandline():
         usage()
     if sys.argv[1] == '-h':
         help()
-    elif not (sys.argv[1].endswith(".txt") or sys.argv[1].endswith(".py")):
+    elif not sys.argv[1].endswith((".txt", ".py")):
         print ('\nBad input file extension... exiting.')
         usage()
     else:

@@ -54,7 +54,7 @@ void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
 
 void BKE_object_transform_copy(struct Object *ob_tar, const struct Object *ob_src);
-struct SoftBody *copy_softbody(struct SoftBody *sb);
+struct SoftBody *copy_softbody(struct SoftBody *sb, int copy_caches);
 struct BulletSoftBody *copy_bulletsoftbody(struct BulletSoftBody *sb);
 void BKE_object_copy_particlesystems(struct Object *obn, struct Object *ob);
 void BKE_object_copy_softbody(struct Object *obn, struct Object *ob);
@@ -82,6 +82,7 @@ struct Object *BKE_object_add(struct Scene *scene, int type);
 void *BKE_object_obdata_add_from_type(int type);
 
 struct Object *BKE_object_copy(struct Object *ob);
+struct Object *BKE_object_copy_with_caches(struct Object *ob);
 void BKE_object_make_local(struct Object *ob);
 int  BKE_object_is_libdata(struct Object *ob);
 int  BKE_object_obdata_is_libdata(struct Object *ob);
@@ -93,6 +94,7 @@ void BKE_object_to_mat3(struct Object *ob, float mat[][3]);
 void BKE_object_to_mat4(struct Object *ob, float mat[][4]);
 void BKE_object_apply_mat4(struct Object *ob, float mat[][4], const short use_compat, const short use_parent);
 
+int BKE_object_pose_context_check(struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
 
 void BKE_object_where_is_calc(struct Scene *scene, struct Object *ob);
@@ -109,8 +111,8 @@ struct BoundBox *BKE_object_boundbox_get(struct Object *ob);
 void BKE_object_dimensions_get(struct Object *ob, float vec[3]);
 void BKE_object_dimensions_set(struct Object *ob, const float *value);
 void BKE_object_boundbox_flag(struct Object *ob, int flag, int set);
-void BKE_object_minmax(struct Object *ob, float r_min[3], float r_max[3]);
-int BKE_object_minmax_dupli(struct Scene *scene, struct Object *ob, float r_min[3], float r_max[3]);
+void BKE_object_minmax(struct Object *ob, float r_min[3], float r_max[3], const short use_hidden);
+int BKE_object_minmax_dupli(struct Scene *scene, struct Object *ob, float r_min[3], float r_max[3], const short use_hidden);
 
 /* sometimes min-max isn't enough, we need to loop over each point */
 void BKE_object_foreach_display_point(struct Object *ob, float obmat[4][4],
@@ -177,6 +179,8 @@ typedef enum eObjectSet {
 } eObjectSet;
 
 struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectSet, eObRelationTypes includeFilter);
+struct LinkNode *BKE_object_groups(struct Object *ob);
+void             BKE_object_groups_clear(struct Scene *scene, struct Base *base, struct Object *object);
 
 #ifdef __cplusplus
 }

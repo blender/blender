@@ -89,7 +89,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height = ((items * ACHANNEL_STEP) + (ACHANNEL_HEIGHT * 2));
-	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
+	if (height > BLI_rcti_size_y(&v2d->mask)) {
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 		 */

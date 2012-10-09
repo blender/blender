@@ -39,6 +39,8 @@ static bNodeSocketTemplate cmp_node_splitviewer_in[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_copy_split_rgba(bNode *UNUSED(node), float *out, float *in1, float *in2, float *fac)
 {
 	if (*fac==0.0f) {
@@ -139,7 +141,9 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 	}
 }
 
-static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
 	node->storage= iuser;
@@ -158,7 +162,10 @@ void register_node_type_cmp_splitviewer(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_splitviewer);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_splitviewer);
+#endif
+
 	/* Do not allow muting for this node. */
 	node_type_internal_connect(&ntype, NULL);
 

@@ -33,6 +33,7 @@
 #include "KX_BlenderCanvas.h"
 #include "DNA_screen_types.h"
 #include <stdio.h>
+#include <assert.h>
 
 
 KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, RAS_Rect &rect, struct ARegion *ar) :
@@ -44,6 +45,8 @@ m_frame_rect(rect)
 	// area boundaries needed for mouse coordinates in Letterbox framing mode
 	m_area_left = ar->winrct.xmin;
 	m_area_top = ar->winrct.ymax;
+
+	glGetIntegerv(GL_VIEWPORT, (GLint*)m_viewport);
 }
 
 KX_BlenderCanvas::~KX_BlenderCanvas()
@@ -53,7 +56,7 @@ KX_BlenderCanvas::~KX_BlenderCanvas()
 void KX_BlenderCanvas::Init()
 {
 	glDepthFunc(GL_LEQUAL);
-}	
+}
 
 
 void KX_BlenderCanvas::SwapBuffers()
@@ -143,7 +146,7 @@ KX_BlenderCanvas::
 GetWindowArea(
 ) {
 	return m_area_rect;
-}	
+}
 
 	void
 KX_BlenderCanvas::
@@ -166,10 +169,31 @@ SetViewPort(
 	m_area_rect.SetRight(minx + x2);
 	m_area_rect.SetTop(miny + y2);
 
+	m_viewport[0] = minx+x1;
+	m_viewport[1] = miny+y1;
+	m_viewport[2] = vp_width;
+	m_viewport[3] = vp_height;
+
 	glViewport(minx + x1, miny + y1, vp_width, vp_height);
 	glScissor(minx + x1, miny + y1, vp_width, vp_height);
 }
 
+	const int*
+KX_BlenderCanvas::
+GetViewPort() {
+#ifdef DEBUG
+	// If we're in a debug build, we might as well make sure our values don't differ
+	// from what the gpu thinks we have. This could lead to nasty, hard to find bugs.
+	int viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	assert(viewport[0] == m_viewport[0]);
+	assert(viewport[1] == m_viewport[1]);
+	assert(viewport[2] == m_viewport[2]);
+	assert(viewport[3] == m_viewport[3]);
+#endif
+
+	return m_viewport;
+}
 
 void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 {

@@ -24,15 +24,14 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <string.h>
+
+#include "BLI_path_util.h"
 
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
-#include "BKE_utildefines.h"
 
 #ifdef RNA_RUNTIME
 
@@ -255,7 +254,7 @@ static void rna_Main_movieclips_begin(CollectionPropertyIterator *iter, PointerR
 
 static void rna_Main_masks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	Main *bmain = (Main*)ptr->data;
+	Main *bmain = (Main *)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->mask, NULL);
 }
 

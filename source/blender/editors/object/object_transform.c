@@ -119,7 +119,7 @@ static void object_clear_rot(Object *ob)
 				if ((ob->protectflag & OB_LOCK_ROTZ) == 0)
 					ob->quat[3] = ob->dquat[3] = 0.0f;
 					
-				// TODO: does this quat need normalizing now?
+				/* TODO: does this quat need normalizing now? */
 			}
 			else {
 				/* the flag may have been set for the other modes, so just ignore the extra flag... */
@@ -133,7 +133,7 @@ static void object_clear_rot(Object *ob)
 		}
 		else {
 			/* perform clamping using euler form (3-components) */
-			// FIXME: deltas are not handled for these cases yet...
+			/* FIXME: deltas are not handled for these cases yet... */
 			float eul[3], oldeul[3], quat1[4] = {0};
 			
 			if (ob->rotmode == ROT_MODE_QUAT) {
@@ -477,7 +477,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			Mesh *me = ob->data;
 			MVert *mvert;
 
-			multiresModifier_scale_disp(scene, ob);
+			if (apply_scale)
+				multiresModifier_scale_disp(scene, ob);
 			
 			/* adjust data */
 			mvert = me->mvert;
@@ -758,7 +759,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 							float min[3], max[3];
 							/* only bounds support */
 							INIT_MINMAX(min, max);
-							BKE_object_minmax_dupli(scene, ob, min, max);
+							BKE_object_minmax_dupli(scene, ob, min, max, TRUE);
 							mid_v3_v3v3(cent, min, max);
 							invert_m4_m4(ob->imat, ob->obmat);
 							mul_m4_v3(ob->imat, cent);
@@ -961,8 +962,10 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_set_center_types[] = {
 		{GEOMETRY_TO_ORIGIN, "GEOMETRY_ORIGIN", 0, "Geometry to Origin", "Move object geometry to object origin"},
-		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry", "Move object origin to center of object geometry"},
-		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor", "Move object origin to position of the 3d cursor"},
+		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry",
+		                     "Move object origin to center of object geometry"},
+		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor",
+		                   "Move object origin to position of the 3D cursor"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -974,7 +977,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name = "Set Origin";
-	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor";
+	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3D cursor";
 	ot->idname = "OBJECT_OT_origin_set";
 	
 	/* api callbacks */

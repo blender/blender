@@ -46,16 +46,19 @@ __device void to_unit_disk(float *x, float *y)
 	if(a > -b) {
 		if(a > b) {
 			r = a;
-			 phi = M_PI_4_F *(b/a);
-		 } else {
-			 r = b;
-			 phi = M_PI_4_F *(2.0f - a/b);
-		 }
-	} else {
+			phi = M_PI_4_F *(b/a);
+		}
+		else {
+			r = b;
+			phi = M_PI_4_F *(2.0f - a/b);
+		}
+	}
+	else {
 		if(a < b) {
 			r = -a;
 			phi = M_PI_4_F *(4.0f + b/a);
-		} else {
+		}
+		else {
 			r = -b;
 			if(b != 0.0f)
 				phi = M_PI_4_F *(6.0f - a/b);
@@ -87,8 +90,8 @@ __device_inline void sample_cos_hemisphere(const float3 N,
 }
 
 __device_inline void sample_uniform_hemisphere(const float3 N,
-											 float randu, float randv,
-											 float3 *omega_in, float *pdf)
+                                               float randu, float randv,
+                                               float3 *omega_in, float *pdf)
 {
 	float z = randu;
 	float r = sqrtf(max(0.0f, 1.0f - z*z));

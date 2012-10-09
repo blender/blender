@@ -75,12 +75,12 @@ void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket
 	graph->addOperation(operation);
 }
 
-void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket)
+void Node::addPreviewOperation(ExecutionSystem *system, CompositorContext *context, OutputSocket *outputSocket)
 {
 	if (this->isInActiveGroup()) {
 		if (!(this->getbNode()->flag & NODE_HIDDEN)) { // do not calculate previews of hidden nodes.
 			if (this->getbNode()->flag & NODE_PREVIEW) {
-				PreviewOperation *operation = new PreviewOperation();
+				PreviewOperation *operation = new PreviewOperation(context->getViewSettings(), context->getDisplaySettings());
 				system->addOperation(operation);
 				operation->setbNode(this->getbNode());
 				operation->setbNodeTree(system->getContext().getbNodeTree());
@@ -90,11 +90,11 @@ void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSock
 	}
 }
 
-void Node::addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket)
+void Node::addPreviewOperation(ExecutionSystem *system, CompositorContext *context, InputSocket *inputSocket)
 {
 	if (inputSocket->isConnected() && this->isInActiveGroup()) {
 		OutputSocket *outputsocket = inputSocket->getConnection()->getFromSocket();
-		this->addPreviewOperation(system, outputsocket);
+		this->addPreviewOperation(system, context, outputsocket);
 	}
 }
 
@@ -135,6 +135,21 @@ void Node::addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocke
 	operation->setZ(val->value[2]);
 	this->addLink(graph, operation->getOutputSocket(), inputsocket);
 	graph->addOperation(operation);
+}
+
+/* when a node has no valid data (missing image or group pointer) */
+void Node::convertToOperations_invalid(ExecutionSystem *graph, CompositorContext *context)
+{
+	/* this is a really bad situation - bring on the pink! - so artists know this is bad */
+	const float warning_color[4] = {1.0f, 0.0f, 1.0f, 1.0f};
+	int index;
+	vector<OutputSocket *> &outputsockets = this->getOutputSockets();
+	for (index = 0; index < outputsockets.size(); index++) {
+		SetColorOperation *operation = new SetColorOperation();
+		this->getOutputSocket(index)->relinkConnections(operation->getOutputSocket());
+		operation->setChannels(warning_color);
+		graph->addOperation(operation);
+	}
 }
 
 bNodeSocket *Node::getEditorInputSocket(int editorNodeInputSocketIndex)

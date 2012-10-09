@@ -94,8 +94,7 @@ typedef enum {
 	UI_WTYPE_BOX,
 	UI_WTYPE_SCROLL,
 	UI_WTYPE_LISTITEM,
-	UI_WTYPE_PROGRESSBAR,
-	
+	UI_WTYPE_PROGRESSBAR
 } uiWidgetTypeEnum;
 
 /* panel limits */
@@ -131,6 +130,14 @@ typedef enum {
 /* for scope resize zone */
 #define SCOPE_RESIZE_PAD    9
 
+/* bit button defines */
+/* Bit operations */
+#define UI_BITBUT_TEST(a, b)    ( ( (a) & 1 << (b) ) != 0)
+#define UI_BITBUT_SET(a, b)     ( (a) | 1 << (b) )
+#define UI_BITBUT_CLR(a, b)     ( (a) & ~(1 << (b)) )
+/* bit-row */
+#define UI_BITBUT_ROW(min, max)  (((max) >= 31 ? 0xFFFFFFFF : (1 << (max + 1)) - 1) - ((min) ? ((1 << (min)) - 1) : 0) )
+
 typedef struct uiLinkLine {  /* only for draw/edit */
 	struct uiLinkLine *next, *prev;
 	struct uiBut *from, *to;
@@ -151,14 +158,15 @@ typedef struct {
 struct uiBut {
 	struct uiBut *next, *prev;
 	int flag, drawflag;
-	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
-	short pad1;
+	eButType         type;
+	eButPointerType  pointype;
+	short bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
 
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
 	char drawstr[UI_MAX_DRAW_STR];
 	
-	float x1, y1, x2, y2;
+	rctf rect;
 
 	char *poin;
 	float hardmin, hardmax, softmin, softmax;
@@ -176,7 +184,7 @@ struct uiBut {
 
 	struct bContextStore *context;
 
-	/* not ysed yet, was used in 2.4x for ui_draw_pulldown_round & friends */
+	/* not used yet, was used in 2.4x for ui_draw_pulldown_round & friends */
 #if 0
 	void (*embossfunc)(int, int, float, float, float, float, float, int);
 	void (*sliderfunc)(int, float, float, float, float, float, float, int);
@@ -264,8 +272,8 @@ struct uiBlock {
 	char name[UI_MAX_NAME_STR];
 	
 	float winmat[4][4];
-	
-	float minx, miny, maxx, maxy;
+
+	rctf rect;
 	float aspect;
 
 	int puphash;  /* popup menu hash for memory */
@@ -303,27 +311,32 @@ struct uiBlock {
 	const char *lockstr;
 
 	char lock;
-	char active;                // to keep blocks while drawing and free them afterwards
-	char tooltipdisabled;       // to avoid tooltip after click
-	char endblock;              // uiEndBlock done?
-	
-	float xofs, yofs;           // offset to parent button
-	int dobounds, mx, my;       // for doing delayed
-	int bounds, minbounds;      // for doing delayed
+	char active;                /* to keep blocks while drawing and free them afterwards */
+	char tooltipdisabled;       /* to avoid tooltip after click */
+	char endblock;              /* uiEndBlock done? */
 
-	rctf safety;                // pulldowns, to detect outside, can differ per case how it is created
-	ListBase saferct;           // uiSafetyRct list
+	eBlockBoundsCalc bounds_type;  /* for doing delayed */
+	int mx, my;
+	int bounds, minbounds;      /* for doing delayed */
 
-	uiPopupBlockHandle *handle; // handle
+	rctf safety;                /* pulldowns, to detect outside, can differ per case how it is created */
+	ListBase saferct;           /* uiSafetyRct list */
 
-	struct wmOperator *ui_operator; // use so presets can find the operator,
-	                               // across menus and from nested popups which fail for operator context.
+	uiPopupBlockHandle *handle; /* handle */
 
-	void *evil_C;               // XXX hack for dynamic operator enums
+	struct wmOperator *ui_operator; /* use so presets can find the operator, */
+	                                /* across menus and from nested popups which fail for operator context. */
 
-	struct UnitSettings *unit;  // unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
-	float _hsv[3];              // XXX, only access via ui_block_hsv_get()
-	char color_profile;         // color profile for correcting linear colors for display
+	void *evil_C;               /* XXX hack for dynamic operator enums */
+
+	struct UnitSettings *unit;  /* unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time. */
+	float _hsv[3];              /* XXX, only access via ui_block_hsv_get() */
+
+	char color_profile;         /* color profile for correcting linear colors for display */
+
+	char *display_device;       /* display devide name used to display this block,
+	                             * used by color widgets to transform colors from/to scene linear
+	                             */
 };
 
 typedef struct uiSafetyRct {
@@ -340,7 +353,7 @@ void ui_fontscale(short *points, float aspect);
 
 extern void ui_block_to_window_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_block_to_window(const struct ARegion *ar, uiBlock *block, int *x, int *y);
-extern void ui_block_to_window_rct(const struct ARegion *ar, uiBlock *block, rctf *graph, rcti *winr);
+extern void ui_block_to_window_rct(const struct ARegion *ar, uiBlock *block, const rctf *graph, rcti *winr);
 extern void ui_window_to_block_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);
 extern void ui_window_to_block(const struct ARegion *ar, uiBlock *block, int *x, int *y);
 extern void ui_window_to_region(const ARegion *ar, int *x, int *y);
@@ -351,7 +364,8 @@ extern void ui_set_but_hsv(uiBut *but);
 extern void ui_get_but_vectorf(uiBut *but, float vec[3]);
 extern void ui_set_but_vectorf(uiBut *but, const float vec[3]);
 
-extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
+extern void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rect,
+                                       const float mx, const float my);
 
 extern void ui_get_but_string(uiBut *but, char *str, size_t maxlen);
 extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen);
@@ -372,6 +386,10 @@ extern int  ui_is_but_utf8(uiBut *but);
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);
 extern void ui_block_do_align(uiBlock *block);
+
+extern struct ColorManagedDisplay *ui_block_display_get(uiBlock *block);
+void ui_block_to_display_space_v3(uiBlock *block, float pixel[3]);
+void ui_block_to_scene_linear_v3(uiBlock *block, float pixel[3]);
 
 /* interface_regions.c */
 
@@ -400,9 +418,12 @@ struct uiPopupBlockHandle {
 	int menuretval;
 	float retvalue;
 	float retvec[4];
+
+	/* menu direction */
+	int direction;
 };
 
-uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
+uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
 void ui_block_func_ICONROW(struct bContext *C, uiLayout *layout, void *arg_but);
 void ui_block_func_ICONTEXTROW(struct bContext *C, uiLayout *layout, void *arg_but);
 
@@ -445,7 +466,7 @@ extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
 extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
-extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);
+extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const float alpha);
 
@@ -462,6 +483,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, struct uiWidgetColors *wc
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
 extern int ui_button_is_active(struct ARegion *ar);
+extern int ui_button_open_menu_direction(uiBut *but);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
@@ -481,7 +503,7 @@ void ui_widget_color_init(struct ThemeUI *tui);
 void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 
-extern unsigned char checker_stipple_sml[];
+extern unsigned char checker_stipple_sml[32 * 32 / 8];
 /* used for transp checkers */
 #define UI_TRANSP_DARK 100
 #define UI_TRANSP_LIGHT 160
@@ -508,6 +530,7 @@ void ui_but_add_shortcut(uiBut *but, const char *key_str, const short do_strip);
 void ui_but_anim_flag(uiBut *but, float cfra);
 void ui_but_anim_insert_keyframe(struct bContext *C);
 void ui_but_anim_delete_keyframe(struct bContext *C);
+void ui_but_anim_clear_keyframe(struct bContext *C);
 void ui_but_anim_add_driver(struct bContext *C);
 void ui_but_anim_remove_driver(struct bContext *C);
 void ui_but_anim_copy_driver(struct bContext *C);
@@ -520,4 +543,3 @@ int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
 #endif
-

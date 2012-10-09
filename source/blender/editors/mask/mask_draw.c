@@ -32,17 +32,22 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
 
 #include "DNA_mask_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_object_types.h"   /* SELECT */
 
 #include "ED_mask.h"  /* own include */
+#include "ED_space_api.h"
 #include "BIF_gl.h"
 
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "mask_intern.h"  /* own include */
 
@@ -129,7 +134,8 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 	if (!spline->tot_point)
 		return;
 
-	hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
+	/* TODO, add this to sequence editor */
+	hsize = 4; /* UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE); */
 
 	glPointSize(hsize);
 
@@ -196,16 +202,16 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 				glLineWidth(3);
 				glColor4ubv(rgb_gray);
 				glBegin(GL_LINES);
-				glVertex3fv(vert);
-				glVertex3fv(handle);
+				glVertex2fv(vert);
+				glVertex2fv(handle);
 				glEnd();
 				glLineWidth(1);
 			}
 
 			glColor3ubv(rgb_spline);
 			glBegin(GL_LINES);
-			glVertex3fv(vert);
-			glVertex3fv(handle);
+			glVertex2fv(vert);
+			glVertex2fv(handle);
 			glEnd();
 		}
 
@@ -220,7 +226,7 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 			glColor3f(0.5f, 0.5f, 0.0f);
 
 		glBegin(GL_POINTS);
-		glVertex3fv(vert);
+		glVertex2fv(vert);
 		glEnd();
 
 		/* draw handle points */
@@ -236,7 +242,7 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 			}
 
 			glBegin(GL_POINTS);
-			glVertex3fv(handle);
+			glVertex2fv(handle);
 			glEnd();
 		}
 	}
@@ -359,10 +365,14 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
                               const short is_active,
                               int width, int height)
 {
+	const unsigned int resol = maxi(BKE_mask_spline_feather_resolution(spline, width, height),
+	                                BKE_mask_spline_resolution(spline, width, height));
+
 	unsigned char rgb_tmp[4];
 
 	const short is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
 	const short is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH);
+	const short is_fill = (spline->flag & MASK_SPLINE_NOFILL) == 0;
 
 	int tot_diff_point;
 	float (*diff_points)[2];
@@ -370,7 +380,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 	int tot_feather_point;
 	float (*feather_points)[2];
 
-	diff_points = BKE_mask_spline_differentiate_with_resolution(spline, width, height, &tot_diff_point);
+	diff_points = BKE_mask_spline_differentiate_with_resolution_ex(spline, &tot_diff_point, resol);
 
 	if (!diff_points)
 		return;
@@ -381,13 +391,34 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height, &tot_feather_point);
+	feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution_ex(spline, &tot_feather_point, resol, (is_fill != FALSE));
 
 	/* draw feather */
 	mask_spline_feather_color_get(masklay, spline, is_spline_sel, rgb_tmp);
 	mask_draw_curve_type(spline, feather_points, tot_feather_point,
 	                     TRUE, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
+
+	if (!is_fill) {
+
+		float *fp         = &diff_points[0][0];
+		float *fp_feather = &feather_points[0][0];
+		float tvec[2];
+		int i;
+
+		BLI_assert(tot_diff_point == tot_feather_point);
+
+		for (i = 0; i < tot_diff_point; i++, fp += 2, fp_feather += 2) {
+			sub_v2_v2v2(tvec, fp, fp_feather);
+			add_v2_v2v2(fp_feather, fp, tvec);
+		}
+
+		/* same as above */
+		mask_draw_curve_type(spline, feather_points, tot_feather_point,
+		                     TRUE, is_smooth, is_active,
+		                     rgb_tmp, draw_type);
+	}
+
 	MEM_freeN(feather_points);
 
 	/* draw main curve */
@@ -448,13 +479,120 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
 void ED_mask_draw(const bContext *C,
                   const char draw_flag, const char draw_type)
 {
+	ScrArea *sa = CTX_wm_area(C);
+
 	Mask *mask = CTX_data_edit_mask(C);
 	int width, height;
 
 	if (!mask)
 		return;
 
-	ED_mask_size(C, &width, &height);
+	ED_mask_get_size(sa, &width, &height);
 
 	draw_masklays(mask, draw_flag, draw_type, width, height);
+}
+
+/* sets up the opengl context.
+ * width, height are to match the values from ED_mask_get_size() */
+void ED_mask_draw_region(Mask *mask, ARegion *ar,
+                         const char draw_flag, const char draw_type,
+                         const int width_i, const int height_i,  /* convert directly into aspect corrected vars */
+                         const float aspx, const float aspy,
+                         const short do_scale_applied, const short do_post_draw,
+                         float stabmat[4][4], /* optional - only used by clip */
+                         const bContext *C    /* optional - only used when do_post_draw is set */
+                         )
+{
+	struct View2D *v2d = &ar->v2d;
+
+	/* aspect always scales vertically in movie and image spaces */
+	const float width = width_i, height = (float)height_i * (aspy / aspx);
+
+	int x, y;
+	/* int w, h; */
+	float zoomx, zoomy;
+
+	/* frame image */
+	float maxdim;
+	float xofs, yofs;
+
+	/* find window pixel coordinates of origin */
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+
+	/* w = BLI_rctf_size_x(&v2d->tot); */
+	/* h = BLI_rctf_size_y(&v2d->tot);/*/
+
+
+	zoomx = (float)(BLI_rcti_size_x(&ar->winrct) + 1) / BLI_rctf_size_x(&ar->v2d.cur);
+	zoomy = (float)(BLI_rcti_size_y(&ar->winrct) + 1) / BLI_rctf_size_y(&ar->v2d.cur);
+
+	if (do_scale_applied) {
+		zoomx /= width;
+		zoomy /= height;
+	}
+
+	x += v2d->tot.xmin * zoomx;
+	y += v2d->tot.ymin * zoomy;
+
+	/* frame the image */
+	maxdim = maxf(width, height);
+	if (width == height) {
+		xofs = yofs = 0;
+	}
+	else if (width < height) {
+		xofs = ((height - width) / -2.0f) * zoomx;
+		yofs = 0.0f;
+	}
+	else { /* (width > height) */
+		xofs = 0.0f;
+		yofs = ((width - height) / -2.0f) * zoomy;
+	}
+
+	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
+	glPushMatrix();
+	glTranslatef(x + xofs, y + yofs, 0);
+	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
+
+	if (stabmat) {
+		glMultMatrixf(stabmat);
+	}
+
+	/* draw! */
+	draw_masklays(mask, draw_flag, draw_type, width, height);
+
+	if (do_post_draw) {
+		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+	}
+
+	glPopMatrix();
+}
+
+void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra, const int efra)
+{
+	const float framelen = ar->winx / (float)(efra - sfra + 1);
+
+	MaskLayer *masklay = BKE_mask_layer_active(mask);
+
+	glBegin(GL_LINES);
+	glColor4ub(255, 175, 0, 255);
+
+	if (masklay) {
+		MaskLayerShape *masklay_shape;
+
+		for (masklay_shape = masklay->splines_shapes.first;
+		     masklay_shape;
+		     masklay_shape = masklay_shape->next)
+		{
+			int frame = masklay_shape->frame;
+
+			/* draw_keyframe(i, CFRA, sfra, framelen, 1); */
+			int height = (frame == cfra) ? 22 : 10;
+			int x = (frame - sfra) * framelen;
+			glVertex2i(x, 0);
+			glVertex2i(x, height);
+		}
+	}
+
+	glEnd();
 }

@@ -29,22 +29,16 @@
  */
 
 
-#include <string.h>
-#include <stdio.h>
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -53,7 +47,7 @@
 #include "ED_space_api.h"
 #include "ED_render.h"
 #include "ED_screen.h"
-
+#include "ED_node.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -63,7 +57,7 @@
 
 #include "RNA_access.h"
 
-#include "node_intern.h"    // own include
+#include "node_intern.h"  /* own include */
 
 /* ******************** manage regions ********************* */
 
@@ -192,10 +186,6 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
-		case NC_WM:
-			if (wmn->data == ND_FILEREAD)
-				ED_area_tag_refresh(sa);
-			break;
 
 		/* future: add ID checks? */
 		case NC_MATERIAL:
@@ -267,7 +257,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
-static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
+static void node_area_refresh(const struct bContext *C, ScrArea *sa)
 {
 	/* default now: refresh node is starting preview */
 	SpaceNode *snode = sa->spacedata.first;
@@ -300,8 +290,9 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 					snode->recalc = 0;
 					node_render_changed_exec((struct bContext *)C, NULL);
 				}
-				else
-					snode_composite_job(C, sa);
+				else {
+					ED_node_composite_job(C, snode->nodetree, scene);
+				}
 			}
 		}
 		else if (snode->treetype == NTREE_TEXTURE) {
@@ -347,7 +338,7 @@ static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 
 	/* convert mouse coordinates to v2d space */
 	UI_view2d_region_to_view(&ar->v2d, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin,
-	                         &snode->mx, &snode->my);
+	                         &snode->cursor[0], &snode->cursor[1]);
 
 	node_set_cursor(win, snode);
 }
@@ -449,9 +440,6 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCREEN:
 			switch (wmn->data) {
-				case ND_GPENCIL:
-					ED_region_tag_redraw(ar);
-					break;
 				case ND_SCREENCAST:
 				case ND_ANIMPLAY:
 					ED_region_tag_redraw(ar);
@@ -470,6 +458,10 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_ID:
 			if (wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 	}

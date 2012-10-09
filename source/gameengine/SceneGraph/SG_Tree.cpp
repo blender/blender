@@ -236,7 +236,7 @@ void SG_TreeFactory::Add(SG_Tree* tree)
 
 SG_Tree* SG_TreeFactory::MakeTreeDown(SG_BBox &bbox)
 {
-	if (m_objects.size() == 0)
+	if (m_objects.empty())
 		return NULL;
 	if (m_objects.size() == 1)
 		return *m_objects.begin();
@@ -296,7 +296,8 @@ SG_Tree* SG_TreeFactory::MakeTreeDown(SG_BBox &bbox)
 				{
 					lefttree.Add(*it);
 					hasleft++;
-				} else {
+				}
+				else {
 					righttree.Add(*it);
 					hasright++;
 				}

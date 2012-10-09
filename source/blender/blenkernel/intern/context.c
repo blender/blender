@@ -242,6 +242,8 @@ static void *ctx_wm_python_context_get(const bContext *C, const char *member, vo
 		if (result.ptr.data)
 			return result.ptr.data;
 	}
+#else
+	(void)C, (void)member;
 #endif
 
 	return fall_through;
@@ -370,8 +372,15 @@ PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, Stru
 {
 	PointerRNA ptr = CTX_data_pointer_get(C, member);
 
-	if (ptr.data && RNA_struct_is_a(ptr.type, type))
-		return ptr;
+	if (ptr.data) {
+		if (RNA_struct_is_a(ptr.type, type)) {
+			return ptr;
+		}
+		else {
+			printf("%s: warning, member '%s' is '%s', not '%s'\n",
+			       __func__, member, RNA_struct_identifier(ptr.type), RNA_struct_identifier(type));
+		}
+	}
 	
 	return PointerRNA_NULL;
 }

@@ -231,6 +231,13 @@ MINLINE void swap_v4_v4(float a[4], float b[4])
 
 /********************************* Arithmetic ********************************/
 
+MINLINE void add_v2_fl(float r[2], float f)
+{
+	r[0] += f;
+	r[1] += f;
+}
+
+
 MINLINE void add_v3_fl(float r[3], float f)
 {
 	r[0] += f;
@@ -521,7 +528,7 @@ MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3])
 }
 
 /* Newell's Method */
-/* excuse this fairly spesific function,
+/* excuse this fairly specific function,
  * its used for polygon normals all over the place
  * could use a better name */
 MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const float v_curr[3])
@@ -682,7 +689,7 @@ MINLINE void normal_float_to_short_v3(short out[3], const float in[3])
 /********************************* Comparison ********************************/
 
 
-MINLINE int is_zero_v2(const float v[3])
+MINLINE int is_zero_v2(const float v[2])
 {
 	return (v[0] == 0 && v[1] == 0);
 }
@@ -715,6 +722,15 @@ MINLINE int equals_v3v3(const float v1[3], const float v2[3])
 MINLINE int equals_v4v4(const float v1[4], const float v2[4])
 {
 	return ((v1[0] == v2[0]) && (v1[1] == v2[1]) && (v1[2] == v2[2]) && (v1[3] == v2[3]));
+}
+
+MINLINE int compare_v2v2(const float v1[2], const float v2[2], const float limit)
+{
+	if (fabsf(v1[0] - v2[0]) < limit)
+		if (fabsf(v1[1] - v2[1]) < limit)
+			return 1;
+
+	return 0;
 }
 
 MINLINE int compare_v3v3(const float v1[3], const float v2[3], const float limit)

@@ -314,6 +314,7 @@ set(SRC
 	src/BulletDynamics/Character/btKinematicCharacterController.h
 	
 	src/BulletSoftBody/btSoftBody.h
+	src/BulletSoftBody/btSoftBodyInternals.h
 	src/BulletSoftBody/btSoftBodyData.h
 	src/BulletSoftBody/btSoftBodyConcaveCollisionAlgorithm.h
 	src/BulletSoftBody/btSoftBodyHelpers.h
@@ -355,6 +356,7 @@ set(SRC
 	
 	src/btBulletCollisionCommon.h
 	src/btBulletDynamicsCommon.h
+	src/Bullet-C-Api.h
 )
 
 if(CMAKE_COMPILER_IS_GNUCXX)

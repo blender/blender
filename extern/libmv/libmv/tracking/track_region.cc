@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //
-// Author: mierle@google.com (Keir Mierle)
+// Author: mierle@gmail.com (Keir Mierle)
 //
 // TODO(keir): While this tracking code works rather well, it has some
 // outragous inefficiencies. There is probably a 5-10x speedup to be had if a
@@ -41,6 +41,85 @@
 #include "libmv/multiview/homography.h"
 #include "libmv/numeric/numeric.h"
 
+// Expand the Jet functionality of Ceres to allow mixed numeric/autodiff.
+//
+// TODO(keir): Push this (or something similar) into upstream Ceres.
+namespace ceres {
+
+// A jet traits class to make it easier to work with mixed auto / numeric diff.
+template<typename T>
+struct JetOps {
+  static bool IsScalar() {
+    return true;
+  }
+  static T GetScalar(const T& t) {
+    return t;
+  }
+  static void SetScalar(const T& scalar, T* t) {
+    *t = scalar;
+  }
+  static void ScaleDerivative(double scale_by, T *value) {
+    // For double, there is no derivative to scale.
+  }
+};
+
+template<typename T, int N>
+struct JetOps<Jet<T, N> > {
+  static bool IsScalar() {
+    return false;
+  }
+  static T GetScalar(const Jet<T, N>& t) {
+    return t.a;
+  }
+  static void SetScalar(const T& scalar, Jet<T, N>* t) {
+    t->a = scalar;
+  }
+  static void ScaleDerivative(double scale_by, Jet<T, N> *value) {
+    value->v *= scale_by;
+  }
+};
+
+template<typename FunctionType, int kNumArgs, typename ArgumentType>
+struct Chain {
+  static ArgumentType Rule(const FunctionType &f,
+                           const FunctionType dfdx[kNumArgs],
+                           const ArgumentType x[kNumArgs]) {
+    // In the default case of scalars, there's nothing to do since there are no
+    // derivatives to propagate. 
+    return f;
+  }
+};
+
+// XXX Add documentation here!
+template<typename FunctionType, int kNumArgs, typename T, int N>
+struct Chain<FunctionType, kNumArgs, Jet<T, N> > {
+  static Jet<T, N> Rule(const FunctionType &f,
+                        const FunctionType dfdx[kNumArgs],
+                        const Jet<T, N> x[kNumArgs]) {
+    // x is itself a function of another variable ("z"); what this function
+    // needs to return is "f", but with the derivative with respect to z
+    // attached to the jet. So combine the derivative part of x's jets to form
+    // a Jacobian matrix between x and z (i.e. dx/dz).
+    Eigen::Matrix<T, kNumArgs, N> dxdz;
+    for (int i = 0; i < kNumArgs; ++i) {
+      dxdz.row(i) = x[i].v.transpose();
+    }
+
+    // Map the input gradient dfdx into an Eigen row vector.
+    Eigen::Map<const Eigen::Matrix<FunctionType, 1, kNumArgs> >
+        vector_dfdx(dfdx, 1, kNumArgs);
+
+    // Now apply the chain rule to obtain df/dz. Combine the derivative with
+    // the scalar part to obtain f with full derivative information.
+    Jet<T, N> jet_f;
+    jet_f.a = f;
+    jet_f.v = vector_dfdx.template cast<T>() * dxdz;  // Also known as dfdz.
+    return jet_f;
+  }
+};
+
+}  // namespace ceres
+
 namespace libmv {
 
 using ceres::Jet;
@@ -57,6 +136,7 @@ TrackRegionOptions::TrackRegionOptions()
       sigma(0.9),
       num_extra_points(0),
       regularization_coefficient(0.0),
+      minimum_corner_shift_tolerance_pixels(0.005),
       image1_mask(NULL) {
 }
 
@@ -108,45 +188,93 @@ static T SampleWithDerivative(const FloatImage &image_and_gradient,
 }
 
 template<typename Warp>
-class BoundaryCheckingCallback : public ceres::IterationCallback {
+class TerminationCheckingCallback : public ceres::IterationCallback {
  public:
-  BoundaryCheckingCallback(const FloatImage& image2,
-                           const Warp &warp,
-                           const double *x1, const double *y1)
-      : image2_(image2), warp_(warp), x1_(x1), y1_(y1) {}
+  TerminationCheckingCallback(const TrackRegionOptions &options,
+                              const FloatImage& image2,
+                              const Warp &warp,
+                              const double *x1, const double *y1)
+      : options_(options), image2_(image2), warp_(warp), x1_(x1), y1_(y1),
+        have_last_successful_step_(false) {}
 
   virtual ceres::CallbackReturnType operator()(
       const ceres::IterationSummary& summary) {
+    // If the step wasn't successful, there's nothing to do.
+    if (!summary.step_is_successful) {
+      return ceres::SOLVER_CONTINUE;
+    }
     // Warp the original 4 points with the current warp into image2.
     double x2[4];
     double y2[4];
     for (int i = 0; i < 4; ++i) {
       warp_.Forward(warp_.parameters, x1_[i], y1_[i], x2 + i, y2 + i);
     }
-    // Enusre they are all in bounds.
+    // Ensure the corners are all in bounds.
     if (!AllInBounds(image2_, x2, y2)) {
+      LG << "Successful step fell outside of the pattern bounds; aborting.";
       return ceres::SOLVER_ABORT;
     }
+
+    // Ensure the minimizer is making large enough shifts to bother continuing.
+    // Ideally, this check would happen on the parameters themselves which
+    // Ceres supports directly; however, the mapping from parameter change
+    // magnitude to corner movement in pixels is not a simple norm. Hence, the
+    // need for a stateful callback which tracks the last successful set of
+    // parameters (and the position of the projected patch corners).
+    if (have_last_successful_step_) {
+      // Compute the maximum shift of any corner in pixels since the last
+      // successful iteration.
+      double max_change_pixels = 0;
+      for (int i = 0; i < 4; ++i) {
+        double dx = x2[i] - x2_last_successful_[i];
+        double dy = y2[i] - y2_last_successful_[i];
+        double change_pixels = dx*dx + dy*dy;
+        if (change_pixels > max_change_pixels) {
+          max_change_pixels = change_pixels;
+        }
+      }
+      max_change_pixels = sqrt(max_change_pixels);
+      LG << "Max patch corner shift is " << max_change_pixels;
+
+      // Bail if the shift is too small.
+      if (max_change_pixels < options_.minimum_corner_shift_tolerance_pixels) {
+        LG << "Max patch corner shift is " << max_change_pixels
+           << " from the last iteration; returning success.";
+        return ceres::SOLVER_TERMINATE_SUCCESSFULLY;
+      }
+    }
+
+    // Save the projected corners for checking on the next successful iteration.
+    for (int i = 0; i < 4; ++i) {
+      x2_last_successful_[i] = x2[i];
+      y2_last_successful_[i] = y2[i];
+    }
+    have_last_successful_step_ = true;
     return ceres::SOLVER_CONTINUE;
   }
 
  private:
+  const TrackRegionOptions &options_;
   const FloatImage &image2_;
   const Warp &warp_;
   const double *x1_;
   const double *y1_;
+
+  bool have_last_successful_step_;
+  double x2_last_successful_[4];
+  double y2_last_successful_[4];
 };
 
 template<typename Warp>
 class PixelDifferenceCostFunctor {
  public:
   PixelDifferenceCostFunctor(const TrackRegionOptions &options,
-                  const FloatImage &image_and_gradient1,
-                  const FloatImage &image_and_gradient2,
-                  const Mat3 &canonical_to_image1,
-                  int num_samples_x,
-                  int num_samples_y,
-                  const Warp &warp)
+                             const FloatImage &image_and_gradient1,
+                             const FloatImage &image_and_gradient2,
+                             const Mat3 &canonical_to_image1,
+                             int num_samples_x,
+                             int num_samples_y,
+                             const Warp &warp)
       : options_(options),
         image_and_gradient1_(image_and_gradient1),       
         image_and_gradient2_(image_and_gradient2),       
@@ -1044,6 +1172,9 @@ void CreateBrutePattern(const double *x1, const double *y1,
 // correlation. Instead, this is a dumb implementation. Surprisingly, it is
 // fast enough in practice.
 //
+// Returns true if any alignment was found, and false if the projected pattern
+// is zero sized.
+//
 // TODO(keir): The normalization is less effective for the brute force search
 // than it is with the Ceres solver. It's unclear if this is a bug or due to
 // the original frame being too different from the reprojected reference in the
@@ -1054,7 +1185,7 @@ void CreateBrutePattern(const double *x1, const double *y1,
 // totally different warping interface, since access to more than a the source
 // and current destination frame is necessary.
 template<typename Warp>
-void BruteTranslationOnlyInitialize(const FloatImage &image1,
+bool BruteTranslationOnlyInitialize(const FloatImage &image1,
                                     const FloatImage *image1_mask,
                                     const FloatImage &image2,
                                     const int num_extra_points,
@@ -1100,6 +1231,7 @@ void BruteTranslationOnlyInitialize(const FloatImage &image1,
   int best_c = -1;
   int w = pattern.cols();
   int h = pattern.rows();
+
   for (int r = 0; r < (image2.Height() - h); ++r) {
     for (int c = 0; c < (image2.Width() - w); ++c) {
       // Compute the weighted sum of absolute differences, Eigen style. Note
@@ -1124,8 +1256,12 @@ void BruteTranslationOnlyInitialize(const FloatImage &image1,
       }
     }
   }
-  CHECK_NE(best_r, -1);
-  CHECK_NE(best_c, -1);
+
+  // This mean the effective pattern area is zero. This check could go earlier,
+  // but this is less code.
+  if (best_r == -1 || best_c == -1) {
+    return false;
+  }
 
   LG << "Brute force translation found a shift. "
      << "best_c: " << best_c << ", best_r: " << best_r << ", "
@@ -1140,6 +1276,7 @@ void BruteTranslationOnlyInitialize(const FloatImage &image1,
     x2[i] += best_c - origin_x;
     y2[i] += best_r - origin_y;
   }
+  return true;
 }
 
 }  // namespace
@@ -1191,12 +1328,19 @@ void TemplatedTrackRegion(const FloatImage &image1,
   if (SearchAreaTooBigForDescent(image2, x2, y2) &&
       options.use_brute_initialization) {
     LG << "Running brute initialization...";
-    BruteTranslationOnlyInitialize<Warp>(image_and_gradient1,
-                                         options.image1_mask,
-                                         image2,
-                                         options.num_extra_points,
-                                         options.use_normalized_intensities,
-                                         x1, y1, x2, y2);
+    bool found_any_alignment = BruteTranslationOnlyInitialize<Warp>(
+        image_and_gradient1,
+        options.image1_mask,
+        image2,
+        options.num_extra_points,
+        options.use_normalized_intensities,
+        x1, y1, x2, y2);
+    if (!found_any_alignment) {
+      LG << "Brute failed to find an alignment; pattern too small. "
+         << "Failing entire track operation.";
+      result->termination = TrackRegionResult::INSUFFICIENT_PATTERN_AREA;
+      return;
+    }
     for (int i = 0; i < 4; ++i) {
       LG << "P" << i << ": (" << x1[i] << ", " << y1[i] << "); brute ("
          << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i])
@@ -1260,14 +1404,15 @@ void TemplatedTrackRegion(const FloatImage &image1,
 
   // Configure the solve.
   ceres::Solver::Options solver_options;
-  solver_options.linear_solver_type = ceres::DENSE_QR;
+  solver_options.linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
   solver_options.max_num_iterations = options.max_iterations;
   solver_options.update_state_every_iteration = true;
   solver_options.parameter_tolerance = 1e-16;
   solver_options.function_tolerance = 1e-16;
 
-  // Prevent the corners from going outside the destination image.
-  BoundaryCheckingCallback<Warp> callback(image2, warp, x1, y1);
+  // Prevent the corners from going outside the destination image and
+  // terminate if the optimizer is making tiny moves (converged).
+  TerminationCheckingCallback<Warp> callback(options, image2, warp, x1, y1);
   solver_options.callbacks.push_back(&callback);
 
   // Run the solve.
@@ -1290,11 +1435,21 @@ void TemplatedTrackRegion(const FloatImage &image1,
   // TODO(keir): Update the result statistics.
   // TODO(keir): Add a normalize-cross-correlation variant.
 
-  CHECK_NE(summary.termination_type, ceres::USER_ABORT) << "Libmv bug.";
   if (summary.termination_type == ceres::USER_ABORT) {
     result->termination = TrackRegionResult::FELL_OUT_OF_BOUNDS;
     return;
   }
+
+  // This happens when the minimum corner shift tolerance is reached. Due to
+  // how the tolerance is computed this can't be done by Ceres. So return the
+  // same termination enum as Ceres, even though this is slightly different
+  // than Ceres's parameter tolerance, which operates on the raw parameter
+  // values rather than the pixel shifts of the patch corners.
+  if (summary.termination_type == ceres::USER_SUCCESS) {
+    result->termination = TrackRegionResult::PARAMETER_TOLERANCE;
+    return;
+  }
+
 #define HANDLE_TERMINATION(termination_enum) \
   if (summary.termination_type == ceres::termination_enum) { \
     result->termination = TrackRegionResult::termination_enum; \
@@ -1377,11 +1532,11 @@ bool SamplePlanarPatch(const FloatImage &image,
                    image_position(0),
                    &(*patch)(r, c, 0));
       if (mask) {
-        float maskValue = SampleLinear(*mask, image_position(1),
-                                       image_position(0), 0);
+        float mask_value = SampleLinear(*mask, image_position(1),
+                                        image_position(0), 0);
 
         for (int d = 0; d < image.Depth(); d++)
-          (*patch)(r, c, d) *= maskValue;
+          (*patch)(r, c, d) *= mask_value;
       }
     }
   }

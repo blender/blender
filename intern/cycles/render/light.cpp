@@ -67,15 +67,16 @@ static void dump_background_pixels(Device *device, DeviceScene *dscene, int res,
 	main_task.shader_x = 0;
 	main_task.shader_w = width*height;
 
+	/* disabled splitting for now, there's an issue with multi-GPU mem_copy_from */
 	list<DeviceTask> split_tasks;
-	main_task.split_max_size(split_tasks, 128*128);
+	main_task.split_max_size(split_tasks, 128*128); 
 
 	foreach(DeviceTask& task, split_tasks) {
 		device->task_add(task);
 		device->task_wait();
+		device->mem_copy_from(d_output, task.shader_x, 1, task.shader_w, sizeof(float4));
 	}
 
-	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
 	device->mem_free(d_input);
 	device->mem_free(d_output);
 
@@ -194,10 +195,11 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 		/* sum area */
 		if(have_emission) {
+			bool transform_applied = mesh->transform_applied;
 			Transform tfm = object->tfm;
 			int object_id = j;
 
-			if(mesh->transform_applied)
+			if(transform_applied)
 				object_id = ~object_id;
 
 			for(size_t i = 0; i < mesh->triangles.size(); i++) {
@@ -211,9 +213,15 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 					offset++;
 
 					Mesh::Triangle t = mesh->triangles[i];
-					float3 p1 = transform_point(&tfm, mesh->verts[t.v[0]]);
-					float3 p2 = transform_point(&tfm, mesh->verts[t.v[1]]);
-					float3 p3 = transform_point(&tfm, mesh->verts[t.v[2]]);
+					float3 p1 = mesh->verts[t.v[0]];
+					float3 p2 = mesh->verts[t.v[1]];
+					float3 p3 = mesh->verts[t.v[2]];
+
+					if(!transform_applied) {
+						p1 = transform_point(&tfm, p1);
+						p2 = transform_point(&tfm, p2);
+						p3 = transform_point(&tfm, p3);
+					}
 
 					totarea += triangle_area(p1, p2, p3);
 				}
@@ -282,8 +290,14 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		/* CDF */
 		device->tex_alloc("__light_distribution", dscene->light_distribution);
 	}
-	else
+	else {
 		dscene->light_distribution.clear();
+
+		kintegrator->num_distribution = 0;
+		kintegrator->num_all_lights = 0;
+		kintegrator->pdf_triangles = 0.0f;
+		kintegrator->pdf_lights = 0.0f;
+	}
 }
 
 void LightManager::device_update_background(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)

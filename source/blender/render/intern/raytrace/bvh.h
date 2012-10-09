@@ -88,8 +88,8 @@ static inline int rayobject_bb_intersect_test(const Isect *isec, const float *_b
 
 	RE_RC_COUNT(isec->raycounter->bb.test);
 	
-	if (t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
-	if (t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
+	if (t1x > t2y  || t2x < t1y  || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
+	if (t2x < 0.0f || t2y < 0.0f || t2z < 0.0f) return 0;
 	if (t1x > isec->dist || t1y > isec->dist || t1z > isec->dist) return 0;
 	RE_RC_COUNT(isec->raycounter->bb.hit);	
 
@@ -133,7 +133,7 @@ static void bvh_bb(Tree *obj, float *min, float *max)
 template<class Tree>
 static float bvh_cost(Tree *obj)
 {
-	assert(obj->cost >= 0.0);
+	assert(obj->cost >= 0.0f);
 	return obj->cost;
 }
 

@@ -31,6 +31,8 @@
  * that should be addressed eventually.
  */
 
+#include <stddef.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -71,7 +73,7 @@ static void recount_totsels(BMesh *bm)
  * (ie: all verts of an edge selects the edge and so on).
  * This should only be called by system and not tool authors.
  */
-void BM_mesh_select_mode_flush(BMesh *bm)
+void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
 {
 	BMEdge *e;
 	BMLoop *l_iter;
@@ -83,7 +85,7 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 
 	int ok;
 
-	if (bm->selectmode & SCE_SELECT_VERTEX) {
+	if (selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
 			    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
@@ -113,7 +115,7 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 			BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
 		}
 	}
-	else if (bm->selectmode & SCE_SELECT_EDGE) {
+	else if (selectmode & SCE_SELECT_EDGE) {
 		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 			ok = TRUE;
 			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
@@ -137,6 +139,11 @@ void BM_mesh_select_mode_flush(BMesh *bm)
 	BM_select_history_validate(bm);
 
 	recount_totsels(bm);
+}
+
+void BM_mesh_select_mode_flush(BMesh *bm)
+{
+	BM_mesh_select_mode_flush_ex(bm, bm->selectmode);
 }
 
 /**
@@ -520,9 +527,9 @@ void BM_active_face_set(BMesh *bm, BMFace *efa)
 	bm->act_face = efa;
 }
 
-BMFace *BM_active_face_get(BMesh *bm, int sloppy)
+BMFace *BM_active_face_get(BMesh *bm, int sloppy, int selected)
 {
-	if (bm->act_face) {
+	if (bm->act_face && (!selected || BM_elem_flag_test(bm->act_face, BM_ELEM_SELECT))) {
 		return bm->act_face;
 	}
 	else if (sloppy) {
@@ -537,6 +544,9 @@ BMFace *BM_active_face_get(BMesh *bm, int sloppy)
 				f = (BMFace *)ese->ele;
 				
 				if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+					f = NULL;
+				}
+				else if (selected && !BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 					f = NULL;
 				}
 				else {
@@ -562,9 +572,9 @@ BMFace *BM_active_face_get(BMesh *bm, int sloppy)
  * These functions were written to be used by the Modifier widget
  * when in Rotate about active mode, but can be used anywhere.
  *
- * - #EM_editselection_center
- * - #EM_editselection_normal
- * - #EM_editselection_plane
+ * - #BM_editselection_center
+ * - #BM_editselection_normal
+ * - #BM_editselection_plane
  */
 void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 {
@@ -662,7 +672,7 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 		 * we cant make a crossvec from a vec thats the same as the vec
 		 * unlikely but possible, so make sure if the normal is (0, 0, 1)
 		 * that vec isn't the same or in the same direction even. */
-		if (efa->len < 3) {
+		if (UNLIKELY(efa->len < 3)) {
 			/* crappy fallback method */
 			if      (efa->no[0] < 0.5f)	vec[0] = 1.0f;
 			else if (efa->no[1] < 0.5f)	vec[1] = 1.0f;
@@ -703,28 +713,19 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 /* --- macro wrapped funcs --- */
 int _bm_select_history_check(BMesh *bm, const BMHeader *ele)
 {
-	BMEditSelection *ese;
-	
-	for (ese = bm->selected.first; ese; ese = ese->next) {
-		if (ese->ele == (BMElem *)ele) {
-			return TRUE;
-		}
-	}
-	
-	return FALSE;
+	return (BLI_findptr(&bm->selected, ele, offsetof(BMEditSelection, ele)) != NULL);
 }
 
 int _bm_select_history_remove(BMesh *bm, BMHeader *ele)
 {
-	BMEditSelection *ese;
-	for (ese = bm->selected.first; ese; ese = ese->next) {
-		if (ese->ele == (BMElem *)ele) {
-			BLI_freelinkN(&(bm->selected), ese);
-			return TRUE;
-		}
+	BMEditSelection *ese = BLI_findptr(&bm->selected, ele, offsetof(BMEditSelection, ele));
+	if (ese) {
+		BLI_freelinkN(&bm->selected, ese);
+		return TRUE;
 	}
-
-	return FALSE;
+	else {
+		return FALSE;
+	}
 }
 
 void _bm_select_history_store_notest(BMesh *bm, BMHeader *ele)
@@ -770,7 +771,7 @@ void BM_select_history_validate(BMesh *bm)
 int BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 {
 	BMEditSelection *ese_last = bm->selected.last;
-	BMFace *efa = BM_active_face_get(bm, FALSE);
+	BMFace *efa = BM_active_face_get(bm, FALSE, FALSE);
 
 	ese->next = ese->prev = NULL;
 
@@ -880,7 +881,7 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hfla
 
 	/* note, better not attempt a fast path for selection as done with de-select
 	 * because hidden geometry and different selection modes can give different results,
-	 * we could of course check for no hiddent faces and then use quicker method but its not worth it. */
+	 * we could of course check for no hidden faces and then use quicker method but its not worth it. */
 
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {

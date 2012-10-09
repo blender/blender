@@ -134,9 +134,9 @@ bAction *verify_adt_action(ID *id, short add)
 		printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");
 		return NULL;
 	}
-		
+
 	/* init action if none available yet */
-	// TODO: need some wizardry to handle NLA stuff correct
+	/* TODO: need some wizardry to handle NLA stuff correct */
 	if ((adt->action == NULL) && (add)) {
 		char actname[sizeof(id->name) - 2];
 		BLI_snprintf(actname, sizeof(actname), "%sAction", id->name + 2);
@@ -164,10 +164,7 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 	 *	- add if not found and allowed to add one
 	 *		TODO: add auto-grouping support? how this works will need to be resolved
 	 */
-	if (act)
-		fcu = list_find_fcurve(&act->curves, rna_path, array_index);
-	else
-		fcu = NULL;
+	fcu = list_find_fcurve(&act->curves, rna_path, array_index);
 	
 	if ((fcu == NULL) && (add)) {
 		/* use default settings to make a F-Curve */
@@ -256,8 +253,8 @@ int insert_bezt_fcurve(FCurve *fcu, BezTriple *bezt, short flag)
 				dst->f1 = bezt->f1;
 				dst->f2 = bezt->f2;
 				dst->f3 = bezt->f3;
-				
-				// TODO: perform some other operations?
+
+				/* TODO: perform some other operations? */
 			}
 		}
 		/* keyframing modes allow to not replace keyframe */
@@ -1079,6 +1076,91 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	return ret;
 }
 
+/* ************************************************** */
+/* KEYFRAME CLEAR */
+
+/* Main Keyframing API call:
+ *	Use this when validation of necessary animation data isn't necessary as it
+ *	already exists. It will clear the current buttons fcurve(s).
+ *
+ *	The flag argument is used for special settings that alter the behavior of
+ *	the keyframe deletion. These include the quick refresh options.
+ */
+static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, short UNUSED(flag))
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	int array_index_max = array_index + 1;
+	int ret = 0;
+
+	/* sanity checks */
+	if (ELEM(NULL, id, adt)) {
+		BKE_report(reports, RPT_ERROR, "No ID-Block and/Or AnimData to delete keyframe from");
+		return 0;
+	}
+
+	/* validate pointer first - exit if failure */
+	RNA_id_pointer_create(id, &id_ptr);
+	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+		BKE_reportf(reports, RPT_ERROR, "Could not clear keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", id->name, rna_path);
+		return 0;
+	}
+
+	/* get F-Curve
+	 * Note: here is one of the places where we don't want new Action + F-Curve added!
+	 *      so 'add' var must be 0
+	 */
+	if (act == NULL) {
+		/* if no action is provided, use the default one attached to this ID-block
+		 *  - if it doesn't exist, then we're out of options...
+		 */
+		if (adt->action) {
+			act = adt->action;
+		}
+		else {
+			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s\n", id->name);
+			return 0;
+		}
+	}
+
+	/* key entire array convenience method */
+	if (array_index == -1) {
+		array_index = 0;
+		array_index_max = RNA_property_array_length(&ptr, prop);
+
+		/* for single properties, increase max_index so that the property itself gets included,
+		 * but don't do this for standard arrays since that can cause corruption issues
+		 * (extra unused curves)
+		 */
+		if (array_index_max == array_index)
+			array_index_max++;
+	}
+
+	/* will only loop once unless the array index was -1 */
+	for (; array_index < array_index_max; array_index++) {
+		FCurve *fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, 0);
+
+		/* check if F-Curve exists and/or whether it can be edited */
+		if (fcu == NULL)
+			continue;
+
+		if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
+			if (G.debug & G_DEBUG)
+				printf("WARNING: not deleting keyframe for locked F-Curve\n");
+			continue;
+		}
+
+		ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
+
+		/* return success */
+		ret++;
+	}
+
+	/* return success/failure */
+	return ret;
+}
+
 /* ******************************************* */
 /* KEYFRAME MODIFICATION */
 
@@ -1104,10 +1186,9 @@ static int modify_key_op_poll(bContext *C)
 	
 	/* if Outliner, don't allow in some views */
 	if (so) {
-		if (ELEM4(so->outlinevis, SO_GROUPS, SO_LIBRARIES, SO_VERSE_SESSION, SO_VERSE_SESSION))
+		if (ELEM5(so->outlinevis, SO_GROUPS, SO_LIBRARIES, SO_SEQUENCE, SO_USERDEF, SO_KEYMAP)) {
 			return 0;
-		if (ELEM3(so->outlinevis, SO_SEQUENCE, SO_USERDEF, SO_KEYMAP))
-			return 0;
+		}
 	}
 	
 	/* TODO: checks for other space types can be added here */
@@ -1358,46 +1439,122 @@ void ANIM_OT_keyframe_delete(wmOperatorType *ot)
 }
 
 /* Delete Key Operator ------------------------ */
-
-/* XXX WARNING:
- * This is currently just a basic operator, which work in 3d-view context on objects only. 
- * Should this be kept? It does have advantages over a version which requires selecting a keyingset to use...
- * -- Joshua Leung, Jan 2009
+/* NOTE: Although this version is simpler than the more generic version for KeyingSets,
+ * it is more useful for animators working in the 3D view.
  */
  
-static int delete_key_v3d_exec(bContext *C, wmOperator *op)
+static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
-	float cfra = (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	
-	// XXX more comprehensive tests will be needed
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
-		ID *id = (ID *)ob;
-		FCurve *fcu, *fcn;
-		short success = 0;
-		
-		/* loop through all curves in animdata and delete keys on this frame */
+		/* just those in active action... */
 		if ((ob->adt) && (ob->adt->action)) {
 			AnimData *adt = ob->adt;
 			bAction *act = adt->action;
+			FCurve *fcu, *fcn;
 			
 			for (fcu = act->curves.first; fcu; fcu = fcn) {
+				short can_delete = FALSE;
+				
 				fcn = fcu->next;
-				success += delete_keyframe(op->reports, id, NULL, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
+				
+				/* in pose mode, only delete the F-Curve if it belongs to a selected bone */
+				if (ob->mode & OB_MODE_POSE) {
+					if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones[")) {
+						bPoseChannel *pchan;
+						char *bone_name;
+						
+						/* get bone-name, and check if this bone is selected */
+						bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
+						pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
+						if (bone_name) MEM_freeN(bone_name);
+						
+						/* delete if bone is selected*/
+						if ((pchan) && (pchan->bone)) {
+							if (pchan->bone->flag & BONE_SELECTED)
+								can_delete = TRUE;
+						}
+					}
+				}
+				else {
+					/* object mode - all of Object's F-Curves are affected */
+					can_delete = TRUE;
+				}
+				
+				/* delete F-Curve completely */
+				if (can_delete) {
+					ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
+				}
 			}
 		}
 		
-		BKE_reportf(op->reports, RPT_INFO, "Ob '%s' - Successfully had %d keyframes removed", id->name + 2, success);
-		
+		/* update... */
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
 	
 	/* send updates */
 	DAG_ids_flush_update(bmain, 0);
+	WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, NULL);
 	
+	return OPERATOR_FINISHED;
+}
+
+void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Animation";
+	ot->description = "Remove all keyframe animation for selected objects";
+	ot->idname = "ANIM_OT_keyframe_clear_v3d";
+	
+	/* callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = clear_anim_v3d_exec; 
+	
+	ot->poll = ED_operator_areaactive;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
+static int delete_key_v3d_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	float cfra = (float)CFRA;
+	
+	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+	{
+		ID *id = &ob->id;
+		int success = 0;
+		
+		/* just those in active action... */
+		if ((ob->adt) && (ob->adt->action)) {
+			AnimData *adt = ob->adt;
+			bAction *act = adt->action;
+			FCurve *fcu, *fcn;
+			
+			for (fcu = act->curves.first; fcu; fcu = fcn) {
+				fcn = fcu->next;
+				
+				/* delete keyframes on current frame 
+				 * WARNING: this can delete the next F-Curve, hence the "fcn" copying
+				 */
+				success += delete_keyframe(op->reports, id, NULL, NULL, fcu->rna_path, fcu->array_index, cfra, 0);
+			}
+		}
+		
+		/* report success (or failure) */
+		BKE_reportf(op->reports, RPT_INFO, "Object '%s' successfully had %d keyframes removed", id->name + 2, success);
+		ob->recalc |= OB_RECALC_OB;
+	}
+	CTX_DATA_END;
+	
+	/* send updates */
+	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1407,7 +1564,7 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Keyframe";
-	ot->description = "Remove keyframes on current frame for selected object";
+	ot->description = "Remove keyframes on current frame for selected objects";
 	ot->idname = "ANIM_OT_keyframe_delete_v3d";
 	
 	/* callbacks */
@@ -1430,7 +1587,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
 	char *path;
-	float cfra = (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
+	float cfra = (float)CFRA;
 	short success = 0;
 	int a, index, length, all = RNA_boolean_get(op->ptr, "all");
 	short flag = 0;
@@ -1584,6 +1741,78 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyframes from all elements of the array");
 }
 
+
+/* Clear Key Button Operator ------------------------ */
+
+static int clear_key_button_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	PointerRNA ptr = {{NULL}};
+	PropertyRNA *prop = NULL;
+	char *path;
+	short success = 0;
+	int a, index, length, all = RNA_boolean_get(op->ptr, "all");
+
+	/* try to insert keyframe using property retrieved from UI */
+	uiContextActiveProperty(C, &ptr, &prop, &index);
+
+	if (ptr.id.data && ptr.data && prop) {
+		path = RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			if (all) {
+				length = RNA_property_array_length(&ptr, prop);
+				
+				if (length) index = 0;
+				else length = 1;
+			}
+			else
+				length = 1;
+			
+			for (a = 0; a < length; a++)
+				success += clear_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index + a, 0);
+			
+			MEM_freeN(path);
+		}
+		else if (G.debug & G_DEBUG)
+			printf("Button Clear-Key: no path to property\n");
+	}
+	else if (G.debug & G_DEBUG) {
+		printf("ptr.data = %p, prop = %p\n", (void *)ptr.data, (void *)prop);
+	}
+
+
+	if (success) {
+		/* send updates */
+		uiContextAnimUpdate(C);
+		
+		DAG_ids_flush_update(bmain, 0);
+		
+		/* send notifiers that keyframes have been changed */
+		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+	}
+
+	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+void ANIM_OT_keyframe_clear_button(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Keyframe (Buttons)";
+	ot->idname = "ANIM_OT_keyframe_clear_button";
+	ot->description = "Clear all keyframes on the currently active property";
+
+	/* callbacks */
+	ot->exec = clear_key_button_exec;
+	ot->poll = modify_key_op_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Clear keyframes from all elements of the array");
+}
+
 /* ******************************************* */
 /* AUTO KEYFRAME */
 
@@ -1682,7 +1911,7 @@ static short object_frame_has_keyframe(Object *ob, float frame, short filter)
 	
 	/* try shapekey keyframes (if available, and allowed by filter) */
 	if (!(filter & ANIMFILTER_KEYS_LOCAL) && !(filter & ANIMFILTER_KEYS_NOSKEY) ) {
-		Key *key = ob_get_key(ob);
+		Key *key = BKE_key_from_object(ob);
 		
 		/* shapekeys can have keyframes ('Relative Shape Keys') 
 		 * or depend on time (old 'Absolute Shape Keys') 
@@ -1691,11 +1920,11 @@ static short object_frame_has_keyframe(Object *ob, float frame, short filter)
 		/* 1. test for relative (with keyframes) */
 		if (id_frame_has_keyframe((ID *)key, frame, filter))
 			return 1;
-			
+
 		/* 2. test for time */
-		// TODO... yet to be implemented (this feature may evolve before then anyway)
+		/* TODO... yet to be implemented (this feature may evolve before then anyway) */
 	}
-	
+
 	/* try materials */
 	if (!(filter & ANIMFILTER_KEYS_LOCAL) && !(filter & ANIMFILTER_KEYS_NOMAT) ) {
 		/* if only active, then we can skip a lot of looping */

@@ -57,14 +57,14 @@ public:
 	void Remove(int i);
 	void Resize(int num);
 	void SetValue(int i,CValue* val);
-	CValue* GetValue(int i){	assertd(i < m_pValueArray.size());	return m_pValueArray[i];}
+	CValue* GetValue(int i) { assertd(i < m_pValueArray.size()); return m_pValueArray[i]; }
 	int GetCount() { return m_pValueArray.size(); }
 	virtual const STR_String & GetText();
 
 	bool CheckEqual(CValue* first,CValue* second);
 
 #ifdef WITH_PYTHON
-	virtual PyObject* py_repr(void) {
+	virtual PyObject *py_repr(void) {
 		PyObject *py_proxy= this->GetProxy();
 		PyObject *py_list= PySequence_List(py_proxy);
 		PyObject *py_string= PyObject_Repr(py_list);

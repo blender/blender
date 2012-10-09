@@ -380,7 +380,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 	}
 
 	sub_v3_v3v3(far_vec, far, cent);
-	far_dist = len_v3(far_vec); /* real dist */
+	// far_dist = len_v3(far_vec); /* real dist */ /* UNUSED */
 
 	/* --- */
 
@@ -539,8 +539,8 @@ void BMO_remove_tagged_verts(BMesh *bm, const short oflag)
 	}
 }
 
-/*************************************************************/
-/* you need to make remove tagged verts/edges/faces
+/**
+ * you need to make remove tagged verts/edges/faces
  * api functions that take a filter callback.....
  * and this new filter type will be for opstack flags.
  * This is because the BM_remove_taggedXXX functions bypass iterator API.
@@ -902,8 +902,9 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 		}
 
 		f2 = BM_face_create_ngon(bm_new, v, v2, edges, f->len, FALSE);
-		if (!f2)
+		if (UNLIKELY(f2 == NULL)) {
 			continue;
+		}
 		/* use totface in case adding some faces fails */
 		BM_elem_index_set(f2, (bm_new->totface - 1)); /* set_inline */
 

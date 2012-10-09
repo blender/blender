@@ -307,7 +307,7 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 	} (void)0
 
 /* terse macros for error checks shared between all funcs cant use function
- * calls because of static strins passed to pyrna_set_to_enum_bitfield */
+ * calls because of static strings passed to pyrna_set_to_enum_bitfield */
 #define BPY_PROPDEF_CHECK(_func, _property_flag_items)                        \
 	if (id_len >= MAX_IDPROP_NAME) {                                          \
 		PyErr_Format(PyExc_TypeError,                                         \
@@ -360,6 +360,7 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 #define BPY_PROPDEF_UPDATE_DOC \
 "   :arg update: function to be called when this value is modified,\n" \
 "      This function must take 2 values (self, context) and return None.\n" \
+"      *Warning* there are no safety checks to avoid infinite recursion.\n" \
 "   :type update: function\n" \
 
 #if 0
@@ -1298,9 +1299,8 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			eitems = enum_items_from_py(items_fast, def, &defvalue,
 			                            (opts & PROP_ENUM_FLAG) != 0);
 
-			Py_DECREF(items_fast);
-
 			if (!eitems) {
+				Py_DECREF(items_fast);
 				return NULL;
 			}
 		}
@@ -1327,6 +1327,10 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		RNA_def_property_duplicate_pointers(srna, prop);
 
 		if (is_itemf == FALSE) {
+			/* note: this must be postponed until after #RNA_def_property_duplicate_pointers
+			 * otherwise if this is a generator it may free the strings before we copy them */
+			Py_DECREF(items_fast);
+
 			MEM_freeN(eitems);
 		}
 	}

@@ -89,7 +89,7 @@ public:
 	 * @param resolution the result of this operation
 	 * @param preferredResolution the preferrable resolution as no resolution could be determined
 	 */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	/**
 	 * @brief Notifies the Input of the data type (via a SocketConnection)

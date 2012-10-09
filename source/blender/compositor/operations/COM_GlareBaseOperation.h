@@ -68,7 +68,7 @@ protected:
 
 	virtual void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) = 0;
 
-	MemoryBuffer *createMemoryBuffer(rcti *rect, MemoryBuffer **memoryBuffers);
+	MemoryBuffer *createMemoryBuffer(rcti *rect);
 
 };
 #endif

@@ -61,11 +61,6 @@
 #include "strand.h"
 #include "zbuf.h"
 
-/* to be removed */
-void hoco_to_zco(ZSpan *zspan, float *zco, float *hoco);
-void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float, float) );
-void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, float *ho1, float *ho2);
-
 /* *************** */
 
 static float strand_eval_width(Material *ma, float strandco)
@@ -577,8 +572,8 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 	/* add to pixel list */
 	if (zverg < bufferz && (spart->totapixbuf[offset] < MAX_ZROW)) {
 		if (!spart->rectmask || zverg > maskz) {
-			t = u*spart->t[0] + v*spart->t[1] + (1.0f-u-v)*spart->t[2];
-			s = fabs(u*spart->s[0] + v*spart->s[1] + (1.0f-u-v)*spart->s[2]);
+			t = u * spart->t[0] + v * spart->t[1] + (1.0f - u - v) * spart->t[2];
+			s = fabsf(u * spart->s[0] + v * spart->s[1] + (1.0f - u - v) * spart->s[2]);
 
 			apn= spart->apixbuf + offset;
 			while (apn) {

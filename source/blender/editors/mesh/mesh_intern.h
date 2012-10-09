@@ -85,8 +85,6 @@ float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3])
 
 /* ******************** editface.c */
 
-void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
-
 void MESH_OT_separate(struct wmOperatorType *ot);
 
 /* ******************* editmesh_add.c */
@@ -189,8 +187,10 @@ void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
 void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
 void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
 void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
-void MESH_OT_sticky_add(struct wmOperatorType *ot);
-void MESH_OT_sticky_remove(struct wmOperatorType *ot);
+/* no create_mask yet */
+void MESH_OT_customdata_clear_mask(struct wmOperatorType *ot);
+void MESH_OT_customdata_clear_skin(struct wmOperatorType *ot);
+
 void MESH_OT_drop_named_image(struct wmOperatorType *ot);
 
 /* ************* bmesh_tools.c ***********/

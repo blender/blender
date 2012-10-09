@@ -104,10 +104,10 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 
 void ED_region_pixelspace(ARegion *ar)
 {
-	int width = ar->winrct.xmax - ar->winrct.xmin + 1;
-	int height = ar->winrct.ymax - ar->winrct.ymin + 1;
+	int width  = BLI_rcti_size_x(&ar->winrct) + 1;
+	int height = BLI_rcti_size_y(&ar->winrct) + 1;
 	
-	wmOrtho2(-0.375f, (float)width - 0.375f, -0.375f, (float)height - 0.375f);
+	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	glLoadIdentity();
 }
 
@@ -161,12 +161,15 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 		ys = (az->y1 + az->y2) / 2;
 
 		/* test if inside */
-		if (BLI_in_rcti(&ar->winrct, xs, ys)) {
+		if (BLI_rcti_isect_pt(&ar->winrct, xs, ys)) {
 			az->do_draw = TRUE;
 		}
 	}
 }
 
+/**
+ * \brief Corner widgets use for dragging and splitting the view.
+ */
 static void area_draw_azone(short x1, short y1, short x2, short y2)
 {
 	int dx = x2 - x1;
@@ -372,11 +375,11 @@ void ED_area_overdraw(bContext *C)
 					if (az->ar) {
 						/* only display tab or icons when the region is hidden */
 						if (az->ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-							if (G.rt == 3)
+							if (G.debug_value == 3)
 								region_draw_azone_icon(az);
-							else if (G.rt == 2)
+							else if (G.debug_value == 2)
 								region_draw_azone_tria(az);
-							else if (G.rt == 1)
+							else if (G.debug_value == 1)
 								region_draw_azone_tab(az);
 							else
 								region_draw_azone_tab_plus(az);
@@ -403,9 +406,13 @@ void region_scissor_winrct(ARegion *ar, rcti *winrct)
 	while (ar->prev) {
 		ar = ar->prev;
 		
-		if (BLI_isect_rcti(winrct, &ar->winrct, NULL)) {
-			if (ar->flag & RGN_FLAG_HIDDEN) ;
-			else if (ar->alignment & RGN_SPLIT_PREV) ;
+		if (BLI_rcti_isect(winrct, &ar->winrct, NULL)) {
+			if (ar->flag & RGN_FLAG_HIDDEN) {
+				/* pass */
+			}
+			else if (ar->alignment & RGN_SPLIT_PREV) {
+				/* pass */
+			}
 			else if (ar->alignment == RGN_OVERLAP_LEFT) {
 				winrct->xmin = ar->winrct.xmax + 1;
 			}
@@ -592,13 +599,17 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 /* ************************************************************ */
 
 
-static void area_azone_initialize(ScrArea *sa) 
+static void area_azone_initialize(bScreen *screen, ScrArea *sa)
 {
 	AZone *az;
 	
 	/* reinitalize entirely, regions add azones too */
 	BLI_freelistN(&sa->actionzones);
-	
+
+	if (screen->full != SCREENNORMAL) {
+		return;
+	}
+
 	/* set area action zones */
 	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
@@ -607,7 +618,7 @@ static void area_azone_initialize(ScrArea *sa)
 	az->y1 = sa->totrct.ymin - 1;
 	az->x2 = sa->totrct.xmin + (AZONESPOT - 1);
 	az->y2 = sa->totrct.ymin + (AZONESPOT - 1);
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 	
 	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
@@ -616,7 +627,7 @@ static void area_azone_initialize(ScrArea *sa)
 	az->y1 = sa->totrct.ymax + 1;
 	az->x2 = sa->totrct.xmax - (AZONESPOT - 1);
 	az->y2 = sa->totrct.ymax - (AZONESPOT - 1);
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
 #define AZONEPAD_EDGE   4
@@ -650,7 +661,7 @@ static void region_azone_edge(AZone *az, ARegion *ar)
 			break;
 	}
 
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
 static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
@@ -692,7 +703,7 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 			break;
 	}
 
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 	
 	/* if more azones on 1 spot, set offset */
 	for (azt = sa->actionzones.first; azt; azt = azt->next) {
@@ -706,7 +717,7 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 					az->y1 -= AZONESPOT;
 					az->y2 -= AZONESPOT;
 				}
-				BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+				BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 			}
 		}
 	}
@@ -753,7 +764,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 			break;
 	}
 	/* rect needed for mouse pointer test */
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }	
 
 
@@ -798,7 +809,7 @@ static void region_azone_tab(ScrArea *sa, AZone *az, ARegion *ar)
 			break;
 	}
 	/* rect needed for mouse pointer test */
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }	
 
 #define AZONEPAD_TRIAW  16
@@ -843,7 +854,7 @@ static void region_azone_tria(ScrArea *sa, AZone *az, ARegion *ar)
 			break;
 	}
 	/* rect needed for mouse pointer test */
-	BLI_init_rcti(&az->rect, az->x1, az->x2, az->y1, az->y2);
+	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }	
 
 
@@ -858,11 +869,11 @@ static void region_azone_initialize(ScrArea *sa, ARegion *ar, AZEdge edge)
 	az->edge = edge;
 	
 	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-		if (G.rt == 3)
+		if (G.debug_value == 3)
 			region_azone_icon(sa, az, ar);
-		else if (G.rt == 2)
+		else if (G.debug_value == 2)
 			region_azone_tria(sa, az, ar);
-		else if (G.rt == 1)
+		else if (G.debug_value == 1)
 			region_azone_tab(sa, az, ar);
 		else
 			region_azone_tab_plus(sa, az, ar);
@@ -894,10 +905,10 @@ static void region_azone_add(ScrArea *sa, ARegion *ar, int alignment)
 static int rct_fits(rcti *rect, char dir, int size)
 {
 	if (dir == 'h') {
-		return rect->xmax - rect->xmin - size;
+		return BLI_rcti_size_x(rect) - size;
 	}
-	else { // 'v'
-		return rect->ymax - rect->ymin - size;
+	else {  /* 'v' */
+		return BLI_rcti_size_y(rect) - size;
 	}
 }
 
@@ -911,7 +922,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		return;
 	
 	/* no returns in function, winrct gets set in the end again */
-	BLI_init_rcti(&ar->winrct, 0, 0, 0, 0);
+	BLI_rcti_init(&ar->winrct, 0, 0, 0, 0);
 	
 	/* for test; allow split of previously defined region */
 	if (ar->alignment & RGN_SPLIT_PREV)
@@ -928,26 +939,31 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	
 	/* prefsize, for header we stick to exception */
 	prefsizex = ar->sizex ? ar->sizex : ar->type->prefsizex;
-	if (ar->regiontype == RGN_TYPE_HEADER)
+	if (ar->regiontype == RGN_TYPE_HEADER) {
 		prefsizey = ar->type->prefsizey;
+	}
 	else if (ar->regiontype == RGN_TYPE_UI && sa->spacetype == SPACE_FILE) {
 		prefsizey = UI_UNIT_Y * 2 + (UI_UNIT_Y / 2);
 	}
-	else
+	else {
 		prefsizey = ar->sizey ? ar->sizey : ar->type->prefsizey;
-	
-	/* hidden is user flag */
-	if (ar->flag & RGN_FLAG_HIDDEN) ;
-	/* XXX floating area region, not handled yet here */
-	else if (alignment == RGN_ALIGN_FLOAT) ;
-	/* remainder is too small for any usage */
+	}
+
+
+	if (ar->flag & RGN_FLAG_HIDDEN) {
+		/* hidden is user flag */
+	}
+	else if (alignment == RGN_ALIGN_FLOAT) {
+		/* XXX floating area region, not handled yet here */
+	}
 	else if (rct_fits(remainder, 'v', 1) < 0 || rct_fits(remainder, 'h', 1) < 0) {
+		/* remainder is too small for any usage */
 		ar->flag |= RGN_FLAG_TOO_SMALL;
 	}
 	else if (alignment == RGN_ALIGN_NONE) {
 		/* typically last region */
 		ar->winrct = *remainder;
-		BLI_init_rcti(remainder, 0, 0, 0, 0);
+		BLI_rcti_init(remainder, 0, 0, 0, 0);
 	}
 	else if (alignment == RGN_ALIGN_TOP || alignment == RGN_ALIGN_BOTTOM) {
 		
@@ -1003,20 +1019,20 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		
 		if (alignment == RGN_ALIGN_HSPLIT) {
 			if (rct_fits(remainder, 'h', prefsizex) > 4) {
-				ar->winrct.xmax = (remainder->xmin + remainder->xmax) / 2;
+				ar->winrct.xmax = BLI_rcti_cent_x(remainder);
 				remainder->xmin = ar->winrct.xmax + 1;
 			}
 			else {
-				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				BLI_rcti_init(remainder, 0, 0, 0, 0);
 			}
 		}
 		else {
 			if (rct_fits(remainder, 'v', prefsizey) > 4) {
-				ar->winrct.ymax = (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.ymax = BLI_rcti_cent_y(remainder);
 				remainder->ymin = ar->winrct.ymax + 1;
 			}
 			else {
-				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				BLI_rcti_init(remainder, 0, 0, 0, 0);
 			}
 		}
 	}
@@ -1036,7 +1052,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			
 			if (count != 4) {
 				/* let's stop adding regions */
-				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				BLI_rcti_init(remainder, 0, 0, 0, 0);
 				if (G.debug & G_DEBUG)
 					printf("region quadsplit failed\n");
 			}
@@ -1044,21 +1060,21 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 		}
 		if (quad) {
 			if (quad == 1) { /* left bottom */
-				ar->winrct.xmax = (remainder->xmin + remainder->xmax) / 2;
-				ar->winrct.ymax = (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.xmax = BLI_rcti_cent_x(remainder);
+				ar->winrct.ymax = BLI_rcti_cent_y(remainder);
 			}
 			else if (quad == 2) { /* left top */
-				ar->winrct.xmax = (remainder->xmin + remainder->xmax) / 2;
-				ar->winrct.ymin = 1 + (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.xmax = BLI_rcti_cent_x(remainder);
+				ar->winrct.ymin = BLI_rcti_cent_y(remainder) + 1;
 			}
 			else if (quad == 3) { /* right bottom */
-				ar->winrct.xmin = 1 + (remainder->xmin + remainder->xmax) / 2;
-				ar->winrct.ymax = (remainder->ymin + remainder->ymax) / 2;
+				ar->winrct.xmin = BLI_rcti_cent_x(remainder) + 1;
+				ar->winrct.ymax = BLI_rcti_cent_y(remainder);
 			}
 			else {  /* right top */
-				ar->winrct.xmin = 1 + (remainder->xmin + remainder->xmax) / 2;
-				ar->winrct.ymin = 1 + (remainder->ymin + remainder->ymax) / 2;
-				BLI_init_rcti(remainder, 0, 0, 0, 0);
+				ar->winrct.xmin = BLI_rcti_cent_x(remainder) + 1;
+				ar->winrct.ymin = BLI_rcti_cent_y(remainder) + 1;
+				BLI_rcti_init(remainder, 0, 0, 0, 0);
 			}
 
 			quad++;
@@ -1066,8 +1082,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	}
 	
 	/* for speedup */
-	ar->winx = ar->winrct.xmax - ar->winrct.xmin + 1;
-	ar->winy = ar->winrct.ymax - ar->winrct.ymin + 1;
+	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
+	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
 	
 	/* set winrect for azones */
 	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
@@ -1089,8 +1105,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	if (ar->alignment & RGN_SPLIT_PREV) {
 		if (ar->prev) {
 			remainder = remainder_prev;
-			ar->prev->winx = ar->prev->winrct.xmax - ar->prev->winrct.xmin + 1;
-			ar->prev->winy = ar->prev->winrct.ymax - ar->prev->winrct.ymin + 1;
+			ar->prev->winx = BLI_rcti_size_x(&ar->prev->winrct) + 1;
+			ar->prev->winy = BLI_rcti_size_y(&ar->prev->winrct) + 1;
 		}
 	}
 	
@@ -1113,7 +1129,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 
 static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 {
-	short rt = 0; // CLAMPIS(G.rt, 0, 16);
+	short rt = 0; // CLAMPIS(G.debug_value, 0, 16);
 
 	if (sa->v1->vec.x > 0) sa->totrct.xmin = sa->v1->vec.x + 1 + rt;
 	else sa->totrct.xmin = sa->v1->vec.x;
@@ -1126,8 +1142,8 @@ static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 	else sa->totrct.ymax = sa->v2->vec.y;
 	
 	/* for speedup */
-	sa->winx = sa->totrct.xmax - sa->totrct.xmin + 1;
-	sa->winy = sa->totrct.ymax - sa->totrct.ymin + 1;
+	sa->winx = BLI_rcti_size_x(&sa->totrct) + 1;
+	sa->winy = BLI_rcti_size_y(&sa->totrct) + 1;
 }
 
 
@@ -1149,7 +1165,7 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 {
 	/* note, add-handler checks if it already exists */
 	
-	// XXX it would be good to have boundbox checks for some of these...
+	/* XXX it would be good to have boundbox checks for some of these... */
 	if (flag & ED_KEYMAP_UI) {
 		/* user interface widgets */
 		UI_add_region_handlers(handlers);
@@ -1219,7 +1235,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	area_calc_totrct(sa, win->sizex, win->sizey);
 	
 	/* clear all azones, add the area triange widgets */
-	area_azone_initialize(sa);
+	area_azone_initialize(win->screen, sa);
 
 	/* region rect sizes */
 	rect = sa->totrct;
@@ -1261,8 +1277,8 @@ void ED_region_init(bContext *C, ARegion *ar)
 	/* refresh can be called before window opened */
 	region_subwindow(CTX_wm_window(C), ar);
 	
-	ar->winx = ar->winrct.xmax - ar->winrct.xmin + 1;
-	ar->winy = ar->winrct.ymax - ar->winrct.ymin + 1;
+	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
+	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
 	
 	/* UI convention */
 	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);
@@ -1297,7 +1313,7 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 	if (swap_space == 1) {
 		SWAP(ListBase, sa1->spacedata, sa2->spacedata);
 		/* exception: ensure preview is reset */
-//		if (sa1->spacetype==SPACE_VIEW3D)
+//		if (sa1->spacetype == SPACE_VIEW3D)
 // XXX			BIF_view3d_previewrender_free(sa1->spacedata.first);
 	}
 	else if (swap_space == 2) {
@@ -1418,7 +1434,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
 				
-		/*send space change notifier*/
+		/* send space change notifier */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, sa);
 		
 		ED_area_tag_refresh(sa);
@@ -1445,46 +1461,46 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 	}
 	ED_area_tag_redraw(sa);
 
-	/*send space change notifier*/
+	/* send space change notifier */
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, sa);
 }
 
 static const char *editortype_pup(void)
 {
 	const char *types = N_(
-	    "Editor type:%t"
+	    "Editor type: %t"
 	    "|3D View %x1"
 
 	    "|%l"
-		   
+
 	    "|Timeline %x15"
 	    "|Graph Editor %x2"
 	    "|DopeSheet %x12"
 	    "|NLA Editor %x13"
-		   
+
 	    "|%l"
-		   
+
 	    "|UV/Image Editor %x6"
-		   
+
 	    "|Video Sequence Editor %x8"
 	    "|Movie Clip Editor %x20"
 	    "|Text Editor %x9"
 	    "|Node Editor %x16"
 	    "|Logic Editor %x17"
-		   
+
 	    "|%l"
-		   
+
 	    "|Properties %x4"
 	    "|Outliner %x3"
 	    "|User Preferences %x19"
-	    "|Info%x7"
+	    "|Info %x7"
 
 	    "|%l"
 
 	    "|File Browser %x5"
-		   
+
 	    "|%l"
-		   
+
 	    "|Python Console %x18"
 	    );
 
@@ -1496,7 +1512,7 @@ static void spacefunc(struct bContext *C, void *UNUSED(arg1), void *UNUSED(arg2)
 	ED_area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
 	ED_area_tag_redraw(CTX_wm_area(C));
 
-	/*send space change notifier*/
+	/* send space change notifier */
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CHANGED, CTX_wm_area(C));
 }
 
@@ -1510,7 +1526,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	but = uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 	                        editortype_pup(), xco, yco, UI_UNIT_X + 10, UI_UNIT_Y,
 	                        &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0,
-	                        TIP_("Displays current editor type. Click for menu of available types"));
+	                        TIP_("Display current editor type (click for a menu of available types)"));
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	
@@ -1567,7 +1583,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		newcontext = UI_view2d_tab_set(v2d, contextnr);
 
 	if (vertical) {
-		w = v2d->cur.xmax - v2d->cur.xmin;
+		w = BLI_rctf_size_x(&v2d->cur);
 		em = (ar->type->prefsizex) ? UI_UNIT_Y / 2 : UI_UNIT_Y;
 	}
 	else {
@@ -1654,7 +1670,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
-		// don't jump back when panels close or hide
+		/* don't jump back when panels close or hide */
 		if (!newcontext)
 			y = MAX2(-y, -v2d->cur.ymin);
 		else
@@ -1669,14 +1685,14 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
 		v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
 		v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
-		
-		// don't jump back when panels close or hide
+
+		/* don't jump back when panels close or hide */
 		if (!newcontext)
 			x = MAX2(x, v2d->cur.xmax);
 		y = -y;
 	}
 
-	// +V2D_SCROLL_HEIGHT is workaround to set the actual height
+	/* +V2D_SCROLL_HEIGHT is workaround to set the actual height */
 	UI_view2d_totRect_set(v2d, x + V2D_SCROLL_WIDTH, y + V2D_SCROLL_HEIGHT);
 
 	/* set the view */
@@ -1698,17 +1714,17 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	
-	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
-	// scrollbars for button regions
+	/* XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
+	 * scrollbars for button regions */
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
 	ar->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 	ar->v2d.keepzoom |= V2D_KEEPZOOM;
 
-	// correctly initialized User-Prefs?
+	/* correctly initialized User-Prefs? */
 	if (!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
 		ar->v2d.flag &= ~V2D_IS_INITIALISED;
-	
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
 	keymap = WM_keymap_find(wm->defaultconf, "View2D Buttons List", 0, 0);
@@ -1762,7 +1778,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, ar->v2d.tot.ymax - ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, BLI_rctf_size_y(&ar->v2d.tot));
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
@@ -1791,16 +1807,16 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	/* background box */
 	rect = ar->winrct;
 	rect.xmin = 0;
-	rect.ymin = ar->winrct.ymax - ar->winrct.ymin - header_height;
+	rect.ymin = BLI_rcti_size_y(&ar->winrct) - header_height;
 
 	if (block) {
-		rect.xmax = ar->winrct.xmax - ar->winrct.xmin;
+		rect.xmax = BLI_rcti_size_x(&ar->winrct);
 	}
 	else {
 		rect.xmax = rect.xmin + BLF_width(fontid, text) + 24;
 	}
 
-	rect.ymax = ar->winrct.ymax - ar->winrct.ymin;
+	rect.ymax = BLI_rcti_size_y(&ar->winrct);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

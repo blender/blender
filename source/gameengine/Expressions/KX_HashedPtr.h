@@ -50,7 +50,7 @@ public:
 	inline friend bool operator ==( const CHashedPtr & rhs,const CHashedPtr & lhs)
 	{
 		return rhs.m_valptr == lhs.m_valptr;
-	}	
+	}
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC

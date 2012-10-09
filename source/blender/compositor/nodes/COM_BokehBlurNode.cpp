@@ -21,7 +21,6 @@
  */
 
 #include "COM_BokehBlurNode.h"
-#include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
@@ -37,32 +36,45 @@ BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
 
 void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-//	Object *camob = context->getScene()->camera;
+	bNode *b_node = this->getbNode();
 
-//	if (this->getInputSocket(2)->isConnected()) {
-//		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-//		ConvertDepthToRadiusOperation *converter = new ConvertDepthToRadiusOperation();
-//		converter->setfStop(this->getbNode()->custom3);
-//		converter->setCameraObject(camob);
-//		operation->setMaxBlur((int)this->getbNode()->custom4);
-//		operation->setQuality(context->getQuality());
-//		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-//		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-//		this->getInputSocket(2)->relinkConnections(converter->getInputSocket(0), 2, graph);
-//		addLink(graph, converter->getOutputSocket(), operation->getInputSocket(2));
-//		graph->addOperation(operation);
-//		graph->addOperation(converter);
-//		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-//	}
-//	else {
-		BokehBlurOperation *operation = new BokehBlurOperation();
+	InputSocket *inputSizeSocket = this->getInputSocket(2);
+
+	bool connectedSizeSocket = inputSizeSocket->isConnected();
+
+	if ((b_node->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) && connectedSizeSocket) {
+		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
+
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(2), 3, graph);
-		operation->setSize(((bNodeSocketValueFloat *)this->getInputSocket(2)->getbNodeSocket()->default_value)->value);
+		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
 		operation->setQuality(context->getQuality());
 		operation->setbNode(this->getbNode());
 		graph->addOperation(operation);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-//	}
+
+		operation->setThreshold(0.0f);
+		operation->setMaxBlur(b_node->custom4);
+		operation->setDoScaleSize(true);
+	}
+	else {
+		BokehBlurOperation *operation = new BokehBlurOperation();
+
+		const bNodeSocket *sock = this->getInputSocket(2)->getbNodeSocket();
+		const float size = ((const bNodeSocketValueFloat *)sock->default_value)->value;
+
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
+		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(3), 2, graph);
+		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(2), 3, graph);
+		//operation->setSize(((bNodeSocketValueFloat *)this->getInputSocket(2)->getbNodeSocket()->default_value)->value);
+		operation->setQuality(context->getQuality());
+		operation->setbNode(this->getbNode());
+		graph->addOperation(operation);
+		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+
+		if (!connectedSizeSocket) {
+			operation->setSize(size);
+		}
+	}
 }

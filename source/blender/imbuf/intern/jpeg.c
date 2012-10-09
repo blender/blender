@@ -37,7 +37,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
+#include "BLI_fileops.h"
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -47,9 +48,12 @@
 #include "jpeglib.h" 
 #include "jerror.h"
 
-#define IS_jpg(x)       (x->ftype & JPG)
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
+// #define IS_jpg(x)       (x->ftype & JPG) // UNUSED
 #define IS_stdjpg(x)    ((x->ftype & JPG_MSK) == JPG_STD)
-#define IS_vidjpg(x)    ((x->ftype & JPG_MSK) == JPG_VID)
+// #define IS_vidjpg(x)    ((x->ftype & JPG_MSK) == JPG_VID) // UNUSED
 #define IS_jstjpg(x)    ((x->ftype & JPG_MSK) == JPG_JST)
 #define IS_maxjpg(x)    ((x->ftype & JPG_MSK) == JPG_MAX)
 
@@ -67,8 +71,8 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 /*
  * In principle there are 4 jpeg formats.
  *
- * 1. jpeg - standard printing, u & v at quarter of resulution
- * 2. jvid - standaard video, u & v half resolution, frame not interlaced
+ * 1. jpeg - standard printing, u & v at quarter of resolution
+ * 2. jvid - standard video, u & v half resolution, frame not interlaced
  *
  * type 3 is unsupported as of jul 05 2000 Frank.
  *
@@ -86,9 +90,9 @@ int imb_is_a_jpeg(unsigned char *mem)
 	return 0;
 }
 
-//----------------------------------------------------------
-//	JPG ERROR HANDLING
-//----------------------------------------------------------
+/*----------------------------------------------------------
+ * JPG ERROR HANDLING
+ *---------------------------------------------------------- */
 
 typedef struct my_error_mgr {
 	struct jpeg_error_mgr pub;  /* "public" fields */
@@ -112,9 +116,9 @@ static void jpeg_error(j_common_ptr cinfo)
 	longjmp(err->setjmp_buffer, 1);
 }
 
-//----------------------------------------------------------
-//	INPUT HANDLER FROM MEMORY
-//----------------------------------------------------------
+/*----------------------------------------------------------
+ * INPUT HANDLER FROM MEMORY
+ *---------------------------------------------------------- */
 
 typedef struct {
 	unsigned char  *buffer;
@@ -159,7 +163,7 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 	my_src_ptr src = (my_src_ptr) cinfo->src;
 
 	if (num_bytes > 0) {
-		// prevent skipping over file end
+		/* prevent skipping over file end */
 		size_t skip_size = (size_t)num_bytes <= src->pub.bytes_in_buffer ? num_bytes : src->pub.bytes_in_buffer;
 
 		src->pub.next_input_byte = src->pub.next_input_byte + skip_size;
@@ -200,7 +204,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
 #define MAKESTMT(stuff)     do { stuff } while (0)
 
 #define INPUT_VARS(cinfo)  \
-	struct jpeg_source_mgr * datasrc = (cinfo)->src;  \
+	struct jpeg_source_mgr *datasrc = (cinfo)->src;  \
 	const JOCTET * next_input_byte = datasrc->next_input_byte;  \
 	size_t bytes_in_buffer = datasrc->bytes_in_buffer
 
@@ -434,21 +438,22 @@ next_stamp_marker:
 		jpeg_destroy((j_common_ptr) cinfo);
 		if (ibuf) {
 			ibuf->ftype = ibuf_ftype;
-			ibuf->profile = IB_PROFILE_SRGB;
 		}
 	}
 
 	return(ibuf);
 }
 
-ImBuf *imb_load_jpeg(unsigned char *buffer, size_t size, int flags)
+ImBuf *imb_load_jpeg(unsigned char *buffer, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
 	struct my_error_mgr jerr;
 	ImBuf *ibuf;
 
 	if (!imb_is_a_jpeg(buffer)) return NULL;
-	
+
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
+
 	cinfo->err = jpeg_std_error(&jerr.pub);
 	jerr.pub.error_exit = jpeg_error;
 

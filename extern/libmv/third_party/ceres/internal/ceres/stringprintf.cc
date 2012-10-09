@@ -34,6 +34,7 @@
 #include <string>
 #include <vector>
 
+#include "ceres/stringprintf.h"
 #include "ceres/internal/port.h"
 
 namespace ceres {

@@ -43,7 +43,7 @@ static bNodeSocketTemplate sh_node_tex_noise_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_noise(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_noise(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexNoise *tex = MEM_callocN(sizeof(NodeTexNoise), "NodeTexNoise");
 	default_tex_mapping(&tex->base.tex_mapping);

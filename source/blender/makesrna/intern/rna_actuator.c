@@ -29,6 +29,7 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 #include "DNA_constraint_types.h"
@@ -39,6 +40,8 @@
 #include "WM_types.h"
 
 #include "BLI_utildefines.h"
+
+#include "BLF_translation.h"
 
 /* Always keep in alphabetical order */
 EnumPropertyItem actuator_type_items[] = {
@@ -110,7 +113,7 @@ static StructRNA *rna_Actuator_refine(struct PointerRNA *ptr)
 	}
 }
 
-void rna_Actuator_name_set(PointerRNA *ptr, const char *value)
+static void rna_Actuator_name_set(PointerRNA *ptr, const char *value)
 {
 	bActuator *act = (bActuator *)ptr->data;
 
@@ -530,7 +533,7 @@ static void rna_Actuator_action_action_set(PointerRNA *ptr, PointerRNA value)
 
 #else
 
-void rna_def_actuator(BlenderRNA *brna)
+static void rna_def_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -970,11 +973,13 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 1, 2);
 	RNA_def_property_range(prop, 0.0, 2.0);
 	RNA_def_property_ui_text(prop, "Volume", "Initial volume of the sound");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_AUDIO);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "pitch", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_range(prop, -12.0, 12.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Pitch", "Pitch of the sound");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_AUDIO);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 	
 	/* floats - 3D Parameters */

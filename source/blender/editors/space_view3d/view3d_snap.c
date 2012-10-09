@@ -101,8 +101,8 @@ static void special_transvert_update(Object *obedit)
 		DAG_id_tag_update(obedit->data, 0);
 		
 		if (obedit->type == OB_MESH) {
-			Mesh *me = obedit->data;
-			BM_mesh_normals_update(me->edit_btmesh->bm, TRUE);  // does face centers too
+			BMEditMesh *em = BMEdit_FromObject(obedit);
+			BM_mesh_normals_update(em->bm, TRUE);  /* does face centers too */
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = obedit->data;
@@ -223,14 +223,13 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 	float total, center[3], centroid[3];
 	int a;
 
-	tottrans = 0; // global!
-	
+	tottrans = 0; /* global! */
+
 	INIT_MINMAX(min, max);
 	zero_v3(centroid);
 	
 	if (obedit->type == OB_MESH) {
-		Mesh *me = obedit->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 		BMesh *bm = em->bm;
 		BMIter iter;
 		void *userdata[2] = {em, NULL};
@@ -239,7 +238,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 		/* abuses vertex index all over, set, just set dirty here,
 		 * perhaps this could use its own array instead? - campbell */
 
-		// transform now requires awareness for select mode, so we tag the f1 flags in verts
+		/* transform now requires awareness for select mode, so we tag the f1 flags in verts */
 		tottrans = 0;
 		if (em->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
@@ -304,7 +303,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 					copy_v3_v3(tv->oldloc, eve->co);
 					tv->loc = eve->co;
 					if (eve->no[0] != 0.0f || eve->no[1] != 0.0f || eve->no[2] != 0.0f)
-						tv->nor = eve->no;  // note this is a hackish signal (ton)
+						tv->nor = eve->no;  /* note this is a hackish signal (ton) */
 					tv->flag = BM_elem_index_get(eve) & SELECT;
 					tv++;
 					a++;
@@ -608,9 +607,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 			else {
 				ob->recalc |= OB_RECALC_OB;
 				
-				vec[0] = -ob->obmat[3][0] + gridf *floorf(0.5f + ob->obmat[3][0] / gridf);
-				vec[1] = -ob->obmat[3][1] + gridf *floorf(0.5f + ob->obmat[3][1] / gridf);
-				vec[2] = -ob->obmat[3][2] + gridf *floorf(0.5f + ob->obmat[3][2] / gridf);
+				vec[0] = -ob->obmat[3][0] + gridf * floorf(0.5f + ob->obmat[3][0] / gridf);
+				vec[1] = -ob->obmat[3][1] + gridf * floorf(0.5f + ob->obmat[3][1] / gridf);
+				vec[2] = -ob->obmat[3][2] + gridf * floorf(0.5f + ob->obmat[3][2] / gridf);
 				
 				if (ob->parent) {
 					BKE_object_where_is_calc(scene, ob);
@@ -794,8 +793,8 @@ static int snap_curs_to_grid(bContext *C, wmOperator *UNUSED(op))
 	curs[1] = gridf * floorf(0.5f + curs[1] / gridf);
 	curs[2] = gridf * floorf(0.5f + curs[2] / gridf);
 	
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);    // hrm
-	
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);  /* hrm */
+
 	return OPERATOR_FINISHED;
 }
 
@@ -992,11 +991,11 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 
 	if (obedit) {
 		if (obedit->type == OB_MESH) {
+			BMEditMesh *em = BMEdit_FromObject(obedit);
 			/* check active */
-			Mesh *me = obedit->data;
 			BMEditSelection ese;
 			
-			if (BM_select_history_active_get(me->edit_btmesh->bm, &ese)) {
+			if (BM_select_history_active_get(em->bm, &ese)) {
 				BM_editselection_center(&ese, curs);
 			}
 			

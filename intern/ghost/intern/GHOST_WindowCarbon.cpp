@@ -32,8 +32,8 @@
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 10, 2001
+ * \author	Maarten Gribnau
+ * \date	May 10, 2001
  */
 
 #include "GHOST_WindowCarbon.h"
@@ -676,7 +676,7 @@ GHOST_TSuccess GHOST_WindowCarbon::setWindowCursorShape(GHOST_TStandardCursor sh
 	return GHOST_kSuccess;
 }
 
-#if 0
+#if 0  /* UNUSED */
 /** Reverse the bits in a GHOST_TUns8 */
 static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 {

@@ -159,6 +159,10 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_FFTW3_LIBPATH'])
         if lenv['WITH_BF_STATICFFTW3']:
             statlibs += Split(lenv['BF_FFTW3_LIB_STATIC'])
+    if lenv['WITH_BF_ELTOPO']:
+        libincs += Split(lenv['BF_LAPACK_LIBPATH'])
+        if lenv['WITH_BF_STATICLAPACK']:
+		    statlibs += Split(lenv['BF_LAPACK_LIB_STATIC'])        
     if lenv['WITH_BF_FFMPEG'] and lenv['WITH_BF_STATICFFMPEG']:
         statlibs += Split(lenv['BF_FFMPEG_LIB_STATIC'])
     if lenv['WITH_BF_INTERNATIONAL']:
@@ -199,6 +203,11 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_OIIO_LIBPATH'])
         if lenv['WITH_BF_STATICOIIO']:
             statlibs += Split(lenv['BF_OIIO_LIB_STATIC'])
+
+    if lenv['WITH_BF_OCIO']:
+        libincs += Split(lenv['BF_OCIO_LIBPATH'])
+        if lenv['WITH_BF_STATICOCIO']:
+            statlibs += Split(lenv['BF_OCIO_LIB_STATIC'])
 
     if lenv['WITH_BF_BOOST']:
         libincs += Split(lenv['BF_BOOST_LIBPATH'])
@@ -248,6 +257,10 @@ def setup_syslibs(lenv):
         if not lenv['WITH_BF_STATICOIIO']:
             syslibs += Split(lenv['BF_OIIO_LIB'])
 
+    if lenv['WITH_BF_OCIO']:
+        if not lenv['WITH_BF_STATICOCIO']:
+            syslibs += Split(lenv['BF_OCIO_LIB'])
+
     if lenv['WITH_BF_OPENEXR'] and not lenv['WITH_BF_STATICOPENEXR']:
         syslibs += Split(lenv['BF_OPENEXR_LIB'])
     if lenv['WITH_BF_TIFF'] and not lenv['WITH_BF_STATICTIFF']:
@@ -264,6 +277,8 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_SNDFILE_LIB'])
     if lenv['WITH_BF_FFTW3'] and not lenv['WITH_BF_STATICFFTW3']:
         syslibs += Split(lenv['BF_FFTW3_LIB'])
+    if lenv['WITH_BF_ELTOPO']:
+        syslibs += Split(lenv['BF_LAPACK_LIB'])
     if lenv['WITH_BF_SDL']:
         syslibs += Split(lenv['BF_SDL_LIB'])
     if not lenv['WITH_BF_STATICOPENGL']:
@@ -578,6 +593,9 @@ def AppIt(target=None, source=None, env=None):
         commands.getoutput(cmd)
         cmd = 'cp -R %s/release/datafiles/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
+        if env['WITH_BF_OCIO']:
+            cmd = 'cp -R %s/release/datafiles/colormanagement %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
+            commands.getoutput(cmd)
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
@@ -693,11 +711,23 @@ def UnixPyBundle(target=None, source=None, env=None):
     run("rm -r '%s/turtle.py'" % py_target)
     run("rm -f '%s/lib-dynload/_tkinter.so'" % py_target)
 
+    if env['WITH_BF_PYTHON_INSTALL_NUMPY']:
+        numpy_src = py_src + "/site-packages/numpy"
+        numpy_target = py_target + "/site-packages/numpy"
+
+        if os.path.exists(numpy_src):
+            print 'Install numpy from:'
+            print '\t"%s" into...' % numpy_src
+            print '\t"%s"\n' % numpy_target
+
+            run("cp -R '%s' '%s'" % (numpy_src, os.path.dirname(numpy_target)))
+        else:
+            print 'Failed to find numpy at %s, skipping copying' % numpy_src
+
     run("find '%s' -type d -name 'test' -prune -exec rm -rf {} ';'" % py_target)
     run("find '%s' -type d -name '__pycache__' -exec rm -rf {} ';'" % py_target)
     run("find '%s' -name '*.py[co]' -exec rm -rf {} ';'" % py_target)
     run("find '%s' -name '*.so' -exec strip -s {} ';'" % py_target)
-    
 
 #### END ACTION STUFF #########
 
@@ -827,6 +857,8 @@ class BlenderEnvironment(SConsEnvironment):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
         lenv = self.Clone()
         lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
+        if lenv['OURPLATFORM'] in ('win32-mingw', 'win64-mingw', 'linuxcross', 'cygwin', 'linux'):
+            lenv.Replace(LINK = '$CXX')
         if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
             if lenv['BF_DEBUG']:
                 lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb','/NODEFAULTLIB:libcmt'])

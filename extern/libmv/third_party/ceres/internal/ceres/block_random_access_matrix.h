@@ -77,7 +77,7 @@ namespace internal {
 //
 //  if (cell != NULL) {
 //     MatrixRef m(cell->values, row_stride, col_stride);
-//     MutexLock l(&cell->m);
+//     CeresMutexLock l(&cell->m);
 //     m.block(row, col, row_block_size, col_block_size) = ...
 //  }
 

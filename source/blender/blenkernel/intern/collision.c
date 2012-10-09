@@ -161,8 +161,6 @@ void bvhtree_update_from_mvert(BVHTree * bvhtree, MFace *faces, int numfaces, MV
 /***********************************
 Collision modifier code end
 ***********************************/
-#define mySWAP(a, b) do { double tmp = b ; b = a ; a = tmp ; } while (0)
-
 
 // w3 is not perfect
 static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 )
@@ -226,69 +224,69 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 		zero_v3(i2);
 		zero_v3(i3);
 
-		// only handle static collisions here
+		/* only handle static collisions here */
 		if ( collpair->flag & COLLISION_IN_FUTURE )
 			continue;
 
-		// compute barycentric coordinates for both collision points
+		/* compute barycentric coordinates for both collision points */
 		collision_compute_barycentric ( collpair->pa,
 			cloth1->verts[collpair->ap1].txold,
 			cloth1->verts[collpair->ap2].txold,
 			cloth1->verts[collpair->ap3].txold,
 			&w1, &w2, &w3 );
 
-		// was: txold
+		/* was: txold */
 		collision_compute_barycentric ( collpair->pb,
 			collmd->current_x[collpair->bp1].co,
 			collmd->current_x[collpair->bp2].co,
 			collmd->current_x[collpair->bp3].co,
 			&u1, &u2, &u3 );
 
-		// Calculate relative "velocity".
+		/* Calculate relative "velocity". */
 		collision_interpolateOnTriangle ( v1, cloth1->verts[collpair->ap1].tv, cloth1->verts[collpair->ap2].tv, cloth1->verts[collpair->ap3].tv, w1, w2, w3 );
 
 		collision_interpolateOnTriangle ( v2, collmd->current_v[collpair->bp1].co, collmd->current_v[collpair->bp2].co, collmd->current_v[collpair->bp3].co, u1, u2, u3 );
 
 		sub_v3_v3v3(relativeVelocity, v2, v1);
 
-		// Calculate the normal component of the relative velocity (actually only the magnitude - the direction is stored in 'normal').
+		/* Calculate the normal component of the relative velocity (actually only the magnitude - the direction is stored in 'normal'). */
 		magrelVel = dot_v3v3(relativeVelocity, collpair->normal);
 
-		// printf("magrelVel: %f\n", magrelVel);
+		/* printf("magrelVel: %f\n", magrelVel); */
 
-		// Calculate masses of points.
-		// TODO
+		/* Calculate masses of points.
+		 * TODO */
 
-		// If v_n_mag < 0 the edges are approaching each other.
+		/* If v_n_mag < 0 the edges are approaching each other. */
 		if ( magrelVel > ALMOST_ZERO ) {
-			// Calculate Impulse magnitude to stop all motion in normal direction.
+			/* Calculate Impulse magnitude to stop all motion in normal direction. */
 			float magtangent = 0, repulse = 0, d = 0;
 			double impulse = 0.0;
 			float vrel_t_pre[3];
 			float temp[3], spf;
 
-			// calculate tangential velocity
+			/* calculate tangential velocity */
 			copy_v3_v3 ( temp, collpair->normal );
 			mul_v3_fl(temp, magrelVel);
 			sub_v3_v3v3(vrel_t_pre, relativeVelocity, temp);
 
-			// Decrease in magnitude of relative tangential velocity due to coulomb friction
-			// in original formula "magrelVel" should be the "change of relative velocity in normal direction"
-			magtangent = MIN2(clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf(dot_v3v3(vrel_t_pre, vrel_t_pre)));
+			/* Decrease in magnitude of relative tangential velocity due to coulomb friction
+			 * in original formula "magrelVel" should be the "change of relative velocity in normal direction" */
+			magtangent = minf(clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf(dot_v3v3(vrel_t_pre, vrel_t_pre)));
 
-			// Apply friction impulse.
+			/* Apply friction impulse. */
 			if ( magtangent > ALMOST_ZERO ) {
 				normalize_v3(vrel_t_pre);
 
-				impulse = magtangent / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); // 2.0 *
+				impulse = magtangent / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); /* 2.0 * */
 				VECADDMUL ( i1, vrel_t_pre, w1 * impulse );
 				VECADDMUL ( i2, vrel_t_pre, w2 * impulse );
 				VECADDMUL ( i3, vrel_t_pre, w3 * impulse );
 			}
 
-			// Apply velocity stopping impulse
-			// I_c = m * v_N / 2.0
-			// no 2.0 * magrelVel normally, but looks nicer DG
+			/* Apply velocity stopping impulse
+			 * I_c = m * v_N / 2.0
+			 * no 2.0 * magrelVel normally, but looks nicer DG */
 			impulse =  magrelVel / ( 1.0 + w1*w1 + w2*w2 + w3*w3 );
 
 			VECADDMUL ( i1, collpair->normal, w1 * impulse );
@@ -300,24 +298,24 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			VECADDMUL ( i3, collpair->normal, w3 * impulse );
 			cloth1->verts[collpair->ap3].impulse_count++;
 
-			// Apply repulse impulse if distance too short
-			// I_r = -min(dt*kd, m(0, 1d/dt - v_n))
-			// DG: this formula ineeds to be changed for this code since we apply impulses/repulses like this:
-			// v += impulse; x_new = x + v; 
-			// We don't use dt!!
-			// DG TODO: Fix usage of dt here!
+			/* Apply repulse impulse if distance too short
+			 * I_r = -min(dt*kd, m(0, 1d/dt - v_n))
+			 * DG: this formula ineeds to be changed for this code since we apply impulses/repulses like this:
+			 * v += impulse; x_new = x + v;
+			 * We don't use dt!!
+			 * DG TODO: Fix usage of dt here! */
 			spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 
 			d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
 			if ( ( magrelVel < 0.1f*d*spf ) && ( d > ALMOST_ZERO ) ) {
 				repulse = MIN2 ( d*1.0f/spf, 0.1f*d*spf - magrelVel );
 
-				// stay on the safe side and clamp repulse
+				/* stay on the safe side and clamp repulse */
 				if ( impulse > ALMOST_ZERO )
 					repulse = MIN2 ( repulse, 5.0*impulse );
 				repulse = MAX2 ( impulse, repulse );
 
-				impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); // original 2.0 / 0.25
+				impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); /* original 2.0 / 0.25 */
 				VECADDMUL ( i1, collpair->normal,  impulse );
 				VECADDMUL ( i2, collpair->normal,  impulse );
 				VECADDMUL ( i3, collpair->normal,  impulse );
@@ -326,19 +324,19 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			result = 1;
 		}
 		else {
-			// Apply repulse impulse if distance too short
-			// I_r = -min(dt*kd, max(0, 1d/dt - v_n))
-			// DG: this formula ineeds to be changed for this code since we apply impulses/repulses like this:
-			// v += impulse; x_new = x + v; 
-			// We don't use dt!!
+			/* Apply repulse impulse if distance too short
+			 * I_r = -min(dt*kd, max(0, 1d/dt - v_n))
+			 * DG: this formula ineeds to be changed for this code since we apply impulses/repulses like this:
+			 * v += impulse; x_new = x + v;
+			 * We don't use dt!! */
 			float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 
 			float d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
 			if ( d > ALMOST_ZERO) {
-				// stay on the safe side and clamp repulse
+				/* stay on the safe side and clamp repulse */
 				float repulse = d*1.0f/spf;
 
-				float impulse = repulse / ( 3.0 * ( 1.0f + w1*w1 + w2*w2 + w3*w3 )); // original 2.0 / 0.25 
+				float impulse = repulse / ( 3.0 * ( 1.0f + w1*w1 + w2*w2 + w3*w3 )); /* original 2.0 / 0.25 */
 
 				VECADDMUL ( i1, collpair->normal,  impulse );
 				VECADDMUL ( i2, collpair->normal,  impulse );
@@ -414,8 +412,9 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 				collpair->bp2 = face2->v2;
 				collpair->bp3 = face2->v3;
 			}
-			else
+			else {
 				i++;
+			}
 		}
 		if ( i == 2 ) {
 			if ( face2->v4 ) {
@@ -429,8 +428,9 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 				collpair->bp2 = face2->v4;
 				collpair->bp3 = face2->v3;
 			}
-			else
+			else {
 				break;
+			}
 		}
 		else if ( i == 3 ) {
 			if ( face1->v4 && face2->v4 ) {
@@ -444,8 +444,9 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 				collpair->bp2 = face2->v3;
 				collpair->bp3 = face2->v4;
 			}
-			else
+			else {
 				break;
+			}
 		}
 		
 #ifdef USE_BULLET
@@ -464,8 +465,7 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 			collpair->flag = 0;
 			collpair++;
 		}/*
-		else
-		{
+		else {
 			float w1, w2, w3, u1, u2, u3;
 			float v1[3], v2[3], relativeVelocity[3];
 
@@ -805,7 +805,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData * clmd, float step, flo
 		////////////////////////////////////////////////////////////
 		if ( clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF ) {
 			for (l = 0; l < (unsigned int)clmd->coll_parms->self_loop_count; l++) {
-				// TODO: add coll quality rounds again
+				/* TODO: add coll quality rounds again */
 				BVHTreeOverlap *overlap = NULL;
 				unsigned int result = 0;
 	

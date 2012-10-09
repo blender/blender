@@ -59,6 +59,7 @@ set(SRC
 	composite/nodes/node_composite_composite.c
 	composite/nodes/node_composite_crop.c
 	composite/nodes/node_composite_curves.c
+	composite/nodes/node_composite_despeckle.c
 	composite/nodes/node_composite_doubleEdgeMask.c
 	composite/nodes/node_composite_defocus.c
 	composite/nodes/node_composite_diffMatte.c
@@ -74,6 +75,7 @@ set(SRC
 	composite/nodes/node_composite_huecorrect.c
 	composite/nodes/node_composite_idMask.c
 	composite/nodes/node_composite_image.c
+	composite/nodes/node_composite_inpaint.c
 	composite/nodes/node_composite_invert.c
 	composite/nodes/node_composite_keyingscreen.c
 	composite/nodes/node_composite_keying.c
@@ -103,6 +105,7 @@ set(SRC
 	composite/nodes/node_composite_stabilize2d.c
 	composite/nodes/node_composite_texture.c
 	composite/nodes/node_composite_tonemap.c
+	composite/nodes/node_composite_trackpos.c
 	composite/nodes/node_composite_transform.c
 	composite/nodes/node_composite_translate.c
 	composite/nodes/node_composite_valToRgb.c
@@ -177,6 +180,7 @@ set(SRC
 	shader/nodes/node_shader_tex_voronoi.c
 	shader/nodes/node_shader_tex_wave.c
 	shader/nodes/node_shader_tex_checker.c
+	shader/nodes/node_shader_tex_brick.c
 	shader/node_shader_tree.c
 	shader/node_shader_util.c
 
@@ -247,6 +251,10 @@ if(WITH_COMPOSITOR)
 		../compositor
 	)
 	add_definitions(-DWITH_COMPOSITOR)
+endif()
+
+if(WITH_COMPOSITOR_LEGACY)
+	add_definitions(-DWITH_COMPOSITOR_LEGACY)
 endif()
 
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}")

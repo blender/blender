@@ -302,48 +302,48 @@ static void logic_header_area_draw(const bContext *C, ARegion *ar)
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_logic(void)
 {
-	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype logic");
+	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype logic");
 	ARegionType *art;
 	
-	st->spaceid= SPACE_LOGIC;
+	st->spaceid = SPACE_LOGIC;
 	strncpy(st->name, "Logic", BKE_ST_MAXNAME);
 	
-	st->new= logic_new;
-	st->free= logic_free;
-	st->init= logic_init;
-	st->duplicate= logic_duplicate;
-	st->operatortypes= logic_operatortypes;
-	st->keymap= logic_keymap;
-	st->refresh= logic_refresh;
-	st->context= logic_context;
+	st->new = logic_new;
+	st->free = logic_free;
+	st->init = logic_init;
+	st->duplicate = logic_duplicate;
+	st->operatortypes = logic_operatortypes;
+	st->keymap = logic_keymap;
+	st->refresh = logic_refresh;
+	st->context = logic_context;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES|ED_KEYMAP_VIEW2D;
-	art->init= logic_main_area_init;
-	art->draw= logic_main_area_draw;
-	art->listener= logic_listener;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES | ED_KEYMAP_VIEW2D;
+	art->init = logic_main_area_init;
+	art->draw = logic_main_area_draw;
+	art->listener = logic_listener;
 
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: listview/buttons */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex= 220; // XXX
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
-	art->listener= logic_listener;
-	art->init= logic_buttons_area_init;
-	art->draw= logic_buttons_area_draw;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+	art->listener = logic_listener;
+	art->init = logic_buttons_area_init;
+	art->draw = logic_buttons_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->prefsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
-	art->init= logic_header_area_init;
-	art->draw= logic_header_area_draw;
+	art->prefsizey = HEADERY;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
+	art->init = logic_header_area_init;
+	art->draw = logic_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

@@ -31,15 +31,15 @@ MixSaturationOperation::MixSaturationOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixSaturationOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MixSaturationOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
 
-	this->m_inputValueOperation->read(&value, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(&value, x, y, sampler);
+	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler);
+	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler);
 
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
@@ -51,7 +51,9 @@ void MixSaturationOperation::executePixel(float *outputValue, float x, float y, 
 	if (rS != 0.0f) {
 		float colH, colS, colV;
 		rgb_to_hsv(inputColor2[0], inputColor2[1], inputColor2[2], &colH, &colS, &colV);
-		hsv_to_rgb(rH, (valuem * rS + value * colS), rV, &outputValue[0], &outputValue[1], &outputValue[2]);
+		hsv_to_rgb(rH, (valuem * rS + value * colS), rV, &output[0], &output[1], &output[2]);
 	}
-	outputValue[3] = inputColor1[3];
+	output[3] = inputColor1[3];
+
+	clampIfNeeded(output);
 }

@@ -168,7 +168,7 @@ int paint_vertsel_test(Object *ob)
 	         );
 }
 
-void paint_init(Paint *p, const char col[3])
+void BKE_paint_init(Paint *p, const char col[3])
 {
 	Brush *brush;
 
@@ -184,16 +184,16 @@ void paint_init(Paint *p, const char col[3])
 	p->flags |= PAINT_SHOW_BRUSH;
 }
 
-void free_paint(Paint *paint)
+void BKE_paint_free(Paint *paint)
 {
 	id_us_min((ID *)paint->brush);
 }
 
 /* called when copying scene settings, so even if 'src' and 'tar' are the same
- * still do a id_us_plus(), rather then if we were copying betweem 2 existing
+ * still do a id_us_plus(), rather then if we were copying between 2 existing
  * scenes where a matching value should decrease the existing user count as
  * with paint_brush_set() */
-void copy_paint(Paint *src, Paint *tar)
+void BKE_paint_copy(Paint *src, Paint *tar)
 {
 	tar->brush = src->brush;
 	id_us_plus((ID *)tar->brush);

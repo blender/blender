@@ -331,6 +331,13 @@ int modifiers_isClothEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
+int modifiers_isModifierEnabled(Object *ob, int modifierType)
+{
+	ModifierData *md = modifiers_findByType(ob, modifierType);
+
+	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
+}
+
 int modifiers_isParticleEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleSystem);
@@ -475,7 +482,7 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 	}
 
 	/* shape key modifier, not yet for curves */
-	if (ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
+	if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object(ob)) {
 		if (ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE))
 			smd.modifier.mode |= eModifierMode_Editmode | eModifierMode_OnCage;
 		else
@@ -567,10 +574,12 @@ int modifiers_isCorrectableDeformed(Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md = md->next) {
-		if (ob->mode == OB_MODE_EDIT && (md->mode & eModifierMode_Editmode) == 0) ;
-		else 
-		if (modifier_isCorrectableDeformed(md))
+		if (ob->mode == OB_MODE_EDIT && (md->mode & eModifierMode_Editmode) == 0) {
+			/* pass */
+		}
+		else if (modifier_isCorrectableDeformed(md)) {
 			return 1;
+		}
 	}
 	return 0;
 }

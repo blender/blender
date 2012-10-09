@@ -32,7 +32,7 @@
 
 /* NOTE:
  *
- * This file is no longer used to provide tools for the depreceated IPO system. Instead, it
+ * This file is no longer used to provide tools for the deprecated IPO system. Instead, it
  * is only used to house the conversion code to the new system.
  *
  * -- Joshua Leung, Jan 2009
@@ -895,7 +895,7 @@ static char *get_rna_access(int blocktype, int adrcode, char actname[], char con
 			/* special case for rotdiff drivers... we don't need a property for this... */
 			break;
 			
-		// TODO... add other blocktypes...
+		/* TODO... add other blocktypes... */
 		default:
 			printf("IPO2ANIMATO WARNING: No path for blocktype %d, adrcode %d yet\n", blocktype, adrcode);
 			break;
@@ -1588,9 +1588,9 @@ static void action_to_animdata(ID *id, bAction *act)
 
 /* ------------------------- */
 
-// TODO:
-//	- NLA group duplicators info
-//	- NLA curve/stride modifiers...
+/* TODO:
+ * - NLA group duplicators info
+ * - NLA curve/stride modifiers... */
 
 /* Convert NLA-Strip to new system */
 static void nlastrips_to_animdata(ID *id, ListBase *strips)
@@ -1757,16 +1757,15 @@ void do_versions_ipos_to_animato(Main *main)
 
 				{
 					/* If we have any empty action actuators, assume they were
-					   converted IPO Actuators using the object IPO */
+					 * converted IPO Actuators using the object IPO */
 					bActuator *act;
 					bActionActuator *aa;
 
 					for (act = ob->actuators.first; act; act = act->next) {
 						/* Any actuators set to ACT_IPO at this point are actually Action Actuators that
-						   need this converted IPO to finish converting the actuator. */
-						if (act->type == ACT_IPO)
-						{
-							aa = (bActionActuator*)act->data;
+						 * need this converted IPO to finish converting the actuator. */
+						if (act->type == ACT_IPO) {
+							aa = (bActionActuator *)act->data;
 							aa->act = ob->adt->action;
 							act->type = ACT_ACTION;
 						}
@@ -2094,7 +2093,7 @@ void do_versions_ipos_to_animato(Main *main)
 			bAction *new_act;
 			
 			/* add a new action for this, and convert all data into that action */
-			new_act = add_empty_action("ConvIPO_Action"); // XXX need a better name...
+			new_act = add_empty_action(id->name+2);
 			ipo_to_animato(NULL, ipo, NULL, NULL, NULL, NULL, &new_act->curves, &drivers);
 			new_act->idroot = ipo->blocktype;
 		}

@@ -38,7 +38,6 @@
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 #include "BKE_bmesh.h"
 
@@ -67,7 +66,7 @@
 
 /* ------- Bevel code starts here -------- */
 
-BME_TransData_Head *BME_init_transdata(int bufsize)
+static BME_TransData_Head *BME_init_transdata(int bufsize)
 {
 	BME_TransData_Head *td;
 
@@ -86,9 +85,9 @@ void BME_free_transdata(BME_TransData_Head *td)
 	MEM_freeN(td);
 }
 
-BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BMesh *bm, BMVert *v,
-                                    float *co, float *org, float *vec, float *loc,
-                                    float factor, float weight, float maxfactor, float *max)
+static BME_TransData *BME_assign_transdata(BME_TransData_Head *td, BMesh *bm, BMVert *v,
+                                           float *co, float *org, float *vec, float *loc,
+                                           float factor, float weight, float maxfactor, float *max)
 {
 	BME_TransData *vtd;
 	int is_new = 0;
@@ -141,7 +140,7 @@ BME_TransData *BME_get_transdata(BME_TransData_Head *td, BMVert *v)
 }
 
 /* a hack (?) to use the transdata memarena to allocate floats for use with the max limits */
-float *BME_new_transdata_float(BME_TransData_Head *td)
+static float *BME_new_transdata_float(BME_TransData_Head *td)
 {
 	return BLI_memarena_alloc(td->ma, sizeof(float));
 }
@@ -1029,17 +1028,16 @@ static BMesh *BME_bevel_reinitialize(BMesh *bm)
 #endif
 
 /**
- *			BME_bevel_mesh
+ * BME_bevel_mesh
  *
- *	Mesh beveling tool:
+ * Mesh beveling tool:
  *
- *	Bevels an entire mesh. It currently uses the flags of
- *	its vertices and edges to track topological changes.
- *  The parameter "value" is the distance to inset (should be negative).
- *  The parameter "options" is not currently used.
+ * Bevels an entire mesh. It currently uses the flags of
+ * its vertices and edges to track topological changes.
+ * The parameter "value" is the distance to inset (should be negative).
+ * The parameter "options" is not currently used.
  *
- *	Returns -
- *  A BMesh pointer to the BM passed as a parameter.
+ * \return A BMesh pointer to the BM passed as a parameter.
  */
 
 static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int options,
@@ -1129,7 +1127,7 @@ BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_i
 	}
 
 	/* possibly needed when running as a tool (which is no longer functional)
-	 * but keep as an optioin for now */
+	 * but keep as an option for now */
 	if (do_tessface) {
 		BMEdit_RecalcTessellation(em);
 	}

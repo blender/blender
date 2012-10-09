@@ -148,9 +148,10 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
         col = row.column(align=True)
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
-        col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
+        col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="").all = False
         col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
         if group:
+            col.separator()
             col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
@@ -315,10 +316,31 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
             layout.prop(lay, "name")
 
 
+class DATA_PT_customdata(MeshButtonsPanel, Panel):
+    bl_label = "Geometry Data"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        # me = context.mesh
+        col = layout.column()
+        # sticky has no UI access since 2.49 - we may remove
+        '''
+        row = col.row(align=True)
+        row.operator("mesh.customdata_create_sticky")
+        row.operator("mesh.customdata_clear_sticky", icon='X')
+        '''
+        col.operator("mesh.customdata_clear_mask", icon='X')
+        col.operator("mesh.customdata_clear_skin", icon='X')
+
+
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Mesh
+
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

@@ -510,6 +510,6 @@ class QuickFluid(Operator):
         mat.raytrace_transparency.depth = 4
 
         if self.start_baking:
-            bpy.ops.fluid.bake()
+            bpy.ops.fluid.bake('INVOKE_DEFAULT')
 
         return {'FINISHED'}

@@ -99,7 +99,6 @@ extern char build_rev[];
 #include "BKE_action.h" // pose functions
 #include "BKE_armature.h"
 #include "BKE_image.h"
-#include "BKE_utildefines.h"
 #include "BKE_object.h"
 
 #include "BLI_math.h"
@@ -161,8 +160,10 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	clear_global_id_map();
 	
 	COLLADABU::NativeString native_filename =
-	    COLLADABU::NativeString(std::string(this->export_settings->filepath));
+	    COLLADABU::NativeString(std::string(this->export_settings->filepath), COLLADABU::NativeString::ENCODING_UTF8);
 	COLLADASW::StreamWriter sw(native_filename);
+
+	fprintf(stdout, "Collada export: %s\n", this->export_settings->filepath);
 
 	// open <collada>
 	sw.startDocument();

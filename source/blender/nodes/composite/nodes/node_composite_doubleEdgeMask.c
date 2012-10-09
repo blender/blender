@@ -42,6 +42,8 @@ static bNodeSocketTemplate cmp_node_doubleedgemask_out[]= {
 	{ -1, 0, "" }					// output socket array terminator
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
 {
 	int x;
@@ -909,7 +911,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	int x;							// x = pixel loop counter
 	int a;							// a = temporary pixel index buffer loop counter
 	unsigned int ud;				// ud = unscaled edge distance
-	unsigned int dmin;				// dmin = minimun edge distance
+	unsigned int dmin;				// dmin = minimum edge distance
 
 	unsigned int rsl;				// long used for finding fast 1.0/sqrt
 	unsigned int gradientFillOffset;
@@ -1027,7 +1029,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 	unsigned int gradientFillOffset;
 	unsigned int t;
 	unsigned int ud;				// ud = unscaled edge distance
-	unsigned int dmin;				// dmin = minimun edge distance
+	unsigned int dmin;				// dmin = minimum edge distance
 	float odist;					// odist = current outer edge distance
 	float idist;					// idist = current inner edge distance
 	int dx;							// dx = X-delta (used for distance proportion calculation)
@@ -1084,7 +1086,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 	 * pixel color as |GI| / (|GI| + |GO|). Since these are reciprocals, GI serves the
 	 * purpose of GO for the proportion calculation.
 	 *
-	 * For the purposes of the minimun distance comparisons, we only check
+	 * For the purposes of the minimum distance comparisons, we only check
 	 * the sums-of-squares against each other, since they are in the same
 	 * mathematical sort-order as if we did go ahead and take square roots
 	 *
@@ -1130,7 +1132,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 		/*
 		 * Note once again that since we are using reciprocals of distance values our
 		 * proportion is already the correct intensity, and does not need to be
-		 * subracted from 1.0 like it would have if we used real distances.
+		 * subtracted from 1.0 like it would have if we used real distances.
 		 */
 
 		/*
@@ -1271,6 +1273,8 @@ static void node_composit_exec_doubleedgemask(void *UNUSED(data), bNode *node, b
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;	// allocate a node type data structure
@@ -1278,7 +1282,9 @@ void register_node_type_cmp_doubleedgemask(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_DOUBLEEDGEMASK, "Double Edge Mask", NODE_CLASS_MATTE, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_doubleedgemask_in, cmp_node_doubleedgemask_out);
 	node_type_size(&ntype, 210, 210, 210);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_doubleedgemask);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -83,7 +83,7 @@ public:
 
 	bool SetActiveAction(class BL_ActionActuator *act, short priority, double curtime);
 	
-	struct bArmature * GetArmature() { return m_armature; }
+	struct bArmature *GetArmature() { return m_armature; }
 	const struct bArmature * GetArmature() const { return m_armature; }
 	const struct Scene * GetScene() const { return m_scene; }
 	
@@ -116,8 +116,8 @@ public:
 #ifdef WITH_PYTHON
 
 	// PYTHON
-	static PyObject* pyattr_get_constraints(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static PyObject* pyattr_get_channels(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_constraints(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_channels(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	KX_PYMETHOD_DOC_NOARGS(BL_ArmatureObject, update);
 
 #endif // WITH_PYTHON

@@ -50,13 +50,13 @@ KX_ConstraintWrapper::~KX_ConstraintWrapper()
 
 #ifdef WITH_PYTHON
 
-PyObject* KX_ConstraintWrapper::PyGetConstraintId()
+PyObject *KX_ConstraintWrapper::PyGetConstraintId()
 {
 	return PyLong_FromSsize_t(m_constraintId);
 }
 
 
-PyObject* KX_ConstraintWrapper::PyGetParam(PyObject* args, PyObject* kwds)
+PyObject *KX_ConstraintWrapper::PyGetParam(PyObject *args, PyObject *kwds)
 {
 	int dof;
 	float value;
@@ -69,7 +69,7 @@ PyObject* KX_ConstraintWrapper::PyGetParam(PyObject* args, PyObject* kwds)
 	
 }
 
-PyObject* KX_ConstraintWrapper::PySetParam(PyObject* args, PyObject* kwds)
+PyObject *KX_ConstraintWrapper::PySetParam(PyObject *args, PyObject *kwds)
 {
 	int dof;
 	float minLimit,maxLimit;
@@ -117,7 +117,7 @@ PyAttributeDef KX_ConstraintWrapper::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_ConstraintWrapper::pyattr_get_constraintId(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_ConstraintWrapper::pyattr_get_constraintId(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_ConstraintWrapper* self= static_cast<KX_ConstraintWrapper*>(self_v);
 	return self->PyGetConstraintId();

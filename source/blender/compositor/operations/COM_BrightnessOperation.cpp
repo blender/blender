@@ -37,15 +37,15 @@ void BrightnessOperation::initExecution()
 	this->m_inputContrastProgram = this->getInputSocketReader(2);
 }
 
-void BrightnessOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void BrightnessOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float a, b;
 	float inputBrightness[4];
 	float inputContrast[4];
-	this->m_inputProgram->read(inputValue, x, y, sampler, inputBuffers);
-	this->m_inputBrightnessProgram->read(inputBrightness, x, y, sampler, inputBuffers);
-	this->m_inputContrastProgram->read(inputContrast, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(inputValue, x, y, sampler);
+	this->m_inputBrightnessProgram->read(inputBrightness, x, y, sampler);
+	this->m_inputContrastProgram->read(inputContrast, x, y, sampler);
 	float brightness = inputBrightness[0];
 	float contrast = inputContrast[0];
 	brightness /= 100.0f;
@@ -65,10 +65,10 @@ void BrightnessOperation::executePixel(float *color, float x, float y, PixelSamp
 		b = a * (brightness + delta);
 	}
 	
-	color[0] = a * inputValue[0] + b;
-	color[1] = a * inputValue[1] + b;
-	color[2] = a * inputValue[2] + b;
-	color[3] = inputValue[3];
+	output[0] = a * inputValue[0] + b;
+	output[1] = a * inputValue[1] + b;
+	output[2] = a * inputValue[2] + b;
+	output[3] = inputValue[3];
 }
 
 void BrightnessOperation::deinitExecution()

@@ -48,6 +48,7 @@
 
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
+#include "DNA_actuator_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -528,6 +529,7 @@ void BKE_text_unlink(Main *bmain, Text *text)
 	SpaceLink *sl;
 	Object *ob;
 	bController *cont;
+	bActuator *act;
 	bConstraint *con;
 	short update;
 
@@ -539,6 +541,15 @@ void BKE_text_unlink(Main *bmain, Text *text)
 				
 				pc = cont->data;
 				if (pc->text == text) pc->text = NULL;
+			}
+		}
+		/* game actuators */
+		for (act = ob->actuators.first; act; act = act->next) {
+			if (act->type == ACT_2DFILTER) {
+				bTwoDFilterActuator *tfa;
+				
+				tfa = act->data;
+				if (tfa->text == text) tfa->text = NULL;
 			}
 		}
 
@@ -1684,7 +1695,8 @@ void txt_print_undo(Text *text)
 					printf("%c%c%c", text->undo_buf[i], text->undo_buf[i + 1], text->undo_buf[i + 2]);
 					i += 3;
 					break;
-				case UNDO_INSERT_4: case UNDO_BS_4: case UNDO_DEL_4: {
+				case UNDO_INSERT_4: case UNDO_BS_4: case UNDO_DEL_4:
+				{
 					unsigned int uc;
 					char c[BLI_UTF8_MAX + 1];
 					size_t c_len;
@@ -1918,6 +1930,7 @@ static unsigned int txt_undo_read_unicode(const char *undo_buf, int *undo_pos, s
 			break;
 		case 4: /* 32-bit unicode symbol */
 			unicode = txt_undo_read_uint32(undo_buf, undo_pos);
+			break;
 		default:
 			/* should never happen */
 			BLI_assert(0);
@@ -1969,6 +1982,7 @@ static unsigned int txt_redo_read_unicode(const char *undo_buf, int *undo_pos, s
 			break;
 		case 4: /* 32-bit unicode symbol */
 			unicode = txt_undo_read_uint32(undo_buf, undo_pos);
+			break;
 		default:
 			/* should never happen */
 			BLI_assert(0);
@@ -3030,30 +3044,6 @@ void txt_uncomment(Text *text)
 	}
 }
 
-
-void txt_move_lines_up(struct Text *text)
-{
-	TextLine *prev_line;
-	
-	if (!text || !text->curl || !text->sell) return;
-	
-	txt_order_cursors(text);
-	
-	prev_line = text->curl->prev;
-	
-	if (!prev_line) return;
-	
-	BLI_remlink(&text->lines, prev_line);
-	BLI_insertlinkafter(&text->lines, text->sell, prev_line);
-	
-	txt_make_dirty(text);
-	txt_clean_text(text);
-	
-	if (!undoing) {
-		txt_undo_add_op(text, UNDO_MOVE_LINES_UP);
-	}
-}
-
 void txt_move_lines(struct Text *text, const int direction)
 {
 	TextLine *line_other;
@@ -3093,7 +3083,6 @@ int setcurr_tab_spaces(Text *text, int space)
 	const char *comm = "#";
 	const char indent = (text->flags & TXT_TABSTOSPACES) ? ' ' : '\t';
 	static const char *back_words[] = {"return", "break", "continue", "pass", "yield", NULL};
-	if (!text) return 0;
 	if (!text->curl) return 0;
 
 	while (text->curl->line[i] == indent) {

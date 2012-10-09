@@ -351,11 +351,11 @@ void filelist_filter(FileList *filelist)
 {
 	int num_filtered = 0;
 	int i, j;
-	
+
 	if (!filelist->filelist)
 		return;
 
-	// How many files are left after filter ?
+	/* How many files are left after filter ? */
 	for (i = 0; i < filelist->numfiles; ++i) {
 		struct direntry *file = &filelist->filelist[i];
 		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot) ) {
@@ -383,10 +383,13 @@ void filelist_init_icons(void)
 	short x, y, k;
 	ImBuf *bbuf;
 	ImBuf *ibuf;
+
+	BLI_assert(G.background == FALSE);
+
 #ifdef WITH_HEADLESS
 	bbuf = NULL;
 #else
-	bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_prvicons, datatoc_prvicons_size, IB_rect, "<splash>");
+	bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_prvicons_png, datatoc_prvicons_png_size, IB_rect, NULL, "<splash>");
 #endif
 	if (bbuf) {
 		for (y = 0; y < SPECIAL_IMG_ROWS; y++) {
@@ -408,6 +411,9 @@ void filelist_init_icons(void)
 void filelist_free_icons(void)
 {
 	int i;
+
+	BLI_assert(G.background == FALSE);
+
 	for (i = 0; i < SPECIAL_IMG_MAX; ++i) {
 		IMB_freeImBuf(gSpecialFileImages[i]);
 		gSpecialFileImages[i] = NULL;
@@ -428,7 +434,7 @@ void folderlist_popdir(struct ListBase *folderlist, char *dir)
 	folder = folderlist->last;
 
 	if (folder) {
-		// remove the current directory
+		/* remove the current directory */
 		MEM_freeN(folder->foldername);
 		BLI_freelinkN(folderlist, folder);
 
@@ -438,7 +444,7 @@ void folderlist_popdir(struct ListBase *folderlist, char *dir)
 			BLI_strncpy(dir, prev_dir, FILE_MAXDIR);
 		}
 	}
-	// delete the folder next or use setdir directly before PREVIOUS OP
+	/* delete the folder next or use setdir directly before PREVIOUS OP */
 }
 
 void folderlist_pushdir(ListBase *folderlist, const char *dir)
@@ -446,21 +452,21 @@ void folderlist_pushdir(ListBase *folderlist, const char *dir)
 	struct FolderList *folder, *previous_folder;
 	previous_folder = folderlist->last;
 
-	// check if already exists
+	/* check if already exists */
 	if (previous_folder && previous_folder->foldername) {
 		if (BLI_path_cmp(previous_folder->foldername, dir) == 0) {
 			return;
 		}
 	}
 
-	// create next folder element
+	/* create next folder element */
 	folder = (FolderList *)MEM_mallocN(sizeof(FolderList), "FolderList");
 	folder->foldername = (char *)MEM_mallocN(sizeof(char) * (strlen(dir) + 1), "foldername");
 	folder->foldername[0] = '\0';
 
 	BLI_strncpy(folder->foldername, dir, FILE_MAXDIR);
 
-	// add it to the end of the list
+	/* add it to the end of the list */
 	BLI_addtail(folderlist, folder);
 }
 
@@ -468,16 +474,16 @@ int folderlist_clear_next(struct SpaceFile *sfile)
 {
 	struct FolderList *folder;
 
-	// if there is no folder_next there is nothing we can clear
+	/* if there is no folder_next there is nothing we can clear */
 	if (!sfile->folders_next)
 		return 0;
 
-	// if previous_folder, next_folder or refresh_folder operators are executed it doesn't clear folder_next
+	/* if previous_folder, next_folder or refresh_folder operators are executed it doesn't clear folder_next */
 	folder = sfile->folders_prev->last;
 	if ((!folder) || (BLI_path_cmp(folder->foldername, sfile->params->dir) == 0))
 		return 0;
 
-	// eventually clear flist->folders_next
+	/* eventually clear flist->folders_next */
 	return 1;
 }
 
@@ -615,7 +621,10 @@ short filelist_changed(struct FileList *filelist)
 ImBuf *filelist_getimage(struct FileList *filelist, int index)
 {
 	ImBuf *ibuf = NULL;
-	int fidx = 0;	
+	int fidx = 0;
+
+	BLI_assert(G.background == FALSE);
+
 	if ( (index < 0) || (index >= filelist->numfiltered) ) {
 		return NULL;
 	}
@@ -629,7 +638,10 @@ ImBuf *filelist_geticon(struct FileList *filelist, int index)
 {
 	ImBuf *ibuf = NULL;
 	struct direntry *file = NULL;
-	int fidx = 0;	
+	int fidx = 0;
+
+	BLI_assert(G.background == FALSE);
+
 	if ( (index < 0) || (index >= filelist->numfiltered) ) {
 		return NULL;
 	}
@@ -736,7 +748,9 @@ static int file_is_blend_backup(const char *str)
 	a = strlen(str);
 	b = 7;
 	
-	if (a == 0 || b >= a) ;
+	if (a == 0 || b >= a) {
+		/* pass */
+	}
 	else {
 		char *loc;
 		
@@ -1334,7 +1348,7 @@ static void thumbnails_free(void *tjv)
 
 void thumbnails_start(struct FileList *filelist, const struct bContext *C)
 {
-	wmJob *steve;
+	wmJob *wm_job;
 	ThumbnailJob *tj;
 	int idx;
 	
@@ -1356,13 +1370,14 @@ void thumbnails_start(struct FileList *filelist, const struct bContext *C)
 	BKE_reports_init(&tj->reports, RPT_PRINT);
 
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), filelist, "Thumbnails", 0);
-	WM_jobs_customdata(steve, tj, thumbnails_free);
-	WM_jobs_timer(steve, 0.5, NC_WINDOW, NC_WINDOW);
-	WM_jobs_callbacks(steve, thumbnails_startjob, NULL, thumbnails_update, NULL);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), filelist, "Thumbnails",
+	                     0, WM_JOB_TYPE_FILESEL_THUMBNAIL);
+	WM_jobs_customdata_set(wm_job, tj, thumbnails_free);
+	WM_jobs_timer(wm_job, 0.5, NC_WINDOW, NC_WINDOW);
+	WM_jobs_callbacks(wm_job, thumbnails_startjob, NULL, thumbnails_update, NULL);
 
 	/* start the job */
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 }
 
 void thumbnails_stop(struct FileList *filelist, const struct bContext *C)
@@ -1372,5 +1387,5 @@ void thumbnails_stop(struct FileList *filelist, const struct bContext *C)
 
 int thumbnails_running(struct FileList *filelist, const struct bContext *C)
 {
-	return WM_jobs_test(CTX_wm_manager(C), filelist);
+	return WM_jobs_test(CTX_wm_manager(C), filelist, WM_JOB_TYPE_FILESEL_THUMBNAIL);
 }

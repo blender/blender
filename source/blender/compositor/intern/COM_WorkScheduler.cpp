@@ -25,20 +25,27 @@
 
 #include "BKE_global.h"
 
+#include "COM_compositor.h"
 #include "COM_WorkScheduler.h"
 #include "COM_CPUDevice.h"
 #include "COM_OpenCLDevice.h"
 #include "COM_OpenCLKernels.cl.h"
 #include "OCL_opencl.h"
+#include "COM_WriteBufferOperation.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
 #include "BLI_threads.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
-#warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
+#  ifndef DEBUG  /* test this so we dont get warnings in debug builds */
+#    warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
+#  endif
 #elif COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
+   /* do nothing - default */
 #else
-#error COM_CURRENT_THREADING_MODEL No threading model selected
+#  error COM_CURRENT_THREADING_MODEL No threading model selected
 #endif
 
 
@@ -48,6 +55,7 @@ static vector<CPUDevice *> g_cpudevices;
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 /// @brief list of all thread for every CPUDevice in cpudevices a thread exists
 static ListBase g_cputhreads;
+static bool g_cpuInitialized = false;
 /// @brief all scheduled work for the cpu
 static ThreadQueue *g_cpuqueue;
 static ThreadQueue *g_gpuqueue;
@@ -61,10 +69,76 @@ static ListBase g_gputhreads;
 /// @brief all scheduled work for the gpu
 #ifdef COM_OPENCL_ENABLED
 static bool g_openclActive = false;
+static bool g_openclInitialized = false;
 #endif
 #endif
 #endif
 
+#define MAX_HIGHLIGHT 8
+static bool g_highlightInitialized = false;
+extern "C" {
+int g_highlightIndex;
+void **g_highlightedNodes;
+void **g_highlightedNodesRead;
+
+#define HIGHLIGHT(wp) \
+{ \
+	ExecutionGroup *group = wp->getExecutionGroup(); \
+	if (group->isComplex()) { \
+		NodeOperation *operation = group->getOutputNodeOperation(); \
+		if (operation->isWriteBufferOperation()) { \
+			WriteBufferOperation *writeOperation = (WriteBufferOperation *)operation; \
+			NodeOperation *complexOperation = writeOperation->getInput(); \
+			bNode *node = complexOperation->getbNode(); \
+			if (node) { \
+				if (node->original) { \
+					node = node->original; \
+				} \
+				if (g_highlightInitialized && g_highlightedNodes) { \
+					if (g_highlightIndex < MAX_HIGHLIGHT) { \
+						g_highlightedNodes[g_highlightIndex++] = node; \
+					} \
+				} \
+			} \
+		} \
+	} \
+}
+
+void COM_startReadHighlights()
+{
+	if (!g_highlightInitialized)
+	{
+		return;
+	}
+	
+	if (g_highlightedNodesRead) 
+	{
+		MEM_freeN(g_highlightedNodesRead);
+	}
+	
+	g_highlightedNodesRead = g_highlightedNodes;
+	g_highlightedNodes = (void **)MEM_callocN(sizeof(void *) * MAX_HIGHLIGHT, __func__);
+	g_highlightIndex = 0;
+}
+
+int COM_isHighlightedbNode(bNode *bnode)
+{
+	if (!g_highlightInitialized) {
+		return false;
+	}
+	
+	if (!g_highlightedNodesRead) {
+		return false;
+	}
+
+	for (int i = 0; i < MAX_HIGHLIGHT; i++) {
+		void *p = g_highlightedNodesRead[i];
+		if (!p) return false;
+		if (p == bnode) return true;
+	}
+	return false;
+}
+} // end extern "C"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 void *WorkScheduler::thread_execute_cpu(void *data)
@@ -73,6 +147,7 @@ void *WorkScheduler::thread_execute_cpu(void *data)
 	WorkPackage *work;
 	
 	while ((work = (WorkPackage *)BLI_thread_queue_pop(g_cpuqueue))) {
+		HIGHLIGHT(work);
 		device->execute(work);
 		delete work;
 	}
@@ -86,6 +161,7 @@ void *WorkScheduler::thread_execute_gpu(void *data)
 	WorkPackage *work;
 	
 	while ((work = (WorkPackage *)BLI_thread_queue_pop(g_gpuqueue))) {
+		HIGHLIGHT(work);
 		device->execute(work);
 		delete work;
 	}
@@ -190,44 +266,71 @@ bool WorkScheduler::hasGPUDevices()
 #endif
 }
 
-extern void clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data)
+static void clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data)
 {
 	printf("OPENCL error: %s\n", errinfo);
 }
 
-void WorkScheduler::initialize()
+void WorkScheduler::initialize(bool use_opencl)
 {
-#if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-	int numberOfCPUThreads = BLI_system_thread_count();
+	/* initialize highlighting */
+	if (!g_highlightInitialized) {
+		if (g_highlightedNodesRead) MEM_freeN(g_highlightedNodesRead);
+		if (g_highlightedNodes)     MEM_freeN(g_highlightedNodes);
 
-	for (int index = 0; index < numberOfCPUThreads; index++) {
-		CPUDevice *device = new CPUDevice();
-		device->initialize();
-		g_cpudevices.push_back(device);
+		g_highlightedNodesRead = NULL;
+		g_highlightedNodes = NULL;
+
+		COM_startReadHighlights();
+
+		g_highlightInitialized = true;
 	}
+
+#if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
+	/* initialize CPU threads */
+	if (!g_cpuInitialized) {
+		int numberOfCPUThreads = BLI_system_thread_count();
+
+		for (int index = 0; index < numberOfCPUThreads; index++) {
+			CPUDevice *device = new CPUDevice();
+			device->initialize();
+			g_cpudevices.push_back(device);
+		}
+
+		g_cpuInitialized = true;
+	}
+
 #ifdef COM_OPENCL_ENABLED
-	g_context = NULL;
-	g_program = NULL;
-	if (clCreateContextFromType) {
-		cl_uint numberOfPlatforms = 0;
-		cl_int error;
-		error = clGetPlatformIDs(0, 0, &numberOfPlatforms);
-		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-		if (G.f & G_DEBUG) printf("%d number of platforms\n", numberOfPlatforms);
-		cl_platform_id *platforms = new cl_platform_id[numberOfPlatforms];
-		error = clGetPlatformIDs(numberOfPlatforms, platforms, 0);
-		unsigned int indexPlatform;
-		for (indexPlatform = 0; indexPlatform < numberOfPlatforms; indexPlatform++) {
-			cl_platform_id platform = platforms[indexPlatform];
-			cl_uint numberOfDevices = 0;
-			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 0, &numberOfDevices);
-			if (numberOfDevices>0) {
-				cl_device_id *cldevices = new cl_device_id[numberOfDevices];
+	/* deinitialize OpenCL GPU's */
+	if (use_opencl && !g_openclInitialized) {
+		g_context = NULL;
+		g_program = NULL;
+
+		OCL_init(); /* this will check and skip if already initialized */
+
+		if (clCreateContextFromType) {
+			cl_uint numberOfPlatforms = 0;
+			cl_int error;
+			error = clGetPlatformIDs(0, 0, &numberOfPlatforms);
+			if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
+			if (G.f & G_DEBUG) printf("%d number of platforms\n", numberOfPlatforms);
+			cl_platform_id *platforms = (cl_platform_id *)MEM_mallocN(sizeof(cl_platform_id) * numberOfPlatforms, __func__);
+			error = clGetPlatformIDs(numberOfPlatforms, platforms, 0);
+			unsigned int indexPlatform;
+			for (indexPlatform = 0; indexPlatform < numberOfPlatforms; indexPlatform++) {
+				cl_platform_id platform = platforms[indexPlatform];
+				cl_uint numberOfDevices = 0;
+				clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 0, &numberOfDevices);
+				if (numberOfDevices <= 0)
+					continue;
+
+				cl_device_id *cldevices = (cl_device_id *)MEM_mallocN(sizeof(cl_device_id) * numberOfDevices, __func__);
 				clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices, 0);
 
 				g_context = clCreateContext(NULL, numberOfDevices, cldevices, clContextError, NULL, &error);
 				if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
-				g_program = clCreateProgramWithSource(g_context, 1, &clkernelstoh_COM_OpenCLKernels_cl, 0, &error);
+				const char *cl_str[2] = {datatoc_COM_OpenCLKernels_cl, NULL};
+				g_program = clCreateProgramWithSource(g_context, 1, cl_str, 0, &error);
 				error = clBuildProgram(g_program, numberOfDevices, cldevices, 0, 0, 0);
 				if (error != CL_SUCCESS) { 
 					cl_int error2;
@@ -235,12 +338,12 @@ void WorkScheduler::initialize()
 					printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	
 					error2 = clGetProgramBuildInfo(g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 					if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
-					char *build_log =  new char[ret_val_size + 1];
+					char *build_log = (char *)MEM_mallocN(sizeof(char) * ret_val_size + 1, __func__);
 					error2 = clGetProgramBuildInfo(g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
 					if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
 					build_log[ret_val_size] = '\0';
 					printf("%s", build_log);
-					delete build_log;
+					MEM_freeN(build_log);
 				}
 				else {
 					unsigned int indexDevices;
@@ -254,10 +357,12 @@ void WorkScheduler::initialize()
 						g_gpudevices.push_back(clDevice);
 					}
 				}
-				delete[] cldevices;
+				MEM_freeN(cldevices);
 			}
+			MEM_freeN(platforms);
 		}
-		delete[] platforms;
+
+		g_openclInitialized = true;
 	}
 #endif
 #endif
@@ -266,28 +371,55 @@ void WorkScheduler::initialize()
 void WorkScheduler::deinitialize()
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-	Device *device;
-	while (g_cpudevices.size() > 0) {
-		device = g_cpudevices.back();
-		g_cpudevices.pop_back();
-		device->deinitialize();
-		delete device;
+	/* deinitialize CPU threads */
+	if (g_cpuInitialized) {
+		Device *device;
+		while (g_cpudevices.size() > 0) {
+			device = g_cpudevices.back();
+			g_cpudevices.pop_back();
+			device->deinitialize();
+			delete device;
+		}
+
+		g_cpuInitialized = false;
 	}
+
 #ifdef COM_OPENCL_ENABLED
-	while (g_gpudevices.size() > 0) {
-		device = g_gpudevices.back();
-		g_gpudevices.pop_back();
-		device->deinitialize();
-		delete device;
-	}
-	if (g_program) {
-		clReleaseProgram(g_program);
-		g_program = NULL;
-	}
-	if (g_context) {
-		clReleaseContext(g_context);
-		g_context = NULL;
+	/* deinitialize OpenCL GPU's */
+	if (g_openclInitialized) {
+		Device *device;
+		while (g_gpudevices.size() > 0) {
+			device = g_gpudevices.back();
+			g_gpudevices.pop_back();
+			device->deinitialize();
+			delete device;
+		}
+		if (g_program) {
+			clReleaseProgram(g_program);
+			g_program = NULL;
+		}
+		if (g_context) {
+			clReleaseContext(g_context);
+			g_context = NULL;
+		}
+
+		g_openclInitialized = false;
 	}
 #endif
 #endif
+
+	/* deinitialize highlighting */
+	if (g_highlightInitialized) {
+		g_highlightInitialized = false;
+		if (g_highlightedNodes) {
+			MEM_freeN(g_highlightedNodes);
+			g_highlightedNodes = NULL;
+		}
+
+		if (g_highlightedNodesRead) {
+			MEM_freeN(g_highlightedNodesRead);
+			g_highlightedNodesRead = NULL;
+		}
+	}
 }
+

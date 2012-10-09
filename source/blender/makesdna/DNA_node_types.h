@@ -127,7 +127,7 @@ typedef struct bNodeSocket {
 /* sock->flag, first bit is select */
 	/* hidden is user defined, to hide unused */
 #define SOCK_HIDDEN				2
-	/* only used now for groups... */
+	/* for quick check if socket is linked */
 #define SOCK_IN_USE				4	/* XXX deprecated */
 	/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
@@ -168,7 +168,7 @@ typedef struct bNode {
 	void *storage;			/* custom data, must be struct, for storage in file */
 	struct bNode *original;	/* the original node in the tree (for localized tree) */
 	
-	float locx, locy;		/* root offset for drawing */
+	float locx, locy;		/* root offset for drawing (parent space) */
 	float width, height;	/* node custom width and height */
 	float miniwidth;		/* node width if hidden */
 	float offsetx, offsety;	/* additional offset from loc */
@@ -178,12 +178,10 @@ typedef struct bNode {
 	char label[64];			/* custom user-defined label, MAX_NAME */
 	short custom1, custom2;	/* to be abused for buttons */
 	float custom3, custom4;
-	int highlight;			/* 0 = not highlighted, 1-N = highlighted*/
-	int pad;
-	
+
 	short need_exec, exec;	/* need_exec is set as UI execution event, exec is flag during exec */
 	void *threaddata;		/* optional extra storage for use in thread (read only then!) */
-	rctf totr;				/* entire boundbox */
+	rctf totr;				/* entire boundbox (worldspace) */
 	rctf butr;				/* optional buttons area */
 	rctf prvr;				/* optional preview area */
 	bNodePreview *preview;	/* optional preview image */
@@ -213,6 +211,11 @@ typedef struct bNode {
 	/* automatic flag for nodes included in transforms */
 #define NODE_TRANSFORM		(1<<13)
 	/* node is active texture */
+
+	/* note: take care with this flag since its possible it gets
+	 * `stuck` inside/outside the active group - which makes buttons
+	 * window texture not update, we try to avoid it by clearing the
+	 * flag when toggling group editing - Campbell */
 #define NODE_ACTIVE_TEXTURE	(1<<14)
 	/* use a custom color for the node */
 #define NODE_CUSTOM_COLOR	(1<<15)
@@ -372,8 +375,21 @@ enum {
 };
 
 enum {
-	CMP_NODEFLAG_MASK_AA         = (1 << 0),
-	CMP_NODEFLAG_MASK_NO_FEATHER = (1 << 1)
+	CMP_NODE_INPAINT_SIMPLE               = 0
+};
+
+enum {
+	CMP_NODEFLAG_MASK_AA          = (1 << 0),
+	CMP_NODEFLAG_MASK_NO_FEATHER  = (1 << 1),
+	CMP_NODEFLAG_MASK_MOTION_BLUR = (1 << 2),
+
+	/* we may want multiple aspect options, exposed as an rna enum */
+	CMP_NODEFLAG_MASK_FIXED       = (1 << 8),
+	CMP_NODEFLAG_MASK_FIXED_SCENE = (1 << 9)
+};
+
+enum {
+	CMP_NODEFLAG_BLUR_VARIABLE_SIZE = (1 << 0)
 };
 
 typedef struct NodeFrame {
@@ -383,8 +399,11 @@ typedef struct NodeFrame {
 
 /* this one has been replaced with ImageUser, keep it for do_versions() */
 typedef struct NodeImageAnim {
-	int frames, sfra, nr;
-	char cyclic, movie;
+	int frames   DNA_DEPRECATED;
+	int sfra     DNA_DEPRECATED;
+	int nr       DNA_DEPRECATED;
+	char cyclic  DNA_DEPRECATED;
+	char movie   DNA_DEPRECATED;
 	short pad;
 } NodeImageAnim;
 
@@ -577,6 +596,10 @@ typedef struct NodeDilateErode {
 	char pad[7];
 } NodeDilateErode;
 
+typedef struct NodeMask {
+	int size_x, size_y;
+} NodeMask;
+
 typedef struct NodeTexBase {
 	TexMapping tex_mapping;
 	ColorMapping color_mapping;
@@ -591,17 +614,27 @@ typedef struct NodeTexSky {
 typedef struct NodeTexImage {
 	NodeTexBase base;
 	ImageUser iuser;
-	int color_space, pad;
+	int color_space;
+	int projection;
+	float projection_blend;
+	int pad;
 } NodeTexImage;
 
 typedef struct NodeTexChecker {
 	NodeTexBase base;
 } NodeTexChecker;
 
+typedef struct NodeTexBrick {
+	NodeTexBase base;
+	int offset_freq, squash_freq;
+	float offset, squash;
+} NodeTexBrick;
+
 typedef struct NodeTexEnvironment {
 	NodeTexBase base;
 	ImageUser iuser;
-	int color_space, projection;
+	int color_space;
+	int projection;
 } NodeTexEnvironment;
 
 typedef struct NodeTexGradient {
@@ -654,6 +687,7 @@ typedef struct NodeKeyingScreenData {
 typedef struct NodeKeyingData {
 	float screen_balance;
 	float despill_factor;
+	float despill_balance;
 	int edge_kernel_radius;
 	float edge_kernel_tolerance;
 	float clip_black, clip_white;
@@ -662,6 +696,11 @@ typedef struct NodeKeyingData {
 	int feather_falloff;
 	int blur_pre, blur_post;
 } NodeKeyingData;
+
+typedef struct NodeTrackPosData {
+	char tracking_object[64];
+	char track_name[64];
+} NodeTrackPosData;
 
 /* frame node flags */
 #define NODE_FRAME_SHRINK		1	/* keep the bounding box minimal */
@@ -735,9 +774,15 @@ typedef struct NodeKeyingData {
 #define SHD_PROJ_EQUIRECTANGULAR	0
 #define SHD_PROJ_MIRROR_BALL		1
 
+/* image texture */
+#define SHD_PROJ_FLAT				0
+#define SHD_PROJ_BOX				1
+
 /* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0
 #define CMP_NODE_BLUR_ASPECT_Y			1
 #define CMP_NODE_BLUR_ASPECT_X			2
+
+#define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
 
 #endif

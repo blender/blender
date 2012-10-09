@@ -43,6 +43,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_sequencer.h"
 #include "ED_markers.h"
 #include "ED_transform.h" /* transform keymap */
 
@@ -72,11 +73,13 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_meta_make);
 	WM_operatortype_append(SEQUENCER_OT_meta_separate);
 	WM_operatortype_append(SEQUENCER_OT_snap);
-	WM_operatortype_append(SEQUENCER_OT_next_edit);
-	WM_operatortype_append(SEQUENCER_OT_previous_edit);
+	WM_operatortype_append(SEQUENCER_OT_strip_jump);
 	WM_operatortype_append(SEQUENCER_OT_swap);
 	WM_operatortype_append(SEQUENCER_OT_swap_data);
 	WM_operatortype_append(SEQUENCER_OT_rendersize);
+
+	WM_operatortype_append(SEQUENCER_OT_copy);
+	WM_operatortype_append(SEQUENCER_OT_paste);
 
 	WM_operatortype_append(SEQUENCER_OT_view_all);
 	WM_operatortype_append(SEQUENCER_OT_view_selected);
@@ -110,10 +113,17 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_sound_strip_add);
 	WM_operatortype_append(SEQUENCER_OT_image_strip_add);
 	WM_operatortype_append(SEQUENCER_OT_effect_strip_add);
+
+	/* sequencer_buttons.c */
 	WM_operatortype_append(SEQUENCER_OT_properties);
 
-	WM_operatortype_append(SEQUENCER_OT_copy);
-	WM_operatortype_append(SEQUENCER_OT_paste);
+	/* sequencer_modifiers.c */
+	WM_operatortype_append(SEQUENCER_OT_strip_modifier_add);
+	WM_operatortype_append(SEQUENCER_OT_strip_modifier_remove);
+	WM_operatortype_append(SEQUENCER_OT_strip_modifier_move);
+
+	/* sequencer_view.h */
+	WM_operatortype_append(SEQUENCER_OT_sample);
 }
 
 
@@ -124,7 +134,9 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	
 	/* Common items ------------------------------------------------------------------ */
 	keymap = WM_keymap_find(keyconf, "SequencerCommon", SPACE_SEQ, 0);
-	
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
+
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.show_overlay");
 
@@ -133,9 +145,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	/* Strips Region --------------------------------------------------------------- */
 	keymap = WM_keymap_find(keyconf, "Sequencer", SPACE_SEQ, 0);
-	
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
-	
+
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
@@ -145,12 +155,12 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "type", SEQ_CUT_SOFT);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", SEQ_CUT_HARD);
-	
+
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_mute", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_mute", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
-	
+
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
@@ -171,7 +181,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	
+
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 
@@ -185,12 +195,24 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_next_edit", PAGEUPKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_previous_edit", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEUPKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "next", TRUE);
+	RNA_boolean_set(kmi->ptr, "center", FALSE);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "next", FALSE);
+	RNA_boolean_set(kmi->ptr, "center", FALSE);
+
+	/* alt for center */
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEUPKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "next", TRUE);
+	RNA_boolean_set(kmi->ptr, "center", TRUE);
+	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_strip_jump", PAGEDOWNKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "next", FALSE);
+	RNA_boolean_set(kmi->ptr, "center", TRUE);
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", LEFTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_LEFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_swap", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0)->ptr, "side", SEQ_SIDE_RIGHT);
-	
+
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_swap_inputs", SKEY, KM_PRESS, KM_ALT, 0);
 
@@ -225,7 +247,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "linked_left", TRUE);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "linked_right", TRUE);
-	
+
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "linked_left", TRUE);
 	RNA_boolean_set(kmi->ptr, "linked_right", TRUE);
@@ -273,14 +295,14 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-	
+
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
 	kmi = WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);
-	
+
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
-	
+
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
@@ -288,37 +310,39 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "SEQUENCER_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_menu(keymap, "SEQUENCER_MT_change", CKEY, KM_PRESS, 0, 0);
-	
+
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_int", OKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.overlay_frame");
 	RNA_int_set(kmi->ptr, "value", 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_SEQ);
-	
+
 	/* special markers hotkeys for anim editors: see note in definition of this function */
 	ED_marker_keymap_animedit_conflictfree(keymap);
-	
-	
+
+
 	/* Preview Region ----------------------------------------------------------- */
 	keymap = WM_keymap_find(keyconf, "SequencerPreview", SPACE_SEQ, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all_preview", HOMEKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_ghost_border", OKEY, KM_PRESS, 0, 0);
 
 	/* would prefer to use numpad keys for job */
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD1, KM_PRESS, 0, 0)->ptr, "ratio", 1.0f);
-	
+
 	/* Setting zoom levels is not that useful, except for back to zoom level 1, removing keymap because of conflicts for now */
 #if 0
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 8.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD4, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 4.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD2, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 2.0f);
-	
+
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD2, KM_PRESS, 0, 0)->ptr, "ratio", 0.5f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
 	RNA_float_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_view_zoom_ratio", PAD8, KM_PRESS, 0, 0)->ptr, "ratio", 0.125f);
 #endif
+
+	/* sample */
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_sample", ACTIONMOUSE, KM_PRESS, 0, 0);
 }
 
 void ED_operatormacros_sequencer(void)

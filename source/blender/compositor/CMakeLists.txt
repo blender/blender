@@ -284,8 +284,12 @@ set(SRC
 
 	nodes/COM_FilterNode.cpp
 	nodes/COM_FilterNode.h
+	nodes/COM_DespeckleNode.cpp
+	nodes/COM_DespeckleNode.h
 	nodes/COM_DilateErodeNode.cpp
 	nodes/COM_DilateErodeNode.h
+	nodes/COM_InpaintNode.cpp
+	nodes/COM_InpaintNode.h
 	nodes/COM_BlurNode.cpp
 	nodes/COM_BlurNode.h
 	nodes/COM_BokehBlurNode.cpp
@@ -337,6 +341,11 @@ set(SRC
 	nodes/COM_KeyingScreenNode.h
 	operations/COM_KeyingScreenOperation.cpp
 	operations/COM_KeyingScreenOperation.h
+
+	nodes/COM_TrackPositionNode.cpp
+	nodes/COM_TrackPositionNode.h
+	operations/COM_TrackPositionOperation.cpp
+	operations/COM_TrackPositionOperation.h
 
 	nodes/COM_KeyingNode.cpp
 	nodes/COM_KeyingNode.h
@@ -466,8 +475,10 @@ set(SRC
 	operations/COM_DifferenceMatteOperation.h
 	operations/COM_LuminanceMatteOperation.cpp
 	operations/COM_LuminanceMatteOperation.h
-	operations/COM_DistanceMatteOperation.cpp
-	operations/COM_DistanceMatteOperation.h
+	operations/COM_DistanceRGBMatteOperation.cpp
+	operations/COM_DistanceRGBMatteOperation.h
+	operations/COM_DistanceYCCMatteOperation.cpp
+	operations/COM_DistanceYCCMatteOperation.h
 	operations/COM_ChromaMatteOperation.cpp
 	operations/COM_ChromaMatteOperation.h
 	operations/COM_ColorMatteOperation.cpp
@@ -583,8 +594,12 @@ set(SRC
 	operations/COM_ConvolutionFilterOperation.cpp
 	operations/COM_ConvolutionEdgeFilterOperation.h
 	operations/COM_ConvolutionEdgeFilterOperation.cpp
+	operations/COM_DespeckleOperation.cpp
+	operations/COM_DespeckleOperation.h
 	operations/COM_DilateErodeOperation.cpp
 	operations/COM_DilateErodeOperation.h
+	operations/COM_InpaintOperation.cpp
+	operations/COM_InpaintOperation.h
 	operations/COM_GlareThresholdOperation.cpp
 	operations/COM_GlareThresholdOperation.h
 	operations/COM_GlareBaseOperation.cpp
@@ -630,5 +645,11 @@ set(SRC
 	operations/COM_MaskOperation.cpp
 	operations/COM_MaskOperation.h
 )
+
+list(APPEND INC
+	${CMAKE_CURRENT_BINARY_DIR}/operations
+)
+data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/operations/COM_OpenCLKernels.cl
+          ${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h SRC)
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}")

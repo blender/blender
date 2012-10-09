@@ -48,11 +48,14 @@
 #include "BLI_utildefines.h"
 
 /* UNUSED */
-#include "BKE_text.h" /* txt_to_buf */	
+#include "BKE_text.h"  /* txt_to_buf */
 #include "BKE_main.h"
 
 static Main *bpy_import_main = NULL;
 static ListBase bpy_import_main_list;
+
+static PyMethodDef bpy_import_meth;
+static PyMethodDef bpy_reload_meth;
 
 /* 'builtins' is most likely PyEval_GetBuiltins() */
 void bpy_import_init(PyObject *builtins)
@@ -154,7 +157,8 @@ PyObject *bpy_text_import_name(const char *name, int *found)
 	}
 
 	/* we know this cant be importable, the name is too long for blender! */
-	if (namelen >= (MAX_ID_NAME - 2) - 3) return NULL;
+	if (namelen >= (MAX_ID_NAME - 2) - 3)
+		return NULL;
 
 	memcpy(txtname, name, namelen);
 	memcpy(&txtname[namelen], ".py", 4);
@@ -287,7 +291,7 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	}
 	else {
 		/* no blender text was found that could import the module
-		 * rause the original error from PyImport_ImportModuleEx */
+		 * reuse the original error from PyImport_ImportModuleEx */
 		PyErr_Restore(exception, err, tb);
 	}
 	return newmodule;
@@ -335,5 +339,5 @@ static PyObject *blender_reload(PyObject *UNUSED(self), PyObject *module)
 	return newmodule;
 }
 
-PyMethodDef bpy_import_meth = {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"};
-PyMethodDef bpy_reload_meth = {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"};
+static PyMethodDef bpy_import_meth = {"bpy_import_meth", (PyCFunction)blender_import, METH_VARARGS | METH_KEYWORDS, "blenders import"};
+static PyMethodDef bpy_reload_meth = {"bpy_reload_meth", (PyCFunction)blender_reload, METH_O, "blenders reload"};

@@ -38,6 +38,7 @@ set(INC_SYS
 )
 
 set(SRC
+	internal/ceres/array_utils.cc
 	internal/ceres/block_evaluate_preparer.cc
 	internal/ceres/block_jacobian_writer.cc
 	internal/ceres/block_jacobi_preconditioner.cc
@@ -53,16 +54,19 @@ set(SRC
 	internal/ceres/conditioned_cost_function.cc
 	internal/ceres/conjugate_gradients_solver.cc
 	internal/ceres/corrector.cc
+	internal/ceres/cxsparse.cc
+	internal/ceres/dense_normal_cholesky_solver.cc
 	internal/ceres/dense_qr_solver.cc
 	internal/ceres/dense_sparse_matrix.cc
 	internal/ceres/detect_structure.cc
+	internal/ceres/dogleg_strategy.cc
 	internal/ceres/evaluator.cc
 	internal/ceres/file.cc
 	internal/ceres/generated/schur_eliminator_d_d_d.cc
 	internal/ceres/gradient_checking_cost_function.cc
 	internal/ceres/implicit_schur_complement.cc
 	internal/ceres/iterative_schur_complement_solver.cc
-	internal/ceres/levenberg_marquardt.cc
+	internal/ceres/levenberg_marquardt_strategy.cc
 	internal/ceres/linear_least_squares_problems.cc
 	internal/ceres/linear_operator.cc
 	internal/ceres/linear_solver.cc
@@ -70,6 +74,7 @@ set(SRC
 	internal/ceres/loss_function.cc
 	internal/ceres/normal_prior.cc
 	internal/ceres/partitioned_matrix_view.cc
+	internal/ceres/polynomial_solver.cc
 	internal/ceres/problem.cc
 	internal/ceres/problem_impl.cc
 	internal/ceres/program.cc
@@ -88,6 +93,8 @@ set(SRC
 	internal/ceres/stringprintf.cc
 	internal/ceres/suitesparse.cc
 	internal/ceres/triplet_sparse_matrix.cc
+	internal/ceres/trust_region_minimizer.cc
+	internal/ceres/trust_region_strategy.cc
 	internal/ceres/types.cc
 	internal/ceres/visibility_based_preconditioner.cc
 	internal/ceres/visibility.cc
@@ -96,6 +103,8 @@ set(SRC
 	include/ceres/ceres.h
 	include/ceres/conditioned_cost_function.h
 	include/ceres/cost_function.h
+	include/ceres/crs_matrix.h
+	include/ceres/fpclassify.h
 	include/ceres/internal/autodiff.h
 	include/ceres/internal/eigen.h
 	include/ceres/internal/fixed_array.h
@@ -114,6 +123,7 @@ set(SRC
 	include/ceres/sized_cost_function.h
 	include/ceres/solver.h
 	include/ceres/types.h
+	internal/ceres/array_utils.h
 	internal/ceres/block_evaluate_preparer.h
 	internal/ceres/block_jacobian_writer.h
 	internal/ceres/block_jacobi_preconditioner.h
@@ -131,10 +141,13 @@ set(SRC
 	internal/ceres/compressed_row_sparse_matrix.h
 	internal/ceres/conjugate_gradients_solver.h
 	internal/ceres/corrector.h
+	internal/ceres/cxsparse.h
 	internal/ceres/dense_jacobian_writer.h
+	internal/ceres/dense_normal_cholesky_solver.h
 	internal/ceres/dense_qr_solver.h
 	internal/ceres/dense_sparse_matrix.h
 	internal/ceres/detect_structure.h
+	internal/ceres/dogleg_strategy.h
 	internal/ceres/evaluator.h
 	internal/ceres/file.h
 	internal/ceres/gradient_checking_cost_function.h
@@ -143,7 +156,7 @@ set(SRC
 	internal/ceres/implicit_schur_complement.h
 	internal/ceres/integral_types.h
 	internal/ceres/iterative_schur_complement_solver.h
-	internal/ceres/levenberg_marquardt.h
+	internal/ceres/levenberg_marquardt_strategy.h
 	internal/ceres/linear_least_squares_problems.h
 	internal/ceres/linear_operator.h
 	internal/ceres/linear_solver.h
@@ -153,6 +166,7 @@ set(SRC
 	internal/ceres/mutex.h
 	internal/ceres/parameter_block.h
 	internal/ceres/partitioned_matrix_view.h
+	internal/ceres/polynomial_solver.h
 	internal/ceres/problem_impl.h
 	internal/ceres/program_evaluator.h
 	internal/ceres/program.h
@@ -168,10 +182,13 @@ set(SRC
 	internal/ceres/solver_impl.h
 	internal/ceres/sparse_matrix.h
 	internal/ceres/sparse_normal_cholesky_solver.h
+	internal/ceres/split.h
 	internal/ceres/stl_util.h
 	internal/ceres/stringprintf.h
 	internal/ceres/suitesparse.h
 	internal/ceres/triplet_sparse_matrix.h
+	internal/ceres/trust_region_minimizer.h
+	internal/ceres/trust_region_strategy.h
 	internal/ceres/visibility_based_preconditioner.h
 	internal/ceres/visibility.h
 )
@@ -203,7 +220,7 @@ if(WIN32)
 
 	if(NOT MINGW)
 		list(APPEND INC
-			third_party/msinttypes
+			../msinttypes
 		)
 	endif()
 else()
@@ -214,11 +231,30 @@ endif()
 
 add_definitions(
 	-DCERES_HAVE_PTHREAD
-	-D"CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {"
-	-D"CERES_HASH_NAMESPACE_END=}}"
 	-DCERES_NO_SUITESPARSE
-	-DCERES_DONT_HAVE_PROTOCOL_BUFFERS
+	-DCERES_NO_CXSPARSE
+	-DCERES_NO_PROTOCOL_BUFFERS
 	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
 )
+
+if(MSVC10)
+	add_definitions(
+		-D"CERES_HASH_NAMESPACE_START=namespace std {"
+		-D"CERES_HASH_NAMESPACE_END=}"
+	)
+else()
+	add_definitions(
+		-D"CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {"
+		-D"CERES_HASH_NAMESPACE_END=}}"
+	)
+endif()
+
+if(APPLE)
+	if(CMAKE_OSX_DEPLOYMENT_TARGET STREQUAL "10.5")
+		add_definitions(
+			-DCERES_NO_TR1
+		)
+	endif()
+endif()
 
 blender_add_lib(extern_ceres "${SRC}" "${INC}" "${INC_SYS}")

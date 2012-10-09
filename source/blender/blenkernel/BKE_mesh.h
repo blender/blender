@@ -88,8 +88,8 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
                             struct CustomData *pdata, int totface, int totloop, int totpoly);
 
 /*calculates a face normal.*/
-void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 
-                           struct MVert *mvarray, float no[3]);
+void BKE_mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart,
+                               struct MVert *mvarray, float no[3]);
 
 void BKE_mesh_calc_poly_normal_coords(struct MPoly *mpoly, struct MLoop *loopstart,
                                       const float (*vertex_coords)[3], float no[3]);
@@ -98,7 +98,7 @@ void BKE_mesh_calc_poly_center(struct MPoly *mpoly, struct MLoop *loopstart,
                                struct MVert *mvarray, float cent[3]);
 
 float BKE_mesh_calc_poly_area(struct MPoly *mpoly, struct MLoop *loopstart,
-                              struct MVert *mvarray, float polynormal[3]);
+                              struct MVert *mvarray, const float polynormal[3]);
 
 /* Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found */
@@ -141,10 +141,15 @@ void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
 int  BKE_mesh_nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *totvert,
                              struct MEdge **alledge, int *totedge, struct MLoop **allloop, struct MPoly **allpoly,
                              int *totloop, int *totpoly);
-int BKE_mesh_nurbs_to_mdata_customdb(struct Object *ob, struct ListBase *dispbase, struct MVert **allvert, int *_totvert,
+int BKE_mesh_nurbs_displist_to_mdata(struct Object *ob, struct ListBase *dispbase, struct MVert **allvert, int *_totvert,
                                      struct MEdge **alledge, int *_totedge, struct MLoop **allloop, struct MPoly **allpoly,
-                                     int *_totloop, int *_totpoly);
+                                     int *_totloop, int *_totpoly, int **orco_index_ptr);
+void BKE_mesh_nurbs_to_mdata_orco(struct MPoly *mpoly, int totpoly,
+                                  struct MLoop *mloops, struct MLoopUV *mloopuvs,
+                                  float (*orco)[3], int (*orco_index)[4]);
 void BKE_mesh_from_nurbs(struct Object *ob);
+void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase,
+                                  int **orco_index_ptr);
 void BKE_mesh_from_curve(struct Scene *scene, struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
@@ -156,8 +161,8 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(struct ID *id,
                                           struct CustomData *fdata, struct CustomData *ldata, struct CustomData *pdata,
                                           int totedge_i, int totface_i, int totloop_i, int totpoly_i,
                                           struct MEdge *medge, struct MFace *mface,
-										  int *totloop_r, int *totpoly_r,
-										  struct MLoop **mloop_r, struct MPoly **mpoly_r);
+                                          int *totloop_r, int *totpoly_r,
+                                          struct MLoop **mloop_r, struct MPoly **mpoly_r);
 
 void BKE_mesh_calc_normals_tessface(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float (*faceNors_r)[3]);
 

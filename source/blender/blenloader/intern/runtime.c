@@ -50,7 +50,6 @@
 
 #include "BKE_blender.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 

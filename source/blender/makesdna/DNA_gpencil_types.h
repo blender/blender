@@ -141,16 +141,16 @@ typedef struct bGPdata {
 } bGPdata;
 
 /* bGPdata->flag */
-// XXX many of these flags should be depreceated for more general ideas in 2.5
+// XXX many of these flags should be deprecated for more general ideas in 2.5
 	/* don't allow painting to occur at all */
-	// XXX is depreceated - not well understood
+	// XXX is deprecated - not well understood
 #define GP_DATA_LMBPLOCK	(1<<0)
 	/* show debugging info in viewport (i.e. status print) */
 #define GP_DATA_DISPINFO	(1<<1)
 	/* in Action Editor, show as expanded channel */
 #define GP_DATA_EXPAND		(1<<2)
 	/* is the block overriding all clicks? */
-	// XXX is depreceated - nasty old concept
+	// XXX is deprecated - nasty old concept
 #define GP_DATA_EDITPAINT	(1<<3)
 	/* new strokes are added in viewport space */
 #define GP_DATA_VIEWALIGN	(1<<4)

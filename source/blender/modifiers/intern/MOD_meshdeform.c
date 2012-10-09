@@ -104,9 +104,9 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 }
 
 static void foreachObjectLink(
-    ModifierData *md, Object *ob,
-    void (*walk)(void *userData, Object *ob, Object **obpoin),
-    void *userData)
+        ModifierData *md, Object *ob,
+        void (*walk)(void *userData, Object *ob, Object **obpoin),
+        void *userData)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
 
@@ -182,8 +182,8 @@ static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3
 }
 
 static void meshdeformModifier_do(
-    ModifierData *md, Object *ob, DerivedMesh *dm,
-    float (*vertexCos)[3], int numVerts)
+        ModifierData *md, Object *ob, DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
 	struct Mesh *me = (mmd->object) ? mmd->object->data : NULL;
@@ -274,7 +274,7 @@ static void meshdeformModifier_do(
 		/* get cage vertex in world space with binding transform */
 		copy_v3_v3(co, cagecos[a]);
 
-		if (G.rt != 527) {
+		if (G.debug_value != 527) {
 			mul_m4_v3(mmd->bindmat, co);
 			/* compute difference with world space bind coord */
 			sub_v3_v3v3(dco[a], co, bindcagecos[a]);
@@ -324,7 +324,7 @@ static void meshdeformModifier_do(
 		if (totweight > 0.0f) {
 			mul_v3_fl(co, fac / totweight);
 			mul_m3_v3(icagemat, co);
-			if (G.rt != 527)
+			if (G.debug_value != 527)
 				add_v3_v3(vertexCos[b], co);
 			else
 				copy_v3_v3(vertexCos[b], co);

@@ -92,10 +92,9 @@
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_property.h" // for get_ob_property
+#include "BKE_property.h" // for BKE_bproperty_object_get
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 
 #include "IMB_imbuf.h"  // for proxy / timecode versioning stuff
 
@@ -388,8 +387,6 @@ static void customdata_version_242(Mesh *me)
 	if (!me->vdata.totlayer) {
 		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, me->mvert, me->totvert);
 
-		if (me->msticky)
-			CustomData_add_layer(&me->vdata, CD_MSTICKY, CD_ASSIGN, me->msticky, me->totvert);
 		if (me->dvert)
 			CustomData_add_layer(&me->vdata, CD_MDEFORMVERT, CD_ASSIGN, me->dvert, me->totvert);
 	}
@@ -569,7 +566,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		/* tex->extend and tex->imageflag have changed: */
 		Tex *tex = main->tex.first;
 		while (tex) {
-			if (tex->id.flag & LIB_NEEDLINK) {
+			if (tex->id.flag & LIB_NEED_LINK) {
 
 				if (tex->extend == 0) {
 					if (tex->xrepeat || tex->yrepeat) {
@@ -946,7 +943,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			while (act) {
 				if (act->type == ACT_IPO) {
 					ia = act->data;
-					prop = get_ob_property(ob, ia->name);
+					prop = BKE_bproperty_object_get(ob, ia->name);
 					if (prop) {
 						ia->type = ACT_IPO_FROM_PROP;
 					}
@@ -1141,7 +1138,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile <= 212) {
-		bSound* sound;
+		bSound *sound;
 		bProperty *prop;
 		Object *ob;
 		Mesh *me;
@@ -1307,7 +1304,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile <= 224) {
-		bSound* sound;
+		bSound *sound;
 		Scene *sce;
 		Mesh *me;
 		bScreen *sc;
@@ -3107,7 +3104,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				part->id.lib = ob->id.lib;
 
 				part->id.us--;
-				part->id.flag |= (ob->id.flag & LIB_NEEDLINK);
+				part->id.flag |= (ob->id.flag & LIB_NEED_LINK);
 
 				psys->totpart = 0;
 				psys->flag = PSYS_ENABLED|PSYS_CURRENT;

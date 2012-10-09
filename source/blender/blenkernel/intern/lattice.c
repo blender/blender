@@ -29,8 +29,6 @@
  *  \ingroup bke
  */
 
-
-
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -65,7 +63,6 @@
 
 #include "BKE_deform.h"
 
-//XXX #include "BIF_editdeform.h"
 
 void calc_lat_fudu(int flag, int res, float *fu, float *du)
 {
@@ -491,7 +488,7 @@ static int where_on_path_deform(Object *ob, float ctime, float vec[4], float dir
 	/* test for cyclic */
 	bl = cu->bev.first;
 	if (!bl->nr) return 0;
-	if (bl && bl->poly > -1) cycl = 1;
+	if (bl->poly > -1) cycl = 1;
 
 	if (cycl == 0) {
 		ctime1 = CLAMPIS(ctime, 0.0f, 1.0f);
@@ -882,9 +879,10 @@ void outside_lattice(Lattice *lt)
 			for (v = 0; v < lt->pntsv; v++) {
 			
 				for (u = 0; u < lt->pntsu; u++, bp++) {
-					if (u == 0 || v == 0 || w == 0 || u == lt->pntsu - 1 || v == lt->pntsv - 1 || w == lt->pntsw - 1) ;
+					if (u == 0 || v == 0 || w == 0 || u == lt->pntsu - 1 || v == lt->pntsv - 1 || w == lt->pntsw - 1) {
+						/* pass */
+					}
 					else {
-					
 						bp->hide = 1;
 						bp->f1 &= ~SELECT;
 						

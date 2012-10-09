@@ -1,0 +1,50 @@
+diff --git a/internal/ceres/block_random_access_dense_matrix.cc b/internal/ceres/block_random_access_dense_matrix.cc
+index aedfc74..0f95e89 100644
+--- a/internal/ceres/block_random_access_dense_matrix.cc
++++ b/internal/ceres/block_random_access_dense_matrix.cc
+@@ -28,12 +28,12 @@
+ //
+ // Author: sameeragarwal@google.com (Sameer Agarwal)
+ 
++#include "glog/logging.h"
+ #include "ceres/block_random_access_dense_matrix.h"
+ 
+ #include <vector>
+ #include "ceres/internal/eigen.h"
+ #include "ceres/internal/scoped_ptr.h"
+-#include "glog/logging.h"
+ 
+ namespace ceres {
+ namespace internal {
+diff --git a/internal/ceres/block_random_access_sparse_matrix.cc b/internal/ceres/block_random_access_sparse_matrix.cc
+index f789436..9ed62ce 100644
+--- a/internal/ceres/block_random_access_sparse_matrix.cc
++++ b/internal/ceres/block_random_access_sparse_matrix.cc
+@@ -28,6 +28,7 @@
+ //
+ // Author: sameeragarwal@google.com (Sameer Agarwal)
+ 
++#include "glog/logging.h"
+ #include "ceres/block_random_access_sparse_matrix.h"
+ 
+ #include <algorithm>
+@@ -39,7 +40,6 @@
+ #include "ceres/mutex.h"
+ #include "ceres/triplet_sparse_matrix.h"
+ #include "ceres/types.h"
+-#include "glog/logging.h"
+ 
+ namespace ceres {
+ namespace internal {
+diff --git a/internal/ceres/schur_complement_solver.cc b/internal/ceres/schur_complement_solver.cc
+index b9224d8..2cbe78d 100644
+--- a/internal/ceres/schur_complement_solver.cc
++++ b/internal/ceres/schur_complement_solver.cc
+@@ -38,6 +38,7 @@
+ #endif  // CERES_NO_CXSPARSE
+ 
+ #include "Eigen/Dense"
++#include "glog/logging.h"
+ #include "ceres/block_random_access_dense_matrix.h"
+ #include "ceres/block_random_access_matrix.h"
+ #include "ceres/block_random_access_sparse_matrix.h"

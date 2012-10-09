@@ -51,6 +51,7 @@ class CONSOLE_MT_console(Menu):
 
         layout.separator()
 
+        layout.operator("console.copy_as_script")
         layout.operator("console.copy")
         layout.operator("console.paste")
         layout.menu("CONSOLE_MT_language")
@@ -74,7 +75,7 @@ class CONSOLE_MT_language(Menu):
         languages = []
         for modname, mod in sys.modules.items():
             if modname.startswith("console_") and hasattr(mod, "execute"):
-                languages.append(modname.split('_', 1)[-1])
+                languages.append(modname.split("_", 1)[-1])
 
         languages.sort()
 
@@ -83,9 +84,9 @@ class CONSOLE_MT_language(Menu):
 
 
 def add_scrollback(text, text_type):
-    for l in text.split('\n'):
+    for l in text.split("\n"):
         bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
-            type=text_type)
+                                          type=text_type)
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

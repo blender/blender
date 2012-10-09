@@ -45,7 +45,8 @@ static float noise3_perlin(float vec[3]);
 //static float turbulence_perlin(float *point, float lofreq, float hifreq);
 //static float turbulencep(float noisesize, float x, float y, float z, int nr);
 
-#define HASHVEC(x, y, z) hashvectf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
+/* UNUSED */
+// #define HASHVEC(x, y, z) hashvectf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
 
 /* needed for voronoi */
 #define HASHPNT(x, y, z) hashpntf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
@@ -282,8 +283,8 @@ static float npfade(float t)
 
 static float grad(int hash, float x, float y, float z)
 {
-	int h = hash & 15;                     // CONVERT LO 4 BITS OF HASH CODE
-	float u = h < 8 ? x : y,                 // INTO 12 GRADIENT DIRECTIONS.
+	int h = hash & 15;                     /* CONVERT LO 4 BITS OF HASH CODE */
+	float u = h < 8 ? x : y,               /* INTO 12 GRADIENT DIRECTIONS. */
 	      v = h < 4 ? y : h == 12 || h == 14 ? x : z;
 	return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
@@ -293,21 +294,21 @@ static float newPerlin(float x, float y, float z)
 {
 	int A, AA, AB, B, BA, BB;
 	float u = floor(x), v = floor(y), w = floor(z);
-	int X = ((int)u) & 255, Y = ((int)v) & 255, Z = ((int)w) & 255;   // FIND UNIT CUBE THAT CONTAINS POINT
-	x -= u;             // FIND RELATIVE X,Y,Z
-	y -= v;             // OF POINT IN CUBE.
+	int X = ((int)u) & 255, Y = ((int)v) & 255, Z = ((int)w) & 255;   /* FIND UNIT CUBE THAT CONTAINS POINT */
+	x -= u;             /* FIND RELATIVE X,Y,Z */
+	y -= v;             /* OF POINT IN CUBE. */
 	z -= w;
-	u = npfade(x);      // COMPUTE FADE CURVES
-	v = npfade(y);      // FOR EACH OF X,Y,Z.
+	u = npfade(x);      /* COMPUTE FADE CURVES */
+	v = npfade(y);      /* FOR EACH OF X,Y,Z. */
 	w = npfade(z);
-	A = hash[X  ]+Y;  AA = hash[A]+Z;  AB = hash[A+1]+Z;      // HASH COORDINATES OF
-	B = hash[X+1]+Y;  BA = hash[B]+Z;  BB = hash[B+1]+Z;      // THE 8 CUBE CORNERS,
-	return lerp(w, lerp(v, lerp(u, grad(hash[AA   ],  x,     y,     z    ),   // AND ADD
-	                               grad(hash[BA   ],  x - 1, y,     z    )),  // BLENDED
-	                       lerp(u, grad(hash[AB   ],  x,     y - 1, z    ),   // RESULTS
-	                               grad(hash[BB   ],  x - 1, y - 1, z    ))), // FROM  8
-	               lerp(v, lerp(u, grad(hash[AA + 1], x,     y,     z - 1),   // CORNERS
-	                               grad(hash[BA + 1], x - 1, y,     z - 1)),  // OF CUBE
+	A = hash[X  ]+Y;  AA = hash[A]+Z;  AB = hash[A+1]+Z;      /* HASH COORDINATES OF */
+	B = hash[X+1]+Y;  BA = hash[B]+Z;  BB = hash[B+1]+Z;      /* THE 8 CUBE CORNERS, */
+	return lerp(w, lerp(v, lerp(u, grad(hash[AA   ],  x,     y,     z    ),   /* AND ADD */
+	                               grad(hash[BA   ],  x - 1, y,     z    )),  /* BLENDED */
+	                       lerp(u, grad(hash[AB   ],  x,     y - 1, z    ),   /* RESULTS */
+	                               grad(hash[BB   ],  x - 1, y - 1, z    ))), /* FROM  8 */
+	               lerp(v, lerp(u, grad(hash[AA + 1], x,     y,     z - 1),   /* CORNERS */
+	                               grad(hash[BA + 1], x - 1, y,     z - 1)),  /* OF CUBE */
 	                       lerp(u, grad(hash[AB + 1], x,     y - 1, z - 1),
 	                               grad(hash[BB + 1], x - 1, y - 1, z - 1))));
 }
@@ -1130,7 +1131,7 @@ static float turbulencep(float noisesize, float x, float y, float z, int nr)
 /* VORONOI/WORLEY */
 /******************/
 
-/* distance metrics for voronoi, e parameter only used in Minkovsky */
+/* distance metrics for voronoi, e parameter only used in Minkowski */
 /* Camberra omitted, didn't seem useful */
 
 /* distance squared */
@@ -1161,7 +1162,7 @@ static float dist_Chebychev(float x, float y, float z, float e)
 	return ((z > t) ? z : t);
 }
 
-/* minkovsky preset exponent 0.5 */
+/* minkowski preset exponent 0.5 */
 static float dist_MinkovskyH(float x, float y, float z, float e)
 {
 	float d = sqrtf(fabsf(x)) + sqrtf(fabsf(y)) + sqrtf(fabsf(z));
@@ -1169,7 +1170,7 @@ static float dist_MinkovskyH(float x, float y, float z, float e)
 	return (d * d);
 }
 
-/* minkovsky preset exponent 4 */
+/* minkowski preset exponent 4 */
 static float dist_Minkovsky4(float x, float y, float z, float e)
 {
 	(void)e;
@@ -1179,7 +1180,7 @@ static float dist_Minkovsky4(float x, float y, float z, float e)
 	return sqrtf(sqrtf(x * x + y * y + z * z));
 }
 
-/* Minkovsky, general case, slow, maybe too slow to be useful */
+/* Minkowski, general case, slow, maybe too slow to be useful */
 static float dist_Minkovsky(float x, float y, float z, float e)
 {
 	return powf(powf(fabsf(x), e) + powf(fabsf(y), e) + powf(fabsf(z), e), 1.0f / e);

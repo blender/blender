@@ -81,11 +81,9 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 
 		float *sourcebuffer = tsrc->getBuffer();
 		float factor = 1.f / (float)(6 - settings->iter);
-		for (int i = 0; i < size4; i++) {
-			data[i] += sourcebuffer[i] * factor;
-		}
-		for (int i = 0; i < size; i++) {
-			data[i * 4 + 3] = 1.0f;
+		for (int i = 0; i < size4; i += 4) {
+			madd_v3_v3fl(&data[i], &sourcebuffer[i], factor);
+			data[i + 3] =  1.0f;
 		}
 
 		tdst->clear();

@@ -73,4 +73,4 @@ set(SRC
 	intern/TNT/version.h
 )
 
-blender_add_lib(bf_intern_ik "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_iksolver "${SRC}" "${INC}" "${INC_SYS}")

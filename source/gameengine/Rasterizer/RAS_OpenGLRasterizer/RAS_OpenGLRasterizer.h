@@ -278,7 +278,7 @@ public:
 		line.m_type = OglDebugShape::CIRCLE;
 		line.m_pos= center;
 		line.m_param = normal;
-		line.m_color = color;	
+		line.m_color = color;
 		line.m_param2.x() = radius;
 		line.m_param2.y() = (float) nsector;
 		m_debugShapes.push_back(line);
@@ -302,9 +302,9 @@ public:
 	virtual int		GetMotionBlurState() { return m_motionblur; }
 	virtual void	SetMotionBlurState(int newstate)
 	{
-		if(newstate<0) 
+		if (newstate < 0)
 			m_motionblur = 0;
-		else if(newstate>2)
+		else if (newstate > 2)
 			m_motionblur = 2;
 		else 
 			m_motionblur = newstate;

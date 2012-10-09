@@ -45,6 +45,8 @@ static bNodeSocketTemplate cmp_node_color_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_color_key(bNode *node, float *out, float *in)
 {
 	float h_wrap;
@@ -112,7 +114,9 @@ static void node_composit_exec_color_matte(void *data, bNode *node, bNodeStack *
 		free_compbuf(cbuf);
 }
 
-static void node_composit_init_color_matte(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_color_matte(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node color");
 	node->storage= c;
@@ -132,7 +136,9 @@ void register_node_type_cmp_color_matte(bNodeTreeType *ttype)
 	node_type_size(&ntype, 200, 80, 300);
 	node_type_init(&ntype, node_composit_init_color_matte);
 	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_color_matte);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -21,6 +21,7 @@
 
 #include "kernel_types.h"
 
+#include "util_attribute.h"
 #include "util_list.h"
 #include "util_param.h"
 #include "util_types.h"
@@ -71,7 +72,6 @@ public:
 	const float *data_float() const { return (float*)data(); }
 
 	static bool same_storage(TypeDesc a, TypeDesc b);
-	static ustring standard_name(AttributeStandard std);
 };
 
 /* Attribute Set

@@ -57,7 +57,7 @@ static void valtorgb_exec(void *data, bNode *node, bNodeStack **in, bNodeStack *
 	tex_output(node, in, out[0], &valtorgb_colorfn, data);
 }
 
-static void valtorgb_init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void valtorgb_init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage = add_colorband(1);
 }

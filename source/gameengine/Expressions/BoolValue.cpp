@@ -139,7 +139,7 @@ this object
 			default:
 				{
 					ret =  new CErrorValue(val->GetText() + op2str(op) +
-						"[operator not allowed on booleans]");
+					                       "[operator not allowed on booleans]");
 					break;
 				}
 			}
@@ -205,7 +205,7 @@ CValue* CBoolValue::GetReplica()
 }
 
 #ifdef WITH_PYTHON
-PyObject* CBoolValue::ConvertValueToPython()
+PyObject *CBoolValue::ConvertValueToPython()
 {
 	return PyBool_FromLong(m_bool != 0);
 }

@@ -30,16 +30,16 @@ class GaussianBokehBlurOperation : public BlurBaseOperation {
 private:
 	float *m_gausstab;
 	int m_radx, m_rady;
-	void updateGauss(MemoryBuffer **memoryBuffers);
+	void updateGauss();
 
 public:
 	GaussianBokehBlurOperation();
 	void initExecution();
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	/**
 	 * Deinitialize the execution
@@ -48,4 +48,32 @@ public:
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
+
+class GaussianBlurReferenceOperation : public BlurBaseOperation {
+private:
+	float **m_maintabs;
+	
+	void updateGauss();
+	int m_radx;
+	int m_rady;
+	float m_radxf;
+	float m_radyf;
+
+public:
+	GaussianBlurReferenceOperation();
+	void initExecution();
+	void *initializeTileData(rcti *rect);
+	/**
+	 * the inner loop of this program
+	 */
+	void executePixel(float output[4], int x, int y, void *data);
+	
+	/**
+	 * Deinitialize the execution
+	 */
+	void deinitExecution();
+	
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+};
+
 #endif

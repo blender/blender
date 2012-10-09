@@ -203,7 +203,7 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 		elbeemSimplifyChannelFloat(channel, &channelSize);
 	}
 	else {
-		// invalid, cant happen?
+		/* invalid, cant happen? */
 	}
 
 	fprintf(file, "      CHANNEL %s =\n", str);
@@ -651,16 +651,16 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	FluidsimSettings *domainSettings= fluidmd->fss;	
 	FILE *fileCfg;
 	int dirExist = 0;
-	char newSurfdataPath[FILE_MAX]; // modified output settings
+	char newSurfdataPath[FILE_MAX]; /* modified output settings */
 	const char *suffixConfigTmp = FLUID_SUFFIX_CONFIG_TMP;
 	int outStringsChanged = 0;
 
-	// prepare names...
+	/* prepare names... */
 	const char *relbase= modifier_path_relbase(fsDomain);
 
 	BLI_strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
 	BLI_strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR); /* if 0'd out below, this value is never used! */
-	BLI_path_abs(targetDir, relbase); // fixed #frame-no
+	BLI_path_abs(targetDir, relbase); /* fixed #frame-no */
 
 	/* .tmp: don't overwrite/delete original file */
 	BLI_join_dirfile(targetFile, FILE_MAX, targetDir, suffixConfigTmp);
@@ -695,21 +695,21 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		outStringsChanged=1;
 	}
 	
-	// check if modified output dir is ok
+	/* check if modified output dir is ok */
 #if 0
 	if (outStringsChanged) {
 		char dispmsg[FILE_MAX+256];
 		int  selection=0;
 		BLI_strncpy(dispmsg, "Output settings set to: '", sizeof(dispmsg));
 		strcat(dispmsg, newSurfdataPath);
-		strcat(dispmsg, "'%t|Continue with changed settings%x1|Discard and abort%x0");
+		strcat(dispmsg, "'%t|Continue with changed settings %x1|Discard and abort %x0");
 		
-		// ask user if thats what he/she wants...
+		/* ask user if thats what he/she wants... */
 		selection = pupmenu(dispmsg);
-		if (selection<1) return 0; // 0 from menu, or -1 aborted
+		if (selection < 1) return 0; /* 0 from menu, or -1 aborted */
 		BLI_strncpy(targetDir, newSurfdataPath, sizeof(targetDir));
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
-		BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 
+		BLI_path_abs(targetDir, G.main->name); /* fixed #frame-no */
 	}
 #endif
 	return outStringsChanged;
@@ -745,7 +745,7 @@ static int fluidbake_breakjob(void *customdata)
 	/* this is not nice yet, need to make the jobs list template better 
 	 * for identifying/acting upon various different jobs */
 	/* but for now we'll reuse the render break... */
-	return (G.afbreek);
+	return (G.is_break);
 }
 
 /* called by fluidbake, wmJob sends notifier */
@@ -765,7 +765,7 @@ static void fluidbake_startjob(void *customdata, short *stop, short *do_update, 
 	fb->do_update = do_update;
 	fb->progress = progress;
 	
-	G.afbreek= 0;	/* XXX shared with render - replace with job 'stop' switch */
+	G.is_break = FALSE;  /* XXX shared with render - replace with job 'stop' switch */
 	
 	elbeemSimulate();
 	*do_update = TRUE;
@@ -782,7 +782,7 @@ static void fluidbake_endjob(void *customdata)
 	}
 }
 
-int runSimulationCallback(void *data, int status, int frame)
+static int runSimulationCallback(void *data, int status, int frame)
 {
 	FluidBakeJob *fb = (FluidBakeJob *)data;
 	elbeemSimulationSettings *settings = fb->settings;
@@ -913,7 +913,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 		return 0;
 	}
 	
-	/* these both have to be valid, otherwise we wouldnt be here */
+	/* these both have to be valid, otherwise we wouldn't be here */
 	fluidmd = (FluidsimModifierData *)modifiers_findByType(fsDomain, eModifierType_Fluidsim);
 	domainSettings = fluidmd->fss;
 	mesh = fsDomain->data;
@@ -1068,14 +1068,15 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	fb->settings = fsset;
 	
 	if (do_job) {
-		wmJob *steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Fluid Simulation", WM_JOB_PROGRESS);
+		wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Fluid Simulation",
+		                            WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_FLUID);
 
 		/* setup job */
-		WM_jobs_customdata(steve, fb, fluidbake_free);
-		WM_jobs_timer(steve, 0.1, NC_SCENE|ND_FRAME, NC_SCENE|ND_FRAME);
-		WM_jobs_callbacks(steve, fluidbake_startjob, NULL, NULL, fluidbake_endjob);
+		WM_jobs_customdata_set(wm_job, fb, fluidbake_free);
+		WM_jobs_timer(wm_job, 0.1, NC_SCENE|ND_FRAME, NC_SCENE|ND_FRAME);
+		WM_jobs_callbacks(wm_job, fluidbake_startjob, NULL, NULL, fluidbake_endjob);
 
-		WM_jobs_start(CTX_wm_manager(C), steve);
+		WM_jobs_start(CTX_wm_manager(C), wm_job);
 	}
 	else {
 		short dummy_stop, dummy_do_update;
@@ -1094,7 +1095,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	return 1;
 }
 
-void fluidsimFreeBake(Object *UNUSED(ob))
+static void UNUSED_FUNCTION(fluidsimFreeBake)(Object *UNUSED(ob))
 {
 	/* not implemented yet */
 }
@@ -1112,7 +1113,7 @@ void fluidsimSettingsFree(FluidsimSettings *UNUSED(fss))
 {
 }
 
-FluidsimSettings* fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
+FluidsimSettings *fluidsimSettingsCopy(FluidsimSettings *UNUSED(fss))
 {
 	return NULL;
 }
@@ -1130,7 +1131,7 @@ static int fluidsimBake(bContext *UNUSED(C), ReportList *UNUSED(reports), Object
 static int fluid_bake_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	/* only one bake job at a time */
-	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
+	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_OBJECT_SIM_FLUID))
 		return OPERATOR_CANCELLED;
 
 	if (!fluidsimBake(C, op->reports, CTX_data_active_object(C), TRUE))

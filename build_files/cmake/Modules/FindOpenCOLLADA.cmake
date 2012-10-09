@@ -81,6 +81,7 @@ FOREACH(COMPONENT ${_opencollada_FIND_INCLUDES})
       # Alternative would be to suffix all members of search path
       # but this is less trouble, just looks strange.
       include/opencollada/${COMPONENT}
+      include/${COMPONENT}/include
     HINTS
       ${_opencollada_SEARCH_DIRS}
     )

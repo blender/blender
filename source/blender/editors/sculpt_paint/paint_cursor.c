@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -294,7 +295,7 @@ static int project_brush_radius(ViewContext *vc,
 
 	ED_view3d_global_to_vector(vc->rv3d, location, view);
 
-	// create a vector that is not orthogonal to view
+	/* create a vector that is not orthogonal to view */
 
 	if (fabsf(view[0]) < 0.1f) {
 		nonortho[0] = view[0] + 1.0f;
@@ -312,20 +313,25 @@ static int project_brush_radius(ViewContext *vc,
 		nonortho[2] = view[2] + 1.0f;
 	}
 
-	// get a vector in the plane of the view
+	/* get a vector in the plane of the view */
 	cross_v3_v3v3(ortho, nonortho, view);
 	normalize_v3(ortho);
 
-	// make a point on the surface of the brush tagent to the view
+	/* make a point on the surface of the brush tagent to the view */
 	mul_v3_fl(ortho, radius);
 	add_v3_v3v3(offset, location, ortho);
 
-	// project the center of the brush, and the tangent point to the view onto the screen
-	project_float(vc->ar, location, p1);
-	project_float(vc->ar, offset, p2);
-
-	// the distance between these points is the size of the projected brush in pixels
-	return len_v2v2(p1, p2);
+	/* project the center of the brush, and the tangent point to the view onto the screen */
+	if ((ED_view3d_project_float_global(vc->ar, location, p1, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
+	    (ED_view3d_project_float_global(vc->ar, offset,   p2, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
+	{
+		/* the distance between these points is the size of the projected brush in pixels */
+		return len_v2v2(p1, p2);
+	}
+	else {
+		BLI_assert(0);  /* assert because the code that sets up the vectors should disallow this */
+		return 0;
+	}
 }
 
 static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
@@ -440,8 +446,8 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 		else {
 			quad.xmin = 0;
 			quad.ymin = 0;
-			quad.xmax = vc->ar->winrct.xmax - vc->ar->winrct.xmin;
-			quad.ymax = vc->ar->winrct.ymax - vc->ar->winrct.ymin;
+			quad.xmax = BLI_rcti_size_x(&vc->ar->winrct);
+			quad.ymax = BLI_rcti_size_y(&vc->ar->winrct);
 		}
 
 		/* set quad color */

@@ -316,10 +316,7 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	incl_handles = RNA_boolean_get(op->ptr, "include_handles");
 	
 	/* get settings from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 	
 	/* selection 'mode' depends on whether borderselect region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
@@ -328,7 +325,7 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
-		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))
+		if ((BLI_rcti_size_x(&rect)) >= (BLI_rcti_size_y(&rect)))
 			mode = BEZT_OK_FRAMERANGE;
 		else
 			mode = BEZT_OK_VALUERANGE;
@@ -848,6 +845,8 @@ static int graphkeys_select_leftright_invoke(bContext *C, wmOperator *op, wmEven
 
 void GRAPH_OT_select_leftright(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Select Left/Right";
 	ot->idname = "GRAPH_OT_select_leftright";
@@ -863,7 +862,10 @@ void GRAPH_OT_select_leftright(wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_graphkeys_leftright_select_types, GRAPHKEYS_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -940,7 +942,7 @@ static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fc
 			/* if there is already a point for the F-Curve, check if this point is closer than that was */
 			if ((nvi) && (nvi->fcu == fcu)) {
 				/* replace if we are closer, or if equal and that one wasn't selected but we are... */
-				if ( (nvi->dist > dist) || ((nvi->sel == 0) && BEZSELECTED(bezt)) )
+				if ((nvi->dist > dist) || ((nvi->sel == 0) && BEZSELECTED(bezt)))
 					replace = 1;
 			}
 			/* add new if not replacing... */
@@ -961,9 +963,9 @@ static void nearest_fcurve_vert_store(ListBase *matches, View2D *v2d, FCurve *fc
 		}
 	}
 	else if (fpt) {
-		// TODO...
+		/* TODO... */
 	}
-} 
+}
 
 /* helper for find_nearest_fcurve_vert() - build the list of nearest matches */
 static void get_nearest_fcurve_verts_list(bAnimContext *ac, const int mval[2], ListBase *matches)
@@ -1333,6 +1335,8 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
  
 void GRAPH_OT_clickselect(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Mouse Select Keys";
 	ot->idname = "GRAPH_OT_clickselect";
@@ -1342,10 +1346,17 @@ void GRAPH_OT_clickselect(wmOperatorType *ot)
 	ot->invoke = graphkeys_clickselect_invoke;
 	ot->poll = graphop_visible_keyframes_poll;
 	
-	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, "Column Select", "Select all keyframes that occur on the same frame as the one under the mouse"); // ALTKEY
-	RNA_def_boolean(ot->srna, "curves", 0, "Only Curves", "Select all the keyframes in the curve"); // CTRLKEY + ALTKEY
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "column", 0, "Column Select", 
+	                       "Select all keyframes that occur on the same frame as the one under the mouse"); // ALTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "curves", 0, "Only Curves", 
+	                       "Select all the keyframes in the curve"); // CTRLKEY + ALTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************************************************************************** */

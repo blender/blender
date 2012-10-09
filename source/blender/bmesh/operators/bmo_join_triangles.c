@@ -37,11 +37,6 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-/* Bitflags for edges */
-#define T2QDELETE	1
-#define T2QCOMPLEX	2
-#define T2QJOIN		4
-
 /* assumes edges are validated before reaching this poin */
 static float measure_facepair(BMVert *v1, BMVert *v2,
                               BMVert *v3, BMVert *v4, float limit)
@@ -110,93 +105,73 @@ static float measure_facepair(BMVert *v1, BMVert *v2,
 #define T2QUV_LIMIT 0.005f
 #define T2QCOL_LIMIT 3
 
-static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
+static int bm_edge_faces_cmp(BMesh *bm, BMEdge *e, const int do_uv, const int do_tf, const int do_vcol)
 {
-	MTexPoly *tp1, *tp2;
-	MLoopCol *lcol1, *lcol2, *lcol3, *lcol4;
-	MLoopUV *luv1, *luv2, *luv3, *luv4;
-	BMLoop *l1, *l2, *l3, *l4;
-	int mergeok_uvs = !douvs, mergeok_vcols = !dovcols;
+	/* first get loops */
+	BMLoop *l[4];
+
+	l[0] = e->l;
+	l[2] = e->l->radial_next;
 	
-	l1 = e->l;
-	l3 = e->l->radial_next;
-	
-	/* match up loops on each side of an edge corresponding to each ver */
-	if (l1->v == l3->v) {
-		l2 = l1->next;
-		l4 = l2->next;
+	/* match up loops on each side of an edge corresponding to each vert */
+	if (l[0]->v == l[2]->v) {
+		l[1] = l[0]->next;
+		l[3] = l[1]->next;
 	}
 	else {
-		l2 = l1->next;
+		l[1] = l[0]->next;
 
-		l4 = l3;
-		l3 = l4->next;
+		l[3] = l[2];
+		l[2] = l[3]->next;
 	}
 
-	lcol1 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPCOL);
-	lcol2 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPCOL);
-	lcol3 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPCOL);
-	lcol4 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPCOL);
+	/* Test UV's */
+	if (do_uv) {
+		const MLoopUV *luv[4] = {
+		    CustomData_bmesh_get(&bm->ldata, l[0]->head.data, CD_MLOOPUV),
+		    CustomData_bmesh_get(&bm->ldata, l[1]->head.data, CD_MLOOPUV),
+		    CustomData_bmesh_get(&bm->ldata, l[2]->head.data, CD_MLOOPUV),
+		    CustomData_bmesh_get(&bm->ldata, l[3]->head.data, CD_MLOOPUV),
+		};
 
-	luv1 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPUV);
-	luv2 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPUV);
-	luv3 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPUV);
-	luv4 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPUV);
-
-	tp1 = CustomData_bmesh_get(&bm->pdata, l1->f->head.data, CD_MTEXPOLY);
-	tp2 = CustomData_bmesh_get(&bm->pdata, l2->f->head.data, CD_MTEXPOLY);
-
-	if (!lcol1)
-		mergeok_vcols = 1;
-
-	if (!luv1)
-		mergeok_uvs = 1;
-
-	/* compare faceedges for each face attribute. Additional per face attributes can be added late */
-
-	/* do VCOL */
-	if (lcol1 && dovcols) {
-		char *cols[4] = {(char *)lcol1, (char *)lcol2, (char *)lcol3, (char *)lcol4};
-		int i;
-
-		for (i = 0; i < 3; i++) {
-			if (cols[0][i] + T2QCOL_LIMIT < cols[2][i] - T2QCOL_LIMIT)
-				break;
-			if (cols[1][i] + T2QCOL_LIMIT < cols[3][i] - T2QCOL_LIMIT)
-				break;
+		/* do UV */
+		if (luv[0] && (!compare_v2v2(luv[0]->uv, luv[2]->uv, T2QUV_LIMIT) ||
+		               !compare_v2v2(luv[1]->uv, luv[3]->uv, T2QUV_LIMIT)))
+		{
+			return FALSE;
 		}
-
-		if (i == 3)
-			mergeok_vcols = 1;
 	}
 
-	/* do UV */
-	if (luv1 && douvs) {
-		if (tp1->tpage != tp2->tpage) {
-			/* do nothing */
-		}
-		else {
-			int i;
+	if (do_tf) {
+		const MTexPoly *tp[2] = {
+		    CustomData_bmesh_get(&bm->pdata, l[0]->f->head.data, CD_MTEXPOLY),
+		    CustomData_bmesh_get(&bm->pdata, l[1]->f->head.data, CD_MTEXPOLY),
+		};
 
-			for (i = 0; i < 2; i++) {
-				if (luv1->uv[0] + T2QUV_LIMIT > luv3->uv[0] && luv1->uv[0] - T2QUV_LIMIT < luv3->uv[0] &&
-				    luv1->uv[1] + T2QUV_LIMIT > luv3->uv[1] && luv1->uv[1] - T2QUV_LIMIT < luv3->uv[1])
-				{
-					if (luv2->uv[0] + T2QUV_LIMIT > luv4->uv[0] && luv2->uv[0] - T2QUV_LIMIT < luv4->uv[0] &&
-					    luv2->uv[1] + T2QUV_LIMIT > luv4->uv[1] && luv2->uv[1] - T2QUV_LIMIT < luv4->uv[1])
-					{
-						mergeok_uvs = 1;
-					}
-				}
+		if (tp[0] && (tp[0]->tpage != tp[1]->tpage)) {
+			return FALSE;
+		}
+	}
+
+	/* Test Vertex Colors */
+	if (do_vcol) {
+		const MLoopCol *lcol[4] = {
+		    CustomData_bmesh_get(&bm->ldata, l[0]->head.data, CD_MLOOPCOL),
+			CustomData_bmesh_get(&bm->ldata, l[1]->head.data, CD_MLOOPCOL),
+			CustomData_bmesh_get(&bm->ldata, l[2]->head.data, CD_MLOOPCOL),
+			CustomData_bmesh_get(&bm->ldata, l[3]->head.data, CD_MLOOPCOL),
+		};
+
+		if (lcol[0]) {
+			if (!compare_rgb_uchar((unsigned char *)&lcol[0]->r, (unsigned char *)&lcol[2]->r, T2QCOL_LIMIT) ||
+			    !compare_rgb_uchar((unsigned char *)&lcol[1]->r, (unsigned char *)&lcol[3]->r, T2QCOL_LIMIT))
+			{
+				return FALSE;
 			}
 		}
 	}
 
-	if (douvs == mergeok_uvs && dovcols == mergeok_vcols) {
-		return TRUE;
-	}
-
-	return FALSE;
+	return TRUE;
 }
 
 typedef struct JoinEdge {
@@ -229,11 +204,12 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	BLI_array_declare(jedges);
 	JoinEdge *jedges = NULL;
-	int dosharp = BMO_slot_bool_get(op, "cmp_sharp");
-	int douvs =   BMO_slot_bool_get(op, "cmp_uvs");
-	int dovcols = BMO_slot_bool_get(op, "cmp_vcols");
-	int domat =   BMO_slot_bool_get(op, "cmp_materials");
-	float limit = BMO_slot_float_get(op, "limit");
+	int do_sharp = BMO_slot_bool_get(op, "cmp_sharp");
+	int do_uv    = BMO_slot_bool_get(op, "cmp_uvs");
+	int do_tf    = do_uv;  /* texture face, make make its own option eventually */
+	int do_vcol  = BMO_slot_bool_get(op, "cmp_vcols");
+	int do_mat   = BMO_slot_bool_get(op, "cmp_materials");
+	float limit  = BMO_slot_float_get(op, "limit");
 	int i, totedge;
 
 	/* flag all edges of all input face */
@@ -282,13 +258,13 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 		v3 = e->l->next->v;
 		v4 = e->l->radial_next->prev->v;
 
-		if (dosharp && !BM_elem_flag_test(e, BM_ELEM_SMOOTH))
-			continue;
-		
-		if ((douvs || dovcols) && compareFaceAttribs(bm, e, douvs, dovcols))
+		if (do_sharp && !BM_elem_flag_test(e, BM_ELEM_SMOOTH))
 			continue;
 
-		if (domat && f1->mat_nr != f2->mat_nr)
+		if (do_mat && f1->mat_nr != f2->mat_nr)
+			continue;
+
+		if ((do_uv || do_tf || do_vcol) && (bm_edge_faces_cmp(bm, e, do_uv, do_tf, do_vcol) == FALSE))
 			continue;
 
 		measure = measure_facepair(v1, v2, v3, v4, limit);

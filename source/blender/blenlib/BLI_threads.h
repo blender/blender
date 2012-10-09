@@ -31,6 +31,9 @@
 /** \file BLI_threads.h
  *  \ingroup bli
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <pthread.h>
 
@@ -67,13 +70,14 @@ int     BLI_system_thread_count(void); /* gets the number of threads the system 
  * One custom lock available now. can be extended. */
 
 #define LOCK_IMAGE      0
-#define LOCK_PREVIEW    1
+#define LOCK_DRAW_IMAGE 1
 #define LOCK_VIEWER     2
 #define LOCK_CUSTOM1    3
 #define LOCK_RCACHE     4
 #define LOCK_OPENGL     5
 #define LOCK_NODES      6
 #define LOCK_MOVIECLIP  7
+#define LOCK_COLORMANAGE 8
 
 void    BLI_lock_thread(int type);
 void    BLI_unlock_thread(int type);
@@ -138,6 +142,10 @@ int BLI_thread_queue_size(ThreadQueue *queue);
 
 void BLI_thread_queue_wait_finish(ThreadQueue *queue);
 void BLI_thread_queue_nowait(ThreadQueue *queue);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

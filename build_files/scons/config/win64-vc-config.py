@@ -97,6 +97,11 @@ BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
+WITH_BF_ELTOPO = False
+BF_LAPACK = LIBDIR + '/lapack'
+BF_LAPACK_LIB = 'libf2c clapack_nowrap BLAS_nowrap'
+BF_LAPACK_LIBPATH = '${BF_LAPACK}/lib'
+
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
@@ -152,6 +157,13 @@ BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
+
+WITH_BF_OCIO = True
+BF_OCIO = '${LIBDIR}/opencolorio'
+BF_OCIO_INC = '${BF_OCIO}/include'
+BF_OCIO_LIB = 'OpenColorIO'
+BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
+BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
 BF_BOOST = '${LIBDIR}/boost'

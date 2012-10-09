@@ -32,8 +32,8 @@
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * \author	Maarten Gribnau
+ * \date	May 11, 2001
  */
 
 #include "GHOST_WindowManager.h"
@@ -195,7 +195,7 @@ GHOST_IWindow *GHOST_WindowManager::getWindowAssociatedWithOSWindow(void *osWind
 {
 	std::vector<GHOST_IWindow *>::iterator iter;
 
-	for (iter = m_windows.begin(); iter != m_windows.end(); iter++) {
+	for (iter = m_windows.begin(); iter != m_windows.end(); ++iter) {
 		if ((*iter)->getOSWindow() == osWindow)
 			return *iter;
 	}
@@ -208,7 +208,7 @@ bool GHOST_WindowManager::getAnyModifiedState()
 	bool isAnyModified = false;
 	std::vector<GHOST_IWindow *>::iterator iter;
 	
-	for (iter = m_windows.begin(); iter != m_windows.end(); iter++) {
+	for (iter = m_windows.begin(); iter != m_windows.end(); ++iter) {
 		if ((*iter)->getModifiedState())
 			isAnyModified = true;
 	}

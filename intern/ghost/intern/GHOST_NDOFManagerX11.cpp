@@ -58,8 +58,11 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 		}
 	}
 	else {
+#ifdef DEBUG
+		/* annoying for official builds, just adds noise and most prople don't own these */
 		puts("ndof: spacenavd not found");
 		/* This isn't a hard error, just means the user doesn't have a 3D mouse. */
+#endif
 	}
 }
 

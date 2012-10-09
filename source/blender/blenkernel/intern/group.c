@@ -110,16 +110,6 @@ void BKE_group_unlink(Group *group)
 		
 		if (ob->dup_group == group) {
 			ob->dup_group = NULL;
-#if 0       /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
-			{
-				bActionStrip *strip;
-				/* duplicator strips use a group object, we remove it */
-				for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-					if (strip->object)
-						strip->object = NULL;
-				}
-			}
-#endif
 		}
 		
 		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
@@ -161,11 +151,13 @@ static int add_to_group_internal(Group *group, Object *ob)
 {
 	GroupObject *go;
 	
-	if (group == NULL || ob == NULL) return 0;
+	if (group == NULL || ob == NULL) {
+		return FALSE;
+	}
 	
 	/* check if the object has been added already */
-	for (go = group->gobject.first; go; go = go->next) {
-		if (go->ob == ob) return 0;
+	if (BLI_findptr(&group->gobject, ob, offsetof(GroupObject, ob))) {
+		return FALSE;
 	}
 	
 	go = MEM_callocN(sizeof(GroupObject), "groupobject");
@@ -173,7 +165,7 @@ static int add_to_group_internal(Group *group, Object *ob)
 	
 	go->ob = ob;
 	
-	return 1;
+	return TRUE;
 }
 
 int add_to_group(Group *group, Object *object, Scene *scene, Base *base)
@@ -239,15 +231,11 @@ int rem_from_group(Group *group, Object *object, Scene *scene, Base *base)
 
 int object_in_group(Object *ob, Group *group)
 {
-	GroupObject *go;
-	
-	if (group == NULL || ob == NULL) return 0;
-	
-	for (go = group->gobject.first; go; go = go->next) {
-		if (go->ob == ob)
-			return 1;
+	if (group == NULL || ob == NULL) {
+		return FALSE;
 	}
-	return 0;
+
+	return (BLI_findptr(&group->gobject, ob, offsetof(GroupObject, ob)) != NULL);
 }
 
 Group *find_group(Object *ob, Group *group)
@@ -345,7 +333,7 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 	
 #if 0 /* warning, isn't clearing the recalc flag on the object which causes it to run all the time,
 	   * not just on frame change.
-	   * This isn't working because the animation data is only re-evalyated on frame change so commenting for now
+	   * This isn't working because the animation data is only re-evaluated on frame change so commenting for now
 	   * but when its enabled at some point it will need to be changed so as not to update so much - campbell */
 
 	/* if animated group... */
@@ -385,57 +373,3 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 		}
 	}
 }
-
-#if 0
-Object *group_get_member_with_action(Group *group, bAction *act)
-{
-	GroupObject *go;
-	
-	if (group == NULL || act == NULL) return NULL;
-	
-	for (go = group->gobject.first; go; go = go->next) {
-		if (go->ob) {
-			if (go->ob->action == act)
-				return go->ob;
-			if (go->ob->nlastrips.first) {
-				bActionStrip *strip;
-				
-				for (strip = go->ob->nlastrips.first; strip; strip = strip->next) {
-					if (strip->act == act)
-						return go->ob;
-				}
-			}
-		}
-	}
-	return NULL;
-}
-
-/* if group has NLA, we try to map the used objects in NLA to group members */
-/* this assuming that object has received a new group link */
-void group_relink_nla_objects(Object *ob)
-{
-	Group *group;
-	GroupObject *go;
-	bActionStrip *strip;
-	
-	if (ob == NULL || ob->dup_group == NULL) return;
-	group = ob->dup_group;
-	
-	for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-		if (strip->object) {
-			for (go = group->gobject.first; go; go = go->next) {
-				if (go->ob) {
-					if (strcmp(go->ob->id.name, strip->object->id.name) == 0)
-						break;
-				}
-			}
-			if (go)
-				strip->object = go->ob;
-			else
-				strip->object = NULL;
-		}
-			
-	}
-}
-
-#endif

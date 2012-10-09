@@ -23,10 +23,10 @@
 #include "COM_CompositorOperation.h"
 #include "COM_SocketConnection.h"
 #include "BLI_listbase.h"
-#include "DNA_scene_types.h"
 #include "BKE_image.h"
 
 extern "C" {
+	#include "BLI_threads.h"
 	#include "RE_pipeline.h"
 	#include "RE_shader_ext.h"
 	#include "RE_render_ext.h"
@@ -40,11 +40,16 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
+	this->addInputSocket(COM_DT_VALUE);
 
 	this->setRenderData(NULL);
 	this->m_outputBuffer = NULL;
+	this->m_depthBuffer = NULL;
 	this->m_imageInput = NULL;
 	this->m_alphaInput = NULL;
+	this->m_depthInput = NULL;
+
+	this->m_sceneName[0] = '\0';
 }
 
 void CompositorOperation::initExecution()
@@ -52,30 +57,43 @@ void CompositorOperation::initExecution()
 	// When initializing the tree during initial load the width and height can be zero.
 	this->m_imageInput = getInputSocketReader(0);
 	this->m_alphaInput = getInputSocketReader(1);
+	this->m_depthInput = getInputSocketReader(2);
 	if (this->getWidth() * this->getHeight() != 0) {
 		this->m_outputBuffer = (float *) MEM_callocN(this->getWidth() * this->getHeight() * 4 * sizeof(float), "CompositorOperation");
+	}
+	if (this->m_depthInput != NULL) {
+		this->m_depthBuffer = (float *) MEM_callocN(this->getWidth() * this->getHeight() * sizeof(float), "CompositorOperation");
 	}
 }
 
 void CompositorOperation::deinitExecution()
 {
 	if (!isBreaked()) {
-		const RenderData *rd = this->m_rd;
-		Render *re = RE_GetRender_FromData(rd);
+		Render *re = RE_GetRender(this->m_sceneName);
 		RenderResult *rr = RE_AcquireResultWrite(re);
+
 		if (rr) {
 			if (rr->rectf != NULL) {
 				MEM_freeN(rr->rectf);
 			}
 			rr->rectf = this->m_outputBuffer;
+			if (rr->rectz != NULL) {
+				MEM_freeN(rr->rectz);
+			}
+			rr->rectz = this->m_depthBuffer;
 		}
 		else {
 			if (this->m_outputBuffer) {
 				MEM_freeN(this->m_outputBuffer);
 			}
+			if (this->m_depthBuffer) {
+				MEM_freeN(this->m_depthBuffer);
+			}
 		}
 
+		BLI_lock_thread(LOCK_DRAW_IMAGE);
 		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 
 		if (re) {
 			RE_ReleaseResult(re);
@@ -86,53 +104,68 @@ void CompositorOperation::deinitExecution()
 		if (this->m_outputBuffer) {
 			MEM_freeN(this->m_outputBuffer);
 		}
+		if (this->m_depthBuffer) {
+			MEM_freeN(this->m_depthBuffer);
+		}
 	}
 
 	this->m_outputBuffer = NULL;
+	this->m_depthBuffer = NULL;
 	this->m_imageInput = NULL;
 	this->m_alphaInput = NULL;
+	this->m_depthInput = NULL;
 }
 
 
-void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	float color[8]; // 7 is enough
 	float *buffer = this->m_outputBuffer;
+	float *zbuffer = this->m_depthBuffer;
 
 	if (!buffer) return;
 	int x1 = rect->xmin;
 	int y1 = rect->ymin;
 	int x2 = rect->xmax;
 	int y2 = rect->ymax;
-	int offset = (y1 * this->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
+	int offset = (y1 * this->getWidth() + x1);
+	int add = (this->getWidth() - (x2 - x1));
+	int offset4 = offset * COM_NUMBER_OF_CHANNELS;
 	int x;
 	int y;
 	bool breaked = false;
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			this->m_imageInput->read(color, x, y, COM_PS_NEAREST, memoryBuffers);
+			this->m_imageInput->read(color, x, y, COM_PS_NEAREST);
 			if (this->m_alphaInput != NULL) {
-				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST);
 			}
-			copy_v4_v4(buffer + offset, color);
-			offset += COM_NUMBER_OF_CHANNELS;
+			copy_v4_v4(buffer + offset4, color);
+
+			if (this->m_depthInput != NULL) {
+				this->m_depthInput->read(color, x, y, COM_PS_NEAREST);
+				zbuffer[offset] = color[0];
+			}
+			offset4 += COM_NUMBER_OF_CHANNELS;
+			offset++;
 			if (isBreaked()) {
 				breaked = true;
 			}
 		}
-		offset += (this->getWidth() - (x2 - x1)) * COM_NUMBER_OF_CHANNELS;
+		offset += add;
+		offset4 += add * COM_NUMBER_OF_CHANNELS;
 	}
 }
 
-void CompositorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void CompositorOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	int width = this->m_rd->xsch * this->m_rd->size / 100;
 	int height = this->m_rd->ysch * this->m_rd->size / 100;
 
 	// check actual render resolution with cropping it may differ with cropped border.rendering
 	// FIX for: [31777] Border Crop gives black (easy)
-	Render *re = RE_GetRender_FromData(this->m_rd);
+	Render *re = RE_GetRender(this->m_sceneName);
 	if (re) {
 		RenderResult *rr = RE_AcquireResultRead(re);
 		if (rr) {

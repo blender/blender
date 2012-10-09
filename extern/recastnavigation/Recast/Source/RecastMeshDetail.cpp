@@ -579,23 +579,23 @@ static bool buildPolyDetail(rcContext* ctx, const float* in, const int nin,
 				const float* vb = &edge[b*3];
 				// Find maximum deviation along the segment.
 				float maxd = 0;
-				int maxi = -1;
+				int i_max = -1;
 				for (int m = a+1; m < b; ++m)
 				{
 					float d = distancePtSeg(&edge[m*3],va,vb);
 					if (d > maxd)
 					{
 						maxd = d;
-						maxi = m;
+						i_max = m;
 					}
 				}
 				// If the max deviation is larger than accepted error,
 				// add new point, else continue to next segment.
-				if (maxi != -1 && maxd > rcSqr(sampleMaxError))
+				if (i_max != -1 && maxd > rcSqr(sampleMaxError))
 				{
 					for (int m = nidx; m > k; --m)
 						idx[m] = idx[m-1];
-					idx[k+1] = maxi;
+					idx[k+1] = i_max;
 					nidx++;
 				}
 				else

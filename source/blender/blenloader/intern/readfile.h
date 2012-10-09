@@ -84,7 +84,7 @@ typedef struct FileData {
 	struct OldNewMap *imamap;
 	struct OldNewMap *movieclipmap;
 	
-	struct bheadsort *bheadmap;
+	struct BHeadSort *bheadmap;
 	int tot_bheadmap;
 	
 	ListBase *mainlist;

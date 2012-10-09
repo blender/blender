@@ -37,6 +37,8 @@
 #define RR_USE_MEM		0
 #define RR_USE_EXR		1
 
+#define RR_ALL_LAYERS	NULL
+
 struct ImBuf;
 struct ListBase;
 struct Render;
@@ -45,15 +47,17 @@ struct RenderLayer;
 struct RenderResult;
 struct Scene;
 struct rcti;
+struct ColorManagedDisplaySettings;
+struct ColorManagedViewSettings;
 
 /* New */
 
 struct RenderResult *render_result_new(struct Render *re,
-	struct rcti *partrct, int crop, int savebuffers);
+	struct rcti *partrct, int crop, int savebuffers, const char *layername);
 struct RenderResult *render_result_new_full_sample(struct Render *re,
 	struct ListBase *lb, struct rcti *partrct, int crop, int savebuffers);
 
-struct RenderResult *render_result_new_from_exr(void *exrhandle, int rectx, int recty);
+struct RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty);
 
 /* Merge */
 
@@ -76,9 +80,9 @@ void render_result_exr_file_end(struct Render *re);
 
 void render_result_exr_file_merge(struct RenderResult *rr, struct RenderResult *rrpart);
 
-void render_result_exr_file_path(struct Scene *scene, int sample, char *filepath);
+void render_result_exr_file_path(struct Scene *scene, const char *layname, int sample, char *filepath);
 int render_result_exr_file_read(struct Render *re, int sample);
-int render_result_exr_file_read_path(struct RenderResult *rr, const char *filepath);
+int render_result_exr_file_read_path(struct RenderResult *rr, struct RenderLayer *rl_single, const char *filepath);
 
 /* Combined Pixel Rect */
 
@@ -88,7 +92,9 @@ void render_result_rect_from_ibuf(struct RenderResult *rr, struct RenderData *rd
 
 void render_result_rect_fill_zero(struct RenderResult *rr);
 void render_result_rect_get_pixels(struct RenderResult *rr, struct RenderData *rd,
-	unsigned int *rect, int rectx, int recty);
+	unsigned int *rect, int rectx, int recty,
+	const struct ColorManagedViewSettings *view_settings,
+	const struct ColorManagedDisplaySettings *display_settings);
 
 #endif /* __RENDER_RESULT_H__ */
 

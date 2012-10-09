@@ -47,7 +47,8 @@ static bNodeSocketTemplate cmp_node_moviedistortion_out[] = {
 	{	-1, 0, ""	}
 };
 
-static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+#ifdef WITH_COMPOSITOR_LEGACY
+static void node_composit_exec_moviedistortion(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	if (in[0]->data) {
 		if (node->id) {
@@ -104,6 +105,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		}
 	}
 }
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static const char *label(bNode *node)
 {
@@ -135,7 +137,10 @@ void register_node_type_cmp_moviedistortion(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_moviedistortion_in, cmp_node_moviedistortion_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_label(&ntype, label);
-	node_type_exec(&ntype, exec);
+#ifdef WITH_COMPOSITOR_LEGACY
+	node_type_exec(&ntype, node_composit_exec_moviedistortion);
+#endif
+
 	node_type_storage(&ntype, NULL, storage_free, storage_copy);
 
 	nodeRegisterType(ttype, &ntype);

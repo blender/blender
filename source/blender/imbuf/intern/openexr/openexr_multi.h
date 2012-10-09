@@ -37,9 +37,9 @@
 
 /* Note: as for now openexr only supports 32 chars in channel names.
  * This api also supports max 8 channels per pass now. easy to fix! */
-#define EXR_LAY_MAXNAME     19
+#define EXR_LAY_MAXNAME     51
 #define EXR_PASS_MAXNAME    11
-#define EXR_TOT_MAXNAME     32
+#define EXR_TOT_MAXNAME     64
 #define EXR_PASS_MAXCHAN    8
 
 
@@ -62,8 +62,8 @@ void    IMB_exrtile_write_channels(void *handle, int partx, int party, int level
 void    IMB_exrtile_clear_channels(void *handle);
 
 void    IMB_exr_multilayer_convert(void *handle, void *base,
-                                   void * (*addlayer)(void *base, char *str),
-                                   void (*addpass)(void *base, void *lay, char *str, float *rect, int totchan, char *chan_id));
+                                   void * (*addlayer)(void *base, const char *str),
+                                   void (*addpass)(void *base, void *lay, const char *str, float *rect, int totchan, const char *chan_id));
 
 void    IMB_exr_close(void *handle);
 

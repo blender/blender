@@ -138,7 +138,7 @@ void ImageRender::Render()
 		// compute distance of observer to mirror = D - observerPos . normal
 		MT_Scalar observerDistance = mirrorPlaneDTerm - observerWorldPos.dot(mirrorWorldZ);
 		// if distance < 0.01 => observer is on wrong side of mirror, don't render
-		if (observerDistance < 0.01f)
+		if (observerDistance < 0.01)
 			return;
 		// set camera world position = observerPos + normal * 2 * distance
 		MT_Point3 cameraWorldPos = observerWorldPos + (MT_Scalar(2.0)*observerDistance)*mirrorWorldZ;
@@ -208,11 +208,11 @@ void ImageRender::Render()
 		            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
 
 		m_camera->SetProjectionMatrix(projmat);
-	} else if (m_camera->hasValidProjectionMatrix())
-	{
+	}
+	else if (m_camera->hasValidProjectionMatrix()) {
 		m_rasterizer->SetProjectionMatrix(m_camera->GetProjectionMatrix());
-	} else
-	{
+	}
+	else {
 		float lens = m_camera->GetLens();
 		float sensor_x = m_camera->GetSensorWidth();
 		float sensor_y = m_camera->GetSensorHeight();
@@ -241,8 +241,8 @@ void ImageRender::Render()
 
 			projmat = m_rasterizer->GetOrthoMatrix(
 			            frustrum.x1, frustrum.x2, frustrum.y1, frustrum.y2, frustrum.camnear, frustrum.camfar);
-		} else
-		{
+		}
+		else {
 			RAS_FramingManager::ComputeDefaultFrustum(
 			            nearfrust,
 			            farfrust,
@@ -277,7 +277,7 @@ void ImageRender::Render()
 
 
 // cast Image pointer to ImageRender
-inline ImageRender * getImageRender (PyImage * self)
+inline ImageRender * getImageRender (PyImage *self)
 { return static_cast<ImageRender*>(self->m_image); }
 
 
@@ -290,10 +290,10 @@ BlendType<KX_Camera> cameraType ("KX_Camera");
 
 
 // object initialization
-static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int ImageRender_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	// parameters - scene object
-	PyObject * scene;
+	PyObject *scene;
 	// camera object
 	PyObject * camera;
 	// parameter keywords
@@ -317,7 +317,7 @@ static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 		if (cameraPtr == NULL) THRWEXCP(CameraInvalid, S_OK);
 
 		// get pointer to image structure
-		PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+		PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 		// create source object
 		if (self->m_image != NULL) delete self->m_image;
 		self->m_image = new ImageRender(scenePtr, cameraPtr);
@@ -333,7 +333,7 @@ static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 
 
 // get background color
-PyObject * getBackground (PyImage * self, void * closure)
+static PyObject *getBackground (PyImage *self, void *closure)
 {
 	return Py_BuildValue("[BBBB]",
 	                     getImageRender(self)->getBackground(0),
@@ -343,7 +343,7 @@ PyObject * getBackground (PyImage * self, void * closure)
 }
 
 // set color
-static int setBackground (PyImage * self, PyObject * value, void * closure)
+static int setBackground (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 4
@@ -434,14 +434,14 @@ PyTypeObject ImageRenderType =
 };
 
 // object initialization
-static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int ImageMirror_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	// parameters - scene object
-	PyObject * scene;
+	PyObject *scene;
 	// reference object for mirror
-	PyObject * observer;
+	PyObject *observer;
 	// object holding the mirror
-	PyObject * mirror;
+	PyObject *mirror;
 	// material of the mirror
 	short materialID = 0;
 	// parameter keywords
@@ -490,7 +490,7 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 			THRWEXCP(MaterialNotAvail, S_OK);
 
 		// get pointer to image structure
-		PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+		PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 
 		// create source object
 		if (self->m_image != NULL)
@@ -510,13 +510,13 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 }
 
 // get background color
-PyObject * getClip (PyImage * self, void * closure)
+static PyObject *getClip (PyImage *self, void *closure)
 {
 	return PyFloat_FromDouble(getImageRender(self)->getClip());
 }
 
 // set clip
-static int setClip (PyImage * self, PyObject * value, void * closure)
+static int setClip (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	double clip;
@@ -604,13 +604,12 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 				mirrorVerts.push_back(v1);
 				mirrorVerts.push_back(v2);
 				mirrorVerts.push_back(v3);
-				if (polygon->VertexCount() == 4)
-				{
+				if (polygon->VertexCount() == 4) {
 					v4 = polygon->GetVertex(3);
 					mirrorVerts.push_back(v4);
 					area = normal_quad_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ());
-				} else
-				{
+				}
+				else {
 					area = normal_tri_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ());
 				}
 				area = fabs(area);
@@ -637,8 +636,8 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 	// otherwise the Y axis is the up direction.
 	// If the mirror is not perfectly vertical(horizontal), the Z(Y) axis projection on the mirror
 	// plan by the normal will be the up direction.
-	if (fabs(mirrorNormal[2]) > fabs(mirrorNormal[1]) &&
-	        fabs(mirrorNormal[2]) > fabs(mirrorNormal[0]))
+	if (fabsf(mirrorNormal[2]) > fabsf(mirrorNormal[1]) &&
+	    fabsf(mirrorNormal[2]) > fabsf(mirrorNormal[0]))
 	{
 		// the mirror is more horizontal than vertical
 		copy_v3_v3(axis, yaxis);
@@ -649,7 +648,7 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 		copy_v3_v3(axis, zaxis);
 	}
 	dist = dot_v3v3(mirrorNormal, axis);
-	if (fabs(dist) < FLT_EPSILON)
+	if (fabsf(dist) < FLT_EPSILON)
 	{
 		// the mirror is already fully aligned with up axis
 		copy_v3_v3(mirrorUp, axis);

@@ -1397,7 +1397,7 @@ CCGError ccgSubSurf_processSync(CCGSubSurf *ss)
 	return eCCGError_None;
 }
 
-#define VERT_getNo(e, lvl)                  _vert_getNo(e, lvl, vertDataSize, normalDataOffset)
+#define VERT_getNo(e, lvl)                  _vert_getNo(v, lvl, vertDataSize, normalDataOffset)
 #define EDGE_getNo(e, lvl, x)               _edge_getNo(e, lvl, x, vertDataSize, normalDataOffset)
 #define FACE_getIFNo(f, lvl, S, x, y)       _face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
 #define FACE_calcIFNo(f, lvl, S, x, y, no)  _face_calcIFNo(f, lvl, S, x, y, no, subdivLevels, vertDataSize)
@@ -1491,7 +1491,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	/* XXX can I reduce the number of normalisations here? */
 	for (ptrIdx = 0; ptrIdx < numEffectedV; ptrIdx++) {
 		CCGVert *v = (CCGVert *) effectedV[ptrIdx];
-		float length, *no = _vert_getNo(v, lvl, vertDataSize, normalDataOffset);
+		float length, *no = VERT_getNo(v, lvl);
 
 		NormZero(no);
 
@@ -1798,7 +1798,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		if (seamEdges < 2 || seamEdges != v->numEdges)
 			seam = 0;
 
-		if (!v->numEdges) {
+		if (!v->numEdges || ss->meshIFC.simpleSubdiv) {
 			VertDataCopy(nCo, co, ss);
 		}
 		else if (_vert_isBoundary(v)) {
@@ -2210,7 +2210,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 			VertDataAdd(co, r, ss);
 		}
 
-		// edge flags cleared later
+		/* edge flags cleared later */
 	}
 	for (ptrIdx = 0; ptrIdx < numEffectedV; ptrIdx++) {
 		CCGVert *v = effectedV[ptrIdx];
@@ -2246,7 +2246,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 		if (seamEdges < 2 || seamEdges != v->numEdges)
 			seam = 0;
 
-		if (!v->numEdges) {
+		if (!v->numEdges || ss->meshIFC.simpleSubdiv) {
 			VertDataCopy(nCo, co, ss);
 		}
 		else if (_vert_isBoundary(v)) {
@@ -2337,7 +2337,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 			VertDataAdd(nCo, r, ss);
 		}
 
-		// vert flags cleared later
+		/* vert flags cleared later */
 	}
 
 	if (ss->useAgeCounts) {
@@ -2825,6 +2825,11 @@ int ccgSubSurf_getGridLevelSize(const CCGSubSurf *ss, int level)
 	else {
 		return ccg_gridsize(level);
 	}
+}
+
+int ccgSubSurf_getSimpleSubdiv(const CCGSubSurf *ss)
+{
+	return ss->meshIFC.simpleSubdiv;
 }
 
 /* Vert accessors */

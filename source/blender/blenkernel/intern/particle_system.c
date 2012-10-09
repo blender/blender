@@ -797,8 +797,10 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			}
 			else {
 				ctx->jitoff[i] = fmod(ctx->jitoff[i],(float)ctx->jitlevel);
-				psys_uv_to_w(ctx->jit[2*(int)ctx->jitoff[i]], ctx->jit[2*(int)ctx->jitoff[i]+1], mface->v4, pa->fuv);
-				ctx->jitoff[i]++;
+				if (!isnan(ctx->jitoff[i])) {
+					psys_uv_to_w(ctx->jit[2*(int)ctx->jitoff[i]], ctx->jit[2*(int)ctx->jitoff[i]+1], mface->v4, pa->fuv);
+					ctx->jitoff[i]++;
+				}
 			}
 			break;
 		case PART_DISTR_RAND:
@@ -1576,7 +1578,7 @@ static void initialize_all_particles(ParticleSimulationData *sim)
 	}
 }
 
-static void get_angular_velocity_vector(short avemode, ParticleKey *state, float *vec)
+static void get_angular_velocity_vector(short avemode, ParticleKey *state, float vec[3])
 {
 	switch (avemode) {
 		case PART_AVE_VELOCITY:
@@ -2159,7 +2161,9 @@ static void integrate_particle(ParticleSettings *part, ParticleData *pa, float d
 			break;
 	}
 
-	copy_particle_key(states, &pa->state, 1);
+	for (i=0; i<steps; i++) {
+		copy_particle_key(states + i, &pa->state, 1);
+	}
 
 	states->time = 0.f;
 
@@ -2441,7 +2445,8 @@ static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr)
 	int i;
 	float flow[3], offset[3], dist;
 
-	flow[0] = flow[1] = flow[2] = 0.0f;
+	zero_v3(flow);
+
 	dist = 0.0f;
 	if (pfr->tot_neighbors > 0) {
 		pa = pfr->pa;
@@ -2733,13 +2738,17 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 {
 	float rotfac, rot1[4], rot2[4]={1.0,0.0,0.0,0.0}, dtime=dfra*timestep, extrotfac;
 
-	if ((part->flag & PART_ROTATIONS)==0) {
-		pa->state.rot[0]=1.0f;
-		pa->state.rot[1]=pa->state.rot[2]=pa->state.rot[3]=0;
+	if ((part->flag & PART_ROTATIONS) == 0) {
+		unit_qt(pa->state.rot);
 		return;
 	}
 
-	extrotfac = len_v3(pa->state.ave);
+	if (part->flag & PART_ROT_DYN) {
+		extrotfac = len_v3(pa->state.ave);
+	}
+	else {
+		extrotfac = 0.0f;
+	}
 
 	if ((part->flag & PART_ROT_DYN) && ELEM3(part->avemode, PART_AVE_VELOCITY, PART_AVE_HORIZONTAL, PART_AVE_VERTICAL)) {
 		float angle;
@@ -2747,8 +2756,9 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 		float len2 = len_v3(pa->state.vel);
 		float vec[3];
 
-		if (len1==0.0f || len2==0.0f)
-			pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
+		if (len1 == 0.0f || len2 == 0.0f) {
+			zero_v3(pa->state.ave);
+		}
 		else {
 			cross_v3_v3v3(pa->state.ave, pa->prev_state.vel, pa->state.vel);
 			normalize_v3(pa->state.ave);
@@ -2761,9 +2771,8 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 	}
 
 	rotfac = len_v3(pa->state.ave);
-	if (rotfac == 0.0f || (part->flag & PART_ROT_DYN)==0 || extrotfac == 0.0f) { /* unit_qt(in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
-		rot1[0]=1.0f;
-		rot1[1]=rot1[2]=rot1[3]=0;
+	if (rotfac == 0.0f || (part->flag & PART_ROT_DYN)==0 || extrotfac == 0.0f) {
+		unit_qt(rot1);
 	}
 	else {
 		axis_angle_to_quat(rot1,pa->state.ave,rotfac*dtime);
@@ -3750,8 +3759,10 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 		pa->totkey++;
 
 		/* root is always in the origin of hair space so we set it to be so after the last key is saved*/
-		if (pa->totkey == psys->part->hair_step + 1)
-			root->co[0] = root->co[1] = root->co[2] = 0.0f;
+		if (pa->totkey == psys->part->hair_step + 1) {
+			zero_v3(root->co);
+		}
+
 	}
 }
 
@@ -3766,8 +3777,8 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 /* Calculate the speed of the particle relative to the local scale of the
  * simulation. This should be called once per particle during a simulation
  * step, after the velocity has been updated. element_size defines the scale of
- * the simulation, and is typically the distance to neighbourning particles. */
-void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
+ * the simulation, and is typically the distance to neighboring particles. */
+static void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 	float dtime, SPHData *sphdata)
 {
 	float relative_vel[3];
@@ -3779,8 +3790,7 @@ void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 		sim->courant_num = speed * dtime / sphdata->element_size;
 }
 /* Update time step size to suit current conditions. */
-float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim,
-	float t_frac)
+static float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim, float t_frac)
 {
 	if (sim->courant_num == 0.0f)
 		psys->dt_frac = 1.0f;
@@ -4095,7 +4105,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			}
 	
 			gzread(gzf, &totpart, sizeof(totpart));
-			totpart = (G.rendering)?totpart:(part->disp*totpart)/100;
+			totpart = (G.is_rendering)?totpart:(part->disp*totpart) / 100;
 			
 			part->totpart= totpart;
 			part->sta=part->end = 1.0f;
@@ -4130,9 +4140,8 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 						pa->state.vel[j] = wrf;
 					}
 	
-					pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0f;
-					pa->state.rot[0] = 1.0;
-					pa->state.rot[1] = pa->state.rot[2] = pa->state.rot[3] = 0.0;
+					zero_v3(pa->state.ave);
+					unit_qt(pa->state.rot);
 	
 					pa->time = 1.f;
 					pa->dietime = sim->scene->r.efra + 1;

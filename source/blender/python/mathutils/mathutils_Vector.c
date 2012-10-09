@@ -1530,7 +1530,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 }
 
 /*------------------------obj * obj------------------------------
- * mulplication*/
+ * multiplication */
 
 
 /* COLUMN VECTOR Multiplication (Matrix X Vector)
@@ -1687,7 +1687,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 	return NULL;
 }
 
-/* mulplication in-place: obj *= obj */
+/* multiplication in-place: obj *= obj */
 static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 {
 	VectorObject *vec = (VectorObject *)v1;
@@ -1864,7 +1864,7 @@ static double vec_magnitude_nosqrt(float *data, int size)
 
 
 /*------------------------tp_richcmpr
- * returns -1 execption, 0 false, 1 true */
+ * returns -1 exception, 0 false, 1 true */
 static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
 {
 	VectorObject *vecA = NULL, *vecB = NULL;
@@ -2046,7 +2046,7 @@ static PyNumberMethods Vector_NumMethods = {
 	NULL,                       /*nb_divmod*/
 	NULL,                       /*nb_power*/
 	(unaryfunc)     Vector_neg, /*nb_negative*/
-	(unaryfunc)     NULL,       /*tp_positive*/
+	(unaryfunc)     Vector_copy,/*tp_positive*/
 	(unaryfunc)     NULL,       /*tp_absolute*/
 	(inquiry)   NULL,           /*tp_bool*/
 	(unaryfunc) NULL,           /*nb_invert*/
@@ -2908,7 +2908,7 @@ PyObject *Vector_CreatePyObject(float *vec, const int size, const int type, PyTy
 			}
 			else { /* new empty */
 				fill_vn_fl(self->vec, size, 0.0f);
-				if (size == 4) { /* do the homogenous thing */
+				if (size == 4) {  /* do the homogeneous thing */
 					self->vec[3] = 1.0f;
 				}
 			}

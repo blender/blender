@@ -71,13 +71,14 @@ protected:
 	inline vector<OutputSocket *>& getOutputSockets() { return this->m_outputsockets; }
 
 
-public:
+protected:
 	/**
 	 * @brief destructor
 	 * clean up memory related to this NodeBase.
 	 */
 	virtual ~NodeBase();
 	
+public:
 	/**
 	 * @brief get the reference to the SDNA bNode struct
 	 */
@@ -96,7 +97,7 @@ public:
 	 * @return [true:false]
 	 * @see NodeOperation
 	 */
-	virtual const int isOperation() const { return false; }
+	virtual const bool isOperation() const { return false; }
 	
 	/**
 	 * @brief check if this is an input node

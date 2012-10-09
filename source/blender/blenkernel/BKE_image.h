@@ -46,6 +46,8 @@ struct Object;
 struct ImageFormatData;
 struct Main;
 
+#define IMA_MAX_SPACE       64
+
 /* call from library */
 void    BKE_image_free(struct Image *me);
 
@@ -64,6 +66,7 @@ int     BKE_imtype_is_movie(const char imtype);
 int     BKE_imtype_supports_zbuf(const char imtype);
 int     BKE_imtype_supports_compress(const char imtype);
 int     BKE_imtype_supports_quality(const char imtype);
+int     BKE_imtype_requires_linear_float(const char imtype);
 char    BKE_imtype_valid_channels(const char imtype);
 char    BKE_imtype_valid_depths(const char imtype);
 
@@ -72,7 +75,7 @@ char    BKE_imtype_from_arg(const char *arg);
 void    BKE_imformat_defaults(struct ImageFormatData *im_format);
 void    BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const struct ImBuf *imbuf);
 
-struct anim *openanim(const char *name, int flags, int streamindex);
+struct anim *openanim(const char *name, int flags, int streamindex, char colorspace[IMA_MAX_SPACE]);
 
 void    BKE_image_de_interlace(struct Image *ima, int odd);
 
@@ -105,6 +108,12 @@ struct RenderResult;
 /* viewers */
 #define IMA_TYPE_R_RESULT   4
 #define IMA_TYPE_COMPOSITE  5
+
+enum {
+	IMA_GENTYPE_BLANK = 0,
+	IMA_GENTYPE_GRID = 1,
+	IMA_GENTYPE_GRID_COLOR = 2
+};
 
 /* ima->ok */
 #define IMA_OK              1
@@ -195,6 +204,10 @@ int BKE_image_scale(struct Image *image, int width, int height);
 
 /* check if texture has alpha (depth=32) */
 int BKE_image_has_alpha(struct Image *image);
+
+void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *width, int *height);
+void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float size[2]);
+void BKE_image_get_aspect(struct Image *image, float *aspx, float *aspy);
 
 /* image_gen.c */
 void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, const float color[4]);

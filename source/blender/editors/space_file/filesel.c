@@ -117,7 +117,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		const short is_directory = (RNA_struct_find_property(op->ptr, "directory") != NULL);
 		const short is_relative_path = (RNA_struct_find_property(op->ptr, "relative_path") != NULL);
 
-		BLI_strncpy(params->title, RNA_struct_ui_name(op->type->srna), sizeof(params->title));
+		BLI_strncpy_utf8(params->title, RNA_struct_ui_name(op->type->srna), sizeof(params->title));
 
 		if (RNA_struct_find_property(op->ptr, "filemode"))
 			params->type = RNA_int_get(op->ptr, "filemode");
@@ -265,17 +265,17 @@ void ED_fileselect_reset_params(SpaceFile *sfile)
 	sfile->params->title[0] = '\0';
 }
 
-int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *ar)
+int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *ar)
 {
 	int numfiles;
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
-		int width = (int)(ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2 * layout->tile_border_x);
+		int width = (int)(BLI_rctf_size_x(&ar->v2d.cur) - 2 * layout->tile_border_x);
 		numfiles = (int)((float)width / (float)layout->tile_w + 0.5f);
 		return numfiles * layout->rows;
 	}
 	else {
-		int height = (int)(ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2 * layout->tile_border_y);
+		int height = (int)(BLI_rctf_size_y(&ar->v2d.cur) - 2 * layout->tile_border_y);
 		numfiles = (int)((float)height / (float)layout->tile_h + 0.5f);
 		return numfiles * layout->columns;
 	}
@@ -472,7 +472,7 @@ static void column_widths(struct FileList *files, struct FileLayout *layout)
 	}
 }
 
-void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
+void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 {
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 	FileLayout *layout = NULL;
@@ -503,7 +503,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->prv_border_y = 6;
 		layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
 		layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
-		layout->width = (int)(v2d->cur.xmax - v2d->cur.xmin - 2 * layout->tile_border_x);
+		layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
 		layout->columns = layout->width / (layout->tile_w + 2 * layout->tile_border_x);
 		if (layout->columns > 0)
 			layout->rows = numfiles / layout->columns + 1;  // XXX dirty, modulo is zero
@@ -522,7 +522,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->prv_border_x = 0;
 		layout->prv_border_y = 0;
 		layout->tile_h = textheight * 3 / 2;
-		layout->height = (int)(v2d->cur.ymax - v2d->cur.ymin - 2 * layout->tile_border_y);
+		layout->height = (int)(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
 		layout->rows = layout->height / (layout->tile_h + 2 * layout->tile_border_y);
 
 		column_widths(sfile->files, layout);
@@ -559,7 +559,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 	layout->dirty = FALSE;
 }
 
-FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar)
+FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, ARegion *ar)
 {
 	if (!sfile->layout) {
 		ED_fileselect_init_layout(sfile, ar);

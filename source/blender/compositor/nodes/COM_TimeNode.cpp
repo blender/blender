@@ -21,7 +21,6 @@
  */
 
 #include "COM_TimeNode.h"
-#include "DNA_scene_types.h"
 #include "COM_SetValueOperation.h"
 #include "COM_ExecutionSystem.h"
 extern "C" {
@@ -54,6 +53,7 @@ void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		fac = (context->getFramenumber() - node->custom1) / (float)(node->custom2 - node->custom1);
 	}
 
+	curvemapping_initialize((CurveMapping *)node->storage);
 	fac = curvemapping_evaluateF((CurveMapping *)node->storage, 0, fac);
 	operation->setValue(CLAMPIS(fac, 0.0f, 1.0f));
 	graph->addOperation(operation);

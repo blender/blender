@@ -25,11 +25,11 @@ class CStringValue : public CPropValue
 {
 
 	
-	//PLUGIN_DECLARE_SERIAL(CStringValue,CValue)		
+	//PLUGIN_DECLARE_SERIAL(CStringValue,CValue)
 public:
 	/// Construction / destruction
 	CStringValue();
-	CStringValue (const char *txt, const char *name , AllocationTYPE alloctype = CValue::HEAPVALUE);
+	CStringValue(const char *txt, const char *name, AllocationTYPE alloctype = CValue::HEAPVALUE);
 
 	virtual ~CStringValue() {}
 	/// CValue implementation

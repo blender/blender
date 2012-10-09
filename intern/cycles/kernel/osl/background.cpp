@@ -85,16 +85,25 @@ public:
 	}
 };
 
-ClosureParam closure_background_params[] = {
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(GenericBackgroundClosure)
-};
+
+ClosureParam *closure_background_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(GenericBackgroundClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(closure_background_prepare, GenericBackgroundClosure)
 
-ClosureParam closure_holdout_params[] = {
-	CLOSURE_FINISH_PARAM(HoldoutClosure)
-};
+ClosureParam *closure_holdout_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_FINISH_PARAM(HoldoutClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(closure_holdout_prepare, HoldoutClosure)
 

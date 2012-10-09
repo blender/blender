@@ -215,16 +215,16 @@ static void update_string(Curve *cu)
 	EditFont *ef = cu->editfont;
 	int len;
 
-	// Free the old curve string	
+	/* Free the old curve string */
 	MEM_freeN(cu->str);
 
-	// Calculate the actual string length in UTF-8 variable characters
+	/* Calculate the actual string length in UTF-8 variable characters */
 	len = BLI_wstrlen_utf8(ef->textbuf);
 
-	// Alloc memory for UTF-8 variable char length string
+	/* Alloc memory for UTF-8 variable char length string */
 	cu->str = MEM_callocN(len + sizeof(wchar_t), "str");
 
-	// Copy the wchar to UTF-8
+	/* Copy the wchar to UTF-8 */
 	BLI_strncpy_wchar_as_utf8(cu->str, ef->textbuf, len + 1);
 }
 
@@ -362,8 +362,8 @@ static int paste_file(bContext *C, ReportList *reports, const char *filename)
 
 	strp = MEM_callocN(filelen + 4, "tempstr");
 
-	// fread() instead of read(), because windows read() converts text
-	// to DOS \r\n linebreaks, causing double linebreaks in the 3d text
+	/* fread() instead of read(), because windows read() converts text
+	 * to DOS \r\n linebreaks, causing double linebreaks in the 3d text */
 	filelen = fread(strp, 1, filelen, fp);
 	fclose(fp);
 	strp[filelen] = 0;
@@ -422,7 +422,8 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE | TEXTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | TEXTFILE, FILE_SPECIAL, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 }
 
 /******************* text to object operator ********************/
@@ -440,8 +441,9 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 	obedit = BKE_object_add(scene, OB_FONT);
 	base = scene->basact;
 
-	
-	ED_object_base_init_transform(C, base, NULL, rot); /* seems to assume view align ? TODO - look into this, could be an operator option */
+	/* seems to assume view align ? TODO - look into this, could be an operator option */
+	ED_object_base_init_transform(C, base, NULL, rot);
+
 	BKE_object_where_is_calc(scene, obedit);
 
 	obedit->loc[0] += offset[0];
@@ -753,7 +755,7 @@ static int paste_selection(Object *obedit, ReportList *reports)
 	EditFont *ef = cu->editfont;
 	int len = wcslen(ef->copybuf);
 
-	// Verify that the copy buffer => [copy buffer len] + cu->len < MAXTEXT
+	/* Verify that the copy buffer => [copy buffer len] + cu->len < MAXTEXT */
 	if (cu->len + len <= MAXTEXT) {
 		if (len) {	
 			int size = (cu->len * sizeof(wchar_t)) - (cu->pos * sizeof(wchar_t)) + sizeof(wchar_t);
@@ -1452,12 +1454,12 @@ void make_editText(Object *obedit)
 		ef->oldstrinfo = MEM_callocN((MAXTEXT + 4) * sizeof(CharInfo), "oldstrbuf");
 	}
 	
-	// Convert the original text to wchar_t
+	/* Convert the original text to wchar_t */
 	BLI_strncpy_wchar_from_utf8(ef->textbuf, cu->str, MAXTEXT + 4); /* length is bogus */
 	wcscpy(ef->oldstr, ef->textbuf);
-		
+
 	cu->len = wcslen(ef->textbuf);
-	
+
 	memcpy(ef->textbufinfo, cu->strinfo, (cu->len) * sizeof(CharInfo));
 	memcpy(ef->oldstrinfo, cu->strinfo, (cu->len) * sizeof(CharInfo));
 
@@ -1467,8 +1469,8 @@ void make_editText(Object *obedit)
 		cu->curinfo = ef->textbufinfo[cu->pos - 1];
 	else
 		cu->curinfo = ef->textbufinfo[0];
-	
-	// Convert to UTF-8
+
+	/* Convert to UTF-8 */
 	update_string(cu);
 }
 
@@ -1665,7 +1667,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	VFont *font = NULL;
+	VFont *vfont = NULL;
 	char *path;
 
 	PointerRNA idptr;
@@ -1678,10 +1680,10 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 
 	if (pprop->prop) {
 		idptr = RNA_property_pointer_get((PointerRNA *)pprop, pprop->prop);
-		font = idptr.id.data;
+		vfont = idptr.id.data;
 	}
 
-	path = (font && strcmp(font->name, FO_BUILTIN_NAME) != 0) ? font->name : U.fontdir;
+	path = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->name : U.fontdir;
 
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
 		return font_open_exec(C, op);
@@ -1708,7 +1710,8 @@ void FONT_OT_open(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE | FTFONTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | FTFONTFILE, FILE_SPECIAL, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 }
 
 /******************* delete operator *********************/
@@ -1773,10 +1776,10 @@ static void *editFont_to_undoFont(void *ecu, void *UNUSED(obdata))
 	EditFont *ef = cu->editfont;
 	char *str;
 	
-	// The undo buffer includes [MAXTEXT+6]=actual string and [MAXTEXT+4]*sizeof(CharInfo)=charinfo
+	/* The undo buffer includes [MAXTEXT+6]=actual string and [MAXTEXT+4]*sizeof(CharInfo)=charinfo */
 	str = MEM_callocN((MAXTEXT + 6) * sizeof(wchar_t) + (MAXTEXT + 4) * sizeof(CharInfo), "string undo");
 
-	// Copy the string and string information
+	/* Copy the string and string information */
 	memcpy(str + 4, ef->textbuf, (cu->len + 1) * sizeof(wchar_t));
 	memcpy(str + 4 + (cu->len + 1) * sizeof(wchar_t), ef->textbufinfo, cu->len * sizeof(CharInfo));
 

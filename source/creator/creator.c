@@ -68,7 +68,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h" /* for DAG_on_visible_update */
@@ -92,7 +91,6 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-//XXX #include "playanim_ext.h"
 #include "ED_datafiles.h"
 
 #include "WM_api.h"
@@ -174,7 +172,7 @@ static void blender_esc(int sig)
 {
 	static int count = 0;
 	
-	G.afbreek = 1;  /* forces render loop to read queue, not sure if its needed */
+	G.is_break = TRUE;  /* forces render loop to read queue, not sure if its needed */
 	
 	if (sig == 2) {
 		if (count) {
@@ -390,7 +388,7 @@ static int debug_mode_libmv(int UNUSED(argc), const char **UNUSED(argv), void *U
 static int set_debug_value(int argc, const char **argv, void *UNUSED(data))
 {
 	if (argc > 1) {
-		G.rt = atoi(argv[1]);
+		G.debug_value = atoi(argv[1]);
 
 		return 1;
 	}
@@ -453,16 +451,12 @@ static int set_env(int argc, const char **argv, void *UNUSED(data))
 	return 1;
 }
 
-static int playback_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+static int playback_mode(int argc, const char **argv, void *UNUSED(data))
 {
 	/* not if -b was given first */
 	if (G.background == 0) {
-#if 0   /* TODO, bring player back? */
-		playanim(argc, argv); /* not the same argc and argv as before */
-#else
-		fprintf(stderr, "Playback mode not supported in blender 2.6x\n");
-		exit(0);
-#endif
+		WM_main_playanim(argc, argv); /* not the same argc and argv as before */
+		exit(0); /* 2.4x didn't do this */
 	}
 
 	return -2;
@@ -482,20 +476,20 @@ static int prefsize(int argc, const char **argv, void *UNUSED(data))
 	sizx = atoi(argv[3]);
 	sizy = atoi(argv[4]);
 
-	WM_setprefsize(stax, stay, sizx, sizy);
+	WM_init_state_size_set(stax, stay, sizx, sizy);
 
 	return 4;
 }
 
 static int with_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	WM_setinitialstate_normal();
+	WM_init_state_normal_set();
 	return 0;
 }
 
 static int without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-	WM_setinitialstate_fullscreen();
+	WM_init_state_fullscreen_set();
 	return 0;
 }
 
@@ -1031,7 +1025,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 			return -1;
 		}
 
-		/* WM_read_file() runs normally but since we're in background mode do here */
+		/* WM_file_read() runs normally but since we're in background mode do here */
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
@@ -1048,7 +1042,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 		 * a file - this should do everything a 'load file' does */
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		WM_read_file(C, filename, &reports);
+		WM_file_read(C, filename, &reports);
 		BKE_reports_clear(&reports);
 	}
 
@@ -1272,14 +1266,13 @@ int main(int argc, const char **argv)
 
 	BLI_threadapi_init();
 
-	RNA_init();
-	RE_engines_init();
-
-	init_nodesystem();
-	
 	initglobals();  /* blender.c */
 
 	IMB_init();
+
+#ifdef WITH_FFMPEG
+	IMB_ffmpeg_init();
+#endif
 
 	BLI_callback_global_init();
 
@@ -1297,6 +1290,15 @@ int main(int argc, const char **argv)
 	BLI_argsParse(ba, 1, NULL, NULL);
 #endif
 
+
+	/* after level 1 args, this is so playanim skips RNA init */
+	RNA_init();
+
+	RE_engines_init();
+	init_nodesystem();
+	/* end second init */
+
+
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background = 1; /* python module mode ALWAYS runs in background mode (for now) */
 #else
@@ -1305,7 +1307,7 @@ int main(int argc, const char **argv)
 #endif
 
 	/* background render uses this font too */
-	BKE_vfont_builtin_register(datatoc_Bfont, datatoc_Bfont_size);
+	BKE_vfont_builtin_register(datatoc_bfont_pfb, datatoc_bfont_pfb_size);
 
 	/* Initialize ffmpeg if built in, also needed for bg mode if videos are
 	 * rendered via ffmpeg */
@@ -1346,7 +1348,7 @@ int main(int argc, const char **argv)
 	 * WM_init() before #BPY_python_start() crashes Blender at startup.
 	 */
 
-	// TODO - U.pythondir
+	/* TODO - U.pythondir */
 #else
 	printf("\n* WARNING * - Blender compiled without Python!\nthis is not intended for typical usage\n\n");
 #endif

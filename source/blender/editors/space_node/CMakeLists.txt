@@ -31,6 +31,7 @@ set(INC
 	../../nodes
 	../../render/extern/include
 	../../windowmanager
+	../../compositor
 	../../../../intern/guardedalloc
 	../../../../intern/opennl/extern
 )
@@ -41,14 +42,17 @@ set(INC_SYS
 
 set(SRC
 	drawnode.c
+	node_add.c
 	node_buttons.c
 	node_draw.c
 	node_edit.c
+	node_group.c
 	node_header.c
 	node_ops.c
+	node_relationships.c
 	node_select.c
-	node_state.c
 	node_templates.c
+	node_view.c
 	space_node.c
 
 	node_intern.h
@@ -56,6 +60,10 @@ set(SRC
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_COMPOSITOR)
+	add_definitions(-DWITH_COMPOSITOR)
 endif()
 
 blender_add_lib(bf_editor_space_node "${SRC}" "${INC}" "${INC_SYS}")

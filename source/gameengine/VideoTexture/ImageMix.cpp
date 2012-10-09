@@ -101,14 +101,14 @@ void ImageMix::calcImage (unsigned int texId, double ts)
 
 
 // cast Image pointer to ImageMix
-inline ImageMix * getImageMix (PyImage * self)
+inline ImageMix * getImageMix (PyImage *self)
 { return static_cast<ImageMix*>(self->m_image); }
 
 
 // python methods
 
 // get source weight
-PyObject * getWeight (PyImage * self, PyObject * args)
+static PyObject *getWeight (PyImage *self, PyObject *args)
 {
 	// weight
 	short weight = 0;
@@ -125,7 +125,7 @@ PyObject * getWeight (PyImage * self, PyObject * args)
 
 
 // set source weight
-PyObject * setWeight (PyImage * self, PyObject * args)
+static PyObject *setWeight (PyImage *self, PyObject *args)
 {
 	// get arguments
 	char * id;

@@ -187,8 +187,7 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Movie Clip User",
 	                       "Parameters defining how a MovieClip datablock is used by another datablock");
 
-	prop = RNA_def_property(srna, "current_frame", PROP_INT, PROP_TIME);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "framenr");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "Current frame number in movie or image sequence");
@@ -287,7 +286,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* start_frame */
-	prop = RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "start_frame");
 	RNA_def_property_ui_text(prop, "Start Frame", "Global scene frame number at which this movie starts playing "
 	                         "(affects all data associated with a clip)");
@@ -299,6 +298,18 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame Offset", "Offset of footage first frame relative to it's file name "
 	                         "(affects only how footage is loading, does not change data associated with a clip)");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_reload_update");
+
+	/* length */
+	prop = RNA_def_property(srna, "frame_duration", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_sdna(prop, NULL, "len");
+	RNA_def_property_ui_text(prop, "Duration", "Detected duration of movie clip in frames");
+
+	/* color management */
+	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
+	RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
 }
 
 void RNA_def_movieclip(BlenderRNA *brna)

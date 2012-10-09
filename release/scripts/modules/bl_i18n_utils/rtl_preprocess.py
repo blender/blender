@@ -34,9 +34,14 @@
 
 import sys
 import ctypes
+import re
 
-import settings
-import utils
+try:
+    import settings
+    import utils
+except:
+    from . import (settings, utils)
+
 
 FRIBIDI_LIB = settings.FRIBIDI_LIB
 
@@ -82,44 +87,65 @@ FRIBIDI_FLAGS_DEFAULT = FRIBIDI_FLAG_SHAPE_MIRRORING | \
 FRIBIDI_FLAGS_ARABIC = FRIBIDI_FLAG_SHAPE_ARAB_PRES | \
                        FRIBIDI_FLAG_SHAPE_ARAB_LIGA
 
+
+MENU_DETECT_REGEX = re.compile("%x\\d+\\|")
+
+
 ##### Kernel processing funcs. #####
 def protect_format_seq(msg):
     """
     Find some specific escaping/formating sequences (like \", %s, etc.,
     and protect them from any modification!
     """
+#    LRM = "\u200E"
+#    RLM = "\u200F"
     LRE = "\u202A"
+    RLE = "\u202B"
     PDF = "\u202C"
+    LRO = "\u202D"
+    RLO = "\u202E"
+    uctrl = {LRE, RLE, PDF, LRO, RLO}
     # Most likely incomplete, but seems to cover current needs.
     format_codes = set("tslfd")
     digits = set(".0123456789")
+
+    if not msg:
+        return msg
+    elif MENU_DETECT_REGEX.search(msg):
+        # An ugly "menu" message, just force it whole LRE if not yet done.
+        if msg[0] not in {LRE, LRO}:
+            msg = LRE + msg
 
     idx = 0
     ret = []
     ln = len(msg)
     while idx < ln:
         dlt = 1
+#        # If we find a control char, skip any additional protection!
+#        if msg[idx] in uctrl:
+#            ret.append(msg[idx:])
+#            break
         # \" or \'
         if idx < (ln - 1) and msg[idx] == '\\' and msg[idx + 1] in "\"\'":
             dlt = 2
-        # %x12
-        elif idx < (ln - 2) and msg[idx] == '%' and msg[idx + 1] in "x" and \
-             msg[idx + 2] in digits:
+        # %x12|
+        elif idx < (ln - 2) and msg[idx] == '%' and msg[idx + 1] in "x" and msg[idx + 2] in digits:
             dlt = 2
-            while (idx + dlt + 1) < ln and msg[idx + dlt + 1] in digits:
+            while (idx + dlt) < ln and msg[idx + dlt] in digits:
+                dlt += 1
+            if (idx + dlt) < ln  and msg[idx + dlt] is '|':
                 dlt += 1
         # %.4f
         elif idx < (ln - 3) and msg[idx] == '%' and msg[idx + 1] in digits:
             dlt = 2
-            while (idx + dlt + 1) < ln and msg[idx + dlt + 1] in digits:
+            while (idx + dlt) < ln and msg[idx + dlt] in digits:
                 dlt += 1
-            if (idx + dlt + 1) < ln and msg[idx + dlt + 1] in format_codes:
+            if (idx + dlt) < ln and msg[idx + dlt] in format_codes:
                 dlt += 1
             else:
                 dlt = 1
         # %s
-        elif idx < (ln - 1) and msg[idx] == '%' and \
-             msg[idx + 1] in format_codes:
+        elif idx < (ln - 1) and msg[idx] == '%' and msg[idx + 1] in format_codes:
             dlt = 2
 
         if dlt > 1:
@@ -181,6 +207,7 @@ def log2vis(msgs):
 
         yield fbc_str.value
 
+
 ##### Command line stuff. #####
 def main():
     import argparse
@@ -203,7 +230,6 @@ def main():
     parser.add_argument('src', metavar='src.po',
                         help="The po's to pre-process messages.")
     args = parser.parse_args()
-
 
     msgs, state, u1 = utils.parse_messages(args.src)
     if state["is_broken"]:

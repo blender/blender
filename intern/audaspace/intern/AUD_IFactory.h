@@ -45,7 +45,7 @@ public:
 	/**
 	 * Destroys the factory.
 	 */
-	virtual ~AUD_IFactory(){}
+	virtual ~AUD_IFactory() {}
 
 	/**
 	 * Creates a reader for playback of the sound source.

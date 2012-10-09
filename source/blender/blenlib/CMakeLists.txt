@@ -55,6 +55,7 @@ set(SRC
 	intern/cpu.c
 	intern/dynlib.c
 	intern/edgehash.c
+	intern/endian_switch.c
 	intern/fileops.c
 	intern/fnmatch.c
 	intern/freetypefont.c
@@ -81,6 +82,7 @@ set(SRC
 	intern/rct.c
 	intern/scanfill.c
 	intern/smallhash.c
+	intern/stack.c
 	intern/storage.c
 	intern/string.c
 	intern/string_cursor_utf8.c
@@ -104,6 +106,8 @@ set(SRC
 	BLI_dynlib.h
 	BLI_dynstr.h
 	BLI_edgehash.h
+	BLI_endian_switch.h
+	BLI_endian_switch_inline.h
 	BLI_fileops.h
 	BLI_fileops_types.h
 	BLI_fnmatch.h
@@ -135,6 +139,7 @@ set(SRC
 	BLI_rect.h
 	BLI_scanfill.h
 	BLI_smallhash.h
+	BLI_stack.h
 	BLI_string.h
 	BLI_string_cursor_utf8.h
 	BLI_string_utf8.h
@@ -142,6 +147,7 @@ set(SRC
 	BLI_utildefines.h
 	BLI_uvproject.h
 	BLI_vfontdata.h
+	BLI_voronoi.h
 	BLI_voxel.h
 	BLI_winstuff.h
 	PIL_time.h

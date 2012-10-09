@@ -72,15 +72,15 @@ public:
 		m_modified = true;
 	}
 
-	void	SetModifyMistStart(bool modify) {	
+	void	SetModifyMistStart(bool modify) {
 		m_modify_mist_start = modify;
 	}
 
-	void	SetModifyMistColor(bool modify) {	
+	void	SetModifyMistColor(bool modify) {
 		m_modify_mist_color = modify;
 	}
 
-	void	SetModifyMistDist(bool modify) {	
+	void	SetModifyMistDist(bool modify) {
 		m_modify_mist_dist = modify;
 	}
 

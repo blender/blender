@@ -28,12 +28,16 @@ import sys
 from codecs import open
 import shutil
 
-import settings
-import utils
+try:
+    import settings
+    import utils
+except:
+    from . import (settings, utils)
+
 
 GETTEXT_MSGMERGE_EXECUTABLE = settings.GETTEXT_MSGMERGE_EXECUTABLE
-BRANCHES_DIR  = settings.BRANCHES_DIR
-TRUNK_PO_DIR  = settings.TRUNK_PO_DIR
+BRANCHES_DIR = settings.BRANCHES_DIR
+TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 FILE_NAME_POT = settings.FILE_NAME_POT
 
 
@@ -71,6 +75,8 @@ def process_po(po, lang):
     # update po file
     cmd = (GETTEXT_MSGMERGE_EXECUTABLE,
            "--update",
+           "-w", "1",  # XXX Ugly hack to prevent msgmerge merging
+                       #     short source comments together!
            "--no-wrap",
            "--backup=none",
            "--lang={}".format(lang),

@@ -59,7 +59,6 @@
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 
@@ -76,9 +75,9 @@ short id_type_can_have_animdata(ID *id)
 	/* sanity check */
 	if (id == NULL)
 		return 0;
-		
+
 	/* Only some ID-blocks have this info for now */
-	// TODO: finish adding this for the other blocktypes
+	/* TODO: finish adding this for the other blocktypes */
 	switch (GS(id->name)) {
 		/* has AnimData */
 		case ID_OB:
@@ -231,7 +230,7 @@ void BKE_free_animdata(ID *id)
 			free_fcurves(&adt->drivers);
 			
 			/* free overrides */
-			// TODO...
+			/* TODO... */
 			
 			/* free animdata now */
 			MEM_freeN(adt);
@@ -334,7 +333,7 @@ void BKE_animdata_make_local(AnimData *adt)
 	if (adt->remap && adt->remap->target) BKE_action_make_local(adt->remap->target);
 	
 	/* Drivers */
-	// TODO: need to remap the ID-targets too?
+	/* TODO: need to remap the ID-targets too? */
 	
 	/* NLA Data */
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next)
@@ -505,8 +504,8 @@ void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths
 		else if (dstAdt->action == srcAdt->action) {
 			printf("Argh! Source and Destination share animation! ('%s' and '%s' both use '%s') Making new empty action\n",
 			       srcID->name, dstID->name, srcAdt->action->id.name);
-			
-			// TODO: review this...
+
+			/* TODO: review this... */
 			id_us_min(&dstAdt->action->id);
 			dstAdt->action = add_empty_action(dstAdt->action->id.name + 2);
 		}
@@ -534,9 +533,9 @@ void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths
 					/* just need to change lists */
 					BLI_remlink(&srcAdt->drivers, fcu);
 					BLI_addtail(&dstAdt->drivers, fcu);
-					
-					// TODO: add depsgraph flushing calls?
-					
+
+					/* TODO: add depsgraph flushing calls? */
+
 					/* can stop now, as moved already */
 					break;
 				}
@@ -603,7 +602,7 @@ static char *rna_path_rename_fix(ID *owner_id, const char *prefix, const char *o
 			BLI_dynstr_free(ds);
 			
 			/* check if the new path will solve our problems */
-			// TODO: will need to check whether this step really helps in practice
+			/* TODO: will need to check whether this step really helps in practice */
 			if (!verify_paths || check_rna_path_is_valid(owner_id, newPath)) {
 				/* free the old path, and return the new one, since we've solved the issues */
 				MEM_freeN(oldpath);
@@ -621,15 +620,30 @@ static char *rna_path_rename_fix(ID *owner_id, const char *prefix, const char *o
 }
 
 /* Check RNA-Paths for a list of F-Curves */
-static void fcurves_path_rename_fix(ID *owner_id, const char *prefix, char *oldName, char *newName, ListBase *curves, int verify_paths)
+static void fcurves_path_rename_fix(ID *owner_id, const char *prefix, const char *oldName, const char *newName, 
+                                    const char *oldKey, const char *newKey, ListBase *curves, int verify_paths)
 {
 	FCurve *fcu;
 	
 	/* we need to check every curve... */
 	for (fcu = curves->first; fcu; fcu = fcu->next) {
-		/* firstly, handle the F-Curve's own path */
-		if (fcu->rna_path)
-			fcu->rna_path = rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path, verify_paths);
+		if (fcu->rna_path) {
+			char *old_path = fcu->rna_path;
+			
+			/* firstly, handle the F-Curve's own path */
+			fcu->rna_path = rna_path_rename_fix(owner_id, prefix, oldKey, newKey, fcu->rna_path, verify_paths);
+			
+			/* if path changed and the F-Curve is grouped, check if its group also needs renaming
+			 * (i.e. F-Curve is first of a bone's F-Curves; hence renaming this should also trigger rename)
+			 */
+			if (fcu->rna_path != old_path) {
+				bActionGroup *agrp = fcu->grp;
+				
+				if ((agrp) && strcmp(oldName, agrp->name) == 0) {
+					BLI_strncpy(agrp->name, newName, sizeof(agrp->name));
+				}
+			}
+		}
 	}
 }
 
@@ -675,7 +689,8 @@ static void drivers_path_rename_fix(ID *owner_id, ID *ref_id, const char *prefix
 }
 
 /* Fix all RNA-Paths for Actions linked to NLA Strips */
-static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, char *oldName, char *newName, ListBase *strips, int verify_paths)
+static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, const char *oldName, const char *newName, 
+                                      const char *oldKey, const char *newKey, ListBase *strips, int verify_paths)
 {
 	NlaStrip *strip;
 	
@@ -683,11 +698,11 @@ static void nlastrips_path_rename_fix(ID *owner_id, const char *prefix, char *ol
 	for (strip = strips->first; strip; strip = strip->next) {
 		/* fix strip's action */
 		if (strip->act)
-			fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &strip->act->curves, verify_paths);
+			fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldKey, newKey, &strip->act->curves, verify_paths);
 		/* ignore own F-Curves, since those are local...  */
 		
 		/* check sub-strips (if metas) */
-		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, &strip->strips, verify_paths);
+		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, oldKey, newKey, &strip->strips, verify_paths);
 	}
 }
 
@@ -717,16 +732,16 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 	
 	/* Active action and temp action */
 	if (adt->action)
-		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->action->curves, verify_paths);
+		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &adt->action->curves, verify_paths);
 	if (adt->tmpact)
-		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->tmpact->curves, verify_paths);
+		fcurves_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &adt->tmpact->curves, verify_paths);
 		
 	/* Drivers - Drivers are really F-Curves */
 	drivers_path_rename_fix(owner_id, ref_id, prefix, oldName, newName, oldN, newN, &adt->drivers, verify_paths);
 	
 	/* NLA Data - Animation Data for Strips */
 	for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next)
-		nlastrips_path_rename_fix(owner_id, prefix, oldN, newN, &nlt->strips, verify_paths);
+		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, oldN, newN, &nlt->strips, verify_paths);
 		
 	/* free the temp names */
 	MEM_freeN(oldN);
@@ -907,7 +922,7 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 /* Finding Tools --------------------------- */
 
 /* Find the first path that matches the given criteria */
-// TODO: do we want some method to perform partial matches too?
+/* TODO: do we want some method to perform partial matches too? */
 KS_Path *BKE_keyingset_find_path(KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int UNUSED(group_mode))
 {
 	KS_Path *ksp;
@@ -936,7 +951,7 @@ KS_Path *BKE_keyingset_find_path(KeyingSet *ks, ID *id, const char group_name[],
 			
 		/* group */
 		if (group_name) {
-			// FIXME: these checks need to be coded... for now, it's not too important though
+			/* FIXME: these checks need to be coded... for now, it's not too important though */
 		}
 			
 		/* if all aspects are ok, return */
@@ -1019,7 +1034,7 @@ KS_Path *BKE_keyingset_add_path(KeyingSet *ks, ID *id, const char group_name[], 
 		ksp->idtype = GS(id->name);
 	
 	/* just copy path info */
-	// TODO: should array index be checked too?
+	/* TODO: should array index be checked too? */
 	ksp->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
 	ksp->array_index = array_index;
 	
@@ -1116,11 +1131,13 @@ void BKE_keyingsets_free(ListBase *list)
 static short animsys_remap_path(AnimMapper *UNUSED(remap), char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
-	//if (remap) {
-	/* find a matching entry... to use to remap */
-	// ...TODO...
-	//}
-	
+#if 0
+	if (remap) {
+		/* find a matching entry... to use to remap */
+		/* ...TODO... */
+	}
+#endif
+
 	/* nothing suitable found, so just set dst to look at path (i.e. no alloc/free needed) */
 	*dst = path;
 	return 0;
@@ -1143,6 +1160,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 		/* set value - only for animatable numerical values */
 		if (RNA_property_animateable(&new_ptr, prop)) {
 			int array_len = RNA_property_array_length(&new_ptr, prop);
+			int written = FALSE;
 			
 			if (array_len && array_index >= array_len) {
 				if (G.debug & G_DEBUG) {
@@ -1156,25 +1174,52 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 			
 			switch (RNA_property_type(prop)) {
 				case PROP_BOOLEAN:
-					if (array_len)
-						RNA_property_boolean_set_index(&new_ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
-					else
-						RNA_property_boolean_set(&new_ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
+					if (array_len) {
+						if (RNA_property_boolean_get_index(&new_ptr, prop, array_index) != ANIMSYS_FLOAT_AS_BOOL(value)) {
+							RNA_property_boolean_set_index(&new_ptr, prop, array_index, ANIMSYS_FLOAT_AS_BOOL(value));
+							written = TRUE;
+						}
+					}
+					else {
+						if (RNA_property_boolean_get(&new_ptr, prop) != ANIMSYS_FLOAT_AS_BOOL(value)) {
+							RNA_property_boolean_set(&new_ptr, prop, ANIMSYS_FLOAT_AS_BOOL(value));
+							written = TRUE;
+						}
+					}
 					break;
 				case PROP_INT:
-					if (array_len)
-						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
-					else
-						RNA_property_int_set(&new_ptr, prop, (int)value);
+					if (array_len) {
+						if (RNA_property_int_get_index(&new_ptr, prop, array_index) != (int)value) {
+							RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
+							written = TRUE;
+						}
+					}
+					else {
+						if (RNA_property_int_get(&new_ptr, prop) != (int)value) {
+							RNA_property_int_set(&new_ptr, prop, (int)value);
+							written = TRUE;
+						}
+					}
 					break;
 				case PROP_FLOAT:
-					if (array_len)
-						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
-					else
-						RNA_property_float_set(&new_ptr, prop, value);
+					if (array_len) {
+						if (RNA_property_float_get_index(&new_ptr, prop, array_index) != value) {
+							RNA_property_float_set_index(&new_ptr, prop, array_index, value);
+							written = TRUE;
+						}
+					}
+					else {
+						if (RNA_property_float_get(&new_ptr, prop) != value) {
+							RNA_property_float_set(&new_ptr, prop, value);
+							written = TRUE;
+						}
+					}
 					break;
 				case PROP_ENUM:
-					RNA_property_enum_set(&new_ptr, prop, (int)value);
+					if (RNA_property_enum_get(&new_ptr, prop) != (int)value) {
+						RNA_property_enum_set(&new_ptr, prop, (int)value);
+						written = TRUE;
+					}
 					break;
 				default:
 					/* nothing can be done here... so it is unsuccessful? */
@@ -1184,7 +1229,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 			/* RNA property update disabled for now - [#28525] [#28690] [#28774] [#28777] */
 #if 0
 			/* buffer property update for later flushing */
-			if (RNA_property_update_check(prop)) {
+			if (written && RNA_property_update_check(prop)) {
 				short skip_updates_hack = 0;
 				
 				/* optimization hacks: skip property updates for those properties
@@ -1204,7 +1249,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 			/* as long as we don't do property update, we still tag datablock
 			 * as having been updated. this flag does not cause any updates to
 			 * be run, it's for e.g. render engines to synchronize data */
-			if (new_ptr.id.data) {
+			if (written && new_ptr.id.data) {
 				ID *id = new_ptr.id.data;
 				id->flag |= LIB_ID_RECALC;
 				DAG_id_type_tag(G.main, GS(id->name));
@@ -1216,8 +1261,8 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 	}
 	else {
 		/* failed to get path */
-		// XXX don't tag as failed yet though, as there are some legit situations (Action Constraint) 
-		// where some channels will not exist, but shouldn't lock up Action
+		/* XXX don't tag as failed yet though, as there are some legit situations (Action Constraint)
+		 * where some channels will not exist, but shouldn't lock up Action */
 		if (G.debug & G_DEBUG) {
 			printf("Animato: Invalid path. ID = '%s',  '%s[%d]'\n",
 			       (ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name + 2) : "<No ID>",
@@ -1425,11 +1470,11 @@ static void nlastrip_evaluate_controls(NlaStrip *strip, float ctime)
 		animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, NULL, ctime);
 	}
 
-	/* if user can control the evaluation time (using F-Curves), consider the option which allows this time to be clamped 
+	/* if user can control the evaluation time (using F-Curves), consider the option which allows this time to be clamped
 	 * to lie within extents of the action-clip, so that a steady changing rate of progress through several cycles of the clip
 	 * can be achieved easily
 	 */
-	// NOTE: if we add any more of these special cases, we better group them up nicely...
+	/* NOTE: if we add any more of these special cases, we better group them up nicely... */
 	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) && (strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC))
 		strip->strip_time = fmod(strip->strip_time - strip->actstart, strip->actend - strip->actstart);
 }
@@ -1511,7 +1556,7 @@ NlaEvalStrip *nlastrips_ctime_get_strip(ListBase *list, ListBase *strips, short 
 	 *  - skip if no influence (i.e. same effect as muting the strip)
 	 *	- negative influence is not supported yet... how would that be defined?
 	 */
-	// TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on...
+	/* TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on... */
 	nlastrip_evaluate_controls(estrip, ctime);
 	if (estrip->influence <= 0.0f)
 		return NULL;
@@ -1668,7 +1713,7 @@ static void nlaevalchan_accumulate(NlaEvalChannel *nec, NlaEvalStrip *nes, short
 			break;
 		
 		case NLASTRIP_MODE_REPLACE:
-		default: // TODO: do we really want to blend by default? it seems more uses might prefer add...
+		default: /* TODO: do we really want to blend by default? it seems more uses might prefer add... */
 			/* do linear interpolation 
 			 *	- the influence of the accumulated data (elsewhere, that is called dstweight) 
 			 *	  is 1 - influence, since the strip's influence is srcweight
@@ -1864,7 +1909,7 @@ static void nlastrip_evaluate_transition(PointerRNA *ptr, ListBase *channels, Li
 	tmp_nes = *nes;
 	
 	/* evaluate these strips into a temp-buffer (tmp_channels) */
-	// FIXME: modifier evalation here needs some work...
+	/* FIXME: modifier evalation here needs some work... */
 	/* first strip */
 	tmp_nes.strip_mode = NES_TIME_TRANSITION_START;
 	tmp_nes.strip = s1;
@@ -1928,11 +1973,11 @@ static void nlastrip_evaluate_meta(PointerRNA *ptr, ListBase *channels, ListBase
 void nlastrip_evaluate(PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
 	NlaStrip *strip = nes->strip;
-	
+
 	/* to prevent potential infinite recursion problems (i.e. transition strip, beside meta strip containing a transition
 	 * several levels deep inside it), we tag the current strip as being evaluated, and clear this when we leave
 	 */
-	// TODO: be careful with this flag, since some edit tools may be running and have set this while animplayback was running
+	/* TODO: be careful with this flag, since some edit tools may be running and have set this while animplayback was running */
 	if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED)
 		return;
 	strip->flag |= NLASTRIP_FLAG_EDIT_TOUCHED;
@@ -1997,7 +2042,7 @@ void nladata_flush_channels(ListBase *channels)
 				RNA_property_enum_set(ptr, prop, (int)value);
 				break;
 			default:
-				// can't do anything with other types of property....
+				/* can't do anything with other types of property.... */
 				break;
 		}
 	}
@@ -2081,7 +2126,7 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 		}
 		else {
 			/* special case - evaluate as if there isn't any NLA data */
-			// TODO: this is really just a stop-gap measure...
+			/* TODO: this is really just a stop-gap measure... */
 			animsys_evaluate_action(ptr, adt->action, adt->remap, ctime);
 			return;
 		}
@@ -2107,10 +2152,10 @@ static void animsys_evaluate_nla(ListBase *echannels, PointerRNA *ptr, AnimData 
 static void animsys_calculate_nla(PointerRNA *ptr, AnimData *adt, float ctime)
 {
 	ListBase echannels = {NULL, NULL};
-	
-	// TODO: need to zero out all channels used, otherwise we have problems with threadsafety
-	// and also when the user jumps between different times instead of moving sequentially...
-	
+
+	/* TODO: need to zero out all channels used, otherwise we have problems with threadsafety
+	 * and also when the user jumps between different times instead of moving sequentially... */
+
 	/* evaluate the NLA stack, obtaining a set of values to flush */
 	animsys_evaluate_nla(&echannels, ptr, adt, ctime);
 	
@@ -2130,9 +2175,9 @@ static void animsys_calculate_nla(PointerRNA *ptr, AnimData *adt, float ctime)
 #if 0
 AnimOverride *BKE_animsys_validate_override(PointerRNA *UNUSED(ptr), char *UNUSED(path), int UNUSED(array_index))
 {
-	// FIXME: need to define how to get overrides
+	/* FIXME: need to define how to get overrides */
 	return NULL;
-} 
+}
 #endif
 
 /* -------------------- */
@@ -2202,7 +2247,7 @@ void BKE_animsys_evaluate_animdata(Scene *scene, ID *id, AnimData *adt, float ct
 	 *	- NLA before Active Action, as Active Action behaves as 'tweaking track'
 	 *	  that overrides 'rough' work in NLA
 	 */
-	// TODO: need to double check that this all works correctly
+	/* TODO: need to double check that this all works correctly */
 	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM)) {
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF)) {

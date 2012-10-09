@@ -73,11 +73,11 @@
 #include "BLI_bpath.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_font.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 #include "BKE_image.h" /* so we can check the image's type */
 
 static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
@@ -112,13 +112,13 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 
 	data->count_tot++;
 
-	if (strncmp(path_src, "//", 2) == 0) {
+	if (BLI_path_is_rel(path_src)) {
 		return FALSE; /* already relative */
 	}
 	else {
 		strcpy(path_dst, path_src);
 		BLI_path_rel(path_dst, data->basedir);
-		if (strncmp(path_dst, "//", 2) == 0) {
+		if (BLI_path_is_rel(path_dst)) {
 			data->count_changed++;
 		}
 		else {
@@ -154,13 +154,13 @@ static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char
 
 	data->count_tot++;
 
-	if (strncmp(path_src, "//", 2) != 0) {
+	if (BLI_path_is_rel(path_src) == FALSE) {
 		return FALSE; /* already absolute */
 	}
 	else {
 		strcpy(path_dst, path_src);
 		BLI_path_abs(path_dst, data->basedir);
-		if (strncmp(path_dst, "//", 2) != 0) {
+		if (BLI_path_is_rel(path_dst) == FALSE) {
 			data->count_changed++;
 		}
 		else {
@@ -191,12 +191,14 @@ void BLI_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *re
 	            data.count_tot, data.count_changed, data.count_failed);
 }
 
-/* find this file recursively, use the biggest file so thumbnails don't get used by mistake
- * - dir: subdir to search
- * - filename: set this filename
- * - filesize: filesize for the file
+/**
+ * find this file recursively, use the biggest file so thumbnails don't get used by mistake
+ * \param filename_new: the path will be copied here, caller must initialize as empyu string.
+ * \param dirname: subdir to search
+ * \param filename: set this filename
+ * \param filesize: filesize for the file
  *
- * return found: 1/0.
+ * \returns found: 1/0.
  */
 #define MAX_RECUR 16
 static int findFileRecursive(char *filename_new,
@@ -212,8 +214,6 @@ static int findFileRecursive(char *filename_new,
 	char path[FILE_MAX];
 	int size;
 	int found = FALSE;
-
-	filename_new[0] = '\0';
 
 	dir = opendir(dirname);
 
@@ -270,6 +270,8 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 	int filesize = -1;
 	int recur_depth = 0;
 	int found;
+
+	filename_new[0] = '\0';
 
 	found = findFileRecursive(filename_new,
 	                          data->searchdir, BLI_path_basename((char *)path_src),
@@ -482,9 +484,9 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			break;
 		case ID_VF:
 		{
-			VFont *vf = (VFont *)id;
-			if (vf->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
-				if (strcmp(vf->name, FO_BUILTIN_NAME) != 0) {
+			VFont *vfont = (VFont *)id;
+			if (vfont->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+				if (BKE_vfont_is_builtin(vfont) == FALSE) {
 					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
 				}
 			}
@@ -542,8 +544,8 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_ME:
 		{
 			Mesh *me = (Mesh *)id;
-			if (me->fdata.external) {
-				rewrite_path_fixed(me->fdata.external->filename, visit_cb, absbase, bpath_user_data);
+			if (me->ldata.external) {
+				rewrite_path_fixed(me->ldata.external->filename, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
@@ -593,7 +595,7 @@ int BLI_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *pat
 	const char *base_new = ((char **)pathbase_v)[0];
 	const char *base_old = ((char **)pathbase_v)[1];
 
-	if (strncmp(base_old, "//", 2) == 0) {
+	if (BLI_path_is_rel(base_old)) {
 		printf("%s: error, old base path '%s' is not absolute.\n",
 		       __func__, base_old);
 		return FALSE;

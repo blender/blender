@@ -27,6 +27,7 @@
 #include "BKE_text.h"
 #include <string>
 #include "DNA_node_types.h"
+#include "DNA_color_types.h"
 #include "BLI_rect.h"
 #include "DNA_scene_types.h"
 #include "COM_defines.h"
@@ -79,6 +80,9 @@ private:
 	 */
 	bool m_fastCalculation;
 
+	/* @brief color management settings */
+	const ColorManagedViewSettings *m_viewSettings;
+	const ColorManagedDisplaySettings *m_displaySettings;
 public:
 	/**
 	 * @brief constructor initializes the context with default values.
@@ -126,6 +130,26 @@ public:
 	const RenderData *getRenderData() const { return this->m_rd; }
 
 	/**
+	 * @brief set view settings of color color management
+	 */
+	void setViewSettings(const ColorManagedViewSettings *viewSettings) { this->m_viewSettings = viewSettings; }
+
+	/**
+	 * @brief get view settings of color color management
+	 */
+	const ColorManagedViewSettings *getViewSettings() const { return this->m_viewSettings; }
+
+	/**
+	 * @brief set display settings of color color management
+	 */
+	void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings) { this->m_displaySettings = displaySettings; }
+
+	/**
+	 * @brief get display settings of color color management
+	 */
+	const ColorManagedDisplaySettings *getDisplaySettings() const { return this->m_displaySettings; }
+
+	/**
 	 * @brief set the quality
 	 */
 	void setQuality(CompositorQuality quality) { this->m_quality = quality; }
@@ -151,8 +175,6 @@ public:
 	void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices) { this->m_hasActiveOpenCLDevices = hasAvtiveOpenCLDevices; }
 	
 	int getChunksize() { return this->getbNodeTree()->chunksize; }
-	
-	const int isColorManaged() const;
 	
 	void setFastCalculation(bool fastCalculation) {this->m_fastCalculation = fastCalculation;}
 	bool isFastCalculation() {return this->m_fastCalculation;}

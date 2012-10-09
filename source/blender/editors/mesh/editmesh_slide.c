@@ -27,6 +27,7 @@
 /* Takes heavily from editmesh_loopcut.c */
 
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -99,7 +100,7 @@ typedef struct VertexSlideOp {
 } VertexSlideOp;
 
 static void vtx_slide_draw(const bContext *C, ARegion *ar, void *arg);
-static int edbm_vertex_slide_exec(bContext *C, wmOperator *op);
+static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_update);
 static void vtx_slide_exit(const bContext *C, wmOperator *op);
 static int vtx_slide_set_frame(VertexSlideOp *vso);
 
@@ -195,16 +196,38 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 	VertexSlideOp *vso = op->customdata;
 	BMEditMesh *em = BMEdit_FromObject(vso->obj);
 	BMesh *bm = em->bm;
+	BMVert *other = NULL;
+
+	BMVert *mirr_vtx = NULL;
+	BMVert *mirr_vtx_other = NULL;
 
 	/* Select new edge */
 	BM_edge_select_set(bm, vso->sel_edge, TRUE);
 
-	/* Invoke operator */
-	edbm_vertex_slide_exec(C, op);
+	if (vso->snap_n_merge) {
+		other = BM_edge_other_vert(vso->sel_edge, vso->start_vtx);
+	}
+
+	if (((Mesh *)em->ob->data)->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_verts_mirror_cache_begin(em, TRUE);
+
+		mirr_vtx = EDBM_verts_mirror_get(em, vso->start_vtx);
+		if (vso->snap_n_merge) {
+			mirr_vtx_other = EDBM_verts_mirror_get(em, other);
+		}
+	}
+
+	/* Invoke operator - warning */
+	edbm_vertex_slide_exec_ex(C, op, FALSE);
+
+	if (mirr_vtx) {
+		mirr_vtx->co[0] = -vso->start_vtx->co[0];
+		mirr_vtx->co[1] =  vso->start_vtx->co[1];
+		mirr_vtx->co[2] =  vso->start_vtx->co[2];
+	}
 
 	if (vso->snap_n_merge) {
 		float other_d;
-		BMVert *other = BM_edge_other_vert(vso->sel_edge, vso->start_vtx);
 		other_d = len_v3v3(vso->interp, other->co);
 
 		/* Only snap if within threshold */
@@ -213,6 +236,13 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 			BM_vert_select_set(bm, vso->start_vtx, TRUE);
 			EDBM_op_callf(em, op, "pointmerge verts=%hv merge_co=%v", BM_ELEM_SELECT, other->co);
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+			if (mirr_vtx_other) {
+				BM_vert_select_set(bm, mirr_vtx, TRUE);
+				BM_vert_select_set(bm, mirr_vtx_other, TRUE);
+				EDBM_op_callf(em, op, "pointmerge verts=%hv merge_co=%v", BM_ELEM_SELECT, mirr_vtx_other->co);
+				EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			}
 		}
 		else {
 			/* Store in historty if not merging */
@@ -223,6 +253,10 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 		/* Store edit selection of the active vertex, allows other
 		 *  ops to run without reselecting */
 		BM_select_history_store(em->bm, vso->start_vtx);
+	}
+
+	if (((Mesh *)em->ob->data)->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_verts_mirror_cache_end(em);
 	}
 
 	EDBM_selectmode_flush(em);
@@ -347,22 +381,23 @@ static BMEdge *vtx_slide_nrst_in_frame(VertexSlideOp *vso, const float mval[2])
 		BMEdge *edge = NULL;
 		
 		float v1_proj[3], v2_proj[3];
-		float dist = 0;
 		float min_dist = FLT_MAX;
 
 		for (i = 0; i < vso->disk_edges; i++) {
 			edge = vso->edge_frame[i];
 
 			mul_v3_m4v3(v1_proj, vso->obj->obmat, edge->v1->co);
-			project_float_noclip(vso->active_region, v1_proj, v1_proj);
-
 			mul_v3_m4v3(v2_proj, vso->obj->obmat, edge->v2->co);
-			project_float_noclip(vso->active_region, v2_proj, v2_proj);
 
-			dist = dist_to_line_segment_v2(mval, v1_proj, v2_proj);
-			if (dist < min_dist) {
-				min_dist = dist;
-				cl_edge = edge;
+			/* we could use ED_view3d_project_float_object here, but for now dont since we dont have the context */
+			if ((ED_view3d_project_float_global(vso->active_region, v1_proj, v1_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
+			    (ED_view3d_project_float_global(vso->active_region, v2_proj, v2_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
+			{
+				const float dist = dist_to_line_segment_v2(mval, v1_proj, v2_proj);
+				if (dist < min_dist) {
+					min_dist = dist;
+					cl_edge = edge;
+				}
 			}
 		}
 	}
@@ -414,17 +449,21 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 		/* Calculate interpolation value for preview */
 		float t_val;
 
-		float mval_float[] = { (float)event->mval[0], (float)event->mval[1]};
+		float mval_float[2] = { (float)event->mval[0], (float)event->mval[1]};
 		float closest_2d[2];
 
 		other = BM_edge_other_vert(edge, vso->start_vtx);
 
 		/* Project points onto screen and do interpolation in 2D */
 		mul_v3_m4v3(start_vtx_proj, vso->obj->obmat, vso->start_vtx->co);
-		project_float_noclip(vso->active_region, start_vtx_proj, start_vtx_proj);
-
 		mul_v3_m4v3(edge_other_proj, vso->obj->obmat, other->co);
-		project_float_noclip(vso->active_region, edge_other_proj, edge_other_proj);
+
+		if ((ED_view3d_project_float_global(vso->active_region, edge_other_proj, edge_other_proj, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) ||
+		    (ED_view3d_project_float_global(vso->active_region, start_vtx_proj, start_vtx_proj, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK))
+		{
+			/* not much we can do here */
+			return;
+		}
 
 		closest_to_line_v2(closest_2d, mval_float, start_vtx_proj, edge_other_proj);
 
@@ -436,7 +475,7 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 		if (edge_len <= 0.0f)
 			edge_len = VTX_SLIDE_SNAP_THRSH;
 
-		edge_len =  (len_v3v3(edge->v1->co, edge->v2->co) * VTX_SLIDE_SNAP_THRSH) / edge_len;
+		edge_len =  (BM_edge_calc_length(edge) * VTX_SLIDE_SNAP_THRSH) / edge_len;
 
 		vso->snap_threshold =  edge_len;
 
@@ -644,7 +683,7 @@ static int edbm_vertex_slide_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 }
 
 /* Vertex Slide */
-static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
+static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_update)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
@@ -708,11 +747,20 @@ static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* Update Geometry */
-	EDBM_update_generic(C, em, TRUE);
+	if (do_update) {
+		/* Update Geometry */
+		EDBM_update_generic(C, em, TRUE);
+	}
 
 	return OPERATOR_FINISHED;
 }
+
+#if 0
+static int edbm_vertex_slide_exec(bContext *C, wmOperator *op)
+{
+	return edbm_vertex_slide_exec_ex(C, op, TRUE);
+}
+#endif
 
 void MESH_OT_vert_slide(wmOperatorType *ot)
 {

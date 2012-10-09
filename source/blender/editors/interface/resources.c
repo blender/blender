@@ -91,7 +91,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 	
 	if (btheme) {
 	
-		// first check for ui buttons theme
+		/* first check for ui buttons theme */
 		if (colorid < TH_THEMEUI) {
 		
 			switch (colorid) {
@@ -303,6 +303,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->bone_solid; break;
 				case TH_BONE_POSE:
 					cp = ts->bone_pose; break;
+				case TH_BONE_POSE_ACTIVE:
+					cp = ts->bone_pose_active; break;
 				case TH_STRIP:
 					cp = ts->strip; break;
 				case TH_STRIP_SELECT:
@@ -641,9 +643,7 @@ void ui_theme_init_default(void)
 	bTheme *btheme;
 	
 	/* we search for the theme with name Default */
-	for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-		if (strcmp("Default", btheme->name) == 0) break;
-	}
+	btheme = BLI_findstring(&U.themes, "Default", offsetof(bTheme, name));
 	
 	if (btheme == NULL) {
 		btheme = MEM_callocN(sizeof(bTheme), "theme");
@@ -739,6 +739,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	/* alpha 80 is not meant editable, used for wire+action draw */
 	rgba_char_args_set(btheme->tv3d.bone_pose, 80, 200, 255, 80);
+	rgba_char_args_set(btheme->tv3d.bone_pose_active, 140, 255, 255, 80);
 
 	rgba_char_args_set(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
 	rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
@@ -900,6 +901,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tnode.syntaxb, 108, 105, 111, 255);  /* operator */
 	rgba_char_args_set(btheme->tnode.syntaxv, 104, 106, 117, 255);  /* generator */
 	rgba_char_args_set(btheme->tnode.syntaxc, 105, 117, 110, 255);  /* group */
+	rgba_char_args_set(btheme->tnode.movie, 155, 155, 155, 160);  /* frame */
 	btheme->tnode.noodle_curving = 5;
 
 	/* space logic */
@@ -936,14 +938,14 @@ void UI_SetTheme(int spacetype, int regionid)
 		theme_regionid = RGN_TYPE_WINDOW;
 	}
 	else {
-		// later on, a local theme can be found too
+		/* later on, a local theme can be found too */
 		theme_active = U.themes.first;
 		theme_spacetype = spacetype;
 		theme_regionid = regionid;
 	}
 }
 
-bTheme *UI_GetTheme()
+bTheme *UI_GetTheme(void)
 {
 	return U.themes.first;
 }
@@ -1213,7 +1215,8 @@ void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], in
 }
 
 // get a 3 byte color, blended and shaded between two other char color pointers
-void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3], float fac, int offset)
+void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3],
+                                  float fac, int offset)
 {
 	int r, g, b;
 
@@ -1295,8 +1298,8 @@ void init_userdef_do_versions(void)
 	/* transform widget settings */
 	if (U.tw_hotspot == 0) {
 		U.tw_hotspot = 14;
-		U.tw_size = 20;          // percentage of window size
-		U.tw_handlesize = 16;    // percentage of widget radius
+		U.tw_size = 20;          /* percentage of window size */
+		U.tw_handlesize = 16;    /* percentage of widget radius */
 	}
 	if (U.pad_rot_angle == 0)
 		U.pad_rot_angle = 15;
@@ -1353,7 +1356,7 @@ void init_userdef_do_versions(void)
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			/* check for (alpha == 0) is safe, then color was never set */
 			if (btheme->ttime.back[3] == 0) {
-				// copied from ui_theme_init_default
+				/* copied from ui_theme_init_default */
 				btheme->ttime = btheme->tv3d;
 				rgba_char_args_set_fl(btheme->ttime.back,   0.45, 0.45, 0.45, 1.0);
 				rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);
@@ -1740,7 +1743,8 @@ void init_userdef_do_versions(void)
 	}
 
 	if (bmain->versionfile < 257) {
-		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
+		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs,
+		 * so that it doesn't linger around from old configs like a ghost */
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
 
@@ -1912,6 +1916,37 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 15)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set(btheme->tv3d.bone_pose_active, 140, 255, 255, 80);
+		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 16)) {
+		bTheme *btheme;
+
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tact.anim_active[3] == 0)
+				rgba_char_args_set(btheme->tact.anim_active, 204, 112, 26, 102);
+
+			if (btheme->tnla.anim_active[3] == 0)
+				rgba_char_args_set(btheme->tnla.anim_active, 204, 112, 26, 102);
+		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 22)) {
+		bTheme *btheme;
+
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tipo.lastsel_point[3] == 0)
+				rgba_char_args_set(btheme->tipo.lastsel_point, 0xff, 0xff, 0xff, 255);
+
+			if (btheme->tv3d.skin_root[3] == 0)
+				rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;
@@ -1925,9 +1960,6 @@ void init_userdef_do_versions(void)
 	}
 	if (U.dbl_click_time == 0) {
 		U.dbl_click_time = 350;
-	}
-	if (U.anim_player_preset == 0) {
-		U.anim_player_preset = 1;
 	}
 	if (U.scrcastfps == 0) {
 		U.scrcastfps = 10;
@@ -1947,6 +1979,13 @@ void init_userdef_do_versions(void)
 		U.ndof_sensitivity = 1.0f;
 		U.ndof_flag = NDOF_LOCK_HORIZON |
 		              NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
+	}
+	
+	if (U.ndof_orbit_sensitivity == 0.0f) {
+		U.ndof_orbit_sensitivity = U.ndof_sensitivity;
+
+		if (!(U.flag & USER_TRACKBALL))
+			U.ndof_flag |= NDOF_TURNTABLE;
 	}
 	if (U.tweak_threshold == 0)
 		U.tweak_threshold = 10;

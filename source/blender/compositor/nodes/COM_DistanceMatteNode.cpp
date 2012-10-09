@@ -21,8 +21,10 @@
 
 #include "COM_DistanceMatteNode.h"
 #include "BKE_node.h"
-#include "COM_DistanceMatteOperation.h"
+#include "COM_DistanceRGBMatteOperation.h"
+#include "COM_DistanceYCCMatteOperation.h"
 #include "COM_SetAlphaOperation.h"
+#include "COM_ConvertRGBToYCCOperation.h"
 
 DistanceMatteNode::DistanceMatteNode(bNode *editorNode) : Node(editorNode)
 {
@@ -36,12 +38,33 @@ void DistanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
 	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
 
-	DistanceMatteOperation *operation = new DistanceMatteOperation();
+	NodeOperation *operation;
 	bNode *editorsnode = getbNode();
-	operation->setSettings((NodeChroma *)editorsnode->storage);
+	NodeChroma *storage = (NodeChroma *)editorsnode->storage;
 
-	inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);
-	inputSocketKey->relinkConnections(operation->getInputSocket(1), 1, graph);
+	/* work in RGB color space */
+	if (storage->channel == 1) {
+		operation = new DistanceRGBMatteOperation();
+		((DistanceRGBMatteOperation *) operation)->setSettings(storage);
+
+		inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);
+		inputSocketKey->relinkConnections(operation->getInputSocket(1), 1, graph);
+	}
+	/* work in YCbCr color space */
+	else {
+		operation = new DistanceYCCMatteOperation();
+		((DistanceYCCMatteOperation *) operation)->setSettings(storage);
+
+		ConvertRGBToYCCOperation *operationYCCImage = new ConvertRGBToYCCOperation();
+		inputSocketImage->relinkConnections(operationYCCImage->getInputSocket(0), 0, graph);
+		addLink(graph, operationYCCImage->getOutputSocket(), operation->getInputSocket(0));
+		graph->addOperation(operationYCCImage);
+
+		ConvertRGBToYCCOperation *operationYCCMatte = new ConvertRGBToYCCOperation();
+		inputSocketKey->relinkConnections(operationYCCMatte->getInputSocket(0), 1, graph);
+		addLink(graph, operationYCCMatte->getOutputSocket(), operation->getInputSocket(1));
+		graph->addOperation(operationYCCMatte);
+	}
 
 	if (outputSocketMatte->isConnected()) {
 		outputSocketMatte->relinkConnections(operation->getOutputSocket());
@@ -54,7 +77,7 @@ void DistanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	addLink(graph, operation->getOutputSocket(), operationAlpha->getInputSocket(1));
 
 	graph->addOperation(operationAlpha);
-	addPreviewOperation(graph, operationAlpha->getOutputSocket());
+	addPreviewOperation(graph, context, operationAlpha->getOutputSocket());
 
 	if (outputSocketImage->isConnected()) {
 		outputSocketImage->relinkConnections(operationAlpha->getOutputSocket());

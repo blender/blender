@@ -91,10 +91,10 @@ static int bpy_bmtexpoly_image_set(BPy_BMTexPoly *self, PyObject *value, void *U
 }
 
 static PyGetSetDef bpy_bmtexpoly_getseters[] = {
-    /* attributes match rna_def_mtpoly  */
-    {(char *)"image", (getter)bpy_bmtexpoly_image_get, (setter)bpy_bmtexpoly_image_set, (char *)bpy_bmtexpoly_image_doc, NULL},
+	/* attributes match rna_def_mtpoly  */
+	{(char *)"image", (getter)bpy_bmtexpoly_image_get, (setter)bpy_bmtexpoly_image_set, (char *)bpy_bmtexpoly_image_doc, NULL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 PyTypeObject BPy_BMTexPoly_Type = {{{0}}}; /* bm.loops.layers.uv.active */
@@ -201,13 +201,13 @@ static int bpy_bmloopuv_flag_set(BPy_BMLoopUV *self, PyObject *value, void *flag
 }
 
 static PyGetSetDef bpy_bmloopuv_getseters[] = {
-    /* attributes match rna_def_mloopuv  */
-    {(char *)"uv",          (getter)bpy_bmloopuv_uv_get,   (setter)bpy_bmloopuv_uv_set,   (char *)bpy_bmloopuv_uv_doc, NULL},
-    {(char *)"pin_uv",      (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__pin_uv_doc, (void *)MLOOPUV_PINNED},
-    {(char *)"select",      (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__select_doc, (void *)MLOOPUV_VERTSEL},
-    {(char *)"select_edge", (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__select_edge_doc, (void *)MLOOPUV_EDGESEL},
+	/* attributes match rna_def_mloopuv  */
+	{(char *)"uv",          (getter)bpy_bmloopuv_uv_get,   (setter)bpy_bmloopuv_uv_set,   (char *)bpy_bmloopuv_uv_doc, NULL},
+	{(char *)"pin_uv",      (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__pin_uv_doc, (void *)MLOOPUV_PINNED},
+	{(char *)"select",      (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__select_doc, (void *)MLOOPUV_VERTSEL},
+	{(char *)"select_edge", (getter)bpy_bmloopuv_flag_get, (setter)bpy_bmloopuv_flag_set, (char *)bpy_bmloopuv_flag__select_edge_doc, (void *)MLOOPUV_EDGESEL},
 
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 PyTypeObject BPy_BMLoopUV_Type = {{{0}}}; /* bm.loops.layers.uv.active */
@@ -251,7 +251,7 @@ PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *mloopuv)
 /* Mesh Loop Color
  * *************** */
 
-/* This simply provices a color wrapper for
+/* This simply provides a color wrapper for
  * color which uses mathutils callbacks for mathutils.Color
  */
 
@@ -363,7 +363,7 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
  *     weight = dv[group_nr]
  *     del dv[group_nr]
  *
- * \note: there is nothing BMesh spesific here,
+ * \note: there is nothing BMesh specific here,
  * its only that BMesh is the only part of blender that uses a hand written api like this.
  * This type could eventually be used to access lattice weights.
  *
@@ -432,7 +432,7 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
 			/* dvert[group_index] = 0.5 */
 			if (i < 0) {
 				PyErr_SetString(PyExc_KeyError, "BMDeformVert[key] = x: "
-								"weight keys can't be negative");
+				                "weight keys can't be negative");
 				return -1;
 			}
 			else {
@@ -440,8 +440,8 @@ static int bpy_bmdeformvert_ass_subscript(BPy_BMDeformVert *self, PyObject *key,
 				const float f = PyFloat_AsDouble(value);
 				if (f == -1 && PyErr_Occurred()) { // parsed key not a number
 					PyErr_SetString(PyExc_TypeError,
-									"BMDeformVert[key] = x: "
-									"argument not a number");
+					                "BMDeformVert[key] = x: "
+					                "argument not a number");
 					return -1;
 				}
 
@@ -485,21 +485,21 @@ static int bpy_bmdeformvert_contains(BPy_BMDeformVert *self, PyObject *value)
 
 /* only defined for __contains__ */
 static PySequenceMethods bpy_bmdeformvert_as_sequence = {
-    (lenfunc)bpy_bmdeformvert_len,               /* sq_length */
-    NULL,                                        /* sq_concat */
-    NULL,                                        /* sq_repeat */
+	(lenfunc)bpy_bmdeformvert_len,               /* sq_length */
+	NULL,                                        /* sq_concat */
+	NULL,                                        /* sq_repeat */
 
-    /* note: if this is set PySequence_Check() returns True,
-     * but in this case we dont want to be treated as a seq */
-    NULL,                                        /* sq_item */
+	/* note: if this is set PySequence_Check() returns True,
+	 * but in this case we dont want to be treated as a seq */
+	NULL,                                        /* sq_item */
 
-    NULL,                                        /* sq_slice */
-    NULL,                                        /* sq_ass_item */
-    NULL,                                        /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmdeformvert_contains,  /* sq_contains */
-    (binaryfunc) NULL,                           /* sq_inplace_concat */
-    (ssizeargfunc) NULL,                         /* sq_inplace_repeat */
-};
+	NULL,                                        /* sq_slice */
+	NULL,                                        /* sq_ass_item */
+	NULL,                                        /* *was* sq_ass_slice */
+	(objobjproc)bpy_bmdeformvert_contains,       /* sq_contains */
+	(binaryfunc) NULL,                           /* sq_inplace_concat */
+	(ssizeargfunc) NULL,                         /* sq_inplace_repeat */
+	};
 
 static PyMappingMethods bpy_bmdeformvert_as_mapping = {
 	(lenfunc)bpy_bmdeformvert_len,
@@ -631,13 +631,13 @@ static PyObject *bpy_bmdeformvert_clear(BPy_BMDeformVert *self)
 }
 
 static struct PyMethodDef bpy_bmdeformvert_methods[] = {
-    {"keys",    (PyCFunction)bpy_bmdeformvert_keys,    METH_NOARGS,  bpy_bmdeformvert_keys_doc},
-    {"values",  (PyCFunction)bpy_bmdeformvert_values,  METH_NOARGS,  bpy_bmdeformvert_values_doc},
-    {"items",   (PyCFunction)bpy_bmdeformvert_items,   METH_NOARGS,  bpy_bmdeformvert_items_doc},
-    {"get",     (PyCFunction)bpy_bmdeformvert_get,     METH_VARARGS, bpy_bmdeformvert_get_doc},
-    /* BMESH_TODO pop, popitem, update */
-    {"clear",   (PyCFunction)bpy_bmdeformvert_clear,   METH_NOARGS,  bpy_bmdeformvert_clear_doc},
-    {NULL, NULL, 0, NULL}
+	{"keys",    (PyCFunction)bpy_bmdeformvert_keys,    METH_NOARGS,  bpy_bmdeformvert_keys_doc},
+	{"values",  (PyCFunction)bpy_bmdeformvert_values,  METH_NOARGS,  bpy_bmdeformvert_values_doc},
+	{"items",   (PyCFunction)bpy_bmdeformvert_items,   METH_NOARGS,  bpy_bmdeformvert_items_doc},
+	{"get",     (PyCFunction)bpy_bmdeformvert_get,     METH_VARARGS, bpy_bmdeformvert_get_doc},
+	/* BMESH_TODO pop, popitem, update */
+	{"clear",   (PyCFunction)bpy_bmdeformvert_clear,   METH_NOARGS,  bpy_bmdeformvert_clear_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 PyTypeObject BPy_BMDeformVert_Type = {{{0}}}; /* bm.loops.layers.uv.active */

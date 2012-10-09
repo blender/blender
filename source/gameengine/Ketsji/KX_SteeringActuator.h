@@ -82,7 +82,7 @@ public:
 						KX_GameObject *navmesh,
 						float distance,
 						float velocity, 
-						float acceleration,									
+						float acceleration,
 						float turnspeed,
 						bool  isSelfTerminated,
 						int pathUpdatePeriod,
@@ -107,11 +107,11 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	/* These are used to get and set m_target */
-	static PyObject* pyattr_get_target(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
-	static int pyattr_set_target(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	static PyObject* pyattr_get_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
-	static int pyattr_set_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-	static PyObject* pyattr_get_steeringVec(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_target(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_target(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_navmesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_steeringVec(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	
 
 #endif // WITH_PYTHON

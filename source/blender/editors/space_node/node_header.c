@@ -28,13 +28,10 @@
  *  \ingroup spnode
  */
 
-
 #include <string.h>
-#include <stdio.h>
 
 #include "DNA_space_types.h"
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -44,6 +41,7 @@
 
 #include "BLF_translation.h"
 
+#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -51,59 +49,61 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
-#include "RNA_access.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
-#include "UI_interface_icons.h"
-#include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "node_intern.h"
+#include "node_intern.h"  /* own include */
 
 /* ************************ add menu *********************** */
 
 static void do_node_add(bContext *C, bNodeTemplate *ntemp)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
-	ScrArea *sa= CTX_wm_area(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar;
-	bNode *node;
+	bNode *node, *node_new;
 	
 	/* get location to add node at mouse */
-	for (ar=sa->regionbase.first; ar; ar=ar->next) {
+	for (ar = sa->regionbase.first; ar; ar = ar->next) {
 		if (ar->regiontype == RGN_TYPE_WINDOW) {
-			wmWindow *win= CTX_wm_window(C);
-			int x= win->eventstate->x - ar->winrct.xmin;
-			int y= win->eventstate->y - ar->winrct.ymin;
+			wmWindow *win = CTX_wm_window(C);
+			int x = win->eventstate->x - ar->winrct.xmin;
+			int y = win->eventstate->y - ar->winrct.ymin;
 			
-			if (y < 60) y+= 60;
-			UI_view2d_region_to_view(&ar->v2d, x, y, &snode->mx, &snode->my);
+			if (y < 60) y += 60;
+			UI_view2d_region_to_view(&ar->v2d, x, y, &snode->cursor[0], &snode->cursor[1]);
 		}
 	}
 	
 	/* store selection in temp test flag */
-	for (node= snode->edittree->nodes.first; node; node= node->next) {
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_SELECT) node->flag |= NODE_TEST;
 		else node->flag &= ~NODE_TEST;
 	}
 	
-	/* node= */ node_add_node(snode, bmain, scene, ntemp, snode->mx, snode->my);
+	node_new = node_add_node(snode, bmain, scene, ntemp, snode->cursor[0], snode->cursor[1]);
 	
 	/* select previous selection before autoconnect */
-	for (node= snode->edittree->nodes.first; node; node= node->next) {
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_TEST) node->flag |= NODE_SELECT;
 	}
 	
 	/* deselect after autoconnection */
-	for (node= snode->edittree->nodes.first; node; node= node->next) {
+	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		if (node->flag & NODE_TEST) node->flag &= ~NODE_SELECT;
 	}
-		
+
+	/* once this is called from an operator, this should be removed */
+	if (node_new) {
+		char undostr[BKE_UNDO_STR_MAX];
+		BLI_snprintf(undostr, sizeof(undostr), "Add Node %s", nodeLabel(node_new));
+		BKE_write_undo(C, undostr);
+	}
+
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
 }
@@ -123,29 +123,29 @@ static void do_node_add_static(bContext *C, void *UNUSED(arg), int event)
 
 static void do_node_add_group(bContext *C, void *UNUSED(arg), int event)
 {
-	SpaceNode *snode= CTX_wm_space_node(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	bNodeTemplate ntemp;
 	
-	if (event>=0) {
-		ntemp.ngroup= BLI_findlink(&G.main->nodetree, event);
+	if (event >= 0) {
+		ntemp.ngroup = BLI_findlink(&G.main->nodetree, event);
 		ntemp.type = ntemp.ngroup->nodetype;
 	}
 	else {
 		ntemp.type = -event;
 		switch (ntemp.type) {
-		case NODE_GROUP:
-			ntemp.ngroup = ntreeAddTree("Group", snode->treetype, ntemp.type);
-			break;
-		case NODE_FORLOOP:
-			ntemp.ngroup = ntreeAddTree("For Loop", snode->treetype, ntemp.type);
-			break;
-		case NODE_WHILELOOP:
-			ntemp.ngroup = ntreeAddTree("While Loop", snode->treetype, ntemp.type);
-			break;
-		default:
-			ntemp.ngroup = NULL;
+			case NODE_GROUP:
+				ntemp.ngroup = ntreeAddTree("Group", snode->treetype, ntemp.type);
+				break;
+			case NODE_FORLOOP:
+				ntemp.ngroup = ntreeAddTree("For Loop", snode->treetype, ntemp.type);
+				break;
+			case NODE_WHILELOOP:
+				ntemp.ngroup = ntreeAddTree("While Loop", snode->treetype, ntemp.type);
+				break;
+			default:
+				ntemp.ngroup = NULL;
 		}
 	}
 	if (!ntemp.ngroup)
@@ -159,10 +159,10 @@ static void do_node_add_group(bContext *C, void *UNUSED(arg), int event)
 
 static int node_tree_has_type(int treetype, int nodetype)
 {
-	bNodeTreeType *ttype= ntreeGetType(treetype);
+	bNodeTreeType *ttype = ntreeGetType(treetype);
 	bNodeType *ntype;
-	for (ntype=ttype->node_types.first; ntype; ntype=ntype->next) {
-		if (ntype->type==nodetype)
+	for (ntype = ttype->node_types.first; ntype; ntype = ntype->next) {
+		if (ntype->type == nodetype)
 			return 1;
 	}
 	return 0;
@@ -170,12 +170,12 @@ static int node_tree_has_type(int treetype, int nodetype)
 
 static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeTree *ntree;
-	int nodeclass= GET_INT_FROM_POINTER(arg_nodeclass);
-	int event, compatibility= 0;
+	int nodeclass = GET_INT_FROM_POINTER(arg_nodeclass);
+	int event, compatibility = 0;
 	
 	ntree = snode->nodetree;
 	
@@ -186,12 +186,12 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 
 	if (ntree->type == NTREE_SHADER) {
 		if (BKE_scene_use_new_shading_nodes(scene))
-			compatibility= NODE_NEW_SHADING;
+			compatibility = NODE_NEW_SHADING;
 		else
-			compatibility= NODE_OLD_SHADING;
+			compatibility = NODE_OLD_SHADING;
 	}
 	
-	if (nodeclass==NODE_CLASS_GROUP) {
+	if (nodeclass == NODE_CLASS_GROUP) {
 		bNodeTree *ngroup;
 		
 		uiLayoutSetFunc(layout, do_node_add_group, NULL);
@@ -205,10 +205,10 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 			uiItemV(layout, IFACE_("New While Loop"), 0, -NODE_WHILELOOP);
 		uiItemS(layout);
 		
-		for (ngroup=bmain->nodetree.first, event=0; ngroup; ngroup= ngroup->id.next, ++event) {
+		for (ngroup = bmain->nodetree.first, event = 0; ngroup; ngroup = ngroup->id.next, ++event) {
 			/* only use group trees */
-			if (ngroup->type==ntree->type && ELEM3(ngroup->nodetype, NODE_GROUP, NODE_FORLOOP, NODE_WHILELOOP)) {
-				uiItemV(layout, ngroup->id.name+2, 0, event);
+			if (ngroup->type == ntree->type && ELEM3(ngroup->nodetype, NODE_GROUP, NODE_FORLOOP, NODE_WHILELOOP)) {
+				uiItemV(layout, ngroup->id.name + 2, 0, event);
 			}
 		}
 	}
@@ -217,29 +217,34 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 		
 		uiLayoutSetFunc(layout, do_node_add_static, NULL);
 		
-		for (ntype=ntreeGetType(ntree->type)->node_types.first; ntype; ntype=ntype->next) {
-			if (ntype->nclass==nodeclass && ntype->name)
-				if (!compatibility || (ntype->compatibility & compatibility))
+		for (ntype = ntreeGetType(ntree->type)->node_types.first; ntype; ntype = ntype->next) {
+			if (ntype->nclass == nodeclass && ntype->name) {
+				if (!compatibility || (ntype->compatibility & compatibility)) {
 					uiItemV(layout, IFACE_(ntype->name), 0, ntype->type);
+				}
+			}
 		}
 	}
 }
 
 static void node_menu_add_foreach_cb(void *calldata, int nclass, const char *name)
 {
-	uiLayout *layout= calldata;
+	uiLayout *layout = calldata;
 	uiItemMenuF(layout, IFACE_(name), 0, node_add_menu, SET_INT_IN_POINTER(nclass));
 }
 
 static void node_menu_add(const bContext *C, Menu *menu)
 {
-	Scene *scene= CTX_data_scene(C);
-	SpaceNode *snode= CTX_wm_space_node(C);
-	uiLayout *layout= menu->layout;
-	bNodeTreeType *ntreetype= ntreeGetType(snode->treetype);
+	Scene *scene = CTX_data_scene(C);
+	SpaceNode *snode = CTX_wm_space_node(C);
+	uiLayout *layout = menu->layout;
+	bNodeTreeType *ntreetype = ntreeGetType(snode->treetype);
 
 	if (!snode->nodetree)
 		uiLayoutSetActive(layout, FALSE);
+	
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+	uiItemO(layout, "Search ...", 0, "NODE_OT_add_search");
 	
 	if (ntreetype && ntreetype->foreach_nodeclass)
 		ntreetype->foreach_nodeclass(scene, layout, node_menu_add_foreach_cb);
@@ -249,10 +254,9 @@ void node_menus_register(void)
 {
 	MenuType *mt;
 
-	mt= MEM_callocN(sizeof(MenuType), "spacetype node menu add");
+	mt = MEM_callocN(sizeof(MenuType), "spacetype node menu add");
 	strcpy(mt->idname, "NODE_MT_add");
 	strcpy(mt->label, "Add");
-	mt->draw= node_menu_add;
+	mt->draw = node_menu_add;
 	WM_menutype_add(mt);
 }
-

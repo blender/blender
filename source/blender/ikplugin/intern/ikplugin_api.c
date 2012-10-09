@@ -45,13 +45,17 @@
 #include "DNA_armature_types.h"
 
 #include "ikplugin_api.h"
-#include "iksolver_plugin.h"
+
+#ifdef WITH_IK_SOLVER
+#  include "iksolver_plugin.h"
+#endif
 
 #ifdef WITH_IK_ITASC
-#include "itasc_plugin.h"
+#  include "itasc_plugin.h"
 #endif
 
 static IKPlugin ikplugin_tab[] = {
+#ifdef WITH_IK_SOLVER
 	/* Legacy IK solver */
 	{
 		iksolver_initialize_tree,
@@ -61,8 +65,10 @@ static IKPlugin ikplugin_tab[] = {
 		NULL,
 		NULL,
 		NULL,
-#ifdef WITH_IK_ITASC
 	},
+#endif
+
+#ifdef WITH_IK_ITASC
 	/* iTaSC IK solver */
 	{
 		itasc_initialize_tree,
@@ -72,8 +78,8 @@ static IKPlugin ikplugin_tab[] = {
 		itasc_clear_cache,
 		itasc_update_param,
 		itasc_test_constraint,
-#endif
-	}
+	},
+	#endif
 };
 
 static IKPlugin *get_plugin(bPose *pose)

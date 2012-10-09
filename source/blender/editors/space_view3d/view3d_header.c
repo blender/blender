@@ -84,25 +84,10 @@
  * This can be cleaned when I make some new 'mode' icons.
  */
 
-/* view3d handler codes */
-#define VIEW3D_HANDLER_BACKGROUND   1
-#define VIEW3D_HANDLER_PROPERTIES   2
-#define VIEW3D_HANDLER_OBJECT       3
-#define VIEW3D_HANDLER_PREVIEW      4
-#define VIEW3D_HANDLER_MULTIRES     5
-#define VIEW3D_HANDLER_TRANSFORM    6
-#define VIEW3D_HANDLER_GREASEPENCIL 7
-#define VIEW3D_HANDLER_BONESKETCH   8
-
 /* end XXX ************* */
 
 static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 
-#define B_SCENELOCK 101
-#define B_FULL      102
-#define B_HOME      103
-#define B_VIEWBUT   104
-#define B_PERSP     105
 #define B_MODESELECT 108
 #define B_SEL_VERT  110
 #define B_SEL_EDGE  111
@@ -110,13 +95,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 #define B_MAN_TRANS 116
 #define B_MAN_ROT   117
 #define B_MAN_SCALE 118
-#define B_NDOF      119
 #define B_MAN_MODE  120
-#define B_REDR      122
-#define B_NOP       123
 
-// XXX quickly ported across
-static void handle_view3d_lock(bContext *C) 
+/* XXX quickly ported across */
+static void handle_view3d_lock(bContext *C)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -346,10 +328,6 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
 
 	switch (event) {
-		case B_REDR:
-			ED_area_tag_redraw(sa);
-			break;
-
 		case B_MODESELECT:
 			WM_operator_properties_create(&props_ptr, "OBJECT_OT_mode_set");
 			RNA_enum_set(&props_ptr, "mode", v3d->modeselect);
@@ -370,7 +348,7 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		case B_SEL_EDGE:
 			if (em) {
 				if (shift == 0 || em->selectmode == 0) {
-					if ( (em->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX) {
+					if ((em->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX) {
 						if (ctrl) EDBM_selectmode_convert(em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
 					}
 					em->selectmode = SCE_SELECT_EDGE;
@@ -384,7 +362,9 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		case B_SEL_FACE:
 			if (em) {
 				if (shift == 0 || em->selectmode == 0) {
-					if ( ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)) {
+					if (((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) ||
+					    ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE))
+					{
 						if (ctrl) EDBM_selectmode_convert(em, (ts->selectmode ^ SCE_SELECT_FACE), SCE_SELECT_FACE);
 					}
 					em->selectmode = SCE_SELECT_FACE;
@@ -412,9 +392,6 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 			if (shift == 0 || v3d->twtype == 0) {
 				v3d->twtype = V3D_MANIP_SCALE;
 			}
-			ED_area_tag_redraw(sa);
-			break;
-		case B_NDOF:
 			ED_area_tag_redraw(sa);
 			break;
 		case B_MAN_MODE:

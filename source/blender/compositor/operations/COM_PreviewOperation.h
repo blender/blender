@@ -24,6 +24,7 @@
 #define _COM_PreviewOperation_h
 #include "COM_NodeOperation.h"
 #include "DNA_image_types.h"
+#include "DNA_color_types.h"
 #include "BLI_rect.h"
 
 class PreviewOperation : public NodeOperation {
@@ -37,15 +38,17 @@ protected:
 	SocketReader *m_input;
 	float m_divider;
 
+	const ColorManagedViewSettings *m_viewSettings;
+	const ColorManagedDisplaySettings *m_displaySettings;
 public:
-	PreviewOperation();
+	PreviewOperation(const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const;
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	void setbNode(bNode *node) { this->m_node = node; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	bool isPreviewOperation() { return true; }

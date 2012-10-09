@@ -72,6 +72,9 @@
 #  define ACOMP	3
 #endif
 
+#define RCT_SIZE_X(rct)       ((rct)->xmax - (rct)->xmin)
+#define RCT_SIZE_Y(rct)       ((rct)->ymax - (rct)->ymin)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
@@ -322,8 +325,8 @@ static void compress_deepshadowbuf(Render *re, ShadBuf *shb, APixstr *apixbuf, A
 	shsample= MEM_callocN(sizeof(ShadSampleBuf), "shad sample buf");
 	BLI_addtail(&shb->buffers, shsample);
 
-	shsample->totbuf= MEM_callocN(sizeof(int)*size*size, "deeptotbuf");
-	shsample->deepbuf= MEM_callocN(sizeof(DeepSample*)*size*size, "deepbuf");
+	shsample->totbuf = MEM_callocN(sizeof(int) * size * size, "deeptotbuf");
+	shsample->deepbuf = MEM_callocN(sizeof(DeepSample *) * size * size, "deepbuf");
 
 	ap= apixbuf;
 	aps= apixbufstrand;
@@ -848,7 +851,7 @@ void threaded_makeshadowbufs(Render *re)
 	int (*test_break)(void *);
 
 	/* count number of threads to use */
-	if (G.rendering) {
+	if (G.is_rendering) {
 		for (lar=re->lampren.first; lar; lar= lar->next)
 			if (lar->shb)
 				totthread++;
@@ -1176,8 +1179,8 @@ float testshadowbuf(Render *re, ShadBuf *shb, const float co[3], const float dxc
 	dy[0]= xs1 - dy[0];
 	dy[1]= ys1 - dy[1];
 	
-	xres= fac*(fabs(dx[0]) + fabs(dy[0]));
-	yres= fac*(fabs(dx[1]) + fabs(dy[1]));
+	xres = fac * (fabsf(dx[0]) + fabsf(dy[0]));
+	yres = fac * (fabsf(dx[1]) + fabsf(dy[1]));
 	if (xres<1.0f) xres= 1.0f;
 	if (yres<1.0f) yres= 1.0f;
 	
@@ -1391,7 +1394,7 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 			}
 		}
 		
-		labda= MIN2(labdax, labday);
+		labda = minf(labdax, labday);
 		if (labda==labdao || labda>=1.0f) break;
 		
 		zf= zf1 + labda*(zf2-zf1);
@@ -1496,7 +1499,7 @@ static void bound_rectf(rctf *box, const float v1[2])
 static void isb_bsp_split_init(ISBBranch *root, MemArena *mem, int level)
 {
 	
-	/* if level > 0 we create new branches and go deeper*/
+	/* if level > 0 we create new branches and go deeper */
 	if (level > 0) {
 		ISBBranch *left, *right;
 		int i;
@@ -1506,10 +1509,10 @@ static void isb_bsp_split_init(ISBBranch *root, MemArena *mem, int level)
 		root->divider[1]= 0.5f*(root->box.ymin+root->box.ymax);
 		
 		/* find best splitpoint */
-		if (root->box.xmax-root->box.xmin > root->box.ymax-root->box.ymin)
-			i= root->index= 0;
+		if (RCT_SIZE_X(&root->box) > RCT_SIZE_Y(&root->box))
+			i = root->index = 0;
 		else
-			i= root->index= 1;
+			i = root->index = 1;
 		
 		left= root->left= BLI_memarena_alloc(mem, sizeof(ISBBranch));
 		right= root->right= BLI_memarena_alloc(mem, sizeof(ISBBranch));
@@ -1551,19 +1554,19 @@ static void isb_bsp_split(ISBBranch *root, MemArena *mem)
 	root->divider[1]/= BSPMAX_SAMPLE;
 	
 	/* find best splitpoint */
-	if (root->box.xmax-root->box.xmin > root->box.ymax-root->box.ymin)
-		i= root->index= 0;
+	if (RCT_SIZE_X(&root->box) > RCT_SIZE_Y(&root->box))
+		i = root->index = 0;
 	else
-		i= root->index= 1;
+		i = root->index = 1;
 	
 	/* new branches */
 	left= root->left= BLI_memarena_alloc(mem, sizeof(ISBBranch));
 	right= root->right= BLI_memarena_alloc(mem, sizeof(ISBBranch));
 
 	/* new sample array */
-	left->samples= BLI_memarena_alloc(mem, BSPMAX_SAMPLE*sizeof(void *));
-	right->samples= samples; // tmp
-	
+	left->samples = BLI_memarena_alloc(mem, BSPMAX_SAMPLE*sizeof(void *));
+	right->samples = samples;  /* tmp */
+
 	/* split samples */
 	for (a=BSPMAX_SAMPLE-1; a>=0; a--) {
 		int comp= 0;
@@ -1815,7 +1818,7 @@ static void isb_bsp_face_inside(ISBBranch *bspn, BSPFace *face)
 			return;
 		
 		/* if face boundbox is outside of branch rect, give up */
-		if (0==BLI_isect_rctf((rctf *)&face->box, (rctf *)&bspn->box, NULL))
+		if (0==BLI_rctf_isect((rctf *)&face->box, (rctf *)&bspn->box, NULL))
 			return;
 		
 		/* test all points inside branch */
@@ -1824,7 +1827,7 @@ static void isb_bsp_face_inside(ISBBranch *bspn, BSPFace *face)
 			
 			if ((samp->facenr!=face->facenr || samp->obi!=face->obi) && samp->shadfac) {
 				if (face->box.zmin < samp->zco[2]) {
-					if (BLI_in_rctf((rctf *)&face->box, samp->zco[0], samp->zco[1])) {
+					if (BLI_rctf_isect_pt_v((rctf *)&face->box, samp->zco)) {
 						int inshadow= 0;
 						
 						if (face->type) {

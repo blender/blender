@@ -29,7 +29,6 @@ set(INC
 	../blenlib
 	../makesdna
 	../../../intern/guardedalloc
-	../../../intern/iksolver/extern
 )
 
 set(INC_SYS
@@ -38,13 +37,21 @@ set(INC_SYS
 
 set(SRC
 	intern/ikplugin_api.c
-	intern/iksolver_plugin.c
 
 	BIK_api.h
 	intern/ikplugin_api.h
-	intern/iksolver_plugin.h
-	intern/itasc_plugin.h
 )
+
+if(WITH_IK_SOLVER)
+	add_definitions(-DWITH_IK_SOLVER)
+	list(APPEND INC
+		../../../intern/iksolver/extern
+	)
+	list(APPEND SRC
+		intern/iksolver_plugin.c
+		intern/iksolver_plugin.h
+	)
+endif()
 
 if(WITH_IK_ITASC)
 	add_definitions(-DWITH_IK_ITASC)
@@ -54,8 +61,8 @@ if(WITH_IK_ITASC)
 	)
 	list(APPEND SRC
 		intern/itasc_plugin.cpp
+		intern/itasc_plugin.h
 	)
 endif()
-
 
 blender_add_lib(bf_ikplugin "${SRC}" "${INC}" "${INC_SYS}")

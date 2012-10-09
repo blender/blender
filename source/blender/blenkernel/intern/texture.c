@@ -56,7 +56,6 @@
 
 #include "IMB_imbuf.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_ocean.h"
@@ -339,7 +338,7 @@ void colorband_table_RGBA(ColorBand *coba, float **array, int *size)
 		do_colorband(coba, (float)a / (float)CM_TABLE, &(*array)[a * 4]);
 }
 
-int vergcband(const void *a1, const void *a2)
+static int vergcband(const void *a1, const void *a2)
 {
 	const CBData *x1 = a1, *x2 = a2;
 
@@ -1074,19 +1073,21 @@ void set_current_material_texture(Material *ma, Tex *newtex)
 {
 	Tex *tex = NULL;
 	bNode *node;
-	
-	if (ma && ma->use_nodes && ma->nodetree) {
-		node = nodeGetActiveID(ma->nodetree, ID_TE);
 
-		if (node) {
-			tex = (Tex *)node->id;
-			id_us_min(&tex->id);
+	if ((ma->use_nodes && ma->nodetree) &&
+	    (node = nodeGetActiveID(ma->nodetree, ID_TE)))
+	{
+		tex = (Tex *)node->id;
+		id_us_min(&tex->id);
+		if (newtex) {
 			node->id = &newtex->id;
 			id_us_plus(&newtex->id);
-			ma = NULL;
+		}
+		else {
+			node->id = NULL;
 		}
 	}
-	if (ma) {
+	else {
 		int act = (int)ma->texact;
 
 		tex = (ma->mtex[act]) ? ma->mtex[act]->tex : NULL;
@@ -1292,7 +1293,7 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->falloff_curve->preset = CURVE_PRESET_LINE;
 	pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 	curvemap_reset(pd->falloff_curve->cm, &pd->falloff_curve->clipr, pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
-	curvemapping_changed(pd->falloff_curve, 0);
+	curvemapping_changed(pd->falloff_curve, FALSE);
 
 	return pd;
 } 
@@ -1413,11 +1414,11 @@ int BKE_texture_dependsOnTime(const struct Tex *texture)
 		return 1;
 	}
 	else if (texture->adt) {
-		// assume anything in adt means the texture is animated
+		/* assume anything in adt means the texture is animated */
 		return 1;
 	}
 	else if (texture->type == TEX_NOISE) {
-		// noise always varies with time
+		/* noise always varies with time */
 		return 1;
 	}
 	return 0;

@@ -49,12 +49,12 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_utildefines.h"
 
 #include "GPU_material.h"
 
 #include "RE_shader_ext.h"
 
+#include "node_common.h"
 #include "node_exec.h"
 #include "node_util.h"
 #include "node_shader_util.h"
@@ -65,15 +65,15 @@ static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 	Lamp *la;
 	World *wo;
 
-	for (ma= main->mat.first; ma; ma= ma->id.next)
+	for (ma = main->mat.first; ma; ma = ma->id.next)
 		if (ma->nodetree)
 			func(calldata, &ma->id, ma->nodetree);
 
-	for (la= main->lamp.first; la; la= la->id.next)
+	for (la = main->lamp.first; la; la = la->id.next)
 		if (la->nodetree)
 			func(calldata, &la->id, la->nodetree);
 
-	for (wo= main->world.first; wo; wo= wo->id.next)
+	for (wo = main->world.first; wo; wo = wo->id.next)
 		if (wo->nodetree)
 			func(calldata, &wo->id, wo->nodetree);
 }
@@ -100,7 +100,7 @@ static void localize(bNodeTree *localtree, bNodeTree *UNUSED(ntree))
 	bNode *node, *node_next;
 	
 	/* replace muted nodes and reroute nodes by internal links */
-	for (node= localtree->nodes.first; node; node= node_next) {
+	for (node = localtree->nodes.first; node; node = node_next) {
 		node_next = node->next;
 		
 		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
@@ -115,15 +115,15 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 	bNode *lnode;
 	
 	/* copy over contents of previews */
-	for (lnode= localtree->nodes.first; lnode; lnode= lnode->next) {
+	for (lnode = localtree->nodes.first; lnode; lnode = lnode->next) {
 		if (ntreeNodeExists(ntree, lnode->new_node)) {
-			bNode *node= lnode->new_node;
+			bNode *node = lnode->new_node;
 			
 			if (node->preview && node->preview->rect) {
 				if (lnode->preview && lnode->preview->rect) {
-					int xsize= node->preview->xsize;
-					int ysize= node->preview->ysize;
-					memcpy(node->preview->rect, lnode->preview->rect, 4*xsize + xsize*ysize*sizeof(char)*4);
+					int xsize = node->preview->xsize;
+					int ysize = node->preview->ysize;
+					memcpy(node->preview->rect, lnode->preview->rect, 4 * xsize + xsize * ysize * sizeof(char) * 4);
 				}
 			}
 		}
@@ -133,6 +133,8 @@ static void local_sync(bNodeTree *localtree, bNodeTree *ntree)
 static void update(bNodeTree *ntree)
 {
 	ntreeSetOutput(ntree);
+	
+	ntree_update_reroute_nodes(ntree);
 }
 
 bNodeTreeType ntreeType_Shader = {
@@ -173,7 +175,7 @@ void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
 
 void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult *))
 {
-	node_shader_lamp_loop= lamp_loop_func;
+	node_shader_lamp_loop = lamp_loop_func;
 }
 
 
@@ -200,10 +202,10 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree, int use_tree_data)
 	exec = ntree_exec_begin(ntree);
 	
 	/* allocate the thread stack listbase array */
-	exec->threadstack= MEM_callocN(BLENDER_MAX_THREADS*sizeof(ListBase), "thread stack array");
+	exec->threadstack = MEM_callocN(BLENDER_MAX_THREADS * sizeof(ListBase), "thread stack array");
 	
-	for (node= exec->nodetree->nodes.first; node; node= node->next)
-		node->need_exec= 1;
+	for (node = exec->nodetree->nodes.first; node; node = node->next)
+		node->need_exec = 1;
 	
 	if (use_tree_data) {
 		/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
@@ -221,19 +223,19 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree, int use_tree_data)
 void ntreeShaderEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 {
 	if (exec) {
-		bNodeTree *ntree= exec->nodetree;
+		bNodeTree *ntree = exec->nodetree;
 		bNodeThreadStack *nts;
 		int a;
 		
 		if (exec->threadstack) {
-			for (a=0; a<BLENDER_MAX_THREADS; a++) {
-				for (nts=exec->threadstack[a].first; nts; nts=nts->next)
+			for (a = 0; a < BLENDER_MAX_THREADS; a++) {
+				for (nts = exec->threadstack[a].first; nts; nts = nts->next)
 					if (nts->stack) MEM_freeN(nts->stack);
 				BLI_freelistN(&exec->threadstack[a]);
 			}
 			
 			MEM_freeN(exec->threadstack);
-			exec->threadstack= NULL;
+			exec->threadstack = NULL;
 		}
 		
 		ntree_exec_end(exec);
@@ -257,8 +259,8 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	bNodeTreeExec *exec = ntree->execdata;
 	
 	/* convert caller data to struct */
-	scd.shi= shi;
-	scd.shr= shr;
+	scd.shi = shi;
+	scd.shr = shr;
 	
 	/* each material node has own local shaderesult, with optional copying */
 	memset(shr, 0, sizeof(ShadeResult));
@@ -273,14 +275,14 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 		exec = ntree->execdata;
 	}
 	
-	nts= ntreeGetThreadStack(exec, shi->thread);
+	nts = ntreeGetThreadStack(exec, shi->thread);
 	ntreeExecThreadNodes(exec, nts, &scd, shi->thread);
 	ntreeReleaseThreadStack(nts);
 	
 	// \note: set material back to preserved material
 	shi->mat = mat;
 	/* better not allow negative for now */
-	if (shr->combined[0]<0.0f) shr->combined[0]= 0.0f;
-	if (shr->combined[1]<0.0f) shr->combined[1]= 0.0f;
-	if (shr->combined[2]<0.0f) shr->combined[2]= 0.0f;
+	if (shr->combined[0] < 0.0f) shr->combined[0] = 0.0f;
+	if (shr->combined[1] < 0.0f) shr->combined[1] = 0.0f;
+	if (shr->combined[2] < 0.0f) shr->combined[2] = 0.0f;
 }

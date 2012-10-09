@@ -158,10 +158,10 @@ public:
 	virtual void UpdateAngleApply()=0;
 
 	// set joint limits
-	virtual void SetLimit(int, MT_Scalar, MT_Scalar) {};
+	virtual void SetLimit(int, MT_Scalar, MT_Scalar) {}
 
 	// set joint weights (per axis)
-	virtual void SetWeight(int, MT_Scalar) {};
+	virtual void SetWeight(int, MT_Scalar) {}
 
 	virtual void SetBasis(const MT_Matrix3x3& basis) { m_basis = basis; }
 
@@ -170,7 +170,7 @@ public:
 	void Reset();
 
 	// scale
-	virtual void Scale(float scale);
+	virtual void Scale(MT_Scalar scale);
 
 protected:
 
@@ -338,7 +338,7 @@ public:
 	void SetWeight(int axis, MT_Scalar weight);
 	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
 
-	void Scale(float scale);
+	void Scale(MT_Scalar scale);
 
 private:
 	int m_axis[3];

@@ -43,14 +43,14 @@ class STR_String;
  * upper-left corner of the screen.
  * Implements part of the GHOST_IWindow interface and adds some methods to
  * be implemented by childs of this class.
- * @author	Maarten Gribnau
- * @date	May 7, 2001
+ * \author	Maarten Gribnau
+ * \date	May 7, 2001
  */
 class GHOST_Window : public GHOST_IWindow
 {
 public:
 	/**
-	 * @section Interface inherited from GHOST_IWindow left for derived class
+	 * \section Interface inherited from GHOST_IWindow left for derived class
 	 * implementation.
 	 * virtual	bool getValid() const = 0;
 	 * virtual void setTitle(const STR_String& title) = 0;
@@ -75,12 +75,12 @@ public:
 	 * Constructor.
 	 * Creates a new window and opens it.
 	 * To check if the window was created properly, use the getValid() method.
-	 * @param width				The width the window.
-	 * @param heigh				The height the window.
-	 * @param state				The state the window is initially opened with.
-	 * @param type				The type of drawing context installed in this window.
-	 * @param stereoVisual		Stereo visual for quad buffered stereo.
-	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
+	 * \param width				The width the window.
+	 * \param heigh				The height the window.
+	 * \param state				The state the window is initially opened with.
+	 * \param type				The type of drawing context installed in this window.
+	 * \param stereoVisual		Stereo visual for quad buffered stereo.
+	 * \param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_Window(
 	    GHOST_TUns32 width,
@@ -91,7 +91,7 @@ public:
 	    const GHOST_TUns16 numOfAASamples = 0);
 
 	/**
-	 * @section Interface inherited from GHOST_IWindow left for derived class
+	 * \section Interface inherited from GHOST_IWindow left for derived class
 	 * implementation.
 	 * virtual	bool getValid() const = 0;
 	 * virtual void setTitle(const STR_String& title) = 0;
@@ -119,30 +119,30 @@ public:
 
 	/**
 	 * Returns the associated OS object/handle
-	 * @return The associated OS object/handle
+	 * \return The associated OS object/handle
 	 */
 	virtual void *getOSWindow() const;
 	
 	/**
 	 * Returns the current cursor shape.
-	 * @return	The current cursor shape.
+	 * \return	The current cursor shape.
 	 */
 	inline virtual GHOST_TStandardCursor getCursorShape() const;
 
 	/**
 	 * Set the shape of the cursor.
-	 * @param	cursor	The new cursor shape type id.
-	 * @return	Indication of success.
+	 * \param	cursor	The new cursor shape type id.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape);
 
 	/**
 	 * Set the shape of the cursor to a custom cursor.
-	 * @param	bitmap	The bitmap data for the cursor.
-	 * @param	mask	The mask data for the cursor.
-	 * @param	hotX	The X coordinate of the cursor hotspot.
-	 * @param	hotY	The Y coordinate of the cursor hotspot.
-	 * @return	Indication of success.
+	 * \param	bitmap	The bitmap data for the cursor.
+	 * \param	mask	The mask data for the cursor.
+	 * \param	hotX	The X coordinate of the cursor hotspot.
+	 * \param	hotY	The Y coordinate of the cursor hotspot.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 bitmap[16][2], 
 	                                            GHOST_TUns8 mask[16][2],
@@ -157,7 +157,7 @@ public:
 	
 	/**
 	 * Returns the visibility state of the cursor.
-	 * @return	The visibility state of the cursor.
+	 * \return	The visibility state of the cursor.
 	 */
 	inline virtual bool getCursorVisibility() const;
 	inline virtual GHOST_TGrabCursorMode getCursorGrabMode() const;
@@ -168,17 +168,17 @@ public:
 
 	/**
 	 * Shows or hides the cursor.
-	 * @param	visible The new visibility state of the cursor.
-	 * @return	Indication of success.
+	 * \param	visible The new visibility state of the cursor.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess setCursorVisibility(bool visible);
 
 	/**
 	 * Sets the cursor grab.
-	 * @param	mode The new grab state of the cursor.
-	 * @return	Indication of success.
+	 * \param	mode The new grab state of the cursor.
+	 * \return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds);
+	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds, GHOST_TInt32 mouse_ungrab_xy[2]);
 
 	/**
 	 * Gets the cursor grab region, if unset the window is used.
@@ -188,18 +188,18 @@ public:
 
 	/**
 	 * Sets the progress bar value displayed in the window/application icon
-	 * @param progress The progress % (0.0 to 1.0)
+	 * \param progress The progress % (0.0 to 1.0)
 	 */
 	virtual GHOST_TSuccess setProgressBar(float progress) {
 		return GHOST_kFailure;
-	};
+	}
 	
 	/**
 	 * Hides the progress bar in the icon
 	 */
 	virtual GHOST_TSuccess endProgressBar() {
 		return GHOST_kFailure;
-	};
+	}
 	
 	/**
 	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
@@ -214,20 +214,20 @@ public:
 	
 	/**
 	 * Sets the window "modified" status, indicating unsaved changes
-	 * @param isUnsavedChanges Unsaved changes or not
-	 * @return Indication of success.
+	 * \param isUnsavedChanges Unsaved changes or not
+	 * \return Indication of success.
 	 */
 	virtual GHOST_TSuccess setModifiedState(bool isUnsavedChanges);
 	
 	/**
 	 * Gets the window "modified" status, indicating unsaved changes
-	 * @return True if there are unsaved changes
+	 * \return True if there are unsaved changes
 	 */
 	virtual bool getModifiedState();
 	
 	/**
 	 * Returns the type of drawing context used in this window.
-	 * @return The current type of drawing context.
+	 * \return The current type of drawing context.
 	 */
 	inline virtual GHOST_TDrawingContextType getDrawingContextType();
 
@@ -235,14 +235,14 @@ public:
 	 * Tries to install a rendering context in this window.
 	 * Child classes do not need to overload this method.
 	 * They should overload the installDrawingContext and removeDrawingContext instead.
-	 * @param type	The type of rendering context installed.
-	 * @return Indication as to whether installation has succeeded.
+	 * \param type	The type of rendering context installed.
+	 * \return Indication as to whether installation has succeeded.
 	 */
 	virtual GHOST_TSuccess setDrawingContextType(GHOST_TDrawingContextType type);
 
 	/**
 	 * Returns the window user data.
-	 * @return The window user data.
+	 * \return The window user data.
 	 */
 	inline virtual GHOST_TUserDataPtr getUserData() const
 	{
@@ -251,7 +251,7 @@ public:
 	
 	/**
 	 * Changes the window user data.
-	 * @param data The window user data.
+	 * \param data The window user data.
 	 */
 	virtual void setUserData(const GHOST_TUserDataPtr userData)
 	{
@@ -261,14 +261,14 @@ public:
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
-	 * @param type	The type of rendering context installed.
-	 * @return Indication as to whether installation has succeeded.
+	 * \param type	The type of rendering context installed.
+	 * \return Indication as to whether installation has succeeded.
 	 */
 	virtual GHOST_TSuccess installDrawingContext(GHOST_TDrawingContextType type) = 0;
 
 	/**
 	 * Removes the current drawing context.
-	 * @return Indication as to whether removal has succeeded.
+	 * \return Indication as to whether removal has succeeded.
 	 */
 	virtual GHOST_TSuccess removeDrawingContext() = 0;
 
@@ -284,7 +284,7 @@ protected:
 	 */
 	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) {
 		return GHOST_kSuccess;
-	};
+	}
 	
 	/**
 	 * Sets the cursor shape on the window using
@@ -335,7 +335,7 @@ protected:
 	/** Modified state : are there unsaved changes */
 	bool m_isUnsavedChanges;
 	
-	/** Stores wether this is a full screen window. */
+	/** Stores whether this is a full screen window. */
 	bool m_fullScreen;
 
 	/** Stereo visual created. Only necessary for 'real' stereo support,

@@ -399,7 +399,7 @@ SPHINX_THEMES = {'bf': ['blender-org'],  # , 'naiad',
 
 available_themes = SPHINX_THEMES['bf'] + SPHINX_THEMES['sphinx']
 if ARGS.sphinx_theme not in available_themes:
-    print ("Please choose a theme among: %s" % ', '.join(available_themes))
+    print("Please choose a theme among: %s" % ', '.join(available_themes))
     sys.exit()
 
 if ARGS.sphinx_theme in SPHINX_THEMES['bf']:
@@ -849,7 +849,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
         elif value_type in (bool, int, float, str, tuple):
             # constant, not much fun we can do here except to list it.
             # TODO, figure out some way to document these!
-            #fw(".. data:: %s\n\n" % attribute)
+            fw(".. data:: %s\n\n" % attribute)
             write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
             fw("\n")
         else:
@@ -971,6 +971,7 @@ def pycontext2sphinx(basepath):
         "meta_ball": ("MetaBall", False),
         "object": ("Object", False),
         "particle_edit_object": ("Object", False),
+        "particle_settings": ("ParticleSettings", False),
         "particle_system": ("ParticleSystem", False),
         "particle_system_editable": ("ParticleSystem", False),
         "pose_bone": ("PoseBone", False),

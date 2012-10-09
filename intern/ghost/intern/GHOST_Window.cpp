@@ -32,12 +32,13 @@
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 10, 2001
+ * \author	Maarten Gribnau
+ * \date	May 10, 2001
  */
 
 #include "GHOST_Window.h"
 
+#include <assert.h>
 
 GHOST_Window::GHOST_Window(
     GHOST_TUns32 width, GHOST_TUns32 height,
@@ -105,10 +106,17 @@ GHOST_TSuccess GHOST_Window::setCursorVisibility(bool visible)
 	}
 }
 
-GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds)
+GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds, GHOST_TInt32 mouse_ungrab_xy[2])
 {
 	if (m_cursorGrab == mode)
 		return GHOST_kSuccess;
+
+	/* override with new location */
+	if (mouse_ungrab_xy) {
+		assert(mode == GHOST_kGrabDisable);
+		m_cursorGrabInitPos[0] = mouse_ungrab_xy[0];
+		m_cursorGrabInitPos[1] = mouse_ungrab_xy[1];
+	}
 
 	if (setWindowCursorGrab(mode)) {
 

@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "BLO_sys_types.h"  /* for intptr_t support */
 
 /* Utils */
 
@@ -145,7 +145,6 @@ typedef struct PFace {
 
 	struct PEdge *edge;
 	unsigned char flag;
-
 } PFace;
 
 enum PVertFlag {
@@ -232,8 +231,8 @@ typedef struct PHandle {
 
 	RNG *rng;
 	float blend;
+	char do_aspect;
 } PHandle;
-
 
 /* PHash
  * - special purpose hash that keeps all its elements in a single linked list.
@@ -1041,7 +1040,7 @@ static PFace *p_face_add(PHandle *handle)
 
 	/* allocate */
 	f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof *f);
-	f->flag = 0; // init !
+	f->flag = 0;  /* init ! */
 
 	e1 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e1);
 	e2 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e2);
@@ -1136,7 +1135,11 @@ static PFace *p_face_add_fill(PChart *chart, PVert *v1, PVert *v2, PVert *v3)
 
 static PBool p_quad_split_direction(PHandle *handle, float **co, PHashKey *vkeys)
 {
-	float fac = len_v3v3(co[0], co[2]) - len_v3v3(co[1], co[3]);
+	/* slight bias to prefer one edge over the other in case they are equal, so
+	 * that in symmetric models we choose the same split direction instead of
+	 * depending on floating point errors to decide */
+	float bias = 1.0f + 1e-6f;
+	float fac = len_v3v3(co[0], co[2]) * bias - len_v3v3(co[1], co[3]);
 	PBool dir = (fac <= 0.0f);
 
 	/* the face exists check is there because of a special case: when
@@ -3452,7 +3455,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 
 	float rotated, minarea, minangle, area, len;
 	float *angles, miny, maxy, v[2], a[4], mina;
-	int npoints, right, mini, maxi, i, idx[4], nextidx;
+	int npoints, right, i_min, i_max, i, idx[4], nextidx;
 	PVert **points, *p1, *p2, *p3, *p4, *p1n;
 
 	/* compute convex hull */
@@ -3462,7 +3465,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 	/* find left/top/right/bottom points, and compute angle for each point */
 	angles = MEM_mallocN(sizeof(float) * npoints, "PMinAreaAngles");
 
-	mini = maxi = 0;
+	i_min = i_max = 0;
 	miny = 1e10;
 	maxy = -1e10;
 
@@ -3475,19 +3478,19 @@ static float p_chart_minimum_area_angle(PChart *chart)
 
 		if (points[i]->uv[1] < miny) {
 			miny = points[i]->uv[1];
-			mini = i;
+			i_min = i;
 		}
 		if (points[i]->uv[1] > maxy) {
 			maxy = points[i]->uv[1];
-			maxi = i;
+			i_max = i;
 		}
 	}
 
 	/* left, top, right, bottom */
 	idx[0] = 0;
-	idx[1] = maxi;
+	idx[1] = i_max;
 	idx[2] = right;
-	idx[3] = mini;
+	idx[3] = i_min;
 
 	v[0] = points[idx[0]]->uv[0];
 	v[1] = points[idx[0]]->uv[1] + 1.0f;
@@ -3513,29 +3516,29 @@ static float p_chart_minimum_area_angle(PChart *chart)
 
 	while (rotated <= (float)(M_PI / 2.0)) { /* INVESTIGATE: how far to rotate? */
 		/* rotate with the smallest angle */
-		mini = 0;
+		i_min = 0;
 		mina = 1e10;
 
 		for (i = 0; i < 4; i++)
 			if (a[i] < mina) {
 				mina = a[i];
-				mini = i;
+				i_min = i;
 			}
 
 		rotated += mina;
-		nextidx = (idx[mini] + 1) % npoints;
+		nextidx = (idx[i_min] + 1) % npoints;
 
-		a[mini] = angles[nextidx];
-		a[(mini + 1) % 4] = a[(mini + 1) % 4] - mina;
-		a[(mini + 2) % 4] = a[(mini + 2) % 4] - mina;
-		a[(mini + 3) % 4] = a[(mini + 3) % 4] - mina;
+		a[i_min] = angles[nextidx];
+		a[(i_min + 1) % 4] = a[(i_min + 1) % 4] - mina;
+		a[(i_min + 2) % 4] = a[(i_min + 2) % 4] - mina;
+		a[(i_min + 3) % 4] = a[(i_min + 3) % 4] - mina;
 
 		/* compute area */
-		p1 = points[idx[mini]];
+		p1 = points[idx[i_min]];
 		p1n = points[nextidx];
-		p2 = points[idx[(mini + 1) % 4]];
-		p3 = points[idx[(mini + 2) % 4]];
-		p4 = points[idx[(mini + 3) % 4]];
+		p2 = points[idx[(i_min + 1) % 4]];
+		p3 = points[idx[(i_min + 2) % 4]];
+		p4 = points[idx[(i_min + 3) % 4]];
 
 		len = len_v2v2(p1->uv, p1n->uv);
 
@@ -3553,7 +3556,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
 			}
 		}
 
-		idx[mini] = nextidx;
+		idx[i_min] = nextidx;
 	}
 
 	/* try keeping rotation as small as possible */
@@ -4087,6 +4090,7 @@ ParamHandle *param_construct_begin(void)
 	handle->arena = BLI_memarena_new((1 << 16), "param construct arena");
 	handle->aspx = 1.0f;
 	handle->aspy = 1.0f;
+	handle->do_aspect = FALSE;
 
 	handle->hash_verts = phash_new((PHashLink **)&handle->construction_chart->verts, 1);
 	handle->hash_edges = phash_new((PHashLink **)&handle->construction_chart->edges, 1);
@@ -4101,6 +4105,7 @@ void param_aspect_ratio(ParamHandle *handle, float aspx, float aspy)
 
 	phandle->aspx = aspx;
 	phandle->aspy = aspy;
+	phandle->do_aspect = TRUE;
 }
 
 void param_delete(ParamHandle *handle)

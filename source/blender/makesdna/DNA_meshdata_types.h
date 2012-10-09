@@ -95,7 +95,7 @@ typedef struct MLoop {
 typedef struct MTexPoly {
 	struct Image *tpage;
 	char flag, transp;
-	short mode, tile, unwrap;
+	short mode, tile, pad;
 } MTexPoly;
 
 /* can copy from/to MTexPoly/MTFace */
@@ -106,8 +106,7 @@ typedef struct MTexPoly {
 	(dst)->transp = (src)->transp;  \
 	(dst)->mode   = (src)->mode;    \
 	(dst)->tile   = (src)->tile;    \
-	(dst)->unwrap = (src)->unwrap;  \
-}
+} (void)0
 
 typedef struct MLoopUV {
 	float uv[2];
@@ -120,7 +119,8 @@ typedef struct MLoopUV {
 #define MLOOPUV_PINNED	4
 
 /* at the moment alpha is abused for vertex painting
- * and not used for transparency, note that red and blue are swapped */
+ * and not used for transparency,
+ * note that red and blue are _not_ swapped, as they are with #MCol */
 typedef struct MLoopCol {
 	char r, g, b, a;
 } MLoopCol;
@@ -146,13 +146,9 @@ typedef struct MLoopCol {
 	mcol__tmp->a = mloopcol__tmp->a;            \
 } (void)0
 
-typedef struct MSticky {
-	float co[2];
-} MSticky;
-
 typedef struct MSelect {
 	int index;
-	int type; /* EDITVERT/EDITEDGE/EDITFACE */
+	int type;  /* ME_VSEL/ME_ESEL/ME_FSEL */
 } MSelect;
 
 /*tessellation uv face data*/
@@ -327,7 +323,6 @@ typedef struct MVertSkin {
 #define TF_SEL2		8
 #define TF_SEL3		16
 #define TF_SEL4		32
-#define TF_HIDE		64 /* unused, same as TF_SELECT */
 
 /* mtface->mode */
 #define TF_DYNAMIC		1
@@ -360,13 +355,13 @@ typedef struct MVertSkin {
 
 
 /* mtface->unwrap */
-#define TF_DEPRECATED1	1
-#define TF_DEPRECATED2	2
-#define TF_DEPRECATED3	4
-#define TF_DEPRECATED4	8
-#define TF_PIN1		    16
-#define TF_PIN2		    32
-#define TF_PIN3	   		64
-#define TF_PIN4	    	128
+#define TF_DEPRECATED1     1
+#define TF_DEPRECATED2     2
+#define TF_DEPRECATED3     4
+#define TF_DEPRECATED4     8
+#define TF_PIN1            16
+#define TF_PIN2	           32
+#define TF_PIN3	   	       64
+#define TF_PIN4	           128
 
 #endif

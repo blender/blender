@@ -45,10 +45,11 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
-#include "ED_mask.h"
 #include "ED_clip.h"
+#include "ED_image.h"
 #include "ED_keyframing.h"
+#include "ED_mask.h"
+#include "ED_screen.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -61,17 +62,19 @@ MaskSplinePoint *ED_mask_point_find_nearest(const bContext *C, Mask *mask, float
                                             MaskLayer **masklay_r, MaskSpline **spline_r, int *is_handle_r,
                                             float *score)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	MaskLayer *masklay;
 	MaskLayer *point_masklay = NULL;
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
-	float co[2], aspx, aspy;
+	float co[2];
 	float len = FLT_MAX, scalex, scaley;
 	int is_handle = FALSE, width, height;
 
-	ED_mask_size(C, &width, &height);
-	ED_mask_aspect(C, &aspx, &aspy);
-	ED_mask_pixelspace_factor(C, &scalex, &scaley);
+	ED_mask_get_size(sa, &width, &height);
+	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
@@ -157,17 +160,19 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
                                  MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
                                  MaskSplinePointUW **uw_r, float *score)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	MaskLayer *masklay, *point_masklay = NULL;
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
 	MaskSplinePointUW *uw = NULL;
 	float len = FLT_MAX, co[2];
-	float scalex, scaley, aspx, aspy;
+	float scalex, scaley;
 	int width, height;
 
-	ED_mask_size(C, &width, &height);
-	ED_mask_aspect(C, &aspx, &aspy);
-	ED_mask_pixelspace_factor(C, &scalex, &scaley);
+	ED_mask_get_size(sa, &width, &height);
+	ED_mask_pixelspace_factor(sa, ar, &scalex, &scaley);
 
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
@@ -255,7 +260,7 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 
 static int mask_new_exec(bContext *C, wmOperator *op)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
+	ScrArea *sa = CTX_wm_area(C);
 	Mask *mask;
 	char name[MAX_ID_NAME - 2];
 
@@ -263,8 +268,27 @@ static int mask_new_exec(bContext *C, wmOperator *op)
 
 	mask = BKE_mask_new(name);
 
-	if (sc)
-		ED_space_clip_set_mask(C, sc, mask);
+	if (sa && sa->spacedata.first) {
+		switch (sa->spacetype) {
+			case SPACE_CLIP:
+			{
+				SpaceClip *sc = sa->spacedata.first;
+				ED_space_clip_set_mask(C, sc, mask);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				/* do nothing */
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = sa->spacedata.first;
+				ED_space_image_set_mask(C, sima, mask);
+				break;
+			}
+		}
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -375,7 +399,7 @@ typedef struct SlidePointData {
 	MaskSplinePointUW *uw;
 	float handle[2], no[2], feather[2];
 	int width, height;
-	float weight;
+	float weight, weight_scalar;
 
 	short curvature_only, accurate;
 	short initial_feather, overall_feather;
@@ -406,6 +430,9 @@ static int slide_point_check_initial_feather(MaskSpline *spline)
 
 static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	Mask *mask = CTX_data_edit_mask(C);
 	SlidePointData *customdata = NULL;
 	MaskLayer *masklay, *cv_masklay, *feather_masklay;
@@ -417,8 +444,8 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 	float co[2], cv_score, feather_score;
 	const float threshold = 19;
 
-	ED_mask_mouse_pos(C, event, co);
-	ED_mask_size(C, &width, &height);
+	ED_mask_mouse_pos(sa, ar, event->mval, co);
+	ED_mask_get_size(sa, &width, &height);
 
 	cv_point = ED_mask_point_find_nearest(C, mask, co, threshold, &cv_masklay, &cv_spline, &is_handle, &cv_score);
 
@@ -460,6 +487,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 			float weight_scalar = BKE_mask_point_weight_scalar(spline, point, uw->u);
 
 			customdata->weight = uw->w;
+			customdata->weight_scalar = weight_scalar;
 			BKE_mask_point_segment_co(spline, point, uw->u, co);
 			BKE_mask_point_normal(spline, point, uw->u, customdata->no);
 
@@ -469,6 +497,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 			BezTriple *bezt = &point->bezt;
 
 			customdata->weight = bezt->weight;
+			customdata->weight_scalar = 1.0f;
 			BKE_mask_point_normal(spline, point, 0.0f, customdata->no);
 
 			madd_v2_v2v2fl(customdata->feather, bezt->vec[1], customdata->no, bezt->weight);
@@ -480,7 +509,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 		copy_m3_m3(customdata->vec, point->bezt.vec);
 		if (BKE_mask_point_has_handle(point))
 			BKE_mask_point_handle(point, customdata->handle);
-		ED_mask_mouse_pos(C, event, customdata->co);
+		ED_mask_mouse_pos(sa, ar, event->mval, customdata->co);
 	}
 
 	return customdata;
@@ -497,6 +526,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		WM_event_add_modal_handler(C, op);
 
+#if 0
 		if (slidedata->uw) {
 			if ((slidedata->uw->flag & SELECT) == 0) {
 				ED_mask_select_toggle_all(mask, SEL_DESELECT);
@@ -513,6 +543,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			ED_mask_select_flush_all(mask);
 		}
+#endif
 
 		slidedata->masklay->act_spline = slidedata->spline;
 		slidedata->masklay->act_point = slidedata->point;
@@ -600,24 +631,28 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 	float co[2], dco[2];
 
 	switch (event->type) {
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
+		case LEFTALTKEY:
+		case RIGHTALTKEY:
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
-			if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY)) {
+			if (ELEM(event->type, LEFTALTKEY, RIGHTALTKEY)) {
 				if (data->action == SLIDE_ACTION_FEATHER)
-					data->overall_feather = event->val == KM_PRESS;
+					data->overall_feather = (event->val == KM_PRESS);
 				else
-					data->curvature_only = event->val == KM_PRESS;
+					data->curvature_only = (event->val == KM_PRESS);
 			}
 
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
-				data->accurate = event->val == KM_PRESS;
+				data->accurate = (event->val == KM_PRESS);
 
 		/* no break! update CV position */
 
 		case MOUSEMOVE:
-			ED_mask_mouse_pos(C, event, co);
+		{
+			ScrArea *sa = CTX_wm_area(C);
+			ARegion *ar = CTX_wm_region(C);
+
+			ED_mask_mouse_pos(sa, ar, event->mval, co);
 			sub_v2_v2v2(dco, co, data->co);
 
 			if (data->action == SLIDE_ACTION_HANDLE) {
@@ -710,13 +745,13 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 						if (dot_v2v2(no, vec) <= 0.0f)
 							w = -w;
 
-						delta = w - data->weight;
+						delta = w - data->weight * data->weight_scalar;
 
 						if (data->orig_spline == NULL) {
 							/* restore weight for currently sliding point, so orig_spline would be created
 							 * with original weights used
 							 */
-							*weight = data->weight * weight_scalar;
+							*weight = data->weight;
 
 							data->orig_spline = BKE_mask_spline_copy(data->spline);
 						}
@@ -746,6 +781,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 			DAG_id_tag_update(&data->mask->id, 0);
 
 			break;
+		}
 
 		case LEFTMOUSE:
 			if (event->val == KM_RELEASE) {
@@ -879,6 +915,7 @@ static void delete_feather_points(MaskSplinePoint *point)
 
 static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 
@@ -966,7 +1003,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* TODO: only update edited splines */
-	BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+	BKE_mask_update_display(mask, CFRA);
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
@@ -1024,7 +1061,7 @@ static int mask_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (change) {
 		/* TODO: only update this spline */
-		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+		BKE_mask_update_display(mask, CFRA);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
@@ -1090,7 +1127,7 @@ static int mask_normals_make_consistent_exec(bContext *C, wmOperator *UNUSED(op)
 
 	if (change) {
 		/* TODO: only update this spline */
-		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+		BKE_mask_update_display(mask, CFRA);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
@@ -1288,6 +1325,7 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 
 static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	int changed = FALSE;
@@ -1315,7 +1353,7 @@ static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (changed) {
 		/* TODO: only update edited splines */
-		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+		BKE_mask_update_display(mask, CFRA);
 
 		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
 		DAG_id_tag_update(&mask->id, 0);
@@ -1340,4 +1378,75 @@ void MASK_OT_feather_weight_clear(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/******************** move mask layer operator *********************/
+
+static int mask_layer_move_poll(bContext *C)
+{
+	if (ED_maskedit_mask_poll(C)) {
+		Mask *mask = CTX_data_edit_mask(C);
+
+		return mask->masklay_tot > 0;
+	}
+
+	return FALSE;
+}
+
+static int mask_layer_move_exec(bContext *C, wmOperator *op)
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *mask_layer = BLI_findlink(&mask->masklayers, mask->masklay_act);
+	MaskLayer *mask_layer_other;
+	int direction = RNA_enum_get(op->ptr, "direction");
+
+	if (!mask_layer)
+		return OPERATOR_CANCELLED;
+
+	if (direction == -1) {
+		mask_layer_other = mask_layer->prev;
+
+		if (!mask_layer_other)
+			return OPERATOR_CANCELLED;
+
+		BLI_remlink(&mask->masklayers, mask_layer);
+		BLI_insertlinkbefore(&mask->masklayers, mask_layer_other, mask_layer);
+		mask->masklay_act--;
+	}
+	else if (direction == 1) {
+		mask_layer_other = mask_layer->next;
+
+		if (!mask_layer_other)
+			return OPERATOR_CANCELLED;
+
+		BLI_remlink(&mask->masklayers, mask_layer);
+		BLI_insertlinkafter(&mask->masklayers, mask_layer_other, mask_layer);
+		mask->masklay_act++;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void MASK_OT_layer_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[] = {
+		{-1, "UP", 0, "Up", ""},
+		{1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Move Layer";
+	ot->description = "Move the active layer up/down in the list";
+	ot->idname = "MASK_OT_layer_move";
+
+	/* api callbacks */
+	ot->exec = mask_layer_move_exec;
+	ot->poll = mask_layer_move_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move the active layer");
 }

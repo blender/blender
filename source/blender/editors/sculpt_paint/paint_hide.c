@@ -197,7 +197,7 @@ static void partialvis_update_grids(Object *ob,
 			for (x = 0; x < key.grid_size; x++) {
 				CCGElem *elem = CCG_grid_elem(&key, grids[g], x, y);
 				const float *co = CCG_elem_co(&key, elem);
-				float mask = *CCG_elem_mask(&key, elem);
+				float mask = key.has_mask ? *CCG_elem_mask(&key, elem) : 0.0f;
 
 				/* skip grid element if not in the effected area */
 				if (is_effected(area, planes, co, mask)) {
@@ -251,7 +251,7 @@ static void clip_planes_from_rect(bContext *C,
 	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
 	view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
-	ED_view3d_calc_clipping(&bb, clip_planes, &mats, rect);
+	ED_view3d_clipping_calc(&bb, clip_planes, &mats, rect);
 	mul_m4_fl(clip_planes, -1.0f);
 }
 
@@ -388,7 +388,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 	ot->modal = WM_border_select_modal;
 	ot->exec = hide_show_exec;
 	/* sculpt-only for now */
-	ot->poll = sculpt_mode_poll;
+	ot->poll = sculpt_mode_poll_view3d;
 
 	ot->flag = OPTYPE_REGISTER;
 
@@ -398,8 +398,5 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "area", area_items, PARTIALVIS_INSIDE,
 	             "Area", "Which vertices to hide or show");
 	
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
+	WM_operator_properties_border(ot);
 }

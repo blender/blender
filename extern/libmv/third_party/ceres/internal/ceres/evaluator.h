@@ -33,10 +33,14 @@
 #define CERES_INTERNAL_EVALUATOR_H_
 
 #include <string>
+#include <vector>
 #include "ceres/internal/port.h"
 #include "ceres/types.h"
 
 namespace ceres {
+
+class CRSMatrix;
+
 namespace internal {
 
 class Program;
@@ -64,6 +68,32 @@ class Evaluator {
   static Evaluator* Create(const Options& options,
                            Program* program,
                            string* error);
+
+
+  // This is used for computing the cost, residual and Jacobian for
+  // returning to the user. For actually solving the optimization
+  // problem, the optimization algorithm uses the ProgramEvaluator
+  // objects directly.
+  //
+  // The residual, gradients and jacobian pointers can be NULL, in
+  // which case they will not be evaluated. cost cannot be NULL.
+  //
+  // The parallelism of the evaluator is controlled by num_threads; it
+  // should be at least 1.
+  //
+  // Note: That this function does not take a parameter vector as
+  // input. The parameter blocks are evaluated on the values contained
+  // in the arrays pointed to by their user_state pointers.
+  //
+  // Also worth noting is that this function mutates program by
+  // calling Program::SetParameterOffsetsAndIndex() on it so that an
+  // evaluator object can be constructed.
+  static bool Evaluate(Program* program,
+                       int num_threads,
+                       double* cost,
+                       vector<double>* residuals,
+                       vector<double>* gradient,
+                       CRSMatrix* jacobian);
 
   // Build and return a sparse matrix for storing and working with the Jacobian
   // of the objective function. The jacobian has dimensions
@@ -95,6 +125,7 @@ class Evaluator {
   virtual bool Evaluate(const double* state,
                         double* cost,
                         double* residuals,
+                        double* gradient,
                         SparseMatrix* jacobian) = 0;
 
   // Make a change delta (of size NumEffectiveParameters()) to state (of size

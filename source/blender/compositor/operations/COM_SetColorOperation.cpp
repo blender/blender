@@ -27,15 +27,12 @@ SetColorOperation::SetColorOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void SetColorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void SetColorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	outputValue[0] = this->m_channel1;
-	outputValue[1] = this->m_channel2;
-	outputValue[2] = this->m_channel3;
-	outputValue[3] = this->m_channel4;
+	copy_v4_v4(output, this->m_color);
 }
 
-void SetColorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void SetColorOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	resolution[0] = preferredResolution[0];
 	resolution[1] = preferredResolution[1];

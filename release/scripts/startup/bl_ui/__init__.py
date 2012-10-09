@@ -38,6 +38,7 @@ _modules = (
     "properties_data_modifier",
     "properties_data_speaker",
     "properties_game",
+    "properties_mask_common",
     "properties_material",
     "properties_object_constraint",
     "properties_object",
@@ -94,7 +95,7 @@ def register():
         items = [('All', "All", ""),
                  ('Enabled', "Enabled", ""),
                  ('Disabled', "Disabled", ""),
-                ]
+                 ]
 
         items_unique = set()
 
@@ -119,7 +120,7 @@ def register():
             items=[('OFFICIAL', "Official", "Officially supported"),
                    ('COMMUNITY', "Community", "Maintained by community developers"),
                    ('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)"),
-                  ],
+                   ],
             name="Support",
             description="Display support level",
             default={'OFFICIAL', 'COMMUNITY'},

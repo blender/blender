@@ -27,6 +27,6 @@ shader node_velvet_bsdf(
 {
 	float sigma = clamp(Sigma, 0.0, 1.0);
 
-	BSDF = Color*ashikhmin_velvet(Normal, sigma);
+	BSDF = Color*ashikhmin_velvet(Normal, sigma, 1.0);
 }
 

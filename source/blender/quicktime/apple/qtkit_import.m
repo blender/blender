@@ -85,7 +85,7 @@ int anim_is_quicktime (const char *name)
 	if( BLI_testextensie(name, ".swf") ||
 		BLI_testextensie(name, ".txt") ||
 		BLI_testextensie(name, ".mpg") ||
-		BLI_testextensie(name, ".avi") ||	// wouldnt be appropriate ;)
+		BLI_testextensie(name, ".avi") ||	// wouldn't be appropriate ;)
 		BLI_testextensie(name, ".mov") ||	// disabled, suboptimal decoding speed   
 		BLI_testextensie(name, ".mp4") ||	// disabled, suboptimal decoding speed
 		BLI_testextensie(name, ".m4v") ||	// disabled, suboptimal decoding speed
@@ -153,8 +153,9 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	
 	ibuf = IMB_allocImBuf (width, height, 32, IB_rect);
 	if (!ibuf) {
-		if(QTIME_DEBUG) printf("quicktime_import: could not allocate memory for the " \
-				"image.\n");
+		if (QTIME_DEBUG) {
+			printf("quicktime_import: could not allocate memory for the image.\n");
+		}
 		return NULL;
 	}
 	
@@ -290,7 +291,6 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 	ibuf = nsImageToiBuf(frameImage,anim->x, anim->y);
 	[pool drain];
 	
-	ibuf->profile = IB_PROFILE_SRGB;
 	return ibuf;
 }
 
@@ -455,8 +455,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	ibuf = IMB_allocImBuf(bitmapSize.width, bitmapSize.height, 32/*RGBA*/, 0);
 	if (!ibuf) {
 		fprintf(stderr, 
-				"imb_cocoaLoadImage: could not allocate memory for the " \
-				"image.\n");
+		        "imb_cocoaLoadImage: could not allocate memory for the image.\n");
 		[bitmapImage release];
 		[pool drain];
 		return NULL;

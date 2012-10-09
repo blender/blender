@@ -36,8 +36,6 @@
 extern "C" {
 #endif
 
-#include "DNA_defs.h" /* USE_BMESH_FORWARD_COMPAT */
-
 /** descriptor and storage for a custom data layer */
 typedef struct CustomDataLayer {
 	int type;       /* type of data in layer */
@@ -74,7 +72,7 @@ typedef struct CustomData {
 
 /* CustomData.type */
 #define CD_MVERT		0
-#define CD_MSTICKY		1
+#define CD_MSTICKY		1  /* DEPRECATED */
 #define CD_MDEFORMVERT	2
 #define CD_MEDGE		3
 #define CD_MFACE		4
@@ -118,7 +116,7 @@ typedef struct CustomData {
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
-#define CD_MASK_MSTICKY		(1 << CD_MSTICKY)
+#define CD_MASK_MSTICKY		(1 << CD_MSTICKY)  /* DEPRECATED */
 #define CD_MASK_MDEFORMVERT	(1 << CD_MDEFORMVERT)
 #define CD_MASK_MEDGE		(1 << CD_MEDGE)
 #define CD_MASK_MFACE		(1 << CD_MFACE)

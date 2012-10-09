@@ -51,8 +51,8 @@ struct EnvMap;
 /* this include is what is exposed of render to outside world */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-
-#define RE_MAXNAME	32
+/* length of the scene name + passname */
+#define RE_MAXNAME	((MAX_ID_NAME - 2) + 10)
 
 /* only used as handle */
 typedef struct Render Render;
@@ -81,7 +81,7 @@ typedef struct RenderLayer {
 	struct RenderLayer *next, *prev;
 	
 	/* copy of RenderData */
-	char name[RE_MAXNAME];		
+	char name[RE_MAXNAME];
 	unsigned int lay, lay_zmask, lay_exclude;
 	int layflag, passflag, pass_xor;		
 	
@@ -92,6 +92,9 @@ typedef struct RenderLayer {
 	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */
 	float *scolrect;	/* 4 float, optional strand buffer, needs storage for display updates */
 	int rectx, recty;
+
+	/* optional saved endresult on disk */
+	void *exrhandle;
 	
 	ListBase passes;
 	
@@ -124,7 +127,7 @@ typedef struct RenderResult {
 	volatile RenderLayer *renlay;
 	
 	/* optional saved endresult on disk */
-	void *exrhandle;
+	int do_exr_tile;
 	
 	/* for render results in Image, verify validity for sequences */
 	int framenr;
@@ -144,8 +147,7 @@ typedef struct RenderStats {
 	short curfield, curblur, curpart, partsdone, convertdone, curfsa;
 	double starttime, lastframetime;
 	const char *infostr, *statstr;
-	char scenename[32];
-	
+	char scene_name[MAX_ID_NAME - 2];
 } RenderStats;
 
 /* *********************** API ******************** */
@@ -154,7 +156,6 @@ typedef struct RenderStats {
 /* calling a new render with same name, frees automatic existing render */
 struct Render *RE_NewRender (const char *name);
 struct Render *RE_GetRender(const char *name);
-struct Render *RE_GetRender_FromData(const struct RenderData *rd);
 
 /* returns 1 while render is working (or renders called from within render) */
 int RE_RenderInProgress(struct Render *re);
@@ -224,7 +225,7 @@ void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene
 
 int RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 int RE_WriteRenderResult(struct ReportList *reports, RenderResult *rr, const char *filename, int compress);
-struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
+struct RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty);
 
 extern const float default_envmap_layout[];
 int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]);

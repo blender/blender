@@ -39,6 +39,12 @@
 
 #include "BLO_readfile.h"
 
+#include "BLI_utildefines.h"
+#include "BLI_string.h"
+#include "BLI_linklist.h"
+#include "BLI_path_util.h"
+#include "BLI_listbase.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
@@ -46,15 +52,10 @@
 #include "BKE_report.h"
 #include "BKE_context.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
-#include "BLI_linklist.h"
-#include "BLI_path_util.h"
-#include "BLI_listbase.h"
-
 #include "DNA_space_types.h" /* FILE_LINK, FILE_RELPATH */
 
 #include "bpy_util.h"
+#include "bpy_library.h"
 
 #ifdef USE_RNA_DATABLOCKS
 #  include "bpy_rna.h"
@@ -426,7 +427,7 @@ static PyObject *bpy_lib_dir(BPy_Library *self)
 }
 
 
-int bpy_lib_init(PyObject *mod_par)
+int BPY_library_module(PyObject *mod_par)
 {
 	static PyMethodDef load_meth = {"load", (PyCFunction)bpy_lib_load,
 	                                METH_STATIC | METH_VARARGS | METH_KEYWORDS,

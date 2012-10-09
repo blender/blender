@@ -282,53 +282,12 @@ void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
 		if (skip_hidden && BM_elem_flag_test(v, BM_ELEM_HIDDEN))
 			continue;
 
-		if (normalize_v3(v->no) == 0.0f) {
+		if (UNLIKELY(normalize_v3(v->no) == 0.0f)) {
 			normalize_v3_v3(v->no, v->co);
 		}
 	}
 	
 	MEM_freeN(edgevec);
-}
-
-/*
- * This function ensures correct normals for the mesh, but
- * sets the flag BM_ELEM_TAG in flipped faces, to allow restoration
- * of original normals.
- *
- * if undo is 0: calculate right normals
- * if undo is 1: restore original normals
- */
-
-//keep in sycn with utils.c!
-#define FACE_FLIP   8
-static void bm_rationalize_normals(BMesh *bm, int undo)
-{
-	BMOperator bmop;
-	BMFace *f;
-	BMIter iter;
-	
-	if (undo) {
-		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-			if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
-				BM_face_normal_flip(bm, f);
-			}
-			BM_elem_flag_disable(f, BM_ELEM_TAG);
-		}
-		
-		return;
-	}
-	
-	BMO_op_initf(bm, &bmop, "recalc_face_normals faces=%af do_flip=%b", FALSE);
-	
-	BMO_push(bm, &bmop);
-	bmo_recalc_face_normals_exec(bm, &bmop);
-	
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		BM_elem_flag_set(f, BM_ELEM_TAG, BMO_elem_flag_test(bm, f, FACE_FLIP));
-	}
-
-	BMO_pop(bm);
-	BMO_op_finish(bm, &bmop);
 }
 
 static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from, int to)
@@ -390,30 +349,21 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
  * the editing operations are done. These are called by the tools/operator
  * API for each time a tool is executed.
  */
-void bmesh_edit_begin(BMesh *bm, int flag)
+void bmesh_edit_begin(BMesh *UNUSED(bm), int UNUSED(type_flag))
 {
-	bm->opflag = flag;
-	
 	/* Most operators seem to be using BMO_OP_FLAG_UNTAN_MULTIRES to change the MDisps to
 	 * absolute space during mesh edits. With this enabled, changes to the topology
 	 * (loop cuts, edge subdivides, etc) are not reflected in the higher levels of
 	 * the mesh at all, which doesn't seem right. Turning off completely for now,
 	 * until this is shown to be better for certain types of mesh edits. */
-#if BMOP_UNTAN_MULTIRES_ENABLED
+#ifdef BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data out of tangent space */
-	if ((flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+	if ((type_flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		bmesh_mdisps_space_set(bm, MULTIRES_SPACE_TANGENT, MULTIRES_SPACE_ABSOLUTE);
 
 		/* ensure correct normals, if possible */
 		bmesh_rationalize_normals(bm, 0);
 		BM_mesh_normals_update(bm);
-	}
-	else if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
-		bmesh_rationalize_normals(bm, 0);
-	}
-#else
-	if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
-		bm_rationalize_normals(bm, 0);
 	}
 #endif
 }
@@ -421,10 +371,10 @@ void bmesh_edit_begin(BMesh *bm, int flag)
 /**
  * \brief BMesh End Edit
  */
-void bmesh_edit_end(BMesh *bm, int flag)
+void bmesh_edit_end(BMesh *bm, int UNUSED(flag))
 {
 	/* BMO_OP_FLAG_UNTAN_MULTIRES disabled for now, see comment above in bmesh_edit_begin. */
-#if BMOP_UNTAN_MULTIRES_ENABLED
+#ifdef BMOP_UNTAN_MULTIRES_ENABLED
 	/* switch multires data into tangent space */
 	if ((flag & BMO_OP_FLAG_UNTAN_MULTIRES) && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		/* set normals to their previous winding */
@@ -434,13 +384,7 @@ void bmesh_edit_end(BMesh *bm, int flag)
 	else if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
 		bmesh_rationalize_normals(bm, 1);
 	}
-#else
-	if (flag & BMO_OP_FLAG_RATIONALIZE_NORMALS) {
-		bm_rationalize_normals(bm, 1);
-	}
 #endif
-
-	bm->opflag = 0;
 
 	/* compute normals, clear temp flags and flush selections */
 	BM_mesh_normals_update(bm, TRUE);
@@ -721,7 +665,7 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	/* Verts' pointers, only edge pointers... */
 	if (eptr_map) {
 		BM_ITER_MESH (ve, &iter, bm, BM_VERTS_OF_MESH) {
-/*			printf("Vert e: %p -> %p\n", ve->e, BLI_ghash_lookup(eptr_map, (const void*)ve->e));*/
+/*			printf("Vert e: %p -> %p\n", ve->e, BLI_ghash_lookup(eptr_map, (const void *)ve->e));*/
 			ve->e = BLI_ghash_lookup(eptr_map, (const void *)ve->e);
 		}
 	}
@@ -731,20 +675,20 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	if (vptr_map || eptr_map) {
 		BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
 			if (vptr_map) {
-/*				printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void*)ed->v1));*/
-/*				printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void*)ed->v2));*/
+/*				printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void *)ed->v1));*/
+/*				printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void* )ed->v2));*/
 				ed->v1 = BLI_ghash_lookup(vptr_map, (const void *)ed->v1);
 				ed->v2 = BLI_ghash_lookup(vptr_map, (const void *)ed->v2);
 			}
 			if (eptr_map) {
 /*				printf("Edge v1_disk_link prev: %p -> %p\n", ed->v1_disk_link.prev,*/
-/*				       BLI_ghash_lookup(eptr_map, (const void*)ed->v1_disk_link.prev));*/
+/*				       BLI_ghash_lookup(eptr_map, (const void *)ed->v1_disk_link.prev));*/
 /*				printf("Edge v1_disk_link next: %p -> %p\n", ed->v1_disk_link.next,*/
-/*				       BLI_ghash_lookup(eptr_map, (const void*)ed->v1_disk_link.next));*/
+/*				       BLI_ghash_lookup(eptr_map, (const void *)ed->v1_disk_link.next));*/
 /*				printf("Edge v2_disk_link prev: %p -> %p\n", ed->v2_disk_link.prev,*/
-/*				       BLI_ghash_lookup(eptr_map, (const void*)ed->v2_disk_link.prev));*/
+/*				       BLI_ghash_lookup(eptr_map, (const void *)ed->v2_disk_link.prev));*/
 /*				printf("Edge v2_disk_link next: %p -> %p\n", ed->v2_disk_link.next,*/
-/*				       BLI_ghash_lookup(eptr_map, (const void*)ed->v2_disk_link.next));*/
+/*				       BLI_ghash_lookup(eptr_map, (const void *)ed->v2_disk_link.next));*/
 				ed->v1_disk_link.prev = BLI_ghash_lookup(eptr_map, (const void *)ed->v1_disk_link.prev);
 				ed->v1_disk_link.next = BLI_ghash_lookup(eptr_map, (const void *)ed->v1_disk_link.next);
 				ed->v2_disk_link.prev = BLI_ghash_lookup(eptr_map, (const void *)ed->v2_disk_link.prev);
@@ -757,15 +701,15 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 	BM_ITER_MESH (fa, &iter, bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM (lo, &iterl, fa, BM_LOOPS_OF_FACE) {
 			if (vptr_map) {
-/*				printf("Loop v: %p -> %p\n", lo->v, BLI_ghash_lookup(vptr_map, (const void*)lo->v));*/
+/*				printf("Loop v: %p -> %p\n", lo->v, BLI_ghash_lookup(vptr_map, (const void *)lo->v));*/
 				lo->v = BLI_ghash_lookup(vptr_map, (const void *)lo->v);
 			}
 			if (eptr_map) {
-/*				printf("Loop e: %p -> %p\n", lo->e, BLI_ghash_lookup(eptr_map, (const void*)lo->e));*/
+/*				printf("Loop e: %p -> %p\n", lo->e, BLI_ghash_lookup(eptr_map, (const void *)lo->e));*/
 				lo->e = BLI_ghash_lookup(eptr_map, (const void *)lo->e);
 			}
 			if (fptr_map) {
-/*				printf("Loop f: %p -> %p\n", lo->f, BLI_ghash_lookup(fptr_map, (const void*)lo->f));*/
+/*				printf("Loop f: %p -> %p\n", lo->f, BLI_ghash_lookup(fptr_map, (const void *)lo->f));*/
 				lo->f = BLI_ghash_lookup(fptr_map, (const void *)lo->f);
 			}
 		}

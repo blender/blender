@@ -355,10 +355,11 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                    GHOST_TGrabCursorMode mode,
-                                   int *bounds)
+                                   int bounds[4], int mouse_ungrab_xy[2])
 {
 	GHOST_IWindow *window = (GHOST_IWindow *) windowhandle;
 	GHOST_Rect bounds_rect, bounds_win;
+	GHOST_TInt32 mouse_ungrab_xy_global[2];
 
 	if (bounds) {
 		/* if this is X11 specific we need a function that converts */
@@ -368,7 +369,16 @@ GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
 
 	}
 	
-	return window->setCursorGrab(mode, bounds ? &bounds_rect : NULL);
+	if (mouse_ungrab_xy) {
+		if (bounds == NULL)
+			window->getClientBounds(bounds_win);
+		window->clientToScreen(mouse_ungrab_xy[0], bounds_win.getHeight() - mouse_ungrab_xy[1],
+		                       mouse_ungrab_xy_global[0], mouse_ungrab_xy_global[1]);
+	}
+
+	return window->setCursorGrab(mode,
+	                             bounds ? &bounds_rect : NULL,
+	                             mouse_ungrab_xy ? mouse_ungrab_xy_global : NULL);
 }
 
 
@@ -529,7 +539,10 @@ char *GHOST_GetTitle(GHOST_WindowHandle windowhandle)
 
 	char *ctitle = (char *) malloc(title.Length() + 1);
 
-	if (ctitle == NULL) return NULL;
+	if (ctitle == NULL) {
+		return NULL;
+	}
+
 	strcpy(ctitle, title.Ptr());
 
 	return ctitle;
@@ -860,7 +873,8 @@ int GHOST_toggleConsole(int action)
 }
 
 
-int GHOST_confirmQuit(GHOST_WindowHandle windowhandle){
+int GHOST_confirmQuit(GHOST_WindowHandle windowhandle)
+{
 	GHOST_ISystem *system = GHOST_ISystem::getSystem();
 	return system->confirmQuit((GHOST_IWindow *) windowhandle);
 }

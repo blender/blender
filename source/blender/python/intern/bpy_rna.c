@@ -37,6 +37,8 @@
 
 #include "RNA_types.h"
 
+#include "BPY_extern.h"
+
 #include "bpy_rna.h"
 #include "bpy_rna_anim.h"
 #include "bpy_props.h"
@@ -45,7 +47,7 @@
 #include "bpy_intern_string.h"
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 #include "BLI_dynstr.h"
@@ -55,7 +57,7 @@
 #include "BLI_utildefines.h"
 
 #ifdef USE_PYRNA_INVALIDATE_WEAKREF
-#include "BLI_ghash.h"
+#  include "BLI_ghash.h"
 #endif
 
 #include "RNA_enum_types.h"
@@ -78,7 +80,7 @@
 #include "../generic/py_capi_utils.h"
 
 #ifdef WITH_INTERNATIONAL
-#include "BLF_translation.h"
+#  include "BLF_translation.h"
 #endif
 
 #define USE_PEDANTIC_WRITE
@@ -369,7 +371,7 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, PointerRNA *ptr, PropertyRNA *prop,
                                                   Py_ssize_t start, Py_ssize_t stop, Py_ssize_t length);
-static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback);
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, const short order_fallback);
 
 /* bpyrna vector/euler/quat callbacks */
 static unsigned char mathutils_rna_array_cb_index = -1; /* index for our callbacks */
@@ -435,7 +437,7 @@ static int mathutils_rna_vector_set(BaseMathObject *bmo, int subtype)
 
 	RNA_property_float_range(&self->ptr, self->prop, &min, &max);
 
-	if (min != FLT_MIN || max != FLT_MAX) {
+	if (min != -FLT_MAX || max != FLT_MAX) {
 		int i, len = RNA_property_array_length(&self->ptr, self->prop);
 		for (i = 0; i < len; i++) {
 			CLAMP(bmo->data[i], min, max);
@@ -571,7 +573,7 @@ static Mathutils_Callback mathutils_rna_matrix_cb = {
 	NULL
 };
 
-static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, short order_fallback)
+static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_eul_order, const short order_fallback)
 {
 	/* attempt to get order */
 	if (*prop_eul_order == NULL)
@@ -2150,10 +2152,10 @@ static PyObject *pyrna_prop_collection_subscript_str(BPy_PropertyRNA *self, cons
  * -1: exception set
  *  0: not found
  *  1: found */
-int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *self, PyObject *key,
-                                                     const char *err_prefix, const short err_not_found,
-                                                     PointerRNA *r_ptr
-                                                     )
+static int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *self, PyObject *key,
+                                                            const char *err_prefix, const short err_not_found,
+                                                            PointerRNA *r_ptr
+                                                            )
 {
 	char *keyname;
 
@@ -2209,7 +2211,7 @@ int pyrna_prop_collection_subscript_str_lib_pair_ptr(BPy_PropertyRNA *self, PyOb
 			return -1;
 		}
 
-		/* lib is either a valid poniter or NULL,
+		/* lib is either a valid pointer or NULL,
 		 * either way can do direct comparison with id.lib */
 
 		RNA_PROP_BEGIN (&self->ptr, itemptr, self->prop)
@@ -2418,7 +2420,7 @@ static PyObject *pyrna_prop_collection_subscript(BPy_PropertyRNA *self, PyObject
 				/* only get the length for negative values */
 				Py_ssize_t len = (Py_ssize_t)RNA_property_collection_length(&self->ptr, self->prop);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {
@@ -2544,7 +2546,7 @@ static int pyrna_prop_collection_ass_subscript(BPy_PropertyRNA *self, PyObject *
 				/* only get the length for negative values */
 				Py_ssize_t len = (Py_ssize_t)RNA_property_collection_length(&self->ptr, self->prop);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {
@@ -4267,7 +4269,7 @@ static int foreach_parse_args(BPy_PropertyRNA *self, PyObject *args,
 		return -1;
 	}
 
-	*tot = PySequence_Size(*seq); // TODO - buffer may not be a sequence! array.array() is tho.
+	*tot = PySequence_Size(*seq); /* TODO - buffer may not be a sequence! array.array() is tho. */
 
 	if (*tot > 0) {
 		foreach_attr_type(self, *attr, raw_type, attr_tot, attr_signed);
@@ -5908,7 +5910,7 @@ PyTypeObject pyrna_prop_collection_iter_Type = {
 	NULL
 };
 
-PyObject *pyrna_prop_collection_iter_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
+static PyObject *pyrna_prop_collection_iter_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
 {
 	BPy_PropertyCollectionIterRNA *self = PyObject_New(BPy_PropertyCollectionIterRNA, &pyrna_prop_collection_iter_Type);
 
@@ -6736,20 +6738,24 @@ static int rna_function_arg_count(FunctionRNA *func)
 	return count;
 }
 
-static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_function)
+static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, void *py_data, int *have_function)
 {
 	const ListBase *lb;
 	Link *link;
 	FunctionRNA *func;
 	PropertyRNA *prop;
-	StructRNA *srna = dummyptr->type;
 	const char *class_type = RNA_struct_identifier(srna);
+	StructRNA *srna_base = RNA_struct_base(srna);
 	PyObject *py_class = (PyObject *)py_data;
 	PyObject *base_class = RNA_struct_py_type_get(srna);
 	PyObject *item;
 	int i, flag, arg_count, func_arg_count;
 	const char *py_class_name = ((PyTypeObject *)py_class)->tp_name; // __name__
 
+	if (srna_base) {
+		if (bpy_class_validate_recursive(dummyptr, srna_base, py_data, have_function) != 0)
+			return -1;
+	}
 
 	if (base_class) {
 		if (!PyObject_IsSubclass(py_class, base_class)) {
@@ -6884,6 +6890,11 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 	return 0;
 }
 
+static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_function)
+{
+	return bpy_class_validate_recursive(dummyptr, dummyptr->type, py_data, have_function);
+}
+
 /* TODO - multiple return values like with rna functions */
 static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
 {
@@ -7000,7 +7011,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			Py_INCREF(py_class_instance);
 #endif
 			/*
-			 * This would work fine but means __init__ functions wouldnt run.
+			 * This would work fine but means __init__ functions wouldn't run.
 			 * none of blenders default scripts use __init__ but its nice to call it
 			 * for general correctness. just to note why this is here when it could be safely removed.
 			 */

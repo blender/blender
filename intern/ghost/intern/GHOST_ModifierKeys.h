@@ -38,8 +38,8 @@
 /**
  * Stores the state of modifier keys.
  * Discriminates between left and right modifier keys.
- * @author	Maarten Gribnau
- * @date	May 17, 2001
+ * \author	Maarten Gribnau
+ * \date	May 17, 2001
  */
 struct GHOST_ModifierKeys {
 	/**
@@ -51,23 +51,23 @@ struct GHOST_ModifierKeys {
 
 	/**
 	 * Returns the modifier key's key code from a modifier key mask.
-	 * @param mask The mask of the modifier key.
-	 * @return The modifier key's key code.
+	 * \param mask The mask of the modifier key.
+	 * \return The modifier key's key code.
 	 */
 	static GHOST_TKey getModifierKeyCode(GHOST_TModifierKeyMask mask);
 
 
 	/**
 	 * Returns the state of a single modifier key.
-	 * @param mask. Key state to return.
-	 * @return The state of the key (pressed == true).
+	 * \param mask. Key state to return.
+	 * \return The state of the key (pressed == true).
 	 */
 	virtual bool get(GHOST_TModifierKeyMask mask) const;
 
 	/**
 	 * Updates the state of a single modifier key.
-	 * @param mask. Key state to update.
-	 * @param down. The new state of the key.
+	 * \param mask. Key state to update.
+	 * \param down. The new state of the key.
 	 */
 	virtual void set(GHOST_TModifierKeyMask mask, bool down);
 
@@ -78,8 +78,8 @@ struct GHOST_ModifierKeys {
 
 	/**
 	 * Determines whether to modifier key states are equal.
-	 * @param keys. The modifier key state to compare to.
-	 * @return Indication of equality.
+	 * \param keys. The modifier key state to compare to.
+	 * \return Indication of equality.
 	 */
 	virtual bool equals(const GHOST_ModifierKeys& keys) const;
 

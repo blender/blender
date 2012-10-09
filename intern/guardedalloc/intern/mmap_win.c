@@ -44,7 +44,7 @@
 #define FILE_MAP_EXECUTE 0x0020
 #endif
 
-/* copied from BKE_utildefines.h ugh */
+/* copied from BLI_utildefines.h, ugh */
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else

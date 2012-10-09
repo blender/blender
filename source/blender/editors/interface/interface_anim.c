@@ -141,7 +141,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 	}
 	
 	/* make sure we have animdata for this */
-	// FIXME: until materials can be handled by depsgraph, don't allow drivers to be created for them
+	/* FIXME: until materials can be handled by depsgraph, don't allow drivers to be created for them */
 	id = (ID *)but->rnapoin.id.data;
 	if ((id == NULL) || (GS(id->name) == ID_MA) || (GS(id->name) == ID_TE)) {
 		if (G.debug & G_DEBUG)
@@ -160,9 +160,9 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 		if (driver) {
 			/* set type of driver */
 			driver->type = DRIVER_TYPE_PYTHON;
-			
+
 			/* set the expression */
-			// TODO: need some way of identifying variables used
+			/* TODO: need some way of identifying variables used */
 			BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
 
 			/* updates */
@@ -187,12 +187,12 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 
 	if (fcu && !driven) {
 		id = but->rnapoin.id.data;
-		
-		// TODO: this should probably respect the keyingset only option for anim
+
+		/* TODO: this should probably respect the keyingset only option for anim */
 		if (autokeyframe_cfra_can_key(scene, id)) {
 			ReportList *reports = CTX_wm_reports(C);
 			short flag = ANIM_get_keyframing_flags(scene, 1);
-			
+
 			fcu->flag &= ~FCURVE_SELECTED;
 			insert_keyframe(reports, id, action, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
@@ -210,6 +210,12 @@ void ui_but_anim_delete_keyframe(bContext *C)
 {
 	/* this operator calls uiContextActiveProperty */
 	WM_operator_name_call(C, "ANIM_OT_keyframe_delete_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+void ui_but_anim_clear_keyframe(bContext *C)
+{
+	/* this operator calls uiContextActiveProperty */
+	WM_operator_name_call(C, "ANIM_OT_keyframe_clear_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
 void ui_but_anim_add_driver(bContext *C)

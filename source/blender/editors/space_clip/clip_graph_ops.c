@@ -130,7 +130,7 @@ static void find_nearest_tracking_segment_cb(void *userdata, MovieTrackingTrack 
 	copy_v2_v2(data->prev_co, co);
 }
 
-void find_nearest_tracking_segment_end_cb(void *userdata)
+static void find_nearest_tracking_segment_end_cb(void *userdata)
 {
 	MouseSelectUserData *data = userdata;
 
@@ -321,7 +321,7 @@ static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
 {
 	BorderSelectuserData *data = (BorderSelectuserData *) userdata;
 
-	if (BLI_in_rctf(&data->rect, scene_framenr, val)) {
+	if (BLI_rctf_isect_pt(&data->rect, scene_framenr, val)) {
 		int flag = 0;
 
 		if (coord == 0)
@@ -345,6 +345,7 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
+
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
@@ -352,10 +353,7 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	rcti rect;
 
 	/* get rectangle from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &userdata.rect.xmin, &userdata.rect.ymin);
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &userdata.rect.xmax, &userdata.rect.ymax);
@@ -582,11 +580,11 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
-	extra = 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
+	extra = 0.01f * BLI_rctf_size_x(&v2d->cur);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 
-	extra = 0.01f * (v2d->cur.ymax - v2d->cur.ymin);
+	extra = 0.01f * BLI_rctf_size_y(&v2d->cur);
 	v2d->cur.ymin -= extra;
 	v2d->cur.ymax += extra;
 
@@ -612,7 +610,7 @@ void CLIP_OT_graph_view_all(wmOperatorType *ot)
 void ED_clip_graph_center_current_frame(Scene *scene, ARegion *ar)
 {
 	View2D *v2d = &ar->v2d;
-	float extra = (v2d->cur.xmax - v2d->cur.xmin) / 2.0f;
+	float extra = BLI_rctf_size_x(&v2d->cur) / 2.0f;
 
 	/* set extents of view to start/end frames */
 	v2d->cur.xmin = (float)CFRA - extra;

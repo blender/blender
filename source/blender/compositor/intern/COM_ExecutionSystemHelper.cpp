@@ -49,7 +49,8 @@ void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_star
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
-		addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
+		Node *nnode = addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
+		nnode->setbNodeGroup(groupnode);
 		node = (bNode *)node->next;
 	}
 
@@ -79,15 +80,10 @@ void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)
 
 Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *b_node, bool inActiveGroup, bool fast)
 {
-	Converter converter;
-	Node *node;
-	node = converter.convert(b_node, fast);
+	Node *node = Converter::convert(b_node, fast);
 	node->setIsInActiveGroup(inActiveGroup);
-	if (node != NULL) {
-		addNode(nodes, node);
-		return node;
-	}
-	return NULL;
+	addNode(nodes, node);
+	return node;
 }
 void ExecutionSystemHelper::addOperation(vector<NodeOperation *>& operations, NodeOperation *operation)
 {
@@ -155,12 +151,9 @@ static OutputSocket *find_output(NodeRange &node_range, bNode *bnode, bNodeSocke
 }
 SocketConnection *ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection *>& links, bNodeLink *b_nodelink)
 {
-	/// @note: cyclic lines will be ignored. This has been copied from node.c
-	if (b_nodelink->tonode != 0 && b_nodelink->fromnode != 0) {
-		if (!(b_nodelink->fromnode->level >= b_nodelink->tonode->level && b_nodelink->tonode->level != 0xFFF)) { // only add non cyclic lines! so execution will procede
-			return NULL;
-		}
-	}
+	/// @note: ignore invalid links
+	if (!(b_nodelink->flag & NODE_LINK_VALID))
+		return NULL;
 
 	InputSocket *inputSocket = find_input(node_range, b_nodelink->tonode, b_nodelink->tosock);
 	OutputSocket *outputSocket = find_output(node_range, b_nodelink->fromnode, b_nodelink->fromsock);

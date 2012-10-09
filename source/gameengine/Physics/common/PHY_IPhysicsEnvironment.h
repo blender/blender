@@ -48,7 +48,7 @@ class PHY_IPhysicsController;
  */
 struct PHY_RayCastResult
 {
-	PHY_IPhysicsController* m_controller;	
+	PHY_IPhysicsController* m_controller;
 	PHY__Vector3			m_hitPoint;
 	PHY__Vector3			m_hitNormal;
 	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers) 
@@ -107,7 +107,7 @@ class PHY_IPhysicsEnvironment
 		/// Perform an integration step of duration 'timeStep'.
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep,float interval)=0;
 		///draw debug lines (make sure to call this during the render phase, otherwise lines are not drawn properly)
-		virtual void		debugDrawWorld(){}
+		virtual void		debugDrawWorld() {}
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)=0;
 		//returns 0.f if no fixed timestep is used
 		virtual	float		getFixedTimeStep()=0;
@@ -117,7 +117,7 @@ class PHY_IPhysicsEnvironment
 		///setNumIterations set the number of iterations for iterative solvers
 		virtual void		setNumIterations(int numIter) {}
 		///setNumTimeSubSteps set the number of divisions of the timestep. Tradeoff quality versus performance.
-		virtual void		setNumTimeSubSteps(int numTimeSubSteps){}
+		virtual void		setNumTimeSubSteps(int numTimeSubSteps) {}
 		///setDeactivationTime sets the minimum time that an objects has to stay within the velocity tresholds until it gets fully deactivated
 		virtual void		setDeactivationTime(float dTime) {}
 		///setDeactivationLinearTreshold sets the linear velocity treshold, see setDeactivationTime
@@ -150,7 +150,7 @@ class PHY_IPhysicsEnvironment
 			float axis2X=0,float axis2Y=0,float axis2Z=0,int flag=0
 		)=0;
 		virtual void		removeConstraint(int	constraintid)=0;
-		virtual float		getAppliedImpulse(int	constraintid){ return 0.f;}
+		virtual float		getAppliedImpulse(int	constraintid) { return 0.0f; }
 
 
 		//complex constraint for vehicles
@@ -161,7 +161,7 @@ class PHY_IPhysicsEnvironment
 		//culling based on physical broad phase
 		// the plane number must be set as follow: near, far, left, right, top, botton
 		// the near plane must be the first one and must always be present, it is used to get the direction of the view
-		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes) = 0;
+		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes, const int *viewport, double modelview[16], double projection[16]) = 0;
 
 		//Methods for gamelogic collision/physics callbacks
 		//todo:

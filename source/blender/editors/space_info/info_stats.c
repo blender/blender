@@ -70,7 +70,8 @@ typedef struct SceneStats {
 static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 {
 	switch (ob->type) {
-		case OB_MESH: {
+		case OB_MESH:
+		{
 			/* we assume derivedmesh is already built, this strictly does stats now. */
 			DerivedMesh *dm = ob->derivedFinal;
 			int totvert, totedge, totface;
@@ -101,7 +102,8 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 			break;
 		case OB_SURF:
 		case OB_CURVE:
-		case OB_FONT: {
+		case OB_FONT:
+		{
 			int tot = 0, totf = 0;
 
 			stats->totcurve += totob;
@@ -121,7 +123,8 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 			}
 			break;
 		}
-		case OB_MBALL: {
+		case OB_MBALL:
+		{
 			int tot = 0, totf = 0;
 
 			BKE_displist_count(&ob->disp, &tot, &totf);
@@ -365,7 +368,7 @@ static void stats_string(Scene *scene)
 	s += sprintf(s, "%s | ", versionstr);
 
 	if (scene->obedit) {
-		if (ob_get_keyblock(scene->obedit))
+		if (BKE_keyblock_from_object(scene->obedit))
 			s += sprintf(s, "(Key) ");
 
 		if (scene->obedit->type == OB_MESH) {

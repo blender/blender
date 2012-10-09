@@ -1,39 +1,40 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
 /** \file gameengine/Ketsji/KX_TrackToActuator.cpp
  *  \ingroup ketsji
+ *
+ * Replace the mesh for this actuator's parent
  */
-//
-// Replace the mesh for this actuator's parent
-//
-//
-// ***** BEGIN GPL LICENSE BLOCK *****
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software Foundation,
-// Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-//
-// The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
-// All rights reserved.
-//
-// The Original Code is: all of this file.
-//
-// Contributor(s): none yet.
-//
-// ***** END GPL LICENSE BLOCK *****
 
-// todo: not all trackflags / upflags are implemented/tested !
-// m_trackflag is used to determine the forward tracking direction
-// m_upflag for the up direction
-// normal situation is +y for forward, +z for up
+/* todo: not all trackflags / upflags are implemented/tested !
+ * m_trackflag is used to determine the forward tracking direction
+ * m_upflag for the up direction
+ * normal situation is +y for forward, +z for up */
 
 #include "MT_Scalar.h"
 #include "SCA_IActuator.h"
@@ -49,8 +50,6 @@
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
-
-
 
 KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj, 
                                        SCA_IObject *ob,
@@ -91,7 +90,7 @@ KX_TrackToActuator::KX_TrackToActuator(SCA_IObject *gameobj,
 
 
 /* old function from Blender */
-MT_Matrix3x3 EulToMat3(float *eul)
+static MT_Matrix3x3 EulToMat3(float eul[3])
 {
 	MT_Matrix3x3 mat;
 	float ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
@@ -123,19 +122,18 @@ MT_Matrix3x3 EulToMat3(float *eul)
 
 
 /* old function from Blender */
-void Mat3ToEulOld(MT_Matrix3x3 mat, float *eul)
+static void Mat3ToEulOld(MT_Matrix3x3 mat, float eul[3])
 {
-	MT_Scalar cy;
-	
-	cy = sqrt(mat[0][0]*mat[0][0] + mat[0][1]*mat[0][1]);
+	const float cy = sqrtf(mat[0][0] * mat[0][0] + mat[0][1] * mat[0][1]);
 
-	if (cy > 16.0*FLT_EPSILON) {
-		eul[0] = atan2(mat[1][2], mat[2][2]);
-		eul[1] = atan2(-mat[0][2], cy);
-		eul[2] = atan2(mat[0][1], mat[0][0]);
-	} else {
-		eul[0] = atan2(-mat[2][1], mat[1][1]);
-		eul[1] = atan2(-mat[0][2], cy);
+	if (cy > (float)(16.0f * FLT_EPSILON)) {
+		eul[0] = atan2f( mat[1][2], mat[2][2]);
+		eul[1] = atan2f(-mat[0][2], cy);
+		eul[2] = atan2f( mat[0][1], mat[0][0]);
+	}
+	else {
+		eul[0] = atan2f(-mat[2][1], mat[1][1]);
+		eul[1] = atan2f(-mat[0][2], cy);
 		eul[2] = 0.0;
 	}
 }
@@ -143,40 +141,40 @@ void Mat3ToEulOld(MT_Matrix3x3 mat, float *eul)
 
 
 /* old function from Blender */
-void compatible_eulFast(float *eul, float *oldrot)
+static void compatible_eulFast(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
 	
 	/* angular difference of 360 degrees */
 
-	dx= eul[0] - oldrot[0];
-	dy= eul[1] - oldrot[1];
-	dz= eul[2] - oldrot[2];
+	dx = eul[0] - oldrot[0];
+	dy = eul[1] - oldrot[1];
+	dz = eul[2] - oldrot[2];
 
-	if ( fabs(dx) > MT_PI) {
-		if (dx > 0.0) eul[0] -= MT_2_PI; else eul[0]+= MT_2_PI;
+	if (fabsf(dx) > (float)MT_PI) {
+		if (dx > 0.0f) eul[0] -= (float)MT_2_PI; else eul[0] += (float)MT_2_PI;
 	}
-	if ( fabs(dy) > MT_PI) {
-		if (dy > 0.0) eul[1] -= MT_2_PI; else eul[1]+= MT_2_PI;
+	if (fabsf(dy) > (float)MT_PI) {
+		if (dy > 0.0f) eul[1] -= (float)MT_2_PI; else eul[1] += (float)MT_2_PI;
 	}
-	if ( fabs(dz) > MT_PI ) {
-		if (dz > 0.0) eul[2] -= MT_2_PI; else eul[2]+= MT_2_PI;
+	if (fabsf(dz) > (float)MT_PI) {
+		if (dz > 0.0f) eul[2] -= (float)MT_2_PI; else eul[2] += (float)MT_2_PI;
 	}
 }
 
 
 
-MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, int m_time)
+static MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, int m_time)
 {
-	float eul[3], oldeul[3];	
+	float eul[3], oldeul[3];
 
 	Mat3ToEulOld(oldmat, oldeul);
 	Mat3ToEulOld(mat, eul);
 	compatible_eulFast(eul, oldeul);
 	
-	eul[0]= (m_time*oldeul[0] + eul[0])/(1.0+m_time);
-	eul[1]= (m_time*oldeul[1] + eul[1])/(1.0+m_time);
-	eul[2]= (m_time*oldeul[2] + eul[2])/(1.0+m_time);
+	eul[0] = (m_time * oldeul[0] + eul[0]) / (1.0f + m_time);
+	eul[1] = (m_time * oldeul[1] + eul[1]) / (1.0f + m_time);
+	eul[2] = (m_time * oldeul[2] + eul[2]) / (1.0f + m_time);
 	
 	return EulToMat3(eul);
 }
@@ -240,7 +238,7 @@ void KX_TrackToActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 
 bool KX_TrackToActuator::Update(double curtime, bool frame)
 {
-	bool result = false;	
+	bool result = false;
 	bool bNegativeEvent = IsNegativeEvent();
 	RemoveAllEvents();
 
@@ -397,7 +395,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 			localpos = curobj->GetSGNode()->GetLocalPosition();
 			// Get the inverse of the parent matrix
 			MT_Matrix3x3 parentmatinv;
-			parentmatinv = m_parentobj->NodeGetWorldOrientation ().inverse ();				
+			parentmatinv = m_parentobj->NodeGetWorldOrientation ().inverse ();
 			// transform the local coordinate system into the parents system
 			mat = parentmatinv * mat;
 			// append the initial parent local rotation matrix
@@ -460,10 +458,10 @@ PyAttributeDef KX_TrackToActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_TrackToActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_TrackToActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_TrackToActuator* actuator = static_cast<KX_TrackToActuator*>(self);
-	if (!actuator->m_object)	
+	if (!actuator->m_object)
 		Py_RETURN_NONE;
 	else
 		return actuator->m_object->GetProxy();
@@ -478,7 +476,7 @@ int KX_TrackToActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUT
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_object != NULL)
-		actuator->m_object->UnregisterActuator(actuator);	
+		actuator->m_object->UnregisterActuator(actuator);
 
 	actuator->m_object = (SCA_IObject*) gameobj;
 		

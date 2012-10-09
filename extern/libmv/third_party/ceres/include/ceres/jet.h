@@ -162,16 +162,7 @@
 #include <string>
 
 #include "Eigen/Core"
-
-// Visual Studio 2010 or older version
-#if defined(_MSC_VER) && _MSC_VER <= 1600
-namespace std {
-inline bool isfinite(double x) { return _finite(x);                }
-inline bool isinf   (double x) { return !_finite(x) && !_isnan(x); }
-inline bool isnan   (double x) { return _isnan(x);                 }
-inline bool isnormal(double x) { return _finite(x) && x != 0.0;    }
-}  // namespace std
-#endif
+#include "ceres/fpclassify.h"
 
 namespace ceres {
 
@@ -184,7 +175,9 @@ struct Jet {
   // (where T is a Jet<T, N>). This usually only happens in opt mode. Note that
   // the C++ standard mandates that e.g. default constructed doubles are
   // initialized to 0.0; see sections 8.5 of the C++03 standard.
-  Jet() : a() {}
+  Jet() : a() {
+    v.setZero();
+  }
 
   // Constructor from scalar: a + 0.
   explicit Jet(const T& value) {
@@ -198,18 +191,6 @@ struct Jet {
     v.setZero();
     v[k] = T(1.0);
   }
-
-  /*
-
-  // Construct from an array where the first element is the scalar.
-  // This is templated to support converting from other data types.
-  template<typename D>
-  Jet(const D* scalar_and_derivatives) {
-    a = T(scalar_and_derivatives[0]);
-    v = Eigen::Map<const Eigen::Matrix<D, N, 1> >(
-        scalar_and_derivatives + 1, N).cast<T>();
-  }
-  */
 
   // Compound operators
   Jet<T, N>& operator+=(const Jet<T, N> &y) {
@@ -232,8 +213,25 @@ struct Jet {
     return *this;
   }
 
-  T a;  // The scalar part.
-  Eigen::Matrix<T, N, 1> v;  // The infinitesimal part.
+  // The scalar part.
+  T a;
+
+  // The infinitesimal part.
+  //
+  // Note the Eigen::DontAlign bit is needed here because this object
+  // gets allocated on the stack and as part of other arrays and
+  // structs. Forcing the right alignment there is the source of much
+  // pain and suffering. Even if that works, passing Jets around to
+  // functions by value has problems because the C++ ABI does not
+  // guarantee alignment for function arguments.
+  //
+  // Setting the DontAlign bit prevents Eigen from using SSE for the
+  // various operations on Jets. This is a small performance penalty
+  // since the AutoDiff code will still expose much of the code as
+  // statically sized loops to the compiler. But given the subtle
+  // issues that arise due to alignment, especially when dealing with
+  // multiple platforms, it seems to be a trade off worth making.
+  Eigen::Matrix<T, N, 1, Eigen::DontAlign> v;
 };
 
 // Unary +
@@ -411,10 +409,6 @@ inline double cos     (double x) { return std::cos(x);      }
 inline double acos    (double x) { return std::acos(x);     }
 inline double sin     (double x) { return std::sin(x);      }
 inline double asin    (double x) { return std::asin(x);     }
-inline bool   isfinite(double x) { return std::isfinite(x); }
-inline bool   isinf   (double x) { return std::isinf(x);    }
-inline bool   isnan   (double x) { return std::isnan(x);    }
-inline bool   isnormal(double x) { return std::isnormal(x); }
 inline double pow  (double x, double y) { return std::pow(x, y);   }
 inline double atan2(double y, double x) { return std::atan2(y, x); }
 
@@ -492,22 +486,23 @@ Jet<T, N> asin(const Jet<T, N>& f) {
 }
 
 // Jet Classification. It is not clear what the appropriate semantics are for
-// these classifications. This picks that isfinite and isnormal are "all"
-// operations, i.e. all elements of the jet must be finite for the jet itself to
-// be finite (or normal). For isnan and isinf, the answer is less clear. This
-// takes a "any" approach for isnan and isinf such that if any part of a jet is
-// nan or inf, then the entire jet is nan or inf. This leads to strange
-// situations like a jet can be both isinf and isnan, but in practice the "any"
-// semantics are the most useful for e.g. checking that derivatives are sane.
+// these classifications. This picks that IsFinite and isnormal are "all"
+// operations, i.e. all elements of the jet must be finite for the jet itself
+// to be finite (or normal). For IsNaN and IsInfinite, the answer is less
+// clear. This takes a "any" approach for IsNaN and IsInfinite such that if any
+// part of a jet is nan or inf, then the entire jet is nan or inf. This leads
+// to strange situations like a jet can be both IsInfinite and IsNaN, but in
+// practice the "any" semantics are the most useful for e.g. checking that
+// derivatives are sane.
 
 // The jet is finite if all parts of the jet are finite.
 template <typename T, int N> inline
-bool isfinite(const Jet<T, N>& f) {
-  if (!isfinite(f.a)) {
+bool IsFinite(const Jet<T, N>& f) {
+  if (!IsFinite(f.a)) {
     return false;
   }
   for (int i = 0; i < N; ++i) {
-    if (!isfinite(f.v[i])) {
+    if (!IsFinite(f.v[i])) {
       return false;
     }
   }
@@ -516,12 +511,12 @@ bool isfinite(const Jet<T, N>& f) {
 
 // The jet is infinite if any part of the jet is infinite.
 template <typename T, int N> inline
-bool isinf(const Jet<T, N>& f) {
-  if (isinf(f.a)) {
+bool IsInfinite(const Jet<T, N>& f) {
+  if (IsInfinite(f.a)) {
     return true;
   }
   for (int i = 0; i < N; i++) {
-    if (isinf(f.v[i])) {
+    if (IsInfinite(f.v[i])) {
       return true;
     }
   }
@@ -530,12 +525,12 @@ bool isinf(const Jet<T, N>& f) {
 
 // The jet is NaN if any part of the jet is NaN.
 template <typename T, int N> inline
-bool isnan(const Jet<T, N>& f) {
-  if (isnan(f.a)) {
+bool IsNaN(const Jet<T, N>& f) {
+  if (IsNaN(f.a)) {
     return true;
   }
   for (int i = 0; i < N; ++i) {
-    if (isnan(f.v[i])) {
+    if (IsNaN(f.v[i])) {
       return true;
     }
   }
@@ -544,12 +539,12 @@ bool isnan(const Jet<T, N>& f) {
 
 // The jet is normal if all parts of the jet are normal.
 template <typename T, int N> inline
-bool isnormal(const Jet<T, N>& f) {
-  if (!isnormal(f.a)) {
+bool IsNormal(const Jet<T, N>& f) {
+  if (!IsNormal(f.a)) {
     return false;
   }
   for (int i = 0; i < N; ++i) {
-    if (!isnormal(f.v[i])) {
+    if (!IsNormal(f.v[i])) {
       return false;
     }
   }
@@ -649,78 +644,6 @@ template <typename T, int N>
 inline std::ostream &operator<<(std::ostream &s, const Jet<T, N>& z) {
   return s << "[" << z.a << " ; " << z.v.transpose() << "]";
 }
-
-// A jet traits class to make it easier to work with mixed auto / numeric diff.
-template<typename T>
-struct JetOps {
-  static bool IsScalar() {
-    return true;
-  }
-  static T GetScalar(const T& t) {
-    return t;
-  }
-  static void SetScalar(const T& scalar, T* t) {
-    *t = scalar;
-  }
-  static void ScaleDerivative(double scale_by, T *value) {
-    // For double, there is no derivative to scale.
-  }
-};
-
-template<typename T, int N>
-struct JetOps<Jet<T, N> > {
-  static bool IsScalar() {
-    return false;
-  }
-  static T GetScalar(const Jet<T, N>& t) {
-    return t.a;
-  }
-  static void SetScalar(const T& scalar, Jet<T, N>* t) {
-    t->a = scalar;
-  }
-  static void ScaleDerivative(double scale_by, Jet<T, N> *value) {
-    value->v *= scale_by;
-  }
-};
-
-template<typename FunctionType, int kNumArgs, typename ArgumentType>
-struct Chain {
-  static ArgumentType Rule(const FunctionType &f,
-                           const FunctionType dfdx[kNumArgs],
-                           const ArgumentType x[kNumArgs]) {
-    // In the default case of scalars, there's nothing to do since there are no
-    // derivatives to propagate. 
-    return f;
-  }
-};
-
-// XXX Add documentation here!
-template<typename FunctionType, int kNumArgs, typename T, int N>
-struct Chain<FunctionType, kNumArgs, Jet<T, N> > {
-  static Jet<T, N> Rule(const FunctionType &f,
-                        const FunctionType dfdx[kNumArgs],
-                        const Jet<T, N> x[kNumArgs]) {
-    // x is itself a function of another variable ("z"); what this function
-    // needs to return is "f", but with the derivative with respect to z
-    // attached to the jet. So combine the derivative part of x's jets to form
-    // a Jacobian matrix between x and z (i.e. dx/dz).
-    Eigen::Matrix<T, kNumArgs, N> dxdz;
-    for (int i = 0; i < kNumArgs; ++i) {
-      dxdz.row(i) = x[i].v.transpose();
-    }
-
-    // Map the input gradient dfdx into an Eigen row vector.
-    Eigen::Map<const Eigen::Matrix<FunctionType, 1, kNumArgs> >
-        vector_dfdx(dfdx, 1, kNumArgs);
-
-    // Now apply the chain rule to obtain df/dz. Combine the derivative with
-    // the scalar part to obtain f with full derivative information.
-    Jet<T, N> jet_f;
-    jet_f.a = f;
-    jet_f.v = vector_dfdx.template cast<T>() * dxdz;  // Also known as dfdz.
-    return jet_f;
-  }
-};
 
 }  // namespace ceres
 

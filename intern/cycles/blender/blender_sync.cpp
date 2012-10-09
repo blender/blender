@@ -40,15 +40,18 @@ CCL_NAMESPACE_BEGIN
 
 /* Constructor */
 
-BlenderSync::BlenderSync(BL::BlendData b_data_, BL::Scene b_scene_, Scene *scene_, bool preview_)
-: b_data(b_data_), b_scene(b_scene_),
+BlenderSync::BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data_, BL::Scene b_scene_, Scene *scene_, bool preview_, Progress &progress_)
+: b_engine(b_engine_),
+  b_data(b_data_), b_scene(b_scene_),
   shader_map(&scene_->shaders),
   object_map(&scene_->objects),
   mesh_map(&scene_->meshes),
   light_map(&scene_->lights),
+  particle_system_map(&scene_->particle_systems),
   world_map(NULL),
   world_recalc(false),
-  experimental(false)
+  experimental(false),
+  progress(progress_)
 {
 	scene = scene_;
 	preview = preview_;
@@ -95,6 +98,12 @@ bool BlenderSync::sync_recalc()
 			if(b_ob->is_updated_data() || b_ob->data().is_updated())
 				light_map.set_recalc(*b_ob);
 		}
+		
+		if(b_ob->is_updated_data()) {
+			BL::Object::particle_systems_iterator b_psys;
+			for (b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
+				particle_system_map.set_recalc(*b_ob);
+		}
 	}
 
 	BL::BlendData::meshes_iterator b_mesh;
@@ -118,6 +127,7 @@ bool BlenderSync::sync_recalc()
 		object_map.has_recalc() ||
 		light_map.has_recalc() ||
 		mesh_map.has_recalc() ||
+		particle_system_map.has_recalc() ||
 		BlendDataObjects_is_updated_get(&b_data.ptr) ||
 		world_recalc;
 
@@ -131,6 +141,7 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const 
 	sync_film();
 	sync_shaders();
 	sync_objects(b_v3d);
+	sync_particle_systems();
 	sync_motion(b_v3d, b_override);
 }
 
@@ -219,7 +230,8 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			layer = layername.c_str();
 		}
 		else {
-			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view());
+			render_layer.use_localview = (b_v3d.local_view() ? true : false);
+			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view(), render_layer.use_localview);
 			render_layer.layer = render_layer.scene_layer;
 			render_layer.holdout_layer = 0;
 			render_layer.material_override = PointerRNA_NULL;
@@ -245,6 +257,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.material_override = b_rlay->material_override();
 			render_layer.use_background = b_rlay->use_sky();
 			render_layer.use_viewport_visibility = false;
+			render_layer.use_localview = false;
 			render_layer.samples = b_rlay->samples();
 		}
 
@@ -284,7 +297,7 @@ bool BlenderSync::get_session_pause(BL::Scene b_scene, bool background)
 	return (background)? false: get_boolean(cscene, "preview_pause");
 }
 
-SessionParams BlenderSync::get_session_params(BL::UserPreferences b_userpref, BL::Scene b_scene, bool background)
+SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background)
 {
 	SessionParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -338,25 +351,39 @@ SessionParams BlenderSync::get_session_params(BL::UserPreferences b_userpref, BL
 		}
 	}
 
+	/* tiles */
+	if(params.device.type != DEVICE_CPU && !background) {
+		/* currently GPU could be much slower than CPU when using tiles,
+		 * still need to be investigated, but meanwhile make it possible
+		 * to work in viewport smoothly
+		 */
+		int debug_tile_size = get_int(cscene, "debug_tile_size");
+
+		params.tile_size = make_int2(debug_tile_size, debug_tile_size);
+	}
+	else {
+		int tile_x = b_engine.tile_x();
+		int tile_y = b_engine.tile_y();
+
+		params.tile_size = make_int2(tile_x, tile_y);
+	}
+
+	params.start_resolution = get_int(cscene, "preview_start_resolution");
+
 	/* other parameters */
 	params.threads = b_scene.render().threads();
-	params.tile_size = get_int(cscene, "debug_tile_size");
-	params.min_size = get_int(cscene, "debug_min_size");
+
 	params.cancel_timeout = get_float(cscene, "debug_cancel_timeout");
 	params.reset_timeout = get_float(cscene, "debug_reset_timeout");
 	params.text_timeout = get_float(cscene, "debug_text_timeout");
 
 	if(background) {
-		params.progressive = true;
-		params.min_size = INT_MAX;
+		params.progressive = false;
+		params.start_resolution = INT_MAX;
 	}
 	else
 		params.progressive = true;
 	
-	/* todo: multi device only works with single tiles now */
-	if(params.device.type == DEVICE_MULTI)
-		params.tile_size = INT_MAX;
-
 	return params;
 }
 

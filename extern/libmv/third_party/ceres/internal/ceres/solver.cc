@@ -32,36 +32,32 @@
 #include "ceres/solver.h"
 
 #include <vector>
-#include "ceres/levenberg_marquardt.h"
+#include "ceres/problem.h"
+#include "ceres/problem_impl.h"
 #include "ceres/program.h"
 #include "ceres/solver_impl.h"
 #include "ceres/stringprintf.h"
-#include "ceres/problem.h"
 
 namespace ceres {
 
 Solver::~Solver() {}
 
-// TODO(sameeragarwal): The timing code here should use a sub-second
-// timer.
+// TODO(sameeragarwal): Use subsecond timers.
 void Solver::Solve(const Solver::Options& options,
                    Problem* problem,
                    Solver::Summary* summary) {
   time_t start_time_seconds = time(NULL);
-  internal::SolverImpl::Solve(options, problem, summary);
+  internal::ProblemImpl* problem_impl =
+      CHECK_NOTNULL(problem)->problem_impl_.get();
+  internal::SolverImpl::Solve(options, problem_impl, summary);
   summary->total_time_in_seconds =  time(NULL) - start_time_seconds;
-  summary->preprocessor_time_in_seconds =
-      summary->total_time_in_seconds - summary->minimizer_time_in_seconds;
 }
 
 void Solve(const Solver::Options& options,
            Problem* problem,
            Solver::Summary* summary) {
-  time_t start_time_seconds = time(NULL);
-  internal::SolverImpl::Solve(options, problem, summary);
-  summary->total_time_in_seconds =  time(NULL) - start_time_seconds;
-  summary->preprocessor_time_in_seconds =
-      summary->total_time_in_seconds - summary->minimizer_time_in_seconds;
+  Solver solver;
+  solver.Solve(options, problem, summary);
 }
 
 Solver::Summary::Summary()
@@ -75,6 +71,7 @@ Solver::Summary::Summary()
       num_unsuccessful_steps(-1),
       preprocessor_time_in_seconds(-1.0),
       minimizer_time_in_seconds(-1.0),
+      postprocessor_time_in_seconds(-1.0),
       total_time_in_seconds(-1.0),
       num_parameter_blocks(-1),
       num_parameters(-1),
@@ -93,7 +90,9 @@ Solver::Summary::Summary()
       linear_solver_type_given(SPARSE_NORMAL_CHOLESKY),
       linear_solver_type_used(SPARSE_NORMAL_CHOLESKY),
       preconditioner_type(IDENTITY),
-      ordering_type(NATURAL) {
+      ordering_type(NATURAL),
+      trust_region_strategy_type(LEVENBERG_MARQUARDT),
+      sparse_linear_algebra_library(SUITE_SPARSE) {
 }
 
 string Solver::Summary::BriefReport() const {
@@ -136,7 +135,7 @@ string Solver::Summary::FullReport() const {
                             num_parameters);
     internal::StringAppendF(&report, "Residual blocks     % 10d\n",
                             num_residual_blocks);
-    internal::StringAppendF(&report, "Residual            % 10d\n\n",
+    internal::StringAppendF(&report, "Residuals           % 10d\n\n",
                             num_residuals);
   } else {
     internal::StringAppendF(&report, "%45s    %21s\n", "Original", "Reduced");
@@ -183,9 +182,32 @@ string Solver::Summary::FullReport() const {
 
   internal::StringAppendF(&report, "Threads:            % 25d% 25d\n",
                           num_threads_given, num_threads_used);
-  internal::StringAppendF(&report, "Linear Solver Threads:% 23d% 25d\n",
+  internal::StringAppendF(&report, "Linear solver threads % 23d% 25d\n",
                           num_linear_solver_threads_given,
                           num_linear_solver_threads_used);
+
+  if (linear_solver_type_used == SPARSE_NORMAL_CHOLESKY ||
+      linear_solver_type_used == SPARSE_SCHUR ||
+      (linear_solver_type_used == ITERATIVE_SCHUR &&
+       (preconditioner_type == SCHUR_JACOBI ||
+        preconditioner_type == CLUSTER_JACOBI ||
+        preconditioner_type == CLUSTER_TRIDIAGONAL))) {
+    internal::StringAppendF(&report, "\nSparse Linear Algebra Library %15s\n",
+                            SparseLinearAlgebraLibraryTypeToString(
+                                sparse_linear_algebra_library));
+  }
+
+  internal::StringAppendF(&report, "Trust Region Strategy     %19s",
+                          TrustRegionStrategyTypeToString(
+                              trust_region_strategy_type));
+  if (trust_region_strategy_type == DOGLEG) {
+    if (dogleg_type == TRADITIONAL_DOGLEG) {
+      internal::StringAppendF(&report, " (TRADITIONAL)");
+    } else {
+      internal::StringAppendF(&report, " (SUBSPACE)");
+    }
+  }
+  internal::StringAppendF(&report, "\n");
 
 
   if (termination_type == DID_NOT_RUN) {

@@ -105,6 +105,41 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 	walk(userData, ob, &pimd->ob);
 }
 
+static int particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psys, int p)
+{
+	ParticleData *pa;
+
+	if (pimd->flag & eParticleInstanceFlag_Parents) {
+		if (p >= psys->totpart) {
+			if (psys->part->childtype == PART_CHILD_PARTICLES) {
+				pa = psys->particles + (psys->child + p - psys->totpart)->parent;
+			}
+			else {
+				pa = NULL;
+			}
+		}
+		else {
+			pa = psys->particles + p;
+		}
+	}
+	else {
+		if (psys->part->childtype == PART_CHILD_PARTICLES) {
+			pa = psys->particles + (psys->child + p)->parent;
+		}
+		else {
+			pa = NULL;
+		}
+	}
+
+	if (pa) {
+		if (pa->alive == PARS_UNBORN && (pimd->flag & eParticleInstanceFlag_Unborn) == 0) return 1;
+		if (pa->alive == PARS_ALIVE && (pimd->flag & eParticleInstanceFlag_Alive) == 0) return 1;
+		if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0) return 1;
+	}
+	
+	return 0;
+}
+
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
@@ -113,15 +148,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 	ParticleSimulationData sim;
 	ParticleSystem *psys = NULL;
-	ParticleData *pa = NULL, *pars = NULL;
-	MFace *mface, *orig_mface;
+	ParticleData *pa = NULL;
+	MPoly *mpoly, *orig_mpoly;
+	MLoop *mloop, *orig_mloop;
 	MVert *mvert, *orig_mvert;
-	int i, totvert, totpart = 0, totface, maxvert, maxface, first_particle = 0;
+	int totvert, totpoly, totloop /* , totedge */;
+	int maxvert, maxpoly, maxloop, totpart = 0, first_particle = 0;
+	int k, p, p_skip;
 	short track = ob->trackflag % 3, trackneg, axis = pimd->axis;
 	float max_co = 0.0, min_co = 0.0, temp_co[3], cross[3];
 	float *size = NULL;
-
-	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
 	trackneg = ((ob->trackflag > 2) ? 1 : 0);
 
@@ -154,7 +190,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	sim.psmd = psys_get_modifier(pimd->ob, psys);
 
 	if (pimd->flag & eParticleInstanceFlag_UseSize) {
-		int p;
 		float *si;
 		si = size = MEM_callocN(totpart * sizeof(float), "particle size array");
 
@@ -172,18 +207,28 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	}
 
-	pars = psys->particles;
-
 	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumTessFaces(dm);
+	totpoly = dm->getNumPolys(dm);
+	totloop = dm->getNumLoops(dm);
+	/* totedge = dm->getNumEdges(dm); */ /* UNUSED */
 
-	maxvert = totvert * totpart;
-	maxface = totface * totpart;
+	/* count particles */
+	maxvert = 0;
+	maxpoly = 0;
+	maxloop = 0;
+
+	for (p = 0; p < totpart; p++) {
+		if (particle_skip(pimd, psys, p))
+			continue;
+
+		maxvert += totvert;
+		maxpoly += totpoly;
+		maxloop += totloop;
+	}
 
 	psys->lattice = psys_get_lattice(&sim);
 
 	if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
-
 		float min_r[3], max_r[3];
 		INIT_MINMAX(min_r, max_r);
 		dm->getMinMax(dm, min_r, max_r);
@@ -191,126 +236,113 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		max_co = max_r[track];
 	}
 
-	result = CDDM_from_template(dm, maxvert, dm->getNumEdges(dm) * totpart, maxface, 0, 0);
+	result = CDDM_from_template(dm, maxvert, 0, 0, maxloop, maxpoly);
 
 	mvert = result->getVertArray(result);
 	orig_mvert = dm->getVertArray(dm);
 
-	for (i = 0; i < maxvert; i++) {
-		MVert *inMV;
-		MVert *mv = mvert + i;
-		ParticleKey state;
+	mpoly = result->getPolyArray(result);
+	orig_mpoly = dm->getPolyArray(dm);
+	mloop = result->getLoopArray(result);
+	orig_mloop = dm->getLoopArray(dm);
 
-		inMV = orig_mvert + i % totvert;
-		DM_copy_vert_data(dm, result, i % totvert, i, 1);
-		*mv = *inMV;
+	for (p = 0, p_skip = 0; p < totpart; p++) {
+		/* skip particle? */
+		if (particle_skip(pimd, psys, p))
+			continue;
 
-		/*change orientation based on object trackflag*/
-		copy_v3_v3(temp_co, mv->co);
-		mv->co[axis] = temp_co[track];
-		mv->co[(axis + 1) % 3] = temp_co[(track + 1) % 3];
-		mv->co[(axis + 2) % 3] = temp_co[(track + 2) % 3];
+		/* set vertices coordinates */
+		for (k = 0; k < totvert; k++) {
+			ParticleKey state;
+			MVert *inMV;
+			MVert *mv = mvert + p_skip * totvert + k;
 
-		if ((psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) &&
-		    (pimd->flag & eParticleInstanceFlag_Path))
-		{
-			float ran = 0.0f;
-			if (pimd->random_position != 0.0f) {
-				BLI_srandom(psys->seed + (i / totvert) % totpart);
-				ran = pimd->random_position * BLI_frand();
-			}
+			inMV = orig_mvert + k;
+			DM_copy_vert_data(dm, result, k, p_skip * totvert + k, 1);
+			*mv = *inMV;
 
-			if (pimd->flag & eParticleInstanceFlag_KeepShape) {
-				state.time = pimd->position * (1.0f - ran);
-			}
-			else {
-				state.time = (mv->co[axis] - min_co) / (max_co - min_co) * pimd->position * (1.0f - ran);
+			/*change orientation based on object trackflag*/
+			copy_v3_v3(temp_co, mv->co);
+			mv->co[axis] = temp_co[track];
+			mv->co[(axis + 1) % 3] = temp_co[(track + 1) % 3];
+			mv->co[(axis + 2) % 3] = temp_co[(track + 2) % 3];
 
-				if (trackneg)
-					state.time = 1.0f - state.time;
+			/* get particle state */
+			if ((psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) &&
+				(pimd->flag & eParticleInstanceFlag_Path))
+			{
+				float ran = 0.0f;
+				if (pimd->random_position != 0.0f) {
+					BLI_srandom(psys->seed + p);
+					ran = pimd->random_position * BLI_frand();
+				}
 
-				mv->co[axis] = 0.0;
-			}
-
-			psys_get_particle_on_path(&sim, first_particle + i / totvert, &state, 1);
-
-			normalize_v3(state.vel);
-
-			/* TODO: incremental rotations somehow */
-			if (state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
-				state.rot[0] = 1;
-				state.rot[1] = state.rot[2] = state.rot[3] = 0.0f;
-			}
-			else {
-				float temp[3] = {0.0f, 0.0f, 0.0f};
-				temp[axis] = 1.0f;
-
-				cross_v3_v3v3(cross, temp, state.vel);
-
-				/* state.vel[axis] is the only component surviving from a dot product with the axis */
-				axis_angle_to_quat(state.rot, cross, saacos(state.vel[axis]));
-			}
-
-		}
-		else {
-			state.time = -1.0;
-			psys_get_particle_state(&sim, first_particle + i / totvert, &state, 1);
-		}
-
-		mul_qt_v3(state.rot, mv->co);
-		if (pimd->flag & eParticleInstanceFlag_UseSize)
-			mul_v3_fl(mv->co, size[i / totvert]);
-		add_v3_v3(mv->co, state.co);
-	}
-
-	mface = result->getTessFaceArray(result);
-	orig_mface = dm->getTessFaceArray(dm);
-
-	for (i = 0; i < maxface; i++) {
-		MFace *inMF;
-		MFace *mf = mface + i;
-
-		if (pimd->flag & eParticleInstanceFlag_Parents) {
-			if (i / totface >= psys->totpart) {
-				if (psys->part->childtype == PART_CHILD_PARTICLES) {
-					pa = psys->particles + (psys->child + i / totface - psys->totpart)->parent;
+				if (pimd->flag & eParticleInstanceFlag_KeepShape) {
+					state.time = pimd->position * (1.0f - ran);
 				}
 				else {
-					pa = NULL;
+					state.time = (mv->co[axis] - min_co) / (max_co - min_co) * pimd->position * (1.0f - ran);
+
+					if (trackneg)
+						state.time = 1.0f - state.time;
+
+					mv->co[axis] = 0.0;
+				}
+
+				psys_get_particle_on_path(&sim, first_particle + p, &state, 1);
+
+				normalize_v3(state.vel);
+
+				/* TODO: incremental rotations somehow */
+				if (state.vel[axis] < -0.9999f || state.vel[axis] > 0.9999f) {
+					unit_qt(state.rot);
+				}
+				else {
+					float temp[3] = {0.0f, 0.0f, 0.0f};
+					temp[axis] = 1.0f;
+
+					cross_v3_v3v3(cross, temp, state.vel);
+
+					/* state.vel[axis] is the only component surviving from a dot product with the axis */
+					axis_angle_to_quat(state.rot, cross, saacos(state.vel[axis]));
 				}
 			}
 			else {
-				pa = pars + i / totface;
+				state.time = -1.0;
+				psys_get_particle_state(&sim, first_particle + p, &state, 1);
 			}
+
+			mul_qt_v3(state.rot, mv->co);
+			if (pimd->flag & eParticleInstanceFlag_UseSize)
+				mul_v3_fl(mv->co, size[p]);
+			add_v3_v3(mv->co, state.co);
 		}
-		else {
-			if (psys->part->childtype == PART_CHILD_PARTICLES) {
-				pa = psys->particles + (psys->child + i / totface)->parent;
-			}
-			else {
-				pa = NULL;
+
+		/* create polys and loops */
+		for (k = 0; k < totpoly; k++) {
+			MPoly *inMP = orig_mpoly + k;
+			MPoly *mp = mpoly + p_skip * totpoly + k;
+
+			DM_copy_poly_data(dm, result, k, p_skip * totpoly + k, 1);
+			*mp = *inMP;
+			mp->loopstart += p_skip * totloop;
+
+			{
+				MLoop *inML = orig_mloop + inMP->loopstart;
+				MLoop *ml = mloop + mp->loopstart;
+				int j = mp->totloop;
+
+				DM_copy_loop_data(dm, result, inMP->loopstart, mp->loopstart, j);
+				for (; j; j--, ml++, inML++) {
+					ml->v = inML->v + (p_skip * totvert);
+				}
 			}
 		}
 
-		if (pa) {
-			if (pa->alive == PARS_UNBORN && (pimd->flag & eParticleInstanceFlag_Unborn) == 0) continue;
-			if (pa->alive == PARS_ALIVE && (pimd->flag & eParticleInstanceFlag_Alive) == 0) continue;
-			if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0) continue;
-		}
-
-		inMF = orig_mface + i % totface;
-		DM_copy_poly_data(dm, result, i % totface, i, 1);
-		*mf = *inMF;
-
-		mf->v1 += (i / totface) * totvert;
-		mf->v2 += (i / totface) * totvert;
-		mf->v3 += (i / totface) * totvert;
-		if (mf->v4) {
-			mf->v4 += (i / totface) * totvert;
-		}
+		p_skip++;
 	}
 
-	CDDM_calc_edges_tessface(result);
+	CDDM_calc_edges(result);
 
 	if (psys->lattice) {
 		end_latt_deform(psys->lattice);
@@ -320,7 +352,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (size)
 		MEM_freeN(size);
 
-	CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
 	CDDM_calc_normals(result);
 
 	return result;

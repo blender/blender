@@ -154,7 +154,8 @@ typedef struct ParticleSettings {
 	short type, from, distr, texact;
 	/* physics modes */
 	short phystype, rotmode, avemode, reactevent;
-	short draw, draw_as, draw_size, childtype;
+	int draw, pad1;
+	short draw_as, draw_size, childtype, pad2;
 	short ren_as, subframes, draw_col;
 	/* number of path segments, power of 2 except */
 	short draw_step, ren_step;
@@ -398,6 +399,7 @@ typedef struct ParticleSystem {
 #define PART_DRAW_MAT_COL		(1<<13) /* deprecated, but used in do_versions */
 #define PART_DRAW_WHOLE_GR		(1<<14)
 #define PART_DRAW_REN_STRAND	(1<<15)
+#define PART_DRAW_NO_SCALE_OB 	(1<<16) /* used with dupliobjects/groups */
 
 /* part->draw_col */
 #define PART_DRAW_COL_NONE		0

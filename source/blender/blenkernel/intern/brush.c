@@ -421,7 +421,7 @@ void BKE_brush_curve_preset(Brush *b, /*CurveMappingPreset*/ int preset)
 
 	b->curve->preset = preset;
 	curvemap_reset(cm, &b->curve->clipr, b->curve->preset, CURVEMAP_SLOPE_NEGATIVE);
-	curvemapping_changed(b->curve, 0);
+	curvemapping_changed(b->curve, FALSE);
 }
 
 int BKE_brush_texture_set_nr(Brush *brush, int nr)
@@ -529,7 +529,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 	unsigned char *dst, crgb[3];
 	const float alpha = BKE_brush_alpha_get(scene, brush);
 	float brush_rgb[3];
-    
+
 	imbflag = (flt) ? IB_rectfloat : IB_rect;
 	xoff = -bufsize / 2.0f + 0.5f;
 	yoff = -bufsize / 2.0f + 0.5f;
@@ -563,7 +563,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				else {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
 					mul_v3_v3v3(dstf, rgba, brush_rgb);
-					dstf[3] = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 			}
 		}
@@ -594,7 +594,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				else if (texfall == 2) {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
 					mul_v3_v3(rgba, brush->rgb);
-					alpha_f = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					rgb_float_to_uchar(dst, rgba);
 
@@ -602,7 +602,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				}
 				else {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
-					alpha_f = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					dst[0] = crgb[0];
 					dst[1] = crgb[1];
@@ -1052,13 +1052,13 @@ void BKE_brush_painter_break_stroke(BrushPainter *painter)
 static void brush_pressure_apply(BrushPainter *painter, Brush *brush, float pressure)
 {
 	if (BKE_brush_use_alpha_pressure(painter->scene, brush))
-		brush_alpha_set(painter->scene, brush, MAX2(0.0f, painter->startalpha * pressure));
+		brush_alpha_set(painter->scene, brush, maxf(0.0f, painter->startalpha * pressure));
 	if (BKE_brush_use_size_pressure(painter->scene, brush))
-		BKE_brush_size_set(painter->scene, brush, MAX2(1.0f, painter->startsize * pressure));
+		BKE_brush_size_set(painter->scene, brush, maxf(1.0f, painter->startsize * pressure));
 	if (brush->flag & BRUSH_JITTER_PRESSURE)
-		brush->jitter = MAX2(0.0f, painter->startjitter * pressure);
+		brush->jitter = maxf(0.0f, painter->startjitter * pressure);
 	if (brush->flag & BRUSH_SPACING_PRESSURE)
-		brush->spacing = MAX2(1.0f, painter->startspacing * (1.5f - pressure));
+		brush->spacing = maxf(1.0f, painter->startspacing * (1.5f - pressure));
 }
 
 void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])
@@ -1066,7 +1066,7 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 	int use_jitter = brush->jitter != 0;
 
 	/* jitter-ed brush gives weird and unpredictable result for this
-	 * kinds of stroke, so manyally disable jitter usage (sergey) */
+	 * kinds of stroke, so manually disable jitter usage (sergey) */
 	use_jitter &= (brush->flag & (BRUSH_RESTORE_MESH | BRUSH_ANCHORED)) == 0;
 
 	if (use_jitter) {
@@ -1074,7 +1074,7 @@ void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], 
 		const int radius = BKE_brush_size_get(scene, brush);
 		const int diameter = 2 * radius;
 
-		// find random position within a circle of diameter 1
+		/* find random position within a circle of diameter 1 */
 		do {
 			rand_pos[0] = BLI_frand() - 0.5f;
 			rand_pos[1] = BLI_frand() - 0.5f;
@@ -1158,7 +1158,7 @@ int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float p
 		/* compute brush spacing adapted to brush radius, spacing may depend
 		 * on pressure, so update it */
 		brush_pressure_apply(painter, brush, painter->lastpressure);
-		spacing = MAX2(1.0f, radius) * brush->spacing * 0.01f;
+		spacing = maxf(1.0f, radius) * brush->spacing * 0.01f;
 
 		/* setup starting distance, direction vector and accumulated distance */
 		startdistance = painter->accumdistance;
@@ -1176,7 +1176,7 @@ int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float p
 				t = step / len;
 				press = (1.0f - t) * painter->lastpressure + t * pressure;
 				brush_pressure_apply(painter, brush, press);
-				spacing = MAX2(1.0f, radius) * brush->spacing * 0.01f;
+				spacing = maxf(1.0f, radius) * brush->spacing * 0.01f;
 
 				BKE_brush_jitter_pos(scene, brush, paintpos, finalpos);
 
@@ -1253,7 +1253,9 @@ float BKE_brush_curve_strength_clamp(Brush *br, float p, const float len)
 	if (p >= len) return 0;
 	else p = p / len;
 
+	curvemapping_initialize(br->curve);
 	p = curvemapping_evaluateF(br->curve, 0, p);
+
 	if (p < 0.0f) p = 0.0f;
 	else if (p > 1.0f) p = 1.0f;
 	return p;
@@ -1267,6 +1269,7 @@ float BKE_brush_curve_strength(Brush *br, float p, const float len)
 	else
 		p = p / len;
 
+	curvemapping_initialize(br->curve);
 	return curvemapping_evaluateF(br->curve, 0, p);
 }
 

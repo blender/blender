@@ -26,7 +26,9 @@
 
 #ifndef __KERNEL_OPENCL__
 
-#define _USE_MATH_DEFINES
+#ifdef _MSC_VER
+#  define _USE_MATH_DEFINES
+#endif
 
 #include <float.h>
 #include <math.h>
@@ -276,6 +278,11 @@ __device_inline float cross(const float2 a, const float2 b)
 #endif
 
 #ifndef __KERNEL_OPENCL__
+
+__device_inline bool operator==(const int2 a, const int2 b)
+{
+	return (a.x == b.x && a.y == b.y);
+}
 
 __device_inline float len(const float2 a)
 {

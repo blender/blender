@@ -62,12 +62,12 @@ extern "C" {
 #include "BKE_texture.h"
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
-#include "BLI_path_util.h"
 #include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_material.h"
-#include "BKE_utildefines.h"
 #include "BKE_image.h"
+
+#include "BLI_path_util.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
@@ -88,8 +88,8 @@ extern "C" {
 
 
 /*
-   COLLADA Importer limitations:
-   - no multiple scene import, all objects are added to active scene
+ * COLLADA Importer limitations:
+ * - no multiple scene import, all objects are added to active scene
  */
 
 // #define COLLADA_DEBUG
@@ -208,6 +208,10 @@ void DocumentImporter::finish()
 			write_node(roots[i], NULL, sce, NULL, false);
 		}
 	}
+
+
+	mesh_importer.optimize_material_assignments();
+
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);
 
@@ -308,7 +312,7 @@ Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 {
 	const COLLADAFW::UniqueId& cam_uid = camera->getInstanciatedObjectId();
 	if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {	
-		fprintf(stderr, "Couldn't find camera by UID.\n");
+		// fprintf(stderr, "Couldn't find camera by UID.\n");
 		return NULL;
 	}
 
@@ -443,7 +447,13 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 		}
 		while (camera_done < camera.getCount()) {
 			ob = create_camera_object(camera[camera_done], sce);
-			objects_done->push_back(ob);
+			if (ob == NULL) {
+				std::string id = node->getOriginalId();
+				std::string name = node->getName();
+				fprintf(stderr, "<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown instance_camera.\n", id.c_str(), name.c_str());
+			}
+			else
+				objects_done->push_back(ob);
 			++camera_done;
 		}
 		while (lamp_done < lamp.getCount()) {
@@ -846,7 +856,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 			switch (cam->type) {
 				case CAM_ORTHO:
 				{
-					double ymag = camera->getYMag().getValue();
+					double ymag = 2 * camera->getYMag().getValue();
 					double aspect = camera->getAspectRatio().getValue();
 					double xmag = aspect * ymag;
 					cam->ortho_scale = (float)xmag;
@@ -857,23 +867,25 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 				{
 					double yfov = camera->getYFov().getValue();
 					double aspect = camera->getAspectRatio().getValue();
-					double xfov = aspect * yfov;
-					// xfov is in degrees, cam->lens is in millimiters
-					cam->lens = fov_to_focallength(DEG2RADF(xfov), cam->sensor_x);
+
+					// NOTE: Needs more testing (As we curretnly have no official test data for this)
+
+					double xfov = 2.0f * atanf(aspect * tanf(DEG2RADF(yfov) * 0.5f));
+					cam->lens = fov_to_focallength(xfov, cam->sensor_x);
 				}
 				break;
 			}
 		}
 		break;
 		/* XXX correct way to do following four is probably to get also render
-		   size and determine proper settings from that somehow */
+		 * size and determine proper settings from that somehow */
 		case COLLADAFW::Camera::ASPECTRATIO_AND_X:
 		case COLLADAFW::Camera::SINGLE_X:
 		case COLLADAFW::Camera::X_AND_Y:
 		{
 			switch (cam->type) {
 				case CAM_ORTHO:
-					cam->ortho_scale = (float)camera->getXMag().getValue();
+					cam->ortho_scale = (float)camera->getXMag().getValue() * 2;
 					break;
 				case CAM_PERSP:
 				default:

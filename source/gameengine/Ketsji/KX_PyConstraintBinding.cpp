@@ -89,9 +89,9 @@ static char gPyGetAppliedImpulse__doc__[] = "getAppliedImpulse(int constraintId)
 
 
 
-static PyObject* gPySetGravity(PyObject* self,
-                               PyObject* args,
-                               PyObject* kwds)
+static PyObject *gPySetGravity(PyObject *self,
+                               PyObject *args,
+                               PyObject *kwds)
 {
 	float x,y,z;
 	if (PyArg_ParseTuple(args,"fff",&x,&y,&z))
@@ -106,9 +106,9 @@ static PyObject* gPySetGravity(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPySetDebugMode(PyObject* self,
-                                 PyObject* args,
-                                 PyObject* kwds)
+static PyObject *gPySetDebugMode(PyObject *self,
+                                 PyObject *args,
+                                 PyObject *kwds)
 {
 	int mode;
 	if (PyArg_ParseTuple(args,"i",&mode))
@@ -129,9 +129,9 @@ static PyObject* gPySetDebugMode(PyObject* self,
 
 
 
-static PyObject* gPySetNumTimeSubSteps(PyObject* self,
-                                       PyObject* args,
-                                       PyObject* kwds)
+static PyObject *gPySetNumTimeSubSteps(PyObject *self,
+                                       PyObject *args,
+                                       PyObject *kwds)
 {
 	int substep;
 	if (PyArg_ParseTuple(args,"i",&substep))
@@ -148,9 +148,9 @@ static PyObject* gPySetNumTimeSubSteps(PyObject* self,
 }
 
 
-static PyObject* gPySetNumIterations(PyObject* self,
-                                     PyObject* args,
-                                     PyObject* kwds)
+static PyObject *gPySetNumIterations(PyObject *self,
+                                     PyObject *args,
+                                     PyObject *kwds)
 {
 	int iter;
 	if (PyArg_ParseTuple(args,"i",&iter))
@@ -167,9 +167,9 @@ static PyObject* gPySetNumIterations(PyObject* self,
 }
 
 
-static PyObject* gPySetDeactivationTime(PyObject* self,
-                                        PyObject* args,
-                                        PyObject* kwds)
+static PyObject *gPySetDeactivationTime(PyObject *self,
+                                        PyObject *args,
+                                        PyObject *kwds)
 {
 	float deactive_time;
 	if (PyArg_ParseTuple(args,"f",&deactive_time))
@@ -186,9 +186,9 @@ static PyObject* gPySetDeactivationTime(PyObject* self,
 }
 
 
-static PyObject* gPySetDeactivationLinearTreshold(PyObject* self,
-                                                  PyObject* args,
-                                                  PyObject* kwds)
+static PyObject *gPySetDeactivationLinearTreshold(PyObject *self,
+                                                  PyObject *args,
+                                                  PyObject *kwds)
 {
 	float linearDeactivationTreshold;
 	if (PyArg_ParseTuple(args,"f",&linearDeactivationTreshold))
@@ -205,9 +205,9 @@ static PyObject* gPySetDeactivationLinearTreshold(PyObject* self,
 }
 
 
-static PyObject* gPySetDeactivationAngularTreshold(PyObject* self,
-                                                   PyObject* args,
-                                                   PyObject* kwds)
+static PyObject *gPySetDeactivationAngularTreshold(PyObject *self,
+                                                   PyObject *args,
+                                                   PyObject *kwds)
 {
 	float angularDeactivationTreshold;
 	if (PyArg_ParseTuple(args,"f",&angularDeactivationTreshold))
@@ -223,9 +223,9 @@ static PyObject* gPySetDeactivationAngularTreshold(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPySetContactBreakingTreshold(PyObject* self,
-                                               PyObject* args,
-                                               PyObject* kwds)
+static PyObject *gPySetContactBreakingTreshold(PyObject *self,
+                                               PyObject *args,
+                                               PyObject *kwds)
 {
 	float contactBreakingTreshold;
 	if (PyArg_ParseTuple(args,"f",&contactBreakingTreshold))
@@ -242,9 +242,9 @@ static PyObject* gPySetContactBreakingTreshold(PyObject* self,
 }
 
 
-static PyObject* gPySetCcdMode(PyObject* self,
-                               PyObject* args,
-                               PyObject* kwds)
+static PyObject *gPySetCcdMode(PyObject *self,
+                               PyObject *args,
+                               PyObject *kwds)
 {
 	float ccdMode;
 	if (PyArg_ParseTuple(args,"f",&ccdMode))
@@ -260,9 +260,9 @@ static PyObject* gPySetCcdMode(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPySetSorConstant(PyObject* self,
-                                   PyObject* args,
-                                   PyObject* kwds)
+static PyObject *gPySetSorConstant(PyObject *self,
+                                   PyObject *args,
+                                   PyObject *kwds)
 {
 	float sor;
 	if (PyArg_ParseTuple(args,"f",&sor))
@@ -278,9 +278,9 @@ static PyObject* gPySetSorConstant(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPySetSolverTau(PyObject* self,
-                                 PyObject* args,
-                                 PyObject* kwds)
+static PyObject *gPySetSolverTau(PyObject *self,
+                                 PyObject *args,
+                                 PyObject *kwds)
 {
 	float tau;
 	if (PyArg_ParseTuple(args,"f",&tau))
@@ -297,9 +297,9 @@ static PyObject* gPySetSolverTau(PyObject* self,
 }
 
 
-static PyObject* gPySetSolverDamping(PyObject* self,
-                                     PyObject* args,
-                                     PyObject* kwds)
+static PyObject *gPySetSolverDamping(PyObject *self,
+                                     PyObject *args,
+                                     PyObject *kwds)
 {
 	float damping;
 	if (PyArg_ParseTuple(args,"f",&damping))
@@ -315,9 +315,9 @@ static PyObject* gPySetSolverDamping(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPySetLinearAirDamping(PyObject* self,
-                                        PyObject* args,
-                                        PyObject* kwds)
+static PyObject *gPySetLinearAirDamping(PyObject *self,
+                                        PyObject *args,
+                                        PyObject *kwds)
 {
 	float damping;
 	if (PyArg_ParseTuple(args,"f",&damping))
@@ -334,9 +334,9 @@ static PyObject* gPySetLinearAirDamping(PyObject* self,
 }
 
 
-static PyObject* gPySetUseEpa(PyObject* self,
-                              PyObject* args,
-                              PyObject* kwds)
+static PyObject *gPySetUseEpa(PyObject *self,
+                              PyObject *args,
+                              PyObject *kwds)
 {
 	int	epa;
 	if (PyArg_ParseTuple(args,"i",&epa))
@@ -351,9 +351,9 @@ static PyObject* gPySetUseEpa(PyObject* self,
 	}
 	Py_RETURN_NONE;
 }
-static PyObject* gPySetSolverType(PyObject* self,
-                                  PyObject* args,
-                                  PyObject* kwds)
+static PyObject *gPySetSolverType(PyObject *self,
+                                  PyObject *args,
+                                  PyObject *kwds)
 {
 	int	solverType;
 	if (PyArg_ParseTuple(args,"i",&solverType))
@@ -371,9 +371,9 @@ static PyObject* gPySetSolverType(PyObject* self,
 
 
 
-static PyObject* gPyGetVehicleConstraint(PyObject* self,
-                                         PyObject* args,
-                                         PyObject* kwds)
+static PyObject *gPyGetVehicleConstraint(PyObject *self,
+                                         PyObject *args,
+                                         PyObject *kwds)
 {
 #if defined(_WIN64)
 	__int64 constraintid;
@@ -403,9 +403,9 @@ static PyObject* gPyGetVehicleConstraint(PyObject* self,
 }
 
 
-static PyObject* gPyCreateConstraint(PyObject* self,
-										 PyObject* args, 
-										 PyObject* kwds)
+static PyObject *gPyCreateConstraint(PyObject *self,
+                                     PyObject *args,
+                                     PyObject *kwds)
 {
 	/* FIXME - physicsid is a long being cast to a pointer, should at least use PyCapsule */
 #if defined(_WIN64)
@@ -435,7 +435,7 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 #else
 		success = PyArg_ParseTuple(args,"llifff",&physicsid,&physicsid2,&constrainttype,
 		                           &pivotX,&pivotY,&pivotZ);
-#endif	
+#endif
 	}
 	else if (len == 9)
 	{
@@ -521,9 +521,9 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 
 
 
-static PyObject* gPyGetAppliedImpulse(PyObject* self,
-                                      PyObject* args,
-                                      PyObject* kwds)
+static PyObject *gPyGetAppliedImpulse(PyObject *self,
+                                      PyObject *args,
+                                      PyObject *kwds)
 {
 	float	appliedImpulse = 0.f;
 
@@ -548,9 +548,9 @@ static PyObject* gPyGetAppliedImpulse(PyObject* self,
 }
 
 
-static PyObject* gPyRemoveConstraint(PyObject* self,
-                                     PyObject* args,
-                                     PyObject* kwds)
+static PyObject *gPyRemoveConstraint(PyObject *self,
+                                     PyObject *args,
+                                     PyObject *kwds)
 {
 #if defined(_WIN64)
 	__int64 constraintid;
@@ -572,7 +572,7 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 	Py_RETURN_NONE;
 }
 
-static PyObject* gPyExportBulletFile(PyObject*, PyObject* args)
+static PyObject *gPyExportBulletFile(PyObject *, PyObject *args)
 {
 	char* filename;
 	if (!PyArg_ParseTuple(args,"s:exportBulletFile",&filename))
@@ -655,13 +655,13 @@ static struct PyModuleDef PhysicsConstraints_module_def = {
 	0,  /* m_free */
 };
 
-PyObject* initPythonConstraintBinding()
+PyObject *initPythonConstraintBinding()
 {
 
-	PyObject* ErrorObject;
-	PyObject* m;
-	PyObject* d;
-	PyObject* item;
+	PyObject *ErrorObject;
+	PyObject *m;
+	PyObject *d;
+	PyObject *item;
 
 	/* Use existing module where possible
 	 * be careful not to init any runtime vars after this */
@@ -716,10 +716,11 @@ PyObject* initPythonConstraintBinding()
 	return d;
 }
 
-
-void	KX_RemovePythonConstraintBinding()
+#if 0
+static void KX_RemovePythonConstraintBinding()
 {
 }
+#endif
 
 void	PHY_SetActiveEnvironment(class	PHY_IPhysicsEnvironment* env)
 {

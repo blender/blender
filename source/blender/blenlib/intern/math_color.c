@@ -293,6 +293,12 @@ void rgb_to_hsl(float r, float g, float b, float *lh, float *ls, float *ll)
 	*ll = l;
 }
 
+/* convenience function for now */
+void rgb_to_hsl_v(const float rgb[3], float r_hsl[3])
+{
+	rgb_to_hsl(rgb[0], rgb[1], rgb[2], &r_hsl[0], &r_hsl[1], &r_hsl[2]);
+}
+
 void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv)
 {
 	float orig_h = *lh;

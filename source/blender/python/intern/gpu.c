@@ -74,8 +74,7 @@ static struct PyModuleDef gpumodule = {
 	NULL, NULL, NULL, NULL, NULL
 };
 
-PyMODINIT_FUNC
-PyInit_gpu(void)
+static PyObject *PyInit_gpu(void)
 {
 	PyObject *m;
 
@@ -83,7 +82,7 @@ PyInit_gpu(void)
 	if (m == NULL)
 		return NULL;
 
-	// device constants
+	/* device constants */
 	PY_MODULE_ADD_CONSTANT(m, GPU_DYNAMIC_OBJECT_VIEWMAT);
 	PY_MODULE_ADD_CONSTANT(m, GPU_DYNAMIC_OBJECT_MAT);
 	PY_MODULE_ADD_CONSTANT(m, GPU_DYNAMIC_OBJECT_VIEWIMAT);
@@ -187,13 +186,13 @@ static PyObject *GPU_export_shader(PyObject *UNUSED(self), PyObject *args, PyObj
 		return NULL;
 	}
 
-	// we can call our internal function at last:
+	/* we can call our internal function at last: */
 	shader = GPU_shader_export(scene, material);
 	if (!shader) {
 		PyErr_SetString(PyExc_RuntimeError, "cannot export shader");
 		return NULL;
 	}
-	// build a dictionary
+	/* build a dictionary */
 	result = PyDict_New();
 	if (shader->fragment) {
 		PY_DICT_ADD_STRING(result, shader, fragment);

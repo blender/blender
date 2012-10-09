@@ -22,9 +22,12 @@
 
 #include "COM_ScaleOperation.h"
 
-#define USE_FORCE_BICUBIC
+#define USE_FORCE_BILINEAR
 /* XXX - ignore input and use default from old compositor,
- * could become an option like the transform node - campbell */
+ * could become an option like the transform node - campbell
+ *
+ * note: use bilinear because bicubic makes fuzzy even when not scaling at all (1:1)
+ */
 
 ScaleOperation::ScaleOperation() : NodeOperation()
 {
@@ -54,24 +57,24 @@ void ScaleOperation::deinitExecution()
 }
 
 
-void ScaleOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ScaleOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BICUBIC
-	sampler = COM_PS_BICUBIC;
+#ifdef USE_FORCE_BILINEAR
+	sampler = COM_PS_BILINEAR;
 #endif
 
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, x, y, sampler, inputBuffers);
-	this->m_inputYOperation->read(scaleY, x, y, sampler, inputBuffers);
+	this->m_inputXOperation->read(scaleX, x, y, sampler);
+	this->m_inputYOperation->read(scaleY, x, y, sampler);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
 
 	float nx = this->m_centerX + (x - this->m_centerX) / scx;
 	float ny = this->m_centerY + (y - this->m_centerY) / scy;
-	this->m_inputOperation->read(color, nx, ny, sampler, inputBuffers);
+	this->m_inputOperation->read(output, nx, ny, sampler);
 }
 
 bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -80,8 +83,8 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOpe
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST, NULL);
-	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST, NULL);
+	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST);
+	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
@@ -124,17 +127,17 @@ void ScaleAbsoluteOperation::deinitExecution()
 }
 
 
-void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ScaleAbsoluteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BICUBIC
-	sampler = COM_PS_BICUBIC;
+#ifdef USE_FORCE_BILINEAR
+	sampler = COM_PS_BILINEAR;
 #endif
 
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, x, y, sampler, inputBuffers);
-	this->m_inputYOperation->read(scaleY, x, y, sampler, inputBuffers);
+	this->m_inputXOperation->read(scaleX, x, y, sampler);
+	this->m_inputYOperation->read(scaleY, x, y, sampler);
 
 	const float scx = scaleX[0]; // target absolute scale
 	const float scy = scaleY[0]; // target absolute scale
@@ -148,7 +151,7 @@ void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelS
 	float nx = this->m_centerX + (x - this->m_centerX) / relativeXScale;
 	float ny = this->m_centerY + (y - this->m_centerY) / relativeYScale;
 
-	this->m_inputOperation->read(color, nx, ny, sampler, inputBuffers);
+	this->m_inputOperation->read(output, nx, ny, sampler);
 }
 
 bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -157,8 +160,8 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST, NULL);
-	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST, NULL);
+	this->m_inputXOperation->read(scaleX, 0, 0, COM_PS_NEAREST);
+	this->m_inputYOperation->read(scaleY, 0, 0, COM_PS_NEAREST);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
@@ -184,6 +187,7 @@ ScaleFixedSizeOperation::ScaleFixedSizeOperation() : NodeOperation()
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
 	this->m_inputOperation = NULL;
+	this->m_is_offset = false;
 }
 void ScaleFixedSizeOperation::initExecution()
 {
@@ -244,19 +248,19 @@ void ScaleFixedSizeOperation::deinitExecution()
 }
 
 
-void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ScaleFixedSizeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BICUBIC
-	sampler = COM_PS_BICUBIC;
+#ifdef USE_FORCE_BILINEAR
+	sampler = COM_PS_BILINEAR;
 #endif
 
 	if (this->m_is_offset) {
 		float nx = ((x - this->m_offsetX) * this->m_relX);
 		float ny = ((y - this->m_offsetY) * this->m_relY);
-		this->m_inputOperation->read(color, nx, ny, sampler, inputBuffers);
+		this->m_inputOperation->read(output, nx, ny, sampler);
 	}
 	else {
-		this->m_inputOperation->read(color, x * this->m_relX, y * this->m_relY, sampler, inputBuffers);
+		this->m_inputOperation->read(output, x * this->m_relX, y * this->m_relY, sampler);
 	}
 }
 
@@ -272,7 +276,7 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, Read
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	unsigned int nr[2];
 	nr[0] = this->m_newWidth;

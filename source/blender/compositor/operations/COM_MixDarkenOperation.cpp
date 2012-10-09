@@ -27,15 +27,15 @@ MixDarkenOperation::MixDarkenOperation() : MixBaseOperation()
 	/* pass */
 }
 
-void MixDarkenOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MixDarkenOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
 	
-	this->m_inputValueOperation->read(&value, x, y, sampler, inputBuffers);
-	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler, inputBuffers);
-	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler, inputBuffers);
+	this->m_inputValueOperation->read(&value, x, y, sampler);
+	this->m_inputColor1Operation->read(&inputColor1[0], x, y, sampler);
+	this->m_inputColor2Operation->read(&inputColor2[0], x, y, sampler);
 	
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
@@ -43,15 +43,17 @@ void MixDarkenOperation::executePixel(float *outputValue, float x, float y, Pixe
 	float valuem = 1.0f - value;
 	float tmp;
 	tmp = inputColor2[0] + ((1.0f - inputColor2[0]) * valuem);
-	if (tmp < inputColor1[0]) outputValue[0] = tmp;
-	else outputValue[0] = inputColor1[0];
+	if (tmp < inputColor1[0]) output[0] = tmp;
+	else output[0] = inputColor1[0];
 	tmp = inputColor2[1] + ((1.0f - inputColor2[1]) * valuem);
-	if (tmp < inputColor1[1]) outputValue[1] = tmp;
-	else outputValue[1] = inputColor1[1];
+	if (tmp < inputColor1[1]) output[1] = tmp;
+	else output[1] = inputColor1[1];
 	tmp = inputColor2[2] + ((1.0f - inputColor2[2]) * valuem);
-	if (tmp < inputColor1[2]) outputValue[2] = tmp;
-	else outputValue[2] = inputColor1[2];
+	if (tmp < inputColor1[2]) output[2] = tmp;
+	else output[2] = inputColor1[2];
 	
-	outputValue[3] = inputColor1[3];
+	output[3] = inputColor1[3];
+
+	clampIfNeeded(output);
 }
 

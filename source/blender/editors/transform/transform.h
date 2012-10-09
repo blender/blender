@@ -198,6 +198,8 @@ typedef struct TransDataSlideVert {
 	float edge_len;
 
 	float upvec[3], downvec[3];
+
+	int loop_nr;
 } TransDataSlideVert;
 
 typedef struct SlideData {
@@ -320,6 +322,8 @@ typedef struct TransInfo {
 	float		auto_values[4];
 	float		axis[3];
 	float		axis_orig[3];	/* TransCon can change 'axis', store the original value here */
+	
+	double      last_update;  /* Time of last update (in seconds) */
 
 	void		*view;
 	struct bContext *context; /* Only valid (non null) during an operator called function. */
@@ -562,6 +566,7 @@ void remake_graph_transdata(TransInfo *t, struct ListBase *anim_data);
 void flushTransUVs(TransInfo *t);
 void flushTransParticles(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
+void clipUVData(TransInfo *t);
 void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
 void flushTransTracking(TransInfo *t);
@@ -666,7 +671,7 @@ int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, struc
 void postTrans (struct bContext *C, TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
-void drawLine(TransInfo *t, float *center, float *dir, char axis, short options);
+void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options);
 
 void drawNonPropEdge(const struct bContext *C, TransInfo *t);
 

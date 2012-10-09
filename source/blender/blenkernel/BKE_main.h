@@ -68,7 +68,7 @@ typedef struct Main {
 	ListBase latt;
 	ListBase lamp;
 	ListBase camera;
-	ListBase ipo;   // XXX depreceated
+	ListBase ipo;   // XXX deprecated
 	ListBase key;
 	ListBase world;
 	ListBase screen;

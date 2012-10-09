@@ -33,14 +33,18 @@ __all__ = (
     "refresh_script_paths",
     "register_class",
     "register_module",
+    "register_manual_map",
+    "unregister_manual_map",
+    "manual_map",
     "resource_path",
+    "script_path_user",
+    "script_path_pref",
     "script_paths",
     "smpte_from_frame",
     "smpte_from_seconds",
     "unregister_class",
     "unregister_module",
     "user_resource",
-    "user_script_path",
     )
 
 from _bpy import register_class, unregister_class, blend_paths, resource_path
@@ -252,15 +256,16 @@ _scripts = _os.path.join(_os.path.dirname(__file__),
 _scripts = (_os.path.normpath(_scripts), )
 
 
-def user_script_path():
-    # returns the env var and falls back to userprefs
+def script_path_user():
+    """returns the env var and falls back to home dir or None"""
     path = _user_resource('SCRIPTS')
+    return _os.path.normpath(path) if path else None
 
-    if path:
-        path = _os.path.normpath(path)
-        return path
-    else:
-        return None
+
+def script_path_pref():
+    """returns the user preference or None"""
+    path = _bpy.context.user_preferences.filepaths.script_directory
+    return _os.path.normpath(path) if path else None
 
 
 def script_paths(subdir=None, user_pref=True, check_all=False):
@@ -278,10 +283,6 @@ def script_paths(subdir=None, user_pref=True, check_all=False):
     :rtype: list
     """
     scripts = list(_scripts)
-    prefs = _bpy.context.user_preferences
-
-    # add user scripts dir
-    user_script = user_script_path()
 
     if check_all:
         # all possible paths
@@ -291,7 +292,7 @@ def script_paths(subdir=None, user_pref=True, check_all=False):
         # only paths blender uses
         base_paths = _bpy_script_paths()
 
-    for path in base_paths + (user_script, ):
+    for path in base_paths + (script_path_user(), script_path_pref()):
         if path:
             path = _os.path.normpath(path)
             if path not in scripts and _os.path.isdir(path):
@@ -597,3 +598,42 @@ def unregister_module(module, verbose=False):
             traceback.print_exc()
     if verbose:
         print("done.\n")
+
+
+# -----------------------------------------------------------------------------
+# Manual lookups, each function has to return a basepath and a sequence
+# of...
+
+# we start with the built-in default mapping
+def _blender_default_map():
+    import sys
+    import rna_wiki_reference as ref_mod
+    ret = (ref_mod.url_manual_prefix, ref_mod.url_manual_mapping)
+    # avoid storing in memory
+    del sys.modules["rna_wiki_reference"]
+    return ret
+
+# hooks for doc lookups
+_manual_map = [_blender_default_map]
+
+
+def register_manual_map(manual_hook):
+    _manual_map.append(manual_hook)
+
+
+def unregister_manual_map(manual_hook):
+    _manual_map.remove(manual_hook)
+
+
+def manual_map():
+    # reverse so default is called last
+    for cb in reversed(_manual_map):
+        try:
+            prefix, url_manual_mapping = cb()
+        except:
+            print("Error calling %r" % cb)
+            import traceback
+            traceback.print_exc()
+            continue
+
+        yield prefix, url_manual_mapping

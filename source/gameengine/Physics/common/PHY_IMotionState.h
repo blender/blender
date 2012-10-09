@@ -43,7 +43,7 @@
 class	PHY_IMotionState
 
 {
-	public:		
+	public:
 		virtual ~PHY_IMotionState();
 
 		virtual void	getWorldPosition(float& posX,float& posY,float& posZ)=0;

@@ -147,7 +147,7 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
                               int *pos, strCursorJumpDirection direction,
                               strCursorJumpType jump)
 {
-	const short pos_prev = *pos;
+	const int pos_prev = *pos;
 
 	if (direction == STRCUR_DIR_NEXT) {
 		BLI_str_cursor_step_next_utf8(str, maxlen, pos);

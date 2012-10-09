@@ -56,7 +56,69 @@ To enable line length checks use this instead.
 User Interface Layout
 =====================
 
-TODO: Thomas
+Some notes to keep in mind when writing UI layouts:
+
+* UI code is quite simple. Layout declarations are there to easily create a decent layout. 
+
+  General rule here: If you need more code for the layout declaration, then for the actual properties, you do it wrong. 
+  
+Example layouts:
+
+* layout()
+
+  The basic layout is a simple Top -> Bottom layout. 
+  
+  .. code-block:: python
+
+	 layout.prop()
+	 layout.prop()
+
+* layout.row()
+
+  Use row(), when you want more than 1 property in one line. 
+  
+  .. code-block:: python
+	 
+	 row = layout.row()
+	 row.prop()
+	 row.prop()
+
+* layout.column()
+
+  Use column(), when you want your properties in a column.
+  
+  .. code-block:: python
+  
+	 col = layout.column()
+	 col.prop()
+	 col.prop()
+
+* layout.split()
+
+  This can be used to create more complex layouts. For example you can split the layout and create two column() layouts next to each other.
+  Don't use split, when you simply want two properties in a row. Use row() for that.
+  
+  .. code-block:: python
+  
+	 split = layout.split()
+	 
+	 col = split.column()
+	 col.prop()
+	 col.prop()
+	 
+	 col = split.column()
+	 col.prop()
+	 col.prop()
+	 
+Declaration names:
+
+Try to only use these variable names for layout declarations:
+
+* row for a row() layout
+* col for a column() layout
+* split for a split() layout
+* flow for a column_flow() layout
+* sub for a sub layout (a column inside a column for example)
 
 
 Script Efficiency
@@ -83,7 +145,7 @@ Even though you're not looping on the list data **python is**, so you need to be
 
 Modifying Lists
 ^^^^^^^^^^^^^^^
-In python we can add and remove from a list, This is slower when the list length is modified, especially at the start of the list, since all the data after the index of modification needs to be moved up or down 1 place.
+In python we can add and remove from a list, this is slower when the list length is modified, especially at the start of the list, since all the data after the index of modification needs to be moved up or down 1 place.
 
 The most simple way to add onto the end of the list is to use ``my_list.append(list_item)`` or ``my_list.extend(some_list)`` and the fastest way to remove an item is ``my_list.pop()`` or ``del my_list[-1]``.
 
@@ -92,13 +154,13 @@ To use an index you can use ``my_list.insert(index, list_item)`` or ``list.pop(i
 Sometimes its faster (but more memory hungry) to just rebuild the list.
 
 
-Say you want to remove all triangle faces in a list.
+Say you want to remove all triangular faces in a list.
 
 Rather than...
 
 .. code-block:: python
 
-   faces = mesh.faces[:]  # make a list copy of the meshes faces
+   faces = mesh.tessfaces[:]  # make a list copy of the meshes faces
    f_idx = len(faces)     # Loop backwards
    while f_idx:           # while the value is not 0
        f_idx -= 1
@@ -111,13 +173,13 @@ It's faster to build a new list with list comprehension.
 
 .. code-block:: python
 
-   faces = [f for f in mesh.faces if len(f.vertices) != 3]
+   faces = [f for f in mesh.tessfaces if len(f.vertices) != 3]
 
 
 Adding List Items
 ^^^^^^^^^^^^^^^^^
 
-If you have a list that you want to add onto another list, rather then...
+If you have a list that you want to add onto another list, rather than...
 
 .. code-block:: python
 
@@ -143,6 +205,14 @@ This example shows a very sub-optimal way of making a reversed list.
        reverse_list.insert(0, list_item)
 
 
+Python provides more convenient ways to reverse a list using the slice method, but you may want to time this before relying on it too much:
+
+
+.. code-block:: python
+
+  some_reversed_list = some_list[::-1]
+
+
 Removing List Items
 ^^^^^^^^^^^^^^^^^^^
 
@@ -162,7 +232,7 @@ Here is an example of how to remove items in 1 loop, removing the last items fir
            my_list.pop(list_index)
 
 
-This example shows a fast way of removing items, for use in cases were where you can alter the list order without breaking the scripts functionality. This works by swapping 2 list items, so the item you remove is always last.
+This example shows a fast way of removing items, for use in cases where you can alter the list order without breaking the scripts functionality. This works by swapping 2 list items, so the item you remove is always last.
 
 .. code-block:: python
 
@@ -181,9 +251,9 @@ When removing many items in a large list this can provide a good speedup.
 Avoid Copying Lists
 ^^^^^^^^^^^^^^^^^^^
 
-When passing a list/dictionary to a function, it is faster to have the function modify the list rather then returning a new list so python doesn't have to duplicate the list in memory.
+When passing a list/dictionary to a function, it is faster to have the function modify the list rather than returning a new list so python doesn't have to duplicate the list in memory.
 
-Functions that modify a list in-place are more efficient then functions that create new lists.
+Functions that modify a list in-place are more efficient than functions that create new lists.
 
 
 This is generally slower so only use for functions when it makes sense not to modify the list in place.
@@ -211,22 +281,22 @@ Here are 3 ways of joining multiple strings into 1 string for writing
 This really applies to any area of your code that involves a lot of string joining.
 
 
-Pythons string addition, *don't use if you can help it, especially when writing data in a loop.*
+Python’s string addition, *don't use if you can help it, especially when writing data in a loop.*
 
 >>> file.write(str1 + " " + str2 + " " + str3 + "\n")
 
 
-String formatting. Use this when you're writing string data from floats and int's
+String formatting. Use this when you're writing string data from floats and ints
 
 >>> file.write("%s %s %s\n" % (str1, str2, str3))
 
 
-Pythons string joining function. To join a list of strings
+Python’s string joining function. To join a list of strings
 
 >>> file.write(" ".join([str1, str2, str3, "\n"]))
 
 
-join is fastest on many strings, string formatting is quite fast too (better for converting data types). String arithmetic is slowest.
+join is fastest on many strings, `string formatting <http://docs.python.org/py3k/library/string.html#string-formatting>`_ is quite fast too (better for converting data types). String arithmetic is slowest.
 
 
 Parsing Strings (Import/Exporting)
@@ -234,12 +304,12 @@ Parsing Strings (Import/Exporting)
 
 Since many file formats are ASCII, the way you parse/export strings can make a large difference in how fast your script runs.
 
-When importing strings to make into blender there are a few ways to parse the string.
+There are a few ways to parse strings when importing them into Blender.
 
 Parsing Numbers
 ^^^^^^^^^^^^^^^
 
-Use ``float(string)`` rather than ``eval(string)``, if you know the value will be an int then ``int(string)``,  float() will work for an int too but its faster to read ints with int().
+Use ``float(string)`` rather than ``eval(string)``, if you know the value will be an int then ``int(string)``,  float() will work for an int too but it's faster to read ints with int().
 
 Checking String Start/End
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -256,7 +326,7 @@ Using ``startswith()`` is slightly faster (approx 5%) and also avoids a possible
 
 my_string.endswith("foo_bar") can be used for line endings too.
 
-if your unsure whether the text is upper or lower case use lower or upper string function.
+If you are unsure whether the text is upper or lower case use ``lower()`` or ``upper()`` string function.
 
 >>> if line.lower().startswith("vert ")
 
@@ -266,7 +336,7 @@ Use try/except Sparingly
 
 The **try** statement is useful to save time writing error checking code.
 
-However **try** is significantly slower then an **if** since an exception has to be set each time, so avoid using **try** in areas of your code that execute in a loop and runs many times.
+However **try** is significantly slower than an **if** since an exception has to be set each time, so avoid using **try** in areas of your code that execute in a loop and runs many times.
 
 There are cases where using **try** is faster than checking whether the condition will raise an error, so it is worth experimenting.
 
@@ -274,7 +344,7 @@ There are cases where using **try** is faster than checking whether the conditio
 Value Comparison
 ----------------
 
-Python has two ways to compare values ``a == b`` and ``a is b``, The difference is that ``==`` may run the objects comparison function ``__cmp__()`` where as ``is`` compares identity, that both variables reference the same item in memory. 
+Python has two ways to compare values ``a == b`` and ``a is b``, the difference is that ``==`` may run the objects comparison function ``__cmp__()`` whereas ``is`` compares identity, that both variables reference the same item in memory. 
 
 In cases where you know you are checking for the same value which is referenced from multiple places, ``is`` is faster.
 
@@ -282,7 +352,7 @@ In cases where you know you are checking for the same value which is referenced 
 Time Your Code
 --------------
 
-While developing a script its good to time it to be aware of any changes in performance, this can be done simply.
+While developing a script it's good to time it to be aware of any changes in performance, this can be done simply.
 
 .. code-block:: python
 

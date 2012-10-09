@@ -41,6 +41,7 @@ struct bContext;
 struct bPoseChannel;
 struct Curve;
 struct EnumPropertyItem;
+struct ID;
 struct KeyBlock;
 struct Lattice;
 struct Main;
@@ -84,7 +85,8 @@ typedef enum eParentType {
 extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
 
-int ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct Object *par, int partype);
+int ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob,
+                         struct Object *par, int partype, int xmirror, int keep_transform);
 void ED_object_parent_clear(struct Object *ob, int type);
 struct Base *ED_object_scene_link(struct Scene *scene, struct Object *ob);
 
@@ -101,7 +103,7 @@ void ED_base_object_activate(struct bContext *C, struct Base *base);
 
 void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Base *base);
 
-/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
+/* single object duplicate, if (dupflag == 0), fully linked, else it uses the flags given */
 struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct Base *base, int dupflag);
 
 void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
@@ -124,7 +126,6 @@ float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob,
                                      const float loc[3], const float rot[3], float primmat[][4]);
 
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
-int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op,  float loc[3], float rot[3],
                                    int *enter_editmode, unsigned int *layer, int *is_view_aligned);
 
@@ -177,10 +178,13 @@ int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene,
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
 int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, int include_orig,
-						 int (*callback)(struct Object *ob, void *callback_data),
-						 void *callback_data);
+                         int (*callback)(struct Object *ob, void *callback_data),
+                         void *callback_data);
 
 int ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
+
+/* ibject_select.c */
+void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 
 #ifdef __cplusplus
 }

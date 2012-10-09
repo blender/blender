@@ -40,7 +40,7 @@ public:
 	{
 		q_nr += m_qrange.start;
 		project(m_scene->m_Wq, Range(q_nr, ndof), m_qrange).setZero();
-		// update the ouput vector so that the movement of this joint will be 
+		// update the ouput vector so that the movement of this joint will be
 		// taken into account and we can put the joint back in its initial position
 		// which means that the jacobian doesn't need to be changed
 		for (unsigned int i=0 ;i<ndof ; ++i, ++q_nr) {

@@ -33,14 +33,18 @@
 
 
 #ifdef _WIN32
-#include <io.h>
-#define open _open
-#define read _read
-#define close _close
+#  include <io.h>
+#  define open _open
+#  define read _read
+#  define close _close
 #endif
 
-#include "BLI_blenlib.h"
+#include <stdlib.h>
+
+#include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"
@@ -79,6 +83,7 @@ const char *imb_ext_image[] = {
 #endif
 #ifdef WITH_OPENJPEG
 	".jp2",
+	".j2c",
 #endif
 #ifdef WITH_HDR
 	".hdr",
@@ -206,7 +211,12 @@ int IMB_ispic(const char *filename)
 
 static int isavi(const char *name)
 {
+#ifdef WITH_AVI
 	return AVI_is_avi(name);
+#else
+	(void)name;
+	return FALSE;
+#endif
 }
 
 #ifdef WITH_QUICKTIME
@@ -218,31 +228,43 @@ static int isqtime(const char *name)
 
 #ifdef WITH_FFMPEG
 
-void silence_log_ffmpeg(int quiet)
+/* BLI_vsnprintf in ffmpeg_log_callback() causes invalid warning */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-format-attribute"
+
+static char ffmpeg_last_error[1024];
+
+static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_list arg)
 {
-	if (quiet) {
-		av_log_set_level(AV_LOG_QUIET);
+	if (ELEM(level, AV_LOG_FATAL, AV_LOG_ERROR)) {
+		size_t n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, arg);
+
+		/* strip trailing \n */
+		ffmpeg_last_error[n - 1] = '\0';
 	}
-	else {
-		av_log_set_level(AV_LOG_DEBUG);
+
+	if (G.debug & G_DEBUG_FFMPEG) {
+		/* call default logger to print all message to console */
+		av_log_default_callback(ptr, level, format, arg);
 	}
 }
 
-extern void do_init_ffmpeg(void);
-void do_init_ffmpeg(void)
+#pragma GCC diagnostic pop
+
+void IMB_ffmpeg_init(void)
 {
-	static int ffmpeg_init = 0;
-	if (!ffmpeg_init) {
-		ffmpeg_init = 1;
-		av_register_all();
-		avdevice_register_all();
-		if ((G.debug & G_DEBUG_FFMPEG) == 0) {
-			silence_log_ffmpeg(1);
-		}
-		else {
-			silence_log_ffmpeg(0);
-		}
-	}
+	av_register_all();
+	avdevice_register_all();
+
+	ffmpeg_last_error[0] = '\0';
+
+	/* set own callback which could store last error to report to UI */
+	av_log_set_callback(ffmpeg_log_callback);
+}
+
+const char *IMB_ffmpeg_last_error(void)
+{
+	return ffmpeg_last_error;
 }
 
 static int isffmpeg(const char *filename)
@@ -252,8 +274,6 @@ static int isffmpeg(const char *filename)
 	int videoStream;
 	AVCodec *pCodec;
 	AVCodecContext *pCodecCtx;
-
-	do_init_ffmpeg();
 
 	if (BLI_testextensie(filename, ".swf") ||
 	    BLI_testextensie(filename, ".jpg") ||

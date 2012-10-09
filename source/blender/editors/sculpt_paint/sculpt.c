@@ -369,7 +369,7 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	ss = ob->sculpt;
 	if (ss->cache) {
 		if (!BLI_rcti_is_empty(&ss->cache->previous_r))
-			BLI_union_rcti(rect, &ss->cache->previous_r);
+			BLI_rcti_union(rect, &ss->cache->previous_r);
 	}
 
 	return 1;
@@ -771,7 +771,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		if (ss->cache->radial_symmetry_pass)
 			mul_m4_v3(ss->cache->symm_rot_mat_inv, symm_point);
 
-		ED_view3d_project_float_v2(ss->cache->vc->ar, symm_point, point_2d, ss->cache->projection_mat);
+		ED_view3d_project_float_v2_m4(ss->cache->vc->ar, symm_point, point_2d, ss->cache->projection_mat);
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* keep coordinates relative to mouse */
@@ -1225,7 +1225,7 @@ static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, 
 		if (sculpt_brush_test(&test, vd.co)) {
 			const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 			                                            ss->cache->view_normal, vd.no, vd.fno,
-			                                            smooth_mask ? 0 : *vd.mask);
+			                                            smooth_mask ? 0 : (vd.mask ? *vd.mask : 0.0f));
 			if (smooth_mask) {
 				float val = neighbor_average_mask(ss, vd.vert_indices[vd.i]) - *vd.mask;
 				val *= fade * bstrength;
@@ -1524,7 +1524,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 				/* offset vertex */
 				float fade = tex_strength(ss, brush, vd.co, test.dist,
 				                          ss->cache->sculpt_normal_symm, vd.no,
-				                          vd.fno, *vd.mask);
+				                          vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -1580,7 +1580,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				/* offset vertex */
 				const float fade = tex_strength(ss, brush, vd.co, test.dist,
 				                                ss->cache->sculpt_normal_symm,
-				                                vd.no, vd.fno, *vd.mask);
+				                                vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 				float val1[3];
 				float val2[3];
 
@@ -1623,7 +1623,7 @@ static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, vd.co)) {
 				float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                      ss->cache->view_normal, vd.no,
-				                                      vd.fno, *vd.mask);
+				                                      vd.fno, vd.mask ? *vd.mask : 0.0f);
 				float val[3];
 
 				sub_v3_v3v3(val, test.location, vd.co);
@@ -1677,7 +1677,8 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
-				                                            ss->cache->sculpt_normal_symm, origno[vd.i], NULL, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm, origno[vd.i],
+				                                            NULL, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -1718,7 +1719,7 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-				                                            vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1767,7 +1768,7 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-				                                            vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -1815,7 +1816,7 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-				                                            origno[vd.i], NULL, *vd.mask);
+				                                            origno[vd.i], NULL, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1868,7 +1869,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-				                                            origno[vd.i], NULL, *vd.mask);
+				                                            origno[vd.i], NULL, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_m4v3(proxy[vd.i], m, origco[vd.i]);
 				sub_v3_v3(proxy[vd.i], origco[vd.i]);
@@ -1921,7 +1922,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-				                                            vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 				float *disp = &layer_disp[vd.i];
 				float val[3];
 
@@ -1974,7 +1975,8 @@ static void do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            ss->cache->view_normal, vd.no, vd.fno, *vd.mask);
+				                                            ss->cache->view_normal,
+				                                            vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 				float val[3];
 
 				if (vd.fno) copy_v3_v3(val, vd.fno);
@@ -2315,7 +2317,7 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
 				if (plane_trim(ss->cache, brush, val)) {
 					const float fade = bstrength * tex_strength(ss, brush, vd.co, sqrt(test.dist),
-					                                            an, vd.no, vd.fno, *vd.mask);
+					                                            an, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 					mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2389,7 +2391,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            sqrt(test.dist),
-						                                            an, vd.no, vd.fno, *vd.mask);
+						                                            an, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2491,7 +2493,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            ss->cache->radius * test.dist,
-						                                            an, vd.no, vd.fno, *vd.mask);
+						                                            an, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2555,7 +2557,7 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            sqrt(test.dist),
-						                                            an, vd.no, vd.fno, *vd.mask);
+						                                            an, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2619,7 +2621,7 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            sqrt(test.dist),
-						                                            an, vd.no, vd.fno, *vd.mask);
+						                                            an, vd.no, vd.fno, vd.mask ? *vd.mask : 0.0f);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2649,7 +2651,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 			}
 
 	if (is_basis) {
-		ofs = key_to_vertcos(ob, kb);
+		ofs = BKE_key_convert_to_vertcos(ob, kb);
 
 		/* calculate key coord offsets (from previous location) */
 		for (a = 0; a < me->totvert; a++) {
@@ -2662,7 +2664,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 			int apply_offset = ((currkey != kb) && (ob->shapenr - 1 == currkey->relative));
 
 			if (apply_offset)
-				offset_to_key(ob, currkey, ofs);
+				BKE_key_convert_from_offset(ob, currkey, ofs);
 
 			currkey = currkey->next;
 		}
@@ -2683,7 +2685,7 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 	}
 
 	/* apply new coords on active key block */
-	vertcos_to_key(ob, kb, vertCos);
+	BKE_key_convert_from_vertcos(ob, kb, vertCos);
 }
 
 static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
@@ -3062,16 +3064,48 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 	}
 }
 
-void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_pmap)
+/**
+ * \param need_mask So the DerivedMesh thats returned has mask data
+ */
+void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
+                                 int need_pmap, int need_mask)
 {
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
+	Mesh *me = ob->data;
 	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
 
 	ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
 
-	if (!mmd) ss->kb = ob_get_keyblock(ob);
+	if (need_mask) {
+		if (mmd == NULL) {
+			if (!CustomData_has_layer(&me->vdata, CD_PAINT_MASK)) {
+				ED_sculpt_mask_layers_ensure(ob, NULL);
+			}
+		}
+		else {
+			if (!CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
+#if 1
+				ED_sculpt_mask_layers_ensure(ob, mmd);
+#else				/* if we wanted to support adding mask data while multi-res painting, we would need to do this */
+				if ((ED_sculpt_mask_layers_ensure(ob, mmd) & ED_SCULPT_MASK_LAYER_CALC_LOOP)) {
+					/* remake the derived mesh */
+					ob->recalc |= OB_RECALC_DATA;
+					BKE_object_handle_update(scene, ob);
+				}
+#endif
+			}
+		}
+	}
+
+	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
+	BKE_mesh_tessface_ensure(me);
+
+	if (!mmd) ss->kb = BKE_keyblock_from_object(ob);
 	else ss->kb = NULL;
+
+	/* needs to be called after we ensure tessface */
+	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 
 	if (mmd) {
 		ss->multires = mmd;
@@ -3083,7 +3117,6 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		ss->face_normals = NULL;
 	}
 	else {
-		Mesh *me = BKE_mesh_from_object(ob);
 		ss->totvert = me->totvert;
 		ss->totpoly = me->totpoly;
 		ss->mvert = me->mvert;
@@ -3094,9 +3127,6 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 	}
 
-	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
-	BKE_mesh_tessface_ensure(ob->data);
-
 	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->pmap = (need_pmap && dm->getPolyMap) ? dm->getPolyMap(ob, dm) : NULL;
 
@@ -3106,21 +3136,21 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 
 			free_sculptsession_deformMats(ss);
 
-			if (ss->kb) ss->orig_cos = key_to_vertcos(ob, ss->kb);
-			else ss->orig_cos = mesh_getVertexCos(ob->data, NULL);
+			ss->orig_cos = (ss->kb) ? BKE_key_convert_to_vertcos(ob, ss->kb) : mesh_getVertexCos(me, NULL);
 
 			crazyspace_build_sculpt(scene, ob, &ss->deform_imats, &ss->deform_cos);
 			BLI_pbvh_apply_vertCos(ss->pbvh, ss->deform_cos);
 
-			for (a = 0; a < ((Mesh *)ob->data)->totvert; ++a)
+			for (a = 0; a < me->totvert; ++a) {
 				invert_m3(ss->deform_imats[a]);
+			}
 		}
 	}
 	else free_sculptsession_deformMats(ss);
 
 	/* if pbvh is deformed, key block is already applied to it */
 	if (ss->kb && !BLI_pbvh_isDeformed(ss->pbvh)) {
-		float (*vertCos)[3] = key_to_vertcos(ob, ss->kb);
+		float (*vertCos)[3] = BKE_key_convert_to_vertcos(ob, ss->kb);
 
 		if (vertCos) {
 			/* apply shape keys coordinates to PBVH */
@@ -3134,6 +3164,11 @@ int sculpt_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 	return ob && ob->mode & OB_MODE_SCULPT;
+}
+
+int sculpt_mode_poll_view3d(bContext *C)
+{
+	return (sculpt_mode_poll(C) && CTX_wm_region_view3d(C));
 }
 
 int sculpt_poll(bContext *C)
@@ -3254,9 +3289,9 @@ static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
 	if (ss->multires) {
 		int i, gridsize, array_mem_size;
 		BLI_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
-								&gridsize, NULL, NULL);
+		                        &gridsize, NULL, NULL);
 
-		array_mem_size = cache->num_threads * sizeof(void*);
+		array_mem_size = cache->num_threads * sizeof(void *);
 
 		cache->tmpgrid_co = MEM_mallocN(array_mem_size, "tmpgrid_co array");
 		cache->tmprow_co = MEM_mallocN(array_mem_size, "tmprow_co array");
@@ -3668,7 +3703,7 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 		Brush *brush = paint_brush(&sd->paint);
 
 		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
-		                            sculpt_any_smooth_mode(brush, ss->cache, 0));
+		                            sculpt_any_smooth_mode(brush, ss->cache, 0), FALSE);
 	}
 }
 
@@ -3703,7 +3738,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
  * (This allows us to ignore the GL depth buffer)
  * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
  */
-int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2])
+int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 {
 	ViewContext vc;
 	Object *ob;
@@ -3774,12 +3809,17 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	Brush *brush = paint_brush(&sd->paint);
 	int mode = RNA_enum_get(op->ptr, "mode");
 	int is_smooth = 0;
+	int need_mask = FALSE;
+
+	if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+		need_mask = TRUE;
+	}
 
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(scene, sd, ss);
 
 	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
-	sculpt_update_mesh_elements(scene, sd, ob, is_smooth);
+	sculpt_update_mesh_elements(scene, sd, ob, is_smooth, need_mask);
 
 	return 1;
 }
@@ -3958,6 +3998,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 {
 	struct PaintStroke *stroke;
 	int ignore_background_click;
+	int retval;
 
 	if (!sculpt_brush_stroke_init(C, op))
 		return OPERATOR_CANCELLED;
@@ -3981,7 +4022,9 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
-	op->type->modal(C, op, event);
+	retval = op->type->modal(C, op, event);
+	OPERATOR_RETVAL_CHECK(retval);
+	BLI_assert(retval == OPERATOR_RUNNING_MODAL);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -4095,13 +4138,14 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 {
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0);
+	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, FALSE);
 }
 
-void ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
+int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 {
 	float *paint_mask;
 	Mesh *me = ob->data;
+	int ret = 0;
 
 	paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
@@ -4154,13 +4198,18 @@ void ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 				}
 			}
 		}
+
+		ret |= ED_SCULPT_MASK_LAYER_CALC_LOOP;
 	}
 
 	/* create vertex paint mask layer if there isn't one already */
 	if (!paint_mask) {
 		CustomData_add_layer(&me->vdata, CD_PAINT_MASK,
 		                     CD_CALLOC, NULL, me->totvert);
+		ret |= ED_SCULPT_MASK_LAYER_CALC_VERT;
 	}
+
+	return ret;
 }
 
 static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
@@ -4194,7 +4243,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 
 		if (flush_recalc)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		
+
 		/* Create persistent sculpt mode data */
 		if (!ts->sculpt) {
 			ts->sculpt = MEM_callocN(sizeof(Sculpt), "sculpt mode data");
@@ -4210,14 +4259,18 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 		sculpt_init_session(scene, ob);
 
 		/* Mask layer is required */
-		ED_sculpt_mask_layers_ensure(ob, mmd);
+		if (mmd) {
+			/* XXX, we could attempt to support adding mask data mid-sculpt mode (with multi-res)
+			 * but this ends up being quite tricky (and slow) */
+			ED_sculpt_mask_layers_ensure(ob, mmd);
+		}
 
-		paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
+		BKE_paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 		
 		paint_cursor_start(C, sculpt_poll);
 	}
 
-	WM_event_add_notifier(C, NC_SCENE | ND_MODE, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 
 	return OPERATOR_FINISHED;
 }

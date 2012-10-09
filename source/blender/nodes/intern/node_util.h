@@ -53,6 +53,7 @@ extern void node_free_standard_storage(struct bNode *node);
 
 extern void node_copy_curves(struct bNode *orig_node, struct bNode *new_node);
 extern void node_copy_standard_storage(struct bNode *orig_node, struct bNode *new_node);
+extern void *node_initexec_curves(struct bNode *node);
 
 /**** Labels ****/
 
@@ -66,7 +67,7 @@ ListBase node_internal_connect_default(struct bNodeTree *ntree, struct bNode *no
 #endif
 
 // this is needed for inlining behavior
-#if defined _WIN32
+#if defined _MSC_VER
 #   define DO_INLINE __inline
 #elif defined (__sun) || defined (__sun__)
 #   define DO_INLINE

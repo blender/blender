@@ -180,13 +180,13 @@ static struct bUnitDef buMetricVolDef[] = {
 static struct bUnitCollection buMetricVolCollecton = {buMetricVolDef, 3, 0, sizeof(buMetricVolDef) / sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialVolDef[] = {
-	{"cubic mile", "cubic miles",       "cu mi", "cu m", "Cubic Miles", UN_SC_MI * UN_SC_MI * UN_SC_MI, 0.0,     B_UNIT_DEF_NONE},
-	{"cubic furlong", "cubic furlongs", "cu fur", NULL,  "Cubic Furlongs", UN_SC_FUR * UN_SC_FUR * UN_SC_FUR, 0.0, B_UNIT_DEF_SUPPRESS},
-	{"cubic chain", "cubic chains",     "cu ch", NULL,   "Cubic Chains", UN_SC_CH * UN_SC_CH * UN_SC_CH, 0.0,    B_UNIT_DEF_SUPPRESS},
-	{"cubic yard", "cubic yards",       "cu yd", NULL,   "Cubic Yards", UN_SC_YD * UN_SC_YD * UN_SC_YD, 0.0,     B_UNIT_DEF_NONE},
-	{"cubic foot", "cubic feet",        "cu ft", NULL,   "Cubic Feet", UN_SC_FT * UN_SC_FT * UN_SC_FT, 0.0,      B_UNIT_DEF_NONE}, /* base unit */
-	{"cubic inch", "cubic inches",      "cu in", NULL ,  "Cubic Inches", UN_SC_IN * UN_SC_IN * UN_SC_IN, 0.0,    B_UNIT_DEF_NONE},
-	{"cubic thou", "cubic thous",       "cu mil", NULL,  "Cubic Thous", UN_SC_MIL * UN_SC_MIL * UN_SC_MIL, 0.0,  B_UNIT_DEF_NONE},
+	{"cubic mile", "cubic miles",       "cu mi",  "cu m", "Cubic Miles", UN_SC_MI * UN_SC_MI * UN_SC_MI, 0.0,     B_UNIT_DEF_NONE},
+	{"cubic furlong", "cubic furlongs", "cu fur", NULL,   "Cubic Furlongs", UN_SC_FUR * UN_SC_FUR * UN_SC_FUR, 0.0, B_UNIT_DEF_SUPPRESS},
+	{"cubic chain", "cubic chains",     "cu ch",  NULL,   "Cubic Chains", UN_SC_CH * UN_SC_CH * UN_SC_CH, 0.0,    B_UNIT_DEF_SUPPRESS},
+	{"cubic yard", "cubic yards",       "cu yd",  NULL,   "Cubic Yards", UN_SC_YD * UN_SC_YD * UN_SC_YD, 0.0,     B_UNIT_DEF_NONE},
+	{"cubic foot", "cubic feet",        "cu ft",  NULL,   "Cubic Feet", UN_SC_FT * UN_SC_FT * UN_SC_FT, 0.0,      B_UNIT_DEF_NONE}, /* base unit */
+	{"cubic inch", "cubic inches",      "cu in",  NULL,   "Cubic Inches", UN_SC_IN * UN_SC_IN * UN_SC_IN, 0.0,    B_UNIT_DEF_NONE},
+	{"cubic thou", "cubic thous",       "cu mil", NULL,   "Cubic Thous", UN_SC_MIL * UN_SC_MIL * UN_SC_MIL, 0.0,  B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buImperialVolCollecton = {buImperialVolDef, 4, 0, sizeof(buImperialVolDef) / sizeof(bUnitDef)};
@@ -350,7 +350,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 	/* Add unit prefix and strip zeros */
 
 	/* replace trailing zero's with spaces
-	 * so the number is less complicated but allignment in a button wont
+	 * so the number is less complicated but alignment in a button wont
 	 * jump about while dragging */
 	i = len - 1;
 

@@ -331,7 +331,7 @@ PyAttributeDef KX_TouchSensor::Attributes[] = {
 
 /* Python API */
 
-PyObject* KX_TouchSensor::pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_TouchSensor::pyattr_get_object_hit(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_TouchSensor* self= static_cast<KX_TouchSensor*>(self_v);
 	
@@ -341,7 +341,7 @@ PyObject* KX_TouchSensor::pyattr_get_object_hit(void *self_v, const KX_PYATTRIBU
 		Py_RETURN_NONE;
 }
 
-PyObject* KX_TouchSensor::pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_TouchSensor::pyattr_get_object_hit_list(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_TouchSensor* self= static_cast<KX_TouchSensor*>(self_v);
 	return self->m_colliders->GetProxy();

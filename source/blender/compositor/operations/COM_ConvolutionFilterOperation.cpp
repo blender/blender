@@ -24,6 +24,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "MEM_guardedalloc.h"
+
 ConvolutionFilterOperation::ConvolutionFilterOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
@@ -42,7 +44,7 @@ void ConvolutionFilterOperation::initExecution()
 
 void ConvolutionFilterOperation::set3x3Filter(float f1, float f2, float f3, float f4, float f5, float f6, float f7, float f8, float f9)
 {
-	this->m_filter = new float[9];
+	this->m_filter = (float *)MEM_mallocN(sizeof(float) * 9, __func__);
 	this->m_filter[0] = f1;
 	this->m_filter[1] = f2;
 	this->m_filter[2] = f3;
@@ -61,13 +63,13 @@ void ConvolutionFilterOperation::deinitExecution()
 	this->m_inputOperation = NULL;
 	this->m_inputValueOperation = NULL;
 	if (this->m_filter) {
-		delete[] this->m_filter;
+		MEM_freeN(this->m_filter);
 		this->m_filter = NULL;
 	}
 }
 
 
-void ConvolutionFilterOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void ConvolutionFilterOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float in1[4];
 	float in2[4];
@@ -84,33 +86,33 @@ void ConvolutionFilterOperation::executePixel(float *color, int x, int y, Memory
 	CLAMP(y2, 0, getHeight() - 1);
 	CLAMP(y3, 0, getHeight() - 1);
 	float value[4];
-	this->m_inputValueOperation->read(value, x2, y2, inputBuffers, NULL);
+	this->m_inputValueOperation->read(value, x2, y2, NULL);
 	const float mval = 1.0f - value[0];
 
-	zero_v4(color);
-	this->m_inputOperation->read(in1, x1, y1, inputBuffers, NULL);
-	madd_v4_v4fl(color, in1, this->m_filter[0]);
-	this->m_inputOperation->read(in1, x2, y1, inputBuffers, NULL);
-	madd_v4_v4fl(color, in1, this->m_filter[1]);
-	this->m_inputOperation->read(in1, x3, y1, inputBuffers, NULL);
-	madd_v4_v4fl(color, in1, this->m_filter[2]);
-	this->m_inputOperation->read(in1, x1, y2, inputBuffers, NULL);
-	madd_v4_v4fl(color, in1, this->m_filter[3]);
-	this->m_inputOperation->read(in2, x2, y2, inputBuffers, NULL);
-	madd_v4_v4fl(color, in2, this->m_filter[4]);
-	this->m_inputOperation->read(in1, x3, y2, inputBuffers, NULL);
-	madd_v4_v4fl(color, in1, this->m_filter[5]);
-	this->m_inputOperation->read(in1, x1, y3, inputBuffers, NULL);
-	madd_v4_v4fl(color, in1, this->m_filter[6]);
-	this->m_inputOperation->read(in1, x2, y3, inputBuffers, NULL);
-	madd_v4_v4fl(color, in1, this->m_filter[7]);
-	this->m_inputOperation->read(in1, x3, y3, inputBuffers, NULL);
-	madd_v4_v4fl(color, in1, this->m_filter[8]);
+	zero_v4(output);
+	this->m_inputOperation->read(in1, x1, y1, NULL);
+	madd_v4_v4fl(output, in1, this->m_filter[0]);
+	this->m_inputOperation->read(in1, x2, y1, NULL);
+	madd_v4_v4fl(output, in1, this->m_filter[1]);
+	this->m_inputOperation->read(in1, x3, y1, NULL);
+	madd_v4_v4fl(output, in1, this->m_filter[2]);
+	this->m_inputOperation->read(in1, x1, y2, NULL);
+	madd_v4_v4fl(output, in1, this->m_filter[3]);
+	this->m_inputOperation->read(in2, x2, y2, NULL);
+	madd_v4_v4fl(output, in2, this->m_filter[4]);
+	this->m_inputOperation->read(in1, x3, y2, NULL);
+	madd_v4_v4fl(output, in1, this->m_filter[5]);
+	this->m_inputOperation->read(in1, x1, y3, NULL);
+	madd_v4_v4fl(output, in1, this->m_filter[6]);
+	this->m_inputOperation->read(in1, x2, y3, NULL);
+	madd_v4_v4fl(output, in1, this->m_filter[7]);
+	this->m_inputOperation->read(in1, x3, y3, NULL);
+	madd_v4_v4fl(output, in1, this->m_filter[8]);
 	
-	color[0] = color[0] * value[0] + in2[0] * mval;
-	color[1] = color[1] * value[0] + in2[1] * mval;
-	color[2] = color[2] * value[0] + in2[2] * mval;
-	color[3] = color[3] * value[0] + in2[3] * mval;
+	output[0] = output[0] * value[0] + in2[0] * mval;
+	output[1] = output[1] * value[0] + in2[1] * mval;
+	output[2] = output[2] * value[0] + in2[2] * mval;
+	output[3] = output[3] * value[0] + in2[3] * mval;
 }
 
 bool ConvolutionFilterOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

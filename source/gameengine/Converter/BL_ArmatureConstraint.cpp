@@ -61,7 +61,7 @@ PyTypeObject BL_ArmatureConstraint::Type = {
 	py_base_new
 };
 
-PyObject* BL_ArmatureConstraint::py_repr(void)
+PyObject *BL_ArmatureConstraint::py_repr(void)
 {
 	return PyUnicode_FromString(m_name);
 }
@@ -267,8 +267,8 @@ PyMethodDef BL_ArmatureConstraint::Methods[] = {
 
 PyAttributeDef BL_ArmatureConstraint::Attributes[] = {
 	// Keep these attributes in order of BCA_ defines!!! used by py_attr_getattr and py_attr_setattr
-	KX_PYATTRIBUTE_RO_FUNCTION("type",BL_ArmatureConstraint,py_attr_getattr),	
-	KX_PYATTRIBUTE_RO_FUNCTION("name",BL_ArmatureConstraint,py_attr_getattr),	
+	KX_PYATTRIBUTE_RO_FUNCTION("type",BL_ArmatureConstraint,py_attr_getattr),
+	KX_PYATTRIBUTE_RO_FUNCTION("name",BL_ArmatureConstraint,py_attr_getattr),
 	KX_PYATTRIBUTE_RW_FUNCTION("enforce",BL_ArmatureConstraint,py_attr_getattr,py_attr_setattr),
 	KX_PYATTRIBUTE_RW_FUNCTION("headtail",BL_ArmatureConstraint,py_attr_getattr,py_attr_setattr),
 	KX_PYATTRIBUTE_RO_FUNCTION("lin_error",BL_ArmatureConstraint,py_attr_getattr),
@@ -286,7 +286,7 @@ PyAttributeDef BL_ArmatureConstraint::Attributes[] = {
 };
 
 
-PyObject* BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ArmatureConstraint* self= static_cast<BL_ArmatureConstraint*>(self_v);
 	bConstraint* constraint = self->m_constraint;
@@ -312,12 +312,12 @@ PyObject* BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_P
 	case BCA_ROTERROR:
 		return PyFloat_FromDouble(constraint->rot_error);
 	case BCA_TARGET:
-		if (!self->m_target)	
+		if (!self->m_target)
 			Py_RETURN_NONE;
 		else
 			return self->m_target->GetProxy();
 	case BCA_SUBTARGET:
-		if (!self->m_subtarget)	
+		if (!self->m_subtarget)
 			Py_RETURN_NONE;
 		else
 			return self->m_subtarget->GetProxy();
@@ -334,7 +334,7 @@ PyObject* BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_P
 		}
 		switch (attr_order) {
 		case BCA_IKWEIGHT:
-			return PyFloat_FromDouble((ikconstraint)?ikconstraint->weight:0.0);
+			return PyFloat_FromDouble((ikconstraint)?ikconstraint->weight : 0.0f);
 		case BCA_IKTYPE:
 			return PyLong_FromLong(ikconstraint->type);
 		case BCA_IKFLAG:
@@ -370,7 +370,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 	switch (attr_order) {
 	case BCA_ENFORCE:
 		dval = PyFloat_AsDouble(value);
-		if (dval < 0.0f || dval > 1.0f) { /* also accounts for non float */
+		if (dval < 0.0 || dval > 1.0) { /* also accounts for non float */
 			PyErr_SetString(PyExc_AttributeError, "constraint.enforce = float: BL_ArmatureConstraint, expected a float between 0 and 1");
 			return PY_SET_ATTR_FAIL;
 		}
@@ -379,7 +379,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 
 	case BCA_HEADTAIL:
 		dval = PyFloat_AsDouble(value);
-		if (dval < 0.0f || dval > 1.0f) { /* also accounts for non float */
+		if (dval < 0.0 || dval > 1.0) { /* also accounts for non float */
 			PyErr_SetString(PyExc_AttributeError, "constraint.headtail = float: BL_ArmatureConstraint, expected a float between 0 and 1");
 			return PY_SET_ATTR_FAIL;
 		}
@@ -417,7 +417,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 		switch (attr_order) {
 		case BCA_IKWEIGHT:
 			dval = PyFloat_AsDouble(value);
-			if (dval < 0.0f || dval > 1.0f) { /* also accounts for non float */
+			if (dval < 0.0 || dval > 1.0) { /* also accounts for non float */
 				PyErr_SetString(PyExc_AttributeError, "constraint.weight = float: BL_ArmatureConstraint, expected a float between 0 and 1");
 				return PY_SET_ATTR_FAIL;
 			}
@@ -426,7 +426,7 @@ int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRI
 
 		case BCA_IKDIST:
 			dval = PyFloat_AsDouble(value);
-			if (dval < 0.0f) { /* also accounts for non float */
+			if (dval < 0.0) {  /* also accounts for non float */
 				PyErr_SetString(PyExc_AttributeError, "constraint.ik_dist = float: BL_ArmatureConstraint, expected a positive float");
 				return PY_SET_ATTR_FAIL;
 			}

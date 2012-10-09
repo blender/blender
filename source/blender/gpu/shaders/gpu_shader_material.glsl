@@ -2114,6 +2114,12 @@ void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 c
 	fac = 1.0;
 }
 
+void node_tex_brick(vec3 co, vec4 color1, vec4 color2, vec4 mortar, float scale, float mortar_size, float bias, float brick_width, float row_height, out vec4 color, out float fac)
+{
+	color = vec4(1.0);
+	fac = 1.0;
+}
+
 void node_tex_clouds(vec3 co, float size, out vec4 color, out float fac)
 {
 	color = vec4(1.0);

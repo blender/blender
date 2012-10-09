@@ -22,7 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_Reference.cpp
+/** \file audaspace/intern/AUD_ReferenceHandler.cpp
  *  \ingroup audaspaceintern
  */
 

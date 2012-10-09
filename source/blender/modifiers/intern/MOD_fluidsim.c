@@ -98,8 +98,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 }
 
 static void updateDepgraph(
-    ModifierData *md, DagForest *forest, Scene *scene,
-    Object *ob, DagNode *obNode)
+        ModifierData *md, DagForest *forest, Scene *scene,
+        Object *ob, DagNode *obNode)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	Base *base;

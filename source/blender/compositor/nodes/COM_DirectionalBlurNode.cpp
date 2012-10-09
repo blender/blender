@@ -21,7 +21,6 @@
  */
 
 #include "COM_DirectionalBlurNode.h"
-#include "DNA_scene_types.h"
 #include "DNA_node_types.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_DirectionalBlurOperation.h"
@@ -37,6 +36,7 @@ void DirectionalBlurNode::convertToOperations(ExecutionSystem *graph, Compositor
 	DirectionalBlurOperation *operation = new DirectionalBlurOperation();
 	operation->setQuality(context->getQuality());
 	operation->setData(data);
+	operation->setbNode(this->getbNode());
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 	graph->addOperation(operation);

@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_mapuv_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* foreach UV, use these values to read in cbuf and write to stackbuf */
 /* stackbuf should be zeroed */
 static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float threshold)
@@ -162,6 +164,8 @@ static void node_composit_exec_mapuv(void *UNUSED(data), bNode *node, bNodeStack
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_mapuv(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -169,7 +173,9 @@ void register_node_type_cmp_mapuv(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_mapuv_in, cmp_node_mapuv_out);
 	node_type_size(&ntype, 140, 100, 320);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_mapuv);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

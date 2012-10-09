@@ -30,39 +30,28 @@
 
 #include "ceres/solver_impl.h"
 
+#include <cstdio>
 #include <iostream>  // NOLINT
 #include <numeric>
 #include "ceres/evaluator.h"
 #include "ceres/gradient_checking_cost_function.h"
-#include "ceres/levenberg_marquardt.h"
+#include "ceres/iteration_callback.h"
+#include "ceres/levenberg_marquardt_strategy.h"
 #include "ceres/linear_solver.h"
 #include "ceres/map_util.h"
 #include "ceres/minimizer.h"
 #include "ceres/parameter_block.h"
+#include "ceres/problem.h"
 #include "ceres/problem_impl.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
 #include "ceres/schur_ordering.h"
 #include "ceres/stringprintf.h"
-#include "ceres/iteration_callback.h"
-#include "ceres/problem.h"
+#include "ceres/trust_region_minimizer.h"
 
 namespace ceres {
 namespace internal {
 namespace {
-
-void EvaluateCostAndResiduals(ProblemImpl* problem_impl,
-                              double* cost,
-                              vector<double>* residuals) {
-  CHECK_NOTNULL(cost);
-  Program* program = CHECK_NOTNULL(problem_impl)->mutable_program();
-  if (residuals != NULL) {
-    residuals->resize(program->NumResiduals());
-    program->Evaluate(cost, &(*residuals)[0]);
-  } else {
-    program->Evaluate(cost, NULL);
-  }
-}
 
 // Callback for updating the user's parameter blocks. Updates are only
 // done if the step is successful.
@@ -96,7 +85,7 @@ class LoggingCallback : public IterationCallback {
   CallbackReturnType operator()(const IterationSummary& summary) {
     const char* kReportRowFormat =
         "% 4d: f:% 8e d:% 3.2e g:% 3.2e h:% 3.2e "
-        "rho:% 3.2e mu:% 3.2e li:% 3d";
+        "rho:% 3.2e mu:% 3.2e li:% 3d it:% 3.2e tt:% 3.2e";
     string output = StringPrintf(kReportRowFormat,
                                  summary.iteration,
                                  summary.cost,
@@ -104,8 +93,10 @@ class LoggingCallback : public IterationCallback {
                                  summary.gradient_max_norm,
                                  summary.step_norm,
                                  summary.relative_decrease,
-                                 summary.mu,
-                                 summary.linear_solver_iterations);
+                                 summary.trust_region_radius,
+                                 summary.linear_solver_iterations,
+                                 summary.iteration_time_in_seconds,
+                                 summary.cumulative_time_in_seconds);
     if (log_to_stdout_) {
       cout << output << endl;
     } else {
@@ -118,44 +109,101 @@ class LoggingCallback : public IterationCallback {
   const bool log_to_stdout_;
 };
 
+// Basic callback to record the execution of the solver to a file for
+// offline analysis.
+class FileLoggingCallback : public IterationCallback {
+ public:
+  explicit FileLoggingCallback(const string& filename)
+      : fptr_(NULL) {
+    fptr_ = fopen(filename.c_str(), "w");
+    CHECK_NOTNULL(fptr_);
+  }
+
+  virtual ~FileLoggingCallback() {
+    if (fptr_ != NULL) {
+      fclose(fptr_);
+    }
+  }
+
+  virtual CallbackReturnType operator()(const IterationSummary& summary) {
+    fprintf(fptr_,
+            "%4d %e %e\n",
+            summary.iteration,
+            summary.cost,
+            summary.cumulative_time_in_seconds);
+    return SOLVER_CONTINUE;
+  }
+ private:
+    FILE* fptr_;
+};
+
 }  // namespace
 
 void SolverImpl::Minimize(const Solver::Options& options,
                           Program* program,
                           Evaluator* evaluator,
                           LinearSolver* linear_solver,
-                          double* initial_parameters,
-                          double* final_parameters,
+                          double* parameters,
                           Solver::Summary* summary) {
   Minimizer::Options minimizer_options(options);
 
+  // TODO(sameeragarwal): Add support for logging the configuration
+  // and more detailed stats.
+  scoped_ptr<IterationCallback> file_logging_callback;
+  if (!options.solver_log.empty()) {
+    file_logging_callback.reset(new FileLoggingCallback(options.solver_log));
+    minimizer_options.callbacks.insert(minimizer_options.callbacks.begin(),
+                                       file_logging_callback.get());
+  }
+
   LoggingCallback logging_callback(options.minimizer_progress_to_stdout);
   if (options.logging_type != SILENT) {
-    minimizer_options.callbacks.push_back(&logging_callback);
+    minimizer_options.callbacks.insert(minimizer_options.callbacks.begin(),
+                                       &logging_callback);
   }
 
-  StateUpdatingCallback updating_callback(program, initial_parameters);
+  StateUpdatingCallback updating_callback(program, parameters);
   if (options.update_state_every_iteration) {
-    minimizer_options.callbacks.push_back(&updating_callback);
+    // This must get pushed to the front of the callbacks so that it is run
+    // before any of the user callbacks.
+    minimizer_options.callbacks.insert(minimizer_options.callbacks.begin(),
+                                       &updating_callback);
   }
 
-  LevenbergMarquardt levenberg_marquardt;
+  minimizer_options.evaluator = evaluator;
+  scoped_ptr<SparseMatrix> jacobian(evaluator->CreateJacobian());
+  minimizer_options.jacobian = jacobian.get();
 
-  time_t start_minimizer_time_seconds = time(NULL);
-  levenberg_marquardt.Minimize(minimizer_options,
-                               evaluator,
-                               linear_solver,
-                               initial_parameters,
-                               final_parameters,
-                               summary);
-  summary->minimizer_time_in_seconds =
-      time(NULL) - start_minimizer_time_seconds;
+  TrustRegionStrategy::Options trust_region_strategy_options;
+  trust_region_strategy_options.linear_solver = linear_solver;
+  trust_region_strategy_options.initial_radius =
+      options.initial_trust_region_radius;
+  trust_region_strategy_options.max_radius = options.max_trust_region_radius;
+  trust_region_strategy_options.lm_min_diagonal = options.lm_min_diagonal;
+  trust_region_strategy_options.lm_max_diagonal = options.lm_max_diagonal;
+  trust_region_strategy_options.trust_region_strategy_type =
+      options.trust_region_strategy_type;
+  trust_region_strategy_options.dogleg_type = options.dogleg_type;
+  scoped_ptr<TrustRegionStrategy> strategy(
+      TrustRegionStrategy::Create(trust_region_strategy_options));
+  minimizer_options.trust_region_strategy = strategy.get();
+
+  TrustRegionMinimizer minimizer;
+  time_t minimizer_start_time = time(NULL);
+  minimizer.Minimize(minimizer_options, parameters, summary);
+  summary->minimizer_time_in_seconds = time(NULL) - minimizer_start_time;
 }
 
 void SolverImpl::Solve(const Solver::Options& original_options,
-                       Problem* problem,
+                       ProblemImpl* original_problem_impl,
                        Solver::Summary* summary) {
+  time_t solver_start_time = time(NULL);
   Solver::Options options(original_options);
+  Program* original_program = original_problem_impl->mutable_program();
+  ProblemImpl* problem_impl = original_problem_impl;
+  // Reset the summary object to its default values.
+  *CHECK_NOTNULL(summary) = Solver::Summary();
+
 
 #ifndef CERES_USE_OPENMP
   if (options.num_threads > 1) {
@@ -174,8 +222,6 @@ void SolverImpl::Solve(const Solver::Options& original_options,
   }
 #endif
 
-  // Reset the summary object to its default values;
-  *CHECK_NOTNULL(summary) = Solver::Summary();
   summary->linear_solver_type_given = options.linear_solver_type;
   summary->num_eliminate_blocks_given = original_options.num_eliminate_blocks;
   summary->num_threads_given = original_options.num_threads;
@@ -183,32 +229,38 @@ void SolverImpl::Solve(const Solver::Options& original_options,
       original_options.num_linear_solver_threads;
   summary->ordering_type = original_options.ordering_type;
 
-  ProblemImpl* problem_impl = CHECK_NOTNULL(problem)->problem_impl_.get();
-
   summary->num_parameter_blocks = problem_impl->NumParameterBlocks();
   summary->num_parameters = problem_impl->NumParameters();
   summary->num_residual_blocks = problem_impl->NumResidualBlocks();
   summary->num_residuals = problem_impl->NumResiduals();
 
   summary->num_threads_used = options.num_threads;
+  summary->sparse_linear_algebra_library =
+      options.sparse_linear_algebra_library;
+  summary->trust_region_strategy_type = options.trust_region_strategy_type;
+  summary->dogleg_type = options.dogleg_type;
 
-  // Evaluate the initial cost and residual vector (if needed). The
-  // initial cost needs to be computed on the original unpreprocessed
-  // problem, as it is used to determine the value of the "fixed" part
-  // of the objective function after the problem has undergone
-  // reduction. Also the initial residuals are in the order in which
-  // the user added the ResidualBlocks to the optimization problem.
-  EvaluateCostAndResiduals(problem_impl,
-                           &summary->initial_cost,
-                           options.return_initial_residuals
-                           ? &summary->initial_residuals
-                           : NULL);
+  // Evaluate the initial cost, residual vector and the jacobian
+  // matrix if requested by the user. The initial cost needs to be
+  // computed on the original unpreprocessed problem, as it is used to
+  // determine the value of the "fixed" part of the objective function
+  // after the problem has undergone reduction.
+  Evaluator::Evaluate(
+      original_program,
+      options.num_threads,
+      &(summary->initial_cost),
+      options.return_initial_residuals ? &summary->initial_residuals : NULL,
+      options.return_initial_gradient ? &summary->initial_gradient : NULL,
+      options.return_initial_jacobian ? &summary->initial_jacobian : NULL);
+   original_program->SetParameterBlockStatePtrsToUserStatePtrs();
 
   // If the user requests gradient checking, construct a new
   // ProblemImpl by wrapping the CostFunctions of problem_impl inside
   // GradientCheckingCostFunction and replacing problem_impl with
   // gradient_checking_problem_impl.
   scoped_ptr<ProblemImpl> gradient_checking_problem_impl;
+  // Save the original problem impl so we don't use the gradient
+  // checking one when computing the residuals.
   if (options.check_gradients) {
     VLOG(1) << "Checking Gradients";
     gradient_checking_problem_impl.reset(
@@ -224,8 +276,10 @@ void SolverImpl::Solve(const Solver::Options& original_options,
   // Create the three objects needed to minimize: the transformed program, the
   // evaluator, and the linear solver.
 
-  scoped_ptr<Program> reduced_program(
-      CreateReducedProgram(&options, problem_impl, &summary->error));
+  scoped_ptr<Program> reduced_program(CreateReducedProgram(&options,
+                                                           problem_impl,
+                                                           &summary->fixed_cost,
+                                                           &summary->error));
   if (reduced_program == NULL) {
     return;
   }
@@ -259,19 +313,21 @@ void SolverImpl::Solve(const Solver::Options& original_options,
   }
 
   // The optimizer works on contiguous parameter vectors; allocate some.
-  Vector initial_parameters(reduced_program->NumParameters());
-  Vector optimized_parameters(reduced_program->NumParameters());
+  Vector parameters(reduced_program->NumParameters());
 
   // Collect the discontiguous parameters into a contiguous state vector.
-  reduced_program->ParameterBlocksToStateVector(&initial_parameters[0]);
+  reduced_program->ParameterBlocksToStateVector(parameters.data());
+
+  time_t minimizer_start_time = time(NULL);
+  summary->preprocessor_time_in_seconds =
+      minimizer_start_time - solver_start_time;
 
   // Run the optimization.
   Minimize(options,
            reduced_program.get(),
            evaluator.get(),
            linear_solver.get(),
-           initial_parameters.data(),
-           optimized_parameters.data(),
+           parameters.data(),
            summary);
 
   // If the user aborted mid-optimization or the optimization
@@ -282,29 +338,44 @@ void SolverImpl::Solve(const Solver::Options& original_options,
     return;
   }
 
+  time_t post_process_start_time = time(NULL);
+
   // Push the contiguous optimized parameters back to the user's parameters.
-  reduced_program->StateVectorToParameterBlocks(&optimized_parameters[0]);
+  reduced_program->StateVectorToParameterBlocks(parameters.data());
   reduced_program->CopyParameterBlockStateToUserState();
 
-  // Return the final cost and residuals for the original problem.
-  EvaluateCostAndResiduals(problem->problem_impl_.get(),
-                           &summary->final_cost,
-                           options.return_final_residuals
-                           ? &summary->final_residuals
-                           : NULL);
+  // Evaluate the final cost, residual vector and the jacobian
+  // matrix if requested by the user.
+  Evaluator::Evaluate(
+      original_program,
+      options.num_threads,
+      &summary->final_cost,
+      options.return_final_residuals ? &summary->final_residuals : NULL,
+      options.return_final_gradient ? &summary->final_gradient : NULL,
+      options.return_final_jacobian ? &summary->final_jacobian : NULL);
 
+  // Ensure the program state is set to the user parameters on the way out.
+  original_program->SetParameterBlockStatePtrsToUserStatePtrs();
   // Stick a fork in it, we're done.
-  return;
+  summary->postprocessor_time_in_seconds = time(NULL) - post_process_start_time;
 }
 
 // Strips varying parameters and residuals, maintaining order, and updating
 // num_eliminate_blocks.
 bool SolverImpl::RemoveFixedBlocksFromProgram(Program* program,
                                               int* num_eliminate_blocks,
+                                              double* fixed_cost,
                                               string* error) {
   int original_num_eliminate_blocks = *num_eliminate_blocks;
   vector<ParameterBlock*>* parameter_blocks =
       program->mutable_parameter_blocks();
+
+  scoped_array<double> residual_block_evaluate_scratch;
+  if (fixed_cost != NULL) {
+    residual_block_evaluate_scratch.reset(
+        new double[program->MaxScratchDoublesNeededForEvaluate()]);
+    *fixed_cost = 0.0;
+  }
 
   // Mark all the parameters as unused. Abuse the index member of the parameter
   // blocks for the marking.
@@ -335,6 +406,17 @@ bool SolverImpl::RemoveFixedBlocksFromProgram(Program* program,
 
       if (!all_constant) {
         (*residual_blocks)[j++] = (*residual_blocks)[i];
+      } else if (fixed_cost != NULL) {
+        // The residual is constant and will be removed, so its cost is
+        // added to the variable fixed_cost.
+        double cost = 0.0;
+        if (!residual_block->Evaluate(
+              &cost, NULL, NULL, residual_block_evaluate_scratch.get())) {
+          *error = StringPrintf("Evaluation of the residual %d failed during "
+                                "removal of fixed residual blocks.", i);
+          return false;
+        }
+        *fixed_cost += cost;
       }
     }
     residual_blocks->resize(j);
@@ -367,6 +449,7 @@ bool SolverImpl::RemoveFixedBlocksFromProgram(Program* program,
 
 Program* SolverImpl::CreateReducedProgram(Solver::Options* options,
                                           ProblemImpl* problem_impl,
+                                          double* fixed_cost,
                                           string* error) {
   Program* original_program = problem_impl->mutable_program();
   scoped_ptr<Program> transformed_program(new Program(*original_program));
@@ -397,6 +480,7 @@ Program* SolverImpl::CreateReducedProgram(Solver::Options* options,
 
   if (!RemoveFixedBlocksFromProgram(transformed_program.get(),
                                     &num_eliminate_blocks,
+                                    fixed_cost,
                                     error)) {
     return NULL;
   }
@@ -431,13 +515,34 @@ Program* SolverImpl::CreateReducedProgram(Solver::Options* options,
 
 LinearSolver* SolverImpl::CreateLinearSolver(Solver::Options* options,
                                              string* error) {
+  if (options->trust_region_strategy_type == DOGLEG) {
+    if (options->linear_solver_type == ITERATIVE_SCHUR ||
+        options->linear_solver_type == CGNR) {
+      *error = "DOGLEG only supports exact factorization based linear "
+               "solvers. If you want to use an iterative solver please "
+               "use LEVENBERG_MARQUARDT as the trust_region_strategy_type";
+      return NULL;
+    }
+  }
+
 #ifdef CERES_NO_SUITESPARSE
-  if (options->linear_solver_type == SPARSE_NORMAL_CHOLESKY) {
-    *error = "Can't use SPARSE_NORMAL_CHOLESKY because SuiteSparse was not "
-        "enabled when Ceres was built.";
+  if (options->linear_solver_type == SPARSE_NORMAL_CHOLESKY &&
+      options->sparse_linear_algebra_library == SUITE_SPARSE) {
+    *error = "Can't use SPARSE_NORMAL_CHOLESKY with SUITESPARSE because "
+             "SuiteSparse was not enabled when Ceres was built.";
     return NULL;
   }
-#endif  // CERES_NO_SUITESPARSE
+#endif
+
+#ifdef CERES_NO_CXSPARSE
+  if (options->linear_solver_type == SPARSE_NORMAL_CHOLESKY &&
+      options->sparse_linear_algebra_library == CX_SPARSE) {
+    *error = "Can't use SPARSE_NORMAL_CHOLESKY with CXSPARSE because "
+             "CXSparse was not enabled when Ceres was built.";
+    return NULL;
+  }
+#endif
+
 
   if (options->linear_solver_max_num_iterations <= 0) {
     *error = "Solver::Options::linear_solver_max_num_iterations is 0.";
@@ -455,30 +560,32 @@ LinearSolver* SolverImpl::CreateLinearSolver(Solver::Options* options,
   }
 
   LinearSolver::Options linear_solver_options;
-  linear_solver_options.constant_sparsity = true;
   linear_solver_options.min_num_iterations =
         options->linear_solver_min_num_iterations;
   linear_solver_options.max_num_iterations =
       options->linear_solver_max_num_iterations;
   linear_solver_options.type = options->linear_solver_type;
   linear_solver_options.preconditioner_type = options->preconditioner_type;
+  linear_solver_options.sparse_linear_algebra_library =
+      options->sparse_linear_algebra_library;
+  linear_solver_options.use_block_amd = options->use_block_amd;
 
 #ifdef CERES_NO_SUITESPARSE
   if (linear_solver_options.preconditioner_type == SCHUR_JACOBI) {
     *error =  "SCHUR_JACOBI preconditioner not suppored. Please build Ceres "
-        "with SuiteSparse support";
+        "with SuiteSparse support.";
     return NULL;
   }
 
   if (linear_solver_options.preconditioner_type == CLUSTER_JACOBI) {
     *error =  "CLUSTER_JACOBI preconditioner not suppored. Please build Ceres "
-        "with SuiteSparse support";
+        "with SuiteSparse support.";
     return NULL;
   }
 
   if (linear_solver_options.preconditioner_type == CLUSTER_TRIDIAGONAL) {
     *error =  "CLUSTER_TRIDIAGONAL preconditioner not suppored. Please build "
-        "Ceres with SuiteSparse support";
+        "Ceres with SuiteSparse support.";
     return NULL;
   }
 #endif
@@ -489,23 +596,23 @@ LinearSolver* SolverImpl::CreateLinearSolver(Solver::Options* options,
 
   if ((linear_solver_options.num_eliminate_blocks == 0) &&
       IsSchurType(linear_solver_options.type)) {
-#ifndef CERES_NO_SUITESPARSE
+#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE)
+    LOG(INFO) << "No elimination block remaining switching to DENSE_QR.";
+    linear_solver_options.type = DENSE_QR;
+#else
     LOG(INFO) << "No elimination block remaining "
               << "switching to SPARSE_NORMAL_CHOLESKY.";
     linear_solver_options.type = SPARSE_NORMAL_CHOLESKY;
-#else
-    LOG(INFO) << "No elimination block remaining switching to DENSE_QR.";
-    linear_solver_options.type = DENSE_QR;
-#endif  // CERES_NO_SUITESPARSE
+#endif
   }
 
-#ifdef CERES_NO_SUITESPARSE
+#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE)
   if (linear_solver_options.type == SPARSE_SCHUR) {
-    *error = "Can't use SPARSE_SCHUR because SuiteSparse was not "
-        "enabled when Ceres was built.";
+    *error = "Can't use SPARSE_SCHUR because neither SuiteSparse nor"
+             "CXSparse was enabled when Ceres was compiled.";
     return NULL;
   }
-#endif  // CERES_NO_SUITESPARSE
+#endif
 
   // The matrix used for storing the dense Schur complement has a
   // single lock guarding the whole matrix. Running the
@@ -578,15 +685,18 @@ bool SolverImpl::ApplyUserOrdering(const ProblemImpl& problem_impl,
 // Find the minimum index of any parameter block to the given residual.
 // Parameter blocks that have indices greater than num_eliminate_blocks are
 // considered to have an index equal to num_eliminate_blocks.
-int MinParameterBlock(const ResidualBlock* residual_block,
-                      int num_eliminate_blocks) {
+static int MinParameterBlock(const ResidualBlock* residual_block,
+                             int num_eliminate_blocks) {
   int min_parameter_block_position = num_eliminate_blocks;
   for (int i = 0; i < residual_block->NumParameterBlocks(); ++i) {
     ParameterBlock* parameter_block = residual_block->parameter_blocks()[i];
-    DCHECK_NE(parameter_block->index(), -1)
-        << "Did you forget to call Program::SetParameterOffsetsAndIndex()?";
-    min_parameter_block_position = std::min(parameter_block->index(),
-                                            min_parameter_block_position);
+    if (!parameter_block->IsConstant()) {
+      CHECK_NE(parameter_block->index(), -1)
+          << "Did you forget to call Program::SetParameterOffsetsAndIndex()? "
+          << "This is a Ceres bug; please contact the developers!";
+      min_parameter_block_position = std::min(parameter_block->index(),
+                                              min_parameter_block_position);
+    }
   }
   return min_parameter_block_position;
 }

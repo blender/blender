@@ -74,11 +74,29 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_util.h"  /* clipboard */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "armature_intern.h"
+
+/* matches logic with ED_operator_posemode_context() */
+Object *ED_pose_object_from_context(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	Object *ob;
+
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa && sa->spacetype == SPACE_BUTS) {
+		ob = ED_object_context(C);
+	}
+	else {
+		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	}
+
+	return ob;
+}
 
 /* This function is used to process the necessary updates for */
 void ED_armature_enter_posemode(bContext *C, Base *base)
@@ -103,7 +121,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			return;
 	}
 	
-	// XXX: disabled as this would otherwise cause a nasty loop...
+	/* XXX: disabled as this would otherwise cause a nasty loop... */
 	//ED_object_toggle_modes(C, ob->mode);
 }
 
@@ -253,14 +271,14 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 		animviz_verify_motionpaths(op->reports, scene, ob, pchan);
 	}
 	CTX_DATA_END;
-	
+
 	/* calculate the bones that now have motionpaths... */
-	// TODO: only make for the selected bones?
+	/* TODO: only make for the selected bones? */
 	ED_pose_recalculate_paths(scene, ob);
-	
+
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	
+
 	return OPERATOR_FINISHED; 
 }
 
@@ -274,7 +292,7 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = pose_calculate_paths_invoke;
 	ot->exec = pose_calculate_paths_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -299,9 +317,9 @@ static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (ELEM(NULL, ob, scene))
 		return OPERATOR_CANCELLED;
-		
+
 	/* calculate the bones that now have motionpaths... */
-	// TODO: only make for the selected bones?
+	/* TODO: only make for the selected bones? */
 	ED_pose_recalculate_paths(scene, ob);
 	
 	/* notifiers for updates */
@@ -319,7 +337,7 @@ void POSE_OT_paths_update(wmOperatorType *ot)
 	
 	/* api callbakcs */
 	ot->exec = pose_update_paths_exec;
-	ot->poll = ED_operator_posemode; /* TODO: this should probably check for active bone and/or existing paths */
+	ot->poll = ED_operator_posemode_exclusive; /* TODO: this should probably check for active bone and/or existing paths */
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -380,7 +398,7 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_clear_paths_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -474,7 +492,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (pchan->parent == NULL) continue;
 					else pabone = pchan->parent->bone;
 					
-					if (PBONE_VISIBLE(arm, pabone)) {
+					if (PBONE_SELECTABLE(arm, pabone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						pabone->flag |= BONE_SELECTED;
 						arm->act_bone = pabone;
@@ -496,7 +514,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 
 						for (pchan_child = ob->pose->chanbase.first; pchan_child; pchan_child = pchan_child->next) {
 							/* possible we have multiple children, some invisible */
-							if (PBONE_VISIBLE(arm, pchan_child->bone)) {
+							if (PBONE_SELECTABLE(arm, pchan_child->bone)) {
 								if (pchan_child->parent == pchan) {
 									chbone = pchan_child->bone;
 									break;
@@ -508,7 +526,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					if (chbone == NULL) continue;
 #endif
 					
-					if (PBONE_VISIBLE(arm, chbone)) {
+					if (PBONE_SELECTABLE(arm, chbone)) {
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						chbone->flag |= BONE_SELECTED;
 						arm->act_bone = chbone;
@@ -694,16 +712,14 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 		/* only items related to this object will be relevant */
 		if ((ksp->id == &ob->id) && (ksp->rna_path != NULL)) {
 			if (strstr(ksp->rna_path, "bones")) {
-				char *boneName = BLI_getQuotedStr(ksp->rna_path, "bones[");
+				char *boneName = BLI_str_quoted_substrN(ksp->rna_path, "bones[");
 				
 				if (boneName) {
 					bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
 					
 					if (pchan) {
 						/* select if bone is visible and can be affected */
-						if ((PBONE_VISIBLE(arm, pchan->bone)) && 
-						    (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
-						{
+						if (PBONE_SELECTABLE(arm, pchan->bone)) {
 							pchan->bone->flag |= BONE_SELECTED;
 							changed = 1;
 						}
@@ -727,7 +743,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	short changed = 0;
 	
 	/* sanity check */
-	if (ELEM(NULL, ob, ob->pose))
+	if (ob->pose == NULL)
 		return OPERATOR_CANCELLED;
 		
 	/* selection types 
@@ -870,16 +886,16 @@ static void pose_copy_menu(Scene *scene)
 	if (pose_has_protected_selected(ob, 0)) {
 		i = BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
 		if (i < 25)
-			nr = pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|Constraints...%x5");
+			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4|Constraints... %x5");
 		else
-			nr = pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4");
+			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4");
 	}
 	else {
 		i = BLI_countlist(&(pchanact->constraints)); /* if there are 24 or less, allow for the user to select constraints */
 		if (i < 25)
-			nr = pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|Constraints...%x5|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4|Constraints... %x5|%l|Transform Locks %x6|IK Limits %x7|Bone Shape %x8");
 		else
-			nr = pupmenu("Copy Pose Attributes %t|Local Location%x1|Local Rotation%x2|Local Size%x3|%l|Visual Location %x9|Visual Rotation%x10|Visual Size%x11|%l|Constraints (All)%x4|%l|Transform Locks%x6|IK Limits%x7|Bone Shape%x8");
+			nr = pupmenu("Copy Pose Attributes %t|Local Location %x1|Local Rotation %x2|Local Size %x3|%l|Visual Location %x9|Visual Rotation %x10|Visual Size %x11|%l|Constraints (All) %x4|%l|Transform Locks %x6|IK Limits %x7|Bone Shape %x8");
 	}
 	
 	if (nr <= 0) 
@@ -1049,7 +1065,7 @@ static void pose_copy_menu(Scene *scene)
 /* Global copy/paste buffer for pose - cleared on start/end session + before every copy operation */
 static bPose *g_posebuf = NULL;
 
-void free_posebuf(void) 
+void ED_clipboard_posebuf_free(void)
 {
 	if (g_posebuf) {
 		bPoseChannel *pchan;
@@ -1225,7 +1241,7 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
 	}
 
 	/* free existing pose buffer */
-	free_posebuf();
+	ED_clipboard_posebuf_free();
 	
 	/* sets chan->flag to POSE_KEY if bone selected, then copy those bones to the buffer */
 	set_pose_keys(ob);  
@@ -1330,15 +1346,8 @@ void POSE_OT_paste(wmOperatorType *ot)
 
 static int pose_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-		
+	Object *ob = ED_pose_object_from_context(C);
+
 	/* only continue if there's an object */
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
@@ -1361,7 +1370,7 @@ void POSE_OT_group_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_add_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1370,14 +1379,7 @@ void POSE_OT_group_add(wmOperatorType *ot)
 
 static int pose_group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = ED_pose_object_from_context(C);
 	
 	/* only continue if there's an object */
 	if (ob == NULL)
@@ -1401,7 +1403,7 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_remove_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1412,20 +1414,13 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 /* invoke callback which presents a list of bone-groups for the user to choose from */
 static int pose_groups_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
+	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose;
 	
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	bActionGroup *grp;
 	int i;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose)) 
@@ -1465,17 +1460,10 @@ static int pose_groups_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 /* Assign selected pchans to the bone group that the user selects */
 static int pose_group_assign_exec(bContext *C, wmOperator *op)
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
+	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose;
 	short done = FALSE;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	
+
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
@@ -1517,7 +1505,7 @@ void POSE_OT_group_assign(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = pose_groups_menu_invoke;
 	ot->exec = pose_group_assign_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1529,15 +1517,8 @@ void POSE_OT_group_assign(wmOperatorType *ot)
 
 static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
+	Object *ob = ED_pose_object_from_context(C);
 	short done = FALSE;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1572,7 +1553,7 @@ void POSE_OT_group_unassign(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_unassign_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1580,7 +1561,7 @@ void POSE_OT_group_unassign(wmOperatorType *ot)
 
 static int group_move_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = ED_object_context(C);
+	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose = (ob) ? ob->pose : NULL;
 	bPoseChannel *pchan;
 	bActionGroup *grp;
@@ -1653,7 +1634,7 @@ void POSE_OT_group_move(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = group_move_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1678,7 +1659,7 @@ static int compare_agroup(const void *sgrp_a_ptr, const void *sgrp_b_ptr)
 
 static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = ED_object_context(C);
+	Object *ob = ED_pose_object_from_context(C);
 	bPose *pose = (ob) ? ob->pose : NULL;
 	bPoseChannel *pchan;
 	tSortActionGroup *agrp_array;
@@ -1737,7 +1718,7 @@ void POSE_OT_group_sort(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = group_sort_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1765,14 +1746,7 @@ static void pose_group_select(bContext *C, Object *ob, int select)
 
 static int pose_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = ED_pose_object_from_context(C);
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1795,7 +1769,7 @@ void POSE_OT_group_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_select_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1803,14 +1777,7 @@ void POSE_OT_group_select(wmOperatorType *ot)
 
 static int pose_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa = CTX_wm_area(C);
-	Object *ob;
-	
-	/* since this call may also be used from the buttons window, we need to check for where to get the object */
-	if (sa->spacetype == SPACE_BUTS) 
-		ob = ED_object_context(C);
-	else
-		ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = ED_pose_object_from_context(C);
 	
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
@@ -1833,7 +1800,7 @@ void POSE_OT_group_deselect(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = pose_group_deselect_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_context;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2192,7 +2159,7 @@ void POSE_OT_bone_layers(wmOperatorType *ot)
 	/* callbacks */
 	ot->invoke = pose_bone_layers_invoke;
 	ot->exec = pose_bone_layers_exec;
-	ot->poll = ED_operator_posemode;
+	ot->poll = ED_operator_posemode_exclusive;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2350,20 +2317,18 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
 			pose_bone_do_paste(ob, pchan, only_select, 0);
 		}
-		
+
 		/* free temp data - free manually as was copied without constraints */
-		if (dummyPose) {
-			for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
-				if (pchan->prop) {
-					IDP_FreeProperty(pchan->prop);
-					MEM_freeN(pchan->prop);
-				}
+		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
+			if (pchan->prop) {
+				IDP_FreeProperty(pchan->prop);
+				MEM_freeN(pchan->prop);
 			}
-			
-			/* was copied without constraints */
-			BLI_freelistN(&dummyPose->chanbase);
-			MEM_freeN(dummyPose);
 		}
+
+		/* was copied without constraints */
+		BLI_freelistN(&dummyPose->chanbase);
+		MEM_freeN(dummyPose);
 	}
 	else {
 		/* no animation, so just reset whole pose to rest pose 

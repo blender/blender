@@ -35,19 +35,19 @@ set(INC_SYS
 
 set(SRC
 	intern/avi.c
-	intern/avirgb.c
-	intern/codecs.c
-	intern/endian.c
-	intern/mjpeg.c
-	intern/options.c
-	intern/rgb32.c
+	intern/avi_rgb.c
+	intern/avi_codecs.c
+	intern/avi_endian.c
+	intern/avi_mjpeg.c
+	intern/avi_options.c
+	intern/avi_rgb32.c
 
 	AVI_avi.h
 	intern/avi_intern.h
-	intern/avirgb.h
-	intern/endian.h
-	intern/mjpeg.h
-	intern/rgb32.h
+	intern/avi_rgb.h
+	intern/avi_endian.h
+	intern/avi_mjpeg.h
+	intern/avi_rgb32.h
 )
 
 blender_add_lib(bf_avi "${SRC}" "${INC}" "${INC_SYS}")

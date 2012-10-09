@@ -148,7 +148,7 @@ def modules(module_cache):
     for path in path_list:
 
         # force all contrib addons to be 'TESTING'
-        if path.endswith("addons_contrib") or path.endswith("addons_extern"):
+        if path.endswith(("addons_contrib", "addons_extern")):
             force_support = 'TESTING'
         else:
             force_support = None
@@ -275,6 +275,8 @@ def enable(module_name, default_set=True, persistent=False):
     try:
         mod.register()
     except:
+        print("Exception in module register(): %r" %
+              getattr(mod, "__file__", module_name))
         handle_error()
         del sys.modules[module_name]
         return None
@@ -316,6 +318,8 @@ def disable(module_name, default_set=True):
         try:
             mod.unregister()
         except:
+            print("Exception in module unregister(): %r" %
+                  getattr(mod, "__file__", module_name))
             import traceback
             traceback.print_exc()
     else:

@@ -48,7 +48,7 @@ typedef struct SDNA {
 	short *typelens;	/* type lengths */
 
 	int nr_structs;		/* number of struct types */
-	short **structs;	/* sp = structs[a] is the address of a struct definintion
+	short **structs;	/* sp = structs[a] is the address of a struct definition
 	                     * sp[0] is struct type number, sp[1] amount of members
 	                     *
 	                     * (sp[2], sp[3]), (sp[4], sp[5]), .. are the member
@@ -81,12 +81,7 @@ typedef struct BHead4 {
 #
 typedef struct BHead8 {
 	int code, len;
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-	/* This is a compiler type! */
-	__int64 old;
-#else
-	long long old;
-#endif	
+	int64_t old;
 	int SDNAnr, nr;
 } BHead8;
 

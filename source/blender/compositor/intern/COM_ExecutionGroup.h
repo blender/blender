@@ -180,7 +180,7 @@ private:
 	
 	/**
 	 * @brief Determine the rect (minx, maxx, miny, maxy) of a chunk at a position.
-	 * @note Only gives usefull results ater the determination of the chunksize
+	 * @note Only gives useful results ater the determination of the chunksize
 	 * @see determineChunkSize()
 	 */
 	void determineChunkRect(rcti *rect, const unsigned int xChunk, const unsigned int yChunk) const;
@@ -270,13 +270,13 @@ public:
 	 * @brief determine the resolution of this ExecutionGroup
 	 * @param resolution
 	 */
-	void determineResolution(unsigned int resolution[]);
+	void determineResolution(unsigned int resolution[2]);
 	
 	/**
 	 * @brief set the resolution of this executiongroup
 	 * @param resolution
 	 */
-	void setResolution(unsigned int resolution[]) { this->m_width = resolution[0]; this->m_height = resolution[1]; }
+	void setResolution(unsigned int resolution[2]) { this->m_width = resolution[0]; this->m_height = resolution[1]; }
 	
 	/**
 	 * @brief get the width of this execution group
@@ -316,7 +316,7 @@ public:
 	 * @brief get all inputbuffers needed to calculate an chunk
 	 * @note all inputbuffers must be executed
 	 * @param chunkNumber the chunk to be calculated
-	 * @return MemoryBuffer** the inputbuffers
+	 * @return (MemoryBuffer **) the inputbuffers
 	 */
 	MemoryBuffer **getInputBuffersCPU();
 
@@ -324,7 +324,7 @@ public:
 	 * @brief get all inputbuffers needed to calculate an chunk
 	 * @note all inputbuffers must be executed
 	 * @param chunkNumber the chunk to be calculated
-	 * @return MemoryBuffer** the inputbuffers
+	 * @return (MemoryBuffer **) the inputbuffers
 	 */
 	MemoryBuffer **getInputBuffersOpenCL(int chunkNumber);
 
@@ -376,7 +376,7 @@ public:
 	
 	/**
 	 * @brief Determine the rect (minx, maxx, miny, maxy) of a chunk.
-	 * @note Only gives usefull results ater the determination of the chunksize
+	 * @note Only gives useful results ater the determination of the chunksize
 	 * @see determineChunkSize()
 	 */
 	void determineChunkRect(rcti *rect, const unsigned int chunkNumber) const;

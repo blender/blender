@@ -101,8 +101,9 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	/* setup shader engine */
 	og->ss = ss;
+	og->services = services;
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
-	og->background_state = og->surface_state[background_id];
+	og->background_state = og->surface_state[background_id & SHADER_MASK];
 	og->use = true;
 
 	tls_create(OSLGlobals::ThreadData, og->thread_data);
@@ -153,13 +154,42 @@ string OSLCompiler::id(ShaderNode *node)
 	return stream.str();
 }
 
-string OSLCompiler::compatible_name(const char *name)
+string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
 {
-	string sname = name;
+	string sname(input->name);
 	size_t i;
 
+	/* strip whitespace */
 	while((i = sname.find(" ")) != string::npos)
 		sname.replace(i, 1, "");
+	
+	/* if output exists with the same name, add "In" suffix */
+	foreach(ShaderOutput *output, node->outputs) {
+		if (strcmp(input->name, output->name)==0) {
+			sname += "In";
+			break;
+		}
+	}
+	
+	return sname;
+}
+
+string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
+{
+	string sname(output->name);
+	size_t i;
+
+	/* strip whitespace */
+	while((i = sname.find(" ")) != string::npos)
+		sname.replace(i, 1, "");
+	
+	/* if output exists with the same name, add "In" suffix */
+	foreach(ShaderInput *input, node->inputs) {
+		if (strcmp(input->name, output->name)==0) {
+			sname += "Out";
+			break;
+		}
+	}
 	
 	return sname;
 }
@@ -197,21 +227,22 @@ void OSLCompiler::add(ShaderNode *node, const char *name)
 			else if(input->default_value != ShaderInput::NONE)
 				continue;
 
+			string param_name = compatible_name(node, input);
 			switch(input->type) {
 				case SHADER_SOCKET_COLOR:
-					parameter_color(input->name, input->value);
+					parameter_color(param_name.c_str(), input->value);
 					break;
 				case SHADER_SOCKET_POINT:
-					parameter_point(input->name, input->value);
+					parameter_point(param_name.c_str(), input->value);
 					break;
 				case SHADER_SOCKET_VECTOR:
-					parameter_vector(input->name, input->value);
+					parameter_vector(param_name.c_str(), input->value);
 					break;
 				case SHADER_SOCKET_NORMAL:
-					parameter_normal(input->name, input->value);
+					parameter_normal(param_name.c_str(), input->value);
 					break;
 				case SHADER_SOCKET_FLOAT:
-					parameter(input->name, input->value.x);
+					parameter(param_name.c_str(), input->value.x);
 					break;
 				case SHADER_SOCKET_CLOSURE:
 					break;
@@ -241,12 +272,8 @@ void OSLCompiler::add(ShaderNode *node, const char *name)
 			/* connect shaders */
 			string id_from = id(input->link->parent);
 			string id_to = id(node);
-			string param_from = compatible_name(input->link->name);
-			string param_to = compatible_name(input->name);
-
-			/* avoid name conflict with same input/output socket name */
-			if(input->link->parent->input(input->link->name))
-				param_from += "_";
+			string param_from = compatible_name(input->link->parent, input->link);
+			string param_to = compatible_name(node, input);
 
 			ss->ConnectShaders(id_from.c_str(), param_from.c_str(), id_to.c_str(), param_to.c_str());
 		}
@@ -306,6 +333,70 @@ void OSLCompiler::parameter(const char *name, const Transform& tfm)
 {
 	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
 	ss->Parameter(name, TypeDesc::TypeMatrix, (float*)&tfm);
+}
+
+void OSLCompiler::parameter_array(const char *name, const float f[], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeFloat;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_color_array(const char *name, const float f[][3], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeColor;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_vector_array(const char *name, const float f[][3], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeVector;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_normal_array(const char *name, const float f[][3], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeNormal;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_point_array(const char *name, const float f[][3], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypePoint;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_array(const char *name, const int f[], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeInt;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, f);
+}
+
+void OSLCompiler::parameter_array(const char *name, const char * const s[], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeString;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, s);
+}
+
+void OSLCompiler::parameter_array(const char *name, const Transform tfm[], int arraylen)
+{
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
+	TypeDesc type = TypeDesc::TypeMatrix;
+	type.arraylen = arraylen;
+	ss->Parameter(name, type, (const float *)tfm);
 }
 
 void OSLCompiler::find_dependencies(set<ShaderNode*>& dependencies, ShaderInput *input)
@@ -482,6 +573,14 @@ void OSLCompiler::parameter_vector(const char *name, float3 f)
 {
 }
 
+void OSLCompiler::parameter_point(const char *name, float3 f)
+{
+}
+
+void OSLCompiler::parameter_normal(const char *name, float3 f)
+{
+}
+
 void OSLCompiler::parameter(const char *name, int f)
 {
 }
@@ -495,6 +594,38 @@ void OSLCompiler::parameter(const char *name, ustring s)
 }
 
 void OSLCompiler::parameter(const char *name, const Transform& tfm)
+{
+}
+
+void OSLCompiler::parameter_array(const char *name, const float f[], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_color_array(const char *name, const float f[][3], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_vector_array(const char *name, const float f[][3], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_normal_array(const char *name, const float f[][3], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_point_array(const char *name, const float f[][3], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_array(const char *name, const int f[], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_array(const char *name, const char * const s[], int arraylen)
+{
+}
+
+void OSLCompiler::parameter_array(const char *name, const Transform tfm[], int arraylen)
 {
 }
 

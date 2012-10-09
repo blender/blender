@@ -543,7 +543,7 @@ CExpression *CParser::Ex(int i)
 					}
 					e1 = Error(errtext);
 
-					break;				
+					break;
 				}
 			default:
 				NextSym();
@@ -573,7 +573,7 @@ CExpression* CParser::ProcessText
 	text = intext;
 	
 	
-	chcount = 0;	
+	chcount = 0;
 	if (text.Length() == 0) {
 		return NULL;
 	}

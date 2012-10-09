@@ -9,6 +9,7 @@
                    handle_auto="#909000"
                    handle_sel_auto="#f0ff40"
                    bone_pose="#50c8ff"
+                   bone_pose_active="#8cffff"
                    bone_solid="#c8c8c8"
                    bundle_solid="#c8c8c8"
                    camera="#000000"
@@ -282,7 +283,7 @@
       <ThemeInfo>
         <space>
           <ThemeSpaceGeneric header="#3b3b3b"
-                             header_text="#8b8b8b"
+                             header_text="#000000"
                              header_text_hi="#000000"
                              button="#3b3b3b"
                              button_text="#000000"

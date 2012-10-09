@@ -32,11 +32,11 @@ struct	PHY__Vector2
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 struct	PHY__Vector3
@@ -46,11 +46,11 @@ struct	PHY__Vector3
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 struct	PHY__Vector4
@@ -75,11 +75,11 @@ struct	PHY__Vector4
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 //typedef 	float	PHY__Vector3[4];
@@ -96,18 +96,18 @@ enum
 	PHY_NUM_RESPONSE
 };
 
-	typedef struct PHY_CollData {
-		PHY__Vector3 m_point1;               /* Point in object1 in world coordinates */ 
-		PHY__Vector3 m_point2;               /* Point in object2 in world coordinates */
-		PHY__Vector3 m_normal;               /* point2 - point1 */ 
-	} PHY_CollData;
+typedef struct PHY_CollData {
+	PHY__Vector3 m_point1;               /* Point in object1 in world coordinates */
+	PHY__Vector3 m_point2;               /* Point in object2 in world coordinates */
+	PHY__Vector3 m_normal;               /* point2 - point1 */
+} PHY_CollData;
 
 
-	typedef bool (*PHY_ResponseCallback)(void *client_data,
-										   void *client_object1,
-										   void *client_object2,
-										   const PHY_CollData *coll_data);
-	typedef void (*PHY_CullingCallback)(KX_ClientObjectInfo* info, void* param);
+typedef bool (*PHY_ResponseCallback)(void *client_data,
+                                     void *client_object1,
+                                     void *client_object2,
+                                     const PHY_CollData *coll_data);
+typedef void (*PHY_CullingCallback)(KX_ClientObjectInfo* info, void* param);
 
 
 /// PHY_PhysicsType enumerates all possible Physics Entities.

@@ -82,6 +82,14 @@ WITH_BF_STATIC3DMOUSE = True
 BF_3DMOUSE = '/home/sources/staticlibs/spnav'
 BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib64'
 
+# Color management
+WITH_BF_OCIO = True
+WITH_BF_STATICOCIO = True
+BF_OCIO = '/opt/ocio'
+BF_OCIO_INC = '${BF_OCIO}/include'
+BF_OCIO_LIB_STATIC = '${BF_OCIO_LIBPATH}/libOpenColorIO.a ${BF_OCIO_LIBPATH}/libtinyxml.a ${BF_OCIO_LIBPATH}/libyaml-cpp.a'
+BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
+
 # JACK
 WITH_BF_JACK = True
 

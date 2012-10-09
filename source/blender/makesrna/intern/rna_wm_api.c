@@ -32,12 +32,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
+
+#include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
 
@@ -72,20 +76,21 @@ static int rna_event_modal_handler_add(struct bContext *C, struct wmOperator *op
 }
 
 /* XXX, need a way for python to know event types, 0x0110 is hard coded */
-wmTimer *rna_event_timer_add(struct wmWindowManager *wm, float time_step, wmWindow *win)
+static wmTimer *rna_event_timer_add(struct wmWindowManager *wm, float time_step, wmWindow *win)
 {
 	return WM_event_add_timer(wm, win, 0x0110, time_step);
 }
 
-void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
+static void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 {
 	WM_event_remove_timer(wm, timer->win, timer);
 }
 
 static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, const char *idname, int type, int value,
-                                         int any, int shift, int ctrl, int alt, int oskey, int keymodifier)
+                                         int any, int shift, int ctrl, int alt, int oskey, int keymodifier, int head)
 {
 /*	wmWindowManager *wm = CTX_wm_manager(C); */
+	wmKeyMapItem *kmi = NULL;
 	char idname_bl[OP_MAX_TYPENAME];
 	int modifier = 0;
 
@@ -103,8 +108,19 @@ static wmKeyMapItem *rna_KeyMap_item_new(wmKeyMap *km, ReportList *reports, cons
 	if (oskey) modifier |= KM_OSKEY;
 
 	if (any) modifier = KM_ANY;
-
-	return WM_keymap_add_item(km, idname_bl, type, value, modifier, keymodifier);
+	
+	/* create keymap item */
+	kmi = WM_keymap_add_item(km, idname_bl, type, value, modifier, keymodifier);
+	
+	/* [#32437] allow scripts to define hotkeys that get added to start of keymap 
+	 *          so that they stand a chance against catch-all defines later on
+	 */
+	if (head) {
+		BLI_remlink(&km->items, kmi);
+		BLI_addhead(&km->items, kmi);
+	}
+	
+	return kmi;
 }
 
 static wmKeyMapItem *rna_KeyMap_item_new_modal(wmKeyMap *km, ReportList *reports, const char *propvalue_str,
@@ -369,7 +385,7 @@ void RNA_api_macro(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
-void RNA_api_keyconfig(StructRNA *srna)
+void RNA_api_keyconfig(StructRNA *UNUSED(srna))
 {
 	/* FunctionRNA *func; */
 	/* PropertyRNA *parm; */
@@ -425,6 +441,9 @@ void RNA_api_keymapitems(StructRNA *srna)
 	RNA_def_boolean(func, "alt", 0, "Alt", "");
 	RNA_def_boolean(func, "oskey", 0, "OS Key", "");
 	RNA_def_enum(func, "key_modifier", event_type_items, 0, "Key Modifier", "");
+	RNA_def_boolean(func, "head", 0, "At Head", 
+	                "Force item to be added at start (not end) of key map so that "
+	                "it doesn't get blocked by an existing key map item");
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "Item", "Added key map item");
 	RNA_def_function_return(func, parm);
 

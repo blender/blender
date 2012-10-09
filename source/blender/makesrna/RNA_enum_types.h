@@ -38,6 +38,7 @@ extern EnumPropertyItem DummyRNA_NULL_items[];
 extern EnumPropertyItem DummyRNA_DEFAULT_items[];
 
 extern EnumPropertyItem object_mode_items[];
+extern EnumPropertyItem object_empty_drawtype_items[];
 extern EnumPropertyItem metaelem_type_items[];
 
 extern EnumPropertyItem proportional_falloff_items[];
@@ -52,10 +53,12 @@ extern EnumPropertyItem region_type_items[];
 extern EnumPropertyItem modifier_type_items[];
 extern EnumPropertyItem constraint_type_items[];
 extern EnumPropertyItem boidrule_type_items[];
+extern EnumPropertyItem sequence_modifier_type_items[];
 
 extern EnumPropertyItem image_type_items[];
 extern EnumPropertyItem image_color_mode_items[];
 extern EnumPropertyItem image_depth_mode_items[];
+extern EnumPropertyItem image_generated_type_items[];
 
 extern EnumPropertyItem color_sets_items[];
 
@@ -126,6 +129,8 @@ extern EnumPropertyItem node_filter_items[];
 extern EnumPropertyItem ramp_blend_items[];
 
 extern EnumPropertyItem prop_dynamicpaint_type_items[];
+
+extern EnumPropertyItem clip_editor_mode_items[];
 
 struct bContext;
 struct PointerRNA;

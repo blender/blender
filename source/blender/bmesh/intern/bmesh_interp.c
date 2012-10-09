@@ -45,44 +45,64 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-/**
- * \brief Data, Interp From Verts
- *
- * Interpolates per-vertex data from two sources to a target.
- */
-void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac)
+/* edge and vertex share, currently theres no need to have different logic */
+static void bm_data_interp_from_elem(CustomData *data_layer, BMElem *ele1, BMElem *ele2, BMElem *ele_dst, const float fac)
 {
-	if (v1->head.data && v2->head.data) {
+	if (ele1->head.data && ele2->head.data) {
 		/* first see if we can avoid interpolation */
 		if (fac <= 0.0f) {
-			if (v1 == v) {
+			if (ele1 == ele_dst) {
 				/* do nothing */
 			}
 			else {
-				CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
-				CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, v1->head.data, &v->head.data);
+				CustomData_bmesh_free_block(data_layer, &ele_dst->head.data);
+				CustomData_bmesh_copy_data(data_layer, data_layer, ele1->head.data, &ele_dst->head.data);
 			}
 		}
 		else if (fac >= 1.0f) {
-			if (v2 == v) {
+			if (ele2 == ele_dst) {
 				/* do nothing */
 			}
 			else {
-				CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
-				CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, v2->head.data, &v->head.data);
+				CustomData_bmesh_free_block(data_layer, &ele_dst->head.data);
+				CustomData_bmesh_copy_data(data_layer, data_layer, ele2->head.data, &ele_dst->head.data);
 			}
 		}
 		else {
 			void *src[2];
 			float w[2];
 
-			src[0] = v1->head.data;
-			src[1] = v2->head.data;
+			src[0] = ele1->head.data;
+			src[1] = ele2->head.data;
 			w[0] = 1.0f - fac;
 			w[1] = fac;
-			CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->head.data);
+			CustomData_bmesh_interp(data_layer, src, w, NULL, 2, ele_dst->head.data);
 		}
 	}
+}
+
+/**
+ * \brief Data, Interp From Verts
+ *
+ * Interpolates per-vertex data from two sources to a target.
+ *
+ * \note This is an exact match to #BM_data_interp_from_edges
+ */
+void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, const float fac)
+{
+	bm_data_interp_from_elem(&bm->vdata, (BMElem *)v1, (BMElem *)v2, (BMElem *)v, fac);
+}
+
+/**
+ * \brief Data, Interp From Edges
+ *
+ * Interpolates per-edge data from two sources to a target.
+ *
+ * \note This is an exact match to #BM_data_interp_from_verts
+ */
+void BM_data_interp_from_edges(BMesh *bm, BMEdge *e1, BMEdge *e2, BMEdge *e, const float fac)
+{
+	bm_data_interp_from_elem(&bm->edata, (BMElem *)e1, (BMElem *)e2, (BMElem *)e, fac);
 }
 
 /**
@@ -186,7 +206,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
  * \brief Multires Interpolation
  *
  * mdisps is a grid of displacements, ordered thus:
- *
+ * <pre>
  *      v1/center----v4/next -> x
  *          |           |
  *          |           |
@@ -194,6 +214,7 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
  *          |
  *          V
  *          y
+ * </pre>
  */
 static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3],
                               float e1[3], float e2[3])
@@ -236,7 +257,7 @@ static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int 
 
 		f1 = fabsf(f1);
 		f2 = fabsf(f2);
-		f1 = MIN2(f1, f2);
+		f1 = minf(f1, f2);
 		CLAMP(f1, 0.0f, 1.0f + FLT_EPSILON);
 	}
 	else {
@@ -403,7 +424,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	float axis_x[3], axis_y[3];
 	
 	/* ignore 2-edged faces */
-	if (target->f->len < 3)
+	if (UNLIKELY(target->f->len < 3))
 		return;
 	
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))

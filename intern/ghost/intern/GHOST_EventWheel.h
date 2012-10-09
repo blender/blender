@@ -39,17 +39,17 @@
  * Mouse wheel event.
  * The displacement of the mouse wheel is counted in ticks.
  * A positive value means the wheel is turned away from the user.
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * \author	Maarten Gribnau
+ * \date	May 11, 2001
  */
 class GHOST_EventWheel : public GHOST_Event
 {
 public:
 	/**
 	 * Constructor.
-	 * @param msec		The time this event was generated.
-	 * @param type		The type of this event.
-	 * @param z			The displacement of the mouse wheel.
+	 * \param msec		The time this event was generated.
+	 * \param type		The type of this event.
+	 * \param z			The displacement of the mouse wheel.
 	 */
 	GHOST_EventWheel(GHOST_TUns64 msec, GHOST_IWindow *window, GHOST_TInt32 z)
 		: GHOST_Event(msec, GHOST_kEventWheel, window)

@@ -51,14 +51,14 @@
 #include "BKE_node.h"
 #include "BKE_world.h"
 
-void BKE_world_free(World *wrld)
+void BKE_world_free_ex(World *wrld, int do_id_user)
 {
 	MTex *mtex;
 	int a;
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = wrld->mtex[a];
-		if (mtex && mtex->tex) mtex->tex->id.us--;
+		if (do_id_user && mtex && mtex->tex) mtex->tex->id.us--;
 		if (mtex) MEM_freeN(mtex);
 	}
 	BKE_previewimg_free(&wrld->preview);
@@ -67,7 +67,7 @@ void BKE_world_free(World *wrld)
 
 	/* is no lib link block, but world extension */
 	if (wrld->nodetree) {
-		ntreeFreeTree(wrld->nodetree);
+		ntreeFreeTree_ex(wrld->nodetree, do_id_user);
 		MEM_freeN(wrld->nodetree);
 	}
 
@@ -75,6 +75,10 @@ void BKE_world_free(World *wrld)
 	wrld->id.icon_id = 0;
 }
 
+void BKE_world_free(World *wrld)
+{
+	BKE_world_free_ex(wrld, TRUE);
+}
 
 World *add_world(const char *name)
 {
@@ -128,8 +132,9 @@ World *BKE_world_copy(World *wrld)
 		}
 	}
 
-	if (wrld->nodetree)
+	if (wrld->nodetree) {
 		wrldn->nodetree = ntreeCopyTree(wrld->nodetree);
+	}
 	
 	if (wrld->preview)
 		wrldn->preview = BKE_previewimg_copy(wrld->preview);

@@ -147,7 +147,26 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
 			continue;
 		}
 
-		ED_mask_layer_select_set(masklay, (action == SEL_SELECT) ? TRUE : FALSE);
+		if (action == SEL_INVERT) {
+			/* we don't have generic functions for this, its restricted to this operator
+			 * if one day we need to re-use such functionality, they can be split out */
+
+			MaskSpline *spline;
+			if (masklay->restrictflag & MASK_RESTRICT_SELECT) {
+				continue;
+			}
+			for (spline = masklay->splines.first; spline; spline = spline->next) {
+				int i;
+				for (i = 0; i < spline->tot_point; i++) {
+					MaskSplinePoint *point = &spline->points[i];
+					BKE_mask_point_select_set(point, !MASKPOINT_ISSEL_ANY(point));
+				}
+			}
+
+		}
+		else {
+			ED_mask_layer_select_set(masklay, (action == SEL_SELECT) ? TRUE : FALSE);
+		}
 	}
 }
 
@@ -343,9 +362,12 @@ static int select_exec(bContext *C, wmOperator *op)
 
 static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	float co[2];
 
-	ED_mask_mouse_pos(C, event, co);
+	ED_mask_mouse_pos(sa, ar, event->mval, co);
 
 	RNA_float_set_array(op->ptr, "location", co);
 
@@ -370,7 +392,7 @@ void MASK_OT_select(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_mouse_select(ot);
 
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
 
@@ -380,6 +402,9 @@ void MASK_OT_select(wmOperatorType *ot)
 
 static int border_select_exec(bContext *C, wmOperator *op)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	int i;
@@ -389,13 +414,10 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	int change = FALSE, mode, extend;
 
 	/* get rectangle from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 
-	ED_mask_point_pos(C, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
-	ED_mask_point_pos(C, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
+	ED_mask_point_pos(sa, ar, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+	ED_mask_point_pos(sa, ar, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
 	mode = RNA_int_get(op->ptr, "gesture_mode");
 	extend = RNA_boolean_get(op->ptr, "extend");
@@ -418,7 +440,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				/* TODO: handles? */
 				/* TODO: uw? */
 
-				if (BLI_in_rctf(&rectf, point_deform->bezt.vec[1][0], point_deform->bezt.vec[1][1])) {
+				if (BLI_rctf_isect_pt_v(&rectf, point_deform->bezt.vec[1])) {
 					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
 					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
 				}
@@ -463,8 +485,11 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
-static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, short select)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	int i;
@@ -496,11 +521,11 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 				float screen_co[2];
 
 				/* marker in screen coords */
-				ED_mask_point_pos__reverse(C,
+				ED_mask_point_pos__reverse(sa, ar,
 				                           point_deform->bezt.vec[1][0], point_deform->bezt.vec[1][1],
 				                           &screen_co[0], &screen_co[1]);
 
-				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
+				if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))
 				{
 					BKE_mask_point_select_set(point, select);
@@ -524,7 +549,7 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	int mcords_tot;
-	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
 		short select;
@@ -577,6 +602,9 @@ static int mask_spline_point_inside_ellipse(BezTriple *bezt, float offset[2], fl
 
 static int circle_select_exec(bContext *C, wmOperator *op)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	int i;
@@ -591,16 +619,15 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 	mode = RNA_int_get(op->ptr, "gesture_mode");
 
-	/* TODO - make generic! - this is SpaceClip only! */
 	/* compute ellipse and position in unified coordinates */
-	ED_space_clip_get_size(C, &width, &height);
-	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
+	ED_mask_get_size(sa, &width, &height);
+	ED_mask_zoom(sa, ar, &zoomx, &zoomy);
 	width = height = MAX2(width, height);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;
 
-	ED_mask_point_pos(C, x, y, &offset[0], &offset[1]);
+	ED_mask_point_pos(sa, ar, x, y, &offset[0], &offset[1]);
 
 	/* do actual selection */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
@@ -663,6 +690,9 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 
 static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 	MaskSpline *spline;
@@ -674,7 +704,7 @@ static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 	const float threshold = 19;
 	int change = FALSE;
 
-	ED_mask_mouse_pos(C, event, co);
+	ED_mask_mouse_pos(sa, ar, event->mval, co);
 
 	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, &is_handle, NULL);
 

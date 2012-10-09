@@ -44,6 +44,7 @@
 #include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"
@@ -273,7 +274,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 	dopesheet = &tracking->dopesheet;
 	height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
 
-	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
+	if (height > BLI_rcti_size_y(&v2d->mask)) {
 		/* don't use totrect set, as the width stays the same
 		 * (NOTE: this is ok here, the configuration is pretty straightforward)
 		 */

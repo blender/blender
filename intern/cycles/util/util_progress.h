@@ -36,12 +36,15 @@ class Progress {
 public:
 	Progress()
 	{
+		tile = 0;
 		sample = 0;
 		start_time = time_dt();
 		total_time = 0.0f;
-		sample_time = 0.0f;
+		tile_time = 0.0f;
 		status = "Initializing";
 		substatus = "";
+		sync_status = "";
+		sync_substatus = "";
 		update_cb = NULL;
 		cancel = false;
 		cancel_message = "";
@@ -57,8 +60,10 @@ public:
 	{
 		thread_scoped_lock lock(progress.progress_mutex);
 
-		progress.get_sample(sample, total_time, sample_time);
 		progress.get_status(status, substatus);
+		progress.get_tile(tile, total_time, tile_time);
+
+		sample = progress.get_sample();
 
 		return *this;
 	}
@@ -90,7 +95,7 @@ public:
 		cancel_cb = function;
 	}
 
-	/* sample and timing information */
+	/* tile and timing information */
 
 	void set_start_time(double start_time_)
 	{
@@ -99,22 +104,41 @@ public:
 		start_time = start_time_;
 	}
 
-	void set_sample(int sample_, double sample_time_)
+	void set_tile(int tile_, double tile_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		sample = sample_;
+		tile = tile_;
 		total_time = time_dt() - start_time;
-		sample_time = sample_time_;
+		tile_time = tile_time_;
 	}
 
-	void get_sample(int& sample_, double& total_time_, double& sample_time_)
+	void get_tile(int& tile_, double& total_time_, double& tile_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		sample_ = sample;
+		tile_ = tile;
 		total_time_ = (total_time > 0.0)? total_time: 0.0;
-		sample_time_ = sample_time;
+		tile_time_ = tile_time;
+	}
+
+	void reset_sample()
+	{
+		thread_scoped_lock lock(progress_mutex);
+
+		sample = 0;
+	}
+
+	void increment_sample()
+	{
+		thread_scoped_lock lock(progress_mutex);
+
+		sample++;
+	}
+
+	int get_sample()
+	{
+		return sample;
 	}
 
 	/* status messages */
@@ -142,11 +166,42 @@ public:
 		set_update();
 	}
 
+	void set_sync_status(const string& status_, const string& substatus_ = "")
+	{
+		{
+			thread_scoped_lock lock(progress_mutex);
+			sync_status = status_;
+			sync_substatus = substatus_;
+			total_time = time_dt() - start_time;
+		}
+
+		set_update();
+
+	}
+
+	void set_sync_substatus(const string& substatus_)
+	{
+		{
+			thread_scoped_lock lock(progress_mutex);
+			sync_substatus = substatus_;
+			total_time = time_dt() - start_time;
+		}
+
+		set_update();
+	}
+
 	void get_status(string& status_, string& substatus_)
 	{
 		thread_scoped_lock lock(progress_mutex);
-		status_ = status;
-		substatus_ = substatus;
+
+		if(sync_status != "") {
+			status_ = sync_status;
+			substatus_ = sync_substatus;
+		}
+		else {
+			status_ = status;
+			substatus_ = substatus;
+		}
 	}
 
 	/* callback */
@@ -170,14 +225,18 @@ protected:
 	boost::function<void(void)> update_cb;
 	boost::function<void(void)> cancel_cb;
 
-	int sample;
+	int tile;    /* counter for rendered tiles */
+	int sample;  /* counter of rendered samples, global for all tiles */
 
 	double start_time;
 	double total_time;
-	double sample_time;
+	double tile_time;
 
 	string status;
 	string substatus;
+
+	string sync_status;
+	string sync_substatus;
 
 	volatile bool cancel;
 	string cancel_message;

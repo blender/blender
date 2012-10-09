@@ -74,8 +74,6 @@
 
 #include "util_intern.h"
 
-#define MAXUNDONAME 64 /* XXX, make common define */
-
 /* ***************** generic undo system ********************* */
 
 void ED_undo_push(bContext *C, const char *str)
@@ -109,8 +107,7 @@ void ED_undo_push(bContext *C, const char *str)
 		PE_undo_push(CTX_data_scene(C), str);
 	}
 	else {
-		if (U.uiflag & USER_GLOBALUNDO) 
-			BKE_write_undo(C, str);
+		BKE_write_undo(C, str);
 	}
 	
 	if (wm->file_saved) {
@@ -129,7 +126,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 
 	/* undo during jobs are running can easily lead to freeing data using by jobs,
 	 * or they can just lead to freezing job in some other cases */
-	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C))) {
+	if (WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_ANY)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -141,7 +138,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	if (sa && (sa->spacetype == SPACE_IMAGE)) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
-		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->flag & SI_DRAWTOOL)) {
+		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname)
 				if (U.uiflag & USER_GLOBALUNDO)
 					BKE_undo_name(C, undoname);
@@ -238,7 +235,7 @@ int ED_undo_valid(const bContext *C, const char *undoname)
 	if (sa && sa->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
-		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->flag & SI_DRAWTOOL)) {
+		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			return 1;
 		}
 	}
@@ -283,7 +280,7 @@ static int ed_undo_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int ed_undo_push_exec(bContext *C, wmOperator *op)
 {
-	char str[MAXUNDONAME];
+	char str[BKE_UNDO_STR_MAX];
 	RNA_string_get(op->ptr, "message", str);
 	ED_undo_push(C, str);
 	return OPERATOR_FINISHED;
@@ -321,7 +318,7 @@ void ED_OT_undo_push(wmOperatorType *ot)
 
 	ot->flag = OPTYPE_INTERNAL;
 
-	RNA_def_string(ot->srna, "message", "Add an undo step *function may be moved*", MAXUNDONAME, "Undo Message", "");
+	RNA_def_string(ot->srna, "message", "Add an undo step *function may be moved*", BKE_UNDO_STR_MAX, "Undo Message", "");
 }
 
 void ED_OT_redo(wmOperatorType *ot)
@@ -359,7 +356,7 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 		      * (which copy their data), wont stop redo, see [#29579]],
 		      *
 		      * note, - WM_operator_check_ui_enabled() jobs test _must_ stay in sync with this */
-		     (WM_jobs_test(wm, scene) == 0))
+		     (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY) == 0))
 		{
 			int retval;
 

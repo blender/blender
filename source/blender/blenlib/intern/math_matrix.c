@@ -195,7 +195,7 @@ void mul_m3_m3m3(float m1[][3], float m3_[][3], float m2_[][3])
 	m1[2][2] = m2[2][0] * m3[0][2] + m2[2][1] * m3[1][2] + m2[2][2] * m3[2][2];
 }
 
-void mul_m4_m4m3(float (*m1)[4], float (*m3_)[4], float (*m2_)[3])
+void mul_m4_m4m3(float m1[][4], float m3_[][4], float m2_[][3])
 {
 	float m2[3][3], m3[4][4];
 
@@ -215,8 +215,14 @@ void mul_m4_m4m3(float (*m1)[4], float (*m3_)[4], float (*m2_)[3])
 }
 
 /* m1 = m2 * m3, ignore the elements on the 4th row/column of m3 */
-void mult_m3_m3m4(float m1[][3], float m3[][4], float m2[][3])
+void mult_m3_m3m4(float m1[][3], float m3_[][4], float m2_[][3])
 {
+	float m2[3][3], m3[4][4];
+
+	/* copy so it works when m1 is the same pointer as m2 or m3 */
+	copy_m3_m3(m2, m2_);
+	copy_m4_m4(m3, m3_);
+
 	/* m1[i][j] = m2[i][k] * m3[k][j] */
 	m1[0][0] = m2[0][0] * m3[0][0] + m2[0][1] * m3[1][0] + m2[0][2] * m3[2][0];
 	m1[0][1] = m2[0][0] * m3[0][1] + m2[0][1] * m3[1][1] + m2[0][2] * m3[2][1];
@@ -231,8 +237,14 @@ void mult_m3_m3m4(float m1[][3], float m3[][4], float m2[][3])
 	m1[2][2] = m2[2][0] * m3[0][2] + m2[2][1] * m3[1][2] + m2[2][2] * m3[2][2];
 }
 
-void mul_m4_m3m4(float (*m1)[4], float (*m3)[3], float (*m2)[4])
+void mul_m4_m3m4(float m1[][4], float m3_[][3], float m2_[][4])
 {
+	float m2[4][4], m3[3][3];
+
+	/* copy so it works when m1 is the same pointer as m2 or m3 */
+	copy_m4_m4(m2, m2_);
+	copy_m3_m3(m3, m3_);
+
 	m1[0][0] = m2[0][0] * m3[0][0] + m2[0][1] * m3[1][0] + m2[0][2] * m3[2][0];
 	m1[0][1] = m2[0][0] * m3[0][1] + m2[0][1] * m3[1][1] + m2[0][2] * m3[2][1];
 	m1[0][2] = m2[0][0] * m3[0][2] + m2[0][1] * m3[1][2] + m2[0][2] * m3[2][2];
@@ -1111,7 +1123,7 @@ void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3])
 	/* rotation & scale are linked, we need to create the mat's
 	 * for these together since they are related. */
 
-	/* so scale doesnt interfear with rotation [#24291] */
+	/* so scale doesn't interfere with rotation [#24291] */
 	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
 	normalize_m3_m3(mat3_n, mat3);
 	if (is_negative_m3(mat3)) {
@@ -1271,7 +1283,7 @@ int is_negative_m4(float mat[][4])
 
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
-// TODO: need to have a version that allows for rotation order...
+/* TODO: need to have a version that allows for rotation order... */
 
 void loc_eul_size_to_mat4(float mat[4][4], const float loc[3], const float eul[3], const float size[3])
 {

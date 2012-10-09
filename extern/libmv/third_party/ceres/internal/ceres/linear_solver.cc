@@ -30,13 +30,14 @@
 
 #include "ceres/linear_solver.h"
 
-#include <glog/logging.h>
 #include "ceres/cgnr_solver.h"
+#include "ceres/dense_normal_cholesky_solver.h"
 #include "ceres/dense_qr_solver.h"
 #include "ceres/iterative_schur_complement_solver.h"
 #include "ceres/schur_complement_solver.h"
 #include "ceres/sparse_normal_cholesky_solver.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -50,22 +51,24 @@ LinearSolver* LinearSolver::Create(const LinearSolver::Options& options) {
       return new CgnrSolver(options);
 
     case SPARSE_NORMAL_CHOLESKY:
-#ifndef CERES_NO_SUITESPARSE
-      return new SparseNormalCholeskySolver(options);
-#else
+#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE)
       LOG(WARNING) << "SPARSE_NORMAL_CHOLESKY is not available. Please "
-                   << "build Ceres with SuiteSparse. Returning NULL.";
+                   << "build Ceres with SuiteSparse or CXSparse. "
+                   << "Returning NULL.";
       return NULL;
-#endif  // CERES_NO_SUITESPARSE
+#else
+      return new SparseNormalCholeskySolver(options);
+#endif
 
     case SPARSE_SCHUR:
-#ifndef CERES_NO_SUITESPARSE
-      return new SparseSchurComplementSolver(options);
-#else
+#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE)
       LOG(WARNING) << "SPARSE_SCHUR is not available. Please "
-                   << "build Ceres with SuiteSparse. Returning NULL.";
+                   << "build Ceres with SuiteSparse or CXSparse. "
+                   << "Returning NULL.";
       return NULL;
-#endif  // CERES_NO_SUITESPARSE
+#else
+      return new SparseSchurComplementSolver(options);
+#endif
 
     case DENSE_SCHUR:
       return new DenseSchurComplementSolver(options);
@@ -76,10 +79,13 @@ LinearSolver* LinearSolver::Create(const LinearSolver::Options& options) {
     case DENSE_QR:
       return new DenseQRSolver(options);
 
+    case DENSE_NORMAL_CHOLESKY:
+      return new DenseNormalCholeskySolver(options);
+
     default:
       LOG(FATAL) << "Unknown linear solver type :"
                  << options.type;
-	  return NULL;  // MSVC doesn't understand that LOG(FATAL) never returns.
+      return NULL;  // MSVC doesn't understand that LOG(FATAL) never returns.
   }
 }
 

@@ -21,12 +21,11 @@
  *		Sergey Sharybin
  */
 
-
 #ifndef _COM_MaskOperation_h
 #define _COM_MaskOperation_h
 
+
 #include "COM_NodeOperation.h"
-#include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 #include "BLI_listbase.h"
 #include "IMB_imbuf_types.h"
@@ -37,18 +36,27 @@
 class MaskOperation : public NodeOperation {
 protected:
 	Mask *m_mask;
-	int m_maskWidth;
-	int m_maskHeight;
-	int m_framenumber;
+
+	/* note, these are used more like aspect,
+	 * but they _do_ impact on mask detail */
+	int   m_maskWidth;
+	int   m_maskHeight;
+	float m_maskWidthInv;  /* 1 / m_maskWidth  */
+	float m_maskHeightInv; /* 1 / m_maskHeight */
+
+	float m_frame_shutter;
+	int   m_frame_number;
+
 	bool m_do_smooth;
 	bool m_do_feather;
-	float *m_rasterizedMask;
-	ListBase m_maskLayers;
+
+	struct MaskRasterHandle *m_rasterMaskHandles[CMP_NODE_MASK_MBLUR_SAMPLES_MAX];
+	unsigned int             m_rasterMaskHandleTot;
 
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 
 public:
 	MaskOperation();
@@ -56,16 +64,26 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
 	void setMask(Mask *mask) { this->m_mask = mask; }
-	void setMaskWidth(int width) { this->m_maskWidth = width; }
-	void setMaskHeight(int height) { this->m_maskHeight = height; }
-	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
+	void setMaskWidth(int width)
+	{
+		this->m_maskWidth    = width;
+		this->m_maskWidthInv = 1.0f / (float)width;
+	}
+	void setMaskHeight(int height)
+	{
+		this->m_maskHeight = height;
+		this->m_maskHeightInv = 1.0f / (float)height;
+	}
+	void setFramenumber(int frame_number) { this->m_frame_number = frame_number; }
 	void setSmooth(bool smooth) { this->m_do_smooth = smooth; }
 	void setFeather(bool feather) { this->m_do_feather = feather; }
 
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	void setMotionBlurSamples(int samples) { this->m_rasterMaskHandleTot = min(max(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX); }
+	void setMotionBlurShutter(float shutter) { this->m_frame_shutter = shutter; }
+
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

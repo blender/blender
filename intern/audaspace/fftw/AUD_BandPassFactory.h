@@ -84,7 +84,7 @@ public:
 	 * Sets the highest passed frequency.
 	 * \param high The highest passed frequency.
 	 */
-	void setHigh(float hight);
+	void setHigh(float high);
 
 	virtual AUD_IReader* createReader();
 };

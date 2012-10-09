@@ -147,7 +147,7 @@ void RAS_MeshSlot::begin(RAS_MeshSlot::iterator& it)
 	int startvertex, endvertex;
 	int startindex, endindex;
 
-	it.array = (m_displayArrays.size() > 0)? m_displayArrays[m_startarray]: NULL;
+	it.array = m_displayArrays.empty() ? NULL : m_displayArrays[m_startarray];
 
 	if (it.array == NULL || it.array->m_index.size() == 0 || it.array->m_vertex.size() == 0) {
 		it.array = NULL;
@@ -368,7 +368,7 @@ bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 	size_t i;
 
 	// verify if we can join
-	if (m_joinSlot || m_joinedSlots.size() || target->m_joinSlot)
+	if (m_joinSlot || (m_joinedSlots.empty() == false) || target->m_joinSlot)
 		return false;
 
 	if (!Equals(target))
@@ -461,7 +461,7 @@ bool RAS_MeshSlot::Split(bool force)
 				abort();
 		}
 
-		if (target->m_displayArrays.size()) {
+		if (target->m_displayArrays.empty() == false) {
 			target->m_endvertex = target->m_displayArrays.back()->m_vertex.size();
 			target->m_endindex = target->m_displayArrays.back()->m_index.size();
 		}
@@ -489,7 +489,7 @@ bool RAS_MeshSlot::Split(bool force)
 }
 
 
-#ifdef USE_SPLIT	
+#ifdef USE_SPLIT
 bool RAS_MeshSlot::IsCulled()
 {
 	if (m_joinSlot)
@@ -502,7 +502,7 @@ bool RAS_MeshSlot::IsCulled()
 			return false;
 	return true;
 }
-#endif	
+#endif
 
 /* material bucket sorting */
 
@@ -531,12 +531,12 @@ RAS_IPolyMaterial* RAS_MaterialBucket::GetPolyMaterial() const
 }
 
 bool RAS_MaterialBucket::IsAlpha() const
-{	
+{
 	return (m_material->IsAlpha());
 }
 
 bool RAS_MaterialBucket::IsZSort() const
-{	
+{
 	return (m_material->IsZSort());
 }
 

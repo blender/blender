@@ -213,7 +213,7 @@ extern "C" {
 	
 	switch (m_draggedObjectType) {
 		case GHOST_kDragnDropTypeBitmap:
-			if([NSImage canInitWithPasteboard:draggingPBoard]) {
+			if ([NSImage canInitWithPasteboard:draggingPBoard]) {
 				droppedImg = [[NSImage alloc]initWithPasteboard:draggingPBoard];
 				data = droppedImg; //[draggingPBoard dataForType:NSTIFFPboardType];
 			}
@@ -244,8 +244,8 @@ extern "C" {
 	GHOST_SystemCocoa *systemCocoa;
 	GHOST_WindowCocoa *associatedWindow;
 
-       bool composing;
-       NSString *composing_text;
+	bool composing;
+	NSString *composing_text;
 }
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 @end
@@ -256,34 +256,35 @@ extern "C" {
 	systemCocoa = sysCocoa;
 	associatedWindow = winCocoa;
 
-       composing = false;
-       composing_text = nil;
+	composing = false;
+	composing_text = nil;
 }
 
 - (BOOL)acceptsFirstResponder
 {
-    return YES;
+	return YES;
 }
 
 // The trick to prevent Cocoa from complaining (beeping)
 - (void)keyDown:(NSEvent *)event
 {
-       // Start or continue composing?
-       if([[event characters] length] == 0  ||
-          [[event charactersIgnoringModifiers] length] == 0 ||
-          composing) {
-               composing = YES;
- 
-               // interpret event to call insertText
-               NSMutableArray *events;
-               events = [[NSMutableArray alloc] initWithCapacity:1];
-               [events addObject:event];
-               [self interpretKeyEvents:events]; // calls insertText
-               [events removeObject:event];
-               [events release];
+	/* Start or continue composing? */
+	if ([[event characters] length] == 0  ||
+	    [[event charactersIgnoringModifiers] length] == 0 ||
+	    composing)
+	{
+		composing = YES;
 
-               return;
-       }
+		// interpret event to call insertText
+		NSMutableArray *events;
+		events = [[NSMutableArray alloc] initWithCapacity:1];
+		[events addObject:event];
+		[self interpretKeyEvents:events]; // calls insertText
+		[events removeObject:event];
+		[events release];
+
+		return;
+	}
 }
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
@@ -314,62 +315,60 @@ extern "C" {
 
 - (BOOL)isOpaque
 {
-    return YES;
+	return YES;
 }
 
 - (void) drawRect:(NSRect)rect
 {
-    if ([self inLiveResize])
-    {
-        //Don't redraw while in live resize
-    }
-    else
-    {
-        [super drawRect:rect];
-        systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
-    }
+	if ([self inLiveResize]) {
+		/* Don't redraw while in live resize */
+	}
+	else {
+		[super drawRect:rect];
+		systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
+	}
 }
 
 // Text input
 
 - (void)composing_free
 {
-       composing = NO;
+	composing = NO;
 
-       if(composing_text) {
-               [composing_text release];
-               composing_text = nil;
-       }
+	if (composing_text) {
+		[composing_text release];
+		composing_text = nil;
+	}
 }
 
 - (void)insertText:(id)chars
 {
-       [self composing_free];
+	[self composing_free];
 }
 
 - (void)setMarkedText:(id)chars selectedRange:(NSRange)range
 {
-       [self composing_free];
-       if([chars length] == 0)
-               return;
-       
-       // start composing
-       composing = YES;
-       composing_text = [chars copy];
+	[self composing_free];
+	if ([chars length] == 0)
+		return;
 
-       // if empty, cancel
-       if([composing_text length] == 0)
-               [self composing_free];
+	// start composing
+	composing = YES;
+	composing_text = [chars copy];
+
+	// if empty, cancel
+	if ([composing_text length] == 0)
+		[self composing_free];
 }
 
 - (void)unmarkText
 {
-       [self composing_free];
+	[self composing_free];
 }
 
 - (BOOL)hasMarkedText
 {
-       return (composing)? YES: NO;
+	return (composing)? YES: NO;
 }
 
 - (void)doCommandBySelector:(SEL)selector
@@ -378,48 +377,48 @@ extern "C" {
 
 - (BOOL)isComposing
 {
-       return composing;
+	return composing;
 }
 
 - (NSInteger)conversationIdentifier
 {
-       return (NSInteger)self;
+	return (NSInteger)self;
 }
 
 - (NSAttributedString *)attributedSubstringFromRange:(NSRange)range
 {
-       return [NSAttributedString new]; // XXX does this leak?
+	return [NSAttributedString new]; // XXX does this leak?
 }
 
 - (NSRange)markedRange
 {
-       unsigned int length = (composing_text)? [composing_text length]: 0;
+	unsigned int length = (composing_text)? [composing_text length]: 0;
 
-       if(composing)
-               return NSMakeRange(0, length);
+	if (composing)
+		return NSMakeRange(0, length);
 
-       return NSMakeRange(NSNotFound, 0);
+	return NSMakeRange(NSNotFound, 0);
 }
 
 - (NSRange)selectedRange
 {
-       unsigned int length = (composing_text)? [composing_text length]: 0;
-       return NSMakeRange(0, length);
+	unsigned int length = (composing_text)? [composing_text length]: 0;
+	return NSMakeRange(0, length);
 }
 
 - (NSRect)firstRectForCharacterRange:(NSRange)range
 {
-       return NSZeroRect;
+	return NSZeroRect;
 }
 
 - (NSUInteger)characterIndexForPoint:(NSPoint)point
 {
-       return NSNotFound;
+	return NSNotFound;
 }
 
 - (NSArray*)validAttributesForMarkedText
 {
-       return [NSArray array]; // XXX does this leak?
+	return [NSArray array]; // XXX does this leak?
 }
 
 @end
@@ -487,7 +486,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore; 
 	
 	// Force software OpenGL, for debugging
-	if(getenv("BLENDER_SOFTWAREGL")) {
+	if (getenv("BLENDER_SOFTWAREGL")) {
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFARendererID;
 		pixelFormatAttrsWindow[i++] = kCGLRendererGenericID;
 	}
@@ -502,7 +501,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
 	
-	if (numOfAASamples>0) {
+	if (numOfAASamples > 0) {
 		// Multisample anti-aliasing
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFAMultisample;
 		
@@ -530,7 +529,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore;
 		
 		// Force software OpenGL, for debugging
-		if(getenv("BLENDER_SOFTWAREGL")) {
+		if (getenv("BLENDER_SOFTWAREGL")) {
 			pixelFormatAttrsWindow[i++] = NSOpenGLPFARendererID;
 			pixelFormatAttrsWindow[i++] = kCGLRendererGenericID;
 		}
@@ -550,7 +549,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		
 	}
 	
-	if (numOfAASamples>0) { //Set m_numOfAASamples to the actual value
+	if (numOfAASamples > 0) { //Set m_numOfAASamples to the actual value
 		GLint gli;
 		[pixelFormat getValues:&gli forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
 		if (m_numOfAASamples != (GHOST_TUns16)gli) {
@@ -600,7 +599,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 
 GHOST_WindowCocoa::~GHOST_WindowCocoa()
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	if (m_customCursor) {
 		[m_customCursor release];
@@ -638,14 +637,13 @@ void* GHOST_WindowCocoa::getOSWindow() const
 
 void GHOST_WindowCocoa::setTitle(const STR_String& title)
 {
-    GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setTitle(): window invalid")
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	NSString *windowTitle = [[NSString alloc] initWithCString:title encoding:NSUTF8StringEncoding];
 	
 	//Set associated file if applicable
-	if (windowTitle && [windowTitle hasPrefix:@"Blender"])
-	{
+	if (windowTitle && [windowTitle hasPrefix:@"Blender"]) {
 		NSRange fileStrRange;
 		NSString *associatedFileName;
 		int len;
@@ -653,8 +651,7 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
 		fileStrRange.location = [windowTitle rangeOfString:@"["].location+1;
 		len = [windowTitle rangeOfString:@"]"].location - fileStrRange.location;
 	
-		if (len >0)
-		{
+		if (len > 0) {
 			fileStrRange.length = len;
 			associatedFileName = [windowTitle substringWithRange:fileStrRange];
 			[m_window setTitle:[associatedFileName lastPathComponent]];
@@ -673,7 +670,8 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
 			[m_window setRepresentedFilename:@""];
 		}
 
-	} else {
+	}
+	else {
 		[m_window setTitle:windowTitle];
 		[m_window setRepresentedFilename:@""];
 	}
@@ -686,14 +684,14 @@ void GHOST_WindowCocoa::setTitle(const STR_String& title)
 
 void GHOST_WindowCocoa::getTitle(STR_String& title) const
 {
-    GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getTitle(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::getTitle(): window invalid")
 
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	NSString *windowTitle = [m_window title];
 
 	if (windowTitle != nil) {
-		title = [windowTitle UTF8String];		
+		title = [windowTitle UTF8String];
 	}
 	
 	[pool drain];
@@ -727,8 +725,7 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect& bounds) const
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
-	if (!m_fullScreen)
-	{
+	if (!m_fullScreen) {
 		NSRect screenSize = [[m_window screen] visibleFrame];
 
 		//Max window contents as screen size (excluding title bar...)
@@ -794,8 +791,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientSize(GHOST_TUns32 width, GHOST_TUns32
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
-	if ((((GHOST_TUns32)cBnds.getWidth()) != width) ||
-	    (((GHOST_TUns32)cBnds.getHeight()) != height)) {
+	if ((((GHOST_TUns32)cBnds.getWidth())  != width) ||
+	    (((GHOST_TUns32)cBnds.getHeight()) != height))
+	{
 		NSSize size;
 		size.width=width;
 		size.height=height;
@@ -889,35 +887,36 @@ NSScreen* GHOST_WindowCocoa::getScreen()
 
 
 /**
- * @note Fullscreen switch is not actual fullscreen with display capture. As this capture removes all OS X window manager features.
+ * \note Fullscreen switch is not actual fullscreen with display capture.
+ * As this capture removes all OS X window manager features.
+ *
  * Instead, the menu bar and the dock are hidden, and the window is made borderless and enlarged.
  * Thus, process switch, exposé, spaces, ... still work in fullscreen mode
  */
 GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setState(): window invalid")
-    switch (state) {
+	switch (state) {
 		case GHOST_kWindowStateMinimized:
-            [m_window miniaturize:nil];
-            break;
+			[m_window miniaturize:nil];
+			break;
 		case GHOST_kWindowStateMaximized:
 			[m_window zoom:nil];
 			break;
 		
 		case GHOST_kWindowStateFullScreen:
-			if (!m_fullScreen)
-			{
+			if (!m_fullScreen) {
 				NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			
-				//This status change needs to be done before Cocoa call to enter fullscreen mode
-				//to give window delegate hint not to forward its deactivation to ghost wm that doesn't know view/window difference
+				/* This status change needs to be done before Cocoa call to enter fullscreen mode
+				 * to give window delegate hint not to forward its deactivation to ghost wm that
+				 * doesn't know view/window difference. */
 				m_fullScreen = true;
 
 #ifdef MAC_OS_X_VERSION_10_6
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
 				//Hide menu & dock if needed
-				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]])
-				{
+				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
 					[NSApp setPresentationOptions:(NSApplicationPresentationHideDock | NSApplicationPresentationAutoHideMenuBar)];
 				}
 				//Make window borderless and enlarge it
@@ -927,8 +926,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 #else
 				//With 10.5, we need to create a new window to change its style to borderless
 				//Hide menu & dock if needed
-				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]])
-				{
+				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
 					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:NO];
 					//One of the very few 64bit compatible Carbon function
 					SetSystemUIMode(kUIModeAllHidden,kUIOptionAutoShowMenuBar);
@@ -947,7 +945,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow setDelegate:[m_window delegate]];
 				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
 				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
-												   NSStringPboardType, NSTIFFPboardType, nil]];
+				                                    NSStringPboardType, NSTIFFPboardType, nil]];
 				
 				//Assign the openGL view to the new window
 				[tmpWindow setContentView:m_openGLView];
@@ -968,17 +966,15 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				}
 			break;
 		case GHOST_kWindowStateNormal:
-        default:
+		default:
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-			if (m_fullScreen)
-			{
+			if (m_fullScreen) {
 				m_fullScreen = false;
 
 				//Exit fullscreen
 #ifdef MAC_OS_X_VERSION_10_6
 				//Show again menu & dock if needed
-				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
-				{
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]]) {
 					[NSApp setPresentationOptions:NSApplicationPresentationDefault];
 				}
 				//Make window normal and resize it
@@ -989,8 +985,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 #else
 				//With 10.5, we need to create a new window to change its style to borderless
 				//Show menu & dock if needed
-				if ([[m_window screen] isEqual:[NSScreen mainScreen]])
-				{
+				if ([[m_window screen] isEqual:[NSScreen mainScreen]]) {
 					//Cocoa function in 10.5 does not allow to set the menu bar in auto-show mode [NSMenu setMenuBarVisible:YES];
 					SetSystemUIMode(kUIModeNormal, 0); //One of the very few 64bit compatible Carbon function
 				}
@@ -1027,15 +1022,15 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Tell WM of view new size
 				m_systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, this);
 			}
-            else if ([m_window isMiniaturized])
+			else if ([m_window isMiniaturized])
 				[m_window deminiaturize:nil];
 			else if ([m_window isZoomed])
 				[m_window zoom:nil];
 			[pool drain];
-            break;
-    }
+			break;
+	}
 
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::setModifiedState(bool isUnsavedChanges)
@@ -1055,10 +1050,10 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setOrder(): window invalid")
-    if (order == GHOST_kWindowOrderTop) {
+	if (order == GHOST_kWindowOrderTop) {
 		[m_window makeKeyAndOrderFront:nil];
-    }
-    else {
+	}
+	else {
 		NSArray *windowsList;
 		
 		[m_window orderBack:nil];
@@ -1068,10 +1063,10 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 		if ([windowsList count]) {
 			[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
 		}
-    }
+	}
 	
 	[pool drain];
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
 #pragma mark Drawing context
@@ -1080,15 +1075,15 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 
 GHOST_TSuccess GHOST_WindowCocoa::swapBuffers()
 {
-    if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
-        if (m_openGLContext != nil) {
+	if (m_drawingContextType == GHOST_kDrawingContextTypeOpenGL) {
+		if (m_openGLContext != nil) {
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext flushBuffer];
 			[pool drain];
-            return GHOST_kSuccess;
-        }
-    }
-    return GHOST_kFailure;
+			return GHOST_kSuccess;
+		}
+	}
+	return GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_WindowCocoa::updateDrawingContext()
@@ -1150,7 +1145,7 @@ GHOST_TSuccess GHOST_WindowCocoa::installDrawingContext(GHOST_TDrawingContextTyp
 			/******* Multithreaded opengl code : uncomment for enabling
 			cglCtx = (CGLContextObj)[tmpOpenGLContext CGLContextObj];
 			if (CGLEnable(cglCtx, kCGLCEMPEngine) == kCGLNoError)
-				printf("\nSwitched openGL to multithreaded mode");
+				printf("\nSwitched openGL to multithreaded mode\n");
 			 */
 			
 			if (!s_firstOpenGLcontext) s_firstOpenGLcontext = tmpOpenGLContext;
@@ -1184,8 +1179,7 @@ GHOST_TSuccess GHOST_WindowCocoa::removeDrawingContext()
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	switch (m_drawingContextType) {
 		case GHOST_kDrawingContextTypeOpenGL:
-			if (m_openGLContext)
-			{
+			if (m_openGLContext) {
 				[m_openGLView clearGLContext];
 				if (s_firstOpenGLcontext == m_openGLContext) s_firstOpenGLcontext = nil;
 				m_openGLContext = nil;
@@ -1222,22 +1216,24 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 		NSImage* dockIcon = [[NSImage alloc] initWithSize:NSMakeSize(128,128)];
 		
 		[dockIcon lockFocus];
-        NSRect progressBox = {{4, 4}, {120, 16}};
+		NSRect progressBox = {{4, 4}, {120, 16}};
 
-        [[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
-        
-        // Track & Outline
-        [[NSColor blackColor] setFill];
-        NSRectFill(progressBox);
-        
-        [[NSColor whiteColor] set];
-        NSFrameRect(progressBox);
-        
-        // Progress fill
-        progressBox = NSInsetRect(progressBox, 1, 1);
-        [[NSColor knobColor] setFill];
-        progressBox.size.width = progressBox.size.width * progress;
+		[[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+
+		// Track & Outline
+		[[NSColor blackColor] setFill];
 		NSRectFill(progressBox);
+
+		[[NSColor whiteColor] set];
+		NSFrameRect(progressBox);
+
+		// Progress fill
+		progressBox = NSInsetRect(progressBox, 1, 1);
+
+		progressBox.size.width = progressBox.size.width * progress;
+		NSGradient *gradient = [[NSGradient alloc] initWithStartingColor:[NSColor darkGrayColor] endingColor:[NSColor lightGrayColor]];
+		[gradient drawInRect:progressBox angle:90];
+		[gradient release];
 		
 		[dockIcon unlockFocus];
 		
@@ -1293,7 +1289,8 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 
 	if (cursor == GHOST_kStandardCursorCustom && m_customCursor) {
 		tmpCursor = m_customCursor;
-	} else {
+	}
+	else {
 		switch (cursor) {
 			case GHOST_kStandardCursorDestroy:
 				tmpCursor = [NSCursor disappearingItemCursor];
@@ -1362,10 +1359,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 {
 	GHOST_TSuccess err = GHOST_kSuccess;
 	
-	if (mode != GHOST_kGrabDisable)
-	{
+	if (mode != GHOST_kGrabDisable) {
 		//No need to perform grab without warp as it is always on in OS X
-		if(mode != GHOST_kGrabNormal) {
+		if (mode != GHOST_kGrabNormal) {
 			GHOST_TInt32 x_old,y_old;
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -1374,7 +1370,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 			//Warp position is stored in client (window base) coordinates
 			setCursorGrabAccum(0, 0);
 			
-			if(mode == GHOST_kGrabHide) {
+			if (mode == GHOST_kGrabHide) {
 				setWindowCursorVisibility(false);
 			}
 			
@@ -1388,8 +1384,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 		}
 	}
 	else {
-		if(m_cursorGrab==GHOST_kGrabHide)
-		{
+		if (m_cursorGrab==GHOST_kGrabHide) {
 			//No need to set again cursor position, as it has not changed for Cocoa
 			setWindowCursorVisibility(true);
 		}
@@ -1422,9 +1417,9 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor sha
 /** Reverse the bits in a GHOST_TUns8
 static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 {
-	ch= ((ch>>1)&0x55) | ((ch<<1)&0xAA);
-	ch= ((ch>>2)&0x33) | ((ch<<2)&0xCC);
-	ch= ((ch>>4)&0x0F) | ((ch<<4)&0xF0);
+	ch= ((ch >> 1) & 0x55) | ((ch << 1) & 0xAA);
+	ch= ((ch >> 2) & 0x33) | ((ch << 2) & 0xCC);
+	ch= ((ch >> 4) & 0x0F) | ((ch << 4) & 0xF0);
 	return ch;
 }
 */
@@ -1433,10 +1428,10 @@ static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 /** Reverse the bits in a GHOST_TUns16 */
 static GHOST_TUns16 uns16ReverseBits(GHOST_TUns16 shrt)
 {
-	shrt= ((shrt>>1)&0x5555) | ((shrt<<1)&0xAAAA);
-	shrt= ((shrt>>2)&0x3333) | ((shrt<<2)&0xCCCC);
-	shrt= ((shrt>>4)&0x0F0F) | ((shrt<<4)&0xF0F0);
-	shrt= ((shrt>>8)&0x00FF) | ((shrt<<8)&0xFF00);
+	shrt = ((shrt >> 1) & 0x5555) | ((shrt << 1) & 0xAAAA);
+	shrt = ((shrt >> 2) & 0x3333) | ((shrt << 2) & 0xCCCC);
+	shrt = ((shrt >> 4) & 0x0F0F) | ((shrt << 4) & 0xF0F0);
+	shrt = ((shrt >> 8) & 0x00FF) | ((shrt << 8) & 0xFF00);
 	return shrt;
 }
 

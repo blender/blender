@@ -83,10 +83,14 @@ void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	}
 	
 	if (operation != NULL) {
+		bool useClamp = this->getbNode()->custom2;
+
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-	
+
+		operation->setUseClamp(useClamp);
+
 		graph->addOperation(operation);
 	}
 }

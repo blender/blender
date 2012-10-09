@@ -106,7 +106,7 @@ public:
 
 	/* modification state */
 	bool				MeshModified();
-	void				SetMeshModified(bool v){m_bMeshModified = v;}
+	void				SetMeshModified(bool v) { m_bMeshModified = v; }
 
 	/* original blender mesh */
 	Mesh*				GetMesh() { return m_mesh; }

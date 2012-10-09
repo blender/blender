@@ -37,8 +37,8 @@ void   BM_mesh_clear(BMesh *bm);
 
 void BM_mesh_normals_update(BMesh *bm, const short skip_hidden);
 
-void bmesh_edit_begin(BMesh *bm, int flag);
-void bmesh_edit_end(BMesh *bm, int flag);
+void bmesh_edit_begin(BMesh *bm, int type_flag);
+void bmesh_edit_end(BMesh *bm, int type_flag);
 
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag);
 void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *func,

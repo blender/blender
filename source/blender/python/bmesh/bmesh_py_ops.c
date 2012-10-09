@@ -42,6 +42,8 @@
 
 #include "bmesh.h"
 
+#include "bmesh_py_ops.h"  /* own include */
+
 #include "bmesh_py_types.h"
 
 #include "bmesh_py_utils.h" /* own include */
@@ -69,7 +71,7 @@ typedef struct {
 	const char *opname;
 } BPy_BMeshOpFunc;
 
-PyObject *bpy_bmesh_op_CreatePyObject(const char *opname)
+static PyObject *bpy_bmesh_op_CreatePyObject(const char *opname)
 {
 	BPy_BMeshOpFunc *self = PyObject_New(BPy_BMeshOpFunc, &bmesh_op_Type);
 
@@ -109,7 +111,8 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 	}
 
 	/* TODO - error check this!, though we do the error check on attribute access */
-	BMO_op_init(bm, &bmop, self->opname);
+	/* TODO - make flags optional */
+	BMO_op_init(bm, &bmop, BMO_FLAG_DEFAULTS, self->opname);
 
 	if (kw && PyDict_Size(kw) > 0) {
 		/* setup properties, see bpy_rna.c: pyrna_py_to_prop()
@@ -419,7 +422,7 @@ static PyObject *bpy_bmesh_fmod_getattro(PyObject *UNUSED(self), PyObject *pynam
 	}
 
 	PyErr_Format(PyExc_AttributeError,
-	             "BMeshOpsModule: , operator \"%.200s\" doesn't exist",
+	             "BMeshOpsModule: operator \"%.200s\" doesn't exist",
 	             name);
 	return NULL;
 }

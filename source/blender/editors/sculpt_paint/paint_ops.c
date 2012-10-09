@@ -584,27 +584,29 @@ static void ed_keymap_paint_brush_radial_control(wmKeyMap *keymap, const char *p
                                                  RCFlags flags)
 {
 	wmKeyMapItem *kmi;
+	/* only size needs to follow zoom, strength shows fixed size circle */
+	int flags_nozoom = flags & (~RC_ZOOM);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, 0, 0);
 	set_brush_rc_props(kmi->ptr, paint, "size", "use_unified_size", flags);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
-	set_brush_rc_props(kmi->ptr, paint, "strength", "use_unified_strength", flags);
+	set_brush_rc_props(kmi->ptr, paint, "strength", "use_unified_strength", flags_nozoom);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", WKEY, KM_PRESS, 0, 0);
-	set_brush_rc_props(kmi->ptr, paint, "weight", "use_unified_weight", flags);
+	set_brush_rc_props(kmi->ptr, paint, "weight", "use_unified_weight", flags_nozoom);
 
 	if (flags & RC_ROTATION) {
 		kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);
-		set_brush_rc_props(kmi->ptr, paint, "texture_slot.angle", NULL, flags);
+		set_brush_rc_props(kmi->ptr, paint, "texture_slot.angle", NULL, flags_nozoom);
 	}
 }
 
-void paint_partial_visibility_keys(wmKeyMap *keymap)
+static void paint_partial_visibility_keys(wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
 	
-	/* Partial visiblity */
+	/* Partial visibility */
 	kmi = WM_keymap_add_item(keymap, "PAINT_OT_hide_show", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", PARTIALVIS_SHOW);
 	RNA_enum_set(kmi->ptr, "area", PARTIALVIS_INSIDE);
@@ -624,7 +626,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	
 	/* Sculpt mode */
 	keymap = WM_keymap_find(keyconf, "Sculpt", 0, 0);
-	keymap->poll = sculpt_poll;
+	keymap->poll = sculpt_mode_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0,        0)->ptr, "mode", BRUSH_STROKE_NORMAL);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL,  0)->ptr, "mode", BRUSH_STROKE_INVERT);

@@ -189,8 +189,8 @@ static void BB_expand(BB *bb, float co[3])
 {
 	int i;
 	for (i = 0; i < 3; ++i) {
-		bb->bmin[i] = MIN2(bb->bmin[i], co[i]);
-		bb->bmax[i] = MAX2(bb->bmax[i], co[i]);
+		bb->bmin[i] = minf(bb->bmin[i], co[i]);
+		bb->bmax[i] = maxf(bb->bmax[i], co[i]);
 	}
 }
 
@@ -199,8 +199,8 @@ static void BB_expand_with_bb(BB *bb, BB *bb2)
 {
 	int i;
 	for (i = 0; i < 3; ++i) {
-		bb->bmin[i] = MIN2(bb->bmin[i], bb2->bmin[i]);
-		bb->bmax[i] = MAX2(bb->bmax[i], bb2->bmax[i]);
+		bb->bmin[i] = minf(bb->bmin[i], bb2->bmin[i]);
+		bb->bmax[i] = maxf(bb->bmax[i], bb2->bmax[i]);
 	}
 }
 
@@ -260,12 +260,12 @@ static void update_node_vb(PBVH *bvh, PBVHNode *node)
 	node->vb = vb;
 }
 
-//void BLI_pbvh_node_BB_reset(PBVHNode* node)
+//void BLI_pbvh_node_BB_reset(PBVHNode *node)
 //{
 //	BB_reset(&node->vb);
 //}
 //
-//void BLI_pbvh_node_BB_expand(PBVHNode* node, float co[3])
+//void BLI_pbvh_node_BB_expand(PBVHNode *node, float co[3])
 //{
 //	BB_expand(&node->vb, co);
 //}
@@ -487,7 +487,7 @@ static void build_leaf(PBVH *bvh, int node_index, BBC *prim_bbc,
 
 /* Return zero if all primitives in the node can be drawn with the
  * same material (including flat/smooth shading), non-zerootherwise */
-int leaf_needs_material_split(PBVH *bvh, int offset, int count)
+static int leaf_needs_material_split(PBVH *bvh, int offset, int count)
 {
 	int i, prim;
 
@@ -663,7 +663,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
 	bvh->totgrid = totgrid;
 	bvh->gridkey = *key;
 	bvh->grid_hidden = grid_hidden;
-	bvh->leaf_limit = MAX2(LEAF_LIMIT / ((gridsize - 1) * (gridsize - 1)), 1);
+	bvh->leaf_limit = maxi(LEAF_LIMIT / ((gridsize - 1) * (gridsize - 1)), 1);
 
 	BB_reset(&cb);
 
@@ -1424,56 +1424,21 @@ void BLI_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *pro
 /********************************* Raycast ***********************************/
 
 typedef struct {
-	/* Ray */
-	float start[3];
-	int sign[3];
-	float inv_dir[3];
+	IsectRayAABBData ray;
 	int original;
 } RaycastData;
 
-/* Adapted from here: http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
 static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 {
-	RaycastData *ray = data_v;
-	float bbox[2][3];
-	float tmin, tmax, tymin, tymax, tzmin, tzmax;
+	RaycastData *rcd = data_v;
+	float bb_min[3], bb_max[3];
 
-	if (ray->original)
-		BLI_pbvh_node_get_original_BB(node, bbox[0], bbox[1]);
+	if (rcd->original)
+		BLI_pbvh_node_get_original_BB(node, bb_min, bb_max);
 	else
-		BLI_pbvh_node_get_BB(node, bbox[0], bbox[1]);
+		BLI_pbvh_node_get_BB(node, bb_min, bb_max);
 
-	tmin = (bbox[ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
-	tmax = (bbox[1 - ray->sign[0]][0] - ray->start[0]) * ray->inv_dir[0];
-
-	tymin = (bbox[ray->sign[1]][1] - ray->start[1]) * ray->inv_dir[1];
-	tymax = (bbox[1 - ray->sign[1]][1] - ray->start[1]) * ray->inv_dir[1];
-
-	if ((tmin > tymax) || (tymin > tmax))
-		return 0;
-
-	if (tymin > tmin)
-		tmin = tymin;
-
-	if (tymax < tmax)
-		tmax = tymax;
-
-	tzmin = (bbox[ray->sign[2]][2] - ray->start[2]) * ray->inv_dir[2];
-	tzmax = (bbox[1 - ray->sign[2]][2] - ray->start[2]) * ray->inv_dir[2];
-
-	if ((tmin > tzmax) || (tzmin > tmax))
-		return 0;
-
-	if (tzmin > tmin)
-		tmin = tzmin;
-
-	// XXX jwilkins: tmax does not need to be updated since we don't use it
-	// keeping this here for future reference
-	//if (tzmax < tmax) tmax = tzmax; 
-
-	node->tmin = tmin;
-
-	return 1;
+	return isect_ray_aabb(&rcd->ray, bb_min, bb_max, &node->tmin);
 }
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
@@ -1482,13 +1447,7 @@ void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
 {
 	RaycastData rcd;
 
-	copy_v3_v3(rcd.start, ray_start);
-	rcd.inv_dir[0] = 1.0f / ray_normal[0];
-	rcd.inv_dir[1] = 1.0f / ray_normal[1];
-	rcd.inv_dir[2] = 1.0f / ray_normal[2];
-	rcd.sign[0] = rcd.inv_dir[0] < 0;
-	rcd.sign[1] = rcd.inv_dir[1] < 0;
-	rcd.sign[2] = rcd.inv_dir[2] < 0;
+	isect_ray_aabb_initialize(&rcd.ray, ray_start, ray_normal);
 	rcd.original = original;
 
 	BLI_pbvh_search_callback_occluded(bvh, ray_aabb_intersect, &rcd, cb, data);

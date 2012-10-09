@@ -69,7 +69,6 @@
 #include "BKE_scene.h"
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 
 #include "BIK_api.h"
 
@@ -326,8 +325,7 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float cf
 
 	/* default to no rotation */
 	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_ROTATION]) {
-		pa->state.rot[0]=1.0f;
-		pa->state.rot[1]=pa->state.rot[2]=pa->state.rot[3]=0;
+		unit_qt(pa->state.rot);
 	}
 }
 static void ptcache_particle_interpolate(int index, void *psys_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
@@ -1031,7 +1029,8 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 	if (scene && (duplis-- > 0) && (ob->transflag & OB_DUPLI)) {
 		ListBase *lb_dupli_ob;
 
-		if ((lb_dupli_ob=object_duplilist(scene, ob))) {
+		/* don't update the dupli groups, we only wan't their pid's */
+		if ((lb_dupli_ob = object_duplilist_ex(scene, ob, FALSE, FALSE))) {
 			DupliObject *dob;
 			for (dob= lb_dupli_ob->first; dob; dob= dob->next) {
 				if (dob->ob != ob) { /* avoids recursive loops with dupliframes: bug 22988 */
@@ -1068,8 +1067,9 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 	if (pid->cache->flag & PTCACHE_EXTERNAL) {
 		strcpy(filename, pid->cache->path);
 
-		if (strncmp(filename, "//", 2)==0)
+		if (BLI_path_is_rel(filename)) {
 			BLI_path_abs(filename, blendfilename);
+		}
 
 		return BLI_add_slash(filename); /* new strlen() */
 	}
@@ -2320,7 +2320,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 	 * - simulation time is scaled by result of bsystem_time
 	 * - for offsetting time only time offset is taken into account, since
 	 *   that's always the same and can't be animated. a timeoffset which
-	 *   varies over time is not simpe to support.
+	 *   varies over time is not simple to support.
 	 * - field and motion blur offsets are currently ignored, proper solution
 	 *   is probably to interpolate results from two frames for that ..
 	 */
@@ -2663,32 +2663,59 @@ void BKE_ptcache_free_list(ListBase *ptcaches)
 	}
 }
 
-static PointCache *ptcache_copy(PointCache *cache)
+static PointCache *ptcache_copy(PointCache *cache, int copy_data)
 {
 	PointCache *ncache;
 
 	ncache= MEM_dupallocN(cache);
 
-	/* hmm, should these be copied over instead? */
 	ncache->mem_cache.first = NULL;
 	ncache->mem_cache.last = NULL;
-	ncache->cached_frames = NULL;
-	ncache->edit = NULL;
 
-	ncache->flag= 0;
-	ncache->simframe= 0;
+	if (copy_data == FALSE) {
+		ncache->mem_cache.first = NULL;
+		ncache->mem_cache.last = NULL;
+		ncache->cached_frames = NULL;
+
+		ncache->flag= 0;
+		ncache->simframe= 0;
+	}
+	else {
+		PTCacheMem *pm;
+
+		for (pm = cache->mem_cache.first; pm; pm = pm->next) {
+			PTCacheMem *pmn = MEM_dupallocN(pm);
+			int i;
+
+			for (i = 0; i < BPHYS_TOT_DATA; i++) {
+				if (pmn->data[i])
+					pmn->data[i] = MEM_dupallocN(pm->data[i]);
+			}
+
+			BKE_ptcache_mem_pointers_init(pm);
+
+			BLI_addtail(&ncache->mem_cache, pmn);
+		}
+
+		if (ncache->cached_frames)
+			ncache->cached_frames = MEM_dupallocN(cache->cached_frames);
+	}
+
+	/* hmm, should these be copied over instead? */
+	ncache->edit = NULL;
 
 	return ncache;
 }
+
 /* returns first point cache */
-PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old)
+PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old, int copy_data)
 {
 	PointCache *cache = ptcaches_old->first;
 
 	ptcaches_new->first = ptcaches_new->last = NULL;
 
 	for (; cache; cache=cache->next)
-		BLI_addtail(ptcaches_new, ptcache_copy(cache));
+		BLI_addtail(ptcaches_new, ptcache_copy(cache, copy_data));
 
 	return ptcaches_new->first;
 }
@@ -2808,7 +2835,7 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 	thread_data.scene = baker->scene;
 	thread_data.main = baker->main;
 
-	G.afbreek = 0;
+	G.is_break = FALSE;
 
 	/* set caches to baking mode and figure out start frame */
 	if (pid) {

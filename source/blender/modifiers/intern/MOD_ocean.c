@@ -37,7 +37,6 @@
 #include "BKE_global.h"
 #include "BKE_modifier.h"
 #include "BKE_ocean.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -242,13 +241,13 @@ static void dm_get_bounds(DerivedMesh *dm, float *sx, float *sy, float *ox, floa
 	copy_v3_v3(max, mvert->co);
 
 	for (v = 1; v < totvert; v++, mvert++) {
-		min[0] = MIN2(min[0], mvert->co[0]);
-		min[1] = MIN2(min[1], mvert->co[1]);
-		min[2] = MIN2(min[2], mvert->co[2]);
+		min[0] = minf(min[0], mvert->co[0]);
+		min[1] = minf(min[1], mvert->co[1]);
+		min[2] = minf(min[2], mvert->co[2]);
 
-		max[0] = MAX2(max[0], mvert->co[0]);
-		max[1] = MAX2(max[1], mvert->co[1]);
-		max[2] = MAX2(max[2], mvert->co[2]);
+		max[0] = maxf(max[0], mvert->co[0]);
+		max[1] = maxf(max[1], mvert->co[1]);
+		max[2] = maxf(max[2], mvert->co[2]);
 	}
 
 	sub_v3_v3v3(delta, max, min);

@@ -597,13 +597,13 @@ void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
 void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
 {
 	KeyingSet *ks, *ksn;
-	
+
 	/* find relevant builtin KeyingSets which use this, and remove them */
-	// TODO: this isn't done now, since unregister is really only used atm when we
-	// reload the scripts, which kindof defeats the purpose of "builtin"?
+	/* TODO: this isn't done now, since unregister is really only used atm when we
+	 * reload the scripts, which kindof defeats the purpose of "builtin"? */
 	for (ks = builtin_keyingsets.first; ks; ks = ksn) {
 		ksn = ks->next;
-		
+
 		/* remove if matching typeinfo name */
 		if (strcmp(ks->typeinfo, ksi->idname) == 0) {
 			Scene *scene;
@@ -791,8 +791,8 @@ short ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 		/* get the associated 'type info' for this KeyingSet */
 		if (ksi == NULL)
 			return 0;
-		// TODO: check for missing callbacks!
-		
+		/* TODO: check for missing callbacks! */
+
 		/* check if it can be used in the current context */
 		return (ksi->poll(ksi, C));
 	}
@@ -878,8 +878,8 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 		/* get the associated 'type info' for this KeyingSet */
 		if (ksi == NULL)
 			return MODIFYKEY_MISSING_TYPEINFO;
-		// TODO: check for missing callbacks!
-		
+		/* TODO: check for missing callbacks! */
+
 		/* check if it can be used in the current context */
 		if (ksi->poll(ksi, C)) {
 			/* if a list of data sources are provided, run a special iterator over them,

@@ -49,7 +49,7 @@ def load_addons():
     for mod_name in list(addons.keys()):
         addon_utils.disable(mod_name)
 
-    assert(bool(addons) == False)
+    assert(bool(addons) is False)
 
     for mod in modules:
         mod_name = mod.__name__

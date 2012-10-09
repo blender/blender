@@ -39,23 +39,24 @@
 #define FACE_NEW	2
 #define EDGE_MARK	4
 #define EDGE_DONE	8
+#define FACE_OUT	16
 
 void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
 	BMFace *f, *nf;
-	BMLoop **loops = NULL, *lastl = NULL;
-	BLI_array_declare(loops);
-	BMLoop *l, *nl;
-	BMVert **verts = NULL;
-	BLI_array_declare(verts);
+	BMLoop *(*loops_split)[2] = NULL;
+	BLI_array_declare(loops_split);
+	BMLoop *l, *nl, *lastl = NULL;
+	BMVert *(*verts_pair)[2] = NULL;
+	BLI_array_declare(verts_pair);
 	int i;
 	
 	BMO_slot_buffer_flag_enable(bm, op, "verts", BM_VERT, VERT_INPUT);
 
 	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
-		BLI_array_empty(loops);
-		BLI_array_empty(verts);
+		BLI_array_empty(loops_split);
+		BLI_array_empty(verts_pair);
 		
 		if (BMO_elem_flag_test(bm, f, FACE_NEW)) {
 			continue;
@@ -71,50 +72,44 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 				}
 
 				if (lastl != l->prev && lastl != l->next) {
-					BLI_array_grow_one(loops);
-					loops[BLI_array_count(loops) - 1] = lastl;
-
-					BLI_array_grow_one(loops);
-					loops[BLI_array_count(loops) - 1] = l;
+					BLI_array_grow_one(loops_split);
+					loops_split[BLI_array_count(loops_split) - 1][0] = lastl;
+					loops_split[BLI_array_count(loops_split) - 1][1] = l;
 
 				}
 				lastl = l;
 			}
 		}
 
-		if (BLI_array_count(loops) == 0) {
+		if (BLI_array_count(loops_split) == 0) {
 			continue;
 		}
 		
-		if (BLI_array_count(loops) > 2) {
-			BLI_array_grow_one(loops);
-			loops[BLI_array_count(loops) - 1] = loops[BLI_array_count(loops) - 2];
-
-			BLI_array_grow_one(loops);
-			loops[BLI_array_count(loops) - 1] = loops[0];
+		if (BLI_array_count(loops_split) > 1) {
+			BLI_array_grow_one(loops_split);
+			loops_split[BLI_array_count(loops_split) - 1][0] = loops_split[BLI_array_count(loops_split) - 2][1];
+			loops_split[BLI_array_count(loops_split) - 1][1] = loops_split[0][0];
 		}
 
-		BM_face_legal_splits(bm, f, (BMLoop *(*)[2])loops, BLI_array_count(loops) / 2);
+		BM_face_legal_splits(bm, f, loops_split, BLI_array_count(loops_split));
 		
-		for (i = 0; i < BLI_array_count(loops) / 2; i++) {
-			if (loops[i * 2] == NULL) {
+		for (i = 0; i < BLI_array_count(loops_split); i++) {
+			if (loops_split[i][0] == NULL) {
 				continue;
 			}
 
-			BLI_array_grow_one(verts);
-			verts[BLI_array_count(verts) - 1] = loops[i * 2]->v;
-
-			BLI_array_grow_one(verts);
-			verts[BLI_array_count(verts) - 1] = loops[i * 2 + 1]->v;
+			BLI_array_grow_one(verts_pair);
+			verts_pair[BLI_array_count(verts_pair) - 1][0] = loops_split[i][0]->v;
+			verts_pair[BLI_array_count(verts_pair) - 1][1] = loops_split[i][1]->v;
 		}
 
-		for (i = 0; i < BLI_array_count(verts) / 2; i++) {
-			nf = BM_face_split(bm, f, verts[i * 2], verts[i * 2 + 1], &nl, NULL, FALSE);
+		for (i = 0; i < BLI_array_count(verts_pair); i++) {
+			nf = BM_face_split(bm, f, verts_pair[i][0], verts_pair[i][1], &nl, NULL, FALSE);
 			f = nf;
 			
 			if (!nl || !nf) {
 				BMO_error_raise(bm, op, BMERR_CONNECTVERT_FAILED, NULL);
-				BLI_array_free(loops);
+				BLI_array_free(loops_split);
 				return;
 			}
 			BMO_elem_flag_enable(bm, nf, FACE_NEW);
@@ -124,8 +119,8 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_OUT);
 
-	BLI_array_free(loops);
-	BLI_array_free(verts);
+	BLI_array_free(loops_split);
+	BLI_array_free(verts_pair);
 }
 
 static BMVert *get_outer_vert(BMesh *bm, BMEdge *e)
@@ -222,6 +217,10 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMEdge *e, *nexte;
 	int c = 0, cl1 = 0, cl2 = 0;
+
+	/* merge-bridge support */
+	const int   use_merge    = BMO_slot_bool_get(op, "use_merge");
+	const float merge_factor = BMO_slot_float_get(op, "merge_factor");
 
 	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
 
@@ -340,7 +339,6 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			goto cleanup;
 		}
 
-		j = 0;
 		if (vv1[0] == vv1[lenv1 - 1]) {
 			lenv1--;
 		}
@@ -370,39 +368,38 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		/* Find the shortest distance from a vert in vv1 to vv2[0]. Use that
-		 * vertex in vv1 as a starting point in the first loop, while starting
-		 * from vv2[0] in the second loop. This is a simplistic attempt to get
-		 * a better edge-to-edge match between the two loops. */
+		/* Find the smallest sum of distances from verts in vv1 to verts in vv2,
+		 * finding a starting point in the first loop, to start with vv2[0] in the
+		 * second loop. This is a simplistic attempt to get a better edge-to-edge
+		 * match between two loops. */
 		if (cl1) {
-			int previ, nexti;
 			float min = 1e32;
 
-			/* BMESH_TODO: Would be nice to do a more thorough analysis of all
-			 * the vertices in both loops to find a more accurate match for the
-			 * starting point and winding direction of the bridge generation. */
-			
-			for (i = 0; i < BLI_array_count(vv1); i++) {
-				if (len_v3v3(vv1[i]->co, vv2[0]->co) < min) {
-					min = len_v3v3(vv1[i]->co, vv2[0]->co);
+			for (i = 0; i < lenv1; i++) {
+				float len;
+
+				/* compute summed length between vertices in forward direction */
+				len = 0.0f;
+				for (j = 0; j < lenv2; j++) {
+					len += len_v3v3(vv1[clamp_index(i + j, lenv1)]->co, vv2[j]->co);
+				}
+
+				if (len < min) {
+					min = len;
 					starti = i;
 				}
-			}
 
-			/* Reverse iteration order for the first loop if the distance of
-			 * the (starti - 1) vert from vv1 is a better match for vv2[1] than
-			 * the (starti + 1) vert.
-			 *
-			 * This is not always going to be right, but it will work better in
-			 * the average case.
-			 */
-			previ = clamp_index(starti - 1, lenv1);
-			nexti = clamp_index(starti + 1, lenv1);
+				/* compute summed length between vertices in backward direction */
+				len = 0.0f;
+				for (j = 0; j < lenv2; j++) {
+					len += len_v3v3(vv1[clamp_index(i - j, lenv1)]->co, vv2[j]->co);
+				}
 
-			/* avoid sqrt for comparison */
-			if (len_squared_v3v3(vv1[nexti]->co, vv2[1]->co) > len_squared_v3v3(vv1[previ]->co, vv2[1]->co)) {
-				/* reverse direction for reading vv1 (1 is forward, -1 is backward) */
-				dir1 = -1;
+				if (len < min) {
+					min = len;
+					starti = i;
+					dir1 = -1;
+				}
 			}
 		}
 
@@ -426,62 +423,107 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 		
-		/* Generate the bridge quads */
-		for (i = 0; i < BLI_array_count(ee1) && i < BLI_array_count(ee2); i++) {
-			BMFace *f;
+		/* merge loops of bridge faces */
+		if (use_merge) {
+			const int vert_len = mini(BLI_array_count(vv1), BLI_array_count(vv2)) - ((cl1 || cl2) ? 1 : 0);
+			const int edge_len = mini(BLI_array_count(ee1), BLI_array_count(ee2));
 
-			BMLoop *l_1 = NULL;
-			BMLoop *l_2 = NULL;
-			BMLoop *l_1_next = NULL;
-			BMLoop *l_2_next = NULL;
-			BMLoop *l_iter;
-			BMFace *f_example;
-
-			int i1, i1next, i2, i2next;
-
-			i1 = clamp_index(i * dir1 + starti, lenv1);
-			i1next = clamp_index((i + 1) * dir1 + starti, lenv1);
-			i2 = i;
-			i2next = clamp_index(i + 1, lenv2);
-
-			if (vv1[i1] == vv1[i1next]) {
-				continue;
+			if (merge_factor <= 0.0f) {
+				/* 2 --> 1 */
+				for (i = 0; i < vert_len; i++) {
+					BM_vert_splice(bm, vv2[i], vv1[i]);
+				}
+				for (i = 0; i < edge_len; i++) {
+					BM_edge_splice(bm, ee2[i], ee1[i]);
+				}
 			}
-
-			if (wdir < 0) {
-				SWAP(int, i1, i1next);
-				SWAP(int, i2, i2next);
-			}
-
-			/* get loop data - before making the face */
-			bm_vert_loop_pair(bm, vv1[i1], vv2[i2], &l_1, &l_2);
-			bm_vert_loop_pair(bm, vv1[i1next], vv2[i2next], &l_1_next, &l_2_next);
-			/* copy if loop data if its is missing on one ring */
-			if (l_1 && l_1_next == NULL) l_1_next = l_1;
-			if (l_1_next && l_1 == NULL) l_1 = l_1_next;
-			if (l_2 && l_2_next == NULL) l_2_next = l_2;
-			if (l_2_next && l_2 == NULL) l_2 = l_2_next;
-			f_example = l_1 ? l_1->f : (l_2 ? l_2->f : NULL);
-
-			f = BM_face_create_quad_tri(bm,
-			                            vv1[i1],
-			                            vv2[i2],
-			                            vv2[i2next],
-			                            vv1[i1next],
-			                            f_example, TRUE);
-			if (!f || f->len != 4) {
-				fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
+			else if (merge_factor >= 1.0f) {
+				/* 1 --> 2 */
+				for (i = 0; i < vert_len; i++) {
+					BM_vert_splice(bm, vv1[i], vv2[i]);
+				}
+				for (i = 0; i < edge_len; i++) {
+					BM_edge_splice(bm, ee1[i], ee2[i]);
+				}
 			}
 			else {
-				l_iter = BM_FACE_FIRST_LOOP(f);
+				/* mid factor, be tricky */
+				/* 1 --> 2 */
+				for (i = 0; i < vert_len; i++) {
+					BM_data_interp_from_verts(bm, vv1[i], vv2[i], vv2[i], merge_factor);
+					interp_v3_v3v3(vv2[i]->co, vv1[i]->co, vv2[i]->co, merge_factor);
+					BM_elem_flag_merge(vv1[i], vv2[i]);
+					BM_vert_splice(bm, vv1[i], vv2[i]);
+				}
+				for (i = 0; i < edge_len; i++) {
+					BM_data_interp_from_edges(bm, ee1[i], ee2[i], ee2[i], merge_factor);
+					BM_elem_flag_merge(ee1[i], ee2[i]);
+					BM_edge_splice(bm, ee1[i], ee2[i]);
+				}
+			}
+		}
+		else {
+			/* Generate the bridge quads */
+			for (i = 0; i < BLI_array_count(ee1) && i < BLI_array_count(ee2); i++) {
+				BMFace *f;
 
-				if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
-				if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
-				if (l_2_next) BM_elem_attrs_copy(bm, bm, l_2_next, l_iter); l_iter = l_iter->next;
-				if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+				BMLoop *l_1 = NULL;
+				BMLoop *l_2 = NULL;
+				BMLoop *l_1_next = NULL;
+				BMLoop *l_2_next = NULL;
+				BMLoop *l_iter;
+				BMFace *f_example;
+
+				int i1, i1next, i2, i2next;
+
+				i1 = clamp_index(i * dir1 + starti, lenv1);
+				i1next = clamp_index((i + 1) * dir1 + starti, lenv1);
+				i2 = i;
+				i2next = clamp_index(i + 1, lenv2);
+
+				if (vv1[i1] == vv1[i1next]) {
+					continue;
+				}
+
+				if (wdir < 0) {
+					SWAP(int, i1, i1next);
+					SWAP(int, i2, i2next);
+				}
+
+				/* get loop data - before making the face */
+				bm_vert_loop_pair(bm, vv1[i1], vv2[i2], &l_1, &l_2);
+				bm_vert_loop_pair(bm, vv1[i1next], vv2[i2next], &l_1_next, &l_2_next);
+				/* copy if loop data if its is missing on one ring */
+				if (l_1 && l_1_next == NULL) l_1_next = l_1;
+				if (l_1_next && l_1 == NULL) l_1 = l_1_next;
+				if (l_2 && l_2_next == NULL) l_2_next = l_2;
+				if (l_2_next && l_2 == NULL) l_2 = l_2_next;
+				f_example = l_1 ? l_1->f : (l_2 ? l_2->f : NULL);
+
+				f = BM_face_create_quad_tri(bm,
+				                            vv1[i1],
+				                            vv2[i2],
+				                            vv2[i2next],
+				                            vv1[i1next],
+				                            f_example, TRUE);
+				if (UNLIKELY((f == NULL) || (f->len != 4))) {
+					fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
+				}
+				else {
+					BMO_elem_flag_enable(bm, f, FACE_OUT);
+
+					l_iter = BM_FACE_FIRST_LOOP(f);
+
+					if (l_1)      BM_elem_attrs_copy(bm, bm, l_1,      l_iter); l_iter = l_iter->next;
+					if (l_2)      BM_elem_attrs_copy(bm, bm, l_2,      l_iter); l_iter = l_iter->next;
+					if (l_2_next) BM_elem_attrs_copy(bm, bm, l_2_next, l_iter); l_iter = l_iter->next;
+					if (l_1_next) BM_elem_attrs_copy(bm, bm, l_1_next, l_iter);
+				}
 			}
 		}
 	}
+
+	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_OUT);
 
 cleanup:
 	BLI_array_free(ee1);

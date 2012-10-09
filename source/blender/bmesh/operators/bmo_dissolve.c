@@ -164,7 +164,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 	}
 
-	BMO_op_callf(bm, "delete geom=%ff context=%i", FACE_ORIG, DEL_FACES);
+	BMO_op_callf(bm, op->flag, "delete geom=%ff context=%i", FACE_ORIG, DEL_FACES);
 
 
 	if (use_verts) {
@@ -214,7 +214,7 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 			BMO_elem_flag_enable(bm, e->v2, VERT_MARK);
 
 			/* BMESH_TODO - check on delaying edge removal since we may end up removing more then
-			 * one edge, and later referene a removed edge */
+			 * one edge, and later reference a removed edge */
 			BM_faces_join_pair(bm, fa, fb, e, TRUE);
 		}
 	}
@@ -270,7 +270,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 			/* join faces */
 
 			/* BMESH_TODO - check on delaying edge removal since we may end up removing more then
-			 * one edge, and later referene a removed edge */
+			 * one edge, and later reference a removed edge */
 			BM_faces_join_pair(bm, fa, fb, e, TRUE);
 		}
 	}
@@ -383,7 +383,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_op_callf(bm, "dissolve_faces faces=%ff", FACE_MARK);
+	BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_MARK);
 	if (BMO_error_occurred(bm)) {
 		const char *msg;
 
@@ -484,7 +484,7 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 /* multiply vertex edge angle by face angle
  * this means we are not left with sharp corners between _almost_ planer faces
  * convert angles [0-PI/2] -> [0-1], multiply together, then convert back to radians. */
-float bm_vert_edge_face_angle(BMVert *v)
+static float bm_vert_edge_face_angle(BMVert *v)
 {
 	const float angle = BM_vert_calc_edge_angle(v);
 	/* note: could be either edge, it doesn't matter */

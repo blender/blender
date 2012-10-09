@@ -483,7 +483,7 @@ void ED_spacetype_outliner(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art = MEM_callocN(sizeof(ARegionType), "spacetype time region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype time header region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;

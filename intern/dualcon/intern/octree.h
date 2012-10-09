@@ -56,12 +56,18 @@
 #define EDGE_FLOATS 4
 
 union Node;
+struct LeafNode;
 
 struct InternalNode {
-	/* Treat as bitfield, bit N indicates whether child N exists or not */
-	unsigned char has_child;
-	/* Treat as bitfield, bit N indicates whether child N is a leaf or not */
-	unsigned char child_is_leaf;
+	/* Initialized in Octree::BuildTable */
+	static int numChildrenTable[256];
+	static int childrenCountTable[256][8];
+	static int childrenIndexTable[256][8];
+
+	/* Bit N indicates whether child N exists or not */
+	unsigned char has_child_bitfield;
+	/* Bit N indicates whether child N is a leaf or not */
+	unsigned char child_is_leaf_bitfield;
 
 	/* Can have up to eight children */
 	Node *children[0];
@@ -69,7 +75,78 @@ struct InternalNode {
 	/// Test if child is leaf
 	int is_child_leaf(int index) const
 	{
-		return (child_is_leaf >> index) & 1;
+		return (child_is_leaf_bitfield >> index) & 1;
+	}
+
+	/// If child index exists
+	int has_child(int index) const
+	{
+		return (has_child_bitfield >> index) & 1;
+	}
+
+	/// Get the pointer to child index
+	Node *get_child(int count)
+	{
+		return children[count];
+	}
+
+	const Node *get_child(int count) const
+	{
+		return children[count];
+	}
+
+	/// Get total number of children
+	int get_num_children() const
+	{
+		return numChildrenTable[has_child_bitfield];
+	}
+
+	/// Get the count of children
+	int get_child_count(int index) const
+	{
+		return childrenCountTable[has_child_bitfield][index];
+	}
+	int get_child_index(int count)
+	{
+		return childrenIndexTable[has_child_bitfield][count];
+	}
+	const int *get_child_counts() const
+	{
+		return childrenCountTable[has_child_bitfield];
+	}
+
+	/// Get all children
+	void fill_children(Node *children[8], int leaf[8])
+	{
+		int count = 0;
+		for (int i = 0; i < 8; i++) {
+			leaf[i] = is_child_leaf(i);
+			if (has_child(i)) {
+				children[i] = get_child(count);
+				count++;
+			}
+			else {
+				children[i] = NULL;
+				leaf[i] = 0;
+			}
+		}
+	}
+
+	/// Sets the child pointer
+	void set_child(int count, Node *chd)
+	{
+		children[count] = chd;
+	}
+	void set_internal_child(int index, int count, InternalNode *chd)
+	{
+		set_child(count, (Node *)chd);
+		has_child_bitfield |= (1 << index);
+	}
+	void set_leaf_child(int index, int count, LeafNode *chd)
+	{
+		set_child(count, (Node *)chd);
+		has_child_bitfield |= (1 << index);
+		child_is_leaf_bitfield |= (1 << index);
 	}
 };
 
@@ -345,7 +422,8 @@ class Octree
 
 	void countIntersection(Node *node, int height, int& nedge, int& ncell, int& nface);
 	void generateMinimizer(Node * node, int st[3], int len, int height, int& offset);
-	void computeMinimizer(LeafNode * leaf, int st[3], int len, float rvalue[3]);
+	void computeMinimizer(const LeafNode * leaf, int st[3], int len,
+						  float rvalue[3]) const;
 	/**
 	 * Traversal functions to generate polygon model
 	 * op: 0 for counting, 1 for writing OBJ, 2 for writing OFF, 3 for writing PLY
@@ -365,9 +443,6 @@ class Octree
 	/************ Operators for all nodes ************/
 
 	/// Lookup table
-	int numChildrenTable[256];
-	int childrenCountTable[256][8];
-	int childrenIndexTable[256][8];
 	int numEdgeTable[8];
 	int edgeCountTable[8][3];
 
@@ -375,12 +450,12 @@ class Octree
 	void buildTable()
 	{
 		for (int i = 0; i < 256; i++) {
-			numChildrenTable[i] = 0;
+			InternalNode::numChildrenTable[i] = 0;
 			int count = 0;
 			for (int j = 0; j < 8; j++) {
-				numChildrenTable[i] += ((i >> j) & 1);
-				childrenCountTable[i][j] = count;
-				childrenIndexTable[i][count] = j;
+				InternalNode::numChildrenTable[i] += ((i >> j) & 1);
+				InternalNode::childrenCountTable[i][j] = count;
+				InternalNode::childrenIndexTable[i][count] = j;
 				count += ((i >> j) & 1);
 			}
 		}
@@ -402,15 +477,15 @@ class Octree
 			return getSign(&node->leaf, index);
 		}
 		else {
-			if (hasChild(&node->internal, index)) {
-				return getSign(getChild(&node->internal, getChildCount(&node->internal, index)),
+			if (node->internal.has_child(index)) {
+				return getSign(node->internal.get_child(node->internal.get_child_count(index)),
 							   height - 1,
 							   index);
 			}
 			else {
-				return getSign(getChild(&node->internal, 0),
+				return getSign(node->internal.get_child(0),
 							   height - 1,
-							   7 - getChildIndex(&node->internal, 0));
+							   7 - node->internal.get_child_index(0));
 			}
 		}
 	}
@@ -469,7 +544,7 @@ class Octree
 		leaf->signs |= ((sign & 1) << index);
 	}
 
-	int getSignMask(const LeafNode *leaf)
+	int getSignMask(const LeafNode *leaf) const
 	{
 		return leaf->signs;
 	}
@@ -536,7 +611,7 @@ class Octree
 	}
 
 	/// Get edge parity
-	int getEdgeParity(LeafNode *leaf, int index)
+	int getEdgeParity(const LeafNode *leaf, int index) const
 	{
 		assert(index >= 0 && index <= 11);
 
@@ -597,7 +672,8 @@ class Octree
 
 		leaf->primary_edge_intersections |= (1 << pindex);
 	}
-	int getStoredEdgesParity(LeafNode *leaf, int pindex)
+
+	int getStoredEdgesParity(const LeafNode *leaf, int pindex) const
 	{
 		assert(pindex <= 2 && pindex >= 0);
 
@@ -652,7 +728,7 @@ class Octree
 		InternalNode *parent = locateParent(node, len, st, count);
 
 		// Update
-		setChild(parent, count, (Node *)leaf);
+		parent->set_child(count, (Node *)leaf);
 	}
 
 	void updateParent(InternalNode *node, int len, int st[3])
@@ -667,14 +743,14 @@ class Octree
 		InternalNode *parent = locateParent(len, st, count);
 
 		// UPdate
-		setChild(parent, count, (Node *)node);
+		parent->set_child(count, (Node *)node);
 	}
 
 	/// Find edge intersection on a given edge
-	int getEdgeIntersectionByIndex(int st[3], int index, float pt[3], int check)
+	int getEdgeIntersectionByIndex(int st[3], int index, float pt[3], int check) const
 	{
 		// First, locat the leaf
-		LeafNode *leaf;
+		const LeafNode *leaf;
 		if (check) {
 			leaf = locateLeafCheck(st);
 		}
@@ -697,7 +773,7 @@ class Octree
 	}
 
 	/// Retrieve number of edges intersected
-	int getPrimalEdgesMask(LeafNode *leaf)
+	int getPrimalEdgesMask(const LeafNode *leaf) const
 	{
 		return leaf->primary_edge_intersections;
 	}
@@ -710,7 +786,7 @@ class Octree
 	}
 
 	/// Get the count for a primary edge
-	int getEdgeCount(LeafNode *leaf, int index)
+	int getEdgeCount(const LeafNode *leaf, int index) const
 	{
 		return edgeCountTable[getPrimalEdgesMask(leaf)][index];
 	}
@@ -744,7 +820,7 @@ class Octree
 	}
 
 	/// Retrieve edge intersection
-	float getEdgeOffset(LeafNode *leaf, int count)
+	float getEdgeOffset(const LeafNode *leaf, int count) const
 	{
 		return leaf->edge_intersections[4 * count];
 	}
@@ -834,10 +910,11 @@ class Octree
 	}
 
 	/// Retrieve complete edge intersection
-	void getEdgeIntersectionByIndex(LeafNode *leaf, int index, int st[3], int len, float pt[3], float nm[3])
+	void getEdgeIntersectionByIndex(const LeafNode *leaf, int index, int st[3],
+									int len, float pt[3], float nm[3]) const
 	{
 		int count = getEdgeCount(leaf, index);
-		float *pts = leaf->edge_intersections;
+		const float *pts = leaf->edge_intersections;
 
 		float off = pts[4 * count];
 
@@ -865,7 +942,8 @@ class Octree
 		return off;
 	}
 
-	void fillEdgeIntersections(LeafNode *leaf, int st[3], int len, float pts[12][3], float norms[12][3])
+	void fillEdgeIntersections(const LeafNode *leaf, int st[3], int len,
+							   float pts[12][3], float norms[12][3]) const
 	{
 		int i;
 		// int stt[3] = {0, 0, 0};
@@ -890,7 +968,7 @@ class Octree
 				nst[i] += len;
 				// int nstt[3] = {0, 0, 0};
 				// nstt[i] += 1;
-				LeafNode *node = locateLeaf(nst);
+				const LeafNode *node = locateLeaf(nst);
 
 				if (e1) {
 					// getEdgeIntersectionByIndex(node, femask[i][0], nstt, 1, pts[fmask[i][0]], norms[fmask[i][0]]);
@@ -912,7 +990,7 @@ class Octree
 				nst[i] -= len;
 				// int nstt[3] = {1, 1, 1};
 				// nstt[i] -= 1;
-				LeafNode *node = locateLeaf(nst);
+				const LeafNode *node = locateLeaf(nst);
 
 				// getEdgeIntersectionByIndex(node, eemask[i], nstt, 1, pts[emask[i]], norms[emask[i]]);
 				getEdgeIntersectionByIndex(node, eemask[i], nst, len, pts[emask[i]], norms[emask[i]]);
@@ -921,7 +999,9 @@ class Octree
 	}
 
 
-	void fillEdgeIntersections(LeafNode *leaf, int st[3], int len, float pts[12][3], float norms[12][3], int parity[12])
+	void fillEdgeIntersections(const LeafNode *leaf, int st[3], int len,
+							   float pts[12][3], float norms[12][3],
+							   int parity[12]) const
 	{
 		int i;
 		for (i = 0; i < 12; i++) {
@@ -948,7 +1028,7 @@ class Octree
 				nst[i] += len;
 				// int nstt[3] = {0, 0, 0};
 				// nstt[i] += 1;
-				LeafNode *node = locateLeafCheck(nst);
+				const LeafNode *node = locateLeafCheck(nst);
 				if (node == NULL) {
 					continue;
 				}
@@ -979,7 +1059,7 @@ class Octree
 				nst[i] -= len;
 				// int nstt[3] = {1, 1, 1};
 				// nstt[i] -= 1;
-				LeafNode *node = locateLeafCheck(nst);
+				const LeafNode *node = locateLeafCheck(nst);
 				if (node == NULL) {
 					continue;
 				}
@@ -1088,7 +1168,20 @@ class Octree
 			int index = (((st[0] >> i) & 1) << 2) |
 				(((st[1] >> i) & 1) << 1) |
 				(((st[2] >> i) & 1));
-			node = getChild(&node->internal, getChildCount(&node->internal, index));
+			node = node->internal.get_child(node->internal.get_child_count(index));
+		}
+
+		return &node->leaf;
+	}
+
+	const LeafNode *locateLeaf(int st[3]) const
+	{
+		const Node *node = root;
+		for (int i = GRID_DIMENSION - 1; i > GRID_DIMENSION - maxDepth - 1; i--) {
+			int index = (((st[0] >> i) & 1) << 2) |
+				(((st[1] >> i) & 1) << 1) |
+				(((st[2] >> i) & 1));
+			node = node->internal.get_child(node->internal.get_child_count(index));
 		}
 
 		return &node->leaf;
@@ -1102,8 +1195,7 @@ class Octree
 			index = (((st[0] & i) ? 4 : 0) |
 					 ((st[1] & i) ? 2 : 0) |
 					 ((st[2] & i) ? 1 : 0));
-			node = getChild(&node->internal,
-							getChildCount(&node->internal, index));
+			node = node->internal.get_child(node->internal.get_child_count(index));
 		}
 
 		return &node->leaf;
@@ -1116,10 +1208,26 @@ class Octree
 			int index = (((st[0] >> i) & 1) << 2) |
 				(((st[1] >> i) & 1) << 1) |
 				(((st[2] >> i) & 1));
-			if (!hasChild(&node->internal, index)) {
+			if (!node->internal.has_child(index)) {
 				return NULL;
 			}
-			node = getChild(&node->internal, getChildCount(&node->internal, index));
+			node = node->internal.get_child(node->internal.get_child_count(index));
+		}
+
+		return &node->leaf;
+	}
+
+	const LeafNode *locateLeafCheck(int st[3]) const
+	{
+		const Node *node = root;
+		for (int i = GRID_DIMENSION - 1; i > GRID_DIMENSION - maxDepth - 1; i--) {
+			int index = (((st[0] >> i) & 1) << 2) |
+				(((st[1] >> i) & 1) << 1) |
+				(((st[2] >> i) & 1));
+			if (!node->internal.has_child(index)) {
+				return NULL;
+			}
+			node = node->internal.get_child(node->internal.get_child_count(index));
 		}
 
 		return &node->leaf;
@@ -1135,10 +1243,10 @@ class Octree
 					 ((st[1] & i) ? 2 : 0) |
 					 ((st[2] & i) ? 1 : 0));
 			pre = node;
-			node = &getChild(node, getChildCount(node, index))->internal;
+			node = &node->get_child(node->get_child_count(index))->internal;
 		}
 
-		count = getChildCount(pre, index);
+		count = pre->get_child_count(index);
 		return pre;
 	}
 
@@ -1152,88 +1260,21 @@ class Octree
 					 ((st[1] & i) ? 2 : 0) |
 					 ((st[2] & i) ? 1 : 0));
 			pre = node;
-			node = (InternalNode *)getChild(node, getChildCount(node, index));
+			node = &node->get_child(node->get_child_count(index))->internal;
 		}
 
-		count = getChildCount(pre, index);
+		count = pre->get_child_count(index);
 		return pre;
 	}
 
 	/************ Operators for internal nodes ************/
 
-	/// If child index exists
-	int hasChild(InternalNode *node, int index)
-	{
-		return (node->has_child >> index) & 1;
-	}
-
-	/// Get the pointer to child index
-	Node *getChild(InternalNode *node, int count)
-	{
-		return node->children[count];
-	};
-
-	/// Get total number of children
-	int getNumChildren(InternalNode *node)
-	{
-		return numChildrenTable[node->has_child];
-	}
-
-	/// Get the count of children
-	int getChildCount(InternalNode *node, int index)
-	{
-		return childrenCountTable[node->has_child][index];
-	}
-	int getChildIndex(InternalNode *node, int count)
-	{
-		return childrenIndexTable[node->has_child][count];
-	}
-	int *getChildCounts(InternalNode *node)
-	{
-		return childrenCountTable[node->has_child];
-	}
-
-	/// Get all children
-	void fillChildren(InternalNode *node, Node *children[8], int leaf[8])
-	{
-		int count = 0;
-		for (int i = 0; i < 8; i++) {
-			leaf[i] = node->is_child_leaf(i);
-			if (hasChild(node, i)) {
-				children[i] = getChild(node, count);
-				count++;
-			}
-			else {
-				children[i] = NULL;
-				leaf[i] = 0;
-			}
-		}
-	}
-
-	/// Sets the child pointer
-	void setChild(InternalNode *node, int count, Node *chd)
-	{
-		node->children[count] = chd;
-	}
-	void setInternalChild(InternalNode *node, int index, int count, InternalNode *chd)
-	{
-		setChild(node, count, (Node *)chd);
-		node->has_child |= (1 << index);
-	}
-	void setLeafChild(InternalNode *node, int index, int count, LeafNode *chd)
-	{
-		setChild(node, count, (Node *)chd);
-		node->has_child |= (1 << index);
-		node->child_is_leaf |= (1 << index);
-	}
 
 	/// Add a kid to an existing internal node
-	/// Fix me: can we do this without wasting memory ?
-	/// Fixed: using variable memory
 	InternalNode *addChild(InternalNode *node, int index, Node *child, int aLeaf)
 	{
 		// Create new internal node
-		int num = getNumChildren(node);
+		int num = node->get_num_children();
 		InternalNode *rnode = createInternal(num + 1);
 
 		// Establish children
@@ -1242,19 +1283,19 @@ class Octree
 		for (i = 0; i < 8; i++) {
 			if (i == index) {
 				if (aLeaf) {
-					setLeafChild(rnode, i, count2, &child->leaf);
+					rnode->set_leaf_child(i, count2, &child->leaf);
 				}
 				else {
-					setInternalChild(rnode, i, count2, &child->internal);
+					rnode->set_internal_child(i, count2, &child->internal);
 				}
 				count2++;
 			}
-			else if (hasChild(node, i)) {
+			else if (node->has_child(i)) {
 				if (node->is_child_leaf(i)) {
-					setLeafChild(rnode, i, count2, &getChild(node, count1)->leaf);
+					rnode->set_leaf_child(i, count2, &node->get_child(count1)->leaf);
 				}
 				else {
-					setInternalChild(rnode, i, count2, &getChild(node, count1)->internal);
+					rnode->set_internal_child(i, count2, &node->get_child(count1)->internal);
 				}
 				count1++;
 				count2++;
@@ -1269,8 +1310,8 @@ class Octree
 	InternalNode *createInternal(int length)
 	{
 		InternalNode *inode = (InternalNode *)alloc[length]->allocate();
-		inode->has_child = 0;
-		inode->child_is_leaf = 0;
+		inode->has_child_bitfield = 0;
+		inode->child_is_leaf_bitfield = 0;
 		return inode;
 	}
 
@@ -1301,21 +1342,21 @@ class Octree
 	InternalNode *addLeafChild(InternalNode *par, int index, int count,
 							   LeafNode *leaf)
 	{
-		int num = getNumChildren(par) + 1;
+		int num = par->get_num_children() + 1;
 		InternalNode *npar = createInternal(num);
 		*npar = *par;
 
 		if (num == 1) {
-			setLeafChild(npar, index, 0, leaf);
+			npar->set_leaf_child(index, 0, leaf);
 		}
 		else {
 			int i;
 			for (i = 0; i < count; i++) {
-				setChild(npar, i, getChild(par, i));
+				npar->set_child(i, par->get_child(i));
 			}
-			setLeafChild(npar, index, count, leaf);
+			npar->set_leaf_child(index, count, leaf);
 			for (i = count + 1; i < num; i++) {
-				setChild(npar, i, getChild(par, i - 1));
+				npar->set_child(i, par->get_child(i - 1));
 			}
 		}
 
@@ -1326,21 +1367,21 @@ class Octree
 	InternalNode *addInternalChild(InternalNode *par, int index, int count,
 								   InternalNode *node)
 	{
-		int num = getNumChildren(par) + 1;
+		int num = par->get_num_children() + 1;
 		InternalNode *npar = createInternal(num);
 		*npar = *par;
 
 		if (num == 1) {
-			setInternalChild(npar, index, 0, node);
+			npar->set_internal_child(index, 0, node);
 		}
 		else {
 			int i;
 			for (i = 0; i < count; i++) {
-				setChild(npar, i, getChild(par, i));
+				npar->set_child(i, par->get_child(i));
 			}
-			setInternalChild(npar, index, count, node);
+			npar->set_internal_child(index, count, node);
 			for (i = count + 1; i < num; i++) {
-				setChild(npar, i, getChild(par, i - 1));
+				npar->set_child(i, par->get_child(i - 1));
 			}
 		}
 

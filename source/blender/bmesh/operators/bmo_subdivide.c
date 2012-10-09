@@ -53,6 +53,9 @@
 #define ELE_INNER	8
 #define ELE_SPLIT	16
 
+/* see bug [#32665], 0.00005 means a we get face splits at a little under 1.0 degrees */
+#define FLT_FACE_SPLIT_EPSILON 0.00005
+
 /*
  * NOTE: beauty has been renamed to flag!
  */
@@ -269,13 +272,15 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, const SubDParams *par
  * match the input geometry.  they're based on the
  * pre-split state of the  face */
 
-/*
+/**
+ * <pre>
  *  v3---------v2
  *  |          |
  *  |          |
  *  |          |
  *  |          |
  *  v4---v0---v1
+ * </pre>
  */
 static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
                              BMVert **verts, const SubDParams *params)
@@ -306,20 +311,22 @@ static void quad_1edge_split(BMesh *bm, BMFace *UNUSED(face),
 	}
 }
 
-static SubDPattern quad_1edge = {
+static const SubDPattern quad_1edge = {
 	{1, 0, 0, 0},
 	quad_1edge_split,
 	4,
 };
 
 
-/*
+/**
+ * <pre>
  *  v6--------v5
  *  |          |
  *  |          |v4s
  *  |          |v3s
  *  |   s  s   |
  *  v7-v0--v1-v2
+ * </pre>
  */
 static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                   const SubDParams *params)
@@ -333,19 +340,21 @@ static void quad_2edge_split_path(BMesh *bm, BMFace *UNUSED(face), BMVert **vert
 	connect_smallest_face(bm, verts[numcuts * 2 + 3], verts[numcuts * 2 + 1], &nf);
 }
 
-static SubDPattern quad_2edge_path = {
+static const SubDPattern quad_2edge_path = {
 	{1, 1, 0, 0},
 	quad_2edge_split_path,
 	4,
 };
 
-/*
+/**
+ * <pre>
  *  v6--------v5
  *  |          |
  *  |          |v4s
  *  |          |v3s
  *  |   s  s   |
  *  v7-v0--v1-v2
+ * </pre>
  */
 static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                        const SubDParams *params)
@@ -373,20 +382,21 @@ static void quad_2edge_split_innervert(BMesh *bm, BMFace *UNUSED(face), BMVert *
 	connect_smallest_face(bm, lastv, verts[numcuts * 2 + 2], &nf);
 }
 
-static SubDPattern quad_2edge_innervert = {
+static const SubDPattern quad_2edge_innervert = {
 	{1, 1, 0, 0},
 	quad_2edge_split_innervert,
 	4,
 };
 
-/*
+/**
+ * <pre>
  *  v6--------v5
  *  |          |
  *  |          |v4s
  *  |          |v3s
  *  |   s  s   |
  *  v7-v0--v1-v2
- *
+ * </pre>
  */
 static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                  const SubDParams *params)
@@ -403,13 +413,14 @@ static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 	}
 }
 
-static SubDPattern quad_2edge_fan = {
+static const SubDPattern quad_2edge_fan = {
 	{1, 1, 0, 0},
 	quad_2edge_split_fan,
 	4,
 };
 
-/*
+/**
+ * <pre>
  *      s   s
  *  v8--v7--v6-v5
  *  |          |
@@ -418,6 +429,7 @@ static SubDPattern quad_2edge_fan = {
  *  |          v3 s
  *  |   s  s   |
  *  v9-v0--v1-v2
+ * </pre>
  */
 static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                              const SubDParams *params)
@@ -440,13 +452,14 @@ static void quad_3edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	}
 }
 
-static SubDPattern quad_3edge = {
+static const SubDPattern quad_3edge = {
 	{1, 1, 1, 0},
 	quad_3edge_split,
 	4,
 };
 
-/*
+/**
+ * <pre>
  *            v8--v7-v6--v5
  *            |     s    |
  *            |v9 s     s|v4
@@ -455,6 +468,7 @@ static SubDPattern quad_3edge = {
  *            v11-v0--v1-v2
  *
  *            it goes from bottom up
+ * </pre>
  */
 static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                  const SubDParams *params)
@@ -525,7 +539,8 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
 	MEM_freeN(lines);
 }
 
-/*
+/**
+ * <pre>
  *        v3
  *       / \
  *      /   \
@@ -534,6 +549,7 @@ static void quad_4edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts
  *   /         \
  *  v4--v0--v1--v2
  *      s    s
+ * </pre>
  */
 static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                             const SubDParams *params)
@@ -546,13 +562,15 @@ static void tri_1edge_split(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	}
 }
 
-static SubDPattern tri_1edge = {
+static const SubDPattern tri_1edge = {
 	{1, 0, 0},
 	tri_1edge_split,
 	3,
 };
 
-/*         v5
+/**
+ * <pre>
+ *         v5
  *        / \
  *   s v6/---\ v4 s
  *      / \ / \
@@ -560,6 +578,7 @@ static SubDPattern tri_1edge = {
  *    /  \/  \/ \
  *   v8--v0--v1--v2
  *      s    s
+ * </pre>
  */
 static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
                                 const SubDParams *params)
@@ -610,7 +629,8 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 		}
 	}
 	
-	/*
+	/**
+	 * <pre>
 	 *         v5
 	 *        / \
 	 *   s v6/---\ v4 s
@@ -619,6 +639,7 @@ static void tri_3edge_subdivide(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
 	 *    /  \/  \/ \
 	 *   v8--v0--v1--v2
 	 *      s    s
+	 * </pre>
 	 */
 	for (i = 1; i < numcuts + 1; i++) {
 		for (j = 0; j < i; j++) {
@@ -642,51 +663,55 @@ cleanup:
 	MEM_freeN(lines);
 }
 
-static SubDPattern tri_3edge = {
+static const SubDPattern tri_3edge = {
 	{1, 1, 1},
 	tri_3edge_subdivide,
 	3,
 };
 
 
-static SubDPattern quad_4edge = {
+static const SubDPattern quad_4edge = {
 	{1, 1, 1, 1},
 	quad_4edge_subdivide,
 	4,
 };
 
-static SubDPattern *patterns[] = {
-	NULL, //quad single edge pattern is inserted here
-	NULL, //quad corner vert pattern is inserted here
-	NULL, //tri single edge pattern is inserted here
+static const SubDPattern *patterns[] = {
+	NULL,  /* quad single edge pattern is inserted here */
+	NULL,  /* quad corner vert pattern is inserted here */
+	NULL,  /* tri single edge pattern is inserted here */
 	NULL,
 	&quad_3edge,
 	NULL,
 };
 
-#define PLEN  (sizeof(patterns) / sizeof(void *))
+#define PATTERNS_TOT  (sizeof(patterns) / sizeof(void *))
 
 typedef struct SubDFaceData {
-	BMVert *start; SubDPattern *pat;
-	int totedgesel; //only used if pat was NULL, e.g. no pattern was found
+	BMVert *start;
+	const SubDPattern *pat;
+	int totedgesel;  /* only used if pat was NULL, e.g. no pattern was found */
 	BMFace *face;
 } SubDFaceData;
 
 void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *einput;
-	SubDPattern *pat;
+	const SubDPattern *pat;
 	SubDParams params;
 	SubDFaceData *facedata = NULL;
+	BLI_array_declare(facedata);
 	BMIter viter, fiter, liter;
 	BMVert *v, **verts = NULL;
-	BMEdge *edge, **edges = NULL;
-	BMLoop *nl, *l, **splits = NULL, **loops = NULL;
-	BMFace *face;
-	BLI_array_declare(splits);
-	BLI_array_declare(loops);
-	BLI_array_declare(facedata);
+	BMEdge *edge;
+	BMEdge **edges = NULL;
 	BLI_array_declare(edges);
+	BMLoop *(*loops_split)[2] = NULL;
+	BLI_array_declare(loops_split);
+	BMLoop **loops = NULL;
+	BLI_array_declare(loops);
+	BMLoop *nl, *l;
+	BMFace *face;
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
 	int use_sphere, cornertype, use_singleedge, use_gridfill;
@@ -708,7 +733,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BLI_srandom(seed);
 	
 	patterns[1] = NULL;
-	//straight cut is patterns[1] == NULL
+	/* straight cut is patterns[1] == NULL */
 	switch (cornertype) {
 		case SUBD_PATH:
 			patterns[1] = &quad_2edge_path;
@@ -801,16 +826,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 		/* make sure the two edges have a valid angle to each other */
 		if (totesel == 2 && BM_edge_share_vert_count(e1, e2)) {
-			float angle;
-
 			sub_v3_v3v3(vec1, e1->v2->co, e1->v1->co);
 			sub_v3_v3v3(vec2, e2->v2->co, e2->v1->co);
 			normalize_v3(vec1);
 			normalize_v3(vec2);
 
-			angle = dot_v3v3(vec1, vec2);
-			angle = fabsf(angle);
-			if (fabsf(angle - 1.0f) < 0.01f) {
+			if (fabsf(dot_v3v3(vec1, vec2)) > 1.0f - FLT_FACE_SPLIT_EPSILON) {
 				totesel = 0;
 			}
 		}
@@ -843,7 +864,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		for (i = 0; i < PLEN; i++) {
+		for (i = 0; i < PATTERNS_TOT; i++) {
 			pat = patterns[i];
 			if (!pat) {
 				continue;
@@ -917,12 +938,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			
 			/* ok, no pattern.  we still may be able to do something */
 			BLI_array_empty(loops);
-			BLI_array_empty(splits);
+			BLI_array_empty(loops_split);
 
 			/* for case of two edges, connecting them shouldn't be too hard */
-			BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
-				BLI_array_grow_one(loops);
-				loops[BLI_array_count(loops) - 1] = l;
+			BLI_array_grow_items(loops, face->len);
+			BM_ITER_ELEM_INDEX (l, &liter, face, BM_LOOPS_OF_FACE, a) {
+				loops[a] = l;
 			}
 			
 			vlen = BLI_array_count(loops);
@@ -953,23 +974,65 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			
 			b += numcuts - 1;
 
+			BLI_array_grow_items(loops_split, numcuts);
 			for (j = 0; j < numcuts; j++) {
-				BLI_array_grow_one(splits);
-				splits[BLI_array_count(splits) - 1] = loops[a];
-				
-				BLI_array_grow_one(splits);
-				splits[BLI_array_count(splits) - 1] = loops[b];
+				int ok = TRUE;
+
+				/* Check for special case: [#32500]
+				 * This edge pair could be used by more then one face,
+				 * in this case it used to (2.63), split both faces along the same verts
+				 * while it could be calculated which face should do the split,
+				 * its ambigious, so in this case we're better off to skip them as exceptional cases
+				 * and not try to be clever guessing which face to cut up.
+				 *
+				 * To avoid this case we need to check:
+				 * Do the verts of each share a face besides the one we are subdividing,
+				 *  (but not connect to make an edge of that face).
+				 */
+				{
+					BMLoop *other_loop;
+					BMIter other_fiter;
+					BM_ITER_ELEM (other_loop, &other_fiter, loops[a]->v, BM_LOOPS_OF_VERT) {
+						if (other_loop->f != face) {
+							if (BM_vert_in_face(other_loop->f, loops[b]->v)) {
+								/* we assume that these verts are not making an edge in the face */
+								BLI_assert(other_loop->prev->v != loops[a]->v);
+								BLI_assert(other_loop->next->v != loops[a]->v);
+
+								ok = FALSE;
+								break;
+							}
+						}
+					}
+				}
+
+
+				if (ok == TRUE) {
+					loops_split[j][0] = loops[a];
+					loops_split[j][1] = loops[b];
+				}
+				else {
+					loops_split[j][0] = NULL;
+					loops_split[j][1] = NULL;
+				}
 
 				b = (b - 1) % vlen;
 				a = (a + 1) % vlen;
 			}
 			
-			//BM_face_legal_splits(bmesh, face, splits, BLI_array_count(splits) / 2);
+			/* Since these are newly created vertices, we don't need to worry about them being legal,
+			 * ... though there are some cases we _should_ check for
+			 * - concave corner of an ngon.
+			 * - 2 edges being used in 2+ ngons.
+			 */
+//			BM_face_legal_splits(bm, face, loops_split, BLI_array_count(loops_split));
 
-			for (j = 0; j < BLI_array_count(splits) / 2; j++) {
-				if (splits[j * 2]) {
+			for (j = 0; j < BLI_array_count(loops_split); j++) {
+				if (loops_split[j][0]) {
+					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == FALSE);
+
 					/* BMFace *nf = */ /* UNUSED */
-					BM_face_split(bm, face, splits[j * 2]->v, splits[j * 2 + 1]->v, &nl, NULL, FALSE);
+					BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &nl, NULL, FALSE);
 				}
 			}
 
@@ -979,27 +1042,19 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		j = a = 0;
-		for (nl = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, face);
-		     nl;
-		     nl = BM_iter_step(&liter))
-		{
+		a = 0;
+		BM_ITER_ELEM_INDEX (nl, &liter, face, BM_LOOPS_OF_FACE, j) {
 			if (nl->v == facedata[i].start) {
 				a = j + 1;
 				break;
 			}
-			j++;
 		}
 
-		for (j = 0; j < face->len; j++) {
-			BLI_array_grow_one(verts);
-		}
-		
-		j = 0;
-		for (nl = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, face); nl; nl = BM_iter_step(&liter)) {
+		BLI_array_grow_items(verts, face->len);
+
+		BM_ITER_ELEM_INDEX (nl, &liter, face, BM_LOOPS_OF_FACE, j) {
 			b = (j - a + face->len) % face->len;
 			verts[b] = nl->v;
-			j += 1;
 		}
 
 		BM_CHECK_ELEMENT(face);
@@ -1017,7 +1072,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	if (facedata) BLI_array_free(facedata);
 	if (edges) BLI_array_free(edges);
 	if (verts) BLI_array_free(verts);
-	BLI_array_free(splits);
+	BLI_array_free(loops_split);
 	BLI_array_free(loops);
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, "outinner", BM_ALL, ELE_INNER);
@@ -1037,7 +1092,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	BMOperator op;
 	
 	/* use_sphere isnt exposed here since its only used for new primitives */
-	BMO_op_initf(bm, &op,
+	BMO_op_initf(bm, &op, BMO_FLAG_DEFAULTS,
 	             "subdivide_edges edges=%he "
 	             "smooth=%f fractal=%f along_normal=%f "
 	             "numcuts=%i "

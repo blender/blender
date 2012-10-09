@@ -20,8 +20,8 @@ elseif(CMAKE_COMPILER_IS_GNUCC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()
 
-# for OSL, not needed yet
-# set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
+# for OSL
+set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
 # set(RTTI_DISABLE_FLAGS "/GR- -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
 
 # Definitions and Includes
@@ -56,14 +56,15 @@ add_definitions(-DWITH_CUDA)
 add_definitions(-DWITH_MULTI)
 
 include_directories(
+	SYSTEM
 	${BOOST_INCLUDE_DIR}
 	${OPENIMAGEIO_INCLUDE_DIRS}
-	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO)
+	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO
+	${OPENEXR_INCLUDE_DIR})
 
 # Subdirectories
 
 if(WITH_CYCLES_BLENDER)
-	add_definitions(-DBLENDER_PLUGIN)
 	add_subdirectory(blender)
 endif()
 

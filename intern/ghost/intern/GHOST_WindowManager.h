@@ -41,8 +41,8 @@
 
 /**
  * Manages system windows (platform independent implementation).
- * @author	Maarten Gribnau
- * @date	May 11, 2001
+ * \author	Maarten Gribnau
+ * \date	May 11, 2001
  */
 class GHOST_WindowManager
 {
@@ -60,68 +60,68 @@ public:
 	/**
 	 * Add a window to our list.
 	 * It is only added if it is not already in the list.
-	 * @param	window Pointer to the window to be added.
-	 * @return	Indication of success.
+	 * \param	window Pointer to the window to be added.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess addWindow(GHOST_IWindow *window);
 
 	/**
 	 * Remove a window from our list.
-	 * @param	window Pointer to the window to be removed.
-	 * @return	Indication of success.
+	 * \param	window Pointer to the window to be removed.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess removeWindow(const GHOST_IWindow *window);
 
 	/**
 	 * Returns whether the window is in our list.
-	 * @param	window Pointer to the window to query.
-	 * @return	A boolean indicator.
+	 * \param	window Pointer to the window to query.
+	 * \return	A boolean indicator.
 	 */
 	virtual bool getWindowFound(const GHOST_IWindow *window) const;
 
 	/**
 	 * Returns whether one of the windows is fullscreen.
-	 * @return	A boolean indicator.
+	 * \return	A boolean indicator.
 	 */
 	virtual bool getFullScreen(void) const;
 
 	/**
 	 * Returns pointer to the full-screen window.
-	 * @return	The fll-screen window (0 if not in full-screen).
+	 * \return	The fll-screen window (0 if not in full-screen).
 	 */
 	virtual GHOST_IWindow *getFullScreenWindow(void) const;
 
 	/**
 	 * Activates fullscreen mode for a window.
-	 * @param window The window displayed fullscreen.
-	 * @return	Indication of success.
+	 * \param window The window displayed fullscreen.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess beginFullScreen(GHOST_IWindow *window, const bool stereoVisual);
 
 	/**
 	 * Closes fullscreen mode down.
-	 * @return	Indication of success.
+	 * \return	Indication of success.
 	 */
 	virtual GHOST_TSuccess endFullScreen(void);
 
 	/**
 	 * Sets new window as active window (the window receiving events).
 	 * There can be only one window active which should be in the current window list.
-	 * @param window The new active window.
+	 * \param window The new active window.
 	 */
 	virtual GHOST_TSuccess setActiveWindow(GHOST_IWindow *window);
 	
 	/**
 	 * Returns the active window (the window receiving events).
 	 * There can be only one window active which should be in the current window list.
-	 * @return window The active window (or NULL if there is none).
+	 * \return window The active window (or NULL if there is none).
 	 */
 	virtual GHOST_IWindow *getActiveWindow(void) const;
 	
 
 	/**
 	 * Set this window to be inactive (not receiving events).
-	 * @param window The window to decativate.
+	 * \param window The window to decativate.
 	 */
 	virtual void setWindowInactive(const GHOST_IWindow *window);
 	
@@ -129,7 +129,7 @@ public:
 	/**
 	 * Return a vector of the windows currently managed by this 
 	 * class. 
-	 * @warning It is very dangerous to mess with the contents of 
+	 * \warning It is very dangerous to mess with the contents of
 	 * this vector. Please do not destroy or add windows use the 
 	 * interface above for this,
 	 */
@@ -137,14 +137,14 @@ public:
 	
 	/**
 	 * Finds the window associated with an OS window object/handle
-	 * @param osWindow The OS window object/handle
-	 * @return The associated window, null if none corresponds
+	 * \param osWindow The OS window object/handle
+	 * \return The associated window, null if none corresponds
 	 */
 	virtual GHOST_IWindow *getWindowAssociatedWithOSWindow(void *osWindow);
 	
 	/**
 	 * Return true if any windows has a modified status
-	 * @return True if any window has unsaved changes
+	 * \return True if any window has unsaved changes
 	 */
 	bool getAnyModifiedState();
 

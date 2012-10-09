@@ -227,10 +227,10 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
             col.label(text="Use Scene Size Units", icon='SCENE_DATA')
             sub = col.column()
             sub.enabled = False
-            sub.prop(fluid, "simulation_scale", text="Metres")
+            sub.prop(fluid, "simulation_scale", text="Meters")
         else:
             col.label(text="Real World Size:")
-            col.prop(fluid, "simulation_scale", text="Metres")
+            col.prop(fluid, "simulation_scale", text="Meters")
 
         col = split.column()
         col.label(text="Viscosity Presets:")

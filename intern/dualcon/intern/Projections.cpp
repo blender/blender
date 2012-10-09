@@ -92,12 +92,12 @@ static void crossProduct(double res[3], const double a[3], const double b[3])
 /**
  * Method to perform dot product
  */
-int64_t dotProduct(const int64_t a[3], const int64_t b[3])
+static int64_t dotProduct(const int64_t a[3], const int64_t b[3])
 {
 	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-void normalize(double a[3])
+static void normalize(double a[3])
 {
 	double mag = a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
 	if (mag > 0) {

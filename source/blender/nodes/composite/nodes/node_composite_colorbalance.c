@@ -46,6 +46,8 @@ static bNodeSocketTemplate cmp_node_colorbalance_out[]={
 	{-1, 0, ""}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* this function implements ASC-CDL according to the spec at http://www.asctech.org/
  Slope
        S = in * slope
@@ -69,8 +71,8 @@ DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slop
 /* note: lift_lgg is just 2-lift, gamma_inv is 1.0/gamma */
 DO_INLINE float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float gain)
 {
-	/* 1:1 match with the sequencer with linear/srgb conversions, the conversion isn'tisn't pretty
-	 * but best keep it this way, sice testing for durian shows a similar calculation
+	/* 1:1 match with the sequencer with linear/srgb conversions, the conversion isn't pretty
+	 * but best keep it this way, since testing for durian shows a similar calculation
 	 * without lin/srgb conversions gives bad results (over-saturated shadows) with colors
 	 * slightly below 1.0. some correction can be done but it ends up looking bad for shadows or lighter tones - campbell */
 	float x= (((linearrgb_to_srgb(in) - 1.0f) * lift_lgg) + 1.0f) * gain;
@@ -174,7 +176,9 @@ static void node_composit_exec_colorbalance(void *UNUSED(data), bNode *node, bNo
 	}
 }
 
-static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_colorbalance(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeColorBalance *n= node->storage= MEM_callocN(sizeof(NodeColorBalance), "node colorbalance");
 
@@ -192,7 +196,9 @@ void register_node_type_cmp_colorbalance(bNodeTreeType *ttype)
 	node_type_size(&ntype, 400, 200, 400);
 	node_type_init(&ntype, node_composit_init_colorbalance);
 	node_type_storage(&ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_colorbalance);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

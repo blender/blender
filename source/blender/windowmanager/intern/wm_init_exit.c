@@ -28,10 +28,13 @@
  *  \ingroup wm
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef WIN32
+#  include <Windows.h>
+#endif
 
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
@@ -55,6 +58,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 
 #include "BKE_packedFile.h"
@@ -63,7 +67,6 @@
 #include "BKE_tracking.h" /* free tracking clipboard */
 
 #include "BLI_listbase.h"
-// #include "BLI_scanfill.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -75,7 +78,7 @@
 #endif
 
 #ifdef WITH_GAMEENGINE
-#include "BL_System.h"
+#  include "BL_System.h"
 #endif
 #include "GHOST_Path-api.h"
 #include "GHOST_C-api.h"
@@ -109,6 +112,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_sound.h"
+#include "COM_compositor.h"
 
 static void wm_init_reports(bContext *C)
 {
@@ -139,12 +143,13 @@ void WM_init(bContext *C, int argc, const char **argv)
 	ED_spacetypes_init();   /* editors/space_api/spacetype.c */
 	
 	ED_file_init();         /* for fsmenu */
-	ED_init_node_butfuncs();	
+	ED_node_init_butfuncs();
 	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
+
 	/* get the default database, plus a wm */
-	WM_read_homefile(C, NULL, G.factory_startup);
+	WM_homefile_read(C, NULL, G.factory_startup);
 
 	BLF_lang_set(NULL);
 
@@ -153,7 +158,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	 * initializing space types and other internal data.
 	 *
 	 * However cant redo this at the moment. Solution is to load python
-	 * before WM_read_homefile() or make py-drivers check if python is running.
+	 * before WM_homefile_read() or make py-drivers check if python is running.
 	 * Will try fix when the crash can be repeated. - campbell. */
 
 #ifdef WITH_PYTHON
@@ -199,6 +204,13 @@ void WM_init(bContext *C, int argc, const char **argv)
 #endif
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
+
+#ifdef WITH_COMPOSITOR
+	if (1) {
+		extern void *COM_linker_hack;
+		COM_linker_hack = COM_execute;
+	}
+#endif
 }
 
 void WM_init_splash(bContext *C)
@@ -226,21 +238,21 @@ int WM_init_game(bContext *C)
 	Scene *scene = CTX_data_scene(C);
 
 	if (!scene) {
-		// XXX, this should not be needed.
+		/* XXX, this should not be needed. */
 		Main *bmain = CTX_data_main(C);
 		scene = bmain->scene.first;
 	}
 
 	win = wm->windows.first;
 
-	//first to get a valid window
+	/* first to get a valid window */
 	if (win)
 		CTX_wm_window_set(C, win);
 
 	sa = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_VIEW3D, 0);
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 
-	// if we have a valid 3D view
+	/* if we have a valid 3D view */
 	if (sa && ar) {
 		ARegion *arhide;
 
@@ -319,28 +331,50 @@ static void free_openrecent(void)
 /* bad stuff*/
 
 // XXX copy/paste buffer stuff...
-extern void free_anim_copybuf(void); 
-extern void free_anim_drivers_copybuf(void); 
-extern void free_fmodifiers_copybuf(void); 
-extern void free_posebuf(void); 
+extern void free_anim_copybuf(void);
+extern void free_anim_drivers_copybuf(void);
+extern void free_fmodifiers_copybuf(void);
+
+#ifdef WIN32
+/* Read console events until there is a key event.  Also returns on any error. */
+static void wait_for_console_key(void)
+{
+	HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
+
+	if (!ELEM(hConsoleInput, NULL, INVALID_HANDLE_VALUE) && FlushConsoleInputBuffer(hConsoleInput)) {
+		for (;;) {
+			INPUT_RECORD buffer;
+			DWORD ignored;
+
+			if (!ReadConsoleInput(hConsoleInput, &buffer, 1, &ignored)) {
+				break;
+			}
+
+			if (buffer.EventType == KEY_EVENT) {
+				break;
+			}
+		}
+	}
+}
+#endif
 
 /* called in creator.c even... tsk, split this! */
 /* note, doesnt run exit() call WM_exit() for that */
 void WM_exit_ext(bContext *C, const short do_python)
 {
-	wmWindow *win;
+	wmWindowManager *wm = C ? CTX_wm_manager(C) : NULL;
 
 	sound_exit();
-
 
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
 	/* note; same code copied in wm_files.c */
-	if (C && CTX_wm_manager(C)) {
-		
-		WM_jobs_stop_all(CTX_wm_manager(C));
-		
-		for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
+	if (C && wm) {
+		wmWindow *win;
+
+		WM_jobs_stop_all(wm);
+
+		for (win = wm->windows.first; win; win = win->next) {
 			
 			CTX_wm_window_set(C, win);  /* needed by operator close callbacks */
 			WM_event_remove_handlers(C, &win->handlers);
@@ -360,8 +394,6 @@ void WM_exit_ext(bContext *C, const short do_python)
 //	BIF_GlobalReebFree();
 //	BIF_freeRetarget();
 	BIF_freeTemplates(C);
-	
-	BKE_vfont_free_global_ttf(); /* bke_font.h */
 
 	free_openrecent();
 	
@@ -369,18 +401,23 @@ void WM_exit_ext(bContext *C, const short do_python)
 	
 	ED_preview_free_dbase();  /* frees a Main dbase, before free_blender! */
 
-	if (C && CTX_wm_manager(C))
+	if (C && wm)
 		wm_free_reports(C);  /* before free_blender! - since the ListBases get freed there */
 
-	seq_free_clipboard(); /* sequencer.c */
+	BKE_sequencer_free_clipboard(); /* sequencer.c */
 	BKE_tracking_clipboard_free();
 		
+#ifdef WITH_COMPOSITOR
+	COM_deinitialize();
+#endif
+	
 	free_blender();  /* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();
 	free_anim_drivers_copybuf();
 	free_fmodifiers_copybuf();
-	free_posebuf();
+	ED_clipboard_posebuf_free();
+	BKE_node_clipboard_clear();
 
 	BLF_exit();
 
@@ -446,10 +483,10 @@ void WM_exit_ext(bContext *C, const short do_python)
 	printf("\nBlender quit\n");
 	
 #ifdef WIN32   
-	/* ask user to press enter when in debug mode */
+	/* ask user to press a key when in debug mode */
 	if (G.debug & G_DEBUG) {
-		printf("press enter key to exit...\n\n");
-		getchar();
+		printf("Press any key to exit . . .\n\n");
+		wait_for_console_key();
 	}
 #endif 
 }
@@ -457,5 +494,5 @@ void WM_exit_ext(bContext *C, const short do_python)
 void WM_exit(bContext *C)
 {
 	WM_exit_ext(C, 1);
-	exit(G.afbreek == 1);
+	exit(G.is_break == TRUE);
 }

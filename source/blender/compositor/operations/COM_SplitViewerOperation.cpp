@@ -23,7 +23,6 @@
 #include "COM_SplitViewerOperation.h"
 #include "COM_SocketConnection.h"
 #include "BLI_listbase.h"
-#include "DNA_scene_types.h"
 #include "BKE_image.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_color.h"
@@ -60,10 +59,9 @@ void SplitViewerOperation::deinitExecution()
 }
 
 
-void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	float *buffer = this->m_outputBuffer;
-	unsigned char *bufferDisplay = this->m_outputBufferDisplay;
 	
 	if (!buffer) return;
 	int x1 = rect->xmin;
@@ -77,29 +75,14 @@ void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 	for (y = y1; y < y2; y++) {
 		for (x = x1; x < x2; x++) {
 			bool image1;
-			float srgb[4];
 			image1 = this->m_xSplit ? x > perc : y > perc;
 			if (image1) {
-				this->m_image1Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_image1Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST);
 			}
 			else {
-				this->m_image2Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
+				this->m_image2Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST);
 			}
-			/// @todo: linear conversion only when scene color management is selected, also check predivide.
-			if (this->m_doColorManagement) {
-				if (this->m_doColorPredivide) {
-					linearrgb_to_srgb_predivide_v4(srgb, buffer + offset);
-				}
-				else {
-					linearrgb_to_srgb_v4(srgb, buffer + offset);
-				}
-			}
-			else {
-				copy_v4_v4(srgb, buffer + offset);
-			}
-	
-			rgba_float_to_uchar(bufferDisplay + offset, srgb);
-	
+
 			offset += 4;
 		}
 		offset += (this->getWidth() - (x2 - x1)) * 4;

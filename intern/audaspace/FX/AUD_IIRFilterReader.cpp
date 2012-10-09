@@ -34,7 +34,7 @@ AUD_IIRFilterReader::AUD_IIRFilterReader(AUD_Reference<AUD_IReader> reader,
 										 const std::vector<float>& a) :
 	AUD_BaseIIRFilterReader(reader, b.size(), a.size()), m_a(a), m_b(b)
 {
-	if(m_a.size())
+	if(m_a.empty() == false)
 	{
 		for(int i = 1; i < m_a.size(); i++)
 			m_a[i] /= m_a[0];

@@ -74,6 +74,29 @@ int BufferParams::get_passes_size()
 	return align_up(size, 4);
 }
 
+/* Render Buffer Task */
+
+RenderTile::RenderTile()
+{
+	x = 0;
+	y = 0;
+	w = 0;
+	h = 0;
+
+	start_sample = 0;
+	num_samples = 0;
+	resolution = 0;
+
+	offset = 0;
+	stride = 0;
+
+	buffer = 0;
+	rng_state = 0;
+	rgba = 0;
+
+	buffers = NULL;
+}
+
 /* Render Buffers */
 
 RenderBuffers::RenderBuffers(Device *device_)
@@ -135,7 +158,7 @@ bool RenderBuffers::copy_from_device()
 	return true;
 }
 
-bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int components, float *pixels)
+bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels)
 {
 	int pass_offset = 0;
 
@@ -173,7 +196,18 @@ bool RenderBuffers::get_pass(PassType type, float exposure, int sample, int comp
 		else if(components == 3) {
 			assert(pass.components == 4);
 
-			if(pass.divide_type != PASS_NONE) {
+			/* RGBA */
+			if(type == PASS_SHADOW) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
+					float4 f = make_float4(in[0], in[1], in[2], in[3]);
+					float invw = (f.w > 0.0f)? 1.0f/f.w: 1.0f;
+
+					pixels[0] = f.x*invw;
+					pixels[1] = f.y*invw;
+					pixels[2] = f.z*invw;
+				}
+			}
+			else if(pass.divide_type != PASS_NONE) {
 				/* RGB lighting passes that need to divide out color */
 				pass_offset = 0;
 				foreach(Pass& color_pass, params.passes) {

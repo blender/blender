@@ -305,7 +305,7 @@ static int triangulate(int n, const int* verts, int* indices, int* tris)
 	while (n > 3)
 	{
 		int minLen = -1;
-		int mini = -1;
+		int i_min = -1;
 		for (int i = 0; i < n; i++)
 		{
 			int i1 = next(i, n);
@@ -321,12 +321,12 @@ static int triangulate(int n, const int* verts, int* indices, int* tris)
 				if (minLen < 0 || len < minLen)
 				{
 					minLen = len;
-					mini = i;
+					i_min = i;
 				}
 			}
 		}
 		
-		if (mini == -1)
+		if (i_min == -1)
 		{
 			// Should not happen.
 /*			printf("mini == -1 ntris=%d n=%d\n", ntris, n);
@@ -338,7 +338,7 @@ static int triangulate(int n, const int* verts, int* indices, int* tris)
 			return -ntris;
 		}
 		
-		int i = mini;
+		int i = i_min;
 		int i1 = next(i, n);
 		int i2 = next(i1, n);
 		

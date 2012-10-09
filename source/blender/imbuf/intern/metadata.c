@@ -33,7 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BLI_blenlib.h"
+#include "BLI_string.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf_types.h"
@@ -62,7 +63,7 @@ void IMB_metadata_free(struct ImBuf *img)
 	}
 }
 
-int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, int len)
+int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, const size_t len)
 {
 	ImMetaData *info;
 	int retval = 0;

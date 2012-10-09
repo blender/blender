@@ -421,7 +421,7 @@ struct VBVH_optimalPackSIMD {
 				}
 			}
 			
-			//Save the ways to archieve the minimum cost with a given cutsize
+			/* Save the ways to archive the minimum cost with a given cutsize */
 			for (int i = nchilds; i <= MAX_CUT_SIZE; i++) {
 				node->cut_cost[i - 1] = cost[nchilds][i];
 				if (cost[nchilds][i] < INFINITY) {

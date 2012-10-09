@@ -32,7 +32,6 @@
  *  \ingroup GHOST
  */
 
-
 #include "GHOST_SystemX11.h"
 #include "GHOST_WindowX11.h"
 #include "GHOST_WindowManager.h"
@@ -44,11 +43,11 @@
 #include "GHOST_DisplayManagerX11.h"
 #include "GHOST_EventDragnDrop.h"
 #ifdef WITH_INPUT_NDOF
-#include "GHOST_NDOFManagerX11.h"
+#  include "GHOST_NDOFManagerX11.h"
 #endif
 
 #ifdef WITH_XDND
-#include "GHOST_DropTargetX11.h"
+#  include "GHOST_DropTargetX11.h"
 #endif
 
 #include "GHOST_Debug.h"
@@ -61,20 +60,19 @@
 #include <X11/XF86keysym.h>
 #endif
 
-// For timing
-
+/* For timing */
 #include <sys/time.h>
 #include <unistd.h>
 
 #include <iostream>
 #include <vector>
-#include <stdio.h> // for fprintf only
-#include <cstdlib> // for exit
+#include <stdio.h> /* for fprintf only */
+#include <cstdlib> /* for exit */
 
 static GHOST_TKey
 convertXKey(KeySym key);
 
-//these are for copy and select copy
+/* these are for copy and select copy */
 static char *txt_cut_buffer = NULL;
 static char *txt_select_buffer = NULL;
 
@@ -90,12 +88,15 @@ GHOST_SystemX11(
 	
 	if (!m_display) {
 		std::cerr << "Unable to open a display" << std::endl;
-		abort(); //was return before, but this would just mean it will crash later
+		abort(); /* was return before, but this would just mean it will crash later */
 	}
 
-	/* Open a connection to the X input manager */
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-	m_xim = XOpenIM(m_display, NULL, (char *)GHOST_X11_RES_NAME, (char *)GHOST_X11_RES_CLASS);
+	/* note -- don't open connection to XIM server here, because the locale
+	 * has to be set before opening the connection but setlocale() has not
+	 * been called yet.  the connection will be opened after entering
+	 * the event loop. */
+	m_xim = NULL;
 #endif
 
 	m_delete_window_atom 
@@ -125,13 +126,13 @@ GHOST_SystemX11(
 	m_last_warp = 0;
 
 
-	// compute the initial time
+	/* compute the initial time */
 	timeval tv;
 	if (gettimeofday(&tv, NULL) == -1) {
 		GHOST_ASSERT(false, "Could not instantiate timer!");
 	}
 	
-	// Taking care not to overflow the tv.tv_sec*1000
+	/* Taking care not to overflow the tv.tv_sec*1000 */
 	m_start_time = GHOST_TUns64(tv.tv_sec) * 1000 + tv.tv_usec / 1000;
 	
 	
@@ -151,7 +152,9 @@ GHOST_SystemX11::
 ~GHOST_SystemX11()
 {
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-	XCloseIM(m_xim);
+	if (m_xim) {
+		XCloseIM(m_xim);
+	}
 #endif
 
 	XCloseDisplay(m_display);
@@ -187,7 +190,7 @@ getMilliSeconds() const
 		GHOST_ASSERT(false, "Could not compute time!");
 	}
 
-	// Taking care not to overflow the tv.tv_sec*1000
+	/* Taking care not to overflow the tv.tv_sec*1000 */
 	return GHOST_TUns64(tv.tv_sec) * 1000 + tv.tv_usec / 1000 - m_start_time;
 }
 	
@@ -200,7 +203,7 @@ getNumDisplays() const
 
 /**
  * Returns the dimensions of the main display on this system.
- * @return The dimension of the main display.
+ * \return The dimension of the main display.
  */
 void
 GHOST_SystemX11::
@@ -218,17 +221,17 @@ getMainDisplayDimensions(
  * Create a new window.
  * The new window is added to the list of windows managed.
  * Never explicitly delete the window, use disposeWindow() instead.
- * @param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
- * @param	left	The coordinate of the left edge of the window.
- * @param	top		The coordinate of the top edge of the window.
- * @param	width	The width the window.
- * @param	height	The height the window.
- * @param	state	The state of the window when opened.
- * @param	type	The type of drawing context installed in this window.
- * @param	stereoVisual	Stereo visual for quad buffered stereo.
- * @param	numOfAASamples	Number of samples used for AA (zero if no AA)
- * @param	parentWindow    Parent (embedder) window
- * @return	The new window (or 0 if creation failed).
+ * \param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
+ * \param	left	The coordinate of the left edge of the window.
+ * \param	top		The coordinate of the top edge of the window.
+ * \param	width	The width the window.
+ * \param	height	The height the window.
+ * \param	state	The state of the window when opened.
+ * \param	type	The type of drawing context installed in this window.
+ * \param	stereoVisual	Stereo visual for quad buffered stereo.
+ * \param	numOfAASamples	Number of samples used for AA (zero if no AA)
+ * \param	parentWindow    Parent (embedder) window
+ * \return	The new window (or 0 if creation failed).
  */
 GHOST_IWindow *
 GHOST_SystemX11::
@@ -251,16 +254,16 @@ createWindow(
 
 	
 
-	window = new GHOST_WindowX11(
-	    this, m_display, title, left, top, width, height, state, parentWindow, type, stereoVisual
-	    );
+	window = new GHOST_WindowX11(this, m_display, title,
+	                             left, top, width, height,
+	                             state, parentWindow, type, stereoVisual);
 
 	if (window) {
-		// Both are now handle in GHOST_WindowX11.cpp
-		// Focus and Delete atoms.
+		/* Both are now handle in GHOST_WindowX11.cpp
+		 * Focus and Delete atoms. */
 
 		if (window->getValid()) {
-			// Store the pointer to the window 
+			/* Store the pointer to the window */
 			m_windowManager->addWindow(window);
 			m_windowManager->setActiveWindow(window);
 			pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
@@ -273,6 +276,35 @@ createWindow(
 	return window;
 }
 
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+static void destroyIMCallback(XIM xim, XPointer ptr, XPointer data)
+{
+	GHOST_PRINT("XIM server died\n");
+
+	if (ptr)
+		*(XIM *)ptr = NULL;
+}
+
+bool GHOST_SystemX11::openX11_IM()
+{
+	if (!m_display)
+		return false;
+
+	/* set locale modifiers such as "@im=ibus" specified by XMODIFIERS */
+	XSetLocaleModifiers("");
+
+	m_xim = XOpenIM(m_display, NULL, (char *)GHOST_X11_RES_NAME, (char *)GHOST_X11_RES_CLASS);
+	if (!m_xim)
+		return false;
+
+	XIMCallback destroy;
+	destroy.callback = (XIMProc)destroyIMCallback;
+	destroy.client_data = (XPointer)&m_xim;
+	XSetIMValues(m_xim, XNDestroyCallback, &destroy, NULL);
+	return true;
+}
+#endif
+
 GHOST_WindowX11 *
 GHOST_SystemX11::
 findGhostWindow(
@@ -281,10 +313,10 @@ findGhostWindow(
 	
 	if (xwind == 0) return NULL;
 
-	// It is not entirely safe to do this as the backptr may point
-	// to a window that has recently been removed. 
-	// We should always check the window manager's list of windows 
-	// and only process events on these windows.
+	/* It is not entirely safe to do this as the backptr may point
+	 * to a window that has recently been removed.
+	 * We should always check the window manager's list of windows
+	 * and only process events on these windows. */
 
 	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
 
@@ -379,8 +411,8 @@ GHOST_SystemX11::
 processEvents(
 		bool waitForEvent)
 {
-	// Get all the current events -- translate them into 
-	// ghost events and call base class pushEvent() method.
+	/* Get all the current events -- translate them into
+	 * ghost events and call base class pushEvent() method. */
 	
 	bool anyProcessed = false;
 	
@@ -408,6 +440,38 @@ processEvents(
 		while (XPending(m_display)) {
 			XEvent xevent;
 			XNextEvent(m_display, &xevent);
+
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			/* open connection to XIM server and create input context (XIC)
+			 * when receiving the first FocusIn or KeyPress event after startup,
+			 * or recover XIM and XIC when the XIM server has been restarted */
+			if (xevent.type == FocusIn || xevent.type == KeyPress) {
+				if (!m_xim && openX11_IM()) {
+					GHOST_PRINT("Connected to XIM server\n");
+				}
+
+				if (m_xim) {
+					GHOST_WindowX11 * window = findGhostWindow(xevent.xany.window);
+					if (window && !window->getX11_XIC() && window->createX11_XIC()) {
+						GHOST_PRINT("XIM input context created\n");
+						if (xevent.type == KeyPress)
+							/* we can assume the window has input focus
+							 * here, because key events are received only
+							 * when the window is focused. */
+							XSetICFocus(window->getX11_XIC());
+					}
+				}
+			}
+
+			/* dispatch event to XIM server */
+			if ((XFilterEvent(&xevent, (Window)NULL) == True) && (xevent.type != KeyRelease)) {
+				/* do nothing now, the event is consumed by XIM.
+				 * however, KeyRelease event should be processed
+				 * here, otherwise modifiers remain activated.   */
+				continue;
+			}
+#endif
+
 			processEvent(&xevent);
 			anyProcessed = true;
 		}
@@ -455,8 +519,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XExposeEvent & xee = xe->xexpose;
 
 			if (xee.count == 0) {
-				// Only generate a single expose event
-				// per read of the event queue.
+				/* Only generate a single expose event
+				 * per read of the event queue. */
 
 				g_event = new
 				          GHOST_Event(
@@ -535,7 +599,19 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			XKeyEvent *xke = &(xe->xkey);
 			KeySym key_sym = XLookupKeysym(xke, 0);
 			char ascii;
-			char utf8_buf[6]; /* 6 is enough for a utf8 char */
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			/* utf8_array[] is initial buffer used for Xutf8LookupString().
+			 * if the length of the utf8 string exceeds this array, allocate
+			 * another memory area and call Xutf8LookupString() again.
+			 * the last 5 bytes are used to avoid segfault that might happen
+			 * at the end of this buffer when the constructor of GHOST_EventKey
+			 * reads 6 bytes regardless of the effective data length. */
+			char utf8_array[16 * 6 + 5]; /* 16 utf8 characters */
+			char *utf8_buf = utf8_array;
+			int len = 1; /* at least one null character will be stored */
+#else
+			char *utf8_buf = NULL;
+#endif
 			
 			GHOST_TKey gkey = convertXKey(key_sym);
 			GHOST_TEventType type = (xke->type == KeyPress) ? 
@@ -547,13 +623,18 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 			/* getting unicode on key-up events gives XLookupNone status */
-			if (xke->type == KeyPress) {
+			XIC xic = window->getX11_XIC();
+			if (xic && xke->type == KeyPress) {
 				Status status;
-				int len;
 
 				/* use utf8 because its not locale depentant, from xorg docs */
-				if (!(len = Xutf8LookupString(window->getX11_XIC(), xke, utf8_buf, sizeof(utf8_buf), &key_sym, &status))) {
+				if (!(len = Xutf8LookupString(xic, xke, utf8_buf, sizeof(utf8_array) - 5, &key_sym, &status))) {
 					utf8_buf[0] = '\0';
+				}
+
+				if (status == XBufferOverflow) {
+					utf8_buf = (char *) malloc(len + 5);
+					len = Xutf8LookupString(xic, xke, utf8_buf, len, &key_sym, &status);
 				}
 
 				if ((status == XLookupChars || status == XLookupBoth)) {
@@ -571,19 +652,16 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				else {
 					printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
 					       (unsigned int) key_sym,
-					       (status == XBufferOverflow ? "BufferOverflow" :
-					        status == XLookupNone ? "XLookupNone" :
+					       (status == XLookupNone ? "XLookupNone" :
 					        status == XLookupKeySym ? "XLookupKeySym" :
 					        "Unknown status"));
 
-					printf("'%.*s' %p %p\n", len, utf8_buf, window->getX11_XIC(), m_xim);
+					printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
 				}
 			}
 			else {
 				utf8_buf[0] = '\0';
 			}
-#else
-			utf8_buf[0] = '\0';
 #endif
 
 			g_event = new
@@ -595,6 +673,42 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			    ascii,
 			    utf8_buf
 			    );
+
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			/* when using IM for some languages such as Japanese,
+			 * one event inserts multiple utf8 characters */
+			if (xic && xke->type == KeyPress) {
+				unsigned char c;
+				int i = 0;
+				while (1) {
+					/* search character boundary */
+					if ((unsigned char)utf8_buf[i++] > 0x7f) {
+						for (; i < len; ++i) {
+							c = utf8_buf[i];
+							if (c < 0x80 || c > 0xbf) break;
+						}
+					}
+
+					if (i >= len) break;
+
+					/* enqueue previous character */
+					pushEvent(g_event);
+
+					g_event = new
+					          GHOST_EventKey(
+					    getMilliSeconds(),
+					    type,
+					    window,
+					    gkey,
+					    '\0',
+					    &utf8_buf[i]
+					    );
+				}
+			}
+
+			if (utf8_buf != utf8_array)
+				free(utf8_buf);
+#endif
 			
 			break;
 		}
@@ -647,7 +761,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			break;
 		}
 			
-		// change of size, border, layer etc.
+		/* change of size, border, layer etc. */
 		case ConfigureNotify:
 		{
 			/* XConfigureEvent & xce = xe->xconfigure; */
@@ -666,14 +780,23 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XFocusChangeEvent &xfe = xe->xfocus;
 
-			// TODO: make sure this is the correct place for activate/deactivate
+			/* TODO: make sure this is the correct place for activate/deactivate */
 			// printf("X: focus %s for window %d\n", xfe.type == FocusIn ? "in" : "out", (int) xfe.window);
 		
-			// May have to look at the type of event and filter some
-			// out.
-									
+			/* May have to look at the type of event and filter some out. */
+
 			GHOST_TEventType gtype = (xfe.type == FocusIn) ? 
 			                         GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate;
+
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+			XIC xic = window->getX11_XIC();
+			if (xic) {
+				if (xe->type == FocusIn)
+					XSetICFocus(xic);
+				else
+					XUnsetICFocus(xic);
+			}
+#endif
 
 			g_event = new 
 			          GHOST_Event(
@@ -736,7 +859,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		
 		case DestroyNotify:
 			::exit(-1);	
-		// We're not interested in the following things.(yet...)
+		/* We're not interested in the following things.(yet...) */
 		case NoExpose:
 		case GraphicsExpose:
 			break;
@@ -821,8 +944,12 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			nxe.xselection.target = xse->target;
 			nxe.xselection.time = xse->time;
 			
-			/*Check to see if the requestor is asking for String*/
-			if (xse->target == utf8_string || xse->target == string || xse->target == compound_text || xse->target == c_string) {
+			/* Check to see if the requestor is asking for String */
+			if (xse->target == utf8_string ||
+			    xse->target == string ||
+			    xse->target == compound_text ||
+			    xse->target == c_string)
+			{
 				if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
 					XChangeProperty(m_display, xse->requestor, xse->property, xse->target, 8, PropModeReplace,
 					                (unsigned char *)txt_select_buffer, strlen(txt_select_buffer));
@@ -844,11 +971,11 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				XFlush(m_display);
 			}
 			else {
-				//Change property to None because we do not support anything but STRING
+				/* Change property to None because we do not support anything but STRING */
 				nxe.xselection.property = None;
 			}
 			
-			//Send the event to the client 0 0 == False, SelectionNotify
+			/* Send the event to the client 0 0 == False, SelectionNotify */
 			XSendEvent(m_display, xse->requestor, 0, 0, &nxe);
 			XFlush(m_display);
 			break;
@@ -856,8 +983,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		
 		default: {
 #ifdef WITH_X11_XINPUT
-			if (xe->type == window->GetXTablet().MotionEvent)
-			{
+			if (xe->type == window->GetXTablet().MotionEvent) {
 				XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
 
 				/* stroke might begin without leading ProxyIn event,
@@ -866,23 +992,23 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				setTabletMode(window, data->deviceid);
 
 				window->GetXTablet().CommonData.Pressure =
-				    data->axis_data[2] / ((float)window->GetXTablet().PressureLevels);
-			
+				        data->axis_data[2] / ((float)window->GetXTablet().PressureLevels);
+
 				/* the (short) cast and the &0xffff is bizarre and unexplained anywhere,
 				 * but I got garbage data without it. Found it in the xidump.c source --matt */
 				window->GetXTablet().CommonData.Xtilt =
-				    (short)(data->axis_data[3] & 0xffff) / ((float)window->GetXTablet().XtiltLevels);
+				        (short)(data->axis_data[3] & 0xffff) / ((float)window->GetXTablet().XtiltLevels);
 				window->GetXTablet().CommonData.Ytilt =
-				    (short)(data->axis_data[4] & 0xffff) / ((float)window->GetXTablet().YtiltLevels);
+				        (short)(data->axis_data[4] & 0xffff) / ((float)window->GetXTablet().YtiltLevels);
 			}
-			else if (xe->type == window->GetXTablet().ProxInEvent)
-			{
+			else if (xe->type == window->GetXTablet().ProxInEvent) {
 				XProximityNotifyEvent *data = (XProximityNotifyEvent *)xe;
 
 				setTabletMode(window, data->deviceid);
 			}
-			else if (xe->type == window->GetXTablet().ProxOutEvent)
+			else if (xe->type == window->GetXTablet().ProxOutEvent) {
 				window->GetXTablet().CommonData.Active = GHOST_kTabletModeNone;
+			}
 #endif // WITH_X11_XINPUT
 			break;
 		}
@@ -899,14 +1025,14 @@ getModifierKeys(
 		GHOST_ModifierKeys& keys) const
 {
 
-	// analyse the masks retuned from XQueryPointer.
+	/* analyse the masks retuned from XQueryPointer. */
 
 	memset((void *)m_keyboard_vector, 0, sizeof(m_keyboard_vector));
 
 	XQueryKeymap(m_display, (char *)m_keyboard_vector);
 
-	// now translate key symobols into keycodes and
-	// test with vector.
+	/* now translate key symobols into keycodes and
+	 * test with vector. */
 
 	const static KeyCode shift_l = XKeysymToKeycode(m_display, XK_Shift_L);
 	const static KeyCode shift_r = XKeysymToKeycode(m_display, XK_Shift_R);
@@ -917,16 +1043,16 @@ getModifierKeys(
 	const static KeyCode super_l = XKeysymToKeycode(m_display, XK_Super_L);
 	const static KeyCode super_r = XKeysymToKeycode(m_display, XK_Super_R);
 
-	// shift
+	/* shift */
 	keys.set(GHOST_kModifierKeyLeftShift, ((m_keyboard_vector[shift_l >> 3] >> (shift_l & 7)) & 1) != 0);
 	keys.set(GHOST_kModifierKeyRightShift, ((m_keyboard_vector[shift_r >> 3] >> (shift_r & 7)) & 1) != 0);
-	// control
+	/* control */
 	keys.set(GHOST_kModifierKeyLeftControl, ((m_keyboard_vector[control_l >> 3] >> (control_l & 7)) & 1) != 0);
 	keys.set(GHOST_kModifierKeyRightControl, ((m_keyboard_vector[control_r >> 3] >> (control_r & 7)) & 1) != 0);
-	// alt
+	/* alt */
 	keys.set(GHOST_kModifierKeyLeftAlt, ((m_keyboard_vector[alt_l >> 3] >> (alt_l & 7)) & 1) != 0);
 	keys.set(GHOST_kModifierKeyRightAlt, ((m_keyboard_vector[alt_r >> 3] >> (alt_r & 7)) & 1) != 0);
-	// super (windows) - only one GHOST-kModifierKeyOS, so mapping to either
+	/* super (windows) - only one GHOST-kModifierKeyOS, so mapping to either */
 	keys.set(GHOST_kModifierKeyOS, ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) ||
 	                                 ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) != 0);
 
@@ -999,9 +1125,9 @@ setCursorPosition(
 		GHOST_TInt32 y
         ) {
 
-	// This is a brute force move in screen coordinates
-	// XWarpPointer does relative moves so first determine the
-	// current pointer position.
+	/* This is a brute force move in screen coordinates
+	 * XWarpPointer does relative moves so first determine the
+	 * current pointer position. */
 
 	int cx, cy;
 	if (getCursorPosition(cx, cy) == GHOST_kFailure) {
@@ -1212,15 +1338,15 @@ convertXKey(KeySym key)
 
 /* from xclip.c xcout() v0.11 */
 
-#define XCLIB_XCOUT_NONE        0 /* no context */
+#define XCLIB_XCOUT_NONE            0 /* no context */
 #define XCLIB_XCOUT_SENTCONVSEL     1 /* sent a request */
-#define XCLIB_XCOUT_INCR        2 /* in an incr loop */
+#define XCLIB_XCOUT_INCR            2 /* in an incr loop */
 #define XCLIB_XCOUT_FALLBACK        3 /* STRING failed, need fallback to UTF8 */
 #define XCLIB_XCOUT_FALLBACK_UTF8   4 /* UTF8 failed, move to compouned */
 #define XCLIB_XCOUT_FALLBACK_COMP   5 /* compouned failed, move to text. */
 #define XCLIB_XCOUT_FALLBACK_TEXT   6
 
-// Retrieves the contents of a selections.
+/* Retrieves the contents of a selections. */
 void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 		Atom sel, Atom target, unsigned char **txt,
 		unsigned long *len, unsigned int *context) const
@@ -1237,15 +1363,15 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 	Window win = window->getXWindow();
 
 	switch (*context) {
-		// There is no context, do an XConvertSelection()
+		/* There is no context, do an XConvertSelection() */
 		case XCLIB_XCOUT_NONE:
-			// Initialise return length to 0
+			/* Initialise return length to 0 */
 			if (*len > 0) {
 				free(*txt);
 				*len = 0;
 			}
 
-			// Send a selection request
+			/* Send a selection request */
 			XConvertSelection(m_display, sel, target, m_xclip_out, win, CurrentTime);
 			*context = XCLIB_XCOUT_SENTCONVSEL;
 			return;
@@ -1267,22 +1393,22 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 				return;
 			}
 
-			// find the size and format of the data in property
+			/* find the size and format of the data in property */
 			XGetWindowProperty(m_display, win, m_xclip_out, 0, 0, False,
 			                   AnyPropertyType, &pty_type, &pty_format,
 			                   &pty_items, &pty_size, &buffer);
 			XFree(buffer);
 
 			if (pty_type == m_incr) {
-				// start INCR mechanism by deleting property
+				/* start INCR mechanism by deleting property */
 				XDeleteProperty(m_display, win, m_xclip_out);
 				XFlush(m_display);
 				*context = XCLIB_XCOUT_INCR;
 				return;
 			}
 
-			// if it's not incr, and not format == 8, then there's
-			// nothing in the selection (that xclip understands, anyway)
+			/* if it's not incr, and not format == 8, then there's
+			 * nothing in the selection (that xclip understands, anyway) */
 
 			if (pty_format != 8) {
 				*context = XCLIB_XCOUT_NONE;
@@ -1294,73 +1420,73 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			                   False, AnyPropertyType, &pty_type,
 			                   &pty_format, &pty_items, &pty_size, &buffer);
 
-			// finished with property, delete it
+			/* finished with property, delete it */
 			XDeleteProperty(m_display, win, m_xclip_out);
 
-			// copy the buffer to the pointer for returned data
+			/* copy the buffer to the pointer for returned data */
 			ltxt = (unsigned char *) malloc(pty_items);
 			memcpy(ltxt, buffer, pty_items);
 
-			// set the length of the returned data
+			/* set the length of the returned data */
 			*len = pty_items;
 			*txt = ltxt;
 
-			// free the buffer
+			/* free the buffer */
 			XFree(buffer);
 
 			*context = XCLIB_XCOUT_NONE;
 
-			// complete contents of selection fetched, return 1
+			/* complete contents of selection fetched, return 1 */
 			return;
 
 		case XCLIB_XCOUT_INCR:
-			// To use the INCR method, we basically delete the
-			// property with the selection in it, wait for an
-			// event indicating that the property has been created,
-			// then read it, delete it, etc.
+			/* To use the INCR method, we basically delete the
+			 * property with the selection in it, wait for an
+			 * event indicating that the property has been created,
+			 * then read it, delete it, etc. */
 
-			// make sure that the event is relevant
+			/* make sure that the event is relevant */
 			if (evt.type != PropertyNotify)
 				return;
 
-			// skip unless the property has a new value
+			/* skip unless the property has a new value */
 			if (evt.xproperty.state != PropertyNewValue)
 				return;
 
-			// check size and format of the property
+			/* check size and format of the property */
 			XGetWindowProperty(m_display, win, m_xclip_out, 0, 0, False,
 			                   AnyPropertyType, &pty_type, &pty_format,
 			                   &pty_items, &pty_size, (unsigned char **) &buffer);
 
 			if (pty_format != 8) {
-				// property does not contain text, delete it
-				// to tell the other X client that we have read	
-				// it and to send the next property
+				/* property does not contain text, delete it
+				 * to tell the other X client that we have read
+				 * it and to send the next property */
 				XFree(buffer);
 				XDeleteProperty(m_display, win, m_xclip_out);
 				return;
 			}
 
 			if (pty_size == 0) {
-				// no more data, exit from loop
+				/* no more data, exit from loop */
 				XFree(buffer);
 				XDeleteProperty(m_display, win, m_xclip_out);
 				*context = XCLIB_XCOUT_NONE;
 
-				// this means that an INCR transfer is now
-				// complete, return 1
+				/* this means that an INCR transfer is now
+				 * complete, return 1 */
 				return;
 			}
 
 			XFree(buffer);
 
-			// if we have come this far, the propery contains
-			// text, we know the size.
+			/* if we have come this far, the property contains
+			 * text, we know the size. */
 			XGetWindowProperty(m_display, win, m_xclip_out, 0, (long) pty_size,
 			                   False, AnyPropertyType, &pty_type, &pty_format,
 			                   &pty_items, &pty_size, (unsigned char **) &buffer);
 
-			// allocate memory to accommodate data in *txt
+			/* allocate memory to accommodate data in *txt */
 			if (*len == 0) {
 				*len = pty_items;
 				ltxt = (unsigned char *) malloc(*len);
@@ -1370,13 +1496,13 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 				ltxt = (unsigned char *) realloc(ltxt, *len);
 			}
 
-			// add data to ltxt
+			/* add data to ltxt */
 			memcpy(&ltxt[*len - pty_items], buffer, pty_items);
 
 			*txt = ltxt;
 			XFree(buffer);
 
-			// delete property to get the next item
+			/* delete property to get the next item */
 			XDeleteProperty(m_display, win, m_xclip_out);
 			XFlush(m_display);
 			return;
@@ -1390,7 +1516,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 	Atom target = m_utf8_string;
 	Window owner;
 
-	// from xclip.c doOut() v0.11
+	/* from xclip.c doOut() v0.11 */
 	unsigned char *sel_buf;
 	unsigned long sel_len = 0;
 	XEvent evt;

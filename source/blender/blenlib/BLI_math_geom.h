@@ -55,11 +55,13 @@ float area_quad_v3(const float a[3], const float b[3], const float c[3], const f
 float area_poly_v3(int nr, float verts[][3], const float normal[3]);
 
 int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
+int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
 
 /********************************* Distance **********************************/
 
 float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2]);
-float dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
+float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
+float         dist_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2]);
 void closest_to_line_segment_v2(float closest[2], const float p[2], const float l1[2], const float l2[2]);
 
 float dist_to_plane_normalized_v3(const float p[3], const float plane_co[3], const float plane_no_unit[3]);
@@ -85,11 +87,13 @@ void limit_dist_v3(float v1[3], float v2[3], const float dist);
 #define ISECT_LINE_LINE_EXACT        1
 #define ISECT_LINE_LINE_CROSS        2
 
+int isect_line_line_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2]);
 int isect_line_line_v2(const float a1[2], const float a2[2], const float b1[2], const float b2[2]);
 int isect_line_line_v2_int(const int a1[2], const int a2[2], const int b1[2], const int b2[2]);
 int isect_line_sphere_v3(const float l1[3], const float l2[3], const float sp[3], const float r, float r_p1[3], float r_p2[3]);
 int isect_line_sphere_v2(const float l1[2], const float l2[2], const float sp[2], const float r, float r_p1[2], float r_p2[2]);
 int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[2], const float v4[2], float vi[2]);
+int isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
 
 /* Returns the number of point of interests
  * 0 - lines are colinear
@@ -151,6 +155,7 @@ int isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
 int isect_point_quad_v2(const float p[2], const float a[2], const float b[2], const float c[2], const float d[2]);
 
 int isect_point_tri_v2(const float v1[2], const float v2[2], const float v3[2], const float pt[2]);
+int isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2]);
 int isect_point_tri_v2_int(const int x1, const int y1, const int x2, const int y2, const int a, const int b);
 int isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3]);
 
@@ -159,14 +164,24 @@ void isect_point_quad_uv_v2(const float v0[2], const float v1[2], const float v2
 void isect_point_face_uv_v2(const int isquad, const float v0[2], const float v1[2], const float v2[2],
                             const float v3[2], const float pt[2], float r_uv[2]);
 
+/* axis-aligned bounding box */
+int isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);
+
+typedef struct {
+	float ray_start[3];
+	float ray_inv_dir[3];
+	int sign[3];
+} IsectRayAABBData;
+
+void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_start[3], const float ray_direction[3]);
+int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3], const float bb_max[3], float *tmin);
+
 /* other */
 int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const float radius,
                                  const float v0[3], const float v1[3], const float v2[3], float *r_lambda, float ipoint[3]);
 
 int isect_axial_line_tri_v3(const int axis, const float co1[3], const float co2[3],
                             const float v0[3], const float v1[3], const float v2[3], float *r_lambda);
-
-int isect_aabb_aabb_v3(const float min1[3], const float max1[3], const float min2[3], const float max2[3]);
 
 int clip_line_plane(float p1[3], float p2[3], const float plane[4]);
 
@@ -177,7 +192,8 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 /* tri or quad, d can be NULL */
 void interp_weights_face_v3(float w[4],
                             const float a[3], const float b[3], const float c[3], const float d[3], const float p[3]);
-void interp_weights_poly_v3(float w[], float v[][3], const int n, const float p[3]);
+void interp_weights_poly_v3(float w[], float v[][3], const int n, const float co[3]);
+void interp_weights_poly_v2(float w[], float v[][2], const int n, const float co[2]);
 
 void interp_cubic_v3(float x[3], float v[3],
                      const float x1[3], const float v1[3], const float x2[3], const float v2[3], const float t);
@@ -190,6 +206,8 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 
 void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2],
                             const float co[2], float w[3]);
+void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const float v3[2], const float v4[2],
+                                 const float co[2], float w[4]);
 
 int barycentric_coords_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3]);
 int barycentric_inside_triangle_v2(const float w[3]);

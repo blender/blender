@@ -140,9 +140,9 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 				}
 				else {
 					Base *b;
-					
+
 					/* deselect all */
-					// TODO: should this deselect all other types of channels too?
+					/* TODO: should this deselect all other types of channels too? */
 					for (b = sce->base.first; b; b = b->next) {
 						b->flag &= ~SELECT;
 						b->object->flag = b->flag;
@@ -268,8 +268,8 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 			if (x >= (v2d->cur.xmax - NLACHANNEL_BUTTON_WIDTH)) {
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
 					/* 'push-down' action - only usable when not in TweakMode */
-					// TODO: make this use the operator instead of calling the function directly
-					//  however, calling the operator requires that we supply the args, and that works with proper buttons only
+					/* TODO: make this use the operator instead of calling the function directly
+					 *  however, calling the operator requires that we supply the args, and that works with proper buttons only */
 					BKE_nla_action_pushdown(adt);
 				}
 				else {
@@ -343,6 +343,8 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
  
 void NLA_OT_channels_click(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Mouse Click on NLA Channels";
 	ot->idname = "NLA_OT_channels_click";
@@ -355,8 +357,9 @@ void NLA_OT_channels_click(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	/* props */
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* *********************************************** */

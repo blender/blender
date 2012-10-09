@@ -82,12 +82,13 @@ typedef struct MaskSplinePoint {
 typedef struct MaskSpline {
 	struct MaskSpline *next, *prev;
 
-	int flag;                /* defferent spline flag (closed, ...) */
+	short flag;              /* defferent spline flag (closed, ...) */
+	char offset_mode;        /* feather offset method */
+	char weight_interp;      /* weight interpolation */
+
 	int tot_point;           /* total number of points */
 	MaskSplinePoint *points; /* points which defines spline itself */
 	MaskParent parent;       /* parenting information of the whole spline */
-
-	int weight_interp, pad;  /* weight interpolation */
 
 	MaskSplinePoint *points_deform; /* deformed copy of 'points' BezTriple data - not saved */
 } MaskSpline;
@@ -127,6 +128,8 @@ typedef struct MaskLayer {
 	float  alpha;
 	char   blend;
 	char   blend_flag;
+	char   falloff;
+	char   pad[7];
 
 	char   flag;             /* for animation */
 	char   restrictflag;     /* matching 'Object' flag of the same name - eventually use in the outliner  */
@@ -137,11 +140,24 @@ typedef struct MaskLayer {
 
 /* MaskSpline->flag */
 /* reserve (1 << 0) for SELECT */
-#define MASK_SPLINE_CYCLIC  (1 << 1)
+enum {
+	MASK_SPLINE_CYCLIC  = (1 << 1),
+	MASK_SPLINE_NOFILL  = (1 << 2),
+	MASK_SPLINE_NOINTERSECT = (1 << 3)
+};
 
 /* MaskSpline->weight_interp */
-#define MASK_SPLINE_INTERP_LINEAR   1
-#define MASK_SPLINE_INTERP_EASE     2
+enum {
+	MASK_SPLINE_INTERP_LINEAR  = 1,
+	MASK_SPLINE_INTERP_EASE    = 2
+};
+
+/* MaskSpline->offset_mode */
+enum {
+	MASK_SPLINE_OFFSET_EVEN   = 0,
+	MASK_SPLINE_OFFSET_SMOOTH = 1
+};
+
 
 /* ob->restrictflag */
 #define MASK_RESTRICT_VIEW      1
@@ -162,8 +178,15 @@ enum {
 
 /* masklay->blend */
 enum {
-	MASK_BLEND_ADD      = 0,
-	MASK_BLEND_SUBTRACT = 1
+	MASK_BLEND_ADD             = 0,
+	MASK_BLEND_SUBTRACT        = 1,
+	MASK_BLEND_LIGHTEN         = 2,
+	MASK_BLEND_DARKEN          = 3,
+	MASK_BLEND_MUL             = 4,
+	MASK_BLEND_REPLACE         = 5,
+	MASK_BLEND_DIFFERENCE      = 6,
+	MASK_BLEND_MERGE_ADD       = 7,
+	MASK_BLEND_MERGE_SUBTRACT  = 8
 };
 
 /* masklay->blend_flag */

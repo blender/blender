@@ -5,9 +5,11 @@ set(SRC_OSL
 	node_add_closure.osl
 	node_attribute.osl
 	node_background.osl
+	node_brick_texture.osl
 	node_bump.osl
 	node_camera.osl
 	node_checker_texture.osl
+	node_combine_rgb.osl
 	node_convert_from_color.osl
 	node_convert_from_float.osl
 	node_convert_from_normal.osl
@@ -23,6 +25,7 @@ set(SRC_OSL
 	node_geometry.osl
 	node_glass_bsdf.osl
 	node_glossy_bsdf.osl
+	node_holdout.osl
 	node_hsv.osl
 	node_image_texture.osl
 	node_invert.osl
@@ -34,12 +37,14 @@ set(SRC_OSL
 	node_mix_closure.osl
 	node_musgrave_texture.osl
 	node_normal.osl
-	node_blend_weight_texture.osl
 	node_noise_texture.osl
+	node_object_info.osl
 	node_output_displacement.osl
 	node_output_surface.osl
 	node_output_volume.osl
-	node_sepcomb_rgb.osl
+	node_particle_info.osl
+	node_rgb_ramp.osl
+	node_separate_rgb.osl
 	node_sky_texture.osl
 	node_texture_coordinate.osl
 	node_translucent_bsdf.osl
@@ -57,6 +62,7 @@ set(SRC_OSL_HEADERS
 	node_color.h
 	node_fresnel.h
 	stdosl.h
+	oslutil.h
 )
 
 set(SRC_OSO
@@ -82,4 +88,5 @@ endforeach()
 
 add_custom_target(shader ALL DEPENDS ${SRC_OSO} ${SRC_OSL_HEADERS})
 
-delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_OSO}" ${CYCLES_INSTALL_PATH}/shader)
+# CMAKE_CURRENT_SOURCE_DIR is already included in OSO paths
+delayed_install("" "${SRC_OSO}" ${CYCLES_INSTALL_PATH}/shader)

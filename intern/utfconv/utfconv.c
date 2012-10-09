@@ -219,7 +219,9 @@ int conv_utf_8_to_16(const char *in8, wchar_t *out16, size_t size16)
 	return err;
 }
 
-int is_ascii(const char *in8)
+/* UNUSED FUNCTIONS */
+#if 0
+static int is_ascii(const char *in8)
 {
 	for (; *in8; in8++)
 		if (0x80 & *in8) return 0;
@@ -227,7 +229,7 @@ int is_ascii(const char *in8)
 	return 1;
 }
 
-void utf_8_cut_end(char *inout8, size_t maxcutpoint)
+static void utf_8_cut_end(char *inout8, size_t maxcutpoint)
 {
 	char *cur = inout8 + maxcutpoint;
 	char cc;
@@ -235,7 +237,7 @@ void utf_8_cut_end(char *inout8, size_t maxcutpoint)
 
 	cc = *cur;
 }
-
+#endif
 
 
 char *alloc_utf_8_from_16(const wchar_t *in16, size_t add)

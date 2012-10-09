@@ -433,8 +433,11 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 	
 	if (set) {
 		if (!(bone->flag & BONE_HIDDEN_P)) {
-			if (set == 2) ED_pose_deselectall(OBACT, 2);  // 2 is clear active tag
-			else ED_pose_deselectall(OBACT, 0);
+			Object *ob = OBACT;
+			if (ob) {
+				if (set == 2) ED_pose_deselectall(ob, 2);  // 2 is clear active tag
+				else ED_pose_deselectall(ob, 0);
+			}
 			
 			if (set == 2 && (bone->flag & BONE_SELECTED)) {
 				bone->flag &= ~BONE_SELECTED;
@@ -444,7 +447,7 @@ static int tree_element_active_bone(bContext *C, Scene *scene, TreeElement *te, 
 				arm->act_bone = bone;
 			}
 			
-			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, OBACT);
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_ACTIVE, ob);
 		}
 	}
 	else {
@@ -899,12 +902,9 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 	rctf rectf;
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+	WM_operator_properties_border_to_rcti(op, &rect);
 
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
 	for (te = soops->tree.first; te; te = te->next) {

@@ -51,14 +51,10 @@ GHOST_DropTargetWin32::GHOST_DropTargetWin32(GHOST_WindowWin32 *window, GHOST_Sy
 	m_cRef = 1;
 	m_hWnd = window->getHWND();
 	m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
-	
-	// register our window as drop target
-	::RegisterDragDrop(m_hWnd, this);
 }
 
 GHOST_DropTargetWin32::~GHOST_DropTargetWin32()
 {
-	::RevokeDragDrop(m_hWnd);
 }
 
 

@@ -29,11 +29,11 @@
  *  \ingroup ketsji
  */
 
-#ifndef _adr_py_init_types_h_				// only process once,
-#define _adr_py_init_types_h_				// even if multiply included
+#ifndef __KX_PYTHON_INIT_TYPES__
+#define __KX_PYTHON_INIT_TYPES__
 
 #ifdef WITH_PYTHON
 void initPyTypes(void);
 #endif
 
-#endif
+#endif  /* __KX_PYTHON_INIT_TYPES__ */

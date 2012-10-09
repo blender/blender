@@ -281,7 +281,7 @@ ProcDef(stucci)
 
 /* --- */
 
-static void init(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	Tex *tex = MEM_callocN(sizeof(Tex), "Tex");
 	node->storage= tex;

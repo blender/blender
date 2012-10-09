@@ -63,13 +63,13 @@
 
 #include "uvedit_intern.h"
 
-static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
+void draw_image_cursor(SpaceImage *sima, ARegion *ar)
 {
 	float zoomx, zoomy, w, h;
 	int width, height;
 
-	ED_space_image_size(sima, &width, &height);
-	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
 	w = zoomx * width / 256.0f;
 	h = zoomy * height / 256.0f;
@@ -174,7 +174,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	float aspx, aspy, col[4], (*tf_uv)[2] = NULL, (*tf_uvorig)[2] = NULL;
 	int i, j, nverts;
 
-	ED_space_image_uv_aspect(sima, &aspx, &aspy);
+	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 	
 	switch (sima->dt_uvstretch) {
 		case SI_UVDT_STRETCH_AREA:
@@ -415,7 +415,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, Object *ob)
 
 	glColor3ub(112, 112, 112);
 
-	if (me->mtface) {
+	if (me->mtpoly) {
 		MPoly *mpoly = me->mpoly;
 		MTexPoly *tface = me->mtpoly;
 		MLoopUV *mloopuv;
@@ -455,8 +455,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 	StitchPreviewer *stitch_preview = uv_get_stitch_previewer();
 
-	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE); /* will be set to NULL if hidden */
-	activef = BM_active_face_get(bm, FALSE);
+	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE, FALSE); /* will be set to NULL if hidden */
+	activef = BM_active_face_get(bm, FALSE, FALSE);
 	ts = scene->toolsettings;
 
 	drawfaces = draw_uvs_face_check(scene);
@@ -889,7 +889,7 @@ void draw_uvedit_main(SpaceImage *sima, ARegion *ar, Scene *scene, Object *obedi
 			draw_uvs_texpaint(sima, scene, obact);
 
 		if (show_uvedit && !(toolsettings->use_uv_sculpt))
-			drawcursor_sima(sima, ar);
+			draw_image_cursor(sima, ar);
 	}
 }
 

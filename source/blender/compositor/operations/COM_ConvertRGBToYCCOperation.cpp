@@ -50,18 +50,18 @@ void ConvertRGBToYCCOperation::setMode(int mode)
 	}
 }
 
-void ConvertRGBToYCCOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ConvertRGBToYCCOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputColor[4];
 	float color[3];
 
-	this->m_inputOperation->read(inputColor, x, y, sampler, inputBuffers);
+	this->m_inputOperation->read(inputColor, x, y, sampler);
 	rgb_to_ycc(inputColor[0], inputColor[1], inputColor[2], &color[0], &color[1], &color[2], this->m_mode);
 
 	/* divided by 255 to normalize for viewing in */
 	/* R,G,B --> Y,Cb,Cr */
-	mul_v3_v3fl(outputValue, color, 1.0f / 255.0f);
-	outputValue[3] = inputColor[3];
+	mul_v3_v3fl(output, color, 1.0f / 255.0f);
+	output[3] = inputColor[3];
 }
 
 void ConvertRGBToYCCOperation::deinitExecution()

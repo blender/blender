@@ -101,7 +101,7 @@ static SpaceLink *info_new(const bContext *UNUSED(C))
 /* not spacelink itself */
 static void info_free(SpaceLink *UNUSED(sl))
 {	
-//	SpaceInfo *sinfo= (SpaceInfo*) sl;
+//	SpaceInfo *sinfo = (SpaceInfo *) sl;
 	
 }
 

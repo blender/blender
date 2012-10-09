@@ -46,11 +46,9 @@
 #include "imbuf.h"
 
 #include "BLI_math.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
  
 #include "BKE_global.h"
-
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -59,9 +57,14 @@
 #include "IMB_filetype.h"
 #include "IMB_filter.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "tiffio.h"
 
-
+#ifdef WIN32
+#include "utfconv.h"
+#endif
 
 /***********************
  * Local declarations. *
@@ -111,7 +114,7 @@ static int imb_tiff_DummyMapProc(thandle_t fd, tdata_t *pbase, toff_t *psize)
  * Reads data from an in-memory TIFF file.
  *
  * \param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
- * \param data:   Buffer to contain data (treat as void*).
+ * \param data:   Buffer to contain data (treat as (void *)).
  * \param n:      Number of bytes to read.
  *
  * \return: Number of bytes actually read.
@@ -464,9 +467,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 		_TIFFfree(sbuf);
 
 	if (success) {
-		ibuf->profile = (bitspersample == 32) ? IB_PROFILE_LINEAR_RGB : IB_PROFILE_SRGB;
-
-//		Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton)
+		/* Code seems to be not needed for 16 bits tif, on PPC G5 OSX (ton) */
 		if (bitspersample < 16)
 			if (ENDIAN_ORDER == B_ENDIAN)
 				IMB_convert_rgba_to_abgr(tmpibuf);
@@ -508,7 +509,7 @@ void imb_inittiff(void)
  *
  * \return: A newly allocated ImBuf structure if successful, otherwise NULL.
  */
-ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
+ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	TIFF *image = NULL;
 	ImBuf *ibuf = NULL, *hbuf;
@@ -526,6 +527,9 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags)
 	}
 	if (imb_is_a_tiff(mem) == 0)
 		return NULL;
+
+	/* both 8 and 16 bit PNGs are default to standard byte colorspace */
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	image = imb_tiff_client_open(&memFile, mem, size);
 
@@ -714,7 +718,13 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	}
 	else {
 		/* create image as a file */
+#ifdef WIN32
+		wchar_t *wname = alloc_utf16_from_8(name, 0);
+		image = TIFFOpenW(wname, "w");
+		free(wname);
+#else
 		image = TIFFOpen(name, "w");
+#endif
 	}
 	if (image == NULL) {
 		fprintf(stderr,
@@ -780,10 +790,14 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 				/* convert from float source */
 				float rgb[4];
 				
-				if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
-				else
+				if (ibuf->float_colorspace) {
+					/* float buffer was managed already, no need in color space conversion */
 					copy_v3_v3(rgb, &fromf[from_i]);
+				}
+				else {
+					/* standard linear-to-srgb conversion if float buffer wasn't managed */
+					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
+				}
 
 				rgb[3] = fromf[from_i + 3];
 

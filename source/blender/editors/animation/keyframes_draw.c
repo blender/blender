@@ -412,7 +412,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, DLRBT_Tree *beztTree,
 	 *	-> firstly, handles must have same central value as each other
 	 *	-> secondly, handles which control that section of the curve must be constant
 	 */
-	if ((!prev) || (!beztn)) return;
+	if (prev == NULL) return;
 	if (IS_EQF(beztn->vec[1][1], prev->vec[1][1]) == 0) return;
 	if (IS_EQF(beztn->vec[1][1], beztn->vec[0][1]) == 0) return;
 	if (IS_EQF(prev->vec[1][1], prev->vec[2][1]) == 0) return;
@@ -673,23 +673,23 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	/* draw keys */
 	if (keys) {
 		/* locked channels are less strongly shown, as feedback for locked channels in DopeSheet */
-		// TODO: allow this opacity factor to be themed?
-		float kalpha = (channelLocked) ? 0.35f : 1.0f;
+		/* TODO: allow this opacity factor to be themed? */
+		float kalpha = (channelLocked) ? 0.25f : 1.0f;
 		
 		for (ak = keys->first; ak; ak = ak->next) {
-			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw 
+			/* optimization: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw
 			 *	- this might give some improvements, since we current have to flip between view/region matrices
 			 */
 			if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax) == 0)
 				continue;
 			
 			/* draw using OpenGL - uglier but faster */
-			// NOTE1: a previous version of this didn't work nice for some intel cards
-			// NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
+			/* NOTE1: a previous version of this didn't work nice for some intel cards
+			 * NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3; */
 			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, kalpha);
-		}	
+		}
 	}
-	
+
 	glDisable(GL_BLEND);
 }
 
@@ -753,6 +753,10 @@ void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 {
 	DLRBT_Tree keys, blocks;
 	
+	short locked = (fcu->flag & FCURVE_PROTECTED) ||
+	               ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ||
+	               ((adt && adt->action) && (adt->action->id.lib));
+	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
 	
@@ -761,7 +765,7 @@ void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, (fcu->flag & FCURVE_PROTECTED));
+	draw_keylist(v2d, &keys, &blocks, ypos, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -771,6 +775,9 @@ void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float y
 {
 	DLRBT_Tree keys, blocks;
 	
+	short locked = (agrp->flag & AGRP_PROTECTED) ||
+	               ((adt && adt->action) && (adt->action->id.lib));
+	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
 	
@@ -779,7 +786,7 @@ void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float y
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, (agrp->flag & AGRP_PROTECTED));
+	draw_keylist(v2d, &keys, &blocks, ypos, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -789,6 +796,8 @@ void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 {
 	DLRBT_Tree keys, blocks;
 	
+	short locked = (act && act->id.lib != 0);
+	
 	BLI_dlrbTree_init(&keys);
 	BLI_dlrbTree_init(&blocks);
 	
@@ -797,7 +806,7 @@ void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	BLI_dlrbTree_linkedlist_sync(&blocks);
 	
-	draw_keylist(v2d, &keys, &blocks, ypos, 0);
+	draw_keylist(v2d, &keys, &blocks, ypos, locked);
 	
 	BLI_dlrbTree_free(&keys);
 	BLI_dlrbTree_free(&blocks);
@@ -843,18 +852,30 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 		int filter;
 		
 		/* get F-Curves to take keyframes from */
-		filter = ANIMFILTER_DATA_VISIBLE; // curves only
+		filter = ANIMFILTER_DATA_VISIBLE;
 		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 		/* loop through each F-Curve, grabbing the keyframes */
 		for (ale = anim_data.first; ale; ale = ale->next) {
-			fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
 
-			if (ale->datatype == ALE_MASKLAY) {
-				mask_to_keylist(ac->ads, ale->data, keys);
-			}
-			else if (ale->datatype == ALE_GPFRAME) {
-				gpl_to_keylist(ac->ads, ale->data, keys);
+			/* Why not use all #eAnim_KeyType here?
+			 * All of the other key types are actually "summaries" themselves, and will just end up duplicating stuff
+			 * that comes up through standard filtering of just F-Curves.
+			 * Given the way that these work, there isn't really any benefit at all from including them. - Aligorith */
+
+			switch (ale->datatype) {
+				case ALE_FCURVE:
+					fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
+					break;
+				case ALE_MASKLAY:
+					mask_to_keylist(ac->ads, ale->data, keys);
+					break;
+				case ALE_GPFRAME:
+					gpl_to_keylist(ac->ads, ale->data, keys);
+					break;
+				default:
+					// printf("%s: datatype %d unhandled\n", __func__, ale->datatype);
+					break;
 			}
 		}
 

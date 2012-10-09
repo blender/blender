@@ -97,9 +97,9 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)
 }
 
 static struct PyMethodDef BPy_BM_methods[] = {
-    {"new",            (PyCFunction)bpy_bm_new,            METH_NOARGS,  bpy_bm_new_doc},
-    {"from_edit_mesh", (PyCFunction)bpy_bm_from_edit_mesh, METH_O,       bpy_bm_from_edit_mesh_doc},
-    {NULL, NULL, 0, NULL}
+	{"new",            (PyCFunction)bpy_bm_new,            METH_NOARGS,  bpy_bm_new_doc},
+	{"from_edit_mesh", (PyCFunction)bpy_bm_from_edit_mesh, METH_O,       bpy_bm_from_edit_mesh_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 PyDoc_STRVAR(BPy_BM_doc,

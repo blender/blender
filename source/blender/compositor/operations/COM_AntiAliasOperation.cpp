@@ -23,6 +23,9 @@
 #include "COM_AntiAliasOperation.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 	#include "RE_render_ext.h"
 }
@@ -42,14 +45,14 @@ void AntiAliasOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void AntiAliasOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void AntiAliasOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	if (y < 0 || (unsigned int)y >= this->m_height || x < 0 || (unsigned int)x >= this->m_width) {
-		color[0] = 0.0f;
+		output[0] = 0.0f;
 	}
 	else {
 		int offset = y * this->m_width + x;
-		color[0] = this->m_buffer[offset] / 255.0f;
+		output[0] = this->m_buffer[offset] / 255.0f;
 	}
 	
 }
@@ -58,7 +61,7 @@ void AntiAliasOperation::deinitExecution()
 {
 	this->m_valueReader = NULL;
 	if (this->m_buffer) {
-		delete this->m_buffer;
+		MEM_freeN(this->m_buffer);
 	}
 	NodeOperation::deinitMutex();
 }
@@ -82,20 +85,18 @@ bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return false;
 }
 
-void *AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *AntiAliasOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_buffer) { return this->m_buffer; }
 	lockMutex();
 	if (this->m_buffer == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_valueReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_valueReader->initializeTileData(rect);
 		int size = tile->getHeight() * tile->getWidth();
 		float *input = tile->getBuffer();
-		char *valuebuffer = new char[size];
+		char *valuebuffer = (char *)MEM_mallocN(sizeof(char) * size, __func__);
 		for (int i = 0; i < size; i++) {
 			float in = input[i * COM_NUMBER_OF_CHANNELS];
-			if (in < 0.0f) { in = 0.0f; }
-			if (in > 1.0f) {in = 1.0f; }
-			valuebuffer[i] = in * 255;
+			valuebuffer[i] = FTOCHAR(in);
 		}
 		antialias_tagbuf(tile->getWidth(), tile->getHeight(), valuebuffer);
 		this->m_buffer = valuebuffer;

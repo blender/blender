@@ -54,7 +54,7 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
  * \brief Other Loop in Face Sharing an Edge
  *
  * Finds the other loop that shares \a v with \a e loop in \a f.
- *
+ * <pre>
  *     +----------+
  *     |          |
  *     |    f     |
@@ -64,7 +64,7 @@ int BM_vert_in_edge(BMEdge *e, BMVert *v)
  *     ^     ^ <------- These vert args define direction
  *                      in the face to check.
  *                      The faces loop direction is ignored.
- *
+ * </pre>
  */
 BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
 {
@@ -92,8 +92,7 @@ BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
  * This function returns a loop in \a f that shares an edge with \a v
  * The direction is defined by \a v_prev, where the return value is
  * the loop of what would be 'v_next'
- *
- *
+ * <pre>
  *     +----------+ <-- return the face loop of this vertex.
  *     |          |
  *     |    f     |
@@ -103,6 +102,7 @@ BMLoop *BM_face_other_edge_loop(BMFace *f, BMEdge *e, BMVert *v)
  *     ^^^^^^     ^ <-- These vert args define direction
  *                      in the face to check.
  *                      The faces loop direction is ignored.
+ * </pre>
  *
  * \note \a v_prev and \a v _implicitly_ define an edge.
  */
@@ -143,7 +143,7 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
  * \brief Other Loop in Face Sharing a Vert
  *
  * Finds the other loop that shares \a v with \a e loop in \a f.
- *
+ * <pre>
  *     +----------+ <-- return the face loop of this vertex.
  *     |          |
  *     |          |
@@ -153,6 +153,7 @@ BMLoop *BM_face_other_vert_loop(BMFace *f, BMVert *v_prev, BMVert *v)
  *           ^ <------- This loop defines both the face to search
  *                      and the edge, in combination with 'v'
  *                      The faces loop direction is ignored.
+ * </pre>
  */
 
 BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
@@ -193,22 +194,24 @@ BMLoop *BM_loop_other_vert_loop(BMLoop *l, BMVert *v)
  * Get the first loop of a vert. Uses the same initialization code for the first loop of the
  * iterator API
  */
-
 BMLoop *BM_vert_find_first_loop(BMVert *v)
 {
 	BMEdge *e;
 
-	if(!v || !v->e)
+	if (!v || !v->e)
 		return NULL;
 
 	e = bmesh_disk_faceedge_find_first(v->e, v);
+
+	if (!e)
+		return NULL;
+
 	return bmesh_radial_faceloop_find_first(e->l, v);
 }
 
 /**
  * Returns TRUE if the vertex is used in a given face.
  */
-
 int BM_vert_in_face(BMFace *f, BMVert *v)
 {
 	BMLoop *l_iter, *l_first;
@@ -467,31 +470,12 @@ int BM_edge_face_count(BMEdge *e)
 }
 
 /**
- *	Returns the number of faces around this vert
+ * Returns the number of faces around this vert
+ * length matches #BM_LOOPS_OF_VERT iterator
  */
 int BM_vert_face_count(BMVert *v)
 {
-	int count = 0;
-	BMLoop *l;
-	BMIter iter;
-
-	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-		count++;
-	}
-
-	return count;
-#if 0 //this code isn't working
-	BMEdge *curedge = NULL;
-
-	if (v->e) {
-		curedge = v->e;
-		do {
-			if (curedge->l) count += BM_edge_face_count(curedge);
-			curedge = bmesh_disk_edge_next(curedge, v);
-		} while (curedge != v->e);
-	}
-	return count;
-#endif
+	return bmesh_disk_facevert_count(v);
 }
 
 /**
@@ -500,22 +484,21 @@ int BM_vert_face_count(BMVert *v)
  */
 int BM_vert_is_wire(BMVert *v)
 {
-	BMEdge *curedge;
+	if (v->e) {
+		BMEdge *e_first, *e_iter;
 
-	if (v->e == NULL) {
+		e_first = e_iter = v->e;
+		do {
+			if (e_iter->l) {
+				return FALSE;
+			}
+		} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+
+		return TRUE;
+	}
+	else {
 		return FALSE;
 	}
-	
-	curedge = v->e;
-	do {
-		if (curedge->l) {
-			return FALSE;
-		}
-
-		curedge = bmesh_disk_edge_next(curedge, v);
-	} while (curedge != v->e);
-
-	return TRUE;
 }
 
 /**
@@ -714,7 +697,7 @@ BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2)
  *
  * Finds the loop used which uses \a v in face loop \a l
  *
- * \note currenly this just uses simple loop in future may be speeded up
+ * \note currently this just uses simple loop in future may be sped up
  * using radial vars
  */
 BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v)
@@ -737,7 +720,7 @@ BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v)
  *
  * Finds the loop used which uses \a e in face loop \a l
  *
- * \note currenly this just uses simple loop in future may be speeded up
+ * \note currently this just uses simple loop in future may be sped up
  * using radial vars
  */
 BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e)
@@ -796,9 +779,8 @@ float BM_loop_calc_face_angle(BMLoop *l)
 /**
  * \brief BM_loop_calc_face_normal
  *
- * Calculate the normal at this loop corner or fallback to the face normal on straignt lines.
+ * Calculate the normal at this loop corner or fallback to the face normal on straight lines.
  *
- * \param bm The BMesh
  * \param l The loop to calculate the normal at
  * \param r_normal Resulting normal
  */
@@ -819,10 +801,9 @@ void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
 /**
  * \brief BM_loop_calc_face_tangent
  *
- * Calculate the tangent at this loop corner or fallback to the face normal on straignt lines.
+ * Calculate the tangent at this loop corner or fallback to the face normal on straight lines.
  * This vector always points inward into the face.
  *
- * \param bm The BMesh
  * \param l The loop to calculate the tangent at
  * \param r_tangent Resulting tangent
  */
@@ -875,13 +856,14 @@ float BM_edge_calc_face_angle(BMEdge *e)
 /**
  * \brief BMESH EDGE/FACE TANGENT
  *
- * Calculate the tangent at this loop corner or fallback to the face normal on straignt lines.
+ * Calculate the tangent at this loop corner or fallback to the face normal on straight lines.
  * This vector always points inward into the face.
  *
  * \brief BM_edge_calc_face_tangent
  * \param e
  * \param e_loop The loop to calculate the tangent at,
  * used to get the face and winding direction.
+ * \param r_tangent The loop corner tangent to set
  */
 
 void BM_edge_calc_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])

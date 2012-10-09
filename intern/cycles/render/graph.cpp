@@ -55,6 +55,7 @@ ShaderNode::ShaderNode(const char *name_)
 	name = name_;
 	id = -1;
 	bump = SHADER_BUMP_NONE;
+	special_type = SHADER_SPECIAL_TYPE_NONE;
 }
 
 ShaderNode::~ShaderNode()
@@ -180,14 +181,17 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 	assert(from && to);
 
 	if(to->link) {
-		fprintf(stderr, "ShaderGraph connect: input already connected.\n");
+		fprintf(stderr, "Cycles shader graph connect: input already connected.\n");
 		return;
 	}
 
 	if(from->type != to->type) {
 		/* for closures we can't do automatic conversion */
 		if(from->type == SHADER_SOCKET_CLOSURE || to->type == SHADER_SOCKET_CLOSURE) {
-			fprintf(stderr, "ShaderGraph connect: can only connect closure to closure.\n");
+			fprintf(stderr, "Cycles shader graph connect: can only connect closure to closure "
+			        "(ShaderNode:%s, ShaderOutput:%s , type:%d -> to ShaderNode:%s, ShaderInput:%s, type:%d).\n",
+			        from->parent->name.c_str(), from->name, (int)from->type,
+			        to->parent->name.c_str(),   to->name,   (int)to->type);
 			return;
 		}
 
@@ -295,8 +299,8 @@ void ShaderGraph::copy_nodes(set<ShaderNode*>& nodes, map<ShaderNode*, ShaderNod
 void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 {
 	foreach(ShaderNode *node, nodes) {
-		ProxyNode *proxy = dynamic_cast<ProxyNode*>(node);
-		if (proxy) {
+		if (node->special_type == SHADER_SPECIAL_TYPE_PROXY) {
+			ProxyNode *proxy = static_cast<ProxyNode*>(node);
 			ShaderInput *input = proxy->inputs[0];
 			ShaderOutput *output = proxy->outputs[0];
 			
@@ -327,9 +331,8 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 		}
 
 		/* remove useless mix closures nodes */
-		MixClosureNode *mix = dynamic_cast<MixClosureNode*>(node);
-
-		if(mix) {
+		if(node->special_type == SHADER_SPECIAL_TYPE_MIX_CLOSURE) {
+			MixClosureNode *mix = static_cast<MixClosureNode*>(node);
 			if(mix->outputs[0]->links.size() && mix->inputs[1]->link == mix->inputs[2]->link) {
 				ShaderOutput *output = mix->inputs[1]->link;
 				vector<ShaderInput*> inputs = mix->outputs[0]->links;
@@ -360,7 +363,7 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 			if(on_stack[depnode->id]) {
 				/* break cycle */
 				disconnect(input);
-				fprintf(stderr, "ShaderGraph: detected cycle in graph, connection removed.\n");
+				fprintf(stderr, "Cycles shader graph: detected cycle in graph, connection removed.\n");
 			}
 			else if(!visited[depnode->id]) {
 				/* visit dependencies */
@@ -398,6 +401,20 @@ void ShaderGraph::clean()
 
 	/* break cycles */
 	break_cycles(output(), visited, on_stack);
+
+	/* disconnect unused nodes */
+	foreach(ShaderNode *node, nodes) {
+		if(!visited[node->id]) {
+			foreach(ShaderInput *to, node->inputs) {
+				ShaderOutput *from = to->link;
+
+				if (from) {
+					to->link = NULL;
+					from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
+				}
+			}
+		}
+	}
 
 	/* remove unused nodes */
 	foreach(ShaderNode *node, nodes) {

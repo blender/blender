@@ -21,7 +21,6 @@
  */
 
 #include "COM_LensDistortionNode.h"
-#include "DNA_scene_types.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_ProjectorLensDistortionOperation.h"
 #include "COM_ScreenLensDistortionOperation.h"
@@ -50,8 +49,7 @@ void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorC
 		ScreenLensDistortionOperation *operation = new ScreenLensDistortionOperation();
 		operation->setbNode(editorNode);
 		operation->setData(data);
-		if (!(this->getInputSocket(1)->isConnected() || this->getInputSocket(2)->isConnected())) 
-		{
+		if (!(this->getInputSocket(1)->isConnected() || this->getInputSocket(2)->isConnected())) {
 			// no nodes connected to the distortion and dispersion. We can precalculate some values
 			float distortion = ((const bNodeSocketValueFloat *)this->getInputSocket(1)->getbNodeSocket()->default_value)->value;
 			float dispersion = ((const bNodeSocketValueFloat *)this->getInputSocket(2)->getbNodeSocket()->default_value)->value;

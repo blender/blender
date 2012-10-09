@@ -995,7 +995,7 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 
 	if (eul_compat) {
 		if (order == 1) mat3_to_compatible_eul(eul, eul_compatf, mat);
-		else mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
+		else            mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
 	}
 	else {
 		if (order == 1) mat3_to_eul(eul, mat);
@@ -1875,7 +1875,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 	return Matrix_CreatePyObject(mat, mat1->num_col, mat1->num_row, Py_NEW, Py_TYPE(mat1));
 }
 /*------------------------obj * obj------------------------------
- * mulplication */
+ * multiplication */
 static PyObject *matrix_mul_float(MatrixObject *mat, const float scalar)
 {
 	float tmat[16];
@@ -2282,7 +2282,7 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"invert", (PyCFunction) Matrix_invert, METH_NOARGS, Matrix_invert_doc},
 	{"inverted", (PyCFunction) Matrix_inverted, METH_NOARGS, Matrix_inverted_doc},
 	{"to_3x3", (PyCFunction) Matrix_to_3x3, METH_NOARGS, Matrix_to_3x3_doc},
-	// TODO. {"resize_3x3", (PyCFunction) Matrix_resize3x3, METH_NOARGS, Matrix_resize3x3_doc},
+	/* TODO. {"resize_3x3", (PyCFunction) Matrix_resize3x3, METH_NOARGS, Matrix_resize3x3_doc}, */
 	{"to_4x4", (PyCFunction) Matrix_to_4x4, METH_NOARGS, Matrix_to_4x4_doc},
 	{"resize_4x4", (PyCFunction) Matrix_resize_4x4, METH_NOARGS, Matrix_resize_4x4_doc},
 	{"rotate", (PyCFunction) Matrix_rotate, METH_O, Matrix_rotate_doc},
@@ -2443,7 +2443,7 @@ PyObject *Matrix_CreatePyObject_cb(PyObject *cb_user,
 
 
 /* ----------------------------------------------------------------------------
- * special type for alaternate access */
+ * special type for alternate access */
 
 typedef struct {
 	PyObject_HEAD /* required python macro   */

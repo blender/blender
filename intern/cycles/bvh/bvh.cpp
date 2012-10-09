@@ -378,7 +378,7 @@ void BVH::pack_instances(size_t nodes_size)
 		int mesh_tri_offset = mesh->tri_offset;
 
 		/* fill in node indexes for instances */
-		if(bvh->pack.is_leaf[0])
+		if((bvh->pack.is_leaf.size() != 0) && bvh->pack.is_leaf[0])
 			pack.object_node[object_offset++] = -noffset-1;
 		else
 			pack.object_node[object_offset++] = noffset;
@@ -411,7 +411,7 @@ void BVH::pack_instances(size_t nodes_size)
 			size_t nsize_bbox = (use_qbvh)? nsize-2: nsize-1;
 			int4 *bvh_nodes = &bvh->pack.nodes[0];
 			size_t bvh_nodes_size = bvh->pack.nodes.size(); 
-			int *bvh_is_leaf = &bvh->pack.is_leaf[0];
+			int *bvh_is_leaf = (bvh->pack.is_leaf.size() != 0) ? &bvh->pack.is_leaf[0] : NULL;
 
 			for(size_t i = 0, j = 0; i < bvh_nodes_size; i+=nsize, j++) {
 				memcpy(pack_nodes + pack_nodes_offset, bvh_nodes + i, nsize_bbox*sizeof(int4));
@@ -419,7 +419,7 @@ void BVH::pack_instances(size_t nodes_size)
 				/* modify offsets into arrays */
 				int4 data = bvh_nodes[i + nsize_bbox];
 
-				if(bvh_is_leaf[j]) {
+				if(bvh_is_leaf && bvh_is_leaf[j]) {
 					data.x += tri_offset;
 					data.y += tri_offset;
 				}

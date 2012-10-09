@@ -104,7 +104,7 @@ static StructRNA *rna_Sensor_refine(struct PointerRNA *ptr)
 	}
 }
 
-void rna_Sensor_name_set(PointerRNA *ptr, const char *value)
+static void rna_Sensor_name_set(PointerRNA *ptr, const char *value)
 {
 	bSensor *sens = (bSensor *)ptr->data;
 
@@ -416,6 +416,11 @@ static void rna_def_mouse_sensor(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, mouse_event_items);
 	RNA_def_property_ui_text(prop, "Mouse Event", "Type of event this mouse sensor should trigger on");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop = RNA_def_property(srna, "use_pulse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SENS_MOUSE_FOCUS_PULSE);
+	RNA_def_property_ui_text(prop, "Pulse", "Moving the mouse over a different object generates a pulse");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

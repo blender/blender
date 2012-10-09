@@ -102,7 +102,7 @@ KX_PolyProxy::~KX_PolyProxy()
 
 // stuff for cvalue related things
 CValue*		KX_PolyProxy::Calc(VALUE_OPERATOR, CValue *) { return NULL;}
-CValue*		KX_PolyProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { return NULL;}	
+CValue*		KX_PolyProxy::CalcFinal(VALUE_DATA_TYPE, VALUE_OPERATOR, CValue *) { return NULL;}
 STR_String	sPolyName="polygone";
 const STR_String &	KX_PolyProxy::GetText() {return sPolyName;};
 double		KX_PolyProxy::GetNumber() { return -1;}
@@ -112,52 +112,52 @@ CValue*		KX_PolyProxy::GetReplica() { return NULL;}
 
 // stuff for python integration
 
-PyObject* KX_PolyProxy::pyattr_get_material_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_material_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 	return self->PygetMaterialName();
 }
 
-PyObject* KX_PolyProxy::pyattr_get_texture_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_texture_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 	return self->PygetTextureName();
 }
 
-PyObject* KX_PolyProxy::pyattr_get_material(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_material(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 	return self->PygetMaterial();
 }
 
-PyObject* KX_PolyProxy::pyattr_get_material_id(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_material_id(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 	return self->PygetMaterialIndex();
 }
 
-PyObject* KX_PolyProxy::pyattr_get_v1(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_v1(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 
 	return PyLong_FromSsize_t(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 0));
 }
 
-PyObject* KX_PolyProxy::pyattr_get_v2(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_v2(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 
 	return PyLong_FromSsize_t(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 1));
 }
 
-PyObject* KX_PolyProxy::pyattr_get_v3(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_v3(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 
 	return PyLong_FromSsize_t(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 2));
 }
 
-PyObject* KX_PolyProxy::pyattr_get_v4(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_v4(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 
@@ -168,13 +168,13 @@ PyObject* KX_PolyProxy::pyattr_get_v4(void *self_v, const KX_PYATTRIBUTE_DEF *at
 	return PyLong_FromSsize_t(0);
 }
 
-PyObject* KX_PolyProxy::pyattr_get_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 	return self->PyisVisible();
 }
 
-PyObject* KX_PolyProxy::pyattr_get_collide(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_PolyProxy::pyattr_get_collide(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self= static_cast<KX_PolyProxy*>(self_v);
 	return self->PyisCollider();

@@ -152,17 +152,17 @@ void uiStyleFontDrawExt(uiFontStyle *fs, rcti *rect, const char *str,
 	uiStyleFontSet(fs);
 
 	height = BLF_ascender(fs->uifont_id);
-	yofs = ceil(0.5f * (rect->ymax - rect->ymin - height));
+	yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
 
 	if (fs->align == UI_STYLE_TEXT_CENTER) {
-		xofs = floor(0.5f * (rect->xmax - rect->xmin - BLF_width(fs->uifont_id, str)));
+		xofs = floor(0.5f * (BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str)));
 		/* don't center text if it chops off the start of the text, 2 gives some margin */
 		if (xofs < 2) {
 			xofs = 2;
 		}
 	}
 	else if (fs->align == UI_STYLE_TEXT_RIGHT) {
-		xofs = rect->xmax - rect->xmin - BLF_width(fs->uifont_id, str) - 1;
+		xofs = BLI_rcti_size_x(rect) - BLF_width(fs->uifont_id, str) - 1;
 	}
 	
 	/* clip is very strict, so we give it some space */
@@ -209,7 +209,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 
 	height = BLF_ascender(fs->uifont_id);
 	/* becomes x-offset when rotated */
-	xofs = ceil(0.5f * (rect->ymax - rect->ymin - height));
+	xofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
 
 	/* ignore UI_STYLE, always aligned to top */
 
@@ -219,8 +219,8 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 	angle = 90.0f;
 
 	/* translate rect to vertical */
-	txtrect.xmin = rect->xmin - (rect->ymax - rect->ymin);
-	txtrect.ymin = rect->ymin - (rect->xmax - rect->xmin);
+	txtrect.xmin = rect->xmin - BLI_rcti_size_y(rect);
+	txtrect.ymin = rect->ymin - BLI_rcti_size_x(rect);
 	txtrect.xmax = rect->xmin;
 	txtrect.ymax = rect->ymin;
 
@@ -257,7 +257,7 @@ uiStyle *UI_GetStyle(void)
 {
 	uiStyle *style = NULL;
 	/* offset is two struct uiStyle pointers */
-	/* style = BLI_findstring( &U.uistyles, "Unifont Style", sizeof(style)*2 ) */;
+	/* style = BLI_findstring(&U.uistyles, "Unifont Style", sizeof(style) * 2) */;
 	return (style != NULL) ? style : U.uistyles.first;
 }
 
@@ -374,7 +374,7 @@ void uiStyleInit(void)
 		ui_style_new(&U.uistyles, "Default Style", UIFONT_DEFAULT);
 	}
 	
-	// XXX, this should be moved into a style, but for now best only load the monospaced font once.
+	/* XXX, this should be moved into a style, but for now best only load the monospaced font once. */
 	if (blf_mono_font == -1)
 		blf_mono_font = BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 

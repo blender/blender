@@ -365,13 +365,13 @@ static int actkeys_viewall(bContext *C, const short onlySel)
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
 	get_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, onlySel);
 	
-	extra = 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
+	extra = 0.1f * BLI_rctf_size_x(&v2d->cur);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 	
 	/* set vertical range */
 	v2d->cur.ymax = 0.0f;
-	v2d->cur.ymin = (float)-(v2d->mask.ymax - v2d->mask.ymin);
+	v2d->cur.ymin = (float)-BLI_rcti_size_y(&v2d->mask);
 	
 	/* do View2D syncing */
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
@@ -489,15 +489,15 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	
+
 	/* copy keyframes */
 	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
-		// FIXME...
+		/* FIXME... */
 		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for Grease Pencil mode");
 		return OPERATOR_CANCELLED;
 	}
 	else if (ac.datatype == ANIMCONT_MASK) {
-		// FIXME...
+		/* FIXME... */
 		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for mask mode");
 		return OPERATOR_CANCELLED;
 	}
@@ -1369,10 +1369,14 @@ void ACTION_OT_frame_jump(wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 static EnumPropertyItem prop_actkeys_snap_types[] = {
-	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
-	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
-	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
-	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
+	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", 
+	 "Snap selected keyframes to the current frame"},
+	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", 
+	 "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame offsets)"},
+	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", 
+	 "Snap selected keyframes to the nearest second"},
+	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", 
+	 "Snap selected keyframes to the nearest marker"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1473,9 +1477,12 @@ void ACTION_OT_snap(wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 static EnumPropertyItem prop_actkeys_mirror_types[] = {
-	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
-	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
-	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
+	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", 
+	 "Flip times of selected keyframes using the current frame as the mirror line"},
+	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", 
+	 "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"},
+	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", 
+	 "Flip times of selected keyframes using the first selected marker as the reference point"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1497,12 +1504,8 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
 	if (mode == ACTKEYS_MIRROR_MARKER) {
-		TimeMarker *marker = NULL;
+		TimeMarker *marker = ED_markers_get_first_selected(ac->markers);
 		
-		/* find first selected marker */
-		marker = ED_markers_get_first_selected(ac->markers);
-		
-		/* store marker's time (if available) */
 		if (marker)
 			ked.f1 = (float)marker->frame;
 		else

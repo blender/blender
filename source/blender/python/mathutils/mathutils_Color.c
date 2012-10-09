@@ -147,7 +147,7 @@ static PyObject *Color_str(ColorObject *self)
 }
 
 //------------------------tp_richcmpr
-//returns -1 execption, 0 false, 1 true
+//returns -1 exception, 0 false, 1 true
 static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 {
 	PyObject *res;
@@ -565,7 +565,7 @@ static PyObject *Color_div(PyObject *v1, PyObject *v2)
 	return NULL;
 }
 
-/* mulplication in-place: obj *= obj */
+/* multiplication in-place: obj *= obj */
 static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 {
 	ColorObject *color = (ColorObject *)v1;
@@ -591,7 +591,7 @@ static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 	return v1;
 }
 
-/* mulplication in-place: obj *= obj */
+/* multiplication in-place: obj *= obj */
 static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 {
 	ColorObject *color = (ColorObject *)v1;
@@ -644,8 +644,8 @@ static PyNumberMethods Color_NumMethods = {
 	NULL,               /*nb_remainder*/
 	NULL,               /*nb_divmod*/
 	NULL,               /*nb_power*/
-	(unaryfunc) Color_neg, /*nb_negative*/
-	(unaryfunc) NULL,   /*tp_positive*/
+	(unaryfunc) Color_neg,   /*nb_negative*/
+	(unaryfunc) Color_copy,  /*tp_positive*/
 	(unaryfunc) NULL,   /*tp_absolute*/
 	(inquiry)   NULL,   /*tp_bool*/
 	(unaryfunc) NULL,   /*nb_invert*/

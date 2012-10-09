@@ -38,6 +38,18 @@ protected:
 	SocketReader *m_inputColor1Operation;
 	SocketReader *m_inputColor2Operation;
 	bool m_valueAlphaMultiply;
+	bool m_useClamp;
+
+	inline void clampIfNeeded(float *color)
+	{
+		if (m_useClamp) {
+			CLAMP(color[0], 0.0f, 1.0f);
+			CLAMP(color[1], 0.0f, 1.0f);
+			CLAMP(color[2], 0.0f, 1.0f);
+			CLAMP(color[3], 0.0f, 1.0f);
+		}
+	}
+	
 public:
 	/**
 	 * Default constructor
@@ -47,7 +59,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 	
 	/**
 	 * Initialize the execution
@@ -59,9 +71,10 @@ public:
 	 */
 	void deinitExecution();
 	
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	void setUseValueAlphaMultiply(const bool value) { this->m_valueAlphaMultiply = value; }
 	bool useValueAlphaMultiply() { return this->m_valueAlphaMultiply; }
+	void setUseClamp(bool value) { this->m_useClamp = value; }
 };
 #endif

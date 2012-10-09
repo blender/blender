@@ -44,7 +44,8 @@
 #include "MEM_guardedalloc.h"
 #endif
 
-ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation)
+ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation,
+                                 const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
 {
 	this->m_context.setbNodeTree(editingtree);
 	this->m_context.setFastCalculation(fastcalculation);
@@ -69,6 +70,9 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
 	ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NULL);
 
 	this->m_context.setRenderData(rd);
+	this->m_context.setViewSettings(viewSettings);
+	this->m_context.setDisplaySettings(displaySettings);
+
 	this->convertToOperations();
 	this->groupOperations(); /* group operations in ExecutionGroups */
 	unsigned int index;
@@ -128,6 +132,13 @@ void ExecutionSystem::execute()
 		NodeOperation *operation = this->m_operations[index];
 		operation->setbNodeTree(this->m_context.getbNodeTree());
 		operation->initExecution();
+	}
+	for (index = 0; index < this->m_operations.size(); index++) {
+		NodeOperation *operation = this->m_operations[index];
+		if (operation->isReadBufferOperation()) {
+			ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
+			readOperation->updateMemoryBuffer();
+		}
 	}
 	for (index = 0; index < this->m_groups.size(); index++) {
 		ExecutionGroup *executionGroup = this->m_groups[index];

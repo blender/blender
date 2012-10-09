@@ -44,10 +44,10 @@ class MotionPathButtonsPanel():
         col = split.column()
         col.label(text="Display Range:")
         sub = col.column(align=True)
-        if (mps.type == 'CURRENT_FRAME'):
+        if mps.type == 'CURRENT_FRAME':
             sub.prop(mps, "frame_before", text="Before")
             sub.prop(mps, "frame_after", text="After")
-        elif (mps.type == 'RANGE'):
+        elif mps.type == 'RANGE':
             sub.prop(mps, "frame_start", text="Start")
             sub.prop(mps, "frame_end", text="End")
 
@@ -65,10 +65,13 @@ class MotionPathButtonsPanel():
             sub.prop(mpath, "frame_start", text="From")
             sub.prop(mpath, "frame_end", text="To")
 
+            sub = col.row(align=True)
             if bones:
-                col.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
+                sub.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
+                sub.operator("pose.paths_clear", text="", icon='X')
             else:
-                col.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
+                sub.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
+                sub.operator("object.paths_clear", text="", icon='X')
         else:
             sub = col.column(align=True)
             sub.label(text="Nothing to show yet...", icon='ERROR')

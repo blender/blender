@@ -108,14 +108,14 @@ void FilterColor::setMatrix (ColorMatrix & mat)
 
 
 // cast Filter pointer to FilterColor
-inline FilterColor * getFilterColor (PyFilter * self)
+inline FilterColor * getFilterColor (PyFilter *self)
 { return static_cast<FilterColor*>(self->m_filter); }
 
 
 // python methods and get/sets
 
 // get color matrix
-static PyObject * getMatrix (PyFilter * self, void * closure)
+static PyObject *getMatrix (PyFilter *self, void *closure)
 {
 	ColorMatrix & mat = getFilterColor(self)->getMatrix();
 	return Py_BuildValue("((hhhhh)(hhhhh)(hhhhh)(hhhhh))",
@@ -126,7 +126,7 @@ static PyObject * getMatrix (PyFilter * self, void * closure)
 }
 
 // set color matrix
-static int setMatrix (PyFilter * self, PyObject * value, void * closure)
+static int setMatrix (PyFilter *self, PyObject *value, void *closure)
 {
 	// matrix to store items
 	ColorMatrix mat;
@@ -243,14 +243,14 @@ void FilterLevel::setLevels (ColorLevel & lev)
 
 
 // cast Filter pointer to FilterLevel
-inline FilterLevel * getFilterLevel (PyFilter * self)
+inline FilterLevel * getFilterLevel (PyFilter *self)
 { return static_cast<FilterLevel*>(self->m_filter); }
 
 
 // python methods and get/sets
 
 // get color levels
-static PyObject * getLevels (PyFilter * self, void * closure)
+static PyObject *getLevels (PyFilter *self, void *closure)
 {
 	ColorLevel & lev = getFilterLevel(self)->getLevels();
 	return Py_BuildValue("((HH)(HH)(HH)(HH))",
@@ -259,7 +259,7 @@ static PyObject * getLevels (PyFilter * self, void * closure)
 }
 
 // set color levels
-static int setLevels (PyFilter * self, PyObject * value, void * closure)
+static int setLevels (PyFilter *self, PyObject *value, void *closure)
 {
 	// matrix to store items
 	ColorLevel lev;

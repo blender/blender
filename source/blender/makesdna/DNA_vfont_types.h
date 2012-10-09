@@ -45,7 +45,11 @@ typedef struct VFont {
 	char name[1024]; /* 1024 = FILE_MAX */
 	
 	struct VFontData *data;
-	struct PackedFile * packedfile;
+	struct PackedFile *packedfile;
+
+	/* runtime only, holds memory for freetype to read from
+	 * TODO, replace this with blf_font_new() style loading */
+	struct PackedFile *temp_pf;
 } VFont;
 
 /* *************** FONT ****************** */

@@ -45,11 +45,11 @@ void HueSaturationValueCorrectOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void HueSaturationValueCorrectOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void HueSaturationValueCorrectOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float hsv[4], f;
 
-	this->m_inputProgram->read(hsv, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(hsv, x, y, sampler);
 
 	/* adjust hue, scaling returned default 0.5 up to 1 */
 	f = curvemapping_evaluateF(this->m_curveMapping, 0, hsv[0]);
@@ -74,5 +74,6 @@ void HueSaturationValueCorrectOperation::executePixel(float *output, float x, fl
 
 void HueSaturationValueCorrectOperation::deinitExecution()
 {
+	CurveBaseOperation::deinitExecution();
 	this->m_inputProgram = NULL;
 }

@@ -28,7 +28,9 @@ import os
 def guess_player_path(preset):
     import sys
 
-    if preset == 'BLENDER24':
+    if preset == 'INTERNAL':
+        return bpy.app.binary_path
+    elif preset == 'BLENDER24':
         player_path = "blender"
 
         if sys.platform == "darwin":
@@ -87,7 +89,7 @@ class PlayRenderedAnim(Operator):
         if player_path == "":
             player_path = guess_player_path(preset)
 
-        if is_movie == False and preset in {'FRAMECYCLER', 'RV', 'MPLAYER'}:
+        if is_movie is False and preset in {'FRAMECYCLER', 'RV', 'MPLAYER'}:
             # replace the number with '#'
             file_a = rd.frame_path(frame=0)
 
@@ -102,40 +104,18 @@ class PlayRenderedAnim(Operator):
 
             file = ("".join((c if file_b[i] == c else "#")
                     for i, c in enumerate(file_a)))
+            del file_a, file_b, frame_tmp
+            file = bpy.path.abspath(file)  # expand '//'
         else:
             # works for movies and images
             file = rd.frame_path(frame=scene.frame_start)
-
-        file = bpy.path.abspath(file)  # expand '//'
+            file = bpy.path.abspath(file)  # expand '//'
+            if not os.path.exists(file):
+                self.report({'WARNING'}, "File %r not found" % file)
 
         cmd = [player_path]
         # extra options, fps controls etc.
-        if preset == 'BLENDER24':
-            # -----------------------------------------------------------------
-            # Check blender is not 2.5x until it supports playback again
-            try:
-                process = subprocess.Popen([player_path, '--version'],
-                                           stdout=subprocess.PIPE,
-                                           )
-            except:
-                # ignore and allow the main execution to catch the problem.
-                process = None
-
-            if process is not None:
-                process.wait()
-                out = process.stdout.read()
-                process.stdout.close()
-                out_split = out.strip().split()
-                if out_split[0] == b'Blender':
-                    if not out_split[1].startswith(b'2.4'):
-                        self.report({'ERROR'},
-                                    "Blender %s doesn't support playback: %r" %
-                                    (out_split[1].decode(), player_path))
-                        return {'CANCELLED'}
-                del out, out_split
-            del process
-            # -----------------------------------------------------------------
-
+        if preset in {'BLENDER24', 'INTERNAL'}:
             opts = ["-a", "-f", str(rd.fps), str(rd.fps_base),
                     "-j", str(scene.frame_step), file]
             cmd.extend(opts)
@@ -166,8 +146,14 @@ class PlayRenderedAnim(Operator):
         # launch it
         print("Executing command:\n  %r" % " ".join(cmd))
 
+        # workaround for boost 1.46, can be eventually removed. bug: [#32350]
+        env_copy = os.environ.copy()
+        if preset == 'INTERNAL':
+            env_copy["LC_ALL"] = "C"
+        # end workaround
+
         try:
-            subprocess.Popen(cmd)
+            subprocess.Popen(cmd, env=env_copy)
         except Exception as e:
             self.report({'ERROR'},
                         "Couldn't run external animation player with command "

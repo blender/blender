@@ -44,6 +44,7 @@ struct ScrArea;
 struct ARegion;
 struct ARegionType;
 struct Scene;
+struct Main;
 
 /* space_sequencer.c */
 struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
@@ -51,9 +52,11 @@ struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
-void draw_image_seq(const struct bContext* C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset);
+void draw_image_seq(const struct bContext *C, struct Scene *scene, struct  ARegion *ar, struct SpaceSeq *sseq, int cfra, int offset, int draw_overlay);
 
 void seq_reset_imageofs(struct SpaceSeq *sseq);
+
+struct ImBuf *sequencer_ibuf_get(struct Main *bmain, struct Scene *scene, struct SpaceSeq *sseq, int cfra, int frame_ofs);
 
 /* sequencer_edit.c */
 struct View2D;
@@ -95,8 +98,7 @@ void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
 void SEQUENCER_OT_snap(struct wmOperatorType *ot);
-void SEQUENCER_OT_previous_edit(struct wmOperatorType *ot);
-void SEQUENCER_OT_next_edit(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_jump(struct wmOperatorType *ot);
 void SEQUENCER_OT_swap(struct wmOperatorType *ot);
 void SEQUENCER_OT_swap_data(struct wmOperatorType *ot);
 void SEQUENCER_OT_rendersize(struct wmOperatorType *ot);
@@ -115,8 +117,6 @@ void SEQUENCER_OT_copy(struct wmOperatorType *ot);
 void SEQUENCER_OT_paste(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_rebuild_proxy(struct wmOperatorType *ot);
-
-void SEQUENCER_OT_update_strip_length(struct wmOperatorType *ot);
 
 /* preview specific operators */
 void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
@@ -176,6 +176,14 @@ struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf);
 /* sequencer_buttons.c */
 void sequencer_buttons_register(struct ARegionType *art);
 void SEQUENCER_OT_properties(struct wmOperatorType *ot);
+
+/* sequencer_modifiers.c */
+void SEQUENCER_OT_strip_modifier_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_modifier_remove(struct wmOperatorType *ot);
+void SEQUENCER_OT_strip_modifier_move(struct wmOperatorType *ot);
+
+/* sequencer_view.c */
+void SEQUENCER_OT_sample(struct wmOperatorType *ot);
 
 #endif /* __SEQUENCER_INTERN_H__ */
 

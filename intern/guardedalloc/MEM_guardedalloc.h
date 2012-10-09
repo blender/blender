@@ -20,19 +20,19 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Brecht Van Lommel
+ *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file MEM_guardedalloc.h
- *  \ingroup MEM
+/**
+ * \file MEM_guardedalloc.h
+ * \ingroup MEM
  *
- *  \author Copyright (C) 2001 NaN Technologies B.V.
- *  \brief Read \ref MEMPage
- */
-
-/** 
+ * \author Copyright (C) 2001 NaN Technologies B.V.
+ * \brief Read \ref MEMPage
+ *
  * \page MEMPage Guarded memory(de)allocation
  *
  * \section aboutmem c-style guarded memory allocation
@@ -60,16 +60,11 @@
 #ifndef __MEM_GUARDEDALLOC_H__
 #define __MEM_GUARDEDALLOC_H__
 
-#include <stdio.h> /* needed for FILE* */
-#include "MEM_sys_types.h" /* needed for uintptr_t */
+#include <stdio.h>          /* needed for FILE* */
+#include "MEM_sys_types.h"  /* needed for uintptr_t */
 
-#ifndef WARN_UNUSED
-#  ifdef __GNUC__
-#    define WARN_UNUSED  __attribute__((warn_unused_result))
-#  else
-#    define WARN_UNUSED
-#  endif
-#endif
+/* some GNU attributes are only available from GCC 4.3 */
+#define MEM_GNU_ATTRIBUTES (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 403))
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,13 +73,16 @@ extern "C" {
 	/** Returns the length of the allocated memory segment pointed at
 	 * by vmemh. If the pointer was not previously allocated by this
 	 * module, the result is undefined.*/
-	size_t MEM_allocN_len(void *vmemh) WARN_UNUSED;
+	size_t MEM_allocN_len(const void *vmemh)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+#endif
+	;
 
 	/**
 	 * Release memory previously allocatred by this module. 
 	 */
 	short MEM_freeN(void *vmemh);
-
 
 	/**
 	 * Return zero if memory is not in allocated list
@@ -94,30 +92,69 @@ extern "C" {
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */
-	void *MEM_dupallocN(void *vmemh) WARN_UNUSED;
+	void *MEM_dupallocN(const void *vmemh)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+#endif
+	;
 
 	/**
 	 * Reallocates a block of memory, and returns pointer to the newly
 	 * allocated block, the old one is freed. this is not as optimized
 	 * as a system realloc but just makes a new allocation and copies
 	 * over from existing memory. */
-	void *MEM_reallocN(void *vmemh, size_t len) WARN_UNUSED;
+	void *MEM_reallocN(void *vmemh, size_t len)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+	__attribute__((alloc_size(2)))
+#endif
+	;
+
+	/**
+	 * A variant of realloc which zeros new bytes
+	 */
+	void *MEM_recallocN(void *vmemh, size_t len)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+	__attribute__((alloc_size(2)))
+#endif
+	;
 
 	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
-	void *MEM_callocN(size_t len, const char * str) WARN_UNUSED;
-	
-	/** Allocate a block of memory of size len, with tag name str. The
+	void *MEM_callocN(size_t len, const char *str)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+	__attribute__((nonnull(2)))
+	__attribute__((alloc_size(1)))
+#endif
+	;
+
+	/**
+	 * Allocate a block of memory of size len, with tag name str. The
 	 * name must be a static, because only a pointer to it is stored !
 	 * */
-	void *MEM_mallocN(size_t len, const char * str) WARN_UNUSED;
-	
-	/** Same as callocN, clears memory and uses mmap (disk cached) if supported.
+	void *MEM_mallocN(size_t len, const char *str)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+	__attribute__((nonnull(2)))
+	__attribute__((alloc_size(1)))
+#endif
+	;
+
+	/**
+	 * Same as callocN, clears memory and uses mmap (disk cached) if supported.
 	 * Can be free'd with MEM_freeN as usual.
 	 * */
-	void *MEM_mapallocN(size_t len, const char * str) WARN_UNUSED;
+	void *MEM_mapallocN(size_t len, const char *str)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+	__attribute__((nonnull(2)))
+	__attribute__((alloc_size(1)))
+#endif
+	;
 
 	/** Print a list of the names and sizes of all allocated memory
 	 * blocks. as a python dict for easy investigation */ 
@@ -149,7 +186,8 @@ extern "C" {
 	/** Attempt to enforce OSX (or other OS's) to have malloc and stack nonzero */
 	void MEM_set_memory_debug(void);
 
-	/** Memory usage stats
+	/**
+	 * Memory usage stats
 	 * - MEM_get_memory_in_use is all memory
 	 * - MEM_get_mapped_memory_in_use is a subset of all memory */
 	uintptr_t MEM_get_memory_in_use(void);
@@ -162,7 +200,11 @@ extern "C" {
 	void MEM_reset_peak_memory(void);
 
 	/** Get the peak memory usage in bytes, including mmap allocations. */
-	uintptr_t MEM_get_peak_memory(void) WARN_UNUSED;
+	uintptr_t MEM_get_peak_memory(void)
+#if MEM_GNU_ATTRIBUTES
+	__attribute__((warn_unused_result))
+#endif
+	;
 
 #ifndef NDEBUG
 const char *MEM_name_ptr(void *vmemh);
@@ -187,11 +229,10 @@ public:                                                                       \
 			MEM_freeN(mem);                                                   \
 	}                                                                         \
 
-#endif
-
+#endif  /* __cplusplus */
 
 #ifdef __cplusplus
 }
-#endif
+#endif  /* __cplusplus */
 
-#endif
+#endif  /* __MEM_GUARDEDALLOC_H__ */

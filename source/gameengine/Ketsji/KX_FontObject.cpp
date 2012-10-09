@@ -52,7 +52,7 @@ extern "C" {
 /* proptotype */
 int GetFontId(VFont *font);
 
-std::vector<STR_String> split_string(STR_String str)
+static std::vector<STR_String> split_string(STR_String str)
 {
 	std::vector<STR_String> text = std::vector<STR_String>();
 
@@ -73,10 +73,10 @@ std::vector<STR_String> split_string(STR_String str)
 	return text;
 }
 
-KX_FontObject::KX_FontObject(	void* sgReplicationInfo,
-								SG_Callbacks callbacks,
-								RAS_IRenderTools* rendertools,
-								Object *ob):
+KX_FontObject::KX_FontObject(void* sgReplicationInfo,
+                             SG_Callbacks callbacks,
+                             RAS_IRenderTools* rendertools,
+                             Object *ob):
 	KX_GameObject(sgReplicationInfo, callbacks),
 	m_object(ob),
 	m_dpi(72),
@@ -117,25 +117,25 @@ void KX_FontObject::ProcessReplica()
 	KX_GetActiveScene()->AddFont(this);
 }
 
-int GetFontId (VFont *font)
+int GetFontId (VFont *vfont)
 {
 	PackedFile *packedfile=NULL;
 	int fontid = -1;
 
-	if (font->packedfile) {
-		packedfile= font->packedfile;
-		fontid= BLF_load_mem(font->name, (unsigned char*)packedfile->data, packedfile->size);
+	if (vfont->packedfile) {
+		packedfile= vfont->packedfile;
+		fontid= BLF_load_mem(vfont->name, (unsigned char*)packedfile->data, packedfile->size);
 		
 		if (fontid == -1) {
-			printf("ERROR: packed font \"%s\" could not be loaded.\n", font->name);
+			printf("ERROR: packed font \"%s\" could not be loaded.\n", vfont->name);
 			fontid = BLF_load("default");
 		}
 		return fontid;
 	}
 	
-	/* once we have packed working we can load the FO_BUILTIN_NAME font	*/
-	const char *filepath = font->name;
-	if (strcmp(FO_BUILTIN_NAME, filepath) == 0) {
+	/* once we have packed working we can load the builtin font	*/
+	const char *filepath = vfont->name;
+	if (BKE_vfont_is_builtin(vfont)) {
 		fontid = BLF_load("default");
 		
 		/* XXX the following code is supposed to work (after you add get_builtin_packedfile to BKE_font.h )
@@ -252,7 +252,7 @@ PyAttributeDef KX_FontObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_FontObject* self= static_cast<KX_FontObject*>(self_v);
 	STR_String str = STR_String();

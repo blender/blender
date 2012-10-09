@@ -10,7 +10,7 @@ sources = env.Glob('intern/*.c')
 incs = '. ../editors/include ../python ../makesdna ../blenlib ../blenkernel'
 incs += ' ../nodes ../imbuf ../blenloader ../render/extern/include'
 incs += ' ../radiosity/extern/include'
-incs += ' ../makesrna ../gpu ../blenfont ../bmesh'
+incs += ' ../makesrna ../gpu ../blenfont ../bmesh ../compositor'
 
 incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost'
 incs += ' #/intern/elbeem #/extern/glew/include'
@@ -42,5 +42,8 @@ if env['BF_BUILDINFO']:
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
+
+if env['WITH_BF_COMPOSITOR']:
+    defs.append("WITH_COMPOSITOR")
 
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defines=defs, libtype=['core'], priority=[5] )

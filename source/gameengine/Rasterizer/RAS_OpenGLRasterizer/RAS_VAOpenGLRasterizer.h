@@ -58,8 +58,8 @@ public:
 
 private:
 	virtual void	EnableTextures(bool enable);
-	//virtual bool	QueryArrays(){return true;}
-	//virtual bool	QueryLists(){return m_Lock;}
+	//virtual bool	QueryArrays() {return true;}
+	//virtual bool	QueryLists() {return m_Lock;}
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

@@ -38,6 +38,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -397,7 +398,7 @@ static void object_hook_select(Object *ob, HookModifierData *hmd)
 }
 
 /* special poll operators for hook operators */
-// TODO: check for properties window modifier context too as alternative?
+/* TODO: check for properties window modifier context too as alternative? */
 static int hook_op_edit_poll(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -430,7 +431,7 @@ static Object *add_hook_object_new(Scene *scene, Object *obedit)
 	return ob;
 }
 
-static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob, int mode)
+static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob, int mode, ReportList *reports)
 {
 	ModifierData *md = NULL;
 	HookModifierData *hmd = NULL;
@@ -439,9 +440,12 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	char name[MAX_NAME];
 	
 	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
-	
-	if (!ok) return;    // XXX error("Requires selected vertices or active Vertex Group");
-	
+
+	if (!ok) {
+		BKE_report(reports, RPT_ERROR, "Requires selected vertices or active Vertex Group");
+		return FALSE;
+	}
+
 	if (mode == OBJECT_ADDHOOK_NEWOB && !ob) {
 		
 		ob = add_hook_object_new(scene, obedit);
@@ -466,6 +470,17 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	hmd->totindex = tot;
 	BLI_strncpy(hmd->name, name, sizeof(hmd->name));
 	
+	if (mode == OBJECT_ADDHOOK_SELOB_BONE) {
+		bArmature *arm = ob->data;
+		BLI_assert(ob->type == OB_ARMATURE);
+		if (arm->act_bone) {
+			BLI_strncpy(hmd->subtarget, arm->act_bone->name, sizeof(hmd->subtarget));
+		}
+		else {
+			BKE_report(reports, RPT_WARNING, "Armature has no active object bone");
+		}
+	}
+
 	/* matrix calculus */
 	/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
 	/*        (parentinv         )                          */
@@ -477,6 +492,8 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	             NULL, NULL, NULL, NULL, NULL);
 	
 	DAG_scene_sort(bmain, scene);
+
+	return TRUE;
 }
 
 static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
@@ -485,6 +502,8 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obsel = NULL;
+	const int use_bone = RNA_boolean_get(op->ptr, "use_bone");
+	const int mode = use_bone ? OBJECT_ADDHOOK_SELOB_BONE : OBJECT_ADDHOOK_SELOB;
 	
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
@@ -499,11 +518,19 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Can't add hook with no other selected objects");
 		return OPERATOR_CANCELLED;
 	}
+
+	if (use_bone && obsel->type != OB_ARMATURE) {
+		BKE_report(op->reports, RPT_ERROR, "Can't add hook bone for a non armature object");
+		return OPERATOR_CANCELLED;
+	}
 	
-	add_hook_object(bmain, scene, obedit, obsel, OBJECT_ADDHOOK_SELOB);
-	
-	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
-	return OPERATOR_FINISHED;
+	if (add_hook_object(bmain, scene, obedit, obsel, mode, op->reports)) {
+		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
@@ -519,19 +546,25 @@ void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "use_bone", FALSE, "Active Bone",
+	                "Assign the hook to the hook objects active bone");
 }
 
-static int object_add_hook_newob_exec(bContext *C, wmOperator *UNUSED(op))
+static int object_add_hook_newob_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 
-	add_hook_object(bmain, scene, obedit, NULL, OBJECT_ADDHOOK_NEWOB);
-	
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
-	return OPERATOR_FINISHED;
+	if (add_hook_object(bmain, scene, obedit, NULL, OBJECT_ADDHOOK_NEWOB, op->reports)) {
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obedit);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
@@ -552,13 +585,11 @@ void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
 static int object_hook_remove_exec(bContext *C, wmOperator *op)
 {
 	int num = RNA_enum_get(op->ptr, "modifier");
-	Object *ob = NULL;
+	Object *ob = CTX_data_edit_object(C);
 	HookModifierData *hmd = NULL;
 
-	ob = CTX_data_edit_object(C);
 	hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
-
-	if (!ob || !hmd) {
+	if (!hmd) {
 		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
 		return OPERATOR_CANCELLED;
 	}

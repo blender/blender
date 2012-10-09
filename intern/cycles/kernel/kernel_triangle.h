@@ -16,6 +16,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "kernel_attribute.h"
+#include "kernel_projection.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Point on triangle for Moller-Trumbore triangles */
@@ -181,26 +184,13 @@ __device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData *s
 
 /* motion */
 
-__device int triangle_find_attribute(KernelGlobals *kg, ShaderData *sd, uint id)
-{
-	/* find attribute by unique id */
-	uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
-	uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-
-	while(attr_map.x != id)
-		attr_map = kernel_tex_fetch(__attributes_map, ++attr_offset);
-
-	/* return result */
-	return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : attr_map.z;
-}
-
 __device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 motion_pre = sd->P, motion_post = sd->P;
 
 	/* deformation motion */
-	int offset_pre = triangle_find_attribute(kg, sd, ATTR_STD_MOTION_PRE);
-	int offset_post = triangle_find_attribute(kg, sd, ATTR_STD_MOTION_POST);
+	int offset_pre = find_attribute(kg, sd, ATTR_STD_MOTION_PRE);
+	int offset_post = find_attribute(kg, sd, ATTR_STD_MOTION_POST);
 
 	if(offset_pre != ATTR_STD_NOT_FOUND)
 		motion_pre = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_pre, NULL, NULL);
@@ -259,7 +249,7 @@ __device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)
 
 __device float3 triangle_uv(KernelGlobals *kg, ShaderData *sd)
 {
-	int offset_uv = triangle_find_attribute(kg, sd, ATTR_STD_UV);
+	int offset_uv = find_attribute(kg, sd, ATTR_STD_UV);
 
 	if(offset_uv == ATTR_STD_NOT_FOUND)
 		return make_float3(0.0f, 0.0f, 0.0f);

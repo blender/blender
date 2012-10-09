@@ -26,11 +26,8 @@
 
 #include <Python.h>
 #include "BLI_utildefines.h"
-#include "BLI_callbacks.h"
 
-#include "RNA_types.h"
-#include "RNA_access.h"
-#include "bpy_rna.h"
+#include "bpy_app_ffmpeg.h"
 
 #ifdef WITH_FFMPEG
 #include <libavcodec/avcodec.h>
@@ -80,8 +77,10 @@ static PyObject *make_ffmpeg_info(void)
 		return NULL;
 	}
 
+#if 0 // UNUSED
 #define SetIntItem(flag) \
 	PyStructSequence_SET_ITEM(ffmpeg_info, pos++, PyLong_FromLong(flag))
+#endif
 #define SetStrItem(str) \
 	PyStructSequence_SET_ITEM(ffmpeg_info, pos++, PyUnicode_FromString(str))
 #define SetObjItem(obj) \
@@ -121,7 +120,7 @@ static PyObject *make_ffmpeg_info(void)
 		return NULL;
 	}
 
-#undef SetIntItem
+// #undef SetIntItem
 #undef SetStrItem
 #undef SetObjItem
 

@@ -369,12 +369,12 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 
 	/* setup vars used on raycast */
 	for (i = 0; i < 3; i++) {
-		isec->idot_axis[i]      = 1.0f / isec->dir[i];
+		isec->idot_axis[i]          = 1.0f / isec->dir[i];
 		
-		isec->bv_index[2 * i]     = isec->idot_axis[i] < 0.0 ? 1 : 0;
+		isec->bv_index[2 * i]       = isec->idot_axis[i] < 0.0f ? 1 : 0;
 		isec->bv_index[2 * i + 1]   = 1 - isec->bv_index[2 * i];
 		
-		isec->bv_index[2 * i]     = i + 3 * isec->bv_index[2 * i];
+		isec->bv_index[2 * i]       = i + 3 * isec->bv_index[2 * i];
 		isec->bv_index[2 * i + 1]   = i + 3 * isec->bv_index[2 * i + 1];
 	}
 

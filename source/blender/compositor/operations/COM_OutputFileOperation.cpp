@@ -27,14 +27,16 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "DNA_scene_types.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#include "DNA_color_types.h"
+
 extern "C" {
 	#include "MEM_guardedalloc.h"
 	#include "IMB_imbuf.h"
+	#include "IMB_colormanagement.h"
 	#include "IMB_imbuf_types.h"
 }
 
@@ -59,7 +61,7 @@ static float *init_buffer(unsigned int width, unsigned int height, DataType data
 		return NULL;
 }
 
-static void write_buffer_rect(rcti *rect, MemoryBuffer **memoryBuffers, const bNodeTree *tree,
+static void write_buffer_rect(rcti *rect, const bNodeTree *tree,
                               SocketReader *reader, float *buffer, unsigned int width, DataType datatype)
 {
 	float color[4];
@@ -77,7 +79,7 @@ static void write_buffer_rect(rcti *rect, MemoryBuffer **memoryBuffers, const bN
 
 	for (y = y1; y < y2 && (!breaked); y++) {
 		for (x = x1; x < x2 && (!breaked); x++) {
-			reader->read(color, x, y, COM_PS_NEAREST, memoryBuffers);
+			reader->read(color, x, y, COM_PS_NEAREST);
 			
 			for (i = 0; i < size; ++i)
 				buffer[offset + i] = color[i];
@@ -92,7 +94,8 @@ static void write_buffer_rect(rcti *rect, MemoryBuffer **memoryBuffers, const bN
 
 
 OutputSingleLayerOperation::OutputSingleLayerOperation(
-    const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path)
+    const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
+    const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
 {
 	this->m_rd = rd;
 	this->m_tree = tree;
@@ -105,6 +108,9 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
 	
 	this->m_format = format;
 	BLI_strncpy(this->m_path, path, sizeof(this->m_path));
+
+	this->m_viewSettings = viewSettings;
+	this->m_displaySettings = displaySettings;
 }
 
 void OutputSingleLayerOperation::initExecution()
@@ -113,9 +119,9 @@ void OutputSingleLayerOperation::initExecution()
 	this->m_outputBuffer = init_buffer(this->getWidth(), this->getHeight(), this->m_datatype);
 }
 
-void OutputSingleLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void OutputSingleLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
-	write_buffer_rect(rect, memoryBuffers, this->m_tree, this->m_imageInput, this->m_outputBuffer, this->getWidth(), this->m_datatype);
+	write_buffer_rect(rect, this->m_tree, this->m_imageInput, this->m_outputBuffer, this->getWidth(), this->m_datatype);
 }
 
 void OutputSingleLayerOperation::deinitExecution()
@@ -123,7 +129,7 @@ void OutputSingleLayerOperation::deinitExecution()
 	if (this->getWidth() * this->getHeight() != 0) {
 		
 		int size = get_datatype_size(this->m_datatype);
-		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), size * 8, 0);
+		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), this->m_format->planes, 0);
 		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 		
@@ -132,9 +138,9 @@ void OutputSingleLayerOperation::deinitExecution()
 		ibuf->mall |= IB_rectfloat; 
 		ibuf->dither = this->m_rd->dither_intensity;
 		
-		if (this->m_rd->color_mgt_flag & R_COLOR_MANAGEMENT)
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
-		
+		IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, m_viewSettings, m_displaySettings,
+		                                    this->m_format);
+
 		BKE_makepicstring(filename, this->m_path, bmain->name, this->m_rd->cfra, this->m_format->imtype,
 		                  (this->m_rd->scemode & R_EXTENSION), true);
 		
@@ -183,10 +189,10 @@ void OutputOpenExrMultiLayerOperation::initExecution()
 	}
 }
 
-void OutputOpenExrMultiLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void OutputOpenExrMultiLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	for (unsigned int i = 0; i < this->m_layers.size(); ++i) {
-		write_buffer_rect(rect, memoryBuffers, this->m_tree, this->m_layers[i].imageInput, this->m_layers[i].outputBuffer, this->getWidth(), this->m_layers[i].datatype);
+		write_buffer_rect(rect, this->m_tree, this->m_layers[i].imageInput, this->m_layers[i].outputBuffer, this->getWidth(), this->m_layers[i].datatype);
 	}
 }
 

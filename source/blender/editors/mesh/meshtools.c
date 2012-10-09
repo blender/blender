@@ -42,6 +42,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_view3d_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -103,7 +104,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	MLoop *mloop = NULL;
 	Key *key, *nkey = NULL;
 	KeyBlock *kb, *okb, *kbn;
-	float imat[4][4], cmat[4][4], *fp1, *fp2, curpos;
+	float imat[4][4], cmat[4][4], *fp1, *fp2;
 	int a, b, totcol, totmat = 0, totedge = 0, totvert = 0, ok = 0;
 	int totloop = 0, totpoly = 0, vertofs, *matmap = NULL;
 	int i, j, index, haskey = 0, edgeofs, loopofs, polyofs;
@@ -195,7 +196,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	else if (haskey) {
 		/* add a new key-block and add to the mesh */
-		key = me->key = add_key((ID *)me);
+		key = me->key = BKE_key_add((ID *)me);
 		key->type = KEY_RELATIVE;
 	}
 	
@@ -242,45 +243,58 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				
 				/* if this mesh has shapekeys, check if destination mesh already has matching entries too */
 				if (me->key && key) {
-					for (kb = me->key->block.first; kb; kb = kb->next) {
+					/* for remapping KeyBlock.relative */
+					int      *index_map = MEM_mallocN(sizeof(int)        * me->key->totkey, __func__);
+					KeyBlock **kb_map   = MEM_mallocN(sizeof(KeyBlock *) * me->key->totkey, __func__);
+
+					for (kb = me->key->block.first, i = 0; kb; kb = kb->next, i++) {
+						BLI_assert(i < me->key->totkey);
+
+						kbn = BKE_keyblock_find_name(key, kb->name);
 						/* if key doesn't exist in destination mesh, add it */
-						if (key_get_named_keyblock(key, kb->name) == NULL) {
-							/* copy this existing one over to the new shapekey block */
-							kbn = MEM_dupallocN(kb);
-							kbn->prev = kbn->next = NULL;
-							
+						if (kbn) {
+							index_map[i] = BLI_findindex(&key->block, kbn);
+						}
+						else {
+							index_map[i] = key->totkey;
+
+							kbn = BKE_keyblock_add(key, kb->name);
+
+							BKE_keyblock_copy_settings(kbn, kb);
+
 							/* adjust settings to fit (allocate a new data-array) */
 							kbn->data = MEM_callocN(sizeof(float) * 3 * totvert, "joined_shapekey");
-							kbn->totelem = totvert;
-							kbn->weights = NULL;
-							
-							okb = key->block.last;
-							curpos = (okb) ? okb->pos : -0.1f;
-							if (key->type == KEY_RELATIVE)
-								kbn->pos = curpos + 0.1f;
-							else
-								kbn->pos = curpos;
-							
-							BLI_addtail(&key->block, kbn);
-							key->totkey++;
-							if (key->totkey == 1) key->refkey = kbn;
-							
-							// XXX 2.5 Animato
+							kbn->totelem = totvert;	
+		
+							/* XXX 2.5 Animato */
 #if 0
 							/* also, copy corresponding ipo-curve to ipo-block if applicable */
 							if (me->key->ipo && key->ipo) {
-								// FIXME... this is a luxury item!
+								/* FIXME... this is a luxury item! */
 								puts("FIXME: ignoring IPO's when joining shapekeys on Meshes for now...");
 							}
 #endif
 						}
+
+						kb_map[i] = kbn;
 					}
+
+					/* remap relative index values */
+					for (kb = me->key->block.first, i = 0; kb; kb = kb->next, i++) {
+						if (LIKELY(kb->relative < me->key->totkey)) {  /* sanity check, should always be true */
+							kb_map[i]->relative = index_map[kb->relative];
+						}
+					}
+
+					MEM_freeN(index_map);
+					MEM_freeN(kb_map);
 				}
 			}
 		}
 	}
 	CTX_DATA_END;
-	
+
+
 	/* setup new data for destination mesh */
 	memset(&vdata, 0, sizeof(vdata));
 	memset(&edata, 0, sizeof(edata));
@@ -355,7 +369,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							fp1 = ((float *)kb->data) + (vertofs * 3);
 							
 							/* check if this mesh has such a shapekey */
-							okb = key_get_named_keyblock(me->key, kb->name);
+							okb = me->key ? BKE_keyblock_find_name(me->key, kb->name) : NULL;
+
 							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey (need to transform first) */
 								fp2 = ((float *)(okb->data));
@@ -385,7 +400,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							fp1 = ((float *)kb->data) + (vertofs * 3);
 							
 							/* check if this was one of the original shapekeys */
-							okb = key_get_named_keyblock(nkey, kb->name);
+							okb = nkey ? BKE_keyblock_find_name(nkey, kb->name) : NULL;
 							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey */
 								fp2 = ((float *)(okb->data));
@@ -426,8 +441,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 					if ((mmd = get_multires_modifier(scene, base->object, TRUE))) {
 						ED_object_iter_other(bmain, base->object, TRUE,
-											 ED_object_multires_update_totlevels_cb,
-											 &mmd->totlvl);
+						                     ED_object_multires_update_totlevels_cb,
+						                     &mmd->totlvl);
 					}
 				}
 				
@@ -441,18 +456,20 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			}
 			
 			if (me->totpoly) {
-				/* make mapping for materials */
-				for (a = 1; a <= base->object->totcol; a++) {
-					ma = give_current_material(base->object, a);
+				if (totmat) {
+					/* make mapping for materials */
+					for (a = 1; a <= base->object->totcol; a++) {
+						ma = give_current_material(base->object, a);
 
-					for (b = 0; b < totcol; b++) {
-						if (ma == matar[b]) {
-							matmap[a - 1] = b;
-							break;
+						for (b = 0; b < totcol; b++) {
+							if (ma == matar[b]) {
+								matmap[a - 1] = b;
+								break;
+							}
 						}
 					}
 				}
-				
+
 				CustomData_merge(&me->pdata, &pdata, CD_MASK_MESH, CD_DEFAULT, totpoly);
 				CustomData_copy_data(&me->pdata, &pdata, 0, polyofs, me->totpoly);
 				
@@ -530,7 +547,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	
 	/* free temp copy of destination shapekeys (if applicable) */
 	if (nkey) {
-		// XXX 2.5 Animato
+		/* XXX 2.5 Animato */
 #if 0
 		/* free it's ipo too - both are not actually freed from memory yet as ID-blocks */
 		if (nkey->ipo) {
@@ -545,6 +562,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		MEM_freeN(nkey);
 	}
 	
+	/* ensure newly inserted keys are time sorted */
+	if (key && (key->type != KEY_RELATIVE)) {
+		BKE_key_sort(key);
+	}
+
+
 	DAG_scene_sort(bmain, scene);   // removed objects, need to rebuild dag before editmode call
 
 #if 0
@@ -604,12 +627,12 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	}
 	
 	if (key == NULL) {
-		key = me->key = add_key((ID *)me);
+		key = me->key = BKE_key_add((ID *)me);
 		key->type = KEY_RELATIVE;
 
 		/* first key added, so it was the basis. initialize it with the existing mesh */
-		kb = add_keyblock(key, NULL);
-		mesh_to_key(me, kb);
+		kb = BKE_keyblock_add(key, NULL);
+		BKE_key_convert_from_mesh(me, kb);
 	}
 	
 	/* now ready to add new keys from selected meshes */
@@ -625,7 +648,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 				
 				if (!dm) continue;
 					
-				kb = add_keyblock(key, base->object->id.name + 2);
+				kb = BKE_keyblock_add(key, base->object->id.name + 2);
 				
 				DM_to_meshkey(dm, me, kb);
 				
@@ -706,9 +729,9 @@ static void mesh_octree_add_nodes(MocNode **basetable, const float co[3], const 
 	float fx, fy, fz;
 	int vx, vy, vz;
 	
-	if (!finite(co[0]) ||
-	    !finite(co[1]) ||
-	    !finite(co[2]))
+	if ((finite(co[0]) == FALSE) ||
+	    (finite(co[1]) == FALSE) ||
+	    (finite(co[2]) == FALSE))
 	{
 		return;
 	}
@@ -877,7 +900,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char m
 	return 0;
 }
 
-MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
+static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
@@ -937,9 +960,9 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
 	intptr_t poinval;
 	
 	/* ignore nan verts */
-	if (!finite(co[0]) ||
-	    !finite(co[1]) ||
-	    !finite(co[2]))
+	if ((finite(co[0]) == FALSE) ||
+	    (finite(co[1]) == FALSE) ||
+	    (finite(co[2]) == FALSE))
 	{
 		return NULL;
 	}
@@ -1030,13 +1053,13 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			uv_poly_center(em, efa, cent);
 			
-			if ( (fabs(cent[0] - cent_vec[0]) < 0.001) && (fabs(cent[1] - cent_vec[1]) < 0.001) ) {
+			if ( (fabsf(cent[0] - cent_vec[0]) < 0.001f) && (fabsf(cent[1] - cent_vec[1]) < 0.001f) ) {
 				BMIter liter;
 				BMLoop *l;
 				
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					if ( (fabs(luv->uv[0] - vec[0]) < 0.001) && (fabs(luv->uv[1] - vec[1]) < 0.001) ) {
+					if ( (fabsf(luv->uv[0] - vec[0]) < 0.001f) && (fabsf(luv->uv[1] - vec[1]) < 0.001f) ) {
 						return luv->uv;
 								
 					}
@@ -1145,4 +1168,127 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 	MEM_freeN(mirrorverts);
 	
 	return mirrorfaces;
+}
+
+/* selection, vertex and face */
+/* returns 0 if not found, otherwise 1 */
+
+/**
+ * Face selection in object mode,
+ * currently only weight-paint and vertex-paint use this.
+ *
+ * \return boolean TRUE == Found
+ */
+int ED_mesh_pick_face(bContext *C, Mesh *me, const int mval[2], unsigned int *index, int size)
+{
+	ViewContext vc;
+
+	if (!me || me->totpoly == 0)
+		return 0;
+
+	view3d_set_viewcontext(C, &vc);
+
+	if (size) {
+		/* sample rect to increase chances of selecting, so that when clicking
+		 * on an edge in the backbuf, we can still select a face */
+
+		int dummy_dist;
+		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totpoly + 1, &dummy_dist, 0, NULL, NULL);
+	}
+	else {
+		/* sample only on the exact position */
+		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
+	}
+
+	if ((*index) <= 0 || (*index) > (unsigned int)me->totpoly)
+		return 0;
+
+	(*index)--;
+
+	return 1;
+}
+/**
+ * Use when the back buffer stores face index values. but we want a vert.
+ * This gets the face then finds the closest vertex to mval.
+ */
+int ED_mesh_pick_face_vert(bContext *C, Mesh *me, Object *ob, const int mval[2], unsigned int *index, int size)
+{
+	unsigned int poly_index;
+
+	if (ED_mesh_pick_face(C, me, mval, &poly_index, size)) {
+		Scene *scene = CTX_data_scene(C);
+		struct ARegion *ar = CTX_wm_region(C);
+
+		/* derived mesh to find deformed locations */
+		DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
+		int v_idx_best = -1;
+
+		if (dm->getVertCo) {
+			/* find the vert closest to 'mval' */
+			const float mval_f[2] = {(float)mval[0],
+			                         (float)mval[1]};
+			MPoly *mp = &me->mpoly[poly_index];
+			int fidx;
+			float len_best = FLT_MAX;
+
+			fidx = mp->totloop - 1;
+			do {
+				float co[3], sco[2], len;
+				const int v_idx = me->mloop[mp->loopstart + fidx].v;
+				dm->getVertCo(dm, v_idx, co);
+				mul_m4_v3(ob->obmat, co);
+				if (ED_view3d_project_float_global(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+					len = len_squared_v2v2(mval_f, sco);
+					if (len < len_best) {
+						len_best = len;
+						v_idx_best = v_idx;
+					}
+				}
+			} while (fidx--);
+		}
+
+		dm->release(dm);
+
+		if (v_idx_best != -1) {
+			*index = v_idx_best;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * Vertex selection in object mode,
+ * currently only weight paint uses this.
+ *
+ * \return boolean TRUE == Found
+ */
+int ED_mesh_pick_vert(bContext *C, Mesh *me, const int mval[2], unsigned int *index, int size)
+{
+	ViewContext vc;
+
+	if (!me || me->totvert == 0)
+		return 0;
+
+	view3d_set_viewcontext(C, &vc);
+
+	if (size > 0) {
+		/* sample rect to increase chances of selecting, so that when clicking
+		 * on an face in the backbuf, we can still select a vert */
+
+		int dummy_dist;
+		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist, 0, NULL, NULL);
+	}
+	else {
+		/* sample only on the exact position */
+		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
+	}
+
+	if ((*index) <= 0 || (*index) > (unsigned int)me->totvert)
+		return 0;
+
+	(*index)--;
+
+	return 1;
 }

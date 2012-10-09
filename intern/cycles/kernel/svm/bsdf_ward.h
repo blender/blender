@@ -127,19 +127,22 @@ __device int bsdf_ward_sample(const ShaderData *sd, const ShaderClosure *sc, flo
 			float tanPhi = alphaRatio * tanf(M_PI_2_F * val);
 			cosPhi = 1 / sqrtf(1 + tanPhi * tanPhi);
 			sinPhi = tanPhi * cosPhi;
-		} else if(randu < 0.5f) {
+		}
+		else if(randu < 0.5f) {
 			float val = 1 - 4 * (0.5f - randu);
 			float tanPhi = alphaRatio * tanf(M_PI_2_F * val);
 			// phi = M_PI_F - phi;
 			cosPhi = -1 / sqrtf(1 + tanPhi * tanPhi);
 			sinPhi = -tanPhi * cosPhi;
-		} else if(randu < 0.75f) {
+		}
+		else if(randu < 0.75f) {
 			float val = 4 * (randu - 0.5f);
 			float tanPhi = alphaRatio * tanf(M_PI_2_F * val);
 			//phi = M_PI_F + phi;
 			cosPhi = -1 / sqrtf(1 + tanPhi * tanPhi);
 			sinPhi = tanPhi * cosPhi;
-		} else {
+		}
+		else {
 			float val = 1 - 4 * (1 - randu);
 			float tanPhi = alphaRatio * tanf(M_PI_2_F * val);
 			// phi = 2 * M_PI_F - phi;

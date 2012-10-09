@@ -27,6 +27,7 @@
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/numeric/levenberg_marquardt.h"
+#include "libmv/simple_pipeline/resect.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 #include "libmv/simple_pipeline/tracks.h"
 
@@ -107,6 +108,10 @@ bool EuclideanResect(const vector<Marker> &markers,
     // printf("Resection for image %d failed\n", markers[0].image);
     LG << "Resection for image " << markers[0].image << " failed;"
        << " trying fallback projective resection.";
+
+    LG << "No fallback; failing resection for " << markers[0].image;
+    return false;
+
     if (!final_pass) return false;
     // Euclidean resection failed. Fall back to projective resection, which is
     // less reliable but better conditioned when there are many points.

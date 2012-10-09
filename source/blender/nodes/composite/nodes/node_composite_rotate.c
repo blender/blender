@@ -44,6 +44,8 @@ static bNodeSocketTemplate cmp_node_rotate_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* only supports RGBA nodes now */
 static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
@@ -121,7 +123,9 @@ static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStac
 	}
 }
 
-static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1= 1; /* Bilinear Filter*/
 }
@@ -134,7 +138,9 @@ void register_node_type_cmp_rotate(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_rotate_in, cmp_node_rotate_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_rotate);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_rotate);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

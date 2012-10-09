@@ -22,6 +22,7 @@
 
 #include "COM_GroupNode.h"
 #include "COM_SocketProxyNode.h"
+#include "COM_SetColorOperation.h"
 #include "COM_ExecutionSystemHelper.h"
 
 GroupNode::GroupNode(bNode *editorNode) : Node(editorNode)
@@ -31,7 +32,9 @@ GroupNode::GroupNode(bNode *editorNode) : Node(editorNode)
 
 void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	/* pass */
+	if (this->getbNode()->id == NULL) {
+		convertToOperations_invalid(graph, context);
+	}
 }
 
 void GroupNode::ungroup(ExecutionSystem &system)
@@ -46,8 +49,10 @@ void GroupNode::ungroup(ExecutionSystem &system)
 	int nodes_start = system.getNodes().size();
 
 	/* missing node group datablock can happen with library linking */
-	if (!subtree)
+	if (!subtree) {
+		/* this error case its handled in convertToOperations() so we don't get un-convertred sockets */
 		return;
+	}
 
 	for (index = 0; index < inputsockets.size(); index++) {
 		InputSocket *inputSocket = inputsockets[index];

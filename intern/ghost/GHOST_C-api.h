@@ -26,7 +26,7 @@
  */
 /** \ingroup GHOST
  *
- * \file	GHOST_C-api.h
+ * \file GHOST_C-api.h
  * \brief GHOST C-API function and type declarations.
  */
 
@@ -43,7 +43,7 @@ extern "C" {
  * Creates a &quot;handle&quot; for a C++ GHOST object.
  * A handle is just an opaque pointer to an empty struct.
  * In the API the pointer is casted to the actual C++ class.
- * \param	name	Name of the handle to create.
+ * \param name Name of the handle to create.
  */
 
 GHOST_DECLARE_HANDLE(GHOST_SystemHandle);
@@ -56,48 +56,47 @@ GHOST_DECLARE_HANDLE(GHOST_EventConsumerHandle);
 
 /**
  * Definition of a callback routine that receives events.
- * @param event The event received.
- * @param userdata The callback's user data, supplied to GHOST_CreateSystem.
+ * \param event The event received.
+ * \param userdata The callback's user data, supplied to GHOST_CreateSystem.
  */
 typedef int (*GHOST_EventCallbackProcPtr)(GHOST_EventHandle event, GHOST_TUserDataPtr userdata);
 
 
 /**
  * Creates the one and only system.
- * @return a handle to the system.
+ * \return a handle to the system.
  */
 extern GHOST_SystemHandle GHOST_CreateSystem(void);
 
 /**
  * Disposes the one and only system.
- * @param systemhandle The handle to the system
- * @return An indication of success.
+ * \param systemhandle The handle to the system
+ * \return An indication of success.
  */
 extern GHOST_TSuccess GHOST_DisposeSystem(GHOST_SystemHandle systemhandle);
 
 
 /**
  * Creates an event consumer object
- * @param eventCallback The event callback routine.
- * @param userdata		Pointer to user data returned to the callback routine.
+ * \param eventCallback The event callback routine.
+ * \param userdata Pointer to user data returned to the callback routine.
  */
 extern GHOST_EventConsumerHandle GHOST_CreateEventConsumer(GHOST_EventCallbackProcPtr eventCallback,
                                                            GHOST_TUserDataPtr userdata);
 
 /**
  * Disposes an event consumer object
- * @param consumerhandle	Handle to the event consumer.
- * @return An indication of success.
+ * \param consumerhandle Handle to the event consumer.
+ * \return An indication of success.
  */
 extern GHOST_TSuccess GHOST_DisposeEventConsumer(GHOST_EventConsumerHandle consumerhandle);
-
 
 /**
  * Returns the system time.
  * Returns the number of milliseconds since the start of the system process.
  * Based on ANSI clock() routine.
- * @param systemhandle The handle to the system
- * @return The number of milliseconds.
+ * \param systemhandle The handle to the system
+ * \return The number of milliseconds.
  */
 extern GHOST_TUns64 GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle);
 
@@ -105,12 +104,12 @@ extern GHOST_TUns64 GHOST_GetMilliSeconds(GHOST_SystemHandle systemhandle);
  * Installs a timer.
  * Note that, on most operating systems, messages need to be processed in order 
  * for the timer callbacks to be invoked.
- * @param systemhandle The handle to the system
- * @param delay		The time to wait for the first call to the timerProc (in milliseconds)
- * @param interval	The interval between calls to the timerProc (in milliseconds)
- * @param timerProc	The callback invoked when the interval expires,
- * @param userData	Placeholder for user data.
- * @return A timer task (0 if timer task installation failed).
+ * \param systemhandle The handle to the system
+ * \param delay The time to wait for the first call to the timerProc (in milliseconds)
+ * \param interval The interval between calls to the timerProc (in milliseconds)
+ * \param timerProc The callback invoked when the interval expires,
+ * \param userData Placeholder for user data.
+ * \return A timer task (0 if timer task installation failed).
  */
 extern GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
                                                 GHOST_TUns64 delay,
@@ -120,9 +119,9 @@ extern GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
 
 /**
  * Removes a timer.
- * @param systemhandle The handle to the system
- * @param timerTask Timer task to be removed.
- * @return Indication of success.
+ * \param systemhandle The handle to the system
+ * \param timerTask Timer task to be removed.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_RemoveTimer(GHOST_SystemHandle systemhandle,
                                         GHOST_TimerTaskHandle timertaskhandle);
@@ -133,17 +132,17 @@ extern GHOST_TSuccess GHOST_RemoveTimer(GHOST_SystemHandle systemhandle,
 
 /**
  * Returns the number of displays on this system.
- * @param systemhandle The handle to the system
- * @return The number of displays.
+ * \param systemhandle The handle to the system
+ * \return The number of displays.
  */
 extern GHOST_TUns8 GHOST_GetNumDisplays(GHOST_SystemHandle systemhandle);
 
 /**
  * Returns the dimensions of the main display on this system.
- * @param systemhandle The handle to the system
- * @param width		A pointer the width gets put in
- * @param height	A pointer the height gets put in
- * @return void.
+ * \param systemhandle The handle to the system
+ * \param width A pointer the width gets put in
+ * \param height A pointer the height gets put in
+ * \return void.
  */
 extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
                                            GHOST_TUns32 *width,
@@ -153,17 +152,17 @@ extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
  * Create a new window.
  * The new window is added to the list of windows managed. 
  * Never explicitly delete the window, use disposeWindow() instead.
- * @param systemhandle The handle to the system
- * @param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
- * @param	left	The coordinate of the left edge of the window.
- * @param	top		The coordinate of the top edge of the window.
- * @param	width	The width the window.
- * @param	height	The height the window.
- * @param	state	The state of the window when opened.
- * @param	type	The type of drawing context installed in this window.
- * @param stereoVisual		Stereo visual for quad buffered stereo.
- * @param numOfAASamples	Number of samples used for AA (zero if no AA)
- * @return	A handle to the new window ( == NULL if creation failed).
+ * \param systemhandle The handle to the system
+ * \param title The name of the window (displayed in the title bar of the window if the OS supports it).
+ * \param left The coordinate of the left edge of the window.
+ * \param top The coordinate of the top edge of the window.
+ * \param width The width the window.
+ * \param height The height the window.
+ * \param state The state of the window when opened.
+ * \param type The type of drawing context installed in this window.
+ * \param stereoVisual Stereo visual for quad buffered stereo.
+ * \param numOfAASamples Number of samples used for AA (zero if no AA)
+ * \return A handle to the new window ( == NULL if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                              const char *title,
@@ -178,43 +177,43 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
 
 /**
  * Returns the window user data.
- * @param windowhandle	The handle to the window
- * @return The window user data.
+ * \param windowhandle The handle to the window
+ * \return The window user data.
  */
 extern GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandle);
-	
+
 /**
  * Changes the window user data.
- * @param windowhandle	The handle to the window
- * @param data The window user data.
+ * \param windowhandle The handle to the window
+ * \param data The window user data.
  */
 extern void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, 
                                     GHOST_TUserDataPtr userdata);
 
 /**
  * Dispose a window.
- * @param systemhandle The handle to the system
- * @param	window Handle to the window to be disposed.
- * @return	Indication of success.
+ * \param systemhandle The handle to the system
+ * \param windowhandle Handle to the window to be disposed.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_DisposeWindow(GHOST_SystemHandle systemhandle,
                                           GHOST_WindowHandle windowhandle);
 
 /**
  * Returns whether a window is valid.
- * @param systemhandle The handle to the system
- * @param	window Handle to the window to be checked.
- * @return	Indication of validity.
+ * \param systemhandle The handle to the system
+ * \param windowhandle Handle to the window to be checked.
+ * \return Indication of validity.
  */
 extern int GHOST_ValidWindow(GHOST_SystemHandle systemhandle,
                              GHOST_WindowHandle windowhandle);
 
 /**
  * Begins full screen mode.
- * @param systemhandle The handle to the system
- * @param setting	The new setting of the display.
- * @return			A handle to the window displayed in full screen.
- *					This window is invalid after full screen has been ended.
+ * \param systemhandle The handle to the system
+ * \param setting The new setting of the display.
+ * \return A handle to the window displayed in full screen.
+ *         This window is invalid after full screen has been ended.
  */
 extern GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
                                                 GHOST_DisplaySetting *setting,
@@ -222,15 +221,15 @@ extern GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
 
 /**
  * Ends full screen mode.
- * @param systemhandle The handle to the system
- * @return	Indication of success.
+ * \param systemhandle The handle to the system
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_EndFullScreen(GHOST_SystemHandle systemhandle);
 
 /**
  * Returns current full screen mode status.
- * @param systemhandle The handle to the system
- * @return The current status.
+ * \param systemhandle The handle to the system
+ * \return The current status.
  */
 extern int GHOST_GetFullScreen(GHOST_SystemHandle systemhandle);
 
@@ -240,34 +239,34 @@ extern int GHOST_GetFullScreen(GHOST_SystemHandle systemhandle);
 
 /**
  * Retrieves events from the system and stores them in the queue.
- * @param systemhandle The handle to the system
- * @param waitForEvent Boolean to indicate that ProcessEvents should
+ * \param systemhandle The handle to the system
+ * \param waitForEvent Boolean to indicate that ProcessEvents should
  * wait (block) until the next event before returning.
- * @return Indication of the presence of events.
+ * \return Indication of the presence of events.
  */
 extern int GHOST_ProcessEvents(GHOST_SystemHandle systemhandle, int waitForEvent);
 
 /**
  * Retrieves events from the queue and send them to the event consumers.
- * @param systemhandle The handle to the system
- * @return Indication of the presence of events.
+ * \param systemhandle The handle to the system
+ * \return Indication of the presence of events.
  */
 extern int GHOST_DispatchEvents(GHOST_SystemHandle systemhandle);
 
 /**
  * Adds the given event consumer to our list.
- * @param systemhandle The handle to the system
- * @param consumerhandle The event consumer to add.
- * @return Indication of success.
+ * \param systemhandle The handle to the system
+ * \param consumerhandle The event consumer to add.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle,
                                              GHOST_EventConsumerHandle consumerhandle);
 
 /**
  * Remove the given event consumer to our list.
- * @param systemhandle The handle to the system
- * @param consumerhandle The event consumer to remove.
- * @return Indication of success.
+ * \param systemhandle The handle to the system
+ * \param consumerhandle The event consumer to remove.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_RemoveEventConsumer(GHOST_SystemHandle systemhandle,
                                                 GHOST_EventConsumerHandle consumerhandle);
@@ -278,14 +277,14 @@ extern GHOST_TSuccess GHOST_RemoveEventConsumer(GHOST_SystemHandle systemhandle,
 
 /**
  * Sets the progress bar value displayed in the window/application icon
- * @param windowhandle The handle to the window
- * @param progress The progress % (0.0 to 1.0)
+ * \param windowhandle The handle to the window
+ * \param progress The progress % (0.0 to 1.0)
  */
 extern GHOST_TSuccess GHOST_SetProgressBar(GHOST_WindowHandle windowhandle, float progress);
 
 /**
  * Hides the progress bar in the icon
- * @param windowhandle The handle to the window
+ * \param windowhandle The handle to the window
  */
 extern GHOST_TSuccess GHOST_EndProgressBar(GHOST_WindowHandle windowhandle);
 
@@ -295,28 +294,28 @@ extern GHOST_TSuccess GHOST_EndProgressBar(GHOST_WindowHandle windowhandle);
 
 /**
  * Returns the current cursor shape.
- * @param windowhandle The handle to the window
- * @return	The current cursor shape.
+ * \param windowhandle The handle to the window
+ * \return The current cursor shape.
  */
 extern GHOST_TStandardCursor GHOST_GetCursorShape(GHOST_WindowHandle windowhandle);
 
 /**
  * Set the shape of the cursor.
- * @param windowhandle The handle to the window
- * @param	cursor	The new cursor shape type id.
- * @return	Indication of success.
+ * \param windowhandle The handle to the window
+ * \param cursor The new cursor shape type id.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorShape(GHOST_WindowHandle windowhandle,
                                            GHOST_TStandardCursor cursorshape);
 
 /**
  * Set the shape of the cursor to a custom cursor.
- * @param windowhandle The handle to the window
- * @param	bitmap	The bitmap data for the cursor.
- * @param	mask	The mask data for the cursor.
- * @param	hotX	The X coordinate of the cursor hotspot.
- * @param	hotY	The Y coordinate of the cursor hotspot.
- * @return	Indication of success.
+ * \param windowhandle The handle to the window
+ * \param bitmap The bitmap data for the cursor.
+ * \param  mask The mask data for the cursor.
+ * \param hotX The X coordinate of the cursor hotspot.
+ * \param hotY The Y coordinate of the cursor hotspot.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
                                                  GHOST_TUns8 bitmap[16][2],
@@ -325,14 +324,15 @@ extern GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle
                                                  int hotY);
 /**
  * Set the shape of the cursor to a custom cursor of specified size.
- * @param windowhandle The handle to the window
- * @param	bitmap	The bitmap data for the cursor.
- * @param	mask	The mask data for the cursor.
- * @parm    sizex, sizey  The size of the cursor
- * @param	hotX	The X coordinate of the cursor hotspot.
- * @param	hotY	The Y coordinate of the cursor hotspot.
- * @param   fg_color, bg_color  Colors of the cursor
- * @return	Indication of success.
+ * \param windowhandle The handle to the window
+ * \param bitmap The bitmap data for the cursor.
+ * \param mask The mask data for the cursor.
+ * \param sizex The width of the cursor
+ * \param sizey The height of the cursor
+ * \param hotX The X coordinate of the cursor hotspot.
+ * \param hotY The Y coordinate of the cursor hotspot.
+ * \param   fg_color, bg_color  Colors of the cursor
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCustomCursorShapeEx(GHOST_WindowHandle windowhandle,
                                                    GHOST_TUns8 *bitmap,
@@ -343,26 +343,26 @@ extern GHOST_TSuccess GHOST_SetCustomCursorShapeEx(GHOST_WindowHandle windowhand
 
 /**
  * Returns the visibility state of the cursor.
- * @param windowhandle The handle to the window
- * @return	The visibility state of the cursor.
+ * \param windowhandle The handle to the window
+ * \return The visibility state of the cursor.
  */
 extern int GHOST_GetCursorVisibility(GHOST_WindowHandle windowhandle);
 
 /**
  * Shows or hides the cursor.
- * @param windowhandle The handle to the window
- * @param	visible The new visibility state of the cursor.
- * @return	Indication of success.
+ * \param windowhandle The handle to the window
+ * \param visible The new visibility state of the cursor.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorVisibility(GHOST_WindowHandle windowhandle,
                                                 int visible);
 
 /**
  * Returns the current location of the cursor (location in screen coordinates)
- * @param systemhandle The handle to the system
- * @param x			The x-coordinate of the cursor.
- * @param y			The y-coordinate of the cursor.
- * @return			Indication of success.
+ * \param systemhandle The handle to the system
+ * \param x The x-coordinate of the cursor.
+ * \param y The y-coordinate of the cursor.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle,
                                               GHOST_TInt32 *x,
@@ -371,10 +371,10 @@ extern GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle,
 /**
  * Updates the location of the cursor (location in screen coordinates).
  * Not all operating systems allow the cursor to be moved (without the input device being moved).
- * @param systemhandle The handle to the system
- * @param x			The x-coordinate of the cursor.
- * @param y			The y-coordinate of the cursor.
- * @return			Indication of success.
+ * \param systemhandle The handle to the system
+ * \param x The x-coordinate of the cursor.
+ * \param y The y-coordinate of the cursor.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
                                               GHOST_TInt32 x,
@@ -384,14 +384,15 @@ extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
  * Grabs the cursor for a modal operation, to keep receiving
  * events when the mouse is outside the window. X11 only, others
  * do this automatically.
- * @param windowhandle The handle to the window
- * @param	mode The new grab state of the cursor.
- * @param	bounds The grab ragion (optional) - left,top,right,bottom
- * @return	Indication of success.
+ * \param windowhandle The handle to the window
+ * \param mode The new grab state of the cursor.
+ * \param bounds The grab ragion (optional) - left,top,right,bottom
+ * \param mouse_ungrab_xy XY for new mouse location (optional) - x,y
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                           GHOST_TGrabCursorMode mode,
-                                          int *bounds);
+                                          int bounds[4], int mouse_ungrab_xy[2]);
 
 /***************************************************************************************
  * Access to mouse button and keyboard states.
@@ -399,10 +400,10 @@ extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
 
 /**
  * Returns the state of a modifier key (ouside the message queue).
- * @param systemhandle The handle to the system
- * @param mask		The modifier key state to retrieve.
- * @param isDown	Pointer to return modifier state in.
- * @return			Indication of success.
+ * \param systemhandle The handle to the system
+ * \param mask The modifier key state to retrieve.
+ * \param isDown Pointer to return modifier state in.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
                                                 GHOST_TModifierKeyMask mask,
@@ -410,10 +411,10 @@ extern GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
 
 /**
  * Returns the state of a mouse button (ouside the message queue).
- * @param systemhandle The handle to the system
- * @param mask		The button state to retrieve.
- * @param isDown	Pointer to return button state in.
- * @return			Indication of success.
+ * \param systemhandle The handle to the system
+ * \param mask The button state to retrieve.
+ * \param isDown Pointer to return button state in.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
                                            GHOST_TButtonMask mask,
@@ -428,94 +429,93 @@ extern GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
  * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
  */
 extern void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, GHOST_TInt8 canAccept);
-	
-	
+
 /**
  * Returns the event type.
- * @param eventhandle The handle to the event
- * @return The event type.
+ * \param eventhandle The handle to the event
+ * \return The event type.
  */
 extern GHOST_TEventType GHOST_GetEventType(GHOST_EventHandle eventhandle);
 
 /**
  * Returns the time this event was generated.
- * @param eventhandle The handle to the event
- * @return The event generation time.
+ * \param eventhandle The handle to the event
+ * \return The event generation time.
  */
 extern GHOST_TUns64 GHOST_GetEventTime(GHOST_EventHandle eventhandle);
 
 /**
  * Returns the window this event was generated on, 
  * or NULL if it is a 'system' event.
- * @param eventhandle The handle to the event
- * @return The generating window.
+ * \param eventhandle The handle to the event
+ * \return The generating window.
  */
 extern GHOST_WindowHandle GHOST_GetEventWindow(GHOST_EventHandle eventhandle);
 
 /**
  * Returns the event data.
- * @param eventhandle The handle to the event
- * @return The event data.
+ * \param eventhandle The handle to the event
+ * \return The event data.
  */
 extern GHOST_TEventDataPtr GHOST_GetEventData(GHOST_EventHandle eventhandle);
 
 /**
  * Returns the timer callback.
- * @param timertaskhandle	The handle to the timertask
- * @return The timer callback.
+ * \param timertaskhandle The handle to the timertask
+ * \return The timer callback.
  */
 extern GHOST_TimerProcPtr GHOST_GetTimerProc(GHOST_TimerTaskHandle timertaskhandle);
 
 /**
  * Changes the timer callback.
- * @param timertaskhandle The handle to the timertask
- * @param timerProc The timer callback.
+ * \param timertaskhandle The handle to the timertask
+ * \param timerProc The timer callback.
  */
 extern void GHOST_SetTimerProc(GHOST_TimerTaskHandle timertaskhandle,
                                GHOST_TimerProcPtr timerProc);
 
 /**
  * Returns the timer user data.
- * @param timertaskhandle	The handle to the timertask
- * @return The timer user data.
+ * \param timertaskhandle The handle to the timertask
+ * \return The timer user data.
  */
 extern GHOST_TUserDataPtr GHOST_GetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle);
-	
+
 /**
  * Changes the time user data.
- * @param timertaskhandle	The handle to the timertask
- * @param data The timer user data.
+ * \param timertaskhandle The handle to the timertask
+ * \param data The timer user data.
  */
 extern void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle,
                                        GHOST_TUserDataPtr userData);
 
 /**
  * Returns indication as to whether the window is valid.
- * @param windowhandle The handle to the window
- * @return The validity of the window.
+ * \param windowhandle The handle to the window
+ * \return The validity of the window.
  */
 extern int GHOST_GetValid(GHOST_WindowHandle windowhandle);
 
 /**
  * Returns the type of drawing context used in this window.
- * @param windowhandle The handle to the window
- * @return The current type of drawing context.
+ * \param windowhandle The handle to the window
+ * \return The current type of drawing context.
  */
 extern GHOST_TDrawingContextType GHOST_GetDrawingContextType(GHOST_WindowHandle windowhandle);
 
 /**
  * Tries to install a rendering context in this window.
- * @param windowhandle The handle to the window
- * @param type	The type of rendering context installed.
- * @return Indication as to whether installation has succeeded.
+ * \param windowhandle The handle to the window
+ * \param type The type of rendering context installed.
+ * \return Indication as to whether installation has succeeded.
  */
 extern GHOST_TSuccess GHOST_SetDrawingContextType(GHOST_WindowHandle windowhandle,
                                                   GHOST_TDrawingContextType type);
 
 /**
  * Sets the title displayed in the title bar.
- * @param windowhandle The handle to the window
- * @param title	The title to display in the title bar.
+ * \param windowhandle The handle to the window
+ * \param title The title to display in the title bar.
  */
 extern void GHOST_SetTitle(GHOST_WindowHandle windowhandle,
                            const char *title);
@@ -524,57 +524,57 @@ extern void GHOST_SetTitle(GHOST_WindowHandle windowhandle,
  * Returns the title displayed in the title bar. The title
  * should be free'd with free().
  * 
- * @param windowhandle The handle to the window
- * @return The title, free with free().
+ * \param windowhandle The handle to the window
+ * \return The title, free with free().
  */
 extern char *GHOST_GetTitle(GHOST_WindowHandle windowhandle);
 
 /**
  * Returns the window rectangle dimensions.
  * These are screen coordinates.
- * @param windowhandle The handle to the window
- * @return A handle to the bounding rectangle of the window.
+ * \param windowhandle The handle to the window
+ * \return A handle to the bounding rectangle of the window.
  */
 extern GHOST_RectangleHandle GHOST_GetWindowBounds(GHOST_WindowHandle windowhandle);
 
 /**
  * Returns the client rectangle dimensions.
  * The left and top members of the rectangle are always zero.
- * @param windowhandle The handle to the window
- * @return A handle to the bounding rectangle of the window.
+ * \param windowhandle The handle to the window
+ * \return A handle to the bounding rectangle of the window.
  */
 extern GHOST_RectangleHandle GHOST_GetClientBounds(GHOST_WindowHandle windowhandle);
 
 /**
  * Disposes a rectangle object
- * @param rectanglehandle	Handle to the rectangle.
+ * \param rectanglehandle Handle to the rectangle.
  */
 void GHOST_DisposeRectangle(GHOST_RectangleHandle rectanglehandle);
 
 /**
  * Resizes client rectangle width.
- * @param windowhandle The handle to the window
- * @param width The new width of the client area of the window.
- * @return	Indication of success.
+ * \param windowhandle The handle to the window
+ * \param width The new width of the client area of the window.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetClientWidth(GHOST_WindowHandle windowhandle,
                                            GHOST_TUns32 width);
 
 /**
  * Resizes client rectangle height.
- * @param windowhandle The handle to the window
- * @param height The new height of the client area of the window.
- * @return	Indication of success.
+ * \param windowhandle The handle to the window
+ * \param height The new height of the client area of the window.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetClientHeight(GHOST_WindowHandle windowhandle,
                                             GHOST_TUns32 height);
 
 /**
  * Resizes client rectangle.
- * @param windowhandle The handle to the window
- * @param width		The new width of the client area of the window.
- * @param height	The new height of the client area of the window.
- * @return			Indication of success.
+ * \param windowhandle The handle to the window
+ * \param width The new width of the client area of the window.
+ * \param height The new height of the client area of the window.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetClientSize(GHOST_WindowHandle windowhandle,
                                           GHOST_TUns32 width,
@@ -582,11 +582,11 @@ extern GHOST_TSuccess GHOST_SetClientSize(GHOST_WindowHandle windowhandle,
 
 /**
  * Converts a point in screen coordinates to client rectangle coordinates
- * @param windowhandle The handle to the window
- * @param inX	The x-coordinate on the screen.
- * @param inY	The y-coordinate on the screen.
- * @param outX	The x-coordinate in the client rectangle.
- * @param outY	The y-coordinate in the client rectangle.
+ * \param windowhandle The handle to the window
+ * \param inX The x-coordinate on the screen.
+ * \param inY The y-coordinate on the screen.
+ * \param outX The x-coordinate in the client rectangle.
+ * \param outY The y-coordinate in the client rectangle.
  */
 extern void GHOST_ScreenToClient(GHOST_WindowHandle windowhandle,
                                  GHOST_TInt32 inX,
@@ -596,11 +596,11 @@ extern void GHOST_ScreenToClient(GHOST_WindowHandle windowhandle,
 
 /**
  * Converts a point in screen coordinates to client rectangle coordinates
- * @param windowhandle The handle to the window
- * @param inX	The x-coordinate in the client rectangle.
- * @param inY	The y-coordinate in the client rectangle.
- * @param outX	The x-coordinate on the screen.
- * @param outY	The y-coordinate on the screen.
+ * \param windowhandle The handle to the window
+ * \param inX The x-coordinate in the client rectangle.
+ * \param inY The y-coordinate in the client rectangle.
+ * \param outX The x-coordinate on the screen.
+ * \param outY The y-coordinate on the screen.
  */
 extern void GHOST_ClientToScreen(GHOST_WindowHandle windowhandle,
                                  GHOST_TInt32 inX,
@@ -610,88 +610,88 @@ extern void GHOST_ClientToScreen(GHOST_WindowHandle windowhandle,
 
 /**
  * Returns the state of the window (normal, minimized, maximized).
- * @param windowhandle The handle to the window
- * @return The state of the window.
+ * \param windowhandle The handle to the window
+ * \return The state of the window.
  */
 extern GHOST_TWindowState GHOST_GetWindowState(GHOST_WindowHandle windowhandle);
 
 /**
  * Sets the state of the window (normal, minimized, maximized).
- * @param windowhandle The handle to the window
- * @param state The state of the window.
- * @return Indication of success.
+ * \param windowhandle The handle to the window
+ * \param state The state of the window.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetWindowState(GHOST_WindowHandle windowhandle,
                                            GHOST_TWindowState state);
 
-	
+
 /**
  * Sets the window "modified" status, indicating unsaved changes
- * @param windowhandle The handle to the window
- * @param isUnsavedChanges Unsaved changes or not
- * @return Indication of success.
+ * \param windowhandle The handle to the window
+ * \param isUnsavedChanges Unsaved changes or not
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetWindowModifiedState(GHOST_WindowHandle windowhandle,
                                                    GHOST_TUns8 isUnsavedChanges);
-	
+
 /**
  * Sets the order of the window (bottom, top).
- * @param windowhandle The handle to the window
- * @param order The order of the window.
- * @return Indication of success.
+ * \param windowhandle The handle to the window
+ * \param order The order of the window.
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetWindowOrder(GHOST_WindowHandle windowhandle,
                                            GHOST_TWindowOrder order);
 
 /**
  * Swaps front and back buffers of a window.
- * @param windowhandle The handle to the window
- * @return	An intean success indicator.
+ * \param windowhandle The handle to the window
+ * \return An intean success indicator.
  */
 extern GHOST_TSuccess GHOST_SwapWindowBuffers(GHOST_WindowHandle windowhandle);
 
 /**
  * Activates the drawing context of this window.
- * @param windowhandle The handle to the window
- * @return	An intean success indicator.
+ * \param windowhandle The handle to the window
+ * \return An intean success indicator.
  */
 extern GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle windowhandle);
 
 /**
  * Invalidates the contents of this window.
- * @param windowhandle The handle to the window
- * @return Indication of success.
+ * \param windowhandle The handle to the window
+ * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle);
 
 /**
  * Returns the status of the tablet
- * @param windowhandle The handle to the window
- * @return Status of tablet
+ * \param windowhandle The handle to the window
+ * \return Status of tablet
  */
 extern const GHOST_TabletData *GHOST_GetTabletData(GHOST_WindowHandle windowhandle);
 
 /**
  * Access to rectangle width.
- * @param rectanglehandle The handle to the rectangle
- * @return	width of the rectangle
+ * \param rectanglehandle The handle to the rectangle
+ * \return width of the rectangle
  */
 extern GHOST_TInt32 GHOST_GetWidthRectangle(GHOST_RectangleHandle rectanglehandle);
 
 /**
  * Access to rectangle height.
- * @param rectanglehandle The handle to the rectangle
- * @return	height of the rectangle
+ * \param rectanglehandle The handle to the rectangle
+ * \return height of the rectangle
  */
 extern GHOST_TInt32 GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehandle);
 
 /**
  * Gets all members of the rectangle.
- * @param rectanglehandle The handle to the rectangle
- * @param	l	Pointer to return left coordinate in.
- * @param	t	Pointer to return top coordinate in.
- * @param	r	Pointer to return right coordinate in.
- * @param	b	Pointer to return bottom coordinate in.
+ * \param rectanglehandle The handle to the rectangle
+ * \param l Pointer to return left coordinate in.
+ * \param t Pointer to return top coordinate in.
+ * \param r Pointer to return right coordinate in.
+ * \param b Pointer to return bottom coordinate in.
  */
 extern void GHOST_GetRectangle(GHOST_RectangleHandle rectanglehandle,
                                GHOST_TInt32 *l,
@@ -701,11 +701,11 @@ extern void GHOST_GetRectangle(GHOST_RectangleHandle rectanglehandle,
 
 /**
  * Sets all members of the rectangle.
- * @param rectanglehandle The handle to the rectangle
- * @param	l	requested left coordinate of the rectangle
- * @param	t	requested top coordinate of the rectangle
- * @param	r	requested right coordinate of the rectangle
- * @param	b	requested bottom coordinate of the rectangle
+ * \param rectanglehandle The handle to the rectangle
+ * \param l requested left coordinate of the rectangle
+ * \param t requested top coordinate of the rectangle
+ * \param r requested right coordinate of the rectangle
+ * \param b requested bottom coordinate of the rectangle
  */
 extern void GHOST_SetRectangle(GHOST_RectangleHandle rectanglehandle,
                                GHOST_TInt32 l,
@@ -716,24 +716,24 @@ extern void GHOST_SetRectangle(GHOST_RectangleHandle rectanglehandle,
 /**
  * Returns whether this rectangle is empty.
  * Empty rectangles are rectangles that have width==0 and/or height==0.
- * @param rectanglehandle The handle to the rectangle
- * @return	intean value (true == empty rectangle)
+ * \param rectanglehandle The handle to the rectangle
+ * \return intean value (true == empty rectangle)
  */
 extern GHOST_TSuccess GHOST_IsEmptyRectangle(GHOST_RectangleHandle rectanglehandle);
 
 /**
  * Returns whether this rectangle is valid.
  * Valid rectangles are rectangles that have m_l <= m_r and m_t <= m_b. Thus, emapty rectangles are valid.
- * @param rectanglehandle The handle to the rectangle
- * @return	intean value (true==valid rectangle)
+ * \param rectanglehandle The handle to the rectangle
+ * \return intean value (true == valid rectangle)
  */
 extern GHOST_TSuccess GHOST_IsValidRectangle(GHOST_RectangleHandle rectanglehandle);
 
 /**
  * Grows (or shrinks the rectangle).
  * The method avoids negative insets making the rectangle invalid
- * @param rectanglehandle The handle to the rectangle
- * @param	i	The amount of offset given to each extreme (negative values shrink the rectangle).
+ * \param rectanglehandle The handle to the rectangle
+ * \param i The amount of offset given to each extreme (negative values shrink the rectangle).
  */
 extern void GHOST_InsetRectangle(GHOST_RectangleHandle rectanglehandle,
                                  GHOST_TInt32 i);
@@ -741,17 +741,17 @@ extern void GHOST_InsetRectangle(GHOST_RectangleHandle rectanglehandle,
 /**
  * Does a union of the rectangle given and this rectangle.
  * The result is stored in this rectangle.
- * @param rectanglehandle The handle to the rectangle
- * @param	r	The rectangle that is input for the union operation.
+ * \param rectanglehandle The handle to the rectangle
+ * \param anotherrectanglehandle The rectangle that is input for the union operation.
  */
 extern void GHOST_UnionRectangle(GHOST_RectangleHandle rectanglehandle,
                                  GHOST_RectangleHandle anotherrectanglehandle);
 
 /**
  * Grows the rectangle to included a point.
- * @param rectanglehandle The handle to the rectangle
- * @param	x	The x-coordinate of the point.
- * @param	y	The y-coordinate of the point.
+ * \param rectanglehandle The handle to the rectangle
+ * \param x The x-coordinate of the point.
+ * \param y The y-coordinate of the point.
  */
 extern void GHOST_UnionPointRectangle(GHOST_RectangleHandle rectanglehandle,
                                       GHOST_TInt32 x,
@@ -760,10 +760,10 @@ extern void GHOST_UnionPointRectangle(GHOST_RectangleHandle rectanglehandle,
 /**
  * Returns whether the point is inside this rectangle.
  * Point on the boundary is considered inside.
- * @param rectanglehandle The handle to the rectangle
- * @param x	x-coordinate of point to test.
- * @param y y-coordinate of point to test.
- * @return intean value (true if point is inside).
+ * \param rectanglehandle The handle to the rectangle
+ * \param x x-coordinate of point to test.
+ * \param y y-coordinate of point to test.
+ * \return intean value (true if point is inside).
  */
 extern GHOST_TSuccess GHOST_IsInsideRectangle(GHOST_RectangleHandle rectanglehandle,
                                               GHOST_TInt32 x,
@@ -771,9 +771,9 @@ extern GHOST_TSuccess GHOST_IsInsideRectangle(GHOST_RectangleHandle rectanglehan
 
 /**
  * Returns whether the rectangle is inside this rectangle.
- * @param rectanglehandle The handle to the rectangle
- * @param	r	rectangle to test.
- * @return	visibility (not, partially or fully visible).
+ * \param rectanglehandle The handle to the rectangle
+ * \param anotherrectanglehandle The rectangle to test.
+ * \return visibility (not, partially or fully visible).
  */
 extern GHOST_TVisibility GHOST_GetRectangleVisibility(GHOST_RectangleHandle rectanglehandle,
                                                       GHOST_RectangleHandle anotherrectanglehandle);
@@ -781,9 +781,9 @@ extern GHOST_TVisibility GHOST_GetRectangleVisibility(GHOST_RectangleHandle rect
 /**
  * Sets rectangle members.
  * Sets rectangle members such that it is centered at the given location.
- * @param rectanglehandle The handle to the rectangle
- * @param	cx	requested center x-coordinate of the rectangle
- * @param	cy	requested center y-coordinate of the rectangle
+ * \param rectanglehandle The handle to the rectangle
+ * \param cx Requested center x-coordinate of the rectangle
+ * \param cy Requested center y-coordinate of the rectangle
  */
 extern void GHOST_SetCenterRectangle(GHOST_RectangleHandle rectanglehandle,
                                      GHOST_TInt32 cx,
@@ -793,11 +793,11 @@ extern void GHOST_SetCenterRectangle(GHOST_RectangleHandle rectanglehandle,
  * Sets rectangle members.
  * Sets rectangle members such that it is centered at the given location,
  * with the width requested.
- * @param rectanglehandle The handle to the rectangle
- * @param	cx	requested center x-coordinate of the rectangle
- * @param	cy	requested center y-coordinate of the rectangle
- * @param	w	requested width of the rectangle
- * @param	h	requested height of the rectangle
+ * \param rectanglehandle The handle to the rectangle
+ * \param cx requested center x-coordinate of the rectangle
+ * \param cy requested center y-coordinate of the rectangle
+ * \param w requested width of the rectangle
+ * \param h requested height of the rectangle
  */
 extern void GHOST_SetRectangleCenter(GHOST_RectangleHandle rectanglehandle,
                                      GHOST_TInt32 cx,
@@ -809,23 +809,23 @@ extern void GHOST_SetRectangleCenter(GHOST_RectangleHandle rectanglehandle,
  * Clips a rectangle.
  * Updates the rectangle given such that it will fit within this one.
  * This can result in an empty rectangle.
- * @param rectanglehandle The handle to the rectangle
- * @param	r	the rectangle to clip
- * @return	whether clipping has occurred
+ * \param rectanglehandle The handle to the rectangle
+ * \param anotherrectanglehandle The rectangle to clip
+ * \return Whether clipping has occurred
  */
 extern GHOST_TSuccess GHOST_ClipRectangle(GHOST_RectangleHandle rectanglehandle,
                                           GHOST_RectangleHandle anotherrectanglehandle);
 
 /**
  * Return the data from the clipboad
- * @param	return the selection instead, X11 only feature
- * @return	clipboard data
+ * \param selection Boolean to return the selection instead, X11 only feature.
+ * \return clipboard data
  */
 extern GHOST_TUns8 *GHOST_getClipboard(int selection);
 
 /**
  * Put data to the Clipboard
- * @param	set the selection instead, X11 only feature
+ * \param set the selection instead, X11 only feature
  */
 extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
 
@@ -833,12 +833,13 @@ extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
 
 /**
  * Toggles console
- * @action	0 - Hides
- *			1 - Shows
- *			2 - Toggles
- *			3 - Hides if it runs not from  command line
- *			* - Does nothing
- * @return current status (1 -visible, 0 - hidden)
+ * \param action
+ * - 0: Hides
+ * - 1: Shows
+ * - 2: Toggles
+ * - 3: Hides if it runs not from  command line
+ * - *: Does nothing
+ * \return current status (1 -visible, 0 - hidden)
  */
 extern int GHOST_toggleConsole(int action);
 

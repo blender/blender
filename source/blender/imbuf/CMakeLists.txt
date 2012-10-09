@@ -25,11 +25,11 @@
 
 set(INC 
 	.
-	../avi
 	../blenkernel
 	../blenlib
 	../blenloader
 	../makesdna
+	../makesrna
 	../../../intern/guardedalloc
 	../../../intern/memutil
 )
@@ -45,6 +45,7 @@ set(SRC
 	intern/anim_movie.c
 	intern/bmp.c
 	intern/cache.c
+	intern/colormanagement.c
 	intern/divers.c
 	intern/filetype.c
 	intern/filter.c
@@ -67,16 +68,19 @@ set(SRC
 	intern/util.c
 	intern/writeimage.c
 
+	IMB_colormanagement.h
 	IMB_imbuf.h
 	IMB_imbuf_types.h
 	IMB_moviecache.h
 	IMB_thumbs.h
 	intern/IMB_allocimbuf.h
 	intern/IMB_anim.h
+	intern/IMB_colormanagement_intern.h
 	intern/IMB_filetype.h
 	intern/IMB_filter.h
 	intern/IMB_indexer.h
 	intern/IMB_metadata.h
+	intern/imbuf.h
 	intern/cineon/cin_debug_stuff.h
 	intern/cineon/cineonfile.h
 	intern/cineon/cineonlib.h
@@ -94,7 +98,6 @@ set(SRC
 	intern/dds/PixelFormat.h
 	intern/dds/Stream.h
 	intern/dds/dds_api.h
-	intern/imbuf.h
 	intern/openexr/openexr_api.h
 	intern/openexr/openexr_multi.h
 	
@@ -139,6 +142,13 @@ if(WITH_IMAGE_REDCODE)
 	add_definitions(-DWITH_REDCODE)
 endif()
 
+if(WITH_CODEC_AVI)
+	list(APPEND INC
+		../avi
+	)
+	add_definitions(-DWITH_AVI)
+endif()
+
 if(WITH_CODEC_QUICKTIME)
 	list(APPEND INC
 		../quicktime
@@ -179,6 +189,10 @@ if(WITH_IMAGE_HDR)
 	)
 	add_definitions(-DWITH_HDR)
 endif()
+
+list(APPEND INC
+	../../../intern/opencolorio
+)
 
 if(WIN32)
 	list(APPEND INC

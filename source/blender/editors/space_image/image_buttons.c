@@ -27,8 +27,6 @@
  *  \ingroup spimage
  */
 
-
-
 #include <string.h>
 #include <stdio.h>
 
@@ -73,28 +71,6 @@
 
 #include "image_intern.h"
 
-#define B_REDR                1
-#define B_IMAGECHANGED        2
-#define B_NOP                 0
-#define B_TWINANIM            5
-#define B_SIMAGETILE          6
-#define B_IDNAME             10
-#define B_FACESEL_PAINT_TEST 11
-#define B_SIMA_RECORD        12
-#define B_SIMA_PLAY          13
-
-#define B_SIMANOTHING        16
-#define B_SIMABRUSHCHANGE    17
-#define B_SIMABRUSHBROWSE    18
-#define B_SIMABRUSHLOCAL     19
-#define B_SIMABRUSHDELETE    20
-#define B_KEEPDATA           21
-#define B_SIMABTEXBROWSE     22
-#define B_SIMABTEXDELETE     23
-#define B_VPCOLSLI           24
-#define B_SIMACLONEBROWSE    25
-#define B_SIMACLONEDELETE    26
-
 /* proto */
 
 static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, char *str)
@@ -106,36 +82,36 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 	if (ima == NULL) return;
 
 	if (ibuf == NULL) {
-		ofs += sprintf(str, IFACE_("Can't Load Image"));
+		ofs += sprintf(str, "%s", IFACE_("Can't Load Image"));
 	}
 	else {
 		if (ima->source == IMA_SRC_MOVIE) {
-			ofs += sprintf(str, IFACE_("Movie"));
+			ofs += sprintf(str, "%s", IFACE_("Movie"));
 			if (ima->anim)
 				ofs += sprintf(str + ofs, IFACE_("%d frs"), IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN));
 		}
 		else
-			ofs += sprintf(str, IFACE_("Image"));
+			ofs += sprintf(str, "%s", IFACE_("Image"));
 
-		ofs += sprintf(str + ofs, IFACE_(": size %d x %d,"), ibuf->x, ibuf->y);
+		ofs += sprintf(str + ofs, ": %s %d x %d,", IFACE_("size"), ibuf->x, ibuf->y);
 
 		if (ibuf->rect_float) {
 			if (ibuf->channels != 4) {
-				ofs += sprintf(str + ofs, IFACE_("%d float channel(s)"), ibuf->channels);
+				ofs += sprintf(str + ofs, "%d %s", ibuf->channels, IFACE_("float channel(s)"));
 			}
 			else if (ibuf->planes == R_IMF_PLANES_RGBA)
-				ofs += sprintf(str + ofs, IFACE_(" RGBA float"));
+				ofs += sprintf(str + ofs, "%s", IFACE_(" RGBA float"));
 			else
-				ofs += sprintf(str + ofs, IFACE_(" RGB float"));
+				ofs += sprintf(str + ofs, "%s", IFACE_(" RGB float"));
 		}
 		else {
 			if (ibuf->planes == R_IMF_PLANES_RGBA)
-				ofs += sprintf(str + ofs, IFACE_(" RGBA byte"));
+				ofs += sprintf(str + ofs, "%s", IFACE_(" RGBA byte"));
 			else
-				ofs += sprintf(str + ofs, IFACE_(" RGB byte"));
+				ofs += sprintf(str + ofs, "%s", IFACE_(" RGB byte"));
 		}
 		if (ibuf->zbuf || ibuf->zbuf_float)
-			ofs += sprintf(str + ofs, IFACE_(" + Z"));
+			ofs += sprintf(str + ofs, "%s", IFACE_(" + Z"));
 
 		if (ima->source == IMA_SRC_SEQUENCE) {
 			char *file = BLI_last_slash(ibuf->name);
@@ -171,47 +147,6 @@ struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 
 /* ************ panel stuff ************* */
 
-/* is used for both read and write... */
-
-static int image_panel_poll(const bContext *C, PanelType *UNUSED(pt))
-{
-	SpaceImage *sima = CTX_wm_space_image(C);
-	ImBuf *ibuf;
-	void *lock;
-	int result;
-
-	ibuf = ED_space_image_acquire_buffer(sima, &lock);
-	result = ibuf && ibuf->rect_float;
-	ED_space_image_release_buffer(sima, lock);
-	
-	return result;
-}
-
-static void image_panel_curves(const bContext *C, Panel *pa)
-{
-	bScreen *sc = CTX_wm_screen(C);
-	SpaceImage *sima = CTX_wm_space_image(C);
-	ImBuf *ibuf;
-	PointerRNA simaptr;
-	int levels;
-	void *lock;
-	
-	ibuf = ED_space_image_acquire_buffer(sima, &lock);
-	
-	if (ibuf) {
-		if (sima->cumap == NULL)
-			sima->cumap = curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
-
-		/* curvemap black/white levels only works for RGBA */
-		levels = (ibuf->channels == 4);
-
-		RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &simaptr);
-		uiTemplateCurveMapping(pa->layout, &simaptr, "curve", 'c', levels, 0);
-	}
-
-	ED_space_image_release_buffer(sima, lock);
-}
-
 #if 0
 /* 0: disable preview 
  * otherwise refresh preview
@@ -236,17 +171,18 @@ void image_preview_event(int event)
 	}
 	
 	if (exec && G.scene->nodetree) {
+		Scene *scene = G.scene;
 		/* should work when no node editor in screen..., so we execute right away */
 		
 		ntreeCompositTagGenerators(G.scene->nodetree);
 
-		G.afbreek = 0;
+		G.is_break = FALSE;
 		G.scene->nodetree->timecursor = set_timecursor;
 		G.scene->nodetree->test_break = blender_test_break;
 		
 		BIF_store_spare();
 		
-		ntreeCompositExecTree(G.scene->nodetree, &G.scene->r, 1);   /* 1 is do_previews */
+		ntreeCompositExecTree(scene->nodetree, &scene->r, 1, &scene->view_settings, &scene->display_settings);   /* 1 is do_previews */
 		
 		G.scene->nodetree->timecursor = NULL;
 		G.scene->nodetree->test_break = NULL;
@@ -260,7 +196,7 @@ void image_preview_event(int event)
 
 
 /* nothing drawn here, we use it to store values */
-static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
+static void preview_cb(ScrArea *sa, struct uiBlock *block)
 {
 	SpaceImage *sima = sa->spacedata.first;
 	rctf dispf;
@@ -270,17 +206,17 @@ static void preview_cb(struct ScrArea *sa, struct uiBlock *block)
 	int mval[2];
 	
 	if (G.scene->r.mode & R_BORDER) {
-		winx *= (G.scene->r.border.xmax - G.scene->r.border.xmin);
-		winy *= (G.scene->r.border.ymax - G.scene->r.border.ymin);
+		winx *= BLI_rcti_size_x(&G.scene->r.border);
+		winy *= BLI_rctf_size_y(&G.scene->r.border);
 	}
 	
 	/* while dragging we need to update the rects, otherwise it doesn't end with correct one */
 
-	BLI_init_rctf(&dispf, 15.0f, (block->maxx - block->minx) - 15.0f, 15.0f, (block->maxy - block->miny) - 15.0f);
+	BLI_rctf_init(&dispf, 15.0f, BLI_rcti_size_x(&block->rect) - 15.0f, 15.0f, (BLI_rctf_size_y(&block->rect)) - 15.0f);
 	ui_graphics_to_window_rct(sa->win, &dispf, disprect);
 	
 	/* correction for gla draw */
-	BLI_translate_rcti(disprect, -curarea->winrct.xmin, -curarea->winrct.ymin);
+	BLI_rcti_translate(disprect, -curarea->winrct.xmin, -curarea->winrct.ymin);
 	
 	calc_image_view(sima, 'p');
 //	printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);
@@ -372,7 +308,7 @@ static char *slot_menu(void)
 static char *layer_menu(RenderResult *rr, short *UNUSED(curlay))
 {
 	RenderLayer *rl;
-	int len = 64 + 32 * BLI_countlist(&rr->layers);
+	int len = 64 + RE_MAXNAME * BLI_countlist(&rr->layers);
 	short a, nr = 0;
 	char *str = MEM_callocN(len, "menu layers");
 	
@@ -381,11 +317,11 @@ static char *layer_menu(RenderResult *rr, short *UNUSED(curlay))
 	
 	/* compo result */
 	if (rr->rectf) {
-		a += sprintf(str + a, IFACE_("|Composite %%x0"));
+		a += sprintf(str + a, "|%s %%x0", IFACE_("Composite"));
 		nr = 1;
 	}
 	else if (rr->rect32) {
-		a += sprintf(str + a, IFACE_("|Sequence %%x0"));
+		a += sprintf(str + a, "|%s %%x0", IFACE_("Sequence"));
 		nr = 1;
 	}
 	for (rl = rr->layers.first; rl; rl = rl->next, nr++) {
@@ -410,7 +346,7 @@ static char *pass_menu(RenderLayer *rl, short *curpass)
 	
 	/* rendered results don't have a Combined pass */
 	if (rl == NULL || rl->rectf) {
-		a += sprintf(str + a, IFACE_("|Combined %%x0"));
+		a += sprintf(str + a, "|%s %%x0", IFACE_("Combined"));
 		nr = 1;
 	}
 	
@@ -613,6 +549,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	uiLayout *row, *split, *col;
 	uiBlock *block;
 	char str[128];
+
 	void *lock;
 
 	if (!ptr->data)
@@ -683,10 +620,12 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			}
 			else if (ima->type == IMA_TYPE_R_RESULT) {
 				/* browse layer/passes */
-				Render *re = RE_GetRender(scene->id.name);
-				RenderResult *rr = RE_AcquireResultRead(re);
+				RenderResult *rr;
+
+				/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
+				rr = BKE_image_acquire_renderresult(scene, ima);
 				uiblock_layer_pass_arrow_buttons(layout, rr, iuser, &ima->render_slot);
-				RE_ReleaseResult(re);
+				BKE_image_release_renderresult(scene, ima);
 			}
 		}
 		else {
@@ -728,7 +667,11 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					uiItemL(layout, str, ICON_NONE);
 				}
 			}
-			
+
+			col = uiLayoutColumn(layout, FALSE);
+			uiTemplateColorspaceSettings(col, &imaptr, "colorspace_settings");
+			uiItemR(col, &imaptr, "view_as_render", 0, NULL, ICON_NONE);
+
 			if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) { /* background image view doesnt need these */
 					uiItemS(layout);
@@ -794,15 +737,18 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	MEM_freeN(cb);
 }
 
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
+void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_management)
 {
 	ImageFormatData *imf = imfptr->data;
 	ID *id = imfptr->id.data;
+	PointerRNA display_settings_ptr;
+	PropertyRNA *prop;
 	const int depth_ok = BKE_imtype_valid_depths(imf->imtype);
 	/* some settings depend on this being a scene thats rendered */
 	const short is_render_out = (id && GS(id->name) == ID_SCE);
 
 	uiLayout *col, *row, *split, *sub;
+	int show_preview = FALSE;
 
 	col = uiLayoutColumn(layout, FALSE);
 
@@ -843,6 +789,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 	}
 
 	if (is_render_out && (imf->imtype == R_IMF_IMTYPE_OPENEXR)) {
+		show_preview = TRUE;
 		uiItemR(row, imfptr, "use_preview", 0, NULL, ICON_NONE);
 	}
 
@@ -864,21 +811,37 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr)
 		uiItemR(col, imfptr, "cineon_gamma", 0, NULL, ICON_NONE);
 #endif
 	}
+
+	/* color management */
+	if (color_management &&
+	    (!BKE_imtype_requires_linear_float(imf->imtype) ||
+	     (show_preview && imf->flag & R_IMF_FLAG_PREVIEW_JPG)))
+	{
+		prop = RNA_struct_find_property(imfptr, "display_settings");
+		display_settings_ptr = RNA_property_pointer_get(imfptr, prop);
+
+		col = uiLayoutColumn(layout, FALSE);
+		uiItemL(col, IFACE_("Color Management"), ICON_NONE);
+
+		uiItemR(col, &display_settings_ptr, "display_device", 0, NULL, ICON_NONE);
+
+		uiTemplateColormanagedViewSettings(col, NULL, imfptr, "view_settings");
+	}
 }
 
 void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser *iuser)
 {
 	Scene *scene = CTX_data_scene(C);
-	Render *re;
-	RenderResult *rr;
 
 	/* render layers and passes */
 	if (ima && iuser) {
 		const float dpi_fac = UI_DPI_FAC;
-		re = RE_GetRender(scene->id.name);
-		rr = RE_AcquireResultRead(re);
+		RenderResult *rr;
+
+		/* use BKE_image_acquire_renderresult  so we get the correct slot in the menu */
+		rr = BKE_image_acquire_renderresult(scene, ima);
 		uiblock_layer_pass_buttons(layout, rr, iuser, 160 * dpi_fac, (ima->type == IMA_TYPE_R_RESULT) ? &ima->render_slot : NULL);
-		RE_ReleaseResult(re);
+		BKE_image_release_renderresult(scene, ima);
 	}
 }
 
@@ -886,14 +849,6 @@ void image_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
 
-	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel curves");
-	strcpy(pt->idname, "IMAGE_PT_curves");
-	strcpy(pt->label, "Curves");
-	pt->draw = image_panel_curves;
-	pt->poll = image_panel_poll;
-	pt->flag |= PNL_DEFAULT_CLOSED;
-	BLI_addtail(&art->paneltypes, pt);
-	
 	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel gpencil");
 	strcpy(pt->idname, "IMAGE_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");

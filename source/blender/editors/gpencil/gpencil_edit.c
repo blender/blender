@@ -93,8 +93,8 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 			{
 				Object *ob = CTX_data_active_object(C);
 				
-				// TODO: we can include other data-types such as bones later if need be...
-				
+				/* TODO: we can include other data-types such as bones later if need be... */
+
 				/* just in case no active object */
 				if (ob) {
 					/* for now, as long as there's an object, default to using that in 3D-View */
@@ -126,18 +126,18 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 				SpaceSeq *sseq = (SpaceSeq *)CTX_wm_space_data(C);
 				
 				/* for now, Grease Pencil data is associated with the space (actually preview region only) */
-				// XXX our convention for everything else is to link to data though...
+				/* XXX our convention for everything else is to link to data though... */
 				if (ptr) RNA_pointer_create(screen_id, &RNA_SpaceSequenceEditor, sseq, ptr);
 				return &sseq->gpd;
 			}
 			break;
-				
+
 			case SPACE_IMAGE: /* Image/UV Editor */
 			{
 				SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
-				
+
 				/* for now, Grease Pencil data is associated with the space... */
-				// XXX our convention for everything else is to link to data though...
+				/* XXX our convention for everything else is to link to data though... */
 				if (ptr) RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima, ptr);
 				return &sima->gpd;
 			}
@@ -224,7 +224,7 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -272,7 +272,7 @@ static int gp_data_unlink_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL); 
 	
 	return OPERATOR_FINISHED;
 }
@@ -306,10 +306,10 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 		*gpd_ptr = gpencil_data_addnew("GPencil");
 		
 	/* add new layer now */
-	gpencil_layer_addnew(*gpd_ptr);
+	gpencil_layer_addnew(*gpd_ptr, "GP_Layer", 1);
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -360,7 +360,7 @@ static int gp_actframe_delete_exec(bContext *C, wmOperator *op)
 	gpencil_layer_delframe(gpl, gpf);
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -422,8 +422,8 @@ static void gp_strokepoint_convertcoords(bContext *C, bGPDstroke *gps, bGPDspoin
 		}
 		else {
 			if (subrect) {
-				mvalf[0] = (((float)pt->x / 100.0f) * (subrect->xmax - subrect->xmin)) + subrect->xmin;
-				mvalf[1] = (((float)pt->y / 100.0f) * (subrect->ymax - subrect->ymin)) + subrect->ymin;
+				mvalf[0] = (((float)pt->x / 100.0f) * BLI_rctf_size_x(subrect)) + subrect->xmin;
+				mvalf[1] = (((float)pt->y / 100.0f) * BLI_rctf_size_y(subrect)) + subrect->ymin;
 			}
 			else {
 				mvalf[0] = (float)pt->x / 100.0f * ar->winx;

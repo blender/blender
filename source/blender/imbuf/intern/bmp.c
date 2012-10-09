@@ -29,8 +29,7 @@
  *  \ingroup imbuf
  */
 
-
-#include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 
 #include "imbuf.h"
 
@@ -38,6 +37,9 @@
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 #include "IMB_filetype.h"
+
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
 
 /* some code copied from article on microsoft.com, copied
  * here for enhanced BMP support in the future
@@ -70,16 +72,25 @@ typedef struct BMPHEADER {
 
 static int checkbmp(unsigned char *mem)
 {
+#define CHECK_HEADER_FIELD(mem, field) ((mem[0] == field[0]) && (mem[1] == field[1]))
+
 	int ret_val = 0;
 	BMPINFOHEADER bmi;
 	unsigned int u;
 
 	if (mem) {
-		if ((mem[0] == 'B') && (mem[1] == 'M')) {
+		if (CHECK_HEADER_FIELD(mem, "BM") ||
+		    CHECK_HEADER_FIELD(mem, "BA") ||
+		    CHECK_HEADER_FIELD(mem, "CI") ||
+		    CHECK_HEADER_FIELD(mem, "CP") ||
+		    CHECK_HEADER_FIELD(mem, "IC") ||
+		    CHECK_HEADER_FIELD(mem, "PT"))
+		{
 			/* skip fileheader */
 			mem += BMP_FILEHEADER_SIZE;
 		}
 		else {
+			return 0;
 		}
 
 		/* for systems where an int needs to be 4 bytes aligned */
@@ -98,6 +109,8 @@ static int checkbmp(unsigned char *mem)
 	}
 
 	return(ret_val);
+
+#undef CHECK_HEADER_FIELD
 }
 
 int imb_is_a_bmp(unsigned char *buf)
@@ -105,7 +118,7 @@ int imb_is_a_bmp(unsigned char *buf)
 	return checkbmp(buf);
 }
 
-struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	BMPINFOHEADER bmi;
@@ -116,6 +129,8 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 	(void)size; /* unused */
 
 	if (checkbmp(mem) == 0) return(NULL);
+
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	if ((mem[0] == 'B') && (mem[1] == 'M')) {
 		/* skip fileheader */
@@ -185,7 +200,6 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 
 	if (ibuf) {
 		ibuf->ftype = BMP;
-		ibuf->profile = IB_PROFILE_SRGB;
 	}
 	
 	return(ibuf);

@@ -45,9 +45,10 @@ static float get_pixel_saturation(float pixelColor[4], float screen_balance, int
 	int other_1 = (primary_channel + 1) % 3;
 	int other_2 = (primary_channel + 2) % 3;
 
-	float min = MIN2(pixelColor[other_1], pixelColor[other_2]);
-	float max = MAX2(pixelColor[other_1], pixelColor[other_2]);
-	float val = screen_balance * min + (1.0f - screen_balance) * max;
+	int min_channel = MIN2(other_1, other_2);
+	int max_channel = MAX2(other_1, other_2);
+
+	float val = screen_balance * pixelColor[min_channel] + (1.0f - screen_balance) * pixelColor[max_channel];
 
 	return (pixelColor[primary_channel] - val) * fabsf(1.0f - val);
 }
@@ -56,45 +57,33 @@ KeyingOperation::KeyingOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
-	this->addInputSocket(COM_DT_VALUE);
-	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 
 	this->m_screenBalance = 0.5f;
 
 	this->m_pixelReader = NULL;
 	this->m_screenReader = NULL;
-	this->m_garbageReader = NULL;
-	this->m_coreReader = NULL;
 }
 
 void KeyingOperation::initExecution()
 {
 	this->m_pixelReader = this->getInputSocketReader(0);
 	this->m_screenReader = this->getInputSocketReader(1);
-	this->m_garbageReader = this->getInputSocketReader(2);
-	this->m_coreReader = this->getInputSocketReader(3);
 }
 
 void KeyingOperation::deinitExecution()
 {
 	this->m_pixelReader = NULL;
 	this->m_screenReader = NULL;
-	this->m_garbageReader = NULL;
-	this->m_coreReader = NULL;
 }
 
-void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void KeyingOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float pixelColor[4];
 	float screenColor[4];
-	float garbageValue[4];
-	float coreValue[4];
 
-	this->m_pixelReader->read(pixelColor, x, y, sampler, inputBuffers);
-	this->m_screenReader->read(screenColor, x, y, sampler, inputBuffers);
-	this->m_garbageReader->read(garbageValue, x, y, sampler, inputBuffers);
-	this->m_coreReader->read(coreValue, x, y, sampler, inputBuffers);
+	this->m_pixelReader->read(pixelColor, x, y, sampler);
+	this->m_screenReader->read(screenColor, x, y, sampler);
 
 	int primary_channel = get_pixel_primary_channel(screenColor);
 
@@ -104,7 +93,7 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 		 * because saturation and falloff calculation is based on the fact
 		 * that pixels are not overexposured
 		 */
-		color[0] = 1.0f;
+		output[0] = 1.0f;
 	}
 	else {
 		float saturation = get_pixel_saturation(pixelColor, this->m_screenBalance, primary_channel);
@@ -114,25 +103,19 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 			/* means main channel of pixel is different from screen,
 			 * assume this is completely a foreground
 			 */
-			color[0] = 1.0f;
+			output[0] = 1.0f;
 		}
 		else if (saturation >= screen_saturation) {
 			/* matched main channels and higher saturation on pixel
 			 * is treated as completely background
 			 */
-			color[0] = 0.0f;
+			output[0] = 0.0f;
 		}
 		else {
 			/* nice alpha falloff on edges */
 			float distance = 1.0f - saturation / screen_saturation;
 
-			color[0] = distance;
+			output[0] = distance;
 		}
 	}
-
-	/* apply garbage matte */
-	color[0] = MIN2(color[0], 1.0f - garbageValue[0]);
-
-	/* apply core matte */
-	color[0] = MAX2(color[0], coreValue[0]);
 }

@@ -144,9 +144,10 @@ __device int bsdf_translucent_sample(const ShaderData *sd, const ShaderClosure *
 		*domega_in_dx *= -125.0f;
 		*domega_in_dy *= -125.0f;
 #endif
-	} else
+	}
+	else {
 		*pdf = 0;
-
+	}
 	return LABEL_TRANSMIT|LABEL_DIFFUSE;
 }
 

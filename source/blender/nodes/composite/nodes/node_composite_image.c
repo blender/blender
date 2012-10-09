@@ -282,6 +282,8 @@ static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 		cmp_node_image_verify_outputs(ntree, node);
 }
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* float buffer from the image with matching color management */
 float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 {
@@ -290,33 +292,20 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 
 	*alloc= FALSE;
 
+	/* OCIO_TODO: this is a part of legacy compositor system, don't bother with porting this code
+	 *            to new color management system since this code would likely be simply removed soon
+	 */
 	if (rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
-		if (ibuf->profile != IB_PROFILE_NONE) {
-			rect= ibuf->rect_float;
-		}
-		else {
-			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
-
-			IMB_buffer_float_from_float(rect, ibuf->rect_float,
-				4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, predivide,
-				ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-
-			*alloc= TRUE;
-		}
+		rect= ibuf->rect_float;
 	}
 	else {
-		if (ibuf->profile == IB_PROFILE_NONE) {
-			rect= ibuf->rect_float;
-		}
-		else {
-			rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
+		rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
 
-			IMB_buffer_float_from_float(rect, ibuf->rect_float,
-				4, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide,
-				ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+		IMB_buffer_float_from_float(rect, ibuf->rect_float,
+			4, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide,
+			ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 
 			*alloc= TRUE;
-		}
 	}
 
 	return rect;
@@ -519,7 +508,9 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 	}	
 }
 
-static void node_composit_init_image(bNodeTree *ntree, bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_image(bNodeTree *ntree, bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
 	node->storage= iuser;
@@ -563,13 +554,17 @@ void register_node_type_cmp_image(bNodeTreeType *ttype)
 	node_type_init(&ntype, node_composit_init_image);
 	node_type_storage(&ntype, "ImageUser", node_composit_free_image, node_composit_copy_image);
 	node_type_update(&ntype, cmp_node_image_update, NULL);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_image);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
 
 
 /* **************** RENDER RESULT ******************** */
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 static CompBuf *compbuf_from_pass(RenderData *rd, RenderLayer *rl, int rectx, int recty, int passcode)
 {
@@ -653,8 +648,6 @@ static void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStac
 		out[RRES_OUT_TRANSM_COLOR]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_TRANSM_COLOR);
 }
 
-
-
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	Scene *sce= (Scene *)node->id;
@@ -704,6 +697,8 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNU
 		RE_ReleaseResult(re);
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_rlayers(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -711,7 +706,9 @@ void register_node_type_cmp_rlayers(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_rlayers_out);
 	node_type_size(&ntype, 150, 100, 300);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_rlayers);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

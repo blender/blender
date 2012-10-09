@@ -159,8 +159,10 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 			/* set totlvl from existing MDISPS layer if object already had it */
 			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
 
-			/* ensure that grid paint mask layer is created */
-			ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+			if (ob->mode & OB_MODE_SCULPT) {
+				/* ensure that grid paint mask layer is created */
+				ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+			}
 		}
 		else if (type == eModifierType_Skin) {
 			/* ensure skin-node customdata exists */
@@ -212,10 +214,10 @@ int ED_object_iter_other(Main *bmain, Object *orig_ob, int include_orig,
 		int totfound = include_orig ? 0 : 1;
 
 		for (ob = bmain->object.first; ob && totfound < users;
-			 ob = ob->id.next)
+		     ob = ob->id.next)
 		{
 			if (((ob != orig_ob) || include_orig) &&
-				(ob->data == orig_ob->data))
+			    (ob->data == orig_ob->data))
 			{
 				if (callback(ob, callback_data))
 					return TRUE;
@@ -233,7 +235,7 @@ int ED_object_iter_other(Main *bmain, Object *orig_ob, int include_orig,
 
 static int object_has_modifier_cb(Object *ob, void *data)
 {
-	ModifierType type = *((ModifierType*)data);
+	ModifierType type = *((ModifierType *)data);
 
 	return object_has_modifier(ob, NULL, type);
 }
@@ -244,7 +246,7 @@ static int object_has_modifier_cb(Object *ob, void *data)
 int ED_object_multires_update_totlevels_cb(Object *ob, void *totlevel_v)
 {
 	ModifierData *md;
-	int totlevel = *((int*)totlevel_v);
+	int totlevel = *((int *)totlevel_v);
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Multires) {
@@ -268,17 +270,12 @@ static int object_modifier_safe_to_delete(Main *bmain, Object *ob,
 static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
                                   int *sort_depsgraph)
 {
-	ModifierData *obmd;
-
 	/* It seems on rapid delete it is possible to
 	 * get called twice on same modifier, so make
 	 * sure it is in list. */
-	for (obmd = ob->modifiers.first; obmd; obmd = obmd->next)
-		if (obmd == md)
-			break;
-
-	if (!obmd)
+	if (BLI_findindex(&ob->modifiers, md) == -1) {
 		return 0;
+	}
 
 	/* special cases */
 	if (md->type == eModifierType_ParticleSystem) {
@@ -341,7 +338,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	ok = object_modifier_remove(bmain, ob, md, &sort_depsgraph);
 
 	if (!ok) {
-		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", ob->id.name, md->name);
+		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", md->name, ob->id.name);
 		return 0;
 	}
 
@@ -570,15 +567,15 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		}
 		
 		if (key == NULL) {
-			key = me->key = add_key((ID *)me);
+			key = me->key = BKE_key_add((ID *)me);
 			key->type = KEY_RELATIVE;
 			/* if that was the first key block added, then it was the basis.
 			 * Initialize it with the mesh, and add another for the modifier */
-			kb = add_keyblock(key, NULL);
-			mesh_to_key(me, kb);
+			kb = BKE_keyblock_add(key, NULL);
+			BKE_key_convert_from_mesh(me, kb);
 		}
 
-		kb = add_keyblock(key, md->name);
+		kb = BKE_keyblock_add(key, md->name);
 		DM_to_meshkey(dm, me, kb);
 		
 		dm->release(dm);
@@ -714,11 +711,6 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
-
-	if (ob->type == OB_MESH) {
-		/* ensure mesh paint mask layer remains after applying */
-		ED_sculpt_mask_layers_ensure(ob, NULL);
-	}
 
 	return 1;
 }
@@ -1148,8 +1140,8 @@ static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
 	multiresModifier_del_levels(mmd, ob, 1);
 
 	ED_object_iter_other(CTX_data_main(C), ob, TRUE,
-						 ED_object_multires_update_totlevels_cb,
-						 &mmd->totlvl);
+	                     ED_object_multires_update_totlevels_cb,
+	                     &mmd->totlvl);
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
@@ -1192,8 +1184,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	multiresModifier_subdivide(mmd, ob, 0, mmd->simple);
 
 	ED_object_iter_other(CTX_data_main(C), ob, TRUE,
-						 ED_object_multires_update_totlevels_cb,
-						 &mmd->totlvl);
+	                     ED_object_multires_update_totlevels_cb,
+	                     &mmd->totlvl);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
@@ -1353,7 +1345,7 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 	ot->description = "Save displacements to an external file";
 	ot->idname = "OBJECT_OT_multires_external_save";
 
-	// XXX modifier no longer in context after file browser .. ot->poll = multires_poll;
+	/* XXX modifier no longer in context after file browser .. ot->poll = multires_poll; */
 	ot->exec = multires_external_save_exec;
 	ot->invoke = multires_external_save_invoke;
 	ot->poll = multires_poll;
@@ -1361,7 +1353,8 @@ void OBJECT_OT_multires_external_save(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE | BTXFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | BTXFILE, FILE_SPECIAL, FILE_SAVE,
+	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 	edit_modifier_properties(ot);
 }
 
@@ -1375,7 +1368,7 @@ static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
-	// XXX don't remove..
+	/* XXX don't remove.. */
 	CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
 	
 	return OPERATOR_FINISHED;
@@ -1466,7 +1459,8 @@ static void modifier_skin_customdata_ensure(Object *ob)
 		                          me->totvert);
 
 		/* Mark an arbitrary vertex as root */
-		vs->flag |= MVERT_SKIN_ROOT;
+		if (vs)
+			vs->flag |= MVERT_SKIN_ROOT;
 	}
 }
 
@@ -1518,8 +1512,8 @@ static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
 static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_edit_object(C);
-	Mesh *me = ob->data;
-	BMesh *bm = me->edit_btmesh->bm;
+	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
 	GHash *visited;
@@ -1574,11 +1568,15 @@ typedef enum {
 static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	Mesh *me = ob->data;
-	BMesh *bm = me->edit_btmesh->bm;
+	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
 	SkinLooseAction action = RNA_enum_get(op->ptr, "action");
+
+	if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (bm_vert->head.hflag & BM_ELEM_SELECT) {
@@ -1628,10 +1626,14 @@ void OBJECT_OT_skin_loose_mark_clear(wmOperatorType *ot)
 static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_edit_object(C);
-	Mesh *me = ob->data;
-	BMesh *bm = me->edit_btmesh->bm;
+	BMEditMesh *em = BMEdit_FromObject(ob);
+	BMesh *bm = em->bm;
 	BMVert *bm_vert;
 	BMIter bm_iter;
+
+	if (!CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (bm_vert->head.hflag & BM_ELEM_SELECT) {
@@ -1653,7 +1655,7 @@ static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
 {
 	ot->name = "Skin Radii Equalize";
-	ot->description = "Make skin radii of selected vertices equal";
+	ot->description = "Make skin radii of selected vertices equal on each axis";
 	ot->idname = "OBJECT_OT_skin_radii_equalize";
 
 	ot->poll = skin_edit_poll;
@@ -1687,19 +1689,15 @@ static void skin_armature_bone_create(Object *skin_ob,
 
 		v = (e->v1 == parent_v ? e->v2 : e->v1);
 
-		bone = MEM_callocN(sizeof(EditBone),
-		                   "skin_armature_bone_create EditBone");
+		bone = ED_armature_edit_bone_add(arm, "Bone");
 
 		bone->parent = parent_bone;
-		bone->layer = 1;
 		bone->flag |= BONE_CONNECTED;
 
 		copy_v3_v3(bone->head, mvert[parent_v].co);
 		copy_v3_v3(bone->tail, mvert[v].co);
 		bone->rad_head = bone->rad_tail = 0.25;
 		BLI_snprintf(bone->name, sizeof(bone->name), "Bone.%.2d", endx);
-
-		BLI_addtail(arm->edbo, bone);
 
 		/* add bDeformGroup */
 		if ((dg = ED_vgroup_add_name(skin_ob, bone->name))) {
@@ -1765,16 +1763,13 @@ static Object *modifier_skin_armature_create(struct Scene *scene,
 			 * a fake root bone (have it going off in the Y direction
 			 * (arbitrary) */
 			if (emap[v].count > 1) {
-				bone = MEM_callocN(sizeof(EditBone), "EditBone");
+				bone = ED_armature_edit_bone_add(arm, "Bone");
 
 				copy_v3_v3(bone->head, me->mvert[v].co);
 				copy_v3_v3(bone->tail, me->mvert[v].co);
-				bone->layer = 1;
 
 				bone->head[1] = 1.0f;
 				bone->rad_head = bone->rad_tail = 0.25;
-
-				BLI_addtail(arm->edbo, bone);
 			}
 			
 			if (emap[v].count >= 1) {
@@ -1804,8 +1799,14 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C), *arm_ob;
+	Mesh *me = ob->data;
 	ModifierData *skin_md;
 	ArmatureModifierData *arm_md;
+
+	if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
+		BKE_reportf(op->reports, RPT_WARNING, "Mesh '%s' has no skin vertex data", me->id.name + 2);
+		return OPERATOR_CANCELLED;
+	}
 
 	/* create new armature */
 	arm_ob = modifier_skin_armature_create(scene, ob);
@@ -2045,7 +2046,7 @@ static int oceanbake_breakjob(void *UNUSED(customdata))
 	/* this is not nice yet, need to make the jobs list template better 
 	 * for identifying/acting upon various different jobs */
 	/* but for now we'll reuse the render break... */
-	return (G.afbreek);
+	return (G.is_break);
 }
 
 /* called by oceanbake, wmJob sends notifier */
@@ -2068,7 +2069,7 @@ static void oceanbake_startjob(void *customdata, short *stop, short *do_update, 
 	oj->do_update = do_update;
 	oj->progress = progress;
 	
-	G.afbreek = 0;   /* XXX shared with render - replace with job 'stop' switch */
+	G.is_break = FALSE;   /* XXX shared with render - replace with job 'stop' switch */
 	
 	BKE_bake_ocean(oj->ocean, oj->och, oceanbake_update, (void *)oj);
 	
@@ -2099,7 +2100,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	int f, cfra, i = 0;
 	int free = RNA_boolean_get(op->ptr, "free");
 	
-	wmJob *steve;
+	wmJob *wm_job;
 	OceanBakeJob *oj;
 	
 	if (!omd)
@@ -2166,17 +2167,18 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 	scene->r.cfra = cfra;
 	
 	/* setup job */
-	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation", WM_JOB_PROGRESS);
+	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Ocean Simulation",
+	                     WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_SIM_OCEAN);
 	oj = MEM_callocN(sizeof(OceanBakeJob), "ocean bake job");
 	oj->ocean = ocean;
 	oj->och = och;
 	oj->omd = omd;
 	
-	WM_jobs_customdata(steve, oj, oceanbake_free);
-	WM_jobs_timer(steve, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
-	WM_jobs_callbacks(steve, oceanbake_startjob, NULL, NULL, oceanbake_endjob);
+	WM_jobs_customdata_set(wm_job, oj, oceanbake_free);
+	WM_jobs_timer(wm_job, 0.1, NC_OBJECT | ND_MODIFIER, NC_OBJECT | ND_MODIFIER);
+	WM_jobs_callbacks(wm_job, oceanbake_startjob, NULL, NULL, oceanbake_endjob);
 	
-	WM_jobs_start(CTX_wm_manager(C), steve);
+	WM_jobs_start(CTX_wm_manager(C), wm_job);
 	
 	
 	

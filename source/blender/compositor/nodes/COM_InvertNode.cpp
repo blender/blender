@@ -21,7 +21,6 @@
  */
 
 #include "COM_InvertNode.h"
-#include "DNA_scene_types.h"
 #include "COM_InvertOperation.h"
 #include "COM_ExecutionSystem.h"
 #include "BKE_node.h"

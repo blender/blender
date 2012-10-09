@@ -98,7 +98,7 @@
 
 #include <stdio.h>
 
-void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
+static void *KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	KX_GameObject* replica = ((KX_Scene*)scene)->AddNodeReplicaObject(node,(KX_GameObject*)gameobj);
 
@@ -108,7 +108,7 @@ void* KX_SceneReplicationFunc(SG_IObject* node,void* gameobj,void* scene)
 	return (void*)replica;
 }
 
-void* KX_SceneDestructionFunc(SG_IObject* node,void* gameobj,void* scene)
+static void *KX_SceneDestructionFunc(SG_IObject* node,void* gameobj,void* scene)
 {
 	((KX_Scene*)scene)->RemoveNodeDestructObject(node,(KX_GameObject*)gameobj);
 
@@ -368,7 +368,7 @@ void KX_Scene::SetFramingType(RAS_FrameSettings & frame_settings)
 const RAS_FrameSettings& KX_Scene::GetFramingType() const 
 {
 	return m_frame_settings;
-};	
+};
 
 
 
@@ -441,7 +441,7 @@ void KX_Scene::EnableZBufferClearing(bool isclearingZbuffer)
 
 void KX_Scene::RemoveNodeDestructObject(class SG_IObject* node,class CValue* gameobj)
 {
-	KX_GameObject* orgobj = (KX_GameObject*)gameobj;	
+	KX_GameObject* orgobj = (KX_GameObject*)gameobj;
 	if (NewRemoveObject(orgobj) != 0)
 	{
 		// object is not yet deleted because a reference is hanging somewhere.
@@ -769,6 +769,13 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// we can now add the graphic controller to the physic engine
 		replica->ActivateGraphicController(true);
 
+		// set references for dupli-group
+		// groupobj holds a list of all objects, that belongs to this group
+		groupobj->AddInstanceObjects(replica);
+
+		// every object gets the reference to its dupli-group object
+		replica->SetDupliGroupObject(groupobj);
+
 		// done with replica
 		replica->Release();
 	}
@@ -1017,6 +1024,20 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 			m_timemgr->RemoveTimeProperty(propval);
 		}
 	}
+
+	// if the object is the dupligroup proxy, you have to cleanup all m_pDupliGroupObject's in all
+	// instances refering to this group
+	if(newobj->GetInstanceObjects()) {
+		for (int i = 0; i < newobj->GetInstanceObjects()->GetCount(); i++) {
+			KX_GameObject* instance = (KX_GameObject*)newobj->GetInstanceObjects()->GetValue(i);
+			instance->RemoveDupliGroupObject();
+		}
+	}
+
+	// if this object was part of a group, make sure to remove it from that group's instance list
+	KX_GameObject* group = newobj->GetDupliGroupObject();
+	if (group)
+		group->RemoveInstanceObject(newobj);
 	
 	newobj->RemoveMeshes();
 	ret = 1;
@@ -1072,7 +1093,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 	}
 
 	if (use_gfx && mesh != NULL)
-	{		
+	{
 	gameobj->RemoveMeshes();
 	gameobj->AddMesh(mesh);
 	
@@ -1278,7 +1299,7 @@ void KX_Scene::AddCamera(KX_Camera* cam)
 
 
 KX_Camera* KX_Scene::GetActiveCamera()
-{	
+{
 	// NULL if not defined
 	return m_active_camera;
 }
@@ -1481,7 +1502,15 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 		planes[4].setValue(cplanes[2].getValue());	// top
 		planes[5].setValue(cplanes[3].getValue());	// bottom
 		CullingInfo info(layer);
-		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res);
+
+		double mvmat[16] = {0};
+		cam->GetModelviewMatrix().getValue(mvmat);
+		double pmat[16] = {0};
+		cam->GetProjectionMatrix().getValue(pmat);
+
+		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res,
+														KX_GetActiveEngine()->GetCanvas()->GetViewPort(),
+														mvmat, pmat);
 	}
 	if (!dbvt_culling) {
 		// the physics engine couldn't help us, do it the hard way
@@ -1634,16 +1663,17 @@ void KX_Scene::UpdateObjectActivity(void)
 				 * Manhattan distance. */
 				MT_Point3 obpos = ob->NodeGetWorldPosition();
 				
-				if ( (fabs(camloc[0] - obpos[0]) > m_activity_box_radius)
-					 || (fabs(camloc[1] - obpos[1]) > m_activity_box_radius)
-					 || (fabs(camloc[2] - obpos[2]) > m_activity_box_radius) )
-				{			
+				if ((fabs(camloc[0] - obpos[0]) > m_activity_box_radius) ||
+				    (fabs(camloc[1] - obpos[1]) > m_activity_box_radius) ||
+				    (fabs(camloc[2] - obpos[2]) > m_activity_box_radius) )
+				{
 					ob->Suspend();
-				} else {
+				}
+				else {
 					ob->Resume();
 				}
 			}
-		}		
+		}
 	}
 }
 
@@ -1727,11 +1757,6 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	brick->Replace_IScene(to);
 	brick->Replace_NetworkScene(to->GetNetworkScene());
 
-	SCA_ISensor *sensor=  dynamic_cast<class SCA_ISensor *>(brick);
-	if (sensor) {
-		sensor->Replace_EventManager(logicmgr);
-	}
-
 	/* near sensors have physics controllers */
 #ifdef USE_BULLET
 	KX_TouchSensor *touch_sensor = dynamic_cast<class KX_TouchSensor *>(brick);
@@ -1739,6 +1764,14 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 		touch_sensor->GetPhysicsController()->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 	}
 #endif
+
+	// If we end up replacing a KX_TouchEventManager, we need to make sure
+	// physics controllers are properly in place. In other words, do this
+	// after merging physics controllers!
+	SCA_ISensor *sensor=  dynamic_cast<class SCA_ISensor *>(brick);
+	if (sensor) {
+		sensor->Replace_EventManager(logicmgr);
+	}
 }
 
 #ifdef USE_BULLET
@@ -1824,6 +1857,9 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 	/* If the object is a light, update it's scene */
 	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
 		((KX_LightObject*)gameobj)->UpdateScene(to);
+
+	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_CAMERA)
+		to->AddCamera((KX_Camera*)gameobj);
 
 	/* Add the object to the scene's logic manager */
 	to->GetLogicManager()->RegisterGameObjectName(gameobj->GetName(), gameobj);
@@ -1938,15 +1974,15 @@ void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
 
 #ifdef WITH_PYTHON
 
-void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
+void KX_Scene::RunDrawingCallbacks(PyObject *cb_list)
 {
 	Py_ssize_t len;
 
 	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
 	{
-		PyObject* args= PyTuple_New(0); // save python creating each call
-		PyObject* func;
-		PyObject* ret;
+		PyObject *args = PyTuple_New(0); // save python creating each call
+		PyObject *func;
+		PyObject *ret;
 
 		// Iterate the list and run the callbacks
 		for (Py_ssize_t pos=0; pos < len; pos++)
@@ -2013,7 +2049,7 @@ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 {
 	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
 	const char *attr_str= _PyUnicode_AsString(item);
-	PyObject* pyconvert;
+	PyObject *pyconvert;
 	
 	if (self==NULL) {
 		PyErr_SetString(PyExc_SystemError, "val = scene[key]: KX_Scene, "BGE_PROXY_ERROR_MSG);
@@ -2116,31 +2152,31 @@ PySequenceMethods KX_Scene::Sequence = {
 	(ssizeargfunc) NULL, /* sq_inplace_repeat */
 };
 
-PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	return PyUnicode_From_STR_String(self->GetName());
 }
 
-PyObject* KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	return self->GetObjectList()->GetProxy();
 }
 
-PyObject* KX_Scene::pyattr_get_objects_inactive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_objects_inactive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	return self->GetInactiveList()->GetProxy();
 }
 
-PyObject* KX_Scene::pyattr_get_lights(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_lights(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
 	return self->GetLightList()->GetProxy();
 }
 
-PyObject* KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	/* With refcounts in this case...
 	 * the new CListValue is owned by python, so its possible python holds onto it longer then the BGE
@@ -2161,10 +2197,14 @@ PyObject* KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	return clist->NewProxy(true);
 }
 
-PyObject* KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	return self->GetActiveCamera()->GetProxy();
+	KX_Camera* cam= self->GetActiveCamera();
+	if (cam)
+		return self->GetActiveCamera()->GetProxy();
+	else
+		Py_RETURN_NONE;
 }
 
 
@@ -2180,7 +2220,7 @@ int KX_Scene::pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	return PY_SET_ATTR_SUCCESS;
 }
 
-PyObject* KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 
@@ -2190,7 +2230,7 @@ PyObject* KX_Scene::pyattr_get_drawing_callback_pre(void *self_v, const KX_PYATT
 	return self->m_draw_call_pre;
 }
 
-PyObject* KX_Scene::pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_Scene::pyattr_get_drawing_callback_post(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 
@@ -2268,7 +2308,7 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 		return NULL;
 
 	if (!m_inactivelist->SearchValue(ob)) {
-		PyErr_Format(PyExc_ValueError, "scene.addObject(object, other, time): KX_Scene (second argument): object does not belong to scene");
+		PyErr_Format(PyExc_ValueError, "scene.addObject(object, other, time): KX_Scene (first argument): object must be in an inactive layer");
 		return NULL;
 	}
 	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
@@ -2344,8 +2384,8 @@ KX_PYMETHODDEF_DOC(KX_Scene, drawObstacleSimulation,
 KX_PYMETHODDEF_DOC(KX_Scene, get, "")
 {
 	PyObject *key;
-	PyObject* def = Py_None;
-	PyObject* ret;
+	PyObject *def = Py_None;
+	PyObject *ret;
 
 	if (!PyArg_ParseTuple(args, "O|O:get", &key, &def))
 		return NULL;

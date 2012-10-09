@@ -23,6 +23,8 @@
 #include "COM_VectorBlurOperation.h"
 #include "BLI_math.h"
 
+#include "MEM_guardedalloc.h"
+
 // use the implementation of blender internal renderer to calculate the vector blur.
 extern "C" {
 	#include "RE_pipeline.h"
@@ -52,11 +54,11 @@ void VectorBlurOperation::initExecution()
 	
 }
 
-void VectorBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void VectorBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float *buffer = (float *) data;
 	int index = (y * this->getWidth() + x) * COM_NUMBER_OF_CHANNELS;
-	copy_v4_v4(color, &buffer[index]);
+	copy_v4_v4(output, &buffer[index]);
 }
 
 void VectorBlurOperation::deinitExecution()
@@ -66,11 +68,11 @@ void VectorBlurOperation::deinitExecution()
 	this->m_inputSpeedProgram = NULL;
 	this->m_inputZProgram = NULL;
 	if (this->m_cachedInstance) {
-		delete this->m_cachedInstance;
+		MEM_freeN(this->m_cachedInstance);
 		this->m_cachedInstance = NULL;
 	}
 }
-void *VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *VectorBlurOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cachedInstance) {
 		return this->m_cachedInstance;
@@ -78,11 +80,10 @@ void *VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 	
 	lockMutex();
 	if (this->m_cachedInstance == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer *speed = (MemoryBuffer *)this->m_inputSpeedProgram->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer *z = (MemoryBuffer *)this->m_inputZProgram->initializeTileData(rect, memoryBuffers);
-		float *data = new float[this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS];
-		memcpy(data, tile->getBuffer(), this->getWidth() * this->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_inputImageProgram->initializeTileData(rect);
+		MemoryBuffer *speed = (MemoryBuffer *)this->m_inputSpeedProgram->initializeTileData(rect);
+		MemoryBuffer *z = (MemoryBuffer *)this->m_inputZProgram->initializeTileData(rect);
+		float *data = (float *)MEM_dupallocN(tile->getBuffer());
 		this->generateVectorBlur(data, tile, speed, z);
 		this->m_cachedInstance = data;
 	}
@@ -115,6 +116,6 @@ void VectorBlurOperation::generateVectorBlur(float *data, MemoryBuffer *inputIma
 	blurdata.curved = this->m_settings->curved;
 	blurdata.fac = this->m_settings->fac;
 	RE_zbuf_accumulate_vecblur(&blurdata, this->getWidth(), this->getHeight(), data, inputImage->getBuffer(), inputSpeed->getBuffer(), zbuf);
-	delete zbuf;
+	MEM_freeN((void *)zbuf);
 	return;
 }

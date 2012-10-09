@@ -218,7 +218,7 @@ typedef struct bPoseChannel {
 	short rotmode;                      /* eRotationModes - rotation representation to use */
 	short pad;
 	
-	float chan_mat[4][4];           /* matrix result of loc/quat/size , and where we put deform in, see next line */
+	float chan_mat[4][4];           /* matrix result of loc/quat/size, and where we put deform in, see next line */
 	float pose_mat[4][4];           /* constraints accumulate here. in the end, pose_mat = bone->arm_mat * chan_mat
 	                                 * this matrix is object space */
 	float constinv[4][4];           /* inverse result of constraints.
@@ -604,11 +604,11 @@ typedef enum eSAction_Flag {
 	/* draw time in seconds instead of time in frames */
 	SACTION_DRAWTIME = (1 << 2),
 	/* don't filter action channels according to visibility */
-	//SACTION_NOHIDE = (1<<3), // XXX depreceated... old animation system
+	//SACTION_NOHIDE = (1<<3), // XXX deprecated... old animation system
 	/* don't kill overlapping keyframes after transform */
 	SACTION_NOTRANSKEYCULL = (1 << 4),
 	/* don't include keyframes that are out of view */
-	//SACTION_HORIZOPTIMISEON = (1<<5), // XXX depreceated... old irrelevant trick
+	//SACTION_HORIZOPTIMISEON = (1<<5), // XXX deprecated... old irrelevant trick
 	/* show pose-markers (local to action) in Action Editor mode  */
 	SACTION_POSEMARKERS_SHOW = (1 << 6),
 	/* don't draw action channels using group colors (where applicable) */
@@ -653,7 +653,7 @@ typedef enum eAnimEdit_AutoSnap {
 /* ************************************************ */
 /* Legacy Data */
 
-/* WARNING: Action Channels are now depreceated... they were part of the old animation system!
+/* WARNING: Action Channels are now deprecated... they were part of the old animation system!
  *        (ONLY USED FOR DO_VERSIONS...)
  * 
  * Action Channels belong to Actions. They are linked with an IPO block, and can also own 

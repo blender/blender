@@ -122,14 +122,18 @@ public:
 
 
 
-ClosureParam closure_subsurface_params[] = {
-	CLOSURE_FLOAT_PARAM(SubsurfaceClosure, m_eta),
-	CLOSURE_FLOAT_PARAM(SubsurfaceClosure, m_g),
-	CLOSURE_COLOR_PARAM(SubsurfaceClosure, m_mfp),
-	CLOSURE_COLOR_PARAM(SubsurfaceClosure, m_albedo),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(SubsurfaceClosure)
-};
+ClosureParam *closure_subsurface_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_FLOAT_PARAM(SubsurfaceClosure, m_eta),
+	    CLOSURE_FLOAT_PARAM(SubsurfaceClosure, m_g),
+	    CLOSURE_COLOR_PARAM(SubsurfaceClosure, m_mfp),
+	    CLOSURE_COLOR_PARAM(SubsurfaceClosure, m_albedo),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(SubsurfaceClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(closure_subsurface_prepare, SubsurfaceClosure)
 

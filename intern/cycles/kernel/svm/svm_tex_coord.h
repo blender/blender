@@ -29,7 +29,7 @@ __device_inline float3 svm_background_offset(KernelGlobals *kg)
 __device_inline float3 svm_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
 {
 	if(kernel_data.cam.type != CAMERA_PANORAMA) {
-		if(sd->object != ~0)
+		if(sd->object == ~0)
 			P += svm_background_offset(kg);
 
 		Transform tfm = kernel_data.cam.worldtondc;
@@ -92,6 +92,14 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 				data = sd->I;
 			break;
 		}
+		case NODE_TEXCO_DUPLI_GENERATED: {
+			data = object_dupli_generated(kg, sd->object);
+			break;
+		}
+		case NODE_TEXCO_DUPLI_UV: {
+			data = object_dupli_uv(kg, sd->object);
+			break;
+		}
 	}
 
 	stack_store_float3(stack, out_offset, data);
@@ -139,6 +147,14 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 				data = 2.0f*dot(sd->N, sd->I)*sd->N - sd->I;
 			else
 				data = sd->I;
+			break;
+		}
+		case NODE_TEXCO_DUPLI_GENERATED: {
+			data = object_dupli_generated(kg, sd->object);
+			break;
+		}
+		case NODE_TEXCO_DUPLI_UV: {
+			data = object_dupli_uv(kg, sd->object);
 			break;
 		}
 	}
@@ -191,6 +207,14 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 				data = 2.0f*dot(sd->N, sd->I)*sd->N - sd->I;
 			else
 				data = sd->I;
+			break;
+		}
+		case NODE_TEXCO_DUPLI_GENERATED: {
+			data = object_dupli_generated(kg, sd->object);
+			break;
+		}
+		case NODE_TEXCO_DUPLI_UV: {
+			data = object_dupli_uv(kg, sd->object);
 			break;
 		}
 	}

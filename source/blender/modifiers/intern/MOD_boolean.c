@@ -67,9 +67,9 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 }
 
 static void foreachObjectLink(
-    ModifierData *md, Object *ob,
-    void (*walk)(void *userData, Object *ob, Object **obpoin),
-    void *userData)
+        ModifierData *md, Object *ob,
+        void (*walk)(void *userData, Object *ob, Object **obpoin),
+        void *userData)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 
@@ -127,7 +127,19 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (!bmd->object)
 		return derivedData;
 
-	dm = bmd->object->derivedFinal;
+
+	/* 2.63 used this... */
+	/* dm = bmd->object->derivedFinal; */
+
+	/* but we want to make sure we can get the object
+	 * in some cases the depsgraph fails us - especially for objects
+	 * in other scenes when compositing */
+	if (bmd->object != ob) {
+		dm = mesh_get_derived_final(md->scene, bmd->object, CD_MASK_MESH);
+	}
+	else {
+		dm = NULL;
+	}
 
 	if (dm) {
 		DerivedMesh *result;

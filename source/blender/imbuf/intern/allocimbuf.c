@@ -41,6 +41,7 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_filetype.h"
 #include "IMB_metadata.h"
+#include "IMB_colormanagement_intern.h"
 
 #include "imbuf.h"
 
@@ -162,8 +163,11 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_freezbuffloatImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
 			IMB_metadata_free(ibuf);
-			if (ibuf->dds_data.data != NULL)
+			colormanage_cache_free(ibuf);
+
+			if (ibuf->dds_data.data != NULL) {
 				free(ibuf->dds_data.data); /* dds_data.data is allocated by DirectDrawSurface::readData(), so don't use MEM_freeN! */
+			}
 			MEM_freeN(ibuf);
 		}
 	}
@@ -354,7 +358,7 @@ ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar planes, unsigned int
 		ibuf->ftype = TGA;
 		ibuf->channels = 4;  /* float option, is set to other values when buffers get assigned */
 		ibuf->ppm[0] = ibuf->ppm[1] = IMB_DPI_DEFAULT / 0.0254; /* IMB_DPI_DEFAULT -> pixels-per-meter */
-		
+
 		if (flags & IB_rect) {
 			if (imb_addrectImBuf(ibuf) == FALSE) {
 				IMB_freeImBuf(ibuf);
@@ -382,6 +386,9 @@ ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar planes, unsigned int
 				return NULL;
 			}
 		}
+
+		/* assign default spaces */
+		colormanage_imbuf_set_default_spaces(ibuf);
 	}
 	return (ibuf);
 }
@@ -424,7 +431,7 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	/* silly trick to copy the entire contents of ibuf1 struct over to ibuf */
 	tbuf = *ibuf1;
 	
-	// fix pointers 
+	/* fix pointers */
 	tbuf.rect          = ibuf2->rect;
 	tbuf.rect_float    = ibuf2->rect_float;
 	tbuf.encodedbuffer = ibuf2->encodedbuffer;
@@ -432,17 +439,21 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	tbuf.zbuf_float    = NULL;
 	for (a = 0; a < IB_MIPMAP_LEVELS; a++)
 		tbuf.mipmap[a] = NULL;
+	tbuf.dds_data.data = NULL;
 	
-	// set malloc flag
+	/* set malloc flag */
 	tbuf.mall               = ibuf2->mall;
 	tbuf.c_handle           = NULL;
 	tbuf.refcounter         = 0;
 
-	// for now don't duplicate metadata
+	/* for now don't duplicate metadata */
 	tbuf.metadata = NULL;
 
+	tbuf.display_buffer_flags = NULL;
+	tbuf.colormanage_cache = NULL;
+
 	*ibuf2 = tbuf;
-	
+
 	return(ibuf2);
 }
 

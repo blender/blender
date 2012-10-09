@@ -52,8 +52,6 @@ const long timeScale = 1000;
 #define CATCH_EXCP catch (Exception & exp) \
 { exp.report(); m_status = SourceError; }
 
-extern "C" void do_init_ffmpeg();
-
 // class RenderVideo
 
 // constructor
@@ -521,14 +519,12 @@ void VideoFFmpeg::releaseFrame(AVFrame* frame)
 // open video file
 void VideoFFmpeg::openFile (char * filename)
 {
-	do_init_ffmpeg();
-
 	if (openStream(filename, NULL, NULL) != 0)
 		return;
 
 	if (m_codecCtx->gop_size)
 		m_preseek = (m_codecCtx->gop_size < 25) ? m_codecCtx->gop_size+1 : 25;
-	else if (m_codecCtx->has_b_frames)		
+	else if (m_codecCtx->has_b_frames)
 		m_preseek = 25;	// should determine gopsize
 	else
 		m_preseek = 0;
@@ -585,8 +581,6 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	AVDictionary		*formatParams = NULL;
 	char				filename[28], rateStr[20];
 	char                *p;
-
-	do_init_ffmpeg();
 
 #ifdef WIN32
 	// video capture on windows only through Video For Windows driver
@@ -1082,14 +1076,14 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 
 
 // cast Image pointer to VideoFFmpeg
-inline VideoFFmpeg * getVideoFFmpeg (PyImage * self)
+inline VideoFFmpeg * getVideoFFmpeg (PyImage *self)
 { return static_cast<VideoFFmpeg*>(self->m_image); }
 
 
 // object initialization
-static int VideoFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int VideoFFmpeg_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
-	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// parameters - video source
 	// file name or format type for capture (only for Linux: video4linux or dv1394)
 	char * file = NULL;
@@ -1129,13 +1123,13 @@ static int VideoFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 	return 0;
 }
 
-PyObject * VideoFFmpeg_getPreseek (PyImage *self, void * closure)
+static PyObject *VideoFFmpeg_getPreseek(PyImage *self, void *closure)
 {
 	return Py_BuildValue("h", getFFmpeg(self)->getPreseek());
 }
 
 // set range
-int VideoFFmpeg_setPreseek (PyImage * self, PyObject * value, void * closure)
+static int VideoFFmpeg_setPreseek(PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PyLong_Check(value))
@@ -1150,7 +1144,7 @@ int VideoFFmpeg_setPreseek (PyImage * self, PyObject * value, void * closure)
 }
 
 // get deinterlace
-PyObject * VideoFFmpeg_getDeinterlace (PyImage * self, void * closure)
+static PyObject *VideoFFmpeg_getDeinterlace(PyImage *self, void *closure)
 {
 	if (getFFmpeg(self)->getDeinterlace())
 		Py_RETURN_TRUE;
@@ -1159,7 +1153,7 @@ PyObject * VideoFFmpeg_getDeinterlace (PyImage * self, void * closure)
 }
 
 // set flip
-int VideoFFmpeg_setDeinterlace (PyImage * self, PyObject * value, void * closure)
+static int VideoFFmpeg_setDeinterlace(PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -1245,9 +1239,9 @@ PyTypeObject VideoFFmpegType =
 };
 
 // object initialization
-static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int ImageFFmpeg_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
-	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// parameters - video source
 	// file name or format type for capture (only for Linux: video4linux or dv1394)
 	char * file = NULL;
@@ -1275,7 +1269,7 @@ static int ImageFFmpeg_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 	return 0;
 }
 
-PyObject * Image_reload (PyImage * self, PyObject *args)
+static PyObject *Image_reload(PyImage *self, PyObject *args)
 {
 	char * newname = NULL;
 	if (!PyArg_ParseTuple(args, "|s:reload", &newname))

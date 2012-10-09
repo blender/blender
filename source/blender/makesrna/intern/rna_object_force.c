@@ -1307,7 +1307,7 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_2d_force", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_2D);
-	RNA_def_property_ui_text(prop, "2D", "Apply force only in 2d");
+	RNA_def_property_ui_text(prop, "2D", "Apply force only in 2D");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop = RNA_def_property(srna, "use_root_coords", PROP_BOOLEAN, PROP_NONE);

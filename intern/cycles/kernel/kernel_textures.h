@@ -66,12 +66,14 @@ KERNEL_TEX(float, texture_float, __filter_table)
 /* sobol */
 KERNEL_TEX(uint, texture_uint, __sobol_directions)
 
+/* full-float image */
+KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_000)
+KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_001)
+KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_002)
+KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_003)
+KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_004)
+
 /* image */
-KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_000)
-KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_001)
-KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_002)
-KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_003)
-KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_004)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_005)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_006)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_007)
@@ -162,13 +164,11 @@ KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_091)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_092)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_093)
 KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_094)
-
-/* full-float image */
-KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_095)
-KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_096)
-KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_097)
-KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_098)
-KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_099)
+KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_095)
+KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_096)
+KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_097)
+KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_098)
+KERNEL_IMAGE_TEX(uchar4, texture_image_uchar4, __tex_image_099)
 
 /* packed image (opencl) */
 KERNEL_TEX(uchar4, texture_uchar4, __tex_image_packed)

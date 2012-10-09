@@ -107,4 +107,6 @@ typedef enum OrderOfChunks {
 
 #define COM_NUMBER_OF_CHANNELS 4
 
+#define COM_BLUR_BOKEH_PIXELS 512
+
 #endif

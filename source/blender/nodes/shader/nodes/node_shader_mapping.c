@@ -67,7 +67,7 @@ static void node_shader_exec_mapping(void *UNUSED(data), bNode *node, bNodeStack
 }
 
 
-static void node_shader_init_mapping(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_mapping(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= add_tex_mapping();
 }

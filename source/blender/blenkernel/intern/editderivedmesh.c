@@ -151,8 +151,8 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 #endif
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		/*don't consider two-edged faces*/
-		if (efa->len < 3) {
+		/* don't consider two-edged faces */
+		if (UNLIKELY(efa->len < 3)) {
 			/* do nothing */
 		}
 
@@ -198,7 +198,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 
 			/* scanfill time */
 			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, j) {
-				/*mark order*/
+				/*mark order */
 				BM_elem_index_set(l, j); /* set_loop */
 
 				sf_vert = BLI_scanfill_vert_add(&sf_ctx, l->v->co);
@@ -334,7 +334,7 @@ typedef struct EditDerivedBMesh {
 	float (*polyNos)[3];
 
 	/* private variables, for number of verts/edges/faces
-	 * within the above hash/table members*/
+	 * within the above hash/table members */
 	int tv, te, tf;
 } EditDerivedBMesh;
 
@@ -1747,5 +1747,11 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 BMEditMesh *BMEdit_FromObject(Object *ob)
 {
 	BLI_assert(ob->type == OB_MESH);
+	/* sanity check */
+#ifndef NDEBUG
+	if (((Mesh *)ob->data)->edit_btmesh) {
+		BLI_assert(((Mesh *)ob->data)->edit_btmesh->ob == ob);
+	}
+#endif
 	return ((Mesh *)ob->data)->edit_btmesh;
 }

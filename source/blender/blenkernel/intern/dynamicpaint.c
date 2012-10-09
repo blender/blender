@@ -669,7 +669,7 @@ static void boundInsert(Bounds3D *b, float point[3])
 	}
 }
 
-float getSurfaceDimension(PaintSurfaceData *sData)
+static float getSurfaceDimension(PaintSurfaceData *sData)
 {
 	Bounds3D *mb = &sData->bData->mesh_bounds;
 	return MAX3((mb->max[0] - mb->min[0]), (mb->max[1] - mb->min[1]), (mb->max[2] - mb->min[2]));
@@ -910,7 +910,7 @@ static void free_bakeData(PaintSurfaceData *data)
 }
 
 /* free surface data if it's not used anymore */
-void surface_freeUnusedData(DynamicPaintSurface *surface)
+static void surface_freeUnusedData(DynamicPaintSurface *surface)
 {
 	if (!surface->data) return;
 
@@ -1368,7 +1368,7 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 	MEM_freeN(temp_data);
 }
 
-void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
+static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintPoint *pPoint = (PaintPoint *)sData->type_data;
@@ -1605,7 +1605,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Deri
 /*
  *	Apply canvas data to the object derived mesh
  */
-struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
+static DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
                                                 Object *ob,
                                                 DerivedMesh *dm)
 {
@@ -1830,9 +1830,12 @@ void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface)
 	}
 }
 
-void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMesh *dm)
+static void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMesh *dm)
 {
-	if (canvas->dm) canvas->dm->release(canvas->dm);
+	if (canvas->dm) {
+		canvas->dm->release(canvas->dm);
+	}
+
 	canvas->dm = CDDM_copy(dm);
 }
 
@@ -1941,7 +1944,7 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 {
 	/* Note: Current method only uses polygon edges to detect neighboring pixels.
 	 *  -> It doesn't always lead to the optimum pixel but is accurate enough
-	 *  and faster/simplier than including possible face tip point links)
+	 *  and faster/simpler than including possible face tip point links)
 	 */
 
 	int x, y;
@@ -1997,7 +2000,10 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 
 		/* Get closest edge to that subpixel on UV map	*/
 		{
-			float pixel[2], dist, t_dist;
+			float pixel[2];
+			/* distances only used for comparison */
+			float dist_squared, t_dist_squared;
+
 			int i, uindex[3], edge1_index, edge2_index,
 			    e1_index, e2_index, target_face;
 			float closest_point[2], lambda, dir_vec[2];
@@ -2019,17 +2025,17 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 			/*
 			 *	Find closest edge to that pixel
 			 */
-			/* Dist to first edge	*/
+			/* Dist to first edge */
 			e1_index = cPoint->v1; e2_index = cPoint->v2; edge1_index = uindex[0]; edge2_index = uindex[1];
-			dist = dist_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[edge1_index], tface[cPoint->face_index].uv[edge2_index]);
+			dist_squared = dist_squared_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[edge1_index], tface[cPoint->face_index].uv[edge2_index]);
 
-			/* Dist to second edge	*/
-			t_dist = dist_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[1]], tface[cPoint->face_index].uv[uindex[2]]);
-			if (t_dist < dist) { e1_index = cPoint->v2; e2_index = cPoint->v3; edge1_index = uindex[1]; edge2_index = uindex[2]; dist = t_dist; }
+			/* Dist to second edge */
+			t_dist_squared = dist_squared_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[1]], tface[cPoint->face_index].uv[uindex[2]]);
+			if (t_dist_squared < dist_squared) { e1_index = cPoint->v2; e2_index = cPoint->v3; edge1_index = uindex[1]; edge2_index = uindex[2]; dist_squared = t_dist_squared; }
 
-			/* Dist to third edge	*/
-			t_dist = dist_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[2]], tface[cPoint->face_index].uv[uindex[0]]);
-			if (t_dist < dist) { e1_index = cPoint->v3; e2_index = cPoint->v1;  edge1_index = uindex[2]; edge2_index = uindex[0]; dist = t_dist; }
+			/* Dist to third edge */
+			t_dist_squared = dist_squared_to_line_segment_v2(pixel, tface[cPoint->face_index].uv[uindex[2]], tface[cPoint->face_index].uv[uindex[0]]);
+			if (t_dist_squared < dist_squared) { e1_index = cPoint->v3; e2_index = cPoint->v1;  edge1_index = uindex[2]; edge2_index = uindex[0]; dist_squared = t_dist_squared; }
 
 
 			/*
@@ -2592,7 +2598,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 	int format = (surface->image_fileformat & MOD_DPAINT_IMGFORMAT_OPENEXR) ? R_IMF_IMTYPE_OPENEXR : R_IMF_IMTYPE_PNG;
 	char output_file[FILE_MAX];
 
-	if (!sData || !sData->type_data) { setError(surface->canvas, "Image save failed: Invalid surface."); return; }
+	if (!sData->type_data) { setError(surface->canvas, "Image save failed: Invalid surface."); return; }
 	/* if selected format is openexr, but current build doesnt support one */
 	#ifndef WITH_OPENEXR
 	if (format == R_IMF_IMTYPE_OPENEXR) format = R_IMF_IMTYPE_PNG;
@@ -2745,7 +2751,7 @@ static void dynamicPaint_freeBrushMaterials(BrushMaterials *bMats)
 /*
  *	Get material diffuse color and alpha (including linked textures) in given coordinates
  */
-void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], float *alpha, Object *brushOb, const float volume_co[3], const float surface_co[3], int faceIndex, short isQuad, DerivedMesh *orcoDm)
+static void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], float *alpha, Object *brushOb, const float volume_co[3], const float surface_co[3], int faceIndex, short isQuad, DerivedMesh *orcoDm)
 {
 	Material *mat = bMats->mat;
 	MFace *mface = orcoDm->getTessFaceArray(orcoDm);
@@ -2846,15 +2852,15 @@ static void mesh_faces_nearest_point_dp(void *userdata, int index, const float c
 
 /***************************** Brush Painting Calls ******************************/
 
-/*
- *	Mix color values to canvas point.
+/**
+ * Mix color values to canvas point.
  *
- *	surface : canvas surface
- *	index : surface point index
- *	paintFlags : paint object flags
- *   paintColor,Alpha,Wetness : to be mixed paint values
- *	timescale : value used to adjust time dependand
- *			    operations when using substeps
+ * \param surface canvas surface
+ * \param index surface point index
+ * \param paintFlags paint object flags
+ * \param paintColor,Alpha,Wetness to be mixed paint values
+ * \param timescale value used to adjust time dependent
+ * operations when using substeps
  */
 static void dynamicPaint_mixPaintColors(DynamicPaintSurface *surface, int index, int paintFlags,
                                         const float paintColor[3], float *paintAlpha, float *paintWetness, float *timescale)
@@ -3417,7 +3423,9 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 
 								sampleStrength *= sample_factor;
 							}
-							else continue;
+							else {
+								continue;
+							}
 
 							/* velocity brush, only do on main sample */
 							if (brush->flags & MOD_DPAINT_USES_VELOCITY && ss == 0 && brushVelocity) {
@@ -3948,7 +3956,7 @@ static void dynamicPaint_prepareAdjacencyData(DynamicPaintSurface *surface, int 
 }
 
 /* find two adjacency points (closest_id) and influence (closest_d) to move paint towards when affected by a force  */
-void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, float force[3], float closest_d[2], int closest_id[2])
+static void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, float force[3], float closest_d[2], int closest_id[2])
 {
 	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
 	int numOfNeighs = sData->adj_data->n_num[index];
@@ -3991,7 +3999,7 @@ void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, floa
 		float force_intersect;
 		float temp;
 
-		/* project force vector on the plane determined by these two neightbour points
+		/* project force vector on the plane determined by these two neighbor points
 		 *  and calculate relative force angle from it*/
 		cross_v3_v3v3(tangent, bNeighs[closest_id[0]].dir, bNeighs[closest_id[1]].dir);
 		normalize_v3(tangent);
@@ -4153,7 +4161,7 @@ static int dynamicPaint_prepareEffectStep(DynamicPaintSurface *surface, Scene *s
 		pdEndEffectors(&effectors);
 	}
 
-	/* Get number of required steps using averate point distance
+	/* Get number of required steps using average point distance
 	 *  so that just a few ultra close pixels wont up substeps to max */
 
 	/* adjust number of required substep by fastest active effect */
@@ -4216,7 +4224,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 				/* Only continue if surrounding point has higher wetness */
 				if (ePoint->wetness < pPoint->wetness || ePoint->wetness < MIN_WETNESS) continue;
 
-				w_factor = 1.0f / numOfNeighs *MIN2(ePoint->wetness, 1.0f) * speed_scale;
+				w_factor = 1.0f / numOfNeighs * MIN2(ePoint->wetness, 1.0f) * speed_scale;
 				CLAMP(w_factor, 0.0f, 1.0f);
 
 				/* mix new wetness and color */
@@ -4313,7 +4321,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 					dir_factor = dir_dot * MIN2(speed_scale, 1.0f) * w_factor;
 					if (dir_factor > 0.5f) dir_factor = 0.5f;
 
-					/* mix new wetness*/
+					/* mix new wetness */
 					ePoint->wetness += dir_factor;
 					CLAMP(ePoint->wetness, 0.0f, MAX_WETNESS);
 
@@ -4337,7 +4345,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 	}
 }
 
-void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescale)
+static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescale)
 {
 	PaintSurfaceData *sData = surface->data;
 	BakeAdjPoint *bNeighs = sData->bData->bNeighs;
@@ -4795,7 +4803,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 	PaintBakeData *bData = sData->bData;
 	DynamicPaintCanvasSettings *canvas = surface->canvas;
 	int ret = 1;
-	if (!sData || sData->total_points < 1) return 0;
+	if (sData->total_points < 1) return 0;
 
 	dynamicPaint_surfacePreStep(surface, timescale);
 	/*
@@ -4870,7 +4878,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					/* Apply brush on the surface depending on it's collision type */
 					/* Particle brush: */
 					if (brush->collision == MOD_DPAINT_COL_PSYS) {
-						if (brush && brush->psys && brush->psys->part && brush->psys->part->type == PART_EMITTER &&
+						if (brush->psys && brush->psys->part && brush->psys->part->type == PART_EMITTER &&
 						    psys_check_enabled(brushObj, brush->psys))
 						{
 

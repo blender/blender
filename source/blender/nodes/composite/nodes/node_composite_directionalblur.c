@@ -42,6 +42,8 @@ static bNodeSocketTemplate cmp_node_dblur_out[] = {
 	{   -1, 0, ""       }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
                       float center_x, float center_y, float dist, float angle, float spin, float zoom)
 {
@@ -63,7 +65,7 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 		center_y_pix = center_y * img->y;
 
 		tx =  itsc * D * cosf(a);
-		ty = -itsc *D *sinf(a);
+		ty = -itsc * D * sinf(a);
 		sc =  itsc * zoom;
 		rot = itsc * spin;
 
@@ -122,6 +124,8 @@ static void node_composit_exec_dblur(void *UNUSED(data), bNode *node, bNodeStack
 	out[0]->data = dblur(node, new, ndbd->iter, ndbd->wrap, ndbd->center_x, ndbd->center_y, ndbd->distance, ndbd->angle, ndbd->spin, ndbd->zoom);
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeDBlurData *ndbd = MEM_callocN(sizeof(NodeDBlurData), "node dblur data");
@@ -139,7 +143,9 @@ void register_node_type_cmp_dblur(bNodeTreeType *ttype)
 	node_type_size(&ntype, 150, 120, 200);
 	node_type_init(&ntype, node_composit_init_dblur);
 	node_type_storage(&ntype, "NodeDBlurData", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_dblur);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

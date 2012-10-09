@@ -224,6 +224,10 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "LatticePoint", "Point in the lattice grid");
 	RNA_def_struct_path_func(srna, "rna_LatticePoint_path");
 
+	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+	RNA_def_property_ui_text(prop, "Point selected", "Selection status");
+
 	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -234,6 +238,12 @@ static void rna_def_latticepoint(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Deformed Location", "");
+	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
+
+	prop = RNA_def_property(srna, "weight_softbody", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight");
+	RNA_def_property_range(prop, 0.01f, 100.0f);
+	RNA_def_property_ui_text(prop, "Weight", "Softbody goal weight");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 
 	prop = RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
@@ -316,7 +326,7 @@ static void rna_def_lattice(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_Lattice_points_begin", "rna_iterator_array_next",
 	                                  "rna_iterator_array_end", "rna_iterator_array_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Points", "Points of the lattice");
-	
+
 	/* pointers */
 	rna_def_animdata_common(srna);
 }

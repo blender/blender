@@ -168,17 +168,25 @@ public:
 	}
 };
 
-ClosureParam bsdf_diffuse_params[] = {
-	CLOSURE_VECTOR_PARAM(DiffuseClosure, m_N),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(DiffuseClosure)
-};
+ClosureParam *bsdf_diffuse_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(DiffuseClosure, m_N),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(DiffuseClosure)
+	};
+	return params;
+}
 
-ClosureParam bsdf_translucent_params[] = {
-	CLOSURE_VECTOR_PARAM(TranslucentClosure, m_N),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(TranslucentClosure)
-};
+ClosureParam *bsdf_translucent_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(TranslucentClosure, m_N),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(TranslucentClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_diffuse_prepare, DiffuseClosure)
 CLOSURE_PREPARE(bsdf_translucent_prepare, TranslucentClosure)

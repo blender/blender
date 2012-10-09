@@ -53,6 +53,12 @@ private:
 	 * @brief Is this node part of the active group
 	 */
 	bool m_inActiveGroup;
+	
+	/**
+	 * @brief The group node this node belongs to.
+	 * @note: used to find the links in the current subtree for muting nodes
+	 */
+	bNode* m_bNodeGroup;
 
 public:
 	Node(bNode *editorNode, bool create_sockets = true);
@@ -74,7 +80,7 @@ public:
 	/**
 	 * @brief convert node to operation
 	 *
-	 * @todo this must be described furter
+	 * @todo this must be described further
 	 *
 	 * @param system the ExecutionSystem where the operations need to be added
 	 * @param context reference to the CompositorContext
@@ -99,6 +105,13 @@ public:
 	 */
 	void addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex);
 	
+	/**
+	 * when a node has no valid data (missing image or a group nodes ID pointer is NULL)
+	 * call this function from #convertToOperations, this way the node sockets are converted
+	 * into valid outputs, without this the compositor system gets confused and crashes, see [#32490]
+	 */
+	void convertToOperations_invalid(ExecutionSystem *graph, CompositorContext *context);
+
 	/**
 	 * Creates a new link between an outputSocket and inputSocket and registrates the link to the graph
 	 * @return the new created link
@@ -127,9 +140,12 @@ public:
 	 * @param socket
 	 */
 	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
+	
+	inline void setbNodeGroup(bNode* group) {this->m_bNodeGroup = group;}
+	inline bNode* getbNodeGroup() {return this->m_bNodeGroup;}
 protected:
-	void addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket);
-	void addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket);
+	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, InputSocket *inputSocket);
+	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, OutputSocket *outputSocket);
 	
 	bNodeSocket *getEditorInputSocket(int editorNodeInputSocketIndex);
 	bNodeSocket *getEditorOutputSocket(int editorNodeOutputSocketIndex);

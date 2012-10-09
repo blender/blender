@@ -80,12 +80,18 @@ void init_def_material(void)
 /* not material itself */
 void BKE_material_free(Material *ma)
 {
+	BKE_material_free_ex(ma, TRUE);
+}
+
+/* not material itself */
+void BKE_material_free_ex(Material *ma, int do_id_user)
+{
 	MTex *mtex;
 	int a;
 	
 	for (a = 0; a < MAX_MTEX; a++) {
 		mtex = ma->mtex[a];
-		if (mtex && mtex->tex) mtex->tex->id.us--;
+		if (do_id_user && mtex && mtex->tex) mtex->tex->id.us--;
 		if (mtex) MEM_freeN(mtex);
 	}
 	
@@ -101,7 +107,7 @@ void BKE_material_free(Material *ma)
 	
 	/* is no lib link block, but material extension */
 	if (ma->nodetree) {
-		ntreeFreeTree(ma->nodetree);
+		ntreeFreeTree_ex(ma->nodetree, do_id_user);
 		MEM_freeN(ma->nodetree);
 	}
 
@@ -235,7 +241,7 @@ Material *BKE_material_copy(Material *ma)
 	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
 
 	if (ma->nodetree) {
-		man->nodetree = ntreeCopyTree(ma->nodetree); /* 0 == full new tree */
+		man->nodetree = ntreeCopyTree(ma->nodetree);
 	}
 
 	man->gpumaterial.first = man->gpumaterial.last = NULL;
@@ -494,6 +500,9 @@ short *give_totcolp(Object *ob)
 /* same as above but for ID's */
 Material ***give_matarar_id(ID *id)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			return &(((Mesh *)id)->mat);
@@ -510,6 +519,9 @@ Material ***give_matarar_id(ID *id)
 
 short *give_totcolp_id(ID *id)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			return &(((Mesh *)id)->totcol);
@@ -526,6 +538,9 @@ short *give_totcolp_id(ID *id)
 
 static void data_delete_material_index_id(ID *id, short index)
 {
+	/* ensure we don't try get materials from non-obdata */
+	BLI_assert(OB_DATA_SUPPORT_ID(GS(id->name)));
+
 	switch (GS(id->name)) {
 		case ID_ME:
 			BKE_mesh_delete_material_index((Mesh *)id, index);
@@ -765,11 +780,12 @@ void assign_material_id(ID *id, Material *ma, short act)
 	test_object_materials(id);
 }
 
-void assign_material(Object *ob, Material *ma, short act)
+void assign_material(Object *ob, Material *ma, short act, int assign_type)
 {
 	Material *mao, **matar, ***matarar;
 	char *matbits;
 	short *totcolp;
+	char bit = 0;
 
 	if (act > MAXMAT) return;
 	if (act < 1) act = 1;
@@ -796,8 +812,29 @@ void assign_material(Object *ob, Material *ma, short act)
 		*matarar = matar;
 		*totcolp = act;
 	}
-	
+
+	/* Determine the object/mesh linking */
+	if (assign_type == BKE_MAT_ASSIGN_USERPREF && ob->totcol && ob->actcol) {
+		/* copy from previous material */
+		bit = ob->matbits[ob->actcol - 1];
+	}
+	else {
+		switch (assign_type) {
+			case BKE_MAT_ASSIGN_OBDATA:
+				bit = 0;
+				break;
+			case BKE_MAT_ASSIGN_OBJECT:
+				bit = 1;
+				break;
+			case BKE_MAT_ASSIGN_USERPREF:
+			default:
+				bit = (U.flag & USER_MAT_ON_OB) ? 1 : 0;
+				break;
+		}
+	}
+
 	if (act > ob->totcol) {
+		/* Need more space in the material arrays */
 		matar = MEM_callocN(sizeof(void *) * act, "matarray2");
 		matbits = MEM_callocN(sizeof(char) * act, "matbits1");
 		if (ob->totcol) {
@@ -809,17 +846,12 @@ void assign_material(Object *ob, Material *ma, short act)
 		ob->mat = matar;
 		ob->matbits = matbits;
 		ob->totcol = act;
-
-		/* copy object/mesh linking, or assign based on userpref */
-		if (ob->actcol)
-			ob->matbits[act - 1] = ob->matbits[ob->actcol - 1];
-		else
-			ob->matbits[act - 1] = (U.flag & USER_MAT_ON_OB) ? 1 : 0;
 	}
 	
 	/* do it */
 
-	if (ob->matbits[act - 1]) {   /* in object */
+	ob->matbits[act - 1] = bit;
+	if (bit == 1) {   /* in object */
 		mao = ob->mat[act - 1];
 		if (mao) mao->id.us--;
 		ob->mat[act - 1] = ma;
@@ -845,7 +877,7 @@ void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 
 	/* now we have the right number of slots */
 	for (i = 0; i < totcol; i++)
-		assign_material(ob, (*matar)[i], i + 1);
+		assign_material(ob, (*matar)[i], i + 1, BKE_MAT_ASSIGN_USERPREF);
 
 	if (actcol_orig > ob->totcol)
 		actcol_orig = ob->totcol;
@@ -879,7 +911,7 @@ int object_add_material_slot(Object *ob)
 	if (ob == NULL) return FALSE;
 	if (ob->totcol >= MAXMAT) return FALSE;
 	
-	assign_material(ob, NULL, ob->totcol + 1);
+	assign_material(ob, NULL, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 	ob->actcol = ob->totcol;
 	return TRUE;
 }
@@ -909,7 +941,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			
 			if (ma->texco & (TEXCO_ORCO | TEXCO_REFL | TEXCO_NORM | TEXCO_STRAND | TEXCO_STRESS)) needuv = 1;
 			else if (ma->texco & (TEXCO_GLOB | TEXCO_UV | TEXCO_OBJECT | TEXCO_SPEED)) needuv = 1;
-			else if (ma->texco & (TEXCO_LAVECTOR | TEXCO_VIEW | TEXCO_STICKY)) needuv = 1;
+			else if (ma->texco & (TEXCO_LAVECTOR | TEXCO_VIEW)) needuv = 1;
 
 			if ((ma->mapto & MAP_NORM) && (mtex->normapspace == MTEX_NSPACE_TANGENT))
 				needtang = 1;
@@ -1030,13 +1062,18 @@ static int material_in_nodetree(bNodeTree *ntree, Material *mat)
 	bNode *node;
 
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->id && GS(node->id->name) == ID_MA) {
-			if (node->id == (ID *)mat)
-				return 1;
+		if (node->id) {
+			if (GS(node->id->name) == ID_MA) {
+				if (node->id == (ID *)mat) {
+					return 1;
+				}
+			}
+			else if (node->type == NODE_GROUP) {
+				if (material_in_nodetree((bNodeTree *)node->id, mat)) {
+					return 1;
+				}
+			}
 		}
-		else if (node->type == NODE_GROUP)
-			if (material_in_nodetree((bNodeTree *)node->id, mat))
-				return 1;
 	}
 
 	return 0;
@@ -1059,20 +1096,21 @@ int material_in_material(Material *parmat, Material *mat)
 static void material_node_drivers_update(Scene *scene, bNodeTree *ntree, float ctime)
 {
 	bNode *node;
-	
+
 	/* nodetree itself */
 	if (ntree->adt && ntree->adt->drivers.first) {
 		BKE_animsys_evaluate_animdata(scene, &ntree->id, ntree->adt, ctime, ADT_RECALC_DRIVERS);
 	}
 	
-	/* nodes... */
+	/* nodes */
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->id && GS(node->id->name) == ID_MA) {
-			/* TODO: prevent infinite recursion here... */
-			material_drivers_update(scene, (Material *)node->id, ctime);
-		}
-		else if (node->type == NODE_GROUP && node->id) {
-			material_node_drivers_update(scene, (bNodeTree *)node->id, ctime);
+		if (node->id) {
+			if (GS(node->id->name) == ID_MA) {
+				material_drivers_update(scene, (Material *)node->id, ctime);
+			}
+			else if (node->type == NODE_GROUP) {
+				material_node_drivers_update(scene, (bNodeTree *)node->id, ctime);
+			}
 		}
 	}
 }
@@ -1086,6 +1124,15 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 {
 	//if (G.f & G_DEBUG)
 	//	printf("material_drivers_update(%s, %s)\n", scene->id.name, ma->id.name);
+	
+	/* Prevent infinite recursion by checking (and tagging the material) as having been visited already
+	 * (see BKE_scene_update_tagged()). This assumes ma->id.flag & LIB_DOIT isn't set by anything else
+	 * in the meantime... [#32017]
+	 */
+	if (ma->id.flag & LIB_DOIT)
+		return;
+	else
+		ma->id.flag |= LIB_DOIT;
 	
 	/* material itself */
 	if (ma->adt && ma->adt->drivers.first) {
@@ -1280,9 +1327,9 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 				r_col[2] = facm * (r_col[2]) + fac * (r_col[2]) / col[2];
 			break;
 		case MA_RAMP_DIFF:
-			r_col[0] = facm * (r_col[0]) + fac *fabsf(r_col[0] - col[0]);
-			r_col[1] = facm * (r_col[1]) + fac *fabsf(r_col[1] - col[1]);
-			r_col[2] = facm * (r_col[2]) + fac *fabsf(r_col[2] - col[2]);
+			r_col[0] = facm * (r_col[0]) + fac * fabsf(r_col[0] - col[0]);
+			r_col[1] = facm * (r_col[1]) + fac * fabsf(r_col[1] - col[1]);
+			r_col[2] = facm * (r_col[2]) + fac * fabsf(r_col[2] - col[2]);
 			break;
 		case MA_RAMP_DARK:
 			tmp = col[0] + ((1 - col[0]) * facm);
@@ -1442,7 +1489,11 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 	}
 }
 
-/* copy/paste buffer, if we had a propper py api that would be better */
+/**
+ * \brief copy/paste buffer, if we had a proper py api that would be better
+ * \note matcopybuf.nodetree does _NOT_ use ID's
+ * \todo matcopybuf.nodetree's  node->id's are NOT validated, this will crash!
+ */
 static Material matcopybuf;
 static short matcopied = 0;
 
@@ -1470,7 +1521,7 @@ void free_matcopybuf(void)
 	matcopybuf.ramp_spec = NULL;
 
 	if (matcopybuf.nodetree) {
-		ntreeFreeTree(matcopybuf.nodetree);
+		ntreeFreeTree_ex(matcopybuf.nodetree, FALSE);
 		MEM_freeN(matcopybuf.nodetree);
 		matcopybuf.nodetree = NULL;
 	}
@@ -1496,7 +1547,7 @@ void copy_matcopybuf(Material *ma)
 			matcopybuf.mtex[a] = MEM_dupallocN(mtex);
 		}
 	}
-	matcopybuf.nodetree = ntreeCopyTree(ma->nodetree);
+	matcopybuf.nodetree = ntreeCopyTree_ex(ma->nodetree, FALSE);
 	matcopybuf.preview = NULL;
 	matcopybuf.gpumaterial.first = matcopybuf.gpumaterial.last = NULL;
 	matcopied = 1;
@@ -1541,7 +1592,7 @@ void paste_matcopybuf(Material *ma)
 		}
 	}
 
-	ma->nodetree = ntreeCopyTree(matcopybuf.nodetree);
+	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, FALSE);
 }
 
 
@@ -1582,7 +1633,7 @@ static void decode_tfaceflag(Material *ma, int flag, int convertall)
 	/* flag is shifted in 1 to make 0 != no flag yet (see encode_tfaceflag) */
 	flag -= 1;
 
-	alphablend = flag >> 15; //encoded in the encode_tfaceflag function
+	alphablend = flag >> 15;  /* encoded in the encode_tfaceflag function */
 	(*game).flag = 0;
 	
 	/* General Material Options */
@@ -1613,13 +1664,13 @@ static void decode_tfaceflag(Material *ma, int flag, int convertall)
 /* boolean check to see if the mesh needs a material */
 static int check_tfaceneedmaterial(int flag)
 {
-	// check if the flags we have are not deprecated != than default material options
-	// also if only flags are visible and collision see if all objects using this mesh have this option in physics
+	/* check if the flags we have are not deprecated != than default material options
+	 * also if only flags are visible and collision see if all objects using this mesh have this option in physics */
 
 	/* flag is shifted in 1 to make 0 != no flag yet (see encode_tfaceflag) */
 	flag -= 1;
 
-	// deprecated flags
+	/* deprecated flags */
 	flag &= ~TF_OBCOL;
 	flag &= ~TF_SHAREDVERT;
 	flag &= ~TF_SHAREDCOL;
@@ -1627,12 +1678,12 @@ static int check_tfaceneedmaterial(int flag)
 	/* light tface flag is ignored in GLSL mode */
 	flag &= ~TF_LIGHT;
 	
-	// automatic detected if tex image has alpha
+	/* automatic detected if tex image has alpha */
 	flag &= ~(TF_ALPHA << 15);
-	// automatic detected if using texture
+	/* automatic detected if using texture */
 	flag &= ~TF_TEX;
 
-	// settings for the default NoMaterial
+	/* settings for the default NoMaterial */
 	if (flag == TF_DYNAMIC)
 		return 0;
 
@@ -1641,7 +1692,7 @@ static int check_tfaceneedmaterial(int flag)
 }
 
 /* return number of digits of an integer */
-// XXX to be optmized or replaced by an equivalent blender internal function
+/* XXX to be optmized or replaced by an equivalent blender internal function */
 static int integer_getdigits(int number)
 {
 	int i = 0;
@@ -1656,9 +1707,9 @@ static int integer_getdigits(int number)
 
 static void calculate_tface_materialname(char *matname, char *newname, int flag)
 {
-	// if flag has only light and collision and material matches those values
-	// you can do strcpy(name, mat_name);
-	// otherwise do:
+	/* if flag has only light and collision and material matches those values
+	 * you can do strcpy(name, mat_name);
+	 * otherwise do: */
 	int digits = integer_getdigits(flag);
 	/* clamp the old name, remove the MA prefix and add the .TF.flag suffix
 	 * e.g. matname = "MALoooooooooooooongName"; newname = "Loooooooooooooon.TF.2" */
@@ -1731,9 +1782,9 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 			set_facetexture_flags(ma, tf->tpage);
 
 			decode_tfaceflag(ma, flag, 1);
-			// the final decoding will happen after, outside the main loop
-			// for now store the flag into the material and change light/tex/collision 
-			// store the flag as a negative number
+			/* the final decoding will happen after, outside the main loop
+			 * for now store the flag into the material and change light/tex/collision
+			 * store the flag as a negative number */
 			ma->game.flag = -flag;
 			id_us_min((ID *)ma);	
 		}
@@ -1982,8 +2033,7 @@ int do_version_tface(Main *main, int fileload)
 				nowarning = 0;
 			}
 			else
-				convert_tfacematerial(main, ma);
-			continue;	
+				convert_tfacematerial(main, ma);			continue;	
 		}
 	
 		/* no conflicts in this material - 90% of cases

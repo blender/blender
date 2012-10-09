@@ -44,6 +44,7 @@ static bNodeSocketTemplate cmp_node_defocus_out[]= {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
 
 // line coefs for point sampling & scancon. data.
 typedef struct BokehCoeffs {
@@ -166,17 +167,17 @@ static void IIR_gauss_single(CompBuf *buf, float sigma)
 	// see "Recursive Gabor Filtering" by Young/VanVliet
 	// all factors here in double.prec. Required, because for single.prec it seems to blow up if sigma > ~200
 	if (sigma >= 3.556f)
-		q = 0.9804f*(sigma - 3.556f) + 2.5091f;
+		q = 0.9804f * (sigma - 3.556f) + 2.5091f;
 	else // sigma >= 0.5
-		q = (0.0561f*sigma + 0.5784f)*sigma - 0.2568f;
-	q2 = q*q;
-	sc = (1.1668 + q)*(3.203729649  + (2.21566 + q)*q);
+		q = (0.0561f * sigma + 0.5784f) * sigma - 0.2568f;
+	q2 = q * q;
+	sc = (1.1668 + q) * (3.203729649  + (2.21566 + q) * q);
 	// no gabor filtering here, so no complex multiplies, just the regular coefs.
 	// all negated here, so as not to have to recalc Triggs/Sdika matrix
-	cf[1] = q*(5.788961737 + (6.76492 + 3.0*q)*q)/ sc;
-	cf[2] = -q2*(3.38246 + 3.0*q)/sc;
+	cf[1] = q * (5.788961737 + (6.76492 + 3.0 * q) * q) / sc;
+	cf[2] = -q2 * (3.38246 + 3.0 * q) / sc;
 	// 0 & 3 unchanged
-	cf[3] = q2*q/sc;
+	cf[3] = q2 * q / sc;
 	cf[0] = 1.0 - cf[1] - cf[2] - cf[3];
 
 	// Triggs/Sdika border corrections,
@@ -254,6 +255,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	BokehCoeffs BKH[8];	// bokeh shape data, here never > 8 pts.
 	float bkh_b[4] = {0};	// shape 2D bound
 	float cam_fdist=1, cam_invfdist=1, cam_lens=35;
+	float cam_sensor = DEFAULT_SENSOR_WIDTH;
 	float dof_sp, maxfgc, bk_hn_theta=0, inradsq=0;
 	int y, len_bkh=0, ydone = FALSE;
 	float aspect, aperture;
@@ -268,17 +270,17 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		Camera* cam = (Camera*)camob->data;
 		cam_lens = cam->lens;
 		cam_fdist = BKE_camera_object_dof_distance(camob);
-		if (cam_fdist==0.0f) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */
-		cam_invfdist = 1.f/cam_fdist;
+		cam_sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+		if (cam_fdist == 0.0f) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */
+		cam_invfdist = 1.f / cam_fdist;
 	}
-
 	// guess work here.. best match with raytraced result
 	minsz = MIN2(img->x, img->y);
-	dof_sp = (float)minsz / (16.f / cam_lens);	// <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
+	dof_sp = (float)minsz / ((cam_sensor / 2.0f) / cam_lens);	// <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
 	
 	// aperture
 	aspect = (img->x > img->y) ? (img->y / (float)img->x) : (img->x / (float)img->y);
-	aperture = 0.5f*(cam_lens / (aspect*32.f)) / nqd->fstop;
+	aperture = 0.5f * (cam_lens / (aspect * cam_sensor)) / nqd->fstop;
 	
 	// if not disk, make bokeh coefficients and other needed data
 	if (nqd->bktype!=0) {
@@ -336,7 +338,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// fast blur...
 		// bug #6656 part 1, probably when previous node_composite.c was split into separate files, it was not properly updated
 		// to include recent cvs commits (well, at least not defocus node), so this part was missing...
-		wt = aperture*128.f;
+		wt = minf(nqd->maxblur, aperture * 128.0f);
 		IIR_gauss_single(crad, wt);
 		IIR_gauss_single(wts, wt);
 		
@@ -587,8 +589,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 					// n-agonal
 					int ov, nv;
 					float mind, maxd, lwt;
-					ys = MAX2((int)floor(bkh_b[2]*ct_crad + y), 0);
-					ye = MIN2((int)ceil(bkh_b[3]*ct_crad + y), new->y - 1);
+					ys = maxi((int)floor(bkh_b[2] * ct_crad + y), 0);
+					ye = mini((int)ceil(bkh_b[3] * ct_crad + y), new->y - 1);
 					for (sy=ys; sy<=ye; sy++) {
 						float fxs = 1e10f, fxe = -1e10f;
 						float yf = (sy - y)/ct_crad;
@@ -864,7 +866,9 @@ static void node_composit_exec_defocus(void *UNUSED(data), bNode *node, bNodeSta
 	if (zbuf_use && (zbuf_use != zbuf)) free_compbuf(zbuf_use);
 }
 
-static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
+static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	/* qdn: defocus node */
 	NodeDefocus *nbd = MEM_callocN(sizeof(NodeDefocus), "node defocus data");
@@ -890,7 +894,9 @@ void register_node_type_cmp_defocus(bNodeTreeType *ttype)
 	node_type_size(&ntype, 150, 120, 200);
 	node_type_init(&ntype, node_composit_init_defocus);
 	node_type_storage(&ntype, "NodeDefocus", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_defocus);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

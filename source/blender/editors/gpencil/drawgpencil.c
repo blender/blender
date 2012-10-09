@@ -149,7 +149,8 @@ static void gp_draw_stroke_buffer(tGPspoint *points, int totpoints, short thickn
 /* ----- Existing Strokes Drawing (3D and Point) ------ */
 
 /* draw a given stroke - just a single dot (only one point) */
-static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dflag, short sflag, int offsx, int offsy, int winx, int winy)
+static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dflag, short sflag,
+                                 int offsx, int offsy, int winx, int winy)
 {
 	/* draw point */
 	if (sflag & GP_STROKE_3DSPACE) {
@@ -177,8 +178,8 @@ static void gp_draw_stroke_point(bGPDspoint *points, short thickness, short dfla
 		/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, simple dot looks ok
 		 *  - also mandatory in if Image Editor 'image-based' dot
 		 */
-		if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) ||
-		     ((dflag & GP_DRAWDATA_IEDITHACK) && (sflag & GP_STROKE_2DSPACE)) )
+		if ((thickness < GP_DRAWTHICKNESS_SPECIAL) ||
+		    ((dflag & GP_DRAWDATA_IEDITHACK) && (sflag & GP_STROKE_2DSPACE)))
 		{
 			glBegin(GL_POINTS);
 			glVertex2fv(co);
@@ -253,8 +254,8 @@ static void gp_draw_stroke(bGPDspoint *points, int totpoints, short thickness_s,
 	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
 	 *  - 'smooth' opengl lines are also required if Image Editor 'image-based' stroke
 	 */
-	if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) || 
-	     ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)) )
+	if ((thickness < GP_DRAWTHICKNESS_SPECIAL) ||
+	    ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)))
 	{
 		bGPDspoint *pt;
 		int i;
@@ -508,7 +509,8 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 				glDepthMask(0);
 				glEnable(GL_DEPTH_TEST);
 				
-				/* first arg is normally rv3d->dist, but this isn't available here and seems to work quite well without */
+				/* first arg is normally rv3d->dist, but this isn't
+				 * available here and seems to work quite well without */
 				bglPolygonOffset(1.0f, 1.0f);
 #if 0
 				glEnable(GL_POLYGON_OFFSET_LINE);
@@ -579,7 +581,8 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 		
 		/* draw 'onionskins' (frame left + right) */
 		if (gpl->flag & GP_LAYER_ONIONSKIN) {
-			/* drawing method - only immediately surrounding (gstep = 0), or within a frame range on either side (gstep > 0)*/			
+			/* drawing method - only immediately surrounding (gstep = 0),
+			 * or within a frame range on either side (gstep > 0)*/
 			if (gpl->gstep) {
 				bGPDframe *gf;
 				float fac;
@@ -640,7 +643,8 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 		if (ED_gpencil_session_active() && (gpl->flag & GP_LAYER_ACTIVE) &&
 		    (gpf->flag & GP_FRAME_PAINT))
 		{
-			/* Buffer stroke needs to be drawn with a different linestyle to help differentiate them from normal strokes. */
+			/* Buffer stroke needs to be drawn with a different linestyle
+			 * to help differentiate them from normal strokes. */
 			gp_draw_stroke_buffer(gpd->sbuffer, gpd->sbuffer_size, lthick, dflag, gpd->sbuffer_sflag);
 		}
 	}
@@ -683,7 +687,7 @@ void draw_gpencil_2dimage(const bContext *C)
 		{
 			
 			/* just draw using standard scaling (settings here are currently ignored anyways) */
-			// FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled
+			/* FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled */
 			offsx = 0;
 			offsy = 0;
 			sizex = ar->winx;
@@ -724,8 +728,8 @@ void draw_gpencil_2dimage(const bContext *C)
 }
 
 /* draw grease-pencil sketches to specified 2d-view assuming that matrices are already set correctly 
- * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes, second time with onlyv2d=0 for screen-aligned strokes
- */
+ * Note: this gets called twice - first time with onlyv2d=1 to draw 'canvas' strokes,
+ * second time with onlyv2d=0 for screen-aligned strokes */
 void draw_gpencil_view2d(const bContext *C, short onlyv2d)
 {
 	ScrArea *sa = CTX_wm_area(C);
@@ -740,7 +744,7 @@ void draw_gpencil_view2d(const bContext *C, short onlyv2d)
 	if (gpd == NULL) return;
 	
 	/* special hack for Image Editor */
-	// FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled
+	/* FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled */
 	if (ELEM(sa->spacetype, SPACE_IMAGE, SPACE_CLIP))
 		dflag |= GP_DRAWDATA_IEDITHACK;
 	
@@ -750,15 +754,14 @@ void draw_gpencil_view2d(const bContext *C, short onlyv2d)
 }
 
 /* draw grease-pencil sketches to specified 3d-view assuming that matrices are already set correctly 
- * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes, second time with only3d=0 for screen-aligned strokes
- */
-
+ * Note: this gets called twice - first time with only3d=1 to draw 3d-strokes,
+ * second time with only3d=0 for screen-aligned strokes */
 void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 {
 	bGPdata *gpd;
 	int dflag = 0;
-	rcti rect;
 	RegionView3D *rv3d = ar->regiondata;
+	int offsx,  offsy,  winx,  winy;
 
 	/* check that we have grease-pencil stuff to draw */
 	gpd = gpencil_data_get_active_v3d(scene); // XXX
@@ -769,19 +772,23 @@ void draw_gpencil_view3d(Scene *scene, View3D *v3d, ARegion *ar, short only3d)
 	if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;
 		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &rectf, TRUE); /* no shift */
-		BLI_copy_rcti_rctf(&rect, &rectf);
+
+		offsx = floorf(rectf.xmin + 0.5f);
+		offsy = floorf(rectf.ymin + 0.5f);
+		winx  = floorf((rectf.xmax - rectf.xmin) + 0.5f);
+		winy  = floorf((rectf.ymax - rectf.ymin) + 0.5f);
 	}
 	else {
-		rect.xmin = 0;
-		rect.ymin = 0;
-		rect.xmax = ar->winx;
-		rect.ymax = ar->winy;
+		offsx = 0;
+		offsy = 0;
+		winx  = ar->winx;
+		winy  = ar->winy;
 	}
 	
 	/* draw it! */
 	if (only3d) dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
 
-	gp_draw_data(gpd, rect.xmin, rect.ymin, rect.xmax, rect.ymax, CFRA, dflag);
+	gp_draw_data(gpd, offsx, offsy, winx, winy, CFRA, dflag);
 }
 
 /* ************************************************** */

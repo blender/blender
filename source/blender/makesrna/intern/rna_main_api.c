@@ -35,12 +35,13 @@
 
 #include "DNA_ID.h"
 
+#include "BLI_path_util.h"
+
 #include "RNA_define.h"
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
-#include "rna_internal.h"
 
-#include "BKE_utildefines.h"
+#include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
 
@@ -70,6 +71,7 @@
 #include "BKE_speaker.h"
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
+#include "BKE_gpencil.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -91,16 +93,17 @@
 #include "DNA_node_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "ED_screen.h"
 
-Camera *rna_Main_cameras_new(Main *UNUSED(bmain), const char *name)
+static Camera *rna_Main_cameras_new(Main *UNUSED(bmain), const char *name)
 {
 	ID *id = BKE_camera_add(name);
 	id_us_min(id);
 	return (Camera *)id;
 }
-void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *camera)
+static void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *camera)
 {
 	if (ID_REAL_USERS(camera) <= 0)
 		BKE_libblock_free(&bmain->camera, camera);
@@ -111,11 +114,11 @@ void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *ca
 	/* XXX python now has invalid pointer? */
 }
 
-Scene *rna_Main_scenes_new(Main *UNUSED(bmain), const char *name)
+static Scene *rna_Main_scenes_new(Main *UNUSED(bmain), const char *name)
 {
 	return BKE_scene_add(name);
 }
-void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struct Scene *scene)
+static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struct Scene *scene)
 {
 	/* don't call BKE_libblock_free(...) directly */
 	Scene *newscene;
@@ -135,11 +138,12 @@ void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struc
 	BKE_scene_unlink(bmain, scene, newscene);
 }
 
-Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const char *name, ID *data)
+static Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const char *name, ID *data)
 {
 	Object *ob;
 	int type = OB_EMPTY;
 	if (data) {
+		/* keep in sync with OB_DATA_SUPPORT_ID() macro */
 		switch (GS(data->name)) {
 			case ID_ME:
 				type = OB_MESH;
@@ -188,7 +192,7 @@ Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const cha
 	return ob;
 }
 
-void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *object)
+static void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *object)
 {
 	if (ID_REAL_USERS(object) <= 0) {
 		BKE_object_unlink(object); /* needed or ID pointers to this are not cleared */
@@ -200,13 +204,13 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 	}
 }
 
-Material *rna_Main_materials_new(Main *UNUSED(bmain), const char *name)
+static Material *rna_Main_materials_new(Main *UNUSED(bmain), const char *name)
 {
 	ID *id = (ID *)BKE_material_add(name);
 	id_us_min(id);
 	return (Material *)id;
 }
-void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material *material)
+static void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material *material)
 {
 	if (ID_REAL_USERS(material) <= 0)
 		BKE_libblock_free(&bmain->mat, material);
@@ -217,14 +221,14 @@ void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material
 	/* XXX python now has invalid pointer? */
 }
 
-bNodeTree *rna_Main_nodetree_new(Main *UNUSED(bmain), const char *name, int type)
+static bNodeTree *rna_Main_nodetree_new(Main *UNUSED(bmain), const char *name, int type)
 {
 	bNodeTree *tree = ntreeAddTree(name, type, NODE_GROUP);
 
 	id_us_min(&tree->id);
 	return tree;
 }
-void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree *tree)
+static void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree *tree)
 {
 	if (ID_REAL_USERS(tree) <= 0)
 		BKE_libblock_free(&bmain->nodetree, tree);
@@ -235,7 +239,7 @@ void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree
 	/* XXX python now has invalid pointer? */
 }
 
-Mesh *rna_Main_meshes_new(Main *UNUSED(bmain), const char *name)
+static Mesh *rna_Main_meshes_new(Main *UNUSED(bmain), const char *name)
 {
 	Mesh *me = BKE_mesh_add(name);
 	id_us_min(&me->id);
@@ -252,14 +256,14 @@ void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 	/* XXX python now has invalid pointer? */
 }
 
-Lamp *rna_Main_lamps_new(Main *UNUSED(bmain), const char *name, int type)
+static Lamp *rna_Main_lamps_new(Main *UNUSED(bmain), const char *name, int type)
 {
 	Lamp *lamp = BKE_lamp_add(name);
 	lamp->type = type;
 	id_us_min(&lamp->id);
 	return lamp;
 }
-void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
+static void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 {
 	if (ID_REAL_USERS(lamp) <= 0)
 		BKE_libblock_free(&bmain->lamp, lamp);
@@ -270,14 +274,14 @@ void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 	/* XXX python now has invalid pointer? */
 }
 
-Image *rna_Main_images_new(Main *UNUSED(bmain), const char *name, int width, int height, int alpha, int float_buffer)
+static Image *rna_Main_images_new(Main *UNUSED(bmain), const char *name, int width, int height, int alpha, int float_buffer)
 {
 	float color[4] = {0.0, 0.0, 0.0, 1.0};
 	Image *image = BKE_image_add_generated(width, height, name, alpha ? 32 : 24, float_buffer, 0, color);
 	id_us_min(&image->id);
 	return image;
 }
-Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
+static Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
 {
 	Image *ima;
 
@@ -290,7 +294,7 @@ Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, const char
 
 	return ima;
 }
-void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
+static void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 {
 	if (ID_REAL_USERS(image) <= 0)
 		BKE_libblock_free(&bmain->image, image);
@@ -301,13 +305,13 @@ void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 	/* XXX python now has invalid pointer? */
 }
 
-Lattice *rna_Main_lattices_new(Main *UNUSED(bmain), const char *name)
+static Lattice *rna_Main_lattices_new(Main *UNUSED(bmain), const char *name)
 {
 	Lattice *lt = BKE_lattice_add(name);
 	id_us_min(&lt->id);
 	return lt;
 }
-void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct Lattice *lt)
+static void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct Lattice *lt)
 {
 	if (ID_REAL_USERS(lt) <= 0)
 		BKE_libblock_free(&bmain->latt, lt);
@@ -316,13 +320,13 @@ void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct Lattice *
 		            lt->id.name + 2, ID_REAL_USERS(lt));
 }
 
-Curve *rna_Main_curves_new(Main *UNUSED(bmain), const char *name, int type)
+static Curve *rna_Main_curves_new(Main *UNUSED(bmain), const char *name, int type)
 {
 	Curve *cu = BKE_curve_add(name, type);
 	id_us_min(&cu->id);
 	return cu;
 }
-void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
+static void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
 {
 	if (ID_REAL_USERS(cu) <= 0)
 		BKE_libblock_free(&bmain->curve, cu);
@@ -331,13 +335,13 @@ void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
 		            cu->id.name + 2, ID_REAL_USERS(cu));
 }
 
-MetaBall *rna_Main_metaballs_new(Main *UNUSED(bmain), const char *name)
+static MetaBall *rna_Main_metaballs_new(Main *UNUSED(bmain), const char *name)
 {
 	MetaBall *mb = BKE_mball_add(name);
 	id_us_min(&mb->id);
 	return mb;
 }
-void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall *mb)
+static void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall *mb)
 {
 	if (ID_REAL_USERS(mb) <= 0)
 		BKE_libblock_free(&bmain->mball, mb);
@@ -346,7 +350,7 @@ void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall
 		            mb->id.name + 2, ID_REAL_USERS(mb));
 }
 
-VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepath)
+static VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	VFont *font;
 
@@ -360,7 +364,7 @@ VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepat
 	return font;
 
 }
-void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
+static void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
 {
 	if (ID_REAL_USERS(vfont) <= 0)
 		BKE_libblock_free(&bmain->vfont, vfont);
@@ -371,14 +375,14 @@ void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
 	/* XXX python now has invalid pointer? */
 }
 
-Tex *rna_Main_textures_new(Main *UNUSED(bmain), const char *name, int type)
+static Tex *rna_Main_textures_new(Main *UNUSED(bmain), const char *name, int type)
 {
 	Tex *tex = add_texture(name);
 	tex_set_type(tex, type);
 	id_us_min(&tex->id);
 	return tex;
 }
-void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
+static void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
 {
 	if (ID_REAL_USERS(tex) <= 0)
 		BKE_libblock_free(&bmain->tex, tex);
@@ -387,13 +391,13 @@ void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
 		            tex->id.name + 2, ID_REAL_USERS(tex));
 }
 
-Brush *rna_Main_brushes_new(Main *UNUSED(bmain), const char *name)
+static Brush *rna_Main_brushes_new(Main *UNUSED(bmain), const char *name)
 {
 	Brush *brush = BKE_brush_add(name);
 	id_us_min(&brush->id);
 	return brush;
 }
-void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Brush *brush)
+static void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Brush *brush)
 {
 	if (ID_REAL_USERS(brush) <= 0)
 		BKE_libblock_free(&bmain->brush, brush);
@@ -402,13 +406,13 @@ void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Brush *bru
 		            brush->id.name + 2, ID_REAL_USERS(brush));
 }
 
-World *rna_Main_worlds_new(Main *UNUSED(bmain), const char *name)
+static World *rna_Main_worlds_new(Main *UNUSED(bmain), const char *name)
 {
 	World *world = add_world(name);
 	id_us_min(&world->id);
 	return world;
 }
-void rna_Main_worlds_remove(Main *bmain, ReportList *reports, struct World *world)
+static void rna_Main_worlds_remove(Main *bmain, ReportList *reports, struct World *world)
 {
 	if (ID_REAL_USERS(world) <= 0)
 		BKE_libblock_free(&bmain->world, world);
@@ -417,24 +421,24 @@ void rna_Main_worlds_remove(Main *bmain, ReportList *reports, struct World *worl
 		            world->id.name + 2, ID_REAL_USERS(world));
 }
 
-Group *rna_Main_groups_new(Main *UNUSED(bmain), const char *name)
+static Group *rna_Main_groups_new(Main *UNUSED(bmain), const char *name)
 {
 	return add_group(name);
 }
-void rna_Main_groups_remove(Main *bmain, Group *group)
+static void rna_Main_groups_remove(Main *bmain, Group *group)
 {
 	BKE_group_unlink(group);
 	BKE_libblock_free(&bmain->group, group);
 	/* XXX python now has invalid pointer? */
 }
 
-Speaker *rna_Main_speakers_new(Main *UNUSED(bmain), const char *name)
+static Speaker *rna_Main_speakers_new(Main *UNUSED(bmain), const char *name)
 {
 	Speaker *speaker = BKE_speaker_add(name);
 	id_us_min(&speaker->id);
 	return speaker;
 }
-void rna_Main_speakers_remove(Main *bmain, ReportList *reports, Speaker *speaker)
+static void rna_Main_speakers_remove(Main *bmain, ReportList *reports, Speaker *speaker)
 {
 	if (ID_REAL_USERS(speaker) <= 0)
 		BKE_libblock_free(&bmain->speaker, speaker);
@@ -445,18 +449,18 @@ void rna_Main_speakers_remove(Main *bmain, ReportList *reports, Speaker *speaker
 	/* XXX python now has invalid pointer? */
 }
 
-Text *rna_Main_texts_new(Main *UNUSED(bmain), const char *name)
+static Text *rna_Main_texts_new(Main *UNUSED(bmain), const char *name)
 {
 	return BKE_text_add(name);
 }
-void rna_Main_texts_remove(Main *bmain, Text *text)
+static void rna_Main_texts_remove(Main *bmain, Text *text)
 {
 	BKE_text_unlink(bmain, text);
 	BKE_libblock_free(&bmain->text, text);
 	/* XXX python now has invalid pointer? */
 }
 
-Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath)
+static Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	Text *txt;
 
@@ -470,13 +474,13 @@ Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath
 	return txt;
 }
 
-bArmature *rna_Main_armatures_new(Main *UNUSED(bmain), const char *name)
+static bArmature *rna_Main_armatures_new(Main *UNUSED(bmain), const char *name)
 {
 	bArmature *arm = BKE_armature_add(name);
 	id_us_min(&arm->id);
 	return arm;
 }
-void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
+static void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
 {
 	if (ID_REAL_USERS(arm) <= 0)
 		BKE_libblock_free(&bmain->armature, arm);
@@ -487,14 +491,14 @@ void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
 	/* XXX python now has invalid pointer? */
 }
 
-bAction *rna_Main_actions_new(Main *UNUSED(bmain), const char *name)
+static bAction *rna_Main_actions_new(Main *UNUSED(bmain), const char *name)
 {
 	bAction *act = add_empty_action(name);
 	id_us_min(&act->id);
 	act->id.flag &= ~LIB_FAKEUSER;
 	return act;
 }
-void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
+static void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 {
 	if (ID_REAL_USERS(act) <= 0)
 		BKE_libblock_free(&bmain->action, act);
@@ -505,13 +509,13 @@ void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 	/* XXX python now has invalid pointer? */
 }
 
-ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
+static ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
 {
 	ParticleSettings *part = psys_new_settings(name, bmain);
 	id_us_min(&part->id);
 	return part;
 }
-void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSettings *part)
+static void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSettings *part)
 {
 	if (ID_REAL_USERS(part) <= 0)
 		BKE_libblock_free(&bmain->particle, part);
@@ -522,7 +526,7 @@ void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSetting
 	/* XXX python now has invalid pointer? */
 }
 
-MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
+static MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
 {
 	MovieClip *clip;
 
@@ -536,14 +540,14 @@ MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, con
 	return clip;
 }
 
-void rna_Main_movieclips_remove(Main *bmain, MovieClip *clip)
+static void rna_Main_movieclips_remove(Main *bmain, MovieClip *clip)
 {
 	BKE_movieclip_unlink(bmain, clip);
 	BKE_libblock_free(&bmain->movieclip, clip);
 	/* XXX python now has invalid pointer? */
 }
 
-Mask *rna_Main_mask_new(Main *UNUSED(bmain), const char *name)
+static Mask *rna_Main_mask_new(Main *UNUSED(bmain), const char *name)
 {
 	Mask *mask;
 
@@ -552,44 +556,57 @@ Mask *rna_Main_mask_new(Main *UNUSED(bmain), const char *name)
 	return mask;
 }
 
-void rna_Main_masks_remove(Main *bmain, Mask *mask)
+static void rna_Main_masks_remove(Main *bmain, Mask *mask)
 {
-	BKE_mask_unlink(bmain, mask);
+	BKE_mask_free(bmain, mask);
 	BKE_libblock_free(&bmain->mask, mask);
 	/* XXX python now has invalid pointer? */
 }
 
+static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, bGPdata *gpd)
+{
+	if (ID_REAL_USERS(gpd) <= 0) {
+		BKE_gpencil_free(gpd);
+		BKE_libblock_free(&bmain->gpencil, gpd);
+	}
+	else
+		BKE_reportf(reports, RPT_ERROR, "Grease Pencil \"%s\" must have zero users to be removed, found %d",
+		            gpd->id.name + 2, ID_REAL_USERS(gpd));
+
+	/* XXX python now has invalid pointer? */
+}
+
 /* tag functions, all the same */
-void rna_Main_cameras_tag(Main *bmain, int value) { tag_main_lb(&bmain->camera, value); }
-void rna_Main_scenes_tag(Main *bmain, int value) { tag_main_lb(&bmain->scene, value); }
-void rna_Main_objects_tag(Main *bmain, int value) { tag_main_lb(&bmain->object, value); }
-void rna_Main_materials_tag(Main *bmain, int value) { tag_main_lb(&bmain->mat, value); }
-void rna_Main_node_groups_tag(Main *bmain, int value) { tag_main_lb(&bmain->nodetree, value); }
-void rna_Main_meshes_tag(Main *bmain, int value) { tag_main_lb(&bmain->mesh, value); }
-void rna_Main_lamps_tag(Main *bmain, int value) { tag_main_lb(&bmain->lamp, value); }
-void rna_Main_libraries_tag(Main *bmain, int value) { tag_main_lb(&bmain->library, value); }
-void rna_Main_screens_tag(Main *bmain, int value) { tag_main_lb(&bmain->screen, value); }
-void rna_Main_window_managers_tag(Main *bmain, int value) { tag_main_lb(&bmain->wm, value); }
-void rna_Main_images_tag(Main *bmain, int value) { tag_main_lb(&bmain->image, value); }
-void rna_Main_lattices_tag(Main *bmain, int value) { tag_main_lb(&bmain->latt, value); }
-void rna_Main_curves_tag(Main *bmain, int value) { tag_main_lb(&bmain->curve, value); }
-void rna_Main_metaballs_tag(Main *bmain, int value) { tag_main_lb(&bmain->mball, value); }
-void rna_Main_fonts_tag(Main *bmain, int value) { tag_main_lb(&bmain->vfont, value); }
-void rna_Main_textures_tag(Main *bmain, int value) { tag_main_lb(&bmain->tex, value); }
-void rna_Main_brushes_tag(Main *bmain, int value) { tag_main_lb(&bmain->brush, value); }
-void rna_Main_worlds_tag(Main *bmain, int value) { tag_main_lb(&bmain->world, value); }
-void rna_Main_groups_tag(Main *bmain, int value) { tag_main_lb(&bmain->group, value); }
-void rna_Main_shape_keys_tag(Main *bmain, int value) { tag_main_lb(&bmain->key, value); }
-void rna_Main_scripts_tag(Main *bmain, int value) { tag_main_lb(&bmain->script, value); }
-void rna_Main_texts_tag(Main *bmain, int value) { tag_main_lb(&bmain->text, value); }
-void rna_Main_speakers_tag(Main *bmain, int value) { tag_main_lb(&bmain->speaker, value); }
-void rna_Main_sounds_tag(Main *bmain, int value) { tag_main_lb(&bmain->sound, value); }
-void rna_Main_armatures_tag(Main *bmain, int value) { tag_main_lb(&bmain->armature, value); }
-void rna_Main_actions_tag(Main *bmain, int value) { tag_main_lb(&bmain->action, value); }
-void rna_Main_particles_tag(Main *bmain, int value) { tag_main_lb(&bmain->particle, value); }
-void rna_Main_gpencil_tag(Main *bmain, int value) { tag_main_lb(&bmain->gpencil, value); }
-void rna_Main_movieclips_tag(Main *bmain, int value) { tag_main_lb(&bmain->movieclip, value); }
-void rna_Main_masks_tag(Main *bmain, int value) { tag_main_lb(&bmain->mask, value); }
+static void rna_Main_cameras_tag(Main *bmain, int value) { tag_main_lb(&bmain->camera, value); }
+static void rna_Main_scenes_tag(Main *bmain, int value) { tag_main_lb(&bmain->scene, value); }
+static void rna_Main_objects_tag(Main *bmain, int value) { tag_main_lb(&bmain->object, value); }
+static void rna_Main_materials_tag(Main *bmain, int value) { tag_main_lb(&bmain->mat, value); }
+static void rna_Main_node_groups_tag(Main *bmain, int value) { tag_main_lb(&bmain->nodetree, value); }
+static void rna_Main_meshes_tag(Main *bmain, int value) { tag_main_lb(&bmain->mesh, value); }
+static void rna_Main_lamps_tag(Main *bmain, int value) { tag_main_lb(&bmain->lamp, value); }
+static void rna_Main_libraries_tag(Main *bmain, int value) { tag_main_lb(&bmain->library, value); }
+static void rna_Main_screens_tag(Main *bmain, int value) { tag_main_lb(&bmain->screen, value); }
+static void rna_Main_window_managers_tag(Main *bmain, int value) { tag_main_lb(&bmain->wm, value); }
+static void rna_Main_images_tag(Main *bmain, int value) { tag_main_lb(&bmain->image, value); }
+static void rna_Main_lattices_tag(Main *bmain, int value) { tag_main_lb(&bmain->latt, value); }
+static void rna_Main_curves_tag(Main *bmain, int value) { tag_main_lb(&bmain->curve, value); }
+static void rna_Main_metaballs_tag(Main *bmain, int value) { tag_main_lb(&bmain->mball, value); }
+static void rna_Main_fonts_tag(Main *bmain, int value) { tag_main_lb(&bmain->vfont, value); }
+static void rna_Main_textures_tag(Main *bmain, int value) { tag_main_lb(&bmain->tex, value); }
+static void rna_Main_brushes_tag(Main *bmain, int value) { tag_main_lb(&bmain->brush, value); }
+static void rna_Main_worlds_tag(Main *bmain, int value) { tag_main_lb(&bmain->world, value); }
+static void rna_Main_groups_tag(Main *bmain, int value) { tag_main_lb(&bmain->group, value); }
+// static void rna_Main_shape_keys_tag(Main *bmain, int value) { tag_main_lb(&bmain->key, value); }
+// static void rna_Main_scripts_tag(Main *bmain, int value) { tag_main_lb(&bmain->script, value); }
+static void rna_Main_texts_tag(Main *bmain, int value) { tag_main_lb(&bmain->text, value); }
+static void rna_Main_speakers_tag(Main *bmain, int value) { tag_main_lb(&bmain->speaker, value); }
+static void rna_Main_sounds_tag(Main *bmain, int value) { tag_main_lb(&bmain->sound, value); }
+static void rna_Main_armatures_tag(Main *bmain, int value) { tag_main_lb(&bmain->armature, value); }
+static void rna_Main_actions_tag(Main *bmain, int value) { tag_main_lb(&bmain->action, value); }
+static void rna_Main_particles_tag(Main *bmain, int value) { tag_main_lb(&bmain->particle, value); }
+static void rna_Main_gpencil_tag(Main *bmain, int value) { tag_main_lb(&bmain->gpencil, value); }
+static void rna_Main_movieclips_tag(Main *bmain, int value) { tag_main_lb(&bmain->movieclip, value); }
+static void rna_Main_masks_tag(Main *bmain, int value) { tag_main_lb(&bmain->mask, value); }
 
 static int rna_Main_cameras_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CA); }
 static int rna_Main_scenes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCE); }
@@ -633,6 +650,8 @@ void RNA_api_main(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "image", "Image", "", "New image");
 	RNA_def_function_return(func, parm);
+#else
+	(void)srna;
 #endif
 }
 
@@ -1504,6 +1523,20 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "tag", "rna_Main_gpencil_tag");
 	parm = RNA_def_boolean(func, "value", 0, "Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func = RNA_def_function(srna, "new", "gpencil_data_addnew");
+	RNA_def_function_flag(func, FUNC_NO_SELF);
+	parm = RNA_def_string(func, "name", "GreasePencil", 0, "", "New name for the datablock");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "grease_pencil", "GreasePencil", "", "New grease pencil datablock");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_Main_grease_pencil_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a grease pencil instance from the current blendfile");
+	parm = RNA_def_pointer(func, "grease_pencil", "GreasePencil", "", "Grease Pencil to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

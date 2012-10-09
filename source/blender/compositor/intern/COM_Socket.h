@@ -62,6 +62,14 @@ private:
 	DataType m_datatype;
 	
 	bNodeSocket *m_editorSocket;
+
+protected:
+	/**
+	 * @brief Declaration of the virtual destructor 
+	 * @note resolve warning gcc 4.7
+	 */
+	virtual ~Socket() {}
+	
 public:
 	Socket(DataType datatype);
 	
@@ -73,7 +81,7 @@ public:
 	const virtual int isConnected() const;
 	int isInputSocket() const;
 	int isOutputSocket() const;
-	virtual void determineResolution(int resolution[], unsigned int preferredResolution[]) {}
+	virtual void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]) {}
 
 	void setEditorSocket(bNodeSocket *editorSocket) { this->m_editorSocket = editorSocket; }
 	bNodeSocket *getbNodeSocket() const { return this->m_editorSocket; }

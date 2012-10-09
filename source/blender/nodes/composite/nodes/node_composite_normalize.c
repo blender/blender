@@ -43,6 +43,8 @@ static bNodeSocketTemplate cmp_node_normalize_out[]= {
 	{   -1, 0, ""   }
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static void do_normalize(bNode *UNUSED(node), float *out, float *src, float *min, float *mult)
 {
 	float res;
@@ -102,6 +104,8 @@ static void node_composit_exec_normalize(void *UNUSED(data), bNode *node, bNodeS
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 void register_node_type_cmp_normalize(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -109,7 +113,9 @@ void register_node_type_cmp_normalize(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_NORMALIZE, "Normalize", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_normalize_in, cmp_node_normalize_out);
 	node_type_size(&ntype, 100, 60, 150);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_normalize);
+#endif
 	
 	nodeRegisterType(ttype, &ntype);
 }

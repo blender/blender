@@ -31,10 +31,11 @@ class ViewerOperation : public ViewerBaseOperation {
 private:
 	SocketReader *m_imageInput;
 	SocketReader *m_alphaInput;
+	SocketReader *m_depthInput;
 
 public:
 	ViewerOperation();
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void initExecution();
 	void deinitExecution();
 };

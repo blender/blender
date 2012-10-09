@@ -54,6 +54,8 @@
 
 #include "../../collada/collada.h"
 
+#include "io_collada.h"
+
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -121,41 +123,41 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
 
-	if (collada_export(
-	        CTX_data_scene(C),
-	        filepath,
-	        apply_modifiers,
-			export_mesh_type,
-	        selected,
-	        include_children,
-	        include_armatures,
-	        deform_bones_only,
+	if (collada_export(CTX_data_scene(C),
+	                   filepath,
+	                   apply_modifiers,
+	                   export_mesh_type,
+	                   selected,
+	                   include_children,
+	                   include_armatures,
+	                   deform_bones_only,
 
-			active_uv_only,
-			include_uv_textures,
-			include_material_textures,
-			use_texture_copies,
+	                   active_uv_only,
+	                   include_uv_textures,
+	                   include_material_textures,
+	                   use_texture_copies,
 
-	        use_object_instantiation,
-	        sort_by_name,
-	        second_life)) {
+	                   use_object_instantiation,
+	                   sort_by_name,
+	                   second_life)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
+		BKE_report(op->reports, RPT_WARNING, "Export file not created.");
 		return OPERATOR_CANCELLED;
 	}
 }
 
-void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
+static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 {
 	uiLayout *box, *row, *col, *split;
 
 	/* Export Options: */
 	box = uiLayoutBox(layout);
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Export Data Options:"), ICON_MESH_DATA);
 
-	row = uiLayoutRow(box, 0);
+	row = uiLayoutRow(box, FALSE);
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
 	col   = uiLayoutColumn(split, FALSE);
 	uiItemR(col, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
@@ -174,7 +176,7 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
-	// Texture options
+	/* Texture options */
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Texture Options:"), ICON_TEXTURE_DATA);
@@ -192,7 +194,7 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "use_texture_copies", 1, NULL, ICON_NONE);
 
 
-	// Armature options
+	/* Armature options */
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, FALSE);
 	uiItemL(row, IFACE_("Armature Options:"), ICON_ARMATURE_DATA);
@@ -233,7 +235,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	ot->name = "Export COLLADA";
 	ot->description = "Save a Collada file";
 	ot->idname = "WM_OT_collada_export";
-	
+
 	ot->invoke = wm_collada_export_invoke;
 	ot->exec = wm_collada_export_exec;
 	ot->poll = WM_operator_winactive;
@@ -241,8 +243,9 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	ot->flag |= OPTYPE_PRESET;
 
 	ot->ui = wm_collada_export_draw;
-	
-	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+
+	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
 	RNA_def_boolean(ot->srna,
 	                "apply_modifiers", 0, "Apply Modifiers",
@@ -268,15 +271,15 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
 
 	RNA_def_boolean(ot->srna, "active_uv_only", 0, "Only Active UV layer",
-					"Export textures assigned to the object UV maps");
+	                "Export textures assigned to the object UV maps");
 
 	RNA_def_boolean(ot->srna, "include_uv_textures", 0, "Include UV Textures",
-					"Export textures assigned to the object UV maps");
+	                "Export textures assigned to the object UV maps");
 
 	RNA_def_boolean(ot->srna, "include_material_textures", 0, "Include Material Textures",
-					"Export textures assigned to the object Materials");
+	                "Export textures assigned to the object Materials");
 
-	RNA_def_boolean(ot->srna, "use_texture_copies", 1, "Copy", 
+	RNA_def_boolean(ot->srna, "use_texture_copies", 1, "Copy",
 	                "Copy textures to same folder where the .dae file is exported");
 
 
@@ -295,7 +298,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	
+
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
@@ -303,9 +306,9 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", filename);
 	if (collada_import(C, filename)) return OPERATOR_FINISHED;
-	
+
 	BKE_report(op->reports, RPT_ERROR, "Errors found during parsing COLLADA document. Please see console for error log.");
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -314,11 +317,12 @@ void WM_OT_collada_import(wmOperatorType *ot)
 	ot->name = "Import COLLADA";
 	ot->description = "Load a Collada file";
 	ot->idname = "WM_OT_collada_import";
-	
+
 	ot->invoke = WM_operator_filesel;
 	ot->exec = wm_collada_import_exec;
 	ot->poll = WM_operator_winactive;
-	
-	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+
+	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE,
+	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 }
 #endif

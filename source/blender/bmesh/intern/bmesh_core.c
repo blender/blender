@@ -80,7 +80,15 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 	CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 	
 	if (example) {
+		int *keyi;
+
 		BM_elem_attrs_copy(bm, bm, example, v);
+
+		/* exception: don't copy the original shapekey index */
+		keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
+		if (keyi) {
+			*keyi = ORIGINDEX_NONE;
+		}
 	}
 
 	BM_CHECK_ELEMENT(v);
@@ -92,7 +100,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
  * \brief Main function for creating a new edge.
  *
  * \note Duplicate edges are supported by the API however users should _never_ see them.
- * so unless you need a unique edge or know the edge won't exist, you should call wih \a nodouble = TRUE
+ * so unless you need a unique edge or know the edge won't exist, you should call with \a nodouble = TRUE
  */
 BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble)
 {
@@ -332,6 +340,8 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	return f;
 }
 
+#ifndef NDEBUG
+
 /**
  * Check the element is valid.
  *
@@ -350,14 +360,16 @@ int bmesh_elem_check(void *element, const char htype)
 		return 2;
 	
 	switch (htype) {
-		case BM_VERT: {
+		case BM_VERT:
+		{
 			BMVert *v = element;
 			if (v->e && v->e->head.htype != BM_EDGE) {
 				err |= 4;
 			}
 			break;
 		}
-		case BM_EDGE: {
+		case BM_EDGE:
+		{
 			BMEdge *e = element;
 			if (e->l && e->l->head.htype != BM_LOOP)
 				err |= 8;
@@ -376,7 +388,8 @@ int bmesh_elem_check(void *element, const char htype)
 				err |= 128;
 			break;
 		}
-		case BM_LOOP: {
+		case BM_LOOP:
+		{
 			BMLoop *l = element, *l2;
 			int i;
 
@@ -416,7 +429,8 @@ int bmesh_elem_check(void *element, const char htype)
 
 			break;
 		}
-		case BM_FACE: {
+		case BM_FACE:
+		{
 			BMFace *f = element;
 			BMLoop *l_iter;
 			BMLoop *l_first;
@@ -463,6 +477,8 @@ int bmesh_elem_check(void *element, const char htype)
 
 	return err;
 }
+
+#endif /* NDEBUG */
 
 /**
  * low level function, only frees the vert,
@@ -820,8 +836,6 @@ static void bm_elements_systag_disable(void *veles, int tot, int flag)
 	}
 }
 
-#define FACE_MARK  (1 << 10)
-
 static int count_flagged_radial(BMesh *bm, BMLoop *l, int flag)
 {
 	BMLoop *l2 = l;
@@ -1007,7 +1021,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 
 	/* create region face */
 	newf = BM_face_create_ngon(bm, v1, v2, edges, tote, FALSE);
-	if (!newf || BMO_error_occurred(bm)) {
+	if (UNLIKELY(!newf || BMO_error_occurred(bm))) {
 		if (!BMO_error_occurred(bm))
 			err = "Invalid boundary region to join faces";
 		goto error;
@@ -1134,7 +1148,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
  * The second region has a new face assigned to it.
  *
  * \par Examples:
- *
+ * <pre>
  *     Before:               After:
  *      +--------+           +--------+
  *      |        |           |        |
@@ -1143,6 +1157,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
  *      |        |           |   f2   |
  *      |        |           |        |
  *      +--------+           +--------+
+ * </pre>
  *
  * \note the input vertices can be part of the same edge. This will
  * result in a two edged face. This is desirable for advanced construction
@@ -1302,12 +1317,13 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
  * will be attached to that end and is returned in \a r_e.
  *
  * \par Examples:
- *
+ * <pre>
  *                     E
  *     Before: OV-------------TV
  *
  *                 E       RE
  *     After:  OV------NV-----TV
+ * </pre>
  *
  * \return The newly created BMVert pointer.
  */
@@ -1475,6 +1491,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  *
  * \par Examples:
  *
+ * <pre>
  *     Before:         OE      KE
  *                   ------- -------
  *                   |     ||      |
@@ -1485,6 +1502,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
  *                   ---------------
  *                   |             |
  *                  OV             TV
+ * </pre>
  *
  * \par Restrictions:
  * KV is a vertex that must have a valance of exactly two. Furthermore
@@ -1636,7 +1654,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
  * Both faces in its radial cycle
  *
  * \par Examples:
- *
+ * <pre>
  *           A                   B
  *      +--------+           +--------+
  *      |        |           |        |
@@ -1645,6 +1663,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
  *      |   f2   |           |   f2   |
  *      |        |           |        |
  *      +--------+           +--------+
+ * </pre>
  *
  * In the example A, faces \a f1 and \a f2 are joined by a single edge,
  * and the euler can safely be used.
@@ -1781,18 +1800,21 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 {
 	BMEdge *e;
-	BMLoop *l;
-	BMIter liter;
+
+	BMLoop **loops;
+	int i, loops_tot;
 
 	/* verts already spliced */
 	if (v == vtarget) {
 		return FALSE;
 	}
 
-	/* retarget all the loops of v to vtarget */
-	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
-		l->v = vtarget;
+	/* we can't modify the vert while iterating so first allocate an array of loops */
+	loops = BM_iter_as_arrayN(bm, BM_LOOPS_OF_VERT, v, &loops_tot);
+	for (i = 0; i < loops_tot; i++) {
+		loops[i]->v = vtarget;
 	}
+	MEM_freeN(loops);
 
 	/* move all the edges from v's disk to vtarget's disk */
 	while ((e = v->e)) {
@@ -1942,7 +1964,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 }
 
 /**
- * High level function which wraps both #bm_vert_separate and #bm_edge_separate
+ * High level function which wraps both #bmesh_vert_separate and #bmesh_edge_separate
  */
 int BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
                      BMEdge **e_in, int e_in_len)

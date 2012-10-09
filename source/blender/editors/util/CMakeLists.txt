@@ -62,6 +62,7 @@ set(SRC
 	../include/ED_lattice.h
 	../include/ED_logic.h
 	../include/ED_markers.h
+	../include/ED_mask.h
 	../include/ED_mball.h
 	../include/ED_mesh.h
 	../include/ED_node.h

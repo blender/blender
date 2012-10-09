@@ -60,20 +60,31 @@ typedef struct Global {
 
 	/* strings of recent opened files */
 	struct ListBase recent_files;
-        
-	short afbreek, moving, file_loaded;
+
+	/* has escape been pressed or Ctrl+C pressed in background mode, used for render quit */
+	short is_break;
+
+	short moving, file_loaded;
 	char background;
 	char factory_startup;
 	short winpos, displaymode;  /* used to be in Render */
-	short rendering;            /* to indicate render is busy, prevent renderwindow events etc */
 
-	short rt;
+	/* to indicate render is busy, prevent renderwindow events etc */
+	short is_rendering;
+
+	/* debug value, can be set from the UI and python, used for testing nonstandard features */
+	short debug_value;
+
+	/* saved to the blend file as FileGlobal.globalf,
+	 * however this is now only used for runtime options */
 	int f;
+
+	/* debug flag, G_DEBUG, G_DEBUG_PYTHON & friends, set python or command line args */
 	int debug;
 
 	/* Used for BMesh transformations */
 	struct BME_Glob *editBMesh;
-    
+
 	/* Frank's variables */
 	int save_over;
 
@@ -88,7 +99,7 @@ typedef struct Global {
 
 	/* this variable is written to / read from FileGlobal->fileflags */
 	int fileflags;
-    
+
 	/* save the allowed windowstate of blender when using -W or -w */
 	int windowstate;
 } Global;
@@ -123,7 +134,7 @@ enum {
 	G_DEBUG_JOBS =      (1 << 5)  /* jobs time profiling */
 };
 
-#define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM)
+#define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS)
 
 
 /* G.fileflags */

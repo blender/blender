@@ -50,7 +50,6 @@
 #include "blf_internal_types.h"
 #include "blf_internal.h"
 
-
 /* Max number of font in memory.
  * Take care that now every font have a glyph cache per size/dpi,
  * so we don't need load the same font with different size, just
@@ -227,7 +226,7 @@ void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
 	}
 }
 
-int BLF_load_mem(const char *name, unsigned char *mem, int mem_size)
+int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size)
 {
 	FontBLF *font;
 	int i;
@@ -262,7 +261,7 @@ int BLF_load_mem(const char *name, unsigned char *mem, int mem_size)
 	return i;
 }
 
-int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size)
+int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size)
 {
 	FontBLF *font;
 	int i;
@@ -746,16 +745,17 @@ void BLF_shadow_offset(int fontid, int x, int y)
 	}
 }
 
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch)
+void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, struct ColorManagedDisplay *display)
 {
 	FontBLF *font = BLF_get(fontid);
 
 	if (font) {
-		font->b_fbuf = fbuf;
-		font->b_cbuf = cbuf;
-		font->bw = w;
-		font->bh = h;
-		font->bch = nch;
+		font->buf_info.fbuf = fbuf;
+		font->buf_info.cbuf = cbuf;
+		font->buf_info.w = w;
+		font->buf_info.h = h;
+		font->buf_info.ch = nch;
+		font->buf_info.display = display;
 	}
 }
 
@@ -764,10 +764,10 @@ void BLF_buffer_col(int fontid, float r, float g, float b, float a)
 	FontBLF *font = BLF_get(fontid);
 
 	if (font) {
-		font->b_col[0] = r;
-		font->b_col[1] = g;
-		font->b_col[2] = b;
-		font->b_col[3] = a;
+		font->buf_info.col[0] = r;
+		font->buf_info.col[1] = g;
+		font->buf_info.col[2] = b;
+		font->buf_info.col[3] = a;
 	}
 }
 
@@ -775,7 +775,7 @@ void BLF_draw_buffer(int fontid, const char *str)
 {
 	FontBLF *font = BLF_get(fontid);
 
-	if (font && font->glyph_cache && (font->b_fbuf || font->b_cbuf)) {
+	if (font && font->glyph_cache && (font->buf_info.fbuf || font->buf_info.cbuf)) {
 		blf_font_buffer(font, str);
 	}
 }

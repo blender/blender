@@ -16,6 +16,13 @@
 
 #include "mvmcoords.h"
 #include <algorithm>
+
+#if defined(_MSC_VER) && _MSC_VER > 1600
+// sdt::greater
+#include <functional>
+#endif
+
+
 using std::vector;
 
 void MeanValueMeshCoords::clear() 

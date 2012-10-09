@@ -49,7 +49,7 @@
 
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_image.h"   // BKE_imbuf_write 
+#include "BKE_image.h"   /* BKE_imbuf_write */
 #include "BKE_texture.h"
 
 
@@ -472,11 +472,8 @@ static void render_envmap(Render *re, EnvMap *env)
 			ibuf = IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect | IB_rectfloat);
 			memcpy(ibuf->rect_float, rl->rectf, ibuf->channels * ibuf->x * ibuf->y * sizeof(float));
 			
-			if (re->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			
 			/* envmap renders without alpha */
-			alpha = ((float *)ibuf->rect_float) + 3;
+			alpha = ibuf->rect_float + 3;
 			for (y = ibuf->x * ibuf->y - 1; y >= 0; y--, alpha += 4)
 				*alpha = 1.0;
 			
@@ -579,7 +576,7 @@ void make_envmaps(Render *re)
 		re->display_clear(re->dch, re->result);
 		// re->flag |= R_REDRAW_PRV;
 	}	
-	// restore
+	/* restore */
 	re->r.mode |= trace;
 
 }

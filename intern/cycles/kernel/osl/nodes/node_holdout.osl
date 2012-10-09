@@ -18,11 +18,9 @@
 
 #include "stdosl.h"
 
-shader node_background(
-	color Color = color(0.8, 0.8, 0.8),
-	float Strength = 1.0,
-	output closure color Background = background())
+shader node_holdout(
+	output closure color Holdout = holdout())
 {
-	Background = Color*Strength*background();
+
 }
 

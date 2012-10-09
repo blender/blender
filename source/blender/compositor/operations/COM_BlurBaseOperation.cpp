@@ -22,6 +22,7 @@
 
 #include "COM_BlurBaseOperation.h"
 #include "BLI_math.h"
+#include "MEM_guardedalloc.h"
 
 extern "C" {
 	#include "RE_pipeline.h"
@@ -74,7 +75,7 @@ float *BlurBaseOperation::make_gausstab(int rad)
 
 	n = 2 * rad + 1;
 
-	gausstab = new float[n];
+	gausstab = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 
 	sum = 0.0f;
 	for (i = -rad; i <= rad; i++) {
@@ -99,7 +100,7 @@ float *BlurBaseOperation::make_dist_fac_inverse(int rad, int falloff)
 
 	n = 2 * rad + 1;
 
-	dist_fac_invert = new float[n];
+	dist_fac_invert = (float *)MEM_mallocN(sizeof(float) * n, __func__);
 
 	for (i = -rad; i <= rad; i++) {
 		val = 1.0f - fabsf(((float)i / (float)rad));
@@ -120,6 +121,11 @@ float *BlurBaseOperation::make_dist_fac_inverse(int rad, int falloff)
 				val = val * val;
 				break;
 			case PROP_LIN:
+#ifndef NDEBUG
+			/* uninitialized! */
+			case -1:
+				BLI_assert(0);
+#endif
 			default:
 				/* nothing */
 				break;
@@ -140,11 +146,11 @@ void BlurBaseOperation::deinitExecution()
 	this->m_data = NULL;
 }
 
-void BlurBaseOperation::updateSize(MemoryBuffer **memoryBuffers)
+void BlurBaseOperation::updateSize()
 {
 	if (!this->m_sizeavailable) {
 		float result[4];
-		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST, memoryBuffers);
+		this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST);
 		this->m_size = result[0];
 		this->m_sizeavailable = true;
 	}

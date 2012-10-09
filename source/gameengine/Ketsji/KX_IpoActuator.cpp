@@ -182,7 +182,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			m_bIpoPlaying = true;
 			bIpoStart = true;
 		}
-	}	
+	}
 
 	switch ((IpoActType)m_type)
 	{
@@ -254,7 +254,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			result = false;
 
 		if (bIpoStart)
-			((KX_GameObject*)GetParent())->InitIPO(m_ipo_as_force, m_ipo_add, m_ipo_local);			
+			((KX_GameObject*)GetParent())->InitIPO(m_ipo_as_force, m_ipo_add, m_ipo_local);
 		((KX_GameObject*)GetParent())->UpdateIPO(m_localtime,m_recurse);
 		break;
 	}
@@ -309,7 +309,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 					bIpoStart = true;
 				}
 				else
-				{	
+				{
 					/* Perform clamping */
 					m_localtime=m_endframe;
 					result = false;
@@ -379,7 +379,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 
 void KX_IpoActuator::ResetStartTime()
 {
-	this->m_starttime = -2.0*fabs(this->m_endframe - this->m_startframe) - 1.0;
+	this->m_starttime = -2.0f * fabsf(this->m_endframe - this->m_startframe) - 1.0f;
 }
 
 int KX_IpoActuator::string2mode(const char *modename)
@@ -453,7 +453,7 @@ PyAttributeDef KX_IpoActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_IpoActuator::pyattr_get_frame_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_IpoActuator::pyattr_get_frame_start(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
 	return PyFloat_FromDouble(self->m_startframe);
@@ -474,7 +474,7 @@ int KX_IpoActuator::pyattr_set_frame_start(void *self_v, const KX_PYATTRIBUTE_DE
 	return PY_SET_ATTR_SUCCESS;
 }
 
-PyObject* KX_IpoActuator::pyattr_get_frame_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_IpoActuator::pyattr_get_frame_end(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_IpoActuator* self= static_cast<KX_IpoActuator*>(self_v);
 	return PyFloat_FromDouble(self->m_endframe);

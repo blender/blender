@@ -63,6 +63,17 @@ enum ShaderBump {
 	SHADER_BUMP_DY
 };
 
+/* Identifiers for some special node types.
+ *
+ * The graph needs to identify these in the clean function.
+ * Cannot use dynamic_cast, as this is disabled for OSL. */
+
+enum ShaderNodeSpecialType {
+	SHADER_SPECIAL_TYPE_NONE,
+	SHADER_SPECIAL_TYPE_PROXY,
+	SHADER_SPECIAL_TYPE_MIX_CLOSURE
+};
+
 /* Enum
  *
  * Utility class for enum values. */
@@ -167,6 +178,8 @@ public:
 	ustring name; /* name, not required to be unique */
 	int id; /* index in graph node array */
 	ShaderBump bump; /* for bump mapping utility */
+	
+	ShaderNodeSpecialType special_type;	/* special node type */
 };
 
 

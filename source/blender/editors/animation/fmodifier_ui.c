@@ -74,13 +74,6 @@
 #define B_REDR                  1
 #define B_FMODIFIER_REDRAW      20
 
-/* macro for use here to draw background box and set height */
-// XXX for now, roundbox has it's callback func set to NULL to not intercept events
-#define DRAW_BACKDROP(height) \
-	{ \
-		uiDefBut(block, ROUNDBOX, B_REDR, "", -3, yco - height, width + 3, height - 1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
-	} (void)0
-
 /* callback to verify modifier data */
 static void validate_fmodifier_cb(bContext *UNUSED(C), void *fcm_v, void *UNUSED(arg))
 {
@@ -229,7 +222,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 				if ( (i != (data->poly_order - 1)) || ((i == 0) && data->poly_order == 2) ) {
 					uiDefBut(block, LABEL, 1, ") +", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 					
-					/* set up new row for the next pair of coefficients*/
+					/* set up new row for the next pair of coefficients */
 					row = uiLayoutRow(layout, TRUE);
 					block = uiLayoutGetBlock(row);
 				}
@@ -336,7 +329,7 @@ static int binarysearch_fcm_envelopedata_index(FCM_EnvelopeData array[], float f
 	/* initialize exists-flag first */
 	*exists = 0;
 	
-	/* sneaky optimisations (don't go through searching process if...):
+	/* sneaky optimizations (don't go through searching process if...):
 	 *	- keyframe to be added is to be added out of current bounds
 	 *	- keyframe to be added would replace one of the existing ones on bounds
 	 */
@@ -506,10 +499,10 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 	row = uiLayoutRow(col, TRUE);
 	uiItemR(row, &ptr, "default_min", 0, IFACE_("Min"), ICON_NONE);
 	uiItemR(row, &ptr, "default_max", 0, IFACE_("Max"), ICON_NONE);
-			
+
 	/* control points header */
-	// TODO: move this control-point control stuff to using the new special widgets for lists
-	// the current way is far too cramped
+	/* TODO: move this control-point control stuff to using the new special widgets for lists
+	 * the current way is far too cramped */
 	row = uiLayoutRow(layout, FALSE);
 	block = uiLayoutGetBlock(row);
 		

@@ -57,7 +57,6 @@ extern "C" {
 #include "BKE_global.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
-#include "BKE_utildefines.h"
 #include "BKE_constraint.h"
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
@@ -394,7 +393,7 @@ static bool constraint_valid(bConstraint *con)
 	return true;
 }
 
-int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
+static int initialize_scene(Object *ob, bPoseChannel *pchan_tip)
 {
 	bConstraint *con;
 	int treecount;
@@ -1173,10 +1172,8 @@ static IK_Scene *convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		switch (ikchan->jointType & ~IK_TRANSY) {
 			case 0:
 				// fixed bone
-				if (!(ikchan->jointType & IK_TRANSY)) {
-					joint += ":F";
-					ret = arm->addSegment(joint, parent, KDL::Joint::None, 0.0, tip);
-				}
+				joint += ":F";
+				ret = arm->addSegment(joint, parent, KDL::Joint::None, 0.0, tip);
 				break;
 			case IK_XDOF:
 				// RX only, get the X rotation
@@ -1254,8 +1251,9 @@ static IK_Scene *convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 			joint = bone->name;
 			joint += ":TY";
 			ret = arm->addSegment(joint, parent, KDL::Joint::TransY, rot[ikchan->ndof - 1]);
-			float ikstretch = pchan->ikstretch * pchan->ikstretch;
-			weight[1] = (1.0 - MIN2(1.0 - ikstretch, 0.99));
+			const float ikstretch = pchan->ikstretch * pchan->ikstretch;
+			/* why invert twice here? */
+			weight[1] = (1.0 - minf(1.0 - ikstretch, 1.0f - 0.001f));
 			weights.push_back(weight[1]);
 		}
 		if (!ret)
@@ -1618,7 +1616,7 @@ static void execute_scene(Scene *blscene, IK_Scene *ikscene, bItasc *ikparam, fl
 			timestep = sts / 1000.0;
 		}
 	}
-	// don't cache if we are reiterating because we don't want to distroy the cache unnecessarily
+	// don't cache if we are reiterating because we don't want to destroy the cache unnecessarily
 	ikscene->scene->update(timestamp, timestep, numstep, false, !reiterate, simulation);
 	if (reiterate) {
 		// how many times do we reiterate?

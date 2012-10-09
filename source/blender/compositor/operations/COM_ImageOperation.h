@@ -25,7 +25,6 @@
 #define _COM_ImageOperation_h
 
 #include "COM_NodeOperation.h"
-#include "DNA_scene_types.h"
 #include "BLI_listbase.h"
 #include "BKE_image.h"
 extern "C" {
@@ -54,7 +53,7 @@ protected:
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	virtual ImBuf *getImBuf();
 
@@ -73,7 +72,7 @@ public:
 	 * Constructor
 	 */
 	ImageOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 class ImageAlphaOperation : public BaseImageOperation {
 public:
@@ -81,7 +80,7 @@ public:
 	 * Constructor
 	 */
 	ImageAlphaOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 class ImageDepthOperation : public BaseImageOperation {
 public:
@@ -89,6 +88,6 @@ public:
 	 * Constructor
 	 */
 	ImageDepthOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 #endif

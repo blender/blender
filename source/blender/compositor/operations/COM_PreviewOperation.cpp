@@ -23,7 +23,6 @@
 #include "COM_PreviewOperation.h"
 #include "COM_SocketConnection.h"
 #include "BLI_listbase.h"
-#include "DNA_scene_types.h"
 #include "BKE_image.h"
 #include "WM_api.h"
 #include "WM_types.h"
@@ -36,16 +35,19 @@ extern "C" {
 	#include "MEM_guardedalloc.h"
 	#include "IMB_imbuf.h"
 	#include "IMB_imbuf_types.h"
+	#include "IMB_colormanagement.h"
 }
 
 
-PreviewOperation::PreviewOperation() : NodeOperation()
+PreviewOperation::PreviewOperation(const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings) : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->m_outputBuffer = NULL;
 	this->m_input = NULL;
 	this->m_divider = 1.0f;
 	this->m_node = NULL;
+	this->m_viewSettings = viewSettings;
+	this->m_displaySettings = displaySettings;
 }
 
 void PreviewOperation::initExecution()
@@ -79,10 +81,14 @@ void PreviewOperation::deinitExecution()
 	this->m_input = NULL;
 }
 
-void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 {
 	int offset;
 	float color[4];
+	struct ColormanageProcessor *cm_processor;
+
+	cm_processor = IMB_colormanagement_display_processor_new(this->m_viewSettings, this->m_displaySettings);
+
 	for (int y = rect->ymin; y < rect->ymax; y++) {
 		offset = (y * getWidth() + rect->xmin) * 4;
 		for (int x = rect->xmin; x < rect->xmax; x++) {
@@ -93,12 +99,14 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, Memory
 			color[1] = 0.0f;
 			color[2] = 0.0f;
 			color[3] = 1.0f;
-			this->m_input->read(color, rx, ry, COM_PS_NEAREST, memoryBuffers);
-			linearrgb_to_srgb_v4(color, color);
+			this->m_input->read(color, rx, ry, COM_PS_NEAREST);
+			IMB_colormanagement_processor_apply_v4(cm_processor, color);
 			F4TOCHAR4(color, this->m_outputBuffer + offset);
 			offset += 4;
 		}
 	}
+
+	IMB_colormanagement_processor_free(cm_processor);
 }
 bool PreviewOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
@@ -111,7 +119,7 @@ bool PreviewOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferO
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
-void PreviewOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void PreviewOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	NodeOperation::determineResolution(resolution, preferredResolution);
 	int width = resolution[0];

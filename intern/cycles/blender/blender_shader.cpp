@@ -221,6 +221,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::ShaderNodeMixRGB b_mix_node(b_node);
 			MixNode *mix = new MixNode();
 			mix->type = MixNode::type_enum[b_mix_node.blend_type()];
+			mix->use_clamp = b_mix_node.use_clamp();
 			node = mix;
 			break;
 		}
@@ -244,6 +245,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::ShaderNodeMath b_math_node(b_node);
 			MathNode *math = new MathNode();
 			math->type = MathNode::type_enum[b_math_node.operation()];
+			math->use_clamp = b_math_node.use_clamp();
 			node = math;
 			break;
 		}
@@ -401,9 +403,11 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::Image b_image(b_image_node.image());
 			ImageTextureNode *image = new ImageTextureNode();
 			/* todo: handle generated/builtin images */
-			if(b_image)
+			if(b_image && b_image.source() != BL::Image::source_MOVIE)
 				image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
+			image->projection = ImageTextureNode::projection_enum[(int)b_image_node.projection()];
+			image->projection_blend = b_image_node.projection_blend();
 			get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 			node = image;
 			break;
@@ -412,7 +416,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			BL::ShaderNodeTexEnvironment b_env_node(b_node);
 			BL::Image b_image(b_env_node.image());
 			EnvironmentTextureNode *env = new EnvironmentTextureNode();
-			if(b_image)
+			if(b_image && b_image.source() != BL::Image::source_MOVIE)
 				env->filename = image_user_file_path(b_env_node.image_user(), b_image, b_scene.frame_current());
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
 			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];
@@ -459,6 +463,17 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			node = checker;
 			break;
 		}
+		case BL::ShaderNode::type_TEX_BRICK: {
+			BL::ShaderNodeTexBrick b_brick_node(b_node);
+			BrickTextureNode *brick = new BrickTextureNode();
+			brick->offset = b_brick_node.offset();
+			brick->offset_frequency = b_brick_node.offset_frequency();
+			brick->squash = b_brick_node.squash();
+			brick->squash_frequency = b_brick_node.squash_frequency();
+			get_tex_mapping(&brick->tex_mapping, b_brick_node.texture_mapping());
+			node = brick;
+			break;
+		}
 		case BL::ShaderNode::type_TEX_NOISE: {
 			BL::ShaderNodeTexNoise b_noise_node(b_node);
 			NoiseTextureNode *noise = new NoiseTextureNode();
@@ -475,7 +490,10 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			break;
 		}
 		case BL::ShaderNode::type_TEX_COORD: {
-			node = new TextureCoordinateNode();
+			BL::ShaderNodeTexCoord b_tex_coord_node(b_node);
+			TextureCoordinateNode *tex_coord = new TextureCoordinateNode();
+			tex_coord->from_dupli = b_tex_coord_node.from_dupli();
+			node = tex_coord;
 			break;
 		}
 		case BL::ShaderNode::type_TEX_SKY: {

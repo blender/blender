@@ -21,7 +21,6 @@
  */
 
 #include "COM_BokehImageNode.h"
-#include "DNA_scene_types.h"
 #include "COM_BokehImageOperation.h"
 #include "COM_ExecutionSystem.h"
 
@@ -36,5 +35,5 @@ void BokehImageNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 	graph->addOperation(operation);
 	operation->setData((NodeBokehImage *)this->getbNode()->storage);
-	addPreviewOperation(graph, operation->getOutputSocket(0));
+	addPreviewOperation(graph, context, operation->getOutputSocket(0));
 }

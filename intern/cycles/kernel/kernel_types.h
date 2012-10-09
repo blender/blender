@@ -29,11 +29,11 @@
 CCL_NAMESPACE_BEGIN
 
 /* constants */
-#define OBJECT_SIZE 		16
+#define OBJECT_SIZE 		18
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
 #define RAMP_TABLE_SIZE		256
-#define PARTICLE_SIZE 		1
+#define PARTICLE_SIZE 		5
 #define TIME_INVALID		FLT_MAX
 
 /* device capabilities */
@@ -172,6 +172,8 @@ enum PathRayFlag {
 
 	PATH_RAY_ALL = (1|2|4|8|16|32|64|128|256|512),
 
+	/* this gives collisions with localview bits
+	 * see: CYCLES_LOCAL_LAYER_HACK(), grr - Campbell */
 	PATH_RAY_LAYER_SHIFT = (32-20)
 };
 
@@ -350,22 +352,6 @@ typedef enum AttributeElement {
 	ATTR_ELEMENT_NONE
 } AttributeElement;
 
-typedef enum AttributeStandard {
-	ATTR_STD_NONE = 0,
-	ATTR_STD_VERTEX_NORMAL,
-	ATTR_STD_FACE_NORMAL,
-	ATTR_STD_UV,
-	ATTR_STD_GENERATED,
-	ATTR_STD_POSITION_UNDEFORMED,
-	ATTR_STD_POSITION_UNDISPLACED,
-	ATTR_STD_MOTION_PRE,
-	ATTR_STD_MOTION_POST,
-	ATTR_STD_PARTICLE,
-	ATTR_STD_NUM,
-
-	ATTR_STD_NOT_FOUND = ~0
-} AttributeStandard;
-
 /* Closure data */
 
 #define MAX_CLOSURE 8
@@ -380,10 +366,9 @@ typedef struct ShaderClosure {
 
 #ifdef __OSL__
 	void *prim;
-#else
+#endif
 	float data0;
 	float data1;
-#endif
 
 } ShaderClosure;
 

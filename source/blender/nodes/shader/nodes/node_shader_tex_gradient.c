@@ -40,7 +40,7 @@ static bNodeSocketTemplate sh_node_tex_gradient_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_shader_init_tex_gradient(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeTexGradient *tex = MEM_callocN(sizeof(NodeTexGradient), "NodeTexGradient");
 	default_tex_mapping(&tex->base.tex_mapping);

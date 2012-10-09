@@ -29,7 +29,7 @@
 class CBoolValue : public CPropValue  
 {
 
-	//PLUGIN_DECLARE_SERIAL(CBoolValue,CValue)	
+	//PLUGIN_DECLARE_SERIAL(CBoolValue,CValue)
 
 public:
 	static const STR_String sTrueString;

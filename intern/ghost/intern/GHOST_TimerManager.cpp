@@ -32,8 +32,8 @@
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 31, 2001
+ * \author	Maarten Gribnau
+ * \date	May 31, 2001
  */
 
 #include "GHOST_TimerManager.h"
@@ -104,7 +104,7 @@ GHOST_TUns64 GHOST_TimerManager::nextFireTime()
 	GHOST_TUns64 smallest = GHOST_kFireTimeNever;
 	TTimerVector::iterator iter;
 	
-	for (iter = m_timers.begin(); iter != m_timers.end(); iter++) {
+	for (iter = m_timers.begin(); iter != m_timers.end(); ++iter) {
 		GHOST_TUns64 next = (*iter)->getNext();
 		
 		if (next < smallest)
@@ -119,7 +119,7 @@ bool GHOST_TimerManager::fireTimers(GHOST_TUns64 time)
 	TTimerVector::iterator iter;
 	bool anyProcessed = false;
 
-	for (iter = m_timers.begin(); iter != m_timers.end(); iter++) {
+	for (iter = m_timers.begin(); iter != m_timers.end(); ++iter) {
 		if (fireTimer(time, *iter))
 			anyProcessed = true;
 	}
@@ -156,7 +156,7 @@ bool GHOST_TimerManager::fireTimer(GHOST_TUns64 time, GHOST_TimerTask *task)
 
 void GHOST_TimerManager::disposeTimers()
 {
-	while (m_timers.size() > 0) {
+	while (m_timers.empty() == false) {
 		delete m_timers[0];
 		m_timers.erase(m_timers.begin());
 	}

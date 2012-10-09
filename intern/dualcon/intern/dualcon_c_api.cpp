@@ -32,7 +32,7 @@
 #define isnan(n) _isnan(n)
 #endif
 
-void veccopy(float dst[3], const float src[3])
+static void veccopy(float dst[3], const float src[3])
 {
 	dst[0] = src[0];
 	dst[1] = src[1];

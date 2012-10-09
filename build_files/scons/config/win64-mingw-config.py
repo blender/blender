@@ -151,13 +151,19 @@ BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 WITH_BF_CYCLES = True
 WITH_BF_CYCLES_CUDA_BINARIES = False
 BF_CYCLES_CUDA_NVCC = "" # Path to the NVIDIA CUDA compiler
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21']
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
 
 WITH_BF_OIIO = True
 BF_OIIO = LIBDIR + '/openimageio'
 BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
+
+WITH_BF_OCIO = True
+BF_OCIO = LIBDIR + '/opencolorio'
+BF_OCIO_INC = '${BF_OCIO}/include'
+BF_OCIO_LIB = 'OpenColorIO'
+BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
@@ -169,7 +175,7 @@ BF_BOOST_LIBPATH = BF_BOOST + '/lib'
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2']
 
-#Produces errors while rendering with subsurf/multires,
+#May produce errors with unsupported MinGW-w64 builds
 WITH_BF_OPENMP = False
 
 ##
@@ -193,7 +199,7 @@ LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32
 PLATFORM_LINKFLAGS = ['-Xlinker', '--stack=2097152']
 
 ## DISABLED, causes linking errors!
-## for re-distrobution, so users dont need mingw installed
+## for re-distribution, so users dont need mingw installed
 # PLATFORM_LINKFLAGS += ["-static-libgcc", "-static-libstdc++"]
 
 BF_DEBUG = False

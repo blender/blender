@@ -38,11 +38,11 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include <stdio.h> // for fprintf only
-#include <cstdlib> // for exit
+#include <stdio.h>   /* for fprintf only */
+#include <cstdlib>   /* for exit */
 
-#include <pwd.h> // for get home without use getenv()
-#include <limits.h> // for PATH_MAX
+#include <pwd.h>     /* for get home without use getenv() */
+#include <limits.h>  /* for PATH_MAX */
 
 #ifdef PREFIX
 static const char *static_path = PREFIX "/share";

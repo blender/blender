@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -704,10 +705,6 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 
 /* *********************** DRAWING **************************************** */
 
-
-#define SCR_BACK 0.55
-#define SCR_ROUND 12
-
 /* draw vertical shape visualizing future joining (left as well
  * right direction of future joining) */
 static void draw_horizontal_join_shape(ScrArea *sa, char dir)
@@ -913,7 +910,7 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey, int center)
 	short y2 = sa->v3->vec.y;
 	short a, rt;
 	
-	rt = 0; // CLAMPIS(G.rt, 0, 16);
+	rt = 0; // CLAMPIS(G.debug_value, 0, 16);
 	
 	if (center == 0) {
 		cpack(0x505050);
@@ -1219,7 +1216,7 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 	ScrArea *sa;
 	
 	for (sa = win->screen->areabase.first; sa; sa = sa->next)
-		if ((az = is_in_area_actionzone(sa, event->x, event->y)))
+		if ((az = is_in_area_actionzone(sa, &event->x)))
 			break;
 	
 	if (sa) {
@@ -1262,12 +1259,12 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 		for (sa = scr->areabase.first; sa; sa = sa->next) {
 			if (event->x > sa->totrct.xmin && event->x < sa->totrct.xmax)
 				if (event->y > sa->totrct.ymin && event->y < sa->totrct.ymax)
-					if (NULL == is_in_area_actionzone(sa, event->x, event->y))
+					if (NULL == is_in_area_actionzone(sa, &event->x))
 						break;
 		}
 		if (sa) {
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (BLI_in_rcti(&ar->winrct, event->x, event->y))
+				if (BLI_rcti_isect_pt_v(&ar->winrct, &event->x))
 					scr->subwinactive = ar->swinid;
 			}
 		}
@@ -1314,7 +1311,7 @@ int ED_screen_area_active(const bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 
 	if (win && sc && sa) {
-		AZone *az = is_in_area_actionzone(sa, win->eventstate->x, win->eventstate->y);
+		AZone *az = is_in_area_actionzone(sa, &win->eventstate->x);
 		ARegion *ar;
 		
 		if (az && az->type == AZONE_REGION)
@@ -1471,7 +1468,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	
 	/* are there cameras in the views that are not in the scene? */
 	for (sc = CTX_data_main(C)->screen.first; sc; sc = sc->id.next) {
-		if ( (U.flag & USER_SCENEGLOBAL) || sc == screen) {
+		if ((U.flag & USER_SCENEGLOBAL) || sc == screen) {
 			ScrArea *sa = sc->areabase.first;
 			while (sa) {
 				SpaceLink *sl = sa->spacedata.first;
@@ -1483,7 +1480,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 
 						if (!v3d->camera || !BKE_scene_base_find(scene, v3d->camera)) {
 							v3d->camera = BKE_scene_camera_find(sc->scene);
-							// XXX if (sc==curscreen) handle_view3d_lock();
+							// XXX if (sc == curscreen) handle_view3d_lock();
 							if (!v3d->camera) {
 								ARegion *ar;
 								for (ar = v3d->regionbase.first; ar; ar = ar->next) {
@@ -1506,6 +1503,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	
 	CTX_data_scene_set(C, scene);
 	BKE_scene_set_background(bmain, scene);
+	DAG_on_visible_update(bmain, FALSE);
 	
 	ED_render_engine_changed(bmain);
 	ED_update_for_newframe(bmain, scene, 1);
@@ -1767,12 +1765,22 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 		sad->ar = CTX_wm_region(C);
 		/* if startframe is larger than current frame, we put currentframe on startframe.
 		 * note: first frame then is not drawn! (ton) */
-		if (scene->r.sfra > scene->r.cfra) {
-			sad->sfra = scene->r.cfra;
-			scene->r.cfra = scene->r.sfra;
+		if (PRVRANGEON) {
+			if (scene->r.psfra > scene->r.cfra) {
+				sad->sfra = scene->r.cfra;
+				scene->r.cfra = scene->r.psfra;
+			}
+			else
+				sad->sfra = scene->r.cfra;
 		}
-		else
-			sad->sfra = scene->r.cfra;
+		else {
+			if (scene->r.sfra > scene->r.cfra) {
+				sad->sfra = scene->r.cfra;
+				scene->r.cfra = scene->r.sfra;
+			}
+			else
+				sad->sfra = scene->r.cfra;
+		}
 		sad->redraws = redraws;
 		sad->refresh = refresh;
 		sad->flag |= (enable < 0) ? ANIMPLAY_FLAG_REVERSE : 0;

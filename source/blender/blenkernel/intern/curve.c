@@ -429,6 +429,33 @@ void BKE_curve_texspace_calc(Curve *cu)
 	}
 }
 
+int BKE_nurbList_index_get_co(ListBase *nurb, const int index, float r_co[3])
+{
+	Nurb *nu;
+	int tot = 0;
+
+	for (nu = nurb->first; nu; nu = nu->next) {
+		int tot_nu;
+		if (nu->type == CU_BEZIER) {
+			tot_nu = nu->pntsu;
+			if (index - tot < tot_nu) {
+				copy_v3_v3(r_co, nu->bezt[index - tot].vec[1]);
+				return TRUE;
+			}
+		}
+		else {
+			tot_nu = nu->pntsu * nu->pntsv;
+			if (index - tot < tot_nu) {
+				copy_v3_v3(r_co, nu->bp[index - tot].vec);
+				return TRUE;
+			}
+		}
+		tot += tot_nu;
+	}
+
+	return FALSE;
+}
+
 int BKE_nurbList_verts_count(ListBase *nurb)
 {
 	Nurb *nu;
@@ -1165,7 +1192,7 @@ void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float
 static void forward_diff_bezier_cotangent(const float p0[3], const float p1[3], const float p2[3], const float p3[3],
                                           float p[3], int it, int stride)
 {
-	/* note that these are not purpendicular to the curve
+	/* note that these are not perpendicular to the curve
 	 * they need to be rotated for this,
 	 *
 	 * This could also be optimized like BKE_curve_forward_diff_bezier */
@@ -1588,7 +1615,7 @@ static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], c
                       float *labda, float *mu, float vec[3])
 {
 	/* return:
-	 * -1: colliniar
+	 * -1: collinear
 	 *  0: no intersection of segments
 	 *  1: exact intersection of segments
 	 *  2: cross-intersection of segments
@@ -1712,7 +1739,7 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 	y2 /= t02;
 
 	t02 = x1 * x2 + y1 * y2;
-	if (fabs(t02) >= 1.0)
+	if (fabsf(t02) >= 1.0f)
 		t02 = 0.5 * M_PI;
 	else
 		t02 = (saacos(t02)) / 2.0f;
@@ -2222,7 +2249,7 @@ void BKE_curve_bevelList_make(Object *ob)
 			bl->nr = 0;
 		}
 		else {
-			if (G.rendering && cu->resolu_ren != 0)
+			if (G.is_rendering && cu->resolu_ren != 0)
 				resolu = cu->resolu_ren;
 			else
 				resolu = nu->resolu;
@@ -2366,9 +2393,9 @@ void BKE_curve_bevelList_make(Object *ob)
 			bevp0 = bevp1 + (nr - 1);
 			nr--;
 			while (nr--) {
-				if (fabs(bevp0->vec[0] - bevp1->vec[0]) < 0.00001) {
-					if (fabs(bevp0->vec[1] - bevp1->vec[1]) < 0.00001) {
-						if (fabs(bevp0->vec[2] - bevp1->vec[2]) < 0.00001) {
+				if (fabsf(bevp0->vec[0] - bevp1->vec[0]) < 0.00001f) {
+					if (fabsf(bevp0->vec[1] - bevp1->vec[1]) < 0.00001f) {
+						if (fabsf(bevp0->vec[2] - bevp1->vec[2]) < 0.00001f) {
 							bevp0->dupe_tag = TRUE;
 							bl->dupe_nr++;
 						}
@@ -2741,7 +2768,7 @@ static void calchandleNurb_intern(BezTriple *bezt, BezTriple *prev, BezTriple *n
 
 	if (skip_align) {
 		/* handles need to be updated during animation and applying stuff like hooks,
-		 * but in such situatios it's quite difficult to distinguish in which order
+		 * but in such situations it's quite difficult to distinguish in which order
 		 * align handles should be aligned so skip them for now */
 		return;
 	}
@@ -3047,29 +3074,6 @@ void BKE_nurbList_handles_set(ListBase *editnurb, short code)
 	}
 }
 
-static void swapdata(void *adr1, void *adr2, int len)
-{
-
-	if (len <= 0) return;
-
-	if (len < 65) {
-		char adr[64];
-
-		memcpy(adr, adr1, len);
-		memcpy(adr1, adr2, len);
-		memcpy(adr2, adr, len);
-	}
-	else {
-		char *adr;
-
-		adr = (char *)MEM_mallocN(len, "curve swap");
-		memcpy(adr, adr1, len);
-		memcpy(adr1, adr2, len);
-		memcpy(adr2, adr, len);
-		MEM_freeN(adr);
-	}
-}
-
 void BKE_nurb_direction_switch(Nurb *nu)
 {
 	BezTriple *bezt1, *bezt2;
@@ -3077,7 +3081,9 @@ void BKE_nurb_direction_switch(Nurb *nu)
 	float *fp1, *fp2, *tempf;
 	int a, b;
 
-	if (nu->pntsu == 1 && nu->pntsv == 1) return;
+	if (nu->pntsu == 1 && nu->pntsv == 1) {
+		return;
+	}
 
 	if (nu->type == CU_BEZIER) {
 		a = nu->pntsu;
@@ -3086,19 +3092,22 @@ void BKE_nurb_direction_switch(Nurb *nu)
 		if (a & 1) a += 1;  /* if odd, also swap middle content */
 		a /= 2;
 		while (a > 0) {
-			if (bezt1 != bezt2)
+			if (bezt1 != bezt2) {
 				SWAP(BezTriple, *bezt1, *bezt2);
+			}
 
-			swapdata(bezt1->vec[0], bezt1->vec[2], 12);
-			if (bezt1 != bezt2)
-				swapdata(bezt2->vec[0], bezt2->vec[2], 12);
+			swap_v3_v3(bezt1->vec[0], bezt1->vec[2]);
+
+			if (bezt1 != bezt2) {
+				swap_v3_v3(bezt2->vec[0], bezt2->vec[2]);
+			}
 
 			SWAP(char, bezt1->h1, bezt1->h2);
-			SWAP(short, bezt1->f1, bezt1->f3);
+			SWAP(char, bezt1->f1, bezt1->f3);
 
 			if (bezt1 != bezt2) {
 				SWAP(char, bezt2->h1, bezt2->h2);
-				SWAP(short, bezt2->f1, bezt2->f3);
+				SWAP(char, bezt2->f1, bezt2->f3);
 				bezt1->alfa = -bezt1->alfa;
 				bezt2->alfa = -bezt2->alfa;
 			}

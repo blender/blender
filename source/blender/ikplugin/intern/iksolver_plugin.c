@@ -139,7 +139,7 @@ static void initialize_posetree(struct Object *UNUSED(ob), bPoseChannel *pchan_t
 		size = MIN2(segcount, tree->totchannel);
 		a = t = 0;
 		while (a < size && t < tree->totchannel) {
-			// locate first matching channel
+			/* locate first matching channel */
 			for (; t < tree->totchannel && tree->pchan[t] != chanlist[segcount - a - 1]; t++) ;
 			if (t >= tree->totchannel)
 				break;
@@ -334,9 +334,10 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
 
 		if (tree->stretch && (pchan->ikstretch > 0.0f)) {
-			float ikstretch = pchan->ikstretch * pchan->ikstretch;
-			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0f - ikstretch, 0.99f));
-			IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
+			const float ikstretch = pchan->ikstretch * pchan->ikstretch;
+			/* this function does its own clamping */
+			IK_SetStiffness(seg, IK_TRANS_Y, 1.0f - ikstretch);
+			IK_SetLimit(seg, IK_TRANS_Y, IK_STRETCH_STIFF_MIN, IK_STRETCH_STIFF_MAX);
 		}
 	}
 
@@ -535,7 +536,7 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 		for (a = 0; a < tree->totchannel; a++) {
 			if (!(tree->pchan[a]->flag & POSE_DONE))    // successive trees can set the flag
 				BKE_pose_where_is_bone(scene, ob, tree->pchan[a], ctime, 1);
-			// tell blender that this channel was controlled by IK, it's cleared on each BKE_pose_where_is()
+			/* tell blender that this channel was controlled by IK, it's cleared on each BKE_pose_where_is() */
 			tree->pchan[a]->flag |= POSE_CHAIN;
 		}
 		/* 5. execute the IK solver */

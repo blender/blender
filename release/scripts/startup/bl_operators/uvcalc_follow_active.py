@@ -232,7 +232,7 @@ class FollowActiveQuads(Operator):
     mode = bpy.props.EnumProperty(
             name="Edge Length Mode",
             description="Method to space UV edge loops",
-            items=(('EVEN', "Even", "Space all UVs evently"),
+            items=(('EVEN', "Even", "Space all UVs evenly"),
                    ('LENGTH', "Length", "Average space UVs edge length of each loop")),
             default='LENGTH',
             )

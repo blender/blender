@@ -86,6 +86,9 @@
 /* only for forward declarations */
 #include "NOD_composite.h"
 
+#define CMP_SCALE_MAX	12000
+
+#ifdef WITH_COMPOSITOR_LEGACY
 
 /* *************************** operations support *************************** */
 
@@ -198,9 +201,9 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy);
 
 /* transformations */
 
-#define CMP_SCALE_MAX	12000
-
 CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type);
 float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc);
 
 #endif
+
+#endif  /* WITH_COMPOSITOR_LEGACY */

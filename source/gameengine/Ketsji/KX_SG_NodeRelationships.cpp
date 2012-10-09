@@ -45,14 +45,14 @@ KX_NormalParentRelation::
 New(
 ) {
 	return new KX_NormalParentRelation();
-}		
+}
 
 	bool
 KX_NormalParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent,
-	bool& parentUpdated	
+	bool& parentUpdated
 ) {
 	MT_assert(child != NULL);
 
@@ -67,7 +67,7 @@ UpdateChildCoordinates(
 		return true; //false;
 	}
 	else {
-		// the childs world locations which we will update.	
+		// the childs world locations which we will update.
 		const MT_Vector3 & p_world_scale = parent->GetWorldScaling();
 		const MT_Point3 & p_world_pos = parent->GetWorldPosition();
 		const MT_Matrix3x3 & p_world_rotation = parent->GetWorldOrientation();
@@ -121,7 +121,7 @@ KX_VertexParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent,
-	bool& parentUpdated	
+	bool& parentUpdated
 ) {
 
 	MT_assert(child != NULL);
@@ -176,7 +176,7 @@ New(
 	MT_Scalar relaxation
 ) {
 	return new 	KX_SlowParentRelation(relaxation);
-}	
+}
 
 /** 
  * Method inherited from KX_ParentRelation
@@ -187,7 +187,7 @@ KX_SlowParentRelation::
 UpdateChildCoordinates(
 	SG_Spatial * child,
 	const SG_Spatial * parent,
-	bool& parentUpdated	
+	bool& parentUpdated
 ) {
 	MT_assert(child != NULL);
 
@@ -198,7 +198,7 @@ UpdateChildCoordinates(
 	const MT_Point3 & child_pos = child->GetLocalPosition();
 	const MT_Matrix3x3 & child_rotation = child->GetLocalOrientation();
 
-	// the childs world locations which we will update.	
+	// the childs world locations which we will update.
 	
 	MT_Vector3 child_w_scale;
 	MT_Point3 child_w_pos;
@@ -230,7 +230,7 @@ UpdateChildCoordinates(
 
 			child_w_scale = child->GetWorldScaling();
 			child_w_pos = child->GetWorldPosition();
-			child_w_rotation = child->GetWorldOrientation();	
+			child_w_rotation = child->GetWorldOrientation();
 
 			// now 'interpolate' the normal coordinates with the last 
 			// world coordinates to get the new world coordinates.

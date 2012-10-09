@@ -32,7 +32,6 @@
  * This is external code.
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -49,7 +48,7 @@
 #include "AVI_avi.h"
 #include "avi_intern.h"
 
-#include "endian.h"
+#include "avi_endian.h"
 
 static int AVI_DEBUG = 0;
 static char DEBUG_FCC[4];
@@ -735,14 +734,14 @@ AviError AVI_close(AviMovie *movie)
 	fclose(movie->fp);
 
 	for (i = 0; i < movie->header->Streams; i++) {
-		if (movie->streams[i].sf != NULL)
+		if (movie->streams[i].sf != NULL) {
 			MEM_freeN(movie->streams[i].sf);
+		}
 	}
 
-	if (movie->header != NULL)
-		MEM_freeN(movie->header);
-	if (movie->streams != NULL)
-		MEM_freeN(movie->streams);
+	MEM_freeN(movie->header);
+	MEM_freeN(movie->streams);
+
 	if (movie->entries != NULL)
 		MEM_freeN(movie->entries);
 	if (movie->offset_table != NULL)
@@ -857,9 +856,9 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 #if 0
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
 				AviMJPEGUnknown *tmp;
-				
-				tmp = (AviMJPEGUnknown *) ((char*) movie->streams[i].sf +sizeof(AviBitmapInfoHeader));
-				
+
+				tmp = (AviMJPEGUnknown *)((char *) movie->streams[i].sf + sizeof(AviBitmapInfoHeader));
+
 				tmp->a = 44;
 				tmp->b = 24;
 				tmp->c = 0;
@@ -870,7 +869,7 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 			}
 		}
 		else if (movie->streams[i].sh.Type == FCC("auds")) {
-			// pass
+			/* pass */
 		}
 #endif
 		}
@@ -965,11 +964,13 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 	/* Allocate the new memory for the index entry */
 
 	if (frame_num + 1 > movie->index_entries) {
-		temp = (AviIndexEntry *) MEM_mallocN((frame_num + 1) *
-		                                     (movie->header->Streams + 1) * sizeof(AviIndexEntry), "newidxentry");
+		const size_t entry_size = (movie->header->Streams + 1) * sizeof(AviIndexEntry);
+
 		if (movie->entries != NULL) {
-			memcpy(temp, movie->entries, movie->index_entries * (movie->header->Streams + 1) * sizeof(AviIndexEntry));
-			MEM_freeN(movie->entries);
+			temp = (AviIndexEntry *)MEM_recallocN(movie->entries, (frame_num + 1) * entry_size);
+		}
+		else {
+			temp = (AviIndexEntry *) MEM_callocN((frame_num + 1) * entry_size, "newidxentry");
 		}
 
 		movie->entries = temp;
@@ -1080,13 +1081,14 @@ AviError AVI_close_compress(AviMovie *movie)
 	fclose(movie->fp);
 
 	for (i = 0; i < movie->header->Streams; i++) {
-		if (movie->streams[i].sf != NULL)
+		if (movie->streams && (movie->streams[i].sf != NULL)) {
 			MEM_freeN(movie->streams[i].sf);
+		}
 	}
-	if (movie->header != NULL)
-		MEM_freeN(movie->header);
-	if (movie->entries != NULL)
-		MEM_freeN(movie->entries);
+
+	MEM_freeN(movie->header);
+	MEM_freeN(movie->entries);
+
 	if (movie->streams != NULL)
 		MEM_freeN(movie->streams);
 	if (movie->offset_table != NULL)

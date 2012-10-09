@@ -59,13 +59,17 @@ enum LinearSolverType {
   // normal equations A'A x = A'b. They are direct solvers and do not
   // assume any special problem structure.
 
-  // Solve the normal equations using a sparse cholesky solver; based
-  // on CHOLMOD.
-  SPARSE_NORMAL_CHOLESKY,
+  // Solve the normal equations using a dense Cholesky solver; based
+  // on Eigen.
+  DENSE_NORMAL_CHOLESKY,
 
   // Solve the normal equations using a dense QR solver; based on
   // Eigen.
   DENSE_QR,
+
+  // Solve the normal equations using a sparse cholesky solver; requires
+  // SuiteSparse or CXSparse.
+  SPARSE_NORMAL_CHOLESKY,
 
   // Specialized solvers, specific to problems with a generalized
   // bi-partitite structure.
@@ -110,6 +114,15 @@ enum PreconditionerType {
   CLUSTER_TRIDIAGONAL
 };
 
+enum SparseLinearAlgebraLibraryType {
+  // High performance sparse Cholesky factorization and approximate
+  // minimum degree ordering.
+  SUITE_SPARSE,
+
+  // A lightweight replacment for SuiteSparse.
+  CX_SPARSE
+};
+
 enum LinearSolverTerminationType {
   // Termination criterion was met. For factorization based solvers
   // the tolerance is assumed to be zero. Any user provided values are
@@ -149,8 +162,47 @@ enum LoggingType {
   PER_MINIMIZER_ITERATION
 };
 
-enum MinimizerType {
-  LEVENBERG_MARQUARDT
+// Ceres supports different strategies for computing the trust region
+// step.
+enum TrustRegionStrategyType {
+  // The default trust region strategy is to use the step computation
+  // used in the Levenberg-Marquardt algorithm. For more details see
+  // levenberg_marquardt_strategy.h
+  LEVENBERG_MARQUARDT,
+
+  // Powell's dogleg algorithm interpolates between the Cauchy point
+  // and the Gauss-Newton step. It is particularly useful if the
+  // LEVENBERG_MARQUARDT algorithm is making a large number of
+  // unsuccessful steps. For more details see dogleg_strategy.h.
+  //
+  // NOTES:
+  //
+  // 1. This strategy has not been experimented with or tested as
+  // extensively as LEVENBERG_MARQUARDT, and therefore it should be
+  // considered EXPERIMENTAL for now.
+  //
+  // 2. For now this strategy should only be used with exact
+  // factorization based linear solvers, i.e., SPARSE_SCHUR,
+  // DENSE_SCHUR, DENSE_QR and SPARSE_NORMAL_CHOLESKY.
+  DOGLEG
+};
+
+// Ceres supports two different dogleg strategies.
+// The "traditional" dogleg method by Powell and the
+// "subspace" method described in
+// R. H. Byrd, R. B. Schnabel, and G. A. Shultz,
+// "Approximate solution of the trust region problem by minimization
+//  over two-dimensional subspaces", Mathematical Programming,
+// 40 (1988), pp. 247--263
+enum DoglegType {
+  // The traditional approach constructs a dogleg path
+  // consisting of two line segments and finds the furthest
+  // point on that path that is still inside the trust region.
+  TRADITIONAL_DOGLEG,
+
+  // The subspace approach finds the exact minimum of the model
+  // constrained to the subspace spanned by the dogleg path.
+  SUBSPACE_DOGLEG
 };
 
 enum SolverTerminationType {
@@ -246,11 +298,15 @@ enum DimensionType {
 
 const char* LinearSolverTypeToString(LinearSolverType type);
 const char* PreconditionerTypeToString(PreconditionerType type);
+const char* SparseLinearAlgebraLibraryTypeToString(
+    SparseLinearAlgebraLibraryType type);
 const char* LinearSolverTerminationTypeToString(
     LinearSolverTerminationType type);
 const char* OrderingTypeToString(OrderingType type);
 const char* SolverTerminationTypeToString(SolverTerminationType type);
-
+const char* SparseLinearAlgebraLibraryTypeToString(
+    SparseLinearAlgebraLibraryType type);
+const char* TrustRegionStrategyTypeToString( TrustRegionStrategyType type);
 bool IsSchurType(LinearSolverType type);
 
 }  // namespace ceres

@@ -38,14 +38,17 @@ public:
 	~WriteBufferOperation();
 	int isBufferOperation() { return true; }
 	MemoryProxy *getMemoryProxy() { return this->m_memoryProxy; }
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 	const bool isWriteBufferOperation() const { return true; }
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void initExecution();
 	void deinitExecution();
-	void executeOpenCLRegion(OpenCLDevice* device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer);
+	void executeOpenCLRegion(OpenCLDevice *device, rcti *rect, unsigned int chunkNumber, MemoryBuffer **memoryBuffers, MemoryBuffer *outputBuffer);
 	void readResolutionFromInputSocket();
+	inline NodeOperation *getInput() {
+		return m_input;
+	}
 
 };
 #endif

@@ -49,14 +49,14 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
+	void executePixel(float output[4], int x, int y, void *data);
 	
 	/**
 	 * Initialize the execution
 	 */
 	void initExecution();
 	
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect);
 	/**
 	 * Deinitialize the execution
 	 */
@@ -79,9 +79,9 @@ public:
 	}
 
 private:
-	void determineUV(float result[4], float x, float y) const;
-	void determineUV(float result[4], float x, float y, float distortion, float dispersion);
-	void updateDispersionAndDistortion(MemoryBuffer **inputBuffers);
+	void determineUV(float result[6], float x, float y) const;
+	void determineUV(float result[6], float x, float y, float distortion, float dispersion);
+	void updateDispersionAndDistortion();
 	void updateVariables(float distortion, float dispersion);
 
 };

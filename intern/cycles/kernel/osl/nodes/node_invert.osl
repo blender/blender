@@ -21,7 +21,7 @@
 shader node_invert(
 	float Fac = 1.0,
 	color ColorIn = color(0.8, 0.8, 0.8),
-	output ColorOut = color(0.8, 0.8, 0.8)
+	output color ColorOut = color(0.8, 0.8, 0.8))
 {
 	color ColorInv = color(1.0) - ColorIn;
 	ColorOut = mix(ColorIn, ColorInv, Fac);

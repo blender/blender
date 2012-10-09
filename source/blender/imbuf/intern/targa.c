@@ -31,9 +31,11 @@
 
 
 #ifdef WIN32
-#include <io.h>
+#  include <io.h>
 #endif
-#include "BLI_blenlib.h"
+
+#include "BLI_fileops.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
@@ -44,6 +46,8 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_filetype.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
 
 /* this one is only def-ed once, strangely... related to GS? */
 #define GSS(x) (((uchar *)(x))[1] << 8 | ((uchar *)(x))[0])
@@ -544,22 +548,23 @@ partial_load:
 }
 
 
-ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
+ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	TARGA tga;
 	struct ImBuf *ibuf;
 	int col, count, size;
 	unsigned int *rect, *cmap = NULL /*, mincol = 0*/, maxcol = 0;
 	uchar *cp = (uchar *) &col;
-	
+
 	if (checktarga(&tga, mem) == 0) return(NULL);
+
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
 	if (flags & IB_test) ibuf = IMB_allocImBuf(tga.xsize, tga.ysize, tga.pixsize, 0);
 	else ibuf = IMB_allocImBuf(tga.xsize, tga.ysize, (tga.pixsize + 0x7) & ~0x7, IB_rect);
 
 	if (ibuf == NULL) return(NULL);
 	ibuf->ftype = TGA;
-	ibuf->profile = IB_PROFILE_SRGB;
 	mem = mem + 18 + tga.numid;
 	
 	cp[0] = 0xff;
@@ -680,9 +685,11 @@ ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
 		}
 	}
 	
-	if (tga.imgdes & 0x20) IMB_flipy(ibuf);
+	if (tga.imgdes & 0x20) {
+		IMB_flipy(ibuf);
+	}
 
-	if (ibuf && ibuf->rect)
+	if (ibuf->rect)
 		IMB_convert_rgba_to_abgr(ibuf);
 	
 	return(ibuf);

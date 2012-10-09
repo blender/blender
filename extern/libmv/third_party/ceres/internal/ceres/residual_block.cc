@@ -102,8 +102,11 @@ bool ResidualBlock::Evaluate(double* cost,
 
   InvalidateEvaluation(*this, cost, residuals, eval_jacobians);
 
-  if (!cost_function_->Evaluate(parameters.get(), residuals, eval_jacobians) ||
-      !IsEvaluationValid(*this,
+  if (!cost_function_->Evaluate(parameters.get(), residuals, eval_jacobians)) {
+    return false;
+  }
+
+  if (!IsEvaluationValid(*this,
                          parameters.get(),
                          cost,
                          residuals,

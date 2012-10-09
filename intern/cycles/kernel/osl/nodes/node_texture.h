@@ -156,7 +156,7 @@ float noise_basis(point p, string basis)
 	float result = 0.0;
 
 	if (basis == "Perlin")
-		result = noise(p);
+		result = noise(p); /* returns perlin noise in range 0..1 */
 	if (basis == "Voronoi F1")
 		result = voronoi_F1S(p);
 	if (basis == "Voronoi F2")
@@ -212,14 +212,17 @@ float noise_wave(string wave, float a)
 
 /* Turbulence */
 
-float noise_turbulence(point p, string basis, int octaves, int hard)
+float noise_turbulence(point p, string basis, float details, int hard)
 {
 	float fscale = 1.0;
 	float amp = 1.0;
 	float sum = 0.0;
-	int i;
+	int i, n;
+	
+	float octaves = clamp(details, 0.0, 16.0);
+	n = (int)octaves;
 
-	for (i = 0; i <= octaves; i++) {
+	for (i = 0; i <= n; i++) {
 		float t = noise_basis(fscale * p, basis);
 
 		if (hard)
@@ -229,10 +232,26 @@ float noise_turbulence(point p, string basis, int octaves, int hard)
 		amp *= 0.5;
 		fscale *= 2.0;
 	}
+	
+	float rmd = octaves - floor(octaves);
 
-	sum *= ((float)(1 << octaves) / (float)((1 << (octaves + 1)) - 1));
+	if(rmd != 0.0) {
+		float t = noise_basis(fscale*p, basis);
 
-	return sum;
+		if(hard)
+			t = fabs(2.0*t - 1.0);
+
+		float sum2 = sum + t*amp;
+
+		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
+		sum2 *= ((float)(1 << (n+1))/(float)((1 << (n+2)) - 1));
+
+		return (1.0 - rmd)*sum + rmd*sum2;
+	}
+	else {
+		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
+		return sum;
+	}
 }
 
 /* Utility */

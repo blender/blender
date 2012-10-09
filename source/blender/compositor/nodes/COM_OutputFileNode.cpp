@@ -24,8 +24,8 @@
 #include "COM_OutputFileNode.h"
 #include "COM_OutputFileOperation.h"
 #include "COM_ExecutionSystem.h"
+
 #include "BLI_path_util.h"
-#include "BKE_utildefines.h"
 
 OutputFileNode::OutputFileNode(bNode *editorNode) : Node(editorNode)
 {
@@ -62,7 +62,7 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				input->relinkConnections(outputOperation->getInputSocket(i));
 			}
 		}
-		if (hasConnections) addPreviewOperation(graph, outputOperation->getInputSocket(0));
+		if (hasConnections) addPreviewOperation(graph, context, outputOperation->getInputSocket(0));
 		
 		graph->addOperation(outputOperation);
 	}
@@ -80,11 +80,12 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				BLI_join_dirfile(path, FILE_MAX, storage->base_path, sockdata->path);
 				
 				OutputSingleLayerOperation *outputOperation = new OutputSingleLayerOperation(
-				        context->getRenderData(), context->getbNodeTree(), input->getDataType(), format, path);
+				        context->getRenderData(), context->getbNodeTree(), input->getDataType(), format, path,
+				        context->getViewSettings(), context->getDisplaySettings());
 				input->relinkConnections(outputOperation->getInputSocket(0));
 				graph->addOperation(outputOperation);
 				if (!previewAdded) {
-					addPreviewOperation(graph, outputOperation->getInputSocket(0));
+					addPreviewOperation(graph, context, outputOperation->getInputSocket(0));
 					previewAdded = true;
 				}
 			}

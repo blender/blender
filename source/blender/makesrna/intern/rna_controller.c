@@ -77,7 +77,7 @@ static StructRNA *rna_Controller_refine(struct PointerRNA *ptr)
 	}
 }
 
-void rna_Constroller_name_set(PointerRNA *ptr, const char *value)
+static void rna_Constroller_name_set(PointerRNA *ptr, const char *value)
 {
 	bController *cont = (bController *)ptr->data;
 

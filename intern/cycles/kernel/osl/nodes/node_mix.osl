@@ -239,8 +239,8 @@ color node_mix_soft(float t, color col1, color col2)
 {
 	float tm = 1.0 - t;
 
-	color one= color(1.0);
-	color scr= one - (one - col2)*(one - col1);
+	color one = color(1.0);
+	color scr = one - (one - col2)*(one - col1);
 
 	return tm*col1 + t*((one - col1)*col2*col1 + col1*scr);
 }
@@ -267,8 +267,20 @@ color node_mix_linear(float t, color col1, color col2)
 	return outcol;
 }
 
+color node_mix_clamp(color col)
+{
+	color outcol = col;
+
+	outcol[0] = clamp(col[0], 0.0, 1.0);
+	outcol[1] = clamp(col[2], 0.0, 1.0);
+	outcol[2] = clamp(col[2], 0.0, 1.0);
+
+	return outcol;
+}
+
 shader node_mix(
 	string type = "Mix",
+	int Clamp = 0,
 	float Fac = 0.5,
 	color Color1 = color(0.0, 0.0, 0.0),
 	color Color2 = color(0.0, 0.0, 0.0),
@@ -312,5 +324,8 @@ shader node_mix(
 		Color = node_mix_soft(t, Color1, Color2);
 	if(type == "Linear Light")
 		Color = node_mix_linear(t, Color1, Color2);
+
+	if(Clamp)
+		Color = node_mix_clamp(Color);
 }
 

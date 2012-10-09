@@ -47,7 +47,11 @@
 #include "BKE_report.h"
 
 #include "BKE_writeavi.h"
-#include "AVI_avi.h"
+
+/* ********************** general blender movie support ***************************** */
+
+#ifdef WITH_AVI
+#  include "AVI_avi.h"
 
 /* callbacks */
 static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportList *reports);
@@ -55,38 +59,32 @@ static void end_avi(void);
 static int append_avi(RenderData *rd, int start_frame, int frame, int *pixels,
                       int rectx, int recty, ReportList *reports);
 static void filepath_avi(char *string, RenderData *rd);
-
-/* ********************** general blender movie support ***************************** */
+#endif  /* WITH_AVI */
 
 #ifdef WITH_QUICKTIME
-#include "quicktime_export.h"
+#  include "quicktime_export.h"
 #endif
 
 #ifdef WITH_FFMPEG
-#include "BKE_writeffmpeg.h"
+#  include "BKE_writeffmpeg.h"
 #endif
 
 #include "BKE_writeframeserver.h"
 
 bMovieHandle *BKE_movie_handle_get(const char imtype)
 {
-	static bMovieHandle mh;
+	static bMovieHandle mh = {0};
 	
 	/* set the default handle, as builtin */
+#ifdef WITH_AVI
 	mh.start_movie = start_avi;
 	mh.append_movie = append_avi;
 	mh.end_movie = end_avi;
 	mh.get_next_frame = NULL;
 	mh.get_movie_path = filepath_avi;
-	
-	/* do the platform specific handles */
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
-	if (imtype == R_IMF_IMTYPE_AVICODEC) {		
-		//XXX mh.start_movie= start_avi_codec;
-		//XXX mh.append_movie= append_avi_codec;
-		//XXX mh.end_movie= end_avi_codec;
-	}
 #endif
+
+	/* do the platform specific handles */
 #ifdef WITH_QUICKTIME
 	if (imtype == R_IMF_IMTYPE_QUICKTIME) {
 		mh.start_movie = start_qt;
@@ -120,6 +118,8 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 
 /* ****************************************************************** */
 
+
+#ifdef WITH_AVI
 
 static AviMovie *avi = NULL;
 
@@ -226,6 +226,7 @@ static void end_avi(void)
 	MEM_freeN(avi);
 	avi = NULL;
 }
+#endif  /* WITH_AVI */
 
 /* similar to BKE_makepicstring() */
 void BKE_movie_filepath_get(char *string, RenderData *rd)

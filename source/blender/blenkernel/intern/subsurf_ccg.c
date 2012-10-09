@@ -113,7 +113,8 @@ typedef enum {
 	CCG_USE_ARENA = 2,
 	CCG_CALC_NORMALS = 4,
 	/* add an extra four bytes for a mask layer */
-	CCG_ALLOC_MASK = 8
+	CCG_ALLOC_MASK = 8,
+	CCG_SIMPLE_SUBDIV = 16
 } CCGFlags;
 
 static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
@@ -133,7 +134,10 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
 
 		ccgSubSurf_getUseAgeCounts(prevSS, &oldUseAging, NULL, NULL, NULL);
 
-		if (oldUseAging != useAging) {
+		if ((oldUseAging != useAging) ||
+			(ccgSubSurf_getSimpleSubdiv(prevSS) !=
+			 !!(flags & CCG_SIMPLE_SUBDIV)))
+		{
 			ccgSubSurf_free(prevSS);
 		}
 		else {
@@ -156,6 +160,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
 		ifc.vertDataSize += sizeof(float) * 3;
 	if (flags & CCG_ALLOC_MASK)
 		ifc.vertDataSize += sizeof(float);
+	ifc.simpleSubdiv = !!(flags & CCG_SIMPLE_SUBDIV);
 
 	if (useArena) {
 		CCGAllocatorIFC allocatorIFC;
@@ -508,10 +513,14 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
 					w2 = (1.0f - fx + fac2 * fx * -fac) * (fy);
 					w4 = (fx) * (1.0f - fy + -fac2 * fy * fac);
 
-					fac2 = 1.0f - (w1 + w2 + w4);
-					fac2 = fac2 / (float)(faceLen - 3);
-					for (j = 0; j < faceLen; j++)
-						w[j] = fac2;
+					/* these values aren't used for tri's and cause divide by zero */
+					if (faceLen > 3) {
+						fac2 = 1.0f - (w1 + w2 + w4);
+						fac2 = fac2 / (float)(faceLen - 3);
+						for (j = 0; j < faceLen; j++) {
+							w[j] = fac2;
+						}
+					}
 					
 					w[i] = w1;
 					w[(i - 1 + faceLen) % faceLen] = w2;
@@ -1463,9 +1472,9 @@ static void ccgdm_getVertCos(DerivedMesh *dm, float (*cos)[3])
 }
 
 static void ccgDM_foreachMappedVert(
-    DerivedMesh *dm,
-    void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
-    void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no_f[3], const short no_s[3]),
+        void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGVertIterator *vi;
@@ -1485,9 +1494,9 @@ static void ccgDM_foreachMappedVert(
 }
 
 static void ccgDM_foreachMappedEdge(
-    DerivedMesh *dm,
-    void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
-    void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float v0co[3], const float v1co[3]),
+        void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -2487,9 +2496,9 @@ static void ccgDM_drawMappedEdgesInterp(DerivedMesh *dm,
 }
 
 static void ccgDM_foreachMappedFaceCenter(
-    DerivedMesh *dm,
-    void (*func)(void *userData, int index, const float co[3], const float no[3]),
-    void *userData)
+        DerivedMesh *dm,
+        void (*func)(void *userData, int index, const float co[3], const float no[3]),
+        void *userData)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -3474,7 +3483,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
         float (*vertCos)[3],
         SubsurfFlags flags)
 {
-	int useSimple = smd->subdivType == ME_SIMPLE_SUBSURF;
+	int useSimple = (smd->subdivType == ME_SIMPLE_SUBSURF) ? CCG_SIMPLE_SUBDIV : 0;
 	CCGFlags useAging = smd->flags & eSubsurfModifierFlag_DebugIncr ? CCG_USE_AGING : 0;
 	int useSubsurfUv = smd->flags & eSubsurfModifierFlag_SubsurfUv;
 	int drawInteriorEdges = !(smd->flags & eSubsurfModifierFlag_ControlEdges);
@@ -3483,7 +3492,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	if (flags & SUBSURF_FOR_EDIT_MODE) {
 		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels) : smd->levels;
 
-		smd->emCache = _getSubSurf(smd->emCache, levels, 3, useAging | CCG_CALC_NORMALS);
+		smd->emCache = _getSubSurf(smd->emCache, levels, 3, useSimple | useAging | CCG_CALC_NORMALS);
 		ss_sync_from_derivedmesh(smd->emCache, dm, vertCos, useSimple);
 
 		result = getCCGDerivedMesh(smd->emCache,
@@ -3498,7 +3507,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		if (levels == 0)
 			return dm;
 		
-		ss = _getSubSurf(NULL, levels, 3, CCG_USE_ARENA | CCG_CALC_NORMALS);
+		ss = _getSubSurf(NULL, levels, 3, useSimple | CCG_USE_ARENA | CCG_CALC_NORMALS);
 
 		ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
@@ -3529,7 +3538,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		}
 
 		if (useIncremental && (flags & SUBSURF_IS_FINAL_CALC)) {
-			smd->mCache = ss = _getSubSurf(smd->mCache, levels, 3, useAging | CCG_CALC_NORMALS);
+			smd->mCache = ss = _getSubSurf(smd->mCache, levels, 3, useSimple | useAging | CCG_CALC_NORMALS);
 
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
@@ -3538,7 +3547,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 			                           useSubsurfUv, dm);
 		}
 		else {
-			CCGFlags ccg_flags = CCG_USE_ARENA | CCG_CALC_NORMALS;
+			CCGFlags ccg_flags = useSimple | CCG_USE_ARENA | CCG_CALC_NORMALS;
 			
 			if (smd->mCache && (flags & SUBSURF_IS_FINAL_CALC)) {
 				ccgSubSurf_free(smd->mCache);

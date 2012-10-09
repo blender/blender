@@ -97,10 +97,14 @@ public:
 
 
 
-ClosureParam closure_emission_params[] = {
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(GenericEmissiveClosure)
-};
+ClosureParam *closure_emission_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(GenericEmissiveClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(closure_emission_prepare, GenericEmissiveClosure)
 

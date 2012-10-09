@@ -32,6 +32,7 @@
  *  \ingroup edsculpt
  */
 
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -106,13 +107,13 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 		if (ss->kb && strcmp(ss->kb->name, unode->shapeName)) {
 			/* shape key has been changed before calling undo operator */
 
-			Key *key = ob_get_key(ob);
-			KeyBlock *kb = key_get_named_keyblock(key, unode->shapeName);
+			Key *key = BKE_key_from_object(ob);
+			KeyBlock *kb = key ? BKE_keyblock_find_name(key, unode->shapeName) : NULL;
 
 			if (kb) {
 				ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
-				sculpt_update_mesh_elements(scene, sd, ob, 0);
+				sculpt_update_mesh_elements(scene, sd, ob, 0, FALSE);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DATA, ob);
 			}
 			else {
@@ -126,7 +127,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 
 		if (ss->kb) {
 			float (*vertCos)[3];
-			vertCos = key_to_vertcos(ob, ss->kb);
+			vertCos = BKE_key_convert_to_vertcos(ob, ss->kb);
 
 			for (i = 0; i < unode->totvert; i++) {
 				if (ss->modifiers_active) sculpt_undo_restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
@@ -265,13 +266,28 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	Scene *scene = CTX_data_scene(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob = CTX_data_active_object(C);
-	DerivedMesh *dm = mesh_get_derived_final(scene, ob, 0);
+	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
 	SculptUndoNode *unode;
 	MultiresModifierData *mmd;
 	int update = FALSE, rebuild = FALSE;
+	int need_mask = FALSE;
 
-	sculpt_update_mesh_elements(scene, sd, ob, 0);
+	for (unode = lb->first; unode; unode = unode->next) {
+		if (strcmp(unode->idname, ob->id.name) == 0) {
+			if (unode->type == SCULPT_UNDO_MASK) {
+				/* is possible that we can't do the mask undo (below)
+				 * because of the vertex count */
+				need_mask = TRUE;
+				break;
+			}
+		}
+	}
+
+	sculpt_update_mesh_elements(scene, sd, ob, 0, need_mask);
+
+	/* call _after_ sculpt_update_mesh_elements() which may update 'ob->derivedFinal' */
+	dm = mesh_get_derived_final(scene, ob, 0);
 
 	for (unode = lb->first; unode; unode = unode->next) {
 		if (!(strcmp(unode->idname, ob->id.name) == 0))
@@ -379,16 +395,12 @@ static void sculpt_undo_free(ListBase *lb)
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node)
 {
 	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_MESH);
-	SculptUndoNode *unode;
 
-	if (!lb)
+	if (!lb) {
 		return NULL;
+	}
 
-	for (unode = lb->first; unode; unode = unode->next)
-		if (unode->node == node)
-			return unode;
-
-	return NULL;
+	return BLI_findptr(lb, node, offsetof(SculptUndoNode, node));
 }
 
 static void sculpt_undo_alloc_and_store_hidden(PBVH *pbvh,

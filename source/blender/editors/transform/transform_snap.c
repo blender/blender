@@ -29,7 +29,6 @@
  *  \ingroup edtransform
  */
 
- 
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
@@ -41,7 +40,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h" // Temporary, for snapping to other unselected meshes
+#include "DNA_meshdata_types.h"  /* Temporary, for snapping to other unselected meshes */
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
@@ -54,20 +53,11 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-//#include "BDR_drawobject.h"
-//
-//#include "editmesh.h"
-//#include "BIF_editsima.h"
 #include "BIF_gl.h"
-//#include "BIF_mywindow.h"
-//#include "BIF_screen.h"
-//#include "BIF_editsima.h"
-//#include "BIF_drawimage.h"
-//#include "BIF_editmesh.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
-#include "BKE_anim.h" /* for duplis */
+#include "BKE_anim.h"  /* for duplis */
 #include "BKE_context.h"
 #include "BKE_tessmesh.h"
 #include "BKE_mesh.h"
@@ -88,9 +78,9 @@
 
 #include "transform.h"
 
-//#include "blendef.h" /* for selection modes */
-
 #define USE_BVH_FACE_SNAP
+
+#define TRANSFORM_DIST_MAX_PX 1000
 
 /********************* PROTOTYPES ***********************/
 
@@ -218,10 +208,10 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			glLoadIdentity();
 			
-			ED_space_image_aspect(t->sa->spacedata.first, &xuser_aspx, &yuser_asp);
+			ED_space_image_get_aspect(t->sa->spacedata.first, &xuser_aspx, &yuser_asp);
 			ED_space_image_width(t->sa->spacedata.first, &wi, &hi);
-			w = (((float)wi) / 256.0f) * G.sima->zoom * xuser_asp;
-			h = (((float)hi) / 256.0f) * G.sima->zoom * yuser_asp;
+			w = (((float)wi) / IMG_SIZE_FALLBACK) * G.sima->zoom * xuser_asp;
+			h = (((float)hi) / IMG_SIZE_FALLBACK) * G.sima->zoom * yuser_asp;
 			
 			cpack(0xFFFFFF);
 			glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], 0.0f);
@@ -258,13 +248,13 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 					glColor4ubv(col);
 				}
 				
-				drawnodesnap(&ar->v2d, p->co, size, 0);
+				ED_node_draw_snap(&ar->v2d, p->co, size, 0);
 			}
 			
 			if (t->tsnap.status & POINT_INIT) {
 				glColor4ubv(activeCol);
 				
-				drawnodesnap(&ar->v2d, t->tsnap.snapPoint, size, t->tsnap.snapNodeBorder);
+				ED_node_draw_snap(&ar->v2d, t->tsnap.snapPoint, size, t->tsnap.snapNodeBorder);
 			}
 			
 			glDisable(GL_BLEND);
@@ -308,7 +298,7 @@ void applyProject(TransInfo *t)
 		for (i = 0; i < t->total; i++, td++) {
 			float iloc[3], loc[3], no[3];
 			float mval[2];
-			int dist = 1000;
+			int dist = TRANSFORM_DIST_MAX_PX;
 			
 			if (td->flag & TD_NOACTION)
 				break;
@@ -327,18 +317,18 @@ void applyProject(TransInfo *t)
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 			
-			project_float(t->ar, iloc, mval);
-			
-			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect)) {
-//				if (t->flag & (T_EDIT|T_POSE)) {
-//					mul_m4_v3(imat, loc);
-//				}
-//				
-				sub_v3_v3v3(tvec, loc, iloc);
-				
-				mul_m3_v3(td->smtx, tvec);
-				
-				add_v3_v3(td->loc, tvec);
+			if (ED_view3d_project_float_global(t->ar, iloc, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+				if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect)) {
+//					if (t->flag & (T_EDIT|T_POSE)) {
+//						mul_m4_v3(imat, loc);
+//					}
+
+					sub_v3_v3v3(tvec, loc, iloc);
+
+					mul_m3_v3(td->smtx, tvec);
+
+					add_v3_v3(td->loc, tvec);
+				}
 			}
 			
 			//XXX constraintTransLim(t, td);
@@ -422,9 +412,8 @@ static void initSnappingMode(TransInfo *t)
 	}
 	else {
 		/* force project off when not supported */
-		if (ts->snap_mode != SCE_SNAP_MODE_FACE) {
+		if (t->spacetype == SPACE_IMAGE || ts->snap_mode != SCE_SNAP_MODE_FACE)
 			t->tsnap.project = 0;
-		}
 		
 		t->tsnap.mode = ts->snap_mode;
 	}
@@ -463,12 +452,10 @@ static void initSnappingMode(TransInfo *t)
 			t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
 		}
 	}
-	else if (t->spacetype == SPACE_NODE)
-	{
+	else if (t->spacetype == SPACE_NODE) {
 		setSnappingCallback(t);
 		
-		if (t->tsnap.applySnap != NULL)
-		{
+		if (t->tsnap.applySnap != NULL) {
 			t->tsnap.modeSelect = SNAP_NOT_SELECTED;
 		}
 		else {
@@ -616,7 +603,9 @@ int updateSelectedSnapPoint(TransInfo *t)
 			int dx, dy;
 			int dist;
 
-			project_int(t->ar, p->co, screen_loc);
+			if (ED_view3d_project_int_global(t->ar, p->co, screen_loc, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
+				continue;
+			}
 
 			dx = t->mval[0] - screen_loc[0];
 			dy = t->mval[1] - screen_loc[1];
@@ -941,7 +930,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 		UI_view2d_region_to_view(&t->ar->v2d, t->mval[0], t->mval[1], co, co + 1);
 
 		if (ED_uvedit_nearest_uv(t->scene, t->obedit, ima, co, t->tsnap.snapPoint)) {
-			ED_space_image_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
+			ED_space_image_get_uv_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			t->tsnap.snapPoint[0] *= aspx;
 			t->tsnap.snapPoint[1] *= aspy;
 
@@ -975,8 +964,8 @@ static void TargetSnapOffset(TransInfo *t, TransData *td)
 	if (t->spacetype == SPACE_NODE && td != NULL) {
 		bNode *node = td->extra;
 		char border = t->tsnap.snapNodeBorder;
-		float width = node->totr.xmax - node->totr.xmin;
-		float height = node->totr.ymax - node->totr.ymin;
+		float width  = BLI_rctf_size_x(&node->totr);
+		float height = BLI_rctf_size_y(&node->totr);
 		
 		if (border & NODE_LEFT)
 			t->tsnap.snapTarget[0] -= 0.5f * width;
@@ -1095,7 +1084,7 @@ static void TargetSnapClosest(TransInfo *t)
 						
 						dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 						
-						if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+						if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 							copy_v3_v3(t->tsnap.snapTarget, loc);
 							closest = td;
 							t->tsnap.dist = dist; 
@@ -1111,7 +1100,7 @@ static void TargetSnapClosest(TransInfo *t)
 					
 					dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 					
-					if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+					if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 						copy_v3_v3(t->tsnap.snapTarget, loc);
 						closest = td;
 						t->tsnap.dist = dist; 
@@ -1134,7 +1123,7 @@ static void TargetSnapClosest(TransInfo *t)
 				
 				dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 				
-				if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist)) {
+				if (closest == NULL || fabsf(dist) < fabsf(t->tsnap.dist)) {
 					copy_v3_v3(t->tsnap.snapTarget, loc);
 					closest = td;
 					t->tsnap.dist = dist; 
@@ -1179,7 +1168,7 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 		
 		new_depth = len_v3v3(location, ray_start);					
 		
-		project_int(ar, location, screen_loc);
+		ED_view3d_project_int(ar, location, screen_loc);
 		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 		
 		if (new_dist <= *dist && new_depth < *depth) {
@@ -1247,8 +1236,12 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 			
 			new_depth = len_v3v3(location, ray_start);					
 			
-			project_int(ar, location, screen_loc);
-			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+			if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+				new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+			}
+			else {
+				new_dist = TRANSFORM_DIST_MAX_PX;
+			}
 			
 			/* 10% threshold if edge is closer but a bit further
 			 * this takes care of series of connected edges a bit slanted w.r.t the viewport
@@ -1304,8 +1297,13 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4],
 		
 		new_depth = len_v3v3(location, ray_start);
 		
-		project_int(ar, location, screen_loc);
-		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+		if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
+		}
+		else {
+			new_dist = TRANSFORM_DIST_MAX_PX;
+		}
+
 		
 		if (new_dist <= *r_dist && new_depth < *r_depth) {
 			*r_depth = new_depth;
@@ -1712,7 +1710,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
 			
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(scene, ob);
+				ListBase *lb = object_duplilist(scene, ob, FALSE);
 				
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					Object *dob = dupli_ob->ob;
@@ -1918,7 +1916,7 @@ static int peelObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, L
 
 			if (ob->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(scene, ob);
+				ListBase *lb = object_duplilist(scene, ob, FALSE);
 				
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					Object *dob = dupli_ob->ob;
@@ -2149,7 +2147,12 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 	
 	/* evil hack - snapping needs to be adapted for image aspect ratio */
 	if ((t->spacetype == SPACE_IMAGE) && (t->mode == TFM_TRANSLATION)) {
-		ED_space_image_uv_aspect(t->sa->spacedata.first, asp, asp + 1);
+		if (t->options & CTX_MASK) {
+			ED_space_image_get_aspect(t->sa->spacedata.first, asp, asp + 1);
+		}
+		else {
+			ED_space_image_get_uv_aspect(t->sa->spacedata.first, asp, asp + 1);
+		}
 	}
 
 	for (i = 0; i <= max_index; i++) {

@@ -31,15 +31,19 @@ CompositorNode::CompositorNode(bNode *editorNode) : Node(editorNode)
 
 void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
+	bNode *editorNode = this->getbNode();
+
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
-	if (imageSocket->isConnected()) {
-		CompositorOperation *colorAlphaProg = new CompositorOperation();
-		colorAlphaProg->setRenderData(context->getRenderData());
-		colorAlphaProg->setbNodeTree(context->getbNodeTree());
-		imageSocket->relinkConnections(colorAlphaProg->getInputSocket(0));
-		alphaSocket->relinkConnections(colorAlphaProg->getInputSocket(1));
-		graph->addOperation(colorAlphaProg);
-		addPreviewOperation(graph, colorAlphaProg->getInputSocket(0));
-	}
+	InputSocket *depthSocket = this->getInputSocket(2);
+
+	CompositorOperation *compositorOperation = new CompositorOperation();
+	compositorOperation->setSceneName(editorNode->id->name);
+	compositorOperation->setRenderData(context->getRenderData());
+	compositorOperation->setbNodeTree(context->getbNodeTree());
+	imageSocket->relinkConnections(compositorOperation->getInputSocket(0), 0, graph);
+	alphaSocket->relinkConnections(compositorOperation->getInputSocket(1));
+	depthSocket->relinkConnections(compositorOperation->getInputSocket(2));
+	graph->addOperation(compositorOperation);
+	addPreviewOperation(graph, context, compositorOperation->getInputSocket(0));
 }

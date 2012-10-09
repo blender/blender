@@ -21,46 +21,41 @@
 
 /* Gradient */
 
-float gradient(point p, string progression, string axis)
+float gradient(point p, string type)
 {
-	float x, y;
-
-	if(axis == "Vertical") {
-		x= p[1];
-		y= p[0];
-	}
-	else {
-		x= p[0];
-		y= p[1];
-	}
+	float x, y, z;
+	
+	x = p[0];
+	y = p[1];
+	z = p[2];
 
 	float result = 0.0;
 
-	if(progression == "Linear") {
-		result = (1.0 + x)/2.0;
+	if(type == "Linear") {
+		result = x;
 	}
-	else if(progression == "Quadratic") {
-		float r = max((1.0 + x)/2.0, 0.0);
+	else if(type == "Quadratic") {
+		float r = max(x, 0.0);
 		result = r*r;
 	}
-	else if(progression == "Easing") {
-		float r = min(max((1.0 + x)/2.0, 0.0), 1.0);
+	else if(type == "Easing") {
+		float r = min(max(x, 0.0), 1.0);
 		float t = r*r;
 		
 		result = (3.0*t - 2.0*t*r);
 	}
-	else if(progression == "Diagonal") {
-		result = (2.0 + x + y)/4.0;
+	else if(type == "Diagonal") {
+		result = (x + y)/2.0;
 	}
-	else if(progression == "Radial") {
-		result = atan2(y, x)/(2*M_PI) + 0.5;
+	else if(type == "Radial") {
+		result = atan2(y, x)/(2.0*M_PI) + 0.5;
 	}
 	else {
-		float r = max(1.0 - sqrt(x*x + y*y + p[2]*p[2]), 0.0);
+		float r = max(1.0 - sqrt(x*x + y*y + z*z), 0.0);
 
-		if(progression == "Quadratic Sphere")
+		if(type == "Quadratic Sphere")
 			result = r*r;
-		else if(progression == "Spherical")
+		else if(type == "Spherical")
 			result = r;
 	}
 
@@ -68,11 +63,12 @@ float gradient(point p, string progression, string axis)
 }
 
 shader node_gradient_texture(
-	string Progression = "Linear",
-	string Axis = "Horizontal",
+	string Type = "Linear",
 	point Vector = P,
-	output float Fac = 0.0)
+	output float Fac = 0.0,
+	output color Color = color(0.0, 0.0, 0.0))
 {
-	Fac = gradient(Vector, Progression, Axis);
+	Fac = gradient(Vector, Type);
+	Color = color(Fac, Fac, Fac);
 }
 

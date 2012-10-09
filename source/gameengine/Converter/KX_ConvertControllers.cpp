@@ -69,7 +69,7 @@
 	static void
 LinkControllerToActuators(
 	SCA_IController *game_controller,
-	bController* bcontr,	
+	bController* bcontr,
 	SCA_LogicManager* logicmgr,
 	KX_BlenderSceneConverter* converter
 ) {

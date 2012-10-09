@@ -54,6 +54,8 @@ void BLF_lang_init(void);
 
 /* Set the current locale. */
 void BLF_lang_set(const char *);
+/* Get the current locale (short code, e.g. es_ES). */
+const char *BLF_lang_get(void);
 
 /* Set the current encoding name. */
 void BLF_lang_encoding(const char *str);
@@ -95,6 +97,8 @@ const char *BLF_translate_do_tooltip(const char *contex, const char *msgid);
 /* Default context for operator names/labels. */
 #define BLF_I18NCONTEXT_OPERATOR_DEFAULT "Operator"
 
+/* Audio disambiguation context. */
+#define BLF_I18NCONTEXT_AUDIO "Audio"
 
 
 #endif /* __BLF_TRANSLATION_H__ */

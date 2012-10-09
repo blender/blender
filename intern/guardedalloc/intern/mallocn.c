@@ -20,7 +20,8 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Brecht Van Lommel
+ *                 Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -52,6 +53,14 @@
 #endif
 
 #include "MEM_guardedalloc.h"
+
+/* Only for debugging:
+ * store original buffer's name when doing MEM_dupallocN
+ * helpful to profile issues with non-freed "dup_alloc" buffers,
+ * but this introduces some overhead to memory header and makes
+ * things slower a bit, so betterto keep disabled by default
+ */
+//#define DEBUG_MEMDUPLINAME
 
 /* Only for debugging:
  * lets you count the allocations so as to find the allocator of unfreed memory
@@ -94,6 +103,10 @@ typedef struct MemHead {
 	int mmap;  /* if true, memory was mmapped */
 #ifdef DEBUG_MEMCOUNTER
 	int _count;
+#endif
+
+#ifdef DEBUG_MEMDUPLINAME
+	int need_free_name, pad;
 #endif
 } MemHead;
 
@@ -163,6 +176,9 @@ static int malloc_debug_memset = 0;
 /* implementation                                                        */
 /* --------------------------------------------------------------------- */
 
+#ifdef __GNUC__
+__attribute__ ((format(printf, 1, 2)))
+#endif
 static void print_error(const char *str, ...)
 {
 	char buf[512];
@@ -219,10 +235,10 @@ void MEM_set_memory_debug(void)
 	malloc_debug_memset = 1;
 }
 
-size_t MEM_allocN_len(void *vmemh)
+size_t MEM_allocN_len(const void *vmemh)
 {
 	if (vmemh) {
-		MemHead *memh = vmemh;
+		const MemHead *memh = vmemh;
 	
 		memh--;
 		return memh->len;
@@ -232,20 +248,43 @@ size_t MEM_allocN_len(void *vmemh)
 	}
 }
 
-void *MEM_dupallocN(void *vmemh)
+void *MEM_dupallocN(const void *vmemh)
 {
 	void *newp = NULL;
 	
 	if (vmemh) {
-		MemHead *memh = vmemh;
+		const MemHead *memh = vmemh;
 		memh--;
-		
+
+#ifndef DEBUG_MEMDUPLINAME
 		if (memh->mmap)
 			newp = MEM_mapallocN(memh->len, "dupli_mapalloc");
 		else
 			newp = MEM_mallocN(memh->len, "dupli_alloc");
 
 		if (newp == NULL) return NULL;
+#else
+		{
+			MemHead *nmemh;
+			char *name = malloc(strlen(memh->name) + 24);
+
+			if (memh->mmap) {
+				sprintf(name, "%s %s", "dupli_mapalloc", memh->name);
+				newp = MEM_mapallocN(memh->len, name);
+			}
+			else {
+				sprintf(name, "%s %s", "dupli_alloc", memh->name);
+				newp = MEM_mallocN(memh->len, name);
+			}
+
+			if (newp == NULL) return NULL;
+
+			nmemh = newp;
+			nmemh--;
+
+			nmemh->need_free_name = 1;
+		}
+#endif
 
 		memcpy(newp, vmemh, memh->len);
 	}
@@ -263,10 +302,45 @@ void *MEM_reallocN(void *vmemh, size_t len)
 
 		newp = MEM_mallocN(len, memh->name);
 		if (newp) {
-			if (len < memh->len)
+			if (len < memh->len) {
+				/* shrink */
 				memcpy(newp, vmemh, len);
-			else
+			}
+			else {
+				/* grow (or remain same size) */
 				memcpy(newp, vmemh, memh->len);
+			}
+		}
+
+		MEM_freeN(vmemh);
+	}
+
+	return newp;
+}
+
+void *MEM_recallocN(void *vmemh, size_t len)
+{
+	void *newp = NULL;
+
+	if (vmemh) {
+		MemHead *memh = vmemh;
+		memh--;
+
+		newp = MEM_mallocN(len, memh->name);
+		if (newp) {
+			if (len < memh->len) {
+				/* shrink */
+				memcpy(newp, vmemh, len);
+			}
+			else {
+				memcpy(newp, vmemh, memh->len);
+
+				if (len > memh->len) {
+					/* grow */
+					/* zero new bytes */
+					memset(((char *)newp) + memh->len, 0, len - memh->len);
+				}
+			}
 		}
 
 		MEM_freeN(vmemh);
@@ -285,6 +359,10 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 	memh->len = len;
 	memh->mmap = 0;
 	memh->tag2 = MEMTAG2;
+
+#ifdef DEBUG_MEMDUPLINAME
+	memh->need_free_name = 0;
+#endif
 	
 	memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + len);
 	memt->tag3 = MEMTAG3;
@@ -325,7 +403,7 @@ void *MEM_mallocN(size_t len, const char *str)
 	}
 	mem_unlock_thread();
 	print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
-	            SIZET_ARG(len), str, mem_in_use);
+	            SIZET_ARG(len), str, (unsigned int) mem_in_use);
 	return NULL;
 }
 
@@ -351,7 +429,7 @@ void *MEM_callocN(size_t len, const char *str)
 	}
 	mem_unlock_thread();
 	print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
-	            SIZET_ARG(len), str, mem_in_use);
+	            SIZET_ARG(len), str, (unsigned int) mem_in_use);
 	return NULL;
 }
 
@@ -384,7 +462,7 @@ void *MEM_mapallocN(size_t len, const char *str)
 		mem_unlock_thread();
 		print_error("Mapalloc returns null, fallback to regular malloc: "
 		            "len=" SIZET_FORMAT " in %s, total %u\n",
-		            SIZET_ARG(len), str, mmap_in_use);
+		            SIZET_ARG(len), str, (unsigned int) mmap_in_use);
 		return MEM_callocN(len, str);
 	}
 }
@@ -601,7 +679,7 @@ void MEM_printmemlist_pydict(void)
 	MEM_printmemlist_internal(1);
 }
 
-short MEM_freeN(void *vmemh)        /* anders compileertie niet meer */
+short MEM_freeN(void *vmemh)
 {
 	short error = 0;
 	MemTail *memt;
@@ -728,6 +806,11 @@ static void rem_memblock(MemHead *memh)
 
 	totblock--;
 	mem_in_use -= memh->len;
+
+#ifdef DEBUG_MEMDUPLINAME
+	if (memh->need_free_name)
+		free((char *) memh->name);
+#endif
 
 	if (memh->mmap) {
 		mmap_in_use -= memh->len;
@@ -901,6 +984,4 @@ const char *MEM_name_ptr(void *vmemh)
 		return "MEM_name_ptr(NULL)";
 	}
 }
-#endif
-
-/* eof */
+#endif  /* NDEBUG */

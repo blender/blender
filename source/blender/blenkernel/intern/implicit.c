@@ -48,8 +48,11 @@
 #include "BKE_global.h"
 
 
-#define CLOTH_OPENMP_LIMIT 512
+#ifdef _OPENMP
+#  define CLOTH_OPENMP_LIMIT 512
+#endif
 
+#if 0  /* debug timing */
 #ifdef _WIN32
 #include <windows.h>
 static LARGE_INTEGER _itstart, _itend;
@@ -81,7 +84,7 @@ double itval(void)
 
 static struct timeval _itstart, _itend;
 static struct timezone itz;
-void itstart(void)
+static void itstart(void)
 {
 	gettimeofday(&_itstart, &itz);
 }
@@ -89,7 +92,7 @@ static void itend(void)
 {
 	gettimeofday(&_itend, &itz);
 }
-double itval(void)
+static double itval(void)
 {
 	double t1, t2;
 	t1 =  (double)_itstart.tv_sec + (double)_itstart.tv_usec/(1000*1000);
@@ -97,6 +100,7 @@ double itval(void)
 	return t2-t1;
 }
 #endif
+#endif  /* debug timing */
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
@@ -120,7 +124,7 @@ typedef float lfVector[3];
 typedef struct fmatrix3x3 {
 	float m[3][3]; /* 3x3 matrix */
 	unsigned int c, r; /* column and row number */
-	int pinned; /* is this vertex allowed to move? */
+	/* int pinned; // is this vertex allowed to move? */
 	float n1, n2, n3; /* three normal vectors for collision constrains */
 	unsigned int vcount; /* vertex count */
 	unsigned int scount; /* spring count */ 
@@ -185,7 +189,7 @@ DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
 /* create long vector */
 DO_INLINE lfVector *create_lfvector(unsigned int verts)
 {
-	// TODO: check if memory allocation was successfull */
+	/* TODO: check if memory allocation was successful */
 	return  (lfVector *)MEM_callocN(verts * sizeof(lfVector), "cloth_implicit_alloc_vector");
 	// return (lfVector *)cloth_aligned_malloc(&MEMORY_BASE, verts * sizeof(lfVector));
 }
@@ -193,7 +197,7 @@ DO_INLINE lfVector *create_lfvector(unsigned int verts)
 DO_INLINE void del_lfvector(float (*fLongVector)[3])
 {
 	if (fLongVector != NULL) {
-		MEM_freeN (fLongVector);
+		MEM_freeN(fLongVector);
 		// cloth_aligned_free(&MEMORY_BASE, fLongVector);
 	}
 }
@@ -513,7 +517,7 @@ static void print_bfmatrix(fmatrix3x3 *m3)
 /* create big matrix */
 DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 {
-	// TODO: check if memory allocation was successfull */
+	// TODO: check if memory allocation was successful */
 	fmatrix3x3 *temp = (fmatrix3x3 *)MEM_callocN(sizeof(fmatrix3x3) * (verts + springs), "cloth_implicit_alloc_matrix");
 	temp[0].vcount = verts;
 	temp[0].scount = springs;
@@ -523,14 +527,14 @@ DO_INLINE fmatrix3x3 *create_bfmatrix(unsigned int verts, unsigned int springs)
 DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 {
 	if (matrix != NULL) {
-		MEM_freeN (matrix);
+		MEM_freeN(matrix);
 	}
 }
 
 /* copy big matrix */
 DO_INLINE void cp_bfmatrix(fmatrix3x3 *to, fmatrix3x3 *from)
-{	
-	// TODO bounds checking	
+{
+	// TODO bounds checking
 	memcpy(to, from, sizeof(fmatrix3x3) * (from[0].vcount+from[0].scount));
 }
 
@@ -700,17 +704,39 @@ typedef struct Implicit_Data  {
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
 } Implicit_Data;
 
+/* Init constraint matrix */
+static void update_matrixS(ClothVertex *verts, int numverts, fmatrix3x3 *S)
+{
+	unsigned int pinned = 0;
+	int i = 0;
+
+	/* Clear matrix from old vertex constraints */
+	for(i = 0; i < S[0].vcount; i++)
+		S[i].c = S[i].r = 0;
+
+	/* Set new vertex constraints */
+	for (i = 0; i < numverts; i++) {
+		if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
+			S[pinned].c = S[pinned].r = i;
+			pinned++;
+		}
+	}
+
+	// S is special and needs specific vcount and scount
+	S[0].vcount = pinned; 
+	S[0].scount = 0;
+}
+
 int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 {
 	unsigned int i = 0;
-	unsigned int pinned = 0;
 	Cloth *cloth = NULL;
 	ClothVertex *verts = NULL;
 	ClothSpring *spring = NULL;
 	Implicit_Data *id = NULL;
 	LinkNode *search = NULL;
 	
-	if (G.rt > 0)
+	if (G.debug_value > 0)
 		printf("implicit_init\n");
 
 	// init memory guard
@@ -743,24 +769,19 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	id->dV = create_lfvector(cloth->numverts);
 	id->z = create_lfvector(cloth->numverts);
 	
-	for (i=0;i<cloth->numverts;i++) {
+	id->S[0].vcount = 0;
+
+	for (i = 0; i < cloth->numverts; i++) {
 		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = id->M[i].r = id->M[i].c = i;
 
-		if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
-			id->S[pinned].pinned = 1;
-			id->S[pinned].c = id->S[pinned].r = i;
-			pinned++;
-		}
+		update_matrixS(verts, cloth->numverts, id->S);
 		
 		initdiag_fmatrixS(id->M[i].m, verts[i].mass);
 	}
 
-	// S is special and needs specific vcount and scount
-	id->S[0].vcount = pinned; id->S[0].scount = 0;
-
 	// init springs 
 	search = cloth->springs;
-	for (i=0;i<cloth->numsprings;i++) {
+	for (i = 0; i < cloth->numsprings; i++) {
 		spring = search->link;
 		
 		// dFdV_start[i].r = big_I[i].r = big_zero[i].r = 
@@ -784,6 +805,7 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 
 	return 1;
 }
+
 int	implicit_free(ClothModifierData *clmd)
 {
 	Implicit_Data *id;
@@ -1239,13 +1261,13 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
 			k = clmd->sim_parms->structural;
-				
+
 			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_struct-k);
-			
+
 			k = scaling / (clmd->sim_parms->avg_spring_len + FLT_EPSILON);
-			
+
 			// TODO: verify, half verified (couldn't see error)
-			mul_fvector_S(stretch_force, dir, k*(length-L)); 
+			mul_fvector_S(stretch_force, dir, k*(length-L));
 
 			VECADD(s->f, s->f, stretch_force);
 
@@ -1428,7 +1450,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
 		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
 		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
-		if (i < 0 || j < 0 || k < 0 || i > 10 || j >= 10 || k >= 10)
+		if (i < 0 || j < 0 || k < 0 || i >= 10 || j >= 10 || k >= 10)
 			continue;
 
 		grid[i][j][k].velocity[0] += lV[v][0];
@@ -1640,8 +1662,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	search = cloth->springs;
 	while (search) {
 		// only handle active springs
-		// if (((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)) {}
-		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
+		ClothSpring *spring = search->link;
+		if( !(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+			cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
 
 		search = search->next;
 	}
@@ -1650,8 +1673,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	search = cloth->springs;
 	while (search) {
 		// only handle active springs
-		// if (((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED))	
-		cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
+		ClothSpring *spring = search->link;
+		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+			cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
 		search = search->next;
 	}
 	// printf("\n");
@@ -1671,13 +1695,13 @@ static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVect
 	mul_bfmatrix_lfvector(dFdXmV, dFdX, lV);
 
 	add_lfvectorS_lfvectorS(B, lF, dt, dFdXmV, (dt*dt), numverts);
-	
-	itstart();
-	
+
+	// itstart();
+
 	cg_filtered(dV, A, B, z, S); /* conjugate gradient algorithm to solve Ax=b */
 	// cg_filtered_pre(dV, A, B, z, S, P, Pinv, bigI);
-	
-	itend();
+
+	// itend();
 	// printf("cg_filtered calc time: %f\n", (float)itval());
 	
 	cp_lfvector(olddV, dV, numverts);
@@ -1693,7 +1717,7 @@ static void simulate_implicit_euler(lfVector *Vnew, lfVector *UNUSED(lX), lfVect
  * (edge distance constraints) in a lagrangian solver.  then add forces to help
  * guide the implicit solver to that state.  this function is called after
  * collisions*/
-int cloth_calc_helper_forces(Object *UNUSED(ob), ClothModifierData * clmd, float (*initial_cos)[3], float UNUSED(step), float dt)
+static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothModifierData * clmd, float (*initial_cos)[3], float UNUSED(step), float dt)
 {
 	Cloth *cloth= clmd->clothObject;
 	float (*cos)[3] = MEM_callocN(sizeof(float)*3*cloth->numverts, "cos cloth_calc_helper_forces");
@@ -1781,6 +1805,10 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	int do_extra_solve;
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) { /* do goal stuff */
+		
+		/* Update vertex constraints for pinned vertices */
+		update_matrixS(verts, cloth->numverts, id->S);
+
 		for (i = 0; i < numverts; i++) {
 			// update velocities with constrained velocities from pinned verts
 			if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
@@ -1833,11 +1861,11 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 			for (i=0, cv=cloth->verts; i<cloth->numverts; i++, cv++) {
 				copy_v3_v3(initial_cos[i], cv->tx);
 			}
-			
+
 			// call collision function
 			// TODO: check if "step" or "step+dt" is correct - dg
 			do_extra_solve = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
-						
+
 			// copy corrected positions back to simulation
 			for (i = 0; i < numverts; i++) {
 				// correct velocity again, just to be sure we had to change it due to adaptive collisions
@@ -1918,7 +1946,7 @@ void implicit_set_positions(ClothModifierData *clmd)
 		copy_v3_v3(id->X[i], verts[i].x);
 		copy_v3_v3(id->V[i], verts[i].v);
 	}
-	if (G.rt > 0)
+	if (G.debug_value > 0)
 		printf("implicit_set_positions\n");	
 }
 

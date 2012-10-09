@@ -33,13 +33,13 @@ void IDMaskOperation::initExecution()
 	this->m_inputProgram = this->getInputSocketReader(0);
 }
 
-void IDMaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void IDMaskOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	
-	this->m_inputProgram->read(inputValue, x, y, sampler, inputBuffers);
+	this->m_inputProgram->read(inputValue, x, y, sampler);
 	const float a = (inputValue[0] == this->m_objectIndex) ? 1.0f : 0.0f;
-	color[0] = a;
+	output[0] = a;
 }
 
 void IDMaskOperation::deinitExecution()

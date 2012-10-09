@@ -62,7 +62,9 @@
 
 #include "imbuf.h"
 
-#include "AVI_avi.h"
+#ifdef WITH_AVI
+#  include "AVI_avi.h"
+#endif
 
 #ifdef WITH_QUICKTIME
 #  if defined(_WIN32) || defined(__APPLE__)
@@ -129,9 +131,9 @@ struct anim {
 	float frs_sec_base;
 	int x, y;
 	
-	/* voor op nummer */
+	/* for number */
 	char name[1024];
-	/* voor sequence */
+	/* for sequence */
 	char first[1024];
 
 	/* movie */
@@ -191,6 +193,7 @@ struct anim {
 	struct anim *proxy_anim[IMB_PROXY_MAX_SLOT];
 	struct anim_index *curr_idx[IMB_TC_MAX_SLOT];
 
+	char colorspace[64];
 };
 
 #endif

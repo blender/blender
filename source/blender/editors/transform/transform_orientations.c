@@ -33,6 +33,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -49,11 +50,6 @@
 #include "BKE_report.h"
 
 #include "BLF_translation.h"
-
-//#include "BIF_editmesh.h"
-//#include "BIF_interface.h"
-//#include "BIF_space.h"
-//#include "BIF_toolbox.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
@@ -406,7 +402,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 
 const char *BIF_menustringTransformOrientation(const bContext *C, const char *title)
 {
-	const char *menu = IFACE_("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
+	const char *menu = IFACE_("%t|Global %x0|Local %x1|Gimbal %x4|Normal %x2|View %x3");
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
@@ -415,14 +411,14 @@ const char *BIF_menustringTransformOrientation(const bContext *C, const char *ti
 
 	title = IFACE_(title);
 
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + elem_size * BIF_countTransformOrientation(C), TIP_("UserTransSpace from matrix"));
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + elem_size * BIF_countTransformOrientation(C), "UserTransSpace from matrix");
 	p = str_menu;
 	
 	p += sprintf(str_menu, "%s", title);
 	p += sprintf(p, "%s", menu);
 	
 	for (ts = transform_spaces->first; ts; ts = ts->next) {
-		p += sprintf(p, "|%s%%x%d", ts->name, i++);
+		p += sprintf(p, "|%s %%x%d", ts->name, i++);
 	}
 	
 	return str_menu;
@@ -554,8 +550,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	Object *ob = OBACT;
 	int result = ORIENTATION_NONE;
 
-	normal[0] = normal[1] = normal[2] = 0;
-	plane[0] = plane[1] = plane[2] = 0;
+	zero_v3(normal);
+	zero_v3(plane);
 
 	if (obedit) {
 		float imat[3][3], mat[3][3];
@@ -569,8 +565,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		ob = obedit;
 
 		if (ob->type == OB_MESH) {
-			Mesh *me = ob->data;
-			BMEditMesh *em = me->edit_btmesh;
+			BMEditMesh *em = BMEdit_FromObject(ob);
 			BMVert *eve;
 			BMEditSelection ese;
 			float vec[3] = {0, 0, 0};
@@ -748,37 +743,20 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			}
 		}
 		else if (obedit->type == OB_MBALL) {
-#if 0 // XXX
-			/* editmball.c */
-			MetaElem *ml, *ml_sel = NULL;
-	
-			/* loop and check that only one element is selected */	
-			for (ml = editelems.first; ml; ml = ml->next) {
-				if (ml->flag & SELECT) {
-					if (ml_sel == NULL) {
-						ml_sel = ml;
-					}
-					else {
-						ml_sel = NULL;
-						break;
-					}
-				}
-			}
+			MetaBall *mb = obedit->data;
 			
-			if (ml_sel) {	
+			if (mb->lastelem) {
 				float mat[4][4];
 
 				/* Rotation of MetaElem is stored in quat */
-				quat_to_mat4(mat, ml_sel->quat);
+				quat_to_mat4(mat, mb->lastelem->quat);
 
 				copy_v3_v3(normal, mat[2]);
 
 				negate_v3_v3(plane, mat[1]);
 				
-				result = ORIENTATION_NORMAL;
+				result = ORIENTATION_FACE;
 			}
-#endif
-			
 		}
 		else if (obedit->type == OB_ARMATURE) {
 			bArmature *arm = obedit->data;

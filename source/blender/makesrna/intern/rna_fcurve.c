@@ -55,7 +55,7 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_ENVELOPE, "ENVELOPE", 0, "Envelope", ""},
 	{FMODIFIER_TYPE_CYCLES, "CYCLES", 0, "Cycles", ""},
 	{FMODIFIER_TYPE_NOISE, "NOISE", 0, "Noise", ""},
-	{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},
+	/*{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},*/ /* FIXME: not implemented yet! */
 	/*{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},	 *//* FIXME: not implemented yet! */
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
 	{FMODIFIER_TYPE_STEPPED, "STEPPED", 0, "Stepped Interpolation", ""},
@@ -403,13 +403,13 @@ static void rna_FCurve_group_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
+static DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
 {
 	/* call the API function for this */
 	return driver_add_new_variable(driver);
 }
 
-void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, DriverVar *dvar)
+static void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, DriverVar *dvar)
 {
 	if (BLI_findindex(&driver->variables, dvar) == -1) {
 		BKE_report(reports, RPT_ERROR, "Variable does not exist in this driver");
@@ -1497,7 +1497,7 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "add", "rna_FKeyframe_points_add");
 	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve");
-	RNA_def_int(func, "count", 1, 1, INT_MAX, "Number", "Number of points to add to the spline", 1, INT_MAX);
+	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 	func = RNA_def_function(srna, "remove", "rna_FKeyframe_points_remove");
 	RNA_def_function_ui_description(func, "Remove keyframe from an F-Curve");

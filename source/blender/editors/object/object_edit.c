@@ -408,12 +408,12 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = NULL;
 	int ok = 0;
-	
+
 	if (scene->id.lib) return;
-	
+
 	if (sa && sa->spacetype == SPACE_VIEW3D)
 		v3d = sa->spacedata.first;
-	
+
 	if ((flag & EM_IGNORE_LAYER) == 0) {
 		base = CTX_data_active_base(C); /* active layer checked here for view3d */
 
@@ -428,12 +428,12 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if (ELEM3(NULL, base, base->object, base->object->data)) return;
 
 	ob = base->object;
-	
+
 	if (BKE_object_obdata_is_libdata(ob)) {
 		error_libdata();
 		return;
 	}
-	
+
 	if (flag & EM_WAITCURSOR) waitcursor(1);
 
 	ob->restore_mode = ob->mode;
@@ -444,7 +444,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		ED_object_toggle_modes(C, ob->mode);
 
 	ob->mode = OB_MODE_EDIT;
-	
+
 	if (ob->type == OB_MESH) {
 		BMEditMesh *em;
 		ok = 1;
@@ -457,7 +457,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 			/* order doesn't matter */
 			EDBM_mesh_normals_update(em);
 			BMEdit_RecalcTessellation(em);
-			
+
 			BM_mesh_select_mode_flush(em->bm);
 		}
 
@@ -482,48 +482,48 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit = ob;
 		ED_armature_to_edit(ob);
 		/* to ensure all goes in restposition and without striding */
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX: should this be OB_RECALC_DATA?
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); /* XXX: should this be OB_RECALC_DATA? */
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_ARMATURE, scene);
 	}
 	else if (ob->type == OB_FONT) {
-		scene->obedit = ob; // XXX for context
+		scene->obedit = ob; /* XXX for context */
 		ok = 1;
 		make_editText(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_TEXT, scene);
 	}
 	else if (ob->type == OB_MBALL) {
-		scene->obedit = ob; // XXX for context
+		scene->obedit = ob; /* XXX for context */
 		ok = 1;
 		make_editMball(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_MBALL, scene);
 	}
 	else if (ob->type == OB_LATTICE) {
-		scene->obedit = ob; // XXX for context
+		scene->obedit = ob; /* XXX for context */
 		ok = 1;
 		make_editLatt(ob);
-		
+
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_LATTICE, scene);
 	}
 	else if (ob->type == OB_SURF || ob->type == OB_CURVE) {
 		ok = 1;
-		scene->obedit = ob; // XXX for context
+		scene->obedit = ob; /* XXX for context */
 		make_editNurb(ob);
-		
+
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_CURVE, scene);
 	}
-	
+
 	if (ok) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
-		scene->obedit = NULL; // XXX for context
+		scene->obedit = NULL; /* XXX for context */
 		ob->mode &= ~OB_MODE_EDIT;
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 	}
-	
+
 	if (flag & EM_DO_UNDO) ED_undo_push(C, "Enter Editmode");
 	if (flag & EM_WAITCURSOR) waitcursor(0);
 }
@@ -649,11 +649,11 @@ static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 		for (base = FIRSTBASE; base; base = base->next) {
 			if ((base != BASACT) && (TESTBASELIB(v3d, base))) {
 				if (nr == 1) { /* replace */
-					copy_properties(&base->object->prop, &ob->prop);
+					BKE_bproperty_copy_list(&base->object->prop, &ob->prop);
 				}
 				else {
 					for (prop = ob->prop.first; prop; prop = prop->next) {
-						set_ob_property(base->object, prop);
+						BKE_bproperty_object_set(base->object, prop);
 					}
 				}
 			}
@@ -665,7 +665,7 @@ static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
 		if (prop) {
 			for (base = FIRSTBASE; base; base = base->next) {
 				if ((base != BASACT) && (TESTBASELIB(v3d, base))) {
-					set_ob_property(base->object, prop);
+					BKE_bproperty_object_set(base->object, prop);
 				}
 			}
 		}
@@ -957,7 +957,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					base->object->softflag = ob->softflag;
 					if (base->object->soft) sbFree(base->object->soft);
 					
-					base->object->soft = copy_softbody(ob->soft);
+					base->object->soft = copy_softbody(ob->soft, FALSE);
 
 					if (!modifiers_findByType(base->object, eModifierType_Softbody)) {
 						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));
@@ -1017,9 +1017,9 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main * bmain, Scene * scene, View3D
 	
 	if (!(ob = OBACT)) return;
 	
-	if (scene->obedit) { // XXX get from context
-//		if (ob->type == OB_MESH)
-// XXX			mesh_copy_menu();
+	if (scene->obedit) { /* XXX get from context */
+/*		if (ob->type == OB_MESH) */
+/* XXX			mesh_copy_menu(); */
 		return;
 	}
 	
@@ -1030,34 +1030,34 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main * bmain, Scene * scene, View3D
 	 */
 	
 	strcpy(str,
-	       "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|"
-	       "Time Offset%x5|Dupli%x6|Object Color%x31|%l|Mass%x7|Damping%x8|All Physical Attributes%x11|Properties%x9|"
-	       "Logic Bricks%x10|Protected Transform%x29|%l");
+	       "Copy Attributes %t|Location %x1|Rotation %x2|Size %x3|Draw Options %x4|"
+	       "Time Offset %x5|Dupli %x6|Object Color %x31|%l|Mass %x7|Damping %x8|All Physical Attributes %x11|Properties %x9|"
+	       "Logic Bricks %x10|Protected Transform %x29|%l");
 	
-	strcat(str, "|Object Constraints%x22");
-	strcat(str, "|NLA Strips%x26");
+	strcat(str, "|Object Constraints %x22");
+	strcat(str, "|NLA Strips %x26");
 	
-// XXX	if (OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
-//		strcat(str, "|Texture Space%x17");
-//	}	
+/* XXX	if (OB_TYPE_SUPPORT_MATERIAL(ob->type)) { */
+/*		strcat(str, "|Texture Space %x17"); */
+/*	} */
 	
-	if (ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
-	if (ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
+	if (ob->type == OB_FONT) strcat(str, "|Font Settings %x18|Bevel Settings %x19");
+	if (ob->type == OB_CURVE) strcat(str, "|Bevel Settings %x19|UV Orco %x28");
 	
 	if ((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
-		strcat(str, "|Curve Resolution%x25");
+		strcat(str, "|Curve Resolution %x25");
 	}
 
 	if (ob->type == OB_MESH) {
-		strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
+		strcat(str, "|Subsurf Settings %x21|AutoSmooth %x27");
 	}
 
-	if (ob->soft) strcat(str, "|Soft Body Settings%x23");
+	if (ob->soft) strcat(str, "|Soft Body Settings %x23");
 	
-	strcat(str, "|Pass Index%x30");
+	strcat(str, "|Pass Index %x30");
 	
 	if (ob->type == OB_MESH || ob->type == OB_CURVE || ob->type == OB_LATTICE || ob->type == OB_SURF) {
-		strcat(str, "|Modifiers ...%x24");
+		strcat(str, "|Modifiers ... %x24");
 	}
 
 	event = pupmenu(str);
@@ -1145,7 +1145,7 @@ static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *U
 	}
 	
 	/* show popup dialog to allow editing of range... */
-	// FIXME: hardcoded dimensions here are just arbitrary
+	/* FIXME: hardcoded dimensions here are just arbitrary */
 	return WM_operator_props_dialog_popup(C, op, 200, 200);
 }
 
@@ -1585,7 +1585,7 @@ static int game_property_new(bContext *C, wmOperator *op)
 	char name[MAX_NAME];
 	int type = RNA_enum_get(op->ptr, "type");
 
-	prop = new_property(type);
+	prop = BKE_bproperty_new(type);
 	BLI_addtail(&ob->prop, prop);
 
 	RNA_string_get(op->ptr, "name", name);
@@ -1593,7 +1593,7 @@ static int game_property_new(bContext *C, wmOperator *op)
 		BLI_strncpy(prop->name, name, sizeof(prop->name));
 	}
 
-	unique_property(NULL, prop, 0); // make_unique_prop_names(prop->name);
+	BKE_bproperty_unique(NULL, prop, 0); // make_unique_prop_names(prop->name);
 
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
 	return OPERATOR_FINISHED;
@@ -1631,7 +1631,7 @@ static int game_property_remove(bContext *C, wmOperator *op)
 
 	if (prop) {
 		BLI_remlink(&ob->prop, prop);
-		free_property(prop);
+		BKE_bproperty_free(prop);
 
 		WM_event_add_notifier(C, NC_LOGIC, NULL);
 		return OPERATOR_FINISHED;
@@ -1711,7 +1711,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 			CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 			{
 				if (ob != ob_iter)
-					set_ob_property(ob_iter, prop);
+					BKE_bproperty_object_set(ob_iter, prop);
 			} CTX_DATA_END;
 		}
 	}
@@ -1720,13 +1720,15 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 		CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 		{
 			if (ob != ob_iter) {
-				if (type == COPY_PROPERTIES_REPLACE)
-					copy_properties(&ob_iter->prop, &ob->prop);
-
-				/* merge - the default when calling with no argument */
-				else
-					for (prop = ob->prop.first; prop; prop = prop->next)
-						set_ob_property(ob_iter, prop);
+				if (type == COPY_PROPERTIES_REPLACE) {
+					BKE_bproperty_copy_list(&ob_iter->prop, &ob->prop);
+				}
+				else {
+					/* merge - the default when calling with no argument */
+					for (prop = ob->prop.first; prop; prop = prop->next) {
+						BKE_bproperty_object_set(ob_iter, prop);
+					}
+				}
 			}
 		}
 		CTX_DATA_END;
@@ -1761,7 +1763,7 @@ static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		free_properties(&ob_iter->prop);
+		BKE_bproperty_free_list(&ob_iter->prop);
 	}
 	CTX_DATA_END;
 

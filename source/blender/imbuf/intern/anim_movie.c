@@ -42,8 +42,8 @@
 #include <vfw.h>
 #endif
 
-#undef AVIIF_KEYFRAME // redefined in AVI_avi.h
-#undef AVIIF_LIST // redefined in AVI_avi.h
+#undef AVIIF_KEYFRAME /* redefined in AVI_avi.h */
+#undef AVIIF_LIST /* redefined in AVI_avi.h */
 
 #define FIXCC(fcc) \
 	{ \
@@ -64,8 +64,8 @@
 #include <io.h>
 #endif
 
-#include "BLI_blenlib.h" /* BLI_remlink BLI_file_descriptor_size BLI_addtail
-                          * BLI_countlist BLI_stringdec */
+#include "BLI_string.h"
+#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
@@ -73,13 +73,14 @@
 
 #include "DNA_userdef_types.h"
 
-
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
 
 #include "imbuf.h"
 
-#include "AVI_avi.h"
+#ifdef WITH_AVI
+#  include "AVI_avi.h"
+#endif
 
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined(__APPLE__)
@@ -113,6 +114,9 @@
 #include "libredcode/codec.h"
 #endif
 #endif
+
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
 
 int ismovie(const char *UNUSED(filepath))
 {
@@ -183,6 +187,7 @@ static void an_stringenc(char *string, const char *head, const char *tail, unsig
 	BLI_stringenc(string, head, tail, numlen, pic);
 }
 
+#ifdef WITH_AVI
 static void free_anim_avi(struct anim *anim)
 {
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
@@ -217,6 +222,7 @@ static void free_anim_avi(struct anim *anim)
 
 	anim->duration = 0;
 }
+#endif  /* WITH_AVI */
 
 #ifdef WITH_FFMPEG
 static void free_anim_ffmpeg(struct anim *anim);
@@ -233,7 +239,10 @@ void IMB_free_anim(struct anim *anim)
 	}
 
 	free_anim_movie(anim);
+
+#ifdef WITH_AVI
 	free_anim_avi(anim);
+#endif
 
 #ifdef WITH_QUICKTIME
 	free_anim_quicktime(anim);
@@ -264,12 +273,20 @@ void IMB_close_anim_proxies(struct anim *anim)
 	IMB_free_indices(anim);
 }
 
-struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex)
+struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex, char colorspace[IM_MAX_SPACE])
 {
 	struct anim *anim;
 
 	anim = (struct anim *)MEM_callocN(sizeof(struct anim), "anim struct");
 	if (anim != NULL) {
+		if (colorspace) {
+			colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
+			BLI_strncpy(anim->colorspace, colorspace, sizeof(anim->colorspace));
+		}
+		else {
+			colorspace_set_default_role(anim->colorspace, sizeof(anim->colorspace), COLOR_ROLE_DEFAULT_BYTE);
+		}
+
 		BLI_strncpy(anim->name, name, sizeof(anim->name));
 		anim->ib_flags = ib_flags;
 		anim->streamindex = streamindex;
@@ -277,7 +294,7 @@ struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex)
 	return(anim);
 }
 
-
+#ifdef WITH_AVI
 static int startavi(struct anim *anim)
 {
 
@@ -324,10 +341,10 @@ static int startavi(struct anim *anim)
 					if (anim->pgf) {
 						firstvideo = i;
 
-						// get stream length
+						/* get stream length */
 						anim->avi->header->TotalFrames = AVIStreamLength(anim->pavi[i]);
-						
-						// get information about images inside the stream
+
+						/* get information about images inside the stream */
 						l = sizeof(abFormat);
 						AVIStreamReadFormat(anim->pavi[i], 0, &abFormat, &l);
 						lpbi = (LPBITMAPINFOHEADER)abFormat;
@@ -344,12 +361,12 @@ static int startavi(struct anim *anim)
 				}
 			}
 
-			// register number of opened avistreams
+			/* register number of opened avistreams */
 			anim->avistreams = i;
 
-			//
-			// Couldn't get any video streams out of this file
-			//
+			/*
+			 * Couldn't get any video streams out of this file
+			 */
 			if ((anim->avistreams == 0) || (firstvideo == -1)) {
 				avierror = AVI_ERROR_FORMAT;
 			}
@@ -387,14 +404,18 @@ static int startavi(struct anim *anim)
 
 	return 0;
 }
+#endif  /* WITH_AVI */
 
+#ifdef WITH_AVI
 static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 {
 	ImBuf *ibuf = NULL;
 	int *tmp;
 	int y;
 	
-	if (anim == NULL) return (NULL);
+	if (anim == NULL) {
+		return NULL;
+	}
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	if (anim->avistreams) {
@@ -403,7 +424,7 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 		if (anim->pgf) {
 			lpbi = AVIStreamGetFrame(anim->pgf, position + AVIStreamStart(anim->pavi[anim->firstvideo]));
 			if (lpbi) {
-				ibuf = IMB_ibImageFromMemory((unsigned char *) lpbi, 100, IB_rect, "<avi_fetchibuf>");
+				ibuf = IMB_ibImageFromMemory((unsigned char *) lpbi, 100, IB_rect, anim->colorspace, "<avi_fetchibuf>");
 //Oh brother...
 			}
 		}
@@ -418,7 +439,7 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 		                     AVI_get_stream(anim->avi, AVIST_VIDEO, 0));
 		
 		if (tmp == NULL) {
-			printf("Error reading frame from AVI");
+			printf("Error reading frame from AVI: '%s'\n", anim->name);
 			IMB_freeImBuf(ibuf);
 			return NULL;
 		}
@@ -431,14 +452,13 @@ static ImBuf *avi_fetchibuf(struct anim *anim, int position)
 		MEM_freeN(tmp);
 	}
 	
-	ibuf->profile = IB_PROFILE_SRGB;
-	
+	ibuf->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
+
 	return ibuf;
 }
+#endif  /* WITH_AVI */
 
 #ifdef WITH_FFMPEG
-
-extern void do_init_ffmpeg(void);
 
 static int startffmpeg(struct anim *anim)
 {
@@ -461,8 +481,6 @@ static int startffmpeg(struct anim *anim)
 	if (anim == 0) return(-1);
 
 	streamcount = anim->streamindex;
-
-	do_init_ffmpeg();
 
 	if (avformat_open_input(&pFormatCtx, anim->name, NULL, NULL) != 0) {
 		return -1;
@@ -637,8 +655,6 @@ static void ffmpeg_postprocess(struct anim *anim)
 	ImBuf *ibuf = anim->last_frame;
 	int filter_y = 0;
 
-	ibuf->profile = IB_PROFILE_SRGB;
-
 	if (!anim->pFrameComplete) {
 		return;
 	}
@@ -804,6 +820,34 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
 		anim->next_packet.stream_index = -1;
 	}
 	
+	if (rval == AVERROR_EOF) {
+		anim->next_packet.size = 0;
+		anim->next_packet.data = 0;
+
+		anim->pFrameComplete = 0;
+
+		avcodec_decode_video2(
+			anim->pCodecCtx,
+			anim->pFrame, &anim->pFrameComplete,
+			&anim->next_packet);
+
+		if (anim->pFrameComplete) {
+			anim->next_pts = av_get_pts_from_frame(
+				anim->pFormatCtx, anim->pFrame);
+
+			av_log(anim->pFormatCtx,
+			       AV_LOG_DEBUG,
+			       "  FRAME DONE (after EOF): next_pts=%lld "
+			       "pkt_pts=%lld, guessed_pts=%lld\n",
+			       (anim->pFrame->pts == AV_NOPTS_VALUE) ?
+			       -1 : (long long int)anim->pFrame->pts,
+			       (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ?
+			       -1 : (long long int)anim->pFrame->pkt_pts,
+			       (long long int)anim->next_pts);
+			rval = 0;
+		}
+	}
+
 	if (rval < 0) {
 		anim->next_packet.stream_index = -1;
 
@@ -1065,6 +1109,7 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
 
 	IMB_freeImBuf(anim->last_frame);
 	anim->last_frame = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect);
+	anim->last_frame->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
 
 	ffmpeg_postprocess(anim);
 
@@ -1171,7 +1216,11 @@ static ImBuf *anim_getnew(struct anim *anim)
 	if (anim == NULL) return(NULL);
 
 	free_anim_movie(anim);
+
+#ifdef WITH_AVI
 	free_anim_avi(anim);
+#endif
+
 #ifdef WITH_QUICKTIME
 	free_anim_quicktime(anim);
 #endif
@@ -1188,7 +1237,7 @@ static ImBuf *anim_getnew(struct anim *anim)
 
 	switch (anim->curtype) {
 		case ANIM_SEQUENCE:
-			ibuf = IMB_loadiffname(anim->name, anim->ib_flags);
+			ibuf = IMB_loadiffname(anim->name, anim->ib_flags, anim->colorspace);
 			if (ibuf) {
 				BLI_strncpy(anim->first, anim->name, sizeof(anim->first));
 				anim->duration = 1;
@@ -1198,6 +1247,7 @@ static ImBuf *anim_getnew(struct anim *anim)
 			if (startmovie(anim)) return (NULL);
 			ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0); /* fake */
 			break;
+#ifdef WITH_AVI
 		case ANIM_AVI:
 			if (startavi(anim)) {
 				printf("couldnt start avi\n");
@@ -1205,6 +1255,7 @@ static ImBuf *anim_getnew(struct anim *anim)
 			}
 			ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);
 			break;
+#endif
 #ifdef WITH_QUICKTIME
 		case ANIM_QTIME:
 			if (startquicktime(anim)) return (0);
@@ -1284,7 +1335,7 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim, int position,
 			pic = an_stringdec(anim->first, head, tail, &digits);
 			pic += position;
 			an_stringenc(anim->name, head, tail, digits, pic);
-			ibuf = IMB_loadiffname(anim->name, IB_rect);
+			ibuf = IMB_loadiffname(anim->name, IB_rect, anim->colorspace);
 			if (ibuf) {
 				anim->curposition = position;
 			}
@@ -1294,19 +1345,28 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim, int position,
 			if (ibuf) {
 				anim->curposition = position;
 				IMB_convert_rgba_to_abgr(ibuf);
-				ibuf->profile = IB_PROFILE_SRGB;
 			}
 			break;
+#ifdef WITH_AVI
 		case ANIM_AVI:
 			ibuf = avi_fetchibuf(anim, position);
 			if (ibuf)
 				anim->curposition = position;
 			break;
+#endif
 #ifdef WITH_QUICKTIME
 		case ANIM_QTIME:
 			ibuf = qtime_fetchibuf(anim, position);
-			if (ibuf)
+			if (ibuf) {
+				if (ibuf->rect) {
+					/* OCIO_TODO: should happen in quicktime module, but it currently doesn't have access
+					 *            to color management's internals
+					 */
+					ibuf->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
+				}
+
 				anim->curposition = position;
+			}
 			break;
 #endif
 #ifdef WITH_FFMPEG

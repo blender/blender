@@ -80,9 +80,9 @@
 /* UNUSED so far, may be enabled later */
 /* #define USE_SMOKE_COLLISION_DM */
 
-#ifdef WITH_SMOKE
-
 #include "smoke_API.h"
+
+#ifdef WITH_SMOKE
 
 #ifdef _WIN32
 #include <time.h>
@@ -141,14 +141,14 @@ struct SmokeModifierData;
 
 /* forward declerations */
 static void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
-static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
+static void get_cell(const float p0[3], const int res[3], float dx, const float pos[3], int cell[3], int correct);
 static void fill_scs_points(Object *ob, DerivedMesh *dm, SmokeCollSettings *scs);
 
 #else /* WITH_SMOKE */
 
 /* Stubs to use when smoke is disabled */
 struct WTURBULENCE *smoke_turbulence_init(int *UNUSED(res), int UNUSED(amplify), int UNUSED(noisetype)) { return NULL; }
-struct FLUID_3D *smoke_init(int *UNUSED(res), float *UNUSED(p0)) { return NULL; }
+// struct FLUID_3D *smoke_init(int *UNUSED(res), float *UNUSED(p0)) { return NULL; }
 void smoke_free(struct FLUID_3D *UNUSED(fluid)) {}
 float *smoke_get_density(struct FLUID_3D *UNUSED(fluid)) { return NULL; }
 void smoke_turbulence_free(struct WTURBULENCE *UNUSED(wt)) {}
@@ -1977,7 +1977,7 @@ static void bresenham_linie_3D(int x1, int y1, int z1, int x2, int y2, int z2, f
 	cb(result, input, res, pixel, tRay, correct);
 }
 
-static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct)
+static void get_cell(const float p0[3], const int res[3], float dx, const float pos[3], int cell[3], int correct)
 {
 	float tmp[3];
 

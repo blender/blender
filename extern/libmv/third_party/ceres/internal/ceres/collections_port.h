@@ -33,25 +33,49 @@
 #ifndef CERES_INTERNAL_COLLECTIONS_PORT_H_
 #define CERES_INTERNAL_COLLECTIONS_PORT_H_
 
-#if defined(_MSC_VER) && _MSC_VER <= 1600
-#include <unordered_map>
-#include <unordered_set>
+#if defined(CERES_NO_TR1)
+#  include <map>
+#  include <set>
 #else
-#include <tr1/unordered_map>
-#include <tr1/unordered_set>
+#  if defined(_MSC_VER) && _MSC_VER <= 1600
+#    include <unordered_map>
+#    include <unordered_set>
+#  else
+#    include <tr1/unordered_map>
+#    include <tr1/unordered_set>
+#  endif
 #endif
 #include <utility>
 #include "ceres/integral_types.h"
 #include "ceres/internal/port.h"
 
+// Some systems don't have access to TR1. In that case, substitute the hash
+// map/set with normal map/set. The price to pay is slightly slower speed for
+// some operations.
+#if defined(CERES_NO_TR1)
+
 namespace ceres {
 namespace internal {
 
 template<typename K, typename V>
-struct HashMap : tr1::unordered_map<K, V> {};
+struct HashMap : map<K, V> {};
 
 template<typename K>
-struct HashSet : tr1::unordered_set<K> {};
+struct HashSet : set<K> {};
+
+}  // namespace internal
+}  // namespace ceres
+
+#else
+
+namespace ceres {
+namespace internal {
+
+template<typename K, typename V>
+struct HashMap : std::tr1::unordered_map<K, V> {};
+
+template<typename K>
+struct HashSet : std::tr1::unordered_set<K> {};
 
 #if defined(_WIN32) && !defined(__MINGW64__) && !defined(__MINGW32__)
 #define GG_LONGLONG(x) x##I64
@@ -137,5 +161,7 @@ struct hash<pair<T, T> > {
 };
 
 CERES_HASH_NAMESPACE_END
+
+#endif  // CERES_NO_TR1
 
 #endif  // CERES_INTERNAL_COLLECTIONS_PORT_H_

@@ -86,7 +86,7 @@ typedef struct IDProperty {
 #define IDP_STRING_SUB_UTF8  0 /* default */
 #define IDP_STRING_SUB_BYTE  1 /* arbitrary byte array, _not_ null terminated */
 /*->flag*/
-#define IDP_FLAG_GHOST (1<<7)  /* this means the propery is set but RNA will return
+#define IDP_FLAG_GHOST (1<<7)  /* this means the property is set but RNA will return
                                 * false when checking 'RNA_property_is_set',
                                 * currently this is a runtime flag */
 
@@ -108,7 +108,7 @@ typedef struct ID {
 	void *next, *prev;
 	struct ID *newid;
 	struct Library *lib;
-	char name[66];
+	char name[66]; /* MAX_ID_NAME */
 	short pad, us;
 	/**
 	 * LIB_... flags report on status of the datablock this ID belongs
@@ -238,11 +238,11 @@ typedef struct PreviewImage {
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1
 #define LIB_INDIRECT	2
-#define LIB_TEST		8
-#define LIB_TESTEXT		(LIB_TEST | LIB_EXTERN)
-#define LIB_TESTIND		(LIB_TEST | LIB_INDIRECT)
+#define LIB_NEED_EXPAND	8
+#define LIB_TESTEXT		(LIB_NEED_EXPAND | LIB_EXTERN)
+#define LIB_TESTIND		(LIB_NEED_EXPAND | LIB_INDIRECT)
 #define LIB_READ		16
-#define LIB_NEEDLINK	32
+#define LIB_NEED_LINK	32
 
 #define LIB_NEW			256
 #define LIB_FAKEUSER	512

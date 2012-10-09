@@ -28,9 +28,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-
-#define MODSTACK_DEBUG 1
-
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END) */
 
@@ -705,6 +702,8 @@ typedef struct SimpleDeformModifierData {
 
 /* indicates whether simple deform should use the local
  * coordinates or global coordinates of origin */
+/* XXX, this should have never been an option, all other modifiers work relatively
+ * (so moving both objects makes no change!) - Campbell */
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #define MOD_UVPROJECT_MAX				10

@@ -119,8 +119,7 @@ struct GeometryFunctor {
 		LinkNode *node;
 		for (node=export_set; node; node = node->next) {
 			Object *ob = (Object *)node->link;
-			if (ob->type == OB_MESH)
-			{
+			if (ob->type == OB_MESH) {
 				f(ob);
 			}
 		}

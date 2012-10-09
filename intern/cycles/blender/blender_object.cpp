@@ -194,8 +194,10 @@ void BlenderSync::sync_background_light()
 
 /* Object */
 
-void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint layer_flag, int motion, int particle_id)
+void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::DupliObject b_dupli_ob, Transform& tfm, uint layer_flag, int motion, int particle_id)
 {
+	BL::Object b_ob = (b_dupli_ob ? b_dupli_ob.object() : b_parent);
+	
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
 		if(!motion)
@@ -248,7 +250,9 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	}
 
 	/* object sync */
-	if(object_updated || (object->mesh && object->mesh->need_update)) {
+	/* transform comparison should not be needed, but duplis don't work perfect
+	 * in the depsgraph and may not signal changes, so this is a workaround */
+	if(object_updated || (object->mesh && object->mesh->need_update) || tfm != object->tfm) {
 		object->name = b_ob.name().c_str();
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
@@ -272,12 +276,17 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 			object->visibility &= ~PATH_RAY_CAMERA;
 		}
 
+		if (b_dupli_ob) {
+			object->dupli_generated = get_float3(b_dupli_ob.orco());
+			object->dupli_uv = get_float2(b_dupli_ob.uv());
+		}
+		else {
+			object->dupli_generated = make_float3(0.0f, 0.0f, 0.0f);
+			object->dupli_uv = make_float2(0.0f, 0.0f);
+		}
+
 		object->particle_id = particle_id;
 
-		/* particle sync */
-		if (object_use_particles(b_ob))
-			sync_particles(object, b_ob);
-	
 		object->tag_update(scene);
 	}
 }
@@ -300,15 +309,18 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 	/* object loop */
 	BL::Scene::objects_iterator b_ob;
 	BL::Scene b_sce = b_scene;
-	int particle_offset = 0;
+	int particle_offset = 1;	/* first particle is dummy for regular, non-instanced objects */
 
-	for(; b_sce; b_sce = b_sce.background_set()) {
-		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end(); ++b_ob) {
+	bool cancel = false;
+
+	for(; b_sce && !cancel; b_sce = b_sce.background_set()) {
+		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end() && !cancel; ++b_ob) {
 			bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
-			uint ob_layer = get_layer(b_ob->layers(), b_ob->layers_local_view(), object_is_light(*b_ob));
+			uint ob_layer = get_layer(b_ob->layers(), b_ob->layers_local_view(), render_layer.use_localview, object_is_light(*b_ob));
 			hide = hide || !(ob_layer & scene_layer);
 
 			if(!hide) {
+				progress.set_sync_status("Synchronizing object", (*b_ob).name());
 
 				int num_particles = object_count_particles(*b_ob);
 
@@ -327,7 +339,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 						bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
 
 						if(!(b_dup->hide() || dup_hide)) {
-							sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer, motion, b_dup->particle_index() + particle_offset);
+							sync_object(*b_ob, b_index, *b_dup, tfm, ob_layer, motion, b_dup->particle_index() + particle_offset);
 						}
 						
 						++b_index;
@@ -345,15 +357,19 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 				if(!hide) {
 					/* object itself */
 					Transform tfm = get_transform(b_ob->matrix_world());
-					sync_object(*b_ob, 0, *b_ob, tfm, ob_layer, motion, 0);
+					sync_object(*b_ob, 0, PointerRNA_NULL, tfm, ob_layer, motion, 0);
 				}
 
 				particle_offset += num_particles;
 			}
+
+			cancel = progress.get_cancel();
 		}
 	}
 
-	if(!motion) {
+	progress.set_sync_status("");
+
+	if(!cancel && !motion) {
 		sync_background_light();
 
 		/* handle removed data and modified pointers */

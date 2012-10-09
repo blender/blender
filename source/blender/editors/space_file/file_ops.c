@@ -64,13 +64,8 @@
 #include <stdio.h>
 #include <ctype.h>
 
-/* for events */
-#define NOTACTIVEFILE       0
-#define ACTIVATE            1
-#define INACTIVATE          2
-
 /* ---------- FILE SELECTION ------------ */
-static FileSelection find_file_mouse_rect(SpaceFile *sfile, struct ARegion *ar, const rcti *rect)
+static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect)
 {
 	FileSelection sel;
 	float fxmin, fymin, fxmax, fymax;
@@ -81,7 +76,7 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile, struct ARegion *ar, 
 	UI_view2d_region_to_view(v2d, rect->xmin, rect->ymin, &fxmin, &fymin);
 	UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax, &fxmax, &fymax);
 
-	BLI_init_rcti(&rect_view, (int)(v2d->tot.xmin + fxmin), (int)(v2d->tot.xmin + fxmax), (int)(v2d->tot.ymax - fymin), (int)(v2d->tot.ymax - fymax));
+	BLI_rcti_init(&rect_view, (int)(v2d->tot.xmin + fxmin), (int)(v2d->tot.xmin + fxmax), (int)(v2d->tot.ymax - fymin), (int)(v2d->tot.ymax - fymax));
 
 	sel  = ED_fileselect_layout_offset_rect(sfile->layout, &rect_view);
 	
@@ -156,7 +151,7 @@ static FileSelection file_selection_get(bContext *C, const rcti *rect, short fil
 	return sel;
 }
 
-static FileSelect file_select_do(bContext *C, int selected_idx)
+static FileSelect file_select_do(bContext *C, int selected_idx, short do_diropen)
 {
 	FileSelect retval = FILE_SELECT_NOTHING;
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -172,8 +167,12 @@ static FileSelect file_select_do(bContext *C, int selected_idx)
 		params->active_file = selected_idx;
 
 		if (S_ISDIR(file->type)) {
+			if (do_diropen == FALSE) {
+				params->file[0] = '\0';
+				retval = FILE_SELECT_DIR;
+			}
 			/* the path is too long and we are not going up! */
-			if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
+			else if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX) {
 				// XXX error("Path too long, cannot enter this directory");
 			}
 			else {
@@ -202,7 +201,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx)
 }
 
 
-static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, short fill)
+static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select, short fill, short do_diropen)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelect retval = FILE_SELECT_NOTHING;
@@ -219,7 +218,7 @@ static FileSelect file_select(bContext *C, const rcti *rect, FileSelType select,
 	if ((sel.last >= 0) && ((select == FILE_SEL_ADD) || (select == FILE_SEL_TOGGLE))) {
 		/* Check last selection, if selected, act on the file or dir */
 		if (filelist_is_selected(sfile->files, sel.last, check_type)) {
-			retval = file_select_do(C, sel.last);
+			retval = file_select_do(C, sel.last, do_diropen);
 		}
 	}
 
@@ -243,12 +242,9 @@ static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (result == OPERATOR_RUNNING_MODAL) {
 
-		rect.xmin = RNA_int_get(op->ptr, "xmin");
-		rect.ymin = RNA_int_get(op->ptr, "ymin");
-		rect.xmax = RNA_int_get(op->ptr, "xmax");
-		rect.ymax = RNA_int_get(op->ptr, "ymax");
+		WM_operator_properties_border_to_rcti(op, &rect);
 
-		BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
+		BLI_rcti_isect(&(ar->v2d.mask), &rect, &rect);
 
 		sel = file_selection_get(C, &rect, 0);
 		if ( (sel.first != params->sel_first) || (sel.last != params->sel_last) ) {
@@ -277,10 +273,7 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	short select = (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT);
 
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 
 	if (!extend) {
 		SpaceFile *sfile = CTX_wm_space_file(C);
@@ -288,9 +281,9 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 		file_deselect_all(sfile, SELECTED_FILE);
 	}
 
-	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
+	BLI_rcti_isect(&(ar->v2d.mask), &rect, &rect);
 
-	ret = file_select(C, &rect, select ? FILE_SEL_ADD : FILE_SEL_REMOVE, 0);
+	ret = file_select(C, &rect, select ? FILE_SEL_ADD : FILE_SEL_REMOVE, FALSE, FALSE);
 	if (FILE_SELECT_DIR == ret) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	}
@@ -314,7 +307,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->poll = ED_operator_file_active;
 	ot->cancel = WM_border_select_cancel;
 
-	/* rna */
+	/* properties */
 	WM_operator_properties_gesture_border(ot, 1);
 }
 
@@ -326,6 +319,7 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rcti rect;
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	int fill = RNA_boolean_get(op->ptr, "fill");
+	int do_diropen = RNA_boolean_get(op->ptr, "open");
 
 	if (ar->regiontype != RGN_TYPE_WINDOW)
 		return OPERATOR_CANCELLED;
@@ -333,13 +327,13 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rect.xmin = rect.xmax = event->mval[0];
 	rect.ymin = rect.ymax = event->mval[1];
 
-	if (!BLI_in_rcti(&ar->v2d.mask, rect.xmin, rect.ymin))
+	if (!BLI_rcti_isect_pt(&ar->v2d.mask, rect.xmin, rect.ymin))
 		return OPERATOR_CANCELLED;
 
 	/* single select, deselect all selected first */
 	if (!extend) file_deselect_all(sfile, SELECTED_FILE);
 
-	ret = file_select(C, &rect, extend ? FILE_SEL_TOGGLE : FILE_SEL_ADD, fill);
+	ret = file_select(C, &rect, extend ? FILE_SEL_TOGGLE : FILE_SEL_ADD, fill, do_diropen);
 	if (FILE_SELECT_DIR == ret)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	else if (FILE_SELECT_FILE == ret)
@@ -353,6 +347,8 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void FILE_OT_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Activate/Select File";
 	ot->description = "Activate/select file";
@@ -362,9 +358,13 @@ void FILE_OT_select(wmOperatorType *ot)
 	ot->invoke = file_select_invoke;
 	ot->poll = ED_operator_file_active;
 
-	/* rna */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
-	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "Select everything beginning with the last selection");
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "fill", FALSE, "Fill", "Select everything beginning with the last selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "open", TRUE, "Open", "Open a directory when selecting it");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -409,9 +409,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 	ot->exec = file_select_all_exec;
 	ot->poll = ED_operator_file_active;
 
-	/* rna */
-
-	
+	/* properties */
 }
 
 /* ---------- BOOKMARKS ----------- */
@@ -437,6 +435,8 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_select_bookmark(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Select Directory";
 	ot->description = "Select a bookmarked directory";
@@ -446,7 +446,9 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 	ot->exec = bookmark_select_exec;
 	ot->poll = ED_operator_file_active;
 
-	RNA_def_string(ot->srna, "dir", "", 256, "Dir", "");
+	/* properties */
+	prop = RNA_def_string(ot->srna, "dir", "", FILE_MAXDIR, "Dir", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -459,7 +461,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 	if (params->dir[0] != '\0') {
 		char name[FILE_MAX];
 	
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, FS_INSERT_SAVE);
 		BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
 	}
@@ -503,6 +505,8 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_delete_bookmark(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Delete Bookmark";
 	ot->description = "Delete selected bookmark";
@@ -512,7 +516,38 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	ot->exec = bookmark_delete_exec;
 	ot->poll = ED_operator_file_active;
 
-	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+	/* properties */
+	prop = RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ScrArea *sa = CTX_wm_area(C);
+	char name[FILE_MAX];
+	struct FSMenu *fsmenu = fsmenu_get();
+	
+	while (fsmenu_get_entry(fsmenu, FS_CATEGORY_RECENT, 0) != NULL) {
+		fsmenu_remove_entry(fsmenu, FS_CATEGORY_RECENT, 0);
+	}
+	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+	fsmenu_write_file(fsmenu, name);
+	ED_area_tag_redraw(sa);
+		
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_reset_recent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Reset Recent";
+	ot->description = "Reset Recent files";
+	ot->idname = "FILE_OT_reset_recent";
+	
+	/* api callbacks */
+	ot->exec = reset_recent_exec;
+	ot->poll = ED_operator_file_active;
+
 }
 
 int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
@@ -531,7 +566,7 @@ int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	mx -= ar->winrct.xmin;
 	my -= ar->winrct.ymin;
 
-	if (BLI_in_rcti(&ar->v2d.mask, mx, my)) {
+	if (BLI_rcti_isect_pt(&ar->v2d.mask, mx, my)) {
 		float fx, fy;
 		int active_file;
 
@@ -770,8 +805,9 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		file_sfile_to_operator(op, sfile, filepath);
 
-		if (BLI_exists(sfile->params->dir))
-			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, 0, 1);
+		if (BLI_exists(sfile->params->dir)) {
+			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, FS_INSERT_SAVE | FS_INSERT_FIRST);
+		}
 
 		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
@@ -794,7 +830,8 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = file_exec;
 	ot->poll = file_operator_poll; 
-	
+
+	/* properties */
 	prop = RNA_def_boolean(ot->srna, "need_active", 0, "Need Active",
 	                       "Only execute if there's an active selected file in the file list");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1098,6 +1135,8 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_directory_new(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Create New Directory";
 	ot->description = "Create a new directory";
@@ -1108,7 +1147,8 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 	ot->exec = file_directory_new_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 
-	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
+	prop = RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 }
 
@@ -1119,7 +1159,7 @@ static void file_expand_directory(bContext *C)
 	
 	if (sfile->params) {
 		/* TODO, what about // when relbase isn't valid? */
-		if (G.relbase_valid && strncmp(sfile->params->dir, "//", 2) == 0) {
+		if (G.relbase_valid && BLI_path_is_rel(sfile->params->dir)) {
 			BLI_path_abs(sfile->params->dir, G.main->name);
 		}
 		else if (sfile->params->dir[0] == '~') {
@@ -1277,7 +1317,7 @@ void FILE_OT_hidedot(struct wmOperatorType *ot)
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 }
 
-struct ARegion *file_buttons_region(struct ScrArea *sa)
+ARegion *file_buttons_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 	

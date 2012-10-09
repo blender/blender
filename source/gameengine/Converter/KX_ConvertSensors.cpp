@@ -23,13 +23,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * Conversion of Blender data blocks to KX sensor system
  */
 
 /** \file gameengine/Converter/KX_ConvertSensors.cpp
  *  \ingroup bgeconv
+ *
+ * Conversion of Blender data blocks to KX sensor system
  */
-
 
 #include <stdio.h>
 
@@ -183,7 +183,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					
 					
 					if (gameobj->GetPhysicsController())
-					{	
+					{
 						gamesensor = new KX_TouchSensor(eventmgr,
 							gameobj,
 							bFindMaterial,
@@ -209,7 +209,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					}
 					bool bFindMaterial = true;
 					if (gameobj->GetPhysicsController())
-					{	
+					{
 						gamesensor = new KX_TouchSensor(eventmgr,
 							gameobj,
 							bFindMaterial,
@@ -224,7 +224,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				KX_NetworkEventManager* eventmgr = (KX_NetworkEventManager*)
 					logicmgr->FindEventManager(SCA_EventManager::NETWORK_EVENTMGR);
 				if (eventmgr) {
-					bMessageSensor* msgSens = (bMessageSensor*) sens->data;	
+					bMessageSensor* msgSens = (bMessageSensor*) sens->data;
 					
 					/* Get our NetworkScene */
 					NG_NetworkScene *NetworkScene = kxscene->GetNetworkScene();
@@ -247,7 +247,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 				SCA_EventManager* eventmgr = logicmgr->FindEventManager(SCA_EventManager::TOUCH_EVENTMGR);
 				if (eventmgr)
 				{
-					STR_String nearpropertyname;	
+					STR_String nearpropertyname;
 					bNearSensor* blendernearsensor = (bNearSensor*)sens->data;
 					if (blendernearsensor->name)
 					{
@@ -311,7 +311,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			}
 		case SENS_MOUSE:
 			{
-				int keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_NODEF;			
+				int keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_NODEF;
 				int trackfocus = 0;
 				bMouseSensor *bmouse = (bMouseSensor *)sens->data;
 				
@@ -476,7 +476,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					// or the blenderradarsensor->angle?
 					// nzc: the angle is the opening angle. We need to init with 
 					// the axis-hull angle,so /2.0.
-					MT_Scalar factor = tan(MT_radians((blenderradarsensor->angle)/2.0));
+					MT_Scalar factor = tan(MT_radians((blenderradarsensor->angle) / 2.0f));
 					//MT_Scalar coneradius = coneheight * (factor / 2);
 					MT_Scalar coneradius = coneheight * factor;
 					
@@ -519,7 +519,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					STR_String checkname = (bFindMaterial? blenderraysensor->matname : blenderraysensor->propname);
 
 					// don't want to get rays of length 0.0 or so
-					double distance = (blenderraysensor->range < 0.01 ? 0.01 : blenderraysensor->range );
+					double distance = (blenderraysensor->range < 0.01f ? 0.01f : blenderraysensor->range);
 					int axis = blenderraysensor->axisflag;
 
 					
@@ -639,7 +639,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			gamesensor->SetInvert(invert);
 			gamesensor->SetLevel(level);
 			gamesensor->SetTap(tap);
-			gamesensor->SetName(sens->name);			
+			gamesensor->SetName(sens->name);
 			
 			gameobj->AddSensor(gamesensor);
 			
@@ -657,19 +657,19 @@ void BL_ConvertSensors(struct Object* blenderobject,
 
 					if (gamecont) {
 						logicmgr->RegisterToSensor(gamecont,gamesensor);
-					} else {
-						printf(
-							"Warning, sensor \"%s\" could not find its controller "
-							"(link %d of %d) from object \"%s\"\n"
-							"\tthere has been an error converting the blender controller for the game engine,"
-							"logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
 					}
-				} else {
-					printf(
-						"Warning, sensor \"%s\" has lost a link to a controller "
-						"(link %d of %d) from object \"%s\"\n"
-						"\tpossible causes are partially appended objects or an error reading the file,"
-						"logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
+					else {
+						printf("Warning, sensor \"%s\" could not find its controller "
+						       "(link %d of %d) from object \"%s\"\n"
+						       "\tthere has been an error converting the blender controller for the game engine,"
+						       "logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
+					}
+				}
+				else {
+					printf("Warning, sensor \"%s\" has lost a link to a controller "
+					       "(link %d of %d) from object \"%s\"\n"
+					       "\tpossible causes are partially appended objects or an error reading the file,"
+					       "logic may be incorrect\n", sens->name, i+1, sens->totlinks, blenderobject->id.name+2);
 				}
 			}
 			// special case: Keyboard sensor with no link

@@ -27,7 +27,7 @@ class ImagePaintPanel(UnifiedPaintPanel):
     bl_region_type = 'UI'
 
 
-class BrushButtonsPanel():
+class BrushButtonsPanel:
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
 
@@ -106,6 +106,10 @@ class IMAGE_MT_select(Menu):
         layout.operator("uv.select_pinned")
         layout.operator("uv.select_linked")
 
+        layout.separator()
+
+        layout.operator("uv.select_split")
+
 
 class IMAGE_MT_image(Menu):
     bl_label = "Image"
@@ -152,10 +156,6 @@ class IMAGE_MT_image(Menu):
                 if ima.is_dirty:
                     if ima.source in {'FILE', 'GENERATED'} and ima.type != 'OPEN_EXR_MULTILAYER':
                         layout.operator("image.pack", text="Pack As PNG").as_png = True
-
-            if not context.tool_settings.use_uv_sculpt:
-                layout.separator()
-                layout.prop(sima, "use_image_paint")
 
             layout.separator()
 
@@ -217,6 +217,7 @@ class IMAGE_MT_uvs_snap(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         layout.operator_context = 'EXEC_REGION_WIN'
 
         layout.operator("uv.snap_selected", text="Selected to Pixels").target = 'PIXELS'
@@ -234,6 +235,7 @@ class IMAGE_MT_uvs_mirror(Menu):
 
     def draw(self, context):
         layout = self.layout
+
         layout.operator_context = 'EXEC_REGION_WIN'
 
         layout.operator("transform.mirror", text="X Axis").constraint_axis[0] = True
@@ -353,10 +355,12 @@ class IMAGE_HT_header(Header):
         ima = sima.image
         iuser = sima.image_user
         toolsettings = context.tool_settings
+        mode = sima.mode
 
         show_render = sima.show_render
         # show_paint = sima.show_paint
         show_uvedit = sima.show_uvedit
+        show_maskedit = sima.show_maskedit
 
         row = layout.row(align=True)
         row.template_header()
@@ -381,11 +385,19 @@ class IMAGE_HT_header(Header):
         if not show_render:
             layout.prop(sima, "use_image_pin", text="")
 
+        layout.prop(sima, "mode", text="")
+
+        if show_maskedit:
+            row = layout.row()
+            row.template_ID(sima, "mask", new="mask.new")
+
+        if show_uvedit or show_maskedit:
+            layout.prop(sima, "pivot_point", text="", icon_only=True)
+
         # uv editing
         if show_uvedit:
             uvedit = sima.uv_editor
 
-            layout.prop(uvedit, "pivot_point", text="", icon_only=True)
             layout.prop(toolsettings, "use_uv_select_sync", text="")
 
             if toolsettings.use_uv_select_sync:
@@ -410,9 +422,6 @@ class IMAGE_HT_header(Header):
             # layers
             layout.template_image_layers(ima, iuser)
 
-            # painting
-            layout.prop(sima, "use_image_paint", text="")
-
             # draw options
             row = layout.row(align=True)
             row.prop(sima, "draw_channels", text="", expand=True)
@@ -423,7 +432,7 @@ class IMAGE_HT_header(Header):
             if ima.type == 'COMPOSITE' and ima.source in {'MOVIE', 'SEQUENCE'}:
                 row.operator("image.play_composite", icon='PLAY')
 
-        if show_uvedit or sima.use_image_paint:
+        if show_uvedit or show_maskedit or mode == 'PAINT':
             layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
 
 
@@ -610,6 +619,7 @@ class IMAGE_PT_view_properties(Panel):
         sima = context.space_data
         ima = sima.image
         show_uvedit = sima.show_uvedit
+        show_maskedit = sima.show_maskedit
         uvedit = sima.uv_editor
 
         split = layout.split()
@@ -628,12 +638,12 @@ class IMAGE_PT_view_properties(Panel):
             col.label(text="Coordinates:")
             col.prop(uvedit, "show_normalized_coords", text="Normalized")
 
-        if show_uvedit:
-
+        if show_uvedit or show_maskedit:
             col = layout.column()
             col.label("Cursor Location:")
-            col.row().prop(uvedit, "cursor_location", text="")
+            col.row().prop(sima, "cursor_location", text="")
 
+        if show_uvedit:
             col.separator()
 
             col.label(text="UVs:")
@@ -797,12 +807,12 @@ class IMAGE_UV_sculpt_curve(Panel):
         layout.template_curve_mapping(brush, "curve")
 
         row = layout.row(align=True)
-        row.operator("brush.curve_preset", icon="SMOOTHCURVE", text="").shape = 'SMOOTH'
-        row.operator("brush.curve_preset", icon="SPHERECURVE", text="").shape = 'ROUND'
-        row.operator("brush.curve_preset", icon="ROOTCURVE", text="").shape = 'ROOT'
-        row.operator("brush.curve_preset", icon="SHARPCURVE", text="").shape = 'SHARP'
-        row.operator("brush.curve_preset", icon="LINCURVE", text="").shape = 'LINE'
-        row.operator("brush.curve_preset", icon="NOCURVE", text="").shape = 'MAX'
+        row.operator("brush.curve_preset", icon='SMOOTHCURVE', text="").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", icon='SPHERECURVE', text="").shape = 'ROUND'
+        row.operator("brush.curve_preset", icon='ROOTCURVE', text="").shape = 'ROOT'
+        row.operator("brush.curve_preset", icon='SHARPCURVE', text="").shape = 'SHARP'
+        row.operator("brush.curve_preset", icon='LINCURVE', text="").shape = 'LINE'
+        row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
 class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
@@ -834,20 +844,57 @@ class IMAGE_UV_sculpt(Panel, ImagePaintPanel):
             self.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
             self.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
-        split = layout.split()
-        col = split.column()
-
+        col = layout.column()
         col.prop(toolsettings, "uv_sculpt_lock_borders")
         col.prop(toolsettings, "uv_sculpt_all_islands")
-
-        split = layout.split()
-        col = split.column()
-
         col.prop(toolsettings, "uv_sculpt_tool")
 
         if toolsettings.uv_sculpt_tool == 'RELAX':
             col.prop(toolsettings, "uv_relax_method")
 
+
+# -----------------------------------------------------------------------------
+# Mask (similar code in space_clip.py, keep in sync)
+# note! - panel placement does _not_ fit well with image panels... need to fix
+
+from bl_ui.properties_mask_common import (MASK_PT_mask,
+                                          MASK_PT_layers,
+                                          MASK_PT_spline,
+                                          MASK_PT_point,
+                                          MASK_PT_display,
+                                          MASK_PT_tools)
+
+
+class IMAGE_PT_mask(MASK_PT_mask, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_mask_layers(MASK_PT_layers, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_mask_display(MASK_PT_display, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_active_mask_spline(MASK_PT_spline, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+
+
+class IMAGE_PT_tools_mask(MASK_PT_tools, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'  # is 'TOOLS' in the clip editor
+
+# --- end mask ---
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

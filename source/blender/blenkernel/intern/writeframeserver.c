@@ -128,7 +128,7 @@ int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx
 		return 0;
 	}
 
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*) &arg, sizeof(arg));
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &arg, sizeof(arg));
 
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(U.frameserverport);
@@ -177,7 +177,7 @@ static char good_bye[] =
 "<body><pre>\n"
 "Render stopped. Goodbye</pre></body></html>";
 
-static int safe_write(char * s, int tosend)
+static int safe_write(char *s, int tosend)
 {
 	int total = tosend;
 	do {
@@ -192,15 +192,15 @@ static int safe_write(char * s, int tosend)
 	return total;
 }
 
-static int safe_puts(char * s)
+static int safe_puts(char *s)
 {
 	return safe_write(s, strlen(s));
 }
 
-static int handle_request(RenderData *rd, char * req)
+static int handle_request(RenderData *rd, char *req)
 {
-	char * p;
-	char * path;
+	char *p;
+	char *path;
 	int pathlen;
 
 	if (memcmp(req, "GET ", 4) != 0) {
@@ -230,29 +230,29 @@ static int handle_request(RenderData *rd, char * req)
 		char buf[4096];
 
 		sprintf(buf,
-			"HTTP/1.1 200 OK\r\n"
-			"Content-Type: text/html\r\n"
-			"\r\n"
-			"start %d\n"
-			"end %d\n"
-			"width %d\n"
-			"height %d\n"
-			"rate %d\n"
-			"ratescale %d\n",
-			rd->sfra,
-			rd->efra,
-			render_width,
-			render_height,
-			rd->frs_sec,
-			1
-			);
+		        "HTTP/1.1 200 OK\r\n"
+		        "Content-Type: text/html\r\n"
+		        "\r\n"
+		        "start %d\n"
+		        "end %d\n"
+		        "width %d\n"
+		        "height %d\n"
+		        "rate %d\n"
+		        "ratescale %d\n",
+		        rd->sfra,
+		        rd->efra,
+		        render_width,
+		        render_height,
+		        rd->frs_sec,
+		        1
+		        );
 
 		safe_puts(buf);
 		return -1;
 	}
 	if (strcmp(path, "/close.txt") == 0) {
 		safe_puts(good_bye);
-		G.afbreek = 1; /* Abort render */
+		G.is_break = TRUE; /* Abort render */
 		return -1;
 	}
 	return -1;
@@ -262,7 +262,7 @@ int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 {
 	fd_set readfds;
 	struct timeval tv;
-	struct sockaddr_in      addr;
+	struct sockaddr_in addr;
 	int len, rval;
 #ifdef FREE_WINDOWS
 	int socklen;
@@ -305,7 +305,7 @@ int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 		tv.tv_sec = 10;
 		tv.tv_usec = 0;
 
-			rval = select(connsock + 1, &readfds, NULL, NULL, &tv);
+		rval = select(connsock + 1, &readfds, NULL, NULL, &tv);
 		if (rval > 0) {
 			break;
 		}
@@ -332,30 +332,30 @@ int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 
 static void serve_ppm(int *pixels, int rectx, int recty)
 {
-	unsigned char* rendered_frame;
-	unsigned char* row = (unsigned char*) malloc(render_width * 3);
+	unsigned char *rendered_frame;
+	unsigned char *row = (unsigned char *) malloc(render_width * 3);
 	int y;
 	char header[1024];
 
 	sprintf(header,
-		"HTTP/1.1 200 OK\r\n"
-		"Content-Type: image/ppm\r\n"
-		"Connection: close\r\n"
-		"\r\n"
-		"P6\n"
-		"# Creator: blender frameserver v0.0.1\n"
-		"%d %d\n"
-		"255\n",
-		rectx, recty);
+	        "HTTP/1.1 200 OK\r\n"
+	        "Content-Type: image/ppm\r\n"
+	        "Connection: close\r\n"
+	        "\r\n"
+	        "P6\n"
+	        "# Creator: blender frameserver v0.0.1\n"
+	        "%d %d\n"
+	        "255\n",
+	        rectx, recty);
 
 	safe_puts(header);
 
 	rendered_frame = (unsigned char *)pixels;
 
 	for (y = recty - 1; y >= 0; y--) {
-		unsigned char* target = row;
-		unsigned char* src = rendered_frame + rectx * 4 * y;
-		unsigned char* end = src + rectx * 4;
+		unsigned char *target = row;
+		unsigned char *src = rendered_frame + rectx * 4 * y;
+		unsigned char *end = src + rectx * 4;
 		while (src != end) {
 			target[2] = src[2];
 			target[1] = src[1];
@@ -364,7 +364,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 			target += 3;
 			src += 4;
 		}
-		safe_write((char*)row, 3 * rectx);
+		safe_write((char *)row, 3 * rectx);
 	}
 	free(row);
 	closesocket(connsock);
@@ -372,7 +372,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 }
 
 int BKE_frameserver_append(RenderData *UNUSED(rd), int UNUSED(start_frame), int frame, int *pixels,
-                       int rectx, int recty, ReportList *UNUSED(reports))
+                           int rectx, int recty, ReportList *UNUSED(reports))
 {
 	fprintf(stderr, "Serving frame: %d\n", frame);
 	if (write_ppm) {
@@ -383,7 +383,7 @@ int BKE_frameserver_append(RenderData *UNUSED(rd), int UNUSED(start_frame), int 
 		connsock = -1;
 	}
 
-	return 0;
+	return 1;
 }
 
 void BKE_frameserver_end(void)

@@ -64,26 +64,28 @@ static void register_closure(OSL::ShadingSystem *ss, const char *name, int id, O
 
 void OSLShader::register_closures(OSL::ShadingSystem *ss)
 {
-	register_closure(ss, "diffuse", OSL_CLOSURE_BSDF_DIFFUSE_ID, bsdf_diffuse_params, bsdf_diffuse_prepare);
-	register_closure(ss, "oren_nayar", OSL_CLOSURE_BSDF_OREN_NAYAR_ID, bsdf_oren_nayar_params, bsdf_oren_nayar_prepare);
-	register_closure(ss, "translucent", OSL_CLOSURE_BSDF_TRANSLUCENT_ID, bsdf_translucent_params, bsdf_translucent_prepare);
-	register_closure(ss, "reflection", OSL_CLOSURE_BSDF_REFLECTION_ID, bsdf_reflection_params, bsdf_reflection_prepare);
-	register_closure(ss, "refraction", OSL_CLOSURE_BSDF_REFRACTION_ID, bsdf_refraction_params, bsdf_refraction_prepare);
-	register_closure(ss, "transparent", OSL_CLOSURE_BSDF_TRANSPARENT_ID, bsdf_transparent_params, bsdf_transparent_prepare);
-	register_closure(ss, "microfacet_ggx", OSL_CLOSURE_BSDF_MICROFACET_GGX_ID, bsdf_microfacet_ggx_params, bsdf_microfacet_ggx_prepare);
-	register_closure(ss, "microfacet_ggx_refraction", OSL_CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID, bsdf_microfacet_ggx_refraction_params, bsdf_microfacet_ggx_refraction_prepare);
-	register_closure(ss, "microfacet_beckmann", OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_ID, bsdf_microfacet_beckmann_params, bsdf_microfacet_beckmann_prepare);
-	register_closure(ss, "microfacet_beckmann_refraction", OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID, bsdf_microfacet_beckmann_refraction_params, bsdf_microfacet_beckmann_refraction_prepare);
-	register_closure(ss, "ward", OSL_CLOSURE_BSDF_WARD_ID, bsdf_ward_params, bsdf_ward_prepare);
-	register_closure(ss, "ashikhmin_velvet", OSL_CLOSURE_BSDF_ASHIKHMIN_VELVET_ID, bsdf_ashikhmin_velvet_params, bsdf_ashikhmin_velvet_prepare);
-	register_closure(ss, "westin_backscatter", OSL_CLOSURE_BSDF_WESTIN_BACKSCATTER_ID, bsdf_westin_backscatter_params, bsdf_westin_backscatter_prepare);
-	register_closure(ss, "westin_sheen", OSL_CLOSURE_BSDF_WESTIN_SHEEN_ID, bsdf_westin_sheen_params, bsdf_westin_sheen_prepare);
-	register_closure(ss, "bssrdf_cubic", OSL_CLOSURE_BSSRDF_CUBIC_ID, closure_bssrdf_cubic_params, closure_bssrdf_cubic_prepare);
-	register_closure(ss, "emission", OSL_CLOSURE_EMISSION_ID, closure_emission_params, closure_emission_prepare);
-	register_closure(ss, "debug", OSL_CLOSURE_DEBUG_ID, closure_debug_params, closure_debug_prepare);
-	register_closure(ss, "background", OSL_CLOSURE_BACKGROUND_ID, closure_background_params, closure_background_prepare);
-	register_closure(ss, "holdout", OSL_CLOSURE_HOLDOUT_ID, closure_holdout_params, closure_holdout_prepare);
-	register_closure(ss, "subsurface", OSL_CLOSURE_SUBSURFACE_ID, closure_subsurface_params, closure_subsurface_prepare);
+	register_closure(ss, "diffuse", OSL_CLOSURE_BSDF_DIFFUSE_ID, bsdf_diffuse_params(), bsdf_diffuse_prepare);
+	register_closure(ss, "oren_nayar", OSL_CLOSURE_BSDF_OREN_NAYAR_ID, bsdf_oren_nayar_params(), bsdf_oren_nayar_prepare);
+	register_closure(ss, "translucent", OSL_CLOSURE_BSDF_TRANSLUCENT_ID, bsdf_translucent_params(), bsdf_translucent_prepare);
+	register_closure(ss, "reflection", OSL_CLOSURE_BSDF_REFLECTION_ID, bsdf_reflection_params(), bsdf_reflection_prepare);
+	register_closure(ss, "refraction", OSL_CLOSURE_BSDF_REFRACTION_ID, bsdf_refraction_params(), bsdf_refraction_prepare);
+	register_closure(ss, "transparent", OSL_CLOSURE_BSDF_TRANSPARENT_ID, bsdf_transparent_params(), bsdf_transparent_prepare);
+	register_closure(ss, "microfacet_ggx", OSL_CLOSURE_BSDF_MICROFACET_GGX_ID, bsdf_microfacet_ggx_params(), bsdf_microfacet_ggx_prepare);
+	register_closure(ss, "microfacet_ggx_refraction", OSL_CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID, bsdf_microfacet_ggx_refraction_params(), bsdf_microfacet_ggx_refraction_prepare);
+	register_closure(ss, "microfacet_beckmann", OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_ID, bsdf_microfacet_beckmann_params(), bsdf_microfacet_beckmann_prepare);
+	register_closure(ss, "microfacet_beckmann_refraction", OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID, bsdf_microfacet_beckmann_refraction_params(), bsdf_microfacet_beckmann_refraction_prepare);
+	register_closure(ss, "ward", OSL_CLOSURE_BSDF_WARD_ID, bsdf_ward_params(), bsdf_ward_prepare);
+	register_closure(ss, "phong", OSL_CLOSURE_BSDF_PHONG_ID, bsdf_phong_params(), bsdf_phong_prepare);
+	register_closure(ss, "phong_ramp", OSL_CLOSURE_BSDF_PHONG_RAMP_ID, bsdf_phong_ramp_params(), bsdf_phong_ramp_prepare);
+	register_closure(ss, "ashikhmin_velvet", OSL_CLOSURE_BSDF_ASHIKHMIN_VELVET_ID, bsdf_ashikhmin_velvet_params(), bsdf_ashikhmin_velvet_prepare);
+	register_closure(ss, "westin_backscatter", OSL_CLOSURE_BSDF_WESTIN_BACKSCATTER_ID, bsdf_westin_backscatter_params(), bsdf_westin_backscatter_prepare);
+	register_closure(ss, "westin_sheen", OSL_CLOSURE_BSDF_WESTIN_SHEEN_ID, bsdf_westin_sheen_params(), bsdf_westin_sheen_prepare);
+	register_closure(ss, "bssrdf_cubic", OSL_CLOSURE_BSSRDF_CUBIC_ID, closure_bssrdf_cubic_params(), closure_bssrdf_cubic_prepare);
+	register_closure(ss, "emission", OSL_CLOSURE_EMISSION_ID, closure_emission_params(), closure_emission_prepare);
+	register_closure(ss, "debug", OSL_CLOSURE_DEBUG_ID, closure_debug_params(), closure_debug_prepare);
+	register_closure(ss, "background", OSL_CLOSURE_BACKGROUND_ID, closure_background_params(), closure_background_prepare);
+	register_closure(ss, "holdout", OSL_CLOSURE_HOLDOUT_ID, closure_holdout_params(), closure_holdout_prepare);
+	register_closure(ss, "subsurface", OSL_CLOSURE_SUBSURFACE_ID, closure_subsurface_params(), closure_subsurface_prepare);
 }
 
 CCL_NAMESPACE_END

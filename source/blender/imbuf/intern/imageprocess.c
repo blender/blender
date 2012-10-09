@@ -36,15 +36,13 @@
  *
  */
 
-/*  imageprocess.c        MIXED MODEL
- * 
- *  april 95
- * 
- */
-
 #include <stdlib.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
+#include "BLI_listbase.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -94,7 +92,7 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
 		*outI = (unsigned char *)ibuf->rect + offset;
 	
 	if (ibuf->rect_float)
-		*outF = (float *)ibuf->rect_float + offset;
+		*outF = ibuf->rect_float + offset;
 }
 
 /**************************************************************************
@@ -127,15 +125,16 @@ static float P(float k)
 }
 #endif
 
-void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+void bicubic_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	int i, j, n, m, x1, y1;
 	unsigned char *dataI;
 	float a, b, w, wx, wy[4], outR, outG, outB, outA, *dataF;
 
 	/* sample area entirely outside image? */
-	if (ceil(u) < 0 || floor(u) > in->x - 1 || ceil(v) < 0 || floor(v) > in->y - 1)
+	if (ceil(u) < 0 || floor(u) > in->x - 1 || ceil(v) < 0 || floor(v) > in->y - 1) {
 		return;
+	}
 
 	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
 
@@ -228,11 +227,12 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *o
 
 void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-	
 	unsigned char *outI = NULL;
 	float *outF = NULL;
 	
-	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+		return;
+	}
 	
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
@@ -241,7 +241,7 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
 
 /* function assumes out to be zero'ed, only does RGBA */
 /* BILINEAR INTERPOLATION */
-void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+void bilinear_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	float *row1, *row2, *row3, *row4, a, b;
 	unsigned char *row1I, *row2I, *row3I, *row4I;
@@ -258,22 +258,24 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	y1 = (int)floor(v);
 	y2 = (int)ceil(v);
 
-	// sample area entirely outside image? 
-	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) return;
+	/* sample area entirely outside image? */
+	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) {
+		return;
+	}
 
 	if (outF) {
-		// sample including outside of edges of image 
+		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1 = empty;
-		else row1 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x1;
+		else row1 = in->rect_float + in->x * y1 * 4 + 4 * x1;
 		
 		if (x1 < 0 || y2 > in->y - 1) row2 = empty;
-		else row2 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x1;
+		else row2 = in->rect_float + in->x * y2 * 4 + 4 * x1;
 		
 		if (x2 > in->x - 1 || y1 < 0) row3 = empty;
-		else row3 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x2;
+		else row3 = in->rect_float + in->x * y1 * 4 + 4 * x2;
 		
 		if (x2 > in->x - 1 || y2 > in->y - 1) row4 = empty;
-		else row4 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x2;
+		else row4 = in->rect_float + in->x * y2 * 4 + 4 * x2;
 
 		a = u - floorf(u);
 		b = v - floorf(v);
@@ -285,7 +287,7 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 		outF[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
 	}
 	if (outI) {
-		// sample including outside of edges of image 
+		/* sample including outside of edges of image */
 		if (x1 < 0 || y1 < 0) row1I = emptyI;
 		else row1I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x1;
 		
@@ -317,7 +319,7 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 /* Note about wrapping, the u/v still needs to be within the image bounds,
  * just the interpolation is wrapped.
  * This the same as bilinear_interpolation_color except it wraps rather than using empty and emptyI */
-void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	float *row1, *row2, *row3, *row4, a, b;
 	unsigned char *row1I, *row2I, *row3I, *row4I;
@@ -332,22 +334,24 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 	y1 = (int)floor(v);
 	y2 = (int)ceil(v);
 
-	// sample area entirely outside image? 
-	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) return;
-	
+	/* sample area entirely outside image? */
+	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) {
+		return;
+	}
+
 	/* wrap interpolation pixels - main difference from bilinear_interpolation_color  */
 	if (x1 < 0) x1 = in->x + x1;
 	if (y1 < 0) y1 = in->y + y1;
-	
+
 	if (x2 >= in->x) x2 = x2 - in->x;
 	if (y2 >= in->y) y2 = y2 - in->y;
 
 	if (outF) {
-		// sample including outside of edges of image 
-		row1 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x1;
-		row2 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x1;
-		row3 = (float *)in->rect_float + in->x * y1 * 4 + 4 * x2;
-		row4 = (float *)in->rect_float + in->x * y2 * 4 + 4 * x2;
+		/* sample including outside of edges of image */
+		row1 = in->rect_float + in->x * y1 * 4 + 4 * x1;
+		row2 = in->rect_float + in->x * y2 * 4 + 4 * x1;
+		row3 = in->rect_float + in->x * y1 * 4 + 4 * x2;
+		row4 = in->rect_float + in->x * y2 * 4 + 4 * x2;
 
 		a = u - floorf(u);
 		b = v - floorf(v);
@@ -359,7 +363,7 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 		outF[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
 	}
 	if (outI) {
-		// sample including outside of edges of image 
+		/* sample including outside of edges of image */
 		row1I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x1;
 		row2I = (unsigned char *)in->rect + in->x * y2 * 4 + 4 * x1;
 		row3I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x2;
@@ -380,11 +384,12 @@ void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *outI, fl
 
 void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, int yout)
 {
-	
 	unsigned char *outI = NULL;
 	float *outF = NULL;
 	
-	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+		return;
+	}
 	
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
@@ -393,7 +398,7 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 
 /* function assumes out to be zero'ed, only does RGBA */
 /* NEAREST INTERPOLATION */
-void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
+void neareast_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	float *dataF;
 	unsigned char *dataI;
@@ -404,10 +409,12 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 	x1 = (int)(u);
 	y1 = (int)(v);
 
-	// sample area entirely outside image? 
-	if (x1 < 0 || x1 > in->x - 1 || y1 < 0 || y1 > in->y - 1) return;
-	
-	// sample including outside of edges of image 
+	/* sample area entirely outside image? */
+	if (x1 < 0 || x1 > in->x - 1 || y1 < 0 || y1 > in->y - 1) {
+		return;
+	}
+
+	/* sample including outside of edges of image */
 	if (x1 < 0 || y1 < 0) {
 		if (outI) {
 			outI[0] = 0;
@@ -442,13 +449,60 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char *outI, float *
 
 void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
 {
-	
 	unsigned char *outI = NULL;
 	float *outF = NULL;
 
-	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) return;
+	if (in == NULL || (in->rect == NULL && in->rect_float == NULL)) {
+		return;
+	}
 	
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
 	neareast_interpolation_color(in, outI, outF, x, y);
+}
+
+/*********************** Threaded image processing *************************/
+
+void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_customdata,
+                                  void (init_handle) (void *handle, int start_line, int tot_line,
+                                                      void *customdata),
+                                  void *(do_thread) (void *))
+{
+	void *handles;
+	ListBase threads;
+
+	int i, tot_thread = BLI_system_thread_count();
+	int start_line, tot_line;
+
+	handles = MEM_callocN(handle_size * tot_thread, "processor apply threaded handles");
+
+	if (tot_thread > 1)
+		BLI_init_threads(&threads, do_thread, tot_thread);
+
+	start_line = 0;
+	tot_line = ((float)(buffer_lines / tot_thread)) + 0.5f;
+
+	for (i = 0; i < tot_thread; i++) {
+		int cur_tot_line;
+		void *handle = ((char *) handles) + handle_size * i;
+
+		if (i < tot_thread - 1)
+			cur_tot_line = tot_line;
+		else
+			cur_tot_line = buffer_lines - start_line;
+
+		init_handle(handle, start_line, cur_tot_line, init_customdata);
+
+		if (tot_thread > 1)
+			BLI_insert_thread(&threads, handle);
+
+		start_line += tot_line;
+	}
+
+	if (tot_thread > 1)
+		BLI_end_threads(&threads);
+	else
+		do_thread(handles);
+
+	MEM_freeN(handles);
 }

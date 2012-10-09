@@ -539,6 +539,13 @@ static void DeleteBulletShape(btCollisionShape* shape, bool free)
 		if (meshInterface)
 			delete meshInterface;
 	}
+	else if (shape->getShapeType() == GIMPACT_SHAPE_PROXYTYPE)
+	{
+		btGImpactMeshShape* meshShape = static_cast<btGImpactMeshShape*>(shape);
+		btStridingMeshInterface* meshInterface = meshShape->getMeshInterface();
+		if (meshInterface)
+			delete meshInterface;
+	}
 	if (free) {
 		delete shape;
 	}
@@ -625,6 +632,8 @@ CcdPhysicsController::~CcdPhysicsController()
 		delete m_MotionState;
 	if (m_bulletMotionState)
 		delete m_bulletMotionState;
+	if (m_characterController)
+		delete m_characterController;
 	delete m_object;
 
 	DeleteControllerShape();
@@ -778,7 +787,7 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 			if (oldbody->getActivationState() == DISABLE_DEACTIVATION)
 				body->setActivationState(DISABLE_DEACTIVATION);
 		}
-	}	
+	}
 	// sensor object are added when needed
 	if (!m_cci.m_bSensor)
 		m_cci.m_physicsEnv->addCcdPhysicsController(this);
@@ -797,7 +806,7 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 	
 	m_sumoObj	=	new SM_Object(
 		orgsumoobject->getShapeHandle(), 
-		orgsumoobject->getMaterialProps(),			
+		orgsumoobject->getMaterialProps(),
 		orgsumoobject->getShapeProps(),
 		dynaparent);
 	
@@ -829,6 +838,11 @@ void	CcdPhysicsController::SetPhysicsEnvironment(class PHY_IPhysicsEnvironment *
 		if (m_cci.m_physicsEnv->removeCcdPhysicsController(this))
 		{
 			physicsEnv->addCcdPhysicsController(this);
+
+			// Set the object to be active so it can at least by evaluated once.
+			// This fixes issues with static objects not having their physics meshes
+			// in the right spot when lib loading.
+			this->GetCollisionObject()->setActivationState(ACTIVE_TAG);
 		}
 		m_cci.m_physicsEnv = physicsEnv;
 	}
@@ -881,18 +895,22 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 			return;
 		}
 
-		// btRigidBody* body = GetRigidBody(); // not used anymore
-
 		btVector3 dloc(dlocX,dlocY,dlocZ);
 		btTransform xform = m_object->getWorldTransform();
 	
 		if (local)
-		{
 			dloc = xform.getBasis()*dloc;
-		}
 
-		xform.setOrigin(xform.getOrigin() + dloc);
-		SetCenterOfMassTransform(xform);
+		if (m_characterController)
+		{
+			m_characterController->setWalkDirection(dloc/GetPhysicsEnvironment()->getNumTimeSubSteps());
+		}
+		else
+		{
+
+			xform.setOrigin(xform.getOrigin() + dloc);
+			SetCenterOfMassTransform(xform);
+		}
 	}
 
 }
@@ -1128,7 +1146,7 @@ void		CcdPhysicsController::ApplyForce(float forceX,float forceY,float forceZ,bo
 		btTransform xform = m_object->getWorldTransform();
 		
 		if (local)
-		{	
+		{
 			force	= xform.getBasis()*force;
 		}
 		btRigidBody* body = GetRigidBody();
@@ -1287,17 +1305,16 @@ void		CcdPhysicsController::getReactionForce(float& forceX,float& forceY,float& 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
 void		CcdPhysicsController::setRigidBody(bool rigid)
 {
-	if (!rigid)
+	btRigidBody* body = GetRigidBody();
+	if (body)
 	{
-		btRigidBody* body = GetRigidBody();
-		if (body)
-		{
-			//fake it for now
-			btVector3 inertia = body->getInvInertiaDiagLocal();
-			inertia[1] = 0.f;
-			body->setInvInertiaDiagLocal(inertia);
-			body->updateInertiaTensor();
+		m_cci.m_bRigid = rigid;
+		if (!rigid) {
+			body->setAngularFactor(0.f);
+			body->setAngularVelocity(btVector3(0.f, 0.f, 0.f));
 		}
+		else
+			body->setAngularFactor(m_cci.m_angularFactor);
 	}
 }
 
@@ -1648,7 +1665,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				}
 				if (vert_tag_array[mf->v3]==true) { /* *** v3 *** */
 					vert_tag_array[mf->v3]= false;
-					*bt++ = v3->co[0];	
+					*bt++ = v3->co[0];
 					*bt++ = v3->co[1];
 					*bt++ = v3->co[2];
 				}
@@ -1680,7 +1697,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 					if (vert_tag_array[mf->v4]==true) { /* *** v4 *** */
 						vert_tag_array[mf->v4]= false;
 						*bt++ = v4->co[0];
-						*bt++ = v4->co[1];	
+						*bt++ = v4->co[1];
 						*bt++ = v4->co[2];
 					}
 				}
@@ -2042,6 +2059,15 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		m_forceReInstance= true;
 	}
 
+	// Make sure to also replace the mesh in the shape map! Otherwise we leave dangling references when we free.
+	// Note, this whole business could cause issues with shared meshes. If we update one mesh, do we replace
+	// them all?
+	std::map<RAS_MeshObject*,CcdShapeConstructionInfo*>::iterator mit = m_meshShapeMap.find(m_meshObject);
+	if (mit != m_meshShapeMap.end()) {
+		m_meshShapeMap.erase(mit);
+		m_meshShapeMap[meshobj] = this;
+	}
+
 	m_meshObject= meshobj;
 	
 	if (dm) {
@@ -2067,7 +2093,7 @@ bool CcdShapeConstructionInfo::SetProxy(CcdShapeConstructionInfo* shapeInfo)
 btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, bool useGimpact, bool useBvh)
 {
 	btCollisionShape* collisionShape = 0;
-	btCompoundShape* compoundShape = 0;	
+	btCompoundShape* compoundShape = 0;
 
 	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
 		return m_shapeProxy->CreateBulletShape(margin, useGimpact, useBvh);
@@ -2116,7 +2142,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
 		// and btScaledBvhTriangleMeshShape otherwise.
 		if (useGimpact)
-		{				
+		{
 				btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(
 						m_polygonIndexArray.size(),
 						&m_triFaceArray[0],
@@ -2125,7 +2151,6 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 						&m_vertexArray[0],
 						3*sizeof(btScalar)
 				);
-				
 				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(indexVertexArrays);
 				gimpactShape->setMargin(margin);
 				collisionShape = gimpactShape;

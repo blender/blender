@@ -464,31 +464,34 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 			handled = false;
 			break;
 
-		case GHOST_kEventWindowUpdate:
-			{
-				GHOST_IWindow* window = event->getWindow();
-				if (!m_system->validWindow(window)) break;
-				// Update the state of the game engine
-				if (m_kxsystem && !m_exitRequested)
-				{
-					// Proceed to next frame
-					window->activateDrawingContext();
+		// The player now runs as often as it can (repsecting vsync and fixedtime).
+		// This allows the player to break 100fps, but this code is being left here
+		// as reference. (see EngineNextFrame)
+		//case GHOST_kEventWindowUpdate:
+		//	{
+		//		GHOST_IWindow* window = event->getWindow();
+		//		if (!m_system->validWindow(window)) break;
+		//		// Update the state of the game engine
+		//		if (m_kxsystem && !m_exitRequested)
+		//		{
+		//			// Proceed to next frame
+		//			window->activateDrawingContext();
 
-					// first check if we want to exit
-					m_exitRequested = m_ketsjiengine->GetExitCode();
-					
-					// kick the engine
-					bool renderFrame = m_ketsjiengine->NextFrame();
-					if (renderFrame)
-					{
-						// render the frame
-						m_ketsjiengine->Render();
-					}
-				}
-				m_exitString = m_ketsjiengine->GetExitString();
-			}
-			break;
-		
+		//			// first check if we want to exit
+		//			m_exitRequested = m_ketsjiengine->GetExitCode();
+		//
+		//			// kick the engine
+		//			bool renderFrame = m_ketsjiengine->NextFrame();
+		//			if (renderFrame)
+		//			{
+		//				// render the frame
+		//				m_ketsjiengine->Render();
+		//			}
+		//		}
+		//		m_exitString = m_ketsjiengine->GetExitString();
+		//	}
+		//	break;
+		//
 		case GHOST_kEventWindowSize:
 			{
 			GHOST_IWindow* window = event->getWindow();
@@ -543,7 +546,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 			return false;
 		
 		// SYS_WriteCommandLineInt(syshandle, "fixedtime", 0);
-		// SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
+		// SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);
 		GameData *gm= &m_startScene->gm;
 		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
@@ -573,7 +576,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 				
 		m_canvas->Init();
 		if (gm->flag & GAME_SHOW_MOUSE)
-			m_canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);				
+			m_canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
 
 		m_rendertools = new GPC_RenderTools();
 		if (!m_rendertools)
@@ -678,7 +681,7 @@ bool GPG_Application::startEngine(void)
 	
 	// Temporary hack to disable banner display for NaN approved content.
 	/*
-	m_canvas->SetBannerDisplayEnabled(true);	
+	m_canvas->SetBannerDisplayEnabled(true);
 	Camera* cam;
 	cam = (Camera*)scene->camera->data;
 	if (cam) {
@@ -727,7 +730,7 @@ bool GPG_Application::startEngine(void)
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
-#endif		
+#endif
 		m_sceneconverter->ConvertScene(
 			startscene,
 			m_rendertools,
@@ -789,6 +792,28 @@ void GPG_Application::stopEngine()
 	m_engineRunning = false;
 }
 
+void GPG_Application::EngineNextFrame()
+{
+	// Update the state of the game engine
+	if (m_kxsystem && !m_exitRequested)
+	{
+		// Proceed to next frame
+		if (m_mainWindow)
+			m_mainWindow->activateDrawingContext();
+
+		// first check if we want to exit
+		m_exitRequested = m_ketsjiengine->GetExitCode();
+		
+		// kick the engine
+		bool renderFrame = m_ketsjiengine->NextFrame();
+		if (renderFrame && m_mainWindow)
+		{
+			// render the frame
+			m_ketsjiengine->Render();
+		}
+	}
+	m_exitString = m_ketsjiengine->GetExitString();
+}
 
 void GPG_Application::exitEngine()
 {

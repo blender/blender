@@ -56,6 +56,7 @@
 #include "COM_Converter.h"
 #include "COM_CropNode.h"
 #include "COM_DefocusNode.h"
+#include "COM_DespeckleNode.h"
 #include "COM_DifferenceMatteNode.h"
 #include "COM_DilateErodeNode.h"
 #include "COM_DirectionalBlurNode.h"
@@ -74,6 +75,7 @@
 #include "COM_HueSaturationValueNode.h"
 #include "COM_IDMaskNode.h"
 #include "COM_ImageNode.h"
+#include "COM_InpaintNode.h"
 #include "COM_InvertNode.h"
 #include "COM_KeyingNode.h"
 #include "COM_KeyingScreenNode.h"
@@ -110,6 +112,7 @@
 #include "COM_TransformNode.h"
 #include "COM_TranslateNode.h"
 #include "COM_TranslateOperation.h"
+#include "COM_TrackPositionNode.h"
 #include "COM_ValueNode.h"
 #include "COM_VectorBlurNode.h"
 #include "COM_VectorCurveNode.h"
@@ -127,16 +130,16 @@ Node *Converter::convert(bNode *b_node, bool fast)
 	}
 	if (fast) {
 		if (b_node->type == CMP_NODE_BLUR ||
-		        b_node->type == CMP_NODE_VECBLUR ||
-		        b_node->type == CMP_NODE_BILATERALBLUR ||
-		        b_node->type == CMP_NODE_DEFOCUS ||
-		        b_node->type == CMP_NODE_BOKEHBLUR ||
-		        b_node->type == CMP_NODE_GLARE ||
-		        b_node->type == CMP_NODE_DBLUR ||
-		        b_node->type == CMP_NODE_MOVIEDISTORTION ||
-		        b_node->type == CMP_NODE_LENSDIST ||
-		        b_node->type == CMP_NODE_DOUBLEEDGEMASK ||
-		        b_node->type == CMP_NODE_DILATEERODE) 
+		    b_node->type == CMP_NODE_VECBLUR ||
+		    b_node->type == CMP_NODE_BILATERALBLUR ||
+		    b_node->type == CMP_NODE_DEFOCUS ||
+		    b_node->type == CMP_NODE_BOKEHBLUR ||
+		    b_node->type == CMP_NODE_GLARE ||
+		    b_node->type == CMP_NODE_DBLUR ||
+		    b_node->type == CMP_NODE_MOVIEDISTORTION ||
+		    b_node->type == CMP_NODE_LENSDIST ||
+		    b_node->type == CMP_NODE_DOUBLEEDGEMASK ||
+		    b_node->type == CMP_NODE_DILATEERODE)
 		{
 			return new MuteNode(b_node);
 		}
@@ -302,6 +305,12 @@ Node *Converter::convert(bNode *b_node, bool fast)
 		case CMP_NODE_DILATEERODE:
 			node = new DilateErodeNode(b_node);
 			break;
+		case CMP_NODE_INPAINT:
+			node = new InpaintNode(b_node);
+			break;
+		case CMP_NODE_DESPECKLE:
+			node = new DespeckleNode(b_node);
+			break;
 		case CMP_NODE_LENSDIST:
 			node = new LensDistortionNode(b_node);
 			break;
@@ -376,6 +385,9 @@ Node *Converter::convert(bNode *b_node, bool fast)
 			break;
 		case CMP_NODE_KEYING:
 			node = new KeyingNode(b_node);
+			break;
+		case CMP_NODE_TRACKPOS:
+			node = new TrackPositionNode(b_node);
 			break;
 		/* not inplemented yet */
 		default:
@@ -488,7 +500,8 @@ void Converter::convertResolution(SocketConnection *connection, ExecutionSystem 
 			system->addOperation(sxop);
 			system->addOperation(syop);
 
-			unsigned int resolution[2] = {fromWidth, fromHeight};
+			unsigned int resolution[2] = {fromOperation->getWidth(),
+			                              fromOperation->getHeight()};
 			scaleOperation->setResolution(resolution);
 			sxop->setResolution(resolution);
 			syop->setResolution(resolution);
@@ -510,7 +523,8 @@ void Converter::convertResolution(SocketConnection *connection, ExecutionSystem 
 		system->addOperation(xop);
 		system->addOperation(yop);
 
-		unsigned int resolution[2] = {toWidth, toHeight};
+		unsigned int resolution[2] = {toOperation->getWidth(),
+		                              toOperation->getHeight()};
 		translateOperation->setResolution(resolution);
 		xop->setResolution(resolution);
 		yop->setResolution(resolution);

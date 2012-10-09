@@ -89,7 +89,6 @@
 #include "BKE_node.h"
 #include "BKE_mask.h"
 #include "BKE_sequencer.h"
-#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"
@@ -100,7 +99,7 @@
 /* ----------- Private Stuff - Action Editor ------------- */
 
 /* Get shapekey data being edited (for Action Editor -> ShapeKey mode) */
-/* Note: there's a similar function in key.c (ob_get_key) */
+/* Note: there's a similar function in key.c (BKE_key_from_object) */
 static Key *actedit_get_shapekeys(bAnimContext *ac)
 {
 	Scene *scene = ac->scene;
@@ -115,7 +114,7 @@ static Key *actedit_get_shapekeys(bAnimContext *ac)
 	//if (saction->pin) return NULL;
 	
 	/* shapekey data is stored with geometry data */
-	key = ob_get_key(ob);
+	key = BKE_key_from_object(ob);
 	
 	if (key) {
 		if (key->type == KEY_RELATIVE)
@@ -164,8 +163,8 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			
 			ac->mode = saction->mode;
 			return 1;
-			
-		case SACTCONT_GPENCIL: /* Grease Pencil */ // XXX review how this mode is handled...
+		
+		case SACTCONT_GPENCIL: /* Grease Pencil */ /* XXX review how this mode is handled... */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
 			
@@ -175,19 +174,19 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			ac->mode = saction->mode;
 			return 1;
 			
-		case SACTCONT_MASK: /* Grease Pencil */ // XXX review how this mode is handled...
-			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
+		case SACTCONT_MASK: /* Mask */ /* XXX review how this mode is handled... */
 {
-			// TODO, other methods to get the mask
+			/* TODO, other methods to get the mask */
 			// Sequence *seq = BKE_sequencer_active_get(ac->scene);
 			//MovieClip *clip = ac->scene->clip;
 //			struct Mask *mask = seq ? seq->mask : NULL;
-
+			
+			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
-
+			
 			ac->datatype = ANIMCONT_MASK;
 			ac->data = &saction->ads;
-
+			
 			ac->mode = saction->mode;
 			return 1;
 }
@@ -417,16 +416,16 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
  *
  * For this to work correctly, a standard set of data needs to be available within the scope that this
  * gets called in: 
- *	- ListBase anim_data;
- *	- bDopeSheet *ads;
- *	- bAnimListElem *ale;
+ *  - ListBase anim_data;
+ *  - bDopeSheet *ads;
+ *  - bAnimListElem *ale;
  *  - size_t items;
  *
  *  - id: ID block which should have an AnimData pointer following it immediately, to use
- *	- adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
- *	- nlaOk: line or block of code to execute for NLA tracks+strips case
- *	- driversOk: line or block of code to execute for Drivers case
- *	- keysOk: line or block of code for Keyframes case
+ *  - adtOk: line or block of code to execute for AnimData-blocks case (usually ANIMDATA_ADD_ANIMDATA)
+ *  - nlaOk: line or block of code to execute for NLA tracks+strips case
+ *  - driversOk: line or block of code to execute for Drivers case
+ *  - keysOk: line or block of code for Keyframes case
  *
  * The checks for the various cases are as follows:
  *	0) top level: checks for animdata and also that all the F-Curves for the block will be visible
@@ -689,12 +688,12 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 			{
 				Speaker *spk = (Speaker *)data;
 				AnimData *adt = spk->adt;
-
+				
 				ale->flag = FILTER_SPK_OBJD(spk);
-
+				
 				ale->key_data = (adt) ? adt->action : NULL;
 				ale->datatype = ALE_ACT;
-
+				
 				ale->adt = BKE_animdata_from_id(data);
 			}
 			break;
@@ -800,7 +799,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 					/* the corresponding keyframes are from the animdata */
 					if (ale->adt && ale->adt->action) {
 						bAction *act = ale->adt->action;
-						char *rna_path = key_get_curValue_rnaPath(key, kb);
+						char *rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
 						
 						/* try to find the F-Curve which corresponds to this exactly,
 						 * then free the MEM_alloc'd string
@@ -825,18 +824,18 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				ale->datatype = ALE_GPFRAME;
 			}
 			break;
-
+			
 			case ANIMTYPE_MASKLAYER:
 			{
 				MaskLayer *masklay = (MaskLayer *)data;
-
+				
 				ale->flag = masklay->flag;
-
+				
 				ale->key_data = NULL;
 				ale->datatype = ALE_MASKLAY;
 			}
 			break;
-
+			
 			case ANIMTYPE_NLATRACK:
 			{
 				NlaTrack *nlt = (NlaTrack *)data;
@@ -880,7 +879,7 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *bone_name;
 			
 			/* get bone-name, and check if this bone is selected */
-			bone_name = BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
+			bone_name = BLI_str_quoted_substrN(fcu->rna_path, "pose.bones[");
 			pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
@@ -916,8 +915,8 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *seq_name;
 			
 			/* get strip name, and check if this strip is selected */
-			seq_name = BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
-			seq = get_seq_by_name(ed->seqbasep, seq_name, FALSE);
+			seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
+			seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
 			/* can only add this F-Curve if it is selected */
@@ -936,7 +935,7 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			char *node_name;
 			
 			/* get strip name, and check if this strip is selected */
-			node_name = BLI_getQuotedStr(fcu->rna_path, "nodes[");
+			node_name = BLI_str_quoted_substrN(fcu->rna_path, "nodes[");
 			node = nodeFindNodebyName(ntree, node_name);
 			if (node_name) MEM_freeN(node_name);
 			
@@ -1139,7 +1138,6 @@ static size_t animfilter_action(bAnimContext *ac, ListBase *anim_data, bDopeShee
 	/* don't include anything from this action if it is linked in from another file,
 	 * and we're getting stuff for editing...
 	 */
-	// TODO: need a way of tagging other channels that may also be affected...
 	if ((filter_mode & ANIMFILTER_FOREDIT) && (act->id.lib))
 		return 0;
 		
@@ -1241,11 +1239,11 @@ static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDope
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	size_t items = 0;
-
+	
 	/* image object datablocks have no anim-data so check for NULL */
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
-
+		
 		/* NOTE: this macro is used instead of inlining the logic here, since this sort of filtering is still needed
 		 * in a few places in he rest of the code still - notably for the few cases where special mode-based
 		 * different types of data expanders are required.
@@ -1266,7 +1264,7 @@ static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDope
 			}
 		);
 	}
-
+	
 	return items;
 }
 
@@ -1284,7 +1282,6 @@ static size_t animdata_filter_shapekey(bAnimContext *ac, ListBase *anim_data, Ke
 		/* loop through the channels adding ShapeKeys as appropriate */
 		for (kb = key->block.first; kb; kb = kb->next) {
 			/* skip the first one, since that's the non-animatable basis */
-			// XXX maybe in future this may become handy?
 			if (kb == key->block.first) continue;
 			
 			/* only work with this channel and its subchannels if it is editable */
@@ -1316,6 +1313,7 @@ static size_t animdata_filter_shapekey(bAnimContext *ac, ListBase *anim_data, Ke
 	return items;
 }
 
+/* Helper for Grease Pencil - layers within a datablock */
 static size_t animdata_filter_gpencil_data(ListBase *anim_data, bGPdata *gpd, int filter_mode)
 {
 	bGPDlayer *gpl;
@@ -1382,6 +1380,7 @@ static size_t animdata_filter_gpencil(ListBase *anim_data, void *UNUSED(data), i
 	return items;
 }
 
+/* Helper for Mask Editing - mask layers */
 static size_t animdata_filter_mask_data(ListBase *anim_data, Mask *mask, const int filter_mode)
 {
 	MaskLayer *masklay_act = BKE_mask_layer_active(mask);
@@ -1393,53 +1392,42 @@ static size_t animdata_filter_mask_data(ListBase *anim_data, Mask *mask, const i
 		/* only if selected */
 		if (ANIMCHANNEL_SELOK(SEL_MASKLAY(masklay)) ) {
 			/* only if editable */
-//			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
+			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_MASK(masklay)) {
 				/* active... */
 				if (!(filter_mode & ANIMFILTER_ACTIVE) || (masklay_act == masklay)) {
 					/* add to list */
 					ANIMCHANNEL_NEW_CHANNEL(masklay, ANIMTYPE_MASKLAYER, mask);
-
-
-//					if (filter_mode & ANIMFILTER_TMP_PEEK)
-//						return 1;
-//					else {
-//						bAnimListElem *ale = make_new_animlistelem(masklay, channel_type, (ID *)owner_id);
-//						if (ale) {
-//							BLI_addtail(anim_data, ale);
-//							items ++;
-//						}
-//					}
-
 				}
-//			}
+			}
 		}
 	}
 
 	return items;
 }
 
+/* Grab all mask data */
 static size_t animdata_filter_mask(ListBase *anim_data, void *UNUSED(data), int filter_mode)
 {
 	Mask *mask;
 	size_t items = 0;
-
-	/* for now, grab grease pencil datablocks directly from main */
+	
+	/* for now, grab mask datablocks directly from main */
 	// XXX: this is not good...
 	for (mask = G.main->mask.first; mask; mask = mask->id.next) {
 		ListBase tmp_data = {NULL, NULL};
 		size_t tmp_items = 0;
-
-		/* only show if gpd is used by something... */
+		
+		/* only show if mask is used by something... */
 		if (ID_REAL_USERS(mask) < 1)
 			continue;
-
-		/* add gpencil animation channels */
+		
+		/* add mask animation channels */
 		BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_MASK(mask))
 		{
 			tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
 		}
 		END_ANIMFILTER_SUBCHANNELS;
-
+		
 		/* did we find anything? */
 		if (tmp_items) {
 			/* include data-expand widget first */
@@ -1447,14 +1435,14 @@ static size_t animdata_filter_mask(ListBase *anim_data, void *UNUSED(data), int 
 				/* add gpd as channel too (if for drawing, and it has layers) */
 				ANIMCHANNEL_NEW_CHANNEL(mask, ANIMTYPE_MASKDATABLOCK, NULL);
 			}
-
+			
 			/* now add the list of collected channels */
 			BLI_movelisttolist(anim_data, &tmp_data);
 			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
 			items += tmp_items;
 		}
 	}
-
+	
 	/* return the number of items added to the list */
 	return items;
 }
@@ -1607,7 +1595,6 @@ static size_t animdata_filter_ds_material(bAnimContext *ac, ListBase *anim_data,
 	/* did we find anything? */
 	if (tmp_items) {
 		/* include material-expand widget first */
-		// hmm... do we need to store the index of this material in the array anywhere?
 		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
 			/* check if filtering by active status */
 			if (ANIMCHANNEL_ACTIVEOK(ma)) {
@@ -1815,11 +1802,18 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, b
 		
 		/* sub-data filtering... */
 		switch (ob->type) {
-			case OB_LAMP:  /* lamp - textures */
+			case OB_LAMP:  /* lamp - textures + nodetree */
 			{
+				Lamp *la = ob->data;
+				bNodeTree *ntree = la->nodetree;
+				
+				/* nodetree */
+				if ((ntree) && !(ads->filterflag & ADS_FILTER_NONTREE))
+					tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, &la->id, ntree, filter_mode);
+				
 				/* textures */
 				if (!(ads->filterflag & ADS_FILTER_NOTEX))
-					tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, ob->data, filter_mode);
+					tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, &la->id, filter_mode);
 			}
 			break;
 		}
@@ -1890,9 +1884,9 @@ static size_t animdata_filter_ds_obanim(bAnimContext *ac, ListBase *anim_data, b
 	AnimData *adt = ob->adt;
 	short type = 0, expanded = 1;
 	void *cdata = NULL;
-	
+
 	/* determine the type of expander channels to use */
-	// this is the best way to do this for now...
+	/* this is the best way to do this for now... */
 	ANIMDATA_FILTER_CASES(ob,
 		{ /* AnimData - no channel, but consider data */ },
 		{ /* NLA - no channel, but consider data */ },
@@ -1946,7 +1940,7 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data
 	/* filter data contained under object first */
 	BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_OBJC(ob))
 	{
-		Key *key = ob_get_key(ob);
+		Key *key = BKE_key_from_object(ob);
 		
 		/* object-level animation */
 		if ((ob->adt) && !(ads->filterflag & ADS_FILTER_NOOBJ)) {
@@ -2122,11 +2116,11 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 		if ((ntree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
 			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)sce, ntree, filter_mode);
 		}
-		
-		// TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here
+
+		/* TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here */
 	}
 	END_ANIMFILTER_SUBCHANNELS;
-	
+
 	/* if we collected some channels, add these to the new list... */
 	if (tmp_items) {
 		/* firstly add object expander if required */
@@ -2280,7 +2274,7 @@ static size_t animdata_filter_animchan(bAnimContext *ac, ListBase *anim_data, bD
 	size_t items = 0;
 	
 	/* data to filter depends on channel type */
-	// XXX: only common channel-types have been handled for now
+	/* NOTE: only common channel-types have been handled for now. More can be added as necessary */
 	switch (channel->type) {
 		case ANIMTYPE_SUMMARY:
 			items += animdata_filter_dopesheet(ac, anim_data, ads, filter_mode);
@@ -2292,6 +2286,10 @@ static size_t animdata_filter_animchan(bAnimContext *ac, ListBase *anim_data, bD
 		
 		case ANIMTYPE_OBJECT:
 			items += animdata_filter_dopesheet_ob(ac, anim_data, ads, channel->data, filter_mode);
+			break;
+			
+		default:
+			printf("ERROR: Unsupported channel type (%d) in animdata_filter_animchan()\n", channel->type);
 			break;
 	}
 	
@@ -2386,7 +2384,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 					items += animfilter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
 			}
 			break;
-
+			
 			case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			{
 				/* the check for the DopeSheet summary is included here since the summary works here too */
@@ -2401,14 +2399,14 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 					items = animdata_filter_gpencil(anim_data, data, filter_mode);
 			}
 			break;
-
+			
 			case ANIMCONT_MASK:
 			{
 				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
 					items = animdata_filter_mask(anim_data, data, filter_mode);
 			}
 			break;
-
+			
 			case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
 			{
 				/* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
@@ -2417,9 +2415,9 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 			}
 			break;
 				
-			case ANIMCONT_FCURVES: /* Graph Editor -> FCurves/Animation Editing */
+			case ANIMCONT_FCURVES: /* Graph Editor -> F-Curves/Animation Editing */
 			case ANIMCONT_DRIVERS: /* Graph Editor -> Drivers Editing */
-			case ANIMCONT_NLA: /* NLA Editor */
+			case ANIMCONT_NLA:     /* NLA Editor */
 			{
 				/* all of these editors use the basic DopeSheet data for filtering options, but don't have all the same features */
 				items = animdata_filter_dopesheet(ac, anim_data, data, filter_mode);

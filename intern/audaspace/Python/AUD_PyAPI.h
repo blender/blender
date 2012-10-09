@@ -46,7 +46,7 @@ typedef void AUD_Reference_AUD_IHandle;
 
 typedef struct {
 	PyObject_HEAD
-	PyObject* child_list;
+	PyObject *child_list;
 	AUD_Reference_AUD_IFactory* factory;
 } Factory;
 
@@ -63,9 +63,9 @@ typedef struct {
 PyMODINIT_FUNC
 PyInit_aud(void);
 
-extern PyObject* Device_empty();
-extern PyObject* Factory_empty();
-extern Factory* checkFactory(PyObject* factory);
+extern PyObject *Device_empty();
+extern PyObject *Factory_empty();
+extern Factory  *checkFactory(PyObject *factory);
 
 #ifdef __cplusplus
 }

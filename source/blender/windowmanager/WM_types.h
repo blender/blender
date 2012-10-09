@@ -31,6 +31,77 @@
 #ifndef __WM_TYPES_H__
 #define __WM_TYPES_H__
 
+/**
+ * Overview of WM structs
+ * ======================
+ *
+ * <pre>
+ * > wmWindowManager    (window manager stores a list of windows)
+ * > > wmWindow         (window has an active screen)
+ * > > > bScreen        (link to ScrAreas via 'areabase')
+ * > > > > ScrArea      (stores multiple spaces via space links via 'spacedata')
+ * > > > > > SpaceLink  (base struct for space data for all different space types)
+ * > > > > ScrArea      (stores multiple regions via 'regionbase')
+ * > > > > > ARegion
+ * </pre>
+ *
+ * Window Layout
+ * =============
+ *
+ * <pre>
+ * wmWindow -> bScreen
+ * +----------------------------------------------------------+
+ * |+-----------------------------------------+-------------+ |
+ * ||ScrArea (links to 3D view)               |ScrArea      | |
+ * ||+-------++----------+-------------------+|(links to    | |
+ * |||ARegion||          |ARegion (quad view)|| properties) | |
+ * |||(tools)||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       |+----------+-------------------+|             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * |||       ||          |                   ||             | |
+ * ||+-------++----------+-------------------+|             | |
+ * |+-----------------------------------------+-------------+ |
+ * +----------------------------------------------------------+
+ * </pre>
+ *
+ * Space Data
+ * ==========
+ *
+ * <pre>
+ * ScrArea's store a list of space data (SpaceLinks), each of unique type.
+ * The first one is the displayed in the UI, others are added as needed.
+ *
+ * +----------------------------+  <-- sa->spacedata.first;
+ * |                            |
+ * |                            |---+  <-- other inactive SpaceLink's stored.
+ * |                            |   |
+ * |                            |   |---+
+ * |                            |   |   |
+ * |                            |   |   |
+ * |                            |   |   |
+ * |                            |   |   |
+ * +----------------------------+   |   |
+ *    |                             |   |
+ *    +-----------------------------+   |
+ *       |                              |
+ *       +------------------------------+
+ * </pre>
+ *
+ * A common way to get the space from the ScrArea:
+ * <pre>
+ *     if (sa->spacetype == SPACE_VIEW3D) {
+ *         View3D *v3d = sa->spacedata.first;
+ *         ...
+ *     }
+ * </pre>
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,7 +115,6 @@ struct ImBuf;
 
 #include "RNA_types.h"
 #include "DNA_listBase.h"
-#include "BKE_utildefines.h" /* FILE_MAX */
 
 /* exported types for WM */
 #include "wm_cursors.h"
@@ -168,6 +238,7 @@ typedef struct wmNotifier {
 #define NC_LOGIC			(19<<24)
 #define NC_MOVIECLIP			(20<<24)
 #define NC_MASK				(21<<24)
+#define NC_GPENCIL			(22<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -387,28 +458,28 @@ typedef struct wmTabletData {
 
 typedef enum {  /* motion progress, for modal handlers */
 	P_NOT_STARTED,
-	P_STARTING,    // <--
-	P_IN_PROGRESS, // <-- only these are sent for NDOF motion
-	P_FINISHING,   // <--
+	P_STARTING,    /* <-- */
+	P_IN_PROGRESS, /* <-- only these are sent for NDOF motion*/
+	P_FINISHING,   /* <-- */
 	P_FINISHED
-	} wmProgress;
+} wmProgress;
 
 typedef struct wmNDOFMotionData {
 	/* awfully similar to GHOST_TEventNDOFMotionData... */
-	// Each component normally ranges from -1 to +1, but can exceed that.
-	// These use blender standard view coordinates, with positive rotations being CCW about the axis.
+	/* Each component normally ranges from -1 to +1, but can exceed that.
+	 * These use blender standard view coordinates, with positive rotations being CCW about the axis. */
 	union {
-		float tvec[3]; // translation
+		float tvec[3]; /* translation */
 		struct { float tx, ty, tz; };
-		};
+	};
 	union {
-		float rvec[3]; // rotation:
+		float rvec[3]; /* rotation: */
 		struct { float rx, ry, rz; };
-		};
-		// axis = (rx,ry,rz).normalized
-		// amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
-	float dt; // time since previous NDOF Motion event
-	wmProgress progress; // is this the first event, the last, or one of many in between?
+	};
+	/* axis = (rx,ry,rz).normalized */
+	/* amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg] */
+	float dt; /* time since previous NDOF Motion event */
+	wmProgress progress; /* is this the first event, the last, or one of many in between? */
 } wmNDOFMotionData;
 
 typedef struct wmTimer {
@@ -438,7 +509,11 @@ typedef struct wmOperatorType {
 	 * parameters may be provided through operator properties. cannot use
 	 * any interface code or input device state.
 	 * - see defines below for return values */
-	int (*exec)(struct bContext *, struct wmOperator *);
+	int (*exec)(struct bContext *, struct wmOperator *)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 	
 	/* this callback executes on a running operator whenever as property
 	 * is changed. It can correct its own properties or report errors for
@@ -450,9 +525,17 @@ typedef struct wmOperatorType {
 	 * any further events are handled in modal. if the operation is
 	 * canceled due to some external reason, cancel is called
 	 * - see defines below for return values */
-	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *);
+	int (*invoke)(struct bContext *, struct wmOperator *, struct wmEvent *)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 	int (*cancel)(struct bContext *, struct wmOperator *);
-	int (*modal)(struct bContext *, struct wmOperator *, struct wmEvent *);
+	int (*modal)(struct bContext *, struct wmOperator *, struct wmEvent *)
+#ifdef __GNUC__
+	__attribute__((warn_unused_result))
+#endif
+	;
 
 	/* verify if the operator can be executed in the current context, note
 	 * that the operator might still fail to execute even if this return true */

@@ -24,41 +24,32 @@
  *  \ingroup edinterface
  */
 
-#include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
 #include "BKE_scene.h"
 
 #include "RNA_access.h"
 
 #include "NOD_socket.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "UI_interface.h"
-#include "UI_resources.h"
-#include "../interface/interface_intern.h"
+#include "../interface/interface_intern.h"  /* XXX bad level */
 
-#include "ED_node.h"
+#include "ED_node.h"  /* own include */
+
 #include "ED_util.h"
 
 /************************* Node Socket Manipulation **************************/
@@ -239,7 +230,7 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 
 /****************************** Node Link Menu *******************************/
 
-#define UI_NODE_LINK_ADD        0
+// #define UI_NODE_LINK_ADD        0
 #define UI_NODE_LINK_DISCONNECT -1
 #define UI_NODE_LINK_REMOVE     -2
 
@@ -605,7 +596,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 			uiItemL(row, "", ICON_BLANK1);
 
 		bt = block->buttons.last;
-		bt->x2 = UI_UNIT_X / 2;
+		bt->rect.xmax = UI_UNIT_X / 2;
 
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
@@ -636,11 +627,11 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 				row = uiLayoutRow(split, FALSE);
 				col = uiLayoutColumn(row, FALSE);
 
-				uiItemR(col, &inputptr, "default_value", 0, "", 0);
+				uiItemR(col, &inputptr, "default_value", 0, "", ICON_NONE);
 			}
 			else {
 				row = uiLayoutRow(split, TRUE);
-				uiItemR(row, &inputptr, "default_value", 0, "", 0);
+				uiItemR(row, &inputptr, "default_value", 0, "", ICON_NONE);
 			}
 		}
 		else

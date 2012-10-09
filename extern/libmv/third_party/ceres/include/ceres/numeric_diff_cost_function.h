@@ -93,11 +93,13 @@ struct Differencer {
     using Eigen::Map;
     using Eigen::Matrix;
     using Eigen::RowMajor;
+    using Eigen::ColMajor;
 
     typedef Matrix<double, num_residuals, 1> ResidualVector;
     typedef Matrix<double, parameter_block_size, 1> ParameterVector;
-    typedef Matrix<double, num_residuals, parameter_block_size, RowMajor>
-        JacobianMatrix;
+    typedef Matrix<double, num_residuals, parameter_block_size,
+                   (parameter_block_size == 1 &&
+                    num_residuals > 1) ? ColMajor : RowMajor> JacobianMatrix;
 
     Map<JacobianMatrix> parameter_jacobian(jacobians[parameter_block],
                                            num_residuals,

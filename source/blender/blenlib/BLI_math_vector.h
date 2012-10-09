@@ -81,6 +81,7 @@ MINLINE void copy_v4db_v4fl(double r[4], const float a[4]);
 
 /********************************* Arithmetic ********************************/
 
+MINLINE void add_v2_fl(float r[2], float f);
 MINLINE void add_v3_fl(float r[3], float f);
 MINLINE void add_v4_fl(float r[4], float f);
 MINLINE void add_v2_v2(float r[2], const float a[2]);
@@ -172,6 +173,7 @@ MINLINE int is_one_v3(const float a[3]);
 
 MINLINE int equals_v2v2(const float v1[2], const float v2[2]);
 MINLINE int equals_v3v3(const float a[3], const float b[3]);
+MINLINE int compare_v2v2(const float a[3], const float b[3], const float limit);
 MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit);
 MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit);
 
@@ -219,6 +221,9 @@ MINLINE void normal_short_to_float_v3(float r[3], const short n[3]);
 MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);
 
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3]);
+
+void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist);
+void dist_ensure_v2_v2fl(float v1[2], const float v2[2], const float dist);
 
 /***************************** Array Functions *******************************/
 /* attempted to follow fixed length vertex functions. names could be improved*/

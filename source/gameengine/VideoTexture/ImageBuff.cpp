@@ -47,7 +47,7 @@ FilterRGB24 defFilter;
 // forward declaration;
 extern PyTypeObject ImageBuffType;
 
-static int ImageBuff_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+static int ImageBuff_init (PyObject *pySelf, PyObject *args, PyObject *kwds)
 {
 	short width = -1;
 	short height = -1;
@@ -55,7 +55,7 @@ static int ImageBuff_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
 	PyObject *py_scale = Py_False;
 	ImageBuff *image;
 
-	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	PyImage *self = reinterpret_cast<PyImage*>(pySelf);
 	// create source object
 	if (self->m_image != NULL) 
 		delete self->m_image;
@@ -144,7 +144,7 @@ void ImageBuff::clear (short width, short height, unsigned char color)
 // img must point to a array of RGBA data of size width*height
 void ImageBuff::plot (unsigned char * img, short width, short height, short x, short y, short mode)
 {
-	struct ImBuf* tmpbuf;
+	struct ImBuf *tmpbuf;
 
 	if (m_size[0] == 0 || m_size[1] == 0 || width <= 0 || height <= 0)
 		return;
@@ -190,7 +190,7 @@ void ImageBuff::plot (ImageBuff* img, short x, short y, short mode)
 
 
 // cast Image pointer to ImageBuff
-inline ImageBuff * getImageBuff (PyImage * self)
+inline ImageBuff * getImageBuff (PyImage *self)
 { return static_cast<ImageBuff*>(self->m_image); }
 
 
@@ -245,7 +245,7 @@ static bool testBGLBuffer(Buffer* buffer, int width, int height, unsigned int pi
 
 
 // load image
-static PyObject * load (PyImage * self, PyObject * args)
+static PyObject *load(PyImage *self, PyObject *args)
 {
 	// parameters: string image buffer, its size, width, height
 	Py_buffer buffer;
@@ -306,10 +306,10 @@ static PyObject * load (PyImage * self, PyObject * args)
 	}
 	if (PyErr_Occurred())
 		return NULL;
-	Py_RETURN_NONE;	
+	Py_RETURN_NONE;
 }
 
-static PyObject * plot (PyImage * self, PyObject * args)
+static PyObject *plot (PyImage *self, PyObject *args)
 {
 	PyImage * other;
 	Buffer* bglBuffer;
@@ -332,7 +332,7 @@ static PyObject * plot (PyImage * self, PyObject * args)
 		PyBuffer_Release(&buffer);
 		if (PyErr_Occurred())
 			return NULL;
-		Py_RETURN_NONE;	
+		Py_RETURN_NONE;
 	}
 	PyErr_Clear();
 	// try the other format
@@ -354,7 +354,7 @@ static PyObject * plot (PyImage * self, PyObject * args)
 	}
 	if (PyErr_Occurred())
 		return NULL;
-	Py_RETURN_NONE;	
+	Py_RETURN_NONE;
 }
 
 // methods structure

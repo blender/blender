@@ -52,9 +52,6 @@
 #include "bpy_util.h"
 #include "bpy_rna_anim.h"
 
-#define TRUE 1
-#define FALSE 0
-
 /* for keyframes and drivers */
 static int pyrna_struct_anim_args_parse(
         PointerRNA *ptr, const char *error_prefix, const char *path,

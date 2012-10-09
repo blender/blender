@@ -32,11 +32,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <fstream>
 #include <string>
 #include <set>
-
+#include <errno.h>
 
 #include <openexr_api.h>
+
+#if defined (WIN32) && !defined(FREE_WINDOWS)
+#include "utfconv.h"
+#endif
 
 extern "C"
 {
@@ -59,6 +64,9 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include "IMB_allocimbuf.h"
 #include "IMB_metadata.h"
 
+#include "IMB_colormanagement.h"
+#include "IMB_colormanagement_intern.h"
+
 #include "openexr_multi.h"
 }
 
@@ -66,6 +74,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 #include <half.h>
+#include <Iex/Iex.h>
 #include <IlmImf/ImfVersion.h>
 #include <IlmImf/ImfArray.h>
 #include <IlmImf/ImfIO.h>
@@ -79,6 +88,7 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include <Imath/ImathBox.h>
 #else
 #include <half.h>
+#include <Iex.h>
 #include <ImfVersion.h>
 #include <ImathBox.h>
 #include <ImfArray.h>
@@ -94,6 +104,8 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 
 using namespace Imf;
 using namespace Imath;
+
+/* Memory Input Stream */
 
 class Mem_IStream : public Imf::IStream
 {
@@ -141,6 +153,122 @@ void Mem_IStream::seekg(Int64 pos)
 void Mem_IStream::clear()
 {
 }
+
+/* File Input Stream */
+
+class IFileStream : public Imf::IStream
+{
+public:
+	IFileStream(const char *filename)
+	: IStream(filename)
+	{
+		/* utf-8 file path support on windows */
+#if defined (WIN32) && !defined(FREE_WINDOWS)
+		wchar_t *wfilename = alloc_utf16_from_8(filename, 0);
+		ifs.open(wfilename, std::ios_base::binary);
+		free(wfilename);
+#else
+		ifs.open(filename, std::ios_base::binary);
+#endif
+
+		if (!ifs)
+			Iex::throwErrnoExc();
+	}
+
+	virtual bool read(char c[], int n)
+	{
+		if (!ifs)
+			throw Iex::InputExc("Unexpected end of file.");
+
+		errno = 0;
+		ifs.read(c, n);
+		return check_error();
+	}
+
+	virtual Int64 tellg()
+	{
+		return std::streamoff(ifs.tellg());
+	}
+
+	virtual void seekg(Int64 pos)
+	{
+		ifs.seekg(pos);
+		check_error();
+	}
+
+	virtual void clear()
+	{
+		ifs.clear();
+	}
+
+private:
+	bool check_error()
+	{
+		if (!ifs) {
+			if (errno)
+				Iex::throwErrnoExc();
+
+			return false;
+		}
+
+		return true;
+	}
+
+	std::ifstream ifs;
+};
+
+/* File Output Stream */
+
+class OFileStream : public OStream
+{
+public:
+	OFileStream(const char *filename)
+	: OStream(filename)
+	{
+		/* utf-8 file path support on windows */
+#if defined (WIN32) && !defined(FREE_WINDOWS)
+		wchar_t *wfilename = alloc_utf16_from_8(filename, 0);
+		ofs.open(wfilename, std::ios_base::binary);
+		free(wfilename);
+#else
+		ofs.open(filename, std::ios_base::binary);
+#endif
+
+		if (!ofs)
+			Iex::throwErrnoExc();
+	}
+
+    virtual void write(const char c[], int n)
+	{
+		errno = 0;
+		ofs.write(c, n);
+		check_error();
+	}
+
+    virtual Int64 tellp()
+	{
+		return std::streamoff(ofs.tellp());
+	}
+
+    virtual void seekp(Int64 pos)
+	{
+		ofs.seekp(pos);
+		check_error();
+	}
+
+private:
+	void check_error()
+	{
+		if (!ofs) {
+			if (errno)
+				Iex::throwErrnoExc();
+
+			throw Iex::ErrnoExc("File output failed.");
+		}
+	}
+
+	std::ofstream ofs;
+};
 
 struct _RGBAZ {
 	half r;
@@ -216,7 +344,10 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 			header.channels().insert("Z", Channel(Imf::FLOAT));
 
 		FrameBuffer frameBuffer;
-		OutputFile *file = new OutputFile(name, header);
+
+		/* manually create ofstream, so we can handle utf-8 filepaths on windows */
+		OFileStream file_stream(name);
+		OutputFile file(file_stream, header);
 
 		/* we store first everything in half array */
 		RGBAZ *pixels = new RGBAZ[height * width];
@@ -241,49 +372,34 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 
 				for (int j = ibuf->x; j > 0; j--) {
 					to->r = from[0];
-					to->g = from[1];
-					to->b = from[2];
+					to->g = (channels >= 2) ? from[1] : from[0];
+					to->b = (channels >= 3) ? from[2] : from[0];
 					to->a = (channels >= 4) ? from[3] : 1.0f;
-					to++; from += 4;
+					to++; from += channels;
 				}
 			}
 		}
 		else {
 			unsigned char *from;
 
-			if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
-				for (int i = ibuf->y - 1; i >= 0; i--) {
-					from = (unsigned char *)ibuf->rect + channels * i * width;
+			for (int i = ibuf->y - 1; i >= 0; i--) {
+				from = (unsigned char *)ibuf->rect + 4 * i * width;
 
-					for (int j = ibuf->x; j > 0; j--) {
-						to->r = (float)(from[0]) / 255.0;
-						to->g = (float)(from[1]) / 255.0;
-						to->b = (float)(from[2]) / 255.0;
-						to->a = (float)(channels >= 4) ? from[3] / 255.0 : 1.0f;
-						to++; from += 4;
-					}
-				}
-			}
-			else {
-				for (int i = ibuf->y - 1; i >= 0; i--) {
-					from = (unsigned char *)ibuf->rect + channels * i * width;
-
-					for (int j = ibuf->x; j > 0; j--) {
-						to->r = srgb_to_linearrgb((float)from[0] / 255.0);
-						to->g = srgb_to_linearrgb((float)from[1] / 255.0);
-						to->b = srgb_to_linearrgb((float)from[2] / 255.0);
-						to->a = channels >= 4 ? (float)from[3] / 255.0 : 1.0f;
-						to++; from += 4;
-					}
+				for (int j = ibuf->x; j > 0; j--) {
+					to->r = srgb_to_linearrgb((float)from[0] / 255.0f);
+					to->g = srgb_to_linearrgb((float)from[1] / 255.0f);
+					to->b = srgb_to_linearrgb((float)from[2] / 255.0f);
+					to->a = channels >= 4 ? (float)from[3] / 255.0f : 1.0f;
+					to++; from += 4;
 				}
 			}
 		}
 
 //		printf("OpenEXR-save: Writing OpenEXR file of height %d.\n", height);
 
-		file->setFrameBuffer(frameBuffer);
-		file->writePixels(height);
-		delete file;
+		file.setFrameBuffer(frameBuffer);
+		file.writePixels(height);
+
 		delete[] pixels;
 	}
 	catch (const std::exception &exc)
@@ -321,15 +437,19 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 			header.channels().insert("Z", Channel(Imf::FLOAT));
 
 		FrameBuffer frameBuffer;
-		OutputFile *file = new OutputFile(name, header);
+
+		/* manually create ofstream, so we can handle utf-8 filepaths on windows */
+		OFileStream file_stream(name);
+		OutputFile file(file_stream, header);
+
 		int xstride = sizeof(float) * channels;
 		int ystride = -xstride * width;
 		float *rect[4] = {NULL, NULL, NULL, NULL};
 
 		/* last scanline, stride negative */
 		rect[0] = ibuf->rect_float + channels * (height - 1) * width;
-		rect[1] = rect[0] + 1;
-		rect[2] = rect[0] + 2;
+		rect[1] = (channels >= 2) ? rect[0] + 1 : rect[0];
+		rect[2] = (channels >= 3) ? rect[0] + 2 : rect[0];
 		rect[3] = (channels >= 4) ? rect[0] + 3 : rect[0]; /* red as alpha, is this needed since alpha isn't written? */
 
 		frameBuffer.insert("R", Slice(Imf::FLOAT,  (char *)rect[0], xstride, ystride));
@@ -340,9 +460,8 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		if (is_zbuf)
 			frameBuffer.insert("Z", Slice(Imf::FLOAT, (char *) (ibuf->zbuf_float + (height - 1) * width),
 			                              sizeof(float), sizeof(float) * -width));
-		file->setFrameBuffer(frameBuffer);
-		file->writePixels(height);
-		delete file;
+		file.setFrameBuffer(frameBuffer);
+		file.writePixels(height);
 	}
 	catch (const std::exception &exc)
 	{
@@ -391,9 +510,13 @@ static ListBase exrhandles = {NULL, NULL};
 typedef struct ExrHandle {
 	struct ExrHandle *next, *prev;
 
+	IFileStream *ifile_stream;
 	InputFile *ifile;
+
+	OFileStream *ofile_stream;
 	TiledOutputFile *tofile;
 	OutputFile *ofile;
+
 	int tilex, tiley;
 	int width, height;
 	int mipmap;
@@ -486,12 +609,19 @@ int IMB_exr_begin_write(void *handle, const char *filename, int width, int heigh
 	header.insert("BlenderMultiChannel", StringAttribute("Blender V2.55.1 and newer"));
 
 	/* avoid crash/abort when we don't have permission to write here */
+	/* manually create ofstream, so we can handle utf-8 filepaths on windows */
 	try {
-		data->ofile = new OutputFile(filename, header);
+		data->ofile_stream = new OFileStream(filename);
+		data->ofile = new OutputFile(*(data->ofile_stream), header);
 	}
 	catch (const std::exception &exc) {
 		std::cerr << "IMB_exr_begin_write: ERROR: " << exc.what() << std::endl;
+
+		delete data->ofile;
+		delete data->ofile_stream;
+
 		data->ofile = NULL;
+		data->ofile_stream = NULL;
 	}
 
 	return (data->ofile != NULL);
@@ -518,7 +648,19 @@ void IMB_exrtile_begin_write(void *handle, const char *filename, int mipmap, int
 
 	header.insert("BlenderMultiChannel", StringAttribute("Blender V2.43"));
 
-	data->tofile = new TiledOutputFile(filename, header);
+	/* avoid crash/abort when we don't have permission to write here */
+	/* manually create ofstream, so we can handle utf-8 filepaths on windows */
+	try {
+		data->ofile_stream = new OFileStream(filename);
+		data->tofile = new TiledOutputFile(*(data->ofile_stream), header);
+	}
+	catch (const std::exception &exc) {
+		delete data->tofile;
+		delete data->ofile_stream;
+
+		data->tofile = NULL;
+		data->ofile_stream = NULL;
+	}
 }
 
 /* read from file */
@@ -527,7 +669,19 @@ int IMB_exr_begin_read(void *handle, const char *filename, int *width, int *heig
 	ExrHandle *data = (ExrHandle *)handle;
 
 	if (BLI_exists(filename) && BLI_file_size(filename) > 32) {   /* 32 is arbitrary, but zero length files crashes exr */
-		data->ifile = new InputFile(filename);
+		/* avoid crash/abort when we don't have permission to write here */
+		try {
+			data->ifile_stream = new IFileStream(filename);
+			data->ifile = new InputFile(*(data->ifile_stream));
+		}
+		catch (const std::exception &exc) {
+			delete data->ifile;
+			delete data->ifile_stream;
+
+			data->ifile = NULL;
+			data->ifile_stream = NULL;
+		}
+
 		if (data->ifile) {
 			Box2i dw = data->ifile->header().dataWindow();
 			data->width = *width  = dw.max.x - dw.min.x + 1;
@@ -665,9 +819,9 @@ void IMB_exr_read_channels(void *handle)
 }
 
 void IMB_exr_multilayer_convert(void *handle, void *base,
-                                void * (*addlayer)(void *base, char *str),
-                                void (*addpass)(void *base, void *lay, char *str,
-                                                float *rect, int totchan, char *chan_id))
+                                void * (*addlayer)(void *base, const char *str),
+                                void (*addpass)(void *base, void *lay, const char *str,
+                                                float *rect, int totchan, const char *chan_id))
 {
 	ExrHandle *data = (ExrHandle *)handle;
 	ExrLayer *lay;
@@ -696,16 +850,17 @@ void IMB_exr_close(void *handle)
 	ExrLayer *lay;
 	ExrPass *pass;
 
-	if (data->ifile)
-		delete data->ifile;
-	else if (data->ofile)
-		delete data->ofile;
-	else if (data->tofile)
-		delete data->tofile;
+	delete data->ifile;
+	delete data->ifile_stream;
+	delete data->ofile;
+	delete data->tofile;
+	delete data->ofile_stream;
 
 	data->ifile = NULL;
+	data->ifile_stream = NULL;
 	data->ofile = NULL;
 	data->tofile = NULL;
+	data->ofile_stream = NULL;
 
 	BLI_freelistN(&data->channels);
 
@@ -728,8 +883,9 @@ static int imb_exr_split_token(const char *str, const char *end, const char **to
 {
 	int maxlen = end - str;
 	int len = 0;
-	while (len < maxlen && *(end - len - 1) != '.')
-		++len;
+	while (len < maxlen && *(end - len - 1) != '.') {
+		len++;
+	}
 
 	*token = end - len;
 	return len;
@@ -908,14 +1064,6 @@ static ExrHandle *imb_exr_begin_read_mem(InputFile *file, int width, int height)
 
 /* ********************************************************* */
 
-typedef struct RGBA {
-	float r;
-	float g;
-	float b;
-	float a;
-} RGBA;
-
-
 /* debug only */
 static void exr_print_filecontents(InputFile *file)
 {
@@ -969,12 +1117,14 @@ static int exr_is_multilayer(InputFile *file)
 	return 0;
 }
 
-struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
+struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
 	struct ImBuf *ibuf = NULL;
 	InputFile *file = NULL;
 
 	if (imb_is_a_openexr(mem) == 0) return(NULL);
+
+	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
 	try
 	{
@@ -1003,9 +1153,6 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
 
 			ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, 0);
 			ibuf->ftype = OPENEXR;
-
-			/* openEXR is linear as per EXR spec */
-			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			if (!(flags & IB_test)) {
 				if (is_multi) { /* only enters with IB_multilayer flag set */

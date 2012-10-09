@@ -46,9 +46,9 @@
 
 /**
  * WIN32 Implementation of GHOST_SystemPaths class.
- * @see GHOST_SystemPaths.
- * @author	Andrea Weikert
- * @date	August 1, 2010
+ * \see GHOST_SystemPaths.
+ * \author	Andrea Weikert
+ * \date	August 1, 2010
  */
 class GHOST_SystemPathsWin32 : public GHOST_SystemPaths {
 public:
@@ -65,20 +65,20 @@ public:
 	/**
 	 * Determine the base dir in which shared resources are located. It will first try to use
 	 * "unpack and run" path, then look for properly installed path, including versioning.
-	 * @return Unsigned char string pointing to system dir (eg /usr/share/).
+	 * \return Unsigned char string pointing to system dir (eg /usr/share/).
 	 */
 	const GHOST_TUns8 *getSystemDir(int version, const char *versionstr) const;
 
 	/**
 	 * Determine the base dir in which user configuration is stored, including versioning.
 	 * If needed, it will create the base directory.
-	 * @return Unsigned char string pointing to user dir (eg ~/).
+	 * \return Unsigned char string pointing to user dir (eg ~/).
 	 */
 	const GHOST_TUns8 *getUserDir(int version, const char *versionstr) const;
 
 	/**
 	 * Determine the directory of the current binary
-	 * @return Unsigned char string pointing to the binary dir
+	 * \return Unsigned char string pointing to the binary dir
 	 */
 	const GHOST_TUns8 *getBinaryDir() const;
 

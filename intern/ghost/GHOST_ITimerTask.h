@@ -45,10 +45,10 @@
  * <br>
  * Note that GHOST processes timers in the UI thread. You should ask GHOST 
  * process messages in order for the timer-callbacks to be called.
- * @see GHOST_ISystem#installTimer
- * @see GHOST_TimerProcPtr
- * @author	Maarten Gribnau
- * @date	May 31, 2001
+ * \see GHOST_ISystem#installTimer
+ * \see GHOST_TimerProcPtr
+ * \author	Maarten Gribnau
+ * \date	May 31, 2001
  */
 class GHOST_ITimerTask
 {
@@ -62,25 +62,25 @@ public:
 
 	/**
 	 * Returns the timer callback.
-	 * @return The timer callback.
+	 * \return The timer callback.
 	 */
 	virtual GHOST_TimerProcPtr getTimerProc() const = 0;
 
 	/**
 	 * Changes the timer callback.
-	 * @param timerProc The timer callback.
+	 * \param timerProc The timer callback.
 	 */
 	virtual void setTimerProc(const GHOST_TimerProcPtr timerProc) = 0;
 
 	/**
 	 * Returns the timer user data.
-	 * @return The timer user data.
+	 * \return The timer user data.
 	 */
 	virtual GHOST_TUserDataPtr getUserData() const = 0;
 	
 	/**
 	 * Changes the time user data.
-	 * @param data The timer user data.
+	 * \param data The timer user data.
 	 */
 	virtual void setUserData(const GHOST_TUserDataPtr userData) = 0;
 

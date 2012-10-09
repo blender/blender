@@ -130,7 +130,7 @@ protected :
 
 	/**
 	 * Protected constructors
-	 * This class is not for direct instanciation. Sub classes
+	 * This class is not for direct instantiation. Sub classes
 	 * should only be allocated on the heap.
 	 */
 

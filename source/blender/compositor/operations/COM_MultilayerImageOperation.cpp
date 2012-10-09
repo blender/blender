@@ -43,59 +43,56 @@ ImBuf *MultilayerBaseOperation::getImBuf()
 	return NULL;
 }
 
-void MultilayerColorOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MultilayerColorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	int yi = y;
 	int xi = x;
 	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
-		color[0] = 0.0f;
-		color[1] = 0.0f;
-		color[2] = 0.0f;
-		color[3] = 0.0f;
+		zero_v4(output);
 	}
 	else {
 		if (this->m_numberOfChannels == 4) {
 			switch (sampler) {
 				case COM_PS_NEAREST:
-					neareast_interpolation_color(this->m_buffer, NULL, color, x, y);
+					neareast_interpolation_color(this->m_buffer, NULL, output, x, y);
 					break;
 				case COM_PS_BILINEAR:
-					bilinear_interpolation_color(this->m_buffer, NULL, color, x, y);
+					bilinear_interpolation_color(this->m_buffer, NULL, output, x, y);
 					break;
 				case COM_PS_BICUBIC:
-					bicubic_interpolation_color(this->m_buffer, NULL, color, x, y);
+					bicubic_interpolation_color(this->m_buffer, NULL, output, x, y);
 					break;
 			}
 		}
 		else {
 			int offset = (yi * this->getWidth() + xi) * 3;
-			copy_v3_v3(color, &this->m_imageBuffer[offset]);
+			copy_v3_v3(output, &this->m_imageBuffer[offset]);
 		}
 	}
 }
 
-void MultilayerValueOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MultilayerValueOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	int yi = y;
 	int xi = x;
 	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
-		color[0] = 0.0f;
+		output[0] = 0.0f;
 	}
 	else {
 		float result = this->m_imageBuffer[yi * this->getWidth() + xi];
-		color[0] = result;
+		output[0] = result;
 	}
 }
 
-void MultilayerVectorOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MultilayerVectorOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	int yi = y;
 	int xi = x;
 	if (this->m_imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
-		color[0] = 0.0f;
+		output[0] = 0.0f;
 	}
 	else {
 		int offset = (yi * this->getWidth() + xi) * 3;
-		copy_v3_v3(color, &this->m_imageBuffer[offset]);
+		copy_v3_v3(output, &this->m_imageBuffer[offset]);
 	}
 }

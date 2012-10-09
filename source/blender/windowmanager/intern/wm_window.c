@@ -300,11 +300,9 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
-	/* handle the 'temp' window, only set title when not set before */
 	if (win->screen && win->screen->temp) {
-		char *title = GHOST_GetTitle(win->ghostwin);
-		if (title == NULL || title[0] == 0)
-			GHOST_SetTitle(win->ghostwin, "Blender");
+		/* nothing to do for 'temp' windows,
+		 * because WM_window_open_temp always sets window title  */
 	}
 	else {
 		
@@ -340,12 +338,6 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
 	
-#if defined(__APPLE__) && !defined(GHOST_COCOA)
-	{
-		extern int macPrefState; /* creator.c */
-		initial_state += macPrefState;
-	}
-#endif
 	/* Disable AA for now, as GL_SELECT (used for border, lasso, ... select)
 	 * doesn't work well when AA is initialized, even if not used. */
 	ghostwin = GHOST_CreateWindow(g_system, title,
@@ -464,8 +456,8 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	
 	win->posx = rect->xmin;
 	win->posy = rect->ymin;
-	win->sizex = rect->xmax - rect->xmin;
-	win->sizey = rect->ymax - rect->ymin;
+	win->sizex = BLI_rcti_size_x(rect);
+	win->sizey = BLI_rcti_size_y(rect);
 
 	win->drawmethod = -1;
 	win->drawdata = NULL;
@@ -500,8 +492,8 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 		win->posy = position->ymin;
 	}
 	
-	win->sizex = position->xmax - position->xmin;
-	win->sizey = position->ymax - position->ymin;
+	win->sizex = BLI_rcti_size_x(position);
+	win->sizey = BLI_rcti_size_y(position);
 	
 	if (win->ghostwin) {
 		wm_window_set_size(win, win->sizex, win->sizey);
@@ -730,11 +722,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 
 				break;
 			}
-			case GHOST_kEventWindowClose: {
+			case GHOST_kEventWindowClose:
+			{
 				wm_window_close(C, wm, win);
 				break;
 			}
-			case GHOST_kEventWindowUpdate: {
+			case GHOST_kEventWindowUpdate:
+			{
 				if (G.debug & G_DEBUG_EVENTS) {
 					printf("%s: ghost redraw %d\n", __func__, win->winid);
 				}
@@ -745,7 +739,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				break;
 			}
 			case GHOST_kEventWindowSize:
-			case GHOST_kEventWindowMove: {
+			case GHOST_kEventWindowMove:
+			{
 				GHOST_TWindowState state;
 				state = GHOST_GetWindowState(win->ghostwin);
 				win->windowstate = state;
@@ -936,7 +931,7 @@ static int wm_window_timer(const bContext *C)
 				wt->delta = time - wt->ltime;
 				wt->duration += wt->delta;
 				wt->ltime = time;
-				wt->ntime = wt->stime + wt->timestep *ceil(wt->duration / wt->timestep);
+				wt->ntime = wt->stime + wt->timestep * ceil(wt->duration / wt->timestep);
 
 				if (wt->event_type == TIMERJOBS)
 					wm_jobs_timer(C, wm, wt);
@@ -1202,7 +1197,7 @@ void wm_get_cursor_position(wmWindow *win, int *x, int *y)
 
 
 /* called whem no ghost system was initialized */
-void WM_setprefsize(int stax, int stay, int sizx, int sizy)
+void WM_init_state_size_set(int stax, int stay, int sizx, int sizy)
 {
 	wm_init_state.start_x = stax; /* left hand pos */
 	wm_init_state.start_y = stay; /* bottom pos */
@@ -1212,13 +1207,13 @@ void WM_setprefsize(int stax, int stay, int sizx, int sizy)
 }
 
 /* for borderless and border windows set from command-line */
-void WM_setinitialstate_fullscreen(void)
+void WM_init_state_fullscreen_set(void)
 {
 	wm_init_state.windowstate = GHOST_kWindowStateFullScreen;
 	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
-void WM_setinitialstate_normal(void)
+void WM_init_state_normal_set(void)
 {
 	wm_init_state.windowstate = GHOST_kWindowStateNormal;
 	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;

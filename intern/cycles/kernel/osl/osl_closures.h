@@ -51,6 +51,8 @@ enum {
 	OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_ID,
 	OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID,
 	OSL_CLOSURE_BSDF_WARD_ID,
+	OSL_CLOSURE_BSDF_PHONG_ID,
+	OSL_CLOSURE_BSDF_PHONG_RAMP_ID,
 	OSL_CLOSURE_BSDF_ASHIKHMIN_VELVET_ID,
 	OSL_CLOSURE_BSDF_WESTIN_BACKSCATTER_ID,
 	OSL_CLOSURE_BSDF_WESTIN_SHEEN_ID,
@@ -62,26 +64,28 @@ enum {
 	OSL_CLOSURE_SUBSURFACE_ID
 };
 
-extern OSL::ClosureParam bsdf_diffuse_params[];
-extern OSL::ClosureParam bsdf_oren_nayar_params[];
-extern OSL::ClosureParam bsdf_translucent_params[];
-extern OSL::ClosureParam bsdf_reflection_params[];
-extern OSL::ClosureParam bsdf_refraction_params[];
-extern OSL::ClosureParam bsdf_transparent_params[];
-extern OSL::ClosureParam bsdf_microfacet_ggx_params[];
-extern OSL::ClosureParam bsdf_microfacet_ggx_refraction_params[];
-extern OSL::ClosureParam bsdf_microfacet_beckmann_params[];
-extern OSL::ClosureParam bsdf_microfacet_beckmann_refraction_params[];
-extern OSL::ClosureParam bsdf_ward_params[];
-extern OSL::ClosureParam bsdf_ashikhmin_velvet_params[];
-extern OSL::ClosureParam bsdf_westin_backscatter_params[];
-extern OSL::ClosureParam bsdf_westin_sheen_params[];
-extern OSL::ClosureParam closure_bssrdf_cubic_params[];
-extern OSL::ClosureParam closure_emission_params[];
-extern OSL::ClosureParam closure_debug_params[];
-extern OSL::ClosureParam closure_background_params[];
-extern OSL::ClosureParam closure_holdout_params[];
-extern OSL::ClosureParam closure_subsurface_params[];
+OSL::ClosureParam *bsdf_diffuse_params();
+OSL::ClosureParam *bsdf_oren_nayar_params();
+OSL::ClosureParam *bsdf_translucent_params();
+OSL::ClosureParam *bsdf_reflection_params();
+OSL::ClosureParam *bsdf_refraction_params();
+OSL::ClosureParam *bsdf_transparent_params();
+OSL::ClosureParam *bsdf_microfacet_ggx_params();
+OSL::ClosureParam *bsdf_microfacet_ggx_refraction_params();
+OSL::ClosureParam *bsdf_microfacet_beckmann_params();
+OSL::ClosureParam *bsdf_microfacet_beckmann_refraction_params();
+OSL::ClosureParam *bsdf_ward_params();
+OSL::ClosureParam *bsdf_phong_params();
+OSL::ClosureParam *bsdf_phong_ramp_params();
+OSL::ClosureParam *bsdf_ashikhmin_velvet_params();
+OSL::ClosureParam *bsdf_westin_backscatter_params();
+OSL::ClosureParam *bsdf_westin_sheen_params();
+OSL::ClosureParam *closure_bssrdf_cubic_params();
+OSL::ClosureParam *closure_emission_params();
+OSL::ClosureParam *closure_debug_params();
+OSL::ClosureParam *closure_background_params();
+OSL::ClosureParam *closure_holdout_params();
+OSL::ClosureParam *closure_subsurface_params();
 
 void bsdf_diffuse_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_oren_nayar_prepare(OSL::RendererServices *, int id, void *data);
@@ -94,6 +98,8 @@ void bsdf_microfacet_ggx_refraction_prepare(OSL::RendererServices *, int id, voi
 void bsdf_microfacet_beckmann_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_microfacet_beckmann_refraction_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_ward_prepare(OSL::RendererServices *, int id, void *data);
+void bsdf_phong_prepare(OSL::RendererServices *, int id, void *data);
+void bsdf_phong_ramp_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_ashikhmin_velvet_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_westin_backscatter_prepare(OSL::RendererServices *, int id, void *data);
 void bsdf_westin_sheen_prepare(OSL::RendererServices *, int id, void *data);

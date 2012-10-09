@@ -33,6 +33,7 @@
 #define __BLF_API_H__
 
 struct rctf;
+struct ColorManagedDisplay;
 
 int BLF_init(int points, int dpi);
 void BLF_exit(void);
@@ -40,10 +41,10 @@ void BLF_exit(void);
 void BLF_cache_clear(void);
 
 int BLF_load(const char *name);
-int BLF_load_mem(const char *name, unsigned char *mem, int mem_size);
+int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size);
 
 int BLF_load_unique(const char *name);
-int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size);
+int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size);
 
 void BLF_unload(const char *name);
 
@@ -145,13 +146,13 @@ void BLF_shadow_offset(int fontid, int x, int y);
 /* Set the buffer, size and number of channels to draw, one thing to take care is call
  * this function with NULL pointer when we finish, for example:
  *
- *     BLF_buffer(my_fbuf, my_cbuf, 100, 100, 4);
+ *     BLF_buffer(my_fbuf, my_cbuf, 100, 100, 4, TRUE);
  *
  *     ... set color, position and draw ...
  *
- *     BLF_buffer(NULL, NULL, 0, 0, 0);
+ *     BLF_buffer(NULL, NULL, 0, 0, 0, FALSE);
  */
-void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch);
+void BLF_buffer(int fontid, float *fbuf, unsigned char *cbuf, int w, int h, int nch, struct ColorManagedDisplay *display);
 
 /* Set the color to be used for text. */
 void BLF_buffer_col(int fontid, float r, float g, float b, float a);

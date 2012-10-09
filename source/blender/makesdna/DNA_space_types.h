@@ -40,6 +40,7 @@
 #include "DNA_outliner_types.h"     /* for TreeStoreElem */
 #include "DNA_image_types.h"        /* ImageUser */
 #include "DNA_movieclip_types.h"    /* MovieClipUser */
+#include "DNA_sequence_types.h"     /* SequencerScopes */
 /* Hum ... Not really nice... but needed for spacebuts. */
 #include "DNA_view2d_types.h"
 
@@ -263,8 +264,8 @@ typedef enum eSpaceOutliner_Mode {
 	SO_SAME_TYPE = 5,
 	SO_GROUPS = 6,
 	SO_LIBRARIES = 7,
-	SO_VERSE_SESSION = 8,
-	SO_VERSE_MS = 9,
+	/* SO_VERSE_SESSION = 8, */  /* deprecated! */
+	/* SO_VERSE_MS = 9, */       /* deprecated!*/
 	SO_SEQUENCE = 10,
 	SO_DATABLOCKS = 11,
 	SO_USERDEF = 12,
@@ -375,7 +376,7 @@ typedef struct SpaceNla {
 
 /* nla->flag */
 typedef enum eSpaceNla_Flag {
-	/* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old verisons */
+	/* flags (1<<0), (1<<1), and (1<<3) are deprecated flags from old verisons */
 
 	/* draw timing in seconds instead of frames */
 	SNLA_DRAWTIME          = (1 << 2),
@@ -470,9 +471,11 @@ typedef struct SpaceSeq {
 	int flag;
 	float zoom DNA_DEPRECATED;  /* deprecated, handled by View2D now */
 	int view; /* see SEQ_VIEW_* below */
-	int pad;
+	int overlay_type;
 
 	struct bGPdata *gpd;        /* grease-pencil data */
+
+	struct SequencerScopes scopes;  /* different scoped displayed in space */
 } SpaceSeq;
 
 
@@ -513,12 +516,28 @@ typedef enum eSpaceSeq_Proxy_RenderSize {
 	SEQ_PROXY_RENDER_SIZE_FULL      = 100
 } eSpaceSeq_Proxy_RenderSize;
 
+typedef struct MaskSpaceInfo
+{
+	/* **** mask editing **** */
+	struct Mask *mask;
+	/* draw options */
+	char draw_flag;
+	char draw_type;
+	char pad3[6];
+} MaskSpaceInfo;
+
+/* sseq->mainb */
+typedef enum eSpaceSeq_OverlayType {
+	SEQ_DRAW_OVERLAY_RECT = 0,
+	SEQ_DRAW_OVERLAY_REFERENCE = 1,
+	SEQ_DRAW_OVERLAY_CURRENT = 2
+} eSpaceSeq_OverlayType;
 
 /* File Selector ========================================== */
 
 /* Config and Input for File Selector */
 typedef struct FileSelectParams {
-	char title[32]; /* title, also used for the text of the execute button */
+	char title[96]; /* title, also used for the text of the execute button */
 	char dir[1056]; /* directory, FILE_MAX_LIBEXTRA, 1024 + 32, this is for extreme case when 1023 length path
 	                 * needs to be linked in, where foo.blend/Armature need adding  */
 	char file[256]; /* file */
@@ -669,8 +688,9 @@ typedef struct SpaceImage {
 
 	struct Image *image;
 	struct ImageUser iuser;
-	struct CurveMapping *cumap;		
-	
+
+	struct CurveMapping *cumap DNA_DEPRECATED;  /* was switched to scene's color management settings */
+
 	struct Scopes scopes;           /* histogram waveform and vectorscope */
 	struct Histogram sample_line_hist;  /* sample line histogram */
 
@@ -681,14 +701,17 @@ typedef struct SpaceImage {
 	float zoom;                     /* user defined zoom level */
 	float centx, centy;             /* storage for offset while render drawing */
 
-	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
+	char  mode;                     /* view/paint/mask */
+	char  pin;
 	short pad;
+	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	short lock;
-	short pin;
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
 	char around;
+
+	MaskSpaceInfo mask_info;
 } SpaceImage;
 
 
@@ -706,6 +729,13 @@ typedef enum eSpaceImage_UVDT_Stretch {
 	SI_UVDT_STRETCH_AREA = 1,
 } eSpaceImage_UVDT_Stretch;
 
+/* SpaceImage->mode */
+typedef enum eSpaceImage_Mode {
+	SI_MODE_VIEW  = 0,
+	SI_MODE_PAINT = 1,
+	SI_MODE_MASK  = 2   /* note: mesh edit mode overrides mask */
+} eSpaceImage_Mode;
+
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
  * also, sticky loc is the default mode so this means we don't need to 'do_versons' */
@@ -717,15 +747,15 @@ typedef enum eSpaceImage_Sticky {
 
 /* SpaceImage->flag */
 typedef enum eSpaceImage_Flag {
-	SI_BE_SQUARE          = (1 << 0),
-	SI_EDITTILE           = (1 << 1),
+/*	SI_BE_SQUARE          = (1 << 0), */  /* deprecated */
+	SI_EDITTILE           = (1 << 1),     /* XXX - not used but should be? */
 	SI_CLIP_UV            = (1 << 2),
-	SI_DRAWTOOL           = (1 << 3),
+/*	SI_DRAWTOOL           = (1 << 3), */  /* deprecated */
 	SI_NO_DRAWFACES       = (1 << 4),
 	SI_DRAWSHADOW         = (1 << 5),
-/*  SI_SELACTFACE         = (1 << 6), */ /* deprecated */
-	SI_DEPRECATED2        = (1 << 7),
-	SI_DEPRECATED3        = (1 << 8),   /* stick UV selection to mesh vertex (UVs wont always be touching) */
+/*	SI_SELACTFACE         = (1 << 6), */  /* deprecated */
+/*	SI_DEPRECATED2        = (1 << 7), */  /* deprecated */
+/*	SI_DEPRECATED3        = (1 << 8), */  /* deprecated */
 	SI_COORDFLOATS        = (1 << 9),
 	SI_PIXELSNAP          = (1 << 10),
 	SI_LIVE_UNWRAP        = (1 << 11),
@@ -737,8 +767,8 @@ typedef enum eSpaceImage_Flag {
 	SI_PREVSPACE          = (1 << 15),
 	SI_FULLWINDOW         = (1 << 16),
 	
-	SI_DEPRECATED4        = (1 << 17),
-	SI_DEPRECATED5        = (1 << 18),
+/*	SI_DEPRECATED4        = (1 << 17), */  /* deprecated */
+/*	SI_DEPRECATED5        = (1 << 18), */  /* deprecated */
 	
 	/* this means that the image is drawn until it reaches the view edge,
 	 * in the image view, its unrelated to the 'tile' mode for texface
@@ -746,7 +776,7 @@ typedef enum eSpaceImage_Flag {
 	SI_DRAW_TILE          = (1 << 19),
 	SI_SMOOTH_UV          = (1 << 20),
 	SI_DRAW_STRETCH       = (1 << 21),
-/*  SI_DISPGP             = (1 << 22), */ /* DEPRECATED */
+/*  SI_DISPGP             = (1 << 22), */  /* deprecated */
 	SI_DRAW_OTHER         = (1 << 23),
 
 	SI_COLOR_CORRECTION   = (1 << 24),
@@ -856,11 +886,11 @@ typedef struct SpaceNode {
 	
 	struct ID *id, *from;       /* context, no need to save in file? well... pinning... */
 	short flag, pad1;           /* menunr: browse id block in header */
-	float aspect;
+	float aspect, aspect_sqrt;
 	
 	float xof, yof;     /* offset for drawing the backdrop */
-	float zoom, padf;   /* zoom for backdrop */
-	float mx, my;       /* mousepos for drawing socketless link */
+	float zoom;   /* zoom for backdrop */
+	float cursor[2];    /* mouse pos for drawing socketless link and adding nodes */
 	
 	struct bNodeTree *nodetree, *edittree;
 	int treetype;       /* treetype: as same nodetree->type */
@@ -879,8 +909,12 @@ typedef enum eSpaceNode_Flag {
 /*  SNODE_DISPGP         = (1 << 2), */ /* XXX: Grease Pencil - deprecated? */
 	SNODE_USE_ALPHA      = (1 << 3),
 	SNODE_SHOW_ALPHA     = (1 << 4),
+	SNODE_SHOW_R         = (1 << 7),
+	SNODE_SHOW_G         = (1 << 8),
+	SNODE_SHOW_B         = (1 << 9),
 	SNODE_AUTO_RENDER    = (1 << 5),
 	SNODE_SHOW_HIGHLIGHT = (1 << 6),
+	SNODE_USE_HIDDEN_PREVIEW = (1 << 10),
 } eSpaceNode_Flag;
 
 /* snode->texfrom */
@@ -1009,12 +1043,7 @@ typedef struct SpaceClip {
 
 	int around, pad4;             /* pivot point for transforms */
 
-	/* **** mask editing **** */
-	struct Mask *mask;
-	/* draw options */
-	char mask_draw_flag;
-	char mask_draw_type;
-	char pad3[6];
+	MaskSpaceInfo mask_info;
 } SpaceClip;
 
 /* SpaceClip->flag */
@@ -1097,5 +1126,7 @@ typedef enum eSpace_Type {
 	
 	SPACEICONMAX = SPACE_CLIP
 } eSpace_Type;
+
+#define IMG_SIZE_FALLBACK 256
 
 #endif

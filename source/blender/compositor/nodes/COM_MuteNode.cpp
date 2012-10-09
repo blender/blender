@@ -20,13 +20,15 @@
  *		Monique Dewanchand
  */
 
-#include <stdio.h>
-
 #include "COM_MuteNode.h"
 #include "COM_SocketConnection.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
 #include "COM_SetColorOperation.h"
+
+extern "C" {
+	#include "BLI_listbase.h"
+}
 
 MuteNode::MuteNode(bNode *editorNode) : Node(editorNode)
 {
@@ -45,7 +47,12 @@ void MuteNode::reconnect(ExecutionSystem *graph, OutputSocket *output)
 			}
 		}
 	}
-	
+
+	createDefaultOutput(graph, output);
+}
+
+void MuteNode::createDefaultOutput(ExecutionSystem *graph, OutputSocket *output)
+{
 	NodeOperation *operation = NULL;
 	switch (output->getDataType()) {
 		case COM_DT_VALUE:
@@ -84,14 +91,94 @@ void MuteNode::reconnect(ExecutionSystem *graph, OutputSocket *output)
 	output->clearConnections();
 }
 
+template<class SocketType> void MuteNode::fillSocketMap(vector<SocketType *> &sockets, SocketMap &socketMap)
+{
+	for (typename vector<SocketType *>::iterator it = sockets.begin(); it != sockets.end(); it++) {
+		Socket *socket = (Socket *) *it;
+
+		socketMap.insert(std::pair<bNodeSocket *, Socket *>(socket->getbNodeSocket(), socket));
+	}
+}
+
 void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
+	bNode *editorNode = this->getbNode();
 	vector<OutputSocket *> &outputsockets = this->getOutputSockets();
 
-	for (unsigned int index = 0; index < outputsockets.size(); index++) {
-		OutputSocket *output = outputsockets[index];
-		if (output->isConnected()) {
-			reconnect(graph, output);
+	/* mute node is also used for unknown nodes and couple of nodes in fast mode
+	 * can't use generic routines in that case
+	 */
+	if ((editorNode->flag & NODE_MUTED) && editorNode->typeinfo->internal_connect) {
+		vector<InputSocket *> &inputsockets = this->getInputSockets();
+		vector<OutputSocket *> relinkedsockets;
+		bNodeTree *editorTree;
+		SocketMap socketMap;
+		ListBase intlinks;
+		bNodeLink *link;
+
+		if (this->getbNodeGroup()) {
+			editorTree = (bNodeTree *) getbNodeGroup()->id;
+		}
+		else {
+			editorTree = (bNodeTree *) context->getbNodeTree();
+		}
+
+		intlinks = editorNode->typeinfo->internal_connect(editorTree, editorNode);
+
+		this->fillSocketMap<OutputSocket>(outputsockets, socketMap);
+		this->fillSocketMap<InputSocket>(inputsockets, socketMap);
+
+		for (link = (bNodeLink *) intlinks.first; link; link = link->next) {
+			if (link->fromnode == editorNode) {
+				InputSocket *fromSocket = (InputSocket *) socketMap.find(link->fromsock)->second;
+				OutputSocket *toSocket = (OutputSocket *) socketMap.find(link->tosock)->second;
+
+				if (toSocket->isConnected()) {
+					if (fromSocket->isConnected()) {
+						toSocket->relinkConnections(fromSocket->getConnection()->getFromSocket(), false);
+					}
+					else {
+						createDefaultOutput(graph, toSocket);
+					}
+
+					relinkedsockets.push_back(toSocket);
+				}
+			}
+		}
+
+		/* in some cases node could be marked as muted, but it wouldn't have internal connections
+		 * this happens in such cases as muted render layer node
+		 *
+		 * to deal with such cases create default operation for not-relinked output sockets
+		 */
+
+		for (unsigned int index = 0; index < outputsockets.size(); index++) {
+			OutputSocket *output = outputsockets[index];
+
+			if (output->isConnected()) {
+				bool relinked = false;
+				vector<OutputSocket *>::iterator it;
+
+				for (it = relinkedsockets.begin(); it != relinkedsockets.end(); it++) {
+					if (*it == output) {
+						relinked = true;
+						break;
+					}
+				}
+
+				if (!relinked)
+					createDefaultOutput(graph, output);
+			}
+		}
+
+		BLI_freelistN(&intlinks);
+	}
+	else {
+		for (unsigned int index = 0; index < outputsockets.size(); index++) {
+			OutputSocket *output = outputsockets[index];
+			if (output->isConnected()) {
+				reconnect(graph, output);
+			}
 		}
 	}
 }

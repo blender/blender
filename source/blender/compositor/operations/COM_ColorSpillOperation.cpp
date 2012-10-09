@@ -84,22 +84,22 @@ void ColorSpillOperation::deinitExecution()
 	this->m_inputFacReader = NULL;
 }
 
-void ColorSpillOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void ColorSpillOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float fac[4];
 	float input[4];
-	this->m_inputFacReader->read(fac, x, y, sampler, inputBuffers);
-	this->m_inputImageReader->read(input, x, y, sampler, inputBuffers);
+	this->m_inputFacReader->read(fac, x, y, sampler);
+	this->m_inputImageReader->read(input, x, y, sampler);
 	float rfac = min(1.0f, fac[0]);
 	float map = calculateMapValue(rfac, input);
 	if (map > 0.0f) {
-		outputValue[0] = input[0] + this->m_rmut * (this->m_settings->uspillr * map);
-		outputValue[1] = input[1] + this->m_gmut * (this->m_settings->uspillg * map);
-		outputValue[2] = input[2] + this->m_bmut * (this->m_settings->uspillb * map);
-		outputValue[3] = input[3];
+		output[0] = input[0] + this->m_rmut * (this->m_settings->uspillr * map);
+		output[1] = input[1] + this->m_gmut * (this->m_settings->uspillg * map);
+		output[2] = input[2] + this->m_bmut * (this->m_settings->uspillb * map);
+		output[3] = input[3];
 	}
 	else {
-		copy_v4_v4(outputValue, input);
+		copy_v4_v4(output, input);
 	}	
 }
 float ColorSpillOperation::calculateMapValue(float fac, float *input)

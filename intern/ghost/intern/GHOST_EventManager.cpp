@@ -32,8 +32,8 @@
 
 /**
  * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 14, 2001
+ * \author	Maarten Gribnau
+ * \date	May 14, 2001
  */
 
 #include "GHOST_EventManager.h"
@@ -70,7 +70,7 @@ GHOST_TUns32 GHOST_EventManager::getNumEvents(GHOST_TEventType type)
 {
 	GHOST_TUns32 numEvents = 0;
 	TEventStack::iterator p;
-	for (p = m_events.begin(); p != m_events.end(); p++) {
+	for (p = m_events.begin(); p != m_events.end(); ++p) {
 		if ((*p)->getType() == type) {
 			numEvents++;
 		}
@@ -82,7 +82,7 @@ GHOST_TUns32 GHOST_EventManager::getNumEvents(GHOST_TEventType type)
 GHOST_IEvent *GHOST_EventManager::peekEvent()
 {
 	GHOST_IEvent *event = 0;
-	if (m_events.size() > 0) {
+	if (m_events.empty() == false) {
 		event = m_events.back();
 	}
 	return event;
@@ -110,7 +110,7 @@ bool GHOST_EventManager::dispatchEvent(GHOST_IEvent *event)
 	if (event) {
 		handled = true;
 		TConsumerVector::iterator iter;
-		for (iter = m_consumers.begin(); iter != m_consumers.end(); iter++) {
+		for (iter = m_consumers.begin(); iter != m_consumers.end(); ++iter) {
 			if ((*iter)->processEvent(event)) {
 				handled = false;
 			}
@@ -212,7 +212,7 @@ void GHOST_EventManager::removeWindowEvents(GHOST_IWindow *window)
 			iter = m_events.begin();
 		}
 		else {
-			iter++;
+			++iter;
 		}
 	}
 }
@@ -236,7 +236,7 @@ void GHOST_EventManager::removeTypeEvents(GHOST_TEventType type, GHOST_IWindow *
 			iter = m_events.begin();
 		}
 		else {
-			iter++;
+			++iter;
 		}
 	}
 }
@@ -254,7 +254,7 @@ GHOST_IEvent *GHOST_EventManager::popEvent()
 
 void GHOST_EventManager::disposeEvents()
 {
-	while (m_events.size() > 0) {
+	while (m_events.empty() == false) {
 		GHOST_ASSERT(m_events[0], "invalid event");
 		delete m_events[0];
 		m_events.pop_front();

@@ -119,7 +119,7 @@ class CostFunction {
   // number of outputs (residuals).
   vector<int16> parameter_block_sizes_;
   int num_residuals_;
-  DISALLOW_COPY_AND_ASSIGN(CostFunction);
+  CERES_DISALLOW_COPY_AND_ASSIGN(CostFunction);
 };
 
 }  // namespace ceres

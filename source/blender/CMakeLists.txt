@@ -89,6 +89,7 @@ set(SRC_DNA_INC
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mask_types.h
 )
 
+add_subdirectory(datatoc)
 add_subdirectory(editors)
 add_subdirectory(windowmanager)
 add_subdirectory(blenkernel)
@@ -100,7 +101,6 @@ add_subdirectory(blenloader)
 add_subdirectory(ikplugin)
 add_subdirectory(gpu)
 add_subdirectory(imbuf)
-add_subdirectory(avi)
 add_subdirectory(nodes)
 add_subdirectory(modifiers)
 add_subdirectory(makesdna)
@@ -121,6 +121,10 @@ endif()
 
 if(WITH_IMAGE_CINEON)
 	add_subdirectory(imbuf/intern/cineon)
+endif()
+
+if(WITH_CODEC_AVI)
+	add_subdirectory(avi)
 endif()
 
 if(WITH_CODEC_QUICKTIME)

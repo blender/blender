@@ -39,14 +39,14 @@ KeyingBlurOperation::KeyingBlurOperation() : NodeOperation()
 	this->setComplex(true);
 }
 
-void *KeyingBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *KeyingBlurOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = getInputOperation(0)->initializeTileData(rect, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(rect);
 
 	return buffer;
 }
 
-void KeyingBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void KeyingBlurOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
@@ -85,7 +85,7 @@ void KeyingBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer 
 
 	average /= (float) count;
 
-	color[0] = average;
+	output[0] = average;
 }
 
 bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

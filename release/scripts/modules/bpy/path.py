@@ -133,9 +133,6 @@ def display_name(name):
     mixed case names are kept as is. Intended for use with
     filenames and module names.
     """
-
-    name = _os.path.splitext(name)[0]
-
     # string replacements
     name = name.replace("_colon_", ":")
 
@@ -154,7 +151,6 @@ def display_name_from_filepath(name):
     ensured to be utf8 compatible.
     """
 
-    name = _os.path.splitext(basename(name))[0]
     name = _clean_utf8(name)
     return name
 
@@ -260,7 +256,7 @@ def module_names(path, recursive=False):
         elif filename.endswith(".py") and filename != "__init__.py":
             fullpath = join(path, filename)
             modules.append((filename[0:-3], fullpath))
-        elif ("." not in filename):
+        elif "." not in filename:
             directory = join(path, filename)
             fullpath = join(directory, "__init__.py")
             if isfile(fullpath):
@@ -268,8 +264,8 @@ def module_names(path, recursive=False):
                 if recursive:
                     for mod_name, mod_path in module_names(directory, True):
                         modules.append(("%s.%s" % (filename, mod_name),
-                                       mod_path,
-                                       ))
+                                        mod_path,
+                                        ))
 
     return modules
 

@@ -4,9 +4,9 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
-incs = '. ../makesdna #/intern/guardedalloc #/intern/memutil ../blenlib'
+incs = '. ../makesdna ../makesrna #/intern/guardedalloc #/intern/memutil ../blenlib'
 incs += ' ../avi ../blenkernel ../blenloader'
-incs += ' #/intern/ffmpeg'
+incs += ' #/intern/ffmpeg #intern/opencolorio'
 
 incs += ' ' + env['BF_JPEG_INC']
 incs += ' ' + env['BF_PNG_INC']

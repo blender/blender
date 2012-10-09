@@ -430,7 +430,7 @@ void BL_ArmatureObject::ProcessReplica()
 
 	m_pose = NULL;
 	m_framePose = NULL;
-	game_copy_pose(&m_pose, pose, 1);	
+	game_copy_pose(&m_pose, pose, 1);
 }
 
 void BL_ArmatureObject::ReParentLogic()
@@ -521,7 +521,7 @@ bool BL_ArmatureObject::SetActiveAction(BL_ActionActuator *act, short priority, 
 				SetPose(m_framePose);
 				if (m_activeAct && (m_activeAct!=act))
 					/* Reset the blend timer since this new action cancels the old one */
-					m_activeAct->SetBlendTime(0.0);	
+					m_activeAct->SetBlendTime(0.0);
 			}
 			m_activeAct = act;
 			m_activePriority = priority;
@@ -648,12 +648,12 @@ PyAttributeDef BL_ArmatureObject::Attributes[] = {
 	{NULL} //Sentinel
 };
 
-PyObject* BL_ArmatureObject::pyattr_get_constraints(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ArmatureObject::pyattr_get_constraints(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	return KX_PythonSeq_CreatePyObject((static_cast<BL_ArmatureObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_CONSTRAINTS);
 }
 
-PyObject* BL_ArmatureObject::pyattr_get_channels(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ArmatureObject::pyattr_get_channels(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	BL_ArmatureObject* self = static_cast<BL_ArmatureObject*>(self_v);
 	self->LoadChannels(); // make sure we have the channels

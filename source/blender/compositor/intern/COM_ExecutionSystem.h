@@ -25,6 +25,7 @@ class ExecutionGroup;
 #ifndef _COM_ExecutionSystem_h
 #define _COM_ExecutionSystem_h
 
+#include "DNA_color_types.h"
 #include "DNA_node_types.h"
 #include <vector>
 #include "COM_Node.h"
@@ -37,7 +38,7 @@ using namespace std;
 
 /**
  * @page execution Execution model
- * In order to get to an efficient model for execution, serveral steps are being done. these steps are explained below.
+ * In order to get to an efficient model for execution, several steps are being done. these steps are explained below.
  *
  * @section EM_Step1 Step 1: translating blender node system to the new compsitor system
  * Blenders node structure is based on C structs (DNA). These structs are not efficient in the new architecture. We want to use classes in order to simplify the system.
@@ -64,7 +65,7 @@ using namespace std;
  * @section EM_Step3 Step3: add additional conversions to the operation system
  *   - Data type conversions: the system has 3 data types COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR. The user can connect a Value socket to a color socket. As values are ordered differently than colors a conversion happens.
  *
- *   - Image size conversions: the system can automatically convert when resolutions do not match. An InputSocket has a resize mode. This can be any of the folowing settings.
+ *   - Image size conversions: the system can automatically convert when resolutions do not match. An InputSocket has a resize mode. This can be any of the following settings.
  *     - [@ref InputSocketResizeMode.COM_SC_CENTER]: The center of both images are aligned
  *     - [@ref InputSocketResizeMode.COM_SC_FIT_WIDTH]: The width of both images are aligned
  *     - [@ref InputSocketResizeMode.COM_SC_FIT_HEIGHT]: the height of both images are aligned
@@ -153,10 +154,11 @@ public:
 	 * @brief Create a new ExecutionSystem and initialize it with the
 	 * editingtree.
 	 *
-	 * @param editingtree [bNodeTree*]
+	 * @param editingtree [bNodeTree *]
 	 * @param rendering [true false]
 	 */
-	ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation);
+	ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool rendering, bool fastcalculation,
+	                const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 
 	/**
 	 * Destructor
@@ -200,12 +202,12 @@ public:
 	/**
 	 * @brief get the reference to the compositor context
 	 */
-	CompositorContext& getContext() { return this->m_context; }
+	CompositorContext &getContext() { return this->m_context; }
 
 	/**
 	 * @brief get the reference to the compositor nodes
 	 */
-	vector<Node *>& getNodes() { return this->m_nodes; }
+	vector<Node *> &getNodes() { return this->m_nodes; }
 
 	/**
 	 * @brief get the reference to the compositor connections

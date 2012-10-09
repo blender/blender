@@ -57,7 +57,7 @@ public :
 	static 
 		KX_NormalParentRelation *
 	New(
-	);		
+	);
 
 	/** 
 	 * Method inherited from KX_ParentRelation
@@ -67,7 +67,7 @@ public :
 	UpdateChildCoordinates(
 		SG_Spatial * child,
 		const SG_Spatial * parent,
-		bool& parentUpdated	
+		bool& parentUpdated
 	);
 
 	/** 
@@ -106,7 +106,7 @@ public :
 	static 
 		KX_VertexParentRelation *
 	New(
-	);		
+	);
 
 	/** 
 	 * Method inherited from KX_ParentRelation
@@ -116,7 +116,7 @@ public :
 	UpdateChildCoordinates(
 		SG_Spatial * child,
 		const SG_Spatial * parent,
-		bool& parentUpdated	
+		bool& parentUpdated
 	);
 
 	/** 
@@ -162,7 +162,7 @@ public :
 		KX_SlowParentRelation *
 	New(
 		MT_Scalar relaxation
-	);		
+	);
 
 	/** 
 	 * Method inherited from KX_ParentRelation
@@ -172,7 +172,7 @@ public :
 	UpdateChildCoordinates(
 		SG_Spatial * child,
 		const SG_Spatial * parent,
-		bool& parentUpdated	
+		bool& parentUpdated
 	);
 
 	/** 

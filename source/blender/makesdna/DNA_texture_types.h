@@ -204,7 +204,7 @@ typedef struct Tex {
 	/* newnoise: musgrave parameters */
 	float mg_H, mg_lacunarity, mg_octaves, mg_offset, mg_gain;
 
-	/* newnoise: distorted noise amount, musgrave & voronoi ouput scale */
+	/* newnoise: distorted noise amount, musgrave & voronoi output scale */
 	float dist_amount, ns_outscale;
 
 	/* newnoise: voronoi nearest neighbor weights, minkovsky exponent, distance metric & color type */
@@ -244,7 +244,7 @@ typedef struct Tex {
 	struct Image *ima;
 	struct ColorBand *coba;
 	struct EnvMap *env;
-	struct PreviewImage * preview;
+	struct PreviewImage *preview;
 	struct PointDensity *pd;
 	struct VoxelData *vd;
 	struct OceanTex *ot;

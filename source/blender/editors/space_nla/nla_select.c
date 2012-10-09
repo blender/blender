@@ -198,7 +198,8 @@ void NLA_OT_select_all_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -244,8 +245,8 @@ static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, sho
 		ymin = ymax - NLACHANNEL_STEP(snla);
 		
 		/* perform vertical suitability check (if applicable) */
-		if ( (mode == NLA_BORDERSEL_FRAMERANGE) ||
-		     !((ymax < rectf.ymin) || (ymin > rectf.ymax)) )
+		if ((mode == NLA_BORDERSEL_FRAMERANGE) ||
+		    !((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 		{
 			/* loop over data selecting (only if NLA-Track) */
 			if (ale->type == ANIMTYPE_NLATRACK) {
@@ -254,8 +255,8 @@ static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, sho
 				
 				/* only select strips if they fall within the required ranges (if applicable) */
 				for (strip = nlt->strips.first; strip; strip = strip->next) {
-					if ( (mode == NLA_BORDERSEL_CHANNELS) ||
-					     BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
+					if ((mode == NLA_BORDERSEL_CHANNELS) ||
+					    BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
 					{
 						/* set selection */
 						ACHANNEL_SET_FLAG(strip, selectmode, NLASTRIP_FLAG_SELECT);
@@ -294,10 +295,7 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_SUBTRACT);
 
 	/* get settings from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 		
 	if (RNA_int_get(op->ptr, "gesture_mode") == GESTURE_MODAL_SELECT)
 		selectmode = SELECT_ADD;
@@ -311,7 +309,7 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
-		if ((rect.xmax - rect.xmin) >= (rect.ymax - rect.ymin))
+		if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
 			mode = NLA_BORDERSEL_FRAMERANGE;
 		else
 			mode = NLA_BORDERSEL_CHANNELS;
@@ -483,6 +481,8 @@ static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent 
 
 void NLA_OT_select_leftright(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Select Left/Right";
 	ot->idname = "NLA_OT_select_leftright";
@@ -496,9 +496,12 @@ void NLA_OT_select_leftright(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
+	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "mode", prop_nlaedit_leftright_select_types, NLAEDIT_LRSEL_TEST, "Mode", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+	
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 
@@ -645,6 +648,8 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
  
 void NLA_OT_click_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Mouse Select";
 	ot->idname = "NLA_OT_click_select";
@@ -657,8 +662,9 @@ void NLA_OT_click_select(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* *********************************************** */

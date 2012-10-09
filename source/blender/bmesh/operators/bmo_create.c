@@ -275,8 +275,9 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 				continue;
 			
 			f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), TRUE);
-			if (!f)
+			if (UNLIKELY(f == NULL)) {
 				continue;
+			}
 		}
 	}
 	
@@ -363,8 +364,6 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	/* BMVert **verts = NULL; */
 	/* BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE); */ /* UNUSE */
 	int i;
-	
-#define SIGN(n) ((n)<0.0f)
 	
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		BMIter eiter;
@@ -1225,7 +1224,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v4 = BM_vert_in_edge(edges2[i - 1], edges2[i]->v1) ? edges2[i]->v2 : edges2[i]->v1;
 		}
 
-		/* if there is ever bowtie quads between two edges the problem is here! [#30367] */
+		/* if there is ever bow-tie quads between two edges the problem is here! [#30367] */
 #if 0
 		normal_tri_v3(dvec1, v1->co, v2->co, v4->co);
 		normal_tri_v3(dvec2, v1->co, v4->co, v3->co);
@@ -1312,7 +1311,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	 *
 	 */
 
-	/* Here we check for consistancy and create 2 edges */
+	/* Here we check for consistency and create 2 edges */
 	if (totf == 0 && totv >= 4 && totv == tote + 2) {
 		/* find a free standing vertex and 2 endpoint verts */
 		BMVert *v_free = NULL, *v_a = NULL, *v_b = NULL;
@@ -1365,12 +1364,12 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	/* call edgenet create */
 	/* call edgenet prepare op so additional face creation cases wore */
-	BMO_op_initf(bm, &op2, "edgenet_prepare edges=%fe", ELE_NEW);
+	BMO_op_initf(bm, &op2, op->flag, "edgenet_prepare edges=%fe", ELE_NEW);
 	BMO_op_exec(bm, &op2);
 	BMO_slot_buffer_flag_enable(bm, &op2, "edgeout", BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &op2);
 
-	BMO_op_initf(bm, &op2,
+	BMO_op_initf(bm, &op2, op->flag,
 	             "edgenet_fill edges=%fe use_fill_check=%b mat_nr=%i use_smooth=%b",
 	             ELE_NEW, TRUE, mat_nr, use_smooth);
 
@@ -1386,7 +1385,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &op2);
 	
 	/* now call dissolve face */
-	BMO_op_initf(bm, &op2, "dissolve_faces faces=%ff", ELE_NEW);
+	BMO_op_initf(bm, &op2, op->flag, "dissolve_faces faces=%ff", ELE_NEW);
 	BMO_op_exec(bm, &op2);
 	
 	/* if we dissolved anything, then return */
@@ -1415,6 +1414,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		/* create edge */
 		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
 		BMO_elem_flag_enable(bm, e, ELE_OUT);
+		BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, ELE_OUT);
 	}
 	else if (0) { /* nice feature but perhaps it should be a different tool? */
 
@@ -1460,6 +1460,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 		}
+		BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, ELE_OUT);
 		/* done creating edges */
 	}
 	else if (amount > 2) {

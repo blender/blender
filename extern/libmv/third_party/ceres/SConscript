@@ -20,10 +20,19 @@ defs.append('CERES_HAVE_PTHREAD')
 defs.append('CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {')
 defs.append('CERES_HASH_NAMESPACE_END=}}')
 defs.append('CERES_NO_SUITESPARSE')
-defs.append('CERES_DONT_HAVE_PROTOCOL_BUFFERS')
+defs.append('CERES_NO_CXSPARSE')
+defs.append('CERES_NO_PROTOCOL_BUFFERS')
 defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
 
+if 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
+    defs.append('CERES_NO_TR1')
+
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
+
+# work around broken hashtable in 10.5 SDK
+if env['OURPLATFORM'] == 'darwin' and env['WITH_BF_BOOST']:
+    incs += ' ' + env['BF_BOOST_INC']
+    defs.append('CERES_HASH_BOOST')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):

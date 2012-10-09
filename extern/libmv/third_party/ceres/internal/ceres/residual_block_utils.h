@@ -51,15 +51,6 @@ namespace internal {
 
 class ResidualBlock;
 
-// Fill the array x with an impossible value that the user code is
-// never expected to compute.
-void InvalidateArray(int size, double* x);
-
-// Check if all the entries of the array x are valid, i.e. all the
-// values in the array should be finite and none of them should be
-// equal to the "impossible" value used by InvalidateArray.
-bool IsArrayValid(int size, const double* x);
-
 // Invalidate cost, resdual and jacobian arrays (if not NULL).
 void InvalidateEvaluation(const ResidualBlock& block,
                           double* cost,

@@ -30,6 +30,8 @@
 #include "COM_KeyingDespillOperation.h"
 #include "COM_KeyingClipOperation.h"
 
+#include "COM_MathBaseOperation.h"
+
 #include "COM_SeparateChannelOperation.h"
 #include "COM_CombineChannelsOperation.h"
 #include "COM_ConvertRGBToYCCOperation.h"
@@ -184,11 +186,13 @@ OutputSocket *KeyingNode::setupFeather(ExecutionSystem *graph, CompositorContext
 	return operationy->getOutputSocket();
 }
 
-OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputScreen, float factor)
+OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputScreen,
+                                       float factor, float colorBalance)
 {
 	KeyingDespillOperation *despillOperation = new KeyingDespillOperation();
 
 	despillOperation->setDespillFactor(factor);
+	despillOperation->setColorBalance(colorBalance);
 
 	addLink(graph, despillInput, despillOperation->getInputSocket(0));
 	addLink(graph, inputScreen, despillOperation->getInputSocket(1));
@@ -237,8 +241,6 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	keyingOperation->setScreenBalance(keying_data->screen_balance);
 
 	inputScreen->relinkConnections(keyingOperation->getInputSocket(1), 1, graph);
-	inputGarbageMatte->relinkConnections(keyingOperation->getInputSocket(2), 2, graph);
-	inputCoreMatte->relinkConnections(keyingOperation->getInputSocket(3), 3, graph);
 
 	if (keying_data->blur_pre) {
 		/* chroma preblur operation for input of keying operation  */
@@ -254,16 +256,52 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 
 	postprocessedMatte = keyingOperation->getOutputSocket();
 
+	/* black / white clipping */
 	if (keying_data->clip_black > 0.0f || keying_data->clip_white < 1.0f) {
 		postprocessedMatte = setupClip(graph, postprocessedMatte,
 		                               keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
 		                               keying_data->clip_black, keying_data->clip_white, false);
 	}
 
+	/* output edge matte */
 	if (outputEdges->isConnected()) {
 		edgesMatte = setupClip(graph, postprocessedMatte,
 		                       keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
 		                       keying_data->clip_black, keying_data->clip_white, true);
+	}
+
+	/* apply garbage matte */
+	if (inputGarbageMatte->isConnected()) {
+		SetValueOperation *valueOperation = new SetValueOperation();
+		MathSubtractOperation *subtractOperation = new MathSubtractOperation();
+		MathMinimumOperation *minOperation = new MathMinimumOperation();
+
+		valueOperation->setValue(1.0f);
+
+		addLink(graph, valueOperation->getOutputSocket(), subtractOperation->getInputSocket(0));
+		inputGarbageMatte->relinkConnections(subtractOperation->getInputSocket(1), 0, graph);
+
+		addLink(graph, subtractOperation->getOutputSocket(), minOperation->getInputSocket(0));
+		addLink(graph, postprocessedMatte, minOperation->getInputSocket(1));
+
+		postprocessedMatte = minOperation->getOutputSocket();
+
+		graph->addOperation(valueOperation);
+		graph->addOperation(subtractOperation);
+		graph->addOperation(minOperation);
+	}
+
+	/* apply core matte */
+	if (inputCoreMatte->isConnected()) {
+		MathMaximumOperation *maxOperation = new MathMaximumOperation();
+
+		inputCoreMatte->relinkConnections(maxOperation->getInputSocket(0), 0, graph);
+
+		addLink(graph, postprocessedMatte, maxOperation->getInputSocket(1));
+
+		postprocessedMatte = maxOperation->getOutputSocket();
+
+		graph->addOperation(maxOperation);
 	}
 
 	/* apply blur on matte if needed */
@@ -292,7 +330,8 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	if (keying_data->despill_factor > 0.0f) {
 		postprocessedImage = setupDespill(graph, postprocessedImage,
 		                                  keyingOperation->getInputSocket(1)->getConnection()->getFromSocket(),
-		                                  keying_data->despill_factor);
+		                                  keying_data->despill_factor,
+		                                  keying_data->despill_balance);
 	}
 
 	/* connect result to output sockets */

@@ -649,9 +649,9 @@ static void RE_rayobject_octree_done(RayObject *tree)
 	t02 = oc->max[2] - oc->min[2];
 	
 	/* this minus 0.1 is old safety... seems to be needed? */
-	oc->ocfacx = (oc->ocres - 0.1) / t00;
-	oc->ocfacy = (oc->ocres - 0.1) / t01;
-	oc->ocfacz = (oc->ocres - 0.1) / t02;
+	oc->ocfacx = (oc->ocres - 0.1f) / t00;
+	oc->ocfacy = (oc->ocres - 0.1f) / t01;
+	oc->ocfacz = (oc->ocres - 0.1f) / t02;
 	
 	oc->ocsize = sqrt(t00 * t00 + t01 * t01 + t02 * t02);  /* global, max size octree */
 

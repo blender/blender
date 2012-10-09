@@ -29,6 +29,7 @@
  *  \ingroup nodes
  */
 
+#include <limits.h>
 
 #include "DNA_action_types.h"
 #include "DNA_node_types.h"
@@ -70,6 +71,12 @@ void node_copy_curves(bNode *orig_node, bNode *new_node)
 void node_copy_standard_storage(bNode *orig_node, bNode *new_node)
 {
 	new_node->storage= MEM_dupallocN(orig_node->storage);
+}
+
+void *node_initexec_curves(bNode *node)
+{
+	curvemapping_initialize(node->storage);
+	return NULL;  /* unused return */
 }
 
 /**** Labels ****/
@@ -116,40 +123,56 @@ ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
 		return ret;
 
 	for (datatype=0; datatype < NUM_SOCKET_TYPES; ++datatype) {
-		bNodeSocket *fromsock=NULL, *tosock=NULL;
+		bNodeSocket *fromsock, *tosock;
+		int fromindex, toindex;
 		bNodeLink *link;
 		
 		/* Connect the first input of each type with outputs of the same type. */
 		
+		fromindex = INT_MAX;
+		fromsock = NULL;
 		for (link=ntree->links.first; link; link=link->next) {
 			if (link->tonode == node && link->tosock->type == datatype) {
-				fromsock = link->tosock;
-				++num_links_in;
-				if (!fromsock_first)
-					fromsock_first = fromsock;
-				break;
+				int index = BLI_findindex(&node->inputs, link->tosock);
+				if (index < fromindex) {
+					fromindex = index;
+					fromsock = link->tosock;
+				}
 			}
 		}
+		if (fromsock) {
+			++num_links_in;
+			if (!fromsock_first)
+				fromsock_first = fromsock;
+		}
 		
+		toindex = INT_MAX;
+		tosock = NULL;
 		for (link=ntree->links.first; link; link=link->next) {
 			if (link->fromnode == node && link->fromsock->type == datatype) {
-				tosock = link->fromsock;
-				++num_links_out;
-				if (!tosock_first)
-					tosock_first = tosock;
-				
-				if (fromsock) {
-					bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
-					ilink->fromnode = node;
-					ilink->fromsock = fromsock;
-					ilink->tonode = node;
-					ilink->tosock = tosock;
-					/* internal link is always valid */
-					ilink->flag |= NODE_LINK_VALID;
-					BLI_addtail(&ret, ilink);
-					
-					++num_reconnect;
+				int index = BLI_findindex(&node->outputs, link->fromsock);
+				if (index < toindex) {
+					toindex = index;
+					tosock = link->fromsock;
 				}
+			}
+		}
+		if (tosock) {
+			++num_links_out;
+			if (!tosock_first)
+				tosock_first = tosock;
+			
+			if (fromsock) {
+				bNodeLink *ilink = MEM_callocN(sizeof(bNodeLink), "internal node link");
+				ilink->fromnode = node;
+				ilink->fromsock = fromsock;
+				ilink->tonode = node;
+				ilink->tosock = tosock;
+				/* internal link is always valid */
+				ilink->flag |= NODE_LINK_VALID;
+				BLI_addtail(&ret, ilink);
+				
+				++num_reconnect;
 			}
 		}
 	}

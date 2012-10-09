@@ -49,7 +49,7 @@ namespace internal {
 // is known as compile time.
 //
 // For more details about e_blocks and f_blocks, see
-// schur_complement.h. This information is used to initialized an
+// schur_eliminator.h. This information is used to initialized an
 // appropriate template specialization of SchurEliminator.
 void DetectStructure(const CompressedRowBlockStructure& bs,
                      const int num_eliminate_blocks,

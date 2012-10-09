@@ -77,6 +77,7 @@ public:
 			GlobalSettings* getGlobalSettings(void);
 			bool StartGameEngine(int stereoMode);
 			void StopGameEngine();
+			void EngineNextFrame();
 
 protected:
 	bool	handleWheel(GHOST_IEvent* event);

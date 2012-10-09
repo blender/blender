@@ -98,19 +98,47 @@ __device void svm_node_object_info(KernelGlobals *kg, ShaderData *sd, float *sta
 
 __device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
-	float data;
-
 	switch(type) {
+		case NODE_INFO_PAR_INDEX: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			stack_store_float(stack, out_offset, particle_index(kg, particle_id));
+			break;
+		}
 		case NODE_INFO_PAR_AGE: {
 			uint particle_id = object_particle_id(kg, sd->object);
-			data = particle_age(kg, particle_id);
-			stack_store_float(stack, out_offset, data);
+			stack_store_float(stack, out_offset, particle_age(kg, particle_id));
 			break;
 		}
 		case NODE_INFO_PAR_LIFETIME: {
 			uint particle_id = object_particle_id(kg, sd->object);
-			data = particle_lifetime(kg, particle_id);
-			stack_store_float(stack, out_offset, data);
+			stack_store_float(stack, out_offset, particle_lifetime(kg, particle_id));
+			break;
+		}
+		case NODE_INFO_PAR_LOCATION: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			stack_store_float3(stack, out_offset, particle_location(kg, particle_id));
+			break;
+		}
+		#if 0	/* XXX float4 currently not supported in SVM stack */
+		case NODE_INFO_PAR_ROTATION: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			stack_store_float4(stack, out_offset, particle_rotation(kg, particle_id));
+			break;
+		}
+		#endif
+		case NODE_INFO_PAR_SIZE: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			stack_store_float(stack, out_offset, particle_size(kg, particle_id));
+			break;
+		}
+		case NODE_INFO_PAR_VELOCITY: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			stack_store_float3(stack, out_offset, particle_velocity(kg, particle_id));
+			break;
+		}
+		case NODE_INFO_PAR_ANGULAR_VELOCITY: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			stack_store_float3(stack, out_offset, particle_angular_velocity(kg, particle_id));
 			break;
 		}
 	}

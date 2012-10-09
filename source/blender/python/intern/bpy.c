@@ -37,6 +37,7 @@
 #include "bpy_rna.h"
 #include "bpy_app.h"
 #include "bpy_props.h"
+#include "bpy_library.h"
 #include "bpy_operator.h"
 
 #include "BLI_path_util.h"
@@ -115,12 +116,12 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 	PyObject *list;
 
 	int absolute = FALSE;
-	int packed =   FALSE;
-	int local =    FALSE;
+	int packed   = FALSE;
+	int local    = FALSE;
 	static const char *kwlist[] = {"absolute", "packed", "local", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "|ii:blend_paths",
-	                                 (char **)kwlist, &absolute, &packed))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "|iii:blend_paths",
+	                                 (char **)kwlist, &absolute, &packed, &local))
 	{
 		return NULL;
 	}
@@ -170,7 +171,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 }
 
 PyDoc_STRVAR(bpy_resource_path_doc,
-".. function:: resource_path(type, major=2, minor=57)\n"
+".. function:: resource_path(type, major=bpy.app.version[0], minor=bpy.app.version[1])\n"
 "\n"
 "   Return the base path for storing system files.\n"
 "\n"
@@ -238,7 +239,6 @@ static PyObject *bpy_import_test(const char *modname)
 void BPy_init_modules(void)
 {
 	extern BPy_StructRNA *bpy_context_module;
-	extern int bpy_lib_init(PyObject *);
 	PointerRNA ctx_ptr;
 	PyObject *mod;
 
@@ -273,7 +273,7 @@ void BPy_init_modules(void)
 	PyModule_AddObject(mod, "StructMetaPropGroup", (PyObject *)&pyrna_struct_meta_idprop_Type);
 
 	/* needs to be first so bpy_types can run */
-	bpy_lib_init(mod);
+	BPY_library_module(mod);
 
 	bpy_import_test("bpy_types");
 	PyModule_AddObject(mod, "data", BPY_rna_module()); /* imports bpy_types by running this */

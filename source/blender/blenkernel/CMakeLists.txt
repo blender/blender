@@ -25,7 +25,6 @@
 
 set(INC
 	.
-	../avi
 	../blenfont
 	../blenlib
 	../blenloader
@@ -44,6 +43,7 @@ set(INC
 	../../../intern/mikktspace
 	../../../intern/opennl/extern
 	../../../intern/raskter
+	../../../intern/smoke/extern
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager
@@ -101,6 +101,8 @@ set(SRC
 	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
+	intern/mask_evaluate.c
+	intern/mask_rasterize.c
 	intern/mask.c
 	intern/material.c
 	intern/mball.c
@@ -113,6 +115,7 @@ set(SRC
 	intern/nla.c
 	intern/node.c
 	intern/object.c
+	intern/object_deform.c
 	intern/ocean.c
 	intern/packedFile.c
 	intern/paint.c
@@ -127,6 +130,7 @@ set(SRC
 	intern/script.c
 	intern/seqcache.c
 	intern/seqeffects.c
+	intern/seqmodifier.c
 	intern/sequencer.c
 	intern/shrinkwrap.c
 	intern/sketch.c
@@ -200,6 +204,7 @@ set(SRC
 	BKE_nla.h
 	BKE_node.h
 	BKE_object.h
+	BKE_object_deform.h
 	BKE_ocean.h
 	BKE_packedFile.h
 	BKE_paint.h
@@ -253,6 +258,7 @@ endif()
 if(WITH_MOD_CLOTH_ELTOPO)
 	list(APPEND INC
 		../../../extern/eltopo
+		../../../extern/eltopo/eltopo3d
 	)
 	add_definitions(-DWITH_ELTOPO)
 endif()
@@ -283,6 +289,13 @@ endif()
 
 if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
+endif()
+
+if(WITH_CODEC_AVI)
+	list(APPEND INC
+		../avi
+	)
+	add_definitions(-DWITH_AVI)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
@@ -317,9 +330,6 @@ if(WITH_PYTHON)
 	list(APPEND INC
 		../python
 	)
-	list(APPEND INC_SYS
-		${PYTHON_INCLUDE_DIRS}
-	)
 	add_definitions(-DWITH_PYTHON)
 
 	if(WITH_PYTHON_SECURITY)
@@ -339,9 +349,6 @@ if(WITH_MOD_FLUID)
 endif()
 
 if(WITH_MOD_SMOKE)
-	list(APPEND INC
-		../../../intern/smoke/extern
-	)
 	add_definitions(-DWITH_SMOKE)
 endif()
 

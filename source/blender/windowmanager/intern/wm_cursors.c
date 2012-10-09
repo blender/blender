@@ -179,7 +179,10 @@ void WM_cursor_wait(int val)
 	}
 }
 
-void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
+/**
+ * \param bounds can be NULL
+ */
+void WM_cursor_grab_enable(wmWindow *win, int wrap, int hide, int bounds[4])
 {
 	/* Only grab cursor when not running debug.
 	 * It helps not to get a stuck WM when hitting a breakpoint  
@@ -191,22 +194,22 @@ void WM_cursor_grab(wmWindow *win, int wrap, int hide, int *bounds)
 	if ((G.debug & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
 			const GHOST_TabletData *tabletdata = GHOST_GetTabletData(win->ghostwin);
-			// Note: There is no tabletdata on Windows if no tablet device is connected.
+			/* Note: There is no tabletdata on Windows if no tablet device is connected. */
 			if (!tabletdata)
-				GHOST_SetCursorGrab(win->ghostwin, mode, bounds);
+				GHOST_SetCursorGrab(win->ghostwin, mode, bounds, NULL);
 			else if (tabletdata->Active == GHOST_kTabletModeNone)
-				GHOST_SetCursorGrab(win->ghostwin, mode, bounds);
+				GHOST_SetCursorGrab(win->ghostwin, mode, bounds, NULL);
 
 			win->grabcursor = mode;
 		}
 	}
 }
 
-void WM_cursor_ungrab(wmWindow *win)
+void WM_cursor_grab_disable(wmWindow *win, int mouse_ungrab_xy[2])
 {
 	if ((G.debug & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
-			GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL);
+			GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, NULL, mouse_ungrab_xy);
 			win->grabcursor = GHOST_kGrabDisable;
 		}
 	}
@@ -239,7 +242,7 @@ int wm_cursor_arrow_move(wmWindow *win, wmEvent *event)
 
 
 /* afer this you can call restore too */
-void WM_timecursor(wmWindow *win, int nr)
+void WM_cursor_time(wmWindow *win, int nr)
 {
 	/* 10 8x8 digits */
 	static char number_bitmaps[10][8] = {

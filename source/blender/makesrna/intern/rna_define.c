@@ -926,7 +926,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 				}
 			}
 			break;
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
 			iprop->hardmin = (subtype == PROP_UNSIGNED) ? 0 : INT_MIN;
@@ -937,7 +938,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 			iprop->step = 1;
 			break;
 		}
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
 			fprop->hardmin = (subtype == PROP_UNSIGNED) ? 0.0f : -FLT_MAX;
@@ -959,7 +961,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 			fprop->precision = 3;
 			break;
 		}
-		case PROP_STRING: {
+		case PROP_STRING:
+		{
 			StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 
 			sprop->defaultvalue = "";
@@ -1009,19 +1012,22 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 				RNA_def_property_boolean_sdna(prop, NULL, identifier, 0);
 				DefRNA.silent = 0;
 				break;
-			case PROP_INT: {
+			case PROP_INT:
+			{
 				DefRNA.silent = 1;
 				RNA_def_property_int_sdna(prop, NULL, identifier);
 				DefRNA.silent = 0;
 				break;
 			}
-			case PROP_FLOAT: {
+			case PROP_FLOAT:
+			{
 				DefRNA.silent = 1;
 				RNA_def_property_float_sdna(prop, NULL, identifier);
 				DefRNA.silent = 0;
 				break;
 			}
-			case PROP_STRING: {
+			case PROP_STRING:
+			{
 				DefRNA.silent = 1;
 				RNA_def_property_string_sdna(prop, NULL, identifier);
 				DefRNA.silent = 0;
@@ -1173,14 +1179,16 @@ void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 			iprop->softmin = (int)min;
 			iprop->softmax = (int)max;
 			iprop->step = (int)step;
 			break;
 		}
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 			fprop->softmin = (float)min;
 			fprop->softmax = (float)max;
@@ -1201,7 +1209,8 @@ void RNA_def_property_range(PropertyRNA *prop, double min, double max)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 			iprop->hardmin = (int)min;
 			iprop->hardmax = (int)max;
@@ -1209,7 +1218,8 @@ void RNA_def_property_range(PropertyRNA *prop, double min, double max)
 			iprop->softmax = MIN2((int)max, iprop->hardmax);
 			break;
 		}
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 			fprop->hardmin = (float)min;
 			fprop->hardmax = (float)max;
@@ -1234,12 +1244,14 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 	}
 
 	switch (prop->type) {
-		case PROP_POINTER: {
+		case PROP_POINTER:
+		{
 			PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 			pprop->type = (StructRNA *)type;
 			break;
 		}
-		case PROP_COLLECTION: {
+		case PROP_COLLECTION:
+		{
 			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 			cprop->item_type = (StructRNA *)type;
 			break;
@@ -1262,7 +1274,8 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 	}
 
 	switch (prop->type) {
-		case PROP_POINTER: {
+		case PROP_POINTER:
+		{
 			PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 			pprop->type = type;
 
@@ -1271,7 +1284,8 @@ void RNA_def_property_struct_runtime(PropertyRNA *prop, StructRNA *type)
 
 			break;
 		}
-		case PROP_COLLECTION: {
+		case PROP_COLLECTION:
+		{
 			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 			cprop->item_type = type;
 			break;
@@ -1290,7 +1304,8 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 	int i, defaultfound = 0;
 
 	switch (prop->type) {
-		case PROP_ENUM: {
+		case PROP_ENUM:
+		{
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 			eprop->item = (EnumPropertyItem *)item;
 			eprop->totitem = 0;
@@ -1325,7 +1340,8 @@ void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_STRING: {
+		case PROP_STRING:
+		{
 			StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 			sprop->maxlength = maxlength;
 			break;
@@ -1342,7 +1358,8 @@ void RNA_def_property_boolean_default(PropertyRNA *prop, int value)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_BOOLEAN: {
+		case PROP_BOOLEAN:
+		{
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 			bprop->defaultvalue = value;
 			break;
@@ -1359,7 +1376,8 @@ void RNA_def_property_boolean_array_default(PropertyRNA *prop, const int *array)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_BOOLEAN: {
+		case PROP_BOOLEAN:
+		{
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 			bprop->defaultarray = array;
 			break;
@@ -1376,7 +1394,8 @@ void RNA_def_property_int_default(PropertyRNA *prop, int value)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 			iprop->defaultvalue = value;
 			break;
@@ -1393,7 +1412,8 @@ void RNA_def_property_int_array_default(PropertyRNA *prop, const int *array)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 			iprop->defaultarray = array;
 			break;
@@ -1410,7 +1430,8 @@ void RNA_def_property_float_default(PropertyRNA *prop, float value)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 			fprop->defaultvalue = value;
 			break;
@@ -1427,7 +1448,8 @@ void RNA_def_property_float_array_default(PropertyRNA *prop, const float *array)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 			fprop->defaultarray = array; /* WARNING, this array must not come from the stack and lost */
 			break;
@@ -1444,7 +1466,8 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value)
 	StructRNA *srna = DefRNA.laststruct;
 
 	switch (prop->type) {
-		case PROP_STRING: {
+		case PROP_STRING:
+		{
 			StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 			sprop->defaultvalue = value;
 			break;
@@ -1462,7 +1485,8 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 	int i, defaultfound = 0;
 
 	switch (prop->type) {
-		case PROP_ENUM: {
+		case PROP_ENUM:
+		{
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 			eprop->defaultvalue = value;
 
@@ -1945,7 +1969,8 @@ void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 
 	switch (prop->type) {
-		case PROP_BOOLEAN: {
+		case PROP_BOOLEAN:
+		{
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
 			if (prop->arraydimension) {
@@ -1975,7 +2000,8 @@ void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *
 	}
 
 	switch (prop->type) {
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
 			if (prop->arraydimension) {
@@ -2006,7 +2032,8 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 	}
 
 	switch (prop->type) {
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
 			if (prop->arraydimension) {
@@ -2037,7 +2064,8 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 	}
 
 	switch (prop->type) {
-		case PROP_ENUM: {
+		case PROP_ENUM:
+		{
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
 			if (get) eprop->get = (PropEnumGetFunc)get;
@@ -2062,7 +2090,8 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 	}
 
 	switch (prop->type) {
-		case PROP_STRING: {
+		case PROP_STRING:
+		{
 			StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 
 			if (get) sprop->get = (PropStringGetFunc)get;
@@ -2088,7 +2117,8 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 
 	switch (prop->type) {
-		case PROP_POINTER: {
+		case PROP_POINTER:
+		{
 			PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
 			if (get) pprop->get = (PropPointerGetFunc)get;
@@ -2116,7 +2146,8 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 	}
 
 	switch (prop->type) {
-		case PROP_COLLECTION: {
+		case PROP_COLLECTION:
+		{
 			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 
 			if (begin) cprop->begin = (PropCollectionBeginFunc)begin;
@@ -2742,7 +2773,8 @@ int rna_parameter_size(PropertyRNA *parm)
 				}
 				else
 					return sizeof(char *);
-			case PROP_POINTER: {
+			case PROP_POINTER:
+			{
 #ifdef RNA_RUNTIME
 				if (parm->flag & PROP_RNAPTR)
 					return sizeof(PointerRNA);
@@ -2889,7 +2921,8 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 	if (prop->description) prop->description = BLI_strdup(prop->description);
 
 	switch (prop->type) {
-		case PROP_BOOLEAN: {
+		case PROP_BOOLEAN:
+		{
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 
 			if (bprop->defaultarray) {
@@ -2899,7 +2932,8 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			}
 			break;
 		}
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
 			if (iprop->defaultarray) {
@@ -2909,7 +2943,8 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			}
 			break;
 		}
-		case PROP_ENUM: {
+		case PROP_ENUM:
+		{
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
 			if (eprop->item) {
@@ -2928,7 +2963,8 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			}
 			break;
 		}
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
 			if (fprop->defaultarray) {
@@ -2938,7 +2974,8 @@ void RNA_def_property_duplicate_pointers(StructOrFunctionRNA *cont_, PropertyRNA
 			}
 			break;
 		}
-		case PROP_STRING: {
+		case PROP_STRING:
+		{
 			StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 			if (sprop->defaultvalue)
 				sprop->defaultvalue = BLI_strdup(sprop->defaultvalue);
@@ -2966,25 +3003,29 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 			MEM_freeN(prop->py_data);
 
 		switch (prop->type) {
-			case PROP_BOOLEAN: {
+			case PROP_BOOLEAN:
+			{
 				BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
 				if (bprop->defaultarray)
 					MEM_freeN((void *)bprop->defaultarray);
 				break;
 			}
-			case PROP_INT: {
+			case PROP_INT:
+			{
 				IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 				if (iprop->defaultarray)
 					MEM_freeN((void *)iprop->defaultarray);
 				break;
 			}
-			case PROP_FLOAT: {
+			case PROP_FLOAT:
+			{
 				FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 				if (fprop->defaultarray)
 					MEM_freeN((void *)fprop->defaultarray);
 				break;
 			}
-			case PROP_ENUM: {
+			case PROP_ENUM:
+			{
 				EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 
 				for (a = 0; a < eprop->totitem; a++) {
@@ -2999,7 +3040,8 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 				if (eprop->item) MEM_freeN((void *)eprop->item);
 				break;
 			}
-			case PROP_STRING: {
+			case PROP_STRING:
+			{
 				StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
 				if (sprop->defaultvalue)
 					MEM_freeN((void *)sprop->defaultvalue);

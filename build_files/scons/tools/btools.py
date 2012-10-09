@@ -108,7 +108,7 @@ def validate_arguments(args, bc):
             'WITH_BF_STATICFFMPEG', 'BF_FFMPEG_LIB_STATIC',
             'WITH_BF_OGG', 'BF_OGG', 'BF_OGG_LIB',
             'WITH_BF_FRAMESERVER',
-            'WITH_BF_COMPOSITOR',
+            'WITH_BF_COMPOSITOR', 'WITH_BF_COMPOSITOR_LEGACY',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
             'WITH_BF_OPENJPEG', 'BF_OPENJPEG', 'BF_OPENJPEG_INC', 'BF_OPENJPEG_LIB', 'BF_OPENJPEG_LIBPATH',
             'WITH_BF_REDCODE', 'BF_REDCODE', 'BF_REDCODE_INC', 'BF_REDCODE_LIB', 'BF_REDCODE_LIBPATH',
@@ -120,7 +120,7 @@ def validate_arguments(args, bc):
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
             'WITH_BF_GAMEENGINE',
             'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
-            'WITH_BF_ELTOPO',
+            'WITH_BF_ELTOPO', 'BF_LAPACK', 'BF_LAPACK_LIB', 'BF_LAPACK_LIBPATH', 'BF_LAPACK_LIB_STATIC',
             'BF_WINTAB', 'BF_WINTAB_INC',
             'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH', 'BF_FREETYPE_LIB_STATIC', 'WITH_BF_FREETYPE_STATIC',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
@@ -135,7 +135,7 @@ def validate_arguments(args, bc):
             'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
             'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
             'WITHOUT_BF_INSTALL',
-            'WITHOUT_BF_PYTHON_INSTALL', 'WITHOUT_BF_PYTHON_UNPACK',
+            'WITHOUT_BF_PYTHON_INSTALL', 'WITHOUT_BF_PYTHON_UNPACK', 'WITH_BF_PYTHON_INSTALL_NUMPY'
             'WITHOUT_BF_OVERWRITE_INSTALL',
             'WITH_BF_OPENMP', 'BF_OPENMP', 'BF_OPENMP_LIBPATH',
             'WITH_GHOST_COCOA',
@@ -163,8 +163,9 @@ def validate_arguments(args, bc):
             'WITH_BF_3DMOUSE', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC',
             'WITH_BF_CYCLES', 'WITH_BF_CYCLES_CUDA_BINARIES', 'BF_CYCLES_CUDA_NVCC', 'BF_CYCLES_CUDA_NVCC', 'WITH_BF_CYCLES_CUDA_THREADED_COMPILE',
             'WITH_BF_OIIO', 'WITH_BF_STATICOIIO', 'BF_OIIO', 'BF_OIIO_INC', 'BF_OIIO_LIB', 'BF_OIIO_LIB_STATIC', 'BF_OIIO_LIBPATH',
+            'WITH_BF_OCIO', 'WITH_BF_STATICOCIO', 'BF_OCIO', 'BF_OCIO_INC', 'BF_OCIO_LIB', 'BF_OCIO_LIB_STATIC', 'BF_OCIO_LIBPATH',
             'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH',
-            'WITH_BF_LIBMV', 'WITH_BF_CARVE'
+            'WITH_BF_LIBMV'
             ]
     
     # Have options here that scons expects to be lists
@@ -393,7 +394,13 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , False)),
 
         (BoolVariable('WITH_BF_BULLET', 'Use Bullet if true', True)),
+        
         (BoolVariable('WITH_BF_ELTOPO', 'Use Eltopo collision library if true', False)),
+        ('BF_LAPACK', 'LAPACK base path', ''),
+        ('BF_LAPACK_LIB', 'LAPACK library', ''),
+        ('BF_LAPACK_LIB_STATIC', 'LAPACK library', ''),
+        ('BF_LAPACK_LIBPATH', 'LAPACK library path', ''),
+        (BoolVariable('WITH_BF_STATICLAPACK', 'Staticly link to LAPACK', False)),
         
         ('BF_BULLET', 'Bullet base dir', ''),
         ('BF_BULLET_INC', 'Bullet include path', ''),
@@ -520,6 +527,7 @@ def read_opts(env, cfg, args):
         (BoolVariable('BF_SPLIT_SRC', 'Split src lib into several chunks if true', False)),
         (BoolVariable('WITHOUT_BF_INSTALL', 'dont install if true', False)),
         (BoolVariable('WITHOUT_BF_PYTHON_INSTALL', 'dont install Python modules if true', False)),
+        (BoolVariable('WITH_BF_PYTHON_INSTALL_NUMPY', 'install Python mumpy module', False)),
         (BoolVariable('WITHOUT_BF_PYTHON_UNPACK', 'dont remove and unpack Python modules everytime if true', False)),
         (BoolVariable('WITHOUT_BF_OVERWRITE_INSTALL', 'dont remove existing files before breating the new install directory (set to False when making packages for others)', False)),
         (BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
@@ -529,7 +537,6 @@ def read_opts(env, cfg, args):
         
         (BoolVariable('WITH_BF_LZO', 'Enable fast LZO pointcache compression', True)),
         (BoolVariable('WITH_BF_LZMA', 'Enable best LZMA pointcache compression', True)),
-        (BoolVariable('WITH_BF_CARVE', 'Enable carve library for mesh boolean operations', True)),
         
         (BoolVariable('WITH_BF_LIBMV', 'Enable libmv structure from motion library', True)),
         
@@ -569,6 +576,14 @@ def read_opts(env, cfg, args):
         ('BF_OIIO_LIBPATH', 'OIIO library path', ''),
         ('BF_OIIO_LIB_STATIC', 'OIIO static library', ''),
 
+        (BoolVariable('WITH_BF_OCIO', 'Build with OpenColorIO', False)),
+        (BoolVariable('WITH_BF_STATICOCIO', 'Staticly link to OpenColorIO', False)),
+        ('BF_OCIO', 'OCIO root path', ''),
+        ('BF_OCIO_INC', 'OCIO include path', ''),
+        ('BF_OCIO_LIB', 'OCIO library', ''),
+        ('BF_OCIO_LIBPATH', 'OCIO library path', ''),
+        ('BF_OCIO_LIB_STATIC', 'OCIO static library', ''),
+
         (BoolVariable('WITH_BF_BOOST', 'Build with Boost', False)),
         (BoolVariable('WITH_BF_STATICBOOST', 'Staticly link to boost', False)),
         ('BF_BOOST', 'Boost root path', ''),
@@ -577,7 +592,8 @@ def read_opts(env, cfg, args):
         ('BF_BOOST_LIBPATH', 'Boost library path', ''),
         ('BF_BOOST_LIB_STATIC', 'Boost static library', ''),
 
-        (BoolVariable('WITH_GHOST_XDND', 'Build with drag-n-drop support on Linux platforms using XDND protocol', True))
+        (BoolVariable('WITH_GHOST_XDND', 'Build with drag-n-drop support on Linux platforms using XDND protocol', True)),
+        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', False))
     ) # end of opts.AddOptions()
 
     return localopts

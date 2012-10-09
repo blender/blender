@@ -211,14 +211,18 @@ public:
 
 
 
-ClosureParam bsdf_ward_params[] = {
-	CLOSURE_VECTOR_PARAM(WardClosure, m_N),
-	CLOSURE_VECTOR_PARAM(WardClosure, m_T),
-	CLOSURE_FLOAT_PARAM(WardClosure, m_ax),
-	CLOSURE_FLOAT_PARAM(WardClosure, m_ay),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(WardClosure)
-};
+ClosureParam *bsdf_ward_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(WardClosure, m_N),
+	    CLOSURE_VECTOR_PARAM(WardClosure, m_T),
+	    CLOSURE_FLOAT_PARAM(WardClosure, m_ax),
+	    CLOSURE_FLOAT_PARAM(WardClosure, m_ay),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(WardClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_ward_prepare, WardClosure)
 

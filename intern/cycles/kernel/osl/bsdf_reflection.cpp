@@ -97,11 +97,15 @@ public:
 	}
 };
 
-ClosureParam bsdf_reflection_params[] = {
-	CLOSURE_VECTOR_PARAM(ReflectionClosure, m_N),
-	CLOSURE_STRING_KEYPARAM("label"),
-	CLOSURE_FINISH_PARAM(ReflectionClosure)
-};
+ClosureParam *bsdf_reflection_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_VECTOR_PARAM(ReflectionClosure, m_N),
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(ReflectionClosure)
+	};
+	return params;
+}
 
 CLOSURE_PREPARE(bsdf_reflection_prepare, ReflectionClosure)
 

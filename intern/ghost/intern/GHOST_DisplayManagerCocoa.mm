@@ -101,7 +101,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(GHOST_TUns8 d
 	NSScreen *askedDisplay;
 	
 	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(): only main display is supported");
-    
+
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];	
 
 	if (display == kMainDisplay) //Screen #0 may not be the main one
@@ -162,6 +162,6 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::setCurrentDisplaySetting(GHOST_TUns8 d
 #endif // GHOST_DEBUG
 
 	//CGDisplayErr err = ::CGDisplaySwitchToMode(m_displayIDs[display], displayModeValues);
-        
+
 	return /*err == CGDisplayNoErr ?*/ GHOST_kSuccess /*: GHOST_kFailure*/;
 }

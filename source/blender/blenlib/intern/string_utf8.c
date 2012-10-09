@@ -58,11 +58,11 @@ static const char trailingBytesForUTF8[256] = {
 
 int BLI_utf8_invalid_byte(const char *str, int length)
 {
-	const unsigned char *p, *pend = (unsigned char*)str + length;
+	const unsigned char *p, *pend = (unsigned char *)str + length;
 	unsigned char c;
 	int ab;
 
-	for (p = (unsigned char*)str; p < pend; p++) {
+	for (p = (unsigned char *)str; p < pend; p++) {
 		c = *p;
 		if (c < 128)
 			continue;
@@ -234,7 +234,7 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
 // utf8slen
 size_t BLI_strlen_utf8(const char *strc)
 {
-	int len=0;
+	int len = 0;
 
 	while (*strc) {
 		if ((*strc & 0xe0) == 0xc0) {
@@ -259,9 +259,11 @@ size_t BLI_strlen_utf8(const char *strc)
 
 size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size_t maxcpy)
 {
-	int len=0;
+	int len = 0;
 
-	if (dst_w==NULL || src_c==NULL) return(0);
+	if (dst_w == NULL || src_c == NULL) {
+		return 0;
+	}
 
 	while (*src_c && len < maxcpy) {
 		size_t step= 0;

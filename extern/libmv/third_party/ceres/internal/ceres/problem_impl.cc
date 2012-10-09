@@ -37,16 +37,15 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <glog/logging.h>
+#include "ceres/cost_function.h"
+#include "ceres/loss_function.h"
+#include "ceres/map_util.h"
 #include "ceres/parameter_block.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
 #include "ceres/stl_util.h"
-#include "ceres/map_util.h"
 #include "ceres/stringprintf.h"
-#include "ceres/cost_function.h"
-#include "ceres/loss_function.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

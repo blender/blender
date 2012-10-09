@@ -59,16 +59,11 @@
 
 #include "WM_types.h"
 
-
-
-
 #ifdef WITH_PYTHON
 // XXX #include "BPY_menus.h"
 #endif
 
 #include "text_intern.h"
-
-#define HEADER_PATH_MAX 260
 
 /* ************************ header area region *********************** */
 

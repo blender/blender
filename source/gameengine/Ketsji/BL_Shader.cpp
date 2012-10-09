@@ -431,7 +431,7 @@ void BL_Shader::SetProg(bool enable)
 			glUseProgramObjectARB(mShader);
 		}
 		else {
-			glUseProgramObjectARB(0);	
+			glUseProgramObjectARB(0);
 		}
 	}
 }
@@ -613,7 +613,7 @@ void BL_Shader::SetUniform(int uniform, const MT_Tuple3& vec)
 		GLEW_ARB_vertex_shader &&
 		GLEW_ARB_shader_objects 
 		)
-	{	
+	{
 		float value[3];
 		vec.getValue(value);
 		glUniform3fvARB(uniform, 1, value);
@@ -931,7 +931,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1f, "setUniform1f(name, fx)" )
 		{
 #ifdef SORT_UNIFORMS
 			SetUniformfv(loc, BL_Uniform::UNI_FLOAT, &value, sizeof(float));
-#else			
+#else
 			SetUniform( loc, (float)value );
 #endif
 		}
@@ -1142,7 +1142,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv, "setUniformfv( float (list2 or list
 #ifdef SORT_UNIFORMS
 						SetUniformfv(loc, BL_Uniform::UNI_FLOAT2, array2, sizeof(float)*2);
 #else
-						SetUniform(loc, array2, 2);						
+						SetUniform(loc, array2, 2);
 #endif
 						Py_RETURN_NONE;
 					} break;
@@ -1152,7 +1152,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv, "setUniformfv( float (list2 or list
 #ifdef SORT_UNIFORMS
 						SetUniformfv(loc, BL_Uniform::UNI_FLOAT3, array3, sizeof(float)*3);
 #else
-						SetUniform(loc, array3, 3);	
+						SetUniform(loc, array3, 3);
 #endif
 						Py_RETURN_NONE;
 					}break;
@@ -1162,7 +1162,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv, "setUniformfv( float (list2 or list
 #ifdef SORT_UNIFORMS
 						SetUniformfv(loc, BL_Uniform::UNI_FLOAT4, array4, sizeof(float)*4);
 #else
-						SetUniform(loc, array4, 4);	
+						SetUniform(loc, array4, 4);
 #endif
 						Py_RETURN_NONE;
 					}break;
@@ -1226,7 +1226,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2
 #ifdef SORT_UNIFORMS
 			SetUniformiv(loc, BL_Uniform::UNI_INT2, array2, sizeof(int)*2);
 #else
-			SetUniform(loc, array2, 2);						
+			SetUniform(loc, array2, 2);
 #endif
 			Py_RETURN_NONE;
 		} break;
@@ -1237,7 +1237,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2
 			SetUniformiv(loc, BL_Uniform::UNI_INT3, array3, sizeof(int)*3);
 			
 #else
-			SetUniform(loc, array3, 3);	
+			SetUniform(loc, array3, 3);
 #endif
 			Py_RETURN_NONE;
 		}break;
@@ -1248,7 +1248,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2
 			SetUniformiv(loc, BL_Uniform::UNI_INT4, array4, sizeof(int)*4);
 			
 #else
-			SetUniform(loc, array4, 4);	
+			SetUniform(loc, array4, 4);
 #endif
 			Py_RETURN_NONE;
 		}break;

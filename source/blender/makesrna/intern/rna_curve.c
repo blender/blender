@@ -155,56 +155,38 @@ static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 
 static void rna_BezTriple_handle1_get(PointerRNA *ptr, float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	values[0] = bt->vec[0][0];
-	values[1] = bt->vec[0][1];
-	values[2] = bt->vec[0][2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(values, bezt->vec[0]);
 }
 
 static void rna_BezTriple_handle1_set(PointerRNA *ptr, const float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	bt->vec[0][0] = values[0];
-	bt->vec[0][1] = values[1];
-	bt->vec[0][2] = values[2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(bezt->vec[0], values);
 }
 
 static void rna_BezTriple_handle2_get(PointerRNA *ptr, float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	values[0] = bt->vec[2][0];
-	values[1] = bt->vec[2][1];
-	values[2] = bt->vec[2][2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(values, bezt->vec[2]);
 }
 
 static void rna_BezTriple_handle2_set(PointerRNA *ptr, const float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	bt->vec[2][0] = values[0];
-	bt->vec[2][1] = values[1];
-	bt->vec[2][2] = values[2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(bezt->vec[2], values);
 }
 
 static void rna_BezTriple_ctrlpoint_get(PointerRNA *ptr, float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	values[0] = bt->vec[1][0];
-	values[1] = bt->vec[1][1];
-	values[2] = bt->vec[1][2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(values, bezt->vec[1]);
 }
 
 static void rna_BezTriple_ctrlpoint_set(PointerRNA *ptr, const float *values)
 {
-	BezTriple *bt = (BezTriple *)ptr->data;
-
-	bt->vec[1][0] = values[0];
-	bt->vec[1][1] = values[1];
-	bt->vec[1][2] = values[2];
+	BezTriple *bezt = (BezTriple *)ptr->data;
+	copy_v3_v3(bezt->vec[1], values);
 }
 
 static void rna_Curve_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -450,20 +432,20 @@ static void rna_Curve_offset_set(PointerRNA *ptr, float value)
 }
 
 /* name functions that ignore the first two ID characters */
-void rna_Curve_body_get(PointerRNA *ptr, char *value)
+static void rna_Curve_body_get(PointerRNA *ptr, char *value)
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	BLI_strncpy(value, cu->str, cu->len + 1);
 }
 
-int rna_Curve_body_length(PointerRNA *ptr)
+static int rna_Curve_body_length(PointerRNA *ptr)
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	return cu->len;
 }
 
 /* TODO - check UTF & python play nice */
-void rna_Curve_body_set(PointerRNA *ptr, const char *value)
+static void rna_Curve_body_set(PointerRNA *ptr, const char *value)
 {
 	int len = strlen(value);
 	Curve *cu = (Curve *)ptr->id.data;
@@ -739,7 +721,7 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Number values */
-	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "alfa");
 	/*RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");
@@ -826,13 +808,14 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_points");
 
 	/* Number values */
-	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "alfa");
 	/*RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "weight_softbody", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.01f, 100.0f);
 	RNA_def_property_ui_text(prop, "Weight", "Softbody goal weight");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
@@ -1181,7 +1164,7 @@ static void rna_def_curve_spline_points(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "add", "rna_Curve_spline_points_add");
 	RNA_def_function_ui_description(func, "Add a number of points to this spline");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 1, 1, INT_MAX, "Number", "Number of points to add to the spline", 1, INT_MAX);
+	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 #if 0
 	func= RNA_def_function(srna, "remove", "rna_Curve_spline_remove");
@@ -1208,7 +1191,7 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "add", "rna_Curve_spline_bezpoints_add");
 	RNA_def_function_ui_description(func, "Add a number of points to this spline");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 1, INT_MIN, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
+	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 #if 0
 	func = RNA_def_function(srna, "remove", "rna_Curve_spline_remove");

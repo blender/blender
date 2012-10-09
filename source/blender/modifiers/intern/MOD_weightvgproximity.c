@@ -183,9 +183,9 @@ static float get_ob2ob_distance(const Object *ob, const Object *obr)
 }
 
 /**
- * Maps distances to weights, with an optionnal "smoothing" mapping.
+ * Maps distances to weights, with an optional "smoothing" mapping.
  */
-void do_map(float *weights, const int nidx, const float min_d, const float max_d, short mode)
+static void do_map(float *weights, const int nidx, const float min_d, const float max_d, short mode)
 {
 	const float range_inv = 1.0f / (max_d - min_d); /* invert since multiplication is faster */
 	unsigned int i = nidx;
@@ -474,7 +474,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				float *dists_e = use_trgt_edges ? MEM_mallocN(sizeof(float) * numIdx, "dists_e") : NULL;
 				float *dists_f = use_trgt_faces ? MEM_mallocN(sizeof(float) * numIdx, "dists_f") : NULL;
 
-				space_transform_setup(&loc2trgt, ob, obr);
+				SPACE_TRANSFORM_SETUP(&loc2trgt, ob, obr);
 				get_vert2geom_distance(numIdx, v_cos, dists_v, dists_e, dists_f,
 				                       target_dm, &loc2trgt);
 				for (i = 0; i < numIdx; i++) {

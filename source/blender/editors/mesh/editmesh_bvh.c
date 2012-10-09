@@ -49,13 +49,14 @@
 #include "ED_mesh.h"
 #include "ED_view3d.h"
 
+#include "editmesh_bvh.h"  /* own include */
 
 typedef struct BMBVHTree {
 	BMEditMesh *em;
 	BMesh *bm;
 	BVHTree *tree;
 	float epsilon;
-	float maxdist; //for nearest point search
+	float maxdist; /* for nearest point search */
 	float uv[2];
 	
 	/* stuff for topological vert search */
@@ -308,7 +309,7 @@ static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co
 	}
 }
 
-BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], float maxdist)
+BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], const float maxdist)
 {
 	BVHTreeNearest hit;
 
@@ -324,7 +325,7 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], float maxdist)
 		float dist, curdist = tree->maxdist, v[3];
 		int cur = 0, i;
 
-		maxdist = tree->maxdist;
+		/* maxdist = tree->maxdist; */  /* UNUSED */
 
 		for (i = 0; i < 3; i++) {
 			sub_v3_v3v3(v, hit.co, ls[i]->v->co);
@@ -370,9 +371,9 @@ int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)
 }
 #endif
 
-static BMFace *edge_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3], float *hitout, BMEdge *e)
+static BMFace *edge_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, BMEdge *e)
 {
-	BMFace *f = BMBVH_RayCast(tree, co, dir, hitout, NULL);
+	BMFace *f = BMBVH_RayCast(tree, co, dir, r_hitout, NULL);
 	
 	if (f && BM_edge_in_face(f, e))
 		return NULL;
@@ -391,18 +392,13 @@ static void scale_point(float c1[3], const float p[3], const float s)
 int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Object *obedit)
 {
 	BMFace *f;
-	float co1[3], co2[3], co3[3], dir1[4], dir2[4], dir3[4];
+	float co1[3], co2[3], co3[3], dir1[3], dir2[3], dir3[3];
 	float origin[3], invmat[4][4];
 	float epsilon = 0.01f; 
-	float mval_f[2], end[3];
-	
-	if (!ar) {
-		printf("error in BMBVH_EdgeVisible!\n");
-		return 0;
-	}
-	
-	mval_f[0] = ar->winx / 2.0f;
-	mval_f[1] = ar->winy / 2.0f;
+	float end[3];
+	const float mval_f[2] = {ar->winx / 2.0f,
+	                         ar->winy / 2.0f};
+
 	ED_view3d_win_to_segment_clip(ar, v3d, mval_f, origin, end);
 	
 	invert_m4_m4(invmat, obedit->obmat);

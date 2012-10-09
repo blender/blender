@@ -165,6 +165,8 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
 /************************* assign image ************************/
 
+//#define USE_SWITCH_ASPECT
+
 void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *ima, Image *previma)
 {
 	BMEditMesh *em;
@@ -172,6 +174,8 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 	BMIter iter;
 	MTexPoly *tf;
 	int update = 0;
+	int sloppy = TRUE;
+	int selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
 	
 	/* skip assigning these procedural images... */
 	if (ima && (ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE))
@@ -188,15 +192,24 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 
 	if (BKE_scene_use_new_shading_nodes(scene)) {
 		/* new shading system, assign image in material */
-		int sloppy = 1;
-		BMFace *efa = BM_active_face_get(em->bm, sloppy);
+		BMFace *efa = BM_active_face_get(em->bm, sloppy, selected);
 
 		if (efa)
 			ED_object_assign_active_image(bmain, obedit, efa->mat_nr + 1, ima);
 	}
 	else {
 		/* old shading system, assign image to selected faces */
-		
+#ifdef USE_SWITCH_ASPECT
+		float prev_aspect[2], fprev_aspect;
+		float aspect[2], faspect;
+
+		ED_image_get_uv_aspect(previma, prev_aspect, prev_aspect + 1);
+		ED_image_get_uv_aspect(ima, aspect, aspect + 1);
+
+		fprev_aspect = prev_aspect[0] / prev_aspect[1];
+		faspect = aspect[0] / aspect[1];
+#endif
+
 		/* ensure we have a uv map */
 		if (!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
 			BM_data_layer_add(em->bm, &em->bm->pdata, CD_MTEXPOLY);
@@ -214,6 +227,24 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 					
 					if (ima->id.us == 0) id_us_plus(&ima->id);
 					else id_lib_extern(&ima->id);
+
+#ifdef USE_SWITCH_ASPECT
+					/* we also need to correct the aspect of uvs */
+					if (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) {
+						/* do nothing */
+					}
+					else {
+						BMIter liter;
+						BMLoop *l;
+
+						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+							MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+
+							luv->uv[0] *= fprev_aspect;
+							luv->uv[0] /= faspect;
+						}
+					}
+#endif
 				}
 				else {
 					tf->tpage = NULL;
@@ -271,11 +302,11 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 	int width, height;
 
 	if (sima) {
-		ED_space_image_size(sima, &width, &height);
+		ED_space_image_get_size(sima, &width, &height);
 	}
 	else {
-		width = 256;
-		height = 256;
+		width =  IMG_SIZE_FALLBACK;
+		height = IMG_SIZE_FALLBACK;
 	}
 
 	dist[0] = pixeldist / width;
@@ -650,10 +681,10 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv, *nextluv;
-	float mindist, dist;
+	float mindist_squared, dist_squared;
 	int i;
 
-	mindist = 1e10f;
+	mindist_squared = 1e10f;
 	memset(hit, 0, sizeof(*hit));
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
@@ -668,9 +699,9 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			nextluv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 
-			dist = dist_to_line_segment_v2(co, luv->uv, nextluv->uv);
+			dist_squared = dist_squared_to_line_segment_v2(co, luv->uv, nextluv->uv);
 
-			if (dist < mindist) {
+			if (dist_squared < mindist_squared) {
 				hit->tf = tf;
 				hit->efa = efa;
 				
@@ -682,7 +713,7 @@ void uv_find_nearest_edge(Scene *scene, Image *ima, BMEditMesh *em, const float 
 				hit->vert1 = BM_elem_index_get(hit->l->v);
 				hit->vert2 = BM_elem_index_get(hit->l->next->v);
 
-				mindist = dist;
+				mindist_squared = dist_squared;
 			}
 
 			i++;
@@ -712,7 +743,7 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, const
 
 		uv_poly_center(em, efa, cent);
 
-		dist = fabs(co[0] - cent[0]) + fabs(co[1] - cent[1]);
+		dist = fabsf(co[0] - cent[0]) + fabsf(co[1] - cent[1]);
 
 		if (dist < mindist) {
 			hit->tf = tf;
@@ -728,14 +759,13 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 	BMLoop *l;
 	MLoopUV *luv;
 	BMIter iter;
-	float m[3], v1[3], v2[3], c1, c2, *uv1 = NULL, /* *uv2, */ /* UNUSED */ *uv3 = NULL;
+	float m[2], v1[2], v2[2], c1, c2, *uv1 = NULL, /* *uv2, */ /* UNUSED */ *uv3 = NULL;
 	int id1, id2, i;
 
 	id1 = (id + efa->len - 1) % efa->len;
 	id2 = (id + efa->len + 1) % efa->len;
 
-	m[0] = co[0] - uv[0];
-	m[1] = co[1] - uv[1];
+	sub_v2_v2v2(m, co, uv);
 
 	i = 0;
 	BM_ITER_ELEM (l, &iter, efa, BM_LOOPS_OF_FACE) {
@@ -751,8 +781,8 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 		i++;
 	}
 
-	sub_v3_v3v3(v1, uv1, uv);
-	sub_v3_v3v3(v2, uv3, uv);
+	sub_v2_v2v2(v1, uv1, uv);
+	sub_v2_v2v2(v2, uv3, uv);
 
 	/* m and v2 on same side of v-v1? */
 	c1 = v1[0] * m[1] - v1[1] * m[0];
@@ -848,7 +878,7 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float c
 		
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			dist = fabs(co[0] - luv->uv[0]) + fabs(co[1] - luv->uv[1]);
+			dist = fabsf(co[0] - luv->uv[0]) + fabsf(co[1] - luv->uv[1]);
 
 			if (dist <= mindist) {
 				mindist = dist;
@@ -1713,7 +1743,7 @@ static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 	 * the selection rather than de-selecting the closest. */
 
 	uvedit_pixel_to_float(sima, limit, 0.05f);
-	uvedit_pixel_to_float(sima, penalty, 5.0f / sima->zoom);
+	uvedit_pixel_to_float(sima, penalty, 5.0f / (sima ? sima->zoom : 1.0f));
 
 	/* retrieve operation mode */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
@@ -2026,7 +2056,7 @@ static void UV_OT_select(wmOperatorType *ot)
 	ot->name = "Select";
 	ot->description = "Select UV vertices";
 	ot->idname = "UV_OT_select";
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = select_exec;
@@ -2071,7 +2101,7 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 	ot->name = "Loop Select";
 	ot->description = "Select a loop of connected UV vertices";
 	ot->idname = "UV_OT_select_loop";
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 	
 	/* api callbacks */
 	ot->exec = select_loop_exec;
@@ -2173,7 +2203,7 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	ot->name = "Select Linked Pick";
 	ot->description = "Select all UV vertices linked under the mouse";
 	ot->idname = "UV_OT_select_linked_pick";
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* api callbacks */
 	ot->invoke = select_linked_pick_invoke;
@@ -2186,6 +2216,88 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
+}
+
+/* note: this is based on similar use case to MESH_OT_split(), which has a similar effect
+ * but in this case they are not joined to begin with (only having the behavior of being joined)
+ * so its best to call this select_split() instead of just split(), but assigned to the same key
+ * as MESH_OT_split - Campbell */
+static int select_split_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
+	Image *ima = CTX_data_edit_image(C);
+	Object *obedit = CTX_data_edit_object(C);
+	BMesh *bm = BMEdit_FromObject(obedit)->bm;
+
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+	MTexPoly *tf;
+	MLoopUV *luv;
+	short change = FALSE;
+
+	if (ts->uv_flag & UV_SYNC_SELECTION) {
+		BKE_report(op->reports, RPT_ERROR, "Can't split selection when sync selection is enabled");
+		return OPERATOR_CANCELLED;
+	}
+
+
+	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		int is_sel = FALSE;
+		int is_unsel = FALSE;
+		tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+
+		if (!uvedit_face_visible_test(scene, ima, efa, tf))
+			continue;
+
+		/* are we all selected? */
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+
+			if (luv->flag & MLOOPUV_VERTSEL) {
+				is_sel = TRUE;
+			}
+			else {
+				is_unsel = TRUE;
+			}
+
+			/* we have mixed selection, bail out */
+			if (is_sel && is_unsel) {
+				break;
+			}
+		}
+
+		if (is_sel && is_unsel) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+				luv->flag &= ~MLOOPUV_VERTSEL;
+			}
+
+			change = TRUE;
+		}
+	}
+
+	if (change) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+
+static void UV_OT_select_split(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Split";
+	ot->description = "Select only entirely selected faces";
+	ot->idname = "UV_OT_select_split";
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->exec = select_split_exec;
+	ot->poll = ED_operator_uvedit; /* requires space image */;
 }
 
 /* ******************** unlink selection operator **************** */
@@ -2423,10 +2535,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	int change, pinned, select, faces, extend;
 
 	/* get rectangle from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
+	WM_operator_properties_border_to_rcti(op, &rect);
 		
 	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
@@ -2458,7 +2567,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 				uv_poly_center(em, efa, cent);
-				if (BLI_in_rctf(&rectf, cent[0], cent[1])) {
+				if (BLI_rctf_isect_pt_v(&rectf, cent)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 					change = 1;
 				}
@@ -2483,15 +2592,13 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION) ) {
 
 					/* UV_SYNC_SELECTION - can't do pinned selection */
-					if (BLI_in_rctf(&rectf, luv->uv[0], luv->uv[1])) {
+					if (BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
 						if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
 						else uvedit_uv_select_disable(em, scene, l);
 					}
 				}
 				else if (pinned) {
-					if ((luv->flag & MLOOPUV_PINNED) && 
-					    BLI_in_rctf(&rectf, luv->uv[0], luv->uv[1]))
-					{
+					if ((luv->flag & MLOOPUV_PINNED) && BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
 						if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
 						else uvedit_uv_select_disable(em, scene, l);
 					}
@@ -2585,8 +2692,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 	/* compute ellipse size and location, not a circle since we deal
 	 * with non square image. ellipse is normalized, r = 1.0. */
-	ED_space_image_size(sima, &width, &height);
-	ED_space_image_zoom(sima, ar, &zoomx, &zoomy);
+	ED_space_image_get_size(sima, &width, &height);
+	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;
@@ -2637,7 +2744,7 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 
 /* ******************** lasso select operator **************** */
 
-static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short moves, short select)
 {
 	Image *ima = CTX_data_edit_image(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2664,7 +2771,7 @@ static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, sh
 				float cent[2];
 				uv_poly_center(em, efa, cent);
 				UI_view2d_view_to_region(&ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]);
-				if (BLI_in_rcti(&rect, screen_uv[0], screen_uv[1]) &&
+				if (BLI_rcti_isect_pt_v(&rect, screen_uv) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 				{
 					uvedit_face_select_enable(scene, em, efa, FALSE);
@@ -2681,7 +2788,7 @@ static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, sh
 					if ((select) != (uvedit_uv_select_test(em, scene, l))) {
 						MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 						UI_view2d_view_to_region(&ar->v2d, luv->uv[0], luv->uv[1], &screen_uv[0], &screen_uv[1]);
-						if (BLI_in_rcti(&rect, screen_uv[0], screen_uv[1]) &&
+						if (BLI_rcti_isect_pt_v(&rect, screen_uv) &&
 						    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 						{
 							if (select) {
@@ -2711,7 +2818,7 @@ static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, sh
 static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	int mcords_tot;
-	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
 		short select;
@@ -2728,7 +2835,7 @@ static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_PASS_THROUGH;
 }
 
-void UV_OT_select_lasso(wmOperatorType *ot)
+static void UV_OT_select_lasso(wmOperatorType *ot)
 {
 	ot->name = "Lasso Select UV";
 	ot->description = "Select UVs using lasso selection";
@@ -2762,7 +2869,7 @@ static void snap_cursor_to_pixels(SpaceImage *sima)
 {
 	int width = 0, height = 0;
 
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_size(sima, &width, &height);
 	snap_uv_to_pixel(sima->cursor, width, height);
 }
 
@@ -2917,7 +3024,7 @@ static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 	float w, h;
 	short change = 0;
 
-	ED_space_image_size(sima, &width, &height);
+	ED_space_image_get_size(sima, &width, &height);
 	w = (float)width;
 	h = (float)height;
 	
@@ -3361,14 +3468,11 @@ static void UV_OT_reveal(wmOperatorType *ot)
 static int set_2d_cursor_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	float location[2];
 
 	if (!sima)
 		return OPERATOR_CANCELLED;
 
-	RNA_float_get_array(op->ptr, "location", location);
-	sima->cursor[0] = location[0];
-	sima->cursor[1] = location[1];
+	RNA_float_get_array(op->ptr, "location", sima->cursor);
 	
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
 	
@@ -3658,6 +3762,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
 	WM_operatortype_append(UV_OT_select_linked_pick);
+	WM_operatortype_append(UV_OT_select_split);
 	WM_operatortype_append(UV_OT_unlink_selected);
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
@@ -3713,6 +3818,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "extend", FALSE);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "extend", TRUE);
+	WM_keymap_add_item(keymap, "UV_OT_select_split", YKEY, KM_PRESS, 0, 0);
 
 	/* border/circle selection */
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, 0, 0);
@@ -3771,19 +3877,6 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	/* menus */
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_select_mode", TABKEY, KM_PRESS, KM_CTRL, 0);
-
-	/* pivot */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "CENTER");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "MEDIAN");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "CURSOR");
 
 	ED_keymap_proportional_cycle(keyconf, keymap);
 	ED_keymap_proportional_editmode(keyconf, keymap, FALSE);

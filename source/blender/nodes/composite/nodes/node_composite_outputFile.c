@@ -33,8 +33,6 @@
 #include <string.h>
 #include "BLI_path_util.h"
 
-#include "BKE_utildefines.h"
-
 #include "node_composite_util.h"
 
 #include "IMB_imbuf.h"
@@ -123,6 +121,8 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, con
 			sockdata->format.imtype= R_IMF_IMTYPE_OPENEXR;
 		}
 	}
+	else
+		BKE_imformat_defaults(&sockdata->format);
 	/* use node data format by default */
 	sockdata->use_node_format = TRUE;
 	
@@ -164,7 +164,7 @@ void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char 
 	ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 }
 
-static void init_output_file(bNodeTree *ntree, bNode* node, bNodeTemplate *ntemp)
+static void init_output_file(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
 	NodeImageMultiFile *nimf= MEM_callocN(sizeof(NodeImageMultiFile), "node image multi file");
 	ImageFormatData *format = NULL;
@@ -174,9 +174,14 @@ static void init_output_file(bNodeTree *ntree, bNode* node, bNodeTemplate *ntemp
 		RenderData *rd = &ntemp->scene->r;
 		BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
 		nimf->format = rd->im_format;
+		if (BKE_imtype_is_movie(nimf->format.imtype)) {
+			nimf->format.imtype= R_IMF_IMTYPE_OPENEXR;
+		}
 		
-		format = &rd->im_format;
+		format = &nimf->format;
 	}
+	else
+		BKE_imformat_defaults(&nimf->format);
 	
 	/* add one socket by default */
 	ntreeCompositOutputFileAddSocket(ntree, node, "Image", format);
@@ -220,6 +225,8 @@ static void update_output_file(bNodeTree *UNUSED(ntree), bNode *node)
 	}
 }
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 /* write input data into individual files */
 static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack **in)
 {
@@ -259,9 +266,6 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 			}
 			ibuf->rect_float = cbuf->rect;
 			ibuf->dither = rd->dither_intensity;
-			
-			if (rd->color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			
 			/* get full path */
 			BLI_join_dirfile(path, FILE_MAX, nimf->base_path, sockdata->path);
@@ -379,12 +383,12 @@ static void exec_output_file_multilayer(RenderData *rd, bNode *node, bNodeStack 
 	IMB_exr_close(exrhandle);
 }
 
-static void exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
+static void node_composit_exec_outputfile(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
 {
 	RenderData *rd= data;
 	NodeImageMultiFile *nimf= node->storage;
 	
-	if (!G.rendering) {
+	if (G.is_rendering == FALSE) {
 		/* only output files when rendering a sequence -
 		 * otherwise, it overwrites the output files just 
 		 * scrubbing through the timeline when the compositor updates */
@@ -396,6 +400,7 @@ static void exec_output_file(void *data, bNode *node, bNodeStack **in, bNodeStac
 	else
 		exec_output_file_singlelayer(rd, node, in);
 }
+#endif  /* WITH_COMPOSITOR_LEGACY */
 
 void register_node_type_cmp_output_file(bNodeTreeType *ttype)
 {
@@ -407,7 +412,9 @@ void register_node_type_cmp_output_file(bNodeTreeType *ttype)
 	node_type_init(&ntype, init_output_file);
 	node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);
 	node_type_update(&ntype, update_output_file, NULL);
-	node_type_exec(&ntype, exec_output_file);
+#ifdef WITH_COMPOSITOR_LEGACY
+	node_type_exec(&ntype, node_composit_exec_outputfile);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

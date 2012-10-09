@@ -118,6 +118,15 @@ EnumPropertyItem viewport_shade_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem clip_editor_mode_items[] = {
+	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
+	{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
+	                         "Show tracking/reconstruction tools"},
+	{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
+	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask", "Show mask editing tools"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -469,7 +478,7 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 }
 
 /* api call */
-void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
+static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
 {
 	bScreen *sc = (bScreen *)id;
 
@@ -520,10 +529,8 @@ static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_SpaceUVEditor, ptr->data);
 }
 
-static void rna_SpaceImageEditor_paint_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_SpaceImageEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
-
 	ED_space_image_paint_update(bmain->wm.first, scene->toolsettings);
 }
 
@@ -546,12 +553,26 @@ static int rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
 	return ED_space_image_show_uvedit(sima, sc->scene->obedit);
 }
 
+static int rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
+{
+	SpaceImage *sima = (SpaceImage *)(ptr->data);
+	bScreen *sc = (bScreen *)ptr->id.data;
+	return ED_space_image_check_show_maskedit(sc->scene, sima);
+}
+
 static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
 
 	ED_space_image_set(sima, sc->scene, sc->scene->obedit, (Image *)value.data);
+}
+
+static void rna_SpaceImageEditor_mask_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceImage *sima = (SpaceImage *)(ptr->data);
+
+	ED_space_image_set_mask(NULL, sima, (Mask *)value.data);
 }
 
 static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUSED(C), PointerRNA *ptr,
@@ -601,7 +622,7 @@ static void rna_SpaceImageEditor_zoom_get(PointerRNA *ptr, float *values)
 	sa = rna_area_from_space(ptr); /* can be NULL */
 	ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 	if (ar) {
-		ED_space_image_zoom(sima, ar, &values[0], &values[1]);
+		ED_space_image_get_zoom(sima, ar, &values[0], &values[1]);
 	}
 }
 
@@ -614,7 +635,7 @@ static void rna_SpaceImageEditor_cursor_location_get(PointerRNA *ptr, float *val
 	}
 	else {
 		int w, h;
-		ED_space_image_size(sima, &w, &h);
+		ED_space_image_get_size(sima, &w, &h);
 		
 		values[0] = sima->cursor[0] * w;
 		values[1] = sima->cursor[1] * h;
@@ -630,25 +651,11 @@ static void rna_SpaceImageEditor_cursor_location_set(PointerRNA *ptr, const floa
 	}
 	else {
 		int w, h;
-		ED_space_image_size(sima, &w, &h);
+		ED_space_image_get_size(sima, &w, &h);
 		
 		sima->cursor[0] = values[0] / w;
 		sima->cursor[1] = values[1] / h;
 	}
-}
-
-static void rna_SpaceImageEditor_curves_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	SpaceImage *sima = (SpaceImage *)ptr->data;
-	ImBuf *ibuf;
-	void *lock;
-
-	ibuf = ED_space_image_acquire_buffer(sima, &lock);
-	if (ibuf->rect_float)
-		curvemapping_do_ibuf(sima->cumap, ibuf);
-	ED_space_image_release_buffer(sima, lock);
-
-	WM_main_add_notifier(NC_IMAGE, sima->image);
 }
 
 static void rna_SpaceImageEditor_scopes_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
@@ -659,7 +666,7 @@ static void rna_SpaceImageEditor_scopes_update(Main *UNUSED(bmain), Scene *scene
 	
 	ibuf = ED_space_image_acquire_buffer(sima, &lock);
 	if (ibuf) {
-		scopes_update(&sima->scopes, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT);
+		scopes_update(&sima->scopes, ibuf, &scene->view_settings, &scene->display_settings);
 		WM_main_add_notifier(NC_IMAGE, sima->image);
 	}
 	ED_space_image_release_buffer(sima, lock);
@@ -842,7 +849,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 			adt = BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
 		}
 		else if (saction->mode == SACTCONT_SHAPEKEY) {
-			Key *key = ob_get_key(obact);
+			Key *key = BKE_key_from_object(obact);
 			if (key)
 				adt = BKE_id_add_animdata(&key->id);  /* this only adds if non-existant */
 		}
@@ -869,7 +876,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 	
 	/* special exceptions for ShapeKey Editor mode */
 	if (saction->mode == SACTCONT_SHAPEKEY) {
-		Key *key = ob_get_key(obact);
+		Key *key = BKE_key_from_object(obact);
 		
 		/* 1)	update the action stored for the editor */
 		if (key)
@@ -1094,6 +1101,31 @@ static void rna_def_space(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "Space data type");
 }
 
+/* for all spaces that use a mask */
+static void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *mask_set_func)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "mask_info.mask");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
+	RNA_def_property_pointer_funcs(prop, NULL, mask_set_func, NULL, NULL);
+	RNA_def_property_update(prop, noteflag, NULL);
+
+	/* mask drawing */
+	prop = RNA_def_property(srna, "mask_draw_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mask_info.draw_type");
+	RNA_def_property_enum_items(prop, dt_uv_items);
+	RNA_def_property_ui_text(prop, "Edge Draw Type", "Draw type for mask splines");
+	RNA_def_property_update(prop, noteflag, NULL);
+
+	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mask_info.draw_flag", MASK_DRAWFLAG_SMOOTH);
+	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
+	RNA_def_property_update(prop, noteflag, NULL);
+}
+
 static void rna_def_space_image_uv(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1111,13 +1143,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	static EnumPropertyItem dt_uvstretch_items[] = {
 		{SI_UVDT_STRETCH_ANGLE, "ANGLE", 0, "Angle", "Angular distortion between UV and 3D angles"},
 		{SI_UVDT_STRETCH_AREA, "AREA", 0, "Area", "Area distortion between UV and 3D faces"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	static EnumPropertyItem pivot_items[] = {
-		{V3D_CENTER, "CENTER", ICON_ROTATE, "Bounding Box Center", ""},
-		{V3D_CENTROID, "MEDIAN", ICON_ROTATECENTER, "Median Point", ""},
-		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1180,13 +1205,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Faces", "Draw faces over the image");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_cursor_location_get",
-	                             "rna_SpaceImageEditor_cursor_location_set", NULL);
-	RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
 	/* todo: move edge and face drawing options here from G.f */
 
 	prop = RNA_def_property(srna, "use_snap_to_pixels", PROP_BOOLEAN, PROP_NONE);
@@ -1204,12 +1222,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_LIVE_UNWRAP);
 	RNA_def_property_ui_text(prop, "Live Unwrap",
 	                         "Continuously unwrap the selected UV island while transforming pinned vertices");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
-	prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "around");
-	RNA_def_property_enum_items(prop, pivot_items);
-	RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 }
 
@@ -1312,7 +1324,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "BackgroundImage", NULL);
 	RNA_def_struct_sdna(srna, "BGpic");
-	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background");
+	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3D View background");
 
 	prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "source");
@@ -1529,7 +1541,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "near");
 	RNA_def_property_range(prop, 0.001f, FLT_MAX);
 	RNA_def_property_float_default(prop, 0.1f);
-	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance");
+	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance (perspective view only)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
@@ -1919,6 +1931,20 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 
 static void rna_def_space_image(BlenderRNA *brna)
 {
+	static EnumPropertyItem image_space_mode_items[] = {
+		{SI_MODE_VIEW, "VIEW", ICON_FILE_IMAGE, "View", "View the image and UV edit in mesh editmode"},
+		{SI_MODE_PAINT, "PAINT", ICON_TPAINT_HLT, "Paint", "2D image painting mode"},
+		{SI_MODE_MASK, "MASK", ICON_MOD_MASK, "Mask", "Mask editing"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem pivot_items[] = {
+		{V3D_CENTER, "CENTER", ICON_ROTATE, "Bounding Box Center", ""},
+		{V3D_CENTROID, "MEDIAN", ICON_ROTATECENTER, "Median Point", ""},
+		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -1939,11 +1965,6 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image User",
 	                         "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
-	prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "cumap");
-	RNA_def_property_ui_text(prop, "Curve", "Color curve mapping to use for displaying the image");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_curves_update");
 
 	prop = RNA_def_property(srna, "scopes", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "scopes");
@@ -1988,12 +2009,26 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_SpaceImageEditor_uvedit_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "UV Editor", "UV editor settings");
 	
-	/* paint */
-	prop = RNA_def_property(srna, "use_image_paint", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DRAWTOOL);
-	RNA_def_property_ui_text(prop, "Image Painting", "Enable image painting mode");
-	RNA_def_property_ui_icon(prop, ICON_TPAINT_HLT, 0);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_paint_update");
+	/* mode */
+	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, image_space_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_mode_update");
+
+	/* transform */
+	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_cursor_location_get",
+	                             "rna_SpaceImageEditor_cursor_location_set", NULL);
+	RNA_def_property_ui_text(prop, "2D Cursor Location", "2D cursor location for this view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
+
+	prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "around");
+	RNA_def_property_enum_items(prop, pivot_items);
+	RNA_def_property_ui_text(prop, "Pivot", "Rotation/Scaling Pivot");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
 	/* grease pencil */
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
@@ -2026,7 +2061,15 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Show UV Editor", "Show UV editing related properties");
 
+	prop = RNA_def_property(srna, "show_maskedit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SpaceImageEditor_show_maskedit_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Show Mask Editor", "Show Mask editing related properties");
+
 	rna_def_space_image_uv(brna);
+
+	/* mask */
+	rna_def_space_mask_info(srna, NC_SPACE | ND_SPACE_IMAGE, "rna_SpaceImageEditor_mask_set");
 }
 
 static void rna_def_space_sequencer(BlenderRNA *brna)
@@ -2059,7 +2102,14 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", 0, "No proxy, full render", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	
+
+	static EnumPropertyItem overlay_type_items[] = {
+		{SEQ_DRAW_OVERLAY_RECT, "RECTANGLE", 0, "Rectangle", "Show rectangle area overlay"},
+		{SEQ_DRAW_OVERLAY_REFERENCE, "REFERENCE", 0, "Reference", "Show reference frame only"},
+		{SEQ_DRAW_OVERLAY_CURRENT, "CURRENT", 0, "Current", "Show current frame only"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceSeq");
 	RNA_def_struct_ui_text(srna, "Space Sequence Editor", "Sequence editor space data");
@@ -2136,6 +2186,12 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
+	prop = RNA_def_property(srna, "overlay_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "overlay_type");
+	RNA_def_property_enum_items(prop, overlay_type_items);
+	RNA_def_property_ui_text(prop, "Overlay Type", "Overlay draw type");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 }
 
@@ -2576,6 +2632,14 @@ static void rna_def_space_time(BlenderRNA *brna)
 
 static void rna_def_console_line(BlenderRNA *brna)
 {
+	static EnumPropertyItem console_line_type_items[] = {
+		{CONSOLE_LINE_OUTPUT, "OUTPUT", 0, "Output", ""},
+		{CONSOLE_LINE_INPUT, "INPUT", 0, "Input", ""},
+		{CONSOLE_LINE_INFO, "INFO", 0, "Info", ""},
+		{CONSOLE_LINE_ERROR, "ERROR", 0, "Error", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
@@ -2593,6 +2657,11 @@ static void rna_def_console_line(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "cursor");
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_ConsoleLine_cursor_index_range");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CONSOLE, NULL);
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, console_line_type_items);
+	RNA_def_property_ui_text(prop, "Type", "Console line type when used in scrollback");
 }
 	
 static void rna_def_space_console(BlenderRNA *brna)
@@ -2852,6 +2921,10 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
 		                  "Draw image with RGB colors and alpha transparency"},
 		{SNODE_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
+		                        /* XXX, we could use better icons here  */
+		{SNODE_SHOW_R, "RED",   ICON_COLOR, "Red", ""},
+		{SNODE_SHOW_G, "GREEN", ICON_COLOR, "Green", ""},
+		{SNODE_SHOW_B, "BLUE",  ICON_COLOR, "Blue", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2890,8 +2963,13 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_SpaceNodeEditor_node_tree_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed and edited");
+	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, "rna_SpaceNodeEditor_node_tree_update");
+
+	prop = RNA_def_property(srna, "edit_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "edittree");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Edit Tree", "Edited node tree");
 
 	prop = RNA_def_property(srna, "show_backdrop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);
@@ -2930,6 +3008,17 @@ static void rna_def_space_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_highlight", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_SHOW_HIGHLIGHT);
 	RNA_def_property_ui_text(prop, "Highlight", "Highlight nodes that are being calculated");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+
+	prop = RNA_def_property(srna, "use_hidden_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_USE_HIDDEN_PREVIEW);
+	RNA_def_property_ui_text(prop, "Hide Preview", "Hide preview for newly creating nodes");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+
+	/* the mx/my "cursor" in the node editor is used only by operators to store the mouse position */
+	prop = RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "cursor");
+	RNA_def_property_ui_text(prop, "Cursor Location", "Location for adding new nodes");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 }
 
@@ -3007,15 +3096,6 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem mode_items[] = {
-		{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
-		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
-		                         "Show tracking/reconstruction tools"},
-		{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
-		{SC_MODE_MASKEDIT, "MASKEDIT", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static EnumPropertyItem view_items[] = {
 		{SC_VIEW_CLIP, "CLIP", ICON_SEQUENCE, "Clip", "Show editing clip preview"},
 		{SC_VIEW_GRAPH, "GRAPH", ICON_IPO, "Graph", "Show graph view for active element"},
@@ -3060,29 +3140,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* mask */
-	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
-	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_mask_set", NULL, NULL);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
-
-	/* mask drawing */
-	prop = RNA_def_property(srna, "mask_draw_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "mask_draw_type");
-	RNA_def_property_enum_items(prop, dt_uv_items);
-	RNA_def_property_ui_text(prop, "Edge Draw Type", "Draw type for mask splines");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
-
-	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mask_draw_flag", MASK_DRAWFLAG_SMOOTH);
-	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
-
+	rna_def_space_mask_info(srna, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_mask_set");
 
 	/* mode */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_enum_items(prop, clip_editor_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, "rna_SpaceClipEditor_clip_mode_update");
 

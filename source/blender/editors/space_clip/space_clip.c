@@ -389,7 +389,6 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			switch (wmn->action) {
 				case NA_SELECTED:
-					clip_scopes_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
 				case NA_EDITED:
@@ -408,8 +407,6 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCREEN:
 			switch (wmn->data) {
 				case ND_ANIMPLAY:
-				case ND_GPENCIL:
-					clip_scopes_check_gpencil_change(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -418,6 +415,12 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			if (wmn->data == ND_SPACE_CLIP) {
 				clip_scopes_tag_refresh(sa);
 				clip_stabilization_tag_refresh(sa);
+				ED_area_tag_redraw(sa);
+			}
+			break;
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED) {
+				clip_scopes_check_gpencil_change(sa);
 				ED_area_tag_redraw(sa);
 			}
 			break;
@@ -439,6 +442,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_change_frame);
 	WM_operatortype_append(CLIP_OT_rebuild_proxy);
 	WM_operatortype_append(CLIP_OT_mode_set);
+	WM_operatortype_append(CLIP_OT_view_ndof);
 
 	/* ** clip_toolbar.c ** */
 	WM_operatortype_append(CLIP_OT_tools);
@@ -477,6 +481,8 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_hide_tracks);
 	WM_operatortype_append(CLIP_OT_hide_tracks_clear);
 	WM_operatortype_append(CLIP_OT_lock_tracks);
+
+	WM_operatortype_append(CLIP_OT_set_solver_keyframe);
 
 	/* orientation */
 	WM_operatortype_append(CLIP_OT_set_origin);
@@ -559,15 +565,15 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
 
 	/* mode */
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "mode", SC_MODE_RECONSTRUCTION);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
-
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "mode", SC_MODE_DISTORTION);
-	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
+	WM_keymap_add_menu(keymap, "CLIP_MT_select_mode", TABKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_solve_camera", SKEY, KM_PRESS, KM_SHIFT, 0);
+
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_set_solver_keyframe", QKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "keyframe", 0);
+
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_set_solver_keyframe", EKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "keyframe", 1);
 
 	/* ******** Hotkeys avalaible for main region only ******** */
 
@@ -600,6 +606,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "fit_view", TRUE);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_view_ndof", NDOF_MOTION, 0, 0, 0);
 
 	/* jump to special frame */
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
@@ -772,8 +781,8 @@ static int clip_context(const bContext *C, const char *member, bContextDataResul
 		return TRUE;
 	}
 	else if (CTX_data_equals(member, "edit_mask")) {
-		if (sc->mask)
-			CTX_data_id_pointer_set(result, &sc->mask->id);
+		if (sc->mask_info.mask)
+			CTX_data_id_pointer_set(result, &sc->mask_info.mask->id);
 		return TRUE;
 	}
 
@@ -792,8 +801,16 @@ static int clip_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(eve
 
 static void clip_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	/* copy drag path to properties */
-	RNA_string_set(drop->ptr, "filepath", drag->path);
+	PointerRNA itemptr;
+	char dir[FILE_MAX], file[FILE_MAX];
+
+	BLI_split_dirfile(drag->path, dir, file, sizeof(dir), sizeof(file));
+
+	RNA_string_set(drop->ptr, "directory", dir);
+
+	RNA_collection_clear(drop->ptr, "files");
+	RNA_collection_add(drop->ptr, "files", &itemptr);
+	RNA_string_set(&itemptr, "name", file);
 }
 
 /* area+region dropbox definition */
@@ -1015,7 +1032,7 @@ static void movieclip_main_area_set_view2d(const bContext *C, ARegion *ar)
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 
-	ED_space_clip_get_size(C, &width, &height);
+	ED_space_clip_get_size(sc, &width, &height);
 
 	w = width;
 	h = height;
@@ -1023,8 +1040,8 @@ static void movieclip_main_area_set_view2d(const bContext *C, ARegion *ar)
 	if (clip)
 		h *= clip->aspy / clip->aspx / clip->tracking.camera.pixel_aspect;
 
-	winx = ar->winrct.xmax - ar->winrct.xmin + 1;
-	winy = ar->winrct.ymax - ar->winrct.ymin + 1;
+	winx = BLI_rcti_size_x(&ar->winrct) + 1;
+	winy = BLI_rcti_size_y(&ar->winrct) + 1;
 
 	ar->v2d.tot.xmin = 0;
 	ar->v2d.tot.ymin = 0;
@@ -1064,59 +1081,16 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
-	/* own keymap */
+	/* mask polls mode */
 	keymap = WM_keymap_find(wm->defaultconf, "Mask Editing", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
+	/* own keymap */
 	keymap = WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	keymap = WM_keymap_find(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-}
-
-static void clip_main_area_draw_mask(const bContext *C, ARegion *ar)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	int x, y;
-	int width, height;
-	float zoomx, zoomy;
-
-	/* frame image */
-	float maxdim;
-	float xofs, yofs;
-
-	/* find window pixel coordinates of origin */
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
-
-	ED_space_clip_get_size(C, &width, &height);
-	ED_space_clip_get_zoom(C, &zoomx, &zoomy);
-
-	/* frame the image */
-	maxdim = maxf(width, height);
-	if (width == height) {
-		xofs = yofs = 0;
-	}
-	else if (width < height) {
-		xofs = ((height - width) / -2.0f) * zoomx;
-		yofs = 0.0f;
-	}
-	else { /* (width > height) */
-		xofs = 0.0f;
-		yofs = ((width - height) / -2.0f) * zoomy;
-	}
-
-	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
-	glPushMatrix();
-	glTranslatef(x + xofs, y + yofs, 0);
-	glScalef(maxdim * zoomx, maxdim * zoomy, 0);
-	glMultMatrixf(sc->stabmat);
-
-	ED_mask_draw(C, sc->mask_draw_flag, sc->mask_draw_type);
-
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-
-	glPopMatrix();
 }
 
 static void clip_main_area_draw(const bContext *C, ARegion *ar)
@@ -1153,10 +1127,26 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	movieclip_main_area_set_view2d(C, ar);
 
-	clip_draw_main(C, ar);
+	clip_draw_main(C, sc, ar);
 
 	if (sc->mode == SC_MODE_MASKEDIT) {
-		clip_main_area_draw_mask(C, ar);
+
+		Mask *mask = CTX_data_edit_mask(C);
+		if (mask) {
+			ScrArea *sa = CTX_wm_area(C);
+			int width, height;
+			float aspx, aspy;
+			ED_mask_get_size(sa, &width, &height);
+			ED_space_clip_get_aspect(sc, &aspx, &aspy);
+			ED_mask_draw_region(mask, ar,
+			                    sc->mask_info.draw_flag, sc->mask_info.draw_type,
+			                    width, height,
+			                    aspx, aspy,
+			                    TRUE, TRUE,
+			                    sc->stabmat, C);
+		}
+
+
 	}
 
 	/* Grease Pencil */
@@ -1173,8 +1163,8 @@ static void clip_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
-		case NC_SCREEN:
-			if (wmn->data == ND_GPENCIL)
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -1387,8 +1377,8 @@ static void clip_props_area_listener(ARegion *ar, wmNotifier *wmn)
 			if (wmn->data == ND_SPACE_CLIP)
 				ED_region_tag_redraw(ar);
 			break;
-		case NC_SCREEN:
-			if (wmn->data == ND_GPENCIL)
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -1420,8 +1410,8 @@ static void clip_properties_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
-		case NC_SCREEN:
-			if (wmn->data == ND_GPENCIL)
+		case NC_GPENCIL:
+			if (wmn->data == ND_DATA)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:

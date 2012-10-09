@@ -39,10 +39,11 @@
 /* called by meshtools */
 struct View3D;
 struct Scene;
+struct LinkNode;
 
-void	RE_make_sticky(struct Scene *scene, struct View3D *v3d);
-	
-/* for radiosity module */	
+void RE_make_sticky(struct Scene *scene, struct Object *camera, struct LinkNode *objects);
+
+/* for radiosity module */
 struct RadView;
 struct RNode;
 struct Render;
@@ -58,14 +59,14 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype);
 
 /* node_composite.c */
-void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result);
+void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4]);
 void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 
 /* dynamicpaint.c */
 struct Material *RE_init_sample_material(struct Material *orig_mat, struct Scene *scene);
 void RE_free_sample_material(struct Material *mat);
 void RE_sample_material_color(struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
-						   int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob);
+                              int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob);
 
 #endif /* __RE_RENDER_EXT_H__ */
 

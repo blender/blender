@@ -49,7 +49,7 @@ class ShaderNode;
 
 class BlenderSync {
 public:
-	BlenderSync(BL::BlendData b_data, BL::Scene b_scene, Scene *scene_, bool preview_);
+	BlenderSync(BL::RenderEngine b_engine_, BL::BlendData b_data, BL::Scene b_scene, Scene *scene_, bool preview_, Progress &progress_);
 	~BlenderSync();
 
 	/* sync */
@@ -61,7 +61,7 @@ public:
 
 	/* get parameters */
 	static SceneParams get_scene_params(BL::Scene b_scene, bool background);
-	static SessionParams get_session_params(BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
+	static SessionParams get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
 	static bool get_session_pause(BL::Scene b_scene, bool background);
 	static BufferParams get_buffer_params(BL::Scene b_scene, Camera *cam, int width, int height);
 
@@ -77,25 +77,27 @@ private:
 	void sync_world();
 	void sync_render_layers(BL::SpaceView3D b_v3d, const char *layer);
 	void sync_shaders();
+	void sync_particle_systems();
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
-	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag, int motion, int particle_id);
+	void sync_object(BL::Object b_parent, int b_index, BL::DupliObject b_dupli_object, Transform& tfm, uint layer_flag, int motion, int particle_id);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 	void sync_background_light();
 	void sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion);
 	void sync_camera_motion(BL::Object b_ob, int motion);
-	void sync_particles(Object *ob, BL::Object b_ob);
+	void sync_particles(BL::Object b_ob, BL::ParticleSystem b_psys);
 
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);
 	bool BKE_object_is_modified(BL::Object b_ob);
 	bool object_is_mesh(BL::Object b_ob);
 	bool object_is_light(BL::Object b_ob);
-	bool object_use_particles(BL::Object b_ob);
+	bool psys_need_update(BL::ParticleSystem b_psys);
 	int object_count_particles(BL::Object b_ob);
 
 	/* variables */
+	BL::RenderEngine b_engine;
 	BL::BlendData b_data;
 	BL::Scene b_scene;
 
@@ -103,6 +105,7 @@ private:
 	id_map<ObjectKey, Object> object_map;
 	id_map<void*, Mesh> mesh_map;
 	id_map<ObjectKey, Light> light_map;
+	id_map<ParticleSystemKey, ParticleSystem> particle_system_map;
 	set<Mesh*> mesh_synced;
 	void *world_map;
 	bool world_recalc;
@@ -127,8 +130,11 @@ private:
 		BL::Material material_override;
 		bool use_background;
 		bool use_viewport_visibility;
+		bool use_localview;
 		int samples;
 	} render_layer;
+
+	Progress &progress;
 };
 
 CCL_NAMESPACE_END

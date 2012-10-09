@@ -29,7 +29,7 @@
  * This file defines the types for 'BMesh.select_history'
  * sequence and iterator.
  *
- * select_history is very loosely based on pytons set() type,
+ * select_history is very loosely based on pythons set() type,
  * since items can only exist once. however they do have an order.
  */
 
@@ -68,8 +68,8 @@ static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void *UNUSE
 }
 
 static PyGetSetDef bpy_bmeditselseq_getseters[] = {
-    {(char *)"active", (getter)bpy_bmeditselseq_active_get, (setter)NULL, (char *)bpy_bmeditselseq_active_doc, NULL},
-    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{(char *)"active", (getter)bpy_bmeditselseq_active_get, (setter)NULL, (char *)bpy_bmeditselseq_active_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 PyDoc_STRVAR(bpy_bmeditselseq_validate_doc,
@@ -159,12 +159,12 @@ static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *val
 }
 
 static struct PyMethodDef bpy_bmeditselseq_methods[] = {
-    {"validate", (PyCFunction)bpy_bmeditselseq_validate, METH_NOARGS, bpy_bmeditselseq_validate_doc},
-    {"clear",    (PyCFunction)bpy_bmeditselseq_clear,    METH_NOARGS, bpy_bmeditselseq_clear_doc},
+	{"validate", (PyCFunction)bpy_bmeditselseq_validate, METH_NOARGS, bpy_bmeditselseq_validate_doc},
+	{"clear",    (PyCFunction)bpy_bmeditselseq_clear,    METH_NOARGS, bpy_bmeditselseq_clear_doc},
 
-    {"add",      (PyCFunction)bpy_bmeditselseq_add,      METH_O,      bpy_bmeditselseq_add_doc},
-    {"remove",   (PyCFunction)bpy_bmeditselseq_remove,   METH_O,      bpy_bmeditselseq_remove_doc},
-    {NULL, NULL, 0, NULL}
+	{"add",      (PyCFunction)bpy_bmeditselseq_add,      METH_O,      bpy_bmeditselseq_add_doc},
+	{"remove",   (PyCFunction)bpy_bmeditselseq_remove,   METH_O,      bpy_bmeditselseq_remove_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 
@@ -280,7 +280,7 @@ static PyObject *bpy_bmeditselseq_subscript(BPy_BMEditSelSeq *self, PyObject *ke
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmeditselseq_length(self);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {
@@ -313,22 +313,22 @@ static int bpy_bmeditselseq_contains(BPy_BMEditSelSeq *self, PyObject *value)
 }
 
 static PySequenceMethods bpy_bmeditselseq_as_sequence = {
-    (lenfunc)bpy_bmeditselseq_length,            /* sq_length */
-    NULL,                                        /* sq_concat */
-    NULL,                                        /* sq_repeat */
-    (ssizeargfunc)bpy_bmeditselseq_subscript_int,/* sq_item */ /* Only set this so PySequence_Check() returns True */
-    NULL,                                        /* sq_slice */
-    (ssizeobjargproc)NULL,                       /* sq_ass_item */
-    NULL,                                        /* *was* sq_ass_slice */
-    (objobjproc)bpy_bmeditselseq_contains,       /* sq_contains */
-    (binaryfunc) NULL,                           /* sq_inplace_concat */
-    (ssizeargfunc) NULL,                         /* sq_inplace_repeat */
+	(lenfunc)bpy_bmeditselseq_length,            /* sq_length */
+	NULL,                                        /* sq_concat */
+	NULL,                                        /* sq_repeat */
+	(ssizeargfunc)bpy_bmeditselseq_subscript_int,/* sq_item */ /* Only set this so PySequence_Check() returns True */
+	NULL,                                        /* sq_slice */
+	(ssizeobjargproc)NULL,                       /* sq_ass_item */
+	NULL,                                        /* *was* sq_ass_slice */
+	(objobjproc)bpy_bmeditselseq_contains,       /* sq_contains */
+	(binaryfunc) NULL,                           /* sq_inplace_concat */
+	(ssizeargfunc) NULL,                         /* sq_inplace_repeat */
 };
 
 static PyMappingMethods bpy_bmeditselseq_as_mapping = {
-    (lenfunc)bpy_bmeditselseq_length,            /* mp_length */
-    (binaryfunc)bpy_bmeditselseq_subscript,      /* mp_subscript */
-    (objobjargproc)NULL,                         /* mp_ass_subscript */
+	(lenfunc)bpy_bmeditselseq_length,            /* mp_length */
+	(binaryfunc)bpy_bmeditselseq_subscript,      /* mp_subscript */
+	(objobjargproc)NULL,                         /* mp_ass_subscript */
 };
 
 

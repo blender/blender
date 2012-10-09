@@ -33,7 +33,10 @@ import os
 import sys
 import shutil
 
-import settings
+try:
+    import settings
+except:
+    from . import settings
 
 TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 TRUNK_MO_DIR = settings.TRUNK_MO_DIR
@@ -61,7 +64,6 @@ def main():
     parser.add_argument('langs', metavar='ISO_code', nargs='*',
                         help="Restrict processed languages to those.")
     args = parser.parse_args()
-
 
     ret = 0
     failed = set()

@@ -38,7 +38,7 @@ NodeOperation::NodeOperation() : NodeBase()
 	this->m_btree = NULL;
 }
 
-void NodeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+void NodeOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
 {
 	unsigned int temp[2];
 	unsigned int temp2[2];
@@ -120,23 +120,30 @@ void NodeOperation::getConnectedInputSockets(vector<InputSocket *> *sockets)
 bool NodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (this->isInputNode()) {
-		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
+		BLI_rcti_init(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return false;
 	}
 	else {
-		unsigned int index;
-		vector<InputSocket *> &inputsockets = this->getInputSockets();
-	
-		for (index = 0; index < inputsockets.size(); index++) {
-			InputSocket *inputsocket = inputsockets[index];
-			if (inputsocket->isConnected()) {
-				NodeOperation *inputoperation = (NodeOperation *)inputsocket->getConnection()->getFromNode();
-				bool result = inputoperation->determineDependingAreaOfInterest(input, readOperation, output);
-				if (result) {
-					return true;
+		rcti tempOutput;
+		bool first = true;
+		for (int i = 0 ; i < getNumberOfInputSockets() ; i ++) {
+			NodeOperation * inputOperation = this->getInputOperation(i);
+			if (inputOperation && inputOperation->determineDependingAreaOfInterest(input, readOperation, &tempOutput)) {
+				if (first) {
+					output->xmin = tempOutput.xmin;
+					output->ymin = tempOutput.ymin;
+					output->xmax = tempOutput.xmax;
+					output->ymax = tempOutput.ymax;
+					first = false;
+				}
+				else {
+					output->xmin = MIN2(output->xmin, tempOutput.xmin);
+					output->ymin = MIN2(output->ymin, tempOutput.ymin);
+					output->xmax = MAX2(output->xmax, tempOutput.xmax);
+					output->ymax = MAX2(output->ymax, tempOutput.ymax);
 				}
 			}
 		}
-		return false;
+		return !first;
 	}
 }

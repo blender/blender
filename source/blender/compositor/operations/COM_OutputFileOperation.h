@@ -24,8 +24,11 @@
 #ifndef _COM_OutputFileOperation_h
 #define _COM_OutputFileOperation_h
 #include "COM_NodeOperation.h"
+
 #include "BLI_rect.h"
-#include "BKE_utildefines.h"
+#include "BLI_path_util.h"
+
+#include "DNA_color_types.h"
 
 #include "intern/openexr/openexr_multi.h"
 
@@ -42,10 +45,13 @@ private:
 	DataType m_datatype;
 	SocketReader *m_imageInput;
 
+	const ColorManagedViewSettings *m_viewSettings;
+	const ColorManagedDisplaySettings *m_displaySettings;
 public:
-	OutputSingleLayerOperation(const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path);
+	OutputSingleLayerOperation(const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
+	                           const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings);
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();
@@ -79,7 +85,7 @@ public:
 	
 	void add_layer(const char *name, DataType datatype);
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber);
 	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();

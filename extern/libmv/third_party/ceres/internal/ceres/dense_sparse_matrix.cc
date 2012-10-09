@@ -67,7 +67,7 @@ DenseSparseMatrix::DenseSparseMatrix(const Matrix& m)
       has_diagonal_reserved_(false) {
 }
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 DenseSparseMatrix::DenseSparseMatrix(const SparseMatrixProto& outer_proto)
     : m_(Eigen::MatrixXd::Zero(
         outer_proto.dense_matrix().num_rows(),
@@ -108,7 +108,7 @@ void DenseSparseMatrix::ToDenseMatrix(Matrix* dense_matrix) const {
   *dense_matrix = m_;
 }
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 void DenseSparseMatrix::ToProto(SparseMatrixProto* outer_proto) const {
   CHECK(!has_diagonal_appended_) << "Not supported.";
   outer_proto->Clear();
@@ -183,7 +183,7 @@ void DenseSparseMatrix::ToTextFile(FILE* file) const {
   CHECK_NOTNULL(file);
   const int active_rows =
       (has_diagonal_reserved_ && !has_diagonal_appended_)
-      ? (m_.rows() - m_.cols()) 
+      ? (m_.rows() - m_.cols())
       : m_.rows();
 
   for (int r = 0; r < active_rows; ++r) {

@@ -211,7 +211,7 @@ ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3])
 	
 	copy_v3_v3(eve->co, vec);
 
-	return eve;	
+	return eve;
 }
 
 ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert *v2)
@@ -415,7 +415,7 @@ static short boundinsideEV(ScanFillEdge *eed, ScanFillVert *eve)
 
 static void testvertexnearedge(ScanFillContext *sf_ctx)
 {
-	/* only vertices with ->h==1 are being tested for
+	/* only vertices with (->h == 1) are being tested for
 	 * being close to an edge, if true insert */
 
 	ScanFillVert *eve;
@@ -423,12 +423,16 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 
 	for (eve = sf_ctx->fillvertbase.first; eve; eve = eve->next) {
 		if (eve->h == 1) {
-			/* find the edge which has vertex eve */
-			ed1 = sf_ctx->filledgebase.first;
-			while (ed1) {
-				if (ed1->v1 == eve || ed1->v2 == eve) break;
-				ed1 = ed1->next;
+			/* find the edge which has vertex eve,
+			 * note: we _know_ this will crash if 'ed1' becomes NULL
+			 * but this will never happen. */
+			for (ed1 = sf_ctx->filledgebase.first;
+			     !(ed1->v1 == eve || ed1->v2 == eve);
+			     ed1 = ed1->next)
+			{
+				/* do nothing */
 			}
+
 			if (ed1->v1 == eve) {
 				ed1->v1 = ed1->v2;
 				ed1->v2 = eve;
@@ -517,7 +521,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 	while (eve) {
 		printf("vert: %x co: %f %f\n", eve, eve->xy[0], eve->xy[1]);
 		eve = eve->next;
-	}	
+	}
 	eed = sf_ctx->filledgebase.first;
 	while (eed) {
 		printf("edge: %x  verts: %x %x\n", eed, eed->v1, eed->v2);
@@ -658,7 +662,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				if (v1 == v2 || v2 == v3) break;
 				/* printf("test verts %x %x %x\n",v1,v2,v3); */
 				miny = minf(v1->xy[1], v3->xy[1]);
-				/*  miny= MIN2(v1->xy[1],v3->xy[1]); */
+				/*  miny= minf(v1->xy[1],v3->xy[1]); */
 				sc1 = sc + 1;
 				test = 0;
 
@@ -947,7 +951,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedu
 		return 0;
 	}
 	
-	/* does it only for vertices with ->h==1 */
+	/* does it only for vertices with (->h == 1) */
 	testvertexnearedge(sf_ctx);
 
 	ok = 1;

@@ -86,7 +86,7 @@
  *	private :
  *		MEM_SmartPtr<foo> m_foo;
  *	}
- *			
+ *
  * You may also safely construct vectors of MEM_SmartPtrs and 
  * have the vector own stuff you put into it. 
  *
@@ -167,7 +167,7 @@ public :
 	Ref(
 	) const {
 		return *m_val;
-	}	
+	}
 
 	/** 
 	 * Assignment operator - ownership is transfered from rhs to lhs. 
@@ -207,7 +207,7 @@ public :
 	Release(
 	) const {
 		T* temp = m_val;
-		(const_cast<MEM_SmartPtr *>(this))->m_val = NULL;	
+		(const_cast<MEM_SmartPtr *>(this))->m_val = NULL;
 		return temp;
 	}
 

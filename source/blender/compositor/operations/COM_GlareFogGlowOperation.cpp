@@ -244,7 +244,7 @@ static void fht_convolve(fREAL *d1, fREAL *d2, unsigned int M, unsigned int N)
 }
 //------------------------------------------------------------------------------
 
-void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
+static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 {
 	fREAL *data1, *data2, *fp;
 	unsigned int w2, h2, hw, hh, log2_w, log2_h;
@@ -260,6 +260,7 @@ void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	float *imageBuffer = in1->getBuffer();
 
 	MemoryBuffer *rdst = new MemoryBuffer(NULL, in1->getRect());
+	memset(rdst->getBuffer(), 0, rdst->getWidth() * rdst->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
 
 	// convolution result width & height
 	w2 = 2 * kernelWidth - 1;
@@ -379,7 +380,7 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	// temp. src image
 	// make the convolution kernel
 	rcti kernelRect;
-	BLI_init_rcti(&kernelRect, 0, sz, 0, sz);
+	BLI_rcti_init(&kernelRect, 0, sz, 0, sz);
 	ckrn = new MemoryBuffer(NULL, &kernelRect);
 
 	scale = 0.25f * sqrtf((float)(sz * sz));

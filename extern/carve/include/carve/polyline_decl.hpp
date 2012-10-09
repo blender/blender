@@ -138,6 +138,11 @@ namespace carve {
       PolylineSet(const std::vector<carve::geom3d::Vector> &points);
       PolylineSet() {
       }
+      ~PolylineSet() {
+        for (line_iter i = lines.begin(); i != lines.end(); ++i) {
+          delete *i;
+        }
+      }
 
       template<typename iter_t>
       void addPolyline(bool closed, iter_t begin, iter_t end);

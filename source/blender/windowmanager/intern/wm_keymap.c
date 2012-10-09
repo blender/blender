@@ -329,7 +329,7 @@ static void keymap_item_set_id(wmKeyMap *keymap, wmKeyMapItem *kmi)
 		kmi->id = keymap->kmi_id;
 	}
 	else {
-		kmi->id = -keymap->kmi_id; // User defined keymap entries have negative ids
+		kmi->id = -keymap->kmi_id; /* User defined keymap entries have negative ids */
 	}
 }
 
@@ -867,7 +867,6 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 	/* look into multiple handler lists to find the item */
 	if (win)
 		found = wm_keymap_item_find_handlers(C, &win->handlers, opname, opcontext, properties, compare_props, hotkey, keymap_r);
-	
 
 	if (sa && found == NULL)
 		found = wm_keymap_item_find_handlers(C, &sa->handlers, opname, opcontext, properties, compare_props, hotkey, keymap_r);
@@ -901,7 +900,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 				found = wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, compare_props, hotkey, keymap_r);
 		}
 	}
-	
+
 	return found;
 }
 

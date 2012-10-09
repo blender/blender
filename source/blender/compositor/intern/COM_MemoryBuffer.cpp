@@ -22,8 +22,7 @@
 
 #include "COM_MemoryBuffer.h"
 #include "MEM_guardedalloc.h"
-#include "BLI_math.h"
-#include "BKE_global.h"
+//#include "BKE_global.h"
 
 unsigned int MemoryBuffer::determineBufferSize()
 {
@@ -41,7 +40,7 @@ int MemoryBuffer::getHeight() const
 
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect)
 {
-	BLI_init_rcti(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->m_memoryProxy = memoryProxy;
 	this->m_chunkNumber = chunkNumber;
 	this->m_buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
@@ -52,7 +51,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, r
 
 MemoryBuffer::MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
 {
-	BLI_init_rcti(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
+	BLI_rcti_init(&this->m_rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->m_memoryProxy = memoryProxy;
 	this->m_chunkNumber = -1;
 	this->m_buffer = (float *)MEM_mallocN(sizeof(float) * determineBufferSize() * COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
@@ -76,7 +75,7 @@ float *MemoryBuffer::convertToValueBuffer()
 	const unsigned int size = this->determineBufferSize();
 	unsigned int i;
 
-	float *result = new float[size];
+	float *result = (float *)MEM_mallocN(sizeof(float) * size, __func__);
 
 	const float *fp_src = this->m_buffer;
 	float       *fp_dst = result;
@@ -86,6 +85,44 @@ float *MemoryBuffer::convertToValueBuffer()
 	}
 
 	return result;
+}
+
+float MemoryBuffer::getMaximumValue()
+{
+	float result = this->m_buffer[0];
+	const unsigned int size = this->determineBufferSize();
+	unsigned int i;
+
+	const float *fp_src = this->m_buffer;
+
+	for (i = 0; i < size; i++, fp_src += COM_NUMBER_OF_CHANNELS) {
+		float value = *fp_src;
+		if (value > result) {
+			result = value;
+		}
+	}
+
+	return result;
+}
+
+float MemoryBuffer::getMaximumValue(rcti *rect)
+{
+	rcti rect_clamp;
+
+	/* first clamp the rect by the bounds or we get un-initialized values */
+	BLI_rcti_isect(rect, &this->m_rect, &rect_clamp);
+
+	if (!BLI_rcti_is_empty(&rect_clamp)) {
+		MemoryBuffer *temp = new MemoryBuffer(NULL, &rect_clamp);
+		temp->copyContentFrom(this);
+		float result = temp->getMaximumValue();
+		delete temp;
+		return result;
+	}
+	else {
+		BLI_assert(0);
+		return 0.0f;
+	}
 }
 
 MemoryBuffer::~MemoryBuffer()
@@ -99,6 +136,7 @@ MemoryBuffer::~MemoryBuffer()
 void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
 {
 	if (!otherBuffer) {
+		BLI_assert(0);
 		return;
 	}
 	unsigned int otherY;
@@ -117,26 +155,12 @@ void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
 	}
 }
 
-void MemoryBuffer::read(float result[4], int x, int y)
-{
-	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
-	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
-	{
-		const int dx = x - this->m_rect.xmin;
-		const int dy = y - this->m_rect.ymin;
-		const int offset = (this->m_chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
-		copy_v4_v4(result, &this->m_buffer[offset]);
-	}
-	else {
-		zero_v4(result);
-	}
-}
 void MemoryBuffer::writePixel(int x, int y, const float color[4])
 {
 	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
 	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		const int offset = (this->m_chunkWidth * (y-this->m_rect.ymin) + x-this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
 		copy_v4_v4(&this->m_buffer[offset], color);
 	}
 }
@@ -146,47 +170,9 @@ void MemoryBuffer::addPixel(int x, int y, const float color[4])
 	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
 	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int offset = (this->m_chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		const int offset = (this->m_chunkWidth * (y-this->m_rect.ymin) + x-this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
 		add_v4_v4(&this->m_buffer[offset], color);
 	}
-}
-
-void MemoryBuffer::readCubic(float result[4], float x, float y)
-{
-	int x1 = floor(x);
-	int x2 = x1 + 1;
-	int y1 = floor(y);
-	int y2 = y1 + 1;
-	
-	float valuex = x - x1;
-	float valuey = y - y1;
-	float mvaluex = 1.0f - valuex;
-	float mvaluey = 1.0f - valuey;
-	
-	float color1[4];
-	float color2[4];
-	float color3[4];
-	float color4[4];
-	
-	read(color1, x1, y1);
-	read(color2, x1, y2);
-	read(color3, x2, y1);
-	read(color4, x2, y2);
-	
-	color1[0] = color1[0] * mvaluey + color2[0] * valuey;
-	color1[1] = color1[1] * mvaluey + color2[1] * valuey;
-	color1[2] = color1[2] * mvaluey + color2[2] * valuey;
-	color1[3] = color1[3] * mvaluey + color2[3] * valuey;
-
-	color3[0] = color3[0] * mvaluey + color4[0] * valuey;
-	color3[1] = color3[1] * mvaluey + color4[1] * valuey;
-	color3[2] = color3[2] * mvaluey + color4[2] * valuey;
-	color3[3] = color3[3] * mvaluey + color4[3] * valuey;
-
-	result[0] = color1[0] * mvaluex + color3[0] * valuex;
-	result[1] = color1[1] * mvaluex + color3[1] * valuex;
-	result[2] = color1[2] * mvaluex + color3[2] * valuex;
-	result[3] = color1[3] * mvaluex + color3[3] * valuex;
 }
 
 
@@ -262,18 +248,21 @@ static void imp2radangle(float A, float B, float C, float F, float *a, float *b,
 			*b = sqrtf(F2 / d);
 			*ecc = *a / *b;
 		}
-		// incr theta by 0.5*pi (angle of major axis)
+		/* incr theta by 0.5 * pi (angle of major axis) */
 		*th = 0.5f * (atan2f(B, AmC) + (float)M_PI);
 	}
 }
 
-float clipuv(float x, float limit)
+static float clipuv(float x, float limit)
 {
 	x = (x < 0) ? 0 : ((x >= limit) ? (limit - 1) : x);
 	return x;
 }
 
-void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float dy)
+/**
+ * \note \a sampler at the moment is either 'COM_PS_NEAREST' or not, other values won't matter.
+ */
+void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float dy, PixelSampler sampler)
 {
 	const int width = this->getWidth(), height = this->getHeight();
 	
@@ -294,7 +283,14 @@ void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float 
 	// Use a different radius based on interpolation switch, just enough to anti-alias when interpolation is off,
 	// and slightly larger to make result a bit smoother than bilinear interpolation when interpolation is on
 	// (minimum values: const float rmin = intpol ? 1.f : 0.5f;)
-	const float rmin = 1.5625f / ff2;
+
+	/* note: 0.765625f is too sharp, 1.0 will not blur with an exact pixel sample
+	 * useful to avoid blurring when there is no distortion */
+#if 0
+	const float rmin = ((sampler != COM_PS_NEAREST) ? 1.5625f : 0.765625f) / ff2;
+#else
+	const float rmin = ((sampler != COM_PS_NEAREST) ? 1.5625f : 1.0f     ) / ff2;
+#endif
 	imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
 	if ((b2 = b * b) < rmin) {
 		if ((a2 = a * a) < rmin) {

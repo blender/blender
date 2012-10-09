@@ -24,6 +24,8 @@
 #include "BLI_math.h"
 #include "COM_OpenCLDevice.h"
 
+#include "MEM_guardedalloc.h"
+
 // DilateErode Distance Threshold
 DilateErodeThresholdOperation::DilateErodeThresholdOperation() : NodeOperation()
 {
@@ -54,13 +56,13 @@ void DilateErodeThresholdOperation::initExecution()
 	}
 }
 
-void *DilateErodeThresholdOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DilateErodeThresholdOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
+	void *buffer = this->m_inputProgram->initializeTileData(NULL);
 	return buffer;
 }
 
-void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	float inputValue[4];
 	const float sw = this->m__switch;
@@ -77,10 +79,10 @@ void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, Mem
 	const int miny = max(y - this->m_scope, rect->ymin);
 	const int maxx = min(x + this->m_scope, rect->xmax);
 	const int maxy = min(y + this->m_scope, rect->ymax);
-	const int bufferWidth = rect->xmax - rect->xmin;
+	const int bufferWidth = BLI_rcti_size_x(rect);
 	int offset;
 
-	this->m_inputProgram->read(inputValue, x, y, inputBuffers, NULL);
+	this->m_inputProgram->read(inputValue, x, y, NULL);
 	if (inputValue[0] > sw) {
 		for (int yi = miny; yi < maxy; yi++) {
 			const float dy = yi - y;
@@ -117,28 +119,28 @@ void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, Mem
 		const float delta = distance - pixelvalue;
 		if (delta >= 0.0f) {
 			if (delta >= inset) {
-				color[0] = 1.0f;
+				output[0] = 1.0f;
 			}
 			else {
-				color[0] = delta / inset;
+				output[0] = delta / inset;
 			}
 		}
 		else {
-			color[0] = 0.0f;
+			output[0] = 0.0f;
 		}
 	}
 	else {
 		const float delta = -distance + pixelvalue;
 		if (delta < 0.0f) {
 			if (delta < -inset) {
-				color[0] = 1.0f;
+				output[0] = 1.0f;
 			}
 			else {
-				color[0] = (-delta) / inset;
+				output[0] = (-delta) / inset;
 			}
 		}
 		else {
-			color[0] = 0.0f;
+			output[0] = 0.0f;
 		}
 	}
 }
@@ -179,13 +181,13 @@ void DilateDistanceOperation::initExecution()
 	}
 }
 
-void *DilateDistanceOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DilateDistanceOperation::initializeTileData(rcti *rect)
 {
-	void *buffer = this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
+	void *buffer = this->m_inputProgram->initializeTileData(NULL);
 	return buffer;
 }
 
-void DilateDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const float distance = this->m_distance;
 	const float mindist = distance * distance;
@@ -197,7 +199,7 @@ void DilateDistanceOperation::executePixel(float *color, int x, int y, MemoryBuf
 	const int miny = max(y - this->m_scope, rect->ymin);
 	const int maxx = min(x + this->m_scope, rect->xmax);
 	const int maxy = min(y + this->m_scope, rect->ymax);
-	const int bufferWidth = rect->xmax - rect->xmin;
+	const int bufferWidth = BLI_rcti_size_x(rect);
 	int offset;
 	
 	float value = 0.0f;
@@ -214,7 +216,7 @@ void DilateDistanceOperation::executePixel(float *color, int x, int y, MemoryBuf
 			offset += 4;
 		}
 	}
-	color[0] = value;
+	output[0] = value;
 }
 
 void DilateDistanceOperation::deinitExecution()
@@ -234,15 +236,13 @@ bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input, Read
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-static cl_kernel dilateKernel = 0;
-void DilateDistanceOperation::executeOpenCL(OpenCLDevice* device,
+void DilateDistanceOperation::executeOpenCL(OpenCLDevice *device,
                                             MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                             MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
                                             list<cl_kernel> *clKernelsToCleanUp)
 {
-	if (!dilateKernel) {
-		dilateKernel = device->COM_clCreateKernel("dilateKernel", NULL);
-	}
+	cl_kernel dilateKernel = device->COM_clCreateKernel("dilateKernel", NULL);
+
 	cl_int distanceSquared = this->m_distance * this->m_distance;
 	cl_int scope = this->m_scope;
 	
@@ -261,7 +261,7 @@ ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation()
 	/* pass */
 }
 
-void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void ErodeDistanceOperation::executePixel(float output[4], int x, int y, void *data)
 {
 	const float distance = this->m_distance;
 	const float mindist = distance * distance;
@@ -273,7 +273,7 @@ void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuff
 	const int miny = max(y - this->m_scope, rect->ymin);
 	const int maxx = min(x + this->m_scope, rect->xmax);
 	const int maxy = min(y + this->m_scope, rect->ymax);
-	const int bufferWidth = rect->xmax - rect->xmin;
+	const int bufferWidth = BLI_rcti_size_x(rect);
 	int offset;
 	
 	float value = 1.0f;
@@ -290,18 +290,16 @@ void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuff
 			offset += 4;
 		}
 	}
-	color[0] = value;
+	output[0] = value;
 }
 
-static cl_kernel erodeKernel = 0;
-void ErodeDistanceOperation::executeOpenCL(OpenCLDevice* device,
+void ErodeDistanceOperation::executeOpenCL(OpenCLDevice *device,
                                            MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
                                            MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
                                            list<cl_kernel> *clKernelsToCleanUp)
 {
-	if (!erodeKernel) {
-		erodeKernel = device->COM_clCreateKernel("erodeKernel", NULL);
-	}
+	cl_kernel erodeKernel = device->COM_clCreateKernel("erodeKernel", NULL);
+
 	cl_int distanceSquared = this->m_distance * this->m_distance;
 	cl_int scope = this->m_scope;
 	
@@ -329,14 +327,14 @@ void DilateStepOperation::initExecution()
 	this->initMutex();
 }
 
-void *DilateStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DilateStepOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cached_buffer != NULL) {
 		return this->m_cached_buffer;
 	}
 	lockMutex();
 	if (this->m_cached_buffer == NULL) {
-		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
+		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
 		float *rectf = buffer->convertToValueBuffer();
 		int x, y, i;
 		float *p;
@@ -378,9 +376,9 @@ void *DilateStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 }
 
 
-void DilateStepOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DilateStepOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	color[0] = this->m_cached_buffer[y * this->getWidth() + x];
+	output[0] = this->m_cached_buffer[y * this->getWidth() + x];
 }
 
 void DilateStepOperation::deinitExecution()
@@ -388,7 +386,7 @@ void DilateStepOperation::deinitExecution()
 	this->m_inputProgram = NULL;
 	this->deinitMutex();
 	if (this->m_cached_buffer) {
-		delete this->m_cached_buffer;
+		MEM_freeN(this->m_cached_buffer);
 		this->m_cached_buffer = NULL;
 	}
 }
@@ -416,14 +414,14 @@ ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 	/* pass */
 }
 
-void *ErodeStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *ErodeStepOperation::initializeTileData(rcti *rect)
 {
 	if (this->m_cached_buffer != NULL) {
 		return this->m_cached_buffer;
 	}
 	lockMutex();
 	if (this->m_cached_buffer == NULL) {
-		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL, memoryBuffers);
+		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
 		float *rectf = buffer->convertToValueBuffer();
 		int x, y, i;
 		float *p;

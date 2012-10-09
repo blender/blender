@@ -42,6 +42,8 @@ static bNodeSocketTemplate cmp_node_movieclip_out[] = {
 	{	-1, 0, ""	}
 };
 
+#ifdef WITH_COMPOSITOR_LEGACY
+
 static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *orig_ibuf, *ibuf;
@@ -138,6 +140,8 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 	}
 }
 
+#endif  /* WITH_COMPOSITOR_LEGACY */
+
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	MovieClipUser *user = MEM_callocN(sizeof(MovieClipUser), "node movie clip user");
@@ -155,7 +159,9 @@ void register_node_type_cmp_movieclip(bNodeTreeType *ttype)
 	node_type_size(&ntype, 120, 80, 300);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);
+#ifdef WITH_COMPOSITOR_LEGACY
 	node_type_exec(&ntype, node_composit_exec_movieclip);
+#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

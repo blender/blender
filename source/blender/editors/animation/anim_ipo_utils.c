@@ -104,8 +104,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 */
 			if (strstr(fcu->rna_path, "bones") && strstr(fcu->rna_path, "constraints")) {
 				/* perform string 'chopping' to get "Bone Name : Constraint Name" */
-				char *pchanName = BLI_getQuotedStr(fcu->rna_path, "bones[");
-				char *constName = BLI_getQuotedStr(fcu->rna_path, "constraints[");
+				char *pchanName = BLI_str_quoted_substrN(fcu->rna_path, "bones[");
+				char *constName = BLI_str_quoted_substrN(fcu->rna_path, "constraints[");
 				
 				/* assemble the string to display in the UI... */
 				structname = BLI_sprintfN("%s : %s", pchanName, constName);
@@ -143,15 +143,15 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 				/* no array index */
 				arrayname = "";
 			}
-			
+
 			/* putting this all together into the buffer */
-			// XXX we need to check for invalid names...
-			// XXX the name length limit needs to be passed in or as some define
+			/* XXX we need to check for invalid names...
+			 * XXX the name length limit needs to be passed in or as some define */
 			if (structname)
-				BLI_snprintf(name, 256, "%s%s (%s)", arrayname, propname, structname); 
+				BLI_snprintf(name, 256, "%s%s (%s)", arrayname, propname, structname);
 			else
-				BLI_snprintf(name, 256, "%s%s", arrayname, propname); 
-			
+				BLI_snprintf(name, 256, "%s%s", arrayname, propname);
+
 			/* free temp name if nameprop is set */
 			if (free_structname)
 				MEM_freeN((void *)structname);
@@ -170,11 +170,11 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 		else {
 			/* invalid path */
 			BLI_snprintf(name, 256, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
-			
+
 			/* icon for this should be the icon for the base ID */
-			// TODO: or should we just use the error icon?
+			/* TODO: or should we just use the error icon? */
 			icon = RNA_struct_ui_icon(id_ptr.type);
-			
+
 			/* tag F-Curve as disabled - as not usable path */
 			fcu->flag |= FCURVE_DISABLED;
 		}

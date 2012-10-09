@@ -192,16 +192,21 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	handle = param_construct_begin();
 
 	if (correct_aspect) {
-		efa = BM_active_face_get(em->bm, TRUE);
+		int sloppy = TRUE;
+		int selected = FALSE;
+
+		efa = BM_active_face_get(em->bm, sloppy, selected);
 
 		if (efa) {
 			float aspx, aspy;
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-			ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
+			ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 		
 			if (aspx != aspy)
 				param_aspect_ratio(handle, aspx, aspy);
+			else
+				param_aspect_ratio(handle, 1.0, 1.0);
 		}
 	}
 	
@@ -237,6 +242,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		key = (ParamKey)efa;
 
+		// tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);  // UNUSED
 
 		if (efa->len == 3 || efa->len == 4) {
 			/* for quads let parametrize split, it can make better decisions
@@ -377,17 +383,22 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	handle = param_construct_begin();
 
 	if (correct_aspect) {
-		editFace = BM_active_face_get(em->bm, TRUE);
+		int sloppy = TRUE;
+		int selected = FALSE;
+
+		editFace = BM_active_face_get(em->bm, sloppy, selected);
 
 		if (editFace) {
 			MTexPoly *tf;
 			float aspx, aspy;
 			tf = CustomData_bmesh_get(&em->bm->pdata, editFace->head.data, CD_MTEXPOLY);
 
-			ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
+			ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 
 			if (aspx != aspy)
 				param_aspect_ratio(handle, aspx, aspy);
+			else
+				param_aspect_ratio(handle, 1.0, 1.0);
 		}
 	}
 
@@ -440,7 +451,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 		float *co[4];
 		float *uv[4];
 		BMFace *origFace = faceMap[i];
-		
+
 		face = subsurfedFaces + i;
 
 		if (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
@@ -877,14 +888,14 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 			mid_v3_v3v3(result, min, max);
 			break;
 
-		case V3D_CURSOR: /*cursor center*/ 
+		case V3D_CURSOR:  /* cursor center */
 			cursx = give_cursor(scene, v3d);
 			/* shift to objects world */
 			sub_v3_v3v3(result, cursx, ob->obmat[3]);
 			break;
 
-		case V3D_LOCAL: /*object center*/
-		case V3D_CENTROID: /* multiple objects centers, only one object here*/
+		case V3D_LOCAL:     /* object center */
+		case V3D_CENTROID:  /* multiple objects centers, only one object here*/
 		default:
 			result[0] = result[1] = result[2] = 0.0;
 			break;
@@ -998,7 +1009,9 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
 
 static void correct_uv_aspect(BMEditMesh *em)
 {
-	BMFace *efa = BM_active_face_get(em->bm, TRUE);
+	int sloppy = TRUE;
+	int selected = FALSE;
+	BMFace *efa = BM_active_face_get(em->bm, sloppy, selected);
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
@@ -1008,7 +1021,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 		MTexPoly *tf;
 
 		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		ED_image_uv_aspect(tf->tpage, &aspx, &aspy);
+		ED_image_get_uv_aspect(tf->tpage, NULL, &aspx, &aspy);
 	}
 	
 	if (aspx == aspy)

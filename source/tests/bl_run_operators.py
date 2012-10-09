@@ -44,7 +44,7 @@ op_blacklist = (
     "help.operator_cheat_sheet",
     "wm.keyconfig_test",     # just annoying - but harmless
     "wm.memory_statistics",  # another annoying one
-    # "mesh.vertex_color_remove",  #crashes! fixme
+    "console.*",             # just annoying - but harmless
     )
 
 
@@ -61,7 +61,7 @@ def filter_op_list(operators):
     operators[:] = [op for op in operators if is_op_ok(op[0])]
 
 
-def run_ops(operators, setup_func=None):
+def run_ops(operators, setup_func=None, reset=True):
     print("\ncontext:", setup_func.__name__)
     # first invoke
     for op_id, op in operators:
@@ -70,7 +70,8 @@ def run_ops(operators, setup_func=None):
             sys.stdout.flush()  # in case of crash
 
             # disable will get blender in a bad state and crash easy!
-            bpy.ops.wm.read_factory_settings()
+            if reset:
+                bpy.ops.wm.read_factory_settings()
 
             setup_func()
 
@@ -81,6 +82,12 @@ def run_ops(operators, setup_func=None):
                     #import traceback
                     #traceback.print_exc()
                     pass
+
+    if not operators:
+        # run test
+        if reset:
+            bpy.ops.wm.read_factory_settings()
+        setup_func()
 
 
 # contexts
@@ -99,12 +106,34 @@ def ctx_clear_scene():  # copied from batch_import.py
 
 def ctx_editmode_mesh():
     bpy.ops.object.mode_set(mode='EDIT')
+
+
+def ctx_editmode_mesh_extra():
     bpy.ops.object.vertex_group_add()
+    bpy.ops.object.shape_key_add(from_mix=False)
+    bpy.ops.object.shape_key_add(from_mix=True)
+    bpy.ops.mesh.uv_texture_add()
+    bpy.ops.mesh.vertex_color_add()
+    bpy.ops.object.material_slot_add()
+    # editmode last!
+    bpy.ops.object.mode_set(mode='EDIT')
+
+
+def ctx_editmode_mesh_empty():
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.delete()
 
 
 def ctx_editmode_curves():
     bpy.ops.curve.primitive_nurbs_circle_add()
     bpy.ops.object.mode_set(mode='EDIT')
+
+
+def ctx_editmode_curves_empty():
+    bpy.ops.curve.primitive_nurbs_circle_add()
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.curve.delete(type='ALL')
 
 
 def ctx_editmode_surface():
@@ -127,6 +156,13 @@ def ctx_editmode_armature():
     bpy.ops.object.mode_set(mode='EDIT')
 
 
+def ctx_editmode_armature_empty():
+    bpy.ops.object.armature_add()
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.armature.select_all(action='SELECT')
+    bpy.ops.armature.delete()
+
+
 def ctx_editmode_lattice():
     bpy.ops.object.add(type='LATTICE')
     bpy.ops.object.mode_set(mode='EDIT')
@@ -137,8 +173,26 @@ def ctx_object_empty():
     bpy.ops.object.add(type='EMPTY')
 
 
-def ctx_weightpaint():
+def ctx_object_pose():
+    bpy.ops.object.armature_add()
+    bpy.ops.object.mode_set(mode='POSE')
+    bpy.ops.pose.select_all(action='SELECT')
+
+
+def ctx_object_paint_weight():
     bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
+
+
+def ctx_object_paint_vertex():
+    bpy.ops.object.mode_set(mode='VERTEX_PAINT')
+
+
+def ctx_object_paint_sculpt():
+    bpy.ops.object.mode_set(mode='SCULPT')
+
+
+def ctx_object_paint_texture():
+    bpy.ops.object.mode_set(mode='TEXTURE_PAINT')
 
 
 def bpy_check_type_duplicates():
@@ -179,20 +233,38 @@ def main():
     #import random
     #random.shuffle(operators)
 
-    # Run the operator tests in different contexts
-    run_ops(operators, setup_func=lambda: None)
-    run_ops(operators, setup_func=ctx_editmode_surface)
-    run_ops(operators, setup_func=ctx_object_empty)
-    run_ops(operators, setup_func=ctx_editmode_armature)
-    run_ops(operators, setup_func=ctx_editmode_mesh)
-    run_ops(operators, setup_func=ctx_clear_scene)
-    run_ops(operators, setup_func=ctx_editmode_curves)
-    run_ops(operators, setup_func=ctx_editmode_mball)
-    run_ops(operators, setup_func=ctx_editmode_text)
-    run_ops(operators, setup_func=ctx_weightpaint)
-    run_ops(operators, setup_func=ctx_editmode_lattice)
+    # 2 passes, first just run setup_func to make sure they are ok
+    for operators_test in ((), operators):
+        # Run the operator tests in different contexts
+        run_ops(operators_test, setup_func=lambda: None)
+        run_ops(operators_test, setup_func=ctx_clear_scene)
+        # object modes
+        run_ops(operators_test, setup_func=ctx_object_empty)
+        run_ops(operators_test, setup_func=ctx_object_pose)
+        run_ops(operators_test, setup_func=ctx_object_paint_weight)
+        run_ops(operators_test, setup_func=ctx_object_paint_vertex)
+        run_ops(operators_test, setup_func=ctx_object_paint_sculpt)
+        run_ops(operators_test, setup_func=ctx_object_paint_texture)
+        # mesh
+        run_ops(operators_test, setup_func=ctx_editmode_mesh)
+        run_ops(operators_test, setup_func=ctx_editmode_mesh_extra)
+        run_ops(operators_test, setup_func=ctx_editmode_mesh_empty)
+        # armature
+        run_ops(operators_test, setup_func=ctx_editmode_armature)
+        run_ops(operators_test, setup_func=ctx_editmode_armature_empty)
+        # curves
+        run_ops(operators_test, setup_func=ctx_editmode_curves)
+        run_ops(operators_test, setup_func=ctx_editmode_curves_empty)
+        run_ops(operators_test, setup_func=ctx_editmode_surface)
+        # other
+        run_ops(operators_test, setup_func=ctx_editmode_mball)
+        run_ops(operators_test, setup_func=ctx_editmode_text)
+        run_ops(operators_test, setup_func=ctx_editmode_lattice)
 
-    print("finished")
+        if not operators_test:
+            print("All setup functions run fine!")
+
+    print("Finished %r" % __file__)
 
 if __name__ == "__main__":
     main()

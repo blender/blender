@@ -61,7 +61,7 @@
 
 static int cache_break_test(void *UNUSED(cbd))
 {
-	return G.afbreek==1;
+	return (G.is_break == TRUE);
 }
 static int ptcache_bake_all_poll(bContext *C)
 {
@@ -111,7 +111,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	 * and pointcache baking will be reimplemented with
 	 * the job system soon anyways. */
 	if (win) {
-		baker.progressbar = (void (*)(void *, int))WM_timecursor;
+		baker.progressbar = (void (*)(void *, int))WM_cursor_time;
 		baker.progressend = (void (*)(void *))WM_cursor_restore;
 		baker.progresscontext = win;
 	}
@@ -215,7 +215,7 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
 	 * and pointcache baking will be reimplemented with
 	 * the job system soon anyways. */
 	if (win) {
-		baker.progressbar = (void (*)(void *, int))WM_timecursor;
+		baker.progressbar = (void (*)(void *, int))WM_cursor_time;
 		baker.progressend = (void (*)(void *))WM_cursor_restore;
 		baker.progresscontext = win;
 	}

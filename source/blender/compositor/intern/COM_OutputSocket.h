@@ -59,12 +59,12 @@ public:
 	 * @param resolution the result of this operation
 	 * @param preferredResolution the preferrable resolution as no resolution could be determined
 	 */
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	/**
 	 * @brief determine the actual data type and channel info.
 	 */
-	void relinkConnections(OutputSocket *relinkToSocket) { this->relinkConnections(relinkToSocket, false); };
+	void relinkConnections(OutputSocket *relinkToSocket) { this->relinkConnections(relinkToSocket, false); }
 	void relinkConnections(OutputSocket *relinkToSocket, bool single);
 	const int getNumberOfConnections() { return this->m_connections.size(); }
 	

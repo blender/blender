@@ -104,6 +104,9 @@ extern StructRNA RNA_CollectionProperty;
 extern StructRNA RNA_CollisionModifier;
 extern StructRNA RNA_CollisionSensor;
 extern StructRNA RNA_CollisionSettings;
+extern StructRNA RNA_ColorManagedColorspaceSettings;
+extern StructRNA RNA_ColorManagedDisplaySettings;
+extern StructRNA RNA_ColorManagedViewSettings;
 extern StructRNA RNA_ColorRamp;
 extern StructRNA RNA_ColorRampElement;
 extern StructRNA RNA_ColorSequence;
@@ -138,6 +141,7 @@ extern StructRNA RNA_CompositorNodeHueSat;
 extern StructRNA RNA_CompositorNodeIDMask;
 extern StructRNA RNA_CompositorNodeDoubleEdgeMask;
 extern StructRNA RNA_CompositorNodeImage;
+extern StructRNA RNA_CompositorNodeInpaint;
 extern StructRNA RNA_CompositorNodeInvert;
 extern StructRNA RNA_CompositorNodeLensdist;
 extern StructRNA RNA_CompositorNodeLevels;
@@ -644,6 +648,7 @@ StructRNA *RNA_struct_find(const char *identifier);
 const char *RNA_struct_identifier(StructRNA *type);
 const char *RNA_struct_ui_name(StructRNA *type);
 const char *RNA_struct_ui_description(StructRNA *type);
+const char *RNA_struct_translation_context(StructRNA *type);
 int RNA_struct_ui_icon(StructRNA *type);
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type);
@@ -709,6 +714,7 @@ int RNA_property_string_maxlength(PropertyRNA *prop);
 
 const char *RNA_property_ui_name(PropertyRNA *prop);
 const char *RNA_property_ui_description(PropertyRNA *prop);
+const char *RNA_property_translation_context(PropertyRNA *prop);
 int RNA_property_ui_icon(PropertyRNA *prop);
 
 /* Dynamic Property Information */

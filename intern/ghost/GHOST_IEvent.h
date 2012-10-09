@@ -45,10 +45,10 @@ class GHOST_IWindow;
  * Use the getType() method to retrieve the type of event and the getData() 
  * method to get the event data out. Using the event type you can cast the 
  * event data to the correct event dat structure.
- * @see GHOST_IEventConsumer#processEvent
- * @see GHOST_TEventType
- * @author	Maarten Gribnau
- * @date	May 31, 2001
+ * \see GHOST_IEventConsumer#processEvent
+ * \see GHOST_TEventType
+ * \author	Maarten Gribnau
+ * \date	May 31, 2001
  */
 class GHOST_IEvent
 {
@@ -62,26 +62,26 @@ public:
 
 	/**
 	 * Returns the event type.
-	 * @return The event type.
+	 * \return The event type.
 	 */
 	virtual GHOST_TEventType getType() = 0;
 
 	/**
 	 * Returns the time this event was generated.
-	 * @return The event generation time.
+	 * \return The event generation time.
 	 */
 	virtual GHOST_TUns64 getTime() = 0;
 
 	/**
 	 * Returns the window this event was generated on, 
 	 * or NULL if it is a 'system' event.
-	 * @return The generating window.
+	 * \return The generating window.
 	 */
 	virtual GHOST_IWindow *getWindow() = 0;
 	
 	/**
 	 * Returns the event data.
-	 * @return The event data.
+	 * \return The event data.
 	 */
 	virtual GHOST_TEventDataPtr getData() = 0;
 	

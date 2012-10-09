@@ -130,8 +130,11 @@ typedef struct Material {
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
+	short pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
 	
+	/* mapping */
+	char mapflag, pad;
+
 	/* shaders */
 	short diff_shader, spec_shader;
 	float roughness, refrac;
@@ -140,6 +143,8 @@ typedef struct Material {
 	float param[4];		/* size, smooth, size, smooth, for toonshader, 0 (fac) and 1 (fresnel) also for fresnel shader */
 	float rms;
 	float darkness;
+
+	/* runtime - OR'd from 'mtex' */
 	short texco, mapto;
 	
 	/* ramp colors */
@@ -154,7 +159,7 @@ typedef struct Material {
 	struct bNodeTree *nodetree;	
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Group *group;	/* light group */
-	struct PreviewImage * preview;
+	struct PreviewImage *preview;
 
 	/* dynamic properties */
 	float friction, fh, reflect;
@@ -271,6 +276,9 @@ typedef struct Material {
 
 #define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
 
+/* mapflag */
+#define MA_MAPFLAG_UVPROJECT (1 << 0)
+
 /* ray mirror fadeout */
 #define MA_RAYMIR_FADETOSKY	0
 #define MA_RAYMIR_FADETOMAT	1
@@ -337,7 +345,7 @@ typedef struct Material {
 #define TEXCO_OBJECT	32
 #define TEXCO_LAVECTOR	64
 #define TEXCO_VIEW		128
-#define TEXCO_STICKY	256
+#define TEXCO_STICKY_	256  // DEPRECATED
 #define TEXCO_OSA		512
 #define TEXCO_WINDOW	1024
 #define NEED_UV			2048

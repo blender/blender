@@ -90,8 +90,7 @@ KX_Dome::KX_Dome (
 	}
 
 	//setting the viewport size
-	GLuint	viewport[4]={0};
-	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
+	const int *viewport = m_canvas->GetViewPort();
 
 	SetViewPort(viewport);
 
@@ -178,7 +177,7 @@ KX_Dome::~KX_Dome (void)
 		glDeleteLists(dlistId, (GLsizei) m_numimages);
 }
 
-void KX_Dome::SetViewPort(GLuint viewport[4])
+void KX_Dome::SetViewPort(const int viewport[4])
 {
 	if (canvaswidth != m_viewport.GetWidth() || canvasheight != m_viewport.GetHeight())
 	{
@@ -592,7 +591,7 @@ void KX_Dome::CreateMeshDome180(void)
 	cubebottom[0].u[2] = 0.0;
 	cubebottom[0].v[2] = 0.0;
 
-	nfacesbottom = 1;	
+	nfacesbottom = 1;
 	
 	/* Left face - two triangles */
 	
@@ -682,12 +681,12 @@ void KX_Dome::CreateMeshDome180(void)
 		cubetop.resize(4*nfacestop);
 		SplitFace(cubetop,&nfacestop);
 		cubebottom.resize(4*nfacesbottom);
-		SplitFace(cubebottom,&nfacesbottom);	
+		SplitFace(cubebottom,&nfacesbottom);
 		cubeleft.resize(4*nfacesleft);
 		SplitFace(cubeleft,&nfacesleft);
 		cuberight.resize(4*nfacesright);
 		SplitFace(cuberight,&nfacesright);
-	}		
+	}
 
 	// Turn into a hemisphere
 	for (j=0;j<3;j++) {
@@ -748,10 +747,10 @@ void KX_Dome::CreateMeshDome250(void)
 	 * Once we take the tangent of that angle, you have the verts coordinate corresponding to the verts on the side faces.
 	 * Then we need to multiply it by sqrt(2.0) to get the coordinate of the verts on the diagonal of the original cube.
 	 */
-	verts_height = tan((rad_ang/2) - (MT_PI/2))*M_SQRT2;
+	verts_height = tanf((rad_ang / 2.0f) - (float)(MT_PI / 2.0)) * (float)M_SQRT2;
 
-	uv_height = uv_ratio * ((verts_height/2) + 0.5);
-	uv_base = uv_ratio * (1.0 - ((verts_height/2) + 0.5));
+	uv_height = uv_ratio * (       (verts_height / 2.0f) + 0.5f);
+	uv_base   = uv_ratio * (1.0 - ((verts_height / 2.0f) + 0.5f));
 	
 	//creating faces for the env mapcube 180deg Dome
 	// Front Face - 2 triangles
@@ -763,13 +762,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cubefront[0].verts[1][0] = 1.0;
 	cubefront[0].verts[1][1] = 1.0;
-	cubefront[0].verts[1][2] = 1.0;	
+	cubefront[0].verts[1][2] = 1.0;
 	cubefront[0].u[1] = uv_ratio;
 	cubefront[0].v[1] = uv_ratio;
 
 	cubefront[0].verts[2][0] =-1.0;
 	cubefront[0].verts[2][1] = 1.0;
-	cubefront[0].verts[2][2] = 1.0;	
+	cubefront[0].verts[2][2] = 1.0;
 	cubefront[0].u[2] = 0.0;
 	cubefront[0].v[2] = uv_ratio;
 
@@ -782,13 +781,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cubefront[1].verts[1][0] =-1.0;
 	cubefront[1].verts[1][1] = 1.0;
-	cubefront[1].verts[1][2] =-1.0;	
+	cubefront[1].verts[1][2] =-1.0;
 	cubefront[1].u[1] = 0.0;
 	cubefront[1].v[1] = 0.0;
 
 	cubefront[1].verts[2][0] = 1.0;
 	cubefront[1].verts[2][1] = 1.0;
-	cubefront[1].verts[2][2] =-1.0;	
+	cubefront[1].verts[2][2] =-1.0;
 	cubefront[1].u[2] = uv_ratio;
 	cubefront[1].v[2] = 0.0;
 
@@ -803,13 +802,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cubeleft[0].verts[1][0] =-1.0;
 	cubeleft[0].verts[1][1] =-verts_height;
-	cubeleft[0].verts[1][2] = 1.0;	
+	cubeleft[0].verts[1][2] = 1.0;
 	cubeleft[0].u[1] = uv_base;
 	cubeleft[0].v[1] = uv_ratio;
 
 	cubeleft[0].verts[2][0] =-1.0;
 	cubeleft[0].verts[2][1] =-verts_height;
-	cubeleft[0].verts[2][2] =-1.0;	
+	cubeleft[0].verts[2][2] =-1.0;
 	cubeleft[0].u[2] = uv_base;
 	cubeleft[0].v[2] = 0.0;
 
@@ -822,13 +821,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cubeleft[1].verts[1][0] =-1.0;
 	cubeleft[1].verts[1][1] = 1.0;
-	cubeleft[1].verts[1][2] =-1.0;	
+	cubeleft[1].verts[1][2] =-1.0;
 	cubeleft[1].u[1] = uv_ratio;
 	cubeleft[1].v[1] = 0.0;
 
 	cubeleft[1].verts[2][0] =-1.0;
 	cubeleft[1].verts[2][1] = 1.0;
-	cubeleft[1].verts[2][2] = 1.0;	
+	cubeleft[1].verts[2][2] = 1.0;
 	cubeleft[1].u[2] = uv_ratio;
 	cubeleft[1].v[2] = uv_ratio;
 
@@ -843,13 +842,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cuberight[0].verts[1][0] = 1.0;
 	cuberight[0].verts[1][1] =-verts_height;
-	cuberight[0].verts[1][2] =-1.0;	
+	cuberight[0].verts[1][2] =-1.0;
 	cuberight[0].u[1] = uv_height;
 	cuberight[0].v[1] = 0.0;
 
 	cuberight[0].verts[2][0] = 1.0;
 	cuberight[0].verts[2][1] =-verts_height;
-	cuberight[0].verts[2][2] = 1.0;	
+	cuberight[0].verts[2][2] = 1.0;
 	cuberight[0].u[2] = uv_height;
 	cuberight[0].v[2] = uv_ratio;
 
@@ -862,13 +861,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cuberight[1].verts[1][0] = 1.0;
 	cuberight[1].verts[1][1] = 1.0;
-	cuberight[1].verts[1][2] = 1.0;	
+	cuberight[1].verts[1][2] = 1.0;
 	cuberight[1].u[1] = 0.0;
 	cuberight[1].v[1] = uv_ratio;
 
 	cuberight[1].verts[2][0] = 1.0;
 	cuberight[1].verts[2][1] = 1.0;
-	cuberight[1].verts[2][2] =-1.0;	
+	cuberight[1].verts[2][2] =-1.0;
 	cuberight[1].u[2] = 0.0;
 	cuberight[1].v[2] = 0.0;
 
@@ -883,13 +882,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cubetop[0].verts[1][0] = 1.0;
 	cubetop[0].verts[1][1] =-verts_height;
-	cubetop[0].verts[1][2] = 1.0;	
+	cubetop[0].verts[1][2] = 1.0;
 	cubetop[0].u[1] = uv_ratio;
 	cubetop[0].v[1] = uv_height;
 
 	cubetop[0].verts[2][0] =-1.0;
 	cubetop[0].verts[2][1] =-verts_height;
-	cubetop[0].verts[2][2] = 1.0;	
+	cubetop[0].verts[2][2] = 1.0;
 	cubetop[0].u[2] = 0.0;
 	cubetop[0].v[2] = uv_height;
 
@@ -902,13 +901,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cubetop[1].verts[1][0] =-1.0;
 	cubetop[1].verts[1][1] = 1.0;
-	cubetop[1].verts[1][2] = 1.0;	
+	cubetop[1].verts[1][2] = 1.0;
 	cubetop[1].u[1] = 0.0;
 	cubetop[1].v[1] = 0.0;
 
 	cubetop[1].verts[2][0] = 1.0;
 	cubetop[1].verts[2][1] = 1.0;
-	cubetop[1].verts[2][2] = 1.0;	
+	cubetop[1].verts[2][2] = 1.0;
 	cubetop[1].u[2] = uv_ratio;
 	cubetop[1].v[2] = 0.0;
 
@@ -923,13 +922,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cubebottom[0].verts[1][0] = 1.0;
 	cubebottom[0].verts[1][1] = 1.0;
-	cubebottom[0].verts[1][2] =-1.0;	
+	cubebottom[0].verts[1][2] =-1.0;
 	cubebottom[0].u[1] = uv_ratio;
 	cubebottom[0].v[1] = uv_ratio;
 
 	cubebottom[0].verts[2][0] =-1.0;
 	cubebottom[0].verts[2][1] = 1.0;
-	cubebottom[0].verts[2][2] =-1.0;	
+	cubebottom[0].verts[2][2] =-1.0;
 	cubebottom[0].u[2] = 0.0;
 	cubebottom[0].v[2] = uv_ratio;
 
@@ -942,13 +941,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	cubebottom[1].verts[1][0] =-1.0;
 	cubebottom[1].verts[1][1] =-verts_height;
-	cubebottom[1].verts[1][2] =-1.0;	
+	cubebottom[1].verts[1][2] =-1.0;
 	cubebottom[1].u[1] = 0.0;
 	cubebottom[1].v[1] = uv_base;
 
 	cubebottom[1].verts[2][0] = 1.0;
 	cubebottom[1].verts[2][1] =-verts_height;
-	cubebottom[1].verts[2][2] =-1.0;	
+	cubebottom[1].verts[2][2] =-1.0;
 	cubebottom[1].u[2] = uv_ratio;
 	cubebottom[1].v[2] = uv_base;
 
@@ -963,7 +962,7 @@ void KX_Dome::CreateMeshDome250(void)
 		cubetop.resize(4*nfacestop);
 		SplitFace(cubetop,&nfacestop);
 		cubebottom.resize(4*nfacesbottom);
-		SplitFace(cubebottom,&nfacesbottom);	
+		SplitFace(cubebottom,&nfacesbottom);
 		cubeleft.resize(4*nfacesleft);
 		SplitFace(cubeleft,&nfacesleft);
 		cuberight.resize(4*nfacesright);
@@ -986,13 +985,13 @@ void KX_Dome::CreateMeshDome250(void)
 
 	//flatten onto xz plane
 	for (i=0;i<nfacesfront;i++)
-		FlattenDome(cubefront[i].verts);	
+		FlattenDome(cubefront[i].verts);
 	for (i=0;i<nfacestop;i++)
 		FlattenDome(cubetop[i].verts);
 	for (i=0;i<nfacesbottom;i++)
 		FlattenDome(cubebottom[i].verts);
 	for (i=0;i<nfacesleft;i++)
-		FlattenDome(cubeleft[i].verts);		
+		FlattenDome(cubeleft[i].verts);
 	for (i=0;i<nfacesright;i++)
 		FlattenDome(cuberight[i].verts);
 }
@@ -1325,7 +1324,7 @@ void KX_Dome::FlattenDome(MT_Vector3 verts[3])
 
 	for (int i=0;i<3;i++) {
 		r = atan2(sqrt(verts[i][0]*verts[i][0] + verts[i][2]*verts[i][2]), verts[i][1]);
-		r /= m_radangle/2;
+		r /= (double)this->m_radangle / 2.0;
 
 		phi = atan2(verts[i][2], verts[i][0]);
 
@@ -1417,7 +1416,7 @@ void KX_Dome::SplitFace(vector <DomeFace>& face, int *nfaces)
 		face[n2+2].u[2]	  = (face[i].u[2] + face[i].u[0]) /2;
 		face[n2+2].v[0]	  = (face[i].v[0] + face[i].v[1]) /2;
 		face[n2+2].v[1]	  = (face[i].v[1] + face[i].v[2]) /2;
-		face[n2+2].v[2]	  = (face[i].v[2] + face[i].v[0]) /2;		
+		face[n2+2].v[2]	  = (face[i].v[2] + face[i].v[0]) /2;
 
 		//face[i].verts[0] = face[i].verts[0];
 		face[i].verts[1] = (face[i].verts[0] + face[i].verts[1]) /2;
@@ -1427,7 +1426,7 @@ void KX_Dome::SplitFace(vector <DomeFace>& face, int *nfaces)
 		face[i].u[2]	 = (face[i].u[0] + face[i].u[2]) /2;
 		//face[i].v[0]	 = face[i].v[0];
 		face[i].v[1]	 = (face[i].v[0] + face[i].v[1]) /2;
-		face[i].v[2]	 = (face[i].v[0] + face[i].v[2]) /2;		
+		face[i].v[2]	 = (face[i].v[0] + face[i].v[2]) /2;
 
 		n2 += 3; // number of faces
 	}
@@ -1818,13 +1817,13 @@ void KX_Dome::DrawDomeFisheye(void)
 	else if (m_mode == DOME_TRUNCATED_FRONT)
 	{
 		ortho_width = 1.0;
-		ortho_height = 2 * ((float)can_height / can_width) - 1.0;
+		ortho_height = 2.0f * ((float)can_height / can_width) - 1.0f;
 
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_width, -20.0, 10.0);
 	}
 	else { //m_mode == DOME_TRUNCATED_REAR
 		ortho_width = 1.0;
-		ortho_height = 2 * ((float)can_height / can_width) - 1.0;
+		ortho_height = 2.0f * ((float)can_height / can_width) - 1.0f;
 
 		glOrtho((-ortho_width), ortho_width, (-ortho_width), ortho_height, -20.0, 10.0);
 	}
@@ -1858,7 +1857,7 @@ void KX_Dome::DrawDomeFisheye(void)
 		glBindTexture(GL_TEXTURE_2D, domefacesId[0]);
 		GLDrawTriangles(cubetop, nfacestop);
 
-		// bottom triangle	
+		// bottom triangle
 		glBindTexture(GL_TEXTURE_2D, domefacesId[1]);
 		GLDrawTriangles(cubebottom, nfacesbottom);
 
@@ -1905,8 +1904,8 @@ void KX_Dome::DrawPanorama(void)
 			ortho_height = (float)can_height/can_width;
 		}
 		else {
-			ortho_width = (float)can_width/can_height * 0.5;
-			ortho_height = 0.5;
+			ortho_width = (float)can_width / can_height * 0.5f;
+			ortho_height = 0.5f;
 		}
 		
 		glOrtho((-ortho_width), ortho_width, (-ortho_height), ortho_height, -20.0, 10.0);

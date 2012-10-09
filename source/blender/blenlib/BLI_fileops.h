@@ -91,6 +91,15 @@ int    BLI_file_older(const char *file1, const char *file2);
 struct LinkNode *BLI_file_read_as_lines(const char *file);
 void   BLI_file_free_lines(struct LinkNode *lines);
 
+/* this weirdo pops up in two places ... */
+#if !defined(WIN32)
+#  ifndef O_BINARY
+#    define O_BINARY 0
+#  endif
+#else
+void BLI_get_short_name(char short_name[256], const char *filename);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

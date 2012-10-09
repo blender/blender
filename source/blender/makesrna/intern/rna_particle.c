@@ -502,7 +502,7 @@ static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
 	return part->type == PART_FLUID;
 }
 
-void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
+static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = ptr->id.data;
 	ParticleSystem *part = (ParticleSystem *)ptr->data;
@@ -1846,6 +1846,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	                         "particle rotation axis)");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
+	prop = RNA_def_property(srna, "use_scale_dupli", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "draw", PART_DRAW_NO_SCALE_OB);
+	RNA_def_property_ui_text(prop, "Scale", "Use object's scale for duplication");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo");
+
 	prop = RNA_def_property(srna, "use_render_adaptive", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_REN_ADAPT);
 	RNA_def_property_ui_text(prop, "Adaptive render", "Draw steps of the particle path");
@@ -2130,7 +2135,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0.2);
 	RNA_def_property_ui_text(prop, "Adaptive Subframe Threshold",
 	                         "The relative distance a particle can move before requiring more subframes "
-	                         "(target Courant number); 0.1-0.3 is the recommended range");
+	                         "(target current number); 0.1-0.3 is the recommended range");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "jitter_factor", PROP_FLOAT, PROP_NONE);

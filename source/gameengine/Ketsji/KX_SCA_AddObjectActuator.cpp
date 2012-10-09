@@ -1,40 +1,39 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
 /** \file gameengine/Ketsji/KX_SCA_AddObjectActuator.cpp
  *  \ingroup ketsji
+ *
+ * Add an object when this actuator is triggered
  */
-//
-// Add an object when this actuator is triggered
-//
-//
-// ***** BEGIN GPL LICENSE BLOCK *****
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software Foundation,
-// Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-//
-// The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
-// All rights reserved.
-//
-// The Original Code is: all of this file.
-//
-// Contributor(s): none yet.
-//
-// ***** END GPL LICENSE BLOCK *****
-// Previously existed as:
 
-// \source\gameengine\GameLogic\SCA_AddObjectActuator.cpp
-
-// Please look here for revision history.
-
+/* Previously existed as:
+ * \source\gameengine\GameLogic\SCA_AddObjectActuator.cpp
+ * Please look here for revision history. */
 
 #include "KX_SCA_AddObjectActuator.h"
 #include "SCA_IScene.h"
@@ -204,10 +203,10 @@ PyAttributeDef KX_SCA_AddObjectActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_SCA_AddObjectActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_SCA_AddObjectActuator::pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SCA_AddObjectActuator* actuator = static_cast<KX_SCA_AddObjectActuator*>(self);
-	if (!actuator->m_OriginalObject)	
+	if (!actuator->m_OriginalObject)
 		Py_RETURN_NONE;
 	else
 		return actuator->m_OriginalObject->GetProxy();
@@ -222,7 +221,7 @@ int KX_SCA_AddObjectActuator::pyattr_set_object(void *self, const struct KX_PYAT
 		return PY_SET_ATTR_FAIL; // ConvertPythonToGameObject sets the error
 		
 	if (actuator->m_OriginalObject != NULL)
-		actuator->m_OriginalObject->UnregisterActuator(actuator);	
+		actuator->m_OriginalObject->UnregisterActuator(actuator);
 
 	actuator->m_OriginalObject = (SCA_IObject*)gameobj;
 		
@@ -232,7 +231,7 @@ int KX_SCA_AddObjectActuator::pyattr_set_object(void *self, const struct KX_PYAT
 	return PY_SET_ATTR_SUCCESS;
 }
 
-PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SCA_AddObjectActuator* actuator = static_cast<KX_SCA_AddObjectActuator*>(self);
 	if (!actuator->m_lastCreatedObject)
@@ -241,7 +240,7 @@ PyObject* KX_SCA_AddObjectActuator::pyattr_get_objectLastCreated(void *self, con
 		return actuator->m_lastCreatedObject->GetProxy();
 }
 
-PyObject* KX_SCA_AddObjectActuator::PyInstantAddObject()
+PyObject *KX_SCA_AddObjectActuator::PyInstantAddObject()
 {
 	InstantAddObject();
 
@@ -254,7 +253,7 @@ void	KX_SCA_AddObjectActuator::InstantAddObject()
 {
 	if (m_OriginalObject)
 	{
-		// Add an identical object, with properties inherited from the original object	
+		// Add an identical object, with properties inherited from the original object
 		// Now it needs to be added to the current scene.
 		SCA_IObject* replica = m_scene->AddReplicaObject(m_OriginalObject,GetParent(),m_timeProp );
 		KX_GameObject * game_obj = static_cast<KX_GameObject *>(replica);

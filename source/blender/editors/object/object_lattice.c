@@ -92,9 +92,9 @@ void make_editLatt(Object *obedit)
 
 	free_editLatt(obedit);
 
-	actkey = ob_get_keyblock(obedit);
+	actkey = BKE_keyblock_from_object(obedit);
 	if (actkey)
-		key_to_latt(actkey, lt);
+		BKE_key_convert_to_lattice(actkey, lt);
 
 	lt->editlatt = MEM_callocN(sizeof(EditLatt), "editlatt");
 	lt->editlatt->latt = MEM_dupallocN(lt);
@@ -203,7 +203,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 
 		while (a--) {
 			if (bp->hide == 0) {
-				if (bp->f1) {
+				if (bp->f1 & SELECT) {
 					action = SEL_DESELECT;
 					break;
 				}
@@ -225,7 +225,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
 
 			while (a--) {
 				if (bp->hide == 0) {
-					bp->f1 ^= 1;
+					bp->f1 ^= SELECT;
 				}
 				bp++;
 			}

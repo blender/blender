@@ -67,7 +67,8 @@ void defvert_remap(struct MDeformVert *dvert, int *map, const int map_len);
 void defvert_flip(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_flip_merged(struct MDeformVert *dvert, const int *flip_map, const int flip_map_len);
 void defvert_normalize(struct MDeformVert *dvert);
-void defvert_normalize_lock(struct MDeformVert *dvert, const int def_nr_lock);
+void defvert_normalize_lock_single(struct MDeformVert *dvert, const int def_nr_lock);
+void defvert_normalize_lock_map(struct MDeformVert *dvert, const char *lock_flags, const int defbase_tot);
 
 /* utility function, note that MAX_VGROUP_NAME chars is the maximum string length since its only
  * used with defgroups currently */

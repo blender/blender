@@ -35,6 +35,7 @@
 
 #include "DNA_vec_types.h"
 
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
@@ -297,13 +298,13 @@ void setlinestyle(int nr)
 
 /* Invert line handling */
 	
-#define gl_toggle(mode, onoff)  (((onoff) ? glEnable : glDisable)(mode))
+#define GL_TOGGLE(mode, onoff)  (((onoff) ? glEnable : glDisable)(mode))
 
 void set_inverted_drawing(int enable) 
 {
 	glLogicOp(enable ? GL_INVERT : GL_COPY);
-	gl_toggle(GL_COLOR_LOGIC_OP, enable);
-	gl_toggle(GL_DITHER, !enable);
+	GL_TOGGLE(GL_COLOR_LOGIC_OP, enable);
+	GL_TOGGLE(GL_DITHER, !enable);
 }
 
 void sdrawXORline(int x0, int y0, int x1, int y1)
@@ -624,8 +625,8 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 	 * covers the entire screen).
 	 */
 	glGetFloatv(GL_SCISSOR_BOX, scissor);
-	draw_w = MIN2(img_w - off_x, ceil((scissor[2] - rast_x) / xzoom));
-	draw_h = MIN2(img_h - off_y, ceil((scissor[3] - rast_y) / yzoom));
+	draw_w = mini(img_w - off_x, ceil((scissor[2] - rast_x) / xzoom));
+	draw_h = mini(img_h - off_y, ceil((scissor[3] - rast_y) / yzoom));
 
 	if (draw_w > 0 && draw_h > 0) {
 		int old_row_length = glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
@@ -668,13 +669,13 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 
 void glaDefine2DArea(rcti *screen_rect)
 {
-	int sc_w = screen_rect->xmax - screen_rect->xmin + 1;
-	int sc_h = screen_rect->ymax - screen_rect->ymin + 1;
+	const int sc_w = BLI_rcti_size_x(screen_rect) + 1;
+	const int sc_h = BLI_rcti_size_y(screen_rect) + 1;
 
 	glViewport(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);
 	glScissor(screen_rect->xmin, screen_rect->ymin, sc_w, sc_h);
 
-	/* The 0.375 magic number is to shift the matrix so that
+	/* The GLA_PIXEL_OFS magic number is to shift the matrix so that
 	 * both raster and vertex integer coordinates fall at pixel
 	 * centers properly. For a longer discussion see the OpenGL
 	 * Programming Guide, Appendix H, Correctness Tips.
@@ -683,7 +684,7 @@ void glaDefine2DArea(rcti *screen_rect)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(0.0, sc_w, 0.0, sc_h, -1, 1);
-	glTranslatef(0.375, 0.375, 0.0);
+	glTranslatef(GLA_PIXEL_OFS, GLA_PIXEL_OFS, 0.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -713,10 +714,10 @@ void gla2DSetMap(gla2DDrawInfo *di, rctf *rect)
 
 	di->world_rect = *rect;
 	
-	sc_w = (di->screen_rect.xmax - di->screen_rect.xmin);
-	sc_h = (di->screen_rect.ymax - di->screen_rect.ymin);
-	wo_w = (di->world_rect.xmax - di->world_rect.xmin);
-	wo_h = (di->world_rect.ymax - di->world_rect.ymin);
+	sc_w = BLI_rcti_size_x(&di->screen_rect);
+	sc_h = BLI_rcti_size_y(&di->screen_rect);
+	wo_w = BLI_rcti_size_x(&di->world_rect);
+	wo_h = BLI_rcti_size_y(&di->world_rect);
 	
 	di->wo_to_sc[0] = sc_w / wo_w;
 	di->wo_to_sc[1] = sc_h / wo_h;
@@ -744,10 +745,10 @@ gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect)
 		di->world_rect.ymax = di->screen_rect.ymax;
 	}
 
-	sc_w = (di->screen_rect.xmax - di->screen_rect.xmin);
-	sc_h = (di->screen_rect.ymax - di->screen_rect.ymin);
-	wo_w = (di->world_rect.xmax - di->world_rect.xmin);
-	wo_h = (di->world_rect.ymax - di->world_rect.ymin);
+	sc_w = BLI_rcti_size_x(&di->screen_rect);
+	sc_h = BLI_rcti_size_y(&di->screen_rect);
+	wo_w = BLI_rcti_size_x(&di->world_rect);
+	wo_h = BLI_rcti_size_y(&di->world_rect);
 
 	di->wo_to_sc[0] = sc_w / wo_w;
 	di->wo_to_sc[1] = sc_h / wo_h;

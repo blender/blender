@@ -99,7 +99,7 @@ typedef struct Camera {
 #define CAM_SHOWSENSOR		256
 
 /* yafray: dof sampling switch */
-/* #define CAM_YF_NO_QMC	512 */ /* depreceated */
+/* #define CAM_YF_NO_QMC	512 */ /* deprecated */
 
 /* Sensor fit */
 #define CAMERA_SENSOR_FIT_AUTO	0

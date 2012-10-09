@@ -73,7 +73,7 @@ void bmo_translate_exec(BMesh *bm, BMOperator *op)
 	unit_m4(mat);
 	copy_v3_v3(mat[3], vec);
 
-	BMO_op_callf(bm, "transform mat=%m4 verts=%s", mat, op, "verts");
+	BMO_op_callf(bm, op->flag, "transform mat=%m4 verts=%s", mat, op, "verts");
 }
 
 void bmo_scale_exec(BMesh *bm, BMOperator *op)
@@ -87,7 +87,7 @@ void bmo_scale_exec(BMesh *bm, BMOperator *op)
 	mat[1][1] = vec[1];
 	mat[2][2] = vec[2];
 
-	BMO_op_callf(bm, "transform mat=%m3 verts=%s", mat, op, "verts");
+	BMO_op_callf(bm, op->flag, "transform mat=%m3 verts=%s", mat, op, "verts");
 }
 
 void bmo_rotate_exec(BMesh *bm, BMOperator *op)
@@ -100,12 +100,12 @@ void bmo_rotate_exec(BMesh *bm, BMOperator *op)
 	 * this is how editmesh did it and I'm too tired to think
 	 * through the math right now. */
 	mul_v3_fl(vec, -1.0f);
-	BMO_op_callf(bm, "translate verts=%s vec=%v", op, "verts", vec);
+	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
 
-	BMO_op_callf(bm, "transform mat=%s verts=%s", op, "mat", op, "verts");
+	BMO_op_callf(bm, op->flag, "transform mat=%s verts=%s", op, "mat", op, "verts");
 
 	mul_v3_fl(vec, -1.0f);
-	BMO_op_callf(bm, "translate verts=%s vec=%v", op, "verts", vec);
+	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
 }
 
 void bmo_reverse_faces_exec(BMesh *bm, BMOperator *op)
@@ -182,14 +182,17 @@ static void bmo_region_extend_extend(BMesh *bm, BMOperator *op, int usefaces)
 	if (!usefaces) {
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-				if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
-					break;
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+					if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
+						break;
 			}
 
 			if (e) {
 				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-					BMO_elem_flag_enable(bm, e, SEL_FLAG);
-					BMO_elem_flag_enable(bm, BM_edge_other_vert(e, v), SEL_FLAG);
+					if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+						BMO_elem_flag_enable(bm, e, SEL_FLAG);
+						BMO_elem_flag_enable(bm, BM_edge_other_vert(e, v), SEL_FLAG);
+					}
 				}
 			}
 		}
@@ -202,8 +205,10 @@ static void bmo_region_extend_extend(BMesh *bm, BMOperator *op, int usefaces)
 		BMO_ITER (f, &siter, bm, op, "geom", BM_FACE) {
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				BM_ITER_ELEM (f2, &fiter, l->e, BM_FACES_OF_EDGE) {
-					if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
-						BMO_elem_flag_enable(bm, f2, SEL_FLAG);
+					if (!BM_elem_flag_test(f2, BM_ELEM_HIDDEN)) {
+						if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
+							BMO_elem_flag_enable(bm, f2, SEL_FLAG);
+						}
 					}
 				}
 			}
@@ -221,15 +226,18 @@ static void bmo_region_extend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 	if (!usefaces) {
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-				if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
-					break;
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+					if (!BMO_elem_flag_test(bm, e, SEL_ORIG))
+						break;
 			}
 
 			if (e) {
 				BMO_elem_flag_enable(bm, v, SEL_FLAG);
 
 				BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-					BMO_elem_flag_enable(bm, e, SEL_FLAG);
+					if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+						BMO_elem_flag_enable(bm, e, SEL_FLAG);
+					}
 				}
 
 			}
@@ -243,9 +251,11 @@ static void bmo_region_extend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 		BMO_ITER (f, &siter, bm, op, "geom", BM_FACE) {
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				BM_ITER_ELEM (f2, &fiter, l->e, BM_FACES_OF_EDGE) {
-					if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
-						BMO_elem_flag_enable(bm, f, SEL_FLAG);
-						break;
+					if (!BM_elem_flag_test(f2, BM_ELEM_HIDDEN)) {
+						if (!BMO_elem_flag_test(bm, f2, SEL_ORIG)) {
+							BMO_elem_flag_enable(bm, f, SEL_FLAG);
+							break;
+						}
 					}
 				}
 			}
@@ -304,7 +314,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(fstack);
 	BMLoop *l, *l2;
 	float maxx, maxx_test, cent[3];
-	int i, maxi, flagflip = BMO_slot_bool_get(op, "do_flip");
+	int i, i_max, flagflip = BMO_slot_bool_get(op, "do_flip");
 
 	startf = NULL;
 	maxx = -1.0e10;
@@ -353,7 +363,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	BMO_elem_flag_enable(bm, startf, FACE_VIS);
 
 	i = 0;
-	maxi = 1;
+	i_max = 1;
 	while (i >= 0) {
 		f = fstack[i];
 		i--;
@@ -381,9 +391,9 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 						}
 					}
 					
-					if (i == maxi) {
+					if (i == i_max) {
 						BLI_array_grow_one(fstack);
-						maxi++;
+						i_max++;
 					}
 
 					fstack[i] = l2->f;
@@ -413,10 +423,15 @@ void bmo_smooth_vert_exec(BMesh *bm, BMOperator *op)
 	float (*cos)[3] = NULL;
 	float *co, *co2, clipdist = BMO_slot_float_get(op, "clipdist");
 	int i, j, clipx, clipy, clipz;
+	int xaxis, yaxis, zaxis;
 	
 	clipx = BMO_slot_bool_get(op, "mirror_clip_x");
 	clipy = BMO_slot_bool_get(op, "mirror_clip_y");
 	clipz = BMO_slot_bool_get(op, "mirror_clip_z");
+
+	xaxis = BMO_slot_bool_get(op, "use_axis_x");
+	yaxis = BMO_slot_bool_get(op, "use_axis_y");
+	zaxis = BMO_slot_bool_get(op, "use_axis_z");
 
 	i = 0;
 	BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
@@ -451,7 +466,13 @@ void bmo_smooth_vert_exec(BMesh *bm, BMOperator *op)
 
 	i = 0;
 	BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
-		copy_v3_v3(v->co, cos[i]);
+		if (xaxis)
+			v->co[0] = cos[i][0];
+		if (yaxis)
+			v->co[1] = cos[i][1];
+		if (zaxis)
+			v->co[2] = cos[i][2];
+
 		i++;
 	}
 
@@ -530,7 +551,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	/*
 	 * The first thing to do is to iterate through all the the selected items and mark them since
 	 * they will be in the selection anyway.
-	 * This will increase performance, (especially when the number of originaly selected faces is high)
+	 * This will increase performance, (especially when the number of originally selected faces is high)
 	 * so the overall complexity will be less than $O(mn)$ where is the total number of selected faces,
 	 * and n is the total number of faces
 	 */

@@ -96,7 +96,7 @@ public:
 protected:
 	const ExportSettings *export_settings;
 
-	void dae_animation(Object* ob, FCurve *fcu, char* transformName, bool is_param, Material *ma = NULL);
+	void dae_animation(Object *ob, FCurve *fcu, char *transformName, bool is_param, Material *ma = NULL);
 
 	void write_bone_animation_matrix(Object *ob_arm, Bone *bone);
 
@@ -133,6 +133,8 @@ protected:
 
 	std::string create_source_from_fcurve(COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name);
 
+	std::string create_lens_source_from_fcurve(Camera *cam, COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id);
+
 	std::string create_source_from_array(COLLADASW::InputSemantic::Semantics semantic, float *v, int tot, bool is_rot, const std::string& anim_id, const char *axis_name);
 
 	std::string create_source_from_vector(COLLADASW::InputSemantic::Semantics semantic, std::vector<float> &fra, bool is_rot, const std::string& anim_id, const char *axis_name);
@@ -159,7 +161,7 @@ protected:
 	
 	bool hasAnimations(Scene *sce);
 	
-	char* extract_transform_name(char *rna_path);
+	char *extract_transform_name(char *rna_path);
 
 	std::string getObjectBoneName(Object *ob, const FCurve * fcu);
 };

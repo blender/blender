@@ -53,19 +53,20 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         split = layout.split()
 
         col = split.column()
         sub = col.column()
-        sub.active = cscene.device == 'CPU'
+        sub.active = (device_type == 'NONE' or cscene.device == 'CPU')
         sub.prop(cscene, "progressive")
 
         sub = col.column(align=True)
         sub.prop(cscene, "seed")
         sub.prop(cscene, "sample_clamp")
 
-        if cscene.progressive or cscene.device != 'CPU':
+        if cscene.progressive or (device_type != 'NONE' and cscene.device == 'GPU'):
             col = split.column()
             col.label(text="Samples:")
             sub = col.column(align=True)
@@ -197,8 +198,13 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         sub = col.column(align=True)
         sub.label(text="Tiles:")
-        sub.prop(cscene, "debug_tile_size")
-        sub.prop(cscene, "debug_min_size")
+
+        sub.prop(rd, "parts_x", text="X")
+        sub.prop(rd, "parts_y", text="Y")
+
+        subsub = sub.column()
+        subsub.enabled = not rd.use_border
+        subsub.prop(rd, "use_save_buffers")
 
         col = split.column()
 
@@ -207,6 +213,10 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
         sub.prop(cscene, "use_cache")
+
+        sub = col.column(align=True)
+        sub.label(text="Viewport:")
+        sub.prop(cscene, "preview_start_resolution")
 
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
@@ -428,6 +438,28 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
         layout.prop(cdata, "dicing_rate")
 
 
+class Cycles_PT_mesh_normals(CyclesButtonsPanel, Panel):
+    bl_label = "Normals"
+    bl_context = "data"
+
+    @classmethod
+    def poll(cls, context):
+        return CyclesButtonsPanel.poll(context) and context.mesh
+
+    def draw(self, context):
+        layout = self.layout
+
+        mesh = context.mesh
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(mesh, "show_double_sided")
+
+        col = split.column()
+        col.label()
+
+
 class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
     bl_label = "Ray Visibility"
     bl_context = "object"
@@ -503,6 +535,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
         lamp = context.lamp
         clamp = lamp.cycles
         cscene = context.scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         layout.prop(lamp, "type", expand=True)
 
@@ -521,7 +554,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
 
-        if not cscene.progressive and cscene.device == 'CPU':
+        if not cscene.progressive and (device_type == 'NONE' or cscene.device == 'CPU'):
             col.prop(clamp, "samples")
 
         col = split.column()
@@ -646,6 +679,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         world = context.world
         cworld = world.cycles
         cscene = context.scene.cycles
+        device_type = context.user_preferences.system.compute_device_type
 
         col = layout.column()
 
@@ -653,7 +687,7 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         sub = col.row(align=True)
         sub.active = cworld.sample_as_light
         sub.prop(cworld, "sample_map_resolution")
-        if not cscene.progressive and cscene.device == 'CPU':
+        if not cscene.progressive and (device_type == 'NONE' or cscene.device == 'CPU'):
             sub.prop(cworld, "samples")
 
 
@@ -921,6 +955,9 @@ def draw_device(self, context):
         elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
             layout.prop(cscene, "device")
 
+        if engine.with_osl() and (cscene.device == 'CPU' or device_type == 'None'):
+            layout.prop(cscene, "shading_system")
+
 
 def draw_pause(self, context):
     layout = self.layout
@@ -963,6 +1000,7 @@ def get_panels():
         bpy.types.DATA_PT_camera,
         bpy.types.DATA_PT_camera_display,
         bpy.types.DATA_PT_lens,
+        bpy.types.DATA_PT_customdata,
         bpy.types.DATA_PT_custom_props_mesh,
         bpy.types.DATA_PT_custom_props_camera,
         bpy.types.DATA_PT_custom_props_lamp,

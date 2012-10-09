@@ -25,9 +25,14 @@
 
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
+#include "MEM_guardedalloc.h"
+
 extern "C" {
 	#include "BKE_tracking.h"
+	#include "PIL_time.h"
 }
+
+#define COM_DISTORTIONCACHE_MAXSIZE 10
 
 class DistortionCache {
 private:
@@ -44,6 +49,8 @@ private:
 	bool m_inverted;
 	float *m_buffer;
 	int *m_bufferCalculated;
+	double timeLastUsage;
+	
 public:
 	DistortionCache(MovieClip *movieclip, int width, int height, int calibration_width, int calibration_height, bool inverted) {
 		this->m_k1 = movieclip->tracking.camera.k1;
@@ -57,12 +64,31 @@ public:
 		this->m_calibration_width = calibration_width;
 		this->m_calibration_height = calibration_height;
 		this->m_inverted = inverted;
-		this->m_bufferCalculated = new int[this->m_width * this->m_height];
-		this->m_buffer = new float[this->m_width * this->m_height * 2];
-		for (int i = 0; i < this->m_width * this->m_height; i++) {
-			this->m_bufferCalculated[i] = 0;
+		this->m_bufferCalculated = (int *)MEM_callocN(sizeof(int) * this->m_width * this->m_height, __func__);
+		this->m_buffer = (float *)MEM_mallocN(sizeof(float) * this->m_width * this->m_height * 2, __func__);
+		this->updateLastUsage();
+	}
+	
+	~DistortionCache() {
+		if (this->m_buffer) {
+			MEM_freeN(this->m_buffer);
+			this->m_buffer = NULL;
+		}
+		
+		if (this->m_bufferCalculated) {
+			MEM_freeN(this->m_bufferCalculated);
+			this->m_bufferCalculated = NULL;
 		}
 	}
+	
+	void updateLastUsage() {
+		this->timeLastUsage = PIL_check_seconds_timer();
+	}
+	
+	inline double getTimeLastUsage() {
+		return this->timeLastUsage;
+	}
+
 	bool isCacheFor(MovieClip *movieclip, int width, int height, int calibration_width, int claibration_height, bool inverted) {
 		return this->m_k1 == movieclip->tracking.camera.k1 &&
 		       this->m_k2 == movieclip->tracking.camera.k2 &&
@@ -73,8 +99,8 @@ public:
 		       this->m_inverted == inverted &&
 		       this->m_width == width &&
 		       this->m_height == height &&
-		       this->m_calibration_width == this->m_calibration_width &&
-		       this->m_calibration_height == this->m_calibration_height;
+		       this->m_calibration_width == calibration_width &&
+		       this->m_calibration_height == claibration_height;
 	}
 	
 	void getUV(MovieTracking *trackingData, int x, int y, float *u, float *v)
@@ -130,7 +156,7 @@ protected:
 public:
 	MovieDistortionOperation(bool distortion);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
 	void initExecution();
 	void deinitExecution();
@@ -138,5 +164,7 @@ public:
 	void setMovieClip(MovieClip *clip) { this->m_movieClip = clip; }
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
 };
+
+void deintializeDistortionCache(void);
 
 #endif

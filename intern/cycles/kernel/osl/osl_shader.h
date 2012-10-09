@@ -46,10 +46,10 @@ namespace OSL = ::OSL;
 
 class OSLRenderServices;
 class Scene;
-class ShaderClosure;
-class ShaderData;
-class differential3;
-class KernelGlobals;
+struct ShaderClosure;
+struct ShaderData;
+struct differential3;
+struct KernelGlobals;
 
 class OSLShader {
 public:
@@ -79,7 +79,8 @@ public:
 	                                const float3 omega_in, const float3 omega_out);
 
 	/* release */
-	static void release(KernelGlobals *kg, const ShaderData *sd);
+	static void init(KernelGlobals *kg, ShaderData *sd);
+	static void release(KernelGlobals *kg, ShaderData *sd);
 };
 
 CCL_NAMESPACE_END

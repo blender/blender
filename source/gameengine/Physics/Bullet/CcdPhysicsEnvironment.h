@@ -83,8 +83,6 @@ protected:
 	int	m_profileTimings;
 	bool m_enableSatCollisionDetection;
 
-	btContactSolverInfo	m_solverInfo;
-	
 	void	processFhSprings(double curTime,float timeStep);
 
 	public:
@@ -116,6 +114,11 @@ protected:
 		virtual void		setSolverDamping(float damping);
 		virtual void		setLinearAirDamping(float damping);
 		virtual void		setUseEpa(bool epa);
+
+		int					getNumTimeSubSteps()
+		{
+			return m_numTimeSubSteps;
+		}
 
 		virtual	void		beginFrame();
 		virtual void		endFrame() {}
@@ -185,7 +188,7 @@ protected:
 		btTypedConstraint*	getConstraintById(int constraintId);
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
-		virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes, int occlusionRes);
+		virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16]);
 
 
 		//Methods for gamelogic collision/physics callbacks
@@ -279,6 +282,8 @@ protected:
 		class btOverlappingPairCache* m_ownPairCache;
 
 		class CcdOverlapFilterCallBack* m_filterCallback;
+
+		class btGhostPairCallback*	m_ghostPairCallback;
 
 		class btDispatcher* m_ownDispatcher;
 

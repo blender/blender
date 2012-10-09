@@ -233,6 +233,7 @@ void mask_array(unsigned int mask, float filt[][3])
 /**
  * Index ordering, scanline based:
  *
+ * <pre>
  *      ---    ---   ---
  *     | 2,0 | 2,1 | 2,2 |
  *      ---    ---   ---
@@ -240,6 +241,7 @@ void mask_array(unsigned int mask, float filt[][3])
  *      ---    ---   ---
  *     | 0,0 | 0,1 | 0,2 |
  *      ---    ---   ---
+ * </pre>
  */
 
 void add_filt_fmask_coord(float filt[][3], const float col[4], float *rowbuf, int row_w, int col_h, int x, int y)

@@ -42,9 +42,9 @@ void CalculateMeanOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void CalculateMeanOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void CalculateMeanOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	color[0] = this->m_result;
+	output[0] = this->m_result;
 }
 
 void CalculateMeanOperation::deinitExecution()
@@ -70,11 +70,11 @@ bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	return false;
 }
 
-void *CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *CalculateMeanOperation::initializeTileData(rcti *rect)
 {
 	lockMutex();
 	if (!this->m_iscalculated) {
-		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)this->m_imageReader->initializeTileData(rect);
 		calculateMean(tile);
 		this->m_iscalculated = true;
 	}

@@ -82,8 +82,6 @@
 #include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
-#include "BKE_tracking.h"
-#include "BKE_movieclip.h"
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -418,8 +416,7 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[][4])
 {
 	DerivedMesh *dm = NULL;
-	Mesh *me = ob->data;
-	BMEditMesh *em = me->edit_btmesh;
+	BMEditMesh *em = BMEdit_FromObject(ob);
 	float vec[3] = {0.0f, 0.0f, 0.0f};
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
@@ -1033,7 +1030,6 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 	if (VALID_CONS_TARGET(ct)) {
 		float size[3], vec[3];
 		float totmat[3][3];
-		float tmat[4][4];
 		
 		/* Get size property, since ob->size is only the object's own relative size, not its global one */
 		mat4_to_size(size, cob->matrix);
@@ -1056,9 +1052,8 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		vectomat(vec, ct->matrix[2], 
 		         (short)data->reserved1, (short)data->reserved2,
 		         data->flags, totmat);
-		
-		copy_m4_m4(tmat, cob->matrix);
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -1316,7 +1311,7 @@ static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 		bFollowPathConstraint *data = con->data;
 		
 		/* get Object transform (loc/rot/size) to determine transformation from path */
-		// TODO: this used to be local at one point, but is probably more useful as-is
+		/* TODO: this used to be local at one point, but is probably more useful as-is */
 		copy_m4_m4(obmat, cob->matrix);
 		
 		/* get scaling of object before applying constraint */
@@ -2163,7 +2158,7 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			Object workob;
 			
 			/* evaluate using workob */
-			// FIXME: we don't have any consistent standards on limiting effects on object...
+			/* FIXME: we don't have any consistent standards on limiting effects on object... */
 			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
 			BKE_object_to_mat4(&workob, ct->matrix);
 		}
@@ -2284,7 +2279,6 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		float totmat[3][3];
 		float tmpmat[3][3];
 		float invmat[3][3];
-		float tmat[4][4];
 		float mdet;
 		
 		/* Vector object -> target */
@@ -2512,8 +2506,6 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		totmat[1][0] = tmpmat[1][0]; totmat[1][1] = tmpmat[1][1]; totmat[1][2] = tmpmat[1][2];
 		totmat[2][0] = tmpmat[2][0]; totmat[2][1] = tmpmat[2][1]; totmat[2][2] = tmpmat[2][2];
 		
-		copy_m4_m4(tmat, cob->matrix);
-		
 		mdet = determinant_m3(totmat[0][0], totmat[0][1], totmat[0][2],
 		                      totmat[1][0], totmat[1][1], totmat[1][2],
 		                      totmat[2][0], totmat[2][1], totmat[2][2]);
@@ -2522,7 +2514,7 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		}
 		
 		/* apply out transformaton to the object */
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -2623,7 +2615,7 @@ static void distlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			}
 			/* if soft-distance is enabled, start fading once owner is dist-soft from the target */
 			else if (data->flag & LIMITDIST_USESOFT) {
-				// FIXME: there's a problem with "jumping" when this kicks in
+				/* FIXME: there's a problem with "jumping" when this kicks in */
 				if (dist >= (data->dist - data->soft)) {
 					sfac = (float)(data->soft * (1.0f - expf(-(dist - data->dist) / data->soft)) + data->dist);
 					if (dist != 0.0f) sfac /= dist;
@@ -2720,7 +2712,6 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 	if (VALID_CONS_TARGET(ct)) {
 		float size[3], scale[3], vec[3], xx[3], zz[3], orth[3];
 		float totmat[3][3];
-		float tmat[4][4];
 		float dist;
 		
 		/* store scaling before destroying obmat */
@@ -2818,9 +2809,8 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				normalize_v3_v3(totmat[2], zz);
 				break;
 		} /* switch (data->plane) */
-		
-		copy_m4_m4(tmat, cob->matrix);
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -2989,7 +2979,7 @@ static void rbj_new_data(void *cdata)
 {
 	bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint *)cdata;
 	
-	// removed code which set target of this constraint  
+	/* removed code which set target of this constraint */
 	data->type = 1;
 }
 
@@ -3115,8 +3105,9 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		copy_m4_m4(obmat, cob->matrix);
 		copy_v3_v3(ownLoc, obmat[3]);
 		
-		INIT_MINMAX(curveMin, curveMax)
-		BKE_object_minmax(ct->tar, curveMin, curveMax);
+		INIT_MINMAX(curveMin, curveMax);
+		/* XXX - don't think this is good calling this here - campbell */
+		BKE_object_minmax(ct->tar, curveMin, curveMax, TRUE);
 		
 		/* get targetmatrix */
 		if (cu->path && cu->path->data) {
@@ -3608,7 +3599,7 @@ static void damptrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		
 		if (normalize_v3(tarvec) == 0.0f) {
 			/* the target is sitting on the owner, so just make them use the same direction vectors */
-			// FIXME: or would it be better to use the pure direction vector?
+			/* FIXME: or would it be better to use the pure direction vector? */
 			copy_v3_v3(tarvec, obvec);
 			//copy_v3_v3(tarvec, track_dir_vecs[data->trackflag]);
 		}
@@ -3624,7 +3615,7 @@ static void damptrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		cross_v3_v3v3(raxis, obvec, tarvec);
 		
 		rangle = dot_v3v3(obvec, tarvec);
-		rangle = acos(MAX2(-1.0f, MIN2(1.0f, rangle)) );
+		rangle = acos(maxf(-1.0f, minf(1.0f, rangle)));
 		
 		/* construct rotation matrix from the axis-angle rotation found above 
 		 *	- this call takes care to make sure that the axis provided is a unit vector first
@@ -3839,7 +3830,7 @@ static void pivotcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
 	}
 	
 	/* get rotation matrix representing the rotation of the owner */
-	// TODO: perhaps we might want to include scaling based on the pivot too?
+	/* TODO: perhaps we might want to include scaling based on the pivot too? */
 	copy_m3_m4(rotMat, cob->matrix);
 	normalize_m3(rotMat);
 
@@ -3985,6 +3976,41 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
 
+			/* aspect correction */
+			if (data->frame_method != FOLLOWTRACK_FRAME_STRETCH) {
+				int width, height;
+				float w_src, h_src, w_dst, h_dst, asp_src, asp_dst;
+
+				BKE_movieclip_get_size(clip, NULL, &width, &height);
+
+				/* apply clip display aspect */
+				w_src = width * clip->aspx;
+				h_src = height * clip->aspy;
+
+				w_dst = scene->r.xsch * scene->r.xasp;
+				h_dst = scene->r.ysch * scene->r.yasp;
+
+				asp_src = w_src / h_src;
+				asp_dst = w_dst / h_dst;
+
+				if (fabsf(asp_src - asp_dst) >= FLT_EPSILON) {
+					if ((asp_src > asp_dst) == (data->frame_method == FOLLOWTRACK_FRAME_CROP)) {
+						/* fit X */
+						float div = asp_src / asp_dst;
+						float cent = (float) width / 2.0f;
+
+						pos[0] = (((pos[0] * width - cent) * div) + cent) / width;
+					}
+					else {
+						/* fit Y */
+						float div = asp_dst / asp_src;
+						float cent = (float) height / 2.0f;
+
+						pos[1] = (((pos[1] * height - cent) * div) + cent) / height;
+					}
+				}
+			}
+
 			BKE_camera_params_init(&params);
 			BKE_camera_params_from_object(&params, camob);
 
@@ -4028,32 +4054,36 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 				copy_v3_v3(cob->matrix[3], disp);
 			}
 
-			if (data->depth_ob && data->depth_ob->derivedFinal) {
+			if (data->depth_ob) {
 				Object *depth_ob = data->depth_ob;
-				BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
-				BVHTreeRayHit hit;
-				float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
-				int result;
+				DerivedMesh *target = object_get_derived_final(depth_ob);
+				if (target) {
+					BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
+					BVHTreeRayHit hit;
+					float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
+					int result;
 
-				invert_m4_m4(imat, depth_ob->obmat);
+					invert_m4_m4(imat, depth_ob->obmat);
 
-				mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
-				mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
+					mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
+					mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
 
-				sub_v3_v3v3(ray_nor, ray_end, ray_start);
+					sub_v3_v3v3(ray_nor, ray_end, ray_start);
 
-				bvhtree_from_mesh_faces(&treeData, depth_ob->derivedFinal, 0.0f, 4, 6);
+					bvhtree_from_mesh_faces(&treeData, target, 0.0f, 4, 6);
 
-				hit.dist = FLT_MAX;
-				hit.index = -1;
+					hit.dist = FLT_MAX;
+					hit.index = -1;
 
-				result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
+					result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
 
-				if (result != -1) {
-					mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
+					if (result != -1) {
+						mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
+					}
+
+					free_bvhtree_from_mesh(&treeData);
+					target->release(target);
 				}
-
-				free_bvhtree_from_mesh(&treeData);
 			}
 		}
 	}
@@ -4258,8 +4288,8 @@ bConstraintTypeInfo *get_constraint_typeinfo(int type)
 	}
 	
 	/* only return for valid types */
-	if ( (type >= CONSTRAINT_TYPE_NULL) && 
-	     (type < NUM_CONSTRAINT_TYPES) )
+	if ((type >= CONSTRAINT_TYPE_NULL) &&
+	    (type < NUM_CONSTRAINT_TYPES))
 	{
 		/* there shouldn't be any segfaults here... */
 		return constraintsTypeInfo[type];
@@ -4395,7 +4425,7 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
 	}
 	else {
 		/* if no name is provided, use the generic "Const" name */
-		// NOTE: any constraint type that gets here really shouldn't get added...
+		/* NOTE: any constraint type that gets here really shouldn't get added... */
 		newName = (name && name[0]) ? name : "Const";
 	}
 	
@@ -4435,9 +4465,9 @@ static bConstraint *add_new_constraint(Object *ob, bPoseChannel *pchan, const ch
 		/* make this constraint the active one */
 		constraints_set_active(list, con);
 	}
-	
+
 	/* set type+owner specific immutable settings */
-	// TODO: does action constraint need anything here - i.e. spaceonce?
+	/* TODO: does action constraint need anything here - i.e. spaceonce? */
 	switch (type) {
 		case CONSTRAINT_TYPE_CHILDOF:
 		{
@@ -4480,7 +4510,7 @@ static void con_relink_id_cb(bConstraint *UNUSED(con), ID **idpoin, short UNUSED
 	 * since we've got the actual ID block, let's just inline this
 	 * code. 
 	 *
-	 * See ID_NEW(a) in BKE_utildefines.h
+	 * See ID_NEW(a) in DNA_ID.h
 	 */
 	if ((*idpoin) && (*idpoin)->newid)
 		(*idpoin) = (void *)(*idpoin)->newid;

@@ -49,38 +49,28 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	bNode *editorNode = this->getbNode();
 	MovieClip *movieClip = (MovieClip *)editorNode->id;
 	MovieClipUser *movieClipUser = (MovieClipUser *)editorNode->storage;
-	
+	bool cacheFrame = !context->isRendering();
+
 	ImBuf *ibuf = NULL;
 	if (movieClip) {
-		ibuf = BKE_movieclip_get_ibuf(movieClip, movieClipUser);
+		if (cacheFrame)
+			ibuf = BKE_movieclip_get_ibuf(movieClip, movieClipUser);
+		else
+			ibuf = BKE_movieclip_get_ibuf_flag(movieClip, movieClipUser, movieClip->flag, MOVIECLIP_CACHE_SKIP);
 	}
 	
 	// always connect the output image
 	MovieClipOperation *operation = new MovieClipOperation();
 	
-	if (ibuf && context->isColorManaged() && ibuf->profile == IB_PROFILE_NONE) {
-		ConvertColorProfileOperation *converter = new ConvertColorProfileOperation();
-		converter->setFromColorProfile(IB_PROFILE_LINEAR_RGB);
-		converter->setToColorProfile(IB_PROFILE_SRGB);
-		addLink(graph, operation->getOutputSocket(), converter->getInputSocket(0));
-		addPreviewOperation(graph, converter->getOutputSocket());
-		if (outputMovieClip->isConnected()) {
-			outputMovieClip->relinkConnections(converter->getOutputSocket());
-		}
-		graph->addOperation(converter);
-		if (ibuf) {
-			converter->setPredivided(ibuf->flags & IB_cm_predivide);
-		}
+	addPreviewOperation(graph, context, operation->getOutputSocket());
+	if (outputMovieClip->isConnected()) {
+		outputMovieClip->relinkConnections(operation->getOutputSocket());
 	}
-	else {
-		addPreviewOperation(graph, operation->getOutputSocket());
-		if (outputMovieClip->isConnected()) {
-			outputMovieClip->relinkConnections(operation->getOutputSocket());
-		}
-	}
+
 	operation->setMovieClip(movieClip);
 	operation->setMovieClipUser(movieClipUser);
 	operation->setFramenumber(context->getFramenumber());
+	operation->setCacheFrame(cacheFrame);
 	graph->addOperation(operation);
 
 	MovieTrackingStabilization *stab = &movieClip->tracking.stabilization;

@@ -35,7 +35,7 @@ namespace libmv {
 
 typedef unsigned int uint;
 
-int featurecmp(const void *a_v, const void *b_v)
+static int featurecmp(const void *a_v, const void *b_v)
 {
   Feature *a = (Feature*)a_v;
   Feature *b = (Feature*)b_v;
@@ -66,7 +66,7 @@ std::vector<Feature> DetectFAST(const unsigned char* data, int width, int height
     Feature *all_features = new Feature[num_features];
 
     for(int i = 0; i < num_features; ++i) {
-      Feature a = { nonmax[i].x, nonmax[i].y, scores[i], 0 };
+      Feature a = { (float)nonmax[i].x, (float)nonmax[i].y, (float)scores[i], 0 };
       all_features[i] = a;
     }
 
@@ -173,7 +173,7 @@ void DetectMORAVEC(ubyte* image, int stride, int width, int height, Feature* det
   for(int y=16; y<height-16; y++) {
     for(int x=16; x<width-16; x++) {
       int s = scores[y*width+x];
-      Feature f = { x+8, y+8, s, 16 };
+      Feature f = { (float)x+8.0f, (float)y+8.0f, (float)s, 16 };
       if(s>min) detected[i++] = f;
     }
   }
