@@ -466,7 +466,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	dg_dst = defgroup_find_name(ob_dst, dg_src->name);
 
 	/* get meshes */
-	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH);
 	me_dst = ob_dst->data;
 	me_src = ob_src->data;
 
