@@ -891,6 +891,12 @@ class CLIP_MT_view(Menu):
                 layout.operator("clip.view_zoom_ratio",
                                 text=text).ratio = a / b
         else:
+            if sc.view == 'GRAPH':
+                layout.operator_context = 'INVOKE_REGION_PREVIEW'
+                layout.operator("clip.graph_center_current_frame")
+                layout.operator("clip.graph_view_all")
+                layout.operator_context = 'INVOKE_DEFAULT'
+
             layout.prop(sc, "show_seconds")
             layout.separator()
 
