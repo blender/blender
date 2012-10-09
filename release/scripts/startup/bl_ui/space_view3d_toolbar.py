@@ -967,7 +967,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
         col.operator("object.vertex_group_clean", text="Clean")
         col.operator("object.vertex_group_levels", text="Levels")
         col.operator("object.vertex_group_blend", text="Blend")
-        col.operator("object.vertex_group_transfer_weight", text="Transfer weight")
+        col.operator("object.vertex_group_transfer_weight", text="Transfer Weights")
         col.operator("object.vertex_group_limit_total", text="Limit Total")
         col.operator("object.vertex_group_fix", text="Fix Deforms")
 

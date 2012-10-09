@@ -406,7 +406,6 @@ typedef enum WT_Method {
 typedef enum WT_ReplaceMode {
 	WT_REPLACE_ALL_WEIGHTS = 1,
 	WT_REPLACE_EMPTY_WEIGHTS = 2,
-	WT_REPLACE_SELECTED_WEIGHTS = 3
 } WT_ReplaceMode;
 
 static EnumPropertyItem WT_vertex_group_mode_item[] = {
@@ -426,25 +425,21 @@ static EnumPropertyItem WT_method_item[] = {
 static EnumPropertyItem WT_replace_mode_item[] = {
     {WT_REPLACE_ALL_WEIGHTS, "WT_REPLACE_ALL_WEIGHTS", 1, "All", "Overwrites all weights."},
     {WT_REPLACE_EMPTY_WEIGHTS, "WT_REPLACE_EMPTY_WEIGHTS", 1, "Empty", "Adds weights to vertices with no weight."},
-    {WT_REPLACE_SELECTED_WEIGHTS, "WT_REPLACE_SELECTED_WEIGHTS", 1, "Selected", "Replace selected weights."},
     {0, NULL, 0, NULL, NULL}
 };
 
 /*copy weight*/
-static void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, WT_ReplaceMode replace_mode)
+static void vgroup_transfer_weight(float *r_weight_dst, const float weight_src, const WT_ReplaceMode replace_mode)
 {
 	switch (replace_mode) {
-
 		case WT_REPLACE_ALL_WEIGHTS:
-			*weight_dst = weight_src;
+			*r_weight_dst = weight_src;
 			break;
 
 		case WT_REPLACE_EMPTY_WEIGHTS:
-			if (*weight_dst == 0) *weight_dst = weight_src;
-			break;
-
-		case WT_REPLACE_SELECTED_WEIGHTS:
-			if (mv_dst->flag & SELECT) *weight_dst = weight_src;
+			if (*r_weight_dst == 0.0f) {
+				*r_weight_dst = weight_src;
+			}
 			break;
 
 		default:
@@ -469,9 +464,10 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 	int dv_tot_src, dv_tot_dst, i, v_index, index_dst, index_src, index_nearest, index_nearest_vertex;
 	unsigned int f_index;
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob_dst);
 
 	/* create new and overwrite vertex group on destination without data */
-	if (!defgroup_find_name(ob_dst, dg_src->name) || replace_mode == WT_REPLACE_ALL_WEIGHTS) {
+	if (!defgroup_find_name(ob_dst, dg_src->name)) {
 		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 		ED_vgroup_add_name(ob_dst, dg_src->name);
 	}
@@ -495,7 +491,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 	/* get vertex group arrays */
 	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
-	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, FALSE);
+	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, use_vert_sel);
 
 	/* get indexes of vertex groups */
 	index_src = BLI_findindex(&ob_src->defbase, dg_src);
@@ -512,6 +508,11 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 	/* clear weights */
 	if (replace_mode == WT_REPLACE_ALL_WEIGHTS) {
 		for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++) {
+
+			if (*dv_dst == NULL) {
+				continue;
+			}
+
 			dw_dst = defvert_verify_index(*dv_dst, index_dst);
 			if (dw_dst) (*dw_dst).weight = 0;
 		}
@@ -533,13 +534,17 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 			}
 
 			/* loop through the vertices*/
-			for(i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, dv_src++, mv_src++) {
+			for(i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, dv_src++, mv_src++, mv_dst++) {
+
+				if (*dv_dst == NULL) {
+					continue;
+				}
 
 				/* copy weight */
 				dw_src = defvert_find_index(*dv_src, index_src);
 				if (dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
-					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+					vgroup_transfer_weight(&dw_dst->weight, dw_src->weight, replace_mode);
 				}
 			}
 			break;
@@ -550,6 +555,10 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 			/* loop trough vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++){
+
+				if (*dv_dst == NULL) {
+					continue;
+				}
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
@@ -567,7 +576,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 				dw_src = defvert_find_index(dv_array_src[nearest.index], index_src);
 				if (dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
-					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+					vgroup_transfer_weight(&dw_dst->weight, dw_src->weight, replace_mode);
 				}
 			}
 
@@ -585,6 +594,10 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 			/* loop through the vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
+
+				if (*dv_dst == NULL) {
+					continue;
+				}
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
@@ -623,7 +636,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 				/* copy weight that are not NULL including weight value 0. Existing target weights are overwritten prior to this in relevant cases. */
 				if (weight > 0) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
-					vgroup_transfer_weight(mv_dst, &dw_dst->weight, weight, replace_mode);
+					vgroup_transfer_weight(&dw_dst->weight, weight, replace_mode);
 				}
 			}
 
@@ -641,6 +654,10 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 			/* loop through the vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++){
+
+				if (*dv_dst == NULL) {
+					continue;
+				}
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
@@ -677,7 +694,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 				dw_src = defvert_find_index(dv_array_src[index_nearest_vertex], index_src);
 				if (dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
-					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+					vgroup_transfer_weight(&dw_dst->weight, dw_src->weight, replace_mode);
 				}
 			}
 
@@ -3316,7 +3333,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Transfer weight";
+	ot->name = "Transfer Weights";
 	ot->idname = "OBJECT_OT_vertex_group_transfer_weight";
 	ot->description = "Transfer weight paint to active from selected mesh";
 

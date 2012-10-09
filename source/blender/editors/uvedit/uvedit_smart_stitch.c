@@ -1007,7 +1007,7 @@ static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *no
 	normalize_v2(normal);
 }
 
-static void stitch_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
+static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *UNUSED(arg))
 {
 	int i, index = 0;
 	float pointsize = UI_GetThemeValuef(TH_VERTEX_SIZE);

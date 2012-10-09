@@ -1247,6 +1247,7 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.operator("object.vertex_group_clean", text="Clean")
         layout.operator("object.vertex_group_levels", text="Levels")
         layout.operator("object.vertex_group_blend", text="Blend")
+        layout.operator("object.vertex_group_transfer_weight", text="Transfer Weights")
         layout.operator("object.vertex_group_limit_total", text="Limit Total")
         layout.operator("object.vertex_group_fix", text="Fix Deforms")
 
