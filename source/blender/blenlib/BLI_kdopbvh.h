@@ -113,5 +113,4 @@ int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHT
 }
 #endif
 
-#endif // __BLI_KDOPBVH_H__
-
+#endif  /* __BLI_KDOPBVH_H__ */

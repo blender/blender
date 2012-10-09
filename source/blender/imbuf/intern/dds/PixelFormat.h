@@ -135,4 +135,4 @@
 
 	} // PixelFormat namespace
 
-#endif // _DDS_IMAGE_PIXELFORMAT_H
+#endif  /* __PIXELFORMAT_H__ */

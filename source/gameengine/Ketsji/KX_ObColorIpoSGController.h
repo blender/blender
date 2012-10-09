@@ -77,5 +77,4 @@ public:
 #endif
 };
 
-#endif // __KX_OBCOLORIPOSGCONTROLLER_H__
-
+#endif  /* __KX_OBCOLORIPOSGCONTROLLER_H__ */

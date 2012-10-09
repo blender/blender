@@ -119,8 +119,7 @@ public:
 
 	static PyObject *py_attr_getattr(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int py_attr_setattr(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 };
 
-#endif //__BL_ARMATURECONSTRAINT_H__
-
+#endif  /* __BL_ARMATURECONSTRAINT_H__ */

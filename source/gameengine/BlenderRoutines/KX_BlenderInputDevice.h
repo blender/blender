@@ -75,5 +75,5 @@ public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:BL_BlenderInputDevice")
 #endif
 };
-#endif //__KX_BLENDERINPUTDEVICE_H__
 
+#endif  /* __KX_BLENDERINPUTDEVICE_H__ */

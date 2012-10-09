@@ -62,5 +62,4 @@ public:
 #endif
 };
 
-#endif //__KX_MOTIONSTATE_H__
-
+#endif  /* __KX_MOTIONSTATE_H__ */

@@ -55,5 +55,4 @@ public:
 #endif
 };
 
-#endif //__KX_BLENDERMOUSEDEVICE_H__
-
+#endif  /* __KX_BLENDERMOUSEDEVICE_H__ */

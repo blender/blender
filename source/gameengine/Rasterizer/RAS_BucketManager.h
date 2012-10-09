@@ -90,5 +90,4 @@ private:
 #endif
 };
 
-#endif //__RAS_BUCKETMANAGER_H__
-
+#endif  /* __RAS_BUCKETMANAGER_H__ */

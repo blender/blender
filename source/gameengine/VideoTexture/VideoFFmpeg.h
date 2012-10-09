@@ -209,6 +209,6 @@ inline VideoFFmpeg *getFFmpeg(PyImage *self)
 	return static_cast<VideoFFmpeg*>(self->m_image); 
 }
 
-#endif	//WITH_FFMPEG
+#endif  /* WITH_FFMPEG */
 
-#endif
+#endif  /* __VIDEOFFMPEG_H__ */

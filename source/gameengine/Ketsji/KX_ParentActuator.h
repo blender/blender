@@ -84,9 +84,8 @@ public:
 	static PyObject *pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 }; /* end of class KX_ParentActuator : public SCA_PropertyActuator */
 
-#endif
-
+#endif  /* __KX_PARENTACTUATOR_H__ */

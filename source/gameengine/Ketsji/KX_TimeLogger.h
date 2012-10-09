@@ -111,5 +111,4 @@ protected:
 #endif
 };
 
-#endif // __KX_TIMELOGGER_H__
-
+#endif  /* __KX_TIMELOGGER_H__ */

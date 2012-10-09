@@ -83,9 +83,8 @@ public:
 	static PyObject*	pyattr_get_bodies(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_subjects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 };
 
-#endif //__KX_NETWORKMESSAGESENSOR_H__
-
+#endif  /* __KX_NETWORKMESSAGESENSOR_H__ */

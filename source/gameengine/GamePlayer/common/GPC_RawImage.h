@@ -117,5 +117,4 @@ protected:
 	int m_height;
 };
 
-#endif // __GPC_RAWIMAGE_H__
-
+#endif  /* __GPC_RAWIMAGE_H__ */

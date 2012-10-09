@@ -101,4 +101,4 @@ inline Color32 & Image::pixel(uint x, uint y)
 	return pixel(y * width() + x);
 }
 
-#endif // __IMAGE_H__
+#endif  /* __IMAGE_H__ */

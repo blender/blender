@@ -43,6 +43,4 @@ void BL_ConvertActuators(const char* maggiename,
 	 class RAS_IRenderTools* rendertools, 
 	 class KX_BlenderSceneConverter* converter);
 
-
-#endif //__KX_CONVERTACTUATORS_H__
-
+#endif  /* __KX_CONVERTACTUATORS_H__ */

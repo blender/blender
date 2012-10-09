@@ -231,5 +231,4 @@ protected:
 #endif
 };
 
-#endif //__RAS_ICANVAS_H__
-
+#endif  /* __RAS_ICANVAS_H__ */

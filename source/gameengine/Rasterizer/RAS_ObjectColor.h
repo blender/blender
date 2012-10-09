@@ -38,5 +38,4 @@ struct	RAS_ObjectColor {
 	float	m_blue;
 };
 
-#endif //__RAS_OBJECTCOLOR_H__
-
+#endif  /* __RAS_OBJECTCOLOR_H__ */

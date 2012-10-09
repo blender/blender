@@ -92,4 +92,4 @@ extern int slurph_opt;
 };
 #endif
 
-#endif // __BKE_KEY_H__
+#endif  /* __BKE_KEY_H__ */

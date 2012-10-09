@@ -121,5 +121,4 @@ private:
 
 };
 
-#endif  // __GPC_ENGINE_H__
-
+#endif  /* __GPC_ENGINE_H__ */

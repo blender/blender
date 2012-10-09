@@ -208,7 +208,4 @@ public:
 #endif
 };
 
-#endif //__RAS_IRENDERTOOLS_H__
-
-
-
+#endif  /* __RAS_IRENDERTOOLS_H__ */

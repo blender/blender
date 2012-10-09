@@ -76,4 +76,4 @@ protected:
 
 };
 
-#endif //__KX_FONTOBJECT_H__
+#endif  /* __KX_FONTOBJECT_H__ */

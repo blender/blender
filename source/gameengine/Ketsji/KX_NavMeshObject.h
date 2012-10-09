@@ -74,8 +74,7 @@ public:
 	KX_PYMETHOD_DOC(KX_NavMeshObject, raycast);
 	KX_PYMETHOD_DOC(KX_NavMeshObject, draw);
 	KX_PYMETHOD_DOC_NOARGS(KX_NavMeshObject, rebuild);
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 };
 
-#endif //__KX_NAVMESHOBJECT_H__
-
+#endif  /* __KX_NAVMESHOBJECT_H__ */

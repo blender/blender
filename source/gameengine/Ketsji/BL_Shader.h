@@ -252,4 +252,4 @@ public:
 #endif
 };
 
-#endif//__BL_SHADER_H__
+#endif /* __BL_SHADER_H__ */

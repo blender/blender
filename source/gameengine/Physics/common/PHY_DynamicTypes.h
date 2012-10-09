@@ -151,4 +151,4 @@ typedef enum PHY_ShapeType {
 
 typedef float	PHY_Vector3[3];
 
-#endif //__PHY_DYNAMICTYPES_H__
+#endif  /* __PHY_DYNAMICTYPES_H__ */

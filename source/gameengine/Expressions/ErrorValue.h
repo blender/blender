@@ -43,5 +43,4 @@ private:
 #endif
 };
 
-#endif // !defined __ERRORVALUE_H__
-
+#endif  /* __ERRORVALUE_H__ */

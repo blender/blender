@@ -145,5 +145,4 @@ public:
 #endif
 };
 
-#endif //__KX_IPHYSICSCONTROLLER_H__
-
+#endif  /* __KX_IPHYSICSCONTROLLER_H__ */

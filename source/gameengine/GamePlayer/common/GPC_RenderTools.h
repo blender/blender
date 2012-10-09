@@ -36,7 +36,7 @@
 // don't show stl-warnings
 #pragma warning (disable:4786)
 #include <windows.h>
-#endif // WIN32
+#endif  /* WIN32 */
 
 #include "RAS_IRenderTools.h"
 
@@ -106,7 +106,4 @@ public:
 	virtual void SetClientObject(RAS_IRasterizer *rasty, void* obj);
 };
 
-#endif  // __GPC_RENDERTOOLS_H__
-
-
-
+#endif  /* __GPC_RENDERTOOLS_H__ */

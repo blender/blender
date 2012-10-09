@@ -34,7 +34,7 @@
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
+#endif  /* WIN32 */
 
 #include "DNA_mesh_types.h"
 #include "KX_GameObject.h"
@@ -104,5 +104,4 @@ protected:
 #endif
 };
 
-#endif
-
+#endif  /* __BL_DEFORMABLEGAMEOBJECT_H__ */

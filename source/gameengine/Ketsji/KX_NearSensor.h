@@ -100,9 +100,8 @@ public:
 		return 0;
 	}
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 };
 
-#endif //__KX_NEARSENSOR_H__
-
+#endif  /* __KX_NEARSENSOR_H__ */

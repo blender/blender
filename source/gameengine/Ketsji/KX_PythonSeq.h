@@ -30,8 +30,8 @@
  *  \brief Readonly sequence wrapper for lookups on logic bricks
  */
  
-#ifndef _adr_py_seq_h_				// only process once,
-#define _adr_py_seq_h_				// even if multiply included
+#ifndef __KX_PYTHONSEQ_H__
+#define __KX_PYTHONSEQ_H__
 
 #ifdef WITH_PYTHON
 
@@ -63,6 +63,6 @@ typedef struct {
 
 PyObject *KX_PythonSeq_CreatePyObject(PyObject *base, short type);
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
-#endif // _adr_py_seq_h_
+#endif  /* __KX_PYTHONSEQ_H__ */

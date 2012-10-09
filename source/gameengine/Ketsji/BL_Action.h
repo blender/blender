@@ -136,5 +136,4 @@ public:
 #endif
 };
 
-#endif //BL_ACTION
-
+#endif  /* BL_ACTION */

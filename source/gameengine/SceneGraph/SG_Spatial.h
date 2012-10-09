@@ -291,5 +291,4 @@ protected:
 #endif
 };
 
-#endif //__SG_SPATIAL_H__
-
+#endif  /* __SG_SPATIAL_H__ */

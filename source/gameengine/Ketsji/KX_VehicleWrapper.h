@@ -52,11 +52,11 @@ public:
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetSuspensionCompression);
 	
 	KX_PYMETHOD_VARARGS(KX_VehicleWrapper,SetRollInfluence);
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 private:
 	PHY_IVehicle*			 m_vehicle;
 	PHY_IPhysicsEnvironment* m_physenv;
 };
 
-#endif //__KX_VEHICLEWRAPPER_H__
+#endif  /* __KX_VEHICLEWRAPPER_H__ */

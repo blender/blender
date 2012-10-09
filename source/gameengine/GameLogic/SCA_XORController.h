@@ -45,5 +45,4 @@ public:
 	virtual void Trigger(SCA_LogicManager* logicmgr);
 };
 
-#endif //__SCA_XORCONTROLLER_H__
-
+#endif  /* __SCA_XORCONTROLLER_H__ */

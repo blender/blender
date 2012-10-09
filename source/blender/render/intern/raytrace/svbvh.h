@@ -29,11 +29,10 @@
  *  \ingroup render
  */
 
-
-#ifdef __SSE__
- 
 #ifndef __SVBVH_H__
 #define __SVBVH_H__
+
+#ifdef __SSE__
 
 #include "bvh.h"
 #include "BLI_memarena.h"
@@ -311,7 +310,6 @@ struct Reorganize_SVBVH {
 	}	
 };
 
-#endif
+#endif  /* __SSE__ */
 
-#endif //__SSE__
-
+#endif  /* __SVBVH_H__ */

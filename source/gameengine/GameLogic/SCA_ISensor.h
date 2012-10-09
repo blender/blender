@@ -212,8 +212,7 @@ public:
 		KX_SENSOR_JUST_DEACTIVATED
 	
 	};
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 };
 
-#endif //__SCA_ISENSOR_H__
-
+#endif  /* __SCA_ISENSOR_H__ */

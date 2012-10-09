@@ -153,5 +153,4 @@ public:
 
 };
 
-#endif // __KX_POLYGONMATERIAL_H__
-
+#endif  /* __KX_POLYGONMATERIAL_H__ */

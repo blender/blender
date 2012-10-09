@@ -146,5 +146,4 @@ protected:
 #endif
 };
 
-#endif // !defined __EXPRESSION_H__
-
+#endif  /* __EXPRESSION_H__ */

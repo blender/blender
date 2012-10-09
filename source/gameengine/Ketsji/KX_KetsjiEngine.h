@@ -447,6 +447,4 @@ protected:
 #endif
 };
 
-#endif //__KX_KETSJIENGINE_H__
-
-
+#endif  /* __KX_KETSJIENGINE_H__ */

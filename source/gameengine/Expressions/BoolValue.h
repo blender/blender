@@ -61,5 +61,4 @@ private:
 #endif
 };
 
-#endif // !defined __BOOLVALUE_H__
-
+#endif  /* __BOOLVALUE_H__ */

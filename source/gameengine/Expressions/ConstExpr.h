@@ -51,5 +51,4 @@ private:
 #endif
 };
 
-#endif // !defined(AFX_CONSTEXPR_H__061ECFC3_BE87_11D1_A51C_00A02472FC58__INCLUDED_)
-
+#endif  /* __CONSTEXPR_H__ */

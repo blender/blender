@@ -79,5 +79,4 @@ public:
 #endif
 };
 
-#endif //__NG_NETWORKDEVICEINTERFACE_H__
-
+#endif  /* __NG_NETWORKDEVICEINTERFACE_H__ */

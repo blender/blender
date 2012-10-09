@@ -221,5 +221,4 @@ void MESH_OT_navmesh_face_add(struct wmOperatorType *ot);
 void MESH_OT_navmesh_reset(struct wmOperatorType *ot);
 void MESH_OT_navmesh_clear(struct wmOperatorType *ot);
 
-#endif // __MESH_INTERN_H__
-
+#endif  /* __MESH_INTERN_H__ */

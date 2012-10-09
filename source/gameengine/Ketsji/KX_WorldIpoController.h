@@ -100,5 +100,4 @@ public:
 #endif
 };
 
-#endif // __KX_WORLDIPOCONTROLLER_H__
-
+#endif  /* __KX_WORLDIPOCONTROLLER_H__ */

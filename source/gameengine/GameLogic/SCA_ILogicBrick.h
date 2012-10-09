@@ -159,9 +159,8 @@ protected:
 	/** Convert a a c++ value to KX_TRUE, KX_FALSE in Python. */
 	PyObject *BoolToPyArg(bool);
 	
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 };
 
-#endif
-
+#endif  /* __SCA_ILOGICBRICK_H__ */

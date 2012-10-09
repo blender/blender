@@ -52,5 +52,4 @@ public:
 		return m_ndi; }
 };
 
-#endif //__KX_NETWORKEVENTMANAGER_H__
-
+#endif  /* __KX_NETWORKEVENTMANAGER_H__ */

@@ -218,9 +218,8 @@ public:
 		return 0;
 	}
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 };
 
-#endif //__KX_OBJECTACTUATOR_H__
-
+#endif  /* __KX_OBJECTACTUATOR_H__ */

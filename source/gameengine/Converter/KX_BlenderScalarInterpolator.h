@@ -73,5 +73,4 @@ public:
 #endif
 };
 
-#endif //__KX_BLENDERSCALARINTERPOLATOR_H__
-
+#endif  /* __KX_BLENDERSCALARINTERPOLATOR_H__ */

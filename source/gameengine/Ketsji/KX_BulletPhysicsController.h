@@ -96,5 +96,4 @@ public:
 #endif
 };
 
-#endif //__KX_BULLETPHYSICSCONTROLLER_H__
-
+#endif  /* __KX_BULLETPHYSICSCONTROLLER_H__ */

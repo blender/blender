@@ -151,5 +151,4 @@ public:
 #endif
 };
 
-#endif //__SCA_LOGICMANAGER_H__
-
+#endif  /* __SCA_LOGICMANAGER_H__ */

@@ -16,12 +16,12 @@
  *  \ingroup expressions
  */
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786)
-#endif //WIN32
-
 #ifndef __VALUE_H__
 #define __VALUE_H__
+
+#if defined(WIN32) && !defined(FREE_WINDOWS)
+#pragma warning (disable:4786)
+#endif  /* WIN32 */
 
 #include <map>		// array functionality for the propertylist
 #include "STR_String.h"	// STR_String class
@@ -51,14 +51,6 @@ using namespace std;
 #ifndef GEN_NO_ASSERTD
 #undef  assertd
 #define	assertd(exp)			((void)NULL)
-#endif
-
-
-#ifndef USE_PRAGMA_ONCE
-#ifdef WIN32
-	#pragma once
-
-#endif //WIN32
 #endif
 
 enum VALUE_OPERATOR {
@@ -233,7 +225,7 @@ public:
 	static PyObject *pyattr_get_name(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 	
 	virtual PyObject *ConvertKeysToPython( void );
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 	
 	
@@ -439,5 +431,4 @@ protected:
 #endif
 };
 
-#endif // !defined _VALUEBASECLASS_H
-
+#endif  /* __VALUE_H__ */

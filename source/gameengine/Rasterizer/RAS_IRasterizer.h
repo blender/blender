@@ -423,6 +423,4 @@ public:
 #endif
 };
 
-#endif //__RAS_IRASTERIZER_H__
-
-
+#endif  /* __RAS_IRASTERIZER_H__ */

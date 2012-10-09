@@ -159,4 +159,4 @@ void	KX_ClearBulletSharedShapes();
 bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *from_gameobj, RAS_MeshObject* from_meshobj);
 
 #endif
-#endif //__KX_CONVERTPHYSICSOBJECT_H__
+#endif  /* __KX_CONVERTPHYSICSOBJECT_H__ */

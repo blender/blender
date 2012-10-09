@@ -57,5 +57,4 @@ private:
 	PHY_IPhysicsEnvironment* m_physenv;
 };
 
-#endif //__KX_CONSTRAINTWRAPPER_H__
-
+#endif  /* __KX_CONSTRAINTWRAPPER_H__ */

@@ -330,4 +330,4 @@
 #  define UNLIKELY(x)     (x)
 #endif
 
-#endif // __BLI_UTILDEFINES_H__
+#endif  /* __BLI_UTILDEFINES_H__ */

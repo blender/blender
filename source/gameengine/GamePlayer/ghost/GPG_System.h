@@ -35,7 +35,7 @@
 
 #ifdef WIN32
 #pragma warning (disable:4786) // suppress stl-MSVC debug info warning
-#endif // WIN32
+#endif  /* WIN32 */
 
 #include "GPC_System.h"
 
@@ -51,5 +51,4 @@ public:
 	virtual double GetTimeInSeconds();
 };
 
-#endif // __GPG_SYSTEM_H__
-
+#endif  /* __GPG_SYSTEM_H__ */

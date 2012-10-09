@@ -66,4 +66,4 @@ public:
 #endif
 };
 
-#endif //__PHY_IVEHICLE_H__
+#endif  /* __PHY_IVEHICLE_H__ */

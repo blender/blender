@@ -29,4 +29,4 @@
 
 PyObject *BPY_app_struct(void);
 
-#endif // __BPY_APP_H__
+#endif  /* __BPY_APP_H__ */

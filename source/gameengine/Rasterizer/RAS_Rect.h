@@ -101,5 +101,4 @@ public:
 #endif
 };
 
-#endif // __RAS_RECT_H__
-
+#endif  /* __RAS_RECT_H__ */

@@ -111,7 +111,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	static PyObject*	pyattr_get_hit_normal(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_hit_uv(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 		
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 	/* --------------------------------------------------------------------- */
 	SCA_IObject*	m_hitObject;
@@ -183,5 +183,4 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	KX_KetsjiEngine* m_kxengine;
 };
 
-#endif //__KX_MOUSESENSOR
-
+#endif  /* __KX_MOUSESENSOR */

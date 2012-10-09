@@ -115,5 +115,4 @@ protected:
 #endif
 };
 
-#endif //__NG_NETWORKSCENE_H__
-
+#endif  /* __NG_NETWORKSCENE_H__ */

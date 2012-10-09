@@ -665,4 +665,4 @@ class	DefaultMotionState : public PHY_IMotionState
 };
 
 
-#endif //__CCDPHYSICSCONTROLLER_H__
+#endif  /* __CCDPHYSICSCONTROLLER_H__ */

@@ -196,5 +196,4 @@ public:
 #endif
 };
 
-#endif //__KX_BLENDERSCENECONVERTER_H__
-
+#endif  /* __KX_BLENDERSCENECONVERTER_H__ */

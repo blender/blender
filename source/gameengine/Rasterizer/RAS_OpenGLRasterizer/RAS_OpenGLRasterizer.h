@@ -322,6 +322,4 @@ public:
 #endif
 };
 
-#endif //__RAS_OPENGLRASTERIZER_H__
-
-
+#endif  /* __RAS_OPENGLRASTERIZER_H__ */

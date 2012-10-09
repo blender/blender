@@ -52,5 +52,4 @@ void itasc_test_constraint(struct Object *ob, struct bConstraint *cons);
 }
 #endif
 
-#endif // __ITASC_PLUGIN_H__
-
+#endif  /* __ITASC_PLUGIN_H__ */

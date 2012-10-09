@@ -89,9 +89,8 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 
 	KX_PYMETHOD_DOC(KX_SCA_ReplaceMeshActuator,instantReplaceMesh);
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 }; 
 
-#endif
-
+#endif  /* __KX_SCA_REPLACEMESHACTUATOR_H__ */

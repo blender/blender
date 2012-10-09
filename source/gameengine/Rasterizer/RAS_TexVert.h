@@ -148,5 +148,4 @@ public:
 #endif
 };
 
-#endif //__RAS_TEXVERT_H__
-
+#endif  /* __RAS_TEXVERT_H__ */

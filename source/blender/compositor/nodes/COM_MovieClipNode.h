@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_MovieClipNode_h_
-#define _COM_MovieClipNode_h_
+#ifndef __COM_MOVIECLIPNODE_H__
+#define __COM_MOVIECLIPNODE_H__
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -36,4 +36,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // _COM_MovieClipNode_h_
+#endif  /* __COM_MOVIECLIPNODE_H__ */

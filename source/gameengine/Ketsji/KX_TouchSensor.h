@@ -134,5 +134,4 @@ public:
 	
 };
 
-#endif //__KX_TOUCHSENSOR_H__
-
+#endif  /* __KX_TOUCHSENSOR_H__ */

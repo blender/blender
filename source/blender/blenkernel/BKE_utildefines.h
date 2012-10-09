@@ -38,4 +38,4 @@ extern "C" {
 }
 #endif
 
-#endif // __BKE_UTILDEFINES_H__
+#endif  /* __BKE_UTILDEFINES_H__ */

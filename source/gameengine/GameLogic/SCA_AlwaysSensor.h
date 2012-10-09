@@ -50,5 +50,4 @@ public:
 	virtual void Init();
 };
 
-#endif //__SCA_ALWAYSSENSOR_H__
-
+#endif  /* __SCA_ALWAYSSENSOR_H__ */

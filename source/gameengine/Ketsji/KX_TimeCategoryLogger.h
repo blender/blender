@@ -133,5 +133,4 @@ protected:
 #endif
 };
 
-#endif // __KX_TIMECATEGORYLOGGER_H__
-
+#endif  /* __KX_TIMECATEGORYLOGGER_H__ */

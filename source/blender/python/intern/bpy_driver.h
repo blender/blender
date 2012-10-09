@@ -36,4 +36,4 @@ extern PyObject *bpy_pydriver_Dict;
 float BPY_driver_exec(struct ChannelDriver *driver, const float evaltime);
 void BPY_driver_reset(void);
 
-#endif // __BPY_DRIVER_H__
+#endif  /* __BPY_DRIVER_H__ */

@@ -1041,5 +1041,4 @@ public:
 
 
 
-#endif //__KX_GAMEOBJECT_H__
-
+#endif  /* __KX_GAMEOBJECT_H__ */

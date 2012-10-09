@@ -102,5 +102,4 @@ public:
 #endif
 };
 
-#endif //__DUMMYPHYSICSENVIRONMENT_H__
-
+#endif  /* __DUMMYPHYSICSENVIRONMENT_H__ */

@@ -63,5 +63,4 @@ public:
 #endif
 };
 
-#endif //__SCA_EXPRESSIONCONTROLLER_H__
-
+#endif  /* __SCA_EXPRESSIONCONTROLLER_H__ */

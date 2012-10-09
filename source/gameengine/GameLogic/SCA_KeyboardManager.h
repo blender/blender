@@ -63,5 +63,4 @@ public:
 #endif
 };
 
-#endif //__SCA_KEYBOARDMANAGER_H__
-
+#endif  /* __SCA_KEYBOARDMANAGER_H__ */

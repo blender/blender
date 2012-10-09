@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_FilterNode_h_
-#define _COM_FilterNode_h_
+#ifndef __COM_FILTERNODE_H__
+#define __COM_FILTERNODE_H__
 
 #include "COM_Node.h"
 
@@ -35,4 +35,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // _COM_FilterNode_h_
+#endif  /* __COM_FILTERNODE_H__ */

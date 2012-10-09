@@ -34,7 +34,7 @@
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
-#endif // WIN32
+#endif  /* WIN32 */
 
 #include "SCA_IInputDevice.h"
 
@@ -102,5 +102,4 @@ protected:
 	virtual bool ConvertEvent(KX_EnumInputs kxevent, int eventval);
 };
 
-#endif  // __GPC_MOUSEDEVICE_H__
-
+#endif  /* __GPC_MOUSEDEVICE_H__ */

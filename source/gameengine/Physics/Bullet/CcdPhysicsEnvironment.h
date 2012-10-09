@@ -183,7 +183,7 @@ protected:
 		{
 			return 0;
 		}
-#endif //NEW_BULLET_VEHICLE_SUPPORT
+#endif  /* NEW_BULLET_VEHICLE_SUPPORT */
 
 		btTypedConstraint*	getConstraintById(int constraintId);
 
@@ -297,4 +297,4 @@ protected:
 #endif
 };
 
-#endif //__CCDPHYSICSENVIRONMENT_H__
+#endif  /* __CCDPHYSICSENVIRONMENT_H__ */

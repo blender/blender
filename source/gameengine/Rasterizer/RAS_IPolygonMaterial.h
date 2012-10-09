@@ -202,5 +202,4 @@ inline  bool operator < ( const RAS_IPolyMaterial & lhs, const RAS_IPolyMaterial
 	return lhs.Less(rhs);
 }
 
-#endif //__RAS_IPOLYGONMATERIAL_H__
-
+#endif  /* __RAS_IPOLYGONMATERIAL_H__ */

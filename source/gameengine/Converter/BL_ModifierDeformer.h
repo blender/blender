@@ -34,7 +34,7 @@
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 #pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
+#endif  /* WIN32 */
 
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
@@ -111,5 +111,4 @@ protected:
 #endif
 };
 
-#endif
-
+#endif  /* __BL_MODIFIERDEFORMER_H__ */

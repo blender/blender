@@ -177,5 +177,4 @@ public:
 #endif
 };
 
-#endif //__RAS_MESHOBJECT_H__
-
+#endif  /* __RAS_MESHOBJECT_H__ */

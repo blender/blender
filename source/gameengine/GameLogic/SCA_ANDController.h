@@ -48,5 +48,4 @@ public:
 	virtual void Trigger(SCA_LogicManager* logicmgr);
 };
 
-#endif //__SCA_ANDCONTROLLER_H__
-
+#endif  /* __SCA_ANDCONTROLLER_H__ */

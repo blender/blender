@@ -38,7 +38,7 @@
 #ifdef WIN32
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 	#include <windows.h>
-#endif // WIN32
+#endif  /* WIN32 */
 
 #include "GL/glew.h"
 
@@ -273,5 +273,4 @@ protected:
 	static TBannerId s_bannerId;
 };
 
-#endif // __GPC_CANVAS_H__
-
+#endif  /* __GPC_CANVAS_H__ */

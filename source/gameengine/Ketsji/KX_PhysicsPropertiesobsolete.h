@@ -58,5 +58,4 @@ struct KX_MaterialProps {
 	bool      m_fh_normal;             // Should the object slide off slopes?
 };
 
-#endif //__KX_PHYSICSPROPERTIESOBSOLETE_H__
-
+#endif  /* __KX_PHYSICSPROPERTIESOBSOLETE_H__ */

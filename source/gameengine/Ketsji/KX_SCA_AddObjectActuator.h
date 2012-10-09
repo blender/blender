@@ -126,9 +126,8 @@ public:
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject *pyattr_get_objectLastCreated(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 }; /* end of class KX_SCA_AddObjectActuator : public KX_EditObjectActuator */
 
-#endif
-
+#endif  /* __KX_SCA_ADDOBJECTACTUATOR_H__ */

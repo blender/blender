@@ -102,5 +102,4 @@ public:
 #endif
 };
 
-#endif // __KX_LIGHTIPOSGCONTROLLER_H__
-
+#endif  /* __KX_LIGHTIPOSGCONTROLLER_H__ */

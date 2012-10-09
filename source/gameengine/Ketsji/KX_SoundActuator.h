@@ -122,9 +122,8 @@ public:
 	static PyObject *pyattr_get_type(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject *pyattr_get_sound(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 };
 
-#endif //__KX_SOUNDACTUATOR_H__
-
+#endif  /* __KX_SOUNDACTUATOR_H__ */

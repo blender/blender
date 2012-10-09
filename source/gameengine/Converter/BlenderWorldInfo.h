@@ -104,5 +104,4 @@ public:
 #endif
 };
 
-#endif //__BLENDERWORLDINFO_H__
-
+#endif  /* __BLENDERWORLDINFO_H__ */

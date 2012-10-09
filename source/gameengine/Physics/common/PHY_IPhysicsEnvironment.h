@@ -185,5 +185,4 @@ class PHY_IPhysicsEnvironment
 #endif
 };
 
-#endif //__PHY_IPHYSICSENVIRONMENT_H__
-
+#endif  /* __PHY_IPHYSICSENVIRONMENT_H__ */

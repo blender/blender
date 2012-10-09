@@ -93,5 +93,4 @@ public:
 #endif
 };
 
-#endif //__KX_ISCENECONVERTER_H__
-
+#endif  /* __KX_ISCENECONVERTER_H__ */

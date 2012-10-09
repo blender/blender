@@ -51,4 +51,4 @@ int NewBooleanMesh(struct Scene *scene, struct Base *base, struct Base *base_sel
 struct DerivedMesh *NewBooleanDerivedMesh(struct DerivedMesh *dm, struct Object *ob,
                                           struct DerivedMesh *dm_select, struct Object *ob_select, int int_op_type);
 
-#endif // MOD_BOOLEAN_UTILS
+#endif  /* MOD_BOOLEAN_UTILS */

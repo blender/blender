@@ -201,5 +201,4 @@ private:
 #endif
 };
 
-#endif // __KX_BLENDERCANVAS_H__
-
+#endif  /* __KX_BLENDERCANVAS_H__ */

@@ -29,4 +29,4 @@
 
 PyObject *BPY_app_handlers_struct(void);
 
-#endif // __BPY_APP_HANDLERS_H__
+#endif /* __BPY_APP_HANDLERS_H__ */

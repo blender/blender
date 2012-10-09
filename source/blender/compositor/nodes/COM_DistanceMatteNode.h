@@ -34,4 +34,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // COM_DistanceMatteNODE_H
+#endif  /* COM_DistanceMatteNODE_H */
