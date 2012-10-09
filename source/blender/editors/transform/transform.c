@@ -1617,9 +1617,11 @@ static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, vo
 	Object *ob = OBACT;
 	
 	/* draw autokeyframing hint in the corner */
-	if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
-		drawAutoKeyWarning(t, ar);
-	}	
+	if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
+		if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
+			drawAutoKeyWarning(t, ar);
+		}
+	}
 }
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
