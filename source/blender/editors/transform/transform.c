@@ -1569,8 +1569,8 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *ar)
 {
 	int show_warning;
 	
-	/* red border around the viewport */
-	UI_ThemeColor(TH_REDALERT);
+	/* colored border around the viewport */
+	UI_ThemeColor(TH_VERTEX_SELECT);
 	
 	glBegin(GL_LINE_LOOP);
 		glVertex2f(1,          1);
@@ -1596,8 +1596,10 @@ static void drawAutoKeyWarning(TransInfo *t, ARegion *ar)
 		xco = ar->winx - BLF_width_default(printable)  - 10;
 		yco = ar->winy - BLF_height_default(printable) - 10;
 		
-		/* red warning text */
-		UI_ThemeColor(TH_REDALERT);
+		/* warning text (to clarify meaning of overlays)
+		 * - original color was red to match the icon, but that clashes badly with a less nasty border
+		 */
+		UI_ThemeColor(TH_VERTEX_SELECT);
 		BLF_draw_default_ascii(xco, ar->winy - 17, 0.0f, printable, sizeof(printable));
 		
 		/* autokey recording icon... */
