@@ -814,7 +814,8 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "weight_softbody", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.01f, 100.0f);
 	RNA_def_property_ui_text(prop, "Weight", "Softbody goal weight");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
