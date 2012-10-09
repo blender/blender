@@ -60,6 +60,7 @@ public:
 
 	bool join()
 	{
+		joined = true;
 		return pthread_join(pthread_id, NULL) == 0;
 	}
 
