@@ -989,13 +989,13 @@ Types
 
       :type: :class:`KX_GameObject` or None
 	  
-   .. attribute:: members
+   .. attribute:: group_children
 
       Returns the list of group members if the object is a group object, otherwise None is returned.
 
       :type: :class:`CListValue` of :class:`KX_GameObject` or None
 
-   .. attribute:: group
+   .. attribute:: group_parent
 
       Returns the group object that the object belongs to or None if the object is not part of a group.
 

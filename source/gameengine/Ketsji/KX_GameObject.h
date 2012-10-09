@@ -978,8 +978,8 @@ public:
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
-	static PyObject*	pyattr_get_dupli_group_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static PyObject*	pyattr_get_instance_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_group_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_group_children(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_scene(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 
 	static PyObject*	pyattr_get_life(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
