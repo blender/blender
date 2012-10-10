@@ -2178,111 +2178,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "my", 0, 0, INT_MAX, "Zoom Position Y", "", 0, INT_MAX);
 }
 
-
-
-static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
-{
-	ARegion *ar = CTX_wm_region(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	Scene *scene = CTX_data_scene(C);
-	Base *base;
-	float *curs;
-	const short skip_camera = ED_view3d_camera_lock_check(v3d, rv3d);
-
-	int center = RNA_boolean_get(op->ptr, "center");
-
-	float size, min[3], max[3], afm[3];
-	int ok = 1, onedone = FALSE;
-
-	if (center) {
-		/* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
-		curs = give_cursor(scene, v3d);
-		zero_v3(min);
-		zero_v3(max);
-		zero_v3(curs);
-	}
-	else {
-		INIT_MINMAX(min, max);
-	}
-
-	for (base = scene->base.first; base; base = base->next) {
-		if (BASE_VISIBLE(v3d, base)) {
-			onedone = TRUE;
-
-			if (skip_camera && base->object == v3d->camera) {
-				continue;
-			}
-
-			BKE_object_minmax(base->object, min, max, FALSE);
-		}
-	}
-	if (!onedone) {
-		ED_region_tag_redraw(ar);
-		/* TODO - should this be cancel?
-		 * I think no, because we always move the cursor, with or without
-		 * object, but in this case there is no change in the scene,
-		 * only the cursor so I choice a ED_region_tag like
-		 * view3d_smooth_view do for the center_cursor.
-		 * See bug #22640
-		 */
-		return OPERATOR_FINISHED;
-	}
-
-	sub_v3_v3v3(afm, max, min);
-	size = 0.7f * MAX3(afm[0], afm[1], afm[2]);
-	if (size == 0.0f) ok = 0;
-
-	if (ok) {
-		float new_dist;
-		float new_ofs[3];
-
-		new_dist = size;
-		new_ofs[0] = -(min[0] + max[0]) / 2.0f;
-		new_ofs[1] = -(min[1] + max[1]) / 2.0f;
-		new_ofs[2] = -(min[2] + max[2]) / 2.0f;
-
-		/* correction for window aspect ratio */
-		if (ar->winy > 2 && ar->winx > 2) {
-			size = (float)ar->winx / (float)ar->winy;
-			if (size < 1.0f) size = 1.0f / size;
-			new_dist *= size;
-		}
-
-		if ((rv3d->persp == RV3D_CAMOB) && !ED_view3d_camera_lock_check(v3d, rv3d)) {
-			rv3d->persp = RV3D_PERSP;
-			view3d_smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
-		}
-		else {
-			view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
-		}
-	}
-// XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
-
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-
-	return OPERATOR_FINISHED;
-}
-
-
-void VIEW3D_OT_view_all(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "View All";
-	ot->description = "View all objects in scene";
-	ot->idname = "VIEW3D_OT_view_all";
-
-	/* api callbacks */
-	ot->exec = view3d_all_exec;
-	ot->poll = ED_operator_region_view3d_active;
-
-	/* flags */
-	ot->flag = 0;
-
-	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
-}
-
-static void viewselected_rv3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
+static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
                                           const float min[3], const float max[3],
                                           int ok_dist)
 {
@@ -2339,6 +2235,110 @@ static void viewselected_rv3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 	}
 
 	/* smooth view does viewlock RV3D_BOXVIEW copy */
+}
+
+/* same as view3d_from_minmax but for all regions (except cameras) */
+static void view3d_from_minmax_multi(bContext *C, View3D *v3d,
+                                     const float min[3], const float max[3],
+                                     const int ok_dist)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar;
+	for (ar = sa->regionbase.first; ar; ar = ar->next) {
+		if (ar->regiontype == RGN_TYPE_WINDOW) {
+			RegionView3D *rv3d = ar->regiondata;
+			/* when using all regions, don't jump out of camera view,
+			 * but _do_ allow locked cameras to be moved */
+			if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d)) {
+				view3d_from_minmax(C, v3d, ar, min, max, ok_dist);
+			}
+		}
+	}
+}
+
+static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.4x */
+{
+	ARegion *ar = CTX_wm_region(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	Scene *scene = CTX_data_scene(C);
+	Base *base;
+	float *curs;
+	const short skip_camera = ED_view3d_camera_lock_check(v3d, rv3d);
+	const short use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
+	int center = RNA_boolean_get(op->ptr, "center");
+
+	float min[3], max[3];
+	int ok = 1, onedone = FALSE;
+
+	if (center) {
+		/* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
+		curs = give_cursor(scene, v3d);
+		zero_v3(min);
+		zero_v3(max);
+		zero_v3(curs);
+	}
+	else {
+		INIT_MINMAX(min, max);
+	}
+
+	for (base = scene->base.first; base; base = base->next) {
+		if (BASE_VISIBLE(v3d, base)) {
+			onedone = TRUE;
+
+			if (skip_camera && base->object == v3d->camera) {
+				continue;
+			}
+
+			BKE_object_minmax(base->object, min, max, FALSE);
+		}
+	}
+	if (!onedone) {
+		ED_region_tag_redraw(ar);
+		/* TODO - should this be cancel?
+		 * I think no, because we always move the cursor, with or without
+		 * object, but in this case there is no change in the scene,
+		 * only the cursor so I choice a ED_region_tag like
+		 * view3d_smooth_view do for the center_cursor.
+		 * See bug #22640
+		 */
+		return OPERATOR_FINISHED;
+	}
+
+	if (ok == 0) {
+		return OPERATOR_FINISHED;
+	}
+
+	if (use_all_regions) {
+		view3d_from_minmax_multi(C, v3d, min, max, TRUE);
+	}
+	else {
+		view3d_from_minmax(C, v3d, ar, min, max, TRUE);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+
+void VIEW3D_OT_view_all(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "View All";
+	ot->description = "View all objects in scene";
+	ot->idname = "VIEW3D_OT_view_all";
+
+	/* api callbacks */
+	ot->exec = view3d_all_exec;
+	ot->poll = ED_operator_region_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+
+	prop = RNA_def_boolean(ot->srna, "use_all_regions", 0, "All Regions", "View selected for all regions");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
 /* like a localview without local!, was centerview() in 2.4x */
@@ -2428,22 +2428,12 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	}
 
 	if (use_all_regions) {
-		ScrArea *sa = CTX_wm_area(C);
-		ARegion *ar_iter;
-		for (ar_iter = sa->regionbase.first; ar_iter; ar_iter = ar_iter->next) {
-			if (ar_iter->regiontype == RGN_TYPE_WINDOW) {
-				RegionView3D *rv3d = ar_iter->regiondata;
-				/* when using all regions, don't jump out of camera view */
-				if (rv3d->persp != RV3D_CAMOB) {
-					viewselected_rv3d_from_minmax(C, v3d, ar_iter, min, max, ok_dist);
-				}
-			}
-		}
+		view3d_from_minmax_multi(C, v3d, min, max, ok_dist);
 	}
 	else {
-		viewselected_rv3d_from_minmax(C, v3d, ar, min, max, ok_dist);
+		view3d_from_minmax(C, v3d, ar, min, max, ok_dist);
 	}
-	
+
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
 	return OPERATOR_FINISHED;
