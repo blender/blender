@@ -296,11 +296,12 @@ char *BLI_strcasestr(const char *s, const char *find)
 
 int BLI_strcasecmp(const char *s1, const char *s2)
 {
-	int i;
+	register int i;
+	register char c1, c2;
 
 	for (i = 0;; i++) {
-		char c1 = tolower(s1[i]);
-		char c2 = tolower(s2[i]);
+		c1 = tolower(s1[i]);
+		c2 = tolower(s2[i]);
 
 		if (c1 < c2) {
 			return -1;
@@ -318,11 +319,12 @@ int BLI_strcasecmp(const char *s1, const char *s2)
 
 int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 {
-	int i;
+	register size_t i;
+	register char c1, c2;
 
 	for (i = 0; i < len; i++) {
-		char c1 = tolower(s1[i]);
-		char c2 = tolower(s2[i]);
+		c1 = tolower(s1[i]);
+		c2 = tolower(s2[i]);
 
 		if (c1 < c2) {
 			return -1;
@@ -341,15 +343,16 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 /* natural string compare, keeping numbers in order */
 int BLI_natstrcmp(const char *s1, const char *s2)
 {
-	int d1 = 0, d2 = 0;
+	register int d1 = 0, d2 = 0;
+	register char c1, c2;
 
 	/* if both chars are numeric, to a strtol().
 	 * then increase string deltas as long they are 
 	 * numeric, else do a tolower and char compare */
 
 	while (1) {
-		char c1 = tolower(s1[d1]);
-		char c2 = tolower(s2[d2]);
+		c1 = tolower(s1[d1]);
+		c2 = tolower(s2[d2]);
 		
 		if (isdigit(c1) && isdigit(c2) ) {
 			int val1, val2;
@@ -419,18 +422,18 @@ size_t BLI_strnlen(const char *str, size_t maxlen)
 	return end ? (size_t) (end - str) : maxlen;
 }
 
-void BLI_ascii_strtolower(char *str, int len)
+void BLI_ascii_strtolower(char *str, const size_t len)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; i < len; i++)
 		if (str[i] >= 'A' && str[i] <= 'Z')
 			str[i] += 'a' - 'A';
 }
 
-void BLI_ascii_strtoupper(char *str, int len)
+void BLI_ascii_strtoupper(char *str, const size_t len)
 {
-	int i;
+	size_t i;
 
 	for (i = 0; i < len; i++)
 		if (str[i] >= 'a' && str[i] <= 'z')
