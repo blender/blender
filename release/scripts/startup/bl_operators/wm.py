@@ -1668,7 +1668,7 @@ class WM_OT_theme_install(Operator):
 class WM_OT_addon_install(Operator):
     "Install an addon"
     bl_idname = "wm.addon_install"
-    bl_label = "Install Addon..."
+    bl_label = "Install from File..."
 
     overwrite = BoolProperty(
             name="Overwrite",
