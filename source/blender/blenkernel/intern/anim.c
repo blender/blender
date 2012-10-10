@@ -1678,8 +1678,8 @@ ListBase *object_duplilist_ex(Scene *sce, Object *ob, int update, int for_render
 	ListBase *duplilist = MEM_mallocN(sizeof(ListBase), "duplilist");
 	int flag = 0;
 
-	if(update) flag |= DUPLILIST_DO_UPDATE;
-	if(for_render) flag |= DUPLILIST_FOR_RENDER;
+	if (update)     flag |= DUPLILIST_DO_UPDATE;
+	if (for_render) flag |= DUPLILIST_FOR_RENDER;
 
 	duplilist->first = duplilist->last = NULL;
 	object_duplilist_recursive((ID *)sce, sce, ob, duplilist, NULL, 0, 0, flag);

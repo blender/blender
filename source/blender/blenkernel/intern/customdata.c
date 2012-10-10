@@ -2358,7 +2358,9 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
 	const LayerTypeInfo *typeInfo;
 	int i;
 
-	if (!*block) return;
+	if (*block == NULL)
+		return;
+
 	for (i = 0; i < data->totlayer; ++i) {
 		if (!(data->layers[i].flag & CD_FLAG_NOFREE)) {
 			typeInfo = layerType_getInfo(data->layers[i].type);
@@ -2394,7 +2396,7 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 	const LayerTypeInfo *typeInfo;
 	int dest_i, src_i;
 
-	if (!*dest_block) {
+	if (*dest_block == NULL) {
 		CustomData_bmesh_alloc_block(dest, dest_block);
 		if (*dest_block)
 			memset(*dest_block, 0, dest->totsize);
@@ -2614,7 +2616,7 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
 	const LayerTypeInfo *typeInfo;
 	int i;
 
-	if (!*block)
+	if (*block == NULL)
 		CustomData_bmesh_alloc_block(data, block);
 
 	for (i = 0; i < data->totlayer; ++i) {
@@ -2634,7 +2636,7 @@ void CustomData_to_bmesh_block(const CustomData *source, CustomData *dest,
 	const LayerTypeInfo *typeInfo;
 	int dest_i, src_i, src_offset;
 
-	if (!*dest_block)
+	if (*dest_block == NULL)
 		CustomData_bmesh_alloc_block(dest, dest_block);
 	
 	/* copies a layer at a time */

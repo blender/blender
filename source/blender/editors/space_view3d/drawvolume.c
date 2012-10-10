@@ -133,7 +133,7 @@ static int intersect_edges(float *points, float a, float b, float c, float d, fl
 	int i;
 	float t;
 	int numpoints = 0;
-	
+
 	for (i = 0; i < 12; i++) {
 		t = -(a * edges[i][0][0] + b * edges[i][0][1] + c * edges[i][0][2] + d) /
 		     (a * edges[i][1][0] + b * edges[i][1][1] + c * edges[i][1][2]);
@@ -280,21 +280,22 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	#define FIRE_THRESH 7
 	#define MAX_FIRE_ALPHA 0.06f
 	#define FULL_ON_FIRE 100
-	spec_data = malloc(SPEC_WIDTH*4 * sizeof(unsigned char));
+	spec_data = malloc(SPEC_WIDTH * 4 * sizeof(unsigned char));
 	flame_get_spectrum(spec_data, SPEC_WIDTH, 1500, 3000);
-	spec_pixels = malloc(SPEC_WIDTH*4*16*16 * sizeof(float));
-	for (i=0;i<16;i++){
-		for (j=0;j<16;j++) {
-			for (k=0;k<SPEC_WIDTH;k++) {
-				int index = (j*SPEC_WIDTH*16+i*SPEC_WIDTH+k)*4;
-				if (k>=FIRE_THRESH) {
-					spec_pixels[index] = ((float)spec_data[k*4])/255.0f;
-					spec_pixels[index+1] = ((float)spec_data[k*4+1])/255.0f;
-					spec_pixels[index+2] = ((float)spec_data[k*4+2])/255.0f;
-					spec_pixels[index+3] = MAX_FIRE_ALPHA*(
-					(k>FULL_ON_FIRE) ? 1.0f : (k-FIRE_THRESH)/((float)FULL_ON_FIRE-FIRE_THRESH));
-				} else {
-					spec_pixels[index] = spec_pixels[index+1] = spec_pixels[index+2] = spec_pixels[index+3] = 0.0f;
+	spec_pixels = malloc(SPEC_WIDTH * 4 * 16 * 16 * sizeof(float));
+	for (i = 0; i < 16; i++) {
+		for (j = 0; j < 16; j++) {
+			for (k = 0; k < SPEC_WIDTH; k++) {
+				int index = (j * SPEC_WIDTH * 16 + i * SPEC_WIDTH + k) * 4;
+				if (k >= FIRE_THRESH) {
+					spec_pixels[index] = ((float)spec_data[k * 4]) / 255.0f;
+					spec_pixels[index + 1] = ((float)spec_data[k * 4 + 1]) / 255.0f;
+					spec_pixels[index + 2] = ((float)spec_data[k * 4 + 2]) / 255.0f;
+					spec_pixels[index + 3] = MAX_FIRE_ALPHA * (
+					        (k > FULL_ON_FIRE) ? 1.0f : (k - FIRE_THRESH) / ((float)FULL_ON_FIRE - FIRE_THRESH));
+				}
+				else {
+					spec_pixels[index] = spec_pixels[index + 1] = spec_pixels[index + 2] = spec_pixels[index + 3] = 0.0f;
 				}
 			}
 		}
@@ -372,7 +373,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	edges[11][1][0] = size[0];
 
 	glGetBooleanv(GL_BLEND, (GLboolean *)&gl_blend);
-	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);	
+	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);
 
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
@@ -382,9 +383,9 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	for (i = 0; i < 8; i++) {
 		float x, y, z;
 
-		x = cv[i][0] - viewnormal[0]*size[0]*0.5f;
-		y = cv[i][1] - viewnormal[1]*size[1]*0.5f;
-		z = cv[i][2] - viewnormal[2]*size[2]*0.5f;
+		x = cv[i][0] - viewnormal[0] * size[0] * 0.5f;
+		y = cv[i][1] - viewnormal[1] * size[1] * 0.5f;
+		z = cv[i][2] - viewnormal[2] * size[2] * 0.5f;
 
 		if ((x >= min[0]) && (x <= max[0]) &&
 		    (y >= min[1]) && (y <= max[1]) &&
@@ -448,7 +449,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	/* d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]); */ /* UNUSED */
 	ds = (ABS(viewnormal[0]) * size[0] + ABS(viewnormal[1]) * size[1] + ABS(viewnormal[2]) * size[2]);
-	dd = MAX3(sds->global_size[0],sds->global_size[1],sds->global_size[2])/128.f;
+	dd = MAX3(sds->global_size[0], sds->global_size[1], sds->global_size[2]) / 128.f;
 	n = 0;
 	good_index = i;
 
@@ -500,7 +501,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 				glTexCoord3d((points[i * 3 + 0] - min[0]) * cor[0] / size[0],
 				             (points[i * 3 + 1] - min[1]) * cor[1] / size[1],
 				             (points[i * 3 + 2] - min[2]) * cor[2] / size[2]);
-				glVertex3f(points[i * 3 + 0]/ob->size[0], points[i * 3 + 1]/ob->size[1], points[i * 3 + 2]/ob->size[2]);
+				glVertex3f(points[i * 3 + 0] / ob->size[0], points[i * 3 + 1] / ob->size[1], points[i * 3 + 2] / ob->size[2]);
 			}
 			glEnd();
 
@@ -513,7 +514,7 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 				glTexCoord3d((points[i * 3 + 0] - min[0]) * cor[0] / size[0],
 				             (points[i * 3 + 1] - min[1]) * cor[1] / size[1],
 				             (points[i * 3 + 2] - min[2]) * cor[2] / size[2]);
-				glVertex3f(points[i * 3 + 0]/ob->size[0], points[i * 3 + 1]/ob->size[1], points[i * 3 + 2]/ob->size[2]);
+				glVertex3f(points[i * 3 + 0] / ob->size[0], points[i * 3 + 1] / ob->size[1], points[i * 3 + 2] / ob->size[2]);
 			}
 			glEnd();
 		}
@@ -549,15 +550,15 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 
 	if (gl_depth) {
 		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);	
+		glDepthMask(GL_TRUE);
 	}
 }
 
 #ifdef SMOKE_DEBUG_VELOCITY
 void draw_smoke_velocity(SmokeDomainSettings *domain, Object *ob)
 {
-	float x,y,z;
-	float x0,y0,z0;
+	float x, y, z;
+	float x0, y0, z0;
 	int *base_res = domain->base_res;
 	int *res = domain->res;
 	int *res_min = domain->res_min;
@@ -568,27 +569,27 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, Object *ob)
 
 	float min[3];
 	float *cell_size = domain->cell_size;
-	float step_size = ((float)MAX3(base_res[0], base_res[1], base_res[2]))/16.f;
+	float step_size = ((float)MAX3(base_res[0], base_res[1], base_res[2])) / 16.f;
 	float vf = domain->scale / 16.f * 2.f; /* velocity factor */
 
 	glLineWidth(1.0f);
 
 	/* set first position so that it doesn't jump when domain moves */
-	x0 = res_min[0] + fmod(-(float)domain->shift[0]+res_min[0],step_size);
-	y0 = res_min[1] + fmod(-(float)domain->shift[1]+res_min[1],step_size);
-	z0 = res_min[2] + fmod(-(float)domain->shift[2]+res_min[2],step_size);
-	if (x0<res_min[0]) x0+=step_size;
-	if (y0<res_min[1]) y0+=step_size;
-	if (z0<res_min[2]) z0+=step_size;
+	x0 = res_min[0] + fmod(-(float)domain->shift[0] + res_min[0], step_size);
+	y0 = res_min[1] + fmod(-(float)domain->shift[1] + res_min[1], step_size);
+	z0 = res_min[2] + fmod(-(float)domain->shift[2] + res_min[2], step_size);
+	if (x0 < res_min[0]) x0 += step_size;
+	if (y0 < res_min[1]) y0 += step_size;
+	if (z0 < res_min[2]) z0 += step_size;
 	add_v3_v3v3(min, domain->p0, domain->obj_shift_f);
 
-	for (x=floor(x0); x<res_max[0]; x+=step_size)
-		for (y=floor(y0); y<res_max[1]; y+=step_size)
-			for (z=floor(z0); z<res_max[2]; z+=step_size) {
-				int index = (floor(x)-res_min[0]) + (floor(y)-res_min[1])*res[0] + (floor(z)-res_min[2])*res[0]*res[1];
+	for (x = floor(x0); x < res_max[0]; x += step_size)
+		for (y = floor(y0); y < res_max[1]; y += step_size)
+			for (z = floor(z0); z < res_max[2]; z += step_size) {
+				int index = (floor(x) - res_min[0]) + (floor(y) - res_min[1]) * res[0] + (floor(z) - res_min[2]) * res[0] * res[1];
 
-				float pos[3] = {min[0]+((float)x + 0.5f)*cell_size[0], min[1]+((float)y + 0.5f)*cell_size[1], min[2]+((float)z + 0.5f)*cell_size[2]};
-				float vel = sqrtf(vel_x[index]*vel_x[index] + vel_y[index]*vel_y[index] + vel_z[index]*vel_z[index]);
+				float pos[3] = {min[0] + ((float)x + 0.5f) * cell_size[0], min[1] + ((float)y + 0.5f) * cell_size[1], min[2] + ((float)z + 0.5f) * cell_size[2]};
+				float vel = sqrtf(vel_x[index] * vel_x[index] + vel_y[index] * vel_y[index] + vel_z[index] * vel_z[index]);
 
 				/* draw heat as scaled "arrows" */
 				if (vel >= 0.01f) {
@@ -599,21 +600,21 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, Object *ob)
 
 					glBegin(GL_LINES);
 					glVertex3f(pos[0], pos[1], pos[2]);
-					glVertex3f(pos[0]+vel_x[index]*vf, pos[1]+vel_y[index]*vf, pos[2]+vel_z[index]*vf);
+					glVertex3f(pos[0] + vel_x[index] * vf, pos[1] + vel_y[index] * vf, pos[2] + vel_z[index] * vf);
 					glEnd();
 					glBegin(GL_POINTS);
-					glVertex3f(pos[0]+vel_x[index]*vf, pos[1]+vel_y[index]*vf, pos[2]+vel_z[index]*vf);
+					glVertex3f(pos[0] + vel_x[index] * vf, pos[1] + vel_y[index] * vf, pos[2] + vel_z[index] * vf);
 					glEnd();
 				}
-	}
+			}
 }
 #endif
 
 #ifdef SMOKE_DEBUG_HEAT
 void draw_smoke_heat(SmokeDomainSettings *domain, Object *ob)
 {
-	float x,y,z;
-	float x0,y0,z0;
+	float x, y, z;
+	float x0, y0, z0;
 	int *base_res = domain->base_res;
 	int *res = domain->res;
 	int *res_min = domain->res_min;
@@ -622,24 +623,24 @@ void draw_smoke_heat(SmokeDomainSettings *domain, Object *ob)
 
 	float min[3];
 	float *cell_size = domain->cell_size;
-	float step_size = ((float)MAX3(base_res[0], base_res[1], base_res[2]))/16.f;
+	float step_size = ((float)MAX3(base_res[0], base_res[1], base_res[2])) / 16.f;
 	float vf = domain->scale / 16.f * 2.f; /* velocity factor */
 
 	/* set first position so that it doesn't jump when domain moves */
-	x0 = res_min[0] + fmod(-(float)domain->shift[0]+res_min[0],step_size);
-	y0 = res_min[1] + fmod(-(float)domain->shift[1]+res_min[1],step_size);
-	z0 = res_min[2] + fmod(-(float)domain->shift[2]+res_min[2],step_size);
-	if (x0<res_min[0]) x0+=step_size;
-	if (y0<res_min[1]) y0+=step_size;
-	if (z0<res_min[2]) z0+=step_size;
+	x0 = res_min[0] + fmod(-(float)domain->shift[0] + res_min[0], step_size);
+	y0 = res_min[1] + fmod(-(float)domain->shift[1] + res_min[1], step_size);
+	z0 = res_min[2] + fmod(-(float)domain->shift[2] + res_min[2], step_size);
+	if (x0 < res_min[0]) x0 += step_size;
+	if (y0 < res_min[1]) y0 += step_size;
+	if (z0 < res_min[2]) z0 += step_size;
 	add_v3_v3v3(min, domain->p0, domain->obj_shift_f);
 
-	for (x=floor(x0); x<res_max[0]; x+=step_size)
-		for (y=floor(y0); y<res_max[1]; y+=step_size)
-			for (z=floor(z0); z<res_max[2]; z+=step_size) {
-				int index = (floor(x)-res_min[0]) + (floor(y)-res_min[1])*res[0] + (floor(z)-res_min[2])*res[0]*res[1];
+	for (x = floor(x0); x < res_max[0]; x += step_size)
+		for (y = floor(y0); y < res_max[1]; y += step_size)
+			for (z = floor(z0); z < res_max[2]; z += step_size) {
+				int index = (floor(x) - res_min[0]) + (floor(y) - res_min[1]) * res[0] + (floor(z) - res_min[2]) * res[0] * res[1];
 
-				float pos[3] = {min[0]+((float)x + 0.5f)*cell_size[0], min[1]+((float)y + 0.5f)*cell_size[1], min[2]+((float)z + 0.5f)*cell_size[2]};
+				float pos[3] = {min[0] + ((float)x + 0.5f) * cell_size[0], min[1] + ((float)y + 0.5f) * cell_size[1], min[2] + ((float)z + 0.5f) * cell_size[2]};
 
 				/* draw heat as different sized points */
 				if (heat[index] >= 0.01f) {
@@ -652,6 +653,6 @@ void draw_smoke_heat(SmokeDomainSettings *domain, Object *ob)
 					glVertex3f(pos[0], pos[1], pos[2]);
 					glEnd();
 				}
-	}
+			}
 }
 #endif

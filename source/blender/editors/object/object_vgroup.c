@@ -533,7 +533,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 			}
 
 			/* loop through the vertices*/
-			for(i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, dv_src++, mv_src++, mv_dst++) {
+			for (i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, dv_src++, mv_src++, mv_dst++) {
 
 				if (*dv_dst == NULL) {
 					continue;
@@ -553,7 +553,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 			bvhtree_from_mesh_verts(&tree_mesh_vertices_src, dmesh_src, FLT_EPSILON, 2, 6);
 
 			/* loop trough vertices */
-			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++){
+			for (i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
 
 				if (*dv_dst == NULL) {
 					continue;
@@ -592,7 +592,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, FLT_EPSILON, 2, 6);
 
 			/* loop through the vertices */
-			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
+			for (i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
 
 				if (*dv_dst == NULL) {
 					continue;
@@ -652,7 +652,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, FLT_EPSILON, 2, 6);
 
 			/* loop through the vertices */
-			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++){
+			for (i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
 
 				if (*dv_dst == NULL) {
 					continue;

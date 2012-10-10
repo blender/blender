@@ -73,9 +73,9 @@ static int surface_slot_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* set preview for this surface only and set active */
 	canvas->active_sur = 0;
-	for (surface=surface->prev; surface; surface=surface->prev) {
-				surface->flags &= ~MOD_DPAINT_PREVIEW;
-				canvas->active_sur++;
+	for (surface = surface->prev; surface; surface = surface->prev) {
+		surface->flags &= ~MOD_DPAINT_PREVIEW;
+		canvas->active_sur++;
 	}
 
 	return OPERATOR_FINISHED;
@@ -94,26 +94,26 @@ void DPAINT_OT_surface_slot_add(wmOperatorType *ot)
 	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	DynamicPaintModifierData *pmd = NULL;
-	Object *cObject = ED_object_context(C);
+	Object *obj_ctx = ED_object_context(C);
 	DynamicPaintCanvasSettings *canvas;
 	DynamicPaintSurface *surface;
-	int id=0;
+	int id = 0;
 
 	/* Make sure we're dealing with a canvas */
-	pmd = (DynamicPaintModifierData *)modifiers_findByType(cObject, eModifierType_DynamicPaint);
+	pmd = (DynamicPaintModifierData *)modifiers_findByType(obj_ctx, eModifierType_DynamicPaint);
 	if (!pmd || !pmd->canvas) return OPERATOR_CANCELLED;
 
 	canvas = pmd->canvas;
 	surface = canvas->surfaces.first;
 
 	/* find active surface and remove it */
-	for (; surface; surface=surface->next) {
+	for (; surface; surface = surface->next) {
 		if (id == canvas->active_sur) {
 				canvas->active_sur -= 1;
 				dynamicPaint_freeSurface(surface);
@@ -123,8 +123,8 @@ static int surface_slot_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	dynamicPaint_resetPreview(canvas);
-	DAG_id_tag_update(&cObject->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, cObject);
+	DAG_id_tag_update(&obj_ctx->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, obj_ctx);
 
 	return OPERATOR_FINISHED;
 }
@@ -142,7 +142,7 @@ void DPAINT_OT_surface_slot_remove(wmOperatorType *ot)
 	ot->poll = ED_operator_object_active_editable;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static int type_toggle_exec(bContext *C, wmOperator *op)
@@ -151,7 +151,7 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
 	Object *cObject = ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(cObject, eModifierType_DynamicPaint);
-	int type= RNA_enum_get(op->ptr, "type");
+	int type = RNA_enum_get(op->ptr, "type");
 
 	if (!pmd) return OPERATOR_CANCELLED;
 
@@ -170,7 +170,7 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
 	
 	/* update dependency */
 	DAG_id_tag_update(&cObject->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, cObject);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, cObject);
 	DAG_scene_sort(CTX_data_main(C), scene);
 
 	return OPERATOR_FINISHED;
@@ -190,10 +190,10 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", prop_dynamicpaint_type_items, MOD_DYNAMICPAINT_TYPE_CANVAS, "Type", "");
+	prop = RNA_def_enum(ot->srna, "type", prop_dynamicpaint_type_items, MOD_DYNAMICPAINT_TYPE_CANVAS, "Type", "");
 	ot->prop = prop;
 }
 
@@ -203,7 +203,7 @@ static int output_toggle_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	DynamicPaintSurface *surface;
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
-	int output= RNA_enum_get(op->ptr, "output"); /* currently only 1/0 */
+	int output = RNA_enum_get(op->ptr, "output");  /* currently only 1/0 */
 
 	if (!pmd || !pmd->canvas) return OPERATOR_CANCELLED;
 	surface = get_activeSurface(pmd->canvas);
@@ -258,7 +258,7 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 	ot->poll = ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "output", prop_output_toggle_types, 0, "Output Toggle", "");
@@ -274,7 +274,7 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surface, Object *cObject)
 {
 	DynamicPaintCanvasSettings *canvas = surface->canvas;
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	wmWindow *win = CTX_wm_window(C);
 	int frame = 1;
 	int frames;
@@ -291,7 +291,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 	if (!dynamicPaint_createUVSurface(surface)) return 0;
 
 	/* Loop through selected frames */
-	for (frame=surface->start_frame; frame<=surface->end_frame; frame++) {
+	for (frame = surface->start_frame; frame <= surface->end_frame; frame++) {
 		float progress = (frame - surface->start_frame) / (float)frames * 100;
 		surface->current_frame = frame;
 

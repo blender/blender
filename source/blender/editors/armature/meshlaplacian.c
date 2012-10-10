@@ -1221,7 +1221,7 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 	else
 		normal_quad_v3(no, face[0], face[1], face[2], face[3]);
 	
-	dist = len_v3v3(ray->origin, co)/len_v3(isec->vec);
+	dist = len_v3v3(ray->origin, co) / len_v3(isec->vec);
 	if (dist < hit->dist) {
 		hit->index = index;
 		hit->dist = dist;
@@ -1257,7 +1257,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
 	                         0.0, &hit, harmonic_ray_callback, data) != -1)
 	{
- 		len= isect_mdef.labda;
+ 		len = isect_mdef.labda;
 		isect_mdef.face = mface = mface1 + hit.index;
 
 		/* create MDefBoundIsect */

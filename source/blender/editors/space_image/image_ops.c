@@ -1259,8 +1259,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else {
-			if (BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy))
-			{
+			if (BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
 				ok = TRUE;
 			}
 		}

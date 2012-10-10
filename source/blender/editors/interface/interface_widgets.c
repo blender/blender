@@ -3094,14 +3094,10 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	if (but->active) {
 		int direction = ui_button_open_menu_direction(but);
 
-		if (direction == UI_TOP)
-			roundbox &= ~(UI_CNR_TOP_RIGHT|UI_CNR_TOP_LEFT);
-		else if (direction == UI_DOWN)
-			roundbox &= ~(UI_CNR_BOTTOM_RIGHT|UI_CNR_BOTTOM_LEFT);
-		else if (direction == UI_LEFT)
-			roundbox &= ~(UI_CNR_TOP_LEFT|UI_CNR_BOTTOM_LEFT);
-		else if (direction == UI_RIGHT)
-			roundbox &= ~(UI_CNR_TOP_RIGHT|UI_CNR_BOTTOM_RIGHT);
+		if      (direction == UI_TOP)   roundbox &= ~(UI_CNR_TOP_RIGHT | UI_CNR_TOP_LEFT);
+		else if (direction == UI_DOWN)  roundbox &= ~(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
+		else if (direction == UI_LEFT)  roundbox &= ~(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
+		else if (direction == UI_RIGHT) roundbox &= ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
 	}
 
 	return roundbox;
