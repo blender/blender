@@ -433,11 +433,11 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const short sel, 
 
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
+		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 		if (data.dist > 3) {
 			data.pass = 1;
-			mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
+			mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 
 		*r_dist = data.dist;
@@ -525,7 +525,7 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 		data.closest = NULL;
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, V3D_CLIP_TEST_REGION);
+		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, V3D_PROJ_TEST_CLIP_WIN);
 
 		*r_dist = data.dist;
 		return data.closest;
@@ -588,7 +588,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 			data.dist = 0x7FFF;     /* largest short */
 			data.toFace = efa;
 
-			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data);
+			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 			if ((vc->em->selectmode == SCE_SELECT_FACE) || (data.dist < *r_dist)) {  /* only faces, no dist check */
 				*r_dist = data.dist;
@@ -617,12 +617,12 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 		data.pass = 0;
-		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
+		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 		if (data.dist > 3.0f) {
 			data.pass = 1;
 			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-			mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
+			mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 
 		*r_dist = data.dist;

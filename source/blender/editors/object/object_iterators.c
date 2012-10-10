@@ -31,7 +31,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_rect.h"
 
 #include "BKE_armature.h"
 #include "BKE_curve.h"
@@ -51,7 +52,7 @@ typedef struct foreachScreenVert_userData {
 	void (*func)(void *userData, BMVert *eve, const float screen_co_b[2], int index);
 	void *userData;
 	ViewContext vc;
-	eV3DClipTest clipVerts;
+	eV3DProjTest clip_flag;
 } foreachScreenVert_userData;
 
 /* user data structures for derived mesh callbacks */
@@ -60,13 +61,14 @@ typedef struct foreachScreenEdge_userData {
 	void *userData;
 	ViewContext vc;
 	rctf win_rect; /* copy of: vc.ar->winx/winy, use for faster tests, minx/y will always be 0 */
-	eV3DClipTest clipVerts;
+	eV3DProjTest clip_flag;
 } foreachScreenEdge_userData;
 
 typedef struct foreachScreenFace_userData {
 	void (*func)(void *userData, BMFace *efa, const float screen_co_b[2], int index);
 	void *userData;
 	ViewContext vc;
+	eV3DProjTest clip_flag;
 } foreachScreenFace_userData;
 
 
@@ -84,12 +86,9 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const flo
 	BMVert *eve = EDBM_vert_at_index(data->vc.em, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-		const eV3DProjTest flag = (data->clipVerts == V3D_CLIP_TEST_OFF) ?
-		            V3D_PROJ_TEST_NOP :
-		            V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN;
 		float screen_co[2];
 
-		if (ED_view3d_project_float_object(data->vc.ar, co, screen_co, flag) != V3D_PROJ_RET_OK) {
+		if (ED_view3d_project_float_object(data->vc.ar, co, screen_co, data->clip_flag) != V3D_PROJ_RET_OK) {
 			return;
 		}
 
@@ -100,7 +99,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const flo
 void mesh_foreachScreenVert(
         ViewContext *vc,
         void (*func)(void *userData, BMVert *eve, const float screen_co[2], int index),
-        void *userData, eV3DClipTest clipVerts)
+        void *userData, eV3DProjTest clip_flag)
 {
 	foreachScreenVert_userData data;
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
@@ -108,10 +107,11 @@ void mesh_foreachScreenVert(
 	data.vc = *vc;
 	data.func = func;
 	data.userData = userData;
-	data.clipVerts = clipVerts;
+	data.clip_flag = clip_flag;
 
-	if (clipVerts != V3D_CLIP_TEST_OFF)
+	if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
 		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
+	}
 
 	EDBM_index_arrays_init(vc->em, 1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
@@ -131,25 +131,16 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 		float screen_co_a[2];
 		float screen_co_b[2];
 
-		const eV3DProjTest flag = (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) ?
-		            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN :
-		            V3D_PROJ_TEST_NOP;
-
-		if (ED_view3d_project_float_object(data->vc.ar, v0co, screen_co_a, flag) != V3D_PROJ_RET_OK) {
+		if (ED_view3d_project_float_object(data->vc.ar, v0co, screen_co_a, data->clip_flag) != V3D_PROJ_RET_OK) {
 			return;
 		}
-		if (ED_view3d_project_float_object(data->vc.ar, v1co, screen_co_b, flag) != V3D_PROJ_RET_OK) {
+		if (ED_view3d_project_float_object(data->vc.ar, v1co, screen_co_b, data->clip_flag) != V3D_PROJ_RET_OK) {
 			return;
 		}
 
-		if (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) {
-			/* pass */
-		}
-		else {
-			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
-				if (!BLI_rctf_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
-					return;
-				}
+		if (data->clip_flag & V3D_PROJ_TEST_CLIP_WIN) {
+			if (!BLI_rctf_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
+				return;
 			}
 		}
 
@@ -160,7 +151,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 void mesh_foreachScreenEdge(
         ViewContext *vc,
         void (*func)(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index),
-        void *userData, eV3DClipTest clipVerts)
+        void *userData, eV3DProjTest clip_flag)
 {
 	foreachScreenEdge_userData data;
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
@@ -174,10 +165,11 @@ void mesh_foreachScreenEdge(
 
 	data.func = func;
 	data.userData = userData;
-	data.clipVerts = clipVerts;
+	data.clip_flag = clip_flag;
 
-	if (clipVerts != V3D_CLIP_TEST_OFF)
+	if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
 		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
+	}
 
 	EDBM_index_arrays_init(vc->em, 0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
@@ -195,8 +187,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 
 	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 		float screen_co[2];
-		if (ED_view3d_project_float_object(data->vc.ar, cent, screen_co,
-		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
+		if (ED_view3d_project_float_object(data->vc.ar, cent, screen_co, data->clip_flag) == V3D_PROJ_RET_OK)
 		{
 			data->func(data->userData, efa, screen_co, index);
 		}
@@ -206,7 +197,7 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 void mesh_foreachScreenFace(
         ViewContext *vc,
         void (*func)(void *userData, BMFace *efa, const float screen_co_b[2], int index),
-        void *userData)
+        void *userData, const eV3DProjTest clip_flag)
 {
 	foreachScreenFace_userData data;
 	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
@@ -214,6 +205,7 @@ void mesh_foreachScreenFace(
 	data.vc = *vc;
 	data.func = func;
 	data.userData = userData;
+	data.clip_flag = clip_flag;
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
@@ -229,14 +221,16 @@ void mesh_foreachScreenFace(
 void nurbs_foreachScreenVert(
         ViewContext *vc,
         void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co_b[2]),
-        void *userData)
+        void *userData, const eV3DProjTest clip_flag)
 {
 	Curve *cu = vc->obedit->data;
 	Nurb *nu;
 	int i;
 	ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
-	ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+	if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
+		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
+	}
 
 	for (nu = nurbs->first; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {
@@ -296,15 +290,14 @@ void nurbs_foreachScreenVert(
 void mball_foreachScreenElem(
         struct ViewContext *vc,
         void (*func)(void *userData, struct MetaElem *ml, const float screen_co_b[2]),
-        void *userData)
+        void *userData, const eV3DProjTest clip_flag)
 {
 	MetaBall *mb = (MetaBall *)vc->obedit->data;
 	MetaElem *ml;
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		float screen_co[2];
-		if (ED_view3d_project_float_object(vc->ar, &ml->x, screen_co,
-		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
+		if (ED_view3d_project_float_object(vc->ar, &ml->x, screen_co, clip_flag) == V3D_PROJ_RET_OK)
 		{
 			func(userData, ml, screen_co);
 		}
@@ -313,7 +306,10 @@ void mball_foreachScreenElem(
 
 /* ------------------------------------------------------------------------ */
 
-void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPoint *bp, const float screen_co[2]), void *userData)
+void lattice_foreachScreenVert(
+        ViewContext *vc,
+        void (*func)(void *userData, BPoint *bp, const float screen_co[2]),
+        void *userData, const eV3DProjTest clip_flag)
 {
 	Object *obedit = vc->obedit;
 	Lattice *lt = obedit->data;
@@ -322,14 +318,14 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	float *co = dl ? dl->verts : NULL;
 	int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 
-	ED_view3d_clipping_local(vc->rv3d, obedit->obmat); /* for local clipping lookups */
+	if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
+		ED_view3d_clipping_local(vc->rv3d, obedit->obmat); /* for local clipping lookups */
+	}
 
 	for (i = 0; i < N; i++, bp++, co += 3) {
 		if (bp->hide == 0) {
 			float screen_co[2];
-			if (ED_view3d_project_float_object(vc->ar, dl ? co : bp->vec, screen_co,
-			                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_OK)
-			{
+			if (ED_view3d_project_float_object(vc->ar, dl ? co : bp->vec, screen_co, clip_flag) == V3D_PROJ_RET_OK) {
 				func(userData, bp, screen_co);
 			}
 		}
@@ -342,7 +338,7 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 void armature_foreachScreenBone(
         struct ViewContext *vc,
         void (*func)(void *userData, struct EditBone *ebone, const float screen_co_a[2], const float screen_co_b[2]),
-        void *userData)
+        void *userData, const eV3DProjTest clip_flag)
 {
 	bArmature *arm = vc->obedit->data;
 	EditBone *ebone;
@@ -353,9 +349,7 @@ void armature_foreachScreenBone(
 			int points_proj_tot = 0;
 
 			/* project head location to screenspace */
-			if (ED_view3d_project_float_object(vc->ar, ebone->head, screen_co_a,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
-			{
+			if (ED_view3d_project_float_object(vc->ar, ebone->head, screen_co_a, clip_flag) == V3D_PROJ_RET_OK) {
 				points_proj_tot++;
 			}
 			else {
@@ -364,9 +358,7 @@ void armature_foreachScreenBone(
 			}
 
 			/* project tail location to screenspace */
-			if (ED_view3d_project_float_object(vc->ar, ebone->tail, screen_co_b,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
-			{
+			if (ED_view3d_project_float_object(vc->ar, ebone->tail, screen_co_b, clip_flag) == V3D_PROJ_RET_OK) {
 				points_proj_tot++;
 			}
 			else {
@@ -388,7 +380,7 @@ void armature_foreachScreenBone(
 void pose_foreachScreenBone(
         struct ViewContext *vc,
         void (*func)(void *userData, struct bPoseChannel *pchan, const float screen_co_a[2], const float screen_co_b[2]),
-        void *userData)
+        void *userData, const eV3DProjTest clip_flag)
 {
 	bArmature *arm = vc->obact->data;
 	bPose *pose = vc->obact->pose;
@@ -400,9 +392,7 @@ void pose_foreachScreenBone(
 			int points_proj_tot = 0;
 
 			/* project head location to screenspace */
-			if (ED_view3d_project_float_object(vc->ar, pchan->pose_head, screen_co_a,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
-			{
+			if (ED_view3d_project_float_object(vc->ar, pchan->pose_head, screen_co_a, clip_flag) == V3D_PROJ_RET_OK) {
 				points_proj_tot++;
 			}
 			else {
@@ -411,9 +401,7 @@ void pose_foreachScreenBone(
 			}
 
 			/* project tail location to screenspace */
-			if (ED_view3d_project_float_object(vc->ar, pchan->pose_tail, screen_co_b,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
-			{
+			if (ED_view3d_project_float_object(vc->ar, pchan->pose_tail, screen_co_b, clip_flag) == V3D_PROJ_RET_OK) {
 				points_proj_tot++;
 			}
 			else {

@@ -200,51 +200,46 @@ void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 
 /* object_iterators.c */
 
-/* enum for passing to foreach functions to test RV3D_CLIPPING */
-typedef enum eV3DClipTest {
-	V3D_CLIP_TEST_OFF =            0, /* clipping is off */
-	V3D_CLIP_TEST_RV3D_CLIPPING =  1, /* clip single points */
-	V3D_CLIP_TEST_REGION =         2  /* use for edges to check if both verts are in the view, but not RV3D_CLIPPING */
-} eV3DClipTest;
+#include "ED_view3d.h"  /* XXX, needed for eV3DProjTest */
 
 /* foreach iterators */
 void mesh_foreachScreenVert(
         struct ViewContext *vc,
         void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index),
-        void *userData, eV3DClipTest clipVerts);
+        void *userData, const eV3DProjTest clip_flag);
 void mesh_foreachScreenEdge(
         struct ViewContext *vc,
         void (*func)(void *userData, struct BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2],
                      int index),
-        void *userData, eV3DClipTest clipVerts);
+        void *userData, const eV3DProjTest clip_flag);
 void mesh_foreachScreenFace(
         struct ViewContext *vc,
         void (*func)(void *userData, struct BMFace *efa, const float screen_co[2], int index),
-        void *userData);
+        void *userData, const eV3DProjTest clip_flag);
 void nurbs_foreachScreenVert(
         struct ViewContext *vc,
         void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt,
                      int beztindex, const float screen_co[2]),
-        void *userData);
+        void *userData, const eV3DProjTest clip_flag);
 void mball_foreachScreenElem(
         struct ViewContext *vc,
         void (*func)(void *userData, struct MetaElem *ml, const float screen_co[2]),
-        void *userData);
+        void *userData, const eV3DProjTest clip_flag);
 void lattice_foreachScreenVert(
         struct ViewContext *vc,
         void (*func)(void *userData, struct BPoint *bp,
                      const float screen_co[2]),
-        void *userData);
+        void *userData, const eV3DProjTest clip_flag);
 void armature_foreachScreenBone(
         struct ViewContext *vc,
         void (*func)(void *userData, struct EditBone *ebone,
                      const float screen_co_a[2], const float screen_co_b[2]),
-        void *userData);
+        void *userData, const eV3DProjTest clip_flag);
 void pose_foreachScreenBone(
         struct ViewContext *vc,
         void (*func)(void *userData, struct bPoseChannel *pchan,
                      const float screen_co_a[2], const float screen_co_b[2]),
-        void *userData);
+        void *userData, const eV3DProjTest clip_flag);
 
 #ifdef __cplusplus
 }

@@ -860,8 +860,7 @@ void ED_view3d_project_float_v3_m4(ARegion *ar, const float vec[3], float r_co[3
 
 eV3DProjStatus ED_view3d_project_base(struct ARegion *ar, struct Base *base)
 {
-	eV3DProjStatus ret = ED_view3d_project_short_global(ar, base->object->obmat[3], &base->sx,
-	                                                    V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN);
+	eV3DProjStatus ret = ED_view3d_project_short_global(ar, base->object->obmat[3], &base->sx, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	if (ret != V3D_PROJ_RET_OK) {
 		base->sx = IS_CLIPPED;
@@ -912,9 +911,12 @@ int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
  */
 static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
                                                   float perspmat[4][4], const int is_local,  /* normally hidden */
-                                                  const float co[3], float r_co[2], eV3DProjTest flag)
+                                                  const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	float fx, fy, vec4[4];
+
+	/* check for bad flags */
+	BLI_assert((flag & V3D_PROJ_TEST_ALL) == flag);
 
 	if (flag & V3D_PROJ_TEST_CLIP_BB) {
 		RegionView3D *rv3d = ar->regiondata;
@@ -953,7 +955,7 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
 }
 
 eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], const int is_local,
-                                          const float co[3], short r_co[2], eV3DProjTest flag)
+                                          const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	float tvec[2];
 	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
@@ -972,7 +974,7 @@ eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], con
 }
 
 eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const int is_local,
-                                        const float co[3], int r_co[2], eV3DProjTest flag)
+                                        const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	float tvec[2];
 	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
@@ -991,7 +993,7 @@ eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const
 }
 
 eV3DProjStatus ED_view3d_project_float_ex(ARegion *ar, float perspmat[4][4], const int is_local,
-                                        const float co[3], float r_co[2], eV3DProjTest flag)
+                                        const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	float tvec[2];
 	eV3DProjStatus ret = ed_view3d_project__internal(ar, perspmat, is_local, co, tvec, flag);
@@ -1009,39 +1011,39 @@ eV3DProjStatus ED_view3d_project_float_ex(ARegion *ar, float perspmat[4][4], con
 }
 
 /* --- short --- */
-eV3DProjStatus ED_view3d_project_short_global(ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_short_global(ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_short_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
-eV3DProjStatus ED_view3d_project_short_object(ARegion *ar, const float co[3], short r_co[2], eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_short_object(ARegion *ar, const float co[3], short r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_short_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
 
 /* --- int --- */
-eV3DProjStatus ED_view3d_project_int_global(ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_int_global(ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_int_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
-eV3DProjStatus ED_view3d_project_int_object(ARegion *ar, const float co[3], int r_co[2], eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_int_object(ARegion *ar, const float co[3], int r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_int_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);
 }
 
 /* --- float --- */
-eV3DProjStatus ED_view3d_project_float_global(ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_float_global(ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_float_ex(ar, rv3d->persmat, FALSE, co, r_co, flag);
 }
 /* object space, use ED_view3d_init_mats_rv3d before calling */
-eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], float r_co[2], eV3DProjTest flag)
+eV3DProjStatus ED_view3d_project_float_object(ARegion *ar, const float co[3], float r_co[2], const eV3DProjTest flag)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	return ED_view3d_project_float_ex(ar, rv3d->persmatob, TRUE, co, r_co, flag);

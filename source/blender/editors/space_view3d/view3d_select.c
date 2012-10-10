@@ -398,6 +398,7 @@ static void do_lasso_select_pose__doSelectBone(void *userData, struct bPoseChann
 }
 static void do_lasso_select_pose(ViewContext *vc, Object *ob, const int mcords[][2], short moves, short select)
 {
+	ViewContext vc_tmp;
 	LassoSelectUserData data;
 	rcti rect;
 	
@@ -405,13 +406,16 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, const int mcords[]
 		return;
 	}
 
+	vc_tmp = *vc;
+	vc_tmp.obact = ob;
+
 	BLI_lasso_boundbox(&rect, mcords, moves);
 
 	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
 	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d);
 
-	pose_foreachScreenBone(vc, do_lasso_select_pose__doSelectBone, &data);
+	pose_foreachScreenBone(&vc_tmp, do_lasso_select_pose__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	if (data.is_change) {
 		bArmature *arm = ob->data;
@@ -531,17 +535,17 @@ static void do_lasso_select_mesh(ViewContext *vc, const int mcords[][2], short m
 			edbm_backbuf_check_and_select_verts(vc->em, select);
 		}
 		else {
-			mesh_foreachScreenVert(vc, do_lasso_select_mesh__doSelectVert, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
+			mesh_foreachScreenVert(vc, do_lasso_select_mesh__doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 	}
 	if (ts->selectmode & SCE_SELECT_EDGE) {
 		/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 		data.pass = 0;
-		mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, V3D_CLIP_TEST_OFF);
+		mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, V3D_PROJ_TEST_NOP);
 
 		if (data.is_done == 0) {
 			data.pass = 1;
-			mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, V3D_CLIP_TEST_OFF);
+			mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, V3D_PROJ_TEST_NOP);
 		}
 	}
 	
@@ -550,7 +554,7 @@ static void do_lasso_select_mesh(ViewContext *vc, const int mcords[][2], short m
 			edbm_backbuf_check_and_select_faces(vc->em, select);
 		}
 		else {
-			mesh_foreachScreenFace(vc, do_lasso_select_mesh__doSelectFace, &data);
+			mesh_foreachScreenFace(vc, do_lasso_select_mesh__doSelectFace, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 	}
 	
@@ -604,7 +608,7 @@ static void do_lasso_select_curve(ViewContext *vc, const int mcords[][2], short 
 		CU_deselect_all(vc->obedit);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data);
+	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
 static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, const float screen_co[2])
@@ -629,7 +633,7 @@ static void do_lasso_select_lattice(ViewContext *vc, const int mcords[][2], shor
 		ED_setflagsLatt(vc->obedit, 0);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-	lattice_foreachScreenVert(vc, do_lasso_select_lattice__doSelect, &data);
+	lattice_foreachScreenVert(vc, do_lasso_select_lattice__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
 static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBone *ebone, const float screen_co_a[2], const float screen_co_b[2])
@@ -697,7 +701,7 @@ static void do_lasso_select_armature(ViewContext *vc, const int mcords[][2], sho
 	if (extend == 0 && select)
 		ED_armature_deselect_all_visible(vc->obedit);
 
-	armature_foreachScreenBone(vc, do_lasso_select_armature__doSelectBone, &data);
+	armature_foreachScreenBone(vc, do_lasso_select_armature__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	if (data.is_change) {
 		bArmature *arm = vc->obedit->data;
@@ -734,7 +738,7 @@ static void do_lasso_select_meta(ViewContext *vc, const int mcords[][2], short m
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-	mball_foreachScreenElem(vc, do_lasso_select_mball__doSelectElem, &data);
+	mball_foreachScreenElem(vc, do_lasso_select_mball__doSelectElem, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
 static int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
@@ -1707,7 +1711,7 @@ static int do_nurbs_box_select(ViewContext *vc, rcti *rect, int select, int exte
 		CU_deselect_all(vc->obedit);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-	nurbs_foreachScreenVert(vc, do_nurbs_box_select__doSelect, &data);
+	nurbs_foreachScreenVert(vc, do_nurbs_box_select__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	return OPERATOR_FINISHED;
 }
@@ -1730,7 +1734,7 @@ static int do_lattice_box_select(ViewContext *vc, rcti *rect, int select, int ex
 		ED_setflagsLatt(vc->obedit, 0);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-	lattice_foreachScreenVert(vc, do_lattice_box_select__doSelect, &data);
+	lattice_foreachScreenVert(vc, do_lattice_box_select__doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1791,18 +1795,18 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 			edbm_backbuf_check_and_select_verts(vc->em, select);
 		}
 		else {
-			mesh_foreachScreenVert(vc, do_mesh_box_select__doSelectVert, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
+			mesh_foreachScreenVert(vc, do_mesh_box_select__doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 	}
 	if (ts->selectmode & SCE_SELECT_EDGE) {
 		/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 
 		data.pass = 0;
-		mesh_foreachScreenEdge(vc, do_mesh_box_select__doSelectEdge, &data, V3D_CLIP_TEST_OFF);
+		mesh_foreachScreenEdge(vc, do_mesh_box_select__doSelectEdge, &data, V3D_PROJ_TEST_NOP);
 
 		if (data.is_done == 0) {
 			data.pass = 1;
-			mesh_foreachScreenEdge(vc, do_mesh_box_select__doSelectEdge, &data, V3D_CLIP_TEST_OFF);
+			mesh_foreachScreenEdge(vc, do_mesh_box_select__doSelectEdge, &data, V3D_PROJ_TEST_NOP);
 		}
 	}
 	
@@ -1811,7 +1815,7 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 			edbm_backbuf_check_and_select_faces(vc->em, select);
 		}
 		else {
-			mesh_foreachScreenFace(vc, do_mesh_box_select__doSelectFace, &data);
+			mesh_foreachScreenFace(vc, do_mesh_box_select__doSelectFace, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 	}
 	
@@ -2321,7 +2325,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 			edbm_backbuf_check_and_select_verts(vc->em, select == LEFTMOUSE);
 		}
 		else {
-			mesh_foreachScreenVert(vc, mesh_circle_doSelectVert, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
+			mesh_foreachScreenVert(vc, mesh_circle_doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 	}
 
@@ -2330,7 +2334,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 			edbm_backbuf_check_and_select_edges(vc->em, select == LEFTMOUSE);
 		}
 		else {
-			mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, V3D_CLIP_TEST_OFF);
+			mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, V3D_PROJ_TEST_NOP);
 		}
 	}
 	
@@ -2339,7 +2343,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 			edbm_backbuf_check_and_select_faces(vc->em, select == LEFTMOUSE);
 		}
 		else {
-			mesh_foreachScreenFace(vc, mesh_circle_doSelectFace, &data);
+			mesh_foreachScreenFace(vc, mesh_circle_doSelectFace, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 	}
 
@@ -2422,7 +2426,7 @@ static void nurbscurve_circle_select(ViewContext *vc, int select, const int mval
 	view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-	nurbs_foreachScreenVert(vc, nurbscurve_circle_doSelect, &data);
+	nurbs_foreachScreenVert(vc, nurbscurve_circle_doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
 
@@ -2441,7 +2445,7 @@ static void lattice_circle_select(ViewContext *vc, int select, const int mval[2]
 	view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-	lattice_foreachScreenVert(vc, latticecurve_circle_doSelect, &data);
+	lattice_foreachScreenVert(vc, latticecurve_circle_doSelect, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
 
@@ -2510,7 +2514,7 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 
 	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
 	
-	pose_foreachScreenBone(vc, do_circle_select_pose__doSelectBone, &data);
+	pose_foreachScreenBone(vc, do_circle_select_pose__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	if (data.is_change) {
 		bArmature *arm = vc->obact->data;
@@ -2597,7 +2601,7 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-	armature_foreachScreenBone(vc, do_circle_select_armature__doSelectBone, &data);
+	armature_foreachScreenBone(vc, do_circle_select_armature__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	if (data.is_change) {
 		ED_armature_sync_selection(arm->edbo);
@@ -2624,7 +2628,7 @@ static void mball_circle_select(ViewContext *vc, int select, const int mval[2], 
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-	mball_foreachScreenElem(vc, do_circle_select_mball__doSelectElem, &data);
+	mball_foreachScreenElem(vc, do_circle_select_mball__doSelectElem, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
 /** Callbacks for circle selection in Editmode */

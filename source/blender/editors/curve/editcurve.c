@@ -3276,7 +3276,7 @@ static short findnearestNurbvert(ViewContext *vc, short sel, const int mval[2], 
 	data.mval_fl[1] = mval[1];
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-	nurbs_foreachScreenVert(vc, findnearestNurbvert__doClosest, &data);
+	nurbs_foreachScreenVert(vc, findnearestNurbvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	*nurb = data.nurb;
 	*bezt = data.bezt;
