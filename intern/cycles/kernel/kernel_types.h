@@ -370,6 +370,7 @@ typedef struct ShaderClosure {
 #endif
 	float data0;
 	float data1;
+	float3 N;
 
 } ShaderClosure;
 

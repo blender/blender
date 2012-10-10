@@ -57,9 +57,9 @@ __device void bsdf_oren_nayar_blur(ShaderClosure *sc, float roughness)
 
 __device float3 bsdf_oren_nayar_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	if (dot(sd->N, omega_in) > 0.0f) {
+	if (dot(sc->N, omega_in) > 0.0f) {
 		*pdf = 0.5f * M_1_PI_F;
-		return bsdf_oren_nayar_get_intensity(sc, sd->N, I, omega_in);
+		return bsdf_oren_nayar_get_intensity(sc, sc->N, I, omega_in);
 	}
 	else {
 		*pdf = 0.0f;
@@ -79,15 +79,15 @@ __device float bsdf_oren_nayar_albedo(const ShaderData *sd, const ShaderClosure 
 
 __device int bsdf_oren_nayar_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	sample_uniform_hemisphere(sd->N, randu, randv, omega_in, pdf);
+	sample_uniform_hemisphere(sc->N, randu, randv, omega_in, pdf);
 
 	if (dot(sd->Ng, *omega_in) > 0.0f) {
-		*eval = bsdf_oren_nayar_get_intensity(sc, sd->N, sd->I, *omega_in);
+		*eval = bsdf_oren_nayar_get_intensity(sc, sc->N, sd->I, *omega_in);
 
 #ifdef __RAY_DIFFERENTIALS__
 		// TODO: find a better approximation for the bounce
-		*domega_in_dx = (2.0f * dot(sd->N, sd->dI.dx)) * sd->N - sd->dI.dx;
-		*domega_in_dy = (2.0f * dot(sd->N, sd->dI.dy)) * sd->N - sd->dI.dy;
+		*domega_in_dx = (2.0f * dot(sc->N, sd->dI.dx)) * sc->N - sd->dI.dx;
+		*domega_in_dy = (2.0f * dot(sc->N, sd->dI.dy)) * sc->N - sd->dI.dy;
 		*domega_in_dx *= 125.0f;
 		*domega_in_dy *= 125.0f;
 #endif

@@ -62,7 +62,7 @@ __device void bsdf_westin_backscatter_blur(ShaderClosure *sc, float roughness)
 __device float3 bsdf_westin_backscatter_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_invroughness = sc->data0;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	// pdf is implicitly 0 (no indirect sampling)
 	float cosNO = dot(m_N, I);
@@ -89,7 +89,7 @@ __device float bsdf_westin_backscatter_albedo(const ShaderData *sd, const Shader
 __device int bsdf_westin_backscatter_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_invroughness = sc->data0;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	float cosNO = dot(m_N, sd->I);
 	if(cosNO > 0) {
@@ -151,7 +151,7 @@ __device void bsdf_westin_sheen_blur(ShaderClosure *sc, float roughness)
 __device float3 bsdf_westin_sheen_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_edginess = sc->data0;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	// pdf is implicitly 0 (no indirect sampling)
 	float cosNO = dot(m_N, I);
@@ -178,7 +178,7 @@ __device float bsdf_westin_sheen_albedo(const ShaderData *sd, const ShaderClosur
 __device int bsdf_westin_sheen_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_edginess = sc->data0;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	// we are viewing the surface from the right side - send a ray out with cosine
 	// distribution over the hemisphere

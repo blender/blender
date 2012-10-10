@@ -25,39 +25,39 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "../node_shader_util.h"
+/** \file blender/nodes/shader/nodes/node_shader_bump.c
+ *  \ingroup shdnodes
+ */
 
-/* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_bsdf_translucent_in[]= {
-	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	-1, 0, ""	}
+
+#include "node_shader_util.h"
+
+
+/* **************** BUMP ******************** */ 
+static bNodeSocketTemplate sh_node_bump_in[]= { 
+        { SOCK_FLOAT, 1, "Strength",	0.1f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+        { SOCK_FLOAT, 1, "Height",		1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_HIDE_VALUE},
+		{ -1, 0, "" } 
 };
 
-static bNodeSocketTemplate sh_node_bsdf_translucent_out[]= {
-	{	SOCK_SHADER, 0, N_("BSDF")},
-	{	-1, 0, ""	}
+static bNodeSocketTemplate sh_node_bump_out[]= {
+	{	SOCK_VECTOR, 0, "Normal"},
+	{ -1, 0, "" } 
 };
 
-static int node_shader_gpu_bsdf_translucent(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
-{
-	return GPU_stack_link(mat, "node_bsdf_translucent", in, out, GPU_builtin(GPU_VIEW_NORMAL));
-}
 
 /* node type definition */
-void register_node_type_sh_bsdf_translucent(bNodeTreeType *ttype)
+void register_node_type_sh_bump(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, SH_NODE_BSDF_TRANSLUCENT, "Translucent BSDF", NODE_CLASS_SHADER, 0);
+	node_type_base(ttype, &ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
-	node_type_socket_templates(&ntype, sh_node_bsdf_translucent_in, sh_node_bsdf_translucent_out);
+	node_type_socket_templates(&ntype, sh_node_bump_in, sh_node_bump_out);
 	node_type_size(&ntype, 150, 60, 200);
-	node_type_init(&ntype, NULL);
-	node_type_storage(&ntype, "", NULL, NULL);
+	node_type_storage(&ntype, "BumpNode", node_free_standard_storage, node_copy_standard_storage);
 	node_type_exec(&ntype, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_bsdf_translucent);
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -440,6 +440,11 @@ public:
 	float4 ramp[RAMP_TABLE_SIZE];
 };
 
+class SetNormalNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(SetNormalNode)
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __NODES_H__ */

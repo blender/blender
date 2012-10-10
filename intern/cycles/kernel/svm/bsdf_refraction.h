@@ -71,7 +71,7 @@ __device float bsdf_refraction_albedo(const ShaderData *sd, const ShaderClosure 
 __device int bsdf_refraction_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_eta = sc->data0;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	float3 R, T;
 #ifdef __RAY_DIFFERENTIALS__

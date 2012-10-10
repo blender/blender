@@ -58,7 +58,7 @@ __device void bsdf_ashikhmin_velvet_blur(ShaderClosure *sc, float roughness)
 __device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_invsigma2 = sc->data0;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
@@ -106,7 +106,7 @@ __device float bsdf_ashikhmin_velvet_albedo(const ShaderData *sd, const ShaderCl
 __device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_invsigma2 = sc->data0;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	// we are viewing the surface from above - send a ray out with uniform
 	// distribution over the hemisphere

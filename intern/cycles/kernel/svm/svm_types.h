@@ -95,6 +95,7 @@ typedef enum NodeType {
 	NODE_TEX_BRICK,
 	NODE_CLOSURE_SET_TANGENT,
 	NODE_CLOSURE_TANGENT,
+	NODE_CLOSURE_SET_NORMAL,
 } NodeType;
 
 typedef enum NodeAttributeType {

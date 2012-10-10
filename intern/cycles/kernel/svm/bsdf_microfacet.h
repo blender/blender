@@ -76,7 +76,7 @@ __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderData *sd, const Sha
 	float m_ag = sc->data0;
 	//float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	if(m_refractive) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
@@ -113,7 +113,7 @@ __device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderData *sd, const Sh
 	float m_ag = sc->data0;
 	float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	if(!m_refractive) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
@@ -154,7 +154,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, const ShaderClosur
 	float m_ag = sc->data0;
 	float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	float cosNO = dot(m_N, sd->I);
 	if(cosNO > 0) {
@@ -302,7 +302,7 @@ __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderData *sd, cons
 	float m_ab = sc->data0;
 	//float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	if(m_refractive) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
@@ -341,7 +341,7 @@ __device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderData *sd, con
 	float m_ab = sc->data0;
 	float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	if(!m_refractive) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
@@ -384,7 +384,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, const ShaderC
 	float m_ab = sc->data0;
 	float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	float cosNO = dot(m_N, sd->I);
 	if(cosNO > 0) {

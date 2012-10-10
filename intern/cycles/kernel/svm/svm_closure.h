@@ -57,7 +57,7 @@ __device_inline void svm_node_closure_set_mix_weight(ShaderClosure *sc, float mi
 #endif
 }
 
-__device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, float randb, int path_flag)
+__device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, float randb, int path_flag, int *offset)
 {
 	uint type, param1_offset, param2_offset;
 
@@ -66,11 +66,19 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, &mix_weight_offset);
 	float mix_weight = (stack_valid(mix_weight_offset)? stack_load_float(stack, mix_weight_offset): 1.0f);
 
+	/* note we read this extra node before weight check, so offset is added */
+	uint4 data_node = read_node(kg, offset);
+
 	if(mix_weight == 0.0f)
 		return;
+
+	float3 N = stack_valid(data_node.y)? stack_load_float3(stack, data_node.y): sd->N; 
 #else
 	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, NULL);
 	float mix_weight = 1.0f;
+
+	uint4 data_node = read_node(kg, offset);
+	float3 N = stack_valid(data_node.y)? stack_load_float3(stack, data_node.y): sd->N; 
 #endif
 
 	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __int_as_float(node.z);
@@ -79,6 +87,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 	switch(type) {
 		case CLOSURE_BSDF_DIFFUSE_ID: {
 			ShaderClosure *sc = svm_node_closure_get(sd);
+			sc->N = N;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
 			float roughness = param1;
@@ -90,12 +99,14 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 		}
 		case CLOSURE_BSDF_TRANSLUCENT_ID: {
 			ShaderClosure *sc = svm_node_closure_get(sd);
+			sc->N = N;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 			bsdf_translucent_setup(sd, sc);
 			break;
 		}
 		case CLOSURE_BSDF_TRANSPARENT_ID: {
 			ShaderClosure *sc = svm_node_closure_get(sd);
+			sc->N = N;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 			bsdf_transparent_setup(sd, sc);
 			break;
@@ -108,6 +119,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 				break;
 #endif
 			ShaderClosure *sc = svm_node_closure_get(sd);
+			sc->N = N;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
 			float roughness = param1;
@@ -134,13 +146,14 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
 			/* fresnel */
-			float cosNO = dot(sd->N, sd->I);
+			float cosNO = dot(N, sd->I);
 			float fresnel = fresnel_dielectric_cos(cosNO, eta);
 			float roughness = param1;
 
 #ifdef __MULTI_CLOSURE__
 			/* reflection */
 			ShaderClosure *sc = svm_node_closure_get(sd);
+			sc->N = N;
 
 			float3 weight = sc->weight;
 			float sample_weight = sc->sample_weight;
@@ -150,6 +163,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 
 			/* refraction */
 			sc = svm_node_closure_get(sd);
+			sc->N = N;
 
 			sc->weight = weight;
 			sc->sample_weight = sample_weight;
@@ -158,6 +172,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			svm_node_glossy_setup(sd, sc, type, eta, roughness, true);
 #else
 			ShaderClosure *sc = svm_node_closure_get(sd);
+			sc->N = N;
 
 			bool refract = (randb > fresnel);
 
@@ -174,17 +189,19 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 				break;
 #endif
 			ShaderClosure *sc = svm_node_closure_get(sd);
+			sc->N = N;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
 			float roughness_u = param1;
 			float roughness_v = param2;
 
-			bsdf_ward_setup(sd, sc, normalize(sd->T), roughness_u, roughness_v);
+			bsdf_ward_setup(sd, sc, sd->T, roughness_u, roughness_v);
 			break;
 		}
 #endif
 		case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID: {
 			ShaderClosure *sc = svm_node_closure_get(sd);
+			sc->N = N;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
 			/* sigma */
@@ -425,6 +442,8 @@ __device void svm_node_add_closure(ShaderData *sd, float *stack, uint unused,
 #endif
 }
 
+/* Tangent */
+
 #ifdef __DPDU__
 __device_inline void svm_node_closure_store_tangent(ShaderData *sd, float3 tangent)
 {
@@ -443,6 +462,15 @@ __device void svm_node_closure_tangent(ShaderData *sd, float *stack, uint tangen
 	svm_node_closure_store_tangent(sd, tangent);
 }
 #endif
+
+/* (Bump) normal */
+
+__device void svm_node_set_normal(KernelGlobals *kg, ShaderData *sd, float *stack, uint in_direction, uint out_normal)
+{
+	float3 normal = stack_load_float3(stack, in_direction);
+	sd->N = normal;
+	stack_store_float3(stack, out_normal, normal);
+}
 
 CCL_NAMESPACE_END
 

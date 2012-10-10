@@ -229,6 +229,8 @@ void ShaderGraph::finalize(bool do_bump, bool do_osl)
 	if(!finalized) {
 		clean();
 		default_inputs(do_osl);
+		refine_bump_nodes();
+
 		if(do_bump)
 			bump_from_displacement();
 
@@ -484,6 +486,61 @@ void ShaderGraph::default_inputs(bool do_osl)
 		add(texco);
 }
 
+void ShaderGraph::refine_bump_nodes()
+{
+	/* we transverse the node graph looking for bump nodes, when we find them,
+	 * like in bump_from_displacement(), we copy the sub-graph defined from "bump"
+	 * input to the inputs "center","dx" and "dy" What is in "bump" input is moved
+	 * to "center" input. */
+
+	foreach(ShaderNode *node, nodes) {
+		if(node->name == ustring("bump") && node->input("Height")->link) {
+			ShaderInput *bump_input = node->input("Height");
+			set<ShaderNode*> nodes_bump;
+
+			/* make 2 extra copies of the subgraph defined in Bump input */
+			map<ShaderNode*, ShaderNode*> nodes_dx;
+			map<ShaderNode*, ShaderNode*> nodes_dy;
+
+			/* find dependencies for the given input */
+			find_dependencies(nodes_bump, bump_input );
+
+			copy_nodes(nodes_bump, nodes_dx);
+			copy_nodes(nodes_bump, nodes_dy);
+	
+			/* mark nodes to indicate they are use for bump computation, so
+			   that any texture coordinates are shifted by dx/dy when sampling */
+			foreach(ShaderNode *node, nodes_bump)
+				node->bump = SHADER_BUMP_CENTER;
+			foreach(NodePair& pair, nodes_dx)
+				pair.second->bump = SHADER_BUMP_DX;
+			foreach(NodePair& pair, nodes_dy)
+				pair.second->bump = SHADER_BUMP_DY;
+
+			ShaderOutput *out = bump_input->link;
+			ShaderOutput *out_dx = nodes_dx[out->parent]->output(out->name);
+			ShaderOutput *out_dy = nodes_dy[out->parent]->output(out->name);
+
+			connect(out_dx, node->input("SampleX"));
+			connect(out_dy, node->input("SampleY"));
+			
+			/* add generated nodes */
+			foreach(NodePair& pair, nodes_dx)
+				add(pair.second);
+			foreach(NodePair& pair, nodes_dy)
+				add(pair.second);
+			
+			/* connect what is conected is bump to samplecenter input*/
+			connect(out , node->input("SampleCenter"));
+
+			/* bump input is just for connectivity purpose for the graph input,
+			 * we reconected this input to samplecenter, so lets disconnect it
+			 * from bump input */
+			disconnect(bump_input);
+		}
+	}
+}
+
 void ShaderGraph::bump_from_displacement()
 {
 	/* generate bump mapping automatically from displacement. bump mapping is
@@ -497,7 +554,7 @@ void ShaderGraph::bump_from_displacement()
 	 * different shifted coordinates.
 	 *
 	 * these 3 displacement values are then fed into the bump node, which will
-	 * modify the normal. */
+	 * output the the perturbed normal. */
 
 	ShaderInput *displacement_in = output()->input("Displacement");
 
@@ -526,6 +583,12 @@ void ShaderGraph::bump_from_displacement()
 	foreach(NodePair& pair, nodes_dy)
 		pair.second->bump = SHADER_BUMP_DY;
 
+	/* add set normal node and connect the bump normal ouput to the set normal
+	 * output, so it can finally set the shader normal, note we are only doing
+	 * this for bump from displacement, this will be the only bump allowed to
+	 * overwrite the shader normal */
+	ShaderNode *set_normal = add(new SetNormalNode());
+	
 	/* add bump node and connect copied graphs to it */
 	ShaderNode *bump = add(new BumpNode());
 
@@ -537,6 +600,9 @@ void ShaderGraph::bump_from_displacement()
 	connect(out_center, bump->input("SampleCenter"));
 	connect(out_dx, bump->input("SampleX"));
 	connect(out_dy, bump->input("SampleY"));
+	
+	/* connect the bump out to the set normal in: */
+	connect(bump->output("Normal"), set_normal->input("Direction"));
 
 	/* connect bump output to normal input nodes that aren't set yet. actually
 	 * this will only set the normal input to the geometry node that we created
@@ -544,8 +610,14 @@ void ShaderGraph::bump_from_displacement()
 	foreach(ShaderNode *node, nodes)
 		foreach(ShaderInput *input, node->inputs)
 			if(!input->link && input->default_value == ShaderInput::NORMAL)
-				connect(bump->output("Normal"), input);
-	
+				connect(set_normal->output("Normal"), input);
+
+	/* for displacement bump, clear the normal input in case the above loop
+	 * connected the setnormal out to the bump normalin */
+	ShaderInput *bump_normal_in = bump->input("NormalIn");
+	if(bump_normal_in)
+		bump_normal_in->link = NULL;
+
 	/* finally, add the copied nodes to the graph. we can't do this earlier
 	 * because we would create dependency cycles in the above loop */
 	foreach(NodePair& pair, nodes_center)

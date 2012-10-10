@@ -1175,7 +1175,7 @@ BsdfNode::BsdfNode()
 	closure = ccl::CLOSURE_BSDF_DIFFUSE_ID;
 
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
-	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL);
 
 	add_output("BSDF", SHADER_SOCKET_CLOSURE);
 }
@@ -1183,6 +1183,7 @@ BsdfNode::BsdfNode()
 void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2)
 {
 	ShaderInput *color_in = input("Color");
+	ShaderInput *normal_in = input("Normal");
 
 	if(color_in->link) {
 		compiler.stack_assign(color_in);
@@ -1203,6 +1204,10 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 			compiler.closure_mix_weight_offset()),
 		__float_as_int((param1)? param1->value.x: 0.0f),
 		__float_as_int((param2)? param2->value.x: 0.0f));
+
+	if(normal_in->link)
+		compiler.stack_assign(normal_in);
+	compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset);
 }
 
 void BsdfNode::compile(SVMCompiler& compiler)
@@ -2215,7 +2220,7 @@ static ShaderEnum mix_type_init()
 	enm.insert("Burn", NODE_MIX_BURN);
 	enm.insert("Hue", NODE_MIX_HUE);
 	enm.insert("Saturation", NODE_MIX_SAT);
-	enm.insert("Value", NODE_MIX_VAL );
+	enm.insert("Value", NODE_MIX_VAL);
 	enm.insert("Color", NODE_MIX_COLOR);
 	enm.insert("Soft Light", NODE_MIX_SOFT);
 	enm.insert("Linear Light", NODE_MIX_LINEAR);
@@ -2586,6 +2591,7 @@ OutputNode::OutputNode()
 	add_input("Surface", SHADER_SOCKET_CLOSURE);
 	add_input("Volume", SHADER_SOCKET_CLOSURE);
 	add_input("Displacement", SHADER_SOCKET_FLOAT);
+	add_input("Normal", SHADER_SOCKET_NORMAL);
 }
 
 void OutputNode::compile(SVMCompiler& compiler)
@@ -2733,9 +2739,15 @@ void VectorMathNode::compile(OSLCompiler& compiler)
 BumpNode::BumpNode()
 : ShaderNode("bump")
 {
+	/* this input is used by the user, but after graph transform it is no longer
+	 * used and moved to sampler center/x/y instead */
+	add_input("Height", SHADER_SOCKET_NORMAL);
+
 	add_input("SampleCenter", SHADER_SOCKET_FLOAT);
 	add_input("SampleX", SHADER_SOCKET_FLOAT);
 	add_input("SampleY", SHADER_SOCKET_FLOAT);
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL);
+	add_input("Strength", SHADER_SOCKET_FLOAT, 0.1f);
 
 	add_output("Normal", SHADER_SOCKET_NORMAL);
 }
@@ -2745,12 +2757,25 @@ void BumpNode::compile(SVMCompiler& compiler)
 	ShaderInput *center_in = input("SampleCenter");
 	ShaderInput *dx_in = input("SampleX");
 	ShaderInput *dy_in = input("SampleY");
+	ShaderInput *normal_in = input("NormalIn");
+	ShaderInput *intensity_in = input("Strength");
+	ShaderOutput *normal_out = output("Normal");
 
 	compiler.stack_assign(center_in);
 	compiler.stack_assign(dx_in);
 	compiler.stack_assign(dy_in);
+	compiler.stack_assign(intensity_in);
+	compiler.stack_assign(normal_out);
 
-	compiler.add_node(NODE_SET_BUMP, center_in->stack_offset, dx_in->stack_offset, dy_in->stack_offset);
+	if(normal_in->link)
+		compiler.stack_assign(normal_in);
+	
+	/* pack all parameters in the node */
+	compiler.add_node(NODE_SET_BUMP,
+		normal_in->stack_offset,
+		compiler.encode_uchar4(center_in->stack_offset, dx_in->stack_offset,
+			dy_in->stack_offset, intensity_in->stack_offset),
+		normal_out->stack_offset);
 }
 
 void BumpNode::compile(OSLCompiler& compiler)
@@ -2819,16 +2844,43 @@ void RGBRampNode::compile(OSLCompiler& compiler)
 	/* NB: cycles float3 type is actually 4 floats! need to use an explicit array */
 	float ramp_color[RAMP_TABLE_SIZE][3];
 	float ramp_alpha[RAMP_TABLE_SIZE];
+
 	for (int i = 0; i < RAMP_TABLE_SIZE; ++i) {
 		ramp_color[i][0] = ramp[i].x;
 		ramp_color[i][1] = ramp[i].y;
 		ramp_color[i][2] = ramp[i].z;
 		ramp_alpha[i] = ramp[i].w;
 	}
+
 	compiler.parameter_color_array("ramp_color", ramp_color, RAMP_TABLE_SIZE);
 	compiler.parameter_array("ramp_alpha", ramp_alpha, RAMP_TABLE_SIZE);
 	
 	compiler.add(this, "node_rgb_ramp");
+}
+
+/* Set Normal Node */
+
+SetNormalNode::SetNormalNode()
+: ShaderNode("set_normal")
+{
+	add_input("Direction", SHADER_SOCKET_VECTOR);
+	add_output("Normal", SHADER_SOCKET_NORMAL);
+}
+
+void SetNormalNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput  *direction_in = input("Direction");
+	ShaderOutput *normal_out = output("Normal");
+
+	compiler.stack_assign(direction_in);
+	compiler.stack_assign(normal_out);
+
+	compiler.add_node(NODE_CLOSURE_SET_NORMAL, direction_in->stack_offset, normal_out->stack_offset);
+}
+
+void SetNormalNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "set_normal"); 
 }
 
 CCL_NAMESPACE_END

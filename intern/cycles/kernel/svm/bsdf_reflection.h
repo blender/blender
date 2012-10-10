@@ -69,7 +69,7 @@ __device float bsdf_reflection_albedo(const ShaderData *sd, const ShaderClosure 
 __device int bsdf_reflection_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	//const BsdfReflectionClosure *self = (const BsdfReflectionClosure*)sc->data;
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	// only one direction is possible
 	float cosNO = dot(m_N, sd->I);

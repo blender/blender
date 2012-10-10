@@ -53,7 +53,7 @@ __device void bsdf_diffuse_blur(ShaderClosure *sc, float roughness)
 
 __device float3 bsdf_diffuse_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	float cos_pi = fmaxf(dot(m_N, omega_in), 0.0f) * M_1_PI_F;
 	*pdf = cos_pi;
@@ -72,7 +72,7 @@ __device float bsdf_diffuse_albedo(const ShaderData *sd, const ShaderClosure *sc
 
 __device int bsdf_diffuse_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	// distribution over the hemisphere
 	sample_cos_hemisphere(m_N, randu, randv, omega_in, pdf);
@@ -116,7 +116,7 @@ __device float3 bsdf_translucent_eval_reflect(const ShaderData *sd, const Shader
 
 __device float3 bsdf_translucent_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	float cos_pi = fmaxf(-dot(m_N, omega_in), 0.0f) * M_1_PI_F;
 	*pdf = cos_pi;
@@ -130,7 +130,7 @@ __device float bsdf_translucent_albedo(const ShaderData *sd, const ShaderClosure
 
 __device int bsdf_translucent_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float3 m_N = sd->N;
+	float3 m_N = sc->N;
 
 	// we are viewing the surface from the right side - send a ray out with cosine
 	// distribution over the hemisphere
