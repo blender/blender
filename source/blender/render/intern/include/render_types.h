@@ -120,6 +120,9 @@ struct Render
 	/* state settings */
 	short flag, osa, ok, result_ok;
 	
+	/* due to performance issues, getting initialized from color management settings once on Render initialization */
+	short scene_color_manage;
+	
 	/* result of rendering */
 	RenderResult *result;
 	/* if render with single-layer option, other rendered layers are stored here */

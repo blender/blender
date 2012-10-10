@@ -1519,6 +1519,7 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 	
 	re->main = bmain;
 	re->scene = sce;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	
 	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
 	
@@ -2014,6 +2015,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	
 	re->main = bmain;
 	re->scene = scene;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	re->camera_override = camera_override;
 	re->lay = lay;
 	
@@ -2352,6 +2354,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 
 	re->main = bmain;
 	re->scene = sce;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	re->lay = sce->lay;
 
 	camera = RE_GetCamera(re);
@@ -2396,6 +2399,7 @@ int RE_ReadRenderResult(Scene *scene, Scene *scenode)
 		re = RE_NewRender(scene->id.name);
 	RE_InitState(re, NULL, &scene->r, NULL, winx, winy, &disprect);
 	re->scene = scene;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	success = render_result_exr_file_read(re, 0);

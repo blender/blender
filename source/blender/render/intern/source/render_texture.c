@@ -1234,7 +1234,7 @@ int multitex_nodes(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, 
 				ImBuf *ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
 				
 				/* don't linearize float buffers, assumed to be linear */
-				if (ibuf && !(ibuf->rect_float))
+				if (ibuf && !(ibuf->rect_float) && R.scene_color_manage)
 					IMB_colormanagement_colorspace_to_scene_linear_v3(&texres->tr, ibuf->rect_colorspace);
 			}
 		}
@@ -2384,7 +2384,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 					ImBuf *ibuf = BKE_image_get_ibuf(ima, &tex->iuser);
 					
 					/* don't linearize float buffers, assumed to be linear */
-					if (ibuf && !(ibuf->rect_float))
+					if (ibuf && !(ibuf->rect_float) && R.scene_color_manage)
 						IMB_colormanagement_colorspace_to_scene_linear_v3(tcol, ibuf->rect_colorspace);
 				}
 				
@@ -2896,7 +2896,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float col_r[4])
 			ImBuf *ibuf = BKE_image_get_ibuf(ima, &mtex->tex->iuser);
 			
 			/* don't linearize float buffers, assumed to be linear */
-			if (ibuf && !(ibuf->rect_float))
+			if (ibuf && !(ibuf->rect_float) && R.scene_color_manage)
 				IMB_colormanagement_colorspace_to_scene_linear_v3(&texres.tr, ibuf->rect_colorspace);
 		}
 
@@ -3115,7 +3115,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 					ImBuf *ibuf = BKE_image_get_ibuf(ima, &tex->iuser);
 					
 					/* don't linearize float buffers, assumed to be linear */
-					if (ibuf && !(ibuf->rect_float))
+					if (ibuf && !(ibuf->rect_float) && R.scene_color_manage)
 						IMB_colormanagement_colorspace_to_scene_linear_v3(tcol, ibuf->rect_colorspace);
 				}
 
@@ -3329,7 +3329,7 @@ void do_lamp_tex(LampRen *la, const float lavec[3], ShadeInput *shi, float col_r
 					ImBuf *ibuf = BKE_image_get_ibuf(ima, &tex->iuser);
 					
 					/* don't linearize float buffers, assumed to be linear */
-					if (ibuf && !(ibuf->rect_float))
+					if (ibuf && !(ibuf->rect_float) && R.scene_color_manage)
 						IMB_colormanagement_colorspace_to_scene_linear_v3(&texres.tr, ibuf->rect_colorspace);
 				}
 
