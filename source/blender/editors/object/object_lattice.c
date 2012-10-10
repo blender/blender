@@ -302,16 +302,16 @@ void LATTICE_OT_make_regular(wmOperatorType *ot)
 
 /****************************** Mouse Selection *************************/
 
-static void findnearestLattvert__doClosest(void *userData, BPoint *bp, int x, int y)
+static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const float screen_co[2])
 {
-	struct { BPoint *bp; short dist, select; int mval[2]; } *data = userData;
-	float temp = abs(data->mval[0] - x) + abs(data->mval[1] - y);
+	struct { BPoint *bp; float dist; int select; float mval_fl[2]; } *data = userData;
+	float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 	
-	if ((bp->f1 & SELECT) == data->select)
-		temp += 5;
+	if ((bp->f1 & SELECT) && data->select)
+		dist_test += 5.0f;
 
-	if (temp < data->dist) {
-		data->dist = temp;
+	if (dist_test < data->dist) {
+		data->dist = dist_test;
 
 		data->bp = bp;
 	}
@@ -322,12 +322,12 @@ static BPoint *findnearestLattvert(ViewContext *vc, const int mval[2], int sel)
 	/* sel==1: selected gets a disadvantage */
 	/* in nurb and bezt or bp the nearest is written */
 	/* return 0 1 2: handlepunt */
-	struct { BPoint *bp; short dist, select; int mval[2]; } data = {NULL};
+	struct { BPoint *bp; float dist; int select; float mval_fl[2]; } data = {NULL};
 
 	data.dist = 100;
 	data.select = sel;
-	data.mval[0] = mval[0];
-	data.mval[1] = mval[1];
+	data.mval_fl[0] = mval[0];
+	data.mval_fl[1] = mval[1];
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 	lattice_foreachScreenVert(vc, findnearestLattvert__doClosest, &data);
@@ -341,7 +341,7 @@ int mouse_lattice(bContext *C, const int mval[2], int extend, int deselect, int 
 	BPoint *bp = NULL;
 
 	view3d_set_viewcontext(C, &vc);
-	bp = findnearestLattvert(&vc, mval, 1);
+	bp = findnearestLattvert(&vc, mval, TRUE);
 
 	if (bp) {
 		if (extend) {

@@ -258,6 +258,8 @@ static void edbm_backbuf_check_and_select_tfaces(Mesh *me, int select)
 typedef struct LassoSelectUserData {
 	ViewContext *vc;
 	const rcti *rect;
+	const rctf *rect_fl;
+	rctf       _rect_fl;
 	const int (*mcords)[2];
 	int moves;
 	int select;
@@ -273,7 +275,11 @@ static void view3d_userdata_lassoselect_init(LassoSelectUserData *r_data,
                                              const int moves, const int select)
 {
 	r_data->vc = vc;
+
 	r_data->rect = rect;
+	r_data->rect_fl = &r_data->_rect_fl;
+	BLI_rctf_rcti_copy(&r_data->_rect_fl, rect);
+
 	r_data->mcords = mcords;
 	r_data->moves = moves;
 	r_data->select = select;
@@ -314,29 +320,29 @@ static int view3d_selectable_data(bContext *C)
 
 
 /* helper also for borderselect */
-static int edge_fully_inside_rect(const rcti *rect, int x1, int y1, int x2, int y2)
+static int edge_fully_inside_rect(const rctf *rect, const float v1[2], const float v2[2])
 {
-	return BLI_rcti_isect_pt(rect, x1, y1) && BLI_rcti_isect_pt(rect, x2, y2);
+	return BLI_rctf_isect_pt_v(rect, v1) && BLI_rctf_isect_pt_v(rect, v2);
 }
 
-static int edge_inside_rect(const rcti *rect, int x1, int y1, int x2, int y2)
+static int edge_inside_rect(const rctf *rect, const float v1[2], const float v2[2])
 {
 	int d1, d2, d3, d4;
 	
 	/* check points in rect */
-	if (edge_fully_inside_rect(rect, x1, y1, x2, y2)) return 1;
+	if (edge_fully_inside_rect(rect, v1, v2)) return 1;
 	
 	/* check points completely out rect */
-	if (x1 < rect->xmin && x2 < rect->xmin) return 0;
-	if (x1 > rect->xmax && x2 > rect->xmax) return 0;
-	if (y1 < rect->ymin && y2 < rect->ymin) return 0;
-	if (y1 > rect->ymax && y2 > rect->ymax) return 0;
+	if (v1[0] < rect->xmin && v2[0] < rect->xmin) return 0;
+	if (v1[0] > rect->xmax && v2[0] > rect->xmax) return 0;
+	if (v1[1] < rect->ymin && v2[1] < rect->ymin) return 0;
+	if (v1[1] > rect->ymax && v2[1] > rect->ymax) return 0;
 	
 	/* simple check lines intersecting. */
-	d1 = (y1 - y2) * (x1 - rect->xmin) + (x2 - x1) * (y1 - rect->ymin);
-	d2 = (y1 - y2) * (x1 - rect->xmin) + (x2 - x1) * (y1 - rect->ymax);
-	d3 = (y1 - y2) * (x1 - rect->xmax) + (x2 - x1) * (y1 - rect->ymax);
-	d4 = (y1 - y2) * (x1 - rect->xmax) + (x2 - x1) * (y1 - rect->ymin);
+	d1 = (v1[1] - v2[1]) * (v1[0] - rect->xmin) + (v2[0] - v1[0]) * (v1[1] - rect->ymin);
+	d2 = (v1[1] - v2[1]) * (v1[0] - rect->xmin) + (v2[0] - v1[0]) * (v1[1] - rect->ymax);
+	d3 = (v1[1] - v2[1]) * (v1[0] - rect->xmax) + (v2[0] - v1[0]) * (v1[1] - rect->ymax);
+	d4 = (v1[1] - v2[1]) * (v1[0] - rect->xmax) + (v2[0] - v1[0]) * (v1[1] - rect->ymin);
 	
 	if (d1 < 0 && d2 < 0 && d3 < 0 && d4 < 0) return 0;
 	if (d1 > 0 && d2 > 0 && d3 > 0 && d4 > 0) return 0;
@@ -344,7 +350,7 @@ static int edge_inside_rect(const rcti *rect, int x1, int y1, int x2, int y2)
 	return 1;
 }
 
-static void do_lasso_select_pose__doSelectBone(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1)
+static void do_lasso_select_pose__doSelectBone(void *userData, struct bPoseChannel *pchan, const float screen_co_a[2], const float screen_co_b[2])
 {
 	LassoSelectUserData *data = userData;
 	bArmature *arm = data->vc->obact->data;
@@ -352,6 +358,11 @@ static void do_lasso_select_pose__doSelectBone(void *userData, struct bPoseChann
 	if (PBONE_SELECTABLE(arm, pchan->bone)) {
 		int is_point_done = FALSE;
 		int points_proj_tot = 0;
+
+		const int x0 = screen_co_a[0];
+		const int y0 = screen_co_a[1];
+		const int x1 = screen_co_b[0];
+		const int y1 = screen_co_b[1];
 
 		/* project head location to screenspace */
 		if (x0 != IS_CLIPPED) {
@@ -394,11 +405,11 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, const int mcords[]
 		return;
 	}
 
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
 	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
 	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d);
-
-	BLI_lasso_boundbox(&rect, mcords, moves);
 
 	pose_foreachScreenBone(vc, do_lasso_select_pose__doSelectBone, &data);
 
@@ -445,23 +456,28 @@ static void do_lasso_select_objects(ViewContext *vc, const int mcords[][2], cons
 	}
 }
 
-static void do_lasso_select_mesh__doSelectVert(void *userData, BMVert *eve, int x, int y, int UNUSED(index))
+static void do_lasso_select_mesh__doSelectVert(void *userData, BMVert *eve, const float screen_co[2], int UNUSED(index))
 {
 	LassoSelectUserData *data = userData;
 
-	if (BLI_rcti_isect_pt(data->rect, x, y) &&
-	    BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED))
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED))
 	{
 		BM_vert_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
-static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
+static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index)
 {
 	LassoSelectUserData *data = userData;
 
 	if (EDBM_backbuf_check(bm_solidoffs + index)) {
+		const int x0 = screen_co_a[0];
+		const int y0 = screen_co_a[1];
+		const int x1 = screen_co_b[0];
+		const int y1 = screen_co_b[1];
+
 		if (data->pass == 0) {
-			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)  &&
+			if (edge_fully_inside_rect(data->rect_fl, screen_co_a, screen_co_b)  &&
 			    BLI_lasso_is_point_inside(data->mcords, data->moves, x0, y0, IS_CLIPPED) &&
 			    BLI_lasso_is_point_inside(data->mcords, data->moves, x1, y1, IS_CLIPPED))
 			{
@@ -476,12 +492,12 @@ static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int 
 		}
 	}
 }
-static void do_lasso_select_mesh__doSelectFace(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
+static void do_lasso_select_mesh__doSelectFace(void *userData, BMFace *efa, const float screen_co[2], int UNUSED(index))
 {
 	LassoSelectUserData *data = userData;
 
-	if (BLI_rcti_isect_pt(data->rect, x, y) &&
-	    BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED))
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED))
 	{
 		BM_face_select_set(data->vc->em->bm, efa, data->select);
 	}
@@ -494,10 +510,10 @@ static void do_lasso_select_mesh(ViewContext *vc, const int mcords[][2], short m
 	rcti rect;
 	int bbsel;
 	
-	BLI_lasso_boundbox(&rect, mcords, moves);
-	
 	/* set editmesh */
 	vc->em = BMEdit_FromObject(vc->obedit);
+
+	BLI_lasso_boundbox(&rect, mcords, moves);
 
 	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
@@ -542,13 +558,13 @@ static void do_lasso_select_mesh(ViewContext *vc, const int mcords[][2], short m
 	EDBM_selectmode_flush(vc->em);
 }
 
-static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
+static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
 {
 	LassoSelectUserData *data = userData;
 	Object *obedit = data->vc->obedit;
 	Curve *cu = (Curve *)obedit->data;
 
-	if (BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED)) {
+	if (BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED)) {
 		if (bp) {
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 			if (bp == cu->lastsel && !(bp->f1 & SELECT)) cu->lastsel = NULL;
@@ -578,8 +594,11 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BP
 static void do_lasso_select_curve(ViewContext *vc, const int mcords[][2], short moves, short extend, short select)
 {
 	LassoSelectUserData data;
+	rcti rect;
 
-	view3d_userdata_lassoselect_init(&data, vc, NULL, mcords, moves, select);
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
+	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
 	if (extend == 0 && select)
 		CU_deselect_all(vc->obedit);
@@ -588,19 +607,23 @@ static void do_lasso_select_curve(ViewContext *vc, const int mcords[][2], short 
 	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data);
 }
 
-static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x, int y)
+static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, const float screen_co[2])
 {
 	LassoSelectUserData *data = userData;
 
-	if (BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, IS_CLIPPED)) {
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED)) {
 		bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 	}
 }
 static void do_lasso_select_lattice(ViewContext *vc, const int mcords[][2], short moves, short extend, short select)
 {
 	LassoSelectUserData data;
+	rcti rect;
 
-	view3d_userdata_lassoselect_init(&data, vc, NULL, mcords, moves, select);
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
+	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
 	if (extend == 0 && select)
 		ED_setflagsLatt(vc->obedit, 0);
@@ -609,7 +632,7 @@ static void do_lasso_select_lattice(ViewContext *vc, const int mcords[][2], shor
 	lattice_foreachScreenVert(vc, do_lasso_select_lattice__doSelect, &data);
 }
 
-static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1)
+static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBone *ebone, const float screen_co_a[2], const float screen_co_b[2])
 {
 	LassoSelectUserData *data = userData;
 	bArmature *arm = data->vc->obedit->data;
@@ -617,6 +640,11 @@ static void do_lasso_select_armature__doSelectBone(void *userData, struct EditBo
 	if (EBONE_SELECTABLE(arm, ebone)) {
 		int is_point_done = FALSE;
 		int points_proj_tot = 0;
+
+		const int x0 = screen_co_a[0];
+		const int y0 = screen_co_a[1];
+		const int x1 = screen_co_b[0];
+		const int y1 = screen_co_b[1];
 
 		/* project head location to screenspace */
 		if (x0 != IS_CLIPPED) {
@@ -660,11 +688,11 @@ static void do_lasso_select_armature(ViewContext *vc, const int mcords[][2], sho
 	LassoSelectUserData data;
 	rcti rect;
 
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
 	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-
-	BLI_lasso_boundbox(&rect, mcords, moves);
 
 	if (extend == 0 && select)
 		ED_armature_deselect_all_visible(vc->obedit);
@@ -679,12 +707,12 @@ static void do_lasso_select_armature(ViewContext *vc, const int mcords[][2], sho
 	}
 }
 
-static void do_lasso_select_mball__doSelectElem(void *userData, struct MetaElem *ml, int x, int y)
+static void do_lasso_select_mball__doSelectElem(void *userData, struct MetaElem *ml, const float screen_co[2])
 {
 	LassoSelectUserData *data = userData;
 
-	if (BLI_rcti_isect_pt(data->rect, x, y) &&
-	    BLI_lasso_is_point_inside(data->mcords, data->moves, x, y, INT_MAX)) {
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], INT_MAX)) {
 		if (data->select) ml->flag |=  SELECT;
 		else              ml->flag &= ~SELECT;
 		data->is_change = TRUE;
@@ -700,11 +728,11 @@ static void do_lasso_select_meta(ViewContext *vc, const int mcords[][2], short m
 	if (extend == 0 && select)
 		 BKE_mball_deselect_all(mb);
 
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
 	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-
-	BLI_lasso_boundbox(&rect, mcords, moves);
 
 	mball_foreachScreenElem(vc, do_lasso_select_mball__doSelectElem, &data);
 }
@@ -1583,6 +1611,8 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 typedef struct BoxSelectUserData {
 	ViewContext *vc;
 	const rcti *rect;
+	const rctf *rect_fl;
+	rctf       _rect_fl;
 	int select;
 
 	/* runtime */
@@ -1595,7 +1625,11 @@ static void view3d_userdata_boxselect_init(BoxSelectUserData *r_data,
                                            ViewContext *vc, const rcti *rect, const int select)
 {
 	r_data->vc = vc;
+
 	r_data->rect = rect;
+	r_data->rect_fl = &r_data->_rect_fl;
+	BLI_rctf_rcti_copy(&r_data->_rect_fl, rect);
+
 	r_data->select = select;
 
 	/* runtime */
@@ -1604,23 +1638,20 @@ static void view3d_userdata_boxselect_init(BoxSelectUserData *r_data,
 	r_data->is_change = FALSE;
 }
 
-int edge_inside_circle(int centx, int centy, int radius, int x1, int y1, int x2, int y2)
+int edge_inside_circle(const float cent[2], float radius, const float screen_co_a[2], const float screen_co_b[2])
 {
 	int radius_squared = radius * radius;
 
 	/* check points in circle itself */
-	if ((x1 - centx) * (x1 - centx) + (y1 - centy) * (y1 - centy) <= radius_squared) {
+	if (len_squared_v2v2(cent, screen_co_a) <= radius_squared) {
 		return TRUE;
 	}
-	else if ((x2 - centx) * (x2 - centx) + (y2 - centy) * (y2 - centy) <= radius_squared) {
+	if (len_squared_v2v2(cent, screen_co_b) <= radius_squared) {
 		return TRUE;
 	}
 	else {
-		const float cent[2] = {centx, centy};
-		const float v1[2] = {x1, y1};
-		const float v2[2] = {x2, y2};
 		/* pointdistline */
-		if (dist_squared_to_line_segment_v2(cent, v1, v2) < (float)radius_squared) {
+		if (dist_squared_to_line_segment_v2(cent, screen_co_a, screen_co_b) < (float)radius_squared) {
 			return TRUE;
 		}
 	}
@@ -1628,13 +1659,13 @@ int edge_inside_circle(int centx, int centy, int radius, int x1, int y1, int x2,
 	return FALSE;
 }
 
-static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
+static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
 {
 	BoxSelectUserData *data = userData;
 	Object *obedit = data->vc->obedit;
 	Curve *cu = (Curve *)obedit->data;
 
-	if (BLI_rcti_isect_pt(data->rect, x, y)) {
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co)) {
 		if (bp) {
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 			if (bp == cu->lastsel && !(bp->f1 & SELECT)) cu->lastsel = NULL;
@@ -1675,11 +1706,11 @@ static int do_nurbs_box_select(ViewContext *vc, rcti *rect, int select, int exte
 	return OPERATOR_FINISHED;
 }
 
-static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, int y)
+static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, const float screen_co[2])
 {
 	BoxSelectUserData *data = userData;
 
-	if (BLI_rcti_isect_pt(data->rect, x, y)) {
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co)) {
 		bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 	}
 }
@@ -1698,37 +1729,37 @@ static int do_lattice_box_select(ViewContext *vc, rcti *rect, int select, int ex
 	return OPERATOR_FINISHED;
 }
 
-static void do_mesh_box_select__doSelectVert(void *userData, BMVert *eve, int x, int y, int UNUSED(index))
+static void do_mesh_box_select__doSelectVert(void *userData, BMVert *eve, const float screen_co[2], int UNUSED(index))
 {
 	BoxSelectUserData *data = userData;
 
-	if (BLI_rcti_isect_pt(data->rect, x, y)) {
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co)) {
 		BM_vert_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
-static void do_mesh_box_select__doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index)
+static void do_mesh_box_select__doSelectEdge(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index)
 {
 	BoxSelectUserData *data = userData;
 
 	if (EDBM_backbuf_check(bm_solidoffs + index)) {
 		if (data->pass == 0) {
-			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)) {
+			if (edge_fully_inside_rect(data->rect_fl, screen_co_a, screen_co_b)) {
 				BM_edge_select_set(data->vc->em->bm, eed, data->select);
 				data->is_done = TRUE;
 			}
 		}
 		else {
-			if (edge_inside_rect(data->rect, x0, y0, x1, y1)) {
+			if (edge_inside_rect(data->rect_fl, screen_co_a, screen_co_b)) {
 				BM_edge_select_set(data->vc->em->bm, eed, data->select);
 			}
 		}
 	}
 }
-static void do_mesh_box_select__doSelectFace(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
+static void do_mesh_box_select__doSelectFace(void *userData, BMFace *efa, const float screen_co[2], int UNUSED(index))
 {
 	BoxSelectUserData *data = userData;
 
-	if (BLI_rcti_isect_pt(data->rect, x, y)) {
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co)) {
 		BM_face_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
@@ -2216,7 +2247,8 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 typedef struct CircleSelectUserData {
 	ViewContext *vc;
 	short select;
-	int mval[2];
+	int   mval[2];
+	float mval_fl[2];
 	float radius;
 	float radius_squared;
 
@@ -2230,6 +2262,9 @@ static void view3d_userdata_circleselect_init(CircleSelectUserData *r_data,
 	r_data->vc = vc;
 	r_data->select = select;
 	copy_v2_v2_int(r_data->mval, mval);
+	r_data->mval_fl[0] = mval[0];
+	r_data->mval_fl[1] = mval[1];
+
 	r_data->radius = rad;
 	r_data->radius_squared = rad * rad;
 
@@ -2237,31 +2272,27 @@ static void view3d_userdata_circleselect_init(CircleSelectUserData *r_data,
 	r_data->is_change = FALSE;
 }
 
-static void mesh_circle_doSelectVert(void *userData, BMVert *eve, int x, int y, int UNUSED(index))
+static void mesh_circle_doSelectVert(void *userData, BMVert *eve, const float screen_co[2], int UNUSED(index))
 {
 	CircleSelectUserData *data = userData;
-	const float delta[2] = {(float)(x - data->mval[0]),
-	                        (float)(y - data->mval[1])};
 
-	if (len_squared_v2(delta) <= data->radius_squared) {
+	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		BM_vert_select_set(data->vc->em->bm, eve, data->select);
 	}
 }
-static void mesh_circle_doSelectEdge(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
+static void mesh_circle_doSelectEdge(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int UNUSED(index))
 {
 	CircleSelectUserData *data = userData;
 
-	if (edge_inside_circle(data->mval[0], data->mval[1], (int)data->radius, x0, y0, x1, y1)) {
+	if (edge_inside_circle(data->mval_fl, (int)data->radius, screen_co_a, screen_co_b)) {
 		BM_edge_select_set(data->vc->em->bm, eed, data->select);
 	}
 }
-static void mesh_circle_doSelectFace(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
+static void mesh_circle_doSelectFace(void *userData, BMFace *efa, const float screen_co[2], int UNUSED(index))
 {
 	CircleSelectUserData *data = userData;
-	const float delta[2] = {(float)(x - data->mval[0]),
-	                        (float)(y - data->mval[1])};
 
-	if (len_squared_v2(delta) <= data->radius_squared) {
+	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		BM_face_select_set(data->vc->em->bm, efa, data->select);
 	}
 }
@@ -2345,16 +2376,13 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 }
 
 
-static void nurbscurve_circle_doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
+static void nurbscurve_circle_doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
 {
 	CircleSelectUserData *data = userData;
 	Object *obedit = data->vc->obedit;
 	Curve *cu = (Curve *)obedit->data;
 
-	const float delta[2] = {(float)(x - data->mval[0]),
-	                        (float)(y - data->mval[1])};
-
-	if (len_squared_v2(delta) <= data->radius_squared) {
+	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		if (bp) {
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 
@@ -2392,13 +2420,11 @@ static void nurbscurve_circle_select(ViewContext *vc, int select, const int mval
 }
 
 
-static void latticecurve_circle_doSelect(void *userData, BPoint *bp, int x, int y)
+static void latticecurve_circle_doSelect(void *userData, BPoint *bp, const float screen_co[2])
 {
 	CircleSelectUserData *data = userData;
-	const float delta[2] = {(float)(x - data->mval[0]),
-	                        (float)(y - data->mval[1])};
 
-	if (len_squared_v2(delta) <= data->radius_squared) {
+	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 	}
 }
@@ -2414,13 +2440,11 @@ static void lattice_circle_select(ViewContext *vc, int select, const int mval[2]
 
 
 /* NOTE: pose-bone case is copied from editbone case... */
-static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int x, int y)
+static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, const float screen_co[2])
 {
 	CircleSelectUserData *data = userData;
-	const float delta[2] = {(float)(x - data->mval[0]),
-	                        (float)(y - data->mval[1])};
 
-	if (len_squared_v2(delta) <= data->radius_squared) {
+	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		if (data->select)
 			pchan->bone->flag |= BONE_SELECTED;
 		else
@@ -2429,7 +2453,7 @@ static short pchan_circle_doSelectJoint(void *userData, bPoseChannel *pchan, int
 	}
 	return 0;
 }
-static void do_circle_select_pose__doSelectBone(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1)
+static void do_circle_select_pose__doSelectBone(void *userData, struct bPoseChannel *pchan, const float screen_co_a[2], const float screen_co_b[2])
 {
 	CircleSelectUserData *data = userData;
 	bArmature *arm = data->vc->obact->data;
@@ -2439,17 +2463,17 @@ static void do_circle_select_pose__doSelectBone(void *userData, struct bPoseChan
 		int points_proj_tot = 0;
 
 		/* project head location to screenspace */
-		if (x0 != IS_CLIPPED) {
+		if (screen_co_a[0] != IS_CLIPPED) {
 			points_proj_tot++;
-			if (pchan_circle_doSelectJoint(data, pchan, x0, y0)) {
+			if (pchan_circle_doSelectJoint(data, pchan, screen_co_a)) {
 				is_point_done = TRUE;
 			}
 		}
 
 		/* project tail location to screenspace */
-		if (x1 != IS_CLIPPED) {
+		if (screen_co_b[0] != IS_CLIPPED) {
 			points_proj_tot++;
-			if (pchan_circle_doSelectJoint(data, pchan, x1, y1)) {
+			if (pchan_circle_doSelectJoint(data, pchan, screen_co_a)) {
 				is_point_done = TRUE;
 			}
 		}
@@ -2462,7 +2486,7 @@ static void do_circle_select_pose__doSelectBone(void *userData, struct bPoseChan
 		 * It works nicer to only do this if the head or tail are not in the circle,
 		 * otherwise there is no way to circle select joints alone */
 		if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
-		    edge_inside_circle(data->mval[0], data->mval[1], data->radius, x0, y0, x1, y1))
+		    edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
 		{
 			if (data->select) pchan->bone->flag |= BONE_SELECTED;
 			else              pchan->bone->flag &= ~BONE_SELECTED;
@@ -2494,13 +2518,11 @@ static void pose_circle_select(ViewContext *vc, int select, const int mval[2], f
 	}
 }
 
-static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int x, int y, short head)
+static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, const float screen_co[2], short head)
 {
 	CircleSelectUserData *data = userData;
-	const float delta[2] = {(float)(x - data->mval[0]),
-	                        (float)(y - data->mval[1])};
-	
-	if (len_squared_v2(delta) <= data->radius_squared) {
+
+	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		if (head) {
 			if (data->select)
 				ebone->flag |= BONE_ROOTSEL;
@@ -2517,7 +2539,7 @@ static short armature_circle_doSelectJoint(void *userData, EditBone *ebone, int 
 	}
 	return 0;
 }
-static void do_circle_select_armature__doSelectBone(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1)
+static void do_circle_select_armature__doSelectBone(void *userData, struct EditBone *ebone, const float screen_co_a[2], const float screen_co_b[2])
 {
 	CircleSelectUserData *data = userData;
 	bArmature *arm = data->vc->obedit->data;
@@ -2527,17 +2549,17 @@ static void do_circle_select_armature__doSelectBone(void *userData, struct EditB
 		int points_proj_tot = 0;
 
 		/* project head location to screenspace */
-		if (x0 != IS_CLIPPED) {
+		if (screen_co_a[0] != IS_CLIPPED) {
 			points_proj_tot++;
-			if (armature_circle_doSelectJoint(data, ebone, x0, y0, TRUE)) {
+			if (armature_circle_doSelectJoint(data, ebone, screen_co_a, TRUE)) {
 				is_point_done = TRUE;
 			}
 		}
 
 		/* project tail location to screenspace */
-		if (x1 != IS_CLIPPED) {
+		if (screen_co_b[0] != IS_CLIPPED) {
 			points_proj_tot++;
-			if (armature_circle_doSelectJoint(data, ebone, x1, y1, FALSE)) {
+			if (armature_circle_doSelectJoint(data, ebone, screen_co_b, FALSE)) {
 				is_point_done = TRUE;
 			}
 		}
@@ -2550,7 +2572,7 @@ static void do_circle_select_armature__doSelectBone(void *userData, struct EditB
 		 * It works nicer to only do this if the head or tail are not in the circle,
 		 * otherwise there is no way to circle select joints alone */
 		if ((is_point_done == FALSE) && (points_proj_tot == 2) &&
-		    edge_inside_circle(data->mval[0], data->mval[1], data->radius, x0, y0, x1, y1))
+		    edge_inside_circle(data->mval_fl, data->radius, screen_co_a, screen_co_b))
 		{
 			if (data->select) ebone->flag |=  (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			else              ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
@@ -2578,13 +2600,11 @@ static void armature_circle_select(ViewContext *vc, int select, const int mval[2
 	}
 }
 
-static void do_circle_select_mball__doSelectElem(void *userData, struct MetaElem *ml, int x, int y)
+static void do_circle_select_mball__doSelectElem(void *userData, struct MetaElem *ml, const float screen_co[2])
 {
 	CircleSelectUserData *data = userData;
-	const float delta[2] = {(float)(x - data->mval[0]),
-	                        (float)(y - data->mval[1])};
 
-	if (len_squared_v2(delta) <= data->radius_squared) {
+	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
 		if (data->select) ml->flag |=  SELECT;
 		else              ml->flag &= ~SELECT;
 		data->is_change = TRUE;

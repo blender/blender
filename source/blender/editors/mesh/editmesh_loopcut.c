@@ -416,7 +416,7 @@ static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	Object *obedit = CTX_data_edit_object(C);
 	RingSelOpData *lcd;
 	BMEdge *edge;
-	int dist = 75;
+	float dist = 75.0f;
 
 	if (modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
 		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
@@ -513,7 +513,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ED_region_tag_redraw(lcd->ar);
 			break;
 		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
-			int dist = 75;
+			float dist = 75.0f;
 			BMEdge *edge;
 
 			lcd->vc.mval[0] = event->mval[0];

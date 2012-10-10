@@ -787,11 +787,16 @@ static short gp_stroke_eraser_strokeinside(const int mval[], const int UNUSED(mv
                                            int rad, int x0, int y0, int x1, int y1)
 {
 	/* simple within-radius check for now */
-	if (edge_inside_circle(mval[0], mval[1], rad, x0, y0, x1, y1))
-		return 1;
+	const float mval_fl[2]     = {mval[0], mval[1]};
+	const float screen_co_a[2] = {x0, y0};
+	const float screen_co_b[2] = {x1, y1};
+
+	if (edge_inside_circle(mval_fl, rad, screen_co_a, screen_co_b)) {
+		return TRUE;
+	}
 	
 	/* not inside */
-	return 0;
+	return FALSE;
 } 
 
 static void gp_point_to_xy(ARegion *ar, View2D *v2d, rctf *subrect, bGPDstroke *gps, bGPDspoint *pt,

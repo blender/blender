@@ -1462,7 +1462,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int size,
-                                        unsigned int min, unsigned int max, int *dist, short strict,
+                                        unsigned int min, unsigned int max, float *r_dist, short strict,
                                         void *handle, unsigned int (*indextest)(void *handle, unsigned int index))
 {
 	struct ImBuf *buf;
@@ -1500,13 +1500,13 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int 
 					if (strict) {
 						indexok =  indextest(handle, *tbuf - min + 1);
 						if (indexok) {
-							*dist = (short) sqrt( (float)distance);
+							*r_dist = sqrtf((float)distance);
 							index = *tbuf - min + 1;
 							goto exit; 
 						}
 					}
 					else {
-						*dist = (short) sqrt( (float)distance);  /* XXX, this distance is wrong - */
+						*r_dist = sqrtf((float)distance);  /* XXX, this distance is wrong - */
 						index = *tbuf - min + 1;  /* messy yah, but indices start at 1 */
 						goto exit;
 					}

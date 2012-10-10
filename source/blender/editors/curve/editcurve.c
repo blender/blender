@@ -3226,12 +3226,12 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 
 /******************** find nearest ************************/
 
-static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
+static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
 {
-	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; int dist, hpoint, select, mval[2]; } *data = userData;
+	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; float dist; int hpoint, select; float mval_fl[2]; } *data = userData;
 
 	short flag;
-	short temp;
+	float dist_test;
 
 	if (bp) {
 		flag = bp->f1;
@@ -3248,12 +3248,12 @@ static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp,
 		}
 	}
 
-	temp = abs(data->mval[0] - x) + abs(data->mval[1] - y);
-	if ((flag & 1) == data->select) temp += 5;
-	if (bezt && beztindex == 1) temp += 3;  /* middle points get a small disadvantage */
+	dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
+	if ((flag & SELECT) == data->select) dist_test += 5.0f;
+	if (bezt && beztindex == 1) dist_test += 3.0f;  /* middle points get a small disadvantage */
 
-	if (temp < data->dist) {
-		data->dist = temp;
+	if (dist_test < data->dist) {
+		data->dist = dist_test;
 
 		data->bp = bp;
 		data->bezt = bezt;
@@ -3267,13 +3267,13 @@ static short findnearestNurbvert(ViewContext *vc, short sel, const int mval[2], 
 	/* (sel == 1): selected gets a disadvantage */
 	/* in nurb and bezt or bp the nearest is written */
 	/* return 0 1 2: handlepunt */
-	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; int dist, hpoint, select, mval[2]; } data = {NULL};
+	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; float dist; int hpoint, select; float mval_fl[2]; } data = {NULL};
 
 	data.dist = 100;
 	data.hpoint = 0;
 	data.select = sel;
-	data.mval[0] = mval[0];
-	data.mval[1] = mval[1];
+	data.mval_fl[0] = mval[0];
+	data.mval_fl[1] = mval[1];
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 	nurbs_foreachScreenVert(vc, findnearestNurbvert__doClosest, &data);

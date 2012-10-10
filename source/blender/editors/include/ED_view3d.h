@@ -167,14 +167,14 @@ void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struc
 void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
 
 /* drawobject.c iterators */
-void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BMVert *eve, int x, int y, int index), void *userData, eV3DClipTest clipVerts);
-void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct BMEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, eV3DClipTest clipVerts);
-void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, int x, int y, int index), void *userData);
-void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, int x, int y), void *userData);
-void mball_foreachScreenElem(struct ViewContext *vc, void (*func)(void *userData, struct MetaElem *ml, int x, int y), void *userData);
-void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);
-void armature_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1), void *userData);
-void pose_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1), void *userData);
+void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index), void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index), void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, const float screen_co[2], int index), void *userData);
+void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, const float screen_co[2]), void *userData);
+void mball_foreachScreenElem(struct ViewContext *vc, void (*func)(void *userData, struct MetaElem *ml, const float screen_co[2]), void *userData);
+void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, const float screen_co[2]), void *userData);
+void armature_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct EditBone *ebone, const float screen_co_a[2], const float screen_co_b[2]), void *userData);
+void pose_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct bPoseChannel *pchan, const float screen_co_a[2], const float screen_co_b[2]), void *userData);
 
 
 void ED_view3d_clipping_calc(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, const struct rcti *rect);
@@ -191,7 +191,8 @@ void drawcircball(int mode, const float cent[3], float rad, float tmat[][4]);
 /* backbuffer select and draw support */
 void view3d_validate_backbuf(struct ViewContext *vc);
 struct ImBuf *view3d_read_backbuf(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
-unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, const int mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict,
+unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, const int mval[2], int size,
+                                        unsigned int min, unsigned int max, float *dist, short strict,
                                         void *handle, unsigned int (*indextest)(void *handle, unsigned int index));
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
@@ -215,7 +216,7 @@ int view3d_get_view_aligned_coordinate(struct ViewContext *vc, float fp[3], cons
 void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv3d, struct Object *ob, struct bglMats *mats);
 
 /* XXX should move to BLI_math */
-int edge_inside_circle(int centx, int centy, int rad, int x1, int y1, int x2, int y2);
+int edge_inside_circle(const float cent[2], float radius, const float screen_co_a[2], const float screen_co_b[2]);
 
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
