@@ -1415,9 +1415,12 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
-	int temp, a, dist = 100;
+	int  a;
+	float dist = 100.0f;
 	int retval = 0;
 	short hits;
+	const float mval_fl[2] = {(float)mval[0], (float)mval[1]};
+
 	
 	/* setup view context for argument to callbacks */
 	view3d_set_viewcontext(C, &vc);
@@ -1438,13 +1441,16 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 			base = startbase;
 			while (base) {
 				if (BASE_SELECTABLE(v3d, base)) {
-					ED_view3d_project_base(ar, base);
-					temp = abs(base->sx - mval[0]) + abs(base->sy - mval[1]);
-					if (base == BASACT) temp += 10;
-					if (temp < dist) {
-						
-						dist = temp;
-						basact = base;
+					float screen_co[2];
+					if (ED_view3d_project_float_global(ar, base->object->obmat[3], screen_co,
+					                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
+					{
+						float dist_temp = len_manhattan_v2v2(mval_fl, screen_co);
+						if (base == BASACT) dist_temp += 10.0f;
+						if (dist_temp < dist) {
+							dist = dist_temp;
+							basact = base;
+						}
 					}
 				}
 				base = base->next;
@@ -2653,11 +2659,12 @@ static int object_circle_select(ViewContext *vc, int select, const int mval[2], 
 	const float radius_squared = rad * rad;
 	const float mval_fl[2] = {mval[0], mval[1]};
 	int is_change = FALSE;
+	int select_flag = select ? SELECT : 0;
 
 	Base *base;
 	select = select ? BA_SELECT : BA_DESELECT;
 	for (base = FIRSTBASE; base; base = base->next) {
-		if (((base->flag & SELECT) == 0) && BASE_SELECTABLE(vc->v3d, base)) {
+		if (BASE_SELECTABLE(vc->v3d, base) && ((base->flag & SELECT) != select_flag)) {
 			float screen_co[2];
 			if (ED_view3d_project_float_global(vc->ar, base->object->obmat[3], screen_co,
 			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
