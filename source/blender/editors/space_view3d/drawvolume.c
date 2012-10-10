@@ -157,7 +157,10 @@ static int convex(const float p0[3], const float up[3], const float a[3], const 
 	return dot_v3v3(up, tmp) >= 0;
 }
 
-void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob, ARegion *ar, GPUTexture *tex, float min[3], float max[3], int res[3], float dx, float base_scale, float viewnormal[3], GPUTexture *tex_shadow, GPUTexture *tex_flame)
+void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
+                       GPUTexture *tex, float min[3], float max[3],
+                       int res[3], float dx, float UNUSED(base_scale), float viewnormal[3],
+                       GPUTexture *tex_shadow, GPUTexture *tex_flame)
 {
 	int i, j, k, n, good_index;
 	float d /*, d0 */ /* UNUSED */, dd, ds;
@@ -197,67 +200,70 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob, ARegion *ar, GPUTex
 
 	/* Fragment program to calculate the view3d of smoke */
 	/* using 4 textures, density, shadow, flame and flame spectrum */
-	const char *shader_basic = "!!ARBfp1.0\n"
-	                   "PARAM dx = program.local[0];\n"
-	                   "PARAM darkness = program.local[1];\n"
-					   "PARAM render = program.local[2];\n"
-	                   "PARAM f = {1.442695041, 1.442695041, 1.442695041, 0.01};\n"
-	                   "TEMP temp, shadow, flame, spec, value;\n"
-	                   "TEX temp, fragment.texcoord[0], texture[0], 3D;\n"
-	                   "TEX shadow, fragment.texcoord[0], texture[1], 3D;\n"
-					   "TEX flame, fragment.texcoord[0], texture[2], 3D;\n"
-					   "TEX spec, flame.r, texture[3], 1D;\n"
-					   /* calculate shading factor from density */
-	                   "MUL value.r, temp.a, darkness.a;\n"
-	                   "MUL value.r, value.r, dx.r;\n"
-	                   "MUL value.r, value.r, f.r;\n"
-	                   "EX2 temp, -value.r;\n"
-					   /* alpha */
-					   "SUB temp.a, 1.0, temp.r;\n"
-					   /* shade colors */
-	                   "MUL temp.r, temp.r, shadow.r;\n"
-	                   "MUL temp.g, temp.g, shadow.r;\n"
-	                   "MUL temp.b, temp.b, shadow.r;\n"
-					   "MUL temp.r, temp.r, darkness.r;\n"
-	                   "MUL temp.g, temp.g, darkness.g;\n"
-	                   "MUL temp.b, temp.b, darkness.b;\n"
-					   /* for now this just replace smoke shading if rendering fire */
-					   "CMP result.color, render.r, temp, spec;\n"
-	                   "END\n";
+	const char *shader_basic =
+	        "!!ARBfp1.0\n"
+	        "PARAM dx = program.local[0];\n"
+	        "PARAM darkness = program.local[1];\n"
+	        "PARAM render = program.local[2];\n"
+	        "PARAM f = {1.442695041, 1.442695041, 1.442695041, 0.01};\n"
+	        "TEMP temp, shadow, flame, spec, value;\n"
+	        "TEX temp, fragment.texcoord[0], texture[0], 3D;\n"
+	        "TEX shadow, fragment.texcoord[0], texture[1], 3D;\n"
+	        "TEX flame, fragment.texcoord[0], texture[2], 3D;\n"
+	        "TEX spec, flame.r, texture[3], 1D;\n"
+	        /* calculate shading factor from density */
+	        "MUL value.r, temp.a, darkness.a;\n"
+	        "MUL value.r, value.r, dx.r;\n"
+	        "MUL value.r, value.r, f.r;\n"
+	        "EX2 temp, -value.r;\n"
+	        /* alpha */
+	        "SUB temp.a, 1.0, temp.r;\n"
+	        /* shade colors */
+	        "MUL temp.r, temp.r, shadow.r;\n"
+	        "MUL temp.g, temp.g, shadow.r;\n"
+	        "MUL temp.b, temp.b, shadow.r;\n"
+	        "MUL temp.r, temp.r, darkness.r;\n"
+	        "MUL temp.g, temp.g, darkness.g;\n"
+	        "MUL temp.b, temp.b, darkness.b;\n"
+	        /* for now this just replace smoke shading if rendering fire */
+	        "CMP result.color, render.r, temp, spec;\n"
+	        "END\n";
 
 	/* color shader */
-	const char *shader_color = "!!ARBfp1.0\n"
-	                   "PARAM dx = program.local[0];\n"
-	                   "PARAM darkness = program.local[1];\n"
-					   "PARAM render = program.local[2];\n"
-	                   "PARAM f = {1.442695041, 1.442695041, 1.442695041, 1.442695041};\n"
-	                   "TEMP temp, shadow, flame, spec, value;\n"
-	                   "TEX temp, fragment.texcoord[0], texture[0], 3D;\n"
-	                   "TEX shadow, fragment.texcoord[0], texture[1], 3D;\n"
-					   "TEX flame, fragment.texcoord[0], texture[2], 3D;\n"
-					   "TEX spec, flame.r, texture[3], 1D;\n"
-					   /* unpremultiply volume texture */
-					   "RCP value.r, temp.a;\n"
-					   "MUL temp.r, temp.r, value.r;\n"
-					   "MUL temp.g, temp.g, value.r;\n"
-					   "MUL temp.b, temp.b, value.r;\n"
-						/* calculate shading factor from density */
-	                   "MUL value.r, temp.a, darkness.a;\n"
-	                   "MUL value.r, value.r, dx.r;\n"
-	                   "MUL value.r, value.r, f.r;\n"
-	                   "EX2 value.r, -value.r;\n"
-						/* alpha */
-	                   "SUB temp.a, 1.0, value.r;\n"
-					   /* shade colors */
-	                   "MUL temp.r, temp.r, shadow.r;\n"
-	                   "MUL temp.g, temp.g, shadow.r;\n"
-	                   "MUL temp.b, temp.b, shadow.r;\n"
-					   "MUL temp.r, temp.r, value.r;\n"
-	                   "MUL temp.g, temp.g, value.r;\n"
-	                   "MUL temp.b, temp.b, value.r;\n"
-					   /* for now this just replace smoke shading if rendering fire */
-					   "CMP result.color, render.r, temp, spec;\n"
-	                   "END\n";
+	const char *shader_color =
+	        "!!ARBfp1.0\n"
+	        "PARAM dx = program.local[0];\n"
+	        "PARAM darkness = program.local[1];\n"
+	        "PARAM render = program.local[2];\n"
+	        "PARAM f = {1.442695041, 1.442695041, 1.442695041, 1.442695041};\n"
+	        "TEMP temp, shadow, flame, spec, value;\n"
+	        "TEX temp, fragment.texcoord[0], texture[0], 3D;\n"
+	        "TEX shadow, fragment.texcoord[0], texture[1], 3D;\n"
+	        "TEX flame, fragment.texcoord[0], texture[2], 3D;\n"
+	        "TEX spec, flame.r, texture[3], 1D;\n"
+	        /* unpremultiply volume texture */
+	        "RCP value.r, temp.a;\n"
+	        "MUL temp.r, temp.r, value.r;\n"
+	        "MUL temp.g, temp.g, value.r;\n"
+	        "MUL temp.b, temp.b, value.r;\n"
+	        /* calculate shading factor from density */
+	        "MUL value.r, temp.a, darkness.a;\n"
+	        "MUL value.r, value.r, dx.r;\n"
+	        "MUL value.r, value.r, f.r;\n"
+	        "EX2 value.r, -value.r;\n"
+	        /* alpha */
+	        "SUB temp.a, 1.0, value.r;\n"
+	        /* shade colors */
+	        "MUL temp.r, temp.r, shadow.r;\n"
+	        "MUL temp.g, temp.g, shadow.r;\n"
+	        "MUL temp.b, temp.b, shadow.r;\n"
+	        "MUL temp.r, temp.r, value.r;\n"
+	        "MUL temp.g, temp.g, value.r;\n"
+	        "MUL temp.b, temp.b, value.r;\n"
+	        /* for now this just replace smoke shading if rendering fire */
+	        "CMP result.color, render.r, temp, spec;\n"
+	        "END\n";
+
 	GLuint prog;
 
 	

@@ -684,7 +684,6 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 		MFace *mface = NULL;
 		BVHTreeFromMesh treeData = {0};
 		int numverts, i, z;
-		int *res = sds->res;
 
 		float surface_distance = 0.6;
 
@@ -799,7 +798,8 @@ static void obstacles_from_derivedmesh(Object *coll_ob, SmokeDomainSettings *sds
 }
 
 /* Animated obstacles: dx_step = ((x_new - x_old) / totalsteps) * substep */
-static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt, int substep, int totalsteps)
+static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds, float dt,
+                             int UNUSED(substep), int UNUSED(totalsteps))
 {
 	Object **collobjs = NULL;
 	unsigned int numcollobj = 0;
@@ -1540,7 +1540,7 @@ BLI_INLINE void apply_inflow_fields(SmokeFlowSettings *sfs, float emission_value
 {
 	int absolute_flow = (sfs->flags & MOD_SMOKE_FLOW_ABSOLUTE);
 	float dens_old = density[index];
-	float fuel_old = (fuel) ? fuel[index] : 0.0f;
+	// float fuel_old = (fuel) ? fuel[index] : 0.0f;  /* UNUSED */
 	float dens_flow = (sfs->type == MOD_SMOKE_FLOW_TYPE_FIRE) ? 0.0f : emission_value * sfs->density;
 	float fuel_flow = emission_value * sfs->fuel_amount;
 	/* add heat */
@@ -1972,12 +1972,14 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *
 	float gravity[3] = {0.0f, 0.0f, -1.0f};
 	float gravity_mag;
 
+#if 0  /* UNUSED */
 	/* get max velocity and lower the dt value if it is too high */
 	size_t size = sds->res[0] * sds->res[1] * sds->res[2];
 	float *velX = smoke_get_velocity_x(sds->fluid);
 	float *velY = smoke_get_velocity_y(sds->fluid);
 	float *velZ = smoke_get_velocity_z(sds->fluid);
 	size_t i;
+#endif
 
 	/* update object state */
 	invert_m4_m4(sds->imat, ob->obmat);
@@ -2001,12 +2003,13 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *
 	// maximum timestep/"CFL" constraint: dt < 5.0 *dx / maxVel
 	maxVel = (sds->dx * 5.0);
 
-	/*for(i = 0; i < size; i++)
-	{
+#if 0
+	for (i = 0; i < size; i++) {
 		float vtemp = (velX[i]*velX[i]+velY[i]*velY[i]+velZ[i]*velZ[i]);
 		if(vtemp > maxVelMag)
 			maxVelMag = vtemp;
-	}*/
+	}
+#endif
 
 	maxVelMag = sqrt(maxVelMag) * dt * sds->time_scale;
 	totalSubsteps = (int)((maxVelMag / maxVel) + 1.0f); /* always round up */
@@ -2119,7 +2122,7 @@ static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 	return result;
 }
 
-void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
+static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
 {	
 	if((smd->type & MOD_SMOKE_TYPE_FLOW))
 	{

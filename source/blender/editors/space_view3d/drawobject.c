@@ -6670,19 +6670,19 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
 					smd->domain->tex = NULL;
 					GPU_create_smoke(smd, 0);
-					draw_smoke_volume(sds, ob, ar, sds->tex,
-								p0, p1,
-								sds->res, sds->dx, sds->scale*sds->maxres,
-								viewnormal, sds->tex_shadow, sds->tex_flame);
+					draw_smoke_volume(sds, ob, sds->tex,
+					                  p0, p1,
+					                  sds->res, sds->dx, sds->scale * sds->maxres,
+					                  viewnormal, sds->tex_shadow, sds->tex_flame);
 					GPU_free_smoke(smd);
 				}
 				else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
 					sds->tex = NULL;
 					GPU_create_smoke(smd, 1);
-					draw_smoke_volume(sds, ob, ar, sds->tex,
-								p0, p1,
-								sds->res_wt, sds->dx, sds->scale*sds->maxres,
-								viewnormal, sds->tex_shadow, sds->tex_flame);
+					draw_smoke_volume(sds, ob, sds->tex,
+					                  p0, p1,
+					                  sds->res_wt, sds->dx, sds->scale * sds->maxres,
+					                  viewnormal, sds->tex_shadow, sds->tex_flame);
 					GPU_free_smoke(smd);
 				}
 

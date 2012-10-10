@@ -40,6 +40,7 @@ struct ARegionType;
 struct BoundBox;
 struct DerivedMesh;
 struct Object;
+struct SmokeDomainSettings;
 struct ViewContext;
 struct bAnimVizSettings;
 struct bContext;
@@ -212,7 +213,11 @@ ARegion *view3d_has_tools_region(ScrArea *sa);
 extern const char *view3d_context_dir[]; /* doc access */
 
 /* draw_volume.c */
-void draw_smoke_volume(struct SmokeDomainSettings *sds, struct Object *ob, struct ARegion *ar, struct GPUTexture *tex, float min[3], float max[3], int res[3], float dx, float base_scale, float viewnormal[3], struct GPUTexture *tex_shadow, struct GPUTexture *tex_flame);
+void draw_smoke_volume(struct SmokeDomainSettings *sds, struct Object *ob,
+                       struct GPUTexture *tex, float min[3], float max[3],
+                       int res[3], float dx, float base_scale, float viewnormal[3],
+                       struct GPUTexture *tex_shadow, struct GPUTexture *tex_flame);
+
 //#define SMOKE_DEBUG_VELOCITY
 //#define SMOKE_DEBUG_HEAT
 
