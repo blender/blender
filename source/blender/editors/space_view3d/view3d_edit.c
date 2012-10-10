@@ -2342,17 +2342,17 @@ static void viewselected_rv3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 }
 
 /* like a localview without local!, was centerview() in 2.4x */
-static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
+static int viewselected_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ar->regiondata;
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
 	int ok = 0, ok_dist = 1;
-	const short skip_camera = ED_view3d_camera_lock_check(v3d, rv3d);
+	const short skip_camera = ED_view3d_camera_lock_check(v3d, ar->regiondata);
+	const short use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
 
 	INIT_MINMAX(min, max);
 
@@ -2427,7 +2427,22 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_FINISHED;
 	}
 
-	viewselected_rv3d_from_minmax(C, v3d, ar, min, max, ok_dist);
+	if (use_all_regions) {
+		ScrArea *sa = CTX_wm_area(C);
+		ARegion *ar_iter;
+		for (ar_iter = sa->regionbase.first; ar_iter; ar_iter = ar_iter->next) {
+			if (ar_iter->regiontype == RGN_TYPE_WINDOW) {
+				RegionView3D *rv3d = ar_iter->regiondata;
+				/* when using all regions, don't jump out of camera view */
+				if (rv3d->persp != RV3D_CAMOB) {
+					viewselected_rv3d_from_minmax(C, v3d, ar_iter, min, max, ok_dist);
+				}
+			}
+		}
+	}
+	else {
+		viewselected_rv3d_from_minmax(C, v3d, ar, min, max, ok_dist);
+	}
 	
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
@@ -2436,6 +2451,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 
 void VIEW3D_OT_view_selected(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 
 	/* identifiers */
 	ot->name = "View Selected";
@@ -2448,6 +2464,10 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = 0;
+
+	/* rna later */
+	prop = RNA_def_boolean(ot->srna, "use_all_regions", 0, "All Regions", "View selected for all regions");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int view_lock_clear_exec(bContext *C, wmOperator *UNUSED(op))
