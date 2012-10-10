@@ -507,14 +507,13 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 	/* clear weights */
 	if (replace_mode == WT_REPLACE_ALL_WEIGHTS) {
-		for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++) {
+		for (i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++) {
 
-			if (*dv_dst == NULL) {
-				continue;
-			}
+			if (*dv_dst == NULL) continue;
 
 			dw_dst = defvert_verify_index(*dv_dst, index_dst);
-			if (dw_dst) (*dw_dst).weight = 0;
+			/* remove vertex from group */
+			if (dw_dst) defvert_remove_group(*dv_dst, dw_dst);
 		}
 	}
 
@@ -562,7 +561,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
-				/* With current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
+				/* with current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
 				nearest.index = -1;
 
 				/* transform into target space */
@@ -601,7 +600,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
-				/* With current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
+				/* with current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
 				nearest.index = -1;
 
 				/* transform into target space */
