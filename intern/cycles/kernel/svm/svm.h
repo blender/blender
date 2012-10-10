@@ -205,6 +205,14 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_CLOSURE_WEIGHT:
 				svm_node_closure_weight(sd, stack, node.y);
 				break;
+#ifdef __DPDU__
+			case NODE_CLOSURE_SET_TANGENT:
+				svm_node_closure_set_tangent(sd, node.y, node.z, node.w);
+				break;
+			case NODE_CLOSURE_TANGENT:
+				svm_node_closure_tangent(sd, stack, node.y);
+				break;
+#endif
 			case NODE_EMISSION_WEIGHT:
 				svm_node_emission_weight(kg, sd, stack, node);
 				break;
@@ -261,14 +269,14 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				svm_node_camera(kg, sd, stack, node.y, node.z, node.w);
 				break;
 			case NODE_GEOMETRY:
-				svm_node_geometry(sd, stack, node.y, node.z);
+				svm_node_geometry(kg, sd, stack, node.y, node.z);
 				break;
 #ifdef __EXTRA_NODES__
 			case NODE_GEOMETRY_BUMP_DX:
-				svm_node_geometry_bump_dx(sd, stack, node.y, node.z);
+				svm_node_geometry_bump_dx(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_GEOMETRY_BUMP_DY:
-				svm_node_geometry_bump_dy(sd, stack, node.y, node.z);
+				svm_node_geometry_bump_dy(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_LIGHT_PATH:
 				svm_node_light_path(sd, stack, node.y, node.z, path_flag);

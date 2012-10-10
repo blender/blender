@@ -33,6 +33,28 @@ CCL_NAMESPACE_BEGIN
 
 /* Find/Add */
 
+static float3 tri_calc_tangent(float3 v0, float3 v1, float3 v2, float3 tx0, float3 tx1, float3 tx2)
+{
+	float3 duv1 = tx2 - tx0;
+	float3 duv2 = tx2 - tx1;
+	float3 dp1 = v2 - v0;
+	float3 dp2 = v2 - v1;
+	float det = duv1[0] * duv2[1] - duv1[1] * duv2[0];
+
+	if(det != 0.0f) {
+		return normalize(dp1 * duv2[1] - dp2 * duv1[1]);
+	}
+	else {
+		/* give back a sane default, using a valid edge as a fallback */
+		float3 edge = v1 - v0;
+
+		if(len(edge) == 0.0f)
+			edge = v2 - v0;
+
+		return normalize(edge);
+	}
+}
+
 static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<uint>& used_shaders)
 {
 	/* create vertices */
@@ -155,6 +177,67 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 					fdata += 3;
 				}
 			}
+		}
+	}
+
+	/* create texcoord-based tangent attributes */
+	{
+		BL::Mesh::tessface_uv_textures_iterator l;
+
+		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
+			AttributeStandard std = (l->active_render())? ATTR_STD_TANGENT: ATTR_STD_NONE;
+
+			if(!mesh->need_attribute(scene, std))
+				continue;
+
+			Attribute *attr = mesh->attributes.add(std, ustring("Tangent"));
+
+			/* compute average tangents per vertex */
+			float3 *tangents = attr->data_float3();
+			memset(tangents, 0, sizeof(float3)*mesh->verts.size());
+
+			BL::MeshTextureFaceLayer::data_iterator t;
+
+			size_t fi = 0; /* face index */
+			b_mesh.tessfaces.begin(f);
+			for(l->data.begin(t); t != l->data.end() && f != b_mesh.tessfaces.end(); ++t, ++fi, ++f) {
+				int4 vi = get_int4(f->vertices_raw());
+
+				float3 tx0 = get_float3(t->uv1());
+				float3 tx1 = get_float3(t->uv2());
+				float3 tx2 = get_float3(t->uv3());
+
+				float3 v0 = mesh->verts[vi[0]];
+				float3 v1 = mesh->verts[vi[1]];
+				float3 v2 = mesh->verts[vi[2]];
+
+				/* calculate tangent for the triangle;
+				 * get vertex positions, and find change in position with respect
+				 * to the texture coords in the first texture coord dimension */
+				float3 tangent0 = tri_calc_tangent(v0, v1, v2, tx0, tx1, tx2);
+
+				if(nverts[fi] == 4) {
+					/* quad tangent */
+					float3 tx3 = get_float3(t->uv4());
+					float3 v3 = mesh->verts[vi[3]];
+					float3 tangent1 = tri_calc_tangent(v0, v2, v3, tx0, tx2, tx3);
+
+					tangents[vi[0]] += 0.5f*(tangent0 + tangent1);
+					tangents[vi[1]] += tangent0;
+					tangents[vi[2]] += 0.5f*(tangent0 + tangent1);
+					tangents[vi[3]] += tangent1;
+				}
+				else {
+					/* triangle tangent */
+					tangents[vi[0]] += tangent0;
+					tangents[vi[1]] += tangent0;
+					tangents[vi[2]] += tangent0;
+				}
+			}
+
+			/* normalize tangent vectors */
+			for(int i = 0; i < mesh->verts.size(); i++)
+				tangents[i] = normalize(tangents[i]);
 		}
 	}
 }

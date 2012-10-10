@@ -67,7 +67,7 @@ __device float3 bsdf_ward_eval_reflect(const ShaderData *sd, const ShaderClosure
 	float m_ax = sc->data0;
 	float m_ay = sc->data1;
 	float3 m_N = sd->N;
-	float3 m_T = normalize(sd->dPdu);
+	float3 m_T = sd->T;
 
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
@@ -90,6 +90,7 @@ __device float3 bsdf_ward_eval_reflect(const ShaderData *sd, const ShaderClosure
 		*pdf = exp_val / denom;
 		return make_float3 (out, out, out);
 	}
+
 	return make_float3 (0, 0, 0);
 }
 
@@ -108,7 +109,7 @@ __device int bsdf_ward_sample(const ShaderData *sd, const ShaderClosure *sc, flo
 	float m_ax = sc->data0;
 	float m_ay = sc->data1;
 	float3 m_N = sd->N;
-	float3 m_T = normalize(sd->dPdu);
+	float3 m_T = sd->T;
 
 	float cosNO = dot(m_N, sd->I);
 	if(cosNO > 0) {

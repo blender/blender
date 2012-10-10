@@ -468,6 +468,12 @@ void ShaderGraph::default_inputs(bool do_osl)
 
 					connect(geom->output("Position"), input);
 				}
+				else if(input->default_value == ShaderInput::TANGENT) {
+					if(!geom)
+						geom = new GeometryNode();
+
+					connect(geom->output("Tangent"), input);
+				}
 			}
 		}
 	}

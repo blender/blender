@@ -315,6 +315,10 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			node = new HoldoutNode();
 			break;
 		}
+		case BL::ShaderNode::type_BSDF_ANISOTROPIC: {
+			node = new WardBsdfNode();
+			break;
+		}
 		case BL::ShaderNode::type_BSDF_DIFFUSE: {
 			node = new DiffuseBsdfNode();
 			break;

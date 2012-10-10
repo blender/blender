@@ -179,7 +179,7 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			float roughness_u = param1;
 			float roughness_v = param2;
 
-			bsdf_ward_setup(sd, sc, normalize(sd->dPdu), roughness_u, roughness_v);
+			bsdf_ward_setup(sd, sc, normalize(sd->T), roughness_u, roughness_v);
 			break;
 		}
 #endif
@@ -424,6 +424,25 @@ __device void svm_node_add_closure(ShaderData *sd, float *stack, uint unused,
 	*closure_weight *= 2.0f;
 #endif
 }
+
+#ifdef __DPDU__
+__device_inline void svm_node_closure_store_tangent(ShaderData *sd, float3 tangent)
+{
+	sd->T = normalize(tangent);
+}
+
+__device void svm_node_closure_set_tangent(ShaderData *sd, uint x, uint y, uint z)
+{
+	float3 tangent = make_float3(__int_as_float(x), __int_as_float(y), __int_as_float(z));
+	svm_node_closure_store_tangent(sd, tangent);
+}
+
+__device void svm_node_closure_tangent(ShaderData *sd, float *stack, uint tangent_offset)
+{
+	float3 tangent = stack_load_float3(stack, tangent_offset);
+	svm_node_closure_store_tangent(sd, tangent);
+}
+#endif
 
 CCL_NAMESPACE_END
 

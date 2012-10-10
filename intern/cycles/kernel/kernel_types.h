@@ -447,6 +447,9 @@ typedef struct ShaderData {
 	/* differential of P w.r.t. parametric coordinates. note that dPdu is
 	 * not readily suitable as a tangent for shading on triangles. */
 	float3 dPdu, dPdv;
+
+	/* tangent for shading */
+	float3 T;
 #endif
 
 #ifdef __MULTI_CLOSURE__

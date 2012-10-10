@@ -112,6 +112,7 @@ public:
 		INCOMING,
 		NORMAL,
 		POSITION,
+		TANGENT,
 		NONE
 	};
 

@@ -88,6 +88,7 @@ void register_node_type_sh_bsdf_glass(struct bNodeTreeType *ttype);
 void register_node_type_sh_bsdf_translucent(struct bNodeTreeType *ttype);
 void register_node_type_sh_bsdf_transparent(struct bNodeTreeType *ttype);
 void register_node_type_sh_bsdf_velvet(struct bNodeTreeType *ttype);
+void register_node_type_sh_bsdf_anisotropic(struct bNodeTreeType *ttype);
 void register_node_type_sh_emission(struct bNodeTreeType *ttype);
 void register_node_type_sh_holdout(struct bNodeTreeType *ttype);
 void register_node_type_sh_volume_transparent(struct bNodeTreeType *ttype);

@@ -2248,6 +2248,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_particle_info(ttype);
 
 	register_node_type_sh_background(ttype);
+	register_node_type_sh_bsdf_anisotropic(ttype);
 	register_node_type_sh_bsdf_diffuse(ttype);
 	register_node_type_sh_bsdf_glossy(ttype);
 	register_node_type_sh_bsdf_glass(ttype);

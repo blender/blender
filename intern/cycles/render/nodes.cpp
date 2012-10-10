@@ -1221,12 +1221,35 @@ WardBsdfNode::WardBsdfNode()
 {
 	closure = CLOSURE_BSDF_WARD_ID;
 
+	add_input("Tangent", SHADER_SOCKET_VECTOR, ShaderInput::TANGENT);
+
 	add_input("Roughness U", SHADER_SOCKET_FLOAT, 0.2f);
 	add_input("Roughness V", SHADER_SOCKET_FLOAT, 0.2f);
 }
 
+void WardBsdfNode::attributes(AttributeRequestSet *attributes)
+{
+	ShaderInput *tangent_in = input("Tangent");
+
+	if(!tangent_in->link)
+		attributes->add(ATTR_STD_TANGENT);
+
+	ShaderNode::attributes(attributes);
+}
+
 void WardBsdfNode::compile(SVMCompiler& compiler)
 {
+	ShaderInput *tangent_in = input("Tangent");
+
+	if(tangent_in->link) {
+		int attr = compiler.attribute(ATTR_STD_TANGENT);
+		compiler.stack_assign(tangent_in);
+		compiler.add_node(NODE_ATTR, attr, tangent_in->stack_offset, NODE_ATTR_FLOAT3);
+		compiler.add_node(NODE_CLOSURE_TANGENT, tangent_in->stack_offset);
+	}
+	else
+		compiler.add_node(NODE_CLOSURE_SET_TANGENT, tangent_in->value);
+
 	BsdfNode::compile(compiler, input("Roughness U"), input("Roughness V"));
 }
 
@@ -1564,6 +1587,14 @@ GeometryNode::GeometryNode()
 	add_output("Incoming", SHADER_SOCKET_VECTOR);
 	add_output("Parametric", SHADER_SOCKET_POINT);
 	add_output("Backfacing", SHADER_SOCKET_FLOAT);
+}
+
+void GeometryNode::attributes(AttributeRequestSet *attributes)
+{
+	if(!output("Tangent")->links.empty())
+		attributes->add(ATTR_STD_TANGENT);
+
+	ShaderNode::attributes(attributes);
 }
 
 void GeometryNode::compile(SVMCompiler& compiler)

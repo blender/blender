@@ -67,6 +67,7 @@ DefNode( ShaderNode,     SH_NODE_ADD_SHADER,         0,                      "AD
 DefNode( ShaderNode,     SH_NODE_ATTRIBUTE,          def_sh_attribute,       "ATTRIBUTE",          Attribute,        "Attribute",         ""       )
 DefNode( ShaderNode,     SH_NODE_BACKGROUND,         0,                      "BACKGROUND",         Background,       "Background",        ""       )
 DefNode( ShaderNode,     SH_NODE_HOLDOUT,            0,                      "HOLDOUT",            Holdout,          "Holdout",           ""       )
+DefNode( ShaderNode,     SH_NODE_BSDF_ANISOTROPIC,   0,                      "BSDF_ANISOTROPIC",   BsdfAnisotropic,  "Anisotropic Bsdf",  ""       )
 DefNode( ShaderNode,     SH_NODE_BSDF_DIFFUSE,       0,                      "BSDF_DIFFUSE",       BsdfDiffuse,      "Diffuse Bsdf",      ""       )
 DefNode( ShaderNode,     SH_NODE_BSDF_GLOSSY,        def_glossy,             "BSDF_GLOSSY",        BsdfGlossy,       "Glossy Bsdf",       ""       )
 DefNode( ShaderNode,     SH_NODE_BSDF_GLASS,         def_glossy,             "BSDF_GLASS",         BsdfGlass,        "Glass Bsdf",        ""       )
