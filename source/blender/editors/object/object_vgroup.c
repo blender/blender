@@ -511,7 +511,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 			if (*dv_dst == NULL) continue;
 
-			dw_dst = defvert_verify_index(*dv_dst, index_dst);
+			dw_dst = defvert_find_index(*dv_dst, index_dst);
 			/* remove vertex from group */
 			if (dw_dst) defvert_remove_group(*dv_dst, dw_dst);
 		}
