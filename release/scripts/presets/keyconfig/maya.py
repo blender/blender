@@ -133,42 +133,42 @@ kmi = km.keymap_items.new('wm.context_toggle_enum', 'Z', 'PRESS', alt=True)
 kmi.properties.data_path = 'space_data.viewport_shade'
 kmi.properties.value_1 = 'TEXTURED'
 kmi.properties.value_2 = 'SOLID'
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'PRESS')
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE')
 kmi.properties.extend = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'PRESS', shift=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', shift=True)
 kmi.properties.extend = True
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'PRESS', ctrl=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', ctrl=True)
 kmi.properties.extend = False
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = False
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'PRESS', alt=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', alt=True)
 kmi.properties.extend = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = True
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', shift=True, ctrl=True)
 kmi.properties.extend = True
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = False
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'PRESS', ctrl=True, alt=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', ctrl=True, alt=True)
 kmi.properties.extend = False
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = True
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'PRESS', shift=True, alt=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', shift=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = True
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True, alt=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.center = True
 kmi.properties.object = False
