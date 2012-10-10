@@ -57,6 +57,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
+#include "ED_object.h"
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"

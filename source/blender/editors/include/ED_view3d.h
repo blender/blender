@@ -80,13 +80,6 @@ typedef struct ViewDepths {
 	char damaged;
 } ViewDepths;
 
-/* enum for passing to foreach functions to test RV3D_CLIPPING */
-typedef enum eV3DClipTest {
-	V3D_CLIP_TEST_OFF =            0, /* clipping is off */
-	V3D_CLIP_TEST_RV3D_CLIPPING =  1, /* clip single points */
-	V3D_CLIP_TEST_REGION =         2  /* use for edges to check if both verts are in the view, but not RV3D_CLIPPING */
-} eV3DClipTest;
-
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
 
 int initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
@@ -165,17 +158,6 @@ int  ED_view3d_viewplane_get(struct View3D *v3d, struct RegionView3D *rv3d, int 
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short no_shift);
 void ED_view3d_calc_camera_border_size(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, float size_r[2]);
-
-/* drawobject.c iterators */
-void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index), void *userData, eV3DClipTest clipVerts);
-void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index), void *userData, eV3DClipTest clipVerts);
-void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct BMFace *efa, const float screen_co[2], int index), void *userData);
-void nurbs_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt, int beztindex, const float screen_co[2]), void *userData);
-void mball_foreachScreenElem(struct ViewContext *vc, void (*func)(void *userData, struct MetaElem *ml, const float screen_co[2]), void *userData);
-void lattice_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct BPoint *bp, const float screen_co[2]), void *userData);
-void armature_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct EditBone *ebone, const float screen_co_a[2], const float screen_co_b[2]), void *userData);
-void pose_foreachScreenBone(struct ViewContext *vc, void (*func)(void *userData, struct bPoseChannel *pchan, const float screen_co_a[2], const float screen_co_b[2]), void *userData);
-
 
 void ED_view3d_clipping_calc(struct BoundBox *bb, float planes[4][4], struct bglMats *mats, const struct rcti *rect);
 void ED_view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);

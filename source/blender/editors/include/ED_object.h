@@ -35,22 +35,31 @@
 extern "C" {
 #endif
 
+struct BMEdge;
+struct BMFace;
+struct BMVert;
+struct BPoint;
 struct Base;
-struct bConstraint;
-struct bContext;
-struct bPoseChannel;
+struct BezTriple;
 struct Curve;
+struct EditBone;
 struct EnumPropertyItem;
 struct ID;
 struct KeyBlock;
 struct Lattice;
 struct Main;
 struct Mesh;
+struct MetaElem;
 struct ModifierData;
+struct Nurb;
 struct Object;
 struct ReportList;
 struct Scene;
 struct View3D;
+struct ViewContext;
+struct bConstraint;
+struct bContext;
+struct bPoseChannel;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
@@ -82,8 +91,10 @@ typedef enum eParentType {
 	PAR_TRIA
 } eParentType;
 
+#ifdef __RNA_TYPES_H__
 extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
+#endif
 
 int ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob,
                          struct Object *par, int partype, int xmirror, int keep_transform);
@@ -183,8 +194,57 @@ int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, int include
 
 int ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
 
-/* ibject_select.c */
+/* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
+
+
+/* object_iterators.c */
+
+/* enum for passing to foreach functions to test RV3D_CLIPPING */
+typedef enum eV3DClipTest {
+	V3D_CLIP_TEST_OFF =            0, /* clipping is off */
+	V3D_CLIP_TEST_RV3D_CLIPPING =  1, /* clip single points */
+	V3D_CLIP_TEST_REGION =         2  /* use for edges to check if both verts are in the view, but not RV3D_CLIPPING */
+} eV3DClipTest;
+
+/* foreach iterators */
+void mesh_foreachScreenVert(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index),
+        void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenEdge(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2],
+                     int index),
+        void *userData, eV3DClipTest clipVerts);
+void mesh_foreachScreenFace(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct BMFace *efa, const float screen_co[2], int index),
+        void *userData);
+void nurbs_foreachScreenVert(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct Nurb *nu, struct BPoint *bp, struct BezTriple *bezt,
+                     int beztindex, const float screen_co[2]),
+        void *userData);
+void mball_foreachScreenElem(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct MetaElem *ml, const float screen_co[2]),
+        void *userData);
+void lattice_foreachScreenVert(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct BPoint *bp,
+                     const float screen_co[2]),
+        void *userData);
+void armature_foreachScreenBone(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct EditBone *ebone,
+                     const float screen_co_a[2], const float screen_co_b[2]),
+        void *userData);
+void pose_foreachScreenBone(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct bPoseChannel *pchan,
+                     const float screen_co_a[2], const float screen_co_b[2]),
+        void *userData);
 
 #ifdef __cplusplus
 }
