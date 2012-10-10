@@ -39,6 +39,7 @@
 
 #define MOD_SMOKE_HIGH_SMOOTH (1<<5) /* smoothens high res emission*/
 #define MOD_SMOKE_FILE_LOAD (1<<6) /* flag for file load */
+#define MOD_SMOKE_ADAPTIVE_DOMAIN (1<<7)
 
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)
@@ -61,6 +62,12 @@
 #define SM_COLL_RIGID		1
 #define SM_COLL_ANIMATED	2
 
+/* smoke data fileds (active_fields) */
+#define SM_ACTIVE_HEAT		(1<<0)
+#define SM_ACTIVE_FIRE		(1<<1)
+#define SM_ACTIVE_COLORS	(1<<2)
+#define SM_ACTIVE_COLOR_SET	(1<<3)
+
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct FLUID_3D *fluid;
@@ -71,17 +78,37 @@ typedef struct SmokeDomainSettings {
 	struct GPUTexture *tex;
 	struct GPUTexture *tex_wt;
 	struct GPUTexture *tex_shadow;
+	struct GPUTexture *tex_flame;
 	float *shadow;
-	float p0[3]; /* start point of BB */
-	float p1[3]; /* end point of BB */
-	float dx; /* edge length of one cell */
-	float omega; /* smoke color - from 0 to 1 */
-	float temp; /* fluid temperature */
-	float tempAmb; /* ambient temperature */
+
+	/* simulation data */
+	float p0[3]; /* start point of BB in local space (includes sub-cell shift for adaptive domain)*/
+	float p1[3]; /* end point of BB in local space */
+	float dp0[3]; /* difference from object center to grid start point */
+	float cell_size[3]; /* size of simulation cell in local space */
+	float global_size[3]; /* global size of domain axises */
+	float prev_loc[3];
+	int shift[3]; /* current domain shift in simulation cells */
+	float shift_f[3]; /* exact domain shift */
+	float obj_shift_f[3]; /* how much object has shifted since previous smoke frame (used to "lock" domain while drawing) */
+	float imat[4][4]; /* domain object imat */
+	float obmat[4][4]; /* domain obmat */
+
+	int base_res[3]; /* initial "non-adapted" resolution */
+	int res_min[3]; /* cell min */
+	int res_max[3]; /* cell max */
+	int res[3]; /* data resolution (res_max-res_min) */
+	int total_cells;
+	float dx; /* 1.0f / res */
+	float scale; /* largest domain size */
+
+	/* user settings */
+	int adapt_margin;
+	int adapt_res;
+	float adapt_threshold;
+
 	float alpha;
 	float beta;
-	float scale; /* largest domain size */
-	int res[3]; /* domain resolution */
 	int amplify; /* wavelet amplification */
 	int maxres; /* longest axis on the BB gets this resolution assigned */
 	int flags; /* show up-res or low res, etc */
@@ -92,7 +119,6 @@ typedef struct SmokeDomainSettings {
 	float strength;
 	int res_wt[3];
 	float dx_wt;
-	int v3dnum;
 	int cache_comp;
 	int cache_high_comp;
 
@@ -103,31 +129,67 @@ typedef struct SmokeDomainSettings {
 	int border_collisions;	/* How domain border collisions are handled */
 	float time_scale;
 	float vorticity;
-	int pad2;
+	int active_fields;
+	float active_color[3]; /* monitor color situation of simulation */
+	int pad;
+
+	/* flame parameters */
+	float burning_rate, flame_smoke, flame_vorticity;
+	float flame_ignition, flame_max_temp;
+	float flame_smoke_color[3];
 } SmokeDomainSettings;
 
 
 /* inflow / outflow */
 
 /* type */
-#define MOD_SMOKE_FLOW_TYPE_OUTFLOW (1<<1)
+#define MOD_SMOKE_FLOW_TYPE_SMOKE 0
+#define MOD_SMOKE_FLOW_TYPE_FIRE 1
+#define MOD_SMOKE_FLOW_TYPE_OUTFLOW 2
+#define MOD_SMOKE_FLOW_TYPE_SMOKEFIRE 3
+
+/* flow source */
+#define MOD_SMOKE_FLOW_SOURCE_PARTICLES 0
+#define MOD_SMOKE_FLOW_SOURCE_MESH 1
+
+/* flow texture type */
+#define MOD_SMOKE_FLOW_TEXTURE_MAP_AUTO 0
+#define MOD_SMOKE_FLOW_TEXTURE_MAP_UV 1
 
 /* flags */
 #define MOD_SMOKE_FLOW_ABSOLUTE (1<<1) /*old style emission*/
 #define MOD_SMOKE_FLOW_INITVELOCITY (1<<2) /* passes particles speed to the smoke */
+#define MOD_SMOKE_FLOW_TEXTUREEMIT (1<<3) /* use texture to control emission speed */
 
 typedef struct SmokeFlowSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
+	struct DerivedMesh *dm;
 	struct ParticleSystem *psys;
+	struct Tex *noise_texture;
+
+	/* initial velocity */
+	float *verts_old; /* previous vertex positions in domain space */
+	int numverts;
+	float vel_multi; // Multiplier for inherited velocity
+	float vel_normal;
+	float vel_random;
+	/* emission */
 	float density;
+	float color[3];
+	float fuel_amount;
 	float temp; /* delta temperature (temp - ambient temp) */
-	float velocity[2]; /* UNUSED, velocity taken from particles */
-	float vel_multi; // Multiplier for particle velocity
-	float vgrp_heat_scale[2]; /* min and max scaling for vgroup_heat */
-	short vgroup_flow; /* where inflow/outflow happens - red=1=action */
+	float volume_density; /* density emitted within mesh volume */
+	float surface_distance; /* maximum emission distance from mesh surface */
+	/* texture control */
+	float texture_size;
+	float texture_offset;
+	int pad;
+	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
 	short vgroup_density;
-	short vgroup_heat;
-	short type; /* inflow =0 or outflow = 1 */
+
+	short type; /* smoke, flames, both, outflow */
+	short source;
+	short texture_type;
 	int flags; /* absolute emission etc*/
 } SmokeFlowSettings;
 
@@ -139,20 +201,11 @@ typedef struct SmokeFlowSettings {
 /* collision objects (filled with smoke) */
 typedef struct SmokeCollSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
-	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
-	float *points;
-	float *points_old;
-	float *vel; // UNUSED
-	int *tridivs;
-	float mat[4][4];
-	float mat_old[4][4];
-	int numpoints;
-	int numverts; // check if mesh changed
-	int numtris;
-	float dx; /* global domain cell length taken from (scale / resolution) */
+	struct DerivedMesh *dm;
+	float *verts_old;
+	int numverts;
 	short type; // static = 0, rigid = 1, dynamic = 2
 	short pad;
-	int pad2;
 } SmokeCollSettings;
 
 #endif

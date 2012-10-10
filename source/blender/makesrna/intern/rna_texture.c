@@ -1800,7 +1800,8 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem smoked_type_items[] = {
-		{TEX_VD_SMOKEDENSITY, "SMOKEDENSITY", 0, "Density", "Use smoke density as texture data"},
+		{TEX_VD_SMOKEDENSITY, "SMOKEDENSITY", 0, "Smoke", "Use smoke density and color as texture data"},
+		{TEX_VD_SMOKEFLAME, "SMOKEFLAME", 0, "Flame", "Use flame temperature as texture data"},
 		{TEX_VD_SMOKEHEAT, "SMOKEHEAT", 0, "Heat", "Use smoke heat as texture data. Values from -2.0 to 2.0 are used"},
 		{TEX_VD_SMOKEVEL, "SMOKEVEL", 0, "Velocity", "Use smoke velocity as texture data"},
 		{0, NULL, 0, NULL, NULL}

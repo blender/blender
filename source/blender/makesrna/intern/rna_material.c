@@ -468,6 +468,12 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	                         "from their parent");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
+	prop = RNA_def_property(srna, "use_map_to_bounds", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_MAPTO_BOUNDS);
+	RNA_def_property_ui_text(prop, "Map to Bounds",
+	                         "Map coordinates in object bounds");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
+
 	prop = RNA_def_property(srna, "use_from_original", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_OB_DUPLI_ORIG);
 	RNA_def_property_ui_text(prop, "From Original",

@@ -231,7 +231,7 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, Panel):
         md = context.soft_body
         softbody = md.settings
 
-        effector_weights_ui(self, context, softbody.effector_weights)
+        effector_weights_ui(self, context, softbody.effector_weights, 'SOFTBODY')
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

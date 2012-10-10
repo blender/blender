@@ -136,6 +136,7 @@ static EnumPropertyItem field_type_items[] = {
 	{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
 	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
 	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
+	{PFIELD_SMOKEFLOW, "SMOKE", ICON_FORCE_SMOKEFLOW, "Smoke Flow", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -356,7 +357,7 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 
-	/* For as long scene has editmode... */
+	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
 		ED_object_exit_editmode(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
 

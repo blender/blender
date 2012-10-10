@@ -179,7 +179,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
 
 
-def effector_weights_ui(self, context, weights):
+def effector_weights_ui(self, context, weights, weight_type):
     layout = self.layout
 
     layout.prop(weights, "group")
@@ -200,6 +200,8 @@ def effector_weights_ui(self, context, weights):
     col.prop(weights, "wind", slider=True)
     col.prop(weights, "curve_guide", slider=True)
     col.prop(weights, "texture", slider=True)
+    if weight_type != 'SMOKE':
+        col.prop(weights, "smokeflow", slider=True)
 
     col = split.column()
     col.prop(weights, "harmonic", slider=True)

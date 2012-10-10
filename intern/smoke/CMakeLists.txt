@@ -40,6 +40,7 @@ set(SRC
 	intern/FLUID_3D_SOLVERS.cpp
 	intern/FLUID_3D_STATIC.cpp
 	intern/LU_HELPER.cpp
+	intern/spectrum.cpp
 	intern/SPHERE.cpp
 	intern/WTURBULENCE.cpp
 	intern/smoke_API.cpp
@@ -53,6 +54,7 @@ set(SRC
 	intern/LU_HELPER.h
 	intern/MERSENNETWISTER.h
 	intern/OBSTACLE.h
+	intern/spectrum.h
 	intern/SPHERE.h
 	intern/VEC3.h
 	intern/WAVELET_NOISE.h

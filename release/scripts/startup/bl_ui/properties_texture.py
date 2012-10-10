@@ -887,8 +887,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
                 col = split.column()
                 if tex.texture_coords in {'ORCO', 'UV'}:
                     col.prop(tex, "use_from_dupli")
+                    if (idblock.type == 'VOLUME' and tex.texture_coords == 'ORCO'):
+                        col.prop(tex, "use_map_to_bounds")
                 elif tex.texture_coords == 'OBJECT':
                     col.prop(tex, "use_from_original")
+                    if (idblock.type == 'VOLUME'):
+                        col.prop(tex, "use_map_to_bounds")
                 else:
                     col.label()
 

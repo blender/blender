@@ -349,7 +349,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
 
             col = layout.column()
             col.active = surface.use_drip
-            effector_weights_ui(self, context, surface.effector_weights)
+            effector_weights_ui(self, context, surface.effector_weights, 'DYNAMIC_PAINT')
 
             layout.label(text="Surface Movement:")
             row = layout.row()

@@ -3335,6 +3335,8 @@ static void lib_link_partdeflect(FileData *fd, ID *id, PartDeflect *pd)
 {
 	if (pd && pd->tex)
 		pd->tex = newlibadr_us(fd, id->lib, pd->tex);
+	if (pd && pd->f_source)
+		pd->f_source = newlibadr_us(fd, id->lib, pd->f_source);
 }
 
 static void lib_link_particlesettings(FileData *fd, Main *main)
@@ -4333,6 +4335,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->coll = NULL;
 				smd->flow = newdataadr(fd, smd->flow);
 				smd->flow->smd = smd;
+				smd->flow->dm = NULL;
+				smd->flow->verts_old = NULL;
+				smd->flow->numverts = 0;
 				smd->flow->psys = newdataadr(fd, smd->flow->psys);
 			}
 			else if (smd->type == MOD_SMOKE_TYPE_COLL) {
@@ -4341,11 +4346,15 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->coll = newdataadr(fd, smd->coll);
 				if (smd->coll) {
 					smd->coll->smd = smd;
-					smd->coll->points = NULL;
-					smd->coll->numpoints = 0;
+					smd->coll->verts_old = NULL;
+					smd->coll->numverts = 0;
+					smd->coll->dm = NULL;
 				}
 				else {
 					smd->type = 0;
+					smd->flow = NULL;
+					smd->domain = NULL;
+					smd->coll = NULL;
 				}
 			}
 		}
@@ -8037,6 +8046,44 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
+
+	{
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Smoke) {
+					SmokeModifierData *smd = (SmokeModifierData *)md;
+					if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
+						/* keep branch saves if possible */
+						if (!smd->domain->flame_max_temp) {
+							smd->domain->burning_rate = 0.75f;
+							smd->domain->flame_smoke = 1.0f;
+							smd->domain->flame_vorticity = 0.5f;
+							smd->domain->flame_ignition = 1.25f;
+							smd->domain->flame_max_temp = 1.75f;
+							smd->domain->adapt_threshold = 0.02f;
+							smd->domain->adapt_margin = 4;
+							smd->domain->flame_smoke_color[0] = 0.7f;
+							smd->domain->flame_smoke_color[1] = 0.7f;
+							smd->domain->flame_smoke_color[2] = 0.7f;
+						}
+					}
+					else if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
+						if (!smd->flow->texture_size) {
+							smd->flow->fuel_amount = 1.0;
+							smd->flow->surface_distance = 1.5;
+							smd->flow->color[0] = 0.7f;
+							smd->flow->color[1] = 0.7f;
+							smd->flow->color[2] = 0.7f;
+							smd->flow->texture_size = 1.0f;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	/* don't forget to set version number in blender.c! */
 }

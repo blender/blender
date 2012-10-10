@@ -112,6 +112,14 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
             col = split.column()
             col.prop(field, "use_object_coords")
             col.prop(field, "use_2d_force")
+        elif field.type == 'SMOKE_FLOW':
+            col = split.column()
+            col.prop(field, "strength")
+            col.prop(field, "flow")
+            col = split.column()
+            col.label(text="Domain Object:")
+            col.prop(field, "source_object", "")
+            col.prop(field, "use_smoke_density")
         else:
             basic_force_field_settings_ui(self, context, field)
 

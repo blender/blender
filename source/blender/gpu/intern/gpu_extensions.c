@@ -442,7 +442,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 }
 
 
-GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
+GPUTexture *GPU_texture_create_3D(int w, int h, int depth, int channels, float *fpixels)
 {
 	GPUTexture *tex;
 	GLenum type, format, internalformat;
@@ -480,9 +480,15 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 
 	GPU_print_error("3D glBindTexture");
 
-	type = GL_FLOAT; // GL_UNSIGNED_BYTE
-	format = GL_RED;
-	internalformat = GL_INTENSITY;
+	type = GL_FLOAT;
+	if (channels == 4) {
+		format = GL_RGBA;
+		internalformat = GL_RGBA;
+	}
+	else {
+		format = GL_RED;
+		internalformat = GL_INTENSITY;
+	}
 
 	//if (fpixels)
 	//	pixels = GPU_texture_convert_pixels(w*h*depth, fpixels);

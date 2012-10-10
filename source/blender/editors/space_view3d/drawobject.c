@@ -6625,72 +6625,74 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 
 		/* only draw domains */
-		if (smd->domain && smd->domain->fluid) {
-			if (CFRA < smd->domain->point_cache[0]->startframe) {
-				/* don't show smoke before simulation starts, this could be made an option in the future */
+		if (smd->domain) {
+			SmokeDomainSettings *sds = smd->domain;
+			float p0[3], p1[3], viewnormal[3];
+			BoundBox bb;
+
+			glLoadMatrixf(rv3d->viewmat);
+			glMultMatrixf(ob->obmat);
+
+			/* draw adaptive domain bounds */
+			if (sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) {
+				/* draw domain max bounds */
+				VECSUBFAC(p0, sds->p0, sds->cell_size, sds->adapt_res);
+				VECADDFAC(p1, sds->p1, sds->cell_size, sds->adapt_res);
+				BKE_boundbox_init_from_minmax(&bb, p0, p1);
+				draw_box(bb.vec);
+
+				/* draw base resolution bounds */
+				/*BKE_boundbox_init_from_minmax(&bb, sds->p0, sds->p1);
+				draw_box(bb.vec);*/
 			}
-			else if (!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
-// #if 0
-				smd->domain->tex = NULL;
-				GPU_create_smoke(smd, 0);
-				draw_volume(ar, smd->domain->tex,
-				            smd->domain->p0, smd->domain->p1,
-				            smd->domain->res, smd->domain->dx,
-				            smd->domain->tex_shadow);
-				GPU_free_smoke(smd);
-// #endif
-#if 0
-				int x, y, z;
-				float *density = smoke_get_density(smd->domain->fluid);
 
-				glLoadMatrixf(rv3d->viewmat);
-				// glMultMatrixf(ob->obmat);
+			/* don't show smoke before simulation starts, this could be made an option in the future */
+			if (smd->domain->fluid && CFRA >= smd->domain->point_cache[0]->startframe) {
 
-				if (col || (ob->flag & SELECT)) cpack(0xFFFFFF);
-				glDepthMask(GL_FALSE);
-				glEnable(GL_BLEND);
-				
+				// get view vector
+				copy_v3_v3(viewnormal, rv3d->viewinv[2]);
+				mul_mat3_m4_v3(ob->imat, viewnormal);
+				normalize_v3(viewnormal);
 
-				// glPointSize(3.0);
-				bglBegin(GL_POINTS);
+				/* set dynamic boundaries to draw the volume */
+				p0[0] = sds->p0[0] + sds->cell_size[0]*sds->res_min[0] + sds->obj_shift_f[0];
+				p0[1] = sds->p0[1] + sds->cell_size[1]*sds->res_min[1] + sds->obj_shift_f[1];
+				p0[2] = sds->p0[2] + sds->cell_size[2]*sds->res_min[2] + sds->obj_shift_f[2];
+				p1[0] = sds->p0[0] + sds->cell_size[0]*sds->res_max[0] + sds->obj_shift_f[0];
+				p1[1] = sds->p0[1] + sds->cell_size[1]*sds->res_max[1] + sds->obj_shift_f[1];
+				p1[2] = sds->p0[2] + sds->cell_size[2]*sds->res_max[2] + sds->obj_shift_f[2];
 
-				for (x = 0; x < smd->domain->res[0]; x++) {
-					for (y = 0; y < smd->domain->res[1]; y++) {
-						for (z = 0; z < smd->domain->res[2]; z++) {
-							float tmp[3];
-							int index = smoke_get_index(x, smd->domain->res[0], y, smd->domain->res[1], z);
+				/* scale cube to global space to equalize volume slicing on all axises
+				*  (its scaled back before drawing) */
+				mul_v3_v3(p0, ob->size);
+				mul_v3_v3(p1, ob->size);
 
-							if (density[index] > FLT_EPSILON) {
-								float color[3];
-								copy_v3_v3(tmp, smd->domain->p0);
-								tmp[0] += smd->domain->dx * x + smd->domain->dx * 0.5;
-								tmp[1] += smd->domain->dx * y + smd->domain->dx * 0.5;
-								tmp[2] += smd->domain->dx * z + smd->domain->dx * 0.5;
-								color[0] = color[1] = color[2] = density[index];
-								glColor3fv(color);
-								bglVertex3fv(tmp);
-							}
-						}
-					}
+				if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
+					smd->domain->tex = NULL;
+					GPU_create_smoke(smd, 0);
+					draw_smoke_volume(sds, ob, ar, sds->tex,
+								p0, p1,
+								sds->res, sds->dx, sds->scale*sds->maxres,
+								viewnormal, sds->tex_shadow, sds->tex_flame);
+					GPU_free_smoke(smd);
+				}
+				else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
+					sds->tex = NULL;
+					GPU_create_smoke(smd, 1);
+					draw_smoke_volume(sds, ob, ar, sds->tex,
+								p0, p1,
+								sds->res_wt, sds->dx, sds->scale*sds->maxres,
+								viewnormal, sds->tex_shadow, sds->tex_flame);
+					GPU_free_smoke(smd);
 				}
 
-				bglEnd();
-				glPointSize(1.0);
-
-				glMultMatrixf(ob->obmat);
-				glDisable(GL_BLEND);
-				glDepthMask(GL_TRUE);
-				if (col) cpack(col);
-#endif
-			}
-			else if (smd->domain->wt && (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
-				smd->domain->tex = NULL;
-				GPU_create_smoke(smd, 1);
-				draw_volume(ar, smd->domain->tex,
-				            smd->domain->p0, smd->domain->p1,
-				            smd->domain->res_wt, smd->domain->dx_wt,
-				            smd->domain->tex_shadow);
-				GPU_free_smoke(smd);
+				/* smoke debug render */
+				#ifdef SMOKE_DEBUG_VELOCITY
+					draw_smoke_velocity(smd->domain, ob);
+				#endif
+				#ifdef SMOKE_DEBUG_HEAT
+					draw_smoke_heat(smd->domain, ob);
+				#endif
 			}
 		}
 	}

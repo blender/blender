@@ -81,19 +81,31 @@ static void freeData(ModifierData *md)
 	smokeModifier_free(smd);
 }
 
-static void deformVerts(ModifierData *md, Object *ob,
-                        DerivedMesh *derivedData,
-                        float (*vertexCos)[3],
-                        int UNUSED(numVerts),
-                        ModifierApplyFlag UNUSED(flag))
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+{
+	SmokeModifierData *smd  = (SmokeModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	if (smd && (smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
+		if (smd->flow->source == MOD_SMOKE_FLOW_SOURCE_MESH) {
+			/* vertex groups */
+			if (smd->flow->vgroup_density)
+				dataMask |= CD_MASK_MDEFORMVERT;
+			/* uv layer */
+			if (smd->flow->texture_type == MOD_SMOKE_FLOW_TEXTURE_MAP_UV)
+				dataMask |= CD_MASK_MTFACE;
+		}
+	}
+	return dataMask;
+}
+
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
+                                  DerivedMesh *dm,
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
-	DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos);
 
-	smokeModifier_do(smd, md->scene, ob, dm);
-
-	if (dm != derivedData)
-		dm->release(dm);
+	return smokeModifier_do(smd, md->scene, ob, dm);
 }
 
 static int dependsOnTime(ModifierData *UNUSED(md))
@@ -102,11 +114,11 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Scene *scene,
-                           Object *UNUSED(ob),
+                           struct Scene *scene, struct Object *ob,
                            DagNode *obNode)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
+	Base *base;
 
 	if (smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
 		if (smd->domain->fluid_group || smd->domain->coll_group) {
@@ -139,8 +151,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 				}
 		}
 		else {
-			Base *base = scene->base.first;
-
+			base = scene->base.first;
 			for (; base; base = base->next) {
 				SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(base->object, eModifierType_Smoke);
 
@@ -148,6 +159,14 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 					DagNode *curNode = dag_get_node(forest, base->object);
 					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Smoke Flow/Coll");
 				}
+			}
+		}
+		/* add relation to all "smoke flow" force fields */
+		base = scene->base.first;
+		for (; base; base = base->next) {
+			if (base->object->pd && base->object->pd->forcefield == PFIELD_SMOKEFLOW && base->object->pd->f_source == ob) {
+				DagNode *node2 = dag_get_node(forest, base->object);
+				dag_add_relation(forest, obNode, node2, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Field Source Object");
 			}
 		}
 	}
@@ -167,26 +186,30 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 			walk(userData, ob, (ID **)&smd->domain->effector_weights->group);
 		}
 	}
+
+	if (smd->type == MOD_SMOKE_TYPE_FLOW && smd->flow) {
+		walk(userData, ob, (ID **)&smd->flow->noise_texture);
+	}
 }
 
 ModifierTypeInfo modifierType_Smoke = {
 	/* name */              "Smoke",
 	/* structName */        "SmokeModifierData",
 	/* structSize */        sizeof(SmokeModifierData),
-	/* type */              eModifierTypeType_OnlyDeform,
+	/* type */              eModifierTypeType_Constructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_UsesPointCache |
 	                        eModifierTypeFlag_Single,
 
 	/* copyData */          copyData,
-	/* deformVerts */       deformVerts,
+	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
-	/* requiredDataMask */  NULL,
+	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          freeData,
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    updateDepgraph,

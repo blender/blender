@@ -197,7 +197,7 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         cloth = context.cloth.settings
-        effector_weights_ui(self, context, cloth.effector_weights)
+        effector_weights_ui(self, context, cloth.effector_weights, 'CLOTH')
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

@@ -165,7 +165,6 @@ void FLUID_3D::solveHeat(float* field, float* b, unsigned char* skip)
 	if (_Acenter)  delete[] _Acenter;
 }
 
-
 void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
 {
 	int x, y, z;

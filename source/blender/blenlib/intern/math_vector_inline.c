@@ -121,6 +121,13 @@ MINLINE void copy_v4_v4_char(char r[4], const char a[4])
 }
 
 /* short */
+MINLINE void zero_v3_int(int r[3])
+{
+	r[0] = 0;
+	r[1] = 0;
+	r[2] = 0;
+}
+
 MINLINE void copy_v2_v2_short(short r[2], const short a[2])
 {
 	r[0] = a[0];
