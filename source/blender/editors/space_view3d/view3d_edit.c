@@ -2260,12 +2260,13 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 {
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Base *base;
 	float *curs;
-	const short skip_camera = ED_view3d_camera_lock_check(v3d, rv3d);
 	const short use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
+	const short skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
+	                           /* any one of the regions may be locked */
+	                           (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
 	int center = RNA_boolean_get(op->ptr, "center");
 
 	float min[3], max[3];
@@ -2351,8 +2352,10 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
 	int ok = 0, ok_dist = 1;
-	const short skip_camera = ED_view3d_camera_lock_check(v3d, ar->regiondata);
 	const short use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
+	const short skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
+	                           /* any one of the regions may be locked */
+	                           (use_all_regions && v3d->flag2 & V3D_LOCK_CAMERA));
 
 	INIT_MINMAX(min, max);
 
