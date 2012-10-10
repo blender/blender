@@ -563,6 +563,7 @@ typedef enum eDopeSheet_FilterFlag {
 	/* general filtering 3 */
 	ADS_FILTER_INCL_HIDDEN      = (1 << 26),  /* include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
 	ADS_FILTER_BY_FCU_NAME      = (1 << 27),  /* for F-Curves, filter by the displayed name (i.e. to isolate all Location curves only) */
+	ADS_FILTER_ONLY_ERRORS		= (1 << 28),  /* show only F-Curves which are disabled/have errors - for debugging drivers */
 	
 	/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM | ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM | ADS_FILTER_NOSPK)

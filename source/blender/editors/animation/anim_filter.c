@@ -980,6 +980,27 @@ static short skip_fcurve_with_name(bDopeSheet *ads, FCurve *fcu, ID *owner_id)
 	return 1;
 }
 
+/* Check if F-Curve has errors and/or is disabled 
+ * > returns: (bool) True if F-Curve has errors/is disabled
+ */
+static short fcurve_has_errors(FCurve *fcu)
+{
+	/* F-Curve disabled - path eval error */
+	if (fcu->flag & FCURVE_DISABLED) {
+		return 1;
+	}
+	
+	/* driver? */
+	if (fcu->driver) {
+		/* for now, just check if the entire thing got disabled... */
+		if (fcu->driver->flag & DRIVER_FLAG_INVALID)
+			return 1;
+	}
+	
+	/* no errors found */
+	return 0;
+}
+
 /* find the next F-Curve that is usable for inclusion */
 static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
@@ -1015,6 +1036,13 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, bActionGro
 						/* name based filtering... */
 						if ( ((ads) && (ads->filterflag & ADS_FILTER_BY_FCU_NAME)) && (owner_id) ) {
 							if (skip_fcurve_with_name(ads, fcu, owner_id))
+								continue;
+						}
+						
+						/* error-based filtering... */
+						if ((ads) && (ads->filterflag & ADS_FILTER_ONLY_ERRORS)) {
+							/* skip if no errors... */
+							if (fcurve_has_errors(fcu) == 0)
 								continue;
 						}
 						
