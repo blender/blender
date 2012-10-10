@@ -2282,22 +2282,77 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
+static void viewselected_rv3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
+                                          const float min[3], const float max[3],
+                                          int ok_dist)
+{
+	RegionView3D *rv3d = ar->regiondata;
+	float afm[3];
+	float size;
+
+	/* SMOOTHVIEW */
+	float new_ofs[3];
+	float new_dist;
+
+	sub_v3_v3v3(afm, max, min);
+	size = MAX3(afm[0], afm[1], afm[2]);
+
+	if (ok_dist) {
+		/* fix up zoom distance if needed */
+
+		if (rv3d->is_persp) {
+			if (size <= v3d->near * 1.5f) {
+				/* do not zoom closer than the near clipping plane */
+				size = v3d->near * 1.5f;
+			}
+		}
+		else { /* ortho */
+			if (size < 0.0001f) {
+				/* bounding box was a single point so do not zoom */
+				ok_dist = 0;
+			}
+			else {
+				/* adjust zoom so it looks nicer */
+				size *= 0.7f;
+			}
+		}
+	}
+
+	add_v3_v3v3(new_ofs, min, max);
+	mul_v3_fl(new_ofs, -0.5f);
+
+	new_dist = size;
+
+	/* correction for window aspect ratio */
+	if (ar->winy > 2 && ar->winx > 2) {
+		size = (float)ar->winx / (float)ar->winy;
+		if (size < 1.0f) size = 1.0f / size;
+		new_dist *= size;
+	}
+
+	if (rv3d->persp == RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
+		rv3d->persp = RV3D_PERSP;
+		view3d_smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
+	}
+	else {
+		view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
+	}
+
+	/* smooth view does viewlock RV3D_BOXVIEW copy */
+}
+
 /* like a localview without local!, was centerview() in 2.4x */
 static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	RegionView3D *rv3d = ar->regiondata;
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 	Object *obedit = CTX_data_edit_object(C);
-	float size, min[3], max[3], afm[3];
+	float min[3], max[3];
 	int ok = 0, ok_dist = 1;
 	const short skip_camera = ED_view3d_camera_lock_check(v3d, rv3d);
-
-	/* SMOOTHVIEW */
-	float new_ofs[3];
-	float new_dist;
 
 	INIT_MINMAX(min, max);
 
@@ -2368,53 +2423,11 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	if (ok == 0) return OPERATOR_FINISHED;
-
-	sub_v3_v3v3(afm, max, min);
-	size = MAX3(afm[0], afm[1], afm[2]);
-
-	if (ok_dist) {
-		/* fix up zoom distance if needed */
-
-		if (rv3d->is_persp) {
-			if (size <= v3d->near * 1.5f) {
-				/* do not zoom closer than the near clipping plane */
-				size = v3d->near * 1.5f;
-			}
-		}
-		else { /* ortho */
-			if (size < 0.0001f) {
-				/* bounding box was a single point so do not zoom */
-				ok_dist = 0;
-			}
-			else {
-				/* adjust zoom so it looks nicer */
-				size *= 0.7f;
-			}
-		}
+	if (ok == 0) {
+		return OPERATOR_FINISHED;
 	}
 
-	add_v3_v3v3(new_ofs, min, max);
-	mul_v3_fl(new_ofs, -0.5f);
-
-	new_dist = size;
-
-	/* correction for window aspect ratio */
-	if (ar->winy > 2 && ar->winx > 2) {
-		size = (float)ar->winx / (float)ar->winy;
-		if (size < 1.0f) size = 1.0f / size;
-		new_dist *= size;
-	}
-
-	if (rv3d->persp == RV3D_CAMOB && !ED_view3d_camera_lock_check(v3d, rv3d)) {
-		rv3d->persp = RV3D_PERSP;
-		view3d_smooth_view(C, v3d, ar, v3d->camera, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
-	}
-	else {
-		view3d_smooth_view(C, v3d, ar, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
-	}
-
-	/* smooth view does viewlock RV3D_BOXVIEW copy */
+	viewselected_rv3d_from_minmax(C, v3d, ar, min, max, ok_dist);
 	
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 

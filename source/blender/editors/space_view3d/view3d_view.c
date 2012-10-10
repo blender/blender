@@ -125,7 +125,7 @@ struct SmoothView3DStore {
 /* will start timer if appropriate */
 /* the arguments are the desired situation */
 void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Object *camera,
-						float *ofs, float *quat, float *dist, float *lens)
+                        float *ofs, float *quat, float *dist, float *lens)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
@@ -140,7 +140,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 	copy_qt_qt(sms.new_quat, rv3d->viewquat);
 	sms.new_dist = rv3d->dist;
 	sms.new_lens = v3d->lens;
-	sms.to_camera = 0;
+	sms.to_camera = FALSE;
 
 	/* note on camera locking, this is a little confusing but works ok.
 	 * we may be changing the view 'as if' there is no active camera, but in fact
@@ -162,22 +162,22 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 
 	if (camera) {
 		ED_view3d_from_object(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
-		sms.to_camera = 1; /* restore view3d values in end */
+		sms.to_camera = TRUE; /* restore view3d values in end */
 	}
 	
 	if (C && U.smooth_viewtx) {
-		int changed = 0; /* zero means no difference */
+		int changed = FALSE; /* zero means no difference */
 		
 		if (oldcamera != camera)
-			changed = 1;
+			changed = TRUE;
 		else if (sms.new_dist != rv3d->dist)
-			changed = 1;
+			changed = TRUE;
 		else if (sms.new_lens != v3d->lens)
-			changed = 1;
+			changed = TRUE;
 		else if (!equals_v3v3(sms.new_ofs, rv3d->ofs))
-			changed = 1;
+			changed = TRUE;
 		else if (!equals_v4v4(sms.new_quat, rv3d->viewquat))
-			changed = 1;
+			changed = TRUE;
 		
 		/* The new view is different from the old one
 		 * so animate the view */
@@ -241,7 +241,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 	
 	/* if we get here nothing happens */
 	if (ok == FALSE) {
-		if (sms.to_camera == 0) {
+		if (sms.to_camera == FALSE) {
 			copy_v3_v3(rv3d->ofs, sms.new_ofs);
 			copy_qt_qt(rv3d->viewquat, sms.new_quat);
 			rv3d->dist = sms.new_dist;
