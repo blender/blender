@@ -2135,7 +2135,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0.2);
 	RNA_def_property_ui_text(prop, "Adaptive Subframe Threshold",
 	                         "The relative distance a particle can move before requiring more subframes "
-	                         "(target current number); 0.1-0.3 is the recommended range");
+	                         "(target Courant number); 0.1-0.3 is the recommended range");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "jitter_factor", PROP_FLOAT, PROP_NONE);
