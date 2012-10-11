@@ -745,10 +745,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 			mul_m4_v3(mat, vos->vec);
 
 		if (ED_view3d_project_short_ex(ar,
-		                           (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
-		                           (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0,
-		                           vos->vec, vos->sco,
-		                           V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
+		                               (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
+		                               (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0,
+		                               vos->vec, vos->sco,
+		                               V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 		{
 			tot++;
 		}
@@ -819,7 +819,9 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		if (depth_write) {
 			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 		}
-		else glDepthMask(1);
+		else {
+			glDepthMask(1);
+		}
 		
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
@@ -861,7 +863,7 @@ static void drawcube(void)
 	glEnd();
 }
 
-/* draws a cube on given the scaling of the cube, assuming that 
+/* draws a cube on given the scaling of the cube, assuming that
  * all required matrices have been set (used for drawing empties)
  */
 static void drawcube_size(float size)
@@ -1245,8 +1247,10 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			glVertex3fv(tvec);
 			glEnd();
 		}
-		else circ(0.0, 0.0, fabsf(z));
-		
+		else {
+			circ(0.0, 0.0, fabsf(z));
+		}
+
 		/* draw the circle/square representing spotbl */
 		if (la->type == LA_SPOT) {
 			float spotblcirc = fabs(z) * (1 - pow(la->spotblend, 2));
@@ -1390,7 +1394,7 @@ static void draw_limit_line(float sta, float end, unsigned int col)
 	glVertex3f(0.0, 0.0, -end);
 	glEnd();
 	glPointSize(1.0);
-}		
+}
 
 
 /* yafray: draw camera focus point (cross, similar to aqsis code in tuhopuu) */
@@ -1947,7 +1951,7 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 
 /* ************** DRAW MESH ****************** */
 
-/* First section is all the "simple" draw routines, 
+/* First section is all the "simple" draw routines,
  * ones that just pass some sort of primitive to GL,
  * with perhaps various options to control lighting,
  * color, etc.
@@ -2182,7 +2186,7 @@ static DMDrawOption draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	}
 }
-static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
+static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol,
                               unsigned char *selCol, unsigned char *actCol, BMEdge *eed_act)
 {
 	drawDMEdgesSel_userData data;
@@ -2204,7 +2208,7 @@ static DMDrawOption draw_dm_edges__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_NORMAL;
 }
 
-static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm) 
+static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm)
 {
 	dm->drawMappedEdges(dm, draw_dm_edges__setDrawOptions, em);
 }
@@ -2328,7 +2332,7 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 }
 
 /* also draws the active face */
-static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
+static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol,
                               unsigned char *selCol, unsigned char *actCol, BMFace *efa_act)
 {
 	drawDMFacesSel_userData data;
@@ -2425,9 +2429,9 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 
 /* EditMesh drawing routines*/
 
-static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, 
+static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
                                 BMEditMesh *em, DerivedMesh *cageDM, BMVert *eve_act,
-								RegionView3D *rv3d)
+                                RegionView3D *rv3d)
 {
 	ToolSettings *ts = scene->toolsettings;
 	int sel;
@@ -2547,7 +2551,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 			glEnable(GL_DEPTH_TEST);
 		}
 	}
-}	
+}
 
 static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
@@ -2812,7 +2816,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if (ese->type == BM_FACE) {
 			efa_act = (BMFace *)ese->data;
 		}
-		else 
+		else
 #endif
 		if (ese->htype == BM_EDGE) {
 			eed_act = (BMEdge *)ese->ele;
@@ -2981,13 +2985,12 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 {
-	
 	if ((v3d->transp == FALSE) &&  /* not when we draw the transparent pass */
 	    (ob->mode & OB_MODE_ALL_PAINT) == FALSE) /* not when painting (its distracting) - campbell */
 	{
 		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 		glDepthMask(0);
-		
+
 		/* if transparent, we cannot draw the edges for solid select... edges have no material info.
 		 * drawFacesSolid() doesn't draw the transparent faces */
 		if (ob->dtx & OB_DRAWTRANSP) {
@@ -5480,7 +5483,7 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 	glEnd();
 }
 
-/* draws a circle on x-z plane given the scaling of the circle, assuming that 
+/* draws a circle on x-z plane given the scaling of the circle, assuming that
  * all required matrices have been set (used for drawing empties)
  */
 static void drawcircle_size(float size)
@@ -6642,8 +6645,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				draw_box(bb.vec);
 
 				/* draw base resolution bounds */
-				/*BKE_boundbox_init_from_minmax(&bb, sds->p0, sds->p1);
-				draw_box(bb.vec);*/
+#if 0
+				BKE_boundbox_init_from_minmax(&bb, sds->p0, sds->p1);
+				draw_box(bb.vec);
+#endif
 			}
 
 			/* don't show smoke before simulation starts, this could be made an option in the future */
@@ -6655,15 +6660,15 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				normalize_v3(viewnormal);
 
 				/* set dynamic boundaries to draw the volume */
-				p0[0] = sds->p0[0] + sds->cell_size[0]*sds->res_min[0] + sds->obj_shift_f[0];
-				p0[1] = sds->p0[1] + sds->cell_size[1]*sds->res_min[1] + sds->obj_shift_f[1];
-				p0[2] = sds->p0[2] + sds->cell_size[2]*sds->res_min[2] + sds->obj_shift_f[2];
-				p1[0] = sds->p0[0] + sds->cell_size[0]*sds->res_max[0] + sds->obj_shift_f[0];
-				p1[1] = sds->p0[1] + sds->cell_size[1]*sds->res_max[1] + sds->obj_shift_f[1];
-				p1[2] = sds->p0[2] + sds->cell_size[2]*sds->res_max[2] + sds->obj_shift_f[2];
+				p0[0] = sds->p0[0] + sds->cell_size[0] * sds->res_min[0] + sds->obj_shift_f[0];
+				p0[1] = sds->p0[1] + sds->cell_size[1] * sds->res_min[1] + sds->obj_shift_f[1];
+				p0[2] = sds->p0[2] + sds->cell_size[2] * sds->res_min[2] + sds->obj_shift_f[2];
+				p1[0] = sds->p0[0] + sds->cell_size[0] * sds->res_max[0] + sds->obj_shift_f[0];
+				p1[1] = sds->p0[1] + sds->cell_size[1] * sds->res_max[1] + sds->obj_shift_f[1];
+				p1[2] = sds->p0[2] + sds->cell_size[2] * sds->res_max[2] + sds->obj_shift_f[2];
 
 				/* scale cube to global space to equalize volume slicing on all axises
-				*  (its scaled back before drawing) */
+				 *  (its scaled back before drawing) */
 				mul_v3_v3(p0, ob->size);
 				mul_v3_v3(p1, ob->size);
 
@@ -6687,12 +6692,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 
 				/* smoke debug render */
-				#ifdef SMOKE_DEBUG_VELOCITY
-					draw_smoke_velocity(smd->domain, ob);
-				#endif
-				#ifdef SMOKE_DEBUG_HEAT
-					draw_smoke_heat(smd->domain, ob);
-				#endif
+#ifdef SMOKE_DEBUG_VELOCITY
+				draw_smoke_velocity(smd->domain, ob);
+#endif
+#ifdef SMOKE_DEBUG_HEAT
+				draw_smoke_heat(smd->domain, ob);
+#endif
 			}
 		}
 	}
@@ -6954,7 +6959,7 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, ptrs);
 	bglEnd();
 	glPointSize(1.0);
-}		
+}
 
 static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 {
@@ -6974,7 +6979,7 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	void *ptrs[2] = {(void *)(intptr_t) offset, em};
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, ptrs);
-}		
+}
 
 static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int index)
 {
@@ -7153,7 +7158,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 /*               assumes all matrices/etc set OK */
 
 /* helper function for drawing object instances - meshes */
-static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, 
+static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d,
                                       Object *ob, const short dt, int outline)
 {
 	Mesh *me = ob->data;
