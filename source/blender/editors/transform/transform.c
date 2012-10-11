@@ -96,8 +96,6 @@
 
 #include "transform.h"
 
-#include <stdio.h> // XXX: duplicated???
-
 static void drawTransformApply(const struct bContext *C, ARegion *ar, void *arg);
 static int doEdgeSlide(TransInfo *t, float perc);
 
