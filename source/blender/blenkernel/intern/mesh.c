@@ -576,7 +576,7 @@ static void expand_local_mesh(Mesh *me)
 
 		for (i = 0; i < me->pdata.totlayer; i++) {
 			if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-				MTexPoly *txface = (MTexPoly *)me->fdata.layers[i].data;
+				MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
 
 				for (a = 0; a < me->totpoly; a++, txface++) {
 					/* special case: ima always local immediately */
