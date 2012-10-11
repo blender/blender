@@ -109,6 +109,7 @@ float BLF_fixed_width(int fontid);
  * of the string, using the default font and both value
  * are multiplied by the aspect of the font.
  */
+void  BLF_width_and_height_default(const char *str, float *width, float *height);
 float BLF_width_default(const char *str);
 float BLF_height_default(const char *str);
 

@@ -1561,13 +1561,16 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 }
 
 /* just draw a little warning message in the top-right corner of the viewport to warn that autokeying is enabled */
-static void drawAutoKeyWarning(TransInfo *t, ARegion *ar)
+static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 {
 	const char printable[] = "Auto Keying On";
+	float      printable_size[2];
 	int xco, yco;
+
+	BLF_width_and_height_default(printable, &printable_size[0], &printable_size[1]);
 	
-	xco = ar->winx - BLF_width_default(printable)  - 10;
-	yco = ar->winy - BLF_height_default(printable) - 10;
+	xco = ar->winx - (int)printable_size[0] - 10;
+	yco = ar->winy - (int)printable_size[1] - 10;
 	
 	/* warning text (to clarify meaning of overlays)
 	 * - original color was red to match the icon, but that clashes badly with a less nasty border
