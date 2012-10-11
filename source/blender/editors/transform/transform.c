@@ -90,7 +90,6 @@
 #include "BLI_linklist.h"
 #include "BLI_smallhash.h"
 #include "BLI_array.h"
-#include "PIL_time.h"
 
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
@@ -1276,7 +1275,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->redraw |= t->handleEvent(t, event);
 
 	if (handled || t->redraw) {
-		t->last_update = PIL_check_seconds_timer();
 		return 0;
 	}
 	else {
@@ -1567,50 +1565,26 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 /* just draw a little warning message in the top-right corner of the viewport to warn that autokeying is enabled */
 static void drawAutoKeyWarning(TransInfo *t, ARegion *ar)
 {
-	int show_warning;
+	const char printable[] = "Auto Keying On";
+	int xco, yco;
 	
-	/* colored border around the viewport */
-	UI_ThemeColor(TH_VERTEX_SELECT);
+	xco = ar->winx - BLF_width_default(printable)  - 10;
+	yco = ar->winy - BLF_height_default(printable) - 10;
 	
-	glBegin(GL_LINE_LOOP);
-		glVertex2f(1,          1);
-		glVertex2f(1,          ar->winy-1);
-		glVertex2f(ar->winx-1, ar->winy-1);
-		glVertex2f(ar->winx-1, 1);
-	glEnd();
-	
-	/* Entire warning should "blink" to catch periphery attention without being overly distracting 
-	 * much like how a traditional recording sign in the corner of a camcorder works
-	 *
-	 * - Blink frequency here is 0.5 secs (i.e. a compromise between epilepsy-inducing flicker + too slow to notice).
-	 *   We multiply by two to speed up the odd/even time-in-seconds = on/off toggle.
-	 * - Always start with warning shown so that animators are more likely to notice when starting to transform
+	/* warning text (to clarify meaning of overlays)
+	 * - original color was red to match the icon, but that clashes badly with a less nasty border
 	 */
-
-	show_warning = ((int)((t->last_update - floor(t->last_update)) * 2.0) & 1);
+	UI_ThemeColorShade(TH_TEXT_HI, -50);
+	BLF_draw_default_ascii(xco, ar->winy - 17, 0.0f, printable, sizeof(printable));
 	
-	if ((show_warning) || (t->state == TRANS_STARTING)) {
-		const char printable[] = "Auto Keying On";
-		int xco, yco;
-		
-		xco = ar->winx - BLF_width_default(printable)  - 10;
-		yco = ar->winy - BLF_height_default(printable) - 10;
-		
-		/* warning text (to clarify meaning of overlays)
-		 * - original color was red to match the icon, but that clashes badly with a less nasty border
-		 */
-		UI_ThemeColor(TH_VERTEX_SELECT);
-		BLF_draw_default_ascii(xco, ar->winy - 17, 0.0f, printable, sizeof(printable));
-		
-		/* autokey recording icon... */
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-		
-		xco -= (ICON_DEFAULT_WIDTH + 2);
-		UI_icon_draw(xco, yco, ICON_REC);
-		
-		glDisable(GL_BLEND);
-	}
+	/* autokey recording icon... */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	
+	xco -= (ICON_DEFAULT_WIDTH + 2);
+	UI_icon_draw(xco, yco, ICON_REC);
+	
+	glDisable(GL_BLEND);
 }
 
 static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, void *arg)
