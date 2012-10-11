@@ -2292,8 +2292,8 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
-	RNA_def_int(ot->srna, "offset", 0, 0, 100, "Offset", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "nth", 2, 2, INT_MAX, "Nth Selection", "", 2, 100);
+	RNA_def_int(ot->srna, "offset", 0, 0, INT_MAX, "Offset", "", 0, 100);
 }
 
 void em_setup_viewcontext(bContext *C, ViewContext *vc)

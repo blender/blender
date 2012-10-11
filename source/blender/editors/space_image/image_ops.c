@@ -496,7 +496,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING;
 	
 	/* properties */
-	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
+	RNA_def_float(ot->srna, "factor", 0.0f, -FLT_MAX, FLT_MAX,
 	              "Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out", -FLT_MAX, FLT_MAX);
 }
 
@@ -800,7 +800,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	ot->poll = space_image_main_area_poll;
 	
 	/* properties */
-	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
+	RNA_def_float(ot->srna, "ratio", 0.0f, -FLT_MAX, FLT_MAX,
 	              "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 

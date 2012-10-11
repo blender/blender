@@ -154,7 +154,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of marker on frame", -1.0f, 1.0f);
 }
 

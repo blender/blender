@@ -429,8 +429,8 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, 100.0f, "Offset", "", 0.0f, FLT_MAX);
-	RNA_def_int(ot->srna, "steps", 10, 0, 180, "Steps", "", 0, INT_MAX);
+	RNA_def_float(ot->srna, "offset", 2.0f, 0.0f, FLT_MAX, "Offset", "", 0.0f, 100.0f);
+	RNA_def_int(ot->srna, "steps", 10, 0, INT_MAX, "Steps", "", 0, 180);
 }
 
 /* generic extern called extruder */
@@ -1607,7 +1607,7 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Number of times to smooth the mesh", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "repeat", 1, 1, 1000, "Number of times to smooth the mesh", "", 1, 100);
 	RNA_def_boolean(ot->srna, "xaxis", 1, "X-Axis", "Smooth along the X axis");
 	RNA_def_boolean(ot->srna, "yaxis", 1, "Y-Axis", "Smooth along the Y axis");
 	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis");
@@ -3542,7 +3542,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, "Degrees", "Degrees", -360.0f, 360.0f);
 
 	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
-	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -FLT_MAX, FLT_MAX, "Axis", "Axis in global view space", -1.0f, 1.0f);
 
 }
 
@@ -3666,8 +3666,8 @@ void MESH_OT_screw(wmOperatorType *ot)
 
 	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX,
 	                     "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
-	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f,
-	                     "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -FLT_MAX, FLT_MAX,
+	                     "Axis", "Axis in global view space", -1.0f, 1.0f);
 }
 
 static int edbm_select_by_number_vertices_exec(bContext *C, wmOperator *op)

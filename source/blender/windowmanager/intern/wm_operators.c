@@ -1233,7 +1233,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	ot->exec = wm_debug_menu_exec;
 	ot->poll = WM_operator_winactive;
 	
-	RNA_def_int(ot->srna, "debug_value", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
 }
 
 

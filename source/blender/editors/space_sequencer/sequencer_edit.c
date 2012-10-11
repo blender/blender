@@ -1853,7 +1853,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "length", 1, 1, 1000, "Length", "Length of each frame", 1, INT_MAX);
+	RNA_def_int(ot->srna, "length", 1, 1, INT_MAX, "Length", "Length of each frame", 1, 1000);
 }
 
 
@@ -2188,7 +2188,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 	ot->poll = ED_operator_sequencer_active;
 
 	/* properties */
-	RNA_def_float(ot->srna, "ratio", 1.0f, 0.0f, FLT_MAX,
+	RNA_def_float(ot->srna, "ratio", 1.0f, -FLT_MAX, FLT_MAX,
 	              "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 

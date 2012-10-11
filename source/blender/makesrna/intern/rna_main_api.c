@@ -990,9 +990,9 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new image to the main database");
 	parm = RNA_def_string(func, "name", "Image", 0, "", "New name for the datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "width", 1024, 1, INT_MAX, "", "Width of the image", 0, INT_MAX);
+	parm = RNA_def_int(func, "width", 1024, 1, INT_MAX, "", "Width of the image", 1, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "height", 1024, 1, INT_MAX, "", "Height of the image", 0, INT_MAX);
+	parm = RNA_def_int(func, "height", 1024, 1, INT_MAX, "", "Height of the image", 1, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "alpha", 0, "Alpha", "Use alpha channel");
 	RNA_def_boolean(func, "float_buffer", 0, "Float Buffer", "Create an image with floating point color");

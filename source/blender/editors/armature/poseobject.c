@@ -1511,7 +1511,7 @@ void POSE_OT_group_assign(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "type", 0, 0, 10, "Bone Group Index", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "type", 0, 0, INT_MAX, "Bone Group Index", "", 0, 10);
 }
 
 
