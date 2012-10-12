@@ -1822,8 +1822,11 @@ class WM_OT_addon_install(Operator):
         # in case a new module path was created to install this addon.
         bpy.utils.refresh_script_paths()
 
-        # TODO, should not be a warning.
-        #~ self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
+        # print message
+        msg = "File %r installed into %r\n" % (pyfile, path_dest)
+        self.report({'INFO'}, msg)
+        print(msg)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):

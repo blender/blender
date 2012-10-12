@@ -427,6 +427,8 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 						return error;
 				}
 				break;
+			default:
+				return "internal error with idp array.type";
 		}
 	}
 	else if (PyMapping_Check(ob)) {
@@ -471,7 +473,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 
 	if (group->type == IDP_IDPARRAY) {
 		IDP_AppendArray(group, prop);
-		// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory
+		// IDP_FreeProperty(item);  /* IDP_AppendArray does a shallow copy (memcpy), only free memory */
 		MEM_freeN(prop);
 	}
 	else {
