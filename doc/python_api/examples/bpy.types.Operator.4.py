@@ -26,8 +26,8 @@ class CustomDrawOperator(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
     def draw(self, context):
         layout = self.layout

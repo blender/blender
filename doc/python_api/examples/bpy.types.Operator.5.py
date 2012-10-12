@@ -40,15 +40,17 @@ class ModalOperator(bpy.types.Operator):
         elif event.type == 'LEFTMOUSE':  # Confirm
             return {'FINISHED'}
         elif event.type in ('RIGHTMOUSE', 'ESC'):  # Cancel
+            context.object.location.x = self.init_loc_x
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
+        self.init_loc_x = context.object.location.x
         self.value = event.mouse_x
         self.execute(context)
 
-        print(context.window_manager.modal_handler_add(self))
+        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
 
