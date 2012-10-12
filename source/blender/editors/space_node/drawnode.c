@@ -3098,7 +3098,6 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 		void *lock;
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 		if (ibuf) {
-			SpaceNode *snode = CTX_wm_space_node(C);
 			float x, y; 
 			unsigned char *display_buffer;
 			void *cache_handle;

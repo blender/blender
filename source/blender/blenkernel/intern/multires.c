@@ -1161,7 +1161,6 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm)
 		int totlvl = ccgdm->multires.totlvl;
 		
 		if (lvl < totlvl) {
-			Mesh *me = ob->data;
 			DerivedMesh *lowdm, *cddm, *highdm;
 			CCGElem **highGridData, **lowGridData, **subGridData, **gridData, *diffGrid;
 			CCGKey highGridKey, lowGridKey;

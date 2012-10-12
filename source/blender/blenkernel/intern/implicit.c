@@ -857,23 +857,22 @@ DO_INLINE float fbderiv(float length, float L)
 
 DO_INLINE float fbstar(float length, float L, float kb, float cb)
 {
-	float tempfb = kb * fb(length, L);
-
-	float fbstar = cb * (length - L);
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
 	
-	if (tempfb < fbstar)
-		return fbstar;
+	if (tempfb_fl < fbstar_fl)
+		return fbstar_fl;
 	else
-		return tempfb;		
+		return tempfb_fl;
 }
 
 // function to calculae bending spring force (taken from Choi & Co)
 DO_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 {
-	float tempfb = kb * fb(length, L);
-	float fbstar = cb * (length - L);
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
 
-	if (tempfb < fbstar) {
+	if (tempfb_fl < fbstar_fl) {
 		return cb;
 	}
 	else {

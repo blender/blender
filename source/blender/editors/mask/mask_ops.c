@@ -483,15 +483,15 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 		customdata->uw = uw;
 
 		if (uw) {
-			float co[2];
+			float co_uw[2];
 			float weight_scalar = BKE_mask_point_weight_scalar(spline, point, uw->u);
 
 			customdata->weight = uw->w;
 			customdata->weight_scalar = weight_scalar;
-			BKE_mask_point_segment_co(spline, point, uw->u, co);
+			BKE_mask_point_segment_co(spline, point, uw->u, co_uw);
 			BKE_mask_point_normal(spline, point, uw->u, customdata->no);
 
-			madd_v2_v2v2fl(customdata->feather, co, customdata->no, uw->w * weight_scalar);
+			madd_v2_v2v2fl(customdata->feather, co_uw, customdata->no, uw->w * weight_scalar);
 		}
 		else {
 			BezTriple *bezt = &point->bezt;

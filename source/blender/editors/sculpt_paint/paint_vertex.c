@@ -1535,7 +1535,6 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 		}
 		else {
 			/* reset the weights */
-			unsigned int i;
 			MDeformWeight *dw_old = odv->dw;
 			MDeformWeight *dw_new = ndv->dw;
 
@@ -2049,7 +2048,6 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	Object *ob = CTX_data_active_object(C);
 	struct WPaintData *wpd;
 	Mesh *me;
-	bDeformGroup *dg;
 
 	float mat[4][4], imat[4][4];
 	
@@ -2098,12 +2096,14 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 		return FALSE;
 	}
 
-	/* check if we are attempting to paint onto a locked vertex group,
-	 * and other options disallow it from doing anything useful */
-	dg = BLI_findlink(&ob->defbase, (ob->actdef - 1));
-	if (dg->flag & DG_LOCK_WEIGHT) {
-		BKE_report(op->reports, RPT_WARNING, "Active group is locked, aborting");
-		return FALSE;
+	{
+		/* check if we are attempting to paint onto a locked vertex group,
+		 * and other options disallow it from doing anything useful */
+		bDeformGroup *dg = BLI_findlink(&ob->defbase, (ob->actdef - 1));
+		if (dg->flag & DG_LOCK_WEIGHT) {
+			BKE_report(op->reports, RPT_WARNING, "Active group is locked, aborting");
+			return FALSE;
+		}
 	}
 
 	/* ALLOCATIONS! no return after this line */

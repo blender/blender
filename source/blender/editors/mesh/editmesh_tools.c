@@ -3852,8 +3852,8 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 	char *pblock[3] = {NULL, NULL, NULL}, *pb;
 	BMElemSort *sblock[3] = {NULL, NULL, NULL}, *sb;
 	int *map[3] = {NULL, NULL, NULL}, *mp;
-	int totelem[3] = {0, 0, 0}, tot;
-	int affected[3] = {0, 0, 0}, aff;
+	int totelem[3] = {0, 0, 0};
+	int affected[3] = {0, 0, 0};
 	int i, j;
 
 	if (!(types && flag && action))
@@ -4228,8 +4228,8 @@ static void sort_bmelem_flag(Scene *scene, Object *ob,
 		if (pb && sb && !map[j]) {
 			char *p_blk;
 			BMElemSort *s_blk;
-			tot = totelem[j];
-			aff = affected[j];
+			int tot = totelem[j];
+			int aff = affected[j];
 
 			qsort(sb, aff, sizeof(BMElemSort), bmelemsort_comp);
 

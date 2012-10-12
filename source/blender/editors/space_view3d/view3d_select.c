@@ -2014,12 +2014,10 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 			}
 			
 			if (bone_selected) {
-				Object *ob = base->object;
-				
-				if (ob && (ob->type == OB_ARMATURE)) {
-					bArmature *arm = ob->data;
+				if (base->object && (base->object->type == OB_ARMATURE)) {
+					bArmature *arm = base->object->data;
 					
-					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, base->object);
 					
 					if (arm && (arm->flag & ARM_HAS_VIZ_DEPS)) {
 						/* mask modifier ('armature' mode), etc. */

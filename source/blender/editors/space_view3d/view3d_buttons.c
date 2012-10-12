@@ -158,7 +158,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	TransformProperties *tfp;
 	float median[NBR_TRANSFORM_PROPERTIES], ve_median[NBR_TRANSFORM_PROPERTIES];
 	int tot, totedgedata, totcurvedata, totlattdata, totskinradius, totcurvebweight;
-	int meshdata = FALSE, i;
+	int meshdata = FALSE;
 	char defstr[320];
 	PointerRNA data_ptr;
 
@@ -470,6 +470,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 	}
 	else { /* apply */
+		int i;
+
 		memcpy(ve_median, tfp->ve_median, sizeof(tfp->ve_median));
 
 		if (v3d->flag & V3D_GLOBAL_STATS) {
@@ -485,10 +487,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			Mesh *me = ob->data;
 			BMEditMesh *em = me->edit_btmesh;
 			BMesh *bm = em->bm;
-			BMVert *eve;
 			BMIter iter;
 
 			if (len_v3(&median[LOC_X]) > 0.000001f) {
+				BMVert *eve;
 
 				BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 					if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {

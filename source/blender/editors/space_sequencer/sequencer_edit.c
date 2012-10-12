@@ -2620,7 +2620,6 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	Sequence *seq;
 
 	ListBase nseqbase = {NULL, NULL};
 
@@ -2656,8 +2655,11 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 	seqbase_clipboard_frame = scene->r.cfra;
 
 	/* Need to remove anything that references the current scene */
-	for (seq = seqbase_clipboard.first; seq; seq = seq->next) {
-		seq_copy_del_sound(scene, seq);
+	{
+		Sequence *seq;
+		for (seq = seqbase_clipboard.first; seq; seq = seq->next) {
+			seq_copy_del_sound(scene, seq);
+		}
 	}
 
 	return OPERATOR_FINISHED;

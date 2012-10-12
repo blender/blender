@@ -170,7 +170,6 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *ima, Image *previma)
 {
 	BMEditMesh *em;
-	BMFace *efa;
 	BMIter iter;
 	MTexPoly *tf;
 	int update = 0;
@@ -198,6 +197,8 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 			ED_object_assign_active_image(bmain, obedit, efa->mat_nr + 1, ima);
 	}
 	else {
+		BMFace *efa;
+
 		/* old shading system, assign image to selected faces */
 #ifdef USE_SWITCH_ASPECT
 		float prev_aspect[2], fprev_aspect;
@@ -1310,9 +1311,7 @@ static void weld_align_uv(bContext *C, int tool)
 	Object *obedit;
 	Image *ima;
 	BMEditMesh *em;
-	BMIter iter, liter;
 	MTexPoly *tf;
-	MLoopUV *luv;
 	float cent[2], min[2], max[2];
 	
 	scene = CTX_data_scene(C);
@@ -1324,6 +1323,7 @@ static void weld_align_uv(bContext *C, int tool)
 	INIT_MINMAX2(min, max);
 
 	if (tool == 'a') {
+		BMIter iter, liter;
 		BMFace *efa;
 		BMLoop *l;
 
@@ -1335,7 +1335,7 @@ static void weld_align_uv(bContext *C, int tool)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(em, scene, l)) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					DO_MINMAX2(luv->uv, min, max);
 				}
 			}
@@ -1347,6 +1347,7 @@ static void weld_align_uv(bContext *C, int tool)
 	uvedit_center(scene, ima, obedit, cent, 0);
 
 	if (tool == 'x' || tool == 'w') {
+		BMIter iter, liter;
 		BMFace *efa;
 		BMLoop *l;
 
@@ -1357,7 +1358,7 @@ static void weld_align_uv(bContext *C, int tool)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(em, scene, l)) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					luv->uv[0] = cent[0];
 				}
 
@@ -1366,6 +1367,7 @@ static void weld_align_uv(bContext *C, int tool)
 	}
 
 	if (tool == 'y' || tool == 'w') {
+		BMIter iter, liter;
 		BMFace *efa;
 		BMLoop *l;
 
@@ -1376,7 +1378,7 @@ static void weld_align_uv(bContext *C, int tool)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(em, scene, l)) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					luv->uv[1] = cent[1];
 				}
 

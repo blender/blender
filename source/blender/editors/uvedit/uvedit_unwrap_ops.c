@@ -223,7 +223,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		BMLoop *ls[3];
 		float *co[4];
 		float *uv[4];
-		int i, lsel;
+		int lsel;
 
 		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0))
 			continue;
@@ -245,6 +245,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		// tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);  // UNUSED
 
 		if (efa->len == 3 || efa->len == 4) {
+			int i;
 			/* for quads let parametrize split, it can make better decisions
 			 * about which split is best for unwrapping than scanfill */
 			i = 0;
@@ -291,6 +292,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 			BLI_scanfill_calc_ex(&sf_ctx, TRUE, efa->no);
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+				int i;
 				ls[0] = sf_tri->v1->tmp.p;
 				ls[1] = sf_tri->v2->tmp.p;
 				ls[2] = sf_tri->v3->tmp.p;

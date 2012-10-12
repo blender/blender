@@ -68,27 +68,27 @@ void BKE_sequence_iterator_begin(struct Editing *ed, SeqIterator *iter, int use_
 void BKE_sequence_iterator_next(SeqIterator *iter);
 void BKE_sequence_iterator_end(SeqIterator *iter);
 
-#define SEQP_BEGIN(ed, _seq)                                                  \
+#define SEQP_BEGIN(_ed, _seq)                                                 \
 	{                                                                         \
-		SeqIterator iter;                                                     \
-		for (BKE_sequence_iterator_begin(ed, &iter, 1);                       \
-		     iter.valid;                                                      \
-		     BKE_sequence_iterator_next(&iter))                               \
+		SeqIterator iter_macro;                                               \
+		for (BKE_sequence_iterator_begin(_ed, &iter_macro, 1);                \
+		     iter_macro.valid;                                                \
+		     BKE_sequence_iterator_next(&iter_macro))                         \
 		{                                                                     \
-			_seq = iter.seq;
+			_seq = iter_macro.seq;
 
 #define SEQ_BEGIN(ed, _seq)                                                   \
 	{                                                                         \
-		SeqIterator iter;                                                     \
-		for (BKE_sequence_iterator_begin(ed, &iter, 0);                       \
-		     iter.valid;                                                      \
-		     BKE_sequence_iterator_next(&iter))                               \
+		SeqIterator iter_macro;                                               \
+		for (BKE_sequence_iterator_begin(ed, &iter_macro, 0);                 \
+		     iter_macro.valid;                                                \
+		     BKE_sequence_iterator_next(&iter_macro))                         \
 		{                                                                     \
-			_seq = iter.seq;
+			_seq = iter_macro.seq;
 
 #define SEQ_END                                                               \
 		}                                                                     \
-		BKE_sequence_iterator_end(&iter);                                     \
+		BKE_sequence_iterator_end(&iter_macro);                               \
 	}
 
 typedef struct SeqRenderData {

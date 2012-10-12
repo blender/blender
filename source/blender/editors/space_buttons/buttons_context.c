@@ -900,7 +900,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		}
 		else {
 			/* get settings from active particle system instead */
-			PointerRNA *ptr = get_pointer_type(path, &RNA_ParticleSystem);
+			ptr = get_pointer_type(path, &RNA_ParticleSystem);
 			
 			if (ptr && ptr->data) {
 				ParticleSettings *part = ((ParticleSystem *)ptr->data)->part;

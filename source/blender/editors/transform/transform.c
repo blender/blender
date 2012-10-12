@@ -4860,10 +4860,9 @@ static int createSlideVerts(TransInfo *t)
 {
 	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	BMesh *bm = em->bm;
-	BMIter iter, iter2;
+	BMIter iter;
 	BMEdge *e, *e1;
 	BMVert *v, *v2, *first;
-	BMLoop *l, *l1, *l2;
 	TransDataSlideVert *sv_array;
 	BMBVHTree *btree = BMBVH_NewBVH(em, BMBVH_RESPECT_HIDDEN, NULL, NULL);
 	SmallHash table;
@@ -4903,6 +4902,7 @@ static int createSlideVerts(TransInfo *t)
 	/*ensure valid selection*/
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+			BMIter iter2;
 			numsel = 0;
 			BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
 				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
@@ -4955,6 +4955,8 @@ static int createSlideVerts(TransInfo *t)
 
 	j = 0;
 	while (1) {
+		BMLoop *l, *l1, *l2;
+
 		v = NULL;
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG))
@@ -5088,7 +5090,7 @@ static int createSlideVerts(TransInfo *t)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			BMIter iter2;
 			BMEdge *e2;
-			float vec1[3], mval[2] = {t->mval[0], t->mval[1]}, d;
+			float vec1[3], d;
 
 			/* search cross edges for visible edge to the mouse cursor,
 			 * then use the shared vertex to calculate screen vector*/

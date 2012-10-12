@@ -381,8 +381,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	float rsmat[3][3], tmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
-	int a, change = 1;
+	float rsmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
+	int change = 1;
 	
 	/* first check if we can execute */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -464,6 +464,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			copy_v3_v3(mat[3], ob->loc);
 
 			if (!(apply_scale && apply_rot)) {
+				float tmat[3][3];
 				/* correct for scale and rotation that is still applied */
 				BKE_object_to_mat3(ob, obmat);
 				invert_m3_m3(iobmat, obmat);
@@ -476,6 +477,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
 			MVert *mvert;
+			int a;
 
 			if (apply_scale)
 				multiresModifier_scale_disp(scene, ob);
@@ -518,6 +520,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			Nurb *nu;
 			BPoint *bp;
 			BezTriple *bezt;
+			int a;
 
 			scale = mat3_to_scale(rsmat);
 
@@ -896,6 +899,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 			/* offset other selected objects */
 			if (do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
+				CollectionPointerLink *ctx_link_other;
+
 				/* was the object data modified
 				 * note: the functions above must set 'cent' */
 				copy_v3_v3(centn, cent);
@@ -910,8 +915,16 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				ignore_parent_tx(bmain, scene, ob);
 				
 				/* other users? */
-				CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
+				//CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
+				//{
+
+				/* use existing context looper */
+				for (ctx_link_other = ctx_data_list.first;
+				     ctx_link_other;
+				     ctx_link_other = ctx_link_other->next)
 				{
+					Object *ob_other = ctx_link_other->ptr.data;
+
 					if ((ob_other->flag & OB_DONE) == 0 &&
 					    ((ob->data && (ob->data == ob_other->data)) ||
 					     (ob->dup_group == ob_other->dup_group &&
@@ -931,7 +944,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						ignore_parent_tx(bmain, scene, ob_other);
 					}
 				}
-				CTX_DATA_END;
+				//CTX_DATA_END;
 			}
 		}
 	}

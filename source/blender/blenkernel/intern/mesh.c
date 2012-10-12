@@ -2039,7 +2039,7 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 		MDisps *ld = CustomData_get(ldata, loopstart, CD_MDISPS);
 		MDisps *fd = CustomData_get(fdata, findex, CD_MDISPS);
 		float (*disps)[3] = fd->disps;
-		int i, tot = mf->v4 ? 4 : 3;
+		int tot = mf->v4 ? 4 : 3;
 		int side, corners;
 
 		if (CustomData_external_test(fdata, CD_MDISPS)) {

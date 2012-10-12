@@ -291,7 +291,6 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		MovieTrackingTrack *track = tracking_marker_check_slide(C, event, NULL, NULL, NULL);
 
 		if (track) {
-			SpaceClip *sc = CTX_wm_space_clip(C);
 			MovieClip *clip = ED_space_clip_get_clip(sc);
 
 			clip->tracking.act_track = track;

@@ -340,7 +340,6 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = paint_get_active_from_context(C);
-	Brush *brush = paint_brush(paint);
 	float window[2];
 	int hit;
 
@@ -350,6 +349,7 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 	if (vc->obact->sculpt && vc->obact->sculpt->pbvh &&
 	    sculpt_stroke_get_location(C, location, window))
 	{
+		Brush *brush = paint_brush(paint);
 		*pixel_radius =
 		    project_brush_radius(vc,
 		                         BKE_brush_unprojected_radius_get(scene, brush),

@@ -1935,7 +1935,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	bNodeTree *ntree = snode->edittree;
 	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
 	float gnode_x = 0.0f, gnode_y = 0.0f;
-	bNode *node, *new_node;
+	bNode *node;
 	bNodeLink *link, *newlink;
 
 	ED_preview_kill_jobs(C);
@@ -1950,6 +1950,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->flag & SELECT) {
+			bNode *new_node;
 			new_node = nodeCopyNode(NULL, node);
 			BKE_node_clipboard_add_node(new_node);
 		}

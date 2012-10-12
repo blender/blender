@@ -228,7 +228,6 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 	}
 
 	for (i = 1; i < totvert; i++, mv++) {
-		int j;
 		int fix_normal = TRUE;
 
 		for (j = 0; j < 3; j++) {
@@ -717,7 +716,6 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 		MDeformVert *dv;
 		for (i = 0, dv = dverts; i < totvert; i++, dv++) {
 			MDeformWeight *dw;
-			unsigned int j;
 
 			for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
 				/* note, greater then max defgroups is accounted for in our code, but not < 0 */
@@ -914,7 +912,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 {
 	CustomData edata;
 	EdgeHashIterator *ehi;
-	MPoly *mp = mesh->mpoly;
+	MPoly *mp;
 	MEdge *med, *med_orig;
 	EdgeHash *eh = BLI_edgehash_new();
 	int i, totedge, totpoly = mesh->totpoly;
@@ -932,7 +930,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 	}
 
 	/* mesh loops (bmesh only) */
-	for (i = 0; i < totpoly; i++, mp++) {
+	for (mp = mesh->mpoly, i = 0; i < totpoly; mp++, i++) {
 		MLoop *l = &mesh->mloop[mp->loopstart];
 		int j, l_prev = (l + (mp->totloop - 1))->v;
 		for (j = 0; j < mp->totloop; j++, l++) {
@@ -970,8 +968,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 	if (mesh->totpoly) {
 		/* second pass, iterate through all loops again and assign
 		 * the newly created edges to them. */
-		MPoly *mp = mesh->mpoly;
-		for (i = 0; i < mesh->totpoly; i++, mp++) {
+		for (mp = mesh->mpoly, i = 0; i < mesh->totpoly; mp++, i++) {
 			MLoop *l = &mesh->mloop[mp->loopstart];
 			MLoop *l_prev = (l + (mp->totloop - 1));
 			int j;

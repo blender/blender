@@ -857,8 +857,8 @@ static int editsource_exec(bContext *C, wmOperator *op)
 		     !BLI_ghashIterator_isDone(&ghi);
 		     BLI_ghashIterator_step(&ghi))
 		{
-			uiBut *but = BLI_ghashIterator_getKey(&ghi);
-			if (but && ui_editsource_uibut_match(&ui_editsource_info->but_orig, but)) {
+			uiBut *but_key = BLI_ghashIterator_getKey(&ghi);
+			if (but_key && ui_editsource_uibut_match(&ui_editsource_info->but_orig, but_key)) {
 				but_store = BLI_ghashIterator_getValue(&ghi);
 				break;
 			}

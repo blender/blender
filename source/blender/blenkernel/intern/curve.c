@@ -2109,7 +2109,7 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 	BevPoint *bevp2, *bevp1, *bevp0; /* standard for all make_bevel_list_3D_* funcs */
 	int nr;
 
-	float bevp0_tan[3], cross_tmp[3];
+	float bevp0_tan[3];
 
 	bevel_list_calc_bisect(bl);
 	if (bl->poly == -1) /* check its not cyclic */
@@ -2123,6 +2123,7 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 
 	nr = bl->nr;
 	while (nr--) {
+		float cross_tmp[3];
 		cross_v3_v3v3(cross_tmp, bevp1->tan, bevp1->dir);
 		cross_v3_v3v3(bevp1->tan, cross_tmp, bevp1->dir);
 		normalize_v3(bevp1->tan);

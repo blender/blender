@@ -918,7 +918,6 @@ void ED_vgroup_select_by_name(Object *ob, const char *name)
 static void vgroup_select_verts(Object *ob, int select)
 {
 	const int def_nr = ob->actdef - 1;
-	MDeformVert *dv;
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -934,7 +933,7 @@ static void vgroup_select_verts(Object *ob, int select)
 
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-					dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+					MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 					if (defvert_find_index(dv, def_nr)) {
 						BM_vert_select_set(em->bm, eve, select);
 					}
@@ -971,6 +970,7 @@ static void vgroup_select_verts(Object *ob, int select)
 		Lattice *lt = vgroup_edit_lattice(ob);
 		
 		if (lt->dvert) {
+			MDeformVert *dv;
 			BPoint *bp;
 			int a, tot;
 			
@@ -2451,7 +2451,6 @@ static void vgroup_delete_all(Object *ob)
 /* only in editmode */
 static void vgroup_assign_verts(Object *ob, const float weight)
 {
-	MDeformVert *dv;
 	const int def_nr = ob->actdef - 1;
 
 	if (!BLI_findlink(&ob->defbase, def_nr))
@@ -2471,6 +2470,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 			/* Go through the list of editverts and assign them */
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+					MDeformVert *dv;
 					MDeformWeight *dw;
 					dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT); /* can be NULL */
 					dw = defvert_verify_index(dv, def_nr);
@@ -2505,6 +2505,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 	}
 	else if (ob->type == OB_LATTICE) {
 		Lattice *lt = vgroup_edit_lattice(ob);
+		MDeformVert *dv;
 		BPoint *bp;
 		int a, tot;
 

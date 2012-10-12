@@ -444,7 +444,6 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	if (ob->type == OB_ARMATURE) {
 		if (ob->pose) {
 			bPoseChannel *pchan;
-			bConstraint *con;
 			
 			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 				for (con = pchan->constraints.first; con; con = con->next) {
