@@ -294,8 +294,8 @@ def copy_as_script(context):
     sc = context.space_data
     lines = [
         "import bpy",
-        "import bpy.context as C",
-        "import bpy.data as D",
+        "from bpy import data as D",
+        "from bpy import context as C",
         "from mathutils import *",
         "from math import *",
         "",
