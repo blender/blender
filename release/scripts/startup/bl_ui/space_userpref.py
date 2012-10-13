@@ -1040,7 +1040,7 @@ class USERPREF_PT_addons(Panel):
         userpref = context.user_preferences
         used_ext = {ext.module for ext in userpref.addons}
 
-        userpref_addons_folder = os.path.join(bpy.context.user_preferences.filepaths.script_directory,"addons")
+        userpref_addons_folder = os.path.join(userpref.filepaths.script_directory, "addons")
         scripts_addons_folder  = bpy.utils.user_resource('SCRIPTS', "addons")
         
         # collect the categories that can be filtered on
@@ -1092,9 +1092,7 @@ class USERPREF_PT_addons(Panel):
                     (filter == info["category"]) or
                     (filter == "Enabled" and is_enabled) or
                     (filter == "Disabled" and not is_enabled) or
-                    (filter == "User" and 
-                                ( mod.__file__.startswith(userpref_addons_folder) or
-                                  mod.__file__.startswith(scripts_addons_folder)))
+                    (filter == "User" and (mod.__file__.startswith(scripts_addons_folder, userpref_addons_folder)))
                    ):
 
                 if search and search not in info["name"].lower():
