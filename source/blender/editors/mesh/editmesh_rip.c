@@ -55,8 +55,35 @@
 
 #include "mesh_intern.h"
 
-/* helper to find edge for edge_rip */
+/**
+ * helper to find edge for edge_rip,
+ *
+ * \param inset is used so we get some useful distance
+ * when comparing multiple edges that meet at the same
+ * point and would result in teh same distance.
+ */
+#define INSET_DEFAULT 0.00001f
 static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
+                                   const float co1[3], const float co2[3], const float mvalf[2],
+                                   const float inset)
+{
+	float vec1[2], vec2[2];
+
+	ED_view3d_project_float_v2_m4(ar, co1, vec1, mat);
+	ED_view3d_project_float_v2_m4(ar, co2, vec2, mat);
+
+	if (inset != 0.0f) {
+		const float dist = inset / len_v2v2(vec1, vec2);
+		interp_v2_v2v2(vec1, vec1, vec2, dist);
+		interp_v2_v2v2(vec2, vec2, vec1, dist);
+	}
+
+	/* TODO: use dist_squared_to_line_segment_v2() looks like we only ever use for comparison */
+	return dist_to_line_segment_v2(mvalf, vec1, vec2);
+}
+
+#if 0
+static float edbm_rip_rip_linedist(ARegion *ar, float mat[][4],
                                    const float co1[3], const float co2[3], const float mvalf[2])
 {
 	float vec1[2], vec2[2];
@@ -64,9 +91,22 @@ static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
 	ED_view3d_project_float_v2_m4(ar, co1, vec1, mat);
 	ED_view3d_project_float_v2_m4(ar, co2, vec2, mat);
 
-	/* TODO: use dist_squared_to_line_segment_v2() looks like we only ever use for comparison */
-	return dist_to_line_segment_v2(mvalf, vec1, vec2);
+	return dist_to_line_v2(mvalf, vec1, vec2);
 }
+#endif
+
+/* calculaters a point along the loop tangent which can be used to measure against edges */
+static void edbm_calc_loop_co(BMLoop *l, float l_mid_co[3])
+{
+	BM_loop_calc_face_tangent(l, l_mid_co);
+
+	/* scale to average of surrounding edge size, only needs to be approx, but should
+	 * be roughly equivalent to the check below which uses the middle of the edge. */
+	mul_v3_fl(l_mid_co, (BM_edge_calc_length(l->e) + BM_edge_calc_length(l->prev->e)) / 2.0f);
+
+	add_v3_v3(l_mid_co, l->v->co);
+}
+
 
 static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
                                         ARegion *ar,
@@ -417,7 +457,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			totboundary_edge += (is_boundary != 0 || BM_edge_is_wire(e));
 			if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 				if (is_boundary == FALSE && BM_edge_is_manifold(e)) {
-					d = edbm_rip_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval);
+					d = edbm_rip_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
 					if (d < dist) {
 						dist = d;
 						e2 = e;
@@ -426,6 +466,42 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 
+		/* if we are ripping a single vertex from 3 faces,
+		 * then measure the distance to the face corner as well as the edge */
+		if (BM_vert_face_count(v) == 3 &&
+		    BM_vert_edge_count(v) == 3)
+		{
+			BMEdge *e_all[3];
+			BMLoop *l_all[3];
+			int i1, i2;
+
+			BM_iter_as_array(bm, BM_EDGES_OF_VERT, v, (void **)e_all, 3);
+			BM_iter_as_array(bm, BM_LOOPS_OF_VERT, v, (void **)l_all, 3);
+
+			/* not do a loop similar to the one above, but test against loops */
+			for (i1 = 0; i1 < 3; i1++) {
+				/* consider wire as boundary for this purpose,
+				 * otherwise we can't a face away from a wire edge */
+				float l_mid_co[3];
+				l = l_all[i1];
+				edbm_calc_loop_co(l, l_mid_co);
+				d = edbm_rip_rip_edgedist(ar, projectMat, l->v->co, l_mid_co, fmval, INSET_DEFAULT);
+
+				if (d < dist) {
+					dist = d;
+
+					/* find the edge that is not in this loop */
+					e2 = NULL;
+					for (i2 = 0; i2 < 3; i2++) {
+						if (!BM_edge_in_loop(e_all[i2], l)) {
+							e2 = e_all[i2];
+							break;
+						}
+					}
+					BLI_assert(e2 != NULL);
+				}
+			}
+		}
 	}
 
 	/* should we go ahead with edge rip or do we need to do special case, split off vertex?:
@@ -473,14 +549,9 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 					BM_ITER_ELEM (l, &iter, vout[i], BM_LOOPS_OF_VERT) {
 						if (!BM_elem_flag_test(l->f, BM_ELEM_HIDDEN)) {
 							float l_mid_co[3];
-							BM_loop_calc_face_tangent(l, l_mid_co);
+							edbm_calc_loop_co(l, l_mid_co);
 
-							/* scale to average of surrounding edge size, only needs to be approx, but should
-							 * be roughly equivalent to the check below which uses the middle of the edge. */
-							mul_v3_fl(l_mid_co, (BM_edge_calc_length(l->e) + BM_edge_calc_length(l->prev->e)) / 2.0f);
-							add_v3_v3(l_mid_co, v->co);
-
-							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval);
+							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval, INSET_DEFAULT);
 
 							if (d < dist) {
 								dist = d;
@@ -496,7 +567,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 							float e_mid_co[3];
 							mid_v3_v3v3(e_mid_co, e->v1->co, e->v2->co);
 
-							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, e_mid_co, fmval);
+							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, e_mid_co, fmval, INSET_DEFAULT);
 
 							if (d < dist) {
 								dist = d;
@@ -593,7 +664,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 					add_v3_v3v3(l_corner_co, l_prev_co, l_next_co);
 					add_v3_v3(l_corner_co, l->v->co);
 
-					d = edbm_rip_rip_edgedist(ar, projectMat, l->v->co, l_corner_co, fmval);
+					d = edbm_rip_rip_edgedist(ar, projectMat, l->v->co, l_corner_co, fmval, INSET_DEFAULT);
 					if (d < dist) {
 						v_best = v;
 						dist = d;
@@ -643,7 +714,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
-	/* important this runs on the original selection, before tempering with tagging */
+	/* important this runs on the original selection, before tampering with tagging */
 	eloop_pairs = edbm_ripsel_looptag_helper(bm);
 
 	/* expand edge selection */
@@ -678,7 +749,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 				BMLoop *l_a = e2->l;
 				BMLoop *l_b = l_a->radial_next;
 
-				/* find the best face to follow, this what the edge won't point away from
+				/* find the best face to follow, this way the edge won't point away from
 				 * the mouse when there are more then 4 (takes the shortest face fan around) */
 				l = (edbm_rip_edge_side_measure(e2, l_a, ar, projectMat, fmval) <
 				     edbm_rip_edge_side_measure(e2, l_b, ar, projectMat, fmval)) ? l_a : l_b;

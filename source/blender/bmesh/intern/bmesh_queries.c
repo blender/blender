@@ -298,6 +298,14 @@ int BM_edge_in_face(BMFace *f, BMEdge *e)
 }
 
 /**
+ * Returns whether or not a given edge is is part of a given loop.
+ */
+int BM_edge_in_loop(BMEdge *e, BMLoop *l)
+{
+	return (l->e == e || l->prev->e == e);
+}
+
+/**
  * Returns whether or not two vertices are in
  * a given edge
  */

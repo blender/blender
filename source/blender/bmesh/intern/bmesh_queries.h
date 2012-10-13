@@ -31,6 +31,7 @@ int     BM_vert_in_face(BMFace *f, BMVert *v);
 int     BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len);
 
 int     BM_edge_in_face(BMFace *f, BMEdge *e);
+int     BM_edge_in_loop(BMEdge *e, BMLoop *l);
 
 int     BM_vert_in_edge(BMEdge *e, BMVert *v);
 int     BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
