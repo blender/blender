@@ -277,7 +277,6 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 
 		uid_start = uid;
 		while ((e = edbm_ripsel_edge_mark_step(v_step, uid))) {
-			BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
 			v_step = BM_edge_other_vert((e_step = e), v_step);
 			uid++; /* only different line */
 			tot++;
@@ -294,7 +293,6 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 		v_step = e_first->v1;
 
 		while ((e = edbm_ripsel_edge_mark_step(v_step, uid))) {
-			BM_elem_flag_disable(e, BM_ELEM_SMOOTH);
 			v_step = BM_edge_other_vert((e_step = e), v_step);
 			uid--; /* only different line */
 			tot++;
