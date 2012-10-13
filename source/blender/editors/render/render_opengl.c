@@ -342,7 +342,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	ofs = GPU_offscreen_create(sizex, sizey, err_out);
 
 	if (!ofs) {
-		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer, %s", err_out);
+		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer, %s", err_out);
 		return 0;
 	}
 

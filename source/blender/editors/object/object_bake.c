@@ -985,7 +985,7 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 					ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
 
 					if (!ibuf) {
-						BKE_report(op->reports, RPT_ERROR, "Baking should happend to image with image buffer");
+						BKE_report(op->reports, RPT_ERROR, "Baking should happen to image with image buffer");
 
 						ok = 0;
 					}

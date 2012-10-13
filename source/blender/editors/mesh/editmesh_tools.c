@@ -3079,7 +3079,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if (type == 0) {
-			BKE_report(op->reports, RPT_ERROR, "Selecton not supported in object mode");
+			BKE_report(op->reports, RPT_ERROR, "Selection not supported in object mode");
 			return OPERATOR_CANCELLED;
 		}
 

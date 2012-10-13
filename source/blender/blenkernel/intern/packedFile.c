@@ -323,7 +323,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
 			if (BLI_rename(tempname, name) != 0) {
-				BKE_reportf(reports, RPT_ERROR, "Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
+				BKE_reportf(reports, RPT_ERROR, "Error restoring temp file. Check files: '%s' '%s'", tempname, name);
 			}
 		}
 		else {

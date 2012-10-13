@@ -5890,7 +5890,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (!ibuf) {
 		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
 		/* but could be other reasons. Should be handled in the future. nazgul */
-		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer: %s", err_out);
+		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer: %s", err_out);
 		return OPERATOR_CANCELLED;
 	}
 

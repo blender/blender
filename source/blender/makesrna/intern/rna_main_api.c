@@ -128,7 +128,7 @@ static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports
 	else if (scene->id.next)
 		newscene = scene->id.next;
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Scene \"%s\" is the last, cant ve removed", scene->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Scene \"%s\" is the last, can't be removed", scene->id.name + 2);
 		return;
 	}
 

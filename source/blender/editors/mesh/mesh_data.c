@@ -1227,7 +1227,7 @@ void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add polys in edit mode.");
+		BKE_report(reports, RPT_ERROR, "Can't add polygons in edit mode.");
 		return;
 	}
 

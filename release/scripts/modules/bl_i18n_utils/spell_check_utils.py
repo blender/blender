@@ -92,6 +92,7 @@ dict_uimsgs = {
     "gridline",
     "hemi",
     "inscatter", "inscattering",
+    "libdata",
     "lightless",
     "lookup", "lookups",
     "mathutils",
@@ -103,6 +104,7 @@ dict_uimsgs = {
     "multires", "multiresolution",
     "multisampling",
     "multitexture",
+    "multiuser",
     "namespace",
     "keyconfig",
     "playhead",
@@ -327,6 +329,7 @@ dict_uimsgs = {
     "ztransp",
 
     # Blender terms
+    "audaspace",
     "bbone",
     "breakdowner",
     "bspline",
@@ -456,6 +459,7 @@ dict_uimsgs = {
     "dop",  # BLI K-Dop BVH
     "ik",
     "nla",
+    "py",
     "qbvh",
     "rna",
     "rvo",

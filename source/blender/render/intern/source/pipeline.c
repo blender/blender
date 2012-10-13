@@ -1900,7 +1900,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	if (scene->r.scemode & R_DOCOMP) {
 		if (scene->use_nodes) {
 			if (!scene->nodetree) {
-				BKE_report(reports, RPT_ERROR, "No Nodetree in Scene");
+				BKE_report(reports, RPT_ERROR, "No node tree in Scene");
 				return 0;
 			}
 			

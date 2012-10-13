@@ -756,7 +756,7 @@ static bNode *rna_NodeTree_node_texture_new(bNodeTree *ntree, bContext *C, Repor
 static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, bNode *node)
 {
 	if (BLI_findindex(&ntree->nodes, node) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in nodetree", node->name);
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in node tree", node->name);
 	}
 	else {
 		if (node->id)
@@ -827,7 +827,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 static void rna_NodeTree_link_remove(bNodeTree *ntree, ReportList *reports, bNodeLink *link)
 {
 	if (BLI_findindex(&ntree->links, link) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate link in nodetree");
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate link in node tree");
 	}
 	else {
 		nodeRemLink(ntree, link);
@@ -882,7 +882,7 @@ static bNodeSocket *rna_NodeTree_input_expose(bNodeTree *ntree, ReportList *repo
 	int index, in_out;
 	
 	if (!nodeFindNode(ntree, sock, &node, &index, &in_out))
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket in nodetree");
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket in node tree");
 	else if (in_out != SOCK_IN)
 		BKE_reportf(reports, RPT_ERROR, "Socket is not an input");
 	else {
@@ -906,7 +906,7 @@ static bNodeSocket *rna_NodeTree_output_expose(bNodeTree *ntree, ReportList *rep
 	int index, in_out;
 	
 	if (!nodeFindNode(ntree, sock, &node, &index, &in_out))
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket in nodetree");
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket in node tree");
 	else if (in_out != SOCK_OUT)
 		BKE_reportf(reports, RPT_ERROR, "Socket is not an output");
 	else {

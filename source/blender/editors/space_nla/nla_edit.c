@@ -121,7 +121,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 	
 	/* if no blocks, popup error? */
 	if (anim_data.first == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweakmode for");
+		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
 	}	
 	
@@ -147,7 +147,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR, "No active strip(s) to enter tweakmode on");
+		BKE_report(op->reports, RPT_ERROR, "No active strip(s) to enter tweak mode on");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -190,7 +190,7 @@ static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *op)
 	
 	/* if no blocks, popup error? */
 	if (anim_data.first == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweakmode for");
+		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
 	}	
 	

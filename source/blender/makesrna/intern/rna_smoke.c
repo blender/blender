@@ -555,7 +555,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_FLOW_TEXTUREEMIT);
-	RNA_def_property_ui_text(prop, "Use Texture", "Use a texture to controll emission strength");
+	RNA_def_property_ui_text(prop, "Use Texture", "Use a texture to control emission strength");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "texture_map_type", PROP_ENUM, PROP_NONE);

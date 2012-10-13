@@ -5152,7 +5152,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	
 	/* sanity checks */
 	if (ELEM(NULL, clear_func, default_ksName)) {
-		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or Keying Set Name");
 		return OPERATOR_CANCELLED;
 	}
 	
