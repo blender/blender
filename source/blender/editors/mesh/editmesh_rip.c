@@ -704,11 +704,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 	BMEdge *e, *e2;
 	BMVert *v;
 	const int totedge_orig = bm->totedge;
-	int i;
 	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
-
-	int totedge;
-	int all_minifold;
 
 	EdgeLoopPair *eloop_pairs;
 
@@ -719,10 +715,14 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* expand edge selection */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+		int all_manifold;
+		int totedge_manifold;  /* manifold, visible edges */
+		int i;
+
 		e2 = NULL;
 		i = 0;
-		totedge = 0;
-		all_minifold = TRUE;
+		totedge_manifold = 0;
+		all_manifold = TRUE;
 		BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 
 			if (!BM_edge_is_wire(e) &&
@@ -734,18 +734,18 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 					e2 = e;
 					i++;
 				}
-				totedge++;
+				totedge_manifold++;
 			}
 
 			/** #BM_vert_other_disk_edge has no hidden checks so don't check hidden here */
-			if ((all_minifold == TRUE) && (BM_edge_is_manifold(e) == FALSE)) {
-				all_minifold = FALSE;
+			if ((all_manifold == TRUE) && (BM_edge_is_manifold(e) == FALSE)) {
+				all_manifold = FALSE;
 			}
 		}
 
 		/* single edge, extend */
 		if (i == 1 && e2->l) {
-			if ((totedge == 4) || (all_minifold == FALSE)) {
+			if ((totedge_manifold == 4) || (all_manifold == FALSE)) {
 				BMLoop *l_a = e2->l;
 				BMLoop *l_b = l_a->radial_next;
 
