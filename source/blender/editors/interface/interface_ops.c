@@ -808,7 +808,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 
 	if (text == NULL) {
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "file: '%s' can't be opened", filepath);
+		            "File: '%s' can't be opened", filepath);
 		return OPERATOR_CANCELLED;
 	}
 	else {

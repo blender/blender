@@ -1162,7 +1162,7 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		            "Operator '%s' does not have register enabled, incorrect invoke function", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1193,11 +1193,12 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 {
 	/* CTX_wm_reports(C) because operator is on stack, not active in event system */
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
-		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		BKE_reportf(CTX_wm_reports(C), RPT_ERROR,
+		            "Operator redo '%s' does not have register enabled, incorrect invoke function", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	if (op->type->poll && op->type->poll(C) == 0) {
-		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s': wrong context.", op->type->idname);
+		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s': wrong context", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	

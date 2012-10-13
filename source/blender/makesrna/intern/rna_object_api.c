@@ -158,7 +158,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
 			if (tmpobj->type != OB_MESH) {
 				BKE_libblock_free_us(&(G.main->object), tmpobj);
-				BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
+				BKE_report(reports, RPT_ERROR, "Can't convert curve to mesh (does the curve have any segments?)");
 				return NULL;
 			}
 

@@ -46,15 +46,24 @@
 static const char *report_type_str(int type)
 {
 	switch (type) {
-		case RPT_DEBUG: return "Debug";
-		case RPT_INFO: return "Info";
-		case RPT_OPERATOR: return "Operator";
-		case RPT_WARNING: return "Warning";
-		case RPT_ERROR: return "Error";
-		case RPT_ERROR_INVALID_INPUT: return "Invalid Input Error";
-		case RPT_ERROR_INVALID_CONTEXT: return "Invalid Context Error";
-		case RPT_ERROR_OUT_OF_MEMORY: return "Out Of Memory Error";
-		default: return "Undefined Type";
+		case RPT_DEBUG:
+			return TIP_("Debug");
+		case RPT_INFO:
+			return TIP_("Info");
+		case RPT_OPERATOR:
+			return TIP_("Operator");
+		case RPT_WARNING:
+			return TIP_("Warning");
+		case RPT_ERROR:
+			return TIP_("Error");
+		case RPT_ERROR_INVALID_INPUT:
+			return TIP_("Invalid Input Error");
+		case RPT_ERROR_INVALID_CONTEXT:
+			return TIP_("Invalid Context Error");
+		case RPT_ERROR_OUT_OF_MEMORY:
+			return TIP_("Out Of Memory Error");
+		default:
+			return TIP_("Undefined Type");
 	}
 }
 

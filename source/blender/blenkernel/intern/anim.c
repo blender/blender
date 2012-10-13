@@ -40,6 +40,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_group_types.h"
@@ -174,10 +176,10 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 	/* avoid 0 size allocs */
 	if (avs->path_sf >= avs->path_ef) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "Motion Path frame extents invalid for %s (%d to %d).%s\n",
+		            "Motion Path frame extents invalid for %s (%d to %d)%s",
 		            (pchan) ? pchan->name : ob->id.name,
 		            avs->path_sf, avs->path_ef,
-		            (avs->path_sf == avs->path_ef) ? " Cannot have single-frame paths." : "");
+		            (avs->path_sf == avs->path_ef) ? TIP_(", cannot have single-frame paths") : "");
 		return NULL;
 	}
 

@@ -3022,7 +3022,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if (file == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
+		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s", tempname, strerror(errno));
 		return 0;
 	}
 
@@ -3073,7 +3073,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	if (write_flags & G_FILE_HISTORY) { 
 		int err_hist = do_history(filepath, reports);
 		if (err_hist) {
-			BKE_report(reports, RPT_ERROR, "Version backup failed. File saved with @");
+			BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
 			return 0;
 		}
 	}
@@ -3090,23 +3090,23 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		if (0==ret) {
 			/* now rename to real file name, and delete temp @ file too */
 			if (BLI_rename(gzname, filepath) != 0) {
-				BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
+				BKE_report(reports, RPT_ERROR, "Can't change old file (file saved with @)");
 				return 0;
 			}
 
 			BLI_delete(tempname, 0, 0);
 		}
 		else if (-1==ret) {
-			BKE_report(reports, RPT_ERROR, "Failed opening .gz file.");
+			BKE_report(reports, RPT_ERROR, "Failed opening .gz file");
 			return 0;
 		}
 		else if (-2==ret) {
-			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression.");
+			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression");
 			return 0;
 		}
 	}
 	else if (BLI_rename(tempname, filepath) != 0) {
-		BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
+		BKE_report(reports, RPT_ERROR, "Can't change old file (file saved with @)");
 		return 0;
 	}
 
