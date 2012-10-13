@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -167,7 +168,7 @@ void load_editLatt(Object *obedit)
 	}
 }
 
-/************************** Operators *************************/
+/************************** Select All Operator *************************/
 
 void ED_setflagsLatt(Object *obedit, int flag)
 {
@@ -254,6 +255,8 @@ void LATTICE_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+/************************** Make Regular Operator *************************/
+
 static int make_regular_poll(bContext *C)
 {
 	Object *ob;
@@ -298,6 +301,253 @@ void LATTICE_OT_make_regular(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/************************** Flip Verts Operator *************************/
+
+/* flipping options */
+typedef enum eLattice_FlipAxes {
+	LATTICE_FLIP_U = 0,
+	LATTICE_FLIP_V = 1,
+	LATTICE_FLIP_W = 2
+} eLattice_FlipAxes;
+
+/* Helper macro for accessing item at index (u, v, w) 
+ * < lt: (Lattice)
+ * < U: (int) u-axis coordinate of point
+ * < V: (int) v-axis coordinate of point
+ * < W: (int) w-axis coordinate of point
+ * < dimU: (int) number of points per row or number of columns (U-Axis)
+ * < dimV: (int) number of rows (V-Axis)
+ * > returns: (BPoint *) pointer to BPoint at this index
+ */
+#define LATTICE_PT(lt, U, V, W, dimU, dimV)       \
+	( (lt)->def               +                   \
+	  ((dimU) * (dimV)) * (W) +                   \
+	  (dimU) * (V)            +                   \
+	  (U)                                         \
+	)
+	
+/* Flip midpoint value so that relative distances between midpoint and neighbour-pair is maintained
+ * ! Assumes that uvw <=> xyz (i.e. axis-aligned index-axes with coordinate-axes)
+ * - Helper for lattice_flip_exec()
+ */
+static void lattice_flip_point_value(Lattice *lt, int u, int v, int w, float mid, eLattice_FlipAxes axis)
+{
+	BPoint *bp;
+	float diff;
+	
+	/* just the point in the middle (unpaired) */
+	bp = LATTICE_PT(lt, u, v, w, lt->pntsu, lt->pntsv);
+	
+	/* flip over axis */
+	diff = mid - bp->vec[axis];
+	bp->vec[axis] = mid + diff;
+}
+
+/* Swap pairs of lattice points along a specified axis
+ * - Helper for lattice_flip_exec()
+ */
+static void lattice_swap_point_pairs(Lattice *lt, int u, int v, int w, float mid, eLattice_FlipAxes axis)
+{
+	BPoint *bpA, *bpB;
+	
+	int numU = lt->pntsu;
+	int numV = lt->pntsv;
+	int numW = lt->pntsw;
+	
+	int u0 = u, u1 = u;
+	int v0 = v, v1 = v;
+	int w0 = w, w1 = w;
+	
+	/* get pair index by just overriding the relevant pair-value
+	 * - "-1" else buffer overflow
+	 */
+	switch (axis) {
+		case LATTICE_FLIP_U:
+			u1 = numU - u - 1;
+			break;
+		case LATTICE_FLIP_V:
+			v1 = numV - v - 1;
+			break;
+		case LATTICE_FLIP_W:
+			w1 = numW - w - 1;
+			break;
+	}
+	
+	/* get points to operate on */
+	bpA = LATTICE_PT(lt, u0, v0, w0, numU, numV);
+	bpB = LATTICE_PT(lt, u1, v1, w1, numU, numV);
+	
+	/* Swap all coordinates, so that flipped coordinates belong to
+	 * the indices on the correct side of the lattice.
+	 *
+	 *   Coords:  (-2 4) |0| (3 4)   --> (3 4) |0| (-2 4) 
+	 *   Indices:  (0,L)     (1,R)   --> (0,L)     (1,R)
+	 */
+	swap_v3_v3(bpA->vec, bpB->vec);
+	
+	/* However, we need to mirror the coordinate values on the axis we're dealing with,
+	 * otherwise we'd have effectively only rotated the points around. If we don't do this,
+	 * we'd just be reimplementing the naive mirroring algorithm, which causes unwanted deforms
+	 * such as flipped normals, etc.
+	 *
+	 *   Coords:  (3 4) |0| (-2 4)  --\   
+	 *                                 \-> (-3 4) |0| (2 4)
+	 *   Indices: (0,L)     (1,R)   -->     (0,L)     (1,R)
+	 */
+	lattice_flip_point_value(lt, u0, v0, w0, mid, axis);
+	lattice_flip_point_value(lt, u1, v1, w1, mid, axis);
+}
+	
+static int lattice_flip_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	Lattice *lt;
+	
+	eLattice_FlipAxes axis = RNA_enum_get(op->ptr, "axis");
+	int numU, numV, numW;
+	int totP;
+	
+	float mid = 0.0f;
+	short isOdd = 0;
+	
+	/* get lattice - we need the "edit lattice" from the lattice... confusing... */
+	lt = (Lattice *)obedit->data;
+	lt = lt->editlatt->latt;
+	
+	numU = lt->pntsu;
+	numV = lt->pntsv;
+	numW = lt->pntsw;
+	totP = numU * numV * numW;
+	
+	/* First Pass: determine midpoint - used for flipping center verts if there are odd number of points on axis */
+	switch (axis) {
+		case LATTICE_FLIP_U:
+			isOdd = numU & 1;
+			break;
+		case LATTICE_FLIP_V:
+			isOdd = numV & 1;
+			break;
+		case LATTICE_FLIP_W:
+			isOdd = numW & 1;
+			break;
+			
+		default:
+			printf("lattice_flip(): Unknown flipping axis (%d)\n", axis);
+			return OPERATOR_CANCELLED;
+	}
+	
+	if (isOdd) {
+		BPoint *bp;
+		float avgInv = 1.0f / (float)totP;
+		int i;
+		
+		/* midpoint calculation - assuming that u/v/w are axis-aligned */
+		for (i = 0, bp = lt->def; i < totP; i++, bp++) {
+			mid += bp->vec[axis] * avgInv;
+		}
+	}
+	
+	/* Second Pass: swap pairs of vertices per axis, assuming they are all sorted */
+	switch (axis) {
+		case LATTICE_FLIP_U:
+		{
+			int u, v, w;
+			
+			/* v/w strips - front to back, top to bottom */
+			for (w = 0; w < numW; w++) {
+				for (v = 0; v < numV; v++) {
+					/* swap coordinates of pairs of vertices on u */
+					for (u = 0; u < (numU / 2); u++) {
+						lattice_swap_point_pairs(lt, u, v, w, mid, axis);
+					}
+					
+					/* flip u-coordinate of midpoint (i.e. unpaired point on u) */
+					if (isOdd) {
+						u = (numU / 2);
+						lattice_flip_point_value(lt, u, v, w, mid, axis);
+					}
+				}
+			}
+		}
+		break;
+		case LATTICE_FLIP_V:
+		{
+			int u, v, w;
+			
+			/* u/w strips - front to back, left to right */
+			for (w = 0; w < numW; w++) {
+				for (u = 0; u < numU; u++) {
+					/* swap coordinates of pairs of vertices on v */
+					for (v = 0; v < (numV / 2); v++) {
+						lattice_swap_point_pairs(lt, u, v, w, mid, axis);
+					}
+					
+					/* flip v-coordinate of midpoint (i.e. unpaired point on v) */
+					if (isOdd) {
+						v = (numV / 2);
+						lattice_flip_point_value(lt, u, v, w, mid, axis);
+					}
+				}
+			}
+		}
+		break;
+		case LATTICE_FLIP_W:
+		{
+			int u, v, w;
+			
+			for (v = 0; v < numV; v++) {
+				for (u = 0; u < numU; u++) {
+					/* swap coordinates of pairs of vertices on w */
+					for (w = 0; w < (numW / 2); w++) {
+						lattice_swap_point_pairs(lt, u, v, w, mid, axis);
+					}
+					
+					/* flip w-coordinate of midpoint (i.e. unpaired point on w) */
+					if (isOdd) {
+						w = (numW / 2);
+						lattice_flip_point_value(lt, u, v, w, mid, axis);
+					}
+				}
+			}
+		}
+		break;
+		
+		default: /* shouldn't happen, but just in case */
+			break;
+	}
+	
+	/* updates */
+	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void LATTICE_OT_flip(wmOperatorType *ot)
+{
+	static EnumPropertyItem flip_items[] = {
+		{LATTICE_FLIP_U, "U", 0, "U (X) Axis", ""},
+		{LATTICE_FLIP_V, "V", 0, "V (Y) Axis", ""},
+		{LATTICE_FLIP_W, "W", 0, "W (Z) Axis", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	/* identifiers */
+	ot->name = "Flip (Distortion Free)";
+	ot->description = "Mirror all control points without inverting the lattice deform";
+	ot->idname = "LATTICE_OT_flip";
+	
+	/* api callbacks */
+	ot->poll = ED_operator_editlattice;
+	ot->invoke = WM_menu_invoke;
+	ot->exec = lattice_flip_exec;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "axis", flip_items, LATTICE_FLIP_U, "Flip Axis", "Coordinates along this axis get flipped");
 }
 
 /****************************** Mouse Selection *************************/

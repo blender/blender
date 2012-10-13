@@ -138,6 +138,7 @@ void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
 /* object_lattice.c */
 void LATTICE_OT_select_all(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
+void LATTICE_OT_flip(struct wmOperatorType *ot);
 
 /* object_group.c */
 void GROUP_OT_create(struct wmOperatorType *ot);
