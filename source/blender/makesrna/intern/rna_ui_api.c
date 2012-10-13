@@ -439,7 +439,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout");
 
 	func = RNA_def_function(srna, "template_list", "uiTemplateList");
-	RNA_def_function_ui_description(func, "Item. A list widget to display data. e.g. vertexgroups");
+	RNA_def_function_ui_description(func, "Item. A list widget to display data, e.g. vertexgroups "
+	                                      "(WARNING: only one per panel allowed!).");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
