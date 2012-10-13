@@ -745,7 +745,10 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* single edge, extend */
 		if (i == 1 && e2->l) {
-			if ((totedge_manifold == 4) || (all_manifold == FALSE)) {
+			/* note: if the case of 3 edges has one change in loop stepping,
+			 * if this becomes more involved we may be better off splitting
+			 * the 3 edge case into its own else-if branch */
+			if ((totedge_manifold == 4 || totedge_manifold == 3) || (all_manifold == FALSE)) {
 				BMLoop *l_a = e2->l;
 				BMLoop *l_b = l_a->radial_next;
 
@@ -759,7 +762,9 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 				 * not crashing but adds duplicate edge. */
 				if (BM_edge_is_manifold(l->e)) {
 					l = l->radial_next;
-					l = BM_face_other_edge_loop(l->f, l->e, v);
+
+					if (totedge_manifold != 3)
+						l = BM_face_other_edge_loop(l->f, l->e, v);
 
 					if (l) {
 						BM_elem_flag_enable(l->e, BM_ELEM_TAG);
