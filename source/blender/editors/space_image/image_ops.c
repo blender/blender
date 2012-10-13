@@ -430,11 +430,16 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == MOUSEZOOM) {
 		SpaceImage *sima = CTX_wm_space_image(C);
 		ARegion *ar = CTX_wm_region(C);
-		float factor, location[2];
+		float delta, factor, location[2];
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
 
-		factor = 1.0f + (event->x - event->prevx + event->y - event->prevy) / 300.0f;
+		delta = event->x - event->prevx + event->y - event->prevy;
+
+		if (U.uiflag & USER_ZOOM_INVERT)
+			delta *= -1;
+
+		factor = 1.0f + delta / 300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 		sima_zoom_set(sima, ar, sima->zoom * factor, location);
 		ED_region_tag_redraw(CTX_wm_region(C));
@@ -452,11 +457,16 @@ static int image_view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	ARegion *ar = CTX_wm_region(C);
 	ViewZoomData *vpd = op->customdata;
-	float factor;
+	float delta, factor;
 
 	switch (event->type) {
 		case MOUSEMOVE:
-			factor = 1.0f + (vpd->x - event->x + vpd->y - event->y) / 300.0f;
+			delta = event->x - vpd->x + event->y - vpd->y;
+
+			if (U.uiflag & USER_ZOOM_INVERT)
+				delta *= -1;
+
+			factor = 1.0f + delta / 300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
 			sima_zoom_set(sima, ar, vpd->zoom * factor, vpd->location);
 			ED_region_tag_redraw(CTX_wm_region(C));

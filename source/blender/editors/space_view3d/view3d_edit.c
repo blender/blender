@@ -1636,7 +1636,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 	if (use_cam_zoom) {
 		float delta;
 		delta = (x - vod->origx + y - vod->origy) / 10.0f;
-		vod->rv3d->camzoom = vod->camzoom0 + (zoom_invert ? delta : -delta);
+		vod->rv3d->camzoom = vod->camzoom0 + (zoom_invert ? -delta : delta);
 
 		CLAMP(vod->rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 	}
@@ -1691,11 +1691,11 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 		if (use_cam_zoom) {
 			/* zfac is ignored in this case, see below */
 #if 0
-			zfac = vod->camzoom0 * (2.0f * ((len2 / len1) - 1.0f) + 1.0f) / vod->rv3d->camzoom;
+			zfac = vod->camzoom0 * (2.0f * ((len1 / len2) - 1.0f) + 1.0f) / vod->rv3d->camzoom;
 #endif
 		}
 		else {
-			zfac = vod->dist0 * (2.0f * ((len2 / len1) - 1.0f) + 1.0f) / vod->rv3d->dist;
+			zfac = vod->dist0 * (2.0f * ((len1 / len2) - 1.0f) + 1.0f) / vod->rv3d->dist;
 		}
 	}
 
@@ -1888,12 +1888,12 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			if (U.uiflag & USER_ZOOM_HORIZ) {
 				vod->origx = vod->oldx = event->x;
-				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, FALSE);
+				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) == 0);
 			}
 			else {
 				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
-				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, FALSE);
+				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) == 0);
 			}
 			ED_view3d_depth_tag_update(vod->rv3d);
 			
@@ -1971,7 +1971,7 @@ static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_inv
 		if (zoom_invert)
 			SWAP(float, len1, len2);
 
-		zfac =  1.0f + ((len2 - len1) * 0.01f * vod->rv3d->dist);
+		zfac =  1.0f + ((len1 - len2) * 0.01f * vod->rv3d->dist);
 	}
 
 	if (zfac != 1.0f)
@@ -2107,13 +2107,13 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			if (U.uiflag & USER_ZOOM_HORIZ) {
 				vod->origx = vod->oldx = event->x;
-				viewdolly_apply(vod, event->prevx, event->prevy, FALSE);
+				viewdolly_apply(vod, event->prevx, event->prevy, (U.uiflag & USER_ZOOM_INVERT) == 0);
 			}
 			else {
 
 				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
-				viewdolly_apply(vod, event->prevx, event->prevy, FALSE);
+				viewdolly_apply(vod, event->prevx, event->prevy, (U.uiflag & USER_ZOOM_INVERT) == 0);
 			}
 			ED_view3d_depth_tag_update(vod->rv3d);
 
