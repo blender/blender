@@ -323,7 +323,9 @@ def disable(module_name, default_set=True):
             import traceback
             traceback.print_exc()
     else:
-        print("addon_utils.disable", module_name, "not loaded")
+        if mod: state = "enabled"
+        else:   state = "loaded"
+        print("addon_utils.disable: %s not %s." % (module_name, state))
 
     # could be in more then once, unlikely but better do this just in case.
     addons = _bpy.context.user_preferences.addons
