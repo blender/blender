@@ -809,7 +809,7 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied world */
 		BLI_remlink(&pr_main->world, sp->worldcopy);
-		BKE_world_free_ex(sp->worldcopy, FALSE);
+		BKE_world_free_ex(sp->worldcopy, TRUE); /* [#32865] - we need to unlink the texture copies, unlike for materials */
 		
 		properties = IDP_GetProperties((ID *)sp->worldcopy, FALSE);
 		if (properties) {
