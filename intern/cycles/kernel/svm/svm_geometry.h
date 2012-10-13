@@ -29,12 +29,18 @@ __device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack,
 		case NODE_GEOM_N: data = sd->N; break;
 #ifdef __DPDU__
 		case NODE_GEOM_T: {
-			int attr_offset = find_attribute(kg, sd, ATTR_STD_TANGENT);
+			if(sd->object != ~0) {
+				int attr_offset = find_attribute(kg, sd, ATTR_STD_TANGENT);
 
-			if(attr_offset == ATTR_STD_NOT_FOUND)
-				data = normalize(sd->dPdu);
+				if(attr_offset != ATTR_STD_NOT_FOUND) {
+					data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
+					object_normal_transform(kg, sd, &data);
+				}
+				else
+					data = normalize(sd->dPdu);
+			}
 			else
-				data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
+				data = normalize(sd->dPdu);
 
 			break;
 		}
