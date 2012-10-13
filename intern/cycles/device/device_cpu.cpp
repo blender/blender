@@ -135,8 +135,10 @@ public:
 
 	void thread_path_trace(DeviceTask& task)
 	{
-		if(task_pool.cancelled())
-			return;
+		if(task_pool.cancelled()) {
+			if(task.need_finish_queue == false)
+				return;
+		}
 
 #ifdef WITH_OSL
 		if(kernel_osl_use(kg))
@@ -154,8 +156,10 @@ public:
 #ifdef WITH_OPTIMIZED_KERNEL
 			if(system_cpu_support_optimized()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.cancelled())
-						break;
+					if (task.get_cancel() || task_pool.cancelled()) {
+						if(task.need_finish_queue == false)
+							break;
+					}
 
 					for(int y = tile.y; y < tile.y + tile.h; y++) {
 						for(int x = tile.x; x < tile.x + tile.w; x++) {
@@ -173,8 +177,10 @@ public:
 #endif
 			{
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.cancelled())
-						break;
+					if (task.get_cancel() || task_pool.cancelled()) {
+						if(task.need_finish_queue == false)
+							break;
+					}
 
 					for(int y = tile.y; y < tile.y + tile.h; y++) {
 						for(int x = tile.x; x < tile.x + tile.w; x++) {
@@ -191,8 +197,10 @@ public:
 
 			task.release_tile(tile);
 
-			if(task_pool.cancelled())
-				break;
+			if(task_pool.cancelled()) {
+				if(task.need_finish_queue == false)
+					break;
+			}
 		}
 
 #ifdef WITH_OSL

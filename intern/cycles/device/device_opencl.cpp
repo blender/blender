@@ -686,8 +686,10 @@ public:
 				int end_sample = tile.start_sample + tile.num_samples;
 
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task->get_cancel())
-						break;
+					if (task->get_cancel()) {
+						if(task->need_finish_queue == false)
+							break;
+					}
 
 					path_trace(tile, sample);
 

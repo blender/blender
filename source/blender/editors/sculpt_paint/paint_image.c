@@ -4249,7 +4249,7 @@ static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, 
 		IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect, ibuf->x, 0, 0,
 		                                  &scene->view_settings, &scene->display_settings,
 		                                  imapaintpartial.x1, imapaintpartial.y1,
-		                                  imapaintpartial.x2, imapaintpartial.y2);
+		                                  imapaintpartial.x2, imapaintpartial.y2, FALSE);
 	}
 	else {
 		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;

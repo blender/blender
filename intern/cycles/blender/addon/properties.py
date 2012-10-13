@@ -284,6 +284,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Cache last built BVH to disk for faster re-render if no geometry changed",
                 default=False,
                 )
+        cls.use_progressive_refine = BoolProperty(
+                name="Progressive Refine",
+                description="Instead of rendering each tile until it is finished, refine the whole image progressively so rendering can be stopped manually when the noise is low enough",
+                default=False,
+                )
 
     @classmethod
     def unregister(cls):

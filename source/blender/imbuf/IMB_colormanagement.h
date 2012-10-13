@@ -130,7 +130,8 @@ void IMB_colormanagement_colorspace_items_add(struct EnumPropertyItem **items, i
 void IMB_partial_display_buffer_update(struct ImBuf *ibuf, const float *linear_buffer, const unsigned char *buffer_byte,
                                        int stride, int offset_x, int offset_y, const struct ColorManagedViewSettings *view_settings,
                                        const struct ColorManagedDisplaySettings *display_settings,
-                                       int xmin, int ymin, int xmax, int ymax);
+                                       int xmin, int ymin, int xmax, int ymax,
+                                       int update_orig_byte_buffer);
 
 /* ** Pixel processor functions ** */
 struct ColormanageProcessor *IMB_colormanagement_display_processor_new(const struct ColorManagedViewSettings *view_settings,

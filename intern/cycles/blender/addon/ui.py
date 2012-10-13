@@ -198,6 +198,8 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(rd, "parts_x", text="X")
         sub.prop(rd, "parts_y", text="Y")
 
+        sub.prop(cscene, "use_progressive_refine")
+
         subsub = sub.column()
         subsub.enabled = not rd.use_border
         subsub.prop(rd, "use_save_buffers")

@@ -25,6 +25,7 @@
 
 #include "util_progress.h"
 #include "util_thread.h"
+#include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -42,6 +43,7 @@ class SessionParams {
 public:
 	DeviceInfo device;
 	bool background;
+	bool progressive_refine;
 	string output_path;
 
 	bool progressive;
@@ -58,6 +60,7 @@ public:
 	SessionParams()
 	{
 		background = false;
+		progressive_refine = false;
 		output_path = "";
 
 		progressive = false;
@@ -76,6 +79,7 @@ public:
 	{ return !(device.type == params.device.type
 		&& device.id == params.device.id
 		&& background == params.background
+		&& progressive_refine == params.progressive_refine
 		&& output_path == params.output_path
 		/* && samples == params.samples */
 		&& progressive == params.progressive
@@ -173,6 +177,11 @@ protected:
 	double reset_time;
 	double preview_time;
 	double paused_time;
+
+	/* progressive refine */
+	bool update_progressive_refine(bool cancel);
+
+	vector<RenderBuffers *> tile_buffers;
 };
 
 CCL_NAMESPACE_END

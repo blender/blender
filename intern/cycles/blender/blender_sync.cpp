@@ -380,8 +380,14 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	params.reset_timeout = get_float(cscene, "debug_reset_timeout");
 	params.text_timeout = get_float(cscene, "debug_text_timeout");
 
+	params.progressive_refine = get_boolean(cscene, "use_progressive_refine");
+
 	if(background) {
-		params.progressive = false;
+		if(params.progressive_refine)
+			params.progressive = true;
+		else
+			params.progressive = false;
+
 		params.start_resolution = INT_MAX;
 	}
 	else

@@ -96,6 +96,9 @@ Session::~Session()
 		display->write(device, params.output_path);
 	}
 
+	foreach(RenderBuffers *buffers, tile_buffers)
+		delete buffers;
+
 	delete buffers;
 	delete display;
 	delete scene;
@@ -173,6 +176,8 @@ bool Session::draw_gpu(BufferParams& buffer_params)
 
 void Session::run_gpu()
 {
+	bool tiles_written = false;
+
 	start_time = time_dt();
 	reset_time = time_dt();
 	paused_time = 0.0;
@@ -267,10 +272,15 @@ void Session::run_gpu()
 			if(device->error_message() != "")
 				progress.set_cancel(device->error_message());
 
+			tiles_written = update_progressive_refine(progress.get_cancel());
+
 			if(progress.get_cancel())
 				break;
 		}
 	}
+
+	if(!tiles_written)
+		update_progressive_refine(true);
 }
 
 /* CPU Session */
@@ -313,8 +323,12 @@ bool Session::draw_cpu(BufferParams& buffer_params)
 
 bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 {
-	if(progress.get_cancel())
-		return false;
+	if(progress.get_cancel()) {
+		if(params.progressive_refine == false) {
+			/* for progressive refine current sample should be finished for all tiles */
+			return false;
+		}
+	}
 
 	thread_scoped_lock tile_lock(tile_mutex);
 
@@ -338,7 +352,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	/* in case of a permant buffer, return it, otherwise we will allocate
 	 * a new temporary buffer */
-	if(!write_render_tile_cb) {
+	if(!params.background) {
 		tile_manager.state.buffer.get_offset_stride(rtile.offset, rtile.stride);
 
 		rtile.buffer = buffers->buffer.device_pointer;
@@ -360,9 +374,35 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	buffer_params.get_offset_stride(rtile.offset, rtile.stride);
 
-	/* allocate buffers */
 	RenderBuffers *tilebuffers = new RenderBuffers(tile_device);
-	tilebuffers->reset(tile_device, buffer_params);
+
+	/* allocate buffers */
+	if(params.progressive_refine) {
+		int tile_x = rtile.x / params.tile_size.x;
+		int tile_y = rtile.y / params.tile_size.y;
+
+		int tile_index = tile_y * tile_manager.state.tile_w + tile_x;
+
+		tile_lock.lock();
+
+		if(tile_buffers.size() == 0)
+			tile_buffers.resize(tile_manager.state.num_tiles, NULL);
+
+		tilebuffers = tile_buffers[tile_index];
+		if(tilebuffers == NULL) {
+			tilebuffers = new RenderBuffers(tile_device);
+			tile_buffers[tile_index] = tilebuffers;
+
+			tilebuffers->reset(tile_device, buffer_params);
+		}
+
+		tile_lock.unlock();
+	}
+	else {
+		tilebuffers = new RenderBuffers(tile_device);
+
+		tilebuffers->reset(tile_device, buffer_params);
+	}
 
 	rtile.buffer = tilebuffers->buffer.device_pointer;
 	rtile.rng_state = tilebuffers->rng_state.device_pointer;
@@ -377,9 +417,11 @@ void Session::update_tile_sample(RenderTile& rtile)
 	thread_scoped_lock tile_lock(tile_mutex);
 
 	if(update_render_tile_cb) {
-		/* todo: optimize this by making it thread safe and removing lock */
+		if(params.progressive_refine == false) {
+			/* todo: optimize this by making it thread safe and removing lock */
 
-		update_render_tile_cb(rtile);
+			update_render_tile_cb(rtile);
+		}
 	}
 
 	update_status_time();
@@ -390,10 +432,12 @@ void Session::release_tile(RenderTile& rtile)
 	thread_scoped_lock tile_lock(tile_mutex);
 
 	if(write_render_tile_cb) {
-		/* todo: optimize this by making it thread safe and removing lock */
-		write_render_tile_cb(rtile);
+		if(params.progressive_refine == false) {
+			/* todo: optimize this by making it thread safe and removing lock */
+			write_render_tile_cb(rtile);
 
-		delete rtile.buffers;
+			delete rtile.buffers;
+		}
 	}
 
 	update_status_time();
@@ -401,6 +445,8 @@ void Session::release_tile(RenderTile& rtile)
 
 void Session::run_cpu()
 {
+	bool tiles_written = false;
+
 	{
 		/* reset once to start */
 		thread_scoped_lock reset_lock(delayed_reset.mutex);
@@ -502,10 +548,15 @@ void Session::run_cpu()
 
 			if(device->error_message() != "")
 				progress.set_cancel(device->error_message());
+
+			tiles_written = update_progressive_refine(progress.get_cancel());
 		}
 
 		progress.set_update();
 	}
+
+	if(!tiles_written)
+		update_progressive_refine(true);
 }
 
 void Session::run()
@@ -722,6 +773,7 @@ void Session::path_trace()
 	task.get_cancel = function_bind(&Progress::get_cancel, &this->progress);
 	task.update_tile_sample = function_bind(&Session::update_tile_sample, this, _1);
 	task.update_progress_sample = function_bind(&Session::update_progress_sample, this);
+	task.need_finish_queue = params.progressive_refine;
 
 	device->task_add(task);
 }
@@ -752,5 +804,24 @@ void Session::tonemap()
 	display_outdated = false;
 }
 
-CCL_NAMESPACE_END
+bool Session::update_progressive_refine(bool cancel)
+{
+	int sample = tile_manager.state.sample + 1;
 
+	if(params.progressive_refine) {
+		foreach(RenderBuffers *buffers, tile_buffers) {
+			RenderTile rtile;
+			rtile.buffers = buffers;
+			rtile.sample = sample;
+
+			if(rtile.sample == params.samples || cancel)
+				write_render_tile_cb(rtile);
+			else
+				update_render_tile_cb(rtile);
+		}
+	}
+
+	return sample == params.samples;
+}
+
+CCL_NAMESPACE_END
