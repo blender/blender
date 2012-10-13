@@ -98,7 +98,9 @@ PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("IFACE_", "TIP_", "N_")) +
     tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_"))
+          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_")) + 
+    tuple(("{}\\([^\"',]+,(?:[^\"',]+,)?\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf"))
 )
 
 ESCAPE_RE = (

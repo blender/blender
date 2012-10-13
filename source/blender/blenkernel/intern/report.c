@@ -34,6 +34,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_report.h"
 #include "BKE_global.h" /* G.background only */
 
@@ -87,10 +89,11 @@ void BKE_reports_clear(ReportList *reports)
 	reports->list.first = reports->list.last = NULL;
 }
 
-void BKE_report(ReportList *reports, ReportType type, const char *message)
+void BKE_report(ReportList *reports, ReportType type, const char *_message)
 {
 	Report *report;
 	int len;
+	const char *message = TIP_(_message);
 
 	/* in background mode always print otherwise there are cases the errors wont be displayed,
 	 * but still add to the report list since this is used for python exception handling */
@@ -114,14 +117,15 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 	}
 }
 
-void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
+void BKE_reportf(ReportList *reports, ReportType type, const char *_format, ...)
 {
 	DynStr *ds;
 	Report *report;
 	va_list args;
+	const char *format = TIP_(_format);
 
 	if (G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
-		va_start(args, format);
+		va_start(args, _format);
 		vprintf(format, args);
 		va_end(args);
 		fprintf(stdout, "\n"); /* otherise each report needs to include a \n */
@@ -132,7 +136,7 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 		report = MEM_callocN(sizeof(Report), "Report");
 
 		ds = BLI_dynstr_new();
-		va_start(args, format);
+		va_start(args, _format);
 		BLI_dynstr_vappendf(ds, format, args);
 		va_end(args);
 
@@ -147,10 +151,11 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 	}
 }
 
-void BKE_reports_prepend(ReportList *reports, const char *prepend)
+void BKE_reports_prepend(ReportList *reports, const char *_prepend)
 {
 	Report *report;
 	DynStr *ds;
+	const char *prepend = TIP_(_prepend);
 
 	if (!reports)
 		return;
@@ -169,18 +174,19 @@ void BKE_reports_prepend(ReportList *reports, const char *prepend)
 	}
 }
 
-void BKE_reports_prependf(ReportList *reports, const char *prepend, ...)
+void BKE_reports_prependf(ReportList *reports, const char *_prepend, ...)
 {
 	Report *report;
 	DynStr *ds;
 	va_list args;
+	const char *prepend = TIP_(_prepend);
 
 	if (!reports)
 		return;
 
 	for (report = reports->list.first; report; report = report->next) {
 		ds = BLI_dynstr_new();
-		va_start(args, prepend);
+		va_start(args, _prepend);
 		BLI_dynstr_vappendf(ds, prepend, args);
 		va_end(args);
 
