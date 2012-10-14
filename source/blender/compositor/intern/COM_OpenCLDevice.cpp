@@ -74,7 +74,7 @@ cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel,
 {
 	cl_int error;
 	
-	MemoryBuffer *result = (MemoryBuffer *)reader->getInputMemoryBuffer(inputMemoryBuffers);
+	MemoryBuffer *result = reader->getInputMemoryBuffer(inputMemoryBuffers);
 
 	const cl_image_format imageFormat = {
 		CL_RGBA,

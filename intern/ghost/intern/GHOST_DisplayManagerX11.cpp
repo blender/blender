@@ -89,7 +89,7 @@ getNumDisplaySettings(
 #else
 	/* We only have one X11 setting at the moment. */
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");	
-	numSettings = GHOST_TInt32(1);
+	numSettings = 1;
 #endif
 
 	return GHOST_kSuccess;
@@ -160,7 +160,7 @@ getCurrentDisplaySetting(
 	/* According to the xf86vidmodegetallmodelines man page,
 	 * "The first element of the array corresponds to the current video mode."
 	 */
-	return getDisplaySetting(display, GHOST_TInt32(0), setting);
+	return getDisplaySetting(display, 0, setting);
 }
 
 

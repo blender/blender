@@ -2829,7 +2829,7 @@ static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 		select = !RNA_boolean_get(op->ptr, "deselect");
 		change = do_lasso_select_mesh_uv(C, mcords, mcords_tot, select);
 
-		MEM_freeN(mcords);
+		MEM_freeN((void *)mcords);
 
 		return change ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 	}

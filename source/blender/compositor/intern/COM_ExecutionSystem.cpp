@@ -50,7 +50,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
 	this->m_context.setbNodeTree(editingtree);
 	this->m_context.setFastCalculation(fastcalculation);
 	bNode *gnode;
-	for (gnode = (bNode *)editingtree->nodes.first; gnode; gnode = (bNode *)gnode->next) {
+	for (gnode = (bNode *)editingtree->nodes.first; gnode; gnode = gnode->next) {
 		if (gnode->type == NODE_GROUP && gnode->typeinfo->group_edit_get(gnode)) {
 			this->m_context.setActivegNode(gnode);
 			break;

@@ -943,7 +943,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 		select = !RNA_boolean_get(op->ptr, "deselect");
 		view3d_lasso_select(C, &vc, mcords, mcords_tot, extend, select);
 		
-		MEM_freeN(mcords);
+		MEM_freeN((void *)mcords);
 
 		return OPERATOR_FINISHED;
 	}

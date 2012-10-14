@@ -593,7 +593,7 @@ static int node_lasso_select_exec(bContext *C, wmOperator *op)
 		select = !RNA_boolean_get(op->ptr, "deselect");
 		do_lasso_select_node(C, mcords, mcords_tot, select);
 
-		MEM_freeN(mcords);
+		MEM_freeN((void *)mcords);
 
 		return OPERATOR_FINISHED;
 	}
