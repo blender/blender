@@ -249,7 +249,7 @@ if(WITH_AUDASPACE)
 endif()
 
 if(WITH_BULLET)
-	list(APPEND INC
+	list(APPEND INC_SYS
 		../../../extern/bullet2/src
 	)
 	add_definitions(-DUSE_BULLET)

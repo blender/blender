@@ -113,7 +113,7 @@ bool BL_ModifierDeformer::HasCompatibleDeformer(Object *ob)
 	if ((ob->gameflag & OB_SOFT_BODY) != 0)
 		return false;
 	ModifierData* md;
-	for (md = (ModifierData*)ob->modifiers.first; md; md = (ModifierData*)md->next) {
+	for (md = (ModifierData *)ob->modifiers.first; md; md = md->next) {
 		if (modifier_dependsOnTime(md))
 			continue;
 		if (!(md->mode & eModifierMode_Realtime))

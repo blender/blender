@@ -248,8 +248,10 @@ endif()
 
 if(WITH_BULLET)
 	list(APPEND INC
-		../../../extern/bullet2/src
 		../Physics/Bullet
+	)
+	list(APPEND INC
+		../../../extern/bullet2/src
 	)
 	add_definitions(-DUSE_BULLET)
 endif()

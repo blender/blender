@@ -26,10 +26,10 @@
 set(INC
 	intern
 	../memutil
-	../../extern/bullet2/src
 )
 
 set(INC_SYS
+	../../extern/bullet2/src
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}
 )

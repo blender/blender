@@ -24,11 +24,11 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../../extern/Eigen3
+
 )
 
 set(INC_SYS
-	
+	../../extern/Eigen3
 )
 
 set(SRC

@@ -72,7 +72,7 @@ static short get_deformflags(struct Object *bmeshobj)
 	short flags = ARM_DEF_VGROUP;
 
 	ModifierData *md;
-	for (md = (ModifierData*)bmeshobj->modifiers.first; md; md = (ModifierData*)md->next)
+	for (md = (ModifierData *)bmeshobj->modifiers.first; md; md = md->next)
 	{
 		if (md->type == eModifierType_Armature)
 		{
@@ -249,7 +249,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 		int i;
 		for (i=0, dg=(bDeformGroup*)m_objMesh->defbase.first;
 			dg;
-			++i, dg=(bDeformGroup*)dg->next)
+			++i, dg = dg->next)
 		{
 			m_dfnrToPC[i] = BKE_pose_channel_find_name(par_arma->pose, dg->name);
 

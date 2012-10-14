@@ -455,12 +455,12 @@ PyObject *BL_ArmatureBone::py_bone_get_children(void *self, const struct KX_PYAT
 	Bone* bone = reinterpret_cast<Bone*>(self);
 	Bone* child;
 	int count = 0;
-	for (child=(Bone*)bone->childbase.first; child; child=(Bone*)child->next)
+	for (child = (Bone *)bone->childbase.first; child; child = child->next)
 		count++;
 
 	PyObject *childrenlist = PyList_New(count);
 
-	for (count = 0, child=(Bone*)bone->childbase.first; child; child=(Bone*)child->next, ++count)
+	for (count = 0, child = (Bone *)bone->childbase.first; child; child = child->next, ++count)
 		PyList_SET_ITEM(childrenlist,count,NewProxyPlus_Ext(NULL,&Type,child,false));
 
 	return childrenlist;

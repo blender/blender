@@ -192,8 +192,8 @@ private:
 	struct wmWindow* m_win;
 	RAS_Rect	m_frame_rect;
 	RAS_Rect 	m_area_rect;
-	short		m_area_left;
-	short		m_area_top;
+	int			m_area_left;
+	int			m_area_top;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
