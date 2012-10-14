@@ -74,12 +74,12 @@ BLI_INLINE void BLI_endian_switch_int64(int64_t *val)
 {
 	int64_t tval = *val;
 	*val = ((tval >> 56)) |
-	       ((tval << 40) & 0x00ff000000000000l) |
-	       ((tval << 24) & 0x0000ff0000000000l) |
-	       ((tval <<  8) & 0x000000ff00000000l) |
-	       ((tval >>  8) & 0x00000000ff000000l) |
-	       ((tval >> 24) & 0x0000000000ff0000l) |
-	       ((tval >> 40) & 0x000000000000ff00l) |
+	       ((tval << 40) & 0x00ff000000000000ll) |
+	       ((tval << 24) & 0x0000ff0000000000ll) |
+	       ((tval <<  8) & 0x000000ff00000000ll) |
+	       ((tval >>  8) & 0x00000000ff000000ll) |
+	       ((tval >> 24) & 0x0000000000ff0000ll) |
+	       ((tval >> 40) & 0x000000000000ff00ll) |
 	       ((tval << 56));
 }
 BLI_INLINE void BLI_endian_switch_uint64(uint64_t *val)
