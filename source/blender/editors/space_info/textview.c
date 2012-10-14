@@ -128,7 +128,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		return 1;
 	}
 
-	if (str_len > cdc->console_width) { /* wrap? */
+	if (tot_lines > 1) { /* wrap? */
 		const int initial_offset = ((tot_lines - 1) * cdc->console_width);
 		const char *line_stride = str + initial_offset;  /* advance to the last line and draw it first */
 		
