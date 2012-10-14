@@ -109,6 +109,7 @@ static const char *locales[] = {
 	"hungarian", "hu_HU",
 	"portuguese-brazilian", "pt_BR",
 	"hebrew", "he_IL",
+	"estonian", "et_EE",
 };
 
 void BLF_lang_init(void)
