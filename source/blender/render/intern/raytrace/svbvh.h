@@ -230,7 +230,7 @@ struct Reorganize_SVBVH {
 		return node;
 	}
 	
-	void copy_bb(float *bb, const float *old_bb)
+	void copy_bb(float bb[6], const float old_bb[6])
 	{
 		std::copy(old_bb, old_bb + 6, bb);
 	}
@@ -281,7 +281,7 @@ struct Reorganize_SVBVH {
 		
 		useless_bb += alloc_childs - nchilds;
 		while (alloc_childs > nchilds) {
-			const static float def_bb[6] = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MIN, FLT_MIN, FLT_MIN };
+			const static float def_bb[6] = {FLT_MAX,  FLT_MAX,  FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX};
 			alloc_childs--;
 			node->child[alloc_childs] = NULL;
 			copy_bb(node->child_bb + alloc_childs * 6, def_bb);
