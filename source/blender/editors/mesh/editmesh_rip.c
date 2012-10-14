@@ -63,9 +63,9 @@
  * point and would result in teh same distance.
  */
 #define INSET_DEFAULT 0.00001f
-static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
-                                   const float co1[3], const float co2[3], const float mvalf[2],
-                                   const float inset)
+static float edbm_rip_edgedist(ARegion *ar, float mat[][4],
+                               const float co1[3], const float co2[3], const float mvalf[2],
+                               const float inset)
 {
 	float vec1[2], vec2[2];
 
@@ -83,8 +83,8 @@ static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
 }
 
 #if 0
-static float edbm_rip_rip_linedist(ARegion *ar, float mat[][4],
-                                   const float co1[3], const float co2[3], const float mvalf[2])
+static float edbm_rip_linedist(ARegion *ar, float mat[][4],
+                               const float co1[3], const float co2[3], const float mvalf[2])
 {
 	float vec1[2], vec2[2];
 
@@ -382,6 +382,140 @@ static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
 }
 /* --- end 'ripsel' selection handling code --- */
 
+
+/* --- face-fill code --- */
+/**
+ * return an un-ordered array of loop pairs
+ * use for rebuilding face-fill
+ */
+
+typedef struct UnorderedLoopPair {
+	BMLoop *l_pair[2];
+	char    flag;
+} UnorderedLoopPair;
+enum {
+	ULP_FLIP_0 = (1 << 0),
+	ULP_FLIP_1 = (1 << 1)
+};
+
+static UnorderedLoopPair *edbm_tagged_loop_pairs_to_fill(BMesh *bm)
+{
+	BMIter iter;
+	BMEdge *e;
+
+	unsigned int total_tag = 0;
+	/* count tags, could be pre-calculated */
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+			total_tag++;
+		}
+	}
+
+	if (total_tag) {
+		UnorderedLoopPair *uloop_pairs = MEM_mallocN(total_tag * sizeof(UnorderedLoopPair), __func__);
+		UnorderedLoopPair *ulp = uloop_pairs;
+
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+				BMLoop *l1, *l2;
+				if (BM_edge_loop_pair(e, &l1, &l2)) {
+					BMVert *v_cmp = l1->e->v1;
+					ulp->flag = (((l1->v != v_cmp) ? ULP_FLIP_0 : 0) |
+					             ((l2->v == v_cmp) ? ULP_FLIP_1 : 0));
+				}
+				else {
+					ulp->flag = 0;
+				}
+				ulp->l_pair[0] = l1;
+				ulp->l_pair[1] = l2;
+
+				ulp++;
+			}
+		}
+
+		return uloop_pairs;
+	}
+	else {
+		return NULL;
+	}
+}
+
+static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *uloop_pairs)
+{
+	UnorderedLoopPair *ulp;
+	unsigned int total_tag = MEM_allocN_len(uloop_pairs) / sizeof(UnorderedLoopPair);
+	unsigned int i;
+
+	for (i = 0, ulp = uloop_pairs; i < total_tag; i++, ulp++) {
+		if ((ulp->l_pair[0]    && ulp->l_pair[1]) &&
+		    (ulp->l_pair[0]->e != ulp->l_pair[1]->e))
+		{
+			 /* time has come to make a face! */
+			BMVert *v_shared = BM_edge_share_vert(ulp->l_pair[0]->e, ulp->l_pair[1]->e);
+			BMFace *f, *f_example = ulp->l_pair[0]->f;
+			BMLoop *l_iter;
+			BMVert *f_verts[4];
+
+			if (v_shared == NULL) {
+				/* quad */
+				f_verts[0] = ulp->l_pair[0]->e->v1;
+				f_verts[1] = ulp->l_pair[1]->e->v1;
+				f_verts[2] = ulp->l_pair[1]->e->v2;
+				f_verts[3] = ulp->l_pair[0]->e->v2;
+
+				if (ulp->flag & ULP_FLIP_0) {
+					SWAP(BMVert *, f_verts[0], f_verts[3]);
+				}
+				if (ulp->flag & ULP_FLIP_1) {
+					SWAP(BMVert *, f_verts[1], f_verts[2]);
+				}
+			}
+			else {
+				/* tri */
+				f_verts[0] = v_shared;
+				f_verts[1] = BM_edge_other_vert(ulp->l_pair[0]->e, v_shared);
+				f_verts[2] = BM_edge_other_vert(ulp->l_pair[1]->e, v_shared);
+				f_verts[3] = NULL;
+
+				/* don't use the flip flags */
+				if (v_shared == ulp->l_pair[0]->v) {
+					SWAP(BMVert *, f_verts[0], f_verts[1]);
+				}
+			}
+
+			/* face should never exist */
+			BLI_assert(BM_face_exists(bm, f_verts, f_verts[3] ? 4 : 3, &f) == FALSE);
+
+			f = BM_face_create_quad_tri_v(bm, f_verts, f_verts[3] ? 4 : 3, f_example, FALSE);
+
+			l_iter = BM_FACE_FIRST_LOOP(f);
+
+			if (f_verts[3]) {
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]),       l_iter); l_iter = l_iter->next;
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, ulp->l_pair[1]->next), l_iter); l_iter = l_iter->next;
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, ulp->l_pair[1]),       l_iter); l_iter = l_iter->next;
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]->next), l_iter);
+			}
+			else {
+				if (v_shared == f_verts[0]) {
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]->next), l_iter); l_iter = l_iter->next;
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]),       l_iter); l_iter = l_iter->next;
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, ulp->l_pair[1]->next), l_iter); l_iter = l_iter->next;
+				}
+				else {
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, ulp->l_pair[1]),       l_iter); l_iter = l_iter->next;
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]),       l_iter); l_iter = l_iter->next;
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]->next), l_iter); l_iter = l_iter->next;
+				}
+			}
+
+		}
+	}
+}
+
+/* --- end 'face-fill' code --- */
+
+
 static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
 {
 	BMOperator bmop;
@@ -404,6 +538,8 @@ static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
  */
 static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 {
+	const int do_fill = RNA_boolean_get(op->ptr, "use_fill");
+	UnorderedLoopPair *fill_uloop_pairs = NULL;
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -455,7 +591,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			totboundary_edge += (is_boundary != 0 || BM_edge_is_wire(e));
 			if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 				if (is_boundary == FALSE && BM_edge_is_manifold(e)) {
-					d = edbm_rip_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
+					d = edbm_rip_edgedist(ar, projectMat, e->v1->co, e->v2->co, fmval, INSET_DEFAULT);
 					if (d < dist) {
 						dist = d;
 						e2 = e;
@@ -483,7 +619,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 				float l_mid_co[3];
 				l = l_all[i1];
 				edbm_calc_loop_co(l, l_mid_co);
-				d = edbm_rip_rip_edgedist(ar, projectMat, l->v->co, l_mid_co, fmval, INSET_DEFAULT);
+				d = edbm_rip_edgedist(ar, projectMat, l->v->co, l_mid_co, fmval, INSET_DEFAULT);
 
 				if (d < dist) {
 					dist = d;
@@ -549,7 +685,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 							float l_mid_co[3];
 							edbm_calc_loop_co(l, l_mid_co);
 
-							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval, INSET_DEFAULT);
+							d = edbm_rip_edgedist(ar, projectMat, v->co, l_mid_co, fmval, INSET_DEFAULT);
 
 							if (d < dist) {
 								dist = d;
@@ -565,7 +701,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 							float e_mid_co[3];
 							mid_v3_v3v3(e_mid_co, e->v1->co, e->v2->co);
 
-							d = edbm_rip_rip_edgedist(ar, projectMat, v->co, e_mid_co, fmval, INSET_DEFAULT);
+							d = edbm_rip_edgedist(ar, projectMat, v->co, e_mid_co, fmval, INSET_DEFAULT);
 
 							if (d < dist) {
 								dist = d;
@@ -612,32 +748,58 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
+	/* *** Execute the split! *** */
+	/* unlike edge split, for single vertex split we only use the operator in one of the cases
+	 * but both allocate fill */
+
 	/* rip two adjacent edges */
 	if (BM_edge_is_boundary(e2) || BM_vert_face_count(v) == 2) {
+		/* Don't run the edge split operator in this case */
+
+		BM_elem_flag_enable(e2, BM_ELEM_TAG);  /* only for face-fill (we don't call the operator) */
+
+		/* keep directly before edgesplit */
+		if (do_fill) {
+			fill_uloop_pairs = edbm_tagged_loop_pairs_to_fill(bm);
+		}
+
 		l = e2->l;
 		ripvert = BM_face_vert_separate(bm, l->f, v);
 
 		BLI_assert(ripvert);
 		if (!ripvert) {
+			if (fill_uloop_pairs) MEM_freeN(fill_uloop_pairs);
 			return OPERATOR_CANCELLED;
 		}
 	}
-	else if (BM_edge_is_manifold(e2)) {
-		l = e2->l;
-		e = BM_face_other_edge_loop(l->f, e2, v)->e;
-		BM_elem_flag_enable(e, BM_ELEM_TAG);
+	else {
+		if (BM_edge_is_manifold(e2)) {
+			l = e2->l;
+			e = BM_face_other_edge_loop(l->f, e2, v)->e;
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
 
-		l = e2->l->radial_next;
-		e = BM_face_other_edge_loop(l->f, e2, v)->e;
-		BM_elem_flag_enable(e, BM_ELEM_TAG);
+			l = e2->l->radial_next;
+			e = BM_face_other_edge_loop(l->f, e2, v)->e;
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
+		}
+		else {
+			/* looks like there are no split edges, we could just return/report-error? - Campbell */
+		}
+
+		/* keep directly before edgesplit */
+		if (do_fill) {
+			fill_uloop_pairs = edbm_tagged_loop_pairs_to_fill(bm);
+		}
+
+		if (!edbm_rip_call_edgesplit(em, op)) {
+			if (fill_uloop_pairs) MEM_freeN(fill_uloop_pairs);
+			return OPERATOR_CANCELLED;
+		}
 	}
 
 	dist = FLT_MAX;
 
-	if (!edbm_rip_call_edgesplit(em, op)) {
-		return OPERATOR_CANCELLED;
-	}
-	else {
+	{
 		/* --- select which vert --- */
 		BMVert *v_best = NULL;
 		float l_prev_co[3], l_next_co[3], l_corner_co[3];
@@ -662,7 +824,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 					add_v3_v3v3(l_corner_co, l_prev_co, l_next_co);
 					add_v3_v3(l_corner_co, l->v->co);
 
-					d = edbm_rip_rip_edgedist(ar, projectMat, l->v->co, l_corner_co, fmval, INSET_DEFAULT);
+					d = edbm_rip_edgedist(ar, projectMat, l->v->co, l_corner_co, fmval, INSET_DEFAULT);
 					if (d < dist) {
 						v_best = v;
 						dist = d;
@@ -679,6 +841,12 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
+	if (do_fill && fill_uloop_pairs) {
+		edbm_tagged_loop_pairs_do_fill_faces(bm, fill_uloop_pairs);
+		MEM_freeN(fill_uloop_pairs);
+	}
+
+
 	if (totvert_orig == bm->totvert) {
 		BKE_report(op->reports, RPT_ERROR, "No vertices could be ripped");
 		return OPERATOR_CANCELLED;
@@ -692,6 +860,8 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
  */
 static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 {
+	const int do_fill = RNA_boolean_get(op->ptr, "use_fill");
+	UnorderedLoopPair *fill_uloop_pairs = NULL;
 	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -765,6 +935,7 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 						l = BM_face_other_edge_loop(l->f, l->e, v);
 
 					if (l) {
+						BLI_assert(!BM_elem_flag_test(l->e, BM_ELEM_TAG));
 						BM_elem_flag_enable(l->e, BM_ELEM_TAG);
 					}
 				}
@@ -773,13 +944,20 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 				e = BM_vert_other_disk_edge(v, e2);
 
 				if (e) {
+					BLI_assert(!BM_elem_flag_test(e, BM_ELEM_TAG));
 					BM_elem_flag_enable(e, BM_ELEM_TAG);
 				}
 			}
 		}
 	}
 
+	/* keep directly before edgesplit */
+	if (do_fill) {
+		fill_uloop_pairs = edbm_tagged_loop_pairs_to_fill(bm);
+	}
+
 	if (!edbm_rip_call_edgesplit(em, op)) {
+		if (fill_uloop_pairs) MEM_freeN(fill_uloop_pairs);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -791,6 +969,11 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, wmEvent *event)
 	edbm_ripsel_deselect_helper(bm, eloop_pairs,
 	                            ar, projectMat, fmval);
 	MEM_freeN(eloop_pairs);
+
+	if (do_fill && fill_uloop_pairs) {
+		edbm_tagged_loop_pairs_do_fill_faces(bm, fill_uloop_pairs);
+		MEM_freeN(fill_uloop_pairs);
+	}
 
 	if (totedge_orig == bm->totedge) {
 		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
@@ -878,5 +1061,6 @@ void MESH_OT_rip(wmOperatorType *ot)
 
 	/* to give to transform */
 	Transform_Properties(ot, P_PROPORTIONAL);
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+	RNA_def_boolean(ot->srna, "mirror", FALSE, "Mirror Editing", "");
+	RNA_def_boolean(ot->srna, "use_fill", FALSE, "Fill", "Fille the ripped region");
 }

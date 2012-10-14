@@ -324,6 +324,44 @@ BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v)
 }
 
 /**
+ * Given a edge and a loop (assumes the edge is manifold). returns
+ * the other faces loop, sharing the same vertex.
+ *
+ * <pre>
+ * +-------------------+
+ * |                   |
+ * |                   |
+ * |l_other <-- return |
+ * +-------------------+ <-- A manifold edge between 2 faces
+ * |l    e  <-- edge   |
+ * |^ <-------- loop   |
+ * |                   |
+ * +-------------------+
+ * </pre>
+ */
+BMLoop *BM_edge_other_loop(BMEdge *e, BMLoop *l)
+{
+	BMLoop *l_other;
+
+	BLI_assert(BM_edge_is_manifold(e));
+	BLI_assert(BM_vert_in_edge(e, l->v));
+
+	l_other = (e->l == l) ? l->radial_next : l;
+
+	if (l_other->v == l->v) {
+		/* pass */
+	}
+	else if (l_other->next->v == l->v) {
+		l_other = l_other->next;
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	return l_other;
+}
+
+/**
  * The function takes a vertex at the center of a fan and returns the opposite edge in the fan.
  * All edges in the fan must be manifold, otherwise return NULL.
  *
