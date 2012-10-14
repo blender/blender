@@ -900,7 +900,7 @@ static void finish_images(MultiresBakeRender *bkr)
 
 		RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, bkr->bake_filter);
 
-		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;;
+		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
 
 		if (ibuf->rect_float)
 			ibuf->userflags |= IB_RECT_INVALID;
@@ -1366,20 +1366,23 @@ static void finish_bake_internal(BakeRender *bkr)
 		if (bkr->prev_r_raytrace == 0)
 			bkr->scene->r.mode &= ~R_RAYTRACE;
 
-
 	/* force OpenGL reload and mipmap recalc */
 	for (ima = G.main->image.first; ima; ima = ima->id.next) {
 		ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
 
-		if (bkr->result == BAKE_RESULT_OK) {
-			if (ima->ok == IMA_OK_LOADED) {
-				if (ibuf) {
-					if (ibuf->userflags & IB_BITMAPDIRTY) {
-						ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-						GPU_free_image(ima);
-						imb_freemipmapImBuf(ibuf);
-					}
+		/* some of the images could have been changed during bake,
+		 * so recreate mipmaps regardless bake result status
+		 */
+		if (ima->ok == IMA_OK_LOADED) {
+			if (ibuf) {
+				if (ibuf->userflags & IB_BITMAPDIRTY) {
+					GPU_free_image(ima);
+					imb_freemipmapImBuf(ibuf);
 				}
+
+				/* invalidate display buffers for changed images */
+				if (ibuf->userflags & IB_BITMAPDIRTY)
+					ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 			}
 		}
 

@@ -2513,7 +2513,9 @@ static int get_next_bake_face(BakeShade *bs)
 						/* clear image */
 						if (R.r.bake_flag & R_BAKE_CLEAR)
 							IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
-					
+
+						ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
 					}				
@@ -2733,7 +2735,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 			RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, re->r.bake_filter);
 
 			ibuf->userflags |= IB_BITMAPDIRTY;
-			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
 		}
 	}
 	

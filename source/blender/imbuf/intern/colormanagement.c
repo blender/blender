@@ -1822,7 +1822,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 			if (global_tot_display)
 				ibuf->display_buffer_flags = MEM_callocN(sizeof(unsigned int) * global_tot_display, "imbuf display_buffer_flags");
 		}
-		 else if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
+		else if (ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) {
 			/* all display buffers were marked as invalid from other areas,
 			 * now propagate this flag to internal color management routines
 			 */
