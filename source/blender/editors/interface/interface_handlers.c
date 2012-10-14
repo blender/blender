@@ -6621,7 +6621,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				}
 			}
 
-			if (menu->menuretval) ;
+			if (menu->menuretval) {
+				/* pass */
+			}
 			else if (event->type == ESCKEY && event->val == KM_PRESS) {
 				/* esc cancels this and all preceding menus */
 				menu->menuretval = UI_RETURN_CANCEL;

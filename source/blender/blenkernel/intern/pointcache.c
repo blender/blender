@@ -3328,8 +3328,9 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 		cache->endframe = end;
 		cache->totpoint = 0;
 
-		if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
-			; /*necessary info in every file*/
+		if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN) {
+			/* necessary info in every file */
+		}
 		/* read totpoint from info file (frame 0) */
 		else if (info) {
 			pf= ptcache_file_open(pid, PTCACHE_FILE_READ, 0);

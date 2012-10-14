@@ -3606,7 +3606,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 	/* copy string, taking into account escaped ] */
 	if (bracket) {
 		for (p = *path, i = 0, j = 0; i < len; i++, p++) {
-			if (*p == '\\' && *(p + 1) == quote) ;
+			if (*p == '\\' && *(p + 1) == quote) {}
 			else buf[j++] = *p;
 		}
 

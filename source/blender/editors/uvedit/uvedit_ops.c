@@ -772,13 +772,15 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 	BM_ITER_ELEM (l, &iter, efa, BM_LOOPS_OF_FACE) {
 		luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 		
-		if (i == id1)
+		if (i == id1) {
 			uv1 = luv->uv;
-		else if (i == id)
-			;  /* uv2 = luv->uv; */ /* UNUSED */
-		else if (i == id2)
+		}
+		else if (i == id) {
+			/* uv2 = luv->uv; */ /* UNUSED */
+		}
+		else if (i == id2) {
 			uv3 = luv->uv;
-
+		}
 		i++;
 	}
 

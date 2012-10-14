@@ -193,8 +193,8 @@ set(SRC
 	BKE_lamp.h
 	BKE_lattice.h
 	BKE_library.h
-	BKE_mask.h
 	BKE_main.h
+	BKE_mask.h
 	BKE_material.h
 	BKE_mball.h
 	BKE_mesh.h

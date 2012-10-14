@@ -888,9 +888,10 @@ static void view3d_lasso_select(bContext *C, ViewContext *vc,
 			do_lasso_select_paintface(vc, mcords, moves, extend, select);
 		else if (paint_vertsel_test(ob))
 			do_lasso_select_paintvert(vc, mcords, moves, extend, select);
-		else if (ob && ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))
-			;
-		else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT)
+		else if (ob && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
+			/* pass */
+		}
+		else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT))
 			PE_lasso_select(C, mcords, moves, extend, select);
 		else {
 			do_lasso_select_objects(vc, mcords, moves, extend, select);

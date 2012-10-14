@@ -2674,14 +2674,18 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	ds = BLI_dynstr_new();
 
 	for (report = reports->list.first; report; report = report->next) {
-		if (report->type < reports->printlevel)
-			;  /* pass */
-		else if (report->type >= RPT_ERROR)
+		if (report->type < reports->printlevel) {
+			/* pass */
+		}
+		else if (report->type >= RPT_ERROR) {
 			BLI_dynstr_appendf(ds, "Error %%i%d%%t|%s", ICON_ERROR, report->message);
-		else if (report->type >= RPT_WARNING)
+		}
+		else if (report->type >= RPT_WARNING) {
 			BLI_dynstr_appendf(ds, "Warning %%i%d%%t|%s", ICON_ERROR, report->message);
-		else if (report->type >= RPT_INFO)
+		}
+		else if (report->type >= RPT_INFO) {
 			BLI_dynstr_appendf(ds, "Info %%i%d%%t|%s", ICON_INFO, report->message);
+		}
 	}
 
 	str = BLI_dynstr_get_cstring(ds);

@@ -1094,7 +1094,9 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 			int a;
 			
 			fp = fopen("padding.c", "w");
-			if (fp == NULL) ;
+			if (fp == NULL) {
+				/* pass */
+			}
 			else {
 
 				/* add all include files defined in the global array */

@@ -887,8 +887,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 			wm_operator_reports(C, op, retval, (reports != NULL));
 		}
 
-		if (retval & OPERATOR_HANDLED)
-			;  /* do nothing, wm_operator_exec() has been called somewhere */
+		if (retval & OPERATOR_HANDLED) {
+			/* do nothing, wm_operator_exec() has been called somewhere */
+		}
 		else if (retval & OPERATOR_FINISHED) {
 			if (!is_nested_call) { /* not called by py script */
 				WM_operator_last_properties_store(op);

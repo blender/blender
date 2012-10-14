@@ -534,10 +534,12 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		mul_m4_v3(imat, h2);
 
 		/* if next bone is B-bone too, use average handle direction */
-		if (next->bone->segments > 1)
-			;
-		else
+		if (next->bone->segments > 1) {
+			/* pass */
+		}
+		else {
 			h2[1] -= length;
+		}
 		normalize_v3(h2);
 
 		/* find the next roll to interpolate as well */

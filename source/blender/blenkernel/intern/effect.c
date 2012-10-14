@@ -1013,10 +1013,12 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 				if (efd.falloff > 0.0f)
 					efd.falloff *= eff_calc_visibility(colliders, eff, &efd, point);
 
-				if (efd.falloff <= 0.0f)
-					;	/* don't do anything */
-				else if (eff->pd->forcefield == PFIELD_TEXTURE)
+				if (efd.falloff <= 0.0f) {
+					/* don't do anything */
+				}
+				else if (eff->pd->forcefield == PFIELD_TEXTURE) {
 					do_texture_effector(eff, &efd, point, force);
+				}
 				else {
 					float temp1[3]={0, 0, 0}, temp2[3];
 					copy_v3_v3(temp1, force);

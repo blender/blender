@@ -1528,7 +1528,9 @@ void ui_set_but_val(uiBut *but, double value)
 		 * so leave this unset */
 		value = UI_BUT_VALUE_UNSET;
 	}
-	else if (but->pointype == 0) ;
+	else if (but->pointype == 0) {
+		/* pass */
+	}
 	else if (but->type == HSVSLI) {
 		float *fp, hsv[3];
 		
@@ -1721,8 +1723,9 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 		BLI_strncpy(str, but->poin, maxlen);
 		return;
 	}
-	else if (ui_but_anim_expression_get(but, str, maxlen))
-		;  /* driver expression */
+	else if (ui_but_anim_expression_get(but, str, maxlen)) {
+		/* driver expression */
+	}
 	else {
 		/* number editing */
 		double value;
@@ -2480,7 +2483,9 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 				if (rows > 0) {
 					uiBut *bt = but;
 					while (bt && bt->alignnr == nr) {
-						if (bt->next && bt->next->alignnr == nr && buts_are_horiz(bt, bt->next) == 0) break;
+						if (bt->next && bt->next->alignnr == nr && buts_are_horiz(bt, bt->next) == 0) {
+							break;
+						}
 						bt = bt->next;
 					}
 					if (bt == NULL || bt->alignnr != nr) flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT;
@@ -2714,9 +2719,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	/* keep track of UI_interface.h */
-	if (ELEM7(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM)) ;
-	else if (ELEM(but->type, SCROLL, SEPR /* , FTPREVIEW */ )) ;
-	else if (but->type >= SEARCH_MENU) ;
+	if      (ELEM9(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM, SCROLL, SEPR /* , FTPREVIEW */)) {}
+	else if (but->type >= SEARCH_MENU) {}
 	else but->flag |= UI_BUT_UNDO;
 
 	BLI_addtail(&block->buttons, but);
@@ -2750,7 +2754,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 
 
 static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str,
-							 int x, int y, short width, short height,
+                             int x, int y, short width, short height,
                              PointerRNA *ptr, PropertyRNA *prop, int index,
                              float min, float max, float a1, float a2,  const char *tip)
 {

@@ -4712,10 +4712,12 @@ void RE_Database_Free(Render *re)
 static int allow_render_object(Render *re, Object *ob, int nolamps, int onlyselected, Object *actob)
 {
 	/* override not showing object when duplis are used with particles */
-	if (ob->transflag & OB_DUPLIPARTS)
-		; /* let particle system(s) handle showing vs. not showing */
-	else if ((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES))
+	if (ob->transflag & OB_DUPLIPARTS) {
+		/* pass */  /* let particle system(s) handle showing vs. not showing */
+	}
+	else if ((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES)) {
 		return 0;
+	}
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
 	if (ob->type == OB_MBALL && ob!=BKE_mball_basis_find(re->scene, ob))

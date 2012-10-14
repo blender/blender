@@ -1274,12 +1274,15 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 			else {
 				if (datalevel == TSE_ANIM_DATA)
 					WM_operator_name_call(C, "OUTLINER_OT_animdata_operation", WM_OP_INVOKE_REGION_WIN, NULL);
-				else if (datalevel == TSE_DRIVER_BASE)
-					/* do nothing... no special ops needed yet */;
-				else if (ELEM3(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS))
-					/*WM_operator_name_call(C, "OUTLINER_OT_renderdata_operation", WM_OP_INVOKE_REGION_WIN, NULL)*/;
-				else
+				else if (datalevel == TSE_DRIVER_BASE) {
+					/* do nothing... no special ops needed yet */
+				}
+				else if (ELEM3(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS)) {
+					/*WM_operator_name_call(C, "OUTLINER_OT_renderdata_operation", WM_OP_INVOKE_REGION_WIN, NULL)*/
+				}
+				else {
 					WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+				}
 			}
 		}
 		
@@ -1301,11 +1304,13 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
-	
+
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
 	
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) break;
+		if (do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) {
+			break;
+		}
 	}
 	
 	return OPERATOR_FINISHED;
