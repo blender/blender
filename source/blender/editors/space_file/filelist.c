@@ -1225,11 +1225,12 @@ void filelist_from_main(struct FileList *filelist)
 			if (ok) {
 				if (!filelist->hide_dot || id->name[2] != '.') {
 					memset(files, 0, sizeof(struct direntry));
-					if (id->lib == NULL)
+					if (id->lib == NULL) {
 						files->relname = BLI_strdup(id->name + 2);
+					}
 					else {
-						files->relname = MEM_mallocN(FILE_MAX + 32, "filename for lib");
-						sprintf(files->relname, "%s | %s", id->lib->name, id->name + 2);
+						files->relname = MEM_mallocN(FILE_MAX + (MAX_ID_NAME - 2),     "filename for lib");
+						BLI_snprintf(files->relname, FILE_MAX + (MAX_ID_NAME - 2) + 3, "%s | %s", id->lib->name, id->name + 2);
 					}
 					files->type |= S_IFREG;
 #if 0               // XXXXX TODO show the selection status of the objects
@@ -1239,7 +1240,7 @@ void filelist_from_main(struct FileList *filelist)
 						}
 						else if (idcode == ID_SCE) {
 							if ( ((Scene *)id)->r.scemode & R_BG_RENDER) files->selflag |= SELECTED_FILE;
-						}					
+						}
 					}
 #endif
 					files->nr = totbl + 1;
@@ -1248,10 +1249,10 @@ void filelist_from_main(struct FileList *filelist)
 					if (idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO || idcode == ID_IM) {
 						files->flags |= IMAGEFILE;
 					}
-					if (id->lib && fake) BLI_snprintf(files->extra, sizeof(files->extra), "LF %d", id->us);
-					else if (id->lib) BLI_snprintf(files->extra, sizeof(files->extra), "L    %d", id->us);
-					else if (fake) BLI_snprintf(files->extra, sizeof(files->extra), "F    %d", id->us);
-					else BLI_snprintf(files->extra, sizeof(files->extra), "      %d", id->us);
+					if      (id->lib && fake) BLI_snprintf(files->extra, sizeof(files->extra), "LF %d",    id->us);
+					else if (id->lib)         BLI_snprintf(files->extra, sizeof(files->extra), "L    %d",  id->us);
+					else if (fake)            BLI_snprintf(files->extra, sizeof(files->extra), "F    %d",  id->us);
+					else                      BLI_snprintf(files->extra, sizeof(files->extra), "      %d", id->us);
 					
 					if (id->lib) {
 						if (totlib == 0) firstlib = files;

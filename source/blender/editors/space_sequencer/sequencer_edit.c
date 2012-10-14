@@ -1574,7 +1574,7 @@ static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
 	Scene *scene = (Scene *)arg_pt;
 	char name[sizeof(seq->name) - 2];
 
-	strcpy(name, seq->name + 2);
+	BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
 	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 	BKE_sequencer_dupe_animdata(scene, name, seq->name + 2);
 	return 1;
