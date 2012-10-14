@@ -1062,5 +1062,5 @@ void MESH_OT_rip(wmOperatorType *ot)
 	/* to give to transform */
 	Transform_Properties(ot, P_PROPORTIONAL);
 	RNA_def_boolean(ot->srna, "mirror", FALSE, "Mirror Editing", "");
-	RNA_def_boolean(ot->srna, "use_fill", FALSE, "Fill", "Fille the ripped region");
+	RNA_def_boolean(ot->srna, "use_fill", FALSE, "Fill", "Fill the ripped region");
 }

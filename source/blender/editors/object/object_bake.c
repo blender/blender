@@ -937,7 +937,7 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 		ob = base->object;
 
 		if (ob->type != OB_MESH) {
-			BKE_report(op->reports, RPT_ERROR, "Basking of multires data only works with active object which is a mesh");
+			BKE_report(op->reports, RPT_ERROR, "Baking of multires data only works with an active mesh object");
 
 			ok = 0;
 			break;

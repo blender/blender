@@ -35,6 +35,8 @@
 #include "BKE_report.h"
 #include "BKE_context.h"
 
+#include "BLF_translation.h"
+
 #include "../generic/py_capi_utils.h"
 
 static bContext *__py_context = NULL;
@@ -98,7 +100,7 @@ short BPy_errors_to_report(ReportList *reports)
 	pystring = PyC_ExceptionBuffer();
 	
 	if (pystring == NULL) {
-		BKE_report(reports, RPT_ERROR, "unknown py-exception, couldn't convert");
+		BKE_report(reports, RPT_ERROR, "Unknown py-exception, couldn't convert");
 		return 0;
 	}
 	
@@ -111,12 +113,12 @@ short BPy_errors_to_report(ReportList *reports)
 #if 0 // ARG!. workaround for a bug in blenders use of vsnprintf
 	BKE_reportf(reports, RPT_ERROR, "%s\nlocation:%s:%d\n", cstring, filename, lineno);
 #else
-	pystring_format = PyUnicode_FromFormat("%s\nlocation:%s:%d\n", cstring, filename, lineno);
+	pystring_format = PyUnicode_FromFormat(TIP_("%s\nlocation:%s:%d\n"), cstring, filename, lineno);
 	cstring = _PyUnicode_AsString(pystring_format);
 	BKE_report(reports, RPT_ERROR, cstring);
 #endif
 	
-	fprintf(stderr, "%s\nlocation:%s:%d\n", cstring, filename, lineno); // not exactly needed. just for testing
+	fprintf(stderr, TIP_("%s\nlocation:%s:%d\n"), cstring, filename, lineno); // not exactly needed. just for testing
 	
 	Py_DECREF(pystring);
 	Py_DECREF(pystring_format); // workaround

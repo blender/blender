@@ -1558,7 +1558,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 	BLI_strncpy(di, ibuf->name, FILE_MAX);
 	BLI_splitdirstring(di, fi);
 	
-	BKE_reportf(op->reports, RPT_INFO, "%d Image(s) will be saved in %s", tot, di);
+	BKE_reportf(op->reports, RPT_INFO, "%d image(s) will be saved in %s", tot, di);
 
 	for (ibuf = sima->image->ibufs.first; ibuf; ibuf = ibuf->next) {
 		if (ibuf->userflags & IB_BITMAPDIRTY) {

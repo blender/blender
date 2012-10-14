@@ -807,8 +807,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 	}
 
 	if (text == NULL) {
-		BKE_reportf(op->reports, RPT_WARNING,
-		            "File: '%s' can't be opened", filepath);
+		BKE_reportf(op->reports, RPT_WARNING, "File: '%s' can't be opened", filepath);
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -820,8 +819,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 			st->text = text;
 		}
 		else {
-			BKE_reportf(op->reports, RPT_INFO,
-			            "See '%s' in the text editor", text->id.name + 2);
+			BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
 		}
 
 		txt_move_toline(text, line - 1, FALSE);
@@ -872,14 +870,12 @@ static int editsource_exec(bContext *C, wmOperator *op)
 				                           but_store->py_dbg_ln);
 			}
 			else {
-				BKE_report(op->reports, RPT_ERROR,
-				           "Active button isn't from a script, cant edit source.");
+				BKE_report(op->reports, RPT_ERROR, "Active button isn't from a script, cant edit source");
 				ret = OPERATOR_CANCELLED;
 			}
 		}
 		else {
-			BKE_report(op->reports, RPT_ERROR,
-			           "Active button match can't be found.");
+			BKE_report(op->reports, RPT_ERROR, "Active button match can't be found");
 			ret = OPERATOR_CANCELLED;
 		}
 
@@ -978,19 +974,19 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 
 		if (!BLI_is_dir(root)) {
 			BKE_report(op->reports, RPT_ERROR, "Please set your User Preferences' \"Translation Branches "
-			                                   "Directory\" path to a valid directory.");
+			                                   "Directory\" path to a valid directory");
 			return OPERATOR_CANCELLED;
 		}
 		if (!WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0)) {
 			BKE_reportf(op->reports, RPT_ERROR, "Could not find operator \"%s\"! Please enable ui_translate addon "
-			                                    "in the User Preferences.", EDTSRC_I18N_OP_NAME);
+			                                    "in the User Preferences", EDTSRC_I18N_OP_NAME);
 			return OPERATOR_CANCELLED;
 		}
 		/* Try to find a valid po file for current language... */
 		edittranslation_find_po_file(root, uilng, popath, FILE_MAX);
 /*		printf("po path: %s\n", popath);*/
 		if (popath[0] == '\0') {
-			BKE_reportf(op->reports, RPT_ERROR, "No valid po found for language '%s' under %s.", uilng, root);
+			BKE_reportf(op->reports, RPT_ERROR, "No valid po found for language '%s' under %s", uilng, root);
 			return OPERATOR_CANCELLED;
 		}
 

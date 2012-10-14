@@ -417,7 +417,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			cu = ob->data;
 
 			if (!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
-				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing");
+				BKE_report(reports, RPT_ERROR,
+				           "Neither rotation nor location could be applied to a 2D curve, doing nothing");
 				change = 0;
 			}
 			if (cu->key) {
@@ -961,9 +962,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 	/* Warn if any errors occurred */
 	if (tot_lib_error + tot_multiuser_arm_error) {
-		BKE_reportf(op->reports, RPT_WARNING, "%i Object(s) Not Centered, %i Changed:", tot_lib_error + tot_multiuser_arm_error, tot_change);
+		BKE_reportf(op->reports, RPT_WARNING, "%i object(s) not centered, %i changed:", tot_lib_error + tot_multiuser_arm_error, tot_change);
 		if (tot_lib_error)
-			BKE_reportf(op->reports, RPT_WARNING, "|%i linked library objects", tot_lib_error);
+			BKE_reportf(op->reports, RPT_WARNING, "|%i linked library object(s)", tot_lib_error);
 		if (tot_multiuser_arm_error)
 			BKE_reportf(op->reports, RPT_WARNING, "|%i multiuser armature object(s)", tot_multiuser_arm_error);
 	}

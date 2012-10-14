@@ -482,7 +482,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 	/* sanity check */
 	if (!me_src->dvert) {
-		BKE_reportf(op->reports, RPT_ERROR, "Transfer failed. Source mesh does not have any vertex groups");
+		BKE_report(op->reports, RPT_ERROR, "Transfer failed (source mesh does not have any vertex groups)");
 		return 0;
 	}
 
@@ -528,7 +528,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 				if (dv_array_src) MEM_freeN(dv_array_src);
 				if (dv_array_dst) MEM_freeN(dv_array_dst);
 				dmesh_src->release(dmesh_src);
-				BKE_reportf(op->reports, RPT_ERROR, "Transfer failed. Indices are not matching");
+				BKE_report(op->reports, RPT_ERROR, "Transfer failed (indices are not matching)");
 				return 0;
 			}
 
@@ -3126,7 +3126,7 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_reportf(op->reports, RPT_WARNING, "No vertex groups limited");
+		BKE_report(op->reports, RPT_WARNING, "No vertex groups limited");
 
 		/* note, would normally return cancelled, except we want the redo
 		 * UI to show up for users to change */
@@ -3248,7 +3248,7 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 
 	if ((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indices",
+		            "Copy VGroups to Selected warning, %d done, %d failed (object data must have matching indices)",
 		            change, fail);
 	}
 

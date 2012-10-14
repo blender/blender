@@ -2742,7 +2742,7 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 	const char *error_msg;
 
 	if (BKE_sequencer_active_get_pair(scene, &seq_act, &seq_other) == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Must select 2 strips");
+		BKE_report(op->reports, RPT_ERROR, "Please select two strips");
 		return OPERATOR_CANCELLED;
 	}
 
