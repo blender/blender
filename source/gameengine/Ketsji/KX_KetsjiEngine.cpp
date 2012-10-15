@@ -45,7 +45,6 @@
 #include "BoolValue.h"
 #include "FloatValue.h"
 
-#define KX_NUM_ITERATIONS 4
 #include "RAS_BucketManager.h"
 #include "RAS_Rect.h"
 #include "RAS_IRasterizer.h"

@@ -2283,6 +2283,7 @@ static int select_split_exec(bContext *C, wmOperator *op)
 	}
 
 	if (change) {
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
 		return OPERATOR_FINISHED;
 	}
 	else {

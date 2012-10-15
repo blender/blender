@@ -55,7 +55,12 @@ struct Text;
 #define SCE_COPY_LINK_DATA  3
 #define SCE_COPY_FULL       4
 
-#define SETLOOPER(_sce_basis, _sce_iter, _base) _sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, NULL); _base; _base = _setlooper_base_step(&_sce_iter, _base)
+/* Use as the contents of a 'for' loop: for (SETLOOPER(...)) { ... */
+#define SETLOOPER(_sce_basis, _sce_iter, _base)                               \
+	_sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, NULL);   \
+	_base;                                                                    \
+	_base = _setlooper_base_step(&_sce_iter, _base)
+
 struct Base *_setlooper_base_step(struct Scene **sce_iter, struct Base *base);
 
 void free_avicodecdata(struct AviCodecData *acd);
