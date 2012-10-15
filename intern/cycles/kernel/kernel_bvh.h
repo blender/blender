@@ -57,7 +57,7 @@ __device_inline float3 bvh_inverse_direction(float3 dir)
 
 __device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, const float tmax)
 {
-	Transform tfm = object_fetch_transform(kg, object, ray->time, OBJECT_INVERSE_TRANSFORM);
+	Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 
 	*P = transform_point(&tfm, ray->P);
 
@@ -75,13 +75,43 @@ __device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ray 
 __device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, const float tmax)
 {
 	if(*t != FLT_MAX) {
-		Transform tfm = object_fetch_transform(kg, object, ray->time, OBJECT_TRANSFORM);
+		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 		*t *= len(transform_direction(&tfm, 1.0f/(*idir)));
 	}
 
 	*P = ray->P;
 	*idir = bvh_inverse_direction(ray->D);
 }
+
+#ifdef __OBJECT_MOTION__
+__device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, Transform *tfm, const float tmax)
+{
+	Transform itfm;
+	*tfm = object_fetch_transform_motion(kg, object, ray->time, &itfm);
+
+	*P = transform_point(&itfm, ray->P);
+
+	float3 dir = transform_direction(&itfm, ray->D);
+
+	float len;
+	dir = normalize_len(dir, &len);
+
+	*idir = bvh_inverse_direction(dir);
+
+	if(*t != FLT_MAX)
+		*t *= len;
+}
+
+__device_inline void bvh_instance_motion_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, Transform *tfm, const float tmax)
+{
+	if(*t != FLT_MAX) {
+		*t *= len(transform_direction(tfm, 1.0f/(*idir)));
+	}
+
+	*P = ray->P;
+	*idir = bvh_inverse_direction(ray->D);
+}
+#endif
 
 /* intersect two bounding boxes */
 __device_inline void bvh_node_intersect(KernelGlobals *kg,
@@ -133,7 +163,7 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 
 /* Sven Woop's algorithm */
 __device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int triAddr)
+	float3 P, float3 idir, uint visibility, int object, int triAddr, Transform *tfm)
 {
 	/* compute and check intersection t-value */
 	float4 v00 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0);
@@ -176,7 +206,7 @@ __device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *ise
 	}
 }
 
-__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
+__device_inline bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 {
 	/* traversal stack in CUDA thread-local memory */
 	int traversalStack[BVH_STACK_SIZE];
@@ -255,7 +285,7 @@ __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const ui
 					/* triangle intersection */
 					while(primAddr < primAddr2) {
 						/* intersect ray against triangle */
-						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
+						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr, NULL);
 
 						/* shadow ray early termination */
 						if(visibility == PATH_RAY_SHADOW_OPAQUE && isect->prim != ~0)
@@ -268,7 +298,6 @@ __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const ui
 				else {
 					/* instance push */
 					object = kernel_tex_fetch(__prim_object, -primAddr-1);
-
 					bvh_instance_push(kg, object, ray, &P, &idir, &isect->t, tmax);
 
 					++stackPtr;
@@ -294,6 +323,133 @@ __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const ui
 	} while(nodeAddr != ENTRYPOINT_SENTINEL);
 
 	return (isect->prim != ~0);
+}
+
+#ifdef __OBJECT_MOTION__
+__device_inline bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
+{
+	/* traversal stack in CUDA thread-local memory */
+	int traversalStack[BVH_STACK_SIZE];
+	traversalStack[0] = ENTRYPOINT_SENTINEL;
+
+	/* traversal variables in registers */
+	int stackPtr = 0;
+	int nodeAddr = kernel_data.bvh.root;
+
+	/* ray parameters in registers */
+	const float tmax = ray->t;
+	float3 P = ray->P;
+	float3 idir = bvh_inverse_direction(ray->D);
+	int object = ~0;
+
+	Transform ob_tfm;
+
+	isect->t = tmax;
+	isect->object = ~0;
+	isect->prim = ~0;
+	isect->u = 0.0f;
+	isect->v = 0.0f;
+
+	/* traversal loop */
+	do {
+		do
+		{
+			/* traverse internal nodes */
+			while(nodeAddr >= 0 && nodeAddr != ENTRYPOINT_SENTINEL)
+			{
+				bool traverseChild0, traverseChild1, closestChild1;
+				int nodeAddrChild1;
+
+				bvh_node_intersect(kg, &traverseChild0, &traverseChild1,
+					&closestChild1, &nodeAddr, &nodeAddrChild1,
+					P, idir, isect->t, visibility, nodeAddr);
+
+				if(traverseChild0 != traverseChild1) {
+					/* one child was intersected */
+					if(traverseChild1) {
+						nodeAddr = nodeAddrChild1;
+					}
+				}
+				else {
+					if(!traverseChild0) {
+						/* neither child was intersected */
+						nodeAddr = traversalStack[stackPtr];
+						--stackPtr;
+					}
+					else {
+						/* both children were intersected, push the farther one */
+						if(closestChild1) {
+							int tmp = nodeAddr;
+							nodeAddr = nodeAddrChild1;
+							nodeAddrChild1 = tmp;
+						}
+
+						++stackPtr;
+						traversalStack[stackPtr] = nodeAddrChild1;
+					}
+				}
+			}
+
+			/* if node is leaf, fetch triangle list */
+			if(nodeAddr < 0) {
+				float4 leaf = kernel_tex_fetch(__bvh_nodes, (-nodeAddr-1)*BVH_NODE_SIZE+(BVH_NODE_SIZE-1));
+				int primAddr = __float_as_int(leaf.x);
+
+				if(primAddr >= 0) {
+					int primAddr2 = __float_as_int(leaf.y);
+
+					/* pop */
+					nodeAddr = traversalStack[stackPtr];
+					--stackPtr;
+
+					/* triangle intersection */
+					while(primAddr < primAddr2) {
+						/* intersect ray against triangle */
+						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr, &ob_tfm);
+
+						/* shadow ray early termination */
+						if(visibility == PATH_RAY_SHADOW_OPAQUE && isect->prim != ~0)
+							return true;
+
+						primAddr++;
+					}
+				}
+				else {
+					/* instance push */
+					object = kernel_tex_fetch(__prim_object, -primAddr-1);
+					bvh_instance_motion_push(kg, object, ray, &P, &idir, &isect->t, &ob_tfm, tmax);
+
+					++stackPtr;
+					traversalStack[stackPtr] = ENTRYPOINT_SENTINEL;
+
+					nodeAddr = kernel_tex_fetch(__object_node, object);
+				}
+			}
+		} while(nodeAddr != ENTRYPOINT_SENTINEL);
+
+		if(stackPtr >= 0) {
+			kernel_assert(object != ~0);
+
+			/* instance pop */
+			bvh_instance_motion_pop(kg, object, ray, &P, &idir, &isect->t, &ob_tfm, tmax);
+			object = ~0;
+			nodeAddr = traversalStack[stackPtr];
+			--stackPtr;
+		}
+	} while(nodeAddr != ENTRYPOINT_SENTINEL);
+
+	return (isect->prim != ~0);
+}
+#endif
+
+__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
+{
+#ifdef __OBJECT_MOTION__
+	if(kernel_data.bvh.have_motion)
+		return bvh_intersect_motion(kg, ray, visibility, isect);
+	else
+#endif
+		return bvh_intersect(kg, ray, visibility, isect);
 }
 
 __device_inline float3 ray_offset(float3 P, float3 Ng)
@@ -352,7 +508,7 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, co
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_itfm;
 #else
-		Transform tfm = object_fetch_transform(kg, isect->object, ray->time, OBJECT_INVERSE_TRANSFORM);
+		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
 #endif
 
 		P = transform_point(&tfm, P);
@@ -373,7 +529,7 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, co
 #ifdef __OBJECT_MOTION__
 		Transform tfm = sd->ob_tfm;
 #else
-		Transform tfm = object_fetch_transform(kg, isect->object, ray->time, OBJECT_TRANSFORM);
+		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
 #endif
 
 		P = transform_point(&tfm, P);

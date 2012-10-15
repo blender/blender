@@ -396,6 +396,8 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override)
 	if(b_override)
 		b_cam = b_override;
 
+	Camera prevcam = *(scene->camera);
+	
 	/* go back and forth one frame */
 	int frame = b_scene.frame_current();
 
@@ -411,6 +413,10 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override)
 	}
 
 	scene_frame_set(b_scene, frame);
+
+	/* tag camera for motion update */
+	if(scene->camera->motion_modified(prevcam))
+		scene->camera->tag_update();
 }
 
 CCL_NAMESPACE_END

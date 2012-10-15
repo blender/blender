@@ -74,11 +74,18 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	bScreen *sc;
 	ScrArea *sa;
 	ARegion *ar;
+	static int recursive_check = FALSE;
 
 	/* don't do this render engine update if we're updating the scene from
 	 * other threads doing e.g. rendering or baking jobs */
 	if (!BLI_thread_is_main())
 		return;
+
+	/* don't call this recursively for frame updates */
+	if(recursive_check)
+		return;
+	
+	recursive_check = TRUE;
 
 	C = CTX_create();
 	CTX_data_main_set(C, bmain);
@@ -114,6 +121,8 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 	}
 
 	CTX_free(C);
+
+	recursive_check = FALSE;
 }
 
 void ED_render_engine_area_exit(ScrArea *sa)

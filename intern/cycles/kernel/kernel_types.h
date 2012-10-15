@@ -113,7 +113,6 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 //#define __SOBOL_FULL_SCREEN__
-//#define __QBVH__
 
 /* Shader Evaluation */
 
@@ -428,13 +427,6 @@ typedef struct ShaderData {
 	/* length of the ray being shaded */
 	float ray_length;
 
-#ifdef __OBJECT_MOTION__
-	/* object <-> world space transformations, cached to avoid
-	 * re-interpolating them constantly for shading */
-	Transform ob_tfm;
-	Transform ob_itfm;
-#endif
-
 #ifdef __RAY_DIFFERENTIALS__
 	/* differential of P. these are orthogonal to Ng, not N */
 	differential3 dP;
@@ -451,6 +443,13 @@ typedef struct ShaderData {
 
 	/* tangent for shading */
 	float3 T;
+#endif
+
+#ifdef __OBJECT_MOTION__
+	/* object <-> world space transformations, cached to avoid
+	 * re-interpolating them constantly for shading */
+	Transform ob_tfm;
+	Transform ob_itfm;
 #endif
 
 #ifdef __MULTI_CLOSURE__
@@ -632,7 +631,8 @@ typedef struct KernelBVH {
 	/* root node */
 	int root;
 	int attributes_map_stride;
-	int pad1, pad2;
+	int have_motion;
+	int pad2;
 } KernelBVH;
 
 typedef struct KernelData {

@@ -67,10 +67,18 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	sd->v = isect->v;
 #endif
 
+	sd->flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*2);
+	sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
+
 	/* matrices and time */
 #ifdef __OBJECT_MOTION__
-	sd->ob_tfm = object_fetch_transform(kg, sd->object, ray->time, OBJECT_TRANSFORM);
-	sd->ob_itfm = object_fetch_transform(kg, sd->object, ray->time, OBJECT_INVERSE_TRANSFORM);
+	if(sd->flag & SD_OBJECT_MOTION) {
+		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, time, &sd->ob_itfm);
+	}
+	else {
+		sd->ob_tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
+		sd->ob_itfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+	}
 
 	sd->time = ray->time;
 #endif
@@ -86,9 +94,6 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	/* smooth normal */
 	if(sd->shader & SHADER_SMOOTH_NORMAL)
 		sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
-
-	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
-	sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
@@ -173,11 +178,20 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	}
 #endif
 
-#ifdef __OBJECT_MOTION__
-	sd->time = time;
+	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
+	if(sd->object != -1)
+		sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
-	sd->ob_tfm = object_fetch_transform(kg, sd->object, time, OBJECT_TRANSFORM);
-	sd->ob_itfm = object_fetch_transform(kg, sd->object, time, OBJECT_INVERSE_TRANSFORM);
+#ifdef __OBJECT_MOTION__
+	if(sd->flag & SD_OBJECT_MOTION) {
+		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, time, &sd->ob_itfm);
+	}
+	else {
+		sd->ob_tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
+		sd->ob_itfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+	}
+
+	sd->time = time;
 #endif
 
 	/* smooth normal */
@@ -189,10 +203,6 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 			object_normal_transform(kg, sd, &sd->N);
 #endif
 	}
-
-	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
-	if(sd->object != -1)
-		sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */

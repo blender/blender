@@ -723,7 +723,8 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		shader->need_update_attributes = false;
 
 #ifdef __OBJECT_MOTION__
-	bool motion_blur = scene->need_motion() == Scene::MOTION_BLUR;
+	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
+	bool motion_blur = need_motion == Scene::MOTION_BLUR;
 #else
 	bool motion_blur = false;
 #endif

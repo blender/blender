@@ -151,7 +151,8 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	uint *object_flag = dscene->object_flag.resize(scene->objects.size());
 	int i = 0;
 	map<Mesh*, float> surface_area_map;
-	Scene::MotionType need_motion = scene->need_motion();
+	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
+	bool have_motion = false;
 
 	foreach(Object *ob, scene->objects) {
 		Mesh *mesh = ob->mesh;
@@ -229,6 +230,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 				transform_motion_decompose(&decomp, &ob->motion);
 				memcpy(&objects[offset+8], &decomp, sizeof(float4)*8);
 				flag |= SD_OBJECT_MOTION;
+				have_motion = true;
 			}
 			else {
 				float4 no_motion = make_float4(FLT_MAX);
@@ -253,6 +255,8 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 	device->tex_alloc("__objects", dscene->objects);
 	device->tex_alloc("__object_flag", dscene->object_flag);
+
+	dscene->data.bvh.have_motion = have_motion;
 }
 
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -300,7 +304,8 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 	/* counter mesh users */
 	map<Mesh*, int> mesh_users;
 #ifdef __OBJECT_MOTION__
-	bool motion_blur = scene->need_motion() == Scene::MOTION_BLUR;
+	Scene::MotionType need_motion = scene->need_motion();
+	bool motion_blur = need_motion == Scene::MOTION_BLUR;
 #else
 	bool motion_blur = false;
 #endif
