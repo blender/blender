@@ -4,27 +4,26 @@
 // Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_FULLPIVOTINGHOUSEHOLDERQR_H
 #define EIGEN_FULLPIVOTINGHOUSEHOLDERQR_H
+
+namespace Eigen { 
+
+namespace internal {
+
+template<typename MatrixType> struct FullPivHouseholderQRMatrixQReturnType;
+
+template<typename MatrixType>
+struct traits<FullPivHouseholderQRMatrixQReturnType<MatrixType> >
+{
+  typedef typename MatrixType::PlainObject ReturnType;
+};
+
+}
 
 /** \ingroup QR_Module
   *
@@ -62,7 +61,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, Options, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
+    typedef internal::FullPivHouseholderQRMatrixQReturnType<MatrixType> MatrixQReturnType;
     typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
     typedef Matrix<Index, 1, ColsAtCompileTime, RowMajor, 1, MaxColsAtCompileTime> IntRowVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationType;
@@ -139,7 +138,9 @@ template<typename _MatrixType> class FullPivHouseholderQR
       return internal::solve_retval<FullPivHouseholderQR, Rhs>(*this, b.derived());
     }
 
-    MatrixQType matrixQ(void) const;
+    /** \returns Expression object representing the matrix Q
+      */
+    MatrixQReturnType matrixQ(void) const;
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       */
@@ -508,28 +509,73 @@ struct solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
   }
 };
 
+/** \ingroup QR_Module
+  *
+  * \brief Expression type for return value of FullPivHouseholderQR::matrixQ()
+  *
+  * \tparam MatrixType type of underlying dense matrix
+  */
+template<typename MatrixType> struct FullPivHouseholderQRMatrixQReturnType
+  : public ReturnByValue<FullPivHouseholderQRMatrixQReturnType<MatrixType> >
+{
+public:
+  typedef typename MatrixType::Index Index;
+  typedef typename internal::plain_col_type<MatrixType, Index>::type IntColVectorType;
+  typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
+  typedef Matrix<typename MatrixType::Scalar, 1, MatrixType::RowsAtCompileTime, RowMajor, 1,
+                 MatrixType::MaxRowsAtCompileTime> WorkVectorType;
+
+  FullPivHouseholderQRMatrixQReturnType(const MatrixType&       qr,
+                                        const HCoeffsType&      hCoeffs,
+                                        const IntColVectorType& rowsTranspositions)
+    : m_qr(qr),
+      m_hCoeffs(hCoeffs),
+      m_rowsTranspositions(rowsTranspositions)
+      {}
+
+  template <typename ResultType>
+  void evalTo(ResultType& result) const
+  {
+    const Index rows = m_qr.rows();
+    WorkVectorType workspace(rows);
+    evalTo(result, workspace);
+  }
+
+  template <typename ResultType>
+  void evalTo(ResultType& result, WorkVectorType& workspace) const
+  {
+    // compute the product H'_0 H'_1 ... H'_n-1,
+    // where H_k is the k-th Householder transformation I - h_k v_k v_k'
+    // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
+    const Index rows = m_qr.rows();
+    const Index cols = m_qr.cols();
+    const Index size = (std::min)(rows, cols);
+    workspace.resize(rows);
+    result.setIdentity(rows, rows);
+    for (Index k = size-1; k >= 0; k--)
+    {
+      result.block(k, k, rows-k, rows-k)
+            .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), internal::conj(m_hCoeffs.coeff(k)), &workspace.coeffRef(k));
+      result.row(k).swap(result.row(m_rowsTranspositions.coeff(k)));
+    }
+  }
+
+    Index rows() const { return m_qr.rows(); }
+    Index cols() const { return m_qr.rows(); }
+
+protected:
+  typename MatrixType::Nested m_qr;
+  typename HCoeffsType::Nested m_hCoeffs;
+  typename IntColVectorType::Nested m_rowsTranspositions;
+};
+
 } // end namespace internal
 
-/** \returns the matrix Q */
 template<typename MatrixType>
-typename FullPivHouseholderQR<MatrixType>::MatrixQType FullPivHouseholderQR<MatrixType>::matrixQ() const
+inline typename FullPivHouseholderQR<MatrixType>::MatrixQReturnType FullPivHouseholderQR<MatrixType>::matrixQ() const
 {
   eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-  // compute the product H'_0 H'_1 ... H'_n-1,
-  // where H_k is the k-th Householder transformation I - h_k v_k v_k'
-  // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
-  Index rows = m_qr.rows();
-  Index cols = m_qr.cols();
-  Index size = (std::min)(rows,cols);
-  MatrixQType res = MatrixQType::Identity(rows, rows);
-  Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
-  for (Index k = size-1; k >= 0; k--)
-  {
-    res.block(k, k, rows-k, rows-k)
-       .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), internal::conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
-    res.row(k).swap(res.row(m_rows_transpositions.coeff(k)));
-  }
-  return res;
+  return MatrixQReturnType(m_qr, m_hCoeffs, m_rows_transpositions);
 }
 
 /** \return the full-pivoting Householder QR decomposition of \c *this.
@@ -542,5 +588,7 @@ MatrixBase<Derived>::fullPivHouseholderQr() const
 {
   return FullPivHouseholderQR<PlainObject>(eval());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_FULLPIVOTINGHOUSEHOLDERQR_H

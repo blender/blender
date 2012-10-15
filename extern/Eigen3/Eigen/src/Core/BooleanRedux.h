@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_ALLANDANY_H
 #define EIGEN_ALLANDANY_H
+
+namespace Eigen { 
 
 namespace internal {
 
@@ -35,7 +22,7 @@ struct all_unroller
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
-  inline static bool run(const Derived &mat)
+  static inline bool run(const Derived &mat)
   {
     return all_unroller<Derived, UnrollCount-1>::run(mat) && mat.coeff(row, col);
   }
@@ -44,13 +31,13 @@ struct all_unroller
 template<typename Derived>
 struct all_unroller<Derived, 1>
 {
-  inline static bool run(const Derived &mat) { return mat.coeff(0, 0); }
+  static inline bool run(const Derived &mat) { return mat.coeff(0, 0); }
 };
 
 template<typename Derived>
 struct all_unroller<Derived, Dynamic>
 {
-  inline static bool run(const Derived &) { return false; }
+  static inline bool run(const Derived &) { return false; }
 };
 
 template<typename Derived, int UnrollCount>
@@ -61,7 +48,7 @@ struct any_unroller
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
-  inline static bool run(const Derived &mat)
+  static inline bool run(const Derived &mat)
   {
     return any_unroller<Derived, UnrollCount-1>::run(mat) || mat.coeff(row, col);
   }
@@ -70,13 +57,13 @@ struct any_unroller
 template<typename Derived>
 struct any_unroller<Derived, 1>
 {
-  inline static bool run(const Derived &mat) { return mat.coeff(0, 0); }
+  static inline bool run(const Derived &mat) { return mat.coeff(0, 0); }
 };
 
 template<typename Derived>
 struct any_unroller<Derived, Dynamic>
 {
-  inline static bool run(const Derived &) { return false; }
+  static inline bool run(const Derived &) { return false; }
 };
 
 } // end namespace internal
@@ -145,5 +132,7 @@ inline typename DenseBase<Derived>::Index DenseBase<Derived>::count() const
 {
   return derived().template cast<bool>().template cast<Index>().sum();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ALLANDANY_H

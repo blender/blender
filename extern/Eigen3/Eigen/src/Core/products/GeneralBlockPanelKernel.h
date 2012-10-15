@@ -3,34 +3,23 @@
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_GENERAL_BLOCK_PANEL_H
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
+namespace Eigen { 
+  
 namespace internal {
 
 template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false>
 class gebp_traits;
 
-inline std::ptrdiff_t manage_caching_sizes_second_if_negative(std::ptrdiff_t a, std::ptrdiff_t b)
+
+/** \internal \returns b if a<=0, and returns a otherwise. */
+inline std::ptrdiff_t manage_caching_sizes_helper(std::ptrdiff_t a, std::ptrdiff_t b)
 {
   return a<=0 ? b : a;
 }
@@ -38,9 +27,14 @@ inline std::ptrdiff_t manage_caching_sizes_second_if_negative(std::ptrdiff_t a, 
 /** \internal */
 inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdiff_t* l2=0)
 {
-  static std::ptrdiff_t m_l1CacheSize = manage_caching_sizes_second_if_negative(queryL1CacheSize(),8 * 1024);
-  static std::ptrdiff_t m_l2CacheSize = manage_caching_sizes_second_if_negative(queryTopLevelCacheSize(),1*1024*1024);
-
+  static std::ptrdiff_t m_l1CacheSize = 0;
+  static std::ptrdiff_t m_l2CacheSize = 0;
+  if(m_l2CacheSize==0)
+  {
+    m_l1CacheSize = manage_caching_sizes_helper(queryL1CacheSize(),8 * 1024);
+    m_l2CacheSize = manage_caching_sizes_helper(queryTopLevelCacheSize(),1*1024*1024);
+  }
+  
   if(action==SetAction)
   {
     // set the cpu cache size and cache all block sizes from a global cache size in byte
@@ -533,7 +527,7 @@ struct gebp_kernel
     ResPacketSize = Traits::ResPacketSize
   };
 
-  EIGEN_FLATTEN_ATTRIB
+  EIGEN_DONT_INLINE EIGEN_FLATTEN_ATTRIB
   void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index rows, Index depth, Index cols, ResScalar alpha,
                   Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0, RhsScalar* unpackedB = 0)
   {
@@ -595,64 +589,64 @@ struct gebp_kernel
           if(nr==2)
           {
             LhsPacket A0, A1;
-            RhsPacket B0;
+            RhsPacket B_0;
             RhsPacket T0;
             
 EIGEN_ASM_COMMENT("mybegin2");
             traits.loadLhs(&blA[0*LhsProgress], A0);
             traits.loadLhs(&blA[1*LhsProgress], A1);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[1*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[1*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
 
             traits.loadLhs(&blA[2*LhsProgress], A0);
             traits.loadLhs(&blA[3*LhsProgress], A1);
-            traits.loadRhs(&blB[2*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[3*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[2*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[3*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
 
             traits.loadLhs(&blA[4*LhsProgress], A0);
             traits.loadLhs(&blA[5*LhsProgress], A1);
-            traits.loadRhs(&blB[4*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[5*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[4*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[5*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
 
             traits.loadLhs(&blA[6*LhsProgress], A0);
             traits.loadLhs(&blA[7*LhsProgress], A1);
-            traits.loadRhs(&blB[6*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[7*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[6*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[7*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
 EIGEN_ASM_COMMENT("myend");
           }
           else
           {
 EIGEN_ASM_COMMENT("mybegin4");
             LhsPacket A0, A1;
-            RhsPacket B0, B1, B2, B3;
+            RhsPacket B_0, B1, B2, B3;
             RhsPacket T0;
             
             traits.loadLhs(&blA[0*LhsProgress], A0);
             traits.loadLhs(&blA[1*LhsProgress], A1);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            traits.madd(A0,B0,C0,T0);
+            traits.madd(A0,B_0,C0,T0);
             traits.loadRhs(&blB[2*RhsProgress], B2);
-            traits.madd(A1,B0,C4,B0);
+            traits.madd(A1,B_0,C4,B_0);
             traits.loadRhs(&blB[3*RhsProgress], B3);
-            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.loadRhs(&blB[4*RhsProgress], B_0);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
             traits.loadRhs(&blB[5*RhsProgress], B1);
@@ -664,9 +658,9 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.madd(A1,B3,C7,B3);
             traits.loadLhs(&blA[3*LhsProgress], A1);
             traits.loadRhs(&blB[7*RhsProgress], B3);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[8*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[8*RhsProgress], B_0);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
             traits.loadRhs(&blB[9*RhsProgress], B1);
@@ -679,9 +673,9 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.loadLhs(&blA[5*LhsProgress], A1);
             traits.loadRhs(&blB[11*RhsProgress], B3);
 
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[12*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[12*RhsProgress], B_0);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
             traits.loadRhs(&blB[13*RhsProgress], B1);
@@ -693,8 +687,8 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.madd(A1,B3,C7,B3);
             traits.loadLhs(&blA[7*LhsProgress], A1);
             traits.loadRhs(&blB[15*RhsProgress], B3);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
             traits.madd(A0,B2,C2,T0);
@@ -712,32 +706,32 @@ EIGEN_ASM_COMMENT("mybegin4");
           if(nr==2)
           {
             LhsPacket A0, A1;
-            RhsPacket B0;
+            RhsPacket B_0;
             RhsPacket T0;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
             traits.loadLhs(&blA[1*LhsProgress], A1);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[1*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[1*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
           }
           else
           {
             LhsPacket A0, A1;
-            RhsPacket B0, B1, B2, B3;
+            RhsPacket B_0, B1, B2, B3;
             RhsPacket T0;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
             traits.loadLhs(&blA[1*LhsProgress], A1);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            traits.madd(A0,B0,C0,T0);
+            traits.madd(A0,B_0,C0,T0);
             traits.loadRhs(&blB[2*RhsProgress], B2);
-            traits.madd(A1,B0,C4,B0);
+            traits.madd(A1,B_0,C4,B_0);
             traits.loadRhs(&blB[3*RhsProgress], B3);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
@@ -824,42 +818,42 @@ EIGEN_ASM_COMMENT("mybegin4");
           if(nr==2)
           {
             LhsPacket A0;
-            RhsPacket B0, B1;
+            RhsPacket B_0, B1;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[2*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[2*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadLhs(&blA[1*LhsProgress], A0);
             traits.loadRhs(&blB[3*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[4*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadLhs(&blA[2*LhsProgress], A0);
             traits.loadRhs(&blB[5*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[6*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[6*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadLhs(&blA[3*LhsProgress], A0);
             traits.loadRhs(&blB[7*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.madd(A0,B1,C1,B1);
           }
           else
           {
             LhsPacket A0;
-            RhsPacket B0, B1, B2, B3;
+            RhsPacket B_0, B1, B2, B3;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.loadRhs(&blB[2*RhsProgress], B2);
             traits.loadRhs(&blB[3*RhsProgress], B3);
-            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.loadRhs(&blB[4*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadRhs(&blB[5*RhsProgress], B1);
             traits.madd(A0,B2,C2,B2);
@@ -867,8 +861,8 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.madd(A0,B3,C3,B3);
             traits.loadLhs(&blA[1*LhsProgress], A0);
             traits.loadRhs(&blB[7*RhsProgress], B3);
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[8*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[8*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadRhs(&blB[9*RhsProgress], B1);
             traits.madd(A0,B2,C2,B2);
@@ -877,8 +871,8 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.loadLhs(&blA[2*LhsProgress], A0);
             traits.loadRhs(&blB[11*RhsProgress], B3);
 
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[12*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[12*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadRhs(&blB[13*RhsProgress], B1);
             traits.madd(A0,B2,C2,B2);
@@ -887,7 +881,7 @@ EIGEN_ASM_COMMENT("mybegin4");
 
             traits.loadLhs(&blA[3*LhsProgress], A0);
             traits.loadRhs(&blB[15*RhsProgress], B3);
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.madd(A0,B1,C1,B1);
             traits.madd(A0,B2,C2,B2);
             traits.madd(A0,B3,C3,B3);
@@ -902,26 +896,26 @@ EIGEN_ASM_COMMENT("mybegin4");
           if(nr==2)
           {
             LhsPacket A0;
-            RhsPacket B0, B1;
+            RhsPacket B_0, B1;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.madd(A0,B1,C1,B1);
           }
           else
           {
             LhsPacket A0;
-            RhsPacket B0, B1, B2, B3;
+            RhsPacket B_0, B1, B2, B3;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
             traits.loadRhs(&blB[2*RhsProgress], B2);
             traits.loadRhs(&blB[3*RhsProgress], B3);
 
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.madd(A0,B1,C1,B1);
             traits.madd(A0,B2,C2,B2);
             traits.madd(A0,B3,C3,B3);
@@ -968,26 +962,26 @@ EIGEN_ASM_COMMENT("mybegin4");
           if(nr==2)
           {
             LhsScalar A0;
-            RhsScalar B0, B1;
+            RhsScalar B_0, B1;
 
             A0 = blA[k];
-            B0 = blB[0];
+            B_0 = blB[0];
             B1 = blB[1];
-            MADD(cj,A0,B0,C0,B0);
+            MADD(cj,A0,B_0,C0,B_0);
             MADD(cj,A0,B1,C1,B1);
           }
           else
           {
             LhsScalar A0;
-            RhsScalar B0, B1, B2, B3;
+            RhsScalar B_0, B1, B2, B3;
 
             A0 = blA[k];
-            B0 = blB[0];
+            B_0 = blB[0];
             B1 = blB[1];
             B2 = blB[2];
             B3 = blB[3];
 
-            MADD(cj,A0,B0,C0,B0);
+            MADD(cj,A0,B_0,C0,B_0);
             MADD(cj,A0,B1,C1,B1);
             MADD(cj,A0,B2,C2,B2);
             MADD(cj,A0,B3,C3,B3);
@@ -1024,14 +1018,14 @@ EIGEN_ASM_COMMENT("mybegin4");
         for(Index k=0; k<depth; k++)
         {
           LhsPacket A0, A1;
-          RhsPacket B0;
+          RhsPacket B_0;
           RhsPacket T0;
 
           traits.loadLhs(&blA[0*LhsProgress], A0);
           traits.loadLhs(&blA[1*LhsProgress], A1);
-          traits.loadRhs(&blB[0*RhsProgress], B0);
-          traits.madd(A0,B0,C0,T0);
-          traits.madd(A1,B0,C4,B0);
+          traits.loadRhs(&blB[0*RhsProgress], B_0);
+          traits.madd(A0,B_0,C0,T0);
+          traits.madd(A1,B_0,C4,B_0);
 
           blB += RhsProgress;
           blA += 2*LhsProgress;
@@ -1063,10 +1057,10 @@ EIGEN_ASM_COMMENT("mybegin4");
         for(Index k=0; k<depth; k++)
         {
           LhsPacket A0;
-          RhsPacket B0;
+          RhsPacket B_0;
           traits.loadLhs(blA, A0);
-          traits.loadRhs(blB, B0);
-          traits.madd(A0, B0, C0, B0);
+          traits.loadRhs(blB, B_0);
+          traits.madd(A0, B_0, C0, B_0);
           blB += RhsProgress;
           blA += LhsProgress;
         }
@@ -1088,8 +1082,8 @@ EIGEN_ASM_COMMENT("mybegin4");
         for(Index k=0; k<depth; k++)
         {
           LhsScalar A0 = blA[k];
-          RhsScalar B0 = blB[k];
-          MADD(cj, A0, B0, C0, B0);
+          RhsScalar B_0 = blB[k];
+          MADD(cj, A0, B_0, C0, B_0);
         }
         res[(j2+0)*resStride + i] += alpha*C0;
       }
@@ -1100,7 +1094,7 @@ EIGEN_ASM_COMMENT("mybegin4");
 #undef CJMADD
 
 // pack a block of the lhs
-// The travesal is as follow (mr==4):
+// The traversal is as follow (mr==4):
 //   0  4  8 12 ...
 //   1  5  9 13 ...
 //   2  6 10 14 ...
@@ -1116,11 +1110,15 @@ EIGEN_ASM_COMMENT("mybegin4");
 template<typename Scalar, typename Index, int Pack1, int Pack2, int StorageOrder, bool Conjugate, bool PanelMode>
 struct gemm_pack_lhs
 {
-  void operator()(Scalar* blockA, const Scalar* EIGEN_RESTRICT _lhs, Index lhsStride, Index depth, Index rows,
+  EIGEN_DONT_INLINE void operator()(Scalar* blockA, const Scalar* EIGEN_RESTRICT _lhs, Index lhsStride, Index depth, Index rows,
                   Index stride=0, Index offset=0)
   {
-//     enum { PacketSize = packet_traits<Scalar>::size };
+    typedef typename packet_traits<Scalar>::type Packet;
+    enum { PacketSize = packet_traits<Scalar>::size };
+
+    EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK LHS");
     eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
+    eigen_assert( (StorageOrder==RowMajor) || ((Pack1%PacketSize)==0 && Pack1<=4*PacketSize) );
     conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     const_blas_data_mapper<Scalar, Index, StorageOrder> lhs(_lhs,lhsStride);
     Index count = 0;
@@ -1128,9 +1126,44 @@ struct gemm_pack_lhs
     for(Index i=0; i<peeled_mc; i+=Pack1)
     {
       if(PanelMode) count += Pack1 * offset;
-      for(Index k=0; k<depth; k++)
-        for(Index w=0; w<Pack1; w++)
-          blockA[count++] = cj(lhs(i+w, k));
+
+      if(StorageOrder==ColMajor)
+      {
+        for(Index k=0; k<depth; k++)
+        {
+          Packet A, B, C, D;
+          if(Pack1>=1*PacketSize) A = ploadu<Packet>(&lhs(i+0*PacketSize, k));
+          if(Pack1>=2*PacketSize) B = ploadu<Packet>(&lhs(i+1*PacketSize, k));
+          if(Pack1>=3*PacketSize) C = ploadu<Packet>(&lhs(i+2*PacketSize, k));
+          if(Pack1>=4*PacketSize) D = ploadu<Packet>(&lhs(i+3*PacketSize, k));
+          if(Pack1>=1*PacketSize) { pstore(blockA+count, cj.pconj(A)); count+=PacketSize; }
+          if(Pack1>=2*PacketSize) { pstore(blockA+count, cj.pconj(B)); count+=PacketSize; }
+          if(Pack1>=3*PacketSize) { pstore(blockA+count, cj.pconj(C)); count+=PacketSize; }
+          if(Pack1>=4*PacketSize) { pstore(blockA+count, cj.pconj(D)); count+=PacketSize; }
+        }
+      }
+      else
+      {
+        for(Index k=0; k<depth; k++)
+        {
+          // TODO add a vectorized transpose here
+          Index w=0;
+          for(; w<Pack1-3; w+=4)
+          {
+            Scalar a(cj(lhs(i+w+0, k))),
+                   b(cj(lhs(i+w+1, k))),
+                   c(cj(lhs(i+w+2, k))),
+                   d(cj(lhs(i+w+3, k)));
+            blockA[count++] = a;
+            blockA[count++] = b;
+            blockA[count++] = c;
+            blockA[count++] = d;
+          }
+          if(Pack1%4)
+            for(;w<Pack1;++w)
+              blockA[count++] = cj(lhs(i+w, k));
+        }
+      }
       if(PanelMode) count += Pack1 * (stride-offset-depth);
     }
     if(rows-peeled_mc>=Pack2)
@@ -1164,9 +1197,10 @@ struct gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, PanelMode>
 {
   typedef typename packet_traits<Scalar>::type Packet;
   enum { PacketSize = packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols,
+  EIGEN_DONT_INLINE void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols,
                   Index stride=0, Index offset=0)
   {
+    EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK RHS COLMAJOR");
     eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     Index packet_cols = (cols/nr) * nr;
@@ -1211,9 +1245,10 @@ template<typename Scalar, typename Index, int nr, bool Conjugate, bool PanelMode
 struct gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, PanelMode>
 {
   enum { PacketSize = packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols,
+  EIGEN_DONT_INLINE void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols,
                   Index stride=0, Index offset=0)
   {
+    EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK RHS ROWMAJOR");
     eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     Index packet_cols = (cols/nr) * nr;
@@ -1278,5 +1313,7 @@ inline void setCpuCacheSizes(std::ptrdiff_t l1, std::ptrdiff_t l2)
 {
   internal::manage_caching_sizes(SetAction, &l1, &l2);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_BLOCK_PANEL_H

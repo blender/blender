@@ -1,35 +1,19 @@
-
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
 // Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_MACROS_H
 #define EIGEN_MACROS_H
 
 #define EIGEN_WORLD_VERSION 3
-#define EIGEN_MAJOR_VERSION 0
-#define EIGEN_MINOR_VERSION 5
+#define EIGEN_MAJOR_VERSION 1
+#define EIGEN_MINOR_VERSION 1
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
@@ -235,12 +219,16 @@
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif
 
-#if (defined __GNUC__)
-#define EIGEN_DEPRECATED __attribute__((deprecated))
-#elif (defined _MSC_VER)
-#define EIGEN_DEPRECATED __declspec(deprecated)
+#ifndef EIGEN_NO_DEPRECATED_WARNING
+  #if (defined __GNUC__)
+    #define EIGEN_DEPRECATED __attribute__((deprecated))
+  #elif (defined _MSC_VER)
+    #define EIGEN_DEPRECATED __declspec(deprecated)
+  #else
+    #define EIGEN_DEPRECATED
+  #endif
 #else
-#define EIGEN_DEPRECATED
+  #define EIGEN_DEPRECATED
 #endif
 
 #if (defined __GNUC__)
@@ -252,7 +240,7 @@
 // Suppresses 'unused variable' warnings.
 #define EIGEN_UNUSED_VARIABLE(var) (void)var;
 
-#if (defined __GNUC__)
+#if !defined(EIGEN_ASM_COMMENT) && (defined __GNUC__)
 #define EIGEN_ASM_COMMENT(X)  asm("#" X)
 #else
 #define EIGEN_ASM_COMMENT(X)
@@ -265,7 +253,7 @@
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
-#if (defined __GNUC__) || (defined __PGI) || (defined __IBMCPP__)
+#if (defined __GNUC__) || (defined __PGI) || (defined __IBMCPP__) || (defined __ARMCC_VERSION)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #elif (defined _MSC_VER)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))

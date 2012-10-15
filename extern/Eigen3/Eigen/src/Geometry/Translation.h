@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_TRANSLATION_H
 #define EIGEN_TRANSLATION_H
+
+namespace Eigen { 
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -54,6 +41,8 @@ public:
   typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
   /** corresponding affine transformation type */
   typedef Transform<Scalar,Dim,Affine> AffineTransformType;
+  /** corresponding isometric transformation type */
+  typedef Transform<Scalar,Dim,Isometry> IsometryTransformType;
 
 protected:
 
@@ -114,8 +103,8 @@ public:
 
   /** Concatenates a translation and a rotation */
   template<typename Derived>
-  inline AffineTransformType operator*(const RotationBase<Derived,Dim>& r) const
-  { return *this * r.toRotationMatrix(); }
+  inline IsometryTransformType operator*(const RotationBase<Derived,Dim>& r) const
+  { return *this * IsometryTransformType(r); }
 
   /** \returns the concatenation of a linear transformation \a l with the translation \a t */
   // its a nightmare to define a templated friend function outside its declaration
@@ -211,5 +200,7 @@ Translation<Scalar,Dim>::operator* (const EigenBase<OtherDerived>& linear) const
   res(Dim,Dim) = Scalar(1);
   return res;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRANSLATION_H

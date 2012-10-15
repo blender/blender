@@ -7,8 +7,6 @@
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
-namespace Eigen {
-
 /** \defgroup SVD_Module SVD module
   *
   *
@@ -24,13 +22,14 @@ namespace Eigen {
 
 #include "src/misc/Solve.h"
 #include "src/SVD/JacobiSVD.h"
+#if defined(EIGEN_USE_LAPACKE) && !defined(EIGEN_USE_LAPACKE_STRICT)
+#include "src/SVD/JacobiSVD_MKL.h"
+#endif
 #include "src/SVD/UpperBidiagonalization.h"
 
 #ifdef EIGEN2_SUPPORT
 #include "src/Eigen2Support/SVD.h"
 #endif
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

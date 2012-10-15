@@ -5,27 +5,14 @@
 // Copyright (C) 2009 Ricard Marxer <email@ricardmarxer.com>
 // Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_REVERSE_H
 #define EIGEN_REVERSE_H
+
+namespace Eigen { 
 
 /** \class Reverse
   * \ingroup Core_Module
@@ -183,8 +170,14 @@ template<typename MatrixType, int Direction> class Reverse
       m_matrix.const_cast_derived().template writePacket<LoadMode>(m_matrix.size() - index - PacketSize, internal::preverse(x));
     }
 
+    const typename internal::remove_all<typename MatrixType::Nested>::type& 
+    nestedExpression() const 
+    {
+      return m_matrix;
+    }
+
   protected:
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
 };
 
 /** \returns an expression of the reverse of *this.
@@ -226,5 +219,6 @@ inline void DenseBase<Derived>::reverseInPlace()
   derived() = derived().reverse().eval();
 }
 
+} // end namespace Eigen
 
 #endif // EIGEN_REVERSE_H

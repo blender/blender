@@ -4,27 +4,14 @@
 // Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_META_H
 #define EIGEN_META_H
+
+namespace Eigen {
 
 namespace internal {
 
@@ -80,8 +67,6 @@ template<> struct is_arithmetic<signed int>    { enum { value = true }; };
 template<> struct is_arithmetic<unsigned int>  { enum { value = true }; };
 template<> struct is_arithmetic<signed long>   { enum { value = true }; };
 template<> struct is_arithmetic<unsigned long> { enum { value = true }; };
-template<> struct is_arithmetic<signed long long>   { enum { value = true }; };
-template<> struct is_arithmetic<unsigned long long> { enum { value = true }; };
 
 template <typename T> struct add_const { typedef const T type; };
 template <typename T> struct add_const<T&> { typedef T& type; };
@@ -102,6 +87,21 @@ template<bool Condition, typename T> struct enable_if;
 
 template<typename T> struct enable_if<true,T>
 { typedef T type; };
+
+
+
+/** \internal
+  * A base class do disable default copy ctor and copy assignement operator.
+  */
+class noncopyable
+{
+  noncopyable(const noncopyable&);
+  const noncopyable& operator=(const noncopyable&);
+protected:
+  noncopyable() {}
+  ~noncopyable() {}
+};
+
 
 /** \internal
   * Convenient struct to get the result type of a unary or binary functor.
@@ -225,5 +225,7 @@ template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 { enum { ret = true }; };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_META_H

@@ -1,0 +1,23 @@
+#ifndef EIGEN_ORDERINGMETHODS_MODULE_H
+#define EIGEN_ORDERINGMETHODS_MODULE_H
+
+#include "SparseCore"
+
+#include "src/Core/util/DisableStupidWarnings.h"
+
+/** \ingroup Sparse_modules
+  * \defgroup OrderingMethods_Module OrderingMethods module
+  *
+  * This module is currently for internal use only.
+  *
+  *
+  * \code
+  * #include <Eigen/OrderingMethods>
+  * \endcode
+  */
+
+#include "src/OrderingMethods/Amd.h"
+
+#include "src/Core/util/ReenableStupidWarnings.h"
+
+#endif // EIGEN_ORDERINGMETHODS_MODULE_H

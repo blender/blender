@@ -4,27 +4,14 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_PARAMETRIZEDLINE_H
 #define EIGEN_PARAMETRIZEDLINE_H
+
+namespace Eigen { 
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -106,8 +93,16 @@ public:
   VectorType projection(const VectorType& p) const
   { return origin() + direction().dot(p-origin()) * direction(); }
 
+  VectorType pointAt( Scalar t ) const;
+  
+  template <int OtherOptions>
+  Scalar intersectionParameter(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const;
+ 
   template <int OtherOptions>
   Scalar intersection(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const;
+  
+  template <int OtherOptions>
+  VectorType intersectionPoint(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const;
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
@@ -155,14 +150,46 @@ inline ParametrizedLine<_Scalar, _AmbientDim,_Options>::ParametrizedLine(const H
   origin() = -hyperplane.normal()*hyperplane.offset();
 }
 
-/** \returns the parameter value of the intersection between \c *this and the given hyperplane
+/** \returns the point at \a t along this line
+  */
+template <typename _Scalar, int _AmbientDim, int _Options>
+inline typename ParametrizedLine<_Scalar, _AmbientDim,_Options>::VectorType
+ParametrizedLine<_Scalar, _AmbientDim,_Options>::pointAt( _Scalar t ) const
+{
+  return origin() + (direction()*t); 
+}
+
+/** \returns the parameter value of the intersection between \c *this and the given \a hyperplane
+  */
+template <typename _Scalar, int _AmbientDim, int _Options>
+template <int OtherOptions>
+inline _Scalar ParametrizedLine<_Scalar, _AmbientDim,_Options>::intersectionParameter(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const
+{
+  return -(hyperplane.offset()+hyperplane.normal().dot(origin()))
+          / hyperplane.normal().dot(direction());
+}
+
+
+/** \deprecated use intersectionParameter()
+  * \returns the parameter value of the intersection between \c *this and the given \a hyperplane
   */
 template <typename _Scalar, int _AmbientDim, int _Options>
 template <int OtherOptions>
 inline _Scalar ParametrizedLine<_Scalar, _AmbientDim,_Options>::intersection(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const
 {
-  return -(hyperplane.offset()+hyperplane.normal().dot(origin()))
-          / hyperplane.normal().dot(direction());
+  return intersectionParameter(hyperplane);
 }
+
+/** \returns the point of the intersection between \c *this and the given hyperplane
+  */
+template <typename _Scalar, int _AmbientDim, int _Options>
+template <int OtherOptions>
+inline typename ParametrizedLine<_Scalar, _AmbientDim,_Options>::VectorType
+ParametrizedLine<_Scalar, _AmbientDim,_Options>::intersectionPoint(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const
+{
+  return pointAt(intersectionParameter(hyperplane));
+}
+
+} // end namespace Eigen
 
 #endif // EIGEN_PARAMETRIZEDLINE_H
