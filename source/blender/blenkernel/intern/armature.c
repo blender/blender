@@ -1425,19 +1425,20 @@ void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float
  * *************************************************************************** */
 /* Computes vector and roll based on a rotation.
  * "mat" must contain only a rotation, and no scaling. */
-void mat3_to_vec_roll(float mat[][3], float vec[3], float *roll)
+void mat3_to_vec_roll(float mat[][3], float r_vec[3], float *r_roll)
 {
-	if (vec)
-		copy_v3_v3(vec, mat[1]);
+	if (r_vec) {
+		copy_v3_v3(r_vec, mat[1]);
+	}
 
-	if (roll) {
+	if (r_roll) {
 		float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
 
 		vec_roll_to_mat3(mat[1], 0.0f, vecmat);
 		invert_m3_m3(vecmatinv, vecmat);
 		mul_m3_m3m3(rollmat, vecmatinv, mat);
 
-		*roll = (float)atan2(rollmat[2][0], rollmat[2][2]);
+		*r_roll = atan2f(rollmat[2][0], rollmat[2][2]);
 	}
 }
 

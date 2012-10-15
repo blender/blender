@@ -64,19 +64,19 @@
 #include "BKE_deform.h"
 
 
-void calc_lat_fudu(int flag, int res, float *fu, float *du)
+void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du)
 {
 	if (res == 1) {
-		*fu = 0.0;
-		*du = 0.0;
+		*r_fu = 0.0;
+		*r_du = 0.0;
 	}
 	else if (flag & LT_GRID) {
-		*fu = -0.5f * (res - 1);
-		*du = 1.0f;
+		*r_fu = -0.5f * (res - 1);
+		*r_du = 1.0f;
 	}
 	else {
-		*fu = -1.0f;
-		*du = 2.0f / (res - 1);
+		*r_fu = -1.0f;
+		*r_du = 2.0f / (res - 1);
 	}
 }
 

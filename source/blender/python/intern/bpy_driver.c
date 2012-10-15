@@ -280,7 +280,7 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 	}
 
 
-#if 0 // slow, with this can avoid all Py_CompileString above.
+#if 0  /* slow, with this can avoid all Py_CompileString above. */
 	/* execute expression to get a value */
 	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict, driver_vars);
 #else

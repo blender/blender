@@ -108,7 +108,7 @@ void BKE_nurb_free(struct Nurb *nu);
 struct Nurb *BKE_nurb_duplicate(struct Nurb *nu);
 
 void BKE_nurb_test2D(struct Nurb *nu);
-void BKE_nurb_minmax(struct Nurb *nu, float *min, float *max);
+void BKE_nurb_minmax(struct Nurb *nu, float min[3], float max[3]);
 
 void BKE_nurb_makeFaces(struct Nurb *nu, float *coord_array, int rowstride, int resolu, int resolv);
 void BKE_nurb_makeCurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array, int resolu, int stride);

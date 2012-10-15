@@ -69,7 +69,7 @@ typedef struct SunSky {
 	float atm_BetaRM[3];
 } SunSky;
 
-void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_brightness, 
+void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float horizon_brightness,
                 float spread, float sun_brightness, float sun_size, float back_scatter,
                 float skyblendfac, short skyblendtype, float sky_exposure, float sky_colorspace);
 

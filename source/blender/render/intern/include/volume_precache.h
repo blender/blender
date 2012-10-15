@@ -30,8 +30,8 @@
  */
 
 
-void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float *bbmin, float *bbmax);
-int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float *co);
+void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float bbmin[3], float bbmax[3]);
+int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, const float co[3]);
 
 void volume_precache(Render *re);
 void free_volume_precache(Render *re);

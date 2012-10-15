@@ -233,7 +233,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	}
 
 #if 0
-	//a bit of cleaner code that, alas, doens't work.
+	/* a bit of cleaner code that, alas, doens't work. */
 	/* build edge tag */
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e->v1, BEVEL_FLAG) || BMO_elem_flag_test(bm, e->v2, BEVEL_FLAG)) {

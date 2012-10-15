@@ -810,7 +810,7 @@ static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 {
 #ifdef USE_BMESH_HOLES
-	return bmesh_loop_reverse_loop(bm, f, f->loops.first);
+	return bm_loop_reverse_loop(bm, f, f->loops.first);
 #else
 	return bm_loop_reverse_loop(bm, f);
 #endif
@@ -1186,13 +1186,15 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 {
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst, *lst2;
+#else
+	int first_loop_f1;
 #endif
 
 	BMFace *f2;
 	BMLoop *l_iter, *l_first;
 	BMLoop *v1loop = NULL, *v2loop = NULL, *f1loop = NULL, *f2loop = NULL;
 	BMEdge *e;
-	int i, len, f1len, f2len, first_loop_f1;
+	int i, len, f1len, f2len;
 
 	/* verify that v1 and v2 are in face */
 	len = f->len;

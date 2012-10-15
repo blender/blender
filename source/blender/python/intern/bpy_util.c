@@ -81,7 +81,7 @@ short BPy_reports_to_error(ReportList *reports, PyObject *exception, const short
 short BPy_errors_to_report(ReportList *reports)
 {
 	PyObject *pystring;
-	PyObject *pystring_format = NULL; // workaround, see below
+	PyObject *pystring_format = NULL;  /* workaround, see below */
 	char *cstring;
 
 	const char *filename;
@@ -110,17 +110,18 @@ short BPy_errors_to_report(ReportList *reports)
 	
 	cstring = _PyUnicode_AsString(pystring);
 
-#if 0 // ARG!. workaround for a bug in blenders use of vsnprintf
+#if 0 /* ARG!. workaround for a bug in blenders use of vsnprintf */
 	BKE_reportf(reports, RPT_ERROR, "%s\nlocation:%s:%d\n", cstring, filename, lineno);
 #else
 	pystring_format = PyUnicode_FromFormat(TIP_("%s\nlocation:%s:%d\n"), cstring, filename, lineno);
 	cstring = _PyUnicode_AsString(pystring_format);
 	BKE_report(reports, RPT_ERROR, cstring);
 #endif
-	
-	fprintf(stderr, TIP_("%s\nlocation:%s:%d\n"), cstring, filename, lineno); // not exactly needed. just for testing
-	
+
+	/* not exactly needed. just for testing */
+	fprintf(stderr, TIP_("%s\nlocation:%s:%d\n"), cstring, filename, lineno);
+
 	Py_DECREF(pystring);
-	Py_DECREF(pystring_format); // workaround
+	Py_DECREF(pystring_format);  /* workaround */
 	return 1;
 }
