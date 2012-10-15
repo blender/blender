@@ -1668,7 +1668,7 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.menu("VIEW3D_MT_uv_map", text="UV Unwrap...")
 
         layout.separator()
-
+        layout.operator("mesh.symmetrize")
         layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
         layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         layout.operator("mesh.duplicate_move")
@@ -1719,6 +1719,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator("mesh.shape_propagate_to_all")
         layout.operator("mesh.select_vertex_path")
         layout.operator("mesh.sort_elements")
+        layout.operator("mesh.symmetrize")
 
 
 class VIEW3D_MT_edit_mesh_select_mode(Menu):

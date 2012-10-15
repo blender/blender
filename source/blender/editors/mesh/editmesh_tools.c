@@ -41,6 +41,7 @@
 #include "RNA_define.h"
 #include "RNA_access.h"
 
+#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_noise.h"
 #include "BLI_math.h"
@@ -50,6 +51,7 @@
 #include "BKE_context.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_depsgraph.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
@@ -5392,4 +5394,55 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 	                "Merge adjacent triangles into quads");
 
 	join_triangle_props(ot);
+}
+
+static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+
+	EDBM_op_init(em, &bmop, op, "symmetrize input=%hvef direction=%i",
+				 BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"));
+	BMO_op_exec(em->bm, &bmop);
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		EDBM_update_generic(C, em, TRUE);
+		EDBM_selectmode_flush(em);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_symmetrize(struct wmOperatorType *ot)
+{
+	static EnumPropertyItem direction_items[] = {
+		{BMO_SYMMETRIZE_NEGATIVE_X, "NEGATIVE_X", 0, "-X to +X", ""},
+		{BMO_SYMMETRIZE_POSITIVE_X, "POSITIVE_X", 0, "+X to -X", ""},
+
+		{BMO_SYMMETRIZE_NEGATIVE_Y, "NEGATIVE_Y", 0, "-Y to +Y", ""},
+		{BMO_SYMMETRIZE_POSITIVE_Y, "POSITIVE_Y", 0, "+Y to -Y", ""},
+
+		{BMO_SYMMETRIZE_NEGATIVE_Z, "NEGATIVE_Z", 0, "-Z to +Z", ""},
+		{BMO_SYMMETRIZE_POSITIVE_Z, "POSITIVE_Z", 0, "+Z to -Z", ""},
+		{0, NULL, 0, NULL, NULL},
+	};
+
+	/* identifiers */
+	ot->name = "Symmetrize";
+	ot->description = "Enforce symmetry (both form and topological) across an axis";
+	ot->idname = "MESH_OT_symmetrize";
+
+	/* api callbacks */
+	ot->exec = mesh_symmetrize_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	ot->prop = RNA_def_enum(ot->srna, "direction", direction_items,
+							BMO_SYMMETRIZE_NEGATIVE_X,
+							"Direction", "Which sides to copy from and to");
 }

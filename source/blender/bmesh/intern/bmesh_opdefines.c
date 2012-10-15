@@ -1182,6 +1182,29 @@ static BMOpDefine bmo_convex_hull_def = {
 	0
 };
 
+/*
+ * Symmetrize
+ *
+ * Mekes the mesh elements in the "input" slot symmetrical. Unlike
+ * normal mirroring, it only copies in one direction, as specified by
+ * the "direction" slot. The edges and faces that cross the plane of
+ * symmetry are split as needed to enforce symmetry.
+ *
+ * All new vertices, edges, and faces are added to the "geomout" slot.
+ */
+static BMOpDefine bmo_symmetrize_def = {
+	"symmetrize",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "input"},
+	 {BMO_OP_SLOT_INT, "direction"},
+
+	 /* Outputs */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"},
+
+	 {0} /* null-terminating sentinel */},
+	bmo_symmetrize_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&bmo_automerge_def,
 	&bmo_average_vert_facedata_def,
@@ -1246,6 +1269,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_split_def,
 	&bmo_split_edges_def,
 	&bmo_subdivide_edges_def,
+	&bmo_symmetrize_def,
 	&bmo_transform_def,
 	&bmo_translate_def,
 	&bmo_triangle_fill_def,
