@@ -99,6 +99,7 @@ static pthread_mutex_t processor_lock = BLI_MUTEX_INITIALIZER;
 typedef struct ColormanageProcessor {
 	OCIO_ConstProcessorRcPtr *processor;
 	CurveMapping *curve_mapping;
+	int is_data_result;
 } ColormanageProcessor;
 
 /*********************** Color managed cache *************************/
@@ -1207,6 +1208,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 
 	int predivide = handle->predivide;
 	int is_data = handle->is_data;
+	int is_data_display = handle->cm_processor->is_data_result;
 
 	linear_buffer = MEM_callocN(buffer_size * sizeof(float), "color conversion linear buffer");
 
@@ -1228,7 +1230,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 			*fp = (float)(*cp) / 255.0f;
 		}
 
-		if (!is_data) {
+		if (!is_data && !is_data_display) {
 			/* convert float buffer to scene linear space */
 			IMB_colormanagement_transform(linear_buffer, width, height, channels,
 			                              from_colorspace, to_colorspace, predivide);
@@ -2347,7 +2349,6 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 			}
 			else if (byte_buffer) {
 				rgba_uchar_to_float(pixel, byte_buffer + linear_index);
-
 				IMB_colormanagement_colorspace_to_scene_linear_v3(pixel, rect_colorspace);
 			}
 
@@ -2449,28 +2450,29 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
                                                                 const ColorManagedDisplaySettings *display_settings)
 {
 	ColormanageProcessor *cm_processor;
+	ColorManagedViewSettings default_view_settings;
+	const ColorManagedViewSettings *applied_view_settings;
+	ColorSpace *display_space;
 
 	cm_processor = MEM_callocN(sizeof(ColormanageProcessor), "colormanagement processor");
 
-	{
-		ColorManagedViewSettings default_view_settings;
-		const ColorManagedViewSettings *applied_view_settings;
+	if (view_settings) {
+		applied_view_settings = view_settings;
+	}
+	else {
+		init_default_view_settings(display_settings,  &default_view_settings);
+		applied_view_settings = &default_view_settings;
+	}
 
-		if (view_settings) {
-			applied_view_settings = view_settings;
-		}
-		else {
-			init_default_view_settings(display_settings,  &default_view_settings);
-			applied_view_settings = &default_view_settings;
-		}
+	display_space =  display_transform_get_colorspace(applied_view_settings, display_settings);
+	cm_processor->is_data_result = display_space->is_data;
 
-		cm_processor->processor = create_display_buffer_processor(applied_view_settings->view_transform, display_settings->display_device,
-		                                                          applied_view_settings->exposure, applied_view_settings->gamma);
+	cm_processor->processor = create_display_buffer_processor(applied_view_settings->view_transform, display_settings->display_device,
+	                                                          applied_view_settings->exposure, applied_view_settings->gamma);
 
-		if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
-			cm_processor->curve_mapping = curvemapping_copy(applied_view_settings->curve_mapping);
-			curvemapping_premultiply(cm_processor->curve_mapping, FALSE);
-		}
+	if (applied_view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
+		cm_processor->curve_mapping = curvemapping_copy(applied_view_settings->curve_mapping);
+		curvemapping_premultiply(cm_processor->curve_mapping, FALSE);
 	}
 
 	return cm_processor;
@@ -2479,8 +2481,12 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *from_colorspace, const char *to_colorspace)
 {
 	ColormanageProcessor *cm_processor;
+	ColorSpace *color_space;
 
 	cm_processor = MEM_callocN(sizeof(ColormanageProcessor), "colormanagement processor");
+
+	color_space = colormanage_colorspace_get_named(to_colorspace);
+	cm_processor->is_data_result = color_space->is_data;
 
 	cm_processor->processor = create_colorspace_transform_processor(from_colorspace, to_colorspace);
 
