@@ -1399,7 +1399,7 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove Bone Group";
 	ot->idname = "POSE_OT_group_remove";
-	ot->description = "Removes the active bone group";
+	ot->description = "Remove the active bone group";
 	
 	/* api callbacks */
 	ot->exec = pose_group_remove_exec;

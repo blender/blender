@@ -165,7 +165,6 @@ class DOPESHEET_MT_view(Menu):
         layout.operator("action.previewrange_set")
 
         layout.separator()
-        layout.operator("action.frame_jump")
         layout.operator("action.view_all")
         layout.operator("action.view_selected")
 
@@ -275,6 +274,9 @@ class DOPESHEET_MT_key(Menu):
         layout.separator()
         layout.operator("action.keyframe_insert")
 
+        layout.separator()
+        layout.operator("action.frame_jump")        
+        
         layout.separator()
         layout.operator("action.duplicate_move")
         layout.operator("action.delete")

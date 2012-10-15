@@ -1353,9 +1353,9 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_frame_jump(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Jump to Frame";
+	ot->name = "Jump to Keyframes";
 	ot->idname = "ACTION_OT_frame_jump";
-	ot->description = "Set the current frame to the average frame of the selected keyframes";
+	ot->description = "Set the current frame to the average frame value of selected keyframes";
 	
 	/* api callbacks */
 	ot->exec = actkeys_framejump_exec;

@@ -1808,9 +1808,9 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_frame_jump(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Jump to Frame";
+	ot->name = "Jump to Keyframes";
 	ot->idname = "GRAPH_OT_frame_jump";
-	ot->description = "Set the current frame to the average frame of the selected keyframes";
+	ot->description = "Place the cursor on the midpoint of selected keyframes";
 	
 	/* api callbacks */
 	ot->exec = graphkeys_framejump_exec;
