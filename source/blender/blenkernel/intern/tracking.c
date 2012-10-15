@@ -631,7 +631,7 @@ void BKE_tracking_track_path_clear(MovieTrackingTrack *track, int ref_frame, int
 	}
 }
 
-void BKE_tracking_tracks_join(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
+void BKE_tracking_tracks_join(MovieTracking *tracking, MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
 	int i = 0, a = 0, b = 0, tot;
 	MovieTrackingMarker *markers;
@@ -734,6 +734,8 @@ void BKE_tracking_tracks_join(MovieTrackingTrack *dst_track, MovieTrackingTrack 
 	dst_track->markersnr = i;
 
 	MEM_freeN(markers);
+
+	BKE_tracking_dopesheet_tag_update(tracking);
 }
 
 MovieTrackingTrack *BKE_tracking_track_get_named(MovieTracking *tracking, MovieTrackingObject *object, const char *name)

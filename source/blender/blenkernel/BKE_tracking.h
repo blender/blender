@@ -80,7 +80,7 @@ int BKE_tracking_track_has_marker_at_frame(struct MovieTrackingTrack *track, int
 int BKE_tracking_track_has_enabled_marker_at_frame(struct MovieTrackingTrack *track, int framenr);
 
 void BKE_tracking_track_path_clear(struct MovieTrackingTrack *track, int ref_frame, int action);
-void BKE_tracking_tracks_join(struct MovieTrackingTrack *dst_track, struct MovieTrackingTrack *src_track);
+void BKE_tracking_tracks_join(struct MovieTracking *tracking, struct MovieTrackingTrack *dst_track, struct MovieTrackingTrack *src_track);
 
 struct MovieTrackingTrack *BKE_tracking_track_get_named(struct MovieTracking *tracking,
                                                         struct MovieTrackingObject *object,

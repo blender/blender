@@ -2766,7 +2766,7 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 		next = track->next;
 
 		if (TRACK_VIEW_SELECTED(sc, track) && track != act_track) {
-			BKE_tracking_tracks_join(act_track, track);
+			BKE_tracking_tracks_join(tracking, act_track, track);
 
 			if (tracking->stabilization.rot_track == track)
 				tracking->stabilization.rot_track = act_track;
