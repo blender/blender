@@ -2492,13 +2492,16 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 							break;
 						
 						if (efa_index != vlist_iter->f) {
+							BMLoop *l_other;
 							efa_vlist = EDBM_face_at_index(em, vlist_iter->f);
 							/* tf_vlist = CustomData_bmesh_get(&em->bm->pdata, efa_vlist->head.data, CD_MTEXPOLY); */ /* UNUSED */
 							
+							l_other = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex);
+
 							if (select)
-								uvedit_uv_select_enable(em, scene, BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex), FALSE);
+								uvedit_uv_select_enable(em, scene, l_other, FALSE);
 							else
-								uvedit_uv_select_disable(em, scene, BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex));
+								uvedit_uv_select_disable(em, scene, l_other);
 						}
 						vlist_iter = vlist_iter->next;
 					}

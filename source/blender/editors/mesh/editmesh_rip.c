@@ -387,6 +387,11 @@ static void edbm_ripsel_deselect_helper(BMesh *bm, EdgeLoopPair *eloop_pairs,
 /**
  * return an un-ordered array of loop pairs
  * use for rebuilding face-fill
+ *
+ * \note the method currenly used fails for edges with 3+ face users and gives
+ *       nasty holes in the mesh, there isnt a good way of knowing ahead of time
+ *       which loops will be split apart (its possible to figure out but quite involved).
+ *       So for now this is a known limitation of current rip-fill option.
  */
 
 typedef struct UnorderedLoopPair {
@@ -562,7 +567,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
 
 	/* find selected vert - same some time and check history first */
-	if (BM_select_history_active_get(em->bm, &ese) && ese.htype == BM_VERT) {
+	if (BM_select_history_active_get(bm, &ese) && ese.htype == BM_VERT) {
 		v = (BMVert *)ese.ele;
 	}
 	else {
@@ -669,7 +674,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			int vi_best = 0;
 
 			if (ese.ele) {
-				BM_select_history_remove(em->bm, ese.ele);
+				BM_select_history_remove(bm, ese.ele);
 			}
 
 			dist = FLT_MAX;
@@ -717,7 +722,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 			BM_vert_select_set(bm, v, TRUE);
 
 			if (ese.ele) {
-				BM_select_history_store(em->bm, v);
+				BM_select_history_store(bm, v);
 			}
 
 			/* splice all others back together */
@@ -806,7 +811,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		float scale;
 
 		dist = FLT_MAX;
-		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
 				/* disable by default, re-enable winner at end */
 				BM_vert_select_set(bm, v, FALSE);
@@ -836,7 +841,7 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, wmEvent *event)
 		if (v_best) {
 			BM_vert_select_set(bm, v_best, TRUE);
 			if (ese.ele) {
-				BM_select_history_store(em->bm, v_best);
+				BM_select_history_store(bm, v_best);
 			}
 		}
 	}
@@ -997,7 +1002,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int ret;
 
 	/* running in face mode hardly makes sense, so convert to region loop and rip */
-	if (em->bm->totfacesel) {
+	if (bm->totfacesel) {
 		/* highly nifty but hard to support since the operator can fail and we're left
 		 * with modified selection */
 		// WM_operator_name_call(C, "MESH_OT_region_to_loop", WM_OP_INVOKE_DEFAULT, NULL);
@@ -1017,7 +1022,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	 */
 
 	/* BM_ELEM_SELECT --> BM_ELEM_TAG */
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
 	}
 
