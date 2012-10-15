@@ -110,6 +110,7 @@ static const char *locales[] = {
 	"portuguese-brazilian", "pt_BR",
 	"hebrew", "he_IL",
 	"estonian", "et_EE",
+	"esperanto", "eo", /* No country code for esperanto! ;) */
 };
 
 void BLF_lang_init(void)
