@@ -423,29 +423,92 @@ void OBJECT_OT_proxy_make(wmOperatorType *ot)
 
 /********************** Clear Parent Operator ******************* */
 
+typedef enum eObClearParentTypes {
+	CLEAR_PARENT_ALL = 0,
+	CLEAR_PARENT_KEEP_TRANSFORM,
+	CLEAR_PARENT_INVERSE
+} eObClearParentTypes;
+
 EnumPropertyItem prop_clear_parent_types[] = {
-	{0, "CLEAR", 0, "Clear Parent", ""},
-	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation", ""},
-	{2, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
+	{CLEAR_PARENT_ALL, "CLEAR", 0, "Clear Parent", ""},
+	{CLEAR_PARENT_KEEP_TRANSFORM, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation", ""},
+	{CLEAR_PARENT_INVERSE, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
+/* Helper for ED_object_parent_clear() - Remove deform-modifiers associated with parent */
+static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
+{
+	if (ELEM3(par->type, OB_ARMATURE, OB_LATTICE, OB_CURVE)) {
+		ModifierData *md, *mdn;
+		
+		/* assume that we only need to remove the first instance of matching deform modifier here */
+		for (md = ob->modifiers.first; md; md = mdn) {
+			short free = FALSE;
+			
+			mdn = md->next;
+			
+			/* need to match types (modifier + parent) and references */
+			if ((md->type == eModifierType_Armature) && (par->type == OB_ARMATURE)) {
+				ArmatureModifierData *amd = (ArmatureModifierData *)md;
+				if (amd->object == par) {
+					free = TRUE;
+				}
+			}
+			else if ((md->type == eModifierType_Lattice) && (par->type == OB_LATTICE)) {
+				LatticeModifierData *lmd = (LatticeModifierData *)md;
+				if (lmd->object == par) {
+					free = TRUE;
+				}
+			}
+			else if ((md->type == eModifierType_Curve) && (par->type == OB_CURVE)) {
+				CurveModifierData *cmd = (CurveModifierData *)md;
+				if (cmd->object == par) {
+					free = TRUE;
+				}
+			}
+			
+			/* free modifier if match */
+			if (free) {
+				BLI_remlink(&ob->modifiers, md);
+				modifier_free(md);
+			}
+		}
+	}
+}
+
 void ED_object_parent_clear(Object *ob, int type)
 {
-
 	if (ob->parent == NULL)
 		return;
+	
+	switch (type) {
+		case CLEAR_PARENT_ALL:
+		{
+			/* for deformers, remove corresponding modifiers to prevent a large number of modifiers building up */
+			object_remove_parent_deform_modifiers(ob, ob->parent);
+			
+			/* clear parenting relationship completely */
+			ob->parent = NULL;
+		}
+		break;
 		
-	if (type == 0) {
-		ob->parent = NULL;
-	}
-	else if (type == 1) {
-		ob->parent = NULL;
-		BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
-	}
-	else if (type == 2)
-		unit_m4(ob->parentinv);
+		case CLEAR_PARENT_KEEP_TRANSFORM:
+		{
+			/* remove parent, and apply the parented transform result as object's local transforms */
+			ob->parent = NULL;
+			BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
+		}
+		break;
 		
+		case CLEAR_PARENT_INVERSE:
+		{
+			/* object stays parented, but the parent inverse (i.e. offset from parent to retain binding state) is cleared */
+			unit_m4(ob->parentinv);
+		}
+		break;
+	}
+	
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 }
 
