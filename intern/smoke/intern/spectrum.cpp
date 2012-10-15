@@ -35,13 +35,14 @@
 
 #include <stdio.h>
 #include <math.h>
+#include "spectrum.h"
 
 /* A colour system is defined by the CIE x and y coordinates of
    its three primary illuminants and the x and y coordinates of
    the white point. */
 
 struct colourSystem {
-    char *name;     	    	    /* Colour system name */
+    const char *name;        	    /* Colour system name */
     double xRed, yRed,	    	    /* Red x, y */
            xGreen, yGreen,  	    /* Green x, y */
            xBlue, yBlue,    	    /* Blue x, y */
@@ -68,12 +69,18 @@ struct colourSystem {
 
 static struct colourSystem
                   /* Name                  xRed    yRed    xGreen  yGreen  xBlue  yBlue    White point        Gamma   */
+#if 0 /* UNUSED */
     NTSCsystem  =  { "NTSC",               0.67,   0.33,   0.21,   0.71,   0.14,   0.08,   IlluminantC,    GAMMA_REC709 },
     EBUsystem   =  { "EBU (PAL/SECAM)",    0.64,   0.33,   0.29,   0.60,   0.15,   0.06,   IlluminantD65,  GAMMA_REC709 },
     SMPTEsystem =  { "SMPTE",              0.630,  0.340,  0.310,  0.595,  0.155,  0.070,  IlluminantD65,  GAMMA_REC709 },
     HDTVsystem  =  { "HDTV",               0.670,  0.330,  0.210,  0.710,  0.150,  0.060,  IlluminantD65,  GAMMA_REC709 },
-    CIEsystem   =  { "CIE",                0.7355, 0.2645, 0.2658, 0.7243, 0.1669, 0.0085, IlluminantE,    GAMMA_REC709 },
+#endif
+
+    CIEsystem   =  { "CIE",                0.7355, 0.2645, 0.2658, 0.7243, 0.1669, 0.0085, IlluminantE,    GAMMA_REC709 };
+
+#if 0 /* UNUSED */
     Rec709system = { "CIE REC 709",        0.64,   0.33,   0.30,   0.60,   0.15,   0.06,   IlluminantD65,  GAMMA_REC709 };
+#endif
 
 /*  	    	    	    UPVP_TO_XY
 
@@ -81,11 +88,13 @@ static struct colourSystem
     
 */
 
-void upvp_to_xy(double up, double vp, double *xc, double *yc)
+#if 0 /* UNUSED */
+static void upvp_to_xy(double up, double vp, double *xc, double *yc)
 {
     *xc = (9 * up) / ((6 * up) - (16 * vp) + 12);
     *yc = (4 * vp) / ((6 * up) - (16 * vp) + 12);
 }
+#endif
 
 /*  	    	    	    XY_TO_UPVP
 
@@ -93,11 +102,13 @@ void upvp_to_xy(double up, double vp, double *xc, double *yc)
     
 */
 
-void xy_to_upvp(double xc, double yc, double *up, double *vp)
+#if 0 /* UNUSED */
+static void xy_to_upvp(double xc, double yc, double *up, double *vp)
 {
     *up = (4 * xc) / ((-2 * xc) + (12 * yc) + 3);
     *vp = (9 * yc) / ((-2 * xc) + (12 * yc) + 3);
 }
+#endif
 
 /*                             XYZ_TO_RGB
 
@@ -117,9 +128,9 @@ void xy_to_upvp(double xc, double yc, double *up, double *vp)
     
 */
 
-void xyz_to_rgb(struct colourSystem *cs,
-                double xc, double yc, double zc,
-                double *r, double *g, double *b)
+static void xyz_to_rgb(struct colourSystem *cs,
+                       double xc, double yc, double zc,
+                       double *r, double *g, double *b)
 {
     double xr, yr, zr, xg, yg, zg, xb, yb, zb;
     double xw, yw, zw;
@@ -165,10 +176,12 @@ void xyz_to_rgb(struct colourSystem *cs,
      system.  This amounts simply to testing whether all the
      primary weights are non-negative. */
 
-int inside_gamut(double r, double g, double b)
+#if 0 /* UNUSED */
+static int inside_gamut(double r, double g, double b)
 {
     return (r >= 0) && (g >= 0) && (b >= 0);
 }
+#endif
 
 /*                          CONSTRAIN_RGB
 
@@ -181,7 +194,7 @@ int inside_gamut(double r, double g, double b)
     
 */
 
-int constrain_rgb(double *r, double *g, double *b)
+static int constrain_rgb(double *r, double *g, double *b)
 {
     double w;
 
@@ -214,7 +227,8 @@ int constrain_rgb(double *r, double *g, double *b)
        http://www.poynton.com/GammaFAQ.html
 */
 
-void gamma_correct(const struct colourSystem *cs, double *c)
+#if 0 /* UNUSED */
+static void gamma_correct(const struct colourSystem *cs, double *c)
 {
     double gamma;
 
@@ -235,12 +249,13 @@ void gamma_correct(const struct colourSystem *cs, double *c)
     }
 }
 
-void gamma_correct_rgb(const struct colourSystem *cs, double *r, double *g, double *b)
+static void gamma_correct_rgb(const struct colourSystem *cs, double *r, double *g, double *b)
 {
     gamma_correct(cs, r);
     gamma_correct(cs, g);
     gamma_correct(cs, b);
 }
+#endif
 
 /*  	    	    	    NORM_RGB
 
@@ -249,7 +264,7 @@ void gamma_correct_rgb(const struct colourSystem *cs, double *r, double *g, doub
     
 */
 
-void norm_rgb(double *r, double *g, double *b)
+static void norm_rgb(double *r, double *g, double *b)
 {
 #define Max(a, b)   (((a) > (b)) ? (a) : (b))
     double greatest = Max(*r, Max(*g, *b));
@@ -276,8 +291,8 @@ void norm_rgb(double *r, double *g, double *b)
             x + y + z = 1.
 */
 
-void spectrum_to_xyz(double (*spec_intens)(double wavelength),
-                     double *x, double *y, double *z)
+static void spectrum_to_xyz(double (*spec_intens)(double wavelength),
+                            double *x, double *y, double *z)
 {
     int i;
     double lambda, X = 0, Y = 0, Z = 0, XYZ;
@@ -348,7 +363,7 @@ void spectrum_to_xyz(double (*spec_intens)(double wavelength),
 
 double bbTemp = 5000;                 /* Hidden temperature argument
                                          to BB_SPECTRUM. */
-double bb_spectrum(double wavelength)
+static double bb_spectrum(double wavelength)
 {
     double wlm = wavelength * 1e-9;   /* Wavelength in meters */
 
@@ -356,14 +371,14 @@ double bb_spectrum(double wavelength)
            (exp(1.4388e-2 / (wlm * bbTemp)) - 1.0);
 }
 
-void xyz_to_lms(double x, double y, double z, double* l, double* m, double* s)
+static void xyz_to_lms(double x, double y, double z, double* l, double* m, double* s)
 {
 	*l =  0.3897*x + 0.6890*y - 0.0787*z;
 	*m = -0.2298*x + 1.1834*y + 0.0464*z;
 	*s = z;
 }
 
-void lms_to_xyz(double l, double m, double s, double* x, double *y, double* z)
+static void lms_to_xyz(double l, double m, double s, double* x, double *y, double* z)
 {
 	*x =  1.9102*l - 1.1121*m + 0.2019*s;
 	*y =  0.3709*l + 0.6290*m + 0.0000*s;
