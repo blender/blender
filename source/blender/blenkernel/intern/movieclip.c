@@ -616,11 +616,6 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	else
 		undistibuf = BKE_tracking_undistort_frame(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
-	if (undistibuf->userflags & IB_RECT_INVALID) {
-		ibuf->userflags &= ~IB_RECT_INVALID;
-		IMB_rect_from_float(undistibuf);
-	}
-
 	IMB_scaleImBuf(undistibuf, ibuf->x, ibuf->y);
 
 	return undistibuf;
