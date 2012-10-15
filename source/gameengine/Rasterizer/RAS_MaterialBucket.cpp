@@ -32,8 +32,8 @@
 
 #include "RAS_MaterialBucket.h"
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
 #endif
 
 #ifdef WIN32

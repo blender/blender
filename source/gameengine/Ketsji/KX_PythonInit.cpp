@@ -30,54 +30,48 @@
  *  \ingroup ketsji
  */
 
-
 #include "GL/glew.h"
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 #ifdef WITH_PYTHON
-
-#ifdef _POSIX_C_SOURCE
-#undef _POSIX_C_SOURCE
-#endif
-
-#ifdef _XOPEN_SOURCE
-#undef _XOPEN_SOURCE
-#endif
-
-#if defined(__sun) || defined(sun) 
-#if defined(_XPG4) 
-#undef _XPG4 
-#endif 
-#endif 
-
-#include <Python.h>
+#  ifdef   _POSIX_C_SOURCE
+#    undef _POSIX_C_SOURCE
+#  endif
+#  ifdef   _XOPEN_SOURCE
+#    undef _XOPEN_SOURCE
+#  endif
+#  if defined(__sun) || defined(sun)
+#    if defined(_XPG4)
+#      undef _XPG4
+#    endif
+#  endif
+#  include <Python.h>
 
 extern "C" {
-	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
-	#include "py_capi_utils.h"
-	#include "mathutils.h" // 'mathutils' module copied here so the blenderlayer can use.
-	#include "bgl.h"
-	#include "blf_py_api.h"
+	#  include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
+	#  include "py_capi_utils.h"
+	#  include "mathutils.h" // 'mathutils' module copied here so the blenderlayer can use.
+	#  include "bgl.h"
+	#  include "blf_py_api.h"
 
-	#include "marshal.h" /* python header for loading/saving dicts */
+	#  include "marshal.h" /* python header for loading/saving dicts */
 }
-
 #include "AUD_PyInit.h"
 
-#endif
+#endif  /* WITH_PYTHON */
 
 #include "KX_PythonInit.h"
 
 // directory header for py function getBlendFileList
 #ifndef WIN32
-  #include <dirent.h>
-  #include <stdlib.h>
+#  include <dirent.h>
+#  include <stdlib.h>
 #else
-  #include <io.h>
-  #include "BLI_winstuff.h"
+#  include <io.h>
+#  include "BLI_winstuff.h"
 #endif
 
 //python physics binding

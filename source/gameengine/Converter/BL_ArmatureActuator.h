@@ -49,13 +49,13 @@ class	BL_ArmatureActuator : public SCA_IActuator
 	Py_Header
 public:
 	BL_ArmatureActuator(SCA_IObject* gameobj,
-						int type,
-						const char *posechannel,
-						const char *constraintname,
-						KX_GameObject* targetobj,
-						KX_GameObject* subtargetobj,
-						float weight,
-						float influence);
+	                    int type,
+	                    const char *posechannel,
+	                    const char *constraintname,
+	                    KX_GameObject* targetobj,
+	                    KX_GameObject* subtargetobj,
+	                    float weight,
+	                    float influence);
 
 	virtual ~BL_ArmatureActuator();
 

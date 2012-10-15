@@ -19,9 +19,9 @@
 #ifndef __VALUE_H__
 #define __VALUE_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786)
-#endif  /* WIN32 */
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 #include <map>		// array functionality for the propertylist
 #include "STR_String.h"	// STR_String class

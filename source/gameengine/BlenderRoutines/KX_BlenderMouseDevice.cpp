@@ -29,10 +29,9 @@
  *  \ingroup blroutines
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// annoying warnings about truncated STL debug info
-#pragma warning (disable :4786)
+#ifdef _MSC_VER
+   /* annoying warnings about truncated STL debug info */
+#  pragma warning (disable:4786)
 #endif 
 
 #include "KX_BlenderMouseDevice.h"

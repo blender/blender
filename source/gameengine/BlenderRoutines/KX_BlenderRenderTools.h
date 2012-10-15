@@ -32,9 +32,9 @@
 #ifndef __KX_BLENDERRENDERTOOLS_H__
 #define __KX_BLENDERRENDERTOOLS_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// don't show stl-warnings
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+   /* don't show stl-warnings */
+#  pragma warning (disable:4786)
 #endif
 
 #include "RAS_IRenderTools.h"

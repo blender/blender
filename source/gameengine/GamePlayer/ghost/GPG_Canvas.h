@@ -33,7 +33,7 @@
 #define __GPG_CANVAS_H__
 
 #ifdef WIN32
-#pragma warning (disable : 4786)
+#pragma warning (disable:4786)
 #endif  /* WIN32 */
 
 #include "GPC_Canvas.h"

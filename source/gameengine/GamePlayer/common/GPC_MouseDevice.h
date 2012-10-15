@@ -33,7 +33,7 @@
 #define __GPC_MOUSEDEVICE_H__
 
 #ifdef WIN32
-#pragma warning (disable : 4786)
+#pragma warning (disable:4786)
 #endif  /* WIN32 */
 
 #include "SCA_IInputDevice.h"

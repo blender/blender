@@ -33,17 +33,17 @@
 
 #include <stdio.h>
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 #include "wm_event_types.h"
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertSensors.h"
 
 /* This little block needed for linking to Blender... */
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#include "BLI_winstuff.h"
+#ifdef _MSC_VER
+#  include "BLI_winstuff.h"
 #endif
 
 #include "DNA_object_types.h"

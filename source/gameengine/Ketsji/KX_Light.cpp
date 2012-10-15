@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
 #endif
 
 #include <stdio.h>
@@ -50,9 +50,9 @@
 #include "GPU_material.h"
  
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
-							   class RAS_IRenderTools* rendertools,
-							   const RAS_LightObject&	lightobj,
-							   bool glsl)
+                               class RAS_IRenderTools* rendertools,
+                               const RAS_LightObject&	lightobj,
+                               bool glsl)
 	: KX_GameObject(sgReplicationInfo,callbacks),
 	  m_rendertools(rendertools)
 {

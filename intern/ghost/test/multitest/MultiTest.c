@@ -26,9 +26,8 @@
  */
 #define FALSE 0
 
-#ifdef WIN32
-
-#pragma warning(disable: 4244 4305)
+#ifdef _MSC_VER
+#  pragma warning(disable: 4244 4305)
 #endif
 
 #include <stdlib.h>

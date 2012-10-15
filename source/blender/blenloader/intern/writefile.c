@@ -777,13 +777,16 @@ typedef struct RenderInfo {
 	char scene_name[MAX_ID_NAME - 2];
 } RenderInfo;
 
-static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon */
+/* was for historic render-deamon feature,
+ * now write because it can be easily extracted without
+ * reading the whole blend file */
+static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
 	bScreen *curscreen;
 	Scene *sce;
 	RenderInfo data;
 
-	/* XXX in future, handle multiple windows with multiple screnes? */
+	/* XXX in future, handle multiple windows with multiple screens? */
 	current_screen_compat(mainvar, &curscreen);
 
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {

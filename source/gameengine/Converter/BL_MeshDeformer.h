@@ -38,9 +38,9 @@
 #include "MT_Point3.h"
 #include <stdlib.h>
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif  /* WIN32 */
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)  /* get rid of stupid stl-visual compiler debug warning */
+#endif
 
 class BL_DeformableGameObject;
 
