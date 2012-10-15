@@ -248,7 +248,7 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "show_splash")
 
         if os.name == "nt":
-            col.prop(view, "quit_dialog")
+            col.prop(view, "use_quit_dialog")
 
 
 class USERPREF_PT_edit(Panel):
