@@ -6775,9 +6775,13 @@ static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiPopupBlockHa
 	/* now handle events for our own menu */
 	if (retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
 		if (submenu && submenu->menuretval) {
+			int do_ret_out_parent = (submenu->menuretval & UI_RETURN_OUT_PARENT);
 			retval = ui_handle_menu_return_submenu(C, event, menu);
-			/* we may wan't to quit the submenu and handle the even in this menu */
-			if ((retval == WM_UI_HANDLER_BREAK) && (submenu->menuretval & UI_RETURN_OUT_PARENT)) {
+			submenu = NULL;  /* hint not to use this, it may be freed by call above */
+			(void)submenu;
+			/* we may wan't to quit the submenu and handle the even in this menu,
+			 * if its important to use it, check 'data->menu' first */
+			if ((retval == WM_UI_HANDLER_BREAK) && do_ret_out_parent) {
 				retval = ui_handle_menu_event(C, event, menu, level);
 			}
 		}
