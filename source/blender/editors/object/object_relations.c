@@ -679,21 +679,27 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 					
 					switch (partype) {
 						case PAR_CURVE: /* curve deform */
-							if (modifiers_isDeformedByCurve(ob) != par) {
+							if ( modifiers_isDeformedByCurve(ob) != par) {
 								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
-								((CurveModifierData *)md)->object = par;
+								if (md) {
+									((CurveModifierData *)md)->object = par;
+								}
 							}
 							break;
 						case PAR_LATTICE: /* lattice deform */
 							if (modifiers_isDeformedByLattice(ob) != par) {
 								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Lattice);
-								((LatticeModifierData *)md)->object = par;
+								if (md) {
+									((LatticeModifierData *)md)->object = par;
+								}
 							}
 							break;
 						default: /* armature deform */
 							if (modifiers_isDeformedByArmature(ob) != par) {
 								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Armature);
-								((ArmatureModifierData *)md)->object = par;
+								if (md) {
+									((ArmatureModifierData *)md)->object = par;
+								}
 							}
 							break;
 					}
