@@ -494,8 +494,8 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 
 	return md;
 }
-/* Takes an object and returns its first selected armature, else just its
- * armature
+
+/* Takes an object and returns its first selected armature, else just its armature
  * This should work for multiple armatures per object
  */
 Object *modifiers_isDeformedByArmature(Object *ob)
@@ -518,9 +518,8 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 	return NULL;
 }
 
-/* Takes an object and returns its first selected lattice, else just its
- * lattice
- * This should work for multiple lattics per object
+/* Takes an object and returns its first selected lattice, else just its lattice
+ * This should work for multiple lattices per object
  */
 Object *modifiers_isDeformedByLattice(Object *ob)
 {
@@ -542,7 +541,28 @@ Object *modifiers_isDeformedByLattice(Object *ob)
 	return NULL;
 }
 
-
+/* Takes an object and returns its first selected curve, else just its curve
+ * This should work for multiple curves per object
+ */
+Object *modifiers_isDeformedByCurve(Object *ob)
+{
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	CurveModifierData *cmd = NULL;
+	
+	/* return the first selected curve, this lets us use multiple curves */
+	for (; md; md = md->next) {
+		if (md->type == eModifierType_Curve) {
+			cmd = (CurveModifierData *) md;
+			if (cmd->object && (cmd->object->flag & SELECT))
+				return cmd->object;
+		}
+	}
+	
+	if (cmd) /* if were still here then return the last curve */
+		return cmd->object;
+	
+	return NULL;
+}
 
 int modifiers_usesArmature(Object *ob, bArmature *arm)
 {

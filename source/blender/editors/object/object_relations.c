@@ -669,23 +669,32 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				ob->partype = PAROBJECT; /* note, dna define, not operator property */
 				//ob->partype= PARSKEL; /* note, dna define, not operator property */
 				
-				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
+				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses 
+				 * - We need to ensure that the modifier we're adding doesn't already exist, so we check this by
+				 *   assuming that the parent is selected too...
+				 */
 				// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
 				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 					ModifierData *md;
 					
 					switch (partype) {
 						case PAR_CURVE: /* curve deform */
-							md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
-							((CurveModifierData *)md)->object = par;
+							if (modifiers_isDeformedByCurve(ob) != par) {
+								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
+								((CurveModifierData *)md)->object = par;
+							}
 							break;
 						case PAR_LATTICE: /* lattice deform */
-							md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Lattice);
-							((LatticeModifierData *)md)->object = par;
+							if (modifiers_isDeformedByLattice(ob) != par) {
+								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Lattice);
+								((LatticeModifierData *)md)->object = par;
+							}
 							break;
 						default: /* armature deform */
-							md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Armature);
-							((ArmatureModifierData *)md)->object = par;
+							if (modifiers_isDeformedByArmature(ob) != par) {
+								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Armature);
+								((ArmatureModifierData *)md)->object = par;
+							}
 							break;
 					}
 				}
