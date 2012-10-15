@@ -184,7 +184,10 @@ static void rna_Image_update(Image *image, ReportList *reports)
 		return;
 	}
 
-	IMB_rect_from_float(ibuf);
+	if (ibuf->rect)
+		IMB_rect_from_float(ibuf);
+
+	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
 static void rna_Image_scale(Image *image, ReportList *reports, int width, int height)

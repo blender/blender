@@ -1494,7 +1494,8 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 			                                   ibuf->x, ibuf->y, overscan, ibuf->channels);
 		}
 
-		resibuf->userflags |= IB_RECT_INVALID;
+		if (ibuf->rect)
+			imb_freerectImBuf(ibuf);
 	}
 	else {
 		if (undistort) {
@@ -1512,9 +1513,8 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 	(void) overscan;
 	(void) undistort;
 
-	if (ibuf->rect_float) {
-		resibuf->userflags |= IB_RECT_INVALID;
-	}
+	if (ibuf->rect_float && ibuf->rect)
+		imb_freerectImBuf(ibuf);
 #endif
 
 	return resibuf;

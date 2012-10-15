@@ -88,7 +88,6 @@ int                 curvemapping_RGBA_does_something(const struct CurveMapping *
 void                curvemapping_table_RGBA(const struct CurveMapping *cumap, float **array, int *size);
 
 /* non-const, these modify the curve */
-void                curvemapping_do_ibuf(struct CurveMapping *cumap, struct ImBuf *ibuf);
 void                curvemapping_premultiply(struct CurveMapping *cumap, int restore);
 
 
