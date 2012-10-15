@@ -169,6 +169,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "uk_UA",
     "tr_TR",
     "hu_HU",
+    "et_EE",
+    "eo",
     "available with",                # Is part of multi-line msg.
     "virtual parents",               # Is part of multi-line msg.
     "description",                   # Addons' field. :/
