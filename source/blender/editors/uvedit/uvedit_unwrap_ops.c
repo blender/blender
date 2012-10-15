@@ -729,12 +729,10 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (RNA_struct_property_is_set(op->ptr, "margin")) {
+	if (RNA_struct_property_is_set(op->ptr, "margin"))
 		scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
-	}
-	else {
+	else
 		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
-	}
 
 	handle = construct_param_handle(scene, em, implicit, 0, 1, 1);
 	param_pack(handle, scene->toolsettings->uvcalc_margin);
@@ -761,7 +759,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	ot->poll = ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_float_factor(ot->srna, "margin", 0.0f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
+	RNA_def_float_factor(ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
 /* ******************** Average Islands Scale operator **************** */
@@ -1194,6 +1192,12 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	else
 		RNA_enum_set(op->ptr, "method", scene->toolsettings->unwrapper);
 
+	/* remember packing marging */
+	if (RNA_struct_property_is_set(op->ptr, "margin"))
+		scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
+	else
+		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
+
 	scene->toolsettings->uv_subsurf_level = subsurf_level;
 
 	if (fill_holes) scene->toolsettings->uvcalc_flag |=  UVCALC_FILLHOLES;
@@ -1241,8 +1245,9 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	                "Map UVs taking image aspect ratio into account");
 	RNA_def_boolean(ot->srna, "use_subsurf_data", 0, "Use Subsurf Data",
 	                "Map UVs taking vertex position after subsurf into account");
-	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "SubSurf Target",
+	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "Subsurf Target",
 	            "Number of times to subdivide before calculating UVs", 1, 6);
+	RNA_def_float_factor(ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
 /**************** Project From View operator **************/

@@ -446,6 +446,7 @@ Scene *BKE_scene_add(const char *name)
 	sce->toolsettings->uvcalc_cubesize = 1.0f;
 	sce->toolsettings->uvcalc_mapdir = 1;
 	sce->toolsettings->uvcalc_mapalign = 1;
+	sce->toolsettings->uvcalc_margin = 0.001f;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh = 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
