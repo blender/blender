@@ -304,10 +304,18 @@ __device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
 	float costheta = dot(q1, q2);
 
+	/* rotate around shortest angle */
+	if(costheta < 0.0f) {
+		costheta = -costheta;
+		q1 = -q1;
+	}
+
 	if(costheta > 0.9995f) {
+		/* linear interpolation in degenerate case */
 		return normalize((1.0f - t)*q1 + t*q2);
 	}
 	else  {
+		/* slerp */
 		float theta = acosf(clamp(costheta, -1.0f, 1.0f));
 		float thetap = theta * t;
 		float4 qperp = normalize(q2 - q1 * costheta);
