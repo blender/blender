@@ -1530,13 +1530,20 @@ class VIEW3D_MT_pose_group(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("pose.group_add")
-        layout.operator("pose.group_remove")
+        
+        pose = context.active_object.pose
 
-        layout.separator()
+        layout.operator_context = 'EXEC_AREA'
+        layout.operator("pose.group_assign", text="Assign to New Group").type = 0
+        if pose.bone_groups:
+            active_group = pose.bone_groups.active_index + 1
+            layout.operator("pose.group_assign", text="Assign to Group").type = active_group
 
-        layout.operator("pose.group_assign")
-        layout.operator("pose.group_unassign")
+            layout.separator()
+
+            #layout.operator_context = 'INVOKE_AREA'
+            layout.operator("pose.group_unassign")
+            layout.operator("pose.group_remove")
 
 
 class VIEW3D_MT_pose_ik(Menu):
