@@ -1254,9 +1254,9 @@ KX_FontObject* KX_Scene::FindFont(KX_FontObject* font)
 {
 	list<KX_FontObject*>::iterator it = m_fonts.begin();
 
-	while ( (it != m_fonts.end()) 
-			&& ((*it) != font) ) {
-	  ++it;
+	while ((it != m_fonts.end()) && ((*it) != font))
+	{
+		++it;
 	}
 
 	return ((it == m_fonts.end()) ? NULL : (*it));
@@ -1268,9 +1268,7 @@ KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 {
 	list<KX_Camera*>::iterator it = m_cameras.begin();
 
-	while ( (it != m_cameras.end())
-	        && ((*it) != cam) )
-	{
+	while ((it != m_cameras.end()) && ((*it) != cam)) {
 		it++;
 	}
 
@@ -1282,9 +1280,7 @@ KX_Camera* KX_Scene::FindCamera(STR_String& name)
 {
 	list<KX_Camera*>::iterator it = m_cameras.begin();
 
-	while ( (it != m_cameras.end())
-	        && ((*it)->GetName() != name) )
-	{
+	while ((it != m_cameras.end()) && ((*it)->GetName() != name)) {
 		it++;
 	}
 
@@ -1509,8 +1505,8 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 		cam->GetProjectionMatrix().getValue(pmat);
 
 		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res,
-														KX_GetActiveEngine()->GetCanvas()->GetViewPort(),
-														mvmat, pmat);
+		                                                 KX_GetActiveEngine()->GetCanvas()->GetViewPort(),
+		                                                 mvmat, pmat);
 	}
 	if (!dbvt_culling) {
 		// the physics engine couldn't help us, do it the hard way
@@ -1639,8 +1635,8 @@ RAS_MaterialBucket* KX_Scene::FindBucket(class RAS_IPolyMaterial* polymat, bool 
 
 
 void KX_Scene::RenderBuckets(const MT_Transform & cameratransform,
-							 class RAS_IRasterizer* rasty,
-							 class RAS_IRenderTools* rendertools)
+                             class RAS_IRasterizer* rasty,
+                             class RAS_IRenderTools* rendertools)
 {
 	m_bucketmanager->Renderbuckets(cameratransform,rasty,rendertools);
 	KX_BlenderMaterial::EndFrame();

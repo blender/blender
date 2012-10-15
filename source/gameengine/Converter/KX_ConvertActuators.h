@@ -33,14 +33,14 @@
 #define __KX_CONVERTACTUATORS_H__
 
 void BL_ConvertActuators(const char* maggiename,
-	 struct Object* blenderobject,
-	 class KX_GameObject* gameobj,
-	 class SCA_LogicManager* logicmgr,
-	 class KX_Scene* scene,
-	 class KX_KetsjiEngine* ketsjiEngine,
-	 int activeLayerBitInfo,
-	 bool isInActiveLayer,
-	 class RAS_IRenderTools* rendertools, 
-	 class KX_BlenderSceneConverter* converter);
+                         struct Object* blenderobject,
+                         class KX_GameObject* gameobj,
+                         class SCA_LogicManager* logicmgr,
+                         class KX_Scene* scene,
+                         class KX_KetsjiEngine* ketsjiEngine,
+                         int activeLayerBitInfo,
+                         bool isInActiveLayer,
+                         class RAS_IRenderTools* rendertools,
+                         class KX_BlenderSceneConverter* converter);
 
 #endif  /* __KX_CONVERTACTUATORS_H__ */
