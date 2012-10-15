@@ -82,10 +82,20 @@ def makefile_log():
     import subprocess
     import time
 
-    print("running make with --dry-run ...")
-    process = subprocess.Popen(["make", "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
-                                stdout=subprocess.PIPE,
-                               )
+    # support both make and ninja
+    make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
+    make_exe_basename = os.path.basename(make_exe)
+
+    if make_exe_basename.startswith("make"):
+        print("running 'make' with --dry-run ...")
+        process = subprocess.Popen([make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
+                                    stdout=subprocess.PIPE,
+                                   )
+    elif make_exe_basename.startswith("ninja"):
+        print("running 'ninja' with -t commands ...")
+        process = subprocess.Popen([make_exe, "-t", "commands"],
+                                    stdout=subprocess.PIPE,
+                                   )
 
     while process.poll():
         time.sleep(1)
@@ -144,6 +154,12 @@ def build_info(use_c=True, use_cxx=True, ignore_prefix_list=None):
                 continue
 
             source.append((c, inc_dirs, defs))
+
+        # make relative includes absolute
+        # not totally essential but useful
+        for i, f in enumerate(inc_dirs):
+            if not os.path.isabs(f):
+                inc_dirs[i] = os.path.abspath(os.path.join(CMAKE_DIR, f))
 
         # safety check that our includes are ok
         for f in inc_dirs:
