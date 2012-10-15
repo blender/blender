@@ -858,7 +858,7 @@ PyTypeObject color_Type = {
  *  (i.e. it was allocated elsewhere by MEM_mallocN())
  *   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  *  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type)
+PyObject *Color_CreatePyObject(float col[3], int type, PyTypeObject *base_type)
 {
 	ColorObject *self;
 

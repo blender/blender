@@ -1054,7 +1054,7 @@ static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, Smoke
 	}
 }
 
-static void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
+static void get_texture_value(Tex *texture, float tex_co[3], TexResult *texres)
 {
 	int result_type;
 

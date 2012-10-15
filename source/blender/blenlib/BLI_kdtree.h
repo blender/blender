@@ -56,7 +56,7 @@ void BLI_kdtree_balance(KDTree *tree);
 /* Find nearest returns index, and -1 if no node is found.
  * Find n nearest returns number of points found, with results in nearest.
  * Normal is optional, but if given will limit results to points in normal direction from co. */
-int BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *nearest);
+int BLI_kdtree_find_nearest(KDTree *tree, const float co[3], const float nor[3], KDTreeNearest *nearest);
 int BLI_kdtree_find_n_nearest(KDTree *tree, int n, const float co[3], const float nor[3], KDTreeNearest *nearest);
 
 /* Range search returns number of points found, with results in nearest */

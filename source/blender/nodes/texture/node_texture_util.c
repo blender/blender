@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,7 +29,7 @@
  *  \ingroup nodes
  */
 
- 
+
 /*
  * HOW TEXTURE NODES WORK
  *
@@ -112,13 +112,13 @@ void params_from_cdata(TexParams *out, TexCallData *in)
 	out->mtex = in->mtex;
 }
 
-void tex_do_preview(bNode *node, float *co, float *col)
+void tex_do_preview(bNode *node, const float coord[2], const float col[4])
 {
-	bNodePreview *preview= node->preview;
+	bNodePreview *preview = node->preview;
 
 	if (preview) {
-		int xs= ((co[0] + 1.0f)*0.5f)*preview->xsize;
-		int ys= ((co[1] + 1.0f)*0.5f)*preview->ysize;
+		int xs = ((coord[0] + 1.0f) * 0.5f) * preview->xsize;
+		int ys = ((coord[1] + 1.0f) * 0.5f) * preview->ysize;
 
 		nodeAddToPreview(node, col, xs, ys, 0); /* 0 = no color management */
 	}
@@ -132,19 +132,19 @@ void tex_output(bNode *node, bNodeStack **in, bNodeStack *out, TexFn texfn, TexC
 		dg = out->data = MEM_mallocN(sizeof(TexDelegate), "tex delegate");
 	else
 		dg = out->data;
-	
-	dg->cdata= cdata;
+
+	dg->cdata = cdata;
 	dg->fn = texfn;
 	dg->node = node;
-	memcpy(dg->in, in, MAX_SOCKET * sizeof(bNodeStack*));
+	memcpy(dg->in, in, MAX_SOCKET * sizeof(bNodeStack *));
 	dg->type = out->sockettype;
 }
 
 void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 {
 	bNode *node;
-	for (node= ntree->nodes.first; node; node= node->next) {
-		
+	for (node = ntree->nodes.first; node; node = node->next) {
+
 		if (node->type == TEX_NODE_TEXTURE && node->id) {
 			/* custom2 stops the node from rendering */
 			if (node->custom1) {

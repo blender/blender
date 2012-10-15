@@ -643,31 +643,31 @@ static int envcube_isect(EnvMap *env, const float vec[3], float answ[2])
 
 /* ------------------------------------------------------------------------- */
 
-static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int face)
+static void set_dxtdyt(float r_dxt[3], float r_dyt[3], const float dxt[3], const float dyt[3], int face)
 {
 	if (face == 2 || face == 4) {
-		dxts[0] = dxt[0];
-		dyts[0] = dyt[0];
-		dxts[1] = dxt[2];
-		dyts[1] = dyt[2];
+		r_dxt[0] = dxt[0];
+		r_dyt[0] = dyt[0];
+		r_dxt[1] = dxt[2];
+		r_dyt[1] = dyt[2];
 	}
 	else if (face == 3 || face == 5) {
-		dxts[0] = dxt[1];
-		dxts[1] = dxt[2];
-		dyts[0] = dyt[1];
-		dyts[1] = dyt[2];
+		r_dxt[0] = dxt[1];
+		r_dxt[1] = dxt[2];
+		r_dyt[0] = dyt[1];
+		r_dyt[1] = dyt[2];
 	}
 	else {
-		dxts[0] = dxt[0];
-		dyts[0] = dyt[0];
-		dxts[1] = dxt[1];
-		dyts[1] = dyt[1];
+		r_dxt[0] = dxt[0];
+		r_dyt[0] = dyt[0];
+		r_dxt[1] = dxt[1];
+		r_dyt[1] = dyt[1];
 	}
 }
 
 /* ------------------------------------------------------------------------- */
 
-int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres)
 {
 	extern Render R;                /* only in this call */
 	/* texvec should be the already reflected normal */

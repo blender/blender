@@ -47,7 +47,7 @@ static bNodeSocketTemplate outputs[]= {
 static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	float new_co[3];
-	float *co = p->co;
+	const float *co = p->co;
 
 	float nabla = tex_input_value(in[1], p, thread);	
 	float val;

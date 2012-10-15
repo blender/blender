@@ -132,7 +132,7 @@ void BLI_kdtree_balance(KDTree *tree)
 	tree->root = kdtree_balance(tree->nodes, tree->totnode, 0);
 }
 
-static float squared_distance(const float v2[3], const float v1[3], const float *UNUSED(n1), const float *n2)
+static float squared_distance(const float v2[3], const float v1[3], const float UNUSED(n1[3]), const float n2[3])
 {
 	float d[3], dist;
 
@@ -152,7 +152,7 @@ static float squared_distance(const float v2[3], const float v1[3], const float 
 	return dist;
 }
 
-int BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *nearest)
+int BLI_kdtree_find_nearest(KDTree *tree, const float co[3], const float nor[3], KDTreeNearest *nearest)
 {
 	KDTreeNode *root, *node, *min_node;
 	KDTreeNode **stack, *defaultstack[100];

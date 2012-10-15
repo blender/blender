@@ -406,7 +406,7 @@ static void init_pointdensityrangedata(PointDensity *pd, PointDensityRangeData *
 }
 
 
-int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
+int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 {
 	int retval = TEX_INT;
 	PointDensity *pd = tex->pd;
