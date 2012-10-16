@@ -120,6 +120,21 @@ void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len)
 {
 	BMIter iter;
 
+	/* we can't rely on coun't being set */
+	switch (itype) {
+		case BM_VERTS_OF_MESH:
+			iter.count = bm->totvert;
+			break;
+		case BM_EDGES_OF_MESH:
+			iter.count = bm->totedge;
+			break;
+		case BM_FACES_OF_MESH:
+			iter.count = bm->totface;
+			break;
+		default:
+			break;
+	}
+
 	if (BM_iter_init(&iter, bm, itype, data) && iter.count > 0) {
 		BMElem *ele;
 		BMElem **array = MEM_mallocN(sizeof(ele) * iter.count, __func__);
@@ -229,6 +244,7 @@ void  *bmiter__vert_of_mesh_step(BMIter *iter)
 void  bmiter__edge_of_mesh_begin(BMIter *iter)
 {
 	BLI_mempool_iternew(iter->bm->epool, &iter->pooliter);
+	iter->count = iter->bm->totedge;  /* */
 }
 
 void  *bmiter__edge_of_mesh_step(BMIter *iter)

@@ -1813,10 +1813,12 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 
 	/* we can't modify the vert while iterating so first allocate an array of loops */
 	loops = BM_iter_as_arrayN(bm, BM_LOOPS_OF_VERT, v, &loops_tot);
-	for (i = 0; i < loops_tot; i++) {
-		loops[i]->v = vtarget;
+	if (loops) {
+		for (i = 0; i < loops_tot; i++) {
+			loops[i]->v = vtarget;
+		}
+		MEM_freeN(loops);
 	}
-	MEM_freeN(loops);
 
 	/* move all the edges from v's disk to vtarget's disk */
 	while ((e = v->e)) {
