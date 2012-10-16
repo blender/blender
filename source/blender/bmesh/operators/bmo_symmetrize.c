@@ -67,13 +67,13 @@ typedef struct {
 
 /* Return which side the coordinate lies on */
 static SymmSide symm_co_side(const Symm *symm,
-							 const float *co)
+                             const float *co)
 {
 	float comp = co[symm->axis];
 	if (ELEM3(symm->direction,
-			  BMO_SYMMETRIZE_NEGATIVE_X,
-			  BMO_SYMMETRIZE_NEGATIVE_Y,
-			  BMO_SYMMETRIZE_NEGATIVE_Z))
+	          BMO_SYMMETRIZE_NEGATIVE_X,
+	          BMO_SYMMETRIZE_NEGATIVE_Y,
+	          BMO_SYMMETRIZE_NEGATIVE_Z))
 	{
 		comp = -comp;
 	}
@@ -129,11 +129,11 @@ static void symm_verts_mirror(Symm *symm)
 static int symm_edge_crosses_axis(const Symm *symm, const BMEdge *e)
 {
 	const int sides[2] = {symm_co_side(symm, e->v1->co),
-						  symm_co_side(symm, e->v2->co)};
+		                  symm_co_side(symm, e->v2->co)};
 
 	return ((sides[0] != SYMM_SIDE_AXIS) &&
-			(sides[1] != SYMM_SIDE_AXIS) &&
-			(sides[0] != sides[1]));
+	        (sides[1] != SYMM_SIDE_AXIS) &&
+	        (sides[0] != sides[1]));
 }
 
 /* Output edge split vertices for asymmetric edges and the edge_splits
@@ -152,7 +152,7 @@ static void symm_split_asymmetric_edges(Symm *symm)
 		flipped[symm->axis] = -flipped[symm->axis];
 
 		if (symm_edge_crosses_axis(symm, e) &&
-			(!compare_v3v3(e->v2->co, flipped, SYMM_VERT_THRESHOLD)))
+		    (!compare_v3v3(e->v2->co, flipped, SYMM_VERT_THRESHOLD)))
 		{
 			/* Endpoints lie on opposite sides and are asymmetric */
 
@@ -172,11 +172,11 @@ static void symm_split_asymmetric_edges(Symm *symm)
 			sub_v3_v3v3(edge_dir, e->v2->co, e->v1->co);
 			normalize_v3(edge_dir);
 			r = isect_ray_plane_v3(e->v1->co,
-								   edge_dir,
-								   plane_co[symm->axis][0],
-								   plane_co[symm->axis][1],
-								   plane_co[symm->axis][2],
-								   &lambda, TRUE);
+			                       edge_dir,
+			                       plane_co[symm->axis][0],
+			                       plane_co[symm->axis][1],
+			                       plane_co[symm->axis][2],
+			                       &lambda, TRUE);
 			BLI_assert(r);
 
 			madd_v3_v3v3fl(co, e->v1->co, edge_dir, lambda);
@@ -248,8 +248,8 @@ typedef struct {
 } SymmPoly;
 
 static void symm_poly_with_splits(const Symm *symm,
-								  BMFace *f,
-								  SymmPoly *out)
+                                  BMFace *f,
+                                  SymmPoly *out)
 {
 	BMIter iter;
 	BMLoop *l;
@@ -292,8 +292,8 @@ static const float *symm_poly_co(const SymmPoly *sp, int v)
 }
 
 static SymmSide symm_poly_co_side(const Symm *symm,
-								  const SymmPoly *sp,
-								  int v)
+                                  const SymmPoly *sp,
+                                  int v)
 {
 	return symm_co_side(symm, symm_poly_co(sp, v));
 }
@@ -313,8 +313,8 @@ static BMVert *symm_poly_dst(const SymmPoly *sp, int v)
 /* Same as above, but returns the index of the mirror if available, or
  * the same index if on the axis, or -1 otherwise */
 static BMVert *symm_poly_mirror_dst(const Symm *symm,
-									const SymmPoly *sp,
-									int v)
+                                    const SymmPoly *sp,
+                                    int v)
 {
 	if (sp->edge_verts[v])
 		return sp->edge_verts[v];
@@ -329,10 +329,10 @@ static BMVert *symm_poly_mirror_dst(const Symm *symm,
 }
 
 static int symm_poly_next_crossing(const Symm *symm,
-								   const SymmPoly *sp,
-								   int start,
-								   int *l1,
-								   int *l2)
+                                   const SymmPoly *sp,
+                                   int start,
+                                   int *l1,
+                                   int *l2)
 {
 	int i;
 
@@ -341,7 +341,7 @@ static int symm_poly_next_crossing(const Symm *symm,
 		(*l2) = ((*l1) + 1) % sp->len;
 
 		if ((symm_poly_co_side(symm, sp, *l1) == SYMM_SIDE_KILL) ^
-			(symm_poly_co_side(symm, sp, *l2) == SYMM_SIDE_KILL))
+		    (symm_poly_co_side(symm, sp, *l2) == SYMM_SIDE_KILL))
 		{
 			return TRUE;
 		}
@@ -371,11 +371,11 @@ static BMFace *symm_face_create_v(BMesh *bm, BMVert **fv, BMEdge **fe, int len)
 }
 
 static void symm_mesh_output_poly_zero_splits(Symm *symm,
-											  SymmPoly *sp,
-											  BMVert **fv,
-											  BMEdge **fe,
-											  int segment_len,
-											  int start)
+                                              SymmPoly *sp,
+                                              BMVert **fv,
+                                              BMEdge **fe,
+                                              int segment_len,
+                                              int start)
 {
 	int i, j;
 
@@ -389,13 +389,13 @@ static void symm_mesh_output_poly_zero_splits(Symm *symm,
 	}
 
 	/* Output the kill side of the polygon */
-	for (i = segment_len - 1; i >=0; i--) {
+	for (i = segment_len - 1; i >= 0; i--) {
 		const int offset = (start + i) % sp->len;
 
 		if (symm_poly_co_side(symm, sp, offset) == SYMM_SIDE_KEEP) {
 			BLI_assert(sp->src_verts[offset]);
 			fv[j++] = BLI_ghash_lookup(symm->vert_symm_map,
-									   sp->src_verts[offset]);
+			                           sp->src_verts[offset]);
 		}
 	}
 
@@ -403,11 +403,11 @@ static void symm_mesh_output_poly_zero_splits(Symm *symm,
 }
 
 static void symm_mesh_output_poly_with_splits(Symm *symm,
-											  SymmPoly *sp,
-											  BMVert **fv,
-											  BMEdge **fe,
-											  int segment_len,
-											  int start)
+                                              SymmPoly *sp,
+                                              BMVert **fv,
+                                              BMEdge **fe,
+                                              int segment_len,
+                                              int start)
 {
 	int i;
 
@@ -539,8 +539,8 @@ static void symm_mirror_polygons(Symm *symm)
 				BLI_array_grow_items(fe, new_loops);
 
 				symm_mesh_output_poly_zero_splits(symm, &sp,
-												  fv, fe,
-												  segment_len, l2);
+				                                  fv, fe,
+				                                  segment_len, l2);
 				BM_face_kill(symm->bm, f);
 			}
 			else if (!double_l2 && !double_l3) {
@@ -550,9 +550,9 @@ static void symm_mirror_polygons(Symm *symm)
 				BLI_array_grow_items(fe, segment_len);
 
 				symm_mesh_output_poly_with_splits(symm, &sp,
-												  fv, fe,
-												  segment_len,
-												  l2);
+				                                  fv, fe,
+				                                  segment_len,
+				                                  l2);
 
 				BM_face_kill(symm->bm, f);
 			}
@@ -563,9 +563,9 @@ static void symm_mirror_polygons(Symm *symm)
 				BLI_array_grow_items(fe, segment_len);
 
 				symm_mesh_output_poly_with_splits(symm, &sp,
-												  fv, fe,
-												  segment_len,
-												  l2);
+				                                  fv, fe,
+				                                  segment_len,
+				                                  l2);
 
 				BM_face_kill(symm->bm, f);
 
@@ -610,11 +610,11 @@ static void symm_kill_unused(Symm *symm)
 	BMO_ITER (e, &oiter, symm->bm, symm->op, "input", BM_EDGE) {
 		const int crosses = symm_edge_crosses_axis(symm, e);
 		const int symmetric = (crosses &&
-							   (!BLI_ghash_haskey(symm->edge_split_map, e)));
+		                       (!BLI_ghash_haskey(symm->edge_split_map, e)));
 
 		if (((symm_co_side(symm, e->v1->co) == SYMM_SIDE_KILL) ||
-			 (symm_co_side(symm, e->v2->co) == SYMM_SIDE_KILL)) &&
-			!symmetric)
+		     (symm_co_side(symm, e->v2->co) == SYMM_SIDE_KILL)) &&
+		    !symmetric)
 		{
 			/* The edge might be used by a face outside the input set */
 			if (BM_edge_face_count(e) == 0)
@@ -639,14 +639,14 @@ void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 	symm.bm = bm;
 	symm.op = op;
 	symm.axis = (ELEM(direction,
-					  BMO_SYMMETRIZE_NEGATIVE_X,
-					  BMO_SYMMETRIZE_POSITIVE_X) ? 0 :
-				 ELEM(direction,
-					  BMO_SYMMETRIZE_NEGATIVE_Y,
-					  BMO_SYMMETRIZE_POSITIVE_Y) ? 1 :
-				 ELEM(direction,
-					  BMO_SYMMETRIZE_NEGATIVE_Z,
-					  BMO_SYMMETRIZE_POSITIVE_Z) ? 2 : 0);
+	                  BMO_SYMMETRIZE_NEGATIVE_X,
+	                  BMO_SYMMETRIZE_POSITIVE_X) ? 0 :
+	             ELEM(direction,
+	                  BMO_SYMMETRIZE_NEGATIVE_Y,
+	                  BMO_SYMMETRIZE_POSITIVE_Y) ? 1 :
+	             ELEM(direction,
+	                  BMO_SYMMETRIZE_NEGATIVE_Z,
+	                  BMO_SYMMETRIZE_POSITIVE_Z) ? 2 : 0);
 	symm.direction = direction;
 
 	symm_verts_mirror(&symm);
