@@ -72,7 +72,11 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 		int object = sd->object;
 
 		if (object != ~0) {
-			Transform tfm = object_fetch_transform(kg, object, time, OBJECT_TRANSFORM);
+#ifdef __OBJECT_MOTION__
+			Transform tfm = object_fetch_transform_motion(kg, object, time, NULL);
+#else
+			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+#endif
 			tfm = transform_transpose(tfm);
 			result = TO_MATRIX44(tfm);
 
@@ -93,9 +97,14 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 		int object = sd->object;
 
 		if (object != ~0) {
-			Transform tfm = object_fetch_transform(kg, object, time, OBJECT_INVERSE_TRANSFORM);
-			tfm = transform_transpose(tfm);
-			result = TO_MATRIX44(tfm);
+#ifdef __OBJECT_MOTION__
+			Transform itfm;
+			object_fetch_transform_motion(kg, object, time, &itfm);
+#else
+			Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+#endif
+			itfm = transform_transpose(itfm);
+			result = TO_MATRIX44(itfm);
 
 			return true;
 		}
@@ -162,14 +171,108 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, ustring to, fl
 
 bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform)
 {
-	// XXX implementation
-	return true;
+	/* this is only used for shader and object space, we don't really have
+	 * a concept of shader space, so we just use object space for both. */
+	if (xform) {
+		KernelGlobals *kg = kernel_globals;
+		const ShaderData *sd = (const ShaderData *)xform;
+		int object = sd->object;
+
+		if (object != ~0) {
+#ifdef __OBJECT_MOTION__
+			Transform tfm = sd->ob_tfm;
+#else
+			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+#endif
+			tfm = transform_transpose(tfm);
+			result = TO_MATRIX44(tfm);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform)
+{
+	/* this is only used for shader and object space, we don't really have
+	 * a concept of shader space, so we just use object space for both. */
+	if (xform) {
+		KernelGlobals *kg = kernel_globals;
+		const ShaderData *sd = (const ShaderData *)xform;
+		int object = sd->object;
+
+		if (object != ~0) {
+#ifdef __OBJECT_MOTION__
+			Transform tfm = sd->ob_itfm;
+#else
+			Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+#endif
+			tfm = transform_transpose(tfm);
+			result = TO_MATRIX44(tfm);
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from)
 {
-	// XXX implementation
-	return true;
+	KernelGlobals *kg = kernel_globals;
+
+	if (from == u_ndc) {
+		Transform tfm = transform_transpose(kernel_data.cam.ndctoworld);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (from == u_raster) {
+		Transform tfm = transform_transpose(kernel_data.cam.rastertoworld);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (from == u_screen) {
+		Transform tfm = transform_transpose(kernel_data.cam.screentoworld);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (from == u_camera) {
+		Transform tfm = transform_transpose(kernel_data.cam.cameratoworld);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+
+	return false;
+}
+
+bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, ustring to)
+{
+	KernelGlobals *kg = kernel_globals;
+	
+	if (to == u_ndc) {
+		Transform tfm = transform_transpose(kernel_data.cam.worldtondc);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (to == u_raster) {
+		Transform tfm = transform_transpose(kernel_data.cam.worldtoraster);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (to == u_screen) {
+		Transform tfm = transform_transpose(kernel_data.cam.worldtoscreen);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (to == u_camera) {
+		Transform tfm = transform_transpose(kernel_data.cam.worldtocamera);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	
+	return false;
 }
 
 bool OSLRenderServices::get_array_attribute(void *renderstate, bool derivatives, 
