@@ -105,7 +105,7 @@ void BlenderSession::create_session()
 		sync->sync_camera(b_engine.camera_override(), width, height);
 
 	/* set buffer parameters */
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 	session->reset(buffer_params, session_params.samples);
 }
 
@@ -239,7 +239,7 @@ void BlenderSession::render()
 
 	/* get buffer parameters */
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 
 	/* render each layer */
 	BL::RenderSettings r = b_scene.render();
@@ -399,7 +399,7 @@ void BlenderSession::synchronize()
 
 	/* reset if needed */
 	if(scene->need_reset()) {
-		BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
+		BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 		session->reset(buffer_params, session_params.samples);
 	}
 }
@@ -437,7 +437,7 @@ bool BlenderSession::draw(int w, int h)
 		/* reset if requested */
 		if(reset) {
 			SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
-			BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, w, h);
+			BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, w, h);
 
 			session->reset(buffer_params, session_params.samples);
 		}
@@ -447,7 +447,7 @@ bool BlenderSession::draw(int w, int h)
 	update_status_progress();
 
 	/* draw */
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 
 	return !session->draw(buffer_params);
 }

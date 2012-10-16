@@ -63,7 +63,7 @@ public:
 	static SceneParams get_scene_params(BL::Scene b_scene, bool background);
 	static SessionParams get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
 	static bool get_session_pause(BL::Scene b_scene, bool background);
-	static BufferParams get_buffer_params(BL::Scene b_scene, Camera *cam, int width, int height);
+	static BufferParams get_buffer_params(BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, Camera *cam, int width, int height);
 
 private:
 	/* sync */

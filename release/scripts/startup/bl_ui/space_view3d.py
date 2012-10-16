@@ -2312,6 +2312,9 @@ class VIEW3D_PT_view3d_properties(Panel):
         subcol.label(text="Local Camera:")
         subcol.prop(view, "camera", text="")
 
+        col = layout.column(align=True)
+        col.prop(view, "use_render_border")
+
 
 class VIEW3D_PT_view3d_cursor(Panel):
     bl_space_type = 'VIEW_3D'

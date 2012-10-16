@@ -425,12 +425,26 @@ static void blender_camera_border(BlenderCamera *bcam, BL::Scene b_scene, BL::Sp
 	BL::RegionView3D b_rv3d, int width, int height)
 {
 	BL::RenderSettings r = b_scene.render();
-
-	if(!r.use_border())
-		return;
+	bool is_camera_view;
 
 	/* camera view? */
-	if(!(b_rv3d && b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_CAMERA))
+	is_camera_view = b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_CAMERA;
+
+	if(!is_camera_view) {
+		/* for non-camera view check whether render border is enabled for viewport
+		 * and if so use border from 3d viewport
+		 * assume viewport has got correctly clamped border already
+		 */
+		if(b_v3d.use_render_border()) {
+			bcam->border_left = b_v3d.render_border_min_x();
+			bcam->border_right = b_v3d.render_border_max_x();
+			bcam->border_bottom = b_v3d.render_border_min_y();
+			bcam->border_top = b_v3d.render_border_max_y();
+
+			return;
+		}
+	}
+	else if(!r.use_border())
 		return;
 
 	BL::Object b_ob = (b_v3d.lock_camera_and_layers())? b_scene.camera(): b_v3d.camera();
@@ -504,14 +518,20 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 	blender_camera_sync(scene->camera, &bcam, width, height);
 }
 
-BufferParams BlenderSync::get_buffer_params(BL::Scene b_scene, Camera *cam, int width, int height)
+BufferParams BlenderSync::get_buffer_params(BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, Camera *cam, int width, int height)
 {
 	BufferParams params;
+	bool use_border = false;
 
 	params.full_width = width;
 	params.full_height = height;
 
-	if(b_scene.render().use_border()) {
+	if(b_v3d && b_rv3d && b_rv3d.view_perspective() != BL::RegionView3D::view_perspective_CAMERA)
+		use_border = b_v3d.use_render_border();
+	else
+		use_border = b_scene.render().use_border();
+
+	if(use_border) {
 		/* border render */
 		params.full_x = cam->border_left*width;
 		params.full_y = cam->border_bottom*height;

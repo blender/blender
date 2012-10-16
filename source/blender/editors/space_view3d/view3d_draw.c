@@ -2878,12 +2878,20 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 		rctf viewborder;
 		rcti cliprct;
 
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, FALSE);
+		if (rv3d->persp == RV3D_CAMOB) {
+			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, FALSE);
 
-		cliprct.xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
-		cliprct.ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
-		cliprct.xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
-		cliprct.ymax = viewborder.ymin + scene->r.border.ymax * BLI_rctf_size_y(&viewborder);
+			cliprct.xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
+			cliprct.ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
+			cliprct.xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
+			cliprct.ymax = viewborder.ymin + scene->r.border.ymax * BLI_rctf_size_y(&viewborder);
+		}
+		else {
+			cliprct.xmin = v3d->render_border.xmin * ar->winx;
+			cliprct.xmax = v3d->render_border.xmax * ar->winx;
+			cliprct.ymin = v3d->render_border.ymin * ar->winy;
+			cliprct.ymax = v3d->render_border.ymax * ar->winy;
+		}
 
 		cliprct.xmin += ar->winrct.xmin;
 		cliprct.xmax += ar->winrct.xmin;
@@ -3129,8 +3137,20 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 
 	Object *ob;
 
-	if (rv3d->persp == RV3D_CAMOB)
+	if (rv3d->persp == RV3D_CAMOB) {
 		drawviewborder(scene, ar, v3d);
+	}
+	else if (v3d->flag2 & V3D_RENDER_BORDER) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		setlinestyle(3);
+		cpack(0x4040FF);
+
+		glRectf(v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
+		        v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
+
+		setlinestyle(0);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
@@ -3180,7 +3200,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	const char *grid_unit = NULL;
-	int draw_border = (rv3d->persp == RV3D_CAMOB && (scene->r.mode & R_BORDER));
+	int draw_border = FALSE;
+
+	if (rv3d->persp == RV3D_CAMOB)
+		draw_border = scene->r.mode & R_BORDER;
+	else
+		draw_border = v3d->flag2 & V3D_RENDER_BORDER;
 
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(C) || draw_border) {

@@ -8046,46 +8046,72 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 3)) {
+		/* smoke branch */
+		{
+			Object *ob;
 
-	{
-		Object *ob;
-
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			ModifierData *md;
-			for (md = ob->modifiers.first; md; md = md->next) {
-				if (md->type == eModifierType_Smoke) {
-					SmokeModifierData *smd = (SmokeModifierData *)md;
-					if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-						/* keep branch saves if possible */
-						if (!smd->domain->flame_max_temp) {
-							smd->domain->burning_rate = 0.75f;
-							smd->domain->flame_smoke = 1.0f;
-							smd->domain->flame_vorticity = 0.5f;
-							smd->domain->flame_ignition = 1.25f;
-							smd->domain->flame_max_temp = 1.75f;
-							smd->domain->adapt_threshold = 0.02f;
-							smd->domain->adapt_margin = 4;
-							smd->domain->flame_smoke_color[0] = 0.7f;
-							smd->domain->flame_smoke_color[1] = 0.7f;
-							smd->domain->flame_smoke_color[2] = 0.7f;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				ModifierData *md;
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Smoke) {
+						SmokeModifierData *smd = (SmokeModifierData *)md;
+						if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
+							/* keep branch saves if possible */
+							if (!smd->domain->flame_max_temp) {
+								smd->domain->burning_rate = 0.75f;
+								smd->domain->flame_smoke = 1.0f;
+								smd->domain->flame_vorticity = 0.5f;
+								smd->domain->flame_ignition = 1.25f;
+								smd->domain->flame_max_temp = 1.75f;
+								smd->domain->adapt_threshold = 0.02f;
+								smd->domain->adapt_margin = 4;
+								smd->domain->flame_smoke_color[0] = 0.7f;
+								smd->domain->flame_smoke_color[1] = 0.7f;
+								smd->domain->flame_smoke_color[2] = 0.7f;
+							}
+						}
+						else if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
+							if (!smd->flow->texture_size) {
+								smd->flow->fuel_amount = 1.0;
+								smd->flow->surface_distance = 1.5;
+								smd->flow->color[0] = 0.7f;
+								smd->flow->color[1] = 0.7f;
+								smd->flow->color[2] = 0.7f;
+								smd->flow->texture_size = 1.0f;
+							}
 						}
 					}
-					else if ((smd->type & MOD_SMOKE_TYPE_FLOW) && smd->flow) {
-						if (!smd->flow->texture_size) {
-							smd->flow->fuel_amount = 1.0;
-							smd->flow->surface_distance = 1.5;
-							smd->flow->color[0] = 0.7f;
-							smd->flow->color[1] = 0.7f;
-							smd->flow->color[2] = 0.7f;
-							smd->flow->texture_size = 1.0f;
+				}
+			}
+		}
+
+		/* render border for viewport */
+		{
+			bScreen *sc;
+
+			for (sc = main->screen.first; sc; sc = sc->id.next) {
+				ScrArea *sa;
+				for (sa = sc->areabase.first; sa; sa = sa->next) {
+					SpaceLink *sl;
+					for (sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							if (v3d->render_border.xmin == 0.0f && v3d->render_border.ymin == 0.0f &&
+							    v3d->render_border.xmax == 0.0f && v3d->render_border.ymax == 0.0f)
+							{
+								v3d->render_border.xmax = 1.0f;
+								v3d->render_border.ymax = 1.0f;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
+
+	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
+	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
 	/* don't forget to set version number in blender.c! */
 }

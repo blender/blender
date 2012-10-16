@@ -929,18 +929,6 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
-static int view3d_camera_active_poll(bContext *C)
-{
-	if (ED_operator_view3d_active(C)) {
-		RegionView3D *rv3d = CTX_wm_region_view3d(C);
-		if (rv3d && rv3d->persp == RV3D_CAMOB) {
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
 /* test for unlocked camera view in quad view */
 static int view3d_camera_user_poll(bContext *C)
 {
@@ -2633,42 +2621,71 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
+
 	Scene *scene = CTX_data_scene(C);
 
 	rcti rect;
-	rctf vb;
+	rctf vb, border;
+
+	int camera_only = RNA_boolean_get(op->ptr, "camera_only");
+
+	if (camera_only && rv3d->persp != RV3D_CAMOB)
+		return OPERATOR_PASS_THROUGH;
 
 	/* get border select values using rna */
 	WM_operator_properties_border_to_rcti(op, &rect);
 
 	/* calculate range */
-	ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
 
-	scene->r.border.xmin = ((float)rect.xmin - vb.xmin) / BLI_rctf_size_x(&vb);
-	scene->r.border.ymin = ((float)rect.ymin - vb.ymin) / BLI_rctf_size_y(&vb);
-	scene->r.border.xmax = ((float)rect.xmax - vb.xmin) / BLI_rctf_size_x(&vb);
-	scene->r.border.ymax = ((float)rect.ymax - vb.ymin) / BLI_rctf_size_y(&vb);
+	if (rv3d->persp == RV3D_CAMOB) {
+		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
+	}
+	else {
+		vb.xmin = 0;
+		vb.ymin = 0;
+		vb.xmax = ar->winx;
+		vb.ymax = ar->winy;
+	}
+
+	border.xmin = ((float)rect.xmin - vb.xmin) / BLI_rctf_size_x(&vb);
+	border.ymin = ((float)rect.ymin - vb.ymin) / BLI_rctf_size_y(&vb);
+	border.xmax = ((float)rect.xmax - vb.xmin) / BLI_rctf_size_x(&vb);
+	border.ymax = ((float)rect.ymax - vb.ymin) / BLI_rctf_size_y(&vb);
 
 	/* actually set border */
-	CLAMP(scene->r.border.xmin, 0.0f, 1.0f);
-	CLAMP(scene->r.border.ymin, 0.0f, 1.0f);
-	CLAMP(scene->r.border.xmax, 0.0f, 1.0f);
-	CLAMP(scene->r.border.ymax, 0.0f, 1.0f);
+	CLAMP(border.xmin, 0.0f, 1.0f);
+	CLAMP(border.ymin, 0.0f, 1.0f);
+	CLAMP(border.xmax, 0.0f, 1.0f);
+	CLAMP(border.ymax, 0.0f, 1.0f);
+
+	if (rv3d->persp == RV3D_CAMOB) {
+		scene->r.border = border;
+
+		WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+	}
+	else {
+		v3d->render_border = border;
+
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	}
 
 	/* drawing a border surrounding the entire camera view switches off border rendering
 	 * or the border covers no pixels */
-	if ((scene->r.border.xmin <= 0.0f && scene->r.border.xmax >= 1.0f &&
-	     scene->r.border.ymin <= 0.0f && scene->r.border.ymax >= 1.0f) ||
-	    (scene->r.border.xmin == scene->r.border.xmax ||
-	     scene->r.border.ymin == scene->r.border.ymax))
+	if ((border.xmin <= 0.0f && border.xmax >= 1.0f &&
+	     border.ymin <= 0.0f && border.ymax >= 1.0f) ||
+	    (border.xmin == border.xmax || border.ymin == border.ymax))
 	{
-		scene->r.mode &= ~R_BORDER;
+		if (rv3d->persp == RV3D_CAMOB)
+			scene->r.mode &= ~R_BORDER;
+		else
+			v3d->flag2 &= ~V3D_RENDER_BORDER;
 	}
 	else {
-		scene->r.mode |= R_BORDER;
+		if (rv3d->persp == RV3D_CAMOB)
+			scene->r.mode |= R_BORDER;
+		else
+			v3d->flag2 |= V3D_RENDER_BORDER;
 	}
-	
-	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	return OPERATOR_FINISHED;
 
@@ -2687,7 +2704,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	ot->modal = WM_border_select_modal;
 	ot->cancel = WM_border_select_cancel;
 
-	ot->poll = view3d_camera_active_poll;
+	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2695,7 +2712,56 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_border(ot);
 
+	RNA_def_boolean(ot->srna, "camera_only", 0, "Camera Only", "Set render border for camera view and final render only");
 }
+
+/* ********************* Set render border operator ****************** */
+
+static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
+
+	Scene *scene = CTX_data_scene(C);
+	rctf *border = NULL;
+
+	if (rv3d->persp == RV3D_CAMOB) {
+		scene->r.mode &= ~R_BORDER;
+		border = &scene->r.border;
+
+		WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+	}
+	else {
+		v3d->flag2 &= ~V3D_RENDER_BORDER;
+		border = &v3d->render_border;
+
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	}
+
+	border->xmin = 0.0f;
+	border->ymin = 0.0f;
+	border->xmax = 1.0f;
+	border->ymax = 1.0f;
+
+	return OPERATOR_FINISHED;
+
+}
+
+void VIEW3D_OT_clear_render_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Render Border";
+	ot->description = "Clear the boundaries of the border render and enables border render";
+	ot->idname = "VIEW3D_OT_clear_render_border";
+
+	/* api callbacks */
+	ot->exec = clear_render_border_exec;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ********************* Border Zoom operator ****************** */
 
 static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
