@@ -134,6 +134,9 @@ __device_inline void object_dir_transform(KernelGlobals *kg, ShaderData *sd, flo
 
 __device_inline float3 object_location(KernelGlobals *kg, ShaderData *sd)
 {
+	if(sd->object == ~0)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
 #ifdef __OBJECT_MOTION__
 	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
 #else
