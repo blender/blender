@@ -144,6 +144,7 @@ extern struct EnumPropertyItem *corner_type_items;
 
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
+void MESH_OT_unsubdivide(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);

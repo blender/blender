@@ -101,6 +101,7 @@ void bmo_transform_exec(BMesh *bm, BMOperator *op);
 void bmo_translate_exec(BMesh *bm, BMOperator *op);
 void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op);
 void bmo_triangulate_exec(BMesh *bm, BMOperator *op);
+void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op);
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op);
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op);
 

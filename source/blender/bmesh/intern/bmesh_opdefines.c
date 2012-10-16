@@ -698,6 +698,15 @@ static BMOpDefine bmo_triangulate_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+static BMOpDefine bmo_unsubdivide_def = {
+	"unsubdivide",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertices */
+	 {BMO_OP_SLOT_INT, "iterations"},
+	 {0} /* null-terminating sentinel */},
+	bmo_unsubdivide_exec,
+	BMO_OP_FLAG_UNTAN_MULTIRES
+};
+
 static BMOpDefine bmo_subdivide_edges_def = {
 	"subdivide_edges",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
@@ -1274,6 +1283,7 @@ BMOpDefine *opdefines[] = {
 	&bmo_translate_def,
 	&bmo_triangle_fill_def,
 	&bmo_triangulate_def,
+	&bmo_unsubdivide_def,
 	&bmo_weld_verts_def,
 	&bmo_wireframe_def,
 

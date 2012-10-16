@@ -1143,6 +1143,8 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
 /**
  * \brief Split Face Make Edge (SFME)
  *
+ * \warning this is a low level function, most likely you want to use #BM_face_split()
+ *
  * Takes as input two vertices in a single face. An edge is created which divides the original face
  * into two distinct regions. One of the regions is assigned to the original face and it is closed off.
  * The second region has a new face assigned to it.

@@ -156,6 +156,51 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 }
 
 
+static int edbm_unsubdivide_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+
+	int iterations = RNA_int_get(op->ptr, "iterations");
+
+	EDBM_op_init(em, &bmop, op,
+	             "unsubdivide verts=%hv iterations=%i", BM_ELEM_SELECT, iterations);
+
+	BMO_op_exec(em->bm, &bmop);
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return 0;
+	}
+
+	if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
+		EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);  /* need to flush vert->face first */
+	}
+	EDBM_selectmode_flush(em);
+
+	EDBM_update_generic(C, em, TRUE);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_unsubdivide(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Un-Subdivide";
+	ot->description = "UnSubdivide selected edges & faces";
+	ot->idname = "MESH_OT_unsubdivide";
+
+	/* api callbacks */
+	ot->exec = edbm_unsubdivide_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_int(ot->srna, "iterations", 2, 1, INT_MAX, "Iterations", "Number of times to unsubdivide", 1, 100);
+}
+
 void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 {
 	Object *obedit = em->ob;

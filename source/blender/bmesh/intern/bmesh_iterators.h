@@ -111,7 +111,7 @@ typedef struct BMIter {
 		long        l;
 		float       f;
 	} filter;
-	int count;
+	int count;  /* note, only some iterators set this, don't rely on it */
 	char itype;
 } BMIter;
 

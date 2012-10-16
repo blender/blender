@@ -2165,11 +2165,19 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	         BMW_FLAG_NOP, /* don't use BMW_FLAG_TEST_HIDDEN here since we want to desel all */
 	         BMW_NIL_LAY);
 
+	/* use tag to avoid touching the same verts twice */
+	BM_ITER_MESH (ele, &iter, bm, itertype) {
+		BM_elem_flag_disable(ele, BM_ELEM_TAG);
+	}
+
 	BLI_assert(walker.order == BMW_BREADTH_FIRST);
 	for (ele = BMW_begin(&walker, h_act); ele != NULL; ele = BMW_step(&walker)) {
-		/* Deselect elements that aren't at "nth" depth from active */
-		if ((offset + BMW_current_depth(&walker)) % nth) {
-			BM_elem_select_set(bm, ele, FALSE);
+		if (!BM_elem_flag_test(ele, BM_ELEM_TAG)) {
+			/* Deselect elements that aren't at "nth" depth from active */
+			if ((offset + BMW_current_depth(&walker)) % nth) {
+				BM_elem_select_set(bm, ele, FALSE);
+			}
+			BM_elem_flag_enable(ele, BM_ELEM_TAG);
 		}
 	}
 	BMW_end(&walker);

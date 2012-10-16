@@ -56,6 +56,7 @@ set(SRC
 	operators/bmo_subdivide.c
 	operators/bmo_subdivide.h
 	operators/bmo_triangulate.c
+	operators/bmo_unsubdivide.c
 	operators/bmo_utils.c
 	operators/bmo_wireframe.c
 
