@@ -1218,10 +1218,13 @@ static int edbm_vert_connect(bContext *C, wmOperator *op)
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
-	
-	EDBM_update_generic(C, em, TRUE);
+	else {
+		EDBM_selectmode_flush(em);  /* so newly created edges get the selection state from the vertex */
 
-	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+		EDBM_update_generic(C, em, TRUE);
+
+		return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	}
 }
 
 void MESH_OT_vert_connect(wmOperatorType *ot)
