@@ -109,7 +109,7 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND_MIS__
 #define __AO__
 #define __CAMERA_MOTION__
-//#define __OBJECT_MOTION__
+#define __OBJECT_MOTION__
 #endif
 
 //#define __SOBOL_FULL_SCREEN__

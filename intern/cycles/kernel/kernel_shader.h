@@ -73,7 +73,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	/* matrices and time */
 #ifdef __OBJECT_MOTION__
 	if(sd->flag & SD_OBJECT_MOTION) {
-		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, time, &sd->ob_itfm);
+		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, ray->time, &sd->ob_itfm);
 	}
 	else {
 		sd->ob_tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);

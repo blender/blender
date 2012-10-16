@@ -131,7 +131,7 @@ class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
 
 
 class CyclesRender_PT_motion_blur(CyclesButtonsPanel, Panel):
-    bl_label = "Camera Motion Blur"
+    bl_label = "Motion Blur"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
