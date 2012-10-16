@@ -2754,7 +2754,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 		/* no depths to use, we cant do anything! */
 		if (depth_close == FLT_MAX) {
-			BKE_report(op->reports, RPT_ERROR, "Depth Too Large");
+			BKE_report(op->reports, RPT_ERROR, "Depth too large");
 			return OPERATOR_CANCELLED;
 		}
 		/* convert border to 3d coordinates */

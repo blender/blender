@@ -2414,7 +2414,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	if (totremoved == 0)
 		return OPERATOR_CANCELLED;
 
-	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles", totremoved);
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d double particles", totremoved);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);

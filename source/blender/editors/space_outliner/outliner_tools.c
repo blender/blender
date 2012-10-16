@@ -811,7 +811,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					ED_undo_push(C, "Unlink world");
 					break;
 				default:
-					BKE_report(op->reports, RPT_WARNING, "Not Yet");
+					BKE_report(op->reports, RPT_WARNING, "Not yet");
 					break;
 			}
 		}
@@ -844,7 +844,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					break;
 					
 				default:
-					BKE_report(op->reports, RPT_WARNING, "Not Yet");
+					BKE_report(op->reports, RPT_WARNING, "Not yet");
 					break;
 			}
 		}
@@ -980,9 +980,9 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	else if (act->idroot == 0) {
 		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Action '%s' does not specify what datablocks it can be used on. "
-		            "Try setting the 'ID Root Type' setting from the Datablocks Editor "
-		            "for this Action to avoid future problems",
+		            "Action '%s' does not specify what datablocks it can be used on "
+		            "(try setting the 'ID Root Type' setting from the Datablocks Editor "
+		            "for this Action to avoid future problems)",
 		            act->id.name + 2);
 	}
 	

@@ -346,7 +346,6 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	Object *ob = ED_object_context(C);
 	int status = 0;
 	double timer = PIL_check_seconds_timer();
-	char result_str[80];
 	DynamicPaintSurface *surface;
 
 	/*
@@ -354,14 +353,14 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	 */
 	pmd = (DynamicPaintModifierData *)modifiers_findByType(ob, eModifierType_DynamicPaint);
 	if (!pmd) {
-		BKE_report(op->reports, RPT_ERROR, "Bake Failed: No Dynamic Paint modifier found.");
+		BKE_report(op->reports, RPT_ERROR, "Bake failed: no Dynamic Paint modifier found");
 		return 0;
 	}
 
 	/* Make sure we're dealing with a canvas */
 	canvas = pmd->canvas;
 	if (!canvas) {
-		BKE_report(op->reports, RPT_ERROR, "Bake Failed: Invalid Canvas.");
+		BKE_report(op->reports, RPT_ERROR, "Bake failed: invalid canvas");
 		return 0;
 	}
 	surface = get_activeSurface(canvas);
@@ -387,17 +386,14 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 		BLI_timestr(time, time_str);
 
 		/* Show bake info */
-		BLI_snprintf(result_str, sizeof(result_str), "Bake Complete! (%s)", time_str);
-		BKE_report(op->reports, RPT_INFO, result_str);
+		BKE_reportf(op->reports, RPT_INFO, "Bake complete! (%s)", time_str);
 	}
 	else {
 		if (strlen(canvas->error)) { /* If an error occured */
-			BLI_snprintf(result_str, sizeof(result_str), "Bake Failed: %s", canvas->error);
-			BKE_report(op->reports, RPT_ERROR, result_str);
+			BKE_reportf(op->reports, RPT_ERROR, "Bake failed: %s", canvas->error);
 		}
-		else {	/* User canceled the bake */
-			BLI_strncpy(result_str, "Baking Cancelled!", sizeof(result_str));
-			BKE_report(op->reports, RPT_WARNING, result_str);
+		else { /* User canceled the bake */
+			BKE_report(op->reports, RPT_WARNING, "Baking cancelled!");
 		}
 	}
 

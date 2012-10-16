@@ -41,6 +41,8 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
@@ -180,7 +182,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		BLI_join_dirfile(str, sizeof(str), dir_only, file_only);
 	}
 	else {
-		BKE_reportf(op->reports, RPT_ERROR, "No files selected to be opened");
+		BKE_report(op->reports, RPT_ERROR, "No files selected to be opened");
 
 		return OPERATOR_CANCELLED;
 	}
@@ -195,8 +197,8 @@ static int open_exec(bContext *C, wmOperator *op)
 		if (op->customdata)
 			MEM_freeN(op->customdata);
 
-		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", str,
-		            errno ? strerror(errno) : "Unsupported movie clip format");
+		BKE_reportf(op->reports, RPT_ERROR, "Can't read \"%s\": %s", str,
+		            errno ? strerror(errno) : TIP_("Unsupported movie clip format"));
 
 		return OPERATOR_CANCELLED;
 	}

@@ -150,7 +150,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	count = countPackedFiles(bmain);
 	
 	if (!count) {
-		BKE_report(op->reports, RPT_WARNING, "No packed files. Auto-pack disabled");
+		BKE_report(op->reports, RPT_WARNING, "No packed files (auto-pack disabled)");
 		G.fileflags &= ~G_AUTOPACK;
 		return OPERATOR_CANCELLED;
 	}

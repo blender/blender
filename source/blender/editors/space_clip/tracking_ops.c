@@ -1400,7 +1400,7 @@ static void solve_camera_freejob(void *scv)
 	if (!solved)
 		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
 	else
-		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error %.3f", tracking->reconstruction.error);
+		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error: %.3f", tracking->reconstruction.error);
 
 	/* set currently solved clip as active for scene */
 	if (scene->clip)

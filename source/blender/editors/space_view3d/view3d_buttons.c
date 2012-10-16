@@ -451,7 +451,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Tilt:"),
 			                0, yi -= buth + but_margin, 200, buth,
 			                &(tfp->ve_median[C_TILT]), -M_PI * 2.0f, M_PI * 2.0f, 1, 3,
-			                TIP_("Tilt (inclination) of curve control points"));
+			                TIP_("Tilt of curve control points"));
 			uiButSetUnitType(but, PROP_UNIT_ROTATION);
 		}
 		/* Lattice... */

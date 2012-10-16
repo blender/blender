@@ -97,6 +97,8 @@
 
 #include "ED_screen.h"
 
+#include "BLF_translation.h"
+
 static Camera *rna_Main_cameras_new(Main *UNUSED(bmain), const char *name)
 {
 	ID *id = BKE_camera_add(name);
@@ -289,8 +291,8 @@ static Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, con
 	ima = BKE_image_load(filepath);
 
 	if (!ima)
-		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
-		            errno ? strerror(errno) : "Unsupported image format");
+		BKE_reportf(reports, RPT_ERROR, "Can't read \"%s\": %s", filepath,
+		            errno ? strerror(errno) : TIP_("Unsupported image format"));
 
 	return ima;
 }
@@ -358,8 +360,8 @@ static VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *
 	font = BKE_vfont_load(bmain, filepath);
 
 	if (!font)
-		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
-		            errno ? strerror(errno) : "Unsupported font format");
+		BKE_reportf(reports, RPT_ERROR, "Can't read \"%s\": %s", filepath,
+		            errno ? strerror(errno) : TIP_("Unsupported font format"));
 
 	return font;
 
@@ -468,8 +470,8 @@ static Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *f
 	txt = BKE_text_load(filepath, bmain->name);
 
 	if (!txt)
-		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
-		            errno ? strerror(errno) : "Unable to load text");
+		BKE_reportf(reports, RPT_ERROR, "Can't read \"%s\": %s", filepath,
+		            errno ? strerror(errno) : TIP_("Unable to load text"));
 
 	return txt;
 }
@@ -534,8 +536,8 @@ static MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *repor
 	clip = BKE_movieclip_file_add(filepath);
 
 	if (!clip)
-		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s.", filepath,
-		            errno ? strerror(errno) : "Unable to load movie clip");
+		BKE_reportf(reports, RPT_ERROR, "Can't read \"%s\": %s", filepath,
+		            errno ? strerror(errno) : TIP_("Unable to load movie clip"));
 
 	return clip;
 }
