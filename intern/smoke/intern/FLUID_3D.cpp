@@ -1047,21 +1047,52 @@ void FLUID_3D::project()
 	setObstaclePressure(_pressure, 0, _zRes);
 
 	// project out solution
+	// New idea for code from NVIDIA graphic gems 3 - DG
 	float invDx = 1.0f / _dx;
 	index = _slabSize + _xRes + 1;
 	for (z = 1; z < _zRes - 1; z++, index += 2 * _xRes)
 		for (y = 1; y < _yRes - 1; y++, index += 2)
 			for (x = 1; x < _xRes - 1; x++, index++)
 			{
+				float vMask[3] = {1.0f, 1.0f, 1.0f}, vObst[3] = {0, 0, 0};
+				float vR = 0.0f, vL = 0.0f, vT = 0.0f, vB = 0.0f, vD = 0.0f, vU = 0.0f;
+
+				float pC = _pressure[index]; // center
+				float pR = _pressure[index + 1]; // right
+				float pL = _pressure[index - 1]; // left
+				float pU = _pressure[index + _xRes]; // Up
+				float pD = _pressure[index - _xRes]; // Down
+				float pT = _pressure[index + _slabSize]; // top
+				float pB = _pressure[index - _slabSize]; // bottom
+
 				if(!_obstacles[index])
 				{
-					_xVelocity[index] -= 0.5f * (_pressure[index + 1]     - _pressure[index - 1]) * invDx;
-					_yVelocity[index] -= 0.5f * (_pressure[index + _xRes]  - _pressure[index - _xRes]) * invDx;
-					_zVelocity[index] -= 0.5f * (_pressure[index + _slabSize] - _pressure[index - _slabSize]) * invDx;
+					// DG TODO: What if obstacle is left + right and one of them is moving?
+					if(_obstacles[index+1])			{ pR = pC; vObst[0] = _xVelocityOb[index + 1];			vMask[0] = 0; }
+					if(_obstacles[index-1])			{ pL = pC; vObst[0]	= _xVelocityOb[index - 1];			vMask[0] = 0; }
+					if(_obstacles[index+_xRes])		{ pU = pC; vObst[1]	= _yVelocityOb[index + _xRes];		vMask[1] = 0; }
+					if(_obstacles[index-_xRes])		{ pD = pC; vObst[1]	= _yVelocityOb[index - _xRes];		vMask[1] = 0; }
+					if(_obstacles[index+_slabSize]) { pT = pC; vObst[2] = _zVelocityOb[index + _slabSize];	vMask[2] = 0; }
+					if(_obstacles[index-_slabSize]) { pB = pC; vObst[2]	= _zVelocityOb[index - _slabSize];	vMask[2] = 0; }
+
+					_xVelocity[index] -= 0.5f * (pR - pL) * invDx;
+					_yVelocity[index] -= 0.5f * (pU - pD) * invDx;
+					_zVelocity[index] -= 0.5f * (pT - pB) * invDx;
+
+					_xVelocity[index] = (vMask[0] * _xVelocity[index]) + vObst[0];
+					_yVelocity[index] = (vMask[1] * _yVelocity[index]) + vObst[1];
+					_zVelocity[index] = (vMask[2] * _zVelocity[index]) + vObst[2];
+				}
+				else
+				{
+					_xVelocity[index] = _xVelocityOb[index];
+					_yVelocity[index] = _yVelocityOb[index];
+					_zVelocity[index] = _zVelocityOb[index];
 				}
 			}
 
-	setObstacleVelocity(0, _zRes);
+	// DG: was enabled in original code but now we do this later
+	// setObstacleVelocity(0, _zRes);
 
 	if (_pressure) delete[] _pressure;
 	if (_divergence) delete[] _divergence;
