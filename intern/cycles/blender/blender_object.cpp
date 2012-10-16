@@ -340,8 +340,19 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 						Transform tfm = get_transform(b_dup->matrix());
 						BL::Object b_dup_ob = b_dup->object();
 						bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
+						bool emitter_hide = false;
 
-						if(!(b_dup->hide() || dup_hide)) {
+						if(b_dup_ob.is_duplicator()) {
+							emitter_hide = true;	/* duplicators hidden by default */
+							
+							/* check if we should render or hide particle emitter */
+							BL::Object::particle_systems_iterator b_psys;
+							for(b_dup_ob.particle_systems.begin(b_psys); b_psys != b_dup_ob.particle_systems.end(); ++b_psys)
+								if(b_psys->settings().use_render_emitter())
+									emitter_hide = false;
+						}
+
+						if(!(b_dup->hide() || dup_hide || emitter_hide)) {
 							sync_object(*b_ob, b_index, *b_dup, tfm, ob_layer, motion, b_dup->particle_index() + particle_offset);
 						}
 						
