@@ -2224,7 +2224,8 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			float rgb[3];
 
 			copy_v3_v3(rgb, shr.combined);
-			IMB_colormanagement_scene_linear_to_colorspace_v3(rgb, bs->rect_colorspace);
+			if (R.scene_color_manage)
+				IMB_colormanagement_scene_linear_to_colorspace_v3(rgb, bs->rect_colorspace);
 			rgb_float_to_uchar(col, rgb);
 		}
 		else {
