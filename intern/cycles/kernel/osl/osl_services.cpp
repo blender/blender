@@ -459,6 +459,15 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
+
+	/* Ray Length */
+	else if (name == "std::ray_length") {
+		float fval[3];
+		fval[0] = sd->ray_length;
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
+		return true;
+	}
 	
 	else
 		return false;
