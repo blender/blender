@@ -44,6 +44,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 
 #include "MOD_util.h"
 
@@ -130,6 +131,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 	ParticleSystem *psys = NULL;
 	int needsFree = 0;
+	float cfra = BKE_scene_frame_get(md->scene);
 
 	if (ob->particlesystem.first)
 		psys = psmd->psys;
@@ -188,9 +190,16 @@ static void deformVerts(ModifierData *md, Object *ob,
 		psmd->totdmface = psmd->dm->getNumTessFaces(psmd->dm);
 	}
 
-	psmd->flag &= ~eParticleSystemFlag_psys_updated;
-	particle_system_update(md->scene, ob, psys);
-	psmd->flag |= eParticleSystemFlag_psys_updated;
+	/* skip the particle update if no timestep is performed or initialization required.
+	 * XXX this is a workaround for bug #32846, which is caused by modifier updates
+	 * during dupli-list generation (in cycles). The dupli-list generation can temporarily change
+	 * the ob->obmat matrix, which in turn leads to wrong particle states if used for reset ...
+	 */
+	if (psys->cfra != cfra || psys->recalc) {
+		psmd->flag &= ~eParticleSystemFlag_psys_updated;
+		particle_system_update(md->scene, ob, psys);
+		psmd->flag |= eParticleSystemFlag_psys_updated;
+	}
 }
 
 /* disabled particles in editmode for now, until support for proper derivedmesh
