@@ -38,6 +38,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -980,6 +981,15 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	/* parses the geom+tex nodes */
 	if (ma->nodetree && ma->use_nodes)
 		ntreeShaderGetTexcoMode(ma->nodetree, r_mode, &ma->texco, &ma->mode_l);
+
+    /* local group override */
+    if((ma->shade_flag & MA_GROUP_LOCAL) && ma->id.lib && ma->group && ma->group->id.lib) {
+        Group *group;
+
+        for(group= G.main->group.first; group; group= group->id.next)
+            if(!group->id.lib && strcmp(group->id.name, ma->group->id.name) == 0)
+                ma->group = group;
+    }
 }
 
 static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)

@@ -753,6 +753,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         row = sub.row()
         row.active = bool(mat.light_group)
         row.prop(mat, "use_light_group_exclusive", text="Exclusive")
+        row.prop(mat, "use_light_group_local", text="Local")
 
         col = split.column()
         col.prop(mat, "use_face_texture")
