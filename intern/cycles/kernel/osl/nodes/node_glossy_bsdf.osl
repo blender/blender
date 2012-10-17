@@ -26,12 +26,12 @@ shader node_glossy_bsdf(
 	normal Normal = N,
 	output closure color BSDF = diffuse(Normal))
 {
-	if(distribution == "Sharp")
-		BSDF = Color*reflection(Normal);
-	else if(distribution == "Beckmann")
-		BSDF = Color*microfacet_beckmann(Normal, Roughness, 1.0);
-	else if(distribution == "GGX")
-		BSDF = Color*microfacet_ggx(Normal, Roughness, 1.0);
+	if (distribution == "Sharp")
+		BSDF = Color * reflection(Normal);
+	else if (distribution == "Beckmann")
+		BSDF = Color * microfacet_beckmann(Normal, Roughness, 1.0);
+	else if (distribution == "GGX")
+		BSDF = Color * microfacet_ggx(Normal, Roughness, 1.0);
 
 }
 

@@ -25,6 +25,6 @@ shader node_ward_bsdf(
 	normal Normal = N,
 	output closure color BSDF = diffuse(Normal))
 {
-	BSDF = Color*ward(Normal, normalize(dPdu), RoughnessU, RoughnessV);
+	BSDF = Color * ward(Normal, normalize(dPdu), RoughnessU, RoughnessV);
 }
 

@@ -24,7 +24,7 @@ shader node_brightness(
 	float Contrast = 0.0,
 	output color ColorOut = color(0.8, 0.8, 0.8))
 {
-	float delta = Contrast * (1.0/200.0);
+	float delta = Contrast * (1.0 / 200.0);
 	float a = 1.0 - delta * 2.0;
 	float b;
 
@@ -38,7 +38,7 @@ shader node_brightness(
 	*/
 
 	if (Contrast > 0.0) {
-		a = (a < 0.0 ? 1.0/a : 0.0);
+		a = (a < 0.0 ? 1.0 / a : 0.0);
 		b = a * (bright_factor - delta);
 	}
 	else {

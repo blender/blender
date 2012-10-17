@@ -25,51 +25,51 @@ color magic(point p, int n, float distortion)
 {
 	float dist = distortion;
 
-	float x = sin((p[0] + p[1] + p[2])*5.0);
-	float y = cos((-p[0] + p[1] - p[2])*5.0);
-	float z = -cos((-p[0] - p[1] + p[2])*5.0);
+	float x =  sin(( p[0] + p[1] + p[2]) * 5.0);
+	float y =  cos((-p[0] + p[1] - p[2]) * 5.0);
+	float z = -cos((-p[0] - p[1] + p[2]) * 5.0);
 
-	if(n > 0) {
+	if (n > 0) {
 		x *= dist;
 		y *= dist;
 		z *= dist;
-		y = -cos(x-y+z);
+		y = -cos(x - y + z);
 		y *= dist;
 
-		if(n > 1) {
-			x = cos(x-y-z);
+		if (n > 1) {
+			x = cos(x - y - z);
 			x *= dist;
 
-			if(n > 2) {
-				z = sin(-x-y-z);
+			if (n > 2) {
+				z = sin(-x - y - z);
 				z *= dist;
 
-				if(n > 3) {
-					x = -cos(-x+y-z);
+				if (n > 3) {
+					x = -cos(-x + y - z);
 					x *= dist;
 
-					if(n > 4) {
-						y = -sin(-x+y+z);
+					if (n > 4) {
+						y = -sin(-x + y + z);
 						y *= dist;
 
-						if(n > 5) {
-							y = -cos(-x+y+z);
+						if (n > 5) {
+							y = -cos(-x + y + z);
 							y *= dist;
 
-							if(n > 6) {
-								x = cos(x+y+z);
+							if (n > 6) {
+								x = cos(x + y + z);
 								x *= dist;
 
-								if(n > 7) {
-									z = sin(x+y-z);
+								if (n > 7) {
+									z = sin(x + y - z);
 									z *= dist;
 
-									if(n > 8) {
-										x = -cos(-x-y+z);
+									if (n > 8) {
+										x = -cos(-x - y + z);
 										x *= dist;
 
-										if(n > 9) {
-											y = -sin(x-y+z);
+										if (n > 9) {
+											y = -sin(x - y + z);
 											y *= dist;
 										}
 									}
@@ -82,7 +82,7 @@ color magic(point p, int n, float distortion)
 		}
 	}
 
-	if(dist != 0.0) {
+	if (dist != 0.0) {
 		dist *= 2.0;
 		x /= dist;
 		y /= dist;
@@ -99,6 +99,6 @@ shader node_magic_texture(
 	point Vector = P,
 	output color Color = color(0.0, 0.0, 0.0))
 {
-	Color = magic(Vector*Scale, Depth, Distortion);
+	Color = magic(Vector * Scale, Depth, Distortion);
 }
 

@@ -32,16 +32,16 @@ shader node_voronoi_texture(
 	float da[4];
 	point pa[4];
 
-	voronoi(Vector*Scale, "Distance Squared", 1.0, da, pa);
+	voronoi(Vector * Scale, "Distance Squared", 1.0, da, pa);
 
 	/* Colored output */
-	if(Coloring == "Intensity") {
+	if (Coloring == "Intensity") {
 		Fac = fabs(da[0]);
 		Color = color(Fac);
 	}
 	else {
 		Color = cellnoise_color(pa[0]);
-		Fac = (Color[0]+Color[1]+Color[2])*(1.0/3.0);
+		Fac = (Color[0] + Color[1] + Color[2]) * (1.0 / 3.0);
 
 	}
 }

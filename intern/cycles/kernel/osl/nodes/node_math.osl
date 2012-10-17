@@ -22,20 +22,20 @@ float safe_divide(float a, float b)
 {
 	float result;
 
-	if(b == 0.0)
+	if (b == 0.0)
 		result = 0.0;
 	else
-		result = a/b;
+		result = a / b;
 	
 	return result;
 }
 
 float safe_log(float a, float b)
 {
-	if(a < 0.0 || b < 0.0)
+	if (a < 0.0 || b < 0.0)
 		return 0.0;
 	
-	return log(a)/log(b);
+	return log(a) / log(b);
 }
 
 shader node_math(
@@ -47,42 +47,42 @@ shader node_math(
 {
 	/* OSL asin, acos, pow check for values that could give rise to nan */
 
-	if(type == "Add")
+	if (type == "Add")
 		Value = Value1 + Value2;
-	if(type == "Subtract")
+	if (type == "Subtract")
 		Value = Value1 - Value2;
-	if(type == "Multiply")
-		Value = Value1*Value2;
-	if(type == "Divide")
+	if (type == "Multiply")
+		Value = Value1 * Value2;
+	if (type == "Divide")
 		Value = safe_divide(Value1, Value2);
-	if(type == "Sine")
+	if (type == "Sine")
 		Value = sin(Value1);
-	if(type == "Cosine")
+	if (type == "Cosine")
 		Value = cos(Value1);
-	if(type == "Tangent")
+	if (type == "Tangent")
 		Value = tan(Value1);
-	if(type == "Arcsine")
+	if (type == "Arcsine")
 		Value = asin(Value1);
-	if(type == "Arccosine")
+	if (type == "Arccosine")
 		Value = acos(Value1);
-	if(type == "Arctangent")
+	if (type == "Arctangent")
 		Value = atan(Value1);
-	if(type == "Power")
+	if (type == "Power")
 		Value = pow(Value1, Value2);
-	if(type == "Logarithm")
+	if (type == "Logarithm")
 		Value = safe_log(Value1, Value2);
-	if(type == "Minimum")
+	if (type == "Minimum")
 		Value = min(Value1, Value2);
-	if(type == "Maximum")
+	if (type == "Maximum")
 		Value = max(Value1, Value2);
-	if(type == "Round")
+	if (type == "Round")
 		Value = floor(Value1 + 0.5);
-	if(type == "Less Than")
+	if (type == "Less Than")
 		Value = Value1 < Value2;
-	if(type == "Greater Than")
+	if (type == "Greater Than")
 		Value = Value1 > Value2;
 
-	if(Clamp)
+	if (Clamp)
 		Value = clamp(Value1, 0.0, 1.0);
 }
 

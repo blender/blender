@@ -25,8 +25,8 @@ float noise(point p, string basis, float distortion, float detail, float fac, co
 {
 	point r;
 	int hard = 0;
-	
-	if(distortion != 0.0) {
+
+	if (distortion != 0.0) {
 		r[0] = noise_basis(p + point(13.5), basis) * distortion;
 		r[1] = noise_basis(p, basis) * distortion;
 		r[2] = noise_basis(p - point(13.5), basis) * distortion;
@@ -51,6 +51,6 @@ shader node_noise_texture(
 	output color Color = color(0.2, 0.2, 0.2))
 {
 	string Basis = "Perlin";
-	Fac = noise(Vector*Scale, Basis, Distortion, Detail, Fac, Color);
+	Fac = noise(Vector * Scale, Basis, Distortion, Detail, Fac, Color);
 }
 

@@ -28,7 +28,7 @@ shader node_rgb_ramp(
     output float Alpha = 1.0
     )
 {
-    float f = clamp(Fac, 0.0, 1.0)*(RAMP_TABLE_SIZE-1);
+    float f = clamp(Fac, 0.0, 1.0) * (RAMP_TABLE_SIZE - 1);
 
     int i = (int)f;
     float t = f - (float)i;
@@ -37,8 +37,8 @@ shader node_rgb_ramp(
     Alpha = ramp_alpha[i];
 
     if (t > 0.0) {
-        Color = (1.0 - t)*Color + t*ramp_color[i+1];
-        Alpha = (1.0 - t)*Alpha + t*ramp_alpha[i+1];
+        Color = (1.0 - t) * Color + t * ramp_color[i + 1];
+        Alpha = (1.0 - t) * Alpha + t * ramp_alpha[i + 1];
     }
 }
 

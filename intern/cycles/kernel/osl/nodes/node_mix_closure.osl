@@ -25,6 +25,6 @@ shader node_mix_closure(
 	output closure color Closure = background())
 {
 	float t = clamp(Fac, 0.0, 1.0);
-	Closure = (1.0 - t)*Closure1 + t*Closure2;
+	Closure = (1.0 - t) * Closure1 + t * Closure2;
 }
 

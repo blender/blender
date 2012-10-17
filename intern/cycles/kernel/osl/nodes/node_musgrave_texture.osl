@@ -36,14 +36,14 @@ float noise_musgrave_fBm(point p, string basis, float H, float lacunarity, float
 	float pwHL = pow(lacunarity, -H);
 	int i;
 
-	for(i = 0; i < (int)octaves; i++) {
+	for (i = 0; i < (int)octaves; i++) {
 		value += noise("perlin", p) * pwr;
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
-	if(rmd != 0.0)
+	if (rmd != 0.0)
 		value += rmd * noise("perlin", p) * pwr;
 
 	return value;
@@ -64,14 +64,14 @@ float noise_musgrave_multi_fractal(point p, string basis, float H, float lacunar
 	float pwHL = pow(lacunarity, -H);
 	int i;
 
-	for(i = 0; i < (int)octaves; i++) {
+	for (i = 0; i < (int)octaves; i++) {
 		value *= (pwr * noise("perlin", p) + 1.0);
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
-	if(rmd != 0.0)
+	if (rmd != 0.0)
 		value *= (rmd * pwr * noise("perlin", p) + 1.0); /* correct? */
 
 	return value;
@@ -96,7 +96,7 @@ float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacuna
 	value = offset + noise("perlin", p);
 	p *= lacunarity;
 
-	for(i = 1; i < (int)octaves; i++) {
+	for (i = 1; i < (int)octaves; i++) {
 		increment = (noise("perlin", p) + offset) * pwr * value;
 		value += increment;
 		pwr *= pwHL;
@@ -104,7 +104,7 @@ float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacuna
 	}
 
 	rmd = octaves - floor(octaves);
-	if(rmd != 0.0) {
+	if (rmd != 0.0) {
 		increment = (noise("perlin", p) + offset) * pwr * value;
 		value += rmd * increment;
 	}
@@ -120,7 +120,8 @@ float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacuna
  * offset: raises the terrain from `sea level'
  */
 
-float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H, float lacunarity, float octaves, float offset, float gain)
+float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
+                                          float lacunarity, float octaves, float offset, float gain)
 {
 	float result, signal, weight, rmd;
 	float pwHL = pow(lacunarity, -H);
@@ -131,8 +132,8 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H, float 
 	weight = gain * result;
 	p *= lacunarity;
 
-	for(i = 1; (weight > 0.001) && (i < (int)octaves); i++) {
-		if(weight > 1.0)
+	for (i = 1; (weight > 0.001) && (i < (int)octaves); i++) {
+		if (weight > 1.0)
 			weight = 1.0;
 
 		signal = (noise("perlin", p) + offset) * pwr;
@@ -143,7 +144,7 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H, float 
 	}
 
 	rmd = octaves - floor(octaves);
-	if(rmd != 0.0)
+	if (rmd != 0.0)
 		result += rmd * ((noise("perlin", p) + offset) * pwr);
 
 	return result;
@@ -157,7 +158,8 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H, float 
  * offset: raises the terrain from `sea level'
  */
 
-float noise_musgrave_ridged_multi_fractal(point p, string basis, float H, float lacunarity, float octaves, float offset, float gain)
+float noise_musgrave_ridged_multi_fractal(point p, string basis, float H,
+                                          float lacunarity, float octaves, float offset, float gain)
 {
 	float result, signal, weight;
 	float pwHL = pow(lacunarity, -H);
@@ -169,7 +171,7 @@ float noise_musgrave_ridged_multi_fractal(point p, string basis, float H, float 
 	result = signal;
 	weight = 1.0;
 
-	for(i = 1; i < (int)octaves; i++) {
+	for (i = 1; i < (int)octaves; i++) {
 		p *= lacunarity;
 		weight = clamp(signal * gain, 0.0, 1.0);
 		signal = offset - fabs(noise("perlin", p));
@@ -202,18 +204,18 @@ shader node_musgrave_texture(
 	string Basis = "Perlin";
 	float intensity = 1.0;
 
-	point p = Vector*Scale;
+	point p = Vector * Scale;
 
-	if(Type == "Multifractal")
-		Fac = intensity*noise_musgrave_multi_fractal(p, Basis, dimension, lacunarity, octaves);
-	else if(Type == "fBM")
-		Fac = intensity*noise_musgrave_fBm(p, Basis, dimension, lacunarity, octaves);
-	else if(Type == "Hybrid Multifractal")
-		Fac = intensity*noise_musgrave_hybrid_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
-	else if(Type == "Ridged Multifractal")
-		Fac = intensity*noise_musgrave_ridged_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
-	else if(Type == "Hetero Terrain")
-		Fac = intensity*noise_musgrave_hetero_terrain(p, Basis, dimension, lacunarity, octaves, Offset);
+	if (Type == "Multifractal")
+		Fac = intensity * noise_musgrave_multi_fractal(p, Basis, dimension, lacunarity, octaves);
+	else if (Type == "fBM")
+		Fac = intensity * noise_musgrave_fBm(p, Basis, dimension, lacunarity, octaves);
+	else if (Type == "Hybrid Multifractal")
+		Fac = intensity * noise_musgrave_hybrid_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
+	else if (Type == "Ridged Multifractal")
+		Fac = intensity * noise_musgrave_ridged_multi_fractal(p, Basis, dimension, lacunarity, octaves, Offset, Gain);
+	else if (Type == "Hetero Terrain")
+		Fac = intensity * noise_musgrave_hetero_terrain(p, Basis, dimension, lacunarity, octaves, Offset);
 	
 	Color = color(Fac, Fac, Fac);
 }

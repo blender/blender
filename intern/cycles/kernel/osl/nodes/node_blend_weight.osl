@@ -26,13 +26,13 @@ shader node_blend_weight(
 	output float Facing = 0.0)
 {
 	float f = max(1.0 - Blend, 1e-5);
-	Fresnel = fresnel_dielectric(I, Normal, backfacing()? f: 1.0/f);
+	Fresnel = fresnel_dielectric(I, Normal, backfacing()? f: 1.0 / f);
 
 	Facing = abs(dot(I, Normal));
 
-	if(Blend != 0.5) {
+	if (Blend != 0.5) {
 		Blend = clamp(Blend, 0.0, 1.0); 
-		Blend = (Blend < 0.5)? 2.0*Blend: 0.5/(1.0 - Blend);
+		Blend = (Blend < 0.5)? 2.0 * Blend: 0.5 / (1.0 - Blend);
 
 		Facing = powf(Facing, Blend);
 	}

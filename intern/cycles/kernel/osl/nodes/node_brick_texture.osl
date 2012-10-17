@@ -40,21 +40,21 @@ float brick(point p, float mortar_size, float bias,
 
 	rownum = (int)floor(p[1] / row_height);
 	
-	if(offset_frequency && squash_frequency) {
+	if (offset_frequency && squash_frequency) {
 		brick_width *= ((int)(rownum) % squash_frequency ) ? 1.0 : squash_amount; /* squash */
-		offset = ((int)(rownum) % offset_frequency ) ? 0 : (brick_width*offset_amount); /* offset */
+		offset = ((int)(rownum) % offset_frequency ) ? 0 : (brick_width * offset_amount); /* offset */
 	}
 
-	bricknum = (int)floor((p[0]+offset) / brick_width);
+	bricknum = (int)floor((p[0] + offset) / brick_width);
 
-	x = (p[0]+offset) - brick_width*bricknum;
-	y = p[1] - row_height*rownum;
+	x = (p[0] + offset) - brick_width * bricknum;
+	y = p[1] - row_height * rownum;
 
 	tint = clamp((brick_noise((rownum << 16) + (bricknum & 65535)) + bias), 0.0, 1.0);
 
 	return (x < mortar_size || y < mortar_size ||
-		x > (brick_width - mortar_size) ||
-		y > (row_height - mortar_size)) ? 1.0 : 0.0;
+	        x > (brick_width - mortar_size) ||
+	        y > (row_height - mortar_size)) ? 1.0 : 0.0;
 }
 
 shader node_brick_texture(
@@ -77,10 +77,10 @@ shader node_brick_texture(
 	float tint = 0.0;
 	color Col = Color1;
 	
-	Fac = brick(Vector*Scale, MortarSize, Bias, BrickWidth, RowHeight,
+	Fac = brick(Vector * Scale, MortarSize, Bias, BrickWidth, RowHeight,
 		Offset, OffsetFrequency, Squash, SquashFrequency, tint);
 		
-	if(Fac != 1.0) {
+	if (Fac != 1.0) {
 		float facm = 1.0 - tint;
 
 		Col[0] = facm * (Color1[0]) + tint * Color2[0];
@@ -89,6 +89,5 @@ shader node_brick_texture(
 	}
 	
 	Color = (Fac == 1.0) ? Mortar: Col;
-
 }
 

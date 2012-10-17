@@ -30,7 +30,7 @@ shader node_texture_coordinate(
 	output point Window = point(0.0, 0.0, 0.0),
 	output point Reflection = point(0.0, 0.0, 0.0))
 {
-	if(is_background) {
+	if (is_background) {
 		Generated = P;
 		UV = point(0.0, 0.0, 0.0);
 		Object = P;
@@ -48,14 +48,14 @@ shader node_texture_coordinate(
 		Reflection = reflect(I, Normal);
 	}
 
-	if(bump_offset == "dx") {
+	if (bump_offset == "dx") {
 		Generated += Dx(Generated);
 		UV += Dx(UV);
 		Object += Dx(Object);
 		Camera += Dx(Camera);
 		Window += Dx(Window);
 	}
-	else if(bump_offset == "dy") {
+	else if (bump_offset == "dy") {
 		Generated += Dy(Generated);
 		UV += Dy(UV);
 		Object += Dy(Object);

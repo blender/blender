@@ -26,9 +26,9 @@ shader node_image_texture(
 	output color Color = color(0.0, 0.0, 0.0),
 	output float Alpha = 1.0)
 {
-	Color = (color)texture(filename, Vector[0], 1.0-Vector[1], "wrap", "periodic", "alpha", Alpha);
+	Color = (color)texture(filename, Vector[0], 1.0 - Vector[1], "wrap", "periodic", "alpha", Alpha);
 
-	if(color_space == "sRGB")
+	if (color_space == "sRGB")
 		Color = color_srgb_to_scene_linear(Color);
 }
 

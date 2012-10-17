@@ -28,7 +28,7 @@ shader node_environment_texture(
 {
 	Color = (color)environment(filename, Vector, "alpha", Alpha);
 
-	if(color_space == "sRGB")
+	if (color_space == "sRGB")
 		Color = color_srgb_to_scene_linear(Color);
 }
 
