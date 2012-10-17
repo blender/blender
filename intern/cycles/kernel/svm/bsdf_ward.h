@@ -39,8 +39,8 @@ CCL_NAMESPACE_BEGIN
 
 __device void bsdf_ward_setup(ShaderData *sd, ShaderClosure *sc, float ax, float ay)
 {
-	float m_ax = clamp(ax, 1e-5f, 1.0f);
-	float m_ay = clamp(ay, 1e-5f, 1.0f);
+	float m_ax = clamp(ax, 1e-4f, 1.0f);
+	float m_ay = clamp(ay, 1e-4f, 1.0f);
 
 	sc->data0 = m_ax;
 	sc->data1 = m_ay;

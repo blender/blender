@@ -1246,8 +1246,10 @@ void WardBsdfNode::attributes(AttributeRequestSet *attributes)
 {
 	ShaderInput *tangent_in = input("Tangent");
 
-	if(!tangent_in->link)
+	if(!tangent_in->link) {
 		attributes->add(ATTR_STD_TANGENT);
+		attributes->add(ATTR_STD_GENERATED);
+	}
 
 	ShaderNode::attributes(attributes);
 }
@@ -1595,8 +1597,10 @@ GeometryNode::GeometryNode()
 
 void GeometryNode::attributes(AttributeRequestSet *attributes)
 {
-	if(!output("Tangent")->links.empty())
+	if(!output("Tangent")->links.empty()) {
 		attributes->add(ATTR_STD_TANGENT);
+		attributes->add(ATTR_STD_GENERATED);
+	}
 
 	ShaderNode::attributes(attributes);
 }

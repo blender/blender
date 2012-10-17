@@ -33,22 +33,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Find/Add */
 
-static float3 tangent_uv_from_generated(float3 P)
-{
-	float length = len(P);
-
-	if(length == 0.0f)
-		return make_float3(0.0f, 0.0f, 0.0f);
-
-	float u = 0.0f;
-	if(!(P.x == 0.0f && P.y == 0.0f))
-		u = (1.0f - atan2f(P.x, P.y))/(2.0f*M_PI_F);
-	
-	float v = 1.0f - acosf(clamp(P.z/length, -1.0f, 1.0f))/M_PI_F;
-
-	return make_float3(u, v, 0.0f);
-}
-
 static float3 tangent_from_triangle(float3 v0, float3 v1, float3 v2, float3 tx0, float3 tx1, float3 tx2)
 {
 	float3 duv1 = tx2 - tx0;
@@ -176,9 +160,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	}
 
 	/* create texcoord-based tangent attributes */
-	bool need_tangent = mesh->need_attribute(scene, ATTR_STD_TANGENT);
-
-	if(need_tangent) {
+	if(mesh->need_attribute(scene, ATTR_STD_TANGENT)) {
 		BL::Mesh::tessface_uv_textures_iterator l;
 
 		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
@@ -233,15 +215,13 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			/* normalize tangent vectors */
 			for(int i = 0; i < mesh->verts.size(); i++)
 				tangents[i] = normalize(tangents[i]);
-
-			need_tangent = false;
 		}
 	}
 
 	/* create generated coordinates. todo: we should actually get the orco
 	 * coordinates from modifiers, for now we use texspace loc/size which
 	 * is available in the api. */
-	if(mesh->need_attribute(scene, ATTR_STD_GENERATED) || need_tangent) {
+	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
 		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
 		float3 loc = get_float3(b_mesh.texspace_location());
 		float3 size = get_float3(b_mesh.texspace_size());
@@ -257,55 +237,6 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
 			generated[i++] = get_float3(v->co())*size - loc;
-
-		/* if there is no UV map, we generated tangents from generated coordinates */
-		if(need_tangent) {
-			Attribute *attr = mesh->attributes.add(ATTR_STD_TANGENT, ustring("Tangent"));
-
-			/* compute average tangents per vertex */
-			float3 *tangents = attr->data_float3();
-			memset(tangents, 0, sizeof(float3)*mesh->verts.size());
-
-			size_t fi = 0; /* face index */
-			for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++fi, ++f) {
-				int4 vi = get_int4(f->vertices_raw());
-
-				float3 tx0 = tangent_uv_from_generated(generated[vi[0]]);
-				float3 tx1 = tangent_uv_from_generated(generated[vi[1]]);
-				float3 tx2 = tangent_uv_from_generated(generated[vi[2]]);
-
-				float3 v0 = mesh->verts[vi[0]];
-				float3 v1 = mesh->verts[vi[1]];
-				float3 v2 = mesh->verts[vi[2]];
-
-				/* calculate tangent for the triangle;
-				 * get vertex positions, and find change in position with respect
-				 * to the texture coords in the first texture coord dimension */
-				float3 tangent0 = tangent_from_triangle(v0, v1, v2, tx0, tx1, tx2);
-
-				if(nverts[fi] == 4) {
-					/* quad tangent */
-					float3 tx3 = tangent_uv_from_generated(generated[vi[3]]);
-					float3 v3 = mesh->verts[vi[3]];
-					float3 tangent1 = tangent_from_triangle(v0, v2, v3, tx0, tx2, tx3);
-
-					tangents[vi[0]] += 0.5f*(tangent0 + tangent1);
-					tangents[vi[1]] += tangent0;
-					tangents[vi[2]] += 0.5f*(tangent0 + tangent1);
-					tangents[vi[3]] += tangent1;
-				}
-				else {
-					/* triangle tangent */
-					tangents[vi[0]] += tangent0;
-					tangents[vi[1]] += tangent0;
-					tangents[vi[2]] += tangent0;
-				}
-			}
-
-			/* normalize tangent vectors */
-			for(int i = 0; i < mesh->verts.size(); i++)
-				tangents[i] = normalize(tangents[i]);
-		}
 	}
 }
 
