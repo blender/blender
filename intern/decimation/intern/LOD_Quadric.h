@@ -45,7 +45,7 @@ private:
     MT_Scalar         c2, cd;
     MT_Scalar             d2;
 
-    void init(MT_Scalar a, MT_Scalar b, MT_Scalar c, MT_Scalar d);
+    //void init(MT_Scalar a, MT_Scalar b, MT_Scalar c, MT_Scalar d);
 
 public:
 

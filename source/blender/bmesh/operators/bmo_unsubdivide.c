@@ -218,7 +218,7 @@ void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
 				BM_elem_index_set(v, VERT_INDEX_IGNORE);  /* set_dirty! */
 			}
 		}
-		/* dont with selecting tagged verts */
+		/* done with selecting tagged verts */
 
 
 		/* main loop, keep tagging until we can't tag any more islands */
