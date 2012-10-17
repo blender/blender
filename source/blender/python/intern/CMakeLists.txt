@@ -30,12 +30,12 @@ set(INC
 	../../blenlib
 	../../blenloader
 	../../editors/include
+	../../gpu
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../gpu
-	../../../../intern/guardedalloc
 	../../../../intern/cycles/blender
+	../../../../intern/guardedalloc
 )
 
 set(INC_SYS

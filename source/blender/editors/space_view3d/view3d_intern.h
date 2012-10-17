@@ -51,8 +51,6 @@ struct wmNDOFMotionData;
 struct wmOperatorType;
 struct wmWindowManager;
 
-#define BL_NEAR_CLIP 0.001
-
 /* drawing flags: */
 enum {
 	DRAW_PICKING     = (1 << 0),

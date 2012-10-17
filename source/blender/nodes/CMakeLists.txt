@@ -25,6 +25,10 @@
 
 set(INC 
 	.
+	composite
+	intern
+	shader
+	texture
 	../blenfont
 	../blenkernel
 	../blenlib
@@ -39,10 +43,6 @@ set(INC
 
 set(INC_SYS
 	${GLEW_INCLUDE_PATH}
-	intern
-	composite
-	shader
-	texture
 )
 
 set(SRC

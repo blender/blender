@@ -8,6 +8,7 @@ set(INC
 	../bvh
 	../util
 )
+
 set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 )

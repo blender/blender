@@ -53,10 +53,10 @@ set(INC
 	../../../intern/guardedalloc
 	../../../intern/moto/include
 	../../../intern/string
-	../../../extern/recastnavigation/Detour/Include
 )
 
 set(INC_SYS
+	../../../extern/recastnavigation/Detour/Include
 	../../../extern/Eigen3
 	${PTHREADS_INCLUDE_DIRS}
 

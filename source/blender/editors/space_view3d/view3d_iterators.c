@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/object/object_iterators.c
- *  \ingroup edobj
+/** \file blender/editors/object/view3d_iterators.c
+ *  \ingroup spview3d
  */
 
 #include "DNA_curve_types.h"
