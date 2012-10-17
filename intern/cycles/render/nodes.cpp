@@ -2579,7 +2579,7 @@ void LayerWeightNode::compile(SVMCompiler& compiler)
 
 void LayerWeightNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "node_blend_weight");
+	compiler.add(this, "node_layer_weight");
 }
 
 /* Output */

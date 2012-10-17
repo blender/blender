@@ -19,22 +19,27 @@
 #include "stdosl.h"
 #include "node_fresnel.h"
 
-shader node_blend_weight(
-	float Blend = 0.3,
+shader node_layer_weight(
+	float Blend = 0.5,
 	normal Normal = N,
 	output float Fresnel = 0.0,
 	output float Facing = 0.0)
 {
-	float f = max(1.0 - Blend, 1e-5);
-	Fresnel = fresnel_dielectric(I, Normal, backfacing()? f: 1.0 / f);
+	float blend = Blend;
 
+	/* Fresnel */ 
+	float eta = max(1.0 - Blend, 1e-5);
+	eta = backfacing()? eta: 1.0 / eta;
+	Fresnel = fresnel_dielectric(I, Normal, eta);
+
+	/* Facing */ 
 	Facing = abs(dot(I, Normal));
 
-	if (Blend != 0.5) {
-		Blend = clamp(Blend, 0.0, 1.0); 
-		Blend = (Blend < 0.5)? 2.0 * Blend: 0.5 / (1.0 - Blend);
+	if (blend != 0.5) {
+		blend = clamp(blend, 0.0, 1.0); 
+		blend = (blend < 0.5)? 2.0 * blend: 0.5 / (1.0 - blend);
 
-		Facing = powf(Facing, Blend);
+		Facing = pow(Facing, blend);
 	}
 
 	Facing = 1.0 - Facing;
