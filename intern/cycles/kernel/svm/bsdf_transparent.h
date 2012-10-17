@@ -45,28 +45,28 @@ __device void bsdf_transparent_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_transparent_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_transparent_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float3 bsdf_transparent_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_transparent_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_transparent_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
+__device float bsdf_transparent_albedo(const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_transparent_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_transparent_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	// only one direction is possible
-	*omega_in = -sd->I;
+	*omega_in = -I;
 #ifdef __RAY_DIFFERENTIALS__
-	*domega_in_dx = -sd->dI.dx;
-	*domega_in_dy = -sd->dI.dy;
+	*domega_in_dx = -dIdx;
+	*domega_in_dy = -dIdy;
 #endif
 	*pdf = 1;
 	*eval = make_float3(1, 1, 1);

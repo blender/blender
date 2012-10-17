@@ -35,11 +35,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct BsdfAshikhminVelvetClosure {
-	//float3 m_N;
-	float m_invsigma2;
-} BsdfAshikhminVelvetClosure;
-
 __device void bsdf_ashikhmin_velvet_setup(ShaderData *sd, ShaderClosure *sc, float sigma)
 {
 	sigma = fmaxf(sigma, 0.01f);
@@ -55,17 +50,17 @@ __device void bsdf_ashikhmin_velvet_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_invsigma2 = sc->data0;
-	float3 m_N = sc->N;
+	float3 N = sc->N;
 
-	float cosNO = dot(m_N, I);
-	float cosNI = dot(m_N, omega_in);
+	float cosNO = dot(N, I);
+	float cosNI = dot(N, omega_in);
 	if(cosNO > 0 && cosNI > 0) {
 		float3 H = normalize(omega_in + I);
 
-		float cosNH = dot(m_N, H);
+		float cosNH = dot(N, H);
 		float cosHO = fabsf(dot(I, H));
 
 		if(!(fabsf(cosNH) < 1.0f-1e-5f && cosHO > 1e-5f))
@@ -93,32 +88,32 @@ __device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const S
 	return make_float3(0, 0, 0);
 }
 
-__device float3 bsdf_ashikhmin_velvet_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_ashikhmin_velvet_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_ashikhmin_velvet_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
+__device float bsdf_ashikhmin_velvet_albedo(const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_ashikhmin_velvet_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_invsigma2 = sc->data0;
-	float3 m_N = sc->N;
+	float3 N = sc->N;
 
 	// we are viewing the surface from above - send a ray out with uniform
 	// distribution over the hemisphere
-	sample_uniform_hemisphere(m_N, randu, randv, omega_in, pdf);
+	sample_uniform_hemisphere(N, randu, randv, omega_in, pdf);
 
-	if(dot(sd->Ng, *omega_in) > 0) {
-		float3 H = normalize(*omega_in + sd->I);
+	if(dot(Ng, *omega_in) > 0) {
+		float3 H = normalize(*omega_in + I);
 
-		float cosNI = dot(m_N, *omega_in);
-		float cosNO = dot(m_N, sd->I);
-		float cosNH = dot(m_N, H);
-		float cosHO = fabsf(dot(sd->I, H));
+		float cosNI = dot(N, *omega_in);
+		float cosNO = dot(N, I);
+		float cosNH = dot(N, H);
+		float cosHO = fabsf(dot(I, H));
 
 		if(fabsf(cosNO) > 1e-5f && fabsf(cosNH) < 1.0f-1e-5f && cosHO > 1e-5f) {
 			float cosNHdivHO = cosNH / cosHO;
@@ -140,8 +135,8 @@ __device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, const ShaderClos
 
 #ifdef __RAY_DIFFERENTIALS__
 			// TODO: find a better approximation for the retroreflective bounce
-			*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
-			*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
+			*domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
+			*domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
 			*domega_in_dx *= 125.0f;
 			*domega_in_dy *= 125.0f;
 #endif

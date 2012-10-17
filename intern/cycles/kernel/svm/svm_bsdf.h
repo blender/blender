@@ -36,45 +36,57 @@ __device int svm_bsdf_sample(const ShaderData *sd, const ShaderClosure *sc, floa
 
 	switch(sc->type) {
 		case CLOSURE_BSDF_DIFFUSE_ID:
-			label = bsdf_diffuse_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_diffuse_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #ifdef __SVM__
 		case CLOSURE_BSDF_OREN_NAYAR_ID:
-			label = bsdf_oren_nayar_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_oren_nayar_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_TRANSLUCENT_ID:
-			label = bsdf_translucent_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_translucent_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_REFLECTION_ID:
-			label = bsdf_reflection_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_reflection_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_REFRACTION_ID:
-			label = bsdf_refraction_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_refraction_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_TRANSPARENT_ID:
-			label = bsdf_transparent_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_transparent_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_MICROFACET_GGX_ID:
 		case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-			label = bsdf_microfacet_ggx_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_microfacet_ggx_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
-			label = bsdf_microfacet_beckmann_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_microfacet_beckmann_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #ifdef __DPDU__
 		case CLOSURE_BSDF_WARD_ID:
-			label = bsdf_ward_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_ward_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #endif
 		case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
-			label = bsdf_ashikhmin_velvet_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_ashikhmin_velvet_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
-			label = bsdf_westin_backscatter_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_westin_backscatter_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 		case CLOSURE_BSDF_WESTIN_SHEEN_ID:
-			label = bsdf_westin_sheen_sample(sd, sc, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			label = bsdf_westin_sheen_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
 #endif
 		default:
@@ -92,45 +104,45 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 	if(dot(sd->Ng, omega_in) >= 0.0f) {
 		switch(sc->type) {
 			case CLOSURE_BSDF_DIFFUSE_ID:
-				eval = bsdf_diffuse_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_diffuse_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 #ifdef __SVM__
 			case CLOSURE_BSDF_OREN_NAYAR_ID:
-				eval = bsdf_oren_nayar_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_oren_nayar_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_TRANSLUCENT_ID:
-				eval = bsdf_translucent_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_translucent_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_REFLECTION_ID:
-				eval = bsdf_reflection_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_reflection_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_REFRACTION_ID:
-				eval = bsdf_refraction_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_refraction_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_TRANSPARENT_ID:
-				eval = bsdf_transparent_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_transparent_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_GGX_ID:
 			case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-				eval = bsdf_microfacet_ggx_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_microfacet_ggx_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
-				eval = bsdf_microfacet_beckmann_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_microfacet_beckmann_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 #ifdef __DPDU__
 			case CLOSURE_BSDF_WARD_ID:
-				eval = bsdf_ward_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_ward_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 #endif
 			case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
-				eval = bsdf_ashikhmin_velvet_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_ashikhmin_velvet_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
-				eval = bsdf_westin_backscatter_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_westin_backscatter_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_WESTIN_SHEEN_ID:
-				eval = bsdf_westin_sheen_eval_reflect(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_westin_sheen_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
 #endif
 			default:
@@ -141,45 +153,45 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 	else {
 		switch(sc->type) {
 			case CLOSURE_BSDF_DIFFUSE_ID:
-				eval = bsdf_diffuse_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_diffuse_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 #ifdef __SVM__
 			case CLOSURE_BSDF_OREN_NAYAR_ID:
-				eval = bsdf_oren_nayar_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_oren_nayar_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_TRANSLUCENT_ID:
-				eval = bsdf_translucent_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_translucent_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_REFLECTION_ID:
-				eval = bsdf_reflection_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_reflection_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_REFRACTION_ID:
-				eval = bsdf_refraction_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_refraction_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_TRANSPARENT_ID:
-				eval = bsdf_transparent_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_transparent_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_GGX_ID:
 			case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-				eval = bsdf_microfacet_ggx_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_microfacet_ggx_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
-				eval = bsdf_microfacet_beckmann_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_microfacet_beckmann_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 #ifdef __DPDU__
 			case CLOSURE_BSDF_WARD_ID:
-				eval = bsdf_ward_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_ward_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 #endif
 			case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID:
-				eval = bsdf_ashikhmin_velvet_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_ashikhmin_velvet_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_WESTIN_BACKSCATTER_ID:
-				eval = bsdf_westin_backscatter_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_westin_backscatter_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 			case CLOSURE_BSDF_WESTIN_SHEEN_ID:
-				eval = bsdf_westin_sheen_eval_transmit(sd, sc, sd->I, omega_in, pdf);
+				eval = bsdf_westin_sheen_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
 #endif
 			default:

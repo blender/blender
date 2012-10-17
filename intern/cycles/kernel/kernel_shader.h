@@ -98,7 +98,6 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 #ifdef __DPDU__
 	/* dPdu/dPdv */
 	triangle_dPdudv(kg, &sd->dPdu, &sd->dPdv, sd->prim);
-	sd->T = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 
 #ifdef __INSTANCING__
@@ -123,7 +122,6 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 #ifdef __DPDU__
 		sd->dPdu = -sd->dPdu;
 		sd->dPdv = -sd->dPdv;
-		sd->T = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 	}
 
@@ -223,8 +221,6 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 		}
 #endif
 	}
-
-   	sd->T = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 
 	/* backfacing test */
@@ -310,7 +306,6 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 	/* dPdu/dPdv */
 	sd->dPdu = make_float3(0.0f, 0.0f, 0.0f);
 	sd->dPdv = make_float3(0.0f, 0.0f, 0.0f);
-	sd->T = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 
 #ifdef __RAY_DIFFERENTIALS__

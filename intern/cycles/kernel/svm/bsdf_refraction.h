@@ -37,10 +37,6 @@ CCL_NAMESPACE_BEGIN
 
 /* REFRACTION */
 
-typedef struct BsdfRefractionClosure {
-	float m_eta;
-} BsdfRefractionClosure;
-
 __device void bsdf_refraction_setup(ShaderData *sd, ShaderClosure *sc, float eta)
 {
 	sc->data0 = eta;
@@ -53,34 +49,34 @@ __device void bsdf_refraction_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_refraction_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_refraction_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float3 bsdf_refraction_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_refraction_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_refraction_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
+__device float bsdf_refraction_albedo(const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_refraction_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_eta = sc->data0;
-	float3 m_N = sc->N;
+	float3 N = sc->N;
 
 	float3 R, T;
 #ifdef __RAY_DIFFERENTIALS__
 	float3 dRdx, dRdy, dTdx, dTdy;
 #endif
 	bool inside;
-	fresnel_dielectric(m_eta, m_N, sd->I, &R, &T,
+	fresnel_dielectric(m_eta, N, I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
-		sd->dI.dx, sd->dI.dy, &dRdx, &dRdy, &dTdx, &dTdy,
+		dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
 #endif
 		&inside);
 	

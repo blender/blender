@@ -1184,6 +1184,7 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 {
 	ShaderInput *color_in = input("Color");
 	ShaderInput *normal_in = input("Normal");
+	ShaderInput *tangent_in = input("Tangent");
 
 	if(color_in->link) {
 		compiler.stack_assign(color_in);
@@ -1207,7 +1208,16 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 
 	if(normal_in->link)
 		compiler.stack_assign(normal_in);
-	compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset);
+
+	if(tangent_in) {
+		if(tangent_in->link)
+			compiler.stack_assign(tangent_in);
+
+		compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset, tangent_in->stack_offset);
+	}
+	else {
+		compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset);
+	}
 }
 
 void BsdfNode::compile(SVMCompiler& compiler)
@@ -1245,15 +1255,6 @@ void WardBsdfNode::attributes(AttributeRequestSet *attributes)
 void WardBsdfNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *tangent_in = input("Tangent");
-
-	if(tangent_in->link) {
-		int attr = compiler.attribute(ATTR_STD_TANGENT);
-		compiler.stack_assign(tangent_in);
-		compiler.add_node(NODE_ATTR, attr, tangent_in->stack_offset, NODE_ATTR_FLOAT3);
-		compiler.add_node(NODE_CLOSURE_TANGENT, tangent_in->stack_offset);
-	}
-	else
-		compiler.add_node(NODE_CLOSURE_SET_TANGENT, tangent_in->value);
 
 	BsdfNode::compile(compiler, input("Roughness U"), input("Roughness V"));
 }

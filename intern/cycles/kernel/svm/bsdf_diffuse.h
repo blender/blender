@@ -37,10 +37,6 @@ CCL_NAMESPACE_BEGIN
 
 /* DIFFUSE */
 
-typedef struct BsdfDiffuseClosure {
-	//float3 m_N;
-} BsdfDiffuseClosure;
-
 __device void bsdf_diffuse_setup(ShaderData *sd, ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_DIFFUSE_ID;
@@ -51,38 +47,38 @@ __device void bsdf_diffuse_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_diffuse_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_diffuse_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float3 m_N = sc->N;
+	float3 N = sc->N;
 
-	float cos_pi = fmaxf(dot(m_N, omega_in), 0.0f) * M_1_PI_F;
+	float cos_pi = fmaxf(dot(N, omega_in), 0.0f) * M_1_PI_F;
 	*pdf = cos_pi;
 	return make_float3(cos_pi, cos_pi, cos_pi);
 }
 
-__device float3 bsdf_diffuse_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_diffuse_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_diffuse_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
+__device float bsdf_diffuse_albedo(const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_diffuse_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_diffuse_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float3 m_N = sc->N;
+	float3 N = sc->N;
 
 	// distribution over the hemisphere
-	sample_cos_hemisphere(m_N, randu, randv, omega_in, pdf);
+	sample_cos_hemisphere(N, randu, randv, omega_in, pdf);
 
-	if(dot(sd->Ng, *omega_in) > 0.0f) {
+	if(dot(Ng, *omega_in) > 0.0f) {
 		*eval = make_float3(*pdf, *pdf, *pdf);
 #ifdef __RAY_DIFFERENTIALS__
 		// TODO: find a better approximation for the diffuse bounce
-		*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
-		*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
+		*domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
+		*domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
 		*domega_in_dx *= 125.0f;
 		*domega_in_dy *= 125.0f;
 #endif
@@ -95,10 +91,6 @@ __device int bsdf_diffuse_sample(const ShaderData *sd, const ShaderClosure *sc, 
 
 /* TRANSLUCENT */
 
-typedef struct BsdfTranslucentClosure {
-	//float3 m_N;
-} BsdfTranslucentClosure;
-
 __device void bsdf_translucent_setup(ShaderData *sd, ShaderClosure *sc)
 {
 	sc->type = CLOSURE_BSDF_TRANSLUCENT_ID;
@@ -109,38 +101,38 @@ __device void bsdf_translucent_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_translucent_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_translucent_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float3 bsdf_translucent_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_translucent_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float3 m_N = sc->N;
+	float3 N = sc->N;
 
-	float cos_pi = fmaxf(-dot(m_N, omega_in), 0.0f) * M_1_PI_F;
+	float cos_pi = fmaxf(-dot(N, omega_in), 0.0f) * M_1_PI_F;
 	*pdf = cos_pi;
 	return make_float3 (cos_pi, cos_pi, cos_pi);
 }
 
-__device float bsdf_translucent_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
+__device float bsdf_translucent_albedo(const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_translucent_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_translucent_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float3 m_N = sc->N;
+	float3 N = sc->N;
 
 	// we are viewing the surface from the right side - send a ray out with cosine
 	// distribution over the hemisphere
-	sample_cos_hemisphere (-m_N, randu, randv, omega_in, pdf);
-	if(dot(sd->Ng, *omega_in) < 0) {
+	sample_cos_hemisphere (-N, randu, randv, omega_in, pdf);
+	if(dot(Ng, *omega_in) < 0) {
 		*eval = make_float3(*pdf, *pdf, *pdf);
 #ifdef __RAY_DIFFERENTIALS__
 		// TODO: find a better approximation for the diffuse bounce
-		*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
-		*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
+		*domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
+		*domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
 		*domega_in_dx *= -125.0f;
 		*domega_in_dy *= -125.0f;
 #endif

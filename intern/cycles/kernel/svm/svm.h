@@ -205,14 +205,6 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_CLOSURE_WEIGHT:
 				svm_node_closure_weight(sd, stack, node.y);
 				break;
-#ifdef __DPDU__
-			case NODE_CLOSURE_SET_TANGENT:
-				svm_node_closure_set_tangent(sd, node.y, node.z, node.w);
-				break;
-			case NODE_CLOSURE_TANGENT:
-				svm_node_closure_tangent(sd, stack, node.y);
-				break;
-#endif
 			case NODE_EMISSION_WEIGHT:
 				svm_node_emission_weight(kg, sd, stack, node);
 				break;

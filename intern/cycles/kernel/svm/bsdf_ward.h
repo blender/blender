@@ -37,14 +37,7 @@ CCL_NAMESPACE_BEGIN
 
 /* WARD */
 
-typedef struct BsdfWardClosure {
-	//float3 m_N;
-	//float3 m_T;
-	float m_ax;
-	float m_ay;
-} BsdfWardClosure;
-
-__device void bsdf_ward_setup(ShaderData *sd, ShaderClosure *sc, float3 T, float ax, float ay)
+__device void bsdf_ward_setup(ShaderData *sd, ShaderClosure *sc, float ax, float ay)
 {
 	float m_ax = clamp(ax, 1e-5f, 1.0f);
 	float m_ay = clamp(ay, 1e-5f, 1.0f);
@@ -62,25 +55,25 @@ __device void bsdf_ward_blur(ShaderClosure *sc, float roughness)
 	sc->data1 = fmaxf(roughness, sc->data1);
 }
 
-__device float3 bsdf_ward_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_ward_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_ax = sc->data0;
 	float m_ay = sc->data1;
-	float3 m_N = sc->N;
-	float3 m_T = sd->T;
+	float3 N = sc->N;
+	float3 T = sc->T;
 
-	float cosNO = dot(m_N, I);
-	float cosNI = dot(m_N, omega_in);
+	float cosNO = dot(N, I);
+	float cosNI = dot(N, omega_in);
 
 	if(cosNI > 0 && cosNO > 0) {
 		// get half vector and get x,y basis on the surface for anisotropy
 		float3 H = normalize(omega_in + I); // normalize needed for pdf
 		float3 X, Y;
-		make_orthonormals_tangent(m_N, m_T, &X, &Y);
+		make_orthonormals_tangent(N, T, &X, &Y);
 		// eq. 4
 		float dotx = dot(H, X) / m_ax;
 		float doty = dot(H, Y) / m_ay;
-		float dotn = dot(H, m_N);
+		float dotn = dot(H, N);
 		float exp_arg = (dotx * dotx + doty * doty) / (dotn * dotn);
 		float denom = (4 * M_PI_F * m_ax * m_ay * sqrtf(cosNO * cosNI));
 		float exp_val = expf(-exp_arg);
@@ -94,28 +87,28 @@ __device float3 bsdf_ward_eval_reflect(const ShaderData *sd, const ShaderClosure
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_ward_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_ward_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_ward_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
+__device float bsdf_ward_albedo(const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_ward_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_ward_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_ax = sc->data0;
 	float m_ay = sc->data1;
-	float3 m_N = sc->N;
-	float3 m_T = sd->T;
+	float3 N = sc->N;
+	float3 T = sc->T;
 
-	float cosNO = dot(m_N, sd->I);
+	float cosNO = dot(N, I);
 	if(cosNO > 0) {
 		// get x,y basis on the surface for anisotropy
 		float3 X, Y;
-		make_orthonormals_tangent(m_N, m_T, &X, &Y);
+		make_orthonormals_tangent(N, T, &X, &Y);
 		// generate random angles for the half vector
 		// eq. 7 (taking care around discontinuities to keep
 		//ttoutput angle in the right quadrant)
@@ -167,12 +160,12 @@ __device int bsdf_ward_sample(const ShaderData *sd, const ShaderClosure *sc, flo
 		float doty = h.y / m_ay;
 		float dotn = h.z;
 		// transform to world space
-		h = h.x * X + h.y * Y + h.z * m_N;
+		h = h.x * X + h.y * Y + h.z * N;
 		// generate the final sample
-		float oh = dot(h, sd->I);
-		*omega_in = 2.0f * oh * h - sd->I;
-		if(dot(sd->Ng, *omega_in) > 0) {
-			float cosNI = dot(m_N, *omega_in);
+		float oh = dot(h, I);
+		*omega_in = 2.0f * oh * h - I;
+		if(dot(Ng, *omega_in) > 0) {
+			float cosNI = dot(N, *omega_in);
 			if(cosNI > 0) {
 				// eq. 9
 				float exp_arg = (dotx * dotx + doty * doty) / (dotn * dotn);
@@ -183,8 +176,8 @@ __device int bsdf_ward_sample(const ShaderData *sd, const ShaderClosure *sc, flo
 				float power = cosNI * expf(-exp_arg) / denom;
 				*eval = make_float3(power, power, power);
 #ifdef __RAY_DIFFERENTIALS__
-				*domega_in_dx = (2 * dot(m_N, sd->dI.dx)) * m_N - sd->dI.dx;
-				*domega_in_dy = (2 * dot(m_N, sd->dI.dy)) * m_N - sd->dI.dy;
+				*domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
+				*domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
 				// Since there is some blur to this reflection, make the
 				// derivatives a bit bigger. In theory this varies with the
 				// roughness but the exact relationship is complex and

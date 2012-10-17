@@ -369,7 +369,9 @@ typedef struct ShaderClosure {
 #endif
 	float data0;
 	float data1;
+
 	float3 N;
+	float3 T;
 
 } ShaderClosure;
 
@@ -440,9 +442,6 @@ typedef struct ShaderData {
 	/* differential of P w.r.t. parametric coordinates. note that dPdu is
 	 * not readily suitable as a tangent for shading on triangles. */
 	float3 dPdu, dPdv;
-
-	/* tangent for shading */
-	float3 T;
 #endif
 
 #ifdef __OBJECT_MOTION__

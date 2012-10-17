@@ -21,11 +21,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct BsdfOrenNayarClosure {
-	float m_a;
-	float m_b;
-} BsdfOrenNayarClosure;
-
 __device float3 bsdf_oren_nayar_get_intensity(const ShaderClosure *sc, float3 n, float3 v, float3 l)
 {
 	float nl = max(dot(n, l), 0.0f);
@@ -55,7 +50,7 @@ __device void bsdf_oren_nayar_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_oren_nayar_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_oren_nayar_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	if (dot(sc->N, omega_in) > 0.0f) {
 		*pdf = 0.5f * M_1_PI_F;
@@ -67,27 +62,27 @@ __device float3 bsdf_oren_nayar_eval_reflect(const ShaderData *sd, const ShaderC
 	}
 }
 
-__device float3 bsdf_oren_nayar_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_oren_nayar_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_oren_nayar_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
+__device float bsdf_oren_nayar_albedo(const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_oren_nayar_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_oren_nayar_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	sample_uniform_hemisphere(sc->N, randu, randv, omega_in, pdf);
 
-	if (dot(sd->Ng, *omega_in) > 0.0f) {
-		*eval = bsdf_oren_nayar_get_intensity(sc, sc->N, sd->I, *omega_in);
+	if (dot(Ng, *omega_in) > 0.0f) {
+		*eval = bsdf_oren_nayar_get_intensity(sc, sc->N, I, *omega_in);
 
 #ifdef __RAY_DIFFERENTIALS__
 		// TODO: find a better approximation for the bounce
-		*domega_in_dx = (2.0f * dot(sc->N, sd->dI.dx)) * sc->N - sd->dI.dx;
-		*domega_in_dy = (2.0f * dot(sc->N, sd->dI.dy)) * sc->N - sd->dI.dy;
+		*domega_in_dx = (2.0f * dot(sc->N, dIdx)) * sc->N - dIdx;
+		*domega_in_dy = (2.0f * dot(sc->N, dIdy)) * sc->N - dIdy;
 		*domega_in_dx *= 125.0f;
 		*domega_in_dy *= 125.0f;
 #endif
