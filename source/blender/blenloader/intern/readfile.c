@@ -7058,6 +7058,21 @@ static void do_version_ntree_tex_coord_from_dupli_264(void *UNUSED(data), ID *UN
 			node->flag |= NODE_OPTIONS;
 }
 
+static void do_version_node_cleanup_dynamic_sockets_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (!ELEM(node->type, NODE_GROUP, CMP_NODE_IMAGE)) {
+			for (sock = node->inputs.first; sock; sock = sock->next)
+				sock->flag &= ~SOCK_DYNAMIC;
+			for (sock = node->outputs.first; sock; sock = sock->next)
+				sock->flag &= ~SOCK_DYNAMIC;
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -8108,6 +8123,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 4)) {
+		/* Fix for old node flags: Apparently the SOCK_DYNAMIC flag has been in use for other
+		 * purposes before and then removed and later reused for SOCK_DYNAMIC. This socket should
+		 * only be used by certain node types which don't use template lists, cleaning this up here.
+		 */
+		bNodeTreeType *ntreetype;
+		bNodeTree *ntree;
+		
+		ntreetype = ntreeGetType(NTREE_COMPOSIT);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_cleanup_dynamic_sockets_264);
+		ntreetype = ntreeGetType(NTREE_SHADER);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_cleanup_dynamic_sockets_264);
+		ntreetype = ntreeGetType(NTREE_TEXTURE);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_cleanup_dynamic_sockets_264);
+		
+		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+			do_version_node_cleanup_dynamic_sockets_264(NULL, NULL, ntree);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
