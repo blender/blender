@@ -30,6 +30,7 @@ set(SRC_OSL
 	node_image_texture.osl
 	node_invert.osl
 	node_light_path.osl
+	node_light_falloff.osl
 	node_magic_texture.osl
 	node_mapping.osl
 	node_math.osl
