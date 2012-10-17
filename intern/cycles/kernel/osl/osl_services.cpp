@@ -459,9 +459,16 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
+	
+	else
+		return false;
+}
 
+static bool get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
+                                     TypeDesc type, bool derivatives, void *val)
+{
 	/* Ray Length */
-	else if (name == "std::ray_length") {
+	if (name == "std::ray_length") {
 		float fval[3];
 		fval[0] = sd->ray_length;
 		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
@@ -492,8 +499,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 		tri = ~0;
 	}
 	else if (object == ~0) {
-		/* no background attributes supported */
-		return false;
+		return get_background_attribute(kg, sd, name, type, derivatives, val);
 	}
 
 	/* find attribute on object */
@@ -516,7 +522,12 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	}
 	else {
 		/* not found in attribute, check standard object info */
-		return get_object_standard_attribute(kg, sd, name, type, derivatives, val);
+		bool is_std_object_attribute = get_object_standard_attribute(kg, sd, name, type, derivatives, val);
+		if (is_std_object_attribute)
+			return true;
+		else {
+			return get_background_attribute(kg, sd, name, type, derivatives, val);
+		}
 	}
 
 	return false;
