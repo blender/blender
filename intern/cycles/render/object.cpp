@@ -51,7 +51,7 @@ Object::~Object()
 {
 }
 
-void Object::compute_bounds(bool motion_blur)
+void Object::compute_bounds(bool motion_blur, float shuttertime)
 {
 	BoundBox mbounds = mesh->bounds;
 
@@ -64,7 +64,10 @@ void Object::compute_bounds(bool motion_blur)
 		/* todo: this is really terrible. according to pbrt there is a better
 		 * way to find this iteratively, but did not find implementation yet
 		 * or try to implement myself */
-		for(float t = 0.0f; t < 1.0f; t += 1.0f/128.0f) {
+		float start_t = 0.5f - shuttertime*0.5f;
+		float end_t = 0.5f - shuttertime*0.5f;
+
+		for(float t = start_t; t < end_t; t += (1.0f/128.0f)*shuttertime) {
 			Transform ttfm;
 
 			transform_motion_interpolate(&ttfm, &decomp, t);
@@ -109,7 +112,7 @@ void Object::apply_transform()
 
 	if(bounds.valid()) {
 		mesh->compute_bounds();
-		compute_bounds(false);
+		compute_bounds(false, 0.0f);
 	}
 
 	/* tfm is not reset to identity, all code that uses it needs to check the
