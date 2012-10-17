@@ -32,10 +32,10 @@ shader node_brightness(
 	float bright_factor = Brightness / 100.0;
 
 	/*
-	* The algorithm is by Werner D. Streidt
-	* (http://visca.com/ffactory/archives/5-99/msg00021.html)
-	* Extracted of OpenCV demhist.c
-	*/
+	 * The algorithm is by Werner D. Streidt
+	 * (http://visca.com/ffactory/archives/5-99/msg00021.html)
+	 * Extracted of OpenCV demhist.c
+	 */
 
 	if (Contrast > 0.0) {
 		a = (a < 0.0 ? 1.0 / a : 0.0);

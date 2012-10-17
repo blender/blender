@@ -18,7 +18,7 @@
 
 #include "stdosl.h"
 
-/* "Bump Mapping Unparametrized Surfaces on the GPU"
+/* "Bump Mapping Unparameterized Surfaces on the GPU"
  * Morten S. Mikkelsen, 2010 */
 
 surface node_bump(
