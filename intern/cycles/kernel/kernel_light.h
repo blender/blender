@@ -303,7 +303,7 @@ __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	if(ls->object >= 0) {
 #ifdef __OBJECT_MOTION__
 		Transform itfm;
-		Transform tfm = object_fetch_transform_motion(kg, ls->object, time, &itfm);
+		Transform tfm = object_fetch_transform_motion_test(kg, object, time, &itfm);
 #else
 		Transform tfm = object_fetch_transform(kg, ls->object, OBJECT_TRANSFORM);
 		Transform itfm = object_fetch_transform(kg, ls->object, OBJECT_INVERSE_TRANSFORM);

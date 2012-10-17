@@ -25,7 +25,7 @@ enum ObjectTransform {
 	OBJECT_TRANSFORM_MOTION_PRE = 8,
 	OBJECT_TRANSFORM_MOTION_MID = 12,
 	OBJECT_TRANSFORM_MOTION_POST = 16,
-	OBJECT_DUPLI = 18
+	OBJECT_DUPLI = 20
 };
 
 __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, enum ObjectTransform type)
@@ -42,48 +42,52 @@ __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, 
 }
 
 #ifdef __OBJECT_MOTION__
-__device_inline Transform object_fetch_transform_motion(KernelGlobals *kg, int object, float time, Transform *itfm)
+__device_inline Transform object_fetch_transform_motion(KernelGlobals *kg, int object, float time)
 {
+	MotionTransform motion;
+
+	int offset = object*OBJECT_SIZE + (int)OBJECT_TRANSFORM_MOTION_PRE;
+
+	motion.pre.x = kernel_tex_fetch(__objects, offset + 0);
+	motion.pre.y = kernel_tex_fetch(__objects, offset + 1);
+	motion.pre.z = kernel_tex_fetch(__objects, offset + 2);
+	motion.pre.w = kernel_tex_fetch(__objects, offset + 3);
+
+	motion.mid.x = kernel_tex_fetch(__objects, offset + 4);
+	motion.mid.y = kernel_tex_fetch(__objects, offset + 5);
+	motion.mid.z = kernel_tex_fetch(__objects, offset + 6);
+	motion.mid.w = kernel_tex_fetch(__objects, offset + 7);
+
+	motion.post.x = kernel_tex_fetch(__objects, offset + 8);
+	motion.post.y = kernel_tex_fetch(__objects, offset + 9);
+	motion.post.z = kernel_tex_fetch(__objects, offset + 10);
+	motion.post.w = kernel_tex_fetch(__objects, offset + 11);
+
 	Transform tfm;
-
-	int object_flag = kernel_tex_fetch(__object_flag, object);
-
-	/* if we do motion blur */
-	if(object_flag & SD_OBJECT_MOTION) {
-		/* fetch motion transforms */
-		MotionTransform motion;
-
-		int offset = object*OBJECT_SIZE + (int)OBJECT_TRANSFORM_MOTION_PRE;
-
-		motion.pre.x = kernel_tex_fetch(__objects, offset + 0);
-		motion.pre.y = kernel_tex_fetch(__objects, offset + 1);
-		motion.pre.z = kernel_tex_fetch(__objects, offset + 2);
-		motion.pre.w = kernel_tex_fetch(__objects, offset + 3);
-
-		motion.mid.x = kernel_tex_fetch(__objects, offset + 4);
-		motion.mid.y = kernel_tex_fetch(__objects, offset + 5);
-		motion.mid.z = kernel_tex_fetch(__objects, offset + 6);
-		motion.mid.w = kernel_tex_fetch(__objects, offset + 7);
-
-		motion.post.x = kernel_tex_fetch(__objects, offset + 8);
-		motion.post.y = kernel_tex_fetch(__objects, offset + 9);
-		motion.post.z = kernel_tex_fetch(__objects, offset + 10);
-		motion.post.w = kernel_tex_fetch(__objects, offset + 11);
-
-		transform_motion_interpolate(&tfm, &motion, time);
-
-		/* invert */
-		if(itfm)
-			*itfm = transform_quick_inverse(tfm);
-	}
-	else {
-		tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-
-		if(itfm)
-			*itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
-	}
+	transform_motion_interpolate(&tfm, &motion, time);
 
 	return tfm;
+}
+
+__device_inline Transform object_fetch_transform_motion_test(KernelGlobals *kg, int object, float time, Transform *itfm)
+{
+	int object_flag = kernel_tex_fetch(__object_flag, object);
+
+	if(object_flag & SD_OBJECT_MOTION) {
+		/* if we do motion blur */
+		Transform tfm = object_fetch_transform_motion(kg, object, time);
+
+		if(itfm)
+			*itfm = transform_quick_inverse(tfm);
+
+		return tfm;
+	}
+	else {
+		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+		*itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+
+		return tfm;
+	}
 }
 #endif
 
@@ -270,7 +274,6 @@ __device float3 particle_angular_velocity(KernelGlobals *kg, int particle)
 	float4 f4 = kernel_tex_fetch(__particles, offset + 4);
 	return make_float3(f3.z, f3.w, f4.x);
 }
-
 
 CCL_NAMESPACE_END
 

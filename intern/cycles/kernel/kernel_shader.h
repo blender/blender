@@ -43,6 +43,22 @@ CCL_NAMESPACE_BEGIN
 
 /* ShaderData setup from incoming ray */
 
+#ifdef __OBJECT_MOTION__
+__device_noinline void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, float time)
+{
+	/* note that this is a separate non-inlined function to work around crash
+	 * on CUDA sm 2.0, otherwise kernel execution crashes (compiler bug?) */
+	if(sd->flag & SD_OBJECT_MOTION) {
+		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, time);
+		sd->ob_itfm= transform_quick_inverse(sd->ob_tfm);
+	}
+	else {
+		sd->ob_tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
+		sd->ob_itfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+	}
+}
+#endif
+
 __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
 {
@@ -72,14 +88,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 
 	/* matrices and time */
 #ifdef __OBJECT_MOTION__
-	if(sd->flag & SD_OBJECT_MOTION) {
-		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, ray->time, &sd->ob_itfm);
-	}
-	else {
-		sd->ob_tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-		sd->ob_itfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-	}
-
+	shader_setup_object_transforms(kg, sd, ray->time);
 	sd->time = ray->time;
 #endif
 
@@ -181,13 +190,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 		sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __OBJECT_MOTION__
-		if(sd->flag & SD_OBJECT_MOTION) {
-			sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, time, &sd->ob_itfm);
-		}
-		else {
-			sd->ob_tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
-			sd->ob_itfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-		}
+		shader_setup_object_transforms(kg, sd, time);
 	}
 
 	sd->time = time;

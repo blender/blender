@@ -87,7 +87,7 @@ __device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *
 __device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, Transform *tfm, const float tmax)
 {
 	Transform itfm;
-	*tfm = object_fetch_transform_motion(kg, object, ray->time, &itfm);
+	*tfm = object_fetch_transform_motion_test(kg, object, ray->time, &itfm);
 
 	*P = transform_point(&itfm, ray->P);
 
@@ -104,9 +104,8 @@ __device_inline void bvh_instance_motion_push(KernelGlobals *kg, int object, con
 
 __device_inline void bvh_instance_motion_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, Transform *tfm, const float tmax)
 {
-	if(*t != FLT_MAX) {
+	if(*t != FLT_MAX)
 		*t *= len(transform_direction(tfm, 1.0f/(*idir)));
-	}
 
 	*P = ray->P;
 	*idir = bvh_inverse_direction(ray->D);
@@ -163,7 +162,7 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 
 /* Sven Woop's algorithm */
 __device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *isect,
-	float3 P, float3 idir, uint visibility, int object, int triAddr, Transform *tfm)
+	float3 P, float3 idir, uint visibility, int object, int triAddr)
 {
 	/* compute and check intersection t-value */
 	float4 v00 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0);
@@ -285,7 +284,7 @@ __device_inline bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint
 					/* triangle intersection */
 					while(primAddr < primAddr2) {
 						/* intersect ray against triangle */
-						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr, NULL);
+						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 						/* shadow ray early termination */
 						if(visibility == PATH_RAY_SHADOW_OPAQUE && isect->prim != ~0)
@@ -405,7 +404,7 @@ __device_inline bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, con
 					/* triangle intersection */
 					while(primAddr < primAddr2) {
 						/* intersect ray against triangle */
-						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr, &ob_tfm);
+						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 						/* shadow ray early termination */
 						if(visibility == PATH_RAY_SHADOW_OPAQUE && isect->prim != ~0)
@@ -444,7 +443,8 @@ __device_inline bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, con
 
 __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 {
-#ifdef __OBJECT_MOTION__
+	/* todo: fix cuda sm 2.0 motion blur */
+#if defined(__OBJECT_MOTION__) && (!defined(__KERNEL_CUDA) || (__CUDA_ARCH__ >= 210))
 	if(kernel_data.bvh.have_motion)
 		return bvh_intersect_motion(kg, ray, visibility, isect);
 	else

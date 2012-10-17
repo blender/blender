@@ -64,8 +64,8 @@ void Object::compute_bounds(bool motion_blur, float shuttertime)
 		/* todo: this is really terrible. according to pbrt there is a better
 		 * way to find this iteratively, but did not find implementation yet
 		 * or try to implement myself */
-		float start_t = 0.5f - shuttertime*0.5f;
-		float end_t = 0.5f - shuttertime*0.5f;
+		float start_t = 0.5f - shuttertime*0.25f;
+		float end_t = 0.5f + shuttertime*0.25f;
 
 		for(float t = start_t; t < end_t; t += (1.0f/128.0f)*shuttertime) {
 			Transform ttfm;
