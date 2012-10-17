@@ -197,9 +197,8 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	}
 #ifdef __CAMERA_MOTION__
 	else if(need_motion == Scene::MOTION_BLUR) {
-		/* todo: exact camera position will not be hit this way */
 		if(use_motion) {
-			transform_motion_decompose(&kcam->motion, &motion);
+			transform_motion_decompose(&kcam->motion, &motion, &matrix);
 			kcam->have_motion = 1;
 		}
 	}

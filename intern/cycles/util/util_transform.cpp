@@ -246,9 +246,10 @@ static void transform_decompose(Transform *decomp, const Transform *tfm)
 	decomp->w = make_float4(scale.y.z, scale.z.x, scale.z.y, scale.z.z);
 }
 
-void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion)
+void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion, const Transform *mid)
 {
 	transform_decompose(&decomp->pre, &motion->pre);
+	transform_decompose(&decomp->mid, mid);
 	transform_decompose(&decomp->post, &motion->post);
 }
 

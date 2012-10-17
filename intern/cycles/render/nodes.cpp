@@ -1254,8 +1254,6 @@ void WardBsdfNode::attributes(AttributeRequestSet *attributes)
 
 void WardBsdfNode::compile(SVMCompiler& compiler)
 {
-	ShaderInput *tangent_in = input("Tangent");
-
 	BsdfNode::compile(compiler, input("Roughness U"), input("Roughness V"));
 }
 
