@@ -258,13 +258,10 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 
 /******************** create new mask *********************/
 
-static int mask_new_exec(bContext *C, wmOperator *op)
+Mask *ED_mask_new(bContext *C, const char *name)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	Mask *mask;
-	char name[MAX_ID_NAME - 2];
-
-	RNA_string_get(op->ptr, "name", name);
 
 	mask = BKE_mask_new(name);
 
@@ -289,6 +286,17 @@ static int mask_new_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
+
+	return mask;
+}
+
+static int mask_new_exec(bContext *C, wmOperator *op)
+{
+	char name[MAX_ID_NAME - 2];
+
+	RNA_string_get(op->ptr, "name", name);
+
+	ED_mask_new(C, name);
 
 	return OPERATOR_FINISHED;
 }

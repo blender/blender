@@ -46,6 +46,7 @@
 #include "WM_types.h"
 
 #include "ED_mask.h"  /* own include */
+#include "ED_screen.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -562,6 +563,11 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 	float co[2];
 
+	if (mask == NULL) {
+		/* if there's no active mask, create one */
+		mask = ED_mask_new(C, NULL);
+	}
+
 	masklay = BKE_mask_layer_active(mask);
 
 	if (masklay && masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
@@ -647,7 +653,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = add_vertex_exec;
 	ot->invoke = add_vertex_invoke;
-	ot->poll = ED_maskedit_mask_poll;
+	ot->poll = ED_operator_mask;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
