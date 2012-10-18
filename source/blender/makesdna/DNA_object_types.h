@@ -378,6 +378,7 @@ typedef struct DupliObject {
 #define OB_DUPLIPARTS		2048
 #define OB_RENDER_DUPLI		4096
 #define OB_NO_CONSTRAINTS	8192 /* runtime constraints disable */
+#define OB_NO_PSYS_UPDATE	16384 /* hack to work around particle issue */
 
 /* (short) ipoflag */
 /* XXX: many old flags for features removed due to incompatibility

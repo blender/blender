@@ -190,12 +190,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		psmd->totdmface = psmd->dm->getNumTessFaces(psmd->dm);
 	}
 
-	/* skip the particle update if no timestep is performed or initialization required.
-	 * XXX this is a workaround for bug #32846, which is caused by modifier updates
-	 * during dupli-list generation (in cycles). The dupli-list generation can temporarily change
-	 * the ob->obmat matrix, which in turn leads to wrong particle states if used for reset ...
-	 */
-	if (psys->cfra != cfra || psys->recalc) {
+	if (!(ob->transflag & OB_NO_PSYS_UPDATE)) {
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		particle_system_update(md->scene, ob, psys);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
