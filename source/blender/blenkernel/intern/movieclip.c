@@ -1091,6 +1091,18 @@ void BKE_movieclip_reload(MovieClip *clip)
 	movieclip_load_get_szie(clip);
 
 	movieclip_calc_length(clip);
+
+	/* same as for image update -- don't use notifiers because they are not 100% sure to succeeded
+	 * (node trees which are not currently visible wouldn't be refreshed)
+	 */
+	{
+		Scene *scene;
+		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
+			if (scene->nodetree) {
+				nodeUpdateID(scene->nodetree, &clip->id);
+			}
+		}
+	}
 }
 
 void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
