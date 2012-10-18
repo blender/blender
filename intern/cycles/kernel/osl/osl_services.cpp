@@ -224,7 +224,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from)
 	KernelGlobals *kg = kernel_globals;
 
 	if (from == u_ndc) {
-		Transform tfm = transform_transpose(kernel_data.cam.ndctoworld);
+		Transform tfm = transform_transpose(transform_quick_inverse(kernel_data.cam.worldtondc));
 		result = TO_MATRIX44(tfm);
 		return true;
 	}

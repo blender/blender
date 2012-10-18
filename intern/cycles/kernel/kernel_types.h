@@ -514,7 +514,9 @@ typedef struct KernelCamera {
 	/* more matrices */
 	Transform screentoworld;
 	Transform rastertoworld;
-	Transform ndctoworld;
+	/* work around cuda sm 2.0 crash, this seems to
+	 * cross some limit in combination with motion 
+	 * Transform ndctoworld; */
 	Transform worldtoscreen;
 	Transform worldtoraster;
 	Transform worldtondc;

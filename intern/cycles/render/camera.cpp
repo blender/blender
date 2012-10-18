@@ -162,7 +162,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	/* store matrices */
 	kcam->screentoworld = screentoworld;
 	kcam->rastertoworld = rastertoworld;
-	kcam->ndctoworld = ndctoworld;
 	kcam->rastertocamera = rastertocamera;
 	kcam->cameratoworld = cameratoworld;
 	kcam->worldtoscreen = transform_inverse(screentoworld);
