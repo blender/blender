@@ -29,7 +29,7 @@ shader node_layer_weight(
 
 	/* Fresnel */ 
 	float eta = max(1.0 - Blend, 1e-5);
-	eta = backfacing()? eta: 1.0 / eta;
+	eta = backfacing() ? eta : 1.0 / eta;
 	Fresnel = fresnel_dielectric(I, Normal, eta);
 
 	/* Facing */ 
@@ -37,7 +37,7 @@ shader node_layer_weight(
 
 	if (blend != 0.5) {
 		blend = clamp(blend, 0.0, 1.0); 
-		blend = (blend < 0.5)? 2.0 * blend: 0.5 / (1.0 - blend);
+		blend = (blend < 0.5) ? 2.0 * blend : 0.5 / (1.0 - blend);
 
 		Facing = pow(Facing, blend);
 	}

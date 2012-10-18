@@ -41,8 +41,8 @@ float brick(point p, float mortar_size, float bias,
 	rownum = (int)floor(p[1] / row_height);
 	
 	if (offset_frequency && squash_frequency) {
-		brick_width *= ((int)(rownum) % squash_frequency ) ? 1.0 : squash_amount; /* squash */
-		offset = ((int)(rownum) % offset_frequency ) ? 0 : (brick_width * offset_amount); /* offset */
+		brick_width *= ((int)(rownum) % squash_frequency) ? 1.0 : squash_amount;                /* squash */
+		offset       = ((int)(rownum) % offset_frequency) ? 0 : (brick_width * offset_amount);  /* offset */
 	}
 
 	bricknum = (int)floor((p[0] + offset) / brick_width);

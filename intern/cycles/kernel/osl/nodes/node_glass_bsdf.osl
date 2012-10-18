@@ -28,7 +28,7 @@ shader node_glass_bsdf(
 	output closure color BSDF = diffuse(Normal))
 {
 	float f = max(IOR, 1.0 + 1e-5);
-	float eta = backfacing()? 1.0 / f: f;
+	float eta = backfacing() ? 1.0 / f: f;
 	float Fr = fresnel_dielectric(I, Normal, eta);
 
 	if (distribution == "Sharp")

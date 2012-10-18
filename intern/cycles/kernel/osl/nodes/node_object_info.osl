@@ -19,15 +19,14 @@
 #include "stdosl.h"
 
 shader node_object_info(
-    output point Location = point(0.0, 0.0, 0.0),
-    output float ObjectIndex = 0.0,
-    output float MaterialIndex = 0.0,
-    output float Random = 0.0
-    )
+	output point Location = point(0.0, 0.0, 0.0),
+	output float ObjectIndex = 0.0,
+	output float MaterialIndex = 0.0,
+	output float Random = 0.0)
 {
-    getattribute("std::object_location", Location);
-    getattribute("std::object_index", ObjectIndex);
-    getattribute("std::material_index", MaterialIndex);
-    getattribute("std::object_random", Random);
+	getattribute("std::object_location", Location);
+	getattribute("std::object_index", ObjectIndex);
+	getattribute("std::material_index", MaterialIndex);
+	getattribute("std::object_random", Random);
 }
 
