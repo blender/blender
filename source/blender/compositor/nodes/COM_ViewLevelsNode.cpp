@@ -24,6 +24,7 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_CalculateMeanOperation.h"
 #include "COM_CalculateStandardDeviationOperation.h"
+#include "COM_SetValueOperation.h"
 
 ViewLevelsNode::ViewLevelsNode(bNode *editorNode) : Node(editorNode)
 {
@@ -63,6 +64,19 @@ void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 			socket->relinkConnections(operation->getOutputSocket());
 			graph->addOperation(operation);
 		}
+	}
+	else {
+		SetValueOperation *meanOutput = new SetValueOperation();
+		SetValueOperation *stdDevOutput = new SetValueOperation();
+
+		meanOutput->setValue(0.0f);
+		stdDevOutput->setValue(0.0f);
+
+		this->getOutputSocket(0)->relinkConnections(meanOutput->getOutputSocket());
+		this->getOutputSocket(1)->relinkConnections(stdDevOutput->getOutputSocket());
+
+		graph->addOperation(meanOutput);
+		graph->addOperation(stdDevOutput);
 	}
 }
 	
