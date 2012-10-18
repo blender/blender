@@ -380,7 +380,7 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	/* Bake was successful:
 	 *  Report for ended bake and how long it took */
 	if (status) {
-		/* Format time string	*/
+		/* Format time string */
 		char time_str[30];
 		double time = PIL_check_seconds_timer() - timer;
 		BLI_timestr(time, time_str);
@@ -389,11 +389,11 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 		BKE_reportf(op->reports, RPT_INFO, "Bake complete! (%s)", time_str);
 	}
 	else {
-		if (strlen(canvas->error)) { /* If an error occured */
+		if (strlen(canvas->error)) { /* If an error occurred */
 			BKE_reportf(op->reports, RPT_ERROR, "Bake failed: %s", canvas->error);
 		}
 		else { /* User canceled the bake */
-			BKE_report(op->reports, RPT_WARNING, "Baking cancelled!");
+			BKE_report(op->reports, RPT_WARNING, "Baking canceled!");
 		}
 	}
 

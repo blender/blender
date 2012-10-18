@@ -1344,7 +1344,7 @@ static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
 	
 	/* check for invalid states */
 	if (ks == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Keying Set");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active keying set");
 		return OPERATOR_CANCELLED;
 	}
 	if (soutliner == NULL)

@@ -113,7 +113,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	CustomData vdata, edata, fdata, ldata, pdata;
 
 	if (scene->obedit) {
-		BKE_report(op->reports, RPT_WARNING, "Cant join while in editmode");
+		BKE_report(op->reports, RPT_WARNING, "Cannot join while in editmode");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -161,8 +161,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	
 	if (totvert > MESH_MAX_VERTS) {
-		BKE_reportf(op->reports, RPT_WARNING, "Joining results in %d vertices, limit is " STRINGIFY(MESH_MAX_VERTS), totvert);
-		return OPERATOR_CANCELLED;		
+		BKE_reportf(op->reports, RPT_WARNING, "Joining results in %d vertices, limit is %ld", totvert, MESH_MAX_VERTS);
+		return OPERATOR_CANCELLED;
 	}
 
 	/* new material indices and material array */
