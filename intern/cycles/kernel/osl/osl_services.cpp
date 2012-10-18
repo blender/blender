@@ -73,7 +73,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 
 		if (object != ~0) {
 #ifdef __OBJECT_MOTION__
-			Transform tfm = object_fetch_transform_motion(kg, object, time);
+			Transform tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
 #else
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
@@ -99,7 +99,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 		if (object != ~0) {
 #ifdef __OBJECT_MOTION__
 			Transform itfm;
-			object_fetch_transform_motion(kg, object, time);
+			object_fetch_transform_motion_test(kg, object, time, &itfm);
 #else
 			Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 #endif
@@ -118,7 +118,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from, float ti
 	KernelGlobals *kg = kernel_globals;
 
 	if (from == u_ndc) {
-		Transform tfm = transform_transpose(kernel_data.cam.ndctoworld);
+		Transform tfm = transform_transpose(transform_quick_inverse(kernel_data.cam.worldtondc));
 		result = TO_MATRIX44(tfm);
 		return true;
 	}
