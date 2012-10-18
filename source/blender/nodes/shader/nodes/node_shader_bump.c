@@ -46,7 +46,7 @@ static bNodeSocketTemplate sh_node_bump_out[]= {
 	{ -1, 0, "" } 
 };
 
-static int gpu_shader_bump(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_bump(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "node_bump", in, out, GPU_builtin(GPU_VIEW_NORMAL));
 }
