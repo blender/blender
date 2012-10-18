@@ -43,7 +43,10 @@ static bNodeSocketTemplate sh_node_bsdf_velvet_out[]= {
 
 static int node_shader_gpu_bsdf_velvet(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "node_bsdf_velvet", in, out, GPU_builtin(GPU_VIEW_NORMAL));
+	if(!in[2].link)
+		in[2].link = GPU_builtin(GPU_VIEW_NORMAL);
+
+	return GPU_stack_link(mat, "node_bsdf_velvet", in, out);
 }
 
 /* node type definition */

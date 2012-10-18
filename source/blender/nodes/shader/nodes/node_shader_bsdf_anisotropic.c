@@ -45,7 +45,10 @@ static bNodeSocketTemplate sh_node_bsdf_anisotropic_out[]= {
 
 static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "node_bsdf_anisotropic", in, out, GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_VIEW_POSITION));
+	if(!in[3].link)
+		in[3].link = GPU_builtin(GPU_VIEW_NORMAL);
+
+	return GPU_stack_link(mat, "node_bsdf_anisotropic", in, out);
 }
 
 /* node type definition */
