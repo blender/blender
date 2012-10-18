@@ -24,6 +24,7 @@
 #include "object.h"
 #include "scene.h"
 #include "nodes.h"
+#include "particles.h"
 #include "shader.h"
 
 #include "blender_sync.h"
@@ -307,6 +308,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 		mesh_map.pre_sync();
 		object_map.pre_sync();
 		mesh_synced.clear();
+		particle_system_map.pre_sync();
 	}
 
 	/* object loop */
@@ -362,11 +364,16 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 					object_free_duplilist(*b_ob);
 				}
 
-				/* check if we should render or hide particle emitter */
+
+				/* sync particles and check if we should render or hide particle emitter */
 				BL::Object::particle_systems_iterator b_psys;
-				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
+				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys) {
+					if(!motion)
+						sync_particles(*b_ob, *b_psys);
+
 					if(b_psys->settings().use_render_emitter())
 						hide = false;
+				}
 
 				if(!hide) {
 					/* object itself */
@@ -393,6 +400,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 			scene->mesh_manager->tag_update(scene);
 		if(object_map.post_sync())
 			scene->object_manager->tag_update(scene);
+		if(particle_system_map.post_sync())
+			scene->particle_system_manager->tag_update(scene);
 		mesh_synced.clear();
 	}
 }

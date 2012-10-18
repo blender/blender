@@ -4320,7 +4320,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	if (pa) {
 		if (!always) {
 			if ((cfra < pa->time    && (part->flag & PART_UNBORN) == 0) ||
-			    (cfra > pa->dietime && (part->flag & PART_DIED)   == 0))
+			    (cfra >= pa->dietime && (part->flag & PART_DIED)  == 0))
 			{
 				return 0;
 			}

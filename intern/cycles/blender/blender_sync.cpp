@@ -142,7 +142,6 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const 
 	sync_film();
 	sync_shaders();
 	sync_objects(b_v3d);
-	sync_particle_systems();
 	sync_motion(b_v3d, b_override);
 }
 

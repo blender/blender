@@ -77,7 +77,6 @@ private:
 	void sync_world();
 	void sync_render_layers(BL::SpaceView3D b_v3d, const char *layer);
 	void sync_shaders();
-	void sync_particle_systems();
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
