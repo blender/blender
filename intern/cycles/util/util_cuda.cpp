@@ -17,6 +17,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "util_cuda.h"
 #include "util_debug.h"
@@ -413,8 +414,18 @@ string cuCompilerPath()
 		return nvcc;
 
 #ifndef _WIN32
-	if(system("which nvcc") == 0)
-		return "nvcc";
+	{
+		FILE *handle = popen("which nvcc", "r");
+		if(handle) {
+			char buffer[4096] = {0};
+			int len = fread(buffer, 1, sizeof(buffer) - 1, handle);
+			buffer[len] = '\0';
+			pclose(handle);
+
+			if(buffer[0])
+				return "nvcc";
+		}
+	}
 #endif
 
 	return "";
