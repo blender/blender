@@ -187,3 +187,16 @@ class AddObjectHelper:
             name="Rotation",
             subtype='EULER',
             )
+
+
+def object_add_grid_scale(context):
+    """
+    Return scale which should be applied on object data to align it to grid scale
+    """
+
+    space_data = context.space_data
+
+    if space_data and space_data.type == 'VIEW_3D':
+        return space_data.grid_scale_unit
+
+    return 1.0

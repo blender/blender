@@ -73,7 +73,7 @@ static Object *make_prim_init(bContext *C, const char *idname,
 		*state = 1;
 	}
 
-	*dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
+	*dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, FALSE);
 
 	return obedit;
 }
@@ -200,7 +200,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_call_and_selectf(em, op, "vertout",
 	                              "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b mat=%m4",
-	                              RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"),
+	                              RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius") * dia,
 	                              cap_end, cap_tri, mat))
 	{
 		return OPERATOR_CANCELLED;
@@ -256,10 +256,10 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	        em, op, "vertout",
 	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f mat=%m4",
 	        RNA_int_get(op->ptr, "vertices"),
-	        RNA_float_get(op->ptr, "radius"),
-	        RNA_float_get(op->ptr, "radius"),
+	        RNA_float_get(op->ptr, "radius") * dia,
+	        RNA_float_get(op->ptr, "radius") * dia,
 	        cap_end, cap_tri,
-	        RNA_float_get(op->ptr, "depth"), mat))
+	        RNA_float_get(op->ptr, "depth") * dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -315,8 +315,8 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "vertout",
 	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f mat=%m4",
-	        RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius1"),
-	        RNA_float_get(op->ptr, "radius2"), cap_end, cap_tri, RNA_float_get(op->ptr, "depth"), mat))
+	        RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius1") * dia,
+	        RNA_float_get(op->ptr, "radius2") * dia, cap_end, cap_tri, RNA_float_get(op->ptr, "depth") * dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -421,6 +421,10 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 		rot[0] += (float)M_PI / 2.0f;
 
 	obedit = make_prim_init(C, "Monkey", &dia, mat, &state, loc, rot, layer);
+	mat[0][0] *= dia;
+	mat[1][1] *= dia;
+	mat[2][2] *= dia;
+
 	em = BMEdit_FromObject(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "vertout", "create_monkey mat=%m4", mat)) {
@@ -465,7 +469,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_call_and_selectf(em, op, "vertout",
 	                              "create_uvsphere segments=%i revolutions=%i diameter=%f mat=%m4",
 	                              RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
-	                              RNA_float_get(op->ptr, "size"), mat))
+	                              RNA_float_get(op->ptr, "size") * dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -517,7 +521,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	        em, op, "vertout",
 	        "create_icosphere subdivisions=%i diameter=%f mat=%m4",
 	        RNA_int_get(op->ptr, "subdivisions"),
-	        RNA_float_get(op->ptr, "size"), mat))
+	        RNA_float_get(op->ptr, "size") * dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}

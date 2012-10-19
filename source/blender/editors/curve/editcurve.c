@@ -6486,12 +6486,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 				vec[0] = vec[1] = 0.0;
 				vec[2] = -grid;
 
-				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
-					/* pass */
-				}
-				else {
-					mul_mat3_m4_v3(mat, vec);
-				}
+				mul_mat3_m4_v3(mat, vec);
 
 				translateflagNurb(editnurb, 1, vec);
 				extrudeflagNurb(cu->editnurb, 1);
@@ -6609,6 +6604,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
+	float dia;
 
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_aligned))
 		return OPERATOR_CANCELLED;
@@ -6652,7 +6648,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (newob && enter_editmode)
 		ED_undo_push(C, "Enter Editmode");
 
-	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
+	dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, TRUE);
 
 	nu = add_nurbs_primitive(C, obedit, mat, type, newob);
 	editnurb = object_editcurve_get(obedit);
