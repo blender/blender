@@ -64,6 +64,8 @@ set(SRC
 	intern/bmesh_construct.h
 	intern/bmesh_core.c
 	intern/bmesh_core.h
+	intern/bmesh_decimate.c
+	intern/bmesh_decimate.h
 	intern/bmesh_inline.h
 	intern/bmesh_interp.c
 	intern/bmesh_interp.h
