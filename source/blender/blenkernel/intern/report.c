@@ -134,6 +134,7 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *_format, ...)
 	const char *format = TIP_(_format);
 
 	if (G.background || !reports || ((reports->flag & RPT_PRINT) && (type >= reports->printlevel))) {
+		printf("%s: ", report_type_str(type));
 		va_start(args, _format);
 		vprintf(format, args);
 		va_end(args);
