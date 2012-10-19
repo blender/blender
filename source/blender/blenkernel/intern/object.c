@@ -2300,11 +2300,9 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const short u
 				bPoseChannel *pchan;
 
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-
-					if ((use_hidden == FALSE) && (PBONE_VISIBLE(arm, pchan->bone) == FALSE)) {
-						/* pass */
-					}
-					else {
+					/* XXX pchan->bone may be NULL for duplicated bones, see duplicateEditBoneObjects() comment
+					 *     (editarmature.c:2592)... Skip in this case too! */
+					if (pchan->bone && !((use_hidden == FALSE) && (PBONE_VISIBLE(arm, pchan->bone) == FALSE))) {
 						mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
 						minmax_v3v3_v3(min_r, max_r, vec);
 						mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
