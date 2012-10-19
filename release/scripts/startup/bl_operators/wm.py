@@ -1755,7 +1755,6 @@ class WM_OT_addon_install(Operator):
 
         #check to see if the file is in compressed format (.zip)
         if zipfile.is_zipfile(pyfile):
-            is_archive = True
             try:
                 file_to_extract = zipfile.ZipFile(pyfile, 'r')
             except:
@@ -1774,18 +1773,11 @@ class WM_OT_addon_install(Operator):
 
             try:  # extract the file to "addons"
                 file_to_extract.extractall(path_addons)
-
-                # zip files can create this dir with metadata, don't need it
-                macosx_dir = os.path.join(path_addons, '__MACOSX')
-                if os.path.isdir(macosx_dir):
-                    shutil.rmtree(macosx_dir)
-
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}
 
         else:
-            is_archive = False
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if self.overwrite:
@@ -1825,19 +1817,9 @@ class WM_OT_addon_install(Operator):
         bpy.utils.refresh_script_paths()
 
         # print message
-        msg = "Modules Installed from %r:" % (pyfile)
+        msg = "Modules Installed from %r into %r (%s)" % (pyfile, path_addons, ", ".join(sorted(addons_new)))
         print(msg)
         self.report({'INFO'}, msg)
-        for mod in addon_utils.modules(addon_utils.addons_fake_modules):
-            if mod.__name__ in addons_new:
-                info = addon_utils.module_bl_info(mod)
-                if is_archive:
-                    module_path = os.path.dirname(os.path.abspath(mod.__file__))
-                else:
-                    module_path = os.path.abspath(mod.__file__)
-                msg = "\"%s\" installed in %r" % (info["name"],module_path)
-                self.report({'INFO'}, msg)
-                print(msg)
 
         return {'FINISHED'}
 
