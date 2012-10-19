@@ -1763,7 +1763,7 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 
 	/* VBO is disabled; delete the previous buffer (if it exists) and
 	 * return an invalid handle */
-	if (gpu_vbo_enabled()) {
+	if (!gpu_vbo_enabled()) {
 		if (buffer)
 			glDeleteBuffersARB(1, &buffer);
 		return 0;
