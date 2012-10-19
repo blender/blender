@@ -2924,7 +2924,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.keymodifier = 0;
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */
-			if (event.type == ESCKEY)
+			if (event.type == ESCKEY && event.val == KM_PRESS)
 				G.is_break = TRUE;
 			
 			wm_event_add(win, &event);
