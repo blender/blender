@@ -42,6 +42,7 @@ typedef void (*HeapFreeFP)(void *ptr);
 
 /* Creates a new heap. BLI_memarena is used for allocating nodes. Removed nodes
  * are recycled, so memory usage will not shrink. */
+Heap           *BLI_heap_new_ex(unsigned int tot_reserve);
 Heap           *BLI_heap_new(void);
 void            BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp);
 

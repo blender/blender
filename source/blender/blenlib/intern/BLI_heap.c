@@ -67,14 +67,20 @@ struct Heap {
 
 /***/
 
-Heap *BLI_heap_new(void)
+/* use when the size of the heap is known in advance */
+Heap *BLI_heap_new_ex(unsigned int tot_reserve)
 {
 	Heap *heap = (Heap *)MEM_callocN(sizeof(Heap), __func__);
-	heap->bufsize = 1;
-	heap->tree = (HeapNode **)MEM_mallocN(sizeof(HeapNode *), "BLIHeapTree");
+	heap->bufsize = tot_reserve;
+	heap->tree = (HeapNode **)MEM_mallocN(tot_reserve * sizeof(HeapNode *), "BLIHeapTree");
 	heap->arena = BLI_memarena_new(1 << 16, "heap arena");
 
 	return heap;
+}
+
+Heap *BLI_heap_new(void)
+{
+	return BLI_heap_new_ex(1);
 }
 
 void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)

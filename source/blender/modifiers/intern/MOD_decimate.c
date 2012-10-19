@@ -47,6 +47,10 @@
 #include "BKE_particle.h"
 #include "BKE_cdderivedmesh.h"
 
+#include "BKE_tessmesh.h"
+
+/* testing only! - Campbell */
+// #define USE_DECIMATE_BMESH
 
 #ifdef WITH_MOD_DECIMATE
 #include "LOD_decimation.h"
@@ -70,6 +74,33 @@ static void copyData(ModifierData *md, ModifierData *target)
 }
 
 #ifdef WITH_MOD_DECIMATE
+#ifdef USE_DECIMATE_BMESH
+
+#include "bmesh.h"
+
+static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
+                                  DerivedMesh *derivedData,
+                                  ModifierApplyFlag UNUSED(flag))
+{
+	DecimateModifierData *dmd = (DecimateModifierData *) md;
+	DerivedMesh *dm = derivedData, *result = NULL;
+	BMEditMesh *em;
+	BMesh *bm;
+
+	em = DM_to_editbmesh(dm, NULL, FALSE);
+	bm = em->bm;
+
+	BM_mesh_decimate(bm, dmd->percent);
+
+	BLI_assert(em->looptris == NULL);
+	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
+	BMEdit_Free(em);
+	MEM_freeN(em);
+
+	return result;
+}
+
+#else
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
                                   DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
@@ -192,6 +223,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		return dm;
 	}
 }
+#endif // USE_DECIMATE_BMESH
 #else // WITH_MOD_DECIMATE
 static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
                                   DerivedMesh *derivedData,
