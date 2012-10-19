@@ -131,7 +131,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 	ParticleSystem *psys = NULL;
 	int needsFree = 0;
-	float cfra = BKE_scene_frame_get(md->scene);
+	/* float cfra = BKE_scene_frame_get(md->scene); */  /* UNUSED */
 
 	if (ob->particlesystem.first)
 		psys = psmd->psys;

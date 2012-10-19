@@ -1607,10 +1607,10 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 				BMESH_ASSERT(edok != FALSE);
 			}
 
-			/* deallocate edg */
+			/* deallocate edge */
 			bm_kill_only_edge(bm, ke);
 
-			/* deallocate verte */
+			/* deallocate vertex */
 			bm_kill_only_vert(bm, kv);
 
 			/* Validate disk cycle lengths of ov, tv are unchanged */
@@ -1619,7 +1619,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 			edok = bmesh_disk_validate(valence2, tv->e, tv);
 			BMESH_ASSERT(edok != FALSE);
 
-			/* Validate loop cycle of all faces attached to oe */
+			/* Validate loop cycle of all faces attached to 'oe' */
 			for (i = 0, l = oe->l; i < radlen; i++, l = l->radial_next) {
 				BMESH_ASSERT(l->e == oe);
 				edok = bmesh_verts_in_edge(l->v, l->next->v, oe);
@@ -1800,6 +1800,10 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
  * Merges two verts into one (\a v into \a vtarget).
  *
  * \return Success
+ *
+ * \warning This does't work for collapsing edges,
+ * where \a v and \a vtarget are connected by an edge
+ * (assert checks for this case).
  */
 int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 {
@@ -1827,6 +1831,7 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 		bmesh_disk_edge_remove(e, v);
 		bmesh_edge_swapverts(e, v, vtarget);
 		bmesh_disk_edge_append(e, vtarget);
+		BLI_assert(e->v1 != e->v2);
 	}
 
 	BM_CHECK_ELEMENT(v);
