@@ -75,6 +75,8 @@
 
 #include "mesh_intern.h"
 
+#define MVAL_PIXEL_MARGIN  5.0f
+
 /* allow accumulated normals to form a new direction but don't
  * accept direct opposite directions else they will cancel each other out */
 static void add_normal_aligned(float nor[3], const float add[3])
@@ -4516,6 +4518,7 @@ typedef struct {
 	int li;
 	int mcenter[2];
 	float initial_length;
+	float pixel_size;  /* use when mouse input is interpreted as spatial distance */
 	int is_modal;
 	NumInput num_input;
 	float shift_factor; /* The current factor when shift is pressed. Negative when shift not active. */
@@ -4713,8 +4716,10 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* TODO make modal keymap (see fly mode) */
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	BevelData *opdata;
 	float mlen[2];
+	float center_3d[3];
 
 	if (!edbm_bevel_init(C, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -4723,7 +4728,7 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	opdata = op->customdata;
 
 	/* initialize mouse values */
-	if (!calculateTransformCenter(C, V3D_CENTROID, NULL, opdata->mcenter)) {
+	if (!calculateTransformCenter(C, V3D_CENTROID, center_3d, opdata->mcenter)) {
 		/* in this case the tool will likely do nothing,
 		 * ideally this will never happen and should be checked for above */
 		opdata->mcenter[0] = opdata->mcenter[1] = 0;
@@ -4731,6 +4736,7 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	mlen[0] = opdata->mcenter[0] - event->mval[0];
 	mlen[1] = opdata->mcenter[1] - event->mval[1];
 	opdata->initial_length = len_v2(mlen);
+	opdata->pixel_size = rv3d ? ED_view3d_pixel_size(rv3d, center_3d) : 1.0f;
 
 	edbm_bevel_update_header(op, C);
 
@@ -4742,6 +4748,44 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_event_add_modal_handler(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
+}
+
+static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
+{
+	BevelData *opdata = op->customdata;
+	int use_dist =  RNA_boolean_get(op->ptr, "use_dist");
+	float mdiff[2];
+	float factor;
+
+	mdiff[0] = opdata->mcenter[0] - event->mval[0];
+	mdiff[1] = opdata->mcenter[1] - event->mval[1];
+
+	if (use_dist) {
+		factor = ((len_v2(mdiff) - MVAL_PIXEL_MARGIN) - opdata->initial_length) * opdata->pixel_size;
+	}
+	else {
+		factor = (len_v2(mdiff) - MVAL_PIXEL_MARGIN) / opdata->initial_length;
+		factor = factor - 1.0f;  /* a different kind of buffer where nothing happens */
+	}
+
+	/* Fake shift-transform... */
+	if (event->shift) {
+		if (opdata->shift_factor < 0.0f)
+			opdata->shift_factor = RNA_float_get(op->ptr, "percent");
+		factor = (factor - opdata->shift_factor) * 0.1f + opdata->shift_factor;
+	}
+	else if (opdata->shift_factor >= 0.0f)
+		opdata->shift_factor = -1.0f;
+
+	/* clamp differently based on distance/factor */
+	if (use_dist) {
+		if (factor < 0.0f) factor = 0.0f;
+	}
+	else {
+		CLAMP(factor, 0.0f, 1.0f);
+	}
+
+	return factor;
 }
 
 static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -4771,25 +4815,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		case MOUSEMOVE:
 			if (!hasNumInput(&opdata->num_input)) {
-				float factor;
-				float mdiff[2];
-
-				mdiff[0] = opdata->mcenter[0] - event->mval[0];
-				mdiff[1] = opdata->mcenter[1] - event->mval[1];
-
-				factor = opdata->initial_length / -len_v2(mdiff) + 1.0f;
-
-				/* Fake shift-transform... */
-				if (event->shift) {
-					if (opdata->shift_factor < 0.0f)
-						opdata->shift_factor = RNA_float_get(op->ptr, "percent");
-					factor = (factor - opdata->shift_factor) * 0.1f + opdata->shift_factor;
-				}
-				else if (opdata->shift_factor >= 0.0f)
-					opdata->shift_factor = -1.0f;
-
-				CLAMP(factor, 0.0f, 1.0f);
-
+				const float factor = edbm_bevel_mval_factor(op, event);
 				RNA_float_set(op->ptr, "percent", factor);
 
 				edbm_bevel_calc(C, op);
@@ -4819,6 +4845,11 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 				int use_dist =  RNA_boolean_get(op->ptr, "use_dist");
 				RNA_boolean_set(op->ptr, "use_dist", !use_dist);
 
+				{
+					const float factor = edbm_bevel_mval_factor(op, event);
+					RNA_float_set(op->ptr, "percent", factor);
+				}
+
 				edbm_bevel_calc(C, op);
 				edbm_bevel_update_header(op, C);
 			}
@@ -4845,6 +4876,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_POINTER | OPTYPE_BLOCKING;
 
+	/* take note, used as a factor _and_ a distance depending on 'use_dist' */
 	RNA_def_float(ot->srna, "percent", 0.0f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
 	/* XXX, disabled for 2.63 release, needs to work much better without overlap before we can give to users. */
 /*	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8); */
@@ -4909,8 +4941,9 @@ typedef struct {
 	float old_depth;
 	int mcenter[2];
 	int modify_depth;
-	int is_modal;
 	float initial_length;
+	float pixel_size;  /* use when mouse input is interpreted as spatial distance */
+	int is_modal;
 	int shift;
 	float shift_amount;
 	BMBackup backup;
@@ -5076,15 +5109,17 @@ static int edbm_inset_exec(bContext *C, wmOperator *op)
 
 static int edbm_inset_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	InsetData *opdata;
 	float mlen[2];
+	float center_3d[3];
 
 	edbm_inset_init(C, op, TRUE);
 
 	opdata = op->customdata;
 
 	/* initialize mouse values */
-	if (!calculateTransformCenter(C, V3D_CENTROID, NULL, opdata->mcenter)) {
+	if (!calculateTransformCenter(C, V3D_CENTROID, center_3d, opdata->mcenter)) {
 		/* in this case the tool will likely do nothing,
 		 * ideally this will never happen and should be checked for above */
 		opdata->mcenter[0] = opdata->mcenter[1] = 0;
@@ -5092,6 +5127,7 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	mlen[0] = opdata->mcenter[0] - event->mval[0];
 	mlen[1] = opdata->mcenter[1] - event->mval[1];
 	opdata->initial_length = len_v2(mlen);
+	opdata->pixel_size = rv3d ? ED_view3d_pixel_size(rv3d, center_3d) : 1.0f;
 
 	edbm_inset_calc(C, op);
 
@@ -5141,9 +5177,9 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 				mdiff[1] = opdata->mcenter[1] - event->mval[1];
 
 				if (opdata->modify_depth)
-					amount = opdata->old_depth + opdata->initial_length / len_v2(mdiff) - 1.0f;
+					amount = opdata->old_depth     + ((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size);
 				else
-					amount = opdata->old_thickness - opdata->initial_length / len_v2(mdiff) + 1.0f;
+					amount = opdata->old_thickness - ((len_v2(mdiff) - opdata->initial_length) * opdata->pixel_size);
 
 				/* Fake shift-transform... */
 				if (opdata->shift)
