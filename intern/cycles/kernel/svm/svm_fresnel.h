@@ -54,7 +54,7 @@ __device void svm_node_layer_weight(ShaderData *sd, float *stack, uint4 node)
 		f = fabsf(dot(sd->I, sd->N));
 
 		if(blend != 0.5f) {
-			blend = clamp(blend, 0.0f, 1.0f);
+			blend = clamp(blend, 0.0f, 1.0f-1e-5f);
 			blend = (blend < 0.5f)? 2.0f*blend: 0.5f/(1.0f - blend);
 
 			f = powf(f, blend);

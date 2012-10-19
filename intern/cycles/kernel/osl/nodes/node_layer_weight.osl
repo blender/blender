@@ -36,7 +36,7 @@ shader node_layer_weight(
 	Facing = abs(dot(I, Normal));
 
 	if (blend != 0.5) {
-		blend = clamp(blend, 0.0, 1.0); 
+		blend = clamp(blend, 0.0, 1.0-1e-5); 
 		blend = (blend < 0.5) ? 2.0 * blend : 0.5 / (1.0 - blend);
 
 		Facing = pow(Facing, blend);
