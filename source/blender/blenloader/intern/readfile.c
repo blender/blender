@@ -105,6 +105,8 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -976,13 +978,13 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 	
 	if (fd->flags & FD_FLAGS_FILE_OK) {
 		if (!read_file_dna(fd)) {
-			BKE_reportf(reports, RPT_ERROR, "Failed to read blend file: \"%s\", incomplete", fd->relabase);
+			BKE_reportf(reports, RPT_ERROR, "Failed to read blend file '%s', incomplete", fd->relabase);
 			blo_freefiledata(fd);
 			fd = NULL;
 		}
 	} 
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Failed to read blend file: \"%s\", not a blend file", fd->relabase);
+		BKE_reportf(reports, RPT_ERROR, "Failed to read blend file '%s', not a blend file", fd->relabase);
 		blo_freefiledata(fd);
 		fd = NULL;
 	}
@@ -999,7 +1001,8 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 	gzfile = BLI_gzopen(filepath, "rb");
 	
 	if (gzfile == (gzFile)Z_NULL) {
-		BKE_reportf(reports, RPT_WARNING, "Unable to open \"%s\": %s.", filepath, errno ? strerror(errno) : "Unknown error reading file");
+		BKE_reportf(reports, RPT_WARNING, "Unable to open '%s': %s",
+		            filepath, errno ? strerror(errno) : TIP_("Unknown error reading file"));
 		return NULL;
 	}
 	else {
@@ -1017,7 +1020,7 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 {
 	if (!mem || memsize<SIZEOFBLENDERHEADER) {
-		BKE_report(reports, RPT_WARNING, (mem)? "Unable to read": "Unable to open");
+		BKE_report(reports, RPT_WARNING, (mem) ? TIP_("Unable to read"): TIP_("Unable to open"));
 		return NULL;
 	}
 	else {
@@ -4764,8 +4767,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				base->object = newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if (base->object == NULL) {
-					BKE_reportf_wrap(fd->reports, RPT_WARNING,
-					                 "LIB ERROR: Object lost from scene:'%s\'",
+					BKE_reportf_wrap(fd->reports, RPT_WARNING, "LIB ERROR: object lost from scene: '%s'",
 					                 sce->id.name + 2);
 					BLI_remlink(&sce->base, base);
 					if (base == sce->basact) sce->basact = NULL;
@@ -6613,7 +6615,7 @@ void convert_tface_mt(FileData *fd, Main *main)
 		G.main = main;
 		
 		if (!(do_version_tface(main, 1))) {
-			BKE_report(fd->reports, RPT_WARNING, "Texface conversion problem (error in console)");
+			BKE_report(fd->reports, RPT_WARNING, "Texface conversion problem (see error in console)");
 		}
 		
 		//XXX hack, material.c uses G.main allover the place, instead of main
@@ -7396,8 +7398,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					prop = BKE_bproperty_object_get(ob, "Text");
 					if (prop) {
 						BKE_reportf_wrap(fd->reports, RPT_WARNING,
-						                 "Game property name conflict in object: \"%s\".\nText objects reserve the "
-						                 "[\"Text\"] game property to change their content through Logic Bricks.",
+						                 "Game property name conflict in object '%s':\ntext objects reserve the "
+						                 "['Text'] game property to change their content through logic bricks",
 						                 ob->id.name + 2);
 					}
 				}
@@ -9681,7 +9683,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if (fd == NULL) {
 					/* printf and reports for now... its important users know this */
 					BKE_reportf_wrap(basefd->reports, RPT_INFO,
-					                 "read library:  '%s', '%s'",
+					                 "Read library:  '%s', '%s'",
 					                 mainptr->curlib->filepath, mainptr->curlib->name);
 					
 					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
@@ -9735,7 +9737,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					
 					if (fd == NULL) {
 						BKE_reportf_wrap(basefd->reports, RPT_WARNING,
-						                 "Can't find lib '%s'",
+						                 "Cannot find lib '%s'",
 						                 mainptr->curlib->filepath);
 					}
 				}
@@ -9754,7 +9756,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
 									BKE_reportf_wrap(fd->reports, RPT_WARNING,
-									                 "LIB ERROR: %s:'%s' missing from '%s'",
+									                 "LIB ERROR: %s: '%s' missing from '%s'",
 									                 BKE_idcode_to_name(GS(id->name)),
 									                 id->name+2, mainptr->curlib->filepath);
 								}
@@ -9786,7 +9788,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if (id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
 					BKE_reportf_wrap(basefd->reports, RPT_WARNING,
-					                 "LIB ERROR: %s:'%s' unread libblock missing from '%s'",
+					                 "LIB ERROR: %s: '%s' unread libblock missing from '%s'",
 					                 BKE_idcode_to_name(GS(id->name)), id->name + 2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
 					

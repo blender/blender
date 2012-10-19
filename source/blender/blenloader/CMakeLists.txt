@@ -25,6 +25,7 @@
 
 set(INC 
 	.
+	../blenfont
 	../blenkernel
 	../blenlib
 	../makesdna
@@ -60,6 +61,10 @@ set(SRC
 
 if(WITH_BUILDINFO)
 	add_definitions(-DWITH_BUILDINFO)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}")

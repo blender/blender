@@ -1184,7 +1184,8 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
 	mat4_to_size(obsize, obedit->obmat);
 	if (!compare_v3v3(obsize, unitsize, 1e-4f))
-		BKE_report(op->reports, RPT_INFO, "Object scale is not 1.0. Unwrap will operate on a non-scaled version of the mesh.");
+		BKE_report(op->reports, RPT_INFO,
+		           "Object scale is not 1.0, unwrap will operate on a non-scaled version of the mesh");
 
 	/* remember last method for live unwrap */
 	if (RNA_struct_property_is_set(op->ptr, "method"))

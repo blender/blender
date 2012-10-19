@@ -3026,7 +3026,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if (file == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s", tempname, strerror(errno));
+		BKE_reportf(reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
 		return 0;
 	}
 
@@ -3094,7 +3094,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		if (0==ret) {
 			/* now rename to real file name, and delete temp @ file too */
 			if (BLI_rename(gzname, filepath) != 0) {
-				BKE_report(reports, RPT_ERROR, "Can't change old file (file saved with @)");
+				BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
 				return 0;
 			}
 
@@ -3110,7 +3110,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		}
 	}
 	else if (BLI_rename(tempname, filepath) != 0) {
-		BKE_report(reports, RPT_ERROR, "Can't change old file (file saved with @)");
+		BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
 		return 0;
 	}
 

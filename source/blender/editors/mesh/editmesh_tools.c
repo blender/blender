@@ -2133,7 +2133,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	}
 	
 	count = totvert_orig - em->bm->totvert;
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s", count, (count == 1) ? "ex" : "ices");
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
 
 	EDBM_update_generic(C, em, TRUE);
 
@@ -2218,7 +2218,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 	}
 
 	if (svert == NULL || evert == NULL) {
-		BKE_report(op->reports, RPT_WARNING, "Path Selection requires that two vertices be selected");
+		BKE_report(op->reports, RPT_WARNING, "Path selection requires two vertices to be selected");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -4330,7 +4330,7 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 
 	if (ELEM(action, SRT_VIEW_ZAXIS, SRT_VIEW_XAXIS)) {
 		if (rv3d == NULL) {
-			BKE_report(op->reports, RPT_ERROR, "View not found, can't sort by view axis");
+			BKE_report(op->reports, RPT_ERROR, "View not found, cannot sort by view axis");
 			return OPERATOR_CANCELLED;
 		}
 	}

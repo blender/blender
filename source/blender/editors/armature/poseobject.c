@@ -105,7 +105,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	Object *ob = base->object;
 	
 	if (ob->id.lib) {
-		BKE_report(reports, RPT_WARNING, "Can't pose libdata");
+		BKE_report(reports, RPT_WARNING, "Cannot pose libdata");
 		return;
 	}
 	
@@ -1236,7 +1236,7 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
 	
 	/* sanity checking */
 	if (ELEM(NULL, ob, ob->pose)) {
-		BKE_report(op->reports, RPT_ERROR, "No Pose to Copy");
+		BKE_report(op->reports, RPT_ERROR, "No pose to copy");
 		return OPERATOR_CANCELLED;
 	}
 

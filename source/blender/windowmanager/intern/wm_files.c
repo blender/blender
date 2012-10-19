@@ -450,9 +450,8 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 				if (sce->r.engine[0] &&
 				    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
 				{
-					BKE_reportf(reports, RPT_WARNING,
-					            "Engine not available: '%s' for scene: %s, "
-					            "an addon may need to be installed or enabled",
+					BKE_reportf(reports, RPT_ERROR, "Engine '%s' not available for scene '%s' "
+					            "(an addon may need to be installed or enabled)",
 					            sce->r.engine, sce->id.name + 2);
 				}
 			}
@@ -465,17 +464,17 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	else if (retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
 	else if (retval == BKE_READ_EXOTIC_FAIL_OPEN) {
-		BKE_reportf(reports, RPT_ERROR, IFACE_("Can't read file: \"%s\", %s."), filepath,
-		            errno ? strerror(errno) : IFACE_("Unable to open the file"));
+		BKE_reportf(reports, RPT_ERROR, "Cannot read file '%s': %s", filepath,
+		            errno ? strerror(errno) : TIP_("unable to open the file"));
 	}
 	else if (retval == BKE_READ_EXOTIC_FAIL_FORMAT) {
-		BKE_reportf(reports, RPT_ERROR, IFACE_("File format is not supported in file: \"%s\"."), filepath);
+		BKE_reportf(reports, RPT_ERROR, "File format is not supported in file '%s'", filepath);
 	}
 	else if (retval == BKE_READ_EXOTIC_FAIL_PATH) {
-		BKE_reportf(reports, RPT_ERROR, IFACE_("File path invalid: \"%s\"."), filepath);
+		BKE_reportf(reports, RPT_ERROR, "File path '%s' invalid", filepath);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, IFACE_("Unknown error loading: \"%s\"."), filepath);
+		BKE_reportf(reports, RPT_ERROR, "Unknown error loading '%s'", filepath);
 		BLI_assert(!"invalid 'retval'");
 	}
 
@@ -791,7 +790,7 @@ int WM_file_write(bContext *C, const char *target, int fileflags, ReportList *re
 	/* send the OnSave event */
 	for (li = G.main->library.first; li; li = li->id.next) {
 		if (BLI_path_cmp(li->filepath, filepath) == 0) {
-			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.240s'", filepath);
+			BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
 			return -1;
 		}
 	}

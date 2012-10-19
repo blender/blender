@@ -2135,7 +2135,7 @@ static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, i
 	NearestHit hit, *hit_p = NULL;
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled");
+		BKE_report(op->reports, RPT_ERROR, "Cannot select linked when sync selection is enabled");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2242,7 +2242,7 @@ static int select_split_exec(bContext *C, wmOperator *op)
 	short change = FALSE;
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Can't split selection when sync selection is enabled");
+		BKE_report(op->reports, RPT_ERROR, "Cannot split selection when sync selection is enabled");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2321,7 +2321,7 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 	MLoopUV *luv;
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Can't unlink selection when sync selection is enabled");
+		BKE_report(op->reports, RPT_ERROR, "Cannot unlink selection when sync selection is enabled");
 		return OPERATOR_CANCELLED;
 	}
 	

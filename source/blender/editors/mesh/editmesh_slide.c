@@ -34,6 +34,8 @@
 #include "BLI_array.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
@@ -113,11 +115,11 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 	/* Custom data */
 	VertexSlideOp *vso;
 
-	const char *header_str = "Vertex Slide: Hover over an edge and left-click to select slide edge. "
-	                         "Left-Shift: Midpoint Snap, Left-Alt: Snap, Left-Ctrl: Snap&Merge";
+	const char *header_str = TIP_("Vertex Slide: Hover over an edge and left-click to select slide edge. "
+	                              "Left-Shift: Midpoint Snap, Left-Alt: Snap, Left-Ctrl: Snap & Merge");
 
 	if (!obedit) {
-		BKE_report(op->reports, RPT_ERROR, "Vertex Slide Error: Not object in context");
+		BKE_report(op->reports, RPT_ERROR, "Vertex slide error: no object in context");
 		return FALSE;
 	}
 
@@ -126,7 +128,7 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 
 	/* Is there a starting vertex  ? */
 	if (ese == NULL || (ese->htype != BM_VERT && ese->htype != BM_EDGE)) {
-		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex Slide Error: Select a (single) vertex");
+		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex slide error: select a (single) vertex");
 		return FALSE;
 	}
 
@@ -177,7 +179,7 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 
 	/* Init frame */
 	if (!vtx_slide_set_frame(vso)) {
-		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex Slide: Can't find starting vertex!");
+		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex slide error: cannot find starting vertex!");
 		vtx_slide_exit(C, op);
 		return FALSE;
 	}
@@ -719,7 +721,7 @@ static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_u
 
 	/* Is there a starting vertex  ? */
 	if ((ese == NULL) || (ese->htype != BM_VERT && ese->htype != BM_EDGE)) {
-		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex Slide Error: Select a (single) vertex");
+		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex slide error: select a (single) vertex");
 		return OPERATOR_CANCELLED;
 	}
 

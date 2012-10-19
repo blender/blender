@@ -3130,7 +3130,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 
 	/* check flags */
 	if ((flags & RC_PROP_REQUIRE_BOOL) && (flags & RC_PROP_REQUIRE_FLOAT)) {
-		BKE_reportf(op->reports, RPT_ERROR, "Property can't be both boolean and float");
+		BKE_report(op->reports, RPT_ERROR, "Property cannot be both boolean and float");
 		return 0;
 	}
 
@@ -3153,7 +3153,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		if (flags & RC_PROP_ALLOW_MISSING)
 			return 1;
 		else {
-			BKE_reportf(op->reports, RPT_ERROR, "Couldn't resolve path %s", name);
+			BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", name);
 			return 0;
 		}
 	}
@@ -3166,8 +3166,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT))
 		{
 			MEM_freeN(str);
-			BKE_reportf(op->reports, RPT_ERROR,
-			            "Property from path %s is not a float", name);
+			BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a float", name);
 			return 0;
 		}
 	}
@@ -3175,8 +3174,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 	/* check property's array length */
 	if (*r_prop && (len = RNA_property_array_length(r_ptr, *r_prop)) != req_length) {
 		MEM_freeN(str);
-		BKE_reportf(op->reports, RPT_ERROR,
-		            "Property from path %s has length %d instead of %d",
+		BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' has length %d instead of %d",
 		            name, len, req_length);
 		return 0;
 	}
@@ -3244,8 +3242,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	else if (rc->image_id_ptr.data) {
 		/* extra check, pointer must be to an ID */
 		if (!RNA_struct_is_ID(rc->image_id_ptr.type)) {
-			BKE_report(op->reports, RPT_ERROR,
-			           "Pointer from path image_id is not an ID");
+			BKE_report(op->reports, RPT_ERROR, "Pointer from path image_id is not an ID");
 			return 0;
 		}
 	}

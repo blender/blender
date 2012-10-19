@@ -414,7 +414,7 @@ static void QT_StartAddVideoSamplesToMedia(const Rect *trackFrame, int rectx, in
 	gTemporalSettings = qtdata->gTemporalSettings;
 	if (qtdata->gSpatialSettings.codecType == kH264CodecType) {
 		if (gTemporalSettings.temporalQuality != codecMinQuality) {
-			BKE_report(reports, RPT_WARNING, "Only minimum quality compression supported for QuickTime H.264");
+			BKE_report(reports, RPT_WARNING, "Only minimum quality compression supported for Quicktime H.264");
 			gTemporalSettings.temporalQuality = codecMinQuality;
 		}
 	}
@@ -564,7 +564,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	/* hack: create an empty file to make FSPathMakeRef() happy */
 	myFile = open(theFullPath, O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRUSR | S_IWUSR);
 	if (myFile < 0) {
-		BKE_report(reports, RPT_ERROR, "error while creating movie file!");
+		BKE_report(reports, RPT_ERROR, "Error while creating movie file!");
 		/* do something? */
 	}
 	close(myFile);

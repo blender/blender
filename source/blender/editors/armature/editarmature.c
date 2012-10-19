@@ -654,7 +654,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	if (ob->type != OB_ARMATURE)
 		return OPERATOR_CANCELLED;
 	if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); //error_libdata();
+		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); /* error_libdata(); */
 		return OPERATOR_CANCELLED;
 	}
 
@@ -666,7 +666,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 		           "transforms stored are relative to the old rest pose");
 
 	/* Get editbones of active armature to alter */
-	ED_armature_to_edit(ob);	
+	ED_armature_to_edit(ob);
 	
 	/* get pose of active object and move it out of posemode */
 	pose = ob->pose;
@@ -2099,7 +2099,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			}
 
 			sub_v3_v3v3(nor, ebone->tail, ebone->head);
-			vec_roll_to_mat3(nor, ebone->roll, mat);			
+			vec_roll_to_mat3(nor, ebone->roll, mat);
 			copy_v3_v3(vec, mat[2]);
 		}
 		else { /* Axis */
@@ -2969,7 +2969,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		// FIXME.. figure out a method for multiple bones
+		/* FIXME.. figure out a method for multiple bones */
 		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d\n", count);
 		BLI_freelistN(&points);
 		return OPERATOR_CANCELLED;
@@ -3823,7 +3823,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	
 	/* there must be an active bone */
 	if (actbone == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
 		return OPERATOR_CANCELLED;
 	}
 	else if (arm->flag & ARM_MIRROR_EDIT) {
@@ -4217,7 +4217,7 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 
 	/* Check for active bone */
 	if (ebone_act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -4409,7 +4409,7 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 	
 	/* there must be an active bone */
 	if (actbone == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
 		return OPERATOR_CANCELLED;
 	}
 	else if (arm->flag & ARM_MIRROR_EDIT) {
@@ -5152,7 +5152,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	
 	/* sanity checks */
 	if (ELEM(NULL, clear_func, default_ksName)) {
-		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or Keying Set Name");
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or keying set name");
 		return OPERATOR_CANCELLED;
 	}
 	
