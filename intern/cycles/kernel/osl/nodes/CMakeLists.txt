@@ -12,6 +12,7 @@ set(SRC_OSL
 	node_combine_rgb.osl
 	node_convert_from_color.osl
 	node_convert_from_float.osl
+	node_convert_from_int.osl
 	node_convert_from_normal.osl
 	node_convert_from_point.osl
 	node_convert_from_vector.osl

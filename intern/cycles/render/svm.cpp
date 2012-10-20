@@ -119,6 +119,8 @@ int SVMCompiler::stack_size(ShaderSocketType type)
 {
 	if(type == SHADER_SOCKET_FLOAT)
 		return 1;
+	else if(type == SHADER_SOCKET_INT)
+		return 1;
 	else if(type == SHADER_SOCKET_COLOR)
 		return 3;
 	else if(type == SHADER_SOCKET_VECTOR)
@@ -212,10 +214,13 @@ void SVMCompiler::stack_assign(ShaderInput *input)
 			if(input->type == SHADER_SOCKET_FLOAT) {
 				add_node(NODE_VALUE_F, __float_as_int(input->value.x), input->stack_offset);
 			}
+			else if(input->type == SHADER_SOCKET_INT) {
+				add_node(NODE_VALUE_F, (int)input->value.x, input->stack_offset);
+			}
 			else if(input->type == SHADER_SOCKET_VECTOR ||
-				input->type == SHADER_SOCKET_NORMAL ||
-				input->type == SHADER_SOCKET_POINT ||
-				input->type == SHADER_SOCKET_COLOR) {
+			        input->type == SHADER_SOCKET_NORMAL ||
+			        input->type == SHADER_SOCKET_POINT ||
+			        input->type == SHADER_SOCKET_COLOR) {
 
 				add_node(NODE_VALUE_V, input->stack_offset);
 				add_node(NODE_VALUE_V, input->value);

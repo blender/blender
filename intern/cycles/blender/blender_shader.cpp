@@ -80,6 +80,8 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
 	switch (b_type) {
 	case BL::NodeSocket::type_VALUE:
 		return SHADER_SOCKET_FLOAT;
+	case BL::NodeSocket::type_INT:
+		return SHADER_SOCKET_INT;
 	case BL::NodeSocket::type_VECTOR:
 		return SHADER_SOCKET_VECTOR;
 	case BL::NodeSocket::type_RGBA:
@@ -89,7 +91,6 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
 	
 	case BL::NodeSocket::type_BOOLEAN:
 	case BL::NodeSocket::type_MESH:
-	case BL::NodeSocket::type_INT:
 	default:
 		return SHADER_SOCKET_FLOAT;
 	}
@@ -102,6 +103,11 @@ static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
 	case SHADER_SOCKET_FLOAT: {
 		BL::NodeSocketFloatNone value_sock(sock);
 		input->set(value_sock.default_value());
+		break;
+	}
+	case SHADER_SOCKET_INT: {
+		BL::NodeSocketIntNone value_sock(sock);
+		input->set((float)value_sock.default_value());
 		break;
 	}
 	case SHADER_SOCKET_COLOR: {

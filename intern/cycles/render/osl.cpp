@@ -246,6 +246,9 @@ void OSLCompiler::add(ShaderNode *node, const char *name)
 				case SHADER_SOCKET_FLOAT:
 					parameter(param_name.c_str(), input->value.x);
 					break;
+				case SHADER_SOCKET_INT:
+					parameter(param_name.c_str(), (int)input->value.x);
+					break;
 				case SHADER_SOCKET_CLOSURE:
 					break;
 			}

@@ -82,6 +82,25 @@ __device_inline void stack_store_float(float *stack, uint a, float f)
 	stack[a] = f;
 }
 
+__device_inline int stack_load_int(float *stack, uint a)
+{
+	kernel_assert(a < SVM_STACK_SIZE);
+
+	return __float_as_int(stack[a]);
+}
+
+__device_inline float stack_load_int_default(float *stack, uint a, uint value)
+{
+	return (a == (uint)SVM_STACK_INVALID)? (int)value: stack_load_int(stack, a);
+}
+
+__device_inline void stack_store_int(float *stack, uint a, int i)
+{
+	kernel_assert(a < SVM_STACK_SIZE);
+
+	stack[a] = __int_as_float(i);
+}
+
 __device_inline bool stack_valid(uint a)
 {
 	return a != (uint)SVM_STACK_INVALID;

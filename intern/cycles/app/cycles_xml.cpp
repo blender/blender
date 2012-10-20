@@ -591,6 +591,7 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 					if(string_iequals(in->name, attr.name())) {
 						switch(in->type) {
 							case SHADER_SOCKET_FLOAT:
+							case SHADER_SOCKET_INT:
 								xml_read_float(&in->value.x, node, attr.name());
 								break;
 							case SHADER_SOCKET_COLOR:

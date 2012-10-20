@@ -210,8 +210,13 @@ typedef enum NodeVectorMath {
 
 typedef enum NodeConvert {
 	NODE_CONVERT_FV,
+	NODE_CONVERT_FI,
 	NODE_CONVERT_CF,
-	NODE_CONVERT_VF
+	NODE_CONVERT_CI,
+	NODE_CONVERT_VF,
+	NODE_CONVERT_VI,
+	NODE_CONVERT_IF,
+	NODE_CONVERT_IV
 } NodeConvert;
 
 typedef enum NodeDistanceMetric {
