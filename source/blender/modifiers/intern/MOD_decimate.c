@@ -51,6 +51,8 @@
 
 /* testing only! - Campbell */
 // #define USE_DECIMATE_BMESH
+// #include "PIL_time.h"
+
 
 #ifdef WITH_MOD_DECIMATE
 #include "LOD_decimation.h"
@@ -87,15 +89,29 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	BMEditMesh *em;
 	BMesh *bm;
 
+	// TIMEIT_START(decim);
+
+	if (dmd->percent == 1.0f) {
+		return dm;
+	}
+	else if (dm->getNumPolys(dm) <= 3) {
+		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces."));
+		return dm;
+	}
+
 	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;
 
 	BM_mesh_decimate(bm, dmd->percent);
 
+	dmd->faceCount = bm->totface;
+
 	BLI_assert(em->looptris == NULL);
 	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
 	BMEdit_Free(em);
 	MEM_freeN(em);
+
+	// TIMEIT_END(decim);
 
 	return result;
 }
@@ -112,6 +128,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	LOD_Decimation_Info lod;
 	int totvert, totface;
 	int a, numTris;
+
+	// TIMEIT_START(decim);
 
 	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
@@ -213,6 +231,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	MEM_freeN(lod.vertex_buffer);
 	MEM_freeN(lod.vertex_normal_buffer);
 	MEM_freeN(lod.triangle_index_buffer);
+
+	// TIMEIT_END(decim);
 
 	if (result) {
 		CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/

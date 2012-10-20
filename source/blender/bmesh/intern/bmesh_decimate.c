@@ -36,6 +36,8 @@
 #include "BLI_quadric.h"
 #include "BLI_heap.h"
 
+#include "BKE_customdata.h"
+
 #include "bmesh.h"
 #include "bmesh_structure.h"
 #include "bmesh_decimate.h"
@@ -48,6 +50,12 @@
 #define USE_SAFETY_CHECKS
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
+
+typedef enum CD_UseFlag {
+	CD_DO_VERT,
+	CD_DO_EDGE,  /* not used yet */
+	CD_DO_LOOP
+} CD_UseFlag;
 
 
 /* BMesh Helper Functions
@@ -322,6 +330,109 @@ static void bm_decim_triangulate_end(BMesh *bm)
 /* Edge Collapse Functions
  * *********************** */
 
+#ifdef USE_CUSTOMDATA
+
+/**
+ * \param v is the target to merge into.
+ */
+static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_clear, BMVert *v_other, const float customdata_fac)
+{
+	/* these don't need to be updated, since they will get removed when the edge collapses */
+	BMLoop *l_clear, *l_other;
+	const int is_manifold = BM_edge_is_manifold(l->e);
+	int side;
+
+	/* l defines the vert to collapse into  */
+
+	/* first find the loop of 'v_other' thats attached to the face of 'l' */
+	if (l->v == v_clear) {
+		l_clear = l;
+		l_other = l->next;
+	}
+	else {
+		l_clear = l->next;
+		l_other = l;
+	}
+
+	BLI_assert(l_clear->v == v_clear);
+	BLI_assert(l_other->v == v_other);
+
+	/* now we have both corners of the face 'l->f' */
+	for (side = 0; side < 2; side++) {
+		int is_seam = FALSE;
+		void *src[2];
+		BMFace *f_exit = is_manifold ? l->radial_next->f : NULL;
+		BMEdge *e_prev = l->e;
+		BMLoop *l_first;
+		BMLoop *l_iter;
+		float w[2];
+
+		if (side == 0) {
+			l_iter = l_first = l_clear;
+			src[0] = l_clear->head.data;
+			src[1] = l_other->head.data;
+
+			w[0] = customdata_fac;
+			w[1] = 1.0f - customdata_fac;
+		}
+		else {
+			l_iter = l_first = l_other;
+			src[0] = l_other->head.data;
+			src[1] = l_clear->head.data;
+
+			w[0] = 1.0f - customdata_fac;
+			w[1] = customdata_fac;
+		}
+
+		/* WATCH IT! - should NOT reference (_clear or _other) vars for this while loop */
+
+		/* walk around the fan using 'e_prev' */
+		while (((l_iter = BM_vert_step_fan_loop(l_iter, &e_prev)) != l_first) && (l_iter != NULL)) {
+			int i;
+			/* quit once we hit the opposite face, if we have one */
+			if (f_exit && UNLIKELY(f_exit == l_iter->f)) {
+				break;
+			}
+
+			/* break out unless we find a match */
+			is_seam = TRUE;
+
+			/* ok. we have a loop. now be smart with it! */
+			for (i = 0; i < bm->ldata.totlayer; i++) {
+				if (CustomData_layer_has_math(&bm->ldata, i)) {
+					int offset = bm->ldata.layers[i].offset;
+					int type = bm->ldata.layers[i].type;
+					void *cd_src, *cd_iter;
+
+					/* todo, make nicer macros for this */
+					cd_src = (char *)src[0] + offset;
+					// cd_dst = (char *)src[1] + offset;  // UNUSED
+					cd_iter  = (char *)l_iter->head.data  + offset;
+
+					/* detect seams */
+					if (CustomData_data_equals(type, cd_src, cd_iter)) {
+						CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, l_iter->head.data);
+						is_seam = FALSE;
+					}
+				}
+			}
+
+			if (is_seam) {
+				break;
+			}
+		}
+	}
+
+	/* first walk around the fan until we hit a seam */
+
+
+
+	/* last, interpolate ourselves */
+
+
+}
+#endif  /* USE_CUSTOMDATA */
+
 /**
  * special, highly limited edge collapse function
  * intended for speed over flexibiliy.
@@ -329,33 +440,36 @@ static void bm_decim_triangulate_end(BMesh *bm)
  *
  * Important - dont add vert/edge/face data on collapsing!
  *
- * \param ke_other let caller know what edges we remove besides \a ke
+ * \param e_clear_other let caller know what edges we remove besides \a e_clear
+ * \param customdata_flag merge factor, scales from 0 - 1 ('v_clear' -> 'v_other')
  */
-static int bm_edge_collapse(BMesh *bm, BMEdge *ke, BMVert *kv, int ke_other[2],
+static int bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e_clear_other[2],
 #ifdef USE_CUSTOMDATA
+                            const CD_UseFlag customdata_flag,
                             const float customdata_fac
 #else
+                            const CD_UseFlag UNUSED(customdata_flag),
                             const float UNUSED(customdata_fac)
 #endif
                             )
 {
-	BMVert *v_other = BM_edge_other_vert(ke, kv);
+	BMVert *v_other = BM_edge_other_vert(e_clear, v_clear);
 
 	BLI_assert(v_other != NULL);
 
-	if (BM_edge_is_manifold(ke)) {
+	if (BM_edge_is_manifold(e_clear)) {
 		BMLoop *l_a, *l_b;
 		BMEdge *e_a_other[2], *e_b_other[2];
 		int ok;
 
-		ok = BM_edge_loop_pair(ke, &l_a, &l_b);
+		ok = BM_edge_loop_pair(e_clear, &l_a, &l_b);
 
 		BLI_assert(ok == TRUE);
 		BLI_assert(l_a->f->len == 3);
 		BLI_assert(l_b->f->len == 3);
 
-		/* keep 'kv' 0th */
-		if (BM_vert_in_edge(l_a->prev->e, kv)) {
+		/* keep 'v_clear' 0th */
+		if (BM_vert_in_edge(l_a->prev->e, v_clear)) {
 			e_a_other[0] = l_a->prev->e;
 			e_a_other[1] = l_a->next->e;
 		}
@@ -364,7 +478,7 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *ke, BMVert *kv, int ke_other[2],
 			e_a_other[0] = l_a->next->e;
 		}
 
-		if (BM_vert_in_edge(l_b->prev->e, kv)) {
+		if (BM_vert_in_edge(l_b->prev->e, v_clear)) {
 			e_b_other[0] = l_b->prev->e;
 			e_b_other[1] = l_b->next->e;
 		}
@@ -390,20 +504,27 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *ke, BMVert *kv, int ke_other[2],
 			return FALSE;
 		}
 
-		ke_other[0] = BM_elem_index_get(e_a_other[0]);
-		ke_other[1] = BM_elem_index_get(e_b_other[0]);
+		r_e_clear_other[0] = BM_elem_index_get(e_a_other[0]);
+		r_e_clear_other[1] = BM_elem_index_get(e_b_other[0]);
 
 #ifdef USE_CUSTOMDATA
-		/* TODO, loops */
-		// const float w[2] = {customdata_fac, 1.0f - customdata_fac};
-
 		/* before killing, do customdata */
-		BM_data_interp_from_verts(bm, v_other, kv, v_other, customdata_fac);
+		if (customdata_flag & CD_DO_VERT) {
+			BM_data_interp_from_verts(bm, v_other, v_clear, v_other, customdata_fac);
+		}
+		if (customdata_flag & CD_DO_EDGE) {
+			BM_data_interp_from_edges(bm, e_a_other[1], e_a_other[0], e_a_other[1], customdata_fac);
+			BM_data_interp_from_edges(bm, e_b_other[1], e_b_other[0], e_b_other[1], customdata_fac);
+		}
+		if (customdata_flag & CD_DO_LOOP) {
+			bm_edge_collapse_loop_customdata(bm, e_clear->l,              v_clear, v_other, customdata_fac);
+			bm_edge_collapse_loop_customdata(bm, e_clear->l->radial_next, v_clear, v_other, customdata_fac);
+		}
 #endif
 
-		BM_edge_kill(bm, ke);
+		BM_edge_kill(bm, e_clear);
 
-		BM_vert_splice(bm, kv, v_other);
+		BM_vert_splice(bm, v_clear, v_other);
 
 		BM_edge_splice(bm, e_a_other[0], e_a_other[1]);
 		BM_edge_splice(bm, e_b_other[0], e_b_other[1]);
@@ -412,17 +533,17 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *ke, BMVert *kv, int ke_other[2],
 
 		return TRUE;
 	}
-	else if (BM_edge_is_boundary(ke)) {
+	else if (BM_edge_is_boundary(e_clear)) {
 		/* same as above but only one triangle */
 		BMLoop *l_a;
 		BMEdge *e_a_other[2];
 
-		l_a = ke->l;
+		l_a = e_clear->l;
 
 		BLI_assert(l_a->f->len == 3);
 
-		/* keep 'kv' 0th */
-		if (BM_vert_in_edge(l_a->prev->e, kv)) {
+		/* keep 'v_clear' 0th */
+		if (BM_vert_in_edge(l_a->prev->e, v_clear)) {
 			e_a_other[0] = l_a->prev->e;
 			e_a_other[1] = l_a->next->e;
 		}
@@ -431,20 +552,25 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *ke, BMVert *kv, int ke_other[2],
 			e_a_other[0] = l_a->next->e;
 		}
 
-		ke_other[0] = BM_elem_index_get(e_a_other[0]);
-		ke_other[1] = -1;
+		r_e_clear_other[0] = BM_elem_index_get(e_a_other[0]);
+		r_e_clear_other[1] = -1;
 
 #ifdef USE_CUSTOMDATA
-		/* TODO, loops */
-		// const float w[2] = {customdata_fac, 1.0f - customdata_fac};
-
 		/* before killing, do customdata */
-		BM_data_interp_from_verts(bm, v_other, kv, v_other, customdata_fac);
+		if (customdata_flag & CD_DO_VERT) {
+			BM_data_interp_from_verts(bm, v_other, v_clear, v_other, customdata_fac);
+		}
+		if (customdata_flag & CD_DO_EDGE) {
+			BM_data_interp_from_edges(bm, e_a_other[1], e_a_other[0], e_a_other[1], customdata_fac);
+		}
+		if (customdata_flag & CD_DO_LOOP) {
+			bm_edge_collapse_loop_customdata(bm, e_clear->l, v_clear, v_other, customdata_fac);
+		}
 #endif
 
-		BM_edge_kill(bm, ke);
+		BM_edge_kill(bm, e_clear);
 
-		BM_vert_splice(bm, kv, v_other);
+		BM_vert_splice(bm, v_clear, v_other);
 
 		BM_edge_splice(bm, e_a_other[0], e_a_other[1]);
 
@@ -461,11 +587,12 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *ke, BMVert *kv, int ke_other[2],
 /* collapse e the edge, removing e->v2 */
 static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
                                    Quadric *vquadrics,
-                                   Heap *eheap, HeapNode **eheap_table)
+                                   Heap *eheap, HeapNode **eheap_table,
+                                   const CD_UseFlag customdata_flag)
 {
-	int ke_other[2];
+	int e_clear_other[2];
 	BMVert *v = e->v1;
-	int kv_index = BM_elem_index_get(e->v2);  /* the vert is removed so only store the index */
+	int v_clear_index = BM_elem_index_get(e->v2);  /* the vert is removed so only store the index */
 	float optimize_co[3];
 	float customdata_fac;
 
@@ -474,7 +601,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 	/* use for customdata merging */
 	customdata_fac = line_point_factor_v3(optimize_co, e->v1->co, e->v2->co);
 
-	if (bm_edge_collapse(bm, e, e->v2, ke_other, customdata_fac)) {
+	if (bm_edge_collapse(bm, e, e->v2, e_clear_other, customdata_flag, customdata_fac)) {
 		/* update collapse info */
 		int i;
 
@@ -485,14 +612,14 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		/* remove eheap */
 		for (i = 0; i < 2; i++) {
 			/* highly unlikely 'eheap_table[ke_other[i]]' would be NULL, but do for sanity sake */
-			if ((ke_other[i] != -1) && (eheap_table[ke_other[i]] != NULL)) {
-				BLI_heap_remove(eheap, eheap_table[ke_other[i]]);
-				eheap_table[ke_other[i]] = NULL;
+			if ((e_clear_other[i] != -1) && (eheap_table[e_clear_other[i]] != NULL)) {
+				BLI_heap_remove(eheap, eheap_table[e_clear_other[i]]);
+				eheap_table[e_clear_other[i]] = NULL;
 			}
 		}
 
 		/* update vertex quadric, add kept vertex from killed vertex */
-		BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(v)], &vquadrics[kv_index]);
+		BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(v)], &vquadrics[v_clear_index]);
 
 		/* update connected normals */
 		BM_vert_normal_update_all(v);
@@ -545,6 +672,7 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 	int face_tot_target;
 	int use_triangulate;
 
+	CD_UseFlag customdata_flag = 0;
 
 #ifdef USE_TRIANGULATE
 	/* temp convert quads to triangles */
@@ -568,6 +696,13 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 	bm->elem_index_dirty |= BM_FACE | BM_EDGE | BM_VERT;
 
 
+#ifdef USE_CUSTOMDATA
+	/* initialize customdata flag */
+	if (CustomData_has_math(&bm->vdata)) customdata_flag |= CD_DO_VERT;
+	if (CustomData_has_math(&bm->edata)) customdata_flag |= CD_DO_EDGE;
+	if (CustomData_has_math(&bm->ldata)) customdata_flag |= CD_DO_LOOP;
+#endif
+
 	/* iterative edge collapse and maintain the eheap */
 	while ((bm->totface > face_tot_target) && (BLI_heap_empty(eheap) == FALSE)) {
 		BMEdge *e = BLI_heap_popmin(eheap);
@@ -577,7 +712,7 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 		 * but NULL just incase so we don't use freed node */
 		eheap_table[BM_elem_index_get(e)] = NULL;
 
-		bm_decim_edge_collapse(bm, e, vquadrics, eheap, eheap_table);
+		bm_decim_edge_collapse(bm, e, vquadrics, eheap, eheap_table, customdata_flag);
 	}
 
 

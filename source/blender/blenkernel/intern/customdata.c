@@ -2477,10 +2477,24 @@ int CustomData_layer_has_math(struct CustomData *data, int layer_n)
 	if (typeInfo->equal && typeInfo->add && typeInfo->multiply && 
 	    typeInfo->initminmax && typeInfo->dominmax)
 	{
-		return 1;
+		return TRUE;
 	}
 	
-	return 0;
+	return FALSE;
+}
+
+int CustomData_has_math(struct CustomData *data)
+{
+	int i;
+
+	/* interpolates a layer at a time */
+	for (i = 0; i < data->totlayer; ++i) {
+		if (CustomData_layer_has_math(data, i)) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 /* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
@@ -2580,8 +2594,8 @@ void CustomData_bmesh_set_layer_n(CustomData *data, void *block, int n, void *so
 		memcpy(dest, source, typeInfo->size);
 }
 
-void CustomData_bmesh_interp(CustomData *data, void **src_blocks, float *weights,
-                             float *sub_weights, int count, void *dest_block)
+void CustomData_bmesh_interp(CustomData *data, void **src_blocks, const float *weights,
+                             const float *sub_weights, int count, void *dest_block)
 {
 	int i, j;
 	void *source_buf[SOURCE_BUF_SIZE];
