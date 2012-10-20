@@ -1805,7 +1805,7 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
  * where \a v and \a vtarget are connected by an edge
  * (assert checks for this case).
  */
-int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
+int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 {
 	BMEdge *e;
 
@@ -1813,7 +1813,7 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 	int i, loops_tot;
 
 	/* verts already spliced */
-	if (v == vtarget) {
+	if (v == v_target) {
 		return FALSE;
 	}
 
@@ -1821,7 +1821,7 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 	loops = BM_iter_as_arrayN(bm, BM_LOOPS_OF_VERT, v, &loops_tot);
 	if (loops) {
 		for (i = 0; i < loops_tot; i++) {
-			loops[i]->v = vtarget;
+			loops[i]->v = v_target;
 		}
 		MEM_freeN(loops);
 	}
@@ -1829,13 +1829,13 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 	/* move all the edges from v's disk to vtarget's disk */
 	while ((e = v->e)) {
 		bmesh_disk_edge_remove(e, v);
-		bmesh_edge_swapverts(e, v, vtarget);
-		bmesh_disk_edge_append(e, vtarget);
+		bmesh_edge_swapverts(e, v, v_target);
+		bmesh_disk_edge_append(e, v_target);
 		BLI_assert(e->v1 != e->v2);
 	}
 
 	BM_CHECK_ELEMENT(v);
-	BM_CHECK_ELEMENT(vtarget);
+	BM_CHECK_ELEMENT(v_target);
 
 	/* v is unused now, and can be killed */
 	BM_vert_kill(bm, v);
@@ -2001,27 +2001,32 @@ int BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
  *
  * \note Edges must already have the same vertices.
  */
-int BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget)
+int BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target)
 {
 	BMLoop *l;
 
-	if (!BM_vert_in_edge(e, etarget->v1) || !BM_vert_in_edge(e, etarget->v2)) {
+	if (!BM_vert_in_edge(e, e_target->v1) || !BM_vert_in_edge(e, e_target->v2)) {
 		/* not the same vertices can't splice */
+
+		/* the caller should really make sure this doesn't happen ever
+		 * so assert on release builds */
+		BLI_assert(0);
+
 		return FALSE;
 	}
 
 	while (e->l) {
 		l = e->l;
-		BLI_assert(BM_vert_in_edge(etarget, l->v));
-		BLI_assert(BM_vert_in_edge(etarget, l->next->v));
+		BLI_assert(BM_vert_in_edge(e_target, l->v));
+		BLI_assert(BM_vert_in_edge(e_target, l->next->v));
 		bmesh_radial_loop_remove(l, e);
-		bmesh_radial_append(etarget, l);
+		bmesh_radial_append(e_target, l);
 	}
 
 	BLI_assert(bmesh_radial_length(e->l) == 0);
 
 	BM_CHECK_ELEMENT(e);
-	BM_CHECK_ELEMENT(etarget);
+	BM_CHECK_ELEMENT(e_target);
 
 	/* removes from disks too */
 	BM_edge_kill(bm, e);

@@ -223,7 +223,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const int numEdges = dm->getNumEdges(dm);
 	const int numFaces = dm->getNumPolys(dm);
 	int numLoops = 0, newLoops = 0, newFaces = 0, newEdges = 0;
-	int j;
 
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max = ob->totcol > 1 ? ob->totcol - 1 : 0;
@@ -292,9 +291,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		for (i = 0, mp = orig_mpoly; i < numFaces; i++, mp++) {
-			MLoop *ml = orig_mloop + mp->loopstart;
 			unsigned int ml_v1;
 			unsigned int ml_v2;
+			int j;
+
+			ml = orig_mloop + mp->loopstart;
 
 			for (j = 0, ml_v1 = ml->v, ml_v2 = ml[mp->totloop - 1].v;
 			     j < mp->totloop;
@@ -376,6 +377,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		MLoop *ml2;
 		int e;
+		int j;
 
 		ml2 = mloop + mp->loopstart + dm->numLoopData;
 		for (j = 0; j < mp->totloop; j++) {
@@ -591,6 +593,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		int *origindex_edge;
 		int *orig_ed;
+		int j;
 
 		/* add faces & edges */
 		origindex_edge = result->getEdgeDataArray(result, CD_ORIGINDEX);
@@ -715,13 +718,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (i = 0; i < newEdges; i++, ed++) {
 			float nor_cpy[3];
 			short *nor_short;
-			int j;
+			int k;
 
 			/* note, only the first vertex (lower half of the index) is calculated */
 			normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
 
-			for (j = 0; j < 2; j++) { /* loop over both verts of the edge */
-				nor_short = mvert[*(&ed->v1 + j)].no;
+			for (k = 0; k < 2; k++) { /* loop over both verts of the edge */
+				nor_short = mvert[*(&ed->v1 + k)].no;
 				normal_short_to_float_v3(nor, nor_short);
 				add_v3_v3(nor, nor_cpy);
 				normalize_v3(nor);
