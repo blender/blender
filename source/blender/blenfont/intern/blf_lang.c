@@ -42,10 +42,6 @@
 
 #include <locale.h>
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
 #include "libintl.h"
 
 #include "DNA_userdef_types.h"
@@ -182,8 +178,6 @@ void BLF_lang_set(const char *str)
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	{
-		const char *long_locale = locales[2 * U.language];
-
 		if (short_locale) {
 			char *envStr;
 
@@ -196,11 +190,11 @@ void BLF_lang_set(const char *str)
 			MEM_freeN(envStr);
 		}
 
-		locreturn = setlocale(LC_ALL, long_locale);
+		locreturn = setlocale(LC_ALL, short_locale);
 
 		if (locreturn == NULL) {
 			if (G.debug & G_DEBUG)
-				printf("Could not change locale to %s\n", long_locale);
+				printf("Could not change locale to %s\n", short_locale);
 
 			ok = 0;
 		}
