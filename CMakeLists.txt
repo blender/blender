@@ -734,23 +734,14 @@ if(UNIX AND NOT APPLE)
 		execute_process(COMMAND ${LLVM_CONFIG} --libdir
 		                OUTPUT_VARIABLE LLVM_LIB_DIR
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process(COMMAND ${LLVM_CONFIG} --includedir
-		                OUTPUT_VARIABLE LLVM_INCLUDES
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		find_library(LLVM_LIBRARY
 		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
 		             PATHS ${LLVM_LIB_DIR})
 		message(STATUS "LLVM version  = ${LLVM_VERSION}")
 		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message(STATUS "LLVM includes = ${LLVM_INCLUDES}")
 		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
 
-		if(LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
-			# ensure include directory is added (in case of non-standard locations
-			include_directories(BEFORE "${LLVM_INCLUDES}")
-			string(REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
-			message(STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
-			add_definitions("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
@@ -788,8 +779,6 @@ if(UNIX AND NOT APPLE)
 		else()
 			message(STATUS "OSL not found")
 		endif()
-	
-		include_directories(${OSL_INCLUDES})
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
@@ -957,8 +946,6 @@ elseif(WIN32)
 		else()
 			message(STATUS "OSL not found")
 		endif()
-	
-		include_directories(${OSL_INCLUDES})
 	endif()
 
 	if(MSVC)
@@ -1640,23 +1627,14 @@ elseif(APPLE)
 		execute_process(COMMAND ${LLVM_CONFIG} --libdir
 		                OUTPUT_VARIABLE LLVM_LIB_DIR
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process(COMMAND ${LLVM_CONFIG} --includedir
-		                OUTPUT_VARIABLE LLVM_INCLUDES
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		find_library(LLVM_LIBRARY
 		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
 		             PATHS ${LLVM_LIB_DIR})
 		message(STATUS "LLVM version  = ${LLVM_VERSION}")
 		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message(STATUS "LLVM includes = ${LLVM_INCLUDES}")
 		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
 
-		if(LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
-			# ensure include directory is added (in case of non-standard locations
-			include_directories(BEFORE "${LLVM_INCLUDES}")
-			string(REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
-			message(STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
-			add_definitions("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
@@ -1693,8 +1671,6 @@ elseif(APPLE)
 		else()
 			message(STATUS "OSL not found")
 		endif()
-	
-		include_directories(${OSL_INCLUDES})
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)

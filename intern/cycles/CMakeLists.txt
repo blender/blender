@@ -41,6 +41,7 @@ endif()
 
 if(WITH_CYCLES_OSL)
 	add_definitions(-DWITH_OSL)
+	include_directories(${OSL_INCLUDES})
 endif()
 
 if(WITH_CYCLES_PARTIO)
