@@ -193,7 +193,7 @@ static void rtbuild_calc_bb(RTBuilder *b)
 	}
 }
 
-void rtbuild_merge_bb(RTBuilder *b, float *min, float *max)
+void rtbuild_merge_bb(RTBuilder *b, float min[3], float max[3])
 {
 	rtbuild_calc_bb(b);
 	DO_MIN(b->bb, min);
@@ -457,26 +457,26 @@ static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis)
 /*
  * Bounding Box utils
  */
-float bb_volume(float *min, float *max)
+float bb_volume(const float min[3], const float max[3])
 {
 	return (max[0] - min[0]) * (max[1] - min[1]) * (max[2] - min[2]);
 }
 
-float bb_area(float *min, float *max)
+float bb_area(const float min[3], const float max[3])
 {
 	float sub[3], a;
 	sub[0] = max[0] - min[0];
 	sub[1] = max[1] - min[1];
 	sub[2] = max[2] - min[2];
 
-	a = (sub[0] * sub[1] + sub[0] * sub[2] + sub[1] * sub[2]) * 2;
+	a = (sub[0] * sub[1] + sub[0] * sub[2] + sub[1] * sub[2]) * 2.0f;
 	/* used to have an assert() here on negative results
 	 * however, in this case its likely some overflow or ffast math error.
 	 * so just return 0.0f instead. */
 	return a < 0.0f ? 0.0f : a;
 }
 
-int bb_largest_axis(float *min, float *max)
+int bb_largest_axis(const float min[3], const float max[3])
 {
 	float sub[3];
 	
@@ -497,7 +497,9 @@ int bb_largest_axis(float *min, float *max)
 	}	
 }
 
-int bb_fits_inside(float *outer_min, float *outer_max, float *inner_min, float *inner_max)
+/* only returns 0 if merging inner and outerbox would create a box larger than outer box */
+int bb_fits_inside(const float outer_min[3], const float outer_max[3],
+                   const float inner_min[3], const float inner_max[3])
 {
 	int i;
 	for (i = 0; i < 3; i++)

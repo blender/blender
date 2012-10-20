@@ -6604,7 +6604,6 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
-	float dia;
 
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &is_aligned))
 		return OPERATOR_CANCELLED;
@@ -6648,7 +6647,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (newob && enter_editmode)
 		ED_undo_push(C, "Enter Editmode");
 
-	dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, TRUE);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, TRUE);
 
 	nu = add_nurbs_primitive(C, obedit, mat, type, newob);
 	editnurb = object_editcurve_get(obedit);

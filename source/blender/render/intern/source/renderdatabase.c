@@ -1356,40 +1356,42 @@ void RE_makeRenderInstances(Render *re)
 	re->instancetable= newlist;
 }
 
-int clip_render_object(float boundbox[][3], float *bounds, float winmat[][4])
+int clip_render_object(float boundbox[][3], float bounds[4], float winmat[][4])
 {
 	float mat[4][4], vec[4];
-	int a, fl, flag= -1;
+	int a, fl, flag = -1;
 
 	copy_m4_m4(mat, winmat);
 
-	for (a=0; a<8; a++) {
+	for (a=0; a < 8; a++) {
 		vec[0]= (a & 1)? boundbox[0][0]: boundbox[1][0];
 		vec[1]= (a & 2)? boundbox[0][1]: boundbox[1][1];
 		vec[2]= (a & 4)? boundbox[0][2]: boundbox[1][2];
 		vec[3]= 1.0;
 		mul_m4_v4(mat, vec);
 
-		fl= 0;
+		fl = 0;
 		if (bounds) {
-			if (vec[0] < bounds[0]*vec[3]) fl |= 1;
-			else if (vec[0] > bounds[1]*vec[3]) fl |= 2;
+			if      (vec[0] < bounds[0] * vec[3]) fl |= 1;
+			else if (vec[0] > bounds[1] * vec[3]) fl |= 2;
 			
-			if (vec[1] > bounds[3]*vec[3]) fl |= 4;
-			else if (vec[1]< bounds[2]*vec[3]) fl |= 8;
+			if      (vec[1] > bounds[3] * vec[3]) fl |= 4;
+			else if (vec[1] < bounds[2] * vec[3]) fl |= 8;
 		}
 		else {
-			if (vec[0] < -vec[3]) fl |= 1;
-			else if (vec[0] > vec[3]) fl |= 2;
+			if      (vec[0] < -vec[3]) fl |= 1;
+			else if (vec[0] >  vec[3]) fl |= 2;
 			
-			if (vec[1] > vec[3]) fl |= 4;
+			if      (vec[1] >  vec[3]) fl |= 4;
 			else if (vec[1] < -vec[3]) fl |= 8;
 		}
-		if (vec[2] < -vec[3]) fl |= 16;
-		else if (vec[2] > vec[3]) fl |= 32;
+		if      (vec[2] < -vec[3]) fl |= 16;
+		else if (vec[2] >  vec[3]) fl |= 32;
 
 		flag &= fl;
-		if (flag==0) return 0;
+		if (flag == 0) {
+			return 0;
+		}
 	}
 
 	return flag;

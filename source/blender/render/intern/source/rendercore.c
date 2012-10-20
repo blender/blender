@@ -94,7 +94,7 @@ extern struct Render R;
 
 /* x and y are current pixels in rect to be rendered */
 /* do not normalize! */
-void calc_view_vector(float *view, float x, float y)
+void calc_view_vector(float view[3], float x, float y)
 {
 
 	view[2]= -ABS(R.clipsta);

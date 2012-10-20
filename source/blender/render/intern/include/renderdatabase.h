@@ -88,7 +88,7 @@ void free_renderdata_vertnodes(struct VertTableNode *vertnodes);
 void free_renderdata_vlaknodes(struct VlakTableNode *vlaknodes);
 
 void project_renderdata(struct Render *re, void (*projectfunc)(const float *, float mat[][4], float *),  int do_pano, float xoffs, int do_buckets);
-int clip_render_object(float boundbox[][3], float *bounds, float mat[][4]);
+int clip_render_object(float boundbox[][3], float bounds[4], float mat[][4]);
 
 /* functions are not exported... so wrong names */
 

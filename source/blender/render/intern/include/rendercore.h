@@ -62,7 +62,7 @@ typedef struct PixStrMain {
 /* ------------------------------------------------------------------------- */
 
 
-void	calc_view_vector(float *view, float x, float y);
+void	calc_view_vector(float view[3], float x, float y);
 float   mistfactor(float zcor, const float co[3]); /* dist and height, return alpha */
 
 void	renderspothalo(struct ShadeInput *shi, float col[4], float alpha);
@@ -95,5 +95,4 @@ extern void init_ao_sphere(struct World *wrld);
 extern void init_render_qmcsampler(Render *re);
 extern void free_render_qmcsampler(Render *re);
 
-#endif /* RENDER_EXT_H */
-
+#endif  /* __RENDERCORE_H__ */

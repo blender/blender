@@ -3629,12 +3629,13 @@ static void lib_link_customdata_mtpoly(FileData *fd, Mesh *me, CustomData *pdata
 		
 		if (layer->type == CD_MTEXPOLY) {
 			MTexPoly *tf= layer->data;
-			int i;
+			int j;
 			
-			for (i = 0; i < totface; i++, tf++) {
+			for (j = 0; j < totface; j++, tf++) {
 				tf->tpage = newlibadr(fd, me->id.lib, tf->tpage);
-				if (tf->tpage && tf->tpage->id.us==0)
+				if (tf->tpage && tf->tpage->id.us == 0) {
 					tf->tpage->id.us = 1;
+				}
 			}
 		}
 	}
@@ -6788,7 +6789,6 @@ static void do_versions_nodetree_socket_use_flags_2_62(bNodeTree *ntree)
 static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNodeTree *ntree)
 {
 	bNode *node;
-	bNodeSocket *sock;
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_OUTPUT_FILE) {
@@ -6865,6 +6865,7 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 		}
 		else if (node->type==CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED) {
 			NodeImageMultiFile *nimf = node->storage;
+			bNodeSocket *sock;
 			
 			/* CMP_NODE_OUTPUT_MULTI_FILE has been redeclared as CMP_NODE_OUTPUT_FILE */
 			node->type = CMP_NODE_OUTPUT_FILE;
@@ -7188,9 +7189,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								v3d->bundle_drawtype = OB_PLAINAXES;
 						}
 						else if (sl->spacetype == SPACE_CLIP) {
-							SpaceClip *sc = (SpaceClip *)sl;
-							if (sc->scopes.track_preview_height == 0)
-								sc->scopes.track_preview_height = 120;
+							SpaceClip *sclip = (SpaceClip *)sl;
+							if (sclip->scopes.track_preview_height == 0)
+								sclip->scopes.track_preview_height = 120;
 						}
 					}
 				}
@@ -7592,13 +7593,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 263) {
 		/* Default for old files is to save particle rotations to pointcache */
 		ParticleSettings *part;
-		for (part = main->particle.first; part; part = part->id.next)
+		for (part = main->particle.first; part; part = part->id.next) {
 			part->flag |= PART_ROTATIONS;
-		{
-			/* Default for old files is to save particle rotations to pointcache */
-			ParticleSettings *part;
-			for (part = main->particle.first; part; part = part->id.next)
-				part->flag |= PART_ROTATIONS;
 		}
 	}
 

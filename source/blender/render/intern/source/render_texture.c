@@ -1843,7 +1843,9 @@ static void ntap_bump_init(NTapBump *ntap_bump)
 	memset(ntap_bump, 0, sizeof(*ntap_bump));
 }
 
-static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, Tex *tex, TexResult *texres, float Tnor, float *co, float *dx, float *dy, float texvec[3], float dxt[3], float dyt[3])
+static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, Tex *tex, TexResult *texres,
+                             float Tnor, const float co[3], const float dx[3], const float dy[3],
+                             float texvec[3], float dxt[3], float dyt[3])
 {
 	TexResult ttexr = {0, 0, 0, 0, 0, texres->talpha, NULL};	/* temp TexResult */
 
@@ -2269,11 +2271,11 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			if (texres.nor && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
 				if (use_compat_bump) {
 					rgbnor = compatible_bump_compute(&compat_bump, shi, mtex, tex,
-						&texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
+					                                 &texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
 				}
 				else if (use_ntap_bump) {
 					rgbnor = ntap_bump_compute(&ntap_bump, shi, mtex, tex,
-						&texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
+					                           &texres, Tnor*stencilTin, co, dx, dy, texvec, dxt, dyt);
 				}
 				else {
 					texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);

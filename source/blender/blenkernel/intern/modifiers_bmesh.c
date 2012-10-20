@@ -96,6 +96,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	/*do edges*/
 	me = medge = dm->dupEdgeArray(dm);
 	for (i = 0; i < totedge; i++, me++) {
+		//BLI_assert(BM_edge_exists(vtable[me->v1], vtable[me->v2]) == NULL);
 		e = BM_edge_create(bm, vtable[me->v1], vtable[me->v2], NULL, FALSE);
 
 		e->head.hflag = BM_edge_flag_from_mflag(me->flag);
