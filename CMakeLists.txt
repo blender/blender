@@ -1991,9 +1991,10 @@ if(WITH_PYTHON)
 	endif()
 endif()
 
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
+# Include warnings first, so its possible to disable them with user defined flags
+# eg: -Wno-uninitialized
+set(CMAKE_C_FLAGS "${C_WARNINGS} ${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS}")
+set(CMAKE_CXX_FLAGS "${CXX_WARNINGS} ${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS}")
 
 #-------------------------------------------------------------------------------
 # Global Defines
