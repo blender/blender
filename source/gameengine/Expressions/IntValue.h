@@ -69,5 +69,4 @@ private:
 #endif
 };
 
-#endif // !defined __INTVALUE_H__
-
+#endif  /* __INTVALUE_H__ */

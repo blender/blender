@@ -117,6 +117,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	int *points, totseg, i, a;
 	float sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
 	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *act_object = BKE_tracking_object_get_active(tracking);
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
 	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
 
@@ -218,8 +219,8 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 	/* solver keyframes */
 	glColor4ub(175, 255, 0, 255);
-	draw_keyframe(tracking->settings.keyframe1 + clip->start_frame - 1, CFRA, sfra, framelen, 2);
-	draw_keyframe(tracking->settings.keyframe2 + clip->start_frame - 1, CFRA, sfra, framelen, 2);
+	draw_keyframe(act_object->keyframe1 + clip->start_frame - 1, CFRA, sfra, framelen, 2);
+	draw_keyframe(act_object->keyframe2 + clip->start_frame - 1, CFRA, sfra, framelen, 2);
 
 	/* movie clip animation */
 	if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask_info.mask) {

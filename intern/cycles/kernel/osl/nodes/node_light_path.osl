@@ -25,7 +25,8 @@ shader node_light_path(
 	output float IsGlossyRay = 0.0,
 	output float IsSingularRay = 0.0,
 	output float IsReflectionRay = 0.0,
-	output float IsTransmissionRay = 0.0)
+	output float IsTransmissionRay = 0.0,
+	output float RayLength = 0.0)
 {
 	IsCameraRay = raytype("camera");
 	IsShadowRay = raytype("shadow");
@@ -34,5 +35,7 @@ shader node_light_path(
 	IsSingularRay = raytype("singular");
 	IsReflectionRay = raytype("reflection");
 	IsTransmissionRay = raytype("refraction");
+
+	getattribute("std::ray_length", RayLength);
 }
 

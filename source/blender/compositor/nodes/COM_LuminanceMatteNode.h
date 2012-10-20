@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_LuminanceMatteNode_h_
-#define _COM_LuminanceMatteNode_h_
+#ifndef __COM_LUMINANCEMATTENODE_H__
+#define __COM_LUMINANCEMATTENODE_H__
 
 #include "COM_Node.h"
 
@@ -34,4 +34,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // _COM_LuminanceMatteNode_h_
+#endif  /* __COM_LUMINANCEMATTENODE_H__ */

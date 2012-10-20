@@ -31,9 +31,9 @@
  */
 
 
-#ifdef _WIN32 	 
-#pragma warning (disable : 4244) // "conversion from double to float"
-#pragma warning (disable : 4305) // "truncation from const double to float" 
+#ifdef _MSC_VER
+#  pragma warning (disable:4244)  /* "conversion from double to float" */
+#  pragma warning (disable:4305)  /* "truncation from const double to float" */
 #endif
 
 #include <math.h>

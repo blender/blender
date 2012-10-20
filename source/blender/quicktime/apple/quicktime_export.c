@@ -218,7 +218,7 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd, ReportList *reports)
 	/* retreive codecdata from quicktime in a atomcontainer */
 	myErr = SCGetSettingsAsAtomContainer(qtdata->theComponent,  &myContainer);
 	if (myErr != noErr) {
-		BKE_reportf(reports, RPT_ERROR, "Quicktime: SCGetSettingsAsAtomContainer failed\n");
+		BKE_report(reports, RPT_ERROR, "Quicktime: SCGetSettingsAsAtomContainer failed");
 		goto bail;
 	}
 
@@ -238,7 +238,7 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd, ReportList *reports)
 		GetCodecInfo(&ci, qtdata->gSpatialSettings.codecType, 0);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Quicktime: QT_SaveCodecSettingsToScene failed\n"); 
+		BKE_report(reports, RPT_ERROR, "Quicktime: QT_SaveCodecSettingsToScene failed"); 
 	}
 
 	QTUnlockContainer(myContainer);
@@ -268,7 +268,7 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd, ReportList *reports)
 	if (qcd->cdParms && qcd->cdSize) {
 		myErr = SCSetSettingsFromAtomContainer((GraphicsExportComponent)qtdata->theComponent, (QTAtomContainer)myHandle);
 		if (myErr != noErr) {
-			BKE_reportf(reports, RPT_ERROR, "Quicktime: SCSetSettingsFromAtomContainer failed\n");
+			BKE_report(reports, RPT_ERROR, "Quicktime: SCSetSettingsFromAtomContainer failed");
 			goto bail;
 		}
 
@@ -295,7 +295,7 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd, ReportList *reports)
 		
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Quicktime: QT_GetCodecSettingsFromScene failed\n"); 
+		BKE_report(reports, RPT_ERROR, "Quicktime: QT_GetCodecSettingsFromScene failed");
 	}
 bail:
 	if (myHandle != NULL)
@@ -414,7 +414,7 @@ static void QT_StartAddVideoSamplesToMedia(const Rect *trackFrame, int rectx, in
 	gTemporalSettings = qtdata->gTemporalSettings;
 	if (qtdata->gSpatialSettings.codecType == kH264CodecType) {
 		if (gTemporalSettings.temporalQuality != codecMinQuality) {
-			BKE_reportf(reports, RPT_WARNING, "Only minimum quality compression supported for QuickTime H.264.\n");
+			BKE_report(reports, RPT_WARNING, "Only minimum quality compression supported for Quicktime H.264");
 			gTemporalSettings.temporalQuality = codecMinQuality;
 		}
 	}
@@ -564,7 +564,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	/* hack: create an empty file to make FSPathMakeRef() happy */
 	myFile = open(theFullPath, O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRUSR | S_IWUSR);
 	if (myFile < 0) {
-		BKE_reportf(reports, RPT_ERROR, "error while creating movie file!\n");
+		BKE_report(reports, RPT_ERROR, "Error while creating movie file!");
 		/* do something? */
 	}
 	close(myFile);
@@ -599,7 +599,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 #endif
 	}
 	else {
-		//printf("Created QuickTime movie: %s\n", name);
+		/* printf("Created QuickTime movie: %s\n", name); */
 
 		QT_CreateMyVideoTrack(rectx, recty, reports);
 	}
@@ -636,7 +636,7 @@ void end_qt(void)
 
 		DisposeMovie(qtexport->theMovie);
 
-		//printf("Finished QuickTime movie.\n");
+		/* printf("Finished QuickTime movie.\n"); */
 	}
 
 #ifdef __APPLE__

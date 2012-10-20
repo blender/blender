@@ -741,7 +741,7 @@ void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
 }
 
 /* scale brush size to reflect a change in the brush's unprojected radius */
-void BKE_brush_scale_size(int *BKE_brush_size_get,
+void BKE_brush_scale_size(int *r_brush_size,
                           float new_unprojected_radius,
                           float old_unprojected_radius)
 {
@@ -749,7 +749,7 @@ void BKE_brush_scale_size(int *BKE_brush_size_get,
 	/* avoid division by zero */
 	if (old_unprojected_radius != 0)
 		scale /= new_unprojected_radius;
-	(*BKE_brush_size_get) = (int)((float)(*BKE_brush_size_get) * scale);
+	(*r_brush_size) = (int)((float)(*r_brush_size) * scale);
 }
 
 /* Brush Painting */

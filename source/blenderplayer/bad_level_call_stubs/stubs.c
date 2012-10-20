@@ -300,6 +300,7 @@ struct BGpic *ED_view3D_background_image_new(struct View3D *v3d) {return (struct
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic) {}
 void ED_view3D_background_image_clear(struct View3D *v3d) {}
 void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[][4], float winmat[][4]) {}
+float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit) {return 0.0f;}
 void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist) {}
 int text_file_modified(struct Text *text) {return 0;}
 void ED_node_shader_default(struct Material *ma) {}

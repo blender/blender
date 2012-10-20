@@ -38,11 +38,11 @@ shader node_geometry(
 	Parametric = point(u, v, 0.0);
 	Backfacing = backfacing();
 
-	if(bump_offset == "dx") {
+	if (bump_offset == "dx") {
 		Position += Dx(Position);
 		Parametric += Dx(Parametric);
 	}
-	else if(bump_offset == "dy") {
+	else if (bump_offset == "dy") {
 		Position += Dy(Position);
 		Parametric += Dy(Parametric);
 	}

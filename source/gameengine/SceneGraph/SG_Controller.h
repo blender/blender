@@ -121,5 +121,4 @@ protected:
 #endif
 };
 
-#endif //__SG_CONTROLLER_H__
-
+#endif  /* __SG_CONTROLLER_H__ */

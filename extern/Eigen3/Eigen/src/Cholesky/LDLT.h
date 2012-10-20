@@ -1,43 +1,33 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Keir Mierle <mierle@gmail.com>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2011 Timothy E. Holy <tim.holy@gmail.com >
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_LDLT_H
 #define EIGEN_LDLT_H
+
+namespace Eigen { 
 
 namespace internal {
 template<typename MatrixType, int UpLo> struct LDLT_Traits;
 }
 
-/** \ingroup cholesky_Module
+/** \ingroup Cholesky_Module
   *
   * \class LDLT
   *
   * \brief Robust Cholesky decomposition of a matrix with pivoting
   *
   * \param MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
+  * \param UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
+  *             The other triangular part won't be read.
   *
   * Perform a robust Cholesky decomposition of a positive semidefinite or negative semidefinite
   * matrix \f$ A \f$ such that \f$ A =  P^TLDL^*P \f$, where P is a permutation matrix, L
@@ -48,13 +38,9 @@ template<typename MatrixType, int UpLo> struct LDLT_Traits;
   * on D also stabilizes the computation.
   *
   * Remember that Cholesky decompositions are not rank-revealing. Also, do not use a Cholesky
-	* decomposition to determine whether a system of equations has a solution.
+  * decomposition to determine whether a system of equations has a solution.
   *
   * \sa MatrixBase::ldlt(), class LLT
-  */
- /* THIS PART OF THE DOX IS CURRENTLY DISABLED BECAUSE INACCURATE BECAUSE OF BUG IN THE DECOMPOSITION CODE
-  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
-  * the strict lower part does not have to store correct values.
   */
 template<typename _MatrixType, int _UpLo> class LDLT
 {
@@ -98,6 +84,11 @@ template<typename _MatrixType, int _UpLo> class LDLT
         m_isInitialized(false)
     {}
 
+    /** \brief Constructor with decomposition
+      *
+      * This calculates the decomposition for the input \a matrix.
+      * \sa LDLT(Index size)
+      */
     LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
         m_transpositions(matrix.rows()),
@@ -105,6 +96,14 @@ template<typename _MatrixType, int _UpLo> class LDLT
         m_isInitialized(false)
     {
       compute(matrix);
+    }
+
+    /** Clear any existing decomposition
+     * \sa rankUpdate(w,sigma)
+     */
+    void setZero()
+    {
+      m_isInitialized = false;
     }
 
     /** \returns a view of the upper triangular matrix U */
@@ -130,14 +129,14 @@ template<typename _MatrixType, int _UpLo> class LDLT
     }
 
     /** \returns the coefficients of the diagonal matrix D */
-    inline Diagonal<const MatrixType> vectorD(void) const
+    inline Diagonal<const MatrixType> vectorD() const
     {
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return m_matrix.diagonal();
     }
 
     /** \returns true if the matrix is positive (semidefinite) */
-    inline bool isPositive(void) const
+    inline bool isPositive() const
     {
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return m_sign == 1;
@@ -196,6 +195,9 @@ template<typename _MatrixType, int _UpLo> class LDLT
 
     LDLT& compute(const MatrixType& matrix);
 
+    template <typename Derived>
+    LDLT& rankUpdate(const MatrixBase<Derived>& w,RealScalar alpha=1);
+
     /** \returns the internal LDLT decomposition matrix
       *
       * TODO: document the storage layout
@@ -210,6 +212,17 @@ template<typename _MatrixType, int _UpLo> class LDLT
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
+
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful,
+      *          \c NumericalIssue if the matrix.appears to be negative.
+      */
+    ComputationInfo info() const
+    {
+      eigen_assert(m_isInitialized && "LDLT is not initialized.");
+      return Success;
+    }
 
   protected:
 
@@ -249,7 +262,7 @@ template<> struct ldlt_inplace<Lower>
       return true;
     }
 
-    RealScalar cutoff = 0, biggest_in_corner;
+    RealScalar cutoff(0), biggest_in_corner;
 
     for (Index k = 0; k < size; ++k)
     {
@@ -317,6 +330,61 @@ template<> struct ldlt_inplace<Lower>
 
     return true;
   }
+
+  // Reference for the algorithm: Davis and Hager, "Multiple Rank
+  // Modifications of a Sparse Cholesky Factorization" (Algorithm 1)
+  // Trivial rearrangements of their computations (Timothy E. Holy)
+  // allow their algorithm to work for rank-1 updates even if the
+  // original matrix is not of full rank.
+  // Here only rank-1 updates are implemented, to reduce the
+  // requirement for intermediate storage and improve accuracy
+  template<typename MatrixType, typename WDerived>
+  static bool updateInPlace(MatrixType& mat, MatrixBase<WDerived>& w, typename MatrixType::RealScalar sigma=1)
+  {
+    using internal::isfinite;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+
+    const Index size = mat.rows();
+    eigen_assert(mat.cols() == size && w.size()==size);
+
+    RealScalar alpha = 1;
+
+    // Apply the update
+    for (Index j = 0; j < size; j++)
+    {
+      // Check for termination due to an original decomposition of low-rank
+      if (!(isfinite)(alpha))
+        break;
+
+      // Update the diagonal terms
+      RealScalar dj = real(mat.coeff(j,j));
+      Scalar wj = w.coeff(j);
+      RealScalar swj2 = sigma*abs2(wj);
+      RealScalar gamma = dj*alpha + swj2;
+
+      mat.coeffRef(j,j) += swj2/alpha;
+      alpha += swj2/dj;
+
+
+      // Update the terms of L
+      Index rs = size-j-1;
+      w.tail(rs) -= wj * mat.col(j).tail(rs);
+      if(gamma != 0)
+        mat.col(j).tail(rs) += (sigma*conj(wj)/gamma)*w.tail(rs);
+    }
+    return true;
+  }
+
+  template<typename MatrixType, typename TranspositionType, typename Workspace, typename WType>
+  static bool update(MatrixType& mat, const TranspositionType& transpositions, Workspace& tmp, const WType& w, typename MatrixType::RealScalar sigma=1)
+  {
+    // Apply the permutation to the input w
+    tmp = transpositions * w;
+
+    return ldlt_inplace<Lower>::updateInPlace(mat,tmp,sigma);
+  }
 };
 
 template<> struct ldlt_inplace<Upper>
@@ -327,22 +395,29 @@ template<> struct ldlt_inplace<Upper>
     Transpose<MatrixType> matt(mat);
     return ldlt_inplace<Lower>::unblocked(matt, transpositions, temp, sign);
   }
+
+  template<typename MatrixType, typename TranspositionType, typename Workspace, typename WType>
+  static EIGEN_STRONG_INLINE bool update(MatrixType& mat, TranspositionType& transpositions, Workspace& tmp, WType& w, typename MatrixType::RealScalar sigma=1)
+  {
+    Transpose<MatrixType> matt(mat);
+    return ldlt_inplace<Lower>::update(matt, transpositions, tmp, w.conjugate(), sigma);
+  }
 };
 
 template<typename MatrixType> struct LDLT_Traits<MatrixType,Lower>
 {
   typedef const TriangularView<const MatrixType, UnitLower> MatrixL;
   typedef const TriangularView<const typename MatrixType::AdjointReturnType, UnitUpper> MatrixU;
-  inline static MatrixL getL(const MatrixType& m) { return m; }
-  inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixL getL(const MatrixType& m) { return m; }
+  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
 };
 
 template<typename MatrixType> struct LDLT_Traits<MatrixType,Upper>
 {
   typedef const TriangularView<const typename MatrixType::AdjointReturnType, UnitLower> MatrixL;
   typedef const TriangularView<const MatrixType, UnitUpper> MatrixU;
-  inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
-  inline static MatrixU getU(const MatrixType& m) { return m; }
+  static inline MatrixL getL(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixU getU(const MatrixType& m) { return m; }
 };
 
 } // end namespace internal
@@ -364,6 +439,37 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   internal::ldlt_inplace<UpLo>::unblocked(m_matrix, m_transpositions, m_temporary, &m_sign);
 
   m_isInitialized = true;
+  return *this;
+}
+
+/** Update the LDLT decomposition:  given A = L D L^T, efficiently compute the decomposition of A + sigma w w^T.
+ * \param w a vector to be incorporated into the decomposition.
+ * \param sigma a scalar, +1 for updates and -1 for "downdates," which correspond to removing previously-added column vectors. Optional; default value is +1.
+ * \sa setZero()
+  */
+template<typename MatrixType, int _UpLo>
+template<typename Derived>
+LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Derived>& w,typename NumTraits<typename MatrixType::Scalar>::Real sigma)
+{
+  const Index size = w.rows();
+  if (m_isInitialized)
+  {
+    eigen_assert(m_matrix.rows()==size);
+  }
+  else
+  {    
+    m_matrix.resize(size,size);
+    m_matrix.setZero();
+    m_transpositions.resize(size);
+    for (Index i = 0; i < size; i++)
+      m_transpositions.coeffRef(i) = i;
+    m_temporary.resize(size);
+    m_sign = sigma>=0 ? 1 : -1;
+    m_isInitialized = true;
+  }
+
+  internal::ldlt_inplace<UpLo>::update(m_matrix, m_transpositions, m_temporary, w, sigma);
+
   return *this;
 }
 
@@ -480,5 +586,7 @@ MatrixBase<Derived>::ldlt() const
 {
   return LDLT<PlainObject>(derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_LDLT_H

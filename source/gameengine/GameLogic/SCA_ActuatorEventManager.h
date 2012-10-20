@@ -53,5 +53,4 @@ public:
 #endif
 };
 
-#endif //__SCA_ACTUATOREVENTMANAGER_H__
-
+#endif  /* __SCA_ACTUATOREVENTMANAGER_H__ */

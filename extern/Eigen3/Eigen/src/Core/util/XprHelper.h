@@ -4,24 +4,9 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_XPRHELPER_H
 #define EIGEN_XPRHELPER_H
@@ -36,6 +21,8 @@
 #else
   #define EIGEN_EMPTY_STRUCT_CTOR(X)
 #endif
+
+namespace Eigen {
 
 typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE DenseIndex;
 
@@ -260,30 +247,27 @@ template<typename T> struct plain_matrix_type_row_major
 // we should be able to get rid of this one too
 template<typename T> struct must_nest_by_value { enum { ret = false }; };
 
-template<class T>
-struct is_reference
-{
-  enum { ret = false };
-};
-
-template<class T>
-struct is_reference<T&>
-{
-  enum { ret = true };
-};
-
-/**
-* \internal The reference selector for template expressions. The idea is that we don't
-* need to use references for expressions since they are light weight proxy
-* objects which should generate no copying overhead.
-**/
+/** \internal The reference selector for template expressions. The idea is that we don't
+  * need to use references for expressions since they are light weight proxy
+  * objects which should generate no copying overhead. */
 template <typename T>
 struct ref_selector
 {
   typedef typename conditional<
     bool(traits<T>::Flags & NestByRefBit),
     T const&,
-    T
+    const T
+  >::type type;
+};
+
+/** \internal Adds the const qualifier on the value-type of T2 if and only if T1 is a const type */
+template<typename T1, typename T2>
+struct transfer_constness
+{
+  typedef typename conditional<
+    bool(internal::is_const<T1>::value),
+    typename internal::add_const_on_value_type<T2>::type,
+    T2
   >::type type;
 };
 
@@ -296,6 +280,8 @@ struct ref_selector
   *
   * \param T the type of the expression being nested
   * \param n the number of coefficient accesses in the nested expression for each coefficient access in the bigger expression.
+  *
+  * Note that if no evaluation occur, then the constness of T is preserved.
   *
   * Example. Suppose that a, b, and c are of type Matrix3d. The user forms the expression a*(b+c).
   * b+c is an expression "sum of matrices", which we will denote by S. In order to determine how to nest it,
@@ -455,5 +441,7 @@ struct is_lvalue
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_XPRHELPER_H

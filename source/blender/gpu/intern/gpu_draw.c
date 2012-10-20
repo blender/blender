@@ -1019,21 +1019,53 @@ void GPU_free_smoke(SmokeModifierData *smd)
 		if (smd->domain->tex_shadow)
 			GPU_texture_free(smd->domain->tex_shadow);
 		smd->domain->tex_shadow = NULL;
+
+		if (smd->domain->tex_flame)
+			GPU_texture_free(smd->domain->tex_flame);
+		smd->domain->tex_flame = NULL;
 	}
 }
 
 void GPU_create_smoke(SmokeModifierData *smd, int highres)
 {
 #ifdef WITH_SMOKE
-	if (smd->type & MOD_SMOKE_TYPE_DOMAIN && !smd->domain->tex && !highres)
-		smd->domain->tex = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smoke_get_density(smd->domain->fluid));
-	else if (smd->type & MOD_SMOKE_TYPE_DOMAIN && !smd->domain->tex && highres)
-		smd->domain->tex = GPU_texture_create_3D(smd->domain->res_wt[0], smd->domain->res_wt[1], smd->domain->res_wt[2], smoke_turbulence_get_density(smd->domain->wt));
+	if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+		SmokeDomainSettings *sds = smd->domain;
+		if (!sds->tex && !highres) {
+			/* rgba texture for color + density */
+			if (smoke_has_colors(sds->fluid)) {
+				float *data = MEM_callocN(sizeof(float)*sds->total_cells*4, "smokeColorTexture");
+				smoke_get_rgba(sds->fluid, data, 0);
+				sds->tex = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 4, data);
+				MEM_freeN(data);
+			}
+			/* density only */
+			else {
+				sds->tex = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 1, smoke_get_density(sds->fluid));
+			}
+			sds->tex_flame = (smoke_has_fuel(sds->fluid)) ? GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 1, smoke_get_flame(sds->fluid)) : NULL;
+		}
+		else if (!sds->tex && highres) {
+			/* rgba texture for color + density */
+			if (smoke_turbulence_has_colors(sds->wt)) {
+				float *data = MEM_callocN(sizeof(float)*smoke_turbulence_get_cells(sds->wt)*4, "smokeColorTexture");
+				smoke_turbulence_get_rgba(sds->wt, data, 0);
+				sds->tex = GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 4, data);
+				MEM_freeN(data);
+			}
+			/* density only */
+			else {
+				sds->tex = GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 1, smoke_turbulence_get_density(sds->wt));
+			}
+			sds->tex_flame = (smoke_turbulence_has_fuel(sds->wt)) ? GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 1, smoke_turbulence_get_flame(sds->wt)) : NULL;
+		}
 
-	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
+		sds->tex_shadow = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 1, sds->shadow);
+	}
 #else // WITH_SMOKE
 	(void)highres;
 	smd->domain->tex= NULL;
+	smd->domain->tex_flame= NULL;
 	smd->domain->tex_shadow= NULL;
 #endif // WITH_SMOKE
 }

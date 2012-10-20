@@ -1579,8 +1579,9 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 	BPoint *bp, *bpn, *newbp;
 	int a, b, newu, newv, sel;
 
-	if (obedit->type == OB_SURF) ;
-	else return OPERATOR_CANCELLED;
+	if (obedit->type != OB_SURF) {
+		return OPERATOR_CANCELLED;
+	}
 
 	cu->lastsel = NULL;
 
@@ -1593,8 +1594,12 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 		a = nu->pntsu * nu->pntsv;
 		while (a) {
 			a--;
-			if (bp->f1 & flag) ;
-			else break;
+			if (bp->f1 & flag) {
+				/* pass */
+			}
+			else {
+				break;
+			}
 			bp++;
 		}
 		if (a == 0) {
@@ -1715,8 +1720,12 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 			bp = nu->bp;
 			a = nu->pntsu;
 			while (a) {
-				if (bp->f1 & flag) ;
-				else break;
+				if (bp->f1 & flag) {
+					/* pass */
+				}
+				else {
+					break;
+				}
 				bp++;
 				a--;
 			}
@@ -3217,12 +3226,12 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 
 /******************** find nearest ************************/
 
-static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
+static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
 {
-	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; int dist, hpoint, select, mval[2]; } *data = userData;
+	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; float dist; int hpoint, select; float mval_fl[2]; } *data = userData;
 
 	short flag;
-	short temp;
+	float dist_test;
 
 	if (bp) {
 		flag = bp->f1;
@@ -3239,12 +3248,12 @@ static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp,
 		}
 	}
 
-	temp = abs(data->mval[0] - x) + abs(data->mval[1] - y);
-	if ((flag & 1) == data->select) temp += 5;
-	if (bezt && beztindex == 1) temp += 3;  /* middle points get a small disadvantage */
+	dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
+	if ((flag & SELECT) == data->select) dist_test += 5.0f;
+	if (bezt && beztindex == 1) dist_test += 3.0f;  /* middle points get a small disadvantage */
 
-	if (temp < data->dist) {
-		data->dist = temp;
+	if (dist_test < data->dist) {
+		data->dist = dist_test;
 
 		data->bp = bp;
 		data->bezt = bezt;
@@ -3258,16 +3267,16 @@ static short findnearestNurbvert(ViewContext *vc, short sel, const int mval[2], 
 	/* (sel == 1): selected gets a disadvantage */
 	/* in nurb and bezt or bp the nearest is written */
 	/* return 0 1 2: handlepunt */
-	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; int dist, hpoint, select, mval[2]; } data = {NULL};
+	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; float dist; int hpoint, select; float mval_fl[2]; } data = {NULL};
 
 	data.dist = 100;
 	data.hpoint = 0;
 	data.select = sel;
-	data.mval[0] = mval[0];
-	data.mval[1] = mval[1];
+	data.mval_fl[0] = mval[0];
+	data.mval_fl[1] = mval[1];
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-	nurbs_foreachScreenVert(vc, findnearestNurbvert__doClosest, &data);
+	nurbs_foreachScreenVert(vc, findnearestNurbvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	*nurb = data.nurb;
 	*bezt = data.bezt;
@@ -3762,20 +3771,28 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 
 	/* first nurbs: u = resolu-1 selected */
 	
-	if (is_u_selected(nu1, nu1->pntsu - 1) ) ;
+	if (is_u_selected(nu1, nu1->pntsu - 1) ) {
+		/* pass */
+	}
 	else {
 		/* For 2D curves blender uses (orderv = 0). It doesn't make any sense mathematically. */
 		/* but after rotating (orderu = 0) will be confusing. */
 		if (nu1->orderv == 0) nu1->orderv = 1;
 
 		rotate_direction_nurb(nu1);
-		if (is_u_selected(nu1, nu1->pntsu - 1)) ;
+		if (is_u_selected(nu1, nu1->pntsu - 1)) {
+			/* pass */
+		}
 		else {
 			rotate_direction_nurb(nu1);
-			if (is_u_selected(nu1, nu1->pntsu - 1)) ;
+			if (is_u_selected(nu1, nu1->pntsu - 1)) {
+				/* pass */
+			}
 			else {
 				rotate_direction_nurb(nu1);
-				if (is_u_selected(nu1, nu1->pntsu - 1)) ;
+				if (is_u_selected(nu1, nu1->pntsu - 1)) {
+					/* pass */
+				}
 				else {
 					/* rotate again, now its OK! */
 					if (nu1->pntsv != 1) rotate_direction_nurb(nu1);
@@ -3786,17 +3803,25 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	}
 	
 	/* 2nd nurbs: u = 0 selected */
-	if (is_u_selected(nu2, 0) ) ;
+	if (is_u_selected(nu2, 0) ) {
+		/* pass */
+	}
 	else {
 		if (nu2->orderv == 0) nu2->orderv = 1;
 		rotate_direction_nurb(nu2);
-		if (is_u_selected(nu2, 0)) ;
+		if (is_u_selected(nu2, 0)) {
+			/* pass */
+		}
 		else {
 			rotate_direction_nurb(nu2);
-			if (is_u_selected(nu2, 0)) ;
+			if (is_u_selected(nu2, 0)) {
+				/* pass */
+			}
 			else {
 				rotate_direction_nurb(nu2);
-				if (is_u_selected(nu2, 0)) ;
+				if (is_u_selected(nu2, 0)) {
+					/* pass */
+				}
 				else {
 					/* rotate again, now its OK! */
 					if (nu1->pntsu == 1) rotate_direction_nurb(nu1);
@@ -3892,15 +3917,27 @@ static int merge_nurb(bContext *C, wmOperator *op)
 
 	/* resolution match, to avoid uv rotations */
 	if (nus1->nu->pntsv == 1) {
-		if (nus1->nu->pntsu == nus2->nu->pntsu || nus1->nu->pntsu == nus2->nu->pntsv) ;
-		else ok = 0;
+		if (nus1->nu->pntsu == nus2->nu->pntsu || nus1->nu->pntsu == nus2->nu->pntsv) {
+			/* pass */
+		}
+		else {
+			ok = 0;
+		}
 	}
 	else if (nus2->nu->pntsv == 1) {
-		if (nus2->nu->pntsu == nus1->nu->pntsu || nus2->nu->pntsu == nus1->nu->pntsv) ;
-		else ok = 0;
+		if (nus2->nu->pntsu == nus1->nu->pntsu || nus2->nu->pntsu == nus1->nu->pntsv) {
+			/* pass */
+		}
+		else {
+			ok = 0;
+		}
 	}
-	else if (nus1->nu->pntsu == nus2->nu->pntsu || nus1->nu->pntsv == nus2->nu->pntsv) ;
-	else if (nus1->nu->pntsu == nus2->nu->pntsv || nus1->nu->pntsv == nus2->nu->pntsu) ;
+	else if (nus1->nu->pntsu == nus2->nu->pntsu || nus1->nu->pntsv == nus2->nu->pntsv) {
+		/* pass */
+	}
+	else if (nus1->nu->pntsu == nus2->nu->pntsv || nus1->nu->pntsv == nus2->nu->pntsu) {
+		/* pass */
+	}
 	else {
 		ok = 0;
 	}
@@ -3949,8 +3986,12 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 			if (isNurbsel_count(cu, nu) == 1) {
 				/* only 1 selected, not first or last, a little complex, but intuitive */
 				if (nu->pntsv == 1) {
-					if ( (nu->bp->f1 & SELECT) || (nu->bp[nu->pntsu - 1].f1 & SELECT)) ;
-					else break;
+					if ( (nu->bp->f1 & SELECT) || (nu->bp[nu->pntsu - 1].f1 & SELECT)) {
+						/* pass */
+					}
+					else {
+						break;
+					}
 				}
 			}
 		}
@@ -4380,7 +4421,7 @@ void CURVE_OT_spin(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
-	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -FLT_MAX, FLT_MAX, "Axis", "Axis in global view space", -1.0f, 1.0f);
 }
 
 /***************** add vertex operator **********************/
@@ -5611,7 +5652,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "nth", 2, 2, INT_MAX, "Nth Selection", "", 2, 100);
 }
 
 /********************** add duplicate operator *********************/
@@ -5684,8 +5725,12 @@ static int delete_exec(bContext *C, wmOperator *op)
 				a = nu->pntsu;
 				if (a) {
 					while (a) {
-						if (BEZSELECTED_HIDDENHANDLES(cu, bezt) ) ;
-						else break;
+						if (BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
+							/* pass */
+						}
+						else {
+							break;
+						}
 						a--;
 						bezt++;
 					}
@@ -5704,8 +5749,12 @@ static int delete_exec(bContext *C, wmOperator *op)
 				a = nu->pntsu * nu->pntsv;
 				if (a) {
 					while (a) {
-						if (bp->f1 & SELECT) ;
-						else break;
+						if (bp->f1 & SELECT) {
+							/* pass */
+						}
+						else {
+							break;
+						}
 						a--;
 						bp++;
 					}
@@ -6437,12 +6486,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 				vec[0] = vec[1] = 0.0;
 				vec[2] = -grid;
 
-				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
-					/* pass */
-				}
-				else {
-					mul_mat3_m4_v3(mat, vec);
-				}
+				mul_mat3_m4_v3(mat, vec);
 
 				translateflagNurb(editnurb, 1, vec);
 				extrudeflagNurb(cu->editnurb, 1);
@@ -6603,7 +6647,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	if (newob && enter_editmode)
 		ED_undo_push(C, "Enter Editmode");
 
-	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
+	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, TRUE);
 
 	nu = add_nurbs_primitive(C, obedit, mat, type, newob);
 	editnurb = object_editcurve_get(obedit);

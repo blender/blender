@@ -1962,7 +1962,6 @@ static void retargetArctoArcAggresive(bContext *C, RigGraph *rigg, RigArc *iarc,
 	ReebArcIterator arc_iter;
 	BArcIterator *iter = (BArcIterator *)&arc_iter;
 	RigEdge *edge;
-	EmbedBucket *bucket = NULL;
 	ReebNode *node_start, *node_end;
 	ReebArc *earc = iarc->link_mesh;
 	float angle_weight = 1.0; // GET FROM CONTEXT
@@ -1996,8 +1995,6 @@ static void retargetArctoArcAggresive(bContext *C, RigGraph *rigg, RigArc *iarc,
 
 	/* equal number of joints and potential position, just fill them in */
 	if (nb_joints == earc->bcount) {
-		int i;
-		
 		/* init with first values */
 		for (i = 0; i < nb_joints; i++) {
 			best_positions[i] = i + 1;
@@ -2011,7 +2008,6 @@ static void retargetArctoArcAggresive(bContext *C, RigGraph *rigg, RigArc *iarc,
 		MemoNode *result;
 #endif
 		float **positions_cache = MEM_callocN(sizeof(float *) * (nb_positions + 2), "positions cache");
-		int i;
 		
 		positions_cache[0] = node_start->p;
 		positions_cache[nb_positions + 1] = node_end->p;
@@ -2053,7 +2049,7 @@ static void retargetArctoArcAggresive(bContext *C, RigGraph *rigg, RigArc *iarc,
 	{
 		float *no = NULL;
 		if (i < nb_joints) {
-			bucket = IT_peek(iter, best_positions[i]);
+			EmbedBucket *bucket = IT_peek(iter, best_positions[i]);
 			vec1 = bucket->p;
 			no = bucket->no;
 		}

@@ -44,36 +44,36 @@
 
 #include "recast-capi.h"
 
-BLI_INLINE float area2(const float* a, const float* b, const float* c)
+BLI_INLINE float area2(const float *a, const float *b, const float *c)
 {
 	return (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]);
 }
 
-BLI_INLINE int left(const float* a, const float* b, const float* c)
+BLI_INLINE int left(const float *a, const float *b, const float *c)
 {
 	return area2(a, b, c) < 0;
 }
 
-int polyNumVerts(const unsigned short* p, const int vertsPerPoly)
+int polyNumVerts(const unsigned short *p, const int vertsPerPoly)
 {
 	int i, nv = 0;
-	for (i=0; i<vertsPerPoly; i++) {
-		if (p[i]==0xffff)
+	for (i = 0; i < vertsPerPoly; i++) {
+		if (p[i] == 0xffff)
 			break;
 		nv++;
 	}
 	return nv;
 }
 
-int polyIsConvex(const unsigned short* p, const int vertsPerPoly, const float* verts)
+int polyIsConvex(const unsigned short *p, const int vertsPerPoly, const float *verts)
 {
 	int j, nv = polyNumVerts(p, vertsPerPoly);
-	if (nv<3)
+	if (nv < 3)
 		return 0;
-	for (j=0; j<nv; j++) {
-		const float* v = &verts[3*p[j]];
-		const float* v_next = &verts[3*p[(j+1)%nv]];
-		const float* v_prev = &verts[3*p[(nv+j-1)%nv]];
+	for (j = 0; j < nv; j++) {
+		const float *v = &verts[3 * p[j]];
+		const float *v_next = &verts[3 * p[(j + 1) % nv]];
+		const float *v_prev = &verts[3 * p[(nv + j - 1) % nv]];
 		if (!left(v_prev, v, v_next))
 			return 0;
 
@@ -81,7 +81,8 @@ int polyIsConvex(const unsigned short* p, const int vertsPerPoly, const float* v
 	return 1;
 }
 
-float distPointToSegmentSq(const float* point, const float* a, const float* b)
+/* XXX, could replace with #dist_to_line_segment_v3(), or add a squared version */
+float distPointToSegmentSq(const float point[3], const float a[3], const float b[3])
 {
 	float abx[3], dx[3];
 	float d, t;
@@ -89,24 +90,24 @@ float distPointToSegmentSq(const float* point, const float* a, const float* b)
 	sub_v3_v3v3(abx, b, a);
 	sub_v3_v3v3(dx, point, a);
 
-	d = abx[0]*abx[0]+abx[2]*abx[2];
-	t = abx[0]*dx[0]+abx[2]*dx[2];
+	d = abx[0] * abx[0] + abx[2] * abx[2];
+	t = abx[0] * dx[0] + abx[2] * dx[2];
 
-	if (d > 0)
+	if (d > 0.0f)
 		t /= d;
-	if (t < 0)
-		t = 0;
-	else if (t > 1)
-		t = 1;
-	dx[0] = a[0] + t*abx[0] - point[0];
-	dx[2] = a[2] + t*abx[2] - point[2];
+	if (t < 0.0f)
+		t = 0.0f;
+	else if (t > 1.0f)
+		t = 1.0f;
+	dx[0] = a[0] + t * abx[0] - point[0];
+	dx[2] = a[2] + t * abx[2] - point[2];
 
-	return dx[0]*dx[0] + dx[2]*dx[2];
+	return dx[0] * dx[0] + dx[2] * dx[2];
 }
 
-int buildRawVertIndicesData(DerivedMesh* dm, int *nverts_r, float **verts_r, 
-									int *ntris_r, unsigned short **tris_r, int **trisToFacesMap_r,
-									int **recastData)
+int buildRawVertIndicesData(DerivedMesh *dm, int *nverts_r, float **verts_r,
+                            int *ntris_r, unsigned short **tris_r, int **trisToFacesMap_r,
+                            int **recastData)
 {
 	int vi, fi, triIdx;
 	int nverts, ntris;
@@ -117,49 +118,49 @@ int buildRawVertIndicesData(DerivedMesh* dm, int *nverts_r, float **verts_r,
 	MFace *faces;
 
 	nverts = dm->getNumVerts(dm);
-	if (nverts>=0xffff) {
+	if (nverts >= 0xffff) {
 		printf("Converting navmesh: Error! Too many vertices. Max number of vertices %d\n", 0xffff);
 		return 0;
 	}
-	verts = MEM_callocN(sizeof(float)*3*nverts, "buildRawVertIndicesData verts");
+	verts = MEM_callocN(sizeof(float) * 3 * nverts, "buildRawVertIndicesData verts");
 	dm->getVertCos(dm, (float(*)[3])verts);
 
-	//flip coordinates
-	for (vi=0; vi<nverts; vi++) {
-		SWAP(float, verts[3*vi+1], verts[3*vi+2]);
+	/* flip coordinates */
+	for (vi = 0; vi < nverts; vi++) {
+		SWAP(float, verts[3 * vi + 1], verts[3 * vi + 2]);
 	}
 
-	//calculate number of tris
+	/* calculate number of tris */
 	nfaces = dm->getNumTessFaces(dm);
 	faces = dm->getTessFaceArray(dm);
 	ntris = nfaces;
-	for (fi=0; fi<nfaces; fi++) {
-		MFace* face = &faces[fi];
+	for (fi = 0; fi < nfaces; fi++) {
+		MFace *face = &faces[fi];
 		if (face->v4)
 			ntris++;
 	}
 
-	//copy and transform to triangles (reorder on the run)
-	trisToFacesMap = MEM_callocN(sizeof(int)*ntris, "buildRawVertIndicesData trisToFacesMap");
-	tris = MEM_callocN(sizeof(unsigned short)*3*ntris, "buildRawVertIndicesData tris");
+	/* copy and transform to triangles (reorder on the run) */
+	trisToFacesMap = MEM_callocN(sizeof(int) * ntris, "buildRawVertIndicesData trisToFacesMap");
+	tris = MEM_callocN(sizeof(unsigned short) * 3 * ntris, "buildRawVertIndicesData tris");
 	tri = tris;
 	triIdx = 0;
-	for (fi=0; fi<nfaces; fi++) {
-		MFace* face = &faces[fi];
-		tri[3*triIdx+0] = (unsigned short) face->v1;
-		tri[3*triIdx+1] = (unsigned short) face->v3;
-		tri[3*triIdx+2] = (unsigned short) face->v2;
-		trisToFacesMap[triIdx++]=fi;
+	for (fi = 0; fi < nfaces; fi++) {
+		MFace *face = &faces[fi];
+		tri[3 * triIdx + 0] = (unsigned short) face->v1;
+		tri[3 * triIdx + 1] = (unsigned short) face->v3;
+		tri[3 * triIdx + 2] = (unsigned short) face->v2;
+		trisToFacesMap[triIdx++] = fi;
 		if (face->v4) {
-			tri[3*triIdx+0] = (unsigned short) face->v1;
-			tri[3*triIdx+1] = (unsigned short) face->v4;
-			tri[3*triIdx+2] = (unsigned short) face->v3;
-			trisToFacesMap[triIdx++]=fi;
+			tri[3 * triIdx + 0] = (unsigned short) face->v1;
+			tri[3 * triIdx + 1] = (unsigned short) face->v4;
+			tri[3 * triIdx + 2] = (unsigned short) face->v3;
+			trisToFacesMap[triIdx++] = fi;
 		}
 	}
 
-	//carefully, recast data is just reference to data in derived mesh
-	*recastData = (int*)CustomData_get_layer(&dm->polyData, CD_RECAST);
+	/* carefully, recast data is just reference to data in derived mesh */
+	*recastData = (int *)CustomData_get_layer(&dm->polyData, CD_RECAST);
 
 	*nverts_r = nverts;
 	*verts_r = verts;
@@ -170,122 +171,122 @@ int buildRawVertIndicesData(DerivedMesh* dm, int *nverts_r, float **verts_r,
 	return 1;
 }
 
-int buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys, 
-										  unsigned short* polys, const unsigned short* dmeshes, 
-										  const float* verts, const unsigned short* dtris, 
-										  const int* dtrisToPolysMap)
+int buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
+                                  unsigned short *polys, const unsigned short *dmeshes,
+                                  const float *verts, const unsigned short *dtris,
+                                  const int *dtrisToPolysMap)
 {
 	int polyidx;
 	int capacity = vertsPerPoly;
-	unsigned short* newPoly = MEM_callocN(sizeof(unsigned short)*capacity, "buildPolygonsByDetailedMeshes newPoly");
-	memset(newPoly, 0xff, sizeof(unsigned short)*capacity);
+	unsigned short *newPoly = MEM_callocN(sizeof(unsigned short) * capacity, "buildPolygonsByDetailedMeshes newPoly");
+	memset(newPoly, 0xff, sizeof(unsigned short) * capacity);
 
-	for (polyidx=0; polyidx<npolys; polyidx++) {
+	for (polyidx = 0; polyidx < npolys; polyidx++) {
 		size_t i;
 		int j, k;
 		int nv = 0;
-		//search border 
+		/* search border */
 		int tri, btri = -1;
 		int edge, bedge = -1;
-		int dtrisNum = dmeshes[polyidx*4+3];
-		int dtrisBase = dmeshes[polyidx*4+2];
-		unsigned char *traversedTris = MEM_callocN(sizeof(unsigned char)*dtrisNum, "buildPolygonsByDetailedMeshes traversedTris");
-		unsigned short* adjustedPoly;
+		int dtrisNum = dmeshes[polyidx * 4 + 3];
+		int dtrisBase = dmeshes[polyidx * 4 + 2];
+		unsigned char *traversedTris = MEM_callocN(sizeof(unsigned char) * dtrisNum, "buildPolygonsByDetailedMeshes traversedTris");
+		unsigned short *adjustedPoly;
 		int adjustedNv;
 		int allBorderTraversed;
 
-		for (j=0; j<dtrisNum && btri==-1;j++) {
-			int curpolytri = dtrisBase+j;
-			for (k=0; k<3; k++) {
-				unsigned short neighbortri = dtris[curpolytri*3*2+3+k];
-				if ( neighbortri==0xffff || dtrisToPolysMap[neighbortri]!=polyidx+1) {
+		for (j = 0; j < dtrisNum && btri == -1; j++) {
+			int curpolytri = dtrisBase + j;
+			for (k = 0; k < 3; k++) {
+				unsigned short neighbortri = dtris[curpolytri * 3 * 2 + 3 + k];
+				if (neighbortri == 0xffff || dtrisToPolysMap[neighbortri] != polyidx + 1) {
 					btri = curpolytri;
 					bedge = k;
 					break;
 				}
-			}							
+			}
 		}
-		if (btri==-1 || bedge==-1) {
-			//can't find triangle with border edge
+		if (btri == -1 || bedge == -1) {
+			/* can't find triangle with border edge */
 			MEM_freeN(traversedTris);
 			MEM_freeN(newPoly);
 
 			return 0;
 		}
 
-		newPoly[nv++] = dtris[btri*3*2+bedge];
+		newPoly[nv++] = dtris[btri * 3 * 2 + bedge];
 		tri = btri;
-		edge = (bedge+1)%3;
-		traversedTris[tri-dtrisBase] = 1;
+		edge = (bedge + 1) % 3;
+		traversedTris[tri - dtrisBase] = 1;
 		while (tri != btri || edge != bedge) {
-			int neighbortri = dtris[tri*3*2+3+edge];
-			if (neighbortri==0xffff || dtrisToPolysMap[neighbortri]!=polyidx+1) {
-				if (nv==capacity) {
-					unsigned short* newPolyBig;
+			int neighbortri = dtris[tri * 3 * 2 + 3 + edge];
+			if (neighbortri == 0xffff || dtrisToPolysMap[neighbortri] != polyidx + 1) {
+				if (nv == capacity) {
+					unsigned short *newPolyBig;
 					capacity += vertsPerPoly;
-					newPolyBig = MEM_callocN(sizeof(unsigned short)*capacity, "buildPolygonsByDetailedMeshes newPolyBig");
-					memset(newPolyBig, 0xff, sizeof(unsigned short)*capacity);
-					memcpy(newPolyBig, newPoly, sizeof(unsigned short)*nv);
+					newPolyBig = MEM_callocN(sizeof(unsigned short) * capacity, "buildPolygonsByDetailedMeshes newPolyBig");
+					memset(newPolyBig, 0xff, sizeof(unsigned short) * capacity);
+					memcpy(newPolyBig, newPoly, sizeof(unsigned short) * nv);
 					MEM_freeN(newPoly);
-					newPoly = newPolyBig;			
+					newPoly = newPolyBig;
 				}
-				newPoly[nv++] = dtris[tri*3*2+edge];
-				//move to next edge					
-				edge = (edge+1)%3;
+				newPoly[nv++] = dtris[tri * 3 * 2 + edge];
+				/* move to next edge */
+				edge = (edge + 1) % 3;
 			}
 			else {
-				//move to next tri
+				/* move to next tri */
 				int twinedge = -1;
-				for (k=0; k<3; k++) {
-					if (dtris[neighbortri*3*2+3+k] == tri) {
+				for (k = 0; k < 3; k++) {
+					if (dtris[neighbortri * 3 * 2 + 3 + k] == tri) {
 						twinedge = k;
 						break;
 					}
 				}
-				if (twinedge==-1) {
+				if (twinedge == -1) {
 					printf("Converting navmesh: Error! Can't find neighbor edge - invalid adjacency info\n");
 					MEM_freeN(traversedTris);
 					goto returnLabel;
 				}
 				tri = neighbortri;
-				edge = (twinedge+1)%3;
-				traversedTris[tri-dtrisBase] = 1;
+				edge = (twinedge + 1) % 3;
+				traversedTris[tri - dtrisBase] = 1;
 			}
 		}
 
-		adjustedPoly = MEM_callocN(sizeof(unsigned short)*nv, "buildPolygonsByDetailedMeshes adjustedPoly");
+		adjustedPoly = MEM_callocN(sizeof(unsigned short) * nv, "buildPolygonsByDetailedMeshes adjustedPoly");
 		adjustedNv = 0;
-		for (i=0; i<nv; i++) {
-			unsigned short prev = newPoly[(nv+i-1)%nv];
+		for (i = 0; i < nv; i++) {
+			unsigned short prev = newPoly[(nv + i - 1) % nv];
 			unsigned short cur = newPoly[i];
-			unsigned short next = newPoly[(i+1)%nv];
-			float distSq = distPointToSegmentSq(&verts[3*cur], &verts[3*prev], &verts[3*next]);
+			unsigned short next = newPoly[(i + 1) % nv];
+			float distSq = distPointToSegmentSq(&verts[3 * cur], &verts[3 * prev], &verts[3 * next]);
 			static const float tolerance = 0.001f;
-			if (distSq>tolerance)
+			if (distSq > tolerance)
 				adjustedPoly[adjustedNv++] = cur;
 		}
-		memcpy(newPoly, adjustedPoly, adjustedNv*sizeof(unsigned short));
+		memcpy(newPoly, adjustedPoly, adjustedNv * sizeof(unsigned short));
 		MEM_freeN(adjustedPoly);
 		nv = adjustedNv;
 
 		allBorderTraversed = 1;
-		for (i=0; i<dtrisNum; i++) {
-			if (traversedTris[i]==0) {
-				//check whether it has border edges
-				int curpolytri = dtrisBase+i;
-				for (k=0; k<3; k++) {
-					unsigned short neighbortri = dtris[curpolytri*3*2+3+k];
-					if ( neighbortri==0xffff || dtrisToPolysMap[neighbortri]!=polyidx+1) {
+		for (i = 0; i < dtrisNum; i++) {
+			if (traversedTris[i] == 0) {
+				/* check whether it has border edges */
+				int curpolytri = dtrisBase + i;
+				for (k = 0; k < 3; k++) {
+					unsigned short neighbortri = dtris[curpolytri * 3 * 2 + 3 + k];
+					if (neighbortri == 0xffff || dtrisToPolysMap[neighbortri] != polyidx + 1) {
 						allBorderTraversed = 0;
 						break;
 					}
 				}
-			}				
+			}
 		}
 
-		if (nv<=vertsPerPoly && allBorderTraversed) {
-			for (i=0; i<nv; i++) {
-				polys[polyidx*vertsPerPoly*2+i] = newPoly[i];
+		if (nv <= vertsPerPoly && allBorderTraversed) {
+			for (i = 0; i < nv; i++) {
+				polys[polyidx * vertsPerPoly * 2 + i] = newPoly[i];
 			}
 		}
 
@@ -298,21 +299,20 @@ returnLabel:
 	return 1;
 }
 
-struct SortContext
-{
-	const int* recastData;
-	const int* trisToFacesMap;
+struct SortContext {
+	const int *recastData;
+	const int *trisToFacesMap;
 };
 
-static int compareByData(void *ctx, const void * a, const void * b)
+static int compareByData(void *ctx, const void *a, const void *b)
 {
-	return (((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)a]] -
-	        ((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)b]] );
+	return (((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int *)a]] -
+	        ((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int *)b]]);
 }
 
-int buildNavMeshData(const int nverts, const float* verts, 
+int buildNavMeshData(const int nverts, const float *verts,
                      const int ntris, const unsigned short *tris,
-                     const int* recastData, const int* trisToFacesMap,
+                     const int *recastData, const int *trisToFacesMap,
                      int *ndtris_r, unsigned short **dtris_r,
                      int *npolys_r, unsigned short **dmeshes_r, unsigned short **polys_r,
                      int *vertsPerPoly_r, int **dtrisToPolysMap_r, int **dtrisToTrisMap_r)
@@ -333,86 +333,86 @@ int buildNavMeshData(const int nverts, const float* verts,
 		return 0;
 	}
 
-	trisMapping = MEM_callocN(sizeof(int)*ntris, "buildNavMeshData trisMapping");
+	trisMapping = MEM_callocN(sizeof(int) * ntris, "buildNavMeshData trisMapping");
 
-	//sort the triangles by polygon idx
-	for (i=0; i<ntris; i++)
-		trisMapping[i]=i;
+	/* sort the triangles by polygon idx */
+	for (i = 0; i < ntris; i++)
+		trisMapping[i] = i;
 	context.recastData = recastData;
 	context.trisToFacesMap = trisToFacesMap;
 	recast_qsort(trisMapping, ntris, sizeof(int), &context, compareByData);
 
-	//search first valid triangle - triangle of convex polygon
+	/* search first valid triangle - triangle of convex polygon */
 	validTriStart = -1;
-	for (i=0; i< ntris; i++) {
-		if (recastData[trisToFacesMap[trisMapping[i]]]>0) {
+	for (i = 0; i < ntris; i++) {
+		if (recastData[trisToFacesMap[trisMapping[i]]] > 0) {
 			validTriStart = i;
 			break;
 		}
 	}
 
-	if (validTriStart<0) {
+	if (validTriStart < 0) {
 		printf("Converting navmesh: Error! No valid polygons in mesh\n");
 		MEM_freeN(trisMapping);
 		return 0;
 	}
 
-	ndtris = ntris-validTriStart;
-	//fill dtris to faces mapping
-	dtrisToTrisMap = MEM_callocN(sizeof(int)*ndtris, "buildNavMeshData dtrisToTrisMap");
-	memcpy(dtrisToTrisMap, &trisMapping[validTriStart], ndtris*sizeof(int));
+	ndtris = ntris - validTriStart;
+	/* fill dtris to faces mapping */
+	dtrisToTrisMap = MEM_callocN(sizeof(int) * ndtris, "buildNavMeshData dtrisToTrisMap");
+	memcpy(dtrisToTrisMap, &trisMapping[validTriStart], ndtris * sizeof(int));
 	MEM_freeN(trisMapping);
 
-	//create detailed mesh triangles  - copy only valid triangles
-	//and reserve memory for adjacency info
-	dtris = MEM_callocN(sizeof(unsigned short)*3*2*ndtris, "buildNavMeshData dtris");
-	memset(dtris, 0xffff, sizeof(unsigned short)*3*2*ndtris);
-	for (i=0; i<ndtris; i++) {
-		memcpy(dtris+3*2*i, tris+3*dtrisToTrisMap[i], sizeof(unsigned short)*3);
+	/* create detailed mesh triangles  - copy only valid triangles
+	 * and reserve memory for adjacency info */
+	dtris = MEM_callocN(sizeof(unsigned short) * 3 * 2 * ndtris, "buildNavMeshData dtris");
+	memset(dtris, 0xffff, sizeof(unsigned short) * 3 * 2 * ndtris);
+	for (i = 0; i < ndtris; i++) {
+		memcpy(dtris + 3 * 2 * i, tris + 3 * dtrisToTrisMap[i], sizeof(unsigned short) * 3);
 	}
 
-	//create new recast data corresponded to dtris and renumber for continuous indices
+	/* create new recast data corresponded to dtris and renumber for continuous indices */
 	prevPolyIdx = -1;
 	newPolyIdx = 0;
-	dtrisToPolysMap = MEM_callocN(sizeof(int)*ndtris, "buildNavMeshData dtrisToPolysMap");
-	for (i=0; i<ndtris; i++) {
+	dtrisToPolysMap = MEM_callocN(sizeof(int) * ndtris, "buildNavMeshData dtrisToPolysMap");
+	for (i = 0; i < ndtris; i++) {
 		curPolyIdx = recastData[trisToFacesMap[dtrisToTrisMap[i]]];
-		if (curPolyIdx!=prevPolyIdx) {
+		if (curPolyIdx != prevPolyIdx) {
 			newPolyIdx++;
-			prevPolyIdx=curPolyIdx;
+			prevPolyIdx = curPolyIdx;
 		}
 		dtrisToPolysMap[i] = newPolyIdx;
 	}
 
 
-	//build adjacency info for detailed mesh triangles
+	/* build adjacency info for detailed mesh triangles */
 	recast_buildMeshAdjacency(dtris, ndtris, nverts, 3);
 
-	//create detailed mesh description for each navigation polygon
-	npolys = dtrisToPolysMap[ndtris-1];
-	dmeshes = MEM_callocN(sizeof(unsigned short)*npolys*4, "buildNavMeshData dmeshes");
-	memset(dmeshes, 0, npolys*4*sizeof(unsigned short));
+	/* create detailed mesh description for each navigation polygon */
+	npolys = dtrisToPolysMap[ndtris - 1];
+	dmeshes = MEM_callocN(sizeof(unsigned short) * npolys * 4, "buildNavMeshData dmeshes");
+	memset(dmeshes, 0, npolys * 4 * sizeof(unsigned short));
 	dmesh = NULL;
 	prevpolyidx = 0;
-	for (i=0; i<ndtris; i++) {
+	for (i = 0; i < ndtris; i++) {
 		int curpolyidx = dtrisToPolysMap[i];
-		if (curpolyidx!=prevpolyidx) {
-			if (curpolyidx!=prevpolyidx+1) {
+		if (curpolyidx != prevpolyidx) {
+			if (curpolyidx != prevpolyidx + 1) {
 				printf("Converting navmesh: Error! Wrong order of detailed mesh faces\n");
 				return 0;
 			}
-			dmesh = dmesh==NULL ? dmeshes : dmesh+4;
-			dmesh[2] = (unsigned short)i;	//tbase
-			dmesh[3] = 0;	//tnum
+			dmesh = dmesh == NULL ? dmeshes : dmesh + 4;
+			dmesh[2] = (unsigned short)i;  /* tbase */
+			dmesh[3] = 0;  /* tnum */
 			prevpolyidx = curpolyidx;
 		}
 		dmesh[3]++;
 	}
 
-	//create navigation polygons
+	/* create navigation polygons */
 	vertsPerPoly = 6;
-	polys = MEM_callocN(sizeof(unsigned short)*npolys*vertsPerPoly*2, "buildNavMeshData polys");
-	memset(polys, 0xff, sizeof(unsigned short)*vertsPerPoly*2*npolys);
+	polys = MEM_callocN(sizeof(unsigned short) * npolys * vertsPerPoly * 2, "buildNavMeshData polys");
+	memset(polys, 0xff, sizeof(unsigned short) * vertsPerPoly * 2 * npolys);
 
 	buildPolygonsByDetailedMeshes(vertsPerPoly, npolys, polys, dmeshes, verts, dtris, dtrisToPolysMap);
 
@@ -429,16 +429,16 @@ int buildNavMeshData(const int nverts, const float* verts,
 }
 
 
-int buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int *vertsPerPoly, 
-										  int *nverts, float **verts,
-										  int *ndtris, unsigned short **dtris,
-										  int *npolys, unsigned short **dmeshes,
-										  unsigned short **polys, int **dtrisToPolysMap,
-										  int **dtrisToTrisMap, int **trisToFacesMap)
+int buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int *vertsPerPoly,
+                                  int *nverts, float **verts,
+                                  int *ndtris, unsigned short **dtris,
+                                  int *npolys, unsigned short **dmeshes,
+                                  unsigned short **polys, int **dtrisToPolysMap,
+                                  int **dtrisToTrisMap, int **trisToFacesMap)
 {
 	int res = 1;
-	int ntris = 0, *recastData=NULL;
-	unsigned short *tris=NULL;
+	int ntris = 0, *recastData = NULL;
+	unsigned short *tris = NULL;
 
 	res = buildRawVertIndicesData(dm, nverts, verts, &ntris, &tris, trisToFacesMap, &recastData);
 	if (!res) {
@@ -447,8 +447,8 @@ int buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int *vertsPerPoly,
 	}
 
 	res = buildNavMeshData(*nverts, *verts, ntris, tris, recastData, *trisToFacesMap,
-		ndtris, dtris, npolys, dmeshes, polys, vertsPerPoly,
-		dtrisToPolysMap, dtrisToTrisMap);
+	                       ndtris, dtris, npolys, dmeshes, polys, vertsPerPoly,
+	                       dtrisToPolysMap, dtrisToTrisMap);
 	if (!res) {
 		printf("Converting navmesh: Error! Can't get vertices and indices from mesh\n");
 		goto exit;
@@ -461,11 +461,11 @@ exit:
 	return res;
 }
 
-int polyFindVertex(const unsigned short* p, const int vertsPerPoly, unsigned short vertexIdx)
+int polyFindVertex(const unsigned short *p, const int vertsPerPoly, unsigned short vertexIdx)
 {
 	int i, res = -1;
-	for (i=0; i<vertsPerPoly; i++) {
-		if (p[i]==0xffff)
+	for (i = 0; i < vertsPerPoly; i++) {
+		if (p[i] == 0xffff)
 			break;
 		if (p[i] == vertexIdx) {
 			res = i;

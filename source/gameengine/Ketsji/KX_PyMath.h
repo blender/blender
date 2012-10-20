@@ -273,4 +273,4 @@ PyObject *PyObjectFrom(const MT_Tuple4 &pos);
 
 #endif
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */

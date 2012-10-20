@@ -89,5 +89,4 @@ void		KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar rad
                                          const MT_Vector3& normal, int nsector);
 
 
-#endif //__KX_PYTHONINIT_H__
-
+#endif  /* __KX_PYTHONINIT_H__ */

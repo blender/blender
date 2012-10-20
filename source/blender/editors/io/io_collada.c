@@ -143,7 +143,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_report(op->reports, RPT_WARNING, "Export file not created.");
+		BKE_report(op->reports, RPT_WARNING, "Export file not created");
 		return OPERATOR_CANCELLED;
 	}
 }
@@ -307,7 +307,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filename);
 	if (collada_import(C, filename)) return OPERATOR_FINISHED;
 
-	BKE_report(op->reports, RPT_ERROR, "Errors found during parsing COLLADA document. Please see console for error log.");
+	BKE_report(op->reports, RPT_ERROR, "Errors found during parsing COLLADA document (see console for details)");
 
 	return OPERATOR_FINISHED;
 }

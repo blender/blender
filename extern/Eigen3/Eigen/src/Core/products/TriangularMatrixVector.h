@@ -3,45 +3,36 @@
 //
 // Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_TRIANGULARMATRIXVECTOR_H
 #define EIGEN_TRIANGULARMATRIXVECTOR_H
 
+namespace Eigen { 
+
 namespace internal {
 
-template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs, int StorageOrder>
-struct product_triangular_matrix_vector;
+template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs, int StorageOrder, int Version=Specialized>
+struct triangular_matrix_vector_product;
 
-template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs>
-struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,ColMajor>
+template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs, int Version>
+struct triangular_matrix_vector_product<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,ColMajor,Version>
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   enum {
     IsLower = ((Mode&Lower)==Lower),
-    HasUnitDiag = (Mode & UnitDiag)==UnitDiag
+    HasUnitDiag = (Mode & UnitDiag)==UnitDiag,
+    HasZeroDiag = (Mode & ZeroDiag)==ZeroDiag
   };
-  static EIGEN_DONT_INLINE  void run(Index rows, Index cols, const LhsScalar* _lhs, Index lhsStride,
+  static EIGEN_DONT_INLINE  void run(Index _rows, Index _cols, const LhsScalar* _lhs, Index lhsStride,
                                      const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr, ResScalar alpha)
   {
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
+    Index size = (std::min)(_rows,_cols);
+    Index rows = IsLower ? _rows : (std::min)(_rows,_cols);
+    Index cols = IsLower ? (std::min)(_rows,_cols) : _cols;
 
     typedef Map<const Matrix<LhsScalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > LhsMap;
     const LhsMap lhs(_lhs,rows,cols,OuterStride<>(lhsStride));
@@ -54,45 +45,57 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
     typedef Map<Matrix<ResScalar,Dynamic,1> > ResMap;
     ResMap res(_res,rows);
 
-    for (Index pi=0; pi<cols; pi+=PanelWidth)
+    for (Index pi=0; pi<size; pi+=PanelWidth)
     {
-      Index actualPanelWidth = (std::min)(PanelWidth, cols-pi);
+      Index actualPanelWidth = (std::min)(PanelWidth, size-pi);
       for (Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = pi + k;
-        Index s = IsLower ? (HasUnitDiag ? i+1 : i ) : pi;
+        Index s = IsLower ? ((HasUnitDiag||HasZeroDiag) ? i+1 : i ) : pi;
         Index r = IsLower ? actualPanelWidth-k : k+1;
-        if ((!HasUnitDiag) || (--r)>0)
+        if ((!(HasUnitDiag||HasZeroDiag)) || (--r)>0)
           res.segment(s,r) += (alpha * cjRhs.coeff(i)) * cjLhs.col(i).segment(s,r);
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
       }
-      Index r = IsLower ? cols - pi - actualPanelWidth : pi;
+      Index r = IsLower ? rows - pi - actualPanelWidth : pi;
       if (r>0)
       {
         Index s = IsLower ? pi+actualPanelWidth : 0;
-        general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjLhs,RhsScalar,ConjRhs>::run(
+        general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjLhs,RhsScalar,ConjRhs,BuiltIn>::run(
             r, actualPanelWidth,
             &lhs.coeffRef(s,pi), lhsStride,
             &rhs.coeffRef(pi), rhsIncr,
             &res.coeffRef(s), resIncr, alpha);
       }
     }
+    if((!IsLower) && cols>size)
+    {
+      general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjLhs,RhsScalar,ConjRhs>::run(
+          rows, cols-size,
+          &lhs.coeffRef(0,size), lhsStride,
+          &rhs.coeffRef(size), rhsIncr,
+          _res, resIncr, alpha);
+    }
   }
 };
 
-template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs>
-struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,RowMajor>
+template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs,int Version>
+struct triangular_matrix_vector_product<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,RowMajor,Version>
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   enum {
     IsLower = ((Mode&Lower)==Lower),
-    HasUnitDiag = (Mode & UnitDiag)==UnitDiag
+    HasUnitDiag = (Mode & UnitDiag)==UnitDiag,
+    HasZeroDiag = (Mode & ZeroDiag)==ZeroDiag
   };
-  static void run(Index rows, Index cols, const LhsScalar* _lhs, Index lhsStride,
+  static void run(Index _rows, Index _cols, const LhsScalar* _lhs, Index lhsStride,
                   const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr, ResScalar alpha)
   {
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
+    Index diagSize = (std::min)(_rows,_cols);
+    Index rows = IsLower ? _rows : diagSize;
+    Index cols = IsLower ? diagSize : _cols;
 
     typedef Map<const Matrix<LhsScalar,Dynamic,Dynamic,RowMajor>, 0, OuterStride<> > LhsMap;
     const LhsMap lhs(_lhs,rows,cols,OuterStride<>(lhsStride));
@@ -105,15 +108,15 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
     typedef Map<Matrix<ResScalar,Dynamic,1>, 0, InnerStride<> > ResMap;
     ResMap res(_res,rows,InnerStride<>(resIncr));
     
-    for (Index pi=0; pi<cols; pi+=PanelWidth)
+    for (Index pi=0; pi<diagSize; pi+=PanelWidth)
     {
-      Index actualPanelWidth = (std::min)(PanelWidth, cols-pi);
+      Index actualPanelWidth = (std::min)(PanelWidth, diagSize-pi);
       for (Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = pi + k;
-        Index s = IsLower ? pi  : (HasUnitDiag ? i+1 : i);
+        Index s = IsLower ? pi  : ((HasUnitDiag||HasZeroDiag) ? i+1 : i);
         Index r = IsLower ? k+1 : actualPanelWidth-k;
-        if ((!HasUnitDiag) || (--r)>0)
+        if ((!(HasUnitDiag||HasZeroDiag)) || (--r)>0)
           res.coeffRef(i) += alpha * (cjLhs.row(i).segment(s,r).cwiseProduct(cjRhs.segment(s,r).transpose())).sum();
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
@@ -122,12 +125,20 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
       if (r>0)
       {
         Index s = IsLower ? 0 : pi + actualPanelWidth;
-        general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjLhs,RhsScalar,ConjRhs>::run(
+        general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjLhs,RhsScalar,ConjRhs,BuiltIn>::run(
             actualPanelWidth, r,
             &lhs.coeffRef(pi,s), lhsStride,
             &rhs.coeffRef(s), rhsIncr,
             &res.coeffRef(pi), resIncr, alpha);
       }
+    }
+    if(IsLower && rows>diagSize)
+    {
+      general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjLhs,RhsScalar,ConjRhs>::run(
+            rows-diagSize, cols,
+            &lhs.coeffRef(diagSize,0), lhsStride,
+            &rhs.coeffRef(0), rhsIncr,
+            &res.coeffRef(diagSize), resIncr, alpha);
     }
   }
 };
@@ -180,7 +191,7 @@ struct TriangularProduct<Mode,false,Lhs,true,Rhs,false>
   {
     eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
 
-    typedef TriangularProduct<(Mode & UnitDiag) | ((Mode & Lower) ? Upper : Lower),true,Transpose<const Rhs>,false,Transpose<const Lhs>,true> TriangularProductTranspose;
+    typedef TriangularProduct<(Mode & (UnitDiag|ZeroDiag)) | ((Mode & Lower) ? Upper : Lower),true,Transpose<const Rhs>,false,Transpose<const Lhs>,true> TriangularProductTranspose;
     Transpose<Dest> dstT(dst);
     internal::trmv_selector<(int(internal::traits<Rhs>::Flags)&RowMajorBit) ? ColMajor : RowMajor>::run(
       TriangularProductTranspose(m_rhs.transpose(),m_lhs.transpose()), dstT, alpha);
@@ -208,8 +219,8 @@ template<> struct trmv_selector<ColMajor>
     typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
     typedef Map<Matrix<ResScalar,Dynamic,1>, Aligned> MappedDest;
 
-    const ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
-    const ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
+    typename internal::add_const_on_value_type<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(prod.lhs());
+    typename internal::add_const_on_value_type<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(prod.rhs());
 
     ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
                                   * RhsBlasTraits::extractScalarFactor(prod.rhs());
@@ -247,7 +258,7 @@ template<> struct trmv_selector<ColMajor>
         MappedDest(actualDestPtr, dest.size()) = dest;
     }
     
-    internal::product_triangular_matrix_vector
+    internal::triangular_matrix_vector_product
       <Index,Mode,
        LhsScalar, LhsBlasTraits::NeedToConjugate,
        RhsScalar, RhsBlasTraits::NeedToConjugate,
@@ -307,7 +318,7 @@ template<> struct trmv_selector<RowMajor>
       Map<typename _ActualRhsType::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;
     }
     
-    internal::product_triangular_matrix_vector
+    internal::triangular_matrix_vector_product
       <Index,Mode,
        LhsScalar, LhsBlasTraits::NeedToConjugate,
        RhsScalar, RhsBlasTraits::NeedToConjugate,
@@ -321,5 +332,7 @@ template<> struct trmv_selector<RowMajor>
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRIANGULARMATRIXVECTOR_H

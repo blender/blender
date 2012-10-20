@@ -21,11 +21,13 @@
 shader node_convert_from_point(
 	point Point = point(0.0, 0.0, 0.0),
 	output float Val = 0.0,
+	output int ValInt = 0,
 	output vector Vector = vector(0.0, 0.0, 0.0),
 	output color Color = color(0.0, 0.0, 0.0),
 	output normal Normal = normal(0.0, 0.0, 0.0))
 {
-	Val = (Point[0] + Point[1] + Point[2])*(1.0/3.0);
+	Val = (Point[0] + Point[1] + Point[2]) * (1.0 / 3.0);
+	ValInt = (int)((Normal[0] + Normal[1] + Normal[2])*(1.0/3.0));
 	Vector = vector(Point[0], Point[1], Point[2]);
 	Color = color(Point[0], Point[1], Point[2]);
 	Normal = normal(Point[0], Point[1], Point[2]);

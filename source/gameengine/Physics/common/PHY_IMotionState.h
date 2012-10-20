@@ -65,5 +65,4 @@ class	PHY_IMotionState
 #endif
 };
 
-#endif //__PHY_IMOTIONSTATE_H__
-
+#endif  /* __PHY_IMOTIONSTATE_H__ */

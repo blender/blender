@@ -35,9 +35,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// don't show stl-warnings
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+   /* don't show stl-warnings */
+#  pragma warning (disable:4786)
 #endif
 
 #include "GL/glew.h"
@@ -69,37 +69,33 @@
 #include "Value.h"
 
 
-
-#ifdef __cplusplus
 extern "C" {
-#endif
-	/***/
-#include "DNA_view3d_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
-#include "BKE_global.h"
-#include "BKE_report.h"
+	#include "DNA_view3d_types.h"
+	#include "DNA_screen_types.h"
+	#include "DNA_userdef_types.h"
+	#include "DNA_scene_types.h"
+	#include "DNA_windowmanager_types.h"
 
-#include "MEM_guardedalloc.h"
+	#include "BKE_global.h"
+	#include "BKE_report.h"
+	#include "BKE_ipo.h"
+	#include "BKE_main.h"
+	#include "BKE_context.h"
 
-/* #include "BKE_screen.h" */ /* cant include this because of 'new' function name */
-extern float BKE_screen_view3d_zoom_to_fac(float camzoom);
+	/* avoid c++ conflict with 'new' */
+	#define new _new
+	#include "BKE_screen.h"
+	#undef new
 
-#include "BKE_main.h"
-#include "BLI_blenlib.h"
-#include "BLO_readfile.h"
-#include "DNA_scene_types.h"
-#include "BKE_ipo.h"
-	/***/
+	#include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
-#include "../../blender/windowmanager/WM_types.h"
-#include "../../blender/windowmanager/wm_window.h"
-#include "../../blender/windowmanager/wm_event_system.h"
-#ifdef __cplusplus
+	#include "BLI_blenlib.h"
+	#include "BLO_readfile.h"
+
+	#include "../../blender/windowmanager/WM_types.h"
+	#include "../../blender/windowmanager/wm_window.h"
+	#include "../../blender/windowmanager/wm_event_system.h"
 }
-#endif
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"

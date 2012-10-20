@@ -121,7 +121,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 	
 	/* if no blocks, popup error? */
 	if (anim_data.first == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweakmode for");
+		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
 	}	
 	
@@ -147,7 +147,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR, "No active strip(s) to enter tweakmode on");
+		BKE_report(op->reports, RPT_ERROR, "No active strip(s) to enter tweak mode on");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -190,7 +190,7 @@ static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *op)
 	
 	/* if no blocks, popup error? */
 	if (anim_data.first == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweakmode for");
+		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
 	}	
 	
@@ -405,7 +405,9 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 	else if (act->idroot == 0) {
 		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Action '%s' does not specify what datablocks it can be used on. Try setting the 'ID Root Type' setting from the Datablocks Editor for this Action to avoid future problems",
+		            "Action '%s' does not specify what datablocks it can be used on "
+		            "(try setting the 'ID Root Type' setting from the Datablocks Editor "
+		            "for this Action to avoid future problems)",
 		            act->id.name + 2);
 	}
 	

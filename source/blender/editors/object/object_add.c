@@ -136,6 +136,7 @@ static EnumPropertyItem field_type_items[] = {
 	{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
 	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
 	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
+	{PFIELD_SMOKEFLOW, "SMOKE", ICON_FORCE_SMOKEFLOW, "Smoke Flow", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -185,7 +186,8 @@ void ED_object_base_init_transform(bContext *C, Base *base, const float loc[3], 
 /* Uses context to figure out transform for primitive.
  * Returns standard diameter. */
 float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
-                                     const float loc[3], const float rot[3], float primmat[][4])
+                                     const float loc[3], const float rot[3], float primmat[][4],
+                                     int apply_diameter)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -208,8 +210,17 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
 	invert_m3_m3(imat, mat);
 	mul_m3_v3(imat, primmat[3]);
 
-	if (v3d)
-		return ED_view3d_grid_scale(scene, v3d, NULL);
+	if (v3d) {
+		float dia = ED_view3d_grid_scale(scene, v3d, NULL);
+
+		if (apply_diameter) {
+			primmat[0][0] *= dia;
+			primmat[1][1] *= dia;
+			primmat[2][2] *= dia;
+		}
+
+		return dia;
+	}
 
 	return 1.0f;
 }
@@ -356,7 +367,7 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 
-	/* For as long scene has editmode... */
+	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
 		ED_object_exit_editmode(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
 
@@ -441,7 +452,7 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 		rename_id(&ob->id, "CurveGuide");
 		((Curve *)ob->data)->flag |= CU_PATH | CU_3D;
 		ED_object_enter_editmode(C, 0);
-		ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+		ED_object_new_primitive_matrix(C, ob, loc, rot, mat, FALSE);
 		BLI_addtail(object_editcurve_get(ob), add_nurbs_primitive(C, ob, mat, CU_NURBS | CU_PRIM_PATH, 1));
 		if (!enter_editmode)
 			ED_object_exit_editmode(C, EM_FREEDATA);
@@ -546,6 +557,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
+	float dia;
 
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, NULL))
 		return OPERATOR_CANCELLED;
@@ -557,9 +569,9 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	else
 		DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 
-	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
+	dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat, FALSE);
 
-	add_metaball_primitive(C, obedit, mat, RNA_enum_get(op->ptr, "type"), newob);
+	add_metaball_primitive(C, obedit, mat, dia, RNA_enum_get(op->ptr, "type"), newob);
 
 	/* userdef */
 	if (newob && !enter_editmode) {

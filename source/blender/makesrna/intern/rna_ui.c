@@ -85,7 +85,7 @@ static ARegionType *region_type_find(ReportList *reports, int space_type, int re
 	
 	/* region type not found? abort */
 	if (art == NULL) {
-		BKE_report(reports, RPT_ERROR, "Region not found in spacetype");
+		BKE_report(reports, RPT_ERROR, "Region not found in space type");
 		return NULL;
 	}
 

@@ -225,5 +225,4 @@ public:
 
 };
 
-#endif //__SCA_IOBJECT_H__
-
+#endif  /* __SCA_IOBJECT_H__ */

@@ -46,6 +46,7 @@
 #include "WM_types.h"
 
 #include "ED_mask.h"  /* own include */
+#include "ED_screen.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -97,7 +98,7 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 				                                                          &tot_diff_point);
 
 				if (diff_points) {
-					int i, tot_point;
+					int j, tot_point;
 					unsigned int tot_feather_point;
 					float *feather_points = NULL, *points;
 
@@ -114,26 +115,26 @@ static int find_nearest_diff_point(const bContext *C, Mask *mask, const float no
 						tot_point = tot_diff_point;
 					}
 
-					for (i = 0; i < tot_point - 1; i++) {
+					for (j = 0; j < tot_point - 1; j++) {
 						float cur_dist, a[2], b[2];
 
-						a[0] = points[2 * i] * scalex;
-						a[1] = points[2 * i + 1] * scaley;
+						a[0] = points[2 * j] * scalex;
+						a[1] = points[2 * j + 1] * scaley;
 
-						b[0] = points[2 * i + 2] * scalex;
-						b[1] = points[2 * i + 3] * scaley;
+						b[0] = points[2 * j + 2] * scalex;
+						b[1] = points[2 * j + 3] * scaley;
 
 						cur_dist = dist_to_line_segment_v2(co, a, b);
 
 						if (cur_dist < dist) {
 							if (tangent)
-								sub_v2_v2v2(tangent, &diff_points[2 * i + 2], &diff_points[2 * i]);
+								sub_v2_v2v2(tangent, &diff_points[2 * j + 2], &diff_points[2 * j]);
 
 							point_masklay = masklay;
 							point_spline = spline;
 							point = use_deform ? &spline->points[(cur_point - spline->points_deform)] : cur_point;
 							dist = cur_dist;
-							u = (float)i / tot_point;
+							u = (float)j / tot_point;
 
 						}
 					}
@@ -562,6 +563,11 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 	float co[2];
 
+	if (mask == NULL) {
+		/* if there's no active mask, create one */
+		mask = ED_mask_new(C, NULL);
+	}
+
 	masklay = BKE_mask_layer_active(mask);
 
 	if (masklay && masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
@@ -647,7 +653,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = add_vertex_exec;
 	ot->invoke = add_vertex_invoke;
-	ot->poll = ED_maskedit_mask_poll;
+	ot->poll = ED_operator_mask;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

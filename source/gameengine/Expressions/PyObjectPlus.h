@@ -548,7 +548,7 @@ public: \
 #define Py_HeaderPtr \
 public: \
 
-#endif // WITH_CXX_GUARDEDALLOC
+#endif  /* WITH_CXX_GUARDEDALLOC */
 
 #endif
 
@@ -633,4 +633,4 @@ public:
 PyObject *PyUnicode_From_STR_String(const STR_String& str);
 #endif
 
-#endif //  __PYOBJECTPLUS_H__
+#endif  /* __PYOBJECTPLUS_H__ */

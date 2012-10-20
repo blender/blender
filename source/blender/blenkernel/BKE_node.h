@@ -349,7 +349,7 @@ struct bNodeSocket *nodeInsertSocket(struct bNodeTree *ntree, struct bNode *node
 void nodeRemoveSocket(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock);
 void nodeRemoveAllSockets(struct bNodeTree *ntree, struct bNode *node);
 
-void            nodeAddToPreview(struct bNode *node, float col[4], int x, int y, int do_manage);
+void            nodeAddToPreview(struct bNode *node, const float col[4], int x, int y, int do_manage);
 
 struct bNode	*nodeAddNode(struct bNodeTree *ntree, struct bNodeTemplate *ntemp);
 void            nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
@@ -551,6 +551,7 @@ struct ShadeResult;
 #define SH_NODE_OBJECT_INFO				167
 #define SH_NODE_PARTICLE_INFO           168
 #define SH_NODE_TEX_BRICK				169
+#define SH_NODE_BUMP					170
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
@@ -784,7 +785,9 @@ void ntreeTexCheckCyclics(struct bNodeTree *ntree);
 
 struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
 void ntreeTexEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);
-int ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, int osatex, short thread, struct Tex *tex, short which_output, int cfra, int preview, struct ShadeInput *shi, struct MTex *mtex);
+int ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target,
+                     float coord[3], float dxt[3], float dyt[3], int osatex, const short thread,
+                     struct Tex *tex, short which_output, int cfra, int preview, struct ShadeInput *shi, struct MTex *mtex);
 
 
 /*************************************************/

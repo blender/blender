@@ -145,5 +145,4 @@ protected:
 
 };
 
-#endif //__KX_CONSTRAINTACTUATOR_H__
-
+#endif  /* __KX_CONSTRAINTACTUATOR_H__ */

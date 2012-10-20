@@ -54,6 +54,8 @@ public:
 		int resolution_divider;
 		int num_tiles;
 		int num_rendered_tiles;
+		int tile_w;
+		int tile_h;
 		list<Tile> tiles;
 	} state;
 

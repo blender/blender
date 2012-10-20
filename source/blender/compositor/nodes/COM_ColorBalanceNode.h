@@ -35,4 +35,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // COM_ColorBalanceNODE_H
+#endif  /* COM_ColorBalanceNODE_H */

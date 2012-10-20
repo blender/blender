@@ -67,6 +67,7 @@ MINLINE void copy_v2_v2_short(short r[2], const short a[2]);
 MINLINE void copy_v3_v3_short(short r[3], const short a[3]);
 MINLINE void copy_v4_v4_short(short r[4], const short a[4]);
 /* int */
+MINLINE void zero_v3_int(int r[3]);
 MINLINE void copy_v2_v2_int(int r[2], const int a[2]);
 MINLINE void copy_v3_v3_int(int r[3], const int a[3]);
 MINLINE void copy_v4_v4_int(int r[4], const int a[4]);
@@ -139,12 +140,16 @@ MINLINE void star_m3_v3(float rmat[3][3], float a[3]);
 
 MINLINE float len_squared_v2(const float v[2]);
 MINLINE float len_squared_v3(const float v[3]);
+MINLINE float len_manhattan_v2(const float v[2]);
+MINLINE float len_manhattan_v3(const float v[3]);
 MINLINE float len_v2(const float a[2]);
 MINLINE float len_v2v2(const float a[2], const float b[2]);
 MINLINE float len_squared_v2v2(const float a[2], const float b[2]);
+MINLINE float len_squared_v3v3(const float a[3], const float b[3]);
+MINLINE float len_manhattan_v2v2(const float a[2], const float b[2]);
+MINLINE float len_manhattan_v3v3(const float a[3], const float b[3]);
 MINLINE float len_v3(const float a[3]);
 MINLINE float len_v3v3(const float a[3], const float b[3]);
-MINLINE float len_squared_v3v3(const float a[3], const float b[3]);
 
 MINLINE float normalize_v2(float r[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);

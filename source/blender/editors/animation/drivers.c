@@ -147,7 +147,7 @@ short ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int ar
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
 		BKE_reportf(reports, RPT_ERROR, 
-		            "Could not add Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)",
+		            "Could not add driver, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            id->name, rna_path);
 		return 0;
 	}
@@ -310,7 +310,7 @@ short ANIM_copy_driver(ReportList *reports, ID *id, const char rna_path[], int a
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "Could not find Driver to copy, as RNA Path is invalid for the given ID (ID = %s, Path = %s)",
+		            "Could not find driver to copy, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            id->name, rna_path);
 		return 0;
 	}
@@ -357,14 +357,14 @@ short ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int 
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "Could not paste Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)",
+		            "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            id->name, rna_path);
 		return 0;
 	}
 	
 	/* if the buffer is empty, cannot paste... */
 	if (channeldriver_copypaste_buf == NULL) {
-		BKE_report(reports, RPT_ERROR, "Paste Driver: No Driver to paste");
+		BKE_report(reports, RPT_ERROR, "Paste driver: no driver to paste");
 		return 0;
 	}
 	

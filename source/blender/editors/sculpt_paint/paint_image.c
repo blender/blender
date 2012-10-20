@@ -2554,7 +2554,6 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 			float (*outset_uv)[2] = ps->faceSeamUVs[face_index];
 			float insetCos[4][3]; /* inset face coords.  NOTE!!! ScreenSace for ortho, Worldspace in prespective view */
 
-			float fac;
 			float *vCoSS[4]; /* vertex screenspace coords */
 			
 			float bucket_clip_edges[2][2]; /* store the screenspace coords of the face, clipped by the bucket's screen aligned rectangle */
@@ -2636,6 +2635,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 									
 									/* test we're inside uvspace bucket and triangle bounds */
 									if (isect_point_quad_v2(uv, seam_subsection[0], seam_subsection[1], seam_subsection[2], seam_subsection[3])) {
+										float fac;
 										
 										/* We need to find the closest point along the face edge,
 										 * getting the screen_px_from_*** wont work because our actual location
@@ -2670,9 +2670,9 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 #if 1
 												/* get the UV on the line since we want to copy the pixels from there for bleeding */
 												float uv_close[2];
-												float fac = closest_to_line_v2(uv_close, uv, tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2]);
-												if      (fac < 0.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx1]);
-												else if (fac > 1.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx2]);
+												float uv_fac = closest_to_line_v2(uv_close, uv, tf_uv_pxoffset[fidx1], tf_uv_pxoffset[fidx2]);
+												if      (uv_fac < 0.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx1]);
+												else if (uv_fac > 1.0f) copy_v2_v2(uv_close, tf_uv_pxoffset[fidx2]);
 
 												if (side) {
 													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv_close, w);
@@ -2683,16 +2683,16 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 #else											/* this is buggy with quads, don't use for now */
 
 												/* Cheat, we know where we are along the edge so work out the weights from that */
-												fac = fac1 + (fac * (fac2 - fac1));
+												uv_fac = fac1 + (uv_fac * (fac2 - fac1));
 
 												w[0] = w[1] = w[2] = 0.0;
 												if (side) {
-													w[fidx1 ? fidx1 - 1 : 0] = 1.0f - fac;
-													w[fidx2 ? fidx2 - 1 : 0] = fac;
+													w[fidx1 ? fidx1 - 1 : 0] = 1.0f - uv_fac;
+													w[fidx2 ? fidx2 - 1 : 0] = uv_fac;
 												}
 												else {
-													w[fidx1] = 1.0f - fac;
-													w[fidx2] = fac;
+													w[fidx1] = 1.0f - uv_fac;
+													w[fidx2] = uv_fac;
 												}
 #endif
 											}
@@ -4249,7 +4249,7 @@ static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, 
 		IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect, ibuf->x, 0, 0,
 		                                  &scene->view_settings, &scene->display_settings,
 		                                  imapaintpartial.x1, imapaintpartial.y1,
-		                                  imapaintpartial.x2, imapaintpartial.y2);
+		                                  imapaintpartial.x2, imapaintpartial.y2, FALSE);
 	}
 	else {
 		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
@@ -5890,7 +5890,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (!ibuf) {
 		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
 		/* but could be other reasons. Should be handled in the future. nazgul */
-		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL offscreen buffer: %s", err_out);
+		BKE_reportf(op->reports, RPT_ERROR, "Failed to create OpenGL off-screen buffer: %s", err_out);
 		return OPERATOR_CANCELLED;
 	}
 

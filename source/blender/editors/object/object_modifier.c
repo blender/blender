@@ -1242,7 +1242,7 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (!secondob) {
-		BKE_report(op->reports, RPT_ERROR, "Second selected mesh object require to copy shape from");
+		BKE_report(op->reports, RPT_ERROR, "Second selected mesh object required to copy shape from");
 		return OPERATOR_CANCELLED;
 	}
 

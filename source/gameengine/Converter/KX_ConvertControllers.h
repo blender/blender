@@ -43,6 +43,4 @@ void BL_ConvertControllers(
 	class KX_BlenderSceneConverter* converter
 );
 
-
-#endif //__KX_CONVERTCONTROLLERS_H__
-
+#endif  /* __KX_CONVERTCONTROLLERS_H__ */

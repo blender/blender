@@ -3352,7 +3352,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "To 3D Object";
 	ot->idname = "TEXT_OT_to_3d_object";
-	ot->description = "Create 3d text object from active text data block";
+	ot->description = "Create 3D text object from active text data block";
 	
 	/* api callbacks */
 	ot->exec = text_to_3d_object_exec;

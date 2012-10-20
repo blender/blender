@@ -499,7 +499,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 	BMEdge *e = lwalk->cur, *nexte = NULL;
 	BMLoop *l;
 	BMVert *v;
-	int i;
+	int i = 0;
 
 	owalk = *lwalk;
 	BMW_state_remove(walker);
@@ -534,7 +534,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 	}
 	else if (l) { /* NORMAL EDGE WITH FACES */
 		int vert_edge_tot;
-		int stopi;
+		int stopi = 0;
 
 		v = BM_edge_other_vert(e, lwalk->lastv);
 

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_Node_h
-#define _COM_Node_h
+#ifndef __COM_NODE_H__
+#define __COM_NODE_H__
 
 #include "COM_NodeBase.h"
 #include "COM_InputSocket.h"
@@ -152,4 +152,4 @@ protected:
 private:
 };
 
-#endif
+#endif  /* __COM_NODE_H__ */

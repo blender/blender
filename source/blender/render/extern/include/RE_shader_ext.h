@@ -191,12 +191,12 @@ struct MTex;
 struct ImBuf;
 
 /* this one uses nodes */
-int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
+int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres);
 /* nodes disabled */
-int multitex_ext_safe(struct Tex *tex, float *texvec, struct TexResult *texres);
+int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres);
 /* only for internal node usage */
-int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres,
-	short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex);
+int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres,
+                   const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex);
 
 /* shaded view and bake */
 struct Render;

@@ -835,8 +835,9 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 					bt = block->buttons.last;
 					bt->flag = UI_TEXT_LEFT;
 				}
-				else /* XXX bug here, collums draw bottom item badly */
+				else {  /* XXX bug here, colums draw bottom item badly */
 					uiItemS(column);
+				}
 			}
 		}
 
@@ -2515,8 +2516,12 @@ static void ui_item_align(uiLayout *litem, short nr)
 				if (!bitem->but->alignnr)
 					bitem->but->alignnr = nr;
 		}
-		else if (item->type == ITEM_LAYOUT_ABSOLUTE) ;
-		else if (item->type == ITEM_LAYOUT_OVERLAP) ;
+		else if (item->type == ITEM_LAYOUT_ABSOLUTE) {
+			/* pass */
+		}
+		else if (item->type == ITEM_LAYOUT_OVERLAP) {
+			/* pass */
+		}
 		else if (item->type == ITEM_LAYOUT_BOX) {
 			box = (uiLayoutItemBx *)item;
 			box->roundbox->alignnr = nr;

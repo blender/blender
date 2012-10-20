@@ -109,6 +109,8 @@ static const char *locales[] = {
 	"hungarian", "hu_HU",
 	"portuguese-brazilian", "pt_BR",
 	"hebrew", "he_IL",
+	"estonian", "et_EE",
+	"esperanto", "eo", /* No country code for esperanto! ;) */
 };
 
 void BLF_lang_init(void)
@@ -169,7 +171,6 @@ void BLF_lang_set(const char *str)
 	char *locreturn;
 	const char *short_locale;
 	int ok = 1;
-	const char *long_locale = locales[2 * U.language];
 
 	if ((U.transopts & USER_DOTRANSLATE) == 0)
 		return;
@@ -180,25 +181,29 @@ void BLF_lang_set(const char *str)
 		short_locale = locales[2 * U.language + 1];
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
-	if (short_locale) {
-		char *envStr;
+	{
+		const char *long_locale = locales[2 * U.language];
 
-		if (U.language == 0) /* Use system setting. */
-			envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
-		else
-			envStr = BLI_sprintfN("LANG=%s", short_locale);
+		if (short_locale) {
+			char *envStr;
 
-		gettext_putenv(envStr);
-		MEM_freeN(envStr);
-	}
+			if (U.language == 0) /* Use system setting. */
+				envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
+			else
+				envStr = BLI_sprintfN("LANG=%s", short_locale);
 
-	locreturn = setlocale(LC_ALL, long_locale);
+			gettext_putenv(envStr);
+			MEM_freeN(envStr);
+		}
 
-	if (locreturn == NULL) {
-		if (G.debug & G_DEBUG)
-			printf("Could not change locale to %s\n", long_locale);
+		locreturn = setlocale(LC_ALL, long_locale);
 
-		ok = 0;
+		if (locreturn == NULL) {
+			if (G.debug & G_DEBUG)
+				printf("Could not change locale to %s\n", long_locale);
+
+			ok = 0;
+		}
 	}
 #else
 	{
@@ -212,11 +217,33 @@ void BLF_lang_set(const char *str)
 			get_language_variable("LANGUAGE", default_language, sizeof(default_language));
 
 		if (short_locale[0]) {
-			if (G.debug & G_DEBUG)
-				printf("Setting LANG= and LANGUAGE to %s\n", short_locale);
+			char *short_locale_utf8 = BLI_sprintfN("%s.UTF-8", short_locale);
 
-			BLI_setenv("LANG", short_locale);
-			BLI_setenv("LANGUAGE", short_locale);
+			if (G.debug & G_DEBUG)
+				printf("Setting LANG and LANGUAGE to %s\n", short_locale_utf8);
+
+			locreturn = setlocale(LC_ALL, short_locale_utf8);
+
+			if (locreturn != NULL) {
+				BLI_setenv("LANG", short_locale_utf8);
+				BLI_setenv("LANGUAGE", short_locale_utf8);
+			}
+			else {
+				if (G.debug & G_DEBUG)
+					printf("Setting LANG and LANGUAGE to %s\n", short_locale);
+
+				locreturn = setlocale(LC_ALL, short_locale);
+
+				if (locreturn != NULL) {
+					BLI_setenv("LANG", short_locale);
+					BLI_setenv("LANGUAGE", short_locale);
+				}
+			}
+
+			if (G.debug & G_DEBUG && locreturn == NULL)
+				printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
+
+			MEM_freeN(short_locale_utf8);
 		}
 		else {
 			if (G.debug & G_DEBUG)
@@ -224,43 +251,27 @@ void BLF_lang_set(const char *str)
 
 			BLI_setenv("LANG", default_lang);
 			BLI_setenv("LANGUAGE", default_language);
+			locreturn = setlocale(LC_ALL, "");
+
+			if (G.debug & G_DEBUG && locreturn == NULL)
+				printf("Could not reset locale\n");
 		}
 
-		locreturn = setlocale(LC_ALL, short_locale);
-
 		if (locreturn == NULL) {
-			char *short_locale_utf8 = NULL;
+			char language[65];
 
-			if (short_locale[0]) {
-				short_locale_utf8 = BLI_sprintfN("%s.UTF-8", short_locale);
-				locreturn = setlocale(LC_ALL, short_locale_utf8);
-			}
+			get_language(short_locale, default_lang, language, sizeof(language));
 
-			if (locreturn == NULL) {
-				char language[65];
+			if (G.debug & G_DEBUG)
+				printf("Fallback to LANG=%s and LANGUAGE=%s\n", default_lang, language);
 
-				get_language(long_locale, default_lang, language, sizeof(language));
+			/* Fallback to default settings. */
+			BLI_setenv("LANG", default_lang);
+			BLI_setenv("LANGUAGE", language);
 
-				if (G.debug & G_DEBUG) {
-					if (short_locale[0])
-						printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
-					else
-						printf("Could not reset locale\n");
+			locreturn = setlocale(LC_ALL, "");
 
-					printf("Fallback to LANG=%s and LANGUAGE=%s\n", default_lang, language);
-				}
-
-				/* Fallback to default settings. */
-				BLI_setenv("LANG", default_lang);
-				BLI_setenv("LANGUAGE", language);
-
-				locreturn = setlocale(LC_ALL, "");
-
-				ok = 0;
-			}
-
-			if (short_locale_utf8)
-				MEM_freeN(short_locale_utf8);
+			ok = 0;
 		}
 	}
 #endif

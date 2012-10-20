@@ -645,7 +645,7 @@ static PyGetSetDef bpy_bmface_getseters[] = {
 
 static PyGetSetDef bpy_bmloop_getseters[] = {
 	/* generic */
-	// flags are available but not used for loops.
+	/* flags are available but not used for loops. */
 	// {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
 	// {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
 	{(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},

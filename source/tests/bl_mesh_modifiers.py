@@ -846,7 +846,7 @@ if __name__ == "__main__":
     @persistent
     def load_handler(dummy):
         print("Load Handler:", bpy.data.filepath)
-        if load_handler.first == False:
+        if load_handler.first is False:
             bpy.app.handlers.scene_update_post.remove(load_handler)
             try:
                 main()

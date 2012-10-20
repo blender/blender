@@ -87,5 +87,5 @@ private:
 	bool	m_bReleaseContents;
 };
 
-#endif // !defined __LISTVALUE_H__
+#endif  /* __LISTVALUE_H__ */
 

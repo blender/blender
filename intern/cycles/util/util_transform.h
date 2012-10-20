@@ -41,6 +41,7 @@ typedef struct Transform {
 
 typedef struct MotionTransform {
 	Transform pre;
+	Transform mid;
 	Transform post;
 } MotionTransform;
 
@@ -304,10 +305,18 @@ __device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
 	float costheta = dot(q1, q2);
 
+	/* rotate around shortest angle */
+	if(costheta < 0.0f) {
+		costheta = -costheta;
+		q1 = -q1;
+	}
+
 	if(costheta > 0.9995f) {
+		/* linear interpolation in degenerate case */
 		return normalize((1.0f - t)*q1 + t*q2);
 	}
 	else  {
+		/* slerp */
 		float theta = acosf(clamp(costheta, -1.0f, 1.0f));
 		float thetap = theta * t;
 		float4 qperp = normalize(q2 - q1 * costheta);
@@ -375,11 +384,37 @@ __device void transform_motion_interpolate(Transform *tfm, const MotionTransform
 {
 	Transform decomp;
 
-	decomp.x = quat_interpolate(motion->pre.x, motion->post.x, t);
-	decomp.y = (1.0f - t)*motion->pre.y + t*motion->post.y;
-	decomp.z = (1.0f - t)*motion->pre.z + t*motion->post.z;
-	decomp.w = (1.0f - t)*motion->pre.w + t*motion->post.w;
+	/* 3 point bezier curve interpolation for position */
+	float3 Ppre = float4_to_float3(motion->pre.y);
+	float3 Pmid = float4_to_float3(motion->mid.y);
+	float3 Ppost = float4_to_float3(motion->post.y);
 
+	float3 Pcontrol = 2.0f*Pmid - 0.5f*(Ppre + Ppost);
+	float3 P = Ppre*t*t + Pcontrol*2.0f*t*(1.0f - t) + Ppost*(1.0f - t)*(1.0f - t);
+
+	decomp.y.x = P.x;
+	decomp.y.y = P.y;
+	decomp.y.z = P.z;
+
+	/* linear interpolation for rotation and scale */
+	if(t < 0.5f) {
+		t *= 2.0f;
+
+		decomp.x = quat_interpolate(motion->pre.x, motion->mid.x, t);
+		decomp.y.w = (1.0f - t)*motion->pre.y.w + t*motion->mid.y.w;
+		decomp.z = (1.0f - t)*motion->pre.z + t*motion->mid.z;
+		decomp.w = (1.0f - t)*motion->pre.w + t*motion->mid.w;
+	}
+	else {
+		t = (t - 0.5f)*2.0f;
+
+		decomp.x = quat_interpolate(motion->mid.x, motion->post.x, t);
+		decomp.y.w = (1.0f - t)*motion->mid.y.w + t*motion->post.y.w;
+		decomp.z = (1.0f - t)*motion->mid.z + t*motion->post.z;
+		decomp.w = (1.0f - t)*motion->mid.w + t*motion->post.w;
+	}
+
+	/* compose rotation, translation, scale into matrix */
 	transform_compose(tfm, &decomp);
 }
 
@@ -390,7 +425,7 @@ __device_inline bool operator==(const MotionTransform& A, const MotionTransform&
 	return (A.pre == B.pre && A.post == B.post);
 }
 
-void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion);
+void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
 
 #endif
 

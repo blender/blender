@@ -64,4 +64,4 @@ void BLI_bpath_missing_files_find(struct Main *bmain, const char *searchpath, st
 void BLI_bpath_relative_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
 void BLI_bpath_absolute_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
 
-#endif // __BLI_BPATH_H__
+#endif  /* __BLI_BPATH_H__ */

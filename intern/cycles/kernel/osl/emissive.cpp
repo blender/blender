@@ -36,6 +36,9 @@
 
 #include "osl_closures.h"
 
+#include "kernel_types.h"
+#include "closure/emissive.h"
+
 CCL_NAMESPACE_BEGIN
 
 using namespace OSL;
@@ -52,50 +55,33 @@ public:
 	GenericEmissiveClosure() { }
 
 	void setup() {}
-
 	size_t memsize() const { return sizeof(*this); }
-
 	const char *name() const { return "emission"; }
 
-	void print_on(std::ostream &out) const {
+	void print_on(std::ostream &out) const
+	{
 		out << name() << "()";
 	}
 
 	Color3 eval(const Vec3 &Ng, const Vec3 &omega_out) const
 	{
-		float cosNO = fabsf(Ng.dot(omega_out));
-		float res = cosNO > 0 ? 1.0f : 0.0f;
-		return Color3(res, res, res);
+		float3 result = emissive_eval(TO_FLOAT3(Ng), TO_FLOAT3(omega_out));
+		return TO_COLOR3(result);
 	}
 
 	void sample(const Vec3 &Ng, float randu, float randv,
 	            Vec3 &omega_out, float &pdf) const
 	{
-		// We don't do anything sophisticated here for the step
-		// We just sample the whole cone uniformly to the cosine
-		Vec3 T, B;
-		make_orthonormals(Ng, T, B);
-		float phi = 2 * (float) M_PI * randu;
-		float cosTheta = sqrtf(1.0f - 1.0f * randv);
-		float sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
-		omega_out = (cosf(phi) * sinTheta) * T +
-		            (sinf(phi) * sinTheta) * B +
-		            cosTheta  * Ng;
-		pdf = 1.0f / float(M_PI);
+		float3 omega_out_;
+		emissive_sample(TO_FLOAT3(Ng), randu, randv, &omega_out_, &pdf);
+		omega_out = TO_VEC3(omega_out_);
 	}
 
-	/// Return the probability distribution function in the direction omega_out,
-	/// given the parameters and the light's surface normal.  This MUST match
-	/// the PDF computed by sample().
-	float pdf(const Vec3 &Ng,
-	          const Vec3 &omega_out) const
+	float pdf(const Vec3 &Ng, const Vec3 &omega_out) const
 	{
-		float cosNO = Ng.dot(omega_out);
-		return cosNO > 0 ? 1.0f : 0.0f;
+		return emissive_pdf(TO_FLOAT3(Ng), TO_FLOAT3(omega_out));
 	}
 };
-
-
 
 ClosureParam *closure_emission_params()
 {

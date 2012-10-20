@@ -37,17 +37,23 @@ extern "C" {
 
 struct FLUID_3D;
 
-// export
-void smoke_export(struct FLUID_3D *fluid, float *dt, float *dx, float **dens, float **densold, float **heat, float **heatold, float **vx, float **vy, float **vz, float **vxold, float **vyold, float **vzold, unsigned char **obstacles);
-
 // low res
-struct FLUID_3D *smoke_init(int *res, float *p0, float dtdef);
+struct FLUID_3D *smoke_init(int *res, float dx, float dtdef, int use_heat, int use_fire, int use_colors);
 void smoke_free(struct FLUID_3D *fluid);
 
-void smoke_initBlenderRNA(struct FLUID_3D *fluid, float *alpha, float *beta, float *dt_factor, float *vorticity, int *border_colli);
-void smoke_step(struct FLUID_3D *fluid, float dtSubdiv);
+void smoke_initBlenderRNA(struct FLUID_3D *fluid, float *alpha, float *beta, float *dt_factor, float *vorticity, int *border_colli, float *burning_rate,
+						  float *flame_smoke, float *flame_smoke_color, float *flame_vorticity, float *flame_ignition_temp, float *flame_max_temp);
+void smoke_step(struct FLUID_3D *fluid, float gravity[3], float dtSubdiv);
 
 float *smoke_get_density(struct FLUID_3D *fluid);
+float *smoke_get_flame(struct FLUID_3D *fluid);
+float *smoke_get_fuel(struct FLUID_3D *fluid);
+float *smoke_get_react(struct FLUID_3D *fluid);
+float *smoke_get_color_r(struct FLUID_3D *fluid);
+float *smoke_get_color_g(struct FLUID_3D *fluid);
+float *smoke_get_color_b(struct FLUID_3D *fluid);
+void smoke_get_rgba(struct FLUID_3D *fluid, float *data, int sequential);
+void smoke_get_rgba_from_density(struct FLUID_3D *fluid, float color[3], float *data, int sequential);
 float *smoke_get_heat(struct FLUID_3D *fluid);
 float *smoke_get_velocity_x(struct FLUID_3D *fluid);
 float *smoke_get_velocity_y(struct FLUID_3D *fluid);
@@ -68,19 +74,44 @@ size_t smoke_get_index2d(int x, int max_x, int y);
 void smoke_dissolve(struct FLUID_3D *fluid, int speed, int log);
 
 // wavelet turbulence functions
-struct WTURBULENCE *smoke_turbulence_init(int *res, int amplify, int noisetype);
+struct WTURBULENCE *smoke_turbulence_init(int *res, int amplify, int noisetype, int use_fire, int use_colors);
 void smoke_turbulence_free(struct WTURBULENCE *wt);
 void smoke_turbulence_step(struct WTURBULENCE *wt, struct FLUID_3D *fluid);
 
 float *smoke_turbulence_get_density(struct WTURBULENCE *wt);
+float *smoke_turbulence_get_color_r(struct WTURBULENCE *wt);
+float *smoke_turbulence_get_color_g(struct WTURBULENCE *wt);
+float *smoke_turbulence_get_color_b(struct WTURBULENCE *wt);
+void smoke_turbulence_get_rgba(struct WTURBULENCE *wt, float *data, int sequential);
+void smoke_turbulence_get_rgba_from_density(struct WTURBULENCE *wt, float color[3], float *data, int sequential);
+float *smoke_turbulence_get_flame(struct WTURBULENCE *wt);
+float *smoke_turbulence_get_fuel(struct WTURBULENCE *wt);
+float *smoke_turbulence_get_react(struct WTURBULENCE *wt);
 void smoke_turbulence_get_res(struct WTURBULENCE *wt, int *res);
+int smoke_turbulence_get_cells(struct WTURBULENCE *wt);
 void smoke_turbulence_set_noise(struct WTURBULENCE *wt, int type);
 void smoke_initWaveletBlenderRNA(struct WTURBULENCE *wt, float *strength);
-
 void smoke_dissolve_wavelet(struct WTURBULENCE *wt, int speed, int log);
 
-// export
-void smoke_turbulence_export(struct WTURBULENCE *wt, float **dens, float **densold, float **tcu, float **tcv, float **tcw);
+/* export */
+void smoke_export(struct FLUID_3D *fluid, float *dt, float *dx, float **dens, float **react, float **flame, float **fuel, float **heat, float **heatold,
+				  float **vx, float **vy, float **vz, float **r, float **g, float **b, unsigned char **obstacles);
+void smoke_turbulence_export(struct WTURBULENCE *wt, float **dens, float **react, float **flame, float **fuel,
+							 float **r, float **g, float **b, float **tcu, float **tcv, float **tcw);
+
+/* flame spectrum */
+void flame_get_spectrum(unsigned char *spec, int width, float t1, float t2);
+
+/* data fields */
+int smoke_has_heat(struct FLUID_3D *fluid);
+int smoke_has_fuel(struct FLUID_3D *fluid);
+int smoke_has_colors(struct FLUID_3D *fluid);
+int smoke_turbulence_has_fuel(struct WTURBULENCE *wt);
+int smoke_turbulence_has_colors(struct WTURBULENCE *wt);
+
+void smoke_ensure_heat(struct FLUID_3D *fluid);
+void smoke_ensure_fire(struct FLUID_3D *fluid, struct WTURBULENCE *wt);
+void smoke_ensure_colors(struct FLUID_3D *fluid, struct WTURBULENCE *wt, float init_r, float init_g, float init_b);
 
 #ifdef __cplusplus
 }

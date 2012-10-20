@@ -184,7 +184,10 @@ static void rna_Image_update(Image *image, ReportList *reports)
 		return;
 	}
 
-	IMB_rect_from_float(ibuf);
+	if (ibuf->rect)
+		IMB_rect_from_float(ibuf);
+
+	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
 static void rna_Image_scale(Image *image, ReportList *reports, int width, int height)
@@ -297,9 +300,9 @@ void RNA_api_image(StructRNA *srna)
 	func = RNA_def_function(srna, "scale", "rna_Image_scale");
 	RNA_def_function_ui_description(func, "Scale the image in pixels");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_int(func, "width", 0, 1, 10000, "", "Width", 1, 10000);
+	parm = RNA_def_int(func, "width", 1, 1, 10000, "", "Width", 1, 10000);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "height", 0, 1, 10000, "", "Height", 1, 10000);
+	parm = RNA_def_int(func, "height", 1, 1, 10000, "", "Height", 1, 10000);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "gl_touch", "rna_Image_gl_touch");

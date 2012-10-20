@@ -520,8 +520,8 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
             row = col.row(align=True)
 
             ups = toolsettings.unified_paint_settings
-            if ((ups.use_unified_size and ups.use_locked_size) or
-                ((not ups.use_unified_size) and brush.use_locked_size)):
+            if     ((ups.use_unified_size and ups.use_locked_size) or
+                    ((not ups.use_unified_size) and brush.use_locked_size)):
                 self.prop_unified_size(row, context, brush, "use_locked_size", icon='LOCKED')
                 self.prop_unified_size(row, context, brush, "unprojected_radius", slider=True, text="Radius")
             else:
@@ -707,8 +707,8 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         settings = cls.paint_settings(context)
-        return (settings and settings.brush and (context.sculpt_object or
-                             context.image_paint_object))
+        return (settings and settings.brush and
+                (context.sculpt_object or context.image_paint_object))
 
     def draw(self, context):
         layout = self.layout
@@ -747,10 +747,12 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
     @classmethod
     def poll(cls, context):
         settings = cls.paint_settings(context)
-        return (settings and settings.brush and (context.sculpt_object or
-                             context.vertex_paint_object or
-                             context.weight_paint_object or
-                             context.image_paint_object))
+        return (settings and
+                settings.brush and
+                (context.sculpt_object or
+                 context.vertex_paint_object or
+                 context.weight_paint_object or
+                 context.image_paint_object))
 
     def draw(self, context):
         layout = self.layout
@@ -965,6 +967,8 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
         col.operator("object.vertex_group_clean", text="Clean")
         col.operator("object.vertex_group_levels", text="Levels")
         col.operator("object.vertex_group_blend", text="Blend")
+        col.operator("object.vertex_group_transfer_weight", text="Transfer Weights")
+        col.operator("object.vertex_group_limit_total", text="Limit Total")
         col.operator("object.vertex_group_fix", text="Fix Deforms")
 
 

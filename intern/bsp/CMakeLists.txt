@@ -29,11 +29,10 @@ set(INC
 	../guardedalloc
 	../memutil
 	../moto/include
-	../../extern/carve/include
 )
 
 set(INC_SYS
-
+	../../extern/carve/include
 )
 
 set(SRC

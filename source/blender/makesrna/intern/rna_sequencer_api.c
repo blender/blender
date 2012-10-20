@@ -234,9 +234,10 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 }
 #else /* WITH_AUDASPACE */
 static Sequence *rna_Sequences_new_sound(ID *UNUSED(id), Editing *UNUSED(ed), Main *UNUSED(bmain), ReportList *reports,
-                                         const char *UNUSED(name), const char *UNUSED(file), int UNUSED(channel), int UNUSED(start_frame))
+                                         const char *UNUSED(name), const char *UNUSED(file), int UNUSED(channel),
+                                         int UNUSED(start_frame))
 {
-	BKE_report(reports, RPT_ERROR, "Blender compiled without Audaspace support.");
+	BKE_report(reports, RPT_ERROR, "Blender compiled without Audaspace support");
 	return NULL;
 }
 #endif /* WITH_AUDASPACE */
@@ -249,39 +250,37 @@ static Sequence *rna_Sequences_new_effect(ID *id, Editing *ed, ReportList *repor
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
 	struct SeqEffectHandle sh;
+	int num_inputs = BKE_sequence_effect_get_num_inputs(type);
 
-	switch (BKE_sequence_effect_get_num_inputs(type)) {
+	switch (num_inputs) {
 		case 0:
 			if (end_frame <= start_frame) {
-				BKE_report(reports, RPT_ERROR,
-				           "Sequences.new_effect: End frame not set");
+				BKE_report(reports, RPT_ERROR, "Sequences.new_effect: end frame not set");
 				return NULL;
 			}
 			break;
 		case 1:
 			if (seq1 == NULL) {
-				BKE_report(reports, RPT_ERROR,
-				           "Sequences.new_effect: Effect takes 1 input sequence");
+				BKE_report(reports, RPT_ERROR, "Sequences.new_effect: effect takes 1 input sequence");
 				return NULL;
 			}
 			break;
 		case 2:
 			if (seq1 == NULL || seq2 == NULL) {
-				BKE_report(reports, RPT_ERROR,
-				           "Sequences.new_effect: Effect takes 2 input sequences");
+				BKE_report(reports, RPT_ERROR, "Sequences.new_effect: effect takes 2 input sequences");
 				return NULL;
 			}
 			break;
 		case 3:
 			if (seq1 == NULL || seq2 == NULL || seq3 == NULL) {
-				BKE_report(reports, RPT_ERROR,
-				           "Sequences.new_effect: Effect takes 3 input sequences");
+				BKE_report(reports, RPT_ERROR, "Sequences.new_effect: effect takes 3 input sequences");
 				return NULL;
 			}
 			break;
 		default:
-			BKE_report(reports, RPT_ERROR,
-			           "Sequences.new_effect: BKE_sequence_effect_get_num_inputs() > 3 (should never happen)");
+			BKE_reportf(reports, RPT_ERROR,
+			            "Sequences.new_effect: effect expects more than 3 inputs (%d, should never happen!)",
+			            num_inputs);
 			return NULL;
 	}
 
@@ -456,7 +455,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_clip", "rna_Sequences_new_clip");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new movie clip sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "clip", "MovieClip", "", "Movie clip to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
@@ -472,8 +471,8 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new_mask", "rna_Sequences_new_mask");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	RNA_def_function_ui_description(func, "Add a new movie clip sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	RNA_def_function_ui_description(func, "Add a new mask sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "mask", "Mask", "", "Mask to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
@@ -490,7 +489,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_scene", "rna_Sequences_new_scene");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new scene sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
@@ -507,7 +506,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_image", "rna_Sequences_new_image");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new image sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "filepath", "File", 0, "", "Filepath to image");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -524,7 +523,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_movie", "rna_Sequences_new_movie");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new movie sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "filepath", "File", 0, "", "Filepath to movie");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -540,8 +539,8 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new_sound", "rna_Sequences_new_sound");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID | FUNC_USE_MAIN);
-	RNA_def_function_ui_description(func, "Add a new movie clip sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	RNA_def_function_ui_description(func, "Add a new sound sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "filepath", "File", 0, "", "Filepath to movie");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -558,7 +557,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_effect", "rna_Sequences_new_effect");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new effect sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "type", seq_effect_items, 0, "Type",
 	                    "type for the new sequence");

@@ -39,6 +39,8 @@ except:
 TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 BRANCHES_DIR = settings.BRANCHES_DIR
 
+IMPORT_LANGUAGES_SKIP = settings.IMPORT_LANGUAGES_SKIP
+
 RTL_PREPROCESS_FILE = settings.RTL_PREPROCESS_FILE
 
 PY3 = settings.PYTHON3_EXEC
@@ -63,7 +65,7 @@ def main():
         threshold = float(args.threshold) / 100.0
 
     for lang in os.listdir(BRANCHES_DIR):
-        if args.langs and lang not in args.langs:
+        if (args.langs and lang not in args.langs) or lang in IMPORT_LANGUAGES_SKIP:
             continue
         po = os.path.join(BRANCHES_DIR, lang, ".".join((lang, "po")))
         if os.path.exists(po):

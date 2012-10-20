@@ -83,5 +83,4 @@ public:
 #endif
 };
 
-#endif //__KX_LIGHT_H__
-
+#endif  /* __KX_LIGHT_H__ */

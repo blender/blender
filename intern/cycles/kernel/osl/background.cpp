@@ -46,22 +46,15 @@ using namespace OSL;
 /// to return a color in background shaders. No methods,
 /// only the weight is taking into account
 ///
-class GenericBackgroundClosure : public BackgroundClosure {
+class GenericBackgroundClosure : public OSL::BackgroundClosure {
 public:
 	GenericBackgroundClosure() {}
 
 	void setup() {};
-
 	size_t memsize() const { return sizeof(*this); }
-
 	const char *name() const { return "background"; }
-
-	void print_on(std::ostream &out) const {
-		out << name() << " ()";
-	}
-
+	void print_on(std::ostream &out) const { out << name() << " ()"; }
 };
-
 
 /// Holdout closure
 ///
@@ -75,16 +68,10 @@ public:
 	HoldoutClosure () : ClosurePrimitive(Holdout) {}
 
 	void setup() {};
-
 	size_t memsize() const { return sizeof(*this); }
-
 	const char *name() const { return "holdout"; }
-
-	void print_on(std::ostream &out) const {
-		out << name() << " ()";
-	}
+	void print_on(std::ostream &out) const { out << name() << " ()"; }
 };
-
 
 ClosureParam *closure_background_params()
 {

@@ -40,6 +40,7 @@ struct ARegionType;
 struct BoundBox;
 struct DerivedMesh;
 struct Object;
+struct SmokeDomainSettings;
 struct ViewContext;
 struct bAnimVizSettings;
 struct bContext;
@@ -49,8 +50,6 @@ struct bScreen;
 struct wmNDOFMotionData;
 struct wmOperatorType;
 struct wmWindowManager;
-
-#define BL_NEAR_CLIP 0.001
 
 /* drawing flags: */
 enum {
@@ -97,6 +96,7 @@ void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
 void VIEW3D_OT_manipulator(struct wmOperatorType *ot);
 void VIEW3D_OT_enable_manipulator(struct wmOperatorType *ot);
 void VIEW3D_OT_render_border(struct wmOperatorType *ot);
+void VIEW3D_OT_clear_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
@@ -212,7 +212,20 @@ ARegion *view3d_has_tools_region(ScrArea *sa);
 extern const char *view3d_context_dir[]; /* doc access */
 
 /* draw_volume.c */
-void draw_volume(struct ARegion *ar, struct GPUTexture *tex, float min[3], float max[3], int res[3], float dx, struct GPUTexture *tex_shadow);
+void draw_smoke_volume(struct SmokeDomainSettings *sds, struct Object *ob,
+                       struct GPUTexture *tex, float min[3], float max[3],
+                       int res[3], float dx, float base_scale, float viewnormal[3],
+                       struct GPUTexture *tex_shadow, struct GPUTexture *tex_flame);
+
+//#define SMOKE_DEBUG_VELOCITY
+//#define SMOKE_DEBUG_HEAT
+
+#ifdef SMOKE_DEBUG_VELOCITY
+void draw_smoke_velocity(struct SmokeDomainSettings *domain, struct Object *ob);
+#endif
+#ifdef SMOKE_DEBUG_HEAT
+void draw_smoke_heat(struct SmokeDomainSettings *domain, struct Object *ob);
+#endif
 
 /* workaround for trivial but noticeable camera bug caused by imprecision
  * between view border calculation in 2D/3D space, workaround for bug [#28037].

@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_CWISE_NULLARY_OP_H
 #define EIGEN_CWISE_NULLARY_OP_H
+
+namespace Eigen {
 
 /** \class CwiseNullaryOp
   * \ingroup Core_Module
@@ -100,6 +87,9 @@ class CwiseNullaryOp : internal::no_assignment_operator,
     {
       return m_functor.packetOp(index);
     }
+
+    /** \returns the functor representing the nullary operation */
+    const NullaryOp& functor() const { return m_functor; }
 
   protected:
     const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
@@ -238,6 +228,8 @@ DenseBase<Derived>::Constant(const Scalar& value)
   * assumed to be a(0), a(1), ..., a(size). This assumption allows for better vectorization
   * and yields faster code than the random access version.
   *
+  * When size is set to 1, a vector of length 1 containing 'high' is returned.
+  *
   * \only_for_vectors
   *
   * Example: \include DenseBase_LinSpaced_seq.cpp
@@ -270,6 +262,7 @@ DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& hig
   * \brief Sets a linearly space vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
+  * When size is set to 1, a vector of length 1 containing 'high' is returned.
   *
   * \only_for_vectors
   *
@@ -381,6 +374,7 @@ PlainObjectBase<Derived>::setConstant(Index rows, Index cols, const Scalar& valu
   * \brief Sets a linearly space vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
+  * When size is set to 1, a vector of length 1 containing 'high' is returned.
   *
   * \only_for_vectors
   *
@@ -394,6 +388,23 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index size, const 
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return derived() = Derived::NullaryExpr(size, internal::linspaced_op<Scalar,false>(low,high,size));
+}
+
+/**
+  * \brief Sets a linearly space vector.
+  *
+  * The function fill *this with equally spaced values in the closed interval [low,high].
+  * When size is set to 1, a vector of length 1 containing 'high' is returned.
+  *
+  * \only_for_vectors
+  *
+  * \sa setLinSpaced(Index, const Scalar&, const Scalar&), CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(const Scalar& low, const Scalar& high)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  return setLinSpaced(size(), low, high);
 }
 
 // zero:
@@ -847,5 +858,7 @@ EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::BasisReturnType MatrixBa
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::BasisReturnType MatrixBase<Derived>::UnitW()
 { return Derived::Unit(3); }
+
+} // end namespace Eigen
 
 #endif // EIGEN_CWISE_NULLARY_OP_H

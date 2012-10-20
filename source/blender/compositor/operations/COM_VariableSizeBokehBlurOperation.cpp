@@ -192,7 +192,7 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
 	cl_int maxBlur;
 	cl_float threshold = this->m_threshold;
 	
-	MemoryBuffer *sizeMemoryBuffer = (MemoryBuffer *)this->m_inputSizeProgram->getInputMemoryBuffer(inputMemoryBuffers);
+	MemoryBuffer *sizeMemoryBuffer = this->m_inputSizeProgram->getInputMemoryBuffer(inputMemoryBuffers);
 
 	const float max_dim = max(m_width, m_height);
 	cl_float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;

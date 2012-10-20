@@ -97,5 +97,4 @@ public:
 #endif
 };
 
-#endif //__KX_RADARSENSOR_H__
-
+#endif  /* __KX_RADARSENSOR_H__ */

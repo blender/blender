@@ -2532,7 +2532,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float shadfac[4])
 
 #if 0
 /* only when face points away from lamp, in direction of lamp, trace ray and find first exit point */
-static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
+static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float co[3])
 {
 	Isect isec;
 	float lampco[3];

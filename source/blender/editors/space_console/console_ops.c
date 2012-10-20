@@ -580,7 +580,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		console_select_offset(sc, -1);
+		console_select_offset(sc, -stride);
 	}
 
 	console_textview_update_rect(sc, ar);

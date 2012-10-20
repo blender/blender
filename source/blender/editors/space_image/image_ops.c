@@ -430,11 +430,16 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->type == MOUSEZOOM) {
 		SpaceImage *sima = CTX_wm_space_image(C);
 		ARegion *ar = CTX_wm_region(C);
-		float factor, location[2];
+		float delta, factor, location[2];
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
 
-		factor = 1.0f + (event->x - event->prevx + event->y - event->prevy) / 300.0f;
+		delta = event->x - event->prevx + event->y - event->prevy;
+
+		if (U.uiflag & USER_ZOOM_INVERT)
+			delta *= -1;
+
+		factor = 1.0f + delta / 300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 		sima_zoom_set(sima, ar, sima->zoom * factor, location);
 		ED_region_tag_redraw(CTX_wm_region(C));
@@ -452,11 +457,16 @@ static int image_view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	ARegion *ar = CTX_wm_region(C);
 	ViewZoomData *vpd = op->customdata;
-	float factor;
+	float delta, factor;
 
 	switch (event->type) {
 		case MOUSEMOVE:
-			factor = 1.0f + (vpd->x - event->x + vpd->y - event->y) / 300.0f;
+			delta = event->x - vpd->x + event->y - vpd->y;
+
+			if (U.uiflag & USER_ZOOM_INVERT)
+				delta *= -1;
+
+			factor = 1.0f + delta / 300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
 			sima_zoom_set(sima, ar, vpd->zoom * factor, vpd->location);
 			ED_region_tag_redraw(CTX_wm_region(C));
@@ -496,7 +506,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING;
 	
 	/* properties */
-	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
+	RNA_def_float(ot->srna, "factor", 0.0f, -FLT_MAX, FLT_MAX,
 	              "Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out", -FLT_MAX, FLT_MAX);
 }
 
@@ -800,7 +810,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	ot->poll = space_image_main_area_poll;
 	
 	/* properties */
-	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
+	RNA_def_float(ot->srna, "ratio", 0.0f, -FLT_MAX, FLT_MAX,
 	              "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 
@@ -1259,8 +1269,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else {
-			if (BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy))
-			{
+			if (BKE_imbuf_write_as(colormanaged_ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
 				ok = TRUE;
 			}
 		}
@@ -1549,7 +1558,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 	BLI_strncpy(di, ibuf->name, FILE_MAX);
 	BLI_splitdirstring(di, fi);
 	
-	BKE_reportf(op->reports, RPT_INFO, "%d Image(s) will be saved in %s", tot, di);
+	BKE_reportf(op->reports, RPT_INFO, "%d image(s) will be saved in %s", tot, di);
 
 	for (ibuf = sima->image->ibufs.first; ibuf; ibuf = ibuf->next) {
 		if (ibuf->userflags & IB_BITMAPDIRTY) {

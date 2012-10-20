@@ -343,7 +343,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 				light_ray.P = ray_offset(sd.P, sd.Ng);
 				light_ray.D = ao_D;
 				light_ray.t = kernel_data.background.ao_distance;
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 				light_ray.time = sd.time;
 #endif
 
@@ -368,7 +368,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 				BsdfEval L_light;
 				bool is_lamp;
 
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 				light_ray.time = sd.time;
 #endif
 
@@ -520,7 +520,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 				light_ray.P = ray_offset(sd.P, sd.Ng);
 				light_ray.D = ao_D;
 				light_ray.t = kernel_data.background.ao_distance;
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 				light_ray.time = sd.time;
 #endif
 
@@ -545,7 +545,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 				BsdfEval L_light;
 				bool is_lamp;
 
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 				light_ray.time = sd.time;
 #endif
 
@@ -728,7 +728,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 					light_ray.P = ray_offset(sd.P, sd.Ng);
 					light_ray.D = ao_D;
 					light_ray.t = kernel_data.background.ao_distance;
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 					light_ray.time = sd.time;
 #endif
 
@@ -748,7 +748,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 			BsdfEval L_light;
 			bool is_lamp;
 
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 			light_ray.time = sd.time;
 #endif
 
@@ -867,7 +867,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				bsdf_ray.dP = sd.dP;
 				bsdf_ray.dD = bsdf_domega_in;
 #endif
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 				bsdf_ray.time = sd.time;
 #endif
 
@@ -925,7 +925,7 @@ __device void kernel_path_trace(KernelGlobals *kg,
 	float lens_u = path_rng(kg, &rng, sample, PRNG_LENS_U);
 	float lens_v = path_rng(kg, &rng, sample, PRNG_LENS_V);
 
-#ifdef __MOTION__
+#ifdef __CAMERA_MOTION__
 	float time = path_rng(kg, &rng, sample, PRNG_TIME);
 #else
 	float time = 0.0f;

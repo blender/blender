@@ -79,6 +79,7 @@
 #include "BIF_glutil.h" /* for paint cursor */
 #include "BLF_api.h"
 
+#include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -1161,7 +1162,7 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Operator '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		            "Operator '%s' does not have register enabled, incorrect invoke function", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1192,11 +1193,12 @@ int WM_operator_redo_popup(bContext *C, wmOperator *op)
 {
 	/* CTX_wm_reports(C) because operator is on stack, not active in event system */
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
-		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s' does not have register enabled, incorrect invoke function.", op->type->idname);
+		BKE_reportf(CTX_wm_reports(C), RPT_ERROR,
+		            "Operator redo '%s' does not have register enabled, incorrect invoke function", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	if (op->type->poll && op->type->poll(C) == 0) {
-		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s': wrong context.", op->type->idname);
+		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Operator redo '%s': wrong context", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1232,7 +1234,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	ot->exec = wm_debug_menu_exec;
 	ot->poll = WM_operator_winactive;
 	
-	RNA_def_int(ot->srna, "debug_value", 0, -10000, 10000, "Debug Value", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
 }
 
 
@@ -1838,6 +1840,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	
 	/* mark all library linked objects to be updated */
 	recalc_all_library_objects(bmain);
+	IMB_colormanagement_check_file_config(bmain);
 
 	/* append, rather than linking */
 	if ((flag & FILE_LINK) == 0) {
@@ -3127,7 +3130,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 
 	/* check flags */
 	if ((flags & RC_PROP_REQUIRE_BOOL) && (flags & RC_PROP_REQUIRE_FLOAT)) {
-		BKE_reportf(op->reports, RPT_ERROR, "Property can't be both boolean and float");
+		BKE_report(op->reports, RPT_ERROR, "Property cannot be both boolean and float");
 		return 0;
 	}
 
@@ -3150,7 +3153,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		if (flags & RC_PROP_ALLOW_MISSING)
 			return 1;
 		else {
-			BKE_reportf(op->reports, RPT_ERROR, "Couldn't resolve path %s", name);
+			BKE_reportf(op->reports, RPT_ERROR, "Could not resolve path '%s'", name);
 			return 0;
 		}
 	}
@@ -3163,8 +3166,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT))
 		{
 			MEM_freeN(str);
-			BKE_reportf(op->reports, RPT_ERROR,
-			            "Property from path %s is not a float", name);
+			BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a float", name);
 			return 0;
 		}
 	}
@@ -3172,8 +3174,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 	/* check property's array length */
 	if (*r_prop && (len = RNA_property_array_length(r_ptr, *r_prop)) != req_length) {
 		MEM_freeN(str);
-		BKE_reportf(op->reports, RPT_ERROR,
-		            "Property from path %s has length %d instead of %d",
+		BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' has length %d instead of %d",
 		            name, len, req_length);
 		return 0;
 	}
@@ -3241,8 +3242,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	else if (rc->image_id_ptr.data) {
 		/* extra check, pointer must be to an ID */
 		if (!RNA_struct_is_ID(rc->image_id_ptr.type)) {
-			BKE_report(op->reports, RPT_ERROR,
-			           "Pointer from path image_id is not an ID");
+			BKE_report(op->reports, RPT_ERROR, "Pointer from path image_id is not an ID");
 			return 0;
 		}
 	}

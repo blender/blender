@@ -206,6 +206,7 @@ option(WITH_IMAGE_REDCODE       "Enable RedCode Image Support" OFF)
 option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering" ON)
 
 # Audio/Video format support
+option(WITH_CODEC_AVI           "Enable Blenders own AVI file support (raw/jpeg)" ON)
 option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
 
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
@@ -733,23 +734,14 @@ if(UNIX AND NOT APPLE)
 		execute_process(COMMAND ${LLVM_CONFIG} --libdir
 		                OUTPUT_VARIABLE LLVM_LIB_DIR
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process(COMMAND ${LLVM_CONFIG} --includedir
-		                OUTPUT_VARIABLE LLVM_INCLUDES
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		find_library(LLVM_LIBRARY
 		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
 		             PATHS ${LLVM_LIB_DIR})
 		message(STATUS "LLVM version  = ${LLVM_VERSION}")
 		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message(STATUS "LLVM includes = ${LLVM_INCLUDES}")
 		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
 
-		if(LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
-			# ensure include directory is added (in case of non-standard locations
-			include_directories(BEFORE "${LLVM_INCLUDES}")
-			string(REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
-			message(STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
-			add_definitions("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
@@ -787,8 +779,6 @@ if(UNIX AND NOT APPLE)
 		else()
 			message(STATUS "OSL not found")
 		endif()
-	
-		include_directories(${OSL_INCLUDES})
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
@@ -956,8 +946,6 @@ elseif(WIN32)
 		else()
 			message(STATUS "OSL not found")
 		endif()
-	
-		include_directories(${OSL_INCLUDES})
 	endif()
 
 	if(MSVC)
@@ -1608,7 +1596,7 @@ elseif(APPLE)
 	if(WITH_OPENIMAGEIO)
 		set(OPENIMAGEIO ${LIBDIR}/openimageio)
 		set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO}/include)
-		set(OPENIMAGEIO_LIBRARIES -force_load ${OPENIMAGEIO}/lib/libOpenImageIO.a ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
+		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO}/lib/libOpenImageIO.a ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib ${JPEG_LIBPATH} ${PNG_LIBPATH} ${TIFF_LIBPATH} ${OPENEXR_LIBPATH} ${ZLIB_LIBPATH})
 		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
 	endif()
@@ -1639,23 +1627,14 @@ elseif(APPLE)
 		execute_process(COMMAND ${LLVM_CONFIG} --libdir
 		                OUTPUT_VARIABLE LLVM_LIB_DIR
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
-		execute_process(COMMAND ${LLVM_CONFIG} --includedir
-		                OUTPUT_VARIABLE LLVM_INCLUDES
-		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		find_library(LLVM_LIBRARY
 		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
 		             PATHS ${LLVM_LIB_DIR})
 		message(STATUS "LLVM version  = ${LLVM_VERSION}")
 		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message(STATUS "LLVM includes = ${LLVM_INCLUDES}")
 		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
 
-		if(LLVM_LIBRARY AND LLVM_INCLUDES AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
-			# ensure include directory is added (in case of non-standard locations
-			include_directories(BEFORE "${LLVM_INCLUDES}")
-			string(REGEX REPLACE "\\." "" OSL_LLVM_VERSION ${LLVM_VERSION})
-			message(STATUS "LLVM OSL_LLVM_VERSION = ${OSL_LLVM_VERSION}")
-			add_definitions("-DOSL_LLVM_VERSION=${OSL_LLVM_VERSION}")
+		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
 			if(LLVM_STATIC)
 				# if static LLVM libraries were requested, use llvm-config to generate
 				# the list of what libraries we need, and substitute that in the right
@@ -1692,8 +1671,6 @@ elseif(APPLE)
 		else()
 			message(STATUS "OSL not found")
 		endif()
-	
-		include_directories(${OSL_INCLUDES})
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)
@@ -1880,11 +1857,15 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_LOGICAL_OP -Wlogical-op)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEF -Wundef)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_NULL -Wnonnull)  # C only
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+
+	# gcc 4.2 gives annoying warnings on every file with this
+	if (${CMAKE_C_COMPILER_VERSION} VERSION_GREATER "4.2")
+		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
+	endif()
 
 	# disable because it gives warnings for printf() & friends.
 	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
@@ -1897,10 +1878,14 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_LOGICAL_OP -Wlogical-op)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_INIT_SELF -Winit-self)  # needs -Wuninitialized
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_MISSING_INCLUDE_DIRS -Wmissing-include-dirs)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
+
+	# gcc 4.2 gives annoying warnings on every file with this
+	if (${CMAKE_C_COMPILER_VERSION} VERSION_GREATER "4.2")
+		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
+	endif()
 
 	# causes too many warnings
 	if(NOT APPLE)
@@ -2014,9 +1999,10 @@ if(WITH_PYTHON)
 	endif()
 endif()
 
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
+# Include warnings first, so its possible to disable them with user defined flags
+# eg: -Wno-uninitialized
+set(CMAKE_C_FLAGS "${C_WARNINGS} ${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS}")
+set(CMAKE_CXX_FLAGS "${CXX_WARNINGS} ${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS}")
 
 #-------------------------------------------------------------------------------
 # Global Defines
@@ -2123,6 +2109,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_OPENAL)
 	info_cfg_option(WITH_SDL)
 	info_cfg_option(WITH_JACK)
+	info_cfg_option(WITH_CODEC_AVI)
 	info_cfg_option(WITH_CODEC_FFMPEG)
 	info_cfg_option(WITH_CODEC_SNDFILE)
 

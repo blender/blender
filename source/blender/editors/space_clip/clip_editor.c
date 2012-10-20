@@ -44,6 +44,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_rect.h"
 
 #include "GPU_extensions.h"
@@ -692,7 +693,7 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf, const unsign
 		context->start_frame = clip->start_frame;
 		context->frame_offset = clip->frame_offset;
 
-		strcpy(context->colorspace, clip->colorspace_settings.name);
+		BLI_strncpy(context->colorspace, clip->colorspace_settings.name, sizeof(context->colorspace));
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,

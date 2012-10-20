@@ -579,7 +579,9 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 		seq2 = del_seq_find_replace_recurs(scene, seq->seq2);
 		seq3 = del_seq_find_replace_recurs(scene, seq->seq3);
 
-		if (seq1 == seq->seq1 && seq2 == seq->seq2 && seq3 == seq->seq3) ;
+		if (seq1 == seq->seq1 && seq2 == seq->seq2 && seq3 == seq->seq3) {
+			/* pass */
+		}
 		else if (seq1 || seq2 || seq3) {
 			seq->seq1 = (seq1) ? seq1 : (seq2) ? seq2 : seq3;
 			seq->seq2 = (seq2) ? seq2 : (seq1) ? seq1 : seq3;
@@ -1572,7 +1574,7 @@ static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
 	Scene *scene = (Scene *)arg_pt;
 	char name[sizeof(seq->name) - 2];
 
-	strcpy(name, seq->name + 2);
+	BLI_strncpy_utf8(name, seq->name + 2, sizeof(name));
 	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 	BKE_sequencer_dupe_animdata(scene, name, seq->name + 2);
 	return 1;
@@ -1851,7 +1853,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "length", 1, 1, 1000, "Length", "Length of each frame", 1, INT_MAX);
+	RNA_def_int(ot->srna, "length", 1, 1, INT_MAX, "Length", "Length of each frame", 1, 1000);
 }
 
 
@@ -2186,7 +2188,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 	ot->poll = ED_operator_sequencer_active;
 
 	/* properties */
-	RNA_def_float(ot->srna, "ratio", 1.0f, 0.0f, FLT_MAX,
+	RNA_def_float(ot->srna, "ratio", 1.0f, -FLT_MAX, FLT_MAX,
 	              "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 
@@ -2618,7 +2620,6 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	Sequence *seq;
 
 	ListBase nseqbase = {NULL, NULL};
 
@@ -2654,8 +2655,11 @@ static int sequencer_copy_exec(bContext *C, wmOperator *op)
 	seqbase_clipboard_frame = scene->r.cfra;
 
 	/* Need to remove anything that references the current scene */
-	for (seq = seqbase_clipboard.first; seq; seq = seq->next) {
-		seq_copy_del_sound(scene, seq);
+	{
+		Sequence *seq;
+		for (seq = seqbase_clipboard.first; seq; seq = seq->next) {
+			seq_copy_del_sound(scene, seq);
+		}
 	}
 
 	return OPERATOR_FINISHED;
@@ -2738,7 +2742,7 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 	const char *error_msg;
 
 	if (BKE_sequencer_active_get_pair(scene, &seq_act, &seq_other) == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Must select 2 strips");
+		BKE_report(op->reports, RPT_ERROR, "Please select two strips");
 		return OPERATOR_CANCELLED;
 	}
 

@@ -371,9 +371,9 @@ int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)
 }
 #endif
 
-static BMFace *edge_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3], float *hitout, BMEdge *e)
+static BMFace *edge_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3], float *r_hitout, BMEdge *e)
 {
-	BMFace *f = BMBVH_RayCast(tree, co, dir, hitout, NULL);
+	BMFace *f = BMBVH_RayCast(tree, co, dir, r_hitout, NULL);
 	
 	if (f && BM_edge_in_face(f, e))
 		return NULL;
@@ -392,7 +392,7 @@ static void scale_point(float c1[3], const float p[3], const float s)
 int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Object *obedit)
 {
 	BMFace *f;
-	float co1[3], co2[3], co3[3], dir1[4], dir2[4], dir3[4];
+	float co1[3], co2[3], co3[3], dir1[3], dir2[3], dir3[3];
 	float origin[3], invmat[4][4];
 	float epsilon = 0.01f; 
 	float end[3];

@@ -238,7 +238,8 @@ void packAll(Main *bmain, ReportList *reports)
 				ima->packedfile = newPackedFile(reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
 			}
 			else if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-				BKE_reportf(reports, RPT_WARNING, "Image '%s' skipped, movies and image sequences not supported.", ima->id.name + 2);
+				BKE_reportf(reports, RPT_WARNING, "Image '%s' skipped, movies and image sequences not supported",
+				            ima->id.name + 2);
 			}
 		}
 	}
@@ -323,7 +324,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
 			if (BLI_rename(tempname, name) != 0) {
-				BKE_reportf(reports, RPT_ERROR, "Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
+				BKE_reportf(reports, RPT_ERROR, "Error restoring temp file. Check files: '%s' '%s'", tempname, name);
 			}
 		}
 		else {

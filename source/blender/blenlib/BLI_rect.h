@@ -66,9 +66,7 @@ int  BLI_rcti_isect_pt_v(const struct rcti *rect, const int xy[2]);
 int  BLI_rctf_isect_pt(const struct rctf *rect, const float x, const float y);
 int  BLI_rctf_isect_pt_v(const struct rctf *rect, const float xy[2]);
 int  BLI_rcti_isect_segment(const struct rcti *rect, const int s1[2], const int s2[2]);
-#if 0 /* NOT NEEDED YET */
-int  BLI_rctf_isect_segment(struct rcti *rect, int s1[2], int s2[2]);
-#endif
+int  BLI_rctf_isect_segment(const struct rctf *rect, const float s1[2], const float s2[2]);
 void BLI_rctf_union(struct rctf *rctf1, const struct rctf *rctf2);
 void BLI_rcti_union(struct rcti *rcti1, const struct rcti *rcti2);
 void BLI_rcti_rctf_copy(struct rcti *dst, const struct rctf *src);

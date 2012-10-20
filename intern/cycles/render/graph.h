@@ -44,6 +44,7 @@ class OSLCompiler;
 
 enum ShaderSocketType {
 	SHADER_SOCKET_FLOAT,
+	SHADER_SOCKET_INT,
 	SHADER_SOCKET_COLOR,
 	SHADER_SOCKET_VECTOR,
 	SHADER_SOCKET_POINT,
@@ -112,6 +113,7 @@ public:
 		INCOMING,
 		NORMAL,
 		POSITION,
+		TANGENT,
 		NONE
 	};
 
@@ -234,6 +236,7 @@ protected:
 	void break_cycles(ShaderNode *node, vector<bool>& visited, vector<bool>& on_stack);
 	void clean();
 	void bump_from_displacement();
+	void refine_bump_nodes();
 	void default_inputs(bool do_osl);
 };
 

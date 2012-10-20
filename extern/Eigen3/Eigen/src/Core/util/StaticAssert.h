@@ -4,24 +4,9 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_STATIC_ASSERT_H
 #define EIGEN_STATIC_ASSERT_H
@@ -48,6 +33,8 @@
 
   #else // not CXX0X
 
+    namespace Eigen {
+
     namespace internal {
 
     template<bool condition>
@@ -70,6 +57,7 @@
         YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR,
         UNALIGNED_LOAD_AND_STORE_OPERATIONS_UNIMPLEMENTED_ON_ALTIVEC,
         THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES,
+        FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED,
         NUMERIC_TYPE_MUST_BE_REAL,
         COEFFICIENT_WRITE_ACCESS_TO_SELFADJOINT_NOT_SUPPORTED,
         WRITING_TO_TRIANGULAR_PART_WITH_UNIT_DIAGONAL_IS_NOT_SUPPORTED,
@@ -95,11 +83,19 @@
         YOU_PERFORMED_AN_INVALID_TRANSFORMATION_CONVERSION,
         THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY,
         YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT,
-        THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS
+        THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS,
+        THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL,
+        THIS_METHOD_IS_ONLY_FOR_ARRAYS_NOT_MATRICES,
+        YOU_PASSED_A_ROW_VECTOR_BUT_A_COLUMN_VECTOR_WAS_EXPECTED,
+        YOU_PASSED_A_COLUMN_VECTOR_BUT_A_ROW_VECTOR_WAS_EXPECTED,
+        THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE,
+        THE_STORAGE_ORDER_OF_BOTH_SIDES_MUST_MATCH
       };
     };
 
     } // end namespace internal
+
+    } // end namespace Eigen
 
     // Specialized implementation for MSVC to avoid "conditional
     // expression is constant" warnings.  This implementation doesn't
@@ -194,5 +190,16 @@
 #define EIGEN_STATIC_ASSERT_LVALUE(Derived) \
       EIGEN_STATIC_ASSERT(internal::is_lvalue<Derived>::value, \
                           THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY)
+
+#define EIGEN_STATIC_ASSERT_ARRAYXPR(Derived) \
+      EIGEN_STATIC_ASSERT((internal::is_same<typename internal::traits<Derived>::XprKind, ArrayXpr>::value), \
+                          THIS_METHOD_IS_ONLY_FOR_ARRAYS_NOT_MATRICES)
+
+#define EIGEN_STATIC_ASSERT_SAME_XPR_KIND(Derived1, Derived2) \
+      EIGEN_STATIC_ASSERT((internal::is_same<typename internal::traits<Derived1>::XprKind, \
+                                             typename internal::traits<Derived2>::XprKind \
+                                            >::value), \
+                          YOU_CANNOT_MIX_ARRAYS_AND_MATRICES)
+
 
 #endif // EIGEN_STATIC_ASSERT_H

@@ -487,11 +487,15 @@ static int preprocess_include(char *maindata, int len)
 		}
 
 		/* do not copy when: */
-		if (comment) ;
-		else if (cp[0] == ' ' && cp[1] == ' ') ;
-		else if (cp[-1] == '*' && cp[0] == ' ') ;  /* pointers with a space */
-
-		/* skip special keywords */
+		if (comment) {
+			/* pass */
+		}
+		else if (cp[0] == ' ' && cp[1] == ' ') {
+			/* pass */
+		}
+		else if (cp[-1] == '*' && cp[0] == ' ') {
+			/* pointers with a space */
+		}	/* skip special keywords */
 		else if (strncmp("DNA_DEPRECATED", cp, 14) == 0) {
 			/* single values are skipped already, so decrement 1 less */
 			a -= 13;
@@ -1030,7 +1034,9 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 
 	if (debugSDNA > -1) printf("Writing file ... ");
 		
-	if (nr_names == 0 || nr_structs == 0) ;
+	if (nr_names == 0 || nr_structs == 0) {
+		/* pass */
+	}
 	else {
 		strcpy(str, "SDNA");
 		dna_write(file, str, 4);
@@ -1090,7 +1096,9 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 			int a;
 			
 			fp = fopen("padding.c", "w");
-			if (fp == NULL) ;
+			if (fp == NULL) {
+				/* pass */
+			}
 			else {
 
 				/* add all include files defined in the global array */

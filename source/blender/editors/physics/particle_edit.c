@@ -411,7 +411,7 @@ static int key_test_depth(PEData *data, const float co[3], const int screen_co[2
 	/* used to calculate here but all callers have  the screen_co already, so pass as arg */
 #if 0
 	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co,
-	                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS)
+	                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK)
 	{
 		return 0;
 	}
@@ -448,7 +448,7 @@ static int key_inside_circle(PEData *data, float rad, const float co[3], float *
 	int screen_co[2];
 
 	/* TODO, should this check V3D_PROJ_TEST_CLIP_BB too? */
-	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK) {
 		return 0;
 	}
 
@@ -473,7 +473,7 @@ static int key_inside_rect(PEData *data, const float co[3])
 {
 	int screen_co[2];
 
-	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK) {
 		return 0;
 	}
 
@@ -1665,7 +1665,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, short
 			LOOP_KEYS {
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
-				if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS) &&
+				if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
 				    key_test_depth(&data, co, screen_co))
 				{
@@ -1685,7 +1685,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, short
 
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS) &&
+			if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
 			    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
 			    key_test_depth(&data, co, screen_co))
 			{
@@ -2414,7 +2414,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	if (totremoved == 0)
 		return OPERATOR_CANCELLED;
 
-	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles", totremoved);
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d double particles", totremoved);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
@@ -2797,7 +2797,7 @@ static void brush_cut(PEData *data, int pa_index)
 	if (edit->points[pa_index].flag & PEP_HIDE)
 		return;
 
-	if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS)
+	if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK)
 		return;
 
 	rad2= data->rad * data->rad;
@@ -2822,7 +2822,7 @@ static void brush_cut(PEData *data, int pa_index)
 		/* calculate path time closest to root that was inside the circle */
 		for (k=1, key++; k<=keys; k++, key++) {
 
-			if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) ||
+			if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) ||
 			    key_test_depth(data, key->co, screen_co) == 0)
 			{
 				x0 = (float)screen_co[0];
@@ -3989,7 +3989,9 @@ void PE_undo_step(Scene *scene, int step)
 	}
 	else if (step==1) {
 		
-		if (edit->curundo==NULL || edit->curundo->prev==NULL);
+		if (edit->curundo==NULL || edit->curundo->prev==NULL) {
+			/* pass */
+		}
 		else {
 			if (G.debug & G_DEBUG) printf("undo %s\n", edit->curundo->name);
 			edit->curundo= edit->curundo->prev;
@@ -3999,7 +4001,9 @@ void PE_undo_step(Scene *scene, int step)
 	else {
 		/* curundo has to remain current situation! */
 		
-		if (edit->curundo==NULL || edit->curundo->next==NULL);
+		if (edit->curundo==NULL || edit->curundo->next==NULL) {
+			/* pass */
+		}
 		else {
 			get_PTCacheUndo(edit, edit->curundo->next);
 			edit->curundo= edit->curundo->next;

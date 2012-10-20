@@ -28,15 +28,15 @@ blender --background --python doc/python_api/sphinx_changelog_gen.py -- --dump
 
 # create changelog
 blender --background --python doc/python_api/sphinx_changelog_gen.py -- \
-        --api_from blender_2_56_1.py \
-        --api_to blender_2_57_0.py \
+        --api_from blender_2_63_0.py \
+        --api_to   blender_2_64_0.py \
         --api_out changes.rst
 
 
 # Api comparison can also run without blender
-python doc/python_api/sphinx_changelog_gen.py \
-        --api_from blender_api_2_56_6.py \
-        --api_to blender_api_2_57.py \
+python doc/python_api/sphinx_changelog_gen.py -- \
+        --api_from blender_api_2_63_0.py \
+        --api_to   blender_api_2_64_0.py \
         --api_out changes.rst
 
 # Save the latest API dump in this folder, renaming it with its revision.
@@ -307,6 +307,8 @@ def api_changelog(api_from, api_to, api_out):
 
     fout.close()
 
+    print("Written: %r" % api_out)
+
 
 def main():
     import sys
@@ -347,6 +349,7 @@ def main():
     args = parser.parse_args(argv)  # In this example we wont use the args
 
     if not argv:
+        print("No args given!")
         parser.print_help()
         return
 

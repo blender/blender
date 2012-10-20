@@ -355,7 +355,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				if (dx < GRID_MIN_PX_D) {
 					rv3d->gridview *= sublines;
 					dx *= sublines;
-					if (dx < GRID_MIN_PX_D) ;
+					if (dx < GRID_MIN_PX_D) {
+						/* pass */
+					}
 					else {
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx);
@@ -556,7 +558,7 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 	int co[2];
 
 	/* we don't want the clipping for cursor */
-	if (ED_view3d_project_int_global(ar, give_cursor(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+	if (ED_view3d_project_int_global(ar, give_cursor(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 		setlinestyle(0); 
 		cpack(0xFF);
 		circ((float)co[0], (float)co[1], 10.0);
@@ -1460,7 +1462,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
 unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int size,
-                                        unsigned int min, unsigned int max, int *dist, short strict,
+                                        unsigned int min, unsigned int max, float *r_dist, short strict,
                                         void *handle, unsigned int (*indextest)(void *handle, unsigned int index))
 {
 	struct ImBuf *buf;
@@ -1498,13 +1500,13 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int 
 					if (strict) {
 						indexok =  indextest(handle, *tbuf - min + 1);
 						if (indexok) {
-							*dist = (short) sqrt( (float)distance);
+							*r_dist = sqrtf((float)distance);
 							index = *tbuf - min + 1;
 							goto exit; 
 						}
 					}
 					else {
-						*dist = (short) sqrt( (float)distance);  /* XXX, this distance is wrong - */
+						*r_dist = sqrtf((float)distance);  /* XXX, this distance is wrong - */
 						index = *tbuf - min + 1;  /* messy yah, but indices start at 1 */
 						goto exit;
 					}
@@ -2854,6 +2856,12 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 		engine->tile_x = ceil(ar->winx / (float)scene->r.xparts);
 		engine->tile_y = ceil(ar->winy / (float)scene->r.yparts);
 
+		/* clamp small tile sizes to prevent inefficient threading utilization
+		 * the same happens for final renders as well
+		 */
+		engine->tile_x = MAX2(engine->tile_x, 64);
+		engine->tile_y = MAX2(engine->tile_x, 64);
+
 		type->view_update(engine, C);
 
 		rv3d->render_engine = engine;
@@ -2870,12 +2878,20 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 		rctf viewborder;
 		rcti cliprct;
 
-		ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, FALSE);
+		if (rv3d->persp == RV3D_CAMOB) {
+			ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &viewborder, FALSE);
 
-		cliprct.xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
-		cliprct.ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
-		cliprct.xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
-		cliprct.ymax = viewborder.ymin + scene->r.border.ymax * BLI_rctf_size_y(&viewborder);
+			cliprct.xmin = viewborder.xmin + scene->r.border.xmin * BLI_rctf_size_x(&viewborder);
+			cliprct.ymin = viewborder.ymin + scene->r.border.ymin * BLI_rctf_size_y(&viewborder);
+			cliprct.xmax = viewborder.xmin + scene->r.border.xmax * BLI_rctf_size_x(&viewborder);
+			cliprct.ymax = viewborder.ymin + scene->r.border.ymax * BLI_rctf_size_y(&viewborder);
+		}
+		else {
+			cliprct.xmin = v3d->render_border.xmin * ar->winx;
+			cliprct.xmax = v3d->render_border.xmax * ar->winx;
+			cliprct.ymin = v3d->render_border.ymin * ar->winy;
+			cliprct.ymax = v3d->render_border.ymax * ar->winy;
+		}
 
 		cliprct.xmin += ar->winrct.xmin;
 		cliprct.xmax += ar->winrct.xmin;
@@ -3121,8 +3137,20 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 
 	Object *ob;
 
-	if (rv3d->persp == RV3D_CAMOB)
+	if (rv3d->persp == RV3D_CAMOB) {
 		drawviewborder(scene, ar, v3d);
+	}
+	else if (v3d->flag2 & V3D_RENDER_BORDER) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		setlinestyle(3);
+		cpack(0x4040FF);
+
+		glRectf(v3d->render_border.xmin * ar->winx, v3d->render_border.ymin * ar->winy,
+		        v3d->render_border.xmax * ar->winx, v3d->render_border.ymax * ar->winy);
+
+		setlinestyle(0);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
@@ -3172,7 +3200,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	const char *grid_unit = NULL;
-	int draw_border = (rv3d->persp == RV3D_CAMOB && (scene->r.mode & R_BORDER));
+	int draw_border = FALSE;
+
+	if (rv3d->persp == RV3D_CAMOB)
+		draw_border = scene->r.mode & R_BORDER;
+	else
+		draw_border = v3d->flag2 & V3D_RENDER_BORDER;
 
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(C) || draw_border) {

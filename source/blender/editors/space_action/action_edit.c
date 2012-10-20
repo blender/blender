@@ -976,8 +976,8 @@ void ACTION_OT_sample(wmOperatorType *ot)
 
 /* defines for set extrapolation-type for selected keyframes tool */
 static EnumPropertyItem prop_actkeys_expo_types[] = {
-	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", ""},
-	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", ""},
+	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", "Values on endpoint keyframes are held"},
+	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", "Straight-line slope of end segments are extended past the endpoint keyframes"},
 	
 	{MAKE_CYCLIC_EXPO, "MAKE_CYCLIC", 0, "Make Cyclic (F-Modifier)", "Add Cycles F-Modifier if one doesn't exist already"},
 	{CLEAR_CYCLIC_EXPO, "CLEAR_CYCLIC", 0, "Clear Cyclic (F-Modifier)", "Remove Cycles F-Modifier if not needed anymore"},
@@ -1353,9 +1353,9 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 void ACTION_OT_frame_jump(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Jump to Frame";
+	ot->name = "Jump to Keyframes";
 	ot->idname = "ACTION_OT_frame_jump";
-	ot->description = "Set the current frame to the average frame of the selected keyframes";
+	ot->description = "Set the current frame to the average frame value of selected keyframes";
 	
 	/* api callbacks */
 	ot->exec = actkeys_framejump_exec;
@@ -1369,10 +1369,14 @@ void ACTION_OT_frame_jump(wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 static EnumPropertyItem prop_actkeys_snap_types[] = {
-	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", ""},
-	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
-	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
-	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
+	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", 
+	 "Snap selected keyframes to the current frame"},
+	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", 
+	 "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame offsets)"},
+	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", 
+	 "Snap selected keyframes to the nearest second"},
+	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", 
+	 "Snap selected keyframes to the nearest marker"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1473,9 +1477,12 @@ void ACTION_OT_snap(wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 static EnumPropertyItem prop_actkeys_mirror_types[] = {
-	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
-	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
-	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
+	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", 
+	 "Flip times of selected keyframes using the current frame as the mirror line"},
+	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", 
+	 "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"},
+	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", 
+	 "Flip times of selected keyframes using the first selected marker as the reference point"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1497,12 +1504,8 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	/* for 'first selected marker' mode, need to find first selected marker first! */
 	// XXX should this be made into a helper func in the API?
 	if (mode == ACTKEYS_MIRROR_MARKER) {
-		TimeMarker *marker = NULL;
+		TimeMarker *marker = ED_markers_get_first_selected(ac->markers);
 		
-		/* find first selected marker */
-		marker = ED_markers_get_first_selected(ac->markers);
-		
-		/* store marker's time (if available) */
 		if (marker)
 			ked.f1 = (float)marker->frame;
 		else

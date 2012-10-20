@@ -102,6 +102,8 @@ void TileManager::set_tiles()
 	}
 
 	state.num_tiles = state.tiles.size();
+	state.tile_w = (tile_size.x >= image_w) ? 1 : (image_w + tile_size.x - 1) / tile_size.x;
+	state.tile_h = (tile_size.y >= image_h) ? 1 : (image_h + tile_size.y - 1) / tile_size.y;
 
 	state.buffer.width = image_w;
 	state.buffer.height = image_h;

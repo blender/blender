@@ -38,7 +38,7 @@
 #ifdef WIN32
 	#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
 	#include <windows.h>
-#endif // WIN32
+#endif  /* WIN32 */
 
 #include "GL/glew.h"
 
@@ -89,6 +89,8 @@ protected:
 	/** Rect that defines the area used for rendering,
 	 * relative to the context */
 	RAS_Rect m_displayarea;
+
+	int m_viewport[4];
 
 	/** Storage for the banners to display. */
 	TBannerMap m_banners;
@@ -153,6 +155,7 @@ public:
 	);
 	
 	void SetViewPort(int x1, int y1, int x2, int y2);
+	const int *GetViewPort();
 
 	void ClearColor(float r, float g, float b, float a);
 
@@ -270,5 +273,4 @@ protected:
 	static TBannerId s_bannerId;
 };
 
-#endif // __GPC_CANVAS_H__
-
+#endif  /* __GPC_CANVAS_H__ */

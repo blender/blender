@@ -33,6 +33,7 @@
 #define __MASK_INTERN_H__
 
 struct bContext;
+struct Mask;
 struct wmEvent;
 struct wmOperatorType;
 
@@ -43,6 +44,8 @@ void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
 
 /* mask_ops.c */
+struct Mask *ED_mask_new(struct bContext *C, const char *name);
+
 void MASK_OT_new(struct wmOperatorType *ot);
 void MASK_OT_layer_new(struct wmOperatorType *ot);
 void MASK_OT_layer_remove(struct wmOperatorType *ot);

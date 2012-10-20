@@ -101,13 +101,15 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 				break;
 			}
 		}
-		else if (rule->type == eBoidRuleType_Goal && eob == bpa->ground)
-			; /* skip current object */
+		else if (rule->type == eBoidRuleType_Goal && eob == bpa->ground) {
+			/* skip current object */
+		}
 		else if (pd->forcefield == PFIELD_BOID && mul * pd->f_strength > 0.0f && get_effector_data(cur, &cur_efd, &epoint, 0)) {
 			float temp = mul * pd->f_strength * effector_falloff(cur, &cur_efd, &epoint, bbd->part->effector_weights);
 
-			if (temp == 0.0f)
-				; /* do nothing */
+			if (temp == 0.0f) {
+				/* do nothing */
+			}
 			else if (temp > priority) {
 				priority = temp;
 				eff = cur;

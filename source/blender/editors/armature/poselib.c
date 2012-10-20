@@ -298,7 +298,7 @@ static int poselib_sanitize_exec(bContext *C, wmOperator *op)
 	
 	/* validate action */
 	if (act == NULL) {
-		BKE_report(op->reports, RPT_WARNING, "No Action to validate");
+		BKE_report(op->reports, RPT_WARNING, "No action to validate");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -547,7 +547,7 @@ static int poselib_remove_exec(bContext *C, wmOperator *op)
 
 	/* check if valid poselib */
 	if (act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Object doesn't have PoseLib data");
+		BKE_report(op->reports, RPT_ERROR, "Object does not have pose lib data");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -562,7 +562,7 @@ static int poselib_remove_exec(bContext *C, wmOperator *op)
 	/* get index (and pointer) of pose to remove */
 	marker = BLI_findlink(&act->markers, marker_index);
 	if (marker == NULL) {
-		BKE_reportf(op->reports, RPT_ERROR, "Invalid Pose specified %d", marker_index);
+		BKE_reportf(op->reports, RPT_ERROR, "Invalid pose specified %d", marker_index);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -628,14 +628,14 @@ static int poselib_rename_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	
 	/* check if valid poselib */
 	if (act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Object doesn't have PoseLib data");
+		BKE_report(op->reports, RPT_ERROR, "Object does not have pose lib data");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* get index (and pointer) of pose to remove */
 	marker = BLI_findlink(&act->markers, act->active_marker - 1);
 	if (marker == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		BKE_report(op->reports, RPT_ERROR, "Invalid index for pose");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -657,14 +657,14 @@ static int poselib_rename_exec(bContext *C, wmOperator *op)
 	
 	/* check if valid poselib */
 	if (act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Object doesn't have PoseLib data");
+		BKE_report(op->reports, RPT_ERROR, "Object does not have pose lib data");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* get index (and pointer) of pose to remove */
 	marker = BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
 	if (marker == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Invalid index for Pose");
+		BKE_report(op->reports, RPT_ERROR, "Invalid index for pose");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1424,12 +1424,12 @@ static void poselib_preview_init_data(bContext *C, wmOperator *op)
 	
 	/* check if valid poselib */
 	if (ELEM3(NULL, pld->ob, pld->pose, pld->arm)) {
-		BKE_report(op->reports, RPT_ERROR, "PoseLib is only for Armatures in PoseMode");
+		BKE_report(op->reports, RPT_ERROR, "Pose lib is only for armatures in pose mode");
 		pld->state = PL_PREVIEW_ERROR;
 		return;
 	}
 	if (pld->act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Object doesn't have a valid PoseLib");
+		BKE_report(op->reports, RPT_ERROR, "Object does not have a valid pose lib");
 		pld->state = PL_PREVIEW_ERROR;
 		return;
 	}
@@ -1438,10 +1438,10 @@ static void poselib_preview_init_data(bContext *C, wmOperator *op)
 			/* just use first one then... */
 			pld->marker = pld->act->markers.first;
 			if (pose_index > -2) 
-				BKE_report(op->reports, RPT_WARNING, "PoseLib had no active pose");
+				BKE_report(op->reports, RPT_WARNING, "Pose lib had no active pose");
 		}
 		else {
-			BKE_report(op->reports, RPT_ERROR, "PoseLib has no poses to preview/apply");
+			BKE_report(op->reports, RPT_ERROR, "Pose lib has no poses to preview/apply");
 			pld->state = PL_PREVIEW_ERROR;
 			return;
 		}

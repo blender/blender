@@ -32,6 +32,7 @@
 static bNodeSocketTemplate sh_node_bsdf_glossy_in[]= {
 	{	SOCK_RGBA,  1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Roughness"),	0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 
@@ -42,8 +43,10 @@ static bNodeSocketTemplate sh_node_bsdf_glossy_out[]= {
 
 static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
-	/* todo: is incoming vector normalized? */
-	return GPU_stack_link(mat, "node_bsdf_glossy", in, out, GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_VIEW_POSITION));
+	if(!in[2].link)
+		in[2].link = GPU_builtin(GPU_VIEW_NORMAL);
+
+	return GPU_stack_link(mat, "node_bsdf_glossy", in, out);
 }
 
 /* node type definition */

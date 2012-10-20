@@ -158,4 +158,4 @@ void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node);
 
 /* ********************************************** */
 
-#endif // __BLI_DLRBTREE_H__
+#endif  /* __BLI_DLRBTREE_H__ */

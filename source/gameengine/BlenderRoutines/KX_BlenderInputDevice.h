@@ -32,8 +32,8 @@
 #ifndef __KX_BLENDERINPUTDEVICE_H__
 #define __KX_BLENDERINPUTDEVICE_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning(disable : 4786)  // shut off 255 char limit debug template warning
+#ifdef _MSC_VER
+#  pragma warning(disable:4786)  // shut off 255 char limit debug template warning
 #endif
 
 #include <map>
@@ -75,5 +75,5 @@ public:
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:BL_BlenderInputDevice")
 #endif
 };
-#endif //__KX_BLENDERINPUTDEVICE_H__
 
+#endif  /* __KX_BLENDERINPUTDEVICE_H__ */

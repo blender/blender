@@ -39,5 +39,4 @@ enum	e_PhysicsEngine
 		UseBullet   =  5,
 };
 
-#endif //__KX_PHYSICSENGINEENUMS_H__
-
+#endif  /* __KX_PHYSICSENGINEENUMS_H__ */

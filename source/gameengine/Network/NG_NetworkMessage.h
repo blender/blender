@@ -135,5 +135,4 @@ public:
 #endif
 };
 
-#endif //__NG_NETWORKMESSAGE_H__
-
+#endif  /* __NG_NETWORKMESSAGE_H__ */

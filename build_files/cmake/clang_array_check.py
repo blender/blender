@@ -19,12 +19,15 @@ Invocation:
 
 """
 
+# delay parsing functions until we need them
+USE_LAZY_INIT = True
+
 # -----------------------------------------------------------------------------
 # predefined function/arg sizes, handy sometimes, but not complete...
 
 defs_precalc = {
-    "glColor3bv":  {0: 3},
-    "glColor4bv":  {0: 4},
+    "glColor3bv": {0: 3},
+    "glColor4bv": {0: 4},
 
     "glColor3ubv": {0: 3},
     "glColor4ubv": {0: 4},
@@ -32,11 +35,11 @@ defs_precalc = {
     "glColor4usv": {0: 3},
     "glColor4usv": {0: 4},
 
-    "glColor3fv":  {0: 3},
-    "glColor4fv":  {0: 4},
+    "glColor3fv": {0: 3},
+    "glColor4fv": {0: 4},
 
-    "glColor3dv":  {0: 3},
-    "glColor4dv":  {0: 4},
+    "glColor3dv": {0: 3},
+    "glColor4dv": {0: 4},
     
     "glVertex2fv": {0: 2},
     "glVertex3fv": {0: 3},
@@ -52,12 +55,12 @@ defs_precalc = {
     "glRasterPos4dv": {0: 4},
     
     "glRasterPos2fv": {0: 2},
-    "glRasterPos3fv": {0: 3},    
+    "glRasterPos3fv": {0: 3},
     "glRasterPos4fv": {0: 4},
     
     "glRasterPos2sv": {0: 2},
-    "glRasterPos3sv": {0: 3},    
-    "glRasterPos4sv": {0: 4},   
+    "glRasterPos3sv": {0: 3},
+    "glRasterPos4sv": {0: 4},
     
     "glTexCoord2fv": {0: 2},
     "glTexCoord3fv": {0: 3},
@@ -112,9 +115,10 @@ args = sys.argv[2:]
 # print(args)
 
 tu = index.parse(sys.argv[1], args)
-print 'Translation unit:', tu.spelling
+print('Translation unit: %s' % tu.spelling)
 
 # -----------------------------------------------------------------------------
+
 
 def function_parm_wash_tokens(parm):
     # print(parm.kind)
@@ -174,14 +178,13 @@ def parm_size(node_child):
     # print(" ".join([t.spelling for t in tokens]))
     
     # NOT PERFECT CODE, EXTRACT SIZE FROM TOKENS
-    if len(tokens) >= 3: # foo [ 1 ]
-        if ((tokens[-3].kind == TokenKind.PUNCTUATION and tokens[-3].spelling == "[") and
-            (tokens[-2].kind == TokenKind.LITERAL     and tokens[-2].spelling.isdigit()) and
-            (tokens[-1].kind == TokenKind.PUNCTUATION and tokens[-1].spelling == "]")):
+    if len(tokens) >= 3:  # foo [ 1 ]
+        if      ((tokens[-3].kind == TokenKind.PUNCTUATION and tokens[-3].spelling == "[") and
+                 (tokens[-2].kind == TokenKind.LITERAL and tokens[-2].spelling.isdigit()) and
+                 (tokens[-1].kind == TokenKind.PUNCTUATION and tokens[-1].spelling == "]")):
             # ---
             return int(tokens[-2].spelling)
     return -1
-
 
 
 def function_get_arg_sizes(node):
@@ -189,7 +192,7 @@ def function_get_arg_sizes(node):
     # {arg_indx: arg_array_size, ... ]
     arg_sizes = {}
 
-    if node.spelling == "BM_vert_create" or 1:
+    if 1:  # node.spelling == "BM_vert_create", for debugging
         node_parms = [node_child for node_child in node.get_children()
                       if node_child.kind == CursorKind.PARM_DECL]
 
@@ -211,10 +214,18 @@ def function_get_arg_sizes(node):
 # -----------------------------------------------------------------------------
 _defs = {}
 
+
 def lookup_function_size_def(func_id):
-    return _defs.get(func_id, ())
+    if USE_LAZY_INIT:
+        result = _defs.get(func_id, {})
+        if type(result) != dict:
+            result = _defs[func_id] = function_get_arg_sizes(result)
+        return result
+    else:
+        return _defs.get(func_id, {})
 
 # -----------------------------------------------------------------------------
+
 
 def file_check_arg_sizes(tu):
     
@@ -224,7 +235,13 @@ def file_check_arg_sizes(tu):
         Loop over args and validate sizes for args we KNOW the size of.
         """
         assert node.kind == CursorKind.CALL_EXPR
-        # print("---", " <~> ".join([" ".join([t.spelling for t in C.get_tokens()]) for C in node.get_children()]))
+        
+        if 0:
+            print("---",
+                  " <~> ".join(
+                  [" ".join([t.spelling for t in C.get_tokens()])
+                  for C in node.get_children()]
+                  ))
         # print(node.location)
         
         # first child is the function call, skip that.
@@ -283,36 +300,32 @@ def file_check_arg_sizes(tu):
                             if size != -1 and size != 0:
                                 
                                 # nice print!
-                                '''
-                                print("".join([t.spelling for t in func.get_tokens()]),
-                                      i,
-                                      " ".join([t.spelling for t in dec.get_tokens()]))
-                                '''
+                                if 0:
+                                    print("".join([t.spelling for t in func.get_tokens()]),
+                                          i,
+                                          " ".join([t.spelling for t in dec.get_tokens()]))
 
                                 # testing
                                 # size_def = 100
-
-                                if size < size_def:
+                                if size < size_def and size != 1:
                                     location = node.location
                                     print("%s:%d:%d: argument %d is size %d, should be %d" %
                                           (location.file,
                                            location.line,
-                                            location.column,
-                                            i + 1, size, size_def
-                                            ))
-
+                                           location.column,
+                                           i + 1, size, size_def
+                                           ))
 
     # we dont really care what we are looking at, just scan entire file for
     # function calls.
-    
+
     def recursive_func_call_check(node):
-        
         if node.kind == CursorKind.CALL_EXPR:
             validate_arg_size(node)
-        
+
         for c in node.get_children():
             recursive_func_call_check(c)
-    
+
     recursive_func_call_check(tu.cursor)
 
 
@@ -322,7 +335,10 @@ def file_check_arg_sizes(tu):
 def recursive_arg_sizes(node, ):
     # print(node.kind, node.spelling)
     if node.kind == CursorKind.FUNCTION_DECL:
-        args_sizes = function_get_arg_sizes(node)
+        if USE_LAZY_INIT:
+            args_sizes = node
+        else:
+            args_sizes = function_get_arg_sizes(node)
         #if args_sizes:
         #    print(node.spelling, args_sizes)
         _defs[node.spelling] = args_sizes

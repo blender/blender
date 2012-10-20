@@ -54,6 +54,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_noise.h"
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
@@ -84,6 +85,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_smoke.h"
 
 
 #include "RE_render_ext.h"
@@ -136,6 +138,9 @@ PartDeflect *object_add_collision_fields(int type)
 			break;
 		case PFIELD_TEXTURE:
 			pd->f_size = 1.0f;
+			break;
+		case PFIELD_SMOKEFLOW:
+			pd->f_flow = 1.0f;
 			break;
 	}
 	pd->flag = PFIELD_DO_LOCATION|PFIELD_DO_ROTATION;
@@ -922,12 +927,27 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 
 			mul_v3_fl(force, -efd->falloff * fac * (strength * fac + damp));
 			break;
+		case PFIELD_SMOKEFLOW:
+			zero_v3(force);
+			if (pd->f_source) {
+				float density;
+				if ((density = smoke_get_velocity_at(pd->f_source, point->loc, force)) >= 0.0f) {
+					float influence = strength * efd->falloff;
+					if (pd->flag & PFIELD_SMOKE_DENSITY)
+						influence *= density;
+					mul_v3_fl(force, influence);
+					/* apply flow */
+					madd_v3_v3fl(total_force, point->vel, -pd->f_flow * influence);
+				}
+			}
+			break;
+
 	}
 
 	if (pd->flag & PFIELD_DO_LOCATION) {
 		madd_v3_v3fl(total_force, force, 1.0f/point->vel_to_sec);
 
-		if (ELEM(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG)==0 && pd->f_flow != 0.0f) {
+		if (ELEM3(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG, PFIELD_SMOKEFLOW)==0 && pd->f_flow != 0.0f) {
 			madd_v3_v3fl(total_force, point->vel, -pd->f_flow * efd->falloff);
 		}
 	}
@@ -993,10 +1013,12 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 				if (efd.falloff > 0.0f)
 					efd.falloff *= eff_calc_visibility(colliders, eff, &efd, point);
 
-				if (efd.falloff <= 0.0f)
-					;	/* don't do anything */
-				else if (eff->pd->forcefield == PFIELD_TEXTURE)
+				if (efd.falloff <= 0.0f) {
+					/* don't do anything */
+				}
+				else if (eff->pd->forcefield == PFIELD_TEXTURE) {
 					do_texture_effector(eff, &efd, point, force);
+				}
 				else {
 					float temp1[3]={0, 0, 0}, temp2[3];
 					copy_v3_v3(temp1, force);

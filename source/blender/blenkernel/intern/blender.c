@@ -621,7 +621,9 @@ void BKE_undo_step(bContext *C, int step)
 	}
 	else if (step == 1) {
 		/* curundo should never be NULL, after restart or load file it should call undo_save */
-		if (curundo == NULL || curundo->prev == NULL) ;  // XXX error("No undo available");
+		if (curundo == NULL || curundo->prev == NULL) {
+			// XXX error("No undo available");
+		}
 		else {
 			if (G.debug & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo = curundo->prev;
@@ -631,7 +633,9 @@ void BKE_undo_step(bContext *C, int step)
 	else {
 		/* curundo has to remain current situation! */
 		
-		if (curundo == NULL || curundo->next == NULL) ;  // XXX error("No redo available");
+		if (curundo == NULL || curundo->next == NULL) {
+			// XXX error("No redo available");
+		}
 		else {
 			read_undosave(C, curundo->next);
 			curundo = curundo->next;

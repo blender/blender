@@ -298,7 +298,7 @@ def dump_messages_pytext(messages, check_ctxt):
         # check it has a 'text' argument
         for (arg_pos, (arg_kw, arg)) in enumerate(func.parameters.items()):
             if ((arg_kw in translate_kw) and
-                (arg.is_output == False) and
+                (arg.is_output is False) and
                 (arg.type == 'STRING')):
 
                 func_translate_args.setdefault(func_id, []).append((arg_kw,

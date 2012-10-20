@@ -58,5 +58,4 @@ class PHY_IGraphicController : public PHY_IController
 #endif
 };
 
-#endif //__PHY_IGRAPHICCONTROLLER_H__
-
+#endif  /* __PHY_IGRAPHICCONTROLLER_H__ */

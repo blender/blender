@@ -849,8 +849,6 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 				
 				/* draw NLA-action line 'status-icons' - only when there's an action */
 				if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {
-					AnimData *adt = ale->adt;
-					
 					offset += 16;
 					
 					/* now draw some indicator icons  */

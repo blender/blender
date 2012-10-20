@@ -31,31 +31,31 @@ float gradient(point p, string type)
 
 	float result = 0.0;
 
-	if(type == "Linear") {
+	if (type == "Linear") {
 		result = x;
 	}
-	else if(type == "Quadratic") {
+	else if (type == "Quadratic") {
 		float r = max(x, 0.0);
-		result = r*r;
+		result = r * r;
 	}
-	else if(type == "Easing") {
+	else if (type == "Easing") {
 		float r = min(max(x, 0.0), 1.0);
-		float t = r*r;
+		float t = r * r;
 		
-		result = (3.0*t - 2.0*t*r);
+		result = (3.0 * t - 2.0 * t * r);
 	}
-	else if(type == "Diagonal") {
-		result = (x + y)/2.0;
+	else if (type == "Diagonal") {
+		result = (x + y) / 2.0;
 	}
-	else if(type == "Radial") {
-		result = atan2(y, x)/(2.0*M_PI) + 0.5;
+	else if (type == "Radial") {
+		result = atan2(y, x) / (2.0 * M_PI) + 0.5;
 	}
 	else {
-		float r = max(1.0 - sqrt(x*x + y*y + z*z), 0.0);
+		float r = max(1.0 - sqrt(x * x + y * y + z * z), 0.0);
 
-		if(type == "Quadratic Sphere")
-			result = r*r;
-		else if(type == "Spherical")
+		if (type == "Quadratic Sphere")
+			result = r * r;
+		else if (type == "Spherical")
 			result = r;
 	}
 

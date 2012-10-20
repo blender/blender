@@ -2249,7 +2249,15 @@ DerivedMesh *mesh_create_derived_view(Scene *scene, Object *ob, CustomDataMask d
 {
 	DerivedMesh *final;
 
+	/* XXX hack
+	 * psys modifier updates particle state when called during dupli-list generation,
+	 * which can lead to wrong transforms. This disables particle system modifier execution.
+	 */
+	ob->transflag |= OB_NO_PSYS_UPDATE;
+
 	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1, 0, 0);
+
+	ob->transflag &= ~OB_NO_PSYS_UPDATE;
 
 	return final;
 }

@@ -21,6 +21,7 @@
 #include "kernel_globals.h"
 #include "kernel_object.h"
 
+#include "osl_closures.h"
 #include "osl_services.h"
 #include "osl_shader.h"
 
@@ -60,10 +61,6 @@ void OSLShader::thread_free(KernelGlobals *kg)
 }
 
 /* Globals */
-
-#define TO_VEC3(v) (*(OSL::Vec3 *)&(v))
-#define TO_COLOR3(v) (*(OSL::Color3 *)&(v))
-#define TO_FLOAT3(v) make_float3(v[0], v[1], v[2])
 
 static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
                                         int path_flag, OSL::ShaderGlobals *globals)
@@ -127,39 +124,20 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					if (sd->num_closure == MAX_CLOSURE)
 						return;
 
-					OSL::BSDFClosure *bsdf = (OSL::BSDFClosure *)prim;
-					ustring scattering = bsdf->scattering();
+					CBSDFClosure *bsdf = (CBSDFClosure *)prim;
+					int scattering = bsdf->scattering();
 
 					/* no caustics option */
-					if (no_glossy && scattering == OSL::Labels::GLOSSY)
+					if (no_glossy && scattering == LABEL_GLOSSY)
 						return;
 
 					/* sample weight */
-					float albedo = bsdf->albedo(TO_VEC3(sd->I));
-					float sample_weight = fabsf(average(weight)) * albedo;
+					float sample_weight = fabsf(average(weight));
+
+					sd->flag |= bsdf->shaderdata_flag();
 
 					sc.sample_weight = sample_weight;
-
-					/* scattering flags */
-					if (scattering == OSL::Labels::DIFFUSE) {
-						sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL;
-						sc.type = CLOSURE_BSDF_DIFFUSE_ID;
-					}
-					else if (scattering == OSL::Labels::GLOSSY) {
-						sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_GLOSSY;
-						sc.type = CLOSURE_BSDF_GLOSSY_ID;
-					}
-					else if (scattering == OSL::Labels::STRAIGHT) {
-						sd->flag |= SD_BSDF;
-						sc.type = CLOSURE_BSDF_TRANSPARENT_ID;
-					}
-					else {
-						/* todo: we don't actually have a way to determine if
-						 * this closure will reflect/transmit. could add our own
-						 * own scattering flag that do give this info */
-						sd->flag |= SD_BSDF;
-						sc.type = CLOSURE_BSDF_GLOSSY_ID;
-					}
+					sc.type = bsdf->shaderclosure_type();
 
 					/* add */
 					sd->closure[sd->num_closure++] = sc;
@@ -406,54 +384,34 @@ void OSLShader::release(KernelGlobals *kg, ShaderData *sd)
 
 int OSLShader::bsdf_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3& eval, float3& omega_in, differential3& domega_in, float& pdf)
 {
-	OSL::BSDFClosure *sample_bsdf = (OSL::BSDFClosure *)sc->prim;
-	int label = LABEL_NONE;
+	CBSDFClosure *sample_bsdf = (CBSDFClosure *)sc->prim;
 
 	pdf = 0.0f;
 
-	/* sample BSDF closure */
-	ustring ulabel;
-
-	ulabel = sample_bsdf->sample(TO_VEC3(sd->Ng),
-	                             TO_VEC3(sd->I), TO_VEC3(sd->dI.dx), TO_VEC3(sd->dI.dy),
-	                             randu, randv,
-	                             TO_VEC3(omega_in), TO_VEC3(domega_in.dx), TO_VEC3(domega_in.dy),
-	                             pdf, TO_COLOR3(eval));
-
-	/* convert OSL label */
-	if (ulabel == OSL::Labels::REFLECT)
-		label = LABEL_REFLECT;
-	else if (ulabel == OSL::Labels::TRANSMIT)
-		label = LABEL_TRANSMIT;
-	else
-		return LABEL_NONE;  /* sampling failed */
-
-	/* convert scattering to our bitflag label */
-	ustring uscattering = sample_bsdf->scattering();
-
-	if (uscattering == OSL::Labels::DIFFUSE)
-		label |= LABEL_DIFFUSE;
-	else if (uscattering == OSL::Labels::GLOSSY)
-		label |= LABEL_GLOSSY;
-	else if (uscattering == OSL::Labels::SINGULAR)
-		label |= LABEL_SINGULAR;
-	else
-		label |= LABEL_TRANSPARENT;
-
-	return label;
+	return sample_bsdf->sample(sd->Ng,
+	                           sd->I, sd->dI.dx, sd->dI.dy,
+	                           randu, randv,
+	                           omega_in, domega_in.dx, domega_in.dy,
+	                           pdf, eval);
 }
 
 float3 OSLShader::bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, const float3& omega_in, float& pdf)
 {
-	OSL::BSDFClosure *bsdf = (OSL::BSDFClosure *)sc->prim;
-	OSL::Color3 bsdf_eval;
+	CBSDFClosure *bsdf = (CBSDFClosure *)sc->prim;
+	float3 bsdf_eval;
 
 	if (dot(sd->Ng, omega_in) >= 0.0f)
-		bsdf_eval = bsdf->eval_reflect(TO_VEC3(sd->I), TO_VEC3(omega_in), pdf);
+		bsdf_eval = bsdf->eval_reflect(sd->I, omega_in, pdf);
 	else
-		bsdf_eval = bsdf->eval_transmit(TO_VEC3(sd->I), TO_VEC3(omega_in), pdf);
+		bsdf_eval = bsdf->eval_transmit(sd->I, omega_in, pdf);
 	
-	return TO_FLOAT3(bsdf_eval);
+	return bsdf_eval;
+}
+
+void OSLShader::bsdf_blur(ShaderClosure *sc, float roughness)
+{
+	CBSDFClosure *bsdf = (CBSDFClosure *)sc->prim;
+	bsdf->blur(roughness);
 }
 
 /* Emissive Closure */
@@ -468,7 +426,7 @@ float3 OSLShader::emissive_eval(const ShaderData *sd, const ShaderClosure *sc)
 
 /* Volume Closure */
 
-float3 OSLShader::volume_eval_phase(const ShaderData *sd, const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
+float3 OSLShader::volume_eval_phase(const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
 {
 	OSL::VolumeClosure *volume = (OSL::VolumeClosure *)sc->prim;
 	OSL::Color3 volume_eval = volume->eval_phase(TO_VEC3(omega_in), TO_VEC3(omega_out));

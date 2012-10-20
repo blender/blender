@@ -105,7 +105,6 @@ public:
 
 };
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
-#endif //__KX_VERTEXPROXY_H__
-
+#endif  /* __KX_VERTEXPROXY_H__ */

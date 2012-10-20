@@ -255,8 +255,12 @@ void wm_event_do_notifiers(bContext *C)
 		for (win = wm->windows.first; win; win = win->next) {
 			
 			/* filter out notifiers */
-			if (note->category == NC_SCREEN && note->reference && note->reference != win->screen) ;
-			else if (note->category == NC_SCENE && note->reference && note->reference != win->screen->scene) ;
+			if (note->category == NC_SCREEN && note->reference && note->reference != win->screen) {
+				/* pass */
+			}
+			else if (note->category == NC_SCENE && note->reference && note->reference != win->screen->scene) {
+				/* pass */
+			}
 			else {
 				ScrArea *sa;
 				ARegion *ar;
@@ -883,8 +887,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 			wm_operator_reports(C, op, retval, (reports != NULL));
 		}
 
-		if (retval & OPERATOR_HANDLED)
-			;  /* do nothing, wm_operator_exec() has been called somewhere */
+		if (retval & OPERATOR_HANDLED) {
+			/* do nothing, wm_operator_exec() has been called somewhere */
+		}
 		else if (retval & OPERATOR_FINISHED) {
 			if (!is_nested_call) { /* not called by py script */
 				WM_operator_last_properties_store(op);
@@ -2919,7 +2924,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.keymodifier = 0;
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */
-			if (event.type == ESCKEY)
+			if (event.type == ESCKEY && event.val == KM_PRESS)
 				G.is_break = TRUE;
 			
 			wm_event_add(win, &event);

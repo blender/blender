@@ -32,8 +32,15 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 		Ray ray;
 		ray.D = ls->D;
 		ray.P = ls->P;
+		ray.t = 1.0f;
+#ifdef __OBJECT_MOTION__
+		ray.time = time;
+#endif
 		ray.dP.dx = make_float3(0.0f, 0.0f, 0.0f);
 		ray.dP.dy = make_float3(0.0f, 0.0f, 0.0f);
+#ifdef __CAMERA_MOTION__
+		ray.time = time;
+#endif
 		shader_setup_from_background(kg, &sd, &ray);
 		eval = shader_eval_background(kg, &sd, 0);
 	}

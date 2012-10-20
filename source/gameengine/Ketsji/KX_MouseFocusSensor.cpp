@@ -30,11 +30,10 @@
  *  \ingroup ketsji
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// This warning tells us about truncation of __long__ stl-generated names.
-// It can occasionally cause DevStudio to have internal compiler warnings.
-#pragma warning( disable : 4786 )     
+#ifdef _MSC_VER
+  /* This warning tells us about truncation of __long__ stl-generated names.
+   * It can occasionally cause DevStudio to have internal compiler warnings. */
+#  pragma warning(disable:4786)
 #endif
 
 #include "MT_Point3.h"
@@ -60,14 +59,14 @@
 /* ------------------------------------------------------------------------- */
 
 KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr, 
-										 int startx,
-										 int starty,
-										 short int mousemode,
-										 int focusmode,
-										 bool bTouchPulse,
-										 KX_Scene* kxscene,
-										 KX_KetsjiEngine *kxengine,
-										 SCA_IObject* gameobj)
+                                         int startx,
+                                         int starty,
+                                         short int mousemode,
+                                         int focusmode,
+                                         bool bTouchPulse,
+                                         KX_Scene* kxscene,
+                                         KX_KetsjiEngine *kxengine,
+                                         SCA_IObject* gameobj)
 	: SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj),
 	  m_focusmode(focusmode),
 	  m_bTouchPulse(bTouchPulse),

@@ -371,5 +371,4 @@ protected :
 #endif
 };
 
-#endif //__SG_IOBJECT_H__
-
+#endif  /* __SG_IOBJECT_H__ */

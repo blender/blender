@@ -576,7 +576,7 @@ static void expand_local_mesh(Mesh *me)
 
 		for (i = 0; i < me->pdata.totlayer; i++) {
 			if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-				MTexPoly *txface = (MTexPoly *)me->fdata.layers[i].data;
+				MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
 
 				for (a = 0; a < me->totpoly; a++, txface++) {
 					/* special case: ima always local immediately */
@@ -2039,7 +2039,7 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 		MDisps *ld = CustomData_get(ldata, loopstart, CD_MDISPS);
 		MDisps *fd = CustomData_get(fdata, findex, CD_MDISPS);
 		float (*disps)[3] = fd->disps;
-		int i, tot = mf->v4 ? 4 : 3;
+		int tot = mf->v4 ? 4 : 3;
 		int side, corners;
 
 		if (CustomData_external_test(fdata, CD_MDISPS)) {

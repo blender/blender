@@ -214,7 +214,9 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 		/* fill array by selection */
 		mp = me->mpoly;
 		for (a = 0; a < me->totpoly; a++, mp++) {
-			if (mp->flag & ME_HIDE) ;
+			if (mp->flag & ME_HIDE) {
+				/* pass */
+			}
 			else if (mp->flag & ME_FACE_SEL) {
 				hash_add_face(ehash, mp, me->mloop + mp->loopstart);
 				linkflag[a] = 1;
@@ -572,7 +574,9 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	mpoly = me->mpoly;
 	for (a = 1; a <= me->totpoly; a++, mpoly++) {
 		if (selar[a]) {
-			if (mpoly->flag & ME_HIDE) ;
+			if (mpoly->flag & ME_HIDE) {
+				/* pass */
+			}
 			else {
 				if (select) mpoly->flag |= ME_FACE_SEL;
 				else mpoly->flag &= ~ME_FACE_SEL;

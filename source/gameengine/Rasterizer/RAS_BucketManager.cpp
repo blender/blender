@@ -29,10 +29,9 @@
  *  \ingroup bgerast
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// don't show these anoying STL warnings
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+   /* don't show these anoying STL warnings */
+#  pragma warning (disable:4786)
 #endif
 
 #include "CTR_Map.h"

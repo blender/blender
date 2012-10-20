@@ -508,7 +508,9 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
 	if (re->r.scemode & R_PREVIEWBUTS) {
-		if (re->result && re->result->rectx == re->rectx && re->result->recty == re->recty) ;
+		if (re->result && re->result->rectx == re->rectx && re->result->recty == re->recty) {
+			/* pass */
+		}
 		else {
 			render_result_free(re->result);
 			re->result = NULL;
@@ -657,8 +659,12 @@ static void *do_part_thread(void *pa_v)
 		}
 		else if (render_display_draw_enabled(&R)) {
 			/* on break, don't merge in result for preview renders, looks nicer */
-			if (R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS)) ;
-			else render_result_merge(R.result, pa->result);
+			if (R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS)) {
+				/* pass */
+			}
+			else {
+				render_result_merge(R.result, pa->result);
+			}
 		}
 	}
 	
@@ -1592,6 +1598,7 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 	
 	re->main = bmain;
 	re->scene = sce;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	
 	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
 	
@@ -1974,7 +1981,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	if (scene->r.scemode & R_DOCOMP) {
 		if (scene->use_nodes) {
 			if (!scene->nodetree) {
-				BKE_report(reports, RPT_ERROR, "No Nodetree in Scene");
+				BKE_report(reports, RPT_ERROR, "No node tree in Scene");
 				return 0;
 			}
 			
@@ -2089,6 +2096,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	
 	re->main = bmain;
 	re->scene = scene;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	re->camera_override = camera_override;
 	re->lay = lay;
 	
@@ -2201,6 +2209,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		/* note; the way it gets 32 bits rects is weak... */
 		if (ibuf->rect == NULL) {
 			ibuf->rect = MEM_mapallocN(sizeof(int) * rres.rectx * rres.recty, "temp 32 bits rect");
+			ibuf->mall |= IB_rect;
 			RE_ResultGet32(re, ibuf->rect);
 			do_free = TRUE;
 		}
@@ -2214,6 +2223,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		if (do_free) {
 			MEM_freeN(ibuf->rect);
 			ibuf->rect = NULL;
+			ibuf->mall &= ~IB_rect;
 		}
 
 		/* imbuf knows which rects are not part of ibuf */
@@ -2434,6 +2444,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 
 	re->main = bmain;
 	re->scene = sce;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	re->lay = sce->lay;
 
 	camera = RE_GetCamera(re);
@@ -2478,6 +2489,7 @@ int RE_ReadRenderResult(Scene *scene, Scene *scenode)
 		re = RE_NewRender(scene->id.name);
 	RE_InitState(re, NULL, &scene->r, NULL, winx, winy, &disprect);
 	re->scene = scene;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	success = render_result_exr_file_read(re, 0);

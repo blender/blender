@@ -505,13 +505,17 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 		Image *ima = (Image *) id;
 
 		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+
 		WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
+		WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 	}
 	else if (GS(id->name) == ID_MC) {
 		MovieClip *clip = (MovieClip *) id;
 
 		BKE_movieclip_reload(clip);
+
 		WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
+		WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, &clip->id);
 	}
 }
 

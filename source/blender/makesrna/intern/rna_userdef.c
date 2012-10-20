@@ -2520,7 +2520,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sub Level Menu Open Delay",
 	                         "Time delay in 1/10 seconds before automatically opening sub level menus");
 
-	prop = RNA_def_property(srna, "quit_dialog", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_quit_dialog", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_QUIT_PROMPT);
 	RNA_def_property_ui_text(prop, "Prompt Quit",
 	                         "Asks for confirmation when quitting through the window close button");
@@ -2755,6 +2755,11 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_INSERTAVAIL);
 	RNA_def_property_ui_text(prop, "Auto Keyframe Insert Available",
 	                         "Automatic keyframe insertion in available F-Curves");
+
+	prop = RNA_def_property(srna, "use_auto_keying_warning", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_NOWARNING);
+	RNA_def_property_ui_text(prop, "Show Auto Keying Warning",
+	                         "Show warning indicators when transforming Object and Bones if Auto Keying is enabled");
 	
 	/* keyframing settings */
 	prop = RNA_def_property(srna, "use_keyframe_insert_needed", PROP_BOOLEAN, PROP_NONE);
@@ -2788,7 +2793,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_NONEGFRAMES);
 	RNA_def_property_ui_text(prop, "Allow Negative Frames",
 	                         "Current frame number can be manually set to a negative value");
-							 
+
 	/* fcurve opacity */
 	prop = RNA_def_property(srna, "fcurve_unselected_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "fcu_inactive_alpha");
@@ -2992,7 +2997,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	/* Note: As this list is in alphabetical order, and not defined order,
-	 *       here is the highest define currently in use: 33 (Hebrew). */
+	 *       here is the highest define currently in use: 35 (Esperanto). */
 	static EnumPropertyItem language_items[] = {
 		{ 0, "", 0, N_("Nearly Done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
@@ -3010,25 +3015,27 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
 		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, "", 0, N_("In Progress"), ""},
-		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
-		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
+/*		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},*/ /* XXX Not active nor enough translated. */
+/*		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},*/ /* XXX Not active nor enough translated. */
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
 		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
 		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
-		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
+		{35, "ESPERANTO", 0, "Esperanto (Esperanto)", "eo"},
+		{34, "ESTONIAN", 0, "Estonian (Eestlane)", "et_EE"},
+/*		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},*/ /* XXX Not active nor enough translated. */
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
-		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
+/*		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},*/ /* XXX Not active nor enough translated. */
 		/* using the utf8 flipped form of Hebrew (עִבְרִית)) */
 		{33, "HEBREW", 0, "Hebrew (תירִבְעִ)", "he_IL"},
 		{31, "HUNGARIAN", 0, "Hungarian (Magyar)", "hu_HU"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
-/*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"}, */ /* XXX No po's yet. */
-		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
+/*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"}, */ /* XXX Not active nor enough translated. */
+/*		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},*/ /* XXX Not active nor enough translated. */
 		/* using the utf8 flipped form of Persian (فارسی) */
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"},
-		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
-/*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"}, */ /* XXX No po's yet. */
+/*		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},*/ /* XXX Not active nor enough translated. */
+/*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"}, */ /* XXX Not active nor enough translated. */
 		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
 		{28, "SERBIAN_LATIN", 0, "Serbian Latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},

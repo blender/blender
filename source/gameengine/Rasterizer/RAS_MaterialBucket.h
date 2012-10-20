@@ -254,4 +254,4 @@ private:
 #endif
 };
 
-#endif //__RAS_MATERIAL_BUCKET
+#endif  /* __RAS_MATERIAL_BUCKET */

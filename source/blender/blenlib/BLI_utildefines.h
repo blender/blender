@@ -128,6 +128,10 @@
 #endif
 #endif
 
+/* can be used in simple macros */
+#define CHECK_TYPE_INLINE(val, type) \
+	((void)(((type *)0) != (val)))
+
 #ifndef SWAP
 #  define SWAP(type, a, b)  {  \
 	type sw_ap;                \
@@ -188,6 +192,11 @@
 		*(v1) =   *(v2)   + *(v3) * (fac);                                    \
 		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (fac);                            \
 		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (fac);                            \
+} (void)0
+#define VECMADD(v1, v2, v3, v4) {                                             \
+		*(v1) =   *(v2)   + *(v3) * (*(v4));                                     \
+		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (*(v4 + 1));                         \
+		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (*(v4 + 2));                         \
 } (void)0
 #define VECSUBFAC(v1, v2, v3, fac) {                                          \
 		*(v1) =   *(v2)   - *(v3) * (fac);                                    \
@@ -326,4 +335,4 @@
 #  define UNLIKELY(x)     (x)
 #endif
 
-#endif // __BLI_UTILDEFINES_H__
+#endif  /* __BLI_UTILDEFINES_H__ */

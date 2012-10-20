@@ -853,7 +853,7 @@ static int childof_clear_inverse_exec(bContext *C, wmOperator *op)
 	bChildOfConstraint *data = (con) ? (bChildOfConstraint *)con->data : NULL;
 	
 	if (data == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Childof constraint not found");
+		BKE_report(op->reports, RPT_ERROR, "Child Of constraint not found");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1073,7 +1073,7 @@ static int objectsolver_clear_inverse_exec(bContext *C, wmOperator *op)
 	bObjectSolverConstraint *data = (con) ? (bObjectSolverConstraint *)con->data : NULL;
 
 	if (data == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Childof constraint not found");
+		BKE_report(op->reports, RPT_ERROR, "Child Of constraint not found");
 		return OPERATOR_CANCELLED;
 	}
 

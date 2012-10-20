@@ -593,7 +593,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* Check context */
 	if (base == NULL || base->object->type != OB_MESH) {
-		BKE_report(op->reports, RPT_ERROR, "Not an Object or Mesh");
+		BKE_report(op->reports, RPT_ERROR, "Not an object or mesh");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -610,7 +610,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	if (!ima) {
-		BKE_report(op->reports, RPT_ERROR, "Not an Image");
+		BKE_report(op->reports, RPT_ERROR, "Not an image");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1124,7 +1124,7 @@ static void mesh_remove_faces(Mesh *mesh, int len)
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add geometry in edit mode");
+		BKE_report(reports, RPT_ERROR, "Cannot add geometry in edit mode");
 		return;
 	}
 
@@ -1140,12 +1140,12 @@ void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges,
 void ED_mesh_tessfaces_add(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add tessfaces in edit mode");
+		BKE_report(reports, RPT_ERROR, "Cannot add tessfaces in edit mode");
 		return;
 	}
 
 	if (mesh->mpoly) {
-		BKE_report(reports, RPT_ERROR, "Can't add tessfaces to a mesh that already has polygons");
+		BKE_report(reports, RPT_ERROR, "Cannot add tessfaces to a mesh that already has polygons");
 		return;
 	}
 
@@ -1155,7 +1155,7 @@ void ED_mesh_tessfaces_add(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add edges in edit mode");
+		BKE_report(reports, RPT_ERROR, "Cannot add edges in edit mode");
 		return;
 	}
 
@@ -1165,7 +1165,7 @@ void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add vertices in edit mode");
+		BKE_report(reports, RPT_ERROR, "Cannot add vertices in edit mode");
 		return;
 	}
 
@@ -1175,11 +1175,11 @@ void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't remove faces in edit mode");
+		BKE_report(reports, RPT_ERROR, "Cannot remove faces in edit mode");
 		return;
 	}
 	else if (count > mesh->totface) {
-		BKE_report(reports, RPT_ERROR, "Can't remove more faces than the mesh contains");
+		BKE_report(reports, RPT_ERROR, "Cannot remove more faces than the mesh contains");
 		return;
 	}
 
@@ -1189,11 +1189,11 @@ void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't remove edges in edit mode");
+		BKE_report(reports, RPT_ERROR, "Cannot remove edges in edit mode");
 		return;
 	}
 	else if (count > mesh->totedge) {
-		BKE_report(reports, RPT_ERROR, "Can't remove more edges than the mesh contains");
+		BKE_report(reports, RPT_ERROR, "Cannot remove more edges than the mesh contains");
 		return;
 	}
 
@@ -1203,11 +1203,11 @@ void ED_mesh_edges_remove(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_vertices_remove(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't remove vertices in edit mode");
+		BKE_report(reports, RPT_ERROR, "Cannot remove vertices in edit mode");
 		return;
 	}
 	else if (count > mesh->totvert) {
-		BKE_report(reports, RPT_ERROR, "Can't remove more vertices than the mesh contains");
+		BKE_report(reports, RPT_ERROR, "Cannot remove more vertices than the mesh contains");
 		return;
 	}
 
@@ -1217,7 +1217,7 @@ void ED_mesh_vertices_remove(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add loops in edit mode.");
+		BKE_report(reports, RPT_ERROR, "Cannot add loops in edit mode");
 		return;
 	}
 
@@ -1227,7 +1227,7 @@ void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 {
 	if (mesh->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add polys in edit mode.");
+		BKE_report(reports, RPT_ERROR, "Cannot add polygons in edit mode");
 		return;
 	}
 

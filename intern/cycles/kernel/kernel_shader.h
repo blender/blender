@@ -27,21 +27,35 @@
  */
 
 #ifdef __OSL__
-
 #include "osl_shader.h"
-
 #endif
 
-#include "svm/bsdf.h"
-#include "svm/emissive.h"
-#include "svm/volume.h"
+#include "closure/bsdf.h"
+#include "closure/emissive.h"
+#include "closure/volume.h"
+
 #include "svm/svm_bsdf.h"
 #include "svm/svm.h"
-
 
 CCL_NAMESPACE_BEGIN
 
 /* ShaderData setup from incoming ray */
+
+#ifdef __OBJECT_MOTION__
+__device_noinline void shader_setup_object_transforms(KernelGlobals *kg, ShaderData *sd, float time)
+{
+	/* note that this is a separate non-inlined function to work around crash
+	 * on CUDA sm 2.0, otherwise kernel execution crashes (compiler bug?) */
+	if(sd->flag & SD_OBJECT_MOTION) {
+		sd->ob_tfm = object_fetch_transform_motion(kg, sd->object, time);
+		sd->ob_itfm= transform_quick_inverse(sd->ob_tfm);
+	}
+	else {
+		sd->ob_tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM);
+		sd->ob_itfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+	}
+}
+#endif
 
 __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
@@ -67,11 +81,12 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	sd->v = isect->v;
 #endif
 
-	/* matrices and time */
-#ifdef __MOTION__
-	sd->ob_tfm = object_fetch_transform(kg, sd->object, ray->time, OBJECT_TRANSFORM);
-	sd->ob_itfm = object_fetch_transform(kg, sd->object, ray->time, OBJECT_INVERSE_TRANSFORM);
+	sd->flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*2);
+	sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
+	/* matrices and time */
+#ifdef __OBJECT_MOTION__
+	shader_setup_object_transforms(kg, sd, ray->time);
 	sd->time = ray->time;
 #endif
 
@@ -86,9 +101,6 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	/* smooth normal */
 	if(sd->shader & SHADER_SMOOTH_NORMAL)
 		sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
-
-	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
-	sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
@@ -171,11 +183,17 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	}
 #endif
 
-#ifdef __MOTION__
-	sd->time = time;
+	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
+	if(sd->object != -1) {
+		sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
-	sd->ob_tfm = object_fetch_transform(kg, sd->object, time, OBJECT_TRANSFORM);
-	sd->ob_itfm = object_fetch_transform(kg, sd->object, time, OBJECT_INVERSE_TRANSFORM);
+#ifdef __OBJECT_MOTION__
+		shader_setup_object_transforms(kg, sd, time);
+	}
+
+	sd->time = time;
+#else
+	}
 #endif
 
 	/* smooth normal */
@@ -187,10 +205,6 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 			object_normal_transform(kg, sd, &sd->N);
 #endif
 	}
-
-	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
-	if(sd->object != -1)
-		sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
@@ -275,7 +289,7 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 	sd->I = -sd->P;
 	sd->shader = kernel_data.background.shader;
 	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
-#ifdef __MOTION__
+#ifdef __OBJECT_MOTION__
 	sd->time = ray->time;
 #endif
 	sd->ray_length = 0.0f;
@@ -483,17 +497,21 @@ __device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *sd,
 
 __device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughness)
 {
-#ifndef __OSL__
 #ifdef __MULTI_CLOSURE__
 	for(int i = 0; i< sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
 
-		if(CLOSURE_IS_BSDF(sc->type))
-			svm_bsdf_blur(sc, roughness);
+		if(CLOSURE_IS_BSDF(sc->type)) {
+#ifdef __OSL__
+			if (kernel_osl_use(kg))
+				OSLShader::bsdf_blur(sc, roughness);
+			else
+#endif
+				svm_bsdf_blur(sc, roughness);
+		}
 	}
 #else
 	svm_bsdf_blur(&sd->closure, roughness);
-#endif
 #endif
 }
 
@@ -704,16 +722,16 @@ __device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 		if(CLOSURE_IS_VOLUME(sc->type)) {
 #ifdef __OSL__
 			if (kernel_osl_use(kg))
-				eval += OSLShader::volume_eval_phase(sd, sc, omega_in, omega_out);
+				eval += OSLShader::volume_eval_phase(sc, omega_in, omega_out);
 			else
 #endif
-				eval += volume_eval_phase(sd, sc, omega_in, omega_out);
+				eval += volume_eval_phase(sc, omega_in, omega_out);
 		}
 	}
 
 	return eval;
 #else
-	return volume_eval_phase(sd, &sd->closure, omega_in, omega_out);
+	return volume_eval_phase(&sd->closure, omega_in, omega_out);
 #endif
 }
 

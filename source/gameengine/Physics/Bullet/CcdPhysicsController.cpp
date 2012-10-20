@@ -215,8 +215,7 @@ bool CcdPhysicsController::CreateSoftbody()
 	btSoftBody* psb  = 0;
 	btSoftBodyWorldInfo& worldInfo = m_cci.m_physicsEnv->getDynamicsWorld()->getWorldInfo();
 
-	if (m_cci.m_collisionShape->getShapeType() == CONVEX_HULL_SHAPE_PROXYTYPE)
-	{
+	if (m_cci.m_collisionShape->getShapeType() == CONVEX_HULL_SHAPE_PROXYTYPE) {
 		btConvexHullShape* convexHull = (btConvexHullShape* )m_cci.m_collisionShape;
 		{
 			int nvertices = convexHull->getNumPoints();
@@ -224,26 +223,25 @@ bool CcdPhysicsController::CreateSoftbody()
 
 			HullDesc		hdsc(QF_TRIANGLES,nvertices,vertices);
 			HullResult		hres;
-			HullLibrary		hlib;/*??*/ 
+			HullLibrary		hlib;  /*??*/
 			hdsc.mMaxVertices=nvertices;
 			hlib.CreateConvexHull(hdsc,hres);
 			
-			psb=new btSoftBody(&worldInfo,(int)hres.mNumOutputVertices,
-				&hres.m_OutputVertices[0],0);
-			for (int i=0;i<(int)hres.mNumFaces;++i)
-			{
-				const int idx[]={	hres.m_Indices[i*3+0],
-					hres.m_Indices[i*3+1],
-					hres.m_Indices[i*3+2]};
-				if (idx[0]<idx[1]) psb->appendLink(	idx[0],idx[1]);
-				if (idx[1]<idx[2]) psb->appendLink(	idx[1],idx[2]);
-				if (idx[2]<idx[0]) psb->appendLink(	idx[2],idx[0]);
-				psb->appendFace(idx[0],idx[1],idx[2]);
+			psb = new btSoftBody(&worldInfo, (int)hres.mNumOutputVertices,
+			                     &hres.m_OutputVertices[0], 0);
+			for (int i = 0; i < (int)hres.mNumFaces; ++i) {
+				const int idx[3] = {hres.m_Indices[i * 3 + 0],
+				                    hres.m_Indices[i * 3 + 1],
+				                    hres.m_Indices[i * 3 + 2]};
+				if (idx[0] < idx[1]) psb->appendLink(idx[0], idx[1]);
+				if (idx[1] < idx[2]) psb->appendLink(idx[1], idx[2]);
+				if (idx[2] < idx[0]) psb->appendLink(idx[2], idx[0]);
+				psb->appendFace(idx[0], idx[1], idx[2]);
 			}
 			hlib.ReleaseResult(hres);
 		}
-	} else
-	{
+	}
+	else {
 		int numtris = 0;
 		if (m_cci.m_collisionShape->getShapeType() ==SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE)
 		{
@@ -895,18 +893,22 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 			return;
 		}
 
-		// btRigidBody* body = GetRigidBody(); // not used anymore
-
 		btVector3 dloc(dlocX,dlocY,dlocZ);
 		btTransform xform = m_object->getWorldTransform();
 	
 		if (local)
-		{
 			dloc = xform.getBasis()*dloc;
-		}
 
-		xform.setOrigin(xform.getOrigin() + dloc);
-		SetCenterOfMassTransform(xform);
+		if (m_characterController)
+		{
+			m_characterController->setWalkDirection(dloc/GetPhysicsEnvironment()->getNumTimeSubSteps());
+		}
+		else
+		{
+
+			xform.setOrigin(xform.getOrigin() + dloc);
+			SetCenterOfMassTransform(xform);
+		}
 	}
 
 }

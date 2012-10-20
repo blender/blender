@@ -102,7 +102,6 @@ add_subdirectory(blenloader)
 add_subdirectory(ikplugin)
 add_subdirectory(gpu)
 add_subdirectory(imbuf)
-add_subdirectory(avi)
 add_subdirectory(nodes)
 add_subdirectory(modifiers)
 add_subdirectory(makesdna)
@@ -124,6 +123,10 @@ endif()
 
 if(WITH_IMAGE_CINEON)
 	add_subdirectory(imbuf/intern/cineon)
+endif()
+
+if(WITH_CODEC_AVI)
+	add_subdirectory(avi)
 endif()
 
 if(WITH_CODEC_QUICKTIME)

@@ -62,5 +62,4 @@ struct PHY_MaterialProps {
 	bool      m_fh_normal;             // Should the object slide off slopes?
 };
 
-#endif //__PHY_PRO_H__
-
+#endif  /* __PHY_PRO_H__ */

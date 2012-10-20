@@ -302,7 +302,7 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 	NlaStrip *strip = add_nlastrip(action);
 	
 	if (strip == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to create new strip");
+		BKE_report(reports, RPT_ERROR, "Unable to create new strip");
 		return NULL;
 	}
 	
@@ -310,8 +310,8 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 	strip->start = start;
 	
 	if (BKE_nlastrips_add_strip(&track->strips, strip) == 0) {
-		BKE_reportf(reports, RPT_ERROR,
-		            "Unable to add strip. Track doesn't have any space to accommodate this new strip");
+		BKE_report(reports, RPT_ERROR,
+		           "Unable to add strip (the track does not have any space to accommodate this new strip)");
 		free_nlastrip(NULL, strip);
 		return NULL;
 	}
@@ -348,7 +348,7 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *reports, NlaStrip *strip)
 {
 	if (BLI_findindex(&track->strips, strip) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "NLA's Strip '%s' not found in track '%s'", strip->name, track->name);
+		BKE_reportf(reports, RPT_ERROR, "NLA strip '%s' not found in track '%s'", strip->name, track->name);
 		return;
 	}
 	else {

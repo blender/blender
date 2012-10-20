@@ -43,7 +43,7 @@ struct TexResult;
 void cache_pointdensity(struct Render *re, struct Tex *tex);
 void make_pointdensities(struct Render *re);
 void free_pointdensities(struct Render *re);
-int pointdensitytex(struct Tex *tex, float *texvec, struct TexResult *texres);
+int pointdensitytex(struct Tex *tex, const float texvec[3], struct TexResult *texres);
 
 #endif /* __POINTDENSITY_H__ */
 

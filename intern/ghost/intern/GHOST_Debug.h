@@ -33,12 +33,12 @@
 #ifndef __GHOST_DEBUG_H__
 #define __GHOST_DEBUG_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
+#ifdef _MSC_VER
 #  ifdef DEBUG
 #    pragma warning (disable:4786) // suppress stl-MSVC debug info warning
      // #define GHOST_DEBUG
 #  endif // DEBUG
-#endif // WIN32
+#endif // _MSC_VER
 
 #ifdef WITH_GHOST_DEBUG 
 #  define GHOST_DEBUG // spit ghost events to stdout

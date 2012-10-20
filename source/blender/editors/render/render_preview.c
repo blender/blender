@@ -273,16 +273,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		
 		/* exception: don't apply render part of display transform for texture previews or icons */
 		if ((id && sp->pr_method == PR_ICON_RENDER) || id_type == ID_TE) {
-			ColorManagedDisplaySettings *display_settings = &sce->display_settings;
-			ColorManagedViewSettings *view_settings = &sce->view_settings;
-
-			const char *default_view_name = IMB_colormanagement_view_get_default_name(display_settings->display_device);
-
-			view_settings->exposure = 0.0f;
-			view_settings->gamma = 1.0f;
-			view_settings->flag &= ~COLORMANAGE_VIEW_USE_CURVES;
-
-			BLI_strncpy(view_settings->view_transform, default_view_name, sizeof(view_settings->view_transform));
+			BKE_scene_disable_color_management(sce);
 		}
 		
 		if ((id && sp->pr_method == PR_ICON_RENDER) && id_type != ID_WO)
@@ -550,7 +541,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 					 *            color managed as well?
 					 */
 					IMB_buffer_byte_from_float(rect_byte, rres.rectf,
-					                           4, dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, do_predivide,
+					                           4, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, do_predivide,
 					                           rres.rectx, rres.recty, rres.rectx, rres.rectx);
 				}
 
@@ -818,7 +809,7 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied world */
 		BLI_remlink(&pr_main->world, sp->worldcopy);
-		BKE_world_free_ex(sp->worldcopy, FALSE);
+		BKE_world_free_ex(sp->worldcopy, TRUE); /* [#32865] - we need to unlink the texture copies, unlike for materials */
 		
 		properties = IDP_GetProperties((ID *)sp->worldcopy, FALSE);
 		if (properties) {

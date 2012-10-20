@@ -147,7 +147,7 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
 static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_to, bNodeSocket *sock_to, bNodeTemplate *ntemp, int sock_num)
 {
 	bNode *node_from;
-	bNodeSocket *sock_from;
+	bNodeSocket *sock_from_tmp;
 	bNode *node_prev = NULL;
 
 	/* unlink existing node */
@@ -183,8 +183,8 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 	nodeSetActive(ntree, node_from);
 
 	/* add link */
-	sock_from = BLI_findlink(&node_from->outputs, sock_num);
-	nodeAddLink(ntree, node_from, sock_from, node_to, sock_to);
+	sock_from_tmp = BLI_findlink(&node_from->outputs, sock_num);
+	nodeAddLink(ntree, node_from, sock_from_tmp, node_to, sock_to);
 
 	/* copy input sockets from previous node */
 	if (node_prev && node_from != node_prev) {

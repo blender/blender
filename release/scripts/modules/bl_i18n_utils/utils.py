@@ -41,6 +41,10 @@ def is_tooltip(msgid):
     return len(msgid) > 30
 
 
+def new_messages():
+    return getattr(collections, 'OrderedDict', dict)()
+
+
 def parse_messages(fname):
     """
     Returns a tupple (messages, states, stats).
@@ -78,7 +82,7 @@ def parse_messages(fname):
     msgctxt_lines = []
     comment_lines = []
 
-    messages = getattr(collections, 'OrderedDict', dict)()
+    messages = new_messages()
     translated_messages = set()
     fuzzy_messages = set()
     commented_messages = set()
@@ -282,7 +286,7 @@ def gen_empty_messages(blender_rev, time_str, year_str):
     """Generate an empty messages & state data (only header if present!)."""
     header_key = ("", "")
 
-    messages = getattr(collections, 'OrderedDict', dict)()
+    messages = new_messages()
     messages[header_key] = {
         "msgid_lines": [""],
         "msgctxt_lines": [],

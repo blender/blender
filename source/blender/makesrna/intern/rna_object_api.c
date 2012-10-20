@@ -158,7 +158,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
 			if (tmpobj->type != OB_MESH) {
 				BKE_libblock_free_us(&(G.main->object), tmpobj);
-				BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
+				BKE_report(reports, RPT_ERROR, "Cannot convert curve to mesh (does the curve have any segments?)");
 				return NULL;
 			}
 
@@ -351,7 +351,7 @@ void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, in
 
 	/* free duplilist if a user forgets to */
 	if (ob->duplilist) {
-		BKE_reportf(reports, RPT_WARNING, "Object.dupli_list has not been freed");
+		BKE_report(reports, RPT_WARNING, "Object.dupli_list has not been freed");
 
 		free_object_duplilist(ob->duplilist);
 		ob->duplilist = NULL;
@@ -387,7 +387,7 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 		return keyptr;
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\"does not support shapes", ob->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' does not support shapes", ob->id.name + 2);
 		return PointerRNA_NULL;
 	}
 }
@@ -402,14 +402,14 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
                                            float weight, int assignmode)
 {
 	if (ob->type != OB_MESH) {
-		BKE_report(reports, RPT_ERROR, "Object should be of MESH type");
+		BKE_report(reports, RPT_ERROR, "Object should be of mesh type");
 		return;
 	}
 
 	Mesh *me = (Mesh *)ob->data;
 	int group_index = BLI_findlink(&ob->defbase, group);
 	if (group_index == -1) {
-		BKE_report(reports, RPT_ERROR, "No deform groups assigned to mesh");
+		BKE_report(reports, RPT_ERROR, "No vertex groups assigned to mesh");
 		return;
 	}
 
@@ -441,7 +441,7 @@ static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start
 	BVHTreeFromMesh treeData = {NULL};
 	
 	if (ob->derivedFinal == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for ray casting", ob->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' has no mesh data to be used for ray casting", ob->id.name + 2);
 		return;
 	}
 
@@ -449,7 +449,7 @@ static void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start
 	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
 
 	if (treeData.tree == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for ray casting", ob->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' could not create internal data for ray casting", ob->id.name + 2);
 		return;
 	}
 	else {
@@ -483,7 +483,7 @@ static void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, fl
 	BVHTreeFromMesh treeData = {NULL};
 	
 	if (ob->derivedFinal == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for finding nearest point",
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' has no mesh data to be used for finding nearest point",
 		            ob->id.name + 2);
 		return;
 	}
@@ -492,7 +492,7 @@ static void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, fl
 	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
 
 	if (treeData.tree == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for finding nearest point",
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' could not create internal data for finding nearest point",
 		            ob->id.name + 2);
 		return;
 	}

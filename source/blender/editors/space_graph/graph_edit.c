@@ -1309,8 +1309,8 @@ void GRAPH_OT_sample(wmOperatorType *ot)
 
 /* defines for set extrapolation-type for selected keyframes tool */
 static EnumPropertyItem prop_graphkeys_expo_types[] = {
-	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", ""},
-	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", ""},
+	{FCURVE_EXTRAPOLATE_CONSTANT, "CONSTANT", 0, "Constant Extrapolation", "Values on endpoint keyframes are held"},
+	{FCURVE_EXTRAPOLATE_LINEAR, "LINEAR", 0, "Linear Extrapolation", "Straight-line slope of end segments are extended past the endpoint keyframes"},
 	
 	{MAKE_CYCLIC_EXPO, "MAKE_CYCLIC", 0, "Make Cyclic (F-Modifier)", "Add Cycles F-Modifier if one doesn't exist already"},
 	{CLEAR_CYCLIC_EXPO, "CLEAR_CYCLIC", 0, "Clear Cyclic (F-Modifier)", "Remove Cycles F-Modifier if not needed anymore"},
@@ -1808,9 +1808,9 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_frame_jump(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Jump to Frame";
+	ot->name = "Jump to Keyframes";
 	ot->idname = "GRAPH_OT_frame_jump";
-	ot->description = "Set the current frame to the average frame of the selected keyframes";
+	ot->description = "Place the cursor on the midpoint of selected keyframes";
 	
 	/* api callbacks */
 	ot->exec = graphkeys_framejump_exec;
@@ -1824,12 +1824,18 @@ void GRAPH_OT_frame_jump(wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 static EnumPropertyItem prop_graphkeys_snap_types[] = {
-	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current Frame", ""},
-	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value", ""},
-	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", ""}, // XXX as single entry?
-	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", ""}, // XXX as single entry?
-	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", ""},
-	{GRAPHKEYS_SNAP_HORIZONTAL, "HORIZONTAL", 0, "Flatten Handles", ""},
+	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current Frame", 
+	 "Snap selected keyframes to the current frame"},
+	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value", 
+	 "Set values of selected keyframes to the cursor value (Y/Horizontal component)"},
+	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", 
+	 "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame offsets)"},
+	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", 
+	 "Snap selected keyframes to the nearest second"},
+	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", 
+	 "Snap selected keyframes to the nearest marker"},
+	{GRAPHKEYS_SNAP_HORIZONTAL, "HORIZONTAL", 0, "Flatten Handles", 
+	 "Flatten handles for a smoother transition"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1932,11 +1938,16 @@ void GRAPH_OT_snap(wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 static EnumPropertyItem prop_graphkeys_mirror_types[] = {
-	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame", ""},
-	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value", ""},
-	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", ""},
-	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
-	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
+	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame", 
+	 "Flip times of selected keyframes using the current frame as the mirror line"},
+	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value", 
+	 "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"},
+	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", 
+	 "Flip times of selected keyframes, effectively reversing the order they appear in"},
+	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", 
+	 "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"},
+	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", 
+	 "Flip times of selected keyframes using the first selected marker as the reference point"},
 	{0, NULL, 0, NULL, NULL}
 };
 

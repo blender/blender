@@ -92,7 +92,7 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.keyconfig_import")
             layout.operator("wm.keyconfig_export")
         elif userpref.active_section == 'ADDONS':
-            layout.operator("wm.addon_install")
+            layout.operator("wm.addon_install", icon="FILESEL")
             layout.menu("USERPREF_MT_addons_dev_guides")
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
@@ -248,7 +248,7 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "show_splash")
 
         if os.name == "nt":
-            col.prop(view, "quit_dialog")
+            col.prop(view, "use_quit_dialog")
 
 
 class USERPREF_PT_edit(Panel):
@@ -324,6 +324,7 @@ class USERPREF_PT_edit(Panel):
         col.separator()
 
         col.prop(edit, "use_auto_keying", text="Auto Keyframing:")
+        col.prop(edit, "use_auto_keying_warning")
 
         sub = col.column()
 
@@ -1039,6 +1040,9 @@ class USERPREF_PT_addons(Panel):
         userpref = context.user_preferences
         used_ext = {ext.module for ext in userpref.addons}
 
+        userpref_addons_folder = os.path.join(userpref.filepaths.script_directory, "addons")
+        scripts_addons_folder  = bpy.utils.user_resource('SCRIPTS', "addons")
+        
         # collect the categories that can be filtered on
         addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(addon_utils.addons_fake_modules)]
 
@@ -1084,10 +1088,12 @@ class USERPREF_PT_addons(Panel):
                 continue
 
             # check if addon should be visible with current filters
-            if ((filter == "All") or
-                (filter == info["category"]) or
-                (filter == "Enabled" and is_enabled) or
-                (filter == "Disabled" and not is_enabled)):
+            if     ((filter == "All") or
+                    (filter == info["category"]) or
+                    (filter == "Enabled" and is_enabled) or
+                    (filter == "Disabled" and not is_enabled) or
+                    (filter == "User" and (mod.__file__.startswith(scripts_addons_folder, userpref_addons_folder)))
+                   ):
 
                 if search and search not in info["name"].lower():
                     if info["author"]:

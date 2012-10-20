@@ -47,5 +47,4 @@ public:
 #endif
 };
 
-#endif //__SCA_ALWAYSEVENTMANAGER_H__
-
+#endif  /* __SCA_ALWAYSEVENTMANAGER_H__ */

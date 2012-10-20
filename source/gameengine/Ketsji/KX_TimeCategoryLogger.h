@@ -32,8 +32,8 @@
 #ifndef __KX_TIMECATEGORYLOGGER_H__
 #define __KX_TIMECATEGORYLOGGER_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)  /* suppress stl-MSVC debug info warning */
 #endif
 
 #include <map>
@@ -133,5 +133,4 @@ protected:
 #endif
 };
 
-#endif // __KX_TIMECATEGORYLOGGER_H__
-
+#endif  /* __KX_TIMECATEGORYLOGGER_H__ */

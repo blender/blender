@@ -317,7 +317,7 @@ void applyProject(TransInfo *t)
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 			
-			if (ED_view3d_project_float_global(t->ar, iloc, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+			if (ED_view3d_project_float_global(t->ar, iloc, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 				if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect)) {
 //					if (t->flag & (T_EDIT|T_POSE)) {
 //						mul_m4_v3(imat, loc);
@@ -603,7 +603,7 @@ int updateSelectedSnapPoint(TransInfo *t)
 			int dx, dy;
 			int dist;
 
-			if (ED_view3d_project_int_global(t->ar, p->co, screen_loc, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_SUCCESS) {
+			if (ED_view3d_project_int_global(t->ar, p->co, screen_loc, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
 				continue;
 			}
 
@@ -1236,7 +1236,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 			
 			new_depth = len_v3v3(location, ray_start);					
 			
-			if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+			if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 				new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 			}
 			else {
@@ -1297,7 +1297,7 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4],
 		
 		new_depth = len_v3v3(location, ray_start);
 		
-		if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+		if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 			new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 		}
 		else {

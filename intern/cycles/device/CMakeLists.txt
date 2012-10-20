@@ -7,6 +7,7 @@ set(INC
 	../util
 	../render
 )
+
 set(INC_SYS
 	${OPENGL_INCLUDE_DIR}
 	${GLEW_INCLUDE_PATH}

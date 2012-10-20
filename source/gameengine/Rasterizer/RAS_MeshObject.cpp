@@ -584,7 +584,7 @@ void RAS_MeshObject::CheckWeightCache(Object* obj)
 	if (!m_mesh->key)
 		return;
 
-	for (kbindex=0, kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next, kbindex++)
+	for (kbindex = 0, kb = (KeyBlock *)m_mesh->key->block.first; kb; kb = kb->next, kbindex++)
 	{
 		// first check the cases where the weight must be cleared
 		if (kb->vgroup[0] == 0 ||

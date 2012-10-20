@@ -217,7 +217,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	
 	/* sanity checks */
 	if (ELEM(NULL, clear_func, default_ksName)) {
-		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or Keying Set Name");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -381,8 +381,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	float rsmat[3][3], tmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
-	int a, change = 1;
+	float rsmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
+	int change = 1;
 	
 	/* first check if we can execute */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -417,7 +417,8 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			cu = ob->data;
 
 			if (!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
-				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing");
+				BKE_report(reports, RPT_ERROR,
+				           "Neither rotation nor location could be applied to a 2D curve, doing nothing");
 				change = 0;
 			}
 			if (cu->key) {
@@ -464,6 +465,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			copy_v3_v3(mat[3], ob->loc);
 
 			if (!(apply_scale && apply_rot)) {
+				float tmat[3][3];
 				/* correct for scale and rotation that is still applied */
 				BKE_object_to_mat3(ob, obmat);
 				invert_m3_m3(iobmat, obmat);
@@ -476,6 +478,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
 			MVert *mvert;
+			int a;
 
 			if (apply_scale)
 				multiresModifier_scale_disp(scene, ob);
@@ -518,6 +521,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			Nurb *nu;
 			BPoint *bp;
 			BezTriple *bezt;
+			int a;
 
 			scale = mat3_to_scale(rsmat);
 
@@ -896,6 +900,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 			/* offset other selected objects */
 			if (do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
+				CollectionPointerLink *ctx_link_other;
+
 				/* was the object data modified
 				 * note: the functions above must set 'cent' */
 				copy_v3_v3(centn, cent);
@@ -910,8 +916,16 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				ignore_parent_tx(bmain, scene, ob);
 				
 				/* other users? */
-				CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
+				//CTX_DATA_BEGIN (C, Object *, ob_other, selected_editable_objects)
+				//{
+
+				/* use existing context looper */
+				for (ctx_link_other = ctx_data_list.first;
+				     ctx_link_other;
+				     ctx_link_other = ctx_link_other->next)
 				{
+					Object *ob_other = ctx_link_other->ptr.data;
+
 					if ((ob_other->flag & OB_DONE) == 0 &&
 					    ((ob->data && (ob->data == ob_other->data)) ||
 					     (ob->dup_group == ob_other->dup_group &&
@@ -931,7 +945,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						ignore_parent_tx(bmain, scene, ob_other);
 					}
 				}
-				CTX_DATA_END;
+				//CTX_DATA_END;
 			}
 		}
 	}
@@ -948,9 +962,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 	/* Warn if any errors occurred */
 	if (tot_lib_error + tot_multiuser_arm_error) {
-		BKE_reportf(op->reports, RPT_WARNING, "%i Object(s) Not Centered, %i Changed:", tot_lib_error + tot_multiuser_arm_error, tot_change);
+		BKE_reportf(op->reports, RPT_WARNING, "%i object(s) not centered, %i changed:", tot_lib_error + tot_multiuser_arm_error, tot_change);
 		if (tot_lib_error)
-			BKE_reportf(op->reports, RPT_WARNING, "|%i linked library objects", tot_lib_error);
+			BKE_reportf(op->reports, RPT_WARNING, "|%i linked library object(s)", tot_lib_error);
 		if (tot_multiuser_arm_error)
 			BKE_reportf(op->reports, RPT_WARNING, "|%i multiuser armature object(s)", tot_multiuser_arm_error);
 	}
@@ -962,8 +976,10 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_set_center_types[] = {
 		{GEOMETRY_TO_ORIGIN, "GEOMETRY_ORIGIN", 0, "Geometry to Origin", "Move object geometry to object origin"},
-		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry", "Move object origin to center of object geometry"},
-		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor", "Move object origin to position of the 3d cursor"},
+		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry",
+		                     "Move object origin to center of object geometry"},
+		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor",
+		                   "Move object origin to position of the 3D cursor"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -975,7 +991,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name = "Set Origin";
-	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor";
+	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3D cursor";
 	ot->idname = "OBJECT_OT_origin_set";
 	
 	/* api callbacks */

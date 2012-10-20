@@ -72,5 +72,4 @@ public:
 #endif
 };
 
-#endif //__SCA_MOUSEMANAGER_H__
-
+#endif  /* __SCA_MOUSEMANAGER_H__ */

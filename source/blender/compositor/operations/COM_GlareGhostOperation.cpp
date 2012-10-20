@@ -79,9 +79,9 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 	sc = 2.13;
 	isc = -0.97;
 	for (y = 0; y < gbuf->getHeight() && (!breaked); y++) {
-		v = (float)(y + 0.5f) / (float)gbuf->getHeight();
+		v = ((float)y + 0.5f) / (float)gbuf->getHeight();
 		for (x = 0; x < gbuf->getWidth(); x++) {
-			u = (float)(x + 0.5f) / (float)gbuf->getWidth();
+			u = ((float)x + 0.5f) / (float)gbuf->getWidth();
 			s = (u - 0.5f) * sc + 0.5f, t = (v - 0.5f) * sc + 0.5f;
 			tbuf1->readCubic(c, s * gbuf->getWidth(), t * gbuf->getHeight());
 			sm = smoothMask(s, t);
@@ -100,9 +100,9 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 	memset(tbuf1->getBuffer(), 0, tbuf1->getWidth() * tbuf1->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
 	for (n = 1; n < settings->iter && (!breaked); n++) {
 		for (y = 0; y < gbuf->getHeight() && (!breaked); y++) {
-			v = (float)(y + 0.5f) / (float)gbuf->getHeight();
+			v = ((float)y + 0.5f) / (float)gbuf->getHeight();
 			for (x = 0; x < gbuf->getWidth(); x++) {
-				u = (float)(x + 0.5f) / (float)gbuf->getWidth();
+				u = ((float)x + 0.5f) / (float)gbuf->getWidth();
 				tc[0] = tc[1] = tc[2] = 0.f;
 				for (p = 0; p < 4; p++) {
 					np = (n << 2) + p;

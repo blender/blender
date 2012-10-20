@@ -891,8 +891,8 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 	
 	/* calculate blend color */
 	if (ELEM4(but->type, TOG, ROW, TOGN, LISTROW)) {
-		if (but->flag & UI_SELECT) ;
-		else if (but->flag & UI_ACTIVE) ;
+		if (but->flag & UI_SELECT) {}
+		else if (but->flag & UI_ACTIVE) {}
 		else alpha = 0.5f;
 	}
 	
@@ -3094,14 +3094,10 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	if (but->active) {
 		int direction = ui_button_open_menu_direction(but);
 
-		if (direction == UI_TOP)
-			roundbox &= ~(UI_CNR_TOP_RIGHT|UI_CNR_TOP_LEFT);
-		else if (direction == UI_DOWN)
-			roundbox &= ~(UI_CNR_BOTTOM_RIGHT|UI_CNR_BOTTOM_LEFT);
-		else if (direction == UI_LEFT)
-			roundbox &= ~(UI_CNR_TOP_LEFT|UI_CNR_BOTTOM_LEFT);
-		else if (direction == UI_RIGHT)
-			roundbox &= ~(UI_CNR_TOP_RIGHT|UI_CNR_BOTTOM_RIGHT);
+		if      (direction == UI_TOP)   roundbox &= ~(UI_CNR_TOP_RIGHT | UI_CNR_TOP_LEFT);
+		else if (direction == UI_DOWN)  roundbox &= ~(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
+		else if (direction == UI_LEFT)  roundbox &= ~(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
+		else if (direction == UI_RIGHT) roundbox &= ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
 	}
 
 	return roundbox;

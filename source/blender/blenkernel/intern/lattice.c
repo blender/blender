@@ -64,19 +64,19 @@
 #include "BKE_deform.h"
 
 
-void calc_lat_fudu(int flag, int res, float *fu, float *du)
+void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du)
 {
 	if (res == 1) {
-		*fu = 0.0;
-		*du = 0.0;
+		*r_fu = 0.0;
+		*r_du = 0.0;
 	}
 	else if (flag & LT_GRID) {
-		*fu = -0.5f * (res - 1);
-		*du = 1.0f;
+		*r_fu = -0.5f * (res - 1);
+		*r_du = 1.0f;
 	}
 	else {
-		*fu = -1.0f;
-		*du = 2.0f / (res - 1);
+		*r_fu = -1.0f;
+		*r_du = 2.0f / (res - 1);
 	}
 }
 
@@ -879,9 +879,10 @@ void outside_lattice(Lattice *lt)
 			for (v = 0; v < lt->pntsv; v++) {
 			
 				for (u = 0; u < lt->pntsu; u++, bp++) {
-					if (u == 0 || v == 0 || w == 0 || u == lt->pntsu - 1 || v == lt->pntsv - 1 || w == lt->pntsw - 1) ;
+					if (u == 0 || v == 0 || w == 0 || u == lt->pntsu - 1 || v == lt->pntsv - 1 || w == lt->pntsw - 1) {
+						/* pass */
+					}
 					else {
-					
 						bp->hide = 1;
 						bp->f1 &= ~SELECT;
 						

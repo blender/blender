@@ -60,5 +60,4 @@ public:
 	virtual std::vector<NG_NetworkMessage*>		RetrieveNetworkMessages();
 };
 
-#endif //__NG_LOOPBACKNETWORKDEVICEINTERFACE_H__
-
+#endif  /* __NG_LOOPBACKNETWORKDEVICEINTERFACE_H__ */

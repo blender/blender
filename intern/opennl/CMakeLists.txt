@@ -40,11 +40,10 @@ add_definitions(
 set(INC
 	extern
 	superlu
-	../../extern/colamd/Include
 )
 
 set(INC_SYS
-
+	../../extern/colamd/Include
 )
 
 set(SRC

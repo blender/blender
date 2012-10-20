@@ -34,5 +34,4 @@
 
 void GetRawLoadingAnimation(unsigned char **data, int *dataSize);
 
-#endif  // __GPC_RAWLOADDOTBLENDARRAY_H__
-
+#endif  /* __GPC_RAWLOADDOTBLENDARRAY_H__ */

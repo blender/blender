@@ -1152,9 +1152,15 @@ static void ui_is_but_sel(uiBut *but, double *value)
 		}
 	}
 	
-	if (is_push == 2) ;
-	else if (is_push == 1) but->flag |= UI_SELECT;
-	else but->flag &= ~UI_SELECT;
+	if (is_push == 2) {
+		/* pass */
+	}
+	else if (is_push == 1) {
+		but->flag |= UI_SELECT;
+	}
+	else {
+		but->flag &= ~UI_SELECT;
+	}
 }
 
 static uiBut *ui_find_inlink(uiBlock *block, void *poin)
@@ -1522,7 +1528,9 @@ void ui_set_but_val(uiBut *but, double value)
 		 * so leave this unset */
 		value = UI_BUT_VALUE_UNSET;
 	}
-	else if (but->pointype == 0) ;
+	else if (but->pointype == 0) {
+		/* pass */
+	}
 	else if (but->type == HSVSLI) {
 		float *fp, hsv[3];
 		
@@ -1715,8 +1723,9 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 		BLI_strncpy(str, but->poin, maxlen);
 		return;
 	}
-	else if (ui_but_anim_expression_get(but, str, maxlen))
-		;  /* driver expression */
+	else if (ui_but_anim_expression_get(but, str, maxlen)) {
+		/* driver expression */
+	}
 	else {
 		/* number editing */
 		double value;
@@ -2474,7 +2483,9 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 				if (rows > 0) {
 					uiBut *bt = but;
 					while (bt && bt->alignnr == nr) {
-						if (bt->next && bt->next->alignnr == nr && buts_are_horiz(bt, bt->next) == 0) break;
+						if (bt->next && bt->next->alignnr == nr && buts_are_horiz(bt, bt->next) == 0) {
+							break;
+						}
 						bt = bt->next;
 					}
 					if (bt == NULL || bt->alignnr != nr) flag = UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT;
@@ -2708,9 +2719,8 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	/* keep track of UI_interface.h */
-	if (ELEM7(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM)) ;
-	else if (ELEM(but->type, SCROLL, SEPR /* , FTPREVIEW */ )) ;
-	else if (but->type >= SEARCH_MENU) ;
+	if      (ELEM9(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX, BUTM, SCROLL, SEPR /* , FTPREVIEW */)) {}
+	else if (but->type >= SEARCH_MENU) {}
 	else but->flag |= UI_BUT_UNDO;
 
 	BLI_addtail(&block->buttons, but);
@@ -2744,7 +2754,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 
 
 static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str,
-							 int x, int y, short width, short height,
+                             int x, int y, short width, short height,
                              PointerRNA *ptr, PropertyRNA *prop, int index,
                              float min, float max, float a1, float a2,  const char *tip)
 {
@@ -3863,12 +3873,41 @@ void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
 			}
 		}
 		else if (ELEM3(type, BUT_GET_RNAENUM_IDENTIFIER, BUT_GET_RNAENUM_LABEL, BUT_GET_RNAENUM_TIP)) {
+			PointerRNA *ptr = NULL;
+			PropertyRNA *prop = NULL;
+			int value = 0;
+			
+			/* get the enum property... */
 			if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+				/* enum property */
+				ptr = &but->rnapoin;
+				prop = but->rnaprop;
+				value = (but->type == ROW) ? (int)but->hardmax : (int)ui_get_but_val(but);
+			}
+			else if (but->optype) {
+				PointerRNA *opptr = uiButGetOperatorPtrRNA(but);
+				wmOperatorType *ot = but->optype;
+				
+				/* if the default property of the operator is enum and it is set, 
+				 * fetch the tooltip of the selected value so that "Snap" and "Mirror"
+				 * operator menus in the Anim Editors will show tooltips for the different
+				 * operations instead of the meaningless generic operator tooltip
+				 */
+				if (ot->prop && RNA_property_type(ot->prop) == PROP_ENUM) {
+					if (RNA_struct_contains_property(opptr, ot->prop)) {
+						ptr = opptr;
+						prop = ot->prop;
+						value = RNA_property_enum_get(opptr, ot->prop);
+					}
+				}
+			}
+			
+			/* get strings from matching enum item */
+			if (ptr && prop) {
 				if (!item) {
 					int i;
-					int value = (but->type == ROW) ? (int)but->hardmax : (int)ui_get_but_val(but);
-					RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &items, &totitems, &free_items);
-
+					
+					RNA_property_enum_items_gettexted(C, ptr, prop, &items, &totitems, &free_items);
 					for (i = 0, item = items; i < totitems; i++, item++) {
 						if (item->identifier[0] && item->value == value)
 							break;

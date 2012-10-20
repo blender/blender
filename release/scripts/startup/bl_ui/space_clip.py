@@ -311,8 +311,8 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
 
         col = layout.column(align=True)
         col.active = not settings.use_tripod_solver
-        col.prop(settings, "keyframe_a")
-        col.prop(settings, "keyframe_b")
+        col.prop(tracking_object, "keyframe_a")
+        col.prop(tracking_object, "keyframe_b")
 
         col = layout.column(align=True)
         col.active = (tracking_object.is_camera and
@@ -891,6 +891,12 @@ class CLIP_MT_view(Menu):
                 layout.operator("clip.view_zoom_ratio",
                                 text=text).ratio = a / b
         else:
+            if sc.view == 'GRAPH':
+                layout.operator_context = 'INVOKE_REGION_PREVIEW'
+                layout.operator("clip.graph_center_current_frame")
+                layout.operator("clip.graph_view_all")
+                layout.operator_context = 'INVOKE_DEFAULT'
+
             layout.prop(sc, "show_seconds")
             layout.separator()
 
@@ -942,7 +948,7 @@ class CLIP_MT_track(Menu):
         props.action = 'UPTO'
 
         props = layout.operator("clip.clear_track_path",
-            text="Clear Track Path")
+                                text="Clear Track Path")
         props.action = 'ALL'
 
         layout.separator()
@@ -957,7 +963,7 @@ class CLIP_MT_track(Menu):
 
         layout.separator()
         props = layout.operator("clip.track_markers",
-            text="Track Frame Backwards")
+                                text="Track Frame Backwards")
         props.backwards = True
 
         props = layout.operator("clip.track_markers", text="Track Backwards")

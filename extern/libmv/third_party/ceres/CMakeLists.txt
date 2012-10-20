@@ -28,13 +28,13 @@
 
 set(INC
 	.
-	../../../Eigen3
 	include
 	internal
 	../gflags
 )
 
 set(INC_SYS
+	../../../Eigen3
 )
 
 set(SRC

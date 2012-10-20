@@ -124,14 +124,14 @@ cat > CMakeLists.txt << EOF
 
 set(INC
 	.
-	../Eigen3
-	third_party/ssba
-	third_party/ldl/Include
 	../colamd/Include
 	third_party/ceres/include
 )
 
 set(INC_SYS
+	../Eigen3
+	third_party/ssba
+	third_party/ldl/Include
 	\${PNG_INCLUDE_DIR}
 	\${ZLIB_INCLUDE_DIRS}
 )

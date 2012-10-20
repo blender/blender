@@ -92,5 +92,4 @@ void BIK_test_constraint(struct Object *ob, struct bConstraint *cons);
 }
 #endif
 
-#endif // __BIK_API_H__
-
+#endif  /* __BIK_API_H__ */

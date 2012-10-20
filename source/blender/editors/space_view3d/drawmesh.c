@@ -533,8 +533,7 @@ static void update_tface_color_layer(DerivedMesh *dm)
 			}
 			else {
 				float col[3];
-				Material *ma = give_current_material(Gtexdraw.ob, mface[i].mat_nr + 1);
-				
+
 				if (ma) {
 					if (Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
 					else copy_v3_v3(col, &ma->r);

@@ -68,7 +68,7 @@ public:
 	static int py_attr_setattr(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject *py_attr_get_joint_rotation(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int py_attr_set_joint_rotation(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 };
 
 /* this is a factory class to access bBone data field in the GE.
@@ -93,6 +93,4 @@ public:
 
 };
 
-
-#endif //__BL_ARMATURECHANNEL_H__
-
+#endif  /* __BL_ARMATURECHANNEL_H__ */

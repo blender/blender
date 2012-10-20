@@ -64,5 +64,4 @@ const char*					EXP_GetText(EXP_ValueHandle);
 }
 #endif
 
-#endif //__EXP_C_API_H__
-
+#endif  /* __EXP_C_API_H__ */

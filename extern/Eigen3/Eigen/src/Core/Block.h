@@ -4,27 +4,14 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_BLOCK_H
 #define EIGEN_BLOCK_H
+
+namespace Eigen { 
 
 /** \class Block
   * \ingroup Core_Module
@@ -242,6 +229,21 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     inline Index outerStride() const;
     #endif
 
+    const typename internal::remove_all<typename XprType::Nested>::type& nestedExpression() const 
+    { 
+      return m_xpr; 
+    }
+      
+    Index startRow() const 
+    { 
+      return m_startRow.value(); 
+    }
+      
+    Index startCol() const 
+    { 
+      return m_startCol.value(); 
+    }
+
   protected:
 
     const typename XprType::Nested m_xpr;
@@ -304,6 +306,11 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
       init();
     }
 
+    const typename internal::remove_all<typename XprType::Nested>::type& nestedExpression() const 
+    { 
+      return m_xpr; 
+    }
+      
     /** \sa MapBase::innerStride() */
     inline Index innerStride() const
     {
@@ -341,9 +348,10 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
                     : m_xpr.innerStride();
     }
 
-    const typename XprType::Nested m_xpr;
+    typename XprType::Nested m_xpr;
     Index m_outerStride;
 };
 
+} // end namespace Eigen
 
 #endif // EIGEN_BLOCK_H

@@ -57,6 +57,8 @@ GPC_Canvas::GPC_Canvas(
 	m_displayarea.m_y1 = 0;
 	m_displayarea.m_x2 = width;
 	m_displayarea.m_y2 = height;
+
+	glGetIntegerv(GL_VIEWPORT, (GLint*)m_viewport);
 }
 
 
@@ -121,11 +123,31 @@ void GPC_Canvas::SetViewPort(int x1, int y1, int x2, int y2)
 		 * whole canvas/rendertools mess.
 		 */
 	glEnable(GL_SCISSOR_TEST);
+	
+	m_viewport[0] = x1;
+	m_viewport[1] = y1;
+	m_viewport[2] = x2-x1 + 1;
+	m_viewport[3] = y2-y1 + 1;
 
 	glViewport(x1,y1,x2-x1 + 1,y2-y1 + 1);
 	glScissor(x1,y1,x2-x1 + 1,y2-y1 + 1);
 };
 
+const int *GPC_Canvas::GetViewPort()
+{
+#ifdef DEBUG
+	// If we're in a debug build, we might as well make sure our values don't differ
+	// from what the gpu thinks we have. This could lead to nasty, hard to find bugs.
+	int viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	assert(viewport[0] == m_viewport[0]);
+	assert(viewport[1] == m_viewport[1]);
+	assert(viewport[2] == m_viewport[2]);
+	assert(viewport[3] == m_viewport[3]);
+#endif
+
+	return m_viewport;
+}
 
 void GPC_Canvas::ClearBuffer(
 	int type

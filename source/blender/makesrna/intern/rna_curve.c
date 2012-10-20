@@ -62,9 +62,9 @@ EnumPropertyItem keyframe_handle_type_items[] = {
 };
 
 EnumPropertyItem beztriple_interpolation_mode_items[] = {
-	{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", ""},
-	{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},
-	{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
+	{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", "No interpolation. Value of A gets held until B is encountered"},
+	{BEZT_IPO_LIN, "LINEAR", 0, "Linear", "Straight-line interpolation between A and B (i.e. no ease in/out)"},
+	{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", "Smooth interpolation between A and B, with some control over curve shape"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -511,7 +511,7 @@ static void rna_Nurb_update_knot_v(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Curve_spline_points_add(ID *id, Nurb *nu, ReportList *reports, int number)
 {
 	if (nu->type == CU_BEZIER) {
-		BKE_report(reports, RPT_ERROR, "Bezier spline can't have points added");
+		BKE_report(reports, RPT_ERROR, "Bezier spline cannot have points added");
 	}
 	else if (number == 0) {
 		/* do nothing */
@@ -581,7 +581,7 @@ static void rna_Curve_spline_remove(Curve *cu, ReportList *reports, Nurb *nu)
 	found = BLI_remlink_safe(nurbs, nu);
 
 	if (!found) {
-		BKE_reportf(reports, RPT_ERROR, "Curve \"%s\" does not contain spline given", cu->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Curve '%s' does not contain spline given", cu->id.name + 2);
 		return;
 	}
 
@@ -721,7 +721,7 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Number values */
-	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "alfa");
 	/*RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");
@@ -808,13 +808,14 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_points");
 
 	/* Number values */
-	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "alfa");
 	/*RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
 	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "weight_softbody", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight");
 	RNA_def_property_range(prop, 0.01f, 100.0f);
 	RNA_def_property_ui_text(prop, "Weight", "Softbody goal weight");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
@@ -1163,7 +1164,7 @@ static void rna_def_curve_spline_points(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "add", "rna_Curve_spline_points_add");
 	RNA_def_function_ui_description(func, "Add a number of points to this spline");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 1, 1, INT_MAX, "Number", "Number of points to add to the spline", 1, INT_MAX);
+	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 #if 0
 	func= RNA_def_function(srna, "remove", "rna_Curve_spline_remove");
@@ -1190,7 +1191,7 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "add", "rna_Curve_spline_bezpoints_add");
 	RNA_def_function_ui_description(func, "Add a number of points to this spline");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 1, INT_MIN, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
+	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 #if 0
 	func = RNA_def_function(srna, "remove", "rna_Curve_spline_remove");

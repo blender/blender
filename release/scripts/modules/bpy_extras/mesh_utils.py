@@ -232,7 +232,7 @@ def edge_loops_from_tessfaces(mesh, tessfaces=None, seams=()):
                 ed_adj = edges[context_loop[-1]]
                 if len(ed_adj) != 2:
                     # the original edge had 2 other edges
-                    if other_dir and flipped == False:
+                    if other_dir and flipped is False:
                         flipped = True  # only flip the list once
                         context_loop.reverse()
                         ed_adj[:] = []

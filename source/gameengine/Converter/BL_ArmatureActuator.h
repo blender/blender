@@ -49,13 +49,13 @@ class	BL_ArmatureActuator : public SCA_IActuator
 	Py_Header
 public:
 	BL_ArmatureActuator(SCA_IObject* gameobj,
-						int type,
-						const char *posechannel,
-						const char *constraintname,
-						KX_GameObject* targetobj,
-						KX_GameObject* subtargetobj,
-						float weight,
-						float influence);
+	                    int type,
+	                    const char *posechannel,
+	                    const char *constraintname,
+	                    KX_GameObject* targetobj,
+	                    KX_GameObject* subtargetobj,
+	                    float weight,
+	                    float influence);
 
 	virtual ~BL_ArmatureActuator();
 
@@ -77,7 +77,7 @@ public:
 	static PyObject *pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 private:
 	// identify the constraint that this actuator controls
@@ -93,6 +93,4 @@ private:
 	int				m_type;
 };
 
-#endif //__BL_ARMATUREACTUATOR_H__
-
-
+#endif  /* __BL_ARMATUREACTUATOR_H__ */

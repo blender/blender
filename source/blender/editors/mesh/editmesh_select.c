@@ -57,6 +57,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
+#include "ED_object.h"
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"
@@ -330,9 +331,9 @@ int EDBM_backbuf_circle_init(ViewContext *vc, short xs, short ys, short rads)
 	
 }
 
-static void findnearestvert__doClosest(void *userData, BMVert *eve, int x, int y, int index)
+static void findnearestvert__doClosest(void *userData, BMVert *eve, const float screen_co[2], int index)
 {
-	struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; BMVert *closest; } *data = userData;
+	struct { float mval_fl[2], pass, select, strict; float dist, lastIndex, closestIndex; BMVert *closest; } *data = userData;
 
 	if (data->pass == 0) {
 		if (index <= data->lastIndex)
@@ -344,18 +345,18 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, int x, int y
 	}
 
 	if (data->dist > 3) {
-		int temp = abs(data->mval[0] - x) + abs(data->mval[1] - y);
+		float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->select) {
 			if (data->strict == 1) {
 				return;
 			}
 			else {
-				temp += 5;
+				dist_test += 5;
 			}
 		}
 
-		if (temp < data->dist) {
-			data->dist = temp;
+		if (dist_test < data->dist) {
+			data->dist = dist_test;
 			data->closest = eve;
 			data->closestIndex = index;
 		}
@@ -382,10 +383,10 @@ static unsigned int findnearestvert__backbufIndextest(void *handle, unsigned int
  *      if 0, unselected vertice are given the bias
  * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
  */
-BMVert *EDBM_vert_find_nearest(ViewContext *vc, int *dist, short sel, short strict)
+BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const short sel, const short strict)
 {
 	if (vc->v3d->drawtype > OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
-		int distance;
+		float distance;
 		unsigned int index;
 		BMVert *eve;
 		
@@ -400,8 +401,8 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, int *dist, short sel, short stri
 		
 		eve = BM_vert_at_index(vc->em->bm, index - 1);
 		
-		if (eve && distance < *dist) {
-			*dist = distance;
+		if (eve && distance < *r_dist) {
+			*r_dist = distance;
 			return eve;
 		}
 		else {
@@ -410,7 +411,7 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, int *dist, short sel, short stri
 			
 	}
 	else {
-		struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; BMVert *closest; } data;
+		struct { float mval_fl[2], pass, select, strict; float dist, lastIndex, closestIndex; BMVert *closest; } data;
 		static int lastSelectedIndex = 0;
 		static BMVert *lastSelected = NULL;
 		
@@ -420,10 +421,10 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, int *dist, short sel, short stri
 		}
 
 		data.lastIndex = lastSelectedIndex;
-		data.mval[0] = vc->mval[0];
-		data.mval[1] = vc->mval[1];
+		data.mval_fl[0] = vc->mval[0];
+		data.mval_fl[1] = vc->mval[1];
 		data.select = sel;
-		data.dist = *dist;
+		data.dist = *r_dist;
 		data.strict = strict;
 		data.closest = NULL;
 		data.closestIndex = 0;
@@ -432,14 +433,14 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, int *dist, short sel, short stri
 
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
+		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 		if (data.dist > 3) {
 			data.pass = 1;
-			mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_CLIP_TEST_RV3D_CLIPPING);
+			mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 
-		*dist = data.dist;
+		*r_dist = data.dist;
 		lastSelected = data.closest;
 		lastSelectedIndex = data.closestIndex;
 
@@ -462,18 +463,12 @@ float labda_PdistVL2Dfl(const float v1[2], const float v2[2], const float v3[2])
 }
 
 /* note; uses v3d, so needs active 3d window */
-static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
+static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int UNUSED(index))
 {
-	struct { ViewContext vc; float mval[2]; int dist; BMEdge *closest; } *data = userData;
-	float v1[2], v2[2];
+	struct { ViewContext vc; float mval_fl[2]; float dist; BMEdge *closest; } *data = userData;
 	int distance;
-		
-	v1[0] = x0;
-	v1[1] = y0;
-	v2[0] = x1;
-	v2[1] = y1;
-		
-	distance = dist_to_line_segment_v2(data->mval, v1, v2);
+
+	distance = dist_to_line_segment_v2(data->mval_fl, screen_co_a, screen_co_b);
 		
 	if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 		distance += 5;
@@ -481,7 +476,7 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int 
 
 	if (distance < data->dist) {
 		if (data->vc.rv3d->rflag & RV3D_CLIPPING) {
-			float labda = labda_PdistVL2Dfl(data->mval, v1, v2);
+			float labda = labda_PdistVL2Dfl(data->mval_fl, screen_co_a, screen_co_b);
 			float vec[3];
 
 			vec[0] = eed->v1->co[0] + labda * (eed->v2->co[0] - eed->v1->co[0]);
@@ -499,11 +494,11 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, int x0, int 
 		}
 	}
 }
-BMEdge *EDBM_edge_find_nearest(ViewContext *vc, int *dist)
+BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *r_dist)
 {
 
 	if (vc->v3d->drawtype > OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
-		int distance;
+		float distance;
 		unsigned int index;
 		BMEdge *eed;
 		
@@ -512,8 +507,8 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, int *dist)
 		index = view3d_sample_backbuf_rect(vc, vc->mval, 50, bm_solidoffs, bm_wireoffs, &distance, 0, NULL, NULL);
 		eed = BM_edge_at_index(vc->em->bm, index - 1);
 		
-		if (eed && distance < *dist) {
-			*dist = distance;
+		if (eed && distance < *r_dist) {
+			*r_dist = distance;
 			return eed;
 		}
 		else {
@@ -521,36 +516,37 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, int *dist)
 		}
 	}
 	else {
-		struct { ViewContext vc; float mval[2]; int dist; BMEdge *closest; } data;
+		struct { ViewContext vc; float mval_fl[2]; float dist; BMEdge *closest; } data;
 
 		data.vc = *vc;
-		data.mval[0] = vc->mval[0];
-		data.mval[1] = vc->mval[1];
-		data.dist = *dist;
+		data.mval_fl[0] = vc->mval[0];
+		data.mval_fl[1] = vc->mval[1];
+		data.dist = *r_dist;
 		data.closest = NULL;
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, V3D_CLIP_TEST_REGION);
+		mesh_foreachScreenEdge(vc, findnearestedge__doClosest, &data, V3D_PROJ_TEST_CLIP_WIN);
 
-		*dist = data.dist;
+		*r_dist = data.dist;
 		return data.closest;
 	}
 }
 
-static void findnearestface__getDistance(void *userData, BMFace *efa, int x, int y, int UNUSED(index))
+static void findnearestface__getDistance(void *userData, BMFace *efa, const float screen_co[2], int UNUSED(index))
 {
-	struct { short mval[2]; int dist; BMFace *toFace; } *data = userData;
+	struct { float mval_fl[2]; float dist; BMFace *toFace; } *data = userData;
 
 	if (efa == data->toFace) {
-		int temp = abs(data->mval[0] - x) + abs(data->mval[1] - y);
+		const float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
-		if (temp < data->dist)
-			data->dist = temp;
+		if (dist_test < data->dist) {
+			data->dist = dist_test;
+		}
 	}
 }
-static void findnearestface__doClosest(void *userData, BMFace *efa, int x, int y, int index)
+static void findnearestface__doClosest(void *userData, BMFace *efa, const float screen_co[2], int index)
 {
-	struct { short mval[2], pass; int dist, lastIndex, closestIndex; BMFace *closest; } *data = userData;
+	struct { float mval_fl[2], pass; float dist, lastIndex, closestIndex; BMFace *closest; } *data = userData;
 
 	if (data->pass == 0) {
 		if (index <= data->lastIndex)
@@ -562,17 +558,17 @@ static void findnearestface__doClosest(void *userData, BMFace *efa, int x, int y
 	}
 
 	if (data->dist > 3) {
-		int temp = abs(data->mval[0] - x) + abs(data->mval[1] - y);
+		const float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
-		if (temp < data->dist) {
-			data->dist = temp;
+		if (dist_test < data->dist) {
+			data->dist = dist_test;
 			data->closest = efa;
 			data->closestIndex = index;
 		}
 	}
 }
 
-BMFace *EDBM_face_find_nearest(ViewContext *vc, int *dist)
+BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 {
 
 	if (vc->v3d->drawtype > OB_WIRE && (vc->v3d->flag & V3D_ZBUF_SELECT)) {
@@ -585,17 +581,17 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, int *dist)
 		efa = BM_face_at_index(vc->em->bm, index - 1);
 		
 		if (efa) {
-			struct { short mval[2]; int dist; BMFace *toFace; } data;
+			struct { float mval_fl[2]; float dist; BMFace *toFace; } data;
 
-			data.mval[0] = vc->mval[0];
-			data.mval[1] = vc->mval[1];
+			data.mval_fl[0] = vc->mval[0];
+			data.mval_fl[1] = vc->mval[1];
 			data.dist = 0x7FFF;     /* largest short */
 			data.toFace = efa;
 
-			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data);
+			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
-			if (vc->em->selectmode == SCE_SELECT_FACE || data.dist < *dist) {   /* only faces, no dist check */
-				*dist = data.dist;
+			if ((vc->em->selectmode == SCE_SELECT_FACE) || (data.dist < *r_dist)) {  /* only faces, no dist check */
+				*r_dist = data.dist;
 				return efa;
 			}
 		}
@@ -603,7 +599,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, int *dist)
 		return NULL;
 	}
 	else {
-		struct { short mval[2], pass; int dist, lastIndex, closestIndex; BMFace *closest; } data;
+		struct { float mval_fl[2], pass; float dist, lastIndex, closestIndex; BMFace *closest; } data;
 		static int lastSelectedIndex = 0;
 		static BMFace *lastSelected = NULL;
 
@@ -613,23 +609,23 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, int *dist)
 		}
 
 		data.lastIndex = lastSelectedIndex;
-		data.mval[0] = vc->mval[0];
-		data.mval[1] = vc->mval[1];
-		data.dist = *dist;
+		data.mval_fl[0] = vc->mval[0];
+		data.mval_fl[1] = vc->mval[1];
+		data.dist = *r_dist;
 		data.closest = NULL;
 		data.closestIndex = 0;
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 		data.pass = 0;
-		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
+		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
-		if (data.dist > 3) {
+		if (data.dist > 3.0f) {
 			data.pass = 1;
 			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-			mesh_foreachScreenFace(vc, findnearestface__doClosest, &data);
+			mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 		}
 
-		*dist = data.dist;
+		*r_dist = data.dist;
 		lastSelected = data.closest;
 		lastSelectedIndex = data.closestIndex;
 
@@ -645,7 +641,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, int *dist)
 static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
 	BMEditMesh *em = vc->em;
-	int dist = 75;
+	float dist = 75.0f;
 	
 	*r_eve = NULL;
 	*r_eed = NULL;
@@ -1006,7 +1002,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 	BMEditMesh *em;
 	BMEdge *eed;
 	int select = TRUE;
-	int dist = 50;
+	float dist = 50.0f;
 	float mvalf[2];
 
 	em_setup_viewcontext(C, &vc);
@@ -1061,11 +1057,11 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 				/* We can't be sure this has already been set... */
 				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
-				if (ED_view3d_project_float_object(vc.ar, eed->v1->co, v1_co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				if (ED_view3d_project_float_object(vc.ar, eed->v1->co, v1_co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 					length_1 = len_squared_v2v2(mvalf, v1_co);
 				}
 
-				if (ED_view3d_project_float_object(vc.ar, eed->v2->co, v2_co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+				if (ED_view3d_project_float_object(vc.ar, eed->v2->co, v2_co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 					length_2 = len_squared_v2v2(mvalf, v2_co);
 				}
 #if 0
@@ -1092,7 +1088,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 						float co[2], tdist;
 
 						BM_face_calc_center_mean(f, cent);
-						if (ED_view3d_project_float_object(vc.ar, cent, co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) {
+						if (ED_view3d_project_float_object(vc.ar, cent, co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 							tdist = len_squared_v2v2(mvalf, co);
 							if (tdist < best_dist) {
 /*								printf("Best face: %p (%f)\n", f, tdist);*/
@@ -1399,7 +1395,7 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 	ViewContext vc;
 	BMEditMesh *em;
 	BMEdge *e;
-	int dist = 50;
+	float dist = 75.0f;
 	
 	em_setup_viewcontext(C, &vc);
 	vc.mval[0] = mval[0];
@@ -2179,11 +2175,19 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 	         BMW_FLAG_NOP, /* don't use BMW_FLAG_TEST_HIDDEN here since we want to desel all */
 	         BMW_NIL_LAY);
 
+	/* use tag to avoid touching the same verts twice */
+	BM_ITER_MESH (ele, &iter, bm, itertype) {
+		BM_elem_flag_disable(ele, BM_ELEM_TAG);
+	}
+
 	BLI_assert(walker.order == BMW_BREADTH_FIRST);
 	for (ele = BMW_begin(&walker, h_act); ele != NULL; ele = BMW_step(&walker)) {
-		/* Deselect elements that aren't at "nth" depth from active */
-		if ((offset + BMW_current_depth(&walker)) % nth) {
-			BM_elem_select_set(bm, ele, FALSE);
+		if (!BM_elem_flag_test(ele, BM_ELEM_TAG)) {
+			/* Deselect elements that aren't at "nth" depth from active */
+			if ((offset + BMW_current_depth(&walker)) % nth) {
+				BM_elem_select_set(bm, ele, FALSE);
+			}
+			BM_elem_flag_enable(ele, BM_ELEM_TAG);
 		}
 	}
 	BMW_end(&walker);
@@ -2306,8 +2310,8 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
-	RNA_def_int(ot->srna, "offset", 0, 0, 100, "Offset", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "nth", 2, 2, INT_MAX, "Nth Selection", "", 2, 100);
+	RNA_def_int(ot->srna, "offset", 0, 0, INT_MAX, "Offset", "", 0, 100);
 }
 
 void em_setup_viewcontext(bContext *C, ViewContext *vc)

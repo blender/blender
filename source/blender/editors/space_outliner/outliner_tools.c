@@ -811,7 +811,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					ED_undo_push(C, "Unlink world");
 					break;
 				default:
-					BKE_report(op->reports, RPT_WARNING, "Not Yet");
+					BKE_report(op->reports, RPT_WARNING, "Not yet");
 					break;
 			}
 		}
@@ -844,7 +844,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					break;
 					
 				default:
-					BKE_report(op->reports, RPT_WARNING, "Not Yet");
+					BKE_report(op->reports, RPT_WARNING, "Not yet");
 					break;
 			}
 		}
@@ -980,9 +980,9 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	else if (act->idroot == 0) {
 		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Action '%s' does not specify what datablocks it can be used on. "
-		            "Try setting the 'ID Root Type' setting from the Datablocks Editor "
-		            "for this Action to avoid future problems",
+		            "Action '%s' does not specify what datablocks it can be used on "
+		            "(try setting the 'ID Root Type' setting from the Datablocks Editor "
+		            "for this Action to avoid future problems)",
 		            act->id.name + 2);
 	}
 	
@@ -1160,37 +1160,49 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 	event = RNA_enum_get(op->ptr, "type");
 	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
 	
-	if (datalevel == TSE_POSE_CHANNEL) {
-		if (event > 0) {
+	if (event <= 0)
+		return OPERATOR_CANCELLED;
+	
+	switch (datalevel) {
+		case TSE_POSE_CHANNEL:
+		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "PoseChannel operation");
 		}
-	}
-	else if (datalevel == TSE_BONE) {
-		if (event > 0) {
+			break;
+		
+		case TSE_BONE:
+		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "Bone operation");
 		}
-	}
-	else if (datalevel == TSE_EBONE) {
-		if (event > 0) {
+			break;
+			
+		case TSE_EBONE:
+		{
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "EditBone operation");
 		}
-	}
-	else if (datalevel == TSE_SEQUENCE) {
-		if (event > 0) {
+			break;
+			
+		case TSE_SEQUENCE:
+		{
 			Scene *scene = CTX_data_scene(C);
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb, scene);
 		}
-	}
-	else if (datalevel == TSE_RNA_STRUCT) {
-		if (event == 5) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, data_select_linked_cb, C);
-		}
+			break;
+			
+		case TSE_RNA_STRUCT:
+			if (event == 5) {
+				outliner_do_data_operation(soops, datalevel, event, &soops->tree, data_select_linked_cb, C);
+			}
+			break;
+			
+		default:
+			break;
 	}
 	
 	return OPERATOR_FINISHED;
@@ -1262,12 +1274,15 @@ static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, S
 			else {
 				if (datalevel == TSE_ANIM_DATA)
 					WM_operator_name_call(C, "OUTLINER_OT_animdata_operation", WM_OP_INVOKE_REGION_WIN, NULL);
-				else if (datalevel == TSE_DRIVER_BASE)
-					/* do nothing... no special ops needed yet */;
-				else if (ELEM3(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS))
-					/*WM_operator_name_call(C, "OUTLINER_OT_renderdata_operation", WM_OP_INVOKE_REGION_WIN, NULL)*/;
-				else
+				else if (datalevel == TSE_DRIVER_BASE) {
+					/* do nothing... no special ops needed yet */
+				}
+				else if (ELEM3(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS)) {
+					/*WM_operator_name_call(C, "OUTLINER_OT_renderdata_operation", WM_OP_INVOKE_REGION_WIN, NULL)*/
+				}
+				else {
 					WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+				}
 			}
 		}
 		
@@ -1289,11 +1304,13 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
-	
+
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], fmval, fmval + 1);
 	
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) break;
+		if (do_outliner_operation_event(C, scene, ar, soops, te, event, fmval)) {
+			break;
+		}
 	}
 	
 	return OPERATOR_FINISHED;

@@ -124,7 +124,7 @@ static const EnumPropertyItem unpack_all_method_items[] = {
 	{PF_WRITE_LOCAL, "WRITE_LOCAL", 0, "Write files to current directory (overwrite existing files)", ""},
 	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use files in original location (create when necessary)", ""},
 	{PF_WRITE_ORIGINAL, "WRITE_ORIGINAL", 0, "Write files to original location (overwrite existing files)", ""},
-	{PF_KEEP, "KEEP", 0, "Disable AutoPack, keep all packed files", ""},
+	{PF_KEEP, "KEEP", 0, "Disable Auto-pack, keep all packed files", ""},
 	/* {PF_ASK, "ASK", 0, "Ask for each file", ""}, */
 	{0, NULL, 0, NULL, NULL}};
 
@@ -150,7 +150,7 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	count = countPackedFiles(bmain);
 	
 	if (!count) {
-		BKE_report(op->reports, RPT_WARNING, "No packed files. Autopack disabled");
+		BKE_report(op->reports, RPT_WARNING, "No packed files (auto-pack disabled)");
 		G.fileflags &= ~G_AUTOPACK;
 		return OPERATOR_CANCELLED;
 	}

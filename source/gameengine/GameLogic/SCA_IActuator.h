@@ -164,5 +164,4 @@ public:
 #endif
 };
 
-#endif //__SCA_IACTUATOR_H__
-
+#endif  /* __SCA_IACTUATOR_H__ */

@@ -183,10 +183,10 @@ void Scene::device_update(Device *device_, Progress& progress)
 	device->const_copy_to("__data", &dscene.data, sizeof(dscene.data));
 }
 
-Scene::MotionType Scene::need_motion()
+Scene::MotionType Scene::need_motion(bool advanced_shading)
 {
 	if(integrator->motion_blur)
-		return MOTION_BLUR;
+		return (advanced_shading)? MOTION_BLUR: MOTION_NONE;
 	else if(Pass::contains(film->passes, PASS_MOTION))
 		return MOTION_PASS;
 	else

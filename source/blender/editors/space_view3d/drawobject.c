@@ -27,10 +27,6 @@
  *  \ingroup spview3d
  */
 
-
-#include <string.h>
-#include <math.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
@@ -40,21 +36,14 @@
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
-#include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_anim.h"  /* for the where_on_path function */
 #include "BKE_armature.h"
@@ -79,12 +68,9 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_unit.h"
-#include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
 #include "BKE_tessmesh.h"
-
-#include "smoke_API.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -100,44 +86,19 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_types.h"
-#include "ED_curve.h" /* for curve_editnurbs */
-#include "ED_armature.h"
 
 #include "UI_resources.h"
 
 #include "WM_api.h"
-#include "wm_subwindow.h"
 #include "BLF_api.h"
 
-#include "view3d_intern.h"  /* own include */
+#include "view3d_intern.h"  /* bad level include */
 
 typedef enum eWireDrawMode {
 	OBDRAW_WIRE_OFF = 0,
 	OBDRAW_WIRE_ON = 1,
 	OBDRAW_WIRE_ON_DEPTH = 2
 } eWireDrawMode;
-
-/* user data structures for derived mesh callbacks */
-typedef struct foreachScreenVert_userData {
-	void (*func)(void *userData, BMVert *eve, int x, int y, int index);
-	void *userData;
-	ViewContext vc;
-	eV3DClipTest clipVerts;
-} foreachScreenVert_userData;
-
-typedef struct foreachScreenEdge_userData {
-	void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index);
-	void *userData;
-	ViewContext vc;
-	rcti win_rect; /* copy of: vc.ar->winx/winy, use for faster tests, minx/y will always be 0 */
-	eV3DClipTest clipVerts;
-} foreachScreenEdge_userData;
-
-typedef struct foreachScreenFace_userData {
-	void (*func)(void *userData, BMFace *efa, int x, int y, int index);
-	void *userData;
-	ViewContext vc;
-} foreachScreenFace_userData;
 
 typedef struct drawDMVerts_userData {
 	BMEditMesh *em; /* BMESH BRANCH ONLY */
@@ -784,10 +745,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 			mul_m4_v3(mat, vos->vec);
 
 		if (ED_view3d_project_short_ex(ar,
-		                           (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
-		                           (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0,
-		                           vos->vec, vos->sco,
-		                           V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
+		                               (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
+		                               (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0,
+		                               vos->vec, vos->sco,
+		                               V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
 		{
 			tot++;
 		}
@@ -858,7 +819,9 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		if (depth_write) {
 			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 		}
-		else glDepthMask(1);
+		else {
+			glDepthMask(1);
+		}
 		
 		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
@@ -900,7 +863,7 @@ static void drawcube(void)
 	glEnd();
 }
 
-/* draws a cube on given the scaling of the cube, assuming that 
+/* draws a cube on given the scaling of the cube, assuming that
  * all required matrices have been set (used for drawing empties)
  */
 static void drawcube_size(float size)
@@ -1284,8 +1247,10 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			glVertex3fv(tvec);
 			glEnd();
 		}
-		else circ(0.0, 0.0, fabsf(z));
-		
+		else {
+			circ(0.0, 0.0, fabsf(z));
+		}
+
 		/* draw the circle/square representing spotbl */
 		if (la->type == LA_SPOT) {
 			float spotblcirc = fabs(z) * (1 - pow(la->spotblend, 2));
@@ -1429,7 +1394,7 @@ static void draw_limit_line(float sta, float end, unsigned int col)
 	glVertex3f(0.0, 0.0, -end);
 	glEnd();
 	glPointSize(1.0);
-}		
+}
 
 
 /* yafray: draw camera focus point (cross, similar to aqsis code in tuhopuu) */
@@ -1870,29 +1835,6 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 	bglEnd();
 }
 
-void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPoint *bp, int x, int y), void *userData)
-{
-	Object *obedit = vc->obedit;
-	Lattice *lt = obedit->data;
-	BPoint *bp = lt->editlatt->latt->def;
-	DispList *dl = BKE_displist_find(&obedit->disp, DL_VERTS);
-	float *co = dl ? dl->verts : NULL;
-	int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
-
-	ED_view3d_clipping_local(vc->rv3d, obedit->obmat); /* for local clipping lookups */
-
-	for (i = 0; i < N; i++, bp++, co += 3) {
-		if (bp->hide == 0) {
-			int screen_co[2];
-			if (ED_view3d_project_int_object(vc->ar, dl ? co : bp->vec, screen_co,
-			                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				func(userData, bp, screen_co[0], screen_co[1]);
-			}
-		}
-	}
-}
-
 static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, int use_wcol)
 {
 	int index = ((w * lt->pntsv + v) * lt->pntsu) + u;
@@ -1979,53 +1921,6 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 
 /* ***************** ******************** */
 
-/* Note! - foreach funcs should be called while drawing or directly after
- * if not, ED_view3d_init_mats_rv3d() can be used for selection tools
- * but would not give correct results with dupli's for eg. which don't
- * use the object matrix in the usual way */
-static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const float co[3],
-                                            const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
-{
-	foreachScreenVert_userData *data = userData;
-	BMVert *eve = EDBM_vert_at_index(data->vc.em, index);
-
-	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-		const eV3DProjTest flag = (data->clipVerts == V3D_CLIP_TEST_OFF) ?
-		            V3D_PROJ_TEST_NOP :
-		            V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN;
-		int screen_co[2];
-
-		if (ED_view3d_project_int_object(data->vc.ar, co, screen_co, flag) != V3D_PROJ_RET_SUCCESS) {
-			return;
-		}
-
-		data->func(data->userData, eve, screen_co[0], screen_co[1], index);
-	}
-}
-
-void mesh_foreachScreenVert(
-        ViewContext *vc,
-        void (*func)(void *userData, BMVert *eve, int x, int y, int index),
-        void *userData, eV3DClipTest clipVerts)
-{
-	foreachScreenVert_userData data;
-	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
-	
-	data.vc = *vc;
-	data.func = func;
-	data.userData = userData;
-	data.clipVerts = clipVerts;
-
-	if (clipVerts != V3D_CLIP_TEST_OFF)
-		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
-
-	EDBM_index_arrays_init(vc->em, 1, 0, 0);
-	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
-	EDBM_index_arrays_free(vc->em);
-
-	dm->release(dm);
-}
-
 /*  draw callback */
 static void drawSelectedVertices__mapFunc(void *userData, int index, const float co[3],
                                           const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
@@ -2054,286 +1949,9 @@ static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
 	glEnd();
 }
 
-static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const float v0co[3], const float v1co[3])
-{
-	foreachScreenEdge_userData *data = userData;
-	BMEdge *eed = EDBM_edge_at_index(data->vc.em, index);
-
-	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-		int screen_co_a[2];
-		int screen_co_b[2];
-
-		const eV3DProjTest flag = (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) ?
-		            V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN :
-		            V3D_PROJ_TEST_NOP;
-
-		if (ED_view3d_project_int_object(data->vc.ar, v0co, screen_co_a, flag) != V3D_PROJ_RET_SUCCESS) {
-			return;
-		}
-		if (ED_view3d_project_int_object(data->vc.ar, v1co, screen_co_b, flag) != V3D_PROJ_RET_SUCCESS) {
-			return;
-		}
-
-		if (data->clipVerts == V3D_CLIP_TEST_RV3D_CLIPPING) {
-			/* pass */
-		}
-		else {
-			if (data->clipVerts == V3D_CLIP_TEST_REGION) {
-				if (!BLI_rcti_isect_segment(&data->win_rect, screen_co_a, screen_co_b)) {
-					return;
-				}
-			}
-		}
-
-		data->func(data->userData, eed,
-		           screen_co_a[0], screen_co_a[1],
-		           screen_co_b[0], screen_co_b[1], index);
-	}
-}
-
-void mesh_foreachScreenEdge(
-        ViewContext *vc,
-        void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index),
-        void *userData, eV3DClipTest clipVerts)
-{
-	foreachScreenEdge_userData data;
-	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
-
-	data.vc = *vc;
-
-	data.win_rect.xmin = 0;
-	data.win_rect.ymin = 0;
-	data.win_rect.xmax = vc->ar->winx;
-	data.win_rect.ymax = vc->ar->winy;
-
-	data.func = func;
-	data.userData = userData;
-	data.clipVerts = clipVerts;
-
-	if (clipVerts != V3D_CLIP_TEST_OFF)
-		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
-
-	EDBM_index_arrays_init(vc->em, 0, 1, 0);
-	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
-	EDBM_index_arrays_free(vc->em);
-
-	dm->release(dm);
-}
-
-static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const float cent[3], const float UNUSED(no[3]))
-{
-	foreachScreenFace_userData *data = userData;
-	BMFace *efa = EDBM_face_at_index(data->vc.em, index);
-
-	if (efa && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-		int screen_co[2];
-		if (ED_view3d_project_int_object(data->vc.ar, cent, screen_co,
-		                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-		{
-			data->func(data->userData, efa, screen_co[0], screen_co[1], index);
-		}
-	}
-}
-
-void mesh_foreachScreenFace(
-        ViewContext *vc,
-        void (*func)(void *userData, BMFace *efa, int x, int y, int index),
-        void *userData)
-{
-	foreachScreenFace_userData data;
-	DerivedMesh *dm = editbmesh_get_derived_cage(vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
-
-	data.vc = *vc;
-	data.func = func;
-	data.userData = userData;
-
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-
-	EDBM_index_arrays_init(vc->em, 0, 0, 1);
-	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
-	EDBM_index_arrays_free(vc->em);
-
-	dm->release(dm);
-}
-
-void nurbs_foreachScreenVert(
-        ViewContext *vc,
-        void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
-        void *userData)
-{
-	Curve *cu = vc->obedit->data;
-	Nurb *nu;
-	int i;
-	ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-
-	ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
-
-	for (nu = nurbs->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			for (i = 0; i < nu->pntsu; i++) {
-				BezTriple *bezt = &nu->bezt[i];
-
-				if (bezt->hide == 0) {
-					int screen_co[2];
-					
-					if (cu->drawflag & CU_HIDE_HANDLES) {
-						if (ED_view3d_project_int_object(vc->ar, bezt->vec[1], screen_co,
-						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-						{
-							func(userData, nu, NULL, bezt, 1, screen_co[0], screen_co[1]);
-						}
-					}
-					else {
-						if (ED_view3d_project_int_object(vc->ar, bezt->vec[0], screen_co,
-						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-						{
-							func(userData, nu, NULL, bezt, 0, screen_co[0], screen_co[1]);
-						}
-						if (ED_view3d_project_int_object(vc->ar, bezt->vec[1], screen_co,
-						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-						{
-							func(userData, nu, NULL, bezt, 1, screen_co[0], screen_co[1]);
-						}
-						if (ED_view3d_project_int_object(vc->ar, bezt->vec[2], screen_co,
-						                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-						{
-							func(userData, nu, NULL, bezt, 2, screen_co[0], screen_co[1]);
-						}
-					}
-				}
-			}
-		}
-		else {
-			for (i = 0; i < nu->pntsu * nu->pntsv; i++) {
-				BPoint *bp = &nu->bp[i];
-
-				if (bp->hide == 0) {
-					int screen_co[2];
-					if (ED_view3d_project_int_object(vc->ar, bp->vec, screen_co,
-					                                 V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-					{
-						func(userData, nu, bp, NULL, -1, screen_co[0], screen_co[1]);
-					}
-				}
-			}
-		}
-	}
-}
-
-/* ED_view3d_init_mats_rv3d must be called first */
-void mball_foreachScreenElem(
-        struct ViewContext *vc,
-        void (*func)(void *userData, struct MetaElem *ml, int x, int y),
-        void *userData)
-{
-	MetaBall *mb = (MetaBall *)vc->obedit->data;
-	MetaElem *ml;
-
-	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		int screen_co[2];
-		if (ED_view3d_project_int_object(vc->ar, &ml->x, screen_co,
-		                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-		{
-			func(userData, ml, screen_co[0], screen_co[1]);
-		}
-	}
-}
-
-/* ED_view3d_init_mats_rv3d must be called first */
-void armature_foreachScreenBone(
-        struct ViewContext *vc,
-        void (*func)(void *userData, struct EditBone *ebone, int x0, int y0, int x1, int y1),
-        void *userData)
-{
-	bArmature *arm = vc->obedit->data;
-	EditBone *ebone;
-
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			int screen_co_a[2], screen_co_b[2];
-			int points_proj_tot = 0;
-
-			/* project head location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, ebone->head, screen_co_a,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-			}
-			else {
-				screen_co_a[0] = IS_CLIPPED;  /* weak */
-				/* screen_co_a[1]: intentionally dont set this so we get errors on misuse */
-			}
-
-			/* project tail location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, ebone->tail, screen_co_b,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-			}
-			else {
-				screen_co_b[0] = IS_CLIPPED;  /* weak */
-				/* screen_co_b[1]: intentionally dont set this so we get errors on misuse */
-			}
-
-			if (points_proj_tot) {  /* at least one point's projection worked */
-				func(userData, ebone,
-				     screen_co_a[0], screen_co_a[1],
-				     screen_co_b[0], screen_co_b[1]);
-			}
-		}
-	}
-}
-
-/* ED_view3d_init_mats_rv3d must be called first */
-/* almost _exact_ copy of #armature_foreachScreenBone */
-void pose_foreachScreenBone(
-        struct ViewContext *vc,
-        void (*func)(void *userData, struct bPoseChannel *pchan, int x0, int y0, int x1, int y1),
-        void *userData)
-{
-	bArmature *arm = vc->obact->data;
-	bPose *pose = vc->obact->pose;
-	bPoseChannel *pchan;
-
-	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-		if (PBONE_VISIBLE(arm, pchan->bone)) {
-			int screen_co_a[2], screen_co_b[2];
-			int points_proj_tot = 0;
-
-			/* project head location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, pchan->pose_head, screen_co_a,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-			}
-			else {
-				screen_co_a[0] = IS_CLIPPED;  /* weak */
-				/* screen_co_a[1]: intentionally dont set this so we get errors on misuse */
-			}
-
-			/* project tail location to screenspace */
-			if (ED_view3d_project_int_object(vc->ar, pchan->pose_tail, screen_co_b,
-			                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_SUCCESS)
-			{
-				points_proj_tot++;
-			}
-			else {
-				screen_co_b[0] = IS_CLIPPED;  /* weak */
-				/* screen_co_b[1]: intentionally dont set this so we get errors on misuse */
-			}
-
-			if (points_proj_tot) {  /* at least one point's projection worked */
-				func(userData, pchan,
-				     screen_co_a[0], screen_co_a[1],
-				     screen_co_b[0], screen_co_b[1]);
-			}
-		}
-	}
-}
-
 /* ************** DRAW MESH ****************** */
 
-/* First section is all the "simple" draw routines, 
+/* First section is all the "simple" draw routines,
  * ones that just pass some sort of primitive to GL,
  * with perhaps various options to control lighting,
  * color, etc.
@@ -2568,7 +2186,7 @@ static DMDrawOption draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	}
 }
-static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
+static void draw_dm_edges_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol,
                               unsigned char *selCol, unsigned char *actCol, BMEdge *eed_act)
 {
 	drawDMEdgesSel_userData data;
@@ -2590,7 +2208,7 @@ static DMDrawOption draw_dm_edges__setDrawOptions(void *userData, int index)
 		return DM_DRAW_OPTION_NORMAL;
 }
 
-static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm) 
+static void draw_dm_edges(BMEditMesh *em, DerivedMesh *dm)
 {
 	dm->drawMappedEdges(dm, draw_dm_edges__setDrawOptions, em);
 }
@@ -2729,7 +2347,7 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 }
 
 /* also draws the active face */
-static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol, 
+static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *baseCol,
                               unsigned char *selCol, unsigned char *markCol, unsigned char *actCol, BMFace *efa_act)
 {
 	drawDMFacesSel_userData data;
@@ -2827,9 +2445,9 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 
 /* EditMesh drawing routines*/
 
-static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, 
+static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
                                 BMEditMesh *em, DerivedMesh *cageDM, BMVert *eve_act,
-								RegionView3D *rv3d)
+                                RegionView3D *rv3d)
 {
 	ToolSettings *ts = scene->toolsettings;
 	int sel;
@@ -2949,7 +2567,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 			glEnable(GL_DEPTH_TEST);
 		}
 	}
-}	
+}
 
 static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
@@ -3214,7 +2832,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		if (ese->type == BM_FACE) {
 			efa_act = (BMFace *)ese->data;
 		}
-		else 
+		else
 #endif
 		if (ese->htype == BM_EDGE) {
 			eed_act = (BMEdge *)ese->ele;
@@ -3397,13 +3015,12 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 
 static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 {
-	
 	if ((v3d->transp == FALSE) &&  /* not when we draw the transparent pass */
 	    (ob->mode & OB_MODE_ALL_PAINT) == FALSE) /* not when painting (its distracting) - campbell */
 	{
 		glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
 		glDepthMask(0);
-		
+
 		/* if transparent, we cannot draw the edges for solid select... edges have no material info.
 		 * drawFacesSolid() doesn't draw the transparent faces */
 		if (ob->dtx & OB_DRAWTRANSP) {
@@ -5896,7 +5513,7 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 	glEnd();
 }
 
-/* draws a circle on x-z plane given the scaling of the circle, assuming that 
+/* draws a circle on x-z plane given the scaling of the circle, assuming that
  * all required matrices have been set (used for drawing empties)
  */
 static void drawcircle_size(float size)
@@ -7041,72 +6658,76 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 
 		/* only draw domains */
-		if (smd->domain && smd->domain->fluid) {
-			if (CFRA < smd->domain->point_cache[0]->startframe) {
-				/* don't show smoke before simulation starts, this could be made an option in the future */
-			}
-			else if (!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
-// #if 0
-				smd->domain->tex = NULL;
-				GPU_create_smoke(smd, 0);
-				draw_volume(ar, smd->domain->tex,
-				            smd->domain->p0, smd->domain->p1,
-				            smd->domain->res, smd->domain->dx,
-				            smd->domain->tex_shadow);
-				GPU_free_smoke(smd);
-// #endif
+		if (smd->domain) {
+			SmokeDomainSettings *sds = smd->domain;
+			float p0[3], p1[3], viewnormal[3];
+			BoundBox bb;
+
+			glLoadMatrixf(rv3d->viewmat);
+			glMultMatrixf(ob->obmat);
+
+			/* draw adaptive domain bounds */
+			if (sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) {
+				/* draw domain max bounds */
+				VECSUBFAC(p0, sds->p0, sds->cell_size, sds->adapt_res);
+				VECADDFAC(p1, sds->p1, sds->cell_size, sds->adapt_res);
+				BKE_boundbox_init_from_minmax(&bb, p0, p1);
+				draw_box(bb.vec);
+
+				/* draw base resolution bounds */
 #if 0
-				int x, y, z;
-				float *density = smoke_get_density(smd->domain->fluid);
-
-				glLoadMatrixf(rv3d->viewmat);
-				// glMultMatrixf(ob->obmat);
-
-				if (col || (ob->flag & SELECT)) cpack(0xFFFFFF);
-				glDepthMask(GL_FALSE);
-				glEnable(GL_BLEND);
-				
-
-				// glPointSize(3.0);
-				bglBegin(GL_POINTS);
-
-				for (x = 0; x < smd->domain->res[0]; x++) {
-					for (y = 0; y < smd->domain->res[1]; y++) {
-						for (z = 0; z < smd->domain->res[2]; z++) {
-							float tmp[3];
-							int index = smoke_get_index(x, smd->domain->res[0], y, smd->domain->res[1], z);
-
-							if (density[index] > FLT_EPSILON) {
-								float color[3];
-								copy_v3_v3(tmp, smd->domain->p0);
-								tmp[0] += smd->domain->dx * x + smd->domain->dx * 0.5;
-								tmp[1] += smd->domain->dx * y + smd->domain->dx * 0.5;
-								tmp[2] += smd->domain->dx * z + smd->domain->dx * 0.5;
-								color[0] = color[1] = color[2] = density[index];
-								glColor3fv(color);
-								bglVertex3fv(tmp);
-							}
-						}
-					}
-				}
-
-				bglEnd();
-				glPointSize(1.0);
-
-				glMultMatrixf(ob->obmat);
-				glDisable(GL_BLEND);
-				glDepthMask(GL_TRUE);
-				if (col) cpack(col);
+				BKE_boundbox_init_from_minmax(&bb, sds->p0, sds->p1);
+				draw_box(bb.vec);
 #endif
 			}
-			else if (smd->domain->wt && (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
-				smd->domain->tex = NULL;
-				GPU_create_smoke(smd, 1);
-				draw_volume(ar, smd->domain->tex,
-				            smd->domain->p0, smd->domain->p1,
-				            smd->domain->res_wt, smd->domain->dx_wt,
-				            smd->domain->tex_shadow);
-				GPU_free_smoke(smd);
+
+			/* don't show smoke before simulation starts, this could be made an option in the future */
+			if (smd->domain->fluid && CFRA >= smd->domain->point_cache[0]->startframe) {
+
+				// get view vector
+				copy_v3_v3(viewnormal, rv3d->viewinv[2]);
+				mul_mat3_m4_v3(ob->imat, viewnormal);
+				normalize_v3(viewnormal);
+
+				/* set dynamic boundaries to draw the volume */
+				p0[0] = sds->p0[0] + sds->cell_size[0] * sds->res_min[0] + sds->obj_shift_f[0];
+				p0[1] = sds->p0[1] + sds->cell_size[1] * sds->res_min[1] + sds->obj_shift_f[1];
+				p0[2] = sds->p0[2] + sds->cell_size[2] * sds->res_min[2] + sds->obj_shift_f[2];
+				p1[0] = sds->p0[0] + sds->cell_size[0] * sds->res_max[0] + sds->obj_shift_f[0];
+				p1[1] = sds->p0[1] + sds->cell_size[1] * sds->res_max[1] + sds->obj_shift_f[1];
+				p1[2] = sds->p0[2] + sds->cell_size[2] * sds->res_max[2] + sds->obj_shift_f[2];
+
+				/* scale cube to global space to equalize volume slicing on all axises
+				 *  (its scaled back before drawing) */
+				mul_v3_v3(p0, ob->size);
+				mul_v3_v3(p1, ob->size);
+
+				if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
+					smd->domain->tex = NULL;
+					GPU_create_smoke(smd, 0);
+					draw_smoke_volume(sds, ob, sds->tex,
+					                  p0, p1,
+					                  sds->res, sds->dx, sds->scale * sds->maxres,
+					                  viewnormal, sds->tex_shadow, sds->tex_flame);
+					GPU_free_smoke(smd);
+				}
+				else if (sds->wt && (sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
+					sds->tex = NULL;
+					GPU_create_smoke(smd, 1);
+					draw_smoke_volume(sds, ob, sds->tex,
+					                  p0, p1,
+					                  sds->res_wt, sds->dx, sds->scale * sds->maxres,
+					                  viewnormal, sds->tex_shadow, sds->tex_flame);
+					GPU_free_smoke(smd);
+				}
+
+				/* smoke debug render */
+#ifdef SMOKE_DEBUG_VELOCITY
+				draw_smoke_velocity(smd->domain, ob);
+#endif
+#ifdef SMOKE_DEBUG_HEAT
+				draw_smoke_heat(smd->domain, ob);
+#endif
 			}
 		}
 	}
@@ -7368,7 +6989,7 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, ptrs);
 	bglEnd();
 	glPointSize(1.0);
-}		
+}
 
 static DMDrawOption bbs_mesh_wire__setDrawOptions(void *userData, int index)
 {
@@ -7388,7 +7009,7 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	void *ptrs[2] = {(void *)(intptr_t) offset, em};
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, ptrs);
-}		
+}
 
 static DMDrawOption bbs_mesh_solid__setSolidDrawOptions(void *userData, int index)
 {
@@ -7567,7 +7188,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 /*               assumes all matrices/etc set OK */
 
 /* helper function for drawing object instances - meshes */
-static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, 
+static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d,
                                       Object *ob, const short dt, int outline)
 {
 	Mesh *me = ob->data;

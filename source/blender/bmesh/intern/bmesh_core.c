@@ -810,7 +810,7 @@ static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 int bmesh_loop_reverse(BMesh *bm, BMFace *f)
 {
 #ifdef USE_BMESH_HOLES
-	return bmesh_loop_reverse_loop(bm, f, f->loops.first);
+	return bm_loop_reverse_loop(bm, f, f->loops.first);
 #else
 	return bm_loop_reverse_loop(bm, f);
 #endif
@@ -1143,6 +1143,8 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
 /**
  * \brief Split Face Make Edge (SFME)
  *
+ * \warning this is a low level function, most likely you want to use #BM_face_split()
+ *
  * Takes as input two vertices in a single face. An edge is created which divides the original face
  * into two distinct regions. One of the regions is assigned to the original face and it is closed off.
  * The second region has a new face assigned to it.
@@ -1186,13 +1188,15 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 {
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst, *lst2;
+#else
+	int first_loop_f1;
 #endif
 
 	BMFace *f2;
 	BMLoop *l_iter, *l_first;
 	BMLoop *v1loop = NULL, *v2loop = NULL, *f1loop = NULL, *f2loop = NULL;
 	BMEdge *e;
-	int i, len, f1len, f2len, first_loop_f1;
+	int i, len, f1len, f2len;
 
 	/* verify that v1 and v2 are in face */
 	len = f->len;
@@ -1603,10 +1607,10 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 				BMESH_ASSERT(edok != FALSE);
 			}
 
-			/* deallocate edg */
+			/* deallocate edge */
 			bm_kill_only_edge(bm, ke);
 
-			/* deallocate verte */
+			/* deallocate vertex */
 			bm_kill_only_vert(bm, kv);
 
 			/* Validate disk cycle lengths of ov, tv are unchanged */
@@ -1615,7 +1619,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 			edok = bmesh_disk_validate(valence2, tv->e, tv);
 			BMESH_ASSERT(edok != FALSE);
 
-			/* Validate loop cycle of all faces attached to oe */
+			/* Validate loop cycle of all faces attached to 'oe' */
 			for (i = 0, l = oe->l; i < radlen; i++, l = l->radial_next) {
 				BMESH_ASSERT(l->e == oe);
 				edok = bmesh_verts_in_edge(l->v, l->next->v, oe);
@@ -1796,8 +1800,12 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
  * Merges two verts into one (\a v into \a vtarget).
  *
  * \return Success
+ *
+ * \warning This does't work for collapsing edges,
+ * where \a v and \a vtarget are connected by an edge
+ * (assert checks for this case).
  */
-int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
+int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 {
 	BMEdge *e;
 
@@ -1805,26 +1813,29 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *vtarget)
 	int i, loops_tot;
 
 	/* verts already spliced */
-	if (v == vtarget) {
+	if (v == v_target) {
 		return FALSE;
 	}
 
 	/* we can't modify the vert while iterating so first allocate an array of loops */
 	loops = BM_iter_as_arrayN(bm, BM_LOOPS_OF_VERT, v, &loops_tot);
-	for (i = 0; i < loops_tot; i++) {
-		loops[i]->v = vtarget;
+	if (loops) {
+		for (i = 0; i < loops_tot; i++) {
+			loops[i]->v = v_target;
+		}
+		MEM_freeN(loops);
 	}
-	MEM_freeN(loops);
 
 	/* move all the edges from v's disk to vtarget's disk */
 	while ((e = v->e)) {
 		bmesh_disk_edge_remove(e, v);
-		bmesh_edge_swapverts(e, v, vtarget);
-		bmesh_disk_edge_append(e, vtarget);
+		bmesh_edge_swapverts(e, v, v_target);
+		bmesh_disk_edge_append(e, v_target);
+		BLI_assert(e->v1 != e->v2);
 	}
 
 	BM_CHECK_ELEMENT(v);
-	BM_CHECK_ELEMENT(vtarget);
+	BM_CHECK_ELEMENT(v_target);
 
 	/* v is unused now, and can be killed */
 	BM_vert_kill(bm, v);
@@ -1990,27 +2001,32 @@ int BM_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len,
  *
  * \note Edges must already have the same vertices.
  */
-int BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *etarget)
+int BM_edge_splice(BMesh *bm, BMEdge *e, BMEdge *e_target)
 {
 	BMLoop *l;
 
-	if (!BM_vert_in_edge(e, etarget->v1) || !BM_vert_in_edge(e, etarget->v2)) {
+	if (!BM_vert_in_edge(e, e_target->v1) || !BM_vert_in_edge(e, e_target->v2)) {
 		/* not the same vertices can't splice */
+
+		/* the caller should really make sure this doesn't happen ever
+		 * so assert on release builds */
+		BLI_assert(0);
+
 		return FALSE;
 	}
 
 	while (e->l) {
 		l = e->l;
-		BLI_assert(BM_vert_in_edge(etarget, l->v));
-		BLI_assert(BM_vert_in_edge(etarget, l->next->v));
+		BLI_assert(BM_vert_in_edge(e_target, l->v));
+		BLI_assert(BM_vert_in_edge(e_target, l->next->v));
 		bmesh_radial_loop_remove(l, e);
-		bmesh_radial_append(etarget, l);
+		bmesh_radial_append(e_target, l);
 	}
 
 	BLI_assert(bmesh_radial_length(e->l) == 0);
 
 	BM_CHECK_ELEMENT(e);
-	BM_CHECK_ELEMENT(etarget);
+	BM_CHECK_ELEMENT(e_target);
 
 	/* removes from disks too */
 	BM_edge_kill(bm, e);

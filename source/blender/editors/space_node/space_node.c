@@ -254,6 +254,15 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				}
 			}
 			break;
+
+		case NC_MOVIECLIP:
+			if (wmn->action == NA_EDITED) {
+				if (type == NTREE_COMPOSIT) {
+					if (nodeUpdateID(snode->nodetree, wmn->reference))
+						ED_area_tag_refresh(sa);
+				}
+			}
+			break;
 	}
 }
 

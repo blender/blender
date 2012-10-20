@@ -275,5 +275,4 @@ private:
 #endif
 };
 
-#endif //__SG_NODE_H__
-
+#endif  /* __SG_NODE_H__ */

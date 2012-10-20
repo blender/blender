@@ -114,9 +114,8 @@ public:
 	static PyObject *pyattr_get_steeringVec(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 }; /* end of class KX_SteeringActuator : public SCA_PropertyActuator */
 
-#endif
-
+#endif  /* __KX_STEERINGACTUATOR_H__ */

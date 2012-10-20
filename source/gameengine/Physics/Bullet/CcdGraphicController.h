@@ -87,4 +87,4 @@ private:
 #endif
 };
 
-#endif //BULLET2_PHYSICSCONTROLLER_H
+#endif  /* BULLET2_PHYSICSCONTROLLER_H */

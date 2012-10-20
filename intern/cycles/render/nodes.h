@@ -201,6 +201,7 @@ public:
 class WardBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(WardBsdfNode)
+	void attributes(AttributeRequestSet *attributes);
 };
 
 class DiffuseBsdfNode : public BsdfNode {
@@ -278,6 +279,7 @@ public:
 class GeometryNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GeometryNode)
+	void attributes(AttributeRequestSet *attributes);
 };
 
 class TextureCoordinateNode : public ShaderNode {
@@ -436,6 +438,11 @@ class RGBRampNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(RGBRampNode)
 	float4 ramp[RAMP_TABLE_SIZE];
+};
+
+class SetNormalNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(SetNormalNode)
 };
 
 CCL_NAMESPACE_END

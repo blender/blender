@@ -45,7 +45,7 @@ enum PF_FileStatus
 	PF_EQUAL = 0,
 	PF_DIFFERS = 1,
 	PF_NOFILE = 2,
-			
+
 	PF_WRITE_ORIGINAL = 3,
 	PF_WRITE_LOCAL = 4,
 	PF_USE_LOCAL = 5,
@@ -53,7 +53,7 @@ enum PF_FileStatus
 	PF_KEEP = 7,
 	PF_REMOVE = 8,
 	PF_NOOP = 9,
-			
+
 	PF_ASK = 10
 };
 

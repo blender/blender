@@ -442,7 +442,7 @@ static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob
 	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
 
 	if (!ok) {
-		BKE_report(reports, RPT_ERROR, "Requires selected vertices or active Vertex Group");
+		BKE_report(reports, RPT_ERROR, "Requires selected vertices or active vertex group");
 		return FALSE;
 	}
 

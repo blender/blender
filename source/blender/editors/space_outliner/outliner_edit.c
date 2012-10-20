@@ -368,12 +368,14 @@ void group_toggle_visibility_cb(bContext *UNUSED(C), Scene *scene, TreeElement *
 
 static int outliner_toggle_visibility_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_visibility_cb);
 	
+	DAG_id_type_tag(bmain, ID_OB);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_VISIBLE, scene);
 	ED_region_tag_redraw(ar);
 	
@@ -464,11 +466,13 @@ void group_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 
 static int outliner_toggle_renderability_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_renderability_cb);
 	
+	DAG_id_type_tag(bmain, ID_OB);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_RENDER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1340,7 +1344,7 @@ static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
 	
 	/* check for invalid states */
 	if (ks == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Keying Set");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active keying set");
 		return OPERATOR_CANCELLED;
 	}
 	if (soutliner == NULL)

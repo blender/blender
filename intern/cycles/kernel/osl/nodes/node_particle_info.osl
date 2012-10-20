@@ -25,15 +25,14 @@ shader node_particle_info(
     output point Location = point(0.0, 0.0, 0.0),
     output float Size = 0.0,
     output vector Velocity = point(0.0, 0.0, 0.0),
-    output vector AngularVelocity = point(0.0, 0.0, 0.0)
-    )
+    output vector AngularVelocity = point(0.0, 0.0, 0.0))
 {
-    getattribute("std::particle_index", Index);
-    getattribute("std::particle_age", Age);
-    getattribute("std::particle_lifetime", Lifetime);
-    getattribute("std::particle_location", Location);
-    getattribute("std::particle_size", Size);
-    getattribute("std::particle_velocity", Velocity);
-    getattribute("std::particle_angular_velocity", AngularVelocity);
+	getattribute("std::particle_index", Index);
+	getattribute("std::particle_age", Age);
+	getattribute("std::particle_lifetime", Lifetime);
+	getattribute("std::particle_location", Location);
+	getattribute("std::particle_size", Size);
+	getattribute("std::particle_velocity", Velocity);
+	getattribute("std::particle_angular_velocity", AngularVelocity);
 }
 

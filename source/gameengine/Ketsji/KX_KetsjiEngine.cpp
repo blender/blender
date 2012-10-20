@@ -30,10 +30,9 @@
  *  \ingroup ketsji
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 #include <iostream>
 #include <stdio.h>
@@ -46,7 +45,6 @@
 #include "BoolValue.h"
 #include "FloatValue.h"
 
-#define KX_NUM_ITERATIONS 4
 #include "RAS_BucketManager.h"
 #include "RAS_Rect.h"
 #include "RAS_IRasterizer.h"
@@ -275,8 +273,7 @@ void KX_KetsjiEngine::InitDome(short res, short mode, short angle, float resbuf,
 
 void KX_KetsjiEngine::RenderDome()
 {
-	GLuint	viewport[4]={0};
-	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
+	const GLint *viewport = m_canvas->GetViewPort();
 	
 	m_dome->SetViewPort(viewport);
 

@@ -72,7 +72,11 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 		int object = sd->object;
 
 		if (object != ~0) {
-			Transform tfm = object_fetch_transform(kg, object, time, OBJECT_TRANSFORM);
+#ifdef __OBJECT_MOTION__
+			Transform tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
+#else
+			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+#endif
 			tfm = transform_transpose(tfm);
 			result = TO_MATRIX44(tfm);
 
@@ -93,9 +97,14 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 		int object = sd->object;
 
 		if (object != ~0) {
-			Transform tfm = object_fetch_transform(kg, object, time, OBJECT_INVERSE_TRANSFORM);
-			tfm = transform_transpose(tfm);
-			result = TO_MATRIX44(tfm);
+#ifdef __OBJECT_MOTION__
+			Transform itfm;
+			object_fetch_transform_motion_test(kg, object, time, &itfm);
+#else
+			Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+#endif
+			itfm = transform_transpose(itfm);
+			result = TO_MATRIX44(itfm);
 
 			return true;
 		}
@@ -109,7 +118,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from, float ti
 	KernelGlobals *kg = kernel_globals;
 
 	if (from == u_ndc) {
-		Transform tfm = transform_transpose(kernel_data.cam.ndctoworld);
+		Transform tfm = transform_transpose(transform_quick_inverse(kernel_data.cam.worldtondc));
 		result = TO_MATRIX44(tfm);
 		return true;
 	}
@@ -162,14 +171,108 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, ustring to, fl
 
 bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform)
 {
-	// XXX implementation
-	return true;
+	/* this is only used for shader and object space, we don't really have
+	 * a concept of shader space, so we just use object space for both. */
+	if (xform) {
+		const ShaderData *sd = (const ShaderData *)xform;
+		int object = sd->object;
+
+		if (object != ~0) {
+#ifdef __OBJECT_MOTION__
+			Transform tfm = sd->ob_tfm;
+#else
+			KernelGlobals *kg = kernel_globals;
+			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+#endif
+			tfm = transform_transpose(tfm);
+			result = TO_MATRIX44(tfm);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform)
+{
+	/* this is only used for shader and object space, we don't really have
+	 * a concept of shader space, so we just use object space for both. */
+	if (xform) {
+		const ShaderData *sd = (const ShaderData *)xform;
+		int object = sd->object;
+
+		if (object != ~0) {
+#ifdef __OBJECT_MOTION__
+			Transform tfm = sd->ob_itfm;
+#else
+			KernelGlobals *kg = kernel_globals;
+			Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+#endif
+			tfm = transform_transpose(tfm);
+			result = TO_MATRIX44(tfm);
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from)
 {
-	// XXX implementation
-	return true;
+	KernelGlobals *kg = kernel_globals;
+
+	if (from == u_ndc) {
+		Transform tfm = transform_transpose(transform_quick_inverse(kernel_data.cam.worldtondc));
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (from == u_raster) {
+		Transform tfm = transform_transpose(kernel_data.cam.rastertoworld);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (from == u_screen) {
+		Transform tfm = transform_transpose(kernel_data.cam.screentoworld);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (from == u_camera) {
+		Transform tfm = transform_transpose(kernel_data.cam.cameratoworld);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+
+	return false;
+}
+
+bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, ustring to)
+{
+	KernelGlobals *kg = kernel_globals;
+	
+	if (to == u_ndc) {
+		Transform tfm = transform_transpose(kernel_data.cam.worldtondc);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (to == u_raster) {
+		Transform tfm = transform_transpose(kernel_data.cam.worldtoraster);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (to == u_screen) {
+		Transform tfm = transform_transpose(kernel_data.cam.worldtoscreen);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	else if (to == u_camera) {
+		Transform tfm = transform_transpose(kernel_data.cam.worldtocamera);
+		result = TO_MATRIX44(tfm);
+		return true;
+	}
+	
+	return false;
 }
 
 bool OSLRenderServices::get_array_attribute(void *renderstate, bool derivatives, 
@@ -361,6 +464,22 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		return false;
 }
 
+static bool get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
+                                     TypeDesc type, bool derivatives, void *val)
+{
+	/* Ray Length */
+	if (name == "std::ray_length") {
+		float fval[3];
+		fval[0] = sd->ray_length;
+		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
+		set_attribute_float(fval, type, derivatives, val);
+		return true;
+	}
+	
+	else
+		return false;
+}
+
 bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustring object_name,
                                       TypeDesc type, ustring name, void *val)
 {
@@ -380,8 +499,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 		tri = ~0;
 	}
 	else if (object == ~0) {
-		/* no background attributes supported */
-		return false;
+		return get_background_attribute(kg, sd, name, type, derivatives, val);
 	}
 
 	/* find attribute on object */
@@ -404,7 +522,12 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	}
 	else {
 		/* not found in attribute, check standard object info */
-		return get_object_standard_attribute(kg, sd, name, type, derivatives, val);
+		bool is_std_object_attribute = get_object_standard_attribute(kg, sd, name, type, derivatives, val);
+		if (is_std_object_attribute)
+			return true;
+		else {
+			return get_background_attribute(kg, sd, name, type, derivatives, val);
+		}
 	}
 
 	return false;

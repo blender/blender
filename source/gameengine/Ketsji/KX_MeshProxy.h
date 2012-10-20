@@ -77,7 +77,6 @@ public:
 	static PyObject *pyattr_get_numPolygons(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 };
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
-#endif //__KX_MESHPROXY_H__
-
+#endif  /* __KX_MESHPROXY_H__ */

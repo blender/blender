@@ -211,7 +211,12 @@ int IMB_ispic(const char *filename)
 
 static int isavi(const char *name)
 {
+#ifdef WITH_AVI
 	return AVI_is_avi(name);
+#else
+	(void)name;
+	return FALSE;
+#endif
 }
 
 #ifdef WITH_QUICKTIME
@@ -222,6 +227,10 @@ static int isqtime(const char *name)
 #endif
 
 #ifdef WITH_FFMPEG
+
+/* BLI_vsnprintf in ffmpeg_log_callback() causes invalid warning */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-format-attribute"
 
 static char ffmpeg_last_error[1024];
 
@@ -239,6 +248,8 @@ static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_lis
 		av_log_default_callback(ptr, level, format, arg);
 	}
 }
+
+#pragma GCC diagnostic pop
 
 void IMB_ffmpeg_init(void)
 {

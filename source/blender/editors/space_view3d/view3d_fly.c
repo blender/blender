@@ -284,6 +284,11 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 	puts("\n-- fly begin --");
 #endif
 
+	/* sanity check: for rare but possible case (if lib-linking the camera fails) */
+	if ((fly->rv3d->persp == RV3D_CAMOB) && (fly->v3d->camera == NULL)) {
+		fly->rv3d->persp = RV3D_PERSP;
+	}
+
 	if (fly->rv3d->persp == RV3D_CAMOB && fly->v3d->camera->id.lib) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot fly a camera from an external library");
 		return FALSE;

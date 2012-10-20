@@ -46,6 +46,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "BIF_gl.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -55,6 +57,7 @@
 #include "ED_mesh.h"
 #include "ED_uvedit.h"
 #include "ED_screen.h"
+#include "ED_space_api.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -63,10 +66,31 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
+#include "UI_resources.h"
 
 #include "uvedit_intern.h"
 
 /* ********************** smart stitch operator *********************** */
+
+/* object that stores display data for previewing before accepting stitching */
+typedef struct StitchPreviewer {
+	/* here we'll store the preview triangle indices of the mesh */
+	float *preview_polys;
+	/* uvs per polygon. */
+	unsigned int *uvs_per_polygon;
+	/*number of preview polygons */
+	unsigned int num_polys;
+	/* preview data. These will be either the previewed vertices or edges depending on stitch mode settings */
+	float *preview_stitchable;
+	float *preview_unstitchable;
+	/* here we'll store the number of elements to be drawn */
+	unsigned int num_stitchable;
+	unsigned int num_unstitchable;
+	unsigned int preview_uvs;
+	/* ...and here we'll store the triangles*/
+	float *static_tris;
+	unsigned int num_static_tris;
+} StitchPreviewer;
 
 
 struct IslandStitchData;
@@ -143,6 +167,8 @@ typedef struct StitchState {
 	int static_island;
 	/* store number of primitives per face so that we can allocate the active island buffer later */
 	unsigned int *tris_per_island;
+
+	void *draw_handle;
 } StitchState;
 
 typedef struct PreviewPosition {
@@ -216,7 +242,7 @@ static void stitch_preview_delete(void)
 
 
 /* "getter method" */
-StitchPreviewer *uv_get_stitch_previewer(void)
+static StitchPreviewer *uv_get_stitch_previewer(void)
 {
 	return _stitch_preview;
 }
@@ -981,6 +1007,55 @@ static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *no
 	normalize_v2(normal);
 }
 
+static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *UNUSED(arg))
+{
+	int i, index = 0;
+	float pointsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
+	StitchPreviewer *stitch_preview = uv_get_stitch_previewer();
+
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+	glEnableClientState(GL_VERTEX_ARRAY);
+
+	glEnable(GL_BLEND);
+
+	UI_ThemeColor4(TH_STITCH_PREVIEW_ACTIVE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_tris);
+	glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris * 3);
+
+	glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_polys);
+	for (i = 0; i < stitch_preview->num_polys; i++) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
+		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
+		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
+
+		index += stitch_preview->uvs_per_polygon[i];
+	}
+	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+#if 0
+	UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
+	glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris * 3);
+#endif
+	glDisable(GL_BLEND);
+
+	/* draw vert preview */
+	glPointSize(pointsize * 2.0f);
+	UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
+	glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
+	glDrawArrays(GL_POINTS, 0, stitch_preview->num_stitchable);
+
+	UI_ThemeColor4(TH_STITCH_PREVIEW_UNSTITCHABLE);
+	glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_unstitchable);
+	glDrawArrays(GL_POINTS, 0, stitch_preview->num_unstitchable);
+
+	glPopClientAttrib();
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+}
+
 static int stitch_init(bContext *C, wmOperator *op)
 {
 	/* for fast edge lookup... */
@@ -1016,6 +1091,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	state->static_island = RNA_int_get(op->ptr, "static_island");
 	state->midpoints = RNA_boolean_get(op->ptr, "midpoint_snap");
 	state->clear_seams = RNA_boolean_get(op->ptr, "clear_seams");
+	state->draw_handle = ED_region_draw_cb_activate(CTX_wm_region(C)->type, stitch_draw, NULL, REGION_DRAW_POST_VIEW);
 	/* in uv synch selection, all uv's are visible */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		state->element_map = EDBM_uv_element_map_create(state->em, 0, 1);
@@ -1281,6 +1357,8 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 
 	if (sa)
 		ED_area_headerprint(sa, NULL);
+
+	ED_region_draw_cb_exit(CTX_wm_region(C)->type, stitch_state->draw_handle);
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);

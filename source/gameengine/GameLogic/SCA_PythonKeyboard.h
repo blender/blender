@@ -47,5 +47,4 @@ public:
 #endif
 };
 
-#endif //__SCA_PYTHONKEYBOARD_H__
-
+#endif  /* __SCA_PYTHONKEYBOARD_H__ */

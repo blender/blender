@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_MapValueNode_h_
-#define _COM_MapValueNode_h_
+#ifndef __COM_MAPVALUENODE_H__
+#define __COM_MAPVALUENODE_H__
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -35,4 +35,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // _COM_MapValueNode_h_
+#endif  /* __COM_MAPVALUENODE_H__ */

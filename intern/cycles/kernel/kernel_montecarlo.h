@@ -72,7 +72,7 @@ __device void to_unit_disk(float *x, float *y)
 
 __device void make_orthonormals_tangent(const float3 N, const float3 T, float3 *a, float3 *b)
 {
-	*b = cross(N, T);
+	*b = normalize(cross(N, T));
 	*a = cross(*b, N);
 }
 

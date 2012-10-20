@@ -398,8 +398,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	if (num_filters <= 0)
 		return;
 
-	GLuint	viewport[4]={0};
-	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
+	const GLint *viewport = canvas->GetViewPort();
 	RAS_Rect rect = canvas->GetWindowArea();
 	int rect_width = rect.GetWidth()+1, rect_height = rect.GetHeight()+1;
 

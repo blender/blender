@@ -20,6 +20,7 @@
  *
  *
  * Contributor(s): Blender Foundation,
+ *                 Campbell Barton,
  *                 Sergey Sharybin
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -41,7 +42,9 @@
 #include "DNA_mask_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_object_types.h"   /* SELECT */
+#include "DNA_space_types.h"
 
+#include "ED_clip.h"
 #include "ED_mask.h"  /* own include */
 #include "ED_space_api.h"
 #include "BIF_gl.h"
@@ -120,19 +123,31 @@ static void draw_spline_parents(MaskLayer *UNUSED(masklay), MaskSpline *spline)
 }
 #endif
 
+static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], float co[2])
+{
+	BKE_mask_coord_to_movieclip(sc->clip, &sc->user, r_co, co);
+	ED_clip_point_undistorted_pos(sc, r_co, r_co);
+	BKE_mask_coord_from_movieclip(sc->clip, &sc->user, r_co, r_co);
+}
+
 /* return non-zero if spline is selected */
-static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
+static void draw_spline_points(const bContext *C, MaskLayer *masklay, MaskSpline *spline,
                                const char UNUSED(draw_flag), const char draw_type)
 {
 	const int is_spline_sel = (spline->flag & SELECT) && (masklay->restrictflag & MASK_RESTRICT_SELECT) == 0;
 	unsigned char rgb_spline[4];
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	int undistort = FALSE;
 
 	int i, hsize, tot_feather_point;
 	float (*feather_points)[2], (*fp)[2];
 
 	if (!spline->tot_point)
 		return;
+
+	if (sc)
+		undistort = sc->clip && sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
 
 	/* TODO, add this to sequence editor */
 	hsize = 4; /* UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE); */
@@ -151,7 +166,13 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 		int j;
 
 		for (j = 0; j < point->tot_uw + 1; j++) {
+			float feather_point[2];
 			int sel = FALSE;
+
+			copy_v2_v2(feather_point, *fp);
+
+			if (undistort)
+				mask_point_undistort_pos(sc, feather_point, feather_point);
 
 			if (j == 0) {
 				sel = MASKPOINT_ISSEL_ANY(point);
@@ -171,7 +192,7 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 			}
 
 			glBegin(GL_POINTS);
-			glVertex2fv(*fp);
+			glVertex2fv(feather_point);
 			glEnd();
 
 			fp++;
@@ -188,10 +209,16 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline,
 		BezTriple *bezt = &point_deform->bezt;
 
 		float handle[2];
-		float *vert = bezt->vec[1];
+		float vert[2];
 		int has_handle = BKE_mask_point_has_handle(point);
 
+		copy_v2_v2(vert, bezt->vec[1]);
 		BKE_mask_point_handle(point_deform, handle);
+
+		if (undistort) {
+			mask_point_undistort_pos(sc, vert, vert);
+			mask_point_undistort_pos(sc, handle, handle);
+		}
 
 		/* draw handle segment */
 		if (has_handle) {
@@ -265,7 +292,7 @@ static void mask_color_active_tint(unsigned char r_rgb[4], const unsigned char r
 	}
 }
 
-static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot_point,
+static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*orig_points)[2], int tot_point,
                                  const short is_feather, const short is_smooth, const short is_active,
                                  const unsigned char rgb_spline[4], const char draw_type)
 {
@@ -273,6 +300,22 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 	const unsigned char rgb_black[4] = {0x00, 0x00, 0x00, 0xff};
 //	const unsigned char rgb_white[4] = {0xff, 0xff, 0xff, 0xff};
 	unsigned char rgb_tmp[4];
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	float (*points)[2] = orig_points;
+
+	if (sc) {
+		int undistort = sc->clip && sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
+
+		if (undistort) {
+			int i;
+
+			points = MEM_callocN(2 * tot_point * sizeof(float), "undistorthed mask curve");
+
+			for (i = 0; i < tot_point; i++) {
+				mask_point_undistort_pos(sc, points[i], orig_points[i]);
+			}
+		}
+	}
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 0, points);
@@ -347,8 +390,6 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 			glVertexPointer(2, GL_FLOAT, 0, points);
 			glDrawArrays(draw_method, 0, tot_point);
 
-			glDrawArrays(draw_method, 0, tot_point);
-
 			if (is_smooth == FALSE && is_feather) {
 				glDisable(GL_BLEND);
 			}
@@ -358,9 +399,11 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 
+	if (points != orig_points)
+		MEM_freeN(points);
 }
 
-static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
+static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline *spline,
                               const char draw_flag, const char draw_type,
                               const short is_active,
                               int width, int height)
@@ -395,7 +438,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 
 	/* draw feather */
 	mask_spline_feather_color_get(masklay, spline, is_spline_sel, rgb_tmp);
-	mask_draw_curve_type(spline, feather_points, tot_feather_point,
+	mask_draw_curve_type(C, spline, feather_points, tot_feather_point,
 	                     TRUE, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
 
@@ -414,7 +457,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 		}
 
 		/* same as above */
-		mask_draw_curve_type(spline, feather_points, tot_feather_point,
+		mask_draw_curve_type(C, spline, feather_points, tot_feather_point,
 		                     TRUE, is_smooth, is_active,
 		                     rgb_tmp, draw_type);
 	}
@@ -423,7 +466,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 
 	/* draw main curve */
 	mask_spline_color_get(masklay, spline, is_spline_sel, rgb_tmp);
-	mask_draw_curve_type(spline, diff_points, tot_diff_point,
+	mask_draw_curve_type(C, spline, diff_points, tot_diff_point,
 	                     FALSE, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
 	MEM_freeN(diff_points);
@@ -436,7 +479,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 	(void)draw_type;
 }
 
-static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type,
+static void draw_masklays(const bContext *C, Mask *mask, const char draw_flag,const char draw_type,
                           int width, int height)
 {
 	MaskLayer *masklay;
@@ -453,13 +496,13 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
 
 			/* draw curve itself first... */
-			draw_spline_curve(masklay, spline, draw_flag, draw_type, is_active, width, height);
+			draw_spline_curve(C, masklay, spline, draw_flag, draw_type, is_active, width, height);
 
 //			draw_spline_parents(masklay, spline);
 
 			if (!(masklay->restrictflag & MASK_RESTRICT_SELECT)) {
 				/* ...and then handles over the curve so they're nicely visible */
-				draw_spline_points(masklay, spline, draw_flag, draw_type);
+				draw_spline_points(C, masklay, spline, draw_flag, draw_type);
 			}
 
 			/* show undeform for testing */
@@ -467,9 +510,9 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
 				void *back = spline->points_deform;
 
 				spline->points_deform = NULL;
-				draw_spline_curve(masklay, spline, draw_flag, draw_type, is_active, width, height);
+				draw_spline_curve(C, masklay, spline, draw_flag, draw_type, is_active, width, height);
 //				draw_spline_parents(masklay, spline);
-				draw_spline_points(masklay, spline, draw_flag, draw_type);
+				draw_spline_points(C, masklay, spline, draw_flag, draw_type);
 				spline->points_deform = back;
 			}
 		}
@@ -489,7 +532,7 @@ void ED_mask_draw(const bContext *C,
 
 	ED_mask_get_size(sa, &width, &height);
 
-	draw_masklays(mask, draw_flag, draw_type, width, height);
+	draw_masklays(C, mask, draw_flag, draw_type, width, height);
 }
 
 /* sets up the opengl context.
@@ -500,7 +543,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
                          const float aspx, const float aspy,
                          const short do_scale_applied, const short do_post_draw,
                          float stabmat[4][4], /* optional - only used by clip */
-                         const bContext *C    /* optional - only used when do_post_draw is set */
+                         const bContext *C    /* optional - only used when do_post_draw is set or called from clip editor */
                          )
 {
 	struct View2D *v2d = &ar->v2d;
@@ -559,7 +602,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	}
 
 	/* draw! */
-	draw_masklays(mask, draw_flag, draw_type, width, height);
+	draw_masklays(C, mask, draw_flag, draw_type, width, height);
 
 	if (do_post_draw) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);

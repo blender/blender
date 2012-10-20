@@ -115,5 +115,4 @@ class SCA_PythonController : public SCA_IController
 #endif
 };
 
-#endif //__SCA_PYTHONCONTROLLER_H__
-
+#endif  /* __SCA_PYTHONCONTROLLER_H__ */

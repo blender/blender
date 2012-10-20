@@ -616,11 +616,6 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	else
 		undistibuf = BKE_tracking_undistort_frame(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
-	if (undistibuf->userflags & IB_RECT_INVALID) {
-		ibuf->userflags &= ~IB_RECT_INVALID;
-		IMB_rect_from_float(undistibuf);
-	}
-
 	IMB_scaleImBuf(undistibuf, ibuf->x, ibuf->y);
 
 	return undistibuf;
@@ -1096,6 +1091,18 @@ void BKE_movieclip_reload(MovieClip *clip)
 	movieclip_load_get_szie(clip);
 
 	movieclip_calc_length(clip);
+
+	/* same as for image update -- don't use notifiers because they are not 100% sure to succeeded
+	 * (node trees which are not currently visible wouldn't be refreshed)
+	 */
+	{
+		Scene *scene;
+		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
+			if (scene->nodetree) {
+				nodeUpdateID(scene->nodetree, &clip->id);
+			}
+		}
+	}
 }
 
 void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)

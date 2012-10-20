@@ -138,6 +138,7 @@ void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
 /* object_lattice.c */
 void LATTICE_OT_select_all(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
+void LATTICE_OT_flip(struct wmOperatorType *ot);
 
 /* object_group.c */
 void GROUP_OT_create(struct wmOperatorType *ot);
@@ -204,6 +205,7 @@ void OBJECT_OT_vertex_group_remove_from(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_select(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_deselect(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_linked(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_transfer_weight(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_selected(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
@@ -214,6 +216,7 @@ void OBJECT_OT_vertex_group_fix(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_limit_total(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_sort(struct wmOperatorType *ot);

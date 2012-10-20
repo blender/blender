@@ -85,5 +85,4 @@ public:
 #endif
 };
 
-#endif //__KX_TOUCHEVENTMANAGER_H__
-
+#endif  /* __KX_TOUCHEVENTMANAGER_H__ */

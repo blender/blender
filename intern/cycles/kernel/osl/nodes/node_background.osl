@@ -23,6 +23,6 @@ shader node_background(
 	float Strength = 1.0,
 	output closure color Background = background())
 {
-	Background = Color*Strength*background();
+	Background = Color * Strength * background();
 }
 

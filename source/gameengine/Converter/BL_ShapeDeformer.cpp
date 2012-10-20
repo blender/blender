@@ -29,10 +29,9 @@
  *  \ingroup bgeconv
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 #include "MEM_guardedalloc.h"
 #include "BL_ShapeDeformer.h"
@@ -41,7 +40,6 @@
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_MeshObject.h"
 
-//#include "BL_ArmatureController.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
@@ -60,7 +58,6 @@ extern "C"{
 	#include "BKE_lattice.h"
 	#include "BKE_animsys.h"
 }
- 
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

@@ -66,7 +66,7 @@ static float noise(int n) /* fast integer noise */
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float *co = p->co;
+	const float *co = p->co;
 	
 	float x = co[0];
 	float y = co[1];

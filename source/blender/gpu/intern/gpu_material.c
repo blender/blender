@@ -780,7 +780,9 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		}
 	}
 
-	if (mat->scene->gm.flag & GAME_GLSL_NO_SHADERS);
+	if (mat->scene->gm.flag & GAME_GLSL_NO_SHADERS) {
+		/* pass */
+	}
 	else if (!(lamp->mode & LA_NO_SPEC) && !(lamp->mode & LA_ONLYSHADOW) &&
 	         (GPU_link_changed(shi->spec) || ma->spec != 0.0f))
 	{

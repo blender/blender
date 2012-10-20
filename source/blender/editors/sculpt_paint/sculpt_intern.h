@@ -65,7 +65,7 @@ void sculpt_update_mesh_elements(struct Scene *scene, struct Sculpt *sd, struct 
 void free_sculptsession_deformMats(struct SculptSession *ss);
 
 /* Stroke */
-int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2]);
+int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2]);
 
 /* Undo */
 

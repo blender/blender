@@ -57,7 +57,7 @@ static bNodeSocketTemplate outputs_color_only[]= {
 	{ SOCK_RGBA, 1, "Color 2", 1.0f, 1.0f, 1.0f, 1.0f }
 
 /* Calls multitex and copies the result to the outputs. Called by xxx_exec, which handles inputs. */
-static void do_proc(float *result, TexParams *p, float *col1, float *col2, char is_normal, Tex *tex, short thread)
+static void do_proc(float *result, TexParams *p, const float col1[4], const float col2[4], char is_normal, Tex *tex, const short thread)
 {
 	TexResult texres;
 	int textype;
@@ -69,7 +69,7 @@ static void do_proc(float *result, TexParams *p, float *col1, float *col2, char 
 		texres.nor = NULL;
 	
 	textype = multitex_nodes(tex, p->co, p->dxt, p->dyt, p->osatex,
-		&texres, thread, 0, p->shi, p->mtex);
+	                         &texres, thread, 0, p->shi, p->mtex);
 	
 	if (is_normal)
 		return;
@@ -83,7 +83,7 @@ static void do_proc(float *result, TexParams *p, float *col1, float *col2, char 
 	}
 }
 
-typedef void (*MapFn) (Tex *tex, bNodeStack **in, TexParams *p, short thread);
+typedef void (*MapFn) (Tex *tex, bNodeStack **in, TexParams *p, const short thread);
 
 static void texfn(
 	float *result, 

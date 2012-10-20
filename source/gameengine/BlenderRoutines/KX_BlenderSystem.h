@@ -53,5 +53,4 @@ public:
 #endif
 };
 
-#endif //__KX_BLENDERSYSTEM_H__
-
+#endif  /* __KX_BLENDERSYSTEM_H__ */

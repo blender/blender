@@ -130,7 +130,7 @@ struct Mesh *BKE_mesh_copy(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me, const short do_ensure_tess_cd);
 
 void BKE_mesh_make_local(struct Mesh *me);
-void BKE_mesh_boundbox_calc(struct Mesh *me, float *loc, float *size);
+void BKE_mesh_boundbox_calc(struct Mesh *me, float r_loc[3], float r_size[3]);
 void BKE_mesh_texspace_calc(struct Mesh *me);
 float *BKE_mesh_orco_verts_get(struct Object *ob);
 void   BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);

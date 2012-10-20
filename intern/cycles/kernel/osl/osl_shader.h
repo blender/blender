@@ -72,10 +72,11 @@ public:
 	                       float3& eval, float3& omega_in, differential3& domega_in, float& pdf);
 	static float3 bsdf_eval(const ShaderData *sd, const ShaderClosure *sc,
 	                        const float3& omega_in, float& pdf);
+	static void bsdf_blur(ShaderClosure *sc, float roughness);
 
 	static float3 emissive_eval(const ShaderData *sd, const ShaderClosure *sc);
 
-	static float3 volume_eval_phase(const ShaderData *sd, const ShaderClosure *sc,
+	static float3 volume_eval_phase(const ShaderClosure *sc,
 	                                const float3 omega_in, const float3 omega_out);
 
 	/* release */

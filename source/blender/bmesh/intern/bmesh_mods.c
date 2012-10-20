@@ -130,6 +130,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 	/* this code for handling 2 and 3-valence verts
 	 * may be totally bad */
 	if (keepedge == NULL && len == 3) {
+#if 0
 		/* handle specific case for three-valence.  solve it by
 		 * increasing valence to four.  this may be hackish. .  */
 		BMLoop *loop = e->l;
@@ -140,6 +141,13 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		if (!BM_disk_dissolve(bm, v)) {
 			return FALSE;
 		}
+#else
+		BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
+
+		if (!BM_vert_collapse_faces(bm, v->e, v, 1.0, FALSE, TRUE)) {
+			return FALSE;
+		}
+#endif
 		return TRUE;
 	}
 	else if (keepedge == NULL && len == 2) {
@@ -188,8 +196,9 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 			} while (e != v->e);
 		}
 
-		/* collapse the verte */
-		e = BM_vert_collapse_faces(bm, baseedge, v, 1.0, TRUE, TRUE);
+		/* collapse the vertex */
+		/* note, the baseedge can be a boundary of manifold, use this as join_faces arg */
+		e = BM_vert_collapse_faces(bm, baseedge, v, 1.0, !BM_edge_is_boundary(baseedge), TRUE);
 
 		if (!e) {
 			return FALSE;

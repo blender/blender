@@ -731,8 +731,9 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 				write_curvemapping(wd, node->storage);
 			else if (ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
-			else if (ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION)
-				/* pass */;
+			else if (ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION) {
+				/* pass */
+			}
 			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
@@ -777,13 +778,16 @@ typedef struct RenderInfo {
 	char scene_name[MAX_ID_NAME - 2];
 } RenderInfo;
 
-static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon */
+/* was for historic render-deamon feature,
+ * now write because it can be easily extracted without
+ * reading the whole blend file */
+static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
 	bScreen *curscreen;
 	Scene *sce;
 	RenderInfo data;
 
-	/* XXX in future, handle multiple windows with multiple screnes? */
+	/* XXX in future, handle multiple windows with multiple screens? */
 	current_screen_compat(mainvar, &curscreen);
 
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
@@ -3235,7 +3239,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if (file == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
+		BKE_reportf(reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
 		return 0;
 	}
 
@@ -3286,7 +3290,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	if (write_flags & G_FILE_HISTORY) { 
 		int err_hist = do_history(filepath, reports);
 		if (err_hist) {
-			BKE_report(reports, RPT_ERROR, "Version backup failed. File saved with @");
+			BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
 			return 0;
 		}
 	}
@@ -3303,23 +3307,23 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		if (0==ret) {
 			/* now rename to real file name, and delete temp @ file too */
 			if (BLI_rename(gzname, filepath) != 0) {
-				BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
+				BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
 				return 0;
 			}
 
 			BLI_delete(tempname, 0, 0);
 		}
 		else if (-1==ret) {
-			BKE_report(reports, RPT_ERROR, "Failed opening .gz file.");
+			BKE_report(reports, RPT_ERROR, "Failed opening .gz file");
 			return 0;
 		}
 		else if (-2==ret) {
-			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression.");
+			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression");
 			return 0;
 		}
 	}
 	else if (BLI_rename(tempname, filepath) != 0) {
-		BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
+		BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
 		return 0;
 	}
 

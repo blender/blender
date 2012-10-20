@@ -453,8 +453,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	int drawfaces, interpedges;
 	Image *ima = sima->image;
 
-	StitchPreviewer *stitch_preview = uv_get_stitch_previewer();
-
 	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE, FALSE); /* will be set to NULL if hidden */
 	activef = BM_active_face_get(bm, FALSE, FALSE);
 	ts = scene->toolsettings;
@@ -821,51 +819,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			}
 		}
 		bglEnd();	
-	}
-
-	/* finally draw stitch preview */
-	if (stitch_preview) {
-		int i, index = 0;
-		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-		glEnableClientState(GL_VERTEX_ARRAY);
-
-		glEnable(GL_BLEND);
-
-		UI_ThemeColor4(TH_STITCH_PREVIEW_ACTIVE);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->static_tris);
-		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_static_tris * 3);
-
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_polys);
-		for (i = 0; i < stitch_preview->num_polys; i++) {
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			UI_ThemeColor4(TH_STITCH_PREVIEW_FACE);
-			glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
-			glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
-
-			index += stitch_preview->uvs_per_polygon[i];
-		}
-		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-#if 0
-		UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
-		glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris * 3);
-#endif
-		glDisable(GL_BLEND);
-
-		/* draw vert preview */
-		glPointSize(pointsize * 2.0f);
-		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
-		glDrawArrays(GL_POINTS, 0, stitch_preview->num_stitchable);
-
-		UI_ThemeColor4(TH_STITCH_PREVIEW_UNSTITCHABLE);
-		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_unstitchable);
-		glDrawArrays(GL_POINTS, 0, stitch_preview->num_unstitchable);
-
-		glPopClientAttrib();
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	glPointSize(1.0);

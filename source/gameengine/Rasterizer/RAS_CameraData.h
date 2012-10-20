@@ -71,5 +71,4 @@ struct RAS_CameraData
 	}
 };
 
-#endif //__RAS_CAMERADATA_H__
-
+#endif  /* __RAS_CAMERADATA_H__ */

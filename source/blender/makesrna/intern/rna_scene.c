@@ -360,7 +360,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	Base *base;
 
 	if (BKE_scene_base_find(scene, ob)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\"", ob->id.name + 2, scene->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' is already in scene '%s'", ob->id.name + 2, scene->id.name + 2);
 		return NULL;
 	}
 
@@ -392,7 +392,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 		return;
 	}
 	if (base == scene->basact && ob->mode != OB_MODE_OBJECT) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' must be in 'Object Mode' to unlink", ob->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' must be in object mode to unlink", ob->id.name + 2);
 		return;
 	}
 	if (scene->basact == base) {
@@ -1329,7 +1329,7 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *marker)
 {
 	if (!BLI_remlink_safe(&scene->markers, marker)) {
-		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in scene '%s'", marker->name, scene->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Timeline marker '%s' not found in scene '%s'", marker->name, scene->id.name + 2);
 		return;
 	}
 
@@ -1360,7 +1360,7 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 		return ks;
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set could not be added");
+		BKE_report(reports, RPT_ERROR, "Keying set could not be added");
 		return NULL;
 	}
 }
@@ -4042,14 +4042,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_MBLUR);
 	RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled 3D scene motion blur");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	
 	prop = RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "mblur_samples");
 	RNA_def_property_range(prop, 1, 32);
 	RNA_def_property_ui_text(prop, "Motion Samples", "Number of scene samples to take with motion blur");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	
 	prop = RNA_def_property(srna, "motion_blur_shutter", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "blurfac");
@@ -4057,7 +4057,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.01, 2.0f, 1, 0);
 	RNA_def_property_ui_text(prop, "Shutter", "Time taken in frames between shutter open and close");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	
 	/* border */
 	prop = RNA_def_property(srna, "use_border", PROP_BOOLEAN, PROP_NONE);

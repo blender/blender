@@ -111,8 +111,14 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
         engine = context.scene.render.engine
         if not (hasattr(context, "texture_slot") or hasattr(context, "texture_node")):
             return False
-        return ((context.material or context.world or context.lamp or context.brush or context.texture or context.particle_system or isinstance(context.space_data.pin_id, ParticleSettings))
-            and (engine in cls.COMPAT_ENGINES))
+        return ((context.material or
+                 context.world or
+                 context.lamp or
+                 context.brush or
+                 context.texture or
+                 context.particle_system or
+                 isinstance(context.space_data.pin_id, ParticleSettings)) and
+                (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
@@ -881,8 +887,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
                 col = split.column()
                 if tex.texture_coords in {'ORCO', 'UV'}:
                     col.prop(tex, "use_from_dupli")
+                    if (idblock.type == 'VOLUME' and tex.texture_coords == 'ORCO'):
+                        col.prop(tex, "use_map_to_bounds")
                 elif tex.texture_coords == 'OBJECT':
                     col.prop(tex, "use_from_original")
+                    if (idblock.type == 'VOLUME'):
+                        col.prop(tex, "use_map_to_bounds")
                 else:
                     col.label()
 

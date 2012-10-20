@@ -233,29 +233,29 @@ typedef enum eAnimFilter_Flags {
 
 /* Dopesheet only */
 /* 'Scene' channels */
-#define SEL_SCEC(sce) ((sce->flag & SCE_DS_SELECTED))
-#define EXPANDED_SCEC(sce) ((sce->flag & SCE_DS_COLLAPSED) == 0)
+#define SEL_SCEC(sce) (CHECK_TYPE_INLINE(sce, Scene), ((sce->flag & SCE_DS_SELECTED)))
+#define EXPANDED_SCEC(sce) (CHECK_TYPE_INLINE(sce, Scene), ((sce->flag & SCE_DS_COLLAPSED) == 0))
 /* 'Sub-Scene' channels (flags stored in Data block) */
-#define FILTER_WOR_SCED(wo) ((wo->flag & WO_DS_EXPAND))
+#define FILTER_WOR_SCED(wo) (CHECK_TYPE_INLINE(wo, World), (wo->flag & WO_DS_EXPAND))
 #define FILTER_LS_SCED(linestyle) ((linestyle->flag & LS_DS_EXPAND))
 /* 'Object' channels */
-#define SEL_OBJC(base) ((base->flag & SELECT))
-#define EXPANDED_OBJC(ob) ((ob->nlaflag & OB_ADS_COLLAPSED) == 0)
+#define SEL_OBJC(base)          (CHECK_TYPE_INLINE(base, Base), ((base->flag & SELECT)))
+#define EXPANDED_OBJC(ob)       (CHECK_TYPE_INLINE(ob, Object), ((ob->nlaflag & OB_ADS_COLLAPSED) == 0))
 /* 'Sub-object' channels (flags stored in Data block) */
-#define FILTER_SKE_OBJD(key) ((key->flag & KEY_DS_EXPAND))
-#define FILTER_MAT_OBJD(ma) ((ma->flag & MA_DS_EXPAND))
-#define FILTER_LAM_OBJD(la) ((la->flag & LA_DS_EXPAND))
-#define FILTER_CAM_OBJD(ca) ((ca->flag & CAM_DS_EXPAND))
-#define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
-#define FILTER_PART_OBJD(part) ((part->flag & PART_DS_EXPAND))
-#define FILTER_MBALL_OBJD(mb) ((mb->flag2 & MB_DS_EXPAND))
-#define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
-#define FILTER_MESH_OBJD(me) ((me->flag & ME_DS_EXPAND))
-#define FILTER_LATTICE_OBJD(lt) ((lt->flag & LT_DS_EXPAND))
-#define FILTER_SPK_OBJD(spk) ((spk->flag & SPK_DS_EXPAND))
+#define FILTER_SKE_OBJD(key)    (CHECK_TYPE_INLINE(key, Key), ((key->flag & KEY_DS_EXPAND)))
+#define FILTER_MAT_OBJD(ma)     (CHECK_TYPE_INLINE(ma, Material), ((ma->flag & MA_DS_EXPAND)))
+#define FILTER_LAM_OBJD(la)     (CHECK_TYPE_INLINE(la, Lamp), ((la->flag & LA_DS_EXPAND)))
+#define FILTER_CAM_OBJD(ca)     (CHECK_TYPE_INLINE(ca, Camera), ((ca->flag & CAM_DS_EXPAND)))
+#define FILTER_CUR_OBJD(cu)     (CHECK_TYPE_INLINE(cu, Curve), ((cu->flag & CU_DS_EXPAND)))
+#define FILTER_PART_OBJD(part)  (CHECK_TYPE_INLINE(part, ParticleSettings), ((part->flag & PART_DS_EXPAND)))
+#define FILTER_MBALL_OBJD(mb)   (CHECK_TYPE_INLINE(mb, MetaBall), ((mb->flag2 & MB_DS_EXPAND)))
+#define FILTER_ARM_OBJD(arm)    (CHECK_TYPE_INLINE(arm, bArmature), ((arm->flag & ARM_DS_EXPAND)))
+#define FILTER_MESH_OBJD(me)    (CHECK_TYPE_INLINE(me, Mesh), ((me->flag & ME_DS_EXPAND)))
+#define FILTER_LATTICE_OBJD(lt) (CHECK_TYPE_INLINE(lt, Lattice), ((lt->flag & LT_DS_EXPAND)))
+#define FILTER_SPK_OBJD(spk)    (CHECK_TYPE_INLINE(spk, Speaker), ((spk->flag & SPK_DS_EXPAND)))
 /* Variable use expanders */
-#define FILTER_NTREE_DATA(ntree) ((ntree->flag & NTREE_DS_EXPAND))
-#define FILTER_TEX_DATA(tex) ((tex->flag & TEX_DS_EXPAND))
+#define FILTER_NTREE_DATA(ntree) (CHECK_TYPE_INLINE(ntree, bNodeTree), ((ntree->flag & NTREE_DS_EXPAND)))
+#define FILTER_TEX_DATA(tex)     (CHECK_TYPE_INLINE(tex, Tex), ((tex->flag & TEX_DS_EXPAND)))
 
 /* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))

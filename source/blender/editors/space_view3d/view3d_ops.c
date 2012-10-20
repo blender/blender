@@ -83,6 +83,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_select_circle);
 	WM_operatortype_append(VIEW3D_OT_smoothview);
 	WM_operatortype_append(VIEW3D_OT_render_border);
+	WM_operatortype_append(VIEW3D_OT_clear_render_border);
 	WM_operatortype_append(VIEW3D_OT_zoom_border);
 	WM_operatortype_append(VIEW3D_OT_manipulator);
 	WM_operatortype_append(VIEW3D_OT_enable_manipulator);
@@ -136,8 +137,10 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_move", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_dolly", MIDDLEMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center_cursor", PADPERIOD, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "use_all_regions", TRUE);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "use_all_regions", FALSE);
 
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_lock_to_active", PADPERIOD, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_lock_clear", PADPERIOD, KM_PRESS, KM_ALT, 0);
@@ -168,6 +171,9 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_camera", HOMEKEY, KM_PRESS, 0, 0); /* only with camera view */
 
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "center", FALSE); /* only without camera view */
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "use_all_regions", TRUE);
 	RNA_boolean_set(kmi->ptr, "center", FALSE); /* only without camera view */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", CKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "center", TRUE);
@@ -340,7 +346,13 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_clip_border", BKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom_border", BKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_SHIFT, 0);
+
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "camera_only", TRUE);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_render_border", BKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "camera_only", FALSE);
+
+	WM_keymap_add_item(keymap, "VIEW3D_OT_clear_render_border", BKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_camera_to_view", PAD0, KM_PRESS, KM_ALT | KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_object_as_camera", PAD0, KM_PRESS, KM_CTRL, 0);

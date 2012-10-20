@@ -59,5 +59,4 @@ private:
 #endif
 };
 
-#endif //__KX_BLENDERKEYBOARDDEVICE_H__
-
+#endif  /* __KX_BLENDERKEYBOARDDEVICE_H__ */

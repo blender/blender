@@ -161,5 +161,4 @@ public:
 #endif
 };
 
-#endif //__SG_QLIST_H__
-
+#endif  /* __SG_QLIST_H__ */

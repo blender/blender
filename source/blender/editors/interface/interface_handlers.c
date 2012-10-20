@@ -704,7 +704,9 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 	
 	BLI_rcti_rctf_copy(&rect, &but->rect);
 	
-	if (but->imb) ;  /* use button size itself */
+	if (but->imb) { 
+		/* use button size itself */
+	}
 	else if (but->flag & UI_ICON_LEFT) {
 		rect.xmax = rect.xmin + (BLI_rcti_size_y(&rect));
 	}
@@ -1184,7 +1186,9 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	/* numeric value */
 	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI)) {
 		
-		if (but->poin == NULL && but->rnapoin.data == NULL) ;
+		if (but->poin == NULL && but->rnapoin.data == NULL) {
+			/* pass */
+		}
 		else if (mode == 'c') {
 			ui_get_but_string(but, buf, sizeof(buf));
 			WM_clipboard_text_set(buf, 0);
@@ -1205,7 +1209,9 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	else if (but->type == COLOR) {
 		float rgb[3];
 		
-		if (but->poin == NULL && but->rnapoin.data == NULL) ;
+		if (but->poin == NULL && but->rnapoin.data == NULL) {
+			/* pass */
+		}
 		else if (mode == 'c') {
 
 			ui_get_but_vectorf(but, rgb);
@@ -1234,7 +1240,9 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	else if (ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		uiHandleButtonData *active_data = but->active;
 
-		if (but->poin == NULL && but->rnapoin.data == NULL) ;
+		if (but->poin == NULL && but->rnapoin.data == NULL) {
+			/* pass */
+		}
 		else if (mode == 'c') {
 			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 			BLI_strncpy(buf, active_data->str, UI_MAX_DRAW_STR);
@@ -2297,7 +2305,9 @@ static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN) && event->val == KM_PRESS) {
-			if (but->dt == UI_EMBOSSN && !event->ctrl) ;
+			if (but->dt == UI_EMBOSSN && !event->ctrl) {
+				/* pass */
+			}
 			else {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				return WM_UI_HANDLER_BREAK;
@@ -6611,7 +6621,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				}
 			}
 
-			if (menu->menuretval) ;
+			if (menu->menuretval) {
+				/* pass */
+			}
 			else if (event->type == ESCKEY && event->val == KM_PRESS) {
 				/* esc cancels this and all preceding menus */
 				menu->menuretval = UI_RETURN_CANCEL;
@@ -6763,9 +6775,13 @@ static int ui_handle_menus_recursive(bContext *C, wmEvent *event, uiPopupBlockHa
 	/* now handle events for our own menu */
 	if (retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
 		if (submenu && submenu->menuretval) {
+			int do_ret_out_parent = (submenu->menuretval & UI_RETURN_OUT_PARENT);
 			retval = ui_handle_menu_return_submenu(C, event, menu);
-			/* we may wan't to quit the submenu and handle the even in this menu */
-			if ((retval == WM_UI_HANDLER_BREAK) && (submenu->menuretval & UI_RETURN_OUT_PARENT)) {
+			submenu = NULL;  /* hint not to use this, it may be freed by call above */
+			(void)submenu;
+			/* we may wan't to quit the submenu and handle the even in this menu,
+			 * if its important to use it, check 'data->menu' first */
+			if ((retval == WM_UI_HANDLER_BREAK) && do_ret_out_parent) {
 				retval = ui_handle_menu_event(C, event, menu, level);
 			}
 		}

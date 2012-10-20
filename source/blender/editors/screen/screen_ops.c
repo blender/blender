@@ -2716,6 +2716,8 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 		
 		/* lock views and set them */
 		if (sa->spacetype == SPACE_VIEW3D) {
+			View3D *v3d = sa->spacedata.first;
+
 			/* run ED_view3d_lock() so the correct 'rv3d->viewquat' is set,
 			 * otherwise when restoring rv3d->localvd the 'viewquat' won't
 			 * match the 'view', set on entering localview See: [#26315],
@@ -2743,7 +2745,15 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 			
 			ar = ar->next;
 			rv3d = ar->regiondata;
-			rv3d->view = RV3D_VIEW_CAMERA; rv3d->persp = RV3D_CAMOB;
+
+			/* check if we have a camera */
+			if (v3d->camera) {
+				rv3d->view = RV3D_VIEW_CAMERA; rv3d->persp = RV3D_CAMOB;
+			}
+			else {
+				rv3d->view = RV3D_VIEW_PERSPORTHO; rv3d->persp = RV3D_PERSP;
+			}
+
 			ED_view3d_lock(rv3d);
 			view3d_localview_update_rv3d(rv3d);
 		}

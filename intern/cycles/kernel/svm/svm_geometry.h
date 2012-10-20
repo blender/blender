@@ -20,7 +20,23 @@ CCL_NAMESPACE_BEGIN
 
 /* Geometry Node */
 
-__device void svm_node_geometry(ShaderData *sd, float *stack, uint type, uint out_offset)
+__device_inline float3 svm_tangent_from_generated(float3 P)
+{
+	float length = len(P);
+
+	if(length == 0.0f)
+		return make_float3(0.0f, 0.0f, 0.0f);
+
+	float u = 0.0f;
+	if(!(P.x == 0.0f && P.y == 0.0f))
+		u = (1.0f - atan2f(P.x, P.y))/(2.0f*M_PI_F);
+	
+	float v = 1.0f - acosf(clamp(P.z/length, -1.0f, 1.0f))/M_PI_F;
+
+	return make_float3(u, v, 0.0f);
+}
+
+__device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 	float3 data;
 
@@ -28,7 +44,31 @@ __device void svm_node_geometry(ShaderData *sd, float *stack, uint type, uint ou
 		case NODE_GEOM_P: data = sd->P; break;
 		case NODE_GEOM_N: data = sd->N; break;
 #ifdef __DPDU__
-		case NODE_GEOM_T: data = normalize(sd->dPdu); break;
+		case NODE_GEOM_T: {
+			if(sd->object != ~0) {
+				int attr_offset = find_attribute(kg, sd, ATTR_STD_TANGENT);
+
+				if(attr_offset != ATTR_STD_NOT_FOUND) {
+					data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
+					object_normal_transform(kg, sd, &data);
+				}
+				else {
+					attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED);
+
+					if(attr_offset != ATTR_STD_NOT_FOUND) {
+						data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
+						svm_tangent_from_generated(data);
+						object_normal_transform(kg, sd, &data);
+					}
+					else
+						data = normalize(sd->dPdu);
+				}
+			}
+			else
+				data = normalize(sd->dPdu);
+
+			break;
+		}
 #endif
 		case NODE_GEOM_I: data = sd->I; break;
 		case NODE_GEOM_Ng: data = sd->Ng; break;
@@ -40,7 +80,7 @@ __device void svm_node_geometry(ShaderData *sd, float *stack, uint type, uint ou
 	stack_store_float3(stack, out_offset, data);
 }
 
-__device void svm_node_geometry_bump_dx(ShaderData *sd, float *stack, uint type, uint out_offset)
+__device void svm_node_geometry_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -48,16 +88,16 @@ __device void svm_node_geometry_bump_dx(ShaderData *sd, float *stack, uint type,
 	switch(type) {
 		case NODE_GEOM_P: data = sd->P + sd->dP.dx; break;
 		case NODE_GEOM_uv: data = make_float3(sd->u + sd->du.dx, sd->v + sd->dv.dx, 0.0f); break;
-		default: svm_node_geometry(sd, stack, type, out_offset); return;
+		default: svm_node_geometry(kg, sd, stack, type, out_offset); return;
 	}
 
 	stack_store_float3(stack, out_offset, data);
 #else
-	svm_node_geometry(sd, stack, type, out_offset);
+	svm_node_geometry(kg, sd, stack, type, out_offset);
 #endif
 }
 
-__device void svm_node_geometry_bump_dy(ShaderData *sd, float *stack, uint type, uint out_offset)
+__device void svm_node_geometry_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
 	float3 data;
@@ -65,12 +105,12 @@ __device void svm_node_geometry_bump_dy(ShaderData *sd, float *stack, uint type,
 	switch(type) {
 		case NODE_GEOM_P: data = sd->P + sd->dP.dy; break;
 		case NODE_GEOM_uv: data = make_float3(sd->u + sd->du.dy, sd->v + sd->dv.dy, 0.0f); break;
-		default: svm_node_geometry(sd, stack, type, out_offset); return;
+		default: svm_node_geometry(kg, sd, stack, type, out_offset); return;
 	}
 
 	stack_store_float3(stack, out_offset, data);
 #else
-	svm_node_geometry(sd, stack, type, out_offset);
+	svm_node_geometry(kg, sd, stack, type, out_offset);
 #endif
 }
 

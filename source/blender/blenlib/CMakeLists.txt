@@ -79,6 +79,7 @@ set(SRC
 	intern/noise.c
 	intern/path_util.c
 	intern/pbvh.c
+	intern/quadric.c
 	intern/rand.c
 	intern/rct.c
 	intern/scanfill.c
@@ -91,8 +92,8 @@ set(SRC
 	intern/threads.c
 	intern/time.c
 	intern/uvproject.c
-	intern/voxel.c
 	intern/voronoi.c
+	intern/voxel.c
 	intern/winstuff.c
 
 	BLI_args.h
@@ -136,6 +137,7 @@ set(SRC
 	BLI_noise.h
 	BLI_path_util.h
 	BLI_pbvh.h
+	BLI_quadric.h
 	BLI_rand.h
 	BLI_rect.h
 	BLI_scanfill.h

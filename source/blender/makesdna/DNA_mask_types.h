@@ -211,4 +211,4 @@ enum {
 	MASK_ANIMF_EXPAND = (1 << 4)
 };
 
-#endif // __DNA_MASK_TYPES_H__
+#endif  /* __DNA_MASK_TYPES_H__ */

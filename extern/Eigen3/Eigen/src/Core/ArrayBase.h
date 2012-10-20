@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_ARRAYBASE_H
 #define EIGEN_ARRAYBASE_H
+
+namespace Eigen { 
 
 template<typename ExpressionType> class MatrixWrapper;
 
@@ -159,7 +146,7 @@ template<typename Derived> class ArrayBase
     /** \returns an \link MatrixBase Matrix \endlink expression of this array
       * \sa MatrixBase::array() */
     MatrixWrapper<Derived> matrix() { return derived(); }
-    const MatrixWrapper<Derived> matrix() const { return derived(); }
+    const MatrixWrapper<const Derived> matrix() const { return derived(); }
 
 //     template<typename Dest>
 //     inline void evalTo(Dest& dst) const { dst = matrix(); }
@@ -174,10 +161,10 @@ template<typename Derived> class ArrayBase
   protected:
     // mixing arrays and matrices is not legal
     template<typename OtherDerived> Derived& operator+=(const MatrixBase<OtherDerived>& )
-    {EIGEN_STATIC_ASSERT(sizeof(typename OtherDerived::Scalar)==-1,YOU_CANNOT_MIX_ARRAYS_AND_MATRICES);}
+    {EIGEN_STATIC_ASSERT(std::ptrdiff_t(sizeof(typename OtherDerived::Scalar))==-1,YOU_CANNOT_MIX_ARRAYS_AND_MATRICES); return *this;}
     // mixing arrays and matrices is not legal
     template<typename OtherDerived> Derived& operator-=(const MatrixBase<OtherDerived>& )
-    {EIGEN_STATIC_ASSERT(sizeof(typename OtherDerived::Scalar)==-1,YOU_CANNOT_MIX_ARRAYS_AND_MATRICES);}
+    {EIGEN_STATIC_ASSERT(std::ptrdiff_t(sizeof(typename OtherDerived::Scalar))==-1,YOU_CANNOT_MIX_ARRAYS_AND_MATRICES); return *this;}
 };
 
 /** replaces \c *this by \c *this - \a other.
@@ -235,5 +222,7 @@ ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
   tmp = other.derived();
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ARRAYBASE_H

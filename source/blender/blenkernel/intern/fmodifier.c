@@ -42,6 +42,7 @@
 #include "BLF_translation.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_noise.h"
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
 

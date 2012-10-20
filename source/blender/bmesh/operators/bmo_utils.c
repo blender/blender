@@ -1033,10 +1033,9 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 
 void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
 {
-	BMOIter fs_iter;	/* selected faces iterator */
-	BMFace *fs;	/* current face */
-	BMIter l_iter;	/* iteration loop */
-	// int n;
+	BMOIter fs_iter;  /* selected faces iterator */
+	BMFace *fs;       /* current face */
+	BMIter l_iter;    /* iteration loop */
 
 	int dir = BMO_slot_int_get(op, "dir");
 
@@ -1091,7 +1090,6 @@ void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 	}
-
 }
 
 /**************************************************************************** *
@@ -1140,10 +1138,9 @@ void bmo_reverse_uvs_exec(BMesh *bm, BMOperator *op)
 
 void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
 {
-	BMOIter fs_iter;	/* selected faces iterator */
-	BMFace *fs;	/* current face */
-	BMIter l_iter;	/* iteration loop */
-	// int n;
+	BMOIter fs_iter;  /* selected faces iterator */
+	BMFace *fs;       /* current face */
+	BMIter l_iter;    /* iteration loop */
 
 	int dir = BMO_slot_int_get(op, "dir");
 

@@ -1456,7 +1456,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			/* check size and format of the property */
 			XGetWindowProperty(m_display, win, m_xclip_out, 0, 0, False,
 			                   AnyPropertyType, &pty_type, &pty_format,
-			                   &pty_items, &pty_size, (unsigned char **) &buffer);
+			                   &pty_items, &pty_size, &buffer);
 
 			if (pty_format != 8) {
 				/* property does not contain text, delete it
@@ -1484,7 +1484,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			 * text, we know the size. */
 			XGetWindowProperty(m_display, win, m_xclip_out, 0, (long) pty_size,
 			                   False, AnyPropertyType, &pty_type, &pty_format,
-			                   &pty_items, &pty_size, (unsigned char **) &buffer);
+			                   &pty_items, &pty_size, &buffer);
 
 			/* allocate memory to accommodate data in *txt */
 			if (*len == 0) {
@@ -1538,12 +1538,12 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 		if (sseln == m_clipboard) {
 			sel_buf = (unsigned char *)malloc(strlen(txt_cut_buffer) + 1);
 			strcpy((char *)sel_buf, txt_cut_buffer);
-			return((GHOST_TUns8 *)sel_buf);
+			return sel_buf;
 		}
 		else {
 			sel_buf = (unsigned char *)malloc(strlen(txt_select_buffer) + 1);
 			strcpy((char *)sel_buf, txt_select_buffer);
-			return((GHOST_TUns8 *)sel_buf);
+			return sel_buf;
 		}
 	}
 	else if (owner == None)
@@ -1594,7 +1594,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 		else
 			free(sel_buf);
 		
-		return (GHOST_TUns8 *)tmp_data;
+		return tmp_data;
 	}
 	return(NULL);
 }

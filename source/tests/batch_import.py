@@ -63,12 +63,12 @@ def clear_scene():
 
 
 def batch_import(operator="",
-                   path="",
-                   save_path="",
-                   match="",
-                   start=0,
-                   end=sys.maxsize,
-                   ):
+                 path="",
+                 save_path="",
+                 match="",
+                 start=0,
+                 end=sys.maxsize,
+                 ):
     import addon_utils
     _reset_all = addon_utils.reset_all  # XXX, hack
 

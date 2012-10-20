@@ -92,7 +92,7 @@ static int intersect_outside_volume(RayObject *tree, Isect *isect, float *offset
 }
 
 /* Uses ray tracing to check if a point is inside or outside an ObjectInstanceRen */
-static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), float *co)
+static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), const float co[3])
 {
 	Isect isect= {{0}};
 	float dir[3] = {0.0f, 0.0f, 1.0f};
@@ -118,7 +118,7 @@ static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), flo
 }
 
 /* find the bounding box of an objectinstance in global space */
-void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float *bbmin, float *bbmax)
+void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float bbmin[3], float bbmax[3])
 {
 	ObjectRen *obr = obi->obr;
 	VolumePrecache *vp = obi->volume_precache;
@@ -826,7 +826,7 @@ void free_volume_precache(Render *re)
 	BLI_freelistN(&re->volumes);
 }
 
-int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float *co)
+int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, const float co[3])
 {
 	RayObject *tree;
 	int inside=0;

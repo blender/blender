@@ -108,7 +108,7 @@ public:
 
 	}
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 protected:
 
@@ -141,5 +141,4 @@ protected:
 	struct PointerRNA *m_idptr;
 };
 
-#endif
-
+#endif  /* __BL_SHAPEACTIONACTUATOR_H__ */

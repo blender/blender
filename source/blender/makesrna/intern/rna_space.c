@@ -336,6 +336,15 @@ static void rna_View3D_CursorLocation_set(PointerRNA *ptr, const float *values)
 	copy_v3_v3(cursor, values);
 }
 
+static float rna_View3D_GridScaleUnit_get(PointerRNA *ptr)
+{
+	View3D *v3d = (View3D *)(ptr->data);
+	bScreen *sc = (bScreen *)ptr->id.data;
+	Scene *scene = (Scene *)sc->scene;
+
+	return ED_view3d_grid_scale(scene, v3d, NULL);
+}
+
 static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 {
 	View3D *v3d = (View3D *)(ptr->data);
@@ -1324,7 +1333,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "BackgroundImage", NULL);
 	RNA_def_struct_sdna(srna, "BGpic");
-	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background");
+	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3D View background");
 
 	prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "source");
@@ -1494,7 +1503,39 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Camera",
 	                         "Active camera used in this view (when unlocked from the scene's active camera)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-	
+
+	/* render border */
+	prop = RNA_def_property(srna, "use_render_border", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_RENDER_BORDER);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Render Border",
+	                         "use a user-defined border region within the frame size for rendered viewport");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "render_border_min_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "render_border.xmin");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Minimum X", "Minimum X value to for the render border");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "render_border_min_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "render_border.ymin");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Minimum Y", "Minimum Y value for the render border");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "render_border_max_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "render_border.xmax");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Maximum X", "Maximum X value for the render border");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "render_border_max_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "render_border.ymax");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Maximum Y", "Maximum Y value for the render border");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	prop = RNA_def_property(srna, "lock_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ob_centre");
@@ -1571,7 +1612,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_int_default(prop, 10);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-	
+
+	prop = RNA_def_property(srna, "grid_scale_unit", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_View3D_GridScaleUnit_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Grid Scale Unit", "Grid cell size scaled by scene unit system settings");
+
 	prop = RNA_def_property(srna, "show_floor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_FLOOR);
 	RNA_def_property_ui_text(prop, "Display Grid Floor", "Show the ground plane grid in perspective view");

@@ -57,7 +57,7 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 	                               bm_mesh_chunksize_default.totface, BLI_MEMPOOL_ALLOW_ITER);
 
 #ifdef USE_BMESH_HOLES
-	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), allocsize[3], allocsize[3], FALSE, FALSE);
+	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), 512, 512, 0);
 #endif
 
 	/* allocate one flag pool that we don't get rid of. */

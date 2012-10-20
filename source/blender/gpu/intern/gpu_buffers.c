@@ -1562,7 +1562,7 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	}
 
-	if (buffers->index_buf || !buffers->smooth)
+	if (gpu_vbo_enabled() && (buffers->index_buf || !buffers->smooth))
 		glGenBuffersARB(1, &buffers->vert_buf);
 
 	buffers->tot_tri = tottri;
@@ -1763,7 +1763,7 @@ static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *to
 
 	/* VBO is disabled; delete the previous buffer (if it exists) and
 	 * return an invalid handle */
-	if (gpu_vbo_enabled()) {
+	if (!gpu_vbo_enabled()) {
 		if (buffer)
 			glDeleteBuffersARB(1, &buffer);
 		return 0;

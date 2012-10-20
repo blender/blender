@@ -117,28 +117,30 @@ def check_file(path, rel_path, messages):
 
 
 def py_xgettext(messages):
+    forbidden = set()
+    forced = set()
     with open(SRC_POTFILES) as src:
-        forbidden = set()
-        forced = set()
         for l in src:
             if l[0] == '-':
                 forbidden.add(l[1:].rstrip('\n'))
             elif l[0] != '#':
                 forced.add(l.rstrip('\n'))
-        for root, dirs, files in os.walk(POTFILES_DIR):
-            if "/.svn" in root:
+    for root, dirs, files in os.walk(POTFILES_DIR):
+        if "/.svn" in root:
+            continue
+        for fname in files:
+            if os.path.splitext(fname)[1] not in PYGETTEXT_ALLOWED_EXTS:
                 continue
-            for fname in files:
-                if os.path.splitext(fname)[1] not in PYGETTEXT_ALLOWED_EXTS:
-                    continue
-                path = os.path.join(root, fname)
-                rel_path = os.path.relpath(path, SOURCE_DIR)
-                if rel_path in forbidden | forced:
-                    continue
-                check_file(path, rel_path, messages)
-        for path in forced:
-            if os.path.exists(path):
-                check_file(os.path.join(SOURCE_DIR, path), path, messages)
+            path = os.path.join(root, fname)
+            rel_path = os.path.relpath(path, SOURCE_DIR)
+            if rel_path in forbidden:
+                continue
+            elif rel_path in forced:
+                forced.remove(rel_path)
+            check_file(path, rel_path, messages)
+    for path in forced:
+        if os.path.exists(path):
+            check_file(os.path.join(SOURCE_DIR, path), path, messages)
 
 
 # Spell checking!
@@ -250,7 +252,7 @@ def main():
 
     print("Running fake py gettext…")
     # Not using any more xgettext, simpler to do it ourself!
-    messages = {}
+    messages = utils.new_messages()
     py_xgettext(messages)
     print("Finished, found {} messages.".format(len(messages)))
 
@@ -268,7 +270,7 @@ def main():
 
     # add messages collected automatically from RNA
     print("\tMerging RNA messages from {}…".format(FILE_NAME_MESSAGES))
-    messages = {}
+    messages = utils.new_messages()
     with open(FILE_NAME_MESSAGES, encoding="utf-8") as f:
         srcs = []
         context = ""

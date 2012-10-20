@@ -119,7 +119,7 @@ public:
 	KX_PYMETHOD_DOC(KX_BlenderMaterial, setTexture);
 
 	KX_PYMETHOD_DOC(KX_BlenderMaterial, setBlending);
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 	// --------------------------------
 	// pre calculate to avoid pops/lag at startup

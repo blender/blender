@@ -22,7 +22,7 @@ class LayoutDemoPanel(bpy.types.Panel):
         row.prop(scene, "frame_end")
 
         # Create an row where the buttons are aligned to each other.
-        layout.label(text=" Aligned Row")
+        layout.label(text=" Aligned Row:")
 
         row = layout.row(align=True)
         row.prop(scene, "frame_start")
@@ -39,9 +39,26 @@ class LayoutDemoPanel(bpy.types.Panel):
 
         # Second column, aligned
         col = split.column(align=True)
-        col.label(text="Column Two")
+        col.label(text="Column Two:")
         col.prop(scene, "frame_start")
         col.prop(scene, "frame_end")
+        
+        # Big render button
+        layout.label(text="Big Button:")
+        row = layout.row()
+        row.scale_y = 3.0
+        row.operator("render.render")
+        
+        # Different sizes in a row
+        layout.label(text="Different button sizes:")
+        row = layout.row(align=True)
+        row.operator("render.render")
+        
+        sub = row.row()
+        sub.scale_x = 2.0
+        sub.operator("render.render")
+        
+        row.operator("render.render")
 
 
 def register():

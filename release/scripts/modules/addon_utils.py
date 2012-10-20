@@ -311,7 +311,7 @@ def disable(module_name, default_set=True):
     # possible this addon is from a previous session and didn't load a
     # module this time. So even if the module is not found, still disable
     # the addon in the user prefs.
-    if mod:
+    if mod and getattr(mod, "__addon_enabled__", False) is not False:
         mod.__addon_enabled__ = False
         mod.__addon_persistent = False
 
@@ -323,7 +323,8 @@ def disable(module_name, default_set=True):
             import traceback
             traceback.print_exc()
     else:
-        print("addon_utils.disable", module_name, "not loaded")
+        print("addon_utils.disable: %s not %s." %
+              (module_name, "disabled" if mod is None else "loaded"))
 
     # could be in more then once, unlikely but better do this just in case.
     addons = _bpy.context.user_preferences.addons

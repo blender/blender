@@ -956,7 +956,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 		}
 	}
 
-	GLint viewport[4];
+	const GLint *viewport;
 	GLdouble win[3];
 	GLdouble modelmatrix[16];
 	GLdouble projmatrix[16];
@@ -967,7 +967,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 	m_modelmatrix.getValue(modelmatrix);
 	m_projmatrix.getValue(projmatrix);
 
-	glGetIntegerv(GL_VIEWPORT, viewport);
+	viewport = KX_GetActiveEngine()->GetCanvas()->GetViewPort();
 
 	gluProject(vect[0], vect[1], vect[2], modelmatrix, projmatrix, viewport, &win[0], &win[1], &win[2]);
 
@@ -999,7 +999,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
 	MT_Vector3 vect;
 	MT_Point3 campos, screenpos;
 
-	GLint viewport[4];
+	const GLint *viewport;
 	GLdouble win[3];
 	GLdouble modelmatrix[16];
 	GLdouble projmatrix[16];
@@ -1010,7 +1010,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenVect,
 	m_modelmatrix.getValue(modelmatrix);
 	m_projmatrix.getValue(projmatrix);
 
-	glGetIntegerv(GL_VIEWPORT, viewport);
+	viewport = KX_GetActiveEngine()->GetCanvas()->GetViewPort();
 
 	vect[0] = x * viewport[2];
 	vect[1] = y * viewport[3];

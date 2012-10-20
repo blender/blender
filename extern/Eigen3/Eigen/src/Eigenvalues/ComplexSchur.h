@@ -5,30 +5,16 @@
 // Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_COMPLEX_SCHUR_H
 #define EIGEN_COMPLEX_SCHUR_H
 
-#include "./EigenvaluesCommon.h"
 #include "./HessenbergDecomposition.h"
+
+namespace Eigen { 
 
 namespace internal {
 template<typename MatrixType, bool IsComplex> struct complex_schur_reduce_to_hessenberg;
@@ -227,46 +213,6 @@ template<typename _MatrixType> class ComplexSchur
     friend struct internal::complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>;
 };
 
-namespace internal {
-
-/** Computes the principal value of the square root of the complex \a z. */
-template<typename RealScalar>
-std::complex<RealScalar> sqrt(const std::complex<RealScalar> &z)
-{
-  RealScalar t, tre, tim;
-
-  t = abs(z);
-
-  if (abs(real(z)) <= abs(imag(z)))
-  {
-    // No cancellation in these formulas
-    tre = sqrt(RealScalar(0.5)*(t + real(z)));
-    tim = sqrt(RealScalar(0.5)*(t - real(z)));
-  }
-  else
-  {
-    // Stable computation of the above formulas
-    if (z.real() > RealScalar(0))
-    {
-      tre = t + z.real();
-      tim = abs(imag(z))*sqrt(RealScalar(0.5)/tre);
-      tre = sqrt(RealScalar(0.5)*tre);
-    }
-    else
-    {
-      tim = t - z.real();
-      tre = abs(imag(z))*sqrt(RealScalar(0.5)/tim);
-      tim = sqrt(RealScalar(0.5)*tim);
-    }
-  }
-  if(z.imag() < RealScalar(0))
-    tim = -tim;
-
-  return (std::complex<RealScalar>(tre,tim));
-}
-} // end namespace internal
-
-
 /** If m_matT(i+1,i) is neglegible in floating point arithmetic
   * compared to m_matT(i,i) and m_matT(j,j), then set it to zero and
   * return true, else return false. */
@@ -302,7 +248,7 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
 
   ComplexScalar b = t.coeff(0,1) * t.coeff(1,0);
   ComplexScalar c = t.coeff(0,0) - t.coeff(1,1);
-  ComplexScalar disc = internal::sqrt(c*c + RealScalar(4)*b);
+  ComplexScalar disc = sqrt(c*c + RealScalar(4)*b);
   ComplexScalar det = t.coeff(0,0) * t.coeff(1,1) - b;
   ComplexScalar trace = t.coeff(0,0) + t.coeff(1,1);
   ComplexScalar eival1 = (trace + disc) / RealScalar(2);
@@ -406,7 +352,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
 
     // if we spent too many iterations on the current element, we give up
     iter++;
-    if(iter > m_maxIterations) break;
+    if(iter > m_maxIterations * m_matT.cols()) break;
 
     // find il, the top row of the active submatrix
     il = iu-1;
@@ -436,7 +382,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
     }
   }
 
-  if(iter <= m_maxIterations) 
+  if(iter <= m_maxIterations * m_matT.cols()) 
     m_info = Success;
   else
     m_info = NoConvergence;
@@ -444,5 +390,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
   m_isInitialized = true;
   m_matUisUptodate = computeU;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_COMPLEX_SCHUR_H

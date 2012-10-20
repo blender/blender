@@ -170,7 +170,6 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *ima, Image *previma)
 {
 	BMEditMesh *em;
-	BMFace *efa;
 	BMIter iter;
 	MTexPoly *tf;
 	int update = 0;
@@ -198,6 +197,8 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 			ED_object_assign_active_image(bmain, obedit, efa->mat_nr + 1, ima);
 	}
 	else {
+		BMFace *efa;
+
 		/* old shading system, assign image to selected faces */
 #ifdef USE_SWITCH_ASPECT
 		float prev_aspect[2], fprev_aspect;
@@ -771,13 +772,15 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 	BM_ITER_ELEM (l, &iter, efa, BM_LOOPS_OF_FACE) {
 		luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 		
-		if (i == id1)
+		if (i == id1) {
 			uv1 = luv->uv;
-		else if (i == id)
-			;  /* uv2 = luv->uv; */ /* UNUSED */
-		else if (i == id2)
+		}
+		else if (i == id) {
+			/* uv2 = luv->uv; */ /* UNUSED */
+		}
+		else if (i == id2) {
 			uv3 = luv->uv;
-
+		}
 		i++;
 	}
 
@@ -1310,9 +1313,7 @@ static void weld_align_uv(bContext *C, int tool)
 	Object *obedit;
 	Image *ima;
 	BMEditMesh *em;
-	BMIter iter, liter;
 	MTexPoly *tf;
-	MLoopUV *luv;
 	float cent[2], min[2], max[2];
 	
 	scene = CTX_data_scene(C);
@@ -1324,6 +1325,7 @@ static void weld_align_uv(bContext *C, int tool)
 	INIT_MINMAX2(min, max);
 
 	if (tool == 'a') {
+		BMIter iter, liter;
 		BMFace *efa;
 		BMLoop *l;
 
@@ -1335,7 +1337,7 @@ static void weld_align_uv(bContext *C, int tool)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(em, scene, l)) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					DO_MINMAX2(luv->uv, min, max);
 				}
 			}
@@ -1347,6 +1349,7 @@ static void weld_align_uv(bContext *C, int tool)
 	uvedit_center(scene, ima, obedit, cent, 0);
 
 	if (tool == 'x' || tool == 'w') {
+		BMIter iter, liter;
 		BMFace *efa;
 		BMLoop *l;
 
@@ -1357,7 +1360,7 @@ static void weld_align_uv(bContext *C, int tool)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(em, scene, l)) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					luv->uv[0] = cent[0];
 				}
 
@@ -1366,6 +1369,7 @@ static void weld_align_uv(bContext *C, int tool)
 	}
 
 	if (tool == 'y' || tool == 'w') {
+		BMIter iter, liter;
 		BMFace *efa;
 		BMLoop *l;
 
@@ -1376,7 +1380,7 @@ static void weld_align_uv(bContext *C, int tool)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(em, scene, l)) {
-					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 					luv->uv[1] = cent[1];
 				}
 
@@ -2131,7 +2135,7 @@ static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, i
 	NearestHit hit, *hit_p = NULL;
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled");
+		BKE_report(op->reports, RPT_ERROR, "Cannot select linked when sync selection is enabled");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2238,7 +2242,7 @@ static int select_split_exec(bContext *C, wmOperator *op)
 	short change = FALSE;
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Can't split selection when sync selection is enabled");
+		BKE_report(op->reports, RPT_ERROR, "Cannot split selection when sync selection is enabled");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2279,6 +2283,7 @@ static int select_split_exec(bContext *C, wmOperator *op)
 	}
 
 	if (change) {
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -2316,7 +2321,7 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 	MLoopUV *luv;
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Can't unlink selection when sync selection is enabled");
+		BKE_report(op->reports, RPT_ERROR, "Cannot unlink selection when sync selection is enabled");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -2487,13 +2492,16 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 							break;
 						
 						if (efa_index != vlist_iter->f) {
+							BMLoop *l_other;
 							efa_vlist = EDBM_face_at_index(em, vlist_iter->f);
 							/* tf_vlist = CustomData_bmesh_get(&em->bm->pdata, efa_vlist->head.data, CD_MTEXPOLY); */ /* UNUSED */
 							
+							l_other = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex);
+
 							if (select)
-								uvedit_uv_select_enable(em, scene, BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex), FALSE);
+								uvedit_uv_select_enable(em, scene, l_other, FALSE);
 							else
-								uvedit_uv_select_disable(em, scene, BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex));
+								uvedit_uv_select_disable(em, scene, l_other);
 						}
 						vlist_iter = vlist_iter->next;
 					}
@@ -2827,7 +2835,7 @@ static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 		select = !RNA_boolean_get(op->ptr, "deselect");
 		change = do_lasso_select_mesh_uv(C, mcords, mcords_tot, select);
 
-		MEM_freeN(mcords);
+		MEM_freeN((void *)mcords);
 
 		return change ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 	}

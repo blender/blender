@@ -150,5 +150,4 @@ public:
 	
 };
 
-#endif //__KX_IPOACTUATOR_H__
-
+#endif  /* __KX_IPOACTUATOR_H__ */

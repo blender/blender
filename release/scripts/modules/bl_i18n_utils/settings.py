@@ -35,6 +35,9 @@ import os.path
 # into /trunk, as a percentage. -1 means "import everything".
 IMPORT_MIN_LEVEL = -1
 
+# Languages in /branches we do not want to import in /trunk currently...
+IMPORT_LANGUAGES_SKIP = {'bg', 'ca', 'fi', 'el', 'ko', 'ne', 'pl', 'ro'}
+
 # The comment prefix used in generated messages.txt file.
 COMMENT_PREFIX = "#~ "
 
@@ -98,7 +101,9 @@ PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("IFACE_", "TIP_", "N_")) +
     tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_"))
+          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_")) + 
+    tuple(("{}\\([^\"',]+,(?:[^\"',]+,)?\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf"))
 )
 
 ESCAPE_RE = (
@@ -167,6 +172,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "uk_UA",
     "tr_TR",
     "hu_HU",
+    "et_EE",
+    "eo",
     "available with",                # Is part of multi-line msg.
     "virtual parents",               # Is part of multi-line msg.
     "description",                   # Addons' field. :/

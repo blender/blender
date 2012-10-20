@@ -37,10 +37,10 @@ typedef unsigned __int64 uint_ptr;
 typedef unsigned long uint_ptr;
 #endif
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// This warning tells us about truncation of __long__ stl-generated names.
-// It can occasionally cause DevStudio to have internal compiler warnings.
-#pragma warning( disable : 4786 )     
+#ifdef _MSC_VER
+   /* This warning tells us about truncation of __long__ stl-generated names.
+    * It can occasionally cause DevStudio to have internal compiler warnings. */
+#  pragma warning(disable:4786)
 #endif
 
 #include "KX_IPO_SGController.h"

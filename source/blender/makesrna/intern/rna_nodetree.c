@@ -689,7 +689,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 	bNodeTemplate ntemp;
 
 	if (type == NODE_GROUP && group == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "node type \'GROUP\' missing group argument");
+		BKE_report(reports, RPT_ERROR, "Node type 'GROUP' missing group argument");
 		return NULL;
 	}
 	
@@ -700,7 +700,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *r
 	node = nodeAddNode(ntree, &ntemp);
 	
 	if (node == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to create node");
+		BKE_report(reports, RPT_ERROR, "Unable to create node");
 	}
 	else {
 		ntreeUpdateTree(ntree); /* update group node socket links*/
@@ -756,7 +756,7 @@ static bNode *rna_NodeTree_node_texture_new(bNodeTree *ntree, bContext *C, Repor
 static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, bNode *node)
 {
 	if (BLI_findindex(&ntree->nodes, node) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in nodetree", node->name);
+		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in node tree", node->name);
 	}
 	else {
 		if (node->id)
@@ -800,7 +800,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 	nodeFindNode(ntree, tosock, &tonode, NULL, &to_in_out);
 	
 	if (&from_in_out == &to_in_out) {
-		BKE_reportf(reports, RPT_ERROR, "Same input/output direction of sockets");
+		BKE_report(reports, RPT_ERROR, "Same input/output direction of sockets");
 		return NULL;
 	}
 
@@ -827,7 +827,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 static void rna_NodeTree_link_remove(bNodeTree *ntree, ReportList *reports, bNodeLink *link)
 {
 	if (BLI_findindex(&ntree->links, link) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate link in nodetree");
+		BKE_report(reports, RPT_ERROR, "Unable to locate link in node tree");
 	}
 	else {
 		nodeRemLink(ntree, link);
@@ -882,9 +882,9 @@ static bNodeSocket *rna_NodeTree_input_expose(bNodeTree *ntree, ReportList *repo
 	int index, in_out;
 	
 	if (!nodeFindNode(ntree, sock, &node, &index, &in_out))
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket in nodetree");
+		BKE_report(reports, RPT_ERROR, "Unable to locate socket in node tree");
 	else if (in_out != SOCK_IN)
-		BKE_reportf(reports, RPT_ERROR, "Socket is not an input");
+		BKE_report(reports, RPT_ERROR, "Socket is not an input");
 	else {
 		/* XXX should check if tree is a group here! no good way to do this currently. */
 		gsock = node_group_add_socket(ntree, sock->name, sock->type, SOCK_IN);
@@ -906,9 +906,9 @@ static bNodeSocket *rna_NodeTree_output_expose(bNodeTree *ntree, ReportList *rep
 	int index, in_out;
 	
 	if (!nodeFindNode(ntree, sock, &node, &index, &in_out))
-		BKE_reportf(reports, RPT_ERROR, "Unable to locate socket in nodetree");
+		BKE_report(reports, RPT_ERROR, "Unable to locate socket in node tree");
 	else if (in_out != SOCK_OUT)
-		BKE_reportf(reports, RPT_ERROR, "Socket is not an output");
+		BKE_report(reports, RPT_ERROR, "Socket is not an output");
 	else {
 		/* XXX should check if tree is a group here! no good way to do this currently. */
 		gsock = node_group_add_socket(ntree, sock->name, sock->type, SOCK_OUT);
@@ -1462,7 +1462,8 @@ static void def_sh_tex_sky(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "turbidity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Turbidity", "");
+	RNA_def_property_range(prop, 1.0f, 30.0f);
+	RNA_def_property_ui_text(prop, "Turbidity", "Atmospheric turbidity");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

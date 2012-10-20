@@ -295,6 +295,7 @@ typedef struct Material {
 #define MA_CUBIC			1
 #define MA_OBCOLOR			2
 #define MA_APPROX_OCCLUSION	4
+#define MA_GROUP_LOCAL      8
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0

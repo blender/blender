@@ -80,7 +80,6 @@ public:
 
 };
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
-#endif //__KX_POLYPROXY
-
+#endif  /* __KX_POLYPROXY */

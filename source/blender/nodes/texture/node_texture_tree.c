@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -240,19 +240,19 @@ void ntreeTexEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 }
 
 int ntreeTexExecTree(
-	bNodeTree *nodes,
-	TexResult *texres,
-	float *co,
-	float *dxt, float *dyt,
-	int osatex,
-	short thread, 
-	Tex *UNUSED(tex), 
-	short which_output, 
-	int cfra,
-	int preview,
-	ShadeInput *shi,
-	MTex *mtex
-) {
+        bNodeTree *nodes,
+        TexResult *texres,
+        float co[3],
+        float dxt[3], float dyt[3],
+        int osatex,
+        const short thread,
+        Tex *UNUSED(tex),
+        short which_output,
+        int cfra,
+        int preview,
+        ShadeInput *shi,
+        MTex *mtex)
+{
 	TexCallData data;
 	float *nor = texres->nor;
 	int retval = TEX_INT;

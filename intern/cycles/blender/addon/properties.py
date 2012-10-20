@@ -136,7 +136,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.blur_glossy = FloatProperty(
                 name="Filter Glossy",
-                description="Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy",
+                description="Adaptively blur glossy shaders after blurry bounces, "
+                            "to reduce noise at the cost of accuracy",
                 min=0.0, max=10.0,
                 default=0.0,
                 )
@@ -230,7 +231,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.sample_clamp = FloatProperty(
                 name="Clamp",
-                description="If non-zero, the maximum value for a sample, higher values will be scaled down to avoid too much noise and slow convergence at the cost of accuracy",
+                description="If non-zero, the maximum value for a sample, "
+                            "higher values will be scaled down to avoid too "
+                            "much noise and slow convergence at the cost of accuracy",
                 min=0.0, max=1e8,
                 default=0.0,
                 )
@@ -244,7 +247,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.preview_start_resolution = IntProperty(
                 name="Start Resolution",
-                description="Resolution to start rendering preview at, progressively increasing it to the full viewport size",
+                description="Resolution to start rendering preview at, "
+                            "progressively increasing it to the full viewport size",
                 min=8, max=16384,
                 default=64,
                 )
@@ -282,6 +286,14 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.use_cache = BoolProperty(
                 name="Cache BVH",
                 description="Cache last built BVH to disk for faster re-render if no geometry changed",
+                default=False,
+                )
+        cls.use_progressive_refine = BoolProperty(
+                name="Progressive Refine",
+                description="Instead of rendering each tile until it is finished, "
+                            "refine the whole image progressively. "
+                            "This renders somewhat slower, "
+                            "but time can be saved by manually stopping the render when the noise is low enough",
                 default=False,
                 )
 
@@ -369,12 +381,15 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 )
         cls.sample_as_light = BoolProperty(
                 name="Sample as Lamp",
-                description="Use direct light sampling for this material, disabling may reduce overall noise for large objects that emit little light compared to other light sources",
+                description="Use direct light sampling for this material, "
+                            "disabling may reduce overall noise for large "
+                            "objects that emit little light compared to other light sources",
                 default=True,
                 )
         cls.homogeneous_volume = BoolProperty(
                 name="Homogeneous Volume",
-                description="When using volume rendering, assume volume has the same density everywhere, for faster rendering",
+                description="When using volume rendering, assume volume has the same density everywhere, "
+                            "for faster rendering",
                 default=False,
                 )
 
@@ -418,12 +433,14 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
                 )
         cls.sample_as_light = BoolProperty(
                 name="Sample as Lamp",
-                description="Use direct light sampling for the environment, enabling for non-solid colors is recommended",
+                description="Use direct light sampling for the environment, "
+                            "enabling for non-solid colors is recommended",
                 default=False,
                 )
         cls.sample_map_resolution = IntProperty(
                 name="Map Resolution",
-                description="Importance map size is resolution x resolution; higher values potentially produce less noise, at the cost of memory and speed",
+                description="Importance map size is resolution x resolution; "
+                            "higher values potentially produce less noise, at the cost of memory and speed",
                 min=4, max=8096,
                 default=256,
                 )

@@ -38,5 +38,4 @@ void GetRawBlender3DLogo(unsigned char **data, int *width, int *height);
 void GetRawNaNLogo(unsigned char **data, int *width, int *height);
 #endif
 
-#endif  // __GPC_RAWLOGOARRAYS_H__
-
+#endif  /* __GPC_RAWLOGOARRAYS_H__ */

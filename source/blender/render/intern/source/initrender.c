@@ -558,20 +558,19 @@ void initparts(Render *re, int do_crop)
 	xparts = re->r.xparts;
 	yparts = re->r.yparts;
 	
-	/* mininum part size, but for exr tile saving it was checked already */
-	if (!(re->r.scemode & (R_EXR_TILE_FILE | R_FULL_SAMPLE))) {
-		if (re->r.mode & R_PANORAMA) {
-			if (ceil(re->rectx / (float)xparts) < 8)
-				xparts = 1 + re->rectx / 8;
-		}
-		else
+	/* minimum part size */
+	if (re->r.mode & R_PANORAMA) {
+		if (ceil(re->rectx / (float)xparts) < 8)
+			xparts = 1 + re->rectx / 8;
+	}
+	else {
 		if (ceil(re->rectx / (float)xparts) < 64)
 			xparts = 1 + re->rectx / 64;
-		
-		if (ceil(re->recty / (float)yparts) < 64)
-			yparts = 1 + re->recty / 64;
 	}
 	
+	if (ceil(re->recty / (float)yparts) < 64)
+		yparts = 1 + re->recty / 64;
+
 	/* part size */
 	partx = ceil(re->rectx / (float)xparts);
 	party = ceil(re->recty / (float)yparts);

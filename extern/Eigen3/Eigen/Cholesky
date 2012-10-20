@@ -5,8 +5,6 @@
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
-namespace Eigen {
-
 /** \defgroup Cholesky_Module Cholesky module
   *
   *
@@ -24,8 +22,9 @@ namespace Eigen {
 #include "src/misc/Solve.h"
 #include "src/Cholesky/LLT.h"
 #include "src/Cholesky/LDLT.h"
-
-} // namespace Eigen
+#ifdef EIGEN_USE_LAPACKE
+#include "src/Cholesky/LLT_MKL.h"
+#endif
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

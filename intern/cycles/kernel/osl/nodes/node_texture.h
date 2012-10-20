@@ -235,21 +235,21 @@ float noise_turbulence(point p, string basis, float details, int hard)
 	
 	float rmd = octaves - floor(octaves);
 
-	if(rmd != 0.0) {
-		float t = noise_basis(fscale*p, basis);
+	if (rmd != 0.0) {
+		float t = noise_basis(fscale * p, basis);
 
-		if(hard)
-			t = fabs(2.0*t - 1.0);
+		if (hard)
+			t = fabs(2.0 * t - 1.0);
 
 		float sum2 = sum + t*amp;
 
-		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
-		sum2 *= ((float)(1 << (n+1))/(float)((1 << (n+2)) - 1));
+		sum *= ((float)(1 << n) / (float)((1 << (n + 1)) - 1));
+		sum2 *= ((float)(1 << (n + 1)) / (float)((1 << (n + 2)) - 1));
 
 		return (1.0 - rmd)*sum + rmd*sum2;
 	}
 	else {
-		sum *= ((float)(1 << n)/(float)((1 << (n+1)) - 1));
+		sum *= ((float)(1 << n) / (float)((1 << (n + 1)) - 1));
 		return sum;
 	}
 }

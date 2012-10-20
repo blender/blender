@@ -1102,8 +1102,8 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 			return NULL;
 
 		/* only supported in case of standard next functions */
-		if (strcmp(nextfunc, "rna_iterator_array_next") == 0) ;
-		else if (strcmp(nextfunc, "rna_iterator_listbase_next") == 0) ;
+		if (strcmp(nextfunc, "rna_iterator_array_next") == 0) {}
+		else if (strcmp(nextfunc, "rna_iterator_listbase_next") == 0) {}
 		else return NULL;
 	}
 
@@ -1372,9 +1372,12 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
 			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 			const char *nextfunc = (const char *)cprop->next;
 
-			if (dp->dnatype && strcmp(dp->dnatype, "ListBase") == 0) ;
-			else if (dp->dnalengthname || dp->dnalengthfixed)
+			if (dp->dnatype && strcmp(dp->dnatype, "ListBase") == 0) {
+				/* pass */
+			}
+			else if (dp->dnalengthname || dp->dnalengthfixed) {
 				cprop->length = (void *)rna_def_property_length_func(f, srna, prop, dp, (const char *)cprop->length);
+			}
 
 			/* test if we can allow raw array access, if it is using our standard
 			 * array get/next function, we can be sure it is an actual array */

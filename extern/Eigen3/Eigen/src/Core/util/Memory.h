@@ -7,24 +7,9 @@
 // Copyright (C) 2010 Hauke Heibel <hauke.heibel@gmail.com>
 // Copyright (C) 2010 Thomas Capricelli <orzel@freehackers.org>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
 /*****************************************************************************
@@ -79,6 +64,8 @@
 #else
   #define EIGEN_HAS_MM_MALLOC 0
 #endif
+
+namespace Eigen {
 
 namespace internal {
 
@@ -457,7 +444,7 @@ template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *
   * There is also the variant first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
   */
 template<typename Scalar, typename Index>
-inline static Index first_aligned(const Scalar* array, Index size)
+static inline Index first_aligned(const Scalar* array, Index size)
 {
   typedef typename packet_traits<Scalar>::type Packet;
   enum { PacketSize = packet_traits<Scalar>::size,
@@ -483,7 +470,26 @@ inline static Index first_aligned(const Scalar* array, Index size)
   }
 }
 
-} // end namespace internal
+
+// std::copy is much slower than memcpy, so let's introduce a smart_copy which
+// use memcpy on trivial types, i.e., on types that does not require an initialization ctor.
+template<typename T, bool UseMemcpy> struct smart_copy_helper;
+
+template<typename T> void smart_copy(const T* start, const T* end, T* target)
+{
+  smart_copy_helper<T,!NumTraits<T>::RequireInitialization>::run(start, end, target);
+}
+
+template<typename T> struct smart_copy_helper<T,true> {
+  static inline void run(const T* start, const T* end, T* target)
+  { memcpy(target, start, std::ptrdiff_t(end)-std::ptrdiff_t(start)); }
+};
+
+template<typename T> struct smart_copy_helper<T,false> {
+  static inline void run(const T* start, const T* end, T* target)
+  { std::copy(start, end, target); }
+};
+
 
 /*****************************************************************************
 *** Implementation of runtime stack allocation (falling back to malloc)    ***
@@ -498,8 +504,6 @@ inline static Index first_aligned(const Scalar* array, Index size)
     #define EIGEN_ALLOCA _alloca
   #endif
 #endif
-
-namespace internal {
 
 // This helper class construct the allocated memory, and takes care of destructing and freeing the handled data
 // at destruction time. In practice this helper class is mainly useful to avoid memory leak in case of exceptions.
@@ -531,14 +535,14 @@ template<typename T> class aligned_stack_memory_handler
     bool m_deallocate;
 };
 
-}
+} // end namespace internal
 
 /** \internal
   * Declares, allocates and construct an aligned buffer named NAME of SIZE elements of type TYPE on the stack
   * if SIZE is smaller than EIGEN_STACK_ALLOCATION_LIMIT, and if stack allocation is supported by the platform
   * (currently, this is Linux and Visual Studio only). Otherwise the memory is allocated on the heap.
   * The allocated buffer is automatically deleted when exiting the scope of this declaration.
-  * If BUFFER is non nul, then the declared variable is simply an alias for BUFFER, and no allocation/deletion occurs.
+  * If BUFFER is non null, then the declared variable is simply an alias for BUFFER, and no allocation/deletion occurs.
   * Here is an example:
   * \code
   * {
@@ -619,7 +623,7 @@ template<typename T> class aligned_stack_memory_handler
 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(true)
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar,Size) \
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0))
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0)))
 
 /****************************************************************************/
 
@@ -667,24 +671,24 @@ public:
         return &value;
     }
 
-    aligned_allocator() throw()
+    aligned_allocator()
     {
     }
 
-    aligned_allocator( const aligned_allocator& ) throw()
+    aligned_allocator( const aligned_allocator& )
     {
     }
 
     template<class U>
-    aligned_allocator( const aligned_allocator<U>& ) throw()
+    aligned_allocator( const aligned_allocator<U>& )
     {
     }
 
-    ~aligned_allocator() throw()
+    ~aligned_allocator()
     {
     }
 
-    size_type max_size() const throw()
+    size_type max_size() const
     {
         return (std::numeric_limits<size_type>::max)();
     }
@@ -700,6 +704,15 @@ public:
     {
         ::new( p ) T( value );
     }
+
+    // Support for c++11
+#if (__cplusplus >= 201103L)
+    template<typename... Args>
+    void  construct(pointer p, Args&&... args)
+    {
+      ::new(p) T(std::forward<Args>(args)...);
+    }
+#endif
 
     void destroy( pointer p )
     {
@@ -720,19 +733,21 @@ public:
 
 //---------- Cache sizes ----------
 
-#if defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
-#  if defined(__PIC__) && defined(__i386__)
-     // Case for x86 with PIC
-#    define EIGEN_CPUID(abcd,func,id) \
-       __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
-#  else
-     // Case for x86_64 or x86 w/o PIC
-#    define EIGEN_CPUID(abcd,func,id) \
-       __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
-#  endif
-#elif defined(_MSC_VER)
-#  if (_MSC_VER > 1500)
-#    define EIGEN_CPUID(abcd,func,id) __cpuidex((int*)abcd,func,id)
+#if !defined(EIGEN_NO_CPUID)
+#  if defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
+#    if defined(__PIC__) && defined(__i386__)
+       // Case for x86 with PIC
+#      define EIGEN_CPUID(abcd,func,id) \
+         __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
+#    else
+       // Case for x86_64 or x86 w/o PIC
+#      define EIGEN_CPUID(abcd,func,id) \
+         __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
+#    endif
+#  elif defined(_MSC_VER)
+#    if (_MSC_VER > 1500)
+#      define EIGEN_CPUID(abcd,func,id) __cpuidex((int*)abcd,func,id)
+#    endif
 #  endif
 #endif
 
@@ -742,7 +757,7 @@ namespace internal {
 
 inline bool cpuid_is_vendor(int abcd[4], const char* vendor)
 {
-  return abcd[1]==((int*)(vendor))[0] && abcd[3]==((int*)(vendor))[1] && abcd[2]==((int*)(vendor))[2];
+  return abcd[1]==(reinterpret_cast<const int*>(vendor))[0] && abcd[3]==(reinterpret_cast<const int*>(vendor))[1] && abcd[2]==(reinterpret_cast<const int*>(vendor))[2];
 }
 
 inline void queryCacheSizes_intel_direct(int& l1, int& l2, int& l3)
@@ -931,5 +946,7 @@ inline int queryTopLevelCacheSize()
 }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_MEMORY_H

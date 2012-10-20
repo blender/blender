@@ -2226,9 +2226,16 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 	}
 	
 	/* restore */
-	if (index != -1) glLoadName(-1);
-	if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) ;
-	else if (dt > OB_WIRE) bglPolygonOffset(rv3d->dist, 0.0f);
+	if (index != -1) {
+		glLoadName(-1);
+	}
+
+	if (ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
+		/* pass */
+	}
+	else if (dt > OB_WIRE) {
+		bglPolygonOffset(rv3d->dist, 0.0f);
+	}
 	
 	/* finally names and axes */
 	if (arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) {

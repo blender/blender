@@ -333,7 +333,8 @@ Types
 
    .. attribute:: useContinue
 
-      The actions continue option, True or False. When True, the action will always play from where last left off, otherwise negative events to this actuator will reset it to its start frame.
+      The actions continue option, True or False. When True, the action will always play from where last left off,
+      otherwise negative events to this actuator will reset it to its start frame.
 
       :type: boolean
 
@@ -879,7 +880,8 @@ Types
 
    .. note::
       
-      Calling ANY method or attribute on an object that has been removed from a scene will raise a SystemError, if an object may have been removed since last accessing it use the :data:`invalid` attribute to check.
+      Calling ANY method or attribute on an object that has been removed from a scene will raise a SystemError,
+      if an object may have been removed since last accessing it use the :data:`invalid` attribute to check.
 
    KX_GameObject can be subclassed to extend functionality. For example:
 
@@ -986,6 +988,24 @@ Types
       The object's parent object. (read-only).
 
       :type: :class:`KX_GameObject` or None
+	  
+   .. attribute:: group_children
+
+      Returns the list of group members if the object is a group object, otherwise None is returned.
+
+      :type: :class:`CListValue` of :class:`KX_GameObject` or None
+
+   .. attribute:: group_parent
+
+      Returns the group object that the object belongs to or None if the object is not part of a group.
+
+      :type: :class:`KX_GameObject` or None
+
+   .. attribute:: scene
+
+      The object's scene. (read-only).
+
+      :type: :class:`KX_Scene` or None
 
    .. attribute:: visible
 
@@ -4546,7 +4566,9 @@ Types
    
    .. data:: KX_ACT_ARMATURE_RUN
 
-      Just make sure the armature will be updated on the next graphic frame. This is the only persistent mode of the actuator: it executes automatically once per frame until stopped by a controller
+      Just make sure the armature will be updated on the next graphic frame.
+      This is the only persistent mode of the actuator:
+      it executes automatically once per frame until stopped by a controller
       
       :value: 0
 

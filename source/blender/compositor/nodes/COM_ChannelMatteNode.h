@@ -34,4 +34,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // COM_ChannelMatteNODE_H
+#endif  /* COM_ChannelMatteNODE_H */

@@ -15,7 +15,6 @@
  *
  */
 
-
 #include <windows.h>
 #include <winbase.h>
 #include <stdio.h>
@@ -83,16 +82,16 @@ typedef	struct {
 } VF_ReadData_Audio,*LPVF_ReadData_Audio;
 
 typedef	struct {
-	DWORD	dwSize;			
-	HRESULT (__stdcall *OpenFile)( 
-		char *lpFileName, LPVF_FileHandle lpFileHandle );
+	DWORD	dwSize;
+	HRESULT (__stdcall *OpenFile)(
+	        char *lpFileName, LPVF_FileHandle lpFileHandle );
 	HRESULT (__stdcall *CloseFile)( VF_FileHandle hFileHandle );
 	HRESULT (__stdcall *GetFileInfo)( VF_FileHandle hFileHandle,
-					 LPVF_FileInfo lpFileInfo );
+	                                  LPVF_FileInfo lpFileInfo );
 	HRESULT (__stdcall *GetStreamInfo)( VF_FileHandle hFileHandle,
-					   DWORD dwStream,void *lpStreamInfo );
+	                                    DWORD dwStream,void *lpStreamInfo );
 	HRESULT (__stdcall *ReadData)( VF_FileHandle hFileHandle,
-				      DWORD dwStream,void *lpData ); 
+	                               DWORD dwStream,void *lpData );
 } VF_PluginFunc,*LPVF_PluginFunc;
 
 __declspec(dllexport) HRESULT vfGetPluginInfo( 
@@ -117,8 +116,9 @@ static unsigned long getipaddress(const char * ipaddr)
 	struct hostent  *host;
 	unsigned long   ip;
 
-	if (((ip = inet_addr(ipaddr)) == INADDR_NONE)
-	&& strcmp(ipaddr, "255.255.255.255") != 0) {
+	if (((ip = inet_addr(ipaddr)) == INADDR_NONE) &&
+	    strcmp(ipaddr, "255.255.255.255") != 0)
+	{
 		if ((host = gethostbyname(ipaddr)) != NULL) {
 			memcpy(&ip, host->h_addr, sizeof(ip));
 		}
@@ -419,6 +419,3 @@ __declspec(dllexport) HRESULT vfGetPluginFunc(
 
 	return VF_OK;
 }
-
-
-

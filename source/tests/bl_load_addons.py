@@ -36,7 +36,7 @@ def reload_addons(do_reload=True, do_reverse=True):
     for mod_name in list(addons.keys()):
         addon_utils.disable(mod_name)
 
-    assert(bool(addons) == False)
+    assert(bool(addons) is False)
 
     # Run twice each time.
     for i in (0, 1):

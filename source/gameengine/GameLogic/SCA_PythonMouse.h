@@ -56,5 +56,4 @@ public:
 #endif
 };
 
-#endif //__SCA_PYTHONMOUSE_H__
-
+#endif  /* __SCA_PYTHONMOUSE_H__ */

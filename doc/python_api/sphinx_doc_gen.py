@@ -400,7 +400,7 @@ SPHINX_THEMES = {'bf': ['blender-org'],  # , 'naiad',
 
 available_themes = SPHINX_THEMES['bf'] + SPHINX_THEMES['sphinx']
 if ARGS.sphinx_theme not in available_themes:
-    print ("Please choose a theme among: %s" % ', '.join(available_themes))
+    print("Please choose a theme among: %s" % ', '.join(available_themes))
     sys.exit()
 
 if ARGS.sphinx_theme in SPHINX_THEMES['bf']:

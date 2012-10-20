@@ -29,10 +29,9 @@
  *  \ingroup bgeconv
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 #include "MEM_guardedalloc.h"
 #include "BL_ModifierDeformer.h"
@@ -42,7 +41,6 @@
 #include "RAS_MeshObject.h"
 #include "PHY_IGraphicController.h"
 
-//#include "BL_ArmatureController.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_key_types.h"
@@ -65,7 +63,6 @@ extern "C"{
 	#include "BKE_lattice.h"
 	#include "BKE_modifier.h"
 }
- 
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -113,7 +110,7 @@ bool BL_ModifierDeformer::HasCompatibleDeformer(Object *ob)
 	if ((ob->gameflag & OB_SOFT_BODY) != 0)
 		return false;
 	ModifierData* md;
-	for (md = (ModifierData*)ob->modifiers.first; md; md = (ModifierData*)md->next) {
+	for (md = (ModifierData *)ob->modifiers.first; md; md = md->next) {
 		if (modifier_dependsOnTime(md))
 			continue;
 		if (!(md->mode & eModifierMode_Realtime))

@@ -287,6 +287,13 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_GHOST_ENABLED, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
+	/* Debug Filtering Settings */
+	prop = RNA_def_property(srna, "show_only_errors", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLY_ERRORS);
+	RNA_def_property_ui_text(prop, "Show Errors", "Only include F-Curves and Drivers that are disabled or have errors");
+	RNA_def_property_ui_icon(prop, ICON_HELP, 0); // XXX: this doesn't quite fit?
+	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
 	/* Object Group Filtering Settings */
 	prop = RNA_def_property(srna, "show_only_group_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLYOBGROUP);

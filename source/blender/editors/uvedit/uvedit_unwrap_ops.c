@@ -223,7 +223,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		BMLoop *ls[3];
 		float *co[4];
 		float *uv[4];
-		int i, lsel;
+		int lsel;
 
 		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0))
 			continue;
@@ -245,6 +245,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		// tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);  // UNUSED
 
 		if (efa->len == 3 || efa->len == 4) {
+			int i;
 			/* for quads let parametrize split, it can make better decisions
 			 * about which split is best for unwrapping than scanfill */
 			i = 0;
@@ -291,6 +292,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 			BLI_scanfill_calc_ex(&sf_ctx, TRUE, efa->no);
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+				int i;
 				ls[0] = sf_tri->v1->tmp.p;
 				ls[1] = sf_tri->v2->tmp.p;
 				ls[2] = sf_tri->v3->tmp.p;
@@ -727,12 +729,10 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (RNA_struct_property_is_set(op->ptr, "margin")) {
+	if (RNA_struct_property_is_set(op->ptr, "margin"))
 		scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
-	}
-	else {
+	else
 		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
-	}
 
 	handle = construct_param_handle(scene, em, implicit, 0, 1, 1);
 	param_pack(handle, scene->toolsettings->uvcalc_margin);
@@ -759,7 +759,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	ot->poll = ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_float_factor(ot->srna, "margin", 0.0f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
+	RNA_def_float_factor(ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
 /* ******************** Average Islands Scale operator **************** */
@@ -1184,13 +1184,20 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
 	mat4_to_size(obsize, obedit->obmat);
 	if (!compare_v3v3(obsize, unitsize, 1e-4f))
-		BKE_report(op->reports, RPT_INFO, "Object scale is not 1.0. Unwrap will operate on a non-scaled version of the mesh.");
+		BKE_report(op->reports, RPT_INFO,
+		           "Object scale is not 1.0, unwrap will operate on a non-scaled version of the mesh");
 
 	/* remember last method for live unwrap */
 	if (RNA_struct_property_is_set(op->ptr, "method"))
 		scene->toolsettings->unwrapper = method;
 	else
 		RNA_enum_set(op->ptr, "method", scene->toolsettings->unwrapper);
+
+	/* remember packing marging */
+	if (RNA_struct_property_is_set(op->ptr, "margin"))
+		scene->toolsettings->uvcalc_margin = RNA_float_get(op->ptr, "margin");
+	else
+		RNA_float_set(op->ptr, "margin", scene->toolsettings->uvcalc_margin);
 
 	scene->toolsettings->uv_subsurf_level = subsurf_level;
 
@@ -1239,8 +1246,9 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	                "Map UVs taking image aspect ratio into account");
 	RNA_def_boolean(ot->srna, "use_subsurf_data", 0, "Use Subsurf Data",
 	                "Map UVs taking vertex position after subsurf into account");
-	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "SubSurf Target",
+	RNA_def_int(ot->srna, "uv_subsurf_level", 1, 1, 6, "Subsurf Target",
 	            "Number of times to subdivide before calculating UVs", 1, 6);
+	RNA_def_float_factor(ot->srna, "margin", 0.001f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
 /**************** Project From View operator **************/

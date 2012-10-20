@@ -290,10 +290,8 @@ class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
         row.prop(ob, "slow_parent_offset", text="Offset")
 
 
-from bl_ui.properties_animviz import (
-    MotionPathButtonsPanel,
-    OnionSkinButtonsPanel,
-    )
+from bl_ui.properties_animviz import (MotionPathButtonsPanel,
+                                      OnionSkinButtonsPanel)
 
 
 class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):

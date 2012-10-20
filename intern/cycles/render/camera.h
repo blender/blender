@@ -103,6 +103,7 @@ public:
 	void device_free(Device *device, DeviceScene *dscene);
 
 	bool modified(const Camera& cam);
+	bool motion_modified(const Camera& cam);
 	void tag_update();
 };
 

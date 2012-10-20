@@ -307,7 +307,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->poll = ED_operator_file_active;
 	ot->cancel = WM_border_select_cancel;
 
-	/* rna */
+	/* properties */
 	WM_operator_properties_gesture_border(ot, 1);
 }
 
@@ -347,6 +347,8 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void FILE_OT_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Activate/Select File";
 	ot->description = "Activate/select file";
@@ -356,10 +358,13 @@ void FILE_OT_select(wmOperatorType *ot)
 	ot->invoke = file_select_invoke;
 	ot->poll = ED_operator_file_active;
 
-	/* rna */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
-	RNA_def_boolean(ot->srna, "fill", FALSE, "Fill", "Select everything beginning with the last selection");
-	RNA_def_boolean(ot->srna, "open", TRUE, "Open", "Open a directory when selecting it");
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "fill", FALSE, "Fill", "Select everything beginning with the last selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "open", TRUE, "Open", "Open a directory when selecting it");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -404,9 +409,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 	ot->exec = file_select_all_exec;
 	ot->poll = ED_operator_file_active;
 
-	/* rna */
-
-	
+	/* properties */
 }
 
 /* ---------- BOOKMARKS ----------- */
@@ -432,6 +435,8 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_select_bookmark(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Select Directory";
 	ot->description = "Select a bookmarked directory";
@@ -441,7 +446,9 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 	ot->exec = bookmark_select_exec;
 	ot->poll = ED_operator_file_active;
 
-	RNA_def_string(ot->srna, "dir", "", 256, "Dir", "");
+	/* properties */
+	prop = RNA_def_string(ot->srna, "dir", "", FILE_MAXDIR, "Dir", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -498,6 +505,8 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_delete_bookmark(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Delete Bookmark";
 	ot->description = "Delete selected bookmark";
@@ -507,7 +516,9 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	ot->exec = bookmark_delete_exec;
 	ot->poll = ED_operator_file_active;
 
-	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+	/* properties */
+	prop = RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
@@ -819,7 +830,8 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = file_exec;
 	ot->poll = file_operator_poll; 
-	
+
+	/* properties */
 	prop = RNA_def_boolean(ot->srna, "need_active", 0, "Need Active",
 	                       "Only execute if there's an active selected file in the file list");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -1123,6 +1135,8 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_directory_new(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Create New Directory";
 	ot->description = "Create a new directory";
@@ -1133,7 +1147,8 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 	ot->exec = file_directory_new_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 
-	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
+	prop = RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 }
 

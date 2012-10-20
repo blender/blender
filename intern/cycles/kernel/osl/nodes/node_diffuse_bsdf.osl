@@ -24,7 +24,7 @@ shader node_diffuse_bsdf(
 	normal Normal = N,
 	output closure color BSDF = diffuse(Normal))
 {
-	if(Roughness == 0.0)
+	if (Roughness == 0.0)
 		BSDF = Color * diffuse(Normal);
 	else
 		BSDF = Color * oren_nayar(Normal, Roughness);

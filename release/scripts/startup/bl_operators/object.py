@@ -408,13 +408,13 @@ class ShapeTransfer(Operator):
                     n2loc_to = v2_to + target_normals[i2] * edlen_to
 
                     pt = barycentric_transform(orig_shape_coords[i1],
-                        v2, v1, n1loc,
-                        v2_to, v1_to, n1loc_to)
+                                               v2, v1, n1loc,
+                                               v2_to, v1_to, n1loc_to)
                     median_coords[i1].append(pt)
 
                     pt = barycentric_transform(orig_shape_coords[i2],
-                        v1, v2, n2loc,
-                        v1_to, v2_to, n2loc_to)
+                                               v1, v2, n2loc,
+                                               v1_to, v2_to, n2loc_to)
                     median_coords[i2].append(pt)
 
             # apply the offsets to the new shape
@@ -507,7 +507,7 @@ class JoinUVs(Operator):
                 if obj_other != obj and obj_other.type == 'MESH':
                     mesh_other = obj_other.data
                     if mesh_other != mesh:
-                        if mesh_other.tag == False:
+                        if mesh_other.tag is False:
                             mesh_other.tag = True
 
                             if len(mesh_other.loops) != nbr_loops:
@@ -520,7 +520,7 @@ class JoinUVs(Operator):
                                                len(mesh_other.polygons),
                                                nbr_loops,
                                                ),
-                                           )
+                                            )
                             else:
                                 uv_other = mesh_other.uv_layers.active
                                 if not uv_other:

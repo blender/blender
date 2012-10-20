@@ -169,8 +169,6 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
 	tracking->settings.default_minimum_correlation = 0.75;
 	tracking->settings.default_pattern_size = 11;
 	tracking->settings.default_search_size = 61;
-	tracking->settings.keyframe1 = 1;
-	tracking->settings.keyframe2 = 30;
 	tracking->settings.dist = 1;
 	tracking->settings.object_distance = 1;
 
@@ -633,7 +631,7 @@ void BKE_tracking_track_path_clear(MovieTrackingTrack *track, int ref_frame, int
 	}
 }
 
-void BKE_tracking_tracks_join(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
+void BKE_tracking_tracks_join(MovieTracking *tracking, MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
 	int i = 0, a = 0, b = 0, tot;
 	MovieTrackingMarker *markers;
@@ -736,6 +734,8 @@ void BKE_tracking_tracks_join(MovieTrackingTrack *dst_track, MovieTrackingTrack 
 	dst_track->markersnr = i;
 
 	MEM_freeN(markers);
+
+	BKE_tracking_dopesheet_tag_update(tracking);
 }
 
 MovieTrackingTrack *BKE_tracking_track_get_named(MovieTracking *tracking, MovieTrackingObject *object, const char *name)
@@ -1179,6 +1179,8 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
 	tracking->objectnr = BLI_countlist(&tracking->objects) - 1;
 
 	object->scale = 1.0f;
+	object->keyframe1 = 1;
+	object->keyframe2 = 30;
 
 	BKE_tracking_object_unique_name(tracking, object);
 
@@ -1494,7 +1496,8 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 			                                   ibuf->x, ibuf->y, overscan, ibuf->channels);
 		}
 
-		resibuf->userflags |= IB_RECT_INVALID;
+		if (ibuf->rect)
+			imb_freerectImBuf(ibuf);
 	}
 	else {
 		if (undistort) {
@@ -1512,9 +1515,8 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 	(void) overscan;
 	(void) undistort;
 
-	if (ibuf->rect_float) {
-		resibuf->userflags |= IB_RECT_INVALID;
-	}
+	if (ibuf->rect_float && ibuf->rect)
+		imb_freerectImBuf(ibuf);
 #endif
 
 	return resibuf;
@@ -2755,10 +2757,11 @@ static int reconstruct_refine_intrinsics_get_flags(MovieTracking *tracking, Movi
 	return flags;
 }
 
-static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking, ListBase *tracksbase)
+static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking, MovieTrackingObject *object)
 {
+	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 	int tot = 0;
-	int frame1 = tracking->settings.keyframe1, frame2 = tracking->settings.keyframe2;
+	int frame1 = object->keyframe1, frame2 = object->keyframe2;
 	MovieTrackingTrack *track;
 
 	track = tracksbase->first;
@@ -2779,13 +2782,11 @@ static int reconstruct_count_tracks_on_both_keyframes(MovieTracking *tracking, L
 int BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObject *object, char *error_msg, int error_size)
 {
 #ifdef WITH_LIBMV
-	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
-
 	if (tracking->settings.motion_flag & TRACKING_MOTION_MODAL) {
 		/* TODO: check for number of tracks? */
 		return TRUE;
 	}
-	else if (reconstruct_count_tracks_on_both_keyframes(tracking, tracksbase) < 8) {
+	else if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
 		BLI_strncpy(error_msg, "At least 8 common tracks on both of keyframes are needed for reconstruction",
 		            error_size);
 

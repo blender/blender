@@ -46,7 +46,7 @@ struct Lattice *BKE_lattice_add(const char *name);
 struct Lattice *BKE_lattice_copy(struct Lattice *lt);
 void BKE_lattice_free(struct Lattice *lt);
 void BKE_lattice_make_local(struct Lattice *lt);
-void calc_lat_fudu(int flag, int res, float *fu, float *du);
+void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
 void init_latt_deform(struct Object *oblatt, struct Object *ob);
 void calc_latt_deform(struct Object *, float co[3], float weight);

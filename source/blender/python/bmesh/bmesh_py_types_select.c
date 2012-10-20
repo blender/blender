@@ -387,7 +387,7 @@ void BPy_BM_init_types_select(void)
 	BPy_BMEditSelSeq_Type.tp_name  = "BMEditSelSeq";
 	BPy_BMEditSelIter_Type.tp_name = "BMEditSelIter";
 
-	BPy_BMEditSelSeq_Type.tp_doc   = NULL; // todo
+	BPy_BMEditSelSeq_Type.tp_doc   = NULL; /* todo */
 	BPy_BMEditSelIter_Type.tp_doc  = NULL;
 
 	BPy_BMEditSelSeq_Type.tp_repr  = (reprfunc)NULL;

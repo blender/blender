@@ -65,5 +65,4 @@ public:
 
 };
 
-#endif //__KX_ALWAYSSENSOR
-
+#endif  /* __SCA_DELAYSENSOR_H__ */

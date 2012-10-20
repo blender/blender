@@ -162,7 +162,10 @@ typedef struct MovieTrackingSettings {
 	short speed;            /* speed of tracking */
 
 	/* ** reconstruction settings ** */
-	int keyframe1, keyframe2;   /* two keyframes for reconstrution initialization */
+	int keyframe1 DNA_DEPRECATED,
+		keyframe2 DNA_DEPRECATED;   /* two keyframes for reconstrution initialization
+		                             * were moved to per-tracking object settings
+		                             */
 
 	/* which camera intrinsics to refine. uses on the REFINE_* flags */
 	short refine_camera_intrinsics, pad2;
@@ -220,6 +223,8 @@ typedef struct MovieTrackingObject {
 
 	ListBase tracks;        /* list of tracks use to tracking this object */
 	MovieTrackingReconstruction reconstruction; /* reconstruction data for this object */
+
+	int keyframe1, keyframe2;   /* two keyframes for reconstrution initialization */
 } MovieTrackingObject;
 
 typedef struct MovieTrackingStats {

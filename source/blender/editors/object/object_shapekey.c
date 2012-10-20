@@ -162,15 +162,15 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 	kb = BLI_findlink(&key->block, ob->shapenr - 1);
 
 	if (kb) {
-		int i1, i2;
-		float *fp1, *fp2;
-		float tvec[3];
 		char *tag_elem = MEM_callocN(sizeof(char) * kb->totelem, "shape_key_mirror");
 
 
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
 			MVert *mv;
+			int i1, i2;
+			float *fp1, *fp2;
+			float tvec[3];
 
 			mesh_octree_table(ob, NULL, NULL, 's');
 

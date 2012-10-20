@@ -20,6 +20,6 @@
 
 displacement node_output_displacement(float Displacement = 0.0)
 {
-	P += N*Displacement*0.1; /* todo: get rid of this factor */
+	P += N * Displacement * 0.1;  /* todo: get rid of this factor */
 }
 

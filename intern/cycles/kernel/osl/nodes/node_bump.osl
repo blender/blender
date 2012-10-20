@@ -18,7 +18,7 @@
 
 #include "stdosl.h"
 
-/* "Bump Mapping Unparametrized Surfaces on the GPU"
+/* "Bump Mapping Unparameterized Surfaces on the GPU"
  * Morten S. Mikkelsen, 2010 */
 
 surface node_bump(
@@ -37,10 +37,10 @@ surface node_bump(
 	vector Ry = cross(N, dPdx);
 
 	float det = dot(dPdx, Rx);
-	vector surfgrad = dx*Rx + dy*Ry;
+	vector surfgrad = dx * Rx + dy * Ry;
 
 	surfgrad *= 0.1; /* todo: remove this factor */
 	
-	Normal = normalize(abs(det)*N - sign(det)*surfgrad);
+	Normal = normalize(abs(det) * N - sign(det) * surfgrad);
 }
 

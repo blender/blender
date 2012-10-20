@@ -242,7 +242,7 @@ typedef struct ImBuf {
 	((unsigned long)(unsigned char)(ch1) << 8) | \
 	((unsigned long)(unsigned char)(ch2) << 16) | \
 	((unsigned long)(unsigned char)(ch3) << 24))
-#endif //MAKEFOURCC
+#endif  /* MAKEFOURCC */
 
 /*
  * FOURCC codes for DX compressed-texture pixel formats
@@ -255,7 +255,7 @@ typedef struct ImBuf {
 #define FOURCC_DXT4  (MAKEFOURCC('D','X','T','4'))
 #define FOURCC_DXT5  (MAKEFOURCC('D','X','T','5'))
 
-#endif // DDS
+#endif  /* DDS */
 extern const char *imb_ext_image[];
 extern const char *imb_ext_image_qt[];
 extern const char *imb_ext_movie[];

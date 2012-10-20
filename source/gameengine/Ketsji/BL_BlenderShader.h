@@ -101,4 +101,4 @@ public:
 #endif
 };
 
-#endif//__BL_BLENDERSHADER_H__
+#endif /* __BL_BLENDERSHADER_H__ */

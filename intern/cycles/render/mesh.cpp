@@ -19,6 +19,7 @@
 #include "bvh.h"
 #include "bvh_build.h"
 
+#include "camera.h"
 #include "device.h"
 #include "shader.h"
 #include "light.h"
@@ -722,10 +723,16 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update_attributes = false;
 
-	bool motion_blur = scene->need_motion() == Scene::MOTION_BLUR;
+	float shuttertime = scene->camera->shuttertime;
+#ifdef __OBJECT_MOTION__
+	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
+	bool motion_blur = need_motion == Scene::MOTION_BLUR;
+#else
+	bool motion_blur = false;
+#endif
 
 	foreach(Object *object, scene->objects)
-		object->compute_bounds(motion_blur);
+		object->compute_bounds(motion_blur, shuttertime);
 
 	if(progress.get_cancel()) return;
 

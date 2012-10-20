@@ -74,7 +74,7 @@ public:
 	/* --------------------------------------------------------------------- */
 	static PyObject *pyattr_get_constraint(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 private:
 	struct bConstraint*	m_constraint;

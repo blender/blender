@@ -50,5 +50,4 @@ public:
 
 };
 
-#endif //__SCA_XNORCONTROLLER_H__
-
+#endif  /* __SCA_XNORCONTROLLER_H__ */

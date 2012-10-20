@@ -25,6 +25,10 @@
 
 set(INC 
 	.
+	composite
+	intern
+	shader
+	texture
 	../blenfont
 	../blenkernel
 	../blenlib
@@ -39,10 +43,6 @@ set(INC
 
 set(INC_SYS
 	${GLEW_INCLUDE_PATH}
-	intern
-	composite
-	shader
-	texture
 )
 
 set(SRC
@@ -146,13 +146,14 @@ set(SRC
 	shader/nodes/node_shader_vectMath.c
 	shader/nodes/node_shader_attribute.c
 	shader/nodes/node_shader_background.c
-	# shader/nodes/node_shader_bsdf_anisotropic.c  # XXX, why not included?
+	shader/nodes/node_shader_bsdf_anisotropic.c
 	shader/nodes/node_shader_bsdf_diffuse.c
 	shader/nodes/node_shader_bsdf_glossy.c
 	shader/nodes/node_shader_bsdf_glass.c
 	shader/nodes/node_shader_bsdf_translucent.c
 	shader/nodes/node_shader_bsdf_transparent.c
 	shader/nodes/node_shader_bsdf_velvet.c
+	shader/nodes/node_shader_bump.c
 	shader/nodes/node_shader_emission.c
 	shader/nodes/node_shader_fresnel.c
 	shader/nodes/node_shader_layer_weight.c

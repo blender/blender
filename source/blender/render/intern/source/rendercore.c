@@ -59,6 +59,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
+#include "BKE_scene.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -93,7 +94,7 @@ extern struct Render R;
 
 /* x and y are current pixels in rect to be rendered */
 /* do not normalize! */
-void calc_view_vector(float *view, float x, float y)
+void calc_view_vector(float view[3], float x, float y)
 {
 
 	view[2]= -ABS(R.clipsta);
@@ -271,16 +272,26 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 		har= R.sortedhalos[a];
 
 		/* layer test, clip halo with y */
-		if ((har->lay & lay)==0);
-		else if (testrect.ymin > har->maxy);
-		else if (testrect.ymax < har->miny);
+		if ((har->lay & lay) == 0) {
+			/* pass */
+		}
+		else if (testrect.ymin > har->maxy) {
+			/* pass */
+		}
+		else if (testrect.ymax < har->miny) {
+			/* pass */
+		}
 		else {
 			
 			minx= floor(har->xs-har->rad);
 			maxx= ceil(har->xs+har->rad);
 			
-			if (testrect.xmin > maxx);
-			else if (testrect.xmax < minx);
+			if (testrect.xmin > maxx) {
+				/* pass */
+			}
+			else if (testrect.xmax < minx) {
+				/* pass */
+			}
 			else {
 				
 				minx= MAX2(minx, testrect.xmin);
@@ -980,7 +991,9 @@ static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 		float *rectf= rlpp[sample]->rectf;
 		
 		for (y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
-			if (rectf[3] >= 1.0f);
+			if (rectf[3] >= 1.0f) {
+				/* pass */
+			}
 			else if (rectf[3] > 0.0f) {
 				rectf[0] /= rectf[3];
 				rectf[1] /= rectf[3];
@@ -1833,16 +1846,23 @@ static void renderhalo_post(RenderResult *rr, float *rectf, HaloRen *har)	/* pos
 	har->miny= miny= haloys - har->rad/R.ycor;
 	har->maxy= maxy= haloys + har->rad/R.ycor;
 	
-	if (maxy<0);
-	else if (rr->recty<miny);
+	if (maxy < 0) {
+		/* pass */
+	}
+	else if (rr->recty < miny) {
+		/* pass */
+	}
 	else {
-		minx= floor(haloxs-har->rad);
-		maxx= ceil(haloxs+har->rad);
+		minx = floor(haloxs - har->rad);
+		maxx = ceil(haloxs + har->rad);
 			
-		if (maxx<0);
-		else if (rr->rectx<minx);
+		if (maxx < 0) {
+			/* pass */
+		}
+		else if (rr->rectx < minx) {
+			/* pass */
+		}
 		else {
-		
 			if (minx<0) minx= 0;
 			if (maxx>=rr->rectx) maxx= rr->rectx-1;
 			if (miny<0) miny= 0;
@@ -2099,7 +2119,9 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 
 			copy_v3_v3(nor, shi->vn);
 
-			if (R.r.bake_normal_space == R_BAKE_SPACE_CAMERA);
+			if (R.r.bake_normal_space == R_BAKE_SPACE_CAMERA) {
+				/* pass */
+			}
 			else if (R.r.bake_normal_space == R_BAKE_SPACE_TANGENT) {
 				float mat[3][3], imat[3][3];
 
@@ -2202,7 +2224,8 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			float rgb[3];
 
 			copy_v3_v3(rgb, shr.combined);
-			IMB_colormanagement_scene_linear_to_colorspace_v3(rgb, bs->rect_colorspace);
+			if (R.scene_color_manage)
+				IMB_colormanagement_scene_linear_to_colorspace_v3(rgb, bs->rect_colorspace);
 			rgb_float_to_uchar(col, rgb);
 		}
 		else {
@@ -2492,7 +2515,9 @@ static int get_next_bake_face(BakeShade *bs)
 						/* clear image */
 						if (R.r.bake_flag & R_BAKE_CLEAR)
 							IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
-					
+
+						ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
 					}				
@@ -2630,6 +2655,8 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	Image *ima;
 	int a, vdone = FALSE, use_mask = FALSE, result = BAKE_RESULT_OK;
 	
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(re->scene);
+	
 	/* initialize render global */
 	R= *re;
 	R.bakebuf= NULL;
@@ -2712,7 +2739,6 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 			RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, re->r.bake_filter);
 
 			ibuf->userflags |= IB_BITMAPDIRTY;
-			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
 		}
 	}
 	

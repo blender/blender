@@ -30,11 +30,11 @@
  */
 
 
-#ifndef __JOYSENSOR_H_
-#define __JOYSENSOR_H
+#ifndef __JOYSENSOR_H__
+#define __JOYSENSOR_H__
 
 #include "SCA_ISensor.h"
-#include "./Joystick/SCA_JoystickDefines.h"
+#include "Joystick/SCA_JoystickDefines.h"
 
 class SCA_JoystickSensor :public SCA_ISensor
 {
@@ -161,8 +161,8 @@ public:
 		return 0;
 	}
 	
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 };
 
-#endif
+#endif  /* __JOYSENSOR_H__ */

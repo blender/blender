@@ -458,7 +458,8 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 		distance = 2.0 * (double)( epsilon1 + epsilon2 + ALMOST_ZERO );
 #endif
 
-		if (distance <= (epsilon1 + epsilon2 + ALMOST_ZERO)) {
+		// distance -1 means no collision result
+		if (distance != -1.0f && (distance <= (epsilon1 + epsilon2 + ALMOST_ZERO))) {
 			normalize_v3_v3(collpair->normal, collpair->vector);
 
 			collpair->distance = distance;

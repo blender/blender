@@ -57,7 +57,7 @@ def CLIP_set_viewport_background(context, all_screens, clip, clip_user):
         space_v3d.show_background_images = True
 
     CLIP_spaces_walk(context, all_screens, 'VIEW_3D', 'VIEW_3D',
-                      set_background, clip, clip_user)
+                     set_background, clip, clip_user)
 
 
 def CLIP_camera_for_clip(context, clip):
@@ -329,7 +329,7 @@ object's movement caused by this constraint"""
 
         if not con:
             self.report({'ERROR'},
-                "Motion Tracking constraint to be converted not found")
+                        "Motion Tracking constraint to be converted not found")
 
             return {'CANCELLED'}
 
@@ -341,7 +341,7 @@ object's movement caused by this constraint"""
 
         if not clip:
             self.report({'ERROR'},
-                "Movie clip to use tracking data from isn't set")
+                        "Movie clip to use tracking data from isn't set")
 
             return {'CANCELLED'}
 
@@ -461,9 +461,9 @@ class CLIP_OT_setup_tracking_scene(Operator):
         scene.camera = camob
 
         camob.matrix_local = (Matrix.Translation((7.481, -6.508, 5.344)) *
-            Matrix.Rotation(0.815, 4, 'Z') *
-            Matrix.Rotation(0.011, 4, 'Y') *
-            Matrix.Rotation(1.109, 4, 'X'))
+                              Matrix.Rotation(0.815, 4, 'Z') *
+                              Matrix.Rotation(0.011, 4, 'Y') *
+                              Matrix.Rotation(1.109, 4, 'X'))
 
         return camob
 
@@ -629,7 +629,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         if need_stabilization:
             tree.links.new(distortion.outputs["Image"],
-                stabilize.inputs["Image"])
+                           stabilize.inputs["Image"])
             tree.links.new(stabilize.outputs["Image"], scale.inputs["Image"])
         else:
             tree.links.new(distortion.outputs["Image"], scale.inputs["Image"])

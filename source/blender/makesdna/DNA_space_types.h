@@ -618,7 +618,7 @@ enum FileSortTypeE {
 #define FILE_MAXFILE        256
 #define FILE_MAX            1024
 
-#define FILE_MAX_LIBEXTRA   (FILE_MAX + 32)
+#define FILE_MAX_LIBEXTRA   (FILE_MAX + MAX_ID_NAME)
 
 /* filesel types */
 #define FILE_UNIX           8

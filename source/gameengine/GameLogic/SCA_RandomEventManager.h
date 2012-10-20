@@ -51,5 +51,4 @@ public:
 #endif
 };
 
-#endif //__SCA_RANDOMEVENTMANAGER_H__
-
+#endif  /* __SCA_RANDOMEVENTMANAGER_H__ */

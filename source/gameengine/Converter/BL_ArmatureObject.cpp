@@ -105,7 +105,7 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 	for (; pchan; pchan=pchan->next, outpchan=outpchan->next)
 		BLI_ghash_insert(ghash, pchan, outpchan);
 
-	for (pchan=(bPoseChannel*)out->chanbase.first; pchan; pchan=(bPoseChannel*)pchan->next) {
+	for (pchan = (bPoseChannel*)out->chanbase.first; pchan; pchan = pchan->next) {
 		pchan->parent= (bPoseChannel*)BLI_ghash_lookup(ghash, pchan->parent);
 		pchan->child= (bPoseChannel*)BLI_ghash_lookup(ghash, pchan->child);
 
@@ -186,7 +186,10 @@ void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
 			if (schan->rotmode)
 				dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
 		}
-		for (dcon= (bConstraint*)dchan->constraints.first, scon= (bConstraint*)schan->constraints.first; dcon && scon; dcon= (bConstraint*)dcon->next, scon= (bConstraint*)scon->next) {
+		for (dcon= (bConstraint *)dchan->constraints.first, scon= (bConstraint *)schan->constraints.first;
+		     dcon && scon;
+		     dcon = dcon->next, scon = scon->next)
+		{
 			/* no 'add' option for constraint blending */
 			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
 		}
@@ -282,8 +285,8 @@ void BL_ArmatureObject::LoadConstraints(KX_BlenderSceneConverter* converter)
 	KX_GameObject* gamesubtarget;
 
 	// and locate the constraint
-	for (pchan = (bPoseChannel*)m_pose->chanbase.first; pchan; pchan=(bPoseChannel*)pchan->next) {
-		for (pcon = (bConstraint*)pchan->constraints.first; pcon; pcon=(bConstraint*)pcon->next) {
+	for (pchan = (bPoseChannel *)m_pose->chanbase.first; pchan; pchan = pchan->next) {
+		for (pcon = (bConstraint *)pchan->constraints.first; pcon; pcon = pcon->next) {
 			if (pcon->flag & CONSTRAINT_DISABLE)
 				continue;
 			// which constraint should we support?
@@ -315,7 +318,7 @@ void BL_ArmatureObject::LoadConstraints(KX_BlenderSceneConverter* converter)
 						}
 						if (target->next != NULL) {
 							// secondary target
-							target = (bConstraintTarget*)target->next;
+							target = target->next;
 							if (target->tar && target->tar != m_objArma) {
 								// only track external object
 								blendtarget = target->tar;

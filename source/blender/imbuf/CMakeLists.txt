@@ -25,7 +25,6 @@
 
 set(INC 
 	.
-	../avi
 	../blenkernel
 	../blenlib
 	../blenloader
@@ -141,6 +140,13 @@ if(WITH_IMAGE_REDCODE)
 		${REDCODE_INC}
 	)
 	add_definitions(-DWITH_REDCODE)
+endif()
+
+if(WITH_CODEC_AVI)
+	list(APPEND INC
+		../avi
+	)
+	add_definitions(-DWITH_AVI)
 endif()
 
 if(WITH_CODEC_QUICKTIME)

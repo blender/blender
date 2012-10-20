@@ -485,6 +485,8 @@ class ConstraintButtonsPanel():
         row.prop(con, "use_transform_limit")
         row.label()
 
+        self.space_template(layout, con)
+
     def STRETCH_TO(self, context, layout, con):
         self.target_template(layout, con)
 

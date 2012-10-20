@@ -1062,7 +1062,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 				}
 				else {
 					BKE_reportf(reports, RPT_ERROR,
-					            "registering operator class: '%s', invalid bl_idname '%s', at position %d",
+					            "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
 					            identifier, _operator_idname, i);
 					return NULL;
 				}
@@ -1071,7 +1071,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 			}
 
 			if (i > ((int)sizeof(dummyop.idname)) - 3) {
-				BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s', invalid bl_idname '%s', "
+				BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s', invalid bl_idname '%s', "
 				            "is too long, maximum length is %d", identifier, _operator_idname,
 				            (int)sizeof(dummyop.idname) - 3);
 				return NULL;
@@ -1079,7 +1079,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 
 			if (dot != 1) {
 				BKE_reportf(reports, RPT_ERROR,
-				            "registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
+				            "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
 				            identifier, _operator_idname);
 				return NULL;
 			}

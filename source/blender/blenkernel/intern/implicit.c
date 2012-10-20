@@ -857,23 +857,22 @@ DO_INLINE float fbderiv(float length, float L)
 
 DO_INLINE float fbstar(float length, float L, float kb, float cb)
 {
-	float tempfb = kb * fb(length, L);
-
-	float fbstar = cb * (length - L);
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
 	
-	if (tempfb < fbstar)
-		return fbstar;
+	if (tempfb_fl < fbstar_fl)
+		return fbstar_fl;
 	else
-		return tempfb;		
+		return tempfb_fl;
 }
 
 // function to calculae bending spring force (taken from Choi & Co)
 DO_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 {
-	float tempfb = kb * fb(length, L);
-	float fbstar = cb * (length - L);
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
 
-	if (tempfb < fbstar) {
+	if (tempfb_fl < fbstar_fl) {
 		return cb;
 	}
 	else {
@@ -1450,7 +1449,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
 		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
 		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
-		if (i < 0 || j < 0 || k < 0 || i > 10 || j >= 10 || k >= 10)
+		if (i < 0 || j < 0 || k < 0 || i >= 10 || j >= 10 || k >= 10)
 			continue;
 
 		grid[i][j][k].velocity[0] += lV[v][0];

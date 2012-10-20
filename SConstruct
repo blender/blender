@@ -366,6 +366,7 @@ else:
 
 # TODO, make optional
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
+env['CPPFLAGS'].append('-DWITH_AVI')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']

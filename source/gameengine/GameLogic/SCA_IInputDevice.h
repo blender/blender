@@ -320,5 +320,5 @@ public:
 #endif
 };
 
-#endif	//__SCA_IINPUTDEVICE_H__
+#endif	 /* __SCA_IINPUTDEVICE_H__ */
 

@@ -326,10 +326,13 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 		ntype->initfunc(ntree, node, ntemp);
 
 	/* initialize the node name with the node label.
-	 * note: do this after the initfunc so nodes get
-	 * their data set which may be used in naming
+	 * note: do this after the initfunc so nodes get their data set which may be used in naming
 	 * (node groups for example) */
-	BLI_strncpy(node->name, nodeLabel(node), NODE_MAXSTR);
+	/* XXX Do not use nodeLabel() here, it returns translated content, which should *only* be used
+	 *     in UI, *never* in data...
+	 *     This solution may be a bit rougher than nodeLabel()'s returned string, but it's simpler
+	 *     than adding a "no translate" flag to this func (and labelfunc() as well). */
+	BLI_strncpy(node->name, node->typeinfo->name, NODE_MAXSTR);
 	nodeUniqueName(ntree, node);
 	
 	ntree->update |= NTREE_UPDATE_NODES;
@@ -886,7 +889,7 @@ void ntreeClearPreview(bNodeTree *ntree)
 /* hack warning! this function is only used for shader previews, and 
  * since it gets called multiple times per pixel for Ztransp we only
  * add the color once. Preview gets cleared before it starts render though */
-void nodeAddToPreview(bNode *node, float col[4], int x, int y, int do_manage)
+void nodeAddToPreview(bNode *node, const float col[4], int x, int y, int do_manage)
 {
 	bNodePreview *preview = node->preview;
 	if (preview) {
@@ -1638,21 +1641,21 @@ int BKE_node_clipboard_get_type(void)
 /* ************** dependency stuff *********** */
 
 /* node is guaranteed to be not checked before */
-static int node_get_deplist_recurs(bNode *node, bNode ***nsort)
+static int node_get_deplist_recurs(bNodeTree *ntree, bNode *node, bNode ***nsort)
 {
 	bNode *fromnode;
-	bNodeSocket *sock;
+	bNodeLink *link;
 	int level = 0xFFF;
 	
 	node->done = TRUE;
 	
 	/* check linked nodes */
-	for (sock = node->inputs.first; sock; sock = sock->next) {
-		if (sock->link) {
-			fromnode = sock->link->fromnode;
+	for (link = ntree->links.first; link; link = link->next) {
+		if (link->tonode == node) {
+			fromnode = link->fromnode;
 			if (fromnode) {
 				if (fromnode->done == 0)
-					fromnode->level = node_get_deplist_recurs(fromnode, nsort);
+					fromnode->level = node_get_deplist_recurs(ntree, fromnode, nsort);
 				if (fromnode->level <= level)
 					level = fromnode->level - 1;
 			}
@@ -1662,7 +1665,7 @@ static int node_get_deplist_recurs(bNode *node, bNode ***nsort)
 	/* check parent node */
 	if (node->parent) {
 		if (node->parent->done == 0)
-			node->parent->level = node_get_deplist_recurs(node->parent, nsort);
+			node->parent->level = node_get_deplist_recurs(ntree, node->parent, nsort);
 		if (node->parent->level <= level)
 			level = node->parent->level - 1;
 	}
@@ -1696,7 +1699,7 @@ void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, in
 	/* recursive check */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->done == 0) {
-			node->level = node_get_deplist_recurs(node, &nsort);
+			node->level = node_get_deplist_recurs(ntree, node, &nsort);
 		}
 	}
 }
@@ -1714,7 +1717,7 @@ static void ntree_update_node_level(bNodeTree *ntree)
 	/* recursive check */
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->done == 0) {
-			node->level = node_get_deplist_recurs(node, NULL);
+			node->level = node_get_deplist_recurs(ntree, node, NULL);
 		}
 	}
 }
@@ -2243,8 +2246,10 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_layer_weight(ttype);
 	register_node_type_sh_tex_coord(ttype);
 	register_node_type_sh_particle_info(ttype);
+	register_node_type_sh_bump(ttype);
 
 	register_node_type_sh_background(ttype);
+	register_node_type_sh_bsdf_anisotropic(ttype);
 	register_node_type_sh_bsdf_diffuse(ttype);
 	register_node_type_sh_bsdf_glossy(ttype);
 	register_node_type_sh_bsdf_glass(ttype);

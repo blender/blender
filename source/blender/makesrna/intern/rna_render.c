@@ -160,7 +160,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 		return NULL;
 
 	if (strlen(identifier) >= sizeof(dummyet.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering render engine class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering render engine class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummyet.idname));
 		return NULL;
 	}
@@ -329,7 +329,6 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 	prop = RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't merge back results");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "test_break", "RE_engine_test_break");
 	prop = RNA_def_boolean(func, "do_break", 0, "Break", "");

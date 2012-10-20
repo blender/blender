@@ -32,9 +32,9 @@
 #ifndef __KX_BLENDERRENDERTOOLS_H__
 #define __KX_BLENDERRENDERTOOLS_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// don't show stl-warnings
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+   /* don't show stl-warnings */
+#  pragma warning (disable:4786)
 #endif
 
 #include "RAS_IRenderTools.h"
@@ -72,26 +72,26 @@ public:
 	void				ProcessLighting(RAS_IRasterizer *rasty, bool uselights, const MT_Transform& viewmat);
 
 	void				RenderText3D(int fontid,
-									 const char* text,
-									 int size,
-									 int dpi,
-									 float* color,
-									 double* mat,
-									 float aspect);
+	                                 const char* text,
+	                                 int size,
+	                                 int dpi,
+	                                 float* color,
+	                                 double* mat,
+	                                 float aspect);
 
 	void		RenderText2D(RAS_TEXT_RENDER_MODE mode,
-									 const char* text,
-									 int xco,
-									 int yco,
-									 int width,
-									 int height);
+	                         const char* text,
+	                         int xco,
+	                         int yco,
+	                         int width,
+	                         int height);
 	void				RenderText(int mode,
-								   class RAS_IPolyMaterial* polymat,
-								   float v1[3],
-								   float v2[3],
-								   float v3[3],
-								   float v4[3],
-								   int glattrib);
+	                               class RAS_IPolyMaterial* polymat,
+	                               float v1[3],
+	                               float v2[3],
+	                               float v3[3],
+	                               float v4[3],
+	                               int glattrib);
 
 	void				applyTransform(RAS_IRasterizer* rasty, double* oglmatrix, int objectdrawmode);
 	int					applyLights(int objectlayer, const MT_Transform& viewmat);
@@ -112,7 +112,4 @@ public:
 #endif
 };
 
-#endif //__KX_BLENDERRENDERTOOLS_H__
-
-
-
+#endif  /* __KX_BLENDERRENDERTOOLS_H__ */

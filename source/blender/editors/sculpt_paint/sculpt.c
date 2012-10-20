@@ -3536,8 +3536,6 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
 
-	int dx, dy;
-
 	/* RNA_float_get_array(ptr, "location", cache->traced_location); */
 
 	if (cache->first_time ||
@@ -3606,8 +3604,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	if (brush->flag & BRUSH_ANCHORED) {
 		int hit = 0;
 
-		dx = cache->mouse[0] - cache->initial_mouse[0];
-		dy = cache->mouse[1] - cache->initial_mouse[1];
+		const float dx = cache->mouse[0] - cache->initial_mouse[0];
+		const float dy = cache->mouse[1] - cache->initial_mouse[1];
 
 		sd->anchored_size = cache->pixel_radius = sqrt(dx * dx + dy * dy);
 
@@ -3617,8 +3615,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 			float halfway[2];
 			float out[3];
 
-			halfway[0] = (float)dx * 0.5f + cache->initial_mouse[0];
-			halfway[1] = (float)dy * 0.5f + cache->initial_mouse[1];
+			halfway[0] = dx * 0.5f + cache->initial_mouse[0];
+			halfway[1] = dy * 0.5f + cache->initial_mouse[1];
 
 			if (sculpt_stroke_get_location(C, out, halfway)) {
 				copy_v3_v3(sd->anchored_location, out);
@@ -3665,8 +3663,8 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	sculpt_update_brush_delta(sd, ob, brush);
 
 	if (brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
-		dx = cache->mouse[0] - cache->initial_mouse[0];
-		dy = cache->mouse[1] - cache->initial_mouse[1];
+		const float dx = cache->mouse[0] - cache->initial_mouse[0];
+		const float dy = cache->mouse[1] - cache->initial_mouse[1];
 
 		cache->vertex_rotation = -atan2f(dx, dy) * cache->bstrength;
 
@@ -3738,7 +3736,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
  * (This allows us to ignore the GL depth buffer)
  * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise
  */
-int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2])
+int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 {
 	ViewContext vc;
 	Object *ob;

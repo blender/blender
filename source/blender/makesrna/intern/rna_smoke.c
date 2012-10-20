@@ -65,14 +65,20 @@ static void rna_Smoke_dependency_update(Main *bmain, Scene *scene, PointerRNA *p
 	DAG_scene_sort(bmain, scene);
 }
 
+static void rna_Smoke_resetCache(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
+	if (settings->smd && settings->smd->domain)
+		settings->point_cache[0]->flag |= PTCACHE_OUTDATED;
+	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+}
+
 static void rna_Smoke_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
 
 	smokeModifier_reset(settings->smd);
-
-	if (settings->smd && settings->smd->domain)
-		settings->point_cache[0]->flag |= PTCACHE_OUTDATED;
+	rna_Smoke_resetCache(bmain, scene, ptr);
 
 	rna_Smoke_update(bmain, scene, ptr);
 }
@@ -140,6 +146,30 @@ static void rna_SmokeModifier_density_get(PointerRNA *ptr, float *values)
 	unsigned int size = settings->res[0] * settings->res[1] * settings->res[2];
 
 	memcpy(values, density, size * sizeof(float));
+}
+
+static void rna_SmokeFlow_density_vgroup_get(PointerRNA *ptr, char *value)
+{
+	SmokeFlowSettings *flow = (SmokeFlowSettings *)ptr->data;
+	rna_object_vgroup_name_index_get(ptr, value, flow->vgroup_density);
+}
+
+static int rna_SmokeFlow_density_vgroup_length(PointerRNA *ptr)
+{
+	SmokeFlowSettings *flow = (SmokeFlowSettings *)ptr->data;
+	return rna_object_vgroup_name_index_length(ptr, flow->vgroup_density);
+}
+
+static void rna_SmokeFlow_density_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	SmokeFlowSettings *flow = (SmokeFlowSettings *)ptr->data;
+	rna_object_vgroup_name_index_set(ptr, value, &flow->vgroup_density);
+}
+
+static void rna_SmokeFlow_uvlayer_set(PointerRNA *ptr, const char *value)
+{
+	SmokeFlowSettings *flow = (SmokeFlowSettings *)ptr->data;
+	rna_object_uvlayer_name_set(ptr, value, flow->uvlayer_name, sizeof(flow->uvlayer_name));
 }
 
 #else
@@ -217,7 +247,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Density",
 	                         "How much density affects smoke motion (higher value results in faster rising smoke)");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "beta", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "beta");
@@ -225,7 +255,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Heat",
 	                         "How much heat affects smoke motion (higher value results in faster rising smoke)");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "collision_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_group");
@@ -253,24 +283,24 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 10.0);
 	RNA_def_property_ui_range(prop, 0.0, 10.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Strength", "Strength of noise");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "diss_speed");
 	RNA_def_property_range(prop, 1.0, 10000.0);
 	RNA_def_property_ui_range(prop, 1.0, 10000.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Dissolve Speed", "Dissolve Speed");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "use_dissolve_smoke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE);
 	RNA_def_property_ui_text(prop, "Dissolve Smoke", "Enable smoke to disappear over time");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "use_dissolve_smoke_log", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE_LOG);
 	RNA_def_property_ui_text(prop, "Logarithmic dissolve", "Using 1/x ");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -297,21 +327,21 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "smooth_emitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGH_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth Emitter", "Smooth emitted smoke to avoid blockiness");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "time_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "time_scale");
 	RNA_def_property_range(prop, 0.2, 1.5);
 	RNA_def_property_ui_range(prop, 0.2, 1.5, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Time Scale", "Adjust simulation speed");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "vorticity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vorticity");
 	RNA_def_property_range(prop, 0.01, 4.0);
 	RNA_def_property_ui_range(prop, 0.01, 4.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Vorticity", "Amount of turbulence/rotation in fluid");
-	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_array(prop, 32);
@@ -321,31 +351,106 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_density_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Density", "Smoke density");
 
-	prop = RNA_def_property(srna, "cell_size", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "dx");
+	prop = RNA_def_property(srna, "cell_size", PROP_FLOAT, PROP_XYZ); /* can change each frame when using adaptive domain */
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "dx", "Cell Size");
+	RNA_def_property_ui_text(prop, "cell_size", "Cell Size");
 
-	prop = RNA_def_property(srna, "start_point", PROP_FLOAT, PROP_XYZ);
+	prop = RNA_def_property(srna, "start_point", PROP_FLOAT, PROP_XYZ); /* can change each frame when using adaptive domain */
 	RNA_def_property_float_sdna(prop, NULL, "p0");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "p0", "Start point");
 
-	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "scale");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "scale", "Domain scale factor");
-
-	prop = RNA_def_property(srna, "domain_resolution", PROP_INT, PROP_XYZ);
+	prop = RNA_def_property(srna, "domain_resolution", PROP_INT, PROP_XYZ); /* can change each frame when using adaptive domain */
 	RNA_def_property_int_sdna(prop, NULL, "res");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "res", "Smoke Grid Resolution");
+
+	prop = RNA_def_property(srna, "burning_rate", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.01, 4.0);
+	RNA_def_property_ui_range(prop, 0.01, 2.0, 1.0, 5);
+	RNA_def_property_ui_text(prop, "Speed", "Speed of the burning reaction. Use larger values for smaller flame");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
+
+	prop = RNA_def_property(srna, "flame_smoke", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 8.0);
+	RNA_def_property_ui_range(prop, 0.0, 4.0, 1.0, 5);
+	RNA_def_property_ui_text(prop, "Smoke", "Amount of smoke created by burning fuel");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
+
+	prop = RNA_def_property(srna, "flame_vorticity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 2.0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1.0, 5);
+	RNA_def_property_ui_text(prop, "Vorticity", "Additional vorticity for the flames");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
+
+	prop = RNA_def_property(srna, "flame_ignition", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.5, 5.0);
+	RNA_def_property_ui_range(prop, 0.5, 2.5, 1.0, 5);
+	RNA_def_property_ui_text(prop, "Ignition", "Minimum temperature of flames");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
+
+	prop = RNA_def_property(srna, "flame_max_temp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 1.0, 10.0);
+	RNA_def_property_ui_range(prop, 1.0, 5.0, 1.0, 5);
+	RNA_def_property_ui_text(prop, "Maximum", "Maximum temperature of flames");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
+
+	prop = RNA_def_property(srna, "flame_smoke_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Smoke Color", "Color of smoke emitted from burning fuel");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
+
+	prop = RNA_def_property(srna, "use_adaptive_domain", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_ADAPTIVE_DOMAIN);
+	RNA_def_property_ui_text(prop, "Adaptive Domain", "Adapt simulation resolution and size to fluid");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "additional_res", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "adapt_res");
+	RNA_def_property_range(prop, 0, 512);
+	RNA_def_property_ui_range(prop, 0, 512, 2, 0);
+	RNA_def_property_ui_text(prop, "Additional", "Maximum number of additional cells");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
+
+	prop = RNA_def_property(srna, "adapt_margin", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "adapt_margin");
+	RNA_def_property_range(prop, 2, 24);
+	RNA_def_property_ui_range(prop, 2, 24, 2, 0);
+	RNA_def_property_ui_text(prop, "Margin", "Margin added around fluid to minimize boundary interference");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
+
+	prop = RNA_def_property(srna, "adapt_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.01, 0.5);
+	RNA_def_property_ui_range(prop, 0.01, 0.5, 1.0, 5);
+	RNA_def_property_ui_text(prop, "Threshold", "Maximum amount of fluid cell can contain before it's considered empty");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	static EnumPropertyItem smoke_flow_types[] = {
+		{MOD_SMOKE_FLOW_TYPE_OUTFLOW, "OUTFLOW", 0, "Outflow", "Delete smoke from simulation"},
+		{MOD_SMOKE_FLOW_TYPE_SMOKE, "SMOKE", 0, "Smoke", "Add smoke"},
+		{MOD_SMOKE_FLOW_TYPE_SMOKEFIRE, "BOTH", 0, "Fire + Smoke", "Add fire and smoke"},
+		{MOD_SMOKE_FLOW_TYPE_FIRE, "FIRE", 0, "Fire", "Add fire"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem smoke_flow_sources[] = {
+		{MOD_SMOKE_FLOW_SOURCE_PARTICLES, "PARTICLES", ICON_PARTICLES, "Particle System", "Emit smoke from particles"},
+		{MOD_SMOKE_FLOW_SOURCE_MESH, "MESH", ICON_META_CUBE, "Mesh", "Emit smoke from mesh surface or volume"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem smoke_flow_texture_types[] = {
+		{MOD_SMOKE_FLOW_TEXTURE_MAP_AUTO, "AUTO", 0, "Generated", "Generated coordinates centered to flow object"},
+		{MOD_SMOKE_FLOW_TEXTURE_MAP_UV, "UV", 0, "UV", "Use UV layer for texture coordinates"},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "SmokeFlowSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Flow Settings", "Smoke flow settings");
@@ -354,9 +459,21 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "density");
-	RNA_def_property_range(prop, 0.001, 1);
-	RNA_def_property_ui_range(prop, 0.001, 1.0, 1.0, 4);
+	RNA_def_property_range(prop, 0.0, 1);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 1.0, 4);
 	RNA_def_property_ui_text(prop, "Density", "");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "smoke_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "color");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Smoke Color", "Color of smoke");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "fuel_amount", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 10);
+	RNA_def_property_ui_range(prop, 0.0, 5.0, 1.0, 4);
+	RNA_def_property_ui_text(prop, "Flame Rate", "");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "temperature", PROP_FLOAT, PROP_NONE);
@@ -373,9 +490,16 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object");
 	RNA_def_property_update(prop, 0, "rna_Smoke_reset_dependancy");
 
-	prop = RNA_def_property(srna, "use_outflow", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type", MOD_SMOKE_FLOW_TYPE_OUTFLOW);
-	RNA_def_property_ui_text(prop, "Outflow", "Delete smoke from simulation");
+	prop = RNA_def_property(srna, "smoke_flow_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, smoke_flow_types);
+	RNA_def_property_ui_text(prop, "Flow Type", "Change how flow affects the simulation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "smoke_flow_source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "source");
+	RNA_def_property_enum_items(prop, smoke_flow_sources);
+	RNA_def_property_ui_text(prop, "Source", "Change how smoke is emitted");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "use_absolute", PROP_BOOLEAN, PROP_NONE);
@@ -385,14 +509,82 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "initial_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_FLOW_INITVELOCITY);
-	RNA_def_property_ui_text(prop, "Initial Velocity", "Smoke inherits its velocity from the emitter particle");
+	RNA_def_property_ui_text(prop, "Initial Velocity", "Smoke has some initial velocity when it is emitted");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "velocity_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vel_multi");
 	RNA_def_property_range(prop, -2.0, 2.0);
 	RNA_def_property_ui_range(prop, -2.0, 2.0, 0.05, 5);
-	RNA_def_property_ui_text(prop, "Multiplier", "Multiplier to adjust velocity passed to smoke");
+	RNA_def_property_ui_text(prop, "Source", "Multiplier of source velocity passed to smoke");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "velocity_normal", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vel_normal");
+	RNA_def_property_range(prop, -2.0, 2.0);
+	RNA_def_property_ui_range(prop, -2.0, 2.0, 0.05, 5);
+	RNA_def_property_ui_text(prop, "Normal", "Amount of normal directional velocity");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "velocity_random", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vel_random");
+	RNA_def_property_range(prop, 0.0, 2.0);
+	RNA_def_property_ui_range(prop, 0.0, 2.0, 0.05, 5);
+	RNA_def_property_ui_text(prop, "Random", "Amount of random velocity");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "volume_density", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.05, 5);
+	RNA_def_property_ui_text(prop, "Volume", "Factor for smoke emitted from inside the mesh volume");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "surface_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.5, 10.0);
+	RNA_def_property_ui_range(prop, 0.5, 5.0, 0.05, 5);
+	RNA_def_property_ui_text(prop, "Surface", "Maximum distance from mesh surface to emit smoke");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "density_vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_SmokeFlow_density_vgroup_get",
+	                              "rna_SmokeFlow_density_vgroup_length",
+	                              "rna_SmokeFlow_density_vgroup_set");
+	RNA_def_property_ui_text(prop, "Vertex Group",
+	                         "Name of Vertex Group which determines surface emission rate");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "use_texture", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_FLOW_TEXTUREEMIT);
+	RNA_def_property_ui_text(prop, "Use Texture", "Use a texture to control emission strength");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "texture_map_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texture_type");
+	RNA_def_property_enum_items(prop, smoke_flow_texture_types);
+	RNA_def_property_ui_text(prop, "Mapping", "Texture mapping type");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
+	RNA_def_property_ui_text(prop, "UV Map", "UV map name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SmokeFlow_uvlayer_set");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "noise_texture", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Texture", "Texture that controls emission strength");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "texture_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.01, 10.0);
+	RNA_def_property_ui_range(prop, 0.1, 5.0, 0.05, 5);
+	RNA_def_property_ui_text(prop, "Size", "Size of texture mapping");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
+
+	prop = RNA_def_property(srna, "texture_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 200.0);
+	RNA_def_property_ui_range(prop, 0.0, 100.0, 0.05, 5);
+	RNA_def_property_ui_text(prop, "Offset", "Z-offset of texture mapping");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 }
 

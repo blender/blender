@@ -322,8 +322,8 @@ static int project_brush_radius(ViewContext *vc,
 	add_v3_v3v3(offset, location, ortho);
 
 	/* project the center of the brush, and the tangent point to the view onto the screen */
-	if ((ED_view3d_project_float_global(vc->ar, location, p1, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS) &&
-	    (ED_view3d_project_float_global(vc->ar, offset,   p2, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_SUCCESS))
+	if ((ED_view3d_project_float_global(vc->ar, location, p1, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
+	    (ED_view3d_project_float_global(vc->ar, offset,   p2, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
 	{
 		/* the distance between these points is the size of the projected brush in pixels */
 		return len_v2v2(p1, p2);
@@ -340,7 +340,6 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = paint_get_active_from_context(C);
-	Brush *brush = paint_brush(paint);
 	float window[2];
 	int hit;
 
@@ -350,6 +349,7 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 	if (vc->obact->sculpt && vc->obact->sculpt->pbvh &&
 	    sculpt_stroke_get_location(C, location, window))
 	{
+		Brush *brush = paint_brush(paint);
 		*pixel_radius =
 		    project_brush_radius(vc,
 		                         BKE_brush_unprojected_radius_get(scene, brush),

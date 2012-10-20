@@ -40,7 +40,7 @@
 #include "BLI_threads.h"
 #include "BLI_rand.h"
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
+#ifdef _MSC_VER
 typedef unsigned __int64 r_uint64;
 
 #define MULTIPLIER  0x5DEECE66Di64

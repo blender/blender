@@ -21,8 +21,8 @@
  *		Sergey Sharybin
  */
 
-#ifndef _COM_MaskNode_h_
-#define _COM_MaskNode_h_
+#ifndef __COM_MASKNODE_H__
+#define __COM_MASKNODE_H__
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -38,4 +38,4 @@ public:
 
 };
 
-#endif // _COM_MaskNode_h_
+#endif  /* __COM_MASKNODE_H__ */

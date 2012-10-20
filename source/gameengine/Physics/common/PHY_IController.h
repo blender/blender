@@ -60,5 +60,4 @@ class PHY_IController
 #endif
 };
 
-#endif //__PHY_ICONTROLLER_H__
-
+#endif  /* __PHY_ICONTROLLER_H__ */

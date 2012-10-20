@@ -199,7 +199,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter, liter;
 	BMOIter siter;
-	BMFace *f1, *f2;
+	BMFace *f;
 	BMLoop *l;
 	BMEdge *e;
 	BLI_array_declare(jedges);
@@ -213,15 +213,16 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	int i, totedge;
 
 	/* flag all edges of all input face */
-	BMO_ITER (f1, &siter, bm, op, "faces", BM_FACE) {
-		BMO_elem_flag_enable(bm, f1, FACE_INPUT);
-		BM_ITER_ELEM (l, &liter, f1, BM_LOOPS_OF_FACE) {
+	BMO_ITER (f, &siter, bm, op, "faces", BM_FACE) {
+		BMO_elem_flag_enable(bm, f, FACE_INPUT);
+		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
 		}
 	}
 
 	/* unflag edges that are invalid; e.g. aren't surrounded by triangle */
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		BMFace *f1, *f2;
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
@@ -300,6 +301,8 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	}
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+		BMFace *f1, *f2;
+
 		if (!BMO_elem_flag_test(bm, e, EDGE_CHOSEN))
 			continue;
 
@@ -310,6 +313,8 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+			BMFace *f1, *f2;
+
 			/* ok, this edge wasn't merged, check if it's
 			 * in a 2-tri-pair island, and if so merg */
 

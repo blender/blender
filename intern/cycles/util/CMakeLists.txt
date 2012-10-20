@@ -2,6 +2,7 @@
 set(INC
 	.
 )
+
 set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 	${OPENGL_INCLUDE_DIR}

@@ -154,7 +154,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of marker on frame", -1.0f, 1.0f);
 }
 
@@ -1343,7 +1343,6 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	Scene *scene = CTX_data_scene(C);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingSettings *settings = &clip->tracking.settings;
 	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 	int width, height;
 
@@ -1359,7 +1358,7 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	scj->user = sc->user;
 
 	scj->context = BKE_tracking_reconstruction_context_new(tracking, object,
-	                                                       settings->keyframe1, settings->keyframe2, width, height);
+	                                                       object->keyframe1, object->keyframe2, width, height);
 
 	tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
 
@@ -1401,7 +1400,7 @@ static void solve_camera_freejob(void *scv)
 	if (!solved)
 		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
 	else
-		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error %.3f", tracking->reconstruction.error);
+		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error: %.3f", tracking->reconstruction.error);
 
 	/* set currently solved clip as active for scene */
 	if (scene->clip)
@@ -2767,7 +2766,7 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 		next = track->next;
 
 		if (TRACK_VIEW_SELECTED(sc, track) && track != act_track) {
-			BKE_tracking_tracks_join(act_track, track);
+			BKE_tracking_tracks_join(tracking, act_track, track);
 
 			if (tracking->stabilization.rot_track == track)
 				tracking->stabilization.rot_track = act_track;
@@ -2859,14 +2858,14 @@ static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingSettings *settings = &tracking->settings;
+	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 	int keyframe = RNA_enum_get(op->ptr, "keyframe");
 	int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
 
 	if (keyframe == 0)
-		settings->keyframe1 = framenr;
+		object->keyframe1 = framenr;
 	else
-		settings->keyframe2 = framenr;
+		object->keyframe2 = framenr;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 

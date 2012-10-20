@@ -1741,6 +1741,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	char linenr[12];
 	int i, x, y, winx, linecount = 0, lineno = 0;
 	int wraplinecount = 0, wrap_skip = 0;
+	int margin_column_x;
 
 	if (st->lheight) st->viewlines = (int)ar->winy / st->lheight;
 	else st->viewlines = 0;
@@ -1845,10 +1846,14 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	if (st->flags & ST_SHOW_MARGIN) {
 		UI_ThemeColor(TH_HILITE);
 
-		glBegin(GL_LINES);
-		glVertex2i(x + st->cwidth * st->margin_column, 0);
-		glVertex2i(x + st->cwidth * st->margin_column, ar->winy - 2);
-		glEnd();
+		margin_column_x = x + st->cwidth * (st->margin_column - st->left);
+		
+		if (margin_column_x >= x) {
+			glBegin(GL_LINES);
+			glVertex2i(margin_column_x, 0);
+			glVertex2i(margin_column_x, ar->winy - 2);
+			glEnd();
+		}
 	}
 
 	/* draw other stuff */

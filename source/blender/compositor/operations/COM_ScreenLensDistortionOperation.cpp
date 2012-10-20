@@ -98,7 +98,7 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 			const float sd = 1.0f / (float)ds;
 
 			for (z = 0; z < ds; ++z) {
-				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
+				const float tz = (z + (jit ? BLI_frand() : 0.5f)) * sd;
 				t = 1.0f - (this->m_kr4 + tz * this->m_drg) * uv_dot;
 				d = 1.0f / (1.0f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
@@ -116,7 +116,7 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 			const float sd = 1.0f / (float)ds;
 
 			for (z = 0; z < ds; ++z) {
-				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
+				const float tz = (z + (jit ? BLI_frand() : 0.5f)) * sd;
 				t = 1.0f - (this->m_kg4 + tz * this->m_dgb) * uv_dot;
 				d = 1.0f / (1.0f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;

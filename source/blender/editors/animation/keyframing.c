@@ -43,6 +43,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
@@ -787,14 +789,15 @@ short insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *p
 	/* F-Curve not editable? */
 	if (fcurve_is_keyframable(fcu) == 0) {
 		BKE_reportf(reports, RPT_ERROR, 
-		            "F-Curve with path = '%s' [%d] cannot be keyframed. Ensure that it is not locked or sampled. Also, try removing F-Modifiers",
+		            "F-Curve with path = '%s' [%d] cannot be keyframed, ensure that it is not locked or sampled, "
+		            "and try removing F-Modifiers",
 		            fcu->rna_path, fcu->array_index);
 		return 0;
 	}
 	
 	/* if no property given yet, try to validate from F-Curve info */
 	if ((ptr.id.data == NULL) && (ptr.data == NULL)) {
-		BKE_report(reports, RPT_ERROR, "No RNA-pointer available to retrieve values for keyframing from");
+		BKE_report(reports, RPT_ERROR, "No RNA pointer available to retrieve values for keyframing from");
 		return 0;
 	}
 	if (prop == NULL) {
@@ -803,10 +806,10 @@ short insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *p
 		/* try to get property we should be affecting */
 		if ((RNA_path_resolve(&ptr, fcu->rna_path, &tmp_ptr, &prop) == 0) || (prop == NULL)) {
 			/* property not found... */
-			const char *idname = (ptr.id.data) ? ((ID *)ptr.id.data)->name : "<No ID-Pointer>";
+			const char *idname = (ptr.id.data) ? ((ID *)ptr.id.data)->name : TIP_("<No ID pointer>");
 			
 			BKE_reportf(reports, RPT_ERROR,
-			            "Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)",
+			            "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 			            idname, fcu->rna_path);
 			return 0;
 		}
@@ -906,15 +909,15 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	
 	/* validate pointer first - exit if failure */
 	if (id == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "No ID-block to insert keyframe in (Path = %s)", rna_path);
+		BKE_reportf(reports, RPT_ERROR, "No ID block to insert keyframe in (path = %s)", rna_path);
 		return 0;
 	}
 	
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "Could not insert keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)",
-		            (id) ? id->name : "<Missing ID-Block>", rna_path);
+		            "Could not insert keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
+		            (id) ? id->name : TIP_("<Missing ID block>"), rna_path);
 		return 0;
 	}
 	
@@ -927,7 +930,7 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 		
 		if (act == NULL) {
 			BKE_reportf(reports, RPT_ERROR, 
-			            "Could not insert keyframe, as this type does not support animation data (ID = %s, Path = %s)",
+			            "Could not insert keyframe, as this type does not support animation data (ID = %s, path = %s)",
 			            id->name, rna_path);
 			return 0;
 		}
@@ -997,14 +1000,16 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	
 	/* sanity checks */
 	if (ELEM(NULL, id, adt)) {
-		BKE_report(reports, RPT_ERROR, "No ID-Block and/Or AnimData to delete keyframe from");
+		BKE_report(reports, RPT_ERROR, "No ID block and/or AnimData to delete keyframe from");
 		return 0;
 	}
 	
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Could not delete keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", id->name, rna_path);
+		BKE_reportf(reports, RPT_ERROR,
+		            "Could not delete keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
+		            id->name, rna_path);
 		return 0;
 	}
 	
@@ -1023,7 +1028,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 			cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 		}
 		else {
-			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s\n", id->name);
+			BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s\n", id->name);
 			return 0;
 		}
 	}
@@ -1096,14 +1101,16 @@ static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const cha
 
 	/* sanity checks */
 	if (ELEM(NULL, id, adt)) {
-		BKE_report(reports, RPT_ERROR, "No ID-Block and/Or AnimData to delete keyframe from");
+		BKE_report(reports, RPT_ERROR, "No ID block and/or AnimData to delete keyframe from");
 		return 0;
 	}
 
 	/* validate pointer first - exit if failure */
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Could not clear keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)", id->name, rna_path);
+		BKE_reportf(reports, RPT_ERROR,
+		            "Could not clear keyframe, as RNA path is invalid for the given ID (ID = %s, path = %s)",
+		            id->name, rna_path);
 		return 0;
 	}
 
@@ -1119,7 +1126,7 @@ static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const cha
 			act = adt->action;
 		}
 		else {
-			BKE_reportf(reports, RPT_ERROR, "No Action to delete keyframes from for ID = %s\n", id->name);
+			BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s\n", id->name);
 			return 0;
 		}
 	}
@@ -1222,30 +1229,30 @@ static int insert_key_exec(bContext *C, wmOperator *op)
 		
 	/* report failures */
 	if (ks == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No active Keying Set");
+		BKE_report(op->reports, RPT_ERROR, "No active keying set");
 		return OPERATOR_CANCELLED;
 	}
 	
 	/* try to insert keyframes for the channels specified by KeyingSet */
 	success = ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 	if (G.debug & G_DEBUG)
-		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes\n", ks->name, success);
+		BKE_reportf(op->reports, RPT_INFO, "Keying set '%s' - successfully added %d keyframes\n", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success == MODIFYKEY_INVALID_CONTEXT) {
-		BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
+		BKE_report(op->reports, RPT_ERROR, "No suitable context info for active keying set");
 		return OPERATOR_CANCELLED;
 	}
 	else if (success) {
 		/* if the appropriate properties have been set, make a note that we've inserted something */
 		if (RNA_boolean_get(op->ptr, "confirm_success"))
-			BKE_reportf(op->reports, RPT_INFO, "Successfully added %d Keyframes for KeyingSet '%s'", success, ks->name);
+			BKE_reportf(op->reports, RPT_INFO, "Successfully added %d keyframes for keying set '%s'", success, ks->name);
 		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
 	else
-		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
+		BKE_report(op->reports, RPT_WARNING, "Keying set failed to insert any keyframes");
 	
 	/* send updates */
 	DAG_ids_flush_update(bmain, 0);
@@ -1389,19 +1396,19 @@ static int delete_key_exec(bContext *C, wmOperator *op)
 	
 	/* report failure or do updates? */
 	if (success == MODIFYKEY_INVALID_CONTEXT) {
-		BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
+		BKE_report(op->reports, RPT_ERROR, "No suitable context info for active keying set");
 		return OPERATOR_CANCELLED;
 	}
 	else if (success) {
 		/* if the appropriate properties have been set, make a note that we've inserted something */
 		if (RNA_boolean_get(op->ptr, "confirm_success"))
-			BKE_reportf(op->reports, RPT_INFO, "Successfully removed %d Keyframes for KeyingSet '%s'", success, ks->name);
+			BKE_reportf(op->reports, RPT_INFO, "Successfully removed %d keyframes for keying set '%s'", success, ks->name);
 		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
 	else
-		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
+		BKE_report(op->reports, RPT_WARNING, "Keying set failed to remove any keyframes");
 	
 	/* send updates */
 	DAG_ids_flush_update(bmain, 0);
@@ -1626,7 +1633,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 		else {
 			if (G.debug & G_DEBUG)
 				printf("Button Insert-Key: no path to property\n");
-			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead");
+			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property, try using a keying set instead");
 		}
 	}
 	else if (G.debug & G_DEBUG) {

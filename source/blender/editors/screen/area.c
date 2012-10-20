@@ -407,8 +407,12 @@ void region_scissor_winrct(ARegion *ar, rcti *winrct)
 		ar = ar->prev;
 		
 		if (BLI_rcti_isect(winrct, &ar->winrct, NULL)) {
-			if (ar->flag & RGN_FLAG_HIDDEN) ;
-			else if (ar->alignment & RGN_SPLIT_PREV) ;
+			if (ar->flag & RGN_FLAG_HIDDEN) {
+				/* pass */
+			}
+			else if (ar->alignment & RGN_SPLIT_PREV) {
+				/* pass */
+			}
 			else if (ar->alignment == RGN_OVERLAP_LEFT) {
 				winrct->xmin = ar->winrct.xmax + 1;
 			}
@@ -935,20 +939,25 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	
 	/* prefsize, for header we stick to exception */
 	prefsizex = ar->sizex ? ar->sizex : ar->type->prefsizex;
-	if (ar->regiontype == RGN_TYPE_HEADER)
+	if (ar->regiontype == RGN_TYPE_HEADER) {
 		prefsizey = ar->type->prefsizey;
+	}
 	else if (ar->regiontype == RGN_TYPE_UI && sa->spacetype == SPACE_FILE) {
 		prefsizey = UI_UNIT_Y * 2 + (UI_UNIT_Y / 2);
 	}
-	else
+	else {
 		prefsizey = ar->sizey ? ar->sizey : ar->type->prefsizey;
-	
-	/* hidden is user flag */
-	if (ar->flag & RGN_FLAG_HIDDEN) ;
-	/* XXX floating area region, not handled yet here */
-	else if (alignment == RGN_ALIGN_FLOAT) ;
-	/* remainder is too small for any usage */
+	}
+
+
+	if (ar->flag & RGN_FLAG_HIDDEN) {
+		/* hidden is user flag */
+	}
+	else if (alignment == RGN_ALIGN_FLOAT) {
+		/* XXX floating area region, not handled yet here */
+	}
 	else if (rct_fits(remainder, 'v', 1) < 0 || rct_fits(remainder, 'h', 1) < 0) {
+		/* remainder is too small for any usage */
 		ar->flag |= RGN_FLAG_TOO_SMALL;
 	}
 	else if (alignment == RGN_ALIGN_NONE) {
@@ -1517,7 +1526,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	but = uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 	                        editortype_pup(), xco, yco, UI_UNIT_X + 10, UI_UNIT_Y,
 	                        &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0,
-	                        TIP_("Display current editor type (click for menu of available types)"));
+	                        TIP_("Display current editor type (click for a menu of available types)"));
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	

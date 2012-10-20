@@ -59,7 +59,7 @@ public:
 
 	void tag_update(Scene *scene);
 
-	void compute_bounds(bool motion_blur);
+	void compute_bounds(bool motion_blur, float shuttertime);
 	void apply_transform();
 };
 

@@ -38,5 +38,4 @@ void BL_ConvertProperties(struct Object* object,
                           class SCA_IScene* scene,
                           bool isInActiveLayer);
 
-#endif //__KX_CONVERTPROPERTIES_H__
-
+#endif  /* __KX_CONVERTPROPERTIES_H__ */

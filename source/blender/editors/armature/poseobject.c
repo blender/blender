@@ -105,7 +105,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	Object *ob = base->object;
 	
 	if (ob->id.lib) {
-		BKE_report(reports, RPT_WARNING, "Can't pose libdata");
+		BKE_report(reports, RPT_WARNING, "Cannot pose libdata");
 		return;
 	}
 	
@@ -1236,7 +1236,7 @@ static int pose_copy_exec(bContext *C, wmOperator *op)
 	
 	/* sanity checking */
 	if (ELEM(NULL, ob, ob->pose)) {
-		BKE_report(op->reports, RPT_ERROR, "No Pose to Copy");
+		BKE_report(op->reports, RPT_ERROR, "No pose to copy");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1399,7 +1399,7 @@ void POSE_OT_group_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove Bone Group";
 	ot->idname = "POSE_OT_group_remove";
-	ot->description = "Removes the active bone group";
+	ot->description = "Remove the active bone group";
 	
 	/* api callbacks */
 	ot->exec = pose_group_remove_exec;
@@ -1511,7 +1511,7 @@ void POSE_OT_group_assign(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "type", 0, 0, 10, "Bone Group Index", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "type", 0, 0, INT_MAX, "Bone Group Index", "", 0, 10);
 }
 
 

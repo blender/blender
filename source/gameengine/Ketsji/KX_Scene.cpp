@@ -31,9 +31,9 @@
  */
 
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 #include "KX_Scene.h"
 #include "KX_PythonInit.h"
@@ -769,6 +769,13 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 		// we can now add the graphic controller to the physic engine
 		replica->ActivateGraphicController(true);
 
+		// set references for dupli-group
+		// groupobj holds a list of all objects, that belongs to this group
+		groupobj->AddInstanceObjects(replica);
+
+		// every object gets the reference to its dupli-group object
+		replica->SetDupliGroupObject(groupobj);
+
 		// done with replica
 		replica->Release();
 	}
@@ -1017,6 +1024,20 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 			m_timemgr->RemoveTimeProperty(propval);
 		}
 	}
+
+	// if the object is the dupligroup proxy, you have to cleanup all m_pDupliGroupObject's in all
+	// instances refering to this group
+	if(newobj->GetInstanceObjects()) {
+		for (int i = 0; i < newobj->GetInstanceObjects()->GetCount(); i++) {
+			KX_GameObject* instance = (KX_GameObject*)newobj->GetInstanceObjects()->GetValue(i);
+			instance->RemoveDupliGroupObject();
+		}
+	}
+
+	// if this object was part of a group, make sure to remove it from that group's instance list
+	KX_GameObject* group = newobj->GetDupliGroupObject();
+	if (group)
+		group->RemoveInstanceObject(newobj);
 	
 	newobj->RemoveMeshes();
 	ret = 1;
@@ -1233,9 +1254,9 @@ KX_FontObject* KX_Scene::FindFont(KX_FontObject* font)
 {
 	list<KX_FontObject*>::iterator it = m_fonts.begin();
 
-	while ( (it != m_fonts.end()) 
-			&& ((*it) != font) ) {
-	  ++it;
+	while ((it != m_fonts.end()) && ((*it) != font))
+	{
+		++it;
 	}
 
 	return ((it == m_fonts.end()) ? NULL : (*it));
@@ -1247,9 +1268,7 @@ KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)
 {
 	list<KX_Camera*>::iterator it = m_cameras.begin();
 
-	while ( (it != m_cameras.end())
-	        && ((*it) != cam) )
-	{
+	while ((it != m_cameras.end()) && ((*it) != cam)) {
 		it++;
 	}
 
@@ -1261,9 +1280,7 @@ KX_Camera* KX_Scene::FindCamera(STR_String& name)
 {
 	list<KX_Camera*>::iterator it = m_cameras.begin();
 
-	while ( (it != m_cameras.end())
-	        && ((*it)->GetName() != name) )
-	{
+	while ((it != m_cameras.end()) && ((*it)->GetName() != name)) {
 		it++;
 	}
 
@@ -1481,7 +1498,15 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 		planes[4].setValue(cplanes[2].getValue());	// top
 		planes[5].setValue(cplanes[3].getValue());	// bottom
 		CullingInfo info(layer);
-		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res);
+
+		double mvmat[16] = {0};
+		cam->GetModelviewMatrix().getValue(mvmat);
+		double pmat[16] = {0};
+		cam->GetProjectionMatrix().getValue(pmat);
+
+		dbvt_culling = m_physicsEnvironment->cullingTest(PhysicsCullingCallback,&info,planes,5,m_dbvt_occlusion_res,
+		                                                 KX_GetActiveEngine()->GetCanvas()->GetViewPort(),
+		                                                 mvmat, pmat);
 	}
 	if (!dbvt_culling) {
 		// the physics engine couldn't help us, do it the hard way
@@ -1610,8 +1635,8 @@ RAS_MaterialBucket* KX_Scene::FindBucket(class RAS_IPolyMaterial* polymat, bool 
 
 
 void KX_Scene::RenderBuckets(const MT_Transform & cameratransform,
-							 class RAS_IRasterizer* rasty,
-							 class RAS_IRenderTools* rendertools)
+                             class RAS_IRasterizer* rasty,
+                             class RAS_IRenderTools* rendertools)
 {
 	m_bucketmanager->Renderbuckets(cameratransform,rasty,rendertools);
 	KX_BlenderMaterial::EndFrame();

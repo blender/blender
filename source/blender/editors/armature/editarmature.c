@@ -654,17 +654,19 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	if (ob->type != OB_ARMATURE)
 		return OPERATOR_CANCELLED;
 	if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); //error_libdata();
+		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); /* error_libdata(); */
 		return OPERATOR_CANCELLED;
 	}
 
 	/* helpful warnings... */
 	/* TODO: add warnings to be careful about actions, applying deforms first, etc. */
 	if (ob->adt && ob->adt->action)
-		BKE_report(op->reports, RPT_WARNING, "Actions on this armature will be destroyed by this new rest pose as the transforms stored are relative to the old rest pose");
+		BKE_report(op->reports, RPT_WARNING,
+		           "Actions on this armature will be destroyed by this new rest pose as the "
+		           "transforms stored are relative to the old rest pose");
 
 	/* Get editbones of active armature to alter */
-	ED_armature_to_edit(ob);	
+	ED_armature_to_edit(ob);
 	
 	/* get pose of active object and move it out of posemode */
 	pose = ob->pose;
@@ -1591,7 +1593,8 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
-static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2], ListBase *edbo, int findunsel, int *selmask)
+static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
+                                           ListBase *edbo, int findunsel, int *selmask)
 {
 	EditBone *ebone;
 	rcti rect;
@@ -2096,7 +2099,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			}
 
 			sub_v3_v3v3(nor, ebone->tail, ebone->head);
-			vec_roll_to_mat3(nor, ebone->roll, mat);			
+			vec_roll_to_mat3(nor, ebone->roll, mat);
 			copy_v3_v3(vec, mat[2]);
 		}
 		else { /* Axis */
@@ -2556,7 +2559,8 @@ void updateDuplicateSubtarget(EditBone *dupBone, ListBase *editbones, Object *ob
 }
 
 
-EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase *editbones, Object *src_ob, Object *dst_ob)
+EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase *editbones,
+                                   Object *src_ob, Object *dst_ob)
 {
 	EditBone *eBone = MEM_mallocN(sizeof(EditBone), "addup_editbone");
 	
@@ -2965,7 +2969,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		// FIXME.. figure out a method for multiple bones
+		/* FIXME.. figure out a method for multiple bones */
 		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d\n", count);
 		BLI_freelistN(&points);
 		return OPERATOR_CANCELLED;
@@ -3036,7 +3040,8 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	newbone->parent = start->parent;
 
 	/* TODO, copy more things to the new bone */
-	newbone->flag = start->flag & (BONE_HINGE | BONE_NO_DEFORM | BONE_NO_SCALE | BONE_NO_CYCLICOFFSET | BONE_NO_LOCAL_LOCATION | BONE_DONE);
+	newbone->flag = start->flag & (BONE_HINGE | BONE_NO_DEFORM | BONE_NO_SCALE |
+	                               BONE_NO_CYCLICOFFSET | BONE_NO_LOCAL_LOCATION | BONE_DONE);
 	
 	/* step 2a: reparent any side chains which may be parented to any bone in the chain of bones to merge 
 	 *	- potentially several tips for side chains leading to some tree exist...
@@ -3357,12 +3362,17 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 		if (EBONE_VISIBLE(arm, ebone)) {
 			/* we extrude per definition the tip */
 			do_extrude = FALSE;
-			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED))
+			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED)) {
 				do_extrude = TRUE;
+			}
 			else if (ebone->flag & BONE_ROOTSEL) {
 				/* but, a bone with parent deselected we do the root... */
-				if (ebone->parent && (ebone->parent->flag & BONE_TIPSEL)) ;
-				else do_extrude = 2;
+				if (ebone->parent && (ebone->parent->flag & BONE_TIPSEL)) {
+					/* pass */
+				}
+				else {
+					do_extrude = 2;
+				}
 			}
 			
 			if (do_extrude) {
@@ -3813,7 +3823,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	
 	/* there must be an active bone */
 	if (actbone == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
 		return OPERATOR_CANCELLED;
 	}
 	else if (arm->flag & ARM_MIRROR_EDIT) {
@@ -4207,7 +4217,7 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 
 	/* Check for active bone */
 	if (ebone_act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -4399,7 +4409,7 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 	
 	/* there must be an active bone */
 	if (actbone == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Bone");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
 		return OPERATOR_CANCELLED;
 	}
 	else if (arm->flag & ARM_MIRROR_EDIT) {
@@ -4476,7 +4486,8 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 
 /* ***************** Pose tools ********************* */
 
-// XXX bone_looper is only to be used when we want to access settings (i.e. editability/visibility/selected) that context doesn't offer 
+/* XXX bone_looper is only to be used when we want to access settings
+ * (i.e. editability/visibility/selected) that context doesn't offer */
 static int bone_looper(Object *ob, Bone *bone, void *data,
                        int (*bone_func)(Object *, Bone *, void *))
 {
@@ -4506,7 +4517,8 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
-int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend, short deselect, short toggle)
+int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits,
+                            short extend, short deselect, short toggle)
 {
 	Object *ob = base->object;
 	Bone *nearBone;
@@ -4752,7 +4764,9 @@ static void add_vgroups__mapFunc(void *userData, int index, const float co[3],
 	copy_v3_v3(verts[index], co);
 }
 
-static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected, float scale)
+static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist,
+                                    bDeformGroup **dgrouplist, bDeformGroup **dgroupflip,
+                                    float (*root)[3], float (*tip)[3], int *selected, float scale)
 {
 	/* Create vertex group weights from envelopes */
 
@@ -5138,7 +5152,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	
 	/* sanity checks */
 	if (ELEM(NULL, clear_func, default_ksName)) {
-		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform func or Keying Set Name");
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or keying set name");
 		return OPERATOR_CANCELLED;
 	}
 	

@@ -20,10 +20,9 @@
 import bpy
 from bpy.types import Panel
 
-from bl_ui.properties_physics_common import (
-    point_cache_ui,
-    effector_weights_ui,
-    )
+from bl_ui.properties_physics_common import (point_cache_ui,
+                                             effector_weights_ui,
+                                             )
 
 
 class PhysicButtonsPanel():
@@ -350,7 +349,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
 
             col = layout.column()
             col.active = surface.use_drip
-            effector_weights_ui(self, context, surface.effector_weights)
+            effector_weights_ui(self, context, surface.effector_weights, 'DYNAMIC_PAINT')
 
             layout.label(text="Surface Movement:")
             row = layout.row()

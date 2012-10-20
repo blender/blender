@@ -25,7 +25,6 @@
 
 set(INC
 	.
-	../avi
 	../blenfont
 	../blenlib
 	../blenloader
@@ -196,8 +195,8 @@ set(SRC
 	BKE_lattice.h
 	BKE_library.h
 	BKE_linestyle.h
-	BKE_mask.h
 	BKE_main.h
+	BKE_mask.h
 	BKE_material.h
 	BKE_mball.h
 	BKE_mesh.h
@@ -252,7 +251,7 @@ if(WITH_AUDASPACE)
 endif()
 
 if(WITH_BULLET)
-	list(APPEND INC
+	list(APPEND INC_SYS
 		../../../extern/bullet2/src
 	)
 	add_definitions(-DUSE_BULLET)
@@ -292,6 +291,13 @@ endif()
 
 if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
+endif()
+
+if(WITH_CODEC_AVI)
+	list(APPEND INC
+		../avi
+	)
+	add_definitions(-DWITH_AVI)
 endif()
 
 if(WITH_CODEC_QUICKTIME)

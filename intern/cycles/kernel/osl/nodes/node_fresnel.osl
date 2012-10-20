@@ -25,7 +25,7 @@ shader node_fresnel(
 	output float Fac = 0.0)
 {
 	float f = max(IOR, 1.0 + 1e-5);
-	float eta = backfacing()? 1.0/f: f;
+	float eta = backfacing() ? 1.0 / f: f;
 	Fac = fresnel_dielectric(I, Normal, eta);
 }
 

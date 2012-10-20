@@ -200,4 +200,4 @@ void mem_read(Stream & mem, DDSCaps & caps);
 void mem_read(Stream & mem, DDSHeader & header);
 void mem_read(Stream & mem, DDSHeader10 & header);
 
-#endif // __DIRECTDRAWSURFACE_H__
+#endif  /* __DIRECTDRAWSURFACE_H__ */

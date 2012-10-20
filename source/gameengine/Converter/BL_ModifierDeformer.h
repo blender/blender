@@ -32,9 +32,9 @@
 #ifndef __BL_MODIFIERDEFORMER_H__
 #define __BL_MODIFIERDEFORMER_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)  /* get rid of stupid stl-visual compiler debug warning */
+#endif
 
 #include "BL_ShapeDeformer.h"
 #include "BL_DeformableGameObject.h"
@@ -51,33 +51,34 @@ public:
 
 
 	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
-						Scene *scene,
-						Object *bmeshobj,
-						RAS_MeshObject *mesh)
-						:
-						BL_ShapeDeformer(gameobj,bmeshobj, mesh),
-						m_lastModifierUpdate(-1),
-						m_scene(scene),
-						m_dm(NULL)
+	                    Scene *scene,
+	                    Object *bmeshobj,
+	                    RAS_MeshObject *mesh)
+	                    :
+	                    BL_ShapeDeformer(gameobj,bmeshobj, mesh),
+	                    m_lastModifierUpdate(-1),
+	                    m_scene(scene),
+	                    m_dm(NULL)
 	{
 		m_recalcNormal = false;
-	};
+	}
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
 	BL_ModifierDeformer(BL_DeformableGameObject *gameobj,
-						struct Scene *scene,
-						struct Object *bmeshobj_old,
-						struct Object *bmeshobj_new,
-						class RAS_MeshObject *mesh,
-						bool release_object,
-						BL_ArmatureObject* arma = NULL)
-						:
-						BL_ShapeDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, false, arma),
-						m_lastModifierUpdate(-1),
-						m_scene(scene),
-						m_dm(NULL)
+	                    struct Scene *scene,
+	                    struct Object *bmeshobj_old,
+	                    struct Object *bmeshobj_new,
+	                    class RAS_MeshObject *mesh,
+	                    bool release_object,
+	                    BL_ArmatureObject* arma = NULL)
+	                    :
+	                    BL_ShapeDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, false, arma),
+	                    m_lastModifierUpdate(-1),
+	                    m_scene(scene),
+	                    m_dm(NULL)
 	{
-	};
+		/* pass */
+	}
 
 	virtual void ProcessReplica();
 	virtual RAS_Deformer *GetReplica();
@@ -111,5 +112,4 @@ protected:
 #endif
 };
 
-#endif
-
+#endif  /* __BL_MODIFIERDEFORMER_H__ */

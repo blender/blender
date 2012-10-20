@@ -92,18 +92,10 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res, int zBegin, int zEnd)
 			// left slab
 			index = y * res[0] + z * slabSize;
 			field[index] = field[index + 2];
-			/* only allow outwards flux */
-			if(field[index]>0.) field[index] = 0.;
-			index += 1;
-			if(field[index]>0.) field[index] = 0.;
 
 			// right slab
 			index = y * res[0] + z * slabSize + res[0] - 1;
 			field[index] = field[index - 2];
-			/* only allow outwards flux */
-			if(field[index]<0.) field[index] = 0.;
-			index -= 1;
-			if(field[index]<0.) field[index] = 0.;
 		}
  }
 
@@ -120,18 +112,10 @@ void FLUID_3D::setNeumannY(float* field, Vec3Int res, int zBegin, int zEnd)
 			// front slab
 			index = x + z * slabSize;
 			field[index] = field[index + 2 * res[0]];
-			/* only allow outwards flux */
-			if(field[index]>0.) field[index] = 0.;
-			index += res[0];
-			if(field[index]>0.) field[index] = 0.;
 
 			// back slab
 			index = x + z * slabSize + slabSize - res[0];
 			field[index] = field[index - 2 * res[0]];
-			/* only allow outwards flux */
-			if(field[index]<0.) field[index] = 0.;
-			index -= res[0];
-			if(field[index]<0.) field[index] = 0.;
 		}
 }
 
@@ -152,14 +136,6 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res, int zBegin, int zEnd)
 				// front slab
 				index = x + y * res[0];
 				field[index] = field[index + 2 * slabSize];
-				/* only allow outwards flux */
-
-				// DG: Disable this for z-axis.
-				// The problem is that smoke somehow gets sucked in again
-				// from the TOP slab when this is enabled
-				// if(field[index]>0.) field[index] = 0.;
-				// index += slabSize;
-				// if(field[index]>0.) field[index] = 0.;
 			}
 	}
 
@@ -170,10 +146,6 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res, int zBegin, int zEnd)
 				// back slab
 				index = x + y * res[0] + cellsslab;
 				field[index] = field[index - 2 * slabSize];
-				/* only allow outwards flux */
-				if(field[index]<0.) field[index] = 0.;
-				index -= slabSize;
-				if(field[index]<0.) field[index] = 0.;
 			}
 	}
 		

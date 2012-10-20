@@ -359,7 +359,7 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 
 void RAS_OpenGLRasterizer::FlushDebugShapes()
 {
-	if (!m_debugShapes.size())
+	if (m_debugShapes.empty())
 		return;
 
 	// DrawDebugLines

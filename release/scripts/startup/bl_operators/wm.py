@@ -608,9 +608,9 @@ class WM_OT_context_collection_boolean_set(Operator):
             except:
                 continue
 
-            if value_orig == True:
+            if value_orig is True:
                 is_set = True
-            elif value_orig == False:
+            elif value_orig is False:
                 pass
             else:
                 self.report({'WARNING'}, "Non boolean value found: %s[ ].%s" %
@@ -1583,7 +1583,7 @@ class WM_OT_addon_enable(Operator):
                                           "version %d.%d.%d and might not "
                                           "function (correctly), "
                                           "though it is enabled") %
-                                         info_ver)
+                                          info_ver)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
@@ -1668,7 +1668,7 @@ class WM_OT_theme_install(Operator):
 class WM_OT_addon_install(Operator):
     "Install an addon"
     bl_idname = "wm.addon_install"
-    bl_label = "Install Addon..."
+    bl_label = "Install from File..."
 
     overwrite = BoolProperty(
             name="Overwrite",
@@ -1773,12 +1773,6 @@ class WM_OT_addon_install(Operator):
 
             try:  # extract the file to "addons"
                 file_to_extract.extractall(path_addons)
-
-                # zip files can create this dir with metadata, don't need it
-                macosx_dir = os.path.join(path_addons, '__MACOSX')
-                if os.path.isdir(macosx_dir):
-                    shutil.rmtree(macosx_dir)
-
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -1822,8 +1816,11 @@ class WM_OT_addon_install(Operator):
         # in case a new module path was created to install this addon.
         bpy.utils.refresh_script_paths()
 
-        # TODO, should not be a warning.
-        #~ self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
+        # print message
+        msg = "Modules Installed from %r into %r (%s)" % (pyfile, path_addons, ", ".join(sorted(addons_new)))
+        print(msg)
+        self.report({'INFO'}, msg)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
