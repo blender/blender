@@ -30,60 +30,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_REFLECTION_H__
-#define __BSDF_REFLECTION_H__
+#ifndef __BSDF_TRANSPARENT_H__
+#define __BSDF_TRANSPARENT_H__
 
 CCL_NAMESPACE_BEGIN
 
-/* REFLECTION */
-
-__device void bsdf_reflection_setup(ShaderData *sd, ShaderClosure *sc)
+__device int bsdf_transparent_setup(ShaderClosure *sc)
 {
-	sc->type = CLOSURE_BSDF_REFLECTION_ID;
-	sd->flag |= SD_BSDF;
+	sc->type = CLOSURE_BSDF_TRANSPARENT_ID;
+	return SD_BSDF;
 }
 
-__device void bsdf_reflection_blur(ShaderClosure *sc, float roughness)
+__device void bsdf_transparent_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_reflection_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_transparent_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float3 bsdf_reflection_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_transparent_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_reflection_albedo(const ShaderClosure *sc, const float3 I)
+__device int bsdf_transparent_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	return 1.0f;
-}
-
-__device int bsdf_reflection_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
-{
-	//const BsdfReflectionClosure *self = (const BsdfReflectionClosure*)sc->data;
-	float3 N = sc->N;
-
 	// only one direction is possible
-	float cosNO = dot(N, I);
-	if(cosNO > 0) {
-		*omega_in = (2 * cosNO) * N - I;
-		if(dot(Ng, *omega_in) > 0) {
+	*omega_in = -I;
 #ifdef __RAY_DIFFERENTIALS__
-			*domega_in_dx = 2 * dot(N, dIdx) * N - dIdx;
-			*domega_in_dy = 2 * dot(N, dIdy) * N - dIdy;
+	*domega_in_dx = -dIdx;
+	*domega_in_dy = -dIdy;
 #endif
-			*pdf = 1;
-			*eval = make_float3(1, 1, 1);
-		}
-	}
-	return LABEL_REFLECT|LABEL_SINGULAR;
+	*pdf = 1;
+	*eval = make_float3(1, 1, 1);
+	return LABEL_TRANSMIT|LABEL_TRANSPARENT;
 }
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_REFLECTION_H__ */
+#endif /* __BSDF_TRANSPARENT_H__ */
 

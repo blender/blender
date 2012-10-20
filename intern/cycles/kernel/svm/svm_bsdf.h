@@ -16,17 +16,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "bsdf_ashikhmin_velvet.h"
-#include "bsdf_diffuse.h"
-#include "bsdf_oren_nayar.h"
-#include "bsdf_microfacet.h"
-#include "bsdf_reflection.h"
-#include "bsdf_refraction.h"
-#include "bsdf_transparent.h"
+#include "../closure/bsdf_ashikhmin_velvet.h"
+#include "../closure/bsdf_diffuse.h"
+#include "../closure/bsdf_oren_nayar.h"
+#include "../closure/bsdf_microfacet.h"
+#include "../closure/bsdf_reflection.h"
+#include "../closure/bsdf_refraction.h"
+#include "../closure/bsdf_transparent.h"
 #ifdef __DPDU__
-#include "bsdf_ward.h"
+#include "../closure/bsdf_ward.h"
 #endif
-#include "bsdf_westin.h"
+#include "../closure/bsdf_westin.h"
 
 CCL_NAMESPACE_BEGIN
 

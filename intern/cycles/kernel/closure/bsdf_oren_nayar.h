@@ -33,10 +33,11 @@ __device float3 bsdf_oren_nayar_get_intensity(const ShaderClosure *sc, float3 n,
 	return make_float3(is, is, is);
 }
 
-__device void bsdf_oren_nayar_setup(ShaderData *sd, ShaderClosure *sc, float sigma)
+__device int bsdf_oren_nayar_setup(ShaderClosure *sc)
 {
+	float sigma = sc->data0;
+
 	sc->type = CLOSURE_BSDF_OREN_NAYAR_ID;
-	sd->flag |= SD_BSDF | SD_BSDF_HAS_EVAL;
 
 	sigma = clamp(sigma, 0.0f, 1.0f);
 
@@ -44,6 +45,8 @@ __device void bsdf_oren_nayar_setup(ShaderData *sd, ShaderClosure *sc, float sig
 
 	sc->data0 = 1.0f * div;
 	sc->data1 = sigma * div;
+
+	return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
 __device void bsdf_oren_nayar_blur(ShaderClosure *sc, float roughness)
@@ -65,11 +68,6 @@ __device float3 bsdf_oren_nayar_eval_reflect(const ShaderClosure *sc, const floa
 __device float3 bsdf_oren_nayar_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
-}
-
-__device float bsdf_oren_nayar_albedo(const ShaderClosure *sc, const float3 I)
-{
-	return 1.0f;
 }
 
 __device int bsdf_oren_nayar_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)

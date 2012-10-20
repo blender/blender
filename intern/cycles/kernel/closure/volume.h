@@ -23,44 +23,46 @@ CCL_NAMESPACE_BEGIN
 
 /* ISOTROPIC VOLUME CLOSURE */
 
-__device void volume_isotropic_setup(ShaderData *sd, ShaderClosure *sc, float density)
+__device int volume_isotropic_setup(ShaderClosure *sc, float density)
 {
 	sc->type = CLOSURE_VOLUME_ISOTROPIC_ID;
-	sd->flag |= SD_VOLUME;
 	sc->data0 = density;
+
+	return SD_VOLUME;
 }
 
-__device float3 volume_isotropic_eval_phase(const ShaderData *sd, const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
+__device float3 volume_isotropic_eval_phase(const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
 {
 	return make_float3(1.0f, 1.0f, 1.0f);
 }
 
 /* TRANSPARENT VOLUME CLOSURE */
 
-__device void volume_transparent_setup(ShaderData *sd, ShaderClosure *sc, float density)
+__device int volume_transparent_setup(ShaderClosure *sc, float density)
 {
 	sc->type = CLOSURE_VOLUME_TRANSPARENT_ID;
-	sd->flag |= SD_VOLUME;
 	sc->data0 = density;
+
+	return SD_VOLUME;
 }
 
-__device float3 volume_transparent_eval_phase(const ShaderData *sd, const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
+__device float3 volume_transparent_eval_phase(const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
 {
 	return make_float3(1.0f, 1.0f, 1.0f);
 }
 
 /* VOLUME CLOSURE */
 
-__device float3 volume_eval_phase(const ShaderData *sd, const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
+__device float3 volume_eval_phase(const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
 {
 	float3 eval;
 
 	switch(sc->type) {
 		case CLOSURE_VOLUME_ISOTROPIC_ID:
-			eval = volume_isotropic_eval_phase(sd, sc, omega_in, omega_out);
+			eval = volume_isotropic_eval_phase(sc, omega_in, omega_out);
 			break;
 		case CLOSURE_VOLUME_TRANSPARENT_ID:
-			eval = volume_transparent_eval_phase(sd, sc, omega_in, omega_out);
+			eval = volume_transparent_eval_phase(sc, omega_in, omega_out);
 			break;
 		default:
 			eval = make_float3(0.0f, 0.0f, 0.0f);

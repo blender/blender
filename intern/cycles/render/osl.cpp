@@ -206,6 +206,8 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 			return true;
 		if(strcmp(input->name, "Displacement") == 0 && current_type != SHADER_TYPE_DISPLACEMENT)
 			return true;
+		if(strcmp(input->name, "Normal") == 0)
+			return true;
 	}
 	else if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->name == ustring("bump"))
 		return true;

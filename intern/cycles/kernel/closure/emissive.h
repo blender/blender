@@ -30,69 +30,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_REFRACTION_H__
-#define __BSDF_REFRACTION_H__
-
 CCL_NAMESPACE_BEGIN
 
-/* REFRACTION */
+/* EMISSION CLOSURE */
 
-__device void bsdf_refraction_setup(ShaderData *sd, ShaderClosure *sc, float eta)
+/* return the probability distribution function in the direction I,
+ * given the parameters and the light's surface normal.  This MUST match
+ * the PDF computed by sample(). */
+__device float emissive_pdf(const float3 Ng, const float3 I)
 {
-	sc->data0 = eta;
-
-	sc->type = CLOSURE_BSDF_REFRACTION_ID;
-	sd->flag |= SD_BSDF;
+	float cosNO = fabsf(dot(Ng, I));
+	return (cosNO > 0.0f)? 1.0f: 0.0f;
 }
 
-__device void bsdf_refraction_blur(ShaderClosure *sc, float roughness)
+__device void emissive_sample(const float3 Ng, float randu, float randv,
+	float3 *omega_out, float *pdf)
 {
+	/* todo: not implemented and used yet */
 }
 
-__device float3 bsdf_refraction_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 emissive_eval(const float3 Ng, const float3 I)
 {
-	return make_float3(0.0f, 0.0f, 0.0f);
-}
-
-__device float3 bsdf_refraction_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
-{
-	return make_float3(0.0f, 0.0f, 0.0f);
-}
-
-__device float bsdf_refraction_albedo(const ShaderClosure *sc, const float3 I)
-{
-	return 1.0f;
-}
-
-__device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
-{
-	float m_eta = sc->data0;
-	float3 N = sc->N;
-
-	float3 R, T;
-#ifdef __RAY_DIFFERENTIALS__
-	float3 dRdx, dRdy, dTdx, dTdy;
-#endif
-	bool inside;
-	fresnel_dielectric(m_eta, N, I, &R, &T,
-#ifdef __RAY_DIFFERENTIALS__
-		dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
-#endif
-		&inside);
+	float res = emissive_pdf(Ng, I);
 	
-	if(!inside) {
-		*pdf = 1;
-		*eval = make_float3(1.0f, 1.0f, 1.0f);
-		*omega_in = T;
-#ifdef __RAY_DIFFERENTIALS__
-		*domega_in_dx = dTdx;
-		*domega_in_dy = dTdy;
-#endif
-	}
-	return LABEL_TRANSMIT|LABEL_SINGULAR;
+	return make_float3(res, res, res);
+}
+
+__device float3 svm_emissive_eval(ShaderData *sd, ShaderClosure *sc)
+{
+	return emissive_eval(sd->Ng, sd->I);
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __BSDF_REFRACTION_H__ */
 

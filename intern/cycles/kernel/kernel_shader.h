@@ -27,17 +27,15 @@
  */
 
 #ifdef __OSL__
-
 #include "osl_shader.h"
-
 #endif
 
-#include "svm/bsdf.h"
-#include "svm/emissive.h"
-#include "svm/volume.h"
+#include "closure/bsdf.h"
+#include "closure/emissive.h"
+#include "closure/volume.h"
+
 #include "svm/svm_bsdf.h"
 #include "svm/svm.h"
-
 
 CCL_NAMESPACE_BEGIN
 
@@ -499,17 +497,21 @@ __device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *sd,
 
 __device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughness)
 {
-#ifndef __OSL__
 #ifdef __MULTI_CLOSURE__
 	for(int i = 0; i< sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
 
-		if(CLOSURE_IS_BSDF(sc->type))
-			svm_bsdf_blur(sc, roughness);
+		if(CLOSURE_IS_BSDF(sc->type)) {
+#ifdef __OSL__
+			if (kernel_osl_use(kg))
+				OSLShader::bsdf_blur(sc, roughness);
+			else
+#endif
+				svm_bsdf_blur(sc, roughness);
+		}
 	}
 #else
 	svm_bsdf_blur(&sd->closure, roughness);
-#endif
 #endif
 }
 
@@ -720,16 +722,16 @@ __device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 		if(CLOSURE_IS_VOLUME(sc->type)) {
 #ifdef __OSL__
 			if (kernel_osl_use(kg))
-				eval += OSLShader::volume_eval_phase(sd, sc, omega_in, omega_out);
+				eval += OSLShader::volume_eval_phase(sc, omega_in, omega_out);
 			else
 #endif
-				eval += volume_eval_phase(sd, sc, omega_in, omega_out);
+				eval += volume_eval_phase(sc, omega_in, omega_out);
 		}
 	}
 
 	return eval;
 #else
-	return volume_eval_phase(sd, &sd->closure, omega_in, omega_out);
+	return volume_eval_phase(&sd->closure, omega_in, omega_out);
 #endif
 }
 

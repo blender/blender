@@ -5,7 +5,7 @@
  * All Rights Reserved.
  *
  * Modifications Copyright 2011, Blender Foundation.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -30,73 +30,55 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <OpenImageIO/fmath.h>
-
-#include <OSL/genclosure.h>
-
-#include "osl_closures.h"
+#ifndef __BSDF_REFLECTION_H__
+#define __BSDF_REFLECTION_H__
 
 CCL_NAMESPACE_BEGIN
 
-using namespace OSL;
+/* REFLECTION */
 
-class TransparentClosure : public BSDFClosure {
-public:
-	TransparentClosure() : BSDFClosure(Labels::STRAIGHT, Back) {}
-
-	void setup() {}
-
-	size_t memsize() const { return sizeof(*this); }
-
-	const char *name() const { return "transparent"; }
-
-	void print_on(std::ostream &out) const {
-		out << name() << " ()";
-	}
-
-	float albedo(const Vec3 &omega_out) const
-	{
-		return 1.0f;
-	}
-
-	Color3 eval_reflect(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-	{
-		return Color3(0, 0, 0);
-	}
-
-	Color3 eval_transmit(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-	{
-		return Color3(0, 0, 0);
-	}
-
-	ustring sample(const Vec3 &Ng,
-	               const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
-	               float randu, float randv,
-	               Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
-	               float &pdf, Color3 &eval) const
-	{
-		// only one direction is possible
-		omega_in = -omega_out;
-		domega_in_dx = -domega_out_dx;
-		domega_in_dy = -domega_out_dy;
-		pdf = 1;
-		eval.setValue(1, 1, 1);
-		return Labels::TRANSMIT;
-	}
-};
-
-
-
-ClosureParam *bsdf_transparent_params()
+__device int bsdf_reflection_setup(ShaderClosure *sc)
 {
-	static ClosureParam params[] = {
-	    CLOSURE_STRING_KEYPARAM("label"),
-	    CLOSURE_FINISH_PARAM(TransparentClosure)
-	};
-	return params;
+	sc->type = CLOSURE_BSDF_REFLECTION_ID;
+	return SD_BSDF;
 }
 
-CLOSURE_PREPARE(bsdf_transparent_prepare, TransparentClosure)
+__device void bsdf_reflection_blur(ShaderClosure *sc, float roughness)
+{
+}
+
+__device float3 bsdf_reflection_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+{
+	return make_float3(0.0f, 0.0f, 0.0f);
+}
+
+__device float3 bsdf_reflection_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+{
+	return make_float3(0.0f, 0.0f, 0.0f);
+}
+
+__device int bsdf_reflection_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+{
+	//const BsdfReflectionClosure *self = (const BsdfReflectionClosure*)sc->data;
+	float3 N = sc->N;
+
+	// only one direction is possible
+	float cosNO = dot(N, I);
+	if(cosNO > 0) {
+		*omega_in = (2 * cosNO) * N - I;
+		if(dot(Ng, *omega_in) > 0) {
+#ifdef __RAY_DIFFERENTIALS__
+			*domega_in_dx = 2 * dot(N, dIdx) * N - dIdx;
+			*domega_in_dy = 2 * dot(N, dIdy) * N - dIdy;
+#endif
+			*pdf = 1;
+			*eval = make_float3(1, 1, 1);
+		}
+	}
+	return LABEL_REFLECT|LABEL_SINGULAR;
+}
 
 CCL_NAMESPACE_END
+
+#endif /* __BSDF_REFLECTION_H__ */
 

@@ -46,17 +46,17 @@ set(SRC_HEADERS
 )
 
 set(SRC_SVM_HEADERS
-	svm/bsdf.h
-	svm/bsdf_ashikhmin_velvet.h
-	svm/bsdf_diffuse.h
-	svm/bsdf_oren_nayar.h
-	svm/bsdf_microfacet.h
-	svm/bsdf_reflection.h
-	svm/bsdf_refraction.h
-	svm/bsdf_transparent.h
-	svm/bsdf_ward.h
-	svm/bsdf_westin.h
-	svm/emissive.h
+	closure/bsdf.h
+	closure/bsdf_ashikhmin_velvet.h
+	closure/bsdf_microfacet.h
+	closure/bsdf_reflection.h
+	closure/bsdf_refraction.h
+	closure/bsdf_transparent.h
+	closure/bsdf_ward.h
+	closure/bsdf_westin.h
+	closure/emissive.h
+	closure/volume.h
+
 	svm/svm.h
 	svm/svm_attribute.h
 	svm/svm_bsdf.h
@@ -92,7 +92,6 @@ set(SRC_SVM_HEADERS
 	svm/svm_value.h
 	svm/svm_voronoi.h
 	svm/svm_wave.h
-	svm/volume.h
 )
 
 set(SRC_UTIL_HEADERS

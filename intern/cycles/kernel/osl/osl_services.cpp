@@ -174,7 +174,6 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 	/* this is only used for shader and object space, we don't really have
 	 * a concept of shader space, so we just use object space for both. */
 	if (xform) {
-		KernelGlobals *kg = kernel_globals;
 		const ShaderData *sd = (const ShaderData *)xform;
 		int object = sd->object;
 
@@ -182,6 +181,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 #ifdef __OBJECT_MOTION__
 			Transform tfm = sd->ob_tfm;
 #else
+			KernelGlobals *kg = kernel_globals;
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
 			tfm = transform_transpose(tfm);
@@ -199,7 +199,6 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 	/* this is only used for shader and object space, we don't really have
 	 * a concept of shader space, so we just use object space for both. */
 	if (xform) {
-		KernelGlobals *kg = kernel_globals;
 		const ShaderData *sd = (const ShaderData *)xform;
 		int object = sd->object;
 
@@ -207,6 +206,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 #ifdef __OBJECT_MOTION__
 			Transform tfm = sd->ob_itfm;
 #else
+			KernelGlobals *kg = kernel_globals;
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 #endif
 			tfm = transform_transpose(tfm);

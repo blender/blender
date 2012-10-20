@@ -23,16 +23,31 @@ CCL_NAMESPACE_BEGIN
 __device void svm_node_glossy_setup(ShaderData *sd, ShaderClosure *sc, int type, float eta, float roughness, bool refract)
 {
 	if(type == CLOSURE_BSDF_REFRACTION_ID) {
-		if(refract)
-			bsdf_refraction_setup(sd, sc, eta);
+		if(refract) {
+			sc->data0 = eta;
+			sd->flag |= bsdf_refraction_setup(sc);
+		}
 		else
-			bsdf_reflection_setup(sd, sc);
+			sd->flag |= bsdf_reflection_setup(sc);
 	}
 	else if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID) {
-		bsdf_microfacet_beckmann_setup(sd, sc, roughness, eta, refract);
+		sc->data0 = roughness;
+		sc->data1 = eta;
+
+		if(refract)
+			sd->flag |= bsdf_microfacet_beckmann_refraction_setup(sc);
+		else
+			sd->flag |= bsdf_microfacet_beckmann_setup(sc);
 	}
-	else
-		bsdf_microfacet_ggx_setup(sd, sc, roughness, eta, refract);
+	else {
+		sc->data0 = roughness;
+		sc->data1 = eta;
+
+		if(refract)
+			sd->flag |= bsdf_microfacet_ggx_refraction_setup(sc);
+		else
+			sd->flag |= bsdf_microfacet_ggx_setup(sc);
+	}
 }
 
 __device_inline ShaderClosure *svm_node_closure_get(ShaderData *sd)
@@ -91,24 +106,28 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
 			float roughness = param1;
-			if(roughness == 0.0f)
-				bsdf_diffuse_setup(sd, sc);
-			else
-				bsdf_oren_nayar_setup(sd, sc, roughness);
+
+			if(roughness == 0.0f) {
+				sd->flag |= bsdf_diffuse_setup(sc);
+			}
+			else {
+				sc->data0 = roughness;
+				sd->flag |= bsdf_oren_nayar_setup(sc);
+			}
 			break;
 		}
 		case CLOSURE_BSDF_TRANSLUCENT_ID: {
 			ShaderClosure *sc = svm_node_closure_get(sd);
 			sc->N = N;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
-			bsdf_translucent_setup(sd, sc);
+			sd->flag |= bsdf_translucent_setup(sc);
 			break;
 		}
 		case CLOSURE_BSDF_TRANSPARENT_ID: {
 			ShaderClosure *sc = svm_node_closure_get(sd);
 			sc->N = N;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
-			bsdf_transparent_setup(sd, sc);
+			sd->flag |= bsdf_transparent_setup(sc);
 			break;
 		}
 		case CLOSURE_BSDF_REFLECTION_ID:
@@ -120,17 +139,16 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 #endif
 			ShaderClosure *sc = svm_node_closure_get(sd);
 			sc->N = N;
+			sc->data0 = param1;
 			svm_node_closure_set_mix_weight(sc, mix_weight);
-
-			float roughness = param1;
 
 			/* setup bsdf */
 			if(type == CLOSURE_BSDF_REFLECTION_ID)
-				bsdf_reflection_setup(sd, sc);
+				sd->flag |= bsdf_reflection_setup(sc);
 			else if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_ID)
-				bsdf_microfacet_beckmann_setup(sd, sc, roughness, 1.0f, false);
+				sd->flag |= bsdf_microfacet_beckmann_setup(sc);
 			else
-				bsdf_microfacet_ggx_setup(sd, sc, roughness, 1.0f, false);
+				sd->flag |= bsdf_microfacet_ggx_setup(sc);
 
 			break;
 		}
@@ -193,10 +211,10 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			sc->T = stack_load_float3(stack, data_node.z);
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
-			float roughness_u = param1;
-			float roughness_v = param2;
+			sc->data0 = param1;
+			sc->data1 = param2;
 
-			bsdf_ward_setup(sd, sc, roughness_u, roughness_v);
+			sd->flag |= bsdf_ward_setup(sc);
 			break;
 		}
 #endif
@@ -206,8 +224,8 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
 			/* sigma */
-			float sigma = clamp(param1, 0.0f, 1.0f);
-			bsdf_ashikhmin_velvet_setup(sd, sc, sigma);
+			sc->data0 = clamp(param1, 0.0f, 1.0f);
+			sd->flag |= bsdf_ashikhmin_velvet_setup(sc);
 			break;
 		}
 		default:
@@ -240,7 +258,7 @@ __device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
 			float density = param1;
-			volume_transparent_setup(sd, sc, density);
+			sd->flag |= volume_transparent_setup(sc, density);
 			break;
 		}
 		case CLOSURE_VOLUME_ISOTROPIC_ID: {
@@ -248,7 +266,7 @@ __device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
 			float density = param1;
-			volume_isotropic_setup(sd, sc, density);
+			sd->flag |= volume_isotropic_setup(sc, density);
 			break;
 		}
 		default:

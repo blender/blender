@@ -37,78 +37,19 @@
 #include <OSL/oslexec.h>
 #include <OSL/genclosure.h>
 
+#include "kernel_types.h"
+
+#include "util_types.h"
+
 CCL_NAMESPACE_BEGIN
 
-enum {
-	OSL_CLOSURE_BSDF_DIFFUSE_ID,
-	OSL_CLOSURE_BSDF_OREN_NAYAR_ID,
-	OSL_CLOSURE_BSDF_TRANSLUCENT_ID,
-	OSL_CLOSURE_BSDF_REFLECTION_ID,
-	OSL_CLOSURE_BSDF_REFRACTION_ID,
-	OSL_CLOSURE_BSDF_TRANSPARENT_ID,
-	OSL_CLOSURE_BSDF_MICROFACET_GGX_ID,
-	OSL_CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID,
-	OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_ID,
-	OSL_CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID,
-	OSL_CLOSURE_BSDF_WARD_ID,
-	OSL_CLOSURE_BSDF_PHONG_ID,
-	OSL_CLOSURE_BSDF_PHONG_RAMP_ID,
-	OSL_CLOSURE_BSDF_ASHIKHMIN_VELVET_ID,
-	OSL_CLOSURE_BSDF_WESTIN_BACKSCATTER_ID,
-	OSL_CLOSURE_BSDF_WESTIN_SHEEN_ID,
-	OSL_CLOSURE_BSSRDF_CUBIC_ID,
-	OSL_CLOSURE_EMISSION_ID,
-	OSL_CLOSURE_DEBUG_ID,
-	OSL_CLOSURE_BACKGROUND_ID,
-	OSL_CLOSURE_HOLDOUT_ID,
-	OSL_CLOSURE_SUBSURFACE_ID
-};
-
-OSL::ClosureParam *bsdf_diffuse_params();
-OSL::ClosureParam *bsdf_oren_nayar_params();
-OSL::ClosureParam *bsdf_translucent_params();
-OSL::ClosureParam *bsdf_reflection_params();
-OSL::ClosureParam *bsdf_refraction_params();
-OSL::ClosureParam *bsdf_transparent_params();
-OSL::ClosureParam *bsdf_microfacet_ggx_params();
-OSL::ClosureParam *bsdf_microfacet_ggx_refraction_params();
-OSL::ClosureParam *bsdf_microfacet_beckmann_params();
-OSL::ClosureParam *bsdf_microfacet_beckmann_refraction_params();
-OSL::ClosureParam *bsdf_ward_params();
-OSL::ClosureParam *bsdf_phong_params();
-OSL::ClosureParam *bsdf_phong_ramp_params();
-OSL::ClosureParam *bsdf_ashikhmin_velvet_params();
-OSL::ClosureParam *bsdf_westin_backscatter_params();
-OSL::ClosureParam *bsdf_westin_sheen_params();
-OSL::ClosureParam *closure_bssrdf_cubic_params();
 OSL::ClosureParam *closure_emission_params();
-OSL::ClosureParam *closure_debug_params();
 OSL::ClosureParam *closure_background_params();
 OSL::ClosureParam *closure_holdout_params();
-OSL::ClosureParam *closure_subsurface_params();
 
-void bsdf_diffuse_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_oren_nayar_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_translucent_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_reflection_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_refraction_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_transparent_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_microfacet_ggx_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_microfacet_ggx_refraction_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_microfacet_beckmann_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_microfacet_beckmann_refraction_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_ward_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_phong_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_phong_ramp_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_ashikhmin_velvet_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_westin_backscatter_prepare(OSL::RendererServices *, int id, void *data);
-void bsdf_westin_sheen_prepare(OSL::RendererServices *, int id, void *data);
-void closure_bssrdf_cubic_prepare(OSL::RendererServices *, int id, void *data);
 void closure_emission_prepare(OSL::RendererServices *, int id, void *data);
-void closure_debug_prepare(OSL::RendererServices *, int id, void *data);
 void closure_background_prepare(OSL::RendererServices *, int id, void *data);
 void closure_holdout_prepare(OSL::RendererServices *, int id, void *data);
-void closure_subsurface_prepare(OSL::RendererServices *, int id, void *data);
 
 #define CLOSURE_PREPARE(name, classname)          \
 void name(RendererServices *, int id, void *data) \
@@ -116,6 +57,106 @@ void name(RendererServices *, int id, void *data) \
 	memset(data, 0, sizeof(classname));           \
 	new (data) classname();                       \
 }
+
+#define TO_VEC3(v) (*(OSL::Vec3 *)&(v))
+#define TO_COLOR3(v) (*(OSL::Color3 *)&(v))
+#define TO_FLOAT3(v) make_float3(v[0], v[1], v[2])
+
+/* BSDF */
+
+class CBSDFClosure : public OSL::ClosurePrimitive {
+public:
+	ShaderClosure sc;
+	OSL::Vec3 N, T;
+
+    CBSDFClosure(int scattering) : OSL::ClosurePrimitive(BSDF),
+        m_scattering_label(scattering), m_shaderdata_flag(0) { }
+    ~CBSDFClosure() { }
+
+    int scattering() const { return m_scattering_label; }
+    int shaderdata_flag() const { return m_shaderdata_flag; }
+	ClosureType shaderclosure_type() const { return sc.type; }
+
+    virtual void blur(float roughness);
+    virtual float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
+    virtual float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
+
+    virtual int sample(const float3 &Ng,
+                        const float3 &omega_out, const float3 &domega_out_dx, const float3 &domega_out_dy,
+                        float randu, float randv,
+                        float3 &omega_in, float3 &domega_in_dx, float3 &domega_in_dy,
+                        float &pdf, float3 &eval) const = 0;
+
+protected:
+    int m_scattering_label;
+	int m_shaderdata_flag;
+};
+
+#define BSDF_CLOSURE_CLASS_BEGIN(Upper, lower, svmlower, TYPE) \
+\
+class Upper##Closure : public CBSDFClosure { \
+public: \
+	Upper##Closure() : CBSDFClosure(TYPE) {} \
+	size_t memsize() const { return sizeof(*this); } \
+	const char *name() const { return #lower; } \
+\
+	void setup() \
+	{ \
+		sc.N = TO_FLOAT3(N); \
+		sc.T = TO_FLOAT3(T); \
+		m_shaderdata_flag = bsdf_##lower##_setup(&sc); \
+	} \
+\
+	bool mergeable(const ClosurePrimitive *other) const \
+	{ \
+		return false; \
+	} \
+	\
+	void blur(float roughness) \
+	{ \
+		bsdf_##svmlower##_blur(&sc, roughness); \
+	} \
+\
+	void print_on(std::ostream &out) const \
+	{ \
+		out << name() << " ((" << sc.N[0] << ", " << sc.N[1] << ", " << sc.N[2] << "))"; \
+	} \
+\
+	float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float& pdf) const \
+	{ \
+		return bsdf_##svmlower##_eval_reflect(&sc, omega_out, omega_in, &pdf); \
+	} \
+\
+	float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float& pdf) const \
+	{ \
+		return bsdf_##svmlower##_eval_transmit(&sc, omega_out, omega_in, &pdf); \
+	} \
+\
+	int sample(const float3 &Ng, \
+	           const float3 &omega_out, const float3 &domega_out_dx, const float3 &domega_out_dy, \
+	           float randu, float randv, \
+	           float3 &omega_in, float3 &domega_in_dx, float3 &domega_in_dy, \
+	           float &pdf, float3 &eval) const \
+	{ \
+		return bsdf_##svmlower##_sample(&sc, Ng, omega_out, domega_out_dx, domega_out_dy, \
+			randu, randv, &eval, &omega_in, &domega_in_dx, &domega_in_dy, &pdf); \
+	} \
+}; \
+\
+ClosureParam *bsdf_##lower##_params() \
+{ \
+	static ClosureParam params[] = {
+
+/* parameters */
+
+#define BSDF_CLOSURE_CLASS_END(Upper, lower) \
+		CLOSURE_STRING_KEYPARAM("label"), \
+	    CLOSURE_FINISH_PARAM(Upper##Closure) \
+	}; \
+	return params; \
+} \
+\
+CLOSURE_PREPARE(bsdf_##lower##_prepare, Upper##Closure)
 
 CCL_NAMESPACE_END
 

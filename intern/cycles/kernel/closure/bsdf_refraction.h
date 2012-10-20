@@ -30,50 +30,62 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __BSDF_TRANSPARENT_H__
-#define __BSDF_TRANSPARENT_H__
+#ifndef __BSDF_REFRACTION_H__
+#define __BSDF_REFRACTION_H__
 
 CCL_NAMESPACE_BEGIN
 
-__device void bsdf_transparent_setup(ShaderData *sd, ShaderClosure *sc)
+/* REFRACTION */
+
+__device int bsdf_refraction_setup(ShaderClosure *sc)
 {
-	sc->type = CLOSURE_BSDF_TRANSPARENT_ID;
-	sd->flag |= SD_BSDF;
+	sc->type = CLOSURE_BSDF_REFRACTION_ID;
+	return SD_BSDF;
 }
 
-__device void bsdf_transparent_blur(ShaderClosure *sc, float roughness)
+__device void bsdf_refraction_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_transparent_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_refraction_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float3 bsdf_transparent_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_refraction_eval_transmit(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_transparent_albedo(const ShaderClosure *sc, const float3 I)
+__device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	return 1.0f;
-}
+	float m_eta = sc->data0;
+	float3 N = sc->N;
 
-__device int bsdf_transparent_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
-{
-	// only one direction is possible
-	*omega_in = -I;
+	float3 R, T;
 #ifdef __RAY_DIFFERENTIALS__
-	*domega_in_dx = -dIdx;
-	*domega_in_dy = -dIdy;
+	float3 dRdx, dRdy, dTdx, dTdy;
 #endif
-	*pdf = 1;
-	*eval = make_float3(1, 1, 1);
-	return LABEL_TRANSMIT|LABEL_TRANSPARENT;
+	bool inside;
+	fresnel_dielectric(m_eta, N, I, &R, &T,
+#ifdef __RAY_DIFFERENTIALS__
+		dIdx, dIdy, &dRdx, &dRdy, &dTdx, &dTdy,
+#endif
+		&inside);
+	
+	if(!inside) {
+		*pdf = 1;
+		*eval = make_float3(1.0f, 1.0f, 1.0f);
+		*omega_in = T;
+#ifdef __RAY_DIFFERENTIALS__
+		*domega_in_dx = dTdx;
+		*domega_in_dy = dTdy;
+#endif
+	}
+	return LABEL_TRANSMIT|LABEL_SINGULAR;
 }
 
 CCL_NAMESPACE_END
 
-#endif /* __BSDF_TRANSPARENT_H__ */
+#endif /* __BSDF_REFRACTION_H__ */
 
