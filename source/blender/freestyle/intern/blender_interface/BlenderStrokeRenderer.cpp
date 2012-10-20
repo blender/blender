@@ -81,6 +81,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	BLI_strncpy(freestyle_scene->r.engine, old_scene->r.engine, sizeof(freestyle_scene->r.engine));
 	freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA; 
 	freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
+	BKE_scene_disable_color_management(freestyle_scene);
+
 	BKE_scene_set_background( G.main, freestyle_scene );
 
 	// Camera
