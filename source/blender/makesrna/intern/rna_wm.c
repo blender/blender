@@ -635,11 +635,18 @@ static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
 {
 	wmKeyMapItem *kmi = ptr->data;
 	
-	if (value == ESCKEY);
-	else if (value >= AKEY)
+	/* XXX, this should really be managed in an _itemf function,
+	 * giving a list of valid enums, then silently changing them when they are set is not
+	 * a good precedent, don't do this unless you have a good reason! */
+	if (value == ESCKEY) {
+		/* pass */
+	}
+	else if (value >= AKEY) {
 		kmi->keymodifier = value;
-	else
+	}
+	else {
 		kmi->keymodifier = 0;
+	}
 }
 
 
