@@ -287,16 +287,26 @@ static void set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, v
 	if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
 	    type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor)
 	{
-		float3 *fval = (float3 *)val;
-		fval[0] = f[0];
+		float *fval = (float *)val;
+
+		fval[0] = f[0].x;
+		fval[1] = f[0].y;
+		fval[2] = f[0].z;
+
 		if (derivatives) {
-			fval[1] = f[1];
-			fval[2] = f[2];
+			fval[3] = f[1].x;
+			fval[4] = f[1].y;
+			fval[5] = f[1].z;
+
+			fval[6] = f[2].x;
+			fval[7] = f[2].y;
+			fval[8] = f[2].z;
 		}
 	}
 	else {
 		float *fval = (float *)val;
 		fval[0] = average(f[0]);
+
 		if (derivatives) {
 			fval[1] = average(f[1]);
 			fval[2] = average(f[2]);
@@ -309,16 +319,25 @@ static void set_attribute_float(float f[3], TypeDesc type, bool derivatives, voi
 	if (type == TypeDesc::TypePoint || type == TypeDesc::TypeVector ||
 	    type == TypeDesc::TypeNormal || type == TypeDesc::TypeColor)
 	{
-		float3 *fval = (float3 *)val;
-		fval[0] = make_float3(f[0], f[0], f[0]);
+		float *fval = (float *)val;
+		fval[0] = f[0];
+		fval[1] = f[1];
+		fval[2] = f[2];
+
 		if (derivatives) {
-			fval[1] = make_float3(f[1], f[2], f[1]);
-			fval[2] = make_float3(f[2], f[2], f[2]);
+			fval[3] = f[1];
+			fval[4] = f[1];
+			fval[5] = f[1];
+
+			fval[6] = f[2];
+			fval[7] = f[2];
+			fval[8] = f[2];
 		}
 	}
 	else {
 		float *fval = (float *)val;
 		fval[0] = f[0];
+
 		if (derivatives) {
 			fval[1] = f[1];
 			fval[2] = f[2];
@@ -375,6 +394,20 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		fval[0] = object_pass_id(kg, sd->object);
 		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
 		set_attribute_float(fval, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::dupli_generated") {
+		float3 fval[3];
+		fval[0] = object_dupli_generated(kg, sd->object);
+		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
+		set_attribute_float3(fval, type, derivatives, val);
+		return true;
+	}
+	else if (name == "std::dupli_uv") {
+		float3 fval[3];
+		fval[0] = object_dupli_uv(kg, sd->object);
+		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
+		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
 	else if (name == "std::material_index") {

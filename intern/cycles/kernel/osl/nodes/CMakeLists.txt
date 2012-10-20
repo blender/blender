@@ -48,6 +48,7 @@ set(SRC_OSL
 	node_particle_info.osl
 	node_rgb_ramp.osl
 	node_separate_rgb.osl
+	node_set_normal.osl
 	node_sky_texture.osl
 	node_texture_coordinate.osl
 	node_translucent_bsdf.osl

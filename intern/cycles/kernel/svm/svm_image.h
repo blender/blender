@@ -265,7 +265,7 @@ __device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *s
 	 * between three textures.
 	 *
 	 * the Nxyz values are the barycentric coordinates in an equilateral
-	 * triangle, which in case of blending in the middle has a smaller
+	 * triangle, which in case of blending, in the middle has a smaller
 	 * equilateral triangle where 3 textures blend. this divides things into
 	 * 7 zones, with an if() test for each zone */
 

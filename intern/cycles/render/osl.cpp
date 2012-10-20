@@ -59,6 +59,22 @@ OSLShaderManager::OSLShaderManager()
 	//ss->attribute("statistics:level", 1);
 	ss->attribute("searchpath:shader", path_get("shader").c_str());
 
+	/* our own ray types */
+	static const char *raytypes[] = {
+		"camera",		/* PATH_RAY_CAMERA */
+		"reflection",	/* PATH_RAY_REFLECT */
+		"refraction",	/* PATH_RAY_TRANSMIT */
+		"diffuse",		/* PATH_RAY_DIFFUSE */
+		"glossy",		/* PATH_RAY_GLOSSY */
+		"singular",		/* PATH_RAY_SINGULAR */
+		"transparent",	/* PATH_RAY_TRANSPARENT */
+		"shadow",		/* PATH_RAY_SHADOW_OPAQUE */
+		"shadow",		/* PATH_RAY_SHADOW_TRANSPARENT */
+	};
+
+	const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);
+	ss->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), raytypes);
+
 	OSLShader::register_closures(ss);
 }
 
@@ -207,6 +223,10 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 		if(strcmp(input->name, "Displacement") == 0 && current_type != SHADER_TYPE_DISPLACEMENT)
 			return true;
 		if(strcmp(input->name, "Normal") == 0)
+			return true;
+	}
+	else if(node->name == ustring("bump")) {
+		if(strcmp(input->name, "Height") == 0)
 			return true;
 	}
 	else if(current_type == SHADER_TYPE_DISPLACEMENT && input->link && input->link->parent->name == ustring("bump"))
