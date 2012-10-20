@@ -95,22 +95,26 @@ extern const char bm_iter_itype_htype_map[BM_ITYPE_MAX];
 	for (ele = BM_iter_new(iter, NULL, itype, data), indexvar = 0; ele; ele = BM_iter_step(iter), (indexvar)++)
 
 /* Iterator Structure */
+/* note: some of these vars are not used,
+ * so they have beem commented to save stack space since this struct is used all over */
 typedef struct BMIter {
 	BLI_mempool_iter pooliter;
 
-	BMVert *firstvert, *nextvert, *vdata;
-	BMEdge *firstedge, *nextedge, *edata;
-	BMLoop *firstloop, *nextloop, *ldata, *l;
-	BMFace *firstpoly, *nextpoly, *pdata;
+	BMVert /* *v_first, *v_next, */ *vdata;
+	BMEdge *e_first, *e_next, *edata;
+	BMLoop *l_first, *l_next, *ldata;
+	BMFace /* *f_first, *f_next, */ *pdata;
 	BMesh *bm;
 	void (*begin)(struct BMIter *iter);
 	void *(*step)(struct BMIter *iter);
+	/*
 	union {
 		void       *p;
 		int         i;
 		long        l;
 		float       f;
 	} filter;
+	*/
 	int count;  /* note, only some iterators set this, don't rely on it */
 	char itype;
 } BMIter;
