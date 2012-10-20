@@ -503,7 +503,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 							BLI_assert(bucket_index < bucket_tot);
 
 							/* check if the bucket intersects with the face */
-							/* note: there is a tradeoff here since checking box/tri intersections isn't
+							/* note: there is a trade off here since checking box/tri intersections isn't
 							 * as optimal as it could be, but checking pixels against faces they will never intersect
 							 * with is likely the greater slowdown here - so check if the cell intersects the face */
 							if (layer_bucket_isect_test(layer, face_index,

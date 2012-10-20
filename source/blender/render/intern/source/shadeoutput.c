@@ -1363,7 +1363,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	/* inp = dotproduct, is = shader result, i = lamp energy (with shadow), i_noshad = i without shadow */
 	inp= dot_v3v3(vn, lv);
 
-	/* phong threshold to prevent backfacing faces having artefacts on ray shadow (terminator problem) */
+	/* phong threshold to prevent backfacing faces having artifacts on ray shadow (terminator problem) */
 	/* this complex construction screams for a nicer implementation! (ton) */
 	if (R.r.mode & R_SHADOW) {
 		if (ma->mode & MA_SHADOW) {

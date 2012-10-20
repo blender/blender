@@ -62,7 +62,7 @@ typedef long long __int64;
  * - if you want a struct not to be in DNA file: add two hash marks above it (#<enter>#<enter>)
  *
  * Structure DNA data is added to each blender file and to each executable, this to detect
- * in .blend files new veriables in structs, changed array sizes, etc. It's also used for
+ * in .blend files new variables in structs, changed array sizes, etc. It's also used for
  * converting endian and pointer size (32-64 bits)
  * As an extra, Python uses a call to detect run-time the contents of a blender struct.
  *

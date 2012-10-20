@@ -1029,7 +1029,7 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const 
 
 /**
  * Fill the z buffer, but invert z order, and add the face index to
- * the corresponing face buffer.
+ * the corresponding face buffer.
  *
  * This is one of the z buffer fill functions called in zbufclip() and
  * zbufwireclip(). 

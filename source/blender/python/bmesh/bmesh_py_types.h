@@ -116,7 +116,7 @@ typedef struct BPy_BMElemSeq {
 
 	/* if this is a sequence on an existing element,
 	 * loops of faces for eg.
-	 * If this veriable is set, it will be used */
+	 * If this variable is set, it will be used */
 
 	/* we hold a reference to this.
 	 * check in case the owner becomes invalid on access */

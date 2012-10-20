@@ -490,7 +490,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 }
 
 /**
- * smoothes boundaries between multires grids,
+ * smooths boundaries between multires grids,
  * including some borders in adjacent faces
  */
 void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)

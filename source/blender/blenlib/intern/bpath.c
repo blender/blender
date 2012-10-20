@@ -193,7 +193,7 @@ void BLI_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *re
 
 /**
  * find this file recursively, use the biggest file so thumbnails don't get used by mistake
- * \param filename_new: the path will be copied here, caller must initialize as empyu string.
+ * \param filename_new: the path will be copied here, caller must initialize as empty string.
  * \param dirname: subdir to search
  * \param filename: set this filename
  * \param filesize: filesize for the file
