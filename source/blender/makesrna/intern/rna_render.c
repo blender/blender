@@ -160,7 +160,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 		return NULL;
 
 	if (strlen(identifier) >= sizeof(dummyet.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering render engine class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering render engine class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummyet.idname));
 		return NULL;
 	}

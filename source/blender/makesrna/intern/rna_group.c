@@ -54,7 +54,7 @@ static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 static void rna_Group_objects_link(Group *group, bContext *C, ReportList *reports, Object *object)
 {
 	if (!add_to_group(group, object, CTX_data_scene(C), NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" already in group \"%s\"", object->id.name + 2, group->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' already in group '%s'", object->id.name + 2, group->id.name + 2);
 		return;
 	}
 
@@ -64,7 +64,7 @@ static void rna_Group_objects_link(Group *group, bContext *C, ReportList *report
 static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
 {
 	if (!rem_from_group(group, object, CTX_data_scene(C), NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" not in group \"%s\"", object->id.name + 2, group->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in group '%s'", object->id.name + 2, group->id.name + 2);
 		return;
 	}
 

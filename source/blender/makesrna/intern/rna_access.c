@@ -3169,7 +3169,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						itemtype = RNA_property_type(iprop);
 					}
 					else {
-						BKE_reportf(reports, RPT_ERROR, "Property named %s not found", propname);
+						BKE_reportf(reports, RPT_ERROR, "Property named '%s' not found", propname);
 						err = 1;
 						break;
 					}

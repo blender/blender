@@ -1275,12 +1275,12 @@ static PointerRNA rna_Mesh_tessface_vertex_color_new(struct Mesh *me, struct bCo
 	int index;
 
 	if (me->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add tessface colors's in editmode");
+		BKE_report(reports, RPT_ERROR, "Cannot add tessface colors in edit mode");
 		return PointerRNA_NULL;
 	}
 
 	if (me->mpoly) {
-		BKE_report(reports, RPT_ERROR, "Can't add tessface colors's when MPoly's exist");
+		BKE_report(reports, RPT_ERROR, "Cannot add tessface colors when MPoly's exist");
 		return PointerRNA_NULL;
 	}
 
@@ -1368,12 +1368,12 @@ static PointerRNA rna_Mesh_tessface_uv_texture_new(struct Mesh *me, struct bCont
 	int index;
 
 	if (me->edit_btmesh) {
-		BKE_report(reports, RPT_ERROR, "Can't add tessface uv's in editmode");
+		BKE_report(reports, RPT_ERROR, "Cannot add tessface uv's in edit mode");
 		return PointerRNA_NULL;
 	}
 
 	if (me->mpoly) {
-		BKE_report(reports, RPT_ERROR, "Can't add tessface uv's when MPoly's exist");
+		BKE_report(reports, RPT_ERROR, "Cannot add tessface uv's when MPoly's exist");
 		return PointerRNA_NULL;
 	}
 

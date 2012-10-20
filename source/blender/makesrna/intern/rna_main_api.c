@@ -110,7 +110,7 @@ static void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Cam
 	if (ID_REAL_USERS(camera) <= 0)
 		BKE_libblock_free(&bmain->camera, camera);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Camera \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Camera '%s' must have zero users to be removed, found %d",
 		            camera->id.name + 2, ID_REAL_USERS(camera));
 
 	/* XXX python now has invalid pointer? */
@@ -130,7 +130,7 @@ static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports
 	else if (scene->id.next)
 		newscene = scene->id.next;
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Scene \"%s\" is the last, can't be removed", scene->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Scene '%s' is the last, cannot be removed", scene->id.name + 2);
 		return;
 	}
 
@@ -177,7 +177,7 @@ static Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, co
 				if (RNA_enum_id_from_value(id_type_items, GS(data->name), &idname) == 0)
 					idname = "UNKNOWN";
 
-				BKE_reportf(reports, RPT_ERROR, "ID type '%s' is not valid for a object", idname);
+				BKE_reportf(reports, RPT_ERROR, "ID type '%s' is not valid for an object", idname);
 				return NULL;
 			}
 		}
@@ -201,7 +201,7 @@ static void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Obj
 		BKE_libblock_free(&bmain->object, object);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' must have zero users to be removed, found %d",
 		            object->id.name + 2, ID_REAL_USERS(object));
 	}
 }
@@ -217,7 +217,7 @@ static void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct M
 	if (ID_REAL_USERS(material) <= 0)
 		BKE_libblock_free(&bmain->mat, material);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Material \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Material '%s' must have zero users to be removed, found %d",
 		            material->id.name + 2, ID_REAL_USERS(material));
 
 	/* XXX python now has invalid pointer? */
@@ -235,7 +235,7 @@ static void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bN
 	if (ID_REAL_USERS(tree) <= 0)
 		BKE_libblock_free(&bmain->nodetree, tree);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Node Tree \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Node tree '%s' must have zero users to be removed, found %d",
 		            tree->id.name + 2, ID_REAL_USERS(tree));
 
 	/* XXX python now has invalid pointer? */
@@ -252,7 +252,7 @@ void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 	if (ID_REAL_USERS(mesh) <= 0)
 		BKE_libblock_free(&bmain->mesh, mesh);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Mesh \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Mesh '%s' must have zero users to be removed, found %d",
 		            mesh->id.name + 2, ID_REAL_USERS(mesh));
 
 	/* XXX python now has invalid pointer? */
@@ -270,7 +270,7 @@ static void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 	if (ID_REAL_USERS(lamp) <= 0)
 		BKE_libblock_free(&bmain->lamp, lamp);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Lamp \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Lamp '%s' must have zero users to be removed, found %d",
 		            lamp->id.name + 2, ID_REAL_USERS(lamp));
 
 	/* XXX python now has invalid pointer? */
@@ -291,8 +291,8 @@ static Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, con
 	ima = BKE_image_load(filepath);
 
 	if (!ima)
-		BKE_reportf(reports, RPT_ERROR, "Can't read \"%s\": %s", filepath,
-		            errno ? strerror(errno) : TIP_("Unsupported image format"));
+		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
+		            errno ? strerror(errno) : TIP_("unsupported image format"));
 
 	return ima;
 }
@@ -301,7 +301,7 @@ static void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *imag
 	if (ID_REAL_USERS(image) <= 0)
 		BKE_libblock_free(&bmain->image, image);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Image '%s' must have zero users to be removed, found %d",
 		            image->id.name + 2, ID_REAL_USERS(image));
 
 	/* XXX python now has invalid pointer? */
@@ -318,7 +318,7 @@ static void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct La
 	if (ID_REAL_USERS(lt) <= 0)
 		BKE_libblock_free(&bmain->latt, lt);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Lattice \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Lattice '%s' must have zero users to be removed, found %d",
 		            lt->id.name + 2, ID_REAL_USERS(lt));
 }
 
@@ -333,7 +333,7 @@ static void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curv
 	if (ID_REAL_USERS(cu) <= 0)
 		BKE_libblock_free(&bmain->curve, cu);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Curve \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Curve '%s' must have zero users to be removed, found %d",
 		            cu->id.name + 2, ID_REAL_USERS(cu));
 }
 
@@ -348,7 +348,7 @@ static void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct M
 	if (ID_REAL_USERS(mb) <= 0)
 		BKE_libblock_free(&bmain->mball, mb);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Metaball \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Metaball '%s' must have zero users to be removed, found %d",
 		            mb->id.name + 2, ID_REAL_USERS(mb));
 }
 
@@ -360,8 +360,8 @@ static VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *
 	font = BKE_vfont_load(bmain, filepath);
 
 	if (!font)
-		BKE_reportf(reports, RPT_ERROR, "Can't read \"%s\": %s", filepath,
-		            errno ? strerror(errno) : TIP_("Unsupported font format"));
+		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
+		            errno ? strerror(errno) : TIP_("unsupported font format"));
 
 	return font;
 
@@ -371,7 +371,7 @@ static void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont
 	if (ID_REAL_USERS(vfont) <= 0)
 		BKE_libblock_free(&bmain->vfont, vfont);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Font \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Font '%s' must have zero users to be removed, found %d",
 		            vfont->id.name + 2, ID_REAL_USERS(vfont));
 
 	/* XXX python now has invalid pointer? */
@@ -389,7 +389,7 @@ static void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Te
 	if (ID_REAL_USERS(tex) <= 0)
 		BKE_libblock_free(&bmain->tex, tex);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Texture \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Texture '%s' must have zero users to be removed, found %d",
 		            tex->id.name + 2, ID_REAL_USERS(tex));
 }
 
@@ -404,7 +404,7 @@ static void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Bru
 	if (ID_REAL_USERS(brush) <= 0)
 		BKE_libblock_free(&bmain->brush, brush);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Brush \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Brush '%s' must have zero users to be removed, found %d",
 		            brush->id.name + 2, ID_REAL_USERS(brush));
 }
 
@@ -419,7 +419,7 @@ static void rna_Main_worlds_remove(Main *bmain, ReportList *reports, struct Worl
 	if (ID_REAL_USERS(world) <= 0)
 		BKE_libblock_free(&bmain->world, world);
 	else
-		BKE_reportf(reports, RPT_ERROR, "World \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "World '%s' must have zero users to be removed, found %d",
 		            world->id.name + 2, ID_REAL_USERS(world));
 }
 
@@ -445,7 +445,7 @@ static void rna_Main_speakers_remove(Main *bmain, ReportList *reports, Speaker *
 	if (ID_REAL_USERS(speaker) <= 0)
 		BKE_libblock_free(&bmain->speaker, speaker);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Speaker \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Speaker '%s' must have zero users to be removed, found %d",
 		            speaker->id.name + 2, ID_REAL_USERS(speaker));
 
 	/* XXX python now has invalid pointer? */
@@ -470,8 +470,8 @@ static Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *f
 	txt = BKE_text_load(filepath, bmain->name);
 
 	if (!txt)
-		BKE_reportf(reports, RPT_ERROR, "Can't read \"%s\": %s", filepath,
-		            errno ? strerror(errno) : TIP_("Unable to load text"));
+		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
+		            errno ? strerror(errno) : TIP_("unable to load text"));
 
 	return txt;
 }
@@ -487,7 +487,7 @@ static void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmatur
 	if (ID_REAL_USERS(arm) <= 0)
 		BKE_libblock_free(&bmain->armature, arm);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Armature \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' must have zero users to be removed, found %d",
 		            arm->id.name + 2, ID_REAL_USERS(arm));
 
 	/* XXX python now has invalid pointer? */
@@ -505,7 +505,7 @@ static void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *a
 	if (ID_REAL_USERS(act) <= 0)
 		BKE_libblock_free(&bmain->action, act);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Action \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Action '%s' must have zero users to be removed, found %d",
 		            act->id.name + 2, ID_REAL_USERS(act));
 
 	/* XXX python now has invalid pointer? */
@@ -522,7 +522,7 @@ static void rna_Main_particles_remove(Main *bmain, ReportList *reports, Particle
 	if (ID_REAL_USERS(part) <= 0)
 		BKE_libblock_free(&bmain->particle, part);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Particle Settings \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Particle settings '%s' must have zero users to be removed, found %d",
 		            part->id.name + 2, ID_REAL_USERS(part));
 
 	/* XXX python now has invalid pointer? */
@@ -536,8 +536,8 @@ static MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *repor
 	clip = BKE_movieclip_file_add(filepath);
 
 	if (!clip)
-		BKE_reportf(reports, RPT_ERROR, "Can't read \"%s\": %s", filepath,
-		            errno ? strerror(errno) : TIP_("Unable to load movie clip"));
+		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
+		            errno ? strerror(errno) : TIP_("unable to load movie clip"));
 
 	return clip;
 }
@@ -572,7 +572,7 @@ static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, bGPd
 		BKE_libblock_free(&bmain->gpencil, gpd);
 	}
 	else
-		BKE_reportf(reports, RPT_ERROR, "Grease Pencil \"%s\" must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Grease Pencil '%s' must have zero users to be removed, found %d",
 		            gpd->id.name + 2, ID_REAL_USERS(gpd));
 
 	/* XXX python now has invalid pointer? */
