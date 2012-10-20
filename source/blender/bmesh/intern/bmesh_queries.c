@@ -346,7 +346,9 @@ BMLoop *BM_edge_other_loop(BMEdge *e, BMLoop *l)
 	BLI_assert(BM_edge_is_manifold(e));
 	BLI_assert(BM_vert_in_edge(e, l->v));
 
-	l_other = (e->l == l) ? l->radial_next : l;
+	l_other = (l->e == e) ? l : l->prev;
+	l_other = l_other->radial_next;
+	BLI_assert(l_other->e == e);
 
 	if (l_other->v == l->v) {
 		/* pass */
@@ -360,6 +362,55 @@ BMLoop *BM_edge_other_loop(BMEdge *e, BMLoop *l)
 
 	return l_other;
 }
+
+/**
+ * Utility function to step around a fan of loops,
+ * using an edge to mark the previous side.
+ *
+ * \note all edges must be manifold,
+ * once a non manifold edge is hit, return NULL.
+ *
+ * <pre>
+ *                ,.,-->|
+ *            _,-'      |
+ *          ,'          | (notice how 'e_step'
+ *         /            |  and 'l' define the
+ *        /             |  direction the arrow
+ *       |     return   |  points).
+ *       |     loop --> |
+ * ---------------------+---------------------
+ *         ^      l --> |
+ *         |            |
+ *  assign e_step       |
+ *                      |
+ *   begin e_step ----> |
+ *                      |
+ * </pre>
+ */
+
+BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step)
+{
+	BMEdge *e_prev = *e_step;
+	BMEdge *e_next;
+	if (l->e == e_prev) {
+		e_next = l->prev->e;
+	}
+	else if (l->prev->e == e_prev) {
+		e_next = l->e;
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	if (BM_edge_is_manifold(e_next)) {
+		return BM_edge_other_loop((*e_step = e_next), l);
+	}
+	else {
+		return NULL;
+	}
+}
+
+
 
 /**
  * The function takes a vertex at the center of a fan and returns the opposite edge in the fan.
