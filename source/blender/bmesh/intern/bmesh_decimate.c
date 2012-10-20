@@ -503,8 +503,31 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 			BMEdge *e_first;
 			e_iter = e_first = v->e;
 			do {
+				//BLI_assert(BM_edge_find_double(e_iter) == NULL);
+#ifdef USE_SAFETY_CHECKS
+				/* note! - this check is slow, but we can't avoid it - Campbell */
+				BMEdge *e_double;
+
+				e_double = BM_edge_find_double(e_iter);
+
+				if (UNLIKELY(e_double != NULL)) {
+					int e_index = BM_elem_index_get(e_double);
+					if (BM_edge_splice(bm, e_double, e_iter)) {
+						if (eheap_table[e_index]) {
+							BLI_heap_remove(eheap, eheap_table[e_index]);
+							eheap_table[e_index] = NULL;
+						}
+					}
+				}
+
+				/* if this happens, the e_double check could be put in a while loop,
+				 * so as to keep removing doubles while they are found. so far this isnt needed */
+				BLI_assert(BM_edge_find_double(e_iter) == NULL);
+#endif
+
 				bm_decim_build_edge_cost_single(e_iter, vquadrics, eheap, eheap_table);
 			} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+
 		}
 	}
 }
@@ -566,9 +589,11 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 	}
 #endif
 
-
 	/* free vars */
 	MEM_freeN(vquadrics);
 	MEM_freeN(eheap_table);
 	BLI_heap_free(eheap, NULL);
+
+	/* testing only */
+	// BM_mesh_validate(bm);
 }

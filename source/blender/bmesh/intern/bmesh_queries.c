@@ -1064,6 +1064,28 @@ BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2)
 }
 
 /**
+ * Returns an edge sharing the same vertices as this one.
+ * This isn't an invalid state but tools should clean up these cases before
+ * returning the mesh to the user.
+ */
+BMEdge *BM_edge_find_double(BMEdge *e)
+{
+	BMVert *v       = e->v1;
+	BMVert *v_other = e->v2;
+
+	BMEdge *e_iter;
+
+	e_iter = e;
+	while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e) {
+		if (UNLIKELY(BM_vert_in_edge(e_iter, v_other))) {
+			return e_iter;
+		}
+	}
+
+	return NULL;
+}
+
+/**
  * Given a set of vertices \a varr, find out if
  * all those vertices overlap an existing face.
  *

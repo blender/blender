@@ -74,6 +74,7 @@ BMLoop *BM_face_find_shortest_loop(BMFace *f);
 BMLoop *BM_face_find_longest_loop(BMFace *f);
 
 BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2);
+BMEdge *BM_edge_find_double(BMEdge *e);
 
 int     BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_existface);
 
