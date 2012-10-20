@@ -629,6 +629,20 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 	}
 }
 
+/* assumes value to be an enum from event_type_items */
+/* function makes sure keymodifiers are only valid keys, ESC keeps it unaltered */
+static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
+{
+	wmKeyMapItem *kmi = ptr->data;
+	
+	if (value == ESCKEY);
+	else if (value >= AKEY)
+		kmi->keymodifier = value;
+	else
+		kmi->keymodifier = 0;
+}
+
+
 static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
                                                    int *UNUSED(free))
 {
@@ -1865,6 +1879,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "key_modifier", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "keymodifier");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_wmKeyMapItem_keymodifier_set", NULL);
 	RNA_def_property_ui_text(prop, "Key Modifier", "Regular key pressed as a modifier");
 	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
