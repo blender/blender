@@ -382,7 +382,7 @@ HRESULT __stdcall VF_ReadDataFunc_Blen(
 
 	my_gets(s_in, buf, 256); /* 255 */
 
-	framebuf = (unsigned char*) v->lpData;
+	framebuf = (unsigned char *) v->lpData;
 
 	for (y = 0; y < height; y++) {
 		unsigned char *p = framebuf + v->lPitch * y;

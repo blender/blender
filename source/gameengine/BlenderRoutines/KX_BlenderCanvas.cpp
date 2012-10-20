@@ -46,7 +46,7 @@ m_frame_rect(rect)
 	m_area_left = ar->winrct.xmin;
 	m_area_top = ar->winrct.ymax;
 
-	glGetIntegerv(GL_VIEWPORT, (GLint*)m_viewport);
+	glGetIntegerv(GL_VIEWPORT, (GLint *)m_viewport);
 }
 
 KX_BlenderCanvas::~KX_BlenderCanvas()

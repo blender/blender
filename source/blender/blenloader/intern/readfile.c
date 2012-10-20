@@ -818,7 +818,7 @@ static void decode_blender_header(FileData *fd)
 			/* is the file saved in a different endian
 			 * than we need ?
 			 */
-			if (((((char*)&remove_this_endian_test)[0]==1)?L_ENDIAN:B_ENDIAN) != ((header[8]=='v')?L_ENDIAN:B_ENDIAN)) {
+			if (((((char *)&remove_this_endian_test)[0] == 1) ? L_ENDIAN : B_ENDIAN) != ((header[8] == 'v') ? L_ENDIAN : B_ENDIAN)) {
 				fd->flags |= FD_FLAGS_SWITCH_ENDIAN;
 			}
 			
@@ -940,7 +940,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, unsigned int s
 			if (chunkoffset+readsize > chunk->size)
 				readsize= chunk->size-chunkoffset;
 			
-			memcpy((char*)buffer + totread, chunk->buf + chunkoffset, readsize);
+			memcpy((char *)buffer + totread, chunk->buf + chunkoffset, readsize);
 			totread += readsize;
 			filedata->seek += readsize;
 			seek += readsize;

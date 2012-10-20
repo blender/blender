@@ -401,8 +401,8 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 			/* ok. we have a loop. now be smart with it! */
 			for (i = 0; i < bm->ldata.totlayer; i++) {
 				if (CustomData_layer_has_math(&bm->ldata, i)) {
-					int offset = bm->ldata.layers[i].offset;
-					int type = bm->ldata.layers[i].type;
+					const int offset = bm->ldata.layers[i].offset;
+					const int type = bm->ldata.layers[i].type;
 					void *cd_src, *cd_iter;
 
 					/* todo, make nicer macros for this */
@@ -423,14 +423,6 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 			}
 		}
 	}
-
-	/* first walk around the fan until we hit a seam */
-
-
-
-	/* last, interpolate ourselves */
-
-
 }
 #endif  /* USE_CUSTOMDATA */
 
@@ -661,7 +653,6 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 
 				bm_decim_build_edge_cost_single(e_iter, vquadrics, eheap, eheap_table);
 			} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
-
 		}
 	}
 }

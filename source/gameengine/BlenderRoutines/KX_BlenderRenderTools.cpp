@@ -58,7 +58,7 @@ unsigned int KX_BlenderRenderTools::m_numgllights;
 
 KX_BlenderRenderTools::KX_BlenderRenderTools()
 {
-	glGetIntegerv(GL_MAX_LIGHTS, (GLint*) &m_numgllights);
+	glGetIntegerv(GL_MAX_LIGHTS, (GLint *) &m_numgllights);
 	if (m_numgllights < 8)
 		m_numgllights = 8;
 }

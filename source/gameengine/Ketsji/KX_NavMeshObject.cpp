@@ -249,7 +249,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 		}
 
 		//create tris
-		polys = (unsigned short*)MEM_callocN(sizeof(unsigned short)*3*2*npolys, "BuildVertIndArrays polys");
+		polys = (unsigned short *)MEM_callocN(sizeof(unsigned short)*3*2*npolys, "BuildVertIndArrays polys");
 		memset(polys, 0xff, sizeof(unsigned short)*3*2*npolys);
 		unsigned short *poly = polys;
 		RAS_Polygon* raspoly;

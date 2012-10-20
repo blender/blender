@@ -156,7 +156,7 @@ static HaloRen *initstar(Render *re, ObjectRen *obr, const float vec[3], float h
  */
 
 void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
-				   void (*vertexfunc)(float*),  void (*termfunc)(void))
+                   void (*vertexfunc)(float*),  void (*termfunc)(void))
 {
 	extern unsigned char hash[512];
 	ObjectRen *obr= NULL;
@@ -5336,7 +5336,7 @@ static float *calculate_strandsurface_speedvectors(Render *re, ObjectInstanceRen
 			calculate_speedvector(vec, 1, winsq, winroot, mesh->co[a], ho, winspeed[a]);
 		}
 
-		return (float*)winspeed;
+		return (float *)winspeed;
 	}
 
 	return NULL;

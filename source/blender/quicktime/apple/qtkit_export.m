@@ -212,7 +212,7 @@ static NSString *stringWithCodecType(int codecType)
 {
 	char str[5];
 	
-	*((int*)str) = EndianU32_NtoB(codecType);
+	*((int *)str) = EndianU32_NtoB(codecType);
 	str[4] = 0;
 	
 	return [NSString stringWithCString:str encoding:NSASCIIStringEncoding];
@@ -624,8 +624,8 @@ int append_qt(struct RenderData *rd, int start_frame, int frame, int *pixels, in
 		return 0;
 	}
 	
-	from_Ptr = (unsigned char*)pixels;
-	to_Ptr = (unsigned char*)[blBitmapFormatImage bitmapData];
+	from_Ptr = (unsigned char *)pixels;
+	to_Ptr = (unsigned char *)[blBitmapFormatImage bitmapData];
 	for (y = 0; y < recty; y++) {
 		to_i = (recty-y-1)*rectx;
 		from_i = y*rectx;

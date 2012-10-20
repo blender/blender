@@ -1241,7 +1241,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 					break;
 				case CONSTRAINT_TYPE_SPLINEIK: 
 				{
-					bSplineIKConstraint *data= (bSplineIKConstraint*)con->data;
+					bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
 					
 					/* write points array */
 					writedata(wd, DATA, sizeof(float)*(data->numpoints), data->points);

@@ -1078,7 +1078,7 @@ static bool GetHitTriangle(btCollisionShape* shape, CcdShapeConstructionInfo* sh
 	const btVector3& meshScaling = shape->getLocalScaling();
 	for (int j=2;j>=0;j--)
 	{
-		int graphicsindex = indicestype==PHY_SHORT?((unsigned short*)gfxbase)[j]:gfxbase[j];
+		int graphicsindex = (indicestype == PHY_SHORT) ? ((unsigned short *)gfxbase)[j] : gfxbase[j];
 
 		btScalar* graphicsbase = (btScalar*)(vertexbase+graphicsindex*stride);
 

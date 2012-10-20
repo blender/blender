@@ -973,8 +973,8 @@ static void *distribute_threads_exec_cb(void *data)
 static int *COMPARE_ORIG_INDEX = NULL;
 static int distribute_compare_orig_index(const void *p1, const void *p2)
 {
-	int index1 = COMPARE_ORIG_INDEX[*(const int*)p1];
-	int index2 = COMPARE_ORIG_INDEX[*(const int*)p2];
+	int index1 = COMPARE_ORIG_INDEX[*(const int *)p1];
+	int index2 = COMPARE_ORIG_INDEX[*(const int *)p2];
 
 	if (index1 < index2)
 		return -1;

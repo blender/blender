@@ -62,14 +62,14 @@ static void slice_get_byte_buffers(const SeqRenderData *context, const ImBuf *ib
 {
 	int offset = 4 * start_line * context->rectx;
 
-	*rect1 = (unsigned char*) ibuf1->rect + offset;
-	*rect_out = (unsigned char*) out->rect + offset;
+	*rect1 = (unsigned char *)ibuf1->rect + offset;
+	*rect_out = (unsigned char *)out->rect + offset;
 
 	if (ibuf2)
-		*rect2 = (unsigned char*) ibuf2->rect + offset;
+		*rect2 = (unsigned char *)ibuf2->rect + offset;
 
 	if (ibuf3)
-		*rect3 = (unsigned char*) ibuf3->rect + offset;
+		*rect3 = (unsigned char *)ibuf3->rect + offset;
 }
 
 static void slice_get_float_buffers(const SeqRenderData *context, const ImBuf *ibuf1, const ImBuf *ibuf2,

@@ -705,25 +705,25 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 		smoke_export(sds->fluid, &dt, &dx, &dens, &react, &flame, &fuel, &heat, &heatold, &vx, &vy, &vz, &r, &g, &b, &obstacles);
 
 		ptcache_file_compressed_read(pf, (unsigned char *)sds->shadow, out_len);
-		ptcache_file_compressed_read(pf, (unsigned char*)dens, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char *)dens, out_len);
 		if (cache_fields & SM_ACTIVE_HEAT) {
-			ptcache_file_compressed_read(pf, (unsigned char*)heat, out_len);
-			ptcache_file_compressed_read(pf, (unsigned char*)heatold, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)heat, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)heatold, out_len);
 		}
 		if (cache_fields & SM_ACTIVE_FIRE) {
-			ptcache_file_compressed_read(pf, (unsigned char*)flame, out_len);
-			ptcache_file_compressed_read(pf, (unsigned char*)fuel, out_len);
-			ptcache_file_compressed_read(pf, (unsigned char*)react, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)flame, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)fuel, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)react, out_len);
 		}
 		if (cache_fields & SM_ACTIVE_COLORS) {
-			ptcache_file_compressed_read(pf, (unsigned char*)r, out_len);
-			ptcache_file_compressed_read(pf, (unsigned char*)g, out_len);
-			ptcache_file_compressed_read(pf, (unsigned char*)b, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)r, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)g, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)b, out_len);
 		}
-		ptcache_file_compressed_read(pf, (unsigned char*)vx, out_len);
-		ptcache_file_compressed_read(pf, (unsigned char*)vy, out_len);
-		ptcache_file_compressed_read(pf, (unsigned char*)vz, out_len);
-		ptcache_file_compressed_read(pf, (unsigned char*)obstacles, (unsigned int)res);
+		ptcache_file_compressed_read(pf, (unsigned char *)vx, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char *)vy, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char *)vz, out_len);
+		ptcache_file_compressed_read(pf, (unsigned char *)obstacles, (unsigned int)res);
 		ptcache_file_read(pf, &dt, 1, sizeof(float));
 		ptcache_file_read(pf, &dx, 1, sizeof(float));
 		ptcache_file_read(pf, &sds->p0, 3, sizeof(float));
@@ -751,20 +751,20 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 
 			smoke_turbulence_export(sds->wt, &dens, &react, &flame, &fuel, &r, &g, &b, &tcu, &tcv, &tcw);
 
-			ptcache_file_compressed_read(pf, (unsigned char*)dens, out_len_big);
+			ptcache_file_compressed_read(pf, (unsigned char *)dens, out_len_big);
 			if (cache_fields & SM_ACTIVE_FIRE) {
-				ptcache_file_compressed_read(pf, (unsigned char*)flame, out_len_big);
-				ptcache_file_compressed_read(pf, (unsigned char*)fuel, out_len_big);
+				ptcache_file_compressed_read(pf, (unsigned char *)flame, out_len_big);
+				ptcache_file_compressed_read(pf, (unsigned char *)fuel, out_len_big);
 			}
 			if (cache_fields & SM_ACTIVE_COLORS) {
-				ptcache_file_compressed_read(pf, (unsigned char*)r, out_len_big);
-				ptcache_file_compressed_read(pf, (unsigned char*)g, out_len_big);
-				ptcache_file_compressed_read(pf, (unsigned char*)b, out_len_big);
+				ptcache_file_compressed_read(pf, (unsigned char *)r, out_len_big);
+				ptcache_file_compressed_read(pf, (unsigned char *)g, out_len_big);
+				ptcache_file_compressed_read(pf, (unsigned char *)b, out_len_big);
 			}
 
-			ptcache_file_compressed_read(pf, (unsigned char*)tcu, out_len);
-			ptcache_file_compressed_read(pf, (unsigned char*)tcv, out_len);
-			ptcache_file_compressed_read(pf, (unsigned char*)tcw, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)tcu, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)tcv, out_len);
+			ptcache_file_compressed_read(pf, (unsigned char *)tcw, out_len);
 		}
 
 	return 1;
@@ -859,7 +859,7 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 			return 0;
 		}
 
-		ptcache_file_compressed_read(pf, (unsigned char*)surface->data->type_data, data_len*surface->data->total_points);
+		ptcache_file_compressed_read(pf, (unsigned char *)surface->data->type_data, data_len*surface->data->total_points);
 
 	}
 	return 1;
@@ -1699,7 +1699,7 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 			for (i=0; i<BPHYS_TOT_DATA; i++) {
 				unsigned int out_len = pm->totpoint*ptcache_data_size[i];
 				if (pf->data_types & (1<<i))
-					ptcache_file_compressed_read(pf, (unsigned char*)(pm->data[i]), out_len);
+					ptcache_file_compressed_read(pf, (unsigned char *)(pm->data[i]), out_len);
 			}
 		}
 		else {
@@ -1730,7 +1730,7 @@ static PTCacheMem *ptcache_disk_frame_to_mem(PTCacheID *pid, int cfra)
 			extra->data = MEM_callocN(extra->totdata * ptcache_extra_datasize[extra->type], "Pointcache extradata->data");
 
 			if (pf->flag & PTCACHE_TYPEFLAG_COMPRESS)
-				ptcache_file_compressed_read(pf, (unsigned char*)(extra->data), extra->totdata*ptcache_extra_datasize[extra->type]);
+				ptcache_file_compressed_read(pf, (unsigned char *)(extra->data), extra->totdata*ptcache_extra_datasize[extra->type]);
 			else
 				ptcache_file_read(pf, extra->data, extra->totdata, ptcache_extra_datasize[extra->type]);
 
@@ -1787,7 +1787,7 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 				if (pm->data[i]) {
 					unsigned int in_len = pm->totpoint*ptcache_data_size[i];
 					unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
-					ptcache_file_compressed_write(pf, (unsigned char*)(pm->data[i]), in_len, out, pid->cache->compression);
+					ptcache_file_compressed_write(pf, (unsigned char *)(pm->data[i]), in_len, out, pid->cache->compression);
 					MEM_freeN(out);
 				}
 			}
@@ -1820,7 +1820,7 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 			if (pid->cache->compression) {
 				unsigned int in_len = extra->totdata * ptcache_extra_datasize[extra->type];
 				unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
-				ptcache_file_compressed_write(pf, (unsigned char*)(extra->data), in_len, out, pid->cache->compression);
+				ptcache_file_compressed_write(pf, (unsigned char *)(extra->data), in_len, out, pid->cache->compression);
 				MEM_freeN(out);
 			}
 			else {

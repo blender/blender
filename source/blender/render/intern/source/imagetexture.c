@@ -693,7 +693,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
 		}
 	}
 	else {
-		char* rect = (char*)(ibuf->rect + x + y*ibuf->x);
+		char *rect = (char *)(ibuf->rect + x + y*ibuf->x);
 		col[0] = rect[0]*(1.f/255.f);
 		col[1] = rect[1]*(1.f/255.f);
 		col[2] = rect[2]*(1.f/255.f);
