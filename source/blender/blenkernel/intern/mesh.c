@@ -3175,6 +3175,32 @@ int BKE_mesh_center_bounds(Mesh *me, float cent[3])
 	return 0;
 }
 
+int BKE_mesh_center_centroid(Mesh *me, float cent[3])
+{
+	int i = me->totpoly;
+	MPoly *mpoly;
+	float poly_area;
+	float total_area = 0.0f;
+	float poly_cent[3];
+	
+	zero_v3(cent);
+	
+	/* calculate a weighted average of polygon centroids */
+	for (mpoly = me->mpoly; i--; mpoly++) {
+		BKE_mesh_calc_poly_center(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
+		poly_area = BKE_mesh_calc_poly_area(mpoly, me->mloop + mpoly->loopstart, me->mvert, NULL);
+		
+		madd_v3_v3fl(cent, poly_cent, poly_area);
+		total_area += poly_area;
+	}
+	/* otherwise we get NAN for 0 polys */
+	if (me->totpoly) {
+		mul_v3_fl(cent, 1.0f / total_area);
+	}
+
+	return (me->totpoly != 0);
+}
+
 void BKE_mesh_translate(Mesh *me, float offset[3], int do_keys)
 {
 	int i = me->totvert;

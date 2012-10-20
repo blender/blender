@@ -654,7 +654,8 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
 enum {
 	GEOMETRY_TO_ORIGIN = 0,
 	ORIGIN_TO_GEOMETRY,
-	ORIGIN_TO_CURSOR
+	ORIGIN_TO_CURSOR,
+	ORIGIN_TO_CENTER_OF_MASS
 };
 
 static int object_origin_set_exec(bContext *C, wmOperator *op)
@@ -785,6 +786,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				Mesh *me = ob->data;
 
 				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if (centermode == ORIGIN_TO_CENTER_OF_MASS) { BKE_mesh_center_centroid(me, cent); }
 				else if (around == V3D_CENTROID) { BKE_mesh_center_median(me, cent); }
 				else { BKE_mesh_center_bounds(me, cent); }
 
@@ -980,6 +982,8 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 		                     "Move object origin to center of object geometry"},
 		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor",
 		                   "Move object origin to position of the 3D cursor"},
+		{ORIGIN_TO_CENTER_OF_MASS, "ORIGIN_CENTER_OF_MASS", 0, "Origin to Center of Mass",
+		                           "Move object origin to the object center of mass (assuming uniform density)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -1006,4 +1010,3 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "center", prop_set_bounds_types, V3D_CENTROID, "Center", "");
 }
-
