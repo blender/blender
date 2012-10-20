@@ -2483,6 +2483,17 @@ int CustomData_layer_has_math(struct CustomData *data, int layer_n)
 	return FALSE;
 }
 
+int CustomData_layer_has_interp(struct CustomData *data, int layer_n)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[layer_n].type);
+
+	if (typeInfo->interp) {
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 int CustomData_has_math(struct CustomData *data)
 {
 	int i;
@@ -2490,6 +2501,20 @@ int CustomData_has_math(struct CustomData *data)
 	/* interpolates a layer at a time */
 	for (i = 0; i < data->totlayer; ++i) {
 		if (CustomData_layer_has_math(data, i)) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+int CustomData_has_interp(struct CustomData *data)
+{
+	int i;
+
+	/* interpolates a layer at a time */
+	for (i = 0; i < data->totlayer; ++i) {
+		if (CustomData_layer_has_interp(data, i)) {
 			return TRUE;
 		}
 	}

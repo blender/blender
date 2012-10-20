@@ -697,10 +697,10 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 
 
 #ifdef USE_CUSTOMDATA
-	/* initialize customdata flag */
-	if (CustomData_has_math(&bm->vdata)) customdata_flag |= CD_DO_VERT;
-	if (CustomData_has_math(&bm->edata)) customdata_flag |= CD_DO_EDGE;
-	if (CustomData_has_math(&bm->ldata)) customdata_flag |= CD_DO_LOOP;
+	/* initialize customdata flag, we only need math for loops */
+	if (CustomData_has_interp(&bm->vdata))  customdata_flag |= CD_DO_VERT;
+	if (CustomData_has_interp(&bm->edata))  customdata_flag |= CD_DO_EDGE;
+	if (CustomData_has_math(&bm->ldata))    customdata_flag |= CD_DO_LOOP;
 #endif
 
 	/* iterative edge collapse and maintain the eheap */
