@@ -257,7 +257,7 @@ void BLF_lang_set(const char *str)
 		if (locreturn == NULL) {
 			char language[65];
 
-			get_language(long_locale, default_lang, language, sizeof(language));
+			get_language(short_locale, default_lang, language, sizeof(language));
 
 			if (G.debug & G_DEBUG)
 				printf("Fallback to LANG=%s and LANGUAGE=%s\n", default_lang, language);
