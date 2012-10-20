@@ -148,6 +148,7 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 	row = uiLayoutSplit(sub, 0.7f, TRUE);
 	uiItemR(row, &sceneptr, "frame_current", 0, IFACE_("Cursor X"), ICON_NONE);
 	uiItemEnumO(row, "GRAPH_OT_snap", IFACE_("To Keys"), 0, "type", GRAPHKEYS_SNAP_CFRA);
+	
 	row = uiLayoutSplit(sub, 0.7f, TRUE);
 	uiItemR(row, &spaceptr, "cursor_position_y", 0, IFACE_("Cursor Y"), ICON_NONE);
 	uiItemEnumO(row, "GRAPH_OT_snap", IFACE_("To Keys"), 0, "type", GRAPHKEYS_SNAP_VALUE);
@@ -308,44 +309,43 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		 *  - we use the button-versions of the calls so that we can attach special update handlers
 		 *    and unit conversion magic that cannot be achieved using a purely RNA-approach
 		 */
-		// XXX: 
 		col = uiLayoutColumn(layout, TRUE);
 		/* keyframe itself */
 		{
 			uiItemL(col, IFACE_("Key:"), ICON_NONE);
-
+			
 			but = uiDefButR(block, NUM, B_REDR, IFACE_("Frame"), 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "co", 0, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_update_cb, fcu, bezt);
-
+			
 			but = uiDefButR(block, NUM, B_REDR, IFACE_("Value"), 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "co", 1, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_update_cb, fcu, bezt);
 			uiButSetUnitType(but, unit);
 		}
-
+		
 		/* previous handle - only if previous was Bezier interpolation */
 		if ((prevbezt) && (prevbezt->ipo == BEZT_IPO_BEZ)) {
 			uiItemL(col, IFACE_("Left Handle:"), ICON_NONE);
-
+			
 			but = uiDefButR(block, NUM, B_REDR, "X", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_left", 0, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
-
+			
 			but = uiDefButR(block, NUM, B_REDR, "Y", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_left", 1, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
 			uiButSetUnitType(but, unit);
 		}
-
+		
 		/* next handle - only if current is Bezier interpolation */
 		if (bezt->ipo == BEZT_IPO_BEZ) {
 			uiItemL(col, IFACE_("Right Handle:"), ICON_NONE);
-
+			
 			but = uiDefButR(block, NUM, B_REDR, "X", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_right", 0, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
-
+			
 			but = uiDefButR(block, NUM, B_REDR, "Y", 0, 0, UI_UNIT_X, UI_UNIT_Y,
 			                &bezt_ptr, "handle_right", 1, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, graphedit_activekey_handles_cb, fcu, bezt);
@@ -437,7 +437,7 @@ static void driver_update_flags_cb(bContext *UNUSED(C), void *fcu_v, void *UNUSE
 	ChannelDriver *driver = fcu->driver;
 	
 	/* clear invalid flags */
-	fcu->flag &= ~FCURVE_DISABLED; // XXX?
+	fcu->flag &= ~FCURVE_DISABLED;
 	driver->flag &= ~DRIVER_FLAG_INVALID;
 }
 
@@ -467,7 +467,6 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
 	uiTemplateAnyID(row, &dtar_ptr, "id", "id_type", IFACE_("Prop:"));
 	
 	/* Target Property */
-	// TODO: make this less technical...
 	if (dtar->id) {
 		PointerRNA root_ptr;
 		
@@ -630,12 +629,12 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 
 		/* errors? */
 		if (driver->flag & DRIVER_FLAG_INVALID)
-			uiItemL(col, IFACE_("ERROR: invalid Python expression"), ICON_ERROR);
+			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_ERROR);
 	}
 	else {
 		/* errors? */
 		if (driver->flag & DRIVER_FLAG_INVALID)
-			uiItemL(col, IFACE_("ERROR: invalid target channel(s)"), ICON_ERROR);
+			uiItemL(col, IFACE_("ERROR: Invalid target channel(s)"), ICON_ERROR);
 	}
 		
 	col = uiLayoutColumn(pa->layout, TRUE);
@@ -706,15 +705,15 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				graph_panel_driverVar__transChan(box, ale->id, dvar);
 				break;
 		}
-
+		
 		/* value of variable */
 		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
 			char valBuf[32];
-
+			
 			box = uiLayoutBox(col);
 			row = uiLayoutRow(box, TRUE);
 			uiItemL(row, IFACE_("Value:"), ICON_NONE);
-
+			
 			BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", dvar->curval);
 			uiItemL(row, valBuf, ICON_NONE);
 		}
@@ -724,8 +723,8 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	MEM_freeN(ale);
 }
 
-/* ******************* f-modifiers ******************************** */
-/* all the drawing code is in editors/animation/fmodifier_ui.c */
+/* ******************* F-Modifiers ******************************** */
+/* All the drawing code is in editors/animation/fmodifier_ui.c */
 
 #define B_FMODIFIER_REDRAW      20
 
@@ -757,7 +756,9 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 		row = uiLayoutRow(pa->layout, FALSE);
 		block = uiLayoutGetBlock(row);
 		
-		// XXX for now, this will be a operator button which calls a 'add modifier' operator
+		/* this is an operator button which calls a 'add modifier' operator... 
+		 * a menu might be nicer but would be tricky as we need some custom filtering
+		 */
 		uiDefButO(block, BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, IFACE_("Add Modifier"),
 		          10, 0, 150, 20, TIP_("Adds a new F-Curve Modifier for the active F-Curve"));
 		
