@@ -78,6 +78,14 @@ public:
 	bool getFlip (void) { return m_flip; }
 	/// set vertical flip
 	void setFlip (bool flip) { m_flip = flip; }
+	/// get Z buffer
+	bool getZbuff (void) { return m_zbuff; }
+	/// set Z buffer
+	void setZbuff (bool zbuff) { m_zbuff = zbuff; }
+	/// get depth
+	bool getDepth (void) { return m_depth; }
+	/// set depth
+	void setDepth (bool depth) { m_depth = depth; }
 
 	/// get source object
 	PyImage * getSource (const char * id);
@@ -111,6 +119,10 @@ protected:
 	bool m_scaleChange;
 	/// flip image vertically
 	bool m_flip;
+	/// use the Z buffer as a texture
+	bool m_zbuff;
+	/// extract the Z buffer with unisgned int precision
+	bool m_depth;
 
 	/// source image list
 	ImageSourceList m_sources;
@@ -347,7 +359,15 @@ int Image_setFlip (PyImage *self, PyObject *value, void *closure);
 PyObject *Image_getSource (PyImage *self, PyObject *args);
 // set filter source object
 PyObject *Image_setSource (PyImage *self, PyObject *args);
-
+// get Z buffer
+PyObject * Image_getZbuff (PyImage * self, void * closure);
+// set Z buffer
+int Image_setZbuff (PyImage * self, PyObject * value, void * closure);
+// get depth
+PyObject * Image_getDepth (PyImage * self, void * closure);
+// set depth
+int Image_setDepth (PyImage * self, PyObject * value, void * closure);
+ 
 // get pixel filter object
 PyObject *Image_getFilter (PyImage *self, void *closure);
 // set pixel filter object

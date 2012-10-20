@@ -385,6 +385,8 @@ static PyGetSetDef imageRenderGetSets[] =
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)",	NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
+	{(char*)"zbuff", (getter)Image_getZbuff, (setter)Image_setZbuff, (char*)"use depth buffer as texture", NULL},
+	{(char*)"depth", (getter)Image_getDepth, (setter)Image_setDepth, (char*)"get depth information from z-buffer using unsigned int precision", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}
 };
@@ -547,6 +549,8 @@ static PyGetSetDef imageMirrorGetSets[] =
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)",	NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
+	{(char*)"zbuff", (getter)Image_getZbuff, (setter)Image_setZbuff, (char*)"use depth buffer as texture", NULL},
+	{(char*)"depth", (getter)Image_getDepth, (setter)Image_setDepth, (char*)"get depth information from z-buffer using unsigned int precision", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}
 };

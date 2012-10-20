@@ -95,6 +95,10 @@ protected:
 	virtual unsigned int filter (unsigned int * src, short x, short y,
 		short * size, unsigned int pixSize, unsigned int val = 0)
 	{ return val; }
+	/// filter pixel, source float buffer
+	virtual unsigned int filter (float * src, short x, short y,
+		short * size, unsigned int pixSize, unsigned int val = 0)
+	{ return val; }
 
 	/// get source pixel size
 	virtual unsigned int getPixelSize (void) { return 1; }
