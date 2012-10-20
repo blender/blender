@@ -32,7 +32,7 @@
 #include "zlib.h"
 
 #ifndef WIN32
-#  include <unistd.h> // for read close
+#  include <unistd.h>  /* for read close */
 #else
 #  include <io.h> // for open close read
 #  include "winsock2.h"
@@ -2333,7 +2333,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		for (sc = main->screen.first; sc; sc = sc->id.next) {
 			if (sc->redraws_flag == 0) {
 				/* just initialize to default? */
-				// XXX: we could also have iterated through areas, and taken them from the first timeline available...
+				/* XXX: we could also have iterated through areas, and taken them from the first timeline available... */
 				sc->redraws_flag = TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 			}
 		}

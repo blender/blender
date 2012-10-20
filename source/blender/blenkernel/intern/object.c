@@ -2571,7 +2571,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 		if (ob->recalc & OB_RECALC_DATA) {
 			ID *data_id = (ID *)ob->data;
 			AnimData *adt = BKE_animdata_from_id(data_id);
-			float ctime = (float)scene->r.cfra; // XXX this is bad...
+			float ctime = (float)scene->r.cfra;  /* XXX this is bad... */
 			ListBase pidlist;
 			PTCacheID *pid;
 			

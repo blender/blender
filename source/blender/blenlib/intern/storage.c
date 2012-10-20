@@ -418,9 +418,9 @@ static void bli_adddirstrings(void)
 
 unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 {
-	// reset global variables
-	// memory stored in files is free()'d in
-	// filesel.c:freefilelist()
+	/* reset global variables
+	 * memory stored in files is free()'d in
+	 * filesel.c:freefilelist() */
 
 	actnum = totnum = 0;
 	files = NULL;

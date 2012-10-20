@@ -716,7 +716,7 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	// no redraw needed, we leave state as we entered it
+	/* no redraw needed, we leave state as we entered it */
 //	ED_update_for_newframe(C, 1);
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, CTX_data_scene(C));
 

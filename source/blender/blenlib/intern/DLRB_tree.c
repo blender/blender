@@ -502,7 +502,7 @@ void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node)
 /* ----- */
 
 /* Add the given data to the tree, and return the node added */
-// NOTE: for duplicates, the update_cb is called (if available), and the existing node is returned
+/* NOTE: for duplicates, the update_cb is called (if available), and the existing node is returned */
 DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, 
                              DLRBT_NAlloc_FP new_cb, DLRBT_NUpdate_FP update_cb, void *data)
 {

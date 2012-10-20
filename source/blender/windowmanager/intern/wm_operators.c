@@ -1317,7 +1317,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
 	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_buf) + 5;
 	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_buf) + 5;
-#endif //WITH_BUILDINFO
+#endif  /* WITH_BUILDINFO */
 
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
@@ -1329,7 +1329,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 #ifdef WITH_BUILDINFO	
 	uiDefBut(block, LABEL, 0, version_buf, 494 - ver_width, 282 - 24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 	uiDefBut(block, LABEL, 0, revision_buf, 494 - rev_width, 282 - 36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-#endif //WITH_BUILDINFO
+#endif  /* WITH_BUILDINFO */
 	
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);
 	
@@ -1501,12 +1501,12 @@ static int wm_search_menu_poll(bContext *C)
 	else {
 		ScrArea *sa = CTX_wm_area(C);
 		if (sa) {
-			if (sa->spacetype == SPACE_CONSOLE) return 0;  // XXX - so we can use the shortcut in the console
-			if (sa->spacetype == SPACE_TEXT) return 0;  // XXX - so we can use the spacebar in the text editor
+			if (sa->spacetype == SPACE_CONSOLE) return 0;  /* XXX - so we can use the shortcut in the console */
+			if (sa->spacetype == SPACE_TEXT) return 0;     /* XXX - so we can use the spacebar in the text editor */
 		}
 		else {
 			Object *editob = CTX_data_edit_object(C);
-			if (editob && editob->type == OB_FONT) return 0;  // XXX - so we can use the spacebar for entering text
+			if (editob && editob->type == OB_FONT) return 0;  /* XXX - so we can use the spacebar for entering text */
 		}
 	}
 	return 1;
@@ -3856,7 +3856,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
-	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); // XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); /* XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel */
 }
 
 /* zoom to border modal operators */

@@ -302,7 +302,7 @@ DagForest *dag_init(void)
 }
 
 /* isdata = object data... */
-// XXX this needs to be extended to be more flexible (so that not only objects are evaluated via depsgraph)...
+/* XXX this needs to be extended to be more flexible (so that not only objects are evaluated via depsgraph)... */
 static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node, int isdata)
 {
 	FCurve *fcu;
@@ -606,7 +606,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			
 			if (mom != ob) {
 				node2 = dag_get_node(dag, mom);
-				dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Metaball");  // mom depends on children!
+				dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Metaball");  /* mom depends on children! */
 			}
 		}
 		break;
@@ -921,8 +921,8 @@ DagNode *dag_find_node(DagForest *forest, void *fob)
 	return NULL;
 }
 
-static int ugly_hack_sorry = 1;  // prevent type check
-static int dag_print_dependencies = 0; // debugging
+static int ugly_hack_sorry = 1;         /* prevent type check */
+static int dag_print_dependencies = 0;  /* debugging */
 
 /* no checking of existence, use dag_find_node first or dag_get_node */
 DagNode *dag_add_node(DagForest *forest, void *fob)
@@ -934,7 +934,7 @@ DagNode *dag_add_node(DagForest *forest, void *fob)
 		node->ob = fob;
 		node->color = DAG_WHITE;
 
-		if (ugly_hack_sorry) node->type = GS(((ID *) fob)->name);   // sorry, done for pose sorting
+		if (ugly_hack_sorry) node->type = GS(((ID *) fob)->name);  /* sorry, done for pose sorting */
 		if (forest->numNodes) {
 			((DagNode *) forest->DagNode.last)->next = node;
 			forest->DagNode.last = node;
@@ -1303,7 +1303,7 @@ int pre_and_post_source_BFS(DagForest *dag, short mask, DagNode *source, graph_a
 					pre_func(node->ob, data);
 				}
 				
-				else { // back or cross edge
+				else {  /* back or cross edge */
 					retval = 1;
 				}
 				itA = itA->next;
@@ -1386,7 +1386,7 @@ DagNodeQueue *graph_dfs(void)
 						break;
 					}
 					else {
-						if (itA->node->color == DAG_GRAY) { // back edge
+						if (itA->node->color == DAG_GRAY) {  /* back edge */
 							fprintf(stderr, "dfs back edge :%15s %15s\n", ((ID *) node->ob)->name, ((ID *) itA->node->ob)->name);
 							/* is_cycle = 1; */ /* UNUSED */
 						}
@@ -1537,7 +1537,7 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 }
 
 
-// used to get the obs owning a datablock
+/* used to get the obs owning a datablock */
 DagNodeQueue *get_obparents(struct DagForest *dag, void *ob)
 {
 	DagNode *node, *node1;
@@ -1548,7 +1548,7 @@ DagNodeQueue *get_obparents(struct DagForest *dag, void *ob)
 	if (node == NULL) {
 		return NULL;
 	}
-	else if (node->ancestor_count == 1) { // simple case
+	else if (node->ancestor_count == 1) {  /* simple case */
 		nqueue = queue_create(1);
 		push_queue(nqueue, node);
 	}
@@ -1557,7 +1557,7 @@ DagNodeQueue *get_obparents(struct DagForest *dag, void *ob)
 		
 		node1 = dag->DagNode.first;
 		do {
-			if (node1->DFS_fntm > node->DFS_fntm) { // a parent is finished after child. must check adj list
+			if (node1->DFS_fntm > node->DFS_fntm) {  /* a parent is finished after child. must check adj list */
 				itA = node->child;
 				while (itA != NULL) {
 					if ((itA->node == node) && (itA->type == DAG_RL_DATA)) {
@@ -1600,7 +1600,7 @@ DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob)
 	return nqueue;	
 }
 
-// standard DFS list
+/* standard DFS list */
 DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob)
 {
 	DagNode *node;
@@ -1611,7 +1611,7 @@ DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob)
 	int skip = 0;
 
 	nqueue = queue_create(DAGQUEUEALLOC);
-	retqueue = queue_create(dag->numNodes); // was MainDag... why? (ton)
+	retqueue = queue_create(dag->numNodes);  /* was MainDag... why? (ton) */
 	
 	node = dag->DagNode.first;
 	while (node) {
@@ -1621,8 +1621,8 @@ DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob)
 	
 	time = 1;
 	
-	node = dag_find_node(dag, ob);   // could be done in loop above (ton)
-	if (node) { // can be null for newly added objects
+	node = dag_find_node(dag, ob);  /* could be done in loop above (ton) */
+	if (node) {                     /* can be null for newly added objects */
 		
 		node->color = DAG_GRAY;
 		time++;
@@ -1866,7 +1866,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 		if (!skip) {
 			if (node) {
 				node = pop_queue(nqueue);
-				if (node->ob == sce)    // we are done
+				if (node->ob == sce)  /* we are done */
 					break;
 				node->color = DAG_BLACK;
 				
@@ -2023,7 +2023,7 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 	for (itA = node->child; itA; itA = itA->next) {
 		if (itA->node->type == ID_OB) {
 			if (itA->node->lasttime != curtime) {
-				itA->lay = flush_layer_node(sce, itA->node, curtime);  // lay is only set once for each relation
+				itA->lay = flush_layer_node(sce, itA->node, curtime);  /* lay is only set once for each relation */
 			}
 			else itA->lay = itA->node->lay;
 			
@@ -2071,12 +2071,12 @@ static void dag_scene_flush_layers(Scene *sce, int lay)
 	Base *base;
 	int lasttime;
 
-	firstnode = sce->theDag->DagNode.first;  // always scene node
+	firstnode = sce->theDag->DagNode.first;  /* always scene node */
 
 	for (itA = firstnode->child; itA; itA = itA->next)
 		itA->lay = 0;
 
-	sce->theDag->time++;    // so we know which nodes were accessed
+	sce->theDag->time++;  /* so we know which nodes were accessed */
 	lasttime = sce->theDag->time;
 
 	/* update layer flags in nodes */
@@ -2148,13 +2148,13 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 		DAG_scene_sort(bmain, sce);
 	}
 	
-	firstnode = sce->theDag->DagNode.first;  // always scene node
+	firstnode = sce->theDag->DagNode.first;  /* always scene node */
 
 	/* first we flush the layer flags */
 	dag_scene_flush_layers(sce, lay);
 
 	/* then we use the relationships + layer info to flush update events */
-	sce->theDag->time++;    // so we know which nodes were accessed
+	sce->theDag->time++;  /* so we know which nodes were accessed */
 	lasttime = sce->theDag->time;
 	for (itA = firstnode->child; itA; itA = itA->next)
 		if (itA->node->lasttime != lasttime && itA->node->type == ID_OB)
@@ -2162,7 +2162,7 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 
 	/* if update is not due to time change, do pointcache clears */
 	if (!time) {
-		sce->theDag->time++;    // so we know which nodes were accessed
+		sce->theDag->time++;  /* so we know which nodes were accessed */
 		lasttime = sce->theDag->time;
 		for (itA = firstnode->child; itA; itA = itA->next) {
 			if (itA->node->lasttime != lasttime && itA->node->type == ID_OB) {
@@ -2930,9 +2930,9 @@ void DAG_pose_sort(Object *ob)
 	int skip = 0;
 	
 	dag = dag_init();
-	ugly_hack_sorry = 0; // no ID structs
+	ugly_hack_sorry = 0;  /* no ID structs */
 
-	rootnode = dag_add_node(dag, NULL); // node->ob becomes NULL
+	rootnode = dag_add_node(dag, NULL);  /* node->ob becomes NULL */
 	
 	/* we add the hierarchy and the constraints */
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
@@ -2977,7 +2977,7 @@ void DAG_pose_sort(Object *ob)
 									dag_add_relation(dag, node2, node3, 0, "IK Constraint");
 									
 									segcount++;
-									if (segcount == data->rootbone || segcount > 255) break;  // 255 is weak
+									if (segcount == data->rootbone || segcount > 255) break;  /* 255 is weak */
 									parchan = parchan->parent;
 								}
 							}
@@ -3027,7 +3027,7 @@ void DAG_pose_sort(Object *ob)
 		if (!skip) {
 			if (node) {
 				node = pop_queue(nqueue);
-				if (node->ob == NULL)   // we are done
+				if (node->ob == NULL)  /* we are done */
 					break;
 				node->color = DAG_BLACK;
 				

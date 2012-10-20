@@ -982,7 +982,7 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 
 	PRINT("Writing frame %i, render width=%d, render height=%d\n", frame, rectx, recty);
 
-// why is this done before writing the video frame and again at end_ffmpeg?
+/* why is this done before writing the video frame and again at end_ffmpeg? */
 //	write_audio_frames(frame / (((double)rd->frs_sec) / rd->frs_sec_base));
 
 	if (video_stream) {

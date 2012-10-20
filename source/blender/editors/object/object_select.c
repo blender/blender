@@ -612,7 +612,7 @@ static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in
 	}
 
 	uiPupMenuEnd(C, pup);
-	return changed; // The operator already handle this!
+	return changed;  /* The operator already handle this! */
 }
 
 static short select_grouped_object_hooks(bContext *C, Object *ob)
@@ -754,8 +754,8 @@ static short select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
 		return 0;
 	
 	/* select each object that Keying Set refers to */
-	// TODO: perhaps to be more in line with the rest of these, we should only take objects 
-	// if the passed in object is included in this too
+	/* TODO: perhaps to be more in line with the rest of these, we should only take objects
+	 * if the passed in object is included in this too */
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		/* only check for this object if it isn't selected already, to limit time wasted */

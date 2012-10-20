@@ -256,7 +256,7 @@ int ED_operator_node_active(bContext *C)
 	return 0;
 }
 
-// XXX rename
+/* XXX rename */
 int ED_operator_graphedit_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IPO);
@@ -3125,7 +3125,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		/* recalculate the timestep for the timer now that we've finished calculating this,
 		 * since the frames-per-second value may have been changed
 		 */
-		// TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this?
+		/* TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this? */
 		wt->timestep = (1.0 / FPS);
 		
 		return OPERATOR_FINISHED;
@@ -3175,7 +3175,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 	else {
 		int refresh = SPACE_TIME; /* these settings are currently only available from a menu in the TimeLine */
 		
-		if (mode == 1) // XXX only play audio forwards!?
+		if (mode == 1)  /* XXX only play audio forwards!? */
 			sound_play_scene(scene);
 		
 		ED_screen_animation_timer(C, screen->redraws_flag, refresh, sync, mode);
@@ -3427,7 +3427,7 @@ static int screen_delete_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Delete Screen"; //was scene
+	ot->name = "Delete Screen";  /* was scene */
 	ot->description = "Delete active screen";
 	ot->idname = "SCREEN_OT_delete";
 	
@@ -3744,7 +3744,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_cancel", MEDIASTOP, KM_PRESS, 0, 0);
 	
 	/* Alternative keys for animation and sequencer playing */
-#if 0 // XXX: disabled for restoring later... bad implementation
+#if 0 /* XXX: disabled for restoring later... bad implementation */
 	keymap = WM_keymap_find(keyconf, "Frames", 0, 0);
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "cycle_speed", TRUE);

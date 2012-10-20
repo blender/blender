@@ -420,7 +420,7 @@ void filelist_free_icons(void)
 	}
 }
 
-//-----------------FOLDERLIST (previous/next) --------------//
+/* -----------------FOLDERLIST (previous/next) -------------- */
 ListBase *folderlist_new(void)
 {
 	ListBase *p = MEM_callocN(sizeof(ListBase), "folderlist");
@@ -520,7 +520,7 @@ static void filelist_read_main(struct FileList *filelist);
 static void filelist_read_library(struct FileList *filelist);
 static void filelist_read_dir(struct FileList *filelist);
 
-//------------------FILELIST------------------------//
+/* ------------------FILELIST------------------------ */
 FileList *filelist_new(short type)
 {
 	FileList *p = MEM_callocN(sizeof(FileList), "filelist");
@@ -1233,7 +1233,7 @@ void filelist_from_main(struct FileList *filelist)
 						BLI_snprintf(files->relname, FILE_MAX + (MAX_ID_NAME - 2) + 3, "%s | %s", id->lib->name, id->name + 2);
 					}
 					files->type |= S_IFREG;
-#if 0               // XXXXX TODO show the selection status of the objects
+#if 0               /* XXXXX TODO show the selection status of the objects */
 					if (!filelist->has_func) { /* F4 DATA BROWSE */
 						if (idcode == ID_OB) {
 							if ( ((Object *)id)->flag & SELECT) files->selflag |= SELECTED_FILE;

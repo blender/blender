@@ -39,8 +39,8 @@
 
 #define EULER_SIZE 3
 
-//----------------------------------mathutils.Euler() -------------------
-//makes a new euler for you to play with
+/* ----------------------------------mathutils.Euler() ------------------- */
+/* makes a new euler for you to play with */
 static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	PyObject *seq = NULL;
@@ -122,8 +122,8 @@ static PyObject *Euler_ToTupleExt(EulerObject *self, int ndigits)
 	return ret;
 }
 
-//-----------------------------METHODS----------------------------
-//return a quaternion representation of the euler
+/* -----------------------------METHODS----------------------------
+ * return a quaternion representation of the euler */
 
 PyDoc_STRVAR(Euler_to_quaternion_doc,
 ".. method:: to_quaternion()\n"
@@ -145,7 +145,7 @@ static PyObject *Euler_to_quaternion(EulerObject *self)
 	return Quaternion_CreatePyObject(quat, Py_NEW, NULL);
 }
 
-//return a matrix representation of the euler
+/* return a matrix representation of the euler */
 PyDoc_STRVAR(Euler_to_matrix_doc,
 ".. method:: to_matrix()\n"
 "\n"
@@ -277,8 +277,8 @@ static PyObject *Euler_make_compatible(EulerObject *self, PyObject *value)
 	Py_RETURN_NONE;
 }
 
-//----------------------------Euler.rotate()-----------------------
-// return a copy of the euler
+/* ----------------------------Euler.rotate()-----------------------
+ * return a copy of the euler */
 
 PyDoc_STRVAR(Euler_copy_doc,
 ".. function:: copy()\n"
@@ -305,8 +305,8 @@ static PyObject *Euler_deepcopy(EulerObject *self, PyObject *args)
 	return Euler_copy(self);
 }
 
-//----------------------------print object (internal)--------------
-//print the object to screen
+/* ----------------------------print object (internal)--------------
+ * print the object to screen */
 
 static PyObject *Euler_repr(EulerObject *self)
 {
@@ -374,15 +374,15 @@ static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
 	return Py_INCREF(res), res;
 }
 
-//---------------------SEQUENCE PROTOCOLS------------------------
-//----------------------------len(object)------------------------
-//sequence length
+/* ---------------------SEQUENCE PROTOCOLS------------------------ */
+/* ----------------------------len(object)------------------------ */
+/* sequence length */
 static int Euler_len(EulerObject *UNUSED(self))
 {
 	return EULER_SIZE;
 }
-//----------------------------object[]---------------------------
-//sequence accessor (get)
+/* ----------------------------object[]--------------------------- */
+/* sequence accessor (get) */
 static PyObject *Euler_item(EulerObject *self, int i)
 {
 	if (i < 0) i = EULER_SIZE - i;
@@ -400,13 +400,13 @@ static PyObject *Euler_item(EulerObject *self, int i)
 	return PyFloat_FromDouble(self->eul[i]);
 
 }
-//----------------------------object[]-------------------------
-//sequence accessor (set)
+/* ----------------------------object[]------------------------- */
+/* sequence accessor (set) */
 static int Euler_ass_item(EulerObject *self, int i, PyObject *value)
 {
 	float f = PyFloat_AsDouble(value);
 
-	if (f == -1 && PyErr_Occurred()) { // parsed item not a number
+	if (f == -1 && PyErr_Occurred()) {  /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "euler[attribute] = x: "
 		                "argument not a number");
@@ -429,8 +429,8 @@ static int Euler_ass_item(EulerObject *self, int i, PyObject *value)
 
 	return 0;
 }
-//----------------------------object[z:y]------------------------
-//sequence slice (get)
+/* ----------------------------object[z:y]------------------------ */
+/* sequence slice (get) */
 static PyObject *Euler_slice(EulerObject *self, int begin, int end)
 {
 	PyObject *tuple;
@@ -451,8 +451,8 @@ static PyObject *Euler_slice(EulerObject *self, int begin, int end)
 
 	return tuple;
 }
-//----------------------------object[z:y]------------------------
-//sequence slice (set)
+/* ----------------------------object[z:y]------------------------ */
+/* sequence slice (set) */
 static int Euler_ass_slice(EulerObject *self, int begin, int end, PyObject *seq)
 {
 	int i, size;
@@ -553,7 +553,7 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
 	}
 }
 
-//-----------------PROTCOL DECLARATIONS--------------------------
+/* -----------------PROTCOL DECLARATIONS-------------------------- */
 static PySequenceMethods Euler_SeqMethods = {
 	(lenfunc) Euler_len,                    /* sq_length */
 	(binaryfunc) NULL,                      /* sq_concat */
@@ -629,7 +629,7 @@ static PyGetSetDef Euler_getseters[] = {
 };
 
 
-//-----------------------METHOD DEFINITIONS ----------------------
+/* -----------------------METHOD DEFINITIONS ---------------------- */
 static struct PyMethodDef Euler_methods[] = {
 	{"zero", (PyCFunction) Euler_zero, METH_NOARGS, Euler_zero_doc},
 	{"to_matrix", (PyCFunction) Euler_to_matrix, METH_NOARGS, Euler_to_matrix_doc},
@@ -643,60 +643,60 @@ static struct PyMethodDef Euler_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-//------------------PY_OBECT DEFINITION--------------------------
+/* ------------------PY_OBECT DEFINITION-------------------------- */
 PyDoc_STRVAR(euler_doc,
 "This object gives access to Eulers in Blender."
 );
 PyTypeObject euler_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"Euler",                        //tp_name
-	sizeof(EulerObject),            //tp_basicsize
-	0,                              //tp_itemsize
-	(destructor)BaseMathObject_dealloc,     //tp_dealloc
-	NULL,                           //tp_print
-	NULL,                           //tp_getattr
-	NULL,                           //tp_setattr
-	NULL,                           //tp_compare
-	(reprfunc) Euler_repr,          //tp_repr
-	NULL,                           //tp_as_number
-	&Euler_SeqMethods,              //tp_as_sequence
-	&Euler_AsMapping,               //tp_as_mapping
-	NULL,                           //tp_hash
-	NULL,                           //tp_call
-	(reprfunc) Euler_str,           //tp_str
-	NULL,                           //tp_getattro
-	NULL,                           //tp_setattro
-	NULL,                           //tp_as_buffer
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, //tp_flags
-	euler_doc, //tp_doc
-	(traverseproc)BaseMathObject_traverse,  //tp_traverse
-	(inquiry)BaseMathObject_clear,  //tp_clear
-	(richcmpfunc)Euler_richcmpr,    //tp_richcompare
-	0,                              //tp_weaklistoffset
-	NULL,                           //tp_iter
-	NULL,                           //tp_iternext
-	Euler_methods,                  //tp_methods
-	NULL,                           //tp_members
-	Euler_getseters,                //tp_getset
-	NULL,                           //tp_base
-	NULL,                           //tp_dict
-	NULL,                           //tp_descr_get
-	NULL,                           //tp_descr_set
-	0,                              //tp_dictoffset
-	NULL,                           //tp_init
-	NULL,                           //tp_alloc
-	Euler_new,                      //tp_new
-	NULL,                           //tp_free
-	NULL,                           //tp_is_gc
-	NULL,                           //tp_bases
-	NULL,                           //tp_mro
-	NULL,                           //tp_cache
-	NULL,                           //tp_subclasses
-	NULL,                           //tp_weaklist
-	NULL                            //tp_del
+	"Euler",                        /* tp_name */
+	sizeof(EulerObject),            /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	(destructor)BaseMathObject_dealloc,     /* tp_dealloc */
+	NULL,                           /* tp_print */
+	NULL,                           /* tp_getattr */
+	NULL,                           /* tp_setattr */
+	NULL,                           /* tp_compare */
+	(reprfunc) Euler_repr,          /* tp_repr */
+	NULL,                           /* tp_as_number */
+	&Euler_SeqMethods,              /* tp_as_sequence */
+	&Euler_AsMapping,               /* tp_as_mapping */
+	NULL,                           /* tp_hash */
+	NULL,                           /* tp_call */
+	(reprfunc) Euler_str,           /* tp_str */
+	NULL,                           /* tp_getattro */
+	NULL,                           /* tp_setattro */
+	NULL,                           /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /* tp_flags */
+	euler_doc, /* tp_doc */
+	(traverseproc)BaseMathObject_traverse,  /* tp_traverse */
+	(inquiry)BaseMathObject_clear,  /* tp_clear */
+	(richcmpfunc)Euler_richcmpr,    /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	NULL,                           /* tp_iter */
+	NULL,                           /* tp_iternext */
+	Euler_methods,                  /* tp_methods */
+	NULL,                           /* tp_members */
+	Euler_getseters,                /* tp_getset */
+	NULL,                           /* tp_base */
+	NULL,                           /* tp_dict */
+	NULL,                           /* tp_descr_get */
+	NULL,                           /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	NULL,                           /* tp_init */
+	NULL,                           /* tp_alloc */
+	Euler_new,                      /* tp_new */
+	NULL,                           /* tp_free */
+	NULL,                           /* tp_is_gc */
+	NULL,                           /* tp_bases */
+	NULL,                           /* tp_mro */
+	NULL,                           /* tp_cache */
+	NULL,                           /* tp_subclasses */
+	NULL,                           /* tp_weaklist */
+	NULL                            /* tp_del */
 };
-//------------------------Euler_CreatePyObject (internal)-------------
-//creates a new euler object
+/* ------------------------Euler_CreatePyObject (internal)------------- */
+/* creates a new euler object */
 /* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
  * (i.e. it was allocated elsewhere by MEM_mallocN())
  * pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON

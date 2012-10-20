@@ -43,35 +43,33 @@
 #include "../imbuf/IMB_imbuf_types.h"
 
 #ifndef USE_QTKIT
-#ifndef __MOVIES__
-#ifdef _WIN32
-#include <Movies.h>
-#elif defined(__APPLE__)
-#define __CARBONSOUND__
-#import <Carbon/Carbon.h>
-#include <QuickTime/Movies.h>
-#endif
-#endif  /* __MOVIES__ */
+#  ifndef __MOVIES__
+#    ifdef _WIN32
+#      include <Movies.h>
+#    elif defined(__APPLE__)
+#      define __CARBONSOUND__
+#      import <Carbon/Carbon.h>
+#      include <QuickTime/Movies.h>
+#    endif
+#  endif  /* __MOVIES__ */
 #endif  /* USE_QTKIT */
 
 #ifdef _WIN32
-#ifndef __FIXMATH__
-#include <FixMath.h>
-#endif /* __FIXMATH__ */
+#  ifndef __FIXMATH__
+#    include <FixMath.h>
+#  endif /* __FIXMATH__ */
 #endif /* _WIN32 _ */
-
 
 char *get_valid_qtname(const char *name);
 
-
-// quicktime movie import functions
+/* quicktime movie import functions */
 
 int		anim_is_quicktime (const char *name);
 int		startquicktime (struct anim *anim);
 void	free_anim_quicktime (struct anim *anim);
 ImBuf  *qtime_fetchibuf (struct anim *anim, int position);
 
-// quicktime image import functions
+/* quicktime image import functions */
 
 int		imb_is_a_quicktime (char *name);
 ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags);

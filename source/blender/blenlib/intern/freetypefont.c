@@ -473,10 +473,10 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	VFontData *vfd = NULL;
 	int success = 0;
 
-	//init Freetype	
+	/* init Freetype */
 	err = FT_Init_FreeType(&library);
 	if (err) {
-		//XXX error("Failed to load the Freetype font library");
+		/* XXX error("Failed to load the Freetype font library"); */
 		return NULL;
 	}
 
@@ -486,7 +486,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 		vfd = objfnt_to_ftvfontdata(pf);
 	}
 
-	//free Freetype
+	/* free Freetype */
 	FT_Done_FreeType(library);
 	
 	return vfd;
@@ -518,7 +518,7 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 
 #if 0
 
-// Freetype2 Outline struct
+/* Freetype2 Outline struct */
 
 typedef struct  FT_Outline_
 {

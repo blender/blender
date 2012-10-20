@@ -406,10 +406,10 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	paint_stroke_add_sample(p, stroke, event->x, event->y);
 	paint_stroke_sample_average(stroke, &sample_average);
 
-	// let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!
-	// this isn't perfect... even when an extra MOUSEMOVE is spoofed, the stroke discards it
-	// since the 2D deltas are zero -- code in this file needs to be updated to use the
-	// post-NDOF_MOTION MOUSEMOVE
+	/* let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!
+	 * this isn't perfect... even when an extra MOUSEMOVE is spoofed, the stroke discards it
+	 * since the 2D deltas are zero -- code in this file needs to be updated to use the
+	 * post-NDOF_MOTION MOUSEMOVE */
 	if (event->type == NDOF_MOTION)
 		return OPERATOR_PASS_THROUGH;
 

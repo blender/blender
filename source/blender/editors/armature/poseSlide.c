@@ -105,7 +105,7 @@ typedef struct tPoseSlideOp {
 	int nextFrame;      /* frame after current frame (blend-to) */
 	
 	int mode;           /* sliding mode (ePoseSlide_Modes) */
-	int flag;           // unused for now, but can later get used for storing runtime settings....
+	int flag;           /* unused for now, but can later get used for storing runtime settings.... */
 	
 	float percentage;   /* 0-1 value for determining the influence of whatever is relevant */
 } tPoseSlideOp;
@@ -486,7 +486,7 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 				pose_slide_apply_vec3(pso, pfl, pchan->eul, "rotation_euler");
 			}
 			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-				// TODO: need to figure out how to do this!
+				/* TODO: need to figure out how to do this! */
 			}
 			else {
 				/* quaternions - use quaternion blending */
@@ -538,7 +538,7 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
 			break;
 		
 		default:
-			// unknown
+			/* unknown */
 			strcpy(mode_str, "Sliding-Tool");
 			break;
 	}
@@ -606,7 +606,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 	}
 	
 	/* initial apply for operator... */
-	// TODO: need to calculate percentage for initial round too...
+	/* TODO: need to calculate percentage for initial round too... */
 	pose_slide_apply(C, pso);
 	
 	/* depsgraph updates + redraws */
@@ -1152,7 +1152,7 @@ static void pose_propagate_fcurve(wmOperator *op, Object *ob, FCurve *fcu,
 		}
 		
 		/* just flatten handles, since values will now be the same either side... */
-		// TODO: perhaps a fade-out modulation of the value is required here (optional once again)?
+		/* TODO: perhaps a fade-out modulation of the value is required here (optional once again)? */
 		bezt->vec[0][1] = bezt->vec[1][1] = bezt->vec[2][1] = refVal;
 		
 		/* select keyframe to indicate that it's been changed */
@@ -1247,13 +1247,13 @@ void POSE_OT_propagate(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = pose_propagate_exec;
-	ot->poll = ED_operator_posemode; // XXX: needs selected bones!
+	ot->poll = ED_operator_posemode;  /* XXX: needs selected bones! */
 	
 	/* flag */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	// TODO: add "fade out" control for tapering off amount of propagation as time goes by?
+	/* TODO: add "fade out" control for tapering off amount of propagation as time goes by? */
 	ot->prop = RNA_def_enum(ot->srna, "mode", terminate_items, POSE_PROPAGATE_SMART_HOLDS, "Terminate Mode", "Method used to determine when to stop propagating pose to keyframes");
 	RNA_def_float(ot->srna, "end_frame", 250.0, FLT_MIN, FLT_MAX, "End Frame", "Frame to stop propagating frames to (for 'Before Frame' mode)", 1.0, 250.0);
 }

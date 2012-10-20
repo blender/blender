@@ -661,11 +661,11 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 
 /* ----- Grease Pencil Sketches Drawing API ------ */
 
-// ............................
-// XXX 
-//	We need to review the calls below, since they may be/are not that suitable for
-//	the new ways that we intend to be drawing data...
-// ............................
+/* ............................
+ * XXX
+ *	We need to review the calls below, since they may be/are not that suitable for
+ *	the new ways that we intend to be drawing data...
+ * ............................ */
 
 /* draw grease-pencil sketches to specified 2d-view that uses ibuf corrections */
 void draw_gpencil_2dimage(const bContext *C)

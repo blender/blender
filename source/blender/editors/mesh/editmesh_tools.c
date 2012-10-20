@@ -255,7 +255,7 @@ static short edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const c
 		return 0;
 	}
 
-	return 's'; // s is shrink/fatten
+	return 's';  /* s is shrink/fatten */
 }
 
 /* extrudes individual edges */
@@ -275,7 +275,7 @@ static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char
 		return 0;
 	}
 
-	return 'n'; // n is normal grab
+	return 'n';  /* n is normal grab */
 }
 
 /* extrudes individual vertices */
@@ -295,7 +295,7 @@ static short edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char
 		return 0;
 	}
 
-	return 'g'; // g is grab
+	return 'g';  /* g is grab */
 }
 
 static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag, float nor[3])

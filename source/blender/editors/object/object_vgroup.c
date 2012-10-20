@@ -941,7 +941,7 @@ static void vgroup_select_verts(Object *ob, int select)
 			}
 
 			/* this has to be called, because this function operates on vertices only */
-			if (select) EDBM_select_flush(em);  // vertices to edges/faces
+			if (select) EDBM_select_flush(em);  /* vertices to edges/faces */
 			else EDBM_deselect_flush(em);
 		}
 		else {
@@ -1180,17 +1180,18 @@ static void getVerticalAndHorizontalChange(const float norm[3], float d, const f
 
 	closest_to_plane_v3(projA, coord, norm, start);
 	closest_to_plane_v3(projB, coord, norm, end);
-	// (vertical and horizontal refer to the plane's y and xz respectively)
-	// vertical distance
+	/* (vertical and horizontal refer to the plane's y and xz respectively)
+	 * vertical distance */
 	dists[index] = dot_v3v3(norm, end) + d;
-	// vertical change
+	/* vertical change */
 	changes[index][0] = dists[index] - distToStart;
 	//printf("vc %f %f\n", distance(end, projB, 3)-distance(start, projA, 3), changes[index][0]);
-	// horizontal change
+	/* horizontal change */
 	changes[index][1] = len_v3v3(projA, projB);
 }
 
-// I need the derived mesh to be forgotten so the positions are recalculated with weight changes (see dm_deform_recalc)
+/* I need the derived mesh to be forgotten so the positions are recalculated
+ * with weight changes (see dm_deform_recalc) */
 static void dm_deform_clear(DerivedMesh *dm, Object *ob)
 {
 	if (ob->derivedDeform && (ob->derivedDeform) == dm) {
@@ -1311,7 +1312,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				}
 			}
 		}
-		// sort the changes by the vertical change
+		/* sort the changes by the vertical change */
 		for (k = 0; k < totweight; k++) {
 			float tf;
 			int ti;
@@ -1323,7 +1324,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 					bestIndex = i;
 				}
 			}
-			// switch with k
+			/* switch with k */
 			if (bestIndex != k) {
 				ti = upDown[k];
 				upDown[k] = upDown[bestIndex];

@@ -132,7 +132,7 @@ void ACTION_OT_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = act_new_exec;
-	// NOTE: this is used in the NLA too...
+	/* NOTE: this is used in the NLA too... */
 	//ot->poll = ED_operator_action_active;
 	
 	/* flags */
@@ -234,8 +234,8 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 	int filter;
 	
 	/* get data to filter, from Action or Dopesheet */
-	// XXX: what is sel doing here?!
-	//      Commented it, was breaking things (eg. the "auto preview range" tool).
+	/* XXX: what is sel doing here?!
+	 *      Commented it, was breaking things (eg. the "auto preview range" tool). */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_SEL *//*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
@@ -542,7 +542,7 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	
 	/* paste keyframes */
 	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
-		// FIXME...
+		/* FIXME... */
 		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for Grease Pencil or Mask mode");
 		return OPERATOR_CANCELLED;
 	}
@@ -588,7 +588,7 @@ void ACTION_OT_paste(wmOperatorType *ot)
 static EnumPropertyItem prop_actkeys_insertkey_types[] = {
 	{1, "ALL", 0, "All Channels", ""},
 	{2, "SEL", 0, "Only Selected Channels", ""},
-	{3, "GROUP", 0, "In Active Group", ""}, // xxx not in all cases
+	{3, "GROUP", 0, "In Active Group", ""},  /* XXX not in all cases */
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1010,7 +1010,7 @@ static void setexpo_action_keys(bAnimContext *ac, short mode)
 			if (mode == MAKE_CYCLIC_EXPO) {
 				/* only add if one doesn't exist */
 				if (list_has_suitable_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES, -1) == 0) {
-					// TODO: add some more preset versions which set different extrapolation options?
+					/* TODO: add some more preset versions which set different extrapolation options? */
 					add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES);
 				}
 			}
@@ -1435,7 +1435,7 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	// XXX...
+	/* XXX... */
 	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		
@@ -1502,7 +1502,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	ked.scene = ac->scene;
 	
 	/* for 'first selected marker' mode, need to find first selected marker first! */
-	// XXX should this be made into a helper func in the API?
+	/* XXX should this be made into a helper func in the API? */
 	if (mode == ACTKEYS_MIRROR_MARKER) {
 		TimeMarker *marker = ED_markers_get_first_selected(ac->markers);
 		
@@ -1548,7 +1548,7 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	// XXX...
+	/* XXX... */
 	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		

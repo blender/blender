@@ -939,10 +939,10 @@ void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
 /* "Improved Collision detection and Response" */
 static int getLowestRoot(const float a, const float b, const float c, const float maxR, float *root)
 {
-	// Check if a solution exists
+	/* Check if a solution exists */
 	float determinant = b * b - 4.0f * a * c;
 
-	// If determinant is negative it means no solutions.
+	/* If determinant is negative it means no solutions. */
 	if (determinant >= 0.0f) {
 		/* calculate the two roots: (if determinant == 0 then
 		 * x1==x2 but lets disregard that slight optimization) */
@@ -950,24 +950,24 @@ static int getLowestRoot(const float a, const float b, const float c, const floa
 		float r1 = (-b - sqrtD) / (2.0f * a);
 		float r2 = (-b + sqrtD) / (2.0f * a);
 
-		// Sort so x1 <= x2
+		/* Sort so x1 <= x2 */
 		if (r1 > r2)
 			SWAP(float, r1, r2);
 
-		// Get lowest root:
+		/* Get lowest root: */
 		if (r1 > 0.0f && r1 < maxR) {
 			*root = r1;
 			return 1;
 		}
 
-		// It is possible that we want x2 - this can happen
-		// if x1 < 0
+		/* It is possible that we want x2 - this can happen */
+		/* if x1 < 0 */
 		if (r2 > 0.0f && r2 < maxR) {
 			*root = r2;
 			return 1;
 		}
 	}
-	// No (valid) solutions
+	/* No (valid) solutions */
 	return 0;
 }
 
@@ -1080,7 +1080,7 @@ int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const flo
 	}
 
 	/*---test edges---*/
-	sub_v3_v3v3(e3, v2, v1); //wasnt yet calculated
+	sub_v3_v3v3(e3, v2, v1);  /* wasnt yet calculated */
 
 
 	/*e1*/
@@ -1344,7 +1344,7 @@ void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_start[3],
 
 /* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
 int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
-				   const float bb_max[3], float *tmin_out)
+                   const float bb_max[3], float *tmin_out)
 {
 	float bbox[2][3];
 	float tmin, tmax, tymin, tymax, tzmin, tzmax;
@@ -1587,7 +1587,7 @@ void isect_point_face_uv_v2(const int isquad,
 	}
 }
 
-#if 0 // XXX this version used to be used in isect_point_tri_v2_int() and was called IsPointInTri2D
+#if 0  /* XXX this version used to be used in isect_point_tri_v2_int() and was called IsPointInTri2D */
 
 int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 {
@@ -1777,7 +1777,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 	signed char ix;
 	signed char iy;
 
-	// if x1 == x2 or y1 == y2, then it does not matter what we set here
+	/* if x1 == x2 or y1 == y2, then it does not matter what we set here */
 	int delta_x = (x2 > x1 ? (ix = 1, x2 - x1) : (ix = -1, x1 - x2)) << 1;
 	int delta_y = (y2 > y1 ? (iy = 1, y2 - y1) : (iy = -1, y1 - y2)) << 1;
 
@@ -1786,7 +1786,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 	}
 
 	if (delta_x >= delta_y) {
-		// error may go below zero
+		/* error may go below zero */
 		int error = delta_y - (delta_x >> 1);
 
 		while (x1 != x2) {
@@ -1795,9 +1795,9 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 					y1 += iy;
 					error -= delta_x;
 				}
-				// else do nothing
+				/* else do nothing */
 			}
-			// else do nothing
+			/* else do nothing */
 
 			x1 += ix;
 			error += delta_y;
@@ -1808,7 +1808,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 		}
 	}
 	else {
-		// error may go below zero
+		/* error may go below zero */
 		int error = delta_x - (delta_y >> 1);
 
 		while (y1 != y2) {
@@ -1817,9 +1817,9 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 					x1 += ix;
 					error -= delta_y;
 				}
-				// else do nothing
+				/* else do nothing */
 			}
-			// else do nothing
+			/* else do nothing */
 
 			y1 += iy;
 			error += delta_x;
@@ -2334,7 +2334,7 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 	const double fC = (st1[0] - st[0]) * (st1[1] - st2[1]) - (st1[1] - st[1]) * (st1[0] - st2[0]);
 	const double denom = a - 2 * b + fC;
 
-	// clear outputs
+	/* clear outputs */
 	zero_v2(r_uv);
 
 	if (IS_ZERO(denom) != 0) {
@@ -2650,7 +2650,7 @@ void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
 			const float *cur_edge = vdiffs[i];
 			const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
 
-			// accumulate
+			/* accumulate */
 			madd_v3_v3fl(vn[i], f_no, fac);
 			prev_edge = cur_edge;
 		}
