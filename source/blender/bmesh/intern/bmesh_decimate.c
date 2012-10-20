@@ -53,7 +53,7 @@
 
 typedef enum CD_UseFlag {
 	CD_DO_VERT,
-	CD_DO_EDGE,  /* not used yet */
+	CD_DO_EDGE,
 	CD_DO_LOOP
 } CD_UseFlag;
 
@@ -335,7 +335,8 @@ static void bm_decim_triangulate_end(BMesh *bm)
 /**
  * \param v is the target to merge into.
  */
-static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_clear, BMVert *v_other, const float customdata_fac)
+static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_clear, BMVert *v_other,
+                                             const float customdata_fac)
 {
 	/* these don't need to be updated, since they will get removed when the edge collapses */
 	BMLoop *l_clear, *l_other;
@@ -622,7 +623,10 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(v)], &vquadrics[v_clear_index]);
 
 		/* update connected normals */
-		BM_vert_normal_update_all(v);
+
+		/* in fact face normals are not used for progressive updates, no need to update them */
+		// BM_vert_normal_update_all(v);
+		BM_vert_normal_update(v);
 
 		/* update error costs and the eheap */
 		if (LIKELY(v->e)) {
@@ -646,6 +650,9 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 						}
 					}
 				}
+
+				/* could get some extra quality out of this but its not really needed */
+				// BM_vert_normal_update(BM_edge_other_vert(e_iter, v));
 
 				/* if this happens, the e_double check could be put in a while loop,
 				 * so as to keep removing doubles while they are found. so far this isnt needed */
@@ -731,4 +738,6 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 
 	/* testing only */
 	// BM_mesh_validate(bm);
+
+	(void)tot_edge_orig;  /* quiet release build warning */
 }
