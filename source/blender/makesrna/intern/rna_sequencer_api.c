@@ -456,7 +456,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_clip", "rna_Sequences_new_clip");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new movie clip sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "clip", "MovieClip", "", "Movie clip to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
@@ -472,8 +472,8 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new_mask", "rna_Sequences_new_mask");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	RNA_def_function_ui_description(func, "Add a new movie clip sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	RNA_def_function_ui_description(func, "Add a new mask sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "mask", "Mask", "", "Mask to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
@@ -490,7 +490,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_scene", "rna_Sequences_new_scene");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new scene sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
@@ -507,7 +507,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_image", "rna_Sequences_new_image");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new image sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "filepath", "File", 0, "", "Filepath to image");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -524,7 +524,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_movie", "rna_Sequences_new_movie");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new movie sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "filepath", "File", 0, "", "Filepath to movie");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -540,8 +540,8 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new_sound", "rna_Sequences_new_sound");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID | FUNC_USE_MAIN);
-	RNA_def_function_ui_description(func, "Add a new movie clip sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	RNA_def_function_ui_description(func, "Add a new sound sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "filepath", "File", 0, "", "Filepath to movie");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -558,7 +558,7 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_effect", "rna_Sequences_new_effect");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a new effect sequence");
-	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "Name for the new sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "type", seq_effect_items, 0, "Type",
 	                    "type for the new sequence");
