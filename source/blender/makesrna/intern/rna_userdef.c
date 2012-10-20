@@ -3005,27 +3005,27 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
 		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
 		{ 0, "", 0, N_("In Progress"), ""},
-		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
-		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
+/*		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},*/ /* XXX Not active nor enough translated. */
+/*		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},*/ /* XXX Not active nor enough translated. */
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
 		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
 		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
 		{35, "ESPERANTO", 0, "Esperanto (Esperanto)", "eo"},
 		{34, "ESTONIAN", 0, "Estonian (Eestlane)", "et_EE"},
-		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
+/*		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},*/ /* XXX Not active nor enough translated. */
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
-		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
+/*		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},*/ /* XXX Not active nor enough translated. */
 		/* using the utf8 flipped form of Hebrew (עִבְרִית)) */
 		{33, "HEBREW", 0, "Hebrew (תירִבְעִ)", "he_IL"},
 		{31, "HUNGARIAN", 0, "Hungarian (Magyar)", "hu_HU"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
-/*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"}, */ /* XXX No po's yet. */
-		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
+/*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"}, */ /* XXX Not active nor enough translated. */
+/*		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},*/ /* XXX Not active nor enough translated. */
 		/* using the utf8 flipped form of Persian (فارسی) */
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"},
-		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
-/*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"}, */ /* XXX No po's yet. */
+/*		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},*/ /* XXX Not active nor enough translated. */
+/*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"}, */ /* XXX Not active nor enough translated. */
 		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
 		{28, "SERBIAN_LATIN", 0, "Serbian Latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},

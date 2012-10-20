@@ -171,7 +171,6 @@ void BLF_lang_set(const char *str)
 	char *locreturn;
 	const char *short_locale;
 	int ok = 1;
-	const char *long_locale = locales[2 * U.language];
 
 	if ((U.transopts & USER_DOTRANSLATE) == 0)
 		return;
@@ -182,25 +181,29 @@ void BLF_lang_set(const char *str)
 		short_locale = locales[2 * U.language + 1];
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
-	if (short_locale) {
-		char *envStr;
+	{
+		const char *long_locale = locales[2 * U.language];
 
-		if (U.language == 0) /* Use system setting. */
-			envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
-		else
-			envStr = BLI_sprintfN("LANG=%s", short_locale);
+		if (short_locale) {
+			char *envStr;
 
-		gettext_putenv(envStr);
-		MEM_freeN(envStr);
-	}
+			if (U.language == 0) /* Use system setting. */
+				envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
+			else
+				envStr = BLI_sprintfN("LANG=%s", short_locale);
 
-	locreturn = setlocale(LC_ALL, long_locale);
+			gettext_putenv(envStr);
+			MEM_freeN(envStr);
+		}
 
-	if (locreturn == NULL) {
-		if (G.debug & G_DEBUG)
-			printf("Could not change locale to %s\n", long_locale);
+		locreturn = setlocale(LC_ALL, long_locale);
 
-		ok = 0;
+		if (locreturn == NULL) {
+			if (G.debug & G_DEBUG)
+				printf("Could not change locale to %s\n", long_locale);
+
+			ok = 0;
+		}
 	}
 #else
 	{
