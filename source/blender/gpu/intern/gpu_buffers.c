@@ -1562,7 +1562,7 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	}
 
-	if (buffers->index_buf || !buffers->smooth)
+	if (gpu_vbo_enabled() && (buffers->index_buf || !buffers->smooth))
 		glGenBuffersARB(1, &buffers->vert_buf);
 
 	buffers->tot_tri = tottri;
