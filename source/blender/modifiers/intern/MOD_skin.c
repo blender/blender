@@ -1422,7 +1422,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 		}
 	}
 
-	while (!BLI_heap_empty(heap)) {
+	while (!BLI_heap_is_empty(heap)) {
 		BMFace *adj[2];
 
 		e = BLI_heap_popmin(heap);

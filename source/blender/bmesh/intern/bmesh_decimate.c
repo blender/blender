@@ -45,12 +45,13 @@
 /* defines for testing */
 #define USE_CUSTOMDATA
 #define USE_TRIANGULATE
-#define USE_PRESERVE_BOUNDARY  /* could disable but its nicer not to mix boundary/non-boundry verts */
+// #define USE_PRESERVE_BOUNDARY  /* could disable but its nicer not to mix boundary/non-boundry verts */
 
 /* these checks are for rare cases that we can't avoid since they are valid meshes still */
 #define USE_SAFETY_CHECKS
 
-#define BOUNDARY_PRESERVE_WEIGHT 1.0f
+#define BOUNDARY_PRESERVE_WEIGHT 100.0f
+
 
 #ifdef USE_PRESERVE_BOUNDARY
 /* re-use smooth for tagging boundary edges, not totally great */
@@ -102,7 +103,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 			f = e->l->f;
 			cross_v3_v3v3(edge_cross, edge_vector, f->no);
 
-			if (normalize_v3(edge_cross) != 0.0f) {
+			if (fabsf(normalize_v3(edge_cross)) > FLT_EPSILON) {
 				Quadric q;
 				BLI_quadric_from_v3_dist(&q, edge_vector, -dot_v3v3(edge_cross, e->v1->co));
 				BLI_quadric_mul(&q, BOUNDARY_PRESERVE_WEIGHT);
@@ -188,6 +189,7 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 	q2 = &vquadrics[BM_elem_index_get(e->v2)];
 
 	cost = (BLI_quadric_evaluate(q1, optimize_co) + BLI_quadric_evaluate(q2, optimize_co));
+	// print("COST %.12f\n");
 
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
 }
@@ -305,6 +307,9 @@ static int bm_decim_triangulate_begin(BMesh *bm)
 					BM_elem_index_set(l_new, f_index);
 					BM_elem_index_set(l_new->radial_next, f_index);
 
+					BM_face_normal_update(f);
+					BM_face_normal_update(f_new);
+
 					has_cut = TRUE;
 				}
 			}
@@ -406,6 +411,8 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 			w[1] = customdata_fac;
 		}
 
+		// print_v2("weights", w);
+
 		/* WATCH IT! - should NOT reference (_clear or _other) vars for this while loop */
 
 		/* walk around the fan using 'e_prev' */
@@ -496,16 +503,29 @@ static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
 	/* simply check that there is no overlap between faces and edges of each vert,
 	 * (excluding the 2 faces attached to 'e' and 'e' its self) */
 
-	const int is_boundary = BM_edge_is_boundary(e_first);
-
 	BMEdge *e_iter;
 
 #ifdef USE_PRESERVE_BOUNDARY
+	const int is_boundary = BM_edge_is_boundary(e_first);
+
 	if (BM_elem_flag_test(e_first->v1, BM_ELEM_IS_BOUNDARY) !=
 	    BM_elem_flag_test(e_first->v2, BM_ELEM_IS_BOUNDARY))
 	{
 		return TRUE;
 	}
+	if ((is_boundary == FALSE) &&
+	    (BM_elem_flag_test(e_first->v1, BM_ELEM_IS_BOUNDARY) ||
+	     BM_elem_flag_test(e_first->v2, BM_ELEM_IS_BOUNDARY)))
+	{
+		return TRUE;
+	}
+
+	/* sanity */
+	if (is_boundary == TRUE) {
+		BLI_assert(BM_elem_flag_test(e_first->v1, BM_ELEM_IS_BOUNDARY) != FALSE);
+		BLI_assert(BM_elem_flag_test(e_first->v2, BM_ELEM_IS_BOUNDARY) != FALSE);
+	}
+
 #endif  /* USE_PRESERVE_BOUNDARY */
 
 	/* clear flags on both disks */
@@ -514,15 +534,6 @@ static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
 		if (!(BM_edge_is_manifold(e_iter) || BM_edge_is_boundary(e_iter))) {
 			return TRUE;
 		}
-#ifdef USE_PRESERVE_BOUNDARY
-		/* not exactly a degenerate case, but dont collapse edges into boundries */
-		if ((is_boundary == FALSE) &&
-		    (BM_elem_flag_test(e_iter->v1, BM_ELEM_IS_BOUNDARY) ||
-		     BM_elem_flag_test(e_iter->v2, BM_ELEM_IS_BOUNDARY)))
-		{
-			return TRUE;
-		}
-#endif  /* USE_PRESERVE_BOUNDARY */
 		bm_edge_tag_disable(e_iter);
 	} while ((e_iter = bmesh_disk_edge_next(e_iter, e_first->v1)) != e_first);
 
@@ -531,15 +542,6 @@ static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
 		if (!(BM_edge_is_manifold(e_iter) || BM_edge_is_boundary(e_iter))) {
 			return TRUE;
 		}
-#ifdef USE_PRESERVE_BOUNDARY
-		/* not exactly a degenerate case, but dont collapse edges into boundries */
-		if ((is_boundary == FALSE) &&
-		    (BM_elem_flag_test(e_iter->v1, BM_ELEM_IS_BOUNDARY) ||
-		     BM_elem_flag_test(e_iter->v2, BM_ELEM_IS_BOUNDARY)))
-		{
-			return TRUE;
-		}
-#endif  /* USE_PRESERVE_BOUNDARY */
 		bm_edge_tag_disable(e_iter);
 	} while ((e_iter = bmesh_disk_edge_next(e_iter, e_first->v2)) != e_first);
 
@@ -765,7 +767,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
                                    const CD_UseFlag customdata_flag)
 {
 	int e_clear_other[2];
-	BMVert *v = e->v1;
+	BMVert *v_other = e->v1;
 	int v_clear_index = BM_elem_index_get(e->v2);  /* the vert is removed so only store the index */
 	float optimize_co[3];
 	float customdata_fac;
@@ -773,7 +775,18 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 	bm_decim_calc_target_co(e, optimize_co, vquadrics);
 
 	/* use for customdata merging */
-	customdata_fac = line_point_factor_v3(optimize_co, e->v1->co, e->v2->co);
+	if (LIKELY(compare_v3v3(e->v1->co, e->v2->co, FLT_EPSILON) == FALSE)) {
+		customdata_fac = line_point_factor_v3(optimize_co, e->v1->co, e->v2->co);
+
+		/* simple test for stupid collapse */
+//		if (customdata_fac < 0.0 - FLT_EPSILON || customdata_fac > 1.0f + FLT_EPSILON) {
+//			return;
+//		}
+	}
+	else {
+		/* avoid divide by zero */
+		customdata_fac = 0.5f;
+	}
 
 	if (bm_edge_collapse(bm, e, e->v2, e_clear_other, customdata_flag, customdata_fac)) {
 		/* update collapse info */
@@ -781,7 +794,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 
 		e = NULL;  /* paranoid safety check */
 
-		copy_v3_v3(v->co, optimize_co);
+		copy_v3_v3(v_other->co, optimize_co);
 
 		/* remove eheap */
 		for (i = 0; i < 2; i++) {
@@ -793,23 +806,23 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		}
 
 		/* update vertex quadric, add kept vertex from killed vertex */
-		BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(v)], &vquadrics[v_clear_index]);
+		BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(v_other)], &vquadrics[v_clear_index]);
 
 		/* update connected normals */
 
 		/* in fact face normals are not used for progressive updates, no need to update them */
 		// BM_vert_normal_update_all(v);
-		BM_vert_normal_update(v);
+		BM_vert_normal_update(v_other);
 
 		/* update error costs and the eheap */
-		if (LIKELY(v->e)) {
+		if (LIKELY(v_other->e)) {
 			BMEdge *e_iter;
 			BMEdge *e_first;
-			e_iter = e_first = v->e;
+			e_iter = e_first = v_other->e;
 			do {
 				BLI_assert(BM_edge_find_double(e_iter) == NULL);
 				bm_decim_build_edge_cost_single(e_iter, vquadrics, eheap, eheap_table);
-			} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
+			} while ((e_iter = bmesh_disk_edge_next(e_iter, v_other)) != e_first);
 		}
 	}
 }
@@ -859,9 +872,12 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 #endif
 
 	/* iterative edge collapse and maintain the eheap */
-	while ((bm->totface > face_tot_target) && (BLI_heap_empty(eheap) == FALSE)) {
+	while ((bm->totface > face_tot_target) && (BLI_heap_is_empty(eheap) == FALSE)) {
+		// const float value = BLI_heap_node_value(BLI_heap_top(eheap));
 		BMEdge *e = BLI_heap_popmin(eheap);
 		BLI_assert(BM_elem_index_get(e) < tot_edge_orig);  /* handy to detect corruptions elsewhere */
+
+		// printf("COST %.10f\n", value);
 
 		/* under normal conditions wont be accessed again,
 		 * but NULL just incase so we don't use freed node */

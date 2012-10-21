@@ -117,7 +117,7 @@ int BLI_quadric_optimize(const Quadric *q, float v[3])
 	                     m[1][0], m[1][1], m[1][2],
 	                     m[2][0], m[2][1], m[2][2]);
 
-	if (det != 0.0f) {
+	if (fabsf(det) > FLT_EPSILON) {
 		invert_m3(m);
 		BLI_quadric_to_vector_v3(q, v);
 		mul_m3_v3(m, v);

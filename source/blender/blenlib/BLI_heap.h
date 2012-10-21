@@ -54,7 +54,7 @@ HeapNode       *BLI_heap_insert(Heap *heap, float value, void *ptr);
 void            BLI_heap_remove(Heap *heap, HeapNode *node);
 
 /* Return 0 if the heap is empty, 1 otherwise. */
-int             BLI_heap_empty(Heap *heap);
+int             BLI_heap_is_empty(Heap *heap);
 
 /* Return the size of the heap. */
 int             BLI_heap_size(Heap *heap);
@@ -69,5 +69,4 @@ void           *BLI_heap_popmin(Heap *heap);
 float           BLI_heap_node_value(HeapNode *heap);
 void           *BLI_heap_node_ptr(HeapNode *heap);
 
-#endif
-
+#endif  /* __BLI_HEAP_H__ */

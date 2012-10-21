@@ -165,7 +165,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 	return node;
 }
 
-int BLI_heap_empty(Heap *heap)
+int BLI_heap_is_empty(Heap *heap)
 {
 	return (heap->size == 0);
 }

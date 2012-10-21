@@ -1326,7 +1326,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	EDBM_index_arrays_init(em, 1, 1, 0);
 	targetnum = BM_elem_index_get(target);
 
-	while (!BLI_heap_empty(heap)) {
+	while (!BLI_heap_is_empty(heap)) {
 		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
 		e = EDBM_edge_at_index(em, mednum);
 
