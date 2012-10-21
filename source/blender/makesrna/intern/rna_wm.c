@@ -1201,7 +1201,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 	}
 
 	if (strlen(identifier) >= sizeof(dummyop.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummyop.idname));
 		return NULL;
 	}

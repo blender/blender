@@ -243,8 +243,8 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain), ReportList *reports, 
 	 * owns the string pointer which it could potentially free while blender
 	 * is running. */
 	if (BLI_strnlen(identifier, MAX_IDPROP_NAME) == MAX_IDPROP_NAME) {
-		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is "
-		            STRINGIFY(MAX_IDPROP_NAME), identifier);
+		BKE_reportf(reports, RPT_ERROR, "Registering id property class: '%s' is too long, maximum length is %d",
+		            identifier, MAX_IDPROP_NAME);
 		return NULL;
 	}
 
@@ -287,7 +287,7 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 		switch (GS(id->name)) {
 			case ID_OB:
 				if (flag & ~(OB_RECALC_ALL)) {
-					BKE_report(reports, RPT_ERROR, "'refresh' incompatible with Object ID type");
+					BKE_report(reports, RPT_ERROR, "'Refresh' incompatible with Object ID type");
 					return;
 				}
 				break;
@@ -295,7 +295,7 @@ static void rna_ID_update_tag(ID *id, ReportList *reports, int flag)
 #if 0
 			case ID_PA:
 				if (flag & ~(OB_RECALC_ALL | PSYS_RECALC)) {
-					BKE_report(reports, RPT_ERROR, "'refresh' incompatible with ParticleSettings ID type");
+					BKE_report(reports, RPT_ERROR, "'Refresh' incompatible with ParticleSettings ID type");
 					return;
 				}
 				break;

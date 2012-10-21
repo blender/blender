@@ -159,7 +159,7 @@ short BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 	
 	/* animdata validity check */
 	if (adt == NULL) {
-		BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
+		BKE_report(reports, RPT_WARNING, "No anim data to set action on");
 		return ok;
 	}
 	
@@ -188,9 +188,9 @@ short BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 		else {
 			/* cannot set */
 			BKE_reportf(reports, RPT_ERROR,
-			            "Couldn't set Action '%s' onto ID '%s', as it doesn't have suitably rooted paths for this purpose",
-			            act->id.name + 2, id->name);
-			//ok = 0;
+			            "Could not set action '%s' onto ID '%s', as it does not have suitably rooted paths "
+			            "for this purpose", act->id.name + 2, id->name);
+			/* ok = 0; */
 		}
 	}
 	else {

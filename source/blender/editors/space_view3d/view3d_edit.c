@@ -2695,7 +2695,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Render Border";
-	ot->description = "Set the boundaries of the border render and enables border render";
+	ot->description = "Set the boundaries of the border render and enable border render";
 	ot->idname = "VIEW3D_OT_render_border";
 
 	/* api callbacks */
@@ -2715,7 +2715,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "camera_only", 0, "Camera Only", "Set render border for camera view and final render only");
 }
 
-/* ********************* Set render border operator ****************** */
+/* ********************* Clear render border operator ****************** */
 
 static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2751,7 +2751,7 @@ void VIEW3D_OT_clear_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear Render Border";
-	ot->description = "Clear the boundaries of the border render and enables border render";
+	ot->description = "Clear the boundaries of the border render and disable border render";
 	ot->idname = "VIEW3D_OT_clear_render_border";
 
 	/* api callbacks */

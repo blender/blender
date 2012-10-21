@@ -62,7 +62,7 @@ EnumPropertyItem keyframe_handle_type_items[] = {
 };
 
 EnumPropertyItem beztriple_interpolation_mode_items[] = {
-	{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", "No interpolation. Value of A gets held until B is encountered"},
+	{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", "No interpolation, value of A gets held until B is encountered"},
 	{BEZT_IPO_LIN, "LINEAR", 0, "Linear", "Straight-line interpolation between A and B (i.e. no ease in/out)"},
 	{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", "Smooth interpolation between A and B, with some control over curve shape"},
 	{0, NULL, 0, NULL, NULL}

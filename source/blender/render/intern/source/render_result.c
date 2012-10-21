@@ -786,7 +786,7 @@ int RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *file
 	}
 	else {
 		/* TODO, get the error from openexr's exception */
-		BKE_report(reports, RPT_ERROR, "Error Writing Render Result, see console");
+		BKE_report(reports, RPT_ERROR, "Error writing render result (see console)");
 		success = FALSE;
 	}
 	IMB_exr_close(exrhandle);

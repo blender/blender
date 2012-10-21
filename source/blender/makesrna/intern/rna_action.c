@@ -74,7 +74,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 	
 	/* try to remove the F-Curve from the action */
 	if (!BLI_remlink_safe(&act->groups, agrp)) {
-		BKE_reportf(reports, RPT_ERROR, "ActionGroup '%s' not found in action '%s'", agrp->name, act->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Action group '%s' not found in action '%s'", agrp->name, act->id.name + 2);
 		return;
 	}
 
@@ -116,7 +116,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 {
 	if (fcu->grp) {
 		if (BLI_findindex(&act->groups, fcu->grp) == -1) {
-			BKE_reportf(reports, RPT_ERROR, "F-Curve's ActionGroup '%s' not found in action '%s'",
+			BKE_reportf(reports, RPT_ERROR, "F-Curve's action group '%s' not found in action '%s'",
 			            fcu->grp->name, act->id.name + 2);
 			return;
 		}
@@ -148,7 +148,7 @@ static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, TimeMarker *marker)
 {
 	if (!BLI_remlink_safe(&act->markers, marker)) {
-		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in Action '%s'", marker->name, act->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Timeline marker '%s' not found in action '%s'", marker->name, act->id.name + 2);
 		return;
 	}
 
@@ -256,15 +256,15 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "DopeSheet", NULL);
 	RNA_def_struct_sdna(srna, "bDopeSheet");
-	RNA_def_struct_ui_text(srna, "DopeSheet", "Settings for filtering the channels shown in Animation Editors");
+	RNA_def_struct_ui_text(srna, "DopeSheet", "Settings for filtering the channels shown in animation editors");
 	
 	/* Source of DopeSheet data */
 	/* XXX: make this obsolete? */
 	prop = RNA_def_property(srna, "source", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_ui_text(prop, "Source",
-	                         "ID-Block representing source data, currently ID_SCE (for Dopesheet), "
-	                         "and ID_SC (for Grease Pencil)");
+	                         "ID block representing source data, currently ID_SCE (for dopesheet), "
+	                         "and ID_SC (for grease pencil)");
 	
 	/* Show datablock filters */
 	prop = RNA_def_property(srna, "show_datablock_filters", PROP_BOOLEAN, PROP_NONE);
@@ -283,29 +283,29 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "show_hidden", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_INCL_HIDDEN);
-	RNA_def_property_ui_text(prop, "Display Hidden", "Include channels from objects/bone that aren't visible");
+	RNA_def_property_ui_text(prop, "Display Hidden", "Include channels from objects/bone that are not visible");
 	RNA_def_property_ui_icon(prop, ICON_GHOST_ENABLED, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	/* Debug Filtering Settings */
 	prop = RNA_def_property(srna, "show_only_errors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLY_ERRORS);
-	RNA_def_property_ui_text(prop, "Show Errors", "Only include F-Curves and Drivers that are disabled or have errors");
-	RNA_def_property_ui_icon(prop, ICON_HELP, 0); // XXX: this doesn't quite fit?
+	RNA_def_property_ui_text(prop, "Show Errors", "Only include F-Curves and drivers that are disabled or have errors");
+	RNA_def_property_ui_icon(prop, ICON_HELP, 0); /* XXX: this doesn't quite fit */
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	/* Object Group Filtering Settings */
 	prop = RNA_def_property(srna, "show_only_group_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLYOBGROUP);
 	RNA_def_property_ui_text(prop, "Only Objects in Group",
-	                         "Only include channels from Objects in the specified Group");
+	                         "Only include channels from objects in the specified group");
 	RNA_def_property_ui_icon(prop, ICON_GROUP, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "filter_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "filter_grp");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Filtering Group", "Group that included Object should be a member of");
+	RNA_def_property_ui_text(prop, "Filtering Group", "Group that included object should be a member of");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	/* FCurve Display Name Search Settings */
@@ -325,21 +325,21 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_missing_nla", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NLA_NOACT);
 	RNA_def_property_ui_text(prop, "Include Missing NLA",
-	                         "Include Animation Data blocks with no NLA data (NLA Editor only)");
+	                         "Include animation data blocks with no NLA data (NLA editor only)");
 	RNA_def_property_ui_icon(prop, ICON_ACTION, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	/* Summary Settings (DopeSheet editors only) */
 	prop = RNA_def_property(srna, "show_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_SUMMARY);
-	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line (DopeSheet Editors only)");
+	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line (DopeSheet editors only)");
 	RNA_def_property_ui_icon(prop, ICON_BORDERMOVE, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_expanded_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADS_FLAG_SUMMARY_COLLAPSED);
 	RNA_def_property_ui_text(prop, "Collapse Summary",
-	                         "Collapse summary when shown, so all other channels get hidden (DopeSheet Editors Only)");
+	                         "Collapse summary when shown, so all other channels get hidden (DopeSheet editors only)");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	
@@ -347,97 +347,97 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_transforms", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOOBJ);
 	RNA_def_property_ui_text(prop, "Display Transforms",
-	                         "Include visualization of Object-level Animation data (mostly Transforms)");
+	                         "Include visualization of object-level animation data (mostly transforms)");
 	RNA_def_property_ui_icon(prop, ICON_MANIPUL, 0); /* XXX? */
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_shapekeys", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOSHAPEKEYS);
-	RNA_def_property_ui_text(prop, "Display Shapekeys", "Include visualization of ShapeKey related Animation data");
+	RNA_def_property_ui_text(prop, "Display Shapekeys", "Include visualization of shape key related animation data");
 	RNA_def_property_ui_icon(prop, ICON_SHAPEKEY_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_meshes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOMESH);
-	RNA_def_property_ui_text(prop, "Display Meshes", "Include visualization of Mesh related Animation data");
+	RNA_def_property_ui_text(prop, "Display Meshes", "Include visualization of mesh related animation data");
 	RNA_def_property_ui_icon(prop, ICON_MESH_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_lattices", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOLAT);
-	RNA_def_property_ui_text(prop, "Display Lattices", "Include visualization of Lattice related Animation data");
+	RNA_def_property_ui_text(prop, "Display Lattices", "Include visualization of lattice related animation data");
 	RNA_def_property_ui_icon(prop, ICON_LATTICE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_cameras", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOCAM);
-	RNA_def_property_ui_text(prop, "Display Camera", "Include visualization of Camera related Animation data");
+	RNA_def_property_ui_text(prop, "Display Camera", "Include visualization of camera related animation data");
 	RNA_def_property_ui_icon(prop, ICON_CAMERA_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_materials", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOMAT);
-	RNA_def_property_ui_text(prop, "Display Material", "Include visualization of Material related Animation data");
+	RNA_def_property_ui_text(prop, "Display Material", "Include visualization of material related animation data");
 	RNA_def_property_ui_icon(prop, ICON_MATERIAL_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_lamps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOLAM);
-	RNA_def_property_ui_text(prop, "Display Lamp", "Include visualization of Lamp related Animation data");
+	RNA_def_property_ui_text(prop, "Display Lamp", "Include visualization of lamp related animation data");
 	RNA_def_property_ui_icon(prop, ICON_LAMP_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOTEX);
-	RNA_def_property_ui_text(prop, "Display Texture", "Include visualization of Texture related Animation data");
+	RNA_def_property_ui_text(prop, "Display Texture", "Include visualization of texture related animation data");
 	RNA_def_property_ui_icon(prop, ICON_TEXTURE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_curves", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOCUR);
-	RNA_def_property_ui_text(prop, "Display Curve", "Include visualization of Curve related Animation data");
+	RNA_def_property_ui_text(prop, "Display Curve", "Include visualization of curve related animation data");
 	RNA_def_property_ui_icon(prop, ICON_CURVE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_worlds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOWOR);
-	RNA_def_property_ui_text(prop, "Display World", "Include visualization of World related Animation data");
+	RNA_def_property_ui_text(prop, "Display World", "Include visualization of world related animation data");
 	RNA_def_property_ui_icon(prop, ICON_WORLD_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_scenes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOSCE);
-	RNA_def_property_ui_text(prop, "Display Scene", "Include visualization of Scene related Animation data");
+	RNA_def_property_ui_text(prop, "Display Scene", "Include visualization of scene related animation data");
 	RNA_def_property_ui_icon(prop, ICON_SCENE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOPART);
-	RNA_def_property_ui_text(prop, "Display Particle", "Include visualization of Particle related Animation data");
+	RNA_def_property_ui_text(prop, "Display Particle", "Include visualization of particle related animation data");
 	RNA_def_property_ui_icon(prop, ICON_PARTICLE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_metaballs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOMBA);
-	RNA_def_property_ui_text(prop, "Display Metaball", "Include visualization of Metaball related Animation data");
+	RNA_def_property_ui_text(prop, "Display Metaball", "Include visualization of metaball related animation data");
 	RNA_def_property_ui_icon(prop, ICON_META_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_armatures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOARM);
-	RNA_def_property_ui_text(prop, "Display Armature", "Include visualization of Armature related Animation data");
+	RNA_def_property_ui_text(prop, "Display Armature", "Include visualization of armature related animation data");
 	RNA_def_property_ui_icon(prop, ICON_ARMATURE_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NONTREE);
-	RNA_def_property_ui_text(prop, "Display Node", "Include visualization of Node related Animation data");
+	RNA_def_property_ui_text(prop, "Display Node", "Include visualization of node related animation data");
 	RNA_def_property_ui_icon(prop, ICON_NODETREE, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	prop = RNA_def_property(srna, "show_speakers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOSPK);
-	RNA_def_property_ui_text(prop, "Display Speaker", "Include visualization of Speaker related Animation data");
+	RNA_def_property_ui_text(prop, "Display Speaker", "Include visualization of speaker related animation data");
 	RNA_def_property_ui_icon(prop, ICON_SPEAKER, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 }
@@ -474,17 +474,17 @@ static void rna_def_action_group(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_SELECTED);
-	RNA_def_property_ui_text(prop, "Select", "Action Group is selected");
+	RNA_def_property_ui_text(prop, "Select", "Action group is selected");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
 	
 	prop = RNA_def_property(srna, "lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_PROTECTED);
-	RNA_def_property_ui_text(prop, "Lock", "Action Group is locked");
+	RNA_def_property_ui_text(prop, "Lock", "Action group is locked");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_EXPANDED);
-	RNA_def_property_ui_text(prop, "Expanded", "Action Group is expanded");
+	RNA_def_property_ui_text(prop, "Expanded", "Action group is expanded");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	/* color set */
@@ -583,7 +583,7 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_Action_active_pose_marker_get",
 	                               "rna_Action_active_pose_marker_set", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Pose Marker", "Active pose marker for this Action");
+	RNA_def_property_ui_text(prop, "Active Pose Marker", "Active pose marker for this action");
 	
 	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "active_marker");
@@ -606,7 +606,7 @@ static void rna_def_action(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "fcurves", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "curves", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
-	RNA_def_property_ui_text(prop, "F-Curves", "The individual F-Curves that make up the Action");
+	RNA_def_property_ui_text(prop, "F-Curves", "The individual F-Curves that make up the action");
 	rna_def_action_fcurves(brna, prop);
 	
 	prop = RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
@@ -618,7 +618,7 @@ static void rna_def_action(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "pose_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");
-	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this Action, for labeling poses");
+	RNA_def_property_ui_text(prop, "Pose Markers", "Markers specific to this action, for labeling poses");
 	rna_def_action_pose_markers(brna, prop);
 	
 	/* properties */
@@ -633,8 +633,8 @@ static void rna_def_action(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "idroot");
 	RNA_def_property_enum_items(prop, id_type_items);
 	RNA_def_property_ui_text(prop, "ID Root Type",
-	                         "Type of ID-block that action can be used on - "
-	                         "DO NOT CHANGE UNLESS YOU KNOW WHAT YOU'RE DOING");
+	                         "Type of ID block that action can be used on - "
+	                         "DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING");
 	
 	/* API calls */
 	RNA_api_action(srna);

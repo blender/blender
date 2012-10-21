@@ -506,7 +506,7 @@ static void rna_Object_dup_group_set(PointerRNA *ptr, PointerRNA value)
 		ob->dup_group = grp;
 	else
 		BKE_report(NULL, RPT_ERROR,
-		           "Cannot set dupli-group as object belongs in group being instanced thus causing a cycle");
+		           "Cannot set dupli-group as object belongs in group being instanced, thus causing a cycle");
 }
 
 static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
@@ -1284,7 +1284,7 @@ static void rna_VertexGroup_vertex_add(ID *id, bDeformGroup *def, ReportList *re
 	Object *ob = (Object *)id;
 
 	if (ED_vgroup_object_is_edit_mode(ob)) {
-		BKE_reportf(reports, RPT_ERROR, "VertexGroup.add(): Can't be called while object is in edit mode");
+		BKE_report(reports, RPT_ERROR, "VertexGroup.add(): cannot be called while object is in edit mode");
 		return;
 	}
 
@@ -1299,7 +1299,7 @@ static void rna_VertexGroup_vertex_remove(ID *id, bDeformGroup *dg, ReportList *
 	Object *ob = (Object *)id;
 
 	if (ED_vgroup_object_is_edit_mode(ob)) {
-		BKE_reportf(reports, RPT_ERROR, "VertexGroup.remove(): Can't be called while object is in edit mode");
+		BKE_report(reports, RPT_ERROR, "VertexGroup.remove(): cannot be called while object is in edit mode");
 		return;
 	}
 
@@ -1314,7 +1314,7 @@ static float rna_VertexGroup_weight(ID *id, bDeformGroup *dg, ReportList *report
 	float weight = ED_vgroup_vert_weight((Object *)id, dg, index);
 
 	if (weight < 0) {
-		BKE_reportf(reports, RPT_ERROR, "Vertex not in group");
+		BKE_report(reports, RPT_ERROR, "Vertex not in group");
 	}
 	return weight;
 }

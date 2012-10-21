@@ -176,7 +176,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 	/* avoid 0 size allocs */
 	if (avs->path_sf >= avs->path_ef) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "Motion Path frame extents invalid for %s (%d to %d)%s",
+		            "Motion path frame extents invalid for %s (%d to %d)%s",
 		            (pchan) ? pchan->name : ob->id.name,
 		            avs->path_sf, avs->path_ef,
 		            (avs->path_sf == avs->path_ef) ? TIP_(", cannot have single-frame paths") : "");

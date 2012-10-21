@@ -338,7 +338,7 @@ static int handle_subversion_warning(Main *main, ReportList *reports)
 	    (main->minversionfile == BLENDER_VERSION &&
 	     main->minsubversionfile > BLENDER_SUBVERSION))
 	{
-		BKE_reportf(reports, RPT_ERROR, "File written by newer Blender binary: %d.%d, expect loss of data!",
+		BKE_reportf(reports, RPT_ERROR, "File written by newer Blender binary (%d.%d), expect loss of data!",
 		            main->minversionfile, main->minsubversionfile);
 	}
 
@@ -409,7 +409,7 @@ int BKE_read_file(bContext *C, const char *filepath, ReportList *reports)
 			setup_app_data(C, bfd, filepath);  // frees BFD
 	}
 	else
-		BKE_reports_prependf(reports, "Loading %s failed: ", filepath);
+		BKE_reports_prependf(reports, "Loading '%s' failed: ", filepath);
 		
 	return (bfd ? retval : BKE_READ_FILE_FAIL);
 }

@@ -95,7 +95,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		return dm;
 	}
 	else if (dm->getNumPolys(dm) <= 3) {
-		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces."));
+		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces"));
 		return dm;
 	}
 
@@ -146,7 +146,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	}
 
 	if (numTris < 3) {
-		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces (triangles)."));
+		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces (triangles)"));
 		dm = CDDM_copy(dm);
 		return dm;
 	}
@@ -221,12 +221,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			CDDM_calc_edges_tessface(result);
 		}
 		else
-			modifier_setError(md, "%s", TIP_("Out of memory."));
+			modifier_setError(md, "%s", TIP_("Out of memory"));
 
 		LOD_FreeDecimationData(&lod);
 	}
 	else
-		modifier_setError(md, "%s", TIP_("Non-manifold mesh as input."));
+		modifier_setError(md, "%s", TIP_("Non-manifold mesh as input"));
 
 	MEM_freeN(lod.vertex_buffer);
 	MEM_freeN(lod.vertex_normal_buffer);
