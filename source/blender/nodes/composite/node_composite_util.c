@@ -72,7 +72,7 @@ CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 	
 		dupbuf->xof= cbuf->xof;
 		dupbuf->yof= cbuf->yof;
-	}	
+	}
 	return dupbuf;
 }
 
@@ -94,7 +94,7 @@ CompBuf *pass_on_compbuf(CompBuf *cbuf)
 				break;
 		lastbuf->next= dupbuf;
 		dupbuf->prev= lastbuf;
-	}	
+	}
 	return dupbuf;
 }
 

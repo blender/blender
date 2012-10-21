@@ -162,9 +162,9 @@ static short select_beztriple(BezTriple *bezt, short selstatus, short flag, shor
 				bezt->f1 |= flag;
 				bezt->f2 |= flag;
 				bezt->f3 |= flag;
-				return 1;			
+				return 1;
 			}
-			else { /* deselects */	
+			else { /* deselects */
 				bezt->f1 &= ~flag; 
 				bezt->f2 &= ~flag; 
 				bezt->f3 &= ~flag; 
@@ -2063,7 +2063,7 @@ static int set_goal_weight_exec(bContext *C, wmOperator *op)
 					bp->weight = weight;
 			}
 		}
-	}	
+	}
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -2115,7 +2115,7 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 					bp->radius = radius;
 			}
 		}
-	}	
+	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	DAG_id_tag_update(obedit->data, 0);
@@ -2408,7 +2408,7 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 	
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		lastsel = 0;
-		if (nu->type == CU_BEZIER) {			
+		if (nu->type == CU_BEZIER) {
 			a = nu->pntsu;
 			bezt = nu->bezt;
 			if (next < 0) bezt = &nu->bezt[a - 1];
@@ -2425,7 +2425,7 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 					bezt += next;
 					lastsel = 0;
 				}
-				/* move around in zigzag way so that we go through each */				
+				/* move around in zigzag way so that we go through each */
 				bezt -= (next - next / abs(next));
 			}
 		}
@@ -2440,7 +2440,7 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 					if (!(bp->f1 & SELECT) || (selstatus == 0)) {
 						short sel = select_bpoint(bp, selstatus, 1, VISIBLE);
 						if ((sel == 1) && (cont == 0)) lastsel = 1;
-					}			
+					}
 				}
 				else {
 					bp += next;
@@ -2706,7 +2706,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void CURVE_OT_hide(wmOperatorType *ot)
@@ -2767,7 +2767,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void CURVE_OT_reveal(wmOperatorType *ot)
@@ -3200,7 +3200,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	DAG_id_tag_update(obedit->data, 0);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void CURVE_OT_subdivide(wmOperatorType *ot)
@@ -5252,10 +5252,10 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 						tempbp = bp + 1;
 						if (!(tempbp->f1 & SELECT)) sel = select_bpoint(tempbp, SELECT, 1, VISIBLE);
 						if (sel) {
-							bp++;	
+							bp++;
 							a--;
 						}
-					}				
+					}
 				}
 
 				bp++;
@@ -5313,8 +5313,8 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 				if ((bp->hide == 0) && (bp->f1 & SELECT)) {
 					sel = 0;
 									
-					/* check if neighbors have been selected */	
-					/* edges of surface are an exception */	
+					/* check if neighbors have been selected */
+					/* edges of surface are an exception */
 					if ((a + 1) % nu->pntsu == 0) sel++;
 					else {
 						bp--;
@@ -5346,7 +5346,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 					if (sel != 4) {
 						select_bpoint(bp, DESELECT, 1, VISIBLE); 
 						selbpoints[a] = 1;
-					}									
+					}
 				}
 				else lastsel = 0;
 					
@@ -5360,7 +5360,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 		for (nu = editnurb->first; nu; nu = nu->next) {
 			lastsel = 0;
 			/* check what type of curve/nurb it is */
-			if (nu->type == CU_BEZIER) {			
+			if (nu->type == CU_BEZIER) {
 				a = nu->pntsu;
 				bezt = nu->bezt;
 				while (a--) {
@@ -5368,10 +5368,10 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 						if (lastsel == 1) sel = 1;
 						else sel = 0;
 												
-						/* check if neighbors have been selected */						
-						/* first and last are exceptions */					
+						/* check if neighbors have been selected */
+						/* first and last are exceptions */
 						if (a == nu->pntsu - 1) sel++;
-						else { 
+						else {
 							bezt--;
 							if ((bezt->hide == 0) && (bezt->f2 & SELECT)) sel++;
 							bezt++;
@@ -5385,14 +5385,14 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 						}
 
 						if (sel != 2) {
-							select_beztriple(bezt, DESELECT, 1, VISIBLE);	
+							select_beztriple(bezt, DESELECT, 1, VISIBLE);
 							lastsel = 1;
 						}
 						else lastsel = 0;
 					}
 					else lastsel = 0;
 						
-					bezt++;	
+					bezt++;
 				}
 			}
 			else {
@@ -5403,9 +5403,9 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 						if (lastsel != 0) sel = 1;
 						else sel = 0;
 						
-						/* first and last are exceptions */					
+						/* first and last are exceptions */
 						if (a == nu->pntsu * nu->pntsv - 1) sel++;
-						else { 
+						else {
 							bp--;
 							if ((bp->hide == 0) && (bp->f1 & SELECT)) sel++;
 							bp++;
@@ -5419,9 +5419,9 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 						}
 											
 						if (sel != 2) {
-							select_bpoint(bp, DESELECT, 1, VISIBLE); 	
+							select_bpoint(bp, DESELECT, 1, VISIBLE);
 							lastsel = 1;
-						}				
+						}
 						else lastsel = 0;
 					}
 					else lastsel = 0;
@@ -5482,7 +5482,7 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 					select_bpoint(bp, SELECT, 1, VISIBLE); 
 				bp++;
 			}
-		}		
+		}
 	}
 }
 
@@ -6627,7 +6627,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 		if (obedit == NULL || obedit->type != OB_SURF) {
 			obedit = ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
 			newob = 1;
-		} 
+		}
 		else DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	}
 

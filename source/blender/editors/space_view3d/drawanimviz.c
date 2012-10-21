@@ -178,7 +178,7 @@ void draw_motion_path_instance(Scene *scene,
 				intensity = 0.99f;
 			}
 			UI_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
-		}	
+		}
 		
 		/* draw a vertex with this color */
 		glVertex3fv(mpv->co);

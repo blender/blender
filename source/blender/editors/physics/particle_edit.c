@@ -673,7 +673,7 @@ static void foreach_point(PEData *data, ForPointFunc func)
 	PTCacheEdit *edit = data->edit;
 	POINT_P;
 
-	LOOP_POINTS { 
+	LOOP_POINTS {
 		func(data, p);
 	}
 }
@@ -4109,7 +4109,7 @@ int PE_minmax(Scene *scene, float min[3], float max[3])
 		LOOP_SELECTED_KEYS {
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			DO_MINMAX(co, min, max);		
+			DO_MINMAX(co, min, max);
 			ok= 1;
 		}
 	}

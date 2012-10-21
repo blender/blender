@@ -72,7 +72,7 @@ typedef struct MVert {
  * at the moment alpha is abused for vertex painting
  * and not used for transparency, note that red and blue are swapped */
 typedef struct MCol {
-	char a, r, g, b;	
+	char a, r, g, b;
 } MCol;
 
 /* new face structure, replaces MFace, which is now

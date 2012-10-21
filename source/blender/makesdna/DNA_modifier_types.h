@@ -348,7 +348,7 @@ typedef struct UVProjectModifierData {
 	int flags;
 	int num_projectors;
 	float aspectx, aspecty;
-	float scalex, scaley;												
+	float scalex, scaley;
 	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
 	int uvlayer_tmp, pad;
 } UVProjectModifierData;
@@ -683,7 +683,7 @@ typedef struct SimpleDeformModifierData {
 	struct Object *origin;	/* object to control the origin of modifier space coordinates */
 	char vgroup_name[64];	/* optional vertexgroup name, MAX_VGROUP_NAME */
 	float factor;			/* factors to control simple deforms */
-	float limit[2];			/* lower and upper limit */		
+	float limit[2];			/* lower and upper limit */
 
 	char mode;				/* deform function */
 	char axis;				/* lock axis (for taper and strech) */

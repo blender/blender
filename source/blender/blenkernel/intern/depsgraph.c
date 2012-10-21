@@ -150,8 +150,8 @@ void queue_delete(DagNodeQueue *queue)
 		MEM_freeN(temp);
 	}
 	
-	MEM_freeN(queue->freenodes);			
-	MEM_freeN(queue);			
+	MEM_freeN(queue->freenodes);
+	MEM_freeN(queue);
 }
 
 /* insert in queue, remove in front */
@@ -190,8 +190,8 @@ void push_queue(DagNodeQueue *queue, DagNode *node)
 		}
 		queue->freenodes->count = DAGQUEUEALLOC;
 			
-		elem = queue->freenodes->first;	
-		queue->freenodes->first = elem->next;	
+		elem = queue->freenodes->first;
+		queue->freenodes->first = elem->next;
 	}
 	elem->next = NULL;
 	elem->node = node;
@@ -211,7 +211,7 @@ void push_stack(DagNodeQueue *queue, DagNode *node)
 	DagNodeQueueElem *elem;
 	int i;
 
-	elem = queue->freenodes->first;	
+	elem = queue->freenodes->first;
 	if (elem != NULL) {
 		queue->freenodes->first = elem->next;
 		if (queue->freenodes->last == elem) {
@@ -235,8 +235,8 @@ void push_stack(DagNodeQueue *queue, DagNode *node)
 		}
 		queue->freenodes->count = DAGQUEUEALLOC;
 			
-		elem = queue->freenodes->first;	
-		queue->freenodes->first = elem->next;	
+		elem = queue->freenodes->first;
+		queue->freenodes->first = elem->next;
 	}
 	elem->next = queue->first;
 	elem->node = node;
@@ -412,7 +412,7 @@ static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Objec
 			if ((ob1->pd->deflect || ob1->pd->forcefield) && (ob1 != ob)) {
 				if (skip_forcefield && ob1->pd->forcefield == skip_forcefield)
 					continue;
-				node2 = dag_get_node(dag, ob1);					
+				node2 = dag_get_node(dag, ob1);
 				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Field Collision");
 			}
 		}
@@ -464,7 +464,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 									if (ct->tar->type == OB_MESH)
 										node3->customdata_mask |= CD_MASK_MDEFORMVERT;
 								}
-								else if (ELEM3(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK)) 	
+								else if (ELEM3(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO, CONSTRAINT_TYPE_SPLINEIK))
 									dag_add_relation(dag, node3, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, cti->name);
 								else
 									dag_add_relation(dag, node3, node, DAG_RL_OB_DATA, cti->name);
@@ -818,7 +818,7 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 	tag_main_idcode(bmain, ID_MA, FALSE);
 	
 	/* add base node for scene. scene is always the first node in DAG */
-	scenenode = dag_add_node(dag, sce);	
+	scenenode = dag_add_node(dag, sce);
 	
 	/* add current scene objects */
 	for (base = sce->base.first; base; base = base->next) {
@@ -872,7 +872,7 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 	}
 	
 	/* cycle detection and solving */
-	// solve_cycles(dag);	
+	// solve_cycles(dag);
 	
 	return dag;
 }
@@ -881,23 +881,23 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 void free_forest(DagForest *Dag) 
 {  /* remove all nodes and deps */
 	DagNode *tempN;
-	DagAdjList *tempA;	
+	DagAdjList *tempA;
 	DagAdjList *itA;
 	DagNode *itN = Dag->DagNode.first;
 	
 	while (itN) {
-		itA = itN->child;	
+		itA = itN->child;
 		while (itA) {
 			tempA = itA;
 			itA = itA->next;
-			MEM_freeN(tempA);			
+			MEM_freeN(tempA);
 		}
 		
-		itA = itN->parent;	
+		itA = itN->parent;
 		while (itA) {
 			tempA = itA;
 			itA = itA->next;
-			MEM_freeN(tempA);			
+			MEM_freeN(tempA);
 		}
 		
 		tempN = itN;
@@ -1153,7 +1153,7 @@ static void dag_check_cycle(DagForest *dag)
 	for (node = dag->DagNode.first; node; node = node->next) {
 		while (node->parent) {
 			itA = node->parent->next;
-			MEM_freeN(node->parent);			
+			MEM_freeN(node->parent);
 			node->parent = itA;
 		}
 	}
@@ -1242,7 +1242,7 @@ void graph_bfs(void)
 				itA = itA->next;
 			}
 			if (pos[node->BFS_dist] > node->k) {
-				pos[node->BFS_dist] += 1;				
+				pos[node->BFS_dist] += 1;
 				node->k = (float) pos[node->BFS_dist];
 			}
 			else {
@@ -1334,7 +1334,7 @@ DagNodeQueue *graph_dfs(void)
 	/* int	is_cycle = 0; */ /* UNUSED */
 	/*
 	 *fprintf(stderr, "starting DFS\n ------------\n");
-	 */	
+	 */
 	nqueue = queue_create(DAGQUEUEALLOC);
 	retqueue = queue_create(MainDag->numNodes);
 	for (i = 0; i < 50; i++)
@@ -1464,7 +1464,7 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 	int retval = 0;
 	/*
 	 * fprintf(stderr, "starting DFS\n ------------\n");
-	 */	
+	 */
 	nqueue = queue_create(DAGQUEUEALLOC);
 	
 	/* Init
@@ -1518,7 +1518,7 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 //						}
 					}
 					itA = itA->next;
-				}			
+				}
 				
 				if (!skip) {
 					node = pop_queue(nqueue);
@@ -1585,7 +1585,7 @@ DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob)
 	
 	node1 = dag->DagNode.first;
 	do {
-		if (node1->DFS_fntm > node->DFS_fntm) { 
+		if (node1->DFS_fntm > node->DFS_fntm) {
 			itA = node->child;
 			while (itA != NULL) {
 				if (itA->node == node) {
@@ -1597,7 +1597,7 @@ DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob)
 		node1 = node1->next;
 	} while (node1);
 	
-	return nqueue;	
+	return nqueue;
 }
 
 /* standard DFS list */
@@ -1643,9 +1643,9 @@ DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob)
 					push_stack(nqueue, itA->node);
 					skip = 1;
 					break;
-				} 
+				}
 				itA = itA->next;
-			}			
+			}
 			
 			if (!skip) {
 				node = pop_queue(nqueue);
@@ -1673,7 +1673,7 @@ short   are_obs_related(struct DagForest    *dag, void *ob1, void *ob2)
 	while (itA != NULL) {
 		if (itA->node->ob == ob2) {
 			return itA->node->type;
-		} 
+		}
 		itA = itA->next;
 	}
 	return DAG_NO_RELATION;
@@ -1701,7 +1701,7 @@ void graph_print_queue(DagNodeQueue *nqueue)
 	queueElem = nqueue->first;
 	while (queueElem) {
 		fprintf(stderr, "** %s %i %i-%i ", ((ID *) queueElem->node->ob)->name, queueElem->node->color, queueElem->node->DFS_dvtm, queueElem->node->DFS_fntm);
-		queueElem = queueElem->next;		
+		queueElem = queueElem->next;
 	}
 	fprintf(stderr, "\n");
 }
@@ -1721,7 +1721,7 @@ void graph_print_queue_dist(DagNodeQueue *nqueue)
 		fputc('|', stderr);
 		fputc('\n', stderr);
 		count = 0;
-		queueElem = queueElem->next;		
+		queueElem = queueElem->next;
 	}
 	fprintf(stderr, "\n");
 }
@@ -1859,9 +1859,9 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 				push_stack(nqueue, itA->node);
 				skip = 1;
 				break;
-			} 
+			}
 			itA = itA->next;
-		}			
+		}
 		
 		if (!skip) {
 			if (node) {
@@ -1878,7 +1878,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 					BLI_remlink(&sce->base, base);
 					BLI_addhead(&tempbase, base);
 				}
-			}	
+			}
 		}
 	}
 	
@@ -2380,7 +2380,7 @@ static void dag_object_time_update_flags(Object *ob)
 				}
 			}
 		}
-	}		
+	}
 
 	if (ob->recalc & OB_RECALC_OB)
 		lib_id_recalc_tag(G.main, &ob->id);
@@ -3020,9 +3020,9 @@ void DAG_pose_sort(Object *ob)
 				push_stack(nqueue, itA->node);
 				skip = 1;
 				break;
-			} 
+			}
 			itA = itA->next;
-		}			
+		}
 		
 		if (!skip) {
 			if (node) {
@@ -3034,7 +3034,7 @@ void DAG_pose_sort(Object *ob)
 				/* put node in new list */
 				BLI_remlink(&pose->chanbase, node->ob);
 				BLI_addhead(&tempbase, node->ob);
-			}	
+			}
 		}
 	}
 	

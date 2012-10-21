@@ -786,7 +786,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
-			BKE_object_where_is_calc(scene, v3d->camera);	
+			BKE_object_where_is_calc(scene, v3d->camera);
 			obmat_to_viewmat(v3d, rv3d, v3d->camera, 0);
 		}
 		else {
@@ -919,7 +919,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 						free_object_duplilist(lb);
 					}
 					code++;
-				}				
+				}
 			}
 		}
 		v3d->xray = FALSE;  /* restore */
@@ -1192,7 +1192,7 @@ static int view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
 		DAG_on_visible_update(bmain, FALSE);
 
 		return TRUE;
-	} 
+	}
 	else {
 		return FALSE;
 	}

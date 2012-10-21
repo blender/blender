@@ -390,7 +390,7 @@ void ED_area_overdraw(bContext *C)
 				az->do_draw = FALSE;
 			}
 		}
-	}	
+	}
 	glDisable(GL_BLEND);
 	
 }
@@ -1260,7 +1260,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		}
 		else {
 			/* prevent uiblocks to run */
-			uiFreeBlocks(NULL, &ar->uiblocks);	
+			uiFreeBlocks(NULL, &ar->uiblocks);
 		}
 		
 		/* rechecks 2d matrix for header on dpi changing, do not do for other regions, it resets view && blocks view2d operator polls (ton) */
@@ -1414,7 +1414,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 			/* put in front of list */
 			BLI_remlink(&sa->spacedata, sl);
 			BLI_addhead(&sa->spacedata, sl);
-		} 
+		}
 		else {
 			/* new space */
 			if (st) {
@@ -1741,7 +1741,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	int maxco, xco, yco;
 	int headery = ED_area_headersize();
 
-	/* clear */	
+	/* clear */
 	UI_ThemeClearColor((ED_screen_area_active(C)) ? TH_HEADER : TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
 	

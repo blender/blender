@@ -123,7 +123,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 	if (anim_data.first == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
-	}	
+	}
 	
 	/* for each AnimData block with NLA-data, try setting it in tweak-mode */
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -192,7 +192,7 @@ static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *op)
 	if (anim_data.first == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
-	}	
+	}
 	
 	/* for each AnimData block with NLA-data, try exitting tweak-mode */
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -1364,7 +1364,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 					           "Cannot swap selected strips as they will not be able to fit in their new places");
 				}
 				else {
-					BKE_reportf(op->reports, RPT_WARNING, 	
+					BKE_reportf(op->reports, RPT_WARNING,
 					            "Cannot swap '%s' and '%s' as one or both will not be able to fit in their new places",
 					            sa->name, sb->name);
 				}

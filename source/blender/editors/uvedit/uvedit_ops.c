@@ -1953,7 +1953,7 @@ static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 				}
 
 				flush = 1;
-			}			
+			}
 		}
 	}
 	else {

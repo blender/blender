@@ -1225,7 +1225,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 		while (*param == ' ') param++;
 	}
 	
-	o = my_av_find_opt(&c, name, NULL, 0, 0);	
+	o = my_av_find_opt(&c, name, NULL, 0, 0);
 	if (!o) {
 		return 0;
 	}
@@ -1233,7 +1233,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 		return 0;
 	}
 	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
-		p = my_av_find_opt(&c, param, o->unit, 0, 0);	
+		p = my_av_find_opt(&c, param, o->unit, 0, 0);
 		if (p) {
 			prop = BKE_ffmpeg_property_add(rd, (char *) type, p - c.av_class->option, o - c.av_class->option);
 		}

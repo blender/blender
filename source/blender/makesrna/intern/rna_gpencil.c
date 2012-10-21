@@ -327,7 +327,7 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "points", "totpoints");
 	RNA_def_property_struct_type(prop, "GPencilStrokePoint");
 	RNA_def_property_ui_text(prop, "Stroke Points", "Stroke data points");
-	rna_def_gpencil_stroke_points_api(brna, prop);	
+	rna_def_gpencil_stroke_points_api(brna, prop);
 
 	prop = RNA_def_property(srna, "draw_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
@@ -376,7 +376,7 @@ static void rna_def_gpencil_frame(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "strokes", NULL);
 	RNA_def_property_struct_type(prop, "GPencilStroke");
 	RNA_def_property_ui_text(prop, "Strokes", "Freehand curves defining the sketch on this frame");
-	rna_def_gpencil_strokes_api(brna, prop);	
+	rna_def_gpencil_strokes_api(brna, prop);
 
 	/* Frame Number */
 	prop = RNA_def_property(srna, "frame_number", PROP_INT, PROP_NONE);

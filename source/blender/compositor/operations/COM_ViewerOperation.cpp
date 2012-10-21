@@ -96,7 +96,7 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 			if (m_depthInput) {
 				this->m_depthInput->read(depth, x, y, COM_PS_NEAREST);
 				depthbuffer[offset] = depth[0];
-			} 
+			}
 
 			offset ++;
 			offset4 += 4;

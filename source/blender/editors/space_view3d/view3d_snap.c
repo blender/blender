@@ -349,7 +349,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 						tv->flag = 1;
 						tv++;
 						tottrans++;
-					}	
+					}
 					
 					if ((mode & TM_ALL_JOINTS) && (tipsel)) {
 						copy_v3_v3(tv->oldloc, ebo->tail);

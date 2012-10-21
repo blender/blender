@@ -142,7 +142,7 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports)
 		strncpy(name, ob->id.name + 2, MAX_ID_NAME - 2);
 	}
 
-	return addMatrixSpace(C, mat, name, overwrite);	
+	return addMatrixSpace(C, mat, name, overwrite);
 }
 
 TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, char *name, int overwrite)

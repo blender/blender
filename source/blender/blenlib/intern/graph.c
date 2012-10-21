@@ -353,12 +353,12 @@ int BLI_isGraphCyclic(BGraph *graph)
 	/* Mark all nodes as not visited */
 	BLI_flagNodes(graph, 0);
 
-	/* detectCycles in subgraphs */	
+	/* detectCycles in subgraphs */
 	for (node = graph->nodes.first; node && value == 0; node = node->next) {
 		/* only for nodes in subgraphs that haven't been visited yet */
 		if (node->flag == 0) {
 			value = value || detectCycle(node, NULL);
-		}		
+		}
 	}
 	
 	return value;
@@ -639,11 +639,11 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 
 		/* if not dispatching already and on last arc
 		 * Dispatch using current arc as last
-		 * */		
+		 */
 		if (dispatch == 0 && i == total - 1) {
 			last = i;
 			dispatch = 1;
-		} 
+		}
 		
 		if (dispatch) {
 			int sub_total = last - first + 1; 
@@ -796,7 +796,7 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 	
 	/* count the number of branches in this symmetry group
 	 * and determinate the axis of symmetry
-	 *  */	
+	 */
 	for (i = 0; i < node->degree; i++) {
 		BArc *connectedArc = node->arcs[i];
 		
@@ -821,7 +821,7 @@ static void markdownSecondarySymmetry(BGraph *graph, BNode *node, int depth, int
 		handleRadialSymmetry(graph, node, depth, axis, limit);
 	}
 		
-	/* markdown secondary symetries */	
+	/* markdown secondary symetries */
 	for (i = 0; i < node->degree; i++) {
 		BArc *connectedArc = node->arcs[i];
 		
@@ -836,7 +836,7 @@ static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level
 {
 	int i;
 
-	/* if arc is null, we start straight from a node */	
+	/* if arc is null, we start straight from a node */
 	if (arc) {
 		arc->symmetry_level = level;
 		
@@ -875,7 +875,7 @@ static void markdownSymmetryArc(BGraph *graph, BArc *arc, BNode *node, int level
 					/* not on the symmetry axis */
 					issymmetryAxis = 0;
 					break;
-				} 
+				}
 			}
 		}
 		

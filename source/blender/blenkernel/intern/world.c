@@ -107,7 +107,7 @@ World *add_world(const char *name)
 	wrld->ao_indirect_energy = 1.0f;
 	wrld->ao_indirect_bounces = 1;
 	wrld->aobias = 0.05f;
-	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;	
+	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
 	wrld->ao_approx_error = 0.25f;
 	
 	wrld->preview = NULL;

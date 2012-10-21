@@ -117,14 +117,14 @@ void ED_armature_sync_selection(ListBase *edbo)
 			else
 				ebo->flag &= ~BONE_SELECTED;
 		}
-	}				
+	}
 }
 
 void ED_armature_validate_active(struct bArmature *arm)
 {
 	EditBone *ebone = arm->act_edbone;
 
-	if (ebone) { 
+	if (ebone) {
 		if (ebone->flag & BONE_HIDDEN_A)
 			arm->act_edbone = NULL;
 	}
@@ -304,7 +304,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		eBone->ease2 = curBone->ease2;
 		eBone->rad_head = curBone->rad_head;
 		eBone->rad_tail = curBone->rad_tail;
-		eBone->segments = curBone->segments;		
+		eBone->segments = curBone->segments;
 		eBone->layer = curBone->layer;
 
 		if (curBone->prop)
@@ -897,7 +897,7 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 			/* make tar armature be new parent */
 			ob->parent = tarArm;
 		}
-	}	
+	}
 }
 
 /* join armature exec is exported for use in object->join objects operator... */
@@ -1113,7 +1113,7 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 				}
 			}
 		}
-	}	
+	}
 }
 
 /* Helper function for armature separating - remove certain bones from the given armature 
@@ -1440,7 +1440,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	/* Select parents */
 	for (curBone = bone; curBone; curBone = next) {
 		/* ignore bone if cannot be selected */
-		if ((curBone->flag & BONE_UNSELECTABLE) == 0) { 
+		if ((curBone->flag & BONE_UNSELECTABLE) == 0) {
 			// XXX old cruft! use notifiers instead
 			//select_actionchannel_by_name (ob->action, curBone->name, !(shift));
 			
@@ -1493,7 +1493,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	/* props */	
+	/* props */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 }
 
@@ -1550,7 +1550,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 					bone = curBone;
 					break;
 				}
-				else { 
+				else {
 					bone = NULL;
 					break;
 				}
@@ -2687,7 +2687,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 				updateDuplicateSubtarget(eBone, arm->edbo, obedit);
 			}
 		}
-	} 
+	}
 	
 	/* correct the active bone */
 	if (arm->act_edbone) {
@@ -2802,7 +2802,7 @@ static void fill_add_joint(EditBone *ebo, short eb_tail, ListBase *points)
 	}
 	
 	for (ebp = points->first; ebp; ebp = ebp->next) {
-		if (equals_v3v3(ebp->vec, vec)) {			
+		if (equals_v3v3(ebp->vec, vec)) {
 			if (eb_tail) {
 				if ((ebp->head_owner) && (ebp->head_owner->parent == ebo)) {
 					/* so this bone's tail owner is this bone */
@@ -3150,7 +3150,7 @@ static int armature_merge_exec(bContext *C, wmOperator *op)
 			
 			/* put back link */
 			BLI_insertlinkbefore(&chains, nchain, chain);
-		}		
+		}
 		
 		armature_tag_unselect(arm);
 		
@@ -3457,7 +3457,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 			
 			/* Deselect the old bone */
 			ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
-		}		
+		}
 	}
 	/* if only one bone, make this one active */
 	if (totbone == 1 && first) arm->act_edbone = first;
@@ -3681,7 +3681,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 			parent = ebo->parent;
 			
 			/* only if selected and editable */
-			if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {				
+			if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {
 				/* swap head and tail coordinates */
 				SWAP(float, ebo->head[0], ebo->tail[0]);
 				SWAP(float, ebo->head[1], ebo->tail[1]);
@@ -3721,7 +3721,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	
 	/* free chains */
-	BLI_freelistN(&chains);	
+	BLI_freelistN(&chains);
 
 	armature_tag_unselect(arm);
 
@@ -3778,7 +3778,7 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 		}
 	}
 	
-	if (mode == ARM_PAR_CONNECT) {	
+	if (mode == ARM_PAR_CONNECT) {
 		/* Connected: Child bones will be moved to the parent tip */
 		selbone->flag |= BONE_CONNECTED;
 		sub_v3_v3v3(offset, actbone->tail, selbone->head);
@@ -3893,7 +3893,7 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 	{
 		if (ebone != actbone) {
 			if (ebone->parent != actbone) allchildbones = 1;
-		}	
+		}
 	}
 	CTX_DATA_END;
 
@@ -3901,7 +3901,7 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 	
 	/* ob becomes parent, make the associated menus */
 	if (allchildbones)
-		uiItemEnumO(layout, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_OFFSET);	
+		uiItemEnumO(layout, "ARMATURE_OT_parent_set", NULL, 0, "type", ARM_PAR_OFFSET);
 		
 	uiPupMenuEnd(C, pup);
 	
@@ -3994,7 +3994,7 @@ static int armature_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 			ebone->flag ^= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 		}
 	}
-	CTX_DATA_END;	
+	CTX_DATA_END;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, NULL);
 	
@@ -4055,7 +4055,7 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	CTX_DATA_END;	
+	CTX_DATA_END;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, NULL);
 	
@@ -4295,7 +4295,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 						break;
 					}
 					
-				} 
+				}
 				else { // BONE_SELECT_CHILD
 					chbone = editbone_get_child(arm, curbone, 1);
 					if (chbone == NULL) continue;
@@ -4566,7 +4566,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 					nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 					arm->act_bone = nearBone;
 				}
-			}	
+			}
 		}
 		
 		if (ob_act) {
@@ -5118,7 +5118,7 @@ static void pchan_clear_rot(bPoseChannel *pchan)
 			}
 		}
 	}       /* Duplicated in source/blender/editors/object/object_transform.c */
-	else { 
+	else {
 		if (pchan->rotmode == ROT_MODE_QUAT) {
 			unit_qt(pchan->quat);
 		}
@@ -5544,7 +5544,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 			
 			if (cti->flush_constraint_targets)
 				cti->flush_constraint_targets(curcon, &targets, 0);
-		}	
+		}
 	}
 }
 
@@ -5631,7 +5631,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 				}
 			}
 			
-			if (modifiers_usesArmature(ob, arm)) { 
+			if (modifiers_usesArmature(ob, arm)) {
 				bDeformGroup *dg = defgroup_find_name(ob, oldname);
 				if (dg) {
 					BLI_strncpy(dg->name, newname, MAXBONENAME);
@@ -5959,7 +5959,7 @@ float arcLengthRatio(ReebArc *arc)
 		embedLength = arcLength;
 	}
 	
-	return embedLength / arcLength;	
+	return embedLength / arcLength;
 }
 
 EditBone *test_subdivideByLength(Scene *scene, Object *obedit, ReebArc *arc, ReebNode *head, ReebNode *tail)
@@ -6060,7 +6060,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 			arc->flag = 1; /* mark arc direction */
 		}
 		
-		/* Loop over subdivision methods */	
+		/* Loop over subdivision methods */
 		for (i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++) {
 			switch (scene->toolsettings->skgen_subdivisions[i]) {
 				case SKGEN_SUB_LENGTH:

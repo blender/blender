@@ -191,7 +191,7 @@ void image_preview_event(int event)
 		waitcursor(0);
 		
 		WM_event_add_notifier(C, NC_IMAGE, ima_v);
-	}	
+	}
 }
 
 

@@ -35,20 +35,20 @@
 
 /* **************** SCALAR MATH ******************** */ 
 static bNodeSocketTemplate sh_node_math_in[]= { 
-	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, 
-	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, 
-	{ -1, 0, "" } 
+	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+	{ -1, 0, "" }
 };
 
 static bNodeSocketTemplate sh_node_math_out[]= { 
-	{ SOCK_FLOAT, 0, N_("Value")}, 
-	{ -1, 0, "" } 
+	{ SOCK_FLOAT, 0, N_("Value")},
+	{ -1, 0, "" }
 };
 
 static void node_shader_exec_math(void *UNUSED(data), bNode *node, bNodeStack **in, 
 bNodeStack **out) 
 {
-	switch (node->custom1) { 
+	switch (node->custom1) {
 	
 	case 0: /* Add */
 		out[0]->vec[0]= in[0]->vec[0] + in[1]->vec[0]; 
@@ -77,7 +77,7 @@ bNodeStack **out)
 		break;
 	case 5: /* Cosine */
 		{
-			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */	
+			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
 				out[0]->vec[0]= cos(in[0]->vec[0]);
 			else
 				out[0]->vec[0]= cos(in[1]->vec[0]);
@@ -85,7 +85,7 @@ bNodeStack **out)
 		break;
 	case 6: /* Tangent */
 		{
-			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */	
+			if (in[0]->hasinput || !in[1]->hasinput)  /* This one only takes one input, so we've got to choose. */
 				out[0]->vec[0]= tan(in[0]->vec[0]);
 			else
 				out[0]->vec[0]= tan(in[1]->vec[0]);
@@ -193,7 +193,7 @@ bNodeStack **out)
 				out[0]->vec[0]= 0.0f;
 		}
 		break;
-	} 
+	}
 }
 
 static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

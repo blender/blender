@@ -159,7 +159,7 @@ int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue)
 			return qtVideoCodecList[i].codecType;
 	}
 	
-	return 0;	
+	return 0;
 }
 
 /* Audio codec */
@@ -204,7 +204,7 @@ int quicktime_audiocodecType_from_rnatmpvalue(int rnatmpvalue)
 			return qtAudioCodecList[i].codecType;
 	}
 	
-	return 0;	
+	return 0;
 }
 
 
@@ -647,7 +647,7 @@ int append_qt(struct RenderData *rd, int start_frame, int frame, int *pixels, in
 	if (qtexport->audioFile) {
 		UInt32 audioPacketsConverted;
 		/* Append audio */
-		while (qtexport->audioTotalExportedFrames < qtexport->audioLastFrame) {	
+		while (qtexport->audioTotalExportedFrames < qtexport->audioLastFrame) {
 
 			qtexport->audioBufferList.mNumberBuffers = 1;
 			qtexport->audioBufferList.mBuffers[0].mNumberChannels = qtexport->audioOutputFormat.mChannelsPerFrame;
@@ -683,7 +683,7 @@ int append_qt(struct RenderData *rd, int start_frame, int frame, int *pixels, in
 
 		}
 	}
-	[pool drain];	
+	[pool drain];
 
 	return 1;
 }

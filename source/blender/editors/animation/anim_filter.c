@@ -682,7 +682,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				ale->datatype = ALE_ACT;
 				
 				ale->adt = BKE_animdata_from_id(data);
-			}	
+			}
 			break;
 			case ANIMTYPE_DSSPK:
 			{
@@ -811,7 +811,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 					}
 					ale->datatype = (ale->key_data) ? ALE_FCURVE : ALE_NONE;
 				}
-			}	
+			}
 			break;
 			
 			case ANIMTYPE_GPLAYER:
@@ -1023,7 +1023,7 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, bActionGro
 				if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
 					continue;
 			}
-		}	
+		}
 		
 		/* only include if visible (Graph Editor check, not channels check) */
 		if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
@@ -1211,7 +1211,7 @@ static size_t animfilter_nla(bAnimContext *UNUSED(ac), ListBase *anim_data, bDop
 		 */
 		if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) || (adt->action)) {
 			/* there isn't really anything editable here, so skip if need editable */
-			if ((filter_mode & ANIMFILTER_FOREDIT) == 0) { 
+			if ((filter_mode & ANIMFILTER_FOREDIT) == 0) {
 				/* just add the action track now (this MUST appear for drawing)
 				 *	- as AnimData may not have an action, we pass a dummy pointer just to get the list elem created, then
 				 *	  overwrite this with the real value - REVIEW THIS...

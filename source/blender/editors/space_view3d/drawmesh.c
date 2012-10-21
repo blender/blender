@@ -382,7 +382,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}
-	else {		
+	else {
 		glDisable(GL_CULL_FACE);
 	}
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
@@ -406,7 +406,7 @@ static void draw_textured_end(void)
 	 *  - zr
 	 */
 	glPushMatrix();
-	glLoadIdentity();	
+	glLoadIdentity();
 	GPU_default_lights();
 	glPopMatrix();
 }

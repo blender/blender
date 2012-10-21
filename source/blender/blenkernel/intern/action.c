@@ -224,7 +224,7 @@ bActionGroup *get_active_actiongroup(bAction *act)
 {
 	bActionGroup *agrp = NULL;
 	
-	if (act && act->groups.first) {	
+	if (act && act->groups.first) {
 		for (agrp = act->groups.first; agrp; agrp = agrp->next) {
 			if (agrp->flag & AGRP_ACTIVE)
 				break;
@@ -301,7 +301,7 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 	
 	/* add to action, and validate */
 	BLI_addtail(&act->groups, agrp);
-	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));	
+	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
 	
 	/* return the new group */
 	return agrp;
@@ -380,7 +380,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 void action_groups_remove_channel(bAction *act, FCurve *fcu)
 {
 	/* sanity checks */
-	if (ELEM(NULL, act, fcu))	
+	if (ELEM(NULL, act, fcu))
 		return;
 	
 	/* check if any group used this directly */
@@ -955,7 +955,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				foundmod = 1;
 			}
 		}
-	}	
+	}
 	
 	if (foundvert || foundmod) {
 		if (min == max) max += 1.0f;

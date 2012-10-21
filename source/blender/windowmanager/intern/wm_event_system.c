@@ -2626,7 +2626,7 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 		event->custom = EVT_DATA_TABLET;
 		event->customdata = wmtab;
 		event->customdatafree = 1;
-	} 
+	}
 }
 
 /* adds customdata to event */

@@ -600,7 +600,7 @@ static void makeGammaTables(float gamma)
 	color_step        = 1.0f / RE_GAMMA_TABLE_SIZE;
 	inv_color_step    = (float) RE_GAMMA_TABLE_SIZE; 
 
-	/* We could squeeze out the two range tables to gain some memory */	
+	/* We could squeeze out the two range tables to gain some memory */
 	for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
 		color_domain_table[i]    = i * color_step;
 		gamma_range_table[i]     = pow(color_domain_table[i], valid_gamma);
@@ -2373,7 +2373,7 @@ static ImBuf *do_solid_color(SeqRenderData context, Sequence *seq, float UNUSED(
 					rect[1] = col1[1];
 					rect[2] = col1[2];
 					rect[3] = 255;
-				}	
+				}
 			}
 		}
 
@@ -2609,7 +2609,7 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
 			*ymin = 0.0;
 			*ymax = seq->len;
 		}
-	}	
+	}
 }
 
 void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, int force)

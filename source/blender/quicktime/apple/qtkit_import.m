@@ -312,7 +312,7 @@ int startquicktime (struct anim *anim)
 
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	[QTMovie enterQTKitOnThread];		
+	[QTMovie enterQTKitOnThread];
 
 	attributes = [NSDictionary dictionaryWithObjectsAndKeys:
 	        [NSString stringWithCString:anim->name
@@ -543,7 +543,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 	
 	/* return successfully */
-	return (ibuf);	
+	return (ibuf);
 }
 
 

@@ -388,7 +388,7 @@ typedef struct {
 
 typedef struct {
 	/** Displacement of a mouse wheel. */
-	GHOST_TInt32 z;	
+	GHOST_TInt32 z;
 } GHOST_TEventWheelData;
 
 typedef enum {

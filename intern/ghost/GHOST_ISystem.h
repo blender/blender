@@ -47,14 +47,14 @@ class GHOST_IEventConsumer;
  * \section intro Introduction
  *
  * GHOST is yet another acronym. It stands for "Generic Handy Operating System
- * Toolkit". It has been created to replace the OpenGL utility tool kit  
+ * Toolkit". It has been created to replace the OpenGL utility tool kit
  * <a href="http://www.opengl.org/developers/documentation/glut.html">GLUT</a>.
  * GLUT was used in <a href="http://www.blender3d.com">Blender</a> until the
  * point that Blender needed to be ported to Apple's Mac OSX. Blender needed a
  * number of modifications in GLUT to work but the GLUT sources for OSX were
  * unavailable at the time. The decision was made to build our own replacement
- * for GLUT. In those days, NaN Technologies BV was the company that developed 
- * Blender. 
+ * for GLUT. In those days, NaN Technologies BV was the company that developed
+ * Blender.
  * <br><br>
  * Enough history. What does GHOST have to offer?<br>
  * In short: everything that Blender needed from GLUT to run on all it's supported
@@ -96,7 +96,7 @@ class GHOST_IEventConsumer;
  * <li>The C-API. For programs written in C.</li>
  * <li>The C++-API. For programs written in C++.</li>
  * </ul>
- * GHOST itself is writtem in C++ and the C-API is a wrapper around the C++ 
+ * GHOST itself is writtem in C++ and the C-API is a wrapper around the C++
  * API.
  *
  * \subsection cplusplus_api The C++ API consists of the following files:
@@ -113,7 +113,7 @@ class GHOST_IEventConsumer;
  * program in the ?/ghost/test/gears/ directory.
  *
  * \subsection c_api The C-API
- * To use GHOST in programs written in C, include the file GHOST_C-API.h in 
+ * To use GHOST in programs written in C, include the file GHOST_C-API.h in
  * your program. This file includes the GHOST_Types.h file for all GHOST types
  * and defines functions that give you access to the same functionality present
  * in the C++ API.<br>
@@ -123,7 +123,7 @@ class GHOST_IEventConsumer;
  * \section work Work in progress
  * \todo write WIP section
  */
- 
+
 /** \interface GHOST_ISystem
  * Interface for classes that provide access to the operating system.
  * There should be only one system class in an application.
@@ -136,8 +136,8 @@ class GHOST_IEventConsumer;
  *  -# Access to the state of the mouse buttons and the keyboard.
  *  -# Menus for windows with events generated when they are accessed (this is
  *     work in progress).
- * \author	Maarten Gribnau
- * \date	May 30, 2001
+ * \author  Maarten Gribnau
+ * \date    May 30, 2001
  */
 class GHOST_ISystem
 {
@@ -190,12 +190,12 @@ public:
 
 	/**
 	 * Installs a timer.
-	 * Note that, on most operating systems, messages need to be processed in order 
+	 * Note that, on most operating systems, messages need to be processed in order
 	 * for the timer callbacks to be invoked.
-	 * \param delay		The time to wait for the first call to the timerProc (in milliseconds)
-	 * \param interval	The interval between calls to the timerProc (in milliseconds)
-	 * \param timerProc	The callback invoked when the interval expires,
-	 * \param userData	Placeholder for user data.
+	 * \param delay     The time to wait for the first call to the timerProc (in milliseconds)
+	 * \param interval  The interval between calls to the timerProc (in milliseconds)
+	 * \param timerProc The callback invoked when the interval expires,
+	 * \param userData  Placeholder for user data.
 	 * \return A timer task (0 if timer task installation failed).
 	 */
 	virtual GHOST_ITimerTask *installTimer(GHOST_TUns64 delay,
@@ -225,22 +225,22 @@ public:
 	 * \return The dimension of the main display.
 	 */
 	virtual void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const = 0;
-	
+
 	/**
 	 * Create a new window.
-	 * The new window is added to the list of windows managed. 
+	 * The new window is added to the list of windows managed.
 	 * Never explicitly delete the window, use disposeWindow() instead.
-	 * \param	title			The name of the window (displayed in the title bar of the window if the OS supports it).
-	 * \param	left			The coordinate of the left edge of the window.
-	 * \param	top				The coordinate of the top edge of the window.
-	 * \param	width			The width the window.
-	 * \param	height			The height the window.
-	 * \param	state			The state of the window when opened.
-	 * \param	type			The type of drawing context installed in this window.
-	 * \param	stereoVisual	Create a stereo visual for quad buffered stereo.
-	 * \param	numOfAASamples	Number of samples used for AA (zero if no AA)
-	 * \param	parentWindow    Parent (embedder) window
-	 * \return	The new window (or 0 if creation failed).
+	 * \param   title           The name of the window (displayed in the title bar of the window if the OS supports it).
+	 * \param   left            The coordinate of the left edge of the window.
+	 * \param   top             The coordinate of the top edge of the window.
+	 * \param   width           The width the window.
+	 * \param   height          The height the window.
+	 * \param   state           The state of the window when opened.
+	 * \param   type            The type of drawing context installed in this window.
+	 * \param   stereoVisual    Create a stereo visual for quad buffered stereo.
+	 * \param   numOfAASamples  Number of samples used for AA (zero if no AA)
+	 * \param   parentWindow    Parent (embedder) window
+	 * \return  The new window (or 0 if creation failed).
 	 */
 	virtual GHOST_IWindow *createWindow(
 	    const STR_String& title,
@@ -252,40 +252,40 @@ public:
 
 	/**
 	 * Dispose a window.
-	 * \param	window Pointer to the window to be disposed.
-	 * \return	Indication of success.
+	 * \param   window Pointer to the window to be disposed.
+	 * \return  Indication of success.
 	 */
 	virtual GHOST_TSuccess disposeWindow(GHOST_IWindow *window) = 0;
 
 	/**
 	 * Returns whether a window is valid.
-	 * \param	window Pointer to the window to be checked.
-	 * \return	Indication of validity.
+	 * \param   window Pointer to the window to be checked.
+	 * \return  Indication of validity.
 	 */
 	virtual bool validWindow(GHOST_IWindow *window) = 0;
 
 	/**
 	 * Begins full screen mode.
-	 * \param setting	The new setting of the display.
-	 * \param window	Window displayed in full screen.
-	 *					This window is invalid after full screen has been ended.
-	 * \return	Indication of success.
+	 * \param setting   The new setting of the display.
+	 * \param window    Window displayed in full screen.
+	 *                  This window is invalid after full screen has been ended.
+	 * \return  Indication of success.
 	 */
 	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
 	                                       const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0) = 0;
-	
+
 	/**
 	 * Updates the resolution while in fullscreen mode.
-	 * \param setting	The new setting of the display.
-	 * \param window	Window displayed in full screen.
+	 * \param setting   The new setting of the display.
+	 * \param window    Window displayed in full screen.
 	 *
-	 * \return	Indication of success.
+	 * \return  Indication of success.
 	 */
 	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window) = 0;
 
 	/**
 	 * Ends full screen mode.
-	 * \return	Indication of success.
+	 * \return  Indication of success.
 	 */
 	virtual GHOST_TSuccess endFullScreen(void) = 0;
 
@@ -305,7 +305,7 @@ public:
 	 * \return Indication of the presence of events.
 	 */
 	virtual bool processEvents(bool waitForEvent) = 0;
-	
+
 	/**
 	 * Retrieves events from the queue and send them to the event consumers.
 	 * \return Indication of the presence of events.
@@ -332,18 +332,18 @@ public:
 
 	/**
 	 * Returns the current location of the cursor (location in screen coordinates)
-	 * \param x			The x-coordinate of the cursor.
-	 * \param y			The y-coordinate of the cursor.
-	 * \return			Indication of success.
+	 * \param x         The x-coordinate of the cursor.
+	 * \param y         The y-coordinate of the cursor.
+	 * \return          Indication of success.
 	 */
 	virtual GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const = 0;
 
 	/**
 	 * Updates the location of the cursor (location in screen coordinates).
 	 * Not all operating systems allow the cursor to be moved (without the input device being moved).
-	 * \param x			The x-coordinate of the cursor.
-	 * \param y			The y-coordinate of the cursor.
-	 * \return			Indication of success.
+	 * \param x         The x-coordinate of the cursor.
+	 * \param y         The y-coordinate of the cursor.
+	 * \return          Indication of success.
 	 */
 	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) = 0;
 
@@ -353,17 +353,17 @@ public:
 
 	/**
 	 * Returns the state of a modifier key (ouside the message queue).
-	 * \param mask		The modifier key state to retrieve.
-	 * \param isDown	The state of a modifier key (true == pressed).
-	 * \return			Indication of success.
+	 * \param mask      The modifier key state to retrieve.
+	 * \param isDown    The state of a modifier key (true == pressed).
+	 * \return          Indication of success.
 	 */
 	virtual GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const = 0;
 
 	/**
 	 * Returns the state of a mouse button (ouside the message queue).
-	 * \param mask		The button state to retrieve.
-	 * \param isDown	Button state.
-	 * \return			Indication of success.
+	 * \param mask      The button state to retrieve.
+	 * \param isDown    Button state.
+	 * \return          Indication of success.
 	 */
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const = 0;
 
@@ -378,11 +378,11 @@ public:
 	 * \return current status (1 -visible, 0 - hidden)
 	 */
 	virtual int toggleConsole(int action) = 0;
-	
+
 	/***************************************************************************************
 	 * Access to clipboard.
 	 ***************************************************************************************/
-	
+
 	/**
 	 * Returns the selection buffer
 	 * \return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer

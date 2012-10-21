@@ -614,7 +614,7 @@ void shadeSkyPixel(float collector[4], float fx, float fy, short thread)
 		copy_v3_v3(collector, &R.wrld.horr);
 
 		collector[3] = 0.0f;
-	} 
+	}
 	else {
 		/* 2. */
 

@@ -457,7 +457,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 			}
 			break;
-		case NC_SPACE:	
+		case NC_SPACE:
 			if (wmn->data == ND_SPACE_IMAGE) {
 				image_scopes_tag_refresh(sa);
 				ED_area_tag_redraw(sa);

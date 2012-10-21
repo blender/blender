@@ -336,7 +336,7 @@ void psys_check_group_weights(ParticleSettings *part)
 				BLI_addtail(&part->dupliweights, dw);
 			}
 
-			go = go->next;	
+			go = go->next;
 		}
 
 		dw = part->dupliweights.first;
@@ -561,7 +561,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 			ob->transflag &= ~OB_DUPLIPARTS;
 
 		if (psys->part) {
-			psys->part->id.us--;		
+			psys->part->id.us--;
 			psys->part = NULL;
 		}
 

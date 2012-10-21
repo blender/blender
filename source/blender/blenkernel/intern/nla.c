@@ -496,7 +496,7 @@ float nlastrip_get_frame(NlaStrip *strip, float cframe, short mode)
 		case NLASTRIP_TYPE_CLIP: /* action-clip (default) */
 		default:
 			return nlastrip_get_frame_actionclip(strip, cframe, mode);
-	}	
+	}
 }
 
 
@@ -1162,7 +1162,7 @@ static short nlastrip_is_first(AnimData *adt, NlaStrip *strip)
 			if (ns->start < strip->start)
 				return 0;
 		}
-	}	
+	}
 	
 	/* should be first now */
 	return 1;
@@ -1491,7 +1491,7 @@ void BKE_nla_action_pushdown(AnimData *adt)
 	/* add a new NLA strip to the track, which references the active action */
 	strip = add_nlastrip_to_stack(adt, adt->action);
 	
-	/* do other necessary work on strip */	
+	/* do other necessary work on strip */
 	if (strip) {
 		/* clear reference to action now that we've pushed it onto the stack */
 		id_us_min(&adt->action->id);
@@ -1545,7 +1545,7 @@ short BKE_nla_tweakmode_enter(AnimData *adt)
 			/* now try to find active strip */
 			activeStrip = BKE_nlastrip_find_active(nlt);
 			break;
-		}	
+		}
 	}
 	
 	/* There are situations where we may have multiple strips selected and we want to enter tweakmode on all 
@@ -1563,7 +1563,7 @@ short BKE_nla_tweakmode_enter(AnimData *adt)
 				activeStrip = BKE_nlastrip_find_active(nlt);
 				break;
 			}
-		}	
+		}
 	}
 	if ((activeTrack) && (activeStrip == NULL)) {
 		/* no active strip in active or last selected track; compromise for first selected (assuming only single)... */

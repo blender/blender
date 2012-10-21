@@ -494,9 +494,9 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 								/* auto-set 'Path' setting on curve so this works  */
 								cu->flag |= CU_PATH;
 							}
-						}						
+						}
 					}
-				}	
+				}
 				
 				/* free any temporary targets */
 				if (cti->flush_constraint_targets)
@@ -593,7 +593,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 	
 	if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
 		list = &ob->constraints;
-	} 
+	}
 	else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
 		bPoseChannel *pchan = BKE_pose_channel_active(ob);
 		if (pchan)

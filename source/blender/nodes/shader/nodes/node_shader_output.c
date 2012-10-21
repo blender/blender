@@ -62,7 +62,7 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 			
 			//	copy_v3_v3(shr->nor, in[3]->vec);
 		}
-	}	
+	}
 }
 
 static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)

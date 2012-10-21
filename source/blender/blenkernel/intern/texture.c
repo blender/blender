@@ -646,7 +646,7 @@ MTex *add_mtex_id(ID *id, int slot)
 	
 	if (slot == -1) {
 		/* find first free */
-		int i;		
+		int i;
 		for (i = 0; i < MAX_MTEX; i++) {
 			if (!mtex_ar[i]) {
 				slot = i;

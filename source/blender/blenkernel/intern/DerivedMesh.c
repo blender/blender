@@ -1270,7 +1270,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 	int i, j, tot;
 	
 	if (!me->key)
-		return;	
+		return;
 	
 	tot = CustomData_number_of_layers(&dm->vertData, CD_SHAPEKEY);
 	for (i = 0; i < tot; i++) {

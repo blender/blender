@@ -36,14 +36,14 @@
 
 /* **************** INVERT ******************** */ 
 static bNodeSocketTemplate sh_node_invert_in[]= { 
-	{ SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR}, 
-	{ SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f}, 
-	{ -1, 0, "" } 
+	{ SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{ SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+	{ -1, 0, "" }
 };
 
 static bNodeSocketTemplate sh_node_invert_out[]= { 
-	{ SOCK_RGBA, 0, N_("Color")}, 
-	{ -1, 0, "" } 
+	{ SOCK_RGBA, 0, N_("Color")},
+	{ -1, 0, "" }
 };
 
 static void node_shader_exec_invert(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **in, 

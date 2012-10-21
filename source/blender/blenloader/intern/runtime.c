@@ -91,7 +91,7 @@ cleanup:
 	if (fd != -1)
 		close(fd);
 
-	return res;	
+	return res;
 }
 
 BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
@@ -126,7 +126,7 @@ BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 		BKE_reportf(reports, RPT_ERROR, "Unable to read '%s' (not a blend file)", path);
 		goto cleanup;
 	}
-	else {	
+	else {
 		//printf("starting to read runtime from %s at datastart %d\n", path, datastart);
 		lseek(fd, datastart, SEEK_SET);
 		bfd = blo_read_blendafterruntime(fd, path, actualsize - datastart, reports);

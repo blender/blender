@@ -982,7 +982,7 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 			blo_freefiledata(fd);
 			fd = NULL;
 		}
-	} 
+	}
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Failed to read blend file '%s', not a blend file", fd->relabase);
 		blo_freefiledata(fd);
@@ -1129,7 +1129,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 		/* the last part of the dir is a .blend file, no group follows */
 		*fd = '/'; /* put back the removed slash separating the dir and the .blend file name */
 	}
-	else {		
+	else {
 		char *gp = fd + 1; // in case we have a .blend file, gp points to the group
 		
 		/* Find the last slash */
@@ -1824,7 +1824,7 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 			
 			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
 				DRIVER_TARGETS_LOOPER(dvar)
-				{	
+				{
 					/* only relink if still used */
 					if (tarIndex < dvar->num_targets)
 						dtar->id = newlibadr(fd, id->lib, dtar->id); 
@@ -3046,7 +3046,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 			cu->taperobj = newlibadr(fd, cu->id.lib, cu->taperobj);
 			cu->textoncurve = newlibadr(fd, cu->id.lib, cu->textoncurve);
 			cu->vfont = newlibadr_us(fd, cu->id.lib, cu->vfont);
-			cu->vfontb = newlibadr_us(fd, cu->id.lib, cu->vfontb);			
+			cu->vfontb = newlibadr_us(fd, cu->id.lib, cu->vfontb);
 			cu->vfonti = newlibadr_us(fd, cu->id.lib, cu->vfonti);
 			cu->vfontbi = newlibadr_us(fd, cu->id.lib, cu->vfontbi);
 			
@@ -3080,7 +3080,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->mat = newdataadr(fd, cu->mat);
 	test_pointer_array(fd, (void **)&cu->mat);
 	cu->str = newdataadr(fd, cu->str);
-	cu->strinfo= newdataadr(fd, cu->strinfo);	
+	cu->strinfo= newdataadr(fd, cu->strinfo);
 	cu->tb = newdataadr(fd, cu->tb);
 
 	if (cu->vfont == NULL) link_list(fd, &(cu->nurb));
@@ -3091,14 +3091,14 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 		if (cu->tb) {
 			memcpy(tb, cu->tb, cu->totbox*sizeof(TextBox));
 			MEM_freeN(cu->tb);
-			cu->tb = tb;			
+			cu->tb = tb;
 		}
 		else {
 			cu->totbox = 1;
 			cu->actbox = 1;
 			cu->tb = tb;
 			cu->tb[0].w = cu->linewidth;
-		}		
+		}
 		if (cu->wordspace == 0.0f) cu->wordspace = 1.0f;
 	}
 
@@ -3263,7 +3263,7 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_ROTATION
 	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
 	"", // BPHYS_DATA_SIZE:
-	"", // BPHYS_DATA_TIMES:	
+	"", // BPHYS_DATA_TIMES:
 	"BoidData" // case BPHYS_DATA_BOIDS:
 };
 static void direct_link_pointcache(FileData *fd, PointCache *cache)
@@ -3373,7 +3373,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 					/* special case for only one object in the group */
 					index_ok = 1;
 				}
-				else { 
+				else {
 					for (; dw; dw=dw->next) {
 						if (dw->index > 0) {
 							index_ok = 1;
@@ -3610,7 +3610,7 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 
 static void lib_link_customdata_mtface(FileData *fd, Mesh *me, CustomData *fdata, int totface)
 {
-	int i;	
+	int i;
 	for (i = 0; i < fdata->totlayer; i++) {
 		CustomDataLayer *layer = &fdata->layers[i];
 		
@@ -4059,7 +4059,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				if (paf->type == EFF_PARTICLE) {
 					paf->group = newlibadr_us(fd, ob->id.lib, paf->group);
 				}
-			}				
+			}
 			
 			for (sens = ob->sensors.first; sens; sens = sens->next) {
 				for (a = 0; a < sens->totlinks; a++)
@@ -4591,7 +4591,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	direct_link_partdeflect(ob->pd);
 	ob->soft= newdataadr(fd, ob->soft);
 	if (ob->soft) {
-		SoftBody *sb = ob->soft;		
+		SoftBody *sb = ob->soft;
 		
 		sb->bpoint = NULL;	// init pointers so it gets rebuilt nicely
 		sb->bspring = NULL;
@@ -5034,7 +5034,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 					ed->seqbasep = (ListBase *)(poin+offset);
 				else
 					ed->seqbasep = &ed->seqbase;
-			}			
+			}
 			/* stack */
 			link_list(fd, &(ed->metastack));
 			
@@ -5068,7 +5068,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	}
 	if (sce->r.ffcodecdata.properties) {
 		sce->r.ffcodecdata.properties = newdataadr(fd, sce->r.ffcodecdata.properties);
-		if (sce->r.ffcodecdata.properties) { 
+		if (sce->r.ffcodecdata.properties) {
 			IDP_DirectLinkProperty(sce->r.ffcodecdata.properties, 
 				(fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
@@ -8801,7 +8801,7 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 	}
 	
 	expand_doit(fd, mainvar, cu->vfont);
-	expand_doit(fd, mainvar, cu->vfontb);	
+	expand_doit(fd, mainvar, cu->vfontb);
 	expand_doit(fd, mainvar, cu->vfonti);
 	expand_doit(fd, mainvar, cu->vfontbi);
 	expand_doit(fd, mainvar, cu->key);
@@ -9623,7 +9623,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
 		blo_freefiledata(*fd);
 		*fd = NULL;
-	}	
+	}
 }
 
 void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag)

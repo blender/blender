@@ -515,7 +515,7 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 	if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) || (modifier_type != eModifierType_Collision))
 		cmd= (CollisionModifierData *)modifiers_findByType(ob, modifier_type);
 	
-	if (cmd) {	
+	if (cmd) {
 		/* extend array */
 		if (*numobj >= *maxobj) {
 			*maxobj *= 2;
@@ -534,7 +534,7 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 		/* add objects */
 		for (go= group->gobject.first; go; go= go->next)
 			add_collision_object(objs, numobj, maxobj, go->ob, self, level+1, modifier_type);
-	}	
+	}
 }
 
 // return all collision objects in scene
@@ -580,7 +580,7 @@ static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self,
 	if (ob->pd && ob->pd->deflect)
 		cmd =(CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 	
-	if (cmd && cmd->bvhtree) {	
+	if (cmd && cmd->bvhtree) {
 		if (*objs == NULL)
 			*objs = MEM_callocN(sizeof(ListBase), "ColliderCache array");
 
@@ -738,8 +738,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData * clmd, float step, flo
 		collision_move_object ( collmd, step + dt, step );
 	}
 
-	do
-	{
+	do {
 		CollPair **collisions, **collisions_index;
 		
 		ret2 = 0;

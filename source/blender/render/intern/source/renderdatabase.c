@@ -244,7 +244,7 @@ VertRen *RE_findOrAddVert(ObjectRen *obr, int nr)
 		memset(obr->vertnodes+obr->vertnodeslen, 0, TABLEINITSIZE*sizeof(VertTableNode));
 		
 		obr->vertnodeslen+=TABLEINITSIZE; 
-		if (temp) MEM_freeN(temp);	
+		if (temp) MEM_freeN(temp);
 	}
 	
 	v= obr->vertnodes[a].vert;
@@ -487,7 +487,7 @@ VlakRen *RE_findOrAddVlak(ObjectRen *obr, int nr)
 		memset(obr->vlaknodes+obr->vlaknodeslen, 0, TABLEINITSIZE*sizeof(VlakTableNode));
 
 		obr->vlaknodeslen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
-		if (temp) MEM_freeN(temp);	
+		if (temp) MEM_freeN(temp);
 	}
 
 	v= obr->vlaknodes[a].vlak;
@@ -658,7 +658,7 @@ StrandRen *RE_findOrAddStrand(ObjectRen *obr, int nr)
 		memset(obr->strandnodes+obr->strandnodeslen, 0, TABLEINITSIZE*sizeof(StrandTableNode));
 
 		obr->strandnodeslen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
-		if (temp) MEM_freeN(temp);	
+		if (temp) MEM_freeN(temp);
 	}
 
 	v= obr->strandnodes[a].strand;
@@ -892,7 +892,7 @@ HaloRen *RE_findOrAddHalo(ObjectRen *obr, int nr)
 		if (temp) memcpy(obr->bloha, temp, obr->blohalen*sizeof(void*));
 		memset(&(obr->bloha[obr->blohalen]), 0, TABLEINITSIZE*sizeof(void*));
 		obr->blohalen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
-		if (temp) MEM_freeN(temp);	
+		if (temp) MEM_freeN(temp);
 	}
 	
 	h= obr->bloha[a];

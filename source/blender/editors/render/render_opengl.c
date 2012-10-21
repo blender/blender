@@ -189,7 +189,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			else perspective_m4(winmat, viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
 		}
 
-		if ((scene->r.mode & R_OSA) == 0) { 
+		if ((scene->r.mode & R_OSA) == 0) {
 			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE, FALSE);
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, rr->rectf);
 		}

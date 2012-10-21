@@ -236,7 +236,7 @@ static int buttons_context_path_material(ButsContextPath *path, int for_texture)
 			if (ma) {
 				RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 				path->len++;
-			}			
+			}
 			return 1;
 		}
 	}
@@ -889,7 +889,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		else
 			CTX_data_pointer_set(result, NULL, &RNA_ParticleSystem, NULL);
 		return 1;
-	}	
+	}
 	else if (CTX_data_equals(member, "particle_settings")) {
 		/* only available when pinned */
 		PointerRNA *ptr = get_pointer_type(path, &RNA_ParticleSettings);

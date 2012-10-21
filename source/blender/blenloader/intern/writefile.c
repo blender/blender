@@ -511,7 +511,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 		writestruct(wd, DATA, "FCurve", 1, fcu);
 		
 		/* curve data */
-		if (fcu->bezt)  	
+		if (fcu->bezt)
 			writestruct(wd, DATA, "BezTriple", fcu->totvert, fcu->bezt);
 		if (fcu->fpt)
 			writestruct(wd, DATA, "FPoint", fcu->totvert, fcu->fpt);
@@ -888,7 +888,7 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_ROTATION
 	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
 	"", // BPHYS_DATA_SIZE:
-	"", // BPHYS_DATA_TIMES:	
+	"", // BPHYS_DATA_TIMES:
 	"BoidData" // case BPHYS_DATA_BOIDS:
 };
 static const char *ptcache_extra_struct[] = {
@@ -1329,7 +1329,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
 			writestruct(wd, DATA, "EffectorWeights", 1, clmd->sim_parms->effector_weights);
 			write_pointcaches(wd, &clmd->ptcaches);
-		} 
+		}
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
@@ -1359,7 +1359,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
 			else if (smd->type & MOD_SMOKE_TYPE_COLL)
 				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
-		} 
+		}
 		else if (md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
@@ -1387,7 +1387,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->vel_ramp);
 			}
-		} 
+		}
 		else if (md->type==eModifierType_Collision) {
 			
 #if 0
@@ -1607,7 +1607,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			if (cu->vfont) {
 				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
 				writestruct(wd, DATA, "CharInfo", cu->len+1, cu->strinfo);
-				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);				
+				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);
 			}
 			else {
 				/* is also the order of reading */
@@ -2025,7 +2025,7 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 				write_nodetree(wd, ma->nodetree);
 			}
 
-			write_previews(wd, ma->preview);			
+			write_previews(wd, ma->preview);
 		}
 		ma= ma->id.next;
 	}
@@ -2081,7 +2081,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			}
 			
 			if (la->curfalloff)
-				write_curvemapping(wd, la->curfalloff);	
+				write_curvemapping(wd, la->curfalloff);
 			
 			/* nodetree is integral part of lamps, no libdata */
 			if (la->nodetree) {
@@ -2304,7 +2304,7 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 					/* write strokes */
 					for (gps= gpf->strokes.first; gps; gps= gps->next) {
 						writestruct(wd, DATA, "bGPDstroke", 1, gps);
-						writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+						writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);
 					}
 				}
 			}
@@ -2999,7 +2999,7 @@ static int do_history(const char *name, ReportList *reports)
 		if (BLI_rename(tempname1, tempname2)) {
 			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 			return 1;
-		}	
+		}
 		hisnr--;
 	}
 
@@ -3074,7 +3074,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	/* file save to temporary file was successful */
 	/* now do reverse file history (move .blend1 -> .blend2, .blend -> .blend1) */
-	if (write_flags & G_FILE_HISTORY) { 
+	if (write_flags & G_FILE_HISTORY) {
 		int err_hist = do_history(filepath, reports);
 		if (err_hist) {
 			BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");

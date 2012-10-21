@@ -347,13 +347,13 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 				if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL)) {
 					/* call self with slightly different values */
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
-				}				
+				}
 			}
 			break;
 			case CONSTRAINT_SPACE_PARLOCAL: /* -------------- FROM LOCAL WITH PARENT ---------- */
 			{
 				/* local + parent to pose */
-				if (pchan->bone) {					
+				if (pchan->bone) {
 					copy_m4_m4(diff_mat, pchan->bone->arm_mat);
 					mult_m4_m4m4(mat, mat, diff_mat);
 				}
@@ -604,15 +604,15 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 				float tempmat[4][4], loc[3];
 				
 				/* interpolate along length of bone */
-				interp_v3_v3v3(loc, pchan->pose_head, pchan->pose_tail, headtail);	
+				interp_v3_v3v3(loc, pchan->pose_head, pchan->pose_tail, headtail);
 				
 				/* use interpolated distance for subtarget */
-				copy_m4_m4(tempmat, pchan->pose_mat);	
+				copy_m4_m4(tempmat, pchan->pose_mat);
 				copy_v3_v3(tempmat[3], loc);
 				
 				mult_m4_m4m4(mat, ob->obmat, tempmat);
 			}
-		} 
+		}
 		else
 			copy_m4_m4(mat, ob->obmat);
 			
@@ -976,11 +976,11 @@ static void vectomat(const float vec[3], const float target_up[3], short axis, s
 	else negate_v3(n);
 
 	/* n specifies the transformation of the track axis */
-	if (flags & TARGET_Z_UP) { 
+	if (flags & TARGET_Z_UP) {
 		/* target Z axis is the global up axis */
 		copy_v3_v3(u, target_up);
 	}
-	else { 
+	else {
 		/* world Z axis is the global up axis */
 		u[0] = 0;
 		u[1] = 0;
@@ -1034,7 +1034,7 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		/* Get size property, since ob->size is only the object's own relative size, not its global one */
 		mat4_to_size(size, cob->matrix);
 		
-		/* Clear the object's rotation */ 	
+		/* Clear the object's rotation */
 		cob->matrix[0][0] = size[0];
 		cob->matrix[0][1] = 0;
 		cob->matrix[0][2] = 0;
@@ -1468,7 +1468,7 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 	
 	if (data->flag & LIMIT_XMIN) {
 		if (size[0] < data->xmin) 
-			size[0] = data->xmin;	
+			size[0] = data->xmin;
 	}
 	if (data->flag & LIMIT_XMAX) {
 		if (size[0] > data->xmax) 
@@ -1476,7 +1476,7 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 	}
 	if (data->flag & LIMIT_YMIN) {
 		if (size[1] < data->ymin) 
-			size[1] = data->ymin;	
+			size[1] = data->ymin;
 	}
 	if (data->flag & LIMIT_YMAX) {
 		if (size[1] > data->ymax) 
@@ -1484,7 +1484,7 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 	}
 	if (data->flag & LIMIT_ZMIN) {
 		if (size[2] < data->zmin) 
-			size[2] = data->zmin;	
+			size[2] = data->zmin;
 	}
 	if (data->flag & LIMIT_ZMAX) {
 		if (size[2] > data->zmax) 
@@ -2002,7 +2002,7 @@ static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTa
 			
 			/* this check is to make sure curve objects get updated on file load correctly.*/
 			if (cu->path == NULL || cu->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
-				BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);				
+				BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 		}
 		
 		/* firstly calculate the matrix the normal way, then let the py-function override
@@ -2937,7 +2937,7 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 			if (data->flag & MINMAX_STICKY) {
 				if (data->flag & MINMAX_STUCK) {
 					copy_v3_v3(obmat[3], data->cache);
-				} 
+				}
 				else {
 					copy_v3_v3(data->cache, obmat[3]);
 					data->flag |= MINMAX_STUCK;
@@ -2947,11 +2947,11 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 				/* get out of localspace */
 				mult_m4_m4m4(tmat, ct->matrix, obmat);
 				copy_m4_m4(cob->matrix, tmat);
-			} 
-			else {			
+			}
+			else {
 				copy_v3_v3(cob->matrix[3], obmat[3]);
 			}
-		} 
+		}
 		else {
 			data->flag &= ~MINMAX_STUCK;
 		}
@@ -3291,7 +3291,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		/* extract components of owner's matrix */
 		copy_v3_v3(loc, cob->matrix[3]);
 		mat4_to_eulO(eul, cob->rotOrder, cob->matrix);
-		mat4_to_size(size, cob->matrix);	
+		mat4_to_size(size, cob->matrix);
 		
 		/* determine where in range current transforms lie */
 		if (data->expo) {
@@ -4663,7 +4663,7 @@ short proxylocked_constraints_owner(Object *ob, bPoseChannel *pchan)
 		else {
 			/* FIXME: constraints on object-level are not handled well yet */
 			return 1;
-		}	
+		}
 	}
 	
 	return 0;
@@ -4703,7 +4703,7 @@ void get_constraint_target_matrix(struct Scene *scene, bConstraint *con, int n, 
 					unit_m4(cob->matrix);
 					unit_m4(cob->startmat);
 				}
-			}	
+			}
 			break;
 			case CONSTRAINT_OBTYPE_BONE: /* this may occur in some cases */
 			{

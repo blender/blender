@@ -271,7 +271,7 @@ ScrEdge *screen_find_active_scredge(bScreen *sc, int mx, int my)
 			
 			if (abs(my - se->v1->vec.y) <= 2 && mx >= min && mx <= max)
 				return se;
-		} 
+		}
 		else {
 			short min, max;
 			min = MIN2(se->v1->vec.y, se->v2->vec.y);
@@ -875,7 +875,7 @@ static void scrarea_draw_shape_light(ScrArea *sa, char UNUSED(dir))
 	glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	/* value 181 was hardly computed: 181~105 */
-	glColor4ub(255, 255, 255, 50);		
+	glColor4ub(255, 255, 255, 50);
 	/* draw_join_shape(sa, dir); */
 	glRecti(sa->v1->vec.x, sa->v1->vec.y, sa->v3->vec.x, sa->v3->vec.y);
 	glDisable(GL_BLEND);
@@ -1066,7 +1066,7 @@ static void screen_refresh_headersizes(void)
 	for (st = lb->first; st; st = st->next) {
 		ARegionType *art = BKE_regiontype_from_id(st, RGN_TYPE_HEADER);
 		if (art) art->prefsizey = ED_area_headersize();
-	}		
+	}
 }
 
 /* make this screen usable */
@@ -1320,7 +1320,7 @@ int ED_screen_area_active(const bContext *C)
 		for (ar = sa->regionbase.first; ar; ar = ar->next)
 			if (ar->swinid == sc->subwinactive)
 				return 1;
-	}	
+	}
 	return 0;
 }
 
@@ -1733,7 +1733,7 @@ void ED_refresh_viewport_fps(bContext *C)
 		fpsi->redrawtime = fpsi->lredrawtime;
 		fpsi->lredrawtime = animtimer->ltime;
 	}
-	else {	
+	else {
 		/* playback stopped or shouldn't be running */
 		if (scene->fps_info)
 			MEM_freeN(scene->fps_info);

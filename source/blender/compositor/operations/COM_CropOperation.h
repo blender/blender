@@ -37,7 +37,7 @@ protected:
 	
 	void updateArea();
 public:
-	CropBaseOperation();	
+	CropBaseOperation();
 	void initExecution();
 	void deinitExecution();
 	void setCropSettings(NodeTwoXYs *settings) { this->m_settings = settings; }

@@ -545,7 +545,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 		bufferz= 0x7FFFFFFF;
 		if (spart->rectmask) maskz= 0x7FFFFFFF;
 		
-		if (*rd) {	
+		if (*rd) {
 			for (ps= (PixStr *)(*rd); ps; ps= ps->next) {
 				if (mask & ps->mask) {
 					bufferz= ps->z;

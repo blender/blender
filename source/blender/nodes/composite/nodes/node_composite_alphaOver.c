@@ -48,7 +48,7 @@ static bNodeSocketTemplate cmp_node_alphaover_out[]= {
 static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, float *over, float *fac)
 {
 	
-	/* Zero alpha values should still permit an add of RGB data */	
+	/* Zero alpha values should still permit an add of RGB data */
 	if (over[3]<0.0f) {
 		copy_v4_v4(out, src);
 	}
@@ -62,7 +62,7 @@ static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, flo
 		out[1]= (mul*src[1]) + fac[0]*over[1];
 		out[2]= (mul*src[2]) + fac[0]*over[2];
 		out[3]= (mul*src[3]) + fac[0]*over[3];
-	}	
+	}
 }
 
 /* result will be still premul, but the over part is premulled */

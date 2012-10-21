@@ -353,7 +353,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		else {
 			/* deselect_markers(0, 0); */ /* XXX, in 2.4x, seq selection used to deselect all, need to re-thnik this for 2.5 */
-			marker->flag |= SELECT;				
+			marker->flag |= SELECT;
 		}
 		
 	}

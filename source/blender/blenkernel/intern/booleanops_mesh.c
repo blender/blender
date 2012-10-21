@@ -180,7 +180,7 @@ CSG_PerformOp(
 
 	if ((mesh1 == NULL) || (mesh2 == NULL) || (output == NULL)) {
 		return 0;
-	}	
+	}
 	if ((int_op_type < 1) || (int_op_type > 3)) return 0;
 
 	switch (int_op_type) {
@@ -203,8 +203,8 @@ CSG_PerformOp(
 			mesh1->m_face_iterator,
 			mesh1->m_vertex_iterator,
 			mesh2->m_face_iterator,
-			mesh2->m_vertex_iterator,		
-			InterpFaceVertexData	
+			mesh2->m_vertex_iterator,
+			InterpFaceVertexData
 		);
 	}
 	else {
@@ -215,8 +215,8 @@ CSG_PerformOp(
 			mesh1->m_face_iterator,
 			mesh1->m_vertex_iterator,
 			mesh2->m_face_iterator,
-			mesh2->m_vertex_iterator,		
-			InterpNoUserData	
+			mesh2->m_vertex_iterator,
+			InterpNoUserData
 		);
 	}
 

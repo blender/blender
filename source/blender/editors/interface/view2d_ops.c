@@ -642,7 +642,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 				
 				v2d->cur.ymin += ofs + dy;
 				v2d->cur.ymax += ofs - dy;
-			} 
+			}
 			else {
 				v2d->cur.ymin += dy;
 				v2d->cur.ymax -= dy;
@@ -956,7 +956,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		view_zoomdrag_apply(C, op);
 		view_zoomdrag_exit(C, op);
 		return OPERATOR_FINISHED;
-	}	
+	}
 	
 	/* set initial settings */
 	vzd->lastx = event->x;
@@ -1065,7 +1065,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* apply zooming */
 		view_zoomdrag_apply(C, op);
-	} 
+	}
 	else if (event->type == vzd->invoke_event || event->type == ESCKEY) {
 		if (event->val == KM_RELEASE) {
 			
@@ -1469,7 +1469,7 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	else if (in_min)
 		return SCROLLHANDLE_MIN;
 	else if (out_min)
-		return SCROLLHANDLE_MIN_OUTSIDE;			  
+		return SCROLLHANDLE_MIN_OUTSIDE;
 	else if (out_max)
 		return SCROLLHANDLE_MAX_OUTSIDE;
 	
@@ -1751,7 +1751,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				
 				/* can't catch this event for ourselves, so let it go to someone else? */
 				return OPERATOR_PASS_THROUGH;
-			}			
+			}
 		}
 		
 		/* zone is also inappropriate if scroller is not visible... */

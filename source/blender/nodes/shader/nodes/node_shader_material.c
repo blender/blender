@@ -139,7 +139,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 			if (hasinput[MAT_IN_ALPHA])
 				nodestack_get_vec(&shi->alpha, SOCK_FLOAT, in[MAT_IN_ALPHA]);
 			if (hasinput[MAT_IN_TRANSLUCENCY])
-				nodestack_get_vec(&shi->translucency, SOCK_FLOAT, in[MAT_IN_TRANSLUCENCY]);			
+				nodestack_get_vec(&shi->translucency, SOCK_FLOAT, in[MAT_IN_TRANSLUCENCY]);
 		}
 		
 		shi->nodes= 1; /* temp hack to prevent trashadow recursion */

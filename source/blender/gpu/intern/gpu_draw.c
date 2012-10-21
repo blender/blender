@@ -1216,7 +1216,7 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 		if (gamma) {
 			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
 			linearrgb_to_srgb_v3_v3(smat->spec, smat->spec);
-		}	
+		}
 	}
 }
 
@@ -1627,7 +1627,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		glLightfv(GL_LIGHT0+count, GL_SPECULAR, energy);
 		glEnable(GL_LIGHT0+count);
 		
-		glPopMatrix();					
+		glPopMatrix();
 		
 		count++;
 		if (count==8)

@@ -523,7 +523,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		GPU_print_error("sdsd");
 	}
 	
-	/* draw the Z axis line */	
+	/* draw the Z axis line */
 	/* check for the 'show Z axis' preference */
 	if (v3d->gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
 		int axis;
@@ -1115,7 +1115,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	}
 
 	/* edge */
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);	
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	setlinestyle(0);
 
@@ -1429,7 +1429,7 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	             (ymaxc - yminc + 1),
 	             GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 
-	glReadBuffer(GL_BACK);	
+	glReadBuffer(GL_BACK);
 
 	if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 
@@ -1471,7 +1471,7 @@ unsigned int view3d_sample_backbuf_rect(ViewContext *vc, const int mval[2], int 
 	int a, b, rc, nr, amount, dirvec[4][2];
 	int distance = 0;
 	unsigned int index = 0;
-	short indexok = 0;	
+	short indexok = 0;
 
 	amount = (size - 1) / 2;
 
@@ -2024,7 +2024,7 @@ static void draw_dupli_objects(Scene *scene, ARegion *ar, View3D *v3d, Base *bas
 
 void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 {
-	int x, y, w, h;	
+	int x, y, w, h;
 	rcti r;
 	/* clamp rect by area */
 
@@ -2122,7 +2122,7 @@ float view3d_depth_near(ViewDepths *d)
 	int i = (int)d->w * (int)d->h; /* cast to avoid short overflow */
 
 	/* far is both the starting 'far' value
-	 * and the closest value found. */	
+	 * and the closest value found. */
 	while (i--) {
 		depth = *depths++;
 		if ((depth < far) && (depth > near)) {
@@ -2815,7 +2815,7 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 	if (fps + 0.5f < (float)(FPS)) {
 		UI_ThemeColor(TH_REDALERT);
 		BLI_snprintf(printable, sizeof(printable), "fps: %.2f", fps);
-	} 
+	}
 	else {
 		UI_ThemeColor(TH_TEXT_HI);
 		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps + 0.5f));

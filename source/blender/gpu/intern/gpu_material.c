@@ -1881,7 +1881,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 		GPUBuiltin gputype;
 		GPUDynamicType dynamictype;
 		GPUDataType datatype;
-	} builtins[] = { 
+	} builtins[] = {
 		{ GPU_VIEW_MATRIX, GPU_DYNAMIC_OBJECT_VIEWMAT, GPU_DATA_16F },
 		{ GPU_INVERSE_VIEW_MATRIX, GPU_DYNAMIC_OBJECT_VIEWIMAT, GPU_DATA_16F },
 		{ GPU_OBJECT_MATRIX, GPU_DYNAMIC_OBJECT_MAT, GPU_DATA_16F },

@@ -108,7 +108,7 @@ short ANIM_get_keyframing_flags(Scene *scene, short incl_mode)
 	}
 		
 	/* only if including settings from the autokeying mode... */
-	if (incl_mode) { 
+	if (incl_mode) {
 		/* keyframing mode - only replace existing keyframes */
 		if (IS_AUTOKEY_MODE(scene, EDITKEYS)) 
 			flag |= INSERTKEY_REPLACE;
@@ -131,7 +131,7 @@ bAction *verify_adt_action(ID *id, short add)
 	adt = BKE_animdata_from_id(id);
 	if ((adt == NULL) && (add))
 		adt = BKE_id_add_animdata(id);
-	if (adt == NULL) { 
+	if (adt == NULL) {
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
 		printf("ERROR: Couldn't add AnimData (ID = %s)\n", (id) ? (id->name) : "<None>");
 		return NULL;
@@ -240,7 +240,7 @@ int insert_bezt_fcurve(FCurve *fcu, BezTriple *bezt, short flag)
 		i = binarysearch_bezt_index(fcu->bezt, bezt->vec[1][0], fcu->totvert, &replace);
 		
 		/* replace an existing keyframe? */
-		if (replace) {			
+		if (replace) {
 			/* sanity check: 'i' may in rare cases exceed arraylen */
 			if ((i >= 0) && (i < fcu->totvert)) {
 				/* just change the values when replacing, so as to not overwrite handles */
@@ -412,12 +412,12 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
 		float prevPosi = 0.0f, prevVal = 0.0f;
 		float beztPosi = 0.0f, beztVal = 0.0f;
 			
-		/* get current time+value */	
+		/* get current time+value */
 		beztPosi = bezt->vec[1][0];
 		beztVal = bezt->vec[1][1];
 			
 		if (prev) {
-			/* there is a keyframe before the one currently being examined */		
+			/* there is a keyframe before the one currently being examined */
 			
 			/* get previous time+value */
 			prevPosi = prev->vec[1][0];
@@ -940,7 +940,7 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	}
 	
 	/* key entire array convenience method */
-	if (array_index == -1) { 
+	if (array_index == -1) {
 		array_index = 0;
 		array_index_max = RNA_property_array_length(&ptr, prop);
 		
@@ -1034,7 +1034,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	}
 	
 	/* key entire array convenience method */
-	if (array_index == -1) { 
+	if (array_index == -1) {
 		array_index = 0;
 		array_index_max = RNA_property_array_length(&ptr, prop);
 		
@@ -1064,7 +1064,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 		
 		/* try to find index of beztriple to get rid of */
 		i = binarysearch_bezt_index(fcu->bezt, cfra, fcu->totvert, &found);
-		if (found) {			
+		if (found) {
 			/* delete the key at the index (will sanity check + do recalc afterwards) */
 			delete_fcurve_key(fcu, i, 1);
 			
@@ -1863,7 +1863,7 @@ short fcurve_frame_has_keyframe(FCurve *fcu, float frame, short filter)
 		/* binarysearch_bezt_index will set replace to be 0 or 1
 		 * - obviously, 1 represents a match
 		 */
-		if (replace) {			
+		if (replace) {
 			/* sanity check: 'i' may in rare cases exceed arraylen */
 			if ((i >= 0) && (i < fcu->totvert))
 				return 1;

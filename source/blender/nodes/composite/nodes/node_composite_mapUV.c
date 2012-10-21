@@ -135,7 +135,7 @@ static void do_mapuv(CompBuf *stackbuf, CompBuf *cbuf, CompBuf *uvbuf, float thr
 		}
 	}
 
-	IMB_freeImBuf(ibuf);	
+	IMB_freeImBuf(ibuf);
 }
 
 

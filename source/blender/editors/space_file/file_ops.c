@@ -554,7 +554,7 @@ int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 {
 	View2D *v2d = &ar->v2d;
 	FileSelectParams *params;
-	int numfiles, origfile;	
+	int numfiles, origfile;
 
 	if (sfile == NULL || sfile->files == NULL) return 0;
 
@@ -849,7 +849,7 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 			file_change_dir(C, 0);
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 		}
-	}		
+	}
 	
 	return OPERATOR_FINISHED;
 
@@ -942,7 +942,7 @@ int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
 		file_change_dir(C, 1);
-	}		
+	}
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1116,7 +1116,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	if (!BLI_exists(path)) {
 		BKE_report(op->reports, RPT_ERROR, "Couldn't create new folder");
 		return OPERATOR_CANCELLED;
-	} 
+	}
 
 	/* now remember file to jump into editing */
 	BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
@@ -1427,11 +1427,11 @@ static int file_rename_poll(bContext *C)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile && sfile->params) {
-		if (sfile->params->active_file < 0) { 
+		if (sfile->params->active_file < 0) {
 			poll = 0;
 		}
 		else {
-			char dir[FILE_MAX], group[FILE_MAX];	
+			char dir[FILE_MAX], group[FILE_MAX];
 			if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
 		}
 	}
@@ -1460,11 +1460,11 @@ static int file_delete_poll(bContext *C)
 	struct direntry *file;
 
 	if (sfile && sfile->params) {
-		if (sfile->params->active_file < 0) { 
+		if (sfile->params->active_file < 0) {
 			poll = 0;
 		}
 		else {
-			char dir[FILE_MAX], group[FILE_MAX];	
+			char dir[FILE_MAX], group[FILE_MAX];
 			if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
 			file = filelist_file(sfile->files, sfile->params->active_file);
 			if (file && S_ISDIR(file->type)) poll = 0;
@@ -1485,7 +1485,7 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	file = filelist_file(sfile->files, sfile->params->active_file);
 	BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relname);
-	BLI_delete(str, 0, 0);	
+	BLI_delete(str, 0, 0);
 	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	

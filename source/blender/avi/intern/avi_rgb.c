@@ -86,7 +86,7 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buf
 				*(to++) = ((*pxl >> 10) & 0x1f) * 8;
 				*(to++) = ((*pxl >> 5) & 0x1f) * 8;
 				*(to++) = (*pxl & 0x1f) * 8;
-				pxl++;	
+				pxl++;
 			}
 		}
 

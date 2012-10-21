@@ -501,16 +501,16 @@ static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, cha
 	if (where == 'r') {
 		centx = (float)rect->xmax - 0.5f * minsize;
 		sizex = -sizex;
-	}	
+	}
 	else if (where == 't') {
 		centy = (float)rect->ymax - 0.5f * minsize;
 		sizey = -sizey;
 		i2 = 0; i1 = 1;
-	}	
+	}
 	else if (where == 'b') {
 		sizex = -sizex;
 		i2 = 0; i1 = 1;
-	}	
+	}
 	
 	for (a = 0; a < 3; a++) {
 		tria->vec[a][0] = sizex * num_tria_vert[a][i1] + centx;
@@ -536,16 +536,16 @@ static void widget_scroll_circle(uiWidgetTrias *tria, rcti *rect, float triasize
 	if (where == 'r') {
 		centx = (float)rect->xmax - 0.5f * minsize;
 		sizex = -sizex;
-	}	
+	}
 	else if (where == 't') {
 		centy = (float)rect->ymax - 0.5f * minsize;
 		sizey = -sizey;
 		i2 = 0; i1 = 1;
-	}	
+	}
 	else if (where == 'b') {
 		sizex = -sizex;
 		i2 = 0; i1 = 1;
-	}	
+	}
 	
 	for (a = 0; a < 16; a++) {
 		tria->vec[a][0] = sizex * scroll_circle_vert[a][i1] + centx;
@@ -878,7 +878,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 	aspect = but->block->aspect;
 	if (aspect != but->aspect) {
 		/* prevent scaling up icon in pupmenu */
-		if (aspect < 1.0f) {			
+		if (aspect < 1.0f) {
 			height = UI_DPI_ICON_SIZE;
 			aspect = 1.0f;
 			
@@ -1852,7 +1852,7 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	else if (direction == UI_DOWN) {
 		roundboxalign = (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
 		rect->ymin -= 4.0;
-	} 
+	}
 	else if (direction == UI_TOP) {
 		roundboxalign = UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
 		rect->ymax += 4.0;
@@ -2364,7 +2364,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		wtb.emboss = 0; /* only emboss once */
 		
 		/* exception for progress bar */
-		if (state & UI_SCROLL_NO_OUTLINE)	
+		if (state & UI_SCROLL_NO_OUTLINE)
 			SWAP(short, outline, wtb.outline);
 		
 		round_box_edges(&wtb, UI_CNR_ALL, slider, rad);
@@ -2388,7 +2388,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		
 		if (state & UI_SCROLL_NO_OUTLINE)
 			SWAP(short, outline, wtb.outline);
-	}	
+	}
 }
 
 static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
@@ -2627,7 +2627,7 @@ static void widget_icon_has_anim(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti 
 		/* rounded */
 		round_box_edges(&wtb, UI_CNR_ALL, rect, 10.0f);
 		widgetbase_draw(&wtb, wcol);
-	}	
+	}
 }
 
 
@@ -3346,7 +3346,7 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 			glColor3ubv((unsigned char *)wt->wcol.text);
 			UI_DrawTriIcon(BLI_rcti_cent_x(rect), rect->ymin + 10, 'v');
 		}
-	}	
+	}
 }
 
 uiWidgetColors *ui_tooltip_get_theme(void)

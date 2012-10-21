@@ -102,7 +102,7 @@ static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
 		col[1] = ((float)rect[1])*(1.0f/255.0f);
 		col[2] = ((float)rect[2])*(1.0f/255.0f);
 		col[3] = ((float)rect[3])*(1.0f/255.0f);
-	}	
+	}
 }
 
 int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResult *texres)
@@ -209,7 +209,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	if (tex->imaflag & TEX_USEALPHA) {
 		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
 			texres->talpha = TRUE;
-		} 
+		}
 	}
 
 	/* interpolate */
@@ -1011,7 +1011,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 				if (ibuf->userflags & IB_MIPMAP_INVALID) {
 					IMB_remakemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
 					ibuf->userflags &= ~IB_MIPMAP_INVALID;
-				}				
+				}
 				BLI_unlock_thread(LOCK_IMAGE);
 			}
 			if (ibuf->mipmap[0] == NULL) {

@@ -239,7 +239,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		if (faces == 0)
 			return NULL;
 
-		//Create Ray cast accelaration structure		
+		//Create Ray cast accelaration structure
 		raytree = RE_rayobject_create( re,  re->r.raytrace_structure, faces );
 		if (  (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 			vlakprimitive = obr->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "ObjectRen primitives");
@@ -549,7 +549,7 @@ void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		
 		/* raytrace likes to separate the spec color */
 		sub_v3_v3v3(shr->diff, shr->combined, shr->spec);
-	}	
+	}
 
 }
 
@@ -632,7 +632,7 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	   
 	if (shi->mat->tx_limit <= 0.0f) {
 		d= 1.0f;
-	} 
+	}
 	else {
 		float p;
 
@@ -733,7 +733,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 		if (depth>0) {
 			float fr, fg, fb, f, f1;
 
-			if ((shi.mat->mode_l & MA_TRANSP) && shr.alpha < 1.0f && (shi.mat->mode_l & (MA_ZTRANSP | MA_RAYTRANSP))) { 
+			if ((shi.mat->mode_l & MA_TRANSP) && shr.alpha < 1.0f && (shi.mat->mode_l & (MA_ZTRANSP | MA_RAYTRANSP))) {
 				float nf, f, refract[3], tracol[4];
 				
 				tracol[0]= shi.r;
@@ -938,7 +938,7 @@ void init_jitter_plane(LampRen *lar)
 				DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
 			}
 		}
-	}	
+	}
 	/* create the dithered tables (could just check lamp type!) */
 	jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.0f);
 	jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5f, 0.5f);
@@ -1151,7 +1151,7 @@ static void QMC_sampleHemiCosine(float vec[3], QMCSampler *qsa, int thread, int 
 	
 	QMC_getSample(s, qsa, thread, num);
 	
-	phi = s[0]*2.f*M_PI;	
+	phi = s[0]*2.f*M_PI;
 	sqr = s[1]*sqrt(2-s[1]*s[1]);
 
 	vec[0] = cos(phi)*sqr;
@@ -1295,7 +1295,7 @@ static void trace_refract(float col[4], ShadeInput *shi, ShadeResult *shr)
 		max_samples = 1;
 	
 
-	while (samples < max_samples) {		
+	while (samples < max_samples) {
 		if (refraction(v_refract, shi->vn, shi->view, shi->ang)) {
 			traflag |= RAY_INSIDE;
 		}
@@ -1822,7 +1822,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, in
 		}
 		
 		return sphere;
-	} 
+	}
 	else {
 		float *sphere;
 		float *vec1;
@@ -1847,7 +1847,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys, in
 			for (a=0; a<tot; a++, vec+=3, vec1+=3) {
 				vec1[0]= cost*cosfi*vec[0] - sinfi*vec[1] + sint*cosfi*vec[2];
 				vec1[1]= cost*sinfi*vec[0] + cosfi*vec[1] + sint*sinfi*vec[2];
-				vec1[2]= -sint*vec[0] + cost*vec[2];			
+				vec1[2]= -sint*vec[0] + cost*vec[2];
 			}
 		}
 		return sphere;
@@ -1981,7 +1981,7 @@ static void ray_ao_qmc(ShadeInput *shi, float ao[3], float env[3])
 		samples++;
 		
 		if (qsa && qsa->type == SAMP_TYPE_HALTON) {
-			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */		
+			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */
 			if (adapt_thresh > 0.0f && (samples > max_samples/2) ) {
 				
 				if (adaptive_sample_contrast_val(samples, prev, fac, adapt_thresh)) {

@@ -5564,7 +5564,7 @@ PyTypeObject pyrna_prop_collection_Type = {
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,                       /* tp_compare */ /* DEPRECATED in python 3.0! */
-	NULL, /* subclassed */		/* tp_repr */
+	NULL, /* subclassed */      /* tp_repr */
 
 	/* Method suites for standard classes */
 
@@ -5598,7 +5598,7 @@ PyTypeObject pyrna_prop_collection_Type = {
 
 	/***  Assigned meaning in release 2.1 ***/
 	/*** rich comparisons ***/
-	NULL, /* subclassed */		/* richcmpfunc tp_richcompare; */
+	NULL, /* subclassed */      /* richcmpfunc tp_richcompare; */
 
 	/***  weak reference enabler ***/
 #ifdef USE_WEAKREFS
@@ -5683,7 +5683,7 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
 
 	/***  Assigned meaning in release 2.1 ***/
 	/*** rich comparisons ***/
-	NULL, /* subclassed */		/* richcmpfunc tp_richcompare; */
+	NULL, /* subclassed */      /* richcmpfunc tp_richcompare; */
 
 	/***  weak reference enabler ***/
 #ifdef USE_WEAKREFS
@@ -5830,7 +5830,7 @@ PyTypeObject pyrna_prop_collection_iter_Type = {
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	NULL,                       /* tp_compare */ /* DEPRECATED in python 3.0! */
-	NULL, /* subclassed */		/* tp_repr */
+	NULL, /* subclassed */      /* tp_repr */
 
 	/* Method suites for standard classes */
 
@@ -5868,7 +5868,7 @@ PyTypeObject pyrna_prop_collection_iter_Type = {
 
 	/***  Assigned meaning in release 2.1 ***/
 	/*** rich comparisons ***/
-	NULL, /* subclassed */		/* richcmpfunc tp_richcompare; */
+	NULL, /* subclassed */      /* richcmpfunc tp_richcompare; */
 
 	/***  weak reference enabler ***/
 #ifdef USE_WEAKREFS

@@ -1630,7 +1630,7 @@ void multires_free(Multires *mr)
 		}
 
 		while (lvl) {
-			multires_free_level(lvl);			
+			multires_free_level(lvl);
 			lvl = lvl->next;
 		}
 

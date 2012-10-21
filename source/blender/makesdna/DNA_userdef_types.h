@@ -184,7 +184,7 @@ typedef struct ThemeSpace {
 	/* button/tool regions */
 	char button[4];
 	char button_title[4];
-	char button_text[4];	
+	char button_text[4];
 	char button_text_hi[4];
 	
 	/* listview regions */
@@ -195,8 +195,8 @@ typedef struct ThemeSpace {
 	
 	/* float panel */
 	char panel[4];
-	char panel_title[4];	
-	char panel_text[4];	
+	char panel_title[4];
+	char panel_text[4];
 	char panel_text_hi[4];
 	
 	char shade1[4];
@@ -302,7 +302,7 @@ typedef struct bTheme {
 	ThemeUI tui;
 	
 	/* Individual Spacetypes */
-	ThemeSpace tbuts;	
+	ThemeSpace tbuts;
 	ThemeSpace tv3d;
 	ThemeSpace tfile;
 	ThemeSpace tipo;
@@ -316,7 +316,7 @@ typedef struct bTheme {
 	ThemeSpace ttime;
 	ThemeSpace tnode;
 	ThemeSpace tlogic;
-	ThemeSpace tuserpref;	
+	ThemeSpace tuserpref;
 	ThemeSpace tconsole;
 	ThemeSpace tclip;
 	

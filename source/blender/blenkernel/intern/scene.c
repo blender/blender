@@ -325,7 +325,7 @@ void BKE_scene_free(Scene *sce)
 		BKE_paint_free(&sce->toolsettings->imapaint.paint);
 
 		MEM_freeN(sce->toolsettings);
-		sce->toolsettings = NULL;	
+		sce->toolsettings = NULL;
 	}
 	
 	if (sce->theDag) {
@@ -436,7 +436,7 @@ Scene *BKE_scene_add(const char *name)
 	sce->toolsettings->cornertype = 1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;
-	sce->toolsettings->turn = 1; 				
+	sce->toolsettings->turn = 1;
 	sce->toolsettings->extr_offs = 1; 
 	sce->toolsettings->doublimit = 0.001;
 	sce->toolsettings->segments = 32;
@@ -958,7 +958,7 @@ float BKE_scene_frame_get_from_ctime(Scene *scene, const float frame)
 {
 	float ctime = frame;
 	ctime += scene->r.subframe;
-	ctime *= scene->r.framelen;	
+	ctime *= scene->r.framelen;
 	
 	return ctime;
 }

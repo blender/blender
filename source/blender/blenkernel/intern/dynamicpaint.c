@@ -569,7 +569,7 @@ static void scene_setSubframe(Scene *scene, float subframe)
 static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene)
 {
 	Base *base = NULL;
-	GroupObject *go = NULL;	
+	GroupObject *go = NULL;
 	Object *brushObj = NULL;
 	ModifierData *md = NULL;
 
@@ -4811,7 +4811,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 	 */
 	{
 		Base *base = NULL;
-		GroupObject *go = NULL;	
+		GroupObject *go = NULL;
 		Object *brushObj = NULL;
 		ModifierData *md = NULL;
 

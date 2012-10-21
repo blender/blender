@@ -59,7 +59,7 @@ static RayObjectAPI instance_api =
 	RE_rayobject_instance_free,
 	RE_rayobject_instance_bb,
 	RE_rayobject_instance_cost,
-	RE_rayobject_instance_hint_bb	
+	RE_rayobject_instance_hint_bb
 };
 
 typedef struct InstanceRayObject {

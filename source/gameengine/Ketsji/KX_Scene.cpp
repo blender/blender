@@ -1027,7 +1027,7 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 
 	// if the object is the dupligroup proxy, you have to cleanup all m_pDupliGroupObject's in all
 	// instances refering to this group
-	if(newobj->GetInstanceObjects()) {
+	if (newobj->GetInstanceObjects()) {
 		for (int i = 0; i < newobj->GetInstanceObjects()->GetCount(); i++) {
 			KX_GameObject* instance = (KX_GameObject*)newobj->GetInstanceObjects()->GetValue(i);
 			instance->RemoveDupliGroupObject();

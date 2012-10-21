@@ -494,7 +494,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		sx += (int)(v2d->tot.xmin + 2.0f);
 		sy = (int)(v2d->tot.ymax - sy);
 
-		file = filelist_file(files, i);	
+		file = filelist_file(files, i);
 		
 		UI_ThemeColor4(TH_TEXT);
 
@@ -544,7 +544,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		if (params->display == FILE_SHORTDISPLAY) {
 			sx += (int)layout->column_widths[COLUMN_NAME] + 12;
 			if (!(file->type & S_IFDIR)) {
-				file_draw_string(sx, sy, file->size, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);	
+				file_draw_string(sx, sy, file->size, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);
 				sx += (int)layout->column_widths[COLUMN_SIZE] + 12;
 			}
 		}

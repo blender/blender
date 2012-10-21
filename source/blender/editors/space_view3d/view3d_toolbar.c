@@ -182,7 +182,7 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	uiButSetSearchFunc(but, operator_search_cb, arg_listbase, operator_call_cb, NULL);
 	
 	uiBoundsBlock(block, 6);
-	uiBlockSetDirection(block, UI_DOWN);	
+	uiBlockSetDirection(block, UI_DOWN);
 	uiEndBlock(C, block);
 	
 	event = *(win->eventstate);  /* XXX huh huh? make api call */

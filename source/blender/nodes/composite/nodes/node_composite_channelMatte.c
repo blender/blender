@@ -71,7 +71,7 @@ static void do_normalized_ycca_to_rgba2(bNode *UNUSED(node), float *out, float *
 static void do_channel_matte(bNode *node, float *out, float *in)
 {
 	NodeChroma *c=(NodeChroma *)node->storage;
-	float alpha=0.0;	
+	float alpha=0.0;
 
 	switch (c->algorithm) {
 	case 0: { /* Alpha=key_channel-limit channel */

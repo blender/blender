@@ -310,7 +310,7 @@ static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
 		lastlorem = ED_lorem;
 	
 	insert_into_textbuf(obedit, '\n');
-	insert_into_textbuf(obedit, '\n');	
+	insert_into_textbuf(obedit, '\n');
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -458,7 +458,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 		nchars += strlen(tmp->line) + 1;
 
 	if (cu->str) MEM_freeN(cu->str);
-	if (cu->strinfo) MEM_freeN(cu->strinfo);	
+	if (cu->strinfo) MEM_freeN(cu->strinfo);
 
 	cu->str = MEM_callocN(nchars + 4, "str");
 	cu->strinfo = MEM_callocN((nchars + 4) * sizeof(CharInfo), "strinfo");
@@ -757,7 +757,7 @@ static int paste_selection(Object *obedit, ReportList *reports)
 
 	/* Verify that the copy buffer => [copy buffer len] + cu->len < MAXTEXT */
 	if (cu->len + len <= MAXTEXT) {
-		if (len) {	
+		if (len) {
 			int size = (cu->len * sizeof(wchar_t)) - (cu->pos * sizeof(wchar_t)) + sizeof(wchar_t);
 			memmove(ef->textbuf + cu->pos + len, ef->textbuf + cu->pos, size);
 			memcpy(ef->textbuf + cu->pos, ef->copybuf, len * sizeof(wchar_t));
@@ -835,7 +835,7 @@ static int move_cursor(bContext *C, int type, int select)
 				if (ef->textbuf[cu->pos - 1] == '\n') break;
 				if (ef->textbufinfo[cu->pos - 1].flag & CU_CHINFO_WRAP) break;
 				cu->pos--;
-			}		
+			}
 			cursmove = FO_CURS;
 			break;
 			
@@ -868,7 +868,7 @@ static int move_cursor(bContext *C, int type, int select)
 			cursmove = FO_CURS;
 			break;
 
-		case NEXT_CHAR:	
+		case NEXT_CHAR:
 			if ((select) && (cu->selstart == 0)) cu->selstart = cu->selend = cu->pos + 1;
 			cu->pos++;
 			cursmove = FO_CURS;

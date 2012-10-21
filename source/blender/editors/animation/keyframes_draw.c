@@ -345,7 +345,7 @@ static BezTriple *abk_get_bezt_with_value(ActBeztColumn *abk, float value)
 		return NULL;
 	
 	/* look over each BezTriple in this container */
-	for (i = 0; i < abk->numBezts; i++) {		
+	for (i = 0; i < abk->numBezts; i++) {
 		/* only do exact match for now... */
 		if (/*i >= MAX_ABK_BUFSIZE*/ 0) {
 			// TODO: this case needs special handling
@@ -960,7 +960,7 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree 
 
 	if (fcu && fcu->totvert && fcu->bezt) {
 		/* apply NLA-mapping (if applicable) */
-		if (adt)	
+		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
 		
 		/* if getting long keyframes too, grab the BezTriples in a BST for 

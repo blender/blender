@@ -213,7 +213,7 @@ static MenuData *decompose_menu_string(const char *str)
 				else {
 					menudata_add_item(md, nitem, nretval, nicon, 0);
 					nretval = md->nitems + 1;
-				} 
+				}
 				
 				nitem = NULL;
 				nicon = 0;
@@ -1950,7 +1950,7 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 			else if (bt->str[0] == 'V') {
 				ui_set_but_val(bt, hsv[2]);
 			}
-		}		
+		}
 
 		ui_check_but(bt);
 	}

@@ -185,7 +185,7 @@ int ED_view3d_context_user_region(bContext *C, View3D **v3d_r, ARegion **ar_r)
 								ar_unlock_user = ar;
 								break;
 							}
-						} 
+						}
 					}
 				}
 
@@ -719,7 +719,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_BRUSH:
 			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw_overlay(ar);
-			break;			
+			break;
 		case NC_MATERIAL:
 			switch (wmn->data) {
 				case ND_SHADING_DRAW:
@@ -748,12 +748,12 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
-		case NC_IMAGE:	
+		case NC_IMAGE:
 			/* this could be more fine grained checks if we had
 			 * more context than just the region */
 			ED_region_tag_redraw(ar);
 			break;
-		case NC_TEXTURE:	
+		case NC_TEXTURE:
 			/* same as above */
 			ED_region_tag_redraw(ar);
 			break;
@@ -882,7 +882,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_KEYFRAME:
 					if (wmn->action == NA_EDITED)
 						ED_region_tag_redraw(ar);
-					break;	
+					break;
 			}
 			break;
 		case NC_SCENE:

@@ -505,7 +505,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 				generate_preview(data, node, stackbuf);
 			}
 		}
-	}	
+	}
 }
 
 #endif  /* WITH_COMPOSITOR_LEGACY */

@@ -112,7 +112,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 						   
 		//Finds the optimal packing of this tree using a given cost model
 		//TODO this uses quite a lot of memory, find ways to reduce memory usage during building
-		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena2).transform(obj->builder);			
+		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena2).transform(obj->builder);
 		VBVH_optimalPackSIMD<OVBVHNode, PackCost>(PackCost()).transform(root);
 		obj->root = Reorganize_VBVH<OVBVHNode>(arena1).transform(root);
 		
@@ -125,7 +125,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 	obj->builder = NULL;
 
 	obj->node_arena = arena1;
-	obj->cost = 1.0;	
+	obj->cost = 1.0;
 }
 
 template<int StackSize>

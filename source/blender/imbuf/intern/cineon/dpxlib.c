@@ -407,7 +407,7 @@ intern_dpxOpen(int mode, const char* bytestuff, int bufsize) {
 	if (mode == LFREALFILE) {
 		filename = bytestuff;
 		dpx->file = BLI_fopen(filename, "rb");
-		if (dpx->file == 0) {	
+		if (dpx->file == 0) {
 			if (verbose) d_printf("Failed to open file \"%s\".\n", filename);
 			dpxClose(dpx);
 			return 0;

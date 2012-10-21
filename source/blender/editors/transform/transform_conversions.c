@@ -332,7 +332,7 @@ static void createTransEdge(TransInfo *t)
 	invert_m3_m3(smtx, mtx);
 
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) { 
+		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) {
 			float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 			float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
 			
@@ -850,7 +850,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	con = add_pose_constraint(NULL, pchan, "TempConstraint", CONSTRAINT_TYPE_KINEMATIC);
 	pchan->constflag |= (PCHAN_HAS_IK | PCHAN_HAS_TARGET);    /* for draw, but also for detecting while pose solving */
 	data = con->data;
-	if (targetless) { 
+	if (targetless) {
 		/* if exists, use values from last targetless (but disabled) IK-constraint as base */
 		*data = *targetless;
 	}
@@ -3416,14 +3416,14 @@ static void bezt_to_transdata(TransData *td, TransData2D *td2d, AnimData *adt, B
 	if (td->flag & TD_MOVEHANDLE1) {
 		td2d->h1 = bezt->vec[0];
 		copy_v2_v2(td2d->ih1, td2d->h1);
-	} 
-	else 	
+	}
+	else
 		td2d->h1 = NULL;
 
 	if (td->flag & TD_MOVEHANDLE2) {
 		td2d->h2 = bezt->vec[2];
 		copy_v2_v2(td2d->ih2, td2d->h2);
-	} 
+	}
 	else 
 		td2d->h2 = NULL;
 
@@ -3527,7 +3527,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						if (sel1) count++;
 						if (sel3) count++;
 					}
-				} 
+				}
 				else if (sipo->around == V3D_LOCAL) {
 					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
 					 * don't get moved wrong
@@ -3622,7 +3622,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					if (sel1) {
 						hdata = initTransDataCurveHandles(td, bezt);
 						bezt_to_transdata(td++, td2d++, adt, bezt, 0, 1, 1, intvals, mtx, smtx);
-					} 
+					}
 					else {
 						/* h1= 0; */ /* UNUSED */
 					}
@@ -3631,7 +3631,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						if (hdata == NULL)
 							hdata = initTransDataCurveHandles(td, bezt);
 						bezt_to_transdata(td++, td2d++, adt, bezt, 2, 1, 1, intvals, mtx, smtx);
-					} 
+					}
 					else {
 						/* h2= 0; */ /* UNUSED */
 					}

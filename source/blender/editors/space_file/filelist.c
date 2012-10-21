@@ -300,7 +300,7 @@ static int is_hidden_file(const char *filename, short hide_dot)
 			if ( (len > 0) && (filename[len - 1] == '~') ) {
 				is_hidden = 1;  /* ignore file~ */
 			}
-		} 
+		}
 	}
 	else {
 		if (((filename[0] == '.') && (filename[1] == 0) )) {
@@ -360,7 +360,7 @@ void filelist_filter(FileList *filelist)
 		struct direntry *file = &filelist->filelist[i];
 		if (filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot) ) {
 			num_filtered++;
-		} 
+		}
 	}
 	
 	if (filelist->fidx) {
@@ -557,7 +557,7 @@ void filelist_free(struct FileList *filelist)
 	}
 
 	for (i = 0; i < filelist->numfiles; ++i) {
-		if (filelist->filelist[i].image) {			
+		if (filelist->filelist[i].image) {
 			IMB_freeImBuf(filelist->filelist[i].image);
 		}
 		filelist->filelist[i].image = NULL;
@@ -573,7 +573,7 @@ void filelist_free(struct FileList *filelist)
 	
 	filelist->numfiles = 0;
 	free(filelist->filelist);
-	filelist->filelist = NULL;	
+	filelist->filelist = NULL;
 	filelist->filter = 0;
 	filelist->filter_glob[0] = '\0';
 	filelist->numfiltered = 0;
@@ -791,7 +791,7 @@ static int file_extension_type(const char *relname)
 	         BLI_testextensie(relname, ".otf") ||
 	         BLI_testextensie(relname, ".otc"))
 	{
-		return FTFONTFILE;			
+		return FTFONTFILE;
 	}
 	else if (BLI_testextensie(relname, ".btx")) {
 		return BTXFILE;
@@ -802,14 +802,14 @@ static int file_extension_type(const char *relname)
 	else if (BLI_testextensie_array(relname, imb_ext_image) ||
 	         (G.have_quicktime && BLI_testextensie_array(relname, imb_ext_image_qt)))
 	{
-		return IMAGEFILE;			
+		return IMAGEFILE;
 	}
 	else if (BLI_testextensie_array(relname, imb_ext_movie)) {
-		return MOVIEFILE;			
+		return MOVIEFILE;
 	}
 	else if (BLI_testextensie_array(relname, imb_ext_audio)) {
 		return SOUNDFILE;
-	} 
+	}
 	return 0;
 }
 
@@ -934,7 +934,7 @@ void filelist_parent(struct FileList *filelist)
 void filelist_select_file(struct FileList *filelist, int index, FileSelType select, unsigned int flag, FileCheckType check)
 {
 	struct direntry *file = filelist_file(filelist, index);
-	if (file != NULL) {	
+	if (file != NULL) {
 		int check_ok = 0; 
 		switch (check) {
 			case CHECK_DIRS:
@@ -969,7 +969,7 @@ void filelist_select(struct FileList *filelist, FileSelection *sel, FileSelType 
 	/* select all valid files between first and last indicated */
 	if ( (sel->first >= 0) && (sel->first < filelist->numfiltered) && (sel->last >= 0) && (sel->last < filelist->numfiltered) ) {
 		int current_file;
-		for (current_file = sel->first; current_file <= sel->last; current_file++) {	
+		for (current_file = sel->first; current_file <= sel->last; current_file++) {
 			filelist_select_file(filelist, current_file, select, flag, check);
 		}
 	}
@@ -1036,7 +1036,7 @@ void filelist_from_library(struct FileList *filelist)
 	struct ImBuf *ima;
 	int ok, i, nprevs, nnames, idcode;
 	char filename[FILE_MAX];
-	char dir[FILE_MAX], group[GROUP_MAX];	
+	char dir[FILE_MAX], group[GROUP_MAX];
 	
 	/* name test */
 	ok = filelist_islibrary(filelist, dir, group);

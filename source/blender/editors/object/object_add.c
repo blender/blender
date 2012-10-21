@@ -1124,13 +1124,13 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		basen->object = ob;
 
 		/* make sure apply works */
-		BKE_free_animdata(&ob->id);	
+		BKE_free_animdata(&ob->id);
 		ob->adt = NULL;
 
 		ob->parent = NULL;
 		ob->constraints.first = ob->constraints.last = NULL;
 		ob->disp.first = ob->disp.last = NULL;
-		ob->transflag &= ~OB_DUPLI;	
+		ob->transflag &= ~OB_DUPLI;
 		ob->lay = base->lay;
 
 		copy_m4_m4(ob->obmat, dob->mat);
@@ -1576,7 +1576,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		/* delete original if needed */
 		if (basedel) {
 			if (!keep_original)
-				ED_base_object_free_and_unlink(bmain, scene, basedel);	
+				ED_base_object_free_and_unlink(bmain, scene, basedel);
 
 			basedel = NULL;
 		}

@@ -1511,7 +1511,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		args = PyTuple_New(0);
 		ret = BPy_RemoveProperty(self, args, kw);
 		Py_DECREF(args);
-		return ret;	
+		return ret;
 	}
 	else if (PyTuple_GET_SIZE(args) > 1) {
 		PyErr_SetString(PyExc_ValueError, "all args must be keywords");

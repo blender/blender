@@ -249,7 +249,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if (ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
 				ED_region_tag_redraw(ar);
 			break;
-		case NC_WM:	
+		case NC_WM:
 			if (wmn->data == ND_JOB)
 				ED_region_tag_redraw(ar);
 			break;
@@ -257,7 +257,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if (wmn->data == ND_RENDER_RESULT)
 				ED_region_tag_redraw(ar);
 			break;
-		case NC_SPACE:	
+		case NC_SPACE:
 			if (wmn->data == ND_SPACE_INFO)
 				ED_region_tag_redraw(ar);
 			break;

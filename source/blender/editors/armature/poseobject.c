@@ -134,7 +134,7 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 		ob->mode &= ~OB_MODE_POSE;
 		
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
-	}	
+	}
 }
 
 /* if a selected or active bone is protected, throw error (oonly if warn == 1) and return 1 */
@@ -500,7 +500,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						found = 1;
 						break;
 					}
-				} 
+				}
 				else { /* direction == BONE_SELECT_CHILD */
 					/* the child member is only assigned to connected bones, see [#30340] */
 #if 0
@@ -992,7 +992,7 @@ static void pose_copy_menu(Scene *scene)
 				}
 			}
 		}
-	} 
+	}
 	else { /* constraints, optional (note: max we can have is 24 constraints) */
 		bConstraint *con, *con_back;
 		int const_toggle[24] = {0}; /* XXX, initialize as 0 to quiet errors */
@@ -1018,7 +1018,7 @@ static void pose_copy_menu(Scene *scene)
 				con_back = con->next;
 				BLI_freelinkN(&const_copy, con);
 				con = con_back;
-			} 
+			}
 			else
 				con = con->next;
 		}
@@ -1035,7 +1035,7 @@ static void pose_copy_menu(Scene *scene)
 				 * appending to list of constraints for this channel
 				 */
 				copy_constraints(&tmp_constraints, &const_copy, TRUE);
-				if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {					
+				if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
 					/* add proxy-local tags */
 					for (con = tmp_constraints.first; con; con = con->next)
 						con->flag |= CONSTRAINT_PROXY_LOCAL;
@@ -1097,7 +1097,7 @@ static void set_pose_keys(Object *ob)
 		for (chan = ob->pose->chanbase.first; chan; chan = chan->next) {
 			Bone *bone = chan->bone;
 			if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer))
-				chan->flag |= POSE_KEY;	
+				chan->flag |= POSE_KEY;
 			else
 				chan->flag &= ~POSE_KEY;
 		}
@@ -1916,7 +1916,7 @@ static int pose_bone_rotmode_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 	int mode = RNA_enum_get(op->ptr, "type");
 	
-	/* set rotation mode of selected bones  */	
+	/* set rotation mode of selected bones  */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
 	{
 		pchan->rotmode = mode;
@@ -2100,7 +2100,7 @@ static int pose_bone_layers_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 {
 	int layers[32] = {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
-	/* get layers that are active already */	
+	/* get layers that are active already */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
 	{
 		short bit;
@@ -2299,10 +2299,10 @@ static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 		 * just pose values should change, so this should be fine 
 		 */
 		bPose *dummyPose = NULL;
-		Object workob = {{0}}; 
+		Object workob = {{0}};
 		bPoseChannel *pchan;
 		
-		/* execute animation step for current frame using a dummy copy of the pose */		
+		/* execute animation step for current frame using a dummy copy of the pose */
 		BKE_pose_copy_data(&dummyPose, ob->pose, 0);
 		
 		BLI_strncpy(workob.id.name, "OB<ClearTfmWorkOb>", sizeof(workob.id.name));

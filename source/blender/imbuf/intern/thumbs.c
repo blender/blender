@@ -175,7 +175,7 @@ static void to_hex_char(char *hexbytes, const unsigned char *bytes, int len)
 
 static int uri_from_filename(const char *path, char *uri)
 {
-	char orig_uri[URI_MAX];	
+	char orig_uri[URI_MAX];
 	const char *dirstart = path;
 	
 #ifdef WIN32
@@ -265,7 +265,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 	char thumb[40];
 	short tsize = 128;
 	short ex, ey;
-	float scaledx, scaledy;	
+	float scaledx, scaledy;
 	struct stat info;
 
 	switch (size) {
@@ -334,7 +334,7 @@ ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, Im
 					}
 					else {
 						IMB_freeImBuf(img);
-						img = IMB_anim_previewframe(anim);						
+						img = IMB_anim_previewframe(anim);
 					}
 					IMB_free_anim(anim);
 				}
@@ -401,7 +401,7 @@ ImBuf *IMB_thumb_read(const char *path, ThumbSize size)
 	if (!uri_from_filename(path, uri)) {
 		return NULL;
 	}
-	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {		
+	if (thumbpath_from_uri(uri, thumb, sizeof(thumb), size)) {
 		img = IMB_loadiffname(thumb, IB_rect | IB_metadata, NULL);
 	}
 
@@ -438,7 +438,7 @@ ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source)
 	
 	if (stat(path, &st)) {
 		return NULL;
-	}	
+	}
 	if (!uri_from_filename(path, uri)) {
 		return NULL;
 	}

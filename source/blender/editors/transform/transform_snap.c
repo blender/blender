@@ -723,14 +723,14 @@ static float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 {
 	float angle, start[3], end[3], center[3];
 	
-	copy_v3_v3(center, t->center);	
+	copy_v3_v3(center, t->center);
 	if (t->flag & (T_EDIT | T_POSE)) {
 		Object *ob = t->obedit ? t->obedit : t->poseobj;
 		mul_m4_v3(ob->obmat, center);
 	}
 
 	sub_v3_v3v3(start, p1, center);
-	sub_v3_v3v3(end, p2, center);	
+	sub_v3_v3v3(end, p2, center);
 		
 	// Angle around a constraint axis (error prone, will need debug)
 	if (t->con.applyRot != NULL && (t->con.mode & CON_APPLY)) {
@@ -779,7 +779,7 @@ static float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 {
 	float d1[3], d2[3], center[3], len_d1;
 	
-	copy_v3_v3(center, t->center);	
+	copy_v3_v3(center, t->center);
 	if (t->flag & (T_EDIT | T_POSE)) {
 		Object *ob = t->obedit ? t->obedit : t->poseobj;
 		mul_m4_v3(ob->obmat, center);
@@ -846,7 +846,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 					p2 = NULL;
 					p1->flag = 1;
 		
-					/* if peeling objects, take the first and last from each object */			
+					/* if peeling objects, take the first and last from each object */
 					if (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) {
 						DepthPeel *peel;
 						for (peel = p1->next; peel; peel = peel->next) {
@@ -982,7 +982,7 @@ static void TargetSnapCenter(TransInfo *t)
 {
 	/* Only need to calculate once */
 	if ((t->tsnap.status & TARGET_INIT) == 0) {
-		copy_v3_v3(t->tsnap.snapTarget, t->center);	
+		copy_v3_v3(t->tsnap.snapTarget, t->center);
 		
 		if (t->flag & (T_EDIT | T_POSE)) {
 			Object *ob = t->obedit ? t->obedit : t->poseobj;
@@ -991,7 +991,7 @@ static void TargetSnapCenter(TransInfo *t)
 		
 		TargetSnapOffset(t, NULL);
 		
-		t->tsnap.status |= TARGET_INIT;		
+		t->tsnap.status |= TARGET_INIT;
 	}
 }
 
@@ -1027,7 +1027,7 @@ static void TargetSnapActive(TransInfo *t)
 			t->tsnap.target = SCE_SNAP_TARGET_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 			TargetSnapMedian(t);
-		}		
+		}
 	}
 }
 
@@ -1055,7 +1055,7 @@ static void TargetSnapMedian(TransInfo *t)
 		
 		TargetSnapOffset(t, NULL);
 		
-		t->tsnap.status |= TARGET_INIT;		
+		t->tsnap.status |= TARGET_INIT;
 	}
 }
 
@@ -1166,7 +1166,7 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 
 		mul_m4_v3(obmat, location);
 		
-		new_depth = len_v3v3(location, ray_start);					
+		new_depth = len_v3v3(location, ray_start);
 		
 		ED_view3d_project_int(ar, location, screen_loc);
 		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
@@ -1182,7 +1182,7 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 			normalize_v3(no);
 
 			*dist = new_dist;
-		} 
+		}
 	}
 	
 	return retval;
@@ -1234,7 +1234,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 			
 			mul_m4_v3(obmat, location);
 			
-			new_depth = len_v3v3(location, ray_start);					
+			new_depth = len_v3v3(location, ray_start);
 			
 			if (ED_view3d_project_int_global(ar, location, screen_loc, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 				new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
@@ -1259,17 +1259,17 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 				mul = dot_v3v3(vec, edge_loc) / dot_v3v3(edge_loc, edge_loc);
 				
 				if (r_no) {
-					normal_short_to_float_v3(n1, v1no);						
+					normal_short_to_float_v3(n1, v1no);
 					normal_short_to_float_v3(n2, v2no);
 					interp_v3_v3v3(r_no, n2, n1, mul);
 					mul_m3_v3(timat, r_no);
 					normalize_v3(r_no);
-				}			
+				}
 
 				copy_v3_v3(r_loc, location);
 				
 				*r_dist = new_dist;
-			} 
+			}
 		}
 	}
 	
@@ -1318,7 +1318,7 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4],
 			}
 
 			*r_dist = new_dist;
-		} 
+		}
 	}
 	
 	return retval;
@@ -1425,7 +1425,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 			
 			switch (snap_mode) {
 				case SCE_SNAP_MODE_FACE:
-				{ 
+				{
 #ifdef USE_BVH_FACE_SNAP                // Added for durian
 					BVHTreeRayHit hit;
 					BVHTreeFromMesh treeData;
@@ -1858,7 +1858,7 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 
 					mul_m4_v3(obmat, location);
 					
-					new_depth = len_v3v3(location, ray_start);					
+					new_depth = len_v3v3(location, ray_start);
 					
 					mul_m3_v3(timat, normal);
 					normalize_v3(normal);
@@ -1893,7 +1893,7 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 						normalize_v3(normal);
 	
 						addDepthPeel(depth_peels, new_depth, location, normal, ob);
-					} 
+					}
 				}
 			}
 		}

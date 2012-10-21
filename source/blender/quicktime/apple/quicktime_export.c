@@ -178,7 +178,7 @@ int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue)
 			return qtVideoCodecList[i].codecType;
 	}
 	
-	return 0;	
+	return 0;
 }
 
 
@@ -804,7 +804,7 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 		qtdata->aDataRateSetting.minSpatialQuality = (rd->qtcodecsettings.minSpatialQuality * codecLosslessQuality) / 100;
 		qtdata->aDataRateSetting.minTemporalQuality = (rd->qtcodecsettings.minTemporalQuality * codecLosslessQuality) / 100;
 		
-		qtdata->aDataRateSetting.frameDuration = rd->frs_sec;		
+		qtdata->aDataRateSetting.frameDuration = rd->frs_sec;
 		
 		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,   &qtdata->gTemporalSettings);
 		CheckError(err, "SCSetInfo1 error", op->reports);

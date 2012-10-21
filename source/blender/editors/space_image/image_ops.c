@@ -551,7 +551,7 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 		sima->xof += pan_x;
 		sima->yof += pan_y;
 
-		ED_region_tag_redraw(ar);	
+		ED_region_tag_redraw(ar);
 
 		return OPERATOR_FINISHED;
 	}

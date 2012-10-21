@@ -1313,7 +1313,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 				BLI_addtail(items_list, cis);
 			}
 			MEM_freeN(name);
-		}			
+		}
 
 		i++;
 	}

@@ -3513,7 +3513,7 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 		if (tool == SCULPT_TOOL_GRAB)
 			copy_v3_v3(sd->anchored_location, cache->true_location);
 		else if (tool == SCULPT_TOOL_THUMB)
-			copy_v3_v3(sd->anchored_location, cache->orig_grab_location);			
+			copy_v3_v3(sd->anchored_location, cache->orig_grab_location);
 
 		if (ELEM(tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
 			/* location stays the same for finding vertices in brush radius */

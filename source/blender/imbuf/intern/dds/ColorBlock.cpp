@@ -393,7 +393,7 @@ void ColorBlock::computeRange(Vector3::Arg axis, Color32 * start, Color32 * end)
 	int mini, maxi;
 	mini = maxi = 0;
 	
-	float min, max;	
+	float min, max;
 	min = max = dot(Vector3(m_color[0].r, m_color[0].g, m_color[0].b), axis);
 
 	for (uint i = 1; i < 16; i++)

@@ -282,7 +282,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 			}
 		}
 		if (npoints) MEM_freeN(npoints);
-		if (onpoints) MEM_freeN(onpoints);	
+		if (onpoints) MEM_freeN(onpoints);
 	}
 }
 
@@ -404,7 +404,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 		lcode = charcode;
 	}
 
-	return vfd;	
+	return vfd;
 }
 
 

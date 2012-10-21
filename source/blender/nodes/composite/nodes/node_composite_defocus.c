@@ -861,7 +861,7 @@ static void node_composit_exec_defocus(void *UNUSED(data), bNode *node, bNodeSta
 	if (node->exec & NODE_BREAK) {
 		free_compbuf(new);
 		new= NULL;
-	}	
+	}
 	out[0]->data = new;
 	if (zbuf_use && (zbuf_use != zbuf)) free_compbuf(zbuf_use);
 }

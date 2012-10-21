@@ -1948,7 +1948,7 @@ static int text_move_cursor(bContext *C, int type, int select)
 			txt_move_left(text, select);
 			break;
 
-		case NEXT_CHAR:	
+		case NEXT_CHAR:
 			txt_move_right(text, select);
 			break;
 
@@ -2669,7 +2669,7 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
-	} 
+	}
 	else if (!st->wordwrap && (event->mval[0] < 0 || event->mval[0] > ar->winx)) {
 		if (event->mval[0] > ar->winx) st->left++;
 		else if (event->mval[0] < 0 && st->left > 0) st->left--;
@@ -2679,7 +2679,7 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
 		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 		// XXX PIL_sleep_ms(10);
-	} 
+	}
 	else {
 		text_cursor_set_to_pos(st, ar, event->mval[0], event->mval[1], 1);
 
@@ -2688,7 +2688,7 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 		ssel->old[0] = event->mval[0];
 		ssel->old[1] = event->mval[1];
-	} 
+	}
 }
 
 static void text_cursor_set_exit(bContext *C, wmOperator *op)

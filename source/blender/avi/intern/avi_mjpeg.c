@@ -73,7 +73,7 @@ static void std_huff_tables(j_decompress_ptr dinfo)
 		0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0
 	};
 	static const UINT8 val_dc_luminance[] =
-	{ 
+	{
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 	};
 
@@ -82,7 +82,7 @@ static void std_huff_tables(j_decompress_ptr dinfo)
 		0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0
 	};
 	static const UINT8 val_dc_chrominance[] =
-	{ 
+	{
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 	};
 
@@ -91,7 +91,7 @@ static void std_huff_tables(j_decompress_ptr dinfo)
 		0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d
 	};
 	static const UINT8 val_ac_luminance[] =
-	{ 
+	{
 		0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12,
 		0x21, 0x31, 0x41, 0x06, 0x13, 0x51, 0x61, 0x07,
 		0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 0x08,
@@ -119,7 +119,7 @@ static void std_huff_tables(j_decompress_ptr dinfo)
 		0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77
 	};
 	static const UINT8 val_ac_chrominance[] =
-	{ 
+	{
 		0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21,
 		0x31, 0x06, 0x12, 0x41, 0x51, 0x07, 0x61, 0x71,
 		0x13, 0x22, 0x32, 0x81, 0x08, 0x14, 0x42, 0x91,
@@ -393,7 +393,7 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer,
 		numbytes = 0;
 		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100, buf + *size, buffer + (movie->header->Height / 2) * movie->header->Width * 3,  movie->header->Width, movie->header->Height / 2, bufsize / 2);
 	}
-	*size += numbytes;	
+	*size += numbytes;
 
 	MEM_freeN(buffer);
 	return buf;

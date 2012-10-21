@@ -331,7 +331,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	cache= clmd->point_cache;
 
 	/* initialize simulation data if it didn't exist already */
-	if (clmd->clothObject == NULL) {	
+	if (clmd->clothObject == NULL) {
 		if (!cloth_from_object(ob, clmd, result, framenr, 1)) {
 			BKE_ptcache_invalidate(cache);
 			return 0;

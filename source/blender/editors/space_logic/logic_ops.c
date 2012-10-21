@@ -138,7 +138,7 @@ static bSensor *edit_sensor_property_get(bContext *C, wmOperator *op, Object **o
 	*ob = edit_object_property_get(C, op);
 	if (!*ob) return NULL;
 	
-	sens = BLI_findstring(&((*ob)->sensors), sensor_name, offsetof(bSensor, name));	
+	sens = BLI_findstring(&((*ob)->sensors), sensor_name, offsetof(bSensor, name));
 	return sens;
 }
 
@@ -177,7 +177,7 @@ static bController *edit_controller_property_get(bContext *C, wmOperator *op, Ob
 	*ob = edit_object_property_get(C, op);
 	if (!*ob) return NULL;
 	
-	cont = BLI_findstring(&((*ob)->controllers), controller_name, offsetof(bController, name));	
+	cont = BLI_findstring(&((*ob)->controllers), controller_name, offsetof(bController, name));
 	return cont;
 }
 
@@ -216,7 +216,7 @@ static bActuator *edit_actuator_property_get(bContext *C, wmOperator *op, Object
 	*ob = edit_object_property_get(C, op);
 	if (!*ob) return NULL;
 	
-	act = BLI_findstring(&((*ob)->actuators), actuator_name, offsetof(bActuator, name));	
+	act = BLI_findstring(&((*ob)->actuators), actuator_name, offsetof(bActuator, name));
 	return act;
 }
 

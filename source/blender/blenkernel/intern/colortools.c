@@ -85,7 +85,7 @@ void curvemapping_set_defaults(CurveMapping *cumap, int tot, float minx, float m
 		cumap->cm[a].curve[0].y = miny;
 		cumap->cm[a].curve[1].x = maxx;
 		cumap->cm[a].curve[1].y = maxy;
-	}	
+	}
 
 	cumap->changed_timestamp = 0;
 }
@@ -555,7 +555,7 @@ static void curvemap_make_table(CurveMap *cuma, const rctf *clipr)
 				sub_v3_v3v3(bezt[a].vec[2], bezt[a].vec[1], vec);
 			}
 		}
-	}	
+	}
 	/* make the bezier curve */
 	if (cuma->table)
 		MEM_freeN(cuma->table);
@@ -731,7 +731,7 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 		}
 		if (a != cuma->totpoint - 1)
 			curvemap_remove(cuma, 2);
-	}	
+	}
 	curvemap_make_table(cuma, clipr);
 }
 

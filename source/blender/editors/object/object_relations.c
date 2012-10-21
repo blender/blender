@@ -622,7 +622,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			/* fall back on regular parenting now (for follow only) */
 			if (partype == PAR_FOLLOW)
 				partype = PAR_OBJECT;
-		}		
+		}
 	}
 	else if (partype == PAR_BONE) {
 		pchan = BKE_pose_channel_active(par);

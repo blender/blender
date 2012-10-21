@@ -264,7 +264,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 							/* adjust settings to fit (allocate a new data-array) */
 							kbn->data = MEM_callocN(sizeof(float) * 3 * totvert, "joined_shapekey");
-							kbn->totelem = totvert;	
+							kbn->totelem = totvert;
 		
 							/* XXX 2.5 Animato */
 #if 0
@@ -843,7 +843,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char m
 				minmax_v3v3_v3(min, max, eve->co);
 			}
 		}
-		else {		
+		else {
 			MVert *mvert;
 			int a;
 			
@@ -878,7 +878,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char m
 				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (intptr_t)(eve));
 			}
 		}
-		else {		
+		else {
 			MVert *mvert;
 			int a;
 			

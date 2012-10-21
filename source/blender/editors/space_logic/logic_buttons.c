@@ -137,7 +137,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 			}
 		}
 		return OPERATOR_FINISHED;
-	}	
+	}
 	return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 }
 

@@ -340,7 +340,7 @@ static ReebArc *copyArc(ReebGraph *rg, ReebArc *arc)
 	cp_arc->edges.first = NULL;
 	cp_arc->edges.last = NULL;
 
-	/* copy buckets */	
+	/* copy buckets */
 	cp_arc->buckets = MEM_callocN(sizeof(EmbedBucket) * cp_arc->bcount, "embed bucket");
 	memcpy(cp_arc->buckets, arc->buckets, sizeof(EmbedBucket) * cp_arc->bcount);
 	
@@ -377,7 +377,7 @@ static ReebGraph *copyReebGraph(ReebGraph *rg, int level)
 	cp_rg->link_up = rg;
 	cp_rg->multi_level = level;
 
-	/* Copy nodes */	
+	/* Copy nodes */
 	for (node = rg->nodes.first; node; node = node->next)
 	{
 		ReebNode *cp_node = copyNode(cp_rg, node);
@@ -889,7 +889,7 @@ static void calculateArcLength(ReebArc *arc)
 		vec0 = vec1;
 	}
 	
-	arc->length += len_v3v3(arc->tail->p, vec1);	
+	arc->length += len_v3v3(arc->tail->p, vec1);
 }
 
 static void calculateGraphLength(ReebGraph *rg)
@@ -948,7 +948,7 @@ void REEB_RadialSymmetry(BNode *root_node, RadialArc *ring, int count)
 			bucket1 = IT_next(iter1);
 			bucket2 = IT_next(iter2);
 		
-			/* Make sure they both start at the same value */	
+			/* Make sure they both start at the same value */
 			while (bucket1 && bucket2 && bucket1->val < bucket2->val) {
 				bucket1 = IT_next(iter1);
 			}
@@ -1005,7 +1005,7 @@ void REEB_RadialSymmetry(BNode *root_node, RadialArc *ring, int count)
 			bucket1 = IT_next(iter1);
 			bucket2 = IT_next(iter2);
 		
-			/* Make sure they both start at the same value */	
+			/* Make sure they both start at the same value */
 			while (bucket1 && bucket1->val < bucket2->val) {
 				bucket1 = IT_next(iter1);
 			}
@@ -1016,7 +1016,7 @@ void REEB_RadialSymmetry(BNode *root_node, RadialArc *ring, int count)
 	
 	
 			for (; bucket1 && bucket2; bucket1 = IT_next(iter1), bucket2 = IT_next(iter2)) {
-				/* copy and mirror back to bucket2 */			
+				/* copy and mirror back to bucket2 */
 				bucket2->nv = bucket1->nv;
 				copy_v3_v3(bucket2->p, bucket1->p);
 				BLI_mirrorAlongAxis(bucket2->p, node->p, normal);
@@ -1062,7 +1062,7 @@ void REEB_AxialSymmetry(BNode *root_node, BNode *node1, BNode *node2, struct BAr
 		bucket1 = IT_next(iter1);
 		bucket2 = IT_next(iter2);
 	
-		/* Make sure they both start at the same value */	
+		/* Make sure they both start at the same value */
 		while (bucket1 && bucket1->val < bucket2->val) {
 			bucket1 = IT_next(iter1);
 		}
@@ -1080,7 +1080,7 @@ void REEB_AxialSymmetry(BNode *root_node, BNode *node1, BNode *node2, struct BAr
 			/* add bucket2 in bucket1 */
 			interp_v3_v3v3(bucket1->p, bucket1->p, bucket2->p, (float)bucket2->nv / (float)(bucket1->nv));
 
-			/* copy and mirror back to bucket2 */			
+			/* copy and mirror back to bucket2 */
 			bucket2->nv = bucket1->nv;
 			copy_v3_v3(bucket2->p, bucket1->p);
 			BLI_mirrorAlongAxis(bucket2->p, root_node->p, nor);
@@ -1212,7 +1212,7 @@ static void reweightArc(ReebGraph *rg, ReebArc *arc, ReebNode *start_node, float
 		reweightArc(rg, next_arc, node, end_weight);
 	}
 
-	/* update only if needed */	
+	/* update only if needed */
 	if (arc->head->weight != start_weight || arc->tail->weight != end_weight)
 	{
 		old_weight = arc->head->weight; /* backup head weight, other arcs need it intact, it will be fixed by the source arc */
@@ -1318,7 +1318,7 @@ static int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 			}
 			
 			joined = 1;
-		}		
+		}
 	}
 	
 	return joined;
@@ -1450,7 +1450,7 @@ static void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, R
 				arc->tail = newNode;
 			}
 
-			// Remove looped arcs			
+			// Remove looped arcs
 			if (arc->head == arc->tail) {
 				// v1 or v2 was already newNode, since we're removing an arc, decrement degree
 				NodeDegreeDecrement(rg, newNode);
@@ -1648,7 +1648,7 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 	BLI_sortlist(&rg->arcs, compareArcs);
 
 #ifdef DEBUG_REEB
-	{	
+	{
 		EditFace *efa;
 		for (efa = G.editMesh->faces.first; efa; efa = efa->next) {
 			efa->tmp.fp = -1;
@@ -1731,7 +1731,7 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 				efa->tmp.fp = saacos(fabs(angle));
 #endif
 #else
-				add_v3_v3(avg_vec, efa->n);		
+				add_v3_v3(avg_vec, efa->n);
 #endif
 			}
 
@@ -1873,7 +1873,7 @@ static int compareVerts(const void *a, const void *b)
 		value = 1;
 	}
 
-	return value;		
+	return value;
 }
 
 static void spreadWeight(EditMesh *em)
@@ -1947,7 +1947,7 @@ void REEB_exportGraph(ReebGraph *rg, int count)
 		
 		fprintf(f, "angle %0.3f %0.3f %0.3f %0.3f %i\n", p[0], p[1], p[2], arc->angle, BLI_ghash_size(arc->faces));
 		exportNode(f, "v2", arc->tail);
-	}	
+	}
 	
 	fclose(f);
 }
@@ -1983,7 +1983,7 @@ void removeNormalNodes(ReebGraph *rg)
 
 				/* If arcs are one after the other */
 				if (arc->head == connectedArc->tail) {
-					/* remove furthest arc */		
+					/* remove furthest arc */
 					if (arc->tail->weight < connectedArc->head->weight) {
 						mergeConnectedArcs(rg, arc, connectedArc);
 						nextArc = arc->next;
@@ -2006,7 +2006,7 @@ void removeNormalNodes(ReebGraph *rg)
 				
 				/* If arcs are one after the other */
 				if (arc->tail == connectedArc->head) {
-					/* remove furthest arc */		
+					/* remove furthest arc */
 					if (arc->head->weight < connectedArc->tail->weight) {
 						mergeConnectedArcs(rg, arc, connectedArc);
 						nextArc = arc->next;
@@ -2092,7 +2092,7 @@ void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection d
 				
 				newEdge->nextEdge = e;
 
-				// if edge was the first in the list, point the edit edge to the new reeb edge instead.							
+				// if edge was the first in the list, point the edit edge to the new reeb edge instead.
 				if (*p == e) {
 					*p = (void *)newEdge;
 				}
@@ -2289,12 +2289,12 @@ static ReebEdge *createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 		arc->faces = BLI_ghash_ptr_new("createArc gh");
 		
 		if (node1->weight <= node2->weight) {
-			v1 = node1;	
-			v2 = node2;	
+			v1 = node1;
+			v2 = node2;
 		}
 		else {
-			v1 = node2;	
-			v2 = node1;	
+			v1 = node2;
+			v2 = node1;
 		}
 		
 		arc->head = v1;
@@ -2857,7 +2857,7 @@ int weightFromDistance(EditMesh *em, EdgeIndex *indexed_edges)
 		/* Apply dijkstra spf for each selected vert */
 		for (eve = em->verts.first; eve; eve = eve->next) {
 			if (eve->f & SELECT) {
-				shortestPathsFromVert(em, eve, indexed_edges);				
+				shortestPathsFromVert(em, eve, indexed_edges);
 			}
 		}
 		
@@ -2927,7 +2927,7 @@ static void initIteratorFct(ReebArcIterator *iter)
 	iter->next = nextBucket;
 	iter->nextN = nextNBucket;
 	iter->previous = previousBucket;
-	iter->stopped = iteratorStopped;	
+	iter->stopped = iteratorStopped;
 }
 
 static void setIteratorValues(ReebArcIterator *iter, EmbedBucket *bucket)
@@ -3419,7 +3419,7 @@ void REEB_draw()
 		
 		if (G.scene->toolsettings->skgen_options & SKGEN_DISP_EMBED)
 		{
-			glColor3f(1, 1, 1);				
+			glColor3f(1, 1, 1);
 			glBegin(GL_POINTS);
 			glVertex3fv(arc->head->p);
 			glVertex3fv(arc->tail->p);

@@ -704,7 +704,7 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 	
 	BLI_rcti_rctf_copy(&rect, &but->rect);
 	
-	if (but->imb) { 
+	if (but->imb) {
 		/* use button size itself */
 	}
 	else if (but->flag & UI_ICON_LEFT) {
@@ -774,7 +774,7 @@ static void ui_delete_active_linkline(uiBlock *block)
 									(*(link->ppoin))[b] = (*(link->ppoin))[a];
 									b++;
 								}
-							}	
+							}
 							(*(link->totlink))--;
 						}
 					}
@@ -1063,7 +1063,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case HSVSLI:
 			break;
-		case TOG3:	
+		case TOG3:
 			ui_apply_but_TOG3(C, but, data);
 			break;
 		case MENU:
@@ -1109,10 +1109,10 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case INLINK:
 			ui_apply_but_LINK(C, but, data);
 			break;
-		case BUT_IMAGE:	
+		case BUT_IMAGE:
 			ui_apply_but_IMAGE(C, but, data);
 			break;
-		case HISTOGRAM:	
+		case HISTOGRAM:
 			ui_apply_but_HISTOGRAM(C, but, data);
 			break;
 		case WAVEFORM:
@@ -1343,7 +1343,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	
 	/* mouse dragged outside the widget to the left */
-	if (x < startx && but->ofs > 0) {	
+	if (x < startx && but->ofs > 0) {
 		int i = but->ofs;
 
 		origstr[but->ofs] = 0;
@@ -1587,7 +1587,7 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 				but->pos -= step;
 				changed = 1;
 			}
-		} 
+		}
 	}
 
 	return changed;
@@ -1676,7 +1676,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 		if (cut)
 			if ((but->selend - but->selsta) > 0)
 				changed = ui_textedit_delete_selection(but, data);
-	} 
+	}
 
 	return changed;
 }
@@ -2254,7 +2254,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		ED_region_tag_redraw(data->region);
 			
 		if (event->val == KM_PRESS) {
-			if (ISHOTKEY(event->type)) { 
+			if (ISHOTKEY(event->type)) {
 				
 				if (WM_key_event_string(event->type)[0])
 					ui_set_but_val(but, event->type);
@@ -2935,7 +2935,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 					data->value = temp;
 				else
 					data->cancel = TRUE;
-			} 
+			}
 			else {
 				if (f < tempf) tempf -= 0.01f;
 				else tempf += 0.01f;
@@ -3336,7 +3336,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 		case UI_GRAD_V:
 			hsv[2] += ndof->ry * sensitivity;
 			break;
-		case UI_GRAD_V_ALT:	
+		case UI_GRAD_V_ALT:
 			/* vertical 'value' strip */
 			
 			/* exception only for value strip - use the range set in but->min/max */
@@ -3904,7 +3904,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 
 						changed = 1;
 						
-						/* reset cmp back to the curve points again, rather than drawing segments */		
+						/* reset cmp back to the curve points again, rather than drawing segments */
 						cmp = cuma->curve;
 						
 						/* find newly added point and make it 'sel' */
@@ -4508,11 +4508,11 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	int kmi_id;
 	
 	/* XXX this guess_opname can potentially return a different keymap than being found on adding later... */
-	km = WM_keymap_guess_opname(C, but->optype->idname);		
+	km = WM_keymap_guess_opname(C, but->optype->idname);
 	kmi = WM_keymap_add_item(km, but->optype->idname, AKEY, KM_PRESS, 0, 0);
 	kmi_id = kmi->id;
 
-	/* copy properties, prop can be NULL for reset */	
+	/* copy properties, prop can be NULL for reset */
 	if (prop)
 		prop = IDP_CopyProperty(prop);
 	WM_keymap_properties_reset(kmi, prop);
@@ -4520,7 +4520,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	/* update and get pointers again */
 	WM_keyconfig_update(wm);
 
-	km = WM_keymap_guess_opname(C, but->optype->idname);		
+	km = WM_keymap_guess_opname(C, but->optype->idname);
 	kmi = WM_keymap_item_find_id(km, kmi_id);
 
 	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
@@ -4954,7 +4954,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				return WM_UI_HANDLER_BREAK;
 			}
-		} 
+		}
 		else if (but->pointype && but->poin == NULL) {
 			/* there's a pointer needed */
 			BKE_reportf(NULL, RPT_WARNING, "DoButton pointer error: %s", but->str);
@@ -6380,7 +6380,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 					break;
 
 				/* opening sublevels of pulldowns */
-				case RIGHTARROWKEY:	
+				case RIGHTARROWKEY:
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
 
 						PASS_EVENT_TO_PARENT_IF_NONACTIVE;

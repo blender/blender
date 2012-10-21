@@ -61,7 +61,7 @@ static GHOST_TStandardCursor convert_cursor(int curs)
 		case CURSOR_FACESEL:    return GHOST_kStandardCursorRightArrow;
 		case CURSOR_WAIT:       return GHOST_kStandardCursorWait;
 		case CURSOR_EDIT:       return GHOST_kStandardCursorCrosshair;
-		case CURSOR_HELP:		
+		case CURSOR_HELP:
 #ifdef __APPLE__
 			return GHOST_kStandardCursorLeftRight;
 #else
@@ -560,7 +560,7 @@ BEGIN_CURSOR_BLOCK
 	BlenderCursor[BC_CROSSCURSOR] = &CrossCursor;
 END_CURSOR_BLOCK
 
-	/********************** EditCross Cursor ***********************/	
+	/********************** EditCross Cursor ***********************/
 BEGIN_CURSOR_BLOCK
 	static char editcross_sbm[] = {
 		0x0e,  0x00,  0x11,  0x00,  0x1d,  0x00,  0x19,  0x03,
@@ -775,7 +775,7 @@ BEGIN_CURSOR_BLOCK
 END_CURSOR_BLOCK
 	
 
-	/********************** TextEdit Cursor ***********************/	
+	/********************** TextEdit Cursor ***********************/
 BEGIN_CURSOR_BLOCK
 	static char textedit_sbm[] = {
 		0xe0,  0x03,  0x10,  0x04,  0x60,  0x03,  0x40,  0x01,
@@ -808,7 +808,7 @@ BEGIN_CURSOR_BLOCK
 END_CURSOR_BLOCK
 
 
-	/********************** Paintbrush Cursor ***********************/	
+	/********************** Paintbrush Cursor ***********************/
 BEGIN_CURSOR_BLOCK
 	static char paintbrush_sbm[] = {
 

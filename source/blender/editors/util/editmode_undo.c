@@ -104,7 +104,7 @@ static UndoElem *curundo = NULL;
 static void undo_restore(UndoElem *undo, void *editdata, void *obdata)
 {
 	if (undo) {
-		undo->to_editmode(undo->undodata, editdata, obdata);	
+		undo->to_editmode(undo->undodata, editdata, obdata);
 	}
 }
 

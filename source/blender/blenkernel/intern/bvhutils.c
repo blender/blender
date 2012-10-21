@@ -728,7 +728,7 @@ static void bvhcacheitem_set_if_match(void *_cached, void *_search)
 	BVHCacheItem *search = (BVHCacheItem *)_search;
 
 	if (search->type == cached->type) {
-		search->tree = cached->tree;		
+		search->tree = cached->tree;
 	}
 } 
 

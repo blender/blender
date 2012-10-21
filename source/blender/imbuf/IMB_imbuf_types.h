@@ -93,7 +93,7 @@ typedef struct ImBuf {
 	/* tiled pixel storage */
 	int tilex, tiley;
 	int xtiles, ytiles;
-	unsigned int **tiles;	
+	unsigned int **tiles;
 
 	/* zbuffer */
 	int	*zbuf;				/* z buffer data, original zbuffer */

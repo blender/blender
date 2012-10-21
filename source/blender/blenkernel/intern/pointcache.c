@@ -1363,7 +1363,7 @@ static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, uns
 	if (mode == 1) {
 		LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
 		
-		r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);	
+		r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);
 		if (!(r == LZO_E_OK) || (out_len >= in_len))
 			compressed = 0;
 		else
@@ -2273,7 +2273,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 	/* clear all files in the temp dir with the prefix of the ID and the ".bphys" suffix */
 	switch (mode) {
 	case PTCACHE_CLEAR_ALL:
-	case PTCACHE_CLEAR_BEFORE:	
+	case PTCACHE_CLEAR_BEFORE:
 	case PTCACHE_CLEAR_AFTER:
 		if (pid->cache->flag & PTCACHE_DISK_CACHE) {
 			ptcache_path(pid, path);
@@ -2464,7 +2464,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		if (MEM_allocN_len(cache->cached_frames) != sizeof(char) * (cache->endframe-cache->startframe+1)) {
 			MEM_freeN(cache->cached_frames);
 			cache->cached_frames = NULL;
-		}	
+		}
 	}
 
 	if (cache->cached_frames==NULL && cache->endframe > cache->startframe) {
@@ -3414,7 +3414,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 		}
 	}
 	else {
-		PTCacheMem *pm = cache->mem_cache.first;		
+		PTCacheMem *pm = cache->mem_cache.first;
 		float bytes = 0.0f;
 		int i, mb;
 		

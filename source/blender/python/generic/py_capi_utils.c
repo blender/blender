@@ -542,7 +542,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 	if (fp) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 
-		va_list vargs;	
+		va_list vargs;
 
 		int *sizes = PyMem_MALLOC(sizeof(int) * (n / 2));
 		int i;

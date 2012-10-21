@@ -447,7 +447,7 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 
 				drectf += destskip * 4;
 				srectf += srcskip * 4;
-			}		
+			}
 		}
 	}
 }
@@ -482,13 +482,13 @@ void IMB_rectfill(struct ImBuf *drect, const float col[4])
 			*rrectf++ = col[2];
 			*rrectf++ = col[3];
 		}
-	}	
+	}
 }
 
 
 void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
-					   const float col[4], struct ColorManagedDisplay *display,
-					   int x1, int y1, int x2, int y2)
+                       const float col[4], struct ColorManagedDisplay *display,
+                       int x1, int y1, int x2, int y2)
 {
 	int i, j;
 	float a; /* alpha */

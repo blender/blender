@@ -262,7 +262,7 @@ static void set_fcurve_vertex_color(FCurve *fcu, short sel)
 		/* Curve's points ARE BEING edited */
 		if (sel) UI_ThemeColorShadeAlpha(TH_VERTEX_SELECT, 0, alphaOffset); 
 		else UI_ThemeColorShadeAlpha(TH_VERTEX, 0, alphaOffset);
-	} 
+	}
 	else {
 		/* Curve's points CANNOT BE edited */
 		if (sel) UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, alphaOffset);
@@ -318,7 +318,7 @@ static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
 	        )
 	{
 		return 0;
-	} 
+	}
 	else {
 		return 1;
 	}
@@ -561,7 +561,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 		if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert == 1)) {
 			/* just extend across the first keyframe's value */
 			v[1] = prevfpt->vec[1];
-		} 
+		}
 		else {
 			/* extrapolate linear dosnt use the handle, use the next points center instead */
 			fac = (prevfpt->vec[0] - fpt->vec[0]) / (prevfpt->vec[0] - v[0]);
@@ -599,7 +599,7 @@ static void draw_fcurve_curve_samples(bAnimContext *ac, ID *id, FCurve *fcu, Vie
 		if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (fcu->totvert == 1)) {
 			/* based on last keyframe's value */
 			v[1] = prevfpt->vec[1];
-		} 
+		}
 		else {
 			/* extrapolate linear dosnt use the handle, use the previous points center instead */
 			fpt = prevfpt - 1;
@@ -642,13 +642,13 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 		if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (prevbezt->ipo == BEZT_IPO_CONST) || (fcu->totvert == 1)) {
 			/* just extend across the first keyframe's value */
 			v1[1] = prevbezt->vec[1][1];
-		} 
+		}
 		else if (prevbezt->ipo == BEZT_IPO_LIN) {
 			/* extrapolate linear dosnt use the handle, use the next points center instead */
 			fac = (prevbezt->vec[1][0] - bezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
 			if (fac) fac = 1.0f / fac;
 			v1[1] = prevbezt->vec[1][1] - fac * (prevbezt->vec[1][1] - bezt->vec[1][1]);
-		} 
+		}
 		else {
 			/* based on angle of handle 1 (relative to keyframe) */
 			fac = (prevbezt->vec[0][0] - prevbezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
@@ -748,14 +748,14 @@ static void draw_fcurve_curve_bezts(bAnimContext *ac, ID *id, FCurve *fcu, View2
 		if ((fcu->extend == FCURVE_EXTRAPOLATE_CONSTANT) || (fcu->flag & FCURVE_INT_VALUES) || (prevbezt->ipo == BEZT_IPO_CONST) || (fcu->totvert == 1)) {
 			/* based on last keyframe's value */
 			v1[1] = prevbezt->vec[1][1];
-		} 
+		}
 		else if (prevbezt->ipo == BEZT_IPO_LIN) {
 			/* extrapolate linear dosnt use the handle, use the previous points center instead */
 			bezt = prevbezt - 1;
 			fac = (prevbezt->vec[1][0] - bezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
 			if (fac) fac = 1.0f / fac;
 			v1[1] = prevbezt->vec[1][1] - fac * (prevbezt->vec[1][1] - bezt->vec[1][1]);
-		} 
+		}
 		else {
 			/* based on angle of handle 1 (relative to keyframe) */
 			fac = (prevbezt->vec[2][0] - prevbezt->vec[1][0]) / (prevbezt->vec[1][0] - v1[0]);
@@ -971,7 +971,7 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	height = (float)((items * ACHANNEL_STEP) + (ACHANNEL_HEIGHT * 2));
 	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
-	/* loop through channels, and set up drawing depending on their type  */	
+	/* loop through channels, and set up drawing depending on their type  */
 	{   /* first pass: just the standard GL-drawing for backdrop + text */
 		y = (float)ACHANNEL_FIRST;
 		

@@ -1630,9 +1630,9 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
 	PlaneAABBIsect ret = ISECT_INSIDE;
 	int i, axis;
 	
-	for (i = 0; i < 4; ++i) { 
+	for (i = 0; i < 4; ++i) {
 		for (axis = 0; axis < 3; ++axis) {
-			if (planes[i][axis] > 0) { 
+			if (planes[i][axis] > 0) {
 				vmin[axis] = bb_min[axis];
 				vmax[axis] = bb_max[axis];
 			}
@@ -1646,7 +1646,7 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
 			return ISECT_OUTSIDE;
 		else if (dot_v3v3(planes[i], vmax) + planes[i][3] >= 0)
 			ret = ISECT_INTERSECT;
-	} 
+	}
 
 	return ret;
 }

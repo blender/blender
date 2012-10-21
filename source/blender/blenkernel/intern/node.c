@@ -818,7 +818,7 @@ void nodeFreePreview(bNode *node)
 			MEM_freeN(node->preview->rect);
 		MEM_freeN(node->preview);
 		node->preview = NULL;
-	}	
+	}
 }
 
 static void node_init_preview(bNode *node, int xsize, int ysize)
@@ -861,7 +861,7 @@ void ntreeInitPreview(bNodeTree *ntree, int xsize, int ysize)
 			node_init_preview(node, xsize, ysize);
 		if (node->type == NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
 			ntreeInitPreview((bNodeTree *)node->id, xsize, ysize);
-	}		
+	}
 }
 
 static void nodeClearPreview(bNode *node)
@@ -883,7 +883,7 @@ void ntreeClearPreview(bNodeTree *ntree)
 			nodeClearPreview(node);
 		if (node->type == NODE_GROUP && (node->flag & NODE_GROUP_EDIT))
 			ntreeClearPreview((bNodeTree *)node->id);
-	}		
+	}
 }
 
 /* hack warning! this function is only used for shader previews, and 

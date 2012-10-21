@@ -93,7 +93,7 @@ typedef struct Ipo {
 	rctf cur;					/* Rect defining extents of keyframes? */
 	
 	short blocktype, showkey;	/* blocktype: self-explanatory; showkey: either 0 or 1 (show vertical yellow lines for editing) */
-	short muteipo, pad;			/* muteipo: either 0 or 1 (whether ipo block is muted) */	
+	short muteipo, pad;			/* muteipo: either 0 or 1 (whether ipo block is muted) */
 } Ipo;
 
 /* ----------- adrcodes (for matching ipo-curves to data) ------------- */

@@ -36,14 +36,14 @@
 
 /* **************** SCALAR MATH ******************** */ 
 static bNodeSocketTemplate inputs[]= { 
-	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE}, 
-	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE}, 
-	{ -1, 0, "" } 
+	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
+	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -100.0f, 100.0f, PROP_NONE},
+	{ -1, 0, "" }
 };
 
 static bNodeSocketTemplate outputs[]= { 
-	{ SOCK_FLOAT, 0, N_("Value")}, 
-	{ -1, 0, "" } 
+	{ SOCK_FLOAT, 0, N_("Value")},
+	{ -1, 0, "" }
 };
 
 static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
@@ -178,7 +178,7 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		fprintf(stderr,
 			"%s:%d: unhandeld value in switch statement: %d\n",
 			__FILE__, __LINE__, node->custom1);
-	} 
+	}
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

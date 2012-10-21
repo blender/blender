@@ -499,7 +499,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	}
 		
 	/* always call, checks for gamma, gamma tables and jitter too */
-	make_sample_tables(re);	
+	make_sample_tables(re);
 	
 	/* if preview render, we try to keep old result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
@@ -984,7 +984,7 @@ static void addblur_rect_key(RenderResult *rr, float *rectf, float *rectf1, floa
 					rf[1] = mfac * rf[1] + blurfac * rf1[1];
 					rf[2] = mfac * rf[2] + blurfac * rf1[2];
 					rf[3] = mfac * rf[3] + blurfac * rf1[3];
-				}				
+				}
 			}
 		}
 		rectf += stride;
@@ -1076,7 +1076,7 @@ static void do_render_blur_3d(Render *re)
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay = render_get_active_layer(re, re->result);
-	re->display_draw(re->ddh, re->result, NULL);	
+	re->display_draw(re->ddh, re->result, NULL);
 }
 
 
@@ -1567,7 +1567,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		ntreeFreeCache(ntree);
 		
 		do_render_fields_blur_3d(re);
-	} 
+	}
 	else {
 		/* ensure new result gets added, like for regular renders */
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
@@ -2140,7 +2140,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		IMB_freeImBuf(ibuf);
 
 		printf("Append frame %d", scene->r.cfra);
-	} 
+	}
 	else {
 		if (name_override)
 			BLI_strncpy(name, name_override, sizeof(name));

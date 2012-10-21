@@ -77,7 +77,7 @@ RTBuilder *rtbuild_create(int size)
 	for (int i = 0; i < 3; i++) {
 		builder->sorted_begin[i] = (RTBuilder::Object **)MEM_mallocN(sizeof(RTBuilder::Object *) * size, "RTBuilder.sorted_objects");
 		builder->sorted_end[i]   = builder->sorted_begin[i];
-	} 
+	}
 	
 
 	return builder;
@@ -224,7 +224,7 @@ int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 	Mleafs_per_child = s / nchilds;
 	mleafs_per_child = Mleafs_per_child / nchilds;
 	
-	//split min leafs per child	
+	//split min leafs per child
 	b->child_offset[0] = 0;
 	for (i = 1; i <= nchilds; i++)
 		b->child_offset[i] = mleafs_per_child;
@@ -295,7 +295,7 @@ int rtbuild_median_split(RTBuilder *b, float *separators, int nchilds, int axis)
 				return rtbuild_mean_split(b, nchilds, axis);
 		
 		return nchilds;
-	}	
+	}
 }
 
 int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds)
@@ -324,7 +324,7 @@ struct SweepCost {
 /* Object Surface Area Heuristic splitter */
 int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 {
-	int size = rtbuild_size(b);		
+	int size = rtbuild_size(b);
 	assert(nchilds == 2);
 	assert(size > 1);
 	int baxis = -1, boffset = 0;
@@ -429,7 +429,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 	for (int i = 0; i < 3; i++)
 		std::stable_partition(b->sorted_begin[i], b->sorted_end[i], selected_node);
 
-	return nchilds;		
+	return nchilds;
 }
 
 /*
@@ -494,7 +494,7 @@ int bb_largest_axis(const float min[3], const float max[3])
 			return 1;
 		else
 			return 2;
-	}	
+	}
 }
 
 /* only returns 0 if merging inner and outerbox would create a box larger than outer box */
@@ -508,5 +508,5 @@ int bb_fits_inside(const float outer_min[3], const float outer_max[3],
 	for (i = 0; i < 3; i++)
 		if (outer_max[i] < inner_max[i]) return 0;
 
-	return 1;	
+	return 1;
 }

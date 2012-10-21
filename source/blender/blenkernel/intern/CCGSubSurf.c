@@ -868,7 +868,7 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, int subdivLevels, CCGAllocatorIFC *a
 		ss->oldVMap = ss->oldEMap = ss->oldFMap = NULL;
 		ss->lenTempArrays = 0;
 		ss->tempVerts = NULL;
-		ss->tempEdges = NULL;	
+		ss->tempEdges = NULL;
 
 		return ss;
 	}

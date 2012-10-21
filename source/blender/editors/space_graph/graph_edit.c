@@ -332,7 +332,7 @@ static void create_ghost_curves(bAnimContext *ac, int start, int end)
 		ChannelDriver *driver = fcu->driver;
 		FPoint *fpt;
 		float unitFac;
-		int cfra;		
+		int cfra;
 		
 		/* disable driver so that it don't muck up the sampling process */
 		fcu->driver = NULL;
@@ -724,7 +724,7 @@ static int graphkeys_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* copy keyframes */
-	if (copy_graph_keys(&ac)) {	
+	if (copy_graph_keys(&ac)) {
 		BKE_report(op->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
 		return OPERATOR_CANCELLED;
 	}
@@ -1824,17 +1824,17 @@ void GRAPH_OT_frame_jump(wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 static EnumPropertyItem prop_graphkeys_snap_types[] = {
-	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current Frame", 
+	{GRAPHKEYS_SNAP_CFRA, "CFRA", 0, "Current Frame",
 	 "Snap selected keyframes to the current frame"},
-	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value", 
+	{GRAPHKEYS_SNAP_VALUE, "VALUE", 0, "Cursor Value",
 	 "Set values of selected keyframes to the cursor value (Y/Horizontal component)"},
-	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", 
+	{GRAPHKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame",
 	 "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame offsets)"},
-	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", 
+	{GRAPHKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second",
 	 "Snap selected keyframes to the nearest second"},
-	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", 
+	{GRAPHKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker",
 	 "Snap selected keyframes to the nearest marker"},
-	{GRAPHKEYS_SNAP_HORIZONTAL, "HORIZONTAL", 0, "Flatten Handles", 
+	{GRAPHKEYS_SNAP_HORIZONTAL, "HORIZONTAL", 0, "Flatten Handles",
 	 "Flatten handles for a smoother transition"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -1938,15 +1938,15 @@ void GRAPH_OT_snap(wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 static EnumPropertyItem prop_graphkeys_mirror_types[] = {
-	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame", 
+	{GRAPHKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current Frame",
 	 "Flip times of selected keyframes using the current frame as the mirror line"},
-	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value", 
+	{GRAPHKEYS_MIRROR_VALUE, "VALUE", 0, "By Values over Cursor Value",
 	 "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"},
-	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", 
+	{GRAPHKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0",
 	 "Flip times of selected keyframes, effectively reversing the order they appear in"},
-	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", 
+	{GRAPHKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0",
 	 "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"},
-	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", 
+	{GRAPHKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker",
 	 "Flip times of selected keyframes using the first selected marker as the reference point"},
 	{0, NULL, 0, NULL, NULL}
 };

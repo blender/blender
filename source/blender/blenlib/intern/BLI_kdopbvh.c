@@ -1469,7 +1469,7 @@ static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 		}
 		else {
 			node = node->children[0];
-		}	
+		}
 	}
 }
 #endif

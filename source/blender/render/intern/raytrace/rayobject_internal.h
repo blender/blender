@@ -50,7 +50,7 @@ typedef int  (*RE_rayobjectcontrol_test_break_callback)(void *data);
 
 typedef struct RayObjectControl {
 	void *data;
-	RE_rayobjectcontrol_test_break_callback test_break;	
+	RE_rayobjectcontrol_test_break_callback test_break;
 } RayObjectControl;
 
 /* Returns true if for some reason a heavy processing function should stop

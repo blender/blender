@@ -921,7 +921,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		return OPERATOR_FINISHED;
 	}
-	else {		
+	else {
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
 
@@ -1354,7 +1354,7 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 
 		ED_region_tag_redraw(CTX_wm_region(C));
-		viewops_data_free(C, op);	
+		viewops_data_free(C, op);
 		return OPERATOR_FINISHED;
 	}
 }
@@ -1501,7 +1501,7 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		viewmove_apply(vod, event->prevx, event->prevy);
 		ED_view3d_depth_tag_update(vod->rv3d);
 		
-		viewops_data_free(C, op);		
+		viewops_data_free(C, op);
 		
 		return OPERATOR_FINISHED;
 	}

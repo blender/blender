@@ -671,7 +671,7 @@ int get_sample_layers(RenderPart *pa, RenderLayer *rl, RenderLayer **rlpp)
 			RenderResult *rr= BLI_findlink(&pa->fullresult, sample);
 		
 			rlpp[sample]= BLI_findlink(&rr->layers, nr);
-		}		
+		}
 		return R.osa;
 	}
 	else {
@@ -714,7 +714,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 						addAlphaUnderFloat(pass, col);
 					}
 				}
-			}			
+			}
 		}
 		
 		if (y&1)
@@ -772,8 +772,8 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 						if (*zrect >= 9.9e10f || rgbrect[3]==0.0f) {
 							continue;
 						}
-												
-						if ((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {	
+
+						if ((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {
 							float tmp_rgb[3];
 							
 							/* skip if worldspace lamp vector is below horizon */
@@ -928,7 +928,7 @@ static void addps(ListBase *lb, intptr_t *rd, int obi, int facenr, int z, int ma
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
 	
-	if (*rd) {	
+	if (*rd) {
 		ps= (PixStr *)(*rd);
 		
 		while (ps) {
@@ -2012,7 +2012,7 @@ void add_halo_flare(Render *re)
 		re->display_draw(re->ddh, rr, NULL);
 	}
 	
-	R.r.mode= mode;	
+	R.r.mode= mode;
 }
 
 /* ************************* bake ************************ */
@@ -2474,7 +2474,7 @@ static int get_next_bake_face(BakeShade *bs)
 		return 0;
 	}
 	
-	BLI_lock_thread(LOCK_CUSTOM1);	
+	BLI_lock_thread(LOCK_CUSTOM1);
 
 	for (; obi; obi=obi->next, v=0) {
 		obr= obi->obr;
@@ -2520,7 +2520,7 @@ static int get_next_bake_face(BakeShade *bs)
 
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
-					}				
+					}
 					
 					bs->obi= obi;
 					bs->vlr= vlr;
@@ -2557,7 +2557,7 @@ static void shade_tface(BakeShade *bs)
 		/* note, these calls only free/fill contents of zspan struct, not zspan itself */
 		zbuf_free_span(bs->zspan);
 		zbuf_alloc_span(bs->zspan, bs->ibuf->x, bs->ibuf->y, R.clipcrop);
-	}				
+	}
 	
 	bs->rectx= bs->ibuf->x;
 	bs->recty= bs->ibuf->y;

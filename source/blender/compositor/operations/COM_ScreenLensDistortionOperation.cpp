@@ -226,7 +226,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		UPDATE_INPUT;
 		determineUV(coords, input->xmax, input->ymin);
 		UPDATE_INPUT;
-	} 
+	}
 	else {
 		determineUV(coords, input->xmin, input->ymin, 1.0f, 1.0f);
 		newInput.xmin = coords[0];

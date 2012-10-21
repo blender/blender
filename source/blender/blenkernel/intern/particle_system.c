@@ -1583,7 +1583,7 @@ static void get_angular_velocity_vector(short avemode, ParticleKey *state, float
 	switch (avemode) {
 		case PART_AVE_VELOCITY:
 			copy_v3_v3(vec, state->vel);
-			break;	
+			break;
 		case PART_AVE_HORIZONTAL:
 		{
 			float zvec[3];
@@ -2537,7 +2537,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 		madd_v3_v3fl(force, vec, -(pressure + near_pressure*q)*q);
 
 		/* Viscosity */
-		if (visc > 0.f	|| stiff_visc > 0.f) {		
+		if (visc > 0.f  || stiff_visc > 0.f) {
 			sub_v3_v3v3(dv, vel, state->vel);
 			u = dot_v3v3(vec, dv);
 
@@ -3166,8 +3166,7 @@ void BKE_psys_collision_neartest_cb(void *userdata, int index, const BVHTreeRay 
 	if (col->hit == col->current && col->pce.index == index && col->pce.tot == 3)
 		return;
 
-	do
-	{	
+	do {
 		collision = collision_sphere_to_tri(col, ray->radius, &pce, &t);
 		if (col->pce.inside == 0) {
 			collision += collision_sphere_to_edges(col, ray->radius, &pce, &t);
@@ -4076,7 +4075,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 	{
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(sim->ob, eModifierType_Fluidsim);
 		
-		if ( fluidmd && fluidmd->fss) { 
+		if ( fluidmd && fluidmd->fss) {
 			FluidsimSettings *fss= fluidmd->fss;
 			ParticleSettings *part = psys->part;
 			ParticleData *pa=NULL;

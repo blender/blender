@@ -436,7 +436,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 	parameters->image_offset_y0 = 0;
 
 	/*Codeblock size = 32 * 32*/
-	parameters->cblockw_init = 32;	
+	parameters->cblockw_init = 32;
 	parameters->cblockh_init = 32;
 	parameters->csty |= 0x01;
 
@@ -602,7 +602,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 		prec = 12;
 		numcomps = 3;
 	}
-	else { 
+	else {
 		/* Get settings from the imbuf */
 		color_space = (ibuf->ftype & JP2_YCC) ? CLRSPC_SYCC : CLRSPC_SRGB;
 		

@@ -215,7 +215,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			if (totlen != 0.0f) {
 				float zero[3] = {0.0f, 0.0f, 0.0f};
-				float cp[3];				
+				float cp[3];
 				screw_ofs = closest_to_line_v3(cp, mtx_tx[3], zero, axis_vec);
 			}
 			else {
@@ -831,7 +831,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 		
 		/* close the loop*/
-		if (close) { 
+		if (close) {
 			if (do_flip) {
 				ml_new[3].v = i1;
 				ml_new[2].v = i2;

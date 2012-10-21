@@ -86,7 +86,7 @@ typedef struct Material {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
-	short material_type, flag;	
+	short material_type, flag;
 	/* note, keep this below synced with render_types.h */
 	float r, g, b;
 	float specr, specg, specb;
@@ -156,7 +156,7 @@ typedef struct Material {
 	float rampfac_col, rampfac_spec;
 
 	struct MTex *mtex[18];		/* MAX_MTEX */
-	struct bNodeTree *nodetree;	
+	struct bNodeTree *nodetree;
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Group *group;	/* light group */
 	struct PreviewImage *preview;

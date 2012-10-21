@@ -228,11 +228,11 @@ STR_String& KX_GameObject::GetName()
 }
 
 
-
+/* Set the name of the value */
 void KX_GameObject::SetName(const char *name)
 {
 	m_name = name;
-};								// Set the name of the value
+}
 
 KX_IPhysicsController* KX_GameObject::GetPhysicsController()
 {
@@ -241,7 +241,7 @@ KX_IPhysicsController* KX_GameObject::GetPhysicsController()
 
 KX_GameObject* KX_GameObject::GetDupliGroupObject()
 { 
-	return m_pDupliGroupObject;	
+	return m_pDupliGroupObject;
 }
 
 CListValue* KX_GameObject::GetInstanceObjects()
@@ -251,11 +251,11 @@ CListValue* KX_GameObject::GetInstanceObjects()
 
 void KX_GameObject::AddInstanceObjects(KX_GameObject* obj)
 {
-	if(!m_pInstanceObjects)
+	if (!m_pInstanceObjects)
 		m_pInstanceObjects = new CListValue();
 
 	obj->AddRef();
-  	m_pInstanceObjects->Add(obj);
+	m_pInstanceObjects->Add(obj);
 }
 
 void KX_GameObject::RemoveInstanceObject(KX_GameObject* obj)
@@ -267,7 +267,7 @@ void KX_GameObject::RemoveInstanceObject(KX_GameObject* obj)
 
 void KX_GameObject::RemoveDupliGroupObject()
 {
-	if(m_pDupliGroupObject) {
+	if (m_pDupliGroupObject) {
 		m_pDupliGroupObject->Release();
 		m_pDupliGroupObject = NULL;
 	}

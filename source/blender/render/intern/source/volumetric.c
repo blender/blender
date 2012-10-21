@@ -76,7 +76,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 	if (lar->shb) {
 		float dxco[3] = {0.f, 0.f, 0.f}, dyco[3] = {0.f, 0.f, 0.f};
 		
-		visibility = testshadowbuf(&R, lar->shb, co, dxco, dyco, 1.0, 0.0);		
+		visibility = testshadowbuf(&R, lar->shb, co, dxco, dyco, 1.0, 0.0);
 	}
 	else if (lar->mode & LA_SHAD_RAY) {
 		/* trace shadow manually, no good lamp api atm */
@@ -205,7 +205,7 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, const float co[3], f
 	else {
 		shadeSkyView(col_r, co, shi->view, NULL, shi->thread);
 		shadeSunView(col_r, shi->view);
-	} 
+	}
 }
 
 
@@ -221,7 +221,7 @@ static void vol_get_precached_scattering(Render *re, ShadeInput *shi, float scat
 	/* find sample point in global space bounding box 0.0-1.0 */
 	global_bounds_obi(re, shi->obi, bbmin, bbmax);
 	sub_v3_v3v3(dim, bbmax, bbmin);
-	mul_v3_m4v3(world_co, re->viewinv, co);	
+	mul_v3_m4v3(world_co, re->viewinv, co);
 
 	/* sample_co in 0.0-1.0 */
 	sample_co[0] = (world_co[0] - bbmin[0]) / dim[0];

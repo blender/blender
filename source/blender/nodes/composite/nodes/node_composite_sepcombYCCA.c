@@ -296,7 +296,7 @@ static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeSt
 		}
 
 		out[0]->data= stackbuf;
-	}	
+	}
 }
 
 #endif  /* WITH_COMPOSITOR_LEGACY */

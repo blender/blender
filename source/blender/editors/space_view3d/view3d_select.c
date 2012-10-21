@@ -165,7 +165,7 @@ void view3d_get_transformation(const ARegion *ar, RegionView3D *rv3d, Object *ob
 	mats->viewport[0] = ar->winrct.xmin;
 	mats->viewport[1] = ar->winrct.ymin;
 	mats->viewport[2] = ar->winx;
-	mats->viewport[3] = ar->winy;	
+	mats->viewport[3] = ar->winy;
 }
 
 /* ********************** view3d_select: selection manipulations ********************* */

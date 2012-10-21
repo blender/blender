@@ -1547,7 +1547,7 @@ void rename_id(ID *id, const char *name)
 	BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
 	lb = which_libbase(G.main, GS(id->name) );
 	
-	new_id(lb, id, name);				
+	new_id(lb, id, name);
 }
 
 void name_uiprefix_id(char *name, ID *id)

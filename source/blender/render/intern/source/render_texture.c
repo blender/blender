@@ -303,7 +303,7 @@ static float tex_tri(float a)
 /* computes basic wood intensity value at x,y,z */
 static float wood_int(Tex *tex, float x, float y, float z)
 {
-	float wi=0;						
+	float wi = 0;
 	short wf = tex->noisebasis2;	/* wave form:	TEX_SIN=0,  TEX_SAW=1,  TEX_TRI=2						 */
 	short wt = tex->stype;			/* wood type:	TEX_BAND=0, TEX_RING=1, TEX_BANDNOISE=2, TEX_RINGNOISE=3 */
 
@@ -374,7 +374,7 @@ static float marble_int(Tex *tex, float x, float y, float z)
 		mi = waveform[wf](mi);
 		if (mt==TEX_SHARP) {
 			mi = sqrt(mi);
-		} 
+		}
 		else if (mt==TEX_SHARPER) {
 			mi = sqrt(sqrt(mi));
 		}
@@ -494,7 +494,7 @@ static int stucci(Tex *tex, const float texvec[3], TexResult *texres)
 
 	if (tex->stype) ofs*=(b2*b2);
 	nor[0] = BLI_gNoise(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
-	nor[1] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);	
+	nor[1] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 	nor[2] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2]+ofs, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 
 	texres->tin= nor[2];
@@ -769,7 +769,7 @@ static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1
 	else {
 		*adr1 = (y + 1.0f) / 2.0f;
 		*adr2 = (z + 1.0f) / 2.0f;
-		ret= 2;		
+		ret= 2;
 	}
 	return ret;
 }
@@ -824,8 +824,8 @@ static int cubemap(MTex *mtex, VlakRen *vlr, const float n[3], float x, float y,
 			*adr1 = (y + 1.0f) / 2.0f;
 			*adr2 = (z + 1.0f) / 2.0f;
 			ret= 2;
-		}		
-	} 
+		}
+	}
 	else {
 		return cubemap_glob(n, x, y, z, adr1, adr2);
 	}
@@ -862,7 +862,7 @@ static int cubemap_ob(Object *ob, const float n[3], float x, float y, float z, f
 	else {
 		*adr1 = (y + 1.0f) / 2.0f;
 		*adr2 = (z + 1.0f) / 2.0f;
-		ret= 2;		
+		ret= 2;
 	}
 	return ret;
 }
@@ -971,7 +971,7 @@ static void do_2d_mapping(MTex *mtex, float texvec[3], VlakRen *vlr, const float
 					map_to_tube(area + 2, area + 3, texvec[0] + dxt[0], texvec[1] + dxt[1], texvec[2] + dxt[2]);
 					map_to_tube(area + 4, area + 5, texvec[0] + dyt[0], texvec[1] + dyt[1], texvec[2] + dyt[2]);
 				}
-				else { 
+				else {
 					map_to_sphere(area, area+1, texvec[0], texvec[1], texvec[2]);
 					map_to_sphere(area + 2, area + 3, texvec[0] + dxt[0], texvec[1] + dxt[1], texvec[2] + dxt[2]);
 					map_to_sphere(area + 4, area + 5, texvec[0] + dyt[0], texvec[1] + dyt[1], texvec[2] + dyt[2]);
@@ -2664,8 +2664,8 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float col_
 					copy_v3_v3(co, xyz);
 					if (mtex->texflag & MTEX_OB_DUPLI_ORIG) {
 						if (shi->obi && shi->obi->duplitexmat)
-							mul_m4_v3(shi->obi->duplitexmat, co);					
-					} 
+							mul_m4_v3(shi->obi->duplitexmat, co);
+					}
 					mul_m4_v3(ob->imat_ren, co);
 
 					if (mtex->texflag & MTEX_MAPTO_BOUNDS && ob->bb) {
@@ -3078,7 +3078,7 @@ void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float h
 				break;
 			}
 			
-			/* placement */			
+			/* placement */
 			if (mtex->projx) texvec[0]= mtex->size[0]*(co[mtex->projx-1]+mtex->ofs[0]);
 			else texvec[0]= mtex->size[0]*(mtex->ofs[0]);
 			
@@ -3241,7 +3241,7 @@ void do_lamp_tex(LampRen *la, const float lavec[3], ShadeInput *shi, float col_r
 				}
 				co= tempvec; 
 				
-				dx= dxt; dy= dyt;	
+				dx= dxt; dy= dyt;
 				if (shi->osatex) {
 					copy_v3_v3(dxt, shi->dxlv);
 					copy_v3_v3(dyt, shi->dylv);

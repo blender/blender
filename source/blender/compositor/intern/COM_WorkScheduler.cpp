@@ -332,10 +332,10 @@ void WorkScheduler::initialize(bool use_opencl)
 				const char *cl_str[2] = {datatoc_COM_OpenCLKernels_cl, NULL};
 				g_program = clCreateProgramWithSource(g_context, 1, cl_str, 0, &error);
 				error = clBuildProgram(g_program, numberOfDevices, cldevices, 0, 0, 0);
-				if (error != CL_SUCCESS) { 
+				if (error != CL_SUCCESS) {
 					cl_int error2;
 					size_t ret_val_size = 0;
-					printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	
+					printf("CLERROR[%d]: %s\n", error, clewErrorString(error));
 					error2 = clGetProgramBuildInfo(g_program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 					if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
 					char *build_log = (char *)MEM_mallocN(sizeof(char) * ret_val_size + 1, __func__);

@@ -1436,8 +1436,8 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 		if (i != mi) {
 			dx = uvs[mi][0] - uvs[i][0];
 			if (dx > 0.5f) uvs[i][0] += 1.0f;
-		} 
-	} 
+		}
+	}
 
 	BLI_array_fixedstack_free(uvs);
 }

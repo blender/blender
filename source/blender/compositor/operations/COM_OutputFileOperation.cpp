@@ -149,7 +149,7 @@ void OutputSingleLayerOperation::deinitExecution()
 		else
 			printf("Saved: %s\n", filename);
 		
-		IMB_freeImBuf(ibuf);	
+		IMB_freeImBuf(ibuf);
 	}
 	this->m_outputBuffer = NULL;
 	this->m_imageInput = NULL;

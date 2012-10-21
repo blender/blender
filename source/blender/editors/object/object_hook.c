@@ -667,7 +667,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {     /* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd = ptr.data;
-	} 
+	}
 	else {          /* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
@@ -735,7 +735,7 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {  /* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd = ptr.data;
-	} 
+	}
 	else {  /* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
@@ -793,7 +793,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {     /* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd = ptr.data;
-	} 
+	}
 	else {          /* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
@@ -855,7 +855,7 @@ static int object_hook_select_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {     /* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd = ptr.data;
-	} 
+	}
 	else {          /* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);

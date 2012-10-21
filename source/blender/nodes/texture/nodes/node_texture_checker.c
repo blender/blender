@@ -62,7 +62,7 @@ static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **
 	}
 	else {
 		tex_input_rgba(out, in[1], p, thread);
-	} 
+	}
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

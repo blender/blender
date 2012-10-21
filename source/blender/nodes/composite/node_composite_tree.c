@@ -301,7 +301,7 @@ struct bNodeTreeExec *ntreeCompositBeginExecTree(bNodeTree *ntree, int use_tree_
 	
 	for (node= exec->nodetree->nodes.first; node; node= node->next) {
 		/* initialize needed for groups */
-		node->exec= 0;	
+		node->exec= 0;
 		
 		for (sock= node->outputs.first; sock; sock= sock->next) {
 			bNodeStack *ns= node_get_socket_stack(exec->stack, sock);

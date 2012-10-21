@@ -151,7 +151,7 @@ float BKE_camera_object_dof_distance(Object *ob)
 	Camera *cam = (Camera *)ob->data; 
 	if (ob->type != OB_CAMERA)
 		return 0.0f;
-	if (cam->dof_ob) {	
+	if (cam->dof_ob) {
 		/* too simple, better to return the distance on the view axis only
 		 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
 		float mat[4][4], imat[4][4], obmat[4][4];

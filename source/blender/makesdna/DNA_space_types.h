@@ -792,10 +792,10 @@ typedef struct SpaceText {
 	float blockscale DNA_DEPRECATED;
 	short blockhandler[8]  DNA_DEPRECATED;
 
-	struct Text *text;	
+	struct Text *text;
 
 	int top, viewlines;
-	short flags, menunr;	
+	short flags, menunr;
 
 	short lheight;      /* user preference */
 	char cwidth, linenrs_tot;       /* runtime computed, character width and the number of chars to use when showing line numbers */

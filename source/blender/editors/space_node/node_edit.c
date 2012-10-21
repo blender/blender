@@ -1972,7 +1972,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 
 			/* transform to basic view space. child node location is relative to parent */
-			if (!new_node->parent) {	
+			if (!new_node->parent) {
 				new_node->locx += gnode_x;
 				new_node->locy += gnode_y;
 			}

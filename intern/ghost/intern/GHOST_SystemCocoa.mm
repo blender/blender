@@ -966,7 +966,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 			//Resend event to NSApp to ensure Mac wide events are handled
 			[NSApp sendEvent:event];
 			[pool drain];
-		} while (event!= nil);		
+		} while (event != nil);
 #if 0
 	} while (waitForEvent && !anyProcessed); // Needed only for timer implementation
 #endif
@@ -1052,7 +1052,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 			case GHOST_kEventWindowSize:
 				if (!m_ignoreWindowSizedMessages)
 				{
-					//Enforce only one resize message per event loop (coalescing all the live resize messages)					
+					//Enforce only one resize message per event loop (coalescing all the live resize messages)
 					window->updateDrawingContext();
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
 					//Mouse up event is trapped by the resizing event loop, so send it anyway to the window manager
@@ -1089,7 +1089,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 			GHOST_TUns8 * temp_buff;
 			GHOST_TStringArray *strArray;
 			NSArray *droppedArray;
-			size_t pastedTextSize;	
+			size_t pastedTextSize;
 			NSString *droppedStr;
 			GHOST_TEventDataPtr eventData;
 			int i;
@@ -1126,7 +1126,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 						strArray->strings[i] = temp_buff;
 					}
 
-					eventData = (GHOST_TEventDataPtr) strArray;	
+					eventData = (GHOST_TEventDataPtr) strArray;
 					break;
 					
 				case GHOST_kDragnDropTypeString:
@@ -1326,7 +1326,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 	int confirmOpen = NSAlertAlternateReturn;
 	NSArray *windowsList;
 	char * temp_buff;
-	size_t filenameTextSize;	
+	size_t filenameTextSize;
 	GHOST_Window* window= (GHOST_Window*)m_windowManager->getActiveWindow();
 	
 	if (!window) {
@@ -1475,7 +1475,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			
 		case NSLeftMouseDragged:
 		case NSRightMouseDragged:
-		case NSOtherMouseDragged:				
+		case NSOtherMouseDragged:
 			//Handle tablet events combined with mouse events
 			handleTabletEvent(event);
 			
@@ -1743,7 +1743,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 GHOST_TUns8* GHOST_SystemCocoa::getClipboard(bool selection) const
 {
 	GHOST_TUns8 * temp_buff;
-	size_t pastedTextSize;	
+	size_t pastedTextSize;
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	

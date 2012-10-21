@@ -82,7 +82,7 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 		outputrect.ymin=MIN2(ntxy->y1, ntxy->y2);
 
 		if (node->custom1) {
-			/* this option crops the image size too  */	
+			/* this option crops the image size too  */
 			stackbuf= get_cropped_compbuf(&outputrect, cbuf->rect, cbuf->x, cbuf->y, cbuf->type);
 		}
 		else {

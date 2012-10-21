@@ -141,7 +141,7 @@ void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 	if (listbase == NULL) return;
 	
 	/* empty list */
-	if (listbase->first == NULL) { 
+	if (listbase->first == NULL) {
 		
 		listbase->first = newlink;
 		listbase->last = newlink;
@@ -149,7 +149,7 @@ void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 	}
 	
 	/* insert before first element */
-	if (prevlink == NULL) {	
+	if (prevlink == NULL) {
 		newlink->next = listbase->first;
 		newlink->prev = NULL;
 		newlink->next->prev = newlink;
@@ -203,14 +203,14 @@ void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
 	if (listbase == NULL) return;
 
 	/* empty list */
-	if (listbase->first == NULL) { 
+	if (listbase->first == NULL) {
 		listbase->first = newlink;
 		listbase->last = newlink;
 		return;
 	}
 	
 	/* insert at head of list */
-	if (prevlink == NULL) {	
+	if (prevlink == NULL) {
 		newlink->prev = NULL;
 		newlink->next = listbase->first;
 		((Link *)listbase->first)->prev = newlink;
@@ -238,14 +238,14 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 	if (listbase == NULL) return;
 
 	/* empty list */
-	if (listbase->first == NULL) { 
+	if (listbase->first == NULL) {
 		listbase->first = newlink;
 		listbase->last = newlink;
 		return;
 	}
 	
 	/* insert at end of list */
-	if (nextlink == NULL) {	
+	if (nextlink == NULL) {
 		newlink->prev = listbase->last;
 		newlink->next = NULL;
 		((Link *)listbase->last)->next = newlink;

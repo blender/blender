@@ -466,7 +466,7 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					if (wm_job->flag & WM_JOB_PROGRESS)
 						WM_event_add_notifier(C, NC_WM | ND_JOB, NULL);
 					wm_job->do_update = FALSE;
-				}	
+				}
 				
 				if (wm_job->ready) {
 					if (wm_job->endjob)

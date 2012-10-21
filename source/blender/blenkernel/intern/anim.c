@@ -824,7 +824,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_ind
 			ok = (ok < ob->dupon);
 		}
 		
-		if (ok) {	
+		if (ok) {
 			DupliObject *dob;
 			
 			/* WARNING: doing animation updates in this way is not terribly accurate, as the dependencies
@@ -970,7 +970,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	}
 	
 	/* Start looping on Scene OR Group objects */
-	while (base || go) { 
+	while (base || go) {
 		if (sce) {
 			ob_iter = base->object;
 			oblay = base->lay;
@@ -1104,7 +1104,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	}
 	
 	/* Start looping on Scene OR Group objects */
-	while (base || go) { 
+	while (base || go) {
 		if (sce) {
 			ob_iter = base->object;
 			oblay = base->lay;

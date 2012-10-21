@@ -502,7 +502,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		if (copy_action_keys(&ac)) {	
+		if (copy_action_keys(&ac)) {
 			BKE_report(op->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
 			return OPERATOR_CANCELLED;
 		}
@@ -1319,7 +1319,7 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
-	/* init edit data */	
+	/* init edit data */
 	/* loop over action data, averaging values */
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY */ | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -1369,13 +1369,13 @@ void ACTION_OT_frame_jump(wmOperatorType *ot)
 
 /* defines for snap keyframes tool */
 static EnumPropertyItem prop_actkeys_snap_types[] = {
-	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame", 
+	{ACTKEYS_SNAP_CFRA, "CFRA", 0, "Current frame",
 	 "Snap selected keyframes to the current frame"},
-	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame", 
+	{ACTKEYS_SNAP_NEAREST_FRAME, "NEAREST_FRAME", 0, "Nearest Frame",
 	 "Snap selected keyframes to the nearest (whole) frame (use to fix accidental sub-frame offsets)"},
-	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second", 
+	{ACTKEYS_SNAP_NEAREST_SECOND, "NEAREST_SECOND", 0, "Nearest Second",
 	 "Snap selected keyframes to the nearest second"},
-	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker", 
+	{ACTKEYS_SNAP_NEAREST_MARKER, "NEAREST_MARKER", 0, "Nearest Marker",
 	 "Snap selected keyframes to the nearest marker"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -1477,11 +1477,11 @@ void ACTION_OT_snap(wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 static EnumPropertyItem prop_actkeys_mirror_types[] = {
-	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", 
+	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame",
 	 "Flip times of selected keyframes using the current frame as the mirror line"},
-	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", 
+	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0",
 	 "Flip values of selected keyframes (i.e. negative values become positive, and vice versa)"},
-	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", 
+	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker",
 	 "Flip times of selected keyframes using the first selected marker as the reference point"},
 	{0, NULL, 0, NULL, NULL}
 };

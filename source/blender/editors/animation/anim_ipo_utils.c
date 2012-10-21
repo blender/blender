@@ -89,7 +89,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 *		i.e. Bone1.Location.X, or Object.Location.X
 			 *	2) <array-index> <property-name> (<struct name>)
 			 *		i.e. X Location (Bone1), or X Location (Object)
-			 *	
+			 *
 			 * Currently, option 2 is in use, to try and make it easier to quickly identify F-Curves (it does have
 			 * problems with looking rather odd though). Option 1 is better in terms of revealing a consistent sense of 
 			 * hierarchy though, which isn't so clear with option 2.

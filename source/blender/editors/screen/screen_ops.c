@@ -192,7 +192,7 @@ int ED_operator_region_view3d_active(bContext *C)
 		return TRUE;
 
 	CTX_wm_operator_poll_msg_set(C, "expected a view3d region");
-	return FALSE;	
+	return FALSE;
 }
 
 /* generic for any view2d which uses anim_ops */
@@ -580,7 +580,7 @@ static int actionzone_area_poll(bContext *C)
 		for (az = sa->actionzones.first; az; az = az->next)
 			if (BLI_rcti_isect_pt(&az->rect, x, y))
 				return 1;
-	}	
+	}
 	return 0;
 }
 
@@ -701,7 +701,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case ESCKEY:
 			actionzone_exit(op);
 			return OPERATOR_CANCELLED;
-		case LEFTMOUSE:				
+		case LEFTMOUSE:
 			actionzone_exit(op);
 			return OPERATOR_CANCELLED;
 			
@@ -1341,7 +1341,7 @@ static int area_split_apply(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
 		
 		return 1;
-	}		
+	}
 	
 	return 0;
 }
@@ -1691,7 +1691,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	AZone *az;
 	
 	if (event->type != EVT_ACTIONZONE_REGION) {
-		BKE_report(op->reports, RPT_ERROR, "Can only scale region size from an action zone");	
+		BKE_report(op->reports, RPT_ERROR, "Can only scale region size from an action zone");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -2359,14 +2359,14 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ScrArea *sa = screen_areahascursor(sc, event->x, event->y);
 			int dir;
 			
-			if (sa) {					
+			if (sa) {
 				if (jd->sa1 != sa) {
 					dir = area_getorientation(jd->sa1, sa);
 					if (dir >= 0) {
 						if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 						jd->sa2 = sa;
 						jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-					} 
+					}
 					else {
 						/* we are not bordering on the previously selected area 
 						 * we check if area has common border with the one marked for removal
@@ -2380,14 +2380,14 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 							jd->sa2 = sa;
 							if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
 							if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-						} 
+						}
 						else {
 							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 							jd->sa2 = NULL;
 						}
 					}
 					WM_event_add_notifier(C, NC_WINDOW, NULL);
-				} 
+				}
 				else {
 					/* we are back in the area previously selected for keeping 
 					 * we swap the areas if possible to allow user to choose */
@@ -2402,7 +2402,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 						if (dir < 0) {
 							printf("oops, didn't expect that!\n");
 						}
-					} 
+					}
 					else {
 						dir = area_getorientation(jd->sa1, sa);
 						if (dir >= 0) {
@@ -2837,7 +2837,7 @@ static int header_flip_exec(bContext *C, wmOperator *UNUSED(op))
 		/* don't do anything if no region */
 		if (ar == NULL)
 			return OPERATOR_CANCELLED;
-	}	
+	}
 	
 	/* copied from SCREEN_OT_region_flip */
 	if (ar->alignment == RGN_ALIGN_TOP)
@@ -3574,7 +3574,7 @@ void ED_operatortypes_screen(void)
 	/* tools shared by more space types */
 	WM_operatortype_append(ED_OT_undo);
 	WM_operatortype_append(ED_OT_undo_push);
-	WM_operatortype_append(ED_OT_redo);	
+	WM_operatortype_append(ED_OT_redo);
 	WM_operatortype_append(ED_OT_undo_history);
 	
 }

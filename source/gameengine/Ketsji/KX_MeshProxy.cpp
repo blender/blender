@@ -239,7 +239,7 @@ PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat); 	 
 			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}
-		else { 	
+		else {
 			KX_PolygonMaterial *mat = static_cast<KX_PolygonMaterial*>(polymat);
 			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}

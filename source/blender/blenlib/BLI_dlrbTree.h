@@ -46,7 +46,7 @@
 /* Basic Layout for a Node */
 typedef struct DLRBT_Node {
 	/* ListBase capabilities */
-	struct DLRBT_Node *next, *prev;		
+	struct DLRBT_Node *next, *prev;
 	
 	/* Tree Associativity settings */
 	struct DLRBT_Node *left, *right;

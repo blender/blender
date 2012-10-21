@@ -184,7 +184,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags, char co
 					rect += 4; bmp += 3;
 				}
 				/* for 24-bit images, rows are padded to multiples of 4 */
-				bmp += x % 4;	
+				bmp += x % 4;
 			}
 		}
 		else if (depth == 32) {

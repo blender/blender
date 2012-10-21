@@ -2766,7 +2766,7 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 				
 				break;
 			}
-		}	
+		}
 		lastdist = dist;
 	}
 	return perc;

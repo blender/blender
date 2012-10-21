@@ -680,7 +680,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 		seqn = BKE_sequence_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
-	if (seqn) { 
+	if (seqn) {
 		seqn->flag |= SELECT;
 			
 		/* Second Strip! */
@@ -701,7 +701,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 			seqn->anim_startofs += cutframe - ts.start;
 			seqn->anim_endofs = ts.anim_endofs;
 			seqn->endstill = ts.endstill;
-		}				
+		}
 		
 		/* strips with extended stillframes after */
 		else if (((seqn->start + seqn->len) < cutframe) && (seqn->endstill)) {
@@ -773,7 +773,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 		seqn = BKE_sequence_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
-	if (seqn) { 
+	if (seqn) {
 		seqn->flag |= SELECT;
 			
 		/* Second Strip! */
@@ -791,7 +791,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 			seqn->startofs = cutframe - ts.start;
 			seqn->endofs = ts.endofs;
 			seqn->endstill = ts.endstill;
-		}				
+		}
 		
 		/* strips with extended stillframes after */
 		else if (((seqn->start + seqn->len) < cutframe) && (seqn->endstill)) {

@@ -96,7 +96,7 @@ static int svbvh_bb_intersect_test(const Isect *isec, const float *_bb)
 	if (t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
 	if (t1x > isec->dist || t1y > isec->dist || t1z > isec->dist) return 0;
 
-	RE_RC_COUNT(isec->raycounter->bb.hit);	
+	RE_RC_COUNT(isec->raycounter->bb.hit);
 
 	return 1;
 }
@@ -307,7 +307,7 @@ struct Reorganize_SVBVH {
 		prepare_for_simd(node);
 		
 		return node;
-	}	
+	}
 };
 
 #endif  /* __SSE__ */

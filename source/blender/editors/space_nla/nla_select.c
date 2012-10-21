@@ -390,7 +390,7 @@ static void nlaedit_select_leftright(bContext *C, bAnimContext *ac, short leftri
 	if (leftright == NLAEDIT_LRSEL_LEFT) {
 		xmin = MINAFRAMEF;
 		xmax = (float)(CFRA + 0.1f);
-	} 
+	}
 	else {
 		xmin = (float)(CFRA - 0.1f);
 		xmax = MAXFRAMEF;
@@ -471,7 +471,7 @@ static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent 
 		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 		if (x < CFRA)
 			RNA_int_set(op->ptr, "mode", NLAEDIT_LRSEL_LEFT);
-		else 	
+		else
 			RNA_int_set(op->ptr, "mode", NLAEDIT_LRSEL_RIGHT);
 	}
 	
@@ -582,7 +582,7 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		
 		/* Highlight NLA-Track */
-		if (ale->type == ANIMTYPE_NLATRACK) {	
+		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt = (NlaTrack *)ale->data;
 			
 			nlt->flag |= NLATRACK_SELECTED;

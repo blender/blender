@@ -99,7 +99,7 @@ struct GPUNodeLink {
 	void *ptr1, *ptr2;
 
 	int dynamic;
-	int dynamictype;	
+	int dynamictype;
 
 	int type;
 	int users;

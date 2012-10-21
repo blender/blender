@@ -478,7 +478,7 @@ void MeshImporter::allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_t
 	int total_facecount = 0;
 
 	// collect edge_count and face_count from all parts
-	for (int i = 0; i < prim_arr.getCount(); i++) {		
+	for (int i = 0; i < prim_arr.getCount(); i++) {
 		COLLADAFW::MeshPrimitive *mp = prim_arr[i];
 		int type = mp->getPrimitiveType();
 		switch (type) {
@@ -506,7 +506,7 @@ unsigned int MeshImporter::get_loose_edge_count(COLLADAFW::Mesh *mesh) {
 	int loose_edge_count = 0;
 
 	// collect edge_count and face_count from all parts
-	for (int i = 0; i < prim_arr.getCount(); i++) {		
+	for (int i = 0; i < prim_arr.getCount(); i++) {
 		COLLADAFW::MeshPrimitive *mp = prim_arr[i];
 		int type = mp->getPrimitiveType();
 		switch (type) {

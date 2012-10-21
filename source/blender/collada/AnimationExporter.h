@@ -122,7 +122,7 @@ protected:
 
 	float convert_angle(float angle);
 
-	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic);	
+	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic);
 
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
 							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis, bool transform);

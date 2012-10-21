@@ -274,7 +274,7 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, con
 		/* check if paths match */
 		if (strcmp(path, fcu->rna_path) == 0)
 			return ld;
-	}	
+	}
 	
 	/* none found */
 	return NULL;

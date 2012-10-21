@@ -171,7 +171,7 @@ static void object_clear_rot(Object *ob)
 			}
 		}
 	}                        // Duplicated in source/blender/editors/armature/editarmature.c
-	else { 
+	else {
 		if (ob->rotmode == ROT_MODE_QUAT) {
 			unit_qt(ob->quat);
 			unit_qt(ob->dquat);

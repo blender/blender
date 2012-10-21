@@ -355,7 +355,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
 	/* set up co-ordinates/dimensions for either left or right handle */
-	if (direction == SEQ_LEFTHANDLE) {	
+	if (direction == SEQ_LEFTHANDLE) {
 		rx1 = x1;
 		rx2 = x1 + handsize_clamped * 0.75f;
 		
@@ -415,7 +415,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 			y1 = y2 + 0.05f;
 		}
 		UI_view2d_text_cache_add(v2d, x1, y1, numstr, col);
-	}	
+	}
 }
 
 static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)

@@ -326,7 +326,7 @@ static void make_vertexcol(Object *ob)  /* single ob */
 			CustomData_add_layer(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface);
 		}
 		if (!me->mloopcol) {
-			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);	
+			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);
 		}
 		mesh_update_customdata_pointers(me, TRUE);
 	}
@@ -1526,7 +1526,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 				if (total_changed > 1 && do_multipaint) {
 					float undo_change = get_mp_change(ndv, defbase_tot, defbase_sel, left_over);
 					multipaint_selection(ndv, defbase_tot, undo_change, defbase_sel);
-				}	
+				}
 				/* or designatedw is still -1 put weight back as evenly as possible */
 				else {
 					redistribute_change(ndv, defbase_tot, change_status, 2, -2, left_over, total_changed, do_auto_normalize);

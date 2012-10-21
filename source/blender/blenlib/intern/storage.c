@@ -187,7 +187,7 @@ double BLI_dir_free_space(const char *dir)
 #endif
 
 #if defined(__sun__) || defined(__sun) || defined(__NetBSD__)
-	if (statvfs(name, &disk)) return(-1);	
+	if (statvfs(name, &disk)) return(-1);
 #elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
 	if (statfs(name, &disk, sizeof(struct statfs), 0)) return(-1);

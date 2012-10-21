@@ -89,7 +89,7 @@ static void node_composit_exec_hue_sat(void *UNUSED(data), bNode *node, bNodeSta
 
 		out[0]->data= stackbuf;
 
-		/* get rid of intermediary cbuf if it's extra */		
+		/* get rid of intermediary cbuf if it's extra */
 		if (stackbuf!=cbuf)
 			free_compbuf(cbuf);
 	}

@@ -91,7 +91,7 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 	adt = BKE_animdata_from_id(id);
 	if ((adt == NULL) && (add))
 		adt = BKE_id_add_animdata(id);
-	if (adt == NULL) { 
+	if (adt == NULL) {
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
 		return NULL;
 	}
@@ -478,7 +478,7 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 		char *path = get_driver_path_hack(C, &ptr, prop);
 		short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 		
-		if (path) {			
+		if (path) {
 			success += ANIM_add_driver(op->reports, ptr.id.data, path, index, flags, DRIVER_TYPE_PYTHON);
 			
 			MEM_freeN(path);

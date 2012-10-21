@@ -517,7 +517,7 @@ void gpencil_layer_delete(bGPdata *gpd, bGPDlayer *gpl)
 	if (ELEM(NULL, gpd, gpl)) 
 		return;
 	
-	/* free layer */	
+	/* free layer */
 	free_gpencil_frames(gpl);
 	BLI_freelinkN(&gpd->layers, gpl);
 }

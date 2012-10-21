@@ -101,7 +101,7 @@ static void fill_bins(bNode *node, CompBuf* in, int* bins)
 				bins[ivalue]+=1;
 			} /*end if alpha */
 		}
-	}	
+	}
 }
 
 static float brightness_mean(bNode *node, CompBuf* in)
@@ -275,8 +275,8 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 	if (in[0]->hasinput==0)  return;
 	if (in[0]->data==NULL) return;
 
-	histogram=alloc_compbuf(256, 256, CB_RGBA, 1);	
-	cbuf=typecheck_compbuf(in[0]->data, CB_RGBA);	
+	histogram=alloc_compbuf(256, 256, CB_RGBA, 1);
+	cbuf=typecheck_compbuf(in[0]->data, CB_RGBA);
 		
 	/*initalize bins*/
 	for (x=0; x<256; x++) {

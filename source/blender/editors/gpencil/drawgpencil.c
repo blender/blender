@@ -98,8 +98,8 @@ static void gp_draw_stroke_buffer(tGPspoint *points, int totpoints, short thickn
 	if (dflag & (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_ONLYV2D))
 		return;
 	
-	/* if drawing a single point, draw it larger */	
-	if (totpoints == 1) {		
+	/* if drawing a single point, draw it larger */
+	if (totpoints == 1) {
 		/* draw point */
 		glBegin(GL_POINTS);
 		glVertex2iv(&points->x);
@@ -315,7 +315,7 @@ static void gp_draw_stroke(bGPDspoint *points, int totpoints, short thickness_s,
 				s0[1] = (pt1->y / 100 * winy) + offsy;
 				s1[0] = (pt2->x / 100 * winx) + offsx;
 				s1[1] = (pt2->y / 100 * winy) + offsy;
-			}		
+			}
 			
 			/* calculate gradient and normal - 'angle'=(ny/nx) */
 			m1[1] = s1[1] - s0[1];
@@ -331,7 +331,7 @@ static void gp_draw_stroke(bGPDspoint *points, int totpoints, short thickness_s,
 			if (i == 0) {
 				/* draw start cap first 
 				 *	- make points slightly closer to center (about halfway across) 
-				 */				
+				 */
 				mt[0] = m2[0] * pthick * 0.5f;
 				mt[1] = m2[1] * pthick * 0.5f;
 				sc[0] = s0[0] - (m1[0] * pthick * 0.75f);
@@ -382,7 +382,7 @@ static void gp_draw_stroke(bGPDspoint *points, int totpoints, short thickness_s,
 				if (((athick * 2.0f) < pthick) && (IS_EQF(athick, pthick) == 0)) {
 					mt[0] += (mb[0] * dfac);
 					mt[1] += (mb[1] * dfac);
-				}	
+				}
 				
 				/* calculate points for start of segment */
 				t0[0] = s0[0] - mt[0];
@@ -420,7 +420,7 @@ static void gp_draw_stroke(bGPDspoint *points, int totpoints, short thickness_s,
 				
 				/* draw end cap as last step 
 				 *	- make points slightly closer to center (about halfway across) 
-				 */				
+				 */
 				mt[0] = m2[0] * pthick * 0.5f;
 				mt[1] = m2[1] * pthick * 0.5f;
 				sc[0] = s1[0] + (m1[0] * pthick * 0.75f);
@@ -531,7 +531,7 @@ static void gp_draw_strokes(bGPDframe *gpf, int offsx, int offsy, int winx, int 
 #endif
 			}
 		}
-		else if (gps->totpoints > 1)	
+		else if (gps->totpoints > 1)
 			gp_draw_stroke(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug, offsx, offsy, winx, winy);
 	}
 }
@@ -611,7 +611,7 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 					}
 					else 
 						break;
-				}	
+				}
 				
 				/* restore alpha */
 				glColor4fv(color);

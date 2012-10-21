@@ -307,7 +307,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
 		CLAMP(rowmin, 0, layout->rows - 1);
 		CLAMP(colmax, 0, layout->columns - 1);
 		CLAMP(rowmax, 0, layout->rows - 1);
-	} 
+	}
 	
 	if ((colmin > layout->columns - 1) || (rowmin > layout->rows - 1)) {
 		sel.first = -1;

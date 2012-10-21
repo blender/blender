@@ -791,7 +791,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 			xoffs = scene->r.disprect.xmin;
 			yoffs = scene->r.disprect.ymin;
 			glColor3ub(0, 0, 0);
-			calc_image_view(sima, 'f');	
+			calc_image_view(sima, 'f');
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			glRectf(0.0f, 0.0f, 1.0f, 1.0f);
 			glLoadIdentity();

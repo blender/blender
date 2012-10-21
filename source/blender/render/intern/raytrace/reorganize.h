@@ -75,7 +75,7 @@ void reorganize_find_fittest_parent(Node *tree, Node *node, std::pair<float, Nod
 			float pcost = bb_area(parent->bb, parent->bb + 3);
 			cost = std::min(cost, std::make_pair(pcost, parent) );
 			for (Node *child = parent->child; child; child = child->sibling)
-				q.push(child);			
+				q.push(child);
 		}
 	}
 }
@@ -140,7 +140,7 @@ void remove_useless(Node *node, Node **new_node)
 				(*prev)->sibling = next;
 				prev = &((*prev)->sibling);
 			}
-		}			
+		}
 	}
 	if (node->child) {
 		if (RE_rayobject_isAligned(node->child) && node->child->sibling == 0)
@@ -181,7 +181,7 @@ void pushup(Node *parent)
 			*prev = child;
 			prev = &(*prev)->sibling;
 			child = *prev;
-		}		
+		}
 	}
 	
 	for (Node *child = parent->child; RE_rayobject_isAligned(child) && child; child = child->sibling)
@@ -205,13 +205,13 @@ void pushup_simd(Node *parent)
 			n += (cn - 1);
 			append_sibling(child, child->child);
 			child = child->sibling;
-			*prev = child;	
+			*prev = child;
 		}
 		else {
 			*prev = child;
 			prev = &(*prev)->sibling;
 			child = *prev;
-		}		
+		}
 	}
 		
 	for (Node *child = parent->child; RE_rayobject_isAligned(child) && child; child = child->sibling)
@@ -320,7 +320,7 @@ struct OVBVHNode {
 	
 	/*
 	 * Reorganize the node based on calculated cut costs
-	 */	 
+	 */
 	int best_cutsize;
 	void set_cut(int cutsize, OVBVHNode ***cut)
 	{
@@ -357,7 +357,7 @@ struct OVBVHNode {
 			//Optimize new childs
 			for (OVBVHNode *child = this->child; child && RE_rayobject_isAligned(child); child = child->sibling)
 				child->optimize();
-		}		
+		}
 	}
 };
 
@@ -431,7 +431,7 @@ struct VBVH_optimalPackSIMD {
 						current_size -= bt[j][current_size];
 					}
 				}
-			}			
+			}
 		}
 	};
 	
@@ -493,6 +493,6 @@ struct VBVH_optimalPackSIMD {
 			if ((G.debug & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize);
 			node->optimize();
 		}
-		return node;		
-	}	
+		return node;
+	}
 };

@@ -156,7 +156,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 						found = -1;
 					}
 				}
-			}	
+			}
 			break;
 		}
 		
@@ -405,7 +405,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	uiItemR(col, &strip_ptr, "use_animated_influence", 0, NULL, ICON_NONE);
 	
 	sub = uiLayoutColumn(col, TRUE);
-	uiLayoutSetEnabled(sub, RNA_boolean_get(&strip_ptr, "use_animated_influence"));	
+	uiLayoutSetEnabled(sub, RNA_boolean_get(&strip_ptr, "use_animated_influence"));
 	uiItemR(sub, &strip_ptr, "influence", 0, NULL, ICON_NONE);
 
 	col = uiLayoutColumn(layout, TRUE);

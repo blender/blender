@@ -101,7 +101,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 			nodeUpdateID(nodetree, node->id);
 
 		WM_main_add_notifier(NC_SCENE | ND_NODES, id);
-	}			
+	}
 	else if (treetype == NTREE_TEXTURE) {
 		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);
@@ -915,7 +915,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	
 	/* disable lines */
 	if (node->flag & NODE_MUTED)
-		node_draw_mute_line(&ar->v2d, snode, node);	
+		node_draw_mute_line(&ar->v2d, snode, node);
 	
 	if (node->flag & SELECT) 
 		UI_ThemeColor(TH_SELECT);
@@ -932,7 +932,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(centy - 10),
 		         (short)(BLI_rctf_size_x(rct) - 18.0f - 12.0f), (short)NODE_DY,
 		         NULL, 0, 0, 0, 0, "");
-	}	
+	}
 
 	/* scale widget thing */
 	UI_ThemeColorShade(color_id, -10);
@@ -1138,7 +1138,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 #ifdef WITH_COMPOSITOR
 		if (snode->nodetree->type == NTREE_COMPOSIT) {
 			COM_startReadHighlights();
-		} 
+		}
 #endif
 
 		node_draw_nodetree(C, ar, snode, snode->nodetree);

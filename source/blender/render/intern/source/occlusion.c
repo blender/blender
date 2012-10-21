@@ -1130,7 +1130,7 @@ static void normalizef(float *n)
 		n[0] *= d; 
 		n[1] *= d; 
 		n[2] *= d;
-	} 
+	}
 }
 
 /* TODO: exact duplicate of ff_quad_form_factor() in math_geom.c

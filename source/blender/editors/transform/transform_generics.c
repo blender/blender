@@ -705,7 +705,7 @@ static void recalcData_view3d(TransInfo *t)
 					BKE_nurb_handles_calc(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
 					nu = nu->next;
 				}
-			} 
+			}
 			else {
 				/* Normal updating */
 				while (nu) {

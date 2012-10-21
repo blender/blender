@@ -141,7 +141,7 @@ void wm_dropbox_free(void)
 		BLI_freelistN(&dm->dropboxes);
 	}
 	
-	BLI_freelistN(&dropboxes);		
+	BLI_freelistN(&dropboxes);
 }
 
 /* *********************************** */

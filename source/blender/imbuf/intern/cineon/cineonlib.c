@@ -215,7 +215,7 @@ dumpCineonFormatInfo(CineonFormatInformation* formatInfo) {
 		default: d_printf(" (unknown)\n"); break;
 	}
 	d_printf("Packing %d,", formatInfo->packing);
-	if (formatInfo->packing & 0x80) { 
+	if (formatInfo->packing & 0x80) {
 		d_printf(" multi pixel,");
 	}
 	else {
@@ -232,14 +232,14 @@ dumpCineonFormatInfo(CineonFormatInformation* formatInfo) {
 		default: d_printf(" (unknown)\n"); break;
 	}
 	d_printf("Sign %d,", formatInfo->signage);
-	if (formatInfo->signage) { 
+	if (formatInfo->signage) {
 		d_printf(" signed\n");
 	}
 	else {
 		d_printf(" unsigned\n");
 	}
 	d_printf("Sense %d,", formatInfo->signage);
-	if (formatInfo->signage) { 
+	if (formatInfo->signage) {
 		d_printf(" negative\n");
 	}
 	else {

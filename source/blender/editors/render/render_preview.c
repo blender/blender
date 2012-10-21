@@ -341,7 +341,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				if (sp->pr_method == PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
 						sce->lay = 1 << MA_FLAT;
-					} 
+					}
 					else {
 						sce->lay = 1 << MA_SPHERE_A;
 					}
@@ -386,7 +386,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				tex = localize_texture(origtex);
 				sp->texcopy = tex;
 				BLI_addtail(&pr_main->tex, tex);
-			}			
+			}
 			sce->lay = 1 << MA_TEXTURE;
 			
 			for (base = sce->base.first; base; base = base->next) {
@@ -597,7 +597,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		if (ok == 0) {
 			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy, PR_BUTS_RENDER);
 		}
-	}	
+	}
 }
 
 /* **************************** new shader preview system ****************** */
@@ -649,7 +649,7 @@ static void shader_preview_updatejob(void *spv)
 				if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree)
 					ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
 			}
-		}		
+		}
 	}
 }
 
@@ -861,7 +861,7 @@ static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned
 		scaledx = (float)w;
 		scaledy =  ( (float)ima->y / (float)ima->x) * (float)w;
 	}
-	else {			
+	else {
 		scaledx =  ( (float)ima->x / (float)ima->y) * (float)h;
 		scaledy = (float)h;
 	}

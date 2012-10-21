@@ -379,7 +379,7 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 				for (i = 0; i < dm->numTessFaceData; i++, mf++) {
 					if (!(mf->flag & ME_HIDE)) {
 						draw = 1;
-					} 
+					}
 					else {
 						draw = 0;
 					}
@@ -438,7 +438,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 				    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
 				{
 					draw = TRUE;
-				} 
+				}
 				else {
 					draw = FALSE;
 				}
@@ -486,7 +486,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 			for (i = 0; i < dm->numEdgeData; i++, medge++) {
 				if (medge->flag & ME_LOOSEEDGE) {
 					draw = 1;
-				} 
+				}
 				else {
 					draw = 0;
 				}
@@ -552,7 +552,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 
 				glShadeModel(shademodel = new_shademodel);
 				glBegin(glmode = new_glmode);
-			} 
+			}
 			
 			if (drawCurrentMat) {
 				if (shademodel == GL_FLAT) {
@@ -1176,13 +1176,13 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 							datatypes[numdata].size = 2;
 							datatypes[numdata].type = GL_FLOAT;
 							numdata++;
-						}	
+						}
 						for (b = 0; b < attribs.totmcol; b++) {
 							datatypes[numdata].index = attribs.mcol[b].gl_index;
 							datatypes[numdata].size = 4;
 							datatypes[numdata].type = GL_UNSIGNED_BYTE;
 							numdata++;
-						}	
+						}
 						if (attribs.tottang) {
 							datatypes[numdata].index = attribs.tang.gl_index;
 							datatypes[numdata].size = 4;
@@ -1242,7 +1242,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 						col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
 						copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
 						offset += sizeof(unsigned char) * 4;
-					}	
+					}
 					if (attribs.tottang) {
 						float *tang = attribs.tang.array[a * 4 + 0];
 						copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
@@ -1283,7 +1283,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
 							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
 							offset += sizeof(unsigned char) * 4;
-						}	
+						}
 						if (attribs.tottang) {
 							float *tang = attribs.tang.array[a * 4 + 2];
 							copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
@@ -2339,7 +2339,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		BLI_array_append(oldp, i);
 	}
 	
-	/*create new cddm*/	
+	/*create new cddm*/
 	cddm2 = (CDDerivedMesh *) CDDM_from_template((DerivedMesh *)cddm, BLI_array_count(mvert), BLI_array_count(medge), 0, BLI_array_count(mloop), BLI_array_count(mpoly));
 	
 	/*update edge indices and copy customdata*/
@@ -2364,7 +2364,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		CustomData_copy_data(&dm->loopData, &cddm2->dm.loopData, oldl[i], i, 1);
 	}
 	
-	/*copy vertex customdata*/	
+	/*copy vertex customdata*/
 	mv = mvert;
 	for (i = 0; i < cddm2->dm.numVertData; i++, mv++) {
 		CustomData_copy_data(&dm->vertData, &cddm2->dm.vertData, oldv[i], i, 1);

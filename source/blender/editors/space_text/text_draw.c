@@ -1139,7 +1139,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	barheight = (ltexth > 0) ? (st->viewlines * pix_available) / ltexth : 0;
 	pix_bardiff = 0;
 	if (barheight < 20) {
-		pix_bardiff = 20 - barheight; /* take into account the now non-linear sizing of the bar */	
+		pix_bardiff = 20 - barheight; /* take into account the now non-linear sizing of the bar */
 		barheight = 20;
 	}
 	barstart = (ltexth > 0) ? ((pix_available - pix_bardiff) * st->top) / ltexth : 0;
@@ -1166,9 +1166,9 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 		/* the scrollbar is non-linear sized */
 		if (pix_bardiff > 0) {
 			/* the start of the highlight is in the current viewport */
-			if (ltexth && st->viewlines && lhlstart >= st->top && lhlstart <= st->top + st->viewlines) { 
+			if (ltexth && st->viewlines && lhlstart >= st->top && lhlstart <= st->top + st->viewlines) {
 				/* speed the progresion of the start of the highlight through the scrollbar */
-				hlstart = ( ( (pix_available - pix_bardiff) * lhlstart) / ltexth) + (pix_bardiff * (lhlstart - st->top) / st->viewlines); 	
+				hlstart = ( ( (pix_available - pix_bardiff) * lhlstart) / ltexth) + (pix_bardiff * (lhlstart - st->top) / st->viewlines);
 			}
 			else if (lhlstart > st->top + st->viewlines && hlstart < barstart + barheight && hlstart > barstart) {
 				/* push hl start down */
@@ -1179,35 +1179,35 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 				hlstart = barstart;
 			}
 
-			if (hlend <= hlstart) { 
+			if (hlend <= hlstart) {
 				hlend = hlstart + 2;
 			}
 
 			/* the end of the highlight is in the current viewport */
-			if (ltexth && st->viewlines && lhlend >= st->top && lhlend <= st->top + st->viewlines) { 
+			if (ltexth && st->viewlines && lhlend >= st->top && lhlend <= st->top + st->viewlines) {
 				/* speed the progresion of the end of the highlight through the scrollbar */
 				hlend = (((pix_available - pix_bardiff) * lhlend) / ltexth) + (pix_bardiff * (lhlend - st->top) / st->viewlines);
 			}
 			else if (lhlend < st->top && hlend >= barstart - 2 && hlend < barstart + barheight) {
 				/* push hl end up */
 				hlend = barstart;
-			}					
+			}
 			else if (lhlend > st->top + st->viewlines && lhlstart < st->top + st->viewlines && hlend < barstart + barheight) {
 				/* fill out end */
 				hlend = barstart + barheight;
 			}
 
-			if (hlend <= hlstart) { 
+			if (hlend <= hlstart) {
 				hlstart = hlend - 2;
-			}	
-		}	
+			}
+		}
 	}
 	else {
 		hlstart = 0;
 		hlend = 0;
 	}
 
-	if (hlend - hlstart < 2) { 
+	if (hlend - hlstart < 2) {
 		hlend = hlstart + 2;
 	}
 	
@@ -1702,7 +1702,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	if (!endl || endc == -1)
 		return;
 
-	UI_ThemeColor(TH_HILITE);	
+	UI_ThemeColor(TH_HILITE);
 	x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 	y = ar->winy - st->lheight;
 

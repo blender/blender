@@ -807,7 +807,7 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op); /* call exec direct */
-	} 
+	}
 	else {
 		WM_event_add_fileselect(C, op);
 		return OPERATOR_RUNNING_MODAL;
@@ -1215,7 +1215,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 	ED_screen_refresh(CTX_wm_manager(C), CTX_wm_window(C));
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 static int wm_debug_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
@@ -1715,7 +1715,7 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
 		return WM_operator_call_notest(C, op);
-	} 
+	}
 	else {
 		/* XXX TODO solve where to get last linked library from */
 		if (G.lib[0] != '\0') {
@@ -2184,7 +2184,7 @@ static int wm_exit_blender_op(bContext *C, wmOperator *op)
 {
 	WM_operator_free(op);
 	
-	WM_exit(C);	
+	WM_exit(C);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3483,7 +3483,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 		if (type == 0) {
 			if (ar)
 				ED_region_do_draw(C, ar);
-		} 
+		}
 		else if (type == 1) {
 			wmWindow *win = CTX_wm_window(C);
 			

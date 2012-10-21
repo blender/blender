@@ -180,7 +180,7 @@ static void freeData(ModifierData *md)
 			MEM_freeN(clmd->sim_parms);
 		}
 		if (clmd->coll_parms)
-			MEM_freeN(clmd->coll_parms);	
+			MEM_freeN(clmd->coll_parms);
 		
 		BKE_ptcache_free_list(&clmd->ptcaches);
 		clmd->point_cache = NULL;

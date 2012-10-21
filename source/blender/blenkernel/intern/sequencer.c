@@ -991,7 +991,7 @@ static float give_stripelem_index(Sequence *seq, float cfra)
 
 	if (seq->type & SEQ_TYPE_EFFECT) {
 		end = seq->enddisp;
-	} 
+	}
 
 	if (end < sta) {
 		return -1;
@@ -1882,7 +1882,7 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 
 			ibuf = i;
 		}
-	} 
+	}
 
 	if (seq->flag & SEQ_FLIPX) {
 		IMB_flipx(ibuf);
@@ -1978,7 +1978,7 @@ static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr, I
 
 		if (nr == 0) {
 			BKE_sequencer_cache_put(context, seq, seq->start, SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);
-		} 
+		}
 
 		if (nr == seq->len - 1) {
 			BKE_sequencer_cache_put(context, seq, seq->start, SEQ_STRIPELEM_IBUF_ENDSTILL, ibuf);
@@ -2356,9 +2356,10 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	oldcfra = scene->r.cfra;
 	scene->r.cfra = frame;
 
-	if (seq->scene_camera)	
+	if (seq->scene_camera) {
 		camera = seq->scene_camera;
-	else {	
+	}
+	else {
 		BKE_scene_camera_switch_update(scene);
 		camera = scene->camera;
 	}

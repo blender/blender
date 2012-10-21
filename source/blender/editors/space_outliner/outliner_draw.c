@@ -238,9 +238,9 @@ static int group_select_flag(Group *gr)
 
 void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 {	
-	Scene *scene = (Scene *)poin;		
+	Scene *scene = (Scene *)poin;
 	GroupObject *gob;
-	Group *gr = (Group *)poin2; 	
+	Group *gr = (Group *)poin2;
 
 	if (group_restrict_flag(gr, flag)) {
 		for (gob = gr->gobject.first; gob; gob = gob->next) {
@@ -309,7 +309,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					WM_event_add_notifier(C, NC_SCENE, NULL); break;
 				default:
 					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL); break;
-			}					
+			}
 			/* Check the library target exists */
 			if (te->idcode == ID_LI) {
 				Library *lib = (Library *)tselem->id;
@@ -636,7 +636,7 @@ static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
 	uiButSetSearchFunc(but, operator_search_cb, arg_kmi, operator_call_cb, ot);
 	
 	uiBoundsBlock(block, 6);
-	uiBlockSetDirection(block, UI_DOWN);	
+	uiBlockSetDirection(block, UI_DOWN);
 	uiEndBlock(C, block);
 	
 	event = *(win->eventstate);  /* XXX huh huh? make api call */
@@ -1251,7 +1251,7 @@ static void outliner_set_coord_tree_element(SpaceOops *soops, TreeElement *te, i
 	
 	for (ten = te->subtree.first; ten; ten = ten->next) {
 		outliner_set_coord_tree_element(soops, ten, startx + UI_UNIT_X, starty);
-	}	
+	}
 }
 
 
@@ -1396,7 +1396,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 			offsx += UI_UNIT_X;
-		}		
+		}
 		glDisable(GL_BLEND);
 		
 		/* name */
@@ -1433,7 +1433,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				}
 			}
 		}
-	}	
+	}
 	/* store coord and continue, we need coordinates for elements outside view too */
 	te->xs = (float)startx;
 	te->ys = (float)*starty;
@@ -1444,7 +1444,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		
 		for (ten = te->subtree.first; ten; ten = ten->next)
 			outliner_draw_tree_element(C, block, scene, ar, soops, ten, startx + UI_UNIT_X, starty);
-	}	
+	}
 	else {
 		for (ten = te->subtree.first; ten; ten = ten->next)
 			outliner_set_coord_tree_element(soops, te, startx, starty);
@@ -1701,7 +1701,7 @@ void draw_outliner(const bContext *C)
 	}
 
 	/* draw edit buttons if nessecery */
-	outliner_buttons(C, block, ar, soops, &soops->tree);	
+	outliner_buttons(C, block, ar, soops, &soops->tree);
 
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

@@ -282,7 +282,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent 
 	if (wincur->screen->temp) {
 		wm_window_lower(wincur);
 	}
-	else { 
+	else {
 		wmWindow *win, *winshow;
 		ScrArea *sa = find_area_showing_r_result(C, &winshow);
 		

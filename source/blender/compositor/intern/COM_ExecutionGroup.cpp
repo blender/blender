@@ -204,7 +204,7 @@ void ExecutionGroup::determineNumberOfChunks()
 		this->m_numberOfXChunks = 1;
 		this->m_numberOfYChunks = 1;
 		this->m_numberOfChunks = 1;
-	} 
+	}
 	else {
 		const float chunkSizef = this->m_chunkSize;
 		this->m_numberOfXChunks = ceil(this->m_width / chunkSizef);

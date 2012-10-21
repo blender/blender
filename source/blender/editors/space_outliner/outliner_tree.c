@@ -553,16 +553,16 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 			
 			if (md->type == eModifierType_Lattice) {
 				outliner_add_element(soops, &te->subtree, ((LatticeModifierData *) md)->object, te, TSE_LINKED_OB, 0);
-			} 
+			}
 			else if (md->type == eModifierType_Curve) {
 				outliner_add_element(soops, &te->subtree, ((CurveModifierData *) md)->object, te, TSE_LINKED_OB, 0);
-			} 
+			}
 			else if (md->type == eModifierType_Armature) {
 				outliner_add_element(soops, &te->subtree, ((ArmatureModifierData *) md)->object, te, TSE_LINKED_OB, 0);
-			} 
+			}
 			else if (md->type == eModifierType_Hook) {
 				outliner_add_element(soops, &te->subtree, ((HookModifierData *) md)->object, te, TSE_LINKED_OB, 0);
-			} 
+			}
 			else if (md->type == eModifierType_ParticleSystem) {
 				TreeElement *ten;
 				ParticleSystem *psys = ((ParticleSystemModifierData *) md)->psys;
@@ -590,7 +590,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 	
 	/* duplicated group */
 	if (ob->dup_group)
-		outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);	
+		outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);
 }
 
 // can be inlined if necessary

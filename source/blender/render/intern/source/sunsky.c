@@ -330,8 +330,8 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 
 	int i;
 	float fLambda[3]; 
-	fLambda[0] = 0.65f;	
-	fLambda[1] = 0.57f;	
+	fLambda[0] = 0.65f;
+	fLambda[1] = 0.57f;
 	fLambda[2] = 0.475f;
 
 	fAlpha = 1.3f;

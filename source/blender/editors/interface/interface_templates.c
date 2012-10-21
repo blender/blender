@@ -199,7 +199,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 		
 	
 	uiBoundsBlock(block, 6);
-	uiBlockSetDirection(block, UI_DOWN);	
+	uiBlockSetDirection(block, UI_DOWN);
 	uiEndBlock(C, block);
 	
 	/* give search-field focus */
@@ -580,7 +580,7 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 		RNA_warning("pointer property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
-	if (!propType || RNA_property_type(propType) != PROP_ENUM) { 
+	if (!propType || RNA_property_type(propType) != PROP_ENUM) {
 		RNA_warning("pointer-type property not found: %s.%s", RNA_struct_identifier(ptr->type), proptypename);
 		return;
 	}
@@ -1281,7 +1281,7 @@ static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 
 	if (colorband_element_add(coba, pos)) {
 		rna_update_cb(C, cb_v, NULL);
-		ED_undo_push(C, "Add colorband");	
+		ED_undo_push(C, "Add colorband");
 	}
 }
 

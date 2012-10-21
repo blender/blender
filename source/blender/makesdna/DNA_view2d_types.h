@@ -128,7 +128,7 @@ typedef struct View2D {
 #define V2D_SCROLL_HORIZONTAL  		(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)
 	/* scale markings - vertical */
 #define V2D_SCROLL_SCALE_VERTICAL	(1<<5)
-	/* scale markings - horizontal */	
+	/* scale markings - horizontal */
 #define V2D_SCROLL_SCALE_HORIZONTAL	(1<<6)
 	/* induce hiding of scrollbars - set by region drawing in response to size of region */
 #define V2D_SCROLL_VERTICAL_HIDE	(1<<7)		

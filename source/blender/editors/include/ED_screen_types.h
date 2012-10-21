@@ -94,7 +94,7 @@ typedef struct AZone {
 	/* for draw */
 	short x1, y1, x2, y2;
 	/* for clip */
-	rcti rect;	
+	rcti rect;
 } AZone;
 
 /* actionzone type */

@@ -413,7 +413,7 @@ typedef struct ShaderData {
 	/* view/incoming direction */
 	float3 I;
 	/* shader id */
-	int shader;	
+	int shader;
 	/* booleans describing shader, see ShaderDataFlag */
 	int flag;
 

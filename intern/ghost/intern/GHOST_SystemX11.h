@@ -230,7 +230,7 @@ public:
 	
 	/**
 	 * Puts buffer to system clipboard
-	 * \param buffer	The buffer to copy to the clipboard	
+	 * \param buffer	The buffer to copy to the clipboard
 	 * \param selection	Set the selection into the clipboard, X11 only feature
 	 */
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;

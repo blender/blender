@@ -227,7 +227,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	hlfrand = 2.0 * dblrand;
 	
 	if (initfunc) {
-		initfunc();	
+		initfunc();
 	}
 
 	if (re) /* add render object for stars */
@@ -364,7 +364,7 @@ static void split_v_renderfaces(ObjectRen *obr, int startvlak, int UNUSED(startv
 
 			if (v==0) {
 				vlr->v1 = RE_vertren_copy(obr, vlr->v1);
-			} 
+			}
 		}
 	}
 }
@@ -882,7 +882,7 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int d
 			else 
 				normal_tri_v3(vlr->n, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 		}
-	}		
+	}
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1939,7 +1939,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					copy_v3_v3(state.vel, (cache+k)->vel);
 				}
 				else
-					continue;	
+					continue;
 
 				if (k > 0)
 					curlen += len_v3v3((cache+k-1)->co, (cache+k)->co);
@@ -2367,7 +2367,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	/* Recalculate the face normal  - if flipped before, flip now */
 	if (vlr->v4) {
 		normal_quad_v3(vlr->n, vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
-	}	
+	}
 	else {
 		normal_tri_v3(vlr->n, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 	}
@@ -2536,7 +2536,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 		copy_v3_v3(v1->co, data); data += 3;
 		if (orco) {
 			v1->orco= orco; orco+= 3; orcoret++;
-		}	
+		}
 		mul_m4_v3(mat, v1->co);
 		
 		for (v = 1; v < sizev; v++) {
@@ -2544,7 +2544,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			copy_v3_v3(ver->co, data); data += 3;
 			if (orco) {
 				ver->orco= orco; orco+= 3; orcoret++;
-			}	
+			}
 			mul_m4_v3(mat, ver->co);
 		}
 		/* if V-cyclic, add extra vertices at end of the row */
@@ -2554,8 +2554,8 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			if (orco) {
 				ver->orco= orco; orco+=3; orcoret++; //orcobase + 3*(u*sizev + 0);
 			}
-		}	
-	}	
+		}
+	}
 	
 	/* Done before next loop to get corner vert */
 	if (dl->flag & DL_CYCL_U) nsizev++;
@@ -2608,7 +2608,7 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 			
 			p1++; p2++; p3++; p4++;
 		}
-	}	
+	}
 	/* fix normals for U resp. V cyclic faces */
 	sizeu--; sizev--;  /* dec size for face array */
 	if (dl->flag & DL_CYCL_V) {
@@ -3616,22 +3616,22 @@ static void area_lamp_vectors(LampRen *lar)
 	/* corner vectors */
 	lar->area[0][0]= lar->co[0] - xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
 	lar->area[0][1]= lar->co[1] - xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
-	lar->area[0][2]= lar->co[2] - xsize*lar->mat[0][2] - ysize*lar->mat[1][2];	
+	lar->area[0][2]= lar->co[2] - xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
 
 	/* corner vectors */
 	lar->area[1][0]= lar->co[0] - xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
 	lar->area[1][1]= lar->co[1] - xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
-	lar->area[1][2]= lar->co[2] - xsize*lar->mat[0][2] + ysize*lar->mat[1][2];	
+	lar->area[1][2]= lar->co[2] - xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
 
 	/* corner vectors */
 	lar->area[2][0]= lar->co[0] + xsize*lar->mat[0][0] + ysize*lar->mat[1][0];
 	lar->area[2][1]= lar->co[1] + xsize*lar->mat[0][1] + ysize*lar->mat[1][1];
-	lar->area[2][2]= lar->co[2] + xsize*lar->mat[0][2] + ysize*lar->mat[1][2];	
+	lar->area[2][2]= lar->co[2] + xsize*lar->mat[0][2] + ysize*lar->mat[1][2];
 
 	/* corner vectors */
 	lar->area[3][0]= lar->co[0] + xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
 	lar->area[3][1]= lar->co[1] + xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
-	lar->area[3][2]= lar->co[2] + xsize*lar->mat[0][2] - ysize*lar->mat[1][2];	
+	lar->area[3][2]= lar->co[2] + xsize*lar->mat[0][2] - ysize*lar->mat[1][2];
 	/* only for correction button size, matrix size works on energy */
 	lar->areasize= lar->dist*lar->dist/(4.0f*xsize*ysize);
 }
@@ -5594,7 +5594,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 		re->i.infostr= "Calculating next frame vectors";
 		
 		database_fromscene_vectors(re, sce, lay, +1);
-	}	
+	}
 	/* copy away vertex info */
 	copy_dbase_object_vectors(re, &newtable);
 	

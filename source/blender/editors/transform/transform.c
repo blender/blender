@@ -277,7 +277,7 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 			//vec[0] = vec[0]/((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
 			/* same as below */
 			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out + 1);
-		} 
+		}
 		else
 #endif
 		{
@@ -3383,7 +3383,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
 			}
-			else { 
+			else {
 				float eulmat[3][3];
 				
 				mul_m3_m3m3(totmat, mat, td->ext->r_mtx);
@@ -4811,7 +4811,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 		}
 		
 		l = l->radial_next;
-	} while (l != firstl); 
+	} while (l != firstl);
 
 	if (i)
 		mul_v3_fl(a, 1.0f / (float)i);
@@ -6108,7 +6108,7 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 		SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 		
 		drawtime = (sipo->flag & SIPO_DRAWTIME) ? 1 : 0;
-	}	
+	}
 	else {
 		drawtime = 0;
 	}

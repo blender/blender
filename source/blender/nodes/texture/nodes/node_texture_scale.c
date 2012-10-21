@@ -36,12 +36,12 @@
 static bNodeSocketTemplate inputs[]= { 
 	{ SOCK_RGBA,   1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f },
 	{ SOCK_VECTOR, 1, N_("Scale"), 1.0f, 1.0f, 1.0f, 0.0f,  -10.0f, 10.0f, PROP_XYZ },
-	{ -1, 0, "" } 
+	{ -1, 0, "" }
 };
 
 static bNodeSocketTemplate outputs[]= { 
-	{ SOCK_RGBA, 0, N_("Color")}, 
-	{ -1, 0, "" } 
+	{ SOCK_RGBA, 0, N_("Color")},
+	{ -1, 0, "" }
 };
 
 static void colorfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)

@@ -78,7 +78,7 @@ void GeometryExporter::operator()(Object *ob)
 	Mesh *me;
 	if (this->export_settings->apply_modifiers) {
 		me = bc_to_mesh_apply_modifiers(mScene, ob, this->export_settings->export_mesh_type);
-	} 
+	}
 	else {
 		me = (Mesh *)ob->data;
 	}
@@ -364,7 +364,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 	//appends data to <float_array>
 	int i = 0;
 	for (i = 0; i < totverts; i++) {
-		source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);			
+		source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);
 	}
 	
 	source.finish();

@@ -136,7 +136,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 							bez.ipo = BEZT_IPO_BEZ;
 						else 
 							bez.ipo = BEZT_IPO_CONST;
-						//bez.h1 = bez.h2 = HD_AUTO; 	
+						//bez.h1 = bez.h2 = HD_AUTO;
 					}
 					else {
 						bez.h1 = bez.h2 = HD_AUTO; 
@@ -617,7 +617,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 		//Add the curves of the current animation to the object
 		for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 			FCurve *fcu = *iter;
-			BLI_addtail(AnimCurves, fcu);	
+			BLI_addtail(AnimCurves, fcu);
 		}
 	}
 
@@ -938,7 +938,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 					if (is_matrix) {
 						apply_matrix_curves(ob, animcurves, root, node,  transform);
 					}
-					else {				
+					else {
 
 						if (is_joint) {
 
@@ -1094,7 +1094,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 					}
 				}
 			}
-		}	
+		}
 	}
 }
 
@@ -1114,8 +1114,8 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurv
 		for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 			FCurve *fcu = *iter;
 
-			fcurve_deg_to_rad(fcu);		 
-		}					
+			fcurve_deg_to_rad(fcu);
+		}
 	}
 
 

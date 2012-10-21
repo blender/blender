@@ -150,7 +150,7 @@ static void node_composit_exec_combrgba(void *UNUSED(data), bNode *node, bNodeSt
 								  do_combrgba, CB_VAL, CB_VAL, CB_VAL, CB_VAL);
 		
 		out[0]->data= stackbuf;
-	}	
+	}
 }
 
 #endif  /* WITH_COMPOSITOR_LEGACY */

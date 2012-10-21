@@ -505,7 +505,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 			MEM_freeN(item);
 			
 			uiPupMenuEnd(C, pup);
-		}		
+		}
 		
 	}
 	return OPERATOR_CANCELLED;

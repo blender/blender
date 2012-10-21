@@ -214,7 +214,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 		WM_event_add_fileselect(C, op);
 	
 		return OPERATOR_RUNNING_MODAL;
-	}	
+	}
 	return OPERATOR_CANCELLED;
 }
 
@@ -374,7 +374,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				}
 				
 				/* imbuf knows which rects are not part of ibuf */
-				IMB_freeImBuf(ibuf);	
+				IMB_freeImBuf(ibuf);
 			}
 			
 			MEM_freeN(sj->dumprect);
@@ -408,7 +408,7 @@ static int screencast_exec(bContext *C, wmOperator *op)
 		sj->y = 0;
 		sj->dumpsx = win->sizex;
 		sj->dumpsy = win->sizey;
-	} 
+	}
 	else {
 		ScrArea *curarea = CTX_wm_area(C);
 		sj->x = curarea->totrct.xmin;

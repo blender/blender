@@ -942,7 +942,7 @@ static int line_isect_y(const float p1[2], const float p2[2], const float y_leve
 	
 	if (y_diff < 0.000001f) {
 		*x_isect = (p1[0] + p2[0]) * 0.5f;
-		return ISECT_TRUE;		
+		return ISECT_TRUE;
 	}
 	
 	if (p1[1] > y_level && p2[1] < y_level) {
@@ -975,7 +975,7 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
 	
 	if (x_diff < 0.000001f) { /* yuck, vertical line, we cant do much here */
 		*y_isect = (p1[0] + p2[0]) * 0.5f;
-		return ISECT_TRUE;		
+		return ISECT_TRUE;
 	}
 	
 	if (p1[0] > x_level && p2[0] < x_level) {
@@ -1003,7 +1003,7 @@ static int cmp_uv(const float vec2a[2], const float vec2b[2])
 	float ya = (float)fmodf(vec2a[1], 1.0f);
 	
 	float xb = (float)fmodf(vec2b[0], 1.0f);
-	float yb = (float)fmodf(vec2b[1], 1.0f);	
+	float yb = (float)fmodf(vec2b[1], 1.0f);
 	
 	if (xa < 0.0f) xa += 1.0f;
 	if (ya < 0.0f) ya += 1.0f;
@@ -1860,7 +1860,7 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 		/* lower left out of radius test */
 		if (cent[1] < bucket_bounds->ymin) {
 			return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
-		} 
+		}
 		/* top left test */
 		else if (cent[1] > bucket_bounds->ymax) {
 			return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
@@ -1870,7 +1870,7 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 		/* lower right out of radius test */
 		if (cent[1] < bucket_bounds->ymin) {
 			return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
-		} 
+		}
 		/* top right test */
 		else if (cent[1] > bucket_bounds->ymax) {
 			return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
@@ -2111,7 +2111,7 @@ static void project_bucket_clip_face(
 				if ((inside_bucket_flag & ISECT_2) == 0) { copy_v2_v2(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
 				if ((inside_bucket_flag & ISECT_3) == 0) { copy_v2_v2(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
-		}	
+		}
 		
 		if ((inside_bucket_flag & (ISECT_3 | ISECT_1)) != (ISECT_3 | ISECT_1)) {
 			if (line_clip_rect2f(bucket_bounds, v3coSS, v1coSS, v1_clipSS, v2_clipSS)) {
@@ -2394,7 +2394,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	tf_uv_pxoffset[1][1] = tf->uv[1][1] - yhalfpx;
 	
 	tf_uv_pxoffset[2][0] = tf->uv[2][0] - xhalfpx;
-	tf_uv_pxoffset[2][1] = tf->uv[2][1] - yhalfpx;	
+	tf_uv_pxoffset[2][1] = tf->uv[2][1] - yhalfpx;
 	
 	if (mf->v4) {
 		vCo[3] = ps->dm_mvert[mf->v4].co;
@@ -3432,7 +3432,7 @@ static void project_paint_begin_clone(ProjPaintState *ps, int mouse[2])
 		mul_m4_v4(ps->projectMat, projCo);
 		ps->cloneOffset[0] = mouse[0] - ((float)(ps->winx / 2.0f) + (ps->winx / 2.0f) * projCo[0] / projCo[3]);
 		ps->cloneOffset[1] = mouse[1] - ((float)(ps->winy / 2.0f) + (ps->winy / 2.0f) * projCo[1] / projCo[3]);
-	}	
+	}
 }	
 
 static void project_paint_end(ProjPaintState *ps)
@@ -4100,7 +4100,7 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 {
 	/* First unpack args from the struct */
 	ProjPaintState *ps = (ProjPaintState *)state;
-	int touch_any = 0;	
+	int touch_any = 0;
 	
 	ProjectHandle handles[BLENDER_MAX_THREADS];
 	ListBase threads;
@@ -4133,7 +4133,7 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 		/* image bounds */
 		for (i = 0; i < ps->image_tot; i++) {
 			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->arena_mt[a], sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
-			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);			
+			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 		}
 
 		if (ps->thread_tot > 1)
@@ -4554,7 +4554,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 	else if (ima->packedfile && ima->rr) {
 		s->warnpackedfile = ima->id.name + 2;
 		return 0;
-	}	
+	}
 	else if (ibuf && ibuf->channels != 4) {
 		s->warnmultifile = ima->id.name + 2;
 		return 0;
@@ -5048,7 +5048,7 @@ static void paint_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		pop->prevmouse[1] = mouse[1];
 
 	}
-	else { 
+	else {
 		redraw = imapaint_paint_stroke(&pop->vc, &pop->s, pop->painter, pop->mode == PAINT_MODE_3D, pop->prevmouse, mouse, time, pressure);
 		pop->prevmouse[0] = mouse[0];
 		pop->prevmouse[1] = mouse[1];
@@ -5066,7 +5066,7 @@ static void paint_brush_exit_tex(Brush *brush)
 		MTex *mtex = &brush->mtex;
 		if (mtex->tex && mtex->tex->nodetree)
 			ntreeTexEndExecTree(mtex->tex->nodetree->execdata, 1);
-	}	
+	}
 }
 
 static void paint_exit(bContext *C, wmOperator *op)

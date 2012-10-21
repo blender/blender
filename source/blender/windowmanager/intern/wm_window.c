@@ -164,7 +164,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 		if (CTX_wm_window(C) == win)
 			CTX_wm_window_set(C, NULL);
-	}	
+	}
 
 	/* always set drawable and active to NULL,
 	 * prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
@@ -648,7 +648,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 		else if (!GHOST_ValidWindow(g_system, ghostwin)) {
 			/* XXX - should be checked, why are we getting an event here, and */
 			/* what is it? */
-			puts("<!> event has invalid window");			
+			puts("<!> event has invalid window");
 			return 1;
 		}
 		else {
@@ -1001,7 +1001,7 @@ void wm_ghost_init(bContext *C)
 		
 		g_system = GHOST_CreateSystem();
 		GHOST_AddEventConsumer(g_system, consumer);
-	}	
+	}
 }
 
 void wm_ghost_exit(void)

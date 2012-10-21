@@ -72,7 +72,7 @@ static void do_brightnesscontrast(bNode *UNUSED(node), float *out, float *in, fl
 		b = a * (brightness + delta);
 	}
 	
-	for (c=0; c<3; c++) {        
+	for (c=0; c<3; c++) {
 		i = in[c];
 		v = a*i + b;
 		out[c] = v;

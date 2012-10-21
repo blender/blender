@@ -97,7 +97,7 @@ static void node_composit_exec_sephsva(void *UNUSED(data), bNode *node, bNodeSta
 		/*not used anymore */
 		if (cbuf2!=cbuf)
 			free_compbuf(cbuf2);
-		free_compbuf(cbuf);	
+		free_compbuf(cbuf);
 	}
 }
 

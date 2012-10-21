@@ -609,7 +609,7 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 			}
 		}
 		else k1 += start * key->elemsize;
-	}	
+	}
 	
 	if (mode == KEY_MODE_BEZTRIPLE) {
 		elemstr[0] = 1;
@@ -1268,7 +1268,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 				do_key(a, a + 1, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
 			else
 				cp_key(a, a + 1, tot, out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
-		}		
+		}
 	}
 	else {
 		if (key->type == KEY_RELATIVE) {

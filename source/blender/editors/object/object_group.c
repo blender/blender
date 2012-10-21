@@ -211,7 +211,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 	ot->idname = "GROUP_OT_objects_remove_active";
 	
 	/* api callbacks */
-	ot->exec = objects_remove_active_exec;	
+	ot->exec = objects_remove_active_exec;
 	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
@@ -333,7 +333,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 	ot->idname = "GROUP_OT_create";
 	
 	/* api callbacks */
-	ot->exec = group_create_exec;	
+	ot->exec = group_create_exec;
 	ot->poll = ED_operator_objectmode;
 	
 	/* flags */

@@ -81,7 +81,7 @@ static void texture_procedural(CompBuf *cbuf, float *out, float xco, float yco)
 			copy_v3_fl(col, col[3]);
 		}
 	}
-	else { 
+	else {
 		copy_v3_v3(col, nor);
 	}
 	

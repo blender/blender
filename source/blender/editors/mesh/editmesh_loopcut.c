@@ -527,7 +527,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			ED_region_tag_redraw(lcd->ar);
 			break;
-		}			
+		}
 	}
 	
 	/* using the keyboard to input the number of cuts */

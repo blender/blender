@@ -1566,7 +1566,7 @@ static void p_vert_harmonic_insert(PVert *v)
 
 		e = v->edge;
 		do {
-			npoints++;	
+			npoints++;
 			e = p_wheel_edge_next(e);
 		} while (e && (e != v->edge));
 
@@ -4400,7 +4400,7 @@ void param_pack(ParamHandle *handle, float margin)
 		
 		if (margin > 0.0f)
 			area += sqrt(box->w * box->h);
-	}	
+	}
 	
 	if (margin > 0.0f) {
 		/* multiply the margin by the area to give predictable results not dependent on UV scale,

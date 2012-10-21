@@ -1186,7 +1186,7 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			if (ma->adt)
 				return GET_ACF_FLAG_PTR(ma->adt->flag, type);
 			else
-				return NULL;	
+				return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1263,7 +1263,7 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			if (la->adt)
 				return GET_ACF_FLAG_PTR(la->adt->flag, type);
 			else
-				return NULL;	
+				return NULL;
 		
 		default: /* unsupported */
 			return NULL;
@@ -1347,7 +1347,7 @@ static void *acf_dstex_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			if (tex->adt)
 				return GET_ACF_FLAG_PTR(tex->adt->flag, type);
 			else
-				return NULL;	
+				return NULL;
 		
 		default: /* unsupported */
 			return NULL;
