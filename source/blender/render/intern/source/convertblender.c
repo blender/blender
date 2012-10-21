@@ -4935,7 +4935,8 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						 * a dupligroup that has already been created before */
 						if (dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, 0))) {
 							mult_m4_m4m4(mat, re->viewmat, dob->mat);
-							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat, obd->lay);
+														/* ob = particle system, use that layer */
+							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat, ob->lay); 
 
 							/* fill in instance variables for texturing */
 							set_dupli_tex_mat(re, obi, dob);
