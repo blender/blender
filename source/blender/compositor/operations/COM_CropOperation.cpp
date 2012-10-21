@@ -36,25 +36,29 @@ void CropBaseOperation::updateArea()
 	SocketReader *inputReference = this->getInputSocketReader(0);
 	float width = inputReference->getWidth();
 	float height = inputReference->getHeight();
-	if (this->m_relative) {
-		this->m_settings->x1 = width * this->m_settings->fac_x1;
-		this->m_settings->x2 = width * this->m_settings->fac_x2;
-		this->m_settings->y1 = height * this->m_settings->fac_y1;
-		this->m_settings->y2 = height * this->m_settings->fac_y2;
-	}
-	if (width <= this->m_settings->x1 + 1)
-		this->m_settings->x1 = width - 1;
-	if (height <= this->m_settings->y1 + 1)
-		this->m_settings->y1 = height - 1;
-	if (width <= this->m_settings->x2 + 1)
-		this->m_settings->x2 = width - 1;
-	if (height <= this->m_settings->y2 + 1)
-		this->m_settings->y2 = height - 1;
 	
-	this->m_xmax = MAX2(this->m_settings->x1, this->m_settings->x2) + 1;
-	this->m_xmin = MIN2(this->m_settings->x1, this->m_settings->x2);
-	this->m_ymax = MAX2(this->m_settings->y1, this->m_settings->y2) + 1;
-	this->m_ymin = MIN2(this->m_settings->y1, this->m_settings->y2);
+	if (width > 0.0f && height > 0.0f)
+	{
+		if (this->m_relative) {
+			this->m_settings->x1 = width * this->m_settings->fac_x1;
+			this->m_settings->x2 = width * this->m_settings->fac_x2;
+			this->m_settings->y1 = height * this->m_settings->fac_y1;
+			this->m_settings->y2 = height * this->m_settings->fac_y2;
+		}
+		if (width <= this->m_settings->x1 + 1)
+			this->m_settings->x1 = width - 1;
+		if (height <= this->m_settings->y1 + 1)
+			this->m_settings->y1 = height - 1;
+		if (width <= this->m_settings->x2 + 1)
+			this->m_settings->x2 = width - 1;
+		if (height <= this->m_settings->y2 + 1)
+			this->m_settings->y2 = height - 1;
+		
+		this->m_xmax = MAX2(this->m_settings->x1, this->m_settings->x2) + 1;
+		this->m_xmin = MIN2(this->m_settings->x1, this->m_settings->x2);
+		this->m_ymax = MAX2(this->m_settings->y1, this->m_settings->y2) + 1;
+		this->m_ymin = MIN2(this->m_settings->y1, this->m_settings->y2);
+	}
 }
 
 void CropBaseOperation::initExecution()
