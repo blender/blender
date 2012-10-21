@@ -1855,7 +1855,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case ESCKEY:
-			;
+			break;
 	}
 	
 	return OPERATOR_RUNNING_MODAL;

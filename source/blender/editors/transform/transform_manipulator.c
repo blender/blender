@@ -498,7 +498,7 @@ int calc_manipulator_stats(const bContext *C)
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
-		;
+		/* pass */
 	}
 	else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		PTCacheEdit *edit = PE_get_current(scene, ob);

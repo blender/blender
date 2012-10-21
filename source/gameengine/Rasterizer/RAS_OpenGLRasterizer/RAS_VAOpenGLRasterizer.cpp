@@ -246,8 +246,7 @@ void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv)
 				glTexCoordPointer(2, GL_FLOAT, sizeof(RAS_TexVert), tv->getUV2());
 				continue;
 			}
-			switch(m_texco[unit])
-			{
+			switch (m_texco[unit]) {
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
 				glTexCoordPointer(3, GL_FLOAT, sizeof(RAS_TexVert),tv->getXYZ());
@@ -274,7 +273,7 @@ void RAS_VAOpenGLRasterizer::TexCoordPtr(const RAS_TexVert *tv)
 
 	if (GLEW_ARB_vertex_program) {
 		for (unit=0; unit<m_attrib_num; unit++) {
-			switch(m_attrib[unit]) {
+			switch (m_attrib[unit]) {
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
 				glVertexAttribPointerARB(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getXYZ());
@@ -330,8 +329,7 @@ void RAS_VAOpenGLRasterizer::EnableTextures(bool enable)
 		for (unit=0; unit<texco_num; unit++) {
 			glClientActiveTextureARB(GL_TEXTURE0_ARB+unit);
 
-			switch(texco[unit])
-			{
+			switch (texco[unit]) {
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
 			case RAS_TEXCO_UV1:
@@ -358,7 +356,7 @@ void RAS_VAOpenGLRasterizer::EnableTextures(bool enable)
 
 	if (GLEW_ARB_vertex_program) {
 		for (unit=0; unit<attrib_num; unit++) {
-			switch(attrib[unit]) {
+			switch (attrib[unit]) {
 			case RAS_TEXCO_ORCO:
 			case RAS_TEXCO_GLOB:
 			case RAS_TEXCO_UV1:

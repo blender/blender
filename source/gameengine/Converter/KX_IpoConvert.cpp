@@ -96,7 +96,7 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 
 	const char *rotmode, *drotmode;
 
-	switch(blenderobject->rotmode) {
+	switch (blenderobject->rotmode) {
 	case ROT_MODE_AXISANGLE:
 		rotmode = "rotation_axis_angle";
 		drotmode = "delta_rotation_axis_angle";

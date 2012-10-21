@@ -711,7 +711,7 @@ static void update_matrixS(ClothVertex *verts, int numverts, fmatrix3x3 *S)
 	int i = 0;
 
 	/* Clear matrix from old vertex constraints */
-	for(i = 0; i < S[0].vcount; i++)
+	for (i = 0; i < S[0].vcount; i++)
 		S[i].c = S[i].r = 0;
 
 	/* Set new vertex constraints */
@@ -1662,7 +1662,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	while (search) {
 		// only handle active springs
 		ClothSpring *spring = search->link;
-		if( !(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
 			cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
 
 		search = search->next;

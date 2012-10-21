@@ -71,12 +71,12 @@ EnumPropertyItem node_quality_items[] = {
 };
 
 EnumPropertyItem node_chunksize_items[] = {
-    {NTREE_CHUNCKSIZE_32,   "32",     0,    "32x32",     "Chunksize of 32x32"},
-    {NTREE_CHUNCKSIZE_64,   "64",     0,    "64x64",     "Chunksize of 64x64"},
-    {NTREE_CHUNCKSIZE_128,   "128",     0,    "128x128",     "Chunksize of 128x128"},
-    {NTREE_CHUNCKSIZE_256,   "256",     0,    "256x256",     "Chunksize of 256x256"},
-    {NTREE_CHUNCKSIZE_512,   "512",     0,    "512x512",     "Chunksize of 512x512"},
-    {NTREE_CHUNCKSIZE_1024,   "1024",     0,    "1024x1024",     "Chunksize of 1024x1024"},
+	{NTREE_CHUNCKSIZE_32,   "32",     0,    "32x32",     "Chunksize of 32x32"},
+	{NTREE_CHUNCKSIZE_64,   "64",     0,    "64x64",     "Chunksize of 64x64"},
+	{NTREE_CHUNCKSIZE_128,  "128",    0,    "128x128",   "Chunksize of 128x128"},
+	{NTREE_CHUNCKSIZE_256,  "256",    0,    "256x256",   "Chunksize of 256x256"},
+	{NTREE_CHUNCKSIZE_512,  "512",    0,    "512x512",   "Chunksize of 512x512"},
+	{NTREE_CHUNCKSIZE_1024, "1024",   0,    "1024x1024", "Chunksize of 1024x1024"},
 	{0, NULL, 0, NULL, NULL}
 };
 

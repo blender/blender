@@ -50,7 +50,7 @@
 #include "BKE_tessmesh.h"
 
 /* testing only! - Campbell */
-#define USE_DECIMATE_BMESH
+// #define USE_DECIMATE_BMESH
 #include "PIL_time.h"
 
 

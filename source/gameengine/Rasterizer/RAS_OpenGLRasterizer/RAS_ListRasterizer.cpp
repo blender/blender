@@ -124,7 +124,7 @@ void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
 {
 	if (list->m_flag & LIST_DERIVEDMESH) {
 		RAS_DerivedMeshLists::iterator it = mDerivedMeshLists.begin();
-		while(it != mDerivedMeshLists.end()) {
+		while (it != mDerivedMeshLists.end()) {
 			RAS_ListSlots *slots = it->second;
 			if (slots->size() > list->m_matnr && slots->at(list->m_matnr) == list) {
 				(*slots)[list->m_matnr] = NULL;
@@ -145,7 +145,7 @@ void RAS_ListRasterizer::RemoveListSlot(RAS_ListSlot* list)
 		}
 	} else {
 		RAS_ArrayLists::iterator it = mArrayLists.begin();
-		while(it != mArrayLists.end()) {
+		while (it != mArrayLists.end()) {
 			if (it->second == list) {
 				mArrayLists.erase(it);
 				break;

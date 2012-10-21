@@ -1796,7 +1796,7 @@ static void initPySysObjects(Main *maggie)
 	
 	Library *lib= (Library *)maggie->library.first;
 	
-	while(lib) {
+	while (lib) {
 		/* lib->name wont work in some cases (on win32),
 		 * even when expanding with gp_GamePythonPath, using lib->filename is less trouble */
 		initPySysObjects__append(sys_path, lib->filepath);

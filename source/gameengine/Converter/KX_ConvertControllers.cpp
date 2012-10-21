@@ -110,8 +110,7 @@ void BL_ConvertControllers(
 	while (bcontr)
 	{
 		SCA_IController* gamecontroller = NULL;
-		switch(bcontr->type)
-		{
+		switch (bcontr->type) {
 			case CONT_LOGIC_AND:
 			{
 				gamecontroller = new SCA_ANDController(gameobj);

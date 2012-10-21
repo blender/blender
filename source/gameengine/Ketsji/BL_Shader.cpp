@@ -52,51 +52,70 @@ void BL_Uniform::Apply(class BL_Shader *shader)
 #ifdef SORT_UNIFORMS
 	MT_assert(mType > UNI_NONE && mType < UNI_MAX && mData);
 
-	if (!mDirty) 
+	if (!mDirty)
 		return;
 
-	switch(mType)
-	{
-	case UNI_FLOAT: {
+	switch (mType) {
+		case UNI_FLOAT:
+		{
 			float *f = (float*)mData;
 			glUniform1fARB(mLoc,(GLfloat)*f);
-		}break;
-	case UNI_INT: {
+			break;
+		}
+		case UNI_INT:
+		{
 			int *f = (int*)mData;
 			glUniform1iARB(mLoc, (GLint)*f);
-		}break;
-	case UNI_FLOAT2: {
+			break;
+		}
+		case UNI_FLOAT2:
+		{
 			float *f = (float*)mData;
 			glUniform2fvARB(mLoc,1, (GLfloat*)f);
-		}break;
-	case UNI_FLOAT3: {
+			break;
+		}
+		case UNI_FLOAT3:
+		{
 			float *f = (float*)mData;
 			glUniform3fvARB(mLoc,1,(GLfloat*)f);
-		}break;
-	case UNI_FLOAT4: {
+			break;
+		}
+		case UNI_FLOAT4:
+		{
 			float *f = (float*)mData;
 			glUniform4fvARB(mLoc,1,(GLfloat*)f);
-		}break;
-	case UNI_INT2: {
+			break;
+		}
+		case UNI_INT2:
+		{
 			int *f = (int*)mData;
 			glUniform2ivARB(mLoc,1,(GLint*)f);
-		}break; 
-	case UNI_INT3: {
+			break;
+		}
+		case UNI_INT3:
+		{
 			int *f = (int*)mData;
 			glUniform3ivARB(mLoc,1,(GLint*)f);
-		}break; 
-	case UNI_INT4: {
+			break;
+		}
+		case UNI_INT4:
+		{
 			int *f = (int*)mData;
 			glUniform4ivARB(mLoc,1,(GLint*)f);
-		}break;
-	case UNI_MAT4: {
+			break;
+		}
+		case UNI_MAT4:
+		{
 			float *f = (float*)mData;
 			glUniformMatrix4fvARB(mLoc, 1, mTranspose?GL_TRUE:GL_FALSE,(GLfloat*)f);
-		}break;
-	case UNI_MAT3: {
+			break;
+		}
+		case UNI_MAT3:
+		{
 			float *f = (float*)mData;
 			glUniformMatrix3fvARB(mLoc, 1, mTranspose?GL_TRUE:GL_FALSE,(GLfloat*)f);
-		}break;
+			break;
+		}
 	}
 	mDirty = false;
 #endif
@@ -157,7 +176,7 @@ BL_Shader::~BL_Shader()
 void BL_Shader::ClearUniforms()
 {
 	BL_UniformVec::iterator it = mUniforms.begin();
-	while(it != mUniforms.end()) {
+	while (it != mUniforms.end()) {
 		delete (*it);
 		it++;
 	}
@@ -165,7 +184,7 @@ void BL_Shader::ClearUniforms()
 
 	
 	BL_UniformVecDef::iterator itp = mPreDef.begin();
-	while(itp != mPreDef.end()) {
+	while (itp != mPreDef.end()) {
 		delete (*itp);
 		itp++;
 	}
@@ -178,7 +197,7 @@ BL_Uniform  *BL_Shader::FindUniform(const int location)
 {
 #ifdef SORT_UNIFORMS
 	BL_UniformVec::iterator it = mUniforms.begin();
-	while(it != mUniforms.end()) {
+	while (it != mUniforms.end()) {
 		if ((*it)->GetLocation() == location)
 			return (*it);
 		it++;
@@ -1134,7 +1153,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv, "setUniformfv( float (list2 or list
 					Py_DECREF(item);
 				}
 
-				switch(list_size)
+				switch (list_size)
 				{
 				case 2:
 					{
@@ -1218,7 +1237,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformiv, "setUniformiv( uniform_name, (list2
 	
 	/* Sanity checks done! */
 	
-	switch(list_size)
+	switch (list_size)
 	{
 	case 2:
 		{
@@ -1394,15 +1413,14 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniformDef, "setUniformDef(name, enum)" )
 		{
 			bool defined = false;
 			BL_UniformVecDef::iterator it = mPreDef.begin();
-			while(it != mPreDef.end()) {
+			while (it != mPreDef.end()) {
 				if ((*it)->mLoc == loc) {
 					defined = true;
 					break;
 				}
 				it++;
 			}
-			if (defined)
-			{
+			if (defined) {
 				Py_RETURN_NONE;
 			}
 

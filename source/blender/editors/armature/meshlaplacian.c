@@ -1195,7 +1195,7 @@ static int meshdeform_tri_intersect(const float orig[3], const float end[3], con
 }
 
 static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
- {
+{
 	void **data = userdata;
 	MeshDeformBind *mdb = data[1];
 	MFace *mface = data[0], *mf;
@@ -1210,7 +1210,7 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 	if (mf->v4)
 		copy_v3_v3(face[3], mdb->cagecos[mf->v4]);
 	
- 	add_v3_v3v3(end, isec->start, isec->vec);
+	add_v3_v3v3(end, isec->start, isec->vec);
 	
 	if (!meshdeform_tri_intersect(ray->origin, end, face[0], face[1], face[2], co, uvw)) 
 		if (!mf->v4 || !meshdeform_tri_intersect(ray->origin, end, face[0], face[2], face[3], co, uvw))
@@ -1257,7 +1257,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
 	                         0.0, &hit, harmonic_ray_callback, data) != -1)
 	{
- 		len = isect_mdef.labda;
+		len = isect_mdef.labda;
 		isect_mdef.face = mface = mface1 + hit.index;
 
 		/* create MDefBoundIsect */

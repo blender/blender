@@ -562,7 +562,7 @@ void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 		using_alpha = true;
 	}
 
-	switch( mat->blend_mode[mUnit] ) {
+	switch (mat->blend_mode[mUnit]) {
 		case BLEND_MIX:
 			{
 				// ------------------------------

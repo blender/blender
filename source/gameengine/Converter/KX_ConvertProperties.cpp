@@ -69,13 +69,12 @@ void BL_ConvertProperties(Object* object,KX_GameObject* gameobj,SCA_TimeEventMan
 	bProperty* prop = (bProperty*)object->prop.first;
 	CValue* propval;
 	bool show_debug_info;
-	while(prop)
-	{
-	
+
+	while (prop) {
 		propval = NULL;
 		show_debug_info = bool (prop->flag & PROP_DEBUG);
 
-		switch(prop->type) {
+		switch (prop->type) {
 			case GPROP_BOOL:
 			{
 				propval = new CBoolValue((bool)(prop->data != 0));
@@ -184,7 +183,7 @@ void BL_ConvertTextProperty(Object* object, KX_FontObject* fontobj,SCA_TimeEvent
 	STR_String str = curve->str;
 	CValue* propval = NULL;
 
-	switch(prop->type) {
+	switch (prop->type) {
 		case GPROP_BOOL:
 		{
 			int value = atoi(str);

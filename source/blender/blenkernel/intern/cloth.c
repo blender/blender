@@ -1050,29 +1050,25 @@ static void cloth_update_springs( ClothModifierData *clmd )
 
 		spring->stiffness = 0.0f;
 
-		if(spring->type == CLOTH_SPRING_TYPE_STRUCTURAL)
-		{
+		if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL) {
 			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0f;
 		}
-		else if(spring->type == CLOTH_SPRING_TYPE_SHEAR)
-		{
+		else if (spring->type == CLOTH_SPRING_TYPE_SHEAR) {
 			spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
 		}
-		else if(spring->type == CLOTH_SPRING_TYPE_BENDING)
-		{
+		else if (spring->type == CLOTH_SPRING_TYPE_BENDING) {
 			spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
 		}
-		else if(spring->type == CLOTH_SPRING_TYPE_GOAL)
-		{
+		else if (spring->type == CLOTH_SPRING_TYPE_GOAL) {
 			/* Warning: Appending NEW goal springs does not work because implicit solver would need reset! */
 
 			/* Activate / Deactivate existing springs */
-			if ((!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED)) && (cloth->verts[spring->ij].goal > ALMOST_ZERO))
+			if ((!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED)) &&
+			    (cloth->verts[spring->ij].goal > ALMOST_ZERO))
 			{
 				spring->flags &= ~CLOTH_SPRING_FLAG_DEACTIVATE;
 			}
-			else
-			{
+			else {
 				spring->flags |= CLOTH_SPRING_FLAG_DEACTIVATE;
 			}
 		}

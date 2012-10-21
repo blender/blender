@@ -2062,7 +2062,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				{
 					brush->add_col[0] = 1.00f;
 					brush->add_col[1] = 0.39f;
- 					brush->add_col[2] = 0.39f;
+					brush->add_col[2] = 0.39f;
 				}
 
 				if (brush->sub_col[0] == 0 &&

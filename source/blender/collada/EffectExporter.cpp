@@ -381,7 +381,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	}
 
 	std::set<Image *>::iterator uv_t_iter;
-	for(uv_t_iter = uv_textures.begin(); uv_t_iter != uv_textures.end(); uv_t_iter++ ) {
+	for (uv_t_iter = uv_textures.begin(); uv_t_iter != uv_textures.end(); uv_t_iter++ ) {
 		Image *ima = *uv_t_iter;
 		std::string key(id_name(ima));
 		key = translate_id(key);

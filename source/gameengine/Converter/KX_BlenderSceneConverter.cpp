@@ -944,7 +944,7 @@ static void load_datablocks(Main *main_newlib, BlendHandle *bpy_openlib, const c
 	
 	int i=0;
 	LinkNode *n= names;
-	while(n) {
+	while (n) {
 		BLO_library_append_named_part(main_tmp, &bpy_openlib, (char *)n->link, idcode);
 		n= (LinkNode *)n->next;
 		i++;
@@ -1170,7 +1170,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 					else {
 						/* free the mesh, we could be referecing a linked one! */
 						int mesh_index= gameobj->GetMeshCount();
-						while(mesh_index--) {
+						while (mesh_index--) {
 							mesh= gameobj->GetMesh(mesh_index);
 							if (IS_TAGGED(mesh->GetMesh())) {
 								gameobj->RemoveMeshes(); /* XXX - slack, should only remove meshes that are library items but mostly objects only have 1 mesh */

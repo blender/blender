@@ -3301,7 +3301,9 @@ static void hide_unselected_armature_bones(Scene *scene)
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		bArmature *arm = obedit->data;
 		if (EBONE_VISIBLE(arm, ebone)) {
-			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL)) ;
+			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL)) {
+				/* pass */
+			}
 			else {
 				ebone->flag |= BONE_HIDDEN_A;
 			}

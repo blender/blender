@@ -1476,7 +1476,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRende
 		}
 	}
 	else if (cu->ext1 == 0.0f && cu->ext2 == 0.0f) {
-		;
+		/* pass */
 	}
 	else if (cu->ext2 == 0.0f) {
 		dl = MEM_callocN(sizeof(DispList), "makebevelcurve2");

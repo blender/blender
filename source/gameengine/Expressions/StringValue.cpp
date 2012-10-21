@@ -77,33 +77,34 @@ CValue* CStringValue::CalcFinal(VALUE_DATA_TYPE dtype, VALUE_OPERATOR op, CValue
 			ret = new CErrorValue(val->GetText() + op2str(op) +	GetText());
 		else
 			ret = new CStringValue(val->GetText() + GetText(),"");
-	} else {
-		
+	}
+	else {
 		if (dtype == VALUE_STRING_TYPE || dtype == VALUE_EMPTY_TYPE) {
-			switch(op) {
-			case VALUE_EQL_OPERATOR:
-				ret = new CBoolValue(val->GetText() == GetText());
-				break;
-			case VALUE_NEQ_OPERATOR:
-				ret = new CBoolValue(val->GetText() != GetText());
-				break;
-			case VALUE_GRE_OPERATOR:
-				ret = new CBoolValue(val->GetText() > GetText());
-				break;
-			case VALUE_LES_OPERATOR:
-				ret = new CBoolValue(val->GetText() < GetText());
-				break;
-			case VALUE_GEQ_OPERATOR:
-				ret = new CBoolValue(val->GetText() >= GetText());
-				break;
-			case VALUE_LEQ_OPERATOR:
-				ret = new CBoolValue(val->GetText() <= GetText());
-				break;
-			default:
-				ret =  new CErrorValue(val->GetText() + op2str(op) + "[operator not allowed on strings]");
-				break;
+			switch (op) {
+				case VALUE_EQL_OPERATOR:
+					ret = new CBoolValue(val->GetText() == GetText());
+					break;
+				case VALUE_NEQ_OPERATOR:
+					ret = new CBoolValue(val->GetText() != GetText());
+					break;
+				case VALUE_GRE_OPERATOR:
+					ret = new CBoolValue(val->GetText() > GetText());
+					break;
+				case VALUE_LES_OPERATOR:
+					ret = new CBoolValue(val->GetText() < GetText());
+					break;
+				case VALUE_GEQ_OPERATOR:
+					ret = new CBoolValue(val->GetText() >= GetText());
+					break;
+				case VALUE_LEQ_OPERATOR:
+					ret = new CBoolValue(val->GetText() <= GetText());
+					break;
+				default:
+					ret =  new CErrorValue(val->GetText() + op2str(op) + "[operator not allowed on strings]");
+					break;
 			}
-		} else {
+		}
+		else {
 			ret =  new CErrorValue(val->GetText() + op2str(op) + "[operator not allowed on strings]");
 		}
 	}

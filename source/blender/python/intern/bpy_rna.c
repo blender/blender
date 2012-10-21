@@ -4617,7 +4617,7 @@ static struct PyMethodDef pyrna_prop_collection_methods[] = {
 static struct PyMethodDef pyrna_prop_collection_idprop_methods[] = {
 	{"add", (PyCFunction)pyrna_prop_collection_idprop_add, METH_NOARGS, NULL},
 	{"remove", (PyCFunction)pyrna_prop_collection_idprop_remove, METH_O, NULL},
-    {"clear", (PyCFunction)pyrna_prop_collection_idprop_clear, METH_NOARGS, NULL},
+	{"clear", (PyCFunction)pyrna_prop_collection_idprop_clear, METH_NOARGS, NULL},
 	{"move", (PyCFunction)pyrna_prop_collection_idprop_move, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };

@@ -170,7 +170,7 @@ PyObject *PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject
 	 *
 	 * */
 	base_type= Py_TYPE(base);
-	while(base_type && !BGE_PROXY_CHECK_TYPE(base_type))
+	while (base_type && !BGE_PROXY_CHECK_TYPE(base_type))
 		base_type= base_type->tp_base;
 
 	if (base_type==NULL || !BGE_PROXY_CHECK_TYPE(base_type)) {
@@ -1198,8 +1198,7 @@ void PyObjectPlus::ClearDeprecationWarning()
 	WarnLink *wlink_next;
 	WarnLink *wlink = GetDeprecationWarningLinkFirst();
 	
-	while(wlink)
-	{
+	while (wlink) {
 		wlink->warn_done= false; /* no need to NULL the link, its cleared before adding to the list next time round */
 		wlink_next= reinterpret_cast<WarnLink *>(wlink->link);
 		wlink->link= NULL;

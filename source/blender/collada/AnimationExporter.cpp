@@ -265,7 +265,7 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 		MEM_freeN(eul);
 		MEM_freeN(eul_axis);
 	}
-	else if(!strcmp(transformName, "lens") && (ob->type == OB_CAMERA)) {
+	else if (!strcmp(transformName, "lens") && (ob->type == OB_CAMERA)) {
 		output_id = create_lens_source_from_fcurve((Camera *) ob->data, COLLADASW::InputSemantic::OUTPUT, fcu, anim_id);
 	}
 	else {

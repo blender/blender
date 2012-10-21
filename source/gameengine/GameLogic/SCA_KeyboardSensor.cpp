@@ -225,37 +225,37 @@ bool SCA_KeyboardSensor::Evaluate()
 		 */
 		if (m_qual > 0) {
 			const SCA_InputEvent & qualevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) m_qual);
-			switch(qualevent.m_status) {
-			case SCA_InputEvent::KX_NO_INPUTSTATUS:
-				qual = false;
-				break;
-			case SCA_InputEvent::KX_JUSTRELEASED:
-				qual_change = true;
-				qual = false;
-				break;
-			case SCA_InputEvent::KX_JUSTACTIVATED:
-				qual_change = true;
-			case SCA_InputEvent::KX_ACTIVE:
-				/* do nothing */
-				break;
+			switch (qualevent.m_status) {
+				case SCA_InputEvent::KX_NO_INPUTSTATUS:
+					qual = false;
+					break;
+				case SCA_InputEvent::KX_JUSTRELEASED:
+					qual_change = true;
+					qual = false;
+					break;
+				case SCA_InputEvent::KX_JUSTACTIVATED:
+					qual_change = true;
+				case SCA_InputEvent::KX_ACTIVE:
+					/* do nothing */
+					break;
 			}
 		}
 		if (m_qual2 > 0 && qual==true) {
 			const SCA_InputEvent & qualevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) m_qual2);
 			/* copy of above */
-			switch(qualevent.m_status) {
-			case SCA_InputEvent::KX_NO_INPUTSTATUS:
-				qual = false;
-				break;
-			case SCA_InputEvent::KX_JUSTRELEASED:
-				qual_change = true;
-				qual = false;
-				break;
-			case SCA_InputEvent::KX_JUSTACTIVATED:
-				qual_change = true;
-			case SCA_InputEvent::KX_ACTIVE:
-				/* do nothing */
-				break;
+			switch (qualevent.m_status) {
+				case SCA_InputEvent::KX_NO_INPUTSTATUS:
+					qual = false;
+					break;
+				case SCA_InputEvent::KX_JUSTRELEASED:
+					qual_change = true;
+					qual = false;
+					break;
+				case SCA_InputEvent::KX_JUSTACTIVATED:
+					qual_change = true;
+				case SCA_InputEvent::KX_ACTIVE:
+					/* do nothing */
+					break;
 			}
 		}
 		/* done reading qualifiers */

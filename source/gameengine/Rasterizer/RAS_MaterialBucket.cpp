@@ -73,7 +73,7 @@ RAS_MeshSlot::~RAS_MeshSlot()
 #ifdef USE_SPLIT
 	Split(true);
 
-	while(m_joinedSlots.size())
+	while (m_joinedSlots.size())
 		m_joinedSlots.front()->Split(true);
 #endif
 

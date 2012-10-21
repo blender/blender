@@ -220,7 +220,6 @@ void render_view_open(bContext *C, int mx, int my)
 		else {
 			/* Leave it alone so the image editor will just go back from
 			 * full screen to the original tiled setup */
-			;
 		}
 	}
 }

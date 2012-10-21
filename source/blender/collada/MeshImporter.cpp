@@ -998,7 +998,7 @@ static bool bc_has_same_material_configuration(Object *ob1, Object *ob2)
 	if (ob1->totcol != ob2->totcol) return false; // not same number of materials
 	if (ob1->totcol == 0) return false; // no material at all
 	
-	for(int index=0; index < ob1->totcol; index++) {
+	for (int index=0; index < ob1->totcol; index++) {
 		if (ob1->matbits[index] != ob2->matbits[index]) return false; // shouldn't happen
 		if (ob1->matbits[index] == 0) return false; // shouldn't happen
 		if (ob1->mat[index] != ob2->mat[index]) return false; // different material assignment

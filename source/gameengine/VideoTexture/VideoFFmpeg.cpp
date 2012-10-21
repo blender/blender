@@ -485,13 +485,13 @@ void VideoFFmpeg::stopCache()
 			av_free(frame->frame);
 			delete frame;
 		}
-		while((packet = (CachePacket *)m_packetCacheBase.first) != NULL)
+		while ((packet = (CachePacket *)m_packetCacheBase.first) != NULL)
 		{
 			BLI_remlink(&m_packetCacheBase, packet);
 			av_free_packet(&packet->packet);
 			delete packet;
 		}
-		while((packet = (CachePacket *)m_packetCacheFree.first) != NULL)
+		while ((packet = (CachePacket *)m_packetCacheFree.first) != NULL)
 		{
 			BLI_remlink(&m_packetCacheFree, packet);
 			delete packet;
@@ -921,7 +921,7 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 			&& m_preseek 
 			&& position - (m_curPosition + 1) < m_preseek) 
 		{
-			while(av_read_frame(m_formatCtx, &packet)>=0) 
+			while (av_read_frame(m_formatCtx, &packet)>=0)
 			{
 				if (packet.stream_index == m_videoStream) 
 				{
@@ -996,7 +996,7 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 
 	// find the correct frame, in case of streaming and no cache, it means just
 	// return the next frame. This is not quite correct, may need more work
-	while(av_read_frame(m_formatCtx, &packet)>=0) 
+	while (av_read_frame(m_formatCtx, &packet) >= 0)
 	{
 		if (packet.stream_index == m_videoStream) 
 		{

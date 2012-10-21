@@ -691,7 +691,7 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 		sds->dx = ch_dx;
 		VECCOPY(sds->res, ch_res);
 		sds->total_cells = ch_res[0]*ch_res[1]*ch_res[2];
-		if(sds->flags & MOD_SMOKE_HIGHRES) {
+		if (sds->flags & MOD_SMOKE_HIGHRES) {
 			smoke_reallocate_highres_fluid(sds, ch_dx, ch_res, 1);
 		}
 	}

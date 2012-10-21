@@ -73,7 +73,7 @@ typedef struct BoxVert {
                         ((b)->v[BR]->x = (b)->v[TR]->x)
 #define UPDATE_V34Y(b)  ((b)->v[TL]->y = (b)->v[TR]->y); \
                         ((b)->v[BR]->y = (b)->v[BL]->y)
-						
+
 /* UNUSED */
 // #define UPDATE_V34(b) UPDATE_V34X(b); UPDATE_V34Y(b)
 

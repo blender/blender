@@ -376,64 +376,63 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	PyObject *excdict=		NULL;
 	PyObject *resultobj=	NULL;
 	
-	switch(m_mode) {
-	case SCA_PYEXEC_SCRIPT:
-	{
-		if (m_bModified)
-			if (Compile()==false) // sets m_bModified to false
+	switch (m_mode) {
+		case SCA_PYEXEC_SCRIPT:
+		{
+			if (m_bModified)
+				if (Compile()==false) // sets m_bModified to false
+					return;
+			if (!m_bytecode)
 				return;
-		if (!m_bytecode)
-			return;
-		
-		/*
-		 * This part here with excdict is a temporary patch
-		 * to avoid python/gameengine crashes when python
-		 * inadvertently holds references to game objects
-		 * in global variables.
-		 * 
-		 * The idea is always make a fresh dictionary, and
-		 * destroy it right after it is used to make sure
-		 * python won't hold any gameobject references.
-		 * 
-		 * Note that the PyDict_Clear _is_ necessary before
-		 * the Py_DECREF() because it is possible for the
-		 * variables inside the dictionary to hold references
-		 * to the dictionary (ie. generate a cycle), so we
-		 * break it by hand, then DECREF (which in this case
-		 * should always ensure excdict is cleared).
-		 */
 
-		excdict= PyDict_Copy(m_pythondictionary);
+			/*
+			 * This part here with excdict is a temporary patch
+			 * to avoid python/gameengine crashes when python
+			 * inadvertently holds references to game objects
+			 * in global variables.
+			 *
+			 * The idea is always make a fresh dictionary, and
+			 * destroy it right after it is used to make sure
+			 * python won't hold any gameobject references.
+			 *
+			 * Note that the PyDict_Clear _is_ necessary before
+			 * the Py_DECREF() because it is possible for the
+			 * variables inside the dictionary to hold references
+			 * to the dictionary (ie. generate a cycle), so we
+			 * break it by hand, then DECREF (which in this case
+			 * should always ensure excdict is cleared).
+			 */
 
-		resultobj = PyEval_EvalCode((PyObject *)m_bytecode, excdict, excdict);
+			excdict= PyDict_Copy(m_pythondictionary);
 
-		/* PyRun_SimpleString(m_scriptText.Ptr()); */
-		break;
-	}
-	case SCA_PYEXEC_MODULE:
-	{
-		if (m_bModified || m_debug)
-			if (Import()==false) // sets m_bModified to false
-				return;
-		if (!m_function)
-			return;
-		
-		PyObject *args= NULL;
-		
-		if (m_function_argc==1) {
-			args = PyTuple_New(1);
-			PyTuple_SET_ITEM(args, 0, GetProxy());
+			resultobj = PyEval_EvalCode((PyObject *)m_bytecode, excdict, excdict);
+
+			/* PyRun_SimpleString(m_scriptText.Ptr()); */
+			break;
 		}
-		
-		resultobj = PyObject_CallObject(m_function, args);
-		Py_XDECREF(args);
-		break;
-	}
-	
+		case SCA_PYEXEC_MODULE:
+		{
+			if (m_bModified || m_debug)
+				if (Import()==false) // sets m_bModified to false
+					return;
+			if (!m_function)
+				return;
+
+			PyObject *args= NULL;
+
+			if (m_function_argc==1) {
+				args = PyTuple_New(1);
+				PyTuple_SET_ITEM(args, 0, GetProxy());
+			}
+
+			resultobj = PyObject_CallObject(m_function, args);
+			Py_XDECREF(args);
+			break;
+		}
+
 	} /* end switch */
-	
-	
-	
+
+
 	/* Free the return value and print the error */
 	if (resultobj)
 		Py_DECREF(resultobj);

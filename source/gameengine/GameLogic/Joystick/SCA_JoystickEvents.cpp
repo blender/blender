@@ -89,8 +89,7 @@ void SCA_Joystick::HandleEvents(void)
 			SCA_Joystick::m_instance[i]->OnNothing(&sdl_event);
 	}
 	
-	while(SDL_PollEvent(&sdl_event))
-	{
+	while (SDL_PollEvent(&sdl_event)) {
 		/* Note! m_instance[sdl_event.jaxis.which]
 		 * will segfault if over JOYINDEX_MAX, not too nice but what are the chances? */
 		
@@ -100,28 +99,27 @@ void SCA_Joystick::HandleEvents(void)
 		/* Note!, if you manage to press and release a button within 1 logic tick
 		 * it wont work as it should */
 		
-		switch(sdl_event.type)
-		{
-		case SDL_JOYAXISMOTION:
-			SCA_Joystick::m_instance[sdl_event.jaxis.which]->OnAxisMotion(&sdl_event);
-			break;
-		case SDL_JOYHATMOTION:
-			SCA_Joystick::m_instance[sdl_event.jhat.which]->OnHatMotion(&sdl_event);
-			break;
-		case SDL_JOYBUTTONUP:
-			SCA_Joystick::m_instance[sdl_event.jbutton.which]->OnButtonUp(&sdl_event);
-			break;
-		case SDL_JOYBUTTONDOWN:
-			SCA_Joystick::m_instance[sdl_event.jbutton.which]->OnButtonDown(&sdl_event);
-			break;
+		switch (sdl_event.type) {
+			case SDL_JOYAXISMOTION:
+				SCA_Joystick::m_instance[sdl_event.jaxis.which]->OnAxisMotion(&sdl_event);
+				break;
+			case SDL_JOYHATMOTION:
+				SCA_Joystick::m_instance[sdl_event.jhat.which]->OnHatMotion(&sdl_event);
+				break;
+			case SDL_JOYBUTTONUP:
+				SCA_Joystick::m_instance[sdl_event.jbutton.which]->OnButtonUp(&sdl_event);
+				break;
+			case SDL_JOYBUTTONDOWN:
+				SCA_Joystick::m_instance[sdl_event.jbutton.which]->OnButtonDown(&sdl_event);
+				break;
 #if 0	/* Not used yet */
-		case SDL_JOYBALLMOTION:
-			SCA_Joystick::m_instance[sdl_event.jball.which]->OnBallMotion(&sdl_event);
-			break;
+			case SDL_JOYBALLMOTION:
+				SCA_Joystick::m_instance[sdl_event.jball.which]->OnBallMotion(&sdl_event);
+				break;
 #endif
-		default:
-			printf("SCA_Joystick::HandleEvents, Unknown SDL event, this should not happen\n");
-			break;
+			default:
+				printf("SCA_Joystick::HandleEvents, Unknown SDL event, this should not happen\n");
+				break;
 		}
 	}
 }

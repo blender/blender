@@ -402,7 +402,7 @@ static int mathutils_obactu_vector_get(BaseMathObject *bmo, int subtype)
 	if (self==NULL)
 		return -1;
 
-	switch(subtype) {
+	switch (subtype) {
 		case MATHUTILS_VEC_CB_LINV:
 			self->m_linear_velocity.getValue(bmo->data);
 			break;
@@ -420,7 +420,7 @@ static int mathutils_obactu_vector_set(BaseMathObject *bmo, int subtype)
 	if (self==NULL)
 		return -1;
 
-	switch(subtype) {
+	switch (subtype) {
 		case MATHUTILS_VEC_CB_LINV:
 			self->m_linear_velocity.setValue(bmo->data);
 			break;

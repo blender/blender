@@ -153,8 +153,7 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)
 
 unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
 {
-	switch(filtermode)
-	{
+	switch (filtermode) {
 		case RAS_2DFILTER_BLUR:
 			return CreateShaderProgram(BlurFragmentShader);
 		case RAS_2DFILTER_SHARPEN:

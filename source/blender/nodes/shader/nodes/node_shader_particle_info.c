@@ -28,18 +28,18 @@
 #include "../node_shader_util.h"
 
 static bNodeSocketTemplate outputs[] = {
-    { SOCK_FLOAT,  0, "Index" },
-    { SOCK_FLOAT,  0, "Age" },
-    { SOCK_FLOAT,  0, "Lifetime" },
-    { SOCK_VECTOR,  0, "Location" },
-    #if 0	/* quaternion sockets not yet supported */
-    { SOCK_QUATERNION,  0, "Rotation" },
-    #endif
-    { SOCK_FLOAT,  0, "Size" },
-    { SOCK_VECTOR,  0, "Velocity" },
-    { SOCK_VECTOR,  0, "Angular Velocity" },
-    { -1, 0, "" }
-};
+	{ SOCK_FLOAT,  0, "Index" },
+	{ SOCK_FLOAT,  0, "Age" },
+	{ SOCK_FLOAT,  0, "Lifetime" },
+	{ SOCK_VECTOR,  0, "Location" },
+#if 0	/* quaternion sockets not yet supported */
+	{ SOCK_QUATERNION,  0, "Rotation" },
+#endif
+	{ SOCK_FLOAT,  0, "Size" },
+	{ SOCK_VECTOR,  0, "Velocity" },
+	{ SOCK_VECTOR,  0, "Angular Velocity" },
+	{ -1, 0, "" }
+	};
 
 /* node type definition */
 void register_node_type_sh_particle_info(bNodeTreeType *ttype)

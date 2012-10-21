@@ -102,7 +102,7 @@ int anim_is_quicktime (const char *name)
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	if([QTMovie canInitWithFile:[NSString stringWithCString:name 
-								 encoding:[NSString defaultCStringEncoding]]])
+	                             encoding:[NSString defaultCStringEncoding]]])
 	{
 		[pool drain];
 		return true;
@@ -162,11 +162,11 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	/*Get the bitmap of the image*/
 	enumerator = [[sourceImage representations] objectEnumerator];
 	while ((representation = [enumerator nextObject])) {
-        if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
-            bitmapImage = (NSBitmapImageRep *)representation;
+		if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
+			bitmapImage = (NSBitmapImageRep *)representation;
 			break;
-        }
-    }
+		}
+	}
 	if (bitmapImage == nil) return NULL;
 
 	if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0)
@@ -382,7 +382,7 @@ int startquicktime (struct anim *anim)
 	anim->curposition = 0;
 
 	[pool drain];
-												 
+
 	return 0;
 }
 

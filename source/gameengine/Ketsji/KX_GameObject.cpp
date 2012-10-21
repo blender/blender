@@ -1442,7 +1442,7 @@ static int mathutils_kxgameob_vector_get(BaseMathObject *bmo, int subtype)
 
 #define PHYS_ERR(attr) PyErr_SetString(PyExc_AttributeError, "KX_GameObject." attr ", is missing a physics controller")
 
-	switch(subtype) {
+	switch (subtype) {
 		case MATHUTILS_VEC_CB_POS_LOCAL:
 			self->NodeGetLocalPosition().getValue(bmo->data);
 			break;
@@ -1492,7 +1492,7 @@ static int mathutils_kxgameob_vector_set(BaseMathObject *bmo, int subtype)
 	if (self==NULL)
 		return -1;
 	
-	switch(subtype) {
+	switch (subtype) {
 		case MATHUTILS_VEC_CB_POS_LOCAL:
 			self->NodeSetLocalPosition(MT_Point3(bmo->data));
 			self->NodeUpdateGS(0.f);
@@ -1571,7 +1571,7 @@ static int mathutils_kxgameob_matrix_get(BaseMathObject *bmo, int subtype)
 	if (self==NULL)
 		return -1;
 
-	switch(subtype) {
+	switch (subtype) {
 		case MATHUTILS_MAT_CB_ORI_LOCAL:
 			self->NodeGetLocalOrientation().getValue3x3(bmo->data);
 			break;
@@ -1591,7 +1591,7 @@ static int mathutils_kxgameob_matrix_set(BaseMathObject *bmo, int subtype)
 		return -1;
 	
 	MT_Matrix3x3 mat3x3;
-	switch(subtype) {
+	switch (subtype) {
 		case MATHUTILS_MAT_CB_ORI_LOCAL:
 			mat3x3.setValue3x3(bmo->data);
 			self->NodeSetLocalOrientation(mat3x3);

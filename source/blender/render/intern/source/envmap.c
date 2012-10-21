@@ -216,7 +216,7 @@ static void envmap_transmatrix(float mat[][4], int part)
 	eul[0] = eul[1] = eul[2] = 0.0;
 	
 	if (part == 0) {          /* neg z */
-		;
+		/* pass */
 	}
 	else if (part == 1) { /* pos z */
 		eul[0] = M_PI;

@@ -402,7 +402,7 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 		return PY_SET_ATTR_FAIL;
 	}
 	
-	switch(val) {
+	switch (val) {
 		case 0:
 			self->m_lightobj.m_type = self->m_lightobj.LIGHT_SPOT;
 			break;

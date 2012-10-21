@@ -433,8 +433,7 @@ static void GetRGB(short type,
 	unsigned int &c3)
 {
 	unsigned int color = 0xFFFFFFFFL;
-	switch(type)
-	{
+	switch (type) {
 		case 0:	// vertex colors
 		{
 			if (mmcol) {
@@ -677,7 +676,7 @@ static bool ConvertMaterial(
 					material->mapping[i].projplane[2] = mttmp->projz;
 					/// --------------------------------
 					
-					switch( mttmp->blendtype ) {
+					switch (mttmp->blendtype) {
 					case MTEX_BLEND:
 						material->blend_mode[i] = BLEND_MIX;
 						break;
@@ -701,7 +700,7 @@ static bool ConvertMaterial(
 
 		// above one tex the switches here
 		// are not used
-		switch(valid_index) {
+		switch (valid_index) {
 		case 0:
 			material->IdMode = DEFAULT_BLENDER;
 			break;
@@ -1595,7 +1594,7 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 	// get Root Parent of blenderobject
 	struct Object* parent= blenderobject->parent;
-	while(parent && parent->parent) {
+	while (parent && parent->parent) {
 		parent= parent->parent;
 	}
 
@@ -1929,8 +1928,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	KX_GameObject *gameobj = NULL;
 	Scene *blenderscene = kxscene->GetBlenderScene();
 	
-	switch(ob->type)
-	{
+	switch (ob->type) {
 	case OB_LAMP:
 	{
 		KX_LightObject* gamelight = gamelight_from_blamp(ob, static_cast<Lamp*>(ob->data), ob->lay, kxscene, rendertools, converter);

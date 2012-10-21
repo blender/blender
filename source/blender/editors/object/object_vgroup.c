@@ -405,27 +405,27 @@ typedef enum WT_Method {
 
 typedef enum WT_ReplaceMode {
 	WT_REPLACE_ALL_WEIGHTS = 1,
-	WT_REPLACE_EMPTY_WEIGHTS = 2,
+	WT_REPLACE_EMPTY_WEIGHTS = 2
 } WT_ReplaceMode;
 
 static EnumPropertyItem WT_vertex_group_mode_item[] = {
-    {WT_REPLACE_ACTIVE_VERTEX_GROUP, "WT_REPLACE_ACTIVE_VERTEX_GROUP", 1, "Active", "Transfer active vertex group from selected to active mesh."},
-    {WT_REPLACE_ALL_VERTEX_GROUPS, "WT_REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups from selected to active mesh."},
-    {0, NULL, 0, NULL, NULL}
+	{WT_REPLACE_ACTIVE_VERTEX_GROUP, "WT_REPLACE_ACTIVE_VERTEX_GROUP", 1, "Active", "Transfer active vertex group from selected to active mesh."},
+	{WT_REPLACE_ALL_VERTEX_GROUPS, "WT_REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups from selected to active mesh."},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem WT_method_item[] = {
-    {WT_BY_INDEX, "WT_BY_INDEX", 1, "Vertex index", "Copy for identical meshes."},
-    {WT_BY_NEAREST_VERTEX, "WT_BY_NEAREST_VERTEX", 1, "Nearest vertex", "Copy weight from closest vertex."},
-    {WT_BY_NEAREST_FACE, "WT_BY_NEAREST_FACE", 1, "Nearest face", "Barycentric interpolation from nearest face."},
-    {WT_BY_NEAREST_VERTEX_IN_FACE, "WT_BY_NEAREST_VERTEX_IN_FACE", 1, "Nearest vertex in face", "Copy weight from closest vertex in nearest face."},
-    {0, NULL, 0, NULL, NULL}
+	{WT_BY_INDEX, "WT_BY_INDEX", 1, "Vertex index", "Copy for identical meshes."},
+	{WT_BY_NEAREST_VERTEX, "WT_BY_NEAREST_VERTEX", 1, "Nearest vertex", "Copy weight from closest vertex."},
+	{WT_BY_NEAREST_FACE, "WT_BY_NEAREST_FACE", 1, "Nearest face", "Barycentric interpolation from nearest face."},
+	{WT_BY_NEAREST_VERTEX_IN_FACE, "WT_BY_NEAREST_VERTEX_IN_FACE", 1, "Nearest vertex in face", "Copy weight from closest vertex in nearest face."},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem WT_replace_mode_item[] = {
-    {WT_REPLACE_ALL_WEIGHTS, "WT_REPLACE_ALL_WEIGHTS", 1, "All", "Overwrites all weights."},
-    {WT_REPLACE_EMPTY_WEIGHTS, "WT_REPLACE_EMPTY_WEIGHTS", 1, "Empty", "Adds weights to vertices with no weight."},
-    {0, NULL, 0, NULL, NULL}
+	{WT_REPLACE_ALL_WEIGHTS, "WT_REPLACE_ALL_WEIGHTS", 1, "All", "Overwrites all weights."},
+	{WT_REPLACE_EMPTY_WEIGHTS, "WT_REPLACE_EMPTY_WEIGHTS", 1, "Empty", "Adds weights to vertices with no weight."},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /*copy weight*/

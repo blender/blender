@@ -82,7 +82,7 @@ void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
 		return;
 
 	/* don't call this recursively for frame updates */
-	if(recursive_check)
+	if (recursive_check)
 		return;
 	
 	recursive_check = TRUE;

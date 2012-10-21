@@ -854,14 +854,13 @@ static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
 {
 	double aspect =  camera->getAspectRatio().getValue();
 
-	if(aspect == 0)
-	{
+	if (aspect == 0) {
 		const double yfov   =  camera->getYFov().getValue();
 
-		if(yfov == 0)
-			aspect=1; // assume yfov and xfov are equal
-		else
-		{
+		if (yfov == 0) {
+			aspect = 1; // assume yfov and xfov are equal
+		}
+		else {
 			const double xfov   =  camera->getXFov().getValue();
 			if (xfov==0)
 				aspect = 1;
@@ -885,7 +884,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	COLLADAFW::Node *root = root_map.find(uid) == root_map.end() ? node : root_map[uid];
 
 	Object *ob;
-	if(is_joint)
+	if (is_joint)
 		ob = armature_importer->get_armature_for_joint(root);
 	else
 		ob = object_map.find(uid) == object_map.end() ? NULL : object_map.find(uid)->second;

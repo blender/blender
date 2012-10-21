@@ -550,7 +550,7 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar)
 	int width, height, winx, winy;
 	
 #if 0
-	if (image_preview_active(curarea, &width, &height)) ;
+	if (image_preview_active(curarea, &width, &height)) {}
 	else
 #endif
 	ED_space_image_get_size(sima, &width, &height);

@@ -140,8 +140,7 @@ void BL_ActionActuator::SetLocalTime(float curtime)
 	// Handle wrap around
 	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
 	{
-		switch(m_playtype)
-		{
+		switch (m_playtype) {
 		case ACT_ACTION_PLAY:
 			// Clamp
 			m_localtime = m_endframe;
@@ -196,8 +195,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		return false;
 
 	// Convert our playtype to one that BL_Action likes
-	switch(m_playtype)
-	{
+	switch (m_playtype) {
 		case ACT_ACTION_LOOP_END:
 		case ACT_ACTION_LOOP_STOP:
 			playtype = BL_Action::ACT_MODE_LOOP;
@@ -312,8 +310,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			return false;
 		}
 
-		switch(m_playtype)
-		{
+		switch (m_playtype) {
 			case ACT_ACTION_LOOP_STOP:
 				obj->StopAction(m_layer); // Stop the action after getting the frame
 
