@@ -149,20 +149,15 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
             col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
             col.menu("TEXTURE_MT_specials", icon='DOWNARROW_HLT', text="")
 
-        split = layout.split(percentage=0.65)
-        col = split.column()
-
         if tex_collection:
-            col.template_ID(idblock, "active_texture", new="texture.new")
+            layout.template_ID(idblock, "active_texture", new="texture.new")
         elif node:
-            col.template_ID(node, "texture", new="texture.new")
+            layout.template_ID(node, "texture", new="texture.new")
         elif idblock:
-            col.template_ID(idblock, "texture", new="texture.new")
+            layout.template_ID(idblock, "texture", new="texture.new")
 
         if pin_id:
-            col.template_ID(space, "pin_id")
-
-        col = split.column()
+            layout.template_ID(space, "pin_id")
 
         if tex:
             split = layout.split(percentage=0.2)
