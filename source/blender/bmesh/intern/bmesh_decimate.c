@@ -45,11 +45,17 @@
 /* defines for testing */
 #define USE_CUSTOMDATA
 #define USE_TRIANGULATE
+#define USE_PRESERVE_BOUNDARY  /* could disable but its nicer not to mix boundary/non-boundry verts */
 
 /* these checks are for rare cases that we can't avoid since they are valid meshes still */
 #define USE_SAFETY_CHECKS
 
-#define BOUNDARY_PRESERVE_WEIGHT 100.0f
+#define BOUNDARY_PRESERVE_WEIGHT 1.0f
+
+#ifdef USE_PRESERVE_BOUNDARY
+/* re-use smooth for tagging boundary edges, not totally great */
+#define BM_ELEM_IS_BOUNDARY _BM_ELEM_TAG_ALT
+#endif
 
 typedef enum CD_UseFlag {
 	CD_DO_VERT,
@@ -105,6 +111,12 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 				BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(e->v2)], &q);
 			}
 		}
+#ifdef USE_PRESERVE_BOUNDARY
+		/* init: runs first! */
+		/* unrelated, but do on an edge loop before we start collapsing */
+		BM_elem_flag_disable(e->v1, BM_ELEM_IS_BOUNDARY);
+		BM_elem_flag_disable(e->v2, BM_ELEM_IS_BOUNDARY);
+#endif
 	}
 }
 
@@ -191,6 +203,15 @@ static void bm_decim_build_edge_cost(BMesh *bm,
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 		eheap_table[i] = NULL;  /* keep sanity check happy */
 		bm_decim_build_edge_cost_single(e, vquadrics, eheap, eheap_table);
+
+#ifdef USE_PRESERVE_BOUNDARY
+		/* init: runs second! */
+		if (BM_edge_is_boundary(e)) {
+			/* unrelated, but do on an edge loop before we start collapsing */
+			BM_elem_flag_enable(e->v1, BM_ELEM_IS_BOUNDARY);
+			BM_elem_flag_enable(e->v2, BM_ELEM_IS_BOUNDARY);
+		}
+#endif
 	}
 }
 
@@ -427,6 +448,160 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 #endif  /* USE_CUSTOMDATA */
 
 /**
+ * Check if the collapse will result in a degenerate mesh,
+ * that is - duplicate edges or faces.
+ *
+ * This situation could be checked for when calculating collapse cost
+ * however its quite slow and a degenerate collapse could eventuate
+ * after the cost is calculated, so instead, check just before collapsing.
+ */
+
+static void bm_edge_tag_enable(BMEdge *e)
+{
+	BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+	BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
+	if (e->l) {
+		BM_elem_flag_enable(e->l->f, BM_ELEM_TAG);
+		if (e->l != e->l->radial_next) {
+			BM_elem_flag_enable(e->l->radial_next->f, BM_ELEM_TAG);
+		}
+	}
+}
+
+static void bm_edge_tag_disable(BMEdge *e)
+{
+	BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
+	BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
+	if (e->l) {
+		BM_elem_flag_disable(e->l->f, BM_ELEM_TAG);
+		if (e->l != e->l->radial_next) {
+			BM_elem_flag_disable(e->l->radial_next->f, BM_ELEM_TAG);
+		}
+	}
+}
+
+static int bm_edge_tag_test(BMEdge *e)
+{
+	/* is the edge or one of its faces tagged? */
+	return (BM_elem_flag_test(e->v1, BM_ELEM_TAG) ||
+	        BM_elem_flag_test(e->v2, BM_ELEM_TAG) ||
+	        (e->l && (BM_elem_flag_test(e->l->f, BM_ELEM_TAG) ||
+	                  (e->l != e->l->radial_next &&
+	                  BM_elem_flag_test(e->l->radial_next->f, BM_ELEM_TAG))))
+	        );
+}
+
+static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
+{
+	/* simply check that there is no overlap between faces and edges of each vert,
+	 * (excluding the 2 faces attached to 'e' and 'e' its self) */
+
+	const int is_boundary = BM_edge_is_boundary(e_first);
+
+	BMEdge *e_iter;
+
+#ifdef USE_PRESERVE_BOUNDARY
+	if (BM_elem_flag_test(e_first->v1, BM_ELEM_IS_BOUNDARY) !=
+	    BM_elem_flag_test(e_first->v2, BM_ELEM_IS_BOUNDARY))
+	{
+		return TRUE;
+	}
+#endif  /* USE_PRESERVE_BOUNDARY */
+
+	/* clear flags on both disks */
+	e_iter = e_first;
+	do {
+		if (!(BM_edge_is_manifold(e_iter) || BM_edge_is_boundary(e_iter))) {
+			return TRUE;
+		}
+#ifdef USE_PRESERVE_BOUNDARY
+		/* not exactly a degenerate case, but dont collapse edges into boundries */
+		if ((is_boundary == FALSE) &&
+		    (BM_elem_flag_test(e_iter->v1, BM_ELEM_IS_BOUNDARY) ||
+		     BM_elem_flag_test(e_iter->v2, BM_ELEM_IS_BOUNDARY)))
+		{
+			return TRUE;
+		}
+#endif  /* USE_PRESERVE_BOUNDARY */
+		bm_edge_tag_disable(e_iter);
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, e_first->v1)) != e_first);
+
+	e_iter = e_first;
+	do {
+		if (!(BM_edge_is_manifold(e_iter) || BM_edge_is_boundary(e_iter))) {
+			return TRUE;
+		}
+#ifdef USE_PRESERVE_BOUNDARY
+		/* not exactly a degenerate case, but dont collapse edges into boundries */
+		if ((is_boundary == FALSE) &&
+		    (BM_elem_flag_test(e_iter->v1, BM_ELEM_IS_BOUNDARY) ||
+		     BM_elem_flag_test(e_iter->v2, BM_ELEM_IS_BOUNDARY)))
+		{
+			return TRUE;
+		}
+#endif  /* USE_PRESERVE_BOUNDARY */
+		bm_edge_tag_disable(e_iter);
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, e_first->v2)) != e_first);
+
+	/* now enable one side... */
+	e_iter = e_first;
+	do {
+		bm_edge_tag_enable(e_iter);
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, e_first->v1)) != e_first);
+
+	/* ... except for the edge we will collapse, we know thats shared,
+	 * disable this to avoid false positive. We could be smart and never enable these
+	 * face/edge tags in the first place but easier to do this */
+	// bm_edge_tag_disable(e_first);
+	/* do inline... */
+	{
+#if 0
+		BMIter iter;
+		BMIter liter;
+		BMLoop *l;
+		BMVert *v;
+		BM_ITER_ELEM (l, &liter, e_first, BM_LOOPS_OF_EDGE) {
+			BM_elem_flag_disable(l->f, BM_ELEM_TAG);
+			BM_ITER_ELEM (v, &iter, l->f, BM_VERTS_OF_FACE) {
+				BM_elem_flag_disable(v, BM_ELEM_TAG);
+			}
+		}
+#else
+		/* we know each face is a triangle, no looping/iterators needed here */
+
+		BMLoop *l_radial;
+		BMLoop *l_face;
+
+		l_radial = e_first->l;
+		l_face = l_radial;
+		BLI_assert(l_face->f->len == 3);
+		BM_elem_flag_disable(l_face->f, BM_ELEM_TAG);
+		BM_elem_flag_disable((l_face = l_radial)->v,     BM_ELEM_TAG);
+		BM_elem_flag_disable((l_face = l_face->next)->v, BM_ELEM_TAG);
+		BM_elem_flag_disable((         l_face->next)->v, BM_ELEM_TAG);
+		l_face = l_radial->radial_next;
+		if (l_radial != l_face) {
+			BLI_assert(l_face->f->len == 3);
+			BM_elem_flag_disable(l_face->f, BM_ELEM_TAG);
+			BM_elem_flag_disable((l_face = l_radial->radial_next)->v, BM_ELEM_TAG);
+			BM_elem_flag_disable((l_face = l_face->next)->v,          BM_ELEM_TAG);
+			BM_elem_flag_disable((         l_face->next)->v,          BM_ELEM_TAG);
+		}
+#endif
+	}
+
+	/* and check for overlap */
+	e_iter = e_first;
+	do {
+		if (bm_edge_tag_test(e_iter)) {
+			return TRUE;
+		}
+	} while ((e_iter = bmesh_disk_edge_next(e_iter, e_first->v2)) != e_first);
+
+	return FALSE;
+}
+
+/**
  * special, highly limited edge collapse function
  * intended for speed over flexibiliy.
  * can only collapse edges connected to (1, 2) tris.
@@ -446,8 +621,14 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e
 #endif
                             )
 {
-	BMVert *v_other = BM_edge_other_vert(e_clear, v_clear);
+	BMVert *v_other;
 
+	/* disallow collapsing which results in degenerate cases */
+	if (bm_edge_collapse_is_degenerate(e_clear)) {
+		return FALSE;
+	}
+
+	v_other = BM_edge_other_vert(e_clear, v_clear);
 	BLI_assert(v_other != NULL);
 
 	if (BM_edge_is_manifold(e_clear)) {
@@ -626,31 +807,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 			BMEdge *e_first;
 			e_iter = e_first = v->e;
 			do {
-				//BLI_assert(BM_edge_find_double(e_iter) == NULL);
-#ifdef USE_SAFETY_CHECKS
-				/* note! - this check is slow, but we can't avoid it - Campbell */
-				BMEdge *e_double;
-
-				e_double = BM_edge_find_double(e_iter);
-
-				if (UNLIKELY(e_double != NULL)) {
-					int e_index = BM_elem_index_get(e_double);
-					if (BM_edge_splice(bm, e_double, e_iter)) {
-						if (eheap_table[e_index]) {
-							BLI_heap_remove(eheap, eheap_table[e_index]);
-							eheap_table[e_index] = NULL;
-						}
-					}
-				}
-
-				/* could get some extra quality out of this but its not really needed */
-				// BM_vert_normal_update(BM_edge_other_vert(e_iter, v));
-
-				/* if this happens, the e_double check could be put in a while loop,
-				 * so as to keep removing doubles while they are found. so far this isnt needed */
 				BLI_assert(BM_edge_find_double(e_iter) == NULL);
-#endif
-
 				bm_decim_build_edge_cost_single(e_iter, vquadrics, eheap, eheap_table);
 			} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first);
 		}

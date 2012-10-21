@@ -225,9 +225,8 @@ enum {
 
 	BM_ELEM_DRAW    = (1 << 5), /* edge display */
 
-	/* we have 1 spare flag which is awesome but since we're limited to 8
-	 * only add new flags with care! - campbell */
-	/* BM_ELEM_SPARE  = (1 << 6), */
+	/* spare tag, assumed dirty, use define in each function to name based on use */
+	_BM_ELEM_TAG_ALT = (1 << 6),
 
 	BM_ELEM_INTERNAL_TAG = (1 << 7) /* for low level internal API tagging,
                                      * since tools may want to tag verts and
