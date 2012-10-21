@@ -3511,6 +3511,10 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_RECENT);
 	RNA_def_property_ui_text(prop, "Hide Recent Locations", "Hide recent locations in the file selector");
 
+	prop = RNA_def_property(srna, "hide_system_bookmarks", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_SYSTEM_BOOKMARKS);
+	RNA_def_property_ui_text(prop, "Hide System Bookmarks", "Hide system bookmarks in the file selector");
+
 	prop = RNA_def_property(srna, "show_thumbnails", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_THUMBNAILS);
 	RNA_def_property_ui_text(prop, "Show Thumbnails", "Open in thumbnail view for images and movies");
