@@ -40,9 +40,9 @@
 /***/
 
 struct HeapNode {
-	void *ptr;
-	float value;
-	int index;
+	void        *ptr;
+	float        value;
+	unsigned int index;
 };
 
 struct Heap {
@@ -54,16 +54,67 @@ struct Heap {
 	HeapNode **tree;
 };
 
+/* internal functions */
+
 #define HEAP_PARENT(i) ((i - 1) >> 1)
 #define HEAP_LEFT(i)   ((i << 1) + 1)
 #define HEAP_RIGHT(i)  ((i << 1) + 2)
 #define HEAP_COMPARE(a, b) (a->value < b->value)
-// #define HEAP_EQUALS(a, b) (a->value == b->value) // UNUSED
-#define HEAP_SWAP(heap, i, j) \
-	{                                                                            \
-		SWAP(int, heap->tree[i]->index, heap->tree[j]->index);                   \
-		SWAP(HeapNode *, heap->tree[i], heap->tree[j]);                          \
-	} (void)0
+
+#if 0  /* UNUSED */
+#define HEAP_EQUALS(a, b) (a->value == b->value)
+#endif
+
+BLI_INLINE void heap_swap(Heap *heap, const unsigned int i, const unsigned int j)
+{
+
+#if 0
+	SWAP(unsigned int,  heap->tree[i]->index, heap->tree[j]->index);
+	SWAP(HeapNode *,    heap->tree[i],        heap->tree[j]);
+#else
+	HeapNode **tree = heap->tree;
+	union {
+		unsigned int  index;
+		HeapNode     *node;
+	} tmp;
+	SWAP_TVAL(tmp.index, tree[i]->index, tree[j]->index);
+	SWAP_TVAL(tmp.node,  tree[i],        tree[j]);
+#endif
+}
+
+static void heap_down(Heap *heap, unsigned int i)
+{
+	while (1) {
+		unsigned int size = heap->size,smallest ;
+		unsigned int l = HEAP_LEFT(i);
+		unsigned int r = HEAP_RIGHT(i);
+
+		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i])) ? l : i;
+
+		if ((r < size) && HEAP_COMPARE(heap->tree[r], heap->tree[smallest]))
+			smallest = r;
+
+		if (smallest == i)
+			break;
+
+		heap_swap(heap, i, smallest);
+		i = smallest;
+	}
+}
+
+static void heap_up(Heap *heap, unsigned int i)
+{
+	while (i > 0) {
+		unsigned int p = HEAP_PARENT(i);
+
+		if (HEAP_COMPARE(heap->tree[p], heap->tree[i]))
+			break;
+
+		heap_swap(heap, p, i);
+		i = p;
+	}
+}
+
 
 /***/
 
@@ -85,7 +136,7 @@ Heap *BLI_heap_new(void)
 
 void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 {
-	int i;
+	unsigned int i;
 
 	if (ptrfreefp)
 		for (i = 0; i < heap->size; i++)
@@ -96,45 +147,12 @@ void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 	MEM_freeN(heap);
 }
 
-static void BLI_heap_down(Heap *heap, int i)
-{
-	while (1) {
-		int size = heap->size, smallest;
-		int l = HEAP_LEFT(i);
-		int r = HEAP_RIGHT(i);
-
-		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i])) ? l : i;
-
-		if ((r < size) && HEAP_COMPARE(heap->tree[r], heap->tree[smallest]))
-			smallest = r;
-
-		if (smallest == i)
-			break;
-
-		HEAP_SWAP(heap, i, smallest);
-		i = smallest;
-	}
-}
-
-static void BLI_heap_up(Heap *heap, int i)
-{
-	while (i > 0) {
-		int p = HEAP_PARENT(i);
-
-		if (HEAP_COMPARE(heap->tree[p], heap->tree[i]))
-			break;
-
-		HEAP_SWAP(heap, p, i);
-		i = p;
-	}
-}
-
 HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 {
 	HeapNode *node;
 
 	if ((heap->size + 1) > heap->bufsize) {
-		int newsize = heap->bufsize * 2;
+		unsigned int newsize = heap->bufsize * 2;
 		HeapNode **newtree;
 
 		newtree = (HeapNode **)MEM_mallocN(newsize * sizeof(*newtree), __func__);
@@ -160,7 +178,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 
 	heap->size++;
 
-	BLI_heap_up(heap, heap->size - 1);
+	heap_up(heap, heap->size - 1);
 
 	return node;
 }
@@ -170,7 +188,7 @@ int BLI_heap_is_empty(Heap *heap)
 	return (heap->size == 0);
 }
 
-int BLI_heap_size(Heap *heap)
+unsigned int BLI_heap_size(Heap *heap)
 {
 	return heap->size;
 }
@@ -190,10 +208,10 @@ void *BLI_heap_popmin(Heap *heap)
 	if (heap->size == 1)
 		heap->size--;
 	else {
-		HEAP_SWAP(heap, 0, heap->size - 1);
+		heap_swap(heap, 0, heap->size - 1);
 		heap->size--;
 
-		BLI_heap_down(heap, 0);
+		heap_down(heap, 0);
 	}
 
 	return ptr;
@@ -201,12 +219,12 @@ void *BLI_heap_popmin(Heap *heap)
 
 void BLI_heap_remove(Heap *heap, HeapNode *node)
 {
-	int i = node->index;
+	unsigned int i = node->index;
 
 	while (i > 0) {
-		int p = HEAP_PARENT(i);
+		unsigned int p = HEAP_PARENT(i);
 
-		HEAP_SWAP(heap, p, i);
+		heap_swap(heap, p, i);
 		i = p;
 	}
 

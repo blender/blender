@@ -49,6 +49,8 @@
 #include "BKE_tessmesh.h"
 #include "bmesh.h"
 
+// #define USE_TIMEIT
+
 #ifdef USE_TIMEIT
 #  include "PIL_time.h"
 #endif

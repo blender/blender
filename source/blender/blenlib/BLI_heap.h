@@ -57,7 +57,7 @@ void            BLI_heap_remove(Heap *heap, HeapNode *node);
 int             BLI_heap_is_empty(Heap *heap);
 
 /* Return the size of the heap. */
-int             BLI_heap_size(Heap *heap);
+unsigned int    BLI_heap_size(Heap *heap);
 
 /* Return the top node of the heap. This is the node with the lowest value. */
 HeapNode       *BLI_heap_top(Heap *heap);

@@ -43,12 +43,19 @@ inline unsigned int CTR_Hash(void *inDWord)
 
 class CTR_HashedPtr
 {
-	void* m_valptr;
+	void *m_valptr;
 public:
-	CTR_HashedPtr(void* val) : m_valptr(val) {};
-	unsigned int hash() const { return CTR_Hash(m_valptr);};
-	inline friend bool operator ==(const CTR_HashedPtr & rhs, const CTR_HashedPtr & lhs) { return rhs.m_valptr == lhs.m_valptr;};
-	void *getValue() const { return m_valptr; }
+	CTR_HashedPtr(void *val) : m_valptr(val) {
+	};
+	unsigned int hash() const {
+		return CTR_Hash(m_valptr);
+	};
+	inline friend bool operator ==(const CTR_HashedPtr & rhs, const CTR_HashedPtr & lhs) {
+		return rhs.m_valptr == lhs.m_valptr;
+	};
+	void *getValue() const {
+		return m_valptr;
+	}
 };
 
 #endif  /* __CTR_HASHEDPTR_H__ */

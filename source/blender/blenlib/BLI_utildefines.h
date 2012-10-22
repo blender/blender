@@ -41,34 +41,6 @@
 #endif
 
 
-#define ELEM(a, b, c)           ((a) == (b) || (a) == (c))
-#define ELEM3(a, b, c, d)       (ELEM(a, b, c) || (a) == (d) )
-#define ELEM4(a, b, c, d, e)    (ELEM(a, b, c) || ELEM(a, d, e) )
-#define ELEM5(a, b, c, d, e, f) (ELEM(a, b, c) || ELEM3(a, d, e, f) )
-#define ELEM6(a, b, c, d, e, f, g)      (ELEM(a, b, c) || ELEM4(a, d, e, f, g) )
-#define ELEM7(a, b, c, d, e, f, g, h)   (ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
-#define ELEM8(a, b, c, d, e, f, g, h, i)        (ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
-#define ELEM9(a, b, c, d, e, f, g, h, i, j)        (ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
-#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        (ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
-#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        (ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
-
-/* shift around elements */
-#define SHIFT3(type, a, b, c)  {                                              \
-		type tmp;                                                             \
-		tmp = a;                                                              \
-		a = c;                                                                \
-		c = b;                                                                \
-		b = tmp;                                                              \
-} (void)0
-#define SHIFT4(type, a, b, c, d)  {                                           \
-		type tmp;                                                             \
-		tmp = a;                                                              \
-		a = d;                                                                \
-		d = c;                                                                \
-		c = b;                                                                \
-		b = tmp;                                                              \
-} (void)0
-
 /* min/max */
 #define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
 #define MIN3(x, y, z)             MIN2(MIN2((x), (y)), (z) )
@@ -116,21 +88,27 @@
 /* Causes warning:
  * incompatible types when assigning to type 'Foo' from type 'Bar'
  * ... the compiler optimizes away the temp var */
-#ifndef CHECK_TYPE
 #ifdef __GNUC__
 #define CHECK_TYPE(var, type)  {  \
 	__typeof(var) *__tmp;         \
 	__tmp = (type *)NULL;         \
 	(void)__tmp;                  \
 } (void)0
+
+#define CHECK_TYPE_PAIR(var_a, var_b)  {  \
+	__typeof(var_a) *__tmp;               \
+	__tmp = (__typeof(var_b) *)NULL;      \
+	(void)__tmp;                          \
+} (void)0
 #else
-#define CHECK_TYPE(var, type)
-#endif
+#  define CHECK_TYPE(var, type)
+#  define CHECK_TYPE_PAIR(var_a, var_b)
 #endif
 
 /* can be used in simple macros */
 #define CHECK_TYPE_INLINE(val, type) \
 	((void)(((type *)0) != (val)))
+
 
 #ifndef SWAP
 #  define SWAP(type, a, b)  {  \
@@ -142,6 +120,53 @@
 	(b) = sw_ap;               \
 } (void)0
 #endif
+
+/* swap with a temp value */
+#define SWAP_TVAL(tval, a, b)  {  \
+	CHECK_TYPE_PAIR(tval, a);     \
+	CHECK_TYPE_PAIR(tval, b);     \
+	(tval) = (a);                 \
+	(a) = (b);                    \
+	(b) = (tval);                 \
+} (void)0
+
+
+#define ELEM(a, b, c)           ((a) == (b) || (a) == (c))
+#define ELEM3(a, b, c, d)       (ELEM(a, b, c) || (a) == (d) )
+#define ELEM4(a, b, c, d, e)    (ELEM(a, b, c) || ELEM(a, d, e) )
+#define ELEM5(a, b, c, d, e, f) (ELEM(a, b, c) || ELEM3(a, d, e, f) )
+#define ELEM6(a, b, c, d, e, f, g)      (ELEM(a, b, c) || ELEM4(a, d, e, f, g) )
+#define ELEM7(a, b, c, d, e, f, g, h)   (ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
+#define ELEM8(a, b, c, d, e, f, g, h, i)        (ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
+#define ELEM9(a, b, c, d, e, f, g, h, i, j)        (ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
+#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        (ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
+#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        (ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
+
+/* shift around elements */
+#define SHIFT3(type, a, b, c)  {                                              \
+	type tmp;                                                                 \
+	CHECK_TYPE(a, type);                                                      \
+	CHECK_TYPE(b, type);                                                      \
+	CHECK_TYPE(c, type);                                                      \
+	tmp = a;                                                                  \
+	a = c;                                                                    \
+	c = b;                                                                    \
+	b = tmp;                                                                  \
+} (void)0
+
+#define SHIFT4(type, a, b, c, d)  {                                           \
+	type tmp;                                                                 \
+	CHECK_TYPE(a, type);                                                      \
+	CHECK_TYPE(b, type);                                                      \
+	CHECK_TYPE(c, type);                                                      \
+	CHECK_TYPE(d, type);                                                      \
+	tmp = a;                                                                  \
+	a = d;                                                                    \
+	d = c;                                                                    \
+	c = b;                                                                    \
+	b = tmp;                                                                  \
+} (void)0
+
 
 #define ABS(a)          ( (a) < 0 ? (-(a)) : (a) )
 
