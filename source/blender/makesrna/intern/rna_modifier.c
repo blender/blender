@@ -1115,7 +1115,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "percent");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_range(prop, 0, 1, 1, 2);
+	RNA_def_property_ui_range(prop, 0, 1, 1, 4);
 	RNA_def_property_ui_text(prop, "Ratio", "Ratio of triangles to reduce to");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

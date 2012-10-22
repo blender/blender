@@ -49,10 +49,13 @@
 
 #include "BKE_tessmesh.h"
 
-/* testing only! - Campbell */
-// #define USE_DECIMATE_BMESH
-#include "PIL_time.h"
+// #define USE_TIMEIT
 
+/* testing only! - Campbell */
+#define USE_DECIMATE_BMESH
+#ifdef USE_TIMEIT
+#  include "PIL_time.h"
+#endif
 
 #ifdef WITH_MOD_DECIMATE
 #include "LOD_decimation.h"
@@ -89,7 +92,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	BMEditMesh *em;
 	BMesh *bm;
 
+#ifdef USE_TIMEIT
 	 TIMEIT_START(decim);
+#endif
 
 	if (dmd->percent == 1.0f) {
 		return dm;
@@ -111,7 +116,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	BMEdit_Free(em);
 	MEM_freeN(em);
 
+#ifdef USE_TIMEIT
 	 TIMEIT_END(decim);
+#endif
 
 	return result;
 }

@@ -830,7 +830,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		}
 
 #if 0
-		/* optional, update edges around the face fan */
+		/* optional, update edges around the vertex face fan */
 		{
 			BMIter liter;
 			BMLoop *l;
