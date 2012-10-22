@@ -356,12 +356,6 @@ if(WITH_MOD_OCEANSIM)
 	add_definitions(-DWITH_OCEANSIM)
 endif()
 
-if(WITH_MOD_DECIMATE)
-	list(APPEND INC
-		../../../intern/decimation/extern
-	)
-endif()
-
 if(WITH_MOD_BOOLEAN)
 	list(APPEND INC
 		../../../intern/bsp/extern

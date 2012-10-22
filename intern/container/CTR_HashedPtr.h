@@ -30,8 +30,8 @@
  *  \ingroup ctr
  */
 
-#ifndef CTR_HASHEDPTR_H
-#define CTR_HASHEDPTR_H
+#ifndef __CTR_HASHEDPTR_H__
+#define __CTR_HASHEDPTR_H__
 
 #include <stdlib.h>
 
@@ -51,5 +51,5 @@ public:
 	void *getValue() const { return m_valptr; }
 };
 
-#endif //CTR_HASHEDPTR_H
+#endif  /* __CTR_HASHEDPTR_H__ */
 

@@ -49,11 +49,6 @@ if(WITH_MOD_SMOKE)
 	add_subdirectory(smoke)
 endif()
 
-if(WITH_MOD_DECIMATE)
-	add_subdirectory(container)
-	add_subdirectory(decimation)
-endif()
-
 if(WITH_MOD_BOOLEAN)
 	add_subdirectory(bsp)
 endif()

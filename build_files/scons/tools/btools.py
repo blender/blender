@@ -152,7 +152,6 @@ def validate_arguments(args, bc):
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'WITH_BF_FLUID',
-            'WITH_BF_DECIMATE',
             'WITH_BF_BOOLEAN',
             'WITH_BF_REMESH',
             'WITH_BF_OCEANSIM',
@@ -265,7 +264,6 @@ def read_opts(env, cfg, args):
         ('BF_PYTHON_ABI_FLAGS', 'Python ABI flags (suffix in library version: m, mu, etc)', ''),
 
         (BoolVariable('WITH_BF_FLUID', 'Build with Fluid simulation (Elbeem)', True)),
-        (BoolVariable('WITH_BF_DECIMATE', 'Build with decimate modifier', True)),
         (BoolVariable('WITH_BF_BOOLEAN', 'Build with boolean modifier', True)),
         (BoolVariable('WITH_BF_REMESH', 'Build with remesh modifier', True)),
         (BoolVariable('WITH_BF_OCEANSIM', 'Build with ocean simulation', False)),

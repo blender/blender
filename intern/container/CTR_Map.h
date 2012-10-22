@@ -29,9 +29,8 @@
  *  \ingroup ctr
  */
 
-
-#ifndef CTR_MAP_H
-#define CTR_MAP_H
+#ifndef __CTR_MAP_H__
+#define __CTR_MAP_H__
 
 template <class Key, class Value>
 class CTR_Map {
@@ -177,5 +176,4 @@ private:
 	Entry **m_buckets;
 };
 
-#endif
-
+#endif  /* __CTR_MAP_H__ */

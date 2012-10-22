@@ -33,14 +33,9 @@ set(INC_SYS
 )
 
 set(SRC
-	intern/CTR_List.cpp
-
 	CTR_HashedPtr.h
-	CTR_List.h
 	CTR_Map.h
-	CTR_TaggedIndex.h
-	CTR_TaggedSetOps.h
-	CTR_UHeap.h
 )
 
+# infact nothing to compile!
 blender_add_lib(bf_intern_ctr "${SRC}" "${INC}" "${INC_SYS}")

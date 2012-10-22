@@ -60,7 +60,6 @@ struct Image;
 struct ImageUser;
 struct KeyingSet;
 struct KeyingSetInfo;
-struct LOD_Decimation_Info;
 struct MCol;
 struct MTex;
 struct Main;

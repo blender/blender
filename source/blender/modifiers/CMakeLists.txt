@@ -117,13 +117,6 @@ if(WITH_MOD_REMESH)
 	)
 endif()
 
-if(WITH_MOD_DECIMATE)
-	add_definitions(-DWITH_MOD_DECIMATE)
-	list(APPEND INC
-		../../../intern/decimation/extern
-	)
-endif()
-
 if(WITH_MOD_FLUID)
 	add_definitions(-DWITH_MOD_FLUID)
 endif()
