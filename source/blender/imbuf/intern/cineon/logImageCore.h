@@ -36,6 +36,7 @@
 #include <stdio.h>
 
 #include "BLO_sys_types.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -201,15 +202,78 @@ unsigned int getRowLength(int width, LogImageElement logElement);
 int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB);
 int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB);
 
-/* Endianness conversion */
-inline unsigned short swap_ushort(unsigned short x, int swap);
-inline unsigned int swap_uint(unsigned int x, int swap);
-inline float swap_float(float x, int swap);
+/*
+ * Inline routines
+ */
+
+/* Endianness swapping */
+
+BLI_INLINE unsigned short swap_ushort(unsigned short x, int swap)
+{
+	if (swap != 0)
+		return (x >> 8) | (x << 8);
+	else
+		return x;
+}
+
+BLI_INLINE unsigned int swap_uint(unsigned int x, int swap)
+{
+	if (swap != 0)
+		return (x >> 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
+	else
+		return x;
+}
+
+BLI_INLINE float swap_float(float x, int swap)
+{
+	if (swap != 0) {
+		union {
+			float f;
+			unsigned char b[4];
+		} dat1, dat2;
+
+		dat1.f = x;
+		dat2.b[0] = dat1.b[3];
+		dat2.b[1] = dat1.b[2];
+		dat2.b[2] = dat1.b[1];
+		dat2.b[3] = dat1.b[0];
+		return dat2.f;
+	}
+	else
+		return x;
+}
 
 /* Other */
-inline float clamp_float(float x, float low, float high);
-inline unsigned int clamp_uint(unsigned int x, unsigned int low, unsigned int high);
-inline unsigned int float_uint(float value, unsigned int max);
+
+BLI_INLINE unsigned int clamp_uint(unsigned int x, unsigned int low, unsigned int high)
+{
+	if (x > high)
+		return high;
+	else if (x < low)
+		return low;
+	else
+		return x;
+}
+
+BLI_INLINE float clamp_float(float x, float low, float high)
+{
+	if (x > high)
+		return high;
+	else if (x < low)
+		return low;
+	else
+		return x;
+}
+
+BLI_INLINE unsigned int float_uint(float value, unsigned int max)
+{
+	if (value < 0.0f)
+		return 0;
+	else if (value > (1.0f - 0.5f / (float)max))
+		return max;
+	else
+		return (unsigned int)(((float)max * value) + 0.5f);
+}
 
 
 #ifdef __cplusplus
