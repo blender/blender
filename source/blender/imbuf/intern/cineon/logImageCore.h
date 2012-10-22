@@ -34,7 +34,8 @@
 #define __LOG_IMAGE_CORE_H__
 
 #include <stdio.h>
-#include <stdint.h>
+
+#include "BLO_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {
