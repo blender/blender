@@ -212,6 +212,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def DECIMATE(self, layout, ob, md):
         layout.prop(md, "ratio")
+        row = layout.row()
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        row.prop(md, "invert_vertex_group")
         layout.label(text="Face Count" + ": %d" % md.face_count)
 
     def DISPLACE(self, layout, ob, md):

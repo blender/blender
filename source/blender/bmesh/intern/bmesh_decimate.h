@@ -27,6 +27,6 @@
  *  \ingroup bmesh
  */
 
-void BM_mesh_decimate(BMesh *bm, const float factor);
+void BM_mesh_decimate(BMesh *bm, const float factor, float *vweights);
 
 #endif /* __BMESH_DECIMATE_H__ */

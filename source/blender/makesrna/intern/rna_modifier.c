@@ -377,6 +377,12 @@ static void rna_SolidifyModifier_vgroup_set(PointerRNA *ptr, const char *value)
 	rna_object_vgroup_name_set(ptr, value, smd->defgrp_name, sizeof(smd->defgrp_name));
 }
 
+static void rna_DecimateModifier_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	DecimateModifierData *dmd = (DecimateModifierData *)ptr->data;
+	rna_object_vgroup_name_set(ptr, value, dmd->defgrp_name, sizeof(dmd->defgrp_name));
+}
+
 static void rna_WeightVGModifier_vgroup_set(PointerRNA *ptr, const char *value)
 {
 	ModifierData *md = (ModifierData *)ptr->data;
@@ -1117,6 +1123,17 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_range(prop, 0, 1, 1, 4);
 	RNA_def_property_ui_text(prop, "Ratio", "Ratio of triangles to reduce to");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DecimateModifier_vgroup_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_INVERT_VGROUP);
+	RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "face_count", PROP_INT, PROP_NONE);

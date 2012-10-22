@@ -362,8 +362,15 @@ typedef struct DecimateModifierData {
 	ModifierData modifier;
 
 	float percent;
-	int faceCount;
+	int faceCount;  /* runtime only */
+
+	char defgrp_name[64];	/* MAX_VGROUP_NAME */
+	int flag, pad;
 } DecimateModifierData;
+
+enum {
+	MOD_DECIM_INVERT_VGROUP	= (1 << 0)
+};
 
 /* Smooth modifier flags */
 #define MOD_SMOOTH_X (1<<1)

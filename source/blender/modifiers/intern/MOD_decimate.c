@@ -32,9 +32,10 @@
  *  \ingroup modifiers
  */
 
-#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -43,6 +44,7 @@
 
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_deform.h"
 #include "BKE_particle.h"
 #include "BKE_cdderivedmesh.h"
 
@@ -70,9 +72,22 @@ static void copyData(ModifierData *md, ModifierData *target)
 	DecimateModifierData *tdmd = (DecimateModifierData *) target;
 
 	tdmd->percent = dmd->percent;
+	BLI_strncpy(tdmd->defgrp_name, dmd->defgrp_name, sizeof(tdmd->defgrp_name));
+	tdmd->flag = dmd->flag;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+{
+	DecimateModifierData *dmd = (DecimateModifierData *) md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if (dmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+
+	return dataMask;
+}
+
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
@@ -80,6 +95,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	DerivedMesh *dm = derivedData, *result = NULL;
 	BMEditMesh *em;
 	BMesh *bm;
+
+	float *vweights = NULL;
 
 #ifdef USE_TIMEIT
 	 TIMEIT_START(decim);
@@ -93,10 +110,40 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		return dm;
 	}
 
+	if (dmd->defgrp_name[0]) {
+		MDeformVert *dvert;
+		int defgrp_index;
+
+		modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
+
+		if (dvert) {
+			const unsigned int vert_tot = dm->getNumVerts(dm);
+			unsigned int i;
+
+			vweights = MEM_mallocN(vert_tot * sizeof(float), __func__);
+
+			if (dmd->flag & MOD_DECIM_INVERT_VGROUP) {
+				for (i = 0; i < vert_tot; i++) {
+					vweights[i] = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
+				}
+			}
+			else {
+				for (i = 0; i < vert_tot; i++) {
+					vweights[i] = defvert_find_weight(&dvert[i], defgrp_index);
+				}
+			}
+		}
+	}
+
+
 	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;
 
-	BM_mesh_decimate(bm, dmd->percent);
+	BM_mesh_decimate(bm, dmd->percent, vweights);
+
+	if (vweights) {
+		MEM_freeN(vweights);
+	}
 
 	dmd->faceCount = bm->totface;
 
@@ -126,7 +173,7 @@ ModifierTypeInfo modifierType_Decimate = {
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
-	/* requiredDataMask */  NULL,
+	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    NULL,

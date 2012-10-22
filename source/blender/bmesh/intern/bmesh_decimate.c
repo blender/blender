@@ -144,7 +144,7 @@ static void bm_decim_calc_target_co(BMEdge *e, float optimize_co[3],
 }
 
 static void bm_decim_build_edge_cost_single(BMEdge *e,
-                                            const Quadric *vquadrics,
+                                            const Quadric *vquadrics, const float *vweights,
                                             Heap *eheap, HeapNode **eheap_table)
 {
 	const Quadric *q1, *q2;
@@ -180,6 +180,16 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 		eheap_table[BM_elem_index_get(e)] = NULL;
 		return;
 	}
+
+	if (vweights) {
+		if ((vweights[BM_elem_index_get(e->v1)] < FLT_EPSILON) &&
+		    (vweights[BM_elem_index_get(e->v2)] < FLT_EPSILON))
+		{
+			/* skip collapsing this edge */
+			eheap_table[BM_elem_index_get(e)] = NULL;
+			return;
+		}
+	}
 	/* end sanity check */
 
 
@@ -188,14 +198,21 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 	q1 = &vquadrics[BM_elem_index_get(e->v1)];
 	q2 = &vquadrics[BM_elem_index_get(e->v2)];
 
-	cost = (BLI_quadric_evaluate(q1, optimize_co) + BLI_quadric_evaluate(q2, optimize_co));
+	if (vweights == NULL) {
+		cost = (BLI_quadric_evaluate(q1, optimize_co) +
+		        BLI_quadric_evaluate(q2, optimize_co));
+	}
+	else {
+		cost = ((BLI_quadric_evaluate(q1, optimize_co) * vweights[BM_elem_index_get(e->v1)]) +
+		        (BLI_quadric_evaluate(q2, optimize_co) * vweights[BM_elem_index_get(e->v2)]));
+	}
 	// print("COST %.12f\n");
 
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
 }
 
 static void bm_decim_build_edge_cost(BMesh *bm,
-                                     const Quadric *vquadrics,
+                                     const Quadric *vquadrics, const float *vweights,
                                      Heap *eheap, HeapNode **eheap_table)
 {
 	BMIter iter;
@@ -204,7 +221,7 @@ static void bm_decim_build_edge_cost(BMesh *bm,
 
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 		eheap_table[i] = NULL;  /* keep sanity check happy */
-		bm_decim_build_edge_cost_single(e, vquadrics, eheap, eheap_table);
+		bm_decim_build_edge_cost_single(e, vquadrics, vweights, eheap, eheap_table);
 
 #ifdef USE_PRESERVE_BOUNDARY
 		/* init: runs second! */
@@ -268,15 +285,16 @@ static int bm_decim_triangulate_begin(BMesh *bm)
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		if (f->len == 4) {
 			BMLoop *f_l[4];
-			BMLoop *l_iter;
 			BMLoop *l_a, *l_b;
 
-			l_iter = BM_FACE_FIRST_LOOP(f);
+			{
+				BMLoop *l_iter = BM_FACE_FIRST_LOOP(f);
 
-			f_l[0] = l_iter; l_iter = l_iter->next;
-			f_l[1] = l_iter; l_iter = l_iter->next;
-			f_l[2] = l_iter; l_iter = l_iter->next;
-			f_l[3] = l_iter; l_iter = l_iter->next;
+				f_l[0] = l_iter; l_iter = l_iter->next;
+				f_l[1] = l_iter; l_iter = l_iter->next;
+				f_l[2] = l_iter; l_iter = l_iter->next;
+				f_l[3] = l_iter;
+			}
 
 			if (len_squared_v3v3(f_l[0]->v->co, f_l[2]->v->co) <
 			    len_squared_v3v3(f_l[1]->v->co, f_l[3]->v->co))
@@ -764,7 +782,7 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e
 
 /* collapse e the edge, removing e->v2 */
 static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
-                                   Quadric *vquadrics,
+                                   Quadric *vquadrics, float *vweights,
                                    Heap *eheap, HeapNode **eheap_table,
                                    const CD_UseFlag customdata_flag)
 {
@@ -796,6 +814,12 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		/* update collapse info */
 		int i;
 
+		if (vweights) {
+			const int fac = CLAMPIS(customdata_fac, 0.0f, 1.0f);
+			vweights[BM_elem_index_get(v_other)] = (vweights[v_clear_index]              * (1.0f - fac)) +
+			                                       (vweights[BM_elem_index_get(v_other)] * fac);
+		}
+
 		e = NULL;  /* paranoid safety check */
 
 		copy_v3_v3(v_other->co, optimize_co);
@@ -825,7 +849,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 			e_iter = e_first = v_other->e;
 			do {
 				BLI_assert(BM_edge_find_double(e_iter) == NULL);
-				bm_decim_build_edge_cost_single(e_iter, vquadrics, eheap, eheap_table);
+				bm_decim_build_edge_cost_single(e_iter, vquadrics, vweights, eheap, eheap_table);
 			} while ((e_iter = bmesh_disk_edge_next(e_iter, v_other)) != e_first);
 		}
 
@@ -857,7 +881,14 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 /* Main Decimate Function
  * ********************** */
 
-void BM_mesh_decimate(BMesh *bm, const float factor)
+/**
+ * \brief BM_mesh_decimate
+ * \param bm The mesh
+ * \param factor face count multiplier [0 - 1]
+ * \param vertex_weights Optional array of vertex  aligned weights [0 - 1],
+ *        a vertex group is the usual source for this.
+ */
+void BM_mesh_decimate(BMesh *bm, const float factor, float *vweights)
 {
 	Heap *eheap;             /* edge heap */
 	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */
@@ -885,7 +916,7 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 	/* build initial edge collapse cost data */
 	bm_decim_build_quadrics(bm, vquadrics);
 
-	bm_decim_build_edge_cost(bm, vquadrics, eheap, eheap_table);
+	bm_decim_build_edge_cost(bm, vquadrics, vweights, eheap, eheap_table);
 
 	face_tot_target = bm->totface * factor;
 	bm->elem_index_dirty |= BM_FACE | BM_EDGE | BM_VERT;
@@ -910,7 +941,7 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 		 * but NULL just incase so we don't use freed node */
 		eheap_table[BM_elem_index_get(e)] = NULL;
 
-		bm_decim_edge_collapse(bm, e, vquadrics, eheap, eheap_table, customdata_flag);
+		bm_decim_edge_collapse(bm, e, vquadrics, vweights, eheap, eheap_table, customdata_flag);
 	}
 
 
