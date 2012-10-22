@@ -42,6 +42,8 @@
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"

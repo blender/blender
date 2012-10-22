@@ -410,6 +410,13 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 }
 #endif
 
+static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+                                                        PropertyRNA *UNUSED(prop), int *free)
+{
+	*free = 0; /* These items are handled by BLF code! */
+	return BLF_RNA_lang_enum_properties();
+}
+
 #else
 
 static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
@@ -2983,6 +2990,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
+#if 0
 	/* hardcoded here, could become dynamic somehow */
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
@@ -3032,6 +3040,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{30, "TURKISH", 0, "Turkish (Türkçe)", "tr_TR"},
 		{ 0, NULL, 0, NULL, NULL}
 	};
+#else
+	static EnumPropertyItem language_items[] = {
+		{ 0, "DEFAULT", 0, "Default (Default)", ""},
+		{ 0, NULL, 0, NULL, NULL}
+	};
+#endif
 
 #ifdef WITH_CYCLES
 	static EnumPropertyItem compute_device_items[] = {
@@ -3074,6 +3088,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, language_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_lang_enum_properties_itemf");
 	RNA_def_property_ui_text(prop, "Language", "Language used for translation");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 

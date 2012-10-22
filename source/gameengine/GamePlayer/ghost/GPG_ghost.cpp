@@ -1064,6 +1064,7 @@ int main(int argc, char** argv)
 
 #ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();
+	BLF_lang_free();
 #endif
 
 	IMB_exit();
