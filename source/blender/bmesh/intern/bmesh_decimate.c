@@ -876,6 +876,7 @@ void BM_mesh_decimate(BMesh *bm, const float factor)
 
 	/* alloc vars */
 	vquadrics = MEM_callocN(sizeof(Quadric) * bm->totvert, __func__);
+	/* since some edges may be degenerate, we might be over allocing a little here */
 	eheap = BLI_heap_new_ex(bm->totedge);
 	eheap_table = MEM_callocN(sizeof(HeapNode *) * bm->totedge, __func__);
 	tot_edge_orig = bm->totedge;

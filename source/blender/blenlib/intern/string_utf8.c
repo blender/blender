@@ -214,7 +214,7 @@ size_t BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t max
 		len += BLI_str_utf8_from_unicode(*src++, dst + len);
 	}
 
-	dst[len]= '\0';
+	dst[len] = '\0';
 
 	return len;
 }

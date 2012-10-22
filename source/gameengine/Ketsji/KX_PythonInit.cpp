@@ -1844,7 +1844,7 @@ void removeImportMain(struct Main *maggie)
 }
 
 // Copied from bpy_interface.c
-static struct _inittab bge_internal_modules[]= {
+static struct _inittab bge_internal_modules[] = {
 	{(char *)"mathutils", PyInit_mathutils},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},

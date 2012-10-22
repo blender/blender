@@ -197,7 +197,7 @@ static WriteData *writedata_new(int file)
 
 	if (wd == NULL) return NULL;
 
-	wd->sdna= DNA_sdna_from_data(DNAstr, DNAlen, 0);
+	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, 0);
 
 	wd->file= file;
 
@@ -2540,7 +2540,7 @@ static void write_bone(WriteData *wd, Bone *bone)
 	Bone*	cbone;
 
 	// PATCH for upward compatibility after 2.37+ armature recode
-	bone->size[0]= bone->size[1]= bone->size[2]= 1.0f;
+	bone->size[0] = bone->size[1] = bone->size[2] = 1.0f;
 		
 	// Write this bone
 	writestruct(wd, DATA, "Bone", 1, bone);

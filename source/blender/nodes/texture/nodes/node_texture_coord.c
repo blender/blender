@@ -33,7 +33,7 @@
 #include "node_texture_util.h"
 #include "NOD_texture.h"
 
-static bNodeSocketTemplate outputs[]= { 
+static bNodeSocketTemplate outputs[] = {
 	{ SOCK_VECTOR, 0, N_("Coordinates") },
 	{ -1, 0, "" }
 };

@@ -34,12 +34,12 @@
 
 
 /* **************** Hue Saturation ******************** */
-static bNodeSocketTemplate cmp_node_hue_sat_in[]= {
+static bNodeSocketTemplate cmp_node_hue_sat_in[] = {
 	{	SOCK_FLOAT, 1, N_("Fac"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_hue_sat_out[]= {
+static bNodeSocketTemplate cmp_node_hue_sat_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -60,10 +60,10 @@ static void do_hue_sat_fac(bNode *node, float *out, float *in, float *fac)
 		hsv[2]*= nhs->val;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		
-		out[0]= mfac*in[0] + *fac*col[0];
-		out[1]= mfac*in[1] + *fac*col[1];
-		out[2]= mfac*in[2] + *fac*col[2];
-		out[3]= in[3];
+		out[0] = mfac*in[0] + *fac*col[0];
+		out[1] = mfac*in[1] + *fac*col[1];
+		out[2] = mfac*in[2] + *fac*col[2];
+		out[3] = in[3];
 	}
 	else {
 		copy_v4_v4(out, in);

@@ -956,7 +956,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	//	}
 	//}
 
-	bbd->wanted_co[0]=bbd->wanted_co[1]=bbd->wanted_co[2]=bbd->wanted_speed=0.0f;
+	zero_v3(bbd->wanted_co);
+	bbd->wanted_speed = 0.0f;
 
 	/* create random seed for every particle & frame */
 	rand = (int)(PSYS_FRAND(psys->seed + p) * 1000);
@@ -990,7 +991,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 					add_v3_v3(wanted_co, bbd->wanted_co);
 					wanted_speed += bbd->wanted_speed;
 					n++;
-					bbd->wanted_co[0]=bbd->wanted_co[1]=bbd->wanted_co[2]=bbd->wanted_speed=0.0f;
+					zero_v3(bbd->wanted_co);
+					bbd->wanted_speed = 0.0f;
 				}
 			}
 
@@ -1266,9 +1268,9 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		{
 			float grav[3];
 
-			grav[0]= 0.0f;
-			grav[1]= 0.0f;
-			grav[2]= bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
+			grav[0] = 0.0f;
+			grav[1] = 0.0f;
+			grav[2] = bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
 
 			/* don't take forward acceleration into account (better banking) */
 			if (dot_v3v3(bpa->data.acc, pa->state.vel) > 0.0f) {
@@ -1309,9 +1311,9 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		{
 			float grav[3];
 
-			grav[0]= 0.0f;
-			grav[1]= 0.0f;
-			grav[2]= bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
+			grav[0] = 0.0f;
+			grav[1] = 0.0f;
+			grav[2] = bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
 
 
 			/* gather apparent gravity */

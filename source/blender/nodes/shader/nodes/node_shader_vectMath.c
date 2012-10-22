@@ -35,13 +35,13 @@
 
 
 /* **************** VECTOR MATH ******************** */ 
-static bNodeSocketTemplate sh_node_vect_math_in[]= { 
+static bNodeSocketTemplate sh_node_vect_math_in[] = {
 	{ SOCK_VECTOR, 1, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{ SOCK_VECTOR, 1, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{ -1, 0, "" }
 };
 
-static bNodeSocketTemplate sh_node_vect_math_out[]= {
+static bNodeSocketTemplate sh_node_vect_math_out[] = {
 	{ SOCK_VECTOR, 0, N_("Vector")},
 	{ SOCK_FLOAT, 0, N_("Value")},
 	{ -1, 0, "" }
@@ -55,46 +55,46 @@ static void node_shader_exec_vect_math(void *UNUSED(data), bNode *node, bNodeSta
 	nodestack_get_vec(vec2, SOCK_VECTOR, in[1]);
 	
 	if (node->custom1 == 0) {	/* Add */
-		out[0]->vec[0]= vec1[0] + vec2[0];
-		out[0]->vec[1]= vec1[1] + vec2[1];
-		out[0]->vec[2]= vec1[2] + vec2[2];
+		out[0]->vec[0] = vec1[0] + vec2[0];
+		out[0]->vec[1] = vec1[1] + vec2[1];
+		out[0]->vec[2] = vec1[2] + vec2[2];
 		
-		out[1]->vec[0]= (fabs(out[0]->vec[0]) + fabs(out[0]->vec[0]) + fabs(out[0]->vec[0])) / 3;
+		out[1]->vec[0] = (fabs(out[0]->vec[0]) + fabs(out[0]->vec[0]) + fabs(out[0]->vec[0])) / 3;
 	}
 	else if (node->custom1 == 1) {	/* Subtract */
-		out[0]->vec[0]= vec1[0] - vec2[0];
-		out[0]->vec[1]= vec1[1] - vec2[1];
-		out[0]->vec[2]= vec1[2] - vec2[2];
+		out[0]->vec[0] = vec1[0] - vec2[0];
+		out[0]->vec[1] = vec1[1] - vec2[1];
+		out[0]->vec[2] = vec1[2] - vec2[2];
 		
-		out[1]->vec[0]= (fabs(out[0]->vec[0]) + fabs(out[0]->vec[0]) + fabs(out[0]->vec[0])) / 3;
+		out[1]->vec[0] = (fabs(out[0]->vec[0]) + fabs(out[0]->vec[0]) + fabs(out[0]->vec[0])) / 3;
 	}
 	else if (node->custom1 == 2) {	/* Average */
-		out[0]->vec[0]= vec1[0] + vec2[0];
-		out[0]->vec[1]= vec1[1] + vec2[1];
-		out[0]->vec[2]= vec1[2] + vec2[2];
+		out[0]->vec[0] = vec1[0] + vec2[0];
+		out[0]->vec[1] = vec1[1] + vec2[1];
+		out[0]->vec[2] = vec1[2] + vec2[2];
 		
 		out[1]->vec[0] = normalize_v3(out[0]->vec );
 	}
 	else if (node->custom1 == 3) {	/* Dot product */
-		out[1]->vec[0]= (vec1[0] * vec2[0]) + (vec1[1] * vec2[1]) + (vec1[2] * vec2[2]);
+		out[1]->vec[0] = (vec1[0] * vec2[0]) + (vec1[1] * vec2[1]) + (vec1[2] * vec2[2]);
 	}
 	else if (node->custom1 == 4) {	/* Cross product */
-		out[0]->vec[0]= (vec1[1] * vec2[2]) - (vec1[2] * vec2[1]);
-		out[0]->vec[1]= (vec1[2] * vec2[0]) - (vec1[0] * vec2[2]);
-		out[0]->vec[2]= (vec1[0] * vec2[1]) - (vec1[1] * vec2[0]);
+		out[0]->vec[0] = (vec1[1] * vec2[2]) - (vec1[2] * vec2[1]);
+		out[0]->vec[1] = (vec1[2] * vec2[0]) - (vec1[0] * vec2[2]);
+		out[0]->vec[2] = (vec1[0] * vec2[1]) - (vec1[1] * vec2[0]);
 		
 		out[1]->vec[0] = normalize_v3(out[0]->vec );
 	}
 	else if (node->custom1 == 5) {	/* Normalize */
 		if (in[0]->hasinput || !in[1]->hasinput) {	/* This one only takes one input, so we've got to choose. */
-			out[0]->vec[0]= vec1[0];
-			out[0]->vec[1]= vec1[1];
-			out[0]->vec[2]= vec1[2];
+			out[0]->vec[0] = vec1[0];
+			out[0]->vec[1] = vec1[1];
+			out[0]->vec[2] = vec1[2];
 		}
 		else {
-			out[0]->vec[0]= vec2[0];
-			out[0]->vec[1]= vec2[1];
-			out[0]->vec[2]= vec2[2];
+			out[0]->vec[0] = vec2[0];
+			out[0]->vec[1] = vec2[1];
+			out[0]->vec[2] = vec2[2];
 		}
 		
 		out[1]->vec[0] = normalize_v3(out[0]->vec );

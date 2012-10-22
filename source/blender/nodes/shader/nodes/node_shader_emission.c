@@ -29,13 +29,13 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_emission_in[]= {
+static bNodeSocketTemplate sh_node_emission_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Strength"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_emission_out[]= {
+static bNodeSocketTemplate sh_node_emission_out[] = {
 	{	SOCK_SHADER, 0, N_("Emission")},
 	{	-1, 0, ""	}
 };

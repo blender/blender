@@ -35,14 +35,14 @@
 
 /* **************** Displace  ******************** */
 
-static bNodeSocketTemplate cmp_node_displace_in[]= {
+static bNodeSocketTemplate cmp_node_displace_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_VECTOR, 1, N_("Vector"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_TRANSLATION},
 	{	SOCK_FLOAT, 1, N_("X Scale"),				0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f, PROP_FACTOR},
 	{	SOCK_FLOAT, 1, N_("Y Scale"),				0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_displace_out[]= {
+static bNodeSocketTemplate cmp_node_displace_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };

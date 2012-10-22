@@ -1200,7 +1200,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 	char left[MAX_ID_NAME + 8], leftest[MAX_ID_NAME + 8];
 
 	/* make sure input name is terminated properly */
-	/* if ( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3]= 0; */
+	/* if ( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3] = 0; */
 	/* removed since this is only ever called from one place - campbell */
 
 	while (1) {

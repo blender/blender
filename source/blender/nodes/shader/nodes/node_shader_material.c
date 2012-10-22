@@ -34,7 +34,7 @@
 
 /* **************** MATERIAL ******************** */
 
-static bNodeSocketTemplate sh_node_material_in[]= {
+static bNodeSocketTemplate sh_node_material_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Spec"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Refl"),		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -42,7 +42,7 @@ static bNodeSocketTemplate sh_node_material_in[]= {
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_material_out[]= {
+static bNodeSocketTemplate sh_node_material_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
 	{	SOCK_FLOAT, 0, N_("Alpha")},
 	{	SOCK_VECTOR, 0, N_("Normal")},
@@ -51,7 +51,7 @@ static bNodeSocketTemplate sh_node_material_out[]= {
 
 /* **************** EXTENDED MATERIAL ******************** */
 
-static bNodeSocketTemplate sh_node_material_ext_in[]= {
+static bNodeSocketTemplate sh_node_material_ext_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Spec"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Refl"),		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
@@ -66,7 +66,7 @@ static bNodeSocketTemplate sh_node_material_ext_in[]= {
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_material_ext_out[]= {
+static bNodeSocketTemplate sh_node_material_ext_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
 	{	SOCK_FLOAT, 0, N_("Alpha")},
 	{	SOCK_VECTOR, 0, N_("Normal")},
@@ -84,7 +84,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		ShaderCallData *shcd= data;
 		float col[4];
 		bNodeSocket *sock;
-		char hasinput[NUM_MAT_IN]= {'\0'};
+		char hasinput[NUM_MAT_IN] = {'\0'};
 		int i;
 		
 		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily
@@ -157,20 +157,20 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 			copy_v3_v3(col, shrnode.spec);
 		}
 		else
-			col[0]= col[1]= col[2]= 0.0f;
+			col[0] = col[1] = col[2] = 0.0f;
 		
-		col[3]= shrnode.alpha;
+		col[3] = shrnode.alpha;
 		
 		if (shi->do_preview)
 			nodeAddToPreview(node, col, shi->xs, shi->ys, shi->do_manage);
 		
 		copy_v3_v3(out[MAT_OUT_COLOR]->vec, col);
-		out[MAT_OUT_ALPHA]->vec[0]= shrnode.alpha;
+		out[MAT_OUT_ALPHA]->vec[0] = shrnode.alpha;
 		
 		if (node->custom1 & SH_NODE_MAT_NEG) {
-			shi->vn[0]= -shi->vn[0];
-			shi->vn[1]= -shi->vn[1];
-			shi->vn[2]= -shi->vn[2];
+			shi->vn[0] = -shi->vn[0];
+			shi->vn[1] = -shi->vn[1];
+			shi->vn[2] = -shi->vn[2];
 		}
 		
 		copy_v3_v3(out[MAT_OUT_NORMAL]->vec, shi->vn);
@@ -222,7 +222,7 @@ static int gpu_shader_material(GPUMaterial *mat, bNode *node, GPUNodeStack *in, 
 		GPUShadeInput shi;
 		GPUShadeResult shr;
 		bNodeSocket *sock;
-		char hasinput[NUM_MAT_IN]= {'\0'};
+		char hasinput[NUM_MAT_IN] = {'\0'};
 		int i;
 		
 		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily

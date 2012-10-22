@@ -795,8 +795,8 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	ymargin = ar->winy / 20.0f;
 
 	// UNUSED
-	// cent_orig[0]= ar->winrct.xmin + ar->winx/2;
-	// cent_orig[1]= ar->winrct.ymin + ar->winy/2;
+	// cent_orig[0] = ar->winrct.xmin + ar->winx / 2;
+	// cent_orig[1] = ar->winrct.ymin + ar->winy / 2;
 
 	{
 

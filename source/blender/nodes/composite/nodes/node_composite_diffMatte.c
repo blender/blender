@@ -33,13 +33,13 @@
 #include "node_composite_util.h"
 
 /* ******************* channel Difference Matte ********************************* */
-static bNodeSocketTemplate cmp_node_diff_matte_in[]={
+static bNodeSocketTemplate cmp_node_diff_matte_in[] = {
 	{SOCK_RGBA, 1, N_("Image 1"), 1.0f, 1.0f, 1.0f, 1.0f},
 	{SOCK_RGBA, 1, N_("Image 2"), 1.0f, 1.0f, 1.0f, 1.0f},
 	{-1, 0, ""}
 };
 
-static bNodeSocketTemplate cmp_node_diff_matte_out[]={
+static bNodeSocketTemplate cmp_node_diff_matte_out[] = {
 	{SOCK_RGBA, 0, N_("Image")},
 	{SOCK_FLOAT, 0, N_("Matte")},
 	{-1, 0, ""}

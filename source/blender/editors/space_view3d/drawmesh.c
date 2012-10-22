@@ -636,7 +636,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	int a, totpoly = me->totpoly;
 
 	/* fake values to pass to GPU_render_text() */
-	MCol tmp_mcol[4]  = {{0}};
+	MCol  tmp_mcol[4]  = {{0}};
 	MCol *tmp_mcol_pt  = mloopcol ? tmp_mcol : NULL;
 	MTFace tmp_tf      = {{{0}}};
 

@@ -1174,7 +1174,7 @@ int main(int argc, char **argv)
 				strcpy(baseDirectory, BASE_HEADER);
 			}
 
-			fprintf(file, "unsigned char DNAstr[]= {\n");
+			fprintf(file, "const unsigned char DNAstr[] = {\n");
 			if (make_structDNA(baseDirectory, file)) {
 				/* error */
 				fclose(file);
@@ -1183,7 +1183,7 @@ int main(int argc, char **argv)
 			}
 			else {
 				fprintf(file, "};\n");
-				fprintf(file, "int DNAlen = sizeof(DNAstr);\n");
+				fprintf(file, "const int DNAlen = sizeof(DNAstr);\n");
 	
 				fclose(file);
 			}

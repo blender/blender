@@ -103,85 +103,85 @@ PyAttributeDef KX_VertexProxy::Attributes[] = {
 
 PyObject *KX_VertexProxy::pyattr_get_x(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getXYZ()[0]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_y(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getXYZ()[1]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_z(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getXYZ()[2]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_r(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getRGBA()[0]/255.0);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_g(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getRGBA()[1]/255.0);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_b(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getRGBA()[2]/255.0);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_a(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getRGBA()[3]/255.0);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_u(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getUV1()[0]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_v(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getUV1()[1]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_u2(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getUV2()[0]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_v2(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyFloat_FromDouble(self->m_vertex->getUV2()[1]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_XYZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyObjectFrom(MT_Vector3(self->m_vertex->getXYZ()));
 }
 
 PyObject *KX_VertexProxy::pyattr_get_UV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyObjectFrom(MT_Point2(self->m_vertex->getUV1()));
 }
 
 PyObject *KX_VertexProxy::pyattr_get_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	const unsigned char *colp = self->m_vertex->getRGBA();
 	MT_Vector4 color(colp[0], colp[1], colp[2], colp[3]);
 	color /= 255.0;
@@ -190,13 +190,13 @@ PyObject *KX_VertexProxy::pyattr_get_color(void *self_v, const KX_PYATTRIBUTE_DE
 
 PyObject *KX_VertexProxy::pyattr_get_normal(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	return PyObjectFrom(MT_Vector3(self->m_vertex->getNormal()));
 }
 
 int KX_VertexProxy::pyattr_set_x(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -211,7 +211,7 @@ int KX_VertexProxy::pyattr_set_x(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_y(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -226,7 +226,7 @@ int KX_VertexProxy::pyattr_set_y(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_z(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -241,7 +241,7 @@ int KX_VertexProxy::pyattr_set_z(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_u(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -256,7 +256,7 @@ int KX_VertexProxy::pyattr_set_u(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_v(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -271,7 +271,7 @@ int KX_VertexProxy::pyattr_set_v(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_u2(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -286,7 +286,7 @@ int KX_VertexProxy::pyattr_set_u2(void *self_v, const struct KX_PYATTRIBUTE_DEF 
 
 int KX_VertexProxy::pyattr_set_v2(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -301,7 +301,7 @@ int KX_VertexProxy::pyattr_set_v2(void *self_v, const struct KX_PYATTRIBUTE_DEF 
 
 int KX_VertexProxy::pyattr_set_r(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -318,7 +318,7 @@ int KX_VertexProxy::pyattr_set_r(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_g(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -335,7 +335,7 @@ int KX_VertexProxy::pyattr_set_g(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_b(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -352,7 +352,7 @@ int KX_VertexProxy::pyattr_set_b(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_a(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
@@ -369,7 +369,7 @@ int KX_VertexProxy::pyattr_set_a(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 
 int KX_VertexProxy::pyattr_set_XYZ(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PySequence_Check(value))
 	{
 		MT_Point3 vec;
@@ -385,7 +385,7 @@ int KX_VertexProxy::pyattr_set_XYZ(void *self_v, const struct KX_PYATTRIBUTE_DEF
 
 int KX_VertexProxy::pyattr_set_UV(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PySequence_Check(value))
 	{
 		MT_Point2 vec;
@@ -401,7 +401,7 @@ int KX_VertexProxy::pyattr_set_UV(void *self_v, const struct KX_PYATTRIBUTE_DEF 
 
 int KX_VertexProxy::pyattr_set_color(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PySequence_Check(value))
 	{
 		MT_Vector4 vec;
@@ -417,7 +417,7 @@ int KX_VertexProxy::pyattr_set_color(void *self_v, const struct KX_PYATTRIBUTE_D
 
 int KX_VertexProxy::pyattr_set_normal(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
 	if (PySequence_Check(value))
 	{
 		MT_Vector3 vec;

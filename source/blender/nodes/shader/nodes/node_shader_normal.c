@@ -33,12 +33,12 @@
 #include "node_shader_util.h"
 
 /* **************** NORMAL  ******************** */
-static bNodeSocketTemplate sh_node_normal_in[]= {
+static bNodeSocketTemplate sh_node_normal_in[] = {
 	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_normal_out[]= {
+static bNodeSocketTemplate sh_node_normal_out[] = {
 	{	SOCK_VECTOR, 0, N_("Normal")},
 	{	SOCK_FLOAT, 0, N_("Dot")},
 	{	-1, 0, ""	}
@@ -68,7 +68,7 @@ static void node_shader_exec_normal(void *UNUSED(data), bNode *node, bNodeStack 
 	
 	copy_v3_v3(out[0]->vec, ((bNodeSocketValueVector*)sock->default_value)->value);
 	/* render normals point inside... the widget points outside */
-	out[1]->vec[0]= -dot_v3v3(out[0]->vec, vec);
+	out[1]->vec[0] = -dot_v3v3(out[0]->vec, vec);
 }
 
 static int gpu_shader_normal(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)

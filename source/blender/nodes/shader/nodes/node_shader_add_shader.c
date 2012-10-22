@@ -29,13 +29,13 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_add_shader_in[]= {
+static bNodeSocketTemplate sh_node_add_shader_in[] = {
 	{	SOCK_SHADER, 1, N_("Shader")},
 	{	SOCK_SHADER, 1, N_("Shader")},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_add_shader_out[]= {
+static bNodeSocketTemplate sh_node_add_shader_out[] = {
 	{	SOCK_SHADER, 0, N_("Shader")},
 	{	-1, 0, ""	}
 };

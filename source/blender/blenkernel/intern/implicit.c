@@ -1218,7 +1218,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float stretch_force[3] = {0, 0, 0};
 	float bending_force[3] = {0, 0, 0};
 	float damping_force[3] = {0, 0, 0};
-	float nulldfdx[3][3]={ {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	float nulldfdx[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 	
 	float scaling = 0.0;
 
@@ -1356,15 +1356,15 @@ static void CalcFloat( float *v1, float *v2, float *v3, float *n)
 {
 	float n1[3], n2[3];
 
-	n1[0]= v1[0]-v2[0];
-	n2[0]= v2[0]-v3[0];
-	n1[1]= v1[1]-v2[1];
-	n2[1]= v2[1]-v3[1];
-	n1[2]= v1[2]-v2[2];
-	n2[2]= v2[2]-v3[2];
-	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
-	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
-	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
+	n1[0] = v1[0]-v2[0];
+	n2[0] = v2[0]-v3[0];
+	n1[1] = v1[1]-v2[1];
+	n2[1] = v2[1]-v3[1];
+	n1[2] = v1[2]-v2[2];
+	n2[2] = v2[2]-v3[2];
+	n[0] = n1[1]*n2[2]-n1[2]*n2[1];
+	n[1] = n1[2]*n2[0]-n1[0]*n2[2];
+	n[2] = n1[0]*n2[1]-n1[1]*n2[0];
 }
 
 static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
@@ -1372,17 +1372,17 @@ static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
 	/* real cross! */
 	float n1[3], n2[3];
 
-	n1[0]= v1[0]-v3[0];
-	n1[1]= v1[1]-v3[1];
-	n1[2]= v1[2]-v3[2];
+	n1[0] = v1[0]-v3[0];
+	n1[1] = v1[1]-v3[1];
+	n1[2] = v1[2]-v3[2];
 
-	n2[0]= v2[0]-v4[0];
-	n2[1]= v2[1]-v4[1];
-	n2[2]= v2[2]-v4[2];
+	n2[0] = v2[0]-v4[0];
+	n2[1] = v2[1]-v4[1];
+	n2[2] = v2[2]-v4[2];
 
-	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
-	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
-	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
+	n[0] = n1[1]*n2[2]-n1[2]*n2[1];
+	n[1] = n1[2]*n2[0]-n1[0]*n2[2];
+	n[2] = n1[0]*n2[1]-n1[1]*n2[0];
 }
 
 static float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
@@ -1544,7 +1544,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	lfVector *winvec;
 	EffectedPoint epoint;
 
-	tm2[0][0]= tm2[1][1]= tm2[2][2]= -spring_air;
+	tm2[0][0] = tm2[1][1] = tm2[2][2] = -spring_air;
 	
 	/* global acceleration (gravitation) */
 	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
@@ -1588,9 +1588,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		}
 		
 		for (i = 0; i < cloth->numfaces; i++) {
-			float trinormal[3]={0, 0, 0}; // normalized triangle normal
-			float triunnormal[3]={0, 0, 0}; // not-normalized-triangle normal
-			float tmp[3]={0, 0, 0};
+			float trinormal[3] = {0, 0, 0}; // normalized triangle normal
+			float triunnormal[3] = {0, 0, 0}; // not-normalized-triangle normal
+			float tmp[3] = {0, 0, 0};
 			float factor = (mfaces[i].v4) ? 0.25 : 1.0 / 3.0;
 			factor *= 0.02;
 			
@@ -1628,9 +1628,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		/* Hair has only edges */
 		if (cloth->numfaces == 0) {
 			ClothSpring *spring;
-			float edgevec[3]={0, 0, 0}; //edge vector
-			float edgeunnormal[3]={0, 0, 0}; // not-normalized-edge normal
-			float tmp[3]={0, 0, 0};
+			float edgevec[3] = {0, 0, 0}; //edge vector
+			float edgeunnormal[3] = {0, 0, 0}; // not-normalized-edge normal
+			float tmp[3] = {0, 0, 0};
 			float factor = 0.01;
 
 			search = cloth->springs;

@@ -32,13 +32,13 @@
 
 #include "node_composite_util.h"
 
-static bNodeSocketTemplate cmp_node_lensdist_in[]= {
+static bNodeSocketTemplate cmp_node_lensdist_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Distort"), 	0.f, 0.f, 0.f, 0.f, -0.999f, 1.f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("Dispersion"), 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, PROP_NONE},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_lensdist_out[]= {
+static bNodeSocketTemplate cmp_node_lensdist_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -74,7 +74,7 @@ static void lensDistort(CompBuf *dst, CompBuf *src, float kr, float kg, float kb
 				qd_getPixelLerpChan(tsrc, (u*dst->x - kr) - 0.5f, v*dst->y - 0.5f, 2, colp[x]+2);
 				
 				/* set alpha */
-				colp[x][3]= 1.0f;
+				colp[x][3] = 1.0f;
 			}
 		}
 		free_compbuf(tsrc);
@@ -159,7 +159,7 @@ static void lensDistort(CompBuf *dst, CompBuf *src, float kr, float kg, float kb
 				if (db) colp[x][2] = 2.f*tc[2] / (float)db;
 	
 				/* set alpha */
-				colp[x][3]= 1.0f;
+				colp[x][3] = 1.0f;
 			}
 		}
 	}

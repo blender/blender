@@ -2043,11 +2043,11 @@ PyMethodDef KX_Scene::Methods[] = {
 };
 static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 {
-	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
 	const char *attr_str= _PyUnicode_AsString(item);
 	PyObject *pyconvert;
 	
-	if (self==NULL) {
+	if (self == NULL) {
 		PyErr_SetString(PyExc_SystemError, "val = scene[key]: KX_Scene, "BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
@@ -2069,12 +2069,12 @@ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 
 static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 {
-	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
 	const char *attr_str= _PyUnicode_AsString(key);
 	if (attr_str==NULL)
 		PyErr_Clear();
 	
-	if (self==NULL) {
+	if (self == NULL) {
 		PyErr_SetString(PyExc_SystemError, "scene[key] = value: KX_Scene, "BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
@@ -2116,9 +2116,9 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 
 static int Seq_Contains(PyObject *self_v, PyObject *value)
 {
-	KX_Scene* self= static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>BGE_PROXY_REF(self_v);
 	
-	if (self==NULL) {
+	if (self == NULL) {
 		PyErr_SetString(PyExc_SystemError, "val in scene: KX_Scene, "BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
@@ -2130,45 +2130,45 @@ static int Seq_Contains(PyObject *self_v, PyObject *value)
 }
 
 PyMappingMethods KX_Scene::Mapping = {
-	(lenfunc)NULL					, 			/*inquiry mp_length */
-	(binaryfunc)Map_GetItem,		/*binaryfunc mp_subscript */
-	(objobjargproc)Map_SetItem,	/*objobjargproc mp_ass_subscript */
+	(lenfunc)NULL,                  /* inquiry mp_length */
+	(binaryfunc)Map_GetItem,        /* binaryfunc mp_subscript */
+	(objobjargproc)Map_SetItem,     /* objobjargproc mp_ass_subscript */
 };
 
 PySequenceMethods KX_Scene::Sequence = {
-	NULL,		/* Cant set the len otherwise it can evaluate as false */
-	NULL,		/* sq_concat */
-	NULL,		/* sq_repeat */
-	NULL,		/* sq_item */
-	NULL,		/* sq_slice */
-	NULL,		/* sq_ass_item */
-	NULL,		/* sq_ass_slice */
-	(objobjproc)Seq_Contains,	/* sq_contains */
-	(binaryfunc) NULL, /* sq_inplace_concat */
-	(ssizeargfunc) NULL, /* sq_inplace_repeat */
+	NULL,                       /* Cant set the len otherwise it can evaluate as false */
+	NULL,                       /* sq_concat */
+	NULL,                       /* sq_repeat */
+	NULL,                       /* sq_item */
+	NULL,                       /* sq_slice */
+	NULL,                       /* sq_ass_item */
+	NULL,                       /* sq_ass_slice */
+	(objobjproc)Seq_Contains,   /* sq_contains */
+	(binaryfunc) NULL,          /* sq_inplace_concat */
+	(ssizeargfunc) NULL,        /* sq_inplace_repeat */
 };
 
 PyObject *KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 	return PyUnicode_From_STR_String(self->GetName());
 }
 
 PyObject *KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 	return self->GetObjectList()->GetProxy();
 }
 
 PyObject *KX_Scene::pyattr_get_objects_inactive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 	return self->GetInactiveList()->GetProxy();
 }
 
 PyObject *KX_Scene::pyattr_get_lights(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 	return self->GetLightList()->GetProxy();
 }
 
@@ -2179,7 +2179,7 @@ PyObject *KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *a
 	 * however this is the same with "scene.objects + []", when you make a copy by adding lists.
 	 */
 	
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 	CListValue* clist = new CListValue();
 	
 	/* return self->GetCameras()->GetProxy(); */
@@ -2195,7 +2195,7 @@ PyObject *KX_Scene::pyattr_get_cameras(void *self_v, const KX_PYATTRIBUTE_DEF *a
 
 PyObject *KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 	KX_Camera* cam= self->GetActiveCamera();
 	if (cam)
 		return self->GetActiveCamera()->GetProxy();
@@ -2206,7 +2206,7 @@ PyObject *KX_Scene::pyattr_get_active_camera(void *self_v, const KX_PYATTRIBUTE_
 
 int KX_Scene::pyattr_set_active_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_Scene* self= static_cast<KX_Scene*>(self_v);
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
 	KX_Camera *camOb;
 	
 	if (!ConvertPythonToCamera(value, &camOb, false, "scene.active_camera = value: KX_Scene"))

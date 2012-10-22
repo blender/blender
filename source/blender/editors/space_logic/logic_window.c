@@ -149,22 +149,22 @@ void make_unique_prop_names(bContext *C, char *str)
 		ob= (Object *)idar[a];
 		prop= ob->prop.first;
 		while (prop) {
-			names[nr++]= prop->name;
+			names[nr++] = prop->name;
 			prop= prop->next;
 		}
 		sens= ob->sensors.first;
 		while (sens) {
-			names[nr++]= sens->name;
+			names[nr++] = sens->name;
 			sens= sens->next;
 		}
 		cont= ob->controllers.first;
 		while (cont) {
-			names[nr++]= cont->name;
+			names[nr++] = cont->name;
 			cont= cont->next;
 		}
 		act= ob->actuators.first;
 		while (act) {
-			names[nr++]= act->name;
+			names[nr++] = act->name;
 			act= act->next;
 		}
 	}
@@ -697,13 +697,13 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 
 	/* make the active object always the first one of the list */
 	if (obact) {
-		idar[0]= (ID *)obact;
+		idar[0] = (ID *)obact;
 		nr++;
 	}
 
 	while (ob) {
 		if ((ob->scavisflag) && (ob != obact)) {
-			idar[nr]= (ID *)ob;
+			idar[nr] = (ID *)ob;
 			nr++;
 		}
 		if (nr>=24) break;

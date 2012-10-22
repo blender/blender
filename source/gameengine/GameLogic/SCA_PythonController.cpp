@@ -484,10 +484,10 @@ PyObject *SCA_PythonController::PyDeActivate(PyObject *value)
 
 PyObject *SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	//SCA_PythonController* self= static_cast<SCA_PythonController*>(static_cast<SCA_IController*>(static_cast<SCA_ILogicBrick*>(static_cast<CValue*>(static_cast<PyObjectPlus*>(self_v)))));
+	//SCA_PythonController* self = static_cast<SCA_PythonController*>(static_cast<SCA_IController*>(static_cast<SCA_ILogicBrick*>(static_cast<CValue*>(static_cast<PyObjectPlus*>(self_v)))));
 	// static_cast<void *>(dynamic_cast<Derived *>(obj)) - static_cast<void *>(obj)
 
-	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
+	SCA_PythonController* self = static_cast<SCA_PythonController*>(self_v);
 	return PyUnicode_From_STR_String(self->m_scriptText);
 }
 
@@ -495,7 +495,7 @@ PyObject *SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRI
 
 int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
+	SCA_PythonController* self = static_cast<SCA_PythonController*>(self_v);
 	
 	const char *scriptArg = _PyUnicode_AsString(value);
 	

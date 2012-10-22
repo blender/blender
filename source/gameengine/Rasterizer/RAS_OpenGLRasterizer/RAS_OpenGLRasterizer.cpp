@@ -239,10 +239,10 @@ void RAS_OpenGLRasterizer::DisplayFog()
 		glFogf(GL_FOG_DENSITY, 0.1f);
 		glFogf(GL_FOG_START, m_fogstart);
 		glFogf(GL_FOG_END, m_fogstart + m_fogdist);
-		params[0]= m_fogr;
-		params[1]= m_fogg;
-		params[2]= m_fogb;
-		params[3]= 0.0;
+		params[0] = m_fogr;
+		params[1] = m_fogg;
+		params[2] = m_fogb;
+		params[3] = 0.0;
 		glFogfv(GL_FOG_COLOR, params); 
 		glEnable(GL_FOG);
 	} 

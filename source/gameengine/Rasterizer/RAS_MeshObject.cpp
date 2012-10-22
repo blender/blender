@@ -608,7 +608,7 @@ void RAS_MeshObject::CheckWeightCache(Object* obj)
 			weights= (float*)MEM_mallocN(totvert*sizeof(float), "weights");
 		
 			for (i=0; i < totvert; i++, dv++) {
-				weights[i]= defvert_find_weight(dv, defindex);
+				weights[i] = defvert_find_weight(dv, defindex);
 			}
 
 			kb->weights = weights;

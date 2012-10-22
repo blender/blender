@@ -164,11 +164,11 @@ bool KX_BlenderRenderTools::RayHit(KX_ClientObjectInfo* client, KX_RayCast* resu
 	left = (dir.cross(resultnormal)).safe_normalized();
 	// for the up vector, we take the 'resultnormal' returned by the physics
 	
-	double maat[16]={
-			left[0],        left[1],        left[2], 0,
-				dir[0],         dir[1],         dir[2], 0,
-		resultnormal[0],resultnormal[1],resultnormal[2], 0,
-				0,              0,              0, 1};
+	double maat[16] = {left[0],         left[1],         left[2],         0,
+	                   dir[0],          dir[1],          dir[2],          0,
+	                   resultnormal[0], resultnormal[1], resultnormal[2], 0,
+	                   0,               0,               0,               1};
+
 	glTranslated(resultpoint[0],resultpoint[1],resultpoint[2]);
 	//glMultMatrixd(oglmatrix);
 	glMultMatrixd(maat);
@@ -227,16 +227,17 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		left *= size[0];
 		dir  *= size[1];
 		up   *= size[2];
-		double maat[16]={
-			left[0], left[1],left[2], 0,
-				dir[0], dir[1],dir[2],0,
-				up[0],up[1],up[2],0,
-				0,0,0,1};
-			glTranslated(objpos[0],objpos[1],objpos[2]);
-			glMultMatrixd(maat);
-			
-	} else
-	{
+
+		double maat[16] = {left[0], left[1], left[2], 0,
+		                   dir[0],  dir[1],  dir[2],  0,
+		                   up[0],   up[1],   up[2],   0,
+		                   0,       0,       0,       1};
+
+		glTranslated(objpos[0],objpos[1],objpos[2]);
+		glMultMatrixd(maat);
+
+	}
+	else {
 		if (objectdrawmode & RAS_IPolyMaterial::SHADOW)
 		{
 			// shadow must be cast to the ground, physics system needed here!

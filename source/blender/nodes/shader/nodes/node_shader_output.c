@@ -33,7 +33,7 @@
 #include "node_shader_util.h"
 
 /* **************** OUTPUT ******************** */
-static bNodeSocketTemplate sh_node_output_in[]= {
+static bNodeSocketTemplate sh_node_output_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Alpha"),		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}

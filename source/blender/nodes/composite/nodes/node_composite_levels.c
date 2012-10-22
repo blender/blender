@@ -34,12 +34,12 @@
 
 
 /* **************** LEVELS ******************** */
-static bNodeSocketTemplate cmp_node_view_levels_in[]= {
+static bNodeSocketTemplate cmp_node_view_levels_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"), 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate cmp_node_view_levels_out[]={
+static bNodeSocketTemplate cmp_node_view_levels_out[] = {
 	{SOCK_FLOAT, 0, N_("Mean")},
 	{SOCK_FLOAT, 0, N_("Std Dev")},
 	{-1, 0, ""}
@@ -300,9 +300,9 @@ static void node_composit_exec_view_levels(void *data, bNode *node, bNodeStack *
 #endif
 
 	if (out[0]->hasoutput)
-			out[0]->vec[0]= mean;
+			out[0]->vec[0] = mean;
 	if (out[1]->hasoutput)
-			out[1]->vec[0]= std_dev;
+			out[1]->vec[0] = std_dev;
 
 	generate_preview(data, node, histogram);
 

@@ -966,7 +966,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2f, "setUniform2f(name, fx, fy)")
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
-	float array[2]={ 0,0 };
+	float array[2] = {0, 0};
 	if (PyArg_ParseTuple(args, "sff:setUniform2f", &uniform, &array[0],&array[1] ))
 	{
 		int loc = GetUniformLocation(uniform);
@@ -990,7 +990,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3f, "setUniform3f(name, fx,fy,fz) ")
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
-	float array[3]={0,0,0};
+	float array[3] = {0, 0, 0};
 	if (PyArg_ParseTuple(args, "sfff:setUniform3f", &uniform, &array[0],&array[1],&array[2]))
 	{
 		int loc = GetUniformLocation(uniform);
@@ -1015,7 +1015,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4f, "setUniform4f(name, fx,fy,fz, fw) "
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
-	float array[4]={0,0,0,0};
+	float array[4] = {0, 0, 0, 0};
 	if (PyArg_ParseTuple(args, "sffff:setUniform4f", &uniform, &array[0],&array[1],&array[2], &array[3]))
 	{
 		int loc = GetUniformLocation(uniform);
@@ -1063,7 +1063,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform2i, "setUniform2i(name, ix, iy)")
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
-	int array[2]={ 0,0 };
+	int array[2] = {0, 0};
 	if (PyArg_ParseTuple(args, "sii:setUniform2i", &uniform, &array[0],&array[1] ))
 	{
 		int loc = GetUniformLocation(uniform);
@@ -1088,7 +1088,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform3i, "setUniform3i(name, ix,iy,iz) ")
 	}
 
 	const char *uniform="";
-	int array[3]={0,0,0};
+	int array[3] = {0, 0, 0};
 	if (PyArg_ParseTuple(args, "siii:setUniform3i", &uniform, &array[0],&array[1],&array[2]))
 	{
 		int loc = GetUniformLocation(uniform);
@@ -1111,7 +1111,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4i, "setUniform4i(name, ix,iy,iz, iw) "
 		Py_RETURN_NONE;
 	}
 	const char *uniform="";
-	int array[4]={0,0,0, 0};
+	int array[4] = {0, 0, 0, 0};
 	if (PyArg_ParseTuple(args, "siiii:setUniform4i", &uniform, &array[0],&array[1],&array[2], &array[3] ))
 	{
 		int loc = GetUniformLocation(uniform);

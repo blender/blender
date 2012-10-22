@@ -249,9 +249,9 @@ static int  ptcache_particle_write(int index, void *psys_v, void **data, int cfr
 	if (data[BPHYS_DATA_INDEX] && (cfra < pa->time - step || cfra > pa->dietime + step))
 		return 0;
 
-	times[0]= pa->time;
-	times[1]= pa->dietime;
-	times[2]= pa->lifetime;
+	times[0] = pa->time;
+	times[1] = pa->dietime;
+	times[2] = pa->lifetime;
 
 	PTCACHE_DATA_FROM(data, BPHYS_DATA_INDEX, &index);
 	PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, pa->state.co);

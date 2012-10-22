@@ -36,7 +36,7 @@
 /* **************** CURVE Time  ******************** */
 
 /* custom1 = sfra, custom2 = efra */
-static bNodeSocketTemplate time_outputs[]= {
+static bNodeSocketTemplate time_outputs[] = {
 	{ SOCK_FLOAT, 0, N_("Value") },
 	{ -1, 0, "" }
 };
@@ -83,12 +83,12 @@ void register_node_type_tex_curve_time(bNodeTreeType *ttype)
 }
 
 /* **************** CURVE RGB  ******************** */
-static bNodeSocketTemplate rgb_inputs[]= {
+static bNodeSocketTemplate rgb_inputs[] = {
 	{	SOCK_RGBA, 1, N_("Color"),	0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate rgb_outputs[]= {
+static bNodeSocketTemplate rgb_outputs[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
 	{	-1, 0, ""	}
 };

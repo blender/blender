@@ -40,7 +40,7 @@ RAS_Polygon::RAS_Polygon(RAS_MaterialBucket* bucket, RAS_DisplayArray *darray, i
 {
 	m_bucket = bucket;
 	m_darray = darray;
-	m_offset[0]= m_offset[1]= m_offset[2]= m_offset[3]= 0;
+	m_offset[0] = m_offset[1] = m_offset[2] = m_offset[3] = 0;
 	m_numvert = numvert;
 
 //	m_edgecode = 255;

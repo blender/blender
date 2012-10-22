@@ -37,7 +37,7 @@
 /* **************** GEOMETRY  ******************** */
 
 /* output socket type definition */
-static bNodeSocketTemplate sh_node_geom_out[]= {
+static bNodeSocketTemplate sh_node_geom_out[] = {
 	{	SOCK_VECTOR, 0, N_("Global")},
 	{	SOCK_VECTOR, 0, N_("Local")},
 	{	SOCK_VECTOR, 0, N_("View")},
@@ -92,12 +92,12 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 			}
 
 			copy_v3_v3(out[GEOM_OUT_VCOL]->vec, scol->col);
-			out[GEOM_OUT_VCOL]->vec[3]= scol->col[3];
-			out[GEOM_OUT_VCOL_ALPHA]->vec[0]= scol->col[3];
+			out[GEOM_OUT_VCOL]->vec[3] = scol->col[3];
+			out[GEOM_OUT_VCOL_ALPHA]->vec[0] = scol->col[3];
 		}
 		else {
 			memcpy(out[GEOM_OUT_VCOL]->vec, defaultvcol, sizeof(defaultvcol));
-			out[GEOM_OUT_VCOL_ALPHA]->vec[0]= 1.0f;
+			out[GEOM_OUT_VCOL_ALPHA]->vec[0] = 1.0f;
 		}
 		
 		if (shi->osatex) {
@@ -116,7 +116,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 		}
 		
 		/* front/back, normal flipping was stored */
-		out[GEOM_OUT_FRONTBACK]->vec[0]= (shi->flippednor)? 0.0f: 1.0f;
+		out[GEOM_OUT_FRONTBACK]->vec[0] = (shi->flippednor)? 0.0f: 1.0f;
 	}
 }
 

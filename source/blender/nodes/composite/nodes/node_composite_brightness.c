@@ -36,13 +36,13 @@
 
 /* **************** Brigh and contrsast  ******************** */
 
-static bNodeSocketTemplate cmp_node_brightcontrast_in[]= {
+static bNodeSocketTemplate cmp_node_brightcontrast_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Bright"),		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("Contrast"),		0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_brightcontrast_out[]= {
+static bNodeSocketTemplate cmp_node_brightcontrast_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };

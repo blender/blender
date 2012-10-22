@@ -33,11 +33,11 @@
 #include "node_composite_util.h"
 
 /* **************** MAP VALUE ******************** */
-static bNodeSocketTemplate cmp_node_map_value_in[]= {
+static bNodeSocketTemplate cmp_node_map_value_in[] = {
 	{	SOCK_FLOAT, 1, N_("Value"),			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_map_value_out[]= {
+static bNodeSocketTemplate cmp_node_map_value_out[] = {
 	{	SOCK_FLOAT, 0, N_("Value")},
 	{	-1, 0, ""	}
 };
@@ -48,13 +48,13 @@ static void do_map_value(bNode *node, float *out, float *src)
 {
 	TexMapping *texmap= node->storage;
 	
-	out[0]= (src[0] + texmap->loc[0])*texmap->size[0];
+	out[0] = (src[0] + texmap->loc[0])*texmap->size[0];
 	if (texmap->flag & TEXMAP_CLIP_MIN)
 		if (out[0]<texmap->min[0])
-			out[0]= texmap->min[0];
+			out[0] = texmap->min[0];
 	if (texmap->flag & TEXMAP_CLIP_MAX)
 		if (out[0]>texmap->max[0])
-			out[0]= texmap->max[0];
+			out[0] = texmap->max[0];
 }
 
 static void node_composit_exec_map_value(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)

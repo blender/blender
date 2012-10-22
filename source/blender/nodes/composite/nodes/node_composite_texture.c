@@ -33,12 +33,12 @@
 #include "node_composite_util.h"
 
 /* **************** TEXTURE ******************** */
-static bNodeSocketTemplate cmp_node_texture_in[]= {
+static bNodeSocketTemplate cmp_node_texture_in[] = {
 	{	SOCK_VECTOR, 1, N_("Offset"),		0.0f, 0.0f, 0.0f, 0.0f, -2.0f, 2.0f, PROP_TRANSLATION},
 	{	SOCK_VECTOR, 1, N_("Scale"),		1.0f, 1.0f, 1.0f, 1.0f, -10.0f, 10.0f, PROP_XYZ},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_texture_out[]= {
+static bNodeSocketTemplate cmp_node_texture_out[] = {
 	{	SOCK_FLOAT, 0, N_("Value")},
 	{	SOCK_RGBA, 0, N_("Color")},
 	{	-1, 0, ""	}
@@ -51,28 +51,28 @@ static void texture_procedural(CompBuf *cbuf, float *out, float xco, float yco)
 {
 	bNode *node= cbuf->node;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
-	float vec[3], *size, nor[3]={0.0f, 0.0f, 0.0f}, col[4];
+	float vec[3], *size, nor[3] = {0.0f, 0.0f, 0.0f}, col[4];
 	int retval, type= cbuf->procedural_type;
 	
 	size= cbuf->procedural_size;
 	
-	vec[0]= size[0]*(xco + cbuf->procedural_offset[0]);
-	vec[1]= size[1]*(yco + cbuf->procedural_offset[1]);
-	vec[2]= size[2]*cbuf->procedural_offset[2];
+	vec[0] = size[0]*(xco + cbuf->procedural_offset[0]);
+	vec[1] = size[1]*(yco + cbuf->procedural_offset[1]);
+	vec[2] = size[2]*cbuf->procedural_offset[2];
 	
 	retval= multitex_ext((Tex *)node->id, vec, NULL, NULL, 0, &texres);
 	
 	if (type==CB_VAL) {
 		if (texres.talpha)
-			col[0]= texres.ta;
+			col[0] = texres.ta;
 		else
-			col[0]= texres.tin;
+			col[0] = texres.tin;
 	}
 	else if (type==CB_RGBA) {
 		if (texres.talpha)
-			col[3]= texres.ta;
+			col[3] = texres.ta;
 		else
-			col[3]= texres.tin;
+			col[3] = texres.tin;
 		
 		if ((retval & TEX_RGB)) {
 			copy_v3_v3(col, &texres.tr);

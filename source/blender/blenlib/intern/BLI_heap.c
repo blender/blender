@@ -122,6 +122,7 @@ static void heap_up(Heap *heap, unsigned int i)
 Heap *BLI_heap_new_ex(unsigned int tot_reserve)
 {
 	Heap *heap = (Heap *)MEM_callocN(sizeof(Heap), __func__);
+	/* ensure we have at least one so we can keep doubling it */
 	heap->bufsize = MAX2(1, tot_reserve);
 	heap->tree = (HeapNode **)MEM_mallocN(heap->bufsize * sizeof(HeapNode *), "BLIHeapTree");
 	heap->arena = BLI_memarena_new(1 << 16, "heap arena");
@@ -151,8 +152,8 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 {
 	HeapNode *node;
 
-	if ((heap->size + 1) > heap->bufsize) {
-		heap->bufsize = heap->bufsize * 2;
+	if (UNLIKELY((heap->size + 1) > heap->bufsize)) {
+		heap->bufsize *= 2;
 		heap->tree = MEM_reallocN(heap->tree, heap->bufsize * sizeof(*heap->tree));
 	}
 
@@ -199,8 +200,9 @@ void *BLI_heap_popmin(Heap *heap)
 	heap->tree[0]->ptr = heap->freenodes;
 	heap->freenodes = heap->tree[0];
 
-	if (heap->size == 1)
+	if (UNLIKELY(heap->size == 1)) {
 		heap->size--;
+	}
 	else {
 		heap_swap(heap, 0, heap->size - 1);
 		heap->size--;

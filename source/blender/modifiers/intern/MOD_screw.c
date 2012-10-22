@@ -475,7 +475,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							/*printf("\t\tVERT: %i\n", lt_iter.v);*/
 							if (lt_iter.v_poin->flag) {
 								/*printf("\t\t\tBreaking Found end\n");*/
-								//endpoints[0]= endpoints[1]= -1;
+								//endpoints[0] = endpoints[1] = -1;
 								ed_loop_closed = 1; /* circle */
 								break;
 							}
@@ -490,7 +490,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							screwvert_iter_step(&lt_iter);
 							if (!lt_iter.v_poin) {
 								/*printf("\t\t\tFound End Also Num %i\n", j);*/
-								/*endpoints[j]= lt_iter.v_other;*/ /* other is still valid */
+								/*endpoints[j] = lt_iter.v_other;*/ /* other is still valid */
 								break;
 							}
 						}

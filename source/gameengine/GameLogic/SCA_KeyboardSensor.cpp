@@ -497,7 +497,7 @@ PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 
 PyObject *SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_KeyboardSensor* self= static_cast<SCA_KeyboardSensor*>(self_v);
+	SCA_KeyboardSensor* self = static_cast<SCA_KeyboardSensor*>(self_v);
 	
 	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)self->m_eventmgr)->GetInputDevice();
 

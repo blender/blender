@@ -288,7 +288,7 @@ PyAttributeDef BL_ArmatureConstraint::Attributes[] = {
 
 PyObject *BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
-	BL_ArmatureConstraint* self= static_cast<BL_ArmatureConstraint*>(self_v);
+	BL_ArmatureConstraint* self = static_cast<BL_ArmatureConstraint*>(self_v);
 	bConstraint* constraint = self->m_constraint;
 	bKinematicConstraint* ikconstraint = (constraint && constraint->type == CONSTRAINT_TYPE_KINEMATIC) ? (bKinematicConstraint*)constraint->data : NULL;
 	int attr_order = attrdef-Attributes;
@@ -353,7 +353,7 @@ PyObject *BL_ArmatureConstraint::py_attr_getattr(void *self_v, const struct KX_P
 
 int BL_ArmatureConstraint::py_attr_setattr(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	BL_ArmatureConstraint* self= static_cast<BL_ArmatureConstraint*>(self_v);
+	BL_ArmatureConstraint* self = static_cast<BL_ArmatureConstraint*>(self_v);
 	bConstraint* constraint = self->m_constraint;
 	bKinematicConstraint* ikconstraint = (constraint && constraint->type == CONSTRAINT_TYPE_KINEMATIC) ? (bKinematicConstraint*)constraint->data : NULL;
 	int attr_order = attrdef-Attributes;

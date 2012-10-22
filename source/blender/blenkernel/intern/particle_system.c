@@ -369,10 +369,10 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 				if (nodearray[*origindex]) {
 					/* prepend */
 					node->next = nodearray[*origindex];
-					nodearray[*origindex]= node;
+					nodearray[*origindex] = node;
 				}
 				else
-					nodearray[*origindex]= node;
+					nodearray[*origindex] = node;
 			}
 		}
 		
@@ -633,8 +633,8 @@ static void hammersley_create(float *out, int n, int seed, float amount)
 	int k, kk;
 
 	rng = rng_new(31415926 + n + seed);
-	offs[0]= rng_getDouble(rng) + (double)amount;
-	offs[1]= rng_getDouble(rng) + (double)amount;
+	offs[0] = rng_getDouble(rng) + (double)amount;
+	offs[1] = rng_getDouble(rng) + (double)amount;
 	rng_free(rng);
 
 	for (k = 0; k < n; k++) {
@@ -643,8 +643,8 @@ static void hammersley_create(float *out, int n, int seed, float amount)
 			if (kk & 1) /* kk mod 2 = 1 */
 				t += p;
 
-		out[2*k + 0]= fmod((double)k/(double)n + offs[0], 1.0);
-		out[2*k + 1]= fmod(t + offs[1], 1.0);
+		out[2*k + 0] = fmod((double)k/(double)n + offs[0], 1.0);
+		out[2*k + 1] = fmod(t + offs[1], 1.0);
 	}
 }
 
@@ -666,8 +666,8 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 		num2 = 2 * num;
 	for (i=0; i<num2; i+=2) {
 	
-		jit[i]= x + amount*rad1*(0.5f - rng_getFloat(rng));
-		jit[i+1]= i/(2.0f*num) + amount*rad1*(0.5f - rng_getFloat(rng));
+		jit[i] = x + amount*rad1*(0.5f - rng_getFloat(rng));
+		jit[i+1] = i/(2.0f*num) + amount*rad1*(0.5f - rng_getFloat(rng));
 		
 		jit[i]-= (float)floor(jit[i]);
 		jit[i+1]-= (float)floor(jit[i+1]);
@@ -698,21 +698,21 @@ static void psys_uv_to_w(float u, float v, int quad, float *w)
 			u= 1.0f-u;
 	}
 
-	vert[0][0]= 0.0f; vert[0][1]= 0.0f; vert[0][2]= 0.0f;
-	vert[1][0]= 1.0f; vert[1][1]= 0.0f; vert[1][2]= 0.0f;
-	vert[2][0]= 1.0f; vert[2][1]= 1.0f; vert[2][2]= 0.0f;
+	vert[0][0] = 0.0f; vert[0][1] = 0.0f; vert[0][2] = 0.0f;
+	vert[1][0] = 1.0f; vert[1][1] = 0.0f; vert[1][2] = 0.0f;
+	vert[2][0] = 1.0f; vert[2][1] = 1.0f; vert[2][2] = 0.0f;
 
-	co[0]= u;
-	co[1]= v;
-	co[2]= 0.0f;
+	co[0] = u;
+	co[1] = v;
+	co[2] = 0.0f;
 
 	if (quad) {
-		vert[3][0]= 0.0f; vert[3][1]= 1.0f; vert[3][2]= 0.0f;
+		vert[3][0] = 0.0f; vert[3][1] = 1.0f; vert[3][2] = 0.0f;
 		interp_weights_poly_v3( w,vert, 4, co);
 	}
 	else {
 		interp_weights_poly_v3( w,vert, 3, co);
-		w[3]= 0.0f;
+		w[3] = 0.0f;
 	}
 }
 
@@ -1000,7 +1000,7 @@ static void distribute_invalid(Scene *scene, ParticleSystem *psys, int from)
 
 		if (psys->child && totchild) {
 			for (p=0,cpa=psys->child; p<totchild; p++,cpa++) {
-				cpa->fuv[0]=cpa->fuv[1]=cpa->fuv[2]=cpa->fuv[3]= 0.0;
+				cpa->fuv[0]=cpa->fuv[1]=cpa->fuv[2]=cpa->fuv[3] = 0.0;
 				cpa->foffset= 0.0f;
 				cpa->parent=0;
 				cpa->pa[0]=cpa->pa[1]=cpa->pa[2]=cpa->pa[3]=0;
@@ -1011,7 +1011,7 @@ static void distribute_invalid(Scene *scene, ParticleSystem *psys, int from)
 	else {
 		PARTICLE_P;
 		LOOP_PARTICLES {
-			pa->fuv[0]=pa->fuv[1]=pa->fuv[2]= pa->fuv[3]= 0.0;
+			pa->fuv[0] = pa->fuv[1] = pa->fuv[2] = pa->fuv[3] = 0.0;
 			pa->foffset= 0.0f;
 			pa->num= -1;
 		}
@@ -1113,7 +1113,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 
 		if (from == PART_FROM_VERT) {
 			MVert *mv= dm->getVertDataArray(dm, CD_MVERT);
-			float (*orcodata)[3]= dm->getVertDataArray(dm, CD_ORCO);
+			float (*orcodata)[3] = dm->getVertDataArray(dm, CD_ORCO);
 			int totvert = dm->getNumVerts(dm);
 
 			tree=BLI_kdtree_new(totvert);
@@ -1245,9 +1245,9 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	inv_totweight = (totweight > 0.f ? 1.f/totweight : 0.f);
 
 	/* Calculate cumulative weights */
-	element_sum[0]= 0.0f;
+	element_sum[0] = 0.0f;
 	for (i=0; i<totelem; i++)
-		element_sum[i+1]= element_sum[i] + element_weight[i] * inv_totweight;
+		element_sum[i+1] = element_sum[i] + element_weight[i] * inv_totweight;
 	
 	/* Finally assign elements to particles */
 	if ((part->flag&PART_TRAND) || (part->simplify_flag&PART_SIMPLIFY_ENABLE)) {
@@ -1256,9 +1256,9 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		for (p=0; p<totpart; p++) {
 			/* In theory element_sum[totelem] should be 1.0, but due to float errors this is not necessarily always true, so scale pos accordingly. */
 			pos= BLI_frand() * element_sum[totelem];
-			particle_element[p]= distribute_binary_search(element_sum, totelem, pos);
-			particle_element[p]= MIN2(totelem-1, particle_element[p]);
-			jitter_offset[particle_element[p]]= pos;
+			particle_element[p] = distribute_binary_search(element_sum, totelem, pos);
+			particle_element[p] = MIN2(totelem-1, particle_element[p]);
+			jitter_offset[particle_element[p]] = pos;
 		}
 	}
 	else {
@@ -1272,13 +1272,13 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 			while ((i < totelem) && (pos > element_sum[i+1]))
 				i++;
 
-			particle_element[p]= MIN2(totelem-1, i);
+			particle_element[p] = MIN2(totelem-1, i);
 
 			/* avoid zero weight face */
 			if (p == totpart-1 && element_weight[particle_element[p]] == 0.0f)
-				particle_element[p]= particle_element[p-1];
+				particle_element[p] = particle_element[p-1];
 
-			jitter_offset[particle_element[p]]= pos;
+			jitter_offset[particle_element[p]] = pos;
 		}
 	}
 
@@ -1622,9 +1622,9 @@ void psys_get_birth_coordinates(ParticleSimulationData *sim, ParticleData *pa, P
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part;
 	ParticleTexture ptex;
-	float fac, phasefac, nor[3]={0,0,0},loc[3],vel[3]={0.0,0.0,0.0},rot[4],q2[4];
-	float r_vel[3],r_ave[3],r_rot[4],vec[3],p_vel[3]={0.0,0.0,0.0};
-	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0}, rot_vec[3]={0.0,0.0,0.0};
+	float fac, phasefac, nor[3] = {0,0,0},loc[3],vel[3] = {0.0,0.0,0.0},rot[4],q2[4];
+	float r_vel[3],r_ave[3],r_rot[4],vec[3],p_vel[3] = {0.0,0.0,0.0};
+	float x_vec[3] = {1.0,0.0,0.0}, utan[3] = {0.0,1.0,0.0}, vtan[3] = {0.0,0.0,1.0}, rot_vec[3] = {0.0,0.0,0.0};
 	float q_phase[4];
 	int p = pa - psys->particles;
 	part=psys->part;
@@ -2736,7 +2736,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 }
 static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, float timestep)
 {
-	float rotfac, rot1[4], rot2[4]={1.0,0.0,0.0,0.0}, dtime=dfra*timestep, extrotfac;
+	float rotfac, rot1[4], rot2[4] = {1.0,0.0,0.0,0.0}, dtime=dfra*timestep, extrotfac;
 
 	if ((part->flag & PART_ROTATIONS) == 0) {
 		unit_qt(pa->state.rot);

@@ -88,7 +88,7 @@ void node_init_output_index(bNodeSocket *sock, int *index)
 static struct bNodeStack *setup_stack(bNodeStack *stack, bNodeSocket *sock)
 {
 	bNodeStack *ns = node_get_socket_stack(stack, sock);
-	float null_value[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	float null_value[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	
 	/* don't mess with remote socket stacks, these are initialized by other nodes! */
 	if (sock->link)

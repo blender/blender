@@ -824,7 +824,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	int i = 0;
 	MVert *mvert = NULL;
 	ClothVertex *verts = NULL;
-	float (*shapekey_rest)[3]= NULL;
+	float (*shapekey_rest)[3] = NULL;
 	float tnull[3] = {0, 0, 0};
 	Cloth *cloth = NULL;
 	float maxdist = 0;

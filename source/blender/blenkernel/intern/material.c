@@ -1159,7 +1159,7 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 	
 /* ****************** */
 #if 0 /* UNUSED */
-static char colname_array[125][20]= {
+static char colname_array[125][20] = {
 "Black", "DarkRed", "HalfRed", "Red", "Red",
 "DarkGreen", "DarkOlive", "Brown", "Chocolate", "OrangeRed",
 "HalfGreen", "GreenOlive", "DryOlive", "Goldenrod", "DarkOrange",

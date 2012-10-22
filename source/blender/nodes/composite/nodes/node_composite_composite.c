@@ -32,7 +32,7 @@
 #include "node_composite_util.h"
 
 /* **************** COMPOSITE ******************** */
-static bNodeSocketTemplate cmp_node_composite_in[]= {
+static bNodeSocketTemplate cmp_node_composite_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Alpha"),		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_FLOAT, 1, N_("Z"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},

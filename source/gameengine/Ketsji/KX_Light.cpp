@@ -126,14 +126,14 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 		vec[0] = worldmatrix(0,2);
 		vec[1] = worldmatrix(1,2);
 		vec[2] = worldmatrix(2,2);
-		//vec[0]= base->object->obmat[2][0];
-		//vec[1]= base->object->obmat[2][1];
-		//vec[2]= base->object->obmat[2][2];
-		vec[3]= 0.0;
+		//vec[0] = base->object->obmat[2][0];
+		//vec[1] = base->object->obmat[2][1];
+		//vec[2] = base->object->obmat[2][2];
+		vec[3] = 0.0;
 		glLightfv((GLenum)(GL_LIGHT0+slot), GL_POSITION, vec); 
 	}
 	else {
-		//vec[3]= 1.0;
+		//vec[3] = 1.0;
 		glLightfv((GLenum)(GL_LIGHT0+slot), GL_POSITION, vec); 
 		glLightf((GLenum)(GL_LIGHT0+slot), GL_CONSTANT_ATTENUATION, 1.0);
 		glLightf((GLenum)(GL_LIGHT0+slot), GL_LINEAR_ATTENUATION, m_lightobj.m_att1/m_lightobj.m_distance);
@@ -145,9 +145,9 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 			vec[0] = -worldmatrix(0,2);
 			vec[1] = -worldmatrix(1,2);
 			vec[2] = -worldmatrix(2,2);
-			//vec[0]= -base->object->obmat[2][0];
-			//vec[1]= -base->object->obmat[2][1];
-			//vec[2]= -base->object->obmat[2][2];
+			//vec[0] = -base->object->obmat[2][0];
+			//vec[1] = -base->object->obmat[2][1];
+			//vec[2] = -base->object->obmat[2][2];
 			glLightfv((GLenum)(GL_LIGHT0+slot), GL_SPOT_DIRECTION, vec);
 			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_CUTOFF, m_lightobj.m_spotsize / 2.0f);
 			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_EXPONENT, 128.0f * m_lightobj.m_spotblend);
@@ -161,10 +161,10 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
 	}
 	else {
-		vec[0]= m_lightobj.m_energy*m_lightobj.m_red;
-		vec[1]= m_lightobj.m_energy*m_lightobj.m_green;
-		vec[2]= m_lightobj.m_energy*m_lightobj.m_blue;
-		vec[3]= 1.0;
+		vec[0] = m_lightobj.m_energy*m_lightobj.m_red;
+		vec[1] = m_lightobj.m_energy*m_lightobj.m_green;
+		vec[2] = m_lightobj.m_energy*m_lightobj.m_blue;
+		vec[3] = 1.0;
 	}
 
 	glLightfv((GLenum)(GL_LIGHT0+slot), GL_DIFFUSE, vec);
@@ -173,10 +173,10 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
 	}
 	else if (m_lightobj.m_nodiffuse) {
-		vec[0]= m_lightobj.m_energy*m_lightobj.m_red;
-		vec[1]= m_lightobj.m_energy*m_lightobj.m_green;
-		vec[2]= m_lightobj.m_energy*m_lightobj.m_blue;
-		vec[3]= 1.0;
+		vec[0] = m_lightobj.m_energy*m_lightobj.m_red;
+		vec[1] = m_lightobj.m_energy*m_lightobj.m_green;
+		vec[2] = m_lightobj.m_energy*m_lightobj.m_blue;
+		vec[3] = 1.0;
 	}
 
 	glLightfv((GLenum)(GL_LIGHT0+slot), GL_SPECULAR, vec);

@@ -1520,10 +1520,10 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 			// only add polygons that have the collision flag set
 			if (poly->IsCollider())
 			{
-				if (vert_tag_array[mf->v1]==false) {vert_tag_array[mf->v1]= true;tot_bt_verts++;}
-				if (vert_tag_array[mf->v2]==false) {vert_tag_array[mf->v2]= true;tot_bt_verts++;}
-				if (vert_tag_array[mf->v3]==false) {vert_tag_array[mf->v3]= true;tot_bt_verts++;}
-				if (mf->v4 && vert_tag_array[mf->v4]==false) {vert_tag_array[mf->v4]= true;tot_bt_verts++;}
+				if (vert_tag_array[mf->v1] == false) {vert_tag_array[mf->v1] = true; tot_bt_verts++;}
+				if (vert_tag_array[mf->v2] == false) {vert_tag_array[mf->v2] = true; tot_bt_verts++;}
+				if (vert_tag_array[mf->v3] == false) {vert_tag_array[mf->v3] = true; tot_bt_verts++;}
+				if (mf->v4 && vert_tag_array[mf->v4] == false) {vert_tag_array[mf->v4] = true; tot_bt_verts++;}
 			}
 		}
 
@@ -1542,7 +1542,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				if (vert_tag_array[mf->v1]==true)
 				{
 					const float* vtx = mvert[mf->v1].co;
-					vert_tag_array[mf->v1]= false;
+					vert_tag_array[mf->v1] = false;
 					*bt++ = vtx[0];
 					*bt++ = vtx[1];
 					*bt++ = vtx[2];
@@ -1550,7 +1550,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				if (vert_tag_array[mf->v2]==true)
 				{
 					const float* vtx = mvert[mf->v2].co;
-					vert_tag_array[mf->v2]= false;
+					vert_tag_array[mf->v2] = false;
 					*bt++ = vtx[0];
 					*bt++ = vtx[1];
 					*bt++ = vtx[2];
@@ -1558,7 +1558,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				if (vert_tag_array[mf->v3]==true)
 				{
 					const float* vtx = mvert[mf->v3].co;
-					vert_tag_array[mf->v3]= false;
+					vert_tag_array[mf->v3] = false;
 					*bt++ = vtx[0];
 					*bt++ = vtx[1];
 					*bt++ = vtx[2];
@@ -1566,7 +1566,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				if (mf->v4 && vert_tag_array[mf->v4]==true)
 				{
 					const float* vtx = mvert[mf->v4].co;
-					vert_tag_array[mf->v4]= false;
+					vert_tag_array[mf->v4] = false;
 					*bt++ = vtx[0];
 					*bt++ = vtx[1];
 					*bt++ = vtx[2];
@@ -1588,13 +1588,13 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 			if (poly->IsCollider())
 			{
 				if (vert_tag_array[mf->v1]==false)
-					{vert_tag_array[mf->v1]= true;vert_remap_array[mf->v1]= tot_bt_verts;tot_bt_verts++;}
+					{vert_tag_array[mf->v1] = true;vert_remap_array[mf->v1] = tot_bt_verts;tot_bt_verts++;}
 				if (vert_tag_array[mf->v2]==false)
-					{vert_tag_array[mf->v2]= true;vert_remap_array[mf->v2]= tot_bt_verts;tot_bt_verts++;}
+					{vert_tag_array[mf->v2] = true;vert_remap_array[mf->v2] = tot_bt_verts;tot_bt_verts++;}
 				if (vert_tag_array[mf->v3]==false)
-					{vert_tag_array[mf->v3]= true;vert_remap_array[mf->v3]= tot_bt_verts;tot_bt_verts++;}
+					{vert_tag_array[mf->v3] = true;vert_remap_array[mf->v3] = tot_bt_verts;tot_bt_verts++;}
 				if (mf->v4 && vert_tag_array[mf->v4]==false)
-					{vert_tag_array[mf->v4]= true;vert_remap_array[mf->v4]= tot_bt_verts;tot_bt_verts++;}
+					{vert_tag_array[mf->v4] = true;vert_remap_array[mf->v4] = tot_bt_verts;tot_bt_verts++;}
 				tot_bt_tris += (mf->v4 ? 2:1); /* a quad or a tri */
 			}
 		}
@@ -1629,9 +1629,9 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				MVert *v3= &mvert[mf->v3];
 
 				// the face indices
-				tri_pt[0]= vert_remap_array[mf->v1];
-				tri_pt[1]= vert_remap_array[mf->v2];
-				tri_pt[2]= vert_remap_array[mf->v3];
+				tri_pt[0] = vert_remap_array[mf->v1];
+				tri_pt[1] = vert_remap_array[mf->v2];
+				tri_pt[2] = vert_remap_array[mf->v3];
 				tri_pt= tri_pt+3;
 				if (tf)
 				{
@@ -1650,19 +1650,19 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 
 				// the vertex location
 				if (vert_tag_array[mf->v1]==true) { /* *** v1 *** */
-					vert_tag_array[mf->v1]= false;
+					vert_tag_array[mf->v1] = false;
 					*bt++ = v1->co[0];
 					*bt++ = v1->co[1];
 					*bt++ = v1->co[2];
 				}
 				if (vert_tag_array[mf->v2]==true) { /* *** v2 *** */
-					vert_tag_array[mf->v2]= false;
+					vert_tag_array[mf->v2] = false;
 					*bt++ = v2->co[0];
 					*bt++ = v2->co[1];
 					*bt++ = v2->co[2];
 				}
 				if (vert_tag_array[mf->v3]==true) { /* *** v3 *** */
-					vert_tag_array[mf->v3]= false;
+					vert_tag_array[mf->v3] = false;
 					*bt++ = v3->co[0];
 					*bt++ = v3->co[1];
 					*bt++ = v3->co[2];
@@ -1672,9 +1672,9 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				{
 					MVert *v4= &mvert[mf->v4];
 
-					tri_pt[0]= vert_remap_array[mf->v1];
-					tri_pt[1]= vert_remap_array[mf->v3];
-					tri_pt[2]= vert_remap_array[mf->v4];
+					tri_pt[0] = vert_remap_array[mf->v1];
+					tri_pt[1] = vert_remap_array[mf->v3];
+					tri_pt[2] = vert_remap_array[mf->v4];
 					tri_pt= tri_pt+3;
 					if (tf)
 					{
@@ -1692,8 +1692,8 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 					poly_index_pt++;
 
 					// the vertex location
-					if (vert_tag_array[mf->v4]==true) { /* *** v4 *** */
-						vert_tag_array[mf->v4]= false;
+					if (vert_tag_array[mf->v4] == true) { /* *** v4 *** */
+						vert_tag_array[mf->v4] = false;
 						*bt++ = v4->co[0];
 						*bt++ = v4->co[1];
 						*bt++ = v4->co[2];
@@ -1832,8 +1832,8 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 
 						if (vert_tag_array[v_orig]==false)
 						{
-							vert_tag_array[v_orig]= true;
-							vert_remap_array[v_orig]= tot_bt_verts;
+							vert_tag_array[v_orig] = true;
+							vert_remap_array[v_orig] = tot_bt_verts;
 							tot_bt_verts++;
 						}
 					}
@@ -1880,7 +1880,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 							*bt++ = mv->co[1];
 							*bt++ = mv->co[2];
 
-							vert_tag_array[v_orig]= false;
+							vert_tag_array[v_orig] = false;
 						}
 						*tri_pt++ = vert_remap_array[v_orig];
 						uv_pt->uv[0] = tf->uv[*fv_pt][0];
@@ -1941,7 +1941,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 
 		/* transverts are only used for deformed RAS_Meshes, the RAS_TexVert data
 		 * is too hard to get at, see below for details */
-		float (*transverts)[3]= NULL;
+		float (*transverts)[3] = NULL;
 		int transverts_tot= 0; /* with deformed meshes - should always be greater then the max orginal index, or we get crashes */
 
 		if (deformer) {
@@ -1971,8 +1971,8 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 					v_orig= poly->GetVertex(i)->getOrigIndex();
 					if (vert_tag_array[v_orig]==false)
 					{
-						vert_tag_array[v_orig]= true;
-						vert_remap_array[v_orig]= tot_bt_verts;
+						vert_tag_array[v_orig] = true;
+						vert_remap_array[v_orig] = tot_bt_verts;
 						tot_bt_verts++;
 					}
 				}
@@ -2025,14 +2025,14 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 							*bt++ = xyz[2];
 						}
 
-						vert_tag_array[v_orig]= false;
+						vert_tag_array[v_orig] = false;
 					}
 
 					*tri_pt++ = vert_remap_array[v_orig];
 				}
 			}
 
-			m_polygonIndexArray[p]= p; /* dumb counting */
+			m_polygonIndexArray[p] = p; /* dumb counting */
 		}
 	}
 	

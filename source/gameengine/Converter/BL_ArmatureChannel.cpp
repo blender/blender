@@ -149,7 +149,7 @@ PyAttributeDef BL_ArmatureChannel::AttributesPtr[] = {
 
 PyObject *BL_ArmatureChannel::py_attr_getattr(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
-	BL_ArmatureChannel* self= static_cast<BL_ArmatureChannel*>(self_v);
+	BL_ArmatureChannel* self = static_cast<BL_ArmatureChannel*>(self_v);
 	bPoseChannel* channel = self->m_posechannel;
 	int attr_order = attrdef-Attributes;
 
@@ -177,7 +177,7 @@ PyObject *BL_ArmatureChannel::py_attr_getattr(void *self_v, const struct KX_PYAT
 
 int BL_ArmatureChannel::py_attr_setattr(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	BL_ArmatureChannel* self= static_cast<BL_ArmatureChannel*>(self_v);
+	BL_ArmatureChannel* self = static_cast<BL_ArmatureChannel*>(self_v);
 	bPoseChannel* channel = self->m_posechannel;
 	int attr_order = attrdef-Attributes;
 
@@ -300,7 +300,7 @@ PyObject *BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 
 int BL_ArmatureChannel::py_attr_set_joint_rotation(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	BL_ArmatureChannel* self= static_cast<BL_ArmatureChannel*>(self_v);
+	BL_ArmatureChannel* self = static_cast<BL_ArmatureChannel*>(self_v);
 	bPoseChannel* pchan = self->m_posechannel;
 	PyObject *item;
 	float joints[3];

@@ -828,7 +828,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 {
 	PartDeflect *pd = eff->pd;
 	RNG *rng = pd->rng;
-	float force[3]={0, 0, 0};
+	float force[3] = {0, 0, 0};
 	float temp[3];
 	float fac;
 	float strength = pd->f_strength;
@@ -1020,7 +1020,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 					do_texture_effector(eff, &efd, point, force);
 				}
 				else {
-					float temp1[3]={0, 0, 0}, temp2[3];
+					float temp1[3] = {0, 0, 0}, temp2[3];
 					copy_v3_v3(temp1, force);
 
 					do_physical_effector(eff, &efd, point, force);

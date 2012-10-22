@@ -29,12 +29,12 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_tex_environment_in[]= {
+static bNodeSocketTemplate sh_node_tex_environment_in[] = {
 	{	SOCK_VECTOR, 1, N_("Vector"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_tex_environment_out[]= {
+static bNodeSocketTemplate sh_node_tex_environment_out[] = {
 	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };

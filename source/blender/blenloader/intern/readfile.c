@@ -2811,7 +2811,7 @@ static void lib_link_mball(FileData *fd, Main *main)
 			if (mb->adt) lib_link_animdata(fd, &mb->id, mb->adt);
 			
 			for (a = 0; a < mb->totcol; a++) 
-				mb->mat[a]= newlibadr_us(fd, mb->id.lib, mb->mat[a]);
+				mb->mat[a] = newlibadr_us(fd, mb->id.lib, mb->mat[a]);
 			
 			mb->ipo = newlibadr_us(fd, mb->id.lib, mb->ipo); // XXX deprecated - old animation system
 			
@@ -7271,10 +7271,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if ( (ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
 					     (ob->size[i]  == 0.0f))   /* cant scale the dsize to give a non zero result, so fallback to 1.0f */
 					{
-						ob->dscale[i]= 1.0f;
+						ob->dscale[i] = 1.0f;
 					}
 					else {
-						ob->dscale[i]= (ob->size[i] + ob->dsize[i]) / ob->size[i];
+						ob->dscale[i] = (ob->size[i] + ob->dsize[i]) / ob->size[i];
 					}
 				}
 			}

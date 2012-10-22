@@ -51,11 +51,11 @@ SCA_Joystick::SCA_Joystick(short int index)
 	m_istrig_button(0),
 	m_istrig_hat(0)
 {
-	for (int i=0; i<JOYAXIS_MAX; i++)
-		m_axis_array[i]= 0;
+	for (int i=0; i < JOYAXIS_MAX; i++)
+		m_axis_array[i] = 0;
 	
-	for (int i=0; i<JOYHAT_MAX; i++)
-		m_hat_array[i]= 0;
+	for (int i=0; i < JOYHAT_MAX; i++)
+		m_hat_array[i] = 0;
 	
 #ifdef WITH_SDL
 	m_private = new PrivateData();
@@ -127,7 +127,7 @@ void SCA_Joystick::ReleaseInstance()
 				m_instance[i]->DestroyJoystickDevice();
 				delete m_instance[i];
 			}
-			m_instance[i]= NULL;
+			m_instance[i] = NULL;
 		}
 
 		// The video subsystem is required for joystick input to work. However,

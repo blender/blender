@@ -29,14 +29,14 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_bsdf_glossy_in[]= {
+static bNodeSocketTemplate sh_node_bsdf_glossy_in[] = {
 	{	SOCK_RGBA,  1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Roughness"),	0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_bsdf_glossy_out[]= {
+static bNodeSocketTemplate sh_node_bsdf_glossy_out[] = {
 	{	SOCK_SHADER, 0, N_("BSDF")},
 	{	-1, 0, ""	}
 };

@@ -35,13 +35,13 @@
 #include "node_texture_util.h"
 #include "NOD_texture.h"
 
-static bNodeSocketTemplate inputs[]= {
+static bNodeSocketTemplate inputs[] = {
 	{ SOCK_VECTOR, 1, N_("Coordinate 1"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE },
 	{ SOCK_VECTOR, 1, N_("Coordinate 2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE },
 	{ -1, 0, "" }
 };
 
-static bNodeSocketTemplate outputs[]= {
+static bNodeSocketTemplate outputs[] = {
 	{ SOCK_FLOAT, 0, N_("Value") },
 	{ -1, 0, "" }
 };

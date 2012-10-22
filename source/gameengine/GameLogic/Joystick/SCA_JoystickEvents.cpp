@@ -43,7 +43,7 @@ void SCA_Joystick::OnAxisMotion(SDL_Event* sdl_event)
 	if (sdl_event->jaxis.axis >= JOYAXIS_MAX)
 		return;
 	
-	m_axis_array[sdl_event->jaxis.axis]= sdl_event->jaxis.value;
+	m_axis_array[sdl_event->jaxis.axis] = sdl_event->jaxis.value;
 	m_istrig_axis = 1;
 }
 
@@ -53,7 +53,7 @@ void SCA_Joystick::OnHatMotion(SDL_Event* sdl_event)
 	if (sdl_event->jhat.hat >= JOYHAT_MAX)
 		return;
 
-	m_hat_array[sdl_event->jhat.hat]= sdl_event->jhat.value;
+	m_hat_array[sdl_event->jhat.hat] = sdl_event->jhat.value;
 	m_istrig_hat = 1;
 }
 

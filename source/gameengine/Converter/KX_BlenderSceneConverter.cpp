@@ -818,13 +818,13 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu_rz) icu_rz->ipo = IPO_LIN;
 					}
 					
-					if (icu_rx) eulerAnglesOld[0]= eval_icu( icu_rx, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
-					if (icu_ry) eulerAnglesOld[1]= eval_icu( icu_ry, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
-					if (icu_rz) eulerAnglesOld[2]= eval_icu( icu_rz, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_rx) eulerAnglesOld[0] = eval_icu( icu_rx, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_ry) eulerAnglesOld[1] = eval_icu( icu_ry, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_rz) eulerAnglesOld[2] = eval_icu( icu_rz, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
 					
 					// orn.getValue((float *)tmat); // uses the wrong ordering, cant use this
-					for (int r=0;r<3;r++)
-						for (int c=0;c<3;c++)
+					for (int r = 0; r < 3; r++)
+						for (int c = 0; c < 3; c++)
 							tmat[r][c] = orn[c][r];
 					
 					// mat3_to_eul( eulerAngles,tmat); // better to use Mat3ToCompatibleEul
@@ -1450,14 +1450,12 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 				BLI_remlink(&m_maggie->mat, mat_new);
 				BLI_addtail(&maggie->mat, mat_new);
 				
-				mesh->mat[i]= mat_new;
+				mesh->mat[i] = mat_new;
 				
 				/* the same material may be used twice */
-				for (int j=i+1; j<mesh->totcol; j++)
-				{
-					if (mesh->mat[j]==mat_old)
-					{
-						mesh->mat[j]= mat_new;
+				for (int j = i + 1; j < mesh->totcol; j++) {
+					if (mesh->mat[j] == mat_old) {
+						mesh->mat[j] = mat_new;
 						mat_new->id.us++;
 						mat_old->id.us--;
 					}

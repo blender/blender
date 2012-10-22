@@ -34,7 +34,7 @@
 
 /* **************** IMAGE (and RenderResult, multilayer image) ******************** */
 
-static bNodeSocketTemplate cmp_node_rlayers_out[]= {
+static bNodeSocketTemplate cmp_node_rlayers_out[] = {
 	{	SOCK_RGBA, 0, N_("Image"),					0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Alpha"),					1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Z"),						1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},

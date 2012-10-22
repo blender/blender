@@ -506,7 +506,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 	}
 }
 
-SDNA *DNA_sdna_from_data(void *data, int datalen, int do_endian_swap)
+SDNA *DNA_sdna_from_data(const void *data, const int datalen, int do_endian_swap)
 {
 	SDNA *sdna = MEM_mallocN(sizeof(*sdna), "sdna");
 	
