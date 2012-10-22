@@ -185,7 +185,8 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 	
 	fullsample= (totsample > 1);
 	amount= 0;
-	accol[0]=accol[1]=accol[2]=accol[3]= 0.0f;
+	accol[0] = accol[1] = accol[2] = accol[3]= 0.0f;
+	col[0] = col[1] = col[2] = col[3]= 0.0f;
 	flarec= har->flarec;
 	
 	while (ps) {
