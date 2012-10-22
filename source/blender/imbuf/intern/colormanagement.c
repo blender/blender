@@ -1113,6 +1113,13 @@ void IMB_colormanagement_assign_rect_colorspace(ImBuf *ibuf, const char *name)
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
 }
 
+int IMB_colormanagement_colorspace_is_data(const char *name)
+{
+	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+
+	return colorspace->is_data;
+}
+
 /*********************** Threaded display buffer transform routines *************************/
 
 typedef struct DisplayBufferThread {

@@ -32,6 +32,8 @@
 
 #include "DNA_texture_types.h"
 
+#include "IMB_colormanagement.h"
+
 #include "node_shader_util.h"
 
 /* **************** TEXTURE ******************** */
@@ -122,8 +124,18 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, GPUNodeStack *in, G
 	Tex *tex = (Tex*)node->id;
 
 	if (tex && tex->type == TEX_IMAGE && tex->ima) {
-		GPUNodeLink *texlink = GPU_image(tex->ima, NULL, FALSE);
-		return GPU_stack_link(mat, "texture_image", in, out, texlink);
+		GPUNodeLink *texlink = GPU_image(tex->ima, &tex->iuser, FALSE);
+		int ret = GPU_stack_link(mat, "texture_image", in, out, texlink);
+
+		if (ret) {
+			if (GPU_material_do_color_management(mat) &&
+			    IMB_colormanagement_colorspace_is_data(tex->ima->colorspace_settings.name) == FALSE)
+			{
+				GPU_link(mat, "srgb_to_linearrgb", out[1].link, &out[1].link);
+			}
+		}
+
+		return ret;
 	}
 	else
 		return 0;

@@ -27,6 +27,8 @@
 
 #include "../node_shader_util.h"
 
+#include "IMB_colormanagement.h"
+
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_environment_in[] = {
@@ -60,6 +62,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 	ImageUser *iuser= NULL;
 	NodeTexImage *tex = node->storage;
 	int ncd = tex->color_space == SHD_COLORSPACE_NONE;
+	int ret;
 
 	if (!ima)
 		return GPU_stack_link(mat, "node_tex_environment_empty", in, out);
@@ -69,10 +72,17 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	if (out[0].link && GPU_material_do_color_management(mat))
-		GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
+	ret = GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser, ncd));
 
-	return GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser, ncd));
+	if (ret) {
+		if (GPU_material_do_color_management(mat) &&
+		    IMB_colormanagement_colorspace_is_data(ima->colorspace_settings.name) == FALSE)
+		{
+			GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
+		}
+	}
+
+	 return ret;
 }
 
 /* node type definition */

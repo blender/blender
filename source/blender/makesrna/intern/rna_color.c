@@ -474,7 +474,9 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 	if (GS(id->name) == ID_IM) {
 		Image *ima = (Image *) id;
 
-		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+		DAG_id_tag_update(&ima->id, 0);
+
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_COLORMANAGE);
 
 		WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
 		WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);

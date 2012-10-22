@@ -2142,6 +2142,15 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 				}
 			}
 			break;
+		case IMA_SIGNAL_COLORMANAGE:
+			image_free_buffers(ima);
+
+			ima->ok = 1;
+
+			if (iuser)
+				iuser->ok = 1;
+
+			break;
 	}
 
 	/* don't use notifiers because they are not 100% sure to succeeded
