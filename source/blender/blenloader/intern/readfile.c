@@ -8145,6 +8145,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_version_node_cleanup_dynamic_sockets_264(NULL, NULL, ntree);
 	}
 
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 5)) {
+		/* set a unwrapping margin and ABF by default */
+		Scene *scene;
+
+		for (scene=main->scene.first; scene; scene=scene->id.next) {
+			if (scene->toolsettings->uvcalc_margin == 0.0f) {
+				scene->toolsettings->uvcalc_margin = 0.001f;
+				scene->toolsettings->unwrapper = 0;
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
