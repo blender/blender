@@ -37,6 +37,7 @@
 #include <string.h>
 
 #include "BLI_fileops.h"
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
