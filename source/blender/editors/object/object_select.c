@@ -608,7 +608,7 @@ static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in
 
 	for (i = 0; i < group_count; i++) {
 		group = ob_groups[i];
-		uiItemStringO(layout, group->id.name + 2, 0, "OBJECT_OT_select_same_group", "group", group->id.name);
+		uiItemStringO(layout, group->id.name + 2, 0, "OBJECT_OT_select_same_group", "group", group->id.name + 2);
 	}
 
 	uiPupMenuEnd(C, pup);
