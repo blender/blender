@@ -1216,9 +1216,12 @@ static void object_simplify_update(Object *ob)
 	ModifierData *md;
 	ParticleSystem *psys;
 
-	for (md = ob->modifiers.first; md; md = md->next)
-		if (ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem))
-			ob->recalc |= OB_RECALC_DATA | PSYS_RECALC_CHILD;
+	for (md = ob->modifiers.first; md; md = md->next) {
+		if (ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
+			ob->recalc |= PSYS_RECALC_CHILD;
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
+	}
 
 	for (psys = ob->particlesystem.first; psys; psys = psys->next)
 		psys->recalc |= PSYS_RECALC_CHILD;
