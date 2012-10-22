@@ -105,7 +105,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 
 			if (fabsf(normalize_v3(edge_cross)) > FLT_EPSILON) {
 				Quadric q;
-				BLI_quadric_from_v3_dist(&q, edge_vector, -dot_v3v3(edge_cross, e->v1->co));
+				BLI_quadric_from_v3_dist(&q, edge_cross, -dot_v3v3(edge_cross, e->v1->co));
 				BLI_quadric_mul(&q, BOUNDARY_PRESERVE_WEIGHT);
 
 				BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(e->v1)], &q);
@@ -278,7 +278,9 @@ static int bm_decim_triangulate_begin(BMesh *bm)
 			f_l[2] = l_iter; l_iter = l_iter->next;
 			f_l[3] = l_iter; l_iter = l_iter->next;
 
-			if (len_squared_v3v3(f_l[0]->v->co, f_l[2]->v->co) < len_squared_v3v3(f_l[1]->v->co, f_l[3]->v->co)) {
+			if (len_squared_v3v3(f_l[0]->v->co, f_l[2]->v->co) <
+			    len_squared_v3v3(f_l[1]->v->co, f_l[3]->v->co))
+			{
 				l_a = f_l[0];
 				l_b = f_l[2];
 			}
@@ -778,10 +780,12 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 	if (LIKELY(compare_v3v3(e->v1->co, e->v2->co, FLT_EPSILON) == FALSE)) {
 		customdata_fac = line_point_factor_v3(optimize_co, e->v1->co, e->v2->co);
 
+#if 0
 		/* simple test for stupid collapse */
-//		if (customdata_fac < 0.0 - FLT_EPSILON || customdata_fac > 1.0f + FLT_EPSILON) {
-//			return;
-//		}
+		if (customdata_fac < 0.0 - FLT_EPSILON || customdata_fac > 1.0f + FLT_EPSILON) {
+			return;
+		}
+#endif
 	}
 	else {
 		/* avoid divide by zero */
@@ -824,6 +828,28 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 				bm_decim_build_edge_cost_single(e_iter, vquadrics, eheap, eheap_table);
 			} while ((e_iter = bmesh_disk_edge_next(e_iter, v_other)) != e_first);
 		}
+
+#if 0
+		/* optional, update edges around the face fan */
+		{
+			BMIter liter;
+			BMLoop *l;
+			BM_ITER_ELEM (l, &liter, v_other, BM_LOOPS_OF_VERT) {
+				if (l->f->len == 3) {
+					BMEdge *e_outer;
+					if (BM_vert_in_edge(l->prev->e, l->v))
+						e_outer = l->next->e;
+					else
+						e_outer = l->prev->e;
+
+					BLI_assert(BM_vert_in_edge(e_outer, l->v) == FALSE);
+
+					bm_decim_build_edge_cost_single(e_outer, vquadrics, eheap, eheap_table);
+				}
+			}
+		}
+		/* end optional update */
+#endif
 	}
 }
 
