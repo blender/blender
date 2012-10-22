@@ -159,7 +159,7 @@ short BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 	
 	/* animdata validity check */
 	if (adt == NULL) {
-		BKE_report(reports, RPT_WARNING, "No anim data to set action on");
+		BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
 		return ok;
 	}
 	

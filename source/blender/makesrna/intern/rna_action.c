@@ -263,8 +263,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "source", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_ui_text(prop, "Source",
-	                         "ID block representing source data, currently ID_SCE (for dopesheet), "
-	                         "and ID_SC (for grease pencil)");
+	                         "ID-Block representing source data, usually ID_SCE (i.e. Scene)");
 	
 	/* Show datablock filters */
 	prop = RNA_def_property(srna, "show_datablock_filters", PROP_BOOLEAN, PROP_NONE);
