@@ -947,7 +947,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 			}
 		}
 
-		if (use_dverts || armature_def_nr >= 0) {
+		if (use_dverts || armature_def_nr != -1) {
 			if (dm)
 				dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
 			else if (dverts && i < target_totvert)
@@ -958,7 +958,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 		else
 			dvert = NULL;
 
-		if (armature_def_nr >= 0 && dvert) {
+		if (armature_def_nr != -1 && dvert) {
 			armature_weight = defvert_find_weight(dvert, armature_def_nr);
 
 			if (invert_vgroup)

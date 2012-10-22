@@ -45,18 +45,11 @@
 /* defines for testing */
 #define USE_CUSTOMDATA
 #define USE_TRIANGULATE
-// #define USE_PRESERVE_BOUNDARY  /* could disable but its nicer not to mix boundary/non-boundry verts */
 
 /* these checks are for rare cases that we can't avoid since they are valid meshes still */
 #define USE_SAFETY_CHECKS
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
-
-
-#ifdef USE_PRESERVE_BOUNDARY
-/* re-use smooth for tagging boundary edges, not totally great */
-#define BM_ELEM_IS_BOUNDARY _BM_ELEM_TAG_ALT
-#endif
 
 typedef enum CD_UseFlag {
 	CD_DO_VERT,
@@ -112,12 +105,6 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 				BLI_quadric_add_qu_qu(&vquadrics[BM_elem_index_get(e->v2)], &q);
 			}
 		}
-#ifdef USE_PRESERVE_BOUNDARY
-		/* init: runs first! */
-		/* unrelated, but do on an edge loop before we start collapsing */
-		BM_elem_flag_disable(e->v1, BM_ELEM_IS_BOUNDARY);
-		BM_elem_flag_disable(e->v2, BM_ELEM_IS_BOUNDARY);
-#endif
 	}
 }
 
@@ -222,15 +209,6 @@ static void bm_decim_build_edge_cost(BMesh *bm,
 	BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
 		eheap_table[i] = NULL;  /* keep sanity check happy */
 		bm_decim_build_edge_cost_single(e, vquadrics, vweights, eheap, eheap_table);
-
-#ifdef USE_PRESERVE_BOUNDARY
-		/* init: runs second! */
-		if (BM_edge_is_boundary(e)) {
-			/* unrelated, but do on an edge loop before we start collapsing */
-			BM_elem_flag_enable(e->v1, BM_ELEM_IS_BOUNDARY);
-			BM_elem_flag_enable(e->v2, BM_ELEM_IS_BOUNDARY);
-		}
-#endif
 	}
 }
 
@@ -524,29 +502,6 @@ static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
 	 * (excluding the 2 faces attached to 'e' and 'e' its self) */
 
 	BMEdge *e_iter;
-
-#ifdef USE_PRESERVE_BOUNDARY
-	const int is_boundary = BM_edge_is_boundary(e_first);
-
-	if (BM_elem_flag_test(e_first->v1, BM_ELEM_IS_BOUNDARY) !=
-	    BM_elem_flag_test(e_first->v2, BM_ELEM_IS_BOUNDARY))
-	{
-		return TRUE;
-	}
-	if ((is_boundary == FALSE) &&
-	    (BM_elem_flag_test(e_first->v1, BM_ELEM_IS_BOUNDARY) ||
-	     BM_elem_flag_test(e_first->v2, BM_ELEM_IS_BOUNDARY)))
-	{
-		return TRUE;
-	}
-
-	/* sanity */
-	if (is_boundary == TRUE) {
-		BLI_assert(BM_elem_flag_test(e_first->v1, BM_ELEM_IS_BOUNDARY) != FALSE);
-		BLI_assert(BM_elem_flag_test(e_first->v2, BM_ELEM_IS_BOUNDARY) != FALSE);
-	}
-
-#endif  /* USE_PRESERVE_BOUNDARY */
 
 	/* clear flags on both disks */
 	e_iter = e_first;

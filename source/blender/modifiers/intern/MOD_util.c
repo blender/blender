@@ -222,7 +222,7 @@ void modifier_get_vgroup(Object *ob, DerivedMesh *dm, const char *name, MDeformV
 	*defgrp_index = defgroup_name_index(ob, name);
 	*dvert = NULL;
 
-	if (*defgrp_index >= 0) {
+	if (*defgrp_index != -1) {
 		if (ob->type == OB_LATTICE)
 			*dvert = BKE_lattice_deform_verts_get(ob);
 		else if (dm)

@@ -175,7 +175,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 #if 0
 	if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
 		defgrp_index = defgroup_name_index(ob, bmd->defgrp_name);
-		if (defgrp_index < 0) {
+		if (defgrp_index == -1) {
 			options &= ~BME_BEVEL_VWEIGHT;
 		}
 	}

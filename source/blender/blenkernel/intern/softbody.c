@@ -3194,7 +3194,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
 	- xxxx_to_softbody(Object *ob)      : a full (new) copy, creates SB geometry
 */
 
-static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex, float *target)
+static void get_scalar_from_vertexgroup(Object *ob, int vertID, int groupindex, float *target)
 /* result 0 on success, else indicates error number
 -- kind of *inverse* result defintion,
 -- but this way we can signal error condition to caller
@@ -3297,7 +3297,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		if ((ob->softflag & OB_SB_GOAL) && sb->vertgroup) { /* even this is a deprecated evil hack */
 		   /* I'd like to have it  .. if (sb->namedVG_Goal[0]) */
 
-			get_scalar_from_vertexgroup(ob, a, (short) (sb->vertgroup-1), &bp->goal);
+			get_scalar_from_vertexgroup(ob, a, sb->vertgroup - 1, &bp->goal);
 			/* do this always, regardless successful read from vertex group */
 			/* this is where '2.5 every thing is animatable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
@@ -3316,10 +3316,10 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		 */
 
 		if (sb->namedVG_Mass[0]) {
-			int grp= defgroup_name_index (ob, sb->namedVG_Mass);
-			/* printf("VGN  %s %d\n", sb->namedVG_Mass, grp); */
-			if (grp > -1) {
-				get_scalar_from_vertexgroup(ob, a, (short) (grp), &bp->mass);
+			int defgrp_index = defgroup_name_index (ob, sb->namedVG_Mass);
+			/* printf("VGN  %s %d\n", sb->namedVG_Mass, defgrp_index); */
+			if (defgrp_index != -1) {
+				get_scalar_from_vertexgroup(ob, a, defgrp_index, &bp->mass);
 				/* 2.5  bp->mass = bp->mass * sb->nodemass; */
 				/* printf("bp->mass  %f\n", bp->mass); */
 
@@ -3329,10 +3329,10 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		bp->springweight = 1.0f;
 
 		if (sb->namedVG_Spring_K[0]) {
-			int grp= defgroup_name_index (ob, sb->namedVG_Spring_K);
-			//printf("VGN  %s %d\n", sb->namedVG_Spring_K, grp);
-			if (grp > -1) {
-				get_scalar_from_vertexgroup(ob, a, (short) (grp), &bp->springweight);
+			int defgrp_index = defgroup_name_index (ob, sb->namedVG_Spring_K);
+			//printf("VGN  %s %d\n", sb->namedVG_Spring_K, defgrp_index);
+			if (defgrp_index  != -1) {
+				get_scalar_from_vertexgroup(ob, a, defgrp_index , &bp->springweight);
 				//printf("bp->springweight  %f\n", bp->springweight);
 
 			}

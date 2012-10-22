@@ -238,7 +238,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 		     (fac = (wmd->falloff_radius - fac) / wmd->falloff_radius)))
 		{
 			/* skip if no vert group found */
-			if (dvert && defgrp_index >= 0) {
+			if (dvert && defgrp_index != -1) {
 				dv = &dvert[i];
 
 				if (dv) {

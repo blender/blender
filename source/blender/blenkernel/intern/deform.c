@@ -431,7 +431,7 @@ int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, in
 		if (strcmp(name, dg->name)) {
 			flip_num = defgroup_name_index(ob, name);
 
-			if (flip_num >= 0) {
+			if (flip_num != -1) {
 				map[defgroup] = flip_num;
 				map[flip_num] = defgroup;
 			}

@@ -1762,10 +1762,10 @@ static DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
 						}
 
 						/* apply weights into a vertex group, if doesnt exists add a new layer */
-						if (defgrp_index >= 0 && !dvert && (surface->output_name[0] != '\0'))
+						if (defgrp_index != -1 && !dvert && (surface->output_name[0] != '\0'))
 							dvert = CustomData_add_layer_named(&result->vertData, CD_MDEFORMVERT, CD_CALLOC,
 							                                   NULL, sData->total_points, surface->output_name);
-						if (defgrp_index >= 0 && dvert) {
+						if (defgrp_index != -1 && dvert) {
 							int i;
 							for (i = 0; i < sData->total_points; i++) {
 								MDeformVert *dv = &dvert[i];
