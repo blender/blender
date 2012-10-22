@@ -28,6 +28,7 @@
 #include "util_math.h"
 #include "util_opencl.h"
 #include "util_opengl.h"
+#include "util_time.h"
 #include "util_types.h"
 #include "util_vector.h"
 
@@ -188,6 +189,18 @@ vector<DeviceInfo>& Device::available_devices()
 {
 	static vector<DeviceInfo> devices;
 	static bool devices_init = false;
+	static double device_update_time = 0.0;
+
+	/* only update device list if we're not actively rendering already, things
+	 * could go very wrong if a device suddenly becomes (un)available. also do
+	 * it only every 5 seconds. it not super cpu intensive but don't want to do
+	 * it on every redraw. */
+	if(devices_init) {
+		if(!TaskScheduler::active() && (time_dt() > device_update_time + 5.0)) {
+			devices.clear();
+			devices_init = false;
+		}
+	}
 
 	if(!devices_init) {
 #ifdef WITH_CUDA
@@ -211,6 +224,7 @@ vector<DeviceInfo>& Device::available_devices()
 #endif
 
 		devices_init = true;
+		device_update_time = time_dt();
 	}
 
 	return devices;
