@@ -157,6 +157,8 @@ struct PBVH {
 
 	/* flag are verts/faces deformed */
 	int deformed;
+
+	int show_diffuse_color;
 };
 
 #define STACK_FIXED_DEPTH   100
@@ -1001,7 +1003,7 @@ static int update_search_cb(PBVHNode *node, void *data_v)
 
 	if (node->flag & PBVH_Leaf)
 		return (node->flag & flag);
-	
+
 	return 1;
 }
 
@@ -1165,7 +1167,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					                        bvh->grid_flag_mats,
 					                        node->prim_indices,
 					                        node->totprim,
-					                        &bvh->gridkey);
+					                        &bvh->gridkey,
+					                        bvh->show_diffuse_color);
 					break;
 				case PBVH_FACES:
 					GPU_update_mesh_buffers(node->draw_buffers,
@@ -1174,7 +1177,9 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					                        node->uniq_verts +
 					                        node->face_verts,
 					                        CustomData_get_layer(bvh->vdata,
-					                                             CD_PAINT_MASK));
+					                                             CD_PAINT_MASK),
+					                        node->face_vert_indices,
+					                        bvh->show_diffuse_color);
 					break;
 			}
 
@@ -1667,11 +1672,23 @@ int BLI_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
 	return test_planes_aabb(bb_min, bb_max, data) != ISECT_INSIDE;
 }
 
+static void pbvh_node_check_diffuse_changed(PBVH *bvh, PBVHNode *node)
+{
+	if (!node->draw_buffers)
+		return;
+
+	if (GPU_buffers_diffuse_changed(node->draw_buffers, bvh->show_diffuse_color))
+		node->flag |= PBVH_UpdateDrawBuffers;
+}
+
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
                    DMSetMaterial setMaterial)
 {
 	PBVHNode **nodes;
-	int totnode;
+	int a, totnode;
+
+	for (a = 0; a < bvh->totnode; a++)
+		pbvh_node_check_diffuse_changed(bvh, &bvh->nodes[a]);
 
 	BLI_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
 	                       &nodes, &totnode);
@@ -1875,4 +1892,9 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 	vi->mask = NULL;
 	if (!vi->grids)
 		vi->vmask = CustomData_get_layer(bvh->vdata, CD_PAINT_MASK);
+}
+
+void pbvh_show_diffuse_color_set(PBVH *bvh, int show_diffuse_color)
+{
+	bvh->show_diffuse_color = show_diffuse_color;
 }

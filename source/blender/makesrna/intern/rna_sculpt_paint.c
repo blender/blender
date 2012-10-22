@@ -60,6 +60,8 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 #include "BKE_particle.h"
 #include "BKE_depsgraph.h"
 
+#include "BLI_pbvh.h"
+
 #include "ED_particle.h"
 
 static EnumPropertyItem particle_edit_disconnected_hair_brush_items[] = {
@@ -206,6 +208,21 @@ static void rna_Sculpt_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNU
 	}
 }
 
+static void rna_Sculpt_ShowDiffuseColor_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	Object *ob = (scene->basact) ? scene->basact->object : NULL;
+
+	if (ob) {
+		Sculpt *sd = scene->toolsettings->sculpt;
+		ob->sculpt->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
+
+		if (ob->sculpt->pbvh)
+			pbvh_show_diffuse_color_set(ob->sculpt->pbvh, ob->sculpt->show_diffuse_color);
+
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
+	}
+}
+
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -297,6 +314,12 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	                         "Use only deformation modifiers (temporary disable all "
 	                         "constructive modifiers except multi-resolution)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
+	prop = RNA_def_property(srna, "show_diffuse_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SHOW_DIFFUSE);
+	RNA_def_property_ui_text(prop, "Show Diffuse Color",
+	                         "Show diffuse color of object and overlay sculpt mask on top of it");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowDiffuseColor_update");
 }
 
 

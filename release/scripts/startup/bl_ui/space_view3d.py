@@ -1285,6 +1285,7 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "show_low_resolution")
         layout.prop(sculpt, "show_brush")
         layout.prop(sculpt, "use_deform_only")
+        layout.prop(sculpt, "show_diffuse_color")
 
 
 class VIEW3D_MT_hide_mask(Menu):

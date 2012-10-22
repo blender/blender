@@ -273,6 +273,8 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 
+		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
+
 		BKE_mesh_tessface_ensure(me);
 		
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,

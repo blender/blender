@@ -81,12 +81,14 @@ EnumPropertyItem ramp_blend_items[] = {
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_node.h"
+#include "BKE_paint.h"
 
 #include "ED_node.h"
 
@@ -105,7 +107,7 @@ static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 	}
 }
 
-static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Material *ma = ptr->id.data;
 

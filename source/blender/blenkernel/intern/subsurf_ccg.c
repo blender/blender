@@ -3020,6 +3020,9 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		                    me->totface, me->totvert, &me->vdata);
 	}
 
+	if (ccgdm->pbvh)
+		pbvh_show_diffuse_color_set(ccgdm->pbvh, ob->sculpt->show_diffuse_color);
+
 	return ccgdm->pbvh;
 }
 

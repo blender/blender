@@ -3076,6 +3076,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
 
 	ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
+	ss->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
 
 	if (need_mask) {
 		if (mmd == NULL) {
@@ -3129,6 +3130,8 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 
 	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->pmap = (need_pmap && dm->getPolyMap) ? dm->getPolyMap(ob, dm) : NULL;
+
+	pbvh_show_diffuse_color_set(ss->pbvh, ss->show_diffuse_color);
 
 	if (ss->modifiers_active) {
 		if (!ss->orig_cos) {
