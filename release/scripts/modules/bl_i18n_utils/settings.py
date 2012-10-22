@@ -31,6 +31,59 @@ import os.path
 # MISC
 ###############################################################################
 
+# The languages defined in Blender.
+LANGUAGES_CATEGORIES = (
+    # Min completeness level, UI english label.
+    ( 0.95, "Complete"),
+    ( 0.33, "In Progress"),
+    ( -1.0, "Starting"),
+)
+LANGUAGES = (
+    # ID, UI english label, ISO code.
+    ( 0, "Default (Default)", "DEFAULT"),
+    ( 1, "English (English)", "en_US"),
+    ( 2, "Japanese (日本語)", "ja_JP"),
+    ( 3, "Dutch (Nederlandse taal)", "nl_NL"),
+    ( 4, "Italian (Italiano)", "it_IT"),
+    ( 5, "German (Deutsch)", "de_DE"),
+    ( 6, "Finnish (Suomi)", "fi_FI"),
+    ( 7, "Swedish (Svenska)", "sv_SE"),
+    ( 8, "French (Français)", "fr_FR"),
+    ( 9, "Spanish (Español)", "es"),
+    (10, "Catalan (Català)", "ca_AD"),
+    (11, "Czech (Český)", "cs_CZ"),
+    (12, "Portuguese (Português)", "pt_PT"),
+    (13, "Simplified Chinese (简体中文)", "zh_CN"),
+    (14, "Traditional Chinese (繁體中文)", "zh_TW"),
+    (15, "Russian (Русский)", "ru_RU"),
+    (16, "Croatian (Hrvatski)", "hr_HR"),
+    (17, "Serbian (Српски)", "sr_RS"),
+    (18, "Ukrainian (Український)", "uk_UA"),
+    (19, "Polish (Polski)", "pl_PL"),
+    (20, "Romanian (Român)", "ro_RO"), # XXX No po's yet.
+    # Using the utf8 flipped form of Arabic (العربية).
+    (21, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"),
+    (22, "Bulgarian (Български)", "bg_BG"),
+    (23, "Greek (Ελληνικά)", "el_GR"),
+    (24, "Korean (한국 언어)", "ko_KR"), # XXX No po's yet.
+    (25, "Nepali (नेपाली)", "ne_NP"),
+    # Using the utf8 flipped form of Persian (فارسی).
+    (26, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"),
+    (27, "Indonesian (Bahasa indonesia)", "id_ID"),
+    (28, "Serbian Latin (Srpski latinica)", "sr_RS@latin"),
+    (29, "Kyrgyz (Кыргыз тили)", "ky_KG"),
+    (30, "Turkish (Türkçe)", "tr_TR"),
+    (31, "Hungarian (Magyar)", "hu_HU"),
+    (32, "Brazilian Portuguese (Português do Brasil)", "pt_BR"),
+    # Using the utf8 flipped form of Hebrew (עִבְרִית)).
+    (33, "Hebrew (תירִבְעִ)", "he_IL"),
+    (34, "Estonian (Eestlane)", "et_EE"),
+    (35, "Esperanto (Esperanto)", "eo"),
+)
+
+# Name of language file used by Blender to generate translations' menu.
+LANGUAGES_FILE = "languages"
+
 # The min level of completeness for a po file to be imported from /branches
 # into /trunk, as a percentage. -1 means "import everything".
 IMPORT_MIN_LEVEL = -1
@@ -141,37 +194,6 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "iTaSC parameters",
     "vBVH",
     "rv",
-    "en_US",
-    "fr_FR",
-    "it_IT",
-    "ru_RU",
-    "zh_CN",
-    "es",
-    "zh_TW",
-    "ar_EG",
-    "pt",
-    "bg_BG",
-    "ca_AD",
-    "hr_HR",
-    "cs_CZ",
-    "nl_NL",
-    "fi_FI",
-    "de_DE",
-    "el_GR",
-    "id_ID",
-    "ja_JP",
-    "ky_KG",
-    "ko_KR",
-    "ne_NP",
-    "fa_IR",
-    "pl_PL",
-    "ro_RO",
-    "sr_RS",
-    "sr_RS@latin",
-    "sv_SE",
-    "uk_UA",
-    "tr_TR",
-    "hu_HU",
     "et_EE",
     "eo",
     "available with",                # Is part of multi-line msg.
@@ -185,6 +207,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "p0",
     "res",
 }
+WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
 
 
 ###############################################################################

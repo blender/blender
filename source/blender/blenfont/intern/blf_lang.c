@@ -77,11 +77,8 @@ static void free_locales(void)
 	if (locales) {
 		int idx = num_locales_menu - 1; /* Last item does not need to be freed! */
 		while (idx--) {
-			printf("freeing %s\n", locales_menu[idx].identifier);
 			MEM_freeN((void*)locales_menu[idx].identifier);
-			printf("freeing %s\n", locales_menu[idx].name);
 			MEM_freeN((void*)locales_menu[idx].name);
-			printf("freeing %s\n", locales_menu[idx].description);
 			MEM_freeN((void*)locales_menu[idx].description); /* Also frees locales's relevant value! */
 		}
 		MEM_freeN(locales);
@@ -113,7 +110,6 @@ static void fill_locales(void)
 			line = line->next;
 			continue; /* Comment or void... */
 		}
-		printf("%s\n", str);
 		t = atoi(str);
 		if (t >= num_locales)
 			num_locales = t + 1;
@@ -121,7 +117,6 @@ static void fill_locales(void)
 		line = line->next;
 	}
 	num_locales_menu++; /* The "closing" void item... */
-	printf("num_locales_menu: %d\n", num_locales_menu);
 
 	/* And now, buil locales and locale_menu! */
 	locales = MEM_callocN(num_locales * sizeof(char*), __func__);
@@ -138,7 +133,6 @@ static void fill_locales(void)
 		}
 
 		id = atoi(str);
-		printf("%s\n", str);
 		sep1 = strchr(str, ':');
 		if (sep1) {
 			sep1++;

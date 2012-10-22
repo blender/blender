@@ -35,38 +35,62 @@ import shutil
 
 try:
     import settings
+    import utils
 except:
-    from . import settings
+    from . import (settings, utils)
 
+BRANCHES_DIR = settings.BRANCHES_DIR
 TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 TRUNK_MO_DIR = settings.TRUNK_MO_DIR
+
+LANGUAGES_CATEGORIES = settings.LANGUAGES_CATEGORIES
+LANGUAGES = settings.LANGUAGES
+LANGUAGES_FILE = settings.LANGUAGES_FILE
 
 PY3 = settings.PYTHON3_EXEC
 
 
+def find_matching_po(languages, stats):
+    """Match languages defined in LANGUAGES setting to relevant po, if possible!"""
+    ret = []
+    for uid, label, org_key in languages:
+        key = org_key
+        if key not in stats:
+            # Try to simplify the key (eg from es_ES to es).
+            if '_' in org_key:
+                key = org_key[0:org_key.index('_')]
+            if '@' in org_key:
+                key = key + org_key[org_key.index('@'):]
+        if key in stats:
+            ret.append((stats[key], uid, label, org_key))
+        else:
+            # Mark invalid entries, so that we can put them in the languages file,
+            # but commented!
+            ret.append((0.0, -uid, label, org_key))
+    return ret
+
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="" \
-                        "Update trunk from branches:\n" \
-                        "* Remove po’s in trunk.\n" \
-                        "* Copy po’s from branches advanced enough.\n" \
-                        "* Clean po’s in trunk.\n" \
-                        "* Compile po’s in trunk in mo’s, keeping " \
-                        "track of those failing.\n" \
-                        "* Remove po’s and mo’s (and their dir’s) that " \
-                        "failed to compile or are no more present in trunk.")
-    parser.add_argument('-t', '--threshold', type=int,
-                        help="Import threshold, as a percentage.")
-    parser.add_argument('-p', '--po', action="store_false",
-                        help="Do not remove failing po’s.")
-    parser.add_argument('-m', '--mo', action="store_false",
-                        help="Do not remove failing mo’s.")
-    parser.add_argument('langs', metavar='ISO_code', nargs='*',
-                        help="Restrict processed languages to those.")
+    parser = argparse.ArgumentParser(description=""
+                        "Update trunk from branches:\n"
+                        "* Remove po’s in trunk.\n"
+                        "* Copy po’s from branches advanced enough.\n"
+                        "* Clean po’s in trunk.\n"
+                        "* Compile po’s in trunk in mo’s, keeping "
+                        "track of those failing.\n"
+                        "* Remove po’s and mo’s (and their dir’s) that "
+                        "failed to compile or are no more present in trunk."
+                        "* Generate languages file used by Blender's i18n.")
+    parser.add_argument('-t', '--threshold', type=int, help="Import threshold, as a percentage.")
+    parser.add_argument('-p', '--po', action="store_true", help="Remove failing po’s.")
+    parser.add_argument('-m', '--mo', action="store_true", help="Remove failing mo’s.")
+    parser.add_argument('langs', metavar='ISO_code', nargs='*', help="Restrict processed languages to those.")
     args = parser.parse_args()
 
     ret = 0
     failed = set()
+    # 'DEFAULT' and en_US are always valid, fully-translated "languages"!
+    stats = {"DEFAULT": 1.0, "en_US": 1.0}
 
     # Remove po’s in trunk.
     for po in os.listdir(TRUNK_PO_DIR):
@@ -89,7 +113,7 @@ def main():
 
     # Add in failed all mo’s no more having relevant po’s in trunk.
     for lang in os.listdir(TRUNK_MO_DIR):
-        if lang == ".svn":
+        if lang in {".svn", LANGUAGES_FILE}:
             continue  # !!!
         if not os.path.exists(os.path.join(TRUNK_PO_DIR, ".".join((lang, "po")))):
             failed.add(lang)
@@ -115,6 +139,46 @@ def main():
             if t:
                 ret = t
                 failed.add(lang)
+                continue
+
+            # Yes, I know, it's the third time we parse each po's here. :/
+            u1, u2, _stats = utils.parse_messages(os.path.join(BRANCHES_DIR, lang, po))
+            stats[lang] = _stats["trans_msg"] / _stats["tot_msg"]
+
+    # Generate languages file used by Blender's i18n system.
+    # First, match all entries in LANGUAGES to a lang in stats, if possible!
+    stats = find_matching_po(LANGUAGES, stats)
+    limits = sorted(LANGUAGES_CATEGORIES, key=lambda it: it[0], reverse=True)
+    print(limits)
+    idx = 0
+    stats = sorted(stats, key=lambda it: it[0], reverse=True)
+    print(stats)
+    langs_cats = [[] for i in range(len(limits))]
+    highest_uid = 0
+    for prop, uid, label, key in stats:
+        print(key, prop)
+        if prop < limits[idx][0]:
+            # Sub-sort languages by iso-codes.
+            langs_cats[idx].sort(key=lambda it: it[2])
+            print(langs_cats)
+            idx += 1
+        langs_cats[idx].append((uid, label, key))
+        if abs(uid) > highest_uid:
+            highest_uid = abs(uid)
+    # Sub-sort last group of languages by iso-codes!
+    langs_cats[idx].sort(key=lambda it: it[2])
+    with open(os.path.join(TRUNK_MO_DIR, LANGUAGES_FILE), 'w', encoding="utf-8") as f:
+        f.write("# Highest ID currently in use: {}\n".format(highest_uid))
+        for cat, langs_cat in zip(limits, langs_cats):
+            # Write "category menu label"...
+            f.write("0:{}:\n".format(cat[1]))
+            # ...and all matching language entries!
+            for uid, label, key in langs_cat:
+                if uid < 0:
+                    # Non-existing, commented entry!
+                    f.write("# No translation yet! #{}:{}:{}\n".format(-uid, label, key))
+                else:
+                    f.write("{}:{}:{}\n".format(uid, label, key))
 
     # Remove failing po’s, mo’s and related dir’s.
     for lang in failed:
