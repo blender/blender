@@ -276,6 +276,7 @@ EnumPropertyItem image_color_mode_items[] = {
 EnumPropertyItem image_color_depth_items[] = {
 	/* 1 (monochrome) not used */
 	{R_IMF_CHAN_DEPTH_8,   "8", 0, "8",  "8 bit color channels"},
+	{R_IMF_CHAN_DEPTH_10, "10", 0, "10", "10 bit color channels"},
 	{R_IMF_CHAN_DEPTH_12, "12", 0, "12", "12 bit color channels"},
 	{R_IMF_CHAN_DEPTH_16, "16", 0, "16", "16 bit color channels"},
 	/* 24 not used */
@@ -714,6 +715,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 			                   R_IMF_CHAN_DEPTH_24,
 			                   R_IMF_CHAN_DEPTH_16,
 			                   R_IMF_CHAN_DEPTH_12,
+			                   R_IMF_CHAN_DEPTH_10,
 			                   R_IMF_CHAN_DEPTH_8,
 			                   R_IMF_CHAN_DEPTH_1,
 			                   0};
@@ -811,9 +813,10 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *C, 
 		const int is_float = ELEM3(imf->imtype, R_IMF_IMTYPE_RADHDR, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
 
 		EnumPropertyItem *item_8bit =  &image_color_depth_items[0];
-		EnumPropertyItem *item_12bit = &image_color_depth_items[1];
-		EnumPropertyItem *item_16bit = &image_color_depth_items[2];
-		EnumPropertyItem *item_32bit = &image_color_depth_items[3];
+		EnumPropertyItem *item_10bit = &image_color_depth_items[1];
+		EnumPropertyItem *item_12bit = &image_color_depth_items[2];
+		EnumPropertyItem *item_16bit = &image_color_depth_items[3];
+		EnumPropertyItem *item_32bit = &image_color_depth_items[4];
 
 		int totitem = 0;
 		EnumPropertyItem *item = NULL;
@@ -821,6 +824,10 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *C, 
 
 		if (depth_ok & R_IMF_CHAN_DEPTH_8) {
 			RNA_enum_item_add(&item, &totitem, item_8bit);
+		}
+
+		if (depth_ok & R_IMF_CHAN_DEPTH_10) {
+			RNA_enum_item_add(&item, &totitem, item_10bit);
 		}
 
 		if (depth_ok & R_IMF_CHAN_DEPTH_12) {
@@ -2888,7 +2895,6 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 
 #endif
 
-
 #ifdef WITH_OPENJPEG
 	/* Jpeg 2000 */
 	prop = RNA_def_property(srna, "use_jpeg2k_ycc", PROP_BOOLEAN, PROP_NONE);
@@ -2910,7 +2916,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	/* Cineon and DPX */
 
 	prop = RNA_def_property(srna, "use_cineon_log", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "cineon_flag", R_CINEON_LOG);
+	RNA_def_property_boolean_sdna(prop, NULL, "cineon_flag", R_IMF_CINEON_FLAG_LOG);
 	RNA_def_property_ui_text(prop, "Log", "Convert to logarithmic color space");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 

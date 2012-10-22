@@ -318,10 +318,11 @@ typedef struct ImageFormatData {
 /* return values from BKE_imtype_valid_depths, note this is depts per channel */
 #define R_IMF_CHAN_DEPTH_1  (1<<0) /* 1bits  (unused) */
 #define R_IMF_CHAN_DEPTH_8  (1<<1) /* 8bits  (default) */
-#define R_IMF_CHAN_DEPTH_12 (1<<2) /* 12bits (uncommon, jp2 supports) */
-#define R_IMF_CHAN_DEPTH_16 (1<<3) /* 16bits (tiff, halff float exr) */
-#define R_IMF_CHAN_DEPTH_24 (1<<4) /* 24bits (unused) */
-#define R_IMF_CHAN_DEPTH_32 (1<<5) /* 32bits (full float exr) */
+#define R_IMF_CHAN_DEPTH_10 (1<<2) /* 10bits (uncommon, Cineon/DPX support) */
+#define R_IMF_CHAN_DEPTH_12 (1<<3) /* 12bits (uncommon, jp2/DPX support) */
+#define R_IMF_CHAN_DEPTH_16 (1<<4) /* 16bits (tiff, halff float exr) */
+#define R_IMF_CHAN_DEPTH_24 (1<<5) /* 24bits (unused) */
+#define R_IMF_CHAN_DEPTH_32 (1<<6) /* 32bits (full float exr) */
 
 /* ImageFormatData.planes */
 #define R_IMF_PLANES_RGB   24
@@ -1299,6 +1300,7 @@ typedef struct Scene {
 #define R_SIMPLE_NO_TRIANGULATE		1
 
 /* sequencer seq_prev_type seq_rend_type */
+
 
 
 /* **************** SCENE ********************* */

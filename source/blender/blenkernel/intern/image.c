@@ -1063,6 +1063,7 @@ char BKE_imtype_valid_channels(const char imtype)
 		case R_IMF_IMTYPE_DDS:
 		case R_IMF_IMTYPE_JP2:
 		case R_IMF_IMTYPE_QUICKTIME:
+		case R_IMF_IMTYPE_DPX:
 			chan_flag |= IMA_CHAN_FLAG_ALPHA;
 	}
 
@@ -1091,10 +1092,11 @@ char BKE_imtype_valid_depths(const char imtype)
 			return R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_32;
 		case R_IMF_IMTYPE_MULTILAYER:
 			return R_IMF_CHAN_DEPTH_32;
-		/* eeh, cineone does some strange 10bits per channel */
+		/* eeh, cineon does some strange 10bits per channel */
 		case R_IMF_IMTYPE_DPX:
+			return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_10 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
 		case R_IMF_IMTYPE_CINEON:
-			return R_IMF_CHAN_DEPTH_12;
+			return R_IMF_CHAN_DEPTH_10;
 		case R_IMF_IMTYPE_JP2:
 			return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
 		/* most formats are 8bit only */
@@ -1825,9 +1827,29 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 #ifdef WITH_CINEON
 	else if (imtype == R_IMF_IMTYPE_CINEON) {
 		ibuf->ftype = CINEON;
+		if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
+			ibuf->ftype |= CINEON_LOG;
+		}
+		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
+			ibuf->ftype |= CINEON_16BIT;
+		} else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
+			ibuf->ftype |= CINEON_12BIT;
+		} else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
+			ibuf->ftype |= CINEON_10BIT;
+		}
 	}
 	else if (imtype == R_IMF_IMTYPE_DPX) {
 		ibuf->ftype = DPX;
+		if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
+		  ibuf->ftype |= CINEON_LOG;
+		}
+		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
+			ibuf->ftype |= CINEON_16BIT;
+		} else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
+			ibuf->ftype |= CINEON_12BIT;
+		} else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
+			ibuf->ftype |= CINEON_10BIT;
+		}
 	}
 #endif
 	else if (imtype == R_IMF_IMTYPE_TARGA) {

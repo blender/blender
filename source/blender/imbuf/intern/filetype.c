@@ -74,8 +74,8 @@ ImFileType IMB_FILE_TYPES[] = {
 	{NULL, NULL, imb_is_a_targa, imb_ftype_default, imb_loadtarga, imb_savetarga, NULL, 0, TGA, COLOR_ROLE_DEFAULT_BYTE},
 	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC, COLOR_ROLE_DEFAULT_BYTE},
 #ifdef WITH_CINEON
-	{NULL, NULL, imb_is_dpx, imb_ftype_default, imb_loaddpx, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX, COLOR_ROLE_DEFAULT_FLOAT},
-	{NULL, NULL, imb_is_cineon, imb_ftype_default, imb_loadcineon, imb_savecineon, NULL, IM_FTYPE_FLOAT, CINEON, COLOR_ROLE_DEFAULT_FLOAT},
+	{NULL, NULL, imb_is_dpx, imb_ftype_default, imb_load_dpx, imb_save_dpx, NULL, IM_FTYPE_FLOAT, DPX, COLOR_ROLE_DEFAULT_FLOAT},
+	{NULL, NULL, imb_is_cineon, imb_ftype_default, imb_load_cineon, imb_save_cineon, NULL, IM_FTYPE_FLOAT, CINEON, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 #ifdef WITH_TIFF
 	{imb_inittiff, NULL, imb_is_a_tiff, imb_ftype_default, imb_loadtiff, imb_savetiff, imb_loadtiletiff, 0, TIF, COLOR_ROLE_DEFAULT_BYTE},
