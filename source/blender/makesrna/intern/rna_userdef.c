@@ -410,12 +410,14 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 }
 #endif
 
+#ifdef WITH_INTERNATIONAL
 static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
                                                         PropertyRNA *UNUSED(prop), int *free)
 {
 	*free = 0; /* These items are handled by BLF code! */
 	return BLF_RNA_lang_enum_properties();
 }
+#endif
 
 #else
 
@@ -3088,7 +3090,9 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, language_items);
+#ifdef WITH_INTERNATIONAL
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_lang_enum_properties_itemf");
+#endif
 	RNA_def_property_ui_text(prop, "Language", "Language used for translation");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
