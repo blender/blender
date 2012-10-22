@@ -1124,6 +1124,9 @@ void ConvertNode::compile(SVMCompiler& compiler)
 			compiler.add_node(NODE_CONVERT, NODE_CONVERT_IV, in->stack_offset, out->stack_offset);
 	}
 	else if(to == SHADER_SOCKET_FLOAT) {
+		compiler.stack_assign(in);
+		compiler.stack_assign(out);
+
 		if(from == SHADER_SOCKET_COLOR)
 			/* color to float */
 			compiler.add_node(NODE_CONVERT, NODE_CONVERT_CF, in->stack_offset, out->stack_offset);
@@ -1132,6 +1135,9 @@ void ConvertNode::compile(SVMCompiler& compiler)
 			compiler.add_node(NODE_CONVERT, NODE_CONVERT_VF, in->stack_offset, out->stack_offset);
 	}
 	else if(to == SHADER_SOCKET_INT) {
+		compiler.stack_assign(in);
+		compiler.stack_assign(out);
+
 		if(from == SHADER_SOCKET_COLOR)
 			/* color to int */
 			compiler.add_node(NODE_CONVERT, NODE_CONVERT_CI, in->stack_offset, out->stack_offset);
