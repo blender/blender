@@ -30,7 +30,6 @@
  *  \ingroup imbcineon
  */
 
-
 #ifndef __LOG_IMAGE_CORE_H__
 #define __LOG_IMAGE_CORE_H__
 
@@ -53,17 +52,17 @@ enum format {
 
 typedef struct LogImageElement
 {
-	int		  		depth;
-	int		  		bitsPerSample;
-	int		  		dataOffset;
-	int		  		packing;
-	int		  		transfer;
-	int		  		descriptor;
-	unsigned int 	refLowData;
-	unsigned int 	refHighData;
-	float			refLowQuantity;
-	float			refHighQuantity;
-	float			maxValue; /* = 2^bitsPerSample - 1 (used internally, doesn't come from the file header) */
+	int             depth;
+	int             bitsPerSample;
+	int             dataOffset;
+	int             packing;
+	int             transfer;
+	int             descriptor;
+	unsigned int    refLowData;
+	unsigned int    refHighData;
+	float           refLowQuantity;
+	float           refHighQuantity;
+	float           maxValue; /* = 2^bitsPerSample - 1 (used internally, doesn't come from the file header) */
 } LogImageElement;
 
 typedef struct LogImageFile
@@ -80,11 +79,11 @@ typedef struct LogImageFile
 	float referenceWhite;
 	float gamma;
 
-  	/* io stuff */
-	FILE* file;
-	unsigned char* memBuffer;
+	/* io stuff */
+	FILE *file;
+	unsigned char *memBuffer;
 	uintptr_t memBufferSize;
-	unsigned char* memCursor;
+	unsigned char *memCursor;
 
 	/* is the file LSB or MSB ? */
 	int isMSB;
@@ -95,23 +94,23 @@ typedef struct LogImageFile
 
 
 /* The SMPTE defines this code:
-	*  0 - User-defined
-	*  1 - Printing density
-	*  2 - Linear
-	*  3 - Logarithmic
-	*  4 - Unspecified video
-	*  5 - SMPTE 240M
-	*  6 - CCIR 709-1
-	*  7 - CCIR 601-2 system B or G
-	*  8 - CCIR 601-2 system M
-	*  9 - NTSC composite video
-	*  10 - PAL composite video
-	*  11 - Z linear
-	*  12 - homogeneous
-	*
-	* Note that transfer_characteristics is U8, don't need
-	* check the byte order.
-	*/
+ *  0 - User-defined
+ *  1 - Printing density
+ *  2 - Linear
+ *  3 - Logarithmic
+ *  4 - Unspecified video
+ *  5 - SMPTE 240M
+ *  6 - CCIR 709-1
+ *  7 - CCIR 601-2 system B or G
+ *  8 - CCIR 601-2 system M
+ *  9 - NTSC composite video
+ *  10 - PAL composite video
+ *  11 - Z linear
+ *  12 - homogeneous
+ *
+ * Note that transfer_characteristics is U8, don't need
+ * check the byte order.
+ */
 
 enum transfer {
 	transfer_UserDefined,
@@ -130,30 +129,30 @@ enum transfer {
 };
 
 /* The SMPTE defines this code:
-	* 0 - User-defined
-	* 1 - Red
-	* 2 - Green
-	* 3 - Blue
-	* 4 - Alpha
-	* 6 - Luminance
-	* 7 - Chrominance
-	* 8 - Depth
-	* 9 - Composite video
-	* 50 - RGB
-	* 51 - RGBA
-	* 52 - ABGR
-	* 100 - CbYCrY
-	* 101 - CbYACrYA
-	* 102 - CbYCr
-	* 103 - CbYCrA
-	* 150 - User-defined 2-component element
-	* 151 - User-defined 3-component element
-	* 152 - User-defined 4-component element
-	* 153 - User-defined 5-component element
-	* 154 - User-defined 6-component element
-	* 155 - User-defined 7-component element
-	* 156 - User-defined 8-component element
-	*/
+ * 0 - User-defined
+ * 1 - Red
+ * 2 - Green
+ * 3 - Blue
+ * 4 - Alpha
+ * 6 - Luminance
+ * 7 - Chrominance
+ * 8 - Depth
+ * 9 - Composite video
+ * 50 - RGB
+ * 51 - RGBA
+ * 52 - ABGR
+ * 100 - CbYCrY
+ * 101 - CbYACrYA
+ * 102 - CbYCr
+ * 103 - CbYCrA
+ * 150 - User-defined 2-component element
+ * 151 - User-defined 3-component element
+ * 152 - User-defined 4-component element
+ * 153 - User-defined 5-component element
+ * 154 - User-defined 6-component element
+ * 155 - User-defined 7-component element
+ * 156 - User-defined 8-component element
+ */
 
 enum descriptor {
 	descriptor_UserDefined,
@@ -161,18 +160,18 @@ enum descriptor {
 	descriptor_Green,
 	descriptor_Blue,
 	descriptor_Alpha,
-	descriptor_Luminance		= 6, /* don't ask me why there's no 5 */
+	descriptor_Luminance        = 6, /* don't ask me why there's no 5 */
 	descriptor_Chrominance,
 	descriptor_Depth,
 	descriptor_Composite,
-	descriptor_RGB				= 50,
+	descriptor_RGB              = 50,
 	descriptor_RGBA,
 	descriptor_ABGR,
-	descriptor_CbYCrY			= 100,
+	descriptor_CbYCrY           = 100,
 	descriptor_CbYACrYA,
 	descriptor_CbYCr,
 	descriptor_CbYCrA,
-	descriptor_UserDefined2Elt	= 150,
+	descriptor_UserDefined2Elt  = 150,
 	descriptor_UserDefined3Elt,
 	descriptor_UserDefined4Elt,
 	descriptor_UserDefined5Elt,
@@ -186,18 +185,20 @@ enum descriptor {
 /* int functions return 0 for OK */
 
 void logImageSetVerbose(int verbosity);
-int logImageIsDpx(const void* buffer);
-int logImageIsCineon(const void* buffer);
-LogImageFile* logImageOpenFromMemory(const unsigned char *buffer, unsigned int size);
-LogImageFile* logImageOpenFromFile(const char *filename, int cineon);
+int logImageIsDpx(const void *buffer);
+int logImageIsCineon(const void *buffer);
+LogImageFile *logImageOpenFromMemory(const unsigned char *buffer, unsigned int size);
+LogImageFile *logImageOpenFromFile(const char *filename, int cineon);
 void logImageGetSize(LogImageFile *logImage, int *width, int *height, int *depth);
-LogImageFile* logImageCreate(const char *filename, int cineon, int width, int height, int bitsPerSample, int isLogarithmic, int hasAlpha, int referenceWhite, int referenceBlack, float gamma, const char* creator);
-void logImageClose(LogImageFile* logImage);
+LogImageFile *logImageCreate(const char *filename, int cineon, int width, int height, int bitsPerSample,
+                             int isLogarithmic, int hasAlpha, int referenceWhite, int referenceBlack,
+                             float gamma, const char *creator);
+void logImageClose(LogImageFile *logImage);
 
 /* Data handling */
 unsigned int getRowLength(int width, LogImageElement logElement);
-int logImageSetDataRGBA(LogImageFile *logImage,float *data, int dataIsLinearRGB);
-int logImageGetDataRGBA(LogImageFile *logImage, float* data, int dataIsLinearRGB);
+int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB);
+int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB);
 
 /* Endianness conversion */
 inline unsigned short swap_ushort(unsigned short x, int swap);
@@ -214,4 +215,4 @@ inline unsigned int float_uint(float value, unsigned int max);
 }
 #endif
 
-#endif
+#endif  /* __LOG_IMAGE_CORE_H__ */

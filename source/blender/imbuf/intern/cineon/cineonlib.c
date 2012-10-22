@@ -132,8 +132,8 @@ static void fillCineonMainHeader(LogImageFile *cineon, CineonMainHeader *header,
 LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize)
 {
 	CineonMainHeader header;
-	LogImageFile *cineon = (LogImageFile*)MEM_mallocN(sizeof(LogImageFile), __func__);
-	char *filename = (char*)byteStuff;
+	LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
+	char *filename = (char *)byteStuff;
 	int i;
 	unsigned int dataOffset;
 
@@ -160,9 +160,10 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 		cineon->memBuffer = 0;
 		cineon->memCursor = 0;
 		cineon->memBufferSize = 0;
-	} else {
-		cineon->memBuffer = (unsigned char*)byteStuff;
-		cineon->memCursor = (unsigned char*)byteStuff;
+	}
+	else {
+		cineon->memBuffer = (unsigned char *)byteStuff;
+		cineon->memCursor = (unsigned char *)byteStuff;
 		cineon->memBufferSize = bufferSize;
 	}
 
@@ -176,12 +177,14 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 	if (header.fileHeader.magic_num == swap_uint(CINEON_FILE_MAGIC, 1)) {
 		cineon->isMSB = 1;
 		if (verbose) printf("Cineon: File is MSB.\n");
-	} else if (header.fileHeader.magic_num == CINEON_FILE_MAGIC) {
+	}
+	else if (header.fileHeader.magic_num == CINEON_FILE_MAGIC) {
 		cineon->isMSB = 0;
 		if (verbose) printf("Cineon: File is LSB.\n");
-	} else {
+	}
+	else {
 		if (verbose) printf("Cineon: Bad magic number %lu in \"%s\".\n",
-		                    (uintptr_t)header.fileHeader.magic_num, byteStuff);
+			                (uintptr_t)header.fileHeader.magic_num, byteStuff);
 		logImageClose(cineon);
 		return 0;
 	}
@@ -314,7 +317,7 @@ LogImageFile *cineonCreate(const char *filename, int width, int height, int bits
 	const char *shortFilename = 0;
 	/* unsigned char pad[6044]; */
 
-	LogImageFile *cineon = (LogImageFile*)MEM_mallocN(sizeof(LogImageFile), __func__);
+	LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
 	if (cineon == 0) {
 		if (verbose) printf("cineon: Failed to malloc cineon file structure.\n");
 		return 0;

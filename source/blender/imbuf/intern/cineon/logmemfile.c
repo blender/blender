@@ -42,11 +42,13 @@ int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
 			if (offset > logFile->memBufferSize)
 				return 1;
 			logFile->memCursor = logFile->memBuffer + offset;
-		} else if (origin == SEEK_END) {
+		}
+		else if (origin == SEEK_END) {
 			if (offset > logFile->memBufferSize)
 				return 1;
 			logFile->memCursor = (logFile->memBuffer + logFile->memBufferSize) - offset;
-		} else if (origin == SEEK_CUR) {
+		}
+		else if (origin == SEEK_CUR) {
 			uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
 			if (pos + offset > logFile->memBufferSize || pos < 0)
 				return 1;
@@ -57,12 +59,12 @@ int logimage_fseek(LogImageFile *logFile, intptr_t offset, int origin)
 	return 0;
 }
 
-int logimage_fwrite(void *buffer, size_t size, unsigned int count, LogImageFile* logFile)
+int logimage_fwrite(void *buffer, size_t size, unsigned int count, LogImageFile *logFile)
 {
 	if (logFile->file)
 		return fwrite(buffer, size, count, logFile->file);
-	else { /*we're writing to memory*/
-		/*do nothing as this isn't supported yet*/
+	else { /* we're writing to memory */
+		/* do nothing as this isn't supported yet */
 		return count;
 	}
 }
@@ -73,7 +75,7 @@ int logimage_fread(void *buffer, size_t size, unsigned int count, LogImageFile *
 		return fread(buffer, size, count, logFile->file);
 	}
 	else { /* we're reading from memory */
-		unsigned char *buf = (unsigned char*)buffer;
+		unsigned char *buf = (unsigned char *)buffer;
 		uintptr_t pos = (uintptr_t)logFile->memCursor - (uintptr_t)logFile->memBuffer;
 		size_t total_size = size * count;
 		if (pos + total_size > logFile->memBufferSize) {
@@ -96,7 +98,7 @@ int logimage_read_uchar(unsigned char *x, LogImageFile *logFile)
 	if (pos + sizeof(unsigned char) > logFile->memBufferSize)
 		return 1;
 
-	*x = *(unsigned char*)logFile->memCursor;
+	*x = *(unsigned char *)logFile->memCursor;
 	logFile->memCursor += sizeof(unsigned char);
 	return 0;
 }
@@ -107,7 +109,7 @@ int logimage_read_ushort(unsigned short *x, LogImageFile *logFile)
 	if (pos + sizeof(unsigned short) > logFile->memBufferSize)
 		return 1;
 
-	*x = *(unsigned short*)logFile->memCursor;
+	*x = *(unsigned short *)logFile->memCursor;
 	logFile->memCursor += sizeof(unsigned short);
 	return 0;
 }
@@ -118,7 +120,7 @@ int logimage_read_uint(unsigned int *x, LogImageFile *logFile)
 	if (pos + sizeof(unsigned int) > logFile->memBufferSize)
 		return 1;
 
-	*x = *(unsigned int*)logFile->memCursor;
+	*x = *(unsigned int *)logFile->memCursor;
 	logFile->memCursor += sizeof(unsigned int);
 	return 0;
 }

@@ -79,13 +79,13 @@ void logImageSetVerbose(int verbosity)
 
 int logImageIsDpx(const void *buffer)
 {
-	unsigned int magicNum = *(unsigned int*)buffer;
+	unsigned int magicNum = *(unsigned int *)buffer;
 	return (magicNum == DPX_FILE_MAGIC || magicNum == swap_uint(DPX_FILE_MAGIC, 1));
 }
 
 int logImageIsCineon(const void *buffer)
 {
-	unsigned int magicNum = *(unsigned int*)buffer;
+	unsigned int magicNum = *(unsigned int *)buffer;
 	return (magicNum == CINEON_FILE_MAGIC || magicNum == swap_uint(CINEON_FILE_MAGIC, 1));
 }
 
@@ -114,7 +114,7 @@ LogImageFile *logImageOpenFromFile(const char *filename, int cineon)
 	return 0;
 }
 
-LogImageFile*logImageOpenFromMemory(const unsigned char *buffer, unsigned int size)
+LogImageFile *logImageOpenFromMemory(const unsigned char *buffer, unsigned int size)
 {
 	if (logImageIsDpx(buffer))
 		return dpxOpen(buffer, 1, size);
@@ -201,7 +201,7 @@ int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 	float *elementData;
 	int returnValue;
 
-	elementData = (float*)MEM_mallocN(logImage->width * logImage->height * logImage->depth * sizeof(float), __func__);
+	elementData = (float *)MEM_mallocN(logImage->width * logImage->height * logImage->depth * sizeof(float), __func__);
 	if (elementData == 0)
 		return 1;
 
@@ -242,7 +242,7 @@ static int logImageSetData8(LogImageFile *logImage, LogImageElement logElement, 
 	unsigned char *row;
 	int x, y;
 
-	row = (unsigned char*)MEM_mallocN(rowLength, __func__);
+	row = (unsigned char *)MEM_mallocN(rowLength, __func__);
 	if (row == 0) {
 		if (verbose) printf("DPX/Cineon: Cannot allocate row.\n");
 		return 1;
@@ -270,7 +270,7 @@ static int logImageSetData10(LogImageFile *logImage, LogImageElement logElement,
 	unsigned int *row;
 	int x, y, offset;
 
-	row = (unsigned int*)MEM_mallocN(rowLength, __func__);
+	row = (unsigned int *)MEM_mallocN(rowLength, __func__);
 	if (row == 0) {
 		if (verbose) printf("DPX/Cineon: Cannot allocate row.\n");
 		return 1;
@@ -311,7 +311,7 @@ static int logImageSetData12(LogImageFile *logImage, LogImageElement logElement,
 	unsigned short *row;
 	int x, y;
 
-	row = (unsigned short*)MEM_mallocN(rowLength, __func__);
+	row = (unsigned short *)MEM_mallocN(rowLength, __func__);
 	if (row == 0) {
 		if (verbose) printf("DPX/Cineon: Cannot allocate row.\n");
 		return 1;
@@ -337,7 +337,7 @@ static int logImageSetData16(LogImageFile *logImage, LogImageElement logElement,
 	unsigned short *row;
 	int x, y;
 
-	row = (unsigned short*)MEM_mallocN(rowLength, __func__);
+	row = (unsigned short *)MEM_mallocN(rowLength, __func__);
 	if (row == 0) {
 		if (verbose) printf("DPX/Cineon: Cannot allocate row.\n");
 		return 1;
@@ -374,14 +374,14 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 
 	/* Determine the depth of the picture and if there's a separate alpha element.
 	   If the element is supported, load it into an unsigned ints array. */
-	memset(&elementData, 0, 8 * sizeof(float*));
+	memset(&elementData, 0, 8 * sizeof(float *));
 	hasAlpha = 0;
 
 	for (i = 0; i < logImage->numElements; i++) {
 		/* descriptor_Depth and descriptor_Composite are not supported */
 		if (logImage->element[i].descriptor != descriptor_Depth && logImage->element[i].descriptor != descriptor_Composite) {
 			/* Allocate memory */
-			elementData[i] = (float*)MEM_mallocN(logImage->width * logImage->height * logImage->element[i].depth * sizeof(float), __func__);
+			elementData[i] = (float *)MEM_mallocN(logImage->width * logImage->height * logImage->element[i].depth * sizeof(float), __func__);
 			if (elementData[i] == 0) {
 				if (verbose) printf("DPX/Cineon: Cannot allocate memory for elementData[%d]\n.", i);
 				for (j = 0; j < i; j++)
@@ -409,7 +409,8 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 	if (logImage->numElements == 1) {
 		returnValue = convertLogElementToRGBA(elementData[0], data, logImage, logImage->element[0], dataIsLinearRGB);
 		MEM_freeN(elementData[0]);
-	} else {
+	}
+	else {
 		/* The goal here is to merge every elements into only one
 		 * to recreate a classic 16 bits RGB, RGBA or YCbCr element.
 		 * Unsupported elements are skipped (depth, composite) */
@@ -421,7 +422,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 
 		/* Try to know how to assemble the elements */
 		for (i = 0; i < logImage->numElements; i++) {
-		   switch(logImage->element[i].descriptor) {
+			switch (logImage->element[i].descriptor) {
 				case descriptor_Red:
 				case descriptor_RGB:
 					if (hasAlpha == 0)
@@ -528,7 +529,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
 			}
 		}
 
-		mergedData = (float*)MEM_mallocN(logImage->width * logImage->height * mergedElement.depth * sizeof(float), __func__);
+		mergedData = (float *)MEM_mallocN(logImage->width * logImage->height * mergedElement.depth * sizeof(float), __func__);
 		if (mergedData == 0) {
 			if (verbose) printf("DPX/Cineon: Cannot allocate mergedData.\n");
 			for (i = 0; i < logImage->numElements; i++)
@@ -668,7 +669,8 @@ static int logImageElementGetData10(LogImageFile *logImage, LogImageElement logE
 				offset += 10;
 			}
 		}
-	} else {
+	}
+	else {
 		for (y = 0; y < logImage->height; y++) {
 			offset = -1;
 			for (x = 0; x < logImage->width * logElement.depth; x++) {
@@ -717,9 +719,11 @@ static int logImageElementGetData10Packed(LogImageFile *logImage, LogImageElemen
 				offset = 10 - offset2;
 				offset2 = 0;
 				oldPixel = 0;
-			} else if (offset == 32) {
+			}
+			else if (offset == 32) {
 				offset = 0;
-			} else if (offset + 10 > 32) {
+			}
+			else if (offset + 10 > 32) {
 				/* next pixel is on two different longs */
 				oldPixel = (pixel >> offset);
 				offset2 = 32 - offset;
@@ -794,9 +798,11 @@ static int logImageElementGetData12Packed(LogImageFile *logImage, LogImageElemen
 				offset = 12 - offset2;
 				offset2 = 0;
 				oldPixel = 0;
-			} else if (offset == 32) {
+			}
+			else if (offset == 32) {
 				offset = 0;
-			} else if (offset + 12 > 32) {
+			}
+			else if (offset + 12 > 32) {
 				/* next pixel is on two different longs */
 				oldPixel = (pixel >> offset);
 				offset2 = 32 - offset;
@@ -1005,9 +1011,9 @@ static int convertRGBA_RGB(float *src, float *dst, LogImageFile *logImage,
 
 		case transfer_PrintingDensity:
 			if (elementIsSource == 1)
-				getLogToLinLut((float*)&lut, logImage, logElement);
+				getLogToLinLut((float *)&lut, logImage, logElement);
 			else
-				getLinToLogLut((float*)&lut, logImage, logElement);
+				getLinToLogLut((float *)&lut, logImage, logElement);
 
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
@@ -1030,7 +1036,7 @@ static int convertRGB_RGBA(float *src, float *dst, LogImageFile *logImage,
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
-	switch(logElement.transfer) {
+	switch (logElement.transfer) {
 		case transfer_UserDefined:
 		case transfer_Linear:
 		case transfer_Logarithmic:
@@ -1044,9 +1050,9 @@ static int convertRGB_RGBA(float *src, float *dst, LogImageFile *logImage,
 
 		case transfer_PrintingDensity:
 			if (elementIsSource == 1)
-				getLogToLinLut((float*)&lut, logImage, logElement);
+				getLogToLinLut((float *)&lut, logImage, logElement);
 			else
-				getLinToLogLut((float*)&lut, logImage, logElement);
+				getLinToLogLut((float *)&lut, logImage, logElement);
 
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
@@ -1078,9 +1084,9 @@ static int convertRGBA_RGBA(float *src, float *dst, LogImageFile *logImage,
 
 		case transfer_PrintingDensity:
 			if (elementIsSource == 1)
-				getLogToLinLut((float*)&lut, logImage, logElement);
+				getLogToLinLut((float *)&lut, logImage, logElement);
 			else
-				getLinToLogLut((float*)&lut, logImage, logElement);
+				getLinToLogLut((float *)&lut, logImage, logElement);
 
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				*(dst_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
@@ -1119,9 +1125,9 @@ static int convertABGR_RGBA(float *src, float *dst, LogImageFile *logImage,
 
 		case transfer_PrintingDensity:
 			if (elementIsSource == 1)
-				getLogToLinLut((float*)&lut, logImage, logElement);
+				getLogToLinLut((float *)&lut, logImage, logElement);
 			else
-				getLinToLogLut((float*)&lut, logImage, logElement);
+				getLinToLogLut((float *)&lut, logImage, logElement);
 
 			for (i = 0; i < logImage->width * logImage->height; i++) {
 				src_ptr += 4;
@@ -1145,7 +1151,7 @@ static int convertCbYCr_RGBA(float *src, float *dst, LogImageFile *logImage, Log
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
-	if (getYUVtoRGBMatrix((float*)&conversionMatrix, logElement) != 0)
+	if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0)
 		return 1;
 
 	refLowData = (float)logElement.refLowData / logElement.maxValue;
@@ -1170,7 +1176,7 @@ static int convertCbYCrA_RGBA(float *src, float *dst, LogImageFile *logImage, Lo
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
-	if (getYUVtoRGBMatrix((float*)&conversionMatrix, logElement) != 0)
+	if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0)
 		return 1;
 
 	refLowData = (float)logElement.refLowData / logElement.maxValue;
@@ -1196,7 +1202,7 @@ static int convertCbYCrY_RGBA(float *src, float *dst, LogImageFile *logImage, Lo
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
-	if (getYUVtoRGBMatrix((float*)&conversionMatrix, logElement) != 0)
+	if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0)
 		return 1;
 
 	refLowData = (float)logElement.refLowData / logElement.maxValue;
@@ -1226,7 +1232,7 @@ static int convertCbYACrYA_RGBA(float *src, float *dst, LogImageFile *logImage, 
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
-	if (getYUVtoRGBMatrix((float*)&conversionMatrix, logElement) != 0)
+	if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0)
 		return 1;
 
 	refLowData = (float)logElement.refLowData / logElement.maxValue;
@@ -1258,7 +1264,7 @@ static int convertLuminance_RGBA(float *src, float *dst, LogImageFile *logImage,
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
-	if (getYUVtoRGBMatrix((float*)&conversionMatrix, logElement) != 0)
+	if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0)
 		return 1;
 
 	refLowData = (float)logElement.refLowData / logElement.maxValue;
@@ -1280,7 +1286,7 @@ static int convertYA_RGBA(float *src, float *dst, LogImageFile *logImage, LogIma
 	float *src_ptr = src;
 	float *dst_ptr = dst;
 
-	if (getYUVtoRGBMatrix((float*)&conversionMatrix, logElement) != 0)
+	if (getYUVtoRGBMatrix((float *)&conversionMatrix, logElement) != 0)
 		return 1;
 
 	refLowData = (float)logElement.refLowData / logElement.maxValue;
@@ -1350,7 +1356,7 @@ static int convertLogElementToRGBA(float *src, float *dst, LogImageFile *logImag
 		return 1;
 	else if (dstIsLinearRGB) {
 		/* convert data from sRGB to Linear RGB via lut */
-		getSrgbToLinLut((float*)&lut, logElement);
+		getSrgbToLinLut((float *)&lut, logElement);
 		src_ptr = dst; // no error here
 		dst_ptr = dst;
 		for (i = 0; i < logImage->width * logImage->height; i++) {
@@ -1375,7 +1381,7 @@ static int convertRGBAToLogElement(float *src, float *dst, LogImageFile *logImag
 
 	if (srcIsLinearRGB != 0) {
 		/* we need to convert src to sRGB */
-		srgbSrc = (float*)MEM_mallocN(4 * logImage->width * logImage->height * sizeof(float), __func__);
+		srgbSrc = (float *)MEM_mallocN(4 * logImage->width * logImage->height * sizeof(float), __func__);
 		if (srgbSrc == 0)
 			return 1;
 
@@ -1383,14 +1389,15 @@ static int convertRGBAToLogElement(float *src, float *dst, LogImageFile *logImag
 		srgbSrc_ptr = srgbSrc;
 
 		/* convert data from Linear RGB to sRGB via lut */
-		getLinToSrgbLut((float*)&lut, logElement);
+		getLinToSrgbLut((float *)&lut, logElement);
 		for (i = 0; i < logImage->width * logImage->height; i++) {
 			*(srgbSrc_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 			*(srgbSrc_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 			*(srgbSrc_ptr++) = lut[float_uint(*(src_ptr++), logElement.maxValue)];
 			srgbSrc_ptr++; src_ptr++;
 		}
-	} else
+	}
+	else
 		srgbSrc = src;
 
 	/* Convert linear RGBA data in src to format described by logElement in dst */
@@ -1437,7 +1444,7 @@ inline unsigned short swap_ushort(unsigned short x, int swap)
 inline unsigned int swap_uint(unsigned int x, int swap)
 {
 	if (swap != 0)
-		return (x >> 24) | (( x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
+		return (x >> 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x << 24);
 	else
 		return x;
 }
@@ -1445,8 +1452,7 @@ inline unsigned int swap_uint(unsigned int x, int swap)
 inline float swap_float(float x, int swap)
 {
 	if (swap != 0) {
-		union
-		{
+		union {
 			float f;
 			unsigned char b[4];
 		} dat1, dat2;
@@ -1457,7 +1463,8 @@ inline float swap_float(float x, int swap)
 		dat2.b[2] = dat1.b[1];
 		dat2.b[3] = dat1.b[0];
 		return dat2.f;
-	} else
+	}
+	else
 		return x;
 }
 

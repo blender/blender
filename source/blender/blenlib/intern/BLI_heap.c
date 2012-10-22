@@ -84,10 +84,13 @@ BLI_INLINE void heap_swap(Heap *heap, const unsigned int i, const unsigned int j
 
 static void heap_down(Heap *heap, unsigned int i)
 {
+	/* size won't change in the loop */
+	const unsigned int size = heap->size;
+
 	while (1) {
-		unsigned int size = heap->size,smallest ;
-		unsigned int l = HEAP_LEFT(i);
-		unsigned int r = HEAP_RIGHT(i);
+		const unsigned int l = HEAP_LEFT(i);
+		const unsigned int r = HEAP_RIGHT(i);
+		unsigned int smallest;
 
 		smallest = ((l < size) && HEAP_COMPARE(heap->tree[l], heap->tree[i])) ? l : i;
 
@@ -105,7 +108,7 @@ static void heap_down(Heap *heap, unsigned int i)
 static void heap_up(Heap *heap, unsigned int i)
 {
 	while (i > 0) {
-		unsigned int p = HEAP_PARENT(i);
+		const unsigned int p = HEAP_PARENT(i);
 
 		if (HEAP_COMPARE(heap->tree[p], heap->tree[i]))
 			break;
@@ -139,9 +142,11 @@ void BLI_heap_free(Heap *heap, HeapFreeFP ptrfreefp)
 {
 	unsigned int i;
 
-	if (ptrfreefp)
-		for (i = 0; i < heap->size; i++)
+	if (ptrfreefp) {
+		for (i = 0; i < heap->size; i++) {
 			ptrfreefp(heap->tree[i]->ptr);
+		}
+	}
 
 	MEM_freeN(heap->tree);
 	BLI_memarena_free(heap->arena);

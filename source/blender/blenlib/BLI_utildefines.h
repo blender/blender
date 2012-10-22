@@ -109,9 +109,7 @@
 #define CHECK_TYPE_INLINE(val, type) \
 	((void)(((type *)0) != (val)))
 
-
-#ifndef SWAP
-#  define SWAP(type, a, b)  {  \
+#define SWAP(type, a, b)  {  \
 	type sw_ap;                \
 	CHECK_TYPE(a, type);       \
 	CHECK_TYPE(b, type);       \
@@ -119,7 +117,6 @@
 	(a) = (b);                 \
 	(b) = sw_ap;               \
 } (void)0
-#endif
 
 /* swap with a temp value */
 #define SWAP_TVAL(tval, a, b)  {  \

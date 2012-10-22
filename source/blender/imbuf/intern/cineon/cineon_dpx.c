@@ -59,7 +59,7 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, size_t size, int us
 
 	colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
 
-	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
+	logImageSetVerbose((G.f & G_DEBUG) ? 1 : 0);
 
 	image = logImageOpenFromMemory(mem, size);
 
@@ -111,7 +111,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		return 0;
 	}
 	
-	logImageSetVerbose((G.f & G_DEBUG) ? 1:0);
+	logImageSetVerbose((G.f & G_DEBUG) ? 1 : 0);
 
 	depth = (ibuf->planes + 7) >> 3;
 	if (depth > 4 || depth < 3) {
@@ -142,11 +142,12 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		IMB_flipy(ibuf);
 		rvalue = (logImageSetDataRGBA(logImage, ibuf->rect_float, 1) == 0);
 		IMB_flipy(ibuf);
-	} else {
+	}
+	else {
 		if (ibuf->rect == 0)
 			IMB_rect_from_float(ibuf);
 
-		fbuf = (float*)MEM_mallocN(ibuf->x * ibuf->y * 4 * sizeof(float), "fbuf in imb_save_dpx_cineon");
+		fbuf = (float *)MEM_mallocN(ibuf->x * ibuf->y * 4 * sizeof(float), "fbuf in imb_save_dpx_cineon");
 		if (fbuf == 0) {
 			printf("DPX/Cineon: error allocating memory.\n");
 			logImageClose(logImage);
@@ -155,7 +156,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 		for (y = 0; y < ibuf->y; y++) {
 			for (x = 0; x < ibuf->x; x++) {
 				fbuf_ptr = fbuf + 4 * ((ibuf->y - y - 1) * ibuf->x + x);
-				rect_ptr = (unsigned char*)ibuf->rect + 4 * (y * ibuf->x + x);
+				rect_ptr = (unsigned char *)ibuf->rect + 4 * (y * ibuf->x + x);
 				fbuf_ptr[0] = (float)rect_ptr[0] / 255.0f;
 				fbuf_ptr[1] = (float)rect_ptr[1] / 255.0f;
 				fbuf_ptr[2] = (float)rect_ptr[2] / 255.0f;

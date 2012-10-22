@@ -131,8 +131,8 @@ static void fillDpxMainHeader(LogImageFile *dpx, DpxMainHeader *header, const ch
 LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize)
 {
 	DpxMainHeader header;
-	LogImageFile *dpx = (LogImageFile*)MEM_mallocN(sizeof(LogImageFile), __func__);
-	char *filename = (char*)byteStuff;
+	LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
+	char *filename = (char *)byteStuff;
 	int i;
 
 	if (dpx == 0) {
@@ -158,9 +158,10 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 		dpx->memBuffer = 0;
 		dpx->memCursor = 0;
 		dpx->memBufferSize = 0;
-	} else {
-		dpx->memBuffer = (unsigned char*)byteStuff;
-		dpx->memCursor = (unsigned char*)byteStuff;
+	}
+	else {
+		dpx->memBuffer = (unsigned char *)byteStuff;
+		dpx->memCursor = (unsigned char *)byteStuff;
 		dpx->memBufferSize = bufferSize;
 	}
 
@@ -174,10 +175,12 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 	if (header.fileHeader.magic_num == swap_uint(DPX_FILE_MAGIC, 1)) {
 		dpx->isMSB = 1;
 		if (verbose) printf("DPX: File is MSB.\n");
-	} else if (header.fileHeader.magic_num == DPX_FILE_MAGIC) {
+	}
+	else if (header.fileHeader.magic_num == DPX_FILE_MAGIC) {
 		dpx->isMSB = 0;
 		if (verbose) printf("DPX: File is LSB.\n");
-	} else {
+	}
+	else {
 		if (verbose) printf("DPX: Bad magic number %lu in \"%s\".\n",
 		                    (uintptr_t)header.fileHeader.magic_num, byteStuff);
 		logImageClose(dpx);
@@ -272,10 +275,10 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 				if (dpx->element[i].refHighData == DPX_UNDEFINED_U32 || isnan(dpx->element[i].refHighData))
 					dpx->element[i].refHighData = (unsigned int)dpx->element[i].maxValue;
 
-				if(dpx->element[i].refLowQuantity == DPX_UNDEFINED_R32 || isnan(dpx->element[i].refLowQuantity))
+				if (dpx->element[i].refLowQuantity == DPX_UNDEFINED_R32 || isnan(dpx->element[i].refLowQuantity))
 					dpx->element[i].refLowQuantity = 0.0f;
 
-				if(dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 || isnan(dpx->element[i].refHighQuantity)) {
+				if (dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 || isnan(dpx->element[i].refHighQuantity)) {
 					if (dpx->element[i].transfer == transfer_PrintingDensity || dpx->element[i].transfer == transfer_Logarithmic)
 						dpx->element[i].refHighQuantity = 2.048f;
 					else
@@ -296,10 +299,10 @@ LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t buf
 				if (dpx->element[i].refHighData == DPX_UNDEFINED_U32 || isnan(dpx->element[i].refHighData))
 					dpx->element[i].refHighData = 235.0f / 255.0f * dpx->element[i].maxValue;
 
-				if(dpx->element[i].refLowQuantity == DPX_UNDEFINED_R32 || isnan(dpx->element[i].refLowQuantity))
+				if (dpx->element[i].refLowQuantity == DPX_UNDEFINED_R32 || isnan(dpx->element[i].refLowQuantity))
 					dpx->element[i].refLowQuantity = 0.0f;
 
-				if(dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 || isnan(dpx->element[i].refHighQuantity))
+				if (dpx->element[i].refHighQuantity == DPX_UNDEFINED_R32 || isnan(dpx->element[i].refHighQuantity))
 					dpx->element[i].refHighQuantity = 0.7f;
 
 				break;
@@ -356,7 +359,7 @@ LogImageFile *dpxCreate(const char *filename, int width, int height, int bitsPer
 	const char *shortFilename = 0;
 	unsigned char pad[6044];
 
-	LogImageFile *dpx = (LogImageFile*)MEM_mallocN(sizeof(LogImageFile), __func__);
+	LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
 	if (dpx == 0) {
 		if (verbose) printf("DPX: Failed to malloc dpx file structure.\n");
 		return 0;
