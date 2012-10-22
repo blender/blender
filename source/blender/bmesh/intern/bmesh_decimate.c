@@ -496,6 +496,18 @@ static int bm_edge_tag_test(BMEdge *e)
 	        );
 }
 
+/* takes the edges loop */
+BLI_INLINE int bm_edge_is_manifold_or_boundary(BMLoop *l)
+{
+#if 0
+	/* less optimized version of check below */
+	return (BM_edge_is_manifold(l->e) || BM_edge_is_boundary(l->e);
+#else
+	/* if the edge is a boundary it points to its self, else this must be a manifold */
+	return LIKELY(l) && LIKELY(l->radial_next->radial_next == l);
+#endif
+}
+
 static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
 {
 	/* simply check that there is no overlap between faces and edges of each vert,
@@ -506,7 +518,7 @@ static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
 	/* clear flags on both disks */
 	e_iter = e_first;
 	do {
-		if (!(BM_edge_is_manifold(e_iter) || BM_edge_is_boundary(e_iter))) {
+		if (!bm_edge_is_manifold_or_boundary(e_iter->l)) {
 			return TRUE;
 		}
 		bm_edge_tag_disable(e_iter);
@@ -514,7 +526,7 @@ static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
 
 	e_iter = e_first;
 	do {
-		if (!(BM_edge_is_manifold(e_iter) || BM_edge_is_boundary(e_iter))) {
+		if (!bm_edge_is_manifold_or_boundary(e_iter->l)) {
 			return TRUE;
 		}
 		bm_edge_tag_disable(e_iter);
