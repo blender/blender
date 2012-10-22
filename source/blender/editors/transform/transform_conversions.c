@@ -76,6 +76,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
 #include "BKE_nla.h"
@@ -2359,6 +2360,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = CTX_data_edit_image(C);
 	Scene *scene = t->scene;
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	MTexPoly *tf;
@@ -2367,12 +2369,25 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	int count = 0, countsel = 0;
+	UvElementMap *elementmap;
+	char *island_enabled;
+	int count = 0, countsel = 0, count_rejected = 0;
 	int propmode = t->flag & T_PROP_EDIT;
+	int propconnected = t->flag & T_PROP_CONNECTED;
 
 	if (!ED_space_image_show_uvedit(sima, t->obedit)) return;
 
 	/* count */
+	if(propconnected) {
+		/* create element map with island information */
+		if (ts->uv_flag & UV_SYNC_SELECTION) {
+			elementmap = EDBM_uv_element_map_create (em, FALSE, TRUE);
+		} else {
+			elementmap = EDBM_uv_element_map_create (em, TRUE, TRUE);
+		}
+		island_enabled = MEM_callocN(sizeof(*island_enabled) * elementmap->totalIslands, "TransIslandData(UV Editing)");
+	}
+
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
@@ -2380,14 +2395,22 @@ static void createTransUVs(bContext *C, TransInfo *t)
 			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			continue;
 		}
-		
+
 		BM_elem_flag_enable(efa, BM_ELEM_TAG);
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_select_test(em, scene, l)) 
+			if (uvedit_uv_select_test(em, scene, l)) {
 				countsel++;
 
-			if (propmode)
+				if(propconnected) {
+					UvElement *element = ED_uv_element_get(elementmap, efa, l);
+					island_enabled[element->island] = TRUE;
+				}
+
+			}
+
+			if (propmode) {
 				count++;
+			}
 		}
 	}
 
@@ -2413,10 +2436,24 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (!propmode && !uvedit_uv_select_test(em, scene, l))
 				continue;
+
+			if (propconnected) {
+				UvElement *element = ED_uv_element_get(elementmap, efa, l);
+				if (!island_enabled[element->island]) {
+					count_rejected++;
+					continue;
+				}
+			}
 			
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			UVsToTransData(sima, td++, td2d++, luv->uv, uvedit_uv_select_test(em, scene, l));
 		}
+	}
+
+	if (propconnected) {
+		t->total -= count_rejected;
+		EDBM_uv_element_map_free(elementmap);
+		MEM_freeN(island_enabled);
 	}
 
 	if (sima->flag & SI_LIVE_UNWRAP)
