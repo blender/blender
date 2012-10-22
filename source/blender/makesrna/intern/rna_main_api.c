@@ -247,7 +247,7 @@ static Mesh *rna_Main_meshes_new(Main *UNUSED(bmain), const char *name)
 	id_us_min(&me->id);
 	return me;
 }
-void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
+static void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 {
 	if (ID_REAL_USERS(mesh) <= 0)
 		BKE_libblock_free(&bmain->mesh, mesh);

@@ -314,7 +314,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 	}
 }
 
-void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
+static void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
 {
 	do_colorband(coba, position, color);
 }

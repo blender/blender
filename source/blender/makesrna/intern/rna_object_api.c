@@ -74,7 +74,7 @@
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
-Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
+static Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
@@ -340,7 +340,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 		dupli_render_particle_set(scene, go->ob, level + 1, enable);
 }
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
-void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, int settings)
+static void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, int settings)
 {
 	int for_render = settings == eModifierMode_Render;
 
@@ -364,7 +364,7 @@ void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce, in
 	/* ob->duplilist should now be freed with Object.free_duplilist */
 }
 
-void rna_Object_free_duplilist(Object *ob)
+static void rna_Object_free_duplilist(Object *ob)
 {
 	if (ob->duplilist) {
 		free_object_duplilist(ob->duplilist);
@@ -522,12 +522,12 @@ static void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
 	base->lay = base->object->lay = v3d->lay;
 }
 
-int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
+static int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 {
 	return BKE_object_is_modified(scene, ob) & settings;
 }
 
-int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
+static int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
 {
 	return BKE_object_is_deform_modified(scene, ob) & settings;
 }
