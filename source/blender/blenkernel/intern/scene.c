@@ -1117,6 +1117,11 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
 
+	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
+	 * when trying to find materials with drivers that need evaluating [#32017] 
+	 */
+	tag_main_idcode(bmain, ID_MA, FALSE);
+
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);
 
