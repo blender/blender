@@ -250,14 +250,6 @@ void accumulate_vertex_normals_poly(float **vertnos, float polyno[3],
 
 /********************************* Tangents **********************************/
 
-typedef struct VertexTangent {
-	struct VertexTangent *next;
-	float tang[3], uv[2];
-} VertexTangent;
-
-float *find_vertex_tangent(VertexTangent *vtang, const float uv[2]);
-void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang,
-                               const float tang[3], const float uv[2]);
 void tangent_from_uv(float uv1[2], float uv2[2], float uv3[2],
                      float co1[3], float co2[3], float co3[3], float n[3], float tang[3]);
 

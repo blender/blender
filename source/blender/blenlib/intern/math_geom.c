@@ -2691,50 +2691,6 @@ void accumulate_vertex_normals_poly(float **vertnos, float polyno[3],
 
 /********************************* Tangents **********************************/
 
-/* For normal map tangents we need to detect uv boundaries, and only average
- * tangents in case the uvs are connected. Alternative would be to store 1
- * tangent per face rather than 4 per face vertex, but that's not compatible
- * with games */
-
-
-/* from BKE_mesh.h */
-#define STD_UV_CONNECT_LIMIT  0.0001f
-
-void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, const float tang[3], const float uv[2])
-{
-	VertexTangent *vt;
-
-	/* find a tangent with connected uvs */
-	for (vt = *vtang; vt; vt = vt->next) {
-		if (fabsf(uv[0] - vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabsf(uv[1] - vt->uv[1]) < STD_UV_CONNECT_LIMIT) {
-			add_v3_v3(vt->tang, tang);
-			return;
-		}
-	}
-
-	/* if not found, append a new one */
-	vt = BLI_memarena_alloc((MemArena *) arena, sizeof(VertexTangent));
-	copy_v3_v3(vt->tang, tang);
-	vt->uv[0] = uv[0];
-	vt->uv[1] = uv[1];
-
-	if (*vtang)
-		vt->next = *vtang;
-	*vtang = vt;
-}
-
-float *find_vertex_tangent(VertexTangent *vtang, const float uv[2])
-{
-	VertexTangent *vt;
-	static float nulltang[3] = {0.0f, 0.0f, 0.0f};
-
-	for (vt = vtang; vt; vt = vt->next)
-		if (fabsf(uv[0] - vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabsf(uv[1] - vt->uv[1]) < STD_UV_CONNECT_LIMIT)
-			return vt->tang;
-
-	return nulltang; /* shouldn't happen, except for nan or so */
-}
-
 void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], float co2[3], float co3[3], float n[3], float tang[3])
 {
 	float s1 = uv2[0] - uv1[0];

@@ -446,7 +446,7 @@ static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 }
 
 /* gets tangent from tface or orco */
-static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemArena *arena, VlakRen *vlr, int do_nmap_tangent, int do_tangent)
+static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr, int do_tangent)
 {
 	MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
 	VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
@@ -481,12 +481,6 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
 		add_v3_v3(tav, tang);
 	}
 	
-	if (do_nmap_tangent) {
-		sum_or_add_vertex_tangent(arena, &vtangents[v1->index], tang, uv1);
-		sum_or_add_vertex_tangent(arena, &vtangents[v2->index], tang, uv2);
-		sum_or_add_vertex_tangent(arena, &vtangents[v3->index], tang, uv3);
-	}
-
 	if (v4) {
 		tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, vlr->n, tang);
 		
@@ -497,12 +491,6 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
 			add_v3_v3(tav, tang);
 			tav= RE_vertren_get_tangent(obr, v4, 1);
 			add_v3_v3(tav, tang);
-		}
-
-		if (do_nmap_tangent) {
-			sum_or_add_vertex_tangent(arena, &vtangents[v1->index], tang, uv1);
-			sum_or_add_vertex_tangent(arena, &vtangents[v3->index], tang, uv3);
-			sum_or_add_vertex_tangent(arena, &vtangents[v4->index], tang, uv4);
 		}
 	}
 }
@@ -568,8 +556,14 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 	//assert(vert_index>=0 && vert_index<4);
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
-	const float *n= (&vlr->v1)[vert_index]->n;
-	copy_v3_v3(fNorm, n);
+
+	if(vlr->flag & ME_SMOOTH) {
+		const float *n= (&vlr->v1)[vert_index]->n;
+		copy_v3_v3(fNorm, n);
+	}
+	else {
+		negate_v3_v3(fNorm, vlr->n);
+	}
 }
 static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)
 {
@@ -585,16 +579,7 @@ static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent
 
 static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangent, int do_nmap_tangent)
 {
-	MemArena *arena= NULL;
-	VertexTangent **vtangents= NULL;
 	int a;
-
-	if (do_nmap_tangent) {
-		arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "nmap tangent arena");
-		BLI_memarena_use_calloc(arena);
-
-		vtangents= MEM_callocN(sizeof(VertexTangent*)*obr->totvert, "VertexTangent");
-	}
 
 		/* clear all vertex normals */
 	for (a=0; a<obr->totvert; a++) {
@@ -613,10 +598,10 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 			accumulate_vertex_normals(vlr->v1->n, vlr->v2->n, vlr->v3->n, n4,
 				vlr->n, vlr->v1->co, vlr->v2->co, vlr->v3->co, c4);
 		}
-		if (do_nmap_tangent || do_tangent) {
+		if (do_tangent) {
 			/* tangents still need to be calculated for flat faces too */
 			/* weighting removed, they are not vertexnormals */
-			calc_tangent_vector(obr, vtangents, arena, vlr, do_nmap_tangent, do_tangent);
+			calc_tangent_vector(obr, vlr, do_tangent);
 		}
 	}
 
@@ -629,32 +614,6 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 			if (is_zero_v3(vlr->v2->n)) copy_v3_v3(vlr->v2->n, vlr->n);
 			if (is_zero_v3(vlr->v3->n)) copy_v3_v3(vlr->v3->n, vlr->n);
 			if (vlr->v4 && is_zero_v3(vlr->v4->n)) copy_v3_v3(vlr->v4->n, vlr->n);
-		}
-
-		if (do_nmap_tangent) {
-			VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
-			MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
-
-			if (tface) {
-				int k=0;
-				float *vtang, *ftang= RE_vlakren_get_nmap_tangent(obr, vlr, 1);
-
-				vtang= find_vertex_tangent(vtangents[v1->index], tface->uv[0]);
-				copy_v3_v3(ftang, vtang);
-				normalize_v3(ftang);
-				vtang= find_vertex_tangent(vtangents[v2->index], tface->uv[1]);
-				copy_v3_v3(ftang+4, vtang);
-				normalize_v3(ftang+4);
-				vtang= find_vertex_tangent(vtangents[v3->index], tface->uv[2]);
-				copy_v3_v3(ftang+8, vtang);
-				normalize_v3(ftang+8);
-				if (v4) {
-					vtang= find_vertex_tangent(vtangents[v4->index], tface->uv[3]);
-					copy_v3_v3(ftang+12, vtang);
-					normalize_v3(ftang+12);
-				}
-				for (k=0; k<4; k++) ftang[4*k+3]=1;
-			}
 		}
 	}
 	
@@ -675,6 +634,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		}
 	}
 
+	/* normal mapping tangent with mikktspace */
 	if (do_nmap_tangent != FALSE) {
 		SRenderMeshToTangent mesh2tangent;
 		SMikkTSpaceContext sContext;
@@ -696,11 +656,6 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 
 		genTangSpaceDefault(&sContext);
 	}
-
-	if (arena)
-		BLI_memarena_free(arena);
-	if (vtangents)
-		MEM_freeN(vtangents);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3274,11 +3229,11 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			/* normalmaps, test if tangents needed, separated from shading */
 			if (ma->mode_l & MA_TANGENT_V) {
 				need_tangent= 1;
-				if (me->mtface==NULL)
+				if (me->mtpoly==NULL)
 					need_orco= 1;
 			}
 			if (ma->mode_l & MA_NORMAP_TANG) {
-				if (me->mtface==NULL) {
+				if (me->mtpoly==NULL) {
 					need_orco= 1;
 					need_tangent= 1;
 				}
@@ -3289,7 +3244,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (re->flag & R_NEED_TANGENT) {
 		/* exception for tangent space baking */
-		if (me->mtface==NULL) {
+		if (me->mtpoly==NULL) {
 			need_orco= 1;
 			need_tangent= 1;
 		}
