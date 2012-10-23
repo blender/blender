@@ -113,8 +113,8 @@ static void do_displace(bNode *node, CompBuf *stackbuf, CompBuf *cbuf, CompBuf *
 			dxt = p_dx - d_dx;
 			dyt = p_dy - d_dy;
 
-			dxt = signf(dxt)*maxf(fabsf(dxt), DISPLACE_EPSILON)/(float)stackbuf->x;
-			dyt = signf(dyt)*maxf(fabsf(dyt), DISPLACE_EPSILON)/(float)stackbuf->y;
+			dxt = signf(dxt)*max_ff(fabsf(dxt), DISPLACE_EPSILON)/(float)stackbuf->x;
+			dyt = signf(dyt)*max_ff(fabsf(dyt), DISPLACE_EPSILON)/(float)stackbuf->y;
 			
 			ibuf_sample(ibuf, u, v, dxt, dyt, col);
 			qd_setPixel(stackbuf, x, y, col);

@@ -5302,7 +5302,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		           !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
 
 		if (use_zoom) {
-			pixel_size = size * maxf(zoomx, zoomy);
+			pixel_size = size * max_ff(zoomx, zoomy);
 		}
 		else {
 			pixel_size = size;

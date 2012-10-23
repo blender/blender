@@ -831,7 +831,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 	float fac;
 
 	fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
-	fac = minf(sqrt(fac), 1.0f);
+	fac = min_ff(sqrt(fac), 1.0f);
 
 	/* for max 1 second, interpolate positions */
 	if (uiAlignPanelStep(sa, ar, fac, 0)) {

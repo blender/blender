@@ -372,8 +372,8 @@ static int mouse_on_slide_zone(SpaceClip *sc, MovieTrackingMarker *marker,
 	dx = size / width / sc->zoom;
 	dy = size / height / sc->zoom;
 
-	dx = minf(dx, (max[0] - min[0]) / 6.0f);
-	dy = minf(dy, (max[1] - min[1]) / 6.0f);
+	dx = min_ff(dx, (max[0] - min[0]) / 6.0f);
+	dy = min_ff(dy, (max[1] - min[1]) / 6.0f);
 
 	return IN_RANGE_INCL(co[0], slide_zone[0] - dx, slide_zone[0] + dx) &&
 	       IN_RANGE_INCL(co[1], slide_zone[1] - dy, slide_zone[1] + dy);
@@ -424,14 +424,14 @@ static int get_mouse_pattern_corner(SpaceClip *sc, MovieTrackingMarker *marker, 
 
 		cur_len = len_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
-		len = minf(cur_len, len);
+		len = min_ff(cur_len, len);
 	}
 
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
 
-	dx = minf(dx, len * 2.0f / 3.0f);
-	dy = minf(dy, len * width / height * 2.0f / 3.0f);
+	dx = min_ff(dx, len * 2.0f / 3.0f);
+	dy = min_ff(dy, len * width / height * 2.0f / 3.0f);
 
 	for (i = 0; i < 4; i++) {
 		float crn[2];
@@ -462,8 +462,8 @@ static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
 
-	dx = minf(dx, (pat_max[0] - pat_min[0]) / 2.0f);
-	dy = minf(dy, (pat_max[1] - pat_min[1]) / 2.0f);
+	dx = min_ff(dx, (pat_max[0] - pat_min[0]) / 2.0f);
+	dy = min_ff(dy, (pat_max[1] - pat_min[1]) / 2.0f);
 
 	return co[0] >= pos[0] - dx && co[0] <= pos[0] + dx && co[1] >= pos[1] - dy && co[1] <= pos[1] + dy;
 }

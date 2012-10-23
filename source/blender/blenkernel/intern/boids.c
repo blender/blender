@@ -1172,7 +1172,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
 			/* constrain direction with maximum angular velocity */
 			angle = saacos(dot_v3v3(old_dir, wanted_dir));
-			angle = minf(angle, val.max_ave);
+			angle = min_ff(angle, val.max_ave);
 
 			cross_v3_v3v3(nor, old_dir, wanted_dir);
 			axis_angle_to_quat(q, nor, angle);

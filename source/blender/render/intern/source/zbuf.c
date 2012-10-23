@@ -150,7 +150,7 @@ static void zbuf_add_to_span(ZSpan *zspan, const float *v1, const float *v2)
 	}
 	else {
 		dx0 = 0.0f;
-		xs0 = minf(minv[0], maxv[0]);
+		xs0 = min_ff(minv[0], maxv[0]);
 	}
 	
 	/* empty span */
@@ -3889,7 +3889,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 				
 				addAlphaUnderFloat(samp_shr->combined, shr->combined);
 				
-				samp_shr->z = minf(samp_shr->z, shr->z);
+				samp_shr->z = min_ff(samp_shr->z, shr->z);
 
 				if (addpassflag & SCE_PASS_VECTOR) {
 					copy_v4_v4(samp_shr->winspeed, shr->winspeed);

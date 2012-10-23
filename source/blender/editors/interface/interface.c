@@ -238,7 +238,7 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 		bt->rect.xmax = bt->rect.xmin + i + block->bounds;
 		
 		if (col == lastcol) {
-			bt->rect.xmax = maxf(bt->rect.xmax, offset + block->minbounds);
+			bt->rect.xmax = max_ff(bt->rect.xmax, offset + block->minbounds);
 		}
 
 		ui_check_but(bt);  /* clips text again */
@@ -275,7 +275,7 @@ void ui_bounds_block(uiBlock *block)
 		block->rect.ymax += block->bounds;
 	}
 
-	block->rect.xmax = block->rect.xmin + maxf(BLI_rctf_size_x(&block->rect), block->minbounds);
+	block->rect.xmax = block->rect.xmin + max_ff(BLI_rctf_size_x(&block->rect), block->minbounds);
 
 	/* hardcoded exception... but that one is annoying with larger safety */ 
 	bt = block->buttons.first;

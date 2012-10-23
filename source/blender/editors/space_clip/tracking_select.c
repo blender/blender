@@ -107,7 +107,7 @@ static int mouse_on_crns(float co[2], float pos[2], float crns[4][2], float epsx
 {
 	float dist = dist_to_crns(co, pos, crns);
 
-	return dist < maxf(epsx, epsy);
+	return dist < max_ff(epsx, epsy);
 }
 
 static int track_mouse_area(const bContext *C, float co[2], MovieTrackingTrack *track)
@@ -128,8 +128,8 @@ static int track_mouse_area(const bContext *C, float co[2], MovieTrackingTrack *
 	epsy = MIN4(pat_min[1] - marker->search_min[1], marker->search_max[1] - pat_max[1],
 	            fabsf(pat_min[1]), fabsf(pat_max[1])) / 2;
 
-	epsx = maxf(epsx, 2.0f / width);
-	epsy = maxf(epsy, 2.0f / height);
+	epsx = max_ff(epsx, 2.0f / width);
+	epsy = max_ff(epsy, 2.0f / height);
 
 	if (sc->flag & SC_SHOW_MARKER_SEARCH) {
 		if (mouse_on_rect(co, marker->pos, marker->search_min, marker->search_max, epsx, epsy))

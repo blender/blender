@@ -191,8 +191,8 @@ static void BB_expand(BB *bb, float co[3])
 {
 	int i;
 	for (i = 0; i < 3; ++i) {
-		bb->bmin[i] = minf(bb->bmin[i], co[i]);
-		bb->bmax[i] = maxf(bb->bmax[i], co[i]);
+		bb->bmin[i] = min_ff(bb->bmin[i], co[i]);
+		bb->bmax[i] = max_ff(bb->bmax[i], co[i]);
 	}
 }
 
@@ -201,8 +201,8 @@ static void BB_expand_with_bb(BB *bb, BB *bb2)
 {
 	int i;
 	for (i = 0; i < 3; ++i) {
-		bb->bmin[i] = minf(bb->bmin[i], bb2->bmin[i]);
-		bb->bmax[i] = maxf(bb->bmax[i], bb2->bmax[i]);
+		bb->bmin[i] = min_ff(bb->bmin[i], bb2->bmin[i]);
+		bb->bmax[i] = max_ff(bb->bmax[i], bb2->bmax[i]);
 	}
 }
 
@@ -665,7 +665,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
 	bvh->totgrid = totgrid;
 	bvh->gridkey = *key;
 	bvh->grid_hidden = grid_hidden;
-	bvh->leaf_limit = maxi(LEAF_LIMIT / ((gridsize - 1) * (gridsize - 1)), 1);
+	bvh->leaf_limit = max_ii(LEAF_LIMIT / ((gridsize - 1) * (gridsize - 1)), 1);
 
 	BB_reset(&cb);
 

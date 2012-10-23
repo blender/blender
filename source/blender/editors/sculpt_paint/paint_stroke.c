@@ -255,7 +255,7 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 			if (pressure > FLT_EPSILON) {
 				/* brushes can have a minimum size of 1.0 but with pressure it can be smaller then a pixel
 				 * causing very high step sizes, hanging blender [#32381] */
-				const float size_clamp = maxf(1.0f, BKE_brush_size_get(scene, stroke->brush) * pressure);
+				const float size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * pressure);
 				scale = (size_clamp * stroke->brush->spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);

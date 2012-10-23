@@ -338,7 +338,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// fast blur...
 		// bug #6656 part 1, probably when previous node_composite.c was split into separate files, it was not properly updated
 		// to include recent cvs commits (well, at least not defocus node), so this part was missing...
-		wt = minf(nqd->maxblur, aperture * 128.0f);
+		wt = min_ff(nqd->maxblur, aperture * 128.0f);
 		IIR_gauss_single(crad, wt);
 		IIR_gauss_single(wts, wt);
 		
@@ -589,8 +589,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 					// n-agonal
 					int ov, nv;
 					float mind, maxd, lwt;
-					ys = maxi((int)floor(bkh_b[2] * ct_crad + y), 0);
-					ye = mini((int)ceil(bkh_b[3] * ct_crad + y), new->y - 1);
+					ys = max_ii((int)floor(bkh_b[2] * ct_crad + y), 0);
+					ye = min_ii((int)ceil(bkh_b[3] * ct_crad + y), new->y - 1);
 					for (sy=ys; sy<=ye; sy++) {
 						float fxs = 1e10f, fxe = -1e10f;
 						float yf = (sy - y)/ct_crad;

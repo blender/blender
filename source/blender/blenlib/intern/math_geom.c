@@ -404,8 +404,8 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 			if (u > u2) SWAP(float, u, u2);
 
 			if (u > 1.0f + eps || u2 < -eps) return -1;  /* non-ovlerlapping segments */
-			else if (maxf(0.0f, u) == minf(1.0f, u2)) { /* one common point: can return result */
-				interp_v2_v2v2(vi, v1, v2, maxf(0, u));
+			else if (max_ff(0.0f, u) == min_ff(1.0f, u2)) { /* one common point: can return result */
+				interp_v2_v2v2(vi, v1, v2, max_ff(0, u));
 				return 1;
 			}
 		}

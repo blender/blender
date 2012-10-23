@@ -997,8 +997,8 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
 	if (event == CLAMP_PAT_DIM) {
 		for (a = 0; a < 2; a++) {
 			/* search shouldn't be resized smaller than pattern */
-			marker->search_min[a] = minf(pat_min[a], marker->search_min[a]);
-			marker->search_max[a] = maxf(pat_max[a], marker->search_max[a]);
+			marker->search_min[a] = min_ff(pat_min[a], marker->search_min[a]);
+			marker->search_max[a] = max_ff(pat_max[a], marker->search_max[a]);
 		}
 	}
 	else if (event == CLAMP_PAT_POS) {
@@ -1022,8 +1022,8 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
 	else if (event == CLAMP_SEARCH_DIM) {
 		for (a = 0; a < 2; a++) {
 			/* search shouldn't be resized smaller than pattern */
-			marker->search_min[a] = minf(pat_min[a], marker->search_min[a]);
-			marker->search_max[a] = maxf(pat_max[a], marker->search_max[a]);
+			marker->search_min[a] = min_ff(pat_min[a], marker->search_min[a]);
+			marker->search_max[a] = max_ff(pat_max[a], marker->search_max[a]);
 		}
 	}
 	else if (event == CLAMP_SEARCH_POS) {
@@ -2345,10 +2345,10 @@ static int tracking_check_marker_margin(MovieTrackingTrack *track, MovieTracking
 	/* margin from frame boundaries */
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 	sub_v2_v2v2(dim, pat_max, pat_min);
-	margin[0] = margin[1] = maxf(dim[0], dim[1]) / 2.0f;
+	margin[0] = margin[1] = max_ff(dim[0], dim[1]) / 2.0f;
 
-	margin[0] = maxf(margin[0], (float)track->margin / frame_width);
-	margin[1] = maxf(margin[1], (float)track->margin / frame_height);
+	margin[0] = max_ff(margin[0], (float)track->margin / frame_width);
+	margin[1] = max_ff(margin[1], (float)track->margin / frame_height);
 
 	/* do not track markers which are too close to boundary */
 	if (marker->pos[0] < margin[0] || marker->pos[0] > 1.0f - margin[0] ||
@@ -3275,7 +3275,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 
 						S = (-w * I - h * J) / (dx * I + dy * J + K);
 
-						scale = maxf(scale, S);
+						scale = max_ff(scale, S);
 					}
 				}
 			}
@@ -3284,7 +3284,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 		stab->scale = scale;
 
 		if (stab->maxscale > 0.0f)
-			stab->scale = minf(stab->scale, stab->maxscale);
+			stab->scale = min_ff(stab->scale, stab->maxscale);
 	}
 	else {
 		stab->scale = 1.0f;

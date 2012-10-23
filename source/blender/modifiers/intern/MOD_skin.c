@@ -355,7 +355,7 @@ static void merge_frame_corners(Frame **frames, int totframe)
 				BLI_assert(frames[i] != frames[k]);
 
 				side_b = frame_len(frames[k]);
-				thresh = minf(side_a, side_b) / 2.0f;
+				thresh = min_ff(side_a, side_b) / 2.0f;
 
 				/* Compare with each corner of all other frames... */
 				for (l = 0; l < 4; l++) {

@@ -1515,7 +1515,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		if (!(shi->combinedflag & SCE_PASS_REFRACT))
 			sub_v3_v3v3(diff, diff, shr->refr);
 		
-		shr->alpha = minf(1.0f, tracol[3]);
+		shr->alpha = min_ff(1.0f, tracol[3]);
 	}
 	
 	if (do_mir) {

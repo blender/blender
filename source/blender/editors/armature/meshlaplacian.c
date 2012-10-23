@@ -563,7 +563,7 @@ static void heat_set_H(LaplacianSystem *sys, int vertex)
 
 	/* compute H entry */
 	if (numclosest > 0) {
-		mindist = maxf(mindist, 1e-4f);
+		mindist = max_ff(mindist, 1e-4f);
 		h = numclosest * C_WEIGHT / (mindist * mindist);
 	}
 	else

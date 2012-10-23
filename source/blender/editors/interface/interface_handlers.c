@@ -3460,7 +3460,7 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float 
 		data->ungrab_mval[0] = mx_fl;
 		data->ungrab_mval[1] = my_fl;
 		{	/* clamp */
-			const float radius = minf(BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect)) / 2.0f;
+			const float radius = min_ff(BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect)) / 2.0f;
 			const float cent[2] = {BLI_rctf_cent_x(&but->rect), BLI_rctf_cent_y(&but->rect)};
 			const float len = len_v2v2(cent, data->ungrab_mval);
 			if (len > radius) {
@@ -4008,7 +4008,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	}
 	else {
 		/* scale histogram values (dy / 10 for better control) */
-		const float yfac = minf(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
+		const float yfac = min_ff(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
 		hist->ymax += (dy * 0.1f) * yfac;
 	
 		/* 0.1 allows us to see HDR colors up to 10 */

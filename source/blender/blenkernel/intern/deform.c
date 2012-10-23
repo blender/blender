@@ -278,7 +278,7 @@ void defvert_normalize_lock_map(MDeformVert *dvert, const char *lock_flags, cons
 			}
 		}
 
-		lock_iweight = maxf(0.0f, 1.0f - lock_iweight);
+		lock_iweight = max_ff(0.0f, 1.0f - lock_iweight);
 
 		if (tot_weight > 0.0f) {
 			/* paranoid, should be 1.0 but in case of float error clamp anyway */

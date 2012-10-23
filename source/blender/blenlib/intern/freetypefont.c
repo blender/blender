@@ -271,7 +271,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 					    (len_squared_v2v2(bezt->vec[1], bezt->vec[2]) > 0.0001f * 0.0001f) &&
 					    (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) > 0.0002f * 0.0001f) &&
 					    (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) >
-					     maxf(len_squared_v2v2(bezt->vec[0], bezt->vec[1]),
+					     max_ff(len_squared_v2v2(bezt->vec[0], bezt->vec[1]),
 					          len_squared_v2v2(bezt->vec[1], bezt->vec[2]))))
 					{
 						bezt->h1 = bezt->h2 = HD_ALIGN;

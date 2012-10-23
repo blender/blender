@@ -161,12 +161,12 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
 	/* 'shade' defines strength of shading */
-	coltop[0]  = minf(1.0f, color[0] + shadetop);
-	coltop[1]  = minf(1.0f, color[1] + shadetop);
-	coltop[2]  = minf(1.0f, color[2] + shadetop);
-	coldown[0] = maxf(0.0f, color[0] + shadedown);
-	coldown[1] = maxf(0.0f, color[1] + shadedown);
-	coldown[2] = maxf(0.0f, color[2] + shadedown);
+	coltop[0]  = min_ff(1.0f, color[0] + shadetop);
+	coltop[1]  = min_ff(1.0f, color[1] + shadetop);
+	coltop[2]  = min_ff(1.0f, color[2] + shadetop);
+	coldown[0] = max_ff(0.0f, color[0] + shadedown);
+	coldown[1] = max_ff(0.0f, color[1] + shadedown);
+	coldown[2] = max_ff(0.0f, color[2] + shadedown);
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);
@@ -270,12 +270,12 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
 	/* 'shade' defines strength of shading */
-	colLeft[0]  = minf(1.0f, color[0] + shadeLeft);
-	colLeft[1]  = minf(1.0f, color[1] + shadeLeft);
-	colLeft[2]  = minf(1.0f, color[2] + shadeLeft);
-	colRight[0] = maxf(0.0f, color[0] + shadeRight);
-	colRight[1] = maxf(0.0f, color[1] + shadeRight);
-	colRight[2] = maxf(0.0f, color[2] + shadeRight);
+	colLeft[0]  = min_ff(1.0f, color[0] + shadeLeft);
+	colLeft[1]  = min_ff(1.0f, color[1] + shadeLeft);
+	colLeft[2]  = min_ff(1.0f, color[2] + shadeLeft);
+	colRight[0] = max_ff(0.0f, color[0] + shadeRight);
+	colRight[1] = max_ff(0.0f, color[1] + shadeRight);
+	colRight[2] = max_ff(0.0f, color[2] + shadeRight);
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);

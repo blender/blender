@@ -76,7 +76,7 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
 		}
 
 		/*only change if more transparent than either image */
-		maxInputAlpha=maxf(inColor1[3], inColor2[3]);
+		maxInputAlpha=max_ff(inColor1[3], inColor2[3]);
 		if (alpha < maxInputAlpha) {
 			/*clamp*/
 			if (alpha < 0.0f) alpha = 0.0f;

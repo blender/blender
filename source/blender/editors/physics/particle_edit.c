@@ -3529,7 +3529,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		view3d_operator_needs_opengl(C);
 		selected= (short)count_selected_keys(scene, edit);
 
-		dmax = maxf(fabsf(dx), fabsf(dy));
+		dmax = max_ff(fabsf(dx), fabsf(dy));
 		tot_steps = dmax/(0.2f * brush->size) + 1;
 
 		dx /= (float)tot_steps;

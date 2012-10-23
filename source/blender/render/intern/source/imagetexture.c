@@ -989,7 +989,7 @@ static void alpha_clip_aniso(ImBuf *ibuf, float minx, float miny, float maxx, fl
 
 		alphaclip  = clipx_rctf(&rf, 0.0, (float)(ibuf->x));
 		alphaclip *= clipy_rctf(&rf, 0.0, (float)(ibuf->y));
-		alphaclip  = maxf(alphaclip, 0.0f);
+		alphaclip  = max_ff(alphaclip, 0.0f);
 
 		if (alphaclip!=1.0f) {
 			/* premul it all */
@@ -1247,8 +1247,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			float fProbes;
 			a *= ff;
 			b *= ff;
-			a = maxf(a, 1.0f);
-			b = maxf(b, 1.0f);
+			a = max_ff(a, 1.0f);
+			b = max_ff(b, 1.0f);
 			fProbes = 2.f*(a / b) - 1.f;
 			AFD.iProbes = (int)floorf(fProbes + 0.5f);
 			AFD.iProbes = MIN2(AFD.iProbes, tex->afmax);
@@ -1264,7 +1264,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			if (ecc > (float)tex->afmax) b = a / (float)tex->afmax;
 			b *= ff;
 		}
-		maxd = maxf(b, 1e-8f);
+		maxd = max_ff(b, 1e-8f);
 		levf = ((float)M_LOG2E) * logf(maxd);
 
 		curmap = 0;
@@ -1349,8 +1349,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
 			a *= ff;
 			b *= ff;
-			a = maxf(a, 1.0f);
-			b = maxf(b, 1.0f);
+			a = max_ff(a, 1.0f);
+			b = max_ff(b, 1.0f);
 			fProbes = 2.f*(a / b) - 1.f;
 			/* no limit to number of Probes here */
 			AFD.iProbes = (int)floorf(fProbes + 0.5f);
@@ -1645,7 +1645,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		
 		dx = minx;
 		dy = miny;
-		maxd = maxf(dx, dy);
+		maxd = max_ff(dx, dy);
 		if (maxd > 0.5f) maxd = 0.5f;
 
 		pixsize = 1.0f / (float) MIN2(ibuf->x, ibuf->y);

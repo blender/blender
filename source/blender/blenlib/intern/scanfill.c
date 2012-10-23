@@ -661,8 +661,8 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				/* this happens with a serial of overlapping edges */
 				if (v1 == v2 || v2 == v3) break;
 				/* printf("test verts %x %x %x\n",v1,v2,v3); */
-				miny = minf(v1->xy[1], v3->xy[1]);
-				/*  miny = minf(v1->xy[1],v3->xy[1]); */
+				miny = min_ff(v1->xy[1], v3->xy[1]);
+				/*  miny = min_ff(v1->xy[1],v3->xy[1]); */
 				sc1 = sc + 1;
 				test = 0;
 

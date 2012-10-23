@@ -1400,7 +1400,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	int m = 4;
 	int n = 4;
 	int maxiter = 200;
-	int nu = minf(m, n);
+	int nu = min_ff(m, n);
 
 	float *work = work1;
 	float *e = work2;
@@ -1411,14 +1411,14 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	/* Reduce A to bidiagonal form, storing the diagonal elements
 	 * in s and the super-diagonal elements in e. */
 
-	int nct = minf(m - 1, n);
-	int nrt = maxf(0, minf(n - 2, m));
+	int nct = min_ff(m - 1, n);
+	int nrt = max_ff(0, min_ff(n - 2, m));
 
 	copy_m4_m4(A, A_);
 	zero_m4(U);
 	zero_v4(s);
 
-	for (k = 0; k < maxf(nct, nrt); k++) {
+	for (k = 0; k < max_ff(nct, nrt); k++) {
 		if (k < nct) {
 
 			/* Compute the transformation for the k-th column and
@@ -1522,7 +1522,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 
 	/* Set up the final bidiagonal matrix or order p. */
 
-	p = minf(n, m + 1);
+	p = min_ff(n, m + 1);
 	if (nct < n) {
 		s[nct] = A[nct][nct];
 	}
@@ -1714,7 +1714,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 
 				/* Calculate the shift. */
 
-				float scale = maxf(maxf(maxf(maxf(
+				float scale = max_ff(max_ff(max_ff(max_ff(
 				                   fabsf(s[p - 1]), fabsf(s[p - 2])), fabsf(e[p - 2])),
 				                   fabsf(s[k])), fabsf(e[k]));
 				float invscale = 1.0f / scale;

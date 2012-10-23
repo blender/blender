@@ -1506,7 +1506,7 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
 	if (density < 1.0f)
 		density = 1.0f;
 
-	return minf(maxsize / (density * 0.5f), maxsize);
+	return min_ff(maxsize / (density * 0.5f), maxsize);
 }
 
 /* p is closest point on edge to the mouse cursor */

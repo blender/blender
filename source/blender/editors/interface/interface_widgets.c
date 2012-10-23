@@ -345,7 +345,7 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	const int vnum = ((roundboxalign & (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT)) == (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT) ||
 	                  (roundboxalign & (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) == (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) ? 1 : 2;
 
-	minsize = mini(BLI_rcti_size_x(rect) * hnum,
+	minsize = min_ii(BLI_rcti_size_x(rect) * hnum,
 	               BLI_rcti_size_y(rect) * vnum);
 	
 	if (2.0f * rad > minsize)
@@ -491,7 +491,7 @@ static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, cha
 	float centx, centy, sizex, sizey, minsize;
 	int a, i1 = 0, i2 = 1;
 	
-	minsize = mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
+	minsize = min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
 	
 	/* center position and size */
 	centx = (float)rect->xmin + 0.5f * minsize;
@@ -526,7 +526,7 @@ static void widget_scroll_circle(uiWidgetTrias *tria, rcti *rect, float triasize
 	float centx, centy, sizex, sizey, minsize;
 	int a, i1 = 0, i2 = 1;
 	
-	minsize = mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
+	minsize = min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
 	
 	/* center position and size */
 	centx = (float)rect->xmin + 0.5f * minsize;
@@ -1895,7 +1895,7 @@ void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rec
 	/* duplication of code... well, simple is better now */
 	const float centx = BLI_rcti_cent_x_fl(rect);
 	const float centy = BLI_rcti_cent_y_fl(rect);
-	const float radius = (float)mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+	const float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 	const float m_delta[2] = {mx - centx, my - centy};
 	const float dist_squared = len_squared_v2(m_delta);
 
@@ -1910,7 +1910,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 
 	const float centx = BLI_rcti_cent_x_fl(rect);
 	const float centy = BLI_rcti_cent_y_fl(rect);
-	float radius = (float)mini(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
+	float radius = (float)min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)) / 2.0f;
 
 	/* gouraud triangle fan */
 	const float *hsv_ptr = ui_block_hsv_get(but->block);
@@ -2423,7 +2423,7 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 
 			if (rect1.xmax > rect->xmax) {
 				rect1.xmax = rect->xmax;
-				rect1.xmin = maxi(rect1.xmax - min, rect->xmin);
+				rect1.xmin = max_ii(rect1.xmax - min, rect->xmin);
 			}
 		}
 	}

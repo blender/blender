@@ -188,8 +188,11 @@ MINLINE float sasqrt(float fac);
 
 MINLINE float interpf(float a, float b, float t);
 
-MINLINE float minf(float a, float b);
-MINLINE float maxf(float a, float b);
+MINLINE float min_ff(float a, float b);
+MINLINE float max_ff(float a, float b);
+
+MINLINE int min_ii(int a, int b);
+MINLINE int max_ii(int a, int b);
 
 MINLINE float signf(float f);
 

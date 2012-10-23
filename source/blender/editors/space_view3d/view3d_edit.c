@@ -2591,7 +2591,7 @@ static int view3d_center_camera_exec(bContext *C, wmOperator *UNUSED(op)) /* was
 	xfac = (float)ar->winx / (float)(size[0] + 4);
 	yfac = (float)ar->winy / (float)(size[1] + 4);
 
-	rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(minf(xfac, yfac));
+	rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(min_ff(xfac, yfac));
 	CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
 
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
@@ -2879,7 +2879,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		/* work out the ratios, so that everything selected fits when we zoom */
 		xscale = (BLI_rcti_size_x(&rect) / vb[0]);
 		yscale = (BLI_rcti_size_y(&rect) / vb[1]);
-		new_dist *= maxf(xscale, yscale);
+		new_dist *= max_ff(xscale, yscale);
 
 		/* zoom in as required, or as far as we can go */
 		dist_range_min = 0.001f * v3d->grid;

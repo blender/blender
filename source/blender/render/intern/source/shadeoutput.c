@@ -827,7 +827,7 @@ static float Minnaert_Diff(float nl, const float n[3], const float v[3], float d
 		nv = 0.0f;
 
 	if (darkness <= 1.0f)
-		i = nl * pow(maxf(nv * nl, 0.1f), (darkness - 1.0f) ); /*The Real model*/
+		i = nl * pow(max_ff(nv * nl, 0.1f), (darkness - 1.0f) ); /*The Real model*/
 	else
 		i = nl * pow( (1.001f - nv), (darkness  - 1.0f) ); /*Nvidia model*/
 
@@ -1233,7 +1233,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 							copy_v3_v3(lvrot, lv);
 							mul_m3_v3(lar->imat, lvrot);
 							
-							x = maxf(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
+							x = max_ff(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
 							/* 1.0f/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
 							
 							inpr= 1.0f/(sqrt(1.0f+x*x));

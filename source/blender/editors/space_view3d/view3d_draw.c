@@ -1640,7 +1640,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				/* apply offset last - camera offset is different to offset in blender units */
 				/* so this has some sane way of working - this matches camera's shift _exactly_ */
 				{
-					const float max_dim = maxf(x2 - x1, y2 - y1);
+					const float max_dim = max_ff(x2 - x1, y2 - y1);
 					const float xof_scale = bgpic->xof * max_dim;
 					const float yof_scale = bgpic->yof * max_dim;
 
@@ -1689,7 +1689,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				/* calc window coord */
 				initgrabz(rv3d, 0.0, 0.0, 0.0);
 				ED_view3d_win_to_delta(ar, mval_f, tvec);
-				fac = maxf(fabsf(tvec[0]), maxf(fabsf(tvec[1]), fabsf(tvec[2]))); /* largest abs axis */
+				fac = max_ff(fabsf(tvec[0]), max_ff(fabsf(tvec[1]), fabsf(tvec[2]))); /* largest abs axis */
 				fac = 1.0f / fac;
 
 				asp = (float)ibuf->y / (float)ibuf->x;
@@ -1717,7 +1717,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 
 			/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
 			if (zoomx < 1.0f || zoomy < 1.0f) {
-				float tzoom = minf(zoomx, zoomy);
+				float tzoom = min_ff(zoomx, zoomy);
 				int mip = 0;
 
 				if ((ibuf->userflags & IB_MIPMAP_INVALID) != 0) {

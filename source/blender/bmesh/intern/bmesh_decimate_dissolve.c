@@ -77,7 +77,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
                                   BMEdge **einput_arr, const int einput_len)
 {
 	const float angle_max = (float)M_PI / 2.0f;
-	DissolveElemWeight *weight_elems = MEM_mallocN(maxi(einput_len, vinput_len) *
+	DissolveElemWeight *weight_elems = MEM_mallocN(max_ii(einput_len, vinput_len) *
 	                                               sizeof(DissolveElemWeight), __func__);
 	int i, tot_found;
 

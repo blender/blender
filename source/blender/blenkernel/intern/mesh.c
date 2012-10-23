@@ -735,7 +735,7 @@ float *BKE_mesh_orco_verts_get(Object *ob)
 	/* Get appropriate vertex coordinates */
 	vcos = MEM_callocN(sizeof(*vcos) * me->totvert, "orco mesh");
 	mvert = tme->mvert;
-	totvert = MIN2(tme->totvert, me->totvert);
+	totvert = min_ii(tme->totvert, me->totvert);
 
 	for (a = 0; a < totvert; a++, mvert++) {
 		copy_v3_v3(vcos[a], mvert->co);

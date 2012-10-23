@@ -1023,7 +1023,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = minf(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw |= TREDRAW_HARD;
@@ -1193,7 +1193,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (event->alt && t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = minf(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw = 1;
@@ -1487,8 +1487,8 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				float dx = t->mval[0] - cent[0], dy = t->mval[1] - cent[1];
 				float angle = atan2f(dy, dx);
 				float dist = sqrtf(dx * dx + dy * dy);
-				float delta_angle = minf(15.0f / dist, (float)M_PI / 4.0f);
-				float spacing_angle = minf(5.0f / dist, (float)M_PI / 12.0f);
+				float delta_angle = min_ff(15.0f / dist, (float)M_PI / 4.0f);
+				float spacing_angle = min_ff(5.0f / dist, (float)M_PI / 12.0f);
 				UI_ThemeColor(TH_WIRE);
 
 				setlinestyle(3);
@@ -5612,7 +5612,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			const float sv_length = len_v3v3(sv->up->co, sv->down->co);
-			const float fac = minf(sv_length, curr_length_perc) / sv_length;
+			const float fac = min_ff(sv_length, curr_length_perc) / sv_length;
 
 			if (sld->flipped_vtx) {
 				interp_v3_v3v3(sv->v->co, sv->down->co, sv->up->co, fac);

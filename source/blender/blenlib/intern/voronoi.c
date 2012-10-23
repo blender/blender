@@ -259,9 +259,9 @@ static float voronoi_getXOfEdge(VoronoiProcess *process, VoronoiParabola *par, f
 	x2 = (-b - sqrtf(disc)) / (2 * a);
 
 	if (p[1] < r[1])
-		ry = maxf(x1, x2);
+		ry = max_ff(x1, x2);
 	else
-		ry = minf(x1, x2);
+		ry = min_ff(x1, x2);
 
 	return ry;
 }

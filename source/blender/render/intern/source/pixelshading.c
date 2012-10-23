@@ -162,7 +162,7 @@ static void render_lighting_halo(HaloRen *har, float col_r[3])
 					copy_v3_v3(lvrot, lv);
 					mul_m3_v3(lar->imat, lvrot);
 					
-					x = maxf(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
+					x = max_ff(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
 					/* 1.0/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
 					
 					inpr= 1.0/(sqrt(1.0f+x*x));

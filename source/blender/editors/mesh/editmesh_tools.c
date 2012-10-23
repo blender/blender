@@ -2712,21 +2712,21 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 				m1 = MAXSLOPE;
 				b1 = x12;
 			}
-			x2max = maxf(x21, x22) + 0.001f; /* prevent missed edges   */
-			x2min = minf(x21, x22) - 0.001f; /* due to round off error */
-			y2max = maxf(y21, y22) + 0.001f;
-			y2min = minf(y21, y22) - 0.001f;
+			x2max = max_ff(x21, x22) + 0.001f; /* prevent missed edges   */
+			x2min = min_ff(x21, x22) - 0.001f; /* due to round off error */
+			y2max = max_ff(y21, y22) + 0.001f;
+			y2min = min_ff(y21, y22) - 0.001f;
 			
 			/* Found an intersect,  calc intersect point */
 			if (m1 == m2) { /* co-incident lines */
 				/* cut at 50% of overlap area */
-				x1max = maxf(x11, x12);
-				x1min = minf(x11, x12);
-				xi = (minf(x2max, x1max) + maxf(x2min, x1min)) / 2.0f;
+				x1max = max_ff(x11, x12);
+				x1min = min_ff(x11, x12);
+				xi = (min_ff(x2max, x1max) + max_ff(x2min, x1min)) / 2.0f;
 				
-				y1max = maxf(y11, y12);
-				y1min = minf(y11, y12);
-				yi = (minf(y2max, y1max) + maxf(y2min, y1min)) / 2.0f;
+				y1max = max_ff(y11, y12);
+				y1min = min_ff(y11, y12);
+				yi = (min_ff(y2max, y1max) + max_ff(y2min, y1min)) / 2.0f;
 			}
 			else if (m2 == MAXSLOPE) {
 				xi = x22;
@@ -5150,7 +5150,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (handleNumInput(&opdata->num_input, event)) {
 			applyNumInput(&opdata->num_input, amounts);
-			amounts[0] = maxf(amounts[0], 0.0f);
+			amounts[0] = max_ff(amounts[0], 0.0f);
 			RNA_float_set(op->ptr, "thickness", amounts[0]);
 			RNA_float_set(op->ptr, "depth", amounts[1]);
 
@@ -5191,7 +5191,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if (opdata->modify_depth)
 					RNA_float_set(op->ptr, "depth", amount);
 				else {
-					amount = maxf(amount, 0.0f);
+					amount = max_ff(amount, 0.0f);
 					RNA_float_set(op->ptr, "thickness", amount);
 				}
 

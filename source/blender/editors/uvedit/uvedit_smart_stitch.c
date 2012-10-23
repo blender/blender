@@ -432,8 +432,8 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge, StitchState *sta
 	edgesin = uv1[0] * uv2[1] - uv2[0] * uv1[1];
 
 	rotation = (edgesin > 0.0f) ?
-	            +acosf(maxf(-1.0f, minf(1.0f, edgecos))) :
-	            -acosf(maxf(-1.0f, minf(1.0f, edgecos)));
+	            +acosf(max_ff(-1.0f, min_ff(1.0f, edgecos))) :
+	            -acosf(max_ff(-1.0f, min_ff(1.0f, edgecos)));
 
 	island_stitch_data[element1->island].num_rot_elements++;
 	island_stitch_data[element1->island].rotation += rotation;

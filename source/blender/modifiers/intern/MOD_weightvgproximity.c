@@ -480,9 +480,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				for (i = 0; i < numIdx; i++) {
 					new_w[i] = dists_v ? dists_v[i] : FLT_MAX;
 					if (dists_e)
-						new_w[i] = minf(dists_e[i], new_w[i]);
+						new_w[i] = min_ff(dists_e[i], new_w[i]);
 					if (dists_f)
-						new_w[i] = minf(dists_f[i], new_w[i]);
+						new_w[i] = min_ff(dists_f[i], new_w[i]);
 				}
 				if (free_target_dm) target_dm->release(target_dm);
 				if (dists_v) MEM_freeN(dists_v);

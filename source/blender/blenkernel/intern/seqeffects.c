@@ -1353,7 +1353,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 				hyp2 = fabsf(angle * x + y + (-(yo - posy * 0.5f) - angle * (xo - posx * 0.5f))) * wipezone->pythangle;
 			}
 
-			hwidth = minf(hwidth, fabsf(b3 - b1) / 2.0f);
+			hwidth = min_ff(hwidth, fabsf(b3 - b1) / 2.0f);
 
 			if (b2 < b1 && b2 < b3) {
 				output = in_band(hwidth, hyp, 0, 1);

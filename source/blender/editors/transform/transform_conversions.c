@@ -1831,7 +1831,7 @@ static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], f
 			d2 = d + len_v3(vec);
 			
 			if (dists[BM_elem_index_get(v3)] != FLT_MAX)
-				dists[BM_elem_index_get(v3)] = minf(d2, dists[BM_elem_index_get(v3)]);
+				dists[BM_elem_index_get(v3)] = min_ff(d2, dists[BM_elem_index_get(v3)]);
 			else
 				dists[BM_elem_index_get(v3)] = d2;
 			
@@ -2547,8 +2547,8 @@ void clipUVData(TransInfo *t)
 		if ((td->flag & TD_SKIP) || (!td->loc))
 			continue;
 
-		td->loc[0] = minf(maxf(0.0f, td->loc[0]), aspx);
-		td->loc[1] = minf(maxf(0.0f, td->loc[1]), aspy);
+		td->loc[0] = min_ff(max_ff(0.0f, td->loc[0]), aspx);
+		td->loc[1] = min_ff(max_ff(0.0f, td->loc[1]), aspy);
 	}
 }
 
@@ -4300,7 +4300,7 @@ static void freeSeqData(TransInfo *t)
 						for (a = 0; a < t->total; a++, td++) {
 							seq = ((TransDataSeq *)td->extra)->seq;
 							if ((seq != seq_prev)) {
-								minframe = mini(minframe, seq->startdisp);
+								minframe = min_ii(minframe, seq->startdisp);
 							}
 						}
 

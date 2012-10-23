@@ -257,7 +257,7 @@ static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int 
 
 		f1 = fabsf(f1);
 		f2 = fabsf(f2);
-		f1 = minf(f1, f2);
+		f1 = min_ff(f1, f2);
 		CLAMP(f1, 0.0f, 1.0f + FLT_EPSILON);
 	}
 	else {
