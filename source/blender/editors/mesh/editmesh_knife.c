@@ -1164,7 +1164,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
-	const float depsilon = (KNIFE_FLT_EPS / 2.0f) * len_v3_tri_side_max(v1, v2, v3);
+	const float depsilon = (FLT_EPSILON / 2.0f) * len_v3_tri_side_max(v1, v2, v3);
 	const float depsilon_squared = depsilon * depsilon;
 
 	copy_v3_v3(cos + 0, v1);
