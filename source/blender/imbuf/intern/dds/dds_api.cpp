@@ -169,7 +169,13 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colo
 			ibuf->dds_data.size = 0;
 		}
 
-		IMB_flipy(ibuf);
+		/* DDS images can be flipped compared to the Blender standard, however we
+		 * do not unflip them because we also don't flip compressed textures. If
+		 * we would flip those we'd need to uncompress, flip and recompress them,
+		 * and so losing the speed benefit that you get from using them. Users are
+		 * expected to save DDS image in OpenGL compatible format. */
+
+		/* IMB_flipy(ibuf); */
 	}
 
 	return(ibuf);
