@@ -906,8 +906,8 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				calc_fcurve_range(fcu, &nmin, &nmax, FALSE, TRUE);
 				
 				/* compare to the running tally */
-				min = MIN2(min, nmin);
-				max = MAX2(max, nmax);
+				min = min_ff(min, nmin);
+				max = max_ff(max, nmax);
 				
 				foundvert = 1;
 			}
@@ -925,10 +925,10 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 						FMod_Limits *fmd = (FMod_Limits *)fcm->data;
 						
 						if (fmd->flag & FCM_LIMIT_XMIN) {
-							min = MIN2(min, fmd->rect.xmin);
+							min = min_ff(min, fmd->rect.xmin);
 						}
 						if (fmd->flag & FCM_LIMIT_XMAX) {
-							max = MAX2(max, fmd->rect.xmax);
+							max = max_ff(max, fmd->rect.xmax);
 						}
 					}
 					break;

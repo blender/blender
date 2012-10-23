@@ -34,6 +34,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_rect.h"
 #include "BLI_lasso.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
@@ -622,7 +623,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	/* compute ellipse and position in unified coordinates */
 	ED_mask_get_size(sa, &width, &height);
 	ED_mask_zoom(sa, ar, &zoomx, &zoomy);
-	width = height = MAX2(width, height);
+	width = height = max_ii(width, height);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;

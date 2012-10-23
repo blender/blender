@@ -348,12 +348,12 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 					sweep[i].cost = obj[i]->cost;
 				}
 				else {
-					sweep[i].bb[0] = MIN2(obj[i]->bb[0], sweep[i + 1].bb[0]);
-					sweep[i].bb[1] = MIN2(obj[i]->bb[1], sweep[i + 1].bb[1]);
-					sweep[i].bb[2] = MIN2(obj[i]->bb[2], sweep[i + 1].bb[2]);
-					sweep[i].bb[3] = MAX2(obj[i]->bb[3], sweep[i + 1].bb[3]);
-					sweep[i].bb[4] = MAX2(obj[i]->bb[4], sweep[i + 1].bb[4]);
-					sweep[i].bb[5] = MAX2(obj[i]->bb[5], sweep[i + 1].bb[5]);
+					sweep[i].bb[0] = min_ff(obj[i]->bb[0], sweep[i + 1].bb[0]);
+					sweep[i].bb[1] = min_ff(obj[i]->bb[1], sweep[i + 1].bb[1]);
+					sweep[i].bb[2] = min_ff(obj[i]->bb[2], sweep[i + 1].bb[2]);
+					sweep[i].bb[3] = max_ff(obj[i]->bb[3], sweep[i + 1].bb[3]);
+					sweep[i].bb[4] = max_ff(obj[i]->bb[4], sweep[i + 1].bb[4]);
+					sweep[i].bb[5] = max_ff(obj[i]->bb[5], sweep[i + 1].bb[5]);
 					sweep[i].cost  = obj[i]->cost + sweep[i + 1].cost;
 				}
 //				right_cost += obj[i]->cost;

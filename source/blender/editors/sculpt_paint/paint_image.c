@@ -173,7 +173,7 @@ typedef struct ImagePaintState {
 } ImagePaintState;
 
 typedef struct ImagePaintPartialRedraw {
-	int x1, y1, x2, y2;
+	int x1, y1, x2, y2;  /* XXX, could use 'rcti' */
 	int enabled;
 } ImagePaintPartialRedraw;
 
@@ -3583,11 +3583,11 @@ static int partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPar
 {
 	int touch = 0;
 	while (tot--) {
-		pr->x1 = MIN2(pr->x1, pr_other->x1);
-		pr->y1 = MIN2(pr->y1, pr_other->y1);
+		pr->x1 = min_ii(pr->x1, pr_other->x1);
+		pr->y1 = min_ii(pr->y1, pr_other->y1);
 		
-		pr->x2 = MAX2(pr->x2, pr_other->x2);
-		pr->y2 = MAX2(pr->y2, pr_other->y2);
+		pr->x2 = max_ii(pr->x2, pr_other->x2);
+		pr->y2 = max_ii(pr->y2, pr_other->y2);
 		
 		if (pr->x2 != -1)
 			touch = 1;
@@ -4222,10 +4222,10 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 		imapaintpartial.enabled = 1;
 	}
 	else {
-		imapaintpartial.x1 = MIN2(imapaintpartial.x1, x);
-		imapaintpartial.y1 = MIN2(imapaintpartial.y1, y);
-		imapaintpartial.x2 = MAX2(imapaintpartial.x2, x + w);
-		imapaintpartial.y2 = MAX2(imapaintpartial.y2, y + h);
+		imapaintpartial.x1 = min_ii(imapaintpartial.x1, x);
+		imapaintpartial.y1 = min_ii(imapaintpartial.y1, y);
+		imapaintpartial.x2 = max_ii(imapaintpartial.x2, x + w);
+		imapaintpartial.y2 = max_ii(imapaintpartial.y2, y + h);
 	}
 
 	w = ((x + w - 1) >> IMAPAINT_TILE_BITS);

@@ -221,7 +221,7 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking, MovieTrackingOb
 	float viewfac, pixsize, left, right, bottom, top, clipsta, clipend;
 	float winmat[4][4];
 	float ycor =  1.0f / tracking->camera.pixel_aspect;
-	float shiftx, shifty, winside = MAX2(winx, winy);
+	float shiftx, shifty, winside = (float)min_ii(winx, winy);
 
 	BKE_tracking_camera_shift_get(tracking, winx, winy, &shiftx, &shifty);
 
@@ -2848,10 +2848,10 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieTracking *
 		}
 
 		if (first < track->markersnr - 1)
-			sfra = MIN2(sfra, first_marker->framenr);
+			sfra = min_ii(sfra, first_marker->framenr);
 
 		if (last >= 0)
-			efra = MAX2(efra, last_marker->framenr);
+			efra = max_ii(efra, last_marker->framenr);
 
 		tracks_map_insert(context->tracks_map, track, NULL);
 
@@ -3198,8 +3198,8 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 			if (track->flag & TRACK_USE_2D_STAB ||
 			    ((stab->flag & TRACKING_STABILIZE_ROTATION) && track == stab->rot_track))
 			{
-				sfra = MIN2(sfra, track->markers[0].framenr);
-				efra = MAX2(efra, track->markers[track->markersnr - 1].framenr);
+				sfra = min_ii(sfra, track->markers[0].framenr);
+				efra = max_ii(efra, track->markers[track->markersnr - 1].framenr);
 			}
 
 			track = track->next;
@@ -3643,7 +3643,7 @@ static void channels_segments_calc(MovieTrackingDopesheetChannel *channel)
 			channel->segments[2 * segment] = start_marker->framenr;
 			channel->segments[2 * segment + 1] = start_marker->framenr + len;
 
-			channel->max_segment =  MAX2(channel->max_segment, len);
+			channel->max_segment = max_ii(channel->max_segment, len);
 			segment++;
 		}
 

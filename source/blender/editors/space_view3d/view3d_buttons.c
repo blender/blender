@@ -1223,7 +1223,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	if (ob == NULL)
 		return;
 
-	lim = 10000.0f * MAX2(1.0f, v3d->grid);
+	lim = 10000.0f * max_ff(1.0f, v3d->grid);
 
 	block = uiLayoutGetBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);

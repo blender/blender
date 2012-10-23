@@ -39,6 +39,7 @@
 #include "BLI_string.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_text.h" /* only for character utility funcs */
@@ -904,8 +905,8 @@ static int console_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (cl = sc->scrollback.first; cl; cl = cl->next) {
 		if (sel[0] <= cl->len && sel[1] >= 0) {
-			int sta = MAX2(sel[0], 0);
-			int end = MIN2(sel[1], cl->len);
+			int sta = max_ii(sel[0], 0);
+			int end = min_ii(sel[1], cl->len);
 
 			if (BLI_dynstr_get_len(buf_dyn))
 				BLI_dynstr_append(buf_dyn, "\n");

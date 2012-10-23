@@ -810,7 +810,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 	/* tree epsilon must be >= FLT_EPSILON
 	 * so that tangent rays can still hit a bounding volume..
 	 * this bug would show up when casting a ray aligned with a kdop-axis and with an edge of 2 faces */
-	epsilon = MAX2(FLT_EPSILON, epsilon);
+	epsilon = max_ff(FLT_EPSILON, epsilon);
 
 	if (tree) {
 		tree->epsilon = epsilon;
@@ -1089,7 +1089,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 		data[j] = (BVHOverlapData *)MEM_callocN(sizeof(BVHOverlapData), "BVHOverlapData");
 		
 		/* init BVHOverlapData */
-		data[j]->overlap = (BVHTreeOverlap *)malloc(sizeof(BVHTreeOverlap) * MAX2(tree1->totleaf, tree2->totleaf));
+		data[j]->overlap = (BVHTreeOverlap *)malloc(sizeof(BVHTreeOverlap) * max_ii(tree1->totleaf, tree2->totleaf));
 		data[j]->tree1 = tree1;
 		data[j]->tree2 = tree2;
 		data[j]->max_overlap = MAX2(tree1->totleaf, tree2->totleaf);

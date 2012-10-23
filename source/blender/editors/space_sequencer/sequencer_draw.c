@@ -1240,8 +1240,8 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 			/* boundbox and selection tests for NOT drawing the strip... */
 			if ((seq->flag & SELECT) != sel) continue;
 			else if (seq == last_seq) continue;
-			else if (MIN2(seq->startdisp, seq->start) > v2d->cur.xmax) continue;
-			else if (MAX2(seq->enddisp, seq->start + seq->len) < v2d->cur.xmin) continue;
+			else if (min_ii(seq->startdisp, seq->start) > v2d->cur.xmax) continue;
+			else if (max_ii(seq->enddisp, seq->start + seq->len) < v2d->cur.xmin) continue;
 			else if (seq->machine + 1.0f < v2d->cur.ymin) continue;
 			else if (seq->machine > v2d->cur.ymax) continue;
 			

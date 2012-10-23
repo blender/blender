@@ -2826,7 +2826,7 @@ ImBuf *BKE_sequencer_give_ibuf(SeqRenderData context, float cfra, int chanshown)
 
 	count = BLI_countlist(&ed->metastack);
 	if ((chanshown < 0) && (count > 0)) {
-		count = MAX2(count + chanshown, 0);
+		count = max_ii(count + chanshown, 0);
 		seqbasep = ((MetaStack *)BLI_findlink(&ed->metastack, count))->oldbasep;
 	}
 	else {
@@ -3458,7 +3458,7 @@ int BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_sc
 
 		for (seq = seqbasep->first; seq; seq = seq->next) {
 			if (seq->machine == orig_machine)
-				new_frame = MAX2(new_frame, seq->enddisp);
+				new_frame = max_ii(new_frame, seq->enddisp);
 		}
 
 		test->machine = orig_machine;
@@ -3483,10 +3483,10 @@ static int shuffle_seq_time_offset_test(ListBase *seqbasep, char dir)
 			for (seq_other = seqbasep->first; seq_other; seq_other = seq_other->next) {
 				if (!seq_other->tmp && seq_overlap(seq, seq_other)) {
 					if (dir == 'L') {
-						offset = MIN2(offset, seq_other->startdisp - seq->enddisp);
+						offset = min_ii(offset, seq_other->startdisp - seq->enddisp);
 					}
 					else {
-						offset = MAX2(offset, seq_other->enddisp - seq->startdisp);
+						offset = max_ii(offset, seq_other->enddisp - seq->startdisp);
 					}
 				}
 			}

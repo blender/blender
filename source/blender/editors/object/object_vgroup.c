@@ -1062,7 +1062,7 @@ static void vgroup_normalize(Object *ob)
 
 			dw = defvert_find_index(dv, def_nr);
 			if (dw) {
-				weight_max = MAX2(dw->weight, weight_max);
+				weight_max = max_ff(dw->weight, weight_max);
 			}
 		}
 

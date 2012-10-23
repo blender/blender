@@ -131,7 +131,7 @@ unsigned int BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, i
 			if (u_diff > FLT_EPSILON) {
 				float jump = fabsf(w_diff / u_diff);
 
-				max_jump = MAX2(max_jump, jump);
+				max_jump = max_ff(max_jump, jump);
 			}
 
 			prev_u = point->uw[j].u;

@@ -106,6 +106,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	TIMEIT_START(decim);
 #endif
 
+	/* set up front so we dont show invalid info in the UI */
+	dmd->face_count = dm->getNumPolys(dm);
+
 	switch (dmd->mode) {
 		case MOD_DECIM_MODE_COLLAPSE:
 			if (dmd->percent == 1.0f) {
@@ -124,7 +127,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			break;
 	}
 
-	if (dm->getNumPolys(dm) <= 3) {
+	if (dmd->face_count <= 3) {
 		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces"));
 		return dm;
 	}

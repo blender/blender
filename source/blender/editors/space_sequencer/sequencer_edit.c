@@ -1952,7 +1952,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	while (seq) {
 		next = seq->next;
 		if (seq != seqm && (seq->flag & SELECT)) {
-			channel_max = MAX2(seq->machine, channel_max);
+			channel_max = max_ii(seq->machine, channel_max);
 			BLI_remlink(ed->seqbasep, seq);
 			BLI_addtail(&seqm->seqbase, seq);
 		}
@@ -2255,11 +2255,11 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
-			xmin = MIN2(xmin, seq->startdisp);
-			xmax = MAX2(xmax, seq->enddisp);
+			xmin = min_ii(xmin, seq->startdisp);
+			xmax = max_ii(xmax, seq->enddisp);
 
-			ymin = MIN2(ymin, seq->machine);
-			ymax = MAX2(ymax, seq->machine);
+			ymin = min_ii(ymin, seq->machine);
+			ymax = max_ii(ymax, seq->machine);
 		}
 	}
 

@@ -28,9 +28,9 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-static int get_pixel_primary_channel(float *pixel)
+static int get_pixel_primary_channel(float pixel[3])
 {
-	float max_value = MAX3(pixel[0], pixel[1], pixel[2]);
+	float max_value = max(max(pixel[0], pixel[1]), pixel[2]);
 
 	if (max_value == pixel[0])
 		return 0;
@@ -77,8 +77,8 @@ void KeyingDespillOperation::executePixel(float output[4], float x, float y, Pix
 	int other_1 = (screen_primary_channel + 1) % 3;
 	int other_2 = (screen_primary_channel + 2) % 3;
 
-	int min_channel = MIN2(other_1, other_2);
-	int max_channel = MAX2(other_1, other_2);
+	int min_channel = min(other_1, other_2);
+	int max_channel = max(other_1, other_2);
 
 	float average_value, amount;
 

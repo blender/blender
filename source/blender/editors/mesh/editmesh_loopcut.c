@@ -505,7 +505,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if (event->val == KM_RELEASE)
 				break;
 
-			cuts = MAX2(cuts - 1, 0);
+			cuts = max_ii(cuts - 1, 0);
 			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);
 			show_cuts = TRUE;

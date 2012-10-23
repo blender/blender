@@ -344,28 +344,28 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 			for (y = 0; y < bheight; y++) {
 				for (x = 0; x < bwidth - 1; x++) {
 					p = rectf + (bwidth * y + x);
-					*p = MAX2(*p, *(p + 1));
+					*p = max(*p, *(p + 1));
 				}
 			}
 		
 			for (y = 0; y < bheight; y++) {
 				for (x = bwidth - 1; x >= 1; x--) {
 					p = rectf + (bwidth * y + x);
-					*p = MAX2(*p, *(p - 1));
+					*p = max(*p, *(p - 1));
 				}
 			}
 		
 			for (x = 0; x < bwidth; x++) {
 				for (y = 0; y < bheight - 1; y++) {
 					p = rectf + (bwidth * y + x);
-					*p = MAX2(*p, *(p + bwidth));
+					*p = max(*p, *(p + bwidth));
 				}
 			}
 		
 			for (x = 0; x < bwidth; x++) {
 				for (y = bheight - 1; y >= 1; y--) {
 					p = rectf + (bwidth * y + x);
-					*p = MAX2(*p, *(p - bwidth));
+					*p = max(*p, *(p - bwidth));
 				}
 			}
 		}

@@ -368,7 +368,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
 						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
 						Material ***matar = give_matarar(base->object);
-						int actcol = MAX2(base->object->actcol - 1, 0);
+						int actcol = max_ii(base->object->actcol - 1, 0);
 
 						if (matar && actcol < base->object->totcol)
 							(*matar)[actcol] = mat;
@@ -518,8 +518,8 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		
 		if (ABS(rres.rectx - newx) < 2 && ABS(rres.recty - newy) < 2) {
 
-			newrect->xmax = MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
-			newrect->ymax = MAX2(newrect->ymax, rect->ymin + rres.recty);
+			newrect->xmax = max_ii(newrect->xmax, rect->xmin + rres.rectx + offx);
+			newrect->ymax = max_ii(newrect->ymax, rect->ymin + rres.recty);
 
 			if (rres.rectx && rres.recty) {
 				/* temporary conversion to byte for drawing */

@@ -3988,7 +3988,7 @@ static void p_smooth(PChart *chart)
 					diff[1] = p[1] - oldp[1];
 
 					length = sqrt(diff[0] * diff[0] + diff[1] * diff[1]);
-					d = MAX2(d, length);
+					d = max_ff(d, length);
 					moved += length;
 				}
 			}
