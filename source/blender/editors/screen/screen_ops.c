@@ -2071,15 +2071,23 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 
 /* ************** switch screen operator ***************************** */
 
+static int screen_set_is_ok(bScreen *screen, bScreen *screen_prev)
+{
+	return ((screen->winid == 0)    &&
+	        (screen->full == 0)     &&
+	        (screen != screen_prev) &&
+	        (screen->id.name[2] != '.' || !(U.uiflag & USER_HIDE_DOT)));
+}
 
 /* function to be called outside UI context, or for redo */
 static int screen_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	bScreen *screen = CTX_wm_screen(C);
 	bScreen *screen_prev = screen;
 	
 	ScrArea *sa = CTX_wm_area(C);
-	int tot = BLI_countlist(&CTX_data_main(C)->screen);
+	int tot = BLI_countlist(&bmain->screen);
 	int delta = RNA_int_get(op->ptr, "delta");
 	
 	/* temp screens are for userpref or render display */
@@ -2089,17 +2097,19 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 	if (delta == 1) {
 		while (tot--) {
 			screen = screen->id.next;
-			if (screen == NULL) screen = CTX_data_main(C)->screen.first;
-			if (screen->winid == 0 && screen->full == 0 && screen != screen_prev)
+			if (screen == NULL) screen = bmain->screen.first;
+			if (screen_set_is_ok(screen, screen_prev)) {
 				break;
+			}
 		}
 	}
 	else if (delta == -1) {
 		while (tot--) {
 			screen = screen->id.prev;
-			if (screen == NULL) screen = CTX_data_main(C)->screen.last;
-			if (screen->winid == 0 && screen->full == 0 && screen != screen_prev)
+			if (screen == NULL) screen = bmain->screen.last;
+			if (screen_set_is_ok(screen, screen_prev)) {
 				break;
+			}
 		}
 	}
 	else {
