@@ -28,18 +28,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-static int get_pixel_primary_channel(float pixel[3])
-{
-	float max_value = max(max(pixel[0], pixel[1]), pixel[2]);
-
-	if (max_value == pixel[0])
-		return 0;
-	else if (max_value == pixel[1])
-		return 1;
-
-	return 2;
-}
-
 static float get_pixel_saturation(float pixelColor[4], float screen_balance, int primary_channel)
 {
 	int other_1 = (primary_channel + 1) % 3;
@@ -85,7 +73,7 @@ void KeyingOperation::executePixel(float output[4], float x, float y, PixelSampl
 	this->m_pixelReader->read(pixelColor, x, y, sampler);
 	this->m_screenReader->read(screenColor, x, y, sampler);
 
-	int primary_channel = get_pixel_primary_channel(screenColor);
+	const int primary_channel = axis_primary_v3(screenColor);
 
 	if (pixelColor[primary_channel] > 1.0f) {
 		/* overexposure doesn't happen on screen itself and usually happens

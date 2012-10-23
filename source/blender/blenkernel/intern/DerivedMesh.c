@@ -2496,7 +2496,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	MTFace *mtface;
 	MFace *mface;
 	float (*orco)[3] = NULL, (*tangent)[4];
-	int totvert, totface;
+	int /* totvert, */ totface;
 	float *nors;
 
 	if (CustomData_get_layer_index(&dm->faceData, CD_TANGENT) != -1)
@@ -2505,7 +2505,7 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
 
 	/* check we have all the needed layers */
-	totvert = dm->getNumVerts(dm);
+	/* totvert = dm->getNumVerts(dm); */ /* UNUSED */
 	totface = dm->getNumTessFaces(dm);
 
 	mvert = dm->getVertArray(dm);
