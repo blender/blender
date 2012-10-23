@@ -5389,6 +5389,7 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_replace",         TRUE, "Replace", "Remove original faces");
 }
 
+#ifdef WITH_BULLET
 static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -5482,6 +5483,7 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 
 	join_triangle_props(ot);
 }
+#endif
 
 static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 {

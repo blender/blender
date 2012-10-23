@@ -1162,6 +1162,7 @@ static BMOpDefine bmo_slide_vert_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+#ifdef WITH_BULLET
 /*
  * Convex Hull
  *
@@ -1191,6 +1192,7 @@ static BMOpDefine bmo_convex_hull_def = {
 	bmo_convex_hull_exec,
 	0
 };
+#endif
 
 /*
  * Symmetrize
@@ -1227,7 +1229,9 @@ BMOpDefine *opdefines[] = {
 	&bmo_collapse_uvs_def,
 	&bmo_connect_verts_def,
 	&bmo_contextual_create_def,
+#ifdef WITH_BULLET
 	&bmo_convex_hull_def,
+#endif
 	&bmo_create_circle_def,
 	&bmo_create_cone_def,
 	&bmo_create_cube_def,

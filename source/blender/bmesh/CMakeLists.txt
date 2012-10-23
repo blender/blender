@@ -29,6 +29,7 @@ set(INC
 	../blenlib
 	../makesdna
 	../../../intern/guardedalloc
+	../../../extern/bullet2/src
 )
 
 set(INC_SYS
@@ -111,6 +112,10 @@ set(SRC
 
 if(MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+endif()
+
+if(WITH_BULLET)
+  add_definitions(-DWITH_BULLET)
 endif()
 
 blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}")

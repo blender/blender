@@ -165,7 +165,9 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_wireframe);
 	WM_operatortype_append(MESH_OT_edge_split);
 
+#ifdef WITH_BULLET
 	WM_operatortype_append(MESH_OT_convex_hull);
+#endif
 
 	WM_operatortype_append(MESH_OT_symmetrize);
 
