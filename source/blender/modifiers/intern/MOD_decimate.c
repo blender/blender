@@ -103,13 +103,28 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	float *vweights = NULL;
 
 #ifdef USE_TIMEIT
-	 TIMEIT_START(decim);
+	TIMEIT_START(decim);
 #endif
 
-	if (dmd->percent == 1.0f) {
-		return dm;
+	switch (dmd->mode) {
+		case MOD_DECIM_MODE_COLLAPSE:
+			if (dmd->percent == 1.0f) {
+				return dm;
+			}
+			break;
+		case MOD_DECIM_MODE_UNSUBDIV:
+			if (dmd->iter == 0) {
+				return dm;
+			}
+			break;
+		case MOD_DECIM_MODE_DISSOLVE:
+			if (dmd->angle == 0.0f) {
+				return dm;
+			}
+			break;
 	}
-	else if (dm->getNumPolys(dm) <= 3) {
+
+	if (dm->getNumPolys(dm) <= 3) {
 		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces"));
 		return dm;
 	}

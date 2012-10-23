@@ -231,12 +231,6 @@ static void bm_decim_build_edge_cost(BMesh *bm,
 
 static int bm_decim_triangulate_begin(BMesh *bm)
 {
-#ifdef USE_SAFETY_CHECKS
-	const int check_double_edges = TRUE;
-#else
-	const int check_double_edges = FALSE;
-#endif
-
 	BMIter iter;
 	BMFace *f;
 	// int has_quad;  // could optimize this a little
@@ -285,6 +279,9 @@ static int bm_decim_triangulate_begin(BMesh *bm)
 				l_b = f_l[3];
 			}
 
+#ifdef USE_SAFETY_CHECKS
+			if (BM_edge_exists(l_a->v, l_b->v) == FALSE)
+#endif
 			{
 				BMFace *f_new;
 				BMLoop *l_new;
@@ -293,7 +290,7 @@ static int bm_decim_triangulate_begin(BMesh *bm)
 				 * - if there is a quad that has a free standing edge joining it along
 				 * where we want to split the face, there isnt a good way we can handle this.
 				 * currently that edge will get removed when joining the tris back into a quad. */
-				f_new = BM_face_split(bm, f, l_a->v, l_b->v, &l_new, NULL, check_double_edges);
+				f_new = BM_face_split(bm, f, l_a->v, l_b->v, &l_new, NULL, FALSE);
 
 				if (f_new) {
 					/* the value of this doesn't matter, only that the 2 loops match and have unique values */

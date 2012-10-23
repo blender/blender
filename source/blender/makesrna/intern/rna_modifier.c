@@ -1143,7 +1143,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "iter");
 	RNA_def_property_range(prop, 0, SHRT_MAX);
-	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
+	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
 	RNA_def_property_ui_text(prop, "Iterations", "Number of times reduce the geometry (unsubdivide only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
