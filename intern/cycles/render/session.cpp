@@ -34,10 +34,15 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Note about  preserve_tile_device option for tile manager:
+ * progressive refine and viewport rendering does requires tiles to
+ * always be allocated for the same device
+ */
 Session::Session(const SessionParams& params_)
 : params(params_),
   tile_manager(params.progressive, params.samples, params.tile_size, params.start_resolution,
-  	(params.background)? 1: max(params.device.multi_devices.size(), 1))
+       params.background == false || params.progressive_refine,
+       max(params.device.multi_devices.size(), 1))
 {
 	device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);
 
@@ -334,7 +339,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	/* get next tile from manager */
 	Tile tile;
-	int device_num = (params.background)? 0: device->device_number(tile_device);
+	int device_num = device->device_number(tile_device);
 
 	if(!tile_manager.next_tile(tile, device_num))
 		return false;
@@ -378,20 +383,15 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	/* allocate buffers */
 	if(params.progressive_refine) {
-		int tile_x = rtile.x / params.tile_size.x;
-		int tile_y = rtile.y / params.tile_size.y;
-
-		int tile_index = tile_y * tile_manager.state.tile_w + tile_x;
-
 		tile_lock.lock();
 
 		if(tile_buffers.size() == 0)
 			tile_buffers.resize(tile_manager.state.num_tiles, NULL);
 
-		tilebuffers = tile_buffers[tile_index];
+		tilebuffers = tile_buffers[tile.index];
 		if(tilebuffers == NULL) {
 			tilebuffers = new RenderBuffers(tile_device);
-			tile_buffers[tile_index] = tilebuffers;
+			tile_buffers[tile.index] = tilebuffers;
 
 			tilebuffers->reset(tile_device, buffer_params);
 		}

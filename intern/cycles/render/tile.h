@@ -30,6 +30,7 @@ CCL_NAMESPACE_BEGIN
 
 class Tile {
 public:
+	int index;
 	int x, y, w, h;
 	int device;
 	bool rendering;
@@ -37,8 +38,8 @@ public:
 	Tile()
 	{}
 
-	Tile(int x_, int y_, int w_, int h_, int device_)
-	: x(x_), y(y_), w(w_), h(h_), device(device_), rendering(false) {}
+	Tile(int index_, int x_, int y_, int w_, int h_, int device_)
+	: index(index_), x(x_), y(y_), w(w_), h(h_), device(device_), rendering(false) {}
 };
 
 /* Tile Manager */
@@ -54,12 +55,11 @@ public:
 		int resolution_divider;
 		int num_tiles;
 		int num_rendered_tiles;
-		int tile_w;
-		int tile_h;
 		list<Tile> tiles;
 	} state;
 
-	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution, int num_devices = 1);
+	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution,
+	            int preserve_tile_device, int num_devices = 1);
 	~TileManager();
 
 	void reset(BufferParams& params, int num_samples);
@@ -76,6 +76,15 @@ protected:
 	int2 tile_size;
 	int start_resolution;
 	int num_devices;
+
+	/* in some cases it is important that the same tile will be returned for the same
+	 * device it was originally generated for (i.e. viewport rendering when buffer is
+	 * allocating once for tile and then always used by it)
+	 *
+	 * in other cases any tile could be handled by any device (i.e. final rendering
+	 * without progressive refine)
+	 */
+	bool preserve_tile_device;
 
 	list<Tile>::iterator next_center_tile(int device = 0);
 };
