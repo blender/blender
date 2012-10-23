@@ -3517,9 +3517,22 @@ static void add_transp_obindex(RenderLayer *rl, int offset, Object *ob)
 	RenderPass *rpass;
 	
 	for (rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		if (rpass->passtype == SCE_PASS_INDEXOB||rpass->passtype == SCE_PASS_INDEXMA) {
+		if (rpass->passtype == SCE_PASS_INDEXOB) {
 			float *fp= rpass->rect + offset;
 			*fp= (float)ob->index;
+			break;
+		}
+	}
+}
+
+static void add_transp_material_index(RenderLayer *rl, int offset, Material *mat)
+{
+	RenderPass *rpass;
+	
+	for (rpass= rl->passes.first; rpass; rpass= rpass->next) {
+		if (rpass->passtype == SCE_PASS_INDEXMA) {
+			float *fp= rpass->rect + offset;
+			*fp= (float)mat->index;
 			break;
 		}
 	}
@@ -4129,10 +4142,12 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 					}
 				}
 				if (addpassflag & SCE_PASS_INDEXMA) {
-					ObjectRen *obr= R.objectinstance[zrow[totface-1].obi].obr;
-					if (obr->ob) {
+					ObjectRen *obr = R.objectinstance[zrow[totface-1].obi].obr;
+					VlakRen *vr = obr->vlaknodes->vlak;
+					Material *mat = vr->mat;
+					if (mat) {
 						for (a= 0; a<totfullsample; a++)
-							add_transp_obindex(rlpp[a], od, obr->ob);
+							add_transp_material_index(rlpp[a], od, mat);
 					}
 				}
 
