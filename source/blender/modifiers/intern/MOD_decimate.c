@@ -64,6 +64,7 @@ static void initData(ModifierData *md)
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 
 	dmd->percent = 1.0;
+	dmd->angle   = DEG2RADF(15.0f);
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -73,6 +74,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 	tdmd->percent = dmd->percent;
 	tdmd->iter = dmd->iter;
+	tdmd->angle = dmd->angle;
 	BLI_strncpy(tdmd->defgrp_name, dmd->defgrp_name, sizeof(tdmd->defgrp_name));
 	tdmd->flag = dmd->flag;
 	tdmd->mode = dmd->mode;
@@ -149,8 +151,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		case MOD_DECIM_MODE_UNSUBDIV:
 			BM_mesh_decimate_unsubdivide(bm, dmd->iter);
 			break;
+		case MOD_DECIM_MODE_DISSOLVE:
+			BM_mesh_decimate_dissolve(bm, dmd->angle);
+			break;
 	}
-
 
 	if (vweights) {
 		MEM_freeN(vweights);

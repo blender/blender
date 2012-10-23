@@ -362,7 +362,9 @@ typedef struct DecimateModifierData {
 	ModifierData modifier;
 
 	float percent;  /* (mode == MOD_DECIM_MODE_COLLAPSE) */
-	int   iter;     /* (mode == MOD_DECIM_MODE_UNSUBDIV) */
+	short   iter;   /* (mode == MOD_DECIM_MODE_UNSUBDIV) */
+	short   pad;
+	float   angle;  /* (mode == MOD_DECIM_MODE_DISSOLVE) */
 
 	char defgrp_name[64];	/* MAX_VGROUP_NAME */
 	short flag, mode;
@@ -377,7 +379,8 @@ enum {
 
 enum {
 	MOD_DECIM_MODE_COLLAPSE,
-	MOD_DECIM_MODE_UNSUBDIV
+	MOD_DECIM_MODE_UNSUBDIV,
+	MOD_DECIM_MODE_DISSOLVE   /* called planar in the UI */
 };
 
 /* Smooth modifier flags */

@@ -1113,6 +1113,7 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	static EnumPropertyItem modifier_decim_mode_items[] = {
 		{MOD_DECIM_MODE_COLLAPSE, "COLLAPSE", 0, "Collapse", "Use edge collapsing"},
 		{MOD_DECIM_MODE_UNSUBDIV, "UNSUBDIV", 0, "Un-Subdivide", "Use un-subdivide face reduction"},
+		{MOD_DECIM_MODE_DISSOLVE, "DISSOLVE", 0, "Planar", "Dissolve geometry to form planar polygons"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1130,20 +1131,31 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	/* (mode == MOD_DECIM_MODE_COLLAPSE) */
 	prop = RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "percent");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_range(prop, 0, 1, 1, 4);
-	RNA_def_property_ui_text(prop, "Ratio", "Ratio of triangles to reduce to");
+	RNA_def_property_ui_text(prop, "Ratio", "Ratio of triangles to reduce to (collapse only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	/* (mode == MOD_DECIM_MODE_UNSUBDIV) */
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "iter");
 	RNA_def_property_range(prop, 0, SHRT_MAX);
 	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
-	RNA_def_property_ui_text(prop, "Iterations", "Number of times to unsubdivide");
+	RNA_def_property_ui_text(prop, "Iterations", "Number of times reduce the geometry (unsubdivide only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	/* (mode == MOD_DECIM_MODE_DISSOLVE) */
+	prop = RNA_def_property(srna, "angle_limit", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "angle");
+	RNA_def_property_range(prop, 0, DEG2RAD(180));
+	RNA_def_property_ui_range(prop, 0, DEG2RAD(180), 100, 2);
+	RNA_def_property_ui_text(prop, "Angle Limit", "Only dissolve angles below this(planar/dissolve only)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* (mode == MOD_DECIM_MODE_COLLAPSE) */
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
@@ -1154,7 +1166,9 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_INVERT_VGROUP);
 	RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	/* end collapse-only option */
 
+	/* all modes use this */
 	prop = RNA_def_property(srna, "face_count", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Face Count", "The current number of faces in the decimated mesh");

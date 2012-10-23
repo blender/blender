@@ -65,6 +65,7 @@ set(SRC
 	intern/bmesh_core.c
 	intern/bmesh_core.h
 	intern/bmesh_decimate_collapse.c
+	intern/bmesh_decimate_dissolve.c
 	intern/bmesh_decimate_unsubdivide.c
 	intern/bmesh_decimate.h
 	intern/bmesh_inline.h

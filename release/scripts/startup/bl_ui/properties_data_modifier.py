@@ -213,14 +213,17 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def DECIMATE(self, layout, ob, md):
         row = layout.row()
         row.prop(md, "decimate_type", expand=True)
+        decimate_type = md.decimate_type
 
-        if md.decimate_type == 'COLLAPSE':
+        if decimate_type == 'COLLAPSE':
             layout.prop(md, "ratio")
             row = layout.row()
             row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
             row.prop(md, "invert_vertex_group")
-        else:  # assume UNSUBDIV
+        elif decimate_type == 'UNSUBDIV':
             layout.prop(md, "iterations")
+        else:  # decimate_type == 'DISSOLVE':
+            layout.prop(md, "angle_limit")
 
         layout.label(text="Face Count" + ": %d" % md.face_count)
 
