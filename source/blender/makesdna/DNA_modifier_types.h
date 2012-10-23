@@ -370,7 +370,7 @@ typedef struct DecimateModifierData {
 	short flag, mode;
 
 	/* runtime only */
-	int face_count;
+	int face_count, pad2;
 } DecimateModifierData;
 
 enum {
