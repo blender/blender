@@ -2582,7 +2582,7 @@ static void rna_generate_static_function_prototypes(BlenderRNA *UNUSED(brna), St
 	fprintf(f, "\n");
 }
 
-static void rna_generate_struct_prototypes(FILE *f, StructRNA *srna)
+static void rna_generate_struct_prototypes(FILE *f)
 {
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;
@@ -2592,8 +2592,6 @@ static void rna_generate_struct_prototypes(FILE *f, StructRNA *srna)
 
 	/* structures definitions */
 	for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
-		srna = ds->srna;
-
 		for (dfunc = ds->functions.first; dfunc; dfunc = dfunc->cont.next) {
 			if (dfunc->call) {
 				for (dp = dfunc->cont.properties.first; dp; dp = dp->next) {
@@ -3506,7 +3504,7 @@ static void rna_generate_header_cpp(BlenderRNA *UNUSED(brna), FILE *f)
 
 	fprintf(f, "/* Structure prototypes */\n\n");
 	fprintf(f, "extern \"C\" {\n");
-	rna_generate_struct_prototypes(f, srna);
+	rna_generate_struct_prototypes(f);
 	fprintf(f, "}\n\n");
 
 	fprintf(f, "namespace BL {\n");
