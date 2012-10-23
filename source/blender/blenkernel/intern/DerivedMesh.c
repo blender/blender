@@ -2428,7 +2428,7 @@ static int GetNumVertsOfFace(const SMikkTSpaceContext *pContext, const int face_
 
 static void GetPosition(const SMikkTSpaceContext *pContext, float fPos[], const int face_num, const int vert_index)
 {
-	//assert(vert_index>=0 && vert_index<4);
+	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 	const float *co = pMesh->mvert[(&pMesh->mface[face_num].v1)[vert_index]].co;
 	copy_v3_v3(fPos, co);
@@ -2436,7 +2436,7 @@ static void GetPosition(const SMikkTSpaceContext *pContext, float fPos[], const 
 
 static void GetTextureCoordinate(const SMikkTSpaceContext *pContext, float fUV[], const int face_num, const int vert_index)
 {
-	//assert(vert_index>=0 && vert_index<4);
+	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 
 	if (pMesh->mtface != NULL) {
@@ -2451,7 +2451,7 @@ static void GetTextureCoordinate(const SMikkTSpaceContext *pContext, float fUV[]
 
 static void GetNormal(const SMikkTSpaceContext *pContext, float fNorm[], const int face_num, const int vert_index)
 {
-	//assert(vert_index>=0 && vert_index<4);
+	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 
 	const int smoothnormal = (pMesh->mface[face_num].flag & ME_SMOOTH);
@@ -2481,7 +2481,7 @@ static void GetNormal(const SMikkTSpaceContext *pContext, float fNorm[], const i
 }
 static void SetTSpace(const SMikkTSpaceContext *pContext, const float fvTangent[], const float fSign, const int face_num, const int iVert)
 {
-	//assert(vert_index>=0 && vert_index<4);
+	//assert(vert_index >= 0 && vert_index < 4);
 	SGLSLMeshToTangent *pMesh = (SGLSLMeshToTangent *) pContext->m_pUserData;
 	float *pRes = pMesh->tangent[4 * face_num + iVert];
 	copy_v3_v3(pRes, fvTangent);

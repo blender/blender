@@ -40,7 +40,7 @@
 
 #include "bmesh.h"
 #include "bmesh_structure.h"
-#include "bmesh_decimate.h"
+#include "bmesh_decimate.h"  /* own include */
 
 /* defines for testing */
 #define USE_CUSTOMDATA
@@ -112,7 +112,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 static void bm_decim_calc_target_co(BMEdge *e, float optimize_co[3],
                                     const Quadric *vquadrics)
 {
-	/* compute an edge contration target for edge ei
+	/* compute an edge contration target for edge 'e'
 	 * this is computed by summing it's vertices quadrics and
 	 * optimizing the result. */
 	Quadric q;
@@ -855,7 +855,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
  * \param vertex_weights Optional array of vertex  aligned weights [0 - 1],
  *        a vertex group is the usual source for this.
  */
-void BM_mesh_decimate(BMesh *bm, const float factor, float *vweights)
+void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights)
 {
 	Heap *eheap;             /* edge heap */
 	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */

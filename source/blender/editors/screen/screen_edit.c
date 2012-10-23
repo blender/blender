@@ -1453,10 +1453,10 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 			
 			if (scene != sc->scene) {
 				/* all areas endlocalview */
-				// XXX	ScrArea *sa= sc->areabase.first;
+				// XXX	ScrArea *sa = sc->areabase.first;
 				//	while (sa) {
 				//		endlocalview(sa);
-				//		sa= sa->next;
+				//		sa = sa->next;
 				//	}
 				sc->scene = scene;
 			}

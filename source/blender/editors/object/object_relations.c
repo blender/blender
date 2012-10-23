@@ -667,7 +667,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
 				 */
 				ob->partype = PAROBJECT; /* note, dna define, not operator property */
-				//ob->partype= PARSKEL; /* note, dna define, not operator property */
+				//ob->partype = PARSKEL; /* note, dna define, not operator property */
 				
 				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses 
 				 * - We need to ensure that the modifier we're adding doesn't already exist, so we check this by
@@ -1260,7 +1260,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			base->object->lay = lay;
 			base->object->flag &= ~SELECT;
 			base->flag &= ~SELECT;
-			/* if (base->object->type==OB_LAMP) is_lamp = TRUE; */
+			/* if (base->object->type == OB_LAMP) is_lamp = TRUE; */
 		}
 		CTX_DATA_END;
 	}
@@ -1710,7 +1710,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						break;
 					case OB_MESH:
 						ob->data = BKE_mesh_copy(ob->data);
-						//me= ob->data;
+						//me = ob->data;
 						//if (me && me->key)
 						//	ipo_idnew(me->key->ipo);	/* drivers */
 						break;

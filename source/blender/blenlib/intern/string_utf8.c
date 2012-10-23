@@ -124,15 +124,15 @@ utf8_error:
 
 int BLI_utf8_invalid_strip(char *str, int length)
 {
-	int bad_char, tot= 0;
+	int bad_char, tot = 0;
 
-	while ((bad_char= BLI_utf8_invalid_byte(str, length)) != -1) {
+	while ((bad_char = BLI_utf8_invalid_byte(str, length)) != -1) {
 		str += bad_char;
 		length -= bad_char;
 
 		if (length == 0) {
 			/* last character bad, strip it */
-			*str= '\0';
+			*str = '\0';
 			tot++;
 			break;
 		}
@@ -166,9 +166,9 @@ static const size_t utf8_skip_data[256] = {
 #define BLI_STR_UTF8_CPY(dst, src, maxncpy)                                   \
 	{                                                                         \
 		size_t utf8_size;                                                     \
-		while (*src != '\0' && (utf8_size= utf8_skip_data[*src]) < maxncpy) {  \
+		while (*src != '\0' && (utf8_size = utf8_skip_data[*src]) < maxncpy) {\
 			maxncpy -= utf8_size;                                             \
-			switch (utf8_size) {                                               \
+			switch (utf8_size) {                                              \
 				case 6: *dst ++ = *src ++;                                    \
 				case 5: *dst ++ = *src ++;                                    \
 				case 4: *dst ++ = *src ++;                                    \
@@ -177,12 +177,12 @@ static const size_t utf8_skip_data[256] = {
 				case 1: *dst ++ = *src ++;                                    \
 			}                                                                 \
 		}                                                                     \
-		*dst= '\0';                                                           \
+		*dst = '\0';                                                          \
 	} (void)0
 
 char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
 {
-	char *dst_r= dst;
+	char *dst_r = dst;
 
 	/* note: currently we don't attempt to deal with invalid utf8 chars */
 	BLI_STR_UTF8_CPY(dst, src, maxncpy);
@@ -266,15 +266,15 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 	}
 
 	while (*src_c && len < maxcpy) {
-		size_t step= 0;
-		unsigned int unicode= BLI_str_utf8_as_unicode_and_size(src_c, &step);
+		size_t step = 0;
+		unsigned int unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
 		if (unicode != BLI_UTF8_ERR) {
-			*dst_w= (wchar_t)unicode;
+			*dst_w = (wchar_t)unicode;
 			src_c += step;
 		}
 		else {
 			*dst_w = '?';
-			src_c= BLI_str_find_next_char_utf8(src_c, NULL);
+			src_c = BLI_str_find_next_char_utf8(src_c, NULL);
 		}
 		dst_w++;
 		len++;
@@ -397,13 +397,13 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 	unsigned char c;
 
 	p += *index;
-	c= (unsigned char) *p;
+	c = (unsigned char) *p;
 
 	UTF8_COMPUTE (c, mask, len);
 	if (len == -1) {
 		/* when called with NULL end, result will never be NULL,
 		 * checks for a NULL character */
-		char *p_next= BLI_str_find_next_char_utf8(p, NULL);
+		char *p_next = BLI_str_find_next_char_utf8(p, NULL);
 		/* will never return the same pointer unless '\0',
 		 * eternal loop is prevented */
 		*index += (size_t)(p_next - p);
@@ -420,8 +420,8 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 	 * characters */
 	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
 	if (result == BLI_UTF8_ERR) {
-		len= 1;
-		result= *p;
+		len = 1;
+		result = *p;
 	}
 	/* end warning! */
 #else

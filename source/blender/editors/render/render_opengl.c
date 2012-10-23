@@ -175,7 +175,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 
 		/* render 3d view */
 		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
-			/*int is_ortho= scene->r.mode & R_ORTHO;*/
+			/*int is_ortho = scene->r.mode & R_ORTHO;*/
 			camera = v3d->camera;
 			RE_GetCameraWindow(oglrender->re, camera, scene->r.cfra, winmat);
 			

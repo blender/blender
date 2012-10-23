@@ -113,7 +113,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		                         (int)loc[0], (int)loc[1],
 		                         &mcoords[i][0], &mcoords[i][1]);
 		i++;
-		if (i>= 256) break;
+		if (i >= 256) break;
 	}
 	RNA_END;
 

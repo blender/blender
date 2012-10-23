@@ -713,7 +713,7 @@ static bNodeTree *ntreeCopyTree_internal(bNodeTree *ntree, const short do_id_use
 		}
 
 		node->new_node = NULL;
-		/* nnode= */ nodeCopyNode(newtree, node);   /* sets node->new */
+		/* nnode = */ nodeCopyNode(newtree, node);   /* sets node->new */
 		
 		/* make sure we don't copy new nodes again! */
 		if (node == last)

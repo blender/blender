@@ -175,8 +175,8 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 
 	avi->interlace = 0;
 	avi->odd_fields = 0;
-/*  avi->interlace= rd->mode & R_FIELDS; */
-/*  avi->odd_fields= (rd->mode & R_ODDFIELD)?1:0; */
+/*  avi->interlace = rd->mode & R_FIELDS; */
+/*  avi->odd_fields = (rd->mode & R_ODDFIELD) ? 1 : 0; */
 	
 	printf("Created avi: %s\n", name);
 	return 1;

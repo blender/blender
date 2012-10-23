@@ -124,7 +124,6 @@ MetaElem *add_metaball_primitive(bContext *UNUSED(C), Object *obedit, float mat[
 /* Select or deselect all MetaElements */
 static int mball_select_all_exec(bContext *C, wmOperator *op)
 {
-	//Scene *scene= CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml;

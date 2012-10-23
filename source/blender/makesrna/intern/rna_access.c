@@ -5219,7 +5219,7 @@ static int rna_function_format_array_length(const char *format, int ofs, int fle
 			lenbuf[idx] = format[ofs];
 
 	if (ofs < flen && format[ofs + 1] == ']') {
-		/* XXX put better error reporting for ofs>=flen or idx over lenbuf capacity */
+		/* XXX put better error reporting for (ofs >= flen) or idx over lenbuf capacity */
 		lenbuf[idx] = '\0';
 		return atoi(lenbuf);
 	}

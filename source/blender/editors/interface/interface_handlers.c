@@ -2157,7 +2157,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	}
 
 	/* this makes adjacent blocks auto open from now on */
-	//if (but->block->auto_open ==0 ) but->block->auto_open = 1;
+	//if (but->block->auto_open == 0) but->block->auto_open = 1;
 }
 
 static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -2961,7 +2961,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
-	int mx, my /*, click= 0 */;
+	int mx, my /*, click = 0 */;
 	int retval = WM_UI_HANDLER_CONTINUE;
 	int horizontal = (BLI_rctf_size_x(&but->rect) > BLI_rctf_size_y(&but->rect));
 	
@@ -3747,8 +3747,8 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap,
 
 	zoomx = BLI_rctf_size_x(&but->rect) / BLI_rctf_size_x(&cumap->curr);
 	zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&cumap->curr);
-	/* offsx= cumap->curr.xmin; */
-	/* offsy= cumap->curr.ymin; */
+	/* offsx = cumap->curr.xmin; */
+	/* offsy = cumap->curr.ymin; */
 
 	if (snap) {
 		float d[2];
@@ -4078,7 +4078,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 	Scopes *scopes = (Scopes *)but->poin;
 	/* rcti rect; */
 	int changed = 1;
-	float /* dx, */ dy /* , yfac=1.f */; /* UNUSED */
+	float /* dx, */ dy /* , yfac =1.0f */; /* UNUSED */
 
 	/* BLI_rcti_rctf_copy(&rect, &but->rect); */
 
@@ -6027,7 +6027,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	}
 	else {
 		retval = ui_do_button(C, block, but, event);
-		// retval= WM_UI_HANDLER_BREAK; XXX why ? 
+		// retval = WM_UI_HANDLER_BREAK; XXX why ?
 	}
 
 	if (data->state == BUTTON_STATE_EXIT) {

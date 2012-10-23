@@ -2377,7 +2377,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 				}
 			}
 		}
-		if (pid->cache->cached_frames && cfra>=sta && cfra<=end)
+		if (pid->cache->cached_frames && cfra >= sta && cfra <= end)
 			pid->cache->cached_frames[cfra-sta] = 0;
 		break;
 	}
@@ -3378,7 +3378,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 	if (cache->flag & PTCACHE_EXTERNAL) {
 		int cfra = cache->startframe;
 
-		for (; cfra<=cache->endframe; cfra++) {
+		for (; cfra <= cache->endframe; cfra++) {
 			if (BKE_ptcache_id_exist(pid, cfra))
 				totframes++;
 		}
@@ -3405,7 +3405,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 		else {
 			int cfra = cache->startframe;
 
-			for (; cfra<=cache->endframe; cfra++) {
+			for (; cfra <= cache->endframe; cfra++) {
 				if (BKE_ptcache_id_exist(pid, cfra))
 					totframes++;
 			}

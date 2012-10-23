@@ -196,10 +196,10 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 	int i, j;
 	int channelSize = paramsize; 
 
-	if (entries==3) {
+	if (entries == 3) {
 		elbeemSimplifyChannelVec3(channel, &channelSize);
 	}
-	else if (entries==1) {
+	else if (entries == 1) {
 		elbeemSimplifyChannelFloat(channel, &channelSize);
 	}
 	else {
@@ -211,7 +211,7 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 		fprintf(file, "        ");
 		for (j=0;j <= entries;j++) {  // also print time value
 			fprintf(file, " %f ", channel[i*(entries + 1) + j]);
-			if (j==entries-1) { fprintf(file, "  "); }
+			if (j == entries-1) { fprintf(file, "  "); }
 		}
 		fprintf(file, "\n");
 	}
@@ -627,7 +627,7 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 		return 0;
 	}
 	
-	if (channelObjCount>=255) {
+	if (channelObjCount >= 255) {
 		BKE_report(reports, RPT_ERROR, "Cannot bake with more then 256 objects");
 		return 0;
 	}

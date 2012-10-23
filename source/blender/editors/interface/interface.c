@@ -610,28 +610,28 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 		if (ui_but_equals_old(oldbut, but)) {
 			if (oldbut->active) {
 #if 0
-//				but->flag= oldbut->flag;
+//				but->flag = oldbut->flag;
 #else
 				/* exception! redalert flag can't be update from old button. 
 				 * perhaps it should only copy specific flags rather than all. */
-//				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
+//				but->flag = (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
 #endif
-//				but->active= oldbut->active;
-//				but->pos= oldbut->pos;
-//				but->ofs= oldbut->ofs;
-//				but->editstr= oldbut->editstr;
-//				but->editval= oldbut->editval;
-//				but->editvec= oldbut->editvec;
-//				but->editcoba= oldbut->editcoba;
-//				but->editcumap= oldbut->editcumap;
-//				but->selsta= oldbut->selsta;
-//				but->selend= oldbut->selend;
-//				but->softmin= oldbut->softmin;
-//				but->softmax= oldbut->softmax;
+//				but->active = oldbut->active;
+//				but->pos = oldbut->pos;
+//				but->ofs = oldbut->ofs;
+//				but->editstr = oldbut->editstr;
+//				but->editval = oldbut->editval;
+//				but->editvec = oldbut->editvec;
+//				but->editcoba = oldbut->editcoba;
+//				but->editcumap = oldbut->editcumap;
+//				but->selsta = oldbut->selsta;
+//				but->selend = oldbut->selend;
+//				but->softmin = oldbut->softmin;
+//				but->softmax = oldbut->softmax;
 //				but->linkto[0] = oldbut->linkto[0];
 //				but->linkto[1] = oldbut->linkto[1];
 				found = 1;
-//				oldbut->active= NULL;
+//				oldbut->active = NULL;
 			
 				/* move button over from oldblock to new block */
 				BLI_remlink(&oldblock->buttons, oldbut);
@@ -1947,8 +1947,8 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
 			softmin = (imin == INT_MIN) ? -1e4 : imin;
 			softmax = (imin == INT_MAX) ? 1e4 : imax;
-			/*step= istep;*/ /*UNUSED*/
-			/*precision= 1;*/ /*UNUSED*/
+			/*step = istep;*/ /*UNUSED*/
+			/*precision = 1;*/ /*UNUSED*/
 
 			if (array_len >= 2) {
 				int value_range[2];
@@ -1964,8 +1964,8 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
 			softmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
 			softmax = (fmax == FLT_MAX) ? (float)1e4 : fmax;
-			/*step= fstep;*/ /*UNUSED*/
-			/*precision= fprecision;*/ /*UNUSED*/
+			/*step = fstep;*/ /*UNUSED*/
+			/*precision = fprecision;*/ /*UNUSED*/
 
 			if (array_len >= 2) {
 				float value_range[2];
@@ -2256,7 +2256,7 @@ void ui_check_but(uiBut *but)
 	
 	
 	/* safety is 4 to enable small number buttons (like 'users') */
-	// okwidth= -4 + (BLI_rcti_size_x(&but->rect)); // UNUSED
+	// okwidth = -4 + (BLI_rcti_size_x(&but->rect)); // UNUSED
 	
 	/* name: */
 	switch (but->type) {
@@ -2439,7 +2439,7 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 		}
 	}
 
-	/* rows==0: 1 row, cols==0: 1 column */
+	/* rows == 0: 1 row, cols == 0: 1 column */
 	
 	/* note;  how it uses 'flag' in loop below (either set it, or OR it) is confusing */
 	for (but = first, prev = NULL; but && but->alignnr == nr; prev = but, but = but->next) {

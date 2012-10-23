@@ -139,7 +139,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;
 
-	BM_mesh_decimate(bm, dmd->percent, vweights);
+	BM_mesh_decimate_collapse(bm, dmd->percent, vweights);
 
 	if (vweights) {
 		MEM_freeN(vweights);

@@ -437,7 +437,7 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
 			/* bmesh_semv returns in newe the edge going from newv to tv */
 			copy_v3_v3(newv->co, cos[i]);
 
-			/* interpolate the loop data for the loops with v==newv, using orig face */
+			/* interpolate the loop data for the loops with (v == newv), using orig face */
 			for (j = 0; j < 2; j++) {
 				BMEdge *e_iter = (j == 0) ? e : newe;
 				BMLoop *l_iter = e_iter->l;

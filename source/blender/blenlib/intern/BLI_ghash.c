@@ -135,7 +135,7 @@ int BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFre
 			BLI_mempool_free(gh->entrypool, e);
 
 			/* correct but 'e' isn't used before return */
-			/* e= n; *//*UNUSED*/
+			/* e = n; *//*UNUSED*/
 			if (p) p->next = n;
 			else   gh->buckets[hash] = n;
 
@@ -165,7 +165,7 @@ void *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
 			BLI_mempool_free(gh->entrypool, e);
 
 			/* correct but 'e' isn't used before return */
-			/* e= n; *//*UNUSED*/
+			/* e = n; *//*UNUSED*/
 			if (p) p->next = n;
 			else   gh->buckets[hash] = n;
 

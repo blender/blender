@@ -322,7 +322,7 @@ static void nupdate_abk_bezt(void *node, void *data)
 	/* just add the BezTriple to the buffer if there's space, or allocate a new one */
 	if (abk->numBezts >= MAX_ABK_BUFSIZE) {
 		// TODO: need to allocate new array to cater...
-		//bezts_extra= MEM_callocN(...);
+		//bezts_extra = MEM_callocN(...);
 		if (G.debug & G_DEBUG)
 			printf("FIXME: nupdate_abk_bezt() missing case for too many overlapping BezTriples\n");
 	}
@@ -582,7 +582,7 @@ void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel,
 	}
 	
 	/* tweak size of keyframe shape according to type of keyframe 
-	 * - 'proper' keyframes have key_type=0, so get drawn at full size
+	 * - 'proper' keyframes have key_type = 0, so get drawn at full size
 	 */
 	hsize -= 0.5f * key_type;
 	

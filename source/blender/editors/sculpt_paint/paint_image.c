@@ -783,7 +783,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 	else {
 		//xi = (int)((uv[0]*ibuf->x) + 0.5f);
 		//yi = (int)((uv[1]*ibuf->y) + 0.5f);
-		//if (xi<0 || xi>=ibuf->x  ||  yi<0 || yi>=ibuf->y) return 0;
+		//if (xi < 0 || xi >= ibuf->x  ||  yi < 0 || yi >= ibuf->y) return 0;
 		
 		/* wrap */
 		xi = ((int)(uv[0] * ibuf->x)) % ibuf->x;
@@ -903,7 +903,7 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 			else
 				isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3], w, ps->is_ortho);
 
-			/* Note, if isect_ret==-1 then we don't want to test the other side of the quad */
+			/* Note, if (isect_ret == -1) then we don't want to test the other side of the quad */
 			if (isect_ret == 0 && mf->v4) {
 				if (do_clip)
 					isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], 1);
@@ -5285,7 +5285,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 #define PX_SIZE_FADE_MIN 4.0f
 
 	Scene *scene = CTX_data_scene(C);
-	//Brush *brush= image_paint_brush(C);
+	//Brush *brush = image_paint_brush(C);
 	Paint *paint = paint_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 

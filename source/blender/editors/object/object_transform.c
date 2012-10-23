@@ -867,7 +867,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					tot_change++;
 					arm->id.flag |= LIB_DOIT;
-					/* do_inverse_offset= TRUE; */ /* docenter_armature() handles this */
+					/* do_inverse_offset = TRUE; */ /* docenter_armature() handles this */
 
 					BKE_object_where_is_calc(scene, ob);
 					BKE_pose_where_is(scene, ob); /* needed for bone parents */

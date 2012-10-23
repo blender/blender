@@ -564,12 +564,12 @@ static int refraction(float refract[3], const float n[3], const float view[3], f
 	if (dot>0.0f) {
 		index = 1.0f/index;
 		fac= 1.0f - (1.0f - dot*dot)*index*index;
-		if (fac<= 0.0f) return 0;
+		if (fac <= 0.0f) return 0;
 		fac= -dot*index + sqrtf(fac);
 	}
 	else {
 		fac= 1.0f - (1.0f - dot*dot)*index*index;
-		if (fac<= 0.0f) return 0;
+		if (fac <= 0.0f) return 0;
 		fac= -dot*index - sqrtf(fac);
 	}
 
