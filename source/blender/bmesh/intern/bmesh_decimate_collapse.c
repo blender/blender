@@ -338,10 +338,27 @@ static void bm_decim_triangulate_end(BMesh *bm)
 			if (l_a_index != -1) {
 				const int l_b_index = BM_elem_index_get(l_b);
 				if (l_a_index == l_b_index) {
-					/* highly unlikely to fail, but prevents possible double-ups */
-					if (l_a->f->len == 3 && l_b->f->len == 3) {
-						BMFace *f[2] = {l_a->f, l_b->f};
-						BM_faces_join(bm, f, 2, TRUE);
+					if (LIKELY(l_a->f->len == 3 && l_b->f->len == 3)) {
+						if (l_a->v != l_b->v) {  /* if this is the case, faces have become flipped */
+							/* check we are not making a degenerate quad */
+							BMVert *vquad[4] = {
+								e->v1,
+								BM_vert_in_edge(e, l_a->next->v) ? l_a->prev->v : l_a->next->v,
+								e->v2,
+								BM_vert_in_edge(e, l_b->next->v) ? l_b->prev->v : l_b->next->v,
+							};
+
+							BLI_assert(ELEM3(vquad[0], vquad[1], vquad[2], vquad[3]) == FALSE);
+							BLI_assert(ELEM3(vquad[1], vquad[0], vquad[2], vquad[3]) == FALSE);
+							BLI_assert(ELEM3(vquad[2], vquad[1], vquad[0], vquad[3]) == FALSE);
+							BLI_assert(ELEM3(vquad[3], vquad[1], vquad[2], vquad[0]) == FALSE);
+
+							if (is_quad_convex_v3(vquad[0]->co, vquad[1]->co, vquad[2]->co, vquad[3]->co)) {
+								/* highly unlikely to fail, but prevents possible double-ups */
+								BMFace *f[2] = {l_a->f, l_b->f};
+								BM_faces_join(bm, f, 2, TRUE);
+							}
+						}
 					}
 				}
 			}
