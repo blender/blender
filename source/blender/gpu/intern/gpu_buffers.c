@@ -1472,6 +1472,9 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 
 					float fmask;
 
+					if (paint_is_face_hidden(f, mvert))
+						continue;
+
 					/* Face normal and mask */
 					if (f->v4) {
 						normal_quad_v3(fno,
