@@ -374,8 +374,9 @@ typedef struct DecimateModifierData {
 } DecimateModifierData;
 
 enum {
-	MOD_DECIM_FLAG_INVERT_VGROUP = (1 << 0),
-	MOD_DECIM_FLAG_TRIANGULATE   = (1 << 1)   /* for collapse only. dont convert tri pairs back to quads */
+	MOD_DECIM_FLAG_INVERT_VGROUP       = (1 << 0),
+	MOD_DECIM_FLAG_TRIANGULATE         = (1 << 1),  /* for collapse only. dont convert tri pairs back to quads */
+	MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS  = (1 << 2)   /* for dissolve only. collapse all verts between 2 faces */
 };
 
 enum {

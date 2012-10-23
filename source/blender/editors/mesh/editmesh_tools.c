@@ -3412,7 +3412,8 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
-	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+	const int use_dissolve_boundaries = RNA_boolean_get(op->ptr, "use_dissolve_boundaries");
 
 	char dissolve_flag;
 
@@ -3448,8 +3449,8 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	}
 
 	if (!EDBM_op_callf(em, op,
-	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f",
-	                   dissolve_flag, dissolve_flag, angle_limit))
+	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f use_dissolve_boundaries=%b",
+	                   dissolve_flag, dissolve_flag, angle_limit, use_dissolve_boundaries))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3478,6 +3479,8 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
 	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_float_default(prop, DEG2RADF(15.0f));
+	RNA_def_boolean(ot->srna, "use_dissolve_boundaries", 0, "All Boundries",
+	                "Dissolve all vertices inbetween face boundaries");
 }
 
 static int edbm_split_exec(bContext *C, wmOperator *op)

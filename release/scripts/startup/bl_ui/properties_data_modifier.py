@@ -220,11 +220,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row = layout.row()
             row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
             row.prop(md, "invert_vertex_group")
-            layout.prop(md, "use_triangulate")
+            layout.prop(md, "use_collapse_triangulate")
         elif decimate_type == 'UNSUBDIV':
             layout.prop(md, "iterations")
         else:  # decimate_type == 'DISSOLVE':
             layout.prop(md, "angle_limit")
+            layout.prop(md, "use_dissolve_boundaries")
 
         layout.label(text="Face Count" + ": %d" % md.face_count)
 

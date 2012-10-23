@@ -483,8 +483,9 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	BMOpSlot *vinput = BMO_slot_get(op, "verts");
 	const float angle_max = (float)M_PI / 2.0f;
 	const float angle_limit = minf(angle_max, BMO_slot_float_get(op, "angle_limit"));
+	const int do_dissolve_boundaries = BMO_slot_bool_get(op, "use_dissolve_boundaries");
 
-	BM_mesh_decimate_dissolve_ex(bm, angle_limit,
+	BM_mesh_decimate_dissolve_ex(bm, angle_limit, do_dissolve_boundaries,
 	                             vinput->data.p, vinput->len,
 	                             einput->data.p, einput->len);
 }

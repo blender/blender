@@ -69,7 +69,10 @@ static int dissolve_elem_cmp(const void *a1, const void *a2)
 	return 0;
 }
 
-void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit,
+/**
+ * \param do_all_verts Collapse all verts between 2 faces - don't check their edge angle.
+ */
+void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries,
                                   BMVert **vinput_arr, const int vinput_len,
                                   BMEdge **einput_arr, const int einput_len)
 {
@@ -172,35 +175,48 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit,
 
 
 	/* --- second verts --- */
-	for (i = 0, tot_found = 0; i < vinput_len; i++) {
-		BMVert *v = vinput_arr[i];
-		const float angle = v ? bm_vert_edge_face_angle(v) : angle_limit;
-
-		if (angle < angle_limit) {
-			weight_elems[i].ele = (BMHeader *)v;
-			weight_elems[i].weight = angle;
-			tot_found++;
-		}
-		else {
-			weight_elems[i].ele = NULL;
-			weight_elems[i].weight = angle_max;
+	if (do_dissolve_boundaries) {
+		/* simple version of the branch below, sincve we will dissolve _all_ verts that use 2 edges */
+		for (i = 0; i < vinput_len; i++) {
+			BMVert *v = vinput_arr[i];
+			if (v) {
+				if (BM_vert_edge_count(v) == 2) {
+					BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
+				}
+			}
 		}
 	}
+	else {
+		for (i = 0, tot_found = 0; i < vinput_len; i++) {
+			BMVert *v = vinput_arr[i];
+			const float angle = v ? bm_vert_edge_face_angle(v) : angle_limit;
 
-	if (tot_found != 0) {
-		qsort(weight_elems, vinput_len, sizeof(DissolveElemWeight), dissolve_elem_cmp);
+			if (angle < angle_limit) {
+				weight_elems[i].ele = (BMHeader *)v;
+				weight_elems[i].weight = angle;
+				tot_found++;
+			}
+			else {
+				weight_elems[i].ele = NULL;
+				weight_elems[i].weight = angle_max;
+			}
+		}
 
-		for (i = 0; i < tot_found; i++) {
-			BMVert *v = (BMVert *)weight_elems[i].ele;
-			if (/* topology changes may cause this to be un-collapsable */
-			    (BM_vert_edge_count(v) == 2) &&
-			    /* check twice because cumulative effect could dissolve over angle limit */
-			    bm_vert_edge_face_angle(v) < angle_limit)
-			{
-				BMEdge *ne = BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
+		if (tot_found != 0) {
+			qsort(weight_elems, vinput_len, sizeof(DissolveElemWeight), dissolve_elem_cmp);
 
-				if (ne && ne->l) {
-					BM_edge_normals_update(ne);
+			for (i = 0; i < tot_found; i++) {
+				BMVert *v = (BMVert *)weight_elems[i].ele;
+				if (/* topology changes may cause this to be un-collapsable */
+					(BM_vert_edge_count(v) == 2) &&
+					/* check twice because cumulative effect could dissolve over angle limit */
+					bm_vert_edge_face_angle(v) < angle_limit)
+				{
+					BMEdge *ne = BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
+
+					if (ne && ne->l) {
+						BM_edge_normals_update(ne);
+					}
 				}
 			}
 		}
@@ -209,7 +225,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit,
 	MEM_freeN(weight_elems);
 }
 
-void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit)
+void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries)
 {
 	int vinput_len;
 	int einput_len;
@@ -217,7 +233,7 @@ void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit)
 	BMVert **vinput_arr = BM_iter_as_arrayN(bm, BM_VERTS_OF_MESH, NULL, &vinput_len);
 	BMEdge **einput_arr = BM_iter_as_arrayN(bm, BM_EDGES_OF_MESH, NULL, &einput_len);
 
-	BM_mesh_decimate_dissolve_ex(bm, angle_limit,
+	BM_mesh_decimate_dissolve_ex(bm, angle_limit, do_dissolve_boundaries,
 	                             vinput_arr, vinput_len,
 	                             einput_arr, einput_len);
 

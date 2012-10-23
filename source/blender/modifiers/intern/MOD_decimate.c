@@ -100,8 +100,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	BMEditMesh *em;
 	BMesh *bm;
 
-	const int do_triangulate = (dmd->flag & MOD_DECIM_FLAG_TRIANGULATE) != 0;
-
 	float *vweights = NULL;
 
 #ifdef USE_TIMEIT
@@ -148,14 +146,22 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	switch (dmd->mode) {
 		case MOD_DECIM_MODE_COLLAPSE:
+		{
+			const int do_triangulate = (dmd->flag & MOD_DECIM_FLAG_TRIANGULATE) != 0;
 			BM_mesh_decimate_collapse(bm, dmd->percent, vweights, do_triangulate);
 			break;
+		}
 		case MOD_DECIM_MODE_UNSUBDIV:
+		{
 			BM_mesh_decimate_unsubdivide(bm, dmd->iter);
 			break;
+		}
 		case MOD_DECIM_MODE_DISSOLVE:
-			BM_mesh_decimate_dissolve(bm, dmd->angle);
+		{
+			const int do_dissolve_boundaries = (dmd->flag & MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS) != 0;
+			BM_mesh_decimate_dissolve(bm, dmd->angle, do_dissolve_boundaries);
 			break;
+		}
 	}
 
 	if (vweights) {

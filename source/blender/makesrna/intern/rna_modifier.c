@@ -1167,11 +1167,20 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "use_triangulate", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_collapse_triangulate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_TRIANGULATE);
 	RNA_def_property_ui_text(prop, "Triangulate", "Keep triangulated faces resulting from decimation");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	/* end collapse-only option */
+
+	/* (mode == MOD_DECIM_MODE_DISSOLVE) */
+	prop = RNA_def_property(srna, "use_dissolve_boundaries", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS);
+	RNA_def_property_ui_text(prop, "All Boundaries", "Dissolve all vertices inbetween face boundaries");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	/* end dissolve-only option */
+
+
 
 	/* all modes use this */
 	prop = RNA_def_property(srna, "face_count", PROP_INT, PROP_NONE);

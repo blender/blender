@@ -679,6 +679,7 @@ static BMOpDefine bmo_dissolve_faces_def = {
 static BMOpDefine bmo_dissolve_limit_def = {
 	"dissolve_limit",
 	{{BMO_OP_SLOT_FLT, "angle_limit"}, /* total rotation angle (degrees) */
+	 {BMO_OP_SLOT_BOOL, "use_dissolve_boundaries"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edges"},
 	 {0} /* null-terminating sentinel */},
