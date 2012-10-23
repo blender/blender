@@ -162,8 +162,9 @@ static void fill_locales(void)
 	}
 
 	/* Add closing item to menu! */
+	locales_menu[idx].identifier = NULL;
 	locales_menu[idx].value = locales_menu[idx].icon = 0;
-	locales_menu[idx].identifier = locales_menu[idx].name = locales_menu[idx].description = "";
+	locales_menu[idx].name = locales_menu[idx].description = "";
 
 	BLI_file_free_lines(lines);
 }
