@@ -179,6 +179,7 @@ protected:
 	double paused_time;
 
 	/* progressive refine */
+	double last_update_time;
 	bool update_progressive_refine(bool cancel);
 
 	vector<RenderBuffers *> tile_buffers;

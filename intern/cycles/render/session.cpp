@@ -186,6 +186,7 @@ void Session::run_gpu()
 	start_time = time_dt();
 	reset_time = time_dt();
 	paused_time = 0.0;
+	last_update_time = time_dt();
 
 	if(!params.background)
 		progress.set_start_time(start_time + paused_time);
@@ -446,6 +447,8 @@ void Session::release_tile(RenderTile& rtile)
 void Session::run_cpu()
 {
 	bool tiles_written = false;
+
+	last_update_time = time_dt();
 
 	{
 		/* reset once to start */
@@ -807,6 +810,15 @@ void Session::tonemap()
 bool Session::update_progressive_refine(bool cancel)
 {
 	int sample = tile_manager.state.sample + 1;
+	bool write = sample == params.samples || cancel;
+
+	double current_time = time_dt();
+
+	if (current_time - last_update_time < 1.0f) {
+		/* if last sample was processed, we need to write buffers anyway  */
+		if (!write)
+			return false;
+	}
 
 	if(params.progressive_refine) {
 		foreach(RenderBuffers *buffers, tile_buffers) {
@@ -814,14 +826,16 @@ bool Session::update_progressive_refine(bool cancel)
 			rtile.buffers = buffers;
 			rtile.sample = sample;
 
-			if(rtile.sample == params.samples || cancel)
+			if(write)
 				write_render_tile_cb(rtile);
 			else
 				update_render_tile_cb(rtile);
 		}
 	}
 
-	return sample == params.samples;
+	last_update_time = current_time;
+
+	return write;
 }
 
 CCL_NAMESPACE_END
