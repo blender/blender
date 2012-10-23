@@ -23,7 +23,7 @@ color image_texture_lookup(string filename, string color_space, float u, float v
 {
 	color rgb = (color)texture(filename, u, 1.0 - v, "wrap", "periodic", "alpha", Alpha);
 
-	if(color_space == "sRGB")
+	if (color_space == "sRGB")
 		rgb = color_srgb_to_scene_linear(rgb);
 
 	return rgb;
@@ -38,10 +38,10 @@ shader node_image_texture(
 	output color Color = color(0.0, 0.0, 0.0),
 	output float Alpha = 1.0)
 {
-	if(projection == "Flat") {
+	if (projection == "Flat") {
 		Color = image_texture_lookup(filename, color_space, Vector[0], Vector[1], Alpha);
 	}
-	else if(projection == "Box") {
+	else if (projection == "Box") {
 		/* object space normal */
 		vector Nob = transform("world", "object", N);
 
@@ -57,44 +57,44 @@ shader node_image_texture(
 		 * the Nxyz values are the barycentric coordinates in an equilateral
 		 * triangle, which in case of blending, in the middle has a smaller
 		 * equilateral triangle where 3 textures blend. this divides things into
-		 * 7 zones, with an if() test for each zone */
+		 * 7 zones, with an if () test for each zone */
 
 		vector weight = vector(0.0, 0.0, 0.0);
 		float blend = projection_blend;
 		float limit = 0.5*(1.0 + blend);
 
 		/* first test for corners with single texture */
-		if(Nob[0] > limit*(Nob[0] + Nob[1]) && Nob[0] > limit*(Nob[0] + Nob[2])) {
+		if (Nob[0] > limit*(Nob[0] + Nob[1]) && Nob[0] > limit*(Nob[0] + Nob[2])) {
 			weight[0] = 1.0;
 		}
-		else if(Nob[1] > limit*(Nob[0] + Nob[1]) && Nob[1] > limit*(Nob[1] + Nob[2])) {
+		else if (Nob[1] > limit*(Nob[0] + Nob[1]) && Nob[1] > limit*(Nob[1] + Nob[2])) {
 			weight[1] = 1.0;
 		}
-		else if(Nob[2] > limit*(Nob[0] + Nob[2]) && Nob[2] > limit*(Nob[1] + Nob[2])) {
+		else if (Nob[2] > limit*(Nob[0] + Nob[2]) && Nob[2] > limit*(Nob[1] + Nob[2])) {
 			weight[2] = 1.0;
 		}
-		else if(blend > 0.0) {
+		else if (blend > 0.0) {
 			/* in case of blending, test for mixes between two textures */
-			if(Nob[2] < (1.0 - limit)*(Nob[1] + Nob[0])) {
-				weight[0] = Nob[0]/(Nob[0] + Nob[1]);
-				weight[0] = clamp((weight[0] - 0.5*(1.0 - blend))/blend, 0.0, 1.0);
+			if (Nob[2] < (1.0 - limit)*(Nob[1] + Nob[0])) {
+				weight[0] = Nob[0] / (Nob[0] + Nob[1]);
+				weight[0] = clamp((weight[0] - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
 				weight[1] = 1.0 - weight[0];
 			}
-			else if(Nob[0] < (1.0 - limit)*(Nob[1] + Nob[2])) {
-				weight[1] = Nob[1]/(Nob[1] + Nob[2]);
-				weight[1] = clamp((weight[1] - 0.5*(1.0 - blend))/blend, 0.0, 1.0);
+			else if (Nob[0] < (1.0 - limit)*(Nob[1] + Nob[2])) {
+				weight[1] = Nob[1] / (Nob[1] + Nob[2]);
+				weight[1] = clamp((weight[1] - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
 				weight[2] = 1.0 - weight[1];
 			}
-			else if(Nob[1] < (1.0 - limit)*(Nob[0] + Nob[2])) {
-				weight[0] = Nob[0]/(Nob[0] + Nob[2]);
-				weight[0] = clamp((weight[0] - 0.5*(1.0 - blend))/blend, 0.0, 1.0);
+			else if (Nob[1] < (1.0 - limit) * (Nob[0] + Nob[2])) {
+				weight[0] = Nob[0] / (Nob[0] + Nob[2]);
+				weight[0] = clamp((weight[0] - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
 				weight[2] = 1.0 - weight[0];
 			}
 			else {
 				/* last case, we have a mix between three */
-				weight[0] = ((2.0 - limit)*Nob[0] + (limit - 1.0))/(2.0*limit - 1.0);
-				weight[1] = ((2.0 - limit)*Nob[1] + (limit - 1.0))/(2.0*limit - 1.0);
-				weight[2] = ((2.0 - limit)*Nob[2] + (limit - 1.0))/(2.0*limit - 1.0);
+				weight[0] = ((2.0 - limit) * Nob[0] + (limit - 1.0)) / (2.0 * limit - 1.0);
+				weight[1] = ((2.0 - limit) * Nob[1] + (limit - 1.0)) / (2.0 * limit - 1.0);
+				weight[2] = ((2.0 - limit) * Nob[2] + (limit - 1.0)) / (2.0 * limit - 1.0);
 			}
 		}
 
@@ -103,15 +103,15 @@ shader node_image_texture(
 
 		float tmp_alpha;
 
-		if(weight[0] > 0.0) {
+		if (weight[0] > 0.0) {
 			Color += weight[0]*image_texture_lookup(filename, color_space, Vector[1], Vector[2], tmp_alpha);
 			Alpha += weight[0]*tmp_alpha;
 		}
-		if(weight[1] > 0.0) {
+		if (weight[1] > 0.0) {
 			Color += weight[1]*image_texture_lookup(filename, color_space, Vector[0], Vector[2], tmp_alpha);
 			Alpha += weight[1]*tmp_alpha;
 		}
-		if(weight[2] > 0.0) {
+		if (weight[2] > 0.0) {
 			Color += weight[2]*image_texture_lookup(filename, color_space, Vector[1], Vector[0], tmp_alpha);
 			Alpha += weight[2]*tmp_alpha;
 		}

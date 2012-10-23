@@ -1,6 +1,4 @@
-/* 
- * $Id: KX_PythonMain.cpp 37750 2011-06-27 09:27:56Z sjoerd $
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -17,15 +15,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Benoit Bolsee
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 /** \file gameengine/Ketsji/KX_PythonMain.cpp
  *  \ingroup ketsji
  */

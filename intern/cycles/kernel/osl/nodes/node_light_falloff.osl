@@ -29,9 +29,9 @@ shader node_light_falloff(
 	float strength = Strength;
 	getattribute("std::ray_length", ray_length);
 
-	if(Smooth > 0.0) {
+	if (Smooth > 0.0) {
 		float squared = ray_length*ray_length;
-		strength *= squared/(Smooth + squared);
+		strength *= squared / (Smooth + squared);
 	}
 
 	/* Quadratic */ 

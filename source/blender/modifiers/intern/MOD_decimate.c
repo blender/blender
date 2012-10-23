@@ -195,6 +195,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	 TIMEIT_END(decim);
 #endif
 
+	 CDDM_calc_normals(result);
+
 	return result;
 }
 
