@@ -76,8 +76,7 @@ def main():
                         "* Remove po’s in trunk.\n"
                         "* Copy po’s from branches advanced enough.\n"
                         "* Clean po’s in trunk.\n"
-                        "* Compile po’s in trunk in mo’s, keeping "
-                        "track of those failing.\n"
+                        "* Compile po’s in trunk in mo’s, keeping track of those failing.\n"
                         "* Remove po’s and mo’s (and their dir’s) that "
                         "failed to compile or are no more present in trunk."
                         "* Generate languages file used by Blender's i18n.")
@@ -89,8 +88,6 @@ def main():
 
     ret = 0
     failed = set()
-    # 'DEFAULT' and en_US are always valid, fully-translated "languages"!
-    stats = {"DEFAULT": 1.0, "en_US": 1.0}
 
     # Remove po’s in trunk.
     for po in os.listdir(TRUNK_PO_DIR):
@@ -141,44 +138,11 @@ def main():
                 failed.add(lang)
                 continue
 
-            # Yes, I know, it's the third time we parse each po's here. :/
-            u1, u2, _stats = utils.parse_messages(os.path.join(BRANCHES_DIR, lang, po))
-            stats[lang] = _stats["trans_msg"] / _stats["tot_msg"]
-
     # Generate languages file used by Blender's i18n system.
-    # First, match all entries in LANGUAGES to a lang in stats, if possible!
-    stats = find_matching_po(LANGUAGES, stats)
-    limits = sorted(LANGUAGES_CATEGORIES, key=lambda it: it[0], reverse=True)
-    print(limits)
-    idx = 0
-    stats = sorted(stats, key=lambda it: it[0], reverse=True)
-    print(stats)
-    langs_cats = [[] for i in range(len(limits))]
-    highest_uid = 0
-    for prop, uid, label, key in stats:
-        print(key, prop)
-        if prop < limits[idx][0]:
-            # Sub-sort languages by iso-codes.
-            langs_cats[idx].sort(key=lambda it: it[2])
-            print(langs_cats)
-            idx += 1
-        langs_cats[idx].append((uid, label, key))
-        if abs(uid) > highest_uid:
-            highest_uid = abs(uid)
-    # Sub-sort last group of languages by iso-codes!
-    langs_cats[idx].sort(key=lambda it: it[2])
-    with open(os.path.join(TRUNK_MO_DIR, LANGUAGES_FILE), 'w', encoding="utf-8") as f:
-        f.write("# Highest ID currently in use: {}\n".format(highest_uid))
-        for cat, langs_cat in zip(limits, langs_cats):
-            # Write "category menu label"...
-            f.write("0:{}:\n".format(cat[1]))
-            # ...and all matching language entries!
-            for uid, label, key in langs_cat:
-                if uid < 0:
-                    # Non-existing, commented entry!
-                    f.write("# No translation yet! #{}:{}:{}\n".format(-uid, label, key))
-                else:
-                    f.write("{}:{}:{}\n".format(uid, label, key))
+    cmd = [PY3, "./update_languages_menu.py"]
+    t = subprocess.call(cmd)
+    if t:
+        ret = t
 
     # Remove failing po’s, mo’s and related dir’s.
     for lang in failed:

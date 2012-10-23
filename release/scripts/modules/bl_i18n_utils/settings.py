@@ -49,7 +49,7 @@ LANGUAGES = (
     ( 6, "Finnish (Suomi)", "fi_FI"),
     ( 7, "Swedish (Svenska)", "sv_SE"),
     ( 8, "French (Français)", "fr_FR"),
-    ( 9, "Spanish (Español)", "es"),
+    ( 9, "Spanish (Castellano)", "es"),
     (10, "Catalan (Català)", "ca_AD"),
     (11, "Czech (Český)", "cs_CZ"),
     (12, "Portuguese (Português)", "pt_PT"),
@@ -79,6 +79,7 @@ LANGUAGES = (
     (33, "Hebrew (תירִבְעִ)", "he_IL"),
     (34, "Estonian (Eestlane)", "et_EE"),
     (35, "Esperanto (Esperanto)", "eo"),
+    (36, "Spanish from Spain (Castellano de España)", "es_ES"),
 )
 
 # Name of language file used by Blender to generate translations' menu.
