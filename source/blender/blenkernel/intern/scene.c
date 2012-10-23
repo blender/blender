@@ -1042,7 +1042,7 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);
 
-	scene->physics_settings.quick_cache_step = 0;
+	/* removed calls to quick_cache, see pointcache.c */
 	
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
 	 * when trying to find materials with drivers that need evaluating [#32017] 
@@ -1065,10 +1065,6 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 	
-	/* quick point cache updates */
-	if (scene->physics_settings.quick_cache_step)
-		BKE_ptcache_quick_cache_all(bmain, scene);
-
 	/* notify editors and python about recalc */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	DAG_ids_check_recalc(bmain, scene, FALSE);
