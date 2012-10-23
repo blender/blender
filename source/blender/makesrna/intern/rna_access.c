@@ -3647,7 +3647,8 @@ int RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prope
 int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *index)
 {
 	PropertyRNA *prop;
-	PointerRNA curptr, nextptr;
+	PointerRNA curptr;
+	PointerRNA nextptr;  /* keep uninitialized, helps expose bugs in collection accessor functions */
 	char fixedbuf[256], *token;
 	int type, intkey;
 
@@ -3713,7 +3714,12 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 
 						/* check for "" to see if it is a string */
 						if (rna_token_strip_quotes(token)) {
-							RNA_property_collection_lookup_string(&curptr, prop, token + 1, &nextptr);
+							if (RNA_property_collection_lookup_string(&curptr, prop, token + 1, &nextptr)) {
+								/* pass */
+							}
+							else {
+								nextptr.data = NULL;
+							}
 						}
 						else {
 							/* otherwise do int lookup */
@@ -3721,7 +3727,12 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 							if (intkey == 0 && (token[0] != '0' || token[1] != '\0')) {
 								return 0; /* we can be sure the fixedbuf was used in this case */
 							}
-							RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr);
+							if (RNA_property_collection_lookup_int(&curptr, prop, intkey, &nextptr)) {
+								/* pass */
+							}
+							else {
+								nextptr.data = NULL;
+							}
 						}
 
 						if (token != fixedbuf) {
@@ -3730,12 +3741,13 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, 
 					}
 					else {
 						PointerRNA c_ptr;
-
-						/* ensure we quit on invalid values */
-						nextptr.data = NULL;
 	
 						if (RNA_property_collection_type_get(&curptr, prop, &c_ptr)) {
 							nextptr = c_ptr;
+						}
+						else {
+							/* ensure we quit on invalid values */
+							nextptr.data = NULL;
 						}
 					}
 					
