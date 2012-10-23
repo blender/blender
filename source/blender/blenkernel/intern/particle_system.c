@@ -632,10 +632,10 @@ static void hammersley_create(float *out, int n, int seed, float amount)
 	double p, t, offs[2];
 	int k, kk;
 
-	rng = rng_new(31415926 + n + seed);
-	offs[0] = rng_getDouble(rng) + (double)amount;
-	offs[1] = rng_getDouble(rng) + (double)amount;
-	rng_free(rng);
+	rng = BLI_rng_new(31415926 + n + seed);
+	offs[0] = BLI_rng_get_double(rng) + (double)amount;
+	offs[1] = BLI_rng_get_double(rng) + (double)amount;
+	BLI_rng_free(rng);
 
 	for (k = 0; k < n; k++) {
 		t = 0;
@@ -661,13 +661,13 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 	rad2= (float)(1.0f/((float)num));
 	rad3= (float)sqrt((float)num)/((float)num);
 
-	rng = rng_new(31415926 + num + seed2);
+	rng = BLI_rng_new(31415926 + num + seed2);
 	x= 0;
 		num2 = 2 * num;
 	for (i=0; i<num2; i+=2) {
 	
-		jit[i] = x + amount*rad1*(0.5f - rng_getFloat(rng));
-		jit[i+1] = i/(2.0f*num) + amount*rad1*(0.5f - rng_getFloat(rng));
+		jit[i] = x + amount*rad1*(0.5f - BLI_rng_get_float(rng));
+		jit[i+1] = i/(2.0f*num) + amount*rad1*(0.5f - BLI_rng_get_float(rng));
 		
 		jit[i]-= (float)floor(jit[i]);
 		jit[i+1]-= (float)floor(jit[i+1]);
@@ -684,7 +684,7 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
 		BLI_jitterate2(jit, jit2, num, rad2);
 	}
 	MEM_freeN(jit2);
-	rng_free(rng);
+	BLI_rng_free(rng);
 }
 
 static void psys_uv_to_w(float u, float v, int quad, float *w)
@@ -804,8 +804,8 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			}
 			break;
 		case PART_DISTR_RAND:
-			randu= rng_getFloat(thread->rng);
-			randv= rng_getFloat(thread->rng);
+			randu= BLI_rng_get_float(thread->rng);
+			randv= BLI_rng_get_float(thread->rng);
 			rng_skip_tot -= 2;
 
 			psys_uv_to_w(randu, randv, mface->v4, pa->fuv);
@@ -881,8 +881,8 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 
 		mf= dm->getTessFaceData(dm, ctx->index[p], CD_MFACE);
 
-		randu= rng_getFloat(thread->rng);
-		randv= rng_getFloat(thread->rng);
+		randu= BLI_rng_get_float(thread->rng);
+		randv= BLI_rng_get_float(thread->rng);
 		rng_skip_tot -= 2;
 
 		psys_uv_to_w(randu, randv, mf->v4, cpa->fuv);
@@ -934,7 +934,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 	}
 
 	if (rng_skip_tot > 0) /* should never be below zero */
-		rng_skip(thread->rng, rng_skip_tot);
+		BLI_rng_skip(thread->rng, rng_skip_tot);
 }
 
 static void *distribute_threads_exec_cb(void *data)
@@ -951,12 +951,12 @@ static void *distribute_threads_exec_cb(void *data)
 
 		for (p=0; p<totpart; p++, cpa++) {
 			if (thread->ctx->skip) /* simplification skip */
-				rng_skip(thread->rng, PSYS_RND_DIST_SKIP * thread->ctx->skip[p]);
+				BLI_rng_skip(thread->rng, PSYS_RND_DIST_SKIP * thread->ctx->skip[p]);
 
 			if ((p+thread->num) % thread->tot == 0)
 				distribute_threads_exec(thread, NULL, cpa, p);
 			else /* thread skip */
-				rng_skip(thread->rng, PSYS_RND_DIST_SKIP);
+				BLI_rng_skip(thread->rng, PSYS_RND_DIST_SKIP);
 		}
 	}
 	else {
@@ -1353,7 +1353,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	
 	seed= 31415926 + ctx->sim.psys->seed;
 	for (i=0; i<totthread; i++) {
-		threads[i].rng= rng_new(seed);
+		threads[i].rng= BLI_rng_new(seed);
 		threads[i].tot= totthread;
 	}
 
@@ -1492,9 +1492,9 @@ void psys_threads_free(ParticleThread *threads)
 	/* threads */
 	for (i=0; i<totthread; i++) {
 		if (threads[i].rng)
-			rng_free(threads[i].rng);
+			BLI_rng_free(threads[i].rng);
 		if (threads[i].rng_path)
-			rng_free(threads[i].rng_path);
+			BLI_rng_free(threads[i].rng_path);
 	}
 
 	MEM_freeN(ctx);

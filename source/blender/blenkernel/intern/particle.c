@@ -2464,7 +2464,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 		totthread = 1;
 	
 	for (i = 0; i < totthread; i++) {
-		threads[i].rng_path = rng_new(seed);
+		threads[i].rng_path = BLI_rng_new(seed);
 		threads[i].tot = totthread;
 	}
 

@@ -3306,7 +3306,7 @@ static void p_chart_stretch_minimize(PChart *chart, RNG *rng)
 
 		trusted_radius /= 2 * nedges;
 
-		random_angle = rng_getFloat(rng) * 2.0f * (float)M_PI;
+		random_angle = BLI_rng_get_float(rng) * 2.0f * (float)M_PI;
 		dir[0] = trusted_radius * cosf(random_angle);
 		dir[1] = trusted_radius * sinf(random_angle);
 
@@ -4285,7 +4285,7 @@ void param_stretch_begin(ParamHandle *handle)
 	param_assert(phandle->state == PHANDLE_STATE_CONSTRUCTED);
 	phandle->state = PHANDLE_STATE_STRETCH;
 
-	phandle->rng = rng_new(31415926);
+	phandle->rng = BLI_rng_new(31415926);
 	phandle->blend = 0.0f;
 
 	for (i = 0; i < phandle->ncharts; i++) {
@@ -4332,7 +4332,7 @@ void param_stretch_end(ParamHandle *handle)
 	param_assert(phandle->state == PHANDLE_STATE_STRETCH);
 	phandle->state = PHANDLE_STATE_CONSTRUCTED;
 
-	rng_free(phandle->rng);
+	BLI_rng_free(phandle->rng);
 	phandle->rng = NULL;
 }
 

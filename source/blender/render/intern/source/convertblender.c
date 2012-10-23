@@ -1613,7 +1613,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 	psys->flag |= PSYS_DRAWING;
 
-	rng= rng_new(psys->seed);
+	rng= BLI_rng_new(psys->seed);
 
 	totpart=psys->totpart;
 
@@ -1763,7 +1763,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 /* 3. start creating renderable things */
 	for (a=0, pa=pars; a<totpart+totchild; a++, pa++, seed++) {
-		random = rng_getFloat(rng);
+		random = BLI_rng_get_float(rng);
 		/* setup per particle individual stuff */
 		if (a<totpart) {
 			if (pa->flag & PARS_UNEXIST) continue;
@@ -2099,7 +2099,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if (states)
 		MEM_freeN(states);
 	
-	rng_free(rng);
+	BLI_rng_free(rng);
 
 	psys->flag &= ~PSYS_DRAWING;
 

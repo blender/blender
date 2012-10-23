@@ -166,7 +166,7 @@ void free_partdeflect(PartDeflect *pd)
 		pd->tex->id.us--;
 
 	if (pd->rng)
-		rng_free(pd->rng);
+		BLI_rng_free(pd->rng);
 
 	MEM_freeN(pd);
 }
@@ -175,9 +175,9 @@ static void precalculate_effector(EffectorCache *eff)
 {
 	unsigned int cfra = (unsigned int)(eff->scene->r.cfra >= 0 ? eff->scene->r.cfra : -eff->scene->r.cfra);
 	if (!eff->pd->rng)
-		eff->pd->rng = rng_new(eff->pd->seed + cfra);
+		eff->pd->rng = BLI_rng_new(eff->pd->seed + cfra);
 	else
-		rng_srandom(eff->pd->rng, eff->pd->seed + cfra);
+		BLI_rng_srandom(eff->pd->rng, eff->pd->seed + cfra);
 
 	if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type==OB_CURVE) {
 		Curve *cu= eff->ob->data;
@@ -455,8 +455,8 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 // noise function for wind e.g.
 static float wind_func(struct RNG *rng, float strength)
 {
-	int random = (rng_getInt(rng)+1) % 128; // max 2357
-	float force = rng_getFloat(rng) + 1.0f;
+	int random = (BLI_rng_get_int(rng)+1) % 128; // max 2357
+	float force = BLI_rng_get_float(rng) + 1.0f;
 	float ret;
 	float sign = 0;
 	
