@@ -263,6 +263,7 @@ void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d);
 int ED_view3d_scene_layer_set(int lay, const int *values, int *active);
 
 int ED_view3d_context_activate(struct bContext *C);
+void ED_view3d_draw_offscreen_init(struct Scene *scene, struct View3D *v3d);
 void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
                               int winx, int winy, float viewmat[][4], float winmat[][4], int do_bgpic, int colormanage_background);
 

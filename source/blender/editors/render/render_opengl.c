@@ -171,6 +171,8 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		}
 	}
 	else if (view_context) {
+		ED_view3d_draw_offscreen_init(scene, v3d);
+
 		GPU_offscreen_bind(oglrender->ofs); /* bind */
 
 		/* render 3d view */

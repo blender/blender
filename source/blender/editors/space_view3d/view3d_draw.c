@@ -2371,6 +2371,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		mult_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
+		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
 		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE, FALSE);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
@@ -2508,6 +2509,16 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	glLoadMatrixf(rv3d->viewmat);
 }
 
+void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
+{
+	/* shadow buffers, before we setup matrices */
+	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+		gpu_update_lamps_shadows(scene, v3d);
+}
+
+/* ED_view3d_draw_offscreen_init should be called before this to initialize
+ * stuff like shadow buffers
+ */
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
                               int winx, int winy, float viewmat[][4], float winmat[][4],
                               int do_bgpic, int colormanage_background)
@@ -2541,10 +2552,6 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	/* free images which can have changed on frame-change
 	 * warning! can be slow so only free animated images - campbell */
 	GPU_free_images_anim();
-	
-	/* shadow buffers, before we setup matrices */
-	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
-		gpu_update_lamps_shadows(scene, v3d);
 
 	/* set background color, fallback on the view background color
 	 * (if active clip is set but frame is failed to load fallback to horizon color as background) */
@@ -2686,6 +2693,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 	ofs = GPU_offscreen_create(sizex, sizey, err_out);
 	if (ofs == NULL)
 		return NULL;
+
+	ED_view3d_draw_offscreen_init(scene, v3d);
 
 	GPU_offscreen_bind(ofs);
 
