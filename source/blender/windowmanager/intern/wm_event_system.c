@@ -1675,7 +1675,10 @@ static int wm_action_not_handled(int action)
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 #ifndef NDEBUG
-	const int do_debug_handler = (G.debug & G_DEBUG_EVENTS);
+	const int do_debug_handler = (G.debug & G_DEBUG_EVENTS)
+	        /* comment this out to flood the console! (if you really want to test) */
+	        && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
+	        ;
 #endif
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmEventHandler *handler, *nexthandler;
@@ -1690,10 +1693,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 	if (do_debug_handler) {
 		/* in rare cases you may want to comment this out for testing,
 		 * but mostly this is just annoying */
-		if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-			printf("%s: handling event\n", __func__);
-			WM_event_print(event);
-		}
+		printf("%s: handling event\n", __func__);
+		WM_event_print(event);
 	}
 #endif
 
