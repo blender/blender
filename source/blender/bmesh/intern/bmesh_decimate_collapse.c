@@ -855,7 +855,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
  * \param vertex_weights Optional array of vertex  aligned weights [0 - 1],
  *        a vertex group is the usual source for this.
  */
-void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights)
+void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, const int do_triangulate)
 {
 	Heap *eheap;             /* edge heap */
 	HeapNode **eheap_table;  /* edge index aligned table pointing to the eheap */
@@ -913,10 +913,12 @@ void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights)
 
 
 #ifdef USE_TRIANGULATE
-	/* its possible we only had triangles, skip this step in that case */
-	if (LIKELY(use_triangulate)) {
-		/* temp convert quads to triangles */
-		bm_decim_triangulate_end(bm);
+	if (do_triangulate == FALSE) {
+		/* its possible we only had triangles, skip this step in that case */
+		if (LIKELY(use_triangulate)) {
+			/* temp convert quads to triangles */
+			bm_decim_triangulate_end(bm);
+		}
 	}
 #endif
 
