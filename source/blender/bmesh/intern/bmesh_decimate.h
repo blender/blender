@@ -29,4 +29,7 @@
 
 void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights);
 
+void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int tag_only);
+void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations);
+
 #endif /* __BMESH_DECIMATE_H__ */

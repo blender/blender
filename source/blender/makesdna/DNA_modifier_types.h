@@ -361,15 +361,23 @@ typedef struct UVProjectModifierData {
 typedef struct DecimateModifierData {
 	ModifierData modifier;
 
-	float percent;
-	int faceCount;  /* runtime only */
+	float percent;  /* (mode == MOD_DECIM_MODE_COLLAPSE) */
+	int   iter;     /* (mode == MOD_DECIM_MODE_UNSUBDIV) */
 
 	char defgrp_name[64];	/* MAX_VGROUP_NAME */
-	int flag, pad;
+	short flag, mode;
+
+	/* runtime only */
+	int face_count;
 } DecimateModifierData;
 
 enum {
-	MOD_DECIM_INVERT_VGROUP	= (1 << 0)
+	MOD_DECIM_FLAG_INVERT_VGROUP = (1 << 0)
+};
+
+enum {
+	MOD_DECIM_MODE_COLLAPSE,
+	MOD_DECIM_MODE_UNSUBDIV
 };
 
 /* Smooth modifier flags */

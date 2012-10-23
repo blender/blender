@@ -1195,7 +1195,7 @@ int main(int argc, char **argv)
 }
 
 /* handy but fails on struct bounds which makesdna doesnt care about
- * unless structs are nested */
+ * with quite the same strictness as GCC does */
 #if 0
 /* include files for automatic dependencies */
 

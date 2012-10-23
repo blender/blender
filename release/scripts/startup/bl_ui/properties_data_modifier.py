@@ -211,10 +211,17 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.row().prop(md, "deform_axis", expand=True)
 
     def DECIMATE(self, layout, ob, md):
-        layout.prop(md, "ratio")
         row = layout.row()
-        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        row.prop(md, "invert_vertex_group")
+        row.prop(md, "decimate_type", expand=True)
+
+        if md.decimate_type == 'COLLAPSE':
+            layout.prop(md, "ratio")
+            row = layout.row()
+            row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+            row.prop(md, "invert_vertex_group")
+        else:  # assume UNSUBDIV
+            layout.prop(md, "iterations")
+
         layout.label(text="Face Count" + ": %d" % md.face_count)
 
     def DISPLACE(self, layout, ob, md):

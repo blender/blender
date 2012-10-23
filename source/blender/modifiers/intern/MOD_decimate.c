@@ -72,8 +72,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	DecimateModifierData *tdmd = (DecimateModifierData *) target;
 
 	tdmd->percent = dmd->percent;
+	tdmd->iter = dmd->iter;
 	BLI_strncpy(tdmd->defgrp_name, dmd->defgrp_name, sizeof(tdmd->defgrp_name));
 	tdmd->flag = dmd->flag;
+	tdmd->mode = dmd->mode;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
@@ -110,42 +112,52 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		return dm;
 	}
 
-	if (dmd->defgrp_name[0]) {
-		MDeformVert *dvert;
-		int defgrp_index;
+	if (dmd->mode == MOD_DECIM_MODE_COLLAPSE) {
+		if (dmd->defgrp_name[0]) {
+			MDeformVert *dvert;
+			int defgrp_index;
 
-		modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
+			modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
 
-		if (dvert) {
-			const unsigned int vert_tot = dm->getNumVerts(dm);
-			unsigned int i;
+			if (dvert) {
+				const unsigned int vert_tot = dm->getNumVerts(dm);
+				unsigned int i;
 
-			vweights = MEM_mallocN(vert_tot * sizeof(float), __func__);
+				vweights = MEM_mallocN(vert_tot * sizeof(float), __func__);
 
-			if (dmd->flag & MOD_DECIM_INVERT_VGROUP) {
-				for (i = 0; i < vert_tot; i++) {
-					vweights[i] = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
+				if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
+					for (i = 0; i < vert_tot; i++) {
+						vweights[i] = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
+					}
 				}
-			}
-			else {
-				for (i = 0; i < vert_tot; i++) {
-					vweights[i] = defvert_find_weight(&dvert[i], defgrp_index);
+				else {
+					for (i = 0; i < vert_tot; i++) {
+						vweights[i] = defvert_find_weight(&dvert[i], defgrp_index);
+					}
 				}
 			}
 		}
 	}
 
-
 	em = DM_to_editbmesh(dm, NULL, FALSE);
 	bm = em->bm;
 
-	BM_mesh_decimate_collapse(bm, dmd->percent, vweights);
+	switch (dmd->mode) {
+		case MOD_DECIM_MODE_COLLAPSE:
+			BM_mesh_decimate_collapse(bm, dmd->percent, vweights);
+			break;
+		case MOD_DECIM_MODE_UNSUBDIV:
+			BM_mesh_decimate_unsubdivide(bm, dmd->iter);
+			break;
+	}
+
 
 	if (vweights) {
 		MEM_freeN(vweights);
 	}
 
-	dmd->faceCount = bm->totface;
+	/* update for display only */
+	dmd->face_count = bm->totface;
 
 	BLI_assert(em->looptris == NULL);
 	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
