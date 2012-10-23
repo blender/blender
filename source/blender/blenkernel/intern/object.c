@@ -2572,8 +2572,6 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 			ID *data_id = (ID *)ob->data;
 			AnimData *adt = BKE_animdata_from_id(data_id);
 			float ctime = (float)scene->r.cfra;  /* XXX this is bad... */
-			ListBase pidlist;
-			PTCacheID *pid;
 			
 			if (G.debug & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name + 2);

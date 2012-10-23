@@ -400,7 +400,7 @@ typedef struct SoftBody {
 //#define PTCACHE_BAKE_EDIT			16
 //#define PTCACHE_BAKE_EDIT_ACTIVE	32
 #define PTCACHE_DISK_CACHE			64
-#define PTCACHE_QUICK_CACHE			128
+//#define PTCACHE_QUICK_CACHE		128  /* removed since 2.64 - [#30974], could be added back in a more useful way */
 #define PTCACHE_FRAMES_SKIPPED		256
 #define PTCACHE_EXTERNAL			512
 #define PTCACHE_READ_INFO			1024
