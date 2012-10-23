@@ -2031,18 +2031,16 @@ int BKE_ptcache_read(PTCacheID *pid, float cfra)
 		pid->cache->simframe = cfra2;
 	}
 
-	if ((pid->cache->flag & PTCACHE_QUICK_CACHE)==0) {
-		cfrai = (int)cfra;
-		/* clear invalid cache frames so that better stuff can be simulated */
-		if (pid->cache->flag & PTCACHE_OUTDATED) {
-			BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, cfrai);
-		}
-		else if (pid->cache->flag & PTCACHE_FRAMES_SKIPPED) {
-			if (cfra <= pid->cache->last_exact)
-				pid->cache->flag &= ~PTCACHE_FRAMES_SKIPPED;
+	cfrai = (int)cfra;
+	/* clear invalid cache frames so that better stuff can be simulated */
+	if (pid->cache->flag & PTCACHE_OUTDATED) {
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, cfrai);
+	}
+	else if (pid->cache->flag & PTCACHE_FRAMES_SKIPPED) {
+		if (cfra <= pid->cache->last_exact)
+			pid->cache->flag &= ~PTCACHE_FRAMES_SKIPPED;
 
-			BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, MAX2(cfrai, pid->cache->last_exact));
-		}
+		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, MAX2(cfrai, pid->cache->last_exact));
 	}
 
 	return ret;
@@ -2537,8 +2535,6 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 
 	if (mode == PTCACHE_RESET_DEPSGRAPH) {
 		if (!(cache->flag & PTCACHE_BAKED) && !BKE_ptcache_get_continue_physics()) {
-			if (cache->flag & PTCACHE_QUICK_CACHE)
-				clear= 1;
 
 			after= 1;
 		}
@@ -3011,7 +3007,7 @@ void BKE_ptcache_bake(PTCacheBaker* baker)
 					}
 
 					if ((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0) &&
-					    ((cache->flag & PTCACHE_QUICK_CACHE)==0 || render || bake))
+					    (render || bake))
 					{
 						BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
 					}
