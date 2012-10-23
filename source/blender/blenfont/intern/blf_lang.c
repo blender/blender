@@ -82,7 +82,11 @@ static void free_locales(void)
 			MEM_freeN((void*)locales_menu[idx].description); /* Also frees locales's relevant value! */
 		}
 		MEM_freeN(locales);
+		locales = NULL;
+	}
+	if (locales_menu) {
 		MEM_freeN(locales_menu);
+		locales_menu = NULL;
 	}
 	num_locales = num_locales_menu = 0;
 }
@@ -119,46 +123,49 @@ static void fill_locales(void)
 	num_locales_menu++; /* The "closing" void item... */
 
 	/* And now, buil locales and locale_menu! */
-	locales = MEM_callocN(num_locales * sizeof(char*), __func__);
 	locales_menu = MEM_callocN(num_locales_menu * sizeof(EnumPropertyItem), __func__);
 	line = lines;
-	while (line) {
-		int id;
-		char *loc, *sep1, *sep2;
+	/* Do not allocate locales with zero-sized mem, as LOCALE macro uses NULL locales as invalid marker! */
+	if (num_locales > 0) {
+		locales = MEM_callocN(num_locales * sizeof(char*), __func__);
+		while (line) {
+			int id;
+			char *loc, *sep1, *sep2;
 
-		str = (char*) line->link;
-		if (str[0] == '#' || str[0] == '\0') {
-			line = line->next;
-			continue;
-		}
-
-		id = atoi(str);
-		sep1 = strchr(str, ':');
-		if (sep1) {
-			sep1++;
-			sep2 = strchr(sep1, ':');
-			if (sep2) {
-
-					locales_menu[idx].value = id;
-					locales_menu[idx].icon = 0;
-					locales_menu[idx].name = BLI_strdupn(sep1, sep2 - sep1);
-					locales_menu[idx].identifier = loc = BLI_strdup(sep2 + 1);
-					if (id == 0) {
-						/* The DEFAULT item... */
-						if (BLI_strnlen(loc, 2))
-							locales[id] = locales_menu[idx].description = BLI_strdup("");
-						/* Menu "label", not to be stored in locales! */
-						else
-							locales_menu[idx].description = BLI_strdup("");
-					}
-					else
-						locales[id] = locales_menu[idx].description = BLI_strdup(loc);
-					idx++;
-				
+			str = (char*) line->link;
+			if (str[0] == '#' || str[0] == '\0') {
+				line = line->next;
+				continue;
 			}
-		}
 
-		line = line->next;
+			id = atoi(str);
+			sep1 = strchr(str, ':');
+			if (sep1) {
+				sep1++;
+				sep2 = strchr(sep1, ':');
+				if (sep2) {
+
+						locales_menu[idx].value = id;
+						locales_menu[idx].icon = 0;
+						locales_menu[idx].name = BLI_strdupn(sep1, sep2 - sep1);
+						locales_menu[idx].identifier = loc = BLI_strdup(sep2 + 1);
+						if (id == 0) {
+							/* The DEFAULT item... */
+							if (BLI_strnlen(loc, 2))
+								locales[id] = locales_menu[idx].description = BLI_strdup("");
+							/* Menu "label", not to be stored in locales! */
+							else
+								locales_menu[idx].description = BLI_strdup("");
+						}
+						else
+							locales[id] = locales_menu[idx].description = BLI_strdup(loc);
+						idx++;
+				
+				}
+			}
+
+			line = line->next;
+		}
 	}
 
 	/* Add closing item to menu! */
