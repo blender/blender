@@ -321,7 +321,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 			}
 		}
 
-		if (level == 0 && enable) {
+		if (enable) {
 			/* this is to make sure we get render level duplis in groups:
 			 * the derivedmesh must be created before init_render_mesh,
 			 * since object_duplilist does dupliparticles before that */
