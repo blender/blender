@@ -62,8 +62,6 @@ void IMB_colormanagement_check_is_data(struct ImBuf *ibuf, const char *name);
 void IMB_colormanagement_assign_float_colorspace(struct ImBuf *ibuf, const char *name);
 void IMB_colormanagement_assign_rect_colorspace(struct ImBuf *ibuf, const char *name);
 
-int IMB_colormanagement_colorspace_is_data(const char *name);
-
 /* ** Color space transformation functions ** */
 void IMB_colormanagement_transform(float *buffer, int width, int height, int channels,
                                    const char *from_colorspace, const char *to_colorspace, int predivide);
