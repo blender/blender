@@ -477,8 +477,8 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 	int maxychunk = ceil((area->ymax - 1) / chunkSizef);
 	minxchunk = max(minxchunk, 0);
 	minychunk = max(minychunk, 0);
-	maxxchunk = min(maxxchunk, this->m_numberOfXChunks);
-	maxychunk = min(maxychunk, this->m_numberOfYChunks);
+	maxxchunk = min(maxxchunk, (int)this->m_numberOfXChunks);
+	maxychunk = min(maxychunk, (int)this->m_numberOfYChunks);
 
 	bool result = true;
 	for (indexx = minxchunk; indexx < maxxchunk; indexx++) {
