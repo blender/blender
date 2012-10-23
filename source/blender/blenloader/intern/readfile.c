@@ -1631,6 +1631,19 @@ static void IDP_LibLinkProperty(IDProperty *UNUSED(prop), int UNUSED(switch_endi
 {
 }
 
+/* ************ READ ID *************** */
+
+static void direct_link_id(FileData *fd, ID *id)
+{
+	/*link direct data of ID properties*/
+	if (id->properties) {
+		id->properties = newdataadr(fd, id->properties);
+		if (id->properties) { /* this case means the data was written incorrectly, it should not happen */
+			IDP_DirectLinkProperty(id->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		}
+	}
+}
+
 /* ************ READ CurveMapping *************** */
 
 /* cuma itself has been read! */
@@ -2712,8 +2725,10 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 		direct_link_curvemapping(fd, la->curfalloff);
 
 	la->nodetree= newdataadr(fd, la->nodetree);
-	if (la->nodetree)
+	if (la->nodetree) {
+		direct_link_id(fd, &la->nodetree->id);
 		direct_link_nodetree(fd, la->nodetree);
+	}
 	
 	la->preview = direct_link_preview_image(fd, la->preview);
 }
@@ -2879,8 +2894,10 @@ static void direct_link_world(FileData *fd, World *wrld)
 	}
 	
 	wrld->nodetree = newdataadr(fd, wrld->nodetree);
-	if (wrld->nodetree)
+	if (wrld->nodetree) {
+		direct_link_id(fd, &wrld->nodetree->id);
 		direct_link_nodetree(fd, wrld->nodetree);
+	}
 	
 	wrld->preview = direct_link_preview_image(fd, wrld->preview);
 }
@@ -3187,8 +3204,10 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	tex->ot = newdataadr(fd, tex->ot);
 	
 	tex->nodetree = newdataadr(fd, tex->nodetree);
-	if (tex->nodetree)
+	if (tex->nodetree) {
+		direct_link_id(fd, &tex->nodetree->id);
 		direct_link_nodetree(fd, tex->nodetree);
+	}
 	
 	tex->preview = direct_link_preview_image(fd, tex->preview);
 	
@@ -3247,8 +3266,10 @@ static void direct_link_material(FileData *fd, Material *ma)
 	ma->ramp_spec = newdataadr(fd, ma->ramp_spec);
 	
 	ma->nodetree = newdataadr(fd, ma->nodetree);
-	if (ma->nodetree)
+	if (ma->nodetree) {
+		direct_link_id(fd, &ma->nodetree->id);
 		direct_link_nodetree(fd, ma->nodetree);
+	}
 	
 	ma->preview = direct_link_preview_image(fd, ma->preview);
 	ma->gpumaterial.first = ma->gpumaterial.last = NULL;
@@ -5079,8 +5100,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->r.layers));
 	
 	sce->nodetree = newdataadr(fd, sce->nodetree);
-	if (sce->nodetree)
+	if (sce->nodetree) {
+		direct_link_id(fd, &sce->nodetree->id);
 		direct_link_nodetree(fd, sce->nodetree);
+	}
 
 	direct_link_view_settings(fd, &sce->view_settings);
 }
@@ -6450,6 +6473,8 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	bhead = read_data_into_oldnewmap(fd, bhead, allocname);
 	
 	/* init pointers direct data */
+	direct_link_id(fd, id);
+	
 	switch (GS(id->name)) {
 		case ID_WM:
 			direct_link_windowmanager(fd, (wmWindowManager *)id);
@@ -6544,14 +6569,6 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		case ID_MSK:
 			direct_link_mask(fd, (Mask *)id);
 			break;
-	}
-	
-	/*link direct data of ID properties*/
-	if (id->properties) {
-		id->properties = newdataadr(fd, id->properties);
-		if (id->properties) { /* this case means the data was written incorrectly, it should not happen */
-			IDP_DirectLinkProperty(id->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-		}
 	}
 	
 	oldnewmap_free_unused(fd->datamap);
