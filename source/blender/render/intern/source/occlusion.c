@@ -184,7 +184,7 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	if (shi->flippednor)
 		shade_input_flip_normals(shi);
 
-	madd_v3_v3fl(shi->co, shi->vn, 0.0001f); /* ugly.. */
+	madd_v3_v3fl(shi->co, shi->facenor, -0.0001f); /* ugly.. */
 
 	/* not a pretty solution, but fixes common cases */
 	if (shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
