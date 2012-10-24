@@ -583,7 +583,34 @@ static void add_nodes(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *grap
 	PtrSockMap proxy_map;
 
 	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
-		if(b_node->is_a(&RNA_NodeGroup)) {
+		if(b_node->mute()) {
+			BL::Node::inputs_iterator b_input;
+			BL::Node::outputs_iterator b_output;
+			bool found_match = false;
+
+			/* this is slightly different than blender logic, we just connect a
+			 * single pair for of input/output, but works ok for the node we have */
+			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
+				if(b_input->is_linked()) {
+					for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
+						if(b_output->is_linked() && b_input->type() == b_output->type()) {
+							ProxyNode *proxy = new ProxyNode(convert_socket_type(b_input->type()), convert_socket_type(b_output->type()));
+							graph->add(proxy);
+
+							proxy_map[b_input->ptr.data] = SocketPair(proxy, proxy->inputs[0]->name);
+							proxy_map[b_output->ptr.data] = SocketPair(proxy, proxy->outputs[0]->name);
+							found_match = true;
+
+							break;
+						}
+					}
+				}
+
+				if(found_match)
+					break;
+			}
+		}
+		else if(b_node->is_a(&RNA_NodeGroup)) {
 			/* add proxy converter nodes for inputs and outputs */
 			BL::NodeGroup b_gnode(*b_node);
 			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
@@ -663,7 +690,7 @@ static void add_nodes(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *grap
 
 		/* from sock */
 		if(b_from_node) {
-			if (b_from_node.is_a(&RNA_NodeGroup))
+			if (b_from_node.mute() || b_from_node.is_a(&RNA_NodeGroup))
 				from_pair = proxy_map[b_from_sock.ptr.data];
 			else
 				from_pair = node_socket_map_pair(node_map, b_from_node, b_from_sock);
@@ -673,7 +700,7 @@ static void add_nodes(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *grap
 
 		/* to sock */
 		if(b_to_node) {
-			if (b_to_node.is_a(&RNA_NodeGroup))
+			if (b_to_node.mute() || b_to_node.is_a(&RNA_NodeGroup))
 				to_pair = proxy_map[b_to_sock.ptr.data];
 			else
 				to_pair = node_socket_map_pair(node_map, b_to_node, b_to_sock);
