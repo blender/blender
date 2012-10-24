@@ -75,6 +75,7 @@ typedef enum ModifierType {
 	eModifierType_DynamicPaint      = 40,
 	eModifierType_Remesh            = 41,
 	eModifierType_Skin              = 42,
+	eModifierType_LaplacianSmooth   = 43,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1111,5 +1112,18 @@ enum {
 enum {
 	MOD_SKIN_SMOOTH_SHADING = 1
 };
+
+/* Smooth modifier flags */
+#define MOD_LAPLACIANSMOOTH_X (1<<1)
+#define MOD_LAPLACIANSMOOTH_Y (1<<2)
+#define MOD_LAPLACIANSMOOTH_Z (1<<3)
+#define MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION (1<<4)
+
+typedef struct LaplacianSmoothModifierData {
+	ModifierData modifier;
+	float lambda, lambda_border, pad1;
+	char defgrp_name[64]; /* MAX_VGROUP_NAME */
+	short flag, repeat;
+} LaplacianSmoothModifierData;
 
 #endif

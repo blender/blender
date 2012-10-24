@@ -29,8 +29,7 @@ set(INC
 	../blenlib
 	../makesdna
 	../../../intern/guardedalloc
-	../../../extern/bullet2/src
-)
+	../../../extern/bullet2/src	../../../intern/opennl/extern)
 
 set(INC_SYS
 
@@ -52,6 +51,7 @@ set(SRC
 	operators/bmo_mirror.c
 	operators/bmo_primitive.c
 	operators/bmo_removedoubles.c
+	operators/bmo_smooth_laplacian.c
 	operators/bmo_symmetrize.c
 	operators/bmo_subdivide.c
 	operators/bmo_subdivide.h

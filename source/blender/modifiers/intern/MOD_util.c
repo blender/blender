@@ -277,5 +277,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(DynamicPaint);
 	INIT_TYPE(Remesh);
 	INIT_TYPE(Skin);
+	INIT_TYPE(LaplacianSmooth);
 #undef INIT_TYPE
 }

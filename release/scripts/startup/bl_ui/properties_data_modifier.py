@@ -331,6 +331,20 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row.operator("object.hook_select", text="Select")
             row.operator("object.hook_assign", text="Assign")
 
+    def LAPLACIANSMOOTH(self, layout, ob, md):
+        layout.prop(md, "iterations")
+        layout.prop(md, "lamb")
+        layout.prop(md, "lambdaborder")
+        row = layout.row()
+        row.label(text="Axis: ")
+        row.prop(md, "use_x")
+        row.prop(md, "use_y")
+        row.prop(md, "use_z")
+        row = layout.row()
+        row.prop(md, "volume_preservation")
+        layout.label(text="Vertex Group:")
+        layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+		
     def LATTICE(self, layout, ob, md):
         split = layout.split()
 

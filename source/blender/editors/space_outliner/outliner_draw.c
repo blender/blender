@@ -1000,6 +1000,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					case eModifierType_Bevel:
 						UI_icon_draw(x, y, ICON_MOD_BEVEL); break;
 					case eModifierType_Smooth:
+					case eModifierType_LaplacianSmooth:
 						UI_icon_draw(x, y, ICON_MOD_SMOOTH); break;
 					case eModifierType_SimpleDeform:
 						UI_icon_draw(x, y, ICON_MOD_SIMPLEDEFORM); break;

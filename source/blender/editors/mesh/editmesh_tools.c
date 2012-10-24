@@ -1666,6 +1666,88 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis");
 }
 
+static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	int usex = TRUE, usey = TRUE, usez = TRUE, volume_preservation = TRUE;
+	int i, repeat;
+	float lambda = 0.1f;
+	float lambda_border = 0.1f;
+	BMIter fiter;
+	BMFace *f;
+
+	/* Check if select faces are triangles	*/
+	BM_ITER_MESH (f, &fiter, em->bm, BM_FACES_OF_MESH) {
+		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+			if(f->len > 4) {
+				BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
+				return OPERATOR_CANCELLED;
+			}	
+		}
+	}
+
+	/* mirror before smooth */
+	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_verts_mirror_cache_begin(em, TRUE);
+	}
+
+	repeat = RNA_int_get(op->ptr, "repeat");
+	lambda = RNA_float_get(op->ptr, "lambda");
+	lambda_border = RNA_float_get(op->ptr, "lambda_border");
+	usex = RNA_boolean_get(op->ptr, "use_x");
+	usey = RNA_boolean_get(op->ptr, "use_y");
+	usez = RNA_boolean_get(op->ptr, "use_z");
+	volume_preservation = RNA_boolean_get(op->ptr, "volume_preservation");
+	if (!repeat)
+		repeat = 1;
+	
+	for (i = 0; i < repeat; i++) {
+		if (!EDBM_op_callf(em, op,
+		                   "smooth_laplacian_vert verts=%hv lambda=%f lambda_border=%f use_x=%b use_y=%b use_z=%b volume_preservation=%b",
+		                   BM_ELEM_SELECT, lambda, lambda_border, usex, usey, usez, volume_preservation))
+		{
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* apply mirror */
+	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_verts_mirror_apply(em, BM_ELEM_SELECT, 0);
+		EDBM_verts_mirror_cache_end(em);
+	}
+
+	EDBM_update_generic(C, em, TRUE);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_vertices_smooth_laplacian(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Laplacian Smooth Vertex";
+	ot->description = "Laplacian smooth of selected vertices";
+	ot->idname = "MESH_OT_vertices_smooth_laplacian";
+	
+	/* api callbacks */
+	ot->exec = edbm_do_smooth_laplacian_vertex_exec;
+	ot->poll = ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "repeat", 1, 1, 200, 
+					"Number of iterations to smooth the mesh", "", 1, 200);
+	RNA_def_float(ot->srna, "lambda", 0.00005f, 0.0000001f, 1000.0f, 
+					"Lambda factor", "", 0.0000001f, 1000.0f);
+	RNA_def_float(ot->srna, "lambda_border", 0.00005f, 0.0000001f, 1000.0f, 
+					"Lambda factor in border", "", 0.0000001f, 1000.0f);
+	RNA_def_boolean(ot->srna, "use_x", 1, "Smooth X Axis", "Smooth object along	X axis");
+	RNA_def_boolean(ot->srna, "use_y", 1, "Smooth Y Axis", "Smooth object along	Y axis");
+	RNA_def_boolean(ot->srna, "use_z", 1, "Smooth Z Axis", "Smooth object along	Z axis");
+	RNA_def_boolean(ot->srna, "volume_preservation", 1, "Preserve Volume", "Apply volume preservation after smooth");
+}
+
 /********************** Smooth/Solid Operators *************************/
 
 static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
