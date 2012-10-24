@@ -895,11 +895,6 @@ static void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	uiTemplateIDBrowse(layout, C, ptr, "node_tree", NULL, NULL, NULL);
 }
 
-static void node_common_buts_whileloop(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-	uiItemR(layout, ptr, "max_iterations", 0, NULL, ICON_NONE);
-}
-
 /* XXX Does a bounding box update by iterating over all children.
  * Not ideal to do this in every draw call, but doing as transform callback doesn't work,
  * since the child node totr rects are not updated properly at that point.
@@ -1176,16 +1171,6 @@ static void node_common_set_butfunc(bNodeType *ntype)
 	switch (ntype->type) {
 		case NODE_GROUP:
 			ntype->uifunc = node_uifunc_group;
-			ntype->drawfunc = node_draw_group;
-			ntype->drawupdatefunc = node_update_group;
-			break;
-		case NODE_FORLOOP:
-//			ntype->uifunc= node_common_buts_group;
-			ntype->drawfunc = node_draw_group;
-			ntype->drawupdatefunc = node_update_group;
-			break;
-		case NODE_WHILELOOP:
-			ntype->uifunc = node_common_buts_whileloop;
 			ntype->drawfunc = node_draw_group;
 			ntype->drawupdatefunc = node_update_group;
 			break;

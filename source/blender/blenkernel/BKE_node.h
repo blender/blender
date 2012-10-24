@@ -456,8 +456,8 @@ void            node_type_compatibility(struct bNodeType *ntype, short compatibi
 /* ************** COMMON NODES *************** */
 
 #define NODE_GROUP		2
-#define NODE_FORLOOP	3
-#define NODE_WHILELOOP	4
+#define __NODE_FORLOOP	3	/* deprecated */
+#define __NODE_WHILELOOP	4	/* deprecated */
 #define NODE_FRAME		5
 #define NODE_REROUTE	6
 
