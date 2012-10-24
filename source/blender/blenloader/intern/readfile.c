@@ -2543,8 +2543,13 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 				break;
 			case CONSTRAINT_TYPE_KINEMATIC:
 			{
+				bKinematicConstraint *data = con->data;
+
 				con->lin_error = 0.f;
 				con->rot_error = 0.f;
+
+				/* version patch for runtime flag, was not cleared in some case */
+				data->flag &= ~CONSTRAINT_IK_AUTO;
 			}
 			case CONSTRAINT_TYPE_CHILDOF:
 			{
