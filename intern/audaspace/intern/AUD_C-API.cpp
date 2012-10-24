@@ -68,6 +68,7 @@
 #include "AUD_SequencerFactory.h"
 #include "AUD_SequencerEntry.h"
 #include "AUD_SilenceFactory.h"
+#include "AUD_MutexLock.h"
 
 #ifdef WITH_SDL
 #include "AUD_SDLDevice.h"
@@ -858,21 +859,18 @@ AUD_Handle *AUD_pauseAfter(AUD_Handle *handle, float seconds)
 	AUD_Reference<AUD_IFactory> silence = new AUD_SilenceFactory;
 	AUD_Reference<AUD_IFactory> limiter = new AUD_LimiterFactory(silence, 0, seconds);
 
-	AUD_device->lock();
+	AUD_MutexLock lock(*AUD_device);
 
 	try {
 		AUD_Handle handle2 = AUD_device->play(limiter);
 		if (!handle2.isNull()) {
 			handle2->setStopCallback((stopCallback)pauseSound, handle);
-			AUD_device->unlock();
 			return new AUD_Handle(handle2);
 		}
 	}
 	catch(AUD_Exception&)
 	{
 	}
-
-	AUD_device->unlock();
 
 	return NULL;
 }

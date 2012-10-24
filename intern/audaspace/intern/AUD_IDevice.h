@@ -35,6 +35,7 @@
 #include "AUD_IFactory.h"
 #include "AUD_IReader.h"
 #include "AUD_IHandle.h"
+#include "AUD_ILockable.h"
 
 /**
  * This class represents an output device for sound sources.
@@ -44,7 +45,7 @@
  * \warning Thread safety must be insured so that no reader is beeing called
  *          twice at the same time.
  */
-class AUD_IDevice
+class AUD_IDevice : public AUD_ILockable
 {
 public:
 	/**

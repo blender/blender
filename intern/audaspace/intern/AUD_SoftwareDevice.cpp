@@ -33,6 +33,7 @@
 #include "AUD_IFactory.h"
 #include "AUD_JOSResampleReader.h"
 #include "AUD_LinearResampleReader.h"
+#include "AUD_MutexLock.h"
 
 #include <cstring>
 #include <cmath>
@@ -226,7 +227,7 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::pause()
 {
 	if(m_status)
 	{
-		m_device->lock();
+		AUD_MutexLock lock(*m_device);
 
 		if(m_status == AUD_STATUS_PLAYING)
 		{
@@ -236,12 +237,9 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::pause()
 			if(m_device->m_playingSounds.empty())
 				m_device->playing(m_device->m_playback = false);
 			m_status = AUD_STATUS_PAUSED;
-			m_device->unlock();
 
 			return true;
 		}
-
-		m_device->unlock();
 	}
 
 	return false;
@@ -251,7 +249,7 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::resume()
 {
 	if(m_status)
 	{
-		m_device->lock();
+		AUD_MutexLock lock(*m_device);
 
 		if(m_status == AUD_STATUS_PAUSED)
 		{
@@ -261,11 +259,9 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::resume()
 			if(!m_device->m_playback)
 				m_device->playing(m_device->m_playback = true);
 			m_status = AUD_STATUS_PLAYING;
-			m_device->unlock();
 			return true;
 		}
 
-		m_device->unlock();
 	}
 
 	return false;
@@ -276,7 +272,10 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::stop()
 	if(!m_status)
 		return false;
 
-	m_device->lock();
+	AUD_MutexLock lock(*m_device);
+
+	if(!m_status)
+		return false;
 
 	// AUD_XXX Create a reference of our own object so that it doesn't get
 	// deleted before the end of this function
@@ -292,7 +291,6 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::stop()
 	else
 		m_device->m_pausedSounds.remove(This);
 
-	m_device->unlock();
 	m_status = AUD_STATUS_INVALID;
 	return true;
 }
@@ -310,11 +308,12 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::setKeep(bool keep)
 	if(!m_status)
 		return false;
 
-	m_device->lock();
+	AUD_MutexLock lock(*m_device);
+
+	if(!m_status)
+		return false;
 
 	m_keep = keep;
-
-	m_device->unlock();
 
 	return true;
 }
@@ -324,11 +323,12 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::seek(float position)
 	if(!m_status)
 		return false;
 
-	m_device->lock();
+	AUD_MutexLock lock(*m_device);
+
+	if(!m_status)
+		return false;
 
 	m_reader->seek((int)(position * m_reader->getSpecs().rate));
-
-	m_device->unlock();
 
 	return true;
 }
@@ -336,13 +336,14 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::seek(float position)
 float AUD_SoftwareDevice::AUD_SoftwareHandle::getPosition()
 {
 	if(!m_status)
+		return false;
+
+	AUD_MutexLock lock(*m_device);
+
+	if(!m_status)
 		return 0.0f;
 
-	m_device->lock();
-
 	float position = m_reader->getPosition() / (float)m_device->m_specs.rate;
-
-	m_device->unlock();
 
 	return position;
 }
@@ -407,12 +408,13 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::setStopCallback(stopCallback callba
 	if(!m_status)
 		return false;
 
-	m_device->lock();
+	AUD_MutexLock lock(*m_device);
+
+	if(!m_status)
+		return false;
 
 	m_stop = callback;
 	m_stop_data = data;
-
-	m_device->unlock();
 
 	return true;
 }
@@ -691,7 +693,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 {
 	m_buffer.assureSize(length * AUD_SAMPLE_SIZE(m_specs));
 
-	lock();
+	AUD_MutexLock lock(*this);
 
 	{
 		AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> sound;
@@ -775,8 +777,6 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			sound->pause();
 		}
 	}
-
-	unlock();
 }
 
 void AUD_SoftwareDevice::setPanning(AUD_IHandle* handle, float pan)
@@ -833,12 +833,12 @@ AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IReader> r
 	// play sound
 	AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> sound = new AUD_SoftwareDevice::AUD_SoftwareHandle(this, reader, pitch, resampler, mapper, keep);
 
-	lock();
+	AUD_MutexLock lock(*this);
+
 	m_playingSounds.push_back(sound);
 
 	if(!m_playback)
 		playing(m_playback = true);
-	unlock();
 
 	return AUD_Reference<AUD_IHandle>(sound);
 }
@@ -850,15 +850,13 @@ AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IFactory> 
 
 void AUD_SoftwareDevice::stopAll()
 {
-	lock();
+	AUD_MutexLock lock(*this);
 
 	while(!m_playingSounds.empty())
 		m_playingSounds.front()->stop();
 
 	while(!m_pausedSounds.empty())
 		m_pausedSounds.front()->stop();
-
-	unlock();
 }
 
 void AUD_SoftwareDevice::lock()

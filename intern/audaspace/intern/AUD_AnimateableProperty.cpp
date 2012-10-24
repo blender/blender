@@ -28,6 +28,7 @@
 
 
 #include "AUD_AnimateableProperty.h"
+#include "AUD_MutexLock.h"
 
 #include <cstring>
 #include <cmath>
@@ -63,17 +64,15 @@ void AUD_AnimateableProperty::unlock()
 
 void AUD_AnimateableProperty::write(const float* data)
 {
-	lock();
+	AUD_MutexLock lock(*this);
 
 	m_isAnimated = false;
 	memcpy(getBuffer(), data, m_count * sizeof(float));
-
-	unlock();
 }
 
 void AUD_AnimateableProperty::write(const float* data, int position, int count)
 {
-	lock();
+	AUD_MutexLock lock(*this);
 
 	m_isAnimated = true;
 
@@ -87,18 +86,15 @@ void AUD_AnimateableProperty::write(const float* data, int position, int count)
 
 	for(int i = pos; i < position; i++)
 		memcpy(buf + i * m_count, buf + (pos - 1) * m_count, m_count * sizeof(float));
-
-	unlock();
 }
 
 void AUD_AnimateableProperty::read(float position, float* out)
 {
-	lock();
+	AUD_MutexLock lock(*this);
 
 	if(!m_isAnimated)
 	{
 		memcpy(out, getBuffer(), m_count * sizeof(float));
-		unlock();
 		return;
 	}
 
@@ -147,8 +143,6 @@ void AUD_AnimateableProperty::read(float position, float* out)
 					 (t3 - 2 * t2 + t) * m0 + (t3 - t2) * m1;
 		}
 	}
-
-	unlock();
 }
 
 bool AUD_AnimateableProperty::isAnimated() const
