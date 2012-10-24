@@ -208,7 +208,8 @@ ModifierTypeInfo modifierType_Decimate = {
 	/* structName */        "DecimateModifierData",
 	/* structSize */        sizeof(DecimateModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_AcceptsCVs,
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
