@@ -1819,18 +1819,18 @@ static void rna_def_modifier_laplaciansmooth(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Preserve Volume", "Apply volume preservation after smooth");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "lamb", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "lambda_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lambda");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0000001, 1000.0, 0.0000001, 8);
 	RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth factor effect");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "lambdaborder", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "lambda_border", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lambda_border");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0000001, 1000.0, 0.0000001, 8);
-	RNA_def_property_ui_text(prop, "Lambda border", "Lambda factor in border");
+	RNA_def_property_ui_text(prop, "Lambda Border", "Lambda factor in border");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);

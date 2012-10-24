@@ -333,15 +333,23 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def LAPLACIANSMOOTH(self, layout, ob, md):
         layout.prop(md, "iterations")
-        layout.prop(md, "lamb")
-        layout.prop(md, "lambdaborder")
-        row = layout.row()
-        row.label(text="Axis: ")
-        row.prop(md, "use_x")
-        row.prop(md, "use_y")
-        row.prop(md, "use_z")
-        row = layout.row()
-        row.prop(md, "volume_preservation")
+        
+        split = layout.split(percentage=0.25)
+        
+        col = split.column()
+        col.label(text="Axis:")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_z")
+        
+        col = split.column()
+        col.label(text="Lambda:")
+        col.prop(md, "lambda_factor", text="Factor")
+        col.prop(md, "lambda_border", text="Border")
+        
+        col.separator()
+        col.prop(md, "volume_preservation")
+        
         layout.label(text="Vertex Group:")
         layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 		
