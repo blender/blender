@@ -2337,9 +2337,11 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	 * -jahka
 	 */
 
-	int rendering = G.is_rendering;
-	int doseq;
-	int doseq_gl = G.is_rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : /*(scene->r.seq_flag & R_SEQ_GL_PREV)*/ 1;
+	const short is_rendering = G.is_rendering;
+	const int do_seq_gl = G.is_rendering ?
+	            (context.scene->r.seq_flag & R_SEQ_GL_REND) :
+	            (context.scene->r.seq_flag & R_SEQ_GL_PREV);
+	int do_seq;
 	int have_seq = FALSE;
 	Scene *scene;
 
@@ -2370,7 +2372,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	}
 
 	/* prevent eternal loop */
-	doseq = context.scene->r.scemode & R_DOSEQ;
+	do_seq = context.scene->r.scemode & R_DOSEQ;
 	context.scene->r.scemode &= ~R_DOSEQ;
 	
 #ifdef DURIAN_CAMERA_SWITCH
@@ -2380,8 +2382,11 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 #else
 	(void)oldmarkers;
 #endif
-	
-	if (sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (scene == context.scene || have_seq == 0) && camera) {
+
+	if ((sequencer_view3d_cb && do_seq_gl && camera) &&
+	    (BLI_thread_is_main() == TRUE) &&
+	    ((have_seq == FALSE) || (scene == context.scene)))
+	{
 		char err_out[256] = "unknown";
 		/* for old scened this can be uninitialized,
 		 * should probably be added to do_versions at some point if the functionality stays */
@@ -2401,14 +2406,14 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		RenderResult rres;
 
 		/* XXX: this if can be removed when sequence preview rendering uses the job system */
-		if (rendering || context.scene != scene) {
+		if (is_rendering || context.scene != scene) {
 			if (re == NULL)
 				re = RE_NewRender(scene->id.name);
 			
 			RE_BlenderFrame(re, context.bmain, scene, NULL, camera, scene->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
-			G.is_rendering = rendering;
+			G.is_rendering = is_rendering;
 		}
 		
 		RE_AcquireResultImage(re, &rres);
@@ -2435,7 +2440,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	}
 	
 	/* restore */
-	context.scene->r.scemode |= doseq;
+	context.scene->r.scemode |= do_seq;
 	
 	scene->r.cfra = oldcfra;
 
