@@ -59,7 +59,7 @@ public:
 	} state;
 
 	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution,
-	            int preserve_tile_device, int num_devices = 1);
+	            bool preserve_tile_device, bool background, int num_devices = 1);
 	~TileManager();
 
 	void reset(BufferParams& params, int num_samples);
@@ -85,6 +85,22 @@ protected:
 	 * without progressive refine)
 	 */
 	bool preserve_tile_device;
+
+	/* for background render tiles should exactly match render parts generated from
+	 * blender side, which means image first gets split into tiles and then tiles are
+	 * assigning to render devices
+	 *
+	 * however viewport rendering expects tiles to be allocated in a special way,
+	 * meaning image is being sliced horizontally first and every device handles
+	 * it's own slice
+	 */
+	bool background;
+
+	/* splits image into tiles and assigns equal amount of tiles to every render device */
+	void gen_tiles_global();
+
+	/* slices image into as much pieces as how many devices are rendering this image */
+	void gen_tiles_sliced();
 
 	list<Tile>::iterator next_center_tile(int device = 0);
 };
