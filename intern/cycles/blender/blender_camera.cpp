@@ -411,8 +411,14 @@ static void blender_camera_from_view(BlenderCamera *bcam, BL::Scene b_scene, BL:
 		bcam->farclip *= 0.5f;
 		bcam->nearclip = -bcam->farclip;
 
+		float sensor_size;
+		if(bcam->sensor_fit == BlenderCamera::VERTICAL)
+			sensor_size = bcam->sensor_height;
+		else
+			sensor_size = bcam->sensor_width;
+
 		bcam->type = CAMERA_ORTHOGRAPHIC;
-		bcam->ortho_scale = b_rv3d.view_distance();
+		bcam->ortho_scale = b_rv3d.view_distance() * sensor_size / b_v3d.lens();
 	}
 
 	bcam->zoom *= 2.0f;

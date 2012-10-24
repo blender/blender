@@ -96,6 +96,7 @@ int ED_view3d_camera_lock_check(View3D *v3d, RegionView3D *rv3d)
 void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 {
 	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
+		rv3d->dist = ED_view3d_offset_distance(v3d->camera->obmat, rv3d->ofs);
 		ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 	}
 }
@@ -894,6 +895,7 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			/* changed since 2.4x, use the camera view */
 			if (vod->v3d->camera) {
+				rv3d->dist = ED_view3d_offset_distance(vod->v3d->camera->obmat, rv3d->ofs);
 				ED_view3d_from_object(vod->v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 			}
 
@@ -3922,6 +3924,18 @@ int ED_view3d_autodist_depth_seg(ARegion *ar, const int mval_sta[2], const int m
 	*depth = data.depth;
 
 	return (*depth == FLT_MAX) ? 0 : 1;
+}
+
+float ED_view3d_offset_distance(float mat[4][4], float ofs[3]) {
+	float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	float dir[4] = {0.0f, 0.0f, 1.0f, 0.0f};
+
+	mul_m4_v4(mat, pos);
+	add_v3_v3(pos, ofs);
+	mul_m4_v4(mat, dir);
+	normalize_v3(dir);
+
+	return dot_v3v3(pos, dir);
 }
 
 /**
