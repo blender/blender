@@ -61,7 +61,7 @@ void KeyingDespillOperation::executePixel(float output[4], float x, float y, Pix
 	this->m_pixelReader->read(pixelColor, x, y, sampler);
 	this->m_screenReader->read(screenColor, x, y, sampler);
 
-	const int screen_primary_channel = axis_primary_v3(screenColor);
+	const int screen_primary_channel = max_axis_v3(screenColor);
 	const int other_1 = (screen_primary_channel + 1) % 3;
 	const int other_2 = (screen_primary_channel + 2) % 3;
 
@@ -75,7 +75,8 @@ void KeyingDespillOperation::executePixel(float output[4], float x, float y, Pix
 
 	copy_v4_v4(output, pixelColor);
 
-	if (this->m_despillFactor * amount > 0) {
-		output[screen_primary_channel] = pixelColor[screen_primary_channel] - this->m_despillFactor * amount;
+	const float amount_despill = this->m_despillFactor * amount;
+	if (amount_despill > 0.0f) {
+		output[screen_primary_channel] = pixelColor[screen_primary_channel] - amount_despill;
 	}
 }

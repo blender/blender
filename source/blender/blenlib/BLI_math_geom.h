@@ -283,7 +283,8 @@ float form_factor_hemi_poly(float p[3], float n[3],
 
 void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3]);
 
-MINLINE int axis_primary_v3(const float vec[3]);
+MINLINE int max_axis_v3(const float vec[3]);
+MINLINE int min_axis_v3(const float vec[3]);
 
 #ifdef __cplusplus
 }

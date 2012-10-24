@@ -137,28 +137,24 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[9], const float f)
 	add_sh_shsh(r, r, tmp);
 }
 
-MINLINE int axis_primary_v3(const float vec[3])
+MINLINE int max_axis_v3(const float vec[3])
 {
 	const float x = vec[0];
 	const float y = vec[1];
 	const float z = vec[2];
+	return ((x > y) ?
+	       ((x > z) ? 0 : 2) :
+	       ((y > z) ? 1 : 2));
+}
 
-	if (x > y) {
-		if (x > z) {
-			return 0;
-		}
-		else {
-			return 2;
-		}
-	}
-	else {
-		if (y > z) {
-			return 1;
-		}
-		else {
-			return 2;
-		}
-	}
+MINLINE int min_axis_v3(const float vec[3])
+{
+	const float x = vec[0];
+	const float y = vec[1];
+	const float z = vec[2];
+	return ((x < y) ?
+	       ((x < z) ? 0 : 2) :
+	       ((y < z) ? 1 : 2));
 }
 
 #endif /* __MATH_GEOM_INLINE_C__ */

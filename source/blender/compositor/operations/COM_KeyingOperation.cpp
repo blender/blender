@@ -28,15 +28,15 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-static float get_pixel_saturation(float pixelColor[4], float screen_balance, int primary_channel)
+static float get_pixel_saturation(const float pixelColor[4], float screen_balance, int primary_channel)
 {
-	int other_1 = (primary_channel + 1) % 3;
-	int other_2 = (primary_channel + 2) % 3;
+	const int other_1 = (primary_channel + 1) % 3;
+	const int other_2 = (primary_channel + 2) % 3;
 
-	int min_channel = min(other_1, other_2);
-	int max_channel = max(other_1, other_2);
+	const int min_channel = min(other_1, other_2);
+	const int max_channel = max(other_1, other_2);
 
-	float val = screen_balance * pixelColor[min_channel] + (1.0f - screen_balance) * pixelColor[max_channel];
+	const float val = screen_balance * pixelColor[min_channel] + (1.0f - screen_balance) * pixelColor[max_channel];
 
 	return (pixelColor[primary_channel] - val) * fabsf(1.0f - val);
 }
@@ -73,13 +73,13 @@ void KeyingOperation::executePixel(float output[4], float x, float y, PixelSampl
 	this->m_pixelReader->read(pixelColor, x, y, sampler);
 	this->m_screenReader->read(screenColor, x, y, sampler);
 
-	const int primary_channel = axis_primary_v3(screenColor);
+	const int primary_channel = max_axis_v3(screenColor);
 
 	if (pixelColor[primary_channel] > 1.0f) {
 		/* overexposure doesn't happen on screen itself and usually happens
 		 * on light sources in the shot, this need to be checked separately
 		 * because saturation and falloff calculation is based on the fact
-		 * that pixels are not overexposured
+		 * that pixels are not overexposed
 		 */
 		output[0] = 1.0f;
 	}
