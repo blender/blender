@@ -300,11 +300,11 @@ void BKE_object_free(Object *ob)
 	
 	BKE_object_free_display(ob);
 	
-	/* disconnect specific data */
+	/* disconnect specific data, but not for lib data (might be indirect data, can get relinked) */
 	if (ob->data) {
 		ID *id = ob->data;
 		id->us--;
-		if (id->us == 0) {
+		if (id->us == 0 && id->lib==NULL) {
 			switch (ob->type) {
 				case OB_MESH:
 					BKE_mesh_unlink((Mesh *)id);
