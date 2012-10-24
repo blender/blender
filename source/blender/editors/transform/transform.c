@@ -1601,8 +1601,10 @@ static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, vo
 	 */
 	if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
 		if (ar == t->ar) {
-			if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
-				drawAutoKeyWarning(t, ar);
+			if (t->flag & (T_OBJECT | T_POSE)) {
+				if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
+					drawAutoKeyWarning(t, ar);
+				}
 			}
 		}
 	}
