@@ -27,12 +27,12 @@
 
 class PixelateOperation : public NodeOperation {
 private:
-    SocketReader *m_inputOperation;
+	SocketReader *m_inputOperation;
 public:
-    PixelateOperation(DataType dataType);
-    void initExecution();
-    void deinitExecution();
-    void executePixel(float output[4], float x, float y, PixelSampler sampler);
+	PixelateOperation(DataType dataType);
+	void initExecution();
+	void deinitExecution();
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 };
 
 #endif

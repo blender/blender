@@ -27,16 +27,16 @@
 
 PixelateNode::PixelateNode(bNode *editorNode) : Node(editorNode)
 {
-    /* pass */
+	/* pass */
 }
 
 void PixelateNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-    InputSocket *inputSocket = this->getInputSocket(0);
-    OutputSocket *outputSocket = this->getOutputSocket(0);
-    
-    PixelateOperation *operation = new PixelateOperation(inputSocket->getDataType());
-    inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-    outputSocket->relinkConnections(operation->getOutputSocket(0));
-    graph->addOperation(operation);
+	InputSocket *inputSocket = this->getInputSocket(0);
+	OutputSocket *outputSocket = this->getOutputSocket(0);
+
+	PixelateOperation *operation = new PixelateOperation(inputSocket->getDataType());
+	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+	outputSocket->relinkConnections(operation->getOutputSocket(0));
+	graph->addOperation(operation);
 }

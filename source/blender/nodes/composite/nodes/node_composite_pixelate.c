@@ -37,21 +37,21 @@
 /* **************** Pixelate ******************** */
 
 static bNodeSocketTemplate cmp_node_pixelate_in[] = {
-    {   SOCK_RGBA, 1, N_("Color"),      0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {   -1, 0, ""   }
+	{   SOCK_RGBA, 1, N_("Color"),      0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{   -1, 0, ""   }
 };
 static bNodeSocketTemplate cmp_node_pixelate_out[] = {
-    {   SOCK_RGBA, 0, N_("Color")},
-    {   -1, 0, ""   }
+	{   SOCK_RGBA, 0, N_("Color")},
+	{   -1, 0, ""   }
 };
 
 void register_node_type_cmp_pixelate(bNodeTreeType *ttype)
 {
-    static bNodeType ntype;
+	static bNodeType ntype;
 
-    node_type_base(ttype, &ntype, CMP_NODE_PIXELATE, "Pixelate", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
-    node_type_socket_templates(&ntype, cmp_node_pixelate_in, cmp_node_pixelate_out);
-    node_type_size(&ntype, 130, 100, 130);
+	node_type_base(ttype, &ntype, CMP_NODE_PIXELATE, "Pixelate", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
+	node_type_socket_templates(&ntype, cmp_node_pixelate_in, cmp_node_pixelate_out);
+	node_type_size(&ntype, 130, 100, 130);
 
-    nodeRegisterType(ttype, &ntype);
+	nodeRegisterType(ttype, &ntype);
 }
