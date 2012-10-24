@@ -73,8 +73,6 @@ typedef struct bNodeThreadStack {
 
 struct bNodeStack *node_get_socket_stack(struct bNodeStack *stack, struct bNodeSocket *sock);
 void node_get_stack(struct bNode *node, struct bNodeStack *stack, struct bNodeStack **in, struct bNodeStack **out);
-void node_init_input_index(struct bNodeSocket *sock, int *index);
-void node_init_output_index(struct bNodeSocket *sock, int *index);
 
 struct bNodeTreeExec *ntree_exec_begin(struct bNodeTree *ntree);
 void ntree_exec_end(struct bNodeTreeExec *exec);
