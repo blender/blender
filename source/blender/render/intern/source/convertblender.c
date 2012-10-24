@@ -557,8 +557,8 @@ static void GetNormal(const SMikkTSpaceContext * pContext, float fNorm[], const 
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
 
-	if(vlr->flag & ME_SMOOTH) {
-		const float *n= (&vlr->v1)[vert_index]->n;
+	if (vlr->flag & ME_SMOOTH) {
+		const float *n = (&vlr->v1)[vert_index]->n;
 		copy_v3_v3(fNorm, n);
 	}
 	else {

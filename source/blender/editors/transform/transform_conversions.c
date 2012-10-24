@@ -2378,11 +2378,12 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	if (!ED_space_image_show_uvedit(sima, t->obedit)) return;
 
 	/* count */
-	if(propconnected) {
+	if (propconnected) {
 		/* create element map with island information */
 		if (ts->uv_flag & UV_SYNC_SELECTION) {
 			elementmap = EDBM_uv_element_map_create (em, FALSE, TRUE);
-		} else {
+		}
+		else {
 			elementmap = EDBM_uv_element_map_create (em, TRUE, TRUE);
 		}
 		island_enabled = MEM_callocN(sizeof(*island_enabled) * elementmap->totalIslands, "TransIslandData(UV Editing)");
@@ -2401,7 +2402,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 			if (uvedit_uv_select_test(em, scene, l)) {
 				countsel++;
 
-				if(propconnected) {
+				if (propconnected) {
 					UvElement *element = ED_uv_element_get(elementmap, efa, l);
 					island_enabled[element->island] = TRUE;
 				}

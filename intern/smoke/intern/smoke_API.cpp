@@ -46,7 +46,7 @@ extern "C" FLUID_3D *smoke_init(int *res, float dx, float dtdef, int use_heat, i
 
 extern "C" WTURBULENCE *smoke_turbulence_init(int *res, int amplify, int noisetype, int use_fire, int use_colors)
 {
-	if(amplify)
+	if (amplify)
 		return new WTURBULENCE(res[0],res[1],res[2], amplify, noisetype, use_fire, use_colors);
 	else 
 		return NULL;
@@ -105,8 +105,7 @@ extern "C" void smoke_initWaveletBlenderRNA(WTURBULENCE *wt, float *strength)
 
 static void data_dissolve(float *density, float *heat, float *r, float *g, float *b, int total_cells, int speed, int log)
 {
-	if(log)
-	{
+	if (log) {
 		/* max density/speed = dydx */
 		float fac = 1.0f - (1.0f / (float)speed);
 
@@ -138,14 +137,14 @@ static void data_dissolve(float *density, float *heat, float *r, float *g, float
 			float d = density[i];
 			/* density */
 			density[i] -= dydx;
-			if(density[i] < 0.0f)
+			if (density[i] < 0.0f)
 				density[i] = 0.0f;
 
 			/* heat */
 			if (heat) {
-				if(abs(heat[i]) < dydx) heat[i] = 0.0f;
-				else if (heat[i]>0.0f) heat[i] -= dydx;
-				else if (heat[i]<0.0f) heat[i] += dydx;
+				if      (abs(heat[i]) < dydx) heat[i] = 0.0f;
+				else if (heat[i] > 0.0f) heat[i] -= dydx;
+				else if (heat[i] < 0.0f) heat[i] += dydx;
 			}
 
 			/* color */
@@ -190,9 +189,9 @@ extern "C" void smoke_export(FLUID_3D *fluid, float *dt, float *dx, float **dens
 }
 
 extern "C" void smoke_turbulence_export(WTURBULENCE *wt, float **dens, float **react, float **flame, float **fuel,
-										float **r, float **g, float **b , float **tcu, float **tcv, float **tcw)
+                                        float **r, float **g, float **b , float **tcu, float **tcv, float **tcw)
 {
-	if(!wt)
+	if (!wt)
 		return;
 
 	*dens = wt->_densityBig;

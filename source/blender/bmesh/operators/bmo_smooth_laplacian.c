@@ -69,7 +69,7 @@ struct BLaplacianSystem {
 };
 typedef struct BLaplacianSystem LaplacianSystem;
 
-static float compute_volume(BMesh *bm, BMOperator *op);
+static float compute_volume(BMesh *bm);
 static float cotan_weight(float *v1, float *v2, float *v3);
 static int vert_is_boundary(BMVert *v);
 static LaplacianSystem * init_laplacian_system( int a_numEdges, int a_numFaces, int a_numVerts);
@@ -78,7 +78,7 @@ static void delete_laplacian_system(LaplacianSystem * sys);
 static void delete_void_pointer(void * data);
 static void fill_laplacian_matrix(LaplacianSystem * sys);
 static void memset_laplacian_system(LaplacianSystem *sys, int val);
-static void validate_solution(LaplacianSystem * sys, int usex, int usey, int usez, float lambda, float lambda_border, int volumepreservation);
+static void validate_solution(LaplacianSystem * sys, int usex, int usey, int usez, int volumepreservation);
 static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float vend, int usex, int usey, int usez);
 
 static void delete_void_pointer(void * data)
@@ -230,7 +230,8 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 
 			if (has_4_vert) {
 				areaf = area_quad_v3(v1, v2, v3, v4);
-			} else {
+			}
+			else {
 				areaf = area_tri_v3(v1, v2, v3);
 			}
 
@@ -270,7 +271,8 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 	
 					sys->vweights[idv1] += (w2 + w3 + w4) / 4.0f;
 				}
-			} else {			
+			}
+			else {
 				i = BM_elem_index_get(f);
 
 				w1 = cotan_weight(v1, v2, v3);
@@ -341,7 +343,8 @@ static void fill_laplacian_matrix(LaplacianSystem * sys)
 						nlMatrixAdd(idv1, idv4, w4 * sys->vweights[idv1]);
 					}
 				}
-			} else {
+			}
+			else {
 				idv1 = BM_elem_index_get(vf[0]);
 				idv2 = BM_elem_index_get(vf[1]);
 				idv3 = BM_elem_index_get(vf[2]);
@@ -412,7 +415,7 @@ static int vert_is_boundary(BMVert *v)
 	return 0;
 }
 
-static float compute_volume(BMesh *bm, BMOperator *op)
+static float compute_volume(BMesh *bm)
 {
 	float vol = 0.0f;
 	float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
@@ -474,7 +477,7 @@ static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float ven
 	}
 }
 
-static void validate_solution(LaplacianSystem * sys, int usex, int usey, int usez, float lambda, float lambda_border, int volumepreservation)
+static void validate_solution(LaplacianSystem * sys, int usex, int usey, int usez, int volumepreservation)
 {
 	int m_vertex_id;
 	float leni, lene;
@@ -506,7 +509,7 @@ static void validate_solution(LaplacianSystem * sys, int usex, int usey, int use
 	}
 
 	if (volumepreservation) {
-		vini = compute_volume(sys->bm, sys->op);
+		vini = compute_volume(sys->bm);
 	}
 	BMO_ITER (v, &siter, sys->bm, sys->op, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
@@ -523,7 +526,7 @@ static void validate_solution(LaplacianSystem * sys, int usex, int usey, int use
 		}
 	}
 	if (volumepreservation) {
-		vend = compute_volume(sys->bm, sys->op);
+		vend = compute_volume(sys->bm);
 		volume_preservation(sys->bm, sys->op, vini, vend, usex, usey, usez);
 	}
 
@@ -587,16 +590,18 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 		i = m_vertex_id;
 		if (sys->zerola[i] == 0) {
 			w = sys->vweights[i] * sys->ring_areas[i];
-			sys->vweights[i] = (w == 0.0f) ? 0.0f : - lambda  / (4.0f * w);
+			sys->vweights[i] = (w == 0.0f) ? 0.0f : -lambda  / (4.0f * w);
 			w = sys->vlengths[i];
-			sys->vlengths[i] = (w == 0.0f) ? 0.0f : - lambda_border  * 2.0f / w;
+			sys->vlengths[i] = (w == 0.0f) ? 0.0f : -lambda_border  * 2.0f / w;
 
 			if (!vert_is_boundary(v)) { 
 				nlMatrixAdd(i, i,  1.0f + lambda / (4.0f * sys->ring_areas[i]));
-			} else { 
+			}
+			else {
 				nlMatrixAdd(i, i,  1.0f + lambda_border * 2.0f);
 			}
-		} else {
+		}
+		else {
 			nlMatrixAdd(i, i, 1.0f);
 		}	
 	}
@@ -606,7 +611,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	nlEnd(NL_SYSTEM);
 
 	if (nlSolveAdvanced(NULL, NL_TRUE) ) {
-		validate_solution(sys, usex, usey, usez, lambda, lambda_border, volumepreservation);
+		validate_solution(sys, usex, usey, usez, volumepreservation);
 	}
 		
 	delete_laplacian_system(sys);

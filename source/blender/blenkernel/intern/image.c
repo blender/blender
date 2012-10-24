@@ -1832,9 +1832,11 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 		}
 		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
 			ibuf->ftype |= CINEON_16BIT;
-		} else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
+		}
+		else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
 			ibuf->ftype |= CINEON_12BIT;
-		} else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
+		}
+		else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
 			ibuf->ftype |= CINEON_10BIT;
 		}
 	}
@@ -1845,9 +1847,11 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 		}
 		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
 			ibuf->ftype |= CINEON_16BIT;
-		} else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
+		}
+		else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
 			ibuf->ftype |= CINEON_12BIT;
-		} else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
+		}
+		else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
 			ibuf->ftype |= CINEON_10BIT;
 		}
 	}
