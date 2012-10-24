@@ -271,6 +271,11 @@ set(SRC
 	operations/COM_NormalizeOperation.cpp
 	operations/COM_NormalizeOperation.h
 
+	nodes/COM_PixelateNode.cpp
+	nodes/COM_PixelateNode.h
+	operations/COM_PixelateOperation.cpp
+	operations/COM_PixelateOperation.h
+
 	# Filter nodes
 	nodes/COM_BilateralBlurNode.cpp
 	nodes/COM_BilateralBlurNode.h
@@ -649,6 +654,6 @@ list(APPEND INC
 	${CMAKE_CURRENT_BINARY_DIR}/operations
 )
 data_to_c(${CMAKE_CURRENT_SOURCE_DIR}/operations/COM_OpenCLKernels.cl
-          ${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h SRC)
+		  ${CMAKE_CURRENT_BINARY_DIR}/operations/COM_OpenCLKernels.cl.h SRC)
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}")

@@ -23,7 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	.
 	composite
 	intern
@@ -119,7 +119,8 @@ set(SRC
 	composite/nodes/node_composite_ellipsemask.c
 	composite/nodes/node_composite_switch.c
 	composite/nodes/node_composite_colorcorrection.c
-	
+	composite/nodes/node_composite_pixelate.c
+
 	composite/node_composite_tree.c
 	composite/node_composite_util.c
 

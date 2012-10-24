@@ -699,6 +699,7 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define CMP_NODE_BOKEHIMAGE     315
 #define CMP_NODE_BOKEHBLUR      316
 #define CMP_NODE_SWITCH         317
+#define CMP_NODE_PIXELATE       318
 
 /* channel toggles */
 #define CMP_CHAN_RGB		1

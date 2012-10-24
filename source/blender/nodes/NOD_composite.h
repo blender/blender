@@ -96,7 +96,7 @@ void register_node_type_cmp_combhsva(struct bNodeTreeType *ttype);
 void register_node_type_cmp_sepyuva(struct bNodeTreeType *ttype);
 void register_node_type_cmp_combyuva(struct bNodeTreeType *ttype);
 void register_node_type_cmp_sepycca(struct bNodeTreeType *ttype);
-void register_node_type_cmp_combycca(struct bNodeTreeType *ttype); 
+void register_node_type_cmp_combycca(struct bNodeTreeType *ttype);
 void register_node_type_cmp_premulkey(struct bNodeTreeType *ttype);
 
 void register_node_type_cmp_diff_matte(struct bNodeTreeType *ttype);
@@ -105,7 +105,7 @@ void register_node_type_cmp_chroma_matte(struct bNodeTreeType *ttype);
 void register_node_type_cmp_color_matte(struct bNodeTreeType *ttype);
 void register_node_type_cmp_channel_matte(struct bNodeTreeType *ttype);
 void register_node_type_cmp_color_spill(struct bNodeTreeType *ttype);
-void register_node_type_cmp_luma_matte(struct bNodeTreeType *ttype); 
+void register_node_type_cmp_luma_matte(struct bNodeTreeType *ttype);
 void register_node_type_cmp_doubleedgemask(struct bNodeTreeType *ttype);
 void register_node_type_cmp_keyingscreen(struct bNodeTreeType *ttype);
 void register_node_type_cmp_keying(struct bNodeTreeType *ttype);
@@ -133,7 +133,7 @@ void register_node_type_cmp_ellipsemask(struct bNodeTreeType *ttype);
 void register_node_type_cmp_bokehimage(struct bNodeTreeType *ttype);
 void register_node_type_cmp_bokehblur(struct bNodeTreeType *ttype);
 void register_node_type_cmp_switch(struct bNodeTreeType *ttype);
-
+void register_node_type_cmp_pixelate(struct bNodeTreeType *ttype);
 void register_node_type_cmp_trackpos(struct bNodeTreeType *ttype);
 
 #endif
