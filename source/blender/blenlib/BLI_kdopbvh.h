@@ -97,7 +97,7 @@ void BLI_bvhtree_update_tree(BVHTree *tree);
 /* collision/overlap: check two trees if they overlap, alloc's *overlap with length of the int return value */
 BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int *result);
 
-float BLI_bvhtree_getepsilon(BVHTree *tree);
+float BLI_bvhtree_getepsilon(const BVHTree *tree);
 
 /* find nearest node to the given coordinates
  * (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
