@@ -106,7 +106,7 @@ typedef struct uiLayout uiLayout;
 /* uiBlock->flag (controls) */
 #define UI_BLOCK_LOOP           1
 #define UI_BLOCK_REDRAW         2
-#define UI_BLOCK_RET_1          4       /* XXX 2.5 not implemented */
+#define UI_BLOCK_SEARCH_MENU    4
 #define UI_BLOCK_NUMSELECT      8
 /*#define UI_BLOCK_ENTER_OK		16*/ /*UNUSED*/
 #define UI_BLOCK_CLIPBOTTOM     32

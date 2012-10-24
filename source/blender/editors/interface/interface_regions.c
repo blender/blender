@@ -1159,7 +1159,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	/* special case, hardcoded feature, not draw backdrop when called from menus,
 	 * assume for design that popup already added it */
-	if (but->block->flag & UI_BLOCK_LOOP)
+	if (but->block->flag & UI_BLOCK_SEARCH_MENU)
 		data->noback = 1;
 	
 	if (but->a1 > 0 && but->a2 > 0) {
@@ -1169,7 +1169,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 	
 	/* compute position */
-	if (but->block->flag & UI_BLOCK_LOOP) {
+	if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
 		/* this case is search menu inside other menu */
 		/* we copy region size */
 
@@ -2377,7 +2377,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	if (pup->popup) {
-		uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_NUMSELECT | UI_BLOCK_RET_1);
+		uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_NUMSELECT);
 		uiBlockSetDirection(block, direction);
 
 		/* offset the mouse position, possibly based on earlier selection */
