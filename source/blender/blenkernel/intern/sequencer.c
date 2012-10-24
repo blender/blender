@@ -2339,7 +2339,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 
 	const short is_rendering = G.is_rendering;
 	const int do_seq_gl = G.is_rendering ?
-	            (context.scene->r.seq_flag & R_SEQ_GL_REND) :
+	            0 /* (context.scene->r.seq_flag & R_SEQ_GL_REND) */ :
 	            (context.scene->r.seq_flag & R_SEQ_GL_PREV);
 	int do_seq;
 	int have_seq = FALSE;

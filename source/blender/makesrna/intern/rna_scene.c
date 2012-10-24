@@ -3945,10 +3945,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_PREV);
 	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
 
+#if 0  /* see R_SEQ_GL_REND comment */
 	prop = RNA_def_property(srna, "use_sequencer_gl_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_REND);
 	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
-
+#endif
 
 	prop = RNA_def_property(srna, "sequencer_gl_preview", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "seq_prev_type");

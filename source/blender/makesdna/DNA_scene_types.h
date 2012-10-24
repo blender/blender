@@ -1188,7 +1188,7 @@ typedef struct Scene {
 
 /* seq_flag */
 #define R_SEQ_GL_PREV 1
-#define R_SEQ_GL_REND 2
+// #define R_SEQ_GL_REND 2  // UNUSED, opengl render has its own operator now.
 
 /* displaymode */
 
