@@ -24,26 +24,26 @@
 
 PixelateOperation::PixelateOperation(DataType datatype) : NodeOperation()
 {
-    this->addInputSocket(datatype);
-    this->addOutputSocket(datatype);
-    this->setResolutionInputSocketIndex(0);
-    this->m_inputOperation = NULL;
+	this->addInputSocket(datatype);
+	this->addOutputSocket(datatype);
+	this->setResolutionInputSocketIndex(0);
+	this->m_inputOperation = NULL;
 }
+
 void PixelateOperation::initExecution()
 {
-    this->m_inputOperation = this->getInputSocketReader(0);
+	this->m_inputOperation = this->getInputSocketReader(0);
 }
 
 void PixelateOperation::deinitExecution()
 {
-    this->m_inputOperation = NULL;
+	this->m_inputOperation = NULL;
 }
-
 
 void PixelateOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-    float nx = round(x);
-    float ny = round(y);
-    this->m_inputOperation->read(output, nx, ny, sampler);
+	float nx = round(x);
+	float ny = round(y);
+	this->m_inputOperation->read(output, nx, ny, sampler);
 }
 

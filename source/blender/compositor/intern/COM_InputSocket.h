@@ -92,12 +92,6 @@ public:
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	
 	/**
-	 * @brief Notifies the Input of the data type (via a SocketConnection)
-	 * @param datatype the datatype to evaluate
-	 */
-	void notifyActualInputType(DataType datatype);
-	
-	/**
 	 * @brief move all connections of this input socket to another socket
 	 * only use this method when already checked the availability of a SocketConnection
 	 * @param relinkToSocket the socket to move to connections to

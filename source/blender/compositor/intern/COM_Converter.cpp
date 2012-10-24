@@ -119,6 +119,7 @@
 #include "COM_ViewLevelsNode.h"
 #include "COM_ViewerNode.h"
 #include "COM_ZCombineNode.h"
+#include "COM_PixelateNode.h"
 
 Node *Converter::convert(bNode *b_node, bool fast)
 {
@@ -390,6 +391,9 @@ Node *Converter::convert(bNode *b_node, bool fast)
 			node = new TrackPositionNode(b_node);
 			break;
 		/* not inplemented yet */
+		case CMP_NODE_PIXELATE:
+			node = new PixelateNode(b_node);
+			break;
 		default:
 			node = new MuteNode(b_node);
 			break;
