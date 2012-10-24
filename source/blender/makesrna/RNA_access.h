@@ -960,7 +960,9 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 	}
 
 /* check if the idproperty exists, for operators */
+int RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, int use_ghost);
 int RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, int use_ghost);
 int RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
 int RNA_property_is_idprop(PropertyRNA *prop);
 

@@ -4524,6 +4524,17 @@ int RNA_collection_length(PointerRNA *ptr, const char *name)
 	}
 }
 
+int RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, int use_ghost)
+{
+	if (prop->flag & PROP_IDPROPERTY) {
+		IDProperty *idprop = rna_idproperty_find(ptr, prop->identifier);
+		return ((idprop != NULL) && (use_ghost == FALSE || !(idprop->flag & IDP_FLAG_GHOST)));
+	}
+	else {
+		return 1;
+	}
+}
+
 int RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop)
 {
 	if (prop->flag & PROP_IDPROPERTY) {
@@ -4532,6 +4543,20 @@ int RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	else {
 		return 1;
+	}
+}
+
+int RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, int use_ghost)
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, identifier);
+
+	if (prop) {
+		return RNA_property_is_set_ex(ptr, prop, use_ghost);
+	}
+	else {
+		/* python raises an error */
+		/* printf("%s: %s.%s not found.\n", __func__, ptr->type->identifier, name); */
+		return 0;
 	}
 }
 

@@ -94,6 +94,9 @@ FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile)
 	return sfile->params;
 }
 
+/**
+ * \note RNA_struct_property_is_set_ex is used here because we wan't
+ *       the previously used settings to be used here rather then overriding them */
 short ED_fileselect_set_params(SpaceFile *sfile)
 {
 	FileSelectParams *params;
@@ -124,7 +127,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else
 			params->type = FILE_SPECIAL;
 
-		if (is_filepath && RNA_struct_property_is_set(op->ptr, "filepath")) {
+		if (is_filepath && RNA_struct_property_is_set_ex(op->ptr, "filepath", FALSE)) {
 			char name[FILE_MAX];
 			RNA_string_get(op->ptr, "filepath", name);
 			if (params->type == FILE_LOADLIB) {
@@ -136,12 +139,12 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			}
 		}
 		else {
-			if (is_directory && RNA_struct_property_is_set(op->ptr, "directory")) {
+			if (is_directory && RNA_struct_property_is_set_ex(op->ptr, "directory", FALSE)) {
 				RNA_string_get(op->ptr, "directory", params->dir);
 				sfile->params->file[0] = '\0';
 			}
 
-			if (is_filename && RNA_struct_property_is_set(op->ptr, "filename")) {
+			if (is_filename && RNA_struct_property_is_set_ex(op->ptr, "filename", FALSE)) {
 				RNA_string_get(op->ptr, "filename", params->file);
 			}
 		}
@@ -228,7 +231,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 
 		if (is_relative_path) {
-			if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
+			if (!RNA_struct_property_is_set_ex(op->ptr, "relative_path", FALSE)) {
 				RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 			}
 		}
