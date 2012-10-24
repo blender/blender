@@ -77,7 +77,8 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_tessmesh.h"
+
+#include "bmesh.h"
 
 #include "MOD_util.h"
 
@@ -1770,7 +1771,6 @@ static void skin_set_orig_indices(DerivedMesh *dm)
 static DerivedMesh *base_skin(DerivedMesh *origdm,
                               SkinModifierData *smd)
 {
-	BMEditMesh fake_em;
 	DerivedMesh *result;
 	MVertSkin *nodes;
 	BMesh *bm;
@@ -1807,8 +1807,7 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 	if (!bm)
 		return NULL;
 	
-	fake_em.bm = bm;
-	result = CDDM_from_BMEditMesh(&fake_em, NULL, FALSE, FALSE);
+	result = CDDM_from_bmesh(bm, FALSE);
 	BM_mesh_free(bm);
 
 	CDDM_calc_edges(result);
@@ -1861,7 +1860,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static DerivedMesh *applyModifierEM(ModifierData *md,
                                     Object *UNUSED(ob),
-                                    BMEditMesh *UNUSED(em),
+                                    struct BMEditMesh *UNUSED(em),
                                     DerivedMesh *dm)
 {
 	DerivedMesh *result;

@@ -903,7 +903,7 @@ static DerivedMesh *create_orco_dm(Object *ob, Mesh *me, BMEditMesh *em, int lay
 	float (*orco)[3];
 	int free;
 
-	if (em) dm = CDDM_from_BMEditMesh(em, me, FALSE, FALSE);
+	if (em) dm = CDDM_from_editbmesh(em, FALSE, FALSE);
 	else dm = CDDM_from_mesh(me, ob);
 
 	orco = get_orco_coords_dm(ob, em, layer, &free);
@@ -1976,7 +1976,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 			}
 			else {
-				dm = CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
+				dm = CDDM_from_editbmesh(em, FALSE, FALSE);
 
 				if (deformedVerts) {
 					CDDM_apply_vert_coords(dm, deformedVerts);

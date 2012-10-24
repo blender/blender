@@ -99,7 +99,7 @@ typedef struct BME_Glob { /* stored in Global G for Transform() purposes */
 
 struct BME_TransData *BME_get_transdata(struct BME_TransData_Head *td, struct BMVert *v);
 void BME_free_transdata(struct BME_TransData_Head *td);
-struct BMesh *BME_bevel(struct BMEditMesh *em, float value, int res, int options, int defgrp_index, float angle,
-                        BME_TransData_Head **rtd, int do_tessface);
+struct BMesh *BME_bevel(struct BMesh *bm, float value, int res, int options, int defgrp_index, float angle,
+                        BME_TransData_Head **rtd);
 
 #endif

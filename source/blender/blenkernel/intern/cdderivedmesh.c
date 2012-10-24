@@ -1791,10 +1791,10 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase, int **orco
 }
 
 static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
-                                        int cdindex, BMLoop *l3[3],
+                                        int cdindex, const BMLoop *l3[3],
                                         int numCol, int numTex)
 {
-	BMLoop *l;
+	const BMLoop *l;
 	BMFace *f = l3[0]->f;
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -1837,13 +1837,16 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	}
 }
 
-DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdisps, int use_tessface)
+/* used for both editbmesh and bmesh */
+static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
+                                       /* EditBMesh vars for use_tessface */
+                                       int use_tessface,
+                                       const int em_tottri, const BMLoop *(*em_looptris)[3]
+                                       )
 {
-	BMesh *bm = em->bm;
-
 	DerivedMesh *dm = CDDM_new(bm->totvert,
 	                           bm->totedge,
-	                           use_tessface ? em->tottri : 0,
+	                           use_tessface ? em_tottri : 0,
 	                           bm->totloop,
 	                           bm->totface);
 
@@ -1889,7 +1892,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	
 	/* add tessellation mface layers */
 	if (use_tessface) {
-		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em->tottri);
+		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em_tottri);
 	}
 
 	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
@@ -1955,7 +1958,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		for (i = 0; i < dm->numTessFaceData; i++, index++, polyindex++) {
 			MFace *mf = &mface[i];
-			BMLoop **l = em->looptris[i];
+			const BMLoop **l = em_looptris[i];
 			efa = l[0]->f;
 
 			mf->v1 = BM_elem_index_get(l[0]->v);
@@ -2003,6 +2006,20 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	bm->elem_index_dirty &= ~BM_FACE;
 
 	return dm;
+}
+
+struct DerivedMesh *CDDM_from_bmesh(struct BMesh *bm, int use_mdisps)
+{
+	return cddm_from_bmesh_ex(bm, use_mdisps, FALSE,
+	                          /* these vars are for editmesh only */
+	                          0, NULL);
+}
+
+DerivedMesh *CDDM_from_editbmesh(BMEditMesh *em, int use_mdisps, int use_tessface)
+{
+	return cddm_from_bmesh_ex(em->bm, use_mdisps,
+	                          /* editmesh */
+	                          use_tessface, em->tottri, (const BMLoop *(*)[3])em->looptris);
 }
 
 static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)

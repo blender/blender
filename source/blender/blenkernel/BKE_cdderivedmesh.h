@@ -55,8 +55,10 @@ int CDDM_Check(struct DerivedMesh *dm);
  * data to not overwrite the original */
 struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh, struct Object *ob);
 
+struct DerivedMesh *CDDM_from_bmesh(struct BMesh *bm, int use_mdisps);
+
 /* creates a CDDerivedMesh from the given BMEditMesh */
-DerivedMesh *CDDM_from_BMEditMesh(struct BMEditMesh *em, struct Mesh *me, int use_mdisps, int use_tessface);
+DerivedMesh *CDDM_from_editbmesh(struct BMEditMesh *em, int use_mdisps, int use_tessface);
 
 /* merge verts  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap);

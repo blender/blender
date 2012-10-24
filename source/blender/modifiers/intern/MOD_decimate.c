@@ -48,7 +48,6 @@
 #include "BKE_particle.h"
 #include "BKE_cdderivedmesh.h"
 
-#include "BKE_tessmesh.h"
 #include "bmesh.h"
 
 // #define USE_TIMEIT
@@ -97,7 +96,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 {
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 	DerivedMesh *dm = derivedData, *result = NULL;
-	BMEditMesh *em;
 	BMesh *bm;
 
 	float *vweights = NULL;
@@ -159,8 +157,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	}
 
-	em = DM_to_editbmesh(dm, NULL, FALSE);
-	bm = em->bm;
+	bm = DM_to_bmesh(dm);
 
 	switch (dmd->mode) {
 		case MOD_DECIM_MODE_COLLAPSE:
@@ -188,17 +185,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	/* update for display only */
 	dmd->face_count = bm->totface;
-
-	BLI_assert(em->looptris == NULL);
-	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
-	BMEdit_Free(em);
-	MEM_freeN(em);
+	result = CDDM_from_bmesh(bm, FALSE);
+	BM_mesh_free(bm);
 
 #ifdef USE_TIMEIT
-	 TIMEIT_END(decim);
+	TIMEIT_END(decim);
 #endif
-
-	 CDDM_calc_normals(result);
 
 	return result;
 }
