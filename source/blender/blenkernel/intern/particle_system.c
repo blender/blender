@@ -556,8 +556,7 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 							else /* store number of intersections */
 								(pa+(int)(lambda*size[a])*a0mul)->hair_index++;
 						}
-						
-						if (mface->v4) {
+						else if (mface->v4) {
 							copy_v3_v3(v4, mvert[mface->v4].co);
 
 							if (isect_axial_line_tri_v3(a, co1, co2, v4, v1, v3, &lambda)) {
