@@ -148,6 +148,7 @@ endif()
 		extern_recastnavigation
 		bf_intern_raskter
 		bf_intern_opencolorio
+		bf_intern_opennl
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
