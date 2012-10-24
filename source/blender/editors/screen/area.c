@@ -533,10 +533,7 @@ void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
 		}
 		else if (ar->drawrct.xmin != ar->drawrct.xmax) {
 			/* partial redraw already set, expand region */
-			ar->drawrct.xmin = MIN2(ar->drawrct.xmin, rct->xmin);
-			ar->drawrct.ymin = MIN2(ar->drawrct.ymin, rct->ymin);
-			ar->drawrct.xmax = MAX2(ar->drawrct.xmax, rct->xmax);
-			ar->drawrct.ymax = MAX2(ar->drawrct.ymax, rct->ymax);
+			BLI_rcti_union(&ar->drawrct, rct);
 		}
 	}
 }

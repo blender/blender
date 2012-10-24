@@ -969,18 +969,18 @@ static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller
 			
 			/* if top or down edge selected, test height */
 			if (sa->v1->flag && sa->v4->flag)
-				*bigger = MIN2(*bigger, y1);
+				*bigger = min_ii(*bigger, y1);
 			else if (sa->v2->flag && sa->v3->flag)
-				*smaller = MIN2(*smaller, y1);
+				*smaller = min_ii(*smaller, y1);
 		}
 		else {
 			int x1 = sa->v4->vec.x - sa->v1->vec.x - AREAMINX;
 			
 			/* if left or right edge selected, test width */
 			if (sa->v1->flag && sa->v2->flag)
-				*bigger = MIN2(*bigger, x1);
+				*bigger = min_ii(*bigger, x1);
 			else if (sa->v3->flag && sa->v4->flag)
-				*smaller = MIN2(*smaller, x1);
+				*smaller = min_ii(*smaller, x1);
 		}
 	}
 }

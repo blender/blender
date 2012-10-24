@@ -814,8 +814,8 @@ static void ui_panels_size(ScrArea *sa, ARegion *ar, int *x, int *y)
 				pa_sizey = pa->ofsy + get_panel_size_y(pa);
 			}
 
-			sizex = MAX2(sizex, pa_sizex);
-			sizey = MIN2(sizey, pa_sizey);
+			sizex = max_ii(sizex, pa_sizex);
+			sizey = min_ii(sizey, pa_sizey);
 		}
 	}
 

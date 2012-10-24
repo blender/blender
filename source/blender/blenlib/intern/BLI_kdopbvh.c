@@ -724,7 +724,7 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 	/* Loop tree levels (log N) loops */
 	for (i = 1, depth = 1; i <= num_branches; i = i * tree_type + tree_offset, depth++) {
 		const int first_of_next_level = i * tree_type + tree_offset;
-		const int end_j = MIN2(first_of_next_level, num_branches + 1);  /* index of last branch on this level */
+		const int end_j = min_ii(first_of_next_level, num_branches + 1);  /* index of last branch on this level */
 		int j;
 
 		/* Loop all branches on this level */
@@ -1080,7 +1080,9 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 		return NULL;
 	
 	/* fast check root nodes for collision before doing big splitting + traversal */
-	if (!tree_overlap(tree1->nodes[tree1->totleaf], tree2->nodes[tree2->totleaf], MIN2(tree1->start_axis, tree2->start_axis), MIN2(tree1->stop_axis, tree2->stop_axis)))
+	if (!tree_overlap(tree1->nodes[tree1->totleaf], tree2->nodes[tree2->totleaf],
+	                  min_ii(tree1->start_axis, tree2->start_axis),
+	                  min_ii(tree1->stop_axis, tree2->stop_axis)))
 		return NULL;
 
 	data = MEM_callocN(sizeof(BVHOverlapData *) * tree1->tree_type, "BVHOverlapData_star");
@@ -1094,8 +1096,8 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 		data[j]->tree2 = tree2;
 		data[j]->max_overlap = MAX2(tree1->totleaf, tree2->totleaf);
 		data[j]->i = 0;
-		data[j]->start_axis = MIN2(tree1->start_axis, tree2->start_axis);
-		data[j]->stop_axis  = MIN2(tree1->stop_axis,  tree2->stop_axis);
+		data[j]->start_axis = min_ii(tree1->start_axis, tree2->start_axis);
+		data[j]->stop_axis  = min_ii(tree1->stop_axis,  tree2->stop_axis);
 	}
 
 #pragma omp parallel for private(j) schedule(static)

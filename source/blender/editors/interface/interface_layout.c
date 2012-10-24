@@ -41,6 +41,7 @@
 #include "BLI_string.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BLF_translation.h"
 
@@ -1932,8 +1933,8 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 			return;
 		}
 
-		flow->totcol = MAX2(litem->root->emw / maxw, 1);
-		flow->totcol = MIN2(flow->totcol, totitem);
+		flow->totcol = max_ii(litem->root->emw / maxw, 1);
+		flow->totcol = min_ii(flow->totcol, totitem);
 	}
 	else
 		flow->totcol = flow->number;
@@ -2007,7 +2008,7 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 		emy -= itemh;
 		ui_item_position(item, x + offset, y, itemw, itemh);
 		y -= style->buttonspacey;
-		miny = MIN2(miny, y);
+		miny = min_ii(miny, y);
 
 		/* decide to go to next one */
 		if (col < flow->totcol - 1 && emy <= -emh) {
@@ -2038,8 +2039,8 @@ static void ui_litem_estimate_absolute(uiLayout *litem)
 		ui_item_offset(item, &itemx, &itemy);
 		ui_item_size(item, &itemw, &itemh);
 
-		minx = MIN2(minx, itemx);
-		miny = MIN2(miny, itemy);
+		minx = min_ii(minx, itemx);
+		miny = min_ii(miny, itemy);
 
 		litem->w = MAX2(litem->w, itemx + itemw);
 		litem->h = MAX2(litem->h, itemy + itemh);
@@ -2064,11 +2065,11 @@ static void ui_litem_layout_absolute(uiLayout *litem)
 		ui_item_offset(item, &itemx, &itemy);
 		ui_item_size(item, &itemw, &itemh);
 
-		minx = MIN2(minx, itemx);
-		miny = MIN2(miny, itemy);
+		minx = min_ii(minx, itemx);
+		miny = min_ii(miny, itemy);
 
-		totw = MAX2(totw, itemx + itemw);
-		toth = MAX2(toth, itemy + itemh);
+		totw = max_ii(totw, itemx + itemw);
+		toth = max_ii(toth, itemy + itemh);
 	}
 
 	totw -= minx;

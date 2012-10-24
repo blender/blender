@@ -2282,10 +2282,10 @@ static int border_apply_rect(wmOperator *op)
 
 	
 	/* operator arguments and storage. */
-	RNA_int_set(op->ptr, "xmin", MIN2(rect->xmin, rect->xmax));
-	RNA_int_set(op->ptr, "ymin", MIN2(rect->ymin, rect->ymax));
-	RNA_int_set(op->ptr, "xmax", MAX2(rect->xmin, rect->xmax));
-	RNA_int_set(op->ptr, "ymax", MAX2(rect->ymin, rect->ymax));
+	RNA_int_set(op->ptr, "xmin", min_ii(rect->xmin, rect->xmax));
+	RNA_int_set(op->ptr, "ymin", min_ii(rect->ymin, rect->ymax));
+	RNA_int_set(op->ptr, "xmax", max_ii(rect->xmin, rect->xmax));
+	RNA_int_set(op->ptr, "ymax", max_ii(rect->ymin, rect->ymax));
 
 	return 1;
 }
