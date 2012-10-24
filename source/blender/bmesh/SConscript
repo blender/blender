@@ -13,7 +13,8 @@ incs = [
 	'../makesdna',
 	'../blenkernel',
 	'#/intern/guardedalloc',
-	'#/extern/bullet2/src'	'#/intern/opennl/extern',	]
+	'#/extern/bullet2/src',
+	'#/intern/opennl/extern',	]
 
 defs = []
 
