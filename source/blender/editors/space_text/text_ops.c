@@ -970,21 +970,17 @@ static int text_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Text *text = CTX_data_edit_text(C);
 
-	if (txt_has_sel(text)) {
-		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
-		txt_order_cursors(text);
-		txt_unindent(text);
+	txt_order_cursors(text);
+	txt_unindent(text);
 
-		text_update_edited(text);
+	text_update_edited(text);
 
-		text_update_cursor_moved(C);
-		WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+	text_update_cursor_moved(C);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
-		return OPERATOR_FINISHED;
-	}
-
-	return OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }
 
 void TEXT_OT_unindent(wmOperatorType *ot)
