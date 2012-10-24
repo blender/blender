@@ -414,6 +414,12 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->posy = wm_init_state.start_y;
 				win->sizex = wm_init_state.size_x;
 				win->sizey = wm_init_state.size_y;
+
+				/* we can't properly resize a maximized window */
+				if (win->windowstate == GHOST_kWindowStateMaximized) {
+					win->windowstate = GHOST_kWindowStateNormal;
+				}
+
 				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
 			}
 
