@@ -348,11 +348,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "lambda_border", text="Border")
         
         col.separator()
-        col.prop(md, "volume_preservation")
+        col.prop(md, "use_volume_preserve")
         
         layout.label(text="Vertex Group:")
         layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-		
+
     def LATTICE(self, layout, ob, md):
         split = layout.split()
 
