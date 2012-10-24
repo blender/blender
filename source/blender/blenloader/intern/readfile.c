@@ -7036,6 +7036,20 @@ static void do_version_ntree_dilateerode_264(void *UNUSED(data), ID *UNUSED(id),
 	}
 }
 
+static void do_version_ntree_defocus_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_DEFOCUS) {
+			NodeDefocus *data = node->storage;
+			if (data->maxblur == 0.0f) {
+				data->maxblur = 16.0f;
+			}
+		}
+	}
+}
+
 static void do_version_ntree_mask_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
 {
 	bNode *node;
@@ -7806,6 +7820,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 10)) {
 		{
 			Scene *scene;
+			bNodeTreeType *ntreetype;
 			// composite redesign
 			for (scene=main->scene.first; scene; scene=scene->id.next) {
 				if (scene->nodetree) {
@@ -7814,6 +7829,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+			ntreetype = ntreeGetType(NTREE_COMPOSIT);
+	
+			if (ntreetype && ntreetype->foreach_nodetree)
+				ntreetype->foreach_nodetree(main, NULL, do_version_ntree_defocus_264);
+			
 		}
 
 		{
