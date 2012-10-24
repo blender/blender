@@ -2884,8 +2884,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
 						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
 						vlr->v4= NULL;
-
-						if (area_tri_v3(vlr->v3->co, vlr->v2->co, vlr->v1->co)>FLT_EPSILON) {
+						if (area_tri_v3(vlr->v3->co, vlr->v2->co, vlr->v1->co)>FLT_EPSILON10) {
 							normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 							add_v3_v3(n, tmp);
 						}
