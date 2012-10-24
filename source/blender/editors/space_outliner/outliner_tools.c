@@ -811,7 +811,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					ED_undo_push(C, "Unlink world");
 					break;
 				default:
-					BKE_report(op->reports, RPT_WARNING, "Not yet");
+					BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
 					break;
 			}
 		}
@@ -844,7 +844,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					break;
 					
 				default:
-					BKE_report(op->reports, RPT_WARNING, "Not yet");
+					BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
 					break;
 			}
 		}
@@ -1202,6 +1202,7 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 			break;
 			
 		default:
+			BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
 			break;
 	}
 	
