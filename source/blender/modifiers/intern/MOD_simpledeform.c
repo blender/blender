@@ -353,9 +353,9 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 	/* type */              eModifierTypeType_OnlyDeform,
 
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
-							eModifierTypeFlag_AcceptsCVs |
-							eModifierTypeFlag_SupportsEditmode |
-							eModifierTypeFlag_EnableInEditmode,
+	                        eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,

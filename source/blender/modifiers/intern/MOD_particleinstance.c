@@ -401,32 +401,31 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 	return applyModifier(md, ob, derivedData, MOD_APPLY_USECACHE);
 }
 
-
 ModifierTypeInfo modifierType_ParticleInstance = {
-	/* name */ "ParticleInstance",
-	/* structName */ "ParticleInstanceModifierData",
-	/* structSize */ sizeof(ParticleInstanceModifierData),
-	/* type */ eModifierTypeType_Constructive,
-	/* flags */ eModifierTypeFlag_AcceptsMesh |
-	eModifierTypeFlag_SupportsMapping |
-	eModifierTypeFlag_SupportsEditmode |
-	eModifierTypeFlag_EnableInEditmode,
+	/* name */              "ParticleInstance",
+	/* structName */        "ParticleInstanceModifierData",
+	/* structSize */        sizeof(ParticleInstanceModifierData),
+	/* type */              eModifierTypeType_Constructive,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */ copyData,
-	/* deformVerts */ NULL,
-	/* deformMatrices */ NULL,
-	/* deformVertsEM */ NULL,
-	/* deformMatricesEM */ NULL,
-	/* applyModifier */ applyModifier,
-	/* applyModifierEM */ applyModifierEM,
-	/* initData */ initData,
-	/* requiredDataMask */ NULL,
-	/* freeData */ NULL,
-	/* isDisabled */ isDisabled,
-	/* updateDepgraph */ updateDepgraph,
-	/* dependsOnTime */ dependsOnTime,
-	/* dependsOnNormals */ NULL,
+	/* copyData */          copyData,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     applyModifier,
+	/* applyModifierEM */   applyModifierEM,
+	/* initData */          initData,
+	/* requiredDataMask */  NULL,
+	/* freeData */          NULL,
+	/* isDisabled */        isDisabled,
+	/* updateDepgraph */    updateDepgraph,
+	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */ NULL,
-	/* foreachTexLink */ NULL,
+	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };
