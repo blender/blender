@@ -147,6 +147,7 @@ static bNodeSocket *make_socket(bNodeTree *UNUSED(ntree), int in_out, const char
 	sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 	sock->type = type;
 	sock->storage = NULL;
+	sock->flag |= SOCK_COLLAPSED;
 	
 	sock->default_value = node_socket_make_default_value(type);
 	node_socket_init_default_value(type, sock->default_value);

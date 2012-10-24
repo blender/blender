@@ -92,7 +92,7 @@ bNodeSocket *node_group_add_extern_socket(bNodeTree *UNUSED(ntree), ListBase *lb
 	sock->new_sock = NULL;
 	
 	/* group sockets are dynamically added */
-	sock->flag |= SOCK_DYNAMIC;
+	sock->flag |= SOCK_DYNAMIC|SOCK_COLLAPSED;
 	
 	sock->own_index = gsock->own_index;
 	sock->groupsock = gsock;
@@ -115,7 +115,7 @@ bNodeSocket *node_group_add_socket(bNodeTree *ngroup, const char *name, int type
 	BLI_strncpy(gsock->name, name, sizeof(gsock->name));
 	gsock->type = type;
 	/* group sockets are dynamically added */
-	gsock->flag |= SOCK_DYNAMIC;
+	gsock->flag |= SOCK_DYNAMIC|SOCK_COLLAPSED;
 
 	gsock->next = gsock->prev = NULL;
 	gsock->new_sock = NULL;
