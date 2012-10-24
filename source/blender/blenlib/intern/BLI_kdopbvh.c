@@ -61,9 +61,9 @@ struct BVHTree {
 	float epsilon;          /* epslion is used for inflation of the k-dop	   */
 	int totleaf;            /* leafs */
 	int totbranch;
+	int start_axis, stop_axis;  /* KDOP_AXES array indices according to axis */
 	char tree_type;         /* type of tree (4 => quadtree) */
 	char axis;              /* kdop type (6 => OBB, 7 => AABB, ...) */
-	char start_axis, stop_axis;  /* KDOP_AXES array indices according to axis */
 };
 
 typedef struct BVHOverlapData {
