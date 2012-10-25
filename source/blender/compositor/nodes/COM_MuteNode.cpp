@@ -108,27 +108,16 @@ void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	/* mute node is also used for unknown nodes and couple of nodes in fast mode
 	 * can't use generic routines in that case
 	 */
-	if ((editorNode->flag & NODE_MUTED) && editorNode->typeinfo->internal_connect) {
+	if (editorNode->flag & NODE_MUTED) {
 		vector<InputSocket *> &inputsockets = this->getInputSockets();
 		vector<OutputSocket *> relinkedsockets;
-		bNodeTree *editorTree;
 		SocketMap socketMap;
-		ListBase intlinks;
 		bNodeLink *link;
-
-		if (this->getbNodeGroup()) {
-			editorTree = (bNodeTree *) getbNodeGroup()->id;
-		}
-		else {
-			editorTree = (bNodeTree *) context->getbNodeTree();
-		}
-
-		intlinks = editorNode->typeinfo->internal_connect(editorTree, editorNode);
 
 		this->fillSocketMap<OutputSocket>(outputsockets, socketMap);
 		this->fillSocketMap<InputSocket>(inputsockets, socketMap);
 
-		for (link = (bNodeLink *) intlinks.first; link; link = link->next) {
+		for (link = (bNodeLink *) editorNode->internal_links.first; link; link = link->next) {
 			if (link->fromnode == editorNode) {
 				InputSocket *fromSocket = (InputSocket *) socketMap.find(link->fromsock)->second;
 				OutputSocket *toSocket = (OutputSocket *) socketMap.find(link->tosock)->second;
@@ -170,8 +159,6 @@ void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 					createDefaultOutput(graph, output);
 			}
 		}
-
-		BLI_freelistN(&intlinks);
 	}
 	else {
 		for (unsigned int index = 0; index < outputsockets.size(); index++) {

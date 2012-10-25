@@ -134,7 +134,7 @@ bNodeTreeType ntreeType_Texture = {
 	/* update */			update,
 	/* update_node */		NULL,
 	/* validate_link */		NULL,
-	/* internal_connect */	node_internal_connect_default
+	/* update_internal_links */	node_update_internal_links_default
 };
 
 int ntreeTexTagAnimated(bNodeTree *ntree)

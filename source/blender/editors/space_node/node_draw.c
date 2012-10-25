@@ -506,25 +506,16 @@ int node_get_colorid(bNode *node)
 /* note: in node_edit.c is similar code, for untangle node */
 static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
-	ListBase links;
 	bNodeLink *link;
-
-	if (node->typeinfo->internal_connect == NULL)
-		return;
-
-	/* Get default muting links. */
-	links = node->typeinfo->internal_connect(snode->edittree, node);
 
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 
-	for (link = links.first; link; link = link->next)
+	for (link = node->internal_links.first; link; link = link->next)
 		node_draw_link_bezier(v2d, snode, link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
 
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
-
-	BLI_freelistN(&links);
 }
 
 /* this might have some more generic use */

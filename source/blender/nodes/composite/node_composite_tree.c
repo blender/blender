@@ -273,7 +273,7 @@ bNodeTreeType ntreeType_Composite = {
 	/* update */			update,
 	/* update_node */		update_node,
 	/* validate_link */		NULL,
-	/* internal_connect */	node_internal_connect_default
+	/* update_internal_links */	node_update_internal_links_default
 };
 
 

@@ -170,7 +170,7 @@ void register_node_type_tex_output(bNodeTreeType *ttype)
 	node_type_exec(&ntype, exec);
 	
 	/* Do not allow muting output. */
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 	
 	nodeRegisterType(ttype, &ntype);
 }

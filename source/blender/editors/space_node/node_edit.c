@@ -1622,7 +1622,7 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		/* Only allow muting of nodes having a mute func! */
-		if ((node->flag & SELECT) && node->typeinfo->internal_connect) {
+		if ((node->flag & SELECT) && node->typeinfo->update_internal_links) {
 			node->flag ^= NODE_MUTED;
 			snode_update(snode, node);
 		}

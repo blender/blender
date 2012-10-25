@@ -177,15 +177,9 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 		for (sock=node->inputs.first; sock; sock=sock->next)
 			node_init_input_index(sock, &index);
 		
-		if ((node->flag & NODE_MUTED || node->type == NODE_REROUTE)
-			&& node->typeinfo->internal_connect) {
-			
-			ListBase internal_links = node->typeinfo->internal_connect(ntree, node);
-			
+		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
 			for (sock=node->outputs.first; sock; sock=sock->next)
-				node_init_output_index(sock, &index, &internal_links);
-			
-			BLI_freelistN(&internal_links);
+				node_init_output_index(sock, &index, &node->internal_links);
 		}
 		else {
 			for (sock=node->outputs.first; sock; sock=sock->next)

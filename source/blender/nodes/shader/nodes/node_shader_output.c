@@ -92,7 +92,7 @@ void register_node_type_sh_output(bNodeTreeType *ttype)
 	node_type_gpu(&ntype, gpu_shader_output);
 
 	/* Do not allow muting output node. */
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

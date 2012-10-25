@@ -720,7 +720,9 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			write_node_socket(wd, sock);
 		for (sock= node->outputs.first; sock; sock= sock->next)
 			write_node_socket(wd, sock);
-
+		
+		for (link = node->internal_links.first; link; link = link->next)
+			writestruct(wd, DATA, "bNodeLink", 1, link);
 		
 		if (node->storage) {
 			/* could be handlerized at some point, now only 1 exception still */

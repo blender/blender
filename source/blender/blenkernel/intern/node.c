@@ -347,6 +347,7 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 {
 	bNode *nnode = MEM_callocN(sizeof(bNode), "dupli node");
 	bNodeSocket *sock, *oldsock;
+	bNodeLink *link, *oldlink;
 
 	*nnode = *node;
 	/* can be called for nodes outside a node tree (e.g. clipboard) */
@@ -384,6 +385,15 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		 * some persistent buffer data here, need to clear this to avoid dangling pointers.
 		 */
 		sock->cache = NULL;
+	}
+	
+	BLI_duplicatelist(&nnode->internal_links, &node->internal_links);
+	oldlink = node->internal_links.first;
+	for (link = nnode->internal_links.first; link; link = link->next, oldlink = oldlink->next) {
+		link->fromnode = nnode;
+		link->tonode = nnode;
+		link->fromsock = link->fromsock->new_sock;
+		link->tosock = link->tosock->new_sock;
 	}
 	
 	/* don't increase node->id users, freenode doesn't decrement either */
@@ -524,15 +534,12 @@ void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
 void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 {
 	bNodeLink *link, *link_next;
-	ListBase intlinks;
 	
-	if (!node->typeinfo->internal_connect)
+	if (node->internal_links.first == NULL)
 		return;
 	
-	intlinks = node->typeinfo->internal_connect(ntree, node);
-	
 	/* store link pointers in output sockets, for efficient lookup */
-	for (link = intlinks.first; link; link = link->next)
+	for (link = node->internal_links.first; link; link = link->next)
 		link->tosock->link = link;
 	
 	/* redirect downstream links */
@@ -566,8 +573,6 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 		if (link->tonode == node)
 			nodeRemLink(ntree, link);
 	}
-	
-	BLI_freelistN(&intlinks);
 }
 
 void nodeToView(bNode *node, float x, float y, float *rx, float *ry)
@@ -988,6 +993,8 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 		node_socket_free_default_value(sock->type, sock->default_value);
 		MEM_freeN(sock);
 	}
+
+	BLI_freelistN(&node->internal_links);
 
 	nodeFreePreview(node);
 
@@ -1817,6 +1824,8 @@ void ntreeUpdateTree(bNodeTree *ntree)
 				ntreetype->update_node(ntree, node);
 			else if (node->typeinfo->updatefunc)
 				node->typeinfo->updatefunc(ntree, node);
+			
+			nodeUpdateInternalLinks(ntree, node);
 		}
 	}
 	
@@ -1854,6 +1863,9 @@ void nodeUpdate(bNodeTree *ntree, bNode *node)
 		ntreetype->update_node(ntree, node);
 	else if (node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
+	
+	nodeUpdateInternalLinks(ntree, node);
+	
 	/* clear update flag */
 	node->update = 0;
 }
@@ -1893,7 +1905,19 @@ int nodeUpdateID(bNodeTree *ntree, ID *id)
 		}
 	}
 	
+	for (node = ntree->nodes.first; node; node = node->next) {
+		nodeUpdateInternalLinks(ntree, node);
+	}
+	
 	return change;
+}
+
+void nodeUpdateInternalLinks(bNodeTree *ntree, bNode *node)
+{
+	BLI_freelistN(&node->internal_links);
+	
+	if (node->typeinfo && node->typeinfo->update_internal_links)
+		node->typeinfo->update_internal_links(ntree, node);
 }
 
 
@@ -1968,7 +1992,7 @@ void node_type_base(bNodeTreeType *ttype, bNodeType *ntype, int type, const char
 
 	/* Default muting stuff. */
 	if (ttype)
-		ntype->internal_connect = ttype->internal_connect;
+		ntype->update_internal_links = ttype->update_internal_links;
 
 	/* default size values */
 	ntype->width = 140;
@@ -2064,9 +2088,9 @@ void node_type_exec_new(struct bNodeType *ntype,
 	ntype->newexecfunc = newexecfunc;
 }
 
-void node_type_internal_connect(bNodeType *ntype, ListBase (*internal_connect)(bNodeTree *, bNode *))
+void node_type_internal_links(bNodeType *ntype, void (*update_internal_links)(bNodeTree *, bNode *))
 {
-	ntype->internal_connect = internal_connect;
+	ntype->update_internal_links = update_internal_links;
 }
 
 void node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node, struct GPUNodeStack *in, struct GPUNodeStack *out))

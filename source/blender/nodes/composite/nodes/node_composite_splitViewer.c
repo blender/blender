@@ -167,7 +167,7 @@ void register_node_type_cmp_splitviewer(bNodeTreeType *ttype)
 #endif
 
 	/* Do not allow muting for this node. */
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

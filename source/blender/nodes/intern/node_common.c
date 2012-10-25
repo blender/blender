@@ -385,16 +385,13 @@ void register_node_type_frame(bNodeTreeType *ttype)
 /* **************** REROUTE ******************** */
 
 /* simple, only a single input and output here */
-static ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
+static void node_reroute_update_internal_links(bNodeTree *ntree, bNode *node)
 {
 	bNodeLink *link;
-	ListBase ret;
-
-	ret.first = ret.last = NULL;
 
 	/* Security check! */
 	if (!ntree)
-		return ret;
+		return;
 
 	link = MEM_callocN(sizeof(bNodeLink), "internal node link");
 	link->fromnode = node;
@@ -403,9 +400,7 @@ static ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
 	link->tosock = node->outputs.first;
 	/* internal link is always valid */
 	link->flag |= NODE_LINK_VALID;
-	BLI_addtail(&ret, link);
-
-	return ret;
+	BLI_addtail(&node->internal_links, link);
 }
 
 static void node_reroute_init(bNodeTree *ntree, bNode *node, bNodeTemplate *UNUSED(ntemp))
@@ -424,7 +419,7 @@ void register_node_type_reroute(bNodeTreeType *ttype)
 	
 	node_type_base(ttype, ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
 	node_type_init(ntype, node_reroute_init);
-	node_type_internal_connect(ntype, node_reroute_internal_connect);
+	node_type_internal_links(ntype, node_reroute_update_internal_links);
 	
 	ntype->needs_free = 1;
 	nodeRegisterType(ttype, ntype);

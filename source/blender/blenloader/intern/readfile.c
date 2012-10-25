@@ -2413,6 +2413,8 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
 		
+		link_list(fd, &node->internal_links);
+		
 		if (node->type == CMP_NODE_MOVIEDISTORTION) {
 			node->storage = newmclipadr(fd, node->storage);
 		}
