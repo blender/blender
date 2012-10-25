@@ -2881,6 +2881,38 @@ static void SCREEN_OT_header_flip(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+
+
+/* ************** show menus operator ***************************** */
+
+/* show/hide header text menus */
+static int header_toggle_menus_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ScrArea *sa = CTX_wm_area(C);
+
+	sa->flag = sa->flag ^ HEADER_NO_PULLDOWN;
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);	
+
+	return OPERATOR_FINISHED;
+}
+
+
+static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Show/Hide Header Menus";
+	ot->idname = "SCREEN_OT_header_toggle_menus";
+	ot->description = "Show or Hide the header pulldown menus";
+	
+	/* api callbacks */
+	ot->exec = header_toggle_menus_exec;	
+	ot->poll = ED_operator_areaactive;
+	ot->flag = 0;
+}
+
+
 /* ************** header tools operator ***************************** */
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
@@ -2892,6 +2924,11 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UN
 		uiItemO(layout, IFACE_("Flip to Bottom"), ICON_NONE, "SCREEN_OT_header_flip");
 	else
 		uiItemO(layout, IFACE_("Flip to Top"), ICON_NONE, "SCREEN_OT_header_flip");
+
+	if (sa->flag & HEADER_NO_PULLDOWN)
+		uiItemO(layout, IFACE_("Show Menus"), ICON_NONE, "SCREEN_OT_header_toggle_menus");
+	else
+		uiItemO(layout, IFACE_("Hide Menus"), ICON_NONE, "SCREEN_OT_header_toggle_menus");
 
 	uiItemS(layout);
 
@@ -3558,6 +3595,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_region_scale);
 	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_header_flip);
+	WM_operatortype_append(SCREEN_OT_header_toggle_menus);
 	WM_operatortype_append(SCREEN_OT_header_toolbox);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
