@@ -2067,12 +2067,18 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	}
 	else if (dm) {
 		*final_r = dm;
-		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
+
+		/* once we support skipping normal calculation with modifiers we may want to add this back */
+#if 0	// was added for bmesh but is not needed
+		(*final_r)->calcNormals(*final_r);
+#endif
 	}
 	else if (!deformedVerts && cage_r && *cage_r) {
 		/* cage should already have up to date normals */
 		*final_r = *cage_r;
-		(*final_r)->calcNormals(*final_r); /* BMESH_ONLY - BMESH_TODO. check if this is needed */
+#if 0	// was added for bmesh but is not needed
+		(*final_r)->calcNormals(*final_r);
+#endif
 	}
 	else {
 		/* this is just a copy of the editmesh, no need to calc normals */
