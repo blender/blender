@@ -63,6 +63,8 @@
 
 #include "BIF_gl.h"
 
+#include "BLF_translation.h"
+
 #include "UI_interface.h"
 
 #include "RNA_access.h"
@@ -768,11 +770,11 @@ static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	block= uiBeginBlock(C, ar, __func__, UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_sensor_menu, NULL);
 	
-	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, 1, "Hide Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Show Objects"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Hide Objects"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefBut(block, SEPR, 0, "",	0, (short)(yco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Show Sensors",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefBut(block, BUTM, 1, "Hide Sensors",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Show Sensors"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Hide Sensors"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 3, "");
 
 	uiBlockSetDirection(block, UI_TOP);
 	uiEndBlock(C, block);
@@ -817,11 +819,11 @@ static uiBlock *controller_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	block= uiBeginBlock(C, ar, __func__, UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_controller_menu, NULL);
 	
-	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, 1, "Hide Objects",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Show Objects"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Hide Objects"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefBut(block, SEPR, 0, "",					0, (short)(yco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Show Controllers",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 2, 2, "");
-	uiDefBut(block, BUTM, 1, "Hide Controllers",	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 3, 3, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Show Controllers"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 2, 2, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Hide Controllers"),	0, (short)(yco-=20), 160, 19, NULL, 0.0, 0.0, 3, 3, "");
 
 	uiBlockSetDirection(block, UI_TOP);
 	uiEndBlock(C, block);
@@ -866,11 +868,11 @@ static uiBlock *actuator_menu(bContext *C, ARegion *ar, void *UNUSED(arg))
 	block= uiBeginBlock(C, ar, __func__, UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_actuator_menu, NULL);
 	
-	uiDefBut(block, BUTM, 1, "Show Objects",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, 1, "Hide Objects",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Show Objects"),	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Hide Objects"),	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 1, "");
 	uiDefBut(block, SEPR, 0, "",	0, (short)(xco-=6), 160, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefBut(block, BUTM, 1, "Show Actuators",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefBut(block, BUTM, 1, "Hide Actuators",	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Show Actuators"),	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefBut(block, BUTM, 1, IFACE_("Hide Actuators"),	0, (short)(xco-=20), 160, 19, NULL, 0.0, 0.0, 1, 3, "");
 
 	uiBlockSetDirection(block, UI_TOP);
 	uiEndBlock(C, block);
@@ -981,13 +983,13 @@ static void draw_sensor_internal_header(uiLayout *layout, PointerRNA *ptr)
 	sub = uiLayoutRow(row, FALSE);
 	uiLayoutSetActive(sub, (RNA_boolean_get(ptr, "use_pulse_true_level") ||
 	                        RNA_boolean_get(ptr, "use_pulse_false_level")));
-	uiItemR(sub, ptr, "frequency", 0, "Freq", ICON_NONE);
+	uiItemR(sub, ptr, "frequency", 0, IFACE_("Freq"), ICON_NONE);
 	
 	row = uiLayoutRow(split, TRUE);
 	uiItemR(row, ptr, "use_level", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 	uiItemR(row, ptr, "use_tap", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 	
-	uiItemR(split, ptr, "invert", UI_ITEM_R_TOGGLE, "Invert", ICON_NONE);
+	uiItemR(split, ptr, "invert", UI_ITEM_R_TOGGLE, IFACE_("Invert"), ICON_NONE);
 }
 /* sensors in alphabetical order */
 
@@ -1010,7 +1012,7 @@ static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row;
 
 	if (ob->type != OB_ARMATURE) {
-		uiItemL(layout, "Sensor only available for armatures", ICON_NONE);
+		uiItemL(layout, IFACE_("Sensor only available for armatures"), ICON_NONE);
 		return;
 	}
 
@@ -1112,7 +1114,7 @@ static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row, *col;
 
 	row = uiLayoutRow(layout, FALSE);
-	uiItemL(row, "Key:", ICON_NONE);
+	uiItemL(row, IFACE_("Key:"), ICON_NONE);
 	col = uiLayoutColumn(row, FALSE);
 	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_keys") == FALSE);
 	uiItemR(col, ptr, "key", UI_ITEM_R_EVENT, "", ICON_NONE);
@@ -1122,11 +1124,11 @@ static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 	col = uiLayoutColumn(layout, FALSE);
 	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_keys") == FALSE);
 	row = uiLayoutRow(col, FALSE);
-	uiItemL(row, "First Modifier:", ICON_NONE);
+	uiItemL(row, IFACE_("First Modifier:"), ICON_NONE);
 	uiItemR(row, ptr, "modifier_key_1", UI_ITEM_R_EVENT, "", ICON_NONE);
 	
 	row = uiLayoutRow(col, FALSE);
-	uiItemL(row, "Second Modifier:", ICON_NONE);
+	uiItemL(row, IFACE_("Second Modifier:"), ICON_NONE);
 	uiItemR(row, ptr, "modifier_key_2", UI_ITEM_R_EVENT, "", ICON_NONE);
 
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
@@ -1312,7 +1314,7 @@ static void draw_controller_header(uiLayout *layout, PointerRNA *ptr, int xco, i
 		uiItemR(row, ptr, "type", 0, "", ICON_NONE);
 		uiItemR(row, ptr, "name", 0, "", ICON_NONE);
 		/* XXX provisory for Blender 2.50Beta */
-		uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, state, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, "Set controller state index (from 1 to 30)");
+		uiDefBlockBut(uiLayoutGetBlock(layout), controller_state_mask_menu, cont, state, (short)(xco+width-44), yco, 22+22, UI_UNIT_Y, IFACE_("Set controller state index (from 1 to 30)"));
 	}
 	else {
 		uiItemL(row, controller_name(cont->type), ICON_NONE);
@@ -1480,7 +1482,7 @@ static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 	PropertyRNA *bones_prop = NULL;
 
 	if (ob->type != OB_ARMATURE) {
-		uiItemL(layout, "Actuator only available for armatures", ICON_NONE);
+		uiItemL(layout, IFACE_("Actuator only available for armatures"), ICON_NONE);
 		return;
 	}
 	
@@ -1586,7 +1588,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr, bContext
 
 			row = uiLayoutRow(layout, FALSE);
 			col = uiLayoutColumn(row, TRUE);
-			uiItemL(col, "Range:", ICON_NONE);
+			uiItemL(col, IFACE_("Range:"), ICON_NONE);
 			uiItemR(col, ptr, "range", 0, "", ICON_NONE);
 
 			col = uiLayoutColumn(row, TRUE);
@@ -1684,7 +1686,7 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 			break;
 		case ACT_EDOB_REPLACE_MESH:
 			if (ob->type != OB_MESH) {
-				uiItemL(layout, "Mode only available for mesh objects", ICON_NONE);
+				uiItemL(layout, IFACE_("Mode only available for mesh objects"), ICON_NONE);
 				break;
 			}
 			split = uiLayoutSplit(layout, 0.6, FALSE);
@@ -1702,7 +1704,7 @@ static void draw_actuator_edit_object(uiLayout *layout, PointerRNA *ptr)
 			break;
 		case ACT_EDOB_DYNAMICS:
 			if (ob->type != OB_MESH) {
-				uiItemL(layout, "Mode only available for mesh objects", ICON_NONE);
+				uiItemL(layout, IFACE_("Mode only available for mesh objects"), ICON_NONE);
 				break;
 			}
 			uiItemR(layout, ptr, "dynamic_operation", 0, NULL, ICON_NONE);
@@ -1791,7 +1793,7 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(split, ptr, "use_local_rotation", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 			
 			if (ELEM3(physics_type, OB_BODY_TYPE_DYNAMIC, OB_BODY_TYPE_RIGID, OB_BODY_TYPE_SOFT)) {
-				uiItemL(layout, "Dynamic Object Settings:", ICON_NONE);
+				uiItemL(layout, IFACE_("Dynamic Object Settings:"), ICON_NONE);
 				split = uiLayoutSplit(layout, 0.9, FALSE);
 				row = uiLayoutRow(split, FALSE);
 				uiItemR(row, ptr, "force", 0, NULL, ICON_NONE);
@@ -1941,7 +1943,7 @@ static void draw_actuator_random(uiLayout *layout, PointerRNA *ptr)
 			break;
 
 		case ACT_RANDOM_BOOL_UNIFORM:
-			uiItemL(row, "Choose between true and false, 50% chance each", ICON_NONE);
+			uiItemL(row, IFACE_("Choose between true and false, 50% chance each"), ICON_NONE);
 			break;
 
 		case ACT_RANDOM_BOOL_BERNOUILLI:
@@ -2004,7 +2006,7 @@ static void draw_actuator_shape_action(uiLayout *layout, PointerRNA *ptr)
 	uiLayout *row;
 
 	if (ob->type != OB_MESH) {
-		uiItemL(layout, "Actuator only available for mesh objects", ICON_NONE);
+		uiItemL(layout, IFACE_("Actuator only available for mesh objects"), ICON_NONE);
 		return;
 	}
 
@@ -2042,7 +2044,7 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 
 	uiTemplateID(layout, C, ptr, "sound", NULL, "SOUND_OT_open", NULL);
 	if (!RNA_pointer_get(ptr, "sound").data) {
-		uiItemL(layout, "Select a sound from the list or load a new one", ICON_NONE);
+		uiItemL(layout, IFACE_("Select a sound from the list or load a new one"), ICON_NONE);
 		return;
 	}
 	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
@@ -2272,11 +2274,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
-	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, controller_menu, NULL, IFACE_("Controllers"), xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
-	uiItemR(row, &logic_ptr, "show_controllers_selected_objects", 0, "Sel", ICON_NONE);
-	uiItemR(row, &logic_ptr, "show_controllers_active_object", 0, "Act", ICON_NONE);
-	uiItemR(row, &logic_ptr, "show_controllers_linked_controller", 0, "Link", ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_controllers_selected_objects", 0, IFACE_("Sel"), ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_controllers_active_object", 0, IFACE_("Act"), ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_controllers_linked_controller", 0, IFACE_("Link"), ICON_NONE);
 
 	for (a=0; a<count; a++) {
 		bController *cont;
@@ -2299,11 +2301,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 		uiItemR(split, &settings_ptr, "show_state_panel", UI_ITEM_R_NO_BG, "", ICON_DISCLOSURE_TRI_RIGHT);
 
 		row = uiLayoutRow(split, TRUE);
-		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide controllers");
+		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide controllers"));
 
 		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
 		uiLayoutSetContextPointer(row, "object", &object_ptr);
-		uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", "Add Controller", ICON_NONE);
+		uiItemMenuEnumO(row, "LOGIC_OT_controller_add", "type", IFACE_("Add Controller"), ICON_NONE);
 
 		if (RNA_boolean_get(&settings_ptr, "show_state_panel")) {
 
@@ -2311,8 +2313,8 @@ void logic_buttons(bContext *C, ARegion *ar)
 			split = uiLayoutSplit(box, 0.2f, FALSE);
 
 			col = uiLayoutColumn(split, FALSE);
-			uiItemL(col, "Visible", ICON_NONE);
-			uiItemL(col, "Initial", ICON_NONE);
+			uiItemL(col, IFACE_("Visible"), ICON_NONE);
+			uiItemL(col, IFACE_("Initial"), ICON_NONE);
 
 			subsplit = uiLayoutSplit(split, 0.85f, FALSE);
 			col = uiLayoutColumn(subsplit, FALSE);
@@ -2379,12 +2381,12 @@ void logic_buttons(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
-	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, sensor_menu, NULL, IFACE_("Sensors"), xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
-	uiItemR(row, &logic_ptr, "show_sensors_selected_objects", 0, "Sel", ICON_NONE);
-	uiItemR(row, &logic_ptr, "show_sensors_active_object", 0, "Act", ICON_NONE);
-	uiItemR(row, &logic_ptr, "show_sensors_linked_controller", 0, "Link", ICON_NONE);
-	uiItemR(row, &logic_ptr, "show_sensors_active_states", 0, "State", ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_sensors_selected_objects", 0, IFACE_("Sel"), ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_sensors_active_object", 0, IFACE_("Act"), ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_sensors_linked_controller", 0, IFACE_("Link"), ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_sensors_active_states", 0, IFACE_("State"), ICON_NONE);
 	
 	for (a=0; a<count; a++) {
 		bSensor *sens;
@@ -2396,11 +2398,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 		if ((ob->scavisflag & OB_VIS_SENS) == 0) continue;
 
 		row = uiLayoutRow(layout, TRUE);
-		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide sensors");
+		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide sensors"));
 
 		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
 		uiLayoutSetContextPointer(row, "object", &object_ptr);
-		uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", "Add Sensor", ICON_NONE);
+		uiItemMenuEnumO(row, "LOGIC_OT_sensor_add", "type", IFACE_("Add Sensor"), ICON_NONE);
 		
 		if ((ob->scaflag & OB_SHOWSENS) == 0) continue;
 		
@@ -2447,12 +2449,12 @@ void logic_buttons(bContext *C, ARegion *ar)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
-	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, actuator_menu, NULL, IFACE_("Actuators"), xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
-	uiItemR(row, &logic_ptr, "show_actuators_selected_objects", 0, "Sel", ICON_NONE);
-	uiItemR(row, &logic_ptr, "show_actuators_active_object", 0, "Act", ICON_NONE);
-	uiItemR(row, &logic_ptr, "show_actuators_linked_controller", 0, "Link", ICON_NONE);
-	uiItemR(row, &logic_ptr, "show_actuators_active_states", 0, "State", ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_actuators_selected_objects", 0, IFACE_("Sel"), ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_actuators_active_object", 0, IFACE_("Act"), ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_actuators_linked_controller", 0, IFACE_("Link"), ICON_NONE);
+	uiItemR(row, &logic_ptr, "show_actuators_active_states", 0, IFACE_("State"), ICON_NONE);
 	
 	for (a=0; a<count; a++) {
 		bActuator *act;
@@ -2466,11 +2468,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 		}
 
 		row = uiLayoutRow(layout, TRUE);
-		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, "Object name, click to show/hide actuators");
+		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide actuators"));
 
 		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
 		uiLayoutSetContextPointer(row, "object", &object_ptr);
-		uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", "Add Actuator", ICON_NONE);
+		uiItemMenuEnumO(row, "LOGIC_OT_actuator_add", "type", IFACE_("Add Actuator"), ICON_NONE);
 
 		if ((ob->scaflag & OB_SHOWACT) == 0) continue;
 		
