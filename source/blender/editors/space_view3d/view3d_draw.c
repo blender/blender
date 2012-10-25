@@ -1060,7 +1060,7 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
-	float fac, a;
+	float fac, hmargin, vmargin;
 	float x1, x2, y1, y2;
 	float x1i, x2i, y1i, y2i;
 	float x3, y3, x4, y4;
@@ -1214,20 +1214,15 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 		}
 
 		if (ca->flag & CAM_SHOWTITLESAFE) {
-			fac = 0.1;
-
-			a = fac * (x2 - x1);
-			x1 += a;
-			x2 -= a;
-
-			a = fac * (y2 - y1);
-			y1 += a;
-			y2 -= a;
-
 			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
 
-			uiSetRoundBox(UI_CNR_ALL);
-			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+			hmargin = 0.1 * (x2 - x1);
+			vmargin = 0.05 * (y2 - y1);
+			uiDrawBox(GL_LINE_LOOP, x1+hmargin, y1+vmargin, x2-hmargin, y2-vmargin, 2.0);
+
+			hmargin = 0.035 * (x2 - x1);
+			vmargin = 0.035 * (y2 - y1);
+			uiDrawBox(GL_LINE_LOOP, x1+hmargin, y1+vmargin, x2-hmargin, y2-vmargin, 2.0);
 		}
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* determine sensor fit, and get sensor x/y, for auto fit we

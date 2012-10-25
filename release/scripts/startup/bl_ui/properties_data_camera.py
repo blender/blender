@@ -175,7 +175,7 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         col = split.column()
         col.prop(cam, "show_limits", text="Limits")
         col.prop(cam, "show_mist", text="Mist")
-        col.prop(cam, "show_title_safe", text="Title Safe")
+        col.prop(cam, "show_title_safe", text="Safe Areas")
         col.prop(cam, "show_sensor", text="Sensor")
         col.prop(cam, "show_name", text="Name")
 

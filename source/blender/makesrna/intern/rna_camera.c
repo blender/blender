@@ -258,7 +258,7 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "show_title_safe", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWTITLESAFE);
-	RNA_def_property_ui_text(prop, "Show Title Safe", "Show indicators for the title safe zone in Camera view");
+	RNA_def_property_ui_text(prop, "Show Safe Areas", "Show TV title safe and action safe zones in Camera view");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "show_name", PROP_BOOLEAN, PROP_NONE);
