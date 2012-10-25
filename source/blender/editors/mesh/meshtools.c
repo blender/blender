@@ -165,6 +165,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	/* remove tessface to ensure we don't old references to invalid faces */
+	BKE_mesh_tessface_clear(me);
+
 	/* new material indices and material array */
 	matar = MEM_callocN(sizeof(void *) * totmat, "join_mesh matar");
 	if (totmat) matmap = MEM_callocN(sizeof(int) * totmat, "join_mesh matmap");
@@ -513,7 +516,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	me->ldata = ldata;
 	me->pdata = pdata;
 
-	mesh_update_customdata_pointers(me, TRUE); /* BMESH_TODO, check if this arg can be failse, non urgent - campbell */
+	/* tessface data removed above, no need to update */
+	mesh_update_customdata_pointers(me, FALSE);
 	
 	/* old material array */
 	for (a = 1; a <= ob->totcol; a++) {
