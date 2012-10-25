@@ -572,12 +572,12 @@ static void widget_menu_trias(uiWidgetTrias *tria, rcti *rect)
 	/* center position and size */
 	centx = rect->xmax - 0.5f * BLI_rcti_size_y(rect);
 	centy = rect->ymin + 0.5f * BLI_rcti_size_y(rect);
-	size = 0.4f * BLI_rcti_size_y(rect);
+	size = 0.4f * (float)BLI_rcti_size_y(rect);
 	
 	/* XXX exception */
 	asp = ((float)BLI_rcti_size_x(rect)) / ((float)BLI_rcti_size_y(rect));
 	if (asp > 1.2f && asp < 2.6f)
-		centx = rect->xmax - 0.3f * BLI_rcti_size_y(rect);
+		centx = rect->xmax - 0.4f * (float)BLI_rcti_size_y(rect);
 	
 	for (a = 0; a < 6; a++) {
 		tria->vec[a][0] = size * menu_tria_vert[a][0] + centx;
@@ -2662,8 +2662,8 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), 
 	
 	widgetbase_draw(&wtb, wcol);
 	
-	/* text space */
-	rect->xmax -= BLI_rcti_size_y(rect);
+	/* text space, arrows are about 0.6 height of button */
+	rect->xmax -= (6*BLI_rcti_size_y(rect))/10;
 }
 
 static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
