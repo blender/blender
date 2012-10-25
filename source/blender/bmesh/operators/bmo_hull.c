@@ -109,6 +109,7 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 	
 	GHASH_ITER (iter, hull_triangles) {
 		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
+		int i;
 
 		if (!t->skip) {
 			BMEdge *edges[3] = {
@@ -117,24 +118,52 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 				BM_edge_create(bm, t->v[2], t->v[0], NULL, TRUE)
 			};
 			BMFace *f, *example = NULL;
-			int i;
 
-			/* Look for an adjacent face that existed before the hull */
-			for (i = 0; i < 3; i++) {
-				if (!example)
-					example = hull_find_example_face(bm, edges[i]);
+			if (BM_face_exists(bm, t->v, 3, &f)) {
+				/* If the operator is run with "use_existing_faces"
+				 * disabled, but an output face in the hull is the
+				 * same as a face in the existing mesh, it should not
+				 * be marked as unused or interior. */
+				BMO_elem_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
+				BMO_elem_flag_disable(bm, f, HULL_FLAG_HOLE);
+				BMO_elem_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
 			}
+			else {
+				/* Look for an adjacent face that existed before the hull */
+				for (i = 0; i < 3; i++) {
+					if (!example)
+						example = hull_find_example_face(bm, edges[i]);
+				}
 
-			f = BM_face_create_quad_tri_v(bm, t->v, 3, example, FALSE);
-			BM_face_copy_shared(bm, f);
-
-			/* Mark face/verts/edges for 'geomout' slot and select */
+				/* Create new hull face */
+				f = BM_face_create_quad_tri_v(bm, t->v, 3, example, TRUE);
+				BM_face_copy_shared(bm, f);
+			}
+			/* Mark face for 'geomout' slot and select */
 			BMO_elem_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
 			BM_face_select_set(bm, f, TRUE);
+
+			/* Mark edges for 'geomout' slot */
 			for (i = 0; i < 3; i++) {
-				BMO_elem_flag_enable(bm, t->v[i], HULL_FLAG_OUTPUT_GEOM);
 				BMO_elem_flag_enable(bm, edges[i], HULL_FLAG_OUTPUT_GEOM);
 			}
+		}
+		else {
+			/* Mark input edges for 'geomout' slot */
+			for (i = 0; i < 3; i++) {
+				const int next = (i == 2 ? 0 : i + 1);
+				BMEdge *e = BM_edge_exists(t->v[i], t->v[next]);
+				if (e &&
+					BMO_elem_flag_test(bm, e, HULL_FLAG_INPUT) &&
+					!BMO_elem_flag_test(bm, e, HULL_FLAG_HOLE)) {
+					BMO_elem_flag_enable(bm, e, HULL_FLAG_OUTPUT_GEOM);
+				}
+			}
+		}
+
+		/* Mark verts for 'geomout' slot */
+		for (i = 0; i < 3; i++) {
+			BMO_elem_flag_enable(bm, t->v[i], HULL_FLAG_OUTPUT_GEOM);
 		}
 	}
 }
@@ -364,18 +393,21 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	/* Mark edges too if all adjacent faces are holes */
+	/* Mark edges too if all adjacent faces are holes and the edge is
+	 * not already isolated */
 	BMO_ITER (e, &oiter, bm, op, "input", BM_EDGE) {
 		int hole = TRUE;
+		int any_faces = FALSE;
 		
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
+			any_faces = TRUE;
 			if (!BMO_elem_flag_test(bm, f, HULL_FLAG_HOLE)) {
 				hole = FALSE;
 				break;
 			}
 		}
 
-		if (hole)
+		if (hole && any_faces)
 			BMO_elem_flag_enable(bm, e, HULL_FLAG_HOLE);
 	}
 }
@@ -502,6 +534,22 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op,
 	MEM_freeN(input_verts);
 }
 
+/* Check that there are at least three vertices in the input */
+static int hull_num_input_verts_is_ok(BMesh *bm, BMOperator *op)
+{
+	BMOIter oiter;
+	BMVert *v;
+	int partial_num_verts = 0;
+
+	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
+		partial_num_verts++;
+		if (partial_num_verts >= 3)
+			break;
+	}
+
+	return (partial_num_verts >= 3);
+}
+
 void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 {
 	HullFinalEdges *final_edges;
@@ -510,10 +558,10 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	BMOIter oiter;
 	GHash *hull_triangles;
 
-	/* Verify that at least four verts in the input */
-	if (BMO_slot_get(op, "input")->len < 4) {
+	/* Verify that at least three verts in the input */
+	if (!hull_num_input_verts_is_ok(bm, op)) {
 		BMO_error_raise(bm, op, BMERR_CONVEX_HULL_FAILED,
-		                "Requires at least four vertices");
+		                "Requires at least three vertices");
 		return;
 	}
 
