@@ -1320,7 +1320,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 #endif  /* WITH_BUILDINFO */
 
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
+
+	/* note on UI_BLOCK_NO_WIN_CLIP, the window size is not always synchronized
+	 * with the OS when the splash shows, window clipping in this case gives
+	 * ugly results and clipping the splash isn't useful anyway, just disable it [#32938] */
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
 	
 	but = uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);

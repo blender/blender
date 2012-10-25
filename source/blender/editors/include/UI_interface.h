@@ -108,7 +108,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_REDRAW         2
 #define UI_BLOCK_SEARCH_MENU    4
 #define UI_BLOCK_NUMSELECT      8
-/*#define UI_BLOCK_ENTER_OK		16*/ /*UNUSED*/
+#define UI_BLOCK_NO_WIN_CLIP    16      /* don't apply window clipping */ /* was UI_BLOCK_ENTER_OK */
 #define UI_BLOCK_CLIPBOTTOM     32
 #define UI_BLOCK_CLIPTOP        64
 #define UI_BLOCK_MOVEMOUSE_QUIT 128

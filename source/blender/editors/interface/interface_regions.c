@@ -1548,7 +1548,11 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
 	int winx, winy;
-	
+
+	if (block->flag & UI_BLOCK_NO_WIN_CLIP) {
+		return;
+	}
+
 	wm_window_get_size(window, &winx, &winy);
 	
 	if (block->rect.xmin < MENU_SHADOW_SIDE)
