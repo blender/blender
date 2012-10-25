@@ -29,6 +29,7 @@
 #include <dds_api.h>
 #include <Stream.h>
 #include <DirectDrawSurface.h>
+#include <FlipDXT.h>
 #include <stdio.h> // printf
 #include <fstream>
 
@@ -162,20 +163,19 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colo
 			rect[i] = col;
 		}
 
-		if (ibuf->dds_data.fourcc != FOURCC_DDS)
+		if (ibuf->dds_data.fourcc != FOURCC_DDS) {
 			ibuf->dds_data.data = (unsigned char*)dds.readData(ibuf->dds_data.size);
+
+			/* flip compressed texture */
+			FlipDXTCImage(dds.width(), dds.height(), dds.mipmapCount(), dds.fourCC(), ibuf->dds_data.data);
+		}
 		else {
 			ibuf->dds_data.data = NULL;
 			ibuf->dds_data.size = 0;
 		}
 
-		/* DDS images can be flipped compared to the Blender standard, however we
-		 * do not unflip them because we also don't flip compressed textures. If
-		 * we would flip those we'd need to uncompress, flip and recompress them,
-		 * and so losing the speed benefit that you get from using them. Users are
-		 * expected to save DDS image in OpenGL compatible format. */
-
-		/* IMB_flipy(ibuf); */
+		/* flip uncompressed texture */
+		IMB_flipy(ibuf);
 	}
 
 	return(ibuf);

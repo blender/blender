@@ -40,6 +40,7 @@ set(INC_SYS
 
 set(SRC
 	BlockDXT.cpp
+	FlipDXT.cpp
 	ColorBlock.cpp
 	DirectDrawSurface.cpp
 	Image.cpp
