@@ -3144,8 +3144,6 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 
-	Object *ob;
-
 	if (rv3d->persp == RV3D_CAMOB) {
 		drawviewborder(scene, ar, v3d);
 	}
@@ -3162,44 +3160,48 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+		Object *ob;
+
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
 		//	if (v3d->flag2 & V3D_DISPGP)
 		draw_gpencil_view3d(scene, v3d, ar, 0);
 
 		drawcursor(scene, ar, v3d);
+
+		if (U.uiflag & USER_SHOW_ROTVIEWICON)
+			draw_view_axis(rv3d);
+		else
+			draw_view_icon(rv3d);
+
+		ob = OBACT;
+		if (U.uiflag & USER_DRAWVIEWINFO)
+			draw_selected_name(scene, ob);
 	}
-	
-	if (U.uiflag & USER_SHOW_ROTVIEWICON)
-		draw_view_axis(rv3d);
-	else
-		draw_view_icon(rv3d);
-	
-	ob = OBACT;
-	if (U.uiflag & USER_DRAWVIEWINFO)
-		draw_selected_name(scene, ob);
 
 	if (rv3d->render_engine) {
 		view3d_main_area_draw_engine_info(rv3d, ar);
 		return;
 	}
 
-	if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_playing(wm)) {
-		draw_viewport_fps(scene, ar);
-	}
-	else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
-		draw_viewport_name(ar, v3d);
-	}
-
-	if (grid_unit) { /* draw below the viewport name */
-		char numstr[32] = "";
-
-		UI_ThemeColor(TH_TEXT_HI);
-		if (v3d->grid != 1.0f) {
-			BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_playing(wm)) {
+			draw_viewport_fps(scene, ar);
+		}
+		else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
+			draw_viewport_name(ar, v3d);
 		}
 
-		BLF_draw_default_ascii(22,  ar->winy - (USER_SHOW_VIEWPORTNAME ? 40 : 20), 0.0f,
-		                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
+		if (grid_unit) { /* draw below the viewport name */
+			char numstr[32] = "";
+
+			UI_ThemeColor(TH_TEXT_HI);
+			if (v3d->grid != 1.0f) {
+				BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
+			}
+
+			BLF_draw_default_ascii(22,  ar->winy - (USER_SHOW_VIEWPORTNAME ? 40 : 20), 0.0f,
+			                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
+		}
 	}
 }
 
