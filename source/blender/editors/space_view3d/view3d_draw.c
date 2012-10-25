@@ -1060,7 +1060,7 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 
 static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 {
-	float fac, hmargin, vmargin;
+	float hmargin, vmargin;
 	float x1, x2, y1, y2;
 	float x1i, x2i, y1i, y2i;
 	float x3, y3, x4, y4;
