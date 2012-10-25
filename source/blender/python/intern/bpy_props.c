@@ -260,7 +260,7 @@ static int bpy_prop_callback_check(PyObject *py_func, int argcount)
 static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_cb)
 {
 	/* assume this is already checked for type and arg length */
-	if (update_cb) {
+	if (update_cb && update_cb != Py_None) {
 		PyObject **py_data = MEM_callocN(sizeof(PyObject *) * BPY_DATA_CB_SLOT_SIZE, __func__);
 		RNA_def_property_update_runtime(prop, (void *)bpy_prop_update_cb);
 		py_data[BPY_DATA_CB_SLOT_UPDATE] = update_cb;
