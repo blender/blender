@@ -422,7 +422,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap, int ncd)
+int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap, int is_data)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -492,7 +492,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		}
 
 		/* TODO unneeded when float images are correctly treated as linear always */
-		if (!ncd)
+		if (!is_data)
 			do_color_management = TRUE;
 
 		if (ibuf->rect==NULL)
@@ -611,12 +611,21 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 			rect= tilerect;
 		}
 	}
+
 #ifdef WITH_DDS
 	if (ibuf->ftype & DDS)
 		GPU_create_gl_tex_compressed(bind, rect, rectw, recth, mipmap, ima, ibuf);
 	else
 #endif
 		GPU_create_gl_tex(bind, rect, frect, rectw, recth, mipmap, use_high_bit_depth, ima);
+	
+	/* mark as non-color data texture */
+	if(*bind) {
+		if (is_data)
+			ima->tpageflag |= IMA_GLBIND_IS_DATA;	
+		else
+			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;	
+	}
 
 	/* clean up */
 	if (tilerect)
@@ -908,7 +917,8 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 		/* if color correction is needed, we must update the part that needs updating. */
 		if (ibuf->rect_float) {
 			float *buffer = MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
-			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h);
+			int is_data = (ima->tpageflag & IMA_GLBIND_IS_DATA);
+			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h, is_data);
 
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
@@ -934,12 +944,8 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
 
-		if (ibuf->rect_float)
-			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
-				GL_FLOAT, ibuf->rect_float);
-		else
-			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
-				GL_UNSIGNED_BYTE, ibuf->rect);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
+			GL_UNSIGNED_BYTE, ibuf->rect);
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
@@ -1135,7 +1141,7 @@ void GPU_free_image(Image *ima)
 		ima->repbind= NULL;
 	}
 
-	ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+	ima->tpageflag &= ~(IMA_MIPMAP_COMPLETE|IMA_GLBIND_IS_DATA);
 }
 
 void GPU_free_images(void)

@@ -61,7 +61,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
 	NodeTexImage *tex = node->storage;
-	int ncd = tex->color_space == SHD_COLORSPACE_NONE;
+	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
 	int ret;
 
 	if (!ima)
@@ -72,7 +72,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	ret = GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser, ncd));
+	ret = GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser, isdata));
 
 	if (ret) {
 		ImBuf *ibuf = BKE_image_get_ibuf(ima, iuser);

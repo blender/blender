@@ -1293,6 +1293,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 			if (NULL == newimaadr(fd, ibuf)) {	/* so was restored */
 				BLI_remlink(&ima->ibufs, ibuf);
 				ima->bindcode = 0;
+				ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 				ima->gputexture = NULL;
 			}
 		}
@@ -3025,6 +3026,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 	/* if not restored, we keep the binded opengl index */
 	if (ima->ibufs.first == NULL) {
 		ima->bindcode = 0;
+		ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 		ima->gputexture = NULL;
 	}
 	
