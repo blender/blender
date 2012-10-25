@@ -1134,7 +1134,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		/* Add default gravity to scenes */
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			if ((sce->physics_settings.flag & PHYS_GLOBAL_GRAVITY) == 0 &&
-			    len_v3(sce->physics_settings.gravity) == 0.0f)
+			    is_zero_v3(sce->physics_settings.gravity))
 			{
 				sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
 				sce->physics_settings.gravity[2] = -9.81f;

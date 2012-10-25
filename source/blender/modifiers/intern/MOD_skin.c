@@ -144,6 +144,7 @@ static int is_quad_symmetric(BMVert *quad[4],
                              const SkinModifierData *smd)
 {
 	const float threshold = 0.0001f;
+	const float threshold_squared = threshold * threshold;
 	int axis;
 
 	for (axis = 0; axis < 3; axis++) {
@@ -153,16 +154,16 @@ static int is_quad_symmetric(BMVert *quad[4],
 			copy_v3_v3(a, quad[0]->co);
 			a[axis] = -a[axis];
 
-			if (len_v3v3(a, quad[1]->co) < threshold) {
+			if (len_squared_v3v3(a, quad[1]->co) < threshold_squared) {
 				copy_v3_v3(a, quad[2]->co);
 				a[axis] = -a[axis];
-				if (len_v3v3(a, quad[3]->co) < threshold)
+				if (len_squared_v3v3(a, quad[3]->co) < threshold_squared)
 					return 1;
 			}
-			else if (len_v3v3(a, quad[3]->co) < threshold) {
+			else if (len_squared_v3v3(a, quad[3]->co) < threshold_squared) {
 				copy_v3_v3(a, quad[2]->co);
 				a[axis] = -a[axis];
-				if (len_v3v3(a, quad[1]->co) < threshold)
+				if (len_squared_v3v3(a, quad[1]->co) < threshold_squared)
 					return 1;
 			}
 		}
@@ -179,13 +180,13 @@ static int quad_crosses_symmetry_plane(BMVert *quad[4],
 
 	for (axis = 0; axis < 3; axis++) {
 		if (smd->symmetry_axes & (1 << axis)) {
-			int i, left = 0, right = 0;
+			int i, left = FALSE, right = FALSE;
 
 			for (i = 0; i < 4; i++) {
-				if (quad[i]->co[axis] < 0)
-					left = 1;
-				else if (quad[i]->co[axis] > 0)
-					right = 1;
+				if (quad[i]->co[axis] < 0.0f)
+					left = TRUE;
+				else if (quad[i]->co[axis] > 0.0f)
+					right = TRUE;
 
 				if (left && right)
 					return TRUE;
@@ -1545,23 +1546,23 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes,
 		if (sn->flag & CAP_START) {
 			if (sn->flag & ROOT) {
 				add_poly(so,
-						 sn->frames[0].verts[0],
-						 sn->frames[0].verts[1],
-						 sn->frames[0].verts[2],
-						 sn->frames[0].verts[3]);
+				         sn->frames[0].verts[0],
+				         sn->frames[0].verts[1],
+				         sn->frames[0].verts[2],
+				         sn->frames[0].verts[3]);
 			}
 			else {
 				add_poly(so,
-						 sn->frames[0].verts[3],
-						 sn->frames[0].verts[2],
-						 sn->frames[0].verts[1],
-						 sn->frames[0].verts[0]);
+				         sn->frames[0].verts[3],
+				         sn->frames[0].verts[2],
+				         sn->frames[0].verts[1],
+				         sn->frames[0].verts[0]);
 			}
 		}
 		if (sn->flag & CAP_END) {
 			add_poly(so,
 			         sn->frames[1].verts[0],
-			         sn->frames[1].verts[1],
+			        sn->frames[1].verts[1],
 			         sn->frames[1].verts[2],
 			         sn->frames[1].verts[3]);
 		}

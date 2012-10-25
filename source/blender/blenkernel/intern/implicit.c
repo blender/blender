@@ -1730,7 +1730,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	for (i=0; i<cloth->numverts; i++, cv++) {
 		copy_v3_v3(cos[i], cv->tx);
 		
-		if (cv->goal == 1.0f || len_v3v3(initial_cos[i], cv->tx) != 0.0) {
+		if (cv->goal == 1.0f || len_squared_v3v3(initial_cos[i], cv->tx) != 0.0) {
 			masses[i] = 1e+10;
 		}
 		else {
