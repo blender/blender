@@ -3632,6 +3632,8 @@ static int rna_preprocess(const char *outfile)
 
 	rna_auto_types();
 
+	status = (DefRNA.error != 0);
+
 	/* create rna_gen_*.c files */
 	for (i = 0; PROCESS_ITEMS[i].filename; i++) {
 		strcpy(deffile, outfile);
@@ -3667,8 +3669,6 @@ static int rna_preprocess(const char *outfile)
 	/* create RNA_blender_cpp.h */
 	strcpy(deffile, outfile);
 	strcat(deffile, "RNA_blender_cpp.h" TMP_EXT);
-
-	status = (DefRNA.error != 0);
 
 	if (status) {
 		make_bad_file(deffile, __LINE__);
