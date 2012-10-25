@@ -1259,10 +1259,6 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 			/* prevent uiblocks to run */
 			uiFreeBlocks(NULL, &ar->uiblocks);
 		}
-		
-		/* rechecks 2d matrix for header on dpi changing, do not do for other regions, it resets view && blocks view2d operator polls (ton) */
-		if (ar->regiontype == RGN_TYPE_HEADER)
-			ar->v2d.flag &= ~V2D_IS_INITIALISED;
 	}
 }
 
@@ -1775,7 +1771,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, BLI_rctf_size_y(&ar->v2d.tot));
+	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, headery);
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);

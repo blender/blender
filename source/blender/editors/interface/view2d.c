@@ -476,8 +476,14 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 				if (winy < v2d->oldwiny) {
 					float temp = v2d->oldwiny - winy;
 					
-					cur->ymin += temp;
-					cur->ymax += temp;
+					if (v2d->align & V2D_ALIGN_NO_NEG_Y) {
+						cur->ymin -= temp;
+						cur->ymax -= temp;
+					}
+					else { /* Assume V2D_ALIGN_NO_POS_Y or combination */
+						cur->ymin += temp;
+						cur->ymax += temp;
+					}
 				}
 
 			}
