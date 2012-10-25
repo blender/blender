@@ -143,8 +143,10 @@ static int bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 		for (i = 0; i < tot_loop; i++) {
 			BMLoop *l = f_loop[i];
 			if (l->f->len > 3) {
+				BMLoop *l_new;
 				BLI_assert(l->prev->v != l->next->v);
-				BM_face_split(bm, l->f, l->prev->v, l->next->v, NULL, NULL, TRUE);
+				BM_face_split(bm, l->f, l->prev->v, l->next->v, &l_new, NULL, TRUE);
+				BM_elem_flag_enable(l_new->e, l->e->head.hflag | l->prev->e->head.hflag);
 			}
 		}
 
