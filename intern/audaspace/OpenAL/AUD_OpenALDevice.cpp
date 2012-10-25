@@ -996,7 +996,6 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 {
 	// cannot determine how many channels or which format OpenAL uses, but
 	// it at least is able to play 16 bit stereo audio
-	specs.channels = AUD_CHANNELS_STEREO;
 	specs.format = AUD_FORMAT_S16;
 
 #if 0
@@ -1034,6 +1033,11 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 		specs.format = AUD_FORMAT_FLOAT32;
 
 	m_useMC = alIsExtensionPresent("AL_EXT_MCFORMATS") == AL_TRUE;
+
+	if((!m_useMC && specs.channels > AUD_CHANNELS_STEREO) ||
+			specs.channels == AUD_CHANNELS_STEREO_LFE ||
+			specs.channels == AUD_CHANNELS_SURROUND5)
+		specs.channels = AUD_CHANNELS_STEREO;
 
 	alGetError();
 	alcGetError(m_device);
