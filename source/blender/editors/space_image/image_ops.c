@@ -1682,16 +1682,24 @@ static int image_new_exec(bContext *C, wmOperator *op)
 		RNA_property_pointer_set(&ptr, prop, idptr);
 		RNA_property_update(C, &ptr, prop);
 	}
-	else if (sima)
+	else if (sima) {
 		ED_space_image_set(sima, scene, obedit, ima);
+	}
+	else {
+		Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if (tex && tex->type == TEX_IMAGE) {
+			tex->ima= ima;
+			ED_area_tag_redraw(CTX_wm_area(C));
+		}
+	}
 
-	// XXX other users?
 	BKE_image_signal(ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 	
 	return OPERATOR_FINISHED;
 }
 
 /* XXX, Ton is not a fan of OK buttons but using this function to avoid undo/redo bug while in mesh-editmode, - campbell */
+/* XXX Note: the WM_operator_props_dialog_popup() doesn't work for uiIDContextProperty(), image is not being that way */
 static int image_new_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	return WM_operator_props_dialog_popup(C, op, 300, 100);
