@@ -176,7 +176,7 @@ int FlipDXTCImage(unsigned int width, unsigned int height, unsigned int levels, 
 	if(width == 0 || height == 0)
 		return 0;
 	// height must be a power-of-two
-	if(height & (height - 1) != 0)
+	if((height & (height - 1)) != 0)
 		return 0;
 
 	FlipBlockFunction full_block_function;
