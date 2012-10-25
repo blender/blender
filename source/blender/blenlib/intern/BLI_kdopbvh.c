@@ -70,12 +70,9 @@ struct BVHTree {
 };
 
 /* optimization, ensure we stay small */
-#if (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406))  /* gcc4.6 only */
-	_Static_assert(
-	        (sizeof(void *) == 8 && sizeof(BVHTree) <= 48) ||
-	        (sizeof(void *) == 4 && sizeof(BVHTree) <= 32),
-	        "over sized");
-#endif
+BLI_STATIC_ASSERT((sizeof(void *) == 8 && sizeof(BVHTree) <= 48) ||
+                  (sizeof(void *) == 4 && sizeof(BVHTree) <= 32),
+                  "over sized");
 
 typedef struct BVHOverlapData {
 	BVHTree *tree1, *tree2; 

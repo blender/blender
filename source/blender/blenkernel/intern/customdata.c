@@ -65,6 +65,12 @@
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
 
+/* ensure typemap size is ok */
+BLI_STATIC_ASSERT(sizeof(((CustomData *)NULL)->typemap) /
+                  sizeof(((CustomData *)NULL)->typemap[0]) == CD_NUMTYPES,
+                  "size mismatch");
+
+
 /********************* Layer type information **********************/
 typedef struct LayerTypeInfo {
 	int size;          /* the memory size of one element of this layer's data */
@@ -1220,9 +1226,6 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 void CustomData_update_typemap(CustomData *data)
 {
 	int i, lasttype = -1;
-
-	/* since we cant do in a pre-processor do here as an assert */
-	BLI_assert(sizeof(data->typemap) / sizeof(int) >= CD_NUMTYPES);
 
 	for (i = 0; i < CD_NUMTYPES; i++) {
 		data->typemap[i] = -1;

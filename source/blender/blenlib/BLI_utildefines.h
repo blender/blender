@@ -348,6 +348,13 @@
 #  define BLI_assert(a) (void)0
 #endif
 
+#if (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406))  /* gcc4.6+ only */
+#  define BLI_STATIC_ASSERT(a, msg) _Static_assert(a, msg);
+#else
+   /* TODO msvc, clang */
+#  define BLI_STATIC_ASSERT(a, msg) (void)0
+#endif
+
 /* hints for branch pradiction, only use in code that runs a _lot_ where */
 #ifdef __GNUC__
 #  define LIKELY(x)       __builtin_expect(!!(x), 1)
