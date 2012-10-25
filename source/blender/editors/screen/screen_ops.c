@@ -3045,7 +3045,8 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		}
 		else {
 			if (sync) {
-				int step = floor((wt->duration - sad->last_duration) * FPS);
+				const int step = max_ii(1, floor((wt->duration - sad->last_duration) * FPS));
+
 				/* skip frames */
 				if (sad->flag & ANIMPLAY_FLAG_REVERSE)
 					scene->r.cfra -= step;
