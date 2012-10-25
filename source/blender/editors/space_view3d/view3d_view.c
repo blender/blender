@@ -892,8 +892,8 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 					glLoadName(code);
 					draw_object(scene, ar, v3d, base, DRAW_PICKING | DRAW_CONSTCOLOR);
 					
-					/* we draw group-duplicators for selection too */
-					if ((base->object->transflag & OB_DUPLI) && base->object->dup_group) {
+					/* we draw duplicators for selection too */
+					if ((base->object->transflag & OB_DUPLI)) {
 						ListBase *lb;
 						DupliObject *dob;
 						Base tbase;

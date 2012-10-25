@@ -6540,7 +6540,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* code for new particle system */
 	if ((warning_recursive == 0) &&
 	    (ob->particlesystem.first) &&
-	    (dflag & DRAW_PICKING) == 0 &&
 	    (ob != scene->obedit)
 	    )
 	{
