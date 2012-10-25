@@ -1541,12 +1541,16 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
 		}
 		case PROP_COLLECTION:
 		{
+			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 			fprintf(f, "void %sbegin(CollectionPropertyIterator *iter, PointerRNA *ptr);\n", func);
 			fprintf(f, "void %snext(CollectionPropertyIterator *iter);\n", func);
 			fprintf(f, "void %send(CollectionPropertyIterator *iter);\n", func);
-			/*fprintf(f, "int %slength(PointerRNA *ptr);\n", func); */
-			/*fprintf(f, "void %slookup_int(PointerRNA *ptr, int key, StructRNA **type);\n", func); */
-			/*fprintf(f, "void %slookup_string(PointerRNA *ptr, const char *key, StructRNA **type);\n", func); */
+			if (cprop->length)
+				fprintf(f, "int %slength(PointerRNA *ptr);\n", func);
+			if (cprop->lookupint)
+				fprintf(f, "int %slookup_int(PointerRNA *ptr, int key, PointerRNA *r_ptr);\n", func);
+			if (cprop->lookupstring)
+				fprintf(f, "int %slookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);\n", func);
 			break;
 		}
 	}
@@ -1674,11 +1678,13 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)dp->prop;
 
 			if (cprop->item_type)
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", (const char *)cprop->item_type, srna->identifier,
-				        rna_safe_id(prop->identifier));
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", (const char *)cprop->item_type, srna->identifier,
+				        rna_safe_id(prop->identifier), (cprop->length ? "TRUE" : "FALSE"),
+				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
 			else
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", "UnknownType", srna->identifier,
-				        rna_safe_id(prop->identifier));
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", "UnknownType", srna->identifier,
+				        rna_safe_id(prop->identifier), (cprop->length ? "TRUE" : "FALSE"),
+				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
 			break;
 		}
 	}
@@ -1853,10 +1859,13 @@ static void rna_def_property_funcs_impl_cpp(FILE *f, StructRNA *srna, PropertyDe
 			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)dp->prop;
 
 			if (cprop->type)
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", (const char *)cprop->type, srna->identifier,
-				        prop->identifier);
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", (const char *)cprop->type, srna->identifier,
+				        prop->identifier, (cprop->length ? "TRUE" : "FALSE"),
+				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
 			else
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s)", "UnknownType", srna->identifier, prop->identifier);
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", "UnknownType", srna->identifier,
+				        prop->identifier, (cprop->length ? "TRUE" : "FALSE"),
+				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
 #endif
 			break;
 		}
@@ -3342,11 +3351,66 @@ static const char *cpp_classes = ""
 "#define POINTER_PROPERTY(type, sname, identifier) \\\n"
 "	inline type sname::identifier(void) { return type(sname##_##identifier##_get(&ptr)); }\n"
 "\n"
-"#define COLLECTION_PROPERTY(type, sname, identifier) \\\n"
+"#define COLLECTION_PROPERTY_LENGTH_FALSE(sname, identifier) \\\n"
+"	inline static int sname##_##identifier##_length_wrap(PointerRNA *ptr) \\\n"
+"	{ \\\n"
+"		CollectionPropertyIterator iter; \\\n"
+"		int length = 0; \\\n"
+"		sname##_##identifier##_begin(&iter, ptr); \\\n"
+"		while (iter.valid) { \\\n"
+"			sname##_##identifier##_next(&iter); \\\n"
+"			++length; \\\n"
+"		} \\\n"
+"		sname##_##identifier##_end(&iter); \\\n"
+"		return length; \\\n"
+"	} \n"
+"#define COLLECTION_PROPERTY_LENGTH_TRUE(sname, identifier) \\\n"
+"	inline static int sname##_##identifier##_length_wrap(PointerRNA *ptr) \\\n"
+"	{ return sname##_##identifier##_length(ptr); } \n"
+"\n"
+"#define COLLECTION_PROPERTY_LOOKUP_INT_FALSE(sname, identifier) \\\n"
+"	inline static int sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, PointerRNA *r_ptr) \\\n"
+"	{ \\\n"
+"		CollectionPropertyIterator iter; \\\n"
+"		int i = 0; \\\n"
+"		sname##_##identifier##_begin(&iter, ptr); \\\n"
+"		while (iter.valid) { \\\n"
+"			if (i == key) { \\\n"
+"				*r_ptr = iter.ptr; \\\n"
+"				break; \\\n"
+"			} \\\n"
+"			sname##_##identifier##_next(&iter); \\\n"
+"			++i; \\\n"
+"		} \\\n"
+"		sname##_##identifier##_end(&iter); \\\n"
+"		if (!iter.valid) \\\n"
+"			memset(r_ptr, 0, sizeof(*r_ptr)); \\\n"
+"		return iter.valid; \\\n"
+"	} \n"
+"#define COLLECTION_PROPERTY_LOOKUP_INT_TRUE(sname, identifier) \\\n"
+"	inline static int sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, PointerRNA *r_ptr) \\\n"
+"	{ return sname##_##identifier##_lookup_int(ptr, key, r_ptr); } \n"
+"\n"
+"#define COLLECTION_PROPERTY_LOOKUP_STRING_FALSE(sname, identifier) \\\n"
+"	inline static int sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char *key, PointerRNA *r_ptr) \\\n"
+"	{ \\\n"
+"		memset(r_ptr, 0, sizeof(*r_ptr)); \\\n"
+"		return 0; \\\n"
+"	} \n"
+"#define COLLECTION_PROPERTY_LOOKUP_STRING_TRUE(sname, identifier) \\\n"
+"	inline static int sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char *key, PointerRNA *r_ptr) \\\n"
+"	{ return sname##_##identifier##_lookup_string(ptr, key, r_ptr); } \n"
+"\n"
+"#define COLLECTION_PROPERTY(type, sname, identifier, has_length, has_lookup_int, has_lookup_string) \\\n"
 "	typedef CollectionIterator<type, sname##_##identifier##_begin, \\\n"
 "		sname##_##identifier##_next, sname##_##identifier##_end> identifier##_iterator; \\\n"
+"	COLLECTION_PROPERTY_LENGTH_##has_length(sname, identifier) \\\n"
+"	COLLECTION_PROPERTY_LOOKUP_INT_##has_lookup_int(sname, identifier) \\\n"
+"	COLLECTION_PROPERTY_LOOKUP_STRING_##has_lookup_string(sname, identifier) \\\n"
 "	Collection<sname, type, sname##_##identifier##_begin, \\\n"
-"		sname##_##identifier##_next, sname##_##identifier##_end> identifier;\n"
+"		sname##_##identifier##_next, sname##_##identifier##_end, \\\n"
+"		sname##_##identifier##_length_wrap, \\\n"
+"		sname##_##identifier##_lookup_int_wrap, sname##_##identifier##_lookup_string_wrap> identifier;\n"
 "\n"
 "class Pointer {\n"
 "public:\n"
@@ -3400,6 +3464,9 @@ static const char *cpp_classes = ""
 "typedef void (*TBeginFunc)(CollectionPropertyIterator *iter, PointerRNA *ptr);\n"
 "typedef void (*TNextFunc)(CollectionPropertyIterator *iter);\n"
 "typedef void (*TEndFunc)(CollectionPropertyIterator *iter);\n"
+"typedef int (*TLengthFunc)(PointerRNA *ptr);\n"
+"typedef int (*TLookupIntFunc)(PointerRNA *ptr, int key, PointerRNA *r_ptr);\n"
+"typedef int (*TLookupStringFunc)(PointerRNA *ptr, const char *key, PointerRNA *r_ptr);\n"
 "\n"
 "template<typename T, TBeginFunc Tbegin, TNextFunc Tnext, TEndFunc Tend>\n"
 "class CollectionIterator {\n"
@@ -3430,7 +3497,8 @@ static const char *cpp_classes = ""
 "	bool init;\n"
 "};\n"
 "\n"
-"template<typename Tp, typename T, TBeginFunc Tbegin, TNextFunc Tnext, TEndFunc Tend>\n"
+"template<typename Tp, typename T, TBeginFunc Tbegin, TNextFunc Tnext, TEndFunc Tend,\n"
+"         TLengthFunc Tlength, TLookupIntFunc Tlookup_int, TLookupStringFunc Tlookup_string>\n"
 "class Collection {\n"
 "public:\n"
 "	Collection(const PointerRNA &p) : ptr(p) {}\n"
@@ -3439,6 +3507,13 @@ static const char *cpp_classes = ""
 "	{ iter.begin(ptr); }\n"
 "	CollectionIterator<T, Tbegin, Tnext, Tend> end()\n"
 "	{ return CollectionIterator<T, Tbegin, Tnext, Tend>(); } /* test */ \n"
+""
+"	int length()\n"
+"	{ return Tlength(&ptr); }\n"
+"	T& operator[](int key)\n"
+"	{ PointerRNA r_ptr; Tlookup_int(&ptr, key, &r_ptr); return *(T*)r_ptr.data; }\n"
+"	T& operator[](const std::string &key)\n"
+"	{ PointerRNA r_ptr; Tlookup_string(&ptr, key.c_str(), &r_ptr); return *(T*)r_ptr.data; }\n"
 "\n"
 "private:\n"
 "	PointerRNA ptr;\n"
@@ -3557,34 +3632,6 @@ static int rna_preprocess(const char *outfile)
 
 	rna_auto_types();
 
-
-	/* create RNA_blender_cpp.h */
-	strcpy(deffile, outfile);
-	strcat(deffile, "RNA_blender_cpp.h" TMP_EXT);
-
-	status = (DefRNA.error != 0);
-
-	if (status) {
-		make_bad_file(deffile, __LINE__);
-	}
-	else {
-		file = fopen(deffile, "w");
-
-		if (!file) {
-			fprintf(stderr, "Unable to open file: %s\n", deffile);
-			status = 1;
-		}
-		else {
-			rna_generate_header_cpp(brna, file);
-			fclose(file);
-			status = (DefRNA.error != 0);
-		}
-	}
-
-	replace_if_different(deffile, NULL);
-
-	rna_sort(brna);
-
 	/* create rna_gen_*.c files */
 	for (i = 0; PROCESS_ITEMS[i].filename; i++) {
 		strcpy(deffile, outfile);
@@ -3616,6 +3663,33 @@ static int rna_preprocess(const char *outfile)
 
 		replace_if_different(deffile, deps);
 	}
+
+	/* create RNA_blender_cpp.h */
+	strcpy(deffile, outfile);
+	strcat(deffile, "RNA_blender_cpp.h" TMP_EXT);
+
+	status = (DefRNA.error != 0);
+
+	if (status) {
+		make_bad_file(deffile, __LINE__);
+	}
+	else {
+		file = fopen(deffile, "w");
+
+		if (!file) {
+			fprintf(stderr, "Unable to open file: %s\n", deffile);
+			status = 1;
+		}
+		else {
+			rna_generate_header_cpp(brna, file);
+			fclose(file);
+			status = (DefRNA.error != 0);
+		}
+	}
+
+	replace_if_different(deffile, NULL);
+
+	rna_sort(brna);
 
 	/* create RNA_blender.h */
 	strcpy(deffile, outfile);
