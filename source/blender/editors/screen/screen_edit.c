@@ -36,6 +36,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -631,10 +632,8 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	max[0] = max[1] = 0.0f;
 	
 	for (sv = sc->vertbase.first; sv; sv = sv->next) {
-		min[0] = MIN2(min[0], sv->vec.x);
-		min[1] = MIN2(min[1], sv->vec.y);
-		max[0] = MAX2(max[0], sv->vec.x);
-		max[1] = MAX2(max[1], sv->vec.y);
+		const float fv[2] = {(float)sv->vec.x, (float)sv->vec.y};
+		minmax_v2v2_v2(min, max, fv);
 	}
 	
 	/* always make 0.0 left under */

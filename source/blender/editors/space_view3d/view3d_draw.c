@@ -2474,7 +2474,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 		/* note:  '1.0f / len_v3(v1)'  replaced  'len_v3(rv3d->viewmat[0])'
 		 * because of float point precision problems at large values [#23908] */
 		float v1[3], v2[3];
-		float len1, len2;
+		float len_px, len_sc;
 
 		v1[0] = rv3d->persmat[0][0];
 		v1[1] = rv3d->persmat[1][0];
@@ -2484,10 +2484,10 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 		v2[1] = rv3d->persmat[1][1];
 		v2[2] = rv3d->persmat[2][1];
 
-		len1 = 1.0f / len_v3(v1);
-		len2 = 1.0f / len_v3(v2);
+		len_px = 2.0f / sqrtf(min_ff(len_squared_v3(v1), len_squared_v3(v2)));
+		len_sc = (float)MAX2(ar->winx, ar->winy);
 
-		rv3d->pixsize = (2.0f * MAX2(len1, len2)) / (float)MAX2(ar->winx, ar->winy);
+		rv3d->pixsize = len_px / len_sc;
 	}
 }
 

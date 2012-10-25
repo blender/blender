@@ -600,8 +600,8 @@ void glaDrawPixelsSafe(float x, float y, int img_w, int img_h, int row_w, int fo
 	/* The maximum pixel amounts the image can be cropped
 	 * at the lower left without exceeding the origin.
 	 */
-	int off_x = floor(MAX2(ix, 0));
-	int off_y = floor(MAX2(iy, 0));
+	int off_x = floor(max_ff(ix, 0.0f));
+	int off_y = floor(max_ff(iy, 0.0f));
 
 	/* The zoomed space coordinate of the raster position
 	 * (starting at the lower left most unclipped pixel).

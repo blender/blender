@@ -703,7 +703,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 			/* COLOR */
 			if (mloopcol) {
-				unsigned int totloop_clamp = MIN2(4, mp->totloop);
+				unsigned int totloop_clamp = min_ii(4, mp->totloop);
 				unsigned int j;
 				lcol = &mloopcol[mp->loopstart];
 

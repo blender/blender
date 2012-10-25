@@ -465,11 +465,11 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	if (ar->drawrct.xmin == ar->drawrct.xmax)
 		ar->drawrct = winrct;
 	else {
-		/* extra clip for safety */
-		ar->drawrct.xmin = MAX2(winrct.xmin, ar->drawrct.xmin);
-		ar->drawrct.ymin = MAX2(winrct.ymin, ar->drawrct.ymin);
-		ar->drawrct.xmax = MIN2(winrct.xmax, ar->drawrct.xmax);
-		ar->drawrct.ymax = MIN2(winrct.ymax, ar->drawrct.ymax);
+		/* extra clip for safety (intersect the rects, could use API func) */
+		ar->drawrct.xmin = max_ii(winrct.xmin, ar->drawrct.xmin);
+		ar->drawrct.ymin = max_ii(winrct.ymin, ar->drawrct.ymin);
+		ar->drawrct.xmax = min_ii(winrct.xmax, ar->drawrct.xmax);
+		ar->drawrct.ymax = min_ii(winrct.ymax, ar->drawrct.ymax);
 	}
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
@@ -1664,8 +1664,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
 		/* ensure tot is set correctly, to keep views on bottons, with sliders */
-		y = MAX2(-y, -v2d->cur.ymin);
-		
+		y = min_ii(y, v2d->cur.ymin);
+		y = -y;
 	}
 	else {
 		/* for now, allow scrolling in both directions (since layouts are optimized for vertical,
@@ -1679,7 +1679,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 
 		/* don't jump back when panels close or hide */
 		if (!newcontext)
-			x = MAX2(x, v2d->cur.xmax);
+			x = max_ii(x, v2d->cur.xmax);
 		y = -y;
 	}
 

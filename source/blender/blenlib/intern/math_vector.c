@@ -451,6 +451,15 @@ void minmax_v3v3_v3(float min[3], float max[3], const float vec[3])
 	if (max[2] < vec[2]) max[2] = vec[2];
 }
 
+void minmax_v2v2_v2(float min[2], float max[2], const float vec[2])
+{
+	if (min[0] > vec[0]) min[0] = vec[0];
+	if (min[1] > vec[1]) min[1] = vec[1];
+
+	if (max[0] < vec[0]) max[0] = vec[0];
+	if (max[1] < vec[1]) max[1] = vec[1];
+}
+
 /** ensure \a v1 is \a dist from \a v2 */
 void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist)
 {

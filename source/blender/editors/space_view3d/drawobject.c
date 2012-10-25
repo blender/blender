@@ -578,7 +578,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	glTranslatef(0.0f,  0.0f,  0.0f);
 
 	/* Calculate Image scale */
-	scale = (ob->empty_drawsize / (float)MAX2(ima_x * sca_x, ima_y * sca_y));
+	scale = (ob->empty_drawsize / max_ff((float)ima_x * sca_x, (float)ima_y * sca_y));
 
 	/* Set the object scale */
 	glScalef(scale * sca_x, scale * sca_y, 1.0f);
