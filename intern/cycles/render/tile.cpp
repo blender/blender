@@ -214,11 +214,28 @@ list<Tile>::iterator TileManager::next_center_tile(int device)
 	return best;
 }
 
+list<Tile>::iterator TileManager::next_simple_tile(int device)
+{
+	list<Tile>::iterator iter;
+
+	int logical_device = preserve_tile_device? device: 0;
+
+	for(iter = state.tiles.begin(); iter != state.tiles.end(); iter++) {
+		if(iter->device == logical_device && iter->rendering == false)
+			return iter;
+	}
+
+	return state.tiles.end();
+}
+
 bool TileManager::next_tile(Tile& tile, int device)
 {
 	list<Tile>::iterator tile_it;
 
-	tile_it = next_center_tile(device);
+	if(background)
+		tile_it = next_center_tile(device);
+	else
+		tile_it = next_simple_tile(device);
 
 	if(tile_it != state.tiles.end()) {
 		tile_it->rendering = true;

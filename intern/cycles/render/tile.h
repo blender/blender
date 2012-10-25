@@ -102,7 +102,13 @@ protected:
 	/* slices image into as much pieces as how many devices are rendering this image */
 	void gen_tiles_sliced();
 
-	list<Tile>::iterator next_center_tile(int device = 0);
+	/* returns closest tile to center of rendered tiles
+	 * mimics behavior of blender internal's tile order
+	 */
+	list<Tile>::iterator next_center_tile(int device);
+
+	/* returns first unhandled tile starting from left bottom corner of the image */
+	list<Tile>::iterator next_simple_tile(int device);
 };
 
 CCL_NAMESPACE_END
