@@ -352,7 +352,7 @@
 #  define BLI_STATIC_ASSERT(a, msg) _Static_assert(a, msg);
 #else
    /* TODO msvc, clang */
-#  define BLI_STATIC_ASSERT(a, msg) (void)0
+#  define BLI_STATIC_ASSERT(a, msg)
 #endif
 
 /* hints for branch pradiction, only use in code that runs a _lot_ where */

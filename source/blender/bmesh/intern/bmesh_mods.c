@@ -470,9 +470,6 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
  * both collapse a vertex and return a new edge.
  * Except this takes a factor and merges custom data.
  *
- *  BMESH_TODO:
- *    Insert error checking for KV valance.
- *
  * \param bm The bmesh
  * \param ke The edge to collapse
  * \param kv The vertex  to collapse into the edge
