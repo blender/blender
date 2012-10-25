@@ -400,7 +400,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 		//text_idbutton(id, name);
 		name[0] = '\0';
-		but = uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
+		but = uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, RNA_struct_ui_description(type));
 		uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
 		if (user_alert) uiButSetFlag(but, UI_BUT_REDALERT);
 
