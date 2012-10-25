@@ -1663,11 +1663,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
-		/* don't jump back when panels close or hide */
-		if (!newcontext)
-			y = MAX2(-y, -v2d->cur.ymin);
-		else
-			y = -y;
+		/* ensure tot is set correctly, to keep views on bottons, with sliders */
+		y = MAX2(-y, -v2d->cur.ymin);
+		
 	}
 	else {
 		/* for now, allow scrolling in both directions (since layouts are optimized for vertical,
