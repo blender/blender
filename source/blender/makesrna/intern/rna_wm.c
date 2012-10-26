@@ -1251,24 +1251,30 @@ static void rna_Operator_bl_idname_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data = (wmOperator *)(ptr->data);
 	char *str = (char *)data->type->idname;
-	if (!str[0]) BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
-	else assert(!"setting the bl_idname on a non-builtin operator");
+	if (!str[0])
+		BLI_strncpy(str, value, OP_MAX_TYPENAME);    /* utf8 already ensured */
+	else
+		assert(!"setting the bl_idname on a non-builtin operator");
 }
 
 static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data = (wmOperator *)(ptr->data);
 	char *str = (char *)data->type->name;
-	if (!str[0]) BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
-	else assert(!"setting the bl_label on a non-builtin operator");
+	if (!str[0])
+		BLI_strncpy(str, value, OP_MAX_TYPENAME);    /* utf8 already ensured */
+	else
+		assert(!"setting the bl_label on a non-builtin operator");
 }
 
 static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data = (wmOperator *)(ptr->data);
 	char *str = (char *)data->type->description;
-	if (!str[0]) BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
-	else assert(!"setting the bl_description on a non-builtin operator");
+	if (!str[0])
+		BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
+	else
+		assert(!"setting the bl_description on a non-builtin operator");
 }
 
 static void rna_KeyMapItem_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
