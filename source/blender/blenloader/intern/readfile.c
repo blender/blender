@@ -3398,32 +3398,31 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			if (part->dupliweights.first && part->dup_group) {
 				int index_ok = 0;
 				/* check for old files without indices (all indexes 0) */
-				dw = part->dupliweights.first;
 				if (part->dupliweights.first == part->dupliweights.last) {
 					/* special case for only one object in the group */
 					index_ok = 1;
 				}
 				else {
-					for (; dw; dw=dw->next) {
+					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						if (dw->index > 0) {
 							index_ok = 1;
 							break;
 						}
 					}
 				}
-				
+
 				if (index_ok) {
 					/* if we have indexes, let's use them */
-					dw = part->dupliweights.first;
-					for (; dw; dw=dw->next) {
+					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
 						dw->ob = go ? go->ob : NULL;
 					}
 				}
 				else {
 					/* otherwise try to get objects from own library (won't work on library linked groups) */
-					for (; dw; dw=dw->next)
+					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
+					}
 				}
 			}
 			else {
