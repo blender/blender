@@ -966,6 +966,12 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 			break;
 		}
 
+		if (mmd->lvl == 0) {
+			BKE_report(op->reports, RPT_ERROR, "Multires data baking is not support for preview subdivision level 0");
+
+			break;
+		}
+
 		if (!me->mtpoly) {
 			BKE_report(op->reports, RPT_ERROR, "Mesh should be unwrapped before multires data baking");
 
@@ -1030,8 +1036,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 
 		tmp_mmd.lvl = *lvl;
 		tmp_mmd.sculptlvl = *lvl;
-		dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob,
-		                                        0);
+		dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob, 0);
 		cddm->release(cddm);
 	}
 
@@ -1051,8 +1056,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 
 	tmp_mmd.lvl = mmd->totlvl;
 	tmp_mmd.sculptlvl = mmd->totlvl;
-	dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob,
-	                                        0);
+	dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob, 0);
 	cddm->release(cddm);
 
 	return dm;
