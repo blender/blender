@@ -2874,37 +2874,51 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				}
 			}
 
-			/* modifiers */
-			/* assigning both first and second is strange - campbell */
-			switch (event.type) {
-				case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
-					event.shift = evt->shift = (event.val == KM_PRESS) ?
-					                           ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-					                           FALSE;
-					break;
-				case LEFTCTRLKEY: case RIGHTCTRLKEY:
-					event.ctrl = evt->ctrl = (event.val == KM_PRESS) ?
-					                         ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-					                         FALSE;
-					break;
-				case LEFTALTKEY: case RIGHTALTKEY:
-					event.alt = evt->alt = (event.val == KM_PRESS) ?
-					                       ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-					                       FALSE;
-					break;
-				case OSKEY:
-					event.oskey = evt->oskey = (event.val == KM_PRESS) ?
-					                           ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-					                           FALSE;
-					break;
-				default:
-					if (event.val == KM_PRESS && event.keymodifier == 0)
-						evt->keymodifier = event.type;  /* only set in eventstate, for next event */
-					else if (event.val == KM_RELEASE && event.keymodifier == event.type)
-						event.keymodifier = evt->keymodifier = 0;
-					break;
+			/* double click test */
+			if (event.type == evt->prevtype && event.val == KM_PRESS) {
+				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
+					(ABS(event.y - evt->prevclicky)) <= 2 &&
+					((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
+				{
+					// printf("double click\n");
+					evt->val= event.val = KM_DBL_CLICK;
+				}
 			}
+			
+			/* prevent modifier keys getting own key as modifier */
+			if (event.val != KM_DBL_CLICK) {
 
+				/* modifiers */
+				/* assigning both first and second is strange - campbell */
+				switch (event.type) {
+					case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
+						event.shift = evt->shift = (event.val == KM_PRESS) ?
+												   ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+												   FALSE;
+						break;
+					case LEFTCTRLKEY: case RIGHTCTRLKEY:
+						event.ctrl = evt->ctrl = (event.val == KM_PRESS) ?
+												 ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+												 FALSE;
+						break;
+					case LEFTALTKEY: case RIGHTALTKEY:
+						event.alt = evt->alt = (event.val == KM_PRESS) ?
+											   ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+											   FALSE;
+						break;
+					case OSKEY:
+						event.oskey = evt->oskey = (event.val == KM_PRESS) ?
+												   ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+												   FALSE;
+						break;
+					default:
+						if (event.val == KM_PRESS && event.keymodifier == 0)
+							evt->keymodifier = event.type;  /* only set in eventstate, for next event */
+						else if (event.val == KM_RELEASE && event.keymodifier == event.type)
+							event.keymodifier = evt->keymodifier = 0;
+						break;
+				}
+			}
 			/* this case happens on some systems that on holding a key pressed,
 			 * generate press events without release, we still want to keep the
 			 * modifier in win->eventstate, but for the press event of the same
@@ -2921,16 +2935,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			if (event.type == ESCKEY && event.val == KM_PRESS)
 				G.is_break = TRUE;
 			
-			/* double click test */
-			if (event.type == evt->prevtype && event.val == KM_PRESS) {
-				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
-					(ABS(event.y - evt->prevclicky)) <= 2 &&
-					((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
-				{
-					printf("double key click\n");
-					event.val = KM_DBL_CLICK;
-				}
-			}
 			if (event.val == KM_RELEASE) {
 				evt->prevclicktime = PIL_check_seconds_timer();
 				evt->prevclickx = event.x;
