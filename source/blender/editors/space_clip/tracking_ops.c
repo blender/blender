@@ -1396,7 +1396,6 @@ static void solve_camera_freejob(void *scv)
 	}
 
 	solved = BKE_tracking_reconstruction_finish(scj->context, tracking);
-
 	if (!solved)
 		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
 	else
@@ -1410,7 +1409,7 @@ static void solve_camera_freejob(void *scv)
 	id_us_plus(&clip->id);
 
 	/* set blender camera focal length so result would look fine there */
-	if (scene->camera) {
+	if (scene->camera && GS(scene->camera->id.name) == ID_CA) {
 		Camera *camera = (Camera *)scene->camera->data;
 		int width, height;
 

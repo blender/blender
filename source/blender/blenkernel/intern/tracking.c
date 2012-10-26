@@ -2138,7 +2138,7 @@ void BKE_tracking_context_sync(MovieTrackingContext *context)
 
 	context->sync_frame = newframe;
 
-	tracking->dopesheet.ok = FALSE;
+	BKE_tracking_dopesheet_tag_update(tracking);
 }
 
 void BKE_tracking_context_sync_user(const MovieTrackingContext *context, MovieClipUser *user)
@@ -2953,6 +2953,7 @@ int BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieTr
 	MovieTrackingReconstruction *reconstruction;
 
 	tracks_map_merge(context->tracks_map, tracking);
+	BKE_tracking_dopesheet_tag_update(tracking);
 
 	if (context->is_camera) {
 		reconstruction = &tracking->reconstruction;
@@ -3651,7 +3652,7 @@ static void channels_segments_calc(MovieTrackingDopesheetChannel *channel)
 	}
 }
 
-static void  tracking_dopesheet_sort(MovieTracking *tracking, int sort_method, int inverse)
+static void tracking_dopesheet_sort(MovieTracking *tracking, int sort_method, int inverse)
 {
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 
