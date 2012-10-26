@@ -1225,15 +1225,15 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE | SOUNDFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_float(ot->srna, "low", 0.0f, 0.0, 100000.0, "Lowest frequency", "", 0.1, 1000.00);
-	RNA_def_float(ot->srna, "high", 100000.0, 0.0, 100000.0, "Highest frequency", "", 0.1, 1000.00);
-	RNA_def_float(ot->srna, "attack", 0.005, 0.0, 2.0, "Attack time", "", 0.01, 0.1);
-	RNA_def_float(ot->srna, "release", 0.2, 0.0, 5.0, "Release time", "", 0.01, 0.2);
-	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "", 0.01, 0.1);
-	RNA_def_boolean(ot->srna, "accumulate", 0, "Accumulate", "");
-	RNA_def_boolean(ot->srna, "use_additive", 0, "Additive", "");
-	RNA_def_boolean(ot->srna, "square", 0, "Square", "");
-	RNA_def_float(ot->srna, "sthreshold", 0.1, 0.0, 1.0, "Square Threshold", "", 0.01, 0.1);
+	RNA_def_float(ot->srna, "low", 0.0f, 0.0, 100000.0, "Lowest frequency", "Cutoff frequency of a highpass that is applied to the audio data.", 0.1, 1000.00);
+	RNA_def_float(ot->srna, "high", 100000.0, 0.0, 100000.0, "Highest frequency", "Cutoff frequency of a lowpass that is applied to the audio data.", 0.1, 1000.00);
+	RNA_def_float(ot->srna, "attack", 0.005, 0.0, 2.0, "Attack time", "Value for the hull curve calculation that tells how fast the hull curve can rise (the lower the value the steeper it can rise).", 0.01, 0.1);
+	RNA_def_float(ot->srna, "release", 0.2, 0.0, 5.0, "Release time", "Value for the hull curve calculation that tells how fast the hull curve can fall (the lower the value the steeper it can fall).", 0.01, 0.2);
+	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "Threshold for the hull curve calculation, that thresholds the minimum amplitude value needed to influence the hull curve.", 0.01, 0.1);
+	RNA_def_boolean(ot->srna, "accumulate", 0, "Accumulate", "In case this is on, only the positive differences of the hull curve amplitudes are summarized to produce the output.");
+	RNA_def_boolean(ot->srna, "use_additive", 0, "Additive", "The amplitudes of the hull curve are summarized or when Accumulate is checked the differences (also negative) are additionally added.");
+	RNA_def_boolean(ot->srna, "square", 0, "Square", "The output is squared which means the signum function is applied to the hull curve, resulting in a graph with only -1, 0 or 1 as value.");
+	RNA_def_float(ot->srna, "sthreshold", 0.1, 0.0, 1.0, "Square Threshold", "Threshold: Threshold for squaring, all values with an absolute amplitude lower as this value result in 0 as value.", 0.01, 0.1);
 }
 
 /* ******************** Sample Keyframes Operator *********************** */
