@@ -119,13 +119,11 @@ int pyrna_prop_validity_check(BPy_PropertyRNA *self)
 	return -1;
 }
 
-#if defined(USE_PYRNA_INVALIDATE_GC) || defined(USE_PYRNA_INVALIDATE_WEAKREF)
-static void pyrna_invalidate(BPy_DummyPointerRNA *self)
+void pyrna_invalidate(BPy_DummyPointerRNA *self)
 {
 	self->ptr.type = NULL; /* this is checked for validity */
 	self->ptr.id.data = NULL; /* should not be needed but prevent bad pointer access, just in case */
 }
-#endif
 
 #ifdef USE_PYRNA_INVALIDATE_GC
 #define FROM_GC(g) ((PyObject *)(((PyGC_Head *)g) + 1))
