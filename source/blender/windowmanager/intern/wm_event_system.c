@@ -1672,7 +1672,7 @@ static int wm_action_not_handled(int action)
 	return action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK | WM_HANDLER_MODAL);
 }
 
-static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
+static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
 {
 #ifndef NDEBUG
 	const int do_debug_handler = (G.debug & G_DEBUG_EVENTS)
@@ -1849,49 +1849,44 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		}
 	}
 
-	/* test for CLICK event */
-	if (wm_action_not_handled(action) && event->val == KM_RELEASE) {
+	if (action == (WM_HANDLER_BREAK | WM_HANDLER_MODAL))
+		wm_cursor_arrow_move(CTX_wm_window(C), event);
+
+	return action;
+}
+
+/* this calls handlers twice - to solve (double-)click events */
+static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
+{
+	int action = wm_handlers_do_intern(C, event, handlers);
+	
+	/* test for CLICK events */
+	if (wm_action_not_handled(action)) {
 		wmWindow *win = CTX_wm_window(C);
-
-		if (win && win->eventstate->prevtype == event->type && win->eventstate->prevval == KM_PRESS) {
-			/* test for double click first,
-			 * note1: this can be problematic because single click operators can get the
-			 *   double click event but then with old mouse coords which is highly confusing,
-			 *   so check for mouse moves too.
-			 * note2: the first click event will be handled but still used to create a
-			 *   double click event if clicking again quickly.
-			 *   If no double click events are found it will fallback to a single click.
-			 *   So a double click event can result in 2 successive single click calls
-			 *   if its not handled by the keymap - campbell */
-			if ((ABS(event->x - win->eventstate->prevclickx)) <= 2 &&
-			    (ABS(event->y - win->eventstate->prevclicky)) <= 2 &&
-			    ((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time))
-			{
-				event->val = KM_DBL_CLICK;
-				/* removed this because in cases where we're this is used as a single click
-				 * event, this will give old coords,
-				 * since the distance is checked above, using new coords should be ok. */
-				//   event->x = win->eventstate->prevclickx;
-				//   event->y = win->eventstate->prevclicky;
-				action |= wm_handlers_do(C, event, handlers);
-			}
-
-			if (wm_action_not_handled(action)) {
+		
+		if (win && win->eventstate->prevtype == event->type) {
+			
+			if(event->val == KM_RELEASE && win->eventstate->prevval == KM_PRESS) {
 				event->val = KM_CLICK;
-				action |= wm_handlers_do(C, event, handlers);
+				action |= wm_handlers_do_intern(C, event, handlers);
+				
+				/* revert value if not handled */
+				if (wm_action_not_handled(action)) {
+					event->val = KM_RELEASE;
+				}
 			}
-
-
-			/* revert value if not handled */
-			if (wm_action_not_handled(action)) {
-				event->val = KM_RELEASE;
+			else if(event->val == KM_DBL_CLICK) {
+				event->val = KM_PRESS;
+				action |= wm_handlers_do_intern(C, event, handlers);
+				
+				/* revert value if not handled */
+				if (wm_action_not_handled(action)) {
+					event->val = KM_DBL_CLICK;
+				}
 			}
 		}
 	}
 	
-	if (action == (WM_HANDLER_BREAK | WM_HANDLER_MODAL))
-		wm_cursor_arrow_move(CTX_wm_window(C), event);
-
 	return action;
 }
 
@@ -2185,40 +2180,6 @@ void wm_event_do_handlers(bContext *C)
 				}
 			}
 			
-			/* store last event for this window */
-			/* mousemove and timer events don't overwrite last type */
-			if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && !ISTIMER(event->type)) {
-				if (wm_action_not_handled(action)) {
-					if (win->eventstate->prevtype == event->type) {
-						/* set click time on first click (press -> release) */
-						if (win->eventstate->prevval == KM_PRESS && event->val == KM_RELEASE) {
-							win->eventstate->prevclicktime = PIL_check_seconds_timer();
-							win->eventstate->prevclickx = event->x;
-							win->eventstate->prevclicky = event->y;
-						}
-					}
-					else {
-						/* reset click time if event type not the same */
-						win->eventstate->prevclicktime = 0;
-					}
-
-					win->eventstate->prevval = event->val;
-					win->eventstate->prevtype = event->type;
-				}
-				else if (event->val == KM_CLICK) { /* keep click for double click later */
-					win->eventstate->prevtype = event->type;
-					win->eventstate->prevval = event->val;
-					win->eventstate->prevclicktime = PIL_check_seconds_timer();
-					win->eventstate->prevclickx = event->x;
-					win->eventstate->prevclicky = event->y;
-				}
-				else { /* reset if not */
-					win->eventstate->prevtype = -1;
-					win->eventstate->prevval = 0;
-					win->eventstate->prevclicktime = 0;
-				}
-			}
-
 			/* unlink and free here, blender-quit then frees all */
 			BLI_remlink(&win->queue, event);
 			wm_event_free(event);
@@ -2724,6 +2685,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 	/* initialize and copy state (only mouse x y and modifiers) */
 	event = *evt;
 	
+	/* copy prev state to event state */
+	evt->prevval = evt->val;
+	evt->prevtype = evt->type;
+	
 	switch (type) {
 		/* mouse move */
 		case GHOST_kEventCursorMove:
@@ -2806,7 +2771,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventButtonUp:
 		{
 			GHOST_TEventButtonData *bd = customdata;
-
+			
+			/* get value and type from ghost */
 			event.val = (type == GHOST_kEventButtonDown) ? KM_PRESS : KM_RELEASE;
 			
 			if (bd->button == GHOST_kButtonMaskLeft)
@@ -2820,6 +2786,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			else
 				event.type = MIDDLEMOUSE;
 			
+			/* copy to event state */
+			evt->val= event.val;
+			evt->type= event.type;
+			
 			if (win->active == 0) {
 				int cx, cy;
 				
@@ -2828,6 +2798,21 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 				event.x = evt->x = cx;
 				event.y = evt->y = cy;
+			}
+			
+			/* double click test */
+			if (event.type == evt->prevtype && event.val == KM_PRESS) {
+				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
+					(ABS(event.y - evt->prevclicky)) <= 2 &&
+					((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
+				{
+					event.val = KM_DBL_CLICK;
+				}
+			}
+			if (event.val == KM_RELEASE) {
+				evt->prevclicktime = PIL_check_seconds_timer();
+				evt->prevclickx = event.x;
+				evt->prevclicky = event.y;
 			}
 			
 			/* add to other window if event is there (not to both!) */
@@ -2859,6 +2844,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.ascii = kd->ascii;
 			memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf)); /* might be not null terminated*/
 			event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
+			
+			/* copy to event state */
+			evt->val= event.val;
+			evt->type= event.type;
 			
 			/* exclude arrow keys, esc, etc from text input */
 			if (type == GHOST_kEventKeyUp) {
@@ -2931,6 +2920,22 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			/* if test_break set, it catches this. XXX Keep global for now? */
 			if (event.type == ESCKEY && event.val == KM_PRESS)
 				G.is_break = TRUE;
+			
+			/* double click test */
+			if (event.type == evt->prevtype && event.val == KM_PRESS) {
+				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
+					(ABS(event.y - evt->prevclicky)) <= 2 &&
+					((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
+				{
+					printf("double key click\n");
+					event.val = KM_DBL_CLICK;
+				}
+			}
+			if (event.val == KM_RELEASE) {
+				evt->prevclicktime = PIL_check_seconds_timer();
+				evt->prevclickx = event.x;
+				evt->prevclicky = event.y;
+			}
 			
 			wm_event_add(win, &event);
 			
