@@ -130,11 +130,12 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 	if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 		float screen_co_a[2];
 		float screen_co_b[2];
+		eV3DProjTest clip_flag_nowin = data->clip_flag &= ~V3D_PROJ_TEST_CLIP_WIN;
 
-		if (ED_view3d_project_float_object(data->vc.ar, v0co, screen_co_a, data->clip_flag) != V3D_PROJ_RET_OK) {
+		if (ED_view3d_project_float_object(data->vc.ar, v0co, screen_co_a, clip_flag_nowin) != V3D_PROJ_RET_OK) {
 			return;
 		}
-		if (ED_view3d_project_float_object(data->vc.ar, v1co, screen_co_b, data->clip_flag) != V3D_PROJ_RET_OK) {
+		if (ED_view3d_project_float_object(data->vc.ar, v1co, screen_co_b, clip_flag_nowin) != V3D_PROJ_RET_OK) {
 			return;
 		}
 
