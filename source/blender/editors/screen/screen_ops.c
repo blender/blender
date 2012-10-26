@@ -3082,6 +3082,9 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		}
 		else {
 			if (sync) {
+				/* note: this is very simplistic,
+				 * its has problem that it may skip too many frames.
+				 * however at least this gives a less jittery playback */
 				const int step = max_ii(1, floor((wt->duration - sad->last_duration) * FPS));
 
 				/* skip frames */

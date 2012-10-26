@@ -1450,6 +1450,11 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 
 	menu.type = mt;
 	menu.layout = layout;
+
+	if (G.debug & G_DEBUG_WM) {
+		printf("%s: opening menu \"%s\"\n", __func__, mt->idname);
+	}
+
 	mt->draw(C, &menu);
 }
 

@@ -674,6 +674,8 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	else {
 		pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 		layout = uiPupMenuLayout(pup);
+		/* set this so the default execution context is the same as submenus */
+		uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
 		uiItemsFullEnumO(layout, op->type->idname, RNA_property_identifier(prop), op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
 		uiPupMenuEnd(C, pup);
 	}

@@ -1080,7 +1080,7 @@ char *WM_clipboard_text_get(int selection)
 		return NULL;
 	
 	/* always convert from \r\n to \n */
-	newbuf = MEM_callocN(strlen(buf) + 1, "WM_clipboard_text_get");
+	newbuf = MEM_callocN(strlen(buf) + 1, __func__);
 
 	for (p = buf, p2 = newbuf; *p; p++) {
 		if (*p != '\r')

@@ -46,6 +46,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_global.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2510,6 +2511,9 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 	pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
 	pup->block->puphash = ui_popup_menu_hash(title);
 	pup->layout = uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
+
+	/* note, this intentionally differs from the menu & submenu default because many operators
+	 * use popups like this to select one of their options - where having invoke doesn't make sense */
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
 
 	/* create in advance so we can let buttons point to retval already */
@@ -2720,6 +2724,10 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 
 	menu.layout = layout;
 	menu.type = mt;
+
+	if (G.debug & G_DEBUG_WM) {
+		printf("%s: opening menu \"%s\"\n", __func__, idname);
+	}
 
 	mt->draw(C, &menu);
 
