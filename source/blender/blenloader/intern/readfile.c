@@ -3415,7 +3415,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 					/* if we have indexes, let's use them */
 					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
-						dw->ob = go ? go->ob : NULL;
+						dw->ob = go ? newlibadr(fd, part->id.lib, dw->ob) : NULL;
 					}
 				}
 				else {
