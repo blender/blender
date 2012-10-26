@@ -71,7 +71,7 @@
 
 static void do_nla_region_buttons(bContext *C, void *UNUSED(arg), int event)
 {
-	//Scene *scene= CTX_data_scene(C);
+	//Scene *scene = CTX_data_scene(C);
 	
 	switch (event) {
 
@@ -242,7 +242,7 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
 	if (!nla_panel_context(C, &adt_ptr, NULL, NULL))
 		return;
 
-	/* adt= adt_ptr.data; */
+	/* adt = adt_ptr.data; */
 	
 	block = uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);

@@ -183,7 +183,7 @@ static int space_image_poll(bContext *C)
 int space_image_main_area_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	// XXX ARegion *ar= CTX_wm_region(C);
+	// XXX ARegion *ar = CTX_wm_region(C);
 
 	if (sima)
 		return 1;  // XXX (ar && ar->type->regionid == RGN_TYPE_WINDOW);
@@ -1147,7 +1147,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		else {
 			simopts->im_format.imtype = BKE_ftype_to_imtype(ibuf->ftype);
 		}
-		//simopts->subimtype= scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
+		//simopts->subimtype = scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
 		simopts->im_format.quality = ibuf->ftype & 0xff;
 
 		BLI_strncpy(simopts->filepath, ibuf->name, sizeof(simopts->filepath));
@@ -1688,7 +1688,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	else {
 		Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
 		if (tex && tex->type == TEX_IMAGE) {
-			tex->ima= ima;
+			tex->ima = ima;
 			ED_area_tag_redraw(CTX_wm_area(C));
 		}
 	}
@@ -2370,8 +2370,8 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 	
 	WM_cursor_time(CTX_wm_window(C), scene->r.cfra);
 
-	// XXX scene->nodetree->test_break= blender_test_break;
-	// XXX scene->nodetree->test_break= NULL;
+	// XXX scene->nodetree->test_break = blender_test_break;
+	// XXX scene->nodetree->test_break = NULL;
 	
 	BKE_image_all_free_anim_ibufs(scene->r.cfra);
 	ntreeCompositTagAnimated(scene->nodetree);

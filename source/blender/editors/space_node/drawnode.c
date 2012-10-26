@@ -2580,7 +2580,7 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
 
 static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	/* bNode *node= ptr->data; */ /* UNUSED */
+	/* bNode *node = ptr->data; */ /* UNUSED */
 
 	uiItemR(layout, ptr, "blur_pre", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "screen_balance", 0, NULL, ICON_NONE);

@@ -1826,7 +1826,7 @@ void RNA_def_material(BlenderRNA *brna)
 	                         "from other scene lighting");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-    prop= RNA_def_property(srna, "use_light_group_local", PROP_BOOLEAN, PROP_NONE);
+    prop = RNA_def_property(srna, "use_light_group_local", PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_GROUP_LOCAL);
     RNA_def_property_ui_text(prop, "Light Group Local", "When linked in, material uses local light group with the same name");
     RNA_def_property_update(prop, 0, "rna_Material_update");

@@ -92,7 +92,7 @@ static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 {
 	TreeElement *te = lb->first;
 	while (te) {
-//		TreeStoreElem *tselem= TREESTORE(te);
+//		TreeStoreElem *tselem = TREESTORE(te);
 		
 		// XXX fixme... te->xend is not set yet
 		if (!TSELEM_OPEN(tselem, soops)) {

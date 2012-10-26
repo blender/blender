@@ -1002,9 +1002,9 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	/* moving: is shown in drawobject() (transform color) */
 //  TRANSFORM_FIX_ME
-//	if (obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
-//	else if (G.f & G_PARTICLEEDIT) G.moving= G_TRANSFORM_PARTICLE;
-//	else G.moving= G_TRANSFORM_OBJ;
+//	if (obedit || (t->flag & T_POSE) ) G.moving = G_TRANSFORM_EDIT;
+//	else if (G.f & G_PARTICLEEDIT) G.moving = G_TRANSFORM_PARTICLE;
+//	else G.moving = G_TRANSFORM_OBJ;
 	
 	t->scene = sce;
 	t->sa = sa;

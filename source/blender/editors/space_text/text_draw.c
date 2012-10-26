@@ -1355,7 +1355,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 		x += SUGG_LIST_WIDTH * st->cwidth + 50;
 	}
 
-	/* top= */ /* UNUSED */ y = ar->winy - st->lheight * l - 2;
+	/* top = */ /* UNUSED */ y = ar->winy - st->lheight * l - 2;
 	boxw = DOC_WIDTH * st->cwidth + 20;
 	boxh = (DOC_HEIGHT + 1) * st->lheight;
 

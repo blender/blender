@@ -236,7 +236,7 @@ static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soo
 	
 	if (ob == NULL) return 0;  // no active object
 	
-	/*tselem= TREESTORE(te);*/ /*UNUSED*/
+	/*tselem = TREESTORE(te);*/ /*UNUSED*/
 	
 	/* find buttons area (note, this is undefined really still, needs recode in blender) */
 	/* XXX removed finding sbuts */
@@ -250,8 +250,8 @@ static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soo
 
 		if (set) {
 			if (sbuts) {
-				// XXX sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				// XXX sbuts->texfrom= 1;
+				// XXX sbuts->tabo = TAB_SHADING_TEX;	// hack from header_buttonswin.c
+				// XXX sbuts->texfrom = 1;
 			}
 // XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			wrld->texact = te->index;
@@ -264,8 +264,8 @@ static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soo
 		Lamp *la = (Lamp *)tselemp->id;
 		if (set) {
 			if (sbuts) {
-				// XXX sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				// XXX sbuts->texfrom= 2;
+				// XXX sbuts->tabo = TAB_SHADING_TEX;	// hack from header_buttonswin.c
+				// XXX sbuts->texfrom = 2;
 			}
 // XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			la->texact = te->index;
@@ -280,8 +280,8 @@ static int tree_element_active_texture(bContext *C, Scene *scene, SpaceOops *soo
 		Material *ma = (Material *)tselemp->id;
 		if (set) {
 			if (sbuts) {
-				//sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				// XXX sbuts->texfrom= 0;
+				//sbuts->tabo = TAB_SHADING_TEX;	// hack from header_buttonswin.c
+				// XXX sbuts->texfrom = 0;
 			}
 // XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			ma->texact = (char)te->index;

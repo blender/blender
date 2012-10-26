@@ -659,7 +659,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	bNodeSocket *sock;
 	rctf *rct = &node->totr;
 	float iconofs;
-	/* float socket_size= NODE_SOCKSIZE*U.dpi/72; */ /* UNUSED */
+	/* float socket_size = NODE_SOCKSIZE*U.dpi/72; */ /* UNUSED */
 	float iconbutw = 0.8f * UI_UNIT_X;
 	int color_id = node_get_colorid(node);
 	char showname[128]; /* 128 used below */
@@ -1099,7 +1099,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	/* aspect+font, set each time */
 	snode->aspect = BLI_rctf_size_x(&v2d->cur) / (float)ar->winx;
 	snode->aspect_sqrt = sqrtf(snode->aspect);
-	// XXX snode->curfont= uiSetCurFont_ext(snode->aspect);
+	// XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 
 	/* grid */
 	UI_view2d_multi_grid_draw(v2d, 25.0f, 5, 2);

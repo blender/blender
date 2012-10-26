@@ -3251,7 +3251,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 	/* get the flag and the pointer to that flag */
 	flag = acf->setting_flag(ac, setting, &negflag);
 	ptr = acf->setting_ptr(ale, setting, &ptrsize);
-	/* enabled= ANIM_channel_setting_get(ac, ale, setting); */ /* UNUSED */
+	/* enabled = ANIM_channel_setting_get(ac, ale, setting); */ /* UNUSED */
 	
 	/* get the base icon for the setting */
 	switch (setting) {
@@ -3266,13 +3266,13 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			break;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded triangle */
-			//icon= ((enabled)? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
+			//icon = ((enabled)? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
 			icon = ICON_TRIA_RIGHT;
 			tooltip = "Make channels grouped under this channel visible";
 			break;
 			
 		case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
-			//icon= ((enabled)? ICON_LAYER_ACTIVE : ICON_LAYER_USED);
+			//icon = ((enabled)? ICON_LAYER_ACTIVE : ICON_LAYER_USED);
 			icon = ICON_LAYER_USED;
 			tooltip = "NLA Track is the only one evaluated for the AnimData block it belongs to";
 			break;
@@ -3281,13 +3281,13 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 		
 		case ACHANNEL_SETTING_PROTECT: /* protected lock */
 			// TODO: what about when there's no protect needed?
-			//icon= ((enabled)? ICON_LOCKED : ICON_UNLOCKED);
+			//icon = ((enabled)? ICON_LOCKED : ICON_UNLOCKED);
 			icon = ICON_UNLOCKED;
 			tooltip = "Editability of keyframes for this channel";
 			break;
 			
 		case ACHANNEL_SETTING_MUTE: /* muted speaker */
-			//icon= ((enabled)? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
+			//icon = ((enabled)? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
 			icon = ICON_MUTE_IPO_OFF;
 			
 			if (ale->type == ALE_FCURVE) 
@@ -3370,7 +3370,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 	y = (ymaxc - yminc) / 2 + yminc;
 	ymid = y - 7;
 	/* y-coordinates for text is only 4 down from middle */
-	/* ytext= y - 4; */
+	/* ytext = y - 4; */
 	
 	/* no button backdrop behind icons */
 	uiBlockSetEmboss(block, UI_EMBOSSN);

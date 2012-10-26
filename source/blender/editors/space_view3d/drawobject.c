@@ -4427,7 +4427,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 		if (cdata2)
 			MEM_freeN(cdata2);
-		/* cd2= */ /* UNUSED */ cdata2 = NULL;
+		/* cd2 = */ /* UNUSED */ cdata2 = NULL;
 
 		glLineWidth(1.0f);
 
@@ -5493,7 +5493,7 @@ static void drawcircle_size(float size)
 
 	glBegin(GL_LINE_LOOP);
 
-	/* coordinates are: cos(degrees*11.25)=x, sin(degrees*11.25)=y, 0.0f=z */
+	/* coordinates are: cos(degrees * 11.25) = x, sin(degrees*11.25) = y, 0.0f = z */
 	for (degrees = 0; degrees < CIRCLE_RESOL; degrees++) {
 		x = cosval[degrees];
 		y = sinval[degrees];

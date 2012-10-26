@@ -142,7 +142,7 @@ CSG_AddMeshToBlender(
 
 	/* Create a new blender mesh object - using 'base' as
 	 * a template for the new object. */
-	ob_new=  AddNewBlenderMesh(mesh->base);
+	ob_new =  AddNewBlenderMesh(mesh->base);
 
 	me_new = ob_new->data;
 

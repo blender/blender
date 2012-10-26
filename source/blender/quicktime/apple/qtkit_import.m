@@ -147,7 +147,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	uchar *toIBuf = NULL;
 	int x, y, to_i, from_i;
 	NSSize bitmapSize;
-	NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA,*bitmapImage=nil;
+	NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA, *bitmapImage = nil;
 	NSEnumerator *enumerator;
 	NSImageRep *representation;
 	

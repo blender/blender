@@ -813,7 +813,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	sim.psys = psmd->psys;
 	sim.psmd = psmd;
 
-	/* timestep= psys_get_timestep(&sim); */
+	/* timestep = psys_get_timestep(&sim); */
 
 	cfra = BKE_scene_frame_get(scene);
 
@@ -861,7 +861,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	/* the final duplicated vertices */
 	explode = CDDM_from_template(dm, totdup, 0, totface - delface, 0, 0);
 	mtface = CustomData_get_layer_named(&explode->faceData, CD_MTFACE, emd->uvname);
-	/*dupvert= CDDM_get_verts(explode);*/
+	/*dupvert = CDDM_get_verts(explode);*/
 
 	/* getting back to object space */
 	invert_m4_m4(imat, ob->obmat);

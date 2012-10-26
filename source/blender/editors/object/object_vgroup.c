@@ -1651,11 +1651,11 @@ static void vgroup_blend(Object *ob, const float fac)
 					/* i1 is always the selected one */
 					if (sel1) {
 						i1 = BM_elem_index_get(eed->v1);
-						/* i2= BM_elem_index_get(eed->v2); */ /* UNUSED */
+						/* i2 = BM_elem_index_get(eed->v2); */ /* UNUSED */
 						eve = eed->v2;
 					}
 					else {
-						/* i2= BM_elem_index_get(eed->v1); */ /* UNUSED */
+						/* i2 = BM_elem_index_get(eed->v1); */ /* UNUSED */
 						i1 = BM_elem_index_get(eed->v2);
 						eve = eed->v1;
 					}

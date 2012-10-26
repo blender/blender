@@ -363,7 +363,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		 */
 
 		vert_connect = MEM_mallocN(sizeof(ScrewVertConnect) * totvert, "ScrewVertConnect");
-		//vert_connect= (ScrewVertConnect *) &medge_new[totvert]; /* skip the first slice of verts */
+		//vert_connect = (ScrewVertConnect *) &medge_new[totvert];  /* skip the first slice of verts */
 		vc = vert_connect;
 
 		/* Copy Vert Locations */
@@ -732,7 +732,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			copy_v3_v3(mv_new->co, mv_new_base->co);
 			
 			/* only need to set these if using non cleared memory */
-			/*mv_new->mat_nr= mv_new->flag= 0;*/
+			/*mv_new->mat_nr = mv_new->flag = 0;*/
 				
 			if (ltmd->ob_axis) {
 				sub_v3_v3(mv_new->co, mtx_tx[3]);

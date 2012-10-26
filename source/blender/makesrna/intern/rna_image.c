@@ -150,7 +150,7 @@ static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 static char *rna_ImageUser_path(PointerRNA *ptr)
 {
 	if (ptr->id.data) {
-		/* ImageUser *iuser= ptr->data; */
+		/* ImageUser *iuser = ptr->data; */
 		
 		switch (GS(((ID *)ptr->id.data)->name)) {
 			case ID_TE:

@@ -469,11 +469,11 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
+		//SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		//SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		//SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_NLA) {
@@ -6591,5 +6591,5 @@ int TimeScale(TransInfo *t, const int UNUSED(mval[2]))
 void BIF_TransformSetUndo(const char *UNUSED(str))
 {
 	// TRANSFORM_FIX_ME
-	//Trans.undostr= str;
+	//Trans.undostr = str;
 }

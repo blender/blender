@@ -399,7 +399,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 	else {
-		// seq= find_nearest_seq(scene, v2d, &hand, mval);
+		// seq = find_nearest_seq(scene, v2d, &hand, mval);
 
 		act_orig = ed->act_seq;
 

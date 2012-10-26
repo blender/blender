@@ -143,7 +143,7 @@ QuicktimeCodecTypeDesc* quicktime_get_videocodecType_desc(int indexValue)
 int quicktime_rnatmpvalue_from_videocodectype(int codecType)
 {
 	int i;
-	for (i=0;i<qtVideoCodecCount;i++) {
+	for (i = 0; i < qtVideoCodecCount; i++) {
 		if (qtVideoCodecList[i].codecType == codecType)
 			return qtVideoCodecList[i].rnatmpvalue;
 	}
@@ -154,7 +154,7 @@ int quicktime_rnatmpvalue_from_videocodectype(int codecType)
 int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue)
 {
 	int i;
-	for (i=0;i<qtVideoCodecCount;i++) {
+	for (i = 0; i < qtVideoCodecCount; i++) {
 		if (qtVideoCodecList[i].rnatmpvalue == rnatmpvalue)
 			return qtVideoCodecList[i].codecType;
 	}
@@ -188,7 +188,7 @@ QuicktimeCodecTypeDesc* quicktime_get_audiocodecType_desc(int indexValue)
 int quicktime_rnatmpvalue_from_audiocodectype(int codecType)
 {
 	int i;
-	for (i=0;i<qtAudioCodecCount;i++) {
+	for (i = 0; i < qtAudioCodecCount; i++) {
 		if (qtAudioCodecList[i].codecType == codecType)
 			return qtAudioCodecList[i].rnatmpvalue;
 	}
@@ -199,7 +199,7 @@ int quicktime_rnatmpvalue_from_audiocodectype(int codecType)
 int quicktime_audiocodecType_from_rnatmpvalue(int rnatmpvalue)
 {
 	int i;
-	for (i=0;i<qtAudioCodecCount;i++) {
+	for (i = 0; i < qtAudioCodecCount; i++) {
 		if (qtAudioCodecList[i].rnatmpvalue == rnatmpvalue)
 			return qtAudioCodecList[i].codecType;
 	}
@@ -235,7 +235,7 @@ void makeqtstring (RenderData *rd, char *string)
 
 void filepath_qt(char *string, RenderData *rd)
 {
-	if (string==NULL) return;
+	if (string == NULL) return;
 	
 	strcpy(string, rd->pic);
 	BLI_path_abs(string, G.main->name);
@@ -313,8 +313,8 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSError *error;
 	char name[1024];
-	int success= 1;
-	OSStatus err=noErr;
+	int success = 1;
+	OSStatus err = noErr;
 
 	if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
 	
@@ -323,7 +323,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	/* Check first if the QuickTime 7.2.1 initToWritableFile: method is available */
 	if ([[[[QTMovie alloc] init] autorelease] respondsToSelector:@selector(initToWritableFile:error:)] != YES) {
 		BKE_report(reports, RPT_ERROR, "\nUnable to create quicktime movie, need Quicktime rev 7.2.1 or later");
-		success= 0;
+		success = 0;
 	}
 	else {
 		makeqtstring(rd, name);
@@ -543,7 +543,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 
 		if(qtexport->movie == nil) {
 			BKE_report(reports, RPT_ERROR, "Unable to create quicktime movie.");
-			success= 0;
+			success = 0;
 			if (qtexport->filename) [qtexport->filename release];
 			qtexport->filename = nil;
 			if (qtexport->audioFileName) [qtexport->audioFileName release];

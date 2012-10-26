@@ -52,8 +52,8 @@
 
 static int logic_properties(bContext *C, wmOperator *UNUSED(op))
 {
-	ScrArea *sa= CTX_wm_area(C);
-	ARegion *ar= logic_has_buttons_region(sa);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = logic_has_buttons_region(sa);
 	
 	if (ar)
 		ED_region_toggle_hidden(C, ar);
@@ -100,9 +100,9 @@ static int cut_links_intersect(uiLinkLine *line, float mcoords[][2], int tot)
 
 static int cut_links_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
+	ARegion *ar = CTX_wm_region(C);
 	float mcoords[256][2];
-	int i= 0;
+	int i = 0;
 	
 	RNA_BEGIN (op->ptr, itemptr, "path")
 	{
@@ -121,19 +121,19 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		uiBlock *block;
 		uiLinkLine *line, *nline;
 		uiBut *but;
-		for (block= ar->uiblocks.first; block; block= block->next) {
-			but= block->buttons.first;
+		for (block = ar->uiblocks.first; block; block = block->next) {
+			but = block->buttons.first;
 			while (but) {
 				if (but->type==LINK && but->link) {
-					for (line= but->link->lines.first; line; line= nline) {
-						nline= line->next;
+					for (line = but->link->lines.first; line; line = nline) {
+						nline = line->next;
 
 						if (cut_links_intersect(line, mcoords, i)) {
 							ui_delete_linkline(line, but);
 						}
 					}
 				}
-				but= but->next;
+				but = but->next;
 			}
 		}
 		return OPERATOR_FINISHED;
@@ -159,7 +159,7 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
+	prop = RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
 	/* internal */
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);

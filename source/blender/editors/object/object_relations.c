@@ -1273,7 +1273,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			local = base->lay & 0xFF000000;
 			base->lay = lay + local;
 			base->object->lay = lay;
-			/* if (base->object->type==OB_LAMP) is_lamp = TRUE; */
+			/* if (base->object->type == OB_LAMP) is_lamp = TRUE; */
 		}
 		CTX_DATA_END;
 	}

@@ -490,7 +490,7 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 	
 	/* (not used yet) */
 #if 0
-	prop= RNA_def_property(srna, "panelzoom", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "panelzoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.5, 2.0);
 	RNA_def_property_ui_text(prop, "Panel Zoom", "Default zoom level for panel areas");
 #endif

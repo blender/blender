@@ -810,7 +810,7 @@ static void UNUSED_FUNCTION(set_special_seq_update) (int val)
 
 	/* if mouse over a sequence && LEFTMOUSE */
 	if (val) {
-// XXX		special_seq_update= find_nearest_seq(&x);
+// XXX		special_seq_update = find_nearest_seq(&x);
 	}
 	else special_seq_update = NULL;
 }

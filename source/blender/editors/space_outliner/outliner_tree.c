@@ -731,7 +731,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		case ID_AC:
 		{
 			// XXX do we want to be exposing the F-Curves here?
-			//bAction *act= (bAction *)id;
+			//bAction *act = (bAction *)id;
 		}
 		break;
 		case ID_AR:
@@ -1148,7 +1148,7 @@ static void outliner_add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *t
 		}
 
 		if (!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
-			/* ch= */ /* UNUSED */ outliner_add_element(soops, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
+			/* ch = */ /* UNUSED */ outliner_add_element(soops, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
 		p = p->next;
 	}
 }
@@ -1531,7 +1531,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		while (seq) {
 			op = need_add_seq_dup(seq);
 			if (op == 1) {
-				/* ten= */ outliner_add_element(soops, &soops->tree, (void *)seq, NULL, TSE_SEQUENCE, 0);
+				/* ten = */ outliner_add_element(soops, &soops->tree, (void *)seq, NULL, TSE_SEQUENCE, 0);
 			}
 			else if (op == 0) {
 				ten = outliner_add_element(soops, &soops->tree, (void *)seq, NULL, TSE_SEQUENCE_DUP, 0);
@@ -1569,7 +1569,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		wmKeyMap *km;
 		
 		for (km = wm->defaultconf->keymaps.first; km; km = km->next) {
-			/* ten= */ outliner_add_element(soops, &soops->tree, (void *)km, NULL, TSE_KEYMAP, 0);
+			/* ten = */ outliner_add_element(soops, &soops->tree, (void *)km, NULL, TSE_KEYMAP, 0);
 		}
 	}
 	else {

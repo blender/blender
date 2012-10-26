@@ -3662,7 +3662,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						bezt_to_transdata(td++, td2d++, adt, bezt, 0, 1, 1, intvals, mtx, smtx);
 					}
 					else {
-						/* h1= 0; */ /* UNUSED */
+						/* h1 = 0; */ /* UNUSED */
 					}
 					
 					if (sel3) {
@@ -3671,7 +3671,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						bezt_to_transdata(td++, td2d++, adt, bezt, 2, 1, 1, intvals, mtx, smtx);
 					}
 					else {
-						/* h2= 0; */ /* UNUSED */
+						/* h2 = 0; */ /* UNUSED */
 					}
 				}
 				
@@ -4584,7 +4584,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		
 		td->ext->irotAngle = ob->rotAngle;
 		copy_v3_v3(td->ext->irotAxis, ob->rotAxis);
-		// td->ext->drotAngle= ob->drotAngle;			// XXX, not implemented
+		// td->ext->drotAngle = ob->drotAngle;			// XXX, not implemented
 		// copy_v3_v3(td->ext->drotAxis, ob->drotAxis);	// XXX, not implemented
 	}
 	else {

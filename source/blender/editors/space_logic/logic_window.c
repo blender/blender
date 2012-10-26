@@ -104,8 +104,8 @@ static int vergname(const void *v1, const void *v2)
 {
 	char **x1, **x2;
 	
-	x1= (char **)v1;
-	x2= (char **)v2;
+	x1 = (char **)v1;
+	x2 = (char **)v2;
 	
 	return BLI_natstrcmp(*x1, *x2);
 }
@@ -903,7 +903,7 @@ static uiBlock *controller_state_mask_menu(bContext *C, ARegion *ar, void *arg_c
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-5, -5, 200, 34, NULL, 0, 0, 0, 0, "");
 	
-	for (offset=0; offset<15; offset+=5) {
+	for (offset=0; offset<15; offset += 5) {
 		uiBlockBeginAlign(block);
 		for (stbit=0; stbit<5; stbit++) {
 			but = uiDefButBitI(block, TOG, (1<<(stbit+offset)), (stbit+offset), "",	(short)(xco+12*stbit+13*offset), yco, 12, 12, (int *)&(cont->state_mask), 0, 0, 0, 0, "");

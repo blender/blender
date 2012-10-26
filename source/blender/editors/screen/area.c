@@ -1265,7 +1265,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 /* externally called for floating regions like menus */
 void ED_region_init(bContext *C, ARegion *ar)
 {
-//	ARegionType *at= ar->type;
+//	ARegionType *at = ar->type;
 	
 	/* refresh can be called before window opened */
 	region_subwindow(CTX_wm_window(C), ar);

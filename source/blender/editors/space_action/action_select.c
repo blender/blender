@@ -1210,7 +1210,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
-	/* ar= ac.ar; */ /* UNUSED */
+	/* ar = ac.ar; */ /* UNUSED */
 
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))

@@ -598,7 +598,7 @@ void ED_spacetype_file(void)
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	art->init = file_header_area_init;
 	art->draw = file_header_area_draw;
-	// art->listener= file_header_area_listener;
+	// art->listener = file_header_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: ui */

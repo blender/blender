@@ -65,12 +65,12 @@ void node_free_standard_storage(bNode *node)
 
 void node_copy_curves(bNode *orig_node, bNode *new_node)
 {
-	new_node->storage= curvemapping_copy(orig_node->storage);
+	new_node->storage = curvemapping_copy(orig_node->storage);
 }
 
 void node_copy_standard_storage(bNode *orig_node, bNode *new_node)
 {
-	new_node->storage= MEM_dupallocN(orig_node->storage);
+	new_node->storage = MEM_dupallocN(orig_node->storage);
 }
 
 void *node_initexec_curves(bNode *node)

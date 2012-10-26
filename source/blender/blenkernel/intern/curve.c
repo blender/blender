@@ -1945,7 +1945,7 @@ static void bevel_list_smooth(BevList *bl, int smooth_iter)
 
 		if (bl->poly == -1) { /* check its not cyclic */
 			/* skip the first point */
-			/* bevp0= bevp1; */
+			/* bevp0 = bevp1; */
 			bevp1 = bevp2;
 			bevp2++;
 			nr--;
@@ -1974,7 +1974,7 @@ static void bevel_list_smooth(BevList *bl, int smooth_iter)
 			interp_qt_qtqt(bevp1->quat, bevp1->quat, q, 0.5);
 			normalize_qt(bevp1->quat);
 
-			/* bevp0= bevp1; */ /* UNUSED */
+			/* bevp0 = bevp1; */ /* UNUSED */
 			bevp1 = bevp2;
 			bevp2++;
 		}
@@ -2151,7 +2151,7 @@ static void make_bevel_list_3D_tangent(BevList *bl)
 		normalize_v3(cross_tmp);
 		tri_to_quat(bevp1->quat, zero, cross_tmp, bevp1->tan); /* XXX - could be faster */
 
-		/* bevp0= bevp1; */ /* UNUSED */
+		/* bevp0 = bevp1; */ /* UNUSED */
 		bevp1 = bevp2;
 		bevp2++;
 	}

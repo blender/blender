@@ -1109,7 +1109,7 @@ static void rna_def_charinfo(BlenderRNA *brna)
 	
 	/* probably there is no reason to expose this */
 #if 0
-	prop= RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "wrap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_WRAP);
 	RNA_def_property_ui_text(prop, "Wrap", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data"); */
@@ -1167,10 +1167,10 @@ static void rna_def_curve_spline_points(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
 
 #if 0
-	func= RNA_def_function(srna, "remove", "rna_Curve_spline_remove");
+	func = RNA_def_function(srna, "remove", "rna_Curve_spline_remove");
 	RNA_def_function_ui_description(func, "Remove a spline from a curve");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove");
+	parm = RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 #endif
 }

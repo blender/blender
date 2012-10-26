@@ -280,7 +280,7 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 {
 	uiBut *but;
 	int x, y;
-	/*float alpha=1.0f;*/
+	// float alpha = 1.0f;
 	
 	x = sx;
 	y = sy - height;

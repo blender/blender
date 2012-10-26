@@ -2886,7 +2886,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 		mul_v3_m4v3(curs, obedit->imat, give_cursor(scene, v3d));
 		
 		/* Create a bone */
-		/* newbone= */ add_points_bone(obedit, ebp->vec, curs);
+		/* newbone = */ add_points_bone(obedit, ebp->vec, curs);
 	}
 	else if (count == 2) {
 		EditBonePoint *ebp, *ebp2;

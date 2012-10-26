@@ -233,7 +233,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 		BMesh *bm = em->bm;
 		BMIter iter;
 		void *userdata[2] = {em, NULL};
-		/*int proptrans= 0; */ /*UNUSED*/
+		/*int proptrans = 0; */ /*UNUSED*/
 		
 		/* abuses vertex index all over, set, just set dirty here,
 		 * perhaps this could use its own array instead? - campbell */

@@ -1266,12 +1266,12 @@ static void RestoreState(bContext *C, wmWindow *win)
 		GPU_paint_set_mipmap(0);
 
 	//XXX curarea->win_swap = 0;
-	//XXX curarea->head_swap=0;
+	//XXX curarea->head_swap = 0;
 	//XXX allqueue(REDRAWVIEW3D, 1);
 	//XXX allqueue(REDRAWBUTSALL, 0);
 	//XXX reset_slowparents();
 	//XXX waitcursor(0);
-	//XXX G.qual= 0;
+	//XXX G.qual = 0;
 	
 	if (win) /* check because closing win can set to NULL */
 		win->queue = queue_back;
@@ -1396,7 +1396,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	WM_redraw_windows(C);
 
 	rv3d = CTX_wm_region_view3d(C);
-	/* sa= CTX_wm_area(C); */ /* UNUSED */
+	/* sa = CTX_wm_area(C); */ /* UNUSED */
 	ar = CTX_wm_region(C);
 
 	view3d_operator_needs_opengl(C);

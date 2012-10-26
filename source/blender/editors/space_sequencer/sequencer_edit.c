@@ -1056,7 +1056,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 		{
 			if ((seq->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) == 0) {
 				/* simple but no anim update */
-				/* seq->start= snap_frame-seq->startofs+seq->startstill; */
+				/* seq->start = snap_frame-seq->startofs+seq->startstill; */
 
 				BKE_sequence_translate(scene, seq, (snap_frame - seq->startofs + seq->startstill) - seq->start);
 			}
@@ -3042,7 +3042,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 		seq->anim_startofs = seq->anim_endofs = 0;
 
 		/* correct start/end frames so we don't move
-		 * important not to set seq->len= len; allow the function to handle it */
+		 * important not to set seq->len = len; allow the function to handle it */
 		BKE_sequence_reload_new_file(scene, seq, TRUE);
 
 		BKE_sequence_calc(scene, seq);

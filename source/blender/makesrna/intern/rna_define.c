@@ -900,7 +900,7 @@ void RNA_def_struct_translation_context(StructRNA *srna, const char *context)
 
 PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier, int type, int subtype)
 {
-	/*StructRNA *srna= DefRNA.laststruct;*/ /* invalid for python defined props */
+	/*StructRNA *srna = DefRNA.laststruct;*/ /* invalid for python defined props */
 	ContainerRNA *cont = cont_;
 	ContainerDefRNA *dcont;
 	PropertyDefRNA *dprop = NULL;

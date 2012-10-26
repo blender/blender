@@ -189,7 +189,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 
 	/* if in NLA there's a strip active, map the view */
 	if (ac->datatype == ANIMCONT_ACTION) {
-		/* adt= ANIM_nla_mapping_get(ac, NULL); */ /* UNUSED */
+		/* adt = ANIM_nla_mapping_get(ac, NULL); */ /* UNUSED */
 		
 		/* start and end of action itself */
 		calc_action_range(ac->data, &act_start, &act_end, 0);

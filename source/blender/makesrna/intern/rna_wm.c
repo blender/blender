@@ -1425,7 +1425,7 @@ static void rna_def_operator_type_macro(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Operator Macro", "Storage of a sub operator in a macro after it has been added");
 	RNA_def_struct_sdna(srna, "wmOperatorTypeMacro");
 
-/*	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE); */
+/*	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE); */
 /*	RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 /*	RNA_def_property_string_sdna(prop, NULL, "idname"); */
 /*	RNA_def_property_ui_text(prop, "Name", "Name of the sub operator"); */

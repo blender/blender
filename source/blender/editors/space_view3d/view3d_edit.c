@@ -2041,7 +2041,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 		normalize_v3(mousevec);
 	}
 
-	/* v3d= sa->spacedata.first; */ /* UNUSED */
+	/* v3d = sa->spacedata.first; */ /* UNUSED */
 	rv3d = ar->regiondata;
 
 	/* overwrite the mouse vector with the view direction (zoom into the center) */

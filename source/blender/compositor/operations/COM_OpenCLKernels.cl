@@ -54,10 +54,10 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 		float2 uv;
 		int2 inputXy;
 		
-		for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny +=step, inputXy.y+=step) {
+		for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny += step, inputXy.y += step) {
 			uv.y = ((realCoordinate.y-ny)/radius2)*bokehImageDim.y+bokehImageCenter.y;
 			
-			for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx +=step, inputXy.x+=step) {
+			for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx += step, inputXy.x += step) {
 				uv.x = ((realCoordinate.x-nx)/radius2)*bokehImageDim.x+bokehImageCenter.x;
 				bokeh = read_imagef(bokehImage, SAMPLER_NEAREST, uv);
 				color += bokeh * read_imagef(inputImage, SAMPLER_NEAREST, inputXy);
