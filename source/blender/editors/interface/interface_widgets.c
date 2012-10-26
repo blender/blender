@@ -1276,9 +1276,12 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 /* draws text and icons for buttons */
 static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
-	if (but == NULL) {
+	char password_str[UI_MAX_DRAW_STR];
+
+	if (but == NULL)
 		return;
-	}
+
+	ui_button_text_password_hide(password_str, but, FALSE);
 
 	/* clip but->drawstr to fit in available space */
 	if (but->editstr && but->pos >= 0) {
@@ -1337,6 +1340,8 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		widget_draw_text(fstyle, wcol, but, rect);
 
 	}
+
+	ui_button_text_password_hide(password_str, but, TRUE);
 }
 
 

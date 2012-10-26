@@ -1299,6 +1299,71 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 }
 
+/* ************************ password text ******************************
+ *
+ * Functions to convert password strings that should not be displayed
+ * to asterisk representation (e.g. mysecretpasswd -> *************)
+ *
+ * It converts every UTF-8 character to an asterisk, and also remaps
+ * the cursor position and selection start/end.
+ *
+ * Note: remaping is used, because password could contain UTF-8 characters.
+ *
+ */
+
+static int ui_text_position_from_hidden(uiBut *but, int pos)
+{
+	const char *strpos;
+	int i;
+
+	for (i = 0, strpos = but->drawstr; i < pos; i++)
+		strpos = BLI_str_find_next_char_utf8(strpos, NULL);
+	
+	return (strpos - but->drawstr);
+}
+
+static int ui_text_position_to_hidden(uiBut *but, int pos)
+{
+	return BLI_strlen_range_utf8(but->drawstr, but->drawstr + pos);
+}
+
+void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, int restore)
+{
+	if (!(but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_PASSWORD))
+		return;
+
+	if (restore) {
+		/* restore original string */
+		BLI_strncpy(but->drawstr, password_str, UI_MAX_DRAW_STR);
+
+		/* remap cursor positions */
+		if(but->pos >= 0) {
+			but->pos = ui_text_position_from_hidden(but, but->pos);
+			but->selsta = ui_text_position_from_hidden(but, but->selsta);
+			but->selend = ui_text_position_from_hidden(but, but->selend);
+		}
+	}
+	else {
+		/* convert text to hidden test using asterisks (e.g. pass -> ****) */
+		int i, len = BLI_strlen_utf8(but->drawstr);
+
+		/* remap cursor positions */
+		if(but->pos >= 0) {
+			but->pos = ui_text_position_to_hidden(but, but->pos);
+			but->selsta = ui_text_position_to_hidden(but, but->selsta);
+			but->selend = ui_text_position_to_hidden(but, but->selend);
+		}
+
+		/* save original string */
+		BLI_strncpy(password_str, but->drawstr, UI_MAX_DRAW_STR);
+
+		for (i = 0; i < len; i++)
+			but->drawstr[i] = '*';
+		but->drawstr[i] = '\0';
+	}
+}
+
+
 /* ************* in-button text selection/editing ************* */
 
 
@@ -1322,13 +1387,15 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	uiStyle *style = UI_GetStyle();  // XXX pass on as arg
 	uiFontStyle *fstyle = &style->widget;
 	int startx = but->rect.xmin;
-	char *origstr;
+	char *origstr, password_str[UI_MAX_DRAW_STR];
 
 	uiStyleFontSet(fstyle);
 
 	if (fstyle->kerning == 1) /* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
+	ui_button_text_password_hide(password_str, but, FALSE);
+
 	origstr = MEM_callocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
 	
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
@@ -1407,6 +1474,8 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	if (fstyle->kerning == 1)
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
+	ui_button_text_password_hide(password_str, but, TRUE);
+
 	MEM_freeN(origstr);
 }
 

@@ -231,28 +231,42 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
 	return len;
 }
 
-// utf8slen
+/* size of UTF-8 character in bytes */
+size_t BLI_strlen_utf8_char(const char *strc)
+{
+	if ((*strc & 0xe0) == 0xc0) {
+		if ((strc[1] & 0x80) && (strc[1] & 0x40) == 0x00)
+			return 2;
+	}
+	else if ((*strc & 0xf0) == 0xe0) {
+		if ((strc[1] & strc[2] & 0x80) && ((strc[1] | strc[2]) & 0x40) == 0x00)
+			return 3;
+	}
+	else if ((*strc & 0xf8) == 0xf0) {
+		if ((strc[1] & strc[2] & strc[3] & 0x80) && ((strc[1] | strc[2] | strc[3]) & 0x40) == 0x00)
+			return 4;
+	}
+
+	return 1;
+}
+
 size_t BLI_strlen_utf8(const char *strc)
 {
-	int len = 0;
+	int len;
 
-	while (*strc) {
-		if ((*strc & 0xe0) == 0xc0) {
-			if ((strc[1] & 0x80) && (strc[1] & 0x40) == 0x00)
-				strc++;
-		}
-		else if ((*strc & 0xf0) == 0xe0) {
-			if ((strc[1] & strc[2] & 0x80) && ((strc[1] | strc[2]) & 0x40) == 0x00)
-				strc += 2;
-		}
-		else if ((*strc & 0xf8) == 0xf0) {
-			if ((strc[1] & strc[2] & strc[3] & 0x80) && ((strc[1] | strc[2] | strc[3]) & 0x40) == 0x00)
-				strc += 3;
-		}
+	for (len = 0; *strc; len++)
+		strc += BLI_strlen_utf8_char(strc);
 
-		strc++;
-		len++;
-	}
+	return len;
+}
+
+size_t BLI_strlen_range_utf8(const char *start, const char *end)
+{
+	const char *strc = start;
+	int len;
+
+	for (len = 0; strc < end; len++)
+		strc += BLI_strlen_utf8_char(strc);
 
 	return len;
 }

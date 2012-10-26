@@ -78,6 +78,7 @@ static EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
 	{PROP_BYTESTRING, "BYTE_STRING", 0, "Byte String", ""},
 	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+	{PROP_PASSWORD, "PASSWORD", 0, "Password", 0},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
