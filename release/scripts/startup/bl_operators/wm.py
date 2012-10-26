@@ -1124,9 +1124,15 @@ class WM_OT_properties_add(Operator):
 
             return prop_new
 
-        property = unique_name(item.keys())
+        prop = unique_name(item.keys())
 
-        item[property] = 1.0
+        item[prop] = 1.0
+
+        # not essential, but without this we get [#31661]
+        prop_ui = rna_idprop_ui_prop_get(item, prop)
+        prop_ui["soft_min"] = prop_ui["min"] = 0.0
+        prop_ui["soft_max"] = prop_ui["max"] = 1.0
+
         return {'FINISHED'}
 
 

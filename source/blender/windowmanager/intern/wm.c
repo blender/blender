@@ -78,7 +78,7 @@ void WM_operator_free(wmOperator *op)
 	if (op->py_instance) {
 		/* do this first in case there are any __del__ functions or
 		 * similar that use properties */
-		BPY_RNA_DECREF_INVALIDATE(op->py_instance);
+		BPY_DECREF_RNA_INVALIDATE(op->py_instance);
 	}
 #endif
 

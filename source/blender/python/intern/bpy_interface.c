@@ -510,7 +510,7 @@ void BPY_DECREF(void *pyob_ptr)
 	PyGILState_Release(gilstate);
 }
 
-void BPY_RNA_DECREF_INVALIDATE(void *pyob_ptr)
+void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
 {
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 	const int do_invalidate = (Py_REFCNT((PyObject *)pyob_ptr) > 1);

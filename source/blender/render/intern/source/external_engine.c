@@ -138,7 +138,7 @@ void RE_engine_free(RenderEngine *engine)
 {
 #ifdef WITH_PYTHON
 	if (engine->py_instance) {
-		BPY_RNA_DECREF_INVALIDATE(engine->py_instance);
+		BPY_DECREF_RNA_INVALIDATE(engine->py_instance);
 	}
 #endif
 
