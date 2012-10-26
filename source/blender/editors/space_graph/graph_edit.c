@@ -1143,9 +1143,9 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 	                                  RNA_float_get(op->ptr, "attack"),
 	                                  RNA_float_get(op->ptr, "release"),
 	                                  RNA_float_get(op->ptr, "threshold"),
-	                                  RNA_boolean_get(op->ptr, "accumulate"),
+	                                  RNA_boolean_get(op->ptr, "use_accumulate"),
 	                                  RNA_boolean_get(op->ptr, "use_additive"),
-	                                  RNA_boolean_get(op->ptr, "square"),
+	                                  RNA_boolean_get(op->ptr, "use_square"),
 	                                  RNA_float_get(op->ptr, "sthreshold"),
 	                                  FPS, &sbi.length);
 
@@ -1225,15 +1225,27 @@ void GRAPH_OT_sound_bake(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE | SOUNDFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_float(ot->srna, "low", 0.0f, 0.0, 100000.0, "Lowest frequency", "Cutoff frequency of a highpass that is applied to the audio data", 0.1, 1000.00);
-	RNA_def_float(ot->srna, "high", 100000.0, 0.0, 100000.0, "Highest frequency", "Cutoff frequency of a lowpass that is applied to the audio data", 0.1, 1000.00);
-	RNA_def_float(ot->srna, "attack", 0.005, 0.0, 2.0, "Attack time", "Value for the hull curve calculation that tells how fast the hull curve can rise (the lower the value the steeper it can rise)", 0.01, 0.1);
-	RNA_def_float(ot->srna, "release", 0.2, 0.0, 5.0, "Release time", "Value for the hull curve calculation that tells how fast the hull curve can fall (the lower the value the steeper it can fall)", 0.01, 0.2);
-	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "Threshold for the hull curve calculation, that thresholds the minimum amplitude value needed to influence the hull curve", 0.01, 0.1);
-	RNA_def_boolean(ot->srna, "accumulate", 0, "Accumulate", "In case this is on, only the positive differences of the hull curve amplitudes are summarized to produce the output");
-	RNA_def_boolean(ot->srna, "use_additive", 0, "Additive", "The amplitudes of the hull curve are summarized or when Accumulate is checked the differences (also negative) are additionally added");
-	RNA_def_boolean(ot->srna, "square", 0, "Square", "The output is squared which means the signum function is applied to the hull curve, resulting in a graph with only -1, 0 or 1 as value");
-	RNA_def_float(ot->srna, "sthreshold", 0.1, 0.0, 1.0, "Square Threshold", "Threshold: Threshold for squaring, all values with an absolute amplitude lower as this value result in 0 as value", 0.01, 0.1);
+	RNA_def_float(ot->srna, "low", 0.0f, 0.0, 100000.0, "Lowest frequency",
+	              "Cutoff frequency of a high-pass filter that is applied to the audio data", 0.1, 1000.00);
+	RNA_def_float(ot->srna, "high", 100000.0, 0.0, 100000.0, "Highest frequency",
+	              "Cutoff frequency of a low-pass filter that is applied to the audio data", 0.1, 1000.00);
+	RNA_def_float(ot->srna, "attack", 0.005, 0.0, 2.0, "Attack time",
+	              "Value for the hull curve calculation that tells how fast the hull curve can rise "
+	              "(the lower the value the steeper it can rise)", 0.01, 0.1);
+	RNA_def_float(ot->srna, "release", 0.2, 0.0, 5.0, "Release time",
+	              "Value for the hull curve calculation that tells how fast the hull curve can fall "
+	              "(the lower the value the steeper it can fall)", 0.01, 0.2);
+	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold",
+	              "Minimum amplitude value needed to influence the hull curve", 0.01, 0.1);
+	RNA_def_boolean(ot->srna, "use_accumulate", 0, "Accumulate",
+	                "Only the positive differences of the hull curve amplitudes are summarized to produce the output");
+	RNA_def_boolean(ot->srna, "use_additive", 0, "Additive",
+	                "The amplitudes of the hull curve are summarized (or, when Accumulate is enabled, "
+	                "both positive and negative differences are accumulated)");
+	RNA_def_boolean(ot->srna, "use_square", 0, "Square",
+	                "The output is a square curve (negative values always result in -1, and positive ones in 1)");
+	RNA_def_float(ot->srna, "sthreshold", 0.1, 0.0, 1.0, "Square Threshold",
+	              "Square only: all values with an absolute amplitude lower than that result in 0", 0.01, 0.1);
 }
 
 /* ******************** Sample Keyframes Operator *********************** */
@@ -1614,7 +1626,7 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 		else if (ELEM3(fcu->array_index, 0, 1, 2) == 0) {
 			BKE_reportf(op->reports, RPT_WARNING,
 			            "Euler Rotation F-Curve has invalid index (ID='%s', Path='%s', Index=%d)",
-			            (ale->id) ? ale->id->name : "<No ID>", fcu->rna_path, fcu->array_index);
+			            (ale->id) ? ale->id->name : TIP_("<No ID>"), fcu->rna_path, fcu->array_index);
 			continue;
 		}
 		
@@ -1711,13 +1723,16 @@ static int graphkeys_euler_filter_exec(bContext *C, wmOperator *op)
 	/* updates + finishing warnings */
 	if (failed == groups) {
 		BKE_report(op->reports, RPT_ERROR, 
-		           "No Euler Rotations could be corrected, ensure each rotation has keys for all components, and that F-Curves for these are in consecutive XYZ order and selected");
+		           "No Euler Rotations could be corrected, ensure each rotation has keys for all components, "
+		           "and that F-Curves for these are in consecutive XYZ order and selected");
 		return OPERATOR_CANCELLED;
 	}
 	else {
 		if (failed) {
 			BKE_report(op->reports, RPT_ERROR,
-			           "Some Euler Rotations couldn't be corrected due to missing/unselected/out-of-order F-Curves, ensure each rotation has keys for all components, and that F-Curves for these are in consecutive XYZ order and selected");
+			           "Some Euler Rotations could not be corrected due to missing/unselected/out-of-order F-Curves, "
+			           "ensure each rotation has keys for all components, and that F-Curves for these are in "
+			           "consecutive XYZ order and selected");
 		}
 		
 		/* validate keyframes after editing */
@@ -2181,7 +2196,7 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 		if (fcm)
 			set_active_fmodifier(&fcu->modifiers, fcm);
 		else {
-			BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added, see console for details");
+			BKE_report(op->reports, RPT_ERROR, "Modifier could not be added (see console for details)");
 			break;
 		}
 	}
