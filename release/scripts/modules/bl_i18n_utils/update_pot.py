@@ -192,7 +192,7 @@ def get_svnrev():
 
 
 def gen_empty_pot():
-    blender_rev = get_svnrev()
+    blender_rev = get_svnrev().decode()
     utctime = time.gmtime()
     time_str = time.strftime("%Y-%m-%d %H:%M+0000", utctime)
     year_str = time.strftime("%Y", utctime)
