@@ -107,6 +107,17 @@ static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 	}
 }
 
+static void rna_Material_update_previews(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Material *ma = ptr->id.data;
+	
+	if (ma->nodetree)
+		ntreeClearPreview(ma->nodetree);
+		
+	rna_Material_update(bmain, scene, ptr);
+}
+
+
 static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Material *ma = ptr->id.data;
@@ -1757,7 +1768,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "pr_type");
 	RNA_def_property_enum_items(prop, preview_type_items);
 	RNA_def_property_ui_text(prop, "Preview render type", "Type of preview render");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_update_previews");
 	
 	prop = RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "amb");

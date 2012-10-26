@@ -403,7 +403,13 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	
 	node->new_node = nnode;
 	nnode->new_node = NULL;
-	nnode->preview = NULL;
+	
+	/* only shader nodes get pleasant preview updating this way, compo uses own system */
+	if (node->preview && ntree->type == NTREE_SHADER) {
+		nnode->preview = MEM_dupallocN(node->preview);
+		if (node->preview->rect)
+			nnode->preview->rect = MEM_dupallocN(node->preview->rect);
+	}
 	
 	if (ntree)
 		ntree->update |= NTREE_UPDATE_NODES;
