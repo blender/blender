@@ -146,7 +146,7 @@ static int bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 				BMLoop *l_new;
 				BLI_assert(l->prev->v != l->next->v);
 				BM_face_split(bm, l->f, l->prev->v, l->next->v, &l_new, NULL, TRUE);
-				BM_elem_flag_enable(l_new->e, l->e->head.hflag | l->prev->e->head.hflag);
+				BM_elem_flag_merge_into(l_new->e, l->e, l->prev->e);
 			}
 		}
 
