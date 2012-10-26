@@ -236,8 +236,8 @@ def merge_messages(msgs, states, messages, do_checks, spell_cache):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Update blender.pot file " \
-                                                 "from messages.txt")
+    parser = argparse.ArgumentParser(description="Update blender.pot file from messages.txt and source code parsing, "
+                                                 "and performs some checks over msgids.")
     parser.add_argument('-w', '--warning', action="store_true",
                         help="Show warnings.")
     parser.add_argument('-i', '--input', metavar="File",
