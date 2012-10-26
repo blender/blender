@@ -51,6 +51,8 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_global.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
@@ -2787,7 +2789,7 @@ int BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObje
 		return TRUE;
 	}
 	else if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
-		BLI_strncpy(error_msg, "At least 8 common tracks on both of keyframes are needed for reconstruction",
+		BLI_strncpy(error_msg, N_("At least 8 common tracks on both of keyframes are needed for reconstruction"),
 		            error_size);
 
 		return FALSE;
@@ -2795,7 +2797,7 @@ int BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObje
 
 	return TRUE;
 #else
-	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
+	BLI_strncpy(error_msg, N_("Blender is compiled without motion tracking library"), error_size);
 
 	(void) tracking;
 	(void) object;

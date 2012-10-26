@@ -1038,7 +1038,7 @@ static void rna_RenderLayer_remove(ID *id, RenderData *UNUSED(rd), Main *bmain, 
 	Scene *scene = (Scene *)id;
 
 	if (!BKE_scene_remove_render_layer(bmain, scene, srl)) {
-		BKE_reportf(reports, RPT_ERROR, "RenderLayer '%s' could not be removed from scene '%s'",
+		BKE_reportf(reports, RPT_ERROR, "Render layer '%s' could not be removed from scene '%s'",
 		            srl->name, scene->id.name + 2);
 	}
 	else {

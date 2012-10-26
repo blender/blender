@@ -967,7 +967,7 @@ static int multiresbake_check(bContext *C, wmOperator *op)
 		}
 
 		if (mmd->lvl == 0) {
-			BKE_report(op->reports, RPT_ERROR, "Multires data baking is not support for preview subdivision level 0");
+			BKE_report(op->reports, RPT_ERROR, "Multires data baking is not supported for preview subdivision level 0");
 
 			break;
 		}

@@ -425,7 +425,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	
 	ob = OBACT;
 	if (ob == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Active Object");
+		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -800,7 +800,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	
 	ob = OBACT;
 	if (ob == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Active Object");
+		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
 	}
 	

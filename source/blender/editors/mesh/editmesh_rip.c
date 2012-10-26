@@ -1007,7 +1007,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		 * with modified selection */
 		// WM_operator_name_call(C, "MESH_OT_region_to_loop", WM_OP_INVOKE_DEFAULT, NULL);
 
-		BKE_report(op->reports, RPT_ERROR, "Can't rip selected faces");
+		BKE_report(op->reports, RPT_ERROR, "Cannot rip selected faces");
 		return OPERATOR_CANCELLED;
 	}
 

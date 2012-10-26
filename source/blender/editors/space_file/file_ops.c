@@ -1105,7 +1105,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	if (generate_name) {
 		/* create a new, non-existing folder name */
 		if (!new_folder_path(sfile->params->dir, path, name)) {
-			BKE_report(op->reports, RPT_ERROR, "Couldn't create new folder name");
+			BKE_report(op->reports, RPT_ERROR, "Could not create new folder name");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -1114,7 +1114,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	BLI_dir_create_recursive(path);
 
 	if (!BLI_exists(path)) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't create new folder");
+		BKE_report(op->reports, RPT_ERROR, "Could not create new folder");
 		return OPERATOR_CANCELLED;
 	}
 

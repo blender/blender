@@ -1002,7 +1002,7 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 	
 	if (gzfile == (gzFile)Z_NULL) {
 		BKE_reportf(reports, RPT_WARNING, "Unable to open '%s': %s",
-		            filepath, errno ? strerror(errno) : TIP_("Unknown error reading file"));
+		            filepath, errno ? strerror(errno) : TIP_("unknown error reading file"));
 		return NULL;
 	}
 	else {
@@ -4797,7 +4797,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				base->object = newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if (base->object == NULL) {
-					BKE_reportf_wrap(fd->reports, RPT_WARNING, "LIB ERROR: object lost from scene: '%s'",
+					BKE_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB ERROR: object lost from scene: '%s'"),
 					                 sce->id.name + 2);
 					BLI_remlink(&sce->base, base);
 					if (base == sce->basact) sce->basact = NULL;
@@ -6025,11 +6025,11 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 		if (newmain->curlib) {
 			if (BLI_path_cmp(newmain->curlib->filepath, lib->filepath) == 0) {
 				BKE_reportf_wrap(fd->reports, RPT_WARNING,
-				                 "Library '%s', '%s' had multiple instances, save and reload!",
+				                 TIP_("Library '%s', '%s' had multiple instances, save and reload!"),
 				                 lib->name, lib->filepath);
 				
 				change_idid_adr(fd->mainlist, fd, lib, newmain->curlib);
-//				change_idid_adr_fd(fd, lib, newmain->curlib);
+/*				change_idid_adr_fd(fd, lib, newmain->curlib); */
 				
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
@@ -6043,8 +6043,10 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
 	cleanup_path(fd->relabase, lib->filepath);
 	
-//	printf("direct_link_library: name %s\n", lib->name);
-//	printf("direct_link_library: filename %s\n", lib->filename);
+#if 0
+	printf("direct_link_library: name %s\n", lib->name);
+	printf("direct_link_library: filename %s\n", lib->filename);
+#endif
 	
 	/* new main */
 	newmain= MEM_callocN(sizeof(Main), "directlink");
@@ -7438,8 +7440,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					prop = BKE_bproperty_object_get(ob, "Text");
 					if (prop) {
 						BKE_reportf_wrap(fd->reports, RPT_WARNING,
-						                 "Game property name conflict in object '%s':\ntext objects reserve the "
-						                 "['Text'] game property to change their content through logic bricks",
+						                 TIP_("Game property name conflict in object '%s':\ntext objects reserve the "
+						                      "['Text'] game property to change their content through logic bricks"),
 						                 ob->id.name + 2);
 					}
 				}
@@ -9735,8 +9737,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				
 				if (fd == NULL) {
 					/* printf and reports for now... its important users know this */
-					BKE_reportf_wrap(basefd->reports, RPT_INFO,
-					                 "Read library:  '%s', '%s'",
+					BKE_reportf_wrap(basefd->reports, RPT_INFO, TIP_("Read library:  '%s', '%s'"),
 					                 mainptr->curlib->filepath, mainptr->curlib->name);
 					
 					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
@@ -9789,8 +9790,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else mainptr->curlib->filedata = NULL;
 					
 					if (fd == NULL) {
-						BKE_reportf_wrap(basefd->reports, RPT_WARNING,
-						                 "Cannot find lib '%s'",
+						BKE_reportf_wrap(basefd->reports, RPT_WARNING, TIP_("Cannot find lib '%s'"),
 						                 mainptr->curlib->filepath);
 					}
 				}
@@ -9809,7 +9809,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
 									BKE_reportf_wrap(fd->reports, RPT_WARNING,
-									                 "LIB ERROR: %s: '%s' missing from '%s'",
+									                 TIP_("LIB ERROR: %s: '%s' missing from '%s'"),
 									                 BKE_idcode_to_name(GS(id->name)),
 									                 id->name+2, mainptr->curlib->filepath);
 								}
@@ -9841,7 +9841,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if (id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
 					BKE_reportf_wrap(basefd->reports, RPT_WARNING,
-					                 "LIB ERROR: %s: '%s' unread libblock missing from '%s'",
+					                 TIP_("LIB ERROR: %s: '%s' unread lib block missing from '%s'"),
 					                 BKE_idcode_to_name(GS(id->name)), id->name + 2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
 					

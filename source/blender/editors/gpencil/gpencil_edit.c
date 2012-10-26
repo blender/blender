@@ -212,7 +212,7 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
 	bGPdata **gpd_ptr = gpencil_data_get_pointers(C, NULL);
 	
 	if (gpd_ptr == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
+		BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -260,7 +260,7 @@ static int gp_data_unlink_exec(bContext *C, wmOperator *op)
 	bGPdata **gpd_ptr = gpencil_data_get_pointers(C, NULL);
 	
 	if (gpd_ptr == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
+		BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -299,7 +299,7 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 	
 	/* if there's no existing Grease-Pencil data there, add some */
 	if (gpd_ptr == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
+		BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
 		return OPERATOR_CANCELLED;
 	}
 	if (*gpd_ptr == NULL)
@@ -348,7 +348,7 @@ static int gp_actframe_delete_exec(bContext *C, wmOperator *op)
 	
 	/* if there's no existing Grease-Pencil data there, add some */
 	if (gpd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+		BKE_report(op->reports, RPT_ERROR, "No grease pencil data");
 		return OPERATOR_CANCELLED;
 	}
 	if (ELEM(NULL, gpl, gpf)) {
@@ -634,7 +634,7 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 
 	/* check if there's data to work with */
 	if (gpd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data to work on");
+		BKE_report(op->reports, RPT_ERROR, "No grease pencil data to work on");
 		return OPERATOR_CANCELLED;
 	}
 

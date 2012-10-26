@@ -1361,7 +1361,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	oldedit = oldcu->editnurb;
 
 	if (oldcu->key) {
-		BKE_report(op->reports, RPT_ERROR, "Can't separate a curve with vertex keys");
+		BKE_report(op->reports, RPT_ERROR, "Cannot separate a curve with vertex keys");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3501,7 +3501,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	int changed = 0, type = RNA_enum_get(op->ptr, "type");
 
 	if (type == CU_CARDINAL || type == CU_BSPLINE) {
-		BKE_report(op->reports, RPT_ERROR, "Not implemented yet");
+		BKE_report(op->reports, RPT_ERROR, "Not yet implemented");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3833,7 +3833,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 	}
 	
 	if (nu1->pntsv != nu2->pntsv) {
-		BKE_report(op->reports, RPT_ERROR, "Resolution doesn't match");
+		BKE_report(op->reports, RPT_ERROR, "Resolution does not match");
 		return;
 	}
 	
@@ -3943,7 +3943,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 	}
 	
 	if (ok == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Resolution doesn't match");
+		BKE_report(op->reports, RPT_ERROR, "Resolution does not match");
 		BLI_freelistN(&nsortbase);
 		return OPERATOR_CANCELLED;
 	}
@@ -4123,7 +4123,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	}
 
 	if (!ok) {
-		BKE_report(op->reports, RPT_ERROR, "Can't make segment");
+		BKE_report(op->reports, RPT_ERROR, "Cannot make segment");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -4376,7 +4376,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 		unit_m4(viewmat);
 	
 	if (!spin_nurb(viewmat, obedit, axis, cent)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't spin");
+		BKE_report(op->reports, RPT_ERROR, "Cannot spin");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -5624,10 +5624,10 @@ static int select_nth_exec(bContext *C, wmOperator *op)
 
 	if (!CU_select_nth(obedit, nth)) {
 		if (obedit->type == OB_SURF) {
-			BKE_report(op->reports, RPT_ERROR, "Surface hasn't got active point");
+			BKE_report(op->reports, RPT_ERROR, "Surface has not got active point");
 		}
 		else {
-			BKE_report(op->reports, RPT_ERROR, "Curve hasn't got active point");
+			BKE_report(op->reports, RPT_ERROR, "Curve has not got active point");
 		}
 
 		return OPERATOR_CANCELLED;

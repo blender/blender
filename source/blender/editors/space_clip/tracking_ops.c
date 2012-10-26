@@ -1397,7 +1397,7 @@ static void solve_camera_freejob(void *scv)
 
 	solved = BKE_tracking_reconstruction_finish(scj->context, tracking);
 	if (!solved)
-		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
+		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct (see console for details)");
 	else
 		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error: %.3f", tracking->reconstruction.error);
 
@@ -3371,7 +3371,7 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 	object = BKE_tracking_object_get_active(tracking);
 
 	if (object->flag & TRACKING_OBJECT_CAMERA) {
-		BKE_report(op->reports, RPT_WARNING, "Object used for camera tracking can't be deleted");
+		BKE_report(op->reports, RPT_WARNING, "Object used for camera tracking cannot be deleted");
 		return OPERATOR_CANCELLED;
 	}
 

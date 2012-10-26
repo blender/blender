@@ -974,7 +974,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 	if (arm->flag & ARM_RESTPOS) {
 		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE) == 0) {
 			// XXX use transform operator reports
-			// BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled");
+			// BKE_report(op->reports, RPT_ERROR, "Cannot select linked when sync selection is enabled");
 			return;
 		}
 	}

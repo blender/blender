@@ -197,8 +197,8 @@ static int open_exec(bContext *C, wmOperator *op)
 		if (op->customdata)
 			MEM_freeN(op->customdata);
 
-		BKE_reportf(op->reports, RPT_ERROR, "Can't read \"%s\": %s", str,
-		            errno ? strerror(errno) : TIP_("Unsupported movie clip format"));
+		BKE_reportf(op->reports, RPT_ERROR, "Cannot read '%s': %s", str,
+		            errno ? strerror(errno) : TIP_("unsupported movie clip format"));
 
 		return OPERATOR_CANCELLED;
 	}

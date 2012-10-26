@@ -88,7 +88,7 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 
 		f2 = BM_face_create_ngon(bm, firstv, BM_edge_other_vert(edges[0], firstv), edges, f->len, FALSE);
 		if (UNLIKELY(f2 == NULL)) {
-			BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Extrude failed; could not create face");
+			BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Extrude failed: could not create face");
 			BLI_array_free(edges);
 			return;
 		}

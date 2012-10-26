@@ -515,12 +515,12 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	if (!obsel) {
-		BKE_report(op->reports, RPT_ERROR, "Can't add hook with no other selected objects");
+		BKE_report(op->reports, RPT_ERROR, "Cannot add hook with no other selected objects");
 		return OPERATOR_CANCELLED;
 	}
 
 	if (use_bone && obsel->type != OB_ARMATURE) {
-		BKE_report(op->reports, RPT_ERROR, "Can't add hook bone for a non armature object");
+		BKE_report(op->reports, RPT_ERROR, "Cannot add hook bone for a non armature object");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -590,7 +590,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 
 	hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	if (!hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -673,7 +673,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
 	if (!ob || !hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -741,7 +741,7 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
 	if (!ob || !hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -799,7 +799,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
 	if (!ob || !hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -861,7 +861,7 @@ static int object_hook_select_exec(bContext *C, wmOperator *op)
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
 	if (!ob || !hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	

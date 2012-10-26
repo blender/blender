@@ -318,7 +318,7 @@ static MaskLayer *rna_Mask_layers_new(Mask *mask, const char *name)
 static void rna_Mask_layers_remove(Mask *mask, ReportList *reports, MaskLayer *masklay)
 {
 	if (BLI_findindex(&mask->masklayers, masklay) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "MaskLayer '%s' not found in mask '%s'", masklay->name, mask->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Mask layer '%s' not found in mask '%s'", masklay->name, mask->id.name + 2);
 		return;
 	}
 

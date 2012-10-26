@@ -1167,7 +1167,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (actseq == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Active Sequence!");
+		BKE_report(op->reports, RPT_ERROR, "No active sequence!");
 		return OPERATOR_CANCELLED;
 	}
 

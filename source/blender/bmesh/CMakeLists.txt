@@ -25,6 +25,7 @@
 
 set(INC 
 	.
+	../blenfont
 	../blenkernel
 	../blenlib
 	../makesdna
@@ -115,7 +116,11 @@ if(MSVC)
 endif()
 
 if(WITH_BULLET)
-  add_definitions(-DWITH_BULLET)
+	add_definitions(-DWITH_BULLET)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}")

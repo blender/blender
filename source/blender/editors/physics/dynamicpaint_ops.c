@@ -26,6 +26,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -280,7 +282,10 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 	int frames;
 
 	frames = surface->end_frame - surface->start_frame + 1;
-	if (frames <= 0) {BLI_strncpy(canvas->error, "No frames to bake.", sizeof(canvas->error)); return 0;}
+	if (frames <= 0) {
+		BLI_strncpy(canvas->error, N_("No frames to bake"), sizeof(canvas->error));
+		return 0;
+	}
 
 	/* Set frame to start point (also inits modifier data) */
 	frame = surface->start_frame;

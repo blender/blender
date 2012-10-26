@@ -217,7 +217,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	
 	/* sanity checks */
 	if (ELEM(NULL, clear_func, default_ksName)) {
-		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or Keying Set Name");
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or keying set name");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -390,19 +390,19 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 		if (ob->type == OB_MESH) {
 			if (ID_REAL_USERS(ob->data) > 1) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user mesh, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user mesh, doing nothing");
 				change = 0;
 			}
 		}
 		else if (ob->type == OB_ARMATURE) {
 			if (ID_REAL_USERS(ob->data) > 1) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user armature, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user armature, doing nothing");
 				change = 0;
 			}
 		}
 		else if (ob->type == OB_LATTICE) {
 			if (ID_REAL_USERS(ob->data) > 1) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user lattice, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user lattice, doing nothing");
 				change = 0;
 			}
 		}
@@ -410,7 +410,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			Curve *cu;
 
 			if (ID_REAL_USERS(ob->data) > 1) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user curve, doing nothing");
 				change = 0;
 			}
 
@@ -422,7 +422,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				change = 0;
 			}
 			if (cu->key) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a curve with vertex keys, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a curve with vertex keys, doing nothing");
 				change = 0;
 			}
 		}
@@ -672,7 +672,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	int tot_change = 0, tot_lib_error = 0, tot_multiuser_arm_error = 0;
 
 	if (obedit && centermode != GEOMETRY_TO_ORIGIN) {
-		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
+		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -854,7 +854,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if (ID_REAL_USERS(arm) > 1) {
 #if 0
-					BKE_report(op->reports, RPT_ERROR, "Can't apply to a multi user armature");
+					BKE_report(op->reports, RPT_ERROR, "Cannot apply to a multi user armature");
 					return;
 #endif
 					tot_multiuser_arm_error++;

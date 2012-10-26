@@ -2905,10 +2905,10 @@ static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Show/Hide Header Menus";
 	ot->idname = "SCREEN_OT_header_toggle_menus";
-	ot->description = "Show or Hide the header pulldown menus";
+	ot->description = "Show or hide the header pulldown menus";
 	
 	/* api callbacks */
-	ot->exec = header_toggle_menus_exec;	
+	ot->exec = header_toggle_menus_exec;
 	ot->poll = ED_operator_areaactive;
 	ot->flag = 0;
 }

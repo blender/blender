@@ -143,7 +143,7 @@ static void rna_Image_pack(Image *image, ReportList *reports, int as_png)
 	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
 
 	if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		BKE_reportf(reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
+		BKE_report(reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
 	}
 	else {
 		if (as_png) {

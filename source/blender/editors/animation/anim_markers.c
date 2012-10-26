@@ -522,7 +522,7 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent 
 	else if (op->type->exec)
 		retval = op->type->exec(C, op);
 	else
-		BKE_report(op->reports, RPT_ERROR, "Programming error: operator doesn't actually have code to do anything!");
+		BKE_report(op->reports, RPT_ERROR, "Programming error: operator does not actually have code to do anything!");
 		
 	/* return status modifications - for now, make this spacetype dependent as above */
 	if (sa->spacetype != SPACE_TIME) {
@@ -1377,7 +1377,7 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 	}
 
 	if (scene_to == CTX_data_scene(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't re-link markers into the same scene");
+		BKE_report(op->reports, RPT_ERROR, "Cannot re-link markers into the same scene");
 		return OPERATOR_CANCELLED;
 	}
 

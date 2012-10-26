@@ -786,7 +786,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 	}
 	else {
 		/* no tree-element found */
-		BKE_report(reports, RPT_WARNING, "Not found: %s", name);
+		BKE_reportf(reports, RPT_WARNING, "Not found: %s", name);
 	}
 }
 #endif

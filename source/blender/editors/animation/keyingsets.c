@@ -947,7 +947,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 		/* skip path if no ID pointer is specified */
 		if (ksp->id == NULL) {
 			BKE_reportf(reports, RPT_WARNING,
-			            "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s'[%d])",
+			            "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')",
 			            ks->name, ksp->rna_path, ksp->array_index);
 			continue;
 		}

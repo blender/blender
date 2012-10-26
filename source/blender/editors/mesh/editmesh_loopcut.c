@@ -419,7 +419,7 @@ static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	float dist = 75.0f;
 
 	if (modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
-		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
+		BKE_report(op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
 	
 	view3d_operator_needs_opengl(C);
 

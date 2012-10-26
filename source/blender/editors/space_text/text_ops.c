@@ -44,6 +44,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "PIL_time.h"
 
 #include "BKE_context.h"
@@ -93,7 +95,7 @@ static int text_edit_poll(bContext *C)
 		return 0;
 
 	if (text->id.lib) {
-		// BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}
 
@@ -109,7 +111,7 @@ static int text_space_edit_poll(bContext *C)
 		return 0;
 
 	if (text->id.lib) {
-		// BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}
 
@@ -129,7 +131,7 @@ static int text_region_edit_poll(bContext *C)
 		return 0;
 
 	if (text->id.lib) {
-		// BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}
 
@@ -463,7 +465,8 @@ static void txt_write_file(Text *text, ReportList *reports)
 	
 	fp = BLI_fopen(filepath, "w");
 	if (fp == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to save \"%s\": %s", filepath, errno ? strerror(errno) : "Unknown error writing file");
+		BKE_reportf(reports, RPT_ERROR, "Unable to save '%s': %s",
+		            filepath, errno ? strerror(errno) : TIP_("unknown error writing file"));
 		return;
 	}
 
@@ -482,7 +485,8 @@ static void txt_write_file(Text *text, ReportList *reports)
 	}
 	else {
 		text->mtime = 0;
-		BKE_reportf(reports, RPT_WARNING, "Unable to stat \"%s\": %s", filepath, errno ? strerror(errno) : "Unknown error starrng file");
+		BKE_reportf(reports, RPT_WARNING, "Unable to stat '%s': %s",
+		            filepath, errno ? strerror(errno) : TIP_("unknown error stating file"));
 	}
 	
 	if (text->flags & TXT_ISDIRTY)

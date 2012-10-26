@@ -2970,7 +2970,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		/* FIXME.. figure out a method for multiple bones */
-		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d\n", count);
+		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d", count);
 		BLI_freelistN(&points);
 		return OPERATOR_CANCELLED;
 	}

@@ -572,7 +572,7 @@ static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, bGPd
 		BKE_libblock_free(&bmain->gpencil, gpd);
 	}
 	else
-		BKE_reportf(reports, RPT_ERROR, "Grease Pencil '%s' must have zero users to be removed, found %d",
+		BKE_reportf(reports, RPT_ERROR, "Grease pencil '%s' must have zero users to be removed, found %d",
 		            gpd->id.name + 2, ID_REAL_USERS(gpd));
 
 	/* XXX python now has invalid pointer? */

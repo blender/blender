@@ -2057,11 +2057,11 @@ static int join_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 
 	if (scene->obedit) {
-		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode");
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	else if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2111,11 +2111,11 @@ static int join_shapes_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 
 	if (scene->obedit) {
-		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode");
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	else if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
 

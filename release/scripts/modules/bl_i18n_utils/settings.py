@@ -156,12 +156,14 @@ PYGETTEXT_KEYWORDS = (() +
           for it in ("IFACE_", "TIP_", "N_")) +
     tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_")) + 
-    tuple(("{}\\([^\"',]+,(?:[^\"',]+,)?\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf"))
+    tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf")) +
+    tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("BMO_error_raise",))
 )
 
 ESCAPE_RE = (
-    ('((?<!\\\\)"|(?<!\\\\)\\\\(?!\\\\|"))', r"\\\1"),
+    (r'((?<!\\)"|(?<!\\)\\(?!\\|"))', r"\\\1"),
     ('\t', r"\\t"),
 )
 

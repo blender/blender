@@ -165,7 +165,7 @@ static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame)
 static void rna_GPencil_stroke_remove(bGPDframe *frame, ReportList *reports, bGPDstroke *stroke)
 {
 	if (BLI_findindex(&frame->strokes, stroke) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Stroke not found in grease pencil frame");
+		BKE_report(reports, RPT_ERROR, "Stroke not found in grease pencil frame");
 		return;
 	}
 	
@@ -179,7 +179,7 @@ static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer, ReportList *reports, i
 	bGPDframe *frame;
 
 	if (BKE_gpencil_layer_find_frame(layer, frame_number)) {
-		BKE_reportf(reports, RPT_ERROR, "Frame already exists on this frame number");
+		BKE_reportf(reports, RPT_ERROR, "Frame already exists on this frame number %d", frame_number);
 		return NULL;
 	}
 
@@ -193,7 +193,7 @@ static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer, ReportList *reports, i
 static void rna_GPencil_frame_remove(bGPDlayer *layer, ReportList *reports, bGPDframe *frame)
 {
 	if (BLI_findindex(&layer->frames, frame) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Frame not found in grease pencil layer");
+		BKE_report(reports, RPT_ERROR, "Frame not found in grease pencil layer");
 		return;
 	}
 	
@@ -229,7 +229,7 @@ static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, int seta
 static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, bGPDlayer *layer)
 {
 	if (BLI_findindex(&gpd->layers, layer) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Layer not found in grease pencil data");
+		BKE_report(reports, RPT_ERROR, "Layer not found in grease pencil data");
 		return;
 	}
 	

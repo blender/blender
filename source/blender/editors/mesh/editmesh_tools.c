@@ -3559,9 +3559,9 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
-	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
+	                              "Max Angle", "Angle limit", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_float_default(prop, DEG2RADF(15.0f));
-	RNA_def_boolean(ot->srna, "use_dissolve_boundaries", 0, "All Boundries",
+	RNA_def_boolean(ot->srna, "use_dissolve_boundaries", 0, "All Boundaries",
 	                "Dissolve all vertices inbetween face boundaries");
 }
 

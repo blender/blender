@@ -36,6 +36,8 @@
 #include "BLI_listbase.h"
 #include "BLI_array.h"
 
+#include "BLF_translation.h"
+
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
@@ -49,16 +51,16 @@ static int bmo_opname_to_opcode(const char *opname);
 
 static const char *bmo_error_messages[] = {
 	NULL,
-	"Self intersection error",
-	"Could not dissolve vert",
-	"Could not connect vertices",
-	"Could not traverse mesh",
-	"Could not dissolve faces",
-	"Could not dissolve vertices",
-	"Tessellation error",
-	"Can not deal with non-manifold geometry",
-	"Invalid selection",
-	"Internal mesh error",
+	N_("Self intersection error"),
+	N_("Could not dissolve vert"),
+	N_("Could not connect vertices"),
+	N_("Could not traverse mesh"),
+	N_("Could not dissolve faces"),
+	N_("Could not dissolve vertices"),
+	N_("Tessellation error"),
+	N_("Cannot deal with non-manifold geometry"),
+	N_("Invalid selection"),
+	N_("Internal mesh error"),
 };
 
 
@@ -1241,7 +1243,9 @@ void BMO_error_raise(BMesh *bm, BMOperator *owner, int errcode, const char *msg)
 	BMOpError *err = MEM_callocN(sizeof(BMOpError), "bmop_error");
 	
 	err->errorcode = errcode;
-	if (!msg) msg = bmo_error_messages[errcode];
+	if (!msg) {
+		msg = bmo_error_messages[errcode];
+	}
 	err->msg = msg;
 	err->op = owner;
 	

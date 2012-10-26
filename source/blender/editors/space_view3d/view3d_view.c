@@ -1038,7 +1038,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 	locallay = free_localbit(bmain);
 
 	if (locallay == 0) {
-		BKE_reportf(reports, RPT_ERROR, "No more than 8 local views");
+		BKE_report(reports, RPT_ERROR, "No more than 8 local views");
 		ok = FALSE;
 	}
 	else {

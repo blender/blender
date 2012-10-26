@@ -9,6 +9,7 @@ sources += env.Glob('tools/*.c')
 
 incs = [
 	'./',
+	'../blenfont',
 	'../blenlib',
 	'../makesdna',
 	'../blenkernel',
@@ -20,5 +21,8 @@ defs = []
 
 if env['WITH_BF_BULLET']:
     defs.append('WITH_BULLET')
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
 
 env.BlenderLib ( libname = 'bf_bmesh', sources = sources, includes = Split(incs), libtype = ['core','player'], defines=defs, priority=[100, 100], compileflags=cflags )

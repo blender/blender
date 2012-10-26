@@ -365,7 +365,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				
 				if (ok == 0) {
 					printf("Write error: cannot save %s\n", name);
-					BKE_reportf(&sj->reports, RPT_INFO, "Write error: cannot save %s\n", name);
+					BKE_reportf(&sj->reports, RPT_INFO, "Write error: cannot save %s", name);
 					break;
 				}
 				else {

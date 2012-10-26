@@ -789,7 +789,7 @@ short insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *p
 	/* F-Curve not editable? */
 	if (fcurve_is_keyframable(fcu) == 0) {
 		BKE_reportf(reports, RPT_ERROR, 
-		            "F-Curve with path = '%s' [%d] cannot be keyframed, ensure that it is not locked or sampled, "
+		            "F-Curve with path '%s[%d]' cannot be keyframed, ensure that it is not locked or sampled, "
 		            "and try removing F-Modifiers",
 		            fcu->rna_path, fcu->array_index);
 		return 0;
@@ -1028,7 +1028,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 			cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 		}
 		else {
-			BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s\n", id->name);
+			BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s", id->name);
 			return 0;
 		}
 	}
@@ -1126,7 +1126,7 @@ static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const cha
 			act = adt->action;
 		}
 		else {
-			BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s\n", id->name);
+			BKE_reportf(reports, RPT_ERROR, "No action to delete keyframes from for ID = %s", id->name);
 			return 0;
 		}
 	}
@@ -1236,7 +1236,7 @@ static int insert_key_exec(bContext *C, wmOperator *op)
 	/* try to insert keyframes for the channels specified by KeyingSet */
 	success = ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 	if (G.debug & G_DEBUG)
-		BKE_reportf(op->reports, RPT_INFO, "Keying set '%s' - successfully added %d keyframes\n", ks->name, success);
+		BKE_reportf(op->reports, RPT_INFO, "Keying set '%s' - successfully added %d keyframes", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success == MODIFYKEY_INVALID_CONTEXT) {

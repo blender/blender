@@ -1161,31 +1161,31 @@ static void rna_def_modifier_decimate(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_range(prop, 0, DEG2RAD(180));
 	RNA_def_property_ui_range(prop, 0, DEG2RAD(180), 100, 2);
-	RNA_def_property_ui_text(prop, "Angle Limit", "Only dissolve angles below this(planar/dissolve only)");
+	RNA_def_property_ui_text(prop, "Angle Limit", "Only dissolve angles below this (planar only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	/* (mode == MOD_DECIM_MODE_COLLAPSE) */
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
-	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name (collapse only)");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DecimateModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "invert_vertex_group", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_INVERT_VGROUP);
-	RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence");
+	RNA_def_property_ui_text(prop, "Invert", "Invert vertex group influence (collapse only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_collapse_triangulate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_TRIANGULATE);
-	RNA_def_property_ui_text(prop, "Triangulate", "Keep triangulated faces resulting from decimation");
+	RNA_def_property_ui_text(prop, "Triangulate", "Keep triangulated faces resulting from decimation (collapse only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	/* end collapse-only option */
 
 	/* (mode == MOD_DECIM_MODE_DISSOLVE) */
 	prop = RNA_def_property(srna, "use_dissolve_boundaries", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS);
-	RNA_def_property_ui_text(prop, "All Boundaries", "Dissolve all vertices inbetween face boundaries");
+	RNA_def_property_ui_text(prop, "All Boundaries", "Dissolve all vertices inbetween face boundaries (planar only)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	/* end dissolve-only option */
 

@@ -53,6 +53,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -3676,26 +3678,26 @@ int BKE_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 	char name[sizeof(seq_a->name)];
 
 	if (seq_a->len != seq_b->len) {
-		*error_str = "Strips must be the same length";
+		*error_str = N_("Strips must be the same length");
 		return 0;
 	}
 
-	/* type checking, could be more advanced but disalow sound vs non-sound copy */
+	/* type checking, could be more advanced but disallow sound vs non-sound copy */
 	if (seq_a->type != seq_b->type) {
 		if (seq_a->type == SEQ_TYPE_SOUND_RAM || seq_b->type == SEQ_TYPE_SOUND_RAM) {
-			*error_str = "Strips were not compatible";
+			*error_str = N_("Strips were not compatible");
 			return 0;
 		}
 
 		/* disallow effects to swap with non-effects strips */
 		if ((seq_a->type & SEQ_TYPE_EFFECT) != (seq_b->type & SEQ_TYPE_EFFECT)) {
-			*error_str = "Strips were not compatible";
+			*error_str = N_("Strips were not compatible");
 			return 0;
 		}
 
 		if ((seq_a->type & SEQ_TYPE_EFFECT) && (seq_b->type & SEQ_TYPE_EFFECT)) {
 			if (BKE_sequence_effect_get_num_inputs(seq_a->type) != BKE_sequence_effect_get_num_inputs(seq_b->type)) {
-				*error_str = "Strips must have the same number of inputs";
+				*error_str = N_("Strips must have the same number of inputs");
 				return 0;
 			}
 		}

@@ -113,7 +113,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	CustomData vdata, edata, fdata, ldata, pdata;
 
 	if (scene->obedit) {
-		BKE_report(op->reports, RPT_WARNING, "Cannot join while in editmode");
+		BKE_report(op->reports, RPT_WARNING, "Cannot join while in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	

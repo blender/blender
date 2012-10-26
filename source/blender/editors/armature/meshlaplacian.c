@@ -53,7 +53,6 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 
-
 #ifdef RIGID_DEFORM
 #include "BLI_polardecomp.h"
 #endif
@@ -794,7 +793,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 			}
 		}
 		else if (*err_str == NULL) {
-			*err_str = "Bone Heat Weighting: failed to find solution for one or more bones";
+			*err_str = N_("Bone Heat Weighting: failed to find solution for one or more bones");
 			break;
 		}
 

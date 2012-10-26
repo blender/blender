@@ -46,6 +46,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_threads.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -507,7 +509,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
 			if (seq->type == SEQ_TYPE_SOUND_RAM && BKE_sequence_effect_get_num_inputs(type) != 0) {
-				*error_str = "Can't apply effects to audio sequence strips";
+				*error_str = N_("Cannot apply effects to audio sequence strips");
 				return 0;
 			}
 			if ((seq != activeseq) && (seq != seq2)) {
@@ -515,7 +517,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 				else if (seq1 == NULL) seq1 = seq;
 				else if (seq3 == NULL) seq3 = seq;
 				else {
-					*error_str = "Can't apply effect to more than 3 sequence strips";
+					*error_str = N_("Cannot apply effect to more than 3 sequence strips");
 					return 0;
 				}
 			}
@@ -537,21 +539,21 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 			return 1; /* succsess */
 		case 1:
 			if (seq2 == NULL) {
-				*error_str = "Need at least one selected sequence strip";
+				*error_str = N_("At least one selected sequence strip is needed");
 				return 0;
 			}
 			if (seq1 == NULL) seq1 = seq2;
 			if (seq3 == NULL) seq3 = seq2;
 		case 2:
 			if (seq1 == NULL || seq2 == NULL) {
-				*error_str = "Need 2 selected sequence strips";
+				*error_str = N_("2 selected sequence strips are needed");
 				return 0;
 			}
 			if (seq3 == NULL) seq3 = seq2;
 	}
 	
 	if (seq1 == NULL && seq2 == NULL && seq3 == NULL) {
-		*error_str = "TODO: in what cases does this happen?";
+		*error_str = N_("TODO: in what cases does this happen?");
 		return 0;
 	}
 	
@@ -1384,7 +1386,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 	    seq_is_predecessor(seq2, last_seq) ||
 	    seq_is_predecessor(seq3, last_seq))
 	{
-		BKE_report(op->reports, RPT_ERROR, "Can't reassign inputs: no cycles allowed");
+		BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: no cycles allowed");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2905,7 +2907,7 @@ static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
 	}
 
 	if (*seq_1 == NULL || *seq_2 == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, can't swap");
+		BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, cannot swap");
 		return OPERATOR_CANCELLED;
 	}
 	else {

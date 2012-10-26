@@ -99,13 +99,13 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 	
 	/* only geometry objects should be able to get modifiers [#25291] */
 	if (!ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
-		BKE_reportf(reports, RPT_WARNING, "Modifiers cannot be added to Object '%s'", ob->id.name + 2);
+		BKE_reportf(reports, RPT_WARNING, "Modifiers cannot be added to object '%s'", ob->id.name + 2);
 		return NULL;
 	}
 	
 	if (mti->flags & eModifierTypeFlag_Single) {
 		if (modifiers_findByType(ob, type)) {
-			BKE_report(reports, RPT_WARNING, "Only one modifier of this type allowed");
+			BKE_report(reports, RPT_WARNING, "Only one modifier of this type is allowed");
 			return NULL;
 		}
 	}
@@ -556,7 +556,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		KeyBlock *kb;
 		
 		if (!modifier_sameTopology(md) || mti->type == eModifierTypeType_NonGeometrical) {
-			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to Shapes");
+			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to shapes");
 			return 0;
 		}
 		
@@ -604,7 +604,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		MultiresModifierData *mmd = find_multires_modifier_before(scene, md);
 
 		if (me->key && mti->type != eModifierTypeType_NonGeometrical) {
-			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
+			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to a mesh with shape keys");
 			return 0;
 		}
 
@@ -681,7 +681,7 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	int prev_mode;
 
 	if (scene->obedit) {
-		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in editmode");
+		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in edit mode");
 		return 0;
 	}
 	else if (((ID *) ob->data)->us > 1) {

@@ -39,6 +39,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
@@ -858,7 +860,8 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	if (!ima) {
 		if (op->customdata) MEM_freeN(op->customdata);
-		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s", str, errno ? strerror(errno) : "Unsupported image format");
+		BKE_reportf(op->reports, RPT_ERROR, "Cannot read '%s': %s",
+		            str, errno ? strerror(errno) : TIP_("unsupported image format"));
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1313,7 +1316,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			}
 		}
 		else {
-			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", simopts->filepath);
+			BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s", simopts->filepath);
 		}
 
 
@@ -1495,7 +1498,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
 		save_image_doit(C, sima, op, &simopts, FALSE);
 	}
 	else {
-		BKE_reportf(op->reports, RPT_ERROR, "Can not save image, path '%s' is not writable", simopts.filepath);
+		BKE_reportf(op->reports, RPT_ERROR, "Cannot save image, path '%s' is not writable", simopts.filepath);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1536,7 +1539,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 	}
 
 	if (sima->image->type == IMA_TYPE_MULTILAYER) {
-		BKE_report(op->reports, RPT_ERROR, "Can't save multilayer sequences");
+		BKE_report(op->reports, RPT_ERROR, "Cannot save multilayer sequences");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1572,7 +1575,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 				break;
 			}
 
-			BKE_reportf(op->reports, RPT_INFO, "Saved: %s\n", ibuf->name);
+			BKE_reportf(op->reports, RPT_INFO, "Saved %s", ibuf->name);
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
 	}
@@ -1852,7 +1855,7 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		BKE_report(op->reports, RPT_ERROR, "Can't pack edited image from disk, only as internal PNG");
+		BKE_report(op->reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
 		return OPERATOR_CANCELLED;
 	}
 

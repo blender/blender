@@ -628,7 +628,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 		pchan = BKE_pose_channel_active(par);
 		
 		if (pchan == NULL) {
-			BKE_report(reports, RPT_ERROR, "No active Bone");
+			BKE_report(reports, RPT_ERROR, "No active bone");
 			return 0;
 		}
 	}
@@ -1036,7 +1036,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (CTX_data_edit_object(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
+		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -1350,17 +1350,17 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
 	if (scene_to == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find scene");
+		BKE_report(op->reports, RPT_ERROR, "Could not find scene");
 		return OPERATOR_CANCELLED;
 	}
 
 	if (scene_to == CTX_data_scene(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
+		BKE_report(op->reports, RPT_ERROR, "Cannot link objects into the same scene");
 		return OPERATOR_CANCELLED;
 	}
 
 	if (scene_to->id.lib) {
-		BKE_report(op->reports, RPT_ERROR, "Can't link objects into a linked scene");
+		BKE_report(op->reports, RPT_ERROR, "Cannot link objects into a linked scene");
 		return OPERATOR_CANCELLED;
 	}
 

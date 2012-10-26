@@ -2472,7 +2472,7 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 	 */
 	
 	if (em->selectmode == SCE_SELECT_FACE) {
-		BKE_report(op->reports, RPT_ERROR, "Doesn't work in face selection mode");
+		BKE_report(op->reports, RPT_ERROR, "Does not work in face selection mode");
 		return OPERATOR_CANCELLED;
 	}
 	
