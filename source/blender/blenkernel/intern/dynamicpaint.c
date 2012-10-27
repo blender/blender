@@ -4892,7 +4892,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					/* Apply brush on the surface depending on it's collision type */
 					/* Particle brush: */
 					if (brush->collision == MOD_DPAINT_COL_PSYS) {
-						if (brush->psys && brush->psys->part && brush->psys->part->type == PART_EMITTER &&
+						if (brush->psys && brush->psys->part && ELEM(brush->psys->part->type, PART_EMITTER, PART_FLUID) &&
 						    psys_check_enabled(brushObj, brush->psys))
 						{
 

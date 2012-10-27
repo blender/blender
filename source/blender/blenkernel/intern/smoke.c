@@ -951,7 +951,7 @@ static void em_freeData(EmissionMap *em) {
 
 static void emit_from_particles(Object *flow_ob, SmokeDomainSettings *sds, SmokeFlowSettings *sfs, EmissionMap *em, Scene *scene, float time, float dt)
 {
-	if (sfs && sfs->psys && sfs->psys->part && sfs->psys->part->type == PART_EMITTER) // is particle system selected
+	if (sfs && sfs->psys && sfs->psys->part && ELEM(sfs->psys->part->type, PART_EMITTER, PART_FLUID)) // is particle system selected
 	{
 		ParticleSimulationData sim;
 		ParticleSystem *psys = sfs->psys;
