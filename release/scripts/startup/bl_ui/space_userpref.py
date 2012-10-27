@@ -1093,7 +1093,7 @@ class USERPREF_PT_addons(Panel):
                     (filter == info["category"]) or
                     (filter == "Enabled" and is_enabled) or
                     (filter == "Disabled" and not is_enabled) or
-                    (filter == "User" and (mod.__file__.startswith(scripts_addons_folder, userpref_addons_folder)))
+                    (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
                    ):
 
                 if search and search not in info["name"].lower():
