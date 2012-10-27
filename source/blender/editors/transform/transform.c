@@ -1267,12 +1267,15 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			}
 		}
 	}
+	else
+		handled= 0;
 
 	// Per transform event, if present
 	if (t->handleEvent)
 		t->redraw |= t->handleEvent(t, event);
 
 	if (handled || t->redraw) {
+		printf("handled %d redraw %d\n", handled, t->redraw);
 		return 0;
 	}
 	else {
