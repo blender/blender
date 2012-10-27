@@ -2417,7 +2417,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rot_error");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Rot error",
-	                         "Amount of residual error in radiant for constraints that work on orientation");
+	                         "Amount of residual error in radians for constraints that work on orientation");
 
 	/* pointers */
 	rna_def_constrainttarget(brna);

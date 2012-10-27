@@ -2702,7 +2702,7 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			default: /* should not happen, but in case*/
 				return;
 		} /* switch (data->volmode) */
-
+		
 		/* Clear the object's rotation and scale */
 		cob->matrix[0][0] = size[0] * scale[0];
 		cob->matrix[0][1] = 0;
@@ -2725,10 +2725,10 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				/* othogonal to "new Y" "old X! plane */
 				cross_v3_v3v3(orth, vec, xx);
 				normalize_v3(orth);
-
+				
 				/* new Z*/
 				copy_v3_v3(totmat[2], orth);
-
+				
 				/* we decided to keep X plane*/
 				cross_v3_v3v3(xx, orth, vec);
 				normalize_v3_v3(totmat[0], xx);
@@ -2738,16 +2738,16 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				/* othogonal to "new Y" "old Z! plane */
 				cross_v3_v3v3(orth, vec, zz);
 				normalize_v3(orth);
-
+				
 				/* new X */
 				negate_v3_v3(totmat[0], orth);
-
+				
 				/* we decided to keep Z */
 				cross_v3_v3v3(zz, orth, vec);
 				normalize_v3_v3(totmat[2], zz);
 				break;
 		} /* switch (data->plane) */
-
+		
 		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
@@ -4777,7 +4777,7 @@ void solve_constraints(ListBase *conlist, bConstraintOb *cob, float ctime)
 		 *    since some constraints may not convert the solution back to the input space before blending
 		 *    but all are guaranteed to end up in good "worldspace" result
 		 */
-		/* Note: all kind of stuff here before (caused trouble), much easier to just interpolate, or did I miss something? -jahka */
+		/* Note: all kind of stuff here before (caused trouble), much easier to just interpolate, or did I miss something? -jahka (r.32105) */
 		if (enf < 1.0f) {
 			float solution[4][4];
 			copy_m4_m4(solution, cob->matrix);
