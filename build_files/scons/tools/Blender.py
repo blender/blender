@@ -136,6 +136,11 @@ def setup_staticlibs(lenv):
         lenv['BF_ICONV_LIBPATH']
         ])
 
+    if lenv['WITH_BF_STATICJPEG']:
+        statlibs += Split(lenv['BF_JPEG_LIB_STATIC'])
+    if lenv['WITH_BF_STATICPNG']:
+        statlibs += Split(lenv['BF_PNG_LIB_STATIC'])
+
     libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
     if lenv['WITH_BF_PYTHON']:
         libincs += Split(lenv['BF_PYTHON_LIBPATH'])
@@ -143,6 +148,8 @@ def setup_staticlibs(lenv):
         libincs += Split(lenv['BF_SDL_LIBPATH'])
     if lenv['WITH_BF_JACK']:
         libincs += Split(lenv['BF_JACK_LIBPATH'])
+        if lenv['WITH_BF_STATICJACK']:
+            statlibs += Split(lenv['BF_JACK_LIB_STATIC'])
     if lenv['WITH_BF_SNDFILE']:
         libincs += Split(lenv['BF_SNDFILE_LIBPATH'])
     if lenv['WITH_BF_OPENEXR']:
@@ -194,10 +201,14 @@ def setup_staticlibs(lenv):
         if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
             libincs += Split(lenv['BF_PCRE_LIBPATH'])
             libincs += Split(lenv['BF_EXPAT_LIBPATH'])
+        if lenv['WITH_BF_STATICOPENCOLLADA']:
+            statlibs += Split(lenv['BF_OPENCOLLADA_LIB_STATIC'])
 
     if lenv['WITH_BF_OPENMP']:
         if lenv['OURPLATFORM'] == 'linuxcross':
             libincs += Split(lenv['BF_OPENMP_LIBPATH'])
+        if lenv['WITH_BF_STATICOPENMP']:
+            statlibs += Split(lenv['BF_OPENMP_LIB_STATIC'])
             
     if lenv['WITH_BF_OIIO']:
         libincs += Split(lenv['BF_OIIO_LIBPATH'])
@@ -246,7 +257,7 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_OPENAL']:
         if not lenv['WITH_BF_STATICOPENAL']:
             syslibs += Split(lenv['BF_OPENAL_LIB'])
-    if lenv['WITH_BF_OPENMP'] and lenv['CC'] != 'icc':
+    if lenv['WITH_BF_OPENMP'] and lenv['CC'] != 'icc' and not lenv['WITH_BF_STATICOPENMP']:
         if lenv['CC'] == 'cl.exe':
             syslibs += ['vcomp']
         else:
@@ -271,7 +282,7 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_FFMPEG_LIB'])
         if lenv['WITH_BF_OGG']:
             syslibs += Split(lenv['BF_OGG_LIB'])
-    if lenv['WITH_BF_JACK']:
+    if lenv['WITH_BF_JACK'] and not lenv['WITH_BF_STATICJACK']:
         syslibs += Split(lenv['BF_JACK_LIB'])
     if lenv['WITH_BF_SNDFILE'] and not lenv['WITH_BF_STATICSNDFILE']:
         syslibs += Split(lenv['BF_SNDFILE_LIB'])
@@ -285,7 +296,7 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_OPENGL_LIB'])
     if lenv['OURPLATFORM'] in ('win32-vc', 'win32-mingw','linuxcross', 'win64-vc', 'win64-mingw'):
         syslibs += Split(lenv['BF_PTHREADS_LIB'])
-    if lenv['WITH_BF_COLLADA']:
+    if lenv['WITH_BF_COLLADA'] and not lenv['WITH_BF_STATICOPENCOLLADA']:
         syslibs.append(lenv['BF_PCRE_LIB'])
         if lenv['BF_DEBUG'] and (lenv['OURPLATFORM'] != 'linux'):
             syslibs += [colladalib+'_d' for colladalib in Split(lenv['BF_OPENCOLLADA_LIB'])]
@@ -305,8 +316,11 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_BOOST'] and not lenv['WITH_BF_STATICBOOST']:
         syslibs += Split(lenv['BF_BOOST_LIB'])
 
-    syslibs += Split(lenv['BF_JPEG_LIB'])
-    syslibs += Split(lenv['BF_PNG_LIB'])
+    if not lenv['WITH_BF_STATICJPEG']:
+        syslibs += Split(lenv['BF_JPEG_LIB'])
+
+    if not lenv['WITH_BF_STATICPNG']:
+        syslibs += Split(lenv['BF_PNG_LIB'])
 
     syslibs += lenv['LLIBS']
 
