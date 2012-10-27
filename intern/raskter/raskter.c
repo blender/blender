@@ -113,7 +113,7 @@ static void preprocess_all_edges(struct r_FillContext *ctx,
 			ctx->rb.xmin = xbeg;
 		}
 		if (ybeg >= ctx->rb.ymax) {
-			ctx->rb.ymax= ybeg;
+			ctx->rb.ymax = ybeg;
 		}
 		else if (ybeg <= ctx->rb.ymin) {
 			ctx->rb.ymin=ybeg;

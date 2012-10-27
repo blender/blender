@@ -1866,7 +1866,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		
 		if (win && win->eventstate->prevtype == event->type) {
 			
-			if(event->val == KM_RELEASE && win->eventstate->prevval == KM_PRESS) {
+			if (event->val == KM_RELEASE && win->eventstate->prevval == KM_PRESS) {
 				event->val = KM_CLICK;
 				action |= wm_handlers_do_intern(C, event, handlers);
 				
@@ -1875,7 +1875,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 					event->val = KM_RELEASE;
 				}
 			}
-			else if(event->val == KM_DBL_CLICK) {
+			else if (event->val == KM_DBL_CLICK) {
 				event->val = KM_PRESS;
 				action |= wm_handlers_do_intern(C, event, handlers);
 				
@@ -2787,8 +2787,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.type = MIDDLEMOUSE;
 			
 			/* copy to event state */
-			evt->val= event.val;
-			evt->type= event.type;
+			evt->val = event.val;
+			evt->type = event.type;
 			
 			if (win->active == 0) {
 				int cx, cy;
@@ -2803,8 +2803,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			/* double click test */
 			if (event.type == evt->prevtype && event.val == KM_PRESS) {
 				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
-					(ABS(event.y - evt->prevclicky)) <= 2 &&
-					((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
+				    (ABS(event.y - evt->prevclicky)) <= 2 &&
+				    ((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
 				{
 					event.val = KM_DBL_CLICK;
 				}
@@ -2846,8 +2846,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 			
 			/* copy to event state */
-			evt->val= event.val;
-			evt->type= event.type;
+			evt->val = event.val;
+			evt->type = event.type;
 			
 			/* exclude arrow keys, esc, etc from text input */
 			if (type == GHOST_kEventKeyUp) {
@@ -2877,11 +2877,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			/* double click test */
 			if (event.type == evt->prevtype && event.val == KM_PRESS) {
 				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
-					(ABS(event.y - evt->prevclicky)) <= 2 &&
-					((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
+				    (ABS(event.y - evt->prevclicky)) <= 2 &&
+				    ((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
 				{
 					// printf("double click\n");
-					evt->val= event.val = KM_DBL_CLICK;
+					evt->val = event.val = KM_DBL_CLICK;
 				}
 			}
 			
@@ -2893,23 +2893,23 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				switch (event.type) {
 					case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
 						event.shift = evt->shift = (event.val == KM_PRESS) ?
-												   ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-												   FALSE;
+						            ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+						            FALSE;
 						break;
 					case LEFTCTRLKEY: case RIGHTCTRLKEY:
 						event.ctrl = evt->ctrl = (event.val == KM_PRESS) ?
-												 ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-												 FALSE;
+						            ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+						            FALSE;
 						break;
 					case LEFTALTKEY: case RIGHTALTKEY:
 						event.alt = evt->alt = (event.val == KM_PRESS) ?
-											   ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-											   FALSE;
+						            ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+						            FALSE;
 						break;
 					case OSKEY:
 						event.oskey = evt->oskey = (event.val == KM_PRESS) ?
-												   ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-												   FALSE;
+						            ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+						            FALSE;
 						break;
 					default:
 						if (event.val == KM_PRESS && event.keymodifier == 0)

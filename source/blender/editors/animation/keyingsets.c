@@ -457,7 +457,7 @@ void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = remove_keyingset_button_exec; 
-	//op->poll= ???
+	//op->poll = ???
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

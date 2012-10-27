@@ -420,7 +420,7 @@ static short apply_targetless_ik(Object *ob)
 				float rmat[4][4] /*, tmat[4][4], imat[4][4]*/;
 
 				/* pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK  */
-				/* we put in channel the entire result of rmat= (channel * constraint * IK) */
+				/* we put in channel the entire result of rmat = (channel * constraint * IK) */
 				/* pose_mat(b) = pose_mat(b-1) * offs_bone * rmat  */
 				/* rmat = pose_mat(b) * inv(pose_mat(b-1) * offs_bone ) */
 
@@ -4642,7 +4642,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 
 	/*
 	 * if Base selected and has parent selected:
-	 * base->flag= BA_WAS_SEL
+	 * base->flag = BA_WAS_SEL
 	 */
 	Base *base;
 

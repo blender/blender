@@ -231,8 +231,9 @@ size_t BLI_wstrlen_utf8(const wchar_t *src)
 	return len;
 }
 
+/* this is very close to 'BLI_str_utf8_size' functionality, perhaps we should de-duplicate */
 /* size of UTF-8 character in bytes */
-size_t BLI_strlen_utf8_char(const char *strc)
+static size_t strlen_utf8_char(const char *strc)
 {
 	if ((*strc & 0xe0) == 0xc0) {
 		if ((strc[1] & 0x80) && (strc[1] & 0x40) == 0x00)
@@ -255,7 +256,7 @@ size_t BLI_strlen_utf8(const char *strc)
 	int len;
 
 	for (len = 0; *strc; len++)
-		strc += BLI_strlen_utf8_char(strc);
+		strc += strlen_utf8_char(strc);
 
 	return len;
 }
@@ -266,7 +267,7 @@ size_t BLI_strlen_range_utf8(const char *start, const char *end)
 	int len;
 
 	for (len = 0; strc < end; len++)
-		strc += BLI_strlen_utf8_char(strc);
+		strc += strlen_utf8_char(strc);
 
 	return len;
 }

@@ -203,7 +203,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	wmOperator *op = sfile->op;
-	// int empty= 1, flag;
+	// int empty = 1, flag;
 	
 	uiBlockSetFunc(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
 

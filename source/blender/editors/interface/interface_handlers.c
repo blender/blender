@@ -1337,7 +1337,7 @@ void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but
 		BLI_strncpy(but->drawstr, password_str, UI_MAX_DRAW_STR);
 
 		/* remap cursor positions */
-		if(but->pos >= 0) {
+		if (but->pos >= 0) {
 			but->pos = ui_text_position_from_hidden(but, but->pos);
 			but->selsta = ui_text_position_from_hidden(but, but->selsta);
 			but->selend = ui_text_position_from_hidden(but, but->selend);
@@ -1348,7 +1348,7 @@ void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but
 		int i, len = BLI_strlen_utf8(but->drawstr);
 
 		/* remap cursor positions */
-		if(but->pos >= 0) {
+		if (but->pos >= 0) {
 			but->pos = ui_text_position_to_hidden(but, but->pos);
 			but->selsta = ui_text_position_to_hidden(but, but->selsta);
 			but->selend = ui_text_position_to_hidden(but, but->selend);

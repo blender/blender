@@ -49,7 +49,6 @@ char        *BLI_str_prev_char_utf8(const char *p);
 
 /* wchar_t functions, copied from blenders own font.c originally */
 size_t       BLI_wstrlen_utf8(const wchar_t *src);
-size_t       BLI_strlen_utf8_char(const char *strc);
 size_t       BLI_strlen_utf8(const char *strc);
 size_t       BLI_strlen_range_utf8(const char *start, const char *end);
 size_t       BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict src, const size_t maxcpy);
