@@ -1450,7 +1450,8 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 			ED_area_newspace(C, sa, sl->next->spacetype);
 	}
 	else {
-		ED_area_newspace(C, sa, SPACE_INFO);
+		/* no change */
+		return;
 	}
 	ED_area_tag_redraw(sa);
 
