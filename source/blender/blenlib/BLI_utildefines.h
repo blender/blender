@@ -44,16 +44,16 @@
 #if 0
 /* gcc only */
 #  define _TYPECHECK(a, b)  ((void)(((typeof(a) *)0) == ((typeof(b) *)0)))
-#else
-#  define _TYPECHECK(a, b) (void)0
+#  define MIN2(x, y)          (_TYPECHECK(x, y), (((x) < (y) ? (x) : (y))))
+#  define MAX2(x, y)          (_TYPECHECK(x, y), (((x) > (y) ? (x) : (y))))
 #endif
 
 /* min/max */
-#define MIN2(x, y)          (_TYPECHECK(x, y), (((x) < (y) ? (x) : (y))))
+#define MIN2(x, y)          ((x) < (y) ? (x) : (y))
 #define MIN3(x, y, z)       (MIN2(MIN2((x), (y)), (z)))
 #define MIN4(x, y, z, a)    (MIN2(MIN2((x), (y)), MIN2((z), (a))))
 
-#define MAX2(x, y)          (_TYPECHECK(x, y), (((x) > (y) ? (x) : (y))))
+#define MAX2(x, y)          ((x) > (y) ? (x) : (y))
 #define MAX3(x, y, z)       (MAX2(MAX2((x), (y)), (z)))
 #define MAX4(x, y, z, a)    (MAX2(MAX2((x), (y)), MAX2((z), (a))))
 
