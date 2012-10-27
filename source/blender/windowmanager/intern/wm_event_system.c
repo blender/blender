@@ -1698,8 +1698,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 	if (do_debug_handler) {
 		/* in rare cases you may want to comment this out for testing,
 		 * but mostly this is just annoying */
-		printf("%s: handling event\n", __func__);
-		WM_event_print(event);
+		//printf("%s: handling event\n", __func__);
+		//WM_event_print(event);
 	}
 #endif
 
@@ -1731,7 +1731,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
 #ifndef NDEBUG
 				if (do_debug_handler) {
-					printf("%s:   checking '%s' ...", __func__, keymap->idname);
+					//printf("%s:   checking '%s' ...", __func__, keymap->idname);
 				}
 #endif
 
@@ -1739,7 +1739,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
 #ifndef NDEBUG
 					if (do_debug_handler) {
-						printf("pass\n");
+						//printf("pass\n");
 					}
 #endif
 
@@ -1748,7 +1748,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
 #ifndef NDEBUG
 							if (do_debug_handler) {
-								printf("%s:     item matched '%s'\n", __func__, kmi->idname);
+								//printf("%s:     item matched '%s'\n", __func__, kmi->idname);
 							}
 #endif
 
@@ -1760,7 +1760,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 								/* not always_pass here, it denotes removed handler */
 #ifndef NDEBUG
 								if (do_debug_handler) {
-									printf("%s:       handled! '%s'...", __func__, kmi->idname);
+									//printf("%s:       handled! '%s'...", __func__, kmi->idname);
 								}
 #endif
 								break;
@@ -1768,7 +1768,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							else {
 #ifndef NDEBUG
 								if (do_debug_handler) {
-									printf("%s:       un-handled '%s'...", __func__, kmi->idname);
+									//printf("%s:       un-handled '%s'...", __func__, kmi->idname);
 								}
 #endif
 							}
@@ -1778,7 +1778,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				else {
 #ifndef NDEBUG
 					if (do_debug_handler) {
-						printf("fail\n");
+						//printf("fail\n");
 					}
 #endif
 				}
@@ -2690,10 +2690,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 	/* initialize and copy state (only mouse x y and modifiers) */
 	event = *evt;
 	
-	/* copy prev state to event state */
-	evt->prevval = evt->val;
-	evt->prevtype = evt->type;
-	
 	switch (type) {
 		/* mouse move */
 		case GHOST_kEventCursorMove:
@@ -2777,6 +2773,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		{
 			GHOST_TEventButtonData *bd = customdata;
 			
+			/* copy prev state to event state */
+			evt->prevval = evt->val;
+			evt->prevtype = evt->type;
+
 			/* get value and type from ghost */
 			event.val = (type == GHOST_kEventButtonDown) ? KM_PRESS : KM_RELEASE;
 			
@@ -2850,6 +2850,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf)); /* might be not null terminated*/
 			event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 			
+			/* copy prev state to event state */
+			evt->prevval = evt->val;
+			evt->prevtype = evt->type;
+
 			/* copy to event state */
 			evt->val = event.val;
 			evt->type = event.type;
