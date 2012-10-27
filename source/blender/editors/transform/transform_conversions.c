@@ -125,62 +125,46 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list);
 
 /* ************************** Functions *************************** */
 
-static void qsort_trans_data(TransInfo *t, TransData *head, TransData *tail, TransData *temp)
+static int trans_data_compare_dist(const void *A, const void *B)
 {
-	TransData *ihead = head;
-	TransData *itail = tail;
-	*temp = *head;
+	const TransData *td_A = (const TransData*)A;
+	const TransData *td_B = (const TransData*)B;
 
-	while (head < tail) {
-		if (t->flag & T_PROP_CONNECTED) {
-			while ((tail->dist >= temp->dist) && (head < tail))
-				tail--;
-		}
-		else {
-			while ((tail->rdist >= temp->rdist) && (head < tail))
-				tail--;
-		}
+	if(td_A->dist < td_B->dist)
+		return -1;
+	else if(td_A->dist > td_B->dist)
+		return 1;
+	
+	return 0;
+}
 
-		if (head != tail) {
-			*head = *tail;
-			head++;
-		}
+static int trans_data_compare_rdist(const void *A, const void *B)
+{
+	const TransData *td_A = (const TransData*)A;
+	const TransData *td_B = (const TransData*)B;
 
-		if (t->flag & T_PROP_CONNECTED) {
-			while ((head->dist <= temp->dist) && (head < tail))
-				head++;
-		}
-		else {
-			while ((head->rdist <= temp->rdist) && (head < tail))
-				head++;
-		}
-
-		if (head != tail) {
-			*tail = *head;
-			tail--;
-		}
-	}
-
-	*head = *temp;
-	if (ihead < head) {
-		qsort_trans_data(t, ihead, head - 1, temp);
-	}
-	if (itail > head) {
-		qsort_trans_data(t, head + 1, itail, temp);
-	}
+	if(td_A->rdist < td_B->rdist)
+		return -1;
+	else if(td_A->rdist > td_B->rdist)
+		return 1;
+	
+	return 0;
 }
 
 void sort_trans_data_dist(TransInfo *t)
 {
-	TransData temp;
 	TransData *start = t->data;
-	int i = 1;
+	int i;
 
-	while (i < t->total && start->flag & TD_SELECTED) {
+	for (i = 0; i < t->total && start->flag & TD_SELECTED; i++)
 		start++;
-		i++;
+	
+	if (i < t->total) {
+		if (t->flag & T_PROP_CONNECTED)
+			qsort(start, t->total - i, sizeof(TransData), trans_data_compare_dist);
+		else
+			qsort(start, t->total - i, sizeof(TransData), trans_data_compare_rdist);
 	}
-	qsort_trans_data(t, start, t->data + t->total - 1, &temp);
 }
 
 static void sort_trans_data(TransInfo *t)
