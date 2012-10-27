@@ -339,6 +339,11 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	int is_wheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
 	int retval;
 	
+	/* UI code doesn't handle return values - it just always returns break. 
+	   to make the DBL_CLICK conversion work, we just don't send this to UI */
+	if (event->val == KM_DBL_CLICK)
+		return WM_HANDLER_CONTINUE;
+	
 	/* UI is quite aggressive with swallowing events, like scrollwheel */
 	/* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
 	if (do_wheel_ui == FALSE) {
