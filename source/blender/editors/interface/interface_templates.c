@@ -1221,7 +1221,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 			else ma = (Material *)pparent;
 			
 			/* Create RNA Pointer */
-			RNA_pointer_create(id, &RNA_Material, ma, &material_ptr);
+			RNA_pointer_create(&ma->id, &RNA_Material, ma, &material_ptr);
 
 			col = uiLayoutColumn(row, TRUE);
 			uiLayoutSetScaleX(col, 1.5);
