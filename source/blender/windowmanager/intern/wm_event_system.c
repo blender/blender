@@ -853,7 +853,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 			WM_operator_last_properties_init(op);
 		}
 
-		if ((G.debug & G_DEBUG_EVENTS) && event && event->type != MOUSEMOVE) {
+		if ((G.debug & G_DEBUG_HANDLERS) && event && event->type != MOUSEMOVE) {
 			printf("%s: handle evt %d win %d op %s\n",
 			       __func__, event ? event->type : 0, CTX_wm_screen(C)->subwinactive, ot->idname);
 		}
@@ -1680,7 +1680,7 @@ static int wm_action_not_handled(int action)
 static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
 {
 #ifndef NDEBUG
-	const int do_debug_handler = (G.debug & G_DEBUG_EVENTS)
+	const int do_debug_handler = (G.debug & G_DEBUG_HANDLERS)
 	        /* comment this out to flood the console! (if you really want to test) */
 	        && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
 	        ;
@@ -2067,7 +2067,7 @@ void wm_event_do_handlers(bContext *C)
 		while ( (event = win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
-			if ((G.debug & G_DEBUG_EVENTS) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+			if ((G.debug & G_DEBUG_HANDLERS) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 				printf("%s: pass on evt %d val %d\n", __func__, event->type, event->val);
 			}
 
