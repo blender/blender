@@ -426,7 +426,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	ED_region_draw_cb_exit(fly->ar->type, fly->draw_handle_pixel);
 
 	rv3d->dist = fly->dist_backup;
-
+	printf("dist %f\n", rv3d->dist);
 	if (fly->state == FLY_CANCEL) {
 		/* Revert to original view? */
 		if (fly->persp_backup == RV3D_CAMOB) { /* a camera view */
@@ -441,12 +441,16 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		else {
 			/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
 			copy_qt_qt(rv3d->viewquat, fly->rot_backup);
-			copy_v3_v3(rv3d->ofs, fly->ofs_backup);
 			rv3d->persp = fly->persp_backup;
 		}
+		/* always, is set to zero otherwise */
+		copy_v3_v3(rv3d->ofs, fly->ofs_backup);
 	}
 	else if (fly->persp_backup == RV3D_CAMOB) { /* camera */
 		DAG_id_tag_update(fly->root_parent ? &fly->root_parent->id : &v3d->camera->id, OB_RECALC_OB);
+		
+		/* always, is set to zero otherwise */
+		copy_v3_v3(rv3d->ofs, fly->ofs_backup);
 	}
 	else { /* not camera */
 
