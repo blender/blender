@@ -1697,7 +1697,7 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 		}
 		else if (buf && buf != str) {
 			/* string was too long, we have to truncate */
-			memcpy(str, buf, MIN2(maxlen, buf_len + 1));
+			memcpy(str, buf, MIN2(maxlen, (size_t)buf_len + 1));
 			MEM_freeN(buf);
 		}
 	}

@@ -2774,8 +2774,8 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	block = uiLayoutGetBlock(ui_abs);
 	
 	width = BLF_width(style->widget.uifont_id, report->message);
-	width = MIN2(rti->widthfac * width, width);
-	width = MAX2(width, 10);
+	width = min_ii((int)(rti->widthfac * width), width);
+	width = max_ii(width, 10);
 	
 	/* make a box around the report to make it stand out */
 	uiBlockBeginAlign(block);

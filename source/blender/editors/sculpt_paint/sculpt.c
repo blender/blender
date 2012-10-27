@@ -4154,7 +4154,7 @@ int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 	 * isn't one already */
 	if (mmd && !CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
 		GridPaintMask *gmask;
-		int level = MAX2(1, mmd->sculptlvl);
+		int level = max_ii(1, mmd->sculptlvl);
 		int gridsize = ccg_gridsize(level);
 		int gridarea = gridsize * gridsize;
 		int i, j;

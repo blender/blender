@@ -182,7 +182,7 @@ static int mathutils_matrix_col_get(BaseMathObject *bmo, int col)
 		return -1;
 
 	/* for 'translation' size will always be '3' even on 4x4 vec */
-	num_row = MIN2(self->num_row, ((VectorObject *)bmo)->size);
+	num_row = min_ii(self->num_row, ((VectorObject *)bmo)->size);
 
 	for (row = 0; row < num_row; row++) {
 		bmo->data[row] = MATRIX_ITEM(self, row, col);
@@ -203,7 +203,7 @@ static int mathutils_matrix_col_set(BaseMathObject *bmo, int col)
 		return -1;
 
 	/* for 'translation' size will always be '3' even on 4x4 vec */
-	num_row = MIN2(self->num_row, ((VectorObject *)bmo)->size);
+	num_row = min_ii(self->num_row, ((VectorObject *)bmo)->size);
 
 	for (row = 0; row < num_row; row++) {
 		MATRIX_ITEM(self, row, col) = bmo->data[row];

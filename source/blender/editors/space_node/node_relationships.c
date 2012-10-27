@@ -136,7 +136,7 @@ static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, in
 	int a = 0;
 
 	for (sock = node->inputs.first; sock; sock = sock->next) {
-		maxtype = MAX2(sock->type, maxtype);
+		maxtype = max_ii(sock->type, maxtype);
 	}
 
 	/* find sockets of higher 'types' first (i.e. image) */
@@ -1368,7 +1368,7 @@ static bNodeSocket *socket_best_match(ListBase *sockets)
 
 	/* find type range */
 	for (sock = sockets->first; sock; sock = sock->next)
-		maxtype = MAX2(sock->type, maxtype);
+		maxtype = max_ii(sock->type, maxtype);
 
 	/* try all types, starting from 'highest' (i.e. colors, vectors, values) */
 	for (type = maxtype; type >= 0; --type) {

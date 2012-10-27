@@ -312,8 +312,8 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 
 				/* stay on the safe side and clamp repulse */
 				if ( impulse > ALMOST_ZERO )
-					repulse = MIN2 ( repulse, 5.0*impulse );
-				repulse = MAX2 ( impulse, repulse );
+					repulse = min_ff( repulse, 5.0*impulse );
+				repulse = max_ff(impulse, repulse);
 
 				impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); /* original 2.0 / 0.25 */
 				VECADDMUL ( i1, collpair->normal,  impulse );

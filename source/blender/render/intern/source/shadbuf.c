@@ -856,10 +856,10 @@ void threaded_makeshadowbufs(Render *re)
 			if (lar->shb)
 				totthread++;
 		
-		totthread= MIN2(totthread, re->r.threads);
+		totthread = min_ii(totthread, re->r.threads);
 	}
 	else
-		totthread= 1; /* preview render */
+		totthread = 1; /* preview render */
 
 	if (totthread <= 1) {
 		for (lar=re->lampren.first; lar; lar= lar->next) {

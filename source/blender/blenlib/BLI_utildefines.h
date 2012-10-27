@@ -40,15 +40,22 @@
 #  define TRUE 1
 #endif
 
+/* useful for finding bad use of min/max */
+#if 0
+/* gcc only */
+#  define _TYPECHECK(a, b)  ((void)(((typeof(a) *)0) == ((typeof(b) *)0)))
+#else
+#  define _TYPECHECK(a, b) (void)0
+#endif
 
 /* min/max */
-#define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
-#define MIN3(x, y, z)             MIN2(MIN2((x), (y)), (z) )
-#define MIN4(x, y, z, a)           MIN2(MIN2((x), (y)), MIN2((z), (a)) )
+#define MIN2(x, y)          (_TYPECHECK(x, y), (((x) < (y) ? (x) : (y))))
+#define MIN3(x, y, z)       (MIN2(MIN2((x), (y)), (z)))
+#define MIN4(x, y, z, a)    (MIN2(MIN2((x), (y)), MIN2((z), (a))))
 
-#define MAX2(x, y)               ( (x) > (y) ? (x) : (y) )
-#define MAX3(x, y, z)             MAX2(MAX2((x), (y)), (z) )
-#define MAX4(x, y, z, a)           MAX2(MAX2((x), (y)), MAX2((z), (a)) )
+#define MAX2(x, y)          (_TYPECHECK(x, y), (((x) > (y) ? (x) : (y))))
+#define MAX3(x, y, z)       (MAX2(MAX2((x), (y)), (z)))
+#define MAX4(x, y, z, a)    (MAX2(MAX2((x), (y)), MAX2((z), (a))))
 
 #define INIT_MINMAX(min, max) {                                               \
 		(min)[0] = (min)[1] = (min)[2] =  1.0e30f;                            \
@@ -109,7 +116,7 @@
 #define CHECK_TYPE_INLINE(val, type) \
 	((void)(((type *)0) != (val)))
 
-#define SWAP(type, a, b)  {  \
+#define SWAP(type, a, b)  {    \
 	type sw_ap;                \
 	CHECK_TYPE(a, type);       \
 	CHECK_TYPE(b, type);       \

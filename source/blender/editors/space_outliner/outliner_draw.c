@@ -36,6 +36,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -1649,7 +1650,7 @@ void draw_outliner(const bContext *C)
 		 
 		/* get actual width of column 1 */
 		outliner_rna_width(soops, &soops->tree, &sizex_rna, 0);
-		sizex_rna = MAX2(OL_RNA_COLX, sizex_rna + OL_RNA_COL_SPACEX);
+		sizex_rna = max_ii(OL_RNA_COLX, sizex_rna + OL_RNA_COL_SPACEX);
 		
 		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
 		if (soops->outlinevis == SO_KEYMAP) 

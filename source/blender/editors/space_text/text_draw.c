@@ -1789,7 +1789,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 	text_font_begin(st);
 	st->cwidth = BLF_fixed_width(mono);
-	st->cwidth = MAX2(st->cwidth, 1);
+	st->cwidth = MAX2(st->cwidth, (char)1);
 
 	/* draw line numbers background */
 	if (st->showlinenrs) {
@@ -1873,7 +1873,7 @@ void text_update_character_width(SpaceText *st)
 {
 	text_font_begin(st);
 	st->cwidth = BLF_fixed_width(mono);
-	st->cwidth = MAX2(st->cwidth, 1);
+	st->cwidth = MAX2(st->cwidth, (char)1);
 	text_font_end(st);
 }
 

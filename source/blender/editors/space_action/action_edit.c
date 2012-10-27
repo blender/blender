@@ -254,8 +254,9 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 
 				/* find gp-frame which is less than or equal to cframe */
 				for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-					*min = MIN2(*min, gpf->framenum);
-					*max = MAX2(*max, gpf->framenum);
+					const float framenum = (float)gpf->framenum;
+					*min = min_ff(*min, framenum);
+					*max = max_ff(*max, framenum);
 				}
 			}
 			else if (ale->datatype == ALE_MASKLAY) {
@@ -267,8 +268,9 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 				     masklay_shape;
 				     masklay_shape = masklay_shape->next)
 				{
-					*min = MIN2(*min, masklay_shape->frame);
-					*max = MAX2(*max, masklay_shape->frame);
+					const float framenum = (float)masklay_shape->frame;
+					*min = min_ff(*min, framenum);
+					*max = max_ff(*max, framenum);
 				}
 			}
 			else {
@@ -284,8 +286,8 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 				}
 
 				/* try to set cur using these values, if they're more extreme than previously set values */
-				*min = MIN2(*min, tmin);
-				*max = MAX2(*max, tmax);
+				*min = min_ff(*min, tmin);
+				*max = max_ff(*max, tmax);
 			}
 		}
 		

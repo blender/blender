@@ -1268,7 +1268,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		}
 	}
 	else
-		handled= 0;
+		handled = 0;
 
 	// Per transform event, if present
 	if (t->handleEvent)

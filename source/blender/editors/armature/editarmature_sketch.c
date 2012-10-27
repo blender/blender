@@ -440,7 +440,7 @@ static void sk_cancelStroke(SK_Sketch *sketch)
 
 static float sk_clampPointSize(SK_Point *pt, float size)
 {
-	return MAX2(size * pt->size, size / 2);
+	return max_ff(size * pt->size, size / 2);
 }
 
 static void sk_drawPoint(GLUquadric *quad, SK_Point *pt, float size)

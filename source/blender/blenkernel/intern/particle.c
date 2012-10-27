@@ -899,7 +899,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 			elem->scalemax = sqrt(elem->scalemax);
 
 			/* clamp scaling */
-			scaleclamp = MIN2(elem->totchild, 10.0f);
+			scaleclamp = (float)min_ii(elem->totchild, 10);
 			elem->scalemin = MIN2(scaleclamp, elem->scalemin);
 			elem->scalemax = MIN2(scaleclamp, elem->scalemax);
 

@@ -2407,7 +2407,7 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	value = ui_get_but_val(but);
 
 	size = (but->softmax + but->a1 - but->softmin);
-	size = MAX2(size, 2);
+	size = max_ff(size, 2.0f);
 	
 	/* position */
 	rect1 = *rect;
@@ -2445,7 +2445,7 @@ static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 
 			if (rect1.ymax > rect->ymax) {
 				rect1.ymax = rect->ymax;
-				rect1.ymin = MAX2(rect1.ymax - min, rect->ymin);
+				rect1.ymin = max_ii(rect1.ymax - min, rect->ymin);
 			}
 		}
 	}

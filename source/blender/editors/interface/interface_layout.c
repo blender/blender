@@ -1377,7 +1377,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 	/* turn button into search button */
 	if (searchprop) {
 		but->type = SEARCH_MENU;
-		but->hardmax = MAX2(but->hardmax, 256);
+		but->hardmax = MAX2(but->hardmax, 256.0f);
 		but->rnasearchpoin = *searchptr;
 		but->rnasearchprop = searchprop;
 		but->flag |= UI_ICON_LEFT | UI_TEXT_LEFT;

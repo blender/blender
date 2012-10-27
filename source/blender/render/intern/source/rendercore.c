@@ -295,11 +295,11 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 			}
 			else {
 				
-				minx= MAX2(minx, testrect.xmin);
-				maxx= MIN2(maxx, testrect.xmax);
+				minx = max_ii(minx, testrect.xmin);
+				maxx = min_ii(maxx, testrect.xmax);
 			
-				miny= MAX2(har->miny, testrect.ymin);
-				maxy= MIN2(har->maxy, testrect.ymax);
+				miny = max_ii(har->miny, testrect.ymin);
+				maxy = min_ii(har->maxy, testrect.ymax);
 			
 				for (y=miny; y<maxy; y++) {
 					int rectofs= (y-disprect.ymin)*pa->rectx + (minx - disprect.xmin);

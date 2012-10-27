@@ -490,9 +490,9 @@ static void voronoi_finishEdge(VoronoiProcess *process, VoronoiParabola *parabol
 	}
 
 	if (parabola->edge->direction[0] > 0.0f)
-		mx = MAX2(process->width, parabola->edge->start[0] + 10);
+		mx = max_ff(process->width, parabola->edge->start[0] + 10);
 	else
-		mx = MIN2(0.0, parabola->edge->start[0] - 10);
+		mx = min_ff(0.0f, parabola->edge->start[0] - 10.0f);
 
 	parabola->edge->end[0] = mx;
 	parabola->edge->end[1] = mx * parabola->edge->f + parabola->edge->g;

@@ -1018,7 +1018,7 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit
 					if (frames_limit == 0)
 						frames_limit = track->frames_limit;
 					else
-						frames_limit = MIN2(frames_limit, track->frames_limit);
+						frames_limit = min_ii(frames_limit, (int)track->frames_limit);
 				}
 			}
 		}
