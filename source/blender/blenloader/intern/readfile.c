@@ -2414,6 +2414,12 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link_list(fd, &node->outputs);
 		
 		link_list(fd, &node->internal_links);
+		for (link = node->internal_links.first; link; link = link->next) {
+			link->fromnode = newdataadr(fd, link->fromnode);
+			link->fromsock = newdataadr(fd, link->fromsock);
+			link->tonode = newdataadr(fd, link->tonode);
+			link->tosock = newdataadr(fd, link->tosock);
+		}
 		
 		if (node->type == CMP_NODE_MOVIEDISTORTION) {
 			node->storage = newmclipadr(fd, node->storage);
@@ -7117,6 +7123,21 @@ static void do_version_node_cleanup_dynamic_sockets_264(void *UNUSED(data), ID *
 	}
 }
 
+static void do_version_node_fix_internal_links_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeLink *link, *nextlink;
+	
+	for (node = ntree->nodes.first; node; node = node->next) {
+		for (link = node->internal_links.first; link; link = nextlink) {
+			nextlink = link->next;
+			if (!link->fromnode || !link->fromsock || !link->tonode || !link->tosock) {
+				BLI_remlink(&node->internal_links, link);
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -8202,6 +8223,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				scene->toolsettings->unwrapper = 0;
 			}
 		}
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 6)) {
+		/* Fix for bug #32982, internal_links list could get corrupted from r51630 onward.
+		 * Simply remove bad internal_links lists to avoid NULL pointers.
+		 */
+		bNodeTreeType *ntreetype;
+		bNodeTree *ntree;
+		
+		ntreetype = ntreeGetType(NTREE_COMPOSIT);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
+		ntreetype = ntreeGetType(NTREE_SHADER);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
+		ntreetype = ntreeGetType(NTREE_TEXTURE);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
+		
+		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+			do_version_node_fix_internal_links_264(NULL, NULL, ntree);
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
