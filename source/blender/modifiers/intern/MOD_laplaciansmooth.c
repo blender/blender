@@ -288,7 +288,7 @@ static float compute_volume(float (*vertexCos)[3], MFace *mfaces, int numFaces)
 			vol += (1.0 / 6.0) * (x1 * y3 * z4 - x1 * y4 * z3 - x3 * y1 * z4 + x3 * z1 * y4 + y1 * x4 * z3 - x4 * y3 * z1);
 		}
 	}
-	return fabsfvol);
+	return fabsf(vol);
 }
 
 static void volume_preservation(LaplacianSystem *sys, float vini, float vend, short flag)
