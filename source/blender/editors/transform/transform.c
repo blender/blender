@@ -1275,7 +1275,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->redraw |= t->handleEvent(t, event);
 
 	if (handled || t->redraw) {
-		printf("handled %d redraw %d\n", handled, t->redraw);
 		return 0;
 	}
 	else {
