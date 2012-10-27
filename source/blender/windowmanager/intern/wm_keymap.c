@@ -957,6 +957,11 @@ int WM_keymap_item_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
 		return 0;
 
 	if (k1->val != KM_ANY && k2->val != KM_ANY) {
+		/* take click, press, release conflict into account */
+		if (k1->val == KM_CLICK && ELEM3(k2->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0)
+			return 0;
+		if (k2->val == KM_CLICK && ELEM3(k1->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0)
+			return 0;
 		if (k1->val != k2->val)
 			return 0;
 	}
