@@ -1178,7 +1178,7 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y, float *r
 	fac3 = facf1;
 
 	/* formula:
-	 *		fac*(a*b) + (1-fac)*a  => fac*a*(b-1)+a
+	 * fac * (a * b) + (1 - fac) * a  =>  fac * a * (b - 1) + a
 	 */
 
 	while (y--) {

@@ -281,13 +281,13 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 			assert(0);
 			break;
 	}
-	
+
 	inp = fp1[0]*fp2[0] + fp1[1]*fp2[1] + fp1[2]*fp2[2];
 	fac = (-1.0f + inp) * m_damping;
 
-	from[0]+= fac*fp1[0];
-	from[1]+= fac*fp1[1];
-	from[2]+= fac*fp1[2];
+	from[0] += fac * fp1[0];
+	from[1] += fac * fp1[1];
+	from[2] += fac * fp1[2];
 	
 	/* alleen alstie ervoor ligt: cross testen en loodrechte bijtellen */
 	if (inp < 0.0f) {

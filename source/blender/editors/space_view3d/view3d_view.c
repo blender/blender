@@ -658,7 +658,10 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
 	return params.is_ortho;
 }
 
-void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)       /* rect: for picking */
+/*!
+ * \param rect for picking, NULL not to use.
+ */
+void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	rctf viewplane;
@@ -691,7 +694,7 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)       /* rect: for
 		
 		if (orth) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
 		else wmFrustum(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
-		
+
 	}
 	else {
 		if (orth) wmOrtho(x1, x2, y1, y2, clipsta, clipend);

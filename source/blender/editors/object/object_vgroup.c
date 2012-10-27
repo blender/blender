@@ -1174,8 +1174,8 @@ static void getVerticalAndHorizontalChange(const float norm[3], float d, const f
                                            const float start[3], float distToStart,
                                            float *end, float (*changes)[2], float *dists, int index)
 {
-	// A=Q-((Q-P).N)N
-	// D = (a*x0 + b*y0 +c*z0 +d)
+	/* A = Q - ((Q - P).N)N
+	 * D = (a * x0 + b * y0 +c * z0 + d) */
 	float projA[3], projB[3];
 
 	closest_to_plane_v3(projA, coord, norm, start);

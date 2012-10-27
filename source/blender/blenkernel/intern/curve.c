@@ -1050,10 +1050,13 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 	MEM_freeN(jend);
 }
 
+/**
+ * \param coord_array Has to be 3 * 4 * pntsu * resolu in size and zero-ed
+ * \param tilt_array   set when non-NULL
+ * \param radius_array set when non-NULL
+ */
 void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array,
                         int resolu, int stride)
-/* coord_array has to be 3*4*pntsu*resolu in size and zero-ed
- * tilt_array and radius_array will be written to if valid */
 {
 	BPoint *bp;
 	float u, ustart, uend, ustep, sumdiv;

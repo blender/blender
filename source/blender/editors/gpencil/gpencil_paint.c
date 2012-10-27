@@ -959,8 +959,8 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 		/* supported views first */
 		case SPACE_VIEW3D:
 		{
-			// View3D *v3d= curarea->spacedata.first;
-			// RegionView3D *rv3d= ar->regiondata;
+			// View3D *v3d = curarea->spacedata.first;
+			// RegionView3D *rv3d = ar->regiondata;
 			
 			/* set current area 
 			 *	- must verify that region data is 3D-view (and not something else)
@@ -979,7 +979,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 
 		case SPACE_NODE:
 		{
-			//SpaceNode *snode= curarea->spacedata.first;
+			//SpaceNode *snode = curarea->spacedata.first;
 			
 			/* set current area */
 			p->sa = curarea;
@@ -1007,7 +1007,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 		break;
 		case SPACE_IMAGE:
 		{
-			//SpaceImage *sima= curarea->spacedata.first;
+			//SpaceImage *sima = curarea->spacedata.first;
 			
 			/* set the current area */
 			p->sa = curarea;

@@ -1547,7 +1547,7 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 
 	for (i = 0; i < 4; i++) {
 		sub_v3_v3v3(d, samples[i]->co, co);
-		//dist2= dot_v3v3(d, d);
+		//dist2 = dot_v3v3(d, d);
 
 		wz[i] = 1.0f; //(samples[i]->dist2/(1e-4f + dist2));
 		wn[i] = pow(dot_v3v3(samples[i]->n, n), 32.0f);

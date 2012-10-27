@@ -233,7 +233,7 @@ static void undo_clean_stack(bContext *C)
 	if (curundo == NULL) curundo = undobase.last;
 }
 
-/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
+/* 1 = an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
 void undo_editmode_step(bContext *C, int step)
 {
 	Object *obedit = CTX_data_edit_object(C);

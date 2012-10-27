@@ -1045,7 +1045,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 	k = 0; /*current loop/mdisp index within the mloop array*/
 
-	#pragma omp parallel for private(i) if (totloop*gridSize*gridSize >= CCG_OMP_LIMIT)
+	#pragma omp parallel for private(i) if (totloop * gridSize * gridSize >= CCG_OMP_LIMIT)
 
 	for (i = 0; i < totpoly; ++i) {
 		const int numVerts = mpoly[i].totloop;
@@ -1325,7 +1325,7 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 
 	k = 0; /*current loop/mdisp index within the mloop array*/
 
-	//#pragma omp parallel for private(i) if (dm->numLoopData*gridSize*gridSize >= CCG_OMP_LIMIT)
+	//#pragma omp parallel for private(i) if (dm->numLoopData * gridSize * gridSize >= CCG_OMP_LIMIT)
 
 	for (i = 0; i < dm->numPolyData; ++i) {
 		const int numVerts = mpoly[i].totloop;
@@ -2200,7 +2200,7 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	dGridSize = multires_side_tot[high_mmd.totlvl];
 	dSkip = (dGridSize - 1) / (gridSize - 1);
 
-	#pragma omp parallel for private(i) if (me->totface*gridSize*gridSize*4 >= CCG_OMP_LIMIT)
+	#pragma omp parallel for private(i) if (me->totface * gridSize * gridSize * 4 >= CCG_OMP_LIMIT)
 	for (i = 0; i < me->totpoly; ++i) {
 		const int numVerts = mpoly[i].totloop;
 		MDisps *mdisp = &mdisps[mpoly[i].loopstart];

@@ -3091,7 +3091,7 @@ static void subdividenurb(Object *obedit, int number_cuts)
 				nu->pntsv = (number_cuts + 1) * nu->pntsv - number_cuts;
 				BKE_nurb_knot_calc_u(nu);
 				BKE_nurb_knot_calc_v(nu);
-			} /* End of 'if (sel == nu->pntsu*nu->pntsv)' (subdivide entire NURB) */
+			} /* End of 'if (sel == nu->pntsu * nu->pntsv)' (subdivide entire NURB) */
 			else {
 				/* subdivide in v direction? */
 				sel = 0;

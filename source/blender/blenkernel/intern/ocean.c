@@ -475,7 +475,7 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 
 	if (oc->_do_normals) {
 		ocr->normal[0] = oc->_N_x[i * oc->_N + j];
-		ocr->normal[1] = oc->_N_y /*oc->_N_y[i*oc->_N+j] (MEM01)*/;
+		ocr->normal[1] = oc->_N_y  /* oc->_N_y[i * oc->_N + j] (MEM01) */;
 		ocr->normal[2] = oc->_N_z[i * oc->_N + j];
 
 		normalize_v3(ocr->normal);

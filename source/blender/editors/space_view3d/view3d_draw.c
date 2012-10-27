@@ -2133,7 +2133,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	short zbuf = v3d->zbuf;
 	RegionView3D *rv3d = ar->regiondata;
 
-	setwinmatrixview3d(ar, v3d, NULL);  /* 0= no pick rect */
+	setwinmatrixview3d(ar, v3d, NULL);
 	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
@@ -2168,7 +2168,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *))
 	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
 	U.obcenter_dia = 0;
 	
-	setwinmatrixview3d(ar, v3d, NULL);  /* 0= no pick rect */
+	setwinmatrixview3d(ar, v3d, NULL);
 	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 	
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
@@ -2456,7 +2456,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 	if (winmat)
 		copy_m4_m4(rv3d->winmat, winmat);
 	else
-		setwinmatrixview3d(ar, v3d, NULL);  /* NULL= no pickrect */
+		setwinmatrixview3d(ar, v3d, NULL);
 
 	/* setup view matrix */
 	if (viewmat)

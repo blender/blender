@@ -2352,10 +2352,10 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 	                           (st2[0] * st3[1] - st2[1] * st3[0]) + (st3[0] * st0[1] - st3[1] * st0[0]);
 
 	/* X is 2D cross product (determinant)
-	 * A= (p0-p) X (p0-p3)*/
+	 * A = (p0 - p) X (p0 - p3)*/
 	const double a = (st0[0] - st[0]) * (st0[1] - st3[1]) - (st0[1] - st[1]) * (st0[0] - st3[0]);
 
-	/* B= ( (p0-p) X (p1-p2) + (p1-p) X (p0-p3) ) / 2 */
+	/* B = ( (p0 - p) X (p1 - p2) + (p1 - p) X (p0 - p3) ) / 2 */
 	const double b = 0.5 * (((st0[0] - st[0]) * (st1[1] - st2[1]) - (st0[1] - st[1]) * (st1[0] - st2[0])) +
 	                        ((st1[0] - st[0]) * (st0[1] - st3[1]) - (st1[1] - st[1]) * (st0[0] - st3[0])));
 

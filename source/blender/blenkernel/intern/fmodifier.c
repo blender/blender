@@ -276,7 +276,7 @@ static FModifierTypeInfo FMI_GENERATOR = {
 /* Built-In Function Generator F-Curve Modifier --------------------------- */
 
 /* This uses the general equation for equations:
- *   y = amplitude * fn(phase_multiplier*x + phase_offset) + y_offset
+ *   y = amplitude * fn(phase_multiplier * x + phase_offset) + y_offset
  *
  * where amplitude, phase_multiplier/offset, y_offset are user-defined coefficients,
  * x is the evaluation 'time', and 'y' is the resultant value

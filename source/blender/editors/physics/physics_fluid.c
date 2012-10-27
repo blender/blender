@@ -402,7 +402,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 	}
 	
 	/* now we loop over the frames and fill the allocated channels with data */
-	for (i=0; i<channels->length; i++) {
+	for (i=0; i < channels->length; i++) {
 		FluidObject *fobj;
 		float viscosity, gravity[3];
 		float timeAtFrame, time;

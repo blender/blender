@@ -657,17 +657,17 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 						                                        "get_length");
 						fprintf(f, "	int i, arraylen[RNA_MAX_ARRAY_DIMENSION];\n");
 						fprintf(f, "	int len= %s(ptr, arraylen);\n\n", lenfunc);
-						fprintf(f, "	for (i=0; i<len; i++) {\n");
+						fprintf(f, "	for (i=0; i < len; i++) {\n");
 						MEM_freeN(lenfunc);
 					}
 					else {
 						fprintf(f, "	int i;\n\n");
-						fprintf(f, "	for (i=0; i<%u; i++) {\n", prop->totarraylength);
+						fprintf(f, "	for (i=0; i < %u; i++) {\n", prop->totarraylength);
 					}
 
 					if (dp->dnaarraylength == 1) {
 						if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
-							fprintf(f, "		values[i] = %s((data->%s & (%d<<i)) != 0);\n",
+							fprintf(f, "		values[i] = %s((data->%s & (%d << i)) != 0);\n",
 							        (dp->booleannegative) ? "!" : "", dp->dnaname, dp->booleanbit);
 						}
 						else {
@@ -683,7 +683,7 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 							fprintf(f, ") != 0);\n");
 						}
 						else if (rna_color_quantize(prop, dp)) {
-							fprintf(f, "		values[i] = (%s)(data->%s[i]*(1.0f/255.0f));\n",
+							fprintf(f, "		values[i] = (%s)(data->%s[i]*(1.0f / 255.0f));\n",
 							        rna_type_type(prop), dp->dnaname);
 						}
 						else if (dp->dnatype) {
@@ -908,20 +908,20 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 						fprintf(f, "	int i, arraylen[RNA_MAX_ARRAY_DIMENSION];\n");
 						fprintf(f, "	int len= %s(ptr, arraylen);\n\n", lenfunc);
 						rna_clamp_value_range(f, prop);
-						fprintf(f, "	for (i=0; i<len; i++) {\n");
+						fprintf(f, "	for (i=0; i < len; i++) {\n");
 						MEM_freeN(lenfunc);
 					}
 					else {
 						fprintf(f, "	int i;\n\n");
 						rna_clamp_value_range(f, prop);
-						fprintf(f, "	for (i=0; i<%u; i++) {\n", prop->totarraylength);
+						fprintf(f, "	for (i=0; i < %u; i++) {\n", prop->totarraylength);
 					}
 
 					if (dp->dnaarraylength == 1) {
 						if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
 							fprintf(f, "		if (%svalues[i]) data->%s |= (%d<<i);\n",
 							        (dp->booleannegative) ? "!" : "", dp->dnaname, dp->booleanbit);
-							fprintf(f, "		else data->%s &= ~(%d<<i);\n", dp->dnaname, dp->booleanbit);
+							fprintf(f, "		else data->%s &= ~(%d << i);\n", dp->dnaname, dp->booleanbit);
 						}
 						else {
 							fprintf(f, "		(&data->%s)[i] = %s", dp->dnaname, (dp->booleannegative) ? "!" : "");

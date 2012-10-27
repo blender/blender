@@ -88,9 +88,9 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 	if (m_refCount == 0) 
 	{
 		int i;
-		// The video subsystem is required for joystick input to work. However,
-		// when GHOST is running under SDL, video is initialized elsewhere.
-		// Do this once only.
+		/* The video subsystem is required for joystick input to work. However,
+		 * when GHOST is running under SDL, video is initialized elsewhere.
+		 * Do this once only. */
 #  ifdef WITH_GHOST_SDL
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ) {
 #  else
@@ -130,9 +130,9 @@ void SCA_Joystick::ReleaseInstance()
 			m_instance[i] = NULL;
 		}
 
-		// The video subsystem is required for joystick input to work. However,
-		// when GHOST is running under SDL, video is freed elsewhere.
-		// Do this once only.
+		/* The video subsystem is required for joystick input to work. However,
+		 * when GHOST is running under SDL, video is freed elsewhere.
+		 * Do this once only. */
 #  ifdef WITH_GHOST_SDL
 		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
 #  else
@@ -241,10 +241,10 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 #else /* WITH_SDL */
 	if (m_isinit == false) {
 		if (m_joyindex>=m_joynum) {
-			// don't print a message, because this is done anyway
+			/* don't print a message, because this is done anyway */
 			//ECHO("Joystick-Error: " << SDL_NumJoysticks() << " avaiable joystick(s)");
 			
-			// Need this so python args can return empty lists
+			/* Need this so python args can return empty lists */
 			m_axismax = m_buttonmax = m_hatmax = 0;
 			return false;
 		}
@@ -256,17 +256,17 @@ bool SCA_Joystick::CreateJoystickDevice(void)
 		ECHO("Joystick " << m_joyindex << " initialized");
 		
 		/* must run after being initialized */
-		m_axismax =		SDL_JoystickNumAxes(m_private->m_joystick);
-		m_buttonmax =	SDL_JoystickNumButtons(m_private->m_joystick);
-		m_hatmax =		SDL_JoystickNumHats(m_private->m_joystick);
+		m_axismax     = SDL_JoystickNumAxes(m_private->m_joystick);
+		m_buttonmax   = SDL_JoystickNumButtons(m_private->m_joystick);
+		m_hatmax      = SDL_JoystickNumHats(m_private->m_joystick);
+
+		if      (m_axismax > JOYAXIS_MAX) m_axismax = JOYAXIS_MAX;  /* very unlikely */
+		else if (m_axismax < 0)           m_axismax = 0;
 		
-		if (m_axismax > JOYAXIS_MAX) m_axismax= JOYAXIS_MAX;		/* very unlikely */
-		else if (m_axismax < 0) m_axismax = 0;
+		if      (m_hatmax > JOYHAT_MAX) m_hatmax = JOYHAT_MAX;  /* very unlikely */
+		else if (m_hatmax < 0)          m_hatmax = 0;
 		
-		if (m_hatmax > JOYHAT_MAX) m_hatmax= JOYHAT_MAX;			/* very unlikely */
-		else if (m_hatmax<0) m_hatmax= 0;
-		
-		if (m_buttonmax<0) m_buttonmax= 0;
+		if (m_buttonmax < 0) m_buttonmax = 0;
 		
 	}
 	return true;
@@ -307,16 +307,16 @@ int SCA_Joystick::pGetAxis(int axisnum, int udlr)
 int SCA_Joystick::pAxisTest(int axisnum)
 {
 #ifdef WITH_SDL
-	short i1= m_axis_array[(axisnum*2)];
-	short i2= m_axis_array[(axisnum*2)+1];
+	short i1 = m_axis_array[(axisnum * 2)];
+	short i2 = m_axis_array[(axisnum * 2) + 1];
 	
-	/* long winded way to do
-	 *   return max_ff(absf(i1), absf(i2))
-	 * avoid abs from math.h */
+	/* long winded way to do:
+	 * return max_ff(absf(i1), absf(i2))
+	 * ...avoid abs from math.h */
 	if (i1 < 0) i1 = -i1;
 	if (i2 < 0) i2 = -i2;
 	if (i1 <i2) return i2;
-	else		return i1;
+	else        return i1;
 #else /* WITH_SDL */
 	return 0;
 #endif /* WITH_SDL */

@@ -49,7 +49,7 @@ typedef struct VoronoiEdge {
 	float left[2];			/* point on Voronoi place on the left side of edge */
 	float right[2];			/* point on Voronoi place on the right side of edge */
 
-	float f, g;				/* directional coeffitients satisfying equation y = f*x + g (edge lies on this line) */
+	float f, g;				/* directional coeffitients satisfying equation y = f * x + g (edge lies on this line) */
 
 	/* some edges consist of two parts, so we add the pointer to another part to connect them at the end of an algorithm */
 	struct VoronoiEdge *neighbour;

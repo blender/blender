@@ -2799,7 +2799,7 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
 			
 			cp += 2;
 		}
-		data+= elemsize;
+		data += elemsize;
 	}
 }
 

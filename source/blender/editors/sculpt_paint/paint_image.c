@@ -3561,7 +3561,7 @@ static void project_paint_end(ProjPaintState *ps)
 		ps->dm->release(ps->dm);
 }
 
-/* 1= an undo, -1 is a redo. */
+/* 1 = an undo, -1 is a redo. */
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
 {
 	int tot = PROJ_BOUNDBOX_SQUARED;
