@@ -151,8 +151,8 @@ static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e
 	BLI_assert(l_dst_a->f == l_dst_b->f);
 
 	if (l_dst_a != l_dst_a->radial_next) {
-		l_src_1 = l_dst_a->radial_next;
-		l_src_2 = l_src_1->next;
+		l_src_2 = l_dst_a->radial_next;
+		l_src_1 = l_src_2->next;
 	}
 	else if (l_dst_b != l_dst_b->radial_next) {
 		l_src_2 = l_dst_b->radial_next;
