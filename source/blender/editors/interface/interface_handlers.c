@@ -1324,7 +1324,7 @@ static int ui_text_position_from_hidden(uiBut *but, int pos)
 
 static int ui_text_position_to_hidden(uiBut *but, int pos)
 {
-	return BLI_strlen_range_utf8(but->drawstr, but->drawstr + pos);
+	return BLI_strnlen_utf8(but->drawstr, pos);
 }
 
 void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, int restore)

@@ -416,7 +416,7 @@ void BLI_timestr(double _time, char *str)
 }
 
 /* determine the length of a fixed-size string */
-size_t BLI_strnlen(const char *str, size_t maxlen)
+size_t BLI_strnlen(const char *str, const size_t maxlen)
 {
 	const char *end = memchr(str, '\0', maxlen);
 	return end ? (size_t) (end - str) : maxlen;

@@ -261,13 +261,21 @@ size_t BLI_strlen_utf8(const char *strc)
 	return len;
 }
 
-size_t BLI_strlen_range_utf8(const char *start, const char *end)
+/**
+ * \param start the string to measure the length.
+ * \param maxlen the string length (in bytes)
+ * \return the unicode length (not in bytes!)
+ */
+size_t BLI_strnlen_utf8(const char *start, const size_t maxlen)
 {
 	const char *strc = start;
-	int len;
+	const char *strc_end = start + maxlen;
 
-	for (len = 0; strc < end; len++)
+	size_t len;
+
+	for (len = 0; *strc && strc < strc_end; len++) {
 		strc += strlen_utf8_char(strc);
+	}
 
 	return len;
 }
