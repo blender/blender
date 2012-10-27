@@ -51,8 +51,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
-#include "BLF_translation.h"
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_key.h"
@@ -1507,7 +1505,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		if (!modifier_isEnabled(scene, md, required_mode)) continue;
 		if (mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if ((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-			modifier_setError(md, "%s", TIP_("Modifier requires original data, bad stack position."));
+			modifier_setError(md, "Modifier requires original data, bad stack position");
 			continue;
 		}
 		if (sculpt_mode && (!has_multires || multires_applied)) {
@@ -1520,7 +1518,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			unsupported |= multires_applied;
 
 			if (unsupported) {
-				modifier_setError(md, "%s", TIP_("Not supported in sculpt mode."));
+				modifier_setError(md, "Not supported in sculpt mode");
 				continue;
 			}
 		}
@@ -1881,7 +1879,7 @@ int editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *d
 
 	if (!modifier_isEnabled(scene, md, required_mode)) return 0;
 	if ((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-		modifier_setError(md, "%s", TIP_("Modifier requires original data, bad stack position."));
+		modifier_setError(md, "Modifier requires original data, bad stack position");
 		return 0;
 	}
 	

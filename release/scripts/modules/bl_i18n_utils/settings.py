@@ -154,12 +154,18 @@ _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
 PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("IFACE_", "TIP_", "N_")) +
+
     tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_")) + 
+
     tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf")) +
-    tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("BMO_error_raise",))
+
+    tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*,").format(it)
+          for it in ("BMO_error_raise",)) +
+
+    tuple(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("modifier_setError",))
 )
 
 ESCAPE_RE = (
@@ -225,47 +231,35 @@ TOOLS_DIR = os.path.join(os.path.dirname(__file__))
 PYTHON3_EXEC = "python3"
 
 # The Blender executable!
-# This is just an example, you’ll most likely have to edit it in your
-# user_settings.py!
-BLENDER_EXEC = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..",
-                                            "blender"))
+# This is just an example, you’ll most likely have to edit it in your user_settings.py!
+BLENDER_EXEC = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..", "blender"))
 
-# The xgettext tool. You’ll likely have to edit it in your user_settings.py
-# if you’re under Windows.
+# The xgettext tool. You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"
 
-# The gettext msgmerge tool. You’ll likely have to edit it in your
-# user_settings.py if you’re under Windows.
+# The gettext msgmerge tool. You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_MSGMERGE_EXECUTABLE = "msgmerge"
 
-# The gettext msgfmt "compiler". You’ll likely have to edit it in your
-# user_settings.py if you’re under Windows.
+# The gettext msgfmt "compiler". You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_MSGFMT_EXECUTABLE = "msgfmt"
 
-# The svn binary... You’ll likely have to edit it in your
-# user_settings.py if you’re under Windows.
+# The svn binary... You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 SVN_EXECUTABLE = "svn"
 
 # The FriBidi C compiled library (.so under Linux, .dll under windows...).
-# You’ll likely have to edit it in your user_settings.py if you’re under
-# Windows., e.g. using the included one:
+# You’ll likely have to edit it in your user_settings.py if you’re under Windows., e.g. using the included one:
 #     FRIBIDI_LIB = os.path.join(TOOLS_DIR, "libfribidi.dll")
 FRIBIDI_LIB = "libfribidi.so.0"
 
-# The name of the (currently empty) file that must be present in a po's
-# directory to enable rtl-preprocess.
+# The name of the (currently empty) file that must be present in a po's directory to enable rtl-preprocess.
 RTL_PREPROCESS_FILE = "is_rtl"
 
 # The Blender source root path.
-# This is just an example, you’ll most likely have to override it in your
-# user_settings.py!
-SOURCE_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..",
-                                          "..", "..", "blender_msgs"))
+# This is just an example, you’ll most likely have to override it in your user_settings.py!
+SOURCE_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..", "..", "..", "blender_msgs"))
 
-# The bf-translation repository (you'll likely have to override this in your
-# user_settings.py).
-I18N_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..",
-                                        "..", "..", "i18n"))
+# The bf-translation repository (you'll likely have to override this in your user_settings.py).
+I18N_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..", "..", "..", "i18n"))
 
 # The /branches path (overriden in bf-translation's i18n_override_settings.py).
 BRANCHES_DIR = os.path.join(I18N_DIR, "branches")
@@ -285,12 +279,10 @@ FILE_NAME_MESSAGES = os.path.join(TRUNK_PO_DIR, "messages.txt")
 # The Blender source path to check for i18n macros.
 POTFILES_SOURCE_DIR = os.path.join(SOURCE_DIR, "source")
 
-# The "source" file storing which files should be processed by xgettext,
-# used to create FILE_NAME_POTFILES
+# The "source" file storing which files should be processed by xgettext, used to create FILE_NAME_POTFILES
 FILE_NAME_SRC_POTFILES = os.path.join(TRUNK_PO_DIR, "_POTFILES.in")
 
-# The final (generated) file storing which files
-# should be processed by xgettext.
+# The final (generated) file storing which files should be processed by xgettext.
 FILE_NAME_POTFILES = os.path.join(TRUNK_PO_DIR, "POTFILES.in")
 
 # The template messages file.
@@ -298,9 +290,7 @@ FILE_NAME_POT = os.path.join(TRUNK_PO_DIR, ".".join((DOMAIN, "pot")))
 
 # Other py files that should be searched for ui strings, relative to SOURCE_DIR.
 # Needed for Cycles, currently...
-CUSTOM_PY_UI_FILES = [os.path.join("intern", "cycles", "blender",
-                                   "addon", "ui.py"),
-                     ]
+CUSTOM_PY_UI_FILES = [os.path.join("intern", "cycles", "blender", "addon", "ui.py"),]
 
 
 # A cache storing validated msgids, to avoid re-spellchecking them.

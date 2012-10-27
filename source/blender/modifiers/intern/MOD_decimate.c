@@ -126,7 +126,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	if (dmd->face_count <= 3) {
-		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces"));
+		modifier_setError(md, "Modifier requires more than 3 input faces");
 		return dm;
 	}
 

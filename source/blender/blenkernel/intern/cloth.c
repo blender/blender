@@ -41,8 +41,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
-#include "BLF_translation.h"
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
@@ -845,7 +843,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		clmd->clothObject->edgehash = NULL;
 	}
 	else if (!clmd->clothObject) {
-		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject."));
+		modifier_setError(&(clmd->modifier), "Out of memory on allocating clmd->clothObject");
 		return 0;
 	}
 
@@ -907,7 +905,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 	if ( !cloth_build_springs ( clmd, dm ) ) {
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), "%s", TIP_("Can't build springs."));
+		modifier_setError(&(clmd->modifier), "Cannot build springs");
 		printf("cloth_free_modifier cloth_build_springs\n");
 		return 0;
 	}
@@ -949,7 +947,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 	clmd->clothObject->verts = MEM_callocN ( sizeof ( ClothVertex ) * clmd->clothObject->numverts, "clothVertex" );
 	if ( clmd->clothObject->verts == NULL ) {
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject->verts."));
+		modifier_setError(&(clmd->modifier), "Out of memory on allocating clmd->clothObject->verts");
 		printf("cloth_free_modifier clmd->clothObject->verts\n");
 		return;
 	}
@@ -959,7 +957,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 	clmd->clothObject->mfaces = MEM_callocN ( sizeof ( MFace ) * clmd->clothObject->numfaces, "clothMFaces" );
 	if ( clmd->clothObject->mfaces == NULL ) {
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject->mfaces."));
+		modifier_setError(&(clmd->modifier), "Out of memory on allocating clmd->clothObject->mfaces");
 		printf("cloth_free_modifier clmd->clothObject->mfaces\n");
 		return;
 	}
