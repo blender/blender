@@ -67,6 +67,7 @@ class FILEBROWSER_HT_header(Header):
                 row.label(params.filter_glob)
             else:
                 row.prop(params, "use_filter_blender", text="")
+                row.prop(params, "use_filter_backup", text="")
                 row.prop(params, "use_filter_image", text="")
                 row.prop(params, "use_filter_movie", text="")
                 row.prop(params, "use_filter_script", text="")

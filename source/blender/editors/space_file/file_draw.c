@@ -257,7 +257,7 @@ static int get_file_icon(struct direntry *file)
 	else if (file->flags & BLENDERFILE)
 		return ICON_FILE_BLEND;
 	else if (file->flags & BLENDERFILE_BACKUP)
-		return ICON_FILE_BLEND;
+		return ICON_FILE_BACKUP;
 	else if (file->flags & IMAGEFILE)
 		return ICON_FILE_IMAGE;
 	else if (file->flags & MOVIEFILE)

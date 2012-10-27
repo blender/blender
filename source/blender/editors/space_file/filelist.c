@@ -143,7 +143,8 @@ typedef struct FolderList {
 #define SPECIAL_IMG_FONTFILE 8
 #define SPECIAL_IMG_UNKNOWNFILE 9
 #define SPECIAL_IMG_LOADING 10
-#define SPECIAL_IMG_MAX SPECIAL_IMG_LOADING + 1
+#define SPECIAL_IMG_BACKUP 11
+#define SPECIAL_IMG_MAX SPECIAL_IMG_BACKUP + 1
 
 static ImBuf *gSpecialFileImages[SPECIAL_IMG_MAX];
 
@@ -683,6 +684,9 @@ ImBuf *filelist_geticon(struct FileList *filelist, int index)
 	else if (file->flags & IMAGEFILE) {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_LOADING];
 	}
+	else if (file->flags & BLENDERFILE_BACKUP) {
+		ibuf = gSpecialFileImages[SPECIAL_IMG_BACKUP];
+	}
 
 	return ibuf;
 }
@@ -817,8 +821,10 @@ int ED_file_extension_icon(const char *relname)
 {
 	int type = file_extension_type(relname);
 	
-	if (type == BLENDERFILE || type == BLENDERFILE_BACKUP)
+	if (type == BLENDERFILE)
 		return ICON_FILE_BLEND;
+	else if (type == BLENDERFILE_BACKUP)
+		return ICON_FILE_BACKUP;
 	else if (type == IMAGEFILE)
 		return ICON_FILE_IMAGE;
 	else if (type == MOVIEFILE)
@@ -1303,7 +1309,7 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float 
 		if (limg->flags & IMAGEFILE) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
 		}
-		else if (limg->flags & BLENDERFILE) {
+		else if (limg->flags & (BLENDERFILE | BLENDERFILE_BACKUP)) {
 			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_BLEND);
 		}
 		else if (limg->flags & MOVIEFILE) {
@@ -1360,7 +1366,7 @@ void thumbnails_start(struct FileList *filelist, const struct bContext *C)
 	tj->filelist = filelist;
 	for (idx = 0; idx < filelist->numfiles; idx++) {
 		if (!filelist->filelist[idx].image) {
-			if ( (filelist->filelist[idx].flags & (IMAGEFILE | MOVIEFILE | BLENDERFILE)) ) {
+			if ( (filelist->filelist[idx].flags & (IMAGEFILE | MOVIEFILE | BLENDERFILE | BLENDERFILE_BACKUP)) ) {
 				FileImage *limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
 				BLI_strncpy(limg->path, filelist->filelist[idx].path, FILE_MAX);
 				limg->index = idx;
