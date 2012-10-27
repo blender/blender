@@ -168,8 +168,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_movie"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_movie") ? MOVIEFILE : 0;
-		if (RNA_struct_find_property(op->ptr, "filter_text"))
-			params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_python"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_python") ? PYSCRIPTFILE : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_font"))

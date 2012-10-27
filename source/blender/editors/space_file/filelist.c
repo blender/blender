@@ -833,6 +833,8 @@ int ED_file_extension_icon(const char *relname)
 		return ICON_FILE_BLANK;
 	else if (type == COLLADAFILE)
 		return ICON_FILE_BLANK;
+	else if (type == TEXTFILE)
+		return ICON_FILE_TEXT;
 	
 	return ICON_FILE_BLANK;
 }

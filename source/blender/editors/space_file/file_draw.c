@@ -264,14 +264,16 @@ static int get_file_icon(struct direntry *file)
 		return ICON_FILE_MOVIE;
 	else if (file->flags & PYSCRIPTFILE)
 		return ICON_FILE_SCRIPT;
-	else if (file->flags & SOUNDFILE) 
+	else if (file->flags & SOUNDFILE)
 		return ICON_FILE_SOUND;
-	else if (file->flags & FTFONTFILE) 
+	else if (file->flags & FTFONTFILE)
 		return ICON_FILE_FONT;
-	else if (file->flags & BTXFILE) 
+	else if (file->flags & BTXFILE)
 		return ICON_FILE_BLANK;
-	else if (file->flags & COLLADAFILE) 
+	else if (file->flags & COLLADAFILE)
 		return ICON_FILE_BLANK;
+	else if (file->flags & TEXTFILE)
+		return ICON_FILE_TEXT;
 	else
 		return ICON_FILE_BLANK;
 }
