@@ -2517,12 +2517,12 @@ static int get_next_bake_face(BakeShade *bs)
 						if (R.r.bake_flag & R_BAKE_CLEAR)
 							IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
 
-						ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
 					}
-					
+
+					ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
 					bs->obi= obi;
 					bs->vlr= vlr;
 					
