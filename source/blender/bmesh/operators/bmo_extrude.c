@@ -188,9 +188,8 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMOperator dupeop;
-	BMVert *v1, *v2, *v3, *v4;
-	BMEdge *e, *e2;
 	BMFace *f;
+	BMEdge *e, *e2;
 	
 	BMO_ITER (e, &siter, bm, op, "edges", BM_EDGE) {
 		BMO_elem_flag_enable(bm, e, EXT_INPUT);
@@ -203,29 +202,31 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	/* disable root flag on all new skin nodes */
 	if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
-		BMO_ITER(v1, &siter, bm, &dupeop, "newout", BM_VERT) {
-			bm_extrude_disable_skin_root(bm, v1);
+		BMVert *v;
+		BMO_ITER(v, &siter, bm, &dupeop, "newout", BM_VERT) {
+			bm_extrude_disable_skin_root(bm, v);
 		}
 	}
 
 	for (e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0); e; e = BMO_iter_step(&siter)) {
+		BMVert *f_verts[4];
 		e2 = BMO_iter_map_value(&siter);
 		e2 = *(BMEdge **)e2;
 
 		if (e->l && e->v1 != e->l->v) {
-			v1 = e->v1;
-			v2 = e->v2;
-			v3 = e2->v2;
-			v4 = e2->v1;
+			f_verts[0] = e->v1;
+			f_verts[1] = e->v2;
+			f_verts[2] = e2->v2;
+			f_verts[3] = e2->v1;
 		}
 		else {
-			v1 = e2->v1;
-			v2 = e2->v2;
-			v3 = e->v2;
-			v4 = e->v1;
+			f_verts[3] = e->v1;
+			f_verts[2] = e->v2;
+			f_verts[1] = e2->v2;
+			f_verts[0] = e2->v1;
 		}
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, FALSE);
+		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, FALSE);
 		bm_extrude_copy_face_loop_attributes(bm, f, e, e2);
 		
 		if (BMO_elem_flag_test(bm, e, EXT_INPUT))
@@ -271,7 +272,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMIter iter, fiter, viter;
 	BMEdge *e, *newedge;
-	BMVert *verts[4], *v, *v2;
+	BMVert *v, *v2;
 	BMFace *f;
 	int found, fwd, delorig = FALSE;
 
@@ -378,6 +379,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(&dupeop, op, "newout", "geomout");
 
 	for (e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0); e; e = BMO_iter_step(&siter)) {
+		BMVert *f_verts[4];
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
 		if (BM_edge_is_wire(e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
@@ -412,20 +414,20 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 		
 		if (fwd) {
-			verts[0] = e->v1;
-			verts[1] = e->v2;
-			verts[2] = newedge->v2;
-			verts[3] = newedge->v1;
+			f_verts[0] = e->v1;
+			f_verts[1] = e->v2;
+			f_verts[2] = newedge->v2;
+			f_verts[3] = newedge->v1;
 		}
 		else {
-			verts[3] = e->v1;
-			verts[2] = e->v2;
-			verts[1] = newedge->v2;
-			verts[0] = newedge->v1;
+			f_verts[3] = e->v1;
+			f_verts[2] = e->v2;
+			f_verts[1] = newedge->v2;
+			f_verts[0] = newedge->v1;
 		}
 
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_face_create_quad_tri_v(bm, verts, 4, NULL, FALSE);
+		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, FALSE);
 		bm_extrude_copy_face_loop_attributes(bm, f, e, newedge);
 	}
 
