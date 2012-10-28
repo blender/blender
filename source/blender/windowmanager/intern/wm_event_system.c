@@ -2913,6 +2913,37 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				}
 			}
 
+			/* modifiers assign to eventstate, so next event gets the modifer (makes modifier key events work) */
+			/* assigning both first and second is strange - campbell */
+			switch (event.type) {
+				case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
+					evt->shift = (event.val == KM_PRESS) ?
+								((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+								FALSE;
+					break;
+				case LEFTCTRLKEY: case RIGHTCTRLKEY:
+					evt->ctrl = (event.val == KM_PRESS) ?
+								((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+								FALSE;
+					break;
+				case LEFTALTKEY: case RIGHTALTKEY:
+					evt->alt = (event.val == KM_PRESS) ?
+								((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+								FALSE;
+					break;
+				case OSKEY:
+					evt->oskey = (event.val == KM_PRESS) ?
+								((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+								FALSE;
+					break;
+				default:
+					if (event.val == KM_PRESS && event.keymodifier == 0)
+						evt->keymodifier = event.type;  /* only set in eventstate, for next event */
+					else if (event.val == KM_RELEASE && event.keymodifier == event.type)
+						event.keymodifier = evt->keymodifier = 0;
+					break;
+			}
+
 			/* double click test */
 			if (event.type == evt->prevtype && event.val == KM_PRESS) {
 				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
@@ -2924,46 +2955,13 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				}
 			}
 			
-			/* prevent modifier keys getting own key as modifier */
-			if (event.val != KM_DBL_CLICK) {
-
-				/* modifiers */
-				/* assigning both first and second is strange - campbell */
-				switch (event.type) {
-					case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
-						event.shift = evt->shift = (event.val == KM_PRESS) ?
-						            ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-						            FALSE;
-						break;
-					case LEFTCTRLKEY: case RIGHTCTRLKEY:
-						event.ctrl = evt->ctrl = (event.val == KM_PRESS) ?
-						            ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-						            FALSE;
-						break;
-					case LEFTALTKEY: case RIGHTALTKEY:
-						event.alt = evt->alt = (event.val == KM_PRESS) ?
-						            ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-						            FALSE;
-						break;
-					case OSKEY:
-						event.oskey = evt->oskey = (event.val == KM_PRESS) ?
-						            ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-						            FALSE;
-						break;
-					default:
-						if (event.val == KM_PRESS && event.keymodifier == 0)
-							evt->keymodifier = event.type;  /* only set in eventstate, for next event */
-						else if (event.val == KM_RELEASE && event.keymodifier == event.type)
-							event.keymodifier = evt->keymodifier = 0;
-						break;
-				}
-			}
 			/* this case happens on some systems that on holding a key pressed,
 			 * generate press events without release, we still want to keep the
 			 * modifier in win->eventstate, but for the press event of the same
 			 * key we don't want the key modifier */
 			if (event.keymodifier == event.type)
 				event.keymodifier = 0;
+			
 			/* this case happened with an external numpad, it's not really clear
 			 * why, but it's also impossible to map a key modifier to an unknwon
 			 * key, so it shouldn't harm */
