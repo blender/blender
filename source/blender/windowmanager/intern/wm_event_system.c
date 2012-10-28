@@ -1375,11 +1375,28 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 		for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 			if (wm_eventmatch(event, kmi)) {
 					
+				event->prevtype = event->type;
+				event->prevval = event->val;
 				event->type = EVT_MODAL_MAP;
 				event->val = kmi->propvalue;
+				
+				break;
 			}
 		}
 	}
+}
+
+/* bad hacking event system... better restore event type for checking of KM_CLICK for example */
+/* XXX modal maps could use different method (ton) */
+static void wm_event_modalmap_end(wmEvent *event)
+{
+	if (event->type == EVT_MODAL_MAP) {
+		event->type = event->prevtype;
+		event->prevtype = 0;
+		event->val = event->prevval;
+		event->prevval = 0;
+	}
+
 }
 
 /* Warning: this function removes a modal handler, when finished */
@@ -1408,7 +1425,8 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 			retval = ot->modal(C, op, event);
 			OPERATOR_RETVAL_CHECK(retval);
-
+			wm_event_modalmap_end(event);
+			
 			/* when this is _not_ the case the modal modifier may have loaded
 			 * a new blend file (demo mode does this), so we have to assume
 			 * the event, operator etc have all been freed. - campbell */
@@ -1862,31 +1880,45 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	int action = wm_handlers_do_intern(C, event, handlers);
-	
-	/* test for CLICK events */
-	if (wm_action_not_handled(action)) {
-		wmWindow *win = CTX_wm_window(C);
 		
-		if (win && win->eventstate->prevtype == event->type) {
+	 if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && !ISTIMER(event->type)) {
+		 
+		/* test for CLICK events */
+		if (wm_action_not_handled(action)) {
+			wmWindow *win = CTX_wm_window(C);
 			
-			if (event->val == KM_RELEASE && win->eventstate->prevval == KM_PRESS) {
-				event->val = KM_CLICK;
-				action |= wm_handlers_do_intern(C, event, handlers);
+			/* eventstate stores if previous event was a KM_PRESS, in case that 
+			   wasn't handled, the KM_RELEASE will become a KM_CLICK */
+			
+			if (win && event->val == KM_PRESS) {
+				win->eventstate->check_click = TRUE;
+			}
+			
+			if (win && win->eventstate->prevtype == event->type) {
 				
-				/* revert value if not handled */
-				if (wm_action_not_handled(action)) {
+				if (event->val == KM_RELEASE && win->eventstate->prevval == KM_PRESS && win->eventstate->check_click == TRUE) {
+					event->val = KM_CLICK;
+					// printf("add KM_CLICK\n");
+					action |= wm_handlers_do_intern(C, event, handlers);
+
 					event->val = KM_RELEASE;
 				}
-			}
-			else if (event->val == KM_DBL_CLICK) {
-				event->val = KM_PRESS;
-				action |= wm_handlers_do_intern(C, event, handlers);
-				
-				/* revert value if not handled */
-				if (wm_action_not_handled(action)) {
-					event->val = KM_DBL_CLICK;
+				else if (event->val == KM_DBL_CLICK) {
+					event->val = KM_PRESS;
+					action |= wm_handlers_do_intern(C, event, handlers);
+					
+					/* revert value if not handled */
+					if (wm_action_not_handled(action)) {
+						event->val = KM_DBL_CLICK;
+					}
 				}
 			}
+		}
+		else {
+			wmWindow *win = CTX_wm_window(C);
+
+			if(win)
+				win->eventstate->check_click = 0;
 		}
 	}
 	
@@ -2792,7 +2824,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			/* copy to event state */
 			evt->val = event.val;
 			evt->type = event.type;
-			
+
 			if (win->active == 0) {
 				int cx, cy;
 				
