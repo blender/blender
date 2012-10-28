@@ -81,6 +81,7 @@ int set_listbasepointers(struct Main *main, struct ListBase **lb);
 
 void BKE_libblock_free(struct ListBase *lb, void *idv);
 void BKE_libblock_free_us(struct ListBase *lb, void *idv);
+void BKE_libblock_free_data(struct ID *id);
 void free_main(struct Main *mainvar);
 
 void tag_main_idcode(struct Main *mainvar, const short type, const short tag);

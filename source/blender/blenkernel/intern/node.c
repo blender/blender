@@ -1013,6 +1013,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 /* do not free ntree itself here, BKE_libblock_free calls this function too */
 void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 {
+	bNodeTree *tntree;
 	bNode *node, *next;
 	bNodeSocket *sock;
 	
@@ -1069,6 +1070,14 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 	for (sock = ntree->outputs.first; sock; sock = sock->next)
 		node_socket_free_default_value(sock->type, sock->default_value);
 	BLI_freelistN(&ntree->outputs);
+	
+	/* if ntree is not part of library, free the libblock data explicitly */
+	for (tntree = G.main->nodetree.first; tntree; tntree = tntree->id.next)
+		if (tntree == ntree)
+			break;
+	if (tntree == NULL) {
+		BKE_libblock_free_data(&ntree->id);
+	}
 }
 /* same as ntreeFreeTree_ex but always manage users */
 void ntreeFreeTree(bNodeTree *ntree)

@@ -796,6 +796,18 @@ static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata
 	}
 }
 
+void BKE_libblock_free_data(ID *id)
+{
+	Main *bmain = G.main;  /* should eventually be an arg */
+	
+	if (id->properties) {
+		IDP_FreeProperty(id->properties);
+		MEM_freeN(id->properties);
+	}
+	
+	/* this ID may be a driver target! */
+	BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
+}
 
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
 void BKE_libblock_free(ListBase *lb, void *idv)
@@ -904,15 +916,9 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			break;
 	}
 
-	if (id->properties) {
-		IDP_FreeProperty(id->properties);
-		MEM_freeN(id->properties);
-	}
-
 	BLI_remlink(lb, id);
 
-	/* this ID may be a driver target! */
-	BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
+	BKE_libblock_free_data(id);
 
 	MEM_freeN(id);
 }
