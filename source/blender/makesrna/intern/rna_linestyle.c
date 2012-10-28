@@ -1038,37 +1038,37 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "dash1", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "dash1");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
-	RNA_def_property_ui_text(prop, "Dash #1", "Length of the 1st dash");
+	RNA_def_property_ui_text(prop, "Dash 1", "Length of the 1st dash");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "gap1", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "gap1");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
-	RNA_def_property_ui_text(prop, "Gap #1", "Length of the 1st gap");
+	RNA_def_property_ui_text(prop, "Gap 1", "Length of the 1st gap");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "dash2", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "dash2");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
-	RNA_def_property_ui_text(prop, "Dash #2", "Length of the 2nd dash");
+	RNA_def_property_ui_text(prop, "Dash 2", "Length of the 2nd dash");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "gap2", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "gap2");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
-	RNA_def_property_ui_text(prop, "Gap #2", "Length of the 2nd gap");
+	RNA_def_property_ui_text(prop, "Gap 2", "Length of the 2nd gap");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "dash3", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "dash3");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
-	RNA_def_property_ui_text(prop, "Dash #3", "Length of the 3rd dash");
+	RNA_def_property_ui_text(prop, "Dash 3", "Length of the 3rd dash");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "gap3", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "gap3");
 	RNA_def_property_range(prop, 0, USHRT_MAX);
-	RNA_def_property_ui_text(prop, "Gap #3", "Length of the 3rd gap");
+	RNA_def_property_ui_text(prop, "Gap 3", "Length of the 3rd gap");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 }

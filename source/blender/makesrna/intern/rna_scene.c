@@ -2603,6 +2603,11 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Raycasting Algorithm", "Select the Freestyle raycasting algorithm");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "use_culling", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_CULLING);
+	RNA_def_property_ui_text(prop, "Culling", "If enabled, out-of-view edges are ignored");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	prop= RNA_def_property(srna, "use_suggestive_contours", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_SUGGESTIVE_CONTOURS_FLAG);
 	RNA_def_property_ui_text(prop, "Suggestive Contours", "Enable suggestive contours");

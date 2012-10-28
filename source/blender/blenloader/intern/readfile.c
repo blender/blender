@@ -8348,8 +8348,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(srl= sce->r.layers.first; srl; srl= srl->next) {
 				if (srl->freestyleConfig.mode == 0)
 					srl->freestyleConfig.mode= FREESTYLE_CONTROL_EDITOR_MODE;
-				if (srl->freestyleConfig.raycasting_algorithm == 0)
-					srl->freestyleConfig.raycasting_algorithm= FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE;
+				if (srl->freestyleConfig.raycasting_algorithm == FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE ||
+					srl->freestyleConfig.raycasting_algorithm == FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL) {
+					srl->freestyleConfig.raycasting_algorithm= 0; /* deprecated */
+					srl->freestyleConfig.flags |= FREESTYLE_CULLING;
+				}
 			}
 		}
 		for(linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {

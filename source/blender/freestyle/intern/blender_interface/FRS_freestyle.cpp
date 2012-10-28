@@ -352,7 +352,8 @@ extern "C" {
 		}
 		controller->setFaceSmoothness( (config->flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) ? true : false);
 		controller->setCreaseAngle( config->crease_angle );
-		controller->setVisibilityAlgo( config->raycasting_algorithm );
+		controller->setVisibilityAlgo( (config->flags & FREESTYLE_CULLING) ?
+			FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE : FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE );
 
 		cout << "Crease angle : " << controller->getCreaseAngle() << endl;
 		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
@@ -527,8 +528,6 @@ extern "C" {
 		config->crease_angle = 134.43f;
 
 		config->linesets.first = config->linesets.last = NULL;
-
-		config->raycasting_algorithm = FREESTYLE_ALGO_REGULAR;
 	}
 	
 	void FRS_free_freestyle_config( SceneRenderLayer* srl )

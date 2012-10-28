@@ -41,6 +41,7 @@ struct FreestyleLineStyle;
 #define FREESTYLE_MATERIAL_BOUNDARIES_FLAG  4
 #define FREESTYLE_FACE_SMOOTHNESS_FLAG      8
 #define FREESTYLE_ADVANCED_OPTIONS_FLAG     16
+#define FREESTYLE_CULLING                   32
 
 /* FreestyleConfig::mode */
 #define FREESTYLE_CONTROL_SCRIPT_MODE  1
@@ -120,7 +121,7 @@ typedef struct FreestyleConfig {
 	ListBase modules;
 	
 	int mode; /* scripting, editor */
-	int raycasting_algorithm; /* regular, fast, very fast, etc. */
+	int raycasting_algorithm; /* XXX deprecated */
 	int flags; /* suggestive contours, ridges/valleys, material boundaries */
 	float sphere_radius;
 	float dkr_epsilon;
