@@ -375,8 +375,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				
 				// not using log seems to have no impact on raytracing perf, but
 				// makes tree construction quicker, left out for now to test (brecht)
-				// left_side = bb_area(sweep_left.bb, sweep_left.bb+3)*(sweep_left.cost+logf((float)i));
-				// right_side= bb_area(sweep[i].bb, sweep[i].bb+3)*(sweep[i].cost+logf((float)size-i));
+				// left_side  = bb_area(sweep_left.bb, sweep_left.bb + 3) * (sweep_left.cost + logf((float)i));
+				// right_side = bb_area(sweep[i].bb,   sweep[i].bb   + 3) * (sweep[i].cost   + logf((float)size - i));
 				left_side = bb_area(sweep_left.bb, sweep_left.bb + 3) * (sweep_left.cost);
 				right_side = bb_area(sweep[i].bb, sweep[i].bb + 3) * (sweep[i].cost);
 				hcost = left_side + right_side;

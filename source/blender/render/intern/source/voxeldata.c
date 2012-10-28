@@ -285,7 +285,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				}
 
 				/* always store copy, as smoke internal data can change */
-				totRes= vd_resol_size(vd);
+				totRes = vd_resol_size(vd);
 				vd->dataset = MEM_mapallocN(sizeof(float)*(totRes), "smoke data");
 				memcpy(vd->dataset, flame, sizeof(float)*totRes);
 			}

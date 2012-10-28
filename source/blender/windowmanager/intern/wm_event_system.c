@@ -2918,23 +2918,23 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			switch (event.type) {
 				case LEFTSHIFTKEY: case RIGHTSHIFTKEY:
 					evt->shift = (event.val == KM_PRESS) ?
-								((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-								FALSE;
+					            ((evt->ctrl || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+					            FALSE;
 					break;
 				case LEFTCTRLKEY: case RIGHTCTRLKEY:
 					evt->ctrl = (event.val == KM_PRESS) ?
-								((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-								FALSE;
+					            ((evt->shift || evt->alt || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+					            FALSE;
 					break;
 				case LEFTALTKEY: case RIGHTALTKEY:
 					evt->alt = (event.val == KM_PRESS) ?
-								((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-								FALSE;
+					            ((evt->ctrl || evt->shift || evt->oskey) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+					            FALSE;
 					break;
 				case OSKEY:
 					evt->oskey = (event.val == KM_PRESS) ?
-								((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
-								FALSE;
+					            ((evt->ctrl || evt->alt || evt->shift) ? (KM_MOD_FIRST | KM_MOD_SECOND) : KM_MOD_FIRST) :
+					            FALSE;
 					break;
 				default:
 					if (event.val == KM_PRESS && event.keymodifier == 0)

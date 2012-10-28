@@ -395,6 +395,7 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 
 	BLI_assert(l_clear->v == v_clear);
 	BLI_assert(l_other->v == v_other);
+	(void)v_other;  /* quiet warnings for release */
 
 	/* now we have both corners of the face 'l->f' */
 	for (side = 0; side < 2; side++) {

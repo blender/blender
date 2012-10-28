@@ -75,13 +75,13 @@ static int vert_is_boundary(BMVert *v);
 static LaplacianSystem * init_laplacian_system( int a_numEdges, int a_numFaces, int a_numVerts);
 static void init_laplacian_matrix(LaplacianSystem * sys);
 static void delete_laplacian_system(LaplacianSystem * sys);
-static void delete_void_pointer(void * data);
+static void delete_void_pointer(void *data);
 static void fill_laplacian_matrix(LaplacianSystem * sys);
 static void memset_laplacian_system(LaplacianSystem *sys, int val);
 static void validate_solution(LaplacianSystem * sys, int usex, int usey, int usez, int volumepreservation);
 static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float vend, int usex, int usey, int usez);
 
-static void delete_void_pointer(void * data)
+static void delete_void_pointer(void *data)
 {
 	if (data) {
 		MEM_freeN(data);

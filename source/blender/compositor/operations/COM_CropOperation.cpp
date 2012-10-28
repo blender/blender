@@ -37,8 +37,7 @@ void CropBaseOperation::updateArea()
 	float width = inputReference->getWidth();
 	float height = inputReference->getHeight();
 	
-	if (width > 0.0f && height > 0.0f)
-	{
+	if (width > 0.0f && height > 0.0f) {
 		if (this->m_relative) {
 			this->m_settings->x1 = width * this->m_settings->fac_x1;
 			this->m_settings->x2 = width * this->m_settings->fac_x2;
@@ -114,12 +113,10 @@ void CropImageOperation::determineResolution(unsigned int resolution[2], unsigne
 
 void CropImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight()) 
-	{
+	if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight())  {
 		this->m_inputOperation->read(output, (x + this->m_xmin), (y + this->m_ymin), sampler);
 	}
-	else
-	{
+	else {
 		zero_v4(output);
 	}
 }

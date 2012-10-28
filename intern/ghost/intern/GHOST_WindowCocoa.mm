@@ -187,7 +187,7 @@ extern "C" {
 	NSPoint mouseLocation = [sender draggingLocation];
 	
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingUpdated, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
-	return associatedWindow->canAcceptDragOperation()?NSDragOperationCopy:NSDragOperationNone;
+	return associatedWindow->canAcceptDragOperation() ? NSDragOperationCopy : NSDragOperationNone;
 }
 
 - (void)draggingExited:(id < NSDraggingInfo >)sender
@@ -368,7 +368,7 @@ extern "C" {
 
 - (BOOL)hasMarkedText
 {
-	return (composing)? YES: NO;
+	return (composing) ? YES : NO;
 }
 
 - (void)doCommandBySelector:(SEL)selector
@@ -392,7 +392,7 @@ extern "C" {
 
 - (NSRange)markedRange
 {
-	unsigned int length = (composing_text)? [composing_text length]: 0;
+	unsigned int length = (composing_text) ? [composing_text length] : 0;
 
 	if (composing)
 		return NSMakeRange(0, length);
@@ -402,7 +402,7 @@ extern "C" {
 
 - (NSRange)selectedRange
 {
-	unsigned int length = (composing_text)? [composing_text length]: 0;
+	unsigned int length = (composing_text) ? [composing_text length] : 0;
 	return NSMakeRange(0, length);
 }
 

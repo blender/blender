@@ -35,9 +35,9 @@
 #define __DNA_PACKEDFILE_TYPES_H__
 
 typedef struct PackedFile {
-	int size;
-	int seek;
-	void * data;
+	int   size;
+	int   seek;
+	void *data;
 } PackedFile;
 
 enum PF_FileStatus

@@ -1045,9 +1045,9 @@ static char *rna_def_property_length_func(FILE *f, StructRNA *srna, PropertyRNA 
 		else {
 			rna_print_data_get(f, dp);
 			if (dp->dnalengthname)
-				fprintf(f, "	return (data->%s == NULL)? 0: data->%s;\n", dp->dnaname, dp->dnalengthname);
+				fprintf(f, "	return (data->%s == NULL) ? 0 : data->%s;\n", dp->dnaname, dp->dnalengthname);
 			else
-				fprintf(f, "	return (data->%s == NULL)? 0: %d;\n", dp->dnaname, dp->dnalengthfixed);
+				fprintf(f, "	return (data->%s == NULL) ? 0 : %d;\n", dp->dnaname, dp->dnalengthfixed);
 		}
 		fprintf(f, "}\n\n");
 	}
