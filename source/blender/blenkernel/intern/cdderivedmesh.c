@@ -617,7 +617,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	MCol *realcol = dm->getTessFaceDataArray(dm, CD_TEXTURE_MCOL);
 	float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
-	int i, j, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
+	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 	int startFace = 0 /*, lastFlag = 0xdeadbeef */ /* UNUSED */;
 	MCol *mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
 	if (!mcol)
@@ -717,23 +717,6 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			
 			if (col != 0)
 #endif
-			{
-				unsigned char *colors = MEM_mallocN(dm->getNumTessFaces(dm) * 4 * 3 * sizeof(unsigned char), "cdDM_drawFacesTex_common");
-				for (i = 0; i < dm->getNumTessFaces(dm); i++) {
-					for (j = 0; j < 4; j++) {
-						/* bgr -> rgb is intentional (and stupid), but how its stored internally */
-						colors[i * 12 + j * 3] = col[i * 4 + j].b;
-						colors[i * 12 + j * 3 + 1] = col[i * 4 + j].g;
-						colors[i * 12 + j * 3 + 2] = col[i * 4 + j].r;
-					}
-				}
-				GPU_color3_upload(dm, colors);
-				MEM_freeN(colors);
-				if (realcol)
-					dm->drawObject->colType = CD_TEXTURE_MCOL;
-				else if (mcol)
-					dm->drawObject->colType = CD_MCOL;
-			}
 			GPU_color_setup(dm);
 		}
 
@@ -908,8 +891,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		int prevstart = 0;
 		GPU_vertex_setup(dm);
 		GPU_normal_setup(dm);
-		if (useColors && mc)
+		if (useColors && mc) {
 			GPU_color_setup(dm);
+		}
 		if (!GPU_buffer_legacy(dm)) {
 			int tottri = dm->drawObject->tot_triangle_point / 3;
 			glShadeModel(GL_SMOOTH);

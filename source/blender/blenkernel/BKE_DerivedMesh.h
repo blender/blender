@@ -148,6 +148,11 @@ typedef enum DMDrawFlag {
 typedef enum DMDirtyFlag {
 	/* dm has valid tessellated faces, but tessellated CDDATA need to be updated. */
 	DM_DIRTY_TESS_CDLAYERS = 1 << 0,
+	/* One of the MCOL layers have been updated, force updating of GPUDrawObject's colors buffer.
+	 * This is necessary with modern, VBO draw code, as e.g. in vpaint mode me->mcol may be updated
+	 * without actually rebuilding dm (hence by defautl keeping same GPUDrawObject, and same colors
+	 * buffer, which prevents update during a stroke!). */
+	DM_DIRTY_MCOL_UPDATE_DRAW = 1 << 1,
 } DMDirtyFlag;
 
 typedef struct DerivedMesh DerivedMesh;

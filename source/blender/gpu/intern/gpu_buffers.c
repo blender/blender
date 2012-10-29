@@ -708,34 +708,6 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 	}
 }
 
-
-static void GPU_buffer_copy_color3(DerivedMesh *dm, float *varray_, int *index, int *mat_orig_to_new, void *user)
-{
-	int i, totface;
-	char *varray = (char *)varray_;
-	char *mcol = (char *)user;
-	MFace *f = dm->getTessFaceArray(dm);
-
-	totface = dm->getNumTessFaces(dm);
-	for (i = 0; i < totface; i++, f++) {
-		int start = index[mat_orig_to_new[f->mat_nr]];
-
-		/* v1 v2 v3 */
-		copy_v3_v3_char(&varray[start], &mcol[i * 12]);
-		copy_v3_v3_char(&varray[start + 3], &mcol[i * 12 + 3]);
-		copy_v3_v3_char(&varray[start + 6], &mcol[i * 12 + 6]);
-		index[mat_orig_to_new[f->mat_nr]] += 9;
-
-		if (f->v4) {
-			/* v3 v4 v1 */
-			copy_v3_v3_char(&varray[start + 9], &mcol[i * 12 + 6]);
-			copy_v3_v3_char(&varray[start + 12], &mcol[i * 12 + 9]);
-			copy_v3_v3_char(&varray[start + 15], &mcol[i * 12]);
-			index[mat_orig_to_new[f->mat_nr]] += 9;
-		}
-	}
-}
-
 static void copy_mcol_uc3(unsigned char *v, unsigned char *col)
 {
 	v[0] = col[3];
@@ -944,7 +916,7 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 static GPUBuffer *gpu_buffer_setup_common(DerivedMesh *dm, GPUBufferType type)
 {
 	GPUBuffer **buf;
-	
+
 	if (!dm->drawObject)
 		dm->drawObject = GPU_drawobject_new(dm);
 
@@ -1008,6 +980,14 @@ void GPU_uv_setup(DerivedMesh *dm)
 
 void GPU_color_setup(DerivedMesh *dm)
 {
+	/* In paint mode, dm may stay the same during stroke, however we still want to update colors! */
+	if ((dm->dirty & DM_DIRTY_MCOL_UPDATE_DRAW) && dm->drawObject) {
+		GPUBuffer **buf = gpu_drawobject_buffer_from_type(dm->drawObject, GPU_BUFFER_COLOR);
+		GPU_buffer_free(*buf);
+		*buf = NULL;
+	}
+	dm->dirty &= ~DM_DIRTY_MCOL_UPDATE_DRAW;
+
 	if (!gpu_buffer_setup_common(dm, GPU_BUFFER_COLOR))
 		return;
 
@@ -1166,20 +1146,6 @@ void GPU_buffer_unbind(void)
 
 	if (useVBOs)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
-}
-
-/* confusion: code in cdderivedmesh calls both GPU_color_setup and
- * GPU_color3_upload; both of these set the `colors' buffer, so seems
- * like it will just needlessly overwrite? --nicholas */
-void GPU_color3_upload(DerivedMesh *dm, unsigned char *data)
-{
-	if (dm->drawObject == 0)
-		dm->drawObject = GPU_drawobject_new(dm);
-	GPU_buffer_free(dm->drawObject->colors);
-
-	dm->drawObject->colors = gpu_buffer_setup(dm, dm->drawObject, 3,
-	                                          sizeof(char) * 3 * dm->drawObject->tot_triangle_point,
-	                                          GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color3);
 }
 
 void GPU_color_switch(int mode)
