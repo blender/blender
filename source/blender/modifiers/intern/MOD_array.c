@@ -314,7 +314,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMesh *bm = DM_to_bmesh(dm);
 	BMOperator first_dupe_op, dupe_op, old_dupe_op, weld_op;
 	BMVert **first_geom = NULL;
-	int i, j, indexLen;
+	int i, j;
+	int index_len = -1;  /* initialize to an invalid value */
 	/* offset matrix */
 	float offset[4][4];
 	float final_offset[4][4];
@@ -452,12 +453,15 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			/*calculate merge mapping*/
 			if (j == 0) {
 				indexMap = find_doubles_index_map(bm, &dupe_op,
-				                                  amd, &indexLen);
+				                                  amd, &index_len);
 			}
 
 			#define _E(s, i) ((BMVert **)(s)->data.buf)[i]
 
-			for (i = 0; i < indexLen; i++) {
+			/* ensure this is set */
+			BLI_assert(index_len != -1);
+
+			for (i = 0; i < index_len; i++) {
 				if (!indexMap[i]) continue;
 
 				/* merge v (from 'newout') into v2 (from old 'geom') */

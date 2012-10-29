@@ -1712,7 +1712,7 @@ void calculatePropRatio(TransInfo *t)
 				/*
 				 * The elements are sorted according to their dist member in the array,
 				 * that means we can stop when it finds one element outside of the propsize.
-				 * do not set td->flag |= TD_NOACTION , the prop circle is being changed.
+				 * do not set 'td->flag |= TD_NOACTION', the prop circle is being changed.
 				 */
 				
 				td->factor = 0.0f;

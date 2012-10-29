@@ -107,12 +107,12 @@ static void delete_laplacian_system(LaplacianSystem * sys)
 
 static void memset_laplacian_system(LaplacianSystem *sys, int val)
 {
-	memset(sys->eweights	, val, sizeof(float) * sys->numEdges);
-	memset(sys->fweights	, val, sizeof(float) * sys->numFaces * 3);
-	memset(sys->ring_areas	, val, sizeof(float) * sys->numVerts);
-	memset(sys->vlengths	, val, sizeof(float) * sys->numVerts);
-	memset(sys->vweights	, val, sizeof(float) * sys->numVerts);
-	memset(sys->zerola		, val, sizeof(short) * sys->numVerts);
+	memset(sys->eweights,     val, sizeof(float) * sys->numEdges);
+	memset(sys->fweights,     val, sizeof(float) * sys->numFaces * 3);
+	memset(sys->ring_areas,   val, sizeof(float) * sys->numVerts);
+	memset(sys->vlengths,     val, sizeof(float) * sys->numVerts);
+	memset(sys->vweights,     val, sizeof(float) * sys->numVerts);
+	memset(sys->zerola,       val, sizeof(short) * sys->numVerts);
 }
 
 static LaplacianSystem * init_laplacian_system( int a_numEdges, int a_numFaces, int a_numVerts) 

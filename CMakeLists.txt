@@ -186,11 +186,11 @@ unset(PLATFORM_DEFAULT)
 
 
 # Modifiers
-option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
-option(WITH_MOD_SMOKE        	"Enable Smoke Modifier (Smoke Simulation)" ON)
-option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
-option(WITH_MOD_REMESH        	"Enable Remesh Modifier" ON)
-option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experimental cloth solver" OFF)
+option(WITH_MOD_FLUID           "Enable Elbeem Modifier (Fluid Simulation)" ON)
+option(WITH_MOD_SMOKE           "Enable Smoke Modifier (Smoke Simulation)" ON)
+option(WITH_MOD_BOOLEAN         "Enable Boolean Modifier" ON)
+option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
+option(WITH_MOD_CLOTH_ELTOPO    "Enable Experimental cloth solver" OFF)
 mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
 option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
 

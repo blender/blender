@@ -558,7 +558,7 @@ static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "new", "rna_GPencil_layer_new");
 	RNA_def_function_ui_description(func, "Add a new grease pencil layer");
-	parm = 	RNA_def_string(func, "name", "GPencilLayer", MAX_NAME, "Name", "Name of the layer");
+	parm = RNA_def_string(func, "name", "GPencilLayer", MAX_NAME, "Name", "Name of the layer");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_boolean(func, "set_active", 0, "Set Active", "Set the newly created layer to the active layer");
 	parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The newly created layer");

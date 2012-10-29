@@ -104,7 +104,7 @@
 
 /* for debugging add... */
 #ifndef NDEBUG
-/* 	printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]); \ */
+/* printf("%u %u %u %u\n", _t[0], _t[1], _t[2], _t[3]); \ */
 #  define FACE_ASSERT(face, vert_max)                    \
 {                                                        \
 	unsigned int *_t = face;                             \
