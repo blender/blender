@@ -23,7 +23,7 @@ BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH}/
     '${BF_FFMPEG_LIBPATH}/libswscale.a ${BF_FFMPEG_LIBPATH}/libswresample.a ' + \
     '/usr/lib/libxvidcore.a /usr/lib/libx264.a /usr/lib/libmp3lame.a /usr/lib/libvpx.a /usr/lib/libvorbis.a ' + \
     '/usr/lib/libogg.a /usr/lib/libvorbisenc.a /usr/lib/libtheora.a /usr/lib/libschroedinger-1.0.a ' + \
-    '/usr/lib/liborc-0.4.a /usr/lib/libasound.a'
+    '/usr/lib/liborc-0.4.a'
 
 # Don't depend on system's libstdc++
 WITH_BF_STATICCXX = True
