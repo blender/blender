@@ -2790,7 +2790,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.y = evt->y = (win->sizey - 1) - cy;
 			}
 			
-			event->val= 0;
+			event.val= 0;
 			
 			/* Use prevx/prevy so we can calculate the delta later */
 			event.prevx = event.x - pd->deltaX;
