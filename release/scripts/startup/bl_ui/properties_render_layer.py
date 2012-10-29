@@ -35,7 +35,7 @@ class RenderLayerButtonsPanel():
 
 class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
     bl_label = "Layers"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -57,11 +57,24 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
             row.prop(rl, "name")
         row.prop(rd, "use_single_layer", text="", icon_only=True)
 
+
+class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
+    bl_label = "Layer"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        rl = rd.layers.active
+
         split = layout.split()
 
         col = split.column()
         col.prop(scene, "layers", text="Scene")
-        col.label(text="")
+#        col.label(text="")
         col.prop(rl, "light_override", text="Light")
         col.prop(rl, "material_override", text="Material")
 
@@ -93,12 +106,31 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
         col.prop(rl, "use_strand")
         col.prop(rl, "use_freestyle")
 
-        layout.separator()
+
+class RENDERLAYER_PT_layer_passes(RenderLayerButtonsPanel, Panel):
+    bl_label = "Render Passes"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_pass_type_buttons(self, box, rl, pass_type):
+        # property names
+        use_pass_type = "use_pass_" + pass_type
+        exclude_pass_type = "exclude_" + pass_type
+        # draw pass type buttons
+        row = box.row()
+        row.prop(rl, use_pass_type)
+        row.prop(rl, exclude_pass_type, text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        rl = rd.layers.active
 
         split = layout.split()
 
         col = split.column()
-        col.label(text="Passes:")
         col.prop(rl, "use_pass_combined")
         col.prop(rl, "use_pass_z")
         col.prop(rl, "use_pass_vector")
@@ -110,32 +142,15 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
         col.prop(rl, "use_pass_color")
 
         col = split.column()
-        col.label()
         col.prop(rl, "use_pass_diffuse")
-        row = col.row()
-        row.prop(rl, "use_pass_specular")
-        row.prop(rl, "exclude_specular", text="")
-        row = col.row()
-        row.prop(rl, "use_pass_shadow")
-        row.prop(rl, "exclude_shadow", text="")
-        row = col.row()
-        row.prop(rl, "use_pass_emit")
-        row.prop(rl, "exclude_emit", text="")
-        row = col.row()
-        row.prop(rl, "use_pass_ambient_occlusion")
-        row.prop(rl, "exclude_ambient_occlusion", text="")
-        row = col.row()
-        row.prop(rl, "use_pass_environment")
-        row.prop(rl, "exclude_environment", text="")
-        row = col.row()
-        row.prop(rl, "use_pass_indirect")
-        row.prop(rl, "exclude_indirect", text="")
-        row = col.row()
-        row.prop(rl, "use_pass_reflection")
-        row.prop(rl, "exclude_reflection", text="")
-        row = col.row()
-        row.prop(rl, "use_pass_refraction")
-        row.prop(rl, "exclude_refraction", text="")
+        self.draw_pass_type_buttons(col, rl, "specular")
+        self.draw_pass_type_buttons(col, rl, "shadow")
+        self.draw_pass_type_buttons(col, rl, "emit")
+        self.draw_pass_type_buttons(col, rl, "ambient_occlusion")
+        self.draw_pass_type_buttons(col, rl, "environment")
+        self.draw_pass_type_buttons(col, rl, "indirect")
+        self.draw_pass_type_buttons(col, rl, "reflection")
+        self.draw_pass_type_buttons(col, rl, "refraction")
 
 
 class RENDER_MT_lineset_specials(Menu):
@@ -150,6 +165,15 @@ class RENDER_MT_lineset_specials(Menu):
 class RENDERLAYER_PT_freestyle(RenderLayerButtonsPanel, Panel):
     bl_label = "Freestyle"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        if not (scene and (scene.render.engine in cls.COMPAT_ENGINES)):
+            return False
+        rd = scene.render
+        rl = rd.layers.active
+        return rd.use_freestyle and rl
 
     def draw(self, context):
         rd = context.scene.render
@@ -200,16 +224,17 @@ class RENDERLAYER_PT_freestyle(RenderLayerButtonsPanel, Panel):
 
 
 class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
-    bl_label = "Freestyle: Line Set"
+    bl_label = "Freestyle Line Set"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
-        if rd.engine not in cls.COMPAT_ENGINES:
+        scene = context.scene
+        if not (scene and (scene.render.engine in cls.COMPAT_ENGINES)):
             return False
+        rd = scene.render
         rl = rd.layers.active
-        return rl and rl.freestyle_settings.mode == "EDITOR"
+        return rd.use_freestyle and rl and rl.freestyle_settings.mode == "EDITOR"
 
     def draw_edge_type_buttons(self, box, lineset, edge_type):
         # property names
@@ -234,7 +259,6 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Line Sets:")
         row = col.row()
         rows = 2
         if lineset:
@@ -305,16 +329,18 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
 
 
 class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
-    bl_label = "Freestyle: Line Style"
+    bl_label = "Freestyle Line Style"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
-        if rd.engine not in cls.COMPAT_ENGINES:
+        scene = context.scene
+        if not (scene and (scene.render.engine in cls.COMPAT_ENGINES)):
             return False
+        rd = scene.render
         rl = rd.layers.active
-        return rl and rl.freestyle_settings.mode == "EDITOR"
+        return rd.use_freestyle and rl and rl.freestyle_settings.mode == "EDITOR"
 
     def draw_modifier_box_header(self, box, modifier):
         row = box.row()
