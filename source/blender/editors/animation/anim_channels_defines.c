@@ -752,7 +752,7 @@ static void acf_group_color(bAnimContext *ac, bAnimListElem *ale, float r_color[
 		
 		/* highlight only for active */
 		if (ale->flag & AGRP_ACTIVE)
-			copy_v3_v3_char((char *)cp, agrp->cs.active);
+			copy_v3_v3_char((char *)cp, agrp->cs.select);
 		else
 			copy_v3_v3_char((char *)cp, agrp->cs.solid);
 		
