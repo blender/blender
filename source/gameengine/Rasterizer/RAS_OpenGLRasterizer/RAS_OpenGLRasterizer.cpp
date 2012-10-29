@@ -239,10 +239,10 @@ void RAS_OpenGLRasterizer::DisplayFog()
 		glFogf(GL_FOG_DENSITY, 0.1f);
 		glFogf(GL_FOG_START, m_fogstart);
 		glFogf(GL_FOG_END, m_fogstart + m_fogdist);
-		params[0]= m_fogr;
-		params[1]= m_fogg;
-		params[2]= m_fogb;
-		params[3]= 0.0;
+		params[0] = m_fogr;
+		params[1] = m_fogg;
+		params[2] = m_fogb;
+		params[3] = 0.0;
 		glFogfv(GL_FOG_COLOR, params); 
 		glEnable(GL_FOG);
 	} 
@@ -447,8 +447,7 @@ void RAS_OpenGLRasterizer::SetRenderArea()
 	switch (m_stereomode)
 	{
 		case RAS_STEREO_ABOVEBELOW:
-			switch(m_curreye)
-			{
+			switch (m_curreye) {
 				case RAS_STEREO_LEFTEYE:
 					// upper half of window
 					area.SetLeft(0);
@@ -716,53 +715,53 @@ void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv)
 				glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
 				continue;
 			}
-			switch(m_texco[unit]) {
-			case RAS_TEXCO_ORCO:
-			case RAS_TEXCO_GLOB:
-				glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getXYZ());
-				break;
-			case RAS_TEXCO_UV1:
-				glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV1());
-				break;
-			case RAS_TEXCO_NORM:
-				glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getNormal());
-				break;
-			case RAS_TEXTANGENT:
-				glMultiTexCoord4fvARB(GL_TEXTURE0_ARB+unit, tv.getTangent());
-				break;
-			case RAS_TEXCO_UV2:
-				glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
-				break;
-			default:
-				break;
+			switch (m_texco[unit]) {
+				case RAS_TEXCO_ORCO:
+				case RAS_TEXCO_GLOB:
+					glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getXYZ());
+					break;
+				case RAS_TEXCO_UV1:
+					glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV1());
+					break;
+				case RAS_TEXCO_NORM:
+					glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getNormal());
+					break;
+				case RAS_TEXTANGENT:
+					glMultiTexCoord4fvARB(GL_TEXTURE0_ARB+unit, tv.getTangent());
+					break;
+				case RAS_TEXCO_UV2:
+					glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
+					break;
+				default:
+					break;
 			}
 		}
 	}
 
 	if (GLEW_ARB_vertex_program) {
 		for (unit=0; unit<m_attrib_num; unit++) {
-			switch(m_attrib[unit]) {
-			case RAS_TEXCO_ORCO:
-			case RAS_TEXCO_GLOB:
-				glVertexAttrib3fvARB(unit, tv.getXYZ());
-				break;
-			case RAS_TEXCO_UV1:
-				glVertexAttrib2fvARB(unit, tv.getUV1());
-				break;
-			case RAS_TEXCO_NORM:
-				glVertexAttrib3fvARB(unit, tv.getNormal());
-				break;
-			case RAS_TEXTANGENT:
-				glVertexAttrib4fvARB(unit, tv.getTangent());
-				break;
-			case RAS_TEXCO_UV2:
-				glVertexAttrib2fvARB(unit, tv.getUV2());
-				break;
-			case RAS_TEXCO_VCOL:
-				glVertexAttrib4ubvARB(unit, tv.getRGBA());
-				break;
-			default:
-				break;
+			switch (m_attrib[unit]) {
+				case RAS_TEXCO_ORCO:
+				case RAS_TEXCO_GLOB:
+					glVertexAttrib3fvARB(unit, tv.getXYZ());
+					break;
+				case RAS_TEXCO_UV1:
+					glVertexAttrib2fvARB(unit, tv.getUV1());
+					break;
+				case RAS_TEXCO_NORM:
+					glVertexAttrib3fvARB(unit, tv.getNormal());
+					break;
+				case RAS_TEXTANGENT:
+					glVertexAttrib4fvARB(unit, tv.getTangent());
+					break;
+				case RAS_TEXCO_UV2:
+					glVertexAttrib2fvARB(unit, tv.getUV2());
+					break;
+				case RAS_TEXCO_VCOL:
+					glVertexAttrib4ubvARB(unit, tv.getRGBA());
+					break;
+				default:
+					break;
 			}
 		}
 	}
@@ -1007,8 +1006,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 
 			near_div_focallength = frustnear / m_focallength;
 			offset = 0.5f * m_eyeseparation * near_div_focallength;
-			switch(m_curreye)
-			{
+			switch (m_curreye) {
 				case RAS_STEREO_LEFTEYE:
 						left += offset;
 						right += offset;
@@ -1078,8 +1076,7 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat,
 		// vector between eyes
 		eyeline = viewDir.cross(viewupVec);
 
-		switch(m_curreye)
-		{
+		switch (m_curreye) {
 			case RAS_STEREO_LEFTEYE:
 				{
 				// translate to left by half the eye distance

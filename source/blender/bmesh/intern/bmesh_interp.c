@@ -257,7 +257,7 @@ static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int 
 
 		f1 = fabsf(f1);
 		f2 = fabsf(f2);
-		f1 = minf(f1, f2);
+		f1 = min_ff(f1, f2);
 		CLAMP(f1, 0.0f, 1.0f + FLT_EPSILON);
 	}
 	else {
@@ -345,9 +345,9 @@ static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;
 	
-	if (len_v3(l->v->no) == 0.0f)
+	if (is_zero_v3(l->v->no))
 		BM_vert_normal_update_all(l->v);
-	if (len_v3(tl->v->no) == 0.0f)
+	if (is_zero_v3(tl->v->no))
 		BM_vert_normal_update_all(tl->v);
 
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
@@ -490,7 +490,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 }
 
 /**
- * smoothes boundaries between multires grids,
+ * smooths boundaries between multires grids,
  * including some borders in adjacent faces
  */
 void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)

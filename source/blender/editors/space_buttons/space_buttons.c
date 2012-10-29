@@ -326,7 +326,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview = 1;
 					break;
-			}					
+			}
 			break;
 		case NC_WORLD:
 			buttons_area_redraw(sa, BCONTEXT_WORLD);

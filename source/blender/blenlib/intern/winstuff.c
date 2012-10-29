@@ -293,7 +293,7 @@ void get_default_root(char *root)
 					root[3] = '\0';
 					if (GetFileAttributes(root) != 0xFFFFFFFF) {
 						rc = i;
-						break;			
+						break;
 					}
 				}
 			}
@@ -304,7 +304,7 @@ void get_default_root(char *root)
 				root[2] = '\\';
 				root[3] = '\0';
 			}
-		}		
+		}
 	}
 }
 

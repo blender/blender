@@ -72,7 +72,7 @@ CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 	
 		dupbuf->xof= cbuf->xof;
 		dupbuf->yof= cbuf->yof;
-	}	
+	}
 	return dupbuf;
 }
 
@@ -94,7 +94,7 @@ CompBuf *pass_on_compbuf(CompBuf *cbuf)
 				break;
 		lastbuf->next= dupbuf;
 		dupbuf->prev= lastbuf;
-	}	
+	}
 	return dupbuf;
 }
 
@@ -213,53 +213,53 @@ void typecheck_compbuf_color(float *out, float *in, int outtype, int intype)
 	}
 	else if (outtype==CB_VEC2) {
 		if (intype==CB_VAL) {
-			out[0]= in[0];
-			out[1]= in[0];
+			out[0] = in[0];
+			out[1] = in[0];
 		}
 		else if (intype==CB_VEC3) {
-			out[0]= in[0];
-			out[1]= in[1];
+			out[0] = in[0];
+			out[1] = in[1];
 		}
 		else if (intype==CB_RGBA) {
-			out[0]= in[0];
-			out[1]= in[1];
+			out[0] = in[0];
+			out[1] = in[1];
 		}
 	}
 	else if (outtype==CB_VEC3) {
 		if (intype==CB_VAL) {
-			out[0]= in[0];
-			out[1]= in[0];
-			out[2]= in[0];
+			out[0] = in[0];
+			out[1] = in[0];
+			out[2] = in[0];
 		}
 		else if (intype==CB_VEC2) {
-			out[0]= in[0];
-			out[1]= in[1];
-			out[2]= 0.0f;
+			out[0] = in[0];
+			out[1] = in[1];
+			out[2] = 0.0f;
 		}
 		else if (intype==CB_RGBA) {
-			out[0]= in[0];
-			out[1]= in[1];
-			out[2]= in[2];
+			out[0] = in[0];
+			out[1] = in[1];
+			out[2] = in[2];
 		}
 	}
 	else if (outtype==CB_RGBA) {
 		if (intype==CB_VAL) {
-			out[0]= in[0];
-			out[1]= in[0];
-			out[2]= in[0];
-			out[3]= 1.0f;
+			out[0] = in[0];
+			out[1] = in[0];
+			out[2] = in[0];
+			out[3] = 1.0f;
 		}
 		else if (intype==CB_VEC2) {
-			out[0]= in[0];
-			out[1]= in[1];
-			out[2]= 0.0f;
-			out[3]= 1.0f;
+			out[0] = in[0];
+			out[1] = in[1];
+			out[2] = 0.0f;
+			out[3] = 1.0f;
 		}
 		else if (intype==CB_VEC3) {
-			out[0]= in[0];
-			out[1]= in[1];
-			out[2]= in[2];
-			out[3]= 1.0f;
+			out[0] = in[0];
+			out[1] = in[1];
+			out[2] = in[2];
+			out[3] = 1.0f;
 		}
 	}
 }
@@ -307,69 +307,69 @@ CompBuf *typecheck_compbuf(CompBuf *inbuf, int type)
 		else if (type==CB_VEC2) {
 			if (inbuf->type==CB_VAL) {
 				for (; x>0; x--, outrf+= 2, inrf+= 1) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[0];
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[0];
 				}
 			}
 			else if (inbuf->type==CB_VEC3) {
 				for (; x>0; x--, outrf+= 2, inrf+= 3) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[1];
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[1];
 				}
 			}
 			else if (inbuf->type==CB_RGBA) {
 				for (; x>0; x--, outrf+= 2, inrf+= 4) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[1];
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[1];
 				}
 			}
 		}
 		else if (type==CB_VEC3) {
 			if (inbuf->type==CB_VAL) {
 				for (; x>0; x--, outrf+= 3, inrf+= 1) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[0];
-					outrf[2]= inrf[0];
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[0];
+					outrf[2] = inrf[0];
 				}
 			}
 			else if (inbuf->type==CB_VEC2) {
 				for (; x>0; x--, outrf+= 3, inrf+= 2) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[1];
-					outrf[2]= 0.0f;
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[1];
+					outrf[2] = 0.0f;
 				}
 			}
 			else if (inbuf->type==CB_RGBA) {
 				for (; x>0; x--, outrf+= 3, inrf+= 4) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[1];
-					outrf[2]= inrf[2];
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[1];
+					outrf[2] = inrf[2];
 				}
 			}
 		}
 		else if (type==CB_RGBA) {
 			if (inbuf->type==CB_VAL) {
 				for (; x>0; x--, outrf+= 4, inrf+= 1) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[0];
-					outrf[2]= inrf[0];
-					outrf[3]= 1.0f;
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[0];
+					outrf[2] = inrf[0];
+					outrf[3] = 1.0f;
 				}
 			}
 			else if (inbuf->type==CB_VEC2) {
 				for (; x>0; x--, outrf+= 4, inrf+= 2) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[1];
-					outrf[2]= 0.0f;
-					outrf[3]= 1.0f;
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[1];
+					outrf[2] = 0.0f;
+					outrf[3] = 1.0f;
 				}
 			}
 			else if (inbuf->type==CB_VEC3) {
 				for (; x>0; x--, outrf+= 4, inrf+= 3) {
-					outrf[0]= inrf[0];
-					outrf[1]= inrf[1];
-					outrf[2]= inrf[2];
-					outrf[3]= 1.0f;
+					outrf[0] = inrf[0];
+					outrf[1] = inrf[1];
+					outrf[2] = inrf[2];
+					outrf[3] = 1.0f;
 				}
 			}
 		}
@@ -387,7 +387,7 @@ float *compbuf_get_pixel(CompBuf *cbuf, float *defcol, float *use, int x, int y,
 			return use;
 		}
 		else {
-			static float col[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+			static float col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 			
 			/* map coords */
 			x-= cbuf->xof;
@@ -707,18 +707,18 @@ void do_copy_rgba(bNode *UNUSED(node), float *out, float *in)
 void do_copy_rgb(bNode *UNUSED(node), float *out, float *in)
 {
 	copy_v3_v3(out, in);
-	out[3]= 1.0f;
+	out[3] = 1.0f;
 }
 
 void do_copy_value(bNode *UNUSED(node), float *out, float *in)
 {
-	out[0]= in[0];
+	out[0] = in[0];
 }
 
 void do_copy_a_rgba(bNode *UNUSED(node), float *out, float *in, float *fac)
 {
 	copy_v3_v3(out, in);
-	out[3]= *fac;
+	out[3] = *fac;
 }
 
 /* only accepts RGBA buffers */
@@ -732,16 +732,16 @@ void gamma_correct_compbuf(CompBuf *img, int inversed)
 	drect= img->rect;
 	if (inversed) {
 		for (x=img->x*img->y; x>0; x--, drect+=4) {
-			if (drect[0]>0.0f) drect[0]= sqrt(drect[0]); else drect[0]= 0.0f;
-			if (drect[1]>0.0f) drect[1]= sqrt(drect[1]); else drect[1]= 0.0f;
-			if (drect[2]>0.0f) drect[2]= sqrt(drect[2]); else drect[2]= 0.0f;
+			if (drect[0]>0.0f) drect[0] = sqrt(drect[0]); else drect[0] = 0.0f;
+			if (drect[1]>0.0f) drect[1] = sqrt(drect[1]); else drect[1] = 0.0f;
+			if (drect[2]>0.0f) drect[2] = sqrt(drect[2]); else drect[2] = 0.0f;
 		}
 	}
 	else {
 		for (x=img->x*img->y; x>0; x--, drect+=4) {
-			if (drect[0]>0.0f) drect[0]*= drect[0]; else drect[0]= 0.0f;
-			if (drect[1]>0.0f) drect[1]*= drect[1]; else drect[1]= 0.0f;
-			if (drect[2]>0.0f) drect[2]*= drect[2]; else drect[2]= 0.0f;
+			if (drect[0]>0.0f) drect[0]*= drect[0]; else drect[0] = 0.0f;
+			if (drect[1]>0.0f) drect[1]*= drect[1]; else drect[1] = 0.0f;
+			if (drect[2]>0.0f) drect[2]*= drect[2]; else drect[2] = 0.0f;
 		}
 	}
 }
@@ -757,9 +757,9 @@ void premul_compbuf(CompBuf *img, int inversed)
 	if (inversed) {
 		for (x=img->x*img->y; x>0; x--, drect+=4) {
 			if (fabsf(drect[3]) < 1e-5f) {
-				drect[0]= 0.0f;
-				drect[1]= 0.0f;
-				drect[2]= 0.0f;
+				drect[0] = 0.0f;
+				drect[1] = 0.0f;
+				drect[2] = 0.0f;
 			}
 			else {
 				drect[0] /= drect[3];

@@ -77,7 +77,7 @@ public:
     int shaderdata_flag() const { return m_shaderdata_flag; }
 	ClosureType shaderclosure_type() const { return sc.type; }
 
-    virtual void blur(float roughness);
+    virtual void blur(float roughness) = 0;
     virtual float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
     virtual float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
 

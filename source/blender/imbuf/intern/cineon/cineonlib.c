@@ -1,21 +1,23 @@
 /*
- *	 Cineon image file format library routines.
+ * Cineon image file format library routines.
  *
- *	 Copyright 1999,2000,2001 David Hodson <hodsond@acm.org>
+ * Copyright 1999,2000,2001 David Hodson <hodsond@acm.org>
  *
- *	 This program is free software; you can redistribute it and/or modify it
- *	 under the terms of the GNU General Public License as published by the Free
- *	 Software Foundation; either version 2 of the License, or (at your option)
- *	 any later version.
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; either version 2 of the License, or (at your option)
+ * any later version.
  *
- *	 This program is distributed in the hope that it will be useful, but
- *	 WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- *	 or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU General Public License
- *	 for more details.
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
  *
- *	 You should have received a copy of the GNU General Public License
- *	 along with this program; if not, write to the Free Software
- *	 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Julien Enche.
  *
  */
 
@@ -23,800 +25,355 @@
  *  \ingroup imbcineon
  */
 
+
 #include "cineonlib.h"
-#include "cineonfile.h"
+#include "logmemfile.h"
 
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include <time.h>				 /* strftime() */
+#include <time.h>
 #include <sys/types.h>
-#ifdef WIN32
-#include <winsock.h>
-#else
-#include <netinet/in.h>	 /* htonl() */
-#endif
-#include <string.h>			 /* memset */
+#include <string.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
+#include "BLI_math_base.h"
+#include "BLI_utildefines.h"
 
-#include "cin_debug_stuff.h"
-#include "logmemfile.h"
+#include "logImageLib.h"
 
-static void
-fillCineonFileInfo(CineonFile* cineon, CineonFileInformation* fileInfo, const char* filename) {
+#include "MEM_guardedalloc.h"
 
-	time_t fileClock;
-	struct tm* fileTime;
-
-	fileInfo->magic_num = htonl(CINEON_FILE_MAGIC);
-	fileInfo->image_offset = htonl(cineon->imageOffset);
-	fileInfo->gen_hdr_size = htonl(
-		sizeof(CineonFileInformation) +
-		sizeof(CineonImageInformation) +
-		sizeof(CineonFormatInformation) +
-		sizeof(CineonOriginationInformation));
-	fileInfo->ind_hdr_size = 0;
-	fileInfo->user_data_size = 0;
-	fileInfo->file_size = htonl(cineon->imageOffset + cineon->height * cineon->lineBufferLength);
-	strcpy(fileInfo->vers, "V4.5");
-	strncpy(fileInfo->file_name, filename, 99);
-	fileInfo->file_name[99] = 0;
-
-	fileClock = time(0);
-	fileTime = localtime(&fileClock);
-	strftime(fileInfo->create_date, 12, "%Y:%m:%d", fileTime);
-	/* Question: is %Z in strftime guaranteed to return 3 chars? */
-	strftime(fileInfo->create_time, 12, "%H:%M:%S%Z", fileTime);
-	fileInfo->create_time[11] = 0;
-}
-
-static void
-dumpCineonFileInfo(CineonFileInformation* fileInfo) {
-	d_printf("\n--File Information--\n");
-	d_printf("Magic: %8.8lX\n", (uintptr_t)ntohl(fileInfo->magic_num));
-	d_printf("Image Offset %ld\n", (intptr_t)ntohl(fileInfo->image_offset));
-	d_printf("Generic Header size %ld\n", (intptr_t)ntohl(fileInfo->gen_hdr_size));
-	d_printf("Industry Header size %ld\n", (intptr_t)ntohl(fileInfo->ind_hdr_size));
-	d_printf("User Data size %ld\n", (intptr_t)ntohl(fileInfo->user_data_size));
-	d_printf("File size %ld\n", (intptr_t)ntohl(fileInfo->file_size));
-	d_printf("Version \"%s\"\n", fileInfo->vers);
-	d_printf("File name \"%s\"\n", fileInfo->file_name);
-	d_printf("Creation date \"%s\"\n", fileInfo->create_date);
-	d_printf("Creation time \"%s\"\n", fileInfo->create_time);
-}
-
-static void
-fillCineonChannelInfo(CineonFile* cineon, CineonChannelInformation* chan, int des) {
-
-	chan->designator1 = 0;
-	chan->designator2 = des;
-	chan->bits_per_pixel = 10;
-	chan->pixels_per_line = htonl(cineon->width);
-	chan->lines_per_image = htonl(cineon->height);
-	chan->ref_low_data = htonl(0);
-	chan->ref_low_quantity = htonf(0.0);
-	chan->ref_high_data = htonl(1023);
-	chan->ref_high_quantity = htonf(2.046);
-}
-
-static void
-dumpCineonChannelInfo(CineonChannelInformation* chan) {
-	d_printf("	Metric selector: %d", chan->designator1);
-	switch (chan->designator1) {
-		case 0: d_printf(" (Universal)\n"); break;
-		default: d_printf(" (Vendor specific)\n"); break;
-	}
-	d_printf("	Metric: %d,", chan->designator2);
-	switch (chan->designator2) {
-		case 0: d_printf(" B&W (printing density?)\n"); break;
-		case 1: d_printf(" Red printing density\n"); break;
-		case 2: d_printf(" Green printing density\n"); break;
-		case 3: d_printf(" Blue printing density\n"); break;
-		case 4: d_printf(" Red CCIR XA/11\n"); break;
-		case 5: d_printf(" Green CCIR XA/11\n"); break;
-		case 6: d_printf(" Blue CCIR XA/11\n"); break;
-		default: d_printf(" (unknown)\n"); break;
-	}
-	d_printf("	Bits per pixel %d\n", chan->bits_per_pixel);
-	d_printf("	Pixels per line %ld\n", (intptr_t)ntohl(chan->pixels_per_line));
-	d_printf("	Lines per image %ld\n", (intptr_t)ntohl(chan->lines_per_image));
-	d_printf("	Ref low data %ld\n", (intptr_t)ntohl(chan->ref_low_data));
-	d_printf("	Ref low quantity %f\n", ntohf(chan->ref_low_quantity));
-	d_printf("	Ref high data %ld\n", (intptr_t)ntohl(chan->ref_high_data));
-	d_printf("	Ref high quantity %f\n", ntohf(chan->ref_high_quantity));
-}
-
-static void
-fillCineonImageInfo(CineonFile* cineon, CineonImageInformation* imageInfo) {
-
-	imageInfo->orientation = 0;
-	imageInfo->channels_per_image = cineon->depth;
-
-	if (cineon->depth == 1) {
-		fillCineonChannelInfo(cineon, &imageInfo->channel[0], 0);
-
-	}
-	else if (cineon->depth == 3) {
-		fillCineonChannelInfo(cineon, &imageInfo->channel[0], 1);
-		fillCineonChannelInfo(cineon, &imageInfo->channel[1], 2);
-		fillCineonChannelInfo(cineon, &imageInfo->channel[2], 3);
-	}
-
-	imageInfo->white_point_x = htonf(undefined());
-	imageInfo->white_point_y = htonf(undefined());
-	imageInfo->red_primary_x = htonf(undefined());
-	imageInfo->red_primary_y = htonf(undefined());
-	imageInfo->green_primary_x = htonf(undefined());
-	imageInfo->green_primary_y = htonf(undefined());
-	imageInfo->blue_primary_x = htonf(undefined());
-	imageInfo->blue_primary_y = htonf(undefined());
-
-	strcpy(imageInfo->label, "David's Cineon writer.");
-
-}
-
-static void
-dumpCineonImageInfo(CineonImageInformation* imageInfo) {
-
-	int i;
-	d_printf("\n--Image Information--\n");
-	d_printf("Image orientation %d,", imageInfo->orientation);
-	switch (imageInfo->orientation) {
-		case 0: d_printf(" LRTB\n"); break;
-		case 1: d_printf(" LRBT\n"); break;
-		case 2: d_printf(" RLTB\n"); break;
-		case 3: d_printf(" RLBT\n"); break;
-		case 4: d_printf(" TBLR\n"); break;
-		case 5: d_printf(" TBRL\n"); break;
-		case 6: d_printf(" BTLR\n"); break;
-		case 7: d_printf(" BTRL\n"); break;
-		default: d_printf(" (unknown)\n"); break;
-	}
-	d_printf("Channels %d\n", imageInfo->channels_per_image);
-	for (i = 0; i < imageInfo->channels_per_image; ++i) {
-		d_printf("	--Channel %d--\n", i);
-		dumpCineonChannelInfo(&imageInfo->channel[i]);
-	}
-
-	d_printf("White point x %f\n", ntohf(imageInfo->white_point_x));
-	d_printf("White point y %f\n", ntohf(imageInfo->white_point_y));
-	d_printf("Red primary x %f\n", ntohf(imageInfo->red_primary_x));
-	d_printf("Red primary y %f\n", ntohf(imageInfo->red_primary_y));
-	d_printf("Green primary x %f\n", ntohf(imageInfo->green_primary_x));
-	d_printf("Green primary y %f\n", ntohf(imageInfo->green_primary_y));
-	d_printf("Blue primary x %f\n", ntohf(imageInfo->blue_primary_x));
-	d_printf("Blue primary y %f\n", ntohf(imageInfo->blue_primary_y));
-	d_printf("Label \"%s\"\n", imageInfo->label);
-}
-
-static void
-fillCineonFormatInfo(CineonFile* cineon, CineonFormatInformation* formatInfo) {
-
-	(void)cineon; /* unused */
-	
-	formatInfo->interleave = 0;
-	formatInfo->packing = 5;
-	formatInfo->signage = 0;
-	formatInfo->sense = 0;
-	formatInfo->line_padding = htonl(0);
-	formatInfo->channel_padding = htonl(0);
-}
-
-static void
-dumpCineonFormatInfo(CineonFormatInformation* formatInfo) {
-	d_printf("\n--Format Information--\n");
-	d_printf("Interleave %d,", formatInfo->interleave);
-	switch (formatInfo->interleave) {
-		case 0: d_printf(" pixel interleave\n"); break;
-		case 1: d_printf(" line interleave\n"); break;
-		case 2: d_printf(" channel interleave\n"); break;
-		default: d_printf(" (unknown)\n"); break;
-	}
-	d_printf("Packing %d,", formatInfo->packing);
-	if (formatInfo->packing & 0x80) { 
-		d_printf(" multi pixel,");
-	}
-	else {
-		d_printf(" single pixel,");
-	}
-	switch (formatInfo->packing & 0x7F) {
-		case 0: d_printf(" tight\n"); break;
-		case 1: d_printf(" byte packed left\n"); break;
-		case 2: d_printf(" byte packed right\n"); break;
-		case 3: d_printf(" word packed left\n"); break;
-		case 4: d_printf(" word packed right\n"); break;
-		case 5: d_printf(" long packed left\n"); break;
-		case 6: d_printf(" long packed right\n"); break;
-		default: d_printf(" (unknown)\n"); break;
-	}
-	d_printf("Sign %d,", formatInfo->signage);
-	if (formatInfo->signage) { 
-		d_printf(" signed\n");
-	}
-	else {
-		d_printf(" unsigned\n");
-	}
-	d_printf("Sense %d,", formatInfo->signage);
-	if (formatInfo->signage) { 
-		d_printf(" negative\n");
-	}
-	else {
-		d_printf(" positive\n");
-	}
-	d_printf("End of line padding %ld\n", (intptr_t)ntohl(formatInfo->line_padding));
-	d_printf("End of channel padding %ld\n", (intptr_t)ntohl(formatInfo->channel_padding));
-}
-
-static void
-fillCineonOriginationInfo(CineonFile* cineon,
-	CineonOriginationInformation* originInfo, CineonFileInformation* fileInfo) {
-	
-	(void)cineon; /* unused */
-
-	originInfo->x_offset = htonl(0);
-	originInfo->y_offset = htonl(0);
-	strcpy(originInfo->file_name, fileInfo->file_name);
-	strcpy(originInfo->create_date, fileInfo->create_date);
-	strcpy(originInfo->create_time, fileInfo->create_time);
-	strncpy(originInfo->input_device, "David's Cineon writer", 64);
-	strncpy(originInfo->model_number, "Software", 32);
-	strncpy(originInfo->serial_number, "001", 32);
-	originInfo->x_input_samples_per_mm = htonf(undefined());
-	originInfo->y_input_samples_per_mm =	htonf(undefined());
-	/* this should probably be undefined, too */
-	originInfo->input_device_gamma = htonf(1.0);
-}
-
-static void
-dumpCineonOriginationInfo(CineonOriginationInformation* originInfo) {
-	d_printf("\n--Origination Information--\n");
-	d_printf("X offset %ld\n", (intptr_t)ntohl(originInfo->x_offset));
-	d_printf("Y offset %ld\n", (intptr_t)ntohl(originInfo->y_offset));
-	d_printf("File name \"%s\"\n", originInfo->file_name);
-	d_printf("Creation date \"%s\"\n", originInfo->create_date);
-	d_printf("Creation time \"%s\"\n", originInfo->create_time);
-	d_printf("Input device \"%s\"\n", originInfo->input_device);
-	d_printf("Model number \"%s\"\n", originInfo->model_number);
-	d_printf("Serial number \"%s\"\n", originInfo->serial_number);
-	d_printf("Samples per mm in x %f\n", ntohf(originInfo->x_input_samples_per_mm));
-	d_printf("Samples per mm in y %f\n", ntohf(originInfo->y_input_samples_per_mm));
-	d_printf("Input device gamma %f\n", ntohf(originInfo->input_device_gamma));
-}
-
-static int
-initCineonGenericHeader(CineonFile* cineon, CineonGenericHeader* header, const char* imagename) {
-
-	fillCineonFileInfo(cineon, &header->fileInfo, imagename);
-	fillCineonImageInfo(cineon, &header->imageInfo);
-	fillCineonFormatInfo(cineon, &header->formatInfo);
-	fillCineonOriginationInfo(cineon, &header->originInfo, &header->fileInfo);
-
-	return 0;
-}
-
-static void
-UNUSED_FUNCTION(dumpCineonGenericHeader)(CineonGenericHeader* header) {
-	dumpCineonFileInfo(&header->fileInfo);
-	dumpCineonImageInfo(&header->imageInfo);
-	dumpCineonFormatInfo(&header->formatInfo);
-	dumpCineonOriginationInfo(&header->originInfo);
-}
+/*
+ * For debug purpose
+ */
 
 static int verbose = 0;
-void
-cineonSetVerbose(int verbosity) {
+
+void cineonSetVerbose(int verbosity) {
 	verbose = verbosity;
 }
 
-static void
-verboseMe(CineonFile* cineon) {
-
-	d_printf("size %d x %d x %d\n", cineon->width, cineon->height, cineon->depth);
-	d_printf("ImageStart %d, lineBufferLength %d, implied length %d\n",
-		cineon->imageOffset, cineon->lineBufferLength * 4,
-		cineon->imageOffset + cineon->lineBufferLength * 4 * cineon->height);
-}
-
-int
-cineonGetRowBytes(CineonFile* cineon, unsigned short* row, int y) {
-
-	int longsRead;
-	int pixelIndex;
-	int longIndex;
-	int numPixels = cineon->width * cineon->depth;
-
-
-	/* only seek if not reading consecutive lines */
-	if (y != cineon->fileYPos) {
-		int lineOffset = cineon->imageOffset + y * cineon->lineBufferLength * 4;
-		if (verbose) d_printf("Seek in getRowBytes\n");
-		if (logimage_fseek(cineon, lineOffset, SEEK_SET) != 0) {
-			if (verbose) d_printf("Couldn't seek to line %d at %d\n", y, lineOffset);
-			return 1;
-		}
-		cineon->fileYPos = y;
-	}
-
-	longsRead = logimage_fread(cineon->lineBuffer, 4, cineon->lineBufferLength, cineon);
-	if (longsRead != cineon->lineBufferLength) {
-		if (verbose) {
-			d_printf("Couldn't read line %d length %d\n", y, cineon->lineBufferLength * 4);
-			perror("cineonGetRowBytes");
-		}
-
-		return 1;
-	}
-
-	/* remember where we left the car, honey */
-	++cineon->fileYPos;
-
-	/* convert longwords to pixels */
-	pixelIndex = 0;
-	for (longIndex = 0; longIndex < cineon->lineBufferLength; ++longIndex) {
-		unsigned int t = ntohl(cineon->lineBuffer[longIndex]);
-		t = t >> 2;
-		cineon->pixelBuffer[pixelIndex+2] = (unsigned short) t & 0x3ff;
-		t = t >> 10;
-		cineon->pixelBuffer[pixelIndex+1] = (unsigned short) t & 0x3ff;
-		t = t >> 10;
-		cineon->pixelBuffer[pixelIndex] = (unsigned short) t & 0x3ff;
-		pixelIndex += 3;
-	}
-
-	/* extract required pixels */
-	for (pixelIndex = 0; pixelIndex < numPixels; ++pixelIndex) {
-		if (cineon->params.doLogarithm)
-			row[pixelIndex] = cineon->lut10_16[cineon->pixelBuffer[pixelIndex]];
-		else
-			row[pixelIndex] = cineon->pixelBuffer[pixelIndex] << 6;
-	}
-
-	return 0;
-}
-
-int
-cineonSetRowBytes(CineonFile* cineon, const unsigned short* row, int y) {
-
-	int pixelIndex;
-	int numPixels = cineon->width * cineon->depth;
-	int longIndex;
-	int longsWritten;
-
-	/* put new pixels into pixelBuffer */
-	for (pixelIndex = 0; pixelIndex < numPixels; ++pixelIndex) {
-		if (cineon->params.doLogarithm)
-			cineon->pixelBuffer[pixelIndex] = cineon->lut16_16[row[pixelIndex]];
-		else
-			cineon->pixelBuffer[pixelIndex] = row[pixelIndex] >> 6;
-	}
-
-	/* pack into longwords */
-	pixelIndex = 0;
-	for (longIndex = 0; longIndex < cineon->lineBufferLength; ++longIndex) {
-		unsigned int t =
-				(cineon->pixelBuffer[pixelIndex] << 22) |
-				(cineon->pixelBuffer[pixelIndex+1] << 12) |
-				(cineon->pixelBuffer[pixelIndex+2] << 2);
-		cineon->lineBuffer[longIndex] = htonl(t);
-		pixelIndex += 3;
-	}
-
-	/* only seek if not reading consecutive lines */
-	if (y != cineon->fileYPos) {
-		int lineOffset = cineon->imageOffset + y * cineon->lineBufferLength * 4;
-		if (verbose) d_printf("Seek in setRowBytes\n");
-		if (logimage_fseek(cineon, lineOffset, SEEK_SET) != 0) {
-			if (verbose) d_printf("Couldn't seek to line %d at %d\n", y, lineOffset);
-			return 1;
-		}
-		cineon->fileYPos = y;
-	}
-
-	longsWritten = fwrite(cineon->lineBuffer, 4, cineon->lineBufferLength, cineon->file);
-	if (longsWritten != cineon->lineBufferLength) {
-		if (verbose) d_printf("Couldn't write line %d length %d\n", y, cineon->lineBufferLength * 4);
-		return 1;
-	}
-
-	++cineon->fileYPos;
-
-	return 0;
-}
-
-int
-cineonGetRow(CineonFile* cineon, unsigned short* row, int y) {
-
-	int longsRead;
-	int pixelIndex;
-	int longIndex;
-/*	int numPixels = cineon->width * cineon->depth;
-*/
-	/* only seek if not reading consecutive lines */
-	if (y != cineon->fileYPos) {
-		int lineOffset = cineon->imageOffset + y * cineon->lineBufferLength * 4;
-		if (verbose) d_printf("Seek in getRow\n");
-		if (logimage_fseek(cineon, lineOffset, SEEK_SET) != 0) {
-			if (verbose) d_printf("Couldn't seek to line %d at %d\n", y, lineOffset);
-			return 1;
-		}
-		cineon->fileYPos = y;
-	}
-
-	longsRead = logimage_fread(cineon->lineBuffer, 4, cineon->lineBufferLength, cineon);
-	if (longsRead != cineon->lineBufferLength) {
-		if (verbose) d_printf("Couldn't read line %d length %d\n", y, cineon->lineBufferLength * 4);
-		return 1;
-	}
-
-	/* remember where we left the car, honey */
-	++cineon->fileYPos;
-
-	/* convert longwords to pixels */
-	pixelIndex = 0;
-	for (longIndex = 0; longIndex < cineon->lineBufferLength; ++longIndex) {
-		unsigned int t = ntohl(cineon->lineBuffer[longIndex]);
-		t = t >> 2;
-		row[pixelIndex+2] = (unsigned short) t & 0x3ff;
-		t = t >> 10;
-		row[pixelIndex+1] = (unsigned short) t & 0x3ff;
-		t = t >> 10;
-		row[pixelIndex] = (unsigned short) t & 0x3ff;
-		pixelIndex += 3;
-	}
-
-	return 0;
-}
-
-int
-cineonSetRow(CineonFile* cineon, const unsigned short* row, int y) {
-
-	int pixelIndex;
-/*	int numPixels = cineon->width * cineon->depth;
-*/	int longIndex;
-	int longsWritten;
-
-	/* pack into longwords */
-	pixelIndex = 0;
-	for (longIndex = 0; longIndex < cineon->lineBufferLength; ++longIndex) {
-		unsigned int t =
-				(row[pixelIndex] << 22) |
-				(row[pixelIndex+1] << 12) |
-				(row[pixelIndex+2] << 2);
-		cineon->lineBuffer[longIndex] = htonl(t);
-		pixelIndex += 3;
-	}
-
-	/* only seek if not reading consecutive lines */
-	if (y != cineon->fileYPos) {
-		int lineOffset = cineon->imageOffset + y * cineon->lineBufferLength * 4;
-		if (verbose) d_printf("Seek in setRowBytes\n");
-		if (logimage_fseek(cineon, lineOffset, SEEK_SET) != 0) {
-			if (verbose) d_printf("Couldn't seek to line %d at %d\n", y, lineOffset);
-			return 1;
-		}
-		cineon->fileYPos = y;
-	}
-
-	longsWritten = fwrite(cineon->lineBuffer, 4, cineon->lineBufferLength, cineon->file);
-	if (longsWritten != cineon->lineBufferLength) {
-		if (verbose) d_printf("Couldn't write line %d length %d\n", y, cineon->lineBufferLength * 4);
-		return 1;
-	}
-
-	++cineon->fileYPos;
-
-	return 0;
-}
-
-CineonFile* 
-cineonOpen(const char* filename) {
-
-	CineonGenericHeader header;
-
-	CineonFile* cineon = (CineonFile* )malloc(sizeof(CineonFile));
-	if (cineon == 0) {
-		if (verbose) d_printf("Failed to malloc cineon file structure.\n");
-		return 0;
-	}
-
-	/* for close routine */
-	cineon->file = 0;
-	cineon->lineBuffer = 0;
-	cineon->pixelBuffer = 0;
-	cineon->membuffer = 0;
-	cineon->memcursor = 0;
-	cineon->membuffersize = 0;
-	
-	cineon->file = BLI_fopen(filename, "rb");
-	if (cineon->file == 0) {
-		if (verbose) d_printf("Failed to open file \"%s\".\n", filename);
-		cineonClose(cineon);
-		return 0;
-	}
-	cineon->reading = 1;
-
-	if (logimage_fread(&header, sizeof(CineonGenericHeader), 1, cineon) == 0) {
-		if (verbose) d_printf("Not enough data for header in \"%s\".\n", filename);
-		cineonClose(cineon);
-		return 0;
-	}
-
-	/* let's assume cineon files are always network order */
-	if (header.fileInfo.magic_num != ntohl(CINEON_FILE_MAGIC)) {
-		if (verbose) d_printf("Bad magic number %8.8lX in \"%s\".\n",
-			(uintptr_t)ntohl(header.fileInfo.magic_num), filename);
-		cineonClose(cineon);
-		return 0;
-	}
-
-	if (header.formatInfo.packing != 5) {
-		if (verbose) d_printf("Can't understand packing %d\n", header.formatInfo.packing);
-		cineonClose(cineon);
-		return 0;
-	}
-
-	cineon->width = ntohl(header.imageInfo.channel[0].pixels_per_line);
-	cineon->height = ntohl(header.imageInfo.channel[0].lines_per_image);
-	cineon->depth = header.imageInfo.channels_per_image;
-	/* cineon->bitsPerPixel = 10; */
-	cineon->bitsPerPixel = header.imageInfo.channel[0].bits_per_pixel;
-	cineon->imageOffset = ntohl(header.fileInfo.image_offset);
-
-	cineon->lineBufferLength = pixelsToLongs(cineon->width * cineon->depth);
-	cineon->lineBuffer = malloc(cineon->lineBufferLength * 4);
-	if (cineon->lineBuffer == 0) {
-		if (verbose) d_printf("Couldn't malloc line buffer of size %d\n", cineon->lineBufferLength * 4);
-		cineonClose(cineon);
-		return 0;
-	}
-
-	cineon->pixelBuffer = malloc(cineon->lineBufferLength * 3 * sizeof(unsigned short));
-	if (cineon->pixelBuffer == 0) {
-		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(cineon->width * cineon->depth) * (int)sizeof(unsigned short));
-		cineonClose(cineon);
-		return 0;
-	}
-	cineon->pixelBufferUsed = 0;
-
-	if (logimage_fseek(cineon, cineon->imageOffset, SEEK_SET) != 0) {
-		if (verbose) d_printf("Couldn't seek to image data at %d\n", cineon->imageOffset);
-		cineonClose(cineon);
-		return 0;
-	}
-	cineon->fileYPos = 0;
-
-	logImageGetByteConversionDefaults(&cineon->params);
-	setupLut(cineon);
-
-	cineon->getRow = &cineonGetRowBytes;
-	cineon->setRow = 0;
-	cineon->close = &cineonClose;
-
-	if (verbose) {
-		verboseMe(cineon);
-	}
-
-	return cineon;
-}
-
-int cineonIsMemFileCineon(unsigned char *mem)
+static void fillCineonMainHeader(LogImageFile *cineon, CineonMainHeader *header,
+                                 const char *filename, const char *creator)
 {
-	unsigned int num;
-	memcpy(&num, mem, sizeof(unsigned int));
-	
-	if (num != ntohl(CINEON_FILE_MAGIC)) {
-		return 0;
+	time_t fileClock;
+	struct tm *fileTime;
+	int i;
+
+	memset(header, 0, sizeof(CineonMainHeader));
+
+	/* --- File header --- */
+	header->fileHeader.magic_num = swap_uint(CINEON_FILE_MAGIC, cineon->isMSB);
+	header->fileHeader.offset = swap_uint(cineon->element[0].dataOffset, cineon->isMSB);
+	header->fileHeader.gen_hdr_size = swap_uint(sizeof(CineonFileHeader) + sizeof(CineonImageHeader) +
+	                                            sizeof(CineonOriginationHeader), cineon->isMSB);
+	header->fileHeader.ind_hdr_size = 0;
+	header->fileHeader.user_data_size = 0;
+	header->fileHeader.file_size = swap_uint(cineon->element[0].dataOffset + cineon->height * getRowLength(cineon->width, cineon->element[0]), cineon->isMSB);
+	strcpy(header->fileHeader.version, "v4.5");
+	strncpy(header->fileHeader.file_name, filename, 99);
+	header->fileHeader.file_name[99] = 0;
+	fileClock = time(0);
+	fileTime = localtime(&fileClock);
+	strftime(header->fileHeader.creation_date, 12, "%Y:%m:%d", fileTime);
+	strftime(header->fileHeader.creation_time, 12, "%H:%M:%S%Z", fileTime);
+	header->fileHeader.creation_time[11] = 0;
+
+	/* --- Image header --- */
+	header->imageHeader.orientation = 0;
+	header->imageHeader.elements_per_image = cineon->depth;
+
+	for (i = 0; i < 3; i++) {
+		header->imageHeader.element[i].descriptor1 = 0;
+		header->imageHeader.element[i].descriptor2 = i;
+		header->imageHeader.element[i].bits_per_sample = cineon->element[0].bitsPerSample;
+		header->imageHeader.element[i].pixels_per_line = swap_uint(cineon->width, cineon->isMSB);
+		header->imageHeader.element[i].lines_per_image = swap_uint(cineon->height, cineon->isMSB);
+		header->imageHeader.element[i].ref_low_data = swap_uint(cineon->element[0].refLowData, cineon->isMSB);
+		header->imageHeader.element[i].ref_low_quantity = swap_float(cineon->element[0].refLowQuantity, cineon->isMSB);
+		header->imageHeader.element[i].ref_high_data = swap_uint(cineon->element[0].refHighData, cineon->isMSB);
+		header->imageHeader.element[i].ref_high_quantity = swap_float(cineon->element[0].refHighQuantity, cineon->isMSB);
 	}
-	else return 1;
+
+	header->imageHeader.white_point_x = swap_float(0.0f, cineon->isMSB);
+	header->imageHeader.white_point_y = swap_float(0.0f, cineon->isMSB);
+	header->imageHeader.red_primary_x = swap_float(0.0f, cineon->isMSB);
+	header->imageHeader.red_primary_y = swap_float(0.0f, cineon->isMSB);
+	header->imageHeader.green_primary_x = swap_float(0.0f, cineon->isMSB);
+	header->imageHeader.green_primary_y = swap_float(0.0f, cineon->isMSB);
+	header->imageHeader.blue_primary_x = swap_float(0.0f, cineon->isMSB);
+	header->imageHeader.blue_primary_y = swap_float(0.0f, cineon->isMSB);
+	strncpy(header->imageHeader.label, creator, 199);
+	header->imageHeader.label[199] = 0;
+	header->imageHeader.interleave = 0;
+	header->imageHeader.data_sign = 0;
+	header->imageHeader.sense = 0;
+	header->imageHeader.line_padding = swap_uint(0, cineon->isMSB);
+	header->imageHeader.element_padding = swap_uint(0, cineon->isMSB);
+
+	switch (cineon->element[0].packing) {
+		case 0:
+			header->imageHeader.packing = 0;
+			break;
+
+		case 1:
+			header->imageHeader.packing = 5;
+			break;
+
+		case 2:
+			header->imageHeader.packing = 6;
+			break;
+	}
+
+	/* --- Origination header --- */
+	/* we leave it blank */
+
+	/* --- Film header --- */
+	/* we leave it blank */
 }
 
-CineonFile* 
-cineonOpenFromMem(unsigned char *mem, unsigned int size) {
+LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize)
+{
+	CineonMainHeader header;
+	LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
+	char *filename = (char *)byteStuff;
+	int i;
+	unsigned int dataOffset;
 
-	CineonGenericHeader header;
-	
-	CineonFile* cineon = (CineonFile* )malloc(sizeof(CineonFile));
 	if (cineon == 0) {
-		if (verbose) d_printf("Failed to malloc cineon file structure.\n");
+		if (verbose) printf("Cineon: Failed to malloc cineon file structure.\n");
 		return 0;
 	}
+
+	/* zero the header */
+	memset(&header, 0, sizeof(CineonMainHeader));
 
 	/* for close routine */
 	cineon->file = 0;
-	cineon->lineBuffer = 0;
-	cineon->pixelBuffer = 0;
-	cineon->membuffer = mem;
-	cineon->membuffersize = size;
-	cineon->memcursor = mem;
-	
-	cineon->file = 0;
-	cineon->reading = 1;
-	verbose = 0;
-	if (size < sizeof(CineonGenericHeader)) {
-		if (verbose) d_printf("Not enough data for header!\n");
-		cineonClose(cineon);
+
+	if (fromMemory == 0) {
+		/* byteStuff is then the filename */
+		cineon->file = BLI_fopen(filename, "rb");
+		if (cineon->file == 0) {
+			if (verbose) printf("Cineon: Failed to open file \"%s\".\n", filename);
+			logImageClose(cineon);
+			return 0;
+		}
+		/* not used in this case */
+		cineon->memBuffer = 0;
+		cineon->memCursor = 0;
+		cineon->memBufferSize = 0;
+	}
+	else {
+		cineon->memBuffer = (unsigned char *)byteStuff;
+		cineon->memCursor = (unsigned char *)byteStuff;
+		cineon->memBufferSize = bufferSize;
+	}
+
+	if (logimage_fread(&header, sizeof(header), 1, cineon) == 0) {
+		if (verbose) printf("Cineon: Not enough data for header in \"%s\".\n", byteStuff);
+		logImageClose(cineon);
 		return 0;
 	}
 
-	logimage_fread(&header, sizeof(CineonGenericHeader), 1, cineon);
-
-	/* let's assume cineon files are always network order */
-	if (header.fileInfo.magic_num != ntohl(CINEON_FILE_MAGIC)) {
-		if (verbose) d_printf("Bad magic number %8.8lX in\n", (uintptr_t)ntohl(header.fileInfo.magic_num));
-
-		cineonClose(cineon);
+	/* endianness determination */
+	if (header.fileHeader.magic_num == swap_uint(CINEON_FILE_MAGIC, 1)) {
+		cineon->isMSB = 1;
+		if (verbose) printf("Cineon: File is MSB.\n");
+	}
+	else if (header.fileHeader.magic_num == CINEON_FILE_MAGIC) {
+		cineon->isMSB = 0;
+		if (verbose) printf("Cineon: File is LSB.\n");
+	}
+	else {
+		if (verbose) printf("Cineon: Bad magic number %lu in \"%s\".\n",
+			                (uintptr_t)header.fileHeader.magic_num, byteStuff);
+		logImageClose(cineon);
 		return 0;
 	}
 
-	if (header.formatInfo.packing != 5) {
-		if (verbose) d_printf("Can't understand packing %d\n", header.formatInfo.packing);
-		cineonClose(cineon);
+	cineon->width = swap_uint(header.imageHeader.element[0].pixels_per_line, cineon->isMSB);
+	cineon->height = swap_uint(header.imageHeader.element[0].lines_per_image, cineon->isMSB);
+	cineon->depth = header.imageHeader.elements_per_image;
+	cineon->srcFormat = format_Cineon;
+
+	if (header.imageHeader.interleave == 0)
+		cineon->numElements = 1;
+	else if (header.imageHeader.interleave == 2)
+		cineon->numElements = header.imageHeader.elements_per_image;
+	else {
+		if (verbose) printf("Cineon: Data interleave not supported: %d\n", header.imageHeader.interleave);
 		return 0;
 	}
 
-	cineon->width = ntohl(header.imageInfo.channel[0].pixels_per_line);
-	cineon->height = ntohl(header.imageInfo.channel[0].lines_per_image);
-	cineon->depth = header.imageInfo.channels_per_image;
-	/* cineon->bitsPerPixel = 10; */
-	cineon->bitsPerPixel = header.imageInfo.channel[0].bits_per_pixel;
-	cineon->imageOffset = ntohl(header.fileInfo.image_offset);
-
-	cineon->lineBufferLength = pixelsToLongs(cineon->width * cineon->depth);
-	cineon->lineBuffer = malloc(cineon->lineBufferLength * 4);
-	if (cineon->lineBuffer == 0) {
-		if (verbose) d_printf("Couldn't malloc line buffer of size %d\n", cineon->lineBufferLength * 4);
-		cineonClose(cineon);
+	if (cineon->depth == 1) {
+		/* Grayscale image */
+		cineon->element[0].descriptor = descriptor_Luminance;
+		cineon->element[0].transfer = transfer_Linear;
+		cineon->element[0].depth = 1;
+	}
+	else if (cineon->depth == 3) {
+		/* RGB image */
+		if (cineon->numElements == 1) {
+			cineon->element[0].descriptor = descriptor_RGB;
+			cineon->element[0].transfer = transfer_PrintingDensity;
+			cineon->element[0].depth = 3;
+		}
+		else if (cineon->numElements == 3) {
+			cineon->element[0].descriptor = descriptor_Red;
+			cineon->element[0].transfer = transfer_PrintingDensity;
+			cineon->element[0].depth = 1;
+			cineon->element[1].descriptor = descriptor_Green;
+			cineon->element[1].transfer = transfer_PrintingDensity;
+			cineon->element[1].depth = 1;
+			cineon->element[2].descriptor = descriptor_Blue;
+			cineon->element[2].transfer = transfer_PrintingDensity;
+			cineon->element[2].depth = 1;
+		}
+	}
+	else {
+		if (verbose) printf("Cineon: Cineon image depth unsupported: %d\n", cineon->depth);
 		return 0;
 	}
 
-	cineon->pixelBuffer = malloc(cineon->lineBufferLength * 3 * sizeof(unsigned short));
-	if (cineon->pixelBuffer == 0) {
-		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(cineon->width * cineon->depth) * (int)sizeof(unsigned short));
-		cineonClose(cineon);
-		return 0;
-	}
-	cineon->pixelBufferUsed = 0;
-	
-	if (logimage_fseek(cineon, cineon->imageOffset, SEEK_SET) != 0) {
-		if (verbose) d_printf("Couldn't seek to image data at %d\n", cineon->imageOffset);
-		cineonClose(cineon);
-		return 0;
-	}
-	
-	cineon->fileYPos = 0;
+	dataOffset = swap_uint(header.fileHeader.offset, cineon->isMSB);
 
-	logImageGetByteConversionDefaults(&cineon->params);
-	setupLut(cineon);
+	for (i = 0; i < cineon->numElements; i++) {
+		cineon->element[i].bitsPerSample = header.imageHeader.element[i].bits_per_sample;
+		cineon->element[i].maxValue = powf(2, cineon->element[i].bitsPerSample) - 1.0f;
+		cineon->element[i].refLowData = swap_uint(header.imageHeader.element[i].ref_low_data, cineon->isMSB);
+		cineon->element[i].refLowQuantity = swap_float(header.imageHeader.element[i].ref_low_quantity, cineon->isMSB);
+		cineon->element[i].refHighData = swap_uint(header.imageHeader.element[i].ref_high_data, cineon->isMSB);
+		cineon->element[i].refHighQuantity = swap_float(header.imageHeader.element[i].ref_high_quantity, cineon->isMSB);
 
-	cineon->getRow = &cineonGetRowBytes;
-	cineon->setRow = 0;
-	cineon->close = &cineonClose;
+		switch (header.imageHeader.packing) {
+			case 0:
+				cineon->element[i].packing = 0;
+				break;
+
+			case 5:
+				cineon->element[i].packing = 1;
+				break;
+
+			case 6:
+				cineon->element[i].packing = 2;
+				break;
+
+			default:
+				/* Not supported */
+				if (verbose) printf("Cineon: packing unsupported: %d\n", header.imageHeader.packing);
+				return 0;
+		}
+
+		if (cineon->element[i].refLowData == CINEON_UNDEFINED_U32 || isnan(cineon->element[i].refLowData))
+			cineon->element[i].refLowData = 0;
+
+		if (cineon->element[i].refHighData == CINEON_UNDEFINED_U32 || isnan(cineon->element[i].refHighData))
+			cineon->element[i].refHighData = (unsigned int)cineon->element[i].maxValue;
+
+		if (cineon->element[i].refLowQuantity == CINEON_UNDEFINED_R32 || isnan(cineon->element[i].refLowQuantity))
+			cineon->element[i].refLowQuantity = 0.0f;
+
+		if (cineon->element[i].refHighQuantity == CINEON_UNDEFINED_R32 || isnan(cineon->element[i].refHighQuantity)) {
+			if (cineon->element[i].transfer == transfer_PrintingDensity)
+				cineon->element[i].refHighQuantity = 2.048f;
+			else
+				cineon->element[i].refHighQuantity = cineon->element[i].maxValue;
+		}
+
+		cineon->element[i].dataOffset = dataOffset;
+		dataOffset += cineon->height * getRowLength(cineon->width, cineon->element[i]);
+	}
+
+	cineon->referenceBlack = 95.0f / 1023.0f * cineon->element[0].maxValue;
+	cineon->referenceWhite = 685.0f / 1023.0f * cineon->element[0].maxValue;
+	cineon->gamma = 1.7f;
 
 	if (verbose) {
-		verboseMe(cineon);
-	}
+		printf("size %d x %d x %d elements\n", cineon->width, cineon->height, cineon->numElements);
+		for (i = 0; i < cineon->numElements; i++) {
+			printf(" Element %d:\n", i);
+			printf("  Bits per sample: %d\n", cineon->element[i].bitsPerSample);
+			printf("  Depth: %d\n", cineon->element[i].depth);
+			printf("  Transfer characteristics: %d\n", cineon->element[i].transfer);
+			printf("  Packing: %d\n", cineon->element[i].packing);
+			printf("  Descriptor: %d\n", cineon->element[i].descriptor);
+			printf("  Data offset: %u\n", cineon->element[i].dataOffset);
+			printf("  Reference low data: %u\n", cineon->element[i].refLowData);
+			printf("  Reference low quantity: %f\n", cineon->element[i].refLowQuantity);
+			printf("  Reference high data: %u\n", cineon->element[i].refHighData);
+			printf("  Reference high quantity: %f\n", cineon->element[i].refHighQuantity);
+			printf("\n");
+		}
 
+		printf("Gamma: %f\n", cineon->gamma);
+		printf("Reference black: %f\n", cineon->referenceBlack);
+		printf("Reference white: %f\n", cineon->referenceWhite);
+		printf("----------------------------\n");
+	}
 	return cineon;
 }
 
+LogImageFile *cineonCreate(const char *filename, int width, int height, int bitsPerSample, const char *creator)
+{
+	CineonMainHeader header;
+	const char *shortFilename = 0;
+	/* unsigned char pad[6044]; */
 
-int
-cineonGetSize(const CineonFile* cineon, int* width, int* height, int* depth) {
-	*width = cineon->width;
-	*height = cineon->height;
-	*depth = cineon->depth;
-	return 0;
-}
-
-CineonFile*
-cineonCreate(const char* filename, int width, int height, int depth) {
-
-	/* Note: always write files in network order */
-	/* By the spec, it shouldn't matter, but ... */
-
-	CineonGenericHeader header;
-	const char* shortFilename = 0;
-
-	CineonFile* cineon = (CineonFile*)malloc(sizeof(CineonFile));
+	LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
 	if (cineon == 0) {
-		if (verbose) d_printf("Failed to malloc cineon file structure.\n");
+		if (verbose) printf("cineon: Failed to malloc cineon file structure.\n");
 		return 0;
 	}
 
-	memset(&header, 0, sizeof(header));
-
-	/* for close routine */
-	cineon->file = 0;
-	cineon->lineBuffer = 0;
-	cineon->pixelBuffer = 0;
-
-	cineon->file = BLI_fopen(filename, "wb");
-	if (cineon->file == 0) {
-		if (verbose) d_printf("Couldn't open file %s\n", filename);
-		cineonClose(cineon);
+	/* Only 10 bits Cineon are supported */
+	if (bitsPerSample != 10) {
+		if (verbose) printf("cineon: Only 10 bits Cineon are supported.\n");
+		logImageClose(cineon);
 		return 0;
 	}
-	cineon->reading = 0;
 
 	cineon->width = width;
 	cineon->height = height;
-	cineon->depth = depth;
-	cineon->bitsPerPixel = 10;
-	cineon->imageOffset = sizeof(CineonGenericHeader);
+	cineon->element[0].bitsPerSample = 10;
+	cineon->element[0].dataOffset = sizeof(CineonMainHeader);
+	cineon->element[0].maxValue = 1023;
+	cineon->isMSB = 1;
+	cineon->numElements = 1;
+	cineon->element[0].packing = 1;
+	cineon->depth = 3;
+	cineon->element[0].depth = 3;
+	cineon->element[0].descriptor = descriptor_RGB;
+	cineon->element[0].transfer = transfer_PrintingDensity;
+	cineon->element[0].refHighQuantity = 2.048f;
+	cineon->element[0].refLowQuantity = 0;
+	cineon->element[0].refLowData = 0;
+	cineon->element[0].refHighData = cineon->element[0].maxValue;
+	cineon->referenceWhite = 685.0f;
+	cineon->referenceBlack = 95.0f;
+	cineon->gamma = 1.7f;
 
-	cineon->lineBufferLength = pixelsToLongs(cineon->width * cineon->depth);
-	cineon->lineBuffer = malloc(cineon->lineBufferLength * 4);
-	if (cineon->lineBuffer == 0) {
-		if (verbose) d_printf("Couldn't malloc line buffer of size %d\n", cineon->lineBufferLength * 4);
-		cineonClose(cineon);
-		return 0;
-	}
-
-	cineon->pixelBuffer = malloc(cineon->lineBufferLength * 3 * sizeof(unsigned short));
-	if (cineon->pixelBuffer == 0) {
-		if (verbose) d_printf("Couldn't malloc pixel buffer of size %d\n",
-				(cineon->width * cineon->depth) * (int)sizeof(unsigned short));
-		cineonClose(cineon);
-		return 0;
-	}
-	cineon->pixelBufferUsed = 0;
-
-	/* find trailing part of filename */
 	shortFilename = strrchr(filename, '/');
-	if (shortFilename == 0) {
+	if (shortFilename == 0)
 		shortFilename = filename;
-	}
-	else {
-		++shortFilename;
-	}
+	else
+		shortFilename++;
 
-	if (initCineonGenericHeader(cineon, &header, shortFilename) != 0) {
-		cineonClose(cineon);
+	cineon->file = BLI_fopen(filename, "wb");
+	if (cineon->file == 0) {
+		if (verbose) printf("cineon: Couldn't open file %s\n", filename);
+		logImageClose(cineon);
 		return 0;
 	}
+
+	fillCineonMainHeader(cineon, &header, shortFilename, creator);
 
 	if (fwrite(&header, sizeof(header), 1, cineon->file) == 0) {
-		if (verbose) d_printf("Couldn't write image header\n");
-		cineonClose(cineon);
+		if (verbose) printf("cineon: Couldn't write image header\n");
+		logImageClose(cineon);
 		return 0;
 	}
-	cineon->fileYPos = 0;
-
-	logImageGetByteConversionDefaults(&cineon->params);
-	setupLut(cineon);
-
-	cineon->getRow = 0;
-	cineon->setRow = &cineonSetRowBytes;
-	cineon->close = &cineonClose;
 
 	return cineon;
-}
-
-void
-cineonClose(CineonFile* cineon) {
-
-	if (cineon == 0) {
-		return;
-	}
-
-	if (cineon->file) {
-		fclose(cineon->file);
-		cineon->file = 0;
-	}
-
-	if (cineon->lineBuffer) {
-		free(cineon->lineBuffer);
-		cineon->lineBuffer = 0;
-	}
-
-	if (cineon->pixelBuffer) {
-		free(cineon->pixelBuffer);
-		cineon->pixelBuffer = 0;
-	}
-
-	free(cineon);
 }

@@ -33,13 +33,14 @@
 #include "AUD_Reference.h"
 #include "AUD_AnimateableProperty.h"
 #include "AUD_IFactory.h"
+#include "AUD_ILockable.h"
 
 #include <pthread.h>
 
 /**
  * This class represents a sequenced entry in a sequencer factory.
  */
-class AUD_SequencerEntry
+class AUD_SequencerEntry : public AUD_ILockable
 {
 	friend class AUD_SequencerHandle;
 private:
@@ -130,12 +131,12 @@ public:
 	/**
 	 * Locks the entry.
 	 */
-	void lock();
+	virtual void lock();
 
 	/**
 	 * Unlocks the previously locked entry.
 	 */
-	void unlock();
+	virtual void unlock();
 
 	/**
 	 * Sets the sound of the entry.

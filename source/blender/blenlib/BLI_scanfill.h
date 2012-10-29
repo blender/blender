@@ -103,7 +103,7 @@ void BLI_scanfill_end(ScanFillContext *sf_ctx);
 /* These callbacks are needed to make the lib finction properly */
 
 /**
- * Set a function taking a char* as argument to flag errors. If the
+ * Set a function taking a (char *) as argument to flag errors. If the
  * callback is not set, the error is discarded.
  * \param f The function to use as callback
  * \attention used in creator.c

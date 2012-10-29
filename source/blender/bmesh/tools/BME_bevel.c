@@ -1096,10 +1096,9 @@ static BMesh *BME_bevel_mesh(BMesh *bm, float value, int UNUSED(res), int option
 	return bm;
 }
 
-BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_index, float angle,
-                 BME_TransData_Head **rtd, int do_tessface)
+BMesh *BME_bevel(BMesh *bm, float value, int res, int options, int defgrp_index, float angle,
+                 BME_TransData_Head **rtd)
 {
-	BMesh *bm = em->bm;
 	BMVert *v;
 	BMIter iter;
 
@@ -1124,12 +1123,6 @@ BMesh *BME_bevel(BMEditMesh *em, float value, int res, int options, int defgrp_i
 		bmesh_edit_end(bm, 0);
 		d /= (i == 0) ? 3.0 : 2.0;
 		BMO_pop(bm);
-	}
-
-	/* possibly needed when running as a tool (which is no longer functional)
-	 * but keep as an option for now */
-	if (do_tessface) {
-		BMEdit_RecalcTessellation(em);
 	}
 
 	/* interactive preview? */

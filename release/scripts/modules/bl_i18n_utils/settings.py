@@ -31,6 +31,60 @@ import os.path
 # MISC
 ###############################################################################
 
+# The languages defined in Blender.
+LANGUAGES_CATEGORIES = (
+    # Min completeness level, UI english label.
+    ( 0.95, "Complete"),
+    ( 0.33, "In Progress"),
+    ( -1.0, "Starting"),
+)
+LANGUAGES = (
+    # ID, UI english label, ISO code.
+    ( 0, "Default (Default)", "DEFAULT"),
+    ( 1, "English (English)", "en_US"),
+    ( 2, "Japanese (日本語)", "ja_JP"),
+    ( 3, "Dutch (Nederlandse taal)", "nl_NL"),
+    ( 4, "Italian (Italiano)", "it_IT"),
+    ( 5, "German (Deutsch)", "de_DE"),
+    ( 6, "Finnish (Suomi)", "fi_FI"),
+    ( 7, "Swedish (Svenska)", "sv_SE"),
+    ( 8, "French (Français)", "fr_FR"),
+    ( 9, "Spanish (Español)", "es"),
+    (10, "Catalan (Català)", "ca_AD"),
+    (11, "Czech (Český)", "cs_CZ"),
+    (12, "Portuguese (Português)", "pt_PT"),
+    (13, "Simplified Chinese (简体中文)", "zh_CN"),
+    (14, "Traditional Chinese (繁體中文)", "zh_TW"),
+    (15, "Russian (Русский)", "ru_RU"),
+    (16, "Croatian (Hrvatski)", "hr_HR"),
+    (17, "Serbian (Српски)", "sr_RS"),
+    (18, "Ukrainian (Український)", "uk_UA"),
+    (19, "Polish (Polski)", "pl_PL"),
+    (20, "Romanian (Român)", "ro_RO"), # XXX No po's yet.
+    # Using the utf8 flipped form of Arabic (العربية).
+    (21, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"),
+    (22, "Bulgarian (Български)", "bg_BG"),
+    (23, "Greek (Ελληνικά)", "el_GR"),
+    (24, "Korean (한국 언어)", "ko_KR"), # XXX No po's yet.
+    (25, "Nepali (नेपाली)", "ne_NP"),
+    # Using the utf8 flipped form of Persian (فارسی).
+    (26, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"),
+    (27, "Indonesian (Bahasa indonesia)", "id_ID"),
+    (28, "Serbian Latin (Srpski latinica)", "sr_RS@latin"),
+    (29, "Kyrgyz (Кыргыз тили)", "ky_KG"),
+    (30, "Turkish (Türkçe)", "tr_TR"),
+    (31, "Hungarian (Magyar)", "hu_HU"),
+    (32, "Brazilian Portuguese (Português do Brasil)", "pt_BR"),
+    # Using the utf8 flipped form of Hebrew (עִבְרִית)).
+    (33, "Hebrew (תירִבְעִ)", "he_IL"),
+    (34, "Estonian (Eestlane)", "et_EE"),
+    (35, "Esperanto (Esperanto)", "eo"),
+    (36, "Spanish from Spain (Español de España)", "es_ES"),
+)
+
+# Name of language file used by Blender to generate translations' menu.
+LANGUAGES_FILE = "languages"
+
 # The min level of completeness for a po file to be imported from /branches
 # into /trunk, as a percentage. -1 means "import everything".
 IMPORT_MIN_LEVEL = -1
@@ -100,14 +154,22 @@ _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
 PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("IFACE_", "TIP_", "N_")) +
+
     tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_")) + 
-    tuple(("{}\\([^\"',]+,(?:[^\"',]+,)?\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf"))
+
+    tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf")) +
+
+    tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*,").format(it)
+          for it in ("BMO_error_raise",)) +
+
+    tuple(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("modifier_setError",))
 )
 
 ESCAPE_RE = (
-    ('((?<!\\\\)"|(?<!\\\\)\\\\(?!\\\\|"))', r"\\\1"),
+    (r'((?<!\\)"|(?<!\\)\\(?!\\|"))', r"\\\1"),
     ('\t', r"\\t"),
 )
 
@@ -141,37 +203,6 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "iTaSC parameters",
     "vBVH",
     "rv",
-    "en_US",
-    "fr_FR",
-    "it_IT",
-    "ru_RU",
-    "zh_CN",
-    "es",
-    "zh_TW",
-    "ar_EG",
-    "pt",
-    "bg_BG",
-    "ca_AD",
-    "hr_HR",
-    "cs_CZ",
-    "nl_NL",
-    "fi_FI",
-    "de_DE",
-    "el_GR",
-    "id_ID",
-    "ja_JP",
-    "ky_KG",
-    "ko_KR",
-    "ne_NP",
-    "fa_IR",
-    "pl_PL",
-    "ro_RO",
-    "sr_RS",
-    "sr_RS@latin",
-    "sv_SE",
-    "uk_UA",
-    "tr_TR",
-    "hu_HU",
     "et_EE",
     "eo",
     "available with",                # Is part of multi-line msg.
@@ -185,6 +216,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "p0",
     "res",
 }
+WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
 
 
 ###############################################################################
@@ -199,47 +231,35 @@ TOOLS_DIR = os.path.join(os.path.dirname(__file__))
 PYTHON3_EXEC = "python3"
 
 # The Blender executable!
-# This is just an example, you’ll most likely have to edit it in your
-# user_settings.py!
-BLENDER_EXEC = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..",
-                                            "blender"))
+# This is just an example, you’ll most likely have to edit it in your user_settings.py!
+BLENDER_EXEC = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..", "blender"))
 
-# The xgettext tool. You’ll likely have to edit it in your user_settings.py
-# if you’re under Windows.
+# The xgettext tool. You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"
 
-# The gettext msgmerge tool. You’ll likely have to edit it in your
-# user_settings.py if you’re under Windows.
+# The gettext msgmerge tool. You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_MSGMERGE_EXECUTABLE = "msgmerge"
 
-# The gettext msgfmt "compiler". You’ll likely have to edit it in your
-# user_settings.py if you’re under Windows.
+# The gettext msgfmt "compiler". You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_MSGFMT_EXECUTABLE = "msgfmt"
 
-# The svn binary... You’ll likely have to edit it in your
-# user_settings.py if you’re under Windows.
+# The svn binary... You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 SVN_EXECUTABLE = "svn"
 
 # The FriBidi C compiled library (.so under Linux, .dll under windows...).
-# You’ll likely have to edit it in your user_settings.py if you’re under
-# Windows., e.g. using the included one:
+# You’ll likely have to edit it in your user_settings.py if you’re under Windows., e.g. using the included one:
 #     FRIBIDI_LIB = os.path.join(TOOLS_DIR, "libfribidi.dll")
 FRIBIDI_LIB = "libfribidi.so.0"
 
-# The name of the (currently empty) file that must be present in a po's
-# directory to enable rtl-preprocess.
+# The name of the (currently empty) file that must be present in a po's directory to enable rtl-preprocess.
 RTL_PREPROCESS_FILE = "is_rtl"
 
 # The Blender source root path.
-# This is just an example, you’ll most likely have to override it in your
-# user_settings.py!
-SOURCE_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..",
-                                          "..", "..", "blender_msgs"))
+# This is just an example, you’ll most likely have to override it in your user_settings.py!
+SOURCE_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..", "..", "..", "blender_msgs"))
 
-# The bf-translation repository (you'll likely have to override this in your
-# user_settings.py).
-I18N_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..",
-                                        "..", "..", "i18n"))
+# The bf-translation repository (you'll likely have to override this in your user_settings.py).
+I18N_DIR = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..", "..", "..", "i18n"))
 
 # The /branches path (overriden in bf-translation's i18n_override_settings.py).
 BRANCHES_DIR = os.path.join(I18N_DIR, "branches")
@@ -259,12 +279,10 @@ FILE_NAME_MESSAGES = os.path.join(TRUNK_PO_DIR, "messages.txt")
 # The Blender source path to check for i18n macros.
 POTFILES_SOURCE_DIR = os.path.join(SOURCE_DIR, "source")
 
-# The "source" file storing which files should be processed by xgettext,
-# used to create FILE_NAME_POTFILES
+# The "source" file storing which files should be processed by xgettext, used to create FILE_NAME_POTFILES
 FILE_NAME_SRC_POTFILES = os.path.join(TRUNK_PO_DIR, "_POTFILES.in")
 
-# The final (generated) file storing which files
-# should be processed by xgettext.
+# The final (generated) file storing which files should be processed by xgettext.
 FILE_NAME_POTFILES = os.path.join(TRUNK_PO_DIR, "POTFILES.in")
 
 # The template messages file.
@@ -272,9 +290,7 @@ FILE_NAME_POT = os.path.join(TRUNK_PO_DIR, ".".join((DOMAIN, "pot")))
 
 # Other py files that should be searched for ui strings, relative to SOURCE_DIR.
 # Needed for Cycles, currently...
-CUSTOM_PY_UI_FILES = [os.path.join("intern", "cycles", "blender",
-                                   "addon", "ui.py"),
-                     ]
+CUSTOM_PY_UI_FILES = [os.path.join("intern", "cycles", "blender", "addon", "ui.py"),]
 
 
 # A cache storing validated msgids, to avoid re-spellchecking them.

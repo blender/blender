@@ -236,7 +236,7 @@ void vlr_set_uv_indices(VlakRen *vlr, int *i1, int *i2, int *i3)
 	/*		1---2		1---2 	0 = orig face, 1 = new face */
 	
 	/* Update vert nums to point to correct verts of original face */
-	if (vlr->flag & R_DIVIDE_24) {  
+	if (vlr->flag & R_DIVIDE_24) {
 		if (vlr->flag & R_FACE_SPLIT) {
 			(*i1)++; (*i2)++; (*i3)++;
 		}
@@ -777,7 +777,7 @@ void shade_input_set_uv(ShadeInput *shi)
 			CLAMP(shi->u, -2.0f, 1.0f);
 			CLAMP(shi->v, -2.0f, 1.0f);
 		}
-	}	
+	}
 }
 
 void shade_input_set_normals(ShadeInput *shi)

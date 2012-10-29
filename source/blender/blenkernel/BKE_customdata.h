@@ -80,6 +80,13 @@ void customData_mask_layers__print(CustomDataMask mask);
  * the below operations.
  */
 int CustomData_layer_has_math(struct CustomData *data, int layer_n);
+int CustomData_layer_has_interp(struct CustomData *data, int layer_n);
+
+/**
+ * Checks if any of the customdata layers has math.
+ */
+int CustomData_has_math(struct CustomData *data);
+int CustomData_has_interp(struct CustomData *data);
 
 /* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
  * another, while not overwriting anything else (e.g. flags).  probably only
@@ -205,8 +212,8 @@ void CustomData_free_elem(struct CustomData *data, int index, int count);
 void CustomData_interp(const struct CustomData *source, struct CustomData *dest,
                        int *src_indices, float *weights, float *sub_weights,
                        int count, int dest_index);
-void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks, 
-                             float *weights, float *sub_weights, int count,
+void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks,
+                             const float *weights, const float *sub_weights, int count,
                              void *dest_block);
 
 

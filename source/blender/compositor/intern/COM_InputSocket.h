@@ -87,15 +87,9 @@ public:
 	/**
 	 * @brief determine the resolution of this data going through this socket
 	 * @param resolution the result of this operation
-	 * @param preferredResolution the preferrable resolution as no resolution could be determined
+	 * @param preferredResolution the preferable resolution as no resolution could be determined
 	 */
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	
-	/**
-	 * @brief Notifies the Input of the data type (via a SocketConnection)
-	 * @param datatype the datatype to evaluate
-	 */
-	void notifyActualInputType(DataType datatype);
 	
 	/**
 	 * @brief move all connections of this input socket to another socket

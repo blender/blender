@@ -204,7 +204,7 @@ __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
 ;
-size_t BLI_strnlen(const char *str, size_t maxlen)
+size_t BLI_strnlen(const char *str, const size_t maxlen)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull))

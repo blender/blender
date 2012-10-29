@@ -3076,6 +3076,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 	MultiresModifierData *mmd = sculpt_multires_active(scene, ob);
 
 	ss->modifiers_active = sculpt_modifiers_active(scene, sd, ob);
+	ss->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
 
 	if (need_mask) {
 		if (mmd == NULL) {
@@ -3129,6 +3130,8 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob,
 
 	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->pmap = (need_pmap && dm->getPolyMap) ? dm->getPolyMap(ob, dm) : NULL;
+
+	pbvh_show_diffuse_color_set(ss->pbvh, ss->show_diffuse_color);
 
 	if (ss->modifiers_active) {
 		if (!ss->orig_cos) {
@@ -3513,7 +3516,7 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 		if (tool == SCULPT_TOOL_GRAB)
 			copy_v3_v3(sd->anchored_location, cache->true_location);
 		else if (tool == SCULPT_TOOL_THUMB)
-			copy_v3_v3(sd->anchored_location, cache->orig_grab_location);			
+			copy_v3_v3(sd->anchored_location, cache->orig_grab_location);
 
 		if (ELEM(tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
 			/* location stays the same for finding vertices in brush radius */
@@ -4151,7 +4154,7 @@ int ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 	 * isn't one already */
 	if (mmd && !CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
 		GridPaintMask *gmask;
-		int level = MAX2(1, mmd->sculptlvl);
+		int level = max_ii(1, mmd->sculptlvl);
 		int gridsize = ccg_gridsize(level);
 		int gridarea = gridsize * gridsize;
 		int i, j;

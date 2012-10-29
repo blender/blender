@@ -160,7 +160,8 @@ struct uiBut {
 	int flag, drawflag;
 	eButType         type;
 	eButPointerType  pointype;
-	short bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
+	short bit, bitnr, retval, strwidth, alignnr;
+	short ofs, pos, selsta, selend;
 
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
@@ -484,6 +485,7 @@ extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut 
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
 extern int ui_button_is_active(struct ARegion *ar);
 extern int ui_button_open_menu_direction(uiBut *but);
+extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, int restore);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);

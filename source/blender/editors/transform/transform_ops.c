@@ -284,7 +284,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "name", name);
 
 	if (use && !CTX_wm_view3d(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Create Orientation \"use\" parameter only valid in a 3dView context");
+		BKE_report(op->reports, RPT_ERROR, "Create Orientation's 'use' parameter only valid in a 3DView context");
 		return OPERATOR_CANCELLED;
 	}
 

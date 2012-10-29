@@ -389,7 +389,7 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float t[4], int cycl)
 			if (k1->next == NULL) k[0] = k1;
 			k1 = k1->next;
 		}
-		/* k1= k[1]; */ /* UNUSED */
+		/* k1 = k[1]; */ /* UNUSED */
 		t[0] = k[0]->pos;
 		t[1] += dpos;
 		t[2] = k[2]->pos + dpos;
@@ -609,7 +609,7 @@ static void cp_key(const int start, int end, const int tot, char *poin, Key *key
 			}
 		}
 		else k1 += start * key->elemsize;
-	}	
+	}
 	
 	if (mode == KEY_MODE_BEZTRIPLE) {
 		elemstr[0] = 1;
@@ -691,8 +691,8 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, const 
 		if (nu->bp) {
 			step = nu->pntsu * nu->pntsv;
 
-			a1 = maxi(a, start);
-			a2 = mini(a + step, end);
+			a1 = max_ii(a, start);
+			a2 = min_ii(a + step, end);
 
 			if (a1 < a2) cp_key(a1, a2, tot, out, key, actkb, kb, NULL, KEY_MODE_BPOINT);
 		}
@@ -700,8 +700,8 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, const 
 			step = 3 * nu->pntsu;
 
 			/* exception because keys prefer to work with complete blocks */
-			a1 = maxi(a, start);
-			a2 = mini(a + step, end);
+			a1 = max_ii(a, start);
+			a2 = min_ii(a + step, end);
 
 			if (a1 < a2) cp_key(a1, a2, tot, out, key, actkb, kb, NULL, KEY_MODE_BEZTRIPLE);
 		}
@@ -1043,7 +1043,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 	
 	/* find the group (weak loop-in-loop) */
 	defgrp_index = defgroup_name_index(ob, vgroup);
-	if (defgrp_index >= 0) {
+	if (defgrp_index != -1) {
 		float *weights;
 		int i;
 		
@@ -1217,7 +1217,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 					remain = step;
 				}
 
-				count = mini(remain, estep);
+				count = min_ii(remain, estep);
 				if (mode == KEY_MODE_BEZTRIPLE) {
 					count += 3 - count % 3;
 				}
@@ -1268,7 +1268,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 				do_key(a, a + 1, tot, out, key, actkb, k, t, KEY_MODE_DUMMY);
 			else
 				cp_key(a, a + 1, tot, out, key, actkb, k[2], NULL, KEY_MODE_DUMMY);
-		}		
+		}
 	}
 	else {
 		if (key->type == KEY_RELATIVE) {
@@ -1584,7 +1584,7 @@ void BKE_key_convert_to_lattice(KeyBlock *kb, Lattice *lt)
 	fp = kb->data;
 
 	tot = lt->pntsu * lt->pntsv * lt->pntsw;
-	tot = mini(kb->totelem, tot);
+	tot = min_ii(kb->totelem, tot);
 
 	for (a = 0; a < tot; a++, fp += 3, bp++) {
 		copy_v3_v3(bp->vec, fp);
@@ -1656,7 +1656,7 @@ void BKE_key_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 
 	tot = BKE_nurbList_verts_count(nurb);
 
-	tot = mini(kb->totelem, tot);
+	tot = min_ii(kb->totelem, tot);
 
 	while (nu && tot > 0) {
 
@@ -1724,7 +1724,7 @@ void BKE_key_convert_to_mesh(KeyBlock *kb, Mesh *me)
 	mvert = me->mvert;
 	fp = kb->data;
 
-	tot = mini(kb->totelem, me->totvert);
+	tot = min_ii(kb->totelem, me->totvert);
 
 	for (a = 0; a < tot; a++, fp += 3, mvert++) {
 		copy_v3_v3(mvert->co, fp);

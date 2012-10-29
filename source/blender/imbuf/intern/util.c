@@ -416,7 +416,7 @@ int IMB_isanim(const char *filename)
 				type = imb_get_anim_type(filename);
 			}
 			else {
-				return(FALSE);			
+				return(FALSE);
 			}
 		}
 		else { /* no quicktime */

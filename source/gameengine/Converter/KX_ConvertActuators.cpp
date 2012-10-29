@@ -136,7 +136,7 @@ void BL_ConvertActuators(const char* maggiename,
 	}
 	gameobj->ReserveActuator(actcount);
 	bact = (bActuator*) blenderobject->actuators.first;
-	while(bact)
+	while (bact)
 	{
 		STR_String uniquename = bact->name;
 		STR_String& objectname = gameobj->GetName();
@@ -358,7 +358,7 @@ void BL_ConvertActuators(const char* maggiename,
 				KX_SoundActuator::KX_SOUNDACT_TYPE
 					soundActuatorType = KX_SoundActuator::KX_SOUNDACT_NODEF;
 				
-				switch(soundact->type) {
+				switch (soundact->type) {
 				case ACT_SND_PLAY_STOP_SOUND:
 					soundActuatorType = KX_SoundActuator::KX_SOUNDACT_PLAYSTOP;
 					break;
@@ -946,8 +946,7 @@ void BL_ConvertActuators(const char* maggiename,
 			SCA_2DFilterActuator *tmp = NULL;
 
 			RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode;
-			switch(_2dfilter->type)
-			{
+			switch (_2dfilter->type) {
 				case ACT_2DFILTER_MOTIONBLUR:
 					filtermode = RAS_2DFilterManager::RAS_2DFILTER_MOTIONBLUR;
 					break;
@@ -1026,8 +1025,7 @@ void BL_ConvertActuators(const char* maggiename,
 				bool ghost = true;
 				KX_GameObject *tmpgob = NULL;
 
-				switch(parAct->type)
-				{
+				switch (parAct->type) {
 					case ACT_PARENT_SET:
 						mode = KX_ParentActuator::KX_PARENT_SET;
 						tmpgob = converter->FindGameObject(parAct->ob);
@@ -1081,8 +1079,7 @@ void BL_ConvertActuators(const char* maggiename,
 				KX_GameObject *targetob = converter->FindGameObject(stAct->target);
 
 				int mode = KX_SteeringActuator::KX_STEERING_NODEF;
-				switch(stAct->type)
-				{
+				switch (stAct->type) {
 				case ACT_STEERING_SEEK:
 					mode = KX_SteeringActuator::KX_STEERING_SEEK;
 					break;

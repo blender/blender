@@ -277,7 +277,7 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 			//vec[0] = vec[0]/((t->scene->r.frs_sec / t->scene->r.frs_sec_base));
 			/* same as below */
 			UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], out, out + 1);
-		} 
+		}
 		else
 #endif
 		{
@@ -469,11 +469,11 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
+		//SpaceAction *saction = (SpaceAction *)t->sa->spacedata.first;
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		//SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		//SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_NLA) {
@@ -1020,7 +1020,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = minf(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw |= TREDRAW_HARD;
@@ -1190,7 +1190,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				if (event->alt && t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
 					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
-						t->prop_size = minf(t->prop_size, ((View3D *)t->view)->far);
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
 					calculatePropRatio(t);
 				}
 				t->redraw = 1;
@@ -1264,6 +1264,8 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			}
 		}
 	}
+	else
+		handled = 0;
 
 	// Per transform event, if present
 	if (t->handleEvent)
@@ -1484,8 +1486,8 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				float dx = t->mval[0] - cent[0], dy = t->mval[1] - cent[1];
 				float angle = atan2f(dy, dx);
 				float dist = sqrtf(dx * dx + dy * dy);
-				float delta_angle = minf(15.0f / dist, (float)M_PI / 4.0f);
-				float spacing_angle = minf(5.0f / dist, (float)M_PI / 12.0f);
+				float delta_angle = min_ff(15.0f / dist, (float)M_PI / 4.0f);
+				float spacing_angle = min_ff(5.0f / dist, (float)M_PI / 12.0f);
 				UI_ThemeColor(TH_WIRE);
 
 				setlinestyle(3);
@@ -1598,8 +1600,10 @@ static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, vo
 	 */
 	if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
 		if (ar == t->ar) {
-			if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
-				drawAutoKeyWarning(t, ar);
+			if (t->flag & (T_OBJECT | T_POSE)) {
+				if (ob && autokeyframe_cfra_can_key(scene, &ob->id)) {
+					drawAutoKeyWarning(t, ar);
+				}
 			}
 		}
 	}
@@ -3383,7 +3387,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
 			}
-			else { 
+			else {
 				float eulmat[3][3];
 				
 				mul_m3_m3m3(totmat, mat, td->ext->r_mtx);
@@ -4811,7 +4815,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 		}
 		
 		l = l->radial_next;
-	} while (l != firstl); 
+	} while (l != firstl);
 
 	if (i)
 		mul_v3_fl(a, 1.0f / (float)i);
@@ -5612,7 +5616,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			const float sv_length = len_v3v3(sv->up->co, sv->down->co);
-			const float fac = minf(sv_length, curr_length_perc) / sv_length;
+			const float fac = min_ff(sv_length, curr_length_perc) / sv_length;
 
 			if (sld->flipped_vtx) {
 				interp_v3_v3v3(sv->v->co, sv->down->co, sv->up->co, fac);
@@ -6108,7 +6112,7 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 		SpaceIpo *sipo = (SpaceIpo *)t->sa->spacedata.first;
 		
 		drawtime = (sipo->flag & SIPO_DRAWTIME) ? 1 : 0;
-	}	
+	}
 	else {
 		drawtime = 0;
 	}
@@ -6589,5 +6593,5 @@ int TimeScale(TransInfo *t, const int UNUSED(mval[2]))
 void BIF_TransformSetUndo(const char *UNUSED(str))
 {
 	// TRANSFORM_FIX_ME
-	//Trans.undostr= str;
+	//Trans.undostr = str;
 }

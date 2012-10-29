@@ -199,7 +199,7 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*
 		return dm;
 
 	if (ob->type == OB_MESH) {
-		if (em) dm = CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
+		if (em) dm = CDDM_from_editbmesh(em, FALSE, FALSE);
 		else dm = CDDM_from_mesh((struct Mesh *)(ob->data), ob);
 
 		if (vertexCos) {
@@ -222,7 +222,7 @@ void modifier_get_vgroup(Object *ob, DerivedMesh *dm, const char *name, MDeformV
 	*defgrp_index = defgroup_name_index(ob, name);
 	*dvert = NULL;
 
-	if (*defgrp_index >= 0) {
+	if (*defgrp_index != -1) {
 		if (ob->type == OB_LATTICE)
 			*dvert = BKE_lattice_deform_verts_get(ob);
 		else if (dm)
@@ -277,5 +277,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(DynamicPaint);
 	INIT_TYPE(Remesh);
 	INIT_TYPE(Skin);
+	INIT_TYPE(LaplacianSmooth);
 #undef INIT_TYPE
 }

@@ -185,7 +185,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	float *org_w; /* Array original weights. */
 	float *new_w; /* Array new weights. */
 	int numVerts;
-	int defgrp_idx;
+	int defgrp_index;
 	int i;
 	/* Flags. */
 	int do_add  = (wmd->edit_flags & MOD_WVG_EDIT_ADD2VG) != 0;
@@ -205,8 +205,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		return dm;
 
 	/* Get vgroup idx from its name. */
-	defgrp_idx = defgroup_name_index(ob, wmd->defgrp_name);
-	if (defgrp_idx < 0)
+	defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
+	if (defgrp_index == -1)
 		return dm;
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
@@ -228,7 +228,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	new_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, new_w");
 	dw = MEM_mallocN(sizeof(MDeformWeight *) * numVerts, "WeightVGEdit Modifier, dw");
 	for (i = 0; i < numVerts; i++) {
-		dw[i] = defvert_find_index(&dvert[i], defgrp_idx);
+		dw[i] = defvert_find_index(&dvert[i], defgrp_index);
 		if (dw[i]) {
 			org_w[i] = new_w[i] = dw[i]->weight;
 		}
@@ -249,7 +249,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Update/add/remove from vgroup. */
-	weightvg_update_vg(dvert, defgrp_idx, dw, numVerts, NULL, org_w, do_add, wmd->add_threshold,
+	weightvg_update_vg(dvert, defgrp_index, dw, numVerts, NULL, org_w, do_add, wmd->add_threshold,
 	                   do_rem, wmd->rem_threshold);
 
 	/* If weight preview enabled... */

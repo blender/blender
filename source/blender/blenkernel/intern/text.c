@@ -314,7 +314,7 @@ int BKE_text_reload(Text *text)
 	
 	fseek(fp, 0L, SEEK_END);
 	len = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);	
+	fseek(fp, 0L, SEEK_SET);
 
 	text->undo_pos = -1;
 	
@@ -370,7 +370,7 @@ int BKE_text_reload(Text *text)
 	text->curl = text->sell = text->lines.first;
 	text->curc = text->selc = 0;
 	
-	MEM_freeN(buffer);	
+	MEM_freeN(buffer);
 	return 1;
 }
 
@@ -404,7 +404,7 @@ Text *BKE_text_load(const char *file, const char *relpath)
 
 	fseek(fp, 0L, SEEK_END);
 	len = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);	
+	fseek(fp, 0L, SEEK_SET);
 
 	ta->name = MEM_mallocN(strlen(file) + 1, "text_name");
 	strcpy(ta->name, file);
@@ -469,7 +469,7 @@ Text *BKE_text_load(const char *file, const char *relpath)
 	ta->curl = ta->sell = ta->lines.first;
 	ta->curc = ta->selc = 0;
 	
-	MEM_freeN(buffer);	
+	MEM_freeN(buffer);
 
 	return ta;
 }
@@ -683,7 +683,7 @@ void txt_clean_text(Text *text)
 	if (!text->lines.first) {
 		if (text->lines.last) text->lines.first = text->lines.last;
 		else text->lines.first = text->lines.last = txt_new_line(NULL);
-	} 
+	}
 	
 	if (!text->lines.last) text->lines.last = text->lines.first;
 
@@ -732,7 +732,7 @@ int txt_get_span(TextLine *from, TextLine *to)
 		if (!tmp) ret = 0;
 	}
 
-	return ret;	
+	return ret;
 }
 
 static void txt_make_dirty(Text *text)
@@ -934,7 +934,7 @@ void txt_move_right(Text *text, short sel)
 			txt_move_down(text, sel);
 			*charp = 0;
 		}
-	} 
+	}
 	else {
 		// do nice right only if there are only spaces
 		// spaces hardcoded in DNA_text_types.h
@@ -1376,7 +1376,7 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
 		int newc = (int)(s - tl->line);
 		txt_move_to(text, newl, newc, 0);
 		txt_move_to(text, newl, newc + strlen(findstr), 1);
-		return 1;				
+		return 1;
 	}
 	else
 		return 0;
@@ -1458,7 +1458,7 @@ char *txt_sel_to_buf(Text *text)
 		length += charl;
 		
 		buf[length] = 0;
-	}	
+	}
 
 	return buf;
 }
@@ -2078,7 +2078,7 @@ void txt_do_undo(Text *text)
 			charp = op - UNDO_BS_1 + 1;
 			txt_add_char(text, txt_undo_read_unicode(text->undo_buf, &text->undo_pos, charp));
 			text->undo_pos--;
-			break;		
+			break;
 			
 		case UNDO_DEL_1: case UNDO_DEL_2: case UNDO_DEL_3: case UNDO_DEL_4: 
 			charp = op - UNDO_DEL_1 + 1;
@@ -2104,7 +2104,7 @@ void txt_do_undo(Text *text)
 			txt_curs_first(text, &holdl, &holdc);
 			holdln = txt_get_span(text->lines.first, holdl);
 			
-			txt_insert_buf(text, buf);			
+			txt_insert_buf(text, buf);
 			MEM_freeN(buf);
 
 			text->curl = text->lines.first;
@@ -2235,7 +2235,7 @@ void txt_do_redo(Text *text)
 	unsigned short charp;
 	char *buf;
 	
-	text->undo_pos++;	
+	text->undo_pos++;
 	op = text->undo_buf[text->undo_pos];
 	
 	if (!op) {
@@ -2351,7 +2351,7 @@ void txt_do_redo(Text *text)
 			text->undo_pos += linep;
 			buf[linep] = 0;
 			
-			txt_insert_buf(text, buf);			
+			txt_insert_buf(text, buf);
 			MEM_freeN(buf);
 
 			text->undo_pos++;
@@ -2369,7 +2369,7 @@ void txt_do_redo(Text *text)
 			//charp is the first char selected or 0
 			
 			linep = txt_redo_read_uint32(text->undo_buf, &text->undo_pos);
-			//linep is now the first line of the selection			
+			//linep is now the first line of the selection
 			//set the selcetion for this now
 			text->curc = charp;
 			text->curl = text->lines.first;
@@ -2476,7 +2476,7 @@ void txt_split_curline(Text *text)
 	text->curl->format = NULL;
 	text->curl->len = text->curl->len - text->curc;
 	
-	BLI_insertlinkbefore(&text->lines, text->curl, ins);	
+	BLI_insertlinkbefore(&text->lines, text->curl, ins);
 	
 	text->curc = 0;
 	

@@ -102,7 +102,7 @@ int anim_is_quicktime (const char *name)
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	if([QTMovie canInitWithFile:[NSString stringWithCString:name 
-								 encoding:[NSString defaultCStringEncoding]]])
+	                             encoding:[NSString defaultCStringEncoding]]])
 	{
 		[pool drain];
 		return true;
@@ -147,7 +147,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	uchar *toIBuf = NULL;
 	int x, y, to_i, from_i;
 	NSSize bitmapSize;
-	NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA,*bitmapImage=nil;
+	NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA, *bitmapImage = nil;
 	NSEnumerator *enumerator;
 	NSImageRep *representation;
 	
@@ -162,18 +162,18 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	/*Get the bitmap of the image*/
 	enumerator = [[sourceImage representations] objectEnumerator];
 	while ((representation = [enumerator nextObject])) {
-        if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
-            bitmapImage = (NSBitmapImageRep *)representation;
+		if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
+			bitmapImage = (NSBitmapImageRep *)representation;
 			break;
-        }
-    }
+		}
+	}
 	if (bitmapImage == nil) return NULL;
 
 	if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0)
 		&& ![bitmapImage isPlanar]) {
 		/* Try a fast copy if the image is a meshed RGBA 32bit bitmap*/
-		toIBuf = (uchar*)ibuf->rect;
-		rasterRGB = (uchar*)[bitmapImage bitmapData];
+		toIBuf = (uchar *)ibuf->rect;
+		rasterRGB = (uchar *)[bitmapImage bitmapData];
 		for (y = 0; y < height; y++) {
 			to_i = (height-y-1)*width;
 			from_i = y*width;
@@ -207,7 +207,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 		[bitmapImage draw];
 		[NSGraphicsContext restoreGraphicsState];
 		
-		rasterRGB = (uchar*)[blBitmapFormatImageRGB bitmapData];
+		rasterRGB = (uchar *)[blBitmapFormatImageRGB bitmapData];
 		if (rasterRGB == NULL) {
 			[blBitmapFormatImageRGB release];
 			return NULL;
@@ -228,7 +228,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 		[bitmapImage draw];
 		[NSGraphicsContext restoreGraphicsState];
 		
-		rasterRGBA = (uchar*)[blBitmapFormatImageRGBA bitmapData];
+		rasterRGBA = (uchar *)[blBitmapFormatImageRGBA bitmapData];
 		if (rasterRGBA == NULL) {
 			[blBitmapFormatImageRGB release];
 			[blBitmapFormatImageRGBA release];
@@ -236,7 +236,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 		}
 
 		/*Copy the image to ibuf, flipping it vertically*/
-		toIBuf = (uchar*)ibuf->rect;
+		toIBuf = (uchar *)ibuf->rect;
 		for (y = 0; y < height; y++) {
 			for (x = 0; x < width; x++) {
 				to_i = (height-y-1)*width + x;
@@ -312,7 +312,7 @@ int startquicktime (struct anim *anim)
 
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	[QTMovie enterQTKitOnThread];		
+	[QTMovie enterQTKitOnThread];
 
 	attributes = [NSDictionary dictionaryWithObjectsAndKeys:
 	        [NSString stringWithCString:anim->name
@@ -382,7 +382,7 @@ int startquicktime (struct anim *anim)
 	anim->curposition = 0;
 
 	[pool drain];
-												 
+
 	return 0;
 }
 
@@ -486,7 +486,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 		[bitmapImage draw];
 		[NSGraphicsContext restoreGraphicsState];
 		
-		rasterRGB = (uchar*)[blBitmapFormatImageRGB bitmapData];
+		rasterRGB = (uchar *)[blBitmapFormatImageRGB bitmapData];
 		if (rasterRGB == NULL) {
 			[bitmapImage release];
 			[blBitmapFormatImageRGB release];
@@ -509,7 +509,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 		[bitmapImage draw];
 		[NSGraphicsContext restoreGraphicsState];
 		
-		rasterRGBA = (uchar*)[blBitmapFormatImageRGBA bitmapData];
+		rasterRGBA = (uchar *)[blBitmapFormatImageRGBA bitmapData];
 		if (rasterRGBA == NULL) {
 			[bitmapImage release];
 			[blBitmapFormatImageRGB release];
@@ -519,7 +519,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 		}
 		
 		/*Copy the image to ibuf, flipping it vertically*/
-		toIBuf = (uchar*)ibuf->rect;
+		toIBuf = (uchar *)ibuf->rect;
 		for (x = 0; x < bitmapSize.width; x++) {
 			for (y = 0; y < bitmapSize.height; y++) {
 				to_i = (bitmapSize.height-y-1)*bitmapSize.width + x;
@@ -543,7 +543,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
 	
 	/* return successfully */
-	return (ibuf);	
+	return (ibuf);
 }
 
 

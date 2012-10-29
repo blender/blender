@@ -150,7 +150,7 @@ static void zbuf_add_to_span(ZSpan *zspan, const float *v1, const float *v2)
 	}
 	else {
 		dx0 = 0.0f;
-		xs0 = minf(minv[0], maxv[0]);
+		xs0 = min_ff(minv[0], maxv[0]);
 	}
 	
 	/* empty span */
@@ -409,7 +409,7 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr,
 							if (apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
 							if (apn->next==NULL) apn->next= addpsA(zspan);
 							apn= apn->next;
-						}				
+						}
 					}
 				}
 				zverg+= zxd;
@@ -501,7 +501,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], co
 							if (apn->p[3]==zvlnr && apn->obi[3]==obi) {apn->mask[3]|= mask; break; }
 							if (apn->next==0) apn->next= addpsA(zspan);
 							apn= apn->next;
-						}				
+						}
 					}
 				}
 			}
@@ -572,7 +572,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], co
 							if (apn->p[3]==zvlnr) {apn->mask[3]|= mask; break; }
 							if (apn->next==0) apn->next= addpsA(zspan);
 							apn= apn->next;
-						}	
+						}
 					}
 				}
 			}
@@ -1029,7 +1029,7 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const 
 
 /**
  * Fill the z buffer, but invert z order, and add the face index to
- * the corresponing face buffer.
+ * the corresponding face buffer.
  *
  * This is one of the z buffer fill functions called in zbufclip() and
  * zbufwireclip(). 
@@ -1624,7 +1624,7 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 	else {
 		dw= clipcrop*(v2[3]-v1[3]);
 		v13= clipcrop*v1[3];
-	}	
+	}
 	/* according the original article by Liang&Barsky, for clipping of
 	 * homogeneous coordinates with viewplane, the value of "0" is used instead of "-w" .
 	 * This differs from the other clipping cases (like left or top) and I considered
@@ -1682,7 +1682,7 @@ static void makevertpyra(float *vez, float *labda, float **trias, float *v1, flo
 			adr[1]= v1[1]+l1*(v2[1]-v1[1]);
 			adr[2]= v1[2]+l1*(v2[2]-v1[2]);
 			adr[3]= v1[3]+l1*(v2[3]-v1[3]);
-		} 
+		}
 		else trias[*b1]= v1;
 		
 		(*b1)++;
@@ -2022,7 +2022,7 @@ static void zmask_rect(int *rectz, int *rectp, int xs, int ys, int neg)
 					EXTEND_PIXEL(row1 + 2);
 					EXTEND_PIXEL(row2 + 2);
 					EXTEND_PIXEL(row3 + 2);
-				}					
+				}
 				if (tot) {
 					len++;
 					curz[0]= (int)(z/(float)tot);
@@ -2047,7 +2047,7 @@ static void zmask_rect(int *rectz, int *rectp, int xs, int ys, int neg)
 			if (rectp[len]==0) {
 				rectz[len] = -0x7FFFFFFF;
 				rectp[len]= -1;	/* env code */
-			}	
+			}
 		}
 	}
 }
@@ -3233,7 +3233,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
 			
 			*rza= 0x7FFFFFFF;
 			if (rectmask) *rma= 0x7FFFFFFF;
-			if (*rd) {	
+			if (*rd) {
 				/* when there's a sky pixstruct, fill in sky-Z, otherwise solid Z */
 				for (ps= (PixStr *)(*rd); ps; ps= ps->next) {
 					if (sample & ps->mask) {
@@ -3517,9 +3517,22 @@ static void add_transp_obindex(RenderLayer *rl, int offset, Object *ob)
 	RenderPass *rpass;
 	
 	for (rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		if (rpass->passtype == SCE_PASS_INDEXOB||rpass->passtype == SCE_PASS_INDEXMA) {
+		if (rpass->passtype == SCE_PASS_INDEXOB) {
 			float *fp= rpass->rect + offset;
 			*fp= (float)ob->index;
+			break;
+		}
+	}
+}
+
+static void add_transp_material_index(RenderLayer *rl, int offset, Material *mat)
+{
+	RenderPass *rpass;
+	
+	for (rpass= rl->passes.first; rpass; rpass= rpass->next) {
+		if (rpass->passtype == SCE_PASS_INDEXMA) {
+			float *fp= rpass->rect + offset;
+			*fp= (float)mat->index;
 			break;
 		}
 	}
@@ -3876,7 +3889,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 				
 				addAlphaUnderFloat(samp_shr->combined, shr->combined);
 				
-				samp_shr->z = minf(samp_shr->z, shr->z);
+				samp_shr->z = min_ff(samp_shr->z, shr->z);
 
 				if (addpassflag & SCE_PASS_VECTOR) {
 					copy_v4_v4(samp_shr->winspeed, shr->winspeed);
@@ -4129,10 +4142,12 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 					}
 				}
 				if (addpassflag & SCE_PASS_INDEXMA) {
-					ObjectRen *obr= R.objectinstance[zrow[totface-1].obi].obr;
-					if (obr->ob) {
+					ObjectRen *obr = R.objectinstance[zrow[totface-1].obi].obr;
+					VlakRen *vr = obr->vlaknodes->vlak;
+					Material *mat = vr->mat;
+					if (mat) {
 						for (a= 0; a<totfullsample; a++)
-							add_transp_obindex(rlpp[a], od, obr->ob);
+							add_transp_material_index(rlpp[a], od, mat);
 					}
 				}
 
@@ -4243,7 +4258,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 		MEM_freeN(APixbufstrand);
 	if (sscache)
 		strand_shade_cache_free(sscache);
-	freepsA(&apsmbase);	
+	freepsA(&apsmbase);
 
 	if (R.r.mode & R_SHADOW)
 		ISB_free(pa);

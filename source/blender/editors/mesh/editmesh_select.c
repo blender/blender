@@ -1333,7 +1333,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	EDBM_index_arrays_init(em, 1, 1, 0);
 	targetnum = BM_elem_index_get(target);
 
-	while (!BLI_heap_empty(heap)) {
+	while (!BLI_heap_is_empty(heap)) {
 		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
 		e = EDBM_edge_at_index(em, mednum);
 
@@ -1444,7 +1444,7 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 			case EDGE_MODE_TAG_SHARP:
 				me->drawflag |= ME_DRAWSHARP;
 				break;
-			case EDGE_MODE_TAG_CREASE:	
+			case EDGE_MODE_TAG_CREASE:
 				me->drawflag |= ME_DRAWCREASES;
 				break;
 			case EDGE_MODE_TAG_BEVEL:
@@ -1717,7 +1717,7 @@ void EDBM_selectmode_convert(BMEditMesh *em, const short selectmode_old, const s
 					BM_edge_select_set(em->bm, eed, TRUE);
 				}
 			}
-		}		
+		}
 		else if (selectmode_new == SCE_SELECT_FACE) {
 			BMIter liter;
 			BMLoop *l;
@@ -2482,7 +2482,7 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 	 */
 	
 	if (em->selectmode == SCE_SELECT_FACE) {
-		BKE_report(op->reports, RPT_ERROR, "Doesn't work in face selection mode");
+		BKE_report(op->reports, RPT_ERROR, "Does not work in face selection mode");
 		return OPERATOR_CANCELLED;
 	}
 	

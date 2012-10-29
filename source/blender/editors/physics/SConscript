@@ -3,12 +3,12 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../gpu ../../blenloader ../../bmesh'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
 
-defs = ''
+defs = []
 
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
@@ -17,9 +17,11 @@ if env['OURPLATFORM'] == 'linux':
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
-
 if env['OURPLATFORM'] == 'darwin':
     if env['WITH_BF_OPENMP']:
-       defs += ' PARALLEL=1'
+       defs.append('PARALLEL=1')
 
-env.BlenderLib ( 'bf_editors_physics', sources, Split(incs), Split(defs), libtype=['core'], priority=[45] )
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+env.BlenderLib ( 'bf_editors_physics', sources, Split(incs), defs, libtype=['core'], priority=[45] )

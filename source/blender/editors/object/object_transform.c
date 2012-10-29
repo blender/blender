@@ -171,7 +171,7 @@ static void object_clear_rot(Object *ob)
 			}
 		}
 	}                        // Duplicated in source/blender/editors/armature/editarmature.c
-	else { 
+	else {
 		if (ob->rotmode == ROT_MODE_QUAT) {
 			unit_qt(ob->quat);
 			unit_qt(ob->dquat);
@@ -217,7 +217,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	
 	/* sanity checks */
 	if (ELEM(NULL, clear_func, default_ksName)) {
-		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or Keying Set Name");
+		BKE_report(op->reports, RPT_ERROR, "Programming error: missing clear transform function or keying set name");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -390,19 +390,19 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 		if (ob->type == OB_MESH) {
 			if (ID_REAL_USERS(ob->data) > 1) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user mesh, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user mesh, doing nothing");
 				change = 0;
 			}
 		}
 		else if (ob->type == OB_ARMATURE) {
 			if (ID_REAL_USERS(ob->data) > 1) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user armature, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user armature, doing nothing");
 				change = 0;
 			}
 		}
 		else if (ob->type == OB_LATTICE) {
 			if (ID_REAL_USERS(ob->data) > 1) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user lattice, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user lattice, doing nothing");
 				change = 0;
 			}
 		}
@@ -410,7 +410,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			Curve *cu;
 
 			if (ID_REAL_USERS(ob->data) > 1) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user curve, doing nothing");
 				change = 0;
 			}
 
@@ -422,7 +422,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				change = 0;
 			}
 			if (cu->key) {
-				BKE_report(reports, RPT_ERROR, "Can't apply to a curve with vertex keys, doing nothing");
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a curve with vertex keys, doing nothing");
 				change = 0;
 			}
 		}
@@ -654,7 +654,8 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
 enum {
 	GEOMETRY_TO_ORIGIN = 0,
 	ORIGIN_TO_GEOMETRY,
-	ORIGIN_TO_CURSOR
+	ORIGIN_TO_CURSOR,
+	ORIGIN_TO_CENTER_OF_MASS
 };
 
 static int object_origin_set_exec(bContext *C, wmOperator *op)
@@ -671,7 +672,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	int tot_change = 0, tot_lib_error = 0, tot_multiuser_arm_error = 0;
 
 	if (obedit && centermode != GEOMETRY_TO_ORIGIN) {
-		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
+		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -785,6 +786,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				Mesh *me = ob->data;
 
 				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if (centermode == ORIGIN_TO_CENTER_OF_MASS) { BKE_mesh_center_centroid(me, cent); }
 				else if (around == V3D_CENTROID) { BKE_mesh_center_median(me, cent); }
 				else { BKE_mesh_center_bounds(me, cent); }
 
@@ -852,7 +854,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 				if (ID_REAL_USERS(arm) > 1) {
 #if 0
-					BKE_report(op->reports, RPT_ERROR, "Can't apply to a multi user armature");
+					BKE_report(op->reports, RPT_ERROR, "Cannot apply to a multi user armature");
 					return;
 #endif
 					tot_multiuser_arm_error++;
@@ -865,7 +867,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
 					tot_change++;
 					arm->id.flag |= LIB_DOIT;
-					/* do_inverse_offset= TRUE; */ /* docenter_armature() handles this */
+					/* do_inverse_offset = TRUE; */ /* docenter_armature() handles this */
 
 					BKE_object_where_is_calc(scene, ob);
 					BKE_pose_where_is(scene, ob); /* needed for bone parents */
@@ -980,6 +982,8 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 		                     "Move object origin to center of object geometry"},
 		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor",
 		                   "Move object origin to position of the 3D cursor"},
+		{ORIGIN_TO_CENTER_OF_MASS, "ORIGIN_CENTER_OF_MASS", 0, "Origin to Center of Mass",
+		                           "Move object origin to the object center of mass (assuming uniform density)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -1006,4 +1010,3 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "center", prop_set_bounds_types, V3D_CENTROID, "Center", "");
 }
-

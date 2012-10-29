@@ -29,20 +29,20 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_bsdf_translucent_in[]= {
+static bNodeSocketTemplate sh_node_bsdf_translucent_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_bsdf_translucent_out[]= {
+static bNodeSocketTemplate sh_node_bsdf_translucent_out[] = {
 	{	SOCK_SHADER, 0, N_("BSDF")},
 	{	-1, 0, ""	}
 };
 
 static int node_shader_gpu_bsdf_translucent(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
-	if(!in[1].link)
+	if (!in[1].link)
 		in[1].link = GPU_builtin(GPU_VIEW_NORMAL);
 
 	return GPU_stack_link(mat, "node_bsdf_translucent", in, out);

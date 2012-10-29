@@ -232,7 +232,7 @@ void BlockDXT1::decodeBlock(ColorBlock * block) const
 			uint idx = (row[j] >> (2 * i)) & 3;
 			block->color(i, j) = color_array[idx];
 		}
-	}	
+	}
 }
 
 void BlockDXT1::decodeBlockNV5x(ColorBlock * block) const
@@ -592,7 +592,7 @@ void BlockCTX1::decodeBlock(ColorBlock * block) const
 			uint idx = (row[j] >> (2 * i)) & 3;
 			block->color(i, j) = color_array[idx];
 		}
-	}	
+	}
 }
 
 void BlockCTX1::setIndices(int * idx)

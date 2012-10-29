@@ -79,19 +79,19 @@ float ISB_getshadow(ShadeInput *shi, ShadBuf *shb);
 
 /* buffer samples, allocated in camera buffer and pointed to in lampbuffer nodes */
 typedef struct ISBSample {
-	float zco[3];			/* coordinate in lampview projection */
-	short *shadfac;			/* initialized zero = full lighted */
-	int obi;				/* object for face lookup */
-	int facenr;				/* index in faces list */	
+	float zco[3];           /* coordinate in lampview projection */
+	short *shadfac;         /* initialized zero = full lighted */
+	int obi;                /* object for face lookup */
+	int facenr;             /* index in faces list */
 } ISBSample;
 
 /* transparent version of buffer sample */
 typedef struct ISBSampleA {
-	float zco[3];				/* coordinate in lampview projection */
-	short *shadfac;				/* NULL = full lighted */
-	int obi;					/* object for face lookup */
-	int facenr;					/* index in faces list */	
-	struct ISBSampleA *next;	/* in end, we want the first items to align with ISBSample */
+	float zco[3];               /* coordinate in lampview projection */
+	short *shadfac;             /* NULL = full lighted */
+	int obi;                    /* object for face lookup */
+	int facenr;                 /* index in faces list */
+	struct ISBSampleA *next;    /* in end, we want the first items to align with ISBSample */
 } ISBSampleA;
 
 /* used for transparent storage only */

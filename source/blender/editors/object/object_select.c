@@ -425,7 +425,7 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 	
 	ob = OBACT;
 	if (ob == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Active Object");
+		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -608,11 +608,11 @@ static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in
 
 	for (i = 0; i < group_count; i++) {
 		group = ob_groups[i];
-		uiItemStringO(layout, group->id.name + 2, 0, "OBJECT_OT_select_same_group", "group", group->id.name);
+		uiItemStringO(layout, group->id.name + 2, 0, "OBJECT_OT_select_same_group", "group", group->id.name + 2);
 	}
 
 	uiPupMenuEnd(C, pup);
-	return changed; // The operator already handle this!
+	return changed;  /* The operator already handle this! */
 }
 
 static short select_grouped_object_hooks(bContext *C, Object *ob)
@@ -754,8 +754,8 @@ static short select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
 		return 0;
 	
 	/* select each object that Keying Set refers to */
-	// TODO: perhaps to be more in line with the rest of these, we should only take objects 
-	// if the passed in object is included in this too
+	/* TODO: perhaps to be more in line with the rest of these, we should only take objects
+	 * if the passed in object is included in this too */
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
 		/* only check for this object if it isn't selected already, to limit time wasted */
@@ -800,7 +800,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	
 	ob = OBACT;
 	if (ob == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Active Object");
+		BKE_report(op->reports, RPT_ERROR, "No active object");
 		return OPERATOR_CANCELLED;
 	}
 	

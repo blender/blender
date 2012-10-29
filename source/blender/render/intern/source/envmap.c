@@ -76,7 +76,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	BLI_lock_thread(LOCK_IMAGE);
 	if (env->cube[1] == NULL) {
 
-		BKE_free_envmapdata(env);	
+		BKE_free_envmapdata(env);
 	
 		dx = ibuf->y;
 		dx /= 2;
@@ -120,7 +120,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 				IMB_float_from_rect(env->cube[1]);
 			}
 		}
-	}	
+	}
 	BLI_unlock_thread(LOCK_IMAGE);
 }
 
@@ -216,7 +216,7 @@ static void envmap_transmatrix(float mat[][4], int part)
 	eul[0] = eul[1] = eul[2] = 0.0;
 	
 	if (part == 0) {          /* neg z */
-		;
+		/* pass */
 	}
 	else if (part == 1) { /* pos z */
 		eul[0] = M_PI;
@@ -576,7 +576,7 @@ void make_envmaps(Render *re)
 		re->display_init(re->dih, re->result);
 		re->display_clear(re->dch, re->result);
 		// re->flag |= R_REDRAW_PRV;
-	}	
+	}
 	/* restore */
 	re->r.mode |= trace;
 

@@ -29,7 +29,7 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_output_material_in[]= {
+static bNodeSocketTemplate sh_node_output_material_in[] = {
 	{	SOCK_SHADER, 1, N_("Surface")},
 	{	SOCK_SHADER, 1, N_("Volume")},
 	{	SOCK_FLOAT, 1, N_("Displacement"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
@@ -62,7 +62,7 @@ void register_node_type_sh_output_material(bNodeTreeType *ttype)
 	node_type_gpu(&ntype, node_shader_gpu_output_material);
 
 	/* Do not allow muting output node. */
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

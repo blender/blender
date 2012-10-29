@@ -105,8 +105,8 @@ typedef struct QuicktimeExport {
 	PixMapHandle thePixMap;
 	ImageDescription    **anImageDescription;
 
-	ImBuf       *ibuf;  //imagedata for Quicktime's Gworld
-	ImBuf       *ibuf2; //copy of renderdata, to be Y-flipped
+	ImBuf       *ibuf;   /* imagedata for Quicktime's Gworld */
+	ImBuf       *ibuf2;  /* copy of renderdata, to be Y-flipped */
 
 } QuicktimeExport;
 
@@ -178,7 +178,7 @@ int quicktime_videocodecType_from_rnatmpvalue(int rnatmpvalue)
 			return qtVideoCodecList[i].codecType;
 	}
 	
-	return 0;	
+	return 0;
 }
 
 
@@ -278,9 +278,9 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd, ReportList *reports)
 		SCGetInfo(qtdata->theComponent, scTemporalSettingsType, &qtdata->gTemporalSettings);
 
 
-		//Fill the render QuicktimeCodecSettigns struct
+		/* Fill the render QuicktimeCodecSettigns struct */
 		rd->qtcodecsettings.codecTemporalQuality = (qtdata->gTemporalSettings.temporalQuality * 100) / codecLosslessQuality;
-		//Do not override scene frame rate (qtdata->gTemporalSettings.framerate)
+		/* Do not override scene frame rate (qtdata->gTemporalSettings.framerate) */
 		rd->qtcodecsettings.keyFrameRate = qtdata->gTemporalSettings.keyFrameRate;
 		
 		rd->qtcodecsettings.codecType = qtdata->gSpatialSettings.codecType;
@@ -291,7 +291,7 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd, ReportList *reports)
 		rd->qtcodecsettings.bitRate = qtdata->aDataRateSetting.dataRate;
 		rd->qtcodecsettings.minSpatialQuality = (qtdata->aDataRateSetting.minSpatialQuality * 100) / codecLosslessQuality;
 		rd->qtcodecsettings.minTemporalQuality = (qtdata->aDataRateSetting.minTemporalQuality * 100) / codecLosslessQuality;
-		//Frame duration is already known (qtdata->aDataRateSetting.frameDuration)
+		/* Frame duration is already known (qtdata->aDataRateSetting.frameDuration) */
 		
 	}
 	else {
@@ -443,18 +443,18 @@ static void QT_DoAddVideoSamplesToMedia(int frame, int *pixels, int rectx, int r
 	Ptr myPtr;
 
 
-	//copy and flip renderdata
+	/* copy and flip renderdata */
 	memcpy(qtexport->ibuf2->rect, pixels, 4 * rectx * recty);
 	IMB_flipy(qtexport->ibuf2);
 
-	//get pointers to parse bitmapdata
+	/* get pointers to parse bitmapdata */
 	myPtr = GetPixBaseAddr(qtexport->thePixMap);
 	imageRect = (**qtexport->thePixMap).bounds;
 
 	from = (unsigned char *) qtexport->ibuf2->rect;
 	to = (unsigned char *) myPtr;
 
-	//parse RGBA bitmap into Quicktime's ARGB GWorld
+	/* parse RGBA bitmap into Quicktime's ARGB GWorld */
 	boxsize = rectx * recty;
 	for (index = 0; index < boxsize; index++) {
 		to[0] = from[3];
@@ -684,15 +684,15 @@ static void check_renderbutton_framerate(RenderData *rd, ReportList *reports)
 	err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,   &qtdata->gTemporalSettings);
 	CheckError(err, "SCSetInfo error", reports);
 
-	if (qtdata->gTemporalSettings.frameRate == 1571553) {           // 23.98 fps
+	if (qtdata->gTemporalSettings.frameRate == 1571553) {       /* 23.98 fps */
 		qtdata->kVideoTimeScale = 24000;
 		qtdata->duration = 1001;
 	}
-	else if (qtdata->gTemporalSettings.frameRate == 1964113) {  // 29.97 fps
+	else if (qtdata->gTemporalSettings.frameRate == 1964113) {  /* 29.97 fps */
 		qtdata->kVideoTimeScale = 30000;
 		qtdata->duration = 1001;
 	}
-	else if (qtdata->gTemporalSettings.frameRate == 3928227) {  // 59.94 fps
+	else if (qtdata->gTemporalSettings.frameRate == 3928227) {  /* 59.94 fps */
 		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = 1001;
 	}
@@ -714,7 +714,7 @@ void quicktime_verify_image_type(RenderData *rd, ImageFormatData *imf)
 			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality * 100) / codecLosslessQuality;
 			rd->qtcodecsettings.codecTemporalQuality = (codecHighQuality * 100) / codecLosslessQuality;
 			rd->qtcodecsettings.keyFrameRate = 25;
-			rd->qtcodecsettings.bitRate = 5000000; //5 Mbps
+			rd->qtcodecsettings.bitRate = 5000000;  /* 5 Mbps */
 		}
 	}
 }
@@ -804,7 +804,7 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 		qtdata->aDataRateSetting.minSpatialQuality = (rd->qtcodecsettings.minSpatialQuality * codecLosslessQuality) / 100;
 		qtdata->aDataRateSetting.minTemporalQuality = (rd->qtcodecsettings.minTemporalQuality * codecLosslessQuality) / 100;
 		
-		qtdata->aDataRateSetting.frameDuration = rd->frs_sec;		
+		qtdata->aDataRateSetting.frameDuration = rd->frs_sec;
 		
 		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,   &qtdata->gTemporalSettings);
 		CheckError(err, "SCSetInfo1 error", op->reports);
@@ -826,9 +826,9 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 	SCGetInfo(qtdata->theComponent, scTemporalSettingsType, &qtdata->gTemporalSettings);
 	
 	
-	//Fill the render QuicktimeCodecSettings struct
+	/* Fill the render QuicktimeCodecSettings struct */
 	rd->qtcodecsettings.codecTemporalQuality = (qtdata->gTemporalSettings.temporalQuality * 100) / codecLosslessQuality;
-	//Do not override scene frame rate (qtdata->gTemporalSettings.framerate)
+	/* Do not override scene frame rate (qtdata->gTemporalSettings.framerate) */
 	rd->qtcodecsettings.keyFrameRate = qtdata->gTemporalSettings.keyFrameRate;
 	
 	rd->qtcodecsettings.codecType = qtdata->gSpatialSettings.codecType;
@@ -839,26 +839,26 @@ static int request_qtcodec_settings(bContext *C, wmOperator *op)
 	rd->qtcodecsettings.bitRate = qtdata->aDataRateSetting.dataRate;
 	rd->qtcodecsettings.minSpatialQuality = (qtdata->aDataRateSetting.minSpatialQuality * 100) / codecLosslessQuality;
 	rd->qtcodecsettings.minTemporalQuality = (qtdata->aDataRateSetting.minTemporalQuality * 100) / codecLosslessQuality;
-	//Frame duration is already known (qtdata->aDataRateSetting.frameDuration)
+	/* Frame duration is already known (qtdata->aDataRateSetting.frameDuration) */
 	
 	QT_SaveCodecSettingsToScene(rd, op->reports);
 
 	/* framerate jugglin' */
-	if (qtdata->gTemporalSettings.frameRate == 1571553) {           // 23.98 fps
+	if (qtdata->gTemporalSettings.frameRate == 1571553) {           /* 23.98 fps */
 		qtdata->kVideoTimeScale = 24000;
 		qtdata->duration = 1001;
 
 		rd->frs_sec = 24;
 		rd->frs_sec_base = 1.001;
 	}
-	else if (qtdata->gTemporalSettings.frameRate == 1964113) {  // 29.97 fps
+	else if (qtdata->gTemporalSettings.frameRate == 1964113) {  /* 29.97 fps */
 		qtdata->kVideoTimeScale = 30000;
 		qtdata->duration = 1001;
 
 		rd->frs_sec = 30;
 		rd->frs_sec_base = 1.001;
 	}
-	else if (qtdata->gTemporalSettings.frameRate == 3928227) {  // 59.94 fps
+	else if (qtdata->gTemporalSettings.frameRate == 3928227) {  /* 59.94 fps */
 		qtdata->kVideoTimeScale = 60000;
 		qtdata->duration = 1001;
 
@@ -891,8 +891,8 @@ static int ED_operator_setqtcodec(bContext *C)
 }
 
 #if defined(__APPLE__) && defined(GHOST_COCOA)
-//Need to set up a Cocoa NSAutoReleasePool to avoid memory leak
-//And it must be done in an objC file, so use a GHOST_SystemCocoa.mm function for that
+/* Need to set up a Cocoa NSAutoReleasePool to avoid memory leak
+ * And it must be done in an objC file, so use a GHOST_SystemCocoa.mm function for that */
 extern int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op);
 
 int fromcocoa_request_qtcodec_settings(bContext *C, wmOperator *op)

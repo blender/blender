@@ -37,6 +37,7 @@
 #define BM_elem_flag_set(      ele, hflag, val) _bm_elem_flag_set      (&(ele)->head, hflag, val)
 #define BM_elem_flag_toggle(   ele, hflag)      _bm_elem_flag_toggle   (&(ele)->head, hflag)
 #define BM_elem_flag_merge(    ele_a, ele_b)    _bm_elem_flag_merge    (&(ele_a)->head, &(ele_b)->head)
+#define BM_elem_flag_merge_into(ele, ele_a, ele_b)_bm_elem_flag_merge_into (&(ele)->head, &(ele_a)->head, &(ele_b)->head)
 
 BLI_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag)
 {
@@ -72,6 +73,11 @@ BLI_INLINE void _bm_elem_flag_toggle(BMHeader *head, const char hflag)
 BLI_INLINE void _bm_elem_flag_merge(BMHeader *head_a, BMHeader *head_b)
 {
 	head_a->hflag = head_b->hflag = head_a->hflag | head_b->hflag;
+}
+
+BLI_INLINE void _bm_elem_flag_merge_into(BMHeader *head, const BMHeader *head_a, const BMHeader *head_b)
+{
+	head->hflag = head_a->hflag | head_b->hflag;
 }
 
 /**

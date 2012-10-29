@@ -81,7 +81,7 @@ static int outliner_open_back(SpaceOops *soops, TreeElement *te)
 	
 	for (te = te->parent; te; te = te->parent) {
 		tselem = TREESTORE(te);
-		if (tselem->flag & TSE_CLOSED) { 
+		if (tselem->flag & TSE_CLOSED) {
 			tselem->flag &= ~TSE_CLOSED;
 			retval = 1;
 		}
@@ -197,10 +197,10 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 	}
 	else if (tselem->id->lib) {
 		// XXX						error_libdata();
-	} 
+	}
 	else if (te->idcode == ID_LI && te->parent) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
-	} 
+	}
 	else {
 		tselem->flag |= TSE_TEXTBUT;
 		ED_region_tag_redraw(ar);
@@ -730,7 +730,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 	
 	/* determine which type of search to do */
 	if (again && last_find) {
-		/* no popup panel - previous + user wanted to search for next after previous */		
+		/* no popup panel - previous + user wanted to search for next after previous */
 		BLI_strncpy(name, soops->search_string, sizeof(name));
 		flags = soops->search_flags;
 		
@@ -746,7 +746,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 		/* pop up panel - no previous, or user didn't want search after previous */
 		name[0] = '\0';
 // XXX		if (sbutton(name, 0, sizeof(name)-1, "Find: ") && name[0]) {
-//			te= outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
+//			te = outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
 //		}
 //		else return; /* XXX RETURN! XXX */
 	}
@@ -786,7 +786,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 	}
 	else {
 		/* no tree-element found */
-		BKE_report(reports, RPT_WARNING, "Not found: %s", name);
+		BKE_reportf(reports, RPT_WARNING, "Not found: %s", name);
 	}
 }
 #endif
@@ -998,7 +998,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					char buf[128], *name;
 					
 					temnext = (TreeElement *)(ld->next->data);
-					/* tsenext= TREESTORE(temnext); */ /* UNUSED */
+					/* tsenext = TREESTORE(temnext); */ /* UNUSED */
 					
 					nextptr = &temnext->rnaptr;
 					name = RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), NULL);
@@ -1858,7 +1858,7 @@ static int material_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		assign_material(ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 
 		DAG_ids_flush_update(bmain, 0);
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));		
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, ma);
 
 		return OPERATOR_FINISHED;

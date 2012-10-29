@@ -270,7 +270,7 @@ BLI_INLINE int ms_I(int x, int y, int z, int *n) /* has a pad of 1 voxel surroun
 BLI_INLINE int v_I_pad(int x, int y, int z, int *n) /* has a pad of 1 voxel surrounding the core for boundary simulation */
 {
 	/* same ordering to light cache, with padding */
-	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;  	
+	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;
 }
 
 BLI_INLINE int lc_to_ms_I(int x, int y, int z, int *n)
@@ -389,7 +389,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 					const int j = ms_I(x, y, z, n);			//ms index
 					
 					time= PIL_check_seconds_timer();
-					c++;										
+					c++;
 					if (vp->data_r[i] > 0.0f)
 						sr[j] += vp->data_r[i];
 					if (vp->data_g[i] > 0.0f)

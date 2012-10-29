@@ -39,6 +39,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
@@ -183,7 +185,7 @@ static int space_image_poll(bContext *C)
 int space_image_main_area_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	// XXX ARegion *ar= CTX_wm_region(C);
+	// XXX ARegion *ar = CTX_wm_region(C);
 
 	if (sima)
 		return 1;  // XXX (ar && ar->type->regionid == RGN_TYPE_WINDOW);
@@ -551,7 +553,7 @@ static int image_view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 		sima->xof += pan_x;
 		sima->yof += pan_y;
 
-		ED_region_tag_redraw(ar);	
+		ED_region_tag_redraw(ar);
 
 		return OPERATOR_FINISHED;
 	}
@@ -599,7 +601,7 @@ static int image_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 		/* find the zoom value that will fit the image in the image space */
 		zoomx = width / w;
 		zoomy = height / h;
-		sima_zoom_set(sima, ar, 1.0f / power_of_2(1.0f / minf(zoomx, zoomy)), NULL);
+		sima_zoom_set(sima, ar, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL);
 	}
 	else
 		sima_zoom_set(sima, ar, 1.0f, NULL);
@@ -858,7 +860,8 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	if (!ima) {
 		if (op->customdata) MEM_freeN(op->customdata);
-		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s", str, errno ? strerror(errno) : "Unsupported image format");
+		BKE_reportf(op->reports, RPT_ERROR, "Cannot read '%s': %s",
+		            str, errno ? strerror(errno) : TIP_("unsupported image format"));
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1147,7 +1150,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		else {
 			simopts->im_format.imtype = BKE_ftype_to_imtype(ibuf->ftype);
 		}
-		//simopts->subimtype= scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
+		//simopts->subimtype = scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
 		simopts->im_format.quality = ibuf->ftype & 0xff;
 
 		BLI_strncpy(simopts->filepath, ibuf->name, sizeof(simopts->filepath));
@@ -1313,7 +1316,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			}
 		}
 		else {
-			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", simopts->filepath);
+			BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s", simopts->filepath);
 		}
 
 
@@ -1495,7 +1498,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
 		save_image_doit(C, sima, op, &simopts, FALSE);
 	}
 	else {
-		BKE_reportf(op->reports, RPT_ERROR, "Can not save image, path '%s' is not writable", simopts.filepath);
+		BKE_reportf(op->reports, RPT_ERROR, "Cannot save image, path '%s' is not writable", simopts.filepath);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1536,7 +1539,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 	}
 
 	if (sima->image->type == IMA_TYPE_MULTILAYER) {
-		BKE_report(op->reports, RPT_ERROR, "Can't save multilayer sequences");
+		BKE_report(op->reports, RPT_ERROR, "Cannot save multilayer sequences");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1572,7 +1575,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
 				break;
 			}
 
-			BKE_reportf(op->reports, RPT_INFO, "Saved: %s\n", ibuf->name);
+			BKE_reportf(op->reports, RPT_INFO, "Saved %s", ibuf->name);
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
 	}
@@ -1682,16 +1685,24 @@ static int image_new_exec(bContext *C, wmOperator *op)
 		RNA_property_pointer_set(&ptr, prop, idptr);
 		RNA_property_update(C, &ptr, prop);
 	}
-	else if (sima)
+	else if (sima) {
 		ED_space_image_set(sima, scene, obedit, ima);
+	}
+	else {
+		Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if (tex && tex->type == TEX_IMAGE) {
+			tex->ima = ima;
+			ED_area_tag_redraw(CTX_wm_area(C));
+		}
+	}
 
-	// XXX other users?
 	BKE_image_signal(ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 	
 	return OPERATOR_FINISHED;
 }
 
 /* XXX, Ton is not a fan of OK buttons but using this function to avoid undo/redo bug while in mesh-editmode, - campbell */
+/* XXX Note: the WM_operator_props_dialog_popup() doesn't work for uiIDContextProperty(), image is not being that way */
 static int image_new_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	return WM_operator_props_dialog_popup(C, op, 300, 100);
@@ -1844,7 +1855,7 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		BKE_report(op->reports, RPT_ERROR, "Can't pack edited image from disk, only as internal PNG");
+		BKE_report(op->reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2362,8 +2373,8 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 	
 	WM_cursor_time(CTX_wm_window(C), scene->r.cfra);
 
-	// XXX scene->nodetree->test_break= blender_test_break;
-	// XXX scene->nodetree->test_break= NULL;
+	// XXX scene->nodetree->test_break = blender_test_break;
+	// XXX scene->nodetree->test_break = NULL;
 	
 	BKE_image_all_free_anim_ibufs(scene->r.cfra);
 	ntreeCompositTagAnimated(scene->nodetree);
@@ -2429,8 +2440,7 @@ static int image_record_composite_exec(bContext *C, wmOperator *op)
 	if (!image_record_composite_init(C, op))
 		return OPERATOR_CANCELLED;
 	
-	while (image_record_composite_apply(C, op))
-		;
+	while (image_record_composite_apply(C, op)) {}
 	
 	image_record_composite_exit(C, op);
 	

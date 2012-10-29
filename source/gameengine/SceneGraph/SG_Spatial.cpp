@@ -103,7 +103,7 @@ SetParentRelation(
 
 /**
  * Update Spatial Data.
- * Calculates WorldTransform., (either doing itsself or using the linked SGControllers)
+ * Calculates WorldTransform., (either doing its self or using the linked SGControllers)
  */
 
 

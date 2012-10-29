@@ -393,7 +393,7 @@ void paste_gpdata(Scene *scene)
 				ScrArea *sa;
 				
 				/* get area that gp-data comes from */
-				//sa= gpencil_data_findowner((bGPdata *)ale->owner);	
+				//sa = gpencil_data_findowner((bGPdata *)ale->owner);
 				sa = NULL;
 				
 				/* this should be the right frame... as it may be a pre-existing frame, 

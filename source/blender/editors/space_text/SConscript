@@ -10,4 +10,7 @@ incs += ' ../../python ../../makesrna ../../blenfont ../../blenloader'
 if env['WITH_BF_PYTHON']:
     defs.append('WITH_PYTHON')
 
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
 env.BlenderLib ( 'bf_editors_space_text', sources, Split(incs), defs, libtype=['core'], priority=[95] )

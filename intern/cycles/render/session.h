@@ -57,6 +57,8 @@ public:
 	double reset_timeout;
 	double text_timeout;
 
+	enum { OSL, SVM } shadingsystem;
+
 	SessionParams()
 	{
 		background = false;
@@ -73,6 +75,8 @@ public:
 		cancel_timeout = 0.1;
 		reset_timeout = 0.1;
 		text_timeout = 1.0;
+
+		shadingsystem = SVM;
 	}
 
 	bool modified(const SessionParams& params)
@@ -89,7 +93,8 @@ public:
 		&& threads == params.threads
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
-		&& text_timeout == params.text_timeout); }
+		&& text_timeout == params.text_timeout
+		&& shadingsystem == params.shadingsystem); }
 
 };
 
@@ -179,6 +184,7 @@ protected:
 	double paused_time;
 
 	/* progressive refine */
+	double last_update_time;
 	bool update_progressive_refine(bool cancel);
 
 	vector<RenderBuffers *> tile_buffers;

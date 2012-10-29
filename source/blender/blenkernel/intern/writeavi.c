@@ -162,7 +162,7 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	else format = AVI_FORMAT_MJPEG;
 
 	if (AVI_open_compress(name, avi, 1, format) != AVI_ERROR_NONE) {
-		BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file.");
+		BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file");
 		MEM_freeN(avi);
 		avi = NULL;
 		return 0;
@@ -175,8 +175,8 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 
 	avi->interlace = 0;
 	avi->odd_fields = 0;
-/*  avi->interlace= rd->mode & R_FIELDS; */
-/*  avi->odd_fields= (rd->mode & R_ODDFIELD)?1:0; */
+/*  avi->interlace = rd->mode & R_FIELDS; */
+/*  avi->odd_fields = (rd->mode & R_ODDFIELD) ? 1 : 0; */
 	
 	printf("Created avi: %s\n", name);
 	return 1;

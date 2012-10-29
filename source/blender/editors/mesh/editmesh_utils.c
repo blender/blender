@@ -1012,6 +1012,19 @@ void EDBM_uv_element_map_free(UvElementMap *element_map)
 	}
 }
 
+UvElement *ED_uv_element_get(UvElementMap *map, BMFace *efa, BMLoop *l)
+{
+	UvElement *element;
+
+	element = map->vert[BM_elem_index_get(l->v)];
+
+	for (; element; element = element->next)
+		if (element->face == efa)
+			return element;
+
+	return NULL;
+}
+
 /* last_sel, use em->act_face otherwise get the last selected face in the editselections
  * at the moment, last_sel is mainly useful for making sure the space image dosnt flicker */
 MTexPoly *EDBM_mtexpoly_active_get(BMEditMesh *em, BMFace **r_act_efa, int sloppy, int selected)

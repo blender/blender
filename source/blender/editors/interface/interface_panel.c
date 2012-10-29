@@ -240,7 +240,7 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int
 						}
 					}
 				}
-			} 
+			}
 		}
 	}
 
@@ -545,7 +545,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	if (!(panel->flag & PNL_CLOSEDX)) {
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
 		
-		/* itemrect smaller */	
+		/* itemrect smaller */
 		itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
 		itemrect.xmin = itemrect.xmax - BLI_rcti_size_y(&headrect);
 		itemrect.ymin = headrect.ymin;
@@ -594,7 +594,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 	/* draw collapse icon */
 	UI_ThemeColor(TH_TEXT);
 	
-	/* itemrect smaller */	
+	/* itemrect smaller */
 	itemrect.xmin = headrect.xmin + 5.0f / block->aspect;
 	itemrect.xmax = itemrect.xmin + BLI_rcti_size_y(&headrect);
 	itemrect.ymin = headrect.ymin;
@@ -814,8 +814,8 @@ static void ui_panels_size(ScrArea *sa, ARegion *ar, int *x, int *y)
 				pa_sizey = pa->ofsy + get_panel_size_y(pa);
 			}
 
-			sizex = MAX2(sizex, pa_sizex);
-			sizey = MIN2(sizey, pa_sizey);
+			sizex = max_ii(sizex, pa_sizex);
+			sizey = min_ii(sizey, pa_sizey);
 		}
 	}
 
@@ -831,7 +831,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 	float fac;
 
 	fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
-	fac = minf(sqrt(fac), 1.0f);
+	fac = min_ff(sqrt(fac), 1.0f);
 
 	/* for max 1 second, interpolate positions */
 	if (uiAlignPanelStep(sa, ar, fac, 0)) {
@@ -895,7 +895,7 @@ void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 				panew->paneltab = NULL;
 				ED_region_tag_redraw(ar); /* the buttons panew were not made */
 			}
-		}	
+		}
 	}
 
 	/* re-align, possibly with animation */
@@ -1200,7 +1200,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 								ED_region_tag_redraw(ar);
 								retval = WM_UI_HANDLER_BREAK;
-							}						
+							}
 						}
 					}
 #endif

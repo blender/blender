@@ -1894,7 +1894,7 @@ void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float
 		}
 		else {
 			result = 1.0;
-		}			
+		}
 	}
 }
 

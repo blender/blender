@@ -285,7 +285,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				}
 
 				/* always store copy, as smoke internal data can change */
-				totRes= vd_resol_size(vd);
+				totRes = vd_resol_size(vd);
 				vd->dataset = MEM_mapallocN(sizeof(float)*(totRes), "smoke data");
 				memcpy(vd->dataset, flame, sizeof(float)*totRes);
 			}
@@ -414,7 +414,7 @@ void make_voxeldata(struct Render *re)
 
 int voxeldatatex(struct Tex *tex, const float texvec[3], struct TexResult *texres)
 {	 
-	VoxelData *vd = tex->vd;	
+	VoxelData *vd = tex->vd;
 	float co[3], offset[3] = {0.5, 0.5, 0.5}, a;
 	int retval = (vd->data_type == TEX_VD_RGBA_PREMUL) ? TEX_RGB : TEX_INT;
 	int depth = (vd->data_type == TEX_VD_RGBA_PREMUL) ? 4 : 1;
@@ -482,7 +482,7 @@ int voxeldatatex(struct Tex *tex, const float texvec[3], struct TexResult *texre
 				break;  
 			case TEX_VD_LINEAR:
 				*result = BLI_voxel_sample_trilinear(dataset, vd->resol, co);
-				break;					
+				break;
 			case TEX_VD_QUADRATIC:
 				*result = BLI_voxel_sample_triquadratic(dataset, vd->resol, co);
 				break;
@@ -515,5 +515,5 @@ int voxeldatatex(struct Tex *tex, const float texvec[3], struct TexResult *texre
 	texres->ta = texres->tin;
 	BRICONTRGB;
 	
-	return retval;	
+	return retval;
 }

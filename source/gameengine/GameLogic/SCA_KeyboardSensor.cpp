@@ -225,37 +225,37 @@ bool SCA_KeyboardSensor::Evaluate()
 		 */
 		if (m_qual > 0) {
 			const SCA_InputEvent & qualevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) m_qual);
-			switch(qualevent.m_status) {
-			case SCA_InputEvent::KX_NO_INPUTSTATUS:
-				qual = false;
-				break;
-			case SCA_InputEvent::KX_JUSTRELEASED:
-				qual_change = true;
-				qual = false;
-				break;
-			case SCA_InputEvent::KX_JUSTACTIVATED:
-				qual_change = true;
-			case SCA_InputEvent::KX_ACTIVE:
-				/* do nothing */
-				break;
+			switch (qualevent.m_status) {
+				case SCA_InputEvent::KX_NO_INPUTSTATUS:
+					qual = false;
+					break;
+				case SCA_InputEvent::KX_JUSTRELEASED:
+					qual_change = true;
+					qual = false;
+					break;
+				case SCA_InputEvent::KX_JUSTACTIVATED:
+					qual_change = true;
+				case SCA_InputEvent::KX_ACTIVE:
+					/* do nothing */
+					break;
 			}
 		}
 		if (m_qual2 > 0 && qual==true) {
 			const SCA_InputEvent & qualevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) m_qual2);
 			/* copy of above */
-			switch(qualevent.m_status) {
-			case SCA_InputEvent::KX_NO_INPUTSTATUS:
-				qual = false;
-				break;
-			case SCA_InputEvent::KX_JUSTRELEASED:
-				qual_change = true;
-				qual = false;
-				break;
-			case SCA_InputEvent::KX_JUSTACTIVATED:
-				qual_change = true;
-			case SCA_InputEvent::KX_ACTIVE:
-				/* do nothing */
-				break;
+			switch (qualevent.m_status) {
+				case SCA_InputEvent::KX_NO_INPUTSTATUS:
+					qual = false;
+					break;
+				case SCA_InputEvent::KX_JUSTRELEASED:
+					qual_change = true;
+					qual = false;
+					break;
+				case SCA_InputEvent::KX_JUSTACTIVATED:
+					qual_change = true;
+				case SCA_InputEvent::KX_ACTIVE:
+					/* do nothing */
+					break;
 			}
 		}
 		/* done reading qualifiers */
@@ -497,7 +497,7 @@ PyAttributeDef SCA_KeyboardSensor::Attributes[] = {
 
 PyObject *SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_KeyboardSensor* self= static_cast<SCA_KeyboardSensor*>(self_v);
+	SCA_KeyboardSensor* self = static_cast<SCA_KeyboardSensor*>(self_v);
 	
 	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)self->m_eventmgr)->GetInputDevice();
 

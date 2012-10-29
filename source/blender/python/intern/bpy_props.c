@@ -78,6 +78,7 @@ static EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
 	{PROP_BYTESTRING, "BYTE_STRING", 0, "Byte String", ""},
 	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+	{PROP_PASSWORD, "PASSWORD", 0, "Password", 0},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -260,7 +261,7 @@ static int bpy_prop_callback_check(PyObject *py_func, int argcount)
 static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_cb)
 {
 	/* assume this is already checked for type and arg length */
-	if (update_cb) {
+	if (update_cb && update_cb != Py_None) {
 		PyObject **py_data = MEM_callocN(sizeof(PyObject *) * BPY_DATA_CB_SLOT_SIZE, __func__);
 		RNA_def_property_update_runtime(prop, (void *)bpy_prop_update_cb);
 		py_data[BPY_DATA_CB_SLOT_UPDATE] = update_cb;
@@ -1511,7 +1512,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		args = PyTuple_New(0);
 		ret = BPy_RemoveProperty(self, args, kw);
 		Py_DECREF(args);
-		return ret;	
+		return ret;
 	}
 	else if (PyTuple_GET_SIZE(args) > 1) {
 		PyErr_SetString(PyExc_ValueError, "all args must be keywords");

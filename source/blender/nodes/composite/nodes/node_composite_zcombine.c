@@ -35,14 +35,14 @@
 
 /* **************** Z COMBINE ******************** */
 	/* lazy coder note: node->custom2 is abused to send signal */
-static bNodeSocketTemplate cmp_node_zcombine_in[]= {
+static bNodeSocketTemplate cmp_node_zcombine_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),		1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Z"),			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 10000.0f, PROP_NONE},
 	{	SOCK_RGBA, 1, N_("Image"),		1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Z"),			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 10000.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_zcombine_out[]= {
+static bNodeSocketTemplate cmp_node_zcombine_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	SOCK_FLOAT, 0, N_("Z")},
 	{	-1, 0, ""	}
@@ -60,10 +60,10 @@ static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *
 			// use alpha in combine operation
 			alpha= src1[3];
 			malpha= 1.0f - alpha;
-			out[0]= malpha*src2[0] + alpha*src1[0];
-			out[1]= malpha*src2[1] + alpha*src1[1];
-			out[2]= malpha*src2[2] + alpha*src1[2];
-			out[3]= malpha*src2[3] + alpha*src1[3];
+			out[0] = malpha*src2[0] + alpha*src1[0];
+			out[1] = malpha*src2[1] + alpha*src1[1];
+			out[2] = malpha*src2[2] + alpha*src1[2];
+			out[3] = malpha*src2[3] + alpha*src1[3];
 		}
 		else {
 			// do combination based solely on z value
@@ -75,10 +75,10 @@ static void do_zcombine(bNode *node, float *out, float *src1, float *z1, float *
 			// use alpha in combine operation
 			alpha= src2[3];
 			malpha= 1.0f - alpha;
-			out[0]= malpha*src1[0] + alpha*src2[0];
-			out[1]= malpha*src1[1] + alpha*src2[1];
-			out[2]= malpha*src1[2] + alpha*src2[2];
-			out[3]= malpha*src1[3] + alpha*src2[3];
+			out[0] = malpha*src1[0] + alpha*src2[0];
+			out[1] = malpha*src1[1] + alpha*src2[1];
+			out[2] = malpha*src1[2] + alpha*src2[2];
+			out[3] = malpha*src1[3] + alpha*src2[3];
 		}
 		else {
 			// do combination based solely on z value
@@ -111,20 +111,20 @@ static void do_zcombine_add(bNode *node, float *out, float *col1, float *col2, f
 			malpha= 1.0f - alpha;
 		
 		
-			out[0]= malpha*col1[0] + alpha*col2[0];
-			out[1]= malpha*col1[1] + alpha*col2[1];
-			out[2]= malpha*col1[2] + alpha*col2[2];
-			out[3]= malpha*col1[3] + alpha*col2[3];
+			out[0] = malpha*col1[0] + alpha*col2[0];
+			out[1] = malpha*col1[1] + alpha*col2[1];
+			out[2] = malpha*col1[2] + alpha*col2[2];
+			out[3] = malpha*col1[3] + alpha*col2[3];
 		}
 		else {
 			alpha= col1[3];
 			malpha= 1.0f - alpha;
 		
 		
-			out[0]= malpha*col2[0] + alpha*col1[0];
-			out[1]= malpha*col2[1] + alpha*col1[1];
-			out[2]= malpha*col2[2] + alpha*col1[2];
-			out[3]= malpha*col2[3] + alpha*col1[3];
+			out[0] = malpha*col2[0] + alpha*col1[0];
+			out[1] = malpha*col2[1] + alpha*col1[1];
+			out[2] = malpha*col2[2] + alpha*col1[2];
+			out[3] = malpha*col2[3] + alpha*col1[3];
 		}
 	}
 	else {
@@ -132,10 +132,10 @@ static void do_zcombine_add(bNode *node, float *out, float *col1, float *col2, f
 		alpha = *acol;
 		malpha= 1.0f - alpha;
 		
-		out[0]= malpha*col1[0] + alpha*col2[0];
-		out[1]= malpha*col1[1] + alpha*col2[1];
-		out[2]= malpha*col1[2] + alpha*col2[2];
-		out[3]= malpha*col1[3] + alpha*col2[3];
+		out[0] = malpha*col1[0] + alpha*col2[0];
+		out[1] = malpha*col1[1] + alpha*col2[1];
+		out[2] = malpha*col1[2] + alpha*col2[2];
+		out[3] = malpha*col1[3] + alpha*col2[3];
 	}
 }
 
@@ -202,8 +202,8 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 		aabuf= MEM_mallocN(cbuf->x*cbuf->y, "aa buf");
 		fp= mbuf->rect;
 		for (x= cbuf->x*cbuf->y-1; x>=0; x--)
-			if (fp[x]==0.0f) aabuf[x]= 0;
-			else aabuf[x]= 255;
+			if (fp[x]==0.0f) aabuf[x] = 0;
+			else aabuf[x] = 255;
 		
 		antialias_tagbuf(cbuf->x, cbuf->y, aabuf);
 		
@@ -211,7 +211,7 @@ static void node_composit_exec_zcombine(void *data, bNode *node, bNodeStack **in
 		fp= mbuf->rect;
 		for (x= cbuf->x*cbuf->y-1; x>=0; x--)
 			if (aabuf[x]>1)
-				fp[x]= (1.0f/255.0f)*(float)aabuf[x];
+				fp[x] = (1.0f/255.0f)*(float)aabuf[x];
 		
 		composit3_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[2]->data, in[2]->vec, mbuf, NULL, 
 								  do_zcombine_add, CB_RGBA, CB_RGBA, CB_VAL);

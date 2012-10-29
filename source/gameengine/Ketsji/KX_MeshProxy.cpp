@@ -220,7 +220,7 @@ PyObject *KX_MeshProxy::PyGetPolygon(PyObject *args, PyObject *kwds)
 
 PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_MeshProxy* self= static_cast<KX_MeshProxy*>(self_v);
+	KX_MeshProxy* self = static_cast<KX_MeshProxy*>(self_v);
 	
 	int tot= self->m_meshobj->NumMaterials();
 	int i;
@@ -239,7 +239,7 @@ PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 			KX_BlenderMaterial *mat = static_cast<KX_BlenderMaterial*>(polymat); 	 
 			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}
-		else { 	
+		else {
 			KX_PolygonMaterial *mat = static_cast<KX_PolygonMaterial*>(polymat);
 			PyList_SET_ITEM(materials, i, mat->GetProxy());
 		}

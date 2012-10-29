@@ -290,6 +290,7 @@ extern StructRNA RNA_KinematicConstraint;
 extern StructRNA RNA_Lamp;
 extern StructRNA RNA_LampSkySettings;
 extern StructRNA RNA_LampTextureSlot;
+extern StructRNA RNA_LaplacianSmoothModifier;
 extern StructRNA RNA_Lattice;
 extern StructRNA RNA_LatticeModifier;
 extern StructRNA RNA_LatticePoint;
@@ -995,7 +996,9 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 	}
 
 /* check if the idproperty exists, for operators */
+int RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, int use_ghost);
 int RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, int use_ghost);
 int RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
 int RNA_property_is_idprop(PropertyRNA *prop);
 

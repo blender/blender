@@ -61,6 +61,7 @@ struct BMEditMesh;
 struct BMEditSelection;
 struct BMesh;
 struct BMVert;
+struct BMLoop;
 struct MLoopCol;
 struct BMEdge;
 struct BMFace;
@@ -118,6 +119,7 @@ void EDBM_update_generic(struct bContext *C, struct BMEditMesh *em, const short 
 
 struct UvElementMap *EDBM_uv_element_map_create(struct BMEditMesh *em, int selected, int doIslands);
 void                 EDBM_uv_element_map_free(struct UvElementMap *vmap);
+struct UvElement *ED_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
 
 int              EDBM_mtexpoly_check(struct BMEditMesh *em);
 struct MTexPoly *EDBM_mtexpoly_active_get(struct BMEditMesh *em, struct BMFace **r_act_efa, int sloppy, int selected);

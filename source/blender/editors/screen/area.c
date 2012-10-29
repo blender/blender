@@ -390,7 +390,7 @@ void ED_area_overdraw(bContext *C)
 				az->do_draw = FALSE;
 			}
 		}
-	}	
+	}
 	glDisable(GL_BLEND);
 	
 }
@@ -465,11 +465,11 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	if (ar->drawrct.xmin == ar->drawrct.xmax)
 		ar->drawrct = winrct;
 	else {
-		/* extra clip for safety */
-		ar->drawrct.xmin = MAX2(winrct.xmin, ar->drawrct.xmin);
-		ar->drawrct.ymin = MAX2(winrct.ymin, ar->drawrct.ymin);
-		ar->drawrct.xmax = MIN2(winrct.xmax, ar->drawrct.xmax);
-		ar->drawrct.ymax = MIN2(winrct.ymax, ar->drawrct.ymax);
+		/* extra clip for safety (intersect the rects, could use API func) */
+		ar->drawrct.xmin = max_ii(winrct.xmin, ar->drawrct.xmin);
+		ar->drawrct.ymin = max_ii(winrct.ymin, ar->drawrct.ymin);
+		ar->drawrct.xmax = min_ii(winrct.xmax, ar->drawrct.xmax);
+		ar->drawrct.ymax = min_ii(winrct.ymax, ar->drawrct.ymax);
 	}
 	
 	/* note; this sets state, so we can use wmOrtho and friends */
@@ -533,10 +533,7 @@ void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
 		}
 		else if (ar->drawrct.xmin != ar->drawrct.xmax) {
 			/* partial redraw already set, expand region */
-			ar->drawrct.xmin = MIN2(ar->drawrct.xmin, rct->xmin);
-			ar->drawrct.ymin = MIN2(ar->drawrct.ymin, rct->ymin);
-			ar->drawrct.xmax = MAX2(ar->drawrct.xmax, rct->xmax);
-			ar->drawrct.ymax = MAX2(ar->drawrct.ymax, rct->ymax);
+			BLI_rcti_union(&ar->drawrct, rct);
 		}
 	}
 }
@@ -1260,19 +1257,15 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		}
 		else {
 			/* prevent uiblocks to run */
-			uiFreeBlocks(NULL, &ar->uiblocks);	
+			uiFreeBlocks(NULL, &ar->uiblocks);
 		}
-		
-		/* rechecks 2d matrix for header on dpi changing, do not do for other regions, it resets view && blocks view2d operator polls (ton) */
-		if (ar->regiontype == RGN_TYPE_HEADER)
-			ar->v2d.flag &= ~V2D_IS_INITIALISED;
 	}
 }
 
 /* externally called for floating regions like menus */
 void ED_region_init(bContext *C, ARegion *ar)
 {
-//	ARegionType *at= ar->type;
+//	ARegionType *at = ar->type;
 	
 	/* refresh can be called before window opened */
 	region_subwindow(CTX_wm_window(C), ar);
@@ -1414,7 +1407,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 			/* put in front of list */
 			BLI_remlink(&sa->spacedata, sl);
 			BLI_addhead(&sa->spacedata, sl);
-		} 
+		}
 		else {
 			/* new space */
 			if (st) {
@@ -1457,7 +1450,8 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 			ED_area_newspace(C, sa, sl->next->spacetype);
 	}
 	else {
-		ED_area_newspace(C, sa, SPACE_INFO);
+		/* no change */
+		return;
 	}
 	ED_area_tag_redraw(sa);
 
@@ -1670,11 +1664,9 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
-		/* don't jump back when panels close or hide */
-		if (!newcontext)
-			y = MAX2(-y, -v2d->cur.ymin);
-		else
-			y = -y;
+		/* ensure tot is set correctly, to keep views on bottons, with sliders */
+		y = min_ii(y, v2d->cur.ymin);
+		y = -y;
 	}
 	else {
 		/* for now, allow scrolling in both directions (since layouts are optimized for vertical,
@@ -1688,7 +1680,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 
 		/* don't jump back when panels close or hide */
 		if (!newcontext)
-			x = MAX2(x, v2d->cur.xmax);
+			x = max_ii(x, v2d->cur.xmax);
 		y = -y;
 	}
 
@@ -1741,7 +1733,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	int maxco, xco, yco;
 	int headery = ED_area_headersize();
 
-	/* clear */	
+	/* clear */
 	UI_ThemeClearColor((ED_screen_area_active(C)) ? TH_HEADER : TH_HEADERDESEL);
 	glClear(GL_COLOR_BUFFER_BIT);
 	
@@ -1778,7 +1770,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, BLI_rctf_size_y(&ar->v2d.tot));
+	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, headery);
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);

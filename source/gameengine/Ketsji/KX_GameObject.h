@@ -221,11 +221,11 @@ public:
 	GetInstanceObjects(
 	);
 
-		void	
+		void
 	SetDupliGroupObject(KX_GameObject*
 	);
 
-		void				
+		void
 	AddInstanceObjects(KX_GameObject*
 	);
 		

@@ -408,7 +408,7 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
                               const short is_active,
                               int width, int height)
 {
-	const unsigned int resol = maxi(BKE_mask_spline_feather_resolution(spline, width, height),
+	const unsigned int resol = max_ii(BKE_mask_spline_feather_resolution(spline, width, height),
 	                                BKE_mask_spline_resolution(spline, width, height));
 
 	unsigned char rgb_tmp[4];
@@ -579,7 +579,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	y += v2d->tot.ymin * zoomy;
 
 	/* frame the image */
-	maxdim = maxf(width, height);
+	maxdim = max_ff(width, height);
 	if (width == height) {
 		xofs = yofs = 0;
 	}

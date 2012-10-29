@@ -136,7 +136,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 							bez.ipo = BEZT_IPO_BEZ;
 						else 
 							bez.ipo = BEZT_IPO_CONST;
-						//bez.h1 = bez.h2 = HD_AUTO; 	
+						//bez.h1 = bez.h2 = HD_AUTO;
 					}
 					else {
 						bez.h1 = bez.h2 = HD_AUTO; 
@@ -617,7 +617,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 		//Add the curves of the current animation to the object
 		for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 			FCurve *fcu = *iter;
-			BLI_addtail(AnimCurves, fcu);	
+			BLI_addtail(AnimCurves, fcu);
 		}
 	}
 
@@ -854,14 +854,13 @@ static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
 {
 	double aspect =  camera->getAspectRatio().getValue();
 
-	if(aspect == 0)
-	{
+	if (aspect == 0) {
 		const double yfov   =  camera->getYFov().getValue();
 
-		if(yfov == 0)
-			aspect=1; // assume yfov and xfov are equal
-		else
-		{
+		if (yfov == 0) {
+			aspect = 1; // assume yfov and xfov are equal
+		}
+		else {
 			const double xfov   =  camera->getXFov().getValue();
 			if (xfov==0)
 				aspect = 1;
@@ -885,7 +884,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 	COLLADAFW::Node *root = root_map.find(uid) == root_map.end() ? node : root_map[uid];
 
 	Object *ob;
-	if(is_joint)
+	if (is_joint)
 		ob = armature_importer->get_armature_for_joint(root);
 	else
 		ob = object_map.find(uid) == object_map.end() ? NULL : object_map.find(uid)->second;
@@ -938,7 +937,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 					if (is_matrix) {
 						apply_matrix_curves(ob, animcurves, root, node,  transform);
 					}
-					else {				
+					else {
 
 						if (is_joint) {
 
@@ -1094,7 +1093,7 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 					}
 				}
 			}
-		}	
+		}
 	}
 }
 
@@ -1114,8 +1113,8 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurv
 		for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 			FCurve *fcu = *iter;
 
-			fcurve_deg_to_rad(fcu);		 
-		}					
+			fcurve_deg_to_rad(fcu);
+		}
 	}
 
 

@@ -2,11 +2,9 @@ import os
 
 IGNORE = (
     "/test/",
-    "/decimate_glut_test/",
     "/BSP_GhostTest/",
     "/release/",
     "/xembed/",
-    "/decimation/intern/future/",
     "/TerraplayNetwork/",
     "/ik_glut_test/",
 

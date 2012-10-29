@@ -111,7 +111,7 @@ void MovieDistortionOperation::executePixel(float output[4], float x, float y, P
 		float u, v;
 		this->m_cache->getUV(&this->m_movieClip->tracking, x, y, &u, &v);
 		this->m_inputOperation->read(output, u, v, sampler);
-	} 
+	}
 	else {
 		this->m_inputOperation->read(output, x, y, sampler);
 	}

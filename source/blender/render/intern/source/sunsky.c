@@ -217,8 +217,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float h
 	sunsky->perez_y[3] = -0.04405f * T - 1.65369f;
 	sunsky->perez_y[4] = -0.01092f * T + 0.05291f;
 	
-	/* suggested by glome in 
-	 * http://projects.blender.org/tracker/?func=detail&atid=127&aid=8063&group_id=9*/
+	/* suggested by glome in patch [#8063] */
 	sunsky->perez_Y[0] *= sunsky->horizon_brightness;
 	sunsky->perez_x[0] *= sunsky->horizon_brightness;
 	sunsky->perez_y[0] *= sunsky->horizon_brightness;
@@ -330,8 +329,8 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 
 	int i;
 	float fLambda[3]; 
-	fLambda[0] = 0.65f;	
-	fLambda[1] = 0.57f;	
+	fLambda[0] = 0.65f;
+	fLambda[1] = 0.57f;
 	fLambda[2] = 0.475f;
 
 	fAlpha = 1.3f;

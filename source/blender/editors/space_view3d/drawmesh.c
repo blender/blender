@@ -382,7 +382,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}
-	else {		
+	else {
 		glDisable(GL_CULL_FACE);
 	}
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
@@ -406,7 +406,7 @@ static void draw_textured_end(void)
 	 *  - zr
 	 */
 	glPushMatrix();
-	glLoadIdentity();	
+	glLoadIdentity();
 	GPU_default_lights();
 	glPopMatrix();
 }
@@ -636,7 +636,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	int a, totpoly = me->totpoly;
 
 	/* fake values to pass to GPU_render_text() */
-	MCol tmp_mcol[4]  = {{0}};
+	MCol  tmp_mcol[4]  = {{0}};
 	MCol *tmp_mcol_pt  = mloopcol ? tmp_mcol : NULL;
 	MTFace tmp_tf      = {{{0}}};
 
@@ -703,7 +703,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 			/* COLOR */
 			if (mloopcol) {
-				unsigned int totloop_clamp = MIN2(4, mp->totloop);
+				unsigned int totloop_clamp = min_ii(4, mp->totloop);
 				unsigned int j;
 				lcol = &mloopcol[mp->loopstart];
 

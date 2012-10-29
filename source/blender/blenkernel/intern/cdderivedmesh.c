@@ -273,6 +273,8 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		cddm->pbvh = BLI_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 
+		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
+
 		BKE_mesh_tessface_ensure(me);
 		
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
@@ -379,7 +381,7 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 				for (i = 0; i < dm->numTessFaceData; i++, mf++) {
 					if (!(mf->flag & ME_HIDE)) {
 						draw = 1;
-					} 
+					}
 					else {
 						draw = 0;
 					}
@@ -438,7 +440,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 				    (drawLooseEdges || !(medge->flag & ME_LOOSEEDGE)))
 				{
 					draw = TRUE;
-				} 
+				}
 				else {
 					draw = FALSE;
 				}
@@ -486,7 +488,7 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 			for (i = 0; i < dm->numEdgeData; i++, medge++) {
 				if (medge->flag & ME_LOOSEEDGE) {
 					draw = 1;
-				} 
+				}
 				else {
 					draw = 0;
 				}
@@ -552,7 +554,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 
 				glShadeModel(shademodel = new_shademodel);
 				glBegin(glmode = new_glmode);
-			} 
+			}
 			
 			if (drawCurrentMat) {
 				if (shademodel == GL_FLAT) {
@@ -1176,13 +1178,13 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 							datatypes[numdata].size = 2;
 							datatypes[numdata].type = GL_FLOAT;
 							numdata++;
-						}	
+						}
 						for (b = 0; b < attribs.totmcol; b++) {
 							datatypes[numdata].index = attribs.mcol[b].gl_index;
 							datatypes[numdata].size = 4;
 							datatypes[numdata].type = GL_UNSIGNED_BYTE;
 							numdata++;
-						}	
+						}
 						if (attribs.tottang) {
 							datatypes[numdata].index = attribs.tang.gl_index;
 							datatypes[numdata].size = 4;
@@ -1242,7 +1244,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 						col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
 						copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
 						offset += sizeof(unsigned char) * 4;
-					}	
+					}
 					if (attribs.tottang) {
 						float *tang = attribs.tang.array[a * 4 + 0];
 						copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
@@ -1283,7 +1285,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 							col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;
 							copy_v4_v4_char((char *)&varray[elementsize * curface * 3 + offset + elementsize * 2], (char *)col);
 							offset += sizeof(unsigned char) * 4;
-						}	
+						}
 						if (attribs.tottang) {
 							float *tang = attribs.tang.array[a * 4 + 2];
 							copy_v4_v4((float *)&varray[elementsize * curface * 3 + offset], tang);
@@ -1789,10 +1791,10 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase, int **orco
 }
 
 static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
-                                        int cdindex, BMLoop *l3[3],
+                                        int cdindex, const BMLoop *l3[3],
                                         int numCol, int numTex)
 {
-	BMLoop *l;
+	const BMLoop *l;
 	BMFace *f = l3[0]->f;
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -1835,13 +1837,16 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	}
 }
 
-DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdisps, int use_tessface)
+/* used for both editbmesh and bmesh */
+static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
+                                       /* EditBMesh vars for use_tessface */
+                                       int use_tessface,
+                                       const int em_tottri, const BMLoop *(*em_looptris)[3]
+                                       )
 {
-	BMesh *bm = em->bm;
-
 	DerivedMesh *dm = CDDM_new(bm->totvert,
 	                           bm->totedge,
-	                           use_tessface ? em->tottri : 0,
+	                           use_tessface ? em_tottri : 0,
 	                           bm->totloop,
 	                           bm->totface);
 
@@ -1887,7 +1892,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	
 	/* add tessellation mface layers */
 	if (use_tessface) {
-		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em->tottri);
+		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em_tottri);
 	}
 
 	index = dm->getVertDataArray(dm, CD_ORIGINDEX);
@@ -1953,7 +1958,7 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		for (i = 0; i < dm->numTessFaceData; i++, index++, polyindex++) {
 			MFace *mf = &mface[i];
-			BMLoop **l = em->looptris[i];
+			const BMLoop **l = em_looptris[i];
 			efa = l[0]->f;
 
 			mf->v1 = BM_elem_index_get(l[0]->v);
@@ -2001,6 +2006,20 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 	bm->elem_index_dirty &= ~BM_FACE;
 
 	return dm;
+}
+
+struct DerivedMesh *CDDM_from_bmesh(struct BMesh *bm, int use_mdisps)
+{
+	return cddm_from_bmesh_ex(bm, use_mdisps, FALSE,
+	                          /* these vars are for editmesh only */
+	                          0, NULL);
+}
+
+DerivedMesh *CDDM_from_editbmesh(BMEditMesh *em, int use_mdisps, int use_tessface)
+{
+	return cddm_from_bmesh_ex(em->bm, use_mdisps,
+	                          /* editmesh */
+	                          use_tessface, em->tottri, (const BMLoop *(*)[3])em->looptris);
 }
 
 static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
@@ -2339,7 +2358,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		BLI_array_append(oldp, i);
 	}
 	
-	/*create new cddm*/	
+	/*create new cddm*/
 	cddm2 = (CDDerivedMesh *) CDDM_from_template((DerivedMesh *)cddm, BLI_array_count(mvert), BLI_array_count(medge), 0, BLI_array_count(mloop), BLI_array_count(mpoly));
 	
 	/*update edge indices and copy customdata*/
@@ -2364,7 +2383,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		CustomData_copy_data(&dm->loopData, &cddm2->dm.loopData, oldl[i], i, 1);
 	}
 	
-	/*copy vertex customdata*/	
+	/*copy vertex customdata*/
 	mv = mvert;
 	for (i = 0; i < cddm2->dm.numVertData; i++, mv++) {
 		CustomData_copy_data(&dm->vertData, &cddm2->dm.vertData, oldv[i], i, 1);

@@ -254,7 +254,7 @@ PyAttributeDef KX_FontObject::Attributes[] = {
 
 PyObject *KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_FontObject* self= static_cast<KX_FontObject*>(self_v);
+	KX_FontObject* self = static_cast<KX_FontObject*>(self_v);
 	STR_String str = STR_String();
 	for (int i=0; i<self->m_text.size(); ++i)
 	{
@@ -267,7 +267,7 @@ PyObject *KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF 
 
 int KX_FontObject::pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_FontObject* self= static_cast<KX_FontObject*>(self_v);
+	KX_FontObject* self = static_cast<KX_FontObject*>(self_v);
 	if (!PyUnicode_Check(value))
 		return PY_SET_ATTR_FAIL;
 	char* chars = _PyUnicode_AsString(value);

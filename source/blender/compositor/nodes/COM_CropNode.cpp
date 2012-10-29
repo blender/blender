@@ -40,7 +40,7 @@ void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		operation = new CropImageOperation();
 	}
 	else {
-		operation = new CropOperation();	
+		operation = new CropOperation();
 	}
 	operation->setCropSettings(cropSettings);
 	operation->setRelative(relative);

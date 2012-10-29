@@ -34,12 +34,12 @@
 #include <limits.h>
 
 /* ************ qdn: Defocus node ****************** */
-static bNodeSocketTemplate cmp_node_defocus_in[]= {
+static bNodeSocketTemplate cmp_node_defocus_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Z"),			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_defocus_out[]= {
+static bNodeSocketTemplate cmp_node_defocus_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -338,7 +338,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// fast blur...
 		// bug #6656 part 1, probably when previous node_composite.c was split into separate files, it was not properly updated
 		// to include recent cvs commits (well, at least not defocus node), so this part was missing...
-		wt = minf(nqd->maxblur, aperture * 128.0f);
+		wt = min_ff(nqd->maxblur, aperture * 128.0f);
 		IIR_gauss_single(crad, wt);
 		IIR_gauss_single(wts, wt);
 		
@@ -589,8 +589,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 					// n-agonal
 					int ov, nv;
 					float mind, maxd, lwt;
-					ys = maxi((int)floor(bkh_b[2] * ct_crad + y), 0);
-					ye = mini((int)ceil(bkh_b[3] * ct_crad + y), new->y - 1);
+					ys = max_ii((int)floor(bkh_b[2] * ct_crad + y), 0);
+					ye = min_ii((int)ceil(bkh_b[3] * ct_crad + y), new->y - 1);
 					for (sy=ys; sy<=ye; sy++) {
 						float fxs = 1e10f, fxe = -1e10f;
 						float yf = (sy - y)/ct_crad;
@@ -861,7 +861,7 @@ static void node_composit_exec_defocus(void *UNUSED(data), bNode *node, bNodeSta
 	if (node->exec & NODE_BREAK) {
 		free_compbuf(new);
 		new= NULL;
-	}	
+	}
 	out[0]->data = new;
 	if (zbuf_use && (zbuf_use != zbuf)) free_compbuf(zbuf_use);
 }

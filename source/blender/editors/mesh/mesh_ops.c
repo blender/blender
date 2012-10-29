@@ -135,6 +135,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_mark_sharp);
 	WM_operatortype_append(MESH_OT_mark_freestyle_edge);
 	WM_operatortype_append(MESH_OT_vertices_smooth);
+	WM_operatortype_append(MESH_OT_vertices_smooth_laplacian);
 	WM_operatortype_append(MESH_OT_noise);
 	WM_operatortype_append(MESH_OT_flip_normals);
 	WM_operatortype_append(MESH_OT_rip);
@@ -167,7 +168,9 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_wireframe);
 	WM_operatortype_append(MESH_OT_edge_split);
 
+#ifdef WITH_BULLET
 	WM_operatortype_append(MESH_OT_convex_hull);
+#endif
 
 	WM_operatortype_append(MESH_OT_symmetrize);
 

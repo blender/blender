@@ -6,9 +6,7 @@ SConscript(['audaspace/SConscript',
             'ghost/SConscript',
             'guardedalloc/SConscript',
             'moto/SConscript',
-            'container/SConscript',
             'memutil/SConscript/',
-            'decimation/SConscript',
             'iksolver/SConscript',
             'itasc/SConscript',
             'opencolorio/SConscript',
@@ -16,6 +14,9 @@ SConscript(['audaspace/SConscript',
             'mikktspace/SConscript',
             'smoke/SConscript',
             'raskter/SConscript'])
+
+# currently only contains headers
+# SConscript('container/SConscript')
 
 if env ['WITH_BF_REMESH']:
     SConscript(['dualcon/SConscript'])

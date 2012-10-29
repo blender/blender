@@ -29,6 +29,7 @@
 
 #include "AUD_SequencerHandle.h"
 #include "AUD_ReadDevice.h"
+#include "AUD_MutexLock.h"
 
 AUD_SequencerHandle::AUD_SequencerHandle(AUD_Reference<AUD_SequencerEntry> entry, AUD_ReadDevice& device) :
 	m_entry(entry),
@@ -68,7 +69,7 @@ void AUD_SequencerHandle::update(float position, float frame, float fps)
 {
 	if(!m_handle.isNull())
 	{
-		m_entry->lock();
+		AUD_MutexLock lock(*m_entry);
 		if(position >= m_entry->m_end && m_entry->m_end >= 0)
 			m_handle->pause();
 		else if(position >= m_entry->m_begin)
@@ -134,7 +135,6 @@ void AUD_SequencerHandle::update(float position, float frame, float fps)
 
 		if(m_entry->m_muted)
 			m_handle->setVolume(0);
-		m_entry->unlock();
 	}
 }
 
@@ -142,11 +142,10 @@ void AUD_SequencerHandle::seek(float position)
 {
 	if(!m_handle.isNull())
 	{
-		m_entry->lock();
+		AUD_MutexLock lock(*m_entry);
 		if(position >= m_entry->m_end && m_entry->m_end >= 0)
 		{
 			m_handle->pause();
-			m_entry->unlock();
 			return;
 		}
 
@@ -160,6 +159,5 @@ void AUD_SequencerHandle::seek(float position)
 			m_handle->pause();
 		else
 			m_handle->resume();
-		m_entry->unlock();
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
+ * Copyright 2012, Blender Foundation.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -14,42 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file decimation/intern/LOD_MeshException.h
- *  \ingroup decimation
- */
+#include "stdosl.h"
 
-
-#ifndef __LOD_MESHEXCEPTION_H__
-#define __LOD_MESHEXCEPTION_H__
-
-class LOD_MeshException {
-
-public :
-
-	// stick in more error types as you think of them
-
-	enum ExceptionType{
-		e_non_manifold,
-		e_search_error
-	} m_e_type;
-
-	LOD_MeshException (
-		ExceptionType type
-	) : m_e_type (type)
-	{
-	}
-};
-
-#endif
+surface node_set_normal(
+	normal Direction = N,
+	output normal Normal = N)
+{
+	N = Direction;
+	Normal = Direction;
+}
 

@@ -81,13 +81,9 @@ set(SRC
 	intern/IMB_indexer.h
 	intern/IMB_metadata.h
 	intern/imbuf.h
-	intern/cineon/cin_debug_stuff.h
-	intern/cineon/cineonfile.h
 	intern/cineon/cineonlib.h
-	intern/cineon/dpxfile.h
 	intern/cineon/dpxlib.h
 	intern/cineon/logImageCore.h
-	intern/cineon/logImageLib.h
 	intern/cineon/logmemfile.h
 	intern/dds/BlockDXT.h
 	intern/dds/Color.h

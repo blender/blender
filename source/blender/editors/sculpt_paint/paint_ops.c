@@ -93,7 +93,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Paint  *paint =  paint_get_active_from_context(C);
 	struct Brush  *brush =  paint_brush(paint);
-	// Object *ob=     CTX_data_active_object(C);
+	// Object *ob = CTX_data_active_object(C);
 	float scalar = RNA_float_get(op->ptr, "scalar");
 
 	if (brush) {

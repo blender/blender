@@ -29,7 +29,7 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_bsdf_glass_in[]= {
+static bNodeSocketTemplate sh_node_bsdf_glass_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Roughness"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("IOR"),		1.45f, 0.0f, 0.0f, 0.0f, 1.0f, 1000.0f},
@@ -37,14 +37,14 @@ static bNodeSocketTemplate sh_node_bsdf_glass_in[]= {
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_bsdf_glass_out[]= {
+static bNodeSocketTemplate sh_node_bsdf_glass_out[] = {
 	{	SOCK_SHADER, 0, N_("BSDF")},
 	{	-1, 0, ""	}
 };
 
 static int node_shader_gpu_bsdf_glass(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
-	if(!in[3].link)
+	if (!in[3].link)
 		in[3].link = GPU_builtin(GPU_VIEW_NORMAL);
 
 	return GPU_stack_link(mat, "node_bsdf_glass", in, out);

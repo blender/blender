@@ -226,11 +226,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		int defgrp_index = defgroup_name_index(ob, mmd->vgroup);
 		
 		/* get dverts */
-		if (defgrp_index >= 0)
+		if (defgrp_index != -1)
 			dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 			
 		/* if no vgroup (i.e. dverts) found, return the initial mesh */
-		if ((defgrp_index < 0) || (dvert == NULL))
+		if ((defgrp_index == -1) || (dvert == NULL))
 			return dm;
 			
 		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */

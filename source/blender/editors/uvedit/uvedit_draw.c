@@ -534,7 +534,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-			if (uvedit_face_visible_test(scene, ima, efa, tf)) {		
+			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 			}
 			else {
@@ -818,7 +818,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 					bglVertex2fv(luv->uv);
 			}
 		}
-		bglEnd();	
+		bglEnd();
 	}
 
 	glPointSize(1.0);

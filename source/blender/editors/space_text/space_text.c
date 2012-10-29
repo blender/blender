@@ -431,7 +431,7 @@ static void text_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceText *st = CTX_wm_space_text(C);
-	//View2D *v2d= &ar->v2d;
+	//View2D *v2d = &ar->v2d;
 	
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);

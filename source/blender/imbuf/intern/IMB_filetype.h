@@ -97,13 +97,13 @@ struct ImBuf *imb_cocoaLoadImage(unsigned char *mem, size_t size, int flags, cha
 short imb_cocoaSaveImage(struct ImBuf *ibuf, const char *name, int flags);
 
 /* cineon */
-int imb_savecineon(struct ImBuf *buf, const char *name, int flags);
-struct ImBuf *imb_loadcineon(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
+int imb_save_cineon(struct ImBuf *buf, const char *name, int flags);
+struct ImBuf *imb_load_cineon(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
 int imb_is_cineon(unsigned char *buf);
 
 /* dpx */
 int imb_save_dpx(struct ImBuf *buf, const char *name, int flags);
-struct ImBuf *imb_loaddpx(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
+struct ImBuf *imb_load_dpx(unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
 int imb_is_dpx(unsigned char *buf);
 
 /* hdr */

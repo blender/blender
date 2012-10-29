@@ -184,7 +184,7 @@ typedef struct ThemeSpace {
 	/* button/tool regions */
 	char button[4];
 	char button_title[4];
-	char button_text[4];	
+	char button_text[4];
 	char button_text_hi[4];
 	
 	/* listview regions */
@@ -195,8 +195,8 @@ typedef struct ThemeSpace {
 	
 	/* float panel */
 	char panel[4];
-	char panel_title[4];	
-	char panel_text[4];	
+	char panel_title[4];
+	char panel_text[4];
 	char panel_text_hi[4];
 	
 	char shade1[4];
@@ -303,7 +303,7 @@ typedef struct bTheme {
 	ThemeUI tui;
 	
 	/* Individual Spacetypes */
-	ThemeSpace tbuts;	
+	ThemeSpace tbuts;
 	ThemeSpace tv3d;
 	ThemeSpace tfile;
 	ThemeSpace tipo;
@@ -317,7 +317,7 @@ typedef struct bTheme {
 	ThemeSpace ttime;
 	ThemeSpace tnode;
 	ThemeSpace tlogic;
-	ThemeSpace tuserpref;	
+	ThemeSpace tuserpref;
 	ThemeSpace tconsole;
 	ThemeSpace tclip;
 	
@@ -533,7 +533,8 @@ typedef enum eUserpref_UI_Flag {
 	USER_SPLASH_DISABLE		= (1 << 27),
 	USER_HIDE_RECENT		= (1 << 28),
 	USER_SHOW_THUMBNAILS	= (1 << 29),
-	USER_QUIT_PROMPT		= (1 << 30)
+	USER_QUIT_PROMPT		= (1 << 30),
+	USER_HIDE_SYSTEM_BOOKMARKS = (1 << 31)
 } eUserpref_UI_Flag;
 
 /* Auto-Keying mode */

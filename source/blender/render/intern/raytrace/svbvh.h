@@ -96,7 +96,7 @@ static int svbvh_bb_intersect_test(const Isect *isec, const float *_bb)
 	if (t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
 	if (t1x > isec->dist || t1y > isec->dist || t1z > isec->dist) return 0;
 
-	RE_RC_COUNT(isec->raycounter->bb.hit);	
+	RE_RC_COUNT(isec->raycounter->bb.hit);
 
 	return 1;
 }
@@ -165,16 +165,16 @@ inline void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float min[3], float ma
 		for (i = 0; i + 4 <= node->nchilds; i += 4) {
 			float *res = node->child_bb + 6 * i;
 			for (int j = 0; j < 3; j++) {
-				min[j] = minf(res[4 * j + 0],
-				         minf(res[4 * j + 1],
-				         minf(res[4 * j + 2],
-				         minf(res[4 * j + 3], min[j]))));
+				min[j] = min_ff(res[4 * j + 0],
+				         min_ff(res[4 * j + 1],
+				         min_ff(res[4 * j + 2],
+				         min_ff(res[4 * j + 3], min[j]))));
 			}
 			for (int j = 0; j < 3; j++) {
-				max[j] = maxf(res[4 * (j + 3) + 0],
-				         maxf(res[4 * (j + 3) + 1],
-				         maxf(res[4 * (j + 3) + 2],
-				         maxf(res[4 * (j + 3) + 3], max[j]))));
+				max[j] = max_ff(res[4 * (j + 3) + 0],
+				         max_ff(res[4 * (j + 3) + 1],
+				         max_ff(res[4 * (j + 3) + 2],
+				         max_ff(res[4 * (j + 3) + 3], max[j]))));
 			}
 		}
 
@@ -307,7 +307,7 @@ struct Reorganize_SVBVH {
 		prepare_for_simd(node);
 		
 		return node;
-	}	
+	}
 };
 
 #endif  /* __SSE__ */

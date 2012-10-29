@@ -357,26 +357,26 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, activate, "activate(rasty, cachingInfo)")
 
 PyObject *KX_PolygonMaterial::pyattr_get_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
+	KX_PolygonMaterial* self = static_cast<KX_PolygonMaterial*>(self_v);
 	return PyUnicode_From_STR_String(self->m_texturename);
 }
 
 PyObject *KX_PolygonMaterial::pyattr_get_material(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
+	KX_PolygonMaterial* self = static_cast<KX_PolygonMaterial*>(self_v);
 	return PyUnicode_From_STR_String(self->m_materialname);
 }
 
 /* this does not seem useful */
 PyObject *KX_PolygonMaterial::pyattr_get_tface(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
+	KX_PolygonMaterial* self = static_cast<KX_PolygonMaterial*>(self_v);
 	return PyCapsule_New(&self->m_tface, KX_POLYGONMATERIAL_CAPSULE_ID, NULL);
 }
 
 PyObject *KX_PolygonMaterial::pyattr_get_gl_texture(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
+	KX_PolygonMaterial* self = static_cast<KX_PolygonMaterial*>(self_v);
 	int bindcode= 0;
 	if (self->m_tface.tpage)
 		bindcode= self->m_tface.tpage->bindcode;
@@ -387,13 +387,13 @@ PyObject *KX_PolygonMaterial::pyattr_get_gl_texture(void *self_v, const KX_PYATT
 
 PyObject *KX_PolygonMaterial::pyattr_get_diffuse(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
+	KX_PolygonMaterial* self = static_cast<KX_PolygonMaterial*>(self_v);
 	return PyObjectFrom(self->m_diffuse);
 }
 
 int KX_PolygonMaterial::pyattr_set_diffuse(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
+	KX_PolygonMaterial* self = static_cast<KX_PolygonMaterial*>(self_v);
 	MT_Vector3 vec;
 	
 	if (!PyVecTo(value, vec))
@@ -405,13 +405,13 @@ int KX_PolygonMaterial::pyattr_set_diffuse(void *self_v, const KX_PYATTRIBUTE_DE
 
 PyObject *KX_PolygonMaterial::pyattr_get_specular(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
+	KX_PolygonMaterial* self = static_cast<KX_PolygonMaterial*>(self_v);
 	return PyObjectFrom(self->m_specular);
 }
 
 int KX_PolygonMaterial::pyattr_set_specular(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_PolygonMaterial* self= static_cast<KX_PolygonMaterial*>(self_v);
+	KX_PolygonMaterial* self = static_cast<KX_PolygonMaterial*>(self_v);
 	MT_Vector3 vec;
 	
 	if (!PyVecTo(value, vec))

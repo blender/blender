@@ -68,9 +68,9 @@ int info_report_mask(SpaceInfo *UNUSED(sinfo))
 // TODO, get this working again!
 static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 {
-//	SpaceInfo *sc= CTX_wm_space_info(C);
-//	ReportList *reports= CTX_wm_reports(C);
-//	int report_mask= info_report_mask(sc);
+//	SpaceInfo *sc = CTX_wm_space_info(C);
+//	ReportList *reports = CTX_wm_reports(C);
+//	int report_mask = info_report_mask(sc);
 //	Report *report;
 
 #if 0
@@ -223,7 +223,7 @@ static int borderselect_exec(bContext *C, wmOperator *op)
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	Report *report_min, *report_max, *report;
 
-	//View2D *v2d= UI_view2d_fromcontext(C);
+	//View2D *v2d = UI_view2d_fromcontext(C);
 
 
 	rcti rect;

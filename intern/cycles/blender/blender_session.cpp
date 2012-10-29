@@ -178,15 +178,12 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 
 static BL::RenderResult begin_render_result(BL::RenderEngine b_engine, int x, int y, int w, int h, const char *layername)
 {
-	RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, x, y, w, h, layername);
-	PointerRNA rrptr;
-	RNA_pointer_create(NULL, &RNA_RenderResult, rrp, &rrptr);
-	return BL::RenderResult(rrptr);
+	return b_engine.begin_result(x, y, w, h, layername);
 }
 
 static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, bool cancel = false)
 {
-	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data, (int)cancel);
+	b_engine.end_result(b_rr, (int)cancel);
 }
 
 void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_update_only)
@@ -335,16 +332,16 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::Re
 
 			/* copy pixels */
 			if(buffers->get_pass_rect(pass_type, exposure, rtile.sample, components, &pixels[0]))
-				rna_RenderPass_rect_set(&b_pass.ptr, &pixels[0]);
+				b_pass.rect(&pixels[0]);
 		}
 	}
 
 	/* copy combined pass */
 	if(buffers->get_pass_rect(PASS_COMBINED, exposure, rtile.sample, 4, &pixels[0]))
-		rna_RenderLayer_rect_set(&b_rlay.ptr, &pixels[0]);
+		b_rlay.rect(&pixels[0]);
 
 	/* tag result as updated */
-	RE_engine_update_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data);
+	b_engine.update_result(b_rr);
 }
 
 void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile)
@@ -496,11 +493,11 @@ void BlenderSession::update_status_progress()
 		status += " | " + substatus;
 
 	if(status != last_status) {
-		RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", (timestatus + status).c_str());
+		b_engine.update_stats("", (timestatus + status).c_str());
 		last_status = status;
 	}
 	if(progress != last_progress) {
-		RE_engine_update_progress((RenderEngine*)b_engine.ptr.data, progress);
+		b_engine.update_progress(progress);
 		last_progress = progress;
 	}
 }
@@ -508,7 +505,7 @@ void BlenderSession::update_status_progress()
 void BlenderSession::tag_update()
 {
 	/* tell blender that we want to get another update callback */
-	engine_tag_update((RenderEngine*)b_engine.ptr.data);
+	b_engine.tag_update();
 }
 
 void BlenderSession::tag_redraw()
@@ -520,13 +517,13 @@ void BlenderSession::tag_redraw()
 
 		/* offline render, redraw if timeout passed */
 		if(time_dt() - last_redraw_time > 1.0) {
-			engine_tag_redraw((RenderEngine*)b_engine.ptr.data);
+			b_engine.tag_redraw();
 			last_redraw_time = time_dt();
 		}
 	}
 	else {
 		/* tell blender that we want to redraw */
-		engine_tag_redraw((RenderEngine*)b_engine.ptr.data);
+		b_engine.tag_redraw();
 	}
 }
 
@@ -534,7 +531,7 @@ void BlenderSession::test_cancel()
 {
 	/* test if we need to cancel rendering */
 	if(background)
-		if(RE_engine_test_break((RenderEngine*)b_engine.ptr.data))
+		if(b_engine.test_break())
 			session->progress.set_cancel("Cancelled");
 }
 

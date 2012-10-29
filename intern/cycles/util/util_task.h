@@ -95,6 +95,7 @@ public:
 	static void exit();
 
 	static int num_threads() { return threads.size(); }
+	static bool active() { return users != 0; }
 
 protected:
 	friend class TaskPool;

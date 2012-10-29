@@ -858,7 +858,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		}
 		
 		case DestroyNotify:
-			::exit(-1);	
+			::exit(-1);
 		/* We're not interested in the following things.(yet...) */
 		case NoExpose:
 		case GraphicsExpose:
@@ -1171,7 +1171,7 @@ generateWindowExposeEvents()
 		    *w_start
 		    );
 
-		(*w_start)->validate();	
+		(*w_start)->validate();
 		
 		if (g_event) {
 			pushEvent(g_event);
@@ -1603,7 +1603,7 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 {
 	Window m_window, owner;
 
-	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();	
+	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
 	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
 	GHOST_WindowX11 *window = static_cast<GHOST_WindowX11 *>(*win_it);
 	m_window = window->getXWindow();

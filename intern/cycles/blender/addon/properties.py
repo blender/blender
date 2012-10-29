@@ -291,9 +291,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.use_progressive_refine = BoolProperty(
                 name="Progressive Refine",
                 description="Instead of rendering each tile until it is finished, "
-                            "refine the whole image progressively. "
-                            "This renders somewhat slower, "
-                            "but time can be saved by manually stopping the render when the noise is low enough",
+                            "refine the whole image progressively "
+                            "(this renders somewhat slower, "
+                            "but time can be saved by manually stopping the render when the noise is low enough)",
                 default=False,
                 )
 

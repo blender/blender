@@ -50,9 +50,9 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 	}
 	else if (type_in==SOCK_VECTOR) {
 		if (ns->sockettype==SOCK_FLOAT) {
-			in[0]= from[0];
-			in[1]= from[0];
-			in[2]= from[0];
+			in[0] = from[0];
+			in[1] = from[0];
+			in[2] = from[0];
 		}
 		else {
 			copy_v3_v3(in, from);
@@ -63,14 +63,14 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 			copy_v4_v4(in, from);
 		}
 		else if (ns->sockettype==SOCK_FLOAT) {
-			in[0]= from[0];
-			in[1]= from[0];
-			in[2]= from[0];
-			in[3]= 1.0f;
+			in[0] = from[0];
+			in[1] = from[0];
+			in[2] = from[0];
+			in[3] = 1.0f;
 		}
 		else {
 			copy_v3_v3(in, from);
-			in[3]= 1.0f;
+			in[3] = 1.0f;
 		}
 	}
 }

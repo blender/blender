@@ -29,7 +29,7 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_geometry_out[]= {
+static bNodeSocketTemplate sh_node_geometry_out[] = {
 	{	SOCK_VECTOR, 0, N_("Position"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, N_("Normal"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, N_("Tangent"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},

@@ -496,21 +496,21 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 			l_iter = BM_FACE_FIRST_LOOP(f);
 
 			if (f_verts[3]) {
-				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]),       l_iter); l_iter = l_iter->next;
-				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, ulp->l_pair[1]->next), l_iter); l_iter = l_iter->next;
-				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, ulp->l_pair[1]),       l_iter); l_iter = l_iter->next;
-				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]->next), l_iter);
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter); l_iter = l_iter->next;
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter); l_iter = l_iter->next;
+				BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter);
 			}
 			else {
 				if (v_shared == f_verts[0]) {
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]->next), l_iter); l_iter = l_iter->next;
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]),       l_iter); l_iter = l_iter->next;
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, ulp->l_pair[1]->next), l_iter);
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter);
 				}
 				else {
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]->next), l_iter); l_iter = l_iter->next;
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, ulp->l_pair[0]),       l_iter); l_iter = l_iter->next;
-					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, ulp->l_pair[1]),       l_iter);
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[0]->e, l_iter), l_iter); l_iter = l_iter->next;
+					BM_elem_attrs_copy(bm, bm, BM_edge_other_loop(ulp->l_pair[1]->e, l_iter), l_iter);
 				}
 			}
 
@@ -1007,7 +1007,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		 * with modified selection */
 		// WM_operator_name_call(C, "MESH_OT_region_to_loop", WM_OP_INVOKE_DEFAULT, NULL);
 
-		BKE_report(op->reports, RPT_ERROR, "Can't rip selected faces");
+		BKE_report(op->reports, RPT_ERROR, "Cannot rip selected faces");
 		return OPERATOR_CANCELLED;
 	}
 

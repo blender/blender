@@ -34,11 +34,11 @@
 
 /* **************** Crop  ******************** */
 
-static bNodeSocketTemplate cmp_node_crop_in[]= {
+static bNodeSocketTemplate cmp_node_crop_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_crop_out[]= {
+static bNodeSocketTemplate cmp_node_crop_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -82,7 +82,7 @@ static void node_composit_exec_crop(void *UNUSED(data), bNode *node, bNodeStack 
 		outputrect.ymin=MIN2(ntxy->y1, ntxy->y2);
 
 		if (node->custom1) {
-			/* this option crops the image size too  */	
+			/* this option crops the image size too  */
 			stackbuf= get_cropped_compbuf(&outputrect, cbuf->rect, cbuf->x, cbuf->y, cbuf->type);
 		}
 		else {

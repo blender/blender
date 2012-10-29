@@ -118,8 +118,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	}
 	gameobj->ReserveSensor(count);
 	sens = (bSensor*)blenderobject->sensors.first;
-	while(sens)
-	{
+
+	while (sens) {
 		SCA_ISensor* gamesensor=NULL;
 		/* All sensors have a pulse toggle, frequency, and invert field.     */
 		/* These are extracted here, and set when the sensor is added to the */
@@ -398,7 +398,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					
 					/* Better do an explicit conversion here! (was implicit      */
 					/* before...)                                                */
-					switch(blenderpropsensor->type) {
+					switch (blenderpropsensor->type) {
 					case SENS_PROP_EQUAL:
 						propchecktype = SCA_PropertySensor::KX_PROPSENSOR_EQUAL;
 						break;
@@ -573,8 +573,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 					int hatf	=0;
 					int prec	=0;
 					
-					switch(bjoy->type)
-					{
+					switch (bjoy->type) {
 					case SENS_JOY_AXIS:
 						axis	= bjoy->axis;
 						axisf	= bjoy->axisf;

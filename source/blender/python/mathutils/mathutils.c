@@ -276,12 +276,12 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 }
 
 
-//----------------------------------MATRIX FUNCTIONS--------------------
+/* ----------------------------------MATRIX FUNCTIONS-------------------- */
 
 
 /* Utility functions */
 
-// LomontRRDCompare4, Ever Faster Float Comparisons by Randy Dillon
+/* LomontRRDCompare4, Ever Faster Float Comparisons by Randy Dillon */
 #define SIGNMASK(i) (-(int)(((unsigned int)(i)) >> 31))
 
 int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)

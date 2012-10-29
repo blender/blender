@@ -292,6 +292,7 @@ void create_vert_edge_map(MeshElemMap **map, int **mem,
 int BKE_mesh_minmax(struct Mesh *me, float r_min[3], float r_max[3]);
 int BKE_mesh_center_median(struct Mesh *me, float cent[3]);
 int BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
+int BKE_mesh_center_centroid(struct Mesh *me, float cent[3]);
 void BKE_mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */

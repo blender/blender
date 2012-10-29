@@ -36,7 +36,7 @@
 /* **************** CURVE Time  ******************** */
 
 /* custom1 = sfra, custom2 = efra */
-static bNodeSocketTemplate cmp_node_time_out[]= {
+static bNodeSocketTemplate cmp_node_time_out[] = {
 	{	SOCK_FLOAT, 0, N_("Fac")},
 	{	-1, 0, ""	}
 };
@@ -55,7 +55,7 @@ static void node_composit_exec_curves_time(void *data, bNode *node, bNodeStack *
 	curvemapping_initialize(node->storage);
 	fac = curvemapping_evaluateF(node->storage, 0, fac);
 
-	out[0]->vec[0]= CLAMPIS(fac, 0.0f, 1.0f);
+	out[0]->vec[0] = CLAMPIS(fac, 0.0f, 1.0f);
 }
 
 #endif  /* WITH_COMPOSITOR_LEGACY */
@@ -86,12 +86,12 @@ void register_node_type_cmp_curve_time(bNodeTreeType *ttype)
 
 
 /* **************** CURVE VEC  ******************** */
-static bNodeSocketTemplate cmp_node_curve_vec_in[]= {
+static bNodeSocketTemplate cmp_node_curve_vec_in[] = {
 	{	SOCK_VECTOR, 1, N_("Vector"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate cmp_node_curve_vec_out[]= {
+static bNodeSocketTemplate cmp_node_curve_vec_out[] = {
 	{	SOCK_VECTOR, 0, N_("Vector")},
 	{	-1, 0, ""	}
 };
@@ -132,7 +132,7 @@ void register_node_type_cmp_curve_vec(bNodeTreeType *ttype)
 
 
 /* **************** CURVE RGB  ******************** */
-static bNodeSocketTemplate cmp_node_curve_rgb_in[]= {
+static bNodeSocketTemplate cmp_node_curve_rgb_in[] = {
 	{	SOCK_FLOAT, 1, N_("Fac"),	1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Image"),	1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Black Level"),	0.0f, 0.0f, 0.0f, 1.0f},
@@ -140,7 +140,7 @@ static bNodeSocketTemplate cmp_node_curve_rgb_in[]= {
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate cmp_node_curve_rgb_out[]= {
+static bNodeSocketTemplate cmp_node_curve_rgb_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -151,7 +151,7 @@ static void do_curves(bNode *node, float *out, float *in)
 {
 	curvemapping_initialize(node->storage);
 	curvemapping_evaluate_premulRGBF(node->storage, out, in);
-	out[3]= in[3];
+	out[3] = in[3];
 }
 
 static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
@@ -166,11 +166,11 @@ static void do_curves_fac(bNode *node, float *out, float *in, float *fac)
 	else {
 		float col[4], mfac= 1.0f-*fac;
 		curvemapping_evaluate_premulRGBF(node->storage, col, in);
-		out[0]= mfac*in[0] + *fac*col[0];
-		out[1]= mfac*in[1] + *fac*col[1];
-		out[2]= mfac*in[2] + *fac*col[2];
+		out[0] = mfac*in[0] + *fac*col[0];
+		out[1] = mfac*in[1] + *fac*col[1];
+		out[2] = mfac*in[2] + *fac*col[2];
 	}
-	out[3]= in[3];
+	out[3] = in[3];
 }
 
 static void node_composit_exec_curve_rgb(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)

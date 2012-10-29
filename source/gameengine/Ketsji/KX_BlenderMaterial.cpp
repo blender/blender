@@ -726,7 +726,7 @@ void KX_BlenderMaterial::setObjectMatrixData(int i, RAS_IRasterizer *ras)
 	GLenum plane = GL_EYE_PLANE;
 
 	// figure plane gen
-	float proj[4]= {0.f,0.f,0.f,0.f};
+	float proj[4] = {0.f,0.f,0.f,0.f};
 	GetProjPlane(mMaterial, i, 0, proj);
 	glTexGenfv(GL_S, plane, proj);
 	
@@ -837,26 +837,26 @@ PyTypeObject KX_BlenderMaterial::Type = {
 
 PyObject *KX_BlenderMaterial::pyattr_get_shader(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
+	KX_BlenderMaterial* self = static_cast<KX_BlenderMaterial*>(self_v);
 	return self->PygetShader(NULL, NULL);
 }
 
 PyObject *KX_BlenderMaterial::pyattr_get_materialIndex(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
+	KX_BlenderMaterial* self = static_cast<KX_BlenderMaterial*>(self_v);
 	return PyLong_FromSsize_t(self->GetMaterialIndex());
 }
 
 PyObject *KX_BlenderMaterial::pyattr_get_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
+	KX_BlenderMaterial* self = static_cast<KX_BlenderMaterial*>(self_v);
 	unsigned int* bfunc = self->getBlendFunc();
 	return Py_BuildValue("(ll)", (long int)bfunc[0], (long int)bfunc[1]);
 }
 
 int KX_BlenderMaterial::pyattr_set_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
+	KX_BlenderMaterial* self = static_cast<KX_BlenderMaterial*>(self_v);
 	PyObject *obj = self->PysetBlending(value, NULL);
 	if (obj)
 	{

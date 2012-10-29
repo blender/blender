@@ -62,20 +62,20 @@ ARegion *logic_has_buttons_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 
-	ar= BKE_area_find_region_type(sa, RGN_TYPE_UI);
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_UI);
 	if (ar) return ar;
 	
 	/* add subdiv level; after header */
-	ar= BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
 
 	/* is error! */
-	if (ar==NULL) return NULL;
+	if (ar == NULL) return NULL;
 	
 	arnew= MEM_callocN(sizeof(ARegion), "buttons for image");
 	
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-	arnew->regiontype= RGN_TYPE_UI;
-	arnew->alignment= RGN_ALIGN_LEFT;
+	arnew->regiontype = RGN_TYPE_UI;
+	arnew->alignment = RGN_ALIGN_LEFT;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
 	
@@ -129,18 +129,18 @@ static SpaceLink *logic_new(const bContext *UNUSED(C))
 	ar->v2d.cur.xmax = 1280.0f;
 	ar->v2d.cur.ymax = 240.0f;
 	
-	ar->v2d.min[0]= 1.0f;
-	ar->v2d.min[1]= 1.0f;
+	ar->v2d.min[0] = 1.0f;
+	ar->v2d.min[1] = 1.0f;
 	
-	ar->v2d.max[0]= 32000.0f;
-	ar->v2d.max[1]= 32000.0f;
+	ar->v2d.max[0] = 32000.0f;
+	ar->v2d.max[1] = 32000.0f;
 	
-	ar->v2d.minzoom= 0.5f;
-	ar->v2d.maxzoom= 1.21f;
+	ar->v2d.minzoom = 0.5f;
+	ar->v2d.maxzoom = 1.21f;
 	
-	ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
-	ar->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
-	ar->v2d.keeptot= 0;
+	ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
+	ar->v2d.keepzoom = V2D_LIMITZOOM | V2D_KEEPASPECT;
+	ar->v2d.keeptot = 0;
 	
 	
 	return (SpaceLink *)slogic;

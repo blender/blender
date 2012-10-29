@@ -185,7 +185,8 @@ static void halo_pixelstruct(HaloRen *har, RenderLayer **rlpp, int totsample, in
 	
 	fullsample= (totsample > 1);
 	amount= 0;
-	accol[0]=accol[1]=accol[2]=accol[3]= 0.0f;
+	accol[0] = accol[1] = accol[2] = accol[3]= 0.0f;
+	col[0] = col[1] = col[2] = col[3]= 0.0f;
 	flarec= har->flarec;
 	
 	while (ps) {
@@ -294,11 +295,11 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 			}
 			else {
 				
-				minx= MAX2(minx, testrect.xmin);
-				maxx= MIN2(maxx, testrect.xmax);
+				minx = max_ii(minx, testrect.xmin);
+				maxx = min_ii(maxx, testrect.xmax);
 			
-				miny= MAX2(har->miny, testrect.ymin);
-				maxy= MIN2(har->maxy, testrect.ymax);
+				miny = max_ii(har->miny, testrect.ymin);
+				maxy = min_ii(har->maxy, testrect.ymax);
 			
 				for (y=miny; y<maxy; y++) {
 					int rectofs= (y-disprect.ymin)*pa->rectx + (minx - disprect.xmin);
@@ -671,7 +672,7 @@ int get_sample_layers(RenderPart *pa, RenderLayer *rl, RenderLayer **rlpp)
 			RenderResult *rr= BLI_findlink(&pa->fullresult, sample);
 		
 			rlpp[sample]= BLI_findlink(&rr->layers, nr);
-		}		
+		}
 		return R.osa;
 	}
 	else {
@@ -714,7 +715,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 						addAlphaUnderFloat(pass, col);
 					}
 				}
-			}			
+			}
 		}
 		
 		if (y&1)
@@ -772,8 +773,8 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 						if (*zrect >= 9.9e10f || rgbrect[3]==0.0f) {
 							continue;
 						}
-												
-						if ((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {	
+
+						if ((lar->sunsky->effect_type & LA_SUN_EFFECT_AP)) {
 							float tmp_rgb[3];
 							
 							/* skip if worldspace lamp vector is below horizon */
@@ -928,7 +929,7 @@ static void addps(ListBase *lb, intptr_t *rd, int obi, int facenr, int z, int ma
 	PixStrMain *psm;
 	PixStr *ps, *last= NULL;
 	
-	if (*rd) {	
+	if (*rd) {
 		ps= (PixStr *)(*rd);
 		
 		while (ps) {
@@ -1582,7 +1583,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 
 	copy_v3_v3(shi->facenor, nor);
 	shade_input_set_viewco(shi, x, y, sx, sy, z);
-	*area = minf(len_v3(shi->dxco) * len_v3(shi->dyco), 2.0f * orthoarea);
+	*area = min_ff(len_v3(shi->dxco) * len_v3(shi->dyco), 2.0f * orthoarea);
 
 	shade_input_set_uv(shi);
 	shade_input_set_normals(shi);
@@ -2012,7 +2013,7 @@ void add_halo_flare(Render *re)
 		re->display_draw(re->ddh, rr, NULL);
 	}
 	
-	R.r.mode= mode;	
+	R.r.mode= mode;
 }
 
 /* ************************* bake ************************ */
@@ -2474,7 +2475,7 @@ static int get_next_bake_face(BakeShade *bs)
 		return 0;
 	}
 	
-	BLI_lock_thread(LOCK_CUSTOM1);	
+	BLI_lock_thread(LOCK_CUSTOM1);
 
 	for (; obi; obi=obi->next, v=0) {
 		obr= obi->obr;
@@ -2516,12 +2517,12 @@ static int get_next_bake_face(BakeShade *bs)
 						if (R.r.bake_flag & R_BAKE_CLEAR)
 							IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
 
-						ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
-					}				
-					
+					}
+
+					ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
 					bs->obi= obi;
 					bs->vlr= vlr;
 					
@@ -2557,7 +2558,7 @@ static void shade_tface(BakeShade *bs)
 		/* note, these calls only free/fill contents of zspan struct, not zspan itself */
 		zbuf_free_span(bs->zspan);
 		zbuf_alloc_span(bs->zspan, bs->ibuf->x, bs->ibuf->y, R.clipcrop);
-	}				
+	}
 	
 	bs->rectx= bs->ibuf->x;
 	bs->recty= bs->ibuf->y;

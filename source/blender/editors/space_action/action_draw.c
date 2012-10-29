@@ -98,7 +98,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	/* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
 	UI_view2d_sync(NULL, ac->sa, v2d, V2D_LOCK_COPY);
 	
-	/* loop through channels, and set up drawing depending on their type  */	
+	/* loop through channels, and set up drawing depending on their type  */
 	{   /* first pass: just the standard GL-drawing for backdrop + text */
 		y = (float)ACHANNEL_FIRST;
 		
@@ -189,7 +189,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 
 	/* if in NLA there's a strip active, map the view */
 	if (ac->datatype == ANIMCONT_ACTION) {
-		/* adt= ANIM_nla_mapping_get(ac, NULL); */ /* UNUSED */
+		/* adt = ANIM_nla_mapping_get(ac, NULL); */ /* UNUSED */
 		
 		/* start and end of action itself */
 		calc_action_range(ac->data, &act_start, &act_end, 0);
@@ -307,7 +307,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		
 		/*	Increment the step */
 		y -= ACHANNEL_STEP;
-	}		
+	}
 	glDisable(GL_BLEND);
 	
 	/* Draw keyframes 

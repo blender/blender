@@ -31,7 +31,7 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_tex_coord_out[]= {
+static bNodeSocketTemplate sh_node_tex_coord_out[] = {
 	{	SOCK_VECTOR, 0, N_("Generated"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, N_("Normal"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, N_("UV"),				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},

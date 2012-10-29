@@ -220,7 +220,6 @@ void render_view_open(bContext *C, int mx, int my)
 		else {
 			/* Leave it alone so the image editor will just go back from
 			 * full screen to the original tiled setup */
-			;
 		}
 	}
 }
@@ -282,7 +281,7 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent 
 	if (wincur->screen->temp) {
 		wm_window_lower(wincur);
 	}
-	else { 
+	else {
 		wmWindow *win, *winshow;
 		ScrArea *sa = find_area_showing_r_result(C, &winshow);
 		

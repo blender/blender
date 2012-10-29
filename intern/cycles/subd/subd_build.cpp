@@ -333,7 +333,7 @@ void SubdAccBuilder::computeEdgeStencil(SubdFaceRing *ring, GregoryAccStencil *s
 					/* @@ this probably does not provide watertight results!! (1/3 + 1/3 + 1/3 != 1) */
 
 					/* distribute weight to all verts */
-					stencil->get(eid1, vert) += beta * costerm1_b / 3.0f;				
+					stencil->get(eid1, vert) += beta * costerm1_b / 3.0f;
 					stencil->get(eid1, edge->to()) += beta * costerm1_b / 3.0f;
 					stencil->get(eid1, edge->next->to()) += beta * costerm1_b / 3.0f;
 

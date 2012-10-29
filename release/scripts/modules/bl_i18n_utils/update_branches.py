@@ -38,6 +38,8 @@ except:
 
 PY3 = settings.PYTHON3_EXEC
 
+FILE_NAME_POT = settings.FILE_NAME_POT
+
 
 def main():
     import argparse
@@ -71,16 +73,13 @@ def main():
     if t:
         ret = t
 
-    # Regenerate POTFILES.in.
-#    cmd = (PY3, "./update_potinput.py")
-#    t = subprocess.call(cmd)
-#    if t:
-#        ret = t
-
     # Generate a temp pot file.
-    dummy, potfile = tempfile.mkstemp(suffix=".pot",
-                                      prefix="blender_pot_")
-    os.close(dummy)
+    # Back to having a pot file in trunk/po. It's quite useful for translators that want to start
+    # a new translation and not not want to bother generating their own po from scratch!
+#    dummy, potfile = tempfile.mkstemp(suffix=".pot",
+#                                      prefix="blender_pot_")
+#    os.close(dummy)
+    potfile = FILE_NAME_POT
     cmd = [PY3, "./update_pot.py", "-i", msgfile, "-o", potfile]
     if not args.no_checks:
         cmd.append("-c")

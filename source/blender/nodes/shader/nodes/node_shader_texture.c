@@ -32,14 +32,16 @@
 
 #include "DNA_texture_types.h"
 
+#include "IMB_colormanagement.h"
+
 #include "node_shader_util.h"
 
 /* **************** TEXTURE ******************** */
-static bNodeSocketTemplate sh_node_texture_in[]= {
+static bNodeSocketTemplate sh_node_texture_in[] = {
 	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},	/* no limit */
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate sh_node_texture_out[]= {
+static bNodeSocketTemplate sh_node_texture_out[] = {
 	{	SOCK_FLOAT, 0, N_("Value")},
 	{	SOCK_RGBA, 0, N_("Color")},
 	{	SOCK_VECTOR, 0, N_("Normal")},
@@ -52,7 +54,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		TexResult texres;
 		bNodeSocket *sock_vector= node->inputs.first;
-		float vec[3], nor[3]={0.0f, 0.0f, 0.0f};
+		float vec[3], nor[3] = {0.0f, 0.0f, 0.0f};
 		int retval;
 		short which_output = node->custom1;
 		
@@ -76,8 +78,8 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 				float *fp= in[0]->data;
 				float dxt[3], dyt[3];
 				
-				dxt[0]= fp[0]; dxt[1]= dxt[2]= 0.0f;
-				dyt[0]= fp[1]; dyt[1]= dyt[2]= 0.0f;
+				dxt[0] = fp[0]; dxt[1] = dxt[2] = 0.0f;
+				dyt[0] = fp[1]; dyt[1] = dyt[2] = 0.0f;
 				retval= multitex_nodes((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres, thread, which_output, NULL, NULL);
 			}
 			else
@@ -96,9 +98,9 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		
 		/* intensity and color need some handling */
 		if (texres.talpha)
-			out[0]->vec[0]= texres.ta;
+			out[0]->vec[0] = texres.ta;
 		else
-			out[0]->vec[0]= texres.tin;
+			out[0]->vec[0] = texres.tin;
 		
 		if ((retval & TEX_RGB) == 0) {
 			copy_v3_fl(out[1]->vec, out[0]->vec[0]);
@@ -122,8 +124,19 @@ static int gpu_shader_texture(GPUMaterial *mat, bNode *node, GPUNodeStack *in, G
 	Tex *tex = (Tex*)node->id;
 
 	if (tex && tex->type == TEX_IMAGE && tex->ima) {
-		GPUNodeLink *texlink = GPU_image(tex->ima, NULL, FALSE);
-		return GPU_stack_link(mat, "texture_image", in, out, texlink);
+		GPUNodeLink *texlink = GPU_image(tex->ima, &tex->iuser, FALSE);
+		int ret = GPU_stack_link(mat, "texture_image", in, out, texlink);
+
+		if (ret) {
+			ImBuf *ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
+			if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) ==0 &&
+			    GPU_material_do_color_management(mat))
+			{
+				GPU_link(mat, "srgb_to_linearrgb", out[1].link, &out[1].link);
+			}
+		}
+
+		return ret;
 	}
 	else
 		return 0;

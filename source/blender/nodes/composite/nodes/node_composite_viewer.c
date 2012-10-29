@@ -149,7 +149,7 @@ void register_node_type_cmp_viewer(bNodeTreeType *ttype)
 	node_type_exec(&ntype, node_composit_exec_viewer);
 #endif
 
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

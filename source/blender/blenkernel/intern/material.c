@@ -216,7 +216,7 @@ Material *BKE_material_add(const char *name)
 	
 	init_material(ma);
 	
-	return ma;	
+	return ma;
 }
 
 /* XXX keep synced with next function */
@@ -905,7 +905,7 @@ short find_material_index(Object *ob, Material *ma)
 			break;
 	if (a < *totcolp)
 		return a + 1;
-	return 0;	   
+	return 0;
 }
 
 int object_add_material_slot(Object *ob)
@@ -971,7 +971,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 		ma->ambr = ma->amb * amb[0];
 		ma->ambg = ma->amb * amb[1];
 		ma->ambb = ma->amb * amb[2];
-	}	
+	}
 	/* will become or-ed result of all node modes */
 	ma->mode_l = ma->mode;
 	ma->mode_l &= ~MA_SHLESS;
@@ -983,14 +983,16 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	if (ma->nodetree && ma->use_nodes)
 		ntreeShaderGetTexcoMode(ma->nodetree, r_mode, &ma->texco, &ma->mode_l);
 
-    /* local group override */
-    if((ma->shade_flag & MA_GROUP_LOCAL) && ma->id.lib && ma->group && ma->group->id.lib) {
-        Group *group;
+	/* local group override */
+	if ((ma->shade_flag & MA_GROUP_LOCAL) && ma->id.lib && ma->group && ma->group->id.lib) {
+		Group *group;
 
-        for(group= G.main->group.first; group; group= group->id.next)
-            if(!group->id.lib && strcmp(group->id.name, ma->group->id.name) == 0)
-                ma->group = group;
-    }
+		for (group = G.main->group.first; group; group = group->id.next) {
+			if (!group->id.lib && strcmp(group->id.name, ma->group->id.name) == 0) {
+				ma->group = group;
+			}
+		}
+	}
 }
 
 static void init_render_nodetree(bNodeTree *ntree, Material *basemat, int r_mode, float *amb)
@@ -1158,7 +1160,7 @@ void material_drivers_update(Scene *scene, Material *ma, float ctime)
 	
 /* ****************** */
 #if 0 /* UNUSED */
-static char colname_array[125][20]= {
+static char colname_array[125][20] = {
 "Black", "DarkRed", "HalfRed", "Red", "Red",
 "DarkGreen", "DarkOlive", "Brown", "Chocolate", "OrangeRed",
 "HalfGreen", "GreenOlive", "DryOlive", "Goldenrod", "DarkOrange",
@@ -1614,7 +1616,7 @@ static int encode_tfaceflag(MTFace *tf, int convertall)
 	/* calculate the flag */
 	int flag = tf->mode;
 
-	/* options that change the material offline render */	
+	/* options that change the material offline render */
 	if (!convertall) {
 		flag &= ~TF_OBCOL;
 	}
@@ -1638,7 +1640,7 @@ static int encode_tfaceflag(MTFace *tf, int convertall)
 /* set the material options based in the tface flag */
 static void decode_tfaceflag(Material *ma, int flag, int convertall)
 {
-	int alphablend;	
+	int alphablend;
 	GameSettings *game = &ma->game;
 
 	/* flag is shifted in 1 to make 0 != no flag yet (see encode_tfaceflag) */
@@ -1797,13 +1799,13 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 			 * for now store the flag into the material and change light/tex/collision
 			 * store the flag as a negative number */
 			ma->game.flag = -flag;
-			id_us_min((ID *)ma);	
+			id_us_min((ID *)ma);
 		}
 		else printf("Error: Unable to create Material \"%s\" for Mesh \"%s\".", idname + 2, me->id.name + 2);
 	}
 
 	/* set as converted, no need to go bad to this face */
-	tf->mode |= TF_CONVERTED;	
+	tf->mode |= TF_CONVERTED;
 	return mat_nr;
 }
 
@@ -1856,7 +1858,7 @@ static void convert_tfacematerial(Main *main, Material *ma)
 				if (mat_new) {
 					/* rename the material*/
 					strcpy(mat_new->id.name, idname);
-					id_us_min((ID *)mat_new);	
+					id_us_min((ID *)mat_new);
 
 					mat_nr = mesh_addmaterial(me, mat_new);
 					decode_tfaceflag(mat_new, flag, 1);
@@ -2044,7 +2046,7 @@ int do_version_tface(Main *main, int fileload)
 				nowarning = 0;
 			}
 			else
-				convert_tfacematerial(main, ma);			continue;	
+				convert_tfacematerial(main, ma); continue;
 		}
 	
 		/* no conflicts in this material - 90% of cases

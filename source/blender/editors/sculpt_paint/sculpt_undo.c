@@ -99,7 +99,7 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	MVert *mvert;
-	int *index, i, j;	
+	int *index, i, j;
 	
 	if (unode->maxvert) {
 		/* regular mesh restore */
@@ -224,7 +224,7 @@ static int sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode
 	SculptSession *ss = ob->sculpt;
 	MVert *mvert;
 	float *vmask;
-	int *index, i, j;	
+	int *index, i, j;
 	
 	if (unode->maxvert) {
 		/* regular mesh restore */

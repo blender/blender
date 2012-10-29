@@ -1100,12 +1100,12 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	//get dot products
+	/* get dot products */
 	for (x = 0; x < size; x++) {
 		dot += (double)(self->vec[x] * tvec[x]);
 		dot2 += (double)(tvec[x] * tvec[x]);
 	}
-	//projection
+	/* projection */
 	dot /= dot2;
 	for (x = 0; x < size; x++) {
 		vec[x] = (float)dot * tvec[x];
@@ -2709,7 +2709,7 @@ static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *
 	memcpy(vec_cpy, vec->vec, vec_size * sizeof(float));
 
 	r_vec[3] = 1.0f;
-	//muliplication
+	/* muliplication */
 	for (col = 0; col < mat->num_col; col++) {
 		double dot = 0.0;
 		for (row = 0; row < mat->num_row; row++) {
@@ -2733,7 +2733,7 @@ static PyObject *Vector_negate(VectorObject *self)
 
 	negate_vn(self->vec, self->size);
 
-	(void)BaseMath_WriteCallback(self); // already checked for error
+	(void)BaseMath_WriteCallback(self);  /* already checked for error */
 	Py_RETURN_NONE;
 }
 
@@ -2829,10 +2829,10 @@ PyTypeObject vector_Type = {
 	/*** Assigned meaning in release 2.0 ***/
 
 	/* call function for all accessible objects */
-	(traverseproc)BaseMathObject_traverse,  //tp_traverse
+	(traverseproc)BaseMathObject_traverse,  /* tp_traverse */
 
 	/* delete references to contained objects */
-	(inquiry)BaseMathObject_clear,  //tp_clear
+	(inquiry)BaseMathObject_clear,  /* tp_clear */
 
 	/***  Assigned meaning in release 2.1 ***/
 	/*** rich comparisons ***/

@@ -368,7 +368,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "burning_rate", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 4.0);
 	RNA_def_property_ui_range(prop, 0.01, 2.0, 1.0, 5);
-	RNA_def_property_ui_text(prop, "Speed", "Speed of the burning reaction. Use larger values for smaller flame");
+	RNA_def_property_ui_text(prop, "Speed", "Speed of the burning reaction (use larger values for smaller flame)");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 
 	prop = RNA_def_property(srna, "flame_smoke", PROP_FLOAT, PROP_NONE);
@@ -423,7 +423,8 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "adapt_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 0.5);
 	RNA_def_property_ui_range(prop, 0.01, 0.5, 1.0, 5);
-	RNA_def_property_ui_text(prop, "Threshold", "Maximum amount of fluid cell can contain before it's considered empty");
+	RNA_def_property_ui_text(prop, "Threshold",
+	                         "Maximum amount of fluid cell can contain before it is considered empty");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_resetCache");
 }
 
@@ -550,7 +551,7 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	                              "rna_SmokeFlow_density_vgroup_length",
 	                              "rna_SmokeFlow_density_vgroup_set");
 	RNA_def_property_ui_text(prop, "Vertex Group",
-	                         "Name of Vertex Group which determines surface emission rate");
+	                         "Name of vertex group which determines surface emission rate");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
 	prop = RNA_def_property(srna, "use_texture", PROP_BOOLEAN, PROP_NONE);

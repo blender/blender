@@ -1003,7 +1003,7 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 	
 	if (gzfile == (gzFile)Z_NULL) {
 		BKE_reportf(reports, RPT_WARNING, "Unable to open '%s': %s",
-		            filepath, errno ? strerror(errno) : TIP_("Unknown error reading file"));
+		            filepath, errno ? strerror(errno) : TIP_("unknown error reading file"));
 		return NULL;
 	}
 	else {
@@ -1294,6 +1294,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 			if (NULL == newimaadr(fd, ibuf)) {	/* so was restored */
 				BLI_remlink(&ima->ibufs, ibuf);
 				ima->bindcode = 0;
+				ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 				ima->gputexture = NULL;
 			}
 		}
@@ -1630,6 +1631,19 @@ static void IDP_DirectLinkProperty(IDProperty *prop, int switch_endian, FileData
 /* stub function */
 static void IDP_LibLinkProperty(IDProperty *UNUSED(prop), int UNUSED(switch_endian), FileData *UNUSED(fd))
 {
+}
+
+/* ************ READ ID *************** */
+
+static void direct_link_id(FileData *fd, ID *id)
+{
+	/*link direct data of ID properties*/
+	if (id->properties) {
+		id->properties = newdataadr(fd, id->properties);
+		if (id->properties) { /* this case means the data was written incorrectly, it should not happen */
+			IDP_DirectLinkProperty(id->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		}
+	}
 }
 
 /* ************ READ CurveMapping *************** */
@@ -2400,6 +2414,14 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
 		
+		link_list(fd, &node->internal_links);
+		for (link = node->internal_links.first; link; link = link->next) {
+			link->fromnode = newdataadr(fd, link->fromnode);
+			link->fromsock = newdataadr(fd, link->fromsock);
+			link->tonode = newdataadr(fd, link->tonode);
+			link->tosock = newdataadr(fd, link->tosock);
+		}
+		
 		if (node->type == CMP_NODE_MOVIEDISTORTION) {
 			node->storage = newmclipadr(fd, node->storage);
 		}
@@ -2531,8 +2553,13 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 				break;
 			case CONSTRAINT_TYPE_KINEMATIC:
 			{
+				bKinematicConstraint *data = con->data;
+
 				con->lin_error = 0.f;
 				con->rot_error = 0.f;
+
+				/* version patch for runtime flag, was not cleared in some case */
+				data->flag &= ~CONSTRAINT_IK_AUTO;
 			}
 			case CONSTRAINT_TYPE_CHILDOF:
 			{
@@ -2713,8 +2740,10 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 		direct_link_curvemapping(fd, la->curfalloff);
 
 	la->nodetree= newdataadr(fd, la->nodetree);
-	if (la->nodetree)
+	if (la->nodetree) {
+		direct_link_id(fd, &la->nodetree->id);
 		direct_link_nodetree(fd, la->nodetree);
+	}
 	
 	la->preview = direct_link_preview_image(fd, la->preview);
 }
@@ -2880,8 +2909,10 @@ static void direct_link_world(FileData *fd, World *wrld)
 	}
 	
 	wrld->nodetree = newdataadr(fd, wrld->nodetree);
-	if (wrld->nodetree)
+	if (wrld->nodetree) {
+		direct_link_id(fd, &wrld->nodetree->id);
 		direct_link_nodetree(fd, wrld->nodetree);
+	}
 	
 	wrld->preview = direct_link_preview_image(fd, wrld->preview);
 }
@@ -3004,6 +3035,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 	/* if not restored, we keep the binded opengl index */
 	if (ima->ibufs.first == NULL) {
 		ima->bindcode = 0;
+		ima->tpageflag &= ~IMA_GLBIND_IS_DATA;
 		ima->gputexture = NULL;
 	}
 	
@@ -3188,8 +3220,10 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	tex->ot = newdataadr(fd, tex->ot);
 	
 	tex->nodetree = newdataadr(fd, tex->nodetree);
-	if (tex->nodetree)
+	if (tex->nodetree) {
+		direct_link_id(fd, &tex->nodetree->id);
 		direct_link_nodetree(fd, tex->nodetree);
+	}
 	
 	tex->preview = direct_link_preview_image(fd, tex->preview);
 	
@@ -3248,8 +3282,10 @@ static void direct_link_material(FileData *fd, Material *ma)
 	ma->ramp_spec = newdataadr(fd, ma->ramp_spec);
 	
 	ma->nodetree = newdataadr(fd, ma->nodetree);
-	if (ma->nodetree)
+	if (ma->nodetree) {
+		direct_link_id(fd, &ma->nodetree->id);
 		direct_link_nodetree(fd, ma->nodetree);
+	}
 	
 	ma->preview = direct_link_preview_image(fd, ma->preview);
 	ma->gpumaterial.first = ma->gpumaterial.last = NULL;
@@ -3369,13 +3405,12 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			if (part->dupliweights.first && part->dup_group) {
 				int index_ok = 0;
 				/* check for old files without indices (all indexes 0) */
-				dw = part->dupliweights.first;
 				if (part->dupliweights.first == part->dupliweights.last) {
 					/* special case for only one object in the group */
 					index_ok = 1;
 				}
 				else { 
-					for (; dw; dw=dw->next) {
+					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						if (dw->index > 0) {
 							index_ok = 1;
 							break;
@@ -3385,17 +3420,17 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 				
 				if (index_ok) {
 					/* if we have indexes, let's use them */
-					dw = part->dupliweights.first;
-					for (; dw; dw=dw->next) {
+					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
-						dw->ob = go ? go->ob : NULL;
+						dw->ob = go ? newlibadr(fd, part->id.lib, dw->ob) : NULL;
 					}
 				}
 				else {
 					/* otherwise try to get objects from own library (won't work on library linked groups) */
-					for (; dw; dw=dw->next)
+					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
 				}
+			}
 			}
 			else {
 				part->dupliweights.first = part->dupliweights.last = NULL;
@@ -4770,7 +4805,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				base->object = newlibadr_us(fd, sce->id.lib, base->object);
 				
 				if (base->object == NULL) {
-					BKE_reportf_wrap(fd->reports, RPT_WARNING, "LIB ERROR: object lost from scene: '%s'",
+					BKE_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB ERROR: object lost from scene: '%s'"),
 					                 sce->id.name + 2);
 					BLI_remlink(&sce->base, base);
 					if (base == sce->basact) sce->basact = NULL;
@@ -5093,8 +5128,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	}
 	
 	sce->nodetree = newdataadr(fd, sce->nodetree);
-	if (sce->nodetree)
+	if (sce->nodetree) {
+		direct_link_id(fd, &sce->nodetree->id);
 		direct_link_nodetree(fd, sce->nodetree);
+	}
 
 	direct_link_view_settings(fd, &sce->view_settings);
 }
@@ -6008,11 +6045,11 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 		if (newmain->curlib) {
 			if (BLI_path_cmp(newmain->curlib->filepath, lib->filepath) == 0) {
 				BKE_reportf_wrap(fd->reports, RPT_WARNING,
-				                 "Library '%s', '%s' had multiple instances, save and reload!",
+				                 TIP_("Library '%s', '%s' had multiple instances, save and reload!"),
 				                 lib->name, lib->filepath);
 				
 				change_idid_adr(fd->mainlist, fd, lib, newmain->curlib);
-//				change_idid_adr_fd(fd, lib, newmain->curlib);
+/*				change_idid_adr_fd(fd, lib, newmain->curlib); */
 				
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
@@ -6026,8 +6063,10 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
 	cleanup_path(fd->relabase, lib->filepath);
 	
-//	printf("direct_link_library: name %s\n", lib->name);
-//	printf("direct_link_library: filename %s\n", lib->filename);
+#if 0
+	printf("direct_link_library: name %s\n", lib->name);
+	printf("direct_link_library: filename %s\n", lib->filename);
+#endif
 	
 	/* new main */
 	newmain= MEM_callocN(sizeof(Main), "directlink");
@@ -6636,6 +6675,8 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	bhead = read_data_into_oldnewmap(fd, bhead, allocname);
 	
 	/* init pointers direct data */
+	direct_link_id(fd, id);
+	
 	switch (GS(id->name)) {
 		case ID_WM:
 			direct_link_windowmanager(fd, (wmWindowManager *)id);
@@ -6733,14 +6774,6 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		case ID_LS:
 			direct_link_linestyle(fd, (FreestyleLineStyle *)id);
 			break;
-	}
-	
-	/*link direct data of ID properties*/
-	if (id->properties) {
-		id->properties = newdataadr(fd, id->properties);
-		if (id->properties) { /* this case means the data was written incorrectly, it should not happen */
-			IDP_DirectLinkProperty(id->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-		}
 	}
 	
 	oldnewmap_free_unused(fd->datamap);
@@ -7208,6 +7241,20 @@ static void do_version_ntree_dilateerode_264(void *UNUSED(data), ID *UNUSED(id),
 	}
 }
 
+static void do_version_ntree_defocus_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_DEFOCUS) {
+			NodeDefocus *data = node->storage;
+			if (data->maxblur == 0.0f) {
+				data->maxblur = 16.0f;
+			}
+		}
+	}
+}
+
 static void do_version_ntree_mask_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
 {
 	bNode *node;
@@ -7261,6 +7308,21 @@ static void do_version_node_cleanup_dynamic_sockets_264(void *UNUSED(data), ID *
 				sock->flag &= ~SOCK_DYNAMIC;
 			for (sock = node->outputs.first; sock; sock = sock->next)
 				sock->flag &= ~SOCK_DYNAMIC;
+		}
+	}
+}
+
+static void do_version_node_fix_internal_links_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeLink *link, *nextlink;
+	
+	for (node = ntree->nodes.first; node; node = node->next) {
+		for (link = node->internal_links.first; link; link = nextlink) {
+			nextlink = link->next;
+			if (!link->fromnode || !link->fromsock || !link->tonode || !link->tosock) {
+				BLI_remlink(&node->internal_links, link);
+			}
 		}
 	}
 }
@@ -7588,8 +7650,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					prop = BKE_bproperty_object_get(ob, "Text");
 					if (prop) {
 						BKE_reportf_wrap(fd->reports, RPT_WARNING,
-						                 "Game property name conflict in object '%s':\ntext objects reserve the "
-						                 "['Text'] game property to change their content through logic bricks",
+						                 TIP_("Game property name conflict in object '%s':\ntext objects reserve the "
+						                      "['Text'] game property to change their content through logic bricks"),
 						                 ob->id.name + 2);
 					}
 				}
@@ -7978,6 +8040,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 10)) {
 		{
 			Scene *scene;
+			bNodeTreeType *ntreetype;
 			// composite redesign
 			for (scene=main->scene.first; scene; scene=scene->id.next) {
 				if (scene->nodetree) {
@@ -7986,6 +8049,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+			ntreetype = ntreeGetType(NTREE_COMPOSIT);
+	
+			if (ntreetype && ntreetype->foreach_nodetree)
+				ntreetype->foreach_nodetree(main, NULL, do_version_ntree_defocus_264);
+			
 		}
 
 		{
@@ -8332,6 +8400,40 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
 			do_version_node_cleanup_dynamic_sockets_264(NULL, NULL, ntree);
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 5)) {
+		/* set a unwrapping margin and ABF by default */
+		Scene *scene;
+
+		for (scene=main->scene.first; scene; scene=scene->id.next) {
+			if (scene->toolsettings->uvcalc_margin == 0.0f) {
+				scene->toolsettings->uvcalc_margin = 0.001f;
+				scene->toolsettings->unwrapper = 0;
+			}
+		}
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 6)) {
+		/* Fix for bug #32982, internal_links list could get corrupted from r51630 onward.
+		 * Simply remove bad internal_links lists to avoid NULL pointers.
+		 */
+		bNodeTreeType *ntreetype;
+		bNodeTree *ntree;
+		
+		ntreetype = ntreeGetType(NTREE_COMPOSIT);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
+		ntreetype = ntreeGetType(NTREE_SHADER);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
+		ntreetype = ntreeGetType(NTREE_TEXTURE);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_internal_links_264);
+		
+		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+			do_version_node_fix_internal_links_264(NULL, NULL, ntree);
+		
 	}
 
 	/* default values in Freestyle settings */
@@ -9931,8 +10033,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				
 				if (fd == NULL) {
 					/* printf and reports for now... its important users know this */
-					BKE_reportf_wrap(basefd->reports, RPT_INFO,
-					                 "Read library:  '%s', '%s'",
+					BKE_reportf_wrap(basefd->reports, RPT_INFO, TIP_("Read library:  '%s', '%s'"),
 					                 mainptr->curlib->filepath, mainptr->curlib->name);
 					
 					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
@@ -9985,8 +10086,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					else mainptr->curlib->filedata = NULL;
 					
 					if (fd == NULL) {
-						BKE_reportf_wrap(basefd->reports, RPT_WARNING,
-						                 "Cannot find lib '%s'",
+						BKE_reportf_wrap(basefd->reports, RPT_WARNING, TIP_("Cannot find lib '%s'"),
 						                 mainptr->curlib->filepath);
 					}
 				}
@@ -10005,7 +10105,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
 									BKE_reportf_wrap(fd->reports, RPT_WARNING,
-									                 "LIB ERROR: %s:'%s' missing from '%s'",
+									                 TIP_("LIB ERROR: %s: '%s' missing from '%s'"),
 									                 BKE_idcode_to_name(GS(id->name)),
 									                 id->name+2, mainptr->curlib->filepath);
 								}
@@ -10037,7 +10137,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if (id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
 					BKE_reportf_wrap(basefd->reports, RPT_WARNING,
-					                 "LIB ERROR: %s:'%s' unread libblock missing from '%s'",
+					                 TIP_("LIB ERROR: %s: '%s' unread lib block missing from '%s'"),
 					                 BKE_idcode_to_name(GS(id->name)), id->name + 2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
 					

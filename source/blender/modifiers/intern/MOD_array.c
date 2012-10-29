@@ -53,7 +53,8 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_tessmesh.h"
+
+#include "bmesh.h"
 
 #include "depsgraph_private.h"
 
@@ -310,7 +311,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
                                           int UNUSED(initFlags))
 {
 	DerivedMesh *result;
-	BMEditMesh *em = DM_to_editbmesh(dm, NULL, FALSE);
+	BMesh *bm = DM_to_bmesh(dm);
 	BMOperator first_dupe_op, dupe_op, old_dupe_op, weld_op;
 	BMVert **first_geom = NULL;
 	int i, j, indexLen;
@@ -406,14 +407,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	 * cleaner way to do this. One possibility: a "mirror" BMOp would
 	 * certainly help by compressing it all into one top-level BMOp that
 	 * executes a lot of second-level BMOps. */
-	BMO_push(em->bm, NULL);
-	bmesh_edit_begin(em->bm, 0);
+	BMO_push(bm, NULL);
+	bmesh_edit_begin(bm, 0);
 
 	if (amd->flags & MOD_ARR_MERGE)
-		BMO_op_init(em->bm, &weld_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+		BMO_op_init(bm, &weld_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 		            "weld_verts");
 
-	BMO_op_initf(em->bm, &dupe_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
+	BMO_op_initf(bm, &dupe_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "duplicate geom=%avef");
 	first_dupe_op = dupe_op;
 
@@ -424,11 +425,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		BMOIter oiter;
 
 		if (j != 0) {
-			BMO_op_initf(em->bm, &dupe_op,
+			BMO_op_initf(bm, &dupe_op,
 			             (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 			             "duplicate geom=%s", &old_dupe_op, "newout");
 		}
-		BMO_op_exec(em->bm, &dupe_op);
+		BMO_op_exec(bm, &dupe_op);
 
 		geom_slot = BMO_slot_get(&dupe_op, "geom");
 		newout_slot = BMO_slot_get(&dupe_op, "newout");
@@ -443,14 +444,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		}
 
 		/* apply transformation matrix */
-		BMO_ITER (v, &oiter, em->bm, &dupe_op, "newout", BM_VERT) {
+		BMO_ITER (v, &oiter, bm, &dupe_op, "newout", BM_VERT) {
 			mul_m4_v3(offset, v->co);
 		}
 
 		if (amd->flags & MOD_ARR_MERGE) {
 			/*calculate merge mapping*/
 			if (j == 0) {
-				indexMap = find_doubles_index_map(em->bm, &dupe_op,
+				indexMap = find_doubles_index_map(bm, &dupe_op,
 				                                  amd, &indexLen);
 			}
 
@@ -465,11 +466,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 				/* check in case the target vertex (v2) is already marked
 				 * for merging */
-				while ((v3 = BMO_slot_map_ptr_get(em->bm, &weld_op, "targetmap", v2))) {
+				while ((v3 = BMO_slot_map_ptr_get(bm, &weld_op, "targetmap", v2))) {
 					v2 = v3;
 				}
 
-				BMO_slot_map_ptr_insert(em->bm, &weld_op, "targetmap", v, v2);
+				BMO_slot_map_ptr_insert(bm, &weld_op, "targetmap", v, v2);
 			}
 
 			#undef _E
@@ -481,7 +482,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			first_dupe_op = dupe_op;
 		
 		if (j >= 2)
-			BMO_op_finish(em->bm, &old_dupe_op);
+			BMO_op_finish(bm, &old_dupe_op);
 		old_dupe_op = dupe_op;
 	}
 
@@ -494,45 +495,44 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		 * loop) the offset between first and last is different from
 		 * dupe X to dupe X+1. */
 
-		merge_first_last(em->bm, amd, &first_dupe_op, &dupe_op, &weld_op);
+		merge_first_last(bm, amd, &first_dupe_op, &dupe_op, &weld_op);
 	}
 
 	/* start capping */
 	if (start_cap || end_cap) {
-		BM_mesh_elem_hflag_enable_all(em->bm, BM_VERT, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_enable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
 
 		if (start_cap) {
 			float startoffset[4][4];
 			invert_m4_m4(startoffset, offset);
-			bm_merge_dm_transform(em->bm, start_cap, startoffset, amd,
+			bm_merge_dm_transform(bm, start_cap, startoffset, amd,
 			                      &first_dupe_op, "geom", &weld_op);
 		}
 
 		if (end_cap) {
 			float endoffset[4][4];
 			mult_m4_m4m4(endoffset, offset, final_offset);
-			bm_merge_dm_transform(em->bm, end_cap, endoffset, amd,
+			bm_merge_dm_transform(bm, end_cap, endoffset, amd,
 			                      &dupe_op, count == 1 ? "geom" : "newout", &weld_op);
 		}
 	}
 	/* done capping */
 
 	/* free remaining dupe operators */
-	BMO_op_finish(em->bm, &first_dupe_op);
+	BMO_op_finish(bm, &first_dupe_op);
 	if (count > 2)
-		BMO_op_finish(em->bm, &dupe_op);
+		BMO_op_finish(bm, &dupe_op);
 
 	/* run merge operator */
 	if (amd->flags & MOD_ARR_MERGE) {
-		BMO_op_exec(em->bm, &weld_op);
-		BMO_op_finish(em->bm, &weld_op);
+		BMO_op_exec(bm, &weld_op);
+		BMO_op_finish(bm, &weld_op);
 	}
 
 	/* Bump the stack level back down to match the adjustment up above */
-	BMO_pop(em->bm);
+	BMO_pop(bm);
 
-	BLI_assert(em->looptris == NULL);
-	result = CDDM_from_BMEditMesh(em, NULL, FALSE, FALSE);
+	result = CDDM_from_bmesh(bm, FALSE);
 
 	if ((amd->offset_type & MOD_ARR_OFF_OBJ) && (amd->offset_ob)) {
 		/* Update normals in case offset object has rotation. */
@@ -543,8 +543,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		CDDM_calc_normals(result);
 	}
 
-	BMEdit_Free(em);
-	MEM_freeN(em);
+	BM_mesh_free(bm);
+
 	if (indexMap)
 		MEM_freeN(indexMap);
 	if (first_geom)

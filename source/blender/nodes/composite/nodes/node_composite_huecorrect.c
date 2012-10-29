@@ -32,13 +32,13 @@
 
 #include "node_composite_util.h"
 
-static bNodeSocketTemplate cmp_node_huecorrect_in[]= {
+static bNodeSocketTemplate cmp_node_huecorrect_in[] = {
 	{	SOCK_FLOAT, 1, N_("Fac"),	1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Image"),	1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate cmp_node_huecorrect_out[]= {
+static bNodeSocketTemplate cmp_node_huecorrect_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -71,7 +71,7 @@ static void do_huecorrect(bNode *node, float *out, float *in)
 	/* convert back to rgb */
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], out, out+1, out+2);
 	
-	out[3]= in[3];
+	out[3] = in[3];
 }
 
 static void do_huecorrect_fac(bNode *node, float *out, float *in, float *fac)
@@ -101,10 +101,10 @@ static void do_huecorrect_fac(bNode *node, float *out, float *in, float *fac)
 	/* convert back to rgb */
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 	
-	out[0]= mfac*in[0] + *fac*rgb[0];
-	out[1]= mfac*in[1] + *fac*rgb[1];
-	out[2]= mfac*in[2] + *fac*rgb[2];
-	out[3]= in[3];
+	out[0] = mfac*in[0] + *fac*rgb[0];
+	out[1] = mfac*in[1] + *fac*rgb[1];
+	out[2] = mfac*in[2] + *fac*rgb[2];
+	out[3] = in[3];
 }
 
 static void node_composit_exec_huecorrect(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)

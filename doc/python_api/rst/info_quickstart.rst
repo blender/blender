@@ -2,8 +2,8 @@
 Quickstart Introduction
 ***********************
 
-Intro
-=====
+Preface
+=======
 
 This API is generally stable but some areas are still being added and improved.
 
@@ -56,6 +56,22 @@ A quick list of helpful things to know before starting:
 * For more examples, the text menu has a templates section where some example operators can be found.
 
 * To examine further scripts distributed with Blender, see ``~/.blender/scripts/startup/bl_ui`` for the user interface and ``~/.blender/scripts/startup/bl_op`` for operators.
+
+
+Running Scripts
+---------------
+
+The two most common ways to execute python scripts are using the built-in text editor or entering commands in the python console.
+
+Both the **Text Editor** and **Python Console** are space types you can select from the view header.
+
+Rather then manually configuring your spaces for Python development, you may prefer to use the **Scripting** screen, included default with Blender, accessible from the top headers screen selector.
+
+From the text editor you can open ``.py`` files or paste then from the clipboard, then test using **Run Script**.
+
+The Python Console is typically used for typing in snippets and for testing to get immediate feedback, but can also have entire scripts pasted into it.
+
+Scripts can also run from the command line with Blender but to learn Blender/Python this isn't essential.
 
 
 Key Concepts

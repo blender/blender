@@ -1,6 +1,4 @@
-/* 
- * $Id: KX_PythonMain.h 37750 2011-06-27 09:27:56Z sjoerd $
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -31,11 +29,12 @@
  *  \ingroup ketsji
  */
 
-#ifndef __KX_PYTHON_MAIN
-#define __KX_PYTHON_MAIN
+#ifndef __KX_PYTHON_MAIN__
+#define __KX_PYTHON_MAIN__
 
 #include "BKE_main.h"
 #include "DNA_scene_types.h"
 extern "C" char *KX_GetPythonMain(struct Scene* scene);
 extern "C" char *KX_GetPythonCode(struct Main *main, char *python_main);
-#endif
+
+#endif  /* __KX_PYTHON_MAIN__ */

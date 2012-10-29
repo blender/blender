@@ -88,7 +88,7 @@ getNumDisplaySettings(
 
 #else
 	/* We only have one X11 setting at the moment. */
-	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");	
+	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 	numSettings = 1;
 #endif
 
@@ -130,8 +130,8 @@ getDisplaySetting(
 	setting.bpp = DefaultDepth(dpy, DefaultScreen(dpy));
 
 #else
-	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");	
-	GHOST_ASSERT(index < 1, "Requested setting outside of valid range.\n");	
+	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
+	GHOST_ASSERT(index < 1, "Requested setting outside of valid range.\n");
 	
 	Display *x_display = m_system->getXDisplay();
 

@@ -56,11 +56,11 @@ static void rna_KeyingSet_context_refresh(KeyingSet *ks, bContext *C, ReportList
 	if (success != 0) {
 		switch (success) {
 			case MODIFYKEY_INVALID_CONTEXT:
-				BKE_report(reports, RPT_ERROR, "Invalid context for Keying Set");
+				BKE_report(reports, RPT_ERROR, "Invalid context for keying set");
 				break;
 				
 			case MODIFYKEY_MISSING_TYPEINFO:
-				BKE_report(reports, RPT_ERROR, "Incomplete built-in Keying Set, appears to be missing type info");
+				BKE_report(reports, RPT_ERROR, "Incomplete built-in keying set, appears to be missing type info");
 				break;
 		}
 	}

@@ -385,7 +385,7 @@ static void lms_to_xyz(double l, double m, double s, double* x, double *y, doubl
 	*z = s;
 }
 
-void spectrum(double t1, double t2, int N, unsigned char* d)
+void spectrum(double t1, double t2, int N, unsigned char *d)
 {
 	int i,j,dj;
 	double X,Y,Z,R,G,B,L,M,S, Lw, Mw, Sw;

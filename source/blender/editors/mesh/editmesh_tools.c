@@ -255,7 +255,7 @@ static short edbm_extrude_discrete_faces(BMEditMesh *em, wmOperator *op, const c
 		return 0;
 	}
 
-	return 's'; // s is shrink/fatten
+	return 's';  /* s is shrink/fatten */
 }
 
 /* extrudes individual edges */
@@ -275,7 +275,7 @@ static short edbm_extrude_edges_indiv(BMEditMesh *em, wmOperator *op, const char
 		return 0;
 	}
 
-	return 'n'; // n is normal grab
+	return 'n';  /* n is normal grab */
 }
 
 /* extrudes individual vertices */
@@ -295,7 +295,7 @@ static short edbm_extrude_verts_indiv(BMEditMesh *em, wmOperator *op, const char
 		return 0;
 	}
 
-	return 'g'; // g is grab
+	return 'g';  /* g is grab */
 }
 
 static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag, float nor[3])
@@ -1666,6 +1666,88 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis");
 }
 
+static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	int usex = TRUE, usey = TRUE, usez = TRUE, volume_preservation = TRUE;
+	int i, repeat;
+	float lambda;
+	float lambda_border;
+	BMIter fiter;
+	BMFace *f;
+
+	/* Check if select faces are triangles	*/
+	BM_ITER_MESH (f, &fiter, em->bm, BM_FACES_OF_MESH) {
+		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+			if (f->len > 4) {
+				BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
+				return OPERATOR_CANCELLED;
+			}	
+		}
+	}
+
+	/* mirror before smooth */
+	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_verts_mirror_cache_begin(em, TRUE);
+	}
+
+	repeat = RNA_int_get(op->ptr, "repeat");
+	lambda = RNA_float_get(op->ptr, "lambda");
+	lambda_border = RNA_float_get(op->ptr, "lambda_border");
+	usex = RNA_boolean_get(op->ptr, "use_x");
+	usey = RNA_boolean_get(op->ptr, "use_y");
+	usez = RNA_boolean_get(op->ptr, "use_z");
+	volume_preservation = RNA_boolean_get(op->ptr, "volume_preservation");
+	if (!repeat)
+		repeat = 1;
+	
+	for (i = 0; i < repeat; i++) {
+		if (!EDBM_op_callf(em, op,
+		                   "smooth_laplacian_vert verts=%hv lambda=%f lambda_border=%f use_x=%b use_y=%b use_z=%b volume_preservation=%b",
+		                   BM_ELEM_SELECT, lambda, lambda_border, usex, usey, usez, volume_preservation))
+		{
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* apply mirror */
+	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+		EDBM_verts_mirror_apply(em, BM_ELEM_SELECT, 0);
+		EDBM_verts_mirror_cache_end(em);
+	}
+
+	EDBM_update_generic(C, em, TRUE);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_vertices_smooth_laplacian(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Laplacian Smooth Vertex";
+	ot->description = "Laplacian smooth of selected vertices";
+	ot->idname = "MESH_OT_vertices_smooth_laplacian";
+	
+	/* api callbacks */
+	ot->exec = edbm_do_smooth_laplacian_vertex_exec;
+	ot->poll = ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "repeat", 1, 1, 200, 
+					"Number of iterations to smooth the mesh", "", 1, 200);
+	RNA_def_float(ot->srna, "lambda", 0.00005f, 0.0000001f, 1000.0f, 
+					"Lambda factor", "", 0.0000001f, 1000.0f);
+	RNA_def_float(ot->srna, "lambda_border", 0.00005f, 0.0000001f, 1000.0f, 
+					"Lambda factor in border", "", 0.0000001f, 1000.0f);
+	RNA_def_boolean(ot->srna, "use_x", 1, "Smooth X Axis", "Smooth object along	X axis");
+	RNA_def_boolean(ot->srna, "use_y", 1, "Smooth Y Axis", "Smooth object along	Y axis");
+	RNA_def_boolean(ot->srna, "use_z", 1, "Smooth Z Axis", "Smooth object along	Z axis");
+	RNA_def_boolean(ot->srna, "volume_preservation", 1, "Preserve Volume", "Apply volume preservation after smooth");
+}
+
 /********************** Smooth/Solid Operators *************************/
 
 static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
@@ -2712,21 +2794,21 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 				m1 = MAXSLOPE;
 				b1 = x12;
 			}
-			x2max = maxf(x21, x22) + 0.001f; /* prevent missed edges   */
-			x2min = minf(x21, x22) - 0.001f; /* due to round off error */
-			y2max = maxf(y21, y22) + 0.001f;
-			y2min = minf(y21, y22) - 0.001f;
+			x2max = max_ff(x21, x22) + 0.001f; /* prevent missed edges   */
+			x2min = min_ff(x21, x22) - 0.001f; /* due to round off error */
+			y2max = max_ff(y21, y22) + 0.001f;
+			y2min = min_ff(y21, y22) - 0.001f;
 			
 			/* Found an intersect,  calc intersect point */
 			if (m1 == m2) { /* co-incident lines */
 				/* cut at 50% of overlap area */
-				x1max = maxf(x11, x12);
-				x1min = minf(x11, x12);
-				xi = (minf(x2max, x1max) + maxf(x2min, x1min)) / 2.0f;
+				x1max = max_ff(x11, x12);
+				x1min = min_ff(x11, x12);
+				xi = (min_ff(x2max, x1max) + max_ff(x2min, x1min)) / 2.0f;
 				
-				y1max = maxf(y11, y12);
-				y1min = minf(y11, y12);
-				yi = (minf(y2max, y1max) + maxf(y2min, y1min)) / 2.0f;
+				y1max = max_ff(y11, y12);
+				y1min = min_ff(y11, y12);
+				yi = (min_ff(y2max, y1max) + max_ff(y2min, y1min)) / 2.0f;
 			}
 			else if (m2 == MAXSLOPE) {
 				xi = x22;
@@ -2766,7 +2848,7 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 				
 				break;
 			}
-		}	
+		}
 		lastdist = dist;
 	}
 	return perc;
@@ -3412,7 +3494,8 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMesh *bm = em->bm;
-	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+	const int use_dissolve_boundaries = RNA_boolean_get(op->ptr, "use_dissolve_boundaries");
 
 	char dissolve_flag;
 
@@ -3448,8 +3531,8 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 	}
 
 	if (!EDBM_op_callf(em, op,
-	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f",
-	                   dissolve_flag, dissolve_flag, angle_limit))
+	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f use_dissolve_boundaries=%b",
+	                   dissolve_flag, dissolve_flag, angle_limit, use_dissolve_boundaries))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3476,8 +3559,10 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	prop = RNA_def_float_rotation(ot->srna, "angle_limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
-	                              "Max Angle", "Angle Limit in Degrees", 0.0f, DEG2RADF(180.0f));
+	                              "Max Angle", "Angle limit", 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_float_default(prop, DEG2RADF(15.0f));
+	RNA_def_boolean(ot->srna, "use_dissolve_boundaries", 0, "All Boundaries",
+	                "Dissolve all vertices inbetween face boundaries");
 }
 
 static int edbm_split_exec(bContext *C, wmOperator *op)
@@ -5147,7 +5232,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (handleNumInput(&opdata->num_input, event)) {
 			applyNumInput(&opdata->num_input, amounts);
-			amounts[0] = maxf(amounts[0], 0.0f);
+			amounts[0] = max_ff(amounts[0], 0.0f);
 			RNA_float_set(op->ptr, "thickness", amounts[0]);
 			RNA_float_set(op->ptr, "depth", amounts[1]);
 
@@ -5188,7 +5273,7 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if (opdata->modify_depth)
 					RNA_float_set(op->ptr, "depth", amount);
 				else {
-					amount = maxf(amount, 0.0f);
+					amount = max_ff(amount, 0.0f);
 					RNA_float_set(op->ptr, "thickness", amount);
 				}
 
@@ -5386,6 +5471,7 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_replace",         TRUE, "Replace", "Remove original faces");
 }
 
+#ifdef WITH_BULLET
 static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -5479,6 +5565,7 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 
 	join_triangle_props(ot);
 }
+#endif
 
 static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 {

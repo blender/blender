@@ -718,7 +718,7 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
 		                                      IB_rect, FALSE, FALSE, err_out);
 	}
 
-	if (ibuf) {		
+	if (ibuf) {
 		float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
 
 		/* dirty oversampling */

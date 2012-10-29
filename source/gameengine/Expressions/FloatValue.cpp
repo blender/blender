@@ -120,138 +120,134 @@ ret: a new object containing the result of applying operator op to val and
 {
 	CValue *ret;
 	
-	switch(dtype)
-	{
-	case VALUE_INT_TYPE:
+	switch (dtype) {
+		case VALUE_INT_TYPE:
 		{
-			switch (op)
-			{
-			case VALUE_MOD_OPERATOR:
-				ret = new CFloatValue(fmod(((CIntValue *) val)->GetInt(), m_float));
-				break;
-			case VALUE_ADD_OPERATOR:
-				ret = new CFloatValue(((CIntValue *) val)->GetInt() + m_float);
-				break;
-			case VALUE_SUB_OPERATOR:
-				ret = new CFloatValue(((CIntValue *) val)->GetInt() - m_float);
-				break;
-			case VALUE_MUL_OPERATOR:
-				ret = new CFloatValue(((CIntValue *) val)->GetInt() * m_float);
-				break;
-			case VALUE_DIV_OPERATOR:
-				if (m_float == 0)
-					ret = new CErrorValue("Division by zero");
-				else
-					ret = new CFloatValue (((CIntValue *) val)->GetInt() / m_float);
-				break;
-			case VALUE_EQL_OPERATOR:
-				ret = new CBoolValue(((CIntValue *) val)->GetInt() == m_float);
-				break;
-			case VALUE_NEQ_OPERATOR:
-				ret = new CBoolValue(((CIntValue *) val)->GetInt() != m_float);
-				break;
-			case VALUE_GRE_OPERATOR:
-				ret = new CBoolValue(((CIntValue *) val)->GetInt() > m_float);
-				break;
-			case VALUE_LES_OPERATOR:
-				ret = new CBoolValue(((CIntValue *) val)->GetInt() < m_float);
-				break;
-			case VALUE_GEQ_OPERATOR:
-				ret = new CBoolValue(((CIntValue *) val)->GetInt() >= m_float);
-				break;
-			case VALUE_LEQ_OPERATOR:
-				ret = new CBoolValue(((CIntValue *) val)->GetInt() <= m_float);
-				break;
-			default:
-				ret = new CErrorValue("illegal operator. please send a bug report.");
-				break;
+			switch (op) {
+				case VALUE_MOD_OPERATOR:
+					ret = new CFloatValue(fmod(((CIntValue *) val)->GetInt(), m_float));
+					break;
+				case VALUE_ADD_OPERATOR:
+					ret = new CFloatValue(((CIntValue *) val)->GetInt() + m_float);
+					break;
+				case VALUE_SUB_OPERATOR:
+					ret = new CFloatValue(((CIntValue *) val)->GetInt() - m_float);
+					break;
+				case VALUE_MUL_OPERATOR:
+					ret = new CFloatValue(((CIntValue *) val)->GetInt() * m_float);
+					break;
+				case VALUE_DIV_OPERATOR:
+					if (m_float == 0)
+						ret = new CErrorValue("Division by zero");
+					else
+						ret = new CFloatValue (((CIntValue *) val)->GetInt() / m_float);
+					break;
+				case VALUE_EQL_OPERATOR:
+					ret = new CBoolValue(((CIntValue *) val)->GetInt() == m_float);
+					break;
+				case VALUE_NEQ_OPERATOR:
+					ret = new CBoolValue(((CIntValue *) val)->GetInt() != m_float);
+					break;
+				case VALUE_GRE_OPERATOR:
+					ret = new CBoolValue(((CIntValue *) val)->GetInt() > m_float);
+					break;
+				case VALUE_LES_OPERATOR:
+					ret = new CBoolValue(((CIntValue *) val)->GetInt() < m_float);
+					break;
+				case VALUE_GEQ_OPERATOR:
+					ret = new CBoolValue(((CIntValue *) val)->GetInt() >= m_float);
+					break;
+				case VALUE_LEQ_OPERATOR:
+					ret = new CBoolValue(((CIntValue *) val)->GetInt() <= m_float);
+					break;
+				default:
+					ret = new CErrorValue("illegal operator. please send a bug report.");
+					break;
 			}
 			break;
 		}
-	case VALUE_EMPTY_TYPE:
-	case VALUE_FLOAT_TYPE:
+		case VALUE_EMPTY_TYPE:
+		case VALUE_FLOAT_TYPE:
 		{
-			switch (op)
-			{
-			case VALUE_MOD_OPERATOR:
-				ret = new CFloatValue(fmod(((CFloatValue *) val)->GetFloat(), m_float));
-				break;
-			case VALUE_ADD_OPERATOR:
-				ret = new CFloatValue(((CFloatValue *) val)->GetFloat() + m_float);
-				break;
-			case VALUE_SUB_OPERATOR:
-				ret = new CFloatValue(((CFloatValue *) val)->GetFloat() - m_float);
-				break;
-			case VALUE_MUL_OPERATOR:
-				ret = new CFloatValue(((CFloatValue *) val)->GetFloat() * m_float);
-				break;
-			case VALUE_DIV_OPERATOR:
-				if (m_float == 0)
-					ret = new CErrorValue("Division by zero");
-				else
-					ret = new CFloatValue (((CFloatValue *) val)->GetFloat() / m_float);
-				break;
-			case VALUE_EQL_OPERATOR:
-				ret = new CBoolValue(((CFloatValue *) val)->GetFloat() == m_float);
-				break;
-			case VALUE_NEQ_OPERATOR:
-				ret = new CBoolValue(((CFloatValue *) val)->GetFloat() != m_float);
-				break;
-			case VALUE_GRE_OPERATOR:
-				ret = new CBoolValue(((CFloatValue *) val)->GetFloat() > m_float);
-				break;
-			case VALUE_LES_OPERATOR:
-				ret = new CBoolValue(((CFloatValue *) val)->GetFloat() < m_float);
-				break;
-			case VALUE_GEQ_OPERATOR:
-				ret = new CBoolValue(((CFloatValue *) val)->GetFloat() >= m_float);
-				break;
-			case VALUE_LEQ_OPERATOR:
-				ret = new CBoolValue(((CFloatValue *) val)->GetFloat() <= m_float);
-				break;
-			case VALUE_NEG_OPERATOR:
-				ret = new CFloatValue (-m_float);
-				break;
-			case VALUE_POS_OPERATOR:
-				ret = new CFloatValue (m_float);
-				break;
-				
-			default:
-				ret = new CErrorValue("illegal operator. please send a bug report.");
-				break;
+			switch (op) {
+				case VALUE_MOD_OPERATOR:
+					ret = new CFloatValue(fmod(((CFloatValue *) val)->GetFloat(), m_float));
+					break;
+				case VALUE_ADD_OPERATOR:
+					ret = new CFloatValue(((CFloatValue *) val)->GetFloat() + m_float);
+					break;
+				case VALUE_SUB_OPERATOR:
+					ret = new CFloatValue(((CFloatValue *) val)->GetFloat() - m_float);
+					break;
+				case VALUE_MUL_OPERATOR:
+					ret = new CFloatValue(((CFloatValue *) val)->GetFloat() * m_float);
+					break;
+				case VALUE_DIV_OPERATOR:
+					if (m_float == 0)
+						ret = new CErrorValue("Division by zero");
+					else
+						ret = new CFloatValue (((CFloatValue *) val)->GetFloat() / m_float);
+					break;
+				case VALUE_EQL_OPERATOR:
+					ret = new CBoolValue(((CFloatValue *) val)->GetFloat() == m_float);
+					break;
+				case VALUE_NEQ_OPERATOR:
+					ret = new CBoolValue(((CFloatValue *) val)->GetFloat() != m_float);
+					break;
+				case VALUE_GRE_OPERATOR:
+					ret = new CBoolValue(((CFloatValue *) val)->GetFloat() > m_float);
+					break;
+				case VALUE_LES_OPERATOR:
+					ret = new CBoolValue(((CFloatValue *) val)->GetFloat() < m_float);
+					break;
+				case VALUE_GEQ_OPERATOR:
+					ret = new CBoolValue(((CFloatValue *) val)->GetFloat() >= m_float);
+					break;
+				case VALUE_LEQ_OPERATOR:
+					ret = new CBoolValue(((CFloatValue *) val)->GetFloat() <= m_float);
+					break;
+				case VALUE_NEG_OPERATOR:
+					ret = new CFloatValue (-m_float);
+					break;
+				case VALUE_POS_OPERATOR:
+					ret = new CFloatValue (m_float);
+					break;
+
+				default:
+					ret = new CErrorValue("illegal operator. please send a bug report.");
+					break;
 			}
 			break;
 		}
-	case VALUE_STRING_TYPE:
+		case VALUE_STRING_TYPE:
 		{
-			switch(op)
-			{
-			case VALUE_ADD_OPERATOR:
-				ret = new CStringValue(val->GetText() + GetText(),"");
-				break;
-			case VALUE_EQL_OPERATOR:
-			case VALUE_NEQ_OPERATOR:
-			case VALUE_GRE_OPERATOR:
-			case VALUE_LES_OPERATOR:
-			case VALUE_GEQ_OPERATOR:
-			case VALUE_LEQ_OPERATOR:
-				ret = new CErrorValue("[Cannot compare string with float]" + op2str(op) + GetText());
-				break;
-			default:
-				ret =  new CErrorValue("[operator not allowed on strings]" + op2str(op) + GetText());
-				break;
+			switch (op) {
+				case VALUE_ADD_OPERATOR:
+					ret = new CStringValue(val->GetText() + GetText(),"");
+					break;
+				case VALUE_EQL_OPERATOR:
+				case VALUE_NEQ_OPERATOR:
+				case VALUE_GRE_OPERATOR:
+				case VALUE_LES_OPERATOR:
+				case VALUE_GEQ_OPERATOR:
+				case VALUE_LEQ_OPERATOR:
+					ret = new CErrorValue("[Cannot compare string with float]" + op2str(op) + GetText());
+					break;
+				default:
+					ret =  new CErrorValue("[operator not allowed on strings]" + op2str(op) + GetText());
+					break;
 			}
 			break;
 		}
-	case VALUE_BOOL_TYPE:
-		ret =  new CErrorValue("[operator not valid on boolean and float]" + op2str(op) + GetText());
-		break;
-	case VALUE_ERROR_TYPE:
-		ret = new CErrorValue(val->GetText() + op2str(op) + GetText());
-		break;
-	default:
-		ret = new CErrorValue("illegal type. contact your dealer (if any)");
-		break;
+		case VALUE_BOOL_TYPE:
+			ret =  new CErrorValue("[operator not valid on boolean and float]" + op2str(op) + GetText());
+			break;
+		case VALUE_ERROR_TYPE:
+			ret = new CErrorValue(val->GetText() + op2str(op) + GetText());
+			break;
+		default:
+			ret = new CErrorValue("illegal type. contact your dealer (if any)");
+			break;
 	}
 	return ret;
 }

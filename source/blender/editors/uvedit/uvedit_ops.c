@@ -895,19 +895,6 @@ int ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float c
 	return found;
 }
 
-UvElement *ED_uv_element_get(UvElementMap *map, BMFace *efa, BMLoop *l)
-{
-	UvElement *element;
-
-	element = map->vert[BM_elem_index_get(l->v)];
-
-	for (; element; element = element->next)
-		if (element->face == efa)
-			return element;
-
-	return NULL;
-}
-
 /*********************** loop select ***********************/
 
 static void select_edgeloop_uv_vertex_loop_flag(UvMapVert *first)
@@ -1953,7 +1940,7 @@ static int mouse_select(bContext *C, const float co[2], int extend, int loop)
 				}
 
 				flush = 1;
-			}			
+			}
 		}
 	}
 	else {

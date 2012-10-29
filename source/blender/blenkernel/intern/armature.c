@@ -947,7 +947,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 			}
 		}
 
-		if (use_dverts || armature_def_nr >= 0) {
+		if (use_dverts || armature_def_nr != -1) {
 			if (dm)
 				dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
 			else if (dverts && i < target_totvert)
@@ -958,7 +958,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 		else
 			dvert = NULL;
 
-		if (armature_def_nr >= 0 && dvert) {
+		if (armature_def_nr != -1 && dvert) {
 			armature_weight = defvert_find_weight(dvert, armature_def_nr);
 
 			if (invert_vgroup)
@@ -1462,7 +1462,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 	 * so a value inbetween these is needed.
 	 *
 	 * was 0.000001, causes bug [#30438] (which is same as [#27675, imho).
-	 * Reseting it to org value seems to cause no more [#23954]...
+	 * Resetting it to org value seems to cause no more [#23954]...
 	 *
 	 * was 0.0000000000001, caused bug [#31333], smaller values give unstable
 	 * roll when toggling editmode again...
@@ -1593,7 +1593,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 		
 		if (UNLIKELY(pchanp == NULL)) {
 			/* happens for proxies that become invalid because of a missing link
-			 * for regulat cases it shouldn't happen at all */
+			 * for regular cases it shouldn't happen at all */
 		}
 		else if (pchan->bone->layer & layer_protected) {
 			ListBase proxylocal_constraints = {NULL, NULL};

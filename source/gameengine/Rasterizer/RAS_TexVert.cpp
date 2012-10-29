@@ -77,7 +77,7 @@ void RAS_TexVert::SetXYZ(const MT_Point3& xyz)
 
 void RAS_TexVert::SetXYZ(const float *xyz)
 {
-	m_localxyz[0]= xyz[0]; m_localxyz[1]= xyz[1]; m_localxyz[2]= xyz[2];
+	m_localxyz[0] = xyz[0]; m_localxyz[1] = xyz[1]; m_localxyz[2] = xyz[2];
 }
 
 void RAS_TexVert::SetUV(const MT_Point2& uv)

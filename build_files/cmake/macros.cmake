@@ -525,7 +525,7 @@ macro(remove_strict_flags_file
 			# TODO
 		endif()
 
-	endforeach()	
+	endforeach()
 
 	unset(_SOURCE)
 

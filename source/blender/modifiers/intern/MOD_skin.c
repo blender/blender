@@ -77,7 +77,8 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
-#include "BKE_tessmesh.h"
+
+#include "bmesh.h"
 
 #include "MOD_util.h"
 
@@ -143,6 +144,7 @@ static int is_quad_symmetric(BMVert *quad[4],
                              const SkinModifierData *smd)
 {
 	const float threshold = 0.0001f;
+	const float threshold_squared = threshold * threshold;
 	int axis;
 
 	for (axis = 0; axis < 3; axis++) {
@@ -152,16 +154,16 @@ static int is_quad_symmetric(BMVert *quad[4],
 			copy_v3_v3(a, quad[0]->co);
 			a[axis] = -a[axis];
 
-			if (len_v3v3(a, quad[1]->co) < threshold) {
+			if (len_squared_v3v3(a, quad[1]->co) < threshold_squared) {
 				copy_v3_v3(a, quad[2]->co);
 				a[axis] = -a[axis];
-				if (len_v3v3(a, quad[3]->co) < threshold)
+				if (len_squared_v3v3(a, quad[3]->co) < threshold_squared)
 					return 1;
 			}
-			else if (len_v3v3(a, quad[3]->co) < threshold) {
+			else if (len_squared_v3v3(a, quad[3]->co) < threshold_squared) {
 				copy_v3_v3(a, quad[2]->co);
 				a[axis] = -a[axis];
-				if (len_v3v3(a, quad[1]->co) < threshold)
+				if (len_squared_v3v3(a, quad[1]->co) < threshold_squared)
 					return 1;
 			}
 		}
@@ -178,13 +180,13 @@ static int quad_crosses_symmetry_plane(BMVert *quad[4],
 
 	for (axis = 0; axis < 3; axis++) {
 		if (smd->symmetry_axes & (1 << axis)) {
-			int i, left = 0, right = 0;
+			int i, left = FALSE, right = FALSE;
 
 			for (i = 0; i < 4; i++) {
-				if (quad[i]->co[axis] < 0)
-					left = 1;
-				else if (quad[i]->co[axis] > 0)
-					right = 1;
+				if (quad[i]->co[axis] < 0.0f)
+					left = TRUE;
+				else if (quad[i]->co[axis] > 0.0f)
+					right = TRUE;
 
 				if (left && right)
 					return TRUE;
@@ -355,7 +357,7 @@ static void merge_frame_corners(Frame **frames, int totframe)
 				BLI_assert(frames[i] != frames[k]);
 
 				side_b = frame_len(frames[k]);
-				thresh = minf(side_a, side_b) / 2.0f;
+				thresh = min_ff(side_a, side_b) / 2.0f;
 
 				/* Compare with each corner of all other frames... */
 				for (l = 0; l < 4; l++) {
@@ -1422,7 +1424,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 		}
 	}
 
-	while (!BLI_heap_empty(heap)) {
+	while (!BLI_heap_is_empty(heap)) {
 		BMFace *adj[2];
 
 		e = BLI_heap_popmin(heap);
@@ -1544,23 +1546,23 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes,
 		if (sn->flag & CAP_START) {
 			if (sn->flag & ROOT) {
 				add_poly(so,
-						 sn->frames[0].verts[0],
-						 sn->frames[0].verts[1],
-						 sn->frames[0].verts[2],
-						 sn->frames[0].verts[3]);
+				         sn->frames[0].verts[0],
+				         sn->frames[0].verts[1],
+				         sn->frames[0].verts[2],
+				         sn->frames[0].verts[3]);
 			}
 			else {
 				add_poly(so,
-						 sn->frames[0].verts[3],
-						 sn->frames[0].verts[2],
-						 sn->frames[0].verts[1],
-						 sn->frames[0].verts[0]);
+				         sn->frames[0].verts[3],
+				         sn->frames[0].verts[2],
+				         sn->frames[0].verts[1],
+				         sn->frames[0].verts[0]);
 			}
 		}
 		if (sn->flag & CAP_END) {
 			add_poly(so,
 			         sn->frames[1].verts[0],
-			         sn->frames[1].verts[1],
+			        sn->frames[1].verts[1],
 			         sn->frames[1].verts[2],
 			         sn->frames[1].verts[3]);
 		}
@@ -1770,7 +1772,6 @@ static void skin_set_orig_indices(DerivedMesh *dm)
 static DerivedMesh *base_skin(DerivedMesh *origdm,
                               SkinModifierData *smd)
 {
-	BMEditMesh fake_em;
 	DerivedMesh *result;
 	MVertSkin *nodes;
 	BMesh *bm;
@@ -1807,8 +1808,7 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 	if (!bm)
 		return NULL;
 	
-	fake_em.bm = bm;
-	result = CDDM_from_BMEditMesh(&fake_em, NULL, FALSE, FALSE);
+	result = CDDM_from_bmesh(bm, FALSE);
 	BM_mesh_free(bm);
 
 	CDDM_calc_edges(result);
@@ -1861,7 +1861,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static DerivedMesh *applyModifierEM(ModifierData *md,
                                     Object *UNUSED(ob),
-                                    BMEditMesh *UNUSED(em),
+                                    struct BMEditMesh *UNUSED(em),
                                     DerivedMesh *dm)
 {
 	DerivedMesh *result;

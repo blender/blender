@@ -369,7 +369,7 @@ static KS_Path *rna_KeyingSet_paths_add(KeyingSet *keyingset, ReportList *report
 		keyingset->active_path = BLI_countlist(&keyingset->paths);
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be added");
+		BKE_report(reports, RPT_ERROR, "Keying set path could not be added");
 	}
 	
 	/* return added path */
@@ -388,7 +388,7 @@ static void rna_KeyingSet_paths_remove(KeyingSet *keyingset, ReportList *reports
 		keyingset->active_path = 0;
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be removed");
+		BKE_report(reports, RPT_ERROR, "Keying set path could not be removed");
 	}
 }
 
@@ -408,7 +408,7 @@ static void rna_KeyingSet_paths_clear(KeyingSet *keyingset, ReportList *reports)
 		keyingset->active_path = 0;
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set Paths could not be removed");
+		BKE_report(reports, RPT_ERROR, "Keying set paths could not be removed");
 	}
 }
 
@@ -448,7 +448,7 @@ static FCurve *rna_Driver_from_existing(AnimData *adt, bContext *C, FCurve *src_
 {
 	/* verify that we've got a driver to duplicate */
 	if (ELEM(NULL, src_driver, src_driver->driver)) {
-		BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "No valid driver data to create copy of");
+		BKE_report(CTX_wm_reports(C), RPT_ERROR, "No valid driver data to create copy of");
 		return NULL;
 	}
 	else {

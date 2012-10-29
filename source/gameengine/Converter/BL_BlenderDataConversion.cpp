@@ -433,8 +433,7 @@ static void GetRGB(short type,
 	unsigned int &c3)
 {
 	unsigned int color = 0xFFFFFFFFL;
-	switch(type)
-	{
+	switch (type) {
 		case 0:	// vertex colors
 		{
 			if (mmcol) {
@@ -627,7 +626,7 @@ static bool ConvertMaterial(
 								if (!material->cubemap[i]->cube[0])
 									BL_Texture::SplitEnvMap(material->cubemap[i]);
 
-								material->texname[i]= material->cubemap[i]->ima->id.name;
+								material->texname[i] = material->cubemap[i]->ima->id.name;
 								material->mapping[i].mapping |= USEENV;
 							}
 						}
@@ -677,7 +676,7 @@ static bool ConvertMaterial(
 					material->mapping[i].projplane[2] = mttmp->projz;
 					/// --------------------------------
 					
-					switch( mttmp->blendtype ) {
+					switch (mttmp->blendtype) {
 					case MTEX_BLEND:
 						material->blend_mode[i] = BLEND_MIX;
 						break;
@@ -701,7 +700,7 @@ static bool ConvertMaterial(
 
 		// above one tex the switches here
 		// are not used
-		switch(valid_index) {
+		switch (valid_index) {
 		case 0:
 			material->IdMode = DEFAULT_BLENDER;
 			break;
@@ -778,7 +777,7 @@ static bool ConvertMaterial(
 	const char *uvName = "", *uv2Name = "";
 
 	
-	uv2[0]= uv2[1]= uv2[2]= uv2[3]= MT_Point2(0.0f, 0.0f);
+	uv2[0] = uv2[1] = uv2[2] = uv2[3] = MT_Point2(0.0f, 0.0f);
 
 	/* No material, what to do? let's see what is in the UV and set the material accordingly
 	 * light and visible is always on */
@@ -799,7 +798,7 @@ static bool ConvertMaterial(
 		material->alphablend	= GEMAT_SOLID;
 		material->tile		= 0;
 		
-		uv[0]= uv[1]= uv[2]= uv[3]= MT_Point2(0.0f, 0.0f);
+		uv[0] = uv[1] = uv[2] = uv[3] = MT_Point2(0.0f, 0.0f);
 	}
 
 	if (validmat && validface) {
@@ -1390,32 +1389,30 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	}
 		
 	if (me->totvert) {
-		loc[0]= (min[0]+max[0])/2.0f;
-		loc[1]= (min[1]+max[1])/2.0f;
-		loc[2]= (min[2]+max[2])/2.0f;
+		loc[0] = (min[0] + max[0]) / 2.0f;
+		loc[1] = (min[1] + max[1]) / 2.0f;
+		loc[2] = (min[2] + max[2]) / 2.0f;
 		
-		size[0]= (max[0]-min[0])/2.0f;
-		size[1]= (max[1]-min[1])/2.0f;
-		size[2]= (max[2]-min[2])/2.0f;
+		size[0] = (max[0] - min[0]) / 2.0f;
+		size[1] = (max[1] - min[1]) / 2.0f;
+		size[2] = (max[2] - min[2]) / 2.0f;
 	}
 	else {
-		loc[0]= loc[1]= loc[2]= 0.0f;
-		size[0]= size[1]= size[2]= 0.0f;
+		loc[0] = loc[1] = loc[2] = 0.0f;
+		size[0] = size[1] = size[2] = 0.0f;
 	}
 		
-	bb->vec[0][0]=bb->vec[1][0]=bb->vec[2][0]=bb->vec[3][0]= loc[0]-size[0];
-	bb->vec[4][0]=bb->vec[5][0]=bb->vec[6][0]=bb->vec[7][0]= loc[0]+size[0];
+	bb->vec[0][0] = bb->vec[1][0] = bb->vec[2][0] = bb->vec[3][0] = loc[0]-size[0];
+	bb->vec[4][0] = bb->vec[5][0] = bb->vec[6][0] = bb->vec[7][0] = loc[0]+size[0];
 		
-	bb->vec[0][1]=bb->vec[1][1]=bb->vec[4][1]=bb->vec[5][1]= loc[1]-size[1];
-	bb->vec[2][1]=bb->vec[3][1]=bb->vec[6][1]=bb->vec[7][1]= loc[1]+size[1];
+	bb->vec[0][1] = bb->vec[1][1] = bb->vec[4][1] = bb->vec[5][1] = loc[1]-size[1];
+	bb->vec[2][1] = bb->vec[3][1] = bb->vec[6][1] = bb->vec[7][1] = loc[1]+size[1];
 
-	bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= loc[2]-size[2];
-	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= loc[2]+size[2];
+	bb->vec[0][2] = bb->vec[3][2] = bb->vec[4][2] = bb->vec[7][2] = loc[2]-size[2];
+	bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = loc[2]+size[2];
 
 	return sqrt(radius);
 }
-		
-
 
 
 static void my_tex_space_mesh(Mesh *me)
@@ -1438,12 +1435,12 @@ static void my_tex_space_mesh(Mesh *me)
 					minmax_v3v3_v3(min, max, fp);
 				}
 				if (kb->totelem) {
-					loc[0]= (min[0]+max[0])/2.0f; loc[1]= (min[1]+max[1])/2.0f; loc[2]= (min[2]+max[2])/2.0f;
-					size[0]= (max[0]-min[0])/2.0f; size[1]= (max[1]-min[1])/2.0f; size[2]= (max[2]-min[2])/2.0f;
+					loc[0] = (min[0]+max[0])/2.0f; loc[1] = (min[1]+max[1])/2.0f; loc[2] = (min[2]+max[2])/2.0f;
+					size[0] = (max[0]-min[0])/2.0f; size[1] = (max[1]-min[1])/2.0f; size[2] = (max[2]-min[2])/2.0f;
 				}
 				else {
-					loc[0]= loc[1]= loc[2]= 0.0;
-					size[0]= size[1]= size[2]= 0.0;
+					loc[0] = loc[1] = loc[2] = 0.0;
+					size[0] = size[1] = size[2] = 0.0;
 				}
 				
 			}
@@ -1451,19 +1448,19 @@ static void my_tex_space_mesh(Mesh *me)
 
 		copy_v3_v3(me->loc, loc);
 		copy_v3_v3(me->size, size);
-		me->rot[0]= me->rot[1]= me->rot[2]= 0.0f;
+		me->rot[0] = me->rot[1] = me->rot[2] = 0.0f;
 
 		if (me->size[0] == 0.0f) me->size[0] = 1.0f;
-		else if (me->size[0] > 0.0f && me->size[0]< 0.00001f) me->size[0]= 0.00001f;
-		else if (me->size[0] < 0.0f && me->size[0]> -0.00001f) me->size[0]= -0.00001f;
+		else if (me->size[0] > 0.0f && me->size[0]< 0.00001f) me->size[0] = 0.00001f;
+		else if (me->size[0] < 0.0f && me->size[0]> -0.00001f) me->size[0] = -0.00001f;
 
-		if (me->size[1] == 0.0f) me->size[1]= 1.0f;
-		else if (me->size[1] > 0.0f && me->size[1]< 0.00001f) me->size[1]= 0.00001f;
-		else if (me->size[1] < 0.0f && me->size[1]> -0.00001f) me->size[1]= -0.00001f;
+		if (me->size[1] == 0.0f) me->size[1] = 1.0f;
+		else if (me->size[1] > 0.0f && me->size[1]< 0.00001f) me->size[1] = 0.00001f;
+		else if (me->size[1] < 0.0f && me->size[1]> -0.00001f) me->size[1] = -0.00001f;
 
-		if (me->size[2] == 0.0f) me->size[2]= 1.0f;
-		else if (me->size[2] > 0.0f && me->size[2]< 0.00001f) me->size[2]= 0.00001f;
-		else if (me->size[2] < 0.0f && me->size[2]> -0.00001f) me->size[2]= -0.00001f;
+		if (me->size[2] == 0.0f) me->size[2] = 1.0f;
+		else if (me->size[2] > 0.0f && me->size[2]< 0.00001f) me->size[2] = 0.00001f;
+		else if (me->size[2] < 0.0f && me->size[2]> -0.00001f) me->size[2] = -0.00001f;
 	}
 	
 }
@@ -1480,13 +1477,13 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 				float min_r[3], max_r[3];
 				INIT_MINMAX(min_r, max_r);
 				dm->getMinMax(dm, min_r, max_r);
-				size[0]= 0.5f*fabsf(max_r[0] - min_r[0]);
-				size[1]= 0.5f*fabsf(max_r[1] - min_r[1]);
-				size[2]= 0.5f*fabsf(max_r[2] - min_r[2]);
+				size[0] = 0.5f * fabsf(max_r[0] - min_r[0]);
+				size[1] = 0.5f * fabsf(max_r[1] - min_r[1]);
+				size[2] = 0.5f * fabsf(max_r[2] - min_r[2]);
 					
-				center[0]= 0.5f*(max_r[0] + min_r[0]);
-				center[1]= 0.5f*(max_r[1] + min_r[1]);
-				center[2]= 0.5f*(max_r[2] + min_r[2]);
+				center[0] = 0.5f * (max_r[0] + min_r[0]);
+				center[1] = 0.5f * (max_r[1] + min_r[1]);
+				center[2] = 0.5f * (max_r[2] + min_r[2]);
 				return;
 			} else
 			{
@@ -1500,11 +1497,11 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 			break;
 		case OB_CURVE:
 		case OB_SURF:
-			center[0]= center[1]= center[2]= 0.0;
+			center[0] = center[1] = center[2] = 0.0;
 			size[0]  = size[1]=size[2]=0.0;
 			break;
 		case OB_FONT:
-			center[0]= center[1]= center[2]= 0.0;
+			center[0] = center[1] = center[2] = 0.0;
 			size[0]  = size[1]=size[2]=1.0;
 			break;
 		case OB_MBALL:
@@ -1514,15 +1511,15 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 	
 	if (bb==NULL) 
 	{
-		center[0]= center[1]= center[2]= 0.0;
-		size[0] = size[1]=size[2]=1.0;
+		center[0] = center[1] = center[2] = 0.0;
+		size[0] = size[1] = size[2] = 1.0;
 	}
 	else 
 	{
 		size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
 		size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
 		size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
-					
+
 		center[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
 		center[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
 		center[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
@@ -1595,7 +1592,7 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 
 	// get Root Parent of blenderobject
 	struct Object* parent= blenderobject->parent;
-	while(parent && parent->parent) {
+	while (parent && parent->parent) {
 		parent= parent->parent;
 	}
 
@@ -1929,8 +1926,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	KX_GameObject *gameobj = NULL;
 	Scene *blenderscene = kxscene->GetBlenderScene();
 	
-	switch(ob->type)
-	{
+	switch (ob->type) {
 	case OB_LAMP:
 	{
 		KX_LightObject* gamelight = gamelight_from_blamp(ob, static_cast<Lamp*>(ob->data), ob->lay, kxscene, rendertools, converter);

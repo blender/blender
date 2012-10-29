@@ -102,7 +102,7 @@ static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
 		col[1] = ((float)rect[1])*(1.0f/255.0f);
 		col[2] = ((float)rect[2])*(1.0f/255.0f);
 		col[3] = ((float)rect[3])*(1.0f/255.0f);
-	}	
+	}
 }
 
 int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResult *texres)
@@ -209,7 +209,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	if (tex->imaflag & TEX_USEALPHA) {
 		if ((tex->imaflag & TEX_CALCALPHA) == 0) {
 			texres->talpha = TRUE;
-		} 
+		}
 	}
 
 	/* interpolate */
@@ -693,7 +693,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
 		}
 	}
 	else {
-		char* rect = (char*)(ibuf->rect + x + y*ibuf->x);
+		char *rect = (char *)(ibuf->rect + x + y*ibuf->x);
 		col[0] = rect[0]*(1.f/255.f);
 		col[1] = rect[1]*(1.f/255.f);
 		col[2] = rect[2]*(1.f/255.f);
@@ -989,7 +989,7 @@ static void alpha_clip_aniso(ImBuf *ibuf, float minx, float miny, float maxx, fl
 
 		alphaclip  = clipx_rctf(&rf, 0.0, (float)(ibuf->x));
 		alphaclip *= clipy_rctf(&rf, 0.0, (float)(ibuf->y));
-		alphaclip  = maxf(alphaclip, 0.0f);
+		alphaclip  = max_ff(alphaclip, 0.0f);
 
 		if (alphaclip!=1.0f) {
 			/* premul it all */
@@ -1011,7 +1011,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 				if (ibuf->userflags & IB_MIPMAP_INVALID) {
 					IMB_remakemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
 					ibuf->userflags &= ~IB_MIPMAP_INVALID;
-				}				
+				}
 				BLI_unlock_thread(LOCK_IMAGE);
 			}
 			if (ibuf->mipmap[0] == NULL) {
@@ -1247,8 +1247,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			float fProbes;
 			a *= ff;
 			b *= ff;
-			a = maxf(a, 1.0f);
-			b = maxf(b, 1.0f);
+			a = max_ff(a, 1.0f);
+			b = max_ff(b, 1.0f);
 			fProbes = 2.f*(a / b) - 1.f;
 			AFD.iProbes = (int)floorf(fProbes + 0.5f);
 			AFD.iProbes = MIN2(AFD.iProbes, tex->afmax);
@@ -1264,7 +1264,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			if (ecc > (float)tex->afmax) b = a / (float)tex->afmax;
 			b *= ff;
 		}
-		maxd = maxf(b, 1e-8f);
+		maxd = max_ff(b, 1e-8f);
 		levf = ((float)M_LOG2E) * logf(maxd);
 
 		curmap = 0;
@@ -1349,8 +1349,8 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			imp2radangle(A, B, C, F, &a, &b, &th, &ecc);
 			a *= ff;
 			b *= ff;
-			a = maxf(a, 1.0f);
-			b = maxf(b, 1.0f);
+			a = max_ff(a, 1.0f);
+			b = max_ff(b, 1.0f);
 			fProbes = 2.f*(a / b) - 1.f;
 			/* no limit to number of Probes here */
 			AFD.iProbes = (int)floorf(fProbes + 0.5f);
@@ -1645,7 +1645,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		
 		dx = minx;
 		dy = miny;
-		maxd = maxf(dx, dy);
+		maxd = max_ff(dx, dy);
 		if (maxd > 0.5f) maxd = 0.5f;
 
 		pixsize = 1.0f / (float) MIN2(ibuf->x, ibuf->y);

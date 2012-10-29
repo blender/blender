@@ -14,6 +14,8 @@ Apply patches/make_id.patch to prevent duplicated define of MAKE_ID macro in ble
 side and bullet side.
 Sergey
 
-Apply patches/ghost_character.path to prevent characters from colliding with ghost objects.
+Apply patches/ghost_character.patch to prevent characters from colliding with ghost objects.
 Mitchell
 
+Apply patches/convex_hull.patch to add access to the convex hull
+operation, used in the BMesh convex hull operator.

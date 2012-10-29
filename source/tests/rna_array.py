@@ -98,14 +98,14 @@ class TestArray(unittest.TestCase):
         for arr, rand_func in zip((test.farr, test.iarr, test.barr), (rand_float, rand_int, rand_bool)):
             for i in range(len(arr)):
                 val= rand_func()
-                arr[i]= val
+                arr[i] = val
                 
                 self.assertEqual(arr[i], val)
 
         # float prop should accept also int
         for i in range(len(test.farr)):
             val= rand_int()
-            test.farr[i]= val
+            test.farr[i] = val
             self.assertEqual(test.farr[i], float(val))
 
         # 
@@ -115,7 +115,7 @@ class TestArray(unittest.TestCase):
             arr[4] = 1.0
 
         def assign_bad_type(arr):
-            arr[1]= "123"
+            arr[1] = "123"
             
         for arr in [test.farr, test.iarr, test.barr]:
             self.assertRaises(IndexError, assign_bad_index, arr)
@@ -183,7 +183,7 @@ class TestMArray(unittest.TestCase):
             rval= make_random_2d_array((4, 5), func)
 
             for i in range(3):
-                getattr(test, arr)[i]= rval
+                getattr(test, arr)[i] = rval
                 self.assertEqual(prop_to_list(getattr(test, arr)[i]), rval)
 
         # arr[i][j] = x
@@ -194,13 +194,13 @@ class TestMArray(unittest.TestCase):
 
             for i in range(3):
                 for j in range(4):
-                    arr[i][j]= rval
+                    arr[i][j] = rval
                     self.assertEqual(prop_to_list(arr[i][j]), rval)
 
 
     def test_assign_item_fail(self):
         def assign_wrong_size(arr, i, rval):
-            getattr(test, arr)[i]= rval
+            getattr(test, arr)[i] = rval
 
         # assign wrong size at level 2
         for arr, func in zip(("fmarr", "imarr", "bmarr"), (rand_float, rand_int, rand_bool)):

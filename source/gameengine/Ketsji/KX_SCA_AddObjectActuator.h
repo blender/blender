@@ -50,7 +50,7 @@ class KX_SCA_AddObjectActuator : public SCA_IActuator
 	/// Time field: lifetime of the new object
 	int	m_timeProp;
 
-	/// Original object reference (object to replicate)  	
+	/// Original object reference (object to replicate)
 	SCA_IObject*	m_OriginalObject;
 
 	/// Object will be added to the following scene

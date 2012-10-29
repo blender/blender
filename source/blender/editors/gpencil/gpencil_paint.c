@@ -536,7 +536,7 @@ static void gp_stroke_simplify(tGPsdata *p)
 			
 			j += 2;
 		}
-	} 
+	}
 	
 	/* free old buffer */
 	MEM_freeN(old_points);
@@ -860,7 +860,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			}
 		}
 	}
-	else {	
+	else {
 		/* loop over the points in the stroke, checking for intersections 
 		 *  - an intersection will require the stroke to be split
 		 */
@@ -959,8 +959,8 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 		/* supported views first */
 		case SPACE_VIEW3D:
 		{
-			// View3D *v3d= curarea->spacedata.first;
-			// RegionView3D *rv3d= ar->regiondata;
+			// View3D *v3d = curarea->spacedata.first;
+			// RegionView3D *rv3d = ar->regiondata;
 			
 			/* set current area 
 			 *	- must verify that region data is 3D-view (and not something else)
@@ -979,7 +979,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 
 		case SPACE_NODE:
 		{
-			//SpaceNode *snode= curarea->spacedata.first;
+			//SpaceNode *snode = curarea->spacedata.first;
 			
 			/* set current area */
 			p->sa = curarea;
@@ -1007,7 +1007,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 		break;
 		case SPACE_IMAGE:
 		{
-			//SpaceImage *sima= curarea->spacedata.first;
+			//SpaceImage *sima = curarea->spacedata.first;
 			
 			/* set the current area */
 			p->sa = curarea;
@@ -1210,7 +1210,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 					/* make strokes be drawn in screen space */
 					p->gpd->sbuffer_sflag &= ~GP_STROKE_2DSPACE;
 					p->gpd->flag &= ~GP_DATA_VIEWALIGN;
-				}	
+				}
 				else
 					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
@@ -1342,7 +1342,7 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 		gp_session_cleanup(p);
 		
 		/* finally, free the temp data */
-		MEM_freeN(p);	
+		MEM_freeN(p);
 	}
 	
 	op->customdata = NULL;
@@ -1790,7 +1790,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if (p->status == GP_STATUS_ERROR) {
 				estate = OPERATOR_CANCELLED;
 			}
-		} 
+		}
 		else {
 			p->status = GP_STATUS_IDLING;
 		}

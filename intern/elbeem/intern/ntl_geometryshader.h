@@ -46,7 +46,7 @@ class ntlGeometryShader :
 		/*! notify object that dump is in progress (e.g. for field dump) */
 		virtual void notifyShaderOfDump(int dumptype, int frameNr,char *frameNrStr,string outfilename) = 0;
 
-		/*! get ouput filename, returns global render outfile if empty */
+		/*! get output filename, returns global render outfile if empty */
 		string getOutFilename( void ) { return mOutFilename; }
 
 	protected:

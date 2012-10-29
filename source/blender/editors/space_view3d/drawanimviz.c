@@ -84,7 +84,7 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
 void draw_motion_path_instance(Scene *scene, 
                                Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)
 {
-	//RegionView3D *rv3d= ar->regiondata;
+	//RegionView3D *rv3d = ar->regiondata;
 	bMotionPathVert *mpv, *mpv_start;
 	int i, stepsize = avs->path_step;
 	int sfra, efra, sind, len;
@@ -148,11 +148,11 @@ void draw_motion_path_instance(Scene *scene,
 		if ((sfra + i) < CFRA) {
 			/* black - before cfra */
 			if (sel) {
-				// intensity= 0.5f;
+				// intensity = 0.5f;
 				intensity = SET_INTENSITY(sfra, i, CFRA, 0.25f, 0.75f);
 			}
 			else {
-				//intensity= 0.8f;
+				//intensity = 0.8f;
 				intensity = SET_INTENSITY(sfra, i, CFRA, 0.68f, 0.92f);
 			}
 			UI_ThemeColorBlend(TH_WIRE, TH_BACK, intensity);
@@ -178,7 +178,7 @@ void draw_motion_path_instance(Scene *scene,
 				intensity = 0.99f;
 			}
 			UI_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
-		}	
+		}
 		
 		/* draw a vertex with this color */
 		glVertex3fv(mpv->co);

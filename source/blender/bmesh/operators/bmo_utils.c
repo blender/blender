@@ -1295,7 +1295,7 @@ void bmo_shortest_path_exec(BMesh *bm, BMOperator *op)
 		vert_list[i].hn = BLI_heap_insert(h, vert_list[i].weight, vert_list[i].v);
 	}
 
-	while (!BLI_heap_empty(h)) {
+	while (!BLI_heap_is_empty(h)) {
 		BMEdge *e;
 		BMIter e_i;
 		float v_weight;

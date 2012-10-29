@@ -425,7 +425,7 @@ typedef struct wmEvent {
 	char ascii;			/* from ghost, fallback if utf8 isn't set */
 	char pad;
 
-	/* previous state */
+	/* previous state, used for double click and the 'click' */
 	short prevtype;
 	short prevval;
 	int prevx, prevy;
@@ -436,7 +436,8 @@ typedef struct wmEvent {
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;				/* rawkey modifier */
 	
-	short pad1;
+	/* set in case a KM_PRESS went by unhandled */
+	short check_click;
 	
 	/* keymap item, set by handler (weak?) */
 	const char *keymap_idname;

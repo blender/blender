@@ -410,6 +410,15 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 }
 #endif
 
+#ifdef WITH_INTERNATIONAL
+static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+                                                        PropertyRNA *UNUSED(prop), int *free)
+{
+	*free = 0; /* These items are handled by BLF code! */
+	return BLF_RNA_lang_enum_properties();
+}
+#endif
+
 #else
 
 static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
@@ -481,7 +490,7 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 	
 	/* (not used yet) */
 #if 0
-	prop= RNA_def_property(srna, "panelzoom", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "panelzoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.5, 2.0);
 	RNA_def_property_ui_text(prop, "Panel Zoom", "Default zoom level for panel areas");
 #endif
@@ -2759,7 +2768,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_auto_keying_warning", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_NOWARNING);
 	RNA_def_property_ui_text(prop, "Show Auto Keying Warning",
-	                         "Show warning indicators when transforming Object and Bones if Auto Keying is enabled");
+	                         "Show warning indicators when transforming objects and bones if auto keying is enabled");
 	
 	/* keyframing settings */
 	prop = RNA_def_property(srna, "use_keyframe_insert_needed", PROP_BOOLEAN, PROP_NONE);
@@ -2993,6 +3002,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
+#if 0
 	/* hardcoded here, could become dynamic somehow */
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
@@ -3042,6 +3052,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{30, "TURKISH", 0, "Turkish (Türkçe)", "tr_TR"},
 		{ 0, NULL, 0, NULL, NULL}
 	};
+#else
+	static EnumPropertyItem language_items[] = {
+		{ 0, "DEFAULT", 0, "Default (Default)", ""},
+		{ 0, NULL, 0, NULL, NULL}
+	};
+#endif
 
 #ifdef WITH_CYCLES
 	static EnumPropertyItem compute_device_items[] = {
@@ -3084,6 +3100,9 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, language_items);
+#ifdef WITH_INTERNATIONAL
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_lang_enum_properties_itemf");
+#endif
 	RNA_def_property_ui_text(prop, "Language", "Language used for translation");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
@@ -3520,6 +3539,10 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "hide_recent_locations", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_RECENT);
 	RNA_def_property_ui_text(prop, "Hide Recent Locations", "Hide recent locations in the file selector");
+
+	prop = RNA_def_property(srna, "hide_system_bookmarks", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_SYSTEM_BOOKMARKS);
+	RNA_def_property_ui_text(prop, "Hide System Bookmarks", "Hide system bookmarks in the file selector");
 
 	prop = RNA_def_property(srna, "show_thumbnails", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_THUMBNAILS);

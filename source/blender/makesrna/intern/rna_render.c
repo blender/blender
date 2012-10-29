@@ -50,12 +50,12 @@
 
 /* RenderEngine Callbacks */
 
-void engine_tag_redraw(RenderEngine *engine)
+static void engine_tag_redraw(RenderEngine *engine)
 {
 	engine->flag |= RE_ENGINE_DO_DRAW;
 }
 
-void engine_tag_update(RenderEngine *engine)
+static void engine_tag_update(RenderEngine *engine)
 {
 	engine->flag |= RE_ENGINE_DO_UPDATE;
 }

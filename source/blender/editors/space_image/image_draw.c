@@ -578,7 +578,7 @@ void draw_image_grease_pencil(bContext *C, short onlyv2d)
 	}
 	else {
 		/* assume that UI_view2d_restore(C) has been called... */
-		//SpaceImage *sima= (SpaceImage *)CTX_wm_space_data(C);
+		//SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
 		
 		/* draw grease-pencil ('screen' strokes) */
 		draw_gpencil_view2d(C, 0);
@@ -791,7 +791,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 			xoffs = scene->r.disprect.xmin;
 			yoffs = scene->r.disprect.ymin;
 			glColor3ub(0, 0, 0);
-			calc_image_view(sima, 'f');	
+			calc_image_view(sima, 'f');
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			glRectf(0.0f, 0.0f, 1.0f, 1.0f);
 			glLoadIdentity();

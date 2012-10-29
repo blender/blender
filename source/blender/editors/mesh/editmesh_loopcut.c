@@ -419,7 +419,7 @@ static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	float dist = 75.0f;
 
 	if (modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
-		BKE_report(op->reports, RPT_WARNING, "Loop cut doesn't work well on deformed edit mesh display");
+		BKE_report(op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
 	
 	view3d_operator_needs_opengl(C);
 
@@ -505,7 +505,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if (event->val == KM_RELEASE)
 				break;
 
-			cuts = MAX2(cuts - 1, 0);
+			cuts = max_ii(cuts - 1, 0);
 			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);
 			show_cuts = TRUE;
@@ -527,7 +527,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			ED_region_tag_redraw(lcd->ar);
 			break;
-		}			
+		}
 	}
 	
 	/* using the keyboard to input the number of cuts */

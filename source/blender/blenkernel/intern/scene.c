@@ -332,7 +332,7 @@ void BKE_scene_free(Scene *sce)
 		BKE_paint_free(&sce->toolsettings->imapaint.paint);
 
 		MEM_freeN(sce->toolsettings);
-		sce->toolsettings = NULL;	
+		sce->toolsettings = NULL;
 	}
 	
 	if (sce->theDag) {
@@ -443,7 +443,7 @@ Scene *BKE_scene_add(const char *name)
 	sce->toolsettings->cornertype = 1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;
-	sce->toolsettings->turn = 1; 				
+	sce->toolsettings->turn = 1;
 	sce->toolsettings->extr_offs = 1; 
 	sce->toolsettings->doublimit = 0.001;
 	sce->toolsettings->segments = 32;
@@ -965,7 +965,7 @@ float BKE_scene_frame_get_from_ctime(Scene *scene, const float frame)
 {
 	float ctime = frame;
 	ctime += scene->r.subframe;
-	ctime *= scene->r.framelen;	
+	ctime *= scene->r.framelen;
 	
 	return ctime;
 }
@@ -1049,7 +1049,7 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);
 
-	scene->physics_settings.quick_cache_step = 0;
+	/* removed calls to quick_cache, see pointcache.c */
 	
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
 	 * when trying to find materials with drivers that need evaluating [#32017] 
@@ -1072,10 +1072,6 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 	
-	/* quick point cache updates */
-	if (scene->physics_settings.quick_cache_step)
-		BKE_ptcache_quick_cache_all(bmain, scene);
-
 	/* notify editors and python about recalc */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	DAG_ids_check_recalc(bmain, scene, FALSE);
@@ -1123,6 +1119,11 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 */
 	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
+
+	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
+	 * when trying to find materials with drivers that need evaluating [#32017] 
+	 */
+	tag_main_idcode(bmain, ID_MA, FALSE);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);
@@ -1201,7 +1202,7 @@ int BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *s
 int get_render_subsurf_level(RenderData *r, int lvl)
 {
 	if (r->mode & R_SIMPLIFY)
-		return MIN2(r->simplify_subsurf, lvl);
+		return min_ii(r->simplify_subsurf, lvl);
 	else
 		return lvl;
 }
@@ -1217,7 +1218,7 @@ int get_render_child_particle_number(RenderData *r, int num)
 int get_render_shadow_samples(RenderData *r, int samples)
 {
 	if ((r->mode & R_SIMPLIFY) && samples > 0)
-		return MIN2(r->simplify_shadowsamples, samples);
+		return min_ii(r->simplify_shadowsamples, samples);
 	else
 		return samples;
 }

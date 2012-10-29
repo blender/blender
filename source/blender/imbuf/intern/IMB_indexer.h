@@ -72,7 +72,7 @@ typedef struct anim_index_builder {
 	char name[FILE_MAX];
 	char temp_name[FILE_MAX];
 
-	void * private_data;
+	void *private_data;
 
 	void (*delete_priv_data)(struct anim_index_builder * idx);
 	void (*proc_frame)(struct anim_index_builder * idx,

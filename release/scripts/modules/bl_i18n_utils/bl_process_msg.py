@@ -33,8 +33,7 @@ from bl_i18n_utils import settings
 
 SOURCE_DIR = settings.SOURCE_DIR
 
-CUSTOM_PY_UI_FILES = [os.path.abspath(os.path.join(SOURCE_DIR, p))
-                      for p in settings.CUSTOM_PY_UI_FILES]
+CUSTOM_PY_UI_FILES = [os.path.abspath(os.path.join(SOURCE_DIR, p)) for p in settings.CUSTOM_PY_UI_FILES]
 FILE_NAME_MESSAGES = settings.FILE_NAME_MESSAGES
 COMMENT_PREFIX = settings.COMMENT_PREFIX
 CONTEXT_PREFIX = settings.CONTEXT_PREFIX
@@ -64,8 +63,7 @@ def check(check_ctxt, messages, key, msgsrc):
         if key in py_in_rna[1]:
             py_in_rna[0].add(key)
     if not_capitalized is not None:
-        if(key[1] not in NC_ALLOWED and key[1][0].isalpha() and
-           not key[1][0].isupper()):
+        if(key[1] not in NC_ALLOWED and key[1][0].isalpha() and not key[1][0].isupper()):
             not_capitalized.add(key)
     if end_point is not None:
         if key[1].strip().endswith('.'):
@@ -81,11 +79,9 @@ def dump_messages_rna(messages, check_ctxt):
     def classBlackList():
         blacklist_rna_class = [
                                # core classes
-                               "Context", "Event", "Function", "UILayout",
-                               "BlendData",
+                               "Context", "Event", "Function", "UILayout", "BlendData",
                                # registerable classes
-                               "Panel", "Menu", "Header", "RenderEngine",
-                               "Operator", "OperatorMacro", "Macro",
+                               "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro",
                                "KeyingSetInfo", "UnknownType",
                                # window classes
                                "Window",
@@ -97,28 +93,22 @@ def dump_messages_rna(messages, check_ctxt):
         # extend with all internal operators
         # note that this uses internal api introspection functions
         # all possible operator names
-        op_ids = set(cls.bl_rna.identifier for cls in
-                     bpy.types.OperatorProperties.__subclasses__()) | \
-                 set(cls.bl_rna.identifier for cls in
-                     bpy.types.Operator.__subclasses__()) | \
-                 set(cls.bl_rna.identifier for cls in
-                     bpy.types.OperatorMacro.__subclasses__())
+        op_ids = set(cls.bl_rna.identifier for cls in bpy.types.OperatorProperties.__subclasses__()) | \
+                 set(cls.bl_rna.identifier for cls in bpy.types.Operator.__subclasses__()) | \
+                 set(cls.bl_rna.identifier for cls in bpy.types.OperatorMacro.__subclasses__())
 
         get_instance = __import__("_bpy").ops.get_instance
         path_resolve = type(bpy.context).__base__.path_resolve
         for idname in op_ids:
             op = get_instance(idname)
-            # XXX Do not skip INTERNAL's anymore, some of those ops
-            #     show up in UI now!
+            # XXX Do not skip INTERNAL's anymore, some of those ops show up in UI now!
 #            if 'INTERNAL' in path_resolve(op, "bl_options"):
 #                blacklist_rna_class.append(idname)
 
         # ---------------------------------------------------------------------
         # Collect builtin classes we don't need to doc
         blacklist_rna_class.append("Property")
-        blacklist_rna_class.extend(
-                [cls.__name__ for cls in
-                 bpy.types.Property.__subclasses__()])
+        blacklist_rna_class.extend([cls.__name__ for cls in bpy.types.Property.__subclasses__()])
 
         # ---------------------------------------------------------------------
         # Collect classes which are attached to collections, these are api
@@ -252,6 +242,12 @@ def dump_messages_rna(messages, check_ctxt):
         cls_list.sort(key=full_class_id)
         processed = 0
         for cls in cls_list:
+            # XXX translation_context of Operator sub-classes are not "good"!
+            #     So ignore those Operator sub-classes (anyway, will get the same from OperatorProperties
+            #     sub-classes!)...
+            if issubclass(cls, bpy.types.Operator):
+                continue
+
             walkClass(cls)
 #            classes.add(cls)
             # Recursively process subclasses.
@@ -389,6 +385,7 @@ def dump_messages_pytext(messages, check_ctxt):
 
 def dump_messages(do_messages, do_checks):
     import collections
+    import re
 
     def enable_addons():
         """For now, enable all official addons, before extracting msgids."""
@@ -419,21 +416,8 @@ def dump_messages(do_messages, do_checks):
                 getattr(cat, op).get_rna()
 
     # check for strings like ": %d"
-    ignore = ("%d", "%f", "%s", "%r",  # string formatting
-              "*", ".", "(", ")", "-", "/", "\\", "+", ":", "#", "%"
-              "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-              "x",  # used on its own eg: 100x200
-              "X", "Y", "Z", "W",  # used alone. no need to include
-              )
-
-    def filter_message(msg):
-        msg_tmp = msg
-        for ign in ignore:
-            msg_tmp = msg_tmp.replace(ign, "")
-        if not msg_tmp.strip():
-            return True
-        # we could filter out different strings here
-        return False
+    ignore_reg = re.compile(r"^(?:[-*.()/\\+:%xWXYZ0-9]|%d|%f|%s|%r|\s)*$")
+    filter_message = ignore_reg.match
 
     messages = getattr(collections, 'OrderedDict', dict)()
 
@@ -503,7 +487,7 @@ def dump_messages(do_messages, do_checks):
                 message_file.write(key.replace("\n", "") + "\n")
                 num_written += 1
 
-        print("Written {} messages to: {} ({} were filtered out)." \
+        print("Written {} messages to: {} ({} were filtered out)."
               "".format(num_written, FILE_NAME_MESSAGES, num_filtered))
 
 
@@ -516,17 +500,13 @@ def main():
 
     import sys
     back_argv = sys.argv
+    # Get rid of Blender args!
     sys.argv = sys.argv[sys.argv.index("--") + 1:]
 
     import argparse
-    parser = argparse.ArgumentParser(description="Process UI messages " \
-                                                 "from inside Blender.")
-    parser.add_argument('-c', '--no_checks', default=True,
-                        action="store_false",
-                        help="No checks over UI messages.")
-    parser.add_argument('-m', '--no_messages', default=True,
-                        action="store_false",
-                        help="No export of UI messages.")
+    parser = argparse.ArgumentParser(description="Process UI messages from inside Blender.")
+    parser.add_argument('-c', '--no_checks', default=True, action="store_false", help="No checks over UI messages.")
+    parser.add_argument('-m', '--no_messages', default=True, action="store_false", help="No export of UI messages.")
     parser.add_argument('-o', '--output', help="Output messages file path.")
     args = parser.parse_args()
 

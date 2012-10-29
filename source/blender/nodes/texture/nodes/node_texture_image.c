@@ -33,7 +33,7 @@
 #include "node_texture_util.h"
 #include "NOD_texture.h"
 
-static bNodeSocketTemplate outputs[]= {
+static bNodeSocketTemplate outputs[] = {
 	{ SOCK_RGBA, 0, N_("Image")},
 	{ -1, 0, "" }
 };

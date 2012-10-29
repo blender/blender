@@ -193,10 +193,8 @@ typedef struct bNodeType {
 	struct bNodeTree *(*group_edit_set)(struct bNode *node, int edit);
 	void (*group_edit_clear)(struct bNode *node);
 	
-	/* Generate a temporary list of internal links (bNodeLink), for muting and disconnect operators.
-	 * Result must be freed by caller!
-	 */
-	ListBase (*internal_connect)(struct bNodeTree *, struct bNode *node);
+	/* Update the internal links list, for muting and disconnect operators. */
+	void (*update_internal_links)(struct bNodeTree *, struct bNode *node);
 	
 	/* **** execution callbacks **** */
 	void *(*initexecfunc)(struct bNode *node);
@@ -293,7 +291,7 @@ typedef struct bNodeTreeType {
 	int (*validate_link)(struct bNodeTree *ntree, struct bNodeLink *link);
 
 	/* Default internal linking. */
-	ListBase (*internal_connect)(struct bNodeTree *, struct bNode *node);
+	void (*update_internal_links)(struct bNodeTree *, struct bNode *node);
 } bNodeTreeType;
 
 /* ************** GENERIC API, TREES *************** */
@@ -389,6 +387,7 @@ struct bNode   *nodeGetActiveTexture(struct bNodeTree *ntree);
 
 void            nodeUpdate(struct bNodeTree *ntree, struct bNode *node);
 int             nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
+void            nodeUpdateInternalLinks(struct bNodeTree *ntree, struct bNode *node);
 
 void            nodeFreePreview(struct bNode *node);
 
@@ -445,7 +444,7 @@ void            node_type_exec_new(struct bNodeType *ntype,
                                    void (*freeexecfunc)(struct bNode *node, void *nodedata),
                                    void (*newexecfunc)(void *data, int thread, struct bNode *, void *nodedata,
                                                        struct bNodeStack **, struct bNodeStack **));
-void            node_type_internal_connect(struct bNodeType *ntype, ListBase (*internal_connect)(struct bNodeTree *, struct bNode *));
+void            node_type_internal_links(struct bNodeType *ntype, void (*update_internal_links)(struct bNodeTree *, struct bNode *));
 void            node_type_gpu(struct bNodeType *ntype, int (*gpufunc)(struct GPUMaterial *mat, struct bNode *node,
                                                                       struct GPUNodeStack *in, struct GPUNodeStack *out));
 void            node_type_gpu_ext(struct bNodeType *ntype, int (*gpuextfunc)(struct GPUMaterial *mat, struct bNode *node,
@@ -456,8 +455,8 @@ void            node_type_compatibility(struct bNodeType *ntype, short compatibi
 /* ************** COMMON NODES *************** */
 
 #define NODE_GROUP		2
-#define NODE_FORLOOP	3
-#define NODE_WHILELOOP	4
+#define __NODE_FORLOOP	3	/* deprecated */
+#define __NODE_WHILELOOP	4	/* deprecated */
 #define NODE_FRAME		5
 #define NODE_REROUTE	6
 
@@ -699,6 +698,7 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define CMP_NODE_BOKEHIMAGE     315
 #define CMP_NODE_BOKEHBLUR      316
 #define CMP_NODE_SWITCH         317
+#define CMP_NODE_PIXELATE       318
 
 /* channel toggles */
 #define CMP_CHAN_RGB		1

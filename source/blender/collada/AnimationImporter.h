@@ -169,7 +169,7 @@ public:
 
 	int setAnimType ( const COLLADAFW::Animatable * prop, int type, int addition);
 	
-	void modify_fcurve(std::vector<FCurve*>* curves, const char* rna_path, int array_index );
+	void modify_fcurve(std::vector<FCurve*>* curves, const char *rna_path, int array_index );
 	void unused_fcurve(std::vector<FCurve*>* curves );
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist

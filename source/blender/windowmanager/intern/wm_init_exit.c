@@ -423,6 +423,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 
 #ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();
+	BLF_lang_free();
 #endif
 	
 	ANIM_keyingset_infos_exit();

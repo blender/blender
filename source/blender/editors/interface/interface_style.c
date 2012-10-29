@@ -348,7 +348,7 @@ void uiStyleInit(void)
 #else
 			font->blf_id = BLF_load_mem("default", (unsigned char *)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 #endif
-		}		
+		}
 		else {
 			font->blf_id = BLF_load(font->filename);
 			if (font->blf_id == -1)

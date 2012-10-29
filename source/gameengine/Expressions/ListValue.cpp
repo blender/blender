@@ -468,9 +468,9 @@ static PyObject *listvalue_buffer_concat(PyObject *self, PyObject *other)
 
 static int listvalue_buffer_contains(PyObject *self_v, PyObject *value)
 {
-	CListValue *self= static_cast<CListValue *>(BGE_PROXY_REF(self_v));
+	CListValue *self = static_cast<CListValue *>(BGE_PROXY_REF(self_v));
 	
-	if (self==NULL) {
+	if (self == NULL) {
 		PyErr_SetString(PyExc_SystemError, "val in CList, "BGE_PROXY_ERROR_MSG);
 		return -1;
 	}

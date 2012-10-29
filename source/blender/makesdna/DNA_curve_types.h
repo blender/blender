@@ -234,11 +234,11 @@ typedef struct Curve {
 	
 	float ctime;			/* current evaltime - for use by Objects parented to curves */
 	int totbox, actbox;
-	struct TextBox *tb;	
+	struct TextBox *tb;
 	
-	int selstart, selend;	
+	int selstart, selend;
 	
-	struct CharInfo *strinfo;	
+	struct CharInfo *strinfo;
 	struct CharInfo curinfo;
 
 	float bevfac1, bevfac2;

@@ -175,7 +175,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	idptr = RNA_property_pointer_get(&template.ptr, template.prop);
 
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_SEARCH_MENU);
 	
 	/* preview thumbnails */
 	if (template.prv_rows > 0 && template.prv_cols > 0) {
@@ -199,7 +199,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 		
 	
 	uiBoundsBlock(block, 6);
-	uiBlockSetDirection(block, UI_DOWN);	
+	uiBlockSetDirection(block, UI_DOWN);
 	uiEndBlock(C, block);
 	
 	/* give search-field focus */
@@ -401,7 +401,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 		//text_idbutton(id, name);
 		name[0] = '\0';
-		but = uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
+		but = uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, RNA_struct_ui_description(type));
 		uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
 		if (user_alert) uiButSetFlag(but, UI_BUT_REDALERT);
 
@@ -581,7 +581,7 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 		RNA_warning("pointer property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
-	if (!propType || RNA_property_type(propType) != PROP_ENUM) { 
+	if (!propType || RNA_property_type(propType) != PROP_ENUM) {
 		RNA_warning("pointer-type property not found: %s.%s", RNA_struct_identifier(ptr->type), proptypename);
 		return;
 	}
@@ -1222,7 +1222,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 			else ma = (Material *)pparent;
 			
 			/* Create RNA Pointer */
-			RNA_pointer_create(id, &RNA_Material, ma, &material_ptr);
+			RNA_pointer_create(&ma->id, &RNA_Material, ma, &material_ptr);
 
 			col = uiLayoutColumn(row, TRUE);
 			uiLayoutSetScaleX(col, 1.5);
@@ -1282,7 +1282,7 @@ static void colorband_add_cb(bContext *C, void *cb_v, void *coba_v)
 
 	if (colorband_element_add(coba, pos)) {
 		rna_update_cb(C, cb_v, NULL);
-		ED_undo_push(C, "Add colorband");	
+		ED_undo_push(C, "Add colorband");
 	}
 }
 
@@ -1406,7 +1406,7 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 		uiItemR(layout, &ptr, "color", 0, "", ICON_NONE);
 	}
 
-	bt = uiDefButS(block, MENU, 0, TIP_("Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4"),
+	bt = uiDefButS(block, MENU, 0, IFACE_("Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4"),
 	               xs + 10.0f * unit, butr->ymin + UI_UNIT_Y, unit * 4, UI_UNIT_Y,     &coba->ipotype, 0.0, 0.0, 0, 0,
 	               TIP_("Set interpolation between color stops"));
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
@@ -2745,7 +2745,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_CANCEL, IFACE_("Capture"), 0, 0, 85, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0,
 		                 TIP_("Stop screencast"));
 	if (screen->animtimer)
-		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, TIP_("Anim Player"), 0, 0, 100, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0,
+		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, IFACE_("Anim Player"), 0, 0, 100, UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0,
 		                 TIP_("Stop animation playback"));
 }
 
@@ -2775,8 +2775,8 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	block = uiLayoutGetBlock(ui_abs);
 	
 	width = BLF_width(style->widget.uifont_id, report->message);
-	width = MIN2(rti->widthfac * width, width);
-	width = MAX2(width, 10);
+	width = min_ii((int)(rti->widthfac * width), width);
+	width = max_ii(width, 10);
 	
 	/* make a box around the report to make it stand out */
 	uiBlockBeginAlign(block);

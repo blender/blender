@@ -299,7 +299,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			/* other view types are completely defined using their own settings already */
 			default:
 				/* we don't do anything here, as settings should be fine, but just make sure that rect */
-				break;	
+				break;
 		}
 	}
 	
@@ -476,8 +476,14 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 				if (winy < v2d->oldwiny) {
 					float temp = v2d->oldwiny - winy;
 					
-					cur->ymin += temp;
-					cur->ymax += temp;
+					if (v2d->align & V2D_ALIGN_NO_NEG_Y) {
+						cur->ymin -= temp;
+						cur->ymax -= temp;
+					}
+					else { /* Assume V2D_ALIGN_NO_POS_Y or combination */
+						cur->ymin += temp;
+						cur->ymax += temp;
+					}
 				}
 
 			}
@@ -1089,7 +1095,7 @@ static void step_to_grid(float *step, int *power, int unit)
 		}
 		
 		/* prevents printing 1.0 2.0 3.0 etc */
-		if (rem == 1.0f) (*power)++;	
+		if (rem == 1.0f) (*power)++;
 	}
 	else {
 		if (rem < 2.0f) rem = 2.0f;
@@ -1100,7 +1106,7 @@ static void step_to_grid(float *step, int *power, int unit)
 		
 		(*power)++;
 		/* prevents printing 1.0, 2.0, 3.0, etc. */
-		if (rem == 10.0f) (*power)++;	
+		if (rem == 10.0f) (*power)++;
 	}
 }
 
@@ -1256,7 +1262,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = vec1[1] -= 0.5f * grid->dy;
 		step++;
 		
-		if (flag & V2D_HORIZONTAL_FINELINES) { 
+		if (flag & V2D_HORIZONTAL_FINELINES) {
 			UI_ThemeColorShade(TH_GRID, 16);
 			for (a = 0; a < step; a++) {
 				glBegin(GL_LINE_STRIP);
@@ -1487,7 +1493,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d,
 		
 		/* check whether sliders can disappear due to the full-range being used */
 		if (v2d->keeptot) {
-			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) { 
+			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) {
 				v2d->scroll |= V2D_SCROLL_HORIZONTAL_FULLR;
 				scrollers->horfull = 1;
 			}
@@ -1529,7 +1535,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d,
 
 		/* check whether sliders can disappear due to the full-range being used */
 		if (v2d->keeptot) {
-			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) { 
+			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) {
 				v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR;
 				scrollers->vertfull = 1;
 			}
@@ -1682,7 +1688,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 					if (fac < hor.xmin + 10)
 						continue;
 					
-					switch (vs->xunits) {							
+					switch (vs->xunits) {
 						case V2D_UNIT_FRAMES:       /* frames (as whole numbers)*/
 							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMES, 'h');
 							break;
@@ -1797,7 +1803,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				
 				BLF_disable_default(BLF_ROTATION);
 			}
-		}	
+		}
 	}
 	
 }
@@ -2066,7 +2072,7 @@ short UI_view2d_mouse_in_scrollers(const bContext *C, View2D *v2d, int x, int y)
 	}
 	if (scroll & V2D_SCROLL_VERTICAL) {
 		if (IN_2D_VERT_SCROLL(v2d, co)) return 'v';
-	}	
+	}
 	
 	/* not found */
 	return 0;

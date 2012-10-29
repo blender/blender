@@ -65,12 +65,12 @@ void node_free_standard_storage(bNode *node)
 
 void node_copy_curves(bNode *orig_node, bNode *new_node)
 {
-	new_node->storage= curvemapping_copy(orig_node->storage);
+	new_node->storage = curvemapping_copy(orig_node->storage);
 }
 
 void node_copy_standard_storage(bNode *orig_node, bNode *new_node)
 {
-	new_node->storage= MEM_dupallocN(orig_node->storage);
+	new_node->storage = MEM_dupallocN(orig_node->storage);
 }
 
 void *node_initexec_curves(bNode *node)
@@ -109,18 +109,15 @@ const char *node_filter_label(bNode *node)
 	return IFACE_(name);
 }
 
-ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
+void node_update_internal_links_default(bNodeTree *ntree, bNode *node)
 {
-	ListBase ret;
 	bNodeSocket *fromsock_first=NULL, *tosock_first=NULL;	/* used for fallback link if no other reconnections are found */
 	int datatype;
 	int num_links_in = 0, num_links_out = 0, num_reconnect = 0;
 
-	ret.first = ret.last = NULL;
-
 	/* Security check! */
 	if (!ntree)
-		return ret;
+		return;
 
 	for (datatype=0; datatype < NUM_SOCKET_TYPES; ++datatype) {
 		bNodeSocket *fromsock, *tosock;
@@ -170,7 +167,7 @@ ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
 				ilink->tosock = tosock;
 				/* internal link is always valid */
 				ilink->flag |= NODE_LINK_VALID;
-				BLI_addtail(&ret, ilink);
+				BLI_addtail(&node->internal_links, ilink);
 				
 				++num_reconnect;
 			}
@@ -188,8 +185,6 @@ ListBase node_internal_connect_default(bNodeTree *ntree, bNode *node)
 		ilink->tosock = tosock_first;
 		/* internal link is always valid */
 		ilink->flag |= NODE_LINK_VALID;
-		BLI_addtail(&ret, ilink);
+		BLI_addtail(&node->internal_links, ilink);
 	}
-	
-	return ret;
 }

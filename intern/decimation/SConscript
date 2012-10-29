@@ -1,8 +1,0 @@
-#!/usr/bin/python
-Import ('env')
-
-sources = env.Glob('intern/*.cpp')
-
-incs = '. ../moto/include ../container ../memutil ../guardedalloc'
-
-env.BlenderLib ('bf_intern_decimate', sources, Split(incs) , [], libtype=['core', 'player'], priority = [200, 100] )

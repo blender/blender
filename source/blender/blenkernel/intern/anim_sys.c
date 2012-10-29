@@ -189,9 +189,9 @@ short BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 		else {
 			/* cannot set */
 			BKE_reportf(reports, RPT_ERROR,
-			            "Couldn't set Action '%s' onto ID '%s', as it doesn't have suitably rooted paths for this purpose",
-			            act->id.name + 2, id->name);
-			//ok = 0;
+			            "Could not set action '%s' onto ID '%s', as it does not have suitably rooted paths "
+			            "for this purpose", act->id.name + 2, id->name);
+			/* ok = 0; */
 		}
 	}
 	else {
@@ -420,7 +420,7 @@ void action_move_fcurves_by_basepath(bAction *srcAct, bAction *dstAct, const cha
 		/* should F-Curve be moved over?
 		 *	- we only need the start of the path to match basepath
 		 */
-		if (animpath_matches_basepath(fcu->rna_path, basepath)) {			
+		if (animpath_matches_basepath(fcu->rna_path, basepath)) {
 			bActionGroup *agrp = NULL;
 			
 			/* if grouped... */
@@ -575,7 +575,7 @@ static char *rna_path_rename_fix(ID *owner_id, const char *prefix, const char *o
 	 */
 	if ( (prefixPtr && oldNamePtr) && (prefixPtr + prefixLen == oldNamePtr) ) {
 		/* if we haven't aren't able to resolve the path now, try again after fixing it */
-		if (!verify_paths || check_rna_path_is_valid(owner_id, oldpath) == 0) {		
+		if (!verify_paths || check_rna_path_is_valid(owner_id, oldpath) == 0) {
 			DynStr *ds = BLI_dynstr_new();
 			char *postfixPtr = oldNamePtr + oldNameLen;
 			char *newPath = NULL;
@@ -725,7 +725,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id, AnimData *adt, ID *ref_id, cons
 		/* pad the names with [" "] so that only exact matches are made */
 		oldN = BLI_sprintfN("[\"%s\"]", oldName);
 		newN = BLI_sprintfN("[\"%s\"]", newName);
-	} 
+	}
 	else {
 		oldN = BLI_sprintfN("[%d]", oldSubscript);
 		newN = BLI_sprintfN("[%d]", newSubscript);
@@ -1246,7 +1246,7 @@ static short animsys_write_rna_setting(PointerRNA *ptr, char *path, int array_in
 				if (new_ptr.type == &RNA_PoseBone) {
 					/* bone transforms - update pose (i.e. tag depsgraph) */
 					skip_updates_hack = 1;
-				}				
+				}
 				
 				if (skip_updates_hack == 0)
 					RNA_property_update_cache_add(&new_ptr, prop);

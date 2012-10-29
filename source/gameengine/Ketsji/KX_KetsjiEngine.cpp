@@ -334,8 +334,7 @@ void KX_KetsjiEngine::RenderDome()
 			
 			// Draw the scene once for each camera with an enabled viewport
 			list<KX_Camera*>::iterator it = cameras->begin();
-			while(it != cameras->end())
-			{
+			while (it != cameras->end()) {
 				if ((*it)->GetViewport())
 				{
 					if (scene->IsClearingZBuffer())
@@ -889,8 +888,7 @@ void KX_KetsjiEngine::Render()
 		
 		// Draw the scene once for each camera with an enabled viewport
 		list<KX_Camera*>::iterator it = cameras->begin();
-		while(it != cameras->end())
-		{
+		while (it != cameras->end()) {
 			if ((*it)->GetViewport())
 			{
 				if (scene->IsClearingZBuffer())
@@ -939,8 +937,7 @@ void KX_KetsjiEngine::Render()
 	
 			// Draw the scene once for each camera with an enabled viewport
 			list<KX_Camera*>::iterator it = cameras->begin();
-			while(it != cameras->end())
-			{
+			while (it != cameras->end()) {
 				if ((*it)->GetViewport())
 				{
 					if (scene->IsClearingZBuffer())
@@ -1327,8 +1324,7 @@ void KX_KetsjiEngine::RenderFonts(KX_Scene* scene)
 	list<class KX_FontObject*>* fonts = scene->GetFonts();
 	
 	list<KX_FontObject*>::iterator it = fonts->begin();
-	while(it != fonts->end())
-	{
+	while (it != fonts->end()) {
 		(*it)->DrawText();
 		++it;
 	}

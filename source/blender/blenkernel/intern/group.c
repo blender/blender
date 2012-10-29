@@ -99,7 +99,7 @@ void BKE_group_unlink(Group *group)
 				base->object->flag &= ~OB_FROMGROUP;
 				base->flag &= ~OB_FROMGROUP;
 			}
-		}			
+		}
 		
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
 			if (srl->light_override == group)

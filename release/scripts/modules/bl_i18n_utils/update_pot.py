@@ -38,6 +38,9 @@ except:
     from . import (settings, utils)
 
 
+LANGUAGES_CATEGORIES = settings.LANGUAGES_CATEGORIES
+LANGUAGES = settings.LANGUAGES
+
 COMMENT_PREFIX = settings.COMMENT_PREFIX
 COMMENT_PREFIX_SOURCE = settings.COMMENT_PREFIX_SOURCE
 CONTEXT_PREFIX = settings.CONTEXT_PREFIX
@@ -189,7 +192,7 @@ def get_svnrev():
 
 
 def gen_empty_pot():
-    blender_rev = get_svnrev()
+    blender_rev = get_svnrev().decode()
     utctime = time.gmtime()
     time_str = time.strftime("%Y-%m-%d %H:%M+0000", utctime)
     year_str = time.strftime("%Y", utctime)
@@ -233,8 +236,8 @@ def merge_messages(msgs, states, messages, do_checks, spell_cache):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Update blender.pot file " \
-                                                 "from messages.txt")
+    parser = argparse.ArgumentParser(description="Update blender.pot file from messages.txt and source code parsing, "
+                                                 "and performs some checks over msgids.")
     parser.add_argument('-w', '--warning', action="store_true",
                         help="Show warnings.")
     parser.add_argument('-i', '--input', metavar="File",
@@ -261,7 +264,6 @@ def main():
             spell_cache = pickle.load(f)
     else:
         spell_cache = set()
-    print(len(spell_cache))
 
     print("Generating POT file {}…".format(FILE_NAME_POT))
     msgs, states = gen_empty_pot()
@@ -292,11 +294,22 @@ def main():
     print("\tMerged {} messages ({} were already present)."
           "".format(num_added, num_present))
 
+    print("\tAdding languages labels...")
+    messages = {(CONTEXT_DEFAULT, lng[1]):
+                ("Languages’ labels from bl_i18n_utils/settings.py",)
+                for lng in LANGUAGES}
+    messages.update({(CONTEXT_DEFAULT, cat[1]):
+                     ("Language categories’ labels from bl_i18n_utils/settings.py",)
+                     for cat in LANGUAGES_CATEGORIES})
+    num_added, num_present = merge_messages(msgs, states, messages,
+                                            True, spell_cache)
+    tot_messages += num_added
+    print("\tAdded {} language messages.".format(num_added))
+
     # Write back all messages into blender.pot.
     utils.write_messages(FILE_NAME_POT, msgs, states["comm_msg"],
                          states["fuzzy_msg"])
 
-    print(len(spell_cache))
     if SPELL_CACHE and spell_cache:
         with open(SPELL_CACHE, 'wb') as f:
             pickle.dump(spell_cache, f)

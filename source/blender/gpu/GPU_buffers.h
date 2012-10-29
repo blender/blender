@@ -162,17 +162,21 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
                                     struct MFace *mface, struct MVert *mvert,
                                     int *face_indices, int totface);
 
-void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
-                             int *vert_indices, int totvert, const float *vmask);
+void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
+                             int *vert_indices, int totvert, const float *vmask,
+                             int (*face_vert_indices)[4], int show_diffuse_color);
 
 GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
                                     unsigned int **grid_hidden, int gridsize);
 
 void GPU_update_grid_buffers(GPU_Buffers *buffers, struct CCGElem **grids,
                              const struct DMFlagMat *grid_flag_mats,
-                             int *grid_indices, int totgrid, const struct CCGKey *key);
+                             int *grid_indices, int totgrid, const struct CCGKey *key,
+                             int show_diffuse_color);
 
 void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial);
+
+int GPU_buffers_diffuse_changed(GPU_Buffers *buffers, int show_diffuse_color);
 
 void GPU_free_buffers(GPU_Buffers *buffers);
 

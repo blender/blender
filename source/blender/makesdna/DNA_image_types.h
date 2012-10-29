@@ -137,6 +137,7 @@ typedef struct Image {
 #define IMA_CLAMP_U			16 
 #define IMA_CLAMP_V			32
 #define IMA_TPAGE_REFRESH	64
+#define IMA_GLBIND_IS_DATA	128 /* opengl image texture bound as non-color data */
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
 

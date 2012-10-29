@@ -129,7 +129,7 @@ static SpaceLink *action_new(const bContext *C)
 /* not spacelink itself */
 static void action_free(SpaceLink *UNUSED(sl))
 {	
-//	SpaceAction *saction= (SpaceAction *) sl;
+//	SpaceAction *saction = (SpaceAction *) sl;
 }
 
 
@@ -377,7 +377,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
-			switch (wmn->data) {	
+			switch (wmn->data) {
 				case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_OB_SELECT:
 					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
@@ -433,7 +433,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
-			}			
+			}
 			break;
 		case NC_WINDOW:
 			if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {

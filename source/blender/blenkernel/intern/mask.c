@@ -1955,5 +1955,5 @@ void BKE_mask_layer_shape_changed_remove(MaskLayer *masklay, int index, int coun
 
 int BKE_mask_get_duration(Mask *mask)
 {
-	return maxi(1, mask->efra - mask->sfra);
+	return max_ii(1, mask->efra - mask->sfra);
 }

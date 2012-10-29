@@ -54,7 +54,7 @@ BulletSoftBody *bsbNew(void)
 
 	
 	bsb->viterations	=	0;
-	bsb->piterations	=	2;	
+	bsb->piterations	=	2;
 	bsb->diterations	=	0;
 	bsb->citerations	=	4;
 	

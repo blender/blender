@@ -224,7 +224,7 @@ bActionGroup *get_active_actiongroup(bAction *act)
 {
 	bActionGroup *agrp = NULL;
 	
-	if (act && act->groups.first) {	
+	if (act && act->groups.first) {
 		for (agrp = act->groups.first; agrp; agrp = agrp->next) {
 			if (agrp->flag & AGRP_ACTIVE)
 				break;
@@ -301,7 +301,7 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 	
 	/* add to action, and validate */
 	BLI_addtail(&act->groups, agrp);
-	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));	
+	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
 	
 	/* return the new group */
 	return agrp;
@@ -380,7 +380,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 void action_groups_remove_channel(bAction *act, FCurve *fcu)
 {
 	/* sanity checks */
-	if (ELEM(NULL, act, fcu))	
+	if (ELEM(NULL, act, fcu))
 		return;
 	
 	/* check if any group used this directly */
@@ -906,8 +906,8 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				calc_fcurve_range(fcu, &nmin, &nmax, FALSE, TRUE);
 				
 				/* compare to the running tally */
-				min = MIN2(min, nmin);
-				max = MAX2(max, nmax);
+				min = min_ff(min, nmin);
+				max = max_ff(max, nmax);
 				
 				foundvert = 1;
 			}
@@ -925,10 +925,10 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 						FMod_Limits *fmd = (FMod_Limits *)fcm->data;
 						
 						if (fmd->flag & FCM_LIMIT_XMIN) {
-							min = MIN2(min, fmd->rect.xmin);
+							min = min_ff(min, fmd->rect.xmin);
 						}
 						if (fmd->flag & FCM_LIMIT_XMAX) {
-							max = MAX2(max, fmd->rect.xmax);
+							max = max_ff(max, fmd->rect.xmax);
 						}
 					}
 					break;
@@ -955,7 +955,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				foundmod = 1;
 			}
 		}
-	}	
+	}
 	
 	if (foundvert || foundmod) {
 		if (min == max) max += 1.0f;

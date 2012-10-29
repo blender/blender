@@ -377,7 +377,7 @@ void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = add_keyingset_button_exec; 
-	//op->poll= ???
+	//op->poll = ???
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -457,7 +457,7 @@ void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = remove_keyingset_button_exec; 
-	//op->poll= ???
+	//op->poll = ???
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -947,7 +947,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 		/* skip path if no ID pointer is specified */
 		if (ksp->id == NULL) {
 			BKE_reportf(reports, RPT_WARNING,
-			            "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s'[%d])",
+			            "Skipping path in keying set, as it has no ID (KS = '%s', path = '%s[%d]')",
 			            ks->name, ksp->rna_path, ksp->array_index);
 			continue;
 		}

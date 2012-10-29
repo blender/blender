@@ -299,9 +299,9 @@ class USERPREF_PT_edit(Panel):
         col.label(text="Grease Pencil:")
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
-        #~ col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "use_grease_pencil_smooth_stroke", text="Smooth Stroke")
+        col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.separator()
         col.separator()
         col.separator()
@@ -823,6 +823,7 @@ class USERPREF_PT_file(Panel):
         col.prop(paths, "use_filter_files")
         col.prop(paths, "show_hidden_files_datablocks")
         col.prop(paths, "hide_recent_locations")
+        col.prop(paths, "hide_system_bookmarks")
         col.prop(paths, "show_thumbnails")
 
         col.separator()
@@ -1092,7 +1093,7 @@ class USERPREF_PT_addons(Panel):
                     (filter == info["category"]) or
                     (filter == "Enabled" and is_enabled) or
                     (filter == "Disabled" and not is_enabled) or
-                    (filter == "User" and (mod.__file__.startswith(scripts_addons_folder, userpref_addons_folder)))
+                    (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
                    ):
 
                 if search and search not in info["name"].lower():

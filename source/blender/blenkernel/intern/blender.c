@@ -119,7 +119,7 @@ void free_blender(void)
 	BKE_sequencer_cache_destruct();
 	IMB_moviecache_destruct();
 	
-	free_nodesystem();	
+	free_nodesystem();
 }
 
 void initglobals(void)
@@ -237,7 +237,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	
 	/* free G.main Main database */
 //	CTX_wm_manager_set(C, NULL);
-	clear_global();	
+	clear_global();
 	
 	/* clear old property update cache, in case some old references are left dangling */
 	RNA_property_update_cache_free();
@@ -338,7 +338,7 @@ static int handle_subversion_warning(Main *main, ReportList *reports)
 	    (main->minversionfile == BLENDER_VERSION &&
 	     main->minsubversionfile > BLENDER_SUBVERSION))
 	{
-		BKE_reportf(reports, RPT_ERROR, "File written by newer Blender binary: %d.%d, expect loss of data!",
+		BKE_reportf(reports, RPT_ERROR, "File written by newer Blender binary (%d.%d), expect loss of data!",
 		            main->minversionfile, main->minsubversionfile);
 	}
 
@@ -407,9 +407,9 @@ int BKE_read_file(bContext *C, const char *filepath, ReportList *reports)
 		}
 		else
 			setup_app_data(C, bfd, filepath);  // frees BFD
-	} 
+	}
 	else
-		BKE_reports_prependf(reports, "Loading %s failed: ", filepath);
+		BKE_reports_prependf(reports, "Loading '%s' failed: ", filepath);
 		
 	return (bfd ? retval : BKE_READ_FILE_FAIL);
 }
@@ -612,7 +612,7 @@ void BKE_write_undo(bContext *C, const char *name)
 	}
 }
 
-/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
+/* 1 = an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
 void BKE_undo_step(bContext *C, int step)
 {
 	

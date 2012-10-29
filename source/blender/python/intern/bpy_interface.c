@@ -510,6 +510,18 @@ void BPY_DECREF(void *pyob_ptr)
 	PyGILState_Release(gilstate);
 }
 
+void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
+{
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+	const int do_invalidate = (Py_REFCNT((PyObject *)pyob_ptr) > 1);
+	Py_DECREF((PyObject *)pyob_ptr);
+	if (do_invalidate) {
+		pyrna_invalidate(pyob_ptr);
+	}
+	PyGILState_Release(gilstate);
+}
+
+
 /* return -1 on error, else 0 */
 int BPY_button_exec(bContext *C, const char *expr, double *value, const short verbose)
 {

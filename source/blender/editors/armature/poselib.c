@@ -871,7 +871,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 	if (pld->marker)
 		frame = pld->marker->frame;
 	else
-		return;	
+		return;
 	
 	
 	/* init settings for testing groups for keyframes */
@@ -887,7 +887,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 			/* has keyframe on this frame, so try to get a PoseChannel with this name */
 			pchan = BKE_pose_channel_find_name(pose, agrp->name);
 			
-			if (pchan) {	
+			if (pchan) {
 				short ok = 0;
 				
 				/* check if this bone should get any animation applied */
@@ -1079,7 +1079,7 @@ static void poselib_preview_get_next(tPoseLib_PreviewData *pld, int step)
 		}
 		
 		/* check if any matches */
-		if (pld->searchp.first == NULL) { 
+		if (pld->searchp.first == NULL) {
 			pld->marker = NULL;
 			return;
 		}
@@ -1152,7 +1152,7 @@ static void poselib_preview_handle_search(tPoseLib_PreviewData *pld, unsigned sh
 				poselib_preview_get_next(pld, 1);
 				pld->redraw = PL_PREVIEW_REDRAWALL;
 				return;
-			}	
+			}
 			break;
 			
 		case DELKEY:
@@ -1639,7 +1639,7 @@ void POSELIB_OT_browse_interactive(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 	
-	/* properties */	
+	/* properties */
 	// TODO: make the pose_index into a proper enum instead of a cryptic int...
 	ot->prop = RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
 	

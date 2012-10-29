@@ -244,7 +244,7 @@ static void checker_board_color_tint(unsigned char *rect, float *rect_float, int
 			}
 			
 		}
-	}	
+	}
 }
 
 static void checker_board_grid_fill(unsigned char *rect, float *rect_float, int width, int height, float blend)

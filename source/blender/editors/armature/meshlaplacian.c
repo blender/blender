@@ -53,7 +53,6 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 
-
 #ifdef RIGID_DEFORM
 #include "BLI_polardecomp.h"
 #endif
@@ -563,7 +562,7 @@ static void heat_set_H(LaplacianSystem *sys, int vertex)
 
 	/* compute H entry */
 	if (numclosest > 0) {
-		mindist = maxf(mindist, 1e-4f);
+		mindist = max_ff(mindist, 1e-4f);
 		h = numclosest * C_WEIGHT / (mindist * mindist);
 	}
 	else
@@ -794,7 +793,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 			}
 		}
 		else if (*err_str == NULL) {
-			*err_str = "Bone Heat Weighting: failed to find solution for one or more bones";
+			*err_str = N_("Bone Heat Weighting: failed to find solution for one or more bones");
 			break;
 		}
 
@@ -1195,7 +1194,7 @@ static int meshdeform_tri_intersect(const float orig[3], const float end[3], con
 }
 
 static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
- {
+{
 	void **data = userdata;
 	MeshDeformBind *mdb = data[1];
 	MFace *mface = data[0], *mf;
@@ -1210,7 +1209,7 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 	if (mf->v4)
 		copy_v3_v3(face[3], mdb->cagecos[mf->v4]);
 	
- 	add_v3_v3v3(end, isec->start, isec->vec);
+	add_v3_v3v3(end, isec->start, isec->vec);
 	
 	if (!meshdeform_tri_intersect(ray->origin, end, face[0], face[1], face[2], co, uvw)) 
 		if (!mf->v4 || !meshdeform_tri_intersect(ray->origin, end, face[0], face[2], face[3], co, uvw))
@@ -1257,7 +1256,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
 	                         0.0, &hit, harmonic_ray_callback, data) != -1)
 	{
- 		len = isect_mdef.labda;
+		len = isect_mdef.labda;
 		isect_mdef.face = mface = mface1 + hit.index;
 
 		/* create MDefBoundIsect */
@@ -1722,7 +1721,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 			}
 		}
 		else {
-			modifier_setError(&mmd->modifier, "%s", TIP_("Failed to find bind solution (increase precision?)."));
+			modifier_setError(&mmd->modifier, "Failed to find bind solution (increase precision?)");
 			error("Mesh Deform: failed to find bind solution.");
 			break;
 		}

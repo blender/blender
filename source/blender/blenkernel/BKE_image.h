@@ -127,6 +127,7 @@ enum {
 #define IMA_SIGNAL_SRC_CHANGE       5
 /* image-user gets a new image, check settings */
 #define IMA_SIGNAL_USER_NEW_IMAGE   6
+#define IMA_SIGNAL_COLORMANAGE      7
 
 #define IMA_CHAN_FLAG_BW    1
 #define IMA_CHAN_FLAG_RGB   2

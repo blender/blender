@@ -58,7 +58,7 @@ struct BIK_ParamValue {
 		float f[8];
 		int   i[8];
 		char  s[32];
-	} value;		
+	} value;
 };
 typedef struct BIK_ParamValue BIK_ParamValue;
 

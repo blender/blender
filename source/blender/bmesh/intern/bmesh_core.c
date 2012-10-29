@@ -28,11 +28,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_vector.h"
-
-#include "BKE_DerivedMesh.h"
-
 #include "BLI_listbase.h"
 #include "BLI_array.h"
+
+#include "BLF_translation.h"
+
+#include "BKE_DerivedMesh.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -960,7 +961,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 			int rlen = count_flagged_radial(bm, l_iter, _FLAG_JF);
 
 			if (rlen > 2) {
-				err = "Input faces do not form a contiguous manifold region";
+				err = N_("Input faces do not form a contiguous manifold region");
 				goto error;
 			}
 			else if (rlen == 1) {
@@ -1023,7 +1024,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 	newf = BM_face_create_ngon(bm, v1, v2, edges, tote, FALSE);
 	if (UNLIKELY(!newf || BMO_error_occurred(bm))) {
 		if (!BMO_error_occurred(bm))
-			err = "Invalid boundary region to join faces";
+			err = N_("Invalid boundary region to join faces");
 		goto error;
 	}
 

@@ -38,10 +38,10 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
-#include "BKE_tessmesh.h"
 #include "BKE_mesh.h"
-
 #include "BKE_bmesh.h" /* only for defines */
+
+#include "bmesh.h"
 
 #include "DNA_object_types.h"
 
@@ -88,6 +88,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
+// #define USE_BM_BEVEL_OP_AS_MOD
+
 #ifdef USE_BM_BEVEL_OP_AS_MOD
 
 #define EDGE_MARK   1
@@ -111,14 +113,12 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 {
 	DerivedMesh *result;
 	BMesh *bm;
-	BMEditMesh *em;
 	BMIter iter;
 	BMEdge *e;
 	BevelModifierData *bmd = (BevelModifierData *) md;
-	float threshold = cos((bmd->bevel_angle + 0.00001) * M_PI / 180.0);
+	float threshold = cos((bmd->bevel_angle + 0.00001f) * M_PI / 180.0f);
 
-	em = DM_to_editbmesh(dm, NULL, FALSE);
-	bm = em->bm;
+	bm = DM_to_bmesh(dm);
 
 	BM_mesh_normals_update(bm, FALSE);
 	BMO_push(bm, NULL);
@@ -148,10 +148,8 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	             EDGE_MARK, bmd->value, (bmd->flags & BME_BEVEL_EVEN) != 0, (bmd->flags & BME_BEVEL_DIST) != 0);
 	BMO_pop(bm);
 
-	BLI_assert(em->looptris == NULL);
-	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
-	BMEdit_Free(em);
-	MEM_freeN(em);
+	result = CDDM_from_bmesh(bm, TRUE);
+	BM_mesh_free(bm);
 
 	return result;
 }
@@ -164,7 +162,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
                                   ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;
-	BMEditMesh *em;
+	BMesh *bm;
 
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
@@ -175,18 +173,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 #if 0
 	if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
 		defgrp_index = defgroup_name_index(ob, bmd->defgrp_name);
-		if (defgrp_index < 0) {
+		if (defgrp_index == -1) {
 			options &= ~BME_BEVEL_VWEIGHT;
 		}
 	}
 #endif
 
-	em = DM_to_editbmesh(derivedData, NULL, FALSE);
-	BME_bevel(em, bmd->value, bmd->res, options, defgrp_index, DEG2RADF(bmd->bevel_angle), NULL, FALSE);
-	BLI_assert(em->looptris == NULL);
-	result = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
-	BMEdit_Free(em);
-	MEM_freeN(em);
+	bm = DM_to_bmesh(derivedData);
+	BME_bevel(bm, bmd->value, bmd->res, options, defgrp_index, DEG2RADF(bmd->bevel_angle), NULL);
+	result = CDDM_from_bmesh(bm, TRUE);
+	BM_mesh_free(bm);
 
 	/* until we allow for dirty normal flag, always calc,
 	 * note: calculating on the CDDM is faster then the BMesh equivalent */
@@ -206,29 +202,29 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 
 
 ModifierTypeInfo modifierType_Bevel = {
-	/* name */ "Bevel",
-	/* structName */ "BevelModifierData",
-	/* structSize */ sizeof(BevelModifierData),
-	/* type */ eModifierTypeType_Constructive,
-	/* flags */ eModifierTypeFlag_AcceptsMesh |
-	eModifierTypeFlag_SupportsEditmode |
-	eModifierTypeFlag_EnableInEditmode,
+	/* name */              "Bevel",
+	/* structName */        "BevelModifierData",
+	/* structSize */        sizeof(BevelModifierData),
+	/* type */              eModifierTypeType_Constructive,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */ copyData,
-	/* deformVerts */ NULL,
-	/* deformMatrices */ NULL,
-	/* deformVertsEM */ NULL,
-	/* deformMatricesEM */ NULL,
-	/* applyModifier */ applyModifier,
-	/* applyModifierEM */ applyModifierEM,
-	/* initData */ initData,
-	/* requiredDataMask */ requiredDataMask,
-	/* freeData */ NULL,
-	/* isDisabled */ NULL,
-	/* updateDepgraph */ NULL,
-	/* dependsOnTime */ NULL,
-	/* dependsOnNormals */ NULL,
+	/* copyData */          copyData,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     applyModifier,
+	/* applyModifierEM */   applyModifierEM,
+	/* initData */          initData,
+	/* requiredDataMask */  requiredDataMask,
+	/* freeData */          NULL,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */ NULL,
-	/* foreachTexLink */ NULL,
+	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

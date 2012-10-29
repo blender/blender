@@ -289,7 +289,7 @@ static int write_video_frame(RenderData *rd, int cfra, AVFrame *frame, ReportLis
 	}
 
 	if (!success)
-		BKE_report(reports, RPT_ERROR, "Error writing frame.");
+		BKE_report(reports, RPT_ERROR, "Error writing frame");
 
 	return success;
 }
@@ -307,7 +307,7 @@ static AVFrame *generate_video_frame(uint8_t *pixels, ReportList *reports)
 	if (c->pix_fmt != PIX_FMT_BGR32) {
 		rgb_frame = alloc_picture(PIX_FMT_BGR32, width, height);
 		if (!rgb_frame) {
-			BKE_report(reports, RPT_ERROR, "Couldn't allocate temporary frame.");
+			BKE_report(reports, RPT_ERROR, "Could not allocate temporary frame");
 			return NULL;
 		}
 	}
@@ -695,12 +695,12 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	
 	exts = get_file_extensions(ffmpeg_type);
 	if (!exts) {
-		BKE_report(reports, RPT_ERROR, "No valid formats found.");
+		BKE_report(reports, RPT_ERROR, "No valid formats found");
 		return 0;
 	}
 	fmt = av_guess_format(NULL, exts[0], NULL);
 	if (!fmt) {
-		BKE_report(reports, RPT_ERROR, "No valid formats found.");
+		BKE_report(reports, RPT_ERROR, "No valid formats found");
 		return 0;
 	}
 
@@ -795,7 +795,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 			if (error[0])
 				BKE_report(reports, RPT_ERROR, error);
 			else
-				BKE_report(reports, RPT_ERROR, "Error initializing video stream.");
+				BKE_report(reports, RPT_ERROR, "Error initializing video stream");
 
 			av_dict_free(&opts);
 			return 0;
@@ -805,20 +805,20 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	if (ffmpeg_audio_codec != CODEC_ID_NONE) {
 		audio_stream = alloc_audio_stream(rd, fmt->audio_codec, of);
 		if (!audio_stream) {
-			BKE_report(reports, RPT_ERROR, "Error initializing audio stream.");
+			BKE_report(reports, RPT_ERROR, "Error initializing audio stream");
 			av_dict_free(&opts);
 			return 0;
 		}
 	}
 	if (!(fmt->flags & AVFMT_NOFILE)) {
 		if (avio_open(&of->pb, name, AVIO_FLAG_WRITE) < 0) {
-			BKE_report(reports, RPT_ERROR, "Could not open file for writing.");
+			BKE_report(reports, RPT_ERROR, "Could not open file for writing");
 			av_dict_free(&opts);
 			return 0;
 		}
 	}
 	if (avformat_write_header(of, NULL) < 0) {
-		BKE_report(reports, RPT_ERROR, "Could not initialize streams. Probably unsupported codec combination.");
+		BKE_report(reports, RPT_ERROR, "Could not initialize streams, probably unsupported codec combination");
 			av_dict_free(&opts);
 		return 0;
 	}
@@ -982,7 +982,7 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 
 	PRINT("Writing frame %i, render width=%d, render height=%d\n", frame, rectx, recty);
 
-// why is this done before writing the video frame and again at end_ffmpeg?
+/* why is this done before writing the video frame and again at end_ffmpeg? */
 //	write_audio_frames(frame / (((double)rd->frs_sec) / rd->frs_sec_base));
 
 	if (video_stream) {
@@ -1225,7 +1225,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 		while (*param == ' ') param++;
 	}
 	
-	o = my_av_find_opt(&c, name, NULL, 0, 0);	
+	o = my_av_find_opt(&c, name, NULL, 0, 0);
 	if (!o) {
 		return 0;
 	}
@@ -1233,7 +1233,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 		return 0;
 	}
 	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
-		p = my_av_find_opt(&c, param, o->unit, 0, 0);	
+		p = my_av_find_opt(&c, param, o->unit, 0, 0);
 		if (p) {
 			prop = BKE_ffmpeg_property_add(rd, (char *) type, p - c.av_class->option, o - c.av_class->option);
 		}

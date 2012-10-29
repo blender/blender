@@ -69,7 +69,7 @@ void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack 
 	}
 }
 
-void node_init_input_index(bNodeSocket *sock, int *index)
+static void node_init_input_index(bNodeSocket *sock, int *index)
 {
 	if (sock->link && sock->link->fromsock) {
 		sock->stack_index = sock->link->fromsock->stack_index;
@@ -79,16 +79,31 @@ void node_init_input_index(bNodeSocket *sock, int *index)
 	}
 }
 
-void node_init_output_index(bNodeSocket *sock, int *index)
+static void node_init_output_index(bNodeSocket *sock, int *index, ListBase *internal_links)
 {
-	sock->stack_index = (*index)++;
+	if (internal_links) {
+		bNodeLink *link;
+		/* copy the stack index from internally connected input to skip the node */
+		for (link = internal_links->first; link; link = link->next) {
+			if (link->tosock == sock) {
+				sock->stack_index = link->fromsock->stack_index;
+				break;
+			}
+		}
+		/* if not internally connected, assign a new stack index anyway to avoid bad stack access */
+		if (!link)
+			sock->stack_index = (*index)++;
+	}
+	else {
+		sock->stack_index = (*index)++;
+	}
 }
 
 /* basic preparation of socket stacks */
 static struct bNodeStack *setup_stack(bNodeStack *stack, bNodeSocket *sock)
 {
 	bNodeStack *ns = node_get_socket_stack(stack, sock);
-	float null_value[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	float null_value[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	
 	/* don't mess with remote socket stacks, these are initialized by other nodes! */
 	if (sock->link)
@@ -133,7 +148,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 	bNodeExec *nodeexec;
 	bNodeSocket *sock, *gsock;
 	bNodeStack *ns;
-	int index= 0;
+	int index;
 	bNode **nodelist;
 	int totnodes, n;
 	
@@ -148,10 +163,11 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 	/* backpointer to node tree */
 	exec->nodetree = ntree;
 	
+	/* set stack indices */
+	index = 0;
 	/* group inputs essentially work as outputs */
 	for (gsock=ntree->inputs.first; gsock; gsock = gsock->next)
-		node_init_output_index(gsock, &index);
-	/* set stack indexes */
+		node_init_output_index(gsock, &index, NULL);
 	for (n=0; n < totnodes; ++n) {
 		node = nodelist[n];
 		
@@ -160,8 +176,15 @@ bNodeTreeExec *ntree_exec_begin(bNodeTree *ntree)
 		/* init node socket stack indexes */
 		for (sock=node->inputs.first; sock; sock=sock->next)
 			node_init_input_index(sock, &index);
-		for (sock=node->outputs.first; sock; sock=sock->next)
-			node_init_output_index(sock, &index);
+		
+		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
+			for (sock=node->outputs.first; sock; sock=sock->next)
+				node_init_output_index(sock, &index, &node->internal_links);
+		}
+		else {
+			for (sock=node->outputs.first; sock; sock=sock->next)
+				node_init_output_index(sock, &index, NULL);
+		}
 	}
 	/* group outputs essentially work as inputs */
 	for (gsock=ntree->outputs.first; gsock; gsock = gsock->next)

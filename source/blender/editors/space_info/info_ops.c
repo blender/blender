@@ -196,7 +196,7 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 
 	if (!G.relbase_valid) {
-		BKE_report(op->reports, RPT_WARNING, "Can't set relative paths with an unsaved blend file");
+		BKE_report(op->reports, RPT_WARNING, "Cannot set relative paths with an unsaved blend file");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -229,7 +229,7 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 
 	if (!G.relbase_valid) {
-		BKE_report(op->reports, RPT_WARNING, "Can't set absolute paths with an unsaved blend file");
+		BKE_report(op->reports, RPT_WARNING, "Cannot set absolute paths with an unsaved blend file");
 		return OPERATOR_CANCELLED;
 	}
 

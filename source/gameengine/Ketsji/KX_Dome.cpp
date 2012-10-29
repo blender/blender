@@ -94,7 +94,7 @@ KX_Dome::KX_Dome (
 
 	SetViewPort(viewport);
 
-	switch(m_mode) {
+	switch (m_mode) {
 		case DOME_FISHEYE:
 			if (m_angle <= 180) {
 				cubetop.resize(1);
@@ -1620,7 +1620,7 @@ void KX_Dome::Draw(void)
 		glScissor(0,0,warp.imagesize, warp.imagesize);
 	}
 
-	switch(m_mode) {
+	switch (m_mode) {
 		case DOME_FISHEYE:
 			DrawDomeFisheye();
 			break;

@@ -1796,7 +1796,7 @@ static void initPySysObjects(Main *maggie)
 	
 	Library *lib= (Library *)maggie->library.first;
 	
-	while(lib) {
+	while (lib) {
 		/* lib->name wont work in some cases (on win32),
 		 * even when expanding with gp_GamePythonPath, using lib->filename is less trouble */
 		initPySysObjects__append(sys_path, lib->filepath);
@@ -1844,7 +1844,7 @@ void removeImportMain(struct Main *maggie)
 }
 
 // Copied from bpy_interface.c
-static struct _inittab bge_internal_modules[]= {
+static struct _inittab bge_internal_modules[] = {
 	{(char *)"mathutils", PyInit_mathutils},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
@@ -2240,9 +2240,9 @@ PyObject *initGameKeys()
 	KX_MACRO_addTypesToDict(d, CAPSLOCKKEY, SCA_IInputDevice::KX_CAPSLOCKKEY);
 		
 	KX_MACRO_addTypesToDict(d, LEFTCTRLKEY, SCA_IInputDevice::KX_LEFTCTRLKEY);
-	KX_MACRO_addTypesToDict(d, LEFTALTKEY, SCA_IInputDevice::KX_LEFTALTKEY); 		
-	KX_MACRO_addTypesToDict(d, RIGHTALTKEY, SCA_IInputDevice::KX_RIGHTALTKEY); 	
-	KX_MACRO_addTypesToDict(d, RIGHTCTRLKEY, SCA_IInputDevice::KX_RIGHTCTRLKEY); 	
+	KX_MACRO_addTypesToDict(d, LEFTALTKEY, SCA_IInputDevice::KX_LEFTALTKEY);
+	KX_MACRO_addTypesToDict(d, RIGHTALTKEY, SCA_IInputDevice::KX_RIGHTALTKEY);
+	KX_MACRO_addTypesToDict(d, RIGHTCTRLKEY, SCA_IInputDevice::KX_RIGHTCTRLKEY);
 	KX_MACRO_addTypesToDict(d, RIGHTSHIFTKEY, SCA_IInputDevice::KX_RIGHTSHIFTKEY);
 	KX_MACRO_addTypesToDict(d, LEFTSHIFTKEY, SCA_IInputDevice::KX_LEFTSHIFTKEY);
 		

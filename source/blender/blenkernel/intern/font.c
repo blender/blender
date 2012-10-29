@@ -177,7 +177,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 		}
 	}
 	
-	return vfont->data;	
+	return vfont->data;
 }
 
 VFont *BKE_vfont_load(Main *bmain, const char *name)
@@ -306,23 +306,23 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	nu2->bp = bp;
 
 	nu2->bp[0].vec[0] = x1;
-	nu2->bp[0].vec[1] = y1;	
+	nu2->bp[0].vec[1] = y1;
 	nu2->bp[0].vec[2] = 0;
 	nu2->bp[0].vec[3] = 1.0f;
 	nu2->bp[1].vec[0] = x2;
 	nu2->bp[1].vec[1] = y1;
-	nu2->bp[1].vec[2] = 0;	
+	nu2->bp[1].vec[2] = 0;
 	nu2->bp[1].vec[3] = 1.0f;
 	nu2->bp[2].vec[0] = x2;
-	nu2->bp[2].vec[1] = y2;	
+	nu2->bp[2].vec[1] = y2;
 	nu2->bp[2].vec[2] = 0;
 	nu2->bp[2].vec[3] = 1.0f;
 	nu2->bp[3].vec[0] = x1;
 	nu2->bp[3].vec[1] = y2;
-	nu2->bp[3].vec[2] = 0;	
+	nu2->bp[3].vec[2] = 0;
 	nu2->bp[3].vec[3] = 1.0f;
 	
-	BLI_addtail(&(cu->nurb), nu2);	
+	BLI_addtail(&(cu->nurb), nu2);
 
 }
 
@@ -545,7 +545,7 @@ struct CharTrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	/* The VFont Data can not be found */
 	if (!vfd) {
 		if (mem)
-			MEM_freeN(mem);	
+			MEM_freeN(mem);
 		return NULL;
 	}
 
@@ -671,7 +671,7 @@ makebreak:
 
 			yof -= linedist;
 
-			maxlen = maxf(maxlen, (xof - tb->x / cu->fsize));
+			maxlen = max_ff(maxlen, (xof - tb->x / cu->fsize));
 			linedata[lnr] = xof - tb->x / cu->fsize;
 			linedata2[lnr] = cnr;
 			linedata3[lnr] = tb->w / cu->fsize;
@@ -731,7 +731,7 @@ makebreak:
 			if (ascii == 32) {
 				wsfac = cu->wordspace; 
 				wsnr++;
-			} 
+			}
 			else {
 				wsfac = 1.0f;
 			}
@@ -754,7 +754,7 @@ makebreak:
 	for (i = 0; i <= slen; i++, tmp++, ct++) {
 		ascii = *tmp;
 		if (ascii == '\n' || ascii == '\r' || ct->dobreak) cu->lines++;
-	}	
+	}
 
 	/* linedata is now: width of line
 	 * linedata2 is now: number of characters
@@ -792,7 +792,7 @@ makebreak:
 //				}
 				ct++;
 			}
-		} 
+		}
 		else if ((cu->spacemode == CU_JUSTIFY) && (cu->tb[0].w != 0.0f)) {
 			float curofs = 0.0f;
 			for (i = 0; i <= slen; i++) {

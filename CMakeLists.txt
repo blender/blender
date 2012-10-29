@@ -188,7 +188,6 @@ unset(PLATFORM_DEFAULT)
 # Modifiers
 option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
 option(WITH_MOD_SMOKE        	"Enable Smoke Modifier (Smoke Simulation)" ON)
-option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
 option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
 option(WITH_MOD_REMESH        	"Enable Remesh Modifier" ON)
 option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experimental cloth solver" OFF)
@@ -297,11 +296,11 @@ if(APPLE)
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 	
-		##### workaround for actual official cmake incompatibility with xcode 4.3 #####	
+		##### workaround for actual official cmake incompatibility with xcode 4.3 #####
 		if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
 			message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
 		endif()
-		### end workaround for actual official cmake incompatibility with xcode 4.3 ###	
+		### end workaround for actual official cmake incompatibility with xcode 4.3 ###
 		
 		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4 AND ${XCODE_VERSION} VERSION_LESS 4.3)
 			# Xcode 4 defaults to the Apple LLVM Compiler.
@@ -718,7 +717,7 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_LLVM)
 		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
-		set(LLVM_VERSION "3.0" CACHE STRING	"Version of LLVM to use" "")
+		set(LLVM_VERSION "3.0" CACHE STRING	"Version of LLVM to use")
 		set(LLVM_STATIC YES)
 		if(LLVM_DIRECTORY)
 			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
@@ -863,7 +862,7 @@ elseif(WIN32)
 	if(CMAKE_COMPILER_IS_GNUCC)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
 
-		# Setup 64bit and 64bit windows systems		
+		# Setup 64bit and 64bit windows systems
 		if(WITH_MINGW64)
 			message("Set 64 bit compiler for MinGW.")
 			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
@@ -989,7 +988,7 @@ elseif(WIN32)
 		if(WITH_MOD_CLOTH_ELTOPO)
 			set(LAPACK ${LIBDIR}/lapack)
 			# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
-			set(LAPACK_LIBPATH ${LAPACK}/lib)	
+			set(LAPACK_LIBPATH ${LAPACK}/lib)
 			set(LAPACK_LIBRARIES
 				${LIBDIR}/lapack/lib/libf2c.lib
 				${LIBDIR}/lapack/lib/clapack_nowrap.lib
@@ -1129,7 +1128,7 @@ elseif(WIN32)
 			else()
 				set(BOOST_LIBPATH ${BOOST}/lib)
 				set(BOOST_POSTFIX "vc90-mt-s-1_49.lib")
-				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_49.lib")					
+				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_49.lib")
 			endif()
 			set(BOOST_LIBRARIES
 				optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
@@ -1178,7 +1177,7 @@ elseif(WIN32)
 		blender_include_dirs_sys("${PTHREADS_INCLUDE_DIRS}")
 
 	elseif(CMAKE_COMPILER_IS_GNUCC)
-	# keep GCC specific stuff here		
+	# keep GCC specific stuff here
 		set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32 -lpsapi")
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
@@ -1316,7 +1315,7 @@ elseif(WIN32)
 			else()
 				set(BOOST_POSTFIX "mgw46-mt-s-1_49")
 				set(BOOST_DEBUG_POSTFIX "mgw46-mt-sd-1_49")
-			endif()		
+			endif()
 			set(BOOST_LIBRARIES
 				optimized boost_date_time-${BOOST_POSTFIX} boost_filesystem-${BOOST_POSTFIX}
 				boost_regex-${BOOST_POSTFIX}
@@ -1372,7 +1371,7 @@ elseif(APPLE)
 		set(OSX_SYSROOT_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform)
 		set(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk
 		set(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
-	endif()	
+	endif()
 	
 	if(WITH_LIBS10.5)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
@@ -1611,7 +1610,7 @@ elseif(APPLE)
 
 	if(WITH_LLVM)
 		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
-		set(LLVM_VERSION "3.1" CACHE STRING	"Version of LLVM to use" "")
+		set(LLVM_VERSION "3.1" CACHE STRING	"Version of LLVM to use")
 		set(LLVM_STATIC YES)
 		if(LLVM_DIRECTORY)
 			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
@@ -1863,7 +1862,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
 
 	# gcc 4.2 gives annoying warnings on every file with this
-	if (${CMAKE_C_COMPILER_VERSION} VERSION_GREATER "4.2")
+	if ("${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "4.2")
 		ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNINITIALIZED -Wuninitialized)
 	endif()
 
@@ -1883,7 +1882,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_DIV_BY_ZERO -Wno-div-by-zero)
 
 	# gcc 4.2 gives annoying warnings on every file with this
-	if (${CMAKE_C_COMPILER_VERSION} VERSION_GREATER "4.2")
+	if ("${CMAKE_C_COMPILER_VERSION}" VERSION_GREATER "4.2")
 		ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNINITIALIZED -Wuninitialized)
 	endif()
 
@@ -2126,7 +2125,6 @@ if(FIRST_RUN)
 	info_cfg_text("Modifiers:")
 	info_cfg_option(WITH_MOD_BOOLEAN)
 	info_cfg_option(WITH_MOD_REMESH)
-	info_cfg_option(WITH_MOD_DECIMATE)
 	info_cfg_option(WITH_MOD_FLUID)
 	info_cfg_option(WITH_MOD_OCEANSIM)
 

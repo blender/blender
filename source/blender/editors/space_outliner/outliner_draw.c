@@ -36,6 +36,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -92,7 +93,7 @@ static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 {
 	TreeElement *te = lb->first;
 	while (te) {
-//		TreeStoreElem *tselem= TREESTORE(te);
+//		TreeStoreElem *tselem = TREESTORE(te);
 		
 		// XXX fixme... te->xend is not set yet
 		if (!TSELEM_OPEN(tselem, soops)) {
@@ -238,9 +239,9 @@ static int group_select_flag(Group *gr)
 
 void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 {	
-	Scene *scene = (Scene *)poin;		
+	Scene *scene = (Scene *)poin;
 	GroupObject *gob;
-	Group *gr = (Group *)poin2; 	
+	Group *gr = (Group *)poin2;
 
 	if (group_restrict_flag(gr, flag)) {
 		for (gob = gr->gobject.first; gob; gob = gob->next) {
@@ -309,7 +310,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					WM_event_add_notifier(C, NC_SCENE, NULL); break;
 				default:
 					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL); break;
-			}					
+			}
 			/* Check the library target exists */
 			if (te->idcode == ID_LI) {
 				Library *lib = (Library *)tselem->id;
@@ -627,7 +628,7 @@ static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
 	search[0] = 0;
 	
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_RET_1);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_SEARCH_MENU);
 	
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
@@ -636,7 +637,7 @@ static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
 	uiButSetSearchFunc(but, operator_search_cb, arg_kmi, operator_call_cb, ot);
 	
 	uiBoundsBlock(block, 6);
-	uiBlockSetDirection(block, UI_DOWN);	
+	uiBlockSetDirection(block, UI_DOWN);
 	uiEndBlock(C, block);
 	
 	event = *(win->eventstate);  /* XXX huh huh? make api call */
@@ -1000,6 +1001,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					case eModifierType_Bevel:
 						UI_icon_draw(x, y, ICON_MOD_BEVEL); break;
 					case eModifierType_Smooth:
+					case eModifierType_LaplacianSmooth:
 						UI_icon_draw(x, y, ICON_MOD_SMOOTH); break;
 					case eModifierType_SimpleDeform:
 						UI_icon_draw(x, y, ICON_MOD_SIMPLEDEFORM); break;
@@ -1251,7 +1253,7 @@ static void outliner_set_coord_tree_element(SpaceOops *soops, TreeElement *te, i
 	
 	for (ten = te->subtree.first; ten; ten = ten->next) {
 		outliner_set_coord_tree_element(soops, ten, startx + UI_UNIT_X, starty);
-	}	
+	}
 }
 
 
@@ -1396,7 +1398,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				UI_icon_draw((float)startx + offsx, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 			offsx += UI_UNIT_X;
-		}		
+		}
 		glDisable(GL_BLEND);
 		
 		/* name */
@@ -1433,7 +1435,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				}
 			}
 		}
-	}	
+	}
 	/* store coord and continue, we need coordinates for elements outside view too */
 	te->xs = (float)startx;
 	te->ys = (float)*starty;
@@ -1444,7 +1446,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		
 		for (ten = te->subtree.first; ten; ten = ten->next)
 			outliner_draw_tree_element(C, block, scene, ar, soops, ten, startx + UI_UNIT_X, starty);
-	}	
+	}
 	else {
 		for (ten = te->subtree.first; ten; ten = ten->next)
 			outliner_set_coord_tree_element(soops, te, startx, starty);
@@ -1648,7 +1650,7 @@ void draw_outliner(const bContext *C)
 		 
 		/* get actual width of column 1 */
 		outliner_rna_width(soops, &soops->tree, &sizex_rna, 0);
-		sizex_rna = MAX2(OL_RNA_COLX, sizex_rna + OL_RNA_COL_SPACEX);
+		sizex_rna = max_ii(OL_RNA_COLX, sizex_rna + OL_RNA_COL_SPACEX);
 		
 		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
 		if (soops->outlinevis == SO_KEYMAP) 
@@ -1701,7 +1703,7 @@ void draw_outliner(const bContext *C)
 	}
 
 	/* draw edit buttons if nessecery */
-	outliner_buttons(C, block, ar, soops, &soops->tree);	
+	outliner_buttons(C, block, ar, soops, &soops->tree);
 
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

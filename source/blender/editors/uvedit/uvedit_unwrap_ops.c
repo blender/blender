@@ -408,7 +408,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	smd.levels = scene->toolsettings->uv_subsurf_level;
 	smd.subdivType = ME_CC_SUBSURF;
 		
-	initialDerived = CDDM_from_BMEditMesh(em, NULL, 0, 0);
+	initialDerived = CDDM_from_editbmesh(em, FALSE, FALSE);
 	derivedMesh = subsurf_make_derived_from_derived(initialDerived, &smd,
 	                                                NULL, SUBSURF_IN_EDIT_MODE);
 
@@ -1436,8 +1436,8 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 		if (i != mi) {
 			dx = uvs[mi][0] - uvs[i][0];
 			if (dx > 0.5f) uvs[i][0] += 1.0f;
-		} 
-	} 
+		}
+	}
 
 	BLI_array_fixedstack_free(uvs);
 }

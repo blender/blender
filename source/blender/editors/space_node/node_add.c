@@ -35,6 +35,8 @@
 
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -240,7 +242,8 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		ima = BKE_image_load_exists(path);
 
 		if (!ima) {
-			BKE_reportf(op->reports, RPT_ERROR, "Can't read image: \"%s\", %s", path, errno ? strerror(errno) : "Unsupported format");
+			BKE_reportf(op->reports, RPT_ERROR, "Cannot read image '%s': %s",
+			            path, errno ? strerror(errno) : TIP_("unsupported format"));
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -250,7 +253,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
 
 		if (!ima) {
-			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found", name);
+			BKE_reportf(op->reports, RPT_ERROR, "Image '%s' not found", name);
 			return OPERATOR_CANCELLED;
 		}
 	}

@@ -1237,7 +1237,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 					TFace *tf = &((TFace*) me->tface)[i];
 
 					for (j = 0; j < 4; j++) {
-						char *col = (char*) &tf->col[j];
+						char *col = (char *) &tf->col[j];
 
 						col[0] = 255;
 					}

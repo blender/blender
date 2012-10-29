@@ -476,7 +476,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 
 	make_prim_finish(C, obedit, &state, enter_editmode);
 
-	return OPERATOR_FINISHED;	
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)

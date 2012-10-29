@@ -51,6 +51,8 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_global.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
@@ -221,7 +223,7 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking, MovieTrackingOb
 	float viewfac, pixsize, left, right, bottom, top, clipsta, clipend;
 	float winmat[4][4];
 	float ycor =  1.0f / tracking->camera.pixel_aspect;
-	float shiftx, shifty, winside = MAX2(winx, winy);
+	float shiftx, shifty, winside = (float)min_ii(winx, winy);
 
 	BKE_tracking_camera_shift_get(tracking, winx, winy, &shiftx, &shifty);
 
@@ -997,8 +999,8 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
 	if (event == CLAMP_PAT_DIM) {
 		for (a = 0; a < 2; a++) {
 			/* search shouldn't be resized smaller than pattern */
-			marker->search_min[a] = minf(pat_min[a], marker->search_min[a]);
-			marker->search_max[a] = maxf(pat_max[a], marker->search_max[a]);
+			marker->search_min[a] = min_ff(pat_min[a], marker->search_min[a]);
+			marker->search_max[a] = max_ff(pat_max[a], marker->search_max[a]);
 		}
 	}
 	else if (event == CLAMP_PAT_POS) {
@@ -1022,8 +1024,8 @@ void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
 	else if (event == CLAMP_SEARCH_DIM) {
 		for (a = 0; a < 2; a++) {
 			/* search shouldn't be resized smaller than pattern */
-			marker->search_min[a] = minf(pat_min[a], marker->search_min[a]);
-			marker->search_max[a] = maxf(pat_max[a], marker->search_max[a]);
+			marker->search_min[a] = min_ff(pat_min[a], marker->search_min[a]);
+			marker->search_max[a] = max_ff(pat_max[a], marker->search_max[a]);
 		}
 	}
 	else if (event == CLAMP_SEARCH_POS) {
@@ -2138,7 +2140,7 @@ void BKE_tracking_context_sync(MovieTrackingContext *context)
 
 	context->sync_frame = newframe;
 
-	tracking->dopesheet.ok = FALSE;
+	BKE_tracking_dopesheet_tag_update(tracking);
 }
 
 void BKE_tracking_context_sync_user(const MovieTrackingContext *context, MovieClipUser *user)
@@ -2345,10 +2347,10 @@ static int tracking_check_marker_margin(MovieTrackingTrack *track, MovieTracking
 	/* margin from frame boundaries */
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 	sub_v2_v2v2(dim, pat_max, pat_min);
-	margin[0] = margin[1] = maxf(dim[0], dim[1]) / 2.0f;
+	margin[0] = margin[1] = max_ff(dim[0], dim[1]) / 2.0f;
 
-	margin[0] = maxf(margin[0], (float)track->margin / frame_width);
-	margin[1] = maxf(margin[1], (float)track->margin / frame_height);
+	margin[0] = max_ff(margin[0], (float)track->margin / frame_width);
+	margin[1] = max_ff(margin[1], (float)track->margin / frame_height);
 
 	/* do not track markers which are too close to boundary */
 	if (marker->pos[0] < margin[0] || marker->pos[0] > 1.0f - margin[0] ||
@@ -2787,7 +2789,7 @@ int BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObje
 		return TRUE;
 	}
 	else if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
-		BLI_strncpy(error_msg, "At least 8 common tracks on both of keyframes are needed for reconstruction",
+		BLI_strncpy(error_msg, N_("At least 8 common tracks on both of keyframes are needed for reconstruction"),
 		            error_size);
 
 		return FALSE;
@@ -2795,7 +2797,7 @@ int BKE_tracking_reconstruction_check(MovieTracking *tracking, MovieTrackingObje
 
 	return TRUE;
 #else
-	BLI_strncpy(error_msg, "Blender is compiled without motion tracking library", error_size);
+	BLI_strncpy(error_msg, N_("Blender is compiled without motion tracking library"), error_size);
 
 	(void) tracking;
 	(void) object;
@@ -2848,10 +2850,10 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieTracking *
 		}
 
 		if (first < track->markersnr - 1)
-			sfra = MIN2(sfra, first_marker->framenr);
+			sfra = min_ii(sfra, first_marker->framenr);
 
 		if (last >= 0)
-			efra = MAX2(efra, last_marker->framenr);
+			efra = max_ii(efra, last_marker->framenr);
 
 		tracks_map_insert(context->tracks_map, track, NULL);
 
@@ -2953,6 +2955,7 @@ int BKE_tracking_reconstruction_finish(MovieReconstructContext *context, MovieTr
 	MovieTrackingReconstruction *reconstruction;
 
 	tracks_map_merge(context->tracks_map, tracking);
+	BKE_tracking_dopesheet_tag_update(tracking);
 
 	if (context->is_camera) {
 		reconstruction = &tracking->reconstruction;
@@ -3198,8 +3201,8 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 			if (track->flag & TRACK_USE_2D_STAB ||
 			    ((stab->flag & TRACKING_STABILIZE_ROTATION) && track == stab->rot_track))
 			{
-				sfra = MIN2(sfra, track->markers[0].framenr);
-				efra = MAX2(efra, track->markers[track->markersnr - 1].framenr);
+				sfra = min_ii(sfra, track->markers[0].framenr);
+				efra = max_ii(efra, track->markers[track->markersnr - 1].framenr);
 			}
 
 			track = track->next;
@@ -3275,7 +3278,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 
 						S = (-w * I - h * J) / (dx * I + dy * J + K);
 
-						scale = maxf(scale, S);
+						scale = max_ff(scale, S);
 					}
 				}
 			}
@@ -3284,7 +3287,7 @@ static float stabilization_calculate_autoscale_factor(MovieTracking *tracking, i
 		stab->scale = scale;
 
 		if (stab->maxscale > 0.0f)
-			stab->scale = minf(stab->scale, stab->maxscale);
+			stab->scale = min_ff(stab->scale, stab->maxscale);
 	}
 	else {
 		stab->scale = 1.0f;
@@ -3643,7 +3646,7 @@ static void channels_segments_calc(MovieTrackingDopesheetChannel *channel)
 			channel->segments[2 * segment] = start_marker->framenr;
 			channel->segments[2 * segment + 1] = start_marker->framenr + len;
 
-			channel->max_segment =  MAX2(channel->max_segment, len);
+			channel->max_segment = max_ii(channel->max_segment, len);
 			segment++;
 		}
 
@@ -3651,7 +3654,7 @@ static void channels_segments_calc(MovieTrackingDopesheetChannel *channel)
 	}
 }
 
-static void  tracking_dopesheet_sort(MovieTracking *tracking, int sort_method, int inverse)
+static void tracking_dopesheet_sort(MovieTracking *tracking, int sort_method, int inverse)
 {
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 

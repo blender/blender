@@ -302,11 +302,11 @@ void BKE_object_free(Object *ob)
 	
 	BKE_object_free_display(ob);
 	
-	/* disconnect specific data */
+	/* disconnect specific data, but not for lib data (might be indirect data, can get relinked) */
 	if (ob->data) {
 		ID *id = ob->data;
 		id->us--;
-		if (id->us == 0) {
+		if (id->us == 0 && id->lib==NULL) {
 			switch (ob->type) {
 				case OB_MESH:
 					BKE_mesh_unlink((Mesh *)id);
@@ -456,7 +456,7 @@ void BKE_object_unlink(Object *ob)
 				if (pchan->custom == ob)
 					pchan->custom = NULL;
 			}
-		} 
+		}
 		else if (ELEM(OB_MBALL, ob->type, obt->type)) {
 			if (BKE_mball_is_basis_for(obt, ob))
 				obt->recalc |= OB_RECALC_DATA;
@@ -2581,9 +2581,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 		if (ob->recalc & OB_RECALC_DATA) {
 			ID *data_id = (ID *)ob->data;
 			AnimData *adt = BKE_animdata_from_id(data_id);
-			float ctime = (float)scene->r.cfra; // XXX this is bad...
-			ListBase pidlist;
-			PTCacheID *pid;
+			float ctime = (float)scene->r.cfra;  /* XXX this is bad... */
 			
 			if (G.debug & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name + 2);
@@ -2706,26 +2704,8 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
-
-			/* check if quick cache is needed */
-			BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
-
-			for (pid = pidlist.first; pid; pid = pid->next) {
-				if ((pid->cache->flag & PTCACHE_BAKED) ||
-				    (pid->cache->flag & PTCACHE_QUICK_CACHE) == 0)
-				{
-					continue;
-				}
-
-				if (pid->cache->flag & PTCACHE_OUTDATED || (pid->cache->flag & PTCACHE_SIMULATION_VALID) == 0) {
-					scene->physics_settings.quick_cache_step =
-					        scene->physics_settings.quick_cache_step ?
-					        mini(scene->physics_settings.quick_cache_step, pid->cache->step) :
-					        pid->cache->step;
-				}
-			}
-
-			BLI_freelistN(&pidlist);
+			
+			/* quick cache removed */
 		}
 
 		/* the no-group proxy case, we call update */

@@ -249,7 +249,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 		}
 
 		//create tris
-		polys = (unsigned short*)MEM_callocN(sizeof(unsigned short)*3*2*npolys, "BuildVertIndArrays polys");
+		polys = (unsigned short *)MEM_callocN(sizeof(unsigned short)*3*2*npolys, "BuildVertIndArrays polys");
 		memset(polys, 0xff, sizeof(unsigned short)*3*2*npolys);
 		unsigned short *poly = polys;
 		RAS_Polygon* raspoly;
@@ -258,10 +258,10 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 			raspoly = meshobj->GetPolygon(p);
 			for (int v=0; v<raspoly->VertexCount()-2; v++)
 			{
-				poly[0]= raspoly->GetVertex(0)->getOrigIndex();
+				poly[0] = raspoly->GetVertex(0)->getOrigIndex();
 				for (size_t i=1; i<3; i++)
 				{
-					poly[i]= raspoly->GetVertex(v+i)->getOrigIndex();
+					poly[i] = raspoly->GetVertex(v+i)->getOrigIndex();
 				}
 				poly += 6;
 			}

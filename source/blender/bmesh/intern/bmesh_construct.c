@@ -725,6 +725,7 @@ static void bm_vert_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
                                const BMVert *source_vertex, BMVert *target_vertex)
 {
 	if ((source_mesh == target_mesh) && (source_vertex == target_vertex)) {
+		BLI_assert(!"BMVert: source and targer match");
 		return;
 	}
 	copy_v3_v3(target_vertex->no, source_vertex->no);
@@ -737,6 +738,7 @@ static void bm_edge_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
                                const BMEdge *source_edge, BMEdge *target_edge)
 {
 	if ((source_mesh == target_mesh) && (source_edge == target_edge)) {
+		BLI_assert(!"BMEdge: source and targer match");
 		return;
 	}
 	CustomData_bmesh_free_block(&target_mesh->edata, &target_edge->head.data);
@@ -748,6 +750,7 @@ static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
                                const BMLoop *source_loop, BMLoop *target_loop)
 {
 	if ((source_mesh == target_mesh) && (source_loop == target_loop)) {
+		BLI_assert(!"BMLoop: source and targer match");
 		return;
 	}
 	CustomData_bmesh_free_block(&target_mesh->ldata, &target_loop->head.data);
@@ -759,6 +762,7 @@ static void bm_face_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
                                const BMFace *source_face, BMFace *target_face)
 {
 	if ((source_mesh == target_mesh) && (source_face == target_face)) {
+		BLI_assert(!"BMFace: source and targer match");
 		return;
 	}
 	copy_v3_v3(target_face->no, source_face->no);
@@ -781,8 +785,10 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 
 	BLI_assert(sheader->htype == theader->htype);
 
-	if (sheader->htype != theader->htype)
+	if (sheader->htype != theader->htype) {
+		BLI_assert(!"type mismatch");
 		return;
+	}
 
 	/* First we copy select */
 	if (BM_elem_flag_test((BMElem *)sheader, BM_ELEM_SELECT)) {

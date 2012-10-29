@@ -502,7 +502,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	}
 		
 	/* always call, checks for gamma, gamma tables and jitter too */
-	make_sample_tables(re);	
+	make_sample_tables(re);
 	
 	/* if preview render, we try to keep old result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
@@ -994,7 +994,7 @@ static void addblur_rect_key(RenderResult *rr, float *rectf, float *rectf1, floa
 					rf[1] = mfac * rf[1] + blurfac * rf1[1];
 					rf[2] = mfac * rf[2] + blurfac * rf1[2];
 					rf[3] = mfac * rf[3] + blurfac * rf1[3];
-				}				
+				}
 			}
 		}
 		rectf += stride;
@@ -1086,7 +1086,7 @@ static void do_render_blur_3d(Render *re)
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay = render_get_active_layer(re, re->result);
-	re->display_draw(re->ddh, re->result, NULL);	
+	re->display_draw(re->ddh, re->result, NULL);
 }
 
 
@@ -1646,7 +1646,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		ntreeFreeCache(ntree);
 		
 		do_render_fields_blur_3d(re);
-	} 
+	}
 	else {
 		/* ensure new result gets added, like for regular renders */
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
@@ -1953,7 +1953,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		if (scene->r.border.xmax <= scene->r.border.xmin ||
 		    scene->r.border.ymax <= scene->r.border.ymin)
 		{
-			BKE_report(reports, RPT_ERROR, "No border area selected.");
+			BKE_report(reports, RPT_ERROR, "No border area selected");
 			return 0;
 		}
 	}
@@ -1964,13 +1964,13 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		render_result_exr_file_path(scene, "", 0, str);
 		
 		if (BLI_file_is_writable(str) == 0) {
-			BKE_report(reports, RPT_ERROR, "Can not save render buffers, check the temp default path");
+			BKE_report(reports, RPT_ERROR, "Cannot save render buffers, check the temp default path");
 			return 0;
 		}
 		
 		/* no fullsample and edge */
 		if ((scene->r.scemode & R_FULL_SAMPLE) && (scene->r.mode & R_EDGE)) {
-			BKE_report(reports, RPT_ERROR, "Full Sample doesn't support Edge Enhance");
+			BKE_report(reports, RPT_ERROR, "Full sample does not support edge enhance");
 			return 0;
 		}
 		
@@ -1981,18 +1981,18 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	if (scene->r.scemode & R_DOCOMP) {
 		if (scene->use_nodes) {
 			if (!scene->nodetree) {
-				BKE_report(reports, RPT_ERROR, "No node tree in Scene");
+				BKE_report(reports, RPT_ERROR, "No node tree in scene");
 				return 0;
 			}
 			
 			if (!check_composite_output(scene)) {
-				BKE_report(reports, RPT_ERROR, "No Render Output Node in Scene");
+				BKE_report(reports, RPT_ERROR, "No render output node in scene");
 				return 0;
 			}
 			
 			if (scene->r.scemode & R_FULL_SAMPLE) {
 				if (composite_needs_render(scene, 0) == 0) {
-					BKE_report(reports, RPT_ERROR, "Full Sample AA not supported without 3d rendering");
+					BKE_report(reports, RPT_ERROR, "Full sample AA not supported without 3D rendering");
 					return 0;
 				}
 			}
@@ -2011,7 +2011,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	/* forbidden combinations */
 	if (scene->r.mode & R_PANORAMA) {
 		if (scene->r.mode & R_ORTHO) {
-			BKE_report(reports, RPT_ERROR, "No Ortho render possible for Panorama");
+			BKE_report(reports, RPT_ERROR, "No ortho render possible for panorama");
 			return 0;
 		}
 	}
@@ -2027,7 +2027,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		if (!(srl->layflag & SCE_LAY_DISABLE))
 			break;
 	if (srl == NULL) {
-		BKE_report(reports, RPT_ERROR, "All RenderLayers are disabled");
+		BKE_report(reports, RPT_ERROR, "All render layers are disabled");
 		return 0;
 	}
 
@@ -2230,7 +2230,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		IMB_freeImBuf(ibuf);
 
 		printf("Append frame %d", scene->r.cfra);
-	} 
+	}
 	else {
 		if (name_override)
 			BLI_strncpy(name, name_override, sizeof(name));
@@ -2550,25 +2550,25 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 					IMB_freeImBuf(ibuf_clip);
 				}
 				else {
-					BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to allocate clip buffer '%s'\n", filename);
+					BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to allocate clip buffer '%s'", filename);
 				}
 			}
 			else {
-				BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: incorrect dimensions for partial copy '%s'\n", filename);
+				BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: incorrect dimensions for partial copy '%s'", filename);
 			}
 		}
 
 		IMB_freeImBuf(ibuf);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
+		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'", filename);
 	}
 }
 
 void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
 {
 	if (!render_result_exr_file_read_path(result, NULL, filename)) {
-		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
+		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'", filename);
 		return;
 	}
 }
@@ -2629,7 +2629,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 		return TRUE;
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Error writing environment map.");
+		BKE_report(reports, RPT_ERROR, "Error writing environment map");
 		return FALSE;
 	}
 }

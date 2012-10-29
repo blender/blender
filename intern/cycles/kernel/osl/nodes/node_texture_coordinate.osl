@@ -19,8 +19,9 @@
 #include "stdosl.h"
 
 shader node_texture_coordinate(
-	normal Normal = N,
+	normal NormalIn = N,
 	int is_background = 0,
+	int from_dupli = 0,
 	string bump_offset = "center",
 
 	output point Generated = point(0.0, 0.0, 0.0),
@@ -28,6 +29,7 @@ shader node_texture_coordinate(
 	output point Object = point(0.0, 0.0, 0.0),
 	output point Camera = point(0.0, 0.0, 0.0),
 	output point Window = point(0.0, 0.0, 0.0),
+	output normal Normal = normal(0.0, 0.0, 0.0),
 	output point Reflection = point(0.0, 0.0, 0.0))
 {
 	if (is_background) {
@@ -37,27 +39,40 @@ shader node_texture_coordinate(
 		point Pcam = transform("camera", "world", point(0, 0, 0));
 		Camera = transform("camera", P + Pcam);
 		Window = transform("NDC", P + Pcam);
+		Normal = NormalIn;
 		Reflection = I;
 	}
 	else {
-		getattribute("std::generated", Generated); 
-		getattribute("std::uv", UV);
+		if (from_dupli) {
+			getattribute("std::dupli_generated", Generated); 
+			getattribute("std::dupli_uv", UV);
+		}
+		else {
+			getattribute("std::generated", Generated); 
+			getattribute("std::uv", UV);
+		}
+
 		Object = transform("object", P);
 		Camera = transform("camera", P);
 		Window = transform("NDC", P);
-		Reflection = reflect(I, Normal);
+		Normal = transform("world", "object", NormalIn);
+		Reflection = reflect(I, NormalIn);
 	}
 
 	if (bump_offset == "dx") {
-		Generated += Dx(Generated);
-		UV += Dx(UV);
+		if (!from_dupli) {
+			Generated += Dx(Generated);
+			UV += Dx(UV);
+		}
 		Object += Dx(Object);
 		Camera += Dx(Camera);
 		Window += Dx(Window);
 	}
 	else if (bump_offset == "dy") {
-		Generated += Dy(Generated);
-		UV += Dy(UV);
+		if (!from_dupli) {
+			Generated += Dy(Generated);
+			UV += Dy(UV);
+		}
 		Object += Dy(Object);
 		Camera += Dy(Camera);
 		Window += Dy(Window);

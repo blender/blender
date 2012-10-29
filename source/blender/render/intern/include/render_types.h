@@ -128,7 +128,7 @@ struct Render
 	/* if render with single-layer option, other rendered layers are stored here */
 	RenderResult *pushedresult;
 	/* a list of RenderResults, for fullsample */
-	ListBase fullresult;	
+	ListBase fullresult;
 	/* read/write mutex, all internal code that writes to re->result must use a
 	 * write lock, all external code must use a read lock. internal code is assumed
 	 * to not conflict with writes, so no lock used for that */

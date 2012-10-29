@@ -143,9 +143,9 @@ static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 	}
 	if (axis==3) {
 		cox= 0; coy= 1; coz= 2;		/* Y op -Z tr */
-		vec[0]= -vec[0];
-		vec[1]= -vec[1];
-		vec[2]= -vec[2];
+		vec[0] = -vec[0];
+		vec[1] = -vec[1];
+		vec[2] = -vec[2];
 	}
 	if (axis==4) {
 		cox= 1; coy= 0; coz= 2;		/*  */
@@ -154,9 +154,9 @@ static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
 		cox= 2; coy= 1; coz= 0;		/* Y up X tr */
 	}
 
-	mat[coz][0]= vec[0];
-	mat[coz][1]= vec[1];
-	mat[coz][2]= vec[2];
+	mat[coz][0] = vec[0];
+	mat[coz][1] = vec[1];
+	mat[coz][2] = vec[2];
 	if (normalize_v3((float *)mat[coz]) == 0.f) {
 		/* this is a very abnormal situation: the camera has reach the object center exactly
 		 * We will choose a completely arbitrary direction */
@@ -281,13 +281,13 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 			assert(0);
 			break;
 	}
-	
+
 	inp = fp1[0]*fp2[0] + fp1[1]*fp2[1] + fp1[2]*fp2[2];
 	fac = (-1.0f + inp) * m_damping;
 
-	from[0]+= fac*fp1[0];
-	from[1]+= fac*fp1[1];
-	from[2]+= fac*fp1[2];
+	from[0] += fac * fp1[0];
+	from[1] += fac * fp1[1];
+	from[2] += fac * fp1[2];
 	
 	/* alleen alstie ervoor ligt: cross testen en loodrechte bijtellen */
 	if (inp < 0.0f) {
@@ -303,9 +303,9 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 
 	/* CONSTRAINT 5: minimum / maximum afstand */
 
-	rc[0]= (lookat[0]-from[0]);
-	rc[1]= (lookat[1]-from[1]);
-	rc[2]= (lookat[2]-from[2]);
+	rc[0] = (lookat[0]-from[0]);
+	rc[1] = (lookat[1]-from[1]);
+	rc[2] = (lookat[2]-from[2]);
 	distsq = rc[0]*rc[0] + rc[1]*rc[1] + rc[2]*rc[2];
 
 	if (distsq > maxdistsq) {
@@ -325,9 +325,9 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 
 
 	/* CONSTRAINT 7: track to schaduw */
-	rc[0]= (lookat[0]-from[0]);
-	rc[1]= (lookat[1]-from[1]);
-	rc[2]= (lookat[2]-from[2]);
+	rc[0] = (lookat[0]-from[0]);
+	rc[1] = (lookat[1]-from[1]);
+	rc[2] = (lookat[2]-from[2]);
 	Kx_VecUpMat3(rc, mat, 3);	/* y up Track -z */
 	
 
@@ -337,9 +337,9 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	
 	obj->NodeSetLocalPosition(from);
 	
-	actormat[0][0]= mat[0][0]; actormat[0][1]= mat[1][0]; actormat[0][2]= mat[2][0];
-	actormat[1][0]= mat[0][1]; actormat[1][1]= mat[1][1]; actormat[1][2]= mat[2][1];
-	actormat[2][0]= mat[0][2]; actormat[2][1]= mat[1][2]; actormat[2][2]= mat[2][2];
+	actormat[0][0] = mat[0][0]; actormat[0][1] = mat[1][0]; actormat[0][2] = mat[2][0];
+	actormat[1][0] = mat[0][1]; actormat[1][1] = mat[1][1]; actormat[1][2] = mat[2][1];
+	actormat[2][0] = mat[0][2]; actormat[2][1] = mat[1][2]; actormat[2][2] = mat[2][2];
 	obj->NodeSetLocalOrientation(actormat);
 
 	return true;
@@ -396,7 +396,7 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 
 PyObject *KX_CameraActuator::pyattr_get_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_CameraActuator* self= static_cast<KX_CameraActuator*>(self_v);
+	KX_CameraActuator* self = static_cast<KX_CameraActuator*>(self_v);
 	if (self->m_ob==NULL)
 		Py_RETURN_NONE;
 	else
@@ -405,7 +405,7 @@ PyObject *KX_CameraActuator::pyattr_get_object(void *self_v, const KX_PYATTRIBUT
 
 int KX_CameraActuator::pyattr_set_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_CameraActuator* self= static_cast<KX_CameraActuator*>(self_v);
+	KX_CameraActuator* self = static_cast<KX_CameraActuator*>(self_v);
 	KX_GameObject *gameobj;
 	
 	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.object = value: KX_CameraActuator"))

@@ -569,7 +569,7 @@ static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const flo
 
 static BPoint *findnearestLattvert(ViewContext *vc, const int mval[2], int sel)
 {
-	/* sel==1: selected gets a disadvantage */
+	/* (sel == 1): selected gets a disadvantage */
 	/* in nurb and bezt or bp the nearest is written */
 	/* return 0 1 2: handlepunt */
 	struct { BPoint *bp; float dist; int select; float mval_fl[2]; } data = {NULL};

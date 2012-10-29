@@ -397,7 +397,15 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	}
 	else
 		params.progressive = true;
-	
+
+	/* shading system - scene level needs full refresh */
+	int shadingsystem = RNA_enum_get(&cscene, "shading_system");
+
+	if(shadingsystem == 0)
+		params.shadingsystem = SessionParams::SVM;
+	else if(shadingsystem == 1)
+		params.shadingsystem = SessionParams::OSL;
+
 	return params;
 }
 

@@ -834,7 +834,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 		                       (int)(rect.xmin + NODE_MARGIN_X), (int)(rect.ymax + (group_header - (2.5f * dpi_fac))),
-		                       mini((int)(BLI_rctf_size_x(&rect) - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
+		                       min_ii((int)(BLI_rctf_size_x(&rect) - 18.0f), node_group_frame + 20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext *)C, &ptr, "node_tree", NULL, NULL, NULL);
 		uiBlockLayoutResolve(gnode->block, NULL, NULL);
@@ -893,11 +893,6 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 static void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateIDBrowse(layout, C, ptr, "node_tree", NULL, NULL, NULL);
-}
-
-static void node_common_buts_whileloop(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-	uiItemR(layout, ptr, "max_iterations", 0, NULL, ICON_NONE);
 }
 
 /* XXX Does a bounding box update by iterating over all children.
@@ -1176,16 +1171,6 @@ static void node_common_set_butfunc(bNodeType *ntype)
 	switch (ntype->type) {
 		case NODE_GROUP:
 			ntype->uifunc = node_uifunc_group;
-			ntype->drawfunc = node_draw_group;
-			ntype->drawupdatefunc = node_update_group;
-			break;
-		case NODE_FORLOOP:
-//			ntype->uifunc= node_common_buts_group;
-			ntype->drawfunc = node_draw_group;
-			ntype->drawupdatefunc = node_update_group;
-			break;
-		case NODE_WHILELOOP:
-			ntype->uifunc = node_common_buts_whileloop;
 			ntype->drawfunc = node_draw_group;
 			ntype->drawupdatefunc = node_update_group;
 			break;
@@ -2595,7 +2580,7 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
 
 static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	/* bNode *node= ptr->data; */ /* UNUSED */
+	/* bNode *node = ptr->data; */ /* UNUSED */
 
 	uiItemR(layout, ptr, "blur_pre", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "screen_balance", 0, NULL, ICON_NONE);
@@ -3226,7 +3211,7 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 				float zoomx, zoomy;
 				zoomx = (float)sa->winx / ibuf->x;
 				zoomy = (float)sa->winy / ibuf->y;
-				zoom = minf(zoomx, zoomy);
+				zoom = min_ff(zoomx, zoomy);
 			}
 			
 			x = (sa->winx - zoom * ibuf->x) / 2 + snode->xof;
@@ -3557,7 +3542,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 			}
 			do_shaded = TRUE;
 			do_triple = TRUE;
-		}				
+		}
 		else {
 			th_col1 = TH_REDALERT;
 		}

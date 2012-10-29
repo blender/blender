@@ -184,7 +184,7 @@ std::string AnimationExporter::getObjectBoneName(Object *ob, const FCurve *fcu)
 
 	if (boneName != NULL)
 		return /*id_name(ob) + "_" +*/ std::string(boneName);
-	else		
+	else
 		return id_name(ob);
 }
 
@@ -265,7 +265,7 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 		MEM_freeN(eul);
 		MEM_freeN(eul_axis);
 	}
-	else if(!strcmp(transformName, "lens") && (ob->type == OB_CAMERA)) {
+	else if (!strcmp(transformName, "lens") && (ob->type == OB_CAMERA)) {
 		output_id = create_lens_source_from_fcurve((Camera *) ob->data, COLLADASW::InputSemantic::OUTPUT, fcu, anim_id);
 	}
 	else {
@@ -584,8 +584,8 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 			values[0] = convert_time(bezt->vec[0][0]);
 			if (bezt->ipo != BEZT_IPO_BEZ) {
 				// We're in a mixed interpolation scenario, set zero as it's irrelevant but value might contain unused data
-				values[0] = 0;	
-				values[1] = 0; 	
+				values[0] = 0;
+				values[1] = 0;
 			}
 			else if (is_rotation) {
 				values[1] = RAD2DEGF(bezt->vec[0][1]);
@@ -600,8 +600,8 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 			values[0] = convert_time(bezt->vec[2][0]);
 			if (bezt->ipo != BEZT_IPO_BEZ) {
 				// We're in a mixed interpolation scenario, set zero as it's irrelevant but value might contain unused data
-				values[0] = 0;	
-				values[1] = 0;	
+				values[0] = 0;
+				values[1] = 0;
 			}
 			else if (is_rotation) {
 				values[1] = RAD2DEGF(bezt->vec[2][1]);
@@ -634,11 +634,11 @@ std::string AnimationExporter::create_source_from_fcurve(COLLADASW::InputSemanti
 	switch (semantic) {
 		case COLLADASW::InputSemantic::INPUT:
 		case COLLADASW::InputSemantic::OUTPUT:
-			source.setAccessorStride(1);			
+			source.setAccessorStride(1);
 			break;
 		case COLLADASW::InputSemantic::IN_TANGENT:
 		case COLLADASW::InputSemantic::OUT_TANGENT:
-			source.setAccessorStride(2);			
+			source.setAccessorStride(2);
 			break;
 		default:
 			break;
@@ -1082,13 +1082,13 @@ std::string AnimationExporter::get_transform_sid(char *rna_path, int tm_type, co
 			break;
 		case 6:
 			tm_name = "diffuse";
-			break;	
+			break;
 		case 7:
 			tm_name = "transparency";
-			break;	
+			break;
 		case 8:
 			tm_name = "index_of_refraction";
-			break;	
+			break;
 
 		default:
 			tm_name = "";

@@ -336,7 +336,7 @@ void psys_check_group_weights(ParticleSettings *part)
 				BLI_addtail(&part->dupliweights, dw);
 			}
 
-			go = go->next;	
+			go = go->next;
 		}
 
 		dw = part->dupliweights.first;
@@ -561,7 +561,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 			ob->transflag &= ~OB_DUPLIPARTS;
 
 		if (psys->part) {
-			psys->part->id.us--;		
+			psys->part->id.us--;
 			psys->part = NULL;
 		}
 
@@ -899,7 +899,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 			elem->scalemax = sqrt(elem->scalemax);
 
 			/* clamp scaling */
-			scaleclamp = MIN2(elem->totchild, 10.0f);
+			scaleclamp = (float)min_ii(elem->totchild, 10);
 			elem->scalemin = MIN2(scaleclamp, elem->scalemin);
 			elem->scalemax = MIN2(scaleclamp, elem->scalemax);
 
@@ -2464,7 +2464,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 		totthread = 1;
 	
 	for (i = 0; i < totthread; i++) {
-		threads[i].rng_path = rng_new(seed);
+		threads[i].rng_path = BLI_rng_new(seed);
 		threads[i].tot = totthread;
 	}
 

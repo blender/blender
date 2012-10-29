@@ -40,18 +40,18 @@
 struct RNG;
 typedef struct RNG RNG;
 
-struct RNG *rng_new(unsigned int seed);
-void        rng_free(struct RNG *rng);
+struct RNG *BLI_rng_new(unsigned int seed);
+void        BLI_rng_free(struct RNG *rng);
 
-void        rng_seed(struct RNG *rng, unsigned int seed);
-void rng_srandom(struct RNG *rng, unsigned int seed);
-int         rng_getInt(struct RNG *rng);
-double      rng_getDouble(struct RNG *rng);
-float       rng_getFloat(struct RNG *rng);
-void        rng_shuffleArray(struct RNG *rng, void *data, int elemSize, int numElems);
+void        BLI_rng_seed(struct RNG *rng, unsigned int seed);
+void        BLI_rng_srandom(struct RNG *rng, unsigned int seed);
+int         BLI_rng_get_int(struct RNG *rng);
+double      BLI_rng_get_double(struct RNG *rng);
+float       BLI_rng_get_float(struct RNG *rng);
+void        BLI_rng_shuffle_array(struct RNG *rng, void *data, int elemSize, int numElems);
 
 /** Note that skipping is as slow as generating n numbers! */
-void        rng_skip(struct RNG *rng, int n);
+void        BLI_rng_skip(struct RNG *rng, int n);
 
 /** Seed the random number generator */
 void    BLI_srand(unsigned int seed);
@@ -94,7 +94,4 @@ int     BLI_thread_rand(int thread);
 /** Allows up to BLENDER_MAX_THREADS threads to address */
 float   BLI_thread_frand(int thread);
 
-
-
-#endif
-
+#endif  /* __BLI_RAND_H__ */

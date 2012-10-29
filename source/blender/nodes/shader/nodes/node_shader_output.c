@@ -33,7 +33,7 @@
 #include "node_shader_util.h"
 
 /* **************** OUTPUT ******************** */
-static bNodeSocketTemplate sh_node_output_in[]= {
+static bNodeSocketTemplate sh_node_output_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Alpha"),		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
@@ -62,7 +62,7 @@ static void node_shader_exec_output(void *data, bNode *node, bNodeStack **in, bN
 			
 			//	copy_v3_v3(shr->nor, in[3]->vec);
 		}
-	}	
+	}
 }
 
 static int gpu_shader_output(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
@@ -92,7 +92,7 @@ void register_node_type_sh_output(bNodeTreeType *ttype)
 	node_type_gpu(&ntype, gpu_shader_output);
 
 	/* Do not allow muting output node. */
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

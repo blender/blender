@@ -99,7 +99,7 @@ def validate_arguments(args, bc):
             'WITH_BF_PYTHON', 'WITH_BF_PYTHON_SAFETY', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'WITH_OSX_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL', 'BF_PYTHON_ABI_FLAGS', 
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
-            'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH',
+            'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH', 'WITH_BF_STATICJACK', 'BF_JACK_LIB_STATIC',
             'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH', 'WITH_BF_STATICSNDFILE', 'BF_SNDFILE_LIB_STATIC',
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
@@ -109,10 +109,10 @@ def validate_arguments(args, bc):
             'WITH_BF_OGG', 'BF_OGG', 'BF_OGG_LIB',
             'WITH_BF_FRAMESERVER',
             'WITH_BF_COMPOSITOR', 'WITH_BF_COMPOSITOR_LEGACY',
-            'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
+            'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH', 'WITH_BF_STATICJPEG', 'BF_JPEG_LIB_STATIC',
             'WITH_BF_OPENJPEG', 'BF_OPENJPEG', 'BF_OPENJPEG_INC', 'BF_OPENJPEG_LIB', 'BF_OPENJPEG_LIBPATH',
             'WITH_BF_REDCODE', 'BF_REDCODE', 'BF_REDCODE_INC', 'BF_REDCODE_LIB', 'BF_REDCODE_LIBPATH',
-            'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH',
+            'WITH_BF_PNG', 'BF_PNG', 'BF_PNG_INC', 'BF_PNG_LIB', 'BF_PNG_LIBPATH', 'WITH_BF_STATICPNG', 'BF_PNG_LIB_STATIC',
             'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH', 'WITH_BF_STATICTIFF', 'BF_TIFF_LIB_STATIC',
             'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH', 'WITH_BF_STATICZLIB', 'BF_ZLIB_LIB_STATIC',
             'WITH_BF_INTERNATIONAL',
@@ -127,6 +127,7 @@ def validate_arguments(args, bc):
             'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH', 'WITH_BF_STATICFFTW3', 'BF_FFTW3_LIB_STATIC',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
             'WITH_BF_COLLADA', 'BF_COLLADA', 'BF_COLLADA_INC', 'BF_COLLADA_LIB', 'BF_OPENCOLLADA', 'BF_OPENCOLLADA_INC', 'BF_OPENCOLLADA_LIB', 'BF_OPENCOLLADA_LIBPATH', 'BF_PCRE', 'BF_PCRE_LIB', 'BF_PCRE_LIBPATH', 'BF_EXPAT', 'BF_EXPAT_LIB', 'BF_EXPAT_LIBPATH',
+            'WITH_BF_STATICOPENCOLLADA', 'BF_OPENCOLLADA_LIB_STATIC',
             'WITH_BF_PLAYER',
             'WITH_BF_NOBLENDER',
             'WITH_BF_BINRELOC',
@@ -137,7 +138,7 @@ def validate_arguments(args, bc):
             'WITHOUT_BF_INSTALL',
             'WITHOUT_BF_PYTHON_INSTALL', 'WITHOUT_BF_PYTHON_UNPACK', 'WITH_BF_PYTHON_INSTALL_NUMPY'
             'WITHOUT_BF_OVERWRITE_INSTALL',
-            'WITH_BF_OPENMP', 'BF_OPENMP', 'BF_OPENMP_LIBPATH',
+            'WITH_BF_OPENMP', 'BF_OPENMP', 'BF_OPENMP_LIBPATH', 'WITH_BF_STATICOPENMP', 'BF_OPENMP_STATIC_STATIC',
             'WITH_GHOST_COCOA',
             'WITH_GHOST_SDL',
             'WITH_GHOST_XDND',
@@ -152,7 +153,6 @@ def validate_arguments(args, bc):
             'WITH_BF_RAYOPTIMIZATION',
             'BF_RAYOPTIMIZATION_SSE_FLAGS',
             'WITH_BF_FLUID',
-            'WITH_BF_DECIMATE',
             'WITH_BF_BOOLEAN',
             'WITH_BF_REMESH',
             'WITH_BF_OCEANSIM',
@@ -265,7 +265,6 @@ def read_opts(env, cfg, args):
         ('BF_PYTHON_ABI_FLAGS', 'Python ABI flags (suffix in library version: m, mu, etc)', ''),
 
         (BoolVariable('WITH_BF_FLUID', 'Build with Fluid simulation (Elbeem)', True)),
-        (BoolVariable('WITH_BF_DECIMATE', 'Build with decimate modifier', True)),
         (BoolVariable('WITH_BF_BOOLEAN', 'Build with boolean modifier', True)),
         (BoolVariable('WITH_BF_REMESH', 'Build with remesh modifier', True)),
         (BoolVariable('WITH_BF_OCEANSIM', 'Build with ocean simulation', False)),
@@ -286,10 +285,12 @@ def read_opts(env, cfg, args):
         ('BF_SDL_LIBPATH', 'SDL library path', ''),
 
         (BoolVariable('WITH_BF_JACK', 'Enable jack support if true', True)),
+        (BoolVariable('WITH_BF_STATICJACK', 'Staticly link to jack', False)),
         ('BF_JACK', 'jack base path', ''),
         ('BF_JACK_INC', 'jack include path', ''),
         ('BF_JACK_LIB', 'jack library', ''),
         ('BF_JACK_LIBPATH', 'jack library path', ''),
+        ('BF_JACK_LIB_STATIC', 'jack static library', ''),
 
         (BoolVariable('WITH_BF_SNDFILE', 'Enable sndfile support if true', True)),
         ('BF_SNDFILE', 'sndfile base path', ''),
@@ -337,10 +338,12 @@ def read_opts(env, cfg, args):
         ('BF_OGG_LIB', 'OGG library', ''),
 
         (BoolVariable('WITH_BF_JPEG', 'Use JPEG if true', True)),
+        (BoolVariable('WITH_BF_STATICJPEG', 'Staticly link to JPEG', False)),
         ('BF_JPEG', 'JPEG base path', ''),
         ('BF_JPEG_INC', 'JPEG include path', ''),
         ('BF_JPEG_LIB', 'JPEG library', ''),
         ('BF_JPEG_LIBPATH', 'JPEG library path', ''),
+        ('BF_JPEG_LIB_STATIC', 'JPEG static library', ''),
 
         (BoolVariable('WITH_BF_OPENJPEG', 'Use OPENJPEG if true', False)),
         ('BF_OPENJPEG', 'OPENJPEG base path', ''),
@@ -355,10 +358,12 @@ def read_opts(env, cfg, args):
         ('BF_REDCODE_LIBPATH', 'REDCODE library path', ''),
 
         (BoolVariable('WITH_BF_PNG', 'Use PNG if true', True)),
+        (BoolVariable('WITH_BF_STATICPNG', 'Staticly link to PNG', False)),
         ('BF_PNG', 'PNG base path', ''),
         ('BF_PNG_INC', 'PNG include path', ''),
         ('BF_PNG_LIB', 'PNG library', ''),
         ('BF_PNG_LIBPATH', 'PNG library path', ''),
+        ('BF_PNG_LIB_STATIC', 'PNG static library', ''),
 
         (BoolVariable('WITH_BF_TIFF', 'Use TIFF if true', True)),
         (BoolVariable('WITH_BF_STATICTIFF', 'Staticly link to TIFF', False)),
@@ -420,12 +425,14 @@ def read_opts(env, cfg, args):
         ('BF_FREETYPE_LIB_STATIC', 'Static Freetype library', ''),
 
         (BoolVariable('WITH_BF_OPENMP', 'Use OpenMP if true', False)),
+        (BoolVariable('WITH_BF_STATICOPENMP', 'Staticly link to OpenMP', False)),
         ('BF_OPENMP', 'Base path to OpenMP (used when cross-compiling with older versions of WinGW)', ''),
         ('BF_OPENMP_INC', 'Path to OpenMP includes (used when cross-compiling with older versions of WinGW)', ''),
         ('BF_OPENMP_LIBPATH', 'Path to OpenMP libraries (used when cross-compiling with older versions of WinGW)', ''),
         (BoolVariable('WITH_GHOST_COCOA', 'Use Cocoa-framework if true', False)),
         (BoolVariable('WITH_GHOST_SDL', 'Enable building blender against SDL for windowing rather then the native APIs', False)),
         (BoolVariable('USE_QTKIT', 'Use QTKIT if true', False)),
+        ('BF_OPENMP_LIB_STATIC', 'OpenMP static library', ''),
 
         (BoolVariable('WITH_BF_QUICKTIME', 'Use QuickTime if true', False)),
         ('BF_QUICKTIME', 'QuickTime base path', ''),
@@ -450,6 +457,7 @@ def read_opts(env, cfg, args):
         ('BF_OPENGL_LINKFLAGS', 'OpenGL link flags', ''),
 
         (BoolVariable('WITH_BF_COLLADA', 'Build COLLADA import/export module if true', False)),
+        (BoolVariable('WITH_BF_STATICOPENCOLLADA', 'Staticly link to OpenCollada', False)),
         ('BF_COLLADA', 'COLLADA base path', ''),
         ('BF_COLLADA_INC', 'COLLADA include path', ''),
         ('BF_COLLADA_LIB', 'COLLADA library', ''),
@@ -463,6 +471,7 @@ def read_opts(env, cfg, args):
         ('BF_EXPAT', 'Expat base path', ''),
         ('BF_EXPAT_LIB', 'Expat library', ''),
         ('BF_EXPAT_LIBPATH', 'Expat library path', ''),
+        ('BF_OPENCOLLADA_LIB_STATIC', 'OpenCollada static library', ''),
         
         (BoolVariable('WITH_BF_JEMALLOC', 'Use jemalloc if true', False)),
         (BoolVariable('WITH_BF_STATICJEMALLOC', 'Staticly link to jemalloc', False)),
@@ -541,7 +550,9 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_LIBMV', 'Enable libmv structure from motion library', True)),
         
         (BoolVariable('WITH_BF_COMPOSITOR', 'Enable the tile based nodal compositor', True)),
+    ) # end of opts.AddOptions()
 
+    localopts.AddVariables(
         ('BF_X264_CONFIG', 'configuration flags for x264', ''),
         ('BF_XVIDCORE_CONFIG', 'configuration flags for xvidcore', ''),
 #        (BoolVariable('WITH_BF_DOCS', 'Generate API documentation', False)),
@@ -559,9 +570,7 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_CXX_GUARDEDALLOC', 'Enable GuardedAlloc for C++ memory allocation tracking.', False)),
 
         ('BUILDBOT_BRANCH', 'Buildbot branch name', ''),
-    ) # end of opts.AddOptions()
 
-    localopts.AddVariables(
         (BoolVariable('WITH_BF_CYCLES', 'Build with the Cycles engine', True)),
         (BoolVariable('WITH_BF_CYCLES_CUDA_BINARIES', 'Build with precompiled CUDA binaries', False)),
         (BoolVariable('WITH_BF_CYCLES_CUDA_THREADED_COMPILE', 'Build several render kernels at once (using BF_NUMJOBS)', False)),

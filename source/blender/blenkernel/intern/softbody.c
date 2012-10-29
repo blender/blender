@@ -1598,7 +1598,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 					/*see if we have wind*/
 					if (do_effector) {
 						EffectedPoint epoint;
-						float speed[3]={0.0f, 0.0f, 0.0f};
+						float speed[3] = {0.0f, 0.0f, 0.0f};
 						float pos[3];
 						mid_v3_v3v3(pos, sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos);
 						mid_v3_v3v3(vel, sb->bpoint[bs->v1].vec, sb->bpoint[bs->v2].vec);
@@ -1749,8 +1749,8 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 	Object *ob= NULL;
 	GHash *hash;
 	GHashIterator *ihash;
-	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3], d_nvect[3], dv1[3], ve[3], avel[3]={0.0, 0.0, 0.0},
-	      vv1[3], vv2[3], vv3[3], vv4[3], coledge[3]={0.0f, 0.0f, 0.0f}, mindistedge = 1000.0f,
+	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3], d_nvect[3], dv1[3], ve[3], avel[3] = {0.0, 0.0, 0.0},
+	      vv1[3], vv2[3], vv3[3], vv4[3], coledge[3] = {0.0f, 0.0f, 0.0f}, mindistedge = 1000.0f,
 	      outerforceaccu[3], innerforceaccu[3],
 	      facedist, /* n_mag, */ /* UNUSED */ force_mag_norm, minx, miny, minz, maxx, maxy, maxz,
 	      innerfacethickness = -0.5f, outerfacethickness = 0.2f,
@@ -2209,7 +2209,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 	bp = &sb->bpoint[ifirst];
 	for (bb=number_of_points_here; bb>0; bb--, bp++) {
 		/* clear forces  accumulator */
-		bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
+		bp->force[0] = bp->force[1] = bp->force[2] = 0.0;
 		/* naive ball self collision */
 		/* needs to be done if goal snaps or not */
 		if (do_selfcollision) {
@@ -2304,8 +2304,8 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			if (do_effector) {
 				EffectedPoint epoint;
 				float kd;
-				float force[3]= {0.0f, 0.0f, 0.0f};
-				float speed[3]= {0.0f, 0.0f, 0.0f};
+				float force[3] = {0.0f, 0.0f, 0.0f};
+				float speed[3] = {0.0f, 0.0f, 0.0f};
 				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 				pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
 				pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
@@ -2557,7 +2557,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 		for (a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 			/* clear forces  accumulator */
-			bp->force[0]= bp->force[1]= bp->force[2]= 0.0;
+			bp->force[0] = bp->force[1] = bp->force[2] = 0.0;
 			if (nl_flags & NLF_BUILD) {
 				//int ia =3*(sb->totpoint-a);
 				//int op =3*sb->totpoint;
@@ -2712,8 +2712,8 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 				/* particle field & vortex */
 				if (do_effector) {
 					EffectedPoint epoint;
-					float force[3]= {0.0f, 0.0f, 0.0f};
-					float speed[3]= {0.0f, 0.0f, 0.0f};
+					float force[3] = {0.0f, 0.0f, 0.0f};
+					float speed[3] = {0.0f, 0.0f, 0.0f};
 					float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 					pd_point_from_soft(scene, bp->pos, bp->vec, sb->bpoint-bp, &epoint);
 					pdDoEffectors(do_effector, NULL, sb->effector_weights, &epoint, force, speed);
@@ -2905,7 +2905,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	/* or heun ~ 2nd order runge-kutta steps, mode 1, 2 */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
-	float dx[3]={0}, dv[3], aabbmin[3], aabbmax[3], cm[3]={0.0f, 0.0f, 0.0f};
+	float dx[3] = {0}, dv[3], aabbmin[3], aabbmax[3], cm[3] = {0.0f, 0.0f, 0.0f};
 	float timeovermass/*, freezeloc=0.00001f, freezeforce=0.00000000001f*/;
 	float maxerrpos= 0.0f, maxerrvel = 0.0f;
 	int a, fuzzy=0;
@@ -3194,7 +3194,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
 	- xxxx_to_softbody(Object *ob)      : a full (new) copy, creates SB geometry
 */
 
-static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex, float *target)
+static void get_scalar_from_vertexgroup(Object *ob, int vertID, int groupindex, float *target)
 /* result 0 on success, else indicates error number
 -- kind of *inverse* result defintion,
 -- but this way we can signal error condition to caller
@@ -3297,7 +3297,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		if ((ob->softflag & OB_SB_GOAL) && sb->vertgroup) { /* even this is a deprecated evil hack */
 		   /* I'd like to have it  .. if (sb->namedVG_Goal[0]) */
 
-			get_scalar_from_vertexgroup(ob, a, (short) (sb->vertgroup-1), &bp->goal);
+			get_scalar_from_vertexgroup(ob, a, sb->vertgroup - 1, &bp->goal);
 			/* do this always, regardless successful read from vertex group */
 			/* this is where '2.5 every thing is animatable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
@@ -3316,10 +3316,10 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		 */
 
 		if (sb->namedVG_Mass[0]) {
-			int grp= defgroup_name_index (ob, sb->namedVG_Mass);
-			/* printf("VGN  %s %d\n", sb->namedVG_Mass, grp); */
-			if (grp > -1) {
-				get_scalar_from_vertexgroup(ob, a, (short) (grp), &bp->mass);
+			int defgrp_index = defgroup_name_index (ob, sb->namedVG_Mass);
+			/* printf("VGN  %s %d\n", sb->namedVG_Mass, defgrp_index); */
+			if (defgrp_index != -1) {
+				get_scalar_from_vertexgroup(ob, a, defgrp_index, &bp->mass);
 				/* 2.5  bp->mass = bp->mass * sb->nodemass; */
 				/* printf("bp->mass  %f\n", bp->mass); */
 
@@ -3329,10 +3329,10 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		bp->springweight = 1.0f;
 
 		if (sb->namedVG_Spring_K[0]) {
-			int grp= defgroup_name_index (ob, sb->namedVG_Spring_K);
-			//printf("VGN  %s %d\n", sb->namedVG_Spring_K, grp);
-			if (grp > -1) {
-				get_scalar_from_vertexgroup(ob, a, (short) (grp), &bp->springweight);
+			int defgrp_index = defgroup_name_index (ob, sb->namedVG_Spring_K);
+			//printf("VGN  %s %d\n", sb->namedVG_Spring_K, defgrp_index);
+			if (defgrp_index  != -1) {
+				get_scalar_from_vertexgroup(ob, a, defgrp_index , &bp->springweight);
 				//printf("bp->springweight  %f\n", bp->springweight);
 
 			}
@@ -3865,7 +3865,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 		copy_v3_v3(bp->origS, bp->pos);
 		copy_v3_v3(bp->origE, bp->pos);
 		copy_v3_v3(bp->origT, bp->pos);
-		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
+		bp->vec[0] = bp->vec[1] = bp->vec[2] = 0.0f;
 
 		/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
 		 * adaptive step size algo in a nutshell:

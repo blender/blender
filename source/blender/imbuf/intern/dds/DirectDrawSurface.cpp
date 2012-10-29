@@ -737,7 +737,7 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
 	{
 		// Compute bit count from the masks.
 		uint total = rmask | gmask | bmask | amask;
-		while(total != 0) {
+		while (total != 0) {
 			bitcount++;
 			total >>= 1;
 		}

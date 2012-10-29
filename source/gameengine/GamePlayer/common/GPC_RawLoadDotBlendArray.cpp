@@ -38,7 +38,8 @@ void GetRawLoadingAnimation(unsigned char **data, int *dataSize)
 {
 	// create an array that will automatically be deleted when)
 	// we're outta this scope
-	static unsigned char load_blend[]= { 66,  76,  69,  78,  68,  70, 
+	static unsigned char load_blend[] = {
+		 66,  76,  69,  78,  68,  70,
 		 73,  10,   0,   2,  21,   0,   0,   2,  22,   0,   0,   0,   0,   0,   0, 
 		  2,  30,  49,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
 		 65,  25, 242,   2,   0,   2,  29, 253,   0,   0,   0,   4, 160, 249, 227, 

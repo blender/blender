@@ -278,7 +278,7 @@ void defvert_normalize_lock_map(MDeformVert *dvert, const char *lock_flags, cons
 			}
 		}
 
-		lock_iweight = maxf(0.0f, 1.0f - lock_iweight);
+		lock_iweight = max_ff(0.0f, 1.0f - lock_iweight);
 
 		if (tot_weight > 0.0f) {
 			/* paranoid, should be 1.0 but in case of float error clamp anyway */
@@ -431,7 +431,7 @@ int *defgroup_flip_map_single(Object *ob, int *flip_map_len, int use_default, in
 		if (strcmp(name, dg->name)) {
 			flip_num = defgroup_name_index(ob, name);
 
-			if (flip_num >= 0) {
+			if (flip_num != -1) {
 				map[defgroup] = flip_num;
 				map[flip_num] = defgroup;
 			}

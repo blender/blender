@@ -154,7 +154,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, FCurve *fcu, KeyframeEdi
 	if (fcu_cb)
 		fcu_cb(fcu);
 	
-	/* done */	
+	/* done */
 	return 0;
 }
 
@@ -639,7 +639,7 @@ static short snap_bezier_horizontal(KeyframeEditData *UNUSED(ked), BezTriple *be
 		if (ELEM3(bezt->h1, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) bezt->h1 = HD_ALIGN;
 		if (ELEM3(bezt->h2, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) bezt->h2 = HD_ALIGN;
 	}
-	return 0;	
+	return 0;
 }
 
 /* value to snap to is stored in the custom data -> first float value slot */
@@ -880,7 +880,7 @@ KeyframeEditFunc ANIM_editkeyframes_ipo(short code)
 	switch (code) {
 		case BEZT_IPO_CONST: /* constant */
 			return set_bezt_constant;
-		case BEZT_IPO_LIN: /* linear */	
+		case BEZT_IPO_LIN: /* linear */
 			return set_bezt_linear;
 		default: /* bezier */
 			return set_bezt_bezier;
@@ -930,7 +930,7 @@ KeyframeEditFunc ANIM_editkeyframes_keytype(short code)
 		case BEZT_KEYTYPE_JITTER: /* jitter keyframe */
 			return set_keytype_jitter;
 			
-		case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */	
+		case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */
 		default:
 			return set_keytype_keyframe;
 	}

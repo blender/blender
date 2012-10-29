@@ -436,7 +436,7 @@ static void rna_def_boidrule(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "On Land", "Use rule when boid is on land");
 	RNA_def_property_update(prop, 0, "rna_Boids_reset");
 	
-	/*prop= RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE); */
+	/*prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE); */
 	/*RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Expanded); */
 	/*RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface"); */
 

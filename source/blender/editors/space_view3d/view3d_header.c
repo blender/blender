@@ -167,7 +167,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			v3d->lay |= (1 << 20) - 1;
-		}		
+		}
 	}
 	else {
 		int bit;
@@ -452,7 +452,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	const float dpi_fac = UI_DPI_FAC;
 	int is_paint = 0;
 	
-	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);	
+	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, v3d, &v3dptr);
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &toolsptr);
 	RNA_pointer_create(&scene->id, &RNA_Scene, scene, &sceneptr);
 

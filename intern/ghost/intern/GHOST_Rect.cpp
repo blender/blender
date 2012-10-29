@@ -75,7 +75,7 @@ GHOST_TVisibility GHOST_Rect::getVisibility(GHOST_Rect& r) const
 	GHOST_TVisibility v;
 	if (lt && rt && lb && rb) {
 		// All points inside, rectangle is inside this
-		v = GHOST_kFullyVisible;		
+		v = GHOST_kFullyVisible;
 	}
 	else if (!(lt || rt || lb || rb)) {
 		// None of the points inside

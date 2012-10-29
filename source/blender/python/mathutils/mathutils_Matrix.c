@@ -182,7 +182,7 @@ static int mathutils_matrix_col_get(BaseMathObject *bmo, int col)
 		return -1;
 
 	/* for 'translation' size will always be '3' even on 4x4 vec */
-	num_row = MIN2(self->num_row, ((VectorObject *)bmo)->size);
+	num_row = min_ii(self->num_row, ((VectorObject *)bmo)->size);
 
 	for (row = 0; row < num_row; row++) {
 		bmo->data[row] = MATRIX_ITEM(self, row, col);
@@ -203,7 +203,7 @@ static int mathutils_matrix_col_set(BaseMathObject *bmo, int col)
 		return -1;
 
 	/* for 'translation' size will always be '3' even on 4x4 vec */
-	num_row = MIN2(self->num_row, ((VectorObject *)bmo)->size);
+	num_row = min_ii(self->num_row, ((VectorObject *)bmo)->size);
 
 	for (row = 0; row < num_row; row++) {
 		MATRIX_ITEM(self, row, col) = bmo->data[row];
@@ -329,9 +329,9 @@ Mathutils_Callback mathutils_matrix_translation_cb = {
 
 /* matrix column callbacks, this is so you can do matrix.translation = Vector()  */
 
-//----------------------------------mathutils.Matrix() -----------------
-//mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
-//create a new matrix type
+/* ----------------------------------mathutils.Matrix() ----------------- */
+/* mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc. */
+/* create a new matrix type */
 static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	if (kwds && PyDict_Size(kwds)) {
@@ -410,7 +410,7 @@ static void matrix_3x3_as_4x4(float mat[16])
 
 /*-----------------------CLASS-METHODS----------------------------*/
 
-//mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
+/* mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc. */
 PyDoc_STRVAR(C_Matrix_Identity_doc,
 ".. classmethod:: Identity(size)\n"
 "\n"
@@ -518,7 +518,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 		const float angle_cos = cosf(angle);
 		const float angle_sin = sinf(angle);
 
-		//2D rotation matrix
+		/* 2D rotation matrix */
 		mat[0] =  angle_cos;
 		mat[1] =  angle_sin;
 		mat[2] = -angle_sin;
@@ -532,7 +532,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 	if (matSize == 4) {
 		matrix_3x3_as_4x4(mat);
 	}
-	//pass to matrix creation
+	/* pass to matrix creation */
 	return Matrix_CreatePyObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
@@ -556,8 +556,8 @@ static PyObject *C_Matrix_Translation(PyObject *cls, PyObject *value)
 
 	return Matrix_CreatePyObject(&mat[0][0], 4, 4, Py_NEW, (PyTypeObject *)cls);
 }
-//----------------------------------mathutils.Matrix.Scale() -------------
-//mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
+/* ----------------------------------mathutils.Matrix.Scale() ------------- */
+/* mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc. */
 PyDoc_STRVAR(C_Matrix_Scale_doc,
 ".. classmethod:: Scale(factor, size, axis)\n"
 "\n"
@@ -601,7 +601,7 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 			return NULL;
 		}
 	}
-	if (vec == NULL) {  //scaling along axis
+	if (vec == NULL) {  /* scaling along axis */
 		if (matSize == 2) {
 			mat[0] = factor;
 			mat[3] = factor;
@@ -645,11 +645,11 @@ static PyObject *C_Matrix_Scale(PyObject *cls, PyObject *args)
 	if (matSize == 4) {
 		matrix_3x3_as_4x4(mat);
 	}
-	//pass to matrix creation
+	/* pass to matrix creation */
 	return Matrix_CreatePyObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
-//----------------------------------mathutils.Matrix.OrthoProjection() ---
-//mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc.
+/* ----------------------------------mathutils.Matrix.OrthoProjection() --- */
+/* mat is a 1D array of floats - row[0][0], row[0][1], row[1][0], etc. */
 PyDoc_STRVAR(C_Matrix_OrthoProjection_doc,
 ".. classmethod:: OrthoProjection(axis, size)\n"
 "\n"
@@ -685,7 +685,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		return NULL;
 	}
 
-	if (PyUnicode_Check(axis)) {    //ortho projection onto cardinal plane
+	if (PyUnicode_Check(axis)) {  /* ortho projection onto cardinal plane */
 		Py_ssize_t plane_len;
 		const char *plane = _PyUnicode_AsStringAndSize(axis, &plane_len);
 		if (matSize == 2) {
@@ -726,7 +726,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 		}
 	}
 	else {
-		//arbitrary plane
+		/* arbitrary plane */
 
 		int vec_size = (matSize == 2 ? 2 : 3);
 		float tvec[4];
@@ -737,7 +737,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 			return NULL;
 		}
 
-		//normalize arbitrary axis
+		/* normalize arbitrary axis */
 		for (x = 0; x < vec_size; x++) {
 			norm += tvec[x] * tvec[x];
 		}
@@ -766,7 +766,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 	if (matSize == 4) {
 		matrix_3x3_as_4x4(mat);
 	}
-	//pass to matrix creation
+	/* pass to matrix creation */
 	return Matrix_CreatePyObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
@@ -869,7 +869,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 	if (matSize == 4) {
 		matrix_3x3_as_4x4(mat);
 	}
-	//pass to matrix creation
+	/* pass to matrix creation */
 	return Matrix_CreatePyObject(mat, matSize, matSize, Py_NEW, (PyTypeObject *)cls);
 }
 
@@ -1579,7 +1579,7 @@ static PyObject *Matrix_str(MatrixObject *self)
 		maxsize[col] = 0;
 		for (row = 0; row < self->num_row; row++) {
 			int size = BLI_snprintf(dummy_buf, sizeof(dummy_buf), "%.4f", MATRIX_ITEM(self, row, col));
-			maxsize[col] = MAX2(maxsize[col], size);
+			maxsize[col] = max_ii(maxsize[col], size);
 		}
 	}
 
@@ -2335,8 +2335,8 @@ PyTypeObject matrix_Type = {
 	NULL,                               /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
 	matrix_doc,                         /*tp_doc*/
-	(traverseproc)BaseMathObject_traverse,  //tp_traverse
-	(inquiry)BaseMathObject_clear,  //tp_clear
+	(traverseproc)BaseMathObject_traverse,  /* tp_traverse */
+	(inquiry)BaseMathObject_clear,      /*tp_clear*/
 	(richcmpfunc)Matrix_richcmpr,       /*tp_richcompare*/
 	0,                                  /*tp_weaklistoffset*/
 	NULL,                               /*tp_iter*/
@@ -2635,8 +2635,8 @@ PyTypeObject matrix_access_Type = {
 	NULL,                               /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /*tp_flags*/
 	NULL,                               /*tp_doc*/
-	(traverseproc)MatrixAccess_traverse,    //tp_traverse
-	(inquiry)MatrixAccess_clear,    //tp_clear
+	(traverseproc)MatrixAccess_traverse,/*tp_traverse*/
+	(inquiry)MatrixAccess_clear,        /*tp_clear*/
 	NULL /* (richcmpfunc)MatrixAccess_richcmpr */ /* TODO*/, /*tp_richcompare*/
 	0,                                  /*tp_weaklistoffset*/
 	(getiterfunc)MatrixAccess_iter, /* getiterfunc tp_iter; */

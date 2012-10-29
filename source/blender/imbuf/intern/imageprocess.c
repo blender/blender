@@ -444,7 +444,7 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char outI[4], float
 			outF[2] = dataF[2];
 			outF[3] = dataF[3];
 		}
-	}	
+	}
 }
 
 void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)

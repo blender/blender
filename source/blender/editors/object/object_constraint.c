@@ -494,9 +494,9 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 								/* auto-set 'Path' setting on curve so this works  */
 								cu->flag |= CU_PATH;
 							}
-						}						
+						}
 					}
-				}	
+				}
 				
 				/* free any temporary targets */
 				if (cti->flush_constraint_targets)
@@ -593,7 +593,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 	
 	if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
 		list = &ob->constraints;
-	} 
+	}
 	else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
 		bPoseChannel *pchan = BKE_pose_channel_active(ob);
 		if (pchan)
@@ -807,7 +807,7 @@ static int childof_set_inverse_exec(bContext *C, wmOperator *op)
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
 	if (data == NULL) {
 		printf("DEBUG: Child-Of Set Inverse - object = '%s'\n", (ob) ? ob->id.name + 2 : "<None>");
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find constraint data for Child-Of Set Inverse");
+		BKE_report(op->reports, RPT_ERROR, "Could not find constraint data for Child-Of Set Inverse");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1028,7 +1028,7 @@ static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
 	if (data == NULL) {
 		printf("DEBUG: Child-Of Set Inverse - object = '%s'\n", (ob) ? ob->id.name + 2 : "<None>");
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find constraint data for Child-Of Set Inverse");
+		BKE_report(op->reports, RPT_ERROR, "Could not find constraint data for Child-Of Set Inverse");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1628,15 +1628,15 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		return OPERATOR_CANCELLED;
 	}
 	if ((type == CONSTRAINT_TYPE_RIGIDBODYJOINT) && (list != &ob->constraints)) {
-		BKE_report(op->reports, RPT_ERROR, "Rigid Body Joint Constraint can only be added to Objects");
+		BKE_report(op->reports, RPT_ERROR, "Rigid Body Joint constraint can only be added to objects");
 		return OPERATOR_CANCELLED;
 	}
 	if ((type == CONSTRAINT_TYPE_KINEMATIC) && ((!pchan) || (list != &pchan->constraints))) {
-		BKE_report(op->reports, RPT_ERROR, "IK Constraint can only be added to Bones");
+		BKE_report(op->reports, RPT_ERROR, "IK constraint can only be added to bones");
 		return OPERATOR_CANCELLED;
 	}
 	if ((type == CONSTRAINT_TYPE_SPLINEIK) && ((!pchan) || (list != &pchan->constraints))) {
-		BKE_report(op->reports, RPT_ERROR, "Spline IK Constraint can only be added to Bones");
+		BKE_report(op->reports, RPT_ERROR, "Spline IK constraint can only be added to bones");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1856,7 +1856,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 	
 	/* must have active bone */
 	if (ELEM(NULL, ob, pchan)) {
-		BKE_report(op->reports, RPT_ERROR, "Must have active bone to add IK Constraint to");
+		BKE_report(op->reports, RPT_ERROR, "Must have an active bone to add IK constraint to");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1865,7 +1865,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 		if (con->type == CONSTRAINT_TYPE_KINEMATIC) break;
 	}
 	if (con) {
-		BKE_report(op->reports, RPT_ERROR, "Bone already has IK Constraint");
+		BKE_report(op->reports, RPT_ERROR, "Bone already has an IK constraint");
 		return OPERATOR_CANCELLED;
 	}
 	

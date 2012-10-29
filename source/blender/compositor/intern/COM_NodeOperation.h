@@ -94,7 +94,7 @@ public:
 	 * @brief determine the resolution of this node
 	 * @note this method will not set the resolution, this is the responsibility of the caller
 	 * @param resolution the result of this operation
-	 * @param preferredResolution the preferrable resolution as no resolution could be determined
+	 * @param preferredResolution the preferable resolution as no resolution could be determined
 	 */
 	virtual void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 

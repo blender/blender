@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../makesrna ../interface ../../blenloader'
 
@@ -11,5 +11,8 @@ defs = []
 
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
 
 env.BlenderLib ( 'bf_editors_space_game', sources, Split(incs), defs, libtype=['core'], priority=[120] )

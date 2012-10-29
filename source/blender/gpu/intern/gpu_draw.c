@@ -422,7 +422,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap, int ncd)
+int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap, int is_data)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -492,7 +492,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		}
 
 		/* TODO unneeded when float images are correctly treated as linear always */
-		if (!ncd)
+		if (!is_data)
 			do_color_management = TRUE;
 
 		if (ibuf->rect==NULL)
@@ -611,12 +611,21 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 			rect= tilerect;
 		}
 	}
+
 #ifdef WITH_DDS
 	if (ibuf->ftype & DDS)
 		GPU_create_gl_tex_compressed(bind, rect, rectw, recth, mipmap, ima, ibuf);
 	else
 #endif
 		GPU_create_gl_tex(bind, rect, frect, rectw, recth, mipmap, use_high_bit_depth, ima);
+	
+	/* mark as non-color data texture */
+	if(*bind) {
+		if (is_data)
+			ima->tpageflag |= IMA_GLBIND_IS_DATA;	
+		else
+			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;	
+	}
 
 	/* clean up */
 	if (tilerect)
@@ -730,12 +739,17 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 		return FALSE;
 	}
 
+	if(!is_power_of_2_i(width) || !is_power_of_2_i(height)) {
+		printf("Unable to load non-power-of-two DXT image resolution, falling back to uncompressed\n");
+		return FALSE;
+	}
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	blocksize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
+	blocksize = (ibuf->dds_data.fourcc == FOURCC_DXT1) ? 8 : 16;
 	for (i=0; i<ibuf->dds_data.nummipmaps && (width||height); ++i) {
 		if (width == 0)
 			width = 1;
@@ -903,7 +917,8 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 		/* if color correction is needed, we must update the part that needs updating. */
 		if (ibuf->rect_float) {
 			float *buffer = MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
-			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h);
+			int is_data = (ima->tpageflag & IMA_GLBIND_IS_DATA);
+			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h, is_data);
 
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
@@ -929,12 +944,8 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
 
-		if (ibuf->rect_float)
-			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
-				GL_FLOAT, ibuf->rect_float);
-		else
-			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
-				GL_UNSIGNED_BYTE, ibuf->rect);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
+			GL_UNSIGNED_BYTE, ibuf->rect);
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
@@ -1130,7 +1141,7 @@ void GPU_free_image(Image *ima)
 		ima->repbind= NULL;
 	}
 
-	ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+	ima->tpageflag &= ~(IMA_MIPMAP_COMPLETE|IMA_GLBIND_IS_DATA);
 }
 
 void GPU_free_images(void)
@@ -1216,7 +1227,7 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 		if (gamma) {
 			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
 			linearrgb_to_srgb_v3_v3(smat->spec, smat->spec);
-		}	
+		}
 	}
 }
 
@@ -1469,6 +1480,21 @@ void GPU_disable_material(void)
 	GPU_set_material_alpha_blend(GPU_BLEND_SOLID);
 }
 
+void GPU_material_diffuse_get(int nr, float diff[4])
+{
+	/* prevent index to use un-initialized array items */
+	if (nr >= GMS.totmat)
+		nr = 0;
+
+	/* no GPU_begin_object_materials, use default material */
+	if (!GMS.matbuf) {
+		mul_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
+	}
+	else {
+		copy_v4_v4(diff, GMS.matbuf[nr].diff);
+	}
+}
+
 void GPU_end_object_materials(void)
 {
 	GPU_disable_material();
@@ -1627,7 +1653,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		glLightfv(GL_LIGHT0+count, GL_SPECULAR, energy);
 		glEnable(GL_LIGHT0+count);
 		
-		glPopMatrix();					
+		glPopMatrix();
 		
 		count++;
 		if (count==8)

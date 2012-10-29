@@ -150,7 +150,7 @@ int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, f
 				break;
 					
 				case TFM_TIME_SCALE:
-				{	
+				{
 					/* rescale the distance between the marker and the current frame */
 					marker->frame = cfra + (int)floorf(((float)(marker->frame - cfra) * value) + 0.5f);
 					changed++;
@@ -249,7 +249,7 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *la
 					min = (float)marker->frame;
 				if (marker->frame > max)
 					max = (float)marker->frame;
-			}	
+			}
 		}
 	}
 	
@@ -278,7 +278,7 @@ static void add_marker_to_cfra_elem(ListBase *lb, TimeMarker *marker, short only
 			return;
 		}
 		else if (ce->cfra > marker->frame) break;
-	}	
+	}
 	
 	cen = MEM_callocN(sizeof(CfraElem), "add_to_cfra_elem");
 	if (ce) BLI_insertlinkbefore(lb, ce, cen);
@@ -360,7 +360,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	glScalef(1.0f / xscale, 1.0f, 1.0f);
 	
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	/* vertical line - dotted */
 #ifdef DURIAN_CAMERA_SWITCH
@@ -522,7 +522,7 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent 
 	else if (op->type->exec)
 		retval = op->type->exec(C, op);
 	else
-		BKE_report(op->reports, RPT_ERROR, "Programming error: operator doesn't actually have code to do anything!");
+		BKE_report(op->reports, RPT_ERROR, "Programming error: operator does not actually have code to do anything!");
 		
 	/* return status modifications - for now, make this spacetype dependent as above */
 	if (sa->spacetype != SPACE_TIME) {
@@ -726,7 +726,7 @@ static int ed_marker_move_cancel(bContext *C, wmOperator *op)
 {
 	RNA_int_set(op->ptr, "frames", 0);
 	ed_marker_move_apply(op);
-	ed_marker_move_exit(C, op);	
+	ed_marker_move_exit(C, op);
 	
 	WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, NULL);
 	WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, NULL);
@@ -821,7 +821,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 				}
 				else {
 					/* we only print the offset */
-					if (mm->slink->spacetype == SPACE_TIME) { 
+					if (mm->slink->spacetype == SPACE_TIME) {
 						SpaceTime *stime = (SpaceTime *)mm->slink;
 						if (stime->flag & TIME_DRAWFRAMES) 
 							BLI_snprintf(str, sizeof(str), "Marker offset %d ", offs);
@@ -1030,7 +1030,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 	x = evt->x - ar->winrct.xmin;
 	y = evt->y - ar->winrct.ymin;
 	
-	UI_view2d_region_to_view(v2d, x, y, &viewx, NULL);	
+	UI_view2d_region_to_view(v2d, x, y, &viewx, NULL);
 	
 	cfra = ED_markers_find_nearest_marker_time(markers, viewx);
 	
@@ -1377,7 +1377,7 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 	}
 
 	if (scene_to == CTX_data_scene(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't re-link markers into the same scene");
+		BKE_report(op->reports, RPT_ERROR, "Cannot re-link markers into the same scene");
 		return OPERATOR_CANCELLED;
 	}
 

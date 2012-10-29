@@ -77,7 +77,7 @@
 
 static void do_graph_region_buttons(bContext *UNUSED(C), void *UNUSED(arg), int event)
 {
-	//Scene *scene= CTX_data_scene(C);
+	//Scene *scene = CTX_data_scene(C);
 	
 	switch (event) {
 
@@ -299,7 +299,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &fcu_prop_ptr, &fcu_prop) && fcu_prop) {
 			/* determine the unit for this property */
 			unit = RNA_SUBTYPE_UNIT(RNA_property_subtype(fcu_prop));
-		}		
+		}
 		
 		/* interpolation */
 		col = uiLayoutColumn(layout, FALSE);
@@ -407,7 +407,7 @@ static void driver_remove_cb(bContext *C, void *ale_v, void *UNUSED(arg))
 	if (ELEM(NULL, id, fcu))
 		return;
 	
-	/* call API method to remove this driver  */	
+	/* call API method to remove this driver  */
 	ANIM_remove_driver(reports, id, fcu->rna_path, fcu->array_index, 0);
 }
 

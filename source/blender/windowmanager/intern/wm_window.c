@@ -164,7 +164,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 		if (CTX_wm_window(C) == win)
 			CTX_wm_window_set(C, NULL);
-	}	
+	}
 
 	/* always set drawable and active to NULL,
 	 * prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
@@ -414,6 +414,10 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->posy = wm_init_state.start_y;
 				win->sizex = wm_init_state.size_x;
 				win->sizey = wm_init_state.size_y;
+
+				/* we can't properly resize a maximized window */
+				win->windowstate = GHOST_kWindowStateNormal;
+
 				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
 			}
 
@@ -648,7 +652,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 		else if (!GHOST_ValidWindow(g_system, ghostwin)) {
 			/* XXX - should be checked, why are we getting an event here, and */
 			/* what is it? */
-			puts("<!> event has invalid window");			
+			puts("<!> event has invalid window");
 			return 1;
 		}
 		else {
@@ -1001,7 +1005,7 @@ void wm_ghost_init(bContext *C)
 		
 		g_system = GHOST_CreateSystem();
 		GHOST_AddEventConsumer(g_system, consumer);
-	}	
+	}
 }
 
 void wm_ghost_exit(void)
@@ -1076,7 +1080,7 @@ char *WM_clipboard_text_get(int selection)
 		return NULL;
 	
 	/* always convert from \r\n to \n */
-	newbuf = MEM_callocN(strlen(buf) + 1, "WM_clipboard_text_get");
+	newbuf = MEM_callocN(strlen(buf) + 1, __func__);
 
 	for (p = buf, p2 = newbuf; *p; p++) {
 		if (*p != '\r')

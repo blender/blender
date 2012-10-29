@@ -181,6 +181,7 @@ typedef struct KnifeTool_OpData {
 	char select_result;  /* set on initialization */
 
 	short is_ortho;
+	float ortho_extent;
 	float clipsta, clipend;
 
 	enum {
@@ -1164,7 +1165,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 
 	/* for comparing distances, error of intersection depends on triangle scale.
 	 * need to scale down before squaring for accurate comparison */
-	const float depsilon = (KNIFE_FLT_EPS / 2.0f) * len_v3_tri_side_max(v1, v2, v3);
+	const float depsilon = (FLT_EPSILON / 2.0f) * len_v3_tri_side_max(v1, v2, v3);
 	const float depsilon_squared = depsilon * depsilon;
 
 	copy_v3_v3(cos + 0, v1);
@@ -1311,6 +1312,22 @@ static void knife_bgl_get_mats(KnifeTool_OpData *UNUSED(kcd), bglMats *mats)
 	//copy_m4_m4(mats->projection, kcd->vc.rv3d->winmat);
 }
 
+/* Calculate maximum excursion (doubled) from (0,0,0) of mesh */
+static void calc_ortho_extent(KnifeTool_OpData *kcd)
+{
+	BMIter iter;
+	BMVert *v;
+	BMesh* bm = kcd->em->bm;
+	float max_xyz = 0.0f;
+	int i;
+
+	BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+		for (i = 0; i < 3; i++)
+			max_xyz = max_ff(max_xyz, fabs(v->co[i]));
+	}
+	kcd->ortho_extent = 2 * max_xyz;
+}
+
 /* Finds visible (or all, if cutting through) edges that intersects the current screen drag line */
 static void knife_find_line_hits(KnifeTool_OpData *kcd)
 {
@@ -1353,8 +1370,10 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	 * (which may involve using doubles everywhere!),
 	 * limit the distance between these points */
 	if (kcd->is_ortho) {
-		limit_dist_v3(v1, v3, 200.0f);
-		limit_dist_v3(v2, v4, 200.0f);
+		if (kcd->ortho_extent == 0.0f)
+			calc_ortho_extent(kcd);
+		limit_dist_v3(v1, v3, kcd->ortho_extent + 10.0f);
+		limit_dist_v3(v2, v4, kcd->ortho_extent + 10.0f);
 	}
 
 	BLI_smallhash_init(ehash);
@@ -1506,7 +1525,7 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
 	if (density < 1.0f)
 		density = 1.0f;
 
-	return minf(maxsize / (density * 0.5f), maxsize);
+	return min_ff(maxsize / (density * 0.5f), maxsize);
 }
 
 /* p is closest point on edge to the mouse cursor */

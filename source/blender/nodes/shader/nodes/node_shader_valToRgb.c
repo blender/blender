@@ -33,11 +33,11 @@
 #include "node_shader_util.h"
 
 /* **************** VALTORGB ******************** */
-static bNodeSocketTemplate sh_node_valtorgb_in[]= {
+static bNodeSocketTemplate sh_node_valtorgb_in[] = {
 	{	SOCK_FLOAT, 1, N_("Fac"),			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate sh_node_valtorgb_out[]= {
+static bNodeSocketTemplate sh_node_valtorgb_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
 	{	SOCK_FLOAT, 0, N_("Alpha")},
 	{	-1, 0, ""	}
@@ -53,7 +53,7 @@ static void node_shader_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeStac
 		nodestack_get_vec(&fac, SOCK_FLOAT, in[0]);
 
 		do_colorband(node->storage, fac, out[0]->vec);
-		out[1]->vec[0]= out[0]->vec[3];
+		out[1]->vec[0] = out[0]->vec[3];
 	}
 }
 
@@ -89,11 +89,11 @@ void register_node_type_sh_valtorgb(bNodeTreeType *ttype)
 
 
 /* **************** RGBTOBW ******************** */
-static bNodeSocketTemplate sh_node_rgbtobw_in[]= {
+static bNodeSocketTemplate sh_node_rgbtobw_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate sh_node_rgbtobw_out[]= {
+static bNodeSocketTemplate sh_node_rgbtobw_out[] = {
 	{	SOCK_FLOAT, 0, N_("Val"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };

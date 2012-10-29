@@ -29,7 +29,7 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_output_lamp_in[]= {
+static bNodeSocketTemplate sh_node_output_lamp_in[] = {
 	{	SOCK_SHADER, 1, N_("Surface"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -49,7 +49,7 @@ void register_node_type_sh_output_lamp(bNodeTreeType *ttype)
 	node_type_gpu(&ntype, NULL);
 
 	/* Do not allow muting output node. */
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

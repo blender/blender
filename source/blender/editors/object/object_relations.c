@@ -622,13 +622,13 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			/* fall back on regular parenting now (for follow only) */
 			if (partype == PAR_FOLLOW)
 				partype = PAR_OBJECT;
-		}		
+		}
 	}
 	else if (partype == PAR_BONE) {
 		pchan = BKE_pose_channel_active(par);
 		
 		if (pchan == NULL) {
-			BKE_report(reports, RPT_ERROR, "No active Bone");
+			BKE_report(reports, RPT_ERROR, "No active bone");
 			return 0;
 		}
 	}
@@ -667,7 +667,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
 				 */
 				ob->partype = PAROBJECT; /* note, dna define, not operator property */
-				//ob->partype= PARSKEL; /* note, dna define, not operator property */
+				//ob->partype = PARSKEL; /* note, dna define, not operator property */
 				
 				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses 
 				 * - We need to ensure that the modifier we're adding doesn't already exist, so we check this by
@@ -1036,7 +1036,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (CTX_data_edit_object(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
+		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -1260,7 +1260,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			base->object->lay = lay;
 			base->object->flag &= ~SELECT;
 			base->flag &= ~SELECT;
-			/* if (base->object->type==OB_LAMP) is_lamp = TRUE; */
+			/* if (base->object->type == OB_LAMP) is_lamp = TRUE; */
 		}
 		CTX_DATA_END;
 	}
@@ -1273,7 +1273,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			local = base->lay & 0xFF000000;
 			base->lay = lay + local;
 			base->object->lay = lay;
-			/* if (base->object->type==OB_LAMP) is_lamp = TRUE; */
+			/* if (base->object->type == OB_LAMP) is_lamp = TRUE; */
 		}
 		CTX_DATA_END;
 	}
@@ -1350,17 +1350,17 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
 	if (scene_to == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find scene");
+		BKE_report(op->reports, RPT_ERROR, "Could not find scene");
 		return OPERATOR_CANCELLED;
 	}
 
 	if (scene_to == CTX_data_scene(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
+		BKE_report(op->reports, RPT_ERROR, "Cannot link objects into the same scene");
 		return OPERATOR_CANCELLED;
 	}
 
 	if (scene_to->id.lib) {
-		BKE_report(op->reports, RPT_ERROR, "Can't link objects into a linked scene");
+		BKE_report(op->reports, RPT_ERROR, "Cannot link objects into a linked scene");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1710,7 +1710,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						break;
 					case OB_MESH:
 						ob->data = BKE_mesh_copy(ob->data);
-						//me= ob->data;
+						//me = ob->data;
 						//if (me && me->key)
 						//	ipo_idnew(me->key->ipo);	/* drivers */
 						break;

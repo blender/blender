@@ -27,4 +27,7 @@ else:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_BULLET']:
+    defs.append('WITH_BULLET')
+
 env.BlenderLib ( 'bf_editors_mesh', sources, Split(incs), defs, libtype=['core'], priority=[45] )

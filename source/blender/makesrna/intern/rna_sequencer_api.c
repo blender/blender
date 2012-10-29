@@ -341,7 +341,7 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 	StripElem *new_seq, *se;
 
 	if (seq->len == 1) {
-		BKE_report(reports, RPT_ERROR, "SequenceElements.pop: can not pop the last element");
+		BKE_report(reports, RPT_ERROR, "SequenceElements.pop: cannot pop the last element");
 		return;
 	}
 

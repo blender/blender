@@ -10,7 +10,7 @@ sources_mask = env.Glob('intern/mask*.c')
 
 incs = '. #/intern/guardedalloc #/intern/memutil'
 incs += ' ../blenlib ../blenfont ../makesdna ../windowmanager'
-incs += ' ../render/extern/include #/intern/decimation/extern ../makesrna'
+incs += ' ../render/extern/include ../makesrna'
 incs += ' ../imbuf ../ikplugin ../avi #/intern/elbeem/extern ../nodes ../modifiers'
 incs += ' #/intern/iksolver/extern ../blenloader ../freestyle'
 incs += ' #/extern/bullet2/src'

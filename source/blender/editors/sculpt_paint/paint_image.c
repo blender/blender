@@ -113,26 +113,26 @@
 #define IMAPAINT_CHAR_TO_FLOAT(c) ((c) / 255.0f)
 
 #define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f)  {                                   \
-	(c)[0]= FTOCHAR((f)[0]);                                                  \
-	(c)[1]= FTOCHAR((f)[1]);                                                  \
-	(c)[2]= FTOCHAR((f)[2]);                                                  \
+	(c)[0] = FTOCHAR((f)[0]);                                                  \
+	(c)[1] = FTOCHAR((f)[1]);                                                  \
+	(c)[2] = FTOCHAR((f)[2]);                                                  \
 } (void)0
 #define IMAPAINT_FLOAT_RGBA_TO_CHAR(c, f)  {                                  \
-	(c)[0]= FTOCHAR((f)[0]);                                                  \
-	(c)[1]= FTOCHAR((f)[1]);                                                  \
-	(c)[2]= FTOCHAR((f)[2]);                                                  \
-	(c)[3]= FTOCHAR((f)[3]);                                                  \
+	(c)[0] = FTOCHAR((f)[0]);                                                  \
+	(c)[1] = FTOCHAR((f)[1]);                                                  \
+	(c)[2] = FTOCHAR((f)[2]);                                                  \
+	(c)[3] = FTOCHAR((f)[3]);                                                  \
 } (void)0
 #define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c)  {                                   \
-	(f)[0]= IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
-	(f)[1]= IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
-	(f)[2]= IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
+	(f)[0] = IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
+	(f)[1] = IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
+	(f)[2] = IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
 } (void)0
 #define IMAPAINT_CHAR_RGBA_TO_FLOAT(f, c)  {                                  \
-	(f)[0]= IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
-	(f)[1]= IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
-	(f)[2]= IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
-	(f)[3]= IMAPAINT_CHAR_TO_FLOAT((c)[3]);                                   \
+	(f)[0] = IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
+	(f)[1] = IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
+	(f)[2] = IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
+	(f)[3] = IMAPAINT_CHAR_TO_FLOAT((c)[3]);                                   \
 } (void)0
 
 #define IMAPAINT_FLOAT_RGB_COPY(a, b) copy_v3_v3(a, b)
@@ -173,7 +173,7 @@ typedef struct ImagePaintState {
 } ImagePaintState;
 
 typedef struct ImagePaintPartialRedraw {
-	int x1, y1, x2, y2;
+	int x1, y1, x2, y2;  /* XXX, could use 'rcti' */
 	int enabled;
 } ImagePaintPartialRedraw;
 
@@ -783,7 +783,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
 	else {
 		//xi = (int)((uv[0]*ibuf->x) + 0.5f);
 		//yi = (int)((uv[1]*ibuf->y) + 0.5f);
-		//if (xi<0 || xi>=ibuf->x  ||  yi<0 || yi>=ibuf->y) return 0;
+		//if (xi < 0 || xi >= ibuf->x  ||  yi < 0 || yi >= ibuf->y) return 0;
 		
 		/* wrap */
 		xi = ((int)(uv[0] * ibuf->x)) % ibuf->x;
@@ -903,7 +903,7 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 			else
 				isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3], w, ps->is_ortho);
 
-			/* Note, if isect_ret==-1 then we don't want to test the other side of the quad */
+			/* Note, if (isect_ret == -1) then we don't want to test the other side of the quad */
 			if (isect_ret == 0 && mf->v4) {
 				if (do_clip)
 					isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], 1);
@@ -942,7 +942,7 @@ static int line_isect_y(const float p1[2], const float p2[2], const float y_leve
 	
 	if (y_diff < 0.000001f) {
 		*x_isect = (p1[0] + p2[0]) * 0.5f;
-		return ISECT_TRUE;		
+		return ISECT_TRUE;
 	}
 	
 	if (p1[1] > y_level && p2[1] < y_level) {
@@ -975,7 +975,7 @@ static int line_isect_x(const float p1[2], const float p2[2], const float x_leve
 	
 	if (x_diff < 0.000001f) { /* yuck, vertical line, we cant do much here */
 		*y_isect = (p1[0] + p2[0]) * 0.5f;
-		return ISECT_TRUE;		
+		return ISECT_TRUE;
 	}
 	
 	if (p1[0] > x_level && p2[0] < x_level) {
@@ -1003,7 +1003,7 @@ static int cmp_uv(const float vec2a[2], const float vec2b[2])
 	float ya = (float)fmodf(vec2a[1], 1.0f);
 	
 	float xb = (float)fmodf(vec2b[0], 1.0f);
-	float yb = (float)fmodf(vec2b[1], 1.0f);	
+	float yb = (float)fmodf(vec2b[1], 1.0f);
 	
 	if (xa < 0.0f) xa += 1.0f;
 	if (ya < 0.0f) ya += 1.0f;
@@ -1860,7 +1860,7 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 		/* lower left out of radius test */
 		if (cent[1] < bucket_bounds->ymin) {
 			return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
-		} 
+		}
 		/* top left test */
 		else if (cent[1] > bucket_bounds->ymax) {
 			return (len_squared_v2v2_alt(cent, bucket_bounds->xmin, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
@@ -1870,7 +1870,7 @@ static int project_bucket_isect_circle(const float cent[2], const float radius_s
 		/* lower right out of radius test */
 		if (cent[1] < bucket_bounds->ymin) {
 			return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymin) < radius_squared) ? 1 : 0;
-		} 
+		}
 		/* top right test */
 		else if (cent[1] > bucket_bounds->ymax) {
 			return (len_squared_v2v2_alt(cent, bucket_bounds->xmax, bucket_bounds->ymax) < radius_squared) ? 1 : 0;
@@ -2111,7 +2111,7 @@ static void project_bucket_clip_face(
 				if ((inside_bucket_flag & ISECT_2) == 0) { copy_v2_v2(isectVCosSS[*tot], v1_clipSS); (*tot)++; }
 				if ((inside_bucket_flag & ISECT_3) == 0) { copy_v2_v2(isectVCosSS[*tot], v2_clipSS); (*tot)++; }
 			}
-		}	
+		}
 		
 		if ((inside_bucket_flag & (ISECT_3 | ISECT_1)) != (ISECT_3 | ISECT_1)) {
 			if (line_clip_rect2f(bucket_bounds, v3coSS, v1coSS, v1_clipSS, v2_clipSS)) {
@@ -2394,7 +2394,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	tf_uv_pxoffset[1][1] = tf->uv[1][1] - yhalfpx;
 	
 	tf_uv_pxoffset[2][0] = tf->uv[2][0] - xhalfpx;
-	tf_uv_pxoffset[2][1] = tf->uv[2][1] - yhalfpx;	
+	tf_uv_pxoffset[2][1] = tf->uv[2][1] - yhalfpx;
 	
 	if (mf->v4) {
 		vCo[3] = ps->dm_mvert[mf->v4].co;
@@ -3432,7 +3432,7 @@ static void project_paint_begin_clone(ProjPaintState *ps, int mouse[2])
 		mul_m4_v4(ps->projectMat, projCo);
 		ps->cloneOffset[0] = mouse[0] - ((float)(ps->winx / 2.0f) + (ps->winx / 2.0f) * projCo[0] / projCo[3]);
 		ps->cloneOffset[1] = mouse[1] - ((float)(ps->winy / 2.0f) + (ps->winy / 2.0f) * projCo[1] / projCo[3]);
-	}	
+	}
 }	
 
 static void project_paint_end(ProjPaintState *ps)
@@ -3561,7 +3561,7 @@ static void project_paint_end(ProjPaintState *ps)
 		ps->dm->release(ps->dm);
 }
 
-/* 1= an undo, -1 is a redo. */
+/* 1 = an undo, -1 is a redo. */
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr)
 {
 	int tot = PROJ_BOUNDBOX_SQUARED;
@@ -3583,11 +3583,11 @@ static int partial_redraw_array_merge(ImagePaintPartialRedraw *pr, ImagePaintPar
 {
 	int touch = 0;
 	while (tot--) {
-		pr->x1 = MIN2(pr->x1, pr_other->x1);
-		pr->y1 = MIN2(pr->y1, pr_other->y1);
+		pr->x1 = min_ii(pr->x1, pr_other->x1);
+		pr->y1 = min_ii(pr->y1, pr_other->y1);
 		
-		pr->x2 = MAX2(pr->x2, pr_other->x2);
-		pr->y2 = MAX2(pr->y2, pr_other->y2);
+		pr->x2 = max_ii(pr->x2, pr_other->x2);
+		pr->y2 = max_ii(pr->y2, pr_other->y2);
 		
 		if (pr->x2 != -1)
 			touch = 1;
@@ -4032,11 +4032,11 @@ static void *do_projectpaint_thread(void *ph_v)
 							/* end copy */
 
 							last_partial_redraw_cell = last_projIma->partRedrawRect + projPixel->bb_cell_index;
-							last_partial_redraw_cell->x1 = MIN2(last_partial_redraw_cell->x1, projPixel->x_px);
-							last_partial_redraw_cell->y1 = MIN2(last_partial_redraw_cell->y1, projPixel->y_px);
+							last_partial_redraw_cell->x1 = min_ii(last_partial_redraw_cell->x1, (int)projPixel->x_px);
+							last_partial_redraw_cell->y1 = min_ii(last_partial_redraw_cell->y1, (int)projPixel->y_px);
 
-							last_partial_redraw_cell->x2 = MAX2(last_partial_redraw_cell->x2, projPixel->x_px + 1);
-							last_partial_redraw_cell->y2 = MAX2(last_partial_redraw_cell->y2, projPixel->y_px + 1);
+							last_partial_redraw_cell->x2 = max_ii(last_partial_redraw_cell->x2, (int)projPixel->x_px + 1);
+							last_partial_redraw_cell->y2 = max_ii(last_partial_redraw_cell->y2, (int)projPixel->y_px + 1);
 
 							
 							switch (tool) {
@@ -4100,7 +4100,7 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 {
 	/* First unpack args from the struct */
 	ProjPaintState *ps = (ProjPaintState *)state;
-	int touch_any = 0;	
+	int touch_any = 0;
 	
 	ProjectHandle handles[BLENDER_MAX_THREADS];
 	ListBase threads;
@@ -4133,7 +4133,7 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 		/* image bounds */
 		for (i = 0; i < ps->image_tot; i++) {
 			handles[a].projImages[i].partRedrawRect = (ImagePaintPartialRedraw *)BLI_memarena_alloc(ps->arena_mt[a], sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
-			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);			
+			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 		}
 
 		if (ps->thread_tot > 1)
@@ -4222,10 +4222,10 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 		imapaintpartial.enabled = 1;
 	}
 	else {
-		imapaintpartial.x1 = MIN2(imapaintpartial.x1, x);
-		imapaintpartial.y1 = MIN2(imapaintpartial.y1, y);
-		imapaintpartial.x2 = MAX2(imapaintpartial.x2, x + w);
-		imapaintpartial.y2 = MAX2(imapaintpartial.y2, y + h);
+		imapaintpartial.x1 = min_ii(imapaintpartial.x1, x);
+		imapaintpartial.y1 = min_ii(imapaintpartial.y1, y);
+		imapaintpartial.x2 = max_ii(imapaintpartial.x2, x + w);
+		imapaintpartial.y2 = max_ii(imapaintpartial.y2, y + h);
 	}
 
 	w = ((x + w - 1) >> IMAPAINT_TILE_BITS);
@@ -4554,7 +4554,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 	else if (ima->packedfile && ima->rr) {
 		s->warnpackedfile = ima->id.name + 2;
 		return 0;
-	}	
+	}
 	else if (ibuf && ibuf->channels != 4) {
 		s->warnmultifile = ima->id.name + 2;
 		return 0;
@@ -5048,7 +5048,7 @@ static void paint_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		pop->prevmouse[1] = mouse[1];
 
 	}
-	else { 
+	else {
 		redraw = imapaint_paint_stroke(&pop->vc, &pop->s, pop->painter, pop->mode == PAINT_MODE_3D, pop->prevmouse, mouse, time, pressure);
 		pop->prevmouse[0] = mouse[0];
 		pop->prevmouse[1] = mouse[1];
@@ -5066,7 +5066,7 @@ static void paint_brush_exit_tex(Brush *brush)
 		MTex *mtex = &brush->mtex;
 		if (mtex->tex && mtex->tex->nodetree)
 			ntreeTexEndExecTree(mtex->tex->nodetree->execdata, 1);
-	}	
+	}
 }
 
 static void paint_exit(bContext *C, wmOperator *op)
@@ -5285,7 +5285,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 #define PX_SIZE_FADE_MIN 4.0f
 
 	Scene *scene = CTX_data_scene(C);
-	//Brush *brush= image_paint_brush(C);
+	//Brush *brush = image_paint_brush(C);
 	Paint *paint = paint_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 
@@ -5302,7 +5302,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		           !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
 
 		if (use_zoom) {
-			pixel_size = size * maxf(zoomx, zoomy);
+			pixel_size = size * max_ff(zoomx, zoomy);
 		}
 		else {
 			pixel_size = size;
@@ -5654,7 +5654,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if (BKE_object_obdata_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
 

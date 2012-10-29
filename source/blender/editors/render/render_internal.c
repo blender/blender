@@ -83,7 +83,7 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 
 	/* if renrect argument, we only refresh scanlines */
 	if (renrect) {
-		/* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
+		/* if (ymax == recty), rendering of layer is ready, we should not draw, other things happen... */
 		if (rr->renlay == NULL || renrect->ymax >= rr->recty)
 			return;
 
@@ -202,7 +202,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
 	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
+		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -493,9 +493,9 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
+		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
-	}	
+	}
 	
 	/* stop all running jobs, currently previews frustrate Render */
 	WM_jobs_stop_all(CTX_wm_manager(C));

@@ -79,7 +79,7 @@ typedef struct BVHObject {
 RayObject *RE_rayobject_blibvh_create(int size)
 {
 	BVHObject *obj = (BVHObject *)MEM_callocN(sizeof(BVHObject), "BVHObject");
-	assert(RE_rayobject_isAligned(obj)); /* RayObject API assumes real data to be 4-byte aligned */	
+	assert(RE_rayobject_isAligned(obj));  /* RayObject API assumes real data to be 4-byte aligned */
 	
 	obj->rayobj.api = &bvh_api;
 	obj->bvh = BLI_bvhtree_new(size, 0.0, 4, 6);
@@ -137,7 +137,7 @@ static void RE_rayobject_blibvh_add(RayObject *o, RayObject *ob)
 	DO_MIN(min_max,     obj->bb[0]);
 	DO_MAX(min_max + 3, obj->bb[1]);
 	
-	BLI_bvhtree_insert(obj->bvh, obj->next_leaf - obj->leafs, min_max, 2);	
+	BLI_bvhtree_insert(obj->bvh, obj->next_leaf - obj->leafs, min_max, 2);
 	*(obj->next_leaf++) = ob;
 }
 

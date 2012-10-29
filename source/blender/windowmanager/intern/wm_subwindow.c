@@ -192,7 +192,7 @@ void wm_subwindow_close(wmWindow *win, int swinid)
 		wm_subwindow_free(swin);
 		BLI_remlink(&win->subwindows, swin);
 		MEM_freeN(swin);
-	} 
+	}
 	else {
 		printf("%s: Internal error, bad winid: %d\n", __func__, swinid);
 	}
@@ -398,7 +398,7 @@ int WM_framebuffer_to_index(unsigned int col)
 			return col & 0xFFFFFF;
 		default: // 18 bits...
 			return ((col & 0xFC0000) >> 6) + ((col & 0xFC00) >> 4) + ((col & 0xFC) >> 2);
-	}		
+	}
 }
 
 

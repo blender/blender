@@ -49,6 +49,8 @@ extern "C" {
 // constructor
 ImageBase::ImageBase (bool staticSrc) : m_image(NULL), m_imgSize(0),
 m_avail(false), m_scale(false), m_scaleChange(false), m_flip(false),
+m_zbuff(false),
+m_depth(false),
 m_staticSources(staticSrc), m_pyfilter(NULL)
 {
 	m_size[0] = m_size[1] = 0;
@@ -402,6 +404,18 @@ PyObject *Image_getImage (PyImage *self, char * mode)
 			{
 				buffer = BGL_MakeBuffer( GL_BYTE, 1, &dimensions, image);
 			}
+			else if (!strcasecmp(mode, "F"))
+			{
+				// this mode returns the image as an array of float.
+				// This makes sense ONLY for the depth buffer:
+				//   source = VideoTexture.ImageViewport()
+				//   source.depth = True
+				//   depth = VideoTexture.imageToArray(source, 'F')
+
+				// adapt dimension from byte to float
+				dimensions /= sizeof(float);
+				buffer = BGL_MakeBuffer( GL_FLOAT, 1, &dimensions, image);
+			}
 			else 
 			{
 				int i, c, ncolor, pixels;
@@ -531,6 +545,52 @@ int Image_setFlip (PyImage *self, PyObject *value, void *closure)
 	// success
 	return 0;
 }
+
+// get zbuff
+PyObject * Image_getZbuff (PyImage * self, void * closure)
+{
+	if (self->m_image != NULL && self->m_image->getZbuff()) Py_RETURN_TRUE;
+	else Py_RETURN_FALSE;
+}
+
+// set zbuff
+int Image_setZbuff (PyImage * self, PyObject * value, void * closure)
+{
+	// check parameter, report failure
+	if (value == NULL || !PyBool_Check(value))
+	{
+		PyErr_SetString(PyExc_TypeError, "The value must be a bool");
+		return -1;
+	}
+	// set scale
+	if (self->m_image != NULL) self->m_image->setZbuff(value == Py_True);
+	// success
+	return 0;
+}
+
+// get depth
+PyObject * Image_getDepth (PyImage * self, void * closure)
+{
+	if (self->m_image != NULL && self->m_image->getDepth()) Py_RETURN_TRUE;
+	else Py_RETURN_FALSE;
+}
+
+// set depth
+int Image_setDepth (PyImage * self, PyObject * value, void * closure)
+{
+	// check parameter, report failure
+	if (value == NULL || !PyBool_Check(value))
+	{
+		PyErr_SetString(PyExc_TypeError, "The value must be a bool");
+		return -1;
+	}
+	// set scale
+	if (self->m_image != NULL) self->m_image->setDepth(value == Py_True);
+	// success
+	return 0;
+}
+
+
 
 
 // get filter source object

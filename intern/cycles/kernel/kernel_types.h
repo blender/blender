@@ -109,7 +109,11 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND_MIS__
 #define __AO__
 #define __CAMERA_MOTION__
+
+#ifndef __KERNEL_CUDA__
 #define __OBJECT_MOTION__
+#endif
+
 #endif
 
 //#define __SOBOL_FULL_SCREEN__
@@ -148,9 +152,7 @@ enum PathTraceDimension {
 	PRNG_BOUNCE_NUM = 8
 };
 
-/* these flag values correspond exactly to OSL defaults, so be careful not to
- * change this, or if you do, set the "raytypes" shading system attribute with
- * your own new ray types and bitflag values.
+/* these flags values correspond to raytypes in osl.cpp, so keep them in sync!
  *
  * for ray visibility tests in BVH traversal, the upper 20 bits are used for
  * layer visibility tests. */
@@ -411,7 +413,7 @@ typedef struct ShaderData {
 	/* view/incoming direction */
 	float3 I;
 	/* shader id */
-	int shader;	
+	int shader;
 	/* booleans describing shader, see ShaderDataFlag */
 	int flag;
 

@@ -51,7 +51,7 @@ PyDoc_STRVAR(M_Geometry_doc,
 "The Blender geometry module"
 );
 
-//---------------------------------INTERSECTION FUNCTIONS--------------------
+/* ---------------------------------INTERSECTION FUNCTIONS-------------------- */
 
 PyDoc_STRVAR(M_Geometry_intersect_ray_tri_doc,
 ".. function:: intersect_ray_tri(v1, v2, v3, ray, orig, clip=True)\n"
@@ -251,10 +251,6 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 	}
 }
 
-
-
-
-//----------------------------geometry.normal() -------------------
 PyDoc_STRVAR(M_Geometry_normal_doc,
 ".. function:: normal(v1, v2, v3, v4=None)\n"
 "\n"
@@ -338,7 +334,7 @@ static PyObject *M_Geometry_normal(PyObject *UNUSED(self), PyObject *args)
 	return Vector_CreatePyObject(n, 3, Py_NEW, NULL);
 }
 
-//--------------------------------- AREA FUNCTIONS--------------------
+/* --------------------------------- AREA FUNCTIONS-------------------- */
 
 PyDoc_STRVAR(M_Geometry_area_tri_doc,
 ".. function:: area_tri(v1, v2, v3)\n"

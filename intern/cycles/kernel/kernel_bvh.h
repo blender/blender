@@ -444,15 +444,10 @@ __device_inline bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, con
 __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 {
 #ifdef __OBJECT_MOTION__
-#if !defined(__KERNEL_CUDA__) || (__CUDA_ARCH__ >= 210)
 	if(kernel_data.bvh.have_motion)
 		return bvh_intersect_motion(kg, ray, visibility, isect);
 	else
 		return bvh_intersect(kg, ray, visibility, isect);
-#else
-	/* todo: fix cuda sm 2.0 motion blur */
-	return bvh_intersect(kg, ray, visibility, isect);
-#endif
 #else
 	return bvh_intersect(kg, ray, visibility, isect);
 #endif

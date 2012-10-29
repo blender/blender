@@ -139,20 +139,20 @@ MINLINE int power_of_2_min_i(int n)
 	return n;
 }
 
-MINLINE float minf(float a, float b)
+MINLINE float min_ff(float a, float b)
 {
 	return (a < b) ? a : b;
 }
-MINLINE float maxf(float a, float b)
+MINLINE float max_ff(float a, float b)
 {
 	return (a > b) ? a : b;
 }
 
-MINLINE int mini(int a, int b)
+MINLINE int min_ii(int a, int b)
 {
 	return (a < b) ? a : b;
 }
-MINLINE int maxi(int a, int b)
+MINLINE int max_ii(int a, int b)
 {
 	return (b < a) ? a : b;
 }

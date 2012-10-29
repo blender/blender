@@ -72,13 +72,13 @@ class GHOST_EventDragnDrop : public GHOST_Event
 public:
 	/**
 	 * Constructor.
-	 * \param time		The time this event was generated.
-	 * \param type		The type of this event.
-	 * \param dataType	The type of the drop candidate object
-	 * \param window	The window where the event occurred
-	 * \param x			The x-coordinate of the location the cursor was at at the time of the event.
-	 * \param y			The y-coordinate of the location the cursor was at at the time of the event.
-	 * \param data		The "content" dropped in the window
+	 * \param time      The time this event was generated.
+	 * \param type      The type of this event.
+	 * \param dataType  The type of the drop candidate object
+	 * \param window    The window where the event occurred
+	 * \param x         The x-coordinate of the location the cursor was at at the time of the event.
+	 * \param y         The y-coordinate of the location the cursor was at at the time of the event.
+	 * \param data      The "content" dropped in the window
 	 */
 	GHOST_EventDragnDrop(GHOST_TUns64 time,
 	                     GHOST_TEventType type,

@@ -271,7 +271,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 					    (len_squared_v2v2(bezt->vec[1], bezt->vec[2]) > 0.0001f * 0.0001f) &&
 					    (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) > 0.0002f * 0.0001f) &&
 					    (len_squared_v2v2(bezt->vec[0], bezt->vec[2]) >
-					     maxf(len_squared_v2v2(bezt->vec[0], bezt->vec[1]),
+					     max_ff(len_squared_v2v2(bezt->vec[0], bezt->vec[1]),
 					          len_squared_v2v2(bezt->vec[1], bezt->vec[2]))))
 					{
 						bezt->h1 = bezt->h2 = HD_ALIGN;
@@ -282,7 +282,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 			}
 		}
 		if (npoints) MEM_freeN(npoints);
-		if (onpoints) MEM_freeN(onpoints);	
+		if (onpoints) MEM_freeN(onpoints);
 	}
 }
 
@@ -404,7 +404,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 		lcode = charcode;
 	}
 
-	return vfd;	
+	return vfd;
 }
 
 
@@ -473,10 +473,10 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	VFontData *vfd = NULL;
 	int success = 0;
 
-	//init Freetype	
+	/* init Freetype */
 	err = FT_Init_FreeType(&library);
 	if (err) {
-		//XXX error("Failed to load the Freetype font library");
+		/* XXX error("Failed to load the Freetype font library"); */
 		return NULL;
 	}
 
@@ -486,7 +486,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 		vfd = objfnt_to_ftvfontdata(pf);
 	}
 
-	//free Freetype
+	/* free Freetype */
 	FT_Done_FreeType(library);
 	
 	return vfd;
@@ -518,16 +518,16 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 
 #if 0
 
-// Freetype2 Outline struct
+/* Freetype2 Outline struct */
 
 typedef struct  FT_Outline_
-  {
+{
 	short       n_contours;      /* number of contours in glyph        */
 	short       n_points;        /* number of points in the glyph      */
 
-	FT_Vector*  points;          /* the outline's points               */
-	char*       tags;            /* the points flags                   */
-	short*      contours;        /* the contour end points             */
+	FT_Vector  *points;          /* the outline's points               */
+	char       *tags;            /* the points flags                   */
+	short      *contours;        /* the contour end points             */
 
 	int         flags;           /* outline masks                      */
 } FT_Outline;

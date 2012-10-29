@@ -150,7 +150,7 @@ static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 static char *rna_ImageUser_path(PointerRNA *ptr)
 {
 	if (ptr->id.data) {
-		/* ImageUser *iuser= ptr->data; */
+		/* ImageUser *iuser = ptr->data; */
 		
 		switch (GS(((ID *)ptr->id.data)->name)) {
 			case ID_TE:
@@ -366,7 +366,7 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
 				((unsigned char *)ibuf->rect)[i] = FTOCHAR(values[i]);
 		}
 
-		ibuf->userflags |= IB_BITMAPDIRTY;
+		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
 	}
 
 	BKE_image_release_ibuf(ima, lock);
@@ -388,23 +388,27 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
 	RNA_def_property_ui_text(prop, "Auto Refresh", "Always refresh image on frame changes");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	/* animation */
 	prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "cycl", 0);
 	RNA_def_property_ui_text(prop, "Cyclic", "Cycle the images in the movie");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "frame_duration", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frames");
 	RNA_def_property_range(prop, 0, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Frames", "Number of images of a movie to use");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Offset", "Offset the number of the frame to use in the animation");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
@@ -412,12 +416,14 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Start Frame",
 	                         "Global starting frame of the movie/sequence, assuming first picture has a #1");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "fields_per_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fie_ima");
 	RNA_def_property_range(prop, 1, 200);
 	RNA_def_property_ui_text(prop, "Fields per Frame", "Number of fields per rendered frame (2 fields is 1 image)");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "multilayer_layer", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "layer");
@@ -499,7 +505,8 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
 	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_fields_update");
-
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	
 	prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_DO_PREMUL);
 	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha");
@@ -528,23 +535,27 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, image_generated_type_items);
 	RNA_def_property_ui_text(prop, "Generated Type", "Generated image type");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
-
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	
 	prop = RNA_def_property(srna, "generated_width", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gen_x");
 	RNA_def_property_range(prop, 1, 16384);
 	RNA_def_property_ui_text(prop, "Generated Width", "Generated image width");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
-
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	
 	prop = RNA_def_property(srna, "generated_height", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gen_y");
 	RNA_def_property_range(prop, 1, 16384);
 	RNA_def_property_ui_text(prop, "Generated Height", "Generated image height");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
-
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	
 	prop = RNA_def_property(srna, "use_generated_float", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gen_flag", IMA_GEN_FLOAT);
 	RNA_def_property_ui_text(prop, "Float Buffer", "Generate floating point buffer");
 	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	/* realtime properties */
 	prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);

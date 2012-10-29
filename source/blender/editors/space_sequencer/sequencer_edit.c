@@ -46,6 +46,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_threads.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -507,7 +509,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
 			if (seq->type == SEQ_TYPE_SOUND_RAM && BKE_sequence_effect_get_num_inputs(type) != 0) {
-				*error_str = "Can't apply effects to audio sequence strips";
+				*error_str = N_("Cannot apply effects to audio sequence strips");
 				return 0;
 			}
 			if ((seq != activeseq) && (seq != seq2)) {
@@ -515,7 +517,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 				else if (seq1 == NULL) seq1 = seq;
 				else if (seq3 == NULL) seq3 = seq;
 				else {
-					*error_str = "Can't apply effect to more than 3 sequence strips";
+					*error_str = N_("Cannot apply effect to more than 3 sequence strips");
 					return 0;
 				}
 			}
@@ -537,21 +539,21 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 			return 1; /* succsess */
 		case 1:
 			if (seq2 == NULL) {
-				*error_str = "Need at least one selected sequence strip";
+				*error_str = N_("At least one selected sequence strip is needed");
 				return 0;
 			}
 			if (seq1 == NULL) seq1 = seq2;
 			if (seq3 == NULL) seq3 = seq2;
 		case 2:
 			if (seq1 == NULL || seq2 == NULL) {
-				*error_str = "Need 2 selected sequence strips";
+				*error_str = N_("2 selected sequence strips are needed");
 				return 0;
 			}
 			if (seq3 == NULL) seq3 = seq2;
 	}
 	
 	if (seq1 == NULL && seq2 == NULL && seq3 == NULL) {
-		*error_str = "TODO: in what cases does this happen?";
+		*error_str = N_("TODO: in what cases does this happen?");
 		return 0;
 	}
 	
@@ -680,7 +682,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 		seqn = BKE_sequence_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
-	if (seqn) { 
+	if (seqn) {
 		seqn->flag |= SELECT;
 			
 		/* Second Strip! */
@@ -701,7 +703,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 			seqn->anim_startofs += cutframe - ts.start;
 			seqn->anim_endofs = ts.anim_endofs;
 			seqn->endstill = ts.endstill;
-		}				
+		}
 		
 		/* strips with extended stillframes after */
 		else if (((seqn->start + seqn->len) < cutframe) && (seqn->endstill)) {
@@ -773,7 +775,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 		seqn = BKE_sequence_dupli_recursive(scene, NULL, seq, SEQ_DUPE_UNIQUE_NAME | SEQ_DUPE_ANIM);
 	}
 	
-	if (seqn) { 
+	if (seqn) {
 		seqn->flag |= SELECT;
 			
 		/* Second Strip! */
@@ -791,7 +793,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 			seqn->startofs = cutframe - ts.start;
 			seqn->endofs = ts.endofs;
 			seqn->endstill = ts.endstill;
-		}				
+		}
 		
 		/* strips with extended stillframes after */
 		else if (((seqn->start + seqn->len) < cutframe) && (seqn->endstill)) {
@@ -1056,7 +1058,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 		{
 			if ((seq->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) == 0) {
 				/* simple but no anim update */
-				/* seq->start= snap_frame-seq->startofs+seq->startstill; */
+				/* seq->start = snap_frame-seq->startofs+seq->startstill; */
 
 				BKE_sequence_translate(scene, seq, (snap_frame - seq->startofs + seq->startstill) - seq->start);
 			}
@@ -1384,7 +1386,7 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 	    seq_is_predecessor(seq2, last_seq) ||
 	    seq_is_predecessor(seq3, last_seq))
 	{
-		BKE_report(op->reports, RPT_ERROR, "Can't reassign inputs: no cycles allowed");
+		BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: no cycles allowed");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1952,7 +1954,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	while (seq) {
 		next = seq->next;
 		if (seq != seqm && (seq->flag & SELECT)) {
-			channel_max = MAX2(seq->machine, channel_max);
+			channel_max = max_ii(seq->machine, channel_max);
 			BLI_remlink(ed->seqbasep, seq);
 			BLI_addtail(&seqm->seqbase, seq);
 		}
@@ -2129,7 +2131,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 		zoomY = ((float)height) / ((float)imgheight);
 		sseq->zoom = (zoomX < zoomY) ? zoomX : zoomY;
 
-		sseq->zoom = 1.0f / power_of_2(1 / minf(zoomX, zoomY));
+		sseq->zoom = 1.0f / power_of_2(1 / min_ff(zoomX, zoomY));
 	}
 	else {
 		sseq->zoom = 1.0f;
@@ -2255,11 +2257,11 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
-			xmin = MIN2(xmin, seq->startdisp);
-			xmax = MAX2(xmax, seq->enddisp);
+			xmin = min_ii(xmin, seq->startdisp);
+			xmax = max_ii(xmax, seq->enddisp);
 
-			ymin = MIN2(ymin, seq->machine);
-			ymax = MAX2(ymax, seq->machine);
+			ymin = min_ii(ymin, seq->machine);
+			ymax = max_ii(ymax, seq->machine);
 		}
 	}
 
@@ -2905,7 +2907,7 @@ static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
 	}
 
 	if (*seq_1 == NULL || *seq_2 == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, can't swap");
+		BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, cannot swap");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -3042,7 +3044,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 		seq->anim_startofs = seq->anim_endofs = 0;
 
 		/* correct start/end frames so we don't move
-		 * important not to set seq->len= len; allow the function to handle it */
+		 * important not to set seq->len = len; allow the function to handle it */
 		BKE_sequence_reload_new_file(scene, seq, TRUE);
 
 		BKE_sequence_calc(scene, seq);

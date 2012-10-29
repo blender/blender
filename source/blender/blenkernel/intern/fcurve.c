@@ -504,14 +504,14 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 						xmaxv = MAX3(xmaxv, bezt_last->vec[1][0],  bezt_last->vec[2][0]);
 					}
 					else {
-						xminv = minf(xminv, bezt_first->vec[1][0]);
-						xmaxv = maxf(xmaxv, bezt_last->vec[1][0]);
+						xminv = min_ff(xminv, bezt_first->vec[1][0]);
+						xmaxv = max_ff(xmaxv, bezt_last->vec[1][0]);
 					}
 				}
 			}
 			
 			/* only loop over keyframes to find extents for values if needed */
-			if (ymin || ymax) {	
+			if (ymin || ymax) {
 				BezTriple *bezt;
 				
 				for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {
@@ -521,8 +521,8 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 							ymaxv = MAX4(ymaxv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
 						}
 						else {
-							yminv = minf(yminv, bezt->vec[1][1]);
-							ymaxv = maxf(ymaxv, bezt->vec[1][1]);
+							yminv = min_ff(yminv, bezt->vec[1][1]);
+							ymaxv = max_ff(ymaxv, bezt->vec[1][1]);
 						}
 						
 						foundvert = TRUE;
@@ -533,8 +533,8 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 		else if (fcu->fpt) {
 			/* frame range can be directly calculated from end verts */
 			if (xmin || xmax) {
-				xminv = minf(xminv, fcu->fpt[0].vec[0]);
-				xmaxv = maxf(xmaxv, fcu->fpt[fcu->totvert - 1].vec[0]);
+				xminv = min_ff(xminv, fcu->fpt[0].vec[0]);
+				xmaxv = max_ff(xmaxv, fcu->fpt[fcu->totvert - 1].vec[0]);
 			}
 			
 			/* only loop over keyframes to find extents for values if needed */
@@ -591,15 +591,15 @@ void calc_fcurve_range(FCurve *fcu, float *start, float *end,
 			if (bezt_first) {
 				BLI_assert(bezt_last != NULL);
 				
-				min = minf(min, bezt_first->vec[1][0]);
-				max = maxf(max, bezt_last->vec[1][0]);
+				min = min_ff(min, bezt_first->vec[1][0]);
+				max = max_ff(max, bezt_last->vec[1][0]);
 				
 				foundvert = TRUE;
 			}
 		}
 		else if (fcu->fpt) {
-			min = minf(min, fcu->fpt[0].vec[0]);
-			max = maxf(max, fcu->fpt[fcu->totvert - 1].vec[0]);
+			min = min_ff(min, fcu->fpt[0].vec[0]);
+			max = max_ff(max, fcu->fpt[fcu->totvert - 1].vec[0]);
 			
 			foundvert = TRUE;
 		}
@@ -1039,7 +1039,7 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
 	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
 		if (RNA_property_array_check(prop)) {
 			/* array */
-			if (index < RNA_property_array_length(&ptr, prop)) {	
+			if (index < RNA_property_array_length(&ptr, prop)) {
 				switch (RNA_property_type(prop)) {
 					case PROP_BOOLEAN:
 						value = (float)RNA_property_boolean_get_index(&ptr, prop, index);
@@ -1143,7 +1143,7 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
 			
 		/* stop here... */
 		return 0.0f;
-	}			
+	}
 	
 	/* use the final posed locations */
 	mat4_to_quat(q1, pchan->pose_mat);
@@ -1549,7 +1549,7 @@ ChannelDriver *fcurve_copy_driver(ChannelDriver *driver)
 	for (dvar = ndriver->variables.first; dvar; dvar = dvar->next) {
 		/* need to go over all targets so that we don't leave any dangling paths */
 		DRIVER_TARGETS_LOOPER(dvar) 
-		{	
+		{
 			/* make a copy of target's rna path if available */
 			if (dtar->rna_path)
 				dtar->rna_path = MEM_dupallocN(dtar->rna_path);
@@ -1832,7 +1832,7 @@ static int findzero(float x, float q0, float q1, float q2, float q3, float *o)
 			return 1;
 		}
 		
-		return 0;	
+		return 0;
 	}
 }
 
@@ -1916,7 +1916,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 						cvalue = prevbezt->vec[1][1];
 					}
 				}
-			} 
+			}
 			else {
 				/* Use the first handle (earlier) of first BezTriple to calculate the
 				 * gradient and thus the value of the curve at evaltime
@@ -1968,7 +1968,7 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 						cvalue = lastbezt->vec[1][1];
 					}
 				}
-			} 
+			}
 			else {
 				/* Use the gradient of the second handle (later) of last BezTriple to calculate the
 				 * gradient and thus the value of the curve at evaltime

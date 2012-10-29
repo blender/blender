@@ -141,7 +141,7 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, KX_RayCast* r
 	KX_GameObject* hitKXObj = client_info->m_gameobject;
 	
 	/* Is this me? In the ray test, there are a lot of extra checks
-	 * for aliasing artefacts from self-hits. That doesn't happen
+	 * for aliasing artifacts from self-hits. That doesn't happen
 	 * here, so a simple test suffices. Or does the camera also get
 	 * self-hits? (No, and the raysensor shouldn't do it either, since
 	 * self-hits are excluded by setting the correct ignore-object.)
@@ -308,8 +308,7 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus()
 	list<class KX_Camera*>* cameras = m_kxscene->GetCameras();
 	list<KX_Camera*>::iterator it = cameras->begin();
 	
-	while(it != cameras->end())
-	{
+	while (it != cameras->end()) {
 		if (((*it) != cam) && (*it)->GetViewport())
 			if (ParentObjectHasFocusCamera(*it))
 				return true;
@@ -393,19 +392,19 @@ PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
 /* Attributes */
 PyObject *KX_MouseFocusSensor::pyattr_get_ray_source(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	KX_MouseFocusSensor* self = static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->RaySource());
 }
 
 PyObject *KX_MouseFocusSensor::pyattr_get_ray_target(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	KX_MouseFocusSensor* self = static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->RayTarget());
 }
 
 PyObject *KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	KX_MouseFocusSensor* self = static_cast<KX_MouseFocusSensor*>(self_v);
 	MT_Vector3 dir = self->RayTarget() - self->RaySource();
 	if (MT_fuzzyZero(dir))	dir.setValue(0,0,0);
 	else					dir.normalize();
@@ -414,7 +413,7 @@ PyObject *KX_MouseFocusSensor::pyattr_get_ray_direction(void *self_v, const KX_P
 
 PyObject *KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	KX_MouseFocusSensor* self = static_cast<KX_MouseFocusSensor*>(self_v);
 	
 	if (self->m_hitObject)
 		return self->m_hitObject->GetProxy();
@@ -424,19 +423,19 @@ PyObject *KX_MouseFocusSensor::pyattr_get_hit_object(void *self_v, const KX_PYAT
 
 PyObject *KX_MouseFocusSensor::pyattr_get_hit_position(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	KX_MouseFocusSensor* self = static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->HitPosition());
 }
 
 PyObject *KX_MouseFocusSensor::pyattr_get_hit_normal(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	KX_MouseFocusSensor* self = static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->HitNormal());
 }
 
 PyObject *KX_MouseFocusSensor::pyattr_get_hit_uv(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_MouseFocusSensor* self= static_cast<KX_MouseFocusSensor*>(self_v);
+	KX_MouseFocusSensor* self = static_cast<KX_MouseFocusSensor*>(self_v);
 	return PyObjectFrom(self->HitUV());
 }
 

@@ -54,7 +54,7 @@ public:
 
 	// Subtree functions
 	int getSubtreeSize(BVH_STAT stat=BVH_STAT_NODE_COUNT) const;
-	float computeSubtreeSAHCost(const BVHParams& p, float probability = 1.0f) const;	
+	float computeSubtreeSAHCost(const BVHParams& p, float probability = 1.0f) const;
 	void deleteSubtree();
 
 	uint update_visibility();

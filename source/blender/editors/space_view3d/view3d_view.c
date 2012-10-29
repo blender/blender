@@ -161,6 +161,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 	if (lens) sms.new_lens = *lens;
 
 	if (camera) {
+		sms.new_dist = ED_view3d_offset_distance(camera->obmat, ofs);
 		ED_view3d_from_object(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
 		sms.to_camera = TRUE; /* restore view3d values in end */
 	}
@@ -185,7 +186,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 
 			/* original values */
 			if (oldcamera) {
-				sms.orig_dist = rv3d->dist;  /* below function does weird stuff with it... */
+				sms.orig_dist = ED_view3d_offset_distance(oldcamera->obmat, rv3d->ofs);
 				ED_view3d_from_object(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
@@ -657,7 +658,10 @@ int ED_view3d_viewplane_get(View3D *v3d, RegionView3D *rv3d, int winx, int winy,
 	return params.is_ortho;
 }
 
-void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)       /* rect: for picking */
+/*!
+ * \param rect for picking, NULL not to use.
+ */
+void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	rctf viewplane;
@@ -690,7 +694,7 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)       /* rect: for
 		
 		if (orth) wmOrtho(rect->xmin, rect->xmax, rect->ymin, rect->ymax, -clipend, clipend);
 		else wmFrustum(rect->xmin, rect->xmax, rect->ymin, rect->ymax, clipsta, clipend);
-		
+
 	}
 	else {
 		if (orth) wmOrtho(x1, x2, y1, y2, clipsta, clipend);
@@ -786,7 +790,7 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
-			BKE_object_where_is_calc(scene, v3d->camera);	
+			BKE_object_where_is_calc(scene, v3d->camera);
 			obmat_to_viewmat(v3d, rv3d, v3d->camera, 0);
 		}
 		else {
@@ -891,8 +895,8 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 					glLoadName(code);
 					draw_object(scene, ar, v3d, base, DRAW_PICKING | DRAW_CONSTCOLOR);
 					
-					/* we draw group-duplicators for selection too */
-					if ((base->object->transflag & OB_DUPLI) && base->object->dup_group) {
+					/* we draw duplicators for selection too */
+					if ((base->object->transflag & OB_DUPLI)) {
 						ListBase *lb;
 						DupliObject *dob;
 						Base tbase;
@@ -919,7 +923,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 						free_object_duplilist(lb);
 					}
 					code++;
-				}				
+				}
 			}
 		}
 		v3d->xray = FALSE;  /* restore */
@@ -1037,7 +1041,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 	locallay = free_localbit(bmain);
 
 	if (locallay == 0) {
-		BKE_reportf(reports, RPT_ERROR, "No more than 8 local views");
+		BKE_report(reports, RPT_ERROR, "No more than 8 local views");
 		ok = FALSE;
 	}
 	else {
@@ -1192,7 +1196,7 @@ static int view3d_localview_exit(Main *bmain, Scene *scene, ScrArea *sa)
 		DAG_on_visible_update(bmain, FALSE);
 
 		return TRUE;
-	} 
+	}
 	else {
 		return FALSE;
 	}
@@ -1265,12 +1269,12 @@ static void RestoreState(bContext *C, wmWindow *win)
 		GPU_paint_set_mipmap(0);
 
 	//XXX curarea->win_swap = 0;
-	//XXX curarea->head_swap=0;
+	//XXX curarea->head_swap = 0;
 	//XXX allqueue(REDRAWVIEW3D, 1);
 	//XXX allqueue(REDRAWBUTSALL, 0);
 	//XXX reset_slowparents();
 	//XXX waitcursor(0);
-	//XXX G.qual= 0;
+	//XXX G.qual = 0;
 	
 	if (win) /* check because closing win can set to NULL */
 		win->queue = queue_back;
@@ -1395,7 +1399,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	WM_redraw_windows(C);
 
 	rv3d = CTX_wm_region_view3d(C);
-	/* sa= CTX_wm_area(C); */ /* UNUSED */
+	/* sa = CTX_wm_area(C); */ /* UNUSED */
 	ar = CTX_wm_region(C);
 
 	view3d_operator_needs_opengl(C);

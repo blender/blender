@@ -65,6 +65,12 @@
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
 
+/* ensure typemap size is ok */
+BLI_STATIC_ASSERT(sizeof(((CustomData *)NULL)->typemap) /
+                  sizeof(((CustomData *)NULL)->typemap[0]) == CD_NUMTYPES,
+                  "size mismatch");
+
+
 /********************* Layer type information **********************/
 typedef struct LayerTypeInfo {
 	int size;          /* the memory size of one element of this layer's data */
@@ -1076,7 +1082,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
 	 layerAdd_mloopuv, layerDoMinMax_mloopuv, layerCopyValue_mloopuv},
 	/* 17: CD_MLOOPCOL */
-	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, 
+	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL,
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol, 
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
 	/* 18: CD_TANGENT */
@@ -1220,9 +1226,6 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 void CustomData_update_typemap(CustomData *data)
 {
 	int i, lasttype = -1;
-
-	/* since we cant do in a pre-processor do here as an assert */
-	BLI_assert(sizeof(data->typemap) / sizeof(int) >= CD_NUMTYPES);
 
 	for (i = 0; i < CD_NUMTYPES; i++) {
 		data->typemap[i] = -1;
@@ -2477,10 +2480,49 @@ int CustomData_layer_has_math(struct CustomData *data, int layer_n)
 	if (typeInfo->equal && typeInfo->add && typeInfo->multiply && 
 	    typeInfo->initminmax && typeInfo->dominmax)
 	{
-		return 1;
+		return TRUE;
 	}
 	
-	return 0;
+	return FALSE;
+}
+
+int CustomData_layer_has_interp(struct CustomData *data, int layer_n)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[layer_n].type);
+
+	if (typeInfo->interp) {
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+int CustomData_has_math(struct CustomData *data)
+{
+	int i;
+
+	/* interpolates a layer at a time */
+	for (i = 0; i < data->totlayer; ++i) {
+		if (CustomData_layer_has_math(data, i)) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+int CustomData_has_interp(struct CustomData *data)
+{
+	int i;
+
+	/* interpolates a layer at a time */
+	for (i = 0; i < data->totlayer; ++i) {
+		if (CustomData_layer_has_interp(data, i)) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 /* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
@@ -2580,8 +2622,8 @@ void CustomData_bmesh_set_layer_n(CustomData *data, void *block, int n, void *so
 		memcpy(dest, source, typeInfo->size);
 }
 
-void CustomData_bmesh_interp(CustomData *data, void **src_blocks, float *weights,
-                             float *sub_weights, int count, void *dest_block)
+void CustomData_bmesh_interp(CustomData *data, void **src_blocks, const float *weights,
+                             const float *sub_weights, int count, void *dest_block)
 {
 	int i, j;
 	void *source_buf[SOURCE_BUF_SIZE];

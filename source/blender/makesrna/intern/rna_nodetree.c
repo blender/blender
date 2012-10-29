@@ -71,12 +71,12 @@ EnumPropertyItem node_quality_items[] = {
 };
 
 EnumPropertyItem node_chunksize_items[] = {
-    {NTREE_CHUNCKSIZE_32,   "32",     0,    "32x32",     "Chunksize of 32x32"},
-    {NTREE_CHUNCKSIZE_64,   "64",     0,    "64x64",     "Chunksize of 64x64"},
-    {NTREE_CHUNCKSIZE_128,   "128",     0,    "128x128",     "Chunksize of 128x128"},
-    {NTREE_CHUNCKSIZE_256,   "256",     0,    "256x256",     "Chunksize of 256x256"},
-    {NTREE_CHUNCKSIZE_512,   "512",     0,    "512x512",     "Chunksize of 512x512"},
-    {NTREE_CHUNCKSIZE_1024,   "1024",     0,    "1024x1024",     "Chunksize of 1024x1024"},
+	{NTREE_CHUNCKSIZE_32,   "32",     0,    "32x32",     "Chunksize of 32x32"},
+	{NTREE_CHUNCKSIZE_64,   "64",     0,    "64x64",     "Chunksize of 64x64"},
+	{NTREE_CHUNCKSIZE_128,  "128",    0,    "128x128",   "Chunksize of 128x128"},
+	{NTREE_CHUNCKSIZE_256,  "256",    0,    "256x256",   "Chunksize of 256x256"},
+	{NTREE_CHUNCKSIZE_512,  "512",    0,    "512x512",   "Chunksize of 512x512"},
+	{NTREE_CHUNCKSIZE_1024, "1024",   0,    "1024x1024", "Chunksize of 1024x1024"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -226,10 +226,6 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 		
 		case NODE_GROUP:
 			return &RNA_NodeGroup;
-		case NODE_FORLOOP:
-			return &RNA_NodeForLoop;
-		case NODE_WHILELOOP:
-			return &RNA_NodeWhileLoop;
 		case NODE_FRAME:
 			return &RNA_NodeFrame;
 		case NODE_REROUTE:
@@ -1042,7 +1038,6 @@ static EnumPropertyItem node_glossy_items[] = {
 enum
 {
 	Category_GroupNode,
-	Category_LoopNode,
 	Category_LayoutNode,
 	Category_ShaderNode,
 	Category_CompositorNode,
@@ -1086,8 +1081,6 @@ static void init(void)
 	#include "rna_nodetree_types.h"
 	
 	reg_node(NODE_GROUP, Category_GroupNode, "GROUP", "NodeGroup", "SpecialNode", "Group", "");
-	reg_node(NODE_FORLOOP, Category_LoopNode, "FORLOOP", "NodeForLoop", "SpecialNode", "ForLoop", "");
-	reg_node(NODE_WHILELOOP, Category_LoopNode, "WHILELOOP", "NodeWhileLoop", "SpecialNode", "WhileLoop", "");
 	reg_node(NODE_FRAME, Category_LayoutNode, "FRAME", "NodeFrame", "SpecialNode", "Frame", "");
 	reg_node(NODE_REROUTE, Category_LayoutNode, "REROUTE", "NodeReroute", "SpecialNode", "Reroute", "");
 }
@@ -1163,36 +1156,6 @@ static void def_group(StructRNA *srna)
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_NodeGroup_node_tree_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Node Tree", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeGroup_update");
-}
-
-static void def_forloop(StructRNA *srna)
-{
-	PropertyRNA *prop;
-	
-	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_struct_type(prop, "NodeTree");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Node Tree", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeGroup_update");
-}
-
-static void def_whileloop(StructRNA *srna)
-{
-	PropertyRNA *prop;
-	
-	prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_struct_type(prop, "NodeTree");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Node Tree", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeGroup_update");
-
-	prop = RNA_def_property(srna, "max_iterations", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "custom1");
-	RNA_def_property_range(prop, 0.0f, SHRT_MAX);
-	RNA_def_property_ui_text(prop, "Max. Iterations", "Limit for number of iterations");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeGroup_update");
 }
 
@@ -3995,8 +3958,6 @@ static void rna_def_special_node(BlenderRNA *brna)
 
 	static EnumPropertyItem specific_node_type_items[] = {
 		{NODE_GROUP, "GROUP", ICON_NODE, "Group", ""},
-		{NODE_FORLOOP, "FORLOOP", ICON_NODE, "For Loop", ""},
-		{NODE_WHILELOOP, "WHILELOOP", ICON_NODE, "While Loop", ""},
 		{NODE_FRAME, "FRAME", ICON_NODE, "Frame", ""},
 		{NODE_REROUTE, "REROUTE", ICON_NODE, "Reroute", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -4619,8 +4580,6 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	#include "rna_nodetree_types.h"
 	
 	define_specific_node(brna, NODE_GROUP, def_group);
-	define_specific_node(brna, NODE_FORLOOP, def_forloop);
-	define_specific_node(brna, NODE_WHILELOOP, def_whileloop);
 	define_specific_node(brna, NODE_FRAME, def_frame);
 	define_specific_node(brna, NODE_REROUTE, 0);
 	

@@ -341,7 +341,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				if (sp->pr_method == PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
 						sce->lay = 1 << MA_FLAT;
-					} 
+					}
 					else {
 						sce->lay = 1 << MA_SPHERE_A;
 					}
@@ -368,7 +368,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
 						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
 						Material ***matar = give_matarar(base->object);
-						int actcol = MAX2(base->object->actcol - 1, 0);
+						int actcol = max_ii(base->object->actcol - 1, 0);
 
 						if (matar && actcol < base->object->totcol)
 							(*matar)[actcol] = mat;
@@ -386,7 +386,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				tex = localize_texture(origtex);
 				sp->texcopy = tex;
 				BLI_addtail(&pr_main->tex, tex);
-			}			
+			}
 			sce->lay = 1 << MA_TEXTURE;
 			
 			for (base = sce->base.first; base; base = base->next) {
@@ -518,8 +518,8 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		
 		if (ABS(rres.rectx - newx) < 2 && ABS(rres.recty - newy) < 2) {
 
-			newrect->xmax = MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
-			newrect->ymax = MAX2(newrect->ymax, rect->ymin + rres.recty);
+			newrect->xmax = max_ii(newrect->xmax, rect->xmin + rres.rectx + offx);
+			newrect->ymax = max_ii(newrect->ymax, rect->ymin + rres.recty);
 
 			if (rres.rectx && rres.recty) {
 				/* temporary conversion to byte for drawing */
@@ -597,7 +597,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		if (ok == 0) {
 			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy, PR_BUTS_RENDER);
 		}
-	}	
+	}
 }
 
 /* **************************** new shader preview system ****************** */
@@ -649,7 +649,7 @@ static void shader_preview_updatejob(void *spv)
 				if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree)
 					ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
 			}
-		}		
+		}
 	}
 }
 
@@ -861,7 +861,7 @@ static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned
 		scaledx = (float)w;
 		scaledy =  ( (float)ima->y / (float)ima->x) * (float)w;
 	}
-	else {			
+	else {
 		scaledx =  ( (float)ima->x / (float)ima->y) * (float)h;
 		scaledy = (float)h;
 	}

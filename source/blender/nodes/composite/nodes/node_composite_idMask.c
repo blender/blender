@@ -35,11 +35,11 @@
 
 /* **************** ID Mask  ******************** */
 
-static bNodeSocketTemplate cmp_node_idmask_in[]= {
+static bNodeSocketTemplate cmp_node_idmask_in[] = {
 	{	SOCK_FLOAT, 1, N_("ID value"),			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_idmask_out[]= {
+static bNodeSocketTemplate cmp_node_idmask_out[] = {
 	{	SOCK_FLOAT, 0, N_("Alpha")},
 	{	-1, 0, ""	}
 };
@@ -56,14 +56,14 @@ static void do_idmask(CompBuf *stackbuf, CompBuf *cbuf, float idnr)
 	rect= cbuf->rect;
 	for (x= cbuf->x*cbuf->y - 1; x>=0; x--)
 		if (rect[x]==idnr)
-			abuf[x]= 255;
+			abuf[x] = 255;
 	
 	antialias_tagbuf(cbuf->x, cbuf->y, abuf);
 	
 	rect= stackbuf->rect;
 	for (x= cbuf->x*cbuf->y - 1; x>=0; x--)
 		if (abuf[x]>1)
-			rect[x]= (1.0f/255.0f)*(float)abuf[x];
+			rect[x] = (1.0f/255.0f)*(float)abuf[x];
 	
 	MEM_freeN(abuf);
 }
@@ -78,7 +78,7 @@ static void do_idmask_fsa(CompBuf *stackbuf, CompBuf *cbuf, float idnr)
 	rs= stackbuf->rect;
 	for (x= cbuf->x*cbuf->y - 1; x>=0; x--)
 		if (rect[x]==idnr)
-			rs[x]= 1.0f;
+			rs[x] = 1.0f;
 	
 }
 

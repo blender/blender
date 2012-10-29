@@ -705,7 +705,7 @@ static void recalcData_view3d(TransInfo *t)
 					BKE_nurb_handles_calc(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
 					nu = nu->next;
 				}
-			} 
+			}
 			else {
 				/* Normal updating */
 				while (nu) {
@@ -1002,9 +1002,9 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	/* moving: is shown in drawobject() (transform color) */
 //  TRANSFORM_FIX_ME
-//	if (obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
-//	else if (G.f & G_PARTICLEEDIT) G.moving= G_TRANSFORM_PARTICLE;
-//	else G.moving= G_TRANSFORM_OBJ;
+//	if (obedit || (t->flag & T_POSE) ) G.moving = G_TRANSFORM_EDIT;
+//	else if (G.f & G_PARTICLEEDIT) G.moving = G_TRANSFORM_PARTICLE;
+//	else G.moving = G_TRANSFORM_OBJ;
 	
 	t->scene = sce;
 	t->sa = sa;
@@ -1252,7 +1252,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		/* TRANSFORM_FIX_ME rna restrictions */
 		if (t->prop_size <= 0.00001f) {
-			printf("Proportional size (%f) under 0.00001, reseting to 1!\n", t->prop_size);
+			printf("Proportional size (%f) under 0.00001, resetting to 1!\n", t->prop_size);
 			t->prop_size = 1.0f;
 		}
 		
@@ -1712,8 +1712,9 @@ void calculatePropRatio(TransInfo *t)
 				/*
 				 * The elements are sorted according to their dist member in the array,
 				 * that means we can stop when it finds one element outside of the propsize.
+				 * do not set td->flag |= TD_NOACTION , the prop circle is being changed.
 				 */
-				td->flag |= TD_NOACTION;
+				
 				td->factor = 0.0f;
 				restoreElement(td);
 			}

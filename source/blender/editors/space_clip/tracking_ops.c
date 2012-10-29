@@ -372,8 +372,8 @@ static int mouse_on_slide_zone(SpaceClip *sc, MovieTrackingMarker *marker,
 	dx = size / width / sc->zoom;
 	dy = size / height / sc->zoom;
 
-	dx = minf(dx, (max[0] - min[0]) / 6.0f);
-	dy = minf(dy, (max[1] - min[1]) / 6.0f);
+	dx = min_ff(dx, (max[0] - min[0]) / 6.0f);
+	dy = min_ff(dy, (max[1] - min[1]) / 6.0f);
 
 	return IN_RANGE_INCL(co[0], slide_zone[0] - dx, slide_zone[0] + dx) &&
 	       IN_RANGE_INCL(co[1], slide_zone[1] - dy, slide_zone[1] + dy);
@@ -424,14 +424,14 @@ static int get_mouse_pattern_corner(SpaceClip *sc, MovieTrackingMarker *marker, 
 
 		cur_len = len_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
-		len = minf(cur_len, len);
+		len = min_ff(cur_len, len);
 	}
 
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
 
-	dx = minf(dx, len * 2.0f / 3.0f);
-	dy = minf(dy, len * width / height * 2.0f / 3.0f);
+	dx = min_ff(dx, len * 2.0f / 3.0f);
+	dy = min_ff(dy, len * width / height * 2.0f / 3.0f);
 
 	for (i = 0; i < 4; i++) {
 		float crn[2];
@@ -462,8 +462,8 @@ static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
 
-	dx = minf(dx, (pat_max[0] - pat_min[0]) / 2.0f);
-	dy = minf(dy, (pat_max[1] - pat_min[1]) / 2.0f);
+	dx = min_ff(dx, (pat_max[0] - pat_min[0]) / 2.0f);
+	dy = min_ff(dy, (pat_max[1] - pat_min[1]) / 2.0f);
 
 	return co[0] >= pos[0] - dx && co[0] <= pos[0] + dx && co[1] >= pos[1] - dy && co[1] <= pos[1] + dy;
 }
@@ -1018,7 +1018,7 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit
 					if (frames_limit == 0)
 						frames_limit = track->frames_limit;
 					else
-						frames_limit = MIN2(frames_limit, track->frames_limit);
+						frames_limit = min_ii(frames_limit, (int)track->frames_limit);
 				}
 			}
 		}
@@ -1396,9 +1396,8 @@ static void solve_camera_freejob(void *scv)
 	}
 
 	solved = BKE_tracking_reconstruction_finish(scj->context, tracking);
-
 	if (!solved)
-		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
+		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct (see console for details)");
 	else
 		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error: %.3f", tracking->reconstruction.error);
 
@@ -1410,7 +1409,7 @@ static void solve_camera_freejob(void *scv)
 	id_us_plus(&clip->id);
 
 	/* set blender camera focal length so result would look fine there */
-	if (scene->camera) {
+	if (scene->camera && GS(scene->camera->id.name) == ID_CA) {
 		Camera *camera = (Camera *)scene->camera->data;
 		int width, height;
 
@@ -3372,7 +3371,7 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 	object = BKE_tracking_object_get_active(tracking);
 
 	if (object->flag & TRACKING_OBJECT_CAMERA) {
-		BKE_report(op->reports, RPT_WARNING, "Object used for camera tracking can't be deleted");
+		BKE_report(op->reports, RPT_WARNING, "Object used for camera tracking cannot be deleted");
 		return OPERATOR_CANCELLED;
 	}
 

@@ -122,6 +122,7 @@ static void node_socket_disconnect(Main *bmain, bNodeTree *ntree, bNode *node_to
 		return;
 
 	nodeRemLink(ntree, sock_to->link);
+	sock_to->flag |= SOCK_COLLAPSED;
 
 	nodeUpdate(ntree, node_to);
 	ntreeUpdateTree(ntree);
@@ -136,6 +137,7 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
 		return;
 
 	node_remove_linked(ntree, sock_to->link->fromnode);
+	sock_to->flag |= SOCK_COLLAPSED;
 
 	nodeUpdate(ntree, node_to);
 	ntreeUpdateTree(ntree);
@@ -185,6 +187,7 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 	/* add link */
 	sock_from_tmp = BLI_findlink(&node_from->outputs, sock_num);
 	nodeAddLink(ntree, node_from, sock_from_tmp, node_to, sock_to);
+	sock_to->flag &= ~SOCK_COLLAPSED;
 
 	/* copy input sockets from previous node */
 	if (node_prev && node_from != node_prev) {
@@ -613,7 +616,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 		/* input linked to a node */
 		uiTemplateNodeLink(split, ntree, node, input);
 
-		if (!(input->flag & SOCK_COLLAPSED)) {
+		if (depth == 0 || !(input->flag & SOCK_COLLAPSED)) {
 			if (depth == 0)
 				uiItemS(layout);
 

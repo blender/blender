@@ -165,7 +165,7 @@ void view3d_get_transformation(const ARegion *ar, RegionView3D *rv3d, Object *ob
 	mats->viewport[0] = ar->winrct.xmin;
 	mats->viewport[1] = ar->winrct.ymin;
 	mats->viewport[2] = ar->winx;
-	mats->viewport[3] = ar->winy;	
+	mats->viewport[3] = ar->winy;
 }
 
 /* ********************** view3d_select: selection manipulations ********************* */
@@ -2359,7 +2359,7 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 	if (me) {
 		bm_vertoffs = me->totpoly + 1; /* max index array */
 
-		/* bbsel= */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
+		/* bbsel = */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 		edbm_backbuf_check_and_select_tfaces(me, select == LEFTMOUSE);
 		EDBM_backbuf_free();
 		paintface_flush_flags(ob);
@@ -2376,7 +2376,7 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 	if (me) {
 		bm_vertoffs = me->totvert + 1; /* max index array */
 
-		/* bbsel= */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
+		/* bbsel = */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 		edbm_backbuf_check_and_select_verts_obmode(me, select == LEFTMOUSE);
 		EDBM_backbuf_free();
 

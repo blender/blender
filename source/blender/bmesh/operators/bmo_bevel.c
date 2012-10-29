@@ -126,7 +126,7 @@ static void calc_corner_co(BMLoop *l, const float fac, float r_co[3],
 		 * gives nicer, move even output.
 		 *
 		 * Use the minimum rather then the middle value so skinny faces don't flip along the short axis */
-		float min_fac = minf(normalize_v3(l_vec_prev), normalize_v3(l_vec_next));
+		float min_fac = min_ff(normalize_v3(l_vec_prev), normalize_v3(l_vec_next));
 		float angle;
 
 		if (do_even) {

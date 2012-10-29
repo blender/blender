@@ -206,7 +206,7 @@ public:
 	 ***************************************************************************************/
 
 	/** Inherited from GHOST_ISystem but left pure virtual
-	 *	GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const = 0;	
+	 *	GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const = 0;
 	 *  GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
 	 */
 

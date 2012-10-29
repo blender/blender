@@ -22,25 +22,28 @@
  * Morten S. Mikkelsen, 2010 */
 
 surface node_bump(
+	normal NormalIn = N,
+	float Strength = 0.0,
 	float SampleCenter = 0.0,
 	float SampleX = 0.0,
 	float SampleY = 0.0,
 	output normal Normal = N)
 {
-	float dx = SampleX - SampleCenter;
-	float dy = SampleY - SampleCenter;
-
+	/* get surface tangents from normal */
 	vector dPdx = Dx(P);
 	vector dPdy = Dy(P);
 
-	vector Rx = cross(dPdy, N);
-	vector Ry = cross(N, dPdx);
+	vector Rx = cross(dPdy, NormalIn);
+	vector Ry = cross(NormalIn, dPdx);
 
+	/* compute surface gradient and determinant */
 	float det = dot(dPdx, Rx);
-	vector surfgrad = dx * Rx + dy * Ry;
+	vector surfgrad = (SampleX - SampleCenter) * Rx + (SampleY - SampleCenter) * Ry;
 
-	surfgrad *= 0.1; /* todo: remove this factor */
+	surfgrad *= Strength;
+	float absdet = fabs(det);
 	
-	Normal = normalize(abs(det) * N - sign(det) * surfgrad);
+	/* compute and output perturbed normal */
+	Normal = normalize(absdet * NormalIn - sign(det) * surfgrad);
 }
 

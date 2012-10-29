@@ -428,7 +428,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 		/* width and height of each bucket */
 		const float bucket_size_x = (bucket_dim_x + FLT_EPSILON) / layer->buckets_x;
 		const float bucket_size_y = (bucket_dim_y + FLT_EPSILON) / layer->buckets_y;
-		const float bucket_max_rad = (maxf(bucket_size_x, bucket_size_y) * M_SQRT2) + FLT_EPSILON;
+		const float bucket_max_rad = (max_ff(bucket_size_x, bucket_size_y) * M_SQRT2) + FLT_EPSILON;
 		const float bucket_max_rad_squared = bucket_max_rad * bucket_max_rad;
 
 		unsigned int *face = &layer->face_array[0][0];
@@ -451,10 +451,10 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 				const float *v2 = cos[face[1]];
 				const float *v3 = cos[face[2]];
 
-				xmin = minf(v1[0], minf(v2[0], v3[0]));
-				xmax = maxf(v1[0], maxf(v2[0], v3[0]));
-				ymin = minf(v1[1], minf(v2[1], v3[1]));
-				ymax = maxf(v1[1], maxf(v2[1], v3[1]));
+				xmin = min_ff(v1[0], min_ff(v2[0], v3[0]));
+				xmax = max_ff(v1[0], max_ff(v2[0], v3[0]));
+				ymin = min_ff(v1[1], min_ff(v2[1], v3[1]));
+				ymax = max_ff(v1[1], max_ff(v2[1], v3[1]));
 			}
 			else {
 				const float *v1 = cos[face[0]];
@@ -462,10 +462,10 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 				const float *v3 = cos[face[2]];
 				const float *v4 = cos[face[3]];
 
-				xmin = minf(v1[0], minf(v2[0], minf(v3[0], v4[0])));
-				xmax = maxf(v1[0], maxf(v2[0], maxf(v3[0], v4[0])));
-				ymin = minf(v1[1], minf(v2[1], minf(v3[1], v4[1])));
-				ymax = maxf(v1[1], maxf(v2[1], maxf(v3[1], v4[1])));
+				xmin = min_ff(v1[0], min_ff(v2[0], min_ff(v3[0], v4[0])));
+				xmax = max_ff(v1[0], max_ff(v2[0], max_ff(v3[0], v4[0])));
+				ymin = min_ff(v1[1], min_ff(v2[1], min_ff(v3[1], v4[1])));
+				ymax = max_ff(v1[1], max_ff(v2[1], max_ff(v3[1], v4[1])));
 			}
 
 
@@ -503,7 +503,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 							BLI_assert(bucket_index < bucket_tot);
 
 							/* check if the bucket intersects with the face */
-							/* note: there is a tradeoff here since checking box/tri intersections isn't
+							/* note: there is a trade off here since checking box/tri intersections isn't
 							 * as optimal as it could be, but checking pixels against faces they will never intersect
 							 * with is likely the greater slowdown here - so check if the cell intersects the face */
 							if (layer_bucket_isect_test(layer, face_index,
@@ -560,7 +560,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
                                    const short do_feather)
 {
 	const rctf default_bounds = {0.0f, 1.0f, 0.0f, 1.0f};
-	const float pixel_size = 1.0f / MIN2(width, height);
+	const float pixel_size = 1.0f / (float)min_ii(width, height);
 	const float asp_xy[2] = {(do_aspect_correct && width > height) ? (float)height / (float)width  : 1.0f,
 	                         (do_aspect_correct && width < height) ? (float)width  / (float)height : 1.0f};
 
@@ -1335,10 +1335,10 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
 				value -= value_layer;
 				break;
 			case MASK_BLEND_LIGHTEN:
-				value = maxf(value, value_layer);
+				value = max_ff(value, value_layer);
 				break;
 			case MASK_BLEND_DARKEN:
-				value = minf(value, value_layer);
+				value = min_ff(value, value_layer);
 				break;
 			case MASK_BLEND_MUL:
 				value *= value_layer;

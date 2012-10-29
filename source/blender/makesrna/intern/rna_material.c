@@ -81,12 +81,14 @@ EnumPropertyItem ramp_blend_items[] = {
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_node.h"
+#include "BKE_paint.h"
 
 #include "ED_node.h"
 
@@ -105,7 +107,18 @@ static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 	}
 }
 
-static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Material_update_previews(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Material *ma = ptr->id.data;
+	
+	if (ma->nodetree)
+		ntreeClearPreview(ma->nodetree);
+		
+	rna_Material_update(bmain, scene, ptr);
+}
+
+
+static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	Material *ma = ptr->id.data;
 
@@ -1755,7 +1768,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "pr_type");
 	RNA_def_property_enum_items(prop, preview_type_items);
 	RNA_def_property_ui_text(prop, "Preview render type", "Type of preview render");
-	RNA_def_property_update(prop, 0, "rna_Material_update");
+	RNA_def_property_update(prop, 0, "rna_Material_update_previews");
 	
 	prop = RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "amb");
@@ -1824,9 +1837,9 @@ void RNA_def_material(BlenderRNA *brna)
 	                         "from other scene lighting");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
-    prop= RNA_def_property(srna, "use_light_group_local", PROP_BOOLEAN, PROP_NONE);
+    prop = RNA_def_property(srna, "use_light_group_local", PROP_BOOLEAN, PROP_NONE);
     RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_GROUP_LOCAL);
-    RNA_def_property_ui_text(prop, "Light Group Local", "When linked in, Material uses local light group with the same name");
+    RNA_def_property_ui_text(prop, "Light Group Local", "When linked in, material uses local light group with the same name");
     RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop = RNA_def_property(srna, "use_raytrace", PROP_BOOLEAN, PROP_NONE);

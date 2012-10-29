@@ -38,6 +38,7 @@ set(INC
 	../render/extern/include
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
+	../../../intern/opennl/extern
 )
 
 set(INC_SYS
@@ -64,6 +65,7 @@ set(SRC
 	intern/MOD_fluidsim_util.c
 	intern/MOD_hook.c
 	intern/MOD_lattice.c
+	intern/MOD_laplaciansmooth.c
 	intern/MOD_mask.c
 	intern/MOD_meshdeform.c
 	intern/MOD_mirror.c
@@ -114,13 +116,6 @@ if(WITH_MOD_REMESH)
 	add_definitions(-DWITH_MOD_REMESH)
 	list(APPEND INC
 		../../../intern/dualcon
-	)
-endif()
-
-if(WITH_MOD_DECIMATE)
-	add_definitions(-DWITH_MOD_DECIMATE)
-	list(APPEND INC
-		../../../intern/decimation/extern
 	)
 endif()
 

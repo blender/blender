@@ -67,10 +67,12 @@ void AUD_ChannelMapperReader::setMonoAngle(float angle)
 
 float AUD_ChannelMapperReader::angleDistance(float alpha, float beta)
 {
-	alpha = fabs(alpha - beta);
+	alpha = beta - alpha;
 
 	if(alpha > M_PI)
-		alpha = fabs(alpha - 2 * M_PI);
+		alpha -= 2 * M_PI;
+	if(alpha < -M_PI)
+		alpha += 2 * M_PI;
 
 	return alpha;
 }
@@ -107,8 +109,8 @@ void AUD_ChannelMapperReader::calculateMapping()
 	if(m_source_channels == AUD_CHANNELS_MONO)
 		source_angles = &m_mono_angle;
 
-	int channel_min1, channel_min2;
-	float angle_min1, angle_min2, angle;
+	int channel_left, channel_right;
+	float angle_left, angle_right, angle;
 
 	for(int i = 0; i < m_source_channels; i++)
 	{
@@ -120,38 +122,46 @@ void AUD_ChannelMapperReader::calculateMapping()
 			continue;
 		}
 
-		channel_min1 = channel_min2 = -1;
-		angle_min1 = angle_min2 = 2 * M_PI;
+		channel_left = channel_right = -1;
+		angle_left = -2 * M_PI;
+		angle_right = 2 * M_PI;
 
 		for(int j = 0; j < m_target_channels; j++)
 		{
 			if(j == lfe)
 				continue;
 			angle = angleDistance(source_angles[i], target_angles[j]);
-			if(angle < angle_min1)
+			if(angle < 0)
 			{
-				channel_min2 = channel_min1;
-				angle_min2 = angle_min1;
-
-				channel_min1 = j;
-				angle_min1 = angle;
+				if(angle > angle_left)
+				{
+					angle_left = angle;
+					channel_left = j;
+				}
 			}
-			else if(angle < angle_min2)
+			else
 			{
-				channel_min2 = j;
-				angle_min2 = angle;
+				if(angle < angle_right)
+				{
+					angle_right = angle;
+					channel_right = j;
+				}
 			}
 		}
 
-		angle = angle_min1 + angle_min2;
-		if(channel_min2 == -1 || angle == 0)
+		angle = angle_right - angle_left;
+		if(channel_right == -1 || angle == 0)
 		{
-			m_mapping[channel_min1 * m_source_channels + i] = 1;
+			m_mapping[channel_left * m_source_channels + i] = 1;
+		}
+		else if(channel_left == -1)
+		{
+			m_mapping[channel_right * m_source_channels + i] = 1;
 		}
 		else
 		{
-			m_mapping[channel_min1 * m_source_channels + i] = cos(M_PI_2 * angle_min1 / angle);
-			m_mapping[channel_min2 * m_source_channels + i] = cos(M_PI_2 * angle_min2 / angle);
+			m_mapping[channel_left * m_source_channels + i] = cos(M_PI_2 * angle_left / angle);
+			m_mapping[channel_right * m_source_channels + i] = cos(M_PI_2 * angle_right / angle);
 		}
 	}
 

@@ -123,7 +123,7 @@ static int nlaedit_enable_tweakmode_exec(bContext *C, wmOperator *op)
 	if (anim_data.first == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
-	}	
+	}
 	
 	/* for each AnimData block with NLA-data, try setting it in tweak-mode */
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -192,7 +192,7 @@ static int nlaedit_disable_tweakmode_exec(bContext *C, wmOperator *op)
 	if (anim_data.first == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No AnimData blocks to enter tweak mode for");
 		return OPERATOR_CANCELLED;
-	}	
+	}
 	
 	/* for each AnimData block with NLA-data, try exitting tweak-mode */
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -266,8 +266,8 @@ static void get_nlastrip_extents(bAnimContext *ac, float *min, float *max, const
 				/* only consider selected strips? */
 				if ((onlySel == 0) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
 					/* extend range if appropriate */
-					*min = minf(*min, strip->start);
-					*max = maxf(*max, strip->end);
+					*min = min_ff(*min, strip->start);
+					*max = max_ff(*max, strip->end);
 				}
 			}
 		}
@@ -398,7 +398,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 	act = BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "action"));
 	
 	if (act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No valid Action to add");
+		BKE_report(op->reports, RPT_ERROR, "No valid action to add");
 		//printf("Add strip - actname = '%s'\n", actname);
 		return OPERATOR_CANCELLED;
 	}
@@ -407,7 +407,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 		BKE_reportf(op->reports, RPT_WARNING,
 		            "Action '%s' does not specify what datablocks it can be used on "
 		            "(try setting the 'ID Root Type' setting from the Datablocks Editor "
-		            "for this Action to avoid future problems)",
+		            "for this action to avoid future problems)",
 		            act->id.name + 2);
 	}
 	
@@ -433,7 +433,7 @@ static int nlaedit_add_actionclip_exec(bContext *C, wmOperator *op)
 		 */
 		if ((act->idroot) && (act->idroot != GS(ale->id->name))) {
 			BKE_reportf(op->reports, RPT_ERROR, 
-			            "Couldn't add action '%s' as it cannot be used relative to ID-blocks of type '%s'",
+			            "Could not add action '%s' as it cannot be used relative to ID-blocks of type '%s'",
 			            act->id.name + 2, ale->id->name);
 			continue;
 		}
@@ -1364,7 +1364,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 					           "Cannot swap selected strips as they will not be able to fit in their new places");
 				}
 				else {
-					BKE_reportf(op->reports, RPT_WARNING, 	
+					BKE_reportf(op->reports, RPT_WARNING,
 					            "Cannot swap '%s' and '%s' as one or both will not be able to fit in their new places",
 					            sa->name, sb->name);
 				}
@@ -2023,7 +2023,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 				set_active_fmodifier(&strip->modifiers, fcm);
 			else {
 				BKE_reportf(op->reports, RPT_ERROR,
-				            "Modifier couldn't be added to (%s : %s) (see console for details)",
+				            "Modifier could not be added to (%s : %s) (see console for details)",
 				            nlt->name, strip->name);
 			}
 		}

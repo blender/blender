@@ -1233,7 +1233,7 @@ static ImBuf *anim_getnew(struct anim *anim)
 
 
 	if (anim->curtype != 0) return (NULL);
-	anim->curtype = imb_get_anim_type(anim->name);	
+	anim->curtype = imb_get_anim_type(anim->name);
 
 	switch (anim->curtype) {
 		case ANIM_SEQUENCE:

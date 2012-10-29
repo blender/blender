@@ -135,6 +135,16 @@ static void file_panel_system(const bContext *C, Panel *pa)
 		file_panel_category(C, pa, FS_CATEGORY_SYSTEM, &sfile->systemnr, ICON_DISK_DRIVE, 0);
 }
 
+static void file_panel_system_bookmarks(const bContext *C, Panel *pa)
+{
+	SpaceFile *sfile = CTX_wm_space_file(C);
+
+	if (sfile && !(U.uiflag & USER_HIDE_SYSTEM_BOOKMARKS) ) {
+		file_panel_category(C, pa, FS_CATEGORY_SYSTEM_BOOKMARKS, &sfile->systemnr, ICON_BOOKMARKS, 0);
+	}
+
+}
+
 static void file_panel_bookmarks(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
@@ -193,7 +203,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	wmOperator *op = sfile->op;
-	// int empty= 1, flag;
+	// int empty = 1, flag;
 	
 	uiBlockSetFunc(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
 
@@ -210,6 +220,12 @@ void file_panels_register(ARegionType *art)
 	strcpy(pt->idname, "FILE_PT_system");
 	strcpy(pt->label, N_("System"));
 	pt->draw = file_panel_system;
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt = MEM_callocN(sizeof(PanelType), "spacetype file system bookmarks");
+	strcpy(pt->idname, "FILE_PT_system_bookmarks");
+	strcpy(pt->label, N_("System Bookmarks"));
+	pt->draw = file_panel_system_bookmarks;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype file bookmarks");

@@ -136,7 +136,7 @@ static int report_textview_skip__internal(TextViewContext *tvc)
 
 static int report_textview_begin(TextViewContext *tvc)
 {
-	// SpaceConsole *sc= (SpaceConsole *)tvc->arg1;
+	// SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
 	ReportList *reports = (ReportList *)tvc->arg2;
 
 	tvc->lheight = 14; //sc->lheight;

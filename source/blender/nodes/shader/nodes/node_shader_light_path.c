@@ -29,7 +29,7 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_light_path_out[]= {
+static bNodeSocketTemplate sh_node_light_path_out[] = {
 	{	SOCK_FLOAT, 0, N_("Is Camera Ray"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Is Shadow Ray"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Is Diffuse Ray"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},

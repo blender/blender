@@ -272,7 +272,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 
 			/* Decrease in magnitude of relative tangential velocity due to coulomb friction
 			 * in original formula "magrelVel" should be the "change of relative velocity in normal direction" */
-			magtangent = minf(clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf(dot_v3v3(vrel_t_pre, vrel_t_pre)));
+			magtangent = min_ff(clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf(dot_v3v3(vrel_t_pre, vrel_t_pre)));
 
 			/* Apply friction impulse. */
 			if ( magtangent > ALMOST_ZERO ) {
@@ -312,8 +312,8 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 
 				/* stay on the safe side and clamp repulse */
 				if ( impulse > ALMOST_ZERO )
-					repulse = MIN2 ( repulse, 5.0*impulse );
-				repulse = MAX2 ( impulse, repulse );
+					repulse = min_ff( repulse, 5.0*impulse );
+				repulse = max_ff(impulse, repulse);
 
 				impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); /* original 2.0 / 0.25 */
 				VECADDMUL ( i1, collpair->normal,  impulse );
@@ -515,7 +515,7 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 	if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) || (modifier_type != eModifierType_Collision))
 		cmd= (CollisionModifierData *)modifiers_findByType(ob, modifier_type);
 	
-	if (cmd) {	
+	if (cmd) {
 		/* extend array */
 		if (*numobj >= *maxobj) {
 			*maxobj *= 2;
@@ -534,7 +534,7 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 		/* add objects */
 		for (go= group->gobject.first; go; go= go->next)
 			add_collision_object(objs, numobj, maxobj, go->ob, self, level+1, modifier_type);
-	}	
+	}
 }
 
 // return all collision objects in scene
@@ -580,7 +580,7 @@ static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self,
 	if (ob->pd && ob->pd->deflect)
 		cmd =(CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 	
-	if (cmd && cmd->bvhtree) {	
+	if (cmd && cmd->bvhtree) {
 		if (*objs == NULL)
 			*objs = MEM_callocN(sizeof(ListBase), "ColliderCache array");
 
@@ -738,8 +738,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData * clmd, float step, flo
 		collision_move_object ( collmd, step + dt, step );
 	}
 
-	do
-	{
+	do {
 		CollPair **collisions, **collisions_index;
 		
 		ret2 = 0;

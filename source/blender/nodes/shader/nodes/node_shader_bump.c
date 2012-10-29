@@ -35,15 +35,15 @@
 
 
 /* **************** BUMP ******************** */ 
-static bNodeSocketTemplate sh_node_bump_in[]= { 
-        { SOCK_FLOAT, 1, "Strength",	0.1f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-        { SOCK_FLOAT, 1, "Height",		1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_HIDE_VALUE},
-		{ -1, 0, "" } 
+static bNodeSocketTemplate sh_node_bump_in[] = {
+	{ SOCK_FLOAT, 1, "Strength",	0.1f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+	{ SOCK_FLOAT, 1, "Height",		1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_HIDE_VALUE},
+	{ -1, 0, "" }
 };
 
-static bNodeSocketTemplate sh_node_bump_out[]= {
+static bNodeSocketTemplate sh_node_bump_out[] = {
 	{	SOCK_VECTOR, 0, "Normal"},
-	{ -1, 0, "" } 
+	{ -1, 0, "" }
 };
 
 static int gpu_shader_bump(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)

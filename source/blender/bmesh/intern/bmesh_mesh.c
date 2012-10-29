@@ -295,7 +295,7 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
 		BMEditMesh *em = BMEdit_Create(bm, FALSE);
-		DerivedMesh *dm = CDDM_from_BMEditMesh(em, NULL, TRUE, FALSE);
+		DerivedMesh *dm = CDDM_from_editbmesh(em, TRUE, FALSE);
 		MDisps *mdisps;
 		BMFace *f;
 		BMIter iter;

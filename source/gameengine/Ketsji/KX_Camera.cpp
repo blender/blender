@@ -714,13 +714,13 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, setOnTop,
 
 PyObject *KX_Camera::pyattr_get_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyBool_FromLong(self->m_camdata.m_perspective);
 }
 
 int KX_Camera::pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.perspective = bool: KX_Camera, expected True/False or 0/1");
@@ -734,13 +734,13 @@ int KX_Camera::pyattr_set_perspective(void *self_v, const KX_PYATTRIBUTE_DEF *at
 
 PyObject *KX_Camera::pyattr_get_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyFloat_FromDouble(self->m_camdata.m_lens);
 }
 
 int KX_Camera::pyattr_set_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.lens = float: KX_Camera, expected a float greater then zero");
@@ -754,13 +754,13 @@ int KX_Camera::pyattr_set_lens(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 
 PyObject *KX_Camera::pyattr_get_ortho_scale(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyFloat_FromDouble(self->m_camdata.m_scale);
 }
 
 int KX_Camera::pyattr_set_ortho_scale(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.ortho_scale = float: KX_Camera, expected a float greater then zero");
@@ -774,13 +774,13 @@ int KX_Camera::pyattr_set_ortho_scale(void *self_v, const KX_PYATTRIBUTE_DEF *at
 
 PyObject *KX_Camera::pyattr_get_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyFloat_FromDouble(self->m_camdata.m_clipstart);
 }
 
 int KX_Camera::pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.near = float: KX_Camera, expected a float greater then zero");
@@ -794,13 +794,13 @@ int KX_Camera::pyattr_set_near(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, 
 
 PyObject *KX_Camera::pyattr_get_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyFloat_FromDouble(self->m_camdata.m_clipend);
 }
 
 int KX_Camera::pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	float param = PyFloat_AsDouble(value);
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.far = float: KX_Camera, expected a float greater then zero");
@@ -815,13 +815,13 @@ int KX_Camera::pyattr_set_far(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, P
 
 PyObject *KX_Camera::pyattr_get_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyBool_FromLong(self->GetViewport());
 }
 
 int KX_Camera::pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	int param = PyObject_IsTrue( value );
 	if (param == -1) {
 		PyErr_SetString(PyExc_AttributeError, "camera.useViewport = bool: KX_Camera, expected True or False");
@@ -834,13 +834,13 @@ int KX_Camera::pyattr_set_use_viewport(void *self_v, const KX_PYATTRIBUTE_DEF *a
 
 PyObject *KX_Camera::pyattr_get_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyObjectFrom(self->GetProjectionMatrix()); 
 }
 
 int KX_Camera::pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	MT_Matrix4x4 mat;
 	if (!PyMatTo(value, mat)) 
 		return PY_SET_ATTR_FAIL;
@@ -851,19 +851,19 @@ int KX_Camera::pyattr_set_projection_matrix(void *self_v, const KX_PYATTRIBUTE_D
 
 PyObject *KX_Camera::pyattr_get_modelview_matrix(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyObjectFrom(self->GetModelviewMatrix()); 
 }
 
 PyObject *KX_Camera::pyattr_get_camera_to_world(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyObjectFrom(self->GetCameraToWorld());
 }
 
 PyObject *KX_Camera::pyattr_get_world_to_camera(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_Camera* self= static_cast<KX_Camera*>(self_v);
+	KX_Camera* self = static_cast<KX_Camera*>(self_v);
 	return PyObjectFrom(self->GetWorldToCamera()); 
 }
 

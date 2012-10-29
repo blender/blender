@@ -167,6 +167,16 @@ extern "C" {
 	// needed for source/blender/blenkernel/intern/collision.c
 	double plNearestPoints(float p1[3], float p2[3], float p3[3], float q1[3], float q2[3], float q3[3], float *pa, float *pb, float normal[3]);
 
+
+	/* Convex Hull */
+	PL_DECLARE_HANDLE(plConvexHull);
+	plConvexHull plConvexHullCompute(float (*coords)[3], int count);
+	int plConvexHullNumVertices(plConvexHull hull);
+	int plConvexHullNumFaces(plConvexHull hull);
+	void plConvexHullGetVertex(plConvexHull hull, int n, float coords[3], int *original_index);
+	int plConvexHullGetFaceSize(plConvexHull hull, int n);
+	void plConvexHullGetFaceVertices(plConvexHull hull, int n, int *vertices);
+
 #ifdef __cplusplus
 }
 #endif

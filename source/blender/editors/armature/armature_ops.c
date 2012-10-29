@@ -88,7 +88,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_armature_layers);
 	WM_operatortype_append(ARMATURE_OT_bone_layers);
 
-	/* SKETCH */	
+	/* SKETCH */
 	WM_operatortype_append(SKETCH_OT_gesture);
 	WM_operatortype_append(SKETCH_OT_delete);
 	WM_operatortype_append(SKETCH_OT_draw_stroke);
@@ -221,7 +221,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	/* Already part of view3d select */
 	//WM_keymap_add_item(keymap, "SKETCH_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 
-	/* sketch poll checks mode */	
+	/* sketch poll checks mode */
 	WM_keymap_add_item(keymap, "SKETCH_OT_gesture", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "SKETCH_OT_draw_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "SKETCH_OT_draw_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);

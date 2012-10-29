@@ -197,8 +197,8 @@ static int open_exec(bContext *C, wmOperator *op)
 		if (op->customdata)
 			MEM_freeN(op->customdata);
 
-		BKE_reportf(op->reports, RPT_ERROR, "Can't read \"%s\": %s", str,
-		            errno ? strerror(errno) : TIP_("Unsupported movie clip format"));
+		BKE_reportf(op->reports, RPT_ERROR, "Cannot read '%s': %s", str,
+		            errno ? strerror(errno) : TIP_("unsupported movie clip format"));
 
 		return OPERATOR_CANCELLED;
 	}
@@ -747,7 +747,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 		zoomx = (float) width / (w + 2 * margin);
 		zoomy = (float) height / (h + 2 * margin);
 
-		sclip_zoom_set(C, minf(zoomx, zoomy), NULL);
+		sclip_zoom_set(C, min_ff(zoomx, zoomy), NULL);
 	}
 	else {
 		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
@@ -755,7 +755,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 			zoomy = (float) height / h;
 
 			/* find the zoom value that will fit the image in the image space */
-			sclip_zoom_set(C, 1.0f / power_of_2(1.0f / minf(zoomx, zoomy)), NULL);
+			sclip_zoom_set(C, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL);
 		}
 		else
 			sclip_zoom_set(C, 1.0f, NULL);

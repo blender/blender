@@ -198,7 +198,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
 	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
-	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
+	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);
 	filelist_setfilter_types(sfile->files, params->filter_glob);
 
 	if (filelist_empty(sfile->files)) {
@@ -481,7 +481,7 @@ static void file_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	ED_region_panels_init(wm, ar);
 
 	/* own keymaps */
-	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -505,7 +505,7 @@ static void file_header_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_header_init(ar);
 	
-	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);	
+	keymap = WM_keymap_find(wm->defaultconf, "File Browser", SPACE_FILE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -598,7 +598,7 @@ void ED_spacetype_file(void)
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	art->init = file_header_area_init;
 	art->draw = file_header_area_draw;
-	// art->listener= file_header_area_listener;
+	// art->listener = file_header_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: ui */

@@ -661,8 +661,8 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				/* this happens with a serial of overlapping edges */
 				if (v1 == v2 || v2 == v3) break;
 				/* printf("test verts %x %x %x\n",v1,v2,v3); */
-				miny = minf(v1->xy[1], v3->xy[1]);
-				/*  miny= minf(v1->xy[1],v3->xy[1]); */
+				miny = min_ff(v1->xy[1], v3->xy[1]);
+				/*  miny = min_ff(v1->xy[1],v3->xy[1]); */
 				sc1 = sc + 1;
 				test = 0;
 
@@ -985,12 +985,12 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedu
 
 
 	/* CURRENT STATUS:
-	 * - eve->f       :1= availalble in edges
+	 * - eve->f       :1 = availalble in edges
 	 * - eve->xs      :polynumber
 	 * - eve->h       :amount of edges connected to vertex
 	 * - eve->tmp.v   :store! original vertex number
 	 * 
-	 * - eed->f       :1= boundary edge (optionally set by caller)
+	 * - eed->f       :1 = boundary edge (optionally set by caller)
 	 * - eed->poly_nr :poly number
 	 */
 

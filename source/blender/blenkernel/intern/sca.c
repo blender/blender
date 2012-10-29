@@ -552,7 +552,7 @@ void set_sca_new_poins_ob(Object *ob)
 		if (sens->flag & SENS_NEW) {
 			for (a=0; a<sens->totlinks; a++) {
 				if (sens->links[a] && sens->links[a]->mynew)
-					sens->links[a]= sens->links[a]->mynew;
+					sens->links[a] = sens->links[a]->mynew;
 			}
 		}
 		sens= sens->next;
@@ -563,7 +563,7 @@ void set_sca_new_poins_ob(Object *ob)
 		if (cont->flag & CONT_NEW) {
 			for (a=0; a<cont->totlinks; a++) {
 				if ( cont->links[a] && cont->links[a]->mynew)
-					cont->links[a]= cont->links[a]->mynew;
+					cont->links[a] = cont->links[a]->mynew;
 			}
 		}
 		cont= cont->next;

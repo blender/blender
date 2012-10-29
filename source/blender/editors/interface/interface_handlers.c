@@ -704,7 +704,7 @@ static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, wmEvent *event)
 	
 	BLI_rcti_rctf_copy(&rect, &but->rect);
 	
-	if (but->imb) { 
+	if (but->imb) {
 		/* use button size itself */
 	}
 	else if (but->flag & UI_ICON_LEFT) {
@@ -774,7 +774,7 @@ static void ui_delete_active_linkline(uiBlock *block)
 									(*(link->ppoin))[b] = (*(link->ppoin))[a];
 									b++;
 								}
-							}	
+							}
 							(*(link->totlink))--;
 						}
 					}
@@ -1063,7 +1063,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case HSVSLI:
 			break;
-		case TOG3:	
+		case TOG3:
 			ui_apply_but_TOG3(C, but, data);
 			break;
 		case MENU:
@@ -1109,10 +1109,10 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case INLINK:
 			ui_apply_but_LINK(C, but, data);
 			break;
-		case BUT_IMAGE:	
+		case BUT_IMAGE:
 			ui_apply_but_IMAGE(C, but, data);
 			break;
-		case HISTOGRAM:	
+		case HISTOGRAM:
 			ui_apply_but_HISTOGRAM(C, but, data);
 			break;
 		case WAVEFORM:
@@ -1299,6 +1299,71 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 }
 
+/* ************************ password text ******************************
+ *
+ * Functions to convert password strings that should not be displayed
+ * to asterisk representation (e.g. mysecretpasswd -> *************)
+ *
+ * It converts every UTF-8 character to an asterisk, and also remaps
+ * the cursor position and selection start/end.
+ *
+ * Note: remaping is used, because password could contain UTF-8 characters.
+ *
+ */
+
+static int ui_text_position_from_hidden(uiBut *but, int pos)
+{
+	const char *strpos;
+	int i;
+
+	for (i = 0, strpos = but->drawstr; i < pos; i++)
+		strpos = BLI_str_find_next_char_utf8(strpos, NULL);
+	
+	return (strpos - but->drawstr);
+}
+
+static int ui_text_position_to_hidden(uiBut *but, int pos)
+{
+	return BLI_strnlen_utf8(but->drawstr, pos);
+}
+
+void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, int restore)
+{
+	if (!(but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_PASSWORD))
+		return;
+
+	if (restore) {
+		/* restore original string */
+		BLI_strncpy(but->drawstr, password_str, UI_MAX_DRAW_STR);
+
+		/* remap cursor positions */
+		if (but->pos >= 0) {
+			but->pos = ui_text_position_from_hidden(but, but->pos);
+			but->selsta = ui_text_position_from_hidden(but, but->selsta);
+			but->selend = ui_text_position_from_hidden(but, but->selend);
+		}
+	}
+	else {
+		/* convert text to hidden test using asterisks (e.g. pass -> ****) */
+		int i, len = BLI_strlen_utf8(but->drawstr);
+
+		/* remap cursor positions */
+		if (but->pos >= 0) {
+			but->pos = ui_text_position_to_hidden(but, but->pos);
+			but->selsta = ui_text_position_to_hidden(but, but->selsta);
+			but->selend = ui_text_position_to_hidden(but, but->selend);
+		}
+
+		/* save original string */
+		BLI_strncpy(password_str, but->drawstr, UI_MAX_DRAW_STR);
+
+		for (i = 0; i < len; i++)
+			but->drawstr[i] = '*';
+		but->drawstr[i] = '\0';
+	}
+}
+
+
 /* ************* in-button text selection/editing ************* */
 
 
@@ -1322,13 +1387,15 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	uiStyle *style = UI_GetStyle();  // XXX pass on as arg
 	uiFontStyle *fstyle = &style->widget;
 	int startx = but->rect.xmin;
-	char *origstr;
+	char *origstr, password_str[UI_MAX_DRAW_STR];
 
 	uiStyleFontSet(fstyle);
 
 	if (fstyle->kerning == 1) /* for BLF_width */
 		BLF_enable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
+	ui_button_text_password_hide(password_str, but, FALSE);
+
 	origstr = MEM_callocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
 	
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
@@ -1343,7 +1410,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	
 	/* mouse dragged outside the widget to the left */
-	if (x < startx && but->ofs > 0) {	
+	if (x < startx && but->ofs > 0) {
 		int i = but->ofs;
 
 		origstr[but->ofs] = 0;
@@ -1407,6 +1474,8 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	if (fstyle->kerning == 1)
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
 	
+	ui_button_text_password_hide(password_str, but, TRUE);
+
 	MEM_freeN(origstr);
 }
 
@@ -1587,7 +1656,7 @@ static int ui_textedit_delete(uiBut *but, uiHandleButtonData *data, int directio
 				but->pos -= step;
 				changed = 1;
 			}
-		} 
+		}
 	}
 
 	return changed;
@@ -1676,7 +1745,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 		if (cut)
 			if ((but->selend - but->selsta) > 0)
 				changed = ui_textedit_delete_selection(but, data);
-	} 
+	}
 
 	return changed;
 }
@@ -1715,7 +1784,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	/* optional searchbox */
 	if (but->type == SEARCH_MENU) {
 		data->searchbox = ui_searchbox_create(C, data->region, but);
-		ui_searchbox_update(C, data->searchbox, but, 1); /* 1= reset */
+		ui_searchbox_update(C, data->searchbox, but, 1); /* 1 = reset */
 	}
 	
 	ui_check_but(but);
@@ -2157,7 +2226,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	}
 
 	/* this makes adjacent blocks auto open from now on */
-	//if (but->block->auto_open ==0 ) but->block->auto_open = 1;
+	//if (but->block->auto_open == 0) but->block->auto_open = 1;
 }
 
 static void ui_blockopen_end(bContext *C, uiBut *but, uiHandleButtonData *data)
@@ -2254,7 +2323,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 		ED_region_tag_redraw(data->region);
 			
 		if (event->val == KM_PRESS) {
-			if (ISHOTKEY(event->type)) { 
+			if (ISHOTKEY(event->type)) {
 				
 				if (WM_key_event_string(event->type)[0])
 					ui_set_but_val(but, event->type);
@@ -2935,7 +3004,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 					data->value = temp;
 				else
 					data->cancel = TRUE;
-			} 
+			}
 			else {
 				if (f < tempf) tempf -= 0.01f;
 				else tempf += 0.01f;
@@ -2961,7 +3030,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
-	int mx, my /*, click= 0 */;
+	int mx, my /*, click = 0 */;
 	int retval = WM_UI_HANDLER_CONTINUE;
 	int horizontal = (BLI_rctf_size_x(&but->rect) > BLI_rctf_size_y(&but->rect));
 	
@@ -3336,7 +3405,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 		case UI_GRAD_V:
 			hsv[2] += ndof->ry * sensitivity;
 			break;
-		case UI_GRAD_V_ALT:	
+		case UI_GRAD_V_ALT:
 			/* vertical 'value' strip */
 			
 			/* exception only for value strip - use the range set in but->min/max */
@@ -3460,7 +3529,7 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, float 
 		data->ungrab_mval[0] = mx_fl;
 		data->ungrab_mval[1] = my_fl;
 		{	/* clamp */
-			const float radius = minf(BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect)) / 2.0f;
+			const float radius = min_ff(BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect)) / 2.0f;
 			const float cent[2] = {BLI_rctf_cent_x(&but->rect), BLI_rctf_cent_y(&but->rect)};
 			const float len = len_v2v2(cent, data->ungrab_mval);
 			if (len > radius) {
@@ -3747,8 +3816,8 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap,
 
 	zoomx = BLI_rctf_size_x(&but->rect) / BLI_rctf_size_x(&cumap->curr);
 	zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&cumap->curr);
-	/* offsx= cumap->curr.xmin; */
-	/* offsy= cumap->curr.ymin; */
+	/* offsx = cumap->curr.xmin; */
+	/* offsy = cumap->curr.ymin; */
 
 	if (snap) {
 		float d[2];
@@ -3904,7 +3973,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 
 						changed = 1;
 						
-						/* reset cmp back to the curve points again, rather than drawing segments */		
+						/* reset cmp back to the curve points again, rather than drawing segments */
 						cmp = cuma->curve;
 						
 						/* find newly added point and make it 'sel' */
@@ -4008,7 +4077,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	}
 	else {
 		/* scale histogram values (dy / 10 for better control) */
-		const float yfac = minf(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
+		const float yfac = min_ff(powf(hist->ymax, 2.0f), 1.0f) * 0.5f;
 		hist->ymax += (dy * 0.1f) * yfac;
 	
 		/* 0.1 allows us to see HDR colors up to 10 */
@@ -4078,7 +4147,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 	Scopes *scopes = (Scopes *)but->poin;
 	/* rcti rect; */
 	int changed = 1;
-	float /* dx, */ dy /* , yfac=1.f */; /* UNUSED */
+	float /* dx, */ dy /* , yfac =1.0f */; /* UNUSED */
 
 	/* BLI_rcti_rctf_copy(&rect, &but->rect); */
 
@@ -4508,11 +4577,11 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	int kmi_id;
 	
 	/* XXX this guess_opname can potentially return a different keymap than being found on adding later... */
-	km = WM_keymap_guess_opname(C, but->optype->idname);		
+	km = WM_keymap_guess_opname(C, but->optype->idname);
 	kmi = WM_keymap_add_item(km, but->optype->idname, AKEY, KM_PRESS, 0, 0);
 	kmi_id = kmi->id;
 
-	/* copy properties, prop can be NULL for reset */	
+	/* copy properties, prop can be NULL for reset */
 	if (prop)
 		prop = IDP_CopyProperty(prop);
 	WM_keymap_properties_reset(kmi, prop);
@@ -4520,14 +4589,13 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	/* update and get pointers again */
 	WM_keyconfig_update(wm);
 
-	km = WM_keymap_guess_opname(C, but->optype->idname);		
+	km = WM_keymap_guess_opname(C, but->optype->idname);
 	kmi = WM_keymap_item_find_id(km, kmi_id);
 
 	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
 
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, but_shortcut_name_func, but);
-	uiBlockSetFlag(block, UI_BLOCK_RET_1);
 	uiBlockSetDirection(block, UI_CENTER);
 
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200, 20, style);
@@ -4865,14 +4933,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	if (but->flag & UI_BUT_DISABLED)
 		return WM_UI_HANDLER_CONTINUE;
 
-	if ((data->state == BUTTON_STATE_HIGHLIGHT) &&
-	    /* check prevval because of modal operators [#24016],
-	     * modifier check is to allow Ctrl+C for copy.
-	     * if this causes other problems, remove this check and suffer the bug :) - campbell */
-	    ((event->prevval != KM_PRESS) || (ISKEYMODIFIER(event->prevtype)) || (event->type == EVT_DROP)))
+	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP))
 	{
 		/* handle copy-paste */
 		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS && (event->ctrl || event->oskey)) {
+			
 			ui_but_copy_paste(C, but, data, (event->type == CKEY) ? 'c' : 'v');
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -4954,7 +5019,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				return WM_UI_HANDLER_BREAK;
 			}
-		} 
+		}
 		else if (but->pointype && but->poin == NULL) {
 			/* there's a pointer needed */
 			BKE_reportf(NULL, RPT_WARNING, "DoButton pointer error: %s", but->str);
@@ -6027,7 +6092,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	}
 	else {
 		retval = ui_do_button(C, block, but, event);
-		// retval= WM_UI_HANDLER_BREAK; XXX why ? 
+		// retval = WM_UI_HANDLER_BREAK; XXX why ?
 	}
 
 	if (data->state == BUTTON_STATE_EXIT) {
@@ -6380,7 +6445,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 					break;
 
 				/* opening sublevels of pulldowns */
-				case RIGHTARROWKEY:	
+				case RIGHTARROWKEY:
 					if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
 
 						PASS_EVENT_TO_PARENT_IF_NONACTIVE;
@@ -6567,7 +6632,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				case YKEY:
 				case ZKEY:
 				{
-					if ((event->val   == KM_PRESS) &&
+					if ((event->val  == KM_PRESS || event->val == KM_DBL_CLICK) &&
 					    (event->shift == FALSE) &&
 					    (event->ctrl  == FALSE) &&
 					    (event->oskey == FALSE))

@@ -578,7 +578,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	glTranslatef(0.0f,  0.0f,  0.0f);
 
 	/* Calculate Image scale */
-	scale = (ob->empty_drawsize / (float)MAX2(ima_x * sca_x, ima_y * sca_y));
+	scale = (ob->empty_drawsize / max_ff((float)ima_x * sca_x, (float)ima_y * sca_y));
 
 	/* Set the object scale */
 	glScalef(scale * sca_x, scale * sca_y, 1.0f);
@@ -4457,7 +4457,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 		if (cdata2)
 			MEM_freeN(cdata2);
-		/* cd2= */ /* UNUSED */ cdata2 = NULL;
+		/* cd2 = */ /* UNUSED */ cdata2 = NULL;
 
 		glLineWidth(1.0f);
 
@@ -5523,7 +5523,7 @@ static void drawcircle_size(float size)
 
 	glBegin(GL_LINE_LOOP);
 
-	/* coordinates are: cos(degrees*11.25)=x, sin(degrees*11.25)=y, 0.0f=z */
+	/* coordinates are: cos(degrees * 11.25) = x, sin(degrees*11.25) = y, 0.0f = z */
 	for (degrees = 0; degrees < CIRCLE_RESOL; degrees++) {
 		x = cosval[degrees];
 		y = sinval[degrees];
@@ -6570,7 +6570,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* code for new particle system */
 	if ((warning_recursive == 0) &&
 	    (ob->particlesystem.first) &&
-	    (dflag & DRAW_PICKING) == 0 &&
 	    (ob != scene->obedit)
 	    )
 	{

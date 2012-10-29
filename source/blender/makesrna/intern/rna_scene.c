@@ -277,6 +277,7 @@ EnumPropertyItem image_color_mode_items[] = {
 EnumPropertyItem image_color_depth_items[] = {
 	/* 1 (monochrome) not used */
 	{R_IMF_CHAN_DEPTH_8,   "8", 0, "8",  "8 bit color channels"},
+	{R_IMF_CHAN_DEPTH_10, "10", 0, "10", "10 bit color channels"},
 	{R_IMF_CHAN_DEPTH_12, "12", 0, "12", "12 bit color channels"},
 	{R_IMF_CHAN_DEPTH_16, "16", 0, "16", "16 bit color channels"},
 	/* 24 not used */
@@ -717,6 +718,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 			                   R_IMF_CHAN_DEPTH_24,
 			                   R_IMF_CHAN_DEPTH_16,
 			                   R_IMF_CHAN_DEPTH_12,
+			                   R_IMF_CHAN_DEPTH_10,
 			                   R_IMF_CHAN_DEPTH_8,
 			                   R_IMF_CHAN_DEPTH_1,
 			                   0};
@@ -814,9 +816,10 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *C, 
 		const int is_float = ELEM3(imf->imtype, R_IMF_IMTYPE_RADHDR, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER);
 
 		EnumPropertyItem *item_8bit =  &image_color_depth_items[0];
-		EnumPropertyItem *item_12bit = &image_color_depth_items[1];
-		EnumPropertyItem *item_16bit = &image_color_depth_items[2];
-		EnumPropertyItem *item_32bit = &image_color_depth_items[3];
+		EnumPropertyItem *item_10bit = &image_color_depth_items[1];
+		EnumPropertyItem *item_12bit = &image_color_depth_items[2];
+		EnumPropertyItem *item_16bit = &image_color_depth_items[3];
+		EnumPropertyItem *item_32bit = &image_color_depth_items[4];
 
 		int totitem = 0;
 		EnumPropertyItem *item = NULL;
@@ -824,6 +827,10 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_depth_itemf(bContext *C, 
 
 		if (depth_ok & R_IMF_CHAN_DEPTH_8) {
 			RNA_enum_item_add(&item, &totitem, item_8bit);
+		}
+
+		if (depth_ok & R_IMF_CHAN_DEPTH_10) {
+			RNA_enum_item_add(&item, &totitem, item_10bit);
 		}
 
 		if (depth_ok & R_IMF_CHAN_DEPTH_12) {
@@ -1034,7 +1041,7 @@ static void rna_RenderLayer_remove(ID *id, RenderData *UNUSED(rd), Main *bmain, 
 	Scene *scene = (Scene *)id;
 
 	if (!BKE_scene_remove_render_layer(bmain, scene, srl)) {
-		BKE_reportf(reports, RPT_ERROR, "RenderLayer '%s' could not be removed from scene '%s'",
+		BKE_reportf(reports, RPT_ERROR, "Render layer '%s' could not be removed from scene '%s'",
 		            srl->name, scene->id.name + 2);
 	}
 	else {
@@ -1212,9 +1219,12 @@ static void object_simplify_update(Object *ob)
 	ModifierData *md;
 	ParticleSystem *psys;
 
-	for (md = ob->modifiers.first; md; md = md->next)
-		if (ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem))
-			ob->recalc |= OB_RECALC_DATA | PSYS_RECALC_CHILD;
+	for (md = ob->modifiers.first; md; md = md->next) {
+		if (ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem)) {
+			ob->recalc |= PSYS_RECALC_CHILD;
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
+	}
 
 	for (psys = ob->particlesystem.first; psys; psys = psys->next)
 		psys->recalc |= PSYS_RECALC_CHILD;
@@ -1405,6 +1415,12 @@ static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 
 	if (camera)
 		DAG_id_tag_update(&camera->id, 0);
+}
+
+static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	BKE_sequencer_cache_cleanup();
+	BKE_sequencer_preprocessed_cache_cleanup();
 }
 
 static PointerRNA rna_FreestyleLineSet_linestyle_get(PointerRNA *ptr)
@@ -3325,7 +3341,6 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 
 #endif
 
-
 #ifdef WITH_OPENJPEG
 	/* Jpeg 2000 */
 	prop = RNA_def_property(srna, "use_jpeg2k_ycc", PROP_BOOLEAN, PROP_NONE);
@@ -3347,7 +3362,7 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	/* Cineon and DPX */
 
 	prop = RNA_def_property(srna, "use_cineon_log", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "cineon_flag", R_CINEON_LOG);
+	RNA_def_property_boolean_sdna(prop, NULL, "cineon_flag", R_IMF_CINEON_FLAG_LOG);
 	RNA_def_property_ui_text(prop, "Log", "Convert to logarithmic color space");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
@@ -4377,15 +4392,17 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_PREV);
 	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
 
+#if 0  /* see R_SEQ_GL_REND comment */
 	prop = RNA_def_property(srna, "use_sequencer_gl_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_REND);
 	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
-
+#endif
 
 	prop = RNA_def_property(srna, "sequencer_gl_preview", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "seq_prev_type");
 	RNA_def_property_enum_items(prop, viewport_shade_items);
 	RNA_def_property_ui_text(prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
 
 	prop = RNA_def_property(srna, "sequencer_gl_render", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "seq_rend_type");

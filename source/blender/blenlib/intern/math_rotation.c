@@ -797,7 +797,7 @@ void mat3_to_axis_angle(float axis[3], float *angle, float mat[3][3])
 	float q[4];
 
 	/* use quaternions as intermediate representation */
-	// TODO: it would be nicer to go straight there...
+	/* TODO: it would be nicer to go straight there... */
 	mat3_to_quat(q, mat);
 	quat_to_axis_angle(axis, angle, q);
 }
@@ -808,7 +808,7 @@ void mat4_to_axis_angle(float axis[3], float *angle, float mat[4][4])
 	float q[4];
 
 	/* use quaternions as intermediate representation */
-	// TODO: it would be nicer to go straight there...
+	/* TODO: it would be nicer to go straight there... */
 	mat4_to_quat(q, mat);
 	quat_to_axis_angle(axis, angle, q);
 }
@@ -1363,7 +1363,7 @@ void mat4_to_compatible_eulO(float eul[3], float oldrot[3], const short order, f
 	mat3_to_compatible_eulO(eul, oldrot, order, m);
 }
 /* rotate the given euler by the given angle on the specified axis */
-// NOTE: is this safe to do with different axis orders?
+/* NOTE: is this safe to do with different axis orders? */
 
 void rotate_eulO(float beul[3], const short order, char axis, float ang)
 {
@@ -1679,34 +1679,34 @@ void vec_apply_track(float vec[3], short axis)
 
 	switch (axis) {
 		case 0: /* pos-x */
-			/* vec[0]=  0.0; */
+			/* vec[0] =  0.0; */
 			vec[1] = tvec[2];
 			vec[2] = -tvec[1];
 			break;
 		case 1: /* pos-y */
-			/* vec[0]= tvec[0]; */
-			/* vec[1]=  0.0; */
-			/* vec[2]= tvec[2]; */
+			/* vec[0] = tvec[0]; */
+			/* vec[1] =  0.0; */
+			/* vec[2] = tvec[2]; */
 			break;
 		case 2: /* pos-z */
-			/* vec[0]= tvec[0]; */
-			/* vec[1]= tvec[1]; */
-			// vec[2]=  0.0; */
+			/* vec[0] = tvec[0]; */
+			/* vec[1] = tvec[1]; */
+			/* vec[2] =  0.0; */
 			break;
 		case 3: /* neg-x */
-			/* vec[0]=  0.0; */
+			/* vec[0] =  0.0; */
 			vec[1] = tvec[2];
 			vec[2] = -tvec[1];
 			break;
 		case 4: /* neg-y */
 			vec[0] = -tvec[2];
-			/* vec[1]=  0.0; */
+			/* vec[1] =  0.0; */
 			vec[2] = tvec[0];
 			break;
 		case 5: /* neg-z */
 			vec[0] = -tvec[0];
 			vec[1] = -tvec[1];
-			/* vec[2]=  0.0; */
+			/* vec[2] =  0.0; */
 			break;
 	}
 }

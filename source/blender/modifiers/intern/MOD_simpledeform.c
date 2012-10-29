@@ -161,7 +161,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	if (smd->limit[0] < 0.0f) smd->limit[0] = 0.0f;
 	if (smd->limit[0] > 1.0f) smd->limit[0] = 1.0f;
 
-	smd->limit[0] = minf(smd->limit[0], smd->limit[1]);  /* Upper limit >= than lower limit */
+	smd->limit[0] = min_ff(smd->limit[0], smd->limit[1]);  /* Upper limit >= than lower limit */
 
 	/* Calculate matrixs do convert between coordinate spaces */
 	if (smd->origin) {
@@ -191,8 +191,8 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 
 			if (transf) space_transform_apply(transf, tmp);
 
-			lower = minf(lower, tmp[limit_axis]);
-			upper = maxf(upper, tmp[limit_axis]);
+			lower = min_ff(lower, tmp[limit_axis]);
+			upper = max_ff(upper, tmp[limit_axis]);
 		}
 
 
@@ -200,7 +200,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		smd_limit[1] = lower + (upper - lower) * smd->limit[1];
 		smd_limit[0] = lower + (upper - lower) * smd->limit[0];
 
-		smd_factor   = smd->factor / maxf(FLT_EPSILON, smd_limit[1] - smd_limit[0]);
+		smd_factor   = smd->factor / max_ff(FLT_EPSILON, smd_limit[1] - smd_limit[0]);
 	}
 
 	modifier_get_vgroup(ob, dm, smd->vgroup_name, &dvert, &vgroup);
@@ -353,9 +353,9 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 	/* type */              eModifierTypeType_OnlyDeform,
 
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
-							eModifierTypeFlag_AcceptsCVs |
-							eModifierTypeFlag_SupportsEditmode |
-							eModifierTypeFlag_EnableInEditmode,
+	                        eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,

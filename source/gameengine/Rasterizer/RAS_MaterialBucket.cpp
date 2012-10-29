@@ -73,7 +73,7 @@ RAS_MeshSlot::~RAS_MeshSlot()
 #ifdef USE_SPLIT
 	Split(true);
 
-	while(m_joinedSlots.size())
+	while (m_joinedSlots.size())
 		m_joinedSlots.front()->Split(true);
 #endif
 
@@ -393,7 +393,7 @@ bool RAS_MeshSlot::Join(RAS_MeshSlot *target, MT_Scalar distance)
 	target->m_joinedSlots.push_back(this);
 
 	MT_Matrix4x4 ntransform = m_joinInvTransform.transposed();
-	ntransform[0][3]= ntransform[1][3]= ntransform[2][3]= 0.0f;
+	ntransform[0][3] = ntransform[1][3] = ntransform[2][3] = 0.0f;
 
 	for (begin(mit); !end(mit); next(mit))
 		for (i=mit.startvertex; i<mit.endvertex; i++)
@@ -471,7 +471,7 @@ bool RAS_MeshSlot::Split(bool force)
 		}
 
 		MT_Matrix4x4 ntransform = m_joinInvTransform.inverse().transposed();
-		ntransform[0][3]= ntransform[1][3]= ntransform[2][3]= 0.0f;
+		ntransform[0][3] = ntransform[1][3] = ntransform[2][3] = 0.0f;
 
 		for (begin(mit); !end(mit); next(mit))
 			for (i=mit.startvertex; i<mit.endvertex; i++)

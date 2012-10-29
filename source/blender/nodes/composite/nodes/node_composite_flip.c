@@ -33,12 +33,12 @@
 #include "node_composite_util.h"
 
 /* **************** Flip  ******************** */
-static bNodeSocketTemplate cmp_node_flip_in[]= {
+static bNodeSocketTemplate cmp_node_flip_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),		    1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate cmp_node_flip_out[]= {
+static bNodeSocketTemplate cmp_node_flip_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -75,7 +75,7 @@ static void node_composit_exec_flip(void *UNUSED(data), bNode *node, bNodeStack 
 				outfp += (src_width-1)*src_pix;
 				for (x=0; x<src_width; x++) {
 					for (i=0; i<src_pix; i++) {
-						outfp[i]= srcfp[i];
+						outfp[i] = srcfp[i];
 					}
 					outfp -= src_pix;
 					srcfp += src_pix;

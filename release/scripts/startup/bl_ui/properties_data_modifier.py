@@ -211,7 +211,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.row().prop(md, "deform_axis", expand=True)
 
     def DECIMATE(self, layout, ob, md):
-        layout.prop(md, "ratio")
+        row = layout.row()
+        row.prop(md, "decimate_type", expand=True)
+        decimate_type = md.decimate_type
+
+        if decimate_type == 'COLLAPSE':
+            layout.prop(md, "ratio")
+            row = layout.row()
+            row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+            row.prop(md, "invert_vertex_group")
+            layout.prop(md, "use_collapse_triangulate")
+        elif decimate_type == 'UNSUBDIV':
+            layout.prop(md, "iterations")
+        else:  # decimate_type == 'DISSOLVE':
+            layout.prop(md, "angle_limit")
+            layout.prop(md, "use_dissolve_boundaries")
+
         layout.label(text="Face Count" + ": %d" % md.face_count)
 
     def DISPLACE(self, layout, ob, md):
@@ -315,6 +330,28 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row = layout.row()
             row.operator("object.hook_select", text="Select")
             row.operator("object.hook_assign", text="Assign")
+
+    def LAPLACIANSMOOTH(self, layout, ob, md):
+        layout.prop(md, "iterations")
+        
+        split = layout.split(percentage=0.25)
+        
+        col = split.column()
+        col.label(text="Axis:")
+        col.prop(md, "use_x")
+        col.prop(md, "use_y")
+        col.prop(md, "use_z")
+        
+        col = split.column()
+        col.label(text="Lambda:")
+        col.prop(md, "lambda_factor", text="Factor")
+        col.prop(md, "lambda_border", text="Border")
+        
+        col.separator()
+        col.prop(md, "use_volume_preserve")
+        
+        layout.label(text="Vertex Group:")
+        layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
     def LATTICE(self, layout, ob, md):
         split = layout.split()

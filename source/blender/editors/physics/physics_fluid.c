@@ -196,10 +196,10 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 	int i, j;
 	int channelSize = paramsize; 
 
-	if (entries==3) {
+	if (entries == 3) {
 		elbeemSimplifyChannelVec3(channel, &channelSize);
 	}
-	else if (entries==1) {
+	else if (entries == 1) {
 		elbeemSimplifyChannelFloat(channel, &channelSize);
 	}
 	else {
@@ -211,10 +211,10 @@ static void fluidsimPrintChannel(FILE *file, float *channel, int paramsize, char
 		fprintf(file, "        ");
 		for (j=0;j <= entries;j++) {  // also print time value
 			fprintf(file, " %f ", channel[i*(entries + 1) + j]);
-			if (j==entries-1) { fprintf(file, "  "); }
-		} 
+			if (j == entries-1) { fprintf(file, "  "); }
+		}
 		fprintf(file, "\n");
-	} 
+	}
 
 	fprintf(file,  "      ;\n");
 }
@@ -402,7 +402,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 	}
 	
 	/* now we loop over the frames and fill the allocated channels with data */
-	for (i=0; i<channels->length; i++) {
+	for (i=0; i < channels->length; i++) {
 		FluidObject *fobj;
 		float viscosity, gravity[3];
 		float timeAtFrame, time;
@@ -527,7 +527,7 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 		if ( ELEM(fsmesh.type, OB_FLUIDSIM_FLUID, OB_FLUIDSIM_INFLOW)) {
 			fsmesh.channelInitialVel = fobj->InitialVelocity;
 			fsmesh.localInivelCoords = ((fluidmd->fss->typeFlags & OB_FSINFLOW_LOCALCOORD)?1:0);
-		} 
+		}
 		
 		if (fluidmd->fss->typeFlags & OB_FSBND_NOSLIP)
 			fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
@@ -593,7 +593,7 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 
 	for (base=scene->base.first; base; base= base->next) {
 		Object *ob = base->object;
-		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);			
+		FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 
 		/* only find objects with fluid modifiers */
 		if (!fluidmdtmp || ob->type != OB_MESH) continue;
@@ -627,7 +627,7 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 		return 0;
 	}
 	
-	if (channelObjCount>=255) {
+	if (channelObjCount >= 255) {
 		BKE_report(reports, RPT_ERROR, "Cannot bake with more then 256 objects");
 		return 0;
 	}
@@ -648,7 +648,7 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetFile, char *debugStrBuffer)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(fsDomain, eModifierType_Fluidsim);
-	FluidsimSettings *domainSettings= fluidmd->fss;	
+	FluidsimSettings *domainSettings= fluidmd->fss;
 	FILE *fileCfg;
 	int dirExist = 0;
 	char newSurfdataPath[FILE_MAX]; /* modified output settings */
@@ -673,7 +673,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	// check selected directory
 	// simply try to open cfg file for writing to test validity of settings
 	fileCfg = BLI_fopen(targetFile, "w");
-	if (fileCfg) { 
+	if (fileCfg) {
 		dirExist = 1; fclose(fileCfg); 
 		// remove cfg dummy from  directory test
 		BLI_delete(targetFile, 0, 0);
@@ -902,7 +902,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	/* make sure it corresponds to startFrame setting (old: noFrames = scene->r.efra - scene->r.sfra +1) */;
 	noFrames = scene->r.efra - 0;
 	if (noFrames<=0) {
-		BKE_report(reports, RPT_ERROR, "No frames to export - check your animation range settings");
+		BKE_report(reports, RPT_ERROR, "No frames to export (check your animation range settings)");
 		fluidbake_free_data(channels, fobjects, fsset, fb);
 		return 0;
 	}
@@ -1050,7 +1050,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	fsset->generateVertexVectors = (domainSettings->domainNovecgen==0);
 
 	// init blender domain transform matrix
-	{ int j; 
+	{ int j;
 	for (i=0; i<4; i++) {
 		for (j=0; j<4; j++) {
 			fsset->surfaceTrafo[i*4+j] = invDomMat[j][i];

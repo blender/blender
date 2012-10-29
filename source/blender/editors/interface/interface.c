@@ -238,7 +238,7 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 		bt->rect.xmax = bt->rect.xmin + i + block->bounds;
 		
 		if (col == lastcol) {
-			bt->rect.xmax = maxf(bt->rect.xmax, offset + block->minbounds);
+			bt->rect.xmax = max_ff(bt->rect.xmax, offset + block->minbounds);
 		}
 
 		ui_check_but(bt);  /* clips text again */
@@ -275,7 +275,7 @@ void ui_bounds_block(uiBlock *block)
 		block->rect.ymax += block->bounds;
 	}
 
-	block->rect.xmax = block->rect.xmin + maxf(BLI_rctf_size_x(&block->rect), block->minbounds);
+	block->rect.xmax = block->rect.xmin + max_ff(BLI_rctf_size_x(&block->rect), block->minbounds);
 
 	/* hardcoded exception... but that one is annoying with larger safety */ 
 	bt = block->buttons.first;
@@ -527,7 +527,7 @@ static void ui_draw_links(uiBlock *block)
 					foundselectline = TRUE;
 			}
 		}
-	}	
+	}
 
 	/* Draw any active lines (lines with either button being hovered over).
 	 * Do this last so they appear on top of inactive lines. */
@@ -539,7 +539,7 @@ static void ui_draw_links(uiBlock *block)
 						ui_draw_linkline(line, !foundselectline);
 				}
 			}
-		}	
+		}
 	}
 }
 
@@ -581,7 +581,7 @@ static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut
 			if (line->from == newbut)
 				line->from = oldbut;
 		}
-	}		
+	}
 	
 	/* check all other button links */
 	for (but = block->buttons.first; but; but = but->next) {
@@ -610,28 +610,28 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 		if (ui_but_equals_old(oldbut, but)) {
 			if (oldbut->active) {
 #if 0
-//				but->flag= oldbut->flag;
+//				but->flag = oldbut->flag;
 #else
 				/* exception! redalert flag can't be update from old button. 
 				 * perhaps it should only copy specific flags rather than all. */
-//				but->flag= (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
+//				but->flag = (oldbut->flag & ~UI_BUT_REDALERT) | (but->flag & UI_BUT_REDALERT);
 #endif
-//				but->active= oldbut->active;
-//				but->pos= oldbut->pos;
-//				but->ofs= oldbut->ofs;
-//				but->editstr= oldbut->editstr;
-//				but->editval= oldbut->editval;
-//				but->editvec= oldbut->editvec;
-//				but->editcoba= oldbut->editcoba;
-//				but->editcumap= oldbut->editcumap;
-//				but->selsta= oldbut->selsta;
-//				but->selend= oldbut->selend;
-//				but->softmin= oldbut->softmin;
-//				but->softmax= oldbut->softmax;
-//				but->linkto[0]= oldbut->linkto[0];
-//				but->linkto[1]= oldbut->linkto[1];
+//				but->active = oldbut->active;
+//				but->pos = oldbut->pos;
+//				but->ofs = oldbut->ofs;
+//				but->editstr = oldbut->editstr;
+//				but->editval = oldbut->editval;
+//				but->editvec = oldbut->editvec;
+//				but->editcoba = oldbut->editcoba;
+//				but->editcumap = oldbut->editcumap;
+//				but->selsta = oldbut->selsta;
+//				but->selend = oldbut->selend;
+//				but->softmin = oldbut->softmin;
+//				but->softmax = oldbut->softmax;
+//				but->linkto[0] = oldbut->linkto[0];
+//				but->linkto[1] = oldbut->linkto[1];
 				found = 1;
-//				oldbut->active= NULL;
+//				oldbut->active = NULL;
 			
 				/* move button over from oldblock to new block */
 				BLI_remlink(&oldblock->buttons, oldbut);
@@ -1270,7 +1270,7 @@ void ui_delete_linkline(uiLinkLine *line, uiBut *but)
 					(*(link->ppoin))[b] = (*(link->ppoin))[a];
 					b++;
 				}
-			}	
+			}
 			(*(link->totlink))--;
 		}
 	}
@@ -1303,7 +1303,7 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 
 		if (RNA_property_type(prop) == PROP_FLOAT) {
 			tot = RNA_property_array_length(&but->rnapoin, prop);
-			tot = MIN2(tot, 3);
+			tot = min_ii(tot, 3);
 
 			for (a = 0; a < tot; a++)
 				vec[a] = RNA_property_float_get_index(&but->rnapoin, prop, a);
@@ -1348,7 +1348,7 @@ void ui_set_but_vectorf(uiBut *but, const float vec[3])
 			int a;
 
 			tot = RNA_property_array_length(&but->rnapoin, prop);
-			tot = MIN2(tot, 3);
+			tot = min_ii(tot, 3);
 
 			for (a = 0; a < tot; a++) {
 				RNA_property_float_set_index(&but->rnapoin, prop, a, vec[a]);
@@ -1391,7 +1391,7 @@ int ui_is_but_unit(uiBut *but)
 		return 0;
 #endif
 	
-	/* for now disable time unit conversion */	
+	/* for now disable time unit conversion */
 	if (unit_type == PROP_UNIT_TIME)
 		return 0;
 
@@ -1464,16 +1464,16 @@ double ui_get_but_val(uiBut *but)
 			case 'S': value = hsv[1]; break;
 			case 'V': value = hsv[2]; break;
 		}
-	} 
+	}
 	else if (but->pointype == UI_BUT_POIN_CHAR) {
 		value = *(char *)but->poin;
 	}
 	else if (but->pointype == UI_BUT_POIN_SHORT) {
 		value = *(short *)but->poin;
-	} 
+	}
 	else if (but->pointype == UI_BUT_POIN_INT) {
 		value = *(int *)but->poin;
-	} 
+	}
 	else if (but->pointype == UI_BUT_POIN_FLOAT) {
 		value = *(float *)but->poin;
 	}
@@ -1697,7 +1697,7 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 		}
 		else if (buf && buf != str) {
 			/* string was too long, we have to truncate */
-			memcpy(str, buf, MIN2(maxlen, buf_len + 1));
+			memcpy(str, buf, MIN2(maxlen, (size_t)buf_len + 1));
 			MEM_freeN(buf);
 		}
 	}
@@ -1947,8 +1947,8 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
 			softmin = (imin == INT_MIN) ? -1e4 : imin;
 			softmax = (imin == INT_MAX) ? 1e4 : imax;
-			/*step= istep;*/ /*UNUSED*/
-			/*precision= 1;*/ /*UNUSED*/
+			/*step = istep;*/ /*UNUSED*/
+			/*precision = 1;*/ /*UNUSED*/
 
 			if (array_len >= 2) {
 				int value_range[2];
@@ -1964,8 +1964,8 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
 			softmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
 			softmax = (fmax == FLT_MAX) ? (float)1e4 : fmax;
-			/*step= fstep;*/ /*UNUSED*/
-			/*precision= fprecision;*/ /*UNUSED*/
+			/*step = fstep;*/ /*UNUSED*/
+			/*precision = fprecision;*/ /*UNUSED*/
 
 			if (array_len >= 2) {
 				float value_range[2];
@@ -2006,7 +2006,7 @@ void ui_set_but_soft_range(uiBut *but, double value)
 
 static void ui_free_link(uiLink *link)
 {
-	if (link) {	
+	if (link) {
 		BLI_freelistN(&link->lines);
 		MEM_freeN(link);
 	}
@@ -2055,7 +2055,7 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 	uiBut *but;
 
 	while ( (but = block->buttons.first) ) {
-		BLI_remlink(&block->buttons, but);	
+		BLI_remlink(&block->buttons, but);
 		ui_free_but(C, but);
 	}
 
@@ -2256,7 +2256,7 @@ void ui_check_but(uiBut *but)
 	
 	
 	/* safety is 4 to enable small number buttons (like 'users') */
-	// okwidth= -4 + (BLI_rcti_size_x(&but->rect)); // UNUSED
+	// okwidth = -4 + (BLI_rcti_size_x(&but->rect)); // UNUSED
 	
 	/* name: */
 	switch (but->type) {
@@ -2398,7 +2398,7 @@ void uiBlockBeginAlign(uiBlock *block)
 	/* if other align was active, end it */
 	if (block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
 
-	block->flag |= UI_BUT_ALIGN_DOWN;	
+	block->flag |= UI_BUT_ALIGN_DOWN;
 	block->alignnr++;
 
 	/* buttons declared after this call will get this align nr */ // XXX flag?
@@ -2439,7 +2439,7 @@ static void ui_block_do_align_but(uiBut *first, short nr)
 		}
 	}
 
-	/* rows==0: 1 row, cols==0: 1 column */
+	/* rows == 0: 1 row, cols == 0: 1 column */
 	
 	/* note;  how it uses 'flag' in loop below (either set it, or OR it) is confusing */
 	for (but = first, prev = NULL; but && but->alignnr == nr; prev = but, but = but->next) {

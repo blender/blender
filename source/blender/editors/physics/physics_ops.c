@@ -61,7 +61,7 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_rekey);
 	WM_operatortype_append(PARTICLE_OT_subdivide);
 	WM_operatortype_append(PARTICLE_OT_remove_doubles);
-	WM_operatortype_append(PARTICLE_OT_weight_set);	
+	WM_operatortype_append(PARTICLE_OT_weight_set);
 	WM_operatortype_append(PARTICLE_OT_delete);
 	WM_operatortype_append(PARTICLE_OT_mirror);
 

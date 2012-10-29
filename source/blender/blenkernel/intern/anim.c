@@ -176,7 +176,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports, Scene *scene, Objec
 	/* avoid 0 size allocs */
 	if (avs->path_sf >= avs->path_ef) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "Motion Path frame extents invalid for %s (%d to %d)%s",
+		            "Motion path frame extents invalid for %s (%d to %d)%s",
 		            (pchan) ? pchan->name : ob->id.name,
 		            avs->path_sf, avs->path_ef,
 		            (avs->path_sf == avs->path_ef) ? TIP_(", cannot have single-frame paths") : "");
@@ -824,7 +824,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_ind
 			ok = (ok < ob->dupon);
 		}
 		
-		if (ok) {	
+		if (ok) {
 			DupliObject *dob;
 			
 			/* WARNING: doing animation updates in this way is not terribly accurate, as the dependencies
@@ -970,7 +970,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	}
 	
 	/* Start looping on Scene OR Group objects */
-	while (base || go) { 
+	while (base || go) {
 		if (sce) {
 			ob_iter = base->object;
 			oblay = base->lay;
@@ -1104,7 +1104,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	}
 	
 	/* Start looping on Scene OR Group objects */
-	while (base || go) { 
+	while (base || go) {
 		if (sce) {
 			ob_iter = base->object;
 			oblay = base->lay;

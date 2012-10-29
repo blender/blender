@@ -468,7 +468,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 				
 				/* store this level as the 'old' level now */
 				prevLevel = level;
-			}	
+			}
 			/* if the level is 'greater than' (i.e. less important) than the previous level... */
 			else if (level > prevLevel) {
 				/* if previous level was a base-level (i.e. 0 offset / root of one hierarchy),
@@ -604,7 +604,7 @@ static int animedit_poll_channels_nla_tweakmode_off(bContext *C)
 	if (ELEM3(sa->spacetype, SPACE_ACTION, SPACE_IPO, SPACE_NLA) == 0)
 		return 0;
 	
-	/* NLA TweakMode test */	
+	/* NLA TweakMode test */
 	if (sa->spacetype == SPACE_NLA) {
 		if ((scene == NULL) || (scene->flag & SCE_NLA_EDIT_ON))
 			return 0;
@@ -798,7 +798,7 @@ static void rearrange_animchannel_add_to_islands(ListBase *islands, ListBase *sr
 			FCurve *fcu = (FCurve *)channel;
 			
 			is_sel = SEL_FCU(fcu);
-		}	
+		}
 		break;
 		case ANIMTYPE_NLATRACK:
 		{
@@ -914,7 +914,7 @@ static void rearrange_nla_channels(bAnimContext *UNUSED(ac), AnimData *adt, shor
 	if (rearrange_func == NULL)
 		return;
 	
-	/* only consider NLA data if it's accessible */	
+	/* only consider NLA data if it's accessible */
 	//if (EXPANDED_DRVD(adt) == 0)
 	//	return;
 	
@@ -935,7 +935,7 @@ static void rearrange_driver_channels(bAnimContext *UNUSED(ac), AnimData *adt, s
 	if (rearrange_func == NULL)
 		return;
 	
-	/* only consider drivers if they're accessible */	
+	/* only consider drivers if they're accessible */
 	if (EXPANDED_DRVD(adt) == 0)
 		return;
 	
@@ -2211,7 +2211,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 			}
 			
 			notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
-		}	
+	}
 		break;
 		
 		case ANIMTYPE_GROUP: 
@@ -2224,7 +2224,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 				agrp->flag ^= AGRP_SELECTED;
 			}
 			else if (selectmode == -1) {
-				/* select all in group (and deselect everthing else) */	
+				/* select all in group (and deselect everthing else) */
 				FCurve *fcu;
 				
 				/* deselect all other channels */
@@ -2233,7 +2233,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 				/* only select channels in group and group itself */
 				for (fcu = agrp->channels.first; fcu && fcu->grp == agrp; fcu = fcu->next)
 					fcu->flag |= FCURVE_SELECTED;
-				agrp->flag |= AGRP_SELECTED;					
+				agrp->flag |= AGRP_SELECTED;
 			}
 			else {
 				/* select group by itself */
@@ -2311,7 +2311,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 				/* invert selection status of this layer only */
 				gpl->flag ^= GP_LAYER_SELECT;
 			}
-			else {	
+			else {
 				/* select layer by itself */
 				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 				gpl->flag |= GP_LAYER_SELECT;

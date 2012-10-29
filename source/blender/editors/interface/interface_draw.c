@@ -160,13 +160,13 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	/* get current color, needs to be outside of glBegin/End */
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
-	/* 'shade' defines strength of shading */	
-	coltop[0]  = minf(1.0f, color[0] + shadetop);
-	coltop[1]  = minf(1.0f, color[1] + shadetop);
-	coltop[2]  = minf(1.0f, color[2] + shadetop);
-	coldown[0] = maxf(0.0f, color[0] + shadedown);
-	coldown[1] = maxf(0.0f, color[1] + shadedown);
-	coldown[2] = maxf(0.0f, color[2] + shadedown);
+	/* 'shade' defines strength of shading */
+	coltop[0]  = min_ff(1.0f, color[0] + shadetop);
+	coltop[1]  = min_ff(1.0f, color[1] + shadetop);
+	coltop[2]  = min_ff(1.0f, color[2] + shadetop);
+	coldown[0] = max_ff(0.0f, color[0] + shadedown);
+	coldown[1] = max_ff(0.0f, color[1] + shadedown);
+	coldown[2] = max_ff(0.0f, color[2] + shadedown);
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);
@@ -269,13 +269,13 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	/* get current color, needs to be outside of glBegin/End */
 	glGetFloatv(GL_CURRENT_COLOR, color);
 
-	/* 'shade' defines strength of shading */	
-	colLeft[0]  = minf(1.0f, color[0] + shadeLeft);
-	colLeft[1]  = minf(1.0f, color[1] + shadeLeft);
-	colLeft[2]  = minf(1.0f, color[2] + shadeLeft);
-	colRight[0] = maxf(0.0f, color[0] + shadeRight);
-	colRight[1] = maxf(0.0f, color[1] + shadeRight);
-	colRight[2] = maxf(0.0f, color[2] + shadeRight);
+	/* 'shade' defines strength of shading */
+	colLeft[0]  = min_ff(1.0f, color[0] + shadeLeft);
+	colLeft[1]  = min_ff(1.0f, color[1] + shadeLeft);
+	colLeft[2]  = min_ff(1.0f, color[2] + shadeLeft);
+	colRight[0] = max_ff(0.0f, color[0] + shadeRight);
+	colRight[1] = max_ff(0.0f, color[1] + shadeRight);
+	colRight[2] = max_ff(0.0f, color[2] + shadeRight);
 
 	glShadeModel(GL_SMOOTH);
 	glBegin(mode);
@@ -510,7 +510,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	if (G.selfont && BKE_vfont_is_builtin(G.selfont) == FALSE) {
 		/* Is the font file packed, if so then use the packed file */
 		if (G.selfont->packedfile) {
-			pf = G.selfont->packedfile;		
+			pf = G.selfont->packedfile;
 			FTF_SetFont(pf->data, pf->size, 14.0);
 		}
 		else {
@@ -608,7 +608,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		ey -= buth;
 		sx = rect->xmin;
 		ex = rect->xmin + butw;
-	}	
+	}
 	glShadeModel(GL_FLAT);
 
 	/* Return Font Settings to original */
@@ -1221,7 +1221,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 			glColor3ub(255, 255, 255);
 			glVertex2fv(v2);
 			glVertex2fv(v3);
-		}	
+		}
 	}
 	glEnd();
 
@@ -1707,7 +1707,7 @@ static void ui_shadowbox(float minx, float miny, float maxx, float maxy, float s
 	glVertex2f(maxx, miny - shadsize);
 	glEnd();
 	
-	/* bottom quad */		
+	/* bottom quad */
 	glBegin(GL_POLYGON);
 	glColor4ub(0, 0, 0, alpha);
 	glVertex2f(minx + 0.3f * shadsize, miny);
