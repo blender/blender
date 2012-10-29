@@ -662,11 +662,16 @@ def buildslave(target=None, source=None, env=None):
     if platform == 'linux':
         import platform
 
+        if env['BF_INSTALLDIR'].find('glibc27') != -1:
+            glibc="glibc27"
+        elif env['BF_INSTALLDIR'].find('glibc211') != -1:
+            glibc="glibc211"
+
         bitness = platform.architecture()[0]
         if bitness == '64bit':
-            platform = 'linux-glibc27-x86_64'
+            platform = 'linux-' + glibc + '-x86_64'
         elif bitness == '32bit':
-            platform = 'linux-glibc27-i686'
+            platform = 'linux-' + glibc + '-i686'
     if platform == 'darwin':
         platform = 'OSX-' + env['MACOSX_ARCHITECTURE']
 
