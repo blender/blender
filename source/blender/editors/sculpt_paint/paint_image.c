@@ -5266,10 +5266,12 @@ static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 	if (!rv3d) {
 		SpaceImage *sima = CTX_wm_space_image(C);
 		ARegion *ar = CTX_wm_region(C);
-		
-		ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
 
-		return 1;
+		if (sima->mode == SI_MODE_PAINT) {
+			ED_space_image_get_zoom(sima, ar, zoomx, zoomy);
+
+			return 1;
+		}
 	}
 
 	*zoomx = *zoomy = 1;
@@ -5290,16 +5292,13 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 	Brush *brush = paint_brush(paint);
 
 	if (paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
-		ToolSettings *ts;
 		float zoomx, zoomy;
 		const float size = (float)BKE_brush_size_get(scene, brush);
 		short use_zoom;
 		float pixel_size;
 		float alpha = 0.5f;
 
-		ts = scene->toolsettings;
-		use_zoom = get_imapaint_zoom(C, &zoomx, &zoomy) &&
-		           !(ts->use_uv_sculpt && (scene->basact->object->mode == OB_MODE_EDIT));
+		use_zoom = get_imapaint_zoom(C, &zoomx, &zoomy);
 
 		if (use_zoom) {
 			pixel_size = size * max_ff(zoomx, zoomy);
