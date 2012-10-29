@@ -945,8 +945,18 @@ void normalize_m4_m4(float rmat[][4], float mat[][4])
 	if (len != 0.0f) rmat[2][3] = mat[2][3] / len;
 }
 
+void adjoint_m2_m2(float m1[][2], float m[][2])
+{
+	BLI_assert(m1 != m);
+	m1[0][0] =  m[1][1];
+	m1[0][1] = -m[1][0];
+	m1[1][0] = -m[0][1];
+	m1[1][1] =  m[0][0];
+}
+
 void adjoint_m3_m3(float m1[][3], float m[][3])
 {
+	BLI_assert(m1 != m);
 	m1[0][0] = m[1][1] * m[2][2] - m[1][2] * m[2][1];
 	m1[0][1] = -m[0][1] * m[2][2] + m[0][2] * m[2][1];
 	m1[0][2] = m[0][1] * m[1][2] - m[0][2] * m[1][1];

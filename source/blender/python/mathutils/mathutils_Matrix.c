@@ -1196,17 +1196,27 @@ static PyObject *Matrix_invert(MatrixObject *self)
 
 	if (det != 0) {
 		/* calculate the classical adjoint */
-		if (self->num_col == 2) {
-			mat[0] =  MATRIX_ITEM(self, 1, 1);
-			mat[1] = -MATRIX_ITEM(self, 0, 1);
-			mat[2] = -MATRIX_ITEM(self, 1, 0);
-			mat[3] =  MATRIX_ITEM(self, 0, 0);
-		}
-		else if (self->num_col == 3) {
-			adjoint_m3_m3((float (*)[3])mat, (float (*)[3])self->matrix);
-		}
-		else if (self->num_col == 4) {
-			adjoint_m4_m4((float (*)[4])mat, (float (*)[4])self->matrix);
+		switch (self->num_col) {
+			case 2:
+			{
+				adjoint_m2_m2((float (*)[2])mat, (float (*)[2])self->matrix);
+				break;
+			}
+			case 3:
+			{
+				adjoint_m3_m3((float (*)[3])mat, (float (*)[3])self->matrix);
+				break;
+			}
+			case 4:
+			{
+				adjoint_m4_m4((float (*)[4])mat, (float (*)[4])self->matrix);
+				break;
+			}
+			default:
+				PyErr_Format(PyExc_TypeError,
+				             "Matrix invert(ed): size (%d) unsupported",
+				             (int)self->num_col);
+				return NULL;
 		}
 		/* divide by determinate */
 		for (x = 0; x < (self->num_col * self->num_row); x++) {
@@ -1236,7 +1246,7 @@ PyDoc_STRVAR(Matrix_inverted_doc,
 "\n"
 "   Return an inverted copy of the matrix.\n"
 "\n"
-"   :return: the  inverted matrix.\n"
+"   :return: the inverted matrix.\n"
 "   :rtype: :class:`Matrix`\n"
 "\n"
 "   .. note:: When the matrix cant be inverted a :exc:`ValueError` exception is raised.\n"
@@ -1244,6 +1254,77 @@ PyDoc_STRVAR(Matrix_inverted_doc,
 static PyObject *Matrix_inverted(MatrixObject *self)
 {
 	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_invert, self);
+}
+
+/*---------------------------matrix.adjugate() ---------------------*/
+PyDoc_STRVAR(Matrix_adjugate_doc,
+".. method:: adjugate()\n"
+"\n"
+"   Set the matrix to its adjugate.\n"
+"\n"
+"   .. note:: When the matrix cant be adjugated a :exc:`ValueError` exception is raised.\n"
+"\n"
+"   .. seealso:: <http://en.wikipedia.org/wiki/Adjugate_matrix>\n"
+);
+static PyObject *Matrix_adjugate(MatrixObject *self)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	if (self->num_col != self->num_row) {
+		PyErr_SetString(PyExc_TypeError,
+		                "Matrix.adjugate(d): "
+		                "only square matrices are supported");
+		return NULL;
+	}
+
+	/* calculate the classical adjoint */
+	switch (self->num_col) {
+		case 2:
+		{
+			float mat[2][2];
+			adjoint_m2_m2(mat, (float (*)[2])self->matrix);
+			copy_v4_v4((float *)self->matrix, (float *)mat);
+			break;
+		}
+		case 3:
+		{
+			float mat[3][3];
+			adjoint_m3_m3(mat, (float (*)[3])self->matrix);
+			copy_m3_m3((float (*)[3])self->matrix, mat);
+			break;
+		}
+		case 4:
+		{
+			float mat[4][4];
+			adjoint_m4_m4(mat, (float (*)[4])self->matrix);
+			copy_m4_m4((float (*)[4])self->matrix, mat);
+			break;
+		}
+		default:
+			PyErr_Format(PyExc_TypeError,
+			             "Matrix adjugate(d): size (%d) unsupported",
+			             (int)self->num_col);
+			return NULL;
+	}
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Matrix_adjugated_doc,
+".. method:: adjugated()\n"
+"\n"
+"   Return an adjugated copy of the matrix.\n"
+"\n"
+"   :return: the adjugated matrix.\n"
+"   :rtype: :class:`Matrix`\n"
+"\n"
+"   .. note:: When the matrix cant be adjugated a :exc:`ValueError` exception is raised.\n"
+);
+static PyObject *Matrix_adjugated(MatrixObject *self)
+{
+	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_adjugate, self);
 }
 
 PyDoc_STRVAR(Matrix_rotate_doc,
@@ -2281,6 +2362,8 @@ static struct PyMethodDef Matrix_methods[] = {
 	{"transposed", (PyCFunction) Matrix_transposed, METH_NOARGS, Matrix_transposed_doc},
 	{"invert", (PyCFunction) Matrix_invert, METH_NOARGS, Matrix_invert_doc},
 	{"inverted", (PyCFunction) Matrix_inverted, METH_NOARGS, Matrix_inverted_doc},
+	{"adjugate", (PyCFunction) Matrix_adjugate, METH_NOARGS, Matrix_adjugate_doc},
+	{"adjugated", (PyCFunction) Matrix_adjugated, METH_NOARGS, Matrix_adjugated_doc},
 	{"to_3x3", (PyCFunction) Matrix_to_3x3, METH_NOARGS, Matrix_to_3x3_doc},
 	/* TODO. {"resize_3x3", (PyCFunction) Matrix_resize3x3, METH_NOARGS, Matrix_resize3x3_doc}, */
 	{"to_4x4", (PyCFunction) Matrix_to_4x4, METH_NOARGS, Matrix_to_4x4_doc},
