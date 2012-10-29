@@ -2819,10 +2819,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.type = MIDDLEMOUSE;
 			
 			/* copy prev state to event state */
-			if (event.val == KM_PRESS) {
+//			if (event.val == KM_PRESS) {
 				evt->prevval = evt->val;
 				evt->prevtype = evt->type;
-			}
+//			}
 			/* copy to event state */
 			evt->val = event.val;
 			evt->type = event.type;
@@ -2884,10 +2884,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 			
 			/* copy prev state to event state */
-			if (event.val == KM_PRESS) {
+			//if (event.val == KM_PRESS) {
 				evt->prevval = evt->val;
 				evt->prevtype = evt->type;
-			}
+			//}
 
 			/* copy to event state */
 			evt->val = event.val;
