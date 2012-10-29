@@ -120,7 +120,7 @@ protected:
 	/**
 	 * whether the camera should delete the node itself (only for shadow camera)
 	 */
-	bool		 m_delete_node;
+	bool         m_delete_node;
 
 	/**
 	 * Extracts the camera clip frames from the projection and world-to-camera matrices.

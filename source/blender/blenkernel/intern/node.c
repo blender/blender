@@ -1580,11 +1580,11 @@ int BKE_node_clipboard_validate(void)
 
 	/* lists must be aligned */
 	BLI_assert(BLI_countlist(&node_clipboard.nodes) ==
-			   BLI_countlist(&node_clipboard.nodes_extra_info));
+	           BLI_countlist(&node_clipboard.nodes_extra_info));
 
 	for (node = node_clipboard.nodes.first, node_info = node_clipboard.nodes_extra_info.first;
-		 node;
-		 node = node->next, node_info = node_info->next)
+	     node;
+	     node = node->next, node_info = node_info->next)
 	{
 		/* validate the node against the stored node info */
 

@@ -180,8 +180,8 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 		gp_Rasterizer->DrawDebugLine(from,to,color);
 }
 
-void	KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
-									 const MT_Vector3& normal, int nsector)
+void KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
+                                  const MT_Vector3& normal, int nsector)
 {
 	if (gp_Rasterizer)
 		gp_Rasterizer->DrawDebugCircle(center, radius, color, normal, nsector);

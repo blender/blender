@@ -48,8 +48,8 @@ public:
 
 	MT_Transform         GetTransform() const {
 		return MT_Transform(m_position + m_deltaPosition,
-							MT_Matrix3x3(m_eulerAngles + m_deltaEulerAngles,
-										 m_scaling + m_deltaScaling));
+		                    MT_Matrix3x3(m_eulerAngles + m_deltaEulerAngles,
+		                                 m_scaling + m_deltaScaling));
 	}
 
 	MT_Point3&	         GetPosition()          { return m_position; 	}

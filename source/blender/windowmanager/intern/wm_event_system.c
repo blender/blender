@@ -1881,14 +1881,14 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	int action = wm_handlers_do_intern(C, event, handlers);
 		
-	 if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && !ISTIMER(event->type)) {
-		 
+	if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && !ISTIMER(event->type)) {
+
 		/* test for CLICK events */
 		if (wm_action_not_handled(action)) {
 			wmWindow *win = CTX_wm_window(C);
 			
 			/* eventstate stores if previous event was a KM_PRESS, in case that 
-			   wasn't handled, the KM_RELEASE will become a KM_CLICK */
+			 * wasn't handled, the KM_RELEASE will become a KM_CLICK */
 			
 			if (win && event->val == KM_PRESS) {
 				win->eventstate->check_click = TRUE;

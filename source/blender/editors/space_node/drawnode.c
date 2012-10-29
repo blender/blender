@@ -1388,7 +1388,7 @@ static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), Point
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
-		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
+		/* case NODE_GROUP: note, typeinfo for group is generated... see "XXX ugly hack" */
 
 		case SH_NODE_MATERIAL:
 		case SH_NODE_MATERIAL_EXT:
@@ -2639,7 +2639,7 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
-		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
+		/* case NODE_GROUP: note, typeinfo for group is generated... see "XXX ugly hack" */
 
 		case CMP_NODE_IMAGE:
 			ntype->uifunc = node_composit_buts_image;

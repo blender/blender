@@ -165,11 +165,11 @@ void KX_BlenderMaterial::InitTextures()
 				continue;
 			}
 			if (!mTextures[i].InitCubeMap(i, mMaterial->cubemap[i] ) )
-				spit("unable to initialize image("<<i<<") in "<< 
-						 mMaterial->matname<< ", image will not be available");
-		} 
-		// If we're using glsl materials, the textures are handled by bf_gpu, so don't load them twice!
-		// However, if we're using a custom shader, then we still need to load the textures ourselves.
+				spit("unable to initialize image("<<i<<") in "<<
+				     mMaterial->matname<< ", image will not be available");
+		}
+		/* If we're using glsl materials, the textures are handled by bf_gpu, so don't load them twice!
+		 * However, if we're using a custom shader, then we still need to load the textures ourselves. */
 		else if (!mMaterial->glslmat || mShader) {
 			if ( mMaterial->img[i] ) {
 				if ( ! mTextures[i].InitFromImage(i, mMaterial->img[i], (mMaterial->flag[i] &MIPMAP)!=0 ))

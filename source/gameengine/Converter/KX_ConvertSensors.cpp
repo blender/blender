@@ -632,9 +632,9 @@ void BL_ConvertSensors(struct Object* blenderobject,
 			uniqueval->Release();
 			
 			/* Conversion succeeded, so we can set the generic props here.   */
-			gamesensor->SetPulseMode(pos_pulsemode, 
-									 neg_pulsemode, 
-									 frequency);
+			gamesensor->SetPulseMode(pos_pulsemode,
+			                         neg_pulsemode,
+			                         frequency);
 			gamesensor->SetInvert(invert);
 			gamesensor->SetLevel(level);
 			gamesensor->SetTap(tap);
