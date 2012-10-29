@@ -104,7 +104,9 @@ class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
         col = split.column()
         col.prop(rl, "use_edge_enhance")
         col.prop(rl, "use_strand")
-        col.prop(rl, "use_freestyle")
+        row = col.row()
+        row.prop(rl, "use_freestyle")
+        row.active = rd.use_freestyle
 
 
 class RENDERLAYER_PT_layer_passes(RenderLayerButtonsPanel, Panel):
