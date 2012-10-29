@@ -643,7 +643,7 @@ static void draw_scope_end(const rctf *rect, GLint *scissor)
 	
 	/* scale widget */
 	scaler_x1 = rect->xmin + BLI_rctf_size_x(rect) / 2 - SCOPE_RESIZE_PAD;
-	scaler_x2 = rect->xmin + BLI_rctf_size_y(rect) / 2 + SCOPE_RESIZE_PAD;
+	scaler_x2 = rect->xmin + BLI_rctf_size_x(rect) / 2 + SCOPE_RESIZE_PAD;
 	
 	glColor4f(0.f, 0.f, 0.f, 0.25f);
 	fdrawline(scaler_x1, rect->ymin - 4, scaler_x2, rect->ymin - 4);
