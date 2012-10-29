@@ -2818,11 +2818,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			else
 				event.type = MIDDLEMOUSE;
 			
-			/* copy prev state to event state */
-//			if (event.val == KM_PRESS) {
-				evt->prevval = evt->val;
-				evt->prevtype = evt->type;
-//			}
+			/* copy previous state to prev event state (two old!) */
+			evt->prevval = evt->val;
+			evt->prevtype = evt->type;
+
 			/* copy to event state */
 			evt->val = event.val;
 			evt->type = event.type;
@@ -2883,11 +2882,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf)); /* might be not null terminated*/
 			event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 			
-			/* copy prev state to event state */
-			//if (event.val == KM_PRESS) {
-				evt->prevval = evt->val;
-				evt->prevtype = evt->type;
-			//}
+			/* copy previous state to prev event state (two old!) */
+			evt->prevval = evt->val;
+			evt->prevtype = evt->type;
 
 			/* copy to event state */
 			evt->val = event.val;
@@ -3015,6 +3012,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventNDOFMotion:
 		{
 			event.type = NDOF_MOTION;
+			event.val = 0;
 			attach_ndof_data(&event, customdata);
 			wm_event_add(win, &event);
 
