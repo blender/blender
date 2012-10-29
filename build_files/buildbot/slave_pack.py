@@ -63,6 +63,12 @@ if builder.find('scons') != -1:
         elif builder.endswith('linux_glibc27_i386_scons'):
             config = 'user-config-glibc27-i686.py'
             bits = 32
+        if builder.endswith('linux_glibc211_x86_64_scons'):
+            config = 'user-config-glibc211-x86_64.py'
+            bits = 64
+        elif builder.endswith('linux_glibc211_i386_scons'):
+            config = 'user-config-glibc211-i686.py'
+            bits = 32
 
         if config is not None:
             config_fpath = os.path.join(config_dir, config)
