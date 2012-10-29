@@ -1331,7 +1331,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 
 	/* the matching rules */
 	if (kmitype == KM_TEXTINPUT)
-		if (winevent->val == KM_PRESS)
+		if (winevent->val == KM_PRESS) // prevent double clicks
 			if (ISTEXTINPUT(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) return 1;
 	if (kmitype != KM_ANY)
 		if (winevent->type != kmitype) return 0;
@@ -2103,7 +2103,7 @@ void wm_event_do_handlers(bContext *C)
 			if ((G.debug & G_DEBUG_HANDLERS) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 				printf("%s: pass on evt %d val %d\n", __func__, event->type, event->val);
 			}
-
+			
 			wm_eventemulation(event);
 
 			CTX_wm_window_set(C, win);
@@ -2804,10 +2804,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		{
 			GHOST_TEventButtonData *bd = customdata;
 			
-			/* copy prev state to event state */
-			evt->prevval = evt->val;
-			evt->prevtype = evt->type;
-
 			/* get value and type from ghost */
 			event.val = (type == GHOST_kEventButtonDown) ? KM_PRESS : KM_RELEASE;
 			
@@ -2822,6 +2818,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			else
 				event.type = MIDDLEMOUSE;
 			
+			/* copy prev state to event state */
+			if (event.val == KM_PRESS) {
+				evt->prevval = evt->val;
+				evt->prevtype = evt->type;
+			}
 			/* copy to event state */
 			evt->val = event.val;
 			evt->type = event.type;
@@ -2842,10 +2843,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				    (ABS(event.y - evt->prevclicky)) <= 2 &&
 				    ((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
 				{
+					// printf("double click\n");
 					event.val = KM_DBL_CLICK;
 				}
 			}
-			if (event.val == KM_RELEASE) {
+			if (event.val == KM_PRESS) {
 				evt->prevclicktime = PIL_check_seconds_timer();
 				evt->prevclickx = event.x;
 				evt->prevclicky = event.y;
@@ -2882,8 +2884,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.val = (type == GHOST_kEventKeyDown) ? KM_PRESS : KM_RELEASE;
 			
 			/* copy prev state to event state */
-			evt->prevval = evt->val;
-			evt->prevtype = evt->type;
+			if (event.val == KM_PRESS) {
+				evt->prevval = evt->val;
+				evt->prevtype = evt->type;
+			}
 
 			/* copy to event state */
 			evt->val = event.val;
@@ -2973,7 +2977,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			if (event.type == ESCKEY && event.val == KM_PRESS)
 				G.is_break = TRUE;
 			
-			if (event.val == KM_RELEASE) {
+			if (event.val == KM_PRESS) {
 				evt->prevclicktime = PIL_check_seconds_timer();
 				evt->prevclickx = event.x;
 				evt->prevclicky = event.y;
