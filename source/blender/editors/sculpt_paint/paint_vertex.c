@@ -2632,14 +2632,6 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	return 1;
 }
 
-static void copy_lcol_to_mcol(MCol *mcol, const MLoopCol *lcol)
-{
-	mcol->a = lcol->a;
-	mcol->r = lcol->r;
-	mcol->g = lcol->g;
-	mcol->b = lcol->b;
-}
-
 static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
                               const unsigned int index, const float mval[2],
                               const float brush_size_pressure, const float brush_alpha_pressure)
@@ -2707,10 +2699,10 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
 			ml = me->mloop + mpoly->loopstart;
 			mlc = me->mloopcol + mpoly->loopstart;
 			for (j = 0; j < mpoly->totloop; j++, ml++, mlc++) {
-				if      (ml->v == mf->v1)            copy_lcol_to_mcol(mc + 0, mlc);
-				else if (ml->v == mf->v2)            copy_lcol_to_mcol(mc + 1, mlc);
-				else if (ml->v == mf->v3)            copy_lcol_to_mcol(mc + 2, mlc);
-				else if (mf->v4 && ml->v == mf->v4)  copy_lcol_to_mcol(mc + 3, mlc);
+				if      (ml->v == mf->v1)            { MESH_MLOOPCOL_TO_MCOL(mlc, mc + 0); }
+				else if (ml->v == mf->v2)            { MESH_MLOOPCOL_TO_MCOL(mlc, mc + 1); }
+				else if (ml->v == mf->v3)            { MESH_MLOOPCOL_TO_MCOL(mlc, mc + 2); }
+				else if (mf->v4 && ml->v == mf->v4)  { MESH_MLOOPCOL_TO_MCOL(mlc, mc + 3); }
 
 			}
 		}
