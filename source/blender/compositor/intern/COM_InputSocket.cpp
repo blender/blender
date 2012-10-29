@@ -122,6 +122,17 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket,  int editorNode
 	}
 }
 
+void InputSocket::unlinkConnections(ExecutionSystem *system)
+{
+	SocketConnection *connection = getConnection();
+	if (connection) {
+		system->removeSocketConnection(connection);
+		connection->getFromSocket()->removeConnection(connection);
+		setConnection(NULL);
+		delete connection;
+	}
+}
+
 bool InputSocket::isStatic()
 {
 	if (isConnected()) {

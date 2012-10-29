@@ -70,4 +70,7 @@ void SeparateRGBANode::convertToOperations(ExecutionSystem *graph, CompositorCon
 		outputASocket->relinkConnections(operation->getOutputSocket(0));
 		graph->addOperation(operation);
 	}
+	
+	/* remove the original connection to the node, this has been duplicated for all operations */
+	imageSocket->unlinkConnections(graph);
 }
