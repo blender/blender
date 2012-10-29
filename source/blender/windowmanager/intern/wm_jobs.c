@@ -360,7 +360,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 	}
 }
 
-/* stop job, free data completely */
+/* stop job, end thread, free data completely */
 static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
 {
 	if (wm_job->running) {
@@ -385,7 +385,8 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
 	
 }
 
-void WM_jobs_stop_all(wmWindowManager *wm)
+/* wait until every job ended */
+void WM_jobs_kill_all(wmWindowManager *wm)
 {
 	wmJob *wm_job;
 	
@@ -393,6 +394,18 @@ void WM_jobs_stop_all(wmWindowManager *wm)
 		wm_jobs_kill_job(wm, wm_job);
 	
 }
+
+/* wait until every job ended, except for one owner (used in undo to keep screen job alive) */
+void WM_jobs_kill_all_except(wmWindowManager *wm, void *owner)
+{
+	wmJob *wm_job;
+	
+	for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+		if (wm_job->owner != owner)
+			wm_jobs_kill_job(wm, wm_job);
+	}
+}
+
 
 /* signal job(s) from this owner or callback to stop, timer is required to get handled */
 void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)

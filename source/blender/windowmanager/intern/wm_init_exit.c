@@ -372,7 +372,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	if (C && wm) {
 		wmWindow *win;
 
-		WM_jobs_stop_all(wm);
+		WM_jobs_kill_all(wm);
 
 		for (win = wm->windows.first; win; win = win->next) {
 			

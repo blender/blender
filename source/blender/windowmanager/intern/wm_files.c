@@ -144,7 +144,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	/* code copied from wm_init_exit.c */
 	for (wm = wmlist->first; wm; wm = wm->id.next) {
 		
-		WM_jobs_stop_all(wm);
+		WM_jobs_kill_all(wm);
 		
 		for (win = wm->windows.first; win; win = win->next) {
 		
