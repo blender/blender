@@ -99,6 +99,9 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 	device_free(device, dscene);
 
+	/* determine which shaders are in use */
+	device_update_shaders_used(scene);
+
 	/* create shaders */
 	OSLGlobals *og = (OSLGlobals*)device->osl_memory();
 
@@ -530,7 +533,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 	shader->has_displacement = false;
 
 	/* generate surface shader */
-	if(graph && output->input("Surface")->link) {
+	if(shader->used && graph && output->input("Surface")->link) {
 		compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
 		og->surface_state.push_back(ss->state());
 
@@ -552,7 +555,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 	}
 
 	/* generate volume shader */
-	if(graph && output->input("Volume")->link) {
+	if(shader->used && graph && output->input("Volume")->link) {
 		compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
 		shader->has_volume = true;
 
@@ -566,7 +569,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 	}
 
 	/* generate displacement shader */
-	if(graph && output->input("Displacement")->link) {
+	if(shader->used && graph && output->input("Displacement")->link) {
 		compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
 		shader->has_displacement = true;
 

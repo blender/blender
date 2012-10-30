@@ -43,6 +43,7 @@ void BlenderSync::find_shader(BL::ID id, vector<uint>& used_shaders, int default
 	for(size_t i = 0; i < scene->shaders.size(); i++) {
 		if(scene->shaders[i] == shader) {
 			used_shaders.push_back(i);
+			scene->shaders[i]->tag_used(scene);
 			break;
 		}
 	}
