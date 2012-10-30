@@ -1568,9 +1568,8 @@ void calculateCenterBound(TransInfo *t)
 			copy_v3_v3(min, t->data[i].center);
 		}
 	}
-	add_v3_v3v3(t->center, min, max);
-	mul_v3_fl(t->center, 0.5);
-	
+	mid_v3_v3v3(t->center, min, max);
+
 	calculateCenter2D(t);
 }
 

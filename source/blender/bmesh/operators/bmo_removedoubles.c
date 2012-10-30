@@ -371,7 +371,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BMIter iter;
 	BMEdge *e, **edges = NULL;
 	BLI_array_declare(edges);
-	float min[3], max[3];
+	float min[3], max[3], center[3];
 	int i, tot;
 	
 	BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
@@ -400,13 +400,12 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 			minmax_v3v3_v3(min, max, e->v2->co);
 		}
 
-		add_v3_v3v3(min, min, max);
-		mul_v3_fl(min, 0.5f);
+		mid_v3_v3v3(center, min, max);
 
 		/* snap edges to a point.  for initial testing purposes anyway */
 		for (i = 0; i < tot; i++) {
-			copy_v3_v3(edges[i]->v1->co, min);
-			copy_v3_v3(edges[i]->v2->co, min);
+			copy_v3_v3(edges[i]->v1->co, center);
+			copy_v3_v3(edges[i]->v2->co, center);
 			
 			if (edges[i]->v1 != edges[0]->v1)
 				BMO_slot_map_ptr_insert(bm, &weldop, "targetmap", edges[i]->v1, edges[0]->v1);

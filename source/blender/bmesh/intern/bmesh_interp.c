@@ -224,10 +224,8 @@ static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], 
 	/* computer center */
 	BM_face_calc_center_mean(l->f, cent);
 
-	add_v3_v3v3(p, l->prev->v->co, l->v->co);
-	mul_v3_fl(p, 0.5);
-	add_v3_v3v3(n, l->next->v->co, l->v->co);
-	mul_v3_fl(n, 0.5);
+	mid_v3_v3v3(p, l->prev->v->co, l->v->co);
+	mid_v3_v3v3(n, l->next->v->co, l->v->co);
 	
 	copy_v3_v3(v1, cent);
 	copy_v3_v3(v2, p);
@@ -525,8 +523,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 
 		sides = (int)sqrt(mdp->totdisp);
 		for (y = 0; y < sides; y++) {
-			add_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
-			mul_v3_fl(co1, 0.5);
+			mid_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
 
 			copy_v3_v3(mdn->disps[y * sides], co1);
 			copy_v3_v3(mdl->disps[y], co1);

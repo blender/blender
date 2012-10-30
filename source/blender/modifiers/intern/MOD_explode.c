@@ -669,8 +669,7 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 
 		mv = CDDM_get_vert(splitdm, ed_v1);
 
-		add_v3_v3(dupve->co, mv->co);
-		mul_v3_fl(dupve->co, 0.5f);
+		mid_v3_v3v3(dupve->co, dupve->co, mv->co);
 	}
 	BLI_edgehashIterator_free(ehi);
 
