@@ -75,7 +75,7 @@ static EnumPropertyItem property_flag_enum_items[] = {
 static EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
-	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
+	{PROP_FILENAME, "FILE_NAME", 0, "Filename", ""},
 	{PROP_BYTESTRING, "BYTE_STRING", 0, "Byte String", ""},
 	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 	{PROP_PASSWORD, "PASSWORD", 0, "Password", 0},
@@ -922,7 +922,7 @@ BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE'].\n"
 "   :type options: set\n"
-"   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
+"   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILE_NAME', 'NONE'].\n"
 "   :type subtype: string\n"
 BPY_PROPDEF_UPDATE_DOC
 );
