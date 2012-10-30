@@ -792,28 +792,6 @@ static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(i
 	}
 }
 
-/* get the DerivedMesh's MCols; choose (in decreasing order of
- * preference) from CD_ID_MCOL, CD_PREVIEW_MCOL, or CD_MCOL */
-static MCol *gpu_buffer_color_type(DerivedMesh *dm)
-{
-	MCol *c;
-	int type;
-
-	type = CD_ID_MCOL;
-	c = DM_get_tessface_data_layer(dm, type);
-	if (!c) {
-		type = CD_PREVIEW_MCOL;
-		c = DM_get_tessface_data_layer(dm, type);
-		if (!c) {
-			type = CD_MCOL;
-			c = DM_get_tessface_data_layer(dm, type);
-		}
-	}
-
-	dm->drawObject->colType = type;
-	return c;
-}
-
 typedef enum {
 	GPU_BUFFER_VERTEX = 0,
 	GPU_BUFFER_NORMAL,
@@ -896,7 +874,7 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 
 	/* special handling for MCol and UV buffers */
 	if (type == GPU_BUFFER_COLOR) {
-		if (!(user_data = gpu_buffer_color_type(dm)))
+		if (!(user_data = DM_get_tessface_data_layer(dm, dm->drawObject->colType)))
 			return NULL;
 	}
 	else if (type == GPU_BUFFER_UV) {
@@ -978,15 +956,27 @@ void GPU_uv_setup(DerivedMesh *dm)
 	GLStates |= GPU_BUFFER_TEXCOORD_STATE;
 }
 
-void GPU_color_setup(DerivedMesh *dm)
+void GPU_color_setup(DerivedMesh *dm, int colType)
 {
-	/* In paint mode, dm may stay the same during stroke, however we still want to update colors! */
-	if ((dm->dirty & DM_DIRTY_MCOL_UPDATE_DRAW) && dm->drawObject) {
+	if (!dm->drawObject) {
+		/* XXX Not really nice, but we need a valid gpu draw object to set the colType...
+		 *     Else we would have to add a new param to gpu_buffer_setup_common. */
+		dm->drawObject = GPU_drawobject_new(dm);
+		dm->dirty &= ~DM_DIRTY_MCOL_UPDATE_DRAW;
+		dm->drawObject->colType = colType;
+	}
+	/* In paint mode, dm may stay the same during stroke, however we still want to update colors!
+	 * Also check in case we changed color type (i.e. which MCol cdlayer we use). */
+	else if ((dm->dirty & DM_DIRTY_MCOL_UPDATE_DRAW) || (colType != dm->drawObject->colType)) {
 		GPUBuffer **buf = gpu_drawobject_buffer_from_type(dm->drawObject, GPU_BUFFER_COLOR);
+		/* XXX Freeing this buffer is a bit stupid, as geometry has not changed, size should remain the same.
+		 *     Not sure though it would be worth defining a sort of gpu_buffer_update func - nor whether
+		 *     it is even possible ! */
 		GPU_buffer_free(*buf);
 		*buf = NULL;
+		dm->dirty &= ~DM_DIRTY_MCOL_UPDATE_DRAW;
+		dm->drawObject->colType = colType;
 	}
-	dm->dirty &= ~DM_DIRTY_MCOL_UPDATE_DRAW;
 
 	if (!gpu_buffer_setup_common(dm, GPU_BUFFER_COLOR))
 		return;

@@ -614,14 +614,22 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	MVert *mv = cddm->mvert;
 	MFace *mf = DM_get_tessface_data_layer(dm, CD_MFACE);
-	MCol *realcol = dm->getTessFaceDataArray(dm, CD_TEXTURE_MCOL);
 	float *nors = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	MCol *mcol;
 	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
-	int startFace = 0 /*, lastFlag = 0xdeadbeef */ /* UNUSED */;
-	MCol *mcol = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
-	if (!mcol)
-		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
+	int colType, startFace = 0;
+
+	colType = CD_TEXTURE_MCOL;
+	mcol = dm->getTessFaceDataArray(dm, colType);
+	if (!mcol) {
+		colType = CD_PREVIEW_MCOL;
+		mcol = dm->getTessFaceDataArray(dm, colType);
+	}
+	if (!mcol) {
+		colType = CD_MCOL;
+		mcol = dm->getTessFaceDataArray(dm, colType);
+	}
 
 	cdDM_update_normals_from_pbvh(dm);
 
@@ -699,25 +707,11 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		}
 	}
 	else { /* use OpenGL VBOs or Vertex Arrays instead for better, faster rendering */
-		MCol *col = realcol;
-		if (!col)
-			col = mcol;
-
 		GPU_vertex_setup(dm);
 		GPU_normal_setup(dm);
 		GPU_uv_setup(dm);
-		if (col != NULL) {
-#if 0
-			if (realcol && dm->drawObject->colType == CD_TEXTURE_MCOL) {
-				col = 0;
-			}
-			else if (mcol && dm->drawObject->colType == CD_MCOL) {
-				col = 0;
-			}
-			
-			if (col != 0)
-#endif
-			GPU_color_setup(dm);
+		if (mcol) {
+			GPU_color_setup(dm, colType);
 		}
 
 		if (!GPU_buffer_legacy(dm)) {
@@ -764,7 +758,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					int count = (i - startFace + (draw_option != DM_DRAW_OPTION_SKIP ? 1 : 0)) * 3;
 
 					if (count) {
-						if (col)
+						if (mcol && draw_option != DM_DRAW_OPTION_NO_MCOL)
 							GPU_color_switch(1);
 						else
 							GPU_color_switch(0);
@@ -799,16 +793,21 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 	MVert *mv = cddm->mvert;
 	MFace *mf = cddm->mface;
-	MCol *mc;
+	MCol *mcol;
 	float *nors = DM_get_tessface_data_layer(dm, CD_NORMAL);
-	int useColors = flag & DM_DRAW_USE_COLORS;
+	int colType, useColors = flag & DM_DRAW_USE_COLORS;
 	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 
-	mc = DM_get_tessface_data_layer(dm, CD_ID_MCOL);
-	if (!mc)
-		mc = DM_get_tessface_data_layer(dm, CD_PREVIEW_MCOL);
-	if (!mc)
-		mc = DM_get_tessface_data_layer(dm, CD_MCOL);
+	colType = CD_ID_MCOL;
+	mcol = DM_get_tessface_data_layer(dm, colType);
+	if (!mcol) {
+		colType = CD_PREVIEW_MCOL;
+		mcol = DM_get_tessface_data_layer(dm, colType);
+	}
+	if (!mcol) {
+		colType = CD_MCOL;
+		mcol = DM_get_tessface_data_layer(dm, colType);
+	}
 
 	cdDM_update_normals_from_pbvh(dm);
 
@@ -830,8 +829,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
 				unsigned char *cp = NULL;
 
-				if (useColors && mc)
-					cp = (unsigned char *)&mc[i * 4];
+				if (useColors && mcol)
+					cp = (unsigned char *)&mcol[i * 4];
 
 				/* no need to set shading mode to flat because
 				 *  normals are already used to change shading */
@@ -891,8 +890,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		int prevstart = 0;
 		GPU_vertex_setup(dm);
 		GPU_normal_setup(dm);
-		if (useColors && mc) {
-			GPU_color_setup(dm);
+		if (useColors && mcol) {
+			GPU_color_setup(dm, colType);
 		}
 		if (!GPU_buffer_legacy(dm)) {
 			int tottri = dm->drawObject->tot_triangle_point / 3;
