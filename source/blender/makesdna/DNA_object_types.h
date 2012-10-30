@@ -209,7 +209,9 @@ typedef struct Object {
 	float step_height;
 	float jump_speed;
 	float fall_speed;
-	char pad1[4];
+
+	/** Collision mask settings */
+	unsigned short col_group, col_mask;
 
 	short rotmode;		/* rotation mode - uses defines set out in DNA_action_types.h for PoseChannel rotations... */
 
@@ -242,9 +244,6 @@ typedef struct Object {
 	short softflag;			/* softbody settings */
 	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
-
-	/** Collision mask settings */
-	unsigned short col_group, col_mask, col_pad[2];
 
 	ListBase constraints;		/* object constraints */
 	ListBase nlastrips  DNA_DEPRECATED;			// XXX deprecated... old animation system

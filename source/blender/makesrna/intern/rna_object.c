@@ -851,11 +851,11 @@ static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
 	
 	if (value) {
 		ob->matbits[index] = 1;
-		/* ob->colbits |= (1<<index); */ /* DEPRECATED */
+		/* ob->colbits |= (1 << index); */ /* DEPRECATED */
 	}
 	else {
 		ob->matbits[index] = 0;
-		/* ob->colbits &= ~(1<<index); */ /* DEPRECATED */
+		/* ob->colbits &= ~(1 << index); */ /* DEPRECATED */
 	}
 }
 
@@ -1036,8 +1036,8 @@ static unsigned int rna_Object_layer_validate__internal(const int *values, unsig
 		return 0;
 
 	for (i = 0; i < 20; i++) {
-		if (values[i]) lay |= (1 << i);
-		else lay &= ~(1 << i);
+		if (values[i]) lay |=  (1 << i);
+		else           lay &= ~(1 << i);
 	}
 
 	return lay;
@@ -1072,8 +1072,9 @@ static void rna_GameObjectSettings_state_get(PointerRNA *ptr, int *values)
 	int all_states = (ob->scaflag & OB_ALLSTATE ? 1 : 0);
 
 	memset(values, 0, sizeof(int) * OB_MAX_STATES);
-	for (i = 0; i < OB_MAX_STATES; i++)
+	for (i = 0; i < OB_MAX_STATES; i++) {
 		values[i] = (ob->state & (1 << i)) | all_states;
+	}
 }
 
 static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
@@ -1116,8 +1117,9 @@ static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
 	Object *ob = (Object*)ptr->data;
 	int i;
 
-	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		values[i] = (ob->col_group & (1<<i));
+	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
+		values[i] = (ob->col_group & (1 << i));
+	}
 }
 
 static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *values)
@@ -1127,15 +1129,15 @@ static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *val
 
 	/* ensure we always have some group selected */
 	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		if(values[i])
+		if (values[i])
 			tot++;
 
-	if (tot==0)
+	if (tot == 0)
 		return;
 
 	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		if (values[i]) ob->col_group |= (1<<i);
-		else ob->col_group &= ~(1<<i);
+		if (values[i]) ob->col_group |=  (1 << i);
+		else           ob->col_group &= ~(1 << i);
 	}
 }
 
@@ -1144,8 +1146,9 @@ static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
 	Object *ob = (Object*)ptr->data;
 	int i;
 
-	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		values[i] = (ob->col_mask & (1<<i));
+	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
+		values[i] = (ob->col_mask & (1 << i));
+	}
 }
 
 static void rna_GameObjectSettings_col_mask_set(PointerRNA *ptr, const int *values)
@@ -1155,15 +1158,15 @@ static void rna_GameObjectSettings_col_mask_set(PointerRNA *ptr, const int *valu
 
 	/* ensure we always have some mask selected */
 	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		if(values[i])
+		if (values[i])
 			tot++;
 
-	if (tot==0)
+	if (tot == 0)
 		return;
 
 	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		if (values[i]) ob->col_mask |= (1<<i);
-		else ob->col_mask &= ~(1<<i);
+		if (values[i]) ob->col_mask |=  (1 << i);
+		else           ob->col_mask &= ~(1 << i);
 	}
 }
 
@@ -1512,8 +1515,6 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	int default_col_mask[8] = {1,0,0,0,  0,0,0,0};
 
 	static EnumPropertyItem body_type_items[] = {
 		{OB_BODY_TYPE_NO_COLLISION, "NO_COLLISION", 0, "No Collision", "Disable collision for this object"},
