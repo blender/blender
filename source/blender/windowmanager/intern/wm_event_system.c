@@ -1331,8 +1331,12 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 
 	/* the matching rules */
 	if (kmitype == KM_TEXTINPUT)
-		if (winevent->val == KM_PRESS) // prevent double clicks
-			if (ISTEXTINPUT(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) return 1;
+		if (winevent->val == KM_PRESS) { // prevent double clicks			
+			/* NOT using ISTEXTINPUT anymore because (at least on Windows) some key codes above 255
+			could have printable ascii keys - BUG [#30479] */
+			if (ISKEYBOARD(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) return 1; 
+		}
+
 	if (kmitype != KM_ANY)
 		if (winevent->type != kmitype) return 0;
 	
@@ -1355,7 +1359,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	/* key modifiers always check when event has it */
 	/* otherwise regular keypresses with keymodifier still work */
 	if (winevent->keymodifier)
-		if (ISTEXTINPUT(winevent->type)) 
+		if (ISKEYBOARD(winevent->type)) // was ISTEXTINPUT - BUG [#30479]
 			if (winevent->keymodifier != kmi->keymodifier) return 0;
 	
 	return 1;
