@@ -3866,6 +3866,12 @@ static PyObject *pyrna_prop_collection_idprop_add(BPy_PropertyRNA *self)
 {
 	PointerRNA r_ptr;
 
+#ifdef USE_PEDANTIC_WRITE
+	if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return NULL;
+	}
+#endif  /* USE_PEDANTIC_WRITE */
+
 	RNA_property_collection_add(&self->ptr, self->prop, &r_ptr);
 	if (!r_ptr.data) {
 		PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.add(): not supported for this collection");
@@ -3879,6 +3885,12 @@ static PyObject *pyrna_prop_collection_idprop_add(BPy_PropertyRNA *self)
 static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyObject *value)
 {
 	int key = PyLong_AsLong(value);
+
+#ifdef USE_PEDANTIC_WRITE
+	if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return NULL;
+	}
+#endif  /* USE_PEDANTIC_WRITE */
 
 	if (key == -1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.remove(): expected one int argument");
@@ -3895,6 +3907,12 @@ static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyOb
 
 static PyObject *pyrna_prop_collection_idprop_clear(BPy_PropertyRNA *self)
 {
+#ifdef USE_PEDANTIC_WRITE
+	if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return NULL;
+	}
+#endif  /* USE_PEDANTIC_WRITE */
+
 	RNA_property_collection_clear(&self->ptr, self->prop);
 
 	Py_RETURN_NONE;
@@ -3903,6 +3921,12 @@ static PyObject *pyrna_prop_collection_idprop_clear(BPy_PropertyRNA *self)
 static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObject *args)
 {
 	int key = 0, pos = 0;
+
+#ifdef USE_PEDANTIC_WRITE
+	if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return NULL;
+	}
+#endif  /* USE_PEDANTIC_WRITE */
 
 	if (!PyArg_ParseTuple(args, "ii", &key, &pos)) {
 		PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.move(): expected two ints as arguments");
