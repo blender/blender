@@ -94,7 +94,8 @@ static char findaccent(char char1, unsigned int code)
 	}
 	else if (char1 == 'c') {
 		if (code == ',') new = 231;
-		if (code == '|') new = 162;
+		else if (code == '|') new = 162;
+		else if (code == 'o') new = 169;
 	}
 	else if (char1 == 'e') {
 		if (code == '`') new = 232;
@@ -120,9 +121,17 @@ static char findaccent(char char1, unsigned int code)
 		else if (code == '/') new = 248;
 		else if (code == '-') new = 186;
 		else if (code == 'e') new = 143;
+		else if (code == 'c') new = 169;
+		else if (code == 'r') new = 174;
+	}
+	else if (char1 == 'r') {
+		if (code == 'o') new = 174;
 	}
 	else if (char1 == 's') {
 		if (code == 's') new = 167;
+	}
+	else if (char1 == 't') {
+		if (code == 'm') new = 153;
 	}
 	else if (char1 == 'u') {
 		if (code == '`') new = 249;
