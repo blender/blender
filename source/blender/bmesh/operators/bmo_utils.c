@@ -528,6 +528,34 @@ typedef struct SimSel_FaceExt {
 	};
 } SimSel_FaceExt;
 
+static int bm_sel_similar_cmp_fl(const float delta, const float thresh, const int compare)
+{
+	switch (compare) {
+		case SIM_CMP_EQ:
+			return (fabsf(delta) <= thresh);
+		case SIM_CMP_GT:
+			return ((delta + thresh) >= 0.0f);
+		case SIM_CMP_LT:
+			return ((delta - thresh) <= 0.0f);
+		default:
+			BLI_assert(0);
+	}
+}
+
+static int bm_sel_similar_cmp_i(const int delta, const int compare)
+{
+	switch (compare) {
+		case SIM_CMP_EQ:
+			return (delta == 0);
+		case SIM_CMP_GT:
+			return (delta > 0);
+		case SIM_CMP_LT:
+			return (delta < 0);
+		default:
+			BLI_assert(0);
+	}
+}
+
 /*
  * Select similar faces, the choices are in the enum in source/blender/bmesh/bmesh_operators.h
  * We select either similar faces based on material, image, area, perimeter, normal, or the coplanar faces
@@ -545,6 +573,11 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	const int type = BMO_slot_int_get(op, "type");
 	const float thresh = BMO_slot_float_get(op, "thresh");
 	const float thresh_radians = thresh * (float)M_PI;
+	const int compare = BMO_slot_int_get(op, "compare");
+
+	/* initial_elem - other_elem */
+	float delta_fl;
+	int   delta_i;
 
 	num_total = BM_mesh_elem_count(bm, BM_FACE);
 
@@ -648,7 +681,8 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 					case SIMFACE_COPLANAR:
 						angle = angle_normalized_v3v3(fs->no, fm->no); /* angle -> 0 */
 						if (angle <= thresh_radians) { /* and dot product difference -> 0 */
-							if (fabsf(f_ext[i].d - f_ext[indices[idx]].d) <= thresh) {
+							delta_fl = f_ext[i].d - f_ext[indices[idx]].d;
+							if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
 								BMO_elem_flag_enable(bm, fm, FACE_MARK);
 								cont = FALSE;
 							}
@@ -656,25 +690,30 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 						break;
 
 					case SIMFACE_AREA:
-						if (fabsf(f_ext[i].area - f_ext[indices[idx]].area) <= thresh) {
+						delta_fl = f_ext[i].area - f_ext[indices[idx]].area;
+						if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
 							BMO_elem_flag_enable(bm, fm, FACE_MARK);
 							cont = FALSE;
 						}
 						break;
 
 					case SIMFACE_SIDES:
-						if (fm->len == fs->len) {
+						delta_i = fm->len - fs->len;
+						if (bm_sel_similar_cmp_i(delta_i, compare)) {
 							BMO_elem_flag_enable(bm, fm, FACE_MARK);
 							cont = FALSE;
 						}
 						break;
 
 					case SIMFACE_PERIMETER:
-						if (fabsf(f_ext[i].perim - f_ext[indices[idx]].perim) <= thresh) {
+						delta_fl = f_ext[i].perim - f_ext[indices[idx]].perim;
+						if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
 							BMO_elem_flag_enable(bm, fm, FACE_MARK);
 							cont = FALSE;
 						}
 						break;
+					default:
+						BLI_assert(0);
 				}
 			}
 		}
@@ -725,8 +764,13 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 	float angle;
 
 	int num_sels = 0, num_total = 0;
-	int type = BMO_slot_int_get(op, "type");
+	const int type = BMO_slot_int_get(op, "type");
 	const float thresh = BMO_slot_float_get(op, "thresh");
+	const int compare = BMO_slot_int_get(op, "compare");
+
+	/* initial_elem - other_elem */
+	float delta_fl;
+	int   delta_i;
 
 	/* sanity checks that the data we need is available */
 	switch (type) {
@@ -799,7 +843,8 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 				es = e_ext[indices[idx]].e;
 				switch (type) {
 					case SIMEDGE_LENGTH:
-						if (fabsf(e_ext[i].length - e_ext[indices[idx]].length) <= thresh) {
+						delta_fl = e_ext[i].length - e_ext[indices[idx]].length;
+						if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
 							BMO_elem_flag_enable(bm, e, EDGE_MARK);
 							cont = FALSE;
 						}
@@ -819,7 +864,8 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 						break;
 
 					case SIMEDGE_FACE:
-						if (e_ext[i].faces == e_ext[indices[idx]].faces) {
+						delta_i = e_ext[i].faces - e_ext[indices[idx]].faces;
+						if (bm_sel_similar_cmp_i(delta_i, compare)) {
 							BMO_elem_flag_enable(bm, e, EDGE_MARK);
 							cont = FALSE;
 						}
@@ -845,8 +891,9 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 
 							c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
 							c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_CREASE);
+							delta_fl = *c1 - *c2;
 
-							if (fabsf(*c1 - *c2) <= thresh) {
+							if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
 								BMO_elem_flag_enable(bm, e, EDGE_MARK);
 								cont = FALSE;
 							}
@@ -859,8 +906,9 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 
 							c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
 							c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_BWEIGHT);
+							delta_fl = *c1 - *c2;
 
-							if (fabsf(*c1 - *c2) <= thresh) {
+							if (bm_sel_similar_cmp_fl(delta_fl, thresh, compare)) {
 								BMO_elem_flag_enable(bm, e, EDGE_MARK);
 								cont = FALSE;
 							}
@@ -880,6 +928,8 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 							cont = FALSE;
 						}
 						break;
+					default:
+						BLI_assert(0);
 				}
 			}
 		}
@@ -919,9 +969,14 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 	SimSel_VertExt *v_ext = NULL;
 	int *indices = NULL;
 	int num_total = 0, num_sels = 0, i = 0, idx = 0;
-	int type = BMO_slot_int_get(op, "type");
+	const int type = BMO_slot_int_get(op, "type");
 	const float thresh = BMO_slot_float_get(op, "thresh");
 	const float thresh_radians = thresh * (float)M_PI;
+	const int compare = BMO_slot_int_get(op, "compare");
+
+	/* initial_elem - other_elem */
+//	float delta_fl;
+	int   delta_i;
 
 	num_total = BM_mesh_elem_count(bm, BM_VERT);
 
@@ -982,7 +1037,8 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 						break;
 					case SIMVERT_FACE:
 						/* number of adjacent faces */
-						if (v_ext[i].num_faces == v_ext[indices[idx]].num_faces) {
+						delta_i = v_ext[i].num_faces - v_ext[indices[idx]].num_faces;
+						if (bm_sel_similar_cmp_i(delta_i, compare)) {
 							BMO_elem_flag_enable(bm, v, VERT_MARK);
 							cont = FALSE;
 						}
@@ -990,6 +1046,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 
 					case SIMVERT_VGROUP:
 						if (v_ext[i].dvert != NULL && v_ext[indices[idx]].dvert != NULL) {
+							/* XXX, todo, make static function for this */
 							int v1, v2;
 							for (v1 = 0; v1 < v_ext[i].dvert->totweight && cont == 1; v1++) {
 								for (v2 = 0; v2 < v_ext[indices[idx]].dvert->totweight; v2++) {
@@ -1004,11 +1061,14 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 						break;
 					case SIMVERT_EDGE:
 						/* number of adjacent edges */
-						if (v_ext[i].num_edges == v_ext[indices[idx]].num_edges) {
+						delta_i = v_ext[i].num_edges - v_ext[indices[idx]].num_edges;
+						if (bm_sel_similar_cmp_i(delta_i, compare)) {
 							BMO_elem_flag_enable(bm, v, VERT_MARK);
 							cont = FALSE;
 						}
 						break;
+					default:
+						BLI_assert(0);
 				}
 			}
 		}
@@ -1249,7 +1309,7 @@ void bmo_shortest_path_exec(BMesh *bm, BMOperator *op)
 	ElemNode *vert_list = NULL;
 
 	int num_total = 0 /*, num_sels = 0 */, i = 0;
-	int type = BMO_slot_int_get(op, "type");
+	const int type = BMO_slot_int_get(op, "type");
 
 	BMO_ITER (vs, &vs_iter, bm, op, "startv", BM_VERT) {
 		sv = vs;

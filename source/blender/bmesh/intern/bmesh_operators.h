@@ -46,6 +46,12 @@ enum {
 	SUBDIV_SELECT_LOOPCUT
 };
 
+enum {
+	SIM_CMP_EQ = 0,
+	SIM_CMP_GT,
+	SIM_CMP_LT
+};
+
 /* similar face selection slot values */
 enum {
 	SIMFACE_MATERIAL = 201,
