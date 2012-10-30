@@ -1436,8 +1436,17 @@ void KX_KetsjiEngine::PostProcessScene(KX_Scene* scene)
 void KX_KetsjiEngine::RenderDebugProperties()
 {
 	STR_String debugtxt;
-	int xcoord = 10;	// mmmm, these constants were taken from blender source
-	int ycoord = 14;	// to 'mimic' behavior
+	int title_xmargin = -7;
+	int title_y_top_margin = 4;
+	int title_y_bottom_margin = 2;
+
+	int const_xindent = 4;
+	int const_ysize = 14;
+
+	int xcoord = 12;	// mmmm, these constants were taken from blender source
+	int ycoord = 17;	// to 'mimic' behavior
+	
+	int profile_indent = 64;
 
 	float tottime = m_logger->GetAverage();
 	if (tottime < 1e-6f) {
@@ -1448,19 +1457,44 @@ void KX_KetsjiEngine::RenderDebugProperties()
 	RAS_Rect viewport;
 	m_canvas->SetViewPort(0, 0, int(m_canvas->GetWidth()), int(m_canvas->GetHeight()));
 	
-	/* Framerate display */
-	if (m_show_framerate) {
-		debugtxt.Format("swap : %.3f (%.3f frames per second)", tottime, 1.0/tottime);
-		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
+	if (m_show_framerate || m_show_profile)	{
+		/* Title for profiling("Profile") */
+		debugtxt.Format("Profile");
+		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
 									debugtxt.Ptr(),
-									xcoord,
-									ycoord, 
-									m_canvas->GetWidth() /* RdV, TODO ?? */, 
+									xcoord + const_xindent + title_xmargin, // Adds the constant x indent (0 for now) to the title x margin
+									ycoord,
+									m_canvas->GetWidth() /* RdV, TODO ?? */,
 									m_canvas->GetHeight() /* RdV, TODO ?? */);
-		ycoord += 14;
+
+		// Increase the indent by default increase
+		ycoord += const_ysize;
+		// Add the title indent afterwards
+		ycoord += title_y_bottom_margin;
 	}
 
-	/* Profile and framerate display */
+	/* Framerate display */
+	if (m_show_framerate) {
+		debugtxt.Format("Frametime :");
+		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
+									debugtxt.Ptr(),
+									xcoord + const_xindent,
+									ycoord, 
+									m_canvas->GetWidth() /* RdV, TODO ?? */,
+									m_canvas->GetHeight() /* RdV, TODO ?? */);
+		
+		debugtxt.Format("%5.1fms (%5.1f fps)", tottime * 1000.f, 1.0/tottime);
+		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
+									debugtxt.Ptr(),
+									xcoord + const_xindent + profile_indent,
+									ycoord,
+									m_canvas->GetWidth() /* RdV, TODO ?? */,
+									m_canvas->GetHeight() /* RdV, TODO ?? */);
+		// Increase the indent by default increase
+		ycoord += const_ysize;
+	}
+
+	/* Profile display */
 	if (m_show_profile)
 	{
 		for (int j = tc_first; j < tc_numCategories; j++)
@@ -1468,23 +1502,43 @@ void KX_KetsjiEngine::RenderDebugProperties()
 			debugtxt.Format(m_profileLabels[j]);
 			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
 			                            debugtxt.Ptr(),
-			                            xcoord,ycoord,
+			                            xcoord + const_xindent,
+										ycoord,
 			                            m_canvas->GetWidth(),
 			                            m_canvas->GetHeight());
+
 			double time = m_logger->GetAverage((KX_TimeCategory)j);
-			debugtxt.Format("%.3fms (%2.2f %%)", time*1000.f, time/tottime * 100.f);
+
+			debugtxt.Format("%5.2fms (%2d%%)", time*1000.f, (int)(time/tottime * 100.f));
 			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
 			                            debugtxt.Ptr(),
-			                            xcoord + 60, ycoord,
+			                            xcoord + const_xindent + profile_indent, ycoord,
 			                            m_canvas->GetWidth(),
 			                            m_canvas->GetHeight());
-			ycoord += 14;
+			ycoord += const_ysize;
 		}
 	}
+	// Add the ymargin for titles below the other section of debug info
+	ycoord += title_y_top_margin;
 
 	/* Property display*/
 	if (m_show_debug_properties && m_propertiesPresent)
 	{
+
+		/* Title for debugging("Debug properties") */
+		debugtxt.Format("Debug Properties");
+		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
+									debugtxt.Ptr(),
+									xcoord + const_xindent + title_xmargin, // Adds the constant x indent (0 for now) to the title x margin
+									ycoord, 
+									m_canvas->GetWidth() /* RdV, TODO ?? */, 
+									m_canvas->GetHeight() /* RdV, TODO ?? */);
+
+		// Increase the indent by default increase
+		ycoord += const_ysize;
+		// Add the title indent afterwards
+		ycoord += title_y_bottom_margin;
+
 		KX_SceneList::iterator sceneit;
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end() ; sceneit++)
 		{
@@ -1519,11 +1573,11 @@ void KX_KetsjiEngine::RenderDebugProperties()
 					}
 					m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
 													debugtxt.Ptr(),
-													xcoord,
+													xcoord + const_xindent,
 													ycoord,
 													m_canvas->GetWidth(),
 													m_canvas->GetHeight());
-					ycoord += 14;
+					ycoord += const_ysize;
 				}
 				else
 				{
@@ -1531,14 +1585,14 @@ void KX_KetsjiEngine::RenderDebugProperties()
 					if (propval)
 					{
 						STR_String text = propval->GetText();
-						debugtxt = objname + "." + propname + " = " + text;
+						debugtxt = objname + ": '" + propname + "' = " + text;
 						m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
 													debugtxt.Ptr(),
-													xcoord,
+													xcoord + const_xindent,
 													ycoord,
 													m_canvas->GetWidth(),
 													m_canvas->GetHeight());
-						ycoord += 14;
+						ycoord += const_ysize;
 					}
 				}
 			}
