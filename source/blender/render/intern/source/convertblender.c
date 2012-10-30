@@ -1525,8 +1525,11 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	int i, a, k, max_k=0, totpart, do_simplify = FALSE, do_surfacecache = FALSE, use_duplimat = FALSE;
 	int totchild=0;
 	int seed, path_nbr=0, orco1=0, num;
-	int totface, *origindex = 0;
+	int totface;
 	char **uv_name=0;
+
+	const int *index_mf_to_mpoly = NULL;
+	const int *index_mp_to_orig = NULL;
 
 /* 1. check that everything is ok & updated */
 	if (psys==NULL)
@@ -1697,9 +1700,13 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					do_surfacecache = TRUE;
 
 			totface= psmd->dm->getNumTessFaces(psmd->dm);
-			origindex= psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
+			index_mf_to_mpoly = psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
+			index_mp_to_orig = psmd->dm->getPolyDataArray(psmd->dm, CD_ORIGINDEX);
+			if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
+				index_mf_to_mpoly = index_mp_to_orig = NULL;
+			}
 			for (a=0; a<totface; a++)
-				strandbuf->totbound= MAX2(strandbuf->totbound, (origindex)? origindex[a]: a);
+				strandbuf->totbound = max_ii(strandbuf->totbound, (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a): a);
 
 			strandbuf->totbound++;
 			strandbuf->bound= MEM_callocN(sizeof(StrandBound)*strandbuf->totbound, "StrandBound");
@@ -1810,7 +1817,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			do_simplify = psys_render_simplify_params(psys, cpa, simplify);
 
 			if (strandbuf) {
-				int orignum= (origindex)? origindex[cpa->num]: cpa->num;
+				int orignum = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, cpa->num) : cpa->num;
 
 				if (orignum > sbound - strandbuf->bound) {
 					sbound= strandbuf->bound + orignum;

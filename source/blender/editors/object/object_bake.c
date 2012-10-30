@@ -150,11 +150,13 @@ typedef struct {
 	float height_min, height_max;
 	Image *ima;
 	DerivedMesh *ssdm;
-	const int *origindex;
+	const int *orig_index_mf_to_mpoly;
+	const int *orig_index_mp_to_orig;
 } MHeightBakeData;
 
 typedef struct {
-	const int *origindex;
+	const int *orig_index_mf_to_mpoly;
+	const int *orig_index_mp_to_orig;
 } MNormalBakeData;
 
 static void multiresbake_get_normal(const MResolvePixelData *data, float norm[], const int face_num, const int vert_index)
@@ -508,7 +510,9 @@ static void interp_bilinear_grid(CCGKey *key, CCGElem *grid, float crn_x, float 
 	interp_bilinear_quad_data(data, u, v, res);
 }
 
-static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm, const int *origindex,  const int lvl, const int face_index, const float u, const float v, float co[3], float n[3])
+static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm,
+                           const int *index_mf_to_mpoly, const int *index_mp_to_orig,
+                           const int lvl, const int face_index, const float u, const float v, float co[3], float n[3])
 {
 	MFace mface;
 	CCGElem **grid_data;
@@ -532,7 +536,7 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm, const int *orig
 	}
 	else {
 		int side = (1 << (lvl - 1)) + 1;
-		int grid_index = origindex[face_index];
+		int grid_index = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, face_index);
 		int loc_offs = face_index % (1 << (2 * lvl));
 		int cell_index = loc_offs % ((side - 1) * (side - 1));
 		int cell_side = (grid_size - 1) / (side - 1);
@@ -628,7 +632,8 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 		}
 	}
 
-	height_data->origindex = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
+	height_data->orig_index_mf_to_mpoly = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
+	height_data->orig_index_mp_to_orig = lodm->getPolyDataArray(lodm, CD_ORIGINDEX);
 
 	return (void *)height_data;
 }
@@ -640,7 +645,8 @@ static void *init_normal_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
 
 	normal_data = MEM_callocN(sizeof(MNormalBakeData), "MultiresBake normalData");
 
-	normal_data->origindex = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
+	normal_data->orig_index_mf_to_mpoly = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
+	normal_data->orig_index_mp_to_orig = lodm->getPolyDataArray(lodm, CD_ORIGINDEX);
 
 	return (void *)normal_data;
 }
@@ -735,10 +741,14 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	CLAMP(uv[0], 0.0f, 1.0f);
 	CLAMP(uv[1], 0.0f, 1.0f);
 
-	get_ccgdm_data(lores_dm, hires_dm, height_data->origindex, lvl, face_index, uv[0], uv[1], p1, 0);
+	get_ccgdm_data(lores_dm, hires_dm,
+	               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mf_to_mpoly,
+	               lvl, face_index, uv[0], uv[1], p1, 0);
 
 	if (height_data->ssdm) {
-		get_ccgdm_data(lores_dm, height_data->ssdm, height_data->origindex, 0, face_index, uv[0], uv[1], p0, n);
+		get_ccgdm_data(lores_dm, height_data->ssdm,
+		               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mf_to_mpoly,
+		               0, face_index, uv[0], uv[1], p0, n);
 	}
 	else {
 		lores_dm->getTessFace(lores_dm, face_index, &mface);
@@ -808,7 +818,9 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	CLAMP(uv[0], 0.0f, 1.0f);
 	CLAMP(uv[1], 0.0f, 1.0f);
 
-	get_ccgdm_data(lores_dm, hires_dm, normal_data->origindex, lvl, face_index, uv[0], uv[1], NULL, n);
+	get_ccgdm_data(lores_dm, hires_dm,
+	               normal_data->orig_index_mf_to_mpoly, normal_data->orig_index_mp_to_orig,
+	               lvl, face_index, uv[0], uv[1], NULL, n);
 
 	mul_v3_m3v3(vec, tangmat, n);
 	normalize_v3(vec);

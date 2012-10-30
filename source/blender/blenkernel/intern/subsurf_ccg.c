@@ -2706,11 +2706,7 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 {
 	if (type == CD_ORIGINDEX) {
 		/* create origindex on demand to save memory */
-		CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-		CCGSubSurf *ss = ccgdm->ss;
 		int *origindex;
-		int a, i, index, totface;
-		int gridFaces = ccgSubSurf_getGridSize(ss) - 1;
 
 		/* Avoid re-creation if the layer exists already */
 		origindex = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
@@ -2720,6 +2716,34 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 
 		DM_add_tessface_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 		origindex = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
+
+		/* silly loop counting up */
+		range_vn_i(origindex, dm->getNumTessFaces(dm), 0);
+
+		return origindex;
+	}
+
+	return DM_get_tessface_data_layer(dm, type);
+}
+
+static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, int type)
+{
+	if (type == CD_ORIGINDEX) {
+		/* create origindex on demand to save memory */
+		CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
+		CCGSubSurf *ss = ccgdm->ss;
+		int *origindex;
+		int a, i, index, totface;
+		int gridFaces = ccgSubSurf_getGridSize(ss) - 1;
+
+		/* Avoid re-creation if the layer exists already */
+		origindex = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
+		if (origindex) {
+			return origindex;
+		}
+
+		DM_add_poly_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+		origindex = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
 
 		totface = ccgSubSurf_getNumFaces(ss);
 
@@ -2735,7 +2759,7 @@ static void *ccgDM_get_tessface_data_layer(DerivedMesh *dm, int type)
 		return origindex;
 	}
 
-	return DM_get_tessface_data_layer(dm, type);
+	return DM_get_poly_data_layer(dm, type);
 }
 
 static void *ccgDM_get_vert_data(DerivedMesh *dm, int index, int type)
@@ -2766,6 +2790,16 @@ static void *ccgDM_get_tessface_data(DerivedMesh *dm, int index, int type)
 	}
 
 	return DM_get_tessface_data(dm, index, type);
+}
+
+static void *ccgDM_get_poly_data(DerivedMesh *dm, int index, int type)
+{
+	if (type == CD_ORIGINDEX) {
+		/* ensure creation of CD_ORIGINDEX layer */
+		ccgDM_get_tessface_data_layer(dm, type);
+	}
+
+	return DM_get_poly_data(dm, index, type);
 }
 
 static int ccgDM_getNumGrids(DerivedMesh *dm)
@@ -3098,7 +3132,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	}
 
 	/* We absolutely need that layer, else it's no valid tessellated data! */
-	polyidx = CustomData_add_layer(&ccgdm->dm.faceData, CD_POLYINDEX, CD_CALLOC,
+	polyidx = CustomData_add_layer(&ccgdm->dm.faceData, CD_ORIGINDEX, CD_CALLOC,
 	                               NULL, ccgSubSurf_getNumFinalFaces(ss));
 
 	ccgdm->dm.getMinMax = ccgDM_getMinMax;
@@ -3126,9 +3160,11 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getVertData = ccgDM_get_vert_data;
 	ccgdm->dm.getEdgeData = ccgDM_get_edge_data;
 	ccgdm->dm.getTessFaceData = ccgDM_get_tessface_data;
+	ccgdm->dm.getPolyData = ccgDM_get_poly_data;
 	ccgdm->dm.getVertDataArray = ccgDM_get_vert_data_layer;
 	ccgdm->dm.getEdgeDataArray = ccgDM_get_edge_data_layer;
 	ccgdm->dm.getTessFaceDataArray = ccgDM_get_tessface_data_layer;
+	ccgdm->dm.getPolyDataArray = ccgDM_get_poly_data_layer;
 	ccgdm->dm.getNumGrids = ccgDM_getNumGrids;
 	ccgdm->dm.getGridSize = ccgDM_getGridSize;
 	ccgdm->dm.getGridData = ccgDM_getGridData;
@@ -3227,8 +3263,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 	vertOrigIndex = DM_get_vert_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 	/*edgeOrigIndex = DM_get_edge_data_layer(&ccgdm->dm, CD_ORIGINDEX);*/
-	faceOrigIndex = DM_get_tessface_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 
+	faceOrigIndex = DM_get_tessface_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 	polyOrigIndex = DM_get_poly_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 
 #if 0
@@ -3366,7 +3402,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					
 					/*set original index data*/
 					if (faceOrigIndex) {
-						*faceOrigIndex = origIndex;
+						/* reference the index in 'polyOrigIndex' */
+						*faceOrigIndex = faceNum;
 						faceOrigIndex++;
 					}
 					if (polyOrigIndex) {

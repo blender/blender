@@ -74,8 +74,14 @@ BLI_STATIC_ASSERT(sizeof(((CustomData *)NULL)->typemap) /
 /********************* Layer type information **********************/
 typedef struct LayerTypeInfo {
 	int size;          /* the memory size of one element of this layer's data */
-	const char *structname;  /* name of the struct used, for file writing */
-	int structnum;     /* number of structs per element, for file writing */
+
+	/**
+	 * name of the struct used, for file writing */
+	const char *structname;
+	/**
+	 * number of structs per element, for file writing
+	 * (set to zero skips writing this data to disk/undo) */
+	int structnum;
 
 	/**
 	 * default layer name.
@@ -1061,8 +1067,8 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 8: CD_NORMAL */
 	/* 3 floats per normal vector */
 	{sizeof(float) * 3, "vec3f", 1, NULL, NULL, NULL, NULL, NULL, NULL},
-	/* 9: CD_POLYINDEX */
-	{sizeof(int), "MIntProperty", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 9: CD_POLYINDEX (deprecated) */
+	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 10: CD_PROP_FLT */
 	{sizeof(MFloatProperty), "MFloatProperty", 1, "Float", layerCopy_propFloat, NULL, NULL, NULL},
 	/* 11: CD_PROP_INT */
@@ -1180,7 +1186,7 @@ const CustomDataMask CD_MASK_DERIVEDMESH =
     CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_PREVIEW_MLOOPCOL |
     CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORIGSPACE_MLOOP | CD_MASK_ORCO | CD_MASK_TANGENT |
     CD_MASK_PREVIEW_MCOL | CD_MASK_NORMAL | CD_MASK_SHAPEKEY | CD_MASK_RECAST |
-    CD_MASK_ORIGINDEX | CD_MASK_POLYINDEX | CD_MASK_MVERT_SKIN;
+    CD_MASK_ORIGINDEX | CD_MASK_MVERT_SKIN;
 const CustomDataMask CD_MASK_BMESH =
     CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
     CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |

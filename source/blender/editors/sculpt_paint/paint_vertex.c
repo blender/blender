@@ -2570,7 +2570,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 
 	vd->polyfacemap = BLI_memarena_alloc(vd->polyfacemap_arena, sizeof(ListBase) * me->totpoly);
 
-	origIndex = CustomData_get_layer(&me->fdata, CD_POLYINDEX);
+	origIndex = CustomData_get_layer(&me->fdata, CD_ORIGINDEX);
 	mf = me->mface;
 
 	if (!origIndex)

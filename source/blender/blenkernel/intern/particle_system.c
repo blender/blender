@@ -346,7 +346,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 	if (!dm->deformedOnly) {
 		/* Will use later to speed up subsurf/derivedmesh */
 		LinkNode *node, *nodedmelem, **nodearray;
-		int totdmelem, totelem, i, *origindex;
+		int totdmelem, totelem, i, *origindex, *origindex_poly = NULL;
 
 		if (psys->part->from == PART_FROM_VERT) {
 			totdmelem= dm->getNumVerts(dm);
@@ -356,23 +356,37 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		else { /* FROM_FACE/FROM_VOLUME */
 			totdmelem= dm->getNumTessFaces(dm);
 			totelem= me->totpoly;
-			origindex= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+			origindex = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+			/* for face lookups we need the poly origindex too */
+			origindex_poly = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+			if (origindex_poly == NULL) {
+				origindex = NULL;
+			}
 		}
 	
 		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");
 		nodearray= MEM_callocN(sizeof(LinkNode *)*totelem, "psys node array");
 		
 		for (i=0, node=nodedmelem; i<totdmelem; i++, origindex++, node++) {
-			node->link= SET_INT_IN_POINTER(i);
+			int origindex_final;
+			node->link = SET_INT_IN_POINTER(i);
 
-			if (*origindex != -1) {
-				if (nodearray[*origindex]) {
+			origindex_final = *origindex;
+
+			/* if we have a poly source, do an index lookup */
+			if (origindex_poly && origindex_final != ORIGINDEX_NONE) {
+				origindex_final = origindex_poly[origindex_final];
+			}
+
+			if (origindex_final != ORIGINDEX_NONE) {
+				if (nodearray[origindex_final]) {
 					/* prepend */
-					node->next = nodearray[*origindex];
-					nodearray[*origindex] = node;
+					node->next = nodearray[origindex_final];
+					nodearray[origindex_final] = node;
 				}
-				else
-					nodearray[*origindex] = node;
+				else {
+					nodearray[origindex_final] = node;
+				}
 			}
 		}
 		

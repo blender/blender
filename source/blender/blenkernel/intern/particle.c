@@ -618,7 +618,10 @@ typedef struct ParticleRenderData {
 	int do_simplify;
 	int timeoffset;
 	ParticleRenderElem *elems;
-	int *origindex;
+
+	/* ORIGINDEX */
+	const int *index_mf_to_mpoly;
+	const int *index_mp_to_orig;
 } ParticleRenderData;
 
 static float psys_render_viewport_falloff(double rate, float dist, float width)
@@ -791,8 +794,12 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	float *facearea, (*facecenter)[3], size[3], fac, powrate, scaleclamp;
 	float co1[3], co2[3], co3[3], co4[3], lambda, arearatio, t, area, viewport;
 	double vprate;
-	int *origindex, *facetotvert;
+	int *facetotvert;
 	int a, b, totorigface, totface, newtot, skipped;
+
+	/* double lookup */
+	const int *index_mf_to_mpoly;
+	const int *index_mp_to_orig;
 
 	if (part->ren_as != PART_DRAW_PATH || !(part->draw & PART_DRAW_REN_STRAND))
 		return tot;
@@ -807,12 +814,17 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	mvert = dm->getVertArray(dm);
 	mface = dm->getTessFaceArray(dm);
-	origindex = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	totface = dm->getNumTessFaces(dm);
 	totorigface = me->totpoly;
 
 	if (totface == 0 || totorigface == 0)
 		return tot;
+
+	index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
+		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	}
 
 	facearea = MEM_callocN(sizeof(float) * totorigface, "SimplifyFaceArea");
 	facecenter = MEM_callocN(sizeof(float[3]) * totorigface, "SimplifyFaceCenter");
@@ -824,20 +836,22 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	data->do_simplify = TRUE;
 	data->elems = elems;
-	data->origindex = origindex;
+	data->index_mf_to_mpoly = index_mf_to_mpoly;
+	data->index_mp_to_orig  = index_mp_to_orig;
 
 	/* compute number of children per original face */
 	for (a = 0; a < tot; a++) {
-		b = (origindex) ? origindex[ctx->index[a]] : ctx->index[a];
-		if (b != -1)
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, ctx->index[a]) : ctx->index[a];
+		if (b != ORIGINDEX_NONE) {
 			elems[b].totchild++;
+		}
 	}
 
 	/* compute areas and centers of original faces */
 	for (mf = mface, a = 0; a < totface; a++, mf++) {
-		b = (origindex) ? origindex[a] : a;
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
 
-		if (b != -1) {
+		if (b != ORIGINDEX_NONE) {
 			copy_v3_v3(co1, mvert[mf->v1].co);
 			copy_v3_v3(co2, mvert[mf->v2].co);
 			copy_v3_v3(co3, mvert[mf->v3].co);
@@ -931,8 +945,9 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	skipped = 0;
 	for (a = 0, newtot = 0; a < tot; a++) {
-		b = (origindex) ? origindex[ctx->index[a]] : ctx->index[a];
-		if (b != -1) {
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, ctx->index[a]) : ctx->index[a];
+
+		if (b != ORIGINDEX_NONE) {
 			if (elems[b].curchild++ < ceil(elems[b].lambda * elems[b].totchild)) {
 				ctx->index[newtot] = ctx->index[a];
 				ctx->skip[newtot] = skipped;
@@ -963,10 +978,10 @@ int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float 
 	data = psys->renderdata;
 	if (!data->do_simplify)
 		return 0;
-	
-	b = (data->origindex) ? data->origindex[cpa->num] : cpa->num;
-	if (b == -1)
+	b = (data->index_mf_to_mpoly) ? DM_origindex_mface_mpoly(data->index_mf_to_mpoly, data->index_mp_to_orig, cpa->num) : cpa->num;
+	if (b == ORIGINDEX_NONE) {
 		return 0;
+	}
 
 	elem = &data->elems[b];
 
@@ -1624,17 +1639,22 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 	Mesh *me = (Mesh *)ob->data;
 	MPoly *mpoly;
 	OrigSpaceFace *osface;
-	int *origindex;
 	int quad, findex, totface;
 	float uv[2], (*faceuv)[2];
 
+	/* double lookup */
+	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
+		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	}
+
 	mpoly = dm->getPolyArray(dm);
-	origindex = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	osface = dm->getTessFaceDataArray(dm, CD_ORIGSPACE);
 
 	totface = dm->getNumTessFaces(dm);
 	
-	if (osface == NULL || origindex == NULL) {
+	if (osface == NULL || index_mf_to_mpoly == NULL) {
 		/* Assume we don't need osface data */
 		if (index < totface) {
 			//printf("\tNO CD_ORIGSPACE, assuming not needed\n");
@@ -1668,7 +1688,8 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 	}
 	else { /* if we have no node, try every face */
 		for (findex = 0; findex < totface; findex++) {
-			if (origindex[findex] == index) {
+			const int findex_orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, findex);
+			if (findex_orig == index) {
 				faceuv = osface[findex].uv;
 				quad = (mpoly[findex].totloop == 4);
 

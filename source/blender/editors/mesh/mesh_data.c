@@ -902,7 +902,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	 * so rather then add poly-index layer and calculate normals for it
 	 * calculate normals only for the mvert's. - campbell */
 #ifdef USE_BMESH_MPOLY_NORMALS
-	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
+	polyindex = CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX);
 	/* add a normals layer for tessellated faces, a tessface normal will
 	 * contain the normal of the poly the face was tessellated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);

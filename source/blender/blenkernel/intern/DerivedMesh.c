@@ -265,9 +265,11 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getVertData = DM_get_vert_data;
 	dm->getEdgeData = DM_get_edge_data;
 	dm->getTessFaceData = DM_get_tessface_data;
+	dm->getPolyData = DM_get_poly_data;
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
+	dm->getPolyDataArray = DM_get_poly_data_layer;
 
 	bvhcache_init(&dm->bvhCache);
 }
@@ -383,7 +385,7 @@ void DM_ensure_tessface(DerivedMesh *dm)
 	}
 
 	else if (dm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-		BLI_assert(CustomData_has_layer(&dm->faceData, CD_POLYINDEX));
+		BLI_assert(CustomData_has_layer(&dm->faceData, CD_ORIGINDEX));
 		DM_update_tessface_data(dm);
 	}
 
@@ -407,7 +409,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	const int hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
 	const int hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
 
-	int *polyindex = CustomData_get_layer(fdata, CD_POLYINDEX);
+	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
 
 	int mf_idx,
 	    totface = dm->getNumTessFaces(dm),
@@ -624,6 +626,12 @@ void *DM_get_tessface_data(DerivedMesh *dm, int index, int type)
 {
 	return CustomData_get(&dm->faceData, index, type);
 }
+
+void *DM_get_poly_data(DerivedMesh *dm, int index, int type)
+{
+	return CustomData_get(&dm->polyData, index, type);
+}
+
 
 void *DM_get_vert_data_layer(DerivedMesh *dm, int type)
 {
@@ -1373,7 +1381,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	ModifierData *firstmd, *md, *previewmd = NULL;
 	CDMaskLink *datamasks, *curr;
 	/* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
-	CustomDataMask mask, nextmask, append_mask = CD_MASK_POLYINDEX;
+	CustomDataMask mask, nextmask, append_mask = CD_MASK_ORIGINDEX;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm = NULL, *orcodm, *clothorcodm, *finaldm;
 	int numVerts = me->totvert;
@@ -1801,7 +1809,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 #if 0
 		if (num_tessface == 0 && finaldm->getNumTessFaces(finaldm) == 0)
 #else
-		if (finaldm->getNumTessFaces(finaldm) == 0) /* || !CustomData_has_layer(&finaldm->faceData, CD_POLYINDEX)) */
+		if (finaldm->getNumTessFaces(finaldm) == 0) /* || !CustomData_has_layer(&finaldm->faceData, CD_ORIGINDEX)) */
 #endif
 		{
 			finaldm->recalcTessellation(finaldm);
@@ -1809,8 +1817,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		/* Even if tessellation is not needed, some modifiers might have modified CD layers
 		 * (like mloopcol or mloopuv), hence we have to update those. */
 		else if (finaldm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-			/* A tessellation already exists, it should always have a CD_POLYINDEX. */
-			BLI_assert(CustomData_has_layer(&finaldm->faceData, CD_POLYINDEX));
+			/* A tessellation already exists, it should always have a CD_ORIGINDEX. */
+			BLI_assert(CustomData_has_layer(&finaldm->faceData, CD_ORIGINDEX));
 			DM_update_tessface_data(finaldm);
 		}
 		/* Need to watch this, it can cause issues, see bug [#29338]             */

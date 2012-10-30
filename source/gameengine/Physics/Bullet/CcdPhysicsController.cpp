@@ -46,8 +46,10 @@ subject to the following restrictions:
 #include "DNA_meshdata_types.h"
 
 extern "C"{
-#include "BKE_cdderivedmesh.h"
+	#include "BLI_utildefines.h"
+	#include "BKE_cdderivedmesh.h"
 }
+
 
 class BP_Proxy;
 
@@ -1500,8 +1502,14 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 	MFace *mface = dm->getTessFaceArray(dm);
 	numpolys = dm->getNumTessFaces(dm);
 	numverts = dm->getNumVerts(dm);
-	int* index = (int*)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = (MTFace *)dm->getTessFaceDataArray(dm, CD_MTFACE);
+
+	/* double lookup */
+	const int *index_mf_to_mpoly = (const int *)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	const int *index_mp_to_orig  = (const int *)dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	if ((index_mf_to_mpoly && index_mp_to_orig) == false) {
+		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	}
 
 	m_shapeType = (polytope) ? PHY_SHAPE_POLYTOPE : PHY_SHAPE_MESH;
 
@@ -1515,7 +1523,8 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		for (int p2=0; p2<numpolys; p2++)
 		{
 			MFace* mf = &mface[p2];
-			RAS_Polygon* poly = meshobj->GetPolygon((index)? index[p2]: p2);
+			const int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, p2) : p2;
+			RAS_Polygon* poly = meshobj->GetPolygon(origi);
 
 			// only add polygons that have the collision flag set
 			if (poly->IsCollider())
@@ -1534,7 +1543,8 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		for (int p2=0; p2<numpolys; p2++)
 		{
 			MFace* mf = &mface[p2];
-			RAS_Polygon* poly= meshobj->GetPolygon((index)? index[p2]: p2);
+			const int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, p2) : p2;
+			RAS_Polygon* poly= meshobj->GetPolygon(origi);
 
 			// only add polygons that have the collisionflag set
 			if (poly->IsCollider())
@@ -1582,7 +1592,8 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		for (int p2=0; p2<numpolys; p2++)
 		{
 			MFace* mf = &mface[p2];
-			RAS_Polygon* poly= meshobj->GetPolygon((index)? index[p2]: p2);
+			const int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, p2) : p2;
+			RAS_Polygon* poly= meshobj->GetPolygon(origi);
 
 			// only add polygons that have the collision flag set
 			if (poly->IsCollider())
@@ -1619,7 +1630,8 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		{
 			MFace* mf = &mface[p2];
 			MTFace* tf = (tface) ? &tface[p2] : NULL;
-			RAS_Polygon* poly= meshobj->GetPolygon((index)? index[p2]: p2);
+			const int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, p2) : p2;
+			RAS_Polygon* poly= meshobj->GetPolygon(origi);
 
 			// only add polygons that have the collisionflag set
 			if (poly->IsCollider())
@@ -1645,7 +1657,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				}
 
 				// m_polygonIndexArray
-				*poly_index_pt= (index)? index[p2]: p2;
+				*poly_index_pt = origi;
 				poly_index_pt++;
 
 				// the vertex location
@@ -1688,7 +1700,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 					}
 
 					// m_polygonIndexArray
-					*poly_index_pt= (index)? index[p2]: p2;
+					*poly_index_pt = origi;
 					poly_index_pt++;
 
 					// the vertex location
@@ -1800,7 +1812,13 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		MFace *mface = dm->getTessFaceArray(dm);
 		numpolys = dm->getNumTessFaces(dm);
 		numverts = dm->getNumVerts(dm);
-		int* index = (int*)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+
+		/* double lookup */
+		const int *index_mf_to_mpoly = (const int *)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+		const int *index_mp_to_orig  = (const int *)dm->getPolyDataArray(dm, CD_ORIGINDEX);
+		if ((index_mf_to_mpoly && index_mp_to_orig) == false) {
+			index_mf_to_mpoly = index_mp_to_orig = NULL;
+		}
 
 		MFace *mf;
 		MVert *mv;
@@ -1856,7 +1874,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 			{
 				if (tf->mode & TF_DYNAMIC)
 				{
-					int origi = (index)? index[i]: i;
+					int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i) : i;
 
 					if (mf->v4) {
 						fv_pt= quad_verts;
@@ -1915,7 +1933,7 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 			}
 
 			for (mf= mface, i=0; i < numpolys; mf++, i++) {
-				int origi = (index)? index[i]: i;
+				int origi = index_mf_to_mpoly ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i) : i;
 
 				if (mf->v4) {
 					fv_pt= quad_verts;

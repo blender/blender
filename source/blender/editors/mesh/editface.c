@@ -85,7 +85,7 @@ void paintface_flush_flags(Object *ob)
 	 *  - Final derived polys => Final derived tessfaces
 	 */
 
-	if ((index_array = CustomData_get_layer(&me->fdata, CD_POLYINDEX))) {
+	if ((index_array = CustomData_get_layer(&me->fdata, CD_ORIGINDEX))) {
 		faces = me->mface;
 		totface = me->totface;
 		
@@ -109,7 +109,7 @@ void paintface_flush_flags(Object *ob)
 		}
 	}
 
-	if ((index_array = CustomData_get_layer(&dm->faceData, CD_POLYINDEX))) {
+	if ((index_array = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX))) {
 		polys = dm->getPolyArray(dm);
 		faces = dm->getTessFaceArray(dm);
 		totface = dm->getNumTessFaces(dm);
