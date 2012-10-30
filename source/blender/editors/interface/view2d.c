@@ -599,7 +599,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 			if ((cur->xmin < tot->xmin) && (cur->xmax > tot->xmax)) {
 				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
 				temp = BLI_rctf_cent_x(tot);
-				diff = curheight * 0.5f;
+				diff = curwidth * 0.5f;
 				
 				cur->xmin = temp - diff;
 				cur->xmax = temp + diff;

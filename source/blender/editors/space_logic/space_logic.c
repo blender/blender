@@ -84,8 +84,9 @@ ARegion *logic_has_buttons_region(ScrArea *sa)
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *logic_new(const bContext *UNUSED(C))
+static SpaceLink *logic_new(const bContext *C)
 {
+	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar;
 	SpaceLogic *slogic;
 	
@@ -120,14 +121,11 @@ static SpaceLink *logic_new(const bContext *UNUSED(C))
 	ar->regiontype= RGN_TYPE_WINDOW;
 
 	ar->v2d.tot.xmin =  0.0f;
-	ar->v2d.tot.ymin =  0.0f;
-	ar->v2d.tot.xmax = 1280;
-	ar->v2d.tot.ymax = 240.0f;
+	ar->v2d.tot.ymax =  0.0f;
+	ar->v2d.tot.xmax = 1150.0f;
+	ar->v2d.tot.ymin = ( 1150.0f/(float)sa->winx ) * (float)-sa->winy;
 	
-	ar->v2d.cur.xmin =  0.0f;
-	ar->v2d.cur.ymin =  0.0f;
-	ar->v2d.cur.xmax = 1280.0f;
-	ar->v2d.cur.ymax = 240.0f;
+	ar->v2d.cur = ar->v2d.tot;
 	
 	ar->v2d.min[0] = 1.0f;
 	ar->v2d.min[1] = 1.0f;
@@ -136,12 +134,13 @@ static SpaceLink *logic_new(const bContext *UNUSED(C))
 	ar->v2d.max[1] = 32000.0f;
 	
 	ar->v2d.minzoom = 0.5f;
-	ar->v2d.maxzoom = 1.21f;
+	ar->v2d.maxzoom = 1.5f;
 	
 	ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-	ar->v2d.keepzoom = V2D_LIMITZOOM | V2D_KEEPASPECT;
-	ar->v2d.keeptot = 0;
-	
+	ar->v2d.keepzoom = V2D_KEEPZOOM | V2D_LIMITZOOM | V2D_KEEPASPECT;
+	ar->v2d.keeptot = V2D_KEEPTOT_BOUNDS;
+	ar->v2d.align = V2D_ALIGN_NO_POS_Y | V2D_ALIGN_NO_NEG_X;
+	ar->v2d.keepofs = V2D_KEEPOFS_Y;
 	
 	return (SpaceLink *)slogic;
 }
@@ -183,6 +182,9 @@ static void logic_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "LOGIC_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "LOGIC_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_menu(keymap, "LOGIC_MT_logicbricks_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+	
+	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);
+
 }
 
 static void logic_refresh(const bContext *UNUSED(C), ScrArea *UNUSED(sa))
@@ -234,7 +236,7 @@ static void logic_main_area_init(wmWindowManager *wm, ARegion *ar)
 	wmKeyMap *keymap;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
-
+	
 	/* own keymaps */
 	keymap = WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -259,7 +261,7 @@ static void logic_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 	
