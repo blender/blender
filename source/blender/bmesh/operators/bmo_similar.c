@@ -29,50 +29,19 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
 
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 
 #include "bmesh.h"
 
 #include "intern/bmesh_operators_private.h"  /* own include */
 
-/*
- * compute the fake surface of an ngon
- * This is done by decomposing the ngon into triangles who share the centroid of the ngon
- * while this method is far from being exact, it should guarantee an invariance.
- *
- * NOTE: This should probably go to bmesh_polygon.c
- */
-static float ngon_fake_area(BMFace *f)
-{
-	BMIter  liter;
-	BMLoop *l;
-	int     num_verts = 0;
-	float   v[3], sv[3], c[3];
-	float   area = 0.0f;
-
-	BM_face_calc_center_mean(f, c);
-
-	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		if (num_verts == 0) {
-			copy_v3_v3(v, l->v->co);
-			copy_v3_v3(sv, l->v->co);
-			num_verts++;
-		}
-		else {
-			area += area_tri_v3(v, c, l->v->co);
-			copy_v3_v3(v, l->v->co);
-			num_verts++;
-		}
-	}
-
-	area += area_tri_v3(v, c, sv);
-
-	return area;
-}
+/* in fact these could all be the same */
 
 /*
  * extra face data (computed data)
@@ -118,14 +87,14 @@ static int bm_sel_similar_cmp_i(const int delta, const int compare)
 	}
 }
 
-#define FACE_MARK	4
-
 /*
  * Select similar faces, the choices are in the enum in source/blender/bmesh/bmesh_operators.h
  * We select either similar faces based on material, image, area, perimeter, normal, or the coplanar faces
  */
 void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 {
+#define FACE_MARK	1
+
 	BMIter fm_iter;
 	BMFace *fs, *fm;
 	BMOIter fs_iter;
@@ -198,7 +167,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMFACE_AREA:
-					f_ext[i].area = ngon_fake_area(f_ext[i].f);
+					f_ext[i].area = BM_face_calc_area(f_ext[i].f);
 					break;
 
 				case SIMFACE_IMAGE:
@@ -288,12 +257,12 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 
 	/* transfer all marked faces to the output slot */
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_MARK);
+#undef FACE_MARK
 }
 
 /**************************************************************************** *
  * Similar Edges
  **************************************************************************** */
-#define EDGE_MARK 1
 
 /*
  * extra edge information
@@ -317,6 +286,8 @@ typedef struct SimSel_EdgeExt {
  */
 void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 {
+#define EDGE_MARK	1
+
 	BMOIter es_iter;	/* selected edges iterator */
 	BMIter e_iter;		/* mesh edges iterator */
 	BMEdge *es;		/* selected edge */
@@ -504,12 +475,13 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 
 	/* transfer all marked edges to the output slot */
 	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_MARK);
+
+#undef EDGE_MARK
 }
 
 /**************************************************************************** *
  * Similar Vertices
  **************************************************************************** */
-#define VERT_MARK	1
 
 typedef struct SimSel_VertExt {
 	BMVert *v;
@@ -526,6 +498,8 @@ typedef struct SimSel_VertExt {
  */
 void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 {
+#define VERT_MARK	1
+
 	BMOIter vs_iter;	/* selected verts iterator */
 	BMIter v_iter;		/* mesh verts iterator */
 	BMVert *vs;		/* selected vertex */
@@ -610,16 +584,9 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 
 					case SIMVERT_VGROUP:
 						if (v_ext[i].dvert != NULL && v_ext[indices[idx]].dvert != NULL) {
-							/* XXX, todo, make static function for this */
-							int v1, v2;
-							for (v1 = 0; v1 < v_ext[i].dvert->totweight && cont == 1; v1++) {
-								for (v2 = 0; v2 < v_ext[indices[idx]].dvert->totweight; v2++) {
-									if (v_ext[i].dvert->dw[v1].def_nr == v_ext[indices[idx]].dvert->dw[v2].def_nr) {
-										BMO_elem_flag_enable(bm, v, VERT_MARK);
-										cont = FALSE;
-										break;
-									}
-								}
+							if (defvert_find_shared(v_ext[i].dvert, v_ext[indices[idx]].dvert) != -1) {
+								BMO_elem_flag_enable(bm, v, VERT_MARK);
+								cont = FALSE;
 							}
 						}
 						break;
@@ -642,4 +609,6 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(v_ext);
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
+
+#undef VERT_MARK
 }
