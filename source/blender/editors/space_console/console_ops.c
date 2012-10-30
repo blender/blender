@@ -451,6 +451,7 @@ static int console_indent_exec(bContext *C, wmOperator *UNUSED(op))
 	memset(ci->line, ' ', len);
 	ci->len += len;
 	console_line_cursor_set(ci, ci->cursor + len);
+	console_select_offset(sc, len);
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -497,8 +498,7 @@ static int console_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 	memmove(ci->line, ci->line + len, (ci->len - len) + 1);
 	ci->len -= len;
 	console_line_cursor_set(ci, ci->cursor - len);
-
-	//console_select_offset(sc, -4);
+	console_select_offset(sc, -len);
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
