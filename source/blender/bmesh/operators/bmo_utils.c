@@ -542,7 +542,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	SimSel_FaceExt *f_ext = NULL;
 	int *indices = NULL;
 	float t_no[3];	/* temporary normal */
-	int type = BMO_slot_int_get(op, "type");
+	const int type = BMO_slot_int_get(op, "type");
 	const float thresh = BMO_slot_float_get(op, "thresh");
 	const float thresh_radians = thresh * (float)M_PI;
 
@@ -657,6 +657,13 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 
 					case SIMFACE_AREA:
 						if (fabsf(f_ext[i].area - f_ext[indices[idx]].area) <= thresh) {
+							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							cont = FALSE;
+						}
+						break;
+
+					case SIMFACE_SIDES:
+						if (fm->len == fs->len) {
 							BMO_elem_flag_enable(bm, fm, FACE_MARK);
 							cont = FALSE;
 						}

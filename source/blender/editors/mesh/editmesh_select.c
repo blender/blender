@@ -690,6 +690,7 @@ static EnumPropertyItem prop_similar_types[] = {
 	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
 	{SIMFACE_AREA, "AREA", 0, "Area", ""},
+	{SIMFACE_SIDES, "SIDES", 0, "Polygon Sides", ""},
 	{SIMFACE_PERIMETER, "PERIMETER", 0, "Perimeter", ""},
 	{SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
 	{SIMFACE_COPLANAR, "COPLANAR", 0, "Co-planar", ""},
