@@ -130,9 +130,9 @@ static int trans_data_compare_dist(const void *A, const void *B)
 	const TransData *td_A = (const TransData*)A;
 	const TransData *td_B = (const TransData*)B;
 
-	if(td_A->dist < td_B->dist)
+	if (td_A->dist < td_B->dist)
 		return -1;
-	else if(td_A->dist > td_B->dist)
+	else if (td_A->dist > td_B->dist)
 		return 1;
 	
 	return 0;
@@ -143,9 +143,9 @@ static int trans_data_compare_rdist(const void *A, const void *B)
 	const TransData *td_A = (const TransData*)A;
 	const TransData *td_B = (const TransData*)B;
 
-	if(td_A->rdist < td_B->rdist)
+	if (td_A->rdist < td_B->rdist)
 		return -1;
-	else if(td_A->rdist > td_B->rdist)
+	else if (td_A->rdist > td_B->rdist)
 		return 1;
 	
 	return 0;
