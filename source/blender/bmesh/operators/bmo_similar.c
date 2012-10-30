@@ -99,6 +99,7 @@ static int bm_sel_similar_cmp_fl(const float delta, const float thresh, const in
 			return ((delta - thresh) <= 0.0f);
 		default:
 			BLI_assert(0);
+			return 0;
 	}
 }
 
@@ -113,6 +114,7 @@ static int bm_sel_similar_cmp_i(const int delta, const int compare)
 			return (delta < 0);
 		default:
 			BLI_assert(0);
+			return 0;
 	}
 }
 
