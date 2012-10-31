@@ -1731,9 +1731,10 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 
 				writestruct(wd, DATA, structname, datasize, layer->data);
 			}
-			else
+			else {
 				printf("%s error: layer '%s':%d - can't be written to file\n",
 				       __func__, structname, layer->type);
+			}
 		}
 	}
 
@@ -1765,6 +1766,9 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				backup_mesh.totface = mesh->totface;
 				mesh->totface = 0;
 				/* -- */
+				backup_mesh.fdata = mesh->fdata;
+				memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+				/* -- */
 #endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 				writestruct(wd, ID_ME, "Mesh", 1, mesh);
@@ -1788,6 +1792,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->mface = backup_mesh.mface;
 				/* -- */
 				mesh->totface = backup_mesh.totface;
+				/* -- */
+				mesh->fdata = backup_mesh.fdata;
 #endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 			}
