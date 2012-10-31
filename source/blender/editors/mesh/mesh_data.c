@@ -947,6 +947,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
 	/* scan the input list and insert the new vertices */
 
+	/* set default flags */
 	mvert = &mesh->mvert[mesh->totvert];
 	for (i = 0; i < len; i++, mvert++)
 		mvert->flag |= SELECT;

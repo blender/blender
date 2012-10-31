@@ -289,6 +289,13 @@ void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
 	dm->needsFree = 1;
 	dm->auto_bump_scale = -1.0f;
 	dm->dirty = 0;
+
+	/* don't use CustomData_reset(...); because we dont want to touch customdata */
+	fill_vn_i(dm->vertData.typemap, CD_NUMTYPES, -1);
+	fill_vn_i(dm->edgeData.typemap, CD_NUMTYPES, -1);
+	fill_vn_i(dm->faceData.typemap, CD_NUMTYPES, -1);
+	fill_vn_i(dm->loopData.typemap, CD_NUMTYPES, -1);
+	fill_vn_i(dm->polyData.typemap, CD_NUMTYPES, -1);
 }
 
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
@@ -466,11 +473,11 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
 	int did_shapekeys = 0;
 	
-	memset(&tmp.vdata, 0, sizeof(tmp.vdata));
-	memset(&tmp.edata, 0, sizeof(tmp.edata));
-	memset(&tmp.fdata, 0, sizeof(tmp.fdata));
-	memset(&tmp.ldata, 0, sizeof(tmp.ldata));
-	memset(&tmp.pdata, 0, sizeof(tmp.pdata));
+	CustomData_reset(&tmp.vdata);
+	CustomData_reset(&tmp.edata);
+	CustomData_reset(&tmp.fdata);
+	CustomData_reset(&tmp.ldata);
+	CustomData_reset(&tmp.pdata);
 
 	totvert = tmp.totvert = dm->getNumVerts(dm);
 	totedge = tmp.totedge = dm->getNumEdges(dm);

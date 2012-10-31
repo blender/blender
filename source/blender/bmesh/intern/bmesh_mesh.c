@@ -85,6 +85,11 @@ BMesh *BM_mesh_create(BMAllocTemplate *allocsize)
 	bm->stackdepth = 1;
 	bm->totflags = 1;
 
+	CustomData_reset(&bm->vdata);
+	CustomData_reset(&bm->edata);
+	CustomData_reset(&bm->ldata);
+	CustomData_reset(&bm->pdata);
+
 	return bm;
 }
 

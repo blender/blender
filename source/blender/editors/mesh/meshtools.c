@@ -299,12 +299,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 
 	/* setup new data for destination mesh */
-	memset(&vdata, 0, sizeof(vdata));
-	memset(&edata, 0, sizeof(edata));
-	memset(&fdata, 0, sizeof(fdata));
-	memset(&ldata, 0, sizeof(ldata));
-	memset(&pdata, 0, sizeof(pdata));
-	
+	CustomData_reset(&vdata);
+	CustomData_reset(&edata);
+	CustomData_reset(&fdata);
+	CustomData_reset(&ldata);
+	CustomData_reset(&pdata);
+
 	mvert = CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
 	medge = CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
 	mloop = CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);

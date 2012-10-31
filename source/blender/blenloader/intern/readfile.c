@@ -3824,7 +3824,7 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 	/* annoying workaround for bug [#31079] loading legacy files with
 	 * no polygons _but_ have stale customdata */
 	if (UNLIKELY(count == 0 && data->layers == NULL && data->totlayer != 0)) {
-		memset(data, 0, sizeof(*data));
+		CustomData_reset(data);
 		return;
 	}
 	
@@ -8098,6 +8098,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			Mesh *me;
 			for (me = main->mesh.first; me; me = me->id.next) {
+				CustomData_update_typemap(&me->vdata);
 				CustomData_free_layers(&me->vdata, CD_MSTICKY, me->totvert);
 			}
 		}

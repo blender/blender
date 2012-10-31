@@ -469,15 +469,17 @@ void free_dverts(MDeformVert *dvert, int totvert)
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 {
-	if (free_customdata)
+	if (free_customdata) {
 		CustomData_free(&mesh->fdata, mesh->totface);
+	}
+	else {
+		CustomData_reset(&mesh->fdata);
+	}
 
 	mesh->mface = NULL;
 	mesh->mtface = NULL;
 	mesh->mcol = NULL;
 	mesh->totface = 0;
-
-	memset(&mesh->fdata, 0, sizeof(mesh->fdata));
 }
 
 Mesh *BKE_mesh_add(const char *name)
@@ -2125,8 +2127,6 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 	/* just in case some of these layers are filled in (can happen with python created meshes) */
 	CustomData_free(ldata, totloop_i);
 	CustomData_free(pdata, totpoly_i);
-	memset(ldata, 0, sizeof(*ldata));
-	memset(pdata, 0, sizeof(*pdata));
 
 	totpoly = totface_i;
 	mpoly = MEM_callocN(sizeof(MPoly) * totpoly, "mpoly converted");
@@ -2632,7 +2632,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	}
 
 	CustomData_free(fdata, totface);
-	memset(fdata, 0, sizeof(CustomData));
 	totface = mface_index;
 
 
@@ -2777,7 +2776,6 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	}
 
 	CustomData_free(fdata, totface);
-	memset(fdata, 0, sizeof(CustomData));
 
 	totface = k;
 

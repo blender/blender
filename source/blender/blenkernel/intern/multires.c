@@ -2085,8 +2085,8 @@ void multires_load_old(Object *ob, Mesh *me)
 		CustomData_add_layer(&me->vdata, l->type, CD_REFERENCE, l->data, me->totvert);
 	for (i = 0, l = me->mr->fdata.layers; i < me->mr->fdata.totlayer; ++i, ++l)
 		CustomData_add_layer(&me->fdata, l->type, CD_REFERENCE, l->data, me->totface);
-	memset(&me->mr->vdata, 0, sizeof(CustomData));
-	memset(&me->mr->fdata, 0, sizeof(CustomData));
+	CustomData_reset(&me->mr->vdata);
+	CustomData_reset(&me->mr->fdata);
 
 	multires_load_old_vcols(me);
 	multires_load_old_face_flags(me);
