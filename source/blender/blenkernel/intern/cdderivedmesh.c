@@ -938,7 +938,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 					if (i != tottri - 1)
 						next_actualFace = dm->drawObject->triangle_to_mface[i + 1];
 
-					orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i) : i;
+					orig = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace) : actualFace;
 
 					if (orig == ORIGINDEX_NONE)
 						draw_option = setMaterial(mface->mat_nr + 1, NULL);
