@@ -619,6 +619,42 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 	RNA_STRUCT_END;
 }
 
+
+/** set all props to their default,
+ * \param do_update Only update un-initialized props.
+ *
+ * \note, theres nothing spesific to operators here.
+ * this could be made a general function.
+ */
+int WM_operator_properties_default(PointerRNA *ptr, const int do_update)
+{
+	int is_change = FALSE;
+	RNA_STRUCT_BEGIN(ptr, prop)
+	{
+		switch (RNA_property_type(prop)) {
+			case PROP_POINTER:
+			{
+				StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
+				if (ptype != &RNA_Struct) {
+					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+					is_change |= WM_operator_properties_default(&opptr, do_update);
+				}
+				break;
+			}
+			default:
+				if ((do_update == FALSE) || (RNA_property_is_set(ptr, prop) == FALSE)) {
+					if (RNA_property_reset(ptr, prop, -1)) {
+						is_change = 1;
+					}
+				}
+				break;
+		}
+	}
+	RNA_STRUCT_END;
+
+	return is_change;
+}
+
 /* remove all props without PROP_SKIP_SAVE */
 void WM_operator_properties_reset(wmOperator *op)
 {

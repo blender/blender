@@ -266,6 +266,12 @@ __attribute__((nonnull))
 #endif
 ;
 
+int IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const int is_strict)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+#endif
+;
+
 int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
@@ -318,5 +324,10 @@ void IDP_UnlinkProperty(struct IDProperty *prop);
 #define IDP_Array(prop) ((prop)->data.pointer)
 #define IDP_IDPArray(prop) ((IDProperty *)(prop)->data.pointer)
 #define IDP_Double(prop) (*(double *)&(prop)->data.val)
+
+#ifdef DEBUG
+/* for printout only */
+void IDP_spit(IDProperty *prop);
+#endif
 
 #endif /* __BKE_IDPROP_H__ */

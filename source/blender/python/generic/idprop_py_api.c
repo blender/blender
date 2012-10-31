@@ -1497,3 +1497,40 @@ PyObject *BPyInit_idprop(void)
 
 	return mod;
 }
+
+
+#ifdef DEBUG
+/* -------------------------------------------------------------------- */
+/* debug only function */
+
+void IDP_spit(IDProperty *prop)
+{
+	if (prop) {
+		PyGILState_STATE gilstate;
+		int use_gil = TRUE; /* !PYC_INTERPRETER_ACTIVE; */
+		PyObject *ret_dict;
+		PyObject *ret_str;
+
+		if (use_gil) {
+			gilstate = PyGILState_Ensure();
+		}
+
+		/* to_dict() */
+		ret_dict = BPy_IDGroup_MapDataToPy(prop);
+		ret_str = PyObject_Repr(ret_dict);
+		Py_DECREF(ret_dict);
+
+		printf("IDProperty: %s\n", _PyUnicode_AsString(ret_str));
+
+		Py_DECREF(ret_str);
+
+		if (use_gil) {
+			PyGILState_Release(gilstate);
+		}
+	}
+	else {
+		printf("IDProperty: <NIL>\n");
+	}
+}
+
+#endif

@@ -632,12 +632,14 @@ IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 	}
 }
 
-int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
+/**
+ * \param is_strict When FALSE treat missing items as a match */
+int IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const int is_strict)
 {
 	if (prop1 == NULL && prop2 == NULL)
 		return 1;
 	else if (prop1 == NULL || prop2 == NULL)
-		return 0;
+		return is_strict ? 0 : 1;
 	else if (prop1->type != prop2->type)
 		return 0;
 
@@ -661,13 +663,13 @@ int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 		{
 			IDProperty *link1, *link2;
 
-			if (BLI_countlist(&prop1->data.group) != BLI_countlist(&prop2->data.group))
+			if (is_strict && BLI_countlist(&prop1->data.group) != BLI_countlist(&prop2->data.group))
 				return 0;
 
 			for (link1 = prop1->data.group.first; link1; link1 = link1->next) {
 				link2 = IDP_GetPropertyFromGroup(prop2, link1->name);
 
-				if (!IDP_EqualsProperties(link1, link2))
+				if (!IDP_EqualsProperties_ex(link1, link2, is_strict))
 					return 0;
 			}
 
@@ -694,6 +696,11 @@ int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 	}
 
 	return 1;
+}
+
+int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
+{
+	return IDP_EqualsProperties_ex(prop1, prop2, TRUE);
 }
 
 /* 'val' is never NULL, don't check */
