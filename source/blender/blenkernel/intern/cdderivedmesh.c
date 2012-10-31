@@ -2461,7 +2461,7 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 	numEdges = BLI_edgehash_size(eh);
 
 	/* write new edges into a temporary CustomData */
-	memset(&edgeData, 0, sizeof(edgeData));
+	CustomData_reset(&edgeData);
 	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
 
@@ -2526,7 +2526,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	numEdges = BLI_edgehash_size(eh);
 
 	/* write new edges into a temporary CustomData */
-	memset(&edgeData, 0, sizeof(edgeData));
+	CustomData_reset(&edgeData);
 	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
 
