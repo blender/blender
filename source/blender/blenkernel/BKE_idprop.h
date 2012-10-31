@@ -154,6 +154,12 @@ __attribute__((nonnull))
 #endif
 ;
 
+void IDP_MergeGroup(IDProperty *dest, IDProperty *src, const int do_overwrite)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
+
 /**
  * This function has a sanity check to make sure ID properties with the same name don't
  * get added to the group.

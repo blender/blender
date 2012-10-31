@@ -492,6 +492,30 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 	}
 }
 
+/*
+ * If a property is missing in \a dest, add it.
+ */
+void IDP_MergeGroup(IDProperty *dest, IDProperty *src, const int do_overwrite)
+{
+	IDProperty *prop;
+
+	if (do_overwrite) {
+		for (prop = src->data.group.first; prop; prop = prop->next) {
+			IDProperty *copy = IDP_CopyProperty(prop);
+			IDP_ReplaceInGroup(dest, copy);
+		}
+	}
+	else {
+		for (prop = src->data.group.first; prop; prop = prop->next) {
+			if (IDP_GetPropertyFromGroup(dest, prop->name) == NULL) {
+				IDProperty *copy = IDP_CopyProperty(prop);
+				dest->len++;
+				BLI_addtail(&dest->data.group, copy);
+			}
+		}
+	}
+}
+
 /* returns 0 if an id property with the same name exists and it failed,
  * or 1 if it succeeded in adding to the group.*/
 int IDP_AddToGroup(IDProperty *group, IDProperty *prop)

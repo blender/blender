@@ -43,10 +43,6 @@
 #include "py_capi_utils.h"
 #endif
 
-extern PyTypeObject BPy_IDArray_Type;
-extern PyTypeObject BPy_IDGroup_Iter_Type;
-extern PyTypeObject BPy_IDGroup_Type;
-
 /*********************** ID Property Main Wrapper Stuff ***************/
 
 /* ----------------------------------------------------------------------------
@@ -809,17 +805,28 @@ static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *value)
 	PyObject *pkey, *pval;
 	Py_ssize_t i = 0;
 
-	if (!PyDict_Check(value)) {
+	if (BPy_IDGroup_Check(value)) {
+		BPy_IDProperty *other = (BPy_IDProperty *)value;
+		if (UNLIKELY(self->prop == other->prop)) {
+			Py_RETURN_NONE;
+		}
+
+		/* XXX, possible one is inside the other */
+		IDP_MergeGroup(self->prop, other->prop, TRUE);
+	}
+	else if (PyDict_Check(value)) {
+		while (PyDict_Next(value, &i, &pkey, &pval)) {
+			BPy_IDGroup_Map_SetItem(self, pkey, pval);
+			if (PyErr_Occurred()) return NULL;
+		}
+	}
+	else {
 		PyErr_Format(PyExc_TypeError,
-		             "expected a dict not a %.200s",
+		             "expected a dict or an IDPropertyGroup type, not a %.200s",
 		             Py_TYPE(value)->tp_name);
 		return NULL;
 	}
 
-	while (PyDict_Next(value, &i, &pkey, &pval)) {
-		BPy_IDGroup_Map_SetItem(self, pkey, pval);
-		if (PyErr_Occurred()) return NULL;
-	}
 
 	Py_RETURN_NONE;
 }
