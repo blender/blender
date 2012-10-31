@@ -33,8 +33,12 @@
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
+
+#include "BLI_string_utf8.h"  /* own include */
 
 /* from libswish3, originally called u8_isvalid(),
  * modified to return the index of the bad character (byte index not utf).

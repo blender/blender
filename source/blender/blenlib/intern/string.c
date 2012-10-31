@@ -41,6 +41,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
 
+#include "BLI_utildefines.h"
+
 char *BLI_strdupn(const char *str, const size_t len)
 {
 	char *n = MEM_mallocN(len + 1, "strdup");
@@ -71,6 +73,7 @@ char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy)
 {
 	size_t srclen = strlen(src);
 	size_t cpylen = (srclen > (maxncpy - 1)) ? (maxncpy - 1) : srclen;
+	BLI_assert(maxncpy != 0);
 	
 	memcpy(dst, src, cpylen);
 	dst[cpylen] = '\0';
@@ -130,10 +133,13 @@ char *BLI_sprintfN(const char *format, ...)
  * TODO: support more fancy string escaping. current code is primitive
  *    this basically is an ascii version of PyUnicode_EncodeUnicodeEscape()
  *    which is a useful reference. */
-size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
+size_t BLI_strescape(char *dst, const char *src, const size_t maxncpy)
 {
 	size_t len = 0;
-	while (len < maxlen) {
+
+	BLI_assert(maxncpy != 0);
+
+	while (len < maxncpy) {
 		switch (*src) {
 			case '\0':
 				goto escape_finish;
@@ -144,7 +150,7 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 			case '\t':
 			case '\n':
 			case '\r':
-				if (len + 1 < maxlen) {
+				if (len + 1 < maxncpy) {
 					*dst++ = '\\';
 					len++;
 				}
@@ -439,4 +445,3 @@ void BLI_ascii_strtoupper(char *str, const size_t len)
 		if (str[i] >= 'a' && str[i] <= 'z')
 			str[i] -= 'a' - 'A';
 }
-
