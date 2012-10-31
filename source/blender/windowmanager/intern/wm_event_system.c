@@ -2961,7 +2961,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			}
 
 			/* double click test */
-			if (event.type == evt->prevtype && event.val == KM_PRESS) {
+			/* if previous event was same type, and previous was release, and now it presses... */
+			if (event.type == evt->prevtype && evt->prevval == KM_RELEASE && event.val == KM_PRESS) {
 				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
 				    (ABS(event.y - evt->prevclicky)) <= 2 &&
 				    ((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
@@ -2988,6 +2989,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			if (event.type == ESCKEY && event.val == KM_PRESS)
 				G.is_break = TRUE;
 			
+			/* double click test - only for press */
 			if (event.val == KM_PRESS) {
 				evt->prevclicktime = PIL_check_seconds_timer();
 				evt->prevclickx = event.x;
