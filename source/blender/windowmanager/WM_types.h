@@ -555,8 +555,8 @@ typedef struct wmOperatorType {
 	/* previous settings - for initializing on re-use */
 	struct IDProperty *last_properties;
 
-	/* rna property to use for generic invoke functions.
-	 * menus, enum search... etc */
+	/* Default rna property to use for generic invoke functions.
+	 * menus, enum search... etc. Example: Enum 'type' for a Delete menu */
 	PropertyRNA *prop;
 
 	/* struct wmOperatorTypeMacro */
