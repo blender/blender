@@ -6322,46 +6322,39 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my)
 	char test = ui_menu_scroll_test(block, my);
 	
 	if (test) {
-		uiBut *b1 = block->buttons.first;
-		uiBut *b2 = block->buttons.last;
-		uiBut *bnext;
-		uiBut *bprev;
-		int dy = 0;
-		
-		/* get first and last visible buttons */
-		while (b1 && ui_but_next(b1) && (b1->flag & UI_SCROLLED))
-			b1 = ui_but_next(b1);
-		while (b2 && ui_but_prev(b2) && (b2->flag & UI_SCROLLED))
-			b2 = ui_but_prev(b2);
-		/* skips separators */
-		bnext = ui_but_next(b1);
-		bprev = ui_but_prev(b2);
-		
-		if (bnext == NULL || bprev == NULL)
-			return 0;
-		
+		uiBut *bt;
+		float dy = 0.0f, ymin = FLT_MAX, ymax = -FLT_MAX;
+
 		if (test == 't') {
-			/* bottom button is first button */
-			if (b1->rect.ymin < b2->rect.ymin)
-				dy = bnext->rect.ymin - b1->rect.ymin;
-			/* bottom button is last button */
-			else 
-				dy = bprev->rect.ymin - b2->rect.ymin;
+			/* scroll to the top */
+			dy = -UI_UNIT_Y;
+
+			/* stop at top item, 1.5 mutliplier makes it snap nicer */
+			for (bt = block->buttons.first; bt; bt = bt->next)
+				ymax = max_ff(ymax, bt->rect.ymax);
+
+			if (ymax + 1.5f*dy < block->rect.ymax)
+				dy = block->rect.ymax - ymax;
 		}
 		else if (test == 'b') {
-			/* bottom button is first button */
-			if (b1->rect.ymin < b2->rect.ymin)
-				dy = b1->rect.ymin - bnext->rect.ymin;
-			/* bottom button is last button */
-			else 
-				dy = b2->rect.ymin - bprev->rect.ymin;
+			/* scroll to the bottom */
+			dy = UI_UNIT_Y;
+
+			/* stop at bottom item, 1.5 mutliplier makes it snap nicer */
+			for (bt = block->buttons.first; bt; bt = bt->next)
+				ymin = min_ff(ymin, bt->rect.ymin);
+
+			if (ymin + 1.5f*dy > block->rect.ymin)
+				dy = block->rect.ymin - ymin;
 		}
-		if (dy) {
-			
-			for (b1 = block->buttons.first; b1; b1 = b1->next) {
-				b1->rect.ymin -= dy;
-				b1->rect.ymax -= dy;
+
+		if (dy != 0.0f) {
+			/* apply scroll offset */
+			for (bt = block->buttons.first; bt; bt = bt->next) {
+				bt->rect.ymin += dy;
+				bt->rect.ymax += dy;
 			}
+
 			/* set flags again */
 			ui_popup_block_scrolltest(block);
 			
