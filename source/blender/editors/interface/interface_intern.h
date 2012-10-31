@@ -97,6 +97,11 @@ typedef enum {
 	UI_WTYPE_PROGRESSBAR
 } uiWidgetTypeEnum;
 
+/* menu scrolling */
+#define UI_MENU_SCROLL_ARROW	12
+#define UI_MENU_SCROLL_MOUSE	(UI_MENU_SCROLL_ARROW + 2)
+#define UI_MENU_SCROLL_PAD		4
+
 /* panel limits */
 #define UI_PANEL_MINX   100
 #define UI_PANEL_MINY   70

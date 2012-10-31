@@ -1594,11 +1594,11 @@ void ui_popup_block_scrolltest(uiBlock *block)
 	/* mark buttons overlapping arrows, if we have them */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
 		if (block->flag & UI_BLOCK_CLIPBOTTOM) {
-			if (bt->rect.ymin < block->rect.ymin + 12)
+			if (bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW)
 				bt->flag |= UI_SCROLLED;
 		}
 		if (block->flag & UI_BLOCK_CLIPTOP) {
-			if (bt->rect.ymax > block->rect.ymax - 12)
+			if (bt->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW)
 				bt->flag |= UI_SCROLLED;
 		}
 	}

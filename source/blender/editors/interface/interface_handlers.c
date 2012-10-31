@@ -6308,60 +6308,75 @@ static char ui_menu_scroll_test(uiBlock *block, int my)
 {
 	if (block->flag & (UI_BLOCK_CLIPTOP | UI_BLOCK_CLIPBOTTOM)) {
 		if (block->flag & UI_BLOCK_CLIPTOP) 
-			if (my > block->rect.ymax - 14)
+			if (my > block->rect.ymax - UI_MENU_SCROLL_MOUSE)
 				return 't';
 		if (block->flag & UI_BLOCK_CLIPBOTTOM)
-			if (my < block->rect.ymin + 14)
+			if (my < block->rect.ymin + UI_MENU_SCROLL_MOUSE)
 				return 'b';
 	}
 	return 0;
 }
 
-static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my)
+static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
 {
-	char test = ui_menu_scroll_test(block, my);
-	
-	if (test) {
-		uiBut *bt;
-		float dy = 0.0f, ymin = FLT_MAX, ymax = -FLT_MAX;
+	uiBut *bt;
+	float dy = 0.0f;
 
-		if (test == 't') {
-			/* scroll to the top */
-			dy = -UI_UNIT_Y;
+	if (to_bt) {
+		/* scroll to activated button */
+		if (block->flag & UI_BLOCK_CLIPTOP) {
+			if(to_bt->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW)
+				dy = block->rect.ymax - to_bt->rect.ymax - UI_MENU_SCROLL_ARROW;
+		}
+		if (block->flag & UI_BLOCK_CLIPBOTTOM) {
+			if(to_bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW)
+				dy = block->rect.ymin - to_bt->rect.ymin + UI_MENU_SCROLL_ARROW;
+		}
+	}
+	else {
+		/* scroll when mouse over arrow buttons */
+		char test = ui_menu_scroll_test(block, my);
 
-			/* stop at top item, 1.5 mutliplier makes it snap nicer */
+		if (test == 't')
+			dy = -UI_UNIT_Y; /* scroll to the top */
+		else if (test == 'b')
+			dy = UI_UNIT_Y; /* scroll to the bottom */
+	}
+
+	if (dy != 0.0f) {
+		if (dy < 0.0f) {
+			/* stop at top item, extra 0.5 unit Y makes it snap nicer */
+			float ymax = -FLT_MAX;
+
 			for (bt = block->buttons.first; bt; bt = bt->next)
 				ymax = max_ff(ymax, bt->rect.ymax);
 
-			if (ymax + 1.5f*dy < block->rect.ymax)
-				dy = block->rect.ymax - ymax;
+			if (ymax + dy - UI_UNIT_Y*0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD)
+				dy = block->rect.ymax - ymax - UI_MENU_SCROLL_PAD;
 		}
-		else if (test == 'b') {
-			/* scroll to the bottom */
-			dy = UI_UNIT_Y;
+		else {
+			/* stop at bottom item, extra 0.5 unit Y makes it snap nicer */
+			float ymin = FLT_MAX;
 
-			/* stop at bottom item, 1.5 mutliplier makes it snap nicer */
 			for (bt = block->buttons.first; bt; bt = bt->next)
 				ymin = min_ff(ymin, bt->rect.ymin);
 
-			if (ymin + 1.5f*dy > block->rect.ymin)
-				dy = block->rect.ymin - ymin;
+			if (ymin + dy + UI_UNIT_Y*0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD)
+				dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
 		}
 
-		if (dy != 0.0f) {
-			/* apply scroll offset */
-			for (bt = block->buttons.first; bt; bt = bt->next) {
-				bt->rect.ymin += dy;
-				bt->rect.ymax += dy;
-			}
-
-			/* set flags again */
-			ui_popup_block_scrolltest(block);
-			
-			ED_region_tag_redraw(ar);
-			
-			return 1;
+		/* apply scroll offset */
+		for (bt = block->buttons.first; bt; bt = bt->next) {
+			bt->rect.ymin += dy;
+			bt->rect.ymax += dy;
 		}
+
+		/* set flags again */
+		ui_popup_block_scrolltest(block);
+		
+		ED_region_tag_redraw(ar);
+		
+		return 1;
 	}
 	
 	return 0;
@@ -6397,7 +6412,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 	}
 	else if (event->type == TIMER) {
 		if (event->customdata == menu->scrolltimer)
-			ui_menu_scroll(ar, block, my);
+			ui_menu_scroll(ar, block, my, NULL);
 	}
 	else {
 		/* for ui_mouse_motion_towards_block */
@@ -6492,8 +6507,10 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 										but = ui_but_next(but);
 								}
 
-								if (but)
+								if (but) {
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
+									ui_menu_scroll(ar, block, my, but);
+								}
 							}
 
 							if (!but) {
@@ -6519,6 +6536,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 
 								if (bt) {
 									ui_handle_button_activate(C, ar, bt, BUTTON_ACTIVATE);
+									ui_menu_scroll(ar, block, my, bt);
 								}
 							}
 						}
