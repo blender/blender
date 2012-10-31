@@ -909,8 +909,7 @@ void autotexname(Tex *tex)
 		if (tex->use_nodes) {
 			new_id(&bmain->tex, (ID *)tex, "Noddy");
 		}
-		else
-		if (tex->type == TEX_IMAGE) {
+		else if (tex->type == TEX_IMAGE) {
 			ima = tex->ima;
 			if (ima) {
 				BLI_strncpy(di, ima->name, sizeof(di));

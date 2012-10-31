@@ -944,8 +944,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 		if (domainSettings->resolutionxyz>128) {
 			gridlevels = 2;
 		}
-		else
-		if (domainSettings->resolutionxyz>64) {
+		else if (domainSettings->resolutionxyz > 64) {
 			gridlevels = 1;
 		}
 		else {

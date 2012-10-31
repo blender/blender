@@ -741,13 +741,16 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				else {
 					if (index_mf_to_mpoly) {
 						orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace);
-						if (orig == ORIGINDEX_NONE) continue;
-						if (drawParamsMapped)
+						if (orig == ORIGINDEX_NONE) {
+							continue;
+						}
+						if (drawParamsMapped) {
 							draw_option = drawParamsMapped(userData, orig);
+						}
 					}
-					else
-					if (drawParamsMapped)
+					else if (drawParamsMapped) {
 						draw_option = drawParamsMapped(userData, actualFace);
+					}
 				}
 
 				/* flush buffer if current triangle isn't drawable or it's last triangle */
