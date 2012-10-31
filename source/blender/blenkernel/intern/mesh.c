@@ -493,7 +493,13 @@ Mesh *BKE_mesh_add(const char *name)
 	me->texflag = ME_AUTOSPACE;
 	me->flag = ME_TWOSIDED;
 	me->drawflag = ME_DRAWEDGES | ME_DRAWFACES | ME_DRAWCREASES;
-	
+
+	CustomData_reset(&me->vdata);
+	CustomData_reset(&me->edata);
+	CustomData_reset(&me->fdata);
+	CustomData_reset(&me->pdata);
+	CustomData_reset(&me->ldata);
+
 	return me;
 }
 
