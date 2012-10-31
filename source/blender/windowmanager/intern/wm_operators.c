@@ -859,6 +859,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 		RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 
 	if (action == FILE_SAVE) {
+		/* note, this is only used to check if we should highlight the filename area red when the
+		 * filepath is an existing file. */
 		prop = RNA_def_boolean(ot->srna, "check_existing", 1, "Check Existing", "Check and warn on overwriting existing files");
 		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	}
@@ -2117,7 +2119,6 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	char name[FILE_MAX];
-	int check_existing = 1;
 	int ret;
 	
 	/* cancel if no active window */
@@ -2137,13 +2138,9 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 	untitled(name);
 	
 	RNA_string_set(op->ptr, "filepath", name);
-	
-	if (RNA_struct_find_property(op->ptr, "check_existing"))
-		if (RNA_boolean_get(op->ptr, "check_existing") == 0)
-			check_existing = 0;
-	
+
 	if (G.save_over) {
-		if (check_existing && BLI_exists(name)) {
+		if (BLI_exists(name)) {
 			uiPupMenuSaveOver(C, op, name);
 			ret = OPERATOR_RUNNING_MODAL;
 		}

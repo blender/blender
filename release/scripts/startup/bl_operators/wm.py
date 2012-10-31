@@ -1290,7 +1290,7 @@ class WM_OT_blenderplayer_start(Operator):
             return {'CANCELLED'}
 
         filepath = os.path.join(bpy.app.tempdir, "game.blend")
-        bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
+        bpy.ops.wm.save_as_mainfile('EXEC_DEFAULT', filepath=filepath, copy=True)
         subprocess.call([player_path, filepath])
         return {'FINISHED'}
 

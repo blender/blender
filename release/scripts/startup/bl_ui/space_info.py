@@ -112,8 +112,9 @@ class INFO_MT_file(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK').check_existing = False
+        layout.operator_context = 'EXEC_AREA' if  context.blend_data.is_saved else 'INVOKE_AREA'
+        layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
+
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_as_mainfile", text="Save As...", icon='SAVE_AS')
         layout.operator_context = 'INVOKE_AREA'

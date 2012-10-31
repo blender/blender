@@ -145,7 +145,7 @@ def main():
 
     if write_blend is not None:
         print("  Writing Blend: %s" % write_blend)
-        bpy.ops.wm.save_mainfile(filepath=write_blend, check_existing=False)
+        bpy.ops.wm.save_mainfile('EXEC_DEFAULT', filepath=write_blend)
 
     print("  Result: '%s'" % str(result))
     if not result:

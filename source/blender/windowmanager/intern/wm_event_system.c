@@ -1576,72 +1576,55 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 			/* needed for uiPupMenuReports */
 
 			if (event->val == EVT_FILESELECT_EXEC) {
-#if 0               // use REDALERT now
+				int retval;
 
-				/* a bit weak, might become arg for WM_event_fileselect? */
-				/* XXX also extension code in image-save doesnt work for this yet */
-				if (RNA_struct_find_property(handler->op->ptr, "check_existing") &&
-				    RNA_boolean_get(handler->op->ptr, "check_existing"))
-				{
-					char *path = RNA_string_get_alloc(handler->op->ptr, "filepath", NULL, 0);
-					/* this gives ownership to pupmenu */
-					uiPupMenuSaveOver(C, handler->op, (path) ? path : "");
-					if (path)
-						MEM_freeN(path);
-				}
-				else
-#endif
-				{
-					int retval;
-						
+				if (handler->op->type->flag & OPTYPE_UNDO)
+					wm->op_undo_depth++;
+
+				retval = handler->op->type->exec(C, handler->op);
+
+				/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
+				if (handler->op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
+					wm->op_undo_depth--;
+
+				if (retval & OPERATOR_FINISHED)
+					if (G.debug & G_DEBUG_WM)
+						wm_operator_print(C, handler->op);
+
+				/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
+				if (CTX_wm_manager(C) == wm && wm->op_undo_depth == 0)
 					if (handler->op->type->flag & OPTYPE_UNDO)
-						wm->op_undo_depth++;
-						
-					retval = handler->op->type->exec(C, handler->op);
+						ED_undo_push_op(C, handler->op);
 
-					/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
-					if (handler->op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
-						wm->op_undo_depth--;
+				if (handler->op->reports->list.first) {
 
-					if (retval & OPERATOR_FINISHED)
-						if (G.debug & G_DEBUG_WM)
-							wm_operator_print(C, handler->op);
-
-					/* XXX check this carefully, CTX_wm_manager(C) == wm is a bit hackish */
-					if (CTX_wm_manager(C) == wm && wm->op_undo_depth == 0)
-						if (handler->op->type->flag & OPTYPE_UNDO)
-							ED_undo_push_op(C, handler->op);
-
-					if (handler->op->reports->list.first) {
-
-						/* FIXME, temp setting window, this is really bad!
+					/* FIXME, temp setting window, this is really bad!
 						 * only have because lib linking errors need to be seen by users :(
 						 * it can be removed without breaking anything but then no linking errors - campbell */
-						wmWindow *win_prev = CTX_wm_window(C);
-						ScrArea *area_prev = CTX_wm_area(C);
-						ARegion *ar_prev = CTX_wm_region(C);
+					wmWindow *win_prev = CTX_wm_window(C);
+					ScrArea *area_prev = CTX_wm_area(C);
+					ARegion *ar_prev = CTX_wm_region(C);
 
-						if (win_prev == NULL)
-							CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+					if (win_prev == NULL)
+						CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
-						handler->op->reports->printlevel = RPT_WARNING;
-						uiPupMenuReports(C, handler->op->reports);
+					handler->op->reports->printlevel = RPT_WARNING;
+					uiPupMenuReports(C, handler->op->reports);
 
-						/* XXX - copied from 'wm_operator_finished()' */
-						/* add reports to the global list, otherwise they are not seen */
-						BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
+					/* XXX - copied from 'wm_operator_finished()' */
+					/* add reports to the global list, otherwise they are not seen */
+					BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
-						CTX_wm_window_set(C, win_prev);
-						CTX_wm_area_set(C, area_prev);
-						CTX_wm_region_set(C, ar_prev);
-					}
-
-					if (retval & OPERATOR_FINISHED) {
-						WM_operator_last_properties_store(handler->op);
-					}
-
-					WM_operator_free(handler->op);
+					CTX_wm_window_set(C, win_prev);
+					CTX_wm_area_set(C, area_prev);
+					CTX_wm_region_set(C, ar_prev);
 				}
+
+				if (retval & OPERATOR_FINISHED) {
+					WM_operator_last_properties_store(handler->op);
+				}
+
+				WM_operator_free(handler->op);
 			}
 			else {
 				if (handler->op->type->cancel) {
