@@ -75,12 +75,9 @@ BLI_STATIC_ASSERT(sizeof(((CustomData *)NULL)->typemap) /
 typedef struct LayerTypeInfo {
 	int size;          /* the memory size of one element of this layer's data */
 
-	/**
-	 * name of the struct used, for file writing */
+	/** name of the struct used, for file writing */
 	const char *structname;
-	/**
-	 * number of structs per element, for file writing
-	 * (set to zero skips writing this data to disk/undo) */
+	/** number of structs per element, for file writing */
 	int structnum;
 
 	/**

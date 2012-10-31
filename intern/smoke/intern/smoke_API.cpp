@@ -386,7 +386,7 @@ extern "C" float *smoke_turbulence_get_flame(WTURBULENCE *wt)
 
 extern "C" void smoke_turbulence_get_res(WTURBULENCE *wt, int *res)
 {
-	if(wt) {
+	if (wt) {
 		Vec3Int r = wt->getResBig();
 		res[0] = r[0];
 		res[1] = r[1];
@@ -396,9 +396,9 @@ extern "C" void smoke_turbulence_get_res(WTURBULENCE *wt, int *res)
 
 extern "C" int smoke_turbulence_get_cells(WTURBULENCE *wt)
 {
-	if(wt) {
+	if (wt) {
 		Vec3Int r = wt->getResBig();
-		return r[0]*r[1]*r[2];
+		return r[0] * r[1] * r[2];
 	}
 	return 0;
 }
