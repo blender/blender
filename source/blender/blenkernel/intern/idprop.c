@@ -641,48 +641,58 @@ int IDP_EqualsProperties(IDProperty *prop1, IDProperty *prop2)
 	else if (prop1->type != prop2->type)
 		return 0;
 
-	if (prop1->type == IDP_INT)
-		return (IDP_Int(prop1) == IDP_Int(prop2));
-	else if (prop1->type == IDP_FLOAT)
-		return (IDP_Float(prop1) == IDP_Float(prop2));
-	else if (prop1->type == IDP_DOUBLE)
-		return (IDP_Double(prop1) == IDP_Double(prop2));
-	else if (prop1->type == IDP_STRING)
-		return ((prop1->len == prop2->len) && strncmp(IDP_String(prop1), IDP_String(prop2), prop1->len) == 0);
-	else if (prop1->type == IDP_ARRAY) {
-		if (prop1->len == prop2->len && prop1->subtype == prop2->subtype)
-			return memcmp(IDP_Array(prop1), IDP_Array(prop2), idp_size_table[(int)prop1->subtype] * prop1->len);
-		else
-			return 0;
-	}
-	else if (prop1->type == IDP_GROUP) {
-		IDProperty *link1, *link2;
-
-		if (BLI_countlist(&prop1->data.group) != BLI_countlist(&prop2->data.group))
-			return 0;
-
-		for (link1 = prop1->data.group.first; link1; link1 = link1->next) {
-			link2 = IDP_GetPropertyFromGroup(prop2, link1->name);
-
-			if (!IDP_EqualsProperties(link1, link2))
+	switch (prop1->type) {
+		case IDP_INT:
+			return (IDP_Int(prop1) == IDP_Int(prop2));
+		case IDP_FLOAT:
+			return (IDP_Float(prop1) == IDP_Float(prop2));
+		case IDP_DOUBLE:
+			return (IDP_Double(prop1) == IDP_Double(prop2));
+		case IDP_STRING:
+			return ((prop1->len == prop2->len) && strncmp(IDP_String(prop1), IDP_String(prop2), prop1->len) == 0);
+		case IDP_ARRAY:
+			if (prop1->len == prop2->len && prop1->subtype == prop2->subtype) {
+				return memcmp(IDP_Array(prop1), IDP_Array(prop2), idp_size_table[(int)prop1->subtype] * prop1->len);
+			}
+			else {
 				return 0;
+			}
+		case IDP_GROUP:
+		{
+			IDProperty *link1, *link2;
+
+			if (BLI_countlist(&prop1->data.group) != BLI_countlist(&prop2->data.group))
+				return 0;
+
+			for (link1 = prop1->data.group.first; link1; link1 = link1->next) {
+				link2 = IDP_GetPropertyFromGroup(prop2, link1->name);
+
+				if (!IDP_EqualsProperties(link1, link2))
+					return 0;
+			}
+
+			return 1;
 		}
+		case IDP_IDPARRAY:
+		{
+			IDProperty *array1 = IDP_IDPArray(prop1);
+			IDProperty *array2 = IDP_IDPArray(prop2);
+			int i;
 
-		return 1;
-	}
-	else if (prop1->type == IDP_IDPARRAY) {
-		IDProperty *array1 = IDP_IDPArray(prop1);
-		IDProperty *array2 = IDP_IDPArray(prop2);
-		int i;
-
-		if (prop1->len != prop2->len)
-			return 0;
-		
-		for (i = 0; i < prop1->len; i++)
-			if (!IDP_EqualsProperties(&array1[i], &array2[i]))
+			if (prop1->len != prop2->len)
 				return 0;
+
+			for (i = 0; i < prop1->len; i++)
+				if (!IDP_EqualsProperties(&array1[i], &array2[i]))
+					return 0;
+			return 1;
+		}
+		default:
+			/* should never get here */
+			BLI_assert(0);
+			break;
 	}
-	
+
 	return 1;
 }
 
