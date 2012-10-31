@@ -384,13 +384,19 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static PyObject *matrix__apply_to_copy(PyNoArgsFunction matrix_func, MatrixObject *self)
 {
 	PyObject *ret = Matrix_copy(self);
-	PyObject *ret_dummy = matrix_func(ret);
-	if (ret_dummy) {
-		Py_DECREF(ret_dummy);
-		return (PyObject *)ret;
+	if (ret) {
+		PyObject *ret_dummy = matrix_func(ret);
+		if (ret_dummy) {
+			Py_DECREF(ret_dummy);
+			return (PyObject *)ret;
+		}
+		else { /* error */
+			Py_DECREF(ret);
+			return NULL;
+		}
 	}
-	else { /* error */
-		Py_DECREF(ret);
+	else {
+		/* copy may fail if the read callback errors out */
 		return NULL;
 	}
 }

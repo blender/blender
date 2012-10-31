@@ -602,7 +602,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	}
 
 	mp = mpoly;
-	index = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
+	index = (int *)dm->getPolyDataArray(dm, CD_ORIGINDEX);
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		CCGFace *f;
 
