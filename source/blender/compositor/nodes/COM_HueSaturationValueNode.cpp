@@ -50,7 +50,7 @@ void HueSaturationValueNode::convertToOperations(ExecutionSystem *graph, Composi
 	ChangeHSVOperation *changeHSV = new ChangeHSVOperation();
 	MixBlendOperation *blend = new MixBlendOperation();
 
-	colorSocket->relinkConnections(rgbToHSV->getInputSocket(0), 0, graph);
+	colorSocket->relinkConnections(rgbToHSV->getInputSocket(0), 1, graph);
 	addLink(graph, rgbToHSV->getOutputSocket(), changeHSV->getInputSocket(0));
 	addLink(graph, changeHSV->getOutputSocket(), hsvToRGB->getInputSocket(0));
 	addLink(graph, hsvToRGB->getOutputSocket(), blend->getInputSocket(2));
