@@ -75,9 +75,6 @@
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
 
-/* defines BLI_INLINE */
-#include "BLI_utildefines.h"
-
 struct CCGElem;
 struct CCGKey;
 struct MVert;

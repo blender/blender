@@ -79,31 +79,32 @@ extern "C"
 #include "DNA_modifier_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_fcurve.h"
-#include "BKE_animsys.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_DerivedMesh.h"
+#include "BKE_action.h" // pose functions
+#include "BKE_animsys.h"
+#include "BKE_armature.h"
+#include "BKE_blender.h" // version info
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
+#include "BKE_object.h"
+#include "BKE_scene.h"
+
 #include "ED_keyframing.h"
 #ifdef WITH_BUILDINFO
 extern char build_rev[];
 #endif
 
 #include "MEM_guardedalloc.h"
-
-#include "BKE_blender.h" // version info
-#include "BKE_scene.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_action.h" // pose functions
-#include "BKE_armature.h"
-#include "BKE_image.h"
-#include "BKE_object.h"
-
-#include "BLI_math.h"
-#include "BLI_string.h"
-#include "BLI_listbase.h"
 
 #include "RNA_access.h"
 }

@@ -24,9 +24,13 @@
  *  \ingroup collada
  */
 
+extern "C" {
+	#include "BLI_utildefines.h"
+	#include "BKE_object.h"
+}
+
 #include "SceneExporter.h"
 #include "collada_utils.h"
-#include "BKE_object.h"
 
 SceneExporter::SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings)
 	: COLLADASW::LibraryVisualScenes(sw), arm_exporter(arm), export_settings(export_settings)

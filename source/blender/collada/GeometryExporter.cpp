@@ -38,6 +38,8 @@
 #include "DNA_meshdata_types.h"
 
 extern "C" {
+	#include "BLI_utildefines.h"
+
 	#include "BKE_DerivedMesh.h"
 	#include "BKE_main.h"
 	#include "BKE_global.h"
