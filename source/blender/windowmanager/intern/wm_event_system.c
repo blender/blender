@@ -452,10 +452,10 @@ void WM_event_print(wmEvent *event)
 		RNA_enum_identifier(event_type_items, event->type, &type_id);
 		RNA_enum_identifier(event_value_items, event->val, &val_id);
 
-		printf("wmEvent - type:%d/%s, val:%d/%s, "
-		       "shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, "
-		       "mouse:(%d,%d), ascii:'%c', utf8:'%.*s', "
-		       "keymap_idname:%s, pointer:%p\n",
+		printf("wmEvent  type:%d / %s, val:%d / %s, \n"
+		       "         shift:%d, ctrl:%d, alt:%d, oskey:%d, keymodifier:%d, \n"
+		       "         mouse:(%d,%d), ascii:'%c', utf8:'%.*s', "
+		       "         keymap_idname:%s, pointer:%p\n",
 		       event->type, type_id, event->val, val_id,
 		       event->shift, event->ctrl, event->alt, event->oskey, event->keymodifier,
 		       event->x, event->y, event->ascii,
@@ -1378,14 +1378,8 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	if (kmi->oskey != KM_ANY)
 		if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
 	
-	if (kmi->keymodifier)
-		if (winevent->keymodifier != kmi->keymodifier) return 0;
+	if (winevent->keymodifier != kmi->keymodifier) return 0;
 		
-	/* key modifiers always check when event has it */
-	/* otherwise regular keypresses with keymodifier still work */
-	if (winevent->keymodifier)
-		if (ISKEYBOARD(winevent->type)) // was ISTEXTINPUT - BUG [#30479]
-			if (winevent->keymodifier != kmi->keymodifier) return 0;
 	
 	return 1;
 }
@@ -1725,13 +1719,6 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 		return action;
 	}
 
-#ifndef NDEBUG
-	if (do_debug_handler) {
-		printf("%s: handling event\n", __func__);
-		WM_event_print(event);
-	}
-#endif
-
 	/* modal handlers can get removed in this loop, we keep the loop this way
 	 *
 	 * note: check 'handlers->first' because in rare cases the handlers can be cleared
@@ -1787,11 +1774,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
 							if (action & WM_HANDLER_BREAK) {
 								/* not always_pass here, it denotes removed handler */
-#ifndef NDEBUG
-								if (do_debug_handler) {
-									printf("%s:       handled! '%s'...", __func__, kmi->idname);
-								}
-#endif
+								
+								if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
+									printf("%s:       handled! '%s'\n", __func__, kmi->idname);
+
 								break;
 							}
 							else {
@@ -1911,7 +1897,11 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				
 				if (event->val == KM_RELEASE && win->eventstate->prevval == KM_PRESS && win->eventstate->check_click == TRUE) {
 					event->val = KM_CLICK;
-					// printf("add KM_CLICK\n");
+					
+					if (G.debug & (G_DEBUG_HANDLERS)) {
+						printf("%s: handling CLICK\n", __func__);
+					}
+
 					action |= wm_handlers_do_intern(C, event, handlers);
 
 					event->val = KM_RELEASE;
@@ -2112,8 +2102,9 @@ void wm_event_do_handlers(bContext *C)
 		while ( (event = win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
 
-			if ((G.debug & G_DEBUG_HANDLERS) && event && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-				printf("%s: pass on evt %d val %d\n", __func__, event->type, event->val);
+			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+				printf("\n%s: Handling event\n", __func__);
+				WM_event_print(event);
 			}
 			
 			wm_eventemulation(event);
@@ -2759,8 +2750,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
-
-				//printf("sending MOUSEMOVE %d %d\n", event.x, event.y);
 				
 				/* also add to other window if event is there, this makes overdraws disappear nicely */
 				/* it remaps mousecoord to other window in event */
@@ -2856,7 +2845,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				    (ABS(event.y - evt->prevclicky)) <= 2 &&
 				    ((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
 				{
-					// printf("double click\n");
+					if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
+						printf("%s Send double click\n", __func__);
 					event.val = KM_DBL_CLICK;
 				}
 			}
@@ -2967,18 +2957,17 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				    (ABS(event.y - evt->prevclicky)) <= 2 &&
 				    ((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
 				{
-					// printf("double click\n");
+					if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
+						printf("%s Send double click\n", __func__);
 					evt->val = event.val = KM_DBL_CLICK;
 				}
 			}
 			
-			/* this case happens on some systems that on holding a key pressed,
-			 * generate press events without release, we still want to keep the
-			 * modifier in win->eventstate, but for the press event of the same
-			 * key we don't want the key modifier */
+			/* this case happens on holding a key pressed, it should not generate
+			 * press events events with the same key as modifier */
 			if (event.keymodifier == event.type)
 				event.keymodifier = 0;
-			
+						
 			/* this case happened with an external numpad, it's not really clear
 			 * why, but it's also impossible to map a key modifier to an unknwon
 			 * key, so it shouldn't harm */
@@ -3020,6 +3009,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.type = TIMER;
 			event.custom = EVT_DATA_TIMER;
 			event.customdata = customdata;
+			event.val = 0;
+			event.keymodifier = 0;
 			wm_event_add(win, &event);
 
 			break;
@@ -3032,7 +3023,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			attach_ndof_data(&event, customdata);
 			wm_event_add(win, &event);
 
-			//printf("sending NDOF_MOTION, prev = %d %d\n", event.x, event.y);
+			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
+				printf("%s sending NDOF_MOTION, prev = %d %d\n", __func__, event.x, event.y);
 
 			break;
 		}
@@ -3073,8 +3065,5 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		}
 
 	}
-
-	/* Handy when debugging checking events */
-	/* WM_event_print(&event); */
 
 }

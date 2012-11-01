@@ -945,6 +945,8 @@ static int wm_window_timer(const bContext *C)
 					wmEvent event = *(win->eventstate);
 					
 					event.type = wt->event_type;
+					event.val = 0;
+					event.keymodifier = 0;
 					event.custom = EVT_DATA_TIMER;
 					event.customdata = wt;
 					wm_event_add(win, &event);
