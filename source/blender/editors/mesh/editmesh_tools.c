@@ -3808,30 +3808,36 @@ void MESH_OT_screw(wmOperatorType *ot)
 	                     "Axis", "Axis in global view space", -1.0f, 1.0f);
 }
 
-static int edbm_select_by_number_vertices_exec(bContext *C, wmOperator *op)
+static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMFace *efa;
 	BMIter iter;
-	int numverts = RNA_int_get(op->ptr, "number");
-	int type = RNA_enum_get(op->ptr, "type");
+	const int numverts = RNA_int_get(op->ptr, "number");
+	const int type = RNA_enum_get(op->ptr, "type");
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 
-		int select = 0;
+		int select;
 
-		if (type == 0 && efa->len < numverts) {
-			select = 1;
-		}
-		else if (type == 1 && efa->len == numverts) {
-			select = 1;
-		}
-		else if (type == 2 && efa->len > numverts) {
-			select = 1;
-		}
-		else if (type == 3 && efa->len != numverts) {
-			select = 1;
+		switch (type) {
+			case 0:
+				select = (efa->len < numverts);
+				break;
+			case 1:
+				select = (efa->len == numverts);
+				break;
+			case 2:
+				select = (efa->len > numverts);
+				break;
+			case 3:
+				select = (efa->len != numverts);
+				break;
+			default:
+				BLI_assert(0);
+				select = FALSE;
+				break;
 		}
 
 		if (select) {
@@ -3845,7 +3851,7 @@ static int edbm_select_by_number_vertices_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
+void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 {
 	static const EnumPropertyItem type_items[] = {
 		{0, "LESS", 0, "Less Than", ""},
@@ -3856,12 +3862,12 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name = "Select by Number of Vertices";
-	ot->description = "Select vertices or faces by vertex count";
-	ot->idname = "MESH_OT_select_by_number_vertices";
+	ot->name = "Select Faces by Sides";
+	ot->description = "Select vertices or faces by the number of polygon sides";
+	ot->idname = "MESH_OT_select_face_by_sides";
 	
 	/* api callbacks */
-	ot->exec = edbm_select_by_number_vertices_exec;
+	ot->exec = edbm_select_face_by_sides_exec;
 	ot->poll = ED_operator_editmesh;
 	
 	/* flags */
