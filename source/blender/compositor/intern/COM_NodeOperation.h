@@ -163,7 +163,10 @@ public:
 	 * @param clMemToCleanUp all created cl_mem references must be added to this list. Framework will clean this after execution
 	 * @param clKernelsToCleanUp all created cl_kernel references must be added to this list. Framework will clean this after execution
 	 */
-	virtual void executeOpenCL(OpenCLDevice *device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
+	virtual void executeOpenCL(OpenCLDevice *device,
+	                           MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
+	                           MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
+	                           list<cl_kernel> *clKernelsToCleanUp) {}
 	virtual void deinitExecution();
 
 	bool isResolutionSet() {

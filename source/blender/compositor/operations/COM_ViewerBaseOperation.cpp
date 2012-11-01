@@ -79,8 +79,7 @@ void ViewerBaseOperation::initImage()
 		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
 
-	if (m_doDepthBuffer) 
-	{
+	if (m_doDepthBuffer) {
 		addzbuffloatImBuf(ibuf);
 	}
 	BLI_unlock_thread(LOCK_DRAW_IMAGE);
@@ -96,8 +95,7 @@ void ViewerBaseOperation::initImage()
 	 */
 	this->m_ibuf = ibuf;
 
-	if (m_doDepthBuffer)
-	{
+	if (m_doDepthBuffer) {
 		this->m_depthBuffer = ibuf->zbuf_float;
 	}
 

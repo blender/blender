@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmo_select_similar.c
+/** \file blender/bmesh/operators/bmo_similar.c
  *  \ingroup bmesh
  *
  * bmesh operators to select based on

@@ -1104,7 +1104,9 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 	if (!tree_overlap(tree1->nodes[tree1->totleaf], tree2->nodes[tree2->totleaf],
 	                  min_axis(tree1->start_axis, tree2->start_axis),
 	                  min_axis(tree1->stop_axis, tree2->stop_axis)))
+	{
 		return NULL;
+	}
 
 	data = MEM_callocN(sizeof(BVHOverlapData *) * tree1->tree_type, "BVHOverlapData_star");
 	

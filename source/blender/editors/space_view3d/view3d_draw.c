@@ -1218,11 +1218,11 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 			hmargin = 0.1 * (x2 - x1);
 			vmargin = 0.05 * (y2 - y1);
-			uiDrawBox(GL_LINE_LOOP, x1+hmargin, y1+vmargin, x2-hmargin, y2-vmargin, 2.0);
+			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1+vmargin, x2 - hmargin, y2 - vmargin, 2.0);
 
 			hmargin = 0.035 * (x2 - x1);
 			vmargin = 0.035 * (y2 - y1);
-			uiDrawBox(GL_LINE_LOOP, x1+hmargin, y1+vmargin, x2-hmargin, y2-vmargin, 2.0);
+			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1+vmargin, x2 - hmargin, y2 - vmargin, 2.0);
 		}
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* determine sensor fit, and get sensor x/y, for auto fit we

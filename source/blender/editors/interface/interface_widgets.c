@@ -2668,7 +2668,7 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), 
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space, arrows are about 0.6 height of button */
-	rect->xmax -= (6*BLI_rcti_size_y(rect))/10;
+	rect->xmax -= (6 * BLI_rcti_size_y(rect)) / 10;
 }
 
 static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)

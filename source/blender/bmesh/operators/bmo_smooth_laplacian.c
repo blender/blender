@@ -204,7 +204,8 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 				sys->eweights[i] = w1;
 				sys->vlengths[idv1] += w1;
 				sys->vlengths[idv2] += w1;
-			}else{
+			}
+			else {
 				sys->zerola[idv1] = 1;
 				sys->zerola[idv2] = 1;
 			}
@@ -568,16 +569,16 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	nlSolverParameteri(NL_NB_ROWS, bm->totvert);
 	nlSolverParameteri(NL_NB_RIGHT_HAND_SIDES, 3);
 
-	nlBegin(NL_SYSTEM);	
-	for (i=0; i < bm->totvert; i++) {
+	nlBegin(NL_SYSTEM);
+	for (i = 0; i < bm->totvert; i++) {
 		nlLockVariable(i);
 	}
 	BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
 		nlUnlockVariable(m_vertex_id);
-		nlSetVariable(0,m_vertex_id, v->co[0]);
-		nlSetVariable(1,m_vertex_id, v->co[1]);
-		nlSetVariable(2,m_vertex_id, v->co[2]);
+		nlSetVariable(0, m_vertex_id, v->co[0]);
+		nlSetVariable(1, m_vertex_id, v->co[1]);
+		nlSetVariable(2, m_vertex_id, v->co[2]);
 	}
 
 	nlBegin(NL_MATRIX);

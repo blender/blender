@@ -304,7 +304,7 @@ void BKE_object_free(Object *ob)
 	if (ob->data) {
 		ID *id = ob->data;
 		id->us--;
-		if (id->us == 0 && id->lib==NULL) {
+		if (id->us == 0 && id->lib == NULL) {
 			switch (ob->type) {
 				case OB_MESH:
 					BKE_mesh_unlink((Mesh *)id);

@@ -328,7 +328,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	func = RNA_def_function(srna, "end_result", "RE_engine_end_result");
 	prop = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop = RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't merge back results");
+	RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't merge back results");
 
 	func = RNA_def_function(srna, "test_break", "RE_engine_test_break");
 	prop = RNA_def_boolean(func, "do_break", 0, "Break", "");

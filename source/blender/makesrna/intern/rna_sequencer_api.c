@@ -568,11 +568,11 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_int(func, "start_frame", 0, -MAXFRAME, MAXFRAME, "",
 	                   "The start frame for the new sequence", -MAXFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "end_frame", 0, -MAXFRAME, MAXFRAME, "",
-	                   "The end frame for the new sequence", -MAXFRAME, MAXFRAME);
-	parm = RNA_def_pointer(func, "seq1", "Sequence", "", "Sequence 1 for effect");
-	parm = RNA_def_pointer(func, "seq2", "Sequence", "", "Sequence 2 for effect");
-	parm = RNA_def_pointer(func, "seq3", "Sequence", "", "Sequence 3 for effect");
+	RNA_def_int(func, "end_frame", 0, -MAXFRAME, MAXFRAME, "",
+	            "The end frame for the new sequence", -MAXFRAME, MAXFRAME);
+	RNA_def_pointer(func, "seq1", "Sequence", "", "Sequence 1 for effect");
+	RNA_def_pointer(func, "seq2", "Sequence", "", "Sequence 2 for effect");
+	RNA_def_pointer(func, "seq3", "Sequence", "", "Sequence 3 for effect");
 	/* return type */
 	parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
 	RNA_def_function_return(func, parm);

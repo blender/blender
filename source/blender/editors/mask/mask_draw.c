@@ -479,7 +479,7 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
 	(void)draw_type;
 }
 
-static void draw_masklays(const bContext *C, Mask *mask, const char draw_flag,const char draw_type,
+static void draw_masklays(const bContext *C, Mask *mask, const char draw_flag, const char draw_type,
                           int width, int height)
 {
 	MaskLayer *masklay;

@@ -1594,7 +1594,7 @@ void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
 	/* new func */
 	func = RNA_def_function(srna, "new", "rna_Main_mask_new");
 	RNA_def_function_ui_description(func, "Add a new mask with a given name to the main database");
-	parm = RNA_def_string_file_path(func, "name", "", MAX_ID_NAME - 2, "Mask", "Name of new mask datablock");
+	RNA_def_string_file_path(func, "name", "", MAX_ID_NAME - 2, "Mask", "Name of new mask datablock");
 	/* return type */
 	parm = RNA_def_pointer(func, "mask", "Mask", "", "New mask datablock");
 	RNA_def_function_return(func, parm);

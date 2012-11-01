@@ -4933,8 +4933,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	if (but->flag & UI_BUT_DISABLED)
 		return WM_UI_HANDLER_CONTINUE;
 
-	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP))
-	{
+	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP)) {
 		/* handle copy-paste */
 		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS && (event->ctrl || event->oskey)) {
 			
@@ -6325,11 +6324,11 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
 	if (to_bt) {
 		/* scroll to activated button */
 		if (block->flag & UI_BLOCK_CLIPTOP) {
-			if(to_bt->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW)
+			if (to_bt->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW)
 				dy = block->rect.ymax - to_bt->rect.ymax - UI_MENU_SCROLL_ARROW;
 		}
 		if (block->flag & UI_BLOCK_CLIPBOTTOM) {
-			if(to_bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW)
+			if (to_bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW)
 				dy = block->rect.ymin - to_bt->rect.ymin + UI_MENU_SCROLL_ARROW;
 		}
 	}

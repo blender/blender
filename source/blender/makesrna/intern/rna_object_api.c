@@ -613,7 +613,7 @@ void RNA_api_object(StructRNA *srna)
 	                                "objects real matrix and layers");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
-	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Generate texture coordinates for rendering");
+	RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Generate texture coordinates for rendering");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	func = RNA_def_function(srna, "dupli_list_clear", "rna_Object_free_duplilist");

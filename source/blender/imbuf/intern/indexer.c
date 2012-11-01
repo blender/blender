@@ -870,9 +870,9 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(
 		context->start_pts_set = TRUE;
 	}
 
-	context->frameno = floor((pts - context->start_pts) 
-				 * context->pts_time_base 
-				 * context->frame_rate + 0.5f);
+	context->frameno = floor((pts - context->start_pts) *
+	                         context->pts_time_base  *
+	                         context->frame_rate + 0.5f);
 
 	/* decoding starts *always* on I-Frames,
 	 * so: P-Frames won't work, even if all the
