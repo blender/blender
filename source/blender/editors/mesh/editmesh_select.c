@@ -674,7 +674,9 @@ static int unified_findnearest(ViewContext *vc, BMVert **r_eve, BMEdge **r_eed, 
 static EnumPropertyItem prop_similar_compare_types[] = {
 	{SIM_CMP_EQ, "EQUAL", 0, "Equal", ""},
 	{SIM_CMP_GT, "GREATER", 0, "Greater", ""},
-	{SIM_CMP_LT, "LESS", 0, "Less", ""}
+	{SIM_CMP_LT, "LESS", 0, "Less", ""},
+
+	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem prop_similar_types[] = {
