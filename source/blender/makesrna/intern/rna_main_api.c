@@ -296,15 +296,17 @@ static Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, con
 
 	return ima;
 }
-static void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
+static void rna_Main_images_remove(Main *bmain, ReportList *reports, struct PointerRNA *image_ptr)
 {
-	if (ID_REAL_USERS(image) <= 0)
+	Image *image = image_ptr->data;
+	if (ID_REAL_USERS(image) <= 0) {
 		BKE_libblock_free(&bmain->image, image);
-	else
+		RNA_POINTER_INVALIDATE(image_ptr);
+	}
+	else {
 		BKE_reportf(reports, RPT_ERROR, "Image '%s' must have zero users to be removed, found %d",
 		            image->id.name + 2, ID_REAL_USERS(image));
-
-	/* XXX python now has invalid pointer? */
+	}
 }
 
 static Lattice *rna_Main_lattices_new(Main *UNUSED(bmain), const char *name)
@@ -1015,7 +1017,8 @@ void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove an image from the current blendfile");
 	parm = RNA_def_pointer(func, "image", "Image", "", "Image to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);  /* pass the pointer direct */
 
 	func = RNA_def_function(srna, "tag", "rna_Main_images_tag");
 	parm = RNA_def_boolean(func, "value", 0, "Value", "");

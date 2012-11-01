@@ -121,8 +121,7 @@ int pyrna_prop_validity_check(BPy_PropertyRNA *self)
 
 void pyrna_invalidate(BPy_DummyPointerRNA *self)
 {
-	self->ptr.type = NULL; /* this is checked for validity */
-	self->ptr.id.data = NULL; /* should not be needed but prevent bad pointer access, just in case */
+	RNA_POINTER_INVALIDATE(&self->ptr);
 }
 
 #ifdef USE_PYRNA_INVALIDATE_GC
@@ -1776,10 +1775,21 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					if (data) {
 
 						if (flag & PROP_RNAPTR) {
-							if (value == Py_None)
-								memset(data, 0, sizeof(PointerRNA));
-							else
-								*((PointerRNA *)data) = param->ptr;
+							if (flag & PROP_THICK_WRAP) {
+								if (value == Py_None)
+									memset(data, 0, sizeof(PointerRNA));
+								else
+									*((PointerRNA *)data) = param->ptr;
+							}
+							else {
+								/* for function calls, we sometimes want to pass the 'ptr' directly,
+								 * watch out that it remains valid!, possibly we could support this later if needed */
+								BLI_assert(value_new == NULL);
+								if (value == Py_None)
+									*((void **)data) = NULL;
+								else
+									*((PointerRNA **)data) = &param->ptr;
+							}
 						}
 						else if (value == Py_None) {
 							*((void **)data) = NULL;

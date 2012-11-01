@@ -1032,6 +1032,13 @@ short RNA_type_to_ID_code(StructRNA *type);
 StructRNA *ID_code_to_RNA_type(short idcode);
 
 
+#define RNA_POINTER_INVALIDATE(ptr) {                                         \
+	/* this is checked for validity */                                        \
+	(ptr)->type =                                                             \
+	/* should not be needed but prevent bad pointer access, just in case */   \
+	(ptr)->id.data = NULL;                                                    \
+} (void)0
+
 /* macro which inserts the function name */
 #if defined __GNUC__ || defined __sun
 #  define RNA_warning(format, args ...) _RNA_warning("%s: " format "\n", __func__, ##args)
