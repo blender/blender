@@ -1880,6 +1880,10 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	int action = wm_handlers_do_intern(C, event, handlers);
 		
+	/* fileread case */
+	if (CTX_wm_window(C) == NULL)
+		return action;
+
 	if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && !ISTIMER(event->type)) {
 
 		/* test for CLICK events */
