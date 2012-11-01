@@ -167,7 +167,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 					uiDefBut(block, LABEL, 1, "y =", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
 				
 				/* coefficient */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, bwidth/2, 20, cp, -UI_FLT_MAX, UI_FLT_MAX,
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, bwidth / 2, 20, cp, -UI_FLT_MAX, UI_FLT_MAX,
 				          10, 3, TIP_("Coefficient for polynomial"));
 				
 				/* 'x' param (and '+' if necessary) */

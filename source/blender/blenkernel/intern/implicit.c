@@ -1513,7 +1513,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
 		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
 		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
-		if (i < 0 || j < 0 || k < 0 || i > 10 || j >= 10 || k >= 10)
+		if (i < 0 || j < 0 || k < 0 || i > 10 || j > 10 || k > 10)
 			continue;
 
 		lF[v][0] += smoothfac * (grid[i][j][k].velocity[0] - lV[v][0]);

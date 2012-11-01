@@ -158,11 +158,16 @@ static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEl
 		totcol = mb->totcol;
 		matar = mb->mat;
 	}
+	else {
+		BLI_assert(0);
+	}
 
-	for (a = 0; a < totcol; a++) {
-		if (a == te->index && matar[a]) {
-			matar[a]->id.us--;
-			matar[a] = NULL;
+	if (LIKELY(matar != NULL)) {
+		for (a = 0; a < totcol; a++) {
+			if (a == te->index && matar[a]) {
+				matar[a]->id.us--;
+				matar[a] = NULL;
+			}
 		}
 	}
 }
