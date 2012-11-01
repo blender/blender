@@ -831,7 +831,7 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
 	const char *name;
 
 	if (!PYRNA_STRUCT_IS_VALID(self)) {
-		return PyUnicode_FromFormat("<bpy_struct, %.200s dead>",
+		return PyUnicode_FromFormat("<bpy_struct, %.200s invalid>",
 		                            Py_TYPE(self)->tp_name);
 	}
 
