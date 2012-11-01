@@ -114,7 +114,14 @@ bool KX_ObjectActuator::Update()
 						(m_bitLocalFlag.AngularVelocity) != 0
 					);
 			m_active_combined_velocity = false;
-		} 
+		}
+
+		// Explicitly stop the movement if we're using a character (apply movement is a little different for characters)
+		if (parent->GetPhysicsController()->IsCharacter()) {
+			MT_Vector3 vec(0.0, 0.0, 0.0);
+			parent->ApplyMovement(vec, true);
+		}
+
 		m_linear_damping_active = false;
 		m_angular_damping_active = false;
 		m_error_accumulator.setValue(0.0,0.0,0.0);
