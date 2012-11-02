@@ -425,23 +425,14 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			if (err != noErr)
 				continue;
 			
-			/* Get mounted volumes better method see: */
-			/*https://developer.apple.com/library/mac/#documentation/CoreFOundation/Reference/CFURLRef/Reference/reference.html*/
+			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 			
-			CFURLEnumeratorResult result = kCFURLEnumeratorSuccess;
-			CFURLEnumeratorRef volEnum = CFURLEnumeratorCreateForMountedVolumes(NULL, kCFURLEnumeratorSkipInvisibles, NULL);
+			if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
+				continue;
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, FS_INSERT_SORTED);
 			
-			while (result != kCFURLEnumeratorEnd) {
-				unsigned char defPath[FILE_MAX];
-				
-				result = CFURLEnumeratorGetNextURL(volEnum, &cfURL, NULL);
-				if (result != kCFURLEnumeratorSuccess)
-					continue;
-				
-				CFURLGetFileSystemRepresentation(cfURL, false, (UInt8*)defPath, FILE_MAX);
-				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)defPath, FS_INSERT_SORTED);
-			}
-			CFRelease(volEnum);
+			CFRelease(pathString);
+			CFRelease(cfURL);
 		}
 		
 		CFRelease(pathesArray);
