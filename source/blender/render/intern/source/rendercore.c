@@ -2376,10 +2376,28 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 		v2= vlr->v2->co;
 		v3= vlr->v3->co;
 	}
+
+	l= 1.0f-u-v;
+
+	/* shrink barycentric coordinates inwards slightly to avoid some issues
+	 * where baking selected to active might just miss the other face at the
+	 * near the edge of a face */
+	if (bs->actob) {
+		const float eps = 1.0f - 1e-4f;
+		float invsum;
+
+		u = (u - 0.5f)*eps + 0.5f;
+		v = (v - 0.5f)*eps + 0.5f;
+		l = (l - 0.5f)*eps + 0.5f;
+
+		invsum = 1.0f/(u + v + l);
+
+		u *= invsum;
+		v *= invsum;
+		l *= invsum;
+	}
 	
 	/* renderco */
-	l= 1.0f-u-v;
-	
 	shi->co[0]= l*v3[0]+u*v1[0]+v*v2[0];
 	shi->co[1]= l*v3[1]+u*v1[1]+v*v2[1];
 	shi->co[2]= l*v3[2]+u*v1[2]+v*v2[2];
