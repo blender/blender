@@ -96,7 +96,7 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
 	int index;
 	int step = getStep();
 	const int bufferIndexx = ((minx - bufferstartx) * 4);
-	for (int ny = miny; ny < maxy; ny += step) {
+	for (int ny = miny; ny <= maxy; ny += step) {
 		index = (ny - y) + this->m_rad;
 		int bufferindex = bufferIndexx + ((ny - bufferstarty) * 4 * bufferwidth);
 		const float multiplier = this->m_gausstab[index];
