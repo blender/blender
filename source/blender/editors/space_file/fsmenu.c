@@ -456,7 +456,10 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 			
 			
 			FSRefMakePath(&dir, path, FILE_MAX);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, FS_INSERT_SORTED);
+			if (strcmp((char *)path, "/home") && strcmp((char *)path, "/net")) {
+				/* /net and /home are meaningless on OSX, home folders are stored in /Users */
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, FS_INSERT_SORTED);
+			}
 		}
 		
 		/* Finally get user favorite places */
