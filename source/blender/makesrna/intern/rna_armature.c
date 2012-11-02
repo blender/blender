@@ -29,6 +29,7 @@
 
 #include "BLI_math.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -109,8 +110,9 @@ static EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports,
 	return ED_armature_edit_bone_add(arm, name);
 }
 
-static void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone *ebone)
+static void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, PointerRNA *ebone_ptr)
 {
+	EditBone *ebone = ebone_ptr->data;
 	if (arm->edbo == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in edit mode, cannot remove an editbone", arm->id.name + 2);
 		return;
@@ -122,6 +124,7 @@ static void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, E
 	}
 
 	ED_armature_edit_bone_remove(arm, ebone);
+	RNA_POINTER_INVALIDATE(ebone_ptr);
 }
 
 static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -865,7 +868,8 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove an existing bone from the armature");
 	/* target to remove*/
 	parm = RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_armature(BlenderRNA *brna)

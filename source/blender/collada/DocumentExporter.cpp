@@ -110,6 +110,7 @@ extern char build_rev[];
 }
 
 #include "collada_internal.h"
+#include "collada_utils.h"
 #include "DocumentExporter.h"
 
 extern bool bc_has_object_type(LinkNode *export_set, short obtype);

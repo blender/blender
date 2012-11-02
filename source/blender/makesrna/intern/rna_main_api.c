@@ -204,6 +204,7 @@ static void rna_Main_objects_remove(Main *bmain, ReportList *reports, PointerRNA
 	if (ID_REAL_USERS(object) <= 0) {
 		BKE_object_unlink(object); /* needed or ID pointers to this are not cleared */
 		BKE_libblock_free(&bmain->object, object);
+		RNA_POINTER_INVALIDATE(object_ptr);
 	}
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' must have zero users to be removed, found %d",

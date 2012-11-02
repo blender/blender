@@ -1033,17 +1033,20 @@ static SceneRenderLayer *rna_RenderLayer_new(ID *id, RenderData *UNUSED(rd), con
 }
 
 static void rna_RenderLayer_remove(ID *id, RenderData *UNUSED(rd), Main *bmain, ReportList *reports,
-                                   SceneRenderLayer *srl)
+                                   PointerRNA *srl_ptr)
 {
+	SceneRenderLayer *srl = srl_ptr->data;
 	Scene *scene = (Scene *)id;
 
 	if (!BKE_scene_remove_render_layer(bmain, scene, srl)) {
 		BKE_reportf(reports, RPT_ERROR, "Render layer '%s' could not be removed from scene '%s'",
 		            srl->name, scene->id.name + 2);
+		return;
 	}
-	else {
-		WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
-	}
+
+	RNA_POINTER_INVALIDATE(srl_ptr);
+
+	WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
 
 static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
@@ -1333,15 +1336,16 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 	return marker;
 }
 
-static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *marker)
+static void rna_TimeLine_remove(Scene *scene, ReportList *reports, PointerRNA *marker_ptr)
 {
-	if (!BLI_remlink_safe(&scene->markers, marker)) {
+	TimeMarker *marker = marker_ptr->data;
+	if (BLI_remlink_safe(&scene->markers, marker) == FALSE) {
 		BKE_reportf(reports, RPT_ERROR, "Timeline marker '%s' not found in scene '%s'", marker->name, scene->id.name + 2);
 		return;
 	}
 
-	/* XXX, invalidates PyObject */
 	MEM_freeN(marker);
+	RNA_POINTER_INVALIDATE(marker_ptr);
 
 	WM_main_add_notifier(NC_SCENE | ND_MARKERS, NULL);
 	WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, NULL);
@@ -2812,7 +2816,8 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a render layer");
 	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	parm = RNA_def_pointer(func, "layer", "SceneRenderLayer", "", "Timeline marker to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 /* use for render output and image save operator,
@@ -4123,7 +4128,8 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a timeline marker");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_TimeLine_clear");
 	RNA_def_function_ui_description(func, "Remove all timeline markers");

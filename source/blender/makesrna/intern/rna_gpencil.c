@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -162,14 +163,16 @@ static bGPDstroke *rna_GPencil_stroke_new(bGPDframe *frame)
 	return stroke;
 }
 
-static void rna_GPencil_stroke_remove(bGPDframe *frame, ReportList *reports, bGPDstroke *stroke)
+static void rna_GPencil_stroke_remove(bGPDframe *frame, ReportList *reports, PointerRNA *stroke_ptr)
 {
+	bGPDstroke *stroke = stroke_ptr->data;
 	if (BLI_findindex(&frame->strokes, stroke) == -1) {
 		BKE_report(reports, RPT_ERROR, "Stroke not found in grease pencil frame");
 		return;
 	}
-	
+
 	BLI_freelinkN(&frame->strokes, stroke);
+	RNA_POINTER_INVALIDATE(stroke_ptr);
 
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
@@ -190,14 +193,16 @@ static bGPDframe *rna_GPencil_frame_new(bGPDlayer *layer, ReportList *reports, i
 	return frame;
 }
 
-static void rna_GPencil_frame_remove(bGPDlayer *layer, ReportList *reports, bGPDframe *frame)
+static void rna_GPencil_frame_remove(bGPDlayer *layer, ReportList *reports, PointerRNA *frame_ptr)
 {
+	bGPDframe *frame = frame_ptr->data;
 	if (BLI_findindex(&layer->frames, frame) == -1) {
 		BKE_report(reports, RPT_ERROR, "Frame not found in grease pencil layer");
 		return;
 	}
-	
+
 	gpencil_layer_delframe(layer, frame);
+	RNA_POINTER_INVALIDATE(frame_ptr);
 
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
@@ -226,14 +231,16 @@ static bGPDlayer *rna_GPencil_layer_new(bGPdata *gpd, const char *name, int seta
 	return gl;
 }
 
-static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, bGPDlayer *layer)
+static void rna_GPencil_layer_remove(bGPdata *gpd, ReportList *reports, PointerRNA *layer_ptr)
 {
+	bGPDlayer *layer = layer_ptr->data;
 	if (BLI_findindex(&gpd->layers, layer) == -1) {
 		BKE_report(reports, RPT_ERROR, "Layer not found in grease pencil data");
 		return;
 	}
-	
+
 	gpencil_layer_delete(gpd, layer);
+	RNA_POINTER_INVALIDATE(layer_ptr);
 
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
@@ -357,7 +364,8 @@ static void rna_def_gpencil_strokes_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a grease pencil frame");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "stroke", "GPencilStroke", "Stroke", "The stroke to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_gpencil_frame(BlenderRNA *brna)
@@ -421,7 +429,8 @@ static void rna_def_gpencil_frames_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a grease pencil frame");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "frame", "GPencilFrame", "Frame", "The frame to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "copy", "rna_GPencil_frame_copy");
 	RNA_def_function_ui_description(func, "Copy a grease pencil frame");
@@ -568,7 +577,8 @@ static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a grease pencil layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "layer", "GPencilLayer", "", "The layer to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "GreasePencil");

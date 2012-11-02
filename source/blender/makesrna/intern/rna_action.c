@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -68,12 +69,13 @@ static bActionGroup *rna_Action_groups_new(bAction *act, const char name[])
 	return action_groups_add_new(act, name);
 }
 
-static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionGroup *agrp)
+static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerRNA *agrp_ptr)
 {
+	bActionGroup *agrp = agrp_ptr->data;
 	FCurve *fcu, *fcn;
 	
 	/* try to remove the F-Curve from the action */
-	if (!BLI_remlink_safe(&act->groups, agrp)) {
+	if (BLI_remlink_safe(&act->groups, agrp) == FALSE) {
 		BKE_reportf(reports, RPT_ERROR, "Action group '%s' not found in action '%s'", agrp->name, act->id.name + 2);
 		return;
 	}
@@ -81,16 +83,16 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, bActionG
 	/* move every one one of the group's F-Curves out into the Action again */
 	for (fcu = agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu = fcn) {
 		fcn = fcu->next;
-		
+
 		/* remove from group */
 		action_groups_remove_channel(act, fcu);
-		
+
 		/* tack onto the end */
 		BLI_addtail(&act->curves, fcu);
 	}
-	
-	/* XXX, invalidates PyObject */
+
 	MEM_freeN(agrp);
+	RNA_POINTER_INVALIDATE(agrp_ptr);
 }
 
 static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const char *data_path,
@@ -112,8 +114,9 @@ static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const ch
 	return verify_fcurve(act, group, NULL, data_path, index, 1);
 }
 
-static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *fcu)
+static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerRNA *fcu_ptr)
 {
+	FCurve *fcu = fcu_ptr->data;
 	if (fcu->grp) {
 		if (BLI_findindex(&act->groups, fcu->grp) == -1) {
 			BKE_reportf(reports, RPT_ERROR, "F-Curve's action group '%s' not found in action '%s'",
@@ -123,6 +126,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 		
 		action_groups_remove_channel(act, fcu);
 		free_fcurve(fcu);
+		RNA_POINTER_INVALIDATE(fcu_ptr);
 	}
 	else {
 		if (BLI_findindex(&act->curves, fcu) == -1) {
@@ -132,6 +136,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 		
 		BLI_remlink(&act->curves, fcu);
 		free_fcurve(fcu);
+		RNA_POINTER_INVALIDATE(fcu_ptr);
 	}
 }
 
@@ -145,15 +150,16 @@ static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 	return marker;
 }
 
-static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, TimeMarker *marker)
+static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, PointerRNA *marker_ptr)
 {
-	if (!BLI_remlink_safe(&act->markers, marker)) {
+	TimeMarker *marker = marker_ptr->data;
+	if (BLI_remlink_safe(&act->markers, marker) == FALSE) {
 		BKE_reportf(reports, RPT_ERROR, "Timeline marker '%s' not found in action '%s'", marker->name, act->id.name + 2);
 		return;
 	}
 
-	/* XXX, invalidates PyObject */
 	MEM_freeN(marker);
+	RNA_POINTER_INVALIDATE(marker_ptr);
 }
 
 static PointerRNA rna_Action_active_pose_marker_get(PointerRNA *ptr)
@@ -516,7 +522,8 @@ static void rna_def_action_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove action group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "action_group", "ActionGroup", "", "Action group to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
@@ -547,7 +554,8 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove action group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "F-Curve to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -575,7 +583,8 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a timeline marker");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 	
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TimelineMarker");

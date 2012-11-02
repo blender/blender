@@ -409,14 +409,16 @@ static DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
 	return driver_add_new_variable(driver);
 }
 
-static void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, DriverVar *dvar)
+static void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, PointerRNA *dvar_ptr)
 {
+	DriverVar *dvar = dvar_ptr->data;
 	if (BLI_findindex(&driver->variables, dvar) == -1) {
 		BKE_report(reports, RPT_ERROR, "Variable does not exist in this driver");
 		return;
 	}
 
 	driver_free_variable(driver, dvar);
+	RNA_POINTER_INVALIDATE(dvar_ptr);
 }
 
 
@@ -438,13 +440,16 @@ static FModifier *rna_FCurve_modifiers_new(FCurve *fcu, int type)
 	return add_fmodifier(&fcu->modifiers, type);
 }
 
-static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, FModifier *fcm)
+static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, PointerRNA *fcm_ptr)
 {
+	FModifier *fcm = fcm_ptr->data;
 	if (BLI_findindex(&fcu->modifiers, fcm) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "F-Curve modifier '%s' not found in F-Curve", fcm->name);
 		return;
 	}
+
 	remove_fmodifier(&fcu->modifiers, fcm);
+	RNA_POINTER_INVALIDATE(fcm_ptr);
 }
 
 static void rna_FModifier_active_set(PointerRNA *ptr, int UNUSED(value))
@@ -610,8 +615,9 @@ static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 	}
 }
 
-static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTriple *bezt, int do_fast)
+static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, PointerRNA *bezt_ptr, int do_fast)
 {
+	BezTriple *bezt = bezt_ptr->data;
 	int index = (int)(bezt - fcu->bezt);
 	if (index < 0 || index >= fcu->totvert) {
 		BKE_report(reports, RPT_ERROR, "Keyframe not in F-Curve");
@@ -619,6 +625,7 @@ static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTri
 	}
 
 	delete_fcurve_key(fcu, index, !do_fast);
+	RNA_POINTER_INVALIDATE(bezt_ptr);
 }
 
 static void rna_fcurve_range(FCurve *fcu, float range[2])
@@ -1263,7 +1270,8 @@ static void rna_def_channeldriver_variables(BlenderRNA *brna, PropertyRNA *cprop
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	/* target to remove */
 	parm = RNA_def_pointer(func, "variable", "DriverVariable", "", "Variable to remove from the driver");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_channeldriver(BlenderRNA *brna)
@@ -1458,7 +1466,8 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a modifier from this F-Curve");
 	/* modifier to remove */
 	parm = RNA_def_pointer(func, "modifier", "FModifier", "", "Removed modifier");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 /* fcurve.keyframe_points */
@@ -1503,7 +1512,8 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove keyframe from an F-Curve");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "keyframe", "Keyframe", "", "Keyframe to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 	/* optional */
 	RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
 }

@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -126,19 +127,17 @@ static MetaElem *rna_MetaBall_elements_new(MetaBall *mb, int type)
 	return ml;
 }
 
-static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, MetaElem *ml)
+static void rna_MetaBall_elements_remove(MetaBall *mb, ReportList *reports, PointerRNA *ml_ptr)
 {
-	int found = 0;
+	MetaElem *ml = ml_ptr->data;
 
-	found = BLI_remlink_safe(&mb->elems, ml);
-
-	if (!found) {
+	if (BLI_remlink_safe(&mb->elems, ml) == FALSE) {
 		BKE_reportf(reports, RPT_ERROR, "Metaball '%s' does not contain spline given", mb->id.name + 2);
 		return;
 	}
 
 	MEM_freeN(ml);
-	/* invalidate pointer!, no can do */
+	RNA_POINTER_INVALIDATE(ml_ptr);
 
 	/* cheating way for importers to avoid slow updates */
 	if (mb->id.us > 0) {
@@ -254,7 +253,8 @@ static void rna_def_metaball_elements(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove an element from the metaball");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "element", "MetaElement", "", "The element to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_MetaBall_elements_clear");
 	RNA_def_function_ui_description(func, "Remove all elements from the metaball");

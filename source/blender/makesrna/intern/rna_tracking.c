@@ -35,6 +35,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -447,9 +448,15 @@ static MovieTrackingObject *rna_trackingObject_new(MovieTracking *tracking, cons
 	return object;
 }
 
-static void rna_trackingObject_remove(MovieTracking *tracking, MovieTrackingObject *object)
+static void rna_trackingObject_remove(MovieTracking *tracking, ReportList *reports, PointerRNA *object_ptr)
 {
-	BKE_tracking_object_delete(tracking, object);
+	MovieTrackingObject *object = object_ptr->data;
+	if (BKE_tracking_object_delete(tracking, object) == FALSE) {
+		BKE_reportf(reports, RPT_ERROR, "MovieTracking '%s' can't be removed", object->name);
+		return;
+	}
+
+	RNA_POINTER_INVALIDATE(object_ptr);
 
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
 }
@@ -1416,8 +1423,11 @@ static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_trackingObject_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove tracking object from this movie clip");
-	RNA_def_pointer(func, "object", "MovieTrackingObject", "", "Motion tracking object to be removed");
+	parm = RNA_def_pointer(func, "object", "MovieTrackingObject", "", "Motion tracking object to be removed");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	/* active object */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);

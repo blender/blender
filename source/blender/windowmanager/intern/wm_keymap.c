@@ -190,9 +190,9 @@ wmKeyConfig *WM_keyconfig_new_user(wmWindowManager *wm, const char *idname)
 	return keyconf;
 }
 
-void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
+int WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 {
-	if (keyconf) {
+	if (BLI_findindex(&wm->keyconfigs, keyconf) != -1) {
 		if (strncmp(U.keyconfigstr, keyconf->idname, sizeof(U.keyconfigstr)) == 0) {
 			BLI_strncpy(U.keyconfigstr, wm->defaultconf->idname, sizeof(U.keyconfigstr));
 			WM_keyconfig_update_tag(NULL, NULL);
@@ -200,6 +200,11 @@ void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
 
 		BLI_remlink(&wm->keyconfigs, keyconf);
 		WM_keyconfig_free(keyconf);
+
+		return TRUE;
+	}
+	else {
+		return FALSE;
 	}
 }
 
@@ -381,7 +386,7 @@ wmKeyMapItem *WM_keymap_add_menu(wmKeyMap *keymap, const char *idname, int type,
 	return kmi;
 }
 
-void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
+int WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
 	if (BLI_findindex(&keymap->items, kmi) != -1) {
 		if (kmi->ptr) {
@@ -391,6 +396,10 @@ void WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 		BLI_freelinkN(&keymap->items, kmi);
 
 		WM_keyconfig_update_tag(keymap, kmi);
+		return TRUE;
+	}
+	else {
+		return FALSE;
 	}
 }
 

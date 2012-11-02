@@ -749,20 +749,20 @@ static bNode *rna_NodeTree_node_texture_new(bNodeTree *ntree, bContext *C, Repor
 	return node;
 }
 
-static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, bNode *node)
+static void rna_NodeTree_node_remove(bNodeTree *ntree, ReportList *reports, PointerRNA *node_ptr)
 {
+	bNode *node = node_ptr->data;
 	if (BLI_findindex(&ntree->nodes, node) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to locate node '%s' in node tree", node->name);
+		return;
 	}
-	else {
-		if (node->id)
-			id_us_min(node->id);
 
-		nodeFreeNode(ntree, node);
-		ntreeUpdateTree(ntree); /* update group node socket links*/
+	id_us_min(node->id);
+	nodeFreeNode(ntree, node);
+	RNA_POINTER_INVALIDATE(node_ptr);
 
-		WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
-	}
+	ntreeUpdateTree(ntree); /* update group node socket links */
+	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
 static void rna_NodeTree_node_clear(bNodeTree *ntree)
@@ -820,17 +820,19 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 	return ret;
 }
 
-static void rna_NodeTree_link_remove(bNodeTree *ntree, ReportList *reports, bNodeLink *link)
+static void rna_NodeTree_link_remove(bNodeTree *ntree, ReportList *reports, PointerRNA *link_ptr)
 {
+	bNodeLink *link = link_ptr->data;
 	if (BLI_findindex(&ntree->links, link) == -1) {
 		BKE_report(reports, RPT_ERROR, "Unable to locate link in node tree");
+		return;
 	}
-	else {
-		nodeRemLink(ntree, link);
-		ntreeUpdateTree(ntree);
 
-		WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
-	}
+	nodeRemLink(ntree, link);
+	RNA_POINTER_INVALIDATE(link_ptr);
+
+	ntreeUpdateTree(ntree);
+	WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
 static void rna_NodeTree_link_clear(bNodeTree *ntree)
@@ -4001,7 +4003,8 @@ static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "remove a node link from the node tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "link", "NodeLink", "", "The node link to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_NodeTree_link_clear");
 	RNA_def_function_ui_description(func, "remove all node links from the node tree");
@@ -4045,7 +4048,8 @@ static void rna_def_composite_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a node from this node tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "node", "Node", "", "The node to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_NodeTree_node_clear");
 	RNA_def_function_ui_description(func, "Remove all nodes from this node tree");
@@ -4078,7 +4082,8 @@ static void rna_def_shader_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a node from this node tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "node", "Node", "", "The node to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_NodeTree_node_clear");
 	RNA_def_function_ui_description(func, "Remove all nodes from this node tree");
@@ -4111,7 +4116,8 @@ static void rna_def_texture_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove a node from this node tree");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "node", "Node", "", "The node to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_NodeTree_node_clear");
 	RNA_def_function_ui_description(func, "Remove all nodes from this node tree");
