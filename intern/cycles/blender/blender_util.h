@@ -39,7 +39,7 @@ CCL_NAMESPACE_BEGIN
 
 static inline BL::Mesh object_to_mesh(BL::Object self, BL::Scene scene, bool apply_modifiers, bool render)
 {
-	return self.to_mesh(NULL, scene, apply_modifiers, (render)? 2: 1);
+	return self.to_mesh(scene, apply_modifiers, (render)? 2: 1);
 }
 
 static inline void colorramp_to_array(BL::ColorRamp ramp, float4 *data, int size)
@@ -57,12 +57,12 @@ static inline void object_remove_mesh(BL::BlendData data, BL::Mesh mesh)
 	/* TODO: BlendData.meshes ideally should be also a subclass of BlendDataMeshes */
 	BL::BlendDataMeshes mesh_data(data.ptr);
 
-	mesh_data.remove(NULL, mesh);
+	mesh_data.remove(mesh);
 }
 
 static inline void object_create_duplilist(BL::Object self, BL::Scene scene)
 {
-	self.dupli_list_create(NULL, scene, 2);
+	self.dupli_list_create(scene, 2);
 }
 
 static inline void object_free_duplilist(BL::Object self)

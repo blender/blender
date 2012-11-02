@@ -1730,9 +1730,6 @@ static void rna_def_struct_function_prototype_cpp(FILE *f, StructRNA *srna, Func
 	if (func->flag & FUNC_USE_CONTEXT)
 		WRITE_PARAM("Context C");
 
-	if (func->flag & FUNC_USE_REPORTS)
-		WRITE_PARAM("void *reports");
-
 	for (dp = dfunc->cont.properties.first; dp; dp = dp->next) {
 		int type, flag, pout;
 		const char *ptrstr;
@@ -1907,7 +1904,7 @@ static void rna_def_struct_function_call_impl_cpp(FILE *f, StructRNA *srna, Func
 		WRITE_PARAM("(::bContext *) C.ptr.data");
 
 	if (func->flag & FUNC_USE_REPORTS)
-		WRITE_PARAM("(::ReportList *) reports");
+		WRITE_PARAM("NULL");
 
 	dp = dfunc->cont.properties.first;
 	for (; dp; dp = dp->next) {
@@ -3384,20 +3381,21 @@ static const char *cpp_classes = ""
 "	inline static int sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, PointerRNA *r_ptr) \\\n"
 "	{ \\\n"
 "		CollectionPropertyIterator iter; \\\n"
-"		int i = 0; \\\n"
+"		int i = 0, found = 0; \\\n"
 "		sname##_##identifier##_begin(&iter, ptr); \\\n"
 "		while (iter.valid) { \\\n"
 "			if (i == key) { \\\n"
 "				*r_ptr = iter.ptr; \\\n"
+"				found = 1; \\\n"
 "				break; \\\n"
 "			} \\\n"
 "			sname##_##identifier##_next(&iter); \\\n"
 "			++i; \\\n"
 "		} \\\n"
 "		sname##_##identifier##_end(&iter); \\\n"
-"		if (!iter.valid) \\\n"
+"		if (!found) \\\n"
 "			memset(r_ptr, 0, sizeof(*r_ptr)); \\\n"
-"		return iter.valid; \\\n"
+"		return found; \\\n"
 "	} \n"
 "#define COLLECTION_PROPERTY_LOOKUP_INT_TRUE(sname, identifier) \\\n"
 "	inline static int sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, PointerRNA *r_ptr) \\\n"
@@ -3522,10 +3520,10 @@ static const char *cpp_classes = ""
 ""
 "	int length()\n"
 "	{ return Tlength(&ptr); }\n"
-"	T& operator[](int key)\n"
-"	{ PointerRNA r_ptr; Tlookup_int(&ptr, key, &r_ptr); return *(T*)r_ptr.data; }\n"
-"	T& operator[](const std::string &key)\n"
-"	{ PointerRNA r_ptr; Tlookup_string(&ptr, key.c_str(), &r_ptr); return *(T*)r_ptr.data; }\n"
+"	T operator[](int key)\n"
+"	{ PointerRNA r_ptr; Tlookup_int(&ptr, key, &r_ptr); return T(r_ptr); }\n"
+"	T operator[](const std::string &key)\n"
+"	{ PointerRNA r_ptr; Tlookup_string(&ptr, key.c_str(), &r_ptr); return T(r_ptr); }\n"
 "\n"
 "private:\n"
 "	PointerRNA ptr;\n"
