@@ -1746,6 +1746,8 @@ static void rna_def_struct_function_prototype_cpp(FILE *f, StructRNA *srna, Func
 
 		if (type == PROP_POINTER)
 			ptrstr = "";
+		else if ((type == PROP_POINTER) && (flag & PROP_RNAPTR) && !(flag & PROP_THICK_WRAP))
+			ptrstr = "*";
 		else if (type == PROP_POINTER || dp->prop->arraydimension)
 			ptrstr = "*";
 		else if (type == PROP_STRING && (flag & PROP_THICK_WRAP))
@@ -1918,7 +1920,10 @@ static void rna_def_struct_function_call_impl_cpp(FILE *f, StructRNA *srna, Func
 			fprintf(f, "%s_len, ", dp->prop->identifier);
 
 		if (dp->prop->type == PROP_POINTER)
-			fprintf(f, "(::%s *) %s.ptr.data", rna_parameter_type_name(dp->prop), rna_safe_id(dp->prop->identifier));
+			if ((dp->prop->flag & PROP_RNAPTR) && !(dp->prop->flag & PROP_THICK_WRAP))
+				fprintf(f, "(::%s *) &%s.ptr", rna_parameter_type_name(dp->prop), rna_safe_id(dp->prop->identifier));
+			else
+				fprintf(f, "(::%s *) %s.ptr.data", rna_parameter_type_name(dp->prop), rna_safe_id(dp->prop->identifier));
 		else
 			fprintf(f, "%s", rna_safe_id(dp->prop->identifier));
 	}
