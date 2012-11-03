@@ -428,7 +428,7 @@ static void layer_bucket_init(MaskRasterLayer *layer, const float pixel_size)
 		/* width and height of each bucket */
 		const float bucket_size_x = (bucket_dim_x + FLT_EPSILON) / layer->buckets_x;
 		const float bucket_size_y = (bucket_dim_y + FLT_EPSILON) / layer->buckets_y;
-		const float bucket_max_rad = (max_ff(bucket_size_x, bucket_size_y) * M_SQRT2) + FLT_EPSILON;
+		const float bucket_max_rad = (max_ff(bucket_size_x, bucket_size_y) * (float)M_SQRT2) + FLT_EPSILON;
 		const float bucket_max_rad_squared = bucket_max_rad * bucket_max_rad;
 
 		unsigned int *face = &layer->face_array[0][0];

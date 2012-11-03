@@ -1442,7 +1442,7 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 							fmask = (vmask[fv[0]] +
 									 vmask[fv[1]] +
 									 vmask[fv[2]] +
-									 vmask[fv[3]]) * 0.25;
+									 vmask[fv[3]]) * 0.25f;
 						}
 					}
 					else {
@@ -1915,7 +1915,7 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers)
 				         buffers->vmask[fv[1]] +
 				         buffers->vmask[fv[2]]);
 				if (f->v4)
-					fmask = (fmask + buffers->vmask[fv[3]]) * 0.25;
+					fmask = (fmask + buffers->vmask[fv[3]]) * 0.25f;
 				else
 					fmask /= 3.0f;
 				gpu_color_from_mask_set(fmask, diffuse_color);

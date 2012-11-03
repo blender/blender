@@ -590,8 +590,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					break;
 				case GHOST_kKeyNumpadPlus:
 					if (val == 0) break;
-					zoomx += 2.0;
-					zoomy += 2.0;
+					zoomx += 2.0f;
+					zoomy += 2.0f;
 					/* no break??? - is this intentional? - campbell XXX25 */
 				case GHOST_kKeyNumpadMinus:
 				{
@@ -599,8 +599,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					/* int ofsx, ofsy; */ /* UNUSED */
 
 					if (val == 0) break;
-					if (zoomx > 1.0) zoomx -= 1.0;
-					if (zoomy > 1.0) zoomy -= 1.0;
+					if (zoomx > 1.0f) zoomx -= 1.0f;
+					if (zoomy > 1.0f) zoomy -= 1.0f;
 					// playanim_window_get_position(&ofsx, &ofsy);
 					playanim_window_get_size(&sizex, &sizey);
 					/* ofsx += sizex / 2; */ /* UNUSED */
@@ -665,10 +665,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
 			zoomx = (float) sizex / ps->ibufx;
 			zoomy = (float) sizey / ps->ibufy;
-			zoomx = floor(zoomx + 0.5);
-			zoomy = floor(zoomy + 0.5);
-			if (zoomx < 1.0) zoomx = 1.0;
-			if (zoomy < 1.0) zoomy = 1.0;
+			zoomx = floor(zoomx + 0.5f);
+			zoomy = floor(zoomy + 0.5f);
+			if (zoomx < 1.0f) zoomx = 1.0f;
+			if (zoomy < 1.0f) zoomy = 1.0f;
 
 			sizex = zoomx * ps->ibufx;
 			sizey = zoomy * ps->ibufy;

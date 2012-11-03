@@ -45,8 +45,8 @@
 
 #define SMOOTH_LAPLACIAN_AREA_FACTOR 4.0f
 #define SMOOTH_LAPLACIAN_EDGE_FACTOR 2.0f
-#define SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE 1.8
-#define SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE 0.15
+#define SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE 1.8f
+#define SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE 0.15f
 
 struct BLaplacianSystem {
 	float *eweights;        /* Length weights per Edge */
@@ -236,7 +236,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 				areaf = area_tri_v3(v1, v2, v3);
 			}
 
-			if (fabs(areaf) < sys->min_area) {
+			if (fabsf(areaf) < sys->min_area) {
 				sys->zerola[idv1] = 1;
 				sys->zerola[idv2] = 1;
 				sys->zerola[idv3] = 1;
@@ -443,13 +443,13 @@ static float compute_volume(BMesh *bm)
 		y3 = vf[2]->co[1];
 		z3 = vf[2]->co[2];
 
-		vol += (1.0 / 6.0) * (0.0 - x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 - x2 * y1 * z3 + x1 * y2 * z3);
+		vol += (1.0f / 6.0f) * (0.0f - x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 - x2 * y1 * z3 + x1 * y2 * z3);
 
 		if (i == 4) {
 			x4 = vf[3]->co[0];
 			y4 = vf[3]->co[1];
 			z4 = vf[3]->co[2];
-			vol += (1.0 / 6.0) * (x1 * y3 * z4 - x1 * y4 * z3 - x3 * y1 * z4 + x3 * z1 * y4 + y1 * x4 * z3 - x4 * y3 * z1);
+			vol += (1.0f / 6.0f) * (x1 * y3 * z4 - x1 * y4 * z3 - x3 * y1 * z4 + x3 * z1 * y4 + y1 * x4 * z3 - x4 * y3 * z1);
 		}
 	}
 	return fabs(vol);

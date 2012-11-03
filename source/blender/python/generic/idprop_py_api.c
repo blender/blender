@@ -49,33 +49,33 @@
  * static conversion functions to avoid duplicate code, no type checking.
  */
 
-static PyObject *idprop_py_from_idp_string(IDProperty *prop)
+static PyObject *idprop_py_from_idp_string(const IDProperty *prop)
 {
 	if (prop->subtype == IDP_STRING_SUB_BYTE) {
-		return PyBytes_FromStringAndSize(IDP_Array(prop), prop->len);
+		return PyBytes_FromStringAndSize(IDP_String(prop), prop->len);
 	}
 	else {
 #ifdef USE_STRING_COERCE
 		return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
 #else
-		return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len - 1);
+		return PyUnicode_FromStringAndSize(IDP_String(prop), prop->len - 1);
 #endif
 	}
 }
 
-static PyObject *idprop_py_from_idp_int(IDProperty *prop)
+static PyObject *idprop_py_from_idp_int(const IDProperty *prop)
 {
-	return PyLong_FromLong((long)prop->data.val);
+	return PyLong_FromLong((long)IDP_Int(prop));
 }
 
-static PyObject *idprop_py_from_idp_float(IDProperty *prop)
+static PyObject *idprop_py_from_idp_float(const IDProperty *prop)
 {
-	return PyFloat_FromDouble((double)(*(float *)(&prop->data.val)));
+	return PyFloat_FromDouble((double)IDP_Float(prop));
 }
 
-static PyObject *idprop_py_from_idp_double(IDProperty *prop)
+static PyObject *idprop_py_from_idp_double(const IDProperty *prop)
 {
-	return PyFloat_FromDouble((*(double *)(&prop->data.val)));
+	return PyFloat_FromDouble(IDP_Double(prop));
 }
 
 static PyObject *idprop_py_from_idp_group(ID *id, IDProperty *prop, IDProperty *parent)
@@ -189,7 +189,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 				PyErr_SetString(PyExc_TypeError, "expected an int type");
 				return -1;
 			}
-			prop->data.val = ivalue;
+			IDP_Int(prop) = ivalue;
 			break;
 		}
 		case IDP_FLOAT:
@@ -199,7 +199,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
-			*(float *)&self->prop->data.val = fvalue;
+			IDP_Float(self->prop) = fvalue;
 			break;
 		}
 		case IDP_DOUBLE:
@@ -209,7 +209,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
-			*(double *)&self->prop->data.val = dvalue;
+			IDP_Double(self->prop) = dvalue;
 			break;
 		}
 		default:

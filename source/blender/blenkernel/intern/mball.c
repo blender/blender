@@ -1505,7 +1505,7 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	float f = 0.0f;
 
 	ml = G_mb.mainb[a];
-	f = 1.0 - (mb->thresh / ml->s);
+	f = 1.0f - (mb->thresh / ml->s);
 
 	/* Skip, when Stiffness of MetaElement is too small ... MetaElement can't be
 	 * visible alone ... but still can influence others MetaElements :-) */
