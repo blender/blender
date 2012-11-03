@@ -6953,9 +6953,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	const int is_operator = RNA_struct_is_a(ptr->type, &RNA_Operator);
 	const char *func_id = RNA_function_identifier(func);
 	/* testing, for correctness, not operator and not draw function */
-	const short is_readonly = ((strncmp("draw", func_id, 4) == 0) || /* draw or draw_header */
-	                           /*strstr("render", func_id) ||*/
-	                           !is_operator);
+	const short is_readonly = !(RNA_function_flag(func) & FUNC_ALLOW_WRITE);
 #endif
 
 	py_class = RNA_struct_py_type_get(ptr->type);

@@ -316,7 +316,7 @@ void RNA_api_operator(StructRNA *srna)
 	/* exec */
 	func = RNA_def_function(srna, "execute", NULL);
 	RNA_def_function_ui_description(func, "Execute the operator");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
@@ -327,7 +327,7 @@ void RNA_api_operator(StructRNA *srna)
 	/* check */
 	func = RNA_def_function(srna, "check", NULL);
 	RNA_def_function_ui_description(func, "Check the operator settings, return True to signal a change to redraw");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
@@ -337,7 +337,7 @@ void RNA_api_operator(StructRNA *srna)
 	/* invoke */
 	func = RNA_def_function(srna, "invoke", NULL);
 	RNA_def_function_ui_description(func, "Invoke the operator");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
@@ -349,7 +349,7 @@ void RNA_api_operator(StructRNA *srna)
 
 	func = RNA_def_function(srna, "modal", NULL); /* same as invoke */
 	RNA_def_function_ui_description(func, "Modal operator function");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "event", "Event", "", "");
@@ -369,7 +369,7 @@ void RNA_api_operator(StructRNA *srna)
 	/* cancel */
 	func = RNA_def_function(srna, "cancel", NULL);
 	RNA_def_function_ui_description(func, "Called when the operator is canceled");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
