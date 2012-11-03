@@ -49,15 +49,15 @@
 #define SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE 0.15
 
 struct BLaplacianSystem {
-	float *eweights;		/* Length weights per Edge */
+	float *eweights;        /* Length weights per Edge */
 	float (*fweights)[3];   /* Cotangent weights per face */
-	float *ring_areas;		/* Total area per ring*/
-	float *vlengths;		/* Total sum of lengths(edges) per vertice*/
-	float *vweights;		/* Total sum of weights per vertice*/
-	int numEdges;			/* Number of edges*/
-	int numFaces;			/* Number of faces*/
-	int numVerts;			/* Number of verts*/
-	short *zerola;			/* Is zero area or length*/
+	float *ring_areas;      /* Total area per ring*/
+	float *vlengths;        /* Total sum of lengths(edges) per vertice*/
+	float *vweights;        /* Total sum of weights per vertice*/
+	int numEdges;           /* Number of edges*/
+	int numFaces;           /* Number of faces*/
+	int numVerts;           /* Number of verts*/
+	short *zerola;          /* Is zero area or length*/
 
 	/* Pointers to data*/
 	BMesh *bm;
@@ -72,13 +72,13 @@ typedef struct BLaplacianSystem LaplacianSystem;
 static float compute_volume(BMesh *bm);
 static float cotan_weight(float *v1, float *v2, float *v3);
 static int vert_is_boundary(BMVert *v);
-static LaplacianSystem * init_laplacian_system( int a_numEdges, int a_numFaces, int a_numVerts);
-static void init_laplacian_matrix(LaplacianSystem * sys);
-static void delete_laplacian_system(LaplacianSystem * sys);
+static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts);
+static void init_laplacian_matrix(LaplacianSystem *sys);
+static void delete_laplacian_system(LaplacianSystem *sys);
 static void delete_void_pointer(void *data);
-static void fill_laplacian_matrix(LaplacianSystem * sys);
+static void fill_laplacian_matrix(LaplacianSystem *sys);
 static void memset_laplacian_system(LaplacianSystem *sys, int val);
-static void validate_solution(LaplacianSystem * sys, int usex, int usey, int usez, int volumepreservation);
+static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int volumepreservation);
 static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float vend, int usex, int usey, int usez);
 
 static void delete_void_pointer(void *data)
@@ -89,7 +89,7 @@ static void delete_void_pointer(void *data)
 	}
 }
 
-static void delete_laplacian_system(LaplacianSystem * sys) 
+static void delete_laplacian_system(LaplacianSystem *sys)
 {
 	delete_void_pointer(sys->eweights);
 	delete_void_pointer(sys->fweights);
@@ -115,9 +115,9 @@ static void memset_laplacian_system(LaplacianSystem *sys, int val)
 	memset(sys->zerola,       val, sizeof(short) * sys->numVerts);
 }
 
-static LaplacianSystem * init_laplacian_system( int a_numEdges, int a_numFaces, int a_numVerts) 
+static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts)
 {
-	LaplacianSystem * sys; 
+	LaplacianSystem *sys;
 	sys = MEM_callocN(sizeof(LaplacianSystem), "ModLaplSmoothSystem");
 	sys->numEdges = a_numEdges;
 	sys->numFaces = a_numFaces;
@@ -128,19 +128,19 @@ static LaplacianSystem * init_laplacian_system( int a_numEdges, int a_numFaces, 
 		delete_laplacian_system(sys);
 		return NULL;
 	}
-	
+
 	sys->fweights =  MEM_callocN(sizeof(float) * 3 * sys->numFaces, "ModLaplSmoothFWeight");
 	if (!sys->fweights) {
 		delete_laplacian_system(sys);
 		return NULL;
 	}
-	
+
 	sys->ring_areas =  MEM_callocN(sizeof(float) * sys->numVerts, "ModLaplSmoothRingAreas");
 	if (!sys->ring_areas) {
 		delete_laplacian_system(sys);
 		return NULL;
 	}
-	
+
 	sys->vlengths =  MEM_callocN(sizeof(float) * sys->numVerts, "ModLaplSmoothVlengths");
 	if (!sys->vlengths) {
 		delete_laplacian_system(sys);
@@ -163,7 +163,7 @@ static LaplacianSystem * init_laplacian_system( int a_numEdges, int a_numFaces, 
 }
 
 /* Compute weigth between vertice v_i and all your neighbors
- * weight between v_i and v_neighbor 
+ * weight between v_i and v_neighbor
  * Wij = cot(alpha) + cot(beta) / (4.0 * total area of all faces  * sum all weight)
  *        v_i *
  *          / | \
@@ -172,15 +172,15 @@ static LaplacianSystem * init_laplacian_system( int a_numEdges, int a_numFaces, 
  *         \  |  /
  *          \ | /
  *            * v_neighbor
-*/
+ */
 
-static void init_laplacian_matrix(LaplacianSystem * sys)
+static void init_laplacian_matrix(LaplacianSystem *sys)
 {
 	float areaf;
 	float *v1, *v2, *v3, *v4;
 	float w1, w2, w3, w4;
 	int i, j;
-	int has_4_vert ;
+	int has_4_vert;
 	unsigned int idv1, idv2, idv3, idv4, idv[4];
 	BMEdge *e;
 	BMFace *f;
@@ -196,7 +196,7 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 			v2 =  e->v2->co;
 			idv1 = BM_elem_index_get(e->v1);
 			idv2 = BM_elem_index_get(e->v2);
-			
+
 			w1 = len_v3v3(v1, v2);
 			if (w1 > sys->min_area) {
 				w1 = 1.0f / w1;
@@ -236,7 +236,7 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 				areaf = area_tri_v3(v1, v2, v3);
 			}
 
-			if (fabs(areaf) < sys->min_area) { 
+			if (fabs(areaf) < sys->min_area) {
 				sys->zerola[idv1] = 1;
 				sys->zerola[idv2] = 1;
 				sys->zerola[idv3] = 1;
@@ -249,7 +249,7 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 			if (has_4_vert) sys->ring_areas[idv4] += areaf;
 
 			if (has_4_vert) {
-			
+
 				idv[0] = idv1;
 				idv[1] = idv2;
 				idv[2] = idv3;
@@ -269,7 +269,7 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 					w2 = cotan_weight(v4, v1, v2) + cotan_weight(v3, v1, v2);
 					w3 = cotan_weight(v2, v3, v1) + cotan_weight(v4, v1, v3);
 					w4 = cotan_weight(v2, v4, v1) + cotan_weight(v3, v4, v1);
-	
+
 					sys->vweights[idv1] += (w2 + w3 + w4) / 4.0f;
 				}
 			}
@@ -283,7 +283,7 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 				sys->fweights[i][0] += w1;
 				sys->fweights[i][1] += w2;
 				sys->fweights[i][2] += w3;
-			
+
 				sys->vweights[idv1] += w2 + w3;
 				sys->vweights[idv2] += w1 + w3;
 				sys->vweights[idv3] += w1 + w2;
@@ -292,12 +292,12 @@ static void init_laplacian_matrix(LaplacianSystem * sys)
 	}
 }
 
-static void fill_laplacian_matrix(LaplacianSystem * sys)
+static void fill_laplacian_matrix(LaplacianSystem *sys)
 {
 	float *v1, *v2, *v3, *v4;
 	float w2, w3, w4;
 	int i, j;
-	int has_4_vert ;
+	int has_4_vert;
 	unsigned int idv1, idv2, idv3, idv4, idv[4];
 
 	BMEdge *e;
@@ -337,8 +337,8 @@ static void fill_laplacian_matrix(LaplacianSystem * sys)
 					w2 = w2 / 4.0f;
 					w3 = w3 / 4.0f;
 					w4 = w4 / 4.0f;
-		
-					if (!vert_is_boundary(vf[j]) && sys->zerola[idv1] == 0) { 
+
+					if (!vert_is_boundary(vf[j]) && sys->zerola[idv1] == 0) {
 						nlMatrixAdd(idv1, idv2, w2 * sys->vweights[idv1]);
 						nlMatrixAdd(idv1, idv3, w3 * sys->vweights[idv1]);
 						nlMatrixAdd(idv1, idv4, w4 * sys->vweights[idv1]);
@@ -351,15 +351,15 @@ static void fill_laplacian_matrix(LaplacianSystem * sys)
 				idv3 = BM_elem_index_get(vf[2]);
 				/* Is ring if number of faces == number of edges around vertice*/
 				i = BM_elem_index_get(f);
-				if (!vert_is_boundary(vf[0]) && sys->zerola[idv1] == 0) { 
+				if (!vert_is_boundary(vf[0]) && sys->zerola[idv1] == 0) {
 					nlMatrixAdd(idv1, idv2, sys->fweights[i][2] * sys->vweights[idv1]);
 					nlMatrixAdd(idv1, idv3, sys->fweights[i][1] * sys->vweights[idv1]);
 				}
-				if (!vert_is_boundary(vf[1]) && sys->zerola[idv2] == 0) { 
+				if (!vert_is_boundary(vf[1]) && sys->zerola[idv2] == 0) {
 					nlMatrixAdd(idv2, idv1, sys->fweights[i][2] * sys->vweights[idv2]);
 					nlMatrixAdd(idv2, idv3, sys->fweights[i][0] * sys->vweights[idv2]);
 				}
-				if (!vert_is_boundary(vf[2]) && sys->zerola[idv3] == 0) { 
+				if (!vert_is_boundary(vf[2]) && sys->zerola[idv3] == 0) {
 					nlMatrixAdd(idv3, idv1, sys->fweights[i][1] * sys->vweights[idv3]);
 					nlMatrixAdd(idv3, idv2, sys->fweights[i][0] * sys->vweights[idv3]);
 				}
@@ -393,7 +393,7 @@ static float cotan_weight(float *v1, float *v2, float *v3)
 
 	if (clen == 0.0f)
 		return 0.0f;
-	
+
 	return dot_v3v3(a, b) / clen;
 }
 
@@ -403,7 +403,7 @@ static int vert_is_boundary(BMVert *v)
 	BMFace *f;
 	BMIter ei;
 	BMIter fi;
-	BM_ITER_ELEM(ed, &ei, v, BM_EDGES_OF_VERT) {
+	BM_ITER_ELEM (ed, &ei, v, BM_EDGES_OF_VERT) {
 		if (BM_edge_is_boundary(ed)) {
 			return 1;
 		}
@@ -426,7 +426,7 @@ static float compute_volume(BMesh *bm)
 	BMIter vi;
 	BMVert *vn;
 	BMVert *vf[4];
-	
+
 	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM_INDEX (vn, &vi, f, BM_VERTS_OF_FACE, i) {
 			vf[i] = vn;
@@ -443,13 +443,13 @@ static float compute_volume(BMesh *bm)
 		y3 = vf[2]->co[1];
 		z3 = vf[2]->co[2];
 
-		vol += (1.0 / 6.0) * (0.0 - x3*y2*z1 + x2*y3*z1 + x3*y1*z2 - x1*y3*z2 - x2*y1*z3 + x1*y2*z3);
+		vol += (1.0 / 6.0) * (0.0 - x3 * y2 * z1 + x2 * y3 * z1 + x3 * y1 * z2 - x1 * y3 * z2 - x2 * y1 * z3 + x1 * y2 * z3);
 
 		if (i == 4) {
 			x4 = vf[3]->co[0];
 			y4 = vf[3]->co[1];
 			z4 = vf[3]->co[2];
-			vol += (1.0 / 6.0) * (x1*y3*z4 - x1*y4*z3 - x3*y1*z4 + x3*z1*y4 + y1*x4*z3 - x4*y3*z1);
+			vol += (1.0 / 6.0) * (x1 * y3 * z4 - x1 * y4 * z3 - x3 * y1 * z4 + x3 * z1 * y4 + y1 * x4 * z3 - x4 * y3 * z1);
 		}
 	}
 	return fabs(vol);
@@ -461,8 +461,8 @@ static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float ven
 	BMOIter siter;
 	BMVert *v;
 
-	if (vend != 0.0f) {	
-		beta  = pow (vini / vend, 1.0f / 3.0f);
+	if (vend != 0.0f) {
+		beta  = pow(vini / vend, 1.0f / 3.0f);
 		BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
 			if (usex) {
 				v->co[0] *=  beta;
@@ -473,12 +473,12 @@ static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float ven
 			if (usez) {
 				v->co[2] *= beta;
 			}
-			
+
 		}
 	}
 }
 
-static void validate_solution(LaplacianSystem * sys, int usex, int usey, int usez, int volumepreservation)
+static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int volumepreservation)
 {
 	int m_vertex_id;
 	float leni, lene;
@@ -503,7 +503,7 @@ static void validate_solution(LaplacianSystem * sys, int usex, int usey, int use
 		ve2[2] = nlGetVariable(2, idv2);
 		leni = len_v3v3(vi1, vi2);
 		lene = len_v3v3(ve1, ve2);
-		if ( lene > leni* SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE || lene < leni*SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE) {
+		if (lene > leni * SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE || lene < leni * SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE) {
 			sys->zerola[idv1] = 1;
 			sys->zerola[idv2] = 1;
 		}
@@ -542,7 +542,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	float w;
 	BMOIter siter;
 	BMVert *v;
-	LaplacianSystem * sys;
+	LaplacianSystem *sys;
 
 	sys = init_laplacian_system(bm->totedge, bm->totface, bm->totvert);
 	if (!sys) return;
@@ -595,7 +595,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 			w = sys->vlengths[i];
 			sys->vlengths[i] = (w == 0.0f) ? 0.0f : -lambda_border  * 2.0f / w;
 
-			if (!vert_is_boundary(v)) { 
+			if (!vert_is_boundary(v)) {
 				nlMatrixAdd(i, i,  1.0f + lambda / (4.0f * sys->ring_areas[i]));
 			}
 			else {
@@ -604,16 +604,16 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 		}
 		else {
 			nlMatrixAdd(i, i, 1.0f);
-		}	
+		}
 	}
 	fill_laplacian_matrix(sys);
-		
+
 	nlEnd(NL_MATRIX);
 	nlEnd(NL_SYSTEM);
 
 	if (nlSolveAdvanced(NULL, NL_TRUE) ) {
 		validate_solution(sys, usex, usey, usez, volumepreservation);
 	}
-		
+
 	delete_laplacian_system(sys);
 }
