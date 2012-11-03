@@ -2158,21 +2158,22 @@ static int node_shader_script_update_poll(bContext *C)
 	Text *text;
 
 	/* test if we have a render engine that supports shaders scripts */
-	if(!(type && type->update_script_node))
+	if (!(type && type->update_script_node))
 		return 0;
 
 	/* see if we have a shader script node in context */
 	node = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript).data;
-	if(node && node->type == SH_NODE_SCRIPT) {
+	if (node && node->type == SH_NODE_SCRIPT) {
 		NodeShaderScript *nss = node->storage;
 
-		if(node->id || nss->filepath[0])
+		if (node->id || nss->filepath[0]) {
 			return 1;
+		}
 	}
 
 	/* see if we have a text datablock in context */
 	text = CTX_data_pointer_get_type(C, "edit_text", &RNA_Text).data;
-	if(text)
+	if (text)
 		return 1;
 
 	/* we don't check if text datablock is actually in use, too slow for poll */
@@ -2186,8 +2187,8 @@ static void node_shader_script_update_text(void *data_, ID *UNUSED(id), bNodeTre
 	bNode *node;
 
 	/* update each script that is using this text datablock */
-	for (node=ntree->nodes.first; node; node=node->next) {
-		if (node->type == NODE_GROUP){
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == NODE_GROUP) {
 			node_shader_script_update_text(data_, NULL, (bNodeTree *)node->id);
 		}
 		else if (node->type == SH_NODE_SCRIPT && node->id == &data->text->id) {

@@ -552,8 +552,8 @@ static void validate_solution(LaplacianSystem *sys, short flag)
 }
 
 static void laplaciansmoothModifier_do(
-    LaplacianSmoothModifierData *smd, Object *ob, DerivedMesh *dm,
-    float (*vertexCos)[3], int numVerts)
+        LaplacianSmoothModifierData *smd, Object *ob, DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
 {
 	LaplacianSystem *sys;
 	MDeformVert *dvert = NULL;

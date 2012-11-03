@@ -1227,11 +1227,11 @@ void GPU_buffer_draw_elements(GPUBuffer *elements, unsigned int mode, int start,
  * drawing and doesn't interact at all with the buffer code above */
 
 /* Return false if VBO is either unavailable or disabled by the user,
-   true otherwise */
+ * true otherwise */
 static int gpu_vbo_enabled(void)
 {
 	return (GLEW_ARB_vertex_buffer_object &&
-			!(U.gameflags & USER_DISABLE_VBO));
+	        !(U.gameflags & USER_DISABLE_VBO));
 }
 
 /* Convenience struct for building the VBO. */

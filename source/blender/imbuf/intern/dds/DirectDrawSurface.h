@@ -169,7 +169,7 @@ public:
 
 	void setNormalFlag(bool b);
 	void setHasAlphaFlag(bool b);
-        void setUserVersion(int version);
+	void setUserVersion(int version);
 	
 	void mipmap(Image * img, uint f, uint m);
 	void* readData(uint &size);

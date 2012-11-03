@@ -48,8 +48,9 @@
 #endif
 
 /**
- Base Class for Blender specific inputdevices. Blender specific inputdevices are used when the gameengine is running in embedded mode instead of standalone mode.
-*/
+ * Base Class for Blender specific inputdevices.
+ * Blender specific inputdevices are used when the gameengine is running in embedded mode instead of standalone mode.
+ */
 class BL_BlenderInputDevice : public SCA_IInputDevice
 {
 public:

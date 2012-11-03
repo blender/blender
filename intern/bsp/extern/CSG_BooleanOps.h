@@ -61,9 +61,9 @@ extern "C" {
 #endif
 
 typedef struct  {
-  int vertex_index[4];
-  int vertex_number;
-  int orig_face;
+	int vertex_index[4];
+	int vertex_number;
+	int orig_face;
 } CSG_IFace;
 
 /**
@@ -72,7 +72,7 @@ typedef struct  {
  */
 
 typedef struct  {
-  float position[3];
+	float position[3];
 } CSG_IVertex;
 
 /**

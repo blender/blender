@@ -238,19 +238,19 @@ public:
 			Iex::throwErrnoExc();
 	}
 
-    virtual void write(const char c[], int n)
+	virtual void write(const char c[], int n)
 	{
 		errno = 0;
 		ofs.write(c, n);
 		check_error();
 	}
 
-    virtual Int64 tellp()
+	virtual Int64 tellp()
 	{
 		return std::streamoff(ofs.tellp());
 	}
 
-    virtual void seekp(Int64 pos)
+	virtual void seekp(Int64 pos)
 	{
 		ofs.seekp(pos);
 		check_error();

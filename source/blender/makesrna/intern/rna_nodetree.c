@@ -1006,14 +1006,18 @@ static bNodeSocket *rna_ShaderNodeScript_find_socket(bNode *node, const char *na
 	bNodeSocket *sock;
 
 	if (is_output) {
-		for (sock = node->outputs.first; sock; sock = sock->next)
-			if (strcmp(sock->name, name)==0)
+		for (sock = node->outputs.first; sock; sock = sock->next) {
+			if (strcmp(sock->name, name) == 0) {
 				return sock;
+			}
+		}
 	}
 	else {
-		for (sock = node->inputs.first; sock; sock = sock->next)
-			if (strcmp(sock->name, name)==0)
+		for (sock = node->inputs.first; sock; sock = sock->next) {
+			if (strcmp(sock->name, name) == 0) {
 				return sock;
+			}
+		}
 	}
 
 	return NULL;
@@ -1052,13 +1056,13 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
 	if (nss->mode != value) {
 		nss->mode = value;
 		nss->filepath[0] = '\0';
-        nss->flag &= ~NODE_SCRIPT_AUTO_UPDATE;
+		nss->flag &= ~NODE_SCRIPT_AUTO_UPDATE;
 
 		/* replace text datablock by filepath */
 		if (node->id) {
 			Text *text = (Text*)node->id;
 
-			if(value == NODE_SCRIPT_EXTERNAL && text->name) {
+			if (value == NODE_SCRIPT_EXTERNAL && text->name) {
 				BLI_strncpy(nss->filepath, text->name, sizeof(nss->filepath));
 				BLI_path_rel(nss->filepath, G.main->name);
 			}
@@ -1068,7 +1072,7 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
 		}
 
 		/* remove any bytecode */
-		if(nss->bytecode) {
+		if (nss->bytecode) {
 			MEM_freeN(nss->bytecode);
 			nss->bytecode = NULL;
 		}

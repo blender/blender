@@ -1430,15 +1430,15 @@ void IDProp_Init_Types(void)
 /* --- */
 
 static struct PyModuleDef IDProp_types_module_def = {
-    PyModuleDef_HEAD_INIT,
-    "idprop.types",  /* m_name */
-    NULL,  /* m_doc */
-    0,  /* m_size */
-    NULL,  /* m_methods */
-    NULL,  /* m_reload */
-    NULL,  /* m_traverse */
-    NULL,  /* m_clear */
-    NULL,  /* m_free */
+	PyModuleDef_HEAD_INIT,
+	"idprop.types",  /* m_name */
+	NULL,  /* m_doc */
+	0,  /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
 };
 
 static PyObject *BPyInit_idprop_types(void)

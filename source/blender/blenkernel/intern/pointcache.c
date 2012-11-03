@@ -2823,7 +2823,7 @@ PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old
 }
 
 /* Disabled this code; this is being called on scene_update_tagged, and that in turn gets called on 
-   every user action changing stuff, and then it runs a complete bake??? (ton) */
+ * every user action changing stuff, and then it runs a complete bake??? (ton) */
 
 /* Baking */
 void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene)

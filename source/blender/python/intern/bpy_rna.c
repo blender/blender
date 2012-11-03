@@ -6951,7 +6951,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
 #ifdef USE_PEDANTIC_WRITE
 	const int is_operator = RNA_struct_is_a(ptr->type, &RNA_Operator);
-	const char *func_id = RNA_function_identifier(func);
+	// const char *func_id = RNA_function_identifier(func);  /* UNUSED */
 	/* testing, for correctness, not operator and not draw function */
 	const short is_readonly = !(RNA_function_flag(func) & FUNC_ALLOW_WRITE);
 #endif

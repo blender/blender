@@ -1393,10 +1393,10 @@ static void node_shader_buts_script(uiLayout *layout, bContext *UNUSED(C), Point
 
 	row = uiLayoutRow(layout, TRUE);
 
-	if(RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL)
+	if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL)
 		uiItemR(row, ptr, "script", 0, "", ICON_NONE);
 	else
-		uiItemR(row, ptr, "filepath", 0,"", ICON_NONE);
+		uiItemR(row, ptr, "filepath", 0, "", ICON_NONE);
 
 	uiItemO(row, "", ICON_FILE_REFRESH, "node.shader_script_update");
 }
