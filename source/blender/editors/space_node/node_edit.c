@@ -35,6 +35,7 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_text_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_math.h"
@@ -54,6 +55,7 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 
@@ -2137,3 +2139,119 @@ void NODE_OT_clipboard_paste(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/* ********************** Shader Script Update ******************/
+
+typedef struct ScriptUpdateData {
+	RenderEngine *engine;
+	RenderEngineType *type;
+
+	Text *text;
+	int found;
+} ScriptUpdateData;
+
+static int node_shader_script_update_poll(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	bNode *node;
+	Text *text;
+
+	/* test if we have a render engine that supports shaders scripts */
+	if(!(type && type->update_script_node))
+		return 0;
+
+	/* see if we have a shader script node in context */
+	node = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript).data;
+	if(node && node->type == SH_NODE_SCRIPT) {
+		NodeShaderScript *nss = node->storage;
+
+		if(node->id || nss->filepath[0])
+			return 1;
+	}
+
+	/* see if we have a text datablock in context */
+	text = CTX_data_pointer_get_type(C, "edit_text", &RNA_Text).data;
+	if(text)
+		return 1;
+
+	/* we don't check if text datablock is actually in use, too slow for poll */
+
+	return 0;
+}
+
+static void node_shader_script_update_text(void *data_, ID *UNUSED(id), bNodeTree *ntree)
+{
+	ScriptUpdateData *data = (ScriptUpdateData *)data_;
+	bNode *node;
+
+	/* update each script that is using this text datablock */
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->type == NODE_GROUP){
+			node_shader_script_update_text(data_, NULL, (bNodeTree *)node->id);
+		}
+		else if (node->type == SH_NODE_SCRIPT && node->id == &data->text->id) {
+			data->type->update_script_node(data->engine, ntree, node);
+			data->found = TRUE;
+		}
+	}
+}
+
+static int node_shader_script_update_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	ScriptUpdateData data;
+	PointerRNA nodeptr = CTX_data_pointer_get_type(C, "node", &RNA_ShaderNodeScript);
+
+	/* setup render engine */
+	data.type = RE_engines_find(scene->r.engine);
+	data.engine = RE_engine_create(data.type);
+	data.engine->reports = op->reports;
+	data.text = NULL;
+	data.found = FALSE;
+
+	if (nodeptr.data) {
+		/* update single node */
+		bNodeTree *ntree = nodeptr.id.data;
+		bNode *node = nodeptr.data;
+
+		data.type->update_script_node(data.engine, ntree, node);
+
+		data.found = TRUE;
+	}
+	else {
+		/* update all nodes using text datablock */
+		data.text = CTX_data_pointer_get_type(C, "edit_text", &RNA_Text).data;
+
+		if (data.text) {
+        	bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
+
+			if (ntreetype && ntreetype->foreach_nodetree)
+				ntreetype->foreach_nodetree(bmain, &data, node_shader_script_update_text);
+
+			if (!data.found)
+				BKE_report(op->reports, RPT_INFO, "Text not used by any node, no update done.");
+		}
+	}
+
+	RE_engine_free(data.engine);
+
+	return (data.found)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void NODE_OT_shader_script_update(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Script Node Update";
+	ot->description = "Update shader script node with new sockets and options from the script";
+	ot->idname = "NODE_OT_shader_script_update";
+
+	/* api callbacks */
+	ot->exec = node_shader_script_update_exec;
+	ot->poll = node_shader_script_update_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+

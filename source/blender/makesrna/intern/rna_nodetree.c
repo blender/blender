@@ -35,12 +35,16 @@
 #include "rna_internal_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_animsys.h"
@@ -48,9 +52,9 @@
 #include "BKE_node.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
+#include "BKE_idprop.h"
 
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
+#include "IMB_imbuf.h"
 
 #include "WM_types.h"
 
@@ -205,6 +209,8 @@ EnumPropertyItem prop_wave_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BLI_linklist.h"
+
+#include "BKE_global.h"
 
 #include "ED_node.h"
 
@@ -995,6 +1001,125 @@ static void rna_NodeOutputFileSlotLayer_name_set(PointerRNA *ptr, const char *va
 	}
 }
 
+static bNodeSocket *rna_ShaderNodeScript_find_socket(bNode *node, const char *name, int is_output)
+{
+	bNodeSocket *sock;
+
+	if (is_output) {
+		for (sock = node->outputs.first; sock; sock = sock->next)
+			if (strcmp(sock->name, name)==0)
+				return sock;
+	}
+	else {
+		for (sock = node->inputs.first; sock; sock = sock->next)
+			if (strcmp(sock->name, name)==0)
+				return sock;
+	}
+
+	return NULL;
+}
+
+static void rna_ShaderNodeScript_remove_socket(ID *id, bNode *node, bNodeSocket *sock)
+{
+	bNodeTree *ntree = (bNodeTree *)id;
+	
+	nodeRemoveSocket(ntree, node, sock);
+	
+	ED_node_generic_update(G.main, ntree, node);
+}
+
+static bNodeSocket *rna_ShaderNodeScript_add_socket(ID *id, bNode *node, const char *name, int type, int is_output)
+{
+	bNodeTree *ntree = (bNodeTree *)id;
+	bNodeSocket *sock;
+	
+	/* replace existing socket with the same name, to keep it unique */
+	sock = rna_ShaderNodeScript_find_socket(node, name, is_output);
+	if (sock)
+		nodeRemoveSocket(ntree, node, sock);
+	sock = nodeAddSocket(ntree, node, (is_output ? SOCK_OUT : SOCK_IN), name, type);
+	
+	ED_node_generic_update(G.main, ntree, node);
+	
+	return sock;
+}
+
+static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
+{
+	bNode *node = (bNode *)ptr->data;
+	NodeShaderScript *nss = node->storage;
+
+	if (nss->mode != value) {
+		nss->mode = value;
+		nss->filepath[0] = '\0';
+        nss->flag &= ~NODE_SCRIPT_AUTO_UPDATE;
+
+		/* replace text datablock by filepath */
+		if (node->id) {
+			Text *text = (Text*)node->id;
+
+			if(value == NODE_SCRIPT_EXTERNAL && text->name) {
+				BLI_strncpy(nss->filepath, text->name, sizeof(nss->filepath));
+				BLI_path_rel(nss->filepath, G.main->name);
+			}
+
+			id_us_min(node->id);
+			node->id = NULL;
+		}
+
+		/* remove any bytecode */
+		if(nss->bytecode) {
+			MEM_freeN(nss->bytecode);
+			nss->bytecode = NULL;
+		}
+
+		nss->bytecode_hash[0] = '\0';
+	}
+}
+
+static void rna_ShaderNodeScript_bytecode_get(PointerRNA *ptr, char *value)
+{
+	bNode *node = (bNode *)ptr->data;
+	NodeShaderScript *nss = node->storage;
+
+	strcpy(value, (nss->bytecode)? nss->bytecode: "");
+}
+
+static int rna_ShaderNodeScript_bytecode_length(PointerRNA *ptr)
+{
+	bNode *node = (bNode *)ptr->data;
+	NodeShaderScript *nss = node->storage;
+
+	return (nss->bytecode) ? strlen(nss->bytecode) : 0;
+}
+
+static void rna_ShaderNodeScript_bytecode_set(PointerRNA *ptr, const char *value)
+{
+	bNode *node = (bNode *)ptr->data;
+	NodeShaderScript *nss = node->storage;
+
+	if (nss->bytecode)
+		MEM_freeN(nss->bytecode);
+
+	if (value && value[0])
+		nss->bytecode = BLI_strdup(value);
+	else
+		nss->bytecode = NULL;
+}
+
+static IDProperty *rna_ShaderNodeScript_idprops(PointerRNA *ptr, int create)
+{
+	bNode *node = (bNode *)ptr->data;
+	NodeShaderScript *nss = node->storage;
+
+	if (create && !nss->prop) {
+		IDPropertyTemplate val = {0};
+		nss->prop = IDP_New(IDP_GROUP, &val, "RNA_ShaderNodeScript ID properties");
+	}
+
+	return nss->prop;
+}
+
 #else
 
 static EnumPropertyItem prop_image_layer_items[] = {
@@ -1032,6 +1157,12 @@ static EnumPropertyItem node_glossy_items[] = {
 	{SHD_GLOSSY_SHARP,    "SHARP",    0, "Sharp",    ""},
 	{SHD_GLOSSY_BECKMANN, "BECKMANN", 0, "Beckmann", ""},
 	{SHD_GLOSSY_GGX,      "GGX",      0, "GGX",      ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static EnumPropertyItem node_script_mode_items[] = {
+	{NODE_SCRIPT_INTERNAL, "INTERNAL", 0, "Internal", "Use internal text datablock"},
+	{NODE_SCRIPT_EXTERNAL, "EXTERNAL", 0, "External", "Use external .osl or oso file"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1705,6 +1836,76 @@ static void def_glossy(StructRNA *srna)
 	RNA_def_property_enum_items(prop, node_glossy_items);
 	RNA_def_property_ui_text(prop, "Distribution", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_sh_script(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *prop, *parm;
+
+	prop = RNA_def_property(srna, "script", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Text");
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
+	RNA_def_property_ui_text(prop, "Script", "Internal shader script to define the shader");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	
+	RNA_def_struct_sdna_from(srna, "NodeShaderScript", "storage");
+	RNA_def_struct_idprops_func(srna, "rna_ShaderNodeScript_idprops");
+	
+	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_ui_text(prop, "File Path", "Shader script path");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_ShaderNodeScript_mode_set", NULL);
+	RNA_def_property_enum_items(prop, node_script_mode_items);
+	RNA_def_property_ui_text(prop, "Script Source", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "use_auto_update", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_SCRIPT_AUTO_UPDATE);
+	RNA_def_property_ui_text(prop, "Auto Update", "Automatically updates the shader when the .osl file changes - external scripts only");
+	
+	prop = RNA_def_property(srna, "bytecode", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ShaderNodeScript_bytecode_get",
+		"rna_ShaderNodeScript_bytecode_length", "rna_ShaderNodeScript_bytecode_set");
+	RNA_def_property_ui_text(prop, "Bytecode", "Compile bytecode for shader script node");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "bytecode_hash", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Bytecode Hash", "Hash of compile bytecode, for quick equality checking");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	/* needs to be reset to avoid bad pointer type in API functions below */
+	RNA_def_struct_sdna_from(srna, "bNode", NULL);
+	
+	/* API functions */
+	
+	func = RNA_def_function(srna, "find_socket", "rna_ShaderNodeScript_find_socket");
+	RNA_def_function_ui_description(func, "Find a socket by name");
+	parm = RNA_def_string(func, "name", "", 0, "Socket name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/*parm =*/ RNA_def_boolean(func, "is_output", FALSE, "Output", "Whether the socket is an output");
+	parm = RNA_def_pointer(func, "result", "NodeSocket", "", "");
+	RNA_def_function_return(func, parm);
+	
+	func = RNA_def_function(srna, "add_socket", "rna_ShaderNodeScript_add_socket");
+	RNA_def_function_ui_description(func, "Add a socket socket");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_string(func, "name", "", 0, "Name", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_enum(func, "type", node_socket_type_items, SOCK_FLOAT, "Type", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/*parm =*/ RNA_def_boolean(func, "is_output", FALSE, "Output", "Whether the socket is an output");
+	parm = RNA_def_pointer(func, "result", "NodeSocket", "", "");
+	RNA_def_function_return(func, parm);
+	
+	func = RNA_def_function(srna, "remove_socket", "rna_ShaderNodeScript_remove_socket");
+	RNA_def_function_ui_description(func, "Remove a socket socket");
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	parm = RNA_def_pointer(func, "sock", "NodeSocket", "Socket", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
 /* -- Compositor Nodes ------------------------------------------------------ */

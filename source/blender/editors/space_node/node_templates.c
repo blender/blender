@@ -292,8 +292,7 @@ static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 			BLI_strncpy(node_name, node->typeinfo->name, UI_MAX_NAME_STR);
 
 		if (node->inputs.first == NULL &&
-		    node->outputs.first != node->outputs.last &&
-		    !(node->typeinfo->flag & NODE_OPTIONS))
+		    node->outputs.first != node->outputs.last)
 		{
 			BLI_snprintf(name, UI_MAX_NAME_STR, "%s | %s", IFACE_(node_name), IFACE_(sock->link->fromsock->name));
 		}

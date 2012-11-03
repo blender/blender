@@ -2429,8 +2429,18 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		
 		if (node->storage) {
 			/* could be handlerized at some point */
-			if (ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
-				direct_link_curvemapping(fd, node->storage);
+			if (ntree->type==NTREE_SHADER) {
+				if (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB) {
+					direct_link_curvemapping(fd, node->storage);
+				}
+				else if (node->type==SH_NODE_SCRIPT) {
+					NodeShaderScript *nss = (NodeShaderScript *) node->storage;
+					nss->bytecode = newdataadr(fd, nss->bytecode);
+					nss->prop = newdataadr(fd, nss->prop);
+					if (nss->prop)
+						IDP_DirectLinkProperty(nss->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+				}
+			}
 			else if (ntree->type==NTREE_COMPOSIT) {
 				if (ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 					direct_link_curvemapping(fd, node->storage);

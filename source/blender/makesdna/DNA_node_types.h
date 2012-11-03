@@ -703,6 +703,26 @@ typedef struct NodeTrackPosData {
 	char track_name[64];
 } NodeTrackPosData;
 
+typedef struct NodeShaderScript {
+	int mode;
+	int flag;
+
+	char filepath[1024]; /* 1024 = FILE_MAX */
+
+	char bytecode_hash[64];
+	char *bytecode;
+
+	IDProperty *prop;
+} NodeShaderScript;
+
+/* script node mode */
+#define NODE_SCRIPT_INTERNAL		0
+#define NODE_SCRIPT_EXTERNAL		1
+
+/* script node flag */
+#define NODE_SCRIPT_AUTO_UPDATE		1
+
+
 /* frame node flags */
 #define NODE_FRAME_SHRINK		1	/* keep the bounding box minimal */
 #define NODE_FRAME_RESIZEABLE	2	/* test flag, if frame can be resized by user */

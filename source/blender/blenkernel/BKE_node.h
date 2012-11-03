@@ -245,6 +245,7 @@ typedef struct bNodeType {
 #define NODE_CLASS_PARTICLES		25
 #define NODE_CLASS_TRANSFORM		30
 #define NODE_CLASS_COMBINE			31
+#define NODE_CLASS_SCRIPT			32
 #define NODE_CLASS_SHADER 			40
 #define NODE_CLASS_LAYOUT			100
 
@@ -551,6 +552,7 @@ struct ShadeResult;
 #define SH_NODE_PARTICLE_INFO           168
 #define SH_NODE_TEX_BRICK				169
 #define SH_NODE_BUMP					170
+#define SH_NODE_SCRIPT					171
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
