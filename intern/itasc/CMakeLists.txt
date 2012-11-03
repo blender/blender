@@ -125,7 +125,6 @@ set(SRC
 	../../extern/Eigen3/Eigen/src/Cholesky/LLT.h
 	../../extern/Eigen3/Eigen/src/Cholesky/LLT_MKL.h
 	../../extern/Eigen3/Eigen/src/CholmodSupport/CholmodSupport.h
-	../../extern/Eigen3/Eigen/src/Core/arch
 	../../extern/Eigen3/Eigen/src/Core/Array.h
 	../../extern/Eigen3/Eigen/src/Core/ArrayBase.h
 	../../extern/Eigen3/Eigen/src/Core/ArrayWrapper.h
@@ -167,7 +166,6 @@ set(SRC
 	../../extern/Eigen3/Eigen/src/Core/PlainObjectBase.h
 	../../extern/Eigen3/Eigen/src/Core/Product.h
 	../../extern/Eigen3/Eigen/src/Core/ProductBase.h
-	../../extern/Eigen3/Eigen/src/Core/products
 	../../extern/Eigen3/Eigen/src/Core/Random.h
 	../../extern/Eigen3/Eigen/src/Core/Redux.h
 	../../extern/Eigen3/Eigen/src/Core/Replicate.h
@@ -183,14 +181,9 @@ set(SRC
 	../../extern/Eigen3/Eigen/src/Core/Transpose.h
 	../../extern/Eigen3/Eigen/src/Core/Transpositions.h
 	../../extern/Eigen3/Eigen/src/Core/TriangularMatrix.h
-	../../extern/Eigen3/Eigen/src/Core/util
 	../../extern/Eigen3/Eigen/src/Core/VectorBlock.h
 	../../extern/Eigen3/Eigen/src/Core/VectorwiseOp.h
 	../../extern/Eigen3/Eigen/src/Core/Visitor.h
-	../../extern/Eigen3/Eigen/src/Core/arch/AltiVec
-	../../extern/Eigen3/Eigen/src/Core/arch/Default
-	../../extern/Eigen3/Eigen/src/Core/arch/NEON
-	../../extern/Eigen3/Eigen/src/Core/arch/SSE
 	../../extern/Eigen3/Eigen/src/Core/arch/AltiVec/Complex.h
 	../../extern/Eigen3/Eigen/src/Core/arch/AltiVec/PacketMath.h
 	../../extern/Eigen3/Eigen/src/Core/arch/Default/Settings.h
@@ -236,7 +229,6 @@ set(SRC
 	../../extern/Eigen3/Eigen/src/Eigen2Support/Block.h
 	../../extern/Eigen3/Eigen/src/Eigen2Support/Cwise.h
 	../../extern/Eigen3/Eigen/src/Eigen2Support/CwiseOperators.h
-	../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry
 	../../extern/Eigen3/Eigen/src/Eigen2Support/Lazy.h
 	../../extern/Eigen3/Eigen/src/Eigen2Support/LeastSquares.h
 	../../extern/Eigen3/Eigen/src/Eigen2Support/LU.h
@@ -274,7 +266,6 @@ set(SRC
 	../../extern/Eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h
 	../../extern/Eigen3/Eigen/src/Geometry/AlignedBox.h
 	../../extern/Eigen3/Eigen/src/Geometry/AngleAxis.h
-	../../extern/Eigen3/Eigen/src/Geometry/arch
 	../../extern/Eigen3/Eigen/src/Geometry/EulerAngles.h
 	../../extern/Eigen3/Eigen/src/Geometry/Homogeneous.h
 	../../extern/Eigen3/Eigen/src/Geometry/Hyperplane.h
@@ -297,7 +288,6 @@ set(SRC
 	../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h
 	../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h
 	../../extern/Eigen3/Eigen/src/Jacobi/Jacobi.h
-	../../extern/Eigen3/Eigen/src/LU/arch
 	../../extern/Eigen3/Eigen/src/LU/Determinant.h
 	../../extern/Eigen3/Eigen/src/LU/FullPivLU.h
 	../../extern/Eigen3/Eigen/src/LU/Inverse.h

@@ -35,6 +35,8 @@ set(INC_SYS
 set(SRC
 	CTR_HashedPtr.h
 	CTR_Map.h
+	CTR_TaggedIndex.h
+	CTR_TaggedSetOps.h
 )
 
 # infact nothing to compile!

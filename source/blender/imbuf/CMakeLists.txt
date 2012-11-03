@@ -81,21 +81,6 @@ set(SRC
 	intern/IMB_indexer.h
 	intern/IMB_metadata.h
 	intern/imbuf.h
-	intern/cineon/cineonlib.h
-	intern/cineon/dpxlib.h
-	intern/cineon/logImageCore.h
-	intern/cineon/logmemfile.h
-	intern/dds/BlockDXT.h
-	intern/dds/Color.h
-	intern/dds/ColorBlock.h
-	intern/dds/Common.h
-	intern/dds/DirectDrawSurface.h
-	intern/dds/Image.h
-	intern/dds/PixelFormat.h
-	intern/dds/Stream.h
-	intern/dds/dds_api.h
-	intern/openexr/openexr_api.h
-	intern/openexr/openexr_multi.h
 	
 	# orphan include
 	../../../intern/ffmpeg/ffmpeg_compat.h

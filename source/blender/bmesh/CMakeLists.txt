@@ -30,7 +30,9 @@ set(INC
 	../blenlib
 	../makesdna
 	../../../intern/guardedalloc
-	../../../extern/bullet2/src	../../../intern/opennl/extern)
+	../../../extern/bullet2/src
+	../../../intern/opennl/extern
+)
 
 set(INC_SYS
 
