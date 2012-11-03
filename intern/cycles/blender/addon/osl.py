@@ -39,7 +39,7 @@ def update_script_node(node, report):
 
     if node.mode == 'EXTERNAL':
         # compile external script file
-        script_path = bpy.path.abspath(node.filepath)
+        script_path = bpy.path.abspath(node.filepath, library=node.id_data.library)
         script_path_noext, script_ext = os.path.splitext(script_path)
 
         if script_ext == ".oso":
@@ -75,7 +75,7 @@ def update_script_node(node, report):
     elif node.mode == 'INTERNAL' and node.script:
         # internal script, we will store bytecode in the node
         script = node.script
-        osl_path = bpy.path.abspath(script.filepath)
+        osl_path = bpy.path.abspath(script.filepath, library=script.library)
 
         if script.is_in_memory or script.is_dirty or script.is_modified or not os.path.exists(osl_path):
             # write text datablock contents to temporary file
@@ -97,7 +97,10 @@ def update_script_node(node, report):
                 node.bytecode = oso.read()
                 oso.close()
             except:
-                report({'ERROR'}, "Can't read OSO bytecode to store in node at " + oso_path)
+                import traceback
+                traceback.print_exc()
+
+                report({'ERROR'}, "Can't read OSO bytecode to store in node at %r" % oso_path)
                 ok = False
     
     else:
