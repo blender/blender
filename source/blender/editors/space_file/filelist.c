@@ -785,6 +785,7 @@ static int file_extension_type(const char *relname)
 	}
 	else if (BLI_testextensie(relname, ".txt")  ||
 	         BLI_testextensie(relname, ".glsl") ||
+			 BLI_testextensie(relname, ".osl")  ||
 	         BLI_testextensie(relname, ".data"))
 	{
 		return TEXTFILE;
