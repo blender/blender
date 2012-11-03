@@ -38,6 +38,7 @@ set(ADDON_FILES
 	addon/__init__.py
 	addon/engine.py 
 	addon/enums.py
+	addon/osl.py
 	addon/presets.py
 	addon/properties.py
 	addon/ui.py

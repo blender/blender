@@ -170,7 +170,7 @@ bool path_read_binary(const string& path, vector<uint8_t>& binary)
 	return true;
 }
 
-static bool path_read_text(const string& path, string& text)
+bool path_read_text(const string& path, string& text)
 {
 	vector<uint8_t> binary;
 
@@ -182,6 +182,14 @@ static bool path_read_text(const string& path, string& text)
 	text = string(str, size);
 
 	return true;
+}
+
+uint64_t path_modified_time(const string& path)
+{
+	if(boost::filesystem::exists(path))
+		return (uint64_t)boost::filesystem::last_write_time(path);
+	
+	return 0;
 }
 
 string path_source_replace_includes(const string& source_, const string& path)

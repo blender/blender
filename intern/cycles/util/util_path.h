@@ -45,6 +45,9 @@ string path_files_md5_hash(const string& dir);
 void path_create_directories(const string& path);
 bool path_write_binary(const string& path, const vector<uint8_t>& binary);
 bool path_read_binary(const string& path, vector<uint8_t>& binary);
+bool path_read_text(const string& path, string& text);
+
+uint64_t path_modified_time(const string& path);
 
 string path_source_replace_includes(const string& source, const string& path);
 

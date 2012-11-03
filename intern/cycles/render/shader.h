@@ -27,6 +27,10 @@
 #include "util_string.h"
 #include "util_types.h"
 
+#ifdef WITH_OSL
+#include <OSL/oslexec.h>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 class Device;
@@ -77,6 +81,14 @@ public:
 
 	/* determined before compiling */
 	bool used;
+
+#ifdef WITH_OSL
+	/* osl shading state references */
+	OSL::ShadingAttribStateRef osl_surface_ref;
+	OSL::ShadingAttribStateRef osl_surface_bump_ref;
+	OSL::ShadingAttribStateRef osl_volume_ref;
+	OSL::ShadingAttribStateRef osl_displacement_ref;
+#endif
 
 	Shader();
 	~Shader();

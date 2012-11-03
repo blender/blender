@@ -20,6 +20,7 @@
 #include "graph.h"
 #include "light.h"
 #include "nodes.h"
+#include "osl.h"
 #include "scene.h"
 #include "shader.h"
 
@@ -159,7 +160,7 @@ static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping b_map
 		mapping->max = get_float3(b_mapping.max());
 }
 
-static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNode b_node)
+static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, BL::ShaderNode b_node)
 {
 	ShaderNode *node = NULL;
 
@@ -413,6 +414,58 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 			node = new BumpNode();
 			break;
 		}
+		case BL::ShaderNode::type_SCRIPT: {
+#ifdef WITH_OSL
+			if(scene->params.shadingsystem != SceneParams::OSL)
+				break;
+
+			/* create script node */
+			BL::ShaderNodeScript b_script_node(b_node);
+			OSLScriptNode *script_node = new OSLScriptNode();
+			
+			/* Generate inputs/outputs from node sockets
+			 *
+			 * Note: the node sockets are generated from OSL parameters,
+			 * so the names match those of the corresponding parameters exactly.
+			 *
+			 * Note 2: ShaderInput/ShaderOutput store shallow string copies only!
+			 * Socket names must be stored in the extra lists instead. */
+			BL::Node::inputs_iterator b_input;
+
+			for (b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
+				script_node->input_names.push_back(ustring(b_input->name()));
+				ShaderInput *input = script_node->add_input(script_node->input_names.back().c_str(), convert_socket_type(b_input->type()));
+				set_default_value(input, *b_input);
+			}
+
+			BL::Node::outputs_iterator b_output;
+
+			for (b_script_node.outputs.begin(b_output); b_output != b_script_node.outputs.end(); ++b_output) {
+				script_node->output_names.push_back(ustring(b_output->name()));
+				script_node->add_output(script_node->output_names.back().c_str(), convert_socket_type(b_output->type()));
+			}
+
+			/* load bytecode or filepath */
+			OSLShaderManager *manager = (OSLShaderManager*)scene->shader_manager;
+			string bytecode_hash = b_script_node.bytecode_hash();
+
+			if(!bytecode_hash.empty()) {
+				/* loaded bytecode if not already done */
+				if(!manager->shader_test_loaded(bytecode_hash))
+					manager->shader_load_bytecode(bytecode_hash, b_script_node.bytecode());
+
+				script_node->bytecode_hash = bytecode_hash;
+			}
+			else {
+				/* set filepath */
+				script_node->filepath = blender_absolute_path(b_data, b_ntree, b_script_node.filepath());
+			}
+			
+			node = script_node;
+#endif
+
+			break;
+		}
 		case BL::ShaderNode::type_TEX_IMAGE: {
 			BL::ShaderNodeTexImage b_image_node(b_node);
 			BL::Image b_image(b_image_node.image());
@@ -576,7 +629,7 @@ static SocketPair node_socket_map_pair(PtrNodeMap& node_map, BL::Node b_node, BL
 	return SocketPair(node_map[b_node.ptr.data], name);
 }
 
-static void add_nodes(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, PtrSockMap& sockets_map)
+static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, PtrSockMap& sockets_map)
 {
 	/* add nodes */
 	BL::ShaderNodeTree::nodes_iterator b_node;
@@ -651,10 +704,10 @@ static void add_nodes(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *grap
 				set_default_value(proxy->inputs[0], b_output->group_socket());
 			}
 			
-			add_nodes(b_data, b_scene, graph, b_group_ntree, group_sockmap);
+			add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_sockmap);
 		}
 		else {
-			ShaderNode *node = add_node(b_data, b_scene, graph, BL::ShaderNode(*b_node));
+			ShaderNode *node = add_node(scene, b_data, b_scene, graph, b_ntree, BL::ShaderNode(*b_node));
 			
 			if(node) {
 				BL::Node::inputs_iterator b_input;
@@ -744,7 +797,7 @@ void BlenderSync::sync_materials()
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
 
-				add_nodes(b_data, b_scene, graph, b_ntree, sock_to_node);
+				add_nodes(scene, b_data, b_scene, graph, b_ntree, sock_to_node);
 			}
 			else {
 				ShaderNode *closure, *out;
@@ -785,7 +838,7 @@ void BlenderSync::sync_world()
 			PtrSockMap sock_to_node;
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-			add_nodes(b_data, b_scene, graph, b_ntree, sock_to_node);
+			add_nodes(scene, b_data, b_scene, graph, b_ntree, sock_to_node);
 		}
 		else if(b_world) {
 			ShaderNode *closure, *out;
@@ -844,7 +897,7 @@ void BlenderSync::sync_lamps()
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
 
-				add_nodes(b_data, b_scene, graph, b_ntree, sock_to_node);
+				add_nodes(scene, b_data, b_scene, graph, b_ntree, sock_to_node);
 			}
 			else {
 				ShaderNode *closure, *out;
