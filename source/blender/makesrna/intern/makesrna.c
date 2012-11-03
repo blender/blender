@@ -1661,6 +1661,7 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 		case PROP_STRING:
 		{
 			fprintf(f, "\tinline std::string %s(void);", rna_safe_id(prop->identifier));
+			fprintf(f, "\tinline void %s(const std::string& value);", rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_POINTER:
@@ -1948,23 +1949,23 @@ static void rna_def_struct_function_impl_cpp(FILE *f, StructRNA *srna, FunctionD
 		if (dp->prop->type == PROP_POINTER) {
 			pprop = (PointerPropertyRNA *) dp->prop;
 
-			fprintf(f, "\t\tPointerRNA ptr;\n");
+			fprintf(f, "\t\tPointerRNA result;\n");
 
 			if ((dp->prop->flag & PROP_RNAPTR) == 0) {
 				StructRNA *ret_srna = rna_find_struct((const char *) pprop->type);
 				fprintf(f, "\t\t::%s *retdata = ", rna_parameter_type_name(dp->prop));
 				rna_def_struct_function_call_impl_cpp(f, srna, dfunc);
 				if (ret_srna->flag & STRUCT_ID)
-					fprintf(f, "\t\tRNA_id_pointer_create((::ID *) retdata, &ptr);\n");
+					fprintf(f, "\t\tRNA_id_pointer_create((::ID *) retdata, &result);\n");
 				else
-					fprintf(f, "\t\tRNA_pointer_create(NULL, &RNA_%s, retdata, &ptr);\n", (const char *) pprop->type);
+					fprintf(f, "\t\tRNA_pointer_create((::ID *) ptr.id.data, &RNA_%s, retdata, &result);\n", (const char *) pprop->type);
 			}
 			else {
-				fprintf(f, "\t\tptr = ");
+				fprintf(f, "\t\tresult = ");
 				rna_def_struct_function_call_impl_cpp(f, srna, dfunc);
 			}
 
-			fprintf(f, "\t\treturn %s(ptr);\n", (const char *) pprop->type);
+			fprintf(f, "\t\treturn %s(result);\n", (const char *) pprop->type);
 		}
 		else {
 			fprintf(f, "\t\treturn ");
@@ -3356,6 +3357,8 @@ static const char *cpp_classes = ""
 "		int len= sname##_##identifier##_length(&ptr); \\\n"
 "		std::string str; str.resize(len); \\\n"
 "		sname##_##identifier##_get(&ptr, &str[0]); return str; } \\\n"
+"	inline void sname::identifier(const std::string& value) { \\\n"
+"		sname##_##identifier##_set(&ptr, value.c_str()); } \\\n"
 "\n"
 "#define POINTER_PROPERTY(type, sname, identifier) \\\n"
 "	inline type sname::identifier(void) { return type(sname##_##identifier##_get(&ptr)); }\n"
