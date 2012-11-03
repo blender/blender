@@ -235,7 +235,8 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	}
 }
 
-int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int layernum)
+/* without bContext, called in uvedit */
+int ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
 {
 	BMEditMesh *em = me->edit_btmesh;
 	MLoopUV *luv;
@@ -338,7 +339,6 @@ int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int laye
 	BLI_array_free(polylengths);
 
 	DAG_id_tag_update(&me->id, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 	return 1;
 }
@@ -348,7 +348,11 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 	/* could be ldata or pdata */
 	CustomData *pdata = GET_CD_DATA(me, pdata);
 	const int layernum = CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
-	return ED_mesh_uv_loop_reset_ex(C, me, layernum);
+	int retval = ED_mesh_uv_loop_reset_ex(me, layernum);
+	
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+	
+	return retval;
 }
 
 /* note: keep in sync with ED_mesh_color_add */
@@ -419,7 +423,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 
 	/* don't overwrite our copied coords */
 	if (is_init == FALSE) {
-		ED_mesh_uv_loop_reset_ex(C, me, layernum_dst);
+		ED_mesh_uv_loop_reset_ex(me, layernum_dst);
 	}
 
 	DAG_id_tag_update(&me->id, 0);
