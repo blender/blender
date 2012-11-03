@@ -76,11 +76,11 @@ set(SRC_OSO
 # TODO, add a module to compile OSL
 foreach(_file ${SRC_OSL})
 	set(_OSL_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
-	string(REPLACE ".osl" ".oso" _OSO_FILE ${_OSL_FILE})  # TODO, replace extension only
+	string(REPLACE ".osl" ".oso" _OSO_FILE ${_OSL_FILE})
 	string(REPLACE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} _OSO_FILE ${_OSO_FILE})
 	add_custom_command(
 		OUTPUT ${_OSO_FILE} 
-		COMMAND ${OSL_COMPILER} -O2 ${_OSL_FILE}
+		COMMAND ${OSL_COMPILER} -O2  -I"${CMAKE_CURRENT_SOURCE_DIR}" ${_OSL_FILE}
 		DEPENDS ${_OSL_FILE} ${SRC_OSL_HEADERS})
 	list(APPEND SRC_OSO
 		${_OSO_FILE}
@@ -94,3 +94,5 @@ add_custom_target(cycles_osl_shaders ALL DEPENDS ${SRC_OSO} ${SRC_OSL_HEADERS})
 
 # CMAKE_CURRENT_SOURCE_DIR is already included in OSO paths
 delayed_install("" "${SRC_OSO}" ${CYCLES_INSTALL_PATH}/shader)
+delayed_install("${CMAKE_CURRENT_SOURCE_DIR}" "${SRC_OSL_HEADERS}" ${CYCLES_INSTALL_PATH}/shader)
+

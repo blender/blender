@@ -366,8 +366,8 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 				osl_attr.type = TypeDesc::TypeColor;
 
 			if(req.std != ATTR_STD_NONE) {
-				/* if standard attribute, add lookup by std:: name convention */
-				ustring stdname(std::string("std::") + std::string(attribute_standard_name(req.std)));
+				/* if standard attribute, add lookup by geom: name convention */
+				ustring stdname(string("geom:") + string(attribute_standard_name(req.std)));
 				og->attribute_map[i][stdname] = osl_attr;
 			}
 			else if(req.name != ustring()) {

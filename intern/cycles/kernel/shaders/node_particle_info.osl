@@ -17,16 +17,22 @@
  */
 
 #include "stdosl.h"
-#include "node_fresnel.h"
 
-shader node_velvet_bsdf(
-	color Color = color(0.8, 0.8, 0.8),
-	float Sigma = 0.0,
-	normal Normal = N,
-	output closure color BSDF = diffuse(Normal))
+shader node_particle_info(
+    output float Index = 0.0,
+    output float Age = 0.0,
+    output float Lifetime = 0.0,
+    output point Location = point(0.0, 0.0, 0.0),
+    output float Size = 0.0,
+    output vector Velocity = point(0.0, 0.0, 0.0),
+    output vector AngularVelocity = point(0.0, 0.0, 0.0))
 {
-	float sigma = clamp(Sigma, 0.0, 1.0);
-
-	BSDF = Color * ashikhmin_velvet(Normal, sigma, 1.0);
+	getattribute("particle:index", Index);
+	getattribute("particle:age", Age);
+	getattribute("particle:lifetime", Lifetime);
+	getattribute("particle:location", Location);
+	getattribute("particle:size", Size);
+	getattribute("particle:velocity", Velocity);
+	getattribute("particle:angular_velocity", AngularVelocity);
 }
 

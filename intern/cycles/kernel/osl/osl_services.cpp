@@ -345,6 +345,51 @@ static void set_attribute_float(float f[3], TypeDesc type, bool derivatives, voi
 	}
 }
 
+static bool set_attribute_int(int i, TypeDesc type, bool derivatives, void *val)
+{
+	if(type.basetype == TypeDesc::INT && type.aggregate == TypeDesc::SCALAR && type.arraylen == 0) {
+		int *ival = (int *)val;
+		ival[0] = i;
+
+		if (derivatives) {
+			ival[1] = 0;
+			ival[2] = 0;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+static bool set_attribute_float3_3(float3 P[3], TypeDesc type, bool derivatives, void *val)
+{
+	if(type.vecsemantics == TypeDesc::POINT && type.arraylen >= 3) {
+		float *fval = (float *)val;
+
+		fval[0] = P[0].x;
+		fval[1] = P[0].y;
+		fval[2] = P[0].z;
+
+		fval[3] = P[1].x;
+		fval[4] = P[1].y;
+		fval[5] = P[1].z;
+
+		fval[6] = P[2].x;
+		fval[7] = P[2].y;
+		fval[8] = P[2].z;
+
+		if(type.arraylen > 3)
+			memset(fval + 3*3, 0, sizeof(float)*3*(type.arraylen - 3));
+		if (derivatives)
+			memset(fval + type.arraylen*3, 0, sizeof(float)*2*3*type.arraylen);
+
+		return true;
+	}
+
+	return false;
+}
+
 static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OSLGlobals::Attribute& attr,
                                const TypeDesc& type, bool derivatives, void *val)
 {
@@ -381,43 +426,45 @@ static void get_object_attribute(const OSLGlobals::Attribute& attr, bool derivat
 static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
                                           TypeDesc type, bool derivatives, void *val)
 {
+	/* todo: turn this into hash table + callback once */
+
 	/* Object Attributes */
-	if (name == "std::object_location") {
+	if (name == "object:location") {
 		float3 fval[3];
 		fval[0] = object_location(kg, sd);
 		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
 		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::object_index") {
+	else if (name == "object:index") {
 		float fval[3];
 		fval[0] = object_pass_id(kg, sd->object);
 		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
 		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::dupli_generated") {
+	else if (name == "geom:dupli_generated") {
 		float3 fval[3];
 		fval[0] = object_dupli_generated(kg, sd->object);
 		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
 		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::dupli_uv") {
+	else if (name == "geom:dupli_uv") {
 		float3 fval[3];
 		fval[0] = object_dupli_uv(kg, sd->object);
 		fval[1] = fval[2] = make_float3(0.0, 0.0, 0.0);	/* derivates set to 0 */
 		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::material_index") {
+	else if (name == "material:index") {
 		float fval[3];
 		fval[0] = shader_pass_id(kg, sd);
 		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
 		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::object_random") {
+	else if (name == "object:random") {
 		float fval[3];
 		fval[0] = object_random_number(kg, sd->object);
 		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */
@@ -426,7 +473,7 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 	}
 
 	/* Particle Attributes */
-	else if (name == "std::particle_index") {
+	else if (name == "particle:index") {
 		float fval[3];
 		uint particle_id = object_particle_id(kg, sd->object);
 		fval[0] = particle_index(kg, particle_id);
@@ -434,7 +481,7 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::particle_age") {
+	else if (name == "particle:age") {
 		float fval[3];
 		uint particle_id = object_particle_id(kg, sd->object);
 		fval[0] = particle_age(kg, particle_id);
@@ -442,7 +489,7 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::particle_lifetime") {
+	else if (name == "particle:lifetime") {
 		float fval[3];
 		uint particle_id = object_particle_id(kg, sd->object);
 		fval[0] = particle_lifetime(kg, particle_id);
@@ -450,7 +497,7 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::particle_location") {
+	else if (name == "particle:location") {
 		float3 fval[3];
 		uint particle_id = object_particle_id(kg, sd->object);
 		fval[0] = particle_location(kg, particle_id);
@@ -459,7 +506,7 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		return true;
 	}
 #if 0	/* unsupported */
-	else if (name == "std::particle_rotation") {
+	else if (name == "particle:rotation") {
 		float4 fval[3];
 		uint particle_id = object_particle_id(kg, sd->object);
 		fval[0] = particle_rotation(kg, particle_id);
@@ -468,7 +515,7 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		return true;
 	}
 #endif
-	else if (name == "std::particle_size") {
+	else if (name == "particle:size") {
 		float fval[3];
 		uint particle_id = object_particle_id(kg, sd->object);
 		fval[0] = particle_size(kg, particle_id);
@@ -476,7 +523,7 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		set_attribute_float(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::particle_velocity") {
+	else if (name == "particle:velocity") {
 		float3 fval[3];
 		uint particle_id = object_particle_id(kg, sd->object);
 		fval[0] = particle_velocity(kg, particle_id);
@@ -484,7 +531,7 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
-	else if (name == "std::particle_angular_velocity") {
+	else if (name == "particle:angular_velocity") {
 		float3 fval[3];
 		uint particle_id = object_particle_id(kg, sd->object);
 		fval[0] = particle_angular_velocity(kg, particle_id);
@@ -492,7 +539,17 @@ static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ust
 		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
-	
+	else if (name == "geom:numpolyvertices") {
+		return set_attribute_int(3, type, derivatives, val);
+	}
+	else if (name == "geom:trianglevertices" || name == "geom:polyvertices") {
+		float3 P[3];
+		triangle_vertices(kg, sd->prim, P);
+		object_position_transform(kg, sd, &P[0]);
+		object_position_transform(kg, sd, &P[1]);
+		object_position_transform(kg, sd, &P[2]);
+		return set_attribute_float3_3(P, type, derivatives, val);
+	}
 	else
 		return false;
 }
@@ -501,7 +558,7 @@ static bool get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring 
                                      TypeDesc type, bool derivatives, void *val)
 {
 	/* Ray Length */
-	if (name == "std::ray_length") {
+	if (name == "path:ray_length") {
 		float fval[3];
 		fval[0] = sd->ray_length;
 		fval[1] = fval[2] = 0.0;	/* derivates set to 0 */

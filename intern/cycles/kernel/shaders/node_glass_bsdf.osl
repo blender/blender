@@ -19,19 +19,25 @@
 #include "stdosl.h"
 #include "node_fresnel.h"
 
-shader node_glossy_bsdf(
+shader node_glass_bsdf(
 	color Color = color(0.8, 0.8, 0.8),
-	string distribution = "Beckmann",
+	string distribution = "Sharp",
 	float Roughness = 0.2,
+	float IOR = 1.45,
 	normal Normal = N,
 	output closure color BSDF = diffuse(Normal))
 {
-	if (distribution == "Sharp")
-		BSDF = Color * reflection(Normal);
-	else if (distribution == "Beckmann")
-		BSDF = Color * microfacet_beckmann(Normal, Roughness, 1.0);
-	else if (distribution == "GGX")
-		BSDF = Color * microfacet_ggx(Normal, Roughness, 1.0);
+	float f = max(IOR, 1.0 + 1e-5);
+	float eta = backfacing() ? 1.0 / f: f;
+	float Fr = fresnel_dielectric(I, Normal, eta);
 
+	if (distribution == "Sharp")
+		BSDF = Color * (Fr * reflection(Normal) + (1.0 - Fr) * refraction(Normal, eta));
+	else if (distribution == "Beckmann")
+		BSDF = Color * (Fr * microfacet_beckmann(Normal, Roughness) +
+		                (1.0 - Fr) * microfacet_beckmann_refraction(Normal, Roughness, eta));
+	else if (distribution == "GGX")
+		BSDF = Color * (Fr * microfacet_ggx(Normal, Roughness) +
+		                (1.0 - Fr) * microfacet_ggx_refraction(Normal, Roughness, eta));
 }
 
