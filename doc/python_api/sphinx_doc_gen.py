@@ -910,6 +910,72 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
     file.close()
 
+# Changes in blender will force errors here
+context_type_map = {
+    "active_base": ("ObjectBase", False),
+    "active_bone": ("Bone", False),
+    "active_object": ("Object", False),
+    "active_operator": ("Operator", False),
+    "active_pose_bone": ("PoseBone", False),
+    "active_node": ("Node", False),
+    "armature": ("Armature", False),
+    "bone": ("Bone", False),
+    "brush": ("Brush", False),
+    "camera": ("Camera", False),
+    "cloth": ("ClothModifier", False),
+    "collision": ("CollisionModifier", False),
+    "curve": ("Curve", False),
+    "dynamic_paint": ("DynamicPaintModifier", False),
+    "edit_bone": ("EditBone", False),
+    "edit_image": ("Image", False),
+    "edit_mask": ("Mask", False),
+    "edit_movieclip": ("MovieClip", False),
+    "edit_object": ("Object", False),
+    "edit_text": ("Text", False),
+    "editable_bones": ("EditBone", True),
+    "fluid": ("FluidSimulationModifier", False),
+    "image_paint_object": ("Object", False),
+    "lamp": ("Lamp", False),
+    "lattice": ("Lattice", False),
+    "material": ("Material", False),
+    "material_slot": ("MaterialSlot", False),
+    "mesh": ("Mesh", False),
+    "meta_ball": ("MetaBall", False),
+    "object": ("Object", False),
+    "particle_edit_object": ("Object", False),
+    "particle_settings": ("ParticleSettings", False),
+    "particle_system": ("ParticleSystem", False),
+    "particle_system_editable": ("ParticleSystem", False),
+    "pose_bone": ("PoseBone", False),
+    "scene": ("Scene", False),
+    "sculpt_object": ("Object", False),
+    "selectable_bases": ("ObjectBase", True),
+    "selectable_objects": ("Object", True),
+    "selected_bases": ("ObjectBase", True),
+    "selected_bones": ("Bone", True),
+    "selected_editable_bases": ("ObjectBase", True),
+    "selected_editable_bones": ("Bone", True),
+    "selected_editable_objects": ("Object", True),
+    "selected_editable_sequences": ("Sequence", True),
+    "selected_nodes": ("Node", True),
+    "selected_objects": ("Object", True),
+    "selected_pose_bones": ("PoseBone", True),
+    "selected_sequences": ("Sequence", True),
+    "sequences": ("Sequence", True),
+    "smoke": ("SmokeModifier", False),
+    "soft_body": ("SoftBodyModifier", False),
+    "speaker": ("Speaker", False),
+    "texture": ("Texture", False),
+    "texture_slot": ("MaterialTextureSlot", False),
+    "texture_user": ("ID", False),
+    "vertex_paint_object": ("Object", False),
+    "visible_bases": ("ObjectBase", True),
+    "visible_bones": ("Object", True),
+    "visible_objects": ("Object", True),
+    "visible_pose_bones": ("PoseBone", True),
+    "weight_paint_object": ("Object", False),
+    "world": ("World", False),
+}
 
 def pycontext2sphinx(basepath):
     # Only use once. very irregular
@@ -938,72 +1004,6 @@ def pycontext2sphinx(basepath):
         "sequencer_context_dir",
     )
 
-    # Changes in blender will force errors here
-    type_map = {
-        "active_base": ("ObjectBase", False),
-        "active_bone": ("Bone", False),
-        "active_object": ("Object", False),
-        "active_operator": ("Operator", False),
-        "active_pose_bone": ("PoseBone", False),
-        "active_node": ("Node", False),
-        "armature": ("Armature", False),
-        "bone": ("Bone", False),
-        "brush": ("Brush", False),
-        "camera": ("Camera", False),
-        "cloth": ("ClothModifier", False),
-        "collision": ("CollisionModifier", False),
-        "curve": ("Curve", False),
-        "dynamic_paint": ("DynamicPaintModifier", False),
-        "edit_bone": ("EditBone", False),
-        "edit_image": ("Image", False),
-        "edit_mask": ("Mask", False),
-        "edit_movieclip": ("MovieClip", False),
-        "edit_object": ("Object", False),
-        "edit_text": ("Text", False),
-        "editable_bones": ("EditBone", True),
-        "fluid": ("FluidSimulationModifier", False),
-        "image_paint_object": ("Object", False),
-        "lamp": ("Lamp", False),
-        "lattice": ("Lattice", False),
-        "material": ("Material", False),
-        "material_slot": ("MaterialSlot", False),
-        "mesh": ("Mesh", False),
-        "meta_ball": ("MetaBall", False),
-        "object": ("Object", False),
-        "particle_edit_object": ("Object", False),
-        "particle_settings": ("ParticleSettings", False),
-        "particle_system": ("ParticleSystem", False),
-        "particle_system_editable": ("ParticleSystem", False),
-        "pose_bone": ("PoseBone", False),
-        "scene": ("Scene", False),
-        "sculpt_object": ("Object", False),
-        "selectable_bases": ("ObjectBase", True),
-        "selectable_objects": ("Object", True),
-        "selected_bases": ("ObjectBase", True),
-        "selected_bones": ("Bone", True),
-        "selected_editable_bases": ("ObjectBase", True),
-        "selected_editable_bones": ("Bone", True),
-        "selected_editable_objects": ("Object", True),
-        "selected_editable_sequences": ("Sequence", True),
-        "selected_nodes": ("Node", True),
-        "selected_objects": ("Object", True),
-        "selected_pose_bones": ("PoseBone", True),
-        "selected_sequences": ("Sequence", True),
-        "sequences": ("Sequence", True),
-        "smoke": ("SmokeModifier", False),
-        "soft_body": ("SoftBodyModifier", False),
-        "speaker": ("Speaker", False),
-        "texture": ("Texture", False),
-        "texture_slot": ("MaterialTextureSlot", False),
-        "texture_user": ("ID", False),
-        "vertex_paint_object": ("Object", False),
-        "visible_bases": ("ObjectBase", True),
-        "visible_bones": ("Object", True),
-        "visible_objects": ("Object", True),
-        "visible_pose_bones": ("PoseBone", True),
-        "weight_paint_object": ("Object", False),
-        "world": ("World", False),
-    }
 
     unique = set()
     blend_cdll = ctypes.CDLL("")
@@ -1018,7 +1018,7 @@ def pycontext2sphinx(basepath):
         while char_array[i] is not None:
             member = ctypes.string_at(char_array[i]).decode(encoding="ascii")
             fw(".. data:: %s\n\n" % member)
-            member_type, is_seq = type_map[member]
+            member_type, is_seq = context_type_map[member]
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))
             unique.add(member)
             i += 1
@@ -1026,8 +1026,8 @@ def pycontext2sphinx(basepath):
     # generate typemap...
     # for member in sorted(unique):
     #     print('        "%s": ("", False),' % member)
-    if len(type_map) > len(unique):
-        raise Exception("Some types are not used: %s" % str([member for member in type_map if member not in unique]))
+    if len(context_type_map) > len(unique):
+        raise Exception("Some types are not used: %s" % str([member for member in context_type_map if member not in unique]))
     else:
         pass  # will have raised an error above
 
@@ -1313,6 +1313,13 @@ def pyrna2sphinx(basepath):
 
             fw(".. hlist::\n")
             fw("   :columns: 2\n\n")
+
+            # context does its own thing
+            # "active_base": ("ObjectBase", False),
+            for ref_attr, (ref_type, ref_is_seq) in sorted(context_type_map.items()):
+                if ref_type == struct_id:
+                    fw("   * :mod:`bpy.context.%s`\n" % ref_attr)
+            del ref_attr, ref_type, ref_is_seq
 
             for ref in struct.references:
                 ref_split = ref.split(".")
