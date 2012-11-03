@@ -29,31 +29,137 @@
 
 #include "util_foreach.h"
 
+#include "mikktspace.h"
+
 CCL_NAMESPACE_BEGIN
 
-/* Find/Add */
+/* Tangent Space */
 
-static float3 tangent_from_triangle(float3 v0, float3 v1, float3 v2, float3 tx0, float3 tx1, float3 tx2)
-{
-	float3 duv1 = tx2 - tx0;
-	float3 duv2 = tx2 - tx1;
-	float3 dp1 = v2 - v0;
-	float3 dp2 = v2 - v1;
-	float det = duv1[0] * duv2[1] - duv1[1] * duv2[0];
-
-	if(det != 0.0f) {
-		return normalize(dp1 * duv2[1] - dp2 * duv1[1]);
+struct MikkUserData {
+	MikkUserData(const BL::Mesh mesh_, const BL::MeshTextureFaceLayer layer_, int num_faces_)
+	: mesh(mesh_), layer(layer_), num_faces(num_faces_)
+	{
+		tangent.resize(num_faces*4);
 	}
-	else {
-		/* give back a sane default, using a valid edge as a fallback */
-		float3 edge = v1 - v0;
 
-		if(len(edge) == 0.0f)
-			edge = v2 - v0;
+	BL::Mesh mesh;
+	BL::MeshTextureFaceLayer layer;
+	int num_faces;
+	vector<float4> tangent;
+};
 
-		return normalize(edge);
+static int mikk_get_num_faces(const SMikkTSpaceContext *context)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	return userdata->num_faces;
+}
+
+static int mikk_get_num_verts_of_face(const SMikkTSpaceContext *context, const int face_num)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	int4 vi = get_int4(f.vertices_raw());
+
+	return (vi[3] == 0)? 3: 4;
+}
+
+static void mikk_get_position(const SMikkTSpaceContext *context, float P[3], const int face_num, const int vert_num)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	int4 vi = get_int4(f.vertices_raw());
+	BL::MeshVertex v = userdata->mesh.vertices[vi[vert_num]];
+	float3 vP = get_float3(v.co());
+
+	P[0] = vP.x;
+	P[1] = vP.y;
+	P[2] = vP.z;
+}
+
+static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float uv[2], const int face_num, const int vert_num)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	BL::MeshTextureFace tf = userdata->layer.data[face_num];
+	float3 tfuv;
+
+	if(vert_num == 0)
+		tfuv = get_float3(tf.uv1());
+	else if(vert_num == 1)
+		tfuv = get_float3(tf.uv2());
+	else if(vert_num == 2)
+		tfuv = get_float3(tf.uv3());
+	else
+		tfuv = get_float3(tf.uv4());
+	
+	uv[0] = tfuv.x;
+	uv[1] = tfuv.y;
+}
+
+static void mikk_get_normal(const SMikkTSpaceContext *context, float N[3], const int face_num, const int vert_num)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	int4 vi = get_int4(f.vertices_raw());
+	BL::MeshVertex v = userdata->mesh.vertices[vi[vert_num]];
+	float3 vN = get_float3(v.normal());
+
+	N[0] = vN.x;
+	N[1] = vN.y;
+	N[2] = vN.z;
+}
+
+static void mikk_set_tangent_space(const SMikkTSpaceContext *context, const float T[], const float sign, const int face, const int vert)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+
+	userdata->tangent[face*4 + vert] = make_float4(T[0], T[1], T[2], sign);
+}
+
+static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_layer, Mesh *mesh, vector<int>& nverts)
+{
+	/* setup userdata */
+	MikkUserData userdata(b_mesh, b_layer, nverts.size());
+
+	/* setup interface */
+	SMikkTSpaceInterface interface;
+	memset(&interface, 0, sizeof(interface));
+	interface.m_getNumFaces = mikk_get_num_faces;
+	interface.m_getNumVerticesOfFace = mikk_get_num_verts_of_face;
+	interface.m_getPosition = mikk_get_position;
+	interface.m_getTexCoord = mikk_get_texture_coordinate;
+	interface.m_getNormal = mikk_get_normal;
+	interface.m_setTSpaceBasic = mikk_set_tangent_space;
+
+	/* setup context */
+	SMikkTSpaceContext context;
+	memset(&context, 0, sizeof(context));
+	context.m_pUserData = &userdata;
+	context.m_pInterface = &interface;
+
+	/* compute tangents */
+	genTangSpaceDefault(&context);
+
+	/* create attribute */
+	/* todo: create float4 attribute for sign */
+	Attribute *attr = mesh->attributes.add(ATTR_STD_TANGENT, ustring("Tangent"));
+	float3 *tangent = attr->data_float3();
+
+	for (int i = 0; i < nverts.size(); i++) {
+		tangent[0] = float4_to_float3(userdata.tangent[i*4 + 0]);
+		tangent[1] = float4_to_float3(userdata.tangent[i*4 + 1]);
+		tangent[2] = float4_to_float3(userdata.tangent[i*4 + 2]);
+		tangent += 3;
+
+		if(nverts[i] == 4) {
+			tangent[0] = float4_to_float3(userdata.tangent[i*4 + 0]);
+			tangent[1] = float4_to_float3(userdata.tangent[i*4 + 2]);
+			tangent[2] = float4_to_float3(userdata.tangent[i*4 + 3]);
+			tangent += 3;
+		}
 	}
 }
+
+/* Create Mesh */
 
 static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<uint>& used_shaders)
 {
@@ -167,54 +273,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			if(!l->active_render())
 				continue;
 
-			Attribute *attr = mesh->attributes.add(ATTR_STD_TANGENT, ustring("Tangent"));
-
-			/* compute average tangents per vertex */
-			float3 *tangents = attr->data_float3();
-			memset(tangents, 0, sizeof(float3)*mesh->verts.size());
-
-			BL::MeshTextureFaceLayer::data_iterator t;
-
-			size_t fi = 0; /* face index */
-			b_mesh.tessfaces.begin(f);
-			for(l->data.begin(t); t != l->data.end() && f != b_mesh.tessfaces.end(); ++t, ++fi, ++f) {
-				int4 vi = get_int4(f->vertices_raw());
-
-				float3 tx0 = get_float3(t->uv1());
-				float3 tx1 = get_float3(t->uv2());
-				float3 tx2 = get_float3(t->uv3());
-
-				float3 v0 = mesh->verts[vi[0]];
-				float3 v1 = mesh->verts[vi[1]];
-				float3 v2 = mesh->verts[vi[2]];
-
-				/* calculate tangent for the triangle;
-				 * get vertex positions, and find change in position with respect
-				 * to the texture coords in the first texture coord dimension */
-				float3 tangent0 = tangent_from_triangle(v0, v1, v2, tx0, tx1, tx2);
-
-				if(nverts[fi] == 4) {
-					/* quad tangent */
-					float3 tx3 = get_float3(t->uv4());
-					float3 v3 = mesh->verts[vi[3]];
-					float3 tangent1 = tangent_from_triangle(v0, v2, v3, tx0, tx2, tx3);
-
-					tangents[vi[0]] += 0.5f*(tangent0 + tangent1);
-					tangents[vi[1]] += tangent0;
-					tangents[vi[2]] += 0.5f*(tangent0 + tangent1);
-					tangents[vi[3]] += tangent1;
-				}
-				else {
-					/* triangle tangent */
-					tangents[vi[0]] += tangent0;
-					tangents[vi[1]] += tangent0;
-					tangents[vi[2]] += tangent0;
-				}
-			}
-
-			/* normalize tangent vectors */
-			for(int i = 0; i < mesh->verts.size(); i++)
-				tangents[i] = normalize(tangents[i]);
+			mikk_compute_tangents(b_mesh, *l, mesh, nverts);
 		}
 	}
 
@@ -351,7 +410,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 			create_mesh(scene, mesh, b_mesh, used_shaders);
 
 		/* free derived mesh */
-		object_remove_mesh(b_data, b_mesh);
+		b_data.meshes.remove(b_mesh);
 	}
 
 	/* displacement method */
@@ -409,7 +468,7 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 			mesh->attributes.remove(std);
 
 		/* free derived mesh */
-		object_remove_mesh(b_data, b_mesh);
+		b_data.meshes.remove(b_mesh);
 	}
 }
 

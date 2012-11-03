@@ -52,24 +52,6 @@ static inline void colorramp_to_array(BL::ColorRamp ramp, float4 *data, int size
 	}
 }
 
-static inline void object_remove_mesh(BL::BlendData data, BL::Mesh mesh)
-{
-	/* TODO: BlendData.meshes ideally should be also a subclass of BlendDataMeshes */
-	BL::BlendDataMeshes mesh_data(data.ptr);
-
-	mesh_data.remove(mesh);
-}
-
-static inline void object_create_duplilist(BL::Object self, BL::Scene scene)
-{
-	self.dupli_list_create(scene, 2);
-}
-
-static inline void object_free_duplilist(BL::Object self)
-{
-	self.dupli_list_clear();
-}
-
 static inline bool BKE_object_is_modified(BL::Object self, BL::Scene scene, bool preview)
 {
 	return self.is_modified(scene, (preview)? (1<<0): (1<<1))? true: false;
@@ -86,11 +68,6 @@ static inline string image_user_file_path(BL::ImageUser iuser, BL::Image ima, in
 	BKE_image_user_frame_calc(iuser.ptr.data, cfra, 0);
 	BKE_image_user_file_path(iuser.ptr.data, ima.ptr.data, filepath);
 	return string(filepath);
-}
-
-static inline void scene_frame_set(BL::Scene scene, int frame)
-{
-	scene.frame_set(frame, 0.0f);
 }
 
 /* Utilities */

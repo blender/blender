@@ -330,10 +330,10 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 				int num_particles = object_count_particles(*b_ob);
 
 				if(b_ob->is_duplicator()) {
-					hide = true;	/* duplicators hidden by default */
+					hide = true; /* duplicators hidden by default */
 
 					/* dupli objects */
-					object_create_duplilist(*b_ob, b_scene);
+					b_ob->dupli_list_create(b_scene, 2);
 
 					BL::Object::dupli_list_iterator b_dup;
 					int b_index = 0;
@@ -361,9 +361,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 						++b_index;
 					}
 
-					object_free_duplilist(*b_ob);
+					b_ob->dupli_list_clear();
 				}
-
 
 				/* sync particles and check if we should render or hide particle emitter */
 				BL::Object::particle_systems_iterator b_psys;
@@ -422,7 +421,7 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override)
 	int frame = b_scene.frame_current();
 
 	for(int motion = -1; motion <= 1; motion += 2) {
-		scene_frame_set(b_scene, frame + motion);
+		b_scene.frame_set(frame + motion, 0.0f);
 
 		/* camera object */
 		if(b_cam)
@@ -432,7 +431,7 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override)
 		sync_objects(b_v3d, motion);
 	}
 
-	scene_frame_set(b_scene, frame);
+	b_scene.frame_set(frame, 0.0f);
 
 	/* tag camera for motion update */
 	if(scene->camera->motion_modified(prevcam))

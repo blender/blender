@@ -49,7 +49,7 @@ __device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack,
 				int attr_offset = find_attribute(kg, sd, ATTR_STD_TANGENT);
 
 				if(attr_offset != ATTR_STD_NOT_FOUND) {
-					data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
+					data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, attr_offset, NULL, NULL);
 					object_normal_transform(kg, sd, &data);
 				}
 				else {

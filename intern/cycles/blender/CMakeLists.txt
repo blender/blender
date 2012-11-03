@@ -7,6 +7,7 @@ set(INC
 	../util
 	../subd
 	../../guardedalloc
+	../../mikktspace
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna
 	../../../source/blender/blenloader
