@@ -159,9 +159,9 @@ static void make_jitter_weight_tab(Render *re, ShadBuf *shb, short filtertype)
 	
 	for (jit= shb->jit, a=0; a<tot; a++, jit+=2) {
 		if (filtertype==LA_SHADBUF_TENT)
-			shb->weight[a]= 0.71f - sqrt(jit[0]*jit[0] + jit[1]*jit[1]);
+			shb->weight[a] = 0.71f - sqrtf(jit[0] * jit[0] + jit[1] * jit[1]);
 		else if (filtertype==LA_SHADBUF_GAUSS)
-			shb->weight[a]= RE_filter_value(R_FILTER_GAUSS, 1.8f*sqrt(jit[0]*jit[0] + jit[1]*jit[1]));
+			shb->weight[a] = RE_filter_value(R_FILTER_GAUSS, 1.8f * sqrtf(jit[0] * jit[0] + jit[1] * jit[1]));
 		else
 			shb->weight[a]= 1.0f;
 		
@@ -217,15 +217,15 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 			if (ds->z == newds->z) {
 				/* still in same z position, simply check
 				 * visibility difference against epsilon */
-				if (!(fabs(newds->v - ds->v) <= epsilon)) {
+				if (!(fabsf(newds->v - ds->v) <= epsilon)) {
 					break;
 				}
 			}
 			else {
 				/* compute slopes */
-				div= (double)0x7FFFFFFF/((double)ds->z - (double)newds->z);
-				min= ((ds->v - epsilon) - newds->v)*div;
-				max= ((ds->v + epsilon) - newds->v)*div;
+				div= (double)0x7FFFFFFF / ((double)ds->z - (double)newds->z);
+				min= (double)((ds->v - epsilon) - newds->v) * div;
+				max= (double)((ds->v + epsilon) - newds->v) * div;
 
 				/* adapt existing slopes */
 				if (first) {
@@ -264,8 +264,8 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 		}
 		else {
 			/* compute visibility at center between slopes at z */
-			slope= (slopemin+slopemax)*0.5f;
-			v= newds->v + slope*((z - newds->z)/(double)0x7FFFFFFF);
+			slope = (slopemin + slopemax) * 0.5;
+			v = (double)newds->v + slope * ((double)(z - newds->z) / (double)0x7FFFFFFF);
 		}
 
 		newds++;
@@ -778,7 +778,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	 * transforming from observer view to lamp view, including lamp window matrix */
 	
 	angle= saacos(lar->spotsi);
-	temp= 0.5f*shb->size*cos(angle)/sin(angle);
+	temp = 0.5f * shb->size * cosf(angle) / sinf(angle);
 	shb->pixsize= (shb->d)/temp;
 	wsize= shb->pixsize*(shb->size/2.0f);
 	
@@ -1663,9 +1663,9 @@ static void bspface_init_strand(BSPFace *face)
 	
 	face->len= face->rc[0]*face->rc[0]+ face->rc[1]*face->rc[1];
 	
-	if (face->len!=0.0f) {
-		face->radline_end= face->radline/sqrt(face->len);
-		face->len= 1.0f/face->len;
+	if (face->len != 0.0f) {
+		face->radline_end = face->radline / sqrtf(face->len);
+		face->len = 1.0f / face->len;
 	}
 }
 

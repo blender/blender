@@ -1793,7 +1793,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 	
 	/* Make sure the bone is still valid */
 	pchan = BKE_pose_channel_find_name(par->pose, ob->parsubstr);
-	if (!pchan) {
+	if (!pchan || !pchan->bone) {
 		printf("Object %s with Bone parent: bone %s doesn't exist\n", ob->id.name + 2, ob->parsubstr);
 		unit_m4(mat);
 		return;

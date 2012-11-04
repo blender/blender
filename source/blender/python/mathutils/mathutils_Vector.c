@@ -2713,7 +2713,7 @@ static int row_vector_multiplication(float r_vec[MAX_DIMENSIONS], VectorObject *
 	for (col = 0; col < mat->num_col; col++) {
 		double dot = 0.0;
 		for (row = 0; row < mat->num_row; row++) {
-			dot += MATRIX_ITEM(mat, row, col) * vec_cpy[row];
+			dot += (double)(MATRIX_ITEM(mat, row, col) * vec_cpy[row]);
 		}
 		r_vec[z++] = (float)dot;
 	}

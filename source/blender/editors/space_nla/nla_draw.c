@@ -775,7 +775,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 						glColor3fv(color);
 					}
 					else {
-						float alpha = (adt && (adt->flag & ADT_NLA_SOLO_TRACK)) ? 0.3 : 1.0f;
+						float alpha = (adt && (adt->flag & ADT_NLA_SOLO_TRACK)) ? 0.3f : 1.0f;
 						glColor4f(color[0], color[1], color[2], alpha);
 					}
 					

@@ -31,8 +31,11 @@
 
 #include <errno.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_node_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BLF_translation.h"
@@ -133,14 +136,105 @@ static int add_reroute_intersect_check(bNodeLink *link, float mcoords[][2], int 
 	return 0;
 }
 
+typedef struct bNodeSocketLink {
+	struct bNodeSocketLink *next, *prev;
+	
+	struct bNodeSocket *sock;
+	struct bNodeLink *link;
+	float point[2];
+} bNodeSocketLink;
+
+static bNodeSocketLink *add_reroute_insert_socket_link(ListBase *lb, bNodeSocket *sock, bNodeLink *link, float point[2])
+{
+	bNodeSocketLink *socklink, *prev;
+	
+	socklink = MEM_callocN(sizeof(bNodeSocketLink), "socket link");
+	socklink->sock = sock;
+	socklink->link = link;
+	copy_v2_v2(socklink->point, point);
+	
+	for (prev = lb->last; prev; prev = prev->prev) {
+		if (prev->sock == sock)
+			break;
+	}
+	BLI_insertlinkafter(lb, prev, socklink);
+	return socklink;
+}
+
+static bNodeSocketLink *add_reroute_do_socket_section(bContext *C, bNodeSocketLink *socklink, int in_out)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *reroute_node = NULL;
+	bNodeSocket *cursock = socklink->sock;
+	float insert_point[2];
+	int num_links;
+	
+	zero_v2(insert_point);
+	num_links = 0;
+	
+	while (socklink && socklink->sock == cursock) {
+		if (!(socklink->link->flag & NODE_LINK_TEST)) {
+			socklink->link->flag |= NODE_LINK_TEST;
+			
+			/* create the reroute node for this cursock */
+			if (!reroute_node) {
+				bNodeTemplate ntemp;
+				ntemp.type = NODE_REROUTE;
+				reroute_node = nodeAddNode(ntree, &ntemp);
+				
+				/* add a single link to/from the reroute node to replace multiple links */
+				if (in_out == SOCK_OUT) {
+					nodeAddLink(ntree, socklink->link->fromnode, socklink->link->fromsock, reroute_node, reroute_node->inputs.first);
+				}
+				else {
+					nodeAddLink(ntree, reroute_node, reroute_node->outputs.first, socklink->link->tonode, socklink->link->tosock);
+				}
+			}
+			
+			/* insert the reroute node into the link */
+			if (in_out == SOCK_OUT) {
+				socklink->link->fromnode = reroute_node;
+				socklink->link->fromsock = reroute_node->outputs.first;
+			}
+			else {
+				socklink->link->tonode = reroute_node;
+				socklink->link->tosock = reroute_node->inputs.first;
+			}
+			
+			add_v2_v2(insert_point, socklink->point);
+			++num_links;
+		}
+		socklink = socklink->next;
+	}
+	
+	if (num_links > 0) {
+		bNode *gnode = node_tree_get_editgroup(snode->nodetree);
+		
+		/* average cut point from shared links */
+		mul_v2_fl(insert_point, 1.0f / num_links);
+		
+		if (gnode) {
+			nodeFromView(gnode, insert_point[0], insert_point[1], &reroute_node->locx, &reroute_node->locy);
+		}
+		else {
+			reroute_node->locx = insert_point[0];
+			reroute_node->locy = insert_point[1];
+		}
+	}
+	
+	return socklink;
+}
+
 static int add_reroute_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
-	bNode *gnode = node_tree_get_editgroup(snode->nodetree);
+	bNodeTree *ntree = snode->edittree;
 	float mcoords[256][2];
 	int i = 0;
-
+	
+	/* Get the cut path */
 	RNA_BEGIN(op->ptr, itemptr, "path")
 	{
 		float loc[2];
@@ -154,46 +248,52 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 	RNA_END;
 
 	if (i > 1) {
+		ListBase output_links, input_links;
 		bNodeLink *link;
-		float insertPoint[2];
-
-		for (link = snode->edittree->links.first; link; link = link->next) {
-			if (add_reroute_intersect_check(link, mcoords, i, insertPoint)) {
-				bNodeTemplate ntemp;
-				bNode *rerouteNode;
-
-				/* always first */
-				ED_preview_kill_jobs(C);
-
-				node_deselect_all(snode);
-
-				ntemp.type = NODE_REROUTE;
-				rerouteNode = nodeAddNode(snode->edittree, &ntemp);
-				if (gnode) {
-					nodeFromView(gnode, insertPoint[0], insertPoint[1], &rerouteNode->locx, &rerouteNode->locy);
-				}
-				else {
-					rerouteNode->locx = insertPoint[0];
-					rerouteNode->locy = insertPoint[1];
-				}
-
-				nodeAddLink(snode->edittree, link->fromnode, link->fromsock, rerouteNode, rerouteNode->inputs.first);
-				link->fromnode = rerouteNode;
-				link->fromsock = rerouteNode->outputs.first;
-
-				/* always last */
-				ntreeUpdateTree(snode->edittree);
-				snode_notify(C, snode);
-				snode_dag_update(C, snode);
-
-				return OPERATOR_FINISHED; // add one reroute at the time.
+		bNodeSocketLink *socklink;
+		float insert_point[2];
+		
+		/* always first */
+		ED_preview_kill_jobs(C);
+		
+		node_deselect_all(snode);
+		
+		/* Find cut links and sort them by sockets */
+		output_links.first = output_links.last = NULL;
+		input_links.first = input_links.last = NULL;
+		for (link = ntree->links.first; link; link = link->next) {
+			if (add_reroute_intersect_check(link, mcoords, i, insert_point)) {
+				add_reroute_insert_socket_link(&output_links, link->fromsock, link, insert_point);
+				add_reroute_insert_socket_link(&input_links, link->tosock, link, insert_point);
+				
+				/* Clear flag */
+				link->flag &= ~NODE_LINK_TEST;
 			}
 		}
-
-		return OPERATOR_CANCELLED;
-
+		
+		/* Create reroute nodes for intersected links.
+		 * Only one reroute if links share the same input/output socket.
+		 */
+		socklink = output_links.first;
+		while (socklink) {
+			socklink = add_reroute_do_socket_section(C, socklink, SOCK_OUT);
+		}
+		socklink = input_links.first;
+		while (socklink) {
+			socklink = add_reroute_do_socket_section(C, socklink, SOCK_IN);
+		}
+		
+		BLI_freelistN(&output_links);
+		BLI_freelistN(&input_links);
+		
+		/* always last */
+		ntreeUpdateTree(ntree);
+		snode_notify(C, snode);
+		snode_dag_update(C, snode);
+		
+		return OPERATOR_FINISHED;
 	}
-
+	
 	return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 }
 

@@ -57,6 +57,9 @@
 
 #include "shading.h" /* own include */
 
+/* could enable at some point but for now there are far too many conversions */
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
@@ -314,8 +317,8 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		
 		/* calculate t0: is the maximum visible z (when halo is intersected by face) */ 
 		if (do_clip) {
-			if (use_yco == FALSE) t0 = (maxz - npos[2]) / nray[2];
-			else t0 = (maxy - npos[1]) / nray[1];
+			if (use_yco == FALSE) t0 = ((double)maxz - npos[2]) / nray[2];
+			else                  t0 = ((double)maxy - npos[1]) / nray[1];
 
 			if (t0 < t1) return;
 			if (t0 < t2) t2= t0;

@@ -719,7 +719,7 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 #ifdef WITH_AUDASPACE
 			if (!seq->sound)
 				return;
-			seq->len = ceil(AUD_getInfo(seq->sound->playback_handle).length * FPS);
+			seq->len = ceil((double)AUD_getInfo(seq->sound->playback_handle).length * FPS);
 			seq->len -= seq->anim_startofs;
 			seq->len -= seq->anim_endofs;
 			if (seq->len < 0) {
@@ -4009,7 +4009,7 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
-	seq->len = ceil(info.length * FPS);
+	seq->len = (int)ceil((double)info.length * FPS);
 	strip->us = 1;
 
 	/* we only need 1 element to store the filename */

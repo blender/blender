@@ -125,6 +125,9 @@
 /* or for checking vertex normal flips */
 #define FLT_EPSILON10 1.19209290e-06F
 
+/* could enable at some point but for now there are far too many conversions */
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+
 /* ------------------------------------------------------------------------- */
 
 /* Stuff for stars. This sits here because it uses gl-things. Part of

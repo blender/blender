@@ -209,7 +209,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	triflags = MEM_callocN(sizeof(unsigned char) * ntris, "buildNavMesh triflags");
 
 	/* Find triangles which are walkable based on their slope and rasterize them */
-	recast_markWalkableTriangles(RAD2DEG(recastParams->agentmaxslope), verts, nverts, tris, ntris, triflags);
+	recast_markWalkableTriangles(RAD2DEGF(recastParams->agentmaxslope), verts, nverts, tris, ntris, triflags);
 	recast_rasterizeTriangles(verts, nverts, tris, triflags, ntris, solid);
 	MEM_freeN(triflags);
 

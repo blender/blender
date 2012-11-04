@@ -1359,8 +1359,8 @@ static void icu_to_fcurves(ID *id, ListBase *groups, ListBase *list, IpoCurve *i
 				
 				/* correct values for sequencer curves, that were not locked to frame */
 				if (seq && (seq->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
-					double mul = (seq->enddisp - seq->startdisp) / 100.0f;
-					double offset = seq->startdisp;
+					const float mul = (seq->enddisp - seq->startdisp) / 100.0f;
+					const float offset = seq->startdisp;
 					
 					dst->vec[0][0] *= mul;
 					dst->vec[0][0] += offset;

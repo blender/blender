@@ -844,15 +844,15 @@ int	implicit_free(ClothModifierData *clmd)
 
 DO_INLINE float fb(float length, float L)
 {
-	float x = length/L;
-	return (-11.541f*pow(x, 4)+34.193f*pow(x, 3)-39.083f*pow(x, 2)+23.116f*x-9.713f);
+	float x = length / L;
+	return (-11.541f * powf(x, 4) + 34.193f * powf(x, 3) - 39.083f * powf(x, 2) + 23.116f * x - 9.713f);
 }
 
 DO_INLINE float fbderiv(float length, float L)
 {
 	float x = length/L;
 
-	return (-46.164f*pow(x, 3)+102.579f*pow(x, 2)-78.166f*x+23.116f);
+	return (-46.164f * powf(x, 3) + 102.579f * powf(x, 2) - 78.166f * x + 23.116f);
 }
 
 DO_INLINE float fbstar(float length, float L, float kb, float cb)
@@ -917,7 +917,7 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 	cp_lfvector(d, r, numverts);
 
 	s = dot_lfvector(r, r, numverts);
-	starget = s * sqrt(conjgrad_epsilon);
+	starget = s * sqrtf(conjgrad_epsilon);
 
 	while (s>starget && conjgrad_loopcount < conjgrad_looplimit) {
 		// Mul(q, A, d); // q = A*d;
@@ -1148,9 +1148,9 @@ DO_INLINE void dfdx_spring_type1(float to[3][3], float extent[3], float length, 
 	// dir is unit length direction, rest is spring's restlength, k is spring constant.
 	// return  (outerprod(dir, dir)*k + (I - outerprod(dir, dir))*(k - ((k*L)/length)));
 	float temp[3][3];
-	float temp1 = k*(1.0 - (L/length));
+	float temp1 = k * (1.0f - (L / length));
 	
-	mul_fvectorT_fvectorS(temp, extent, extent, 1.0 / dot);
+	mul_fvectorT_fvectorS(temp, extent, extent, 1.0f / dot);
 	sub_fmatrix_fmatrix(to, I, temp);
 	mul_fmatrix_S(to, temp1);
 	
@@ -1307,7 +1307,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		
 		VECADDS(s->f, s->f, extent, -k);
 		
-		mul_fvector_S(damping_force, dir, clmd->sim_parms->goalfrict * 0.01 * dot_v3v3(vel, dir));
+		mul_fvector_S(damping_force, dir, clmd->sim_parms->goalfrict * 0.01f * dot_v3v3(vel, dir));
 		VECADD(s->f, s->f, damping_force);
 		
 		// HERE IS THE PROBLEM!!!!
@@ -1321,7 +1321,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			k = clmd->sim_parms->bending;
 			
 			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_bend-k);
-			cb = k = scaling / (20.0*(clmd->sim_parms->avg_spring_len + FLT_EPSILON));
+			cb = k = scaling / (20.0f * (clmd->sim_parms->avg_spring_len + FLT_EPSILON));
 
 			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
 			VECADD(s->f, s->f, bending_force);
@@ -1479,7 +1479,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 						colg[i][j][k].velocity[0] += vel[0];
 						colg[i][j][k].velocity[1] += vel[1];
 						colg[i][j][k].velocity[2] += vel[2];
-						colg[i][j][k].density += 1.0;
+						colg[i][j][k].density += 1.0f;
 					}
 				}
 			}
@@ -1592,7 +1592,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 			float triunnormal[3] = {0, 0, 0}; // not-normalized-triangle normal
 			float tmp[3] = {0, 0, 0};
 			float factor = (mfaces[i].v4) ? 0.25 : 1.0 / 3.0;
-			factor *= 0.02;
+			factor *= 0.02f;
 			
 			// calculate face normal
 			if (mfaces[i].v4)
@@ -1730,7 +1730,7 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	for (i=0; i<cloth->numverts; i++, cv++) {
 		copy_v3_v3(cos[i], cv->tx);
 		
-		if (cv->goal == 1.0f || len_squared_v3v3(initial_cos[i], cv->tx) != 0.0) {
+		if (cv->goal == 1.0f || len_squared_v3v3(initial_cos[i], cv->tx) != 0.0f) {
 			masses[i] = 1e+10;
 		}
 		else {
@@ -1758,18 +1758,18 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 			normalize_v3(vec);
 			
 			c = (len - spring->restlen);
-			if (c == 0.0)
+			if (c == 0.0f)
 				continue;
 			
-			l = c / ((1.0/masses[v1]) + (1.0/masses[v2]));
+			l = c / ((1.0f / masses[v1]) + (1.0f / masses[v2]));
 			
-			mul_v3_fl(vec, -(1.0/masses[v1])*l);
+			mul_v3_fl(vec, -(1.0f / masses[v1]) * l);
 			add_v3_v3(cos[v1], vec);
 	
 			sub_v3_v3v3(vec, cos[v2], cos[v1]);
 			normalize_v3(vec);
 			
-			mul_v3_fl(vec, -(1.0/masses[v2])*l);
+			mul_v3_fl(vec, -(1.0f / masses[v2]) * l);
 			add_v3_v3(cos[v2], vec);
 		}
 	}

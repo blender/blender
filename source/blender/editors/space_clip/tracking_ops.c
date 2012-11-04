@@ -855,8 +855,8 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 						vec[0] *= data->width;
 						vec[1] *= data->height;
 
-						data->corners[a][0] = (vec[0] * cos(angle) - vec[1] * sin(angle)) / data->width;
-						data->corners[a][1] = (vec[1] * cos(angle) + vec[0] * sin(angle)) / data->height;
+						data->corners[a][0] = (vec[0] * cosf(angle) - vec[1] * sinf(angle)) / data->width;
+						data->corners[a][1] = (vec[1] * cosf(angle) + vec[0] * sinf(angle)) / data->height;
 					}
 
 					BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);

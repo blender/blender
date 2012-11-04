@@ -439,7 +439,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			uiDefButR(block, NUM, 0, "Radius", 0, yi -= buth + but_margin, 200, buth,
 			          &data_ptr, "radius", 0, 0.0, 100.0, 1, 3, NULL);
 			uiDefButR(block, NUM, 0, "Tilt", 0, yi -= buth + but_margin, 200, buth,
-			          &data_ptr, "tilt", 0, -M_PI * 2.0f, M_PI * 2.0f, 1, 3, NULL);
+			          &data_ptr, "tilt", 0, -M_PI * 2.0, M_PI * 2.0, 1, 3, NULL);
 		}
 		else if (totcurvedata > 1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Weight:"),
@@ -450,7 +450,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			          &(tfp->ve_median[C_RADIUS]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
 			but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Tilt:"),
 			                0, yi -= buth + but_margin, 200, buth,
-			                &(tfp->ve_median[C_TILT]), -M_PI * 2.0f, M_PI * 2.0f, 1, 3,
+			                &(tfp->ve_median[C_TILT]), -M_PI * 2.0, M_PI * 2.0, 1, 3,
 			                TIP_("Tilt of curve control points"));
 			uiButSetUnitType(but, PROP_UNIT_ROTATION);
 		}

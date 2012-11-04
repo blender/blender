@@ -1319,7 +1319,7 @@ void RIG_printArc(RigGraph *rg, RigArc *arc)
 	for (edge = arc->edges.first; edge; edge = edge->next) {
 		printf("\tinner joints %0.3f %0.3f %0.3f\n", edge->tail[0], edge->tail[1], edge->tail[2]);
 		printf("\t\tlength %f\n", edge->length);
-		printf("\t\tangle %f\n", edge->angle * 180 / M_PI);
+		printf("\t\tangle %f\n", edge->angle * (float)(180 / M_PI));
 		if (edge->bone) {
 			printf("\t\t%s\n", edge->bone->name);
 			RIG_printLinkedCtrl(rg, edge->bone, 3);
