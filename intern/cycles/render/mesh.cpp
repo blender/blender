@@ -355,6 +355,9 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 
 		/* set object attributes */
 		foreach(AttributeRequest& req, attributes.requests) {
+			if(req.element == ATTR_ELEMENT_NONE)
+				continue;
+
 			OSLGlobals::Attribute osl_attr;
 
 			osl_attr.elem = req.element;

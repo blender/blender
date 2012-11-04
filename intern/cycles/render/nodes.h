@@ -193,7 +193,7 @@ class BsdfNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BsdfNode)
 
-	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2);
+	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL);
 
 	ClosureType closure;
 };

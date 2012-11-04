@@ -141,7 +141,7 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 
 	/* create attribute */
 	/* todo: create float4 attribute for sign */
-	Attribute *attr = mesh->attributes.add(ATTR_STD_TANGENT, ustring("Tangent"));
+	Attribute *attr = mesh->attributes.add(ATTR_STD_TANGENT, ustring("tangent"));
 	float3 *tangent = attr->data_float3();
 
 	for (int i = 0; i < nverts.size(); i++) {

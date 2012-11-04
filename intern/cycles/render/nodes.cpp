@@ -1214,7 +1214,7 @@ BsdfNode::BsdfNode()
 	add_output("BSDF", SHADER_SOCKET_CLOSURE);
 }
 
-void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2)
+void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3)
 {
 	ShaderInput *color_in = input("Color");
 	ShaderInput *normal_in = input("Normal");
@@ -1231,6 +1231,14 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 		compiler.stack_assign(param1);
 	if(param2)
 		compiler.stack_assign(param2);
+	if(param3)
+		compiler.stack_assign(param3);
+
+	if(normal_in->link)
+		compiler.stack_assign(normal_in);
+
+	if(tangent_in && tangent_in->link)
+		compiler.stack_assign(tangent_in);
 
 	compiler.add_node(NODE_CLOSURE_BSDF,
 		compiler.encode_uchar4(closure,
@@ -1240,14 +1248,9 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 		__float_as_int((param1)? param1->value.x: 0.0f),
 		__float_as_int((param2)? param2->value.x: 0.0f));
 
-	if(normal_in->link)
-		compiler.stack_assign(normal_in);
-
 	if(tangent_in) {
-		if(tangent_in->link)
-			compiler.stack_assign(tangent_in);
-
-		compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset, tangent_in->stack_offset);
+		compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset, tangent_in->stack_offset,
+			(param3)? param3->stack_offset: SVM_STACK_INVALID);
 	}
 	else {
 		compiler.add_node(NODE_CLOSURE_BSDF, normal_in->stack_offset);
@@ -1272,8 +1275,9 @@ WardBsdfNode::WardBsdfNode()
 
 	add_input("Tangent", SHADER_SOCKET_VECTOR, ShaderInput::TANGENT);
 
-	add_input("Roughness U", SHADER_SOCKET_FLOAT, 0.2f);
-	add_input("Roughness V", SHADER_SOCKET_FLOAT, 0.2f);
+	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.2f);
+	add_input("Anisotropy", SHADER_SOCKET_FLOAT, 0.5f);
+	add_input("Rotation", SHADER_SOCKET_FLOAT, 0.0f);
 }
 
 void WardBsdfNode::attributes(AttributeRequestSet *attributes)
@@ -1290,7 +1294,7 @@ void WardBsdfNode::attributes(AttributeRequestSet *attributes)
 
 void WardBsdfNode::compile(SVMCompiler& compiler)
 {
-	BsdfNode::compile(compiler, input("Roughness U"), input("Roughness V"));
+	BsdfNode::compile(compiler, input("Roughness"), input("Anisotropy"), input("Rotation"));
 }
 
 void WardBsdfNode::compile(OSLCompiler& compiler)

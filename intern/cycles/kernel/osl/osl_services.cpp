@@ -393,25 +393,25 @@ static bool set_attribute_float3_3(float3 P[3], TypeDesc type, bool derivatives,
 static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OSLGlobals::Attribute& attr,
                                const TypeDesc& type, bool derivatives, void *val)
 {
-	if (attr.type == TypeDesc::TypeFloat) {
-		float fval[3];
-		fval[0] = triangle_attribute_float(kg, sd, attr.elem, attr.offset,
-		                                   (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
-		set_attribute_float(fval, type, derivatives, val);
-		return true;
-	}
-	else if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
+	if (attr.type == TypeDesc::TypePoint || attr.type == TypeDesc::TypeVector ||
 	         attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor)
 	{
-		/* todo: this won't work when float3 has w component */
 		float3 fval[3];
 		fval[0] = triangle_attribute_float3(kg, sd, attr.elem, attr.offset,
 		                                    (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
 		set_attribute_float3(fval, type, derivatives, val);
 		return true;
 	}
-	else
+	else if (attr.type == TypeDesc::TypeFloat) {
+		float fval[3];
+		fval[0] = triangle_attribute_float(kg, sd, attr.elem, attr.offset,
+		                                   (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+		set_attribute_float(fval, type, derivatives, val);
+		return true;
+	}
+	else {
 		return false;
+	}
 }
 
 static void get_object_attribute(const OSLGlobals::Attribute& attr, bool derivatives, void *val)
@@ -598,7 +598,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 
 	if (it != attribute_map.end()) {
 		const OSLGlobals::Attribute& attr = it->second;
-		
+
 		if (attr.elem != ATTR_ELEMENT_VALUE) {
 			/* triangle and vertex attributes */
 			if (tri != ~0)
@@ -613,11 +613,11 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	else {
 		/* not found in attribute, check standard object info */
 		bool is_std_object_attribute = get_object_standard_attribute(kg, sd, name, type, derivatives, val);
+
 		if (is_std_object_attribute)
 			return true;
-		else {
-			return get_background_attribute(kg, sd, name, type, derivatives, val);
-		}
+
+		return get_background_attribute(kg, sd, name, type, derivatives, val);
 	}
 
 	return false;

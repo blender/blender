@@ -211,8 +211,24 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			sc->T = stack_load_float3(stack, data_node.z);
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
-			sc->data0 = param1;
-			sc->data1 = param2;
+			/* rotate tangent */
+			float rotation = stack_load_float(stack, data_node.w);
+
+			if(rotation != 0.0f)
+				sc->T = rotate_around_axis(sc->T, sc->N, rotation * 2.0f * M_PI_F);
+
+			/* compute roughness */
+			float roughness = param1;
+			float anisotropy = clamp(param2, -0.99f, 0.99f);
+
+			if(anisotropy < 0.0f) {
+				sc->data0 = roughness*(1.0f + anisotropy);
+				sc->data1 = roughness/(1.0f + anisotropy);
+			}
+			else {
+				sc->data0 = roughness/(1.0f - anisotropy);
+				sc->data1 = roughness*(1.0f - anisotropy);
+			}
 
 			sd->flag |= bsdf_ward_setup(sc);
 			break;

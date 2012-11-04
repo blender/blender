@@ -20,22 +20,6 @@ CCL_NAMESPACE_BEGIN
 
 /* Geometry Node */
 
-__device_inline float3 svm_tangent_from_generated(float3 P)
-{
-	float length = len(P);
-
-	if(length == 0.0f)
-		return make_float3(0.0f, 0.0f, 0.0f);
-
-	float u = 0.0f;
-	if(!(P.x == 0.0f && P.y == 0.0f))
-		u = (1.0f - atan2f(P.x, P.y))/(2.0f*M_PI_F);
-	
-	float v = 1.0f - acosf(clamp(P.z/length, -1.0f, 1.0f))/M_PI_F;
-
-	return make_float3(u, v, 0.0f);
-}
-
 __device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
 {
 	float3 data;
@@ -45,27 +29,30 @@ __device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack,
 		case NODE_GEOM_N: data = sd->N; break;
 #ifdef __DPDU__
 		case NODE_GEOM_T: {
-			if(sd->object != ~0) {
-				int attr_offset = find_attribute(kg, sd, ATTR_STD_TANGENT);
+			/* first try to get tangent attribute */
+			int attr_offset = (sd->object != ~0)? find_attribute(kg, sd, ATTR_STD_TANGENT): ATTR_STD_NOT_FOUND;
+
+			if(attr_offset != ATTR_STD_NOT_FOUND) {
+				/* ensure orthogonal and normalized (interpolation breaks it) */
+				data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, attr_offset, NULL, NULL);
+				object_normal_transform(kg, sd, &data);
+				data = cross(sd->N, normalize(cross(data, sd->N)));;
+			}
+			else {
+				/* try to create spherical tangent from generated coordinates */
+				int attr_offset = (sd->object != ~0)? find_attribute(kg, sd, ATTR_STD_GENERATED): ATTR_STD_NOT_FOUND;
 
 				if(attr_offset != ATTR_STD_NOT_FOUND) {
-					data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, attr_offset, NULL, NULL);
+					data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
+					data = make_float3(-(data.y - 0.5), (data.x - 0.5), 0.0f);
 					object_normal_transform(kg, sd, &data);
+					data = cross(sd->N, normalize(cross(data, sd->N)));;
 				}
 				else {
-					attr_offset = find_attribute(kg, sd, ATTR_STD_GENERATED);
-
-					if(attr_offset != ATTR_STD_NOT_FOUND) {
-						data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
-						svm_tangent_from_generated(data);
-						object_normal_transform(kg, sd, &data);
-					}
-					else
-						data = normalize(sd->dPdu);
+					/* otherwise use surface derivatives */
+					data = normalize(sd->dPdu);
 				}
 			}
-			else
-				data = normalize(sd->dPdu);
 
 			break;
 		}

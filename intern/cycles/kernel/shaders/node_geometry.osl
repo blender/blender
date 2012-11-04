@@ -32,7 +32,6 @@ shader node_geometry(
 {
 	Position = P;
 	Normal = NormalIn;
-	Tangent = normalize(dPdu);
 	TrueNormal = Ng;
 	Incoming = I;
 	Parametric = point(u, v, 0.0);
@@ -45,6 +44,29 @@ shader node_geometry(
 	else if (bump_offset == "dy") {
 		Position += Dy(Position);
 		Parametric += Dy(Parametric);
+	}
+
+	/* first try to get tangent attribute */
+	vector T;
+
+	if (getattribute("geom:tangent", T)) {
+		/* ensure orthogonal and normalized (interpolation breaks it) */
+		T = transform("object", "world", T);
+		Tangent = cross(Normal, normalize(cross(T, Normal)));
+	}
+	else {
+		point generated;
+
+		/* try to create spherical tangent from generated coordinates */
+		if (getattribute("geom:generated", generated)) {
+			T = vector(-(generated[1] - 0.5), (generated[0] - 0.5), 0.0);
+			T = transform("object", "world", T);
+			Tangent = cross(Normal, normalize(cross(T, Normal)));
+		}
+		else {
+			/* otherwise use surface derivatives */
+			Tangent = normalize(dPdu);
+		}
 	}
 }
 

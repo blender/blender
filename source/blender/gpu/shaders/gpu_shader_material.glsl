@@ -2013,7 +2013,7 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 	result = vec4(L*color.rgb, 1.0);
 }
 
-void node_bsdf_anisotropic(vec4 color, float roughnessU, float roughnessV, vec3 N, vec3 T, out vec4 result)
+void node_bsdf_anisotropic(vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T, out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
