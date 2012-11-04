@@ -72,6 +72,12 @@ public:
 		return 0;
 	}
 
+		// Character physics wrapper
+	virtual PHY_ICharacter*	getCharacterController(class KX_GameObject* ob)
+	{
+		return 0;
+	}
+
 	virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
 	virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16]) { return false; }
 

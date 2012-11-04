@@ -42,6 +42,7 @@
 #include "BL_ArmatureChannel.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_CameraActuator.h"
+#include "KX_CharacterWrapper.h"
 #include "KX_ConstraintActuator.h"
 #include "KX_ConstraintWrapper.h"
 #include "KX_GameActuator.h"
@@ -189,6 +190,7 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, KX_BlenderMaterial, init_getset);
 		PyType_Ready_Attr(dict, KX_Camera, init_getset);
 		PyType_Ready_Attr(dict, KX_CameraActuator, init_getset);
+		PyType_Ready_Attr(dict, KX_CharacterWrapper, init_getset);
 		PyType_Ready_Attr(dict, KX_ConstraintActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_ConstraintWrapper, init_getset);
 		PyType_Ready_Attr(dict, KX_GameActuator, init_getset);

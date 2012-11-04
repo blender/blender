@@ -74,6 +74,7 @@ set(SRC
 	KX_Camera.cpp
 	KX_CameraActuator.cpp
 	KX_CameraIpoSGController.cpp
+	KX_CharacterWrapper.cpp
 	KX_ConstraintActuator.cpp
 	KX_ConstraintWrapper.cpp
 	KX_ConvertPhysicsObjects.cpp
@@ -149,6 +150,7 @@ set(SRC
 	KX_Camera.h
 	KX_CameraActuator.h
 	KX_CameraIpoSGController.h
+	KX_CharacterWrapper.h
 	KX_ClientObjectInfo.h
 	KX_ConstraintActuator.h
 	KX_ConstraintWrapper.h

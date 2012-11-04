@@ -1,0 +1,30 @@
+
+/** \file PHY_ICharacter.h
+ *  \ingroup phys
+ */
+
+#ifndef __PHY_ICHARACTER_H__
+#define __PHY_ICHARACTER_H__
+
+//PHY_ICharacter provides a generic interface for "character" controllers
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
+class PHY_ICharacter
+{
+public:	
+
+	virtual void Jump()= 0;
+	virtual bool OnGround()= 0;
+
+	virtual float GetGravity()= 0;
+	virtual void SetGravity(float gravity)= 0;
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PHY_ICharacter")
+#endif
+};
+
+#endif //__PHY_ICHARACTER_H__

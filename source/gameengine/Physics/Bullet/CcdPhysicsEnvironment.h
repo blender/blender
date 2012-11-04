@@ -184,6 +184,8 @@ protected:
 			return 0;
 		}
 #endif  /* NEW_BULLET_VEHICLE_SUPPORT */
+		// Character physics wrapper
+		virtual PHY_ICharacter*	getCharacterController(class KX_GameObject* ob);
 
 		btTypedConstraint*	getConstraintById(int constraintId);
 
