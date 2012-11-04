@@ -245,6 +245,12 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 							cont = FALSE;
 						}
 						break;
+					case SIMFACE_FREESTYLE:
+						if (BM_elem_flag_test(fm, BM_ELEM_FREESTYLE) == BM_elem_flag_test(fs, BM_ELEM_FREESTYLE)) {
+							BMO_elem_flag_enable(bm, fm, FACE_MARK);
+							cont = FALSE;
+						}
+						break;
 					default:
 						BLI_assert(0);
 				}
