@@ -591,6 +591,8 @@ void BKE_text_unlink(Main *bmain, Text *text)
 	/* nodes */
 	for (mat = bmain->mat.first; mat; mat = mat->id.next) {
 		ntree = mat->nodetree;
+		if (!ntree)
+			continue;
 		for (node = ntree->nodes.first; node; node = node->next) {
 			if (node->type == SH_NODE_SCRIPT) {
 				Text *ntext = (Text *)node->id;
