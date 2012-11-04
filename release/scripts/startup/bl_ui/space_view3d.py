@@ -968,8 +968,9 @@ class VIEW3D_MT_object_parent(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("object.parent_set", "type", text="Set")
-        layout.operator_menu_enum("object.parent_clear", "type", text="Clear")
+        layout.operator_enum("object.parent_set", "type")
+        layout.separator()
+        layout.operator_enum("object.parent_clear", "type")
 
 
 class VIEW3D_MT_object_track(Menu):
@@ -978,8 +979,9 @@ class VIEW3D_MT_object_track(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("object.track_set", "type", text="Set")
-        layout.operator_menu_enum("object.track_clear", "type", text="Clear")
+        layout.operator_enum("object.track_set", "type")
+        layout.separator()
+        layout.operator_enum("object.track_clear", "type")
 
 
 class VIEW3D_MT_object_group(Menu):
