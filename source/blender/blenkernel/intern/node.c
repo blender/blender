@@ -405,10 +405,14 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	nnode->new_node = NULL;
 	
 	/* only shader nodes get pleasant preview updating this way, compo uses own system */
-	if (node->preview && ntree->type == NTREE_SHADER) {
-		nnode->preview = MEM_dupallocN(node->preview);
-		if (node->preview->rect)
-			nnode->preview->rect = MEM_dupallocN(node->preview->rect);
+	if (node->preview) {
+		if (ntree->type == NTREE_SHADER) {
+			nnode->preview = MEM_dupallocN(node->preview);
+			if (node->preview->rect)
+				nnode->preview->rect = MEM_dupallocN(node->preview->rect);
+		}
+		else 
+			nnode->preview = NULL;
 	}
 	
 	if (ntree)
