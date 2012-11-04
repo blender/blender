@@ -241,6 +241,7 @@ typedef struct bNodeLink {
 /* link->flag */
 #define NODE_LINKFLAG_HILITE	1		/* link has been successfully validated */
 #define NODE_LINK_VALID			2
+#define NODE_LINK_TEST			4		/* free test flag, undefined */
 
 /* tree->edit_quality/tree->render_quality */
 #define NTREE_QUALITY_HIGH    0
