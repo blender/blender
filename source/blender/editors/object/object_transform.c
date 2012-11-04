@@ -903,11 +903,16 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			/* offset other selected objects */
 			if (do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
 				CollectionPointerLink *ctx_link_other;
+				float obmat[4][4];
 
 				/* was the object data modified
 				 * note: the functions above must set 'cent' */
+
+				/* convert the offset to parent space */
+				BKE_object_to_mat4(ob, obmat);
 				copy_v3_v3(centn, cent);
-				mul_mat3_m4_v3(ob->obmat, centn); /* ommit translation part */
+				mul_mat3_m4_v3(obmat, centn); /* omit translation part */
+
 				add_v3_v3(ob->loc, centn);
 
 				BKE_object_where_is_calc(scene, ob);
