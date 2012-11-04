@@ -875,7 +875,7 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeLink *link, *linkn;
 	bNode *node, *nextn;
-	bNodeSocket *gsock;
+	bNodeSocket *gsock, *sock;
 	ListBase anim_basepaths = {NULL, NULL};
 	float min[2], max[2];
 
@@ -982,8 +982,42 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 		}
 	}
 
+	/* auto-add interface for "solo" nodes */
+	node = ((bNodeTree *)gnode->id)->nodes.first;
+	if (node && !node->next) {
+		for (sock = node->inputs.first; sock; sock = sock->next) {
+			int skip = FALSE;
+			
+			for (link = ((bNodeTree *)gnode->id)->links.first; link; link = link->next)
+				if (link->tosock == sock)
+					skip = TRUE;
+
+			if (skip == TRUE)
+				continue;
+
+			gsock = node_group_expose_socket(ngroup, sock, SOCK_IN);
+			node_group_add_extern_socket(ntree, &gnode->inputs, SOCK_IN, gsock);
+			nodeAddLink(ngroup, NULL, gsock, node, sock);
+		}
+
+		for (sock = node->outputs.first; sock; sock = sock->next) {
+			int skip = FALSE;
+			
+			for (link = ((bNodeTree *)gnode->id)->links.first; link; link = link->next)
+				if (link->fromsock == sock)
+					skip = TRUE;
+
+			if (skip == TRUE)
+				continue;
+
+			gsock = node_group_expose_socket(ngroup, sock, SOCK_OUT);
+			node_group_add_extern_socket(ntree, &gnode->outputs, SOCK_OUT, gsock);
+			nodeAddLink(ngroup, NULL, gsock, node, sock);
+		}
+	}
+
 	/* update of the group tree */
-	ngroup->update |= NTREE_UPDATE;
+	ngroup->update |= NTREE_UPDATE | NTREE_UPDATE_LINKS;
 	/* update of the tree containing the group instance node */
 	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 
