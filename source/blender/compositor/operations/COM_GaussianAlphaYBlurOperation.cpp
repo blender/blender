@@ -104,11 +104,11 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
 	int miny = y - this->m_rad;
 	int maxy = y + this->m_rad;
 	int minx = x;
-	int maxx = x;
+	// int maxx = x;  // UNUSED
 	miny = max(miny, inputBuffer->getRect()->ymin);
 	minx = max(minx, inputBuffer->getRect()->xmin);
-	maxy = min(maxy, inputBuffer->getRect()->ymax);
-	maxx = min(maxx, inputBuffer->getRect()->xmax);
+	maxy = min(maxy, inputBuffer->getRect()->ymax - 1);
+	// maxx = min(maxx, inputBuffer->getRect()->xmax);
 
 	/* *** this is the main part which is different to 'GaussianYBlurOperation'  *** */
 	int step = getStep();
