@@ -620,6 +620,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
             subsub = sub.row()
             subsub.enabled = linestyle.use_max_angle
             subsub.prop(linestyle, "max_angle")
+            col.prop(linestyle, "use_split_pattern", text="Split Pattern")
             col = row.column()
             sub = col.row(align=True)
             sub.prop(linestyle, "use_split_length", text="")
@@ -627,6 +628,15 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
             subsub.enabled = linestyle.use_split_length
             subsub.prop(linestyle, "split_length", text="2D Length")
             col.prop(linestyle, "material_boundary")
+            row = layout.row(align=True)
+            row.enabled = linestyle.use_split_pattern
+            row.prop(linestyle, "split_dash1")
+            row.prop(linestyle, "split_gap1")
+            row.prop(linestyle, "split_dash2")
+            row.prop(linestyle, "split_gap2")
+            row.prop(linestyle, "split_dash3")
+            row.prop(linestyle, "split_gap3")
+
             # Selection
             layout.label(text="Selection:")
             row = layout.row()

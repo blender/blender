@@ -390,6 +390,7 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_MIN_2D_ANGLE       128
 #define LS_MAX_2D_ANGLE       256
 #define LS_SPLIT_LENGTH       512
+#define LS_SPLIT_PATTERN      1024
 
 /* FreestyleLineStyle::chaining */
 #define LS_CHAINING_PLAIN    1
@@ -420,6 +421,10 @@ typedef struct FreestyleLineStyle {
 	float split_length;
 	float min_angle, max_angle; /* for splitting */
 	float min_length, max_length;
+	unsigned short split_dash1, split_gap1;
+	unsigned short split_dash2, split_gap2;
+	unsigned short split_dash3, split_gap3;
+	int pad;
 	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
 	int panel; /* for UI */
 

@@ -762,6 +762,8 @@ class RoundCapShader(StrokeShader):
             r = self.round_cap_thickness((nverts_end - i + 1) * n)
             stroke[-i-1].setAttribute(attr)
             stroke[-i-1].attribute().setThickness(R * r, L * r)
+        # update the curvilinear 2D length of each vertex
+        stroke.UpdateLength()
 
 class SquareCapShader(StrokeShader):
     def shade(self, stroke):
@@ -798,24 +800,26 @@ class SquareCapShader(StrokeShader):
         d = p - q
         stroke[-1].setPoint(p + d / d.length * caplen_beg)
         stroke[-1].setAttribute(attr)
+        # update the curvilinear 2D length of each vertex
+        stroke.UpdateLength()
 
-# dashed line
+# Split by dashed line pattern
 
-class DashedLineStartingUP0D(UnaryPredicate0D):
+class SplitPatternStartingUP0D(UnaryPredicate0D):
     def __init__(self, controller):
         UnaryPredicate0D.__init__(self)
         self._controller = controller
     def __call__(self, inter):
         return self._controller.start()
 
-class DashedLineStoppingUP0D(UnaryPredicate0D):
+class SplitPatternStoppingUP0D(UnaryPredicate0D):
     def __init__(self, controller):
         UnaryPredicate0D.__init__(self)
         self._controller = controller
     def __call__(self, inter):
         return self._controller.stop()
 
-class DashedLineController:
+class SplitPatternController:
     def __init__(self, pattern, sampling):
         self.sampling = float(sampling)
         k = len(pattern) // 2
@@ -844,6 +848,35 @@ class DashedLineController:
             self.stop_idx = (self.stop_idx + 1) % len(self.stop_pos)
             return True
         return False
+
+# Dashed line
+
+class DashedLineShader(StrokeShader):
+    def __init__(self, pattern):
+        StrokeShader.__init__(self)
+        self._pattern = pattern
+    def getName(self):
+        return "DashedLineShader"
+    def shade(self, stroke):
+        index = 0 # pattern index
+        start = 0.0 # 2D curvilinear length
+        visible = True
+        sampling = 1.0
+        it = stroke.strokeVerticesBegin(sampling)
+        while not it.isEnd():
+            pos = it.t()
+            # The extra 'sampling' term is added below, because the
+            # visibility attribute of the i-th vertex refers to the
+            # visibility of the stroke segment between the i-th and
+            # (i+1)-th vertices.
+            if pos - start + sampling > self._pattern[index]:
+                start = pos
+                index += 1
+                if index == len(self._pattern):
+                    index = 0
+                visible = not visible
+            it.getObject().attribute().setVisible(visible)
+            it.increment()
 
 # predicates for chaining
 
@@ -1117,29 +1150,28 @@ def process(layer_name, lineset_name):
         Operators.sequentialSplit(Curvature2DAngleThresholdUP0D(min_angle, max_angle))
     if linestyle.use_split_length:
         Operators.sequentialSplit(Length2DThresholdUP0D(linestyle.split_length), 1.0)
+    if linestyle.use_split_pattern:
+        pattern = []
+        if linestyle.split_dash1 > 0 and linestyle.split_gap1 > 0:
+            pattern.append(linestyle.split_dash1)
+            pattern.append(linestyle.split_gap1)
+        if linestyle.split_dash2 > 0 and linestyle.split_gap2 > 0:
+            pattern.append(linestyle.split_dash2)
+            pattern.append(linestyle.split_gap2)
+        if linestyle.split_dash3 > 0 and linestyle.split_gap3 > 0:
+            pattern.append(linestyle.split_dash3)
+            pattern.append(linestyle.split_gap3)
+        if len(pattern) > 0:
+            sampling = 1.0
+            controller = SplitPatternController(pattern, sampling)
+            Operators.sequentialSplit(SplitPatternStartingUP0D(controller),
+                                      SplitPatternStoppingUP0D(controller),
+                                      sampling)
     # select chains
     if linestyle.use_min_length or linestyle.use_max_length:
         min_length = linestyle.min_length if linestyle.use_min_length else None
         max_length = linestyle.max_length if linestyle.use_max_length else None
         Operators.select(LengthThresholdUP1D(min_length, max_length))
-    # dashed line
-    if linestyle.use_dashed_line:
-        pattern = []
-        if linestyle.dash1 > 0 and linestyle.gap1 > 0:
-            pattern.append(linestyle.dash1)
-            pattern.append(linestyle.gap1)
-        if linestyle.dash2 > 0 and linestyle.gap2 > 0:
-            pattern.append(linestyle.dash2)
-            pattern.append(linestyle.gap2)
-        if linestyle.dash3 > 0 and linestyle.gap3 > 0:
-            pattern.append(linestyle.dash3)
-            pattern.append(linestyle.gap3)
-        if len(pattern) > 0:
-            sampling = 1.0
-            controller = DashedLineController(pattern, sampling)
-            Operators.sequentialSplit(DashedLineStartingUP0D(controller),
-                                      DashedLineStoppingUP0D(controller),
-                                      sampling)
     # prepare a list of stroke shaders
     shaders_list = []
     for m in linestyle.geometry_modifiers:
@@ -1269,5 +1301,18 @@ def process(layer_name, lineset_name):
         shaders_list.append(RoundCapShader())
     elif linestyle.caps == "SQUARE":
         shaders_list.append(SquareCapShader())
+    if linestyle.use_dashed_line:
+        pattern = []
+        if linestyle.dash1 > 0 and linestyle.gap1 > 0:
+            pattern.append(linestyle.dash1)
+            pattern.append(linestyle.gap1)
+        if linestyle.dash2 > 0 and linestyle.gap2 > 0:
+            pattern.append(linestyle.dash2)
+            pattern.append(linestyle.gap2)
+        if linestyle.dash3 > 0 and linestyle.gap3 > 0:
+            pattern.append(linestyle.dash3)
+            pattern.append(linestyle.gap3)
+        if len(pattern) > 0:
+            shaders_list.append(DashedLineShader(pattern))
     # create strokes using the shaders list
     Operators.create(TrueUP1D(), shaders_list)
