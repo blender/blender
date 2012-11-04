@@ -154,12 +154,7 @@ class TEXT_MT_view(Menu):
         layout = self.layout
 
         layout.operator("text.properties", icon='MENU_PANEL')
-
-        layout.separator()
-
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
-
+        
         layout.separator()
 
         layout.operator("text.move",
@@ -168,6 +163,11 @@ class TEXT_MT_view(Menu):
         layout.operator("text.move",
                         text="Bottom of File",
                         ).type = 'FILE_BOTTOM'
+
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
 
 
 class TEXT_MT_text(Menu):
