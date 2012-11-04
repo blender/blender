@@ -94,7 +94,8 @@ static char findaccent(char char1, unsigned int code)
 	}
 	else if (char1 == 'c') {
 		if (code == ',') new = 231;
-		if (code == '|') new = 162;
+		else if (code == '|') new = 162;
+		else if (code == 'o') new = 169;
 	}
 	else if (char1 == 'e') {
 		if (code == '`') new = 232;
@@ -120,9 +121,17 @@ static char findaccent(char char1, unsigned int code)
 		else if (code == '/') new = 248;
 		else if (code == '-') new = 186;
 		else if (code == 'e') new = 143;
+		else if (code == 'c') new = 169;
+		else if (code == 'r') new = 174;
+	}
+	else if (char1 == 'r') {
+		if (code == 'o') new = 174;
 	}
 	else if (char1 == 's') {
 		if (code == 's') new = 167;
+	}
+	else if (char1 == 't') {
+		if (code == 'm') new = 153;
 	}
 	else if (char1 == 'u') {
 		if (code == '`') new = 249;
@@ -1251,8 +1260,12 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		else
 			ascii = 9;
 	}
-	else if (event == BACKSPACEKEY)
-		ascii = 0;
+	
+	if (event == BACKSPACEKEY) {
+		if (alt && cu->len != 0 && cu->pos > 0)
+			accentcode = 1;
+		return OPERATOR_PASS_THROUGH;
+	}
 
 	if (val && (ascii || evt->utf8_buf[0])) {
 		/* handle case like TAB (== 9) */
@@ -1263,17 +1276,17 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		         (evt->utf8_buf[0]))
 		{
 
-			if (evt->utf8_buf[0]) {
-				BLI_strncpy_wchar_from_utf8(inserted_text, evt->utf8_buf, 1);
-				ascii = inserted_text[0];
-				insert_into_textbuf(obedit, ascii);
-				accentcode = 0;
-			}
-			else if (accentcode) {
+			if (accentcode) {
 				if (cu->pos > 0) {
 					inserted_text[0] = findaccent(ef->textbuf[cu->pos - 1], ascii);
 					ef->textbuf[cu->pos - 1] = inserted_text[0];
 				}
+				accentcode = 0;
+			}
+			else if (evt->utf8_buf[0]) {
+				BLI_strncpy_wchar_from_utf8(inserted_text, evt->utf8_buf, 1);
+				ascii = inserted_text[0];
+				insert_into_textbuf(obedit, ascii);
 				accentcode = 0;
 			}
 			else if (cu->len < MAXTEXT - 1) {
@@ -1312,12 +1325,6 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 			text_update_edited(C, scene, obedit, 1, FO_EDIT);
 		}
 	}
-	else if (val && event == BACKSPACEKEY) {
-		if (alt && cu->len != 0 && cu->pos > 0)
-			accentcode = 1;
-
-		return OPERATOR_PASS_THROUGH;
-	}
 	else
 		return OPERATOR_PASS_THROUGH;
 
@@ -1330,7 +1337,8 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	}
 
 	/* reset property? */
-	accentcode = 0;
+	if (val == 0)
+		accentcode = 0;
 	
 	return OPERATOR_FINISHED;
 }

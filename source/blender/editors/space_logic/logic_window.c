@@ -56,6 +56,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_sca.h"
+#include "BKE_screen.h"
 
 #include "ED_util.h"
 
@@ -66,6 +67,7 @@
 #include "BLF_translation.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "RNA_access.h"
 
@@ -2208,15 +2210,13 @@ void logic_buttons(bContext *C, ARegion *ar)
 	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	Object *ob= CTX_data_active_object(C);
 	ID **idar;
-	
 	PointerRNA logic_ptr, settings_ptr, object_ptr;
-	
 	uiLayout *layout, *row, *box;
 	uiBlock *block;
 	uiBut *but;
 	char uiblockstr[32];
 	short a, count;
-	int xco, yco, width;
+	int xco, yco, width, height;
 	
 	if (ob==NULL) return;
 	
@@ -2270,7 +2270,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	
 	/* ****************** Controllers ****************** */
 	
-	xco= 420; yco= 170; width= 300;
+	xco= 420; yco= -10; width= 300;
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
@@ -2373,11 +2373,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 		}
 	}
 	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
-	
+	height = yco;
 	
 	/* ****************** Sensors ****************** */
 	
-	xco= 10; yco= 170; width= 340;
+	xco= 10; yco= -10; width= 340;
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
@@ -2442,10 +2442,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 		}
 	}
 	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
+	height = MIN2(height, yco);
 	
 	/* ****************** Actuators ****************** */
 	
-	xco= 800; yco= 170; width= 340;
+	xco= 800; yco= -10; width= 340;
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
@@ -2513,12 +2514,20 @@ void logic_buttons(bContext *C, ARegion *ar)
 		}
 	}
 	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
+	height = MIN2(height, yco);
+
+	UI_view2d_totRect_set(&ar->v2d, 1150, height);
 	
-	
+	/* set the view */
+	UI_view2d_view_ortho(&ar->v2d);
+
 	uiComposeLinks(block);
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
+	
+	/* restore view matrix */
+	UI_view2d_view_restore(C);
 	
 	if (idar) MEM_freeN(idar);
 }

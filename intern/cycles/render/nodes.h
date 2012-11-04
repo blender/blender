@@ -445,6 +445,18 @@ public:
 	SHADER_NODE_CLASS(SetNormalNode)
 };
 
+class OSLScriptNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(OSLScriptNode)
+	string filepath;
+	string bytecode_hash;
+	
+	/* ShaderInput/ShaderOutput only stores a shallow string copy (const char *)!
+	 * The actual socket names have to be stored externally to avoid memory errors. */
+	vector<ustring> input_names;
+	vector<ustring> output_names;
+};
+
 CCL_NAMESPACE_END
 
 #endif /* __NODES_H__ */

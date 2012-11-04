@@ -277,22 +277,33 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::stop()
 	if(!m_status)
 		return false;
 
-	// AUD_XXX Create a reference of our own object so that it doesn't get
-	// deleted before the end of this function
-	AUD_Reference<AUD_SoftwareHandle> This = this;
-
-	if(m_status == AUD_STATUS_PLAYING)
-	{
-		m_device->m_playingSounds.remove(This);
-
-		if(m_device->m_playingSounds.empty())
-			m_device->playing(m_device->m_playback = false);
-	}
-	else
-		m_device->m_pausedSounds.remove(This);
-
 	m_status = AUD_STATUS_INVALID;
-	return true;
+
+	for(AUD_HandleIterator it = m_device->m_playingSounds.begin(); it != m_device->m_playingSounds.end(); it++)
+	{
+		if(it->get() == this)
+		{
+			AUD_Reference<AUD_SoftwareHandle> This = *it;
+
+			m_device->m_playingSounds.erase(it);
+
+			if(m_device->m_playingSounds.empty())
+				m_device->playing(m_device->m_playback = false);
+
+			return true;
+		}
+	}
+
+	for(AUD_HandleIterator it = m_device->m_pausedSounds.begin(); it != m_device->m_pausedSounds.end(); it++)
+	{
+		if(it->get() == this)
+		{
+			m_device->m_pausedSounds.erase(it);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool AUD_SoftwareDevice::AUD_SoftwareHandle::getKeep()

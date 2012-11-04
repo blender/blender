@@ -114,7 +114,7 @@ void BKE_tracking_marker_get_subframe_position(struct MovieTrackingTrack *track,
 
 /* **** Object **** */
 struct MovieTrackingObject *BKE_tracking_object_add(struct MovieTracking *tracking, const char *name);
-void BKE_tracking_object_delete(struct MovieTracking *tracking, struct MovieTrackingObject *object);
+int BKE_tracking_object_delete(struct MovieTracking *tracking, struct MovieTrackingObject *object);
 
 void BKE_tracking_object_unique_name(struct MovieTracking *tracking, struct MovieTrackingObject *object);
 

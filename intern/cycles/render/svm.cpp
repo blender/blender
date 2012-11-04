@@ -48,6 +48,9 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	/* test if we need to update */
 	device_free(device, dscene);
 
+	/* determine which shaders are in use */
+	device_update_shaders_used(scene);
+
 	/* svm_nodes */
 	vector<int4> svm_nodes;
 	size_t i;
@@ -609,36 +612,38 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 			output->stack_offset = SVM_STACK_INVALID;
 	}
 
-	if(clin->link) {
-		bool generate = false;
-		if(type == SHADER_TYPE_SURFACE) {
-			/* generate surface shader */
-			generate = true;
-			shader->has_surface = true;
-		}
-		else if(type == SHADER_TYPE_VOLUME) {
-			/* generate volume shader */
-			generate = true;
-			shader->has_volume = true;
-		}
-		else if(type == SHADER_TYPE_DISPLACEMENT) {
-			/* generate displacement shader */
-			generate = true;
-			shader->has_displacement = true;
+	if(shader->used) {
+		if(clin->link) {
+			bool generate = false;
+			if(type == SHADER_TYPE_SURFACE) {
+				/* generate surface shader */
+				generate = true;
+				shader->has_surface = true;
+			}
+			else if(type == SHADER_TYPE_VOLUME) {
+				/* generate volume shader */
+				generate = true;
+				shader->has_volume = true;
+			}
+			else if(type == SHADER_TYPE_DISPLACEMENT) {
+				/* generate displacement shader */
+				generate = true;
+				shader->has_displacement = true;
+			}
+
+			if(generate) {
+				set<ShaderNode*> done;
+
+				if(use_multi_closure)
+					generate_multi_closure(clin->link->parent, done, SVM_STACK_INVALID);
+				else
+					generate_closure(clin->link->parent, done);
+			}
 		}
 
-		if(generate) {
-			set<ShaderNode*> done;
-
-			if(use_multi_closure)
-				generate_multi_closure(clin->link->parent, done, SVM_STACK_INVALID);
-			else
-				generate_closure(clin->link->parent, done);
-		}
+		/* compile output node */
+		node->compile(*this);
 	}
-
-	/* compile output node */
-	node->compile(*this);
 
 	add_node(NODE_END, 0, 0, 0);
 }

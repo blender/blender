@@ -1,5 +1,5 @@
 /*
- * Copyright 2012, Blender Foundation.
+ * Copyright 2011, Blender Foundation.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,30 +17,16 @@
  */
 
 #include "stdosl.h"
+#include "node_fresnel.h"
 
-shader node_light_falloff(
-	float Strength = 0.0,
-	float Smooth = 0.0,
-	output float Quadratic = 0.0,
-	output float Linear = 0.0,
-	output float Constant = 0.0)
+shader node_velvet_bsdf(
+	color Color = color(0.8, 0.8, 0.8),
+	float Sigma = 0.0,
+	normal Normal = N,
+	output closure color BSDF = diffuse(Normal))
 {
-	float ray_length = 0.0;
-	float strength = Strength;
-	getattribute("std::ray_length", ray_length);
+	float sigma = clamp(Sigma, 0.0, 1.0);
 
-	if (Smooth > 0.0) {
-		float squared = ray_length*ray_length;
-		strength *= squared / (Smooth + squared);
-	}
-
-	/* Quadratic */ 
-	Quadratic = strength;
-	
-	/* Linear */
-	Linear = (strength*ray_length);
-
-	/* Constant */
-	Constant = (strength*ray_length*ray_length);
+	BSDF = Color * ashikhmin_velvet(Normal, sigma);
 }
 

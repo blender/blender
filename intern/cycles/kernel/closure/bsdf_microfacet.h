@@ -45,13 +45,10 @@ __device_inline float safe_sqrtf(float f)
 __device int bsdf_microfacet_ggx_setup(ShaderClosure *sc)
 {
 	float ag = sc->data0;
-	float eta = sc->data1;
 
 	float m_ag = clamp(ag, 1e-4f, 1.0f);
-	float m_eta = eta;
 
 	sc->data0 = m_ag;
-	sc->data1 = m_eta;
 	sc->type = CLOSURE_BSDF_MICROFACET_GGX_ID;
 
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
@@ -82,7 +79,6 @@ __device void bsdf_microfacet_ggx_blur(ShaderClosure *sc, float roughness)
 __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_ag = sc->data0;
-	//float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
 
@@ -155,7 +151,6 @@ __device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderClosure *sc, const
 __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_ag = sc->data0;
-	float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 N = sc->N;
 
@@ -221,6 +216,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 #ifdef __RAY_DIFFERENTIALS__
 			float3 dRdx, dRdy, dTdx, dTdy;
 #endif
+			float m_eta = sc->data1;
 			bool inside;
 			fresnel_dielectric(m_eta, m, I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
@@ -274,12 +270,9 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 __device int bsdf_microfacet_beckmann_setup(ShaderClosure *sc)
 {
 	float ab = sc->data0;
-	float eta = sc->data1;
 	float m_ab = clamp(ab, 1e-4f, 1.0f);
-	float m_eta = eta;
 
 	sc->data0 = m_ab;
-	sc->data1 = m_eta;
 
 	sc->type = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
 	return SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
@@ -309,7 +302,6 @@ __device void bsdf_microfacet_beckmann_blur(ShaderClosure *sc, float roughness)
 __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float m_ab = sc->data0;
-	//float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
 
@@ -386,7 +378,6 @@ __device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderClosure *sc, 
 __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng, float3 I, float3 dIdx, float3 dIdy, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float m_ab = sc->data0;
-	float m_eta = sc->data1;
 	int m_refractive = sc->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 N = sc->N;
 
@@ -456,6 +447,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 #ifdef __RAY_DIFFERENTIALS__
 			float3 dRdx, dRdy, dTdx, dTdy;
 #endif
+			float m_eta = sc->data1;
 			bool inside;
 			fresnel_dielectric(m_eta, m, I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__

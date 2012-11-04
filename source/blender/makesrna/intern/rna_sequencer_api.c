@@ -308,12 +308,18 @@ static Sequence *rna_Sequences_new_effect(ID *id, Editing *ed, ReportList *repor
 	return seq;
 }
 
-static void rna_Sequences_remove(ID *id, Editing *ed, Sequence *seq)
+static void rna_Sequences_remove(ID *id, Editing *ed, ReportList *reports, PointerRNA *seq_ptr)
 {
+	Sequence *seq = seq_ptr->data;
 	Scene *scene = (Scene *)id;
 
-	BLI_remlink(&ed->seqbase, seq);
+	if (BLI_remlink_safe(&ed->seqbase, seq) == FALSE) {
+		BKE_reportf(reports, RPT_ERROR, "Sequence '%s' not in scene '%s'", seq->name + 2, scene->id.name + 2);
+		return;
+	}
+
 	BKE_sequence_free(scene, seq);
+	RNA_POINTER_INVALIDATE(seq_ptr);
 
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -568,21 +574,22 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_int(func, "start_frame", 0, -MAXFRAME, MAXFRAME, "",
 	                   "The start frame for the new sequence", -MAXFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "end_frame", 0, -MAXFRAME, MAXFRAME, "",
-	                   "The end frame for the new sequence", -MAXFRAME, MAXFRAME);
-	parm = RNA_def_pointer(func, "seq1", "Sequence", "", "Sequence 1 for effect");
-	parm = RNA_def_pointer(func, "seq2", "Sequence", "", "Sequence 2 for effect");
-	parm = RNA_def_pointer(func, "seq3", "Sequence", "", "Sequence 3 for effect");
+	RNA_def_int(func, "end_frame", 0, -MAXFRAME, MAXFRAME, "",
+	            "The end frame for the new sequence", -MAXFRAME, MAXFRAME);
+	RNA_def_pointer(func, "seq1", "Sequence", "", "Sequence 1 for effect");
+	RNA_def_pointer(func, "seq2", "Sequence", "", "Sequence 2 for effect");
+	RNA_def_pointer(func, "seq3", "Sequence", "", "Sequence 3 for effect");
 	/* return type */
 	parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
 	RNA_def_function_return(func, parm);
 
 
 	func = RNA_def_function(srna, "remove", "rna_Sequences_remove");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove a Sequence");
 	parm = RNA_def_pointer(func, "sequence", "Sequence", "", "Sequence to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 

@@ -129,6 +129,24 @@ static void engine_view_draw(RenderEngine *engine, const struct bContext *contex
 	RNA_parameter_list_free(&list);
 }
 
+static void engine_update_script_node(RenderEngine *engine, struct bNodeTree *ntree, struct bNode *node)
+{
+	extern FunctionRNA rna_RenderEngine_update_script_node_func;
+	PointerRNA ptr, nodeptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
+	RNA_pointer_create((ID*)ntree, &RNA_Node, node, &nodeptr);
+	func = &rna_RenderEngine_update_script_node_func;
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "node", &nodeptr);
+	engine->type->ext.call(NULL, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
 /* RenderEngine registration */
 
 static void rna_RenderEngine_unregister(Main *UNUSED(bmain), StructRNA *type)
@@ -149,7 +167,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	RenderEngineType *et, dummyet = {NULL};
 	RenderEngine dummyengine = {NULL};
 	PointerRNA dummyptr;
-	int have_function[4];
+	int have_function[5];
 
 	/* setup dummy engine & engine type to store static properties in */
 	dummyengine.type = &dummyet;
@@ -188,6 +206,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	et->render = (have_function[1]) ? engine_render : NULL;
 	et->view_update = (have_function[2]) ? engine_view_update : NULL;
 	et->view_draw = (have_function[3]) ? engine_view_draw : NULL;
+	et->update_script_node = (have_function[4]) ? engine_update_script_node : NULL;
 
 	BLI_addtail(&R_engines, et);
 
@@ -300,6 +319,13 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
+	/* shader script callbacks */
+	func = RNA_def_function(srna, "update_script_node", NULL);
+	RNA_def_function_ui_description(func, "Compile shader script node");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
+	prop = RNA_def_pointer(func, "node", "Node", "", "");
+	RNA_def_property_flag(prop, PROP_RNAPTR);
+
 	/* tag for redraw */
 	RNA_def_function(srna, "tag_redraw", "engine_tag_redraw");
 	RNA_def_function_ui_description(func, "Request redraw for viewport rendering");
@@ -328,7 +354,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	func = RNA_def_function(srna, "end_result", "RE_engine_end_result");
 	prop = RNA_def_pointer(func, "result", "RenderResult", "Result", "");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop = RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't merge back results");
+	RNA_def_boolean(func, "cancel", 0, "Cancel", "Don't merge back results");
 
 	func = RNA_def_function(srna, "test_break", "RE_engine_test_break");
 	prop = RNA_def_boolean(func, "do_break", 0, "Break", "");

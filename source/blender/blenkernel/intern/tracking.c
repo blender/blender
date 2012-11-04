@@ -1189,17 +1189,17 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
 	return object;
 }
 
-void BKE_tracking_object_delete(MovieTracking *tracking, MovieTrackingObject *object)
+int BKE_tracking_object_delete(MovieTracking *tracking, MovieTrackingObject *object)
 {
 	MovieTrackingTrack *track;
 	int index = BLI_findindex(&tracking->objects, object);
 
-	if (index < 0)
-		return;
+	if (index == -1)
+		return FALSE;
 
 	if (object->flag & TRACKING_OBJECT_CAMERA) {
 		/* object used for camera solving can't be deleted */
-		return;
+		return FALSE;
 	}
 
 	track = object->tracks.first;
@@ -1215,10 +1215,11 @@ void BKE_tracking_object_delete(MovieTracking *tracking, MovieTrackingObject *ob
 
 	tracking->tot_object--;
 
-	if (index > 0)
+	if (index != 0)
 		tracking->objectnr = index - 1;
 	else
 		tracking->objectnr = 0;
+	return TRUE;
 }
 
 void BKE_tracking_object_unique_name(MovieTracking *tracking, MovieTrackingObject *object)

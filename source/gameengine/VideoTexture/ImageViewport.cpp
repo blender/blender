@@ -60,7 +60,7 @@ ImageViewport::ImageViewport (void) : m_alpha(false), m_texInit(false)
 // destructor
 ImageViewport::~ImageViewport (void)
 {
-    delete [] m_viewportImage;
+	delete [] m_viewportImage;
 }
 
 
@@ -127,15 +127,14 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 		// reset image
 		init(m_capSize[0], m_capSize[1]);
 	// if texture wasn't initialized
-	if (!m_texInit)
-	{
+	if (!m_texInit) {
 		// initialize it
 		loadTexture(texId, m_image, m_size);
 		m_texInit = true;
 	}
 	// if texture can be directly created
 	if (texId != 0 && m_pyfilter == NULL && m_capSize[0] == calcSize(m_capSize[0])
-	        && m_capSize[1] == calcSize(m_capSize[1]) && !m_flip && !m_zbuff && !m_depth)
+	    && m_capSize[1] == calcSize(m_capSize[1]) && !m_flip && !m_zbuff && !m_depth)
 	{
 		// just copy current viewport to texture
 		glBindTexture(GL_TEXTURE_2D, texId);
@@ -144,50 +143,47 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 		m_avail = false;
 	}
 	// otherwise copy viewport to buffer, if image is not available
-	else if (!m_avail)
-	{
-        if (m_zbuff)
-        {
-            // Use read pixels with the depth buffer
+	else if (!m_avail) {
+		if (m_zbuff) {
+			// Use read pixels with the depth buffer
 			// *** misusing m_viewportImage here, but since it has the correct size
-			//     (4 bytes per pixel = size of float) and we just need it to apply 
+			//     (4 bytes per pixel = size of float) and we just need it to apply
 			//     the filter, it's ok
-            glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1],
-                    GL_DEPTH_COMPONENT, GL_FLOAT, m_viewportImage);
-            // filter loaded data
-            FilterZZZA filt;
-            filterImage(filt, (float *)m_viewportImage, m_capSize);
-        }
-        else
-
-        if (m_depth)
-        {
-            // Use read pixels with the depth buffer
-			// See warning above about m_viewportImage.
-            glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1],
-                    GL_DEPTH_COMPONENT, GL_FLOAT, m_viewportImage);
-            // filter loaded data
-            FilterDEPTH filt;
-            filterImage(filt, (float *)m_viewportImage, m_capSize);
-        }
-        else
-
-		// get frame buffer data
-		if (m_alpha)
-		{
-			glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGBA,
-			             GL_UNSIGNED_BYTE, m_viewportImage);
+			glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1],
+			        GL_DEPTH_COMPONENT, GL_FLOAT, m_viewportImage);
 			// filter loaded data
-			FilterRGBA32 filt;
-			filterImage(filt, m_viewportImage, m_capSize);
+			FilterZZZA filt;
+			filterImage(filt, (float *)m_viewportImage, m_capSize);
 		}
-		else
-		{
-			glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
-			             GL_UNSIGNED_BYTE, m_viewportImage);
-			// filter loaded data
-			FilterRGB24 filt;
-			filterImage(filt, m_viewportImage, m_capSize);
+		else {
+
+			if (m_depth) {
+				// Use read pixels with the depth buffer
+				// See warning above about m_viewportImage.
+				glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1],
+				        GL_DEPTH_COMPONENT, GL_FLOAT, m_viewportImage);
+				// filter loaded data
+				FilterDEPTH filt;
+				filterImage(filt, (float *)m_viewportImage, m_capSize);
+			}
+			else {
+
+				// get frame buffer data
+				if (m_alpha) {
+					glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGBA,
+					        GL_UNSIGNED_BYTE, m_viewportImage);
+					// filter loaded data
+					FilterRGBA32 filt;
+					filterImage(filt, m_viewportImage, m_capSize);
+				}
+				else {
+					glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
+					        GL_UNSIGNED_BYTE, m_viewportImage);
+					// filter loaded data
+					FilterRGB24 filt;
+					filterImage(filt, m_viewportImage, m_capSize);
+				}
+			}
 		}
 	}
 }

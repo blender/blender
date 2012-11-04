@@ -1295,7 +1295,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 	return retval;
 }
 
-void GPU_shader_free_builtin_shaders()
+void GPU_shader_free_builtin_shaders(void)
 {
 	if (GG.shaders.vsm_store) {
 		MEM_freeN(GG.shaders.vsm_store);

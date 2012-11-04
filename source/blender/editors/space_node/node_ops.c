@@ -117,6 +117,8 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_clipboard_copy);
 	WM_operatortype_append(NODE_OT_clipboard_paste);
+	
+	WM_operatortype_append(NODE_OT_shader_script_update);
 }
 
 void ED_operatormacros_node(void)

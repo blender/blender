@@ -1589,8 +1589,8 @@ void GPU_lamp_update_distance(GPULamp *lamp, float distance, float att1, float a
 
 void GPU_lamp_update_spot(GPULamp *lamp, float spotsize, float spotblend)
 {
-	lamp->spotsi= cos(M_PI*spotsize/360.0);
-	lamp->spotbl= (1.0f - lamp->spotsi)*spotblend;
+	lamp->spotsi= cosf((float)M_PI * spotsize / 360.0f);
+	lamp->spotbl= (1.0f - lamp->spotsi) * spotblend;
 }
 
 static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *la, GPULamp *lamp)

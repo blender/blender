@@ -122,6 +122,7 @@ EnumPropertyItem event_timer_type_items[] = {
 };
 
 EnumPropertyItem event_ndof_type_items[] = {
+	{NDOF_MOTION, "NDOF_MOTION", 0, "Motion", ""},
 	/* buttons on all 3dconnexion devices */
 	{NDOF_BUTTON_MENU, "NDOF_BUTTON_MENU", 0, "Menu", ""},
 	{NDOF_BUTTON_FIT, "NDOF_BUTTON_FIT", 0, "Fit", ""},
@@ -622,8 +623,8 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 				kmi->val = KM_NOTHING;
 				break;
 			case KMI_TYPE_NDOF:
-				kmi->type = NDOF_BUTTON_MENU;
-				kmi->val = KM_PRESS;
+				kmi->type = NDOF_MOTION;
+				kmi->val = KM_NOTHING;
 				break;
 		}
 	}

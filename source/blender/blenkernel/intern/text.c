@@ -55,12 +55,15 @@
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_object_types.h"
+#include "DNA_node_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_text.h"
+#include "BKE_node.h"
 
 
 #ifdef WITH_PYTHON
@@ -531,6 +534,9 @@ void BKE_text_unlink(Main *bmain, Text *text)
 	bController *cont;
 	bActuator *act;
 	bConstraint *con;
+	bNodeTree *ntree;
+	bNode *node;
+	Material *mat;
 	short update;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
@@ -580,6 +586,28 @@ void BKE_text_unlink(Main *bmain, Text *text)
 		
 		if (update)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+	
+	/* nodes */
+	for (mat = bmain->mat.first; mat; mat = mat->id.next) {
+		ntree = mat->nodetree;
+		if (!ntree)
+			continue;
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == SH_NODE_SCRIPT) {
+				Text *ntext = (Text *)node->id;
+				if (ntext == text) node->id = NULL;
+			}
+		}
+	}
+	
+	for (ntree = bmain->nodetree.first; ntree; ntree = ntree->id.next) {
+		for (node = ntree->nodes.first; node; node = node->next) {
+			if (node->type == SH_NODE_SCRIPT) {
+				Text *ntext = (Text *)node->id;
+				if (ntext == text) node->id = NULL;
+			}
+		}
 	}
 	
 	/* text space */

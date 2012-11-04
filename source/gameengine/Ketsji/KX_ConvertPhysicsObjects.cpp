@@ -54,6 +54,7 @@
 #include "KX_MotionState.h" // bridge between motionstate and scenegraph node
 
 extern "C"{
+	#include "BLI_utildefines.h"
 	#include "BKE_DerivedMesh.h"
 }
 

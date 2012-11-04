@@ -214,6 +214,7 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short c
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
 void		WM_operator_properties_sanitize(struct PointerRNA *ptr, const short no_context); /* make props context sensitive or not */
+int         WM_operator_properties_default(struct PointerRNA *ptr, const int do_update);
 void        WM_operator_properties_reset(struct wmOperator *op);
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
@@ -357,8 +358,9 @@ void        WM_jobs_callbacks(struct wmJob *,
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
 void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void (*)(void *, short int *, short int *, float *));
-void		WM_jobs_stop_all(struct wmWindowManager *wm);
-
+void		WM_jobs_kill_all(struct wmWindowManager *wm);
+	void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
+	
 int			WM_jobs_has_running(struct wmWindowManager *wm);
 
 			/* clipboard */

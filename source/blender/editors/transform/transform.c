@@ -4793,8 +4793,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 				cross_v3_v3v3(a, f2, l->f->no);
 				mul_v3_fl(a, -1.0f);
 
-				add_v3_v3(a, f3);
-				mul_v3_fl(a, 0.5f);
+				mid_v3_v3v3(a, a, f3);
 			}
 			
 			copy_v3_v3(vec, a);

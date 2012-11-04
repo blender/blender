@@ -1570,8 +1570,6 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 void ui_popup_block_scrolltest(uiBlock *block)
 {
 	uiBut *bt;
-	/* Knowing direction is necessary for multi-column menus... */
-	int is_flip = (block->direction & UI_TOP) && !(block->flag & UI_BLOCK_NO_FLIP);
 	
 	block->flag &= ~(UI_BLOCK_CLIPBOTTOM | UI_BLOCK_CLIPTOP);
 	
@@ -1581,29 +1579,27 @@ void ui_popup_block_scrolltest(uiBlock *block)
 	if (block->buttons.first == block->buttons.last)
 		return;
 	
-	/* mark buttons that are outside boundary and the ones next to it for arrow(s) */
+	/* mark buttons that are outside boundary */
 	for (bt = block->buttons.first; bt; bt = bt->next) {
 		if (bt->rect.ymin < block->rect.ymin) {
 			bt->flag |= UI_SCROLLED;
 			block->flag |= UI_BLOCK_CLIPBOTTOM;
-			/* make space for arrow */
-			if (bt->rect.ymax < block->rect.ymin + 10) {
-				if (is_flip && bt->next && bt->next->rect.ymin > bt->rect.ymin)
-					bt->next->flag |= UI_SCROLLED;
-				else if (!is_flip && bt->prev && bt->prev->rect.ymin > bt->rect.ymin)
-					bt->prev->flag |= UI_SCROLLED;
-			}
 		}
 		if (bt->rect.ymax > block->rect.ymax) {
 			bt->flag |= UI_SCROLLED;
 			block->flag |= UI_BLOCK_CLIPTOP;
-			/* make space for arrow */
-			if (bt->rect.ymin > block->rect.ymax - 10) {
-				if (!is_flip && bt->next && bt->next->rect.ymax < bt->rect.ymax)
-					bt->next->flag |= UI_SCROLLED;
-				else if (is_flip && bt->prev && bt->prev->rect.ymax < bt->rect.ymax)
-					bt->prev->flag |= UI_SCROLLED;
-			}
+		}
+	}
+
+	/* mark buttons overlapping arrows, if we have them */
+	for (bt = block->buttons.first; bt; bt = bt->next) {
+		if (block->flag & UI_BLOCK_CLIPBOTTOM) {
+			if (bt->rect.ymin < block->rect.ymin + UI_MENU_SCROLL_ARROW)
+				bt->flag |= UI_SCROLLED;
+		}
+		if (block->flag & UI_BLOCK_CLIPTOP) {
+			if (bt->rect.ymax > block->rect.ymax - UI_MENU_SCROLL_ARROW)
+				bt->flag |= UI_SCROLLED;
 		}
 	}
 }

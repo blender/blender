@@ -186,11 +186,11 @@ unset(PLATFORM_DEFAULT)
 
 
 # Modifiers
-option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
-option(WITH_MOD_SMOKE        	"Enable Smoke Modifier (Smoke Simulation)" ON)
-option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
-option(WITH_MOD_REMESH        	"Enable Remesh Modifier" ON)
-option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experimental cloth solver" OFF)
+option(WITH_MOD_FLUID           "Enable Elbeem Modifier (Fluid Simulation)" ON)
+option(WITH_MOD_SMOKE           "Enable Smoke Modifier (Smoke Simulation)" ON)
+option(WITH_MOD_BOOLEAN         "Enable Boolean Modifier" ON)
+option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
+option(WITH_MOD_CLOTH_ELTOPO    "Enable Experimental cloth solver" OFF)
 mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
 option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
 
@@ -658,11 +658,7 @@ if(UNIX AND NOT APPLE)
 			else()
 				set(Boost_USE_MULTITHREADED ON)
 			endif()
-			if(WITH_CYCLES_OSL)
-				find_package(Boost 1.34 COMPONENTS filesystem python3 regex system thread) # osl_nodes uses boost_python
-			else()
-				find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
-			endif()
+			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
 			mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
 		endif()
 
@@ -828,7 +824,7 @@ if(UNIX AND NOT APPLE)
 	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	# Solaris CC
-	elseif(CMAKE_CXX_COMPILER_ID MATCHES "SunPro") 
+	elseif(CMAKE_CXX_COMPILER_ID MATCHES "SunPro")
 		set(PLATFORM_CFLAGS "-pipe -features=extensions -fPIC -D__FUNCTION__=__func__")
 		
 	# Intel C++ Compiler
@@ -1137,12 +1133,6 @@ elseif(WIN32)
 				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
 				debug libboost_regex-${BOOST_DEBUG_POSTFIX}
 				debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
-				if(WITH_CYCLES_OSL)
-					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-						optimized libboost_python3-${BOOST_POSTFIX}
-						debug libboost_python3-${BOOST_DEBUG_POSTFIX})
-				endif(WITH_CYCLES_OSL)
-				
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()
 			
@@ -1323,12 +1313,6 @@ elseif(WIN32)
 				debug boost_date_time-${BOOST_DEBUG_POSTFIX} boost_filesystem-${BOOST_DEBUG_POSTFIX}
 				boost_regex-${BOOST_DEBUG_POSTFIX}
 				boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
-				if(WITH_CYCLES_OSL)
-					set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-						optimized libboost_python3-${BOOST_POSTFIX}
-						debug libboost_python3-${BOOST_DEBUG_POSTFIX}) 
-				endif(WITH_CYCLES_OSL)
-					
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
@@ -1583,11 +1567,7 @@ elseif(APPLE)
 	if(WITH_BOOST)
 		set(BOOST ${LIBDIR}/boost)
 		set(BOOST_INCLUDE_DIR ${BOOST}/include)
-		if(WITH_CYCLES_OSL)
-			set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_python3-mt boost_regex-mt boost_system-mt boost_thread-mt)
-		else(WITH_CYCLES_OSL)
-			set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt)
-		endif(WITH_CYCLES_OSL)
+		set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt)
 		set(BOOST_LIBPATH ${BOOST}/lib)
 		set(BOOST_DEFINITIONS)
 	endif()

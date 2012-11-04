@@ -123,7 +123,7 @@ void GaussianAlphaXBlurOperation::executePixel(float output[4], int x, int y, vo
 	float value_max = finv_test(buffer[(x * 4) + (y * 4 * bufferwidth)], do_invert); /* init with the current color to avoid unneeded lookups */
 	float distfacinv_max = 1.0f; /* 0 to 1 */
 
-	for (int nx = minx; nx < maxx; nx += step) {
+	for (int nx = minx; nx <= maxx; nx += step) {
 		const int index = (nx - x) + this->m_rad;
 		float value = finv_test(buffer[bufferindex], do_invert);
 		float multiplier;

@@ -26,6 +26,6 @@
 add_subdirectory(common)
 add_subdirectory(ghost)
 
-if(WITH_WEBPLUGIN) 
+if(WITH_WEBPLUGIN)
 	add_subdirectory(xembed)
 endif()

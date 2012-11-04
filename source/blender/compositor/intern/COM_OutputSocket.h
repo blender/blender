@@ -50,6 +50,7 @@ public:
 	OutputSocket(DataType datatype, int inputSocketDataTypeDeterminatorIndex);
 	OutputSocket(OutputSocket *from);
 	void addConnection(SocketConnection *connection);
+	void removeConnection(SocketConnection *connection);
 	SocketConnection *getConnection(unsigned int index) { return this->m_connections[index]; }
 	const int isConnected() const;
 	int isOutputSocket() const;

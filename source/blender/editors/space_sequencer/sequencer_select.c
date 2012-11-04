@@ -414,8 +414,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
 				}
 			}
-			else
-			if (seq->type == SEQ_TYPE_SOUND_RAM) {
+			else if (seq->type == SEQ_TYPE_SOUND_RAM) {
 				if (seq->strip) {
 					BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
 				}

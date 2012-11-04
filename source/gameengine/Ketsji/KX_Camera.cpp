@@ -38,19 +38,19 @@
 #include "KX_Python.h"
 #include "KX_PyMath.h"
 KX_Camera::KX_Camera(void* sgReplicationInfo,
-					 SG_Callbacks callbacks,
-					 const RAS_CameraData& camdata,
-					 bool frustum_culling,
-					 bool delete_node)
-					:
-					KX_GameObject(sgReplicationInfo,callbacks),
-					m_camdata(camdata),
-					m_dirty(true),
-					m_normalized(false),
-					m_frustum_culling(frustum_culling),
-					m_set_projection_matrix(false),
-					m_set_frustum_center(false),
-					m_delete_node(delete_node)
+                     SG_Callbacks callbacks,
+                     const RAS_CameraData& camdata,
+                     bool frustum_culling,
+                     bool delete_node)
+    :
+      KX_GameObject(sgReplicationInfo,callbacks),
+      m_camdata(camdata),
+      m_dirty(true),
+      m_normalized(false),
+      m_frustum_culling(frustum_culling),
+      m_set_projection_matrix(false),
+      m_set_frustum_center(false),
+      m_delete_node(delete_node)
 {
 	// setting a name would be nice...
 	m_name = "cam";

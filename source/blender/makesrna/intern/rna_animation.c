@@ -376,20 +376,23 @@ static KS_Path *rna_KeyingSet_paths_add(KeyingSet *keyingset, ReportList *report
 	return ksp;
 }
 
-static void rna_KeyingSet_paths_remove(KeyingSet *keyingset, ReportList *reports, KS_Path *ksp)
+static void rna_KeyingSet_paths_remove(KeyingSet *keyingset, ReportList *reports, PointerRNA *ksp_ptr)
 {
+	KS_Path *ksp = ksp_ptr->data;
+
 	/* if data is valid, call the API function for this */
-	if (keyingset && ksp) {
-		/* remove the active path from the KeyingSet */
-		BKE_keyingset_free_path(keyingset, ksp);
-			
-		/* the active path number will most likely have changed */
-		/* TODO: we should get more fancy and actually check if it was removed, but this will do for now */
-		keyingset->active_path = 0;
-	}
-	else {
+	if ((keyingset && ksp) == FALSE) {
 		BKE_report(reports, RPT_ERROR, "Keying set path could not be removed");
+		return;
 	}
+
+	/* remove the active path from the KeyingSet */
+	BKE_keyingset_free_path(keyingset, ksp);
+	RNA_POINTER_INVALIDATE(ksp_ptr);
+
+	/* the active path number will most likely have changed */
+	/* TODO: we should get more fancy and actually check if it was removed, but this will do for now */
+	keyingset->active_path = 0;
 }
 
 static void rna_KeyingSet_paths_clear(KeyingSet *keyingset, ReportList *reports)
@@ -422,9 +425,17 @@ static NlaTrack *rna_NlaTrack_new(AnimData *adt, bContext *C, NlaTrack *track)
 	return new_track;
 }
 
-static void rna_NlaTrack_remove(AnimData *adt, bContext *C, NlaTrack *track)
+static void rna_NlaTrack_remove(AnimData *adt, bContext *C, ReportList *reports, PointerRNA *track_ptr)
 {
+	NlaTrack *track = track_ptr->data;
+
+	if (BLI_findindex(&adt->nla_tracks, track) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "NlaTrack '%s' can't be removed", track->name);
+		return;
+	}
+
 	free_nlatrack(&adt->nla_tracks, track);
+	RNA_POINTER_INVALIDATE(track_ptr);
 
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);
 }
@@ -678,7 +689,8 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	/* path to remove */
 	parm = RNA_def_pointer(func, "path", "KeyingSetPath", "Path", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 
 	/* Remove All Paths */
@@ -783,10 +795,11 @@ static void rna_api_animdata_nla_tracks(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_return(func, parm);
 	
 	func = RNA_def_function(srna, "remove", "rna_NlaTrack_remove");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Remove a NLA Track");
 	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "NLA Track to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "NlaTrack");

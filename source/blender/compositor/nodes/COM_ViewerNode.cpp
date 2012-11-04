@@ -52,8 +52,7 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	viewerOperation->setDisplaySettings(context->getDisplaySettings());
 
 	viewerOperation->setResolutionInputSocketIndex(0);
-	if (!imageSocket->isConnected())
-	{
+	if (!imageSocket->isConnected()) {
 		if (alphaSocket->isConnected()) {
 			viewerOperation->setResolutionInputSocketIndex(1);
 		}

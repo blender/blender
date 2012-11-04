@@ -88,8 +88,8 @@ void free_gpcopybuf(void);
 void copy_gpdata(void);
 void paste_gpdata(void);
 
- void snap_masklayer_frames(struct MaskLayer *masklay, short mode);
- void mirror_masklayer_frames(struct MaskLayer *masklay, short mode);
+void snap_masklayer_frames(struct MaskLayer *masklay, short mode);
+void mirror_masklayer_frames(struct MaskLayer *masklay, short mode);
 #endif
 
 #endif /* __ED_MASK_H__ */

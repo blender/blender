@@ -1225,7 +1225,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 		/* first convert byte buffer to float, keep in image space */
 		for (i = 0, fp = linear_buffer, cp = byte_buffer;
 		     i < channels * width * height;
-			 i++, fp++, cp++)
+		     i++, fp++, cp++)
 		{
 			*fp = (float)(*cp) / 255.0f;
 		}

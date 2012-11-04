@@ -306,7 +306,7 @@ void BKE_object_free(Object *ob)
 	if (ob->data) {
 		ID *id = ob->data;
 		id->us--;
-		if (id->us == 0 && id->lib==NULL) {
+		if (id->us == 0 && id->lib == NULL) {
 			switch (ob->type) {
 				case OB_MESH:
 					BKE_mesh_unlink((Mesh *)id);
@@ -864,7 +864,9 @@ Object *BKE_object_add_only_object(int type, const char *name)
 	ob->step_height = 0.15f;
 	ob->jump_speed = 10.0f;
 	ob->fall_speed = 55.0f;
-	
+	ob->col_group = 0x01;
+	ob->col_mask = 0xff;
+
 	/* NT fluid sim defaults */
 	ob->fluidsimSettings = NULL;
 

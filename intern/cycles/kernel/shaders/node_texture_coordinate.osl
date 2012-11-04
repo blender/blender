@@ -44,12 +44,12 @@ shader node_texture_coordinate(
 	}
 	else {
 		if (from_dupli) {
-			getattribute("std::dupli_generated", Generated); 
-			getattribute("std::dupli_uv", UV);
+			getattribute("geom:dupli_generated", Generated); 
+			getattribute("geom:dupli_uv", UV);
 		}
 		else {
-			getattribute("std::generated", Generated); 
-			getattribute("std::uv", UV);
+			getattribute("geom:generated", Generated); 
+			getattribute("geom:uv", UV);
 		}
 
 		Object = transform("object", P);

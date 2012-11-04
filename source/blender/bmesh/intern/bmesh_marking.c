@@ -584,8 +584,7 @@ void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 	}
 	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed = (BMEdge *)ese->ele;
-		add_v3_v3v3(r_center, eed->v1->co, eed->v2->co);
-		mul_v3_fl(r_center, 0.5);
+		mid_v3_v3v3(r_center, eed->v1->co, eed->v2->co);
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa = (BMFace *)ese->ele;

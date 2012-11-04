@@ -851,11 +851,11 @@ static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
 	
 	if (value) {
 		ob->matbits[index] = 1;
-		/* ob->colbits |= (1<<index); */ /* DEPRECATED */
+		/* ob->colbits |= (1 << index); */ /* DEPRECATED */
 	}
 	else {
 		ob->matbits[index] = 0;
-		/* ob->colbits &= ~(1<<index); */ /* DEPRECATED */
+		/* ob->colbits &= ~(1 << index); */ /* DEPRECATED */
 	}
 }
 
@@ -1036,8 +1036,8 @@ static unsigned int rna_Object_layer_validate__internal(const int *values, unsig
 		return 0;
 
 	for (i = 0; i < 20; i++) {
-		if (values[i]) lay |= (1 << i);
-		else lay &= ~(1 << i);
+		if (values[i]) lay |=  (1 << i);
+		else           lay &= ~(1 << i);
 	}
 
 	return lay;
@@ -1072,8 +1072,9 @@ static void rna_GameObjectSettings_state_get(PointerRNA *ptr, int *values)
 	int all_states = (ob->scaflag & OB_ALLSTATE ? 1 : 0);
 
 	memset(values, 0, sizeof(int) * OB_MAX_STATES);
-	for (i = 0; i < OB_MAX_STATES; i++)
+	for (i = 0; i < OB_MAX_STATES; i++) {
 		values[i] = (ob->state & (1 << i)) | all_states;
+	}
 }
 
 static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
@@ -1110,6 +1111,65 @@ static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
 		}
 	}
 }
+
+static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
+{
+	Object *ob = (Object*)ptr->data;
+	int i;
+
+	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
+		values[i] = (ob->col_group & (1 << i));
+	}
+}
+
+static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *values)
+{
+	Object *ob = (Object*)ptr->data;
+	int i, tot = 0;
+
+	/* ensure we always have some group selected */
+	for (i = 0; i < OB_MAX_COL_MASKS; i++)
+		if (values[i])
+			tot++;
+
+	if (tot == 0)
+		return;
+
+	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
+		if (values[i]) ob->col_group |=  (1 << i);
+		else           ob->col_group &= ~(1 << i);
+	}
+}
+
+static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
+{
+	Object *ob = (Object*)ptr->data;
+	int i;
+
+	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
+		values[i] = (ob->col_mask & (1 << i));
+	}
+}
+
+static void rna_GameObjectSettings_col_mask_set(PointerRNA *ptr, const int *values)
+{
+	Object *ob = (Object*)ptr->data;
+	int i, tot = 0;
+
+	/* ensure we always have some mask selected */
+	for (i = 0; i < OB_MAX_COL_MASKS; i++)
+		if (values[i])
+			tot++;
+
+	if (tot == 0)
+		return;
+
+	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
+		if (values[i]) ob->col_mask |=  (1 << i);
+		else           ob->col_mask &= ~(1 << i);
+	}
+}
+
 
 static void rna_Object_active_shape_key_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
@@ -1199,14 +1259,17 @@ static bConstraint *rna_Object_constraints_new(Object *object, int type)
 	return add_ob_constraint(object, NULL, type);
 }
 
-static void rna_Object_constraints_remove(Object *object, ReportList *reports, bConstraint *con)
+static void rna_Object_constraints_remove(Object *object, ReportList *reports, PointerRNA *con_ptr)
 {
+	bConstraint *con = con_ptr->data;
 	if (BLI_findindex(&object->constraints, con) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in object '%s'", con->name, object->id.name + 2);
 		return;
 	}
 
 	remove_constraint(&object->constraints, con);
+	RNA_POINTER_INVALIDATE(con_ptr);
+
 	ED_object_constraint_update(object);
 	ED_object_constraint_set_active(object, NULL);
 	WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, object);
@@ -1228,9 +1291,15 @@ static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, Report
 	return ED_object_modifier_add(reports, CTX_data_main(C), CTX_data_scene(C), object, name, type);
 }
 
-static void rna_Object_modifier_remove(Object *object, bContext *C, ReportList *reports, ModifierData *md)
+static void rna_Object_modifier_remove(Object *object, bContext *C, ReportList *reports, PointerRNA *md_ptr)
 {
-	ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md);
+	ModifierData *md = md_ptr->data;
+	if (ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md) == FALSE) {
+		/* error is already set */
+		return;
+	}
+
+	RNA_POINTER_INVALIDATE(md_ptr);
 
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
@@ -1264,9 +1333,16 @@ static bDeformGroup *rna_Object_vgroup_new(Object *ob, const char *name)
 	return defgroup;
 }
 
-static void rna_Object_vgroup_remove(Object *ob, bDeformGroup *defgroup)
+static void rna_Object_vgroup_remove(Object *ob, ReportList *reports, PointerRNA *defgroup_ptr)
 {
+	bDeformGroup *defgroup = defgroup_ptr->data;
+	if (BLI_findindex(&ob->defbase, defgroup) == -1) {
+		BKE_reportf(reports, RPT_ERROR, "DeformGroup '%s' not in object '%s'", defgroup->name, ob->id.name + 2);
+		return;
+	}
+
 	ED_vgroup_delete(ob, defgroup);
+	RNA_POINTER_INVALIDATE(defgroup_ptr);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
@@ -1578,6 +1654,17 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Fall Speed Max", "Maximum speed at which the character will fall");
 
+	prop = RNA_def_property(srna, "collision_group", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "col_group", 1);
+	RNA_def_property_array(prop, OB_MAX_COL_MASKS);
+	RNA_def_property_ui_text(prop, "Collision Group", "The collision group of the object");
+	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_col_group_get", "rna_GameObjectSettings_col_group_set");
+
+	prop = RNA_def_property(srna, "collision_mask", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "col_mask", 1);
+	RNA_def_property_array(prop, OB_MAX_COL_MASKS);
+	RNA_def_property_ui_text(prop, "Collision Mask", "The groups this object can collide with");
+	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_col_mask_get", "rna_GameObjectSettings_col_mask_set");
 
 	/* lock position */
 	prop = RNA_def_property(srna, "lock_location_x", PROP_BOOLEAN, PROP_NONE);
@@ -1745,7 +1832,8 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	/* constraint to remove */
 	parm = RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_Object_constraints_clear");
 	RNA_def_function_ui_description(func, "Remove all constraint from this object");
@@ -1796,7 +1884,8 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove an existing modifier from the object");
 	/* modifier to remove */
 	parm = RNA_def_pointer(func, "modifier", "Modifier", "", "Modifier to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	/* clear all modifiers */
 	func = RNA_def_function(srna, "clear", "rna_Object_modifier_clear");
@@ -1874,9 +1963,11 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Object_vgroup_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Delete vertex group from object");
 	parm = RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_Object_vgroup_clear");
 	RNA_def_function_ui_description(func, "Delete all vertex groups from object");

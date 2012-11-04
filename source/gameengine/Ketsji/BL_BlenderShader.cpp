@@ -6,6 +6,8 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"

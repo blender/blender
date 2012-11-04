@@ -173,10 +173,10 @@ static void FlipDXT5BlockHalf(uint8_t *block)
 int FlipDXTCImage(unsigned int width, unsigned int height, unsigned int levels, int fourcc, uint8_t *data)
 {
 	// must have valid dimensions
-	if(width == 0 || height == 0)
+	if (width == 0 || height == 0)
 		return 0;
 	// height must be a power-of-two
-	if((height & (height - 1)) != 0)
+	if ((height & (height - 1)) != 0)
 		return 0;
 
 	FlipBlockFunction full_block_function;

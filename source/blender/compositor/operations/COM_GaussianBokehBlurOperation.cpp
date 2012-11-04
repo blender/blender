@@ -236,7 +236,7 @@ void GaussianBlurReferenceOperation::initExecution()
 	
 	/* horizontal */
 	m_radx = (float)this->m_data->sizex;
-	int imgx = getWidth()/2;
+	int imgx = getWidth() / 2;
 	if (m_radx > imgx)
 		m_radx = imgx;
 	else if (m_radx < 1)
@@ -245,7 +245,7 @@ void GaussianBlurReferenceOperation::initExecution()
 
 	/* vertical */
 	m_rady = (float)this->m_data->sizey;
-	int imgy = getHeight()/2;
+	int imgy = getHeight() / 2;
 	if (m_rady > imgy)
 		m_rady = imgy;
 	else if (m_rady < 1)
@@ -344,8 +344,8 @@ bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(rcti *inpu
 		return true;
 	}
 	else {
-		int addx = this->m_data->sizex+2;
-		int addy = this->m_data->sizey+2;
+		int addx = this->m_data->sizex + 2;
+		int addy = this->m_data->sizey + 2;
 		newInput.xmax = input->xmax + addx;
 		newInput.xmin = input->xmin - addx;
 		newInput.ymax = input->ymax + addy;

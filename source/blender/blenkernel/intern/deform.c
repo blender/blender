@@ -790,3 +790,23 @@ void defvert_clear(MDeformVert *dvert)
 
 	dvert->totweight = 0;
 }
+
+/**
+ * \return The first group index shared by both deform verts
+ * or -1 if none are found.
+ */
+int defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert_b)
+{
+	if (dvert_a->totweight && dvert_b->totweight) {
+		MDeformWeight *dw = dvert_a->dw;
+		unsigned int i;
+
+		for (i = dvert_a->totweight; i != 0; i--, dw++) {
+			if (dw->weight > 0.0f && defvert_find_weight(dvert_b, dw->def_nr) > 0.0f) {
+				return dw->def_nr;
+			}
+		}
+	}
+
+	return -1;
+}

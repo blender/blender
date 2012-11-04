@@ -1319,12 +1319,16 @@ static void addtovertices(VERTICES *vertices, VERTEX v)
 
 static void vnormal(const float point[3], PROCESS *p, float r_no[3])
 {
-	float delta = 0.2f * p->delta;
-	float f = p->function(point[0], point[1], point[2]);
+	const float delta = 0.2f * p->delta;
+	const float f = p->function(point[0], point[1], point[2]);
 
 	r_no[0] = p->function(point[0] + delta, point[1], point[2]) - f;
 	r_no[1] = p->function(point[0], point[1] + delta, point[2]) - f;
 	r_no[2] = p->function(point[0], point[1], point[2] + delta) - f;
+
+#if 1
+	normalize_v3(r_no);
+#else
 	f = normalize_v3(r_no);
 	
 	if (0) {
@@ -1343,6 +1347,7 @@ static void vnormal(const float point[3], PROCESS *p, float r_no[3])
 			normalize_v3(r_no);
 		}
 	}
+#endif
 }
 
 
@@ -1500,7 +1505,7 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	float f = 0.0f;
 
 	ml = G_mb.mainb[a];
-	f = 1.0 - (mb->thresh / ml->s);
+	f = 1.0f - (mb->thresh / ml->s);
 
 	/* Skip, when Stiffness of MetaElement is too small ... MetaElement can't be
 	 * visible alone ... but still can influence others MetaElements :-) */

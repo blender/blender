@@ -234,7 +234,7 @@ void quat_to_mat4(float m[][4], const float q[4])
 	double q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
 
 #ifdef DEBUG
-	if (!((q0 = dot_qtqt(q, q)) == 0.0f || (fabsf(q0 - 1.0) < QUAT_EPSILON))) {
+	if (!((q0 = dot_qtqt(q, q)) == 0.0f || (fabsf(q0 - 1.0) < (float)QUAT_EPSILON))) {
 		fprintf(stderr, "Warning! quat_to_mat4() called with non-normalized: size %.8f *** report a bug ***\n", (float)q0);
 	}
 #endif
@@ -1077,11 +1077,11 @@ void compatible_eul(float eul[3], const float oldrot[3])
 	for (i = 0; i < 3; i++) {
 		deul[i] = eul[i] - oldrot[i];
 		if (deul[i] > pi_thresh) {
-			eul[i] -= floorf(( deul[i] / pi_x2) + 0.5) * pi_x2;
+			eul[i] -= floorf(( deul[i] / pi_x2) + 0.5f) * pi_x2;
 			deul[i] = eul[i] - oldrot[i];
 		}
 		else if (deul[i] < -pi_thresh) {
-			eul[i] += floorf((-deul[i] / pi_x2) + 0.5) * pi_x2;
+			eul[i] += floorf((-deul[i] / pi_x2) + 0.5f) * pi_x2;
 			deul[i] = eul[i] - oldrot[i];
 		}
 	}

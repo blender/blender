@@ -121,8 +121,7 @@ int pyrna_prop_validity_check(BPy_PropertyRNA *self)
 
 void pyrna_invalidate(BPy_DummyPointerRNA *self)
 {
-	self->ptr.type = NULL; /* this is checked for validity */
-	self->ptr.id.data = NULL; /* should not be needed but prevent bad pointer access, just in case */
+	RNA_POINTER_INVALIDATE(&self->ptr);
 }
 
 #ifdef USE_PYRNA_INVALIDATE_GC
@@ -832,7 +831,7 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
 	const char *name;
 
 	if (!PYRNA_STRUCT_IS_VALID(self)) {
-		return PyUnicode_FromFormat("<bpy_struct, %.200s dead>",
+		return PyUnicode_FromFormat("<bpy_struct, %.200s invalid>",
 		                            Py_TYPE(self)->tp_name);
 	}
 
@@ -1776,10 +1775,21 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					if (data) {
 
 						if (flag & PROP_RNAPTR) {
-							if (value == Py_None)
-								memset(data, 0, sizeof(PointerRNA));
-							else
-								*((PointerRNA *)data) = param->ptr;
+							if (flag & PROP_THICK_WRAP) {
+								if (value == Py_None)
+									memset(data, 0, sizeof(PointerRNA));
+								else
+									*((PointerRNA *)data) = param->ptr;
+							}
+							else {
+								/* for function calls, we sometimes want to pass the 'ptr' directly,
+								 * watch out that it remains valid!, possibly we could support this later if needed */
+								BLI_assert(value_new == NULL);
+								if (value == Py_None)
+									*((void **)data) = NULL;
+								else
+									*((PointerRNA **)data) = &param->ptr;
+							}
 						}
 						else if (value == Py_None) {
 							*((void **)data) = NULL;
@@ -3866,6 +3876,12 @@ static PyObject *pyrna_prop_collection_idprop_add(BPy_PropertyRNA *self)
 {
 	PointerRNA r_ptr;
 
+#ifdef USE_PEDANTIC_WRITE
+	if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return NULL;
+	}
+#endif  /* USE_PEDANTIC_WRITE */
+
 	RNA_property_collection_add(&self->ptr, self->prop, &r_ptr);
 	if (!r_ptr.data) {
 		PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.add(): not supported for this collection");
@@ -3879,6 +3895,12 @@ static PyObject *pyrna_prop_collection_idprop_add(BPy_PropertyRNA *self)
 static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyObject *value)
 {
 	int key = PyLong_AsLong(value);
+
+#ifdef USE_PEDANTIC_WRITE
+	if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return NULL;
+	}
+#endif  /* USE_PEDANTIC_WRITE */
 
 	if (key == -1 && PyErr_Occurred()) {
 		PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.remove(): expected one int argument");
@@ -3895,6 +3917,12 @@ static PyObject *pyrna_prop_collection_idprop_remove(BPy_PropertyRNA *self, PyOb
 
 static PyObject *pyrna_prop_collection_idprop_clear(BPy_PropertyRNA *self)
 {
+#ifdef USE_PEDANTIC_WRITE
+	if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return NULL;
+	}
+#endif  /* USE_PEDANTIC_WRITE */
+
 	RNA_property_collection_clear(&self->ptr, self->prop);
 
 	Py_RETURN_NONE;
@@ -3903,6 +3931,12 @@ static PyObject *pyrna_prop_collection_idprop_clear(BPy_PropertyRNA *self)
 static PyObject *pyrna_prop_collection_idprop_move(BPy_PropertyRNA *self, PyObject *args)
 {
 	int key = 0, pos = 0;
+
+#ifdef USE_PEDANTIC_WRITE
+	if (rna_disallow_writes && rna_id_write_error(&self->ptr, NULL)) {
+		return NULL;
+	}
+#endif  /* USE_PEDANTIC_WRITE */
 
 	if (!PyArg_ParseTuple(args, "ii", &key, &pos)) {
 		PyErr_SetString(PyExc_TypeError, "bpy_prop_collection.move(): expected two ints as arguments");
@@ -6917,11 +6951,9 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
 #ifdef USE_PEDANTIC_WRITE
 	const int is_operator = RNA_struct_is_a(ptr->type, &RNA_Operator);
-	const char *func_id = RNA_function_identifier(func);
+	// const char *func_id = RNA_function_identifier(func);  /* UNUSED */
 	/* testing, for correctness, not operator and not draw function */
-	const short is_readonly = ((strncmp("draw", func_id, 4) == 0) || /* draw or draw_header */
-	                           /*strstr("render", func_id) ||*/
-	                           !is_operator);
+	const short is_readonly = !(RNA_function_flag(func) & FUNC_ALLOW_WRITE);
 #endif
 
 	py_class = RNA_struct_py_type_get(ptr->type);

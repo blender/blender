@@ -201,7 +201,7 @@ struct MenuType *WM_menutype_find(const char *idname, int quiet) {return (struct
 void WM_operator_stack_clear(struct bContext *C) {}
 
 void WM_autosave_init(struct bContext *C) {}
-void WM_jobs_stop_all(struct wmWindowManager *wm) {}
+void WM_jobs_kill_all_except(struct wmWindowManager *wm) {}
 
 char *WM_clipboard_text_get(int selection) {return (char*)0;}
 void WM_clipboard_text_set(char *buf, int selection) {}

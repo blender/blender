@@ -1568,9 +1568,8 @@ void calculateCenterBound(TransInfo *t)
 			copy_v3_v3(min, t->data[i].center);
 		}
 	}
-	add_v3_v3v3(t->center, min, max);
-	mul_v3_fl(t->center, 0.5);
-	
+	mid_v3_v3v3(t->center, min, max);
+
 	calculateCenter2D(t);
 }
 
@@ -1712,7 +1711,7 @@ void calculatePropRatio(TransInfo *t)
 				/*
 				 * The elements are sorted according to their dist member in the array,
 				 * that means we can stop when it finds one element outside of the propsize.
-				 * do not set td->flag |= TD_NOACTION , the prop circle is being changed.
+				 * do not set 'td->flag |= TD_NOACTION', the prop circle is being changed.
 				 */
 				
 				td->factor = 0.0f;

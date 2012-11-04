@@ -132,7 +132,8 @@ typedef struct drawDMFacesSel_userData {
 	BMEditMesh *em;  /* BMESH BRANCH ONLY */
 
 	BMFace *efa_act;
-	int *orig_index;
+	int *orig_index_mf_to_mpoly;
+	int *orig_index_mp_to_orig;
 } drawDMFacesSel_userData;
 
 typedef struct drawDMNormal_userData {
@@ -233,12 +234,13 @@ static int check_alpha_pass(Base *base)
 }
 
 /***/
-static unsigned int colortab[24] =
-{0x0,       0xFF88FF, 0xFFBBFF,
- 0x403000,  0xFFFF88, 0xFFFFBB,
- 0x104040,  0x66CCCC, 0x77CCCC,
- 0x104010,  0x55BB55, 0x66FF66,
- 0xFFFFFF};
+static unsigned int colortab[24] = {
+	0x0,      0xFF88FF, 0xFFBBFF,
+	0x403000, 0xFFFF88, 0xFFFFBB,
+	0x104040, 0x66CCCC, 0x77CCCC,
+	0x104010, 0x55BB55, 0x66FF66,
+	0xFFFFFF
+};
 
 
 static float cube[8][3] = {
@@ -2325,11 +2327,11 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 
 	unsigned char *col, *next_col;
 
-	if (!data->orig_index)
+	if (!data->orig_index_mf_to_mpoly)
 		return 0;
 
-	efa = EDBM_face_at_index(data->em, data->orig_index[index]);
-	next_efa = EDBM_face_at_index(data->em, data->orig_index[next_index]);
+	efa = EDBM_face_at_index(data->em, DM_origindex_mface_mpoly(data->orig_index_mf_to_mpoly, data->orig_index_mp_to_orig, index));
+	next_efa = EDBM_face_at_index(data->em, DM_origindex_mface_mpoly(data->orig_index_mf_to_mpoly, data->orig_index_mp_to_orig, next_index));
 
 	if (efa == next_efa)
 		return 1;
@@ -2358,7 +2360,12 @@ static void draw_dm_faces_sel(BMEditMesh *em, DerivedMesh *dm, unsigned char *ba
 	data.cols[2] = markCol;
 	data.cols[3] = actCol;
 	data.efa_act = efa_act;
-	data.orig_index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
+	/* double lookup */
+	data.orig_index_mf_to_mpoly = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
+	data.orig_index_mp_to_orig  = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
+	if ((data.orig_index_mf_to_mpoly && data.orig_index_mp_to_orig) == FALSE) {
+		data.orig_index_mf_to_mpoly = data.orig_index_mp_to_orig = NULL;
+	}
 
 	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions, &data, 0);
 }

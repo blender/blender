@@ -450,7 +450,9 @@ static int console_indent_exec(bContext *C, wmOperator *UNUSED(op))
 	memmove(ci->line + len, ci->line, ci->len);
 	memset(ci->line, ' ', len);
 	ci->len += len;
+	BLI_assert(ci->len >= 0);
 	console_line_cursor_set(ci, ci->cursor + len);
+	console_select_offset(sc, len);
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -496,9 +498,10 @@ static int console_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 
 	memmove(ci->line, ci->line + len, (ci->len - len) + 1);
 	ci->len -= len;
-	console_line_cursor_set(ci, ci->cursor - len);
+	BLI_assert(ci->len >= 0);
 
-	//console_select_offset(sc, -4);
+	console_line_cursor_set(ci, ci->cursor - len);
+	console_select_offset(sc, -len);
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -555,6 +558,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				if (stride) {
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
 					ci->len -= stride;
+					BLI_assert(ci->len >= 0);
 					done = TRUE;
 				}
 			}
@@ -571,6 +575,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 					ci->cursor -= stride; /* same as above */
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
 					ci->len -= stride;
+					BLI_assert(ci->len >= 0);
 					done = TRUE;
 				}
 			}

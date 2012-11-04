@@ -822,10 +822,11 @@ static BMOpDefine bmo_spin_def = {
  */
 static BMOpDefine bmo_similar_faces_def = {
 	"similar_faces",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, /* input faces */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* output faces */
-	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
+	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},  /* output faces */
+	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
+	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
+	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
 	 {0} /* null-terminating sentinel */},
 	bmo_similar_faces_exec,
 	0
@@ -838,10 +839,11 @@ static BMOpDefine bmo_similar_faces_def = {
  */
 static BMOpDefine bmo_similar_edges_def = {
 	"similar_edges",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edges */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, /* output edges */
-	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
+	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input edges */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},  /* output edges */
+	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
+	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
+	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
 	 {0} /* null-terminating sentinel */},
 	bmo_similar_edges_exec,
 	0
@@ -854,10 +856,11 @@ static BMOpDefine bmo_similar_edges_def = {
  */
 static BMOpDefine bmo_similar_verts_def = {
 	"similar_verts",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertices */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"}, /* output vertices */
-	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
+	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* input vertices */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"},  /* output vertices */
+	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
+	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
+	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
 	 {0} /* null-terminating sentinel */},
 	bmo_similar_verts_exec,
 	0

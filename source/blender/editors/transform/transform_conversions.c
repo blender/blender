@@ -130,9 +130,9 @@ static int trans_data_compare_dist(const void *A, const void *B)
 	const TransData *td_A = (const TransData*)A;
 	const TransData *td_B = (const TransData*)B;
 
-	if(td_A->dist < td_B->dist)
+	if (td_A->dist < td_B->dist)
 		return -1;
-	else if(td_A->dist > td_B->dist)
+	else if (td_A->dist > td_B->dist)
 		return 1;
 	
 	return 0;
@@ -143,9 +143,9 @@ static int trans_data_compare_rdist(const void *A, const void *B)
 	const TransData *td_A = (const TransData*)A;
 	const TransData *td_B = (const TransData*)B;
 
-	if(td_A->rdist < td_B->rdist)
+	if (td_A->rdist < td_B->rdist)
 		return -1;
-	else if(td_A->rdist > td_B->rdist)
+	else if (td_A->rdist > td_B->rdist)
 		return 1;
 	
 	return 0;
@@ -318,12 +318,8 @@ static void createTransEdge(TransInfo *t)
 
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) {
-			float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
-			float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
-			
 			/* need to set center for center calculations */
-			add_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
-			mul_v3_fl(td->center, 0.5f);
+			mid_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
 
 			td->loc = NULL;
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT))
@@ -331,16 +327,18 @@ static void createTransEdge(TransInfo *t)
 			else
 				td->flag = 0;
 
-
 			copy_m3_m3(td->smtx, smtx);
 			copy_m3_m3(td->mtx, mtx);
 
 			td->ext = NULL;
 			if (t->mode == TFM_BWEIGHT) {
+				float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
 				td->val = bweight;
 				td->ival = bweight ? *bweight : 1.0f;
 			}
 			else {
+				float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
+				BLI_assert(t->mode == TFM_CREASE);
 				td->val = crease;
 				td->ival = crease ? *crease : 0.0f;
 			}

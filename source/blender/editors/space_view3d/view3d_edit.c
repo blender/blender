@@ -2204,8 +2204,8 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 		}
 	}
 
-	add_v3_v3v3(new_ofs, min, max);
-	mul_v3_fl(new_ofs, -0.5f);
+	mid_v3_v3v3(new_ofs, min, max);
+	negate_v3(new_ofs);
 
 	new_dist = size;
 

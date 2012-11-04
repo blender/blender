@@ -36,6 +36,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
@@ -87,6 +88,7 @@ Paint *paint_get_active(Scene *sce)
 Paint *paint_get_active_from_context(const bContext *C)
 {
 	Scene *sce = CTX_data_scene(C);
+	SpaceImage *sima;
 
 	if (sce) {
 		ToolSettings *ts = sce->toolsettings;
@@ -95,12 +97,12 @@ Paint *paint_get_active_from_context(const bContext *C)
 		if (sce->basact && sce->basact->object)
 			obact = sce->basact->object;
 
-		if (CTX_wm_space_image(C) != NULL) {
+		if ((sima = CTX_wm_space_image(C)) != NULL) {
 			if (obact && obact->mode == OB_MODE_EDIT) {
-				if (ts->use_uv_sculpt)
-					return &ts->uvsculpt->paint;
-				else
+				if (sima->mode == SI_MODE_PAINT)
 					return &ts->imapaint.paint;
+				else if (ts->use_uv_sculpt)
+					return &ts->uvsculpt->paint;
 			}
 			else {
 				return &ts->imapaint.paint;

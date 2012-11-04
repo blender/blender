@@ -87,10 +87,11 @@ static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback f
 		func(calldata, NODE_CLASS_SHADER, N_("Shader"));
 		func(calldata, NODE_CLASS_TEXTURE, N_("Texture"));
 	}
-
+	
 	func(calldata, NODE_CLASS_OP_COLOR, N_("Color"));
 	func(calldata, NODE_CLASS_OP_VECTOR, N_("Vector"));
 	func(calldata, NODE_CLASS_CONVERTOR, N_("Convertor"));
+	func(calldata, NODE_CLASS_SCRIPT, N_("Script"));
 	func(calldata, NODE_CLASS_GROUP, N_("Group"));
 	func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }

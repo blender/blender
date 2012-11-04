@@ -83,7 +83,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 		}
 	}
 
-	 return ret;
+	return ret;
 }
 
 /* node type definition */

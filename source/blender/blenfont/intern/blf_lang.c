@@ -65,12 +65,14 @@ static char global_language[32];
 static char global_encoding_name[32];
 
 static const char **locales = NULL;
+static char **long_locales = NULL; /* XXX Temp fix until we get a final solution with modern intl lib under windows! */
 static int num_locales = 0;
 static EnumPropertyItem *locales_menu = NULL;
 static int num_locales_menu = 0;
 
 #define ULANGUAGE ((U.language >= 0 && U.language < num_locales) ? U.language : 0)
 #define LOCALE(_id) (locales ? locales[_id] : "")
+#define LONG_LOCALE(_id) (long_locales ? long_locales[_id] : "")
 
 static void free_locales(void)
 {
@@ -81,8 +83,18 @@ static void free_locales(void)
 			MEM_freeN((void*)locales_menu[idx].name);
 			MEM_freeN((void*)locales_menu[idx].description); /* Also frees locales's relevant value! */
 		}
+
+		idx = num_locales;
+		while (idx--) {
+			if (long_locales[idx]) {
+				MEM_freeN(long_locales[idx]);
+			}
+		}
+
 		MEM_freeN(locales);
 		locales = NULL;
+		MEM_freeN(long_locales);
+		long_locales = NULL;
 	}
 	if (locales_menu) {
 		MEM_freeN(locales_menu);
@@ -128,9 +140,10 @@ static void fill_locales(void)
 	/* Do not allocate locales with zero-sized mem, as LOCALE macro uses NULL locales as invalid marker! */
 	if (num_locales > 0) {
 		locales = MEM_callocN(num_locales * sizeof(char*), __func__);
+		long_locales = MEM_callocN(num_locales * sizeof(char*), __func__);
 		while (line) {
 			int id;
-			char *loc, *sep1, *sep2;
+			char *loc, *sep1, *sep2, *sep3;
 
 			str = (char*) line->link;
 			if (str[0] == '#' || str[0] == '\0') {
@@ -144,23 +157,32 @@ static void fill_locales(void)
 				sep1++;
 				sep2 = strchr(sep1, ':');
 				if (sep2) {
+					locales_menu[idx].value = id;
+					locales_menu[idx].icon = 0;
+					locales_menu[idx].name = BLI_strdupn(sep1, sep2 - sep1);
 
-						locales_menu[idx].value = id;
-						locales_menu[idx].icon = 0;
-						locales_menu[idx].name = BLI_strdupn(sep1, sep2 - sep1);
-						locales_menu[idx].identifier = loc = BLI_strdup(sep2 + 1);
+					sep2++;
+					sep3 = strchr(sep2, ':');
+					if (sep3) {
+						locales_menu[idx].identifier = loc = BLI_strdupn(sep2, sep3 - sep2);
+
 						if (id == 0) {
 							/* The DEFAULT item... */
-							if (BLI_strnlen(loc, 2))
+							if (BLI_strnlen(loc, 2)) {
 								locales[id] = locales_menu[idx].description = BLI_strdup("");
+								long_locales[id] = BLI_strdup("");
+							}
 							/* Menu "label", not to be stored in locales! */
-							else
+							else {
 								locales_menu[idx].description = BLI_strdup("");
+							}
 						}
-						else
+						else {
 							locales[id] = locales_menu[idx].description = BLI_strdup(loc);
+							long_locales[id] = BLI_strdup(sep3 + 1);
+						}
 						idx++;
-				
+					}
 				}
 			}
 
@@ -243,43 +265,39 @@ static void get_language(const char *locale, const char *lang, char *language, c
 void BLF_lang_set(const char *str)
 {
 	char *locreturn;
-	const char *short_locale;
 	int ok = TRUE;
 	int ulang = ULANGUAGE;
 
 	if ((U.transopts & USER_DOTRANSLATE) == 0)
 		return;
 
-	if (str)
-		short_locale = str;
-	else
-		short_locale = LOCALE(ulang);
-
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	{
-		if (short_locale) {
+		const char *long_locale = str ? str : LONG_LOCALE(ulang);
+		if (long_locale) {
 			char *envStr;
 
-			if (ulang) /* Use system setting. */
+			if (ulang)
+				envStr = BLI_sprintfN("LANG=%s", long_locale);
+			else /* Use system setting. */
 				envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
-			else
-				envStr = BLI_sprintfN("LANG=%s", short_locale);
 
 			gettext_putenv(envStr);
 			MEM_freeN(envStr);
 		}
 
-		locreturn = setlocale(LC_ALL, short_locale);
+		locreturn = setlocale(LC_ALL, long_locale);
 
 		if (locreturn == NULL) {
 			if (G.debug & G_DEBUG)
-				printf("Could not change locale to %s\n", short_locale);
+				printf("Could not change locale to %s\n", long_locale);
 
 			ok = FALSE;
 		}
 	}
 #else
 	{
+		const char *short_locale = str ? str : LOCALE(ulang);
 		static char default_lang[64] = "\0";
 		static char default_language[64] = "\0";
 

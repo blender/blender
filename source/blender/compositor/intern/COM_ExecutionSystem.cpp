@@ -336,6 +336,16 @@ void ExecutionSystem::addSocketConnection(SocketConnection *connection)
 	this->m_connections.push_back(connection);
 }
 
+void ExecutionSystem::removeSocketConnection(SocketConnection *connection)
+{
+	for (vector<SocketConnection *>::iterator it = m_connections.begin(); it != m_connections.end(); ++it) {
+		if (*it == connection) {
+			this->m_connections.erase(it);
+			return;
+		}
+	}
+}
+
 
 void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result, CompositorPriority priority) const
 {

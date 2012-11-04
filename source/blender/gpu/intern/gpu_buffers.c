@@ -708,34 +708,6 @@ static void GPU_buffer_copy_uv(DerivedMesh *dm, float *varray, int *index, int *
 	}
 }
 
-
-static void GPU_buffer_copy_color3(DerivedMesh *dm, float *varray_, int *index, int *mat_orig_to_new, void *user)
-{
-	int i, totface;
-	char *varray = (char *)varray_;
-	char *mcol = (char *)user;
-	MFace *f = dm->getTessFaceArray(dm);
-
-	totface = dm->getNumTessFaces(dm);
-	for (i = 0; i < totface; i++, f++) {
-		int start = index[mat_orig_to_new[f->mat_nr]];
-
-		/* v1 v2 v3 */
-		copy_v3_v3_char(&varray[start], &mcol[i * 12]);
-		copy_v3_v3_char(&varray[start + 3], &mcol[i * 12 + 3]);
-		copy_v3_v3_char(&varray[start + 6], &mcol[i * 12 + 6]);
-		index[mat_orig_to_new[f->mat_nr]] += 9;
-
-		if (f->v4) {
-			/* v3 v4 v1 */
-			copy_v3_v3_char(&varray[start + 9], &mcol[i * 12 + 6]);
-			copy_v3_v3_char(&varray[start + 12], &mcol[i * 12 + 9]);
-			copy_v3_v3_char(&varray[start + 15], &mcol[i * 12]);
-			index[mat_orig_to_new[f->mat_nr]] += 9;
-		}
-	}
-}
-
 static void copy_mcol_uc3(unsigned char *v, unsigned char *col)
 {
 	v[0] = col[3];
@@ -820,28 +792,6 @@ static void GPU_buffer_copy_uvedge(DerivedMesh *dm, float *varray, int *UNUSED(i
 	}
 }
 
-/* get the DerivedMesh's MCols; choose (in decreasing order of
- * preference) from CD_ID_MCOL, CD_PREVIEW_MCOL, or CD_MCOL */
-static MCol *gpu_buffer_color_type(DerivedMesh *dm)
-{
-	MCol *c;
-	int type;
-
-	type = CD_ID_MCOL;
-	c = DM_get_tessface_data_layer(dm, type);
-	if (!c) {
-		type = CD_PREVIEW_MCOL;
-		c = DM_get_tessface_data_layer(dm, type);
-		if (!c) {
-			type = CD_MCOL;
-			c = DM_get_tessface_data_layer(dm, type);
-		}
-	}
-
-	dm->drawObject->colType = type;
-	return c;
-}
-
 typedef enum {
 	GPU_BUFFER_VERTEX = 0,
 	GPU_BUFFER_NORMAL,
@@ -924,7 +874,7 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 
 	/* special handling for MCol and UV buffers */
 	if (type == GPU_BUFFER_COLOR) {
-		if (!(user_data = gpu_buffer_color_type(dm)))
+		if (!(user_data = DM_get_tessface_data_layer(dm, dm->drawObject->colType)))
 			return NULL;
 	}
 	else if (type == GPU_BUFFER_UV) {
@@ -944,7 +894,7 @@ static GPUBuffer *gpu_buffer_setup_type(DerivedMesh *dm, GPUBufferType type)
 static GPUBuffer *gpu_buffer_setup_common(DerivedMesh *dm, GPUBufferType type)
 {
 	GPUBuffer **buf;
-	
+
 	if (!dm->drawObject)
 		dm->drawObject = GPU_drawobject_new(dm);
 
@@ -1006,8 +956,28 @@ void GPU_uv_setup(DerivedMesh *dm)
 	GLStates |= GPU_BUFFER_TEXCOORD_STATE;
 }
 
-void GPU_color_setup(DerivedMesh *dm)
+void GPU_color_setup(DerivedMesh *dm, int colType)
 {
+	if (!dm->drawObject) {
+		/* XXX Not really nice, but we need a valid gpu draw object to set the colType...
+		 *     Else we would have to add a new param to gpu_buffer_setup_common. */
+		dm->drawObject = GPU_drawobject_new(dm);
+		dm->dirty &= ~DM_DIRTY_MCOL_UPDATE_DRAW;
+		dm->drawObject->colType = colType;
+	}
+	/* In paint mode, dm may stay the same during stroke, however we still want to update colors!
+	 * Also check in case we changed color type (i.e. which MCol cdlayer we use). */
+	else if ((dm->dirty & DM_DIRTY_MCOL_UPDATE_DRAW) || (colType != dm->drawObject->colType)) {
+		GPUBuffer **buf = gpu_drawobject_buffer_from_type(dm->drawObject, GPU_BUFFER_COLOR);
+		/* XXX Freeing this buffer is a bit stupid, as geometry has not changed, size should remain the same.
+		 *     Not sure though it would be worth defining a sort of gpu_buffer_update func - nor whether
+		 *     it is even possible ! */
+		GPU_buffer_free(*buf);
+		*buf = NULL;
+		dm->dirty &= ~DM_DIRTY_MCOL_UPDATE_DRAW;
+		dm->drawObject->colType = colType;
+	}
+
 	if (!gpu_buffer_setup_common(dm, GPU_BUFFER_COLOR))
 		return;
 
@@ -1168,20 +1138,6 @@ void GPU_buffer_unbind(void)
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 }
 
-/* confusion: code in cdderivedmesh calls both GPU_color_setup and
- * GPU_color3_upload; both of these set the `colors' buffer, so seems
- * like it will just needlessly overwrite? --nicholas */
-void GPU_color3_upload(DerivedMesh *dm, unsigned char *data)
-{
-	if (dm->drawObject == 0)
-		dm->drawObject = GPU_drawobject_new(dm);
-	GPU_buffer_free(dm->drawObject->colors);
-
-	dm->drawObject->colors = gpu_buffer_setup(dm, dm->drawObject, 3,
-	                                          sizeof(char) * 3 * dm->drawObject->tot_triangle_point,
-	                                          GL_ARRAY_BUFFER_ARB, data, GPU_buffer_copy_color3);
-}
-
 void GPU_color_switch(int mode)
 {
 	if (mode) {
@@ -1271,11 +1227,11 @@ void GPU_buffer_draw_elements(GPUBuffer *elements, unsigned int mode, int start,
  * drawing and doesn't interact at all with the buffer code above */
 
 /* Return false if VBO is either unavailable or disabled by the user,
-   true otherwise */
+ * true otherwise */
 static int gpu_vbo_enabled(void)
 {
 	return (GLEW_ARB_vertex_buffer_object &&
-			!(U.gameflags & USER_DISABLE_VBO));
+	        !(U.gameflags & USER_DISABLE_VBO));
 }
 
 /* Convenience struct for building the VBO. */
@@ -1486,7 +1442,7 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 							fmask = (vmask[fv[0]] +
 									 vmask[fv[1]] +
 									 vmask[fv[2]] +
-									 vmask[fv[3]]) * 0.25;
+									 vmask[fv[3]]) * 0.25f;
 						}
 					}
 					else {
@@ -1959,7 +1915,7 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers)
 				         buffers->vmask[fv[1]] +
 				         buffers->vmask[fv[2]]);
 				if (f->v4)
-					fmask = (fmask + buffers->vmask[fv[3]]) * 0.25;
+					fmask = (fmask + buffers->vmask[fv[3]]) * 0.25f;
 				else
 					fmask /= 3.0f;
 				gpu_color_from_mask_set(fmask, diffuse_color);

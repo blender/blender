@@ -729,6 +729,16 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			/* could be handlerized at some point, now only 1 exception still */
 			if (ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
+			else if (ntree->type==NTREE_SHADER && node->type==SH_NODE_SCRIPT) {
+				NodeShaderScript *nss = (NodeShaderScript *)node->storage;
+				if (nss->bytecode)
+					writedata(wd, DATA, strlen(nss->bytecode)+1, nss->bytecode);
+				/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+				 * of library blocks that implement this.*/
+				if (nss->prop)
+					IDP_WriteProperty(nss->prop, wd);
+				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+			}
 			else if (ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 				write_curvemapping(wd, node->storage);
 			else if (ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
@@ -1732,9 +1742,10 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 
 				writestruct(wd, DATA, structname, datasize, layer->data);
 			}
-			else
+			else {
 				printf("%s error: layer '%s':%d - can't be written to file\n",
 				       __func__, structname, layer->type);
+			}
 		}
 	}
 
@@ -1766,6 +1777,9 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				backup_mesh.totface = mesh->totface;
 				mesh->totface = 0;
 				/* -- */
+				backup_mesh.fdata = mesh->fdata;
+				memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+				/* -- */
 #endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 				writestruct(wd, ID_ME, "Mesh", 1, mesh);
@@ -1789,6 +1803,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->mface = backup_mesh.mface;
 				/* -- */
 				mesh->totface = backup_mesh.totface;
+				/* -- */
+				mesh->fdata = backup_mesh.fdata;
 #endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 			}

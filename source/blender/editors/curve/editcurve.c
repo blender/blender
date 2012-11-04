@@ -5641,8 +5641,8 @@ static int select_nth_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select Nth";
-	ot->description = "";
+	ot->name = "Checker Deselect";
+	ot->description = "Deselect every other vertex";
 	ot->idname = "CURVE_OT_select_nth";
 
 	/* api callbacks */

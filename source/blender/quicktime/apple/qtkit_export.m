@@ -561,19 +561,21 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 			
 			/* specifying the codec attributes : try to retrieve them from render data first*/
 			if (rd->qtcodecsettings.codecType) {
-				qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
-											 stringWithCodecType(rd->qtcodecsettings.codecType),
-											 QTAddImageCodecType,
-											 [NSNumber numberWithLong:((rd->qtcodecsettings.codecSpatialQuality)*codecLosslessQuality)/100],
-											 QTAddImageCodecQuality,
-											 nil];
+				qtexport->frameAttributes = [
+				        NSDictionary dictionaryWithObjectsAndKeys:
+				        stringWithCodecType(rd->qtcodecsettings.codecType),
+				        QTAddImageCodecType,
+				        [NSNumber numberWithLong:((rd->qtcodecsettings.codecSpatialQuality)*codecLosslessQuality)/100],
+				        QTAddImageCodecQuality,
+				        nil];
 			}
 			else {
-				qtexport->frameAttributes = [NSDictionary dictionaryWithObjectsAndKeys:@"jpeg",
-											 QTAddImageCodecType,
-											 [NSNumber numberWithLong:codecHighQuality],
-											 QTAddImageCodecQuality,
-											 nil];
+				qtexport->frameAttributes = [
+				        NSDictionary dictionaryWithObjectsAndKeys:@"jpeg",
+				        QTAddImageCodecType,
+				        [NSNumber numberWithLong:codecHighQuality],
+				        QTAddImageCodecQuality,
+				        nil];
 			}
 			[qtexport->frameAttributes retain];
 			

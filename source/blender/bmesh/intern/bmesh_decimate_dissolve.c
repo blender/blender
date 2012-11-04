@@ -179,10 +179,10 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
 		/* simple version of the branch below, sincve we will dissolve _all_ verts that use 2 edges */
 		for (i = 0; i < vinput_len; i++) {
 			BMVert *v = vinput_arr[i];
-			if (v) {
-				if (BM_vert_edge_count(v) == 2) {
-					BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
-				}
+			if (LIKELY(v != NULL) &&
+			    BM_vert_edge_count(v) == 2)
+			{
+				BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
 			}
 		}
 	}
@@ -207,10 +207,11 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
 
 			for (i = 0; i < tot_found; i++) {
 				BMVert *v = (BMVert *)weight_elems[i].ele;
-				if (/* topology changes may cause this to be un-collapsable */
-					(BM_vert_edge_count(v) == 2) &&
-					/* check twice because cumulative effect could dissolve over angle limit */
-					bm_vert_edge_face_angle(v) < angle_limit)
+				if (LIKELY(v != NULL) &&
+				    /* topology changes may cause this to be un-collapsable */
+				    (BM_vert_edge_count(v) == 2) &&
+				    /* check twice because cumulative effect could dissolve over angle limit */
+				    bm_vert_edge_face_angle(v) < angle_limit)
 				{
 					BMEdge *ne = BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
 

@@ -479,10 +479,10 @@ static short new_key_needed(FCurve *fcu, float cFrame, float nValue)
 	
 	/* Frame in which to add a new-keyframe occurs after all other keys
 	 * -> If there are at least two existing keyframes, then if the values of the
-	 *	 last two keyframes and the new-keyframe match, the last existing keyframe
-	 *	 gets deleted as it is no longer required.
+	 *    last two keyframes and the new-keyframe match, the last existing keyframe
+	 *    gets deleted as it is no longer required.
 	 * -> Otherwise, a keyframe is just added. 1.0 is added so that fake-2nd-to-last
-	 *	 keyframe is not equal to last keyframe.
+	 *    keyframe is not equal to last keyframe.
 	 */
 	bezt = (fcu->bezt + (fcu->totvert - 1));
 	valA = bezt->vec[1][1];

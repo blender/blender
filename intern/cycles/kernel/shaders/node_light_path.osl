@@ -36,6 +36,6 @@ shader node_light_path(
 	IsReflectionRay = raytype("reflection");
 	IsTransmissionRay = raytype("refraction");
 
-	getattribute("std::ray_length", RayLength);
+	getattribute("path:ray_length", RayLength);
 }
 

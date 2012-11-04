@@ -162,7 +162,7 @@ __attribute__((nonnull))
 #endif
 ;
 
-size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxlen)
+size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 #ifdef __GNUC__
 __attribute__((nonnull))
 #endif

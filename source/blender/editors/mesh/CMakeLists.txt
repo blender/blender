@@ -74,7 +74,7 @@ if(WITH_INTERNATIONAL)
 endif()
 
 if(WITH_BULLET)
-    add_definitions(-DWITH_BULLET)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}")

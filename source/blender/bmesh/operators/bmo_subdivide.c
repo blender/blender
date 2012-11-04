@@ -54,7 +54,7 @@
 #define ELE_SPLIT	16
 
 /* see bug [#32665], 0.00005 means a we get face splits at a little under 1.0 degrees */
-#define FLT_FACE_SPLIT_EPSILON 0.00005
+#define FLT_FACE_SPLIT_EPSILON 0.00005f
 
 /*
  * NOTE: beauty has been renamed to flag!

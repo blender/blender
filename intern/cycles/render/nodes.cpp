@@ -2922,5 +2922,25 @@ void SetNormalNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_set_normal"); 
 }
 
+/* OSLScriptNode */
+
+OSLScriptNode::OSLScriptNode()
+: ShaderNode("osl_script")
+{
+}
+
+void OSLScriptNode::compile(SVMCompiler& compiler)
+{
+	/* doesn't work for SVM, obviously ... */
+}
+
+void OSLScriptNode::compile(OSLCompiler& compiler)
+{
+	if(!filepath.empty())
+		compiler.add(this, filepath.c_str(), true);
+	else
+		compiler.add(this, bytecode_hash.c_str(), false);
+}
+
 CCL_NAMESPACE_END
 

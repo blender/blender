@@ -697,11 +697,11 @@ static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
 }
 
 static EMat *build_edge_mats(const MVertSkin *vs,
-							 const MVert *mvert,
-							 int totvert,
+                             const MVert *mvert,
+                             int totvert,
                              const MEdge *medge,
-							 const MeshElemMap *emap,
-							 int totedge)
+                             const MeshElemMap *emap,
+                             int totedge)
 {
 	BLI_Stack *stack;
 	EMat *emat;

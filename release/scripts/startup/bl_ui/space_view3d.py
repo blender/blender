@@ -571,7 +571,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
         layout.separator()
 
         layout.operator("mesh.select_random", text="Random")
-        layout.operator("mesh.select_nth", text="Every N Number of Verts")
+        layout.operator("mesh.select_nth")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
         layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
         layout.operator("mesh.select_interior_faces", text="Interior Faces")
@@ -579,7 +579,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_by_number_vertices", text="By Number of Verts")
+        layout.operator("mesh.select_face_by_sides")
         if context.scene.tool_settings.mesh_select_mode[2] is False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
         layout.operator("mesh.select_loose_verts", text="Loose Verts/Edges")
@@ -968,8 +968,9 @@ class VIEW3D_MT_object_parent(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("object.parent_set", "type", text="Set")
-        layout.operator_menu_enum("object.parent_clear", "type", text="Clear")
+        layout.operator_enum("object.parent_set", "type")
+        layout.separator()
+        layout.operator_enum("object.parent_clear", "type")
 
 
 class VIEW3D_MT_object_track(Menu):
@@ -978,8 +979,9 @@ class VIEW3D_MT_object_track(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("object.track_set", "type", text="Set")
-        layout.operator_menu_enum("object.track_clear", "type", text="Clear")
+        layout.operator_enum("object.track_set", "type")
+        layout.separator()
+        layout.operator_enum("object.track_clear", "type")
 
 
 class VIEW3D_MT_object_group(Menu):
@@ -1948,10 +1950,6 @@ class VIEW3D_MT_edit_mesh_dissolve(Menu):
         layout = self.layout
 
         layout.operator("mesh.dissolve")
-
-        layout.separator()
-
-        layout.operator_enum("mesh.dissolve", "type")
 
         layout.separator()
 

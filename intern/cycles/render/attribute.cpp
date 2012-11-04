@@ -163,7 +163,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 	else if(std == ATTR_STD_UV)
 		attr = add(name, TypeDesc::TypePoint, Attribute::CORNER);
 	else if(std == ATTR_STD_TANGENT)
-		attr = add(name, TypeDesc::TypeVector, Attribute::VERTEX);
+		attr = add(name, TypeDesc::TypeVector, Attribute::CORNER);
 	else if(std == ATTR_STD_GENERATED)
 		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
 	else if(std == ATTR_STD_POSITION_UNDEFORMED)

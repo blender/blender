@@ -135,10 +135,10 @@ static bool Carve_checkEdgeFaceIntersections(carve::csg::Intersections &intersec
 
 static inline bool Carve_facesAreCoplanar(const MeshSet<3>::face_t *a, const MeshSet<3>::face_t *b)
 {
-  carve::geom3d::Ray temp;
-  // XXX: Find a better definition. This may be a source of problems
-  // if floating point inaccuracies cause an incorrect answer.
-  return !carve::geom3d::planeIntersection(a->plane, b->plane, temp);
+	carve::geom3d::Ray temp;
+	// XXX: Find a better definition. This may be a source of problems
+	// if floating point inaccuracies cause an incorrect answer.
+	return !carve::geom3d::planeIntersection(a->plane, b->plane, temp);
 }
 
 static bool Carve_checkMeshSetInterseciton_do(carve::csg::Intersections &intersections,

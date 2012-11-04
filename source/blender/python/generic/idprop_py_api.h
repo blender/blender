@@ -32,6 +32,17 @@ struct ID;
 struct IDProperty;
 struct BPy_IDGroup_Iter;
 
+extern PyTypeObject BPy_IDArray_Type;
+extern PyTypeObject BPy_IDGroup_Iter_Type;
+extern PyTypeObject BPy_IDGroup_Type;
+
+#define BPy_IDArray_Check(v)			(PyObject_TypeCheck(v, &BPy_IDArray_Type))
+#define BPy_IDArray_CheckExact(v)		(Py_TYPE(v) == &BPy_IDArray_Type)
+#define BPy_IDGroup_Iter_Check(v)		(PyObject_TypeCheck(v, &BPy_IDGroup_Iter_Type))
+#define BPy_IDGroup_Iter_CheckExact(v)	(Py_TYPE(v) == &BPy_IDGroup_Iter_Type)
+#define BPy_IDGroup_Check(v)			(PyObject_TypeCheck(v, &BPy_IDGroup_Type))
+#define BPy_IDGroup_CheckExact(v)		(Py_TYPE(v) == &BPy_IDGroup_Type)
+
 typedef struct BPy_IDProperty {
 	PyObject_VAR_HEAD
 	struct ID *id;           /* can be NULL */

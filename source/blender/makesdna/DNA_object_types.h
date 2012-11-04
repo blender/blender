@@ -209,7 +209,9 @@ typedef struct Object {
 	float step_height;
 	float jump_speed;
 	float fall_speed;
-	char pad1[4];
+
+	/** Collision mask settings */
+	unsigned short col_group, col_mask;
 
 	short rotmode;		/* rotation mode - uses defines set out in DNA_action_types.h for PoseChannel rotations... */
 
@@ -478,6 +480,9 @@ typedef struct DupliObject {
 
 /* controller state */
 #define OB_MAX_STATES		30
+
+/* collision masks */
+#define OB_MAX_COL_MASKS	8
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1

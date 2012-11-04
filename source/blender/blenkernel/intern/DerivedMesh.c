@@ -265,9 +265,11 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getVertData = DM_get_vert_data;
 	dm->getEdgeData = DM_get_edge_data;
 	dm->getTessFaceData = DM_get_tessface_data;
+	dm->getPolyData = DM_get_poly_data;
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
+	dm->getPolyDataArray = DM_get_poly_data_layer;
 
 	bvhcache_init(&dm->bvhCache);
 }
@@ -287,6 +289,13 @@ void DM_init(DerivedMesh *dm, DerivedMeshType type, int numVerts, int numEdges,
 	dm->needsFree = 1;
 	dm->auto_bump_scale = -1.0f;
 	dm->dirty = 0;
+
+	/* don't use CustomData_reset(...); because we dont want to touch customdata */
+	fill_vn_i(dm->vertData.typemap, CD_NUMTYPES, -1);
+	fill_vn_i(dm->edgeData.typemap, CD_NUMTYPES, -1);
+	fill_vn_i(dm->faceData.typemap, CD_NUMTYPES, -1);
+	fill_vn_i(dm->loopData.typemap, CD_NUMTYPES, -1);
+	fill_vn_i(dm->polyData.typemap, CD_NUMTYPES, -1);
 }
 
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
@@ -383,7 +392,7 @@ void DM_ensure_tessface(DerivedMesh *dm)
 	}
 
 	else if (dm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-		BLI_assert(CustomData_has_layer(&dm->faceData, CD_POLYINDEX));
+		BLI_assert(CustomData_has_layer(&dm->faceData, CD_ORIGINDEX));
 		DM_update_tessface_data(dm);
 	}
 
@@ -407,7 +416,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	const int hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
 	const int hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
 
-	int *polyindex = CustomData_get_layer(fdata, CD_POLYINDEX);
+	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
 
 	int mf_idx,
 	    totface = dm->getNumTessFaces(dm),
@@ -464,11 +473,11 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	int totvert, totedge /*, totface */ /* UNUSED */, totloop, totpoly;
 	int did_shapekeys = 0;
 	
-	memset(&tmp.vdata, 0, sizeof(tmp.vdata));
-	memset(&tmp.edata, 0, sizeof(tmp.edata));
-	memset(&tmp.fdata, 0, sizeof(tmp.fdata));
-	memset(&tmp.ldata, 0, sizeof(tmp.ldata));
-	memset(&tmp.pdata, 0, sizeof(tmp.pdata));
+	CustomData_reset(&tmp.vdata);
+	CustomData_reset(&tmp.edata);
+	CustomData_reset(&tmp.fdata);
+	CustomData_reset(&tmp.ldata);
+	CustomData_reset(&tmp.pdata);
 
 	totvert = tmp.totvert = dm->getNumVerts(dm);
 	totedge = tmp.totedge = dm->getNumEdges(dm);
@@ -624,6 +633,12 @@ void *DM_get_tessface_data(DerivedMesh *dm, int index, int type)
 {
 	return CustomData_get(&dm->faceData, index, type);
 }
+
+void *DM_get_poly_data(DerivedMesh *dm, int index, int type)
+{
+	return CustomData_get(&dm->polyData, index, type);
+}
+
 
 void *DM_get_vert_data_layer(DerivedMesh *dm, int type)
 {
@@ -1373,7 +1388,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	ModifierData *firstmd, *md, *previewmd = NULL;
 	CDMaskLink *datamasks, *curr;
 	/* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
-	CustomDataMask mask, nextmask, append_mask = CD_MASK_POLYINDEX;
+	CustomDataMask mask, nextmask, append_mask = CD_MASK_ORIGINDEX;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm = NULL, *orcodm, *clothorcodm, *finaldm;
 	int numVerts = me->totvert;
@@ -1801,7 +1816,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 #if 0
 		if (num_tessface == 0 && finaldm->getNumTessFaces(finaldm) == 0)
 #else
-		if (finaldm->getNumTessFaces(finaldm) == 0) /* || !CustomData_has_layer(&finaldm->faceData, CD_POLYINDEX)) */
+		if (finaldm->getNumTessFaces(finaldm) == 0) /* || !CustomData_has_layer(&finaldm->faceData, CD_ORIGINDEX)) */
 #endif
 		{
 			finaldm->recalcTessellation(finaldm);
@@ -1809,8 +1824,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		/* Even if tessellation is not needed, some modifiers might have modified CD layers
 		 * (like mloopcol or mloopuv), hence we have to update those. */
 		else if (finaldm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-			/* A tessellation already exists, it should always have a CD_POLYINDEX. */
-			BLI_assert(CustomData_has_layer(&finaldm->faceData, CD_POLYINDEX));
+			/* A tessellation already exists, it should always have a CD_ORIGINDEX. */
+			BLI_assert(CustomData_has_layer(&finaldm->faceData, CD_ORIGINDEX));
 			DM_update_tessface_data(finaldm);
 		}
 		/* Need to watch this, it can cause issues, see bug [#29338]             */

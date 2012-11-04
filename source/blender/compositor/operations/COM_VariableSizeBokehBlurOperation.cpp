@@ -118,7 +118,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
 
 #ifdef COM_DEFOCUS_SEARCH
 	float search[4];
-	this->m_inputSearchProgram->read(search, x/InverseSearchRadiusOperation::DIVIDER, y / InverseSearchRadiusOperation::DIVIDER, NULL);
+	this->m_inputSearchProgram->read(search, x / InverseSearchRadiusOperation::DIVIDER, y / InverseSearchRadiusOperation::DIVIDER, NULL);
 	int minx = search[0];
 	int miny = search[1];
 	int maxx = search[2];
@@ -298,9 +298,9 @@ voi *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 			int rx = x * DIVIDER;
 			int ry = y * DIVIDER;
 			buffer[offset] = MAX2(rx - m_maxBlur, 0);
-			buffer[offset+1] = MAX2(ry- m_maxBlur, 0);
-			buffer[offset+2] = MIN2(rx+DIVIDER + m_maxBlur, width);
-			buffer[offset+3] = MIN2(ry+DIVIDER + m_maxBlur, height);
+			buffer[offset + 1] = MAX2(ry - m_maxBlur, 0);
+			buffer[offset + 2] = MIN2(rx + DIVIDER + m_maxBlur, width);
+			buffer[offset + 3] = MIN2(ry + DIVIDER + m_maxBlur, height);
 			offset += 4;
 		}
 	}

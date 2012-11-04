@@ -1384,11 +1384,39 @@ static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), Point
 	uiItemR(layout, ptr, "distribution", 0, "", ICON_NONE);
 }
 
+static void node_shader_buts_script(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *row;
+
+	row = uiLayoutRow(layout, FALSE);
+	uiItemR(row, ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+	row = uiLayoutRow(layout, TRUE);
+
+	if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL)
+		uiItemR(row, ptr, "script", 0, "", ICON_NONE);
+	else
+		uiItemR(row, ptr, "filepath", 0, "", ICON_NONE);
+
+	uiItemO(row, "", ICON_FILE_REFRESH, "node.shader_script_update");
+}
+
+static void node_shader_buts_script_details(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiItemS(layout);
+
+	node_shader_buts_script(layout, C, ptr);
+
+	/* not implemented yet
+	if(RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL)
+		uiItemR(layout, ptr, "use_auto_update", 0, NULL, ICON_NONE);*/
+}
+
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
-		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
+		/* case NODE_GROUP: note, typeinfo for group is generated... see "XXX ugly hack" */
 
 		case SH_NODE_MATERIAL:
 		case SH_NODE_MATERIAL_EXT:
@@ -1466,6 +1494,10 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		case SH_NODE_BSDF_GLOSSY:
 		case SH_NODE_BSDF_GLASS:
 			ntype->uifunc = node_shader_buts_glossy;
+			break;
+		case SH_NODE_SCRIPT:
+			ntype->uifunc = node_shader_buts_script;
+			ntype->uifuncbut = node_shader_buts_script_details;
 			break;
 	}
 }
@@ -2639,7 +2671,7 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
-		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
+		/* case NODE_GROUP: note, typeinfo for group is generated... see "XXX ugly hack" */
 
 		case CMP_NODE_IMAGE:
 			ntype->uifunc = node_composit_buts_image;

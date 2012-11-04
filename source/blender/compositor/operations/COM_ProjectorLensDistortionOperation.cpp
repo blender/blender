@@ -81,7 +81,7 @@ bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(rcti *in
 	}
 	else {
 		rcti dispInput;
-		BLI_rcti_init(&dispInput, 0,5,0,5);
+		BLI_rcti_init(&dispInput, 0, 5, 0, 5);
 		if (this->getInputOperation(1)->determineDependingAreaOfInterest(&dispInput, readOperation, output)) {
 			return true;
 		}

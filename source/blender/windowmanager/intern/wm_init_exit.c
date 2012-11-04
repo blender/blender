@@ -47,6 +47,10 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -65,10 +69,6 @@
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
 #include "BKE_tracking.h" /* free tracking clipboard */
-
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"        /* RE_ free stuff */
@@ -372,7 +372,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	if (C && wm) {
 		wmWindow *win;
 
-		WM_jobs_stop_all(wm);
+		WM_jobs_kill_all(wm);
 
 		for (win = wm->windows.first; win; win = win->next) {
 			

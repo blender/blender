@@ -138,21 +138,12 @@ bDeformGroup *ED_vgroup_add(Object *ob)
 
 void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup) 
 {
-	bDeformGroup *dg = (bDeformGroup *)ob->defbase.first;
-
-	while (dg) {
-		if (dg == defgroup)
-			break;
-		dg = dg->next;
-	}
-
-	if (dg == NULL)
-		return;
+	BLI_assert(BLI_findindex(&ob->defbase, defgroup) != -1);
 
 	if (ED_vgroup_object_is_edit_mode(ob))
-		vgroup_delete_edit_mode(ob, dg);
+		vgroup_delete_edit_mode(ob, defgroup);
 	else
-		vgroup_delete_object_mode(ob, dg);
+		vgroup_delete_object_mode(ob, defgroup);
 }
 
 void ED_vgroup_clear(Object *ob)

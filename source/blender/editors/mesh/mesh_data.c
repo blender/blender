@@ -235,7 +235,8 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	}
 }
 
-int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int layernum)
+/* without bContext, called in uvedit */
+int ED_mesh_uv_loop_reset_ex(struct Mesh *me, const int layernum)
 {
 	BMEditMesh *em = me->edit_btmesh;
 	MLoopUV *luv;
@@ -338,7 +339,6 @@ int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int laye
 	BLI_array_free(polylengths);
 
 	DAG_id_tag_update(&me->id, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
 
 	return 1;
 }
@@ -348,7 +348,11 @@ int ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me)
 	/* could be ldata or pdata */
 	CustomData *pdata = GET_CD_DATA(me, pdata);
 	const int layernum = CustomData_get_active_layer_index(pdata, CD_MTEXPOLY);
-	return ED_mesh_uv_loop_reset_ex(C, me, layernum);
+	int retval = ED_mesh_uv_loop_reset_ex(me, layernum);
+	
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+	
+	return retval;
 }
 
 /* note: keep in sync with ED_mesh_color_add */
@@ -419,7 +423,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 
 	/* don't overwrite our copied coords */
 	if (is_init == FALSE) {
-		ED_mesh_uv_loop_reset_ex(C, me, layernum_dst);
+		ED_mesh_uv_loop_reset_ex(me, layernum_dst);
 	}
 
 	DAG_id_tag_update(&me->id, 0);
@@ -902,7 +906,7 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	 * so rather then add poly-index layer and calculate normals for it
 	 * calculate normals only for the mvert's. - campbell */
 #ifdef USE_BMESH_MPOLY_NORMALS
-	polyindex = CustomData_get_layer(&mesh->fdata, CD_POLYINDEX);
+	polyindex = CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX);
 	/* add a normals layer for tessellated faces, a tessface normal will
 	 * contain the normal of the poly the face was tessellated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
@@ -947,6 +951,7 @@ static void mesh_add_verts(Mesh *mesh, int len)
 
 	/* scan the input list and insert the new vertices */
 
+	/* set default flags */
 	mvert = &mesh->mvert[mesh->totvert];
 	for (i = 0; i < len; i++, mvert++)
 		mvert->flag |= SELECT;

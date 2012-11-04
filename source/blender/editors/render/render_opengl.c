@@ -333,8 +333,8 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		return 0;
 	}
 
-	/* stop all running jobs, currently previews frustrate Render */
-	WM_jobs_stop_all(CTX_wm_manager(C));
+	/* stop all running jobs, except screen one. currently previews frustrate Render */
+	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
 
 	/* create offscreen buffer */
 	sizex = (scene->r.size * scene->r.xsch) / 100;

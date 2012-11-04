@@ -485,7 +485,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	int success = 0, fileflags;
 	
 	/* This is needed so undoing/redoing doesn't crash with threaded previews going */
-	WM_jobs_stop_all(CTX_wm_manager(C));
+	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
 
 	BLI_strncpy(mainstr, G.main->name, sizeof(mainstr));    /* temporal store */
 

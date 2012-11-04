@@ -52,9 +52,9 @@
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
 
 typedef enum CD_UseFlag {
-	CD_DO_VERT,
-	CD_DO_EDGE,
-	CD_DO_LOOP
+	CD_DO_VERT = (1 << 0),
+	CD_DO_EDGE = (1 << 1),
+	CD_DO_LOOP = (1 << 2)
 } CD_UseFlag;
 
 

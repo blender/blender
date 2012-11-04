@@ -344,7 +344,7 @@ BMLoop *BM_edge_other_loop(BMEdge *e, BMLoop *l)
 	BMLoop *l_other;
 
 	// BLI_assert(BM_edge_is_manifold(e));  // TOO strict, just check if we have another radial face
-	BLI_assert(e->l && e->l->radial_next != l);
+	BLI_assert(e->l && e->l->radial_next != e->l);
 	BLI_assert(BM_vert_in_edge(e, l->v));
 
 	l_other = (l->e == e) ? l : l->prev;

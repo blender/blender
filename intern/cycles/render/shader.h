@@ -27,6 +27,10 @@
 #include "util_string.h"
 #include "util_types.h"
 
+#ifdef WITH_OSL
+#include <OSL/oslexec.h>
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 class Device;
@@ -75,11 +79,23 @@ public:
 	/* requested mesh attributes */
 	AttributeRequestSet attributes;
 
+	/* determined before compiling */
+	bool used;
+
+#ifdef WITH_OSL
+	/* osl shading state references */
+	OSL::ShadingAttribStateRef osl_surface_ref;
+	OSL::ShadingAttribStateRef osl_surface_bump_ref;
+	OSL::ShadingAttribStateRef osl_volume_ref;
+	OSL::ShadingAttribStateRef osl_displacement_ref;
+#endif
+
 	Shader();
 	~Shader();
 
 	void set_graph(ShaderGraph *graph);
 	void tag_update(Scene *scene);
+	void tag_used(Scene *scene);
 };
 
 /* Shader Manager virtual base class
@@ -98,6 +114,7 @@ public:
 	virtual void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress) = 0;
 	virtual void device_free(Device *device, DeviceScene *dscene) = 0;
 
+	void device_update_shaders_used(Scene *scene);
 	void device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_free_common(Device *device, DeviceScene *dscene);
 

@@ -215,6 +215,8 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		if (!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
 			BM_data_layer_add(em->bm, &em->bm->pdata, CD_MTEXPOLY);
 			BM_data_layer_add(em->bm, &em->bm->ldata, CD_MLOOPUV);
+			/* make UVs all nice 0-1 */
+			ED_mesh_uv_loop_reset_ex(obedit->data, CustomData_get_active_layer_index(&em->bm->pdata, CD_MTEXPOLY));
 			update = 1;
 		}
 

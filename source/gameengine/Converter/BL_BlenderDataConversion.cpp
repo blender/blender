@@ -1587,8 +1587,16 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	//bool bRigidBody = (userigidbody == 0);
 
 	// object has physics representation?
-	if (!(blenderobject->gameflag & OB_COLLISION))
+	if (!(blenderobject->gameflag & OB_COLLISION)) {
+		// Respond to all collisions so that Near sensors work on No Collision
+		// objects.
+		gameobj->SetUserCollisionGroup(0xff);
+		gameobj->SetUserCollisionMask(0xff);
 		return;
+	}
+
+	gameobj->SetUserCollisionGroup(blenderobject->col_group);
+	gameobj->SetUserCollisionMask(blenderobject->col_mask);
 
 	// get Root Parent of blenderobject
 	struct Object* parent= blenderobject->parent;

@@ -186,10 +186,10 @@ class InputKeyMapPanel:
                 sub = split.column()
                 subrow = sub.row(align=True)
 
-                if map_type in {'KEYBOARD', 'NDOF'}:
+                if map_type == 'KEYBOARD':
                     subrow.prop(kmi, "type", text="", event=True)
                     subrow.prop(kmi, "value", text="")
-                elif map_type == 'MOUSE':
+                elif map_type in {'MOUSE', 'NDOF'}:
                     subrow.prop(kmi, "type", text="")
                     subrow.prop(kmi, "value", text="")
 

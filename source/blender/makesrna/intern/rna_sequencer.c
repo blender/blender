@@ -966,18 +966,20 @@ static SequenceModifierData *rna_Sequence_modifier_new(Sequence *seq, bContext *
 	}
 }
 
-static void rna_Sequence_modifier_remove(Sequence *seq, bContext *C, ReportList *reports, SequenceModifierData *smd)
+static void rna_Sequence_modifier_remove(Sequence *seq, bContext *C, ReportList *reports, PointerRNA *smd_ptr)
 {
+	SequenceModifierData *smd = smd_ptr->data;
 	Scene *scene = CTX_data_scene(C);
 
-	if (BKE_sequence_modifier_remove(seq, smd)) {
-		BKE_sequence_invalidate_cache_for_modifier(scene, seq);
-
-		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
-	}
-	else {
+	if (BKE_sequence_modifier_remove(seq, smd) == FALSE) {
 		BKE_report(reports, RPT_ERROR, "Modifier was not found in the stack");
+		return;
 	}
+
+	RNA_POINTER_INVALIDATE(smd_ptr);
+	BKE_sequence_invalidate_cache_for_modifier(scene, seq);
+
+	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 }
 
 static void rna_Sequence_modifier_clear(Sequence *seq, bContext *C)
@@ -1267,7 +1269,8 @@ static void rna_def_sequence_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove an existing modifier from the sequence");
 	/* modifier to remove */
 	parm = RNA_def_pointer(func, "modifier", "SequenceModifier", "", "Modifier to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	/* clear all modifiers */
 	func = RNA_def_function(srna, "clear", "rna_Sequence_modifier_clear");

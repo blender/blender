@@ -180,8 +180,8 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 		gp_Rasterizer->DrawDebugLine(from,to,color);
 }
 
-void	KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
-									 const MT_Vector3& normal, int nsector)
+void KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
+                                  const MT_Vector3& normal, int nsector)
 {
 	if (gp_Rasterizer)
 		gp_Rasterizer->DrawDebugCircle(center, radius, color, normal, nsector);
@@ -1311,48 +1311,47 @@ static PyObject *gPySetWindowSize(PyObject *, PyObject *args)
 }
 
 static struct PyMethodDef rasterizer_methods[] = {
-  {"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
-   METH_VARARGS, "getWindowWidth doc"},
-   {"getWindowHeight",(PyCFunction) gPyGetWindowHeight,
-   METH_VARARGS, "getWindowHeight doc"},
-  {"makeScreenshot",(PyCFunction)gPyMakeScreenshot,
-	METH_VARARGS, "make Screenshot doc"},
-   {"enableVisibility",(PyCFunction) gPyEnableVisibility,
-   METH_VARARGS, "enableVisibility doc"},
+	{"getWindowWidth",(PyCFunction) gPyGetWindowWidth,
+	 METH_VARARGS, "getWindowWidth doc"},
+	{"getWindowHeight",(PyCFunction) gPyGetWindowHeight,
+	 METH_VARARGS, "getWindowHeight doc"},
+	{"makeScreenshot",(PyCFunction)gPyMakeScreenshot,
+	 METH_VARARGS, "make Screenshot doc"},
+	{"enableVisibility",(PyCFunction) gPyEnableVisibility,
+	 METH_VARARGS, "enableVisibility doc"},
 	{"showMouse",(PyCFunction) gPyShowMouse,
-   METH_VARARGS, "showMouse(bool visible)"},
-   {"setMousePosition",(PyCFunction) gPySetMousePosition,
-   METH_VARARGS, "setMousePosition(int x,int y)"},
-  {"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_O,"set Background Color (rgb)"},
+	 METH_VARARGS, "showMouse(bool visible)"},
+	{"setMousePosition",(PyCFunction) gPySetMousePosition,
+	 METH_VARARGS, "setMousePosition(int x,int y)"},
+	{"setBackgroundColor",(PyCFunction)gPySetBackgroundColor,METH_O,"set Background Color (rgb)"},
 	{"setAmbientColor",(PyCFunction)gPySetAmbientColor,METH_O,"set Ambient Color (rgb)"},
- {"disableMist",(PyCFunction)gPyDisableMist,METH_NOARGS,"turn off mist"},
- {"setMistColor",(PyCFunction)gPySetMistColor,METH_O,"set Mist Color (rgb)"},
-  {"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
-  {"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},
-  {"enableMotionBlur",(PyCFunction)gPyEnableMotionBlur,METH_VARARGS,"enable motion blur"},
-  {"disableMotionBlur",(PyCFunction)gPyDisableMotionBlur,METH_NOARGS,"disable motion blur"},
+	{"disableMist",(PyCFunction)gPyDisableMist,METH_NOARGS,"turn off mist"},
+	{"setMistColor",(PyCFunction)gPySetMistColor,METH_O,"set Mist Color (rgb)"},
+	{"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
+	{"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},
+	{"enableMotionBlur",(PyCFunction)gPyEnableMotionBlur,METH_VARARGS,"enable motion blur"},
+	{"disableMotionBlur",(PyCFunction)gPyDisableMotionBlur,METH_NOARGS,"disable motion blur"},
 
-  
-  {"setEyeSeparation", (PyCFunction) gPySetEyeSeparation, METH_VARARGS, "set the eye separation for stereo mode"},
-  {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_NOARGS, "get the eye separation for stereo mode"},
-  {"setFocalLength", (PyCFunction) gPySetFocalLength, METH_VARARGS, "set the focal length for stereo mode"},
-  {"getFocalLength", (PyCFunction) gPyGetFocalLength, METH_VARARGS, "get the focal length for stereo mode"},
-  {"setMaterialMode",(PyCFunction) gPySetMaterialType,
-   METH_VARARGS, "set the material mode to use for OpenGL rendering"},
-  {"getMaterialMode",(PyCFunction) gPyGetMaterialType,
-   METH_NOARGS, "get the material mode being used for OpenGL rendering"},
-  {"setGLSLMaterialSetting",(PyCFunction) gPySetGLSLMaterialSetting,
-   METH_VARARGS, "set the state of a GLSL material setting"},
-  {"getGLSLMaterialSetting",(PyCFunction) gPyGetGLSLMaterialSetting,
-   METH_VARARGS, "get the state of a GLSL material setting"},
-  {"setAnisotropicFiltering", (PyCFunction) gPySetAnisotropicFiltering,
-  METH_VARARGS, "set the anisotropic filtering level (must be one of 1, 2, 4, 8, 16)"},
-  {"getAnisotropicFiltering", (PyCFunction) gPyGetAnisotropicFiltering,
-  METH_VARARGS, "get the anisotropic filtering level"},
-  {"drawLine", (PyCFunction) gPyDrawLine,
-   METH_VARARGS, "draw a line on the screen"},
-  {"setWindowSize", (PyCFunction) gPySetWindowSize, METH_VARARGS, ""},
-  { NULL, (PyCFunction) NULL, 0, NULL }
+	{"setEyeSeparation", (PyCFunction) gPySetEyeSeparation, METH_VARARGS, "set the eye separation for stereo mode"},
+	{"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_NOARGS, "get the eye separation for stereo mode"},
+	{"setFocalLength", (PyCFunction) gPySetFocalLength, METH_VARARGS, "set the focal length for stereo mode"},
+	{"getFocalLength", (PyCFunction) gPyGetFocalLength, METH_VARARGS, "get the focal length for stereo mode"},
+	{"setMaterialMode",(PyCFunction) gPySetMaterialType,
+	 METH_VARARGS, "set the material mode to use for OpenGL rendering"},
+	{"getMaterialMode",(PyCFunction) gPyGetMaterialType,
+	 METH_NOARGS, "get the material mode being used for OpenGL rendering"},
+	{"setGLSLMaterialSetting",(PyCFunction) gPySetGLSLMaterialSetting,
+	 METH_VARARGS, "set the state of a GLSL material setting"},
+	{"getGLSLMaterialSetting",(PyCFunction) gPyGetGLSLMaterialSetting,
+	 METH_VARARGS, "get the state of a GLSL material setting"},
+	{"setAnisotropicFiltering", (PyCFunction) gPySetAnisotropicFiltering,
+	 METH_VARARGS, "set the anisotropic filtering level (must be one of 1, 2, 4, 8, 16)"},
+	{"getAnisotropicFiltering", (PyCFunction) gPyGetAnisotropicFiltering,
+	 METH_VARARGS, "get the anisotropic filtering level"},
+	{"drawLine", (PyCFunction) gPyDrawLine,
+	 METH_VARARGS, "draw a line on the screen"},
+	{"setWindowSize", (PyCFunction) gPySetWindowSize, METH_VARARGS, ""},
+	{ NULL, (PyCFunction) NULL, 0, NULL }
 };
 
 // Initialization function for the module (*must* be called initGameLogic)

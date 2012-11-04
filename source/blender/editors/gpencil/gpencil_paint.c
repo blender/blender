@@ -1648,7 +1648,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	 * painting should start immediately. Otherwise, this was called from a toolbar, in which
 	 * case we should wait for the mouse to be clicked.
 	 */
-	if (event->type) {
+	if (event->val == KM_PRESS) {
 		/* hotkey invoked - start drawing */
 		//printf("\tGP - set first spot\n");
 		p->status = GP_STATUS_PAINTING;
@@ -1723,7 +1723,7 @@ static void gpencil_stroke_end(wmOperator *op)
 static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p = op->customdata;
-	int estate = OPERATOR_PASS_THROUGH; /* default exit state - not handled, so let others have a share of the pie */
+	int estate = OPERATOR_RUNNING_MODAL; /* default exit state - we don't pass on events, GP is used with key-modifiers */
 	
 	/* if (event->type == NDOF_MOTION)
 	 *    return OPERATOR_PASS_THROUGH;

@@ -944,7 +944,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 	totedge = BLI_edgehash_size(eh);
 
 	/* write new edges into a temporary CustomData */
-	memset(&edata, 0, sizeof(edata));
+	CustomData_reset(&edata);
 	CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
 
 	med = CustomData_get_layer(&edata, CD_MEDGE);

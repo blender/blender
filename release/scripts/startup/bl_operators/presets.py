@@ -185,10 +185,12 @@ class ExecutePreset(Operator):
 
     filepath = StringProperty(
             subtype='FILE_PATH',
+            options={'SKIP_SAVE'},
             )
     menu_idname = StringProperty(
             name="Menu ID Name",
             description="ID name of the menu this was called from",
+            options={'SKIP_SAVE'},
             )
 
     def execute(self, context):
@@ -504,7 +506,7 @@ class AddPresetKeyconfig(AddPresetBase, Operator):
 
 
 class AddPresetOperator(AddPresetBase, Operator):
-    """Add an Application Interaction Preset"""
+    """Add an Operator Preset"""
     bl_idname = "wm.operator_preset_add"
     bl_label = "Operator Preset"
     preset_menu = "WM_MT_operator_presets"
@@ -512,7 +514,7 @@ class AddPresetOperator(AddPresetBase, Operator):
     operator = StringProperty(
             name="Operator",
             maxlen=64,
-            options={'HIDDEN'},
+            options={'HIDDEN', 'SKIP_SAVE'},
             )
 
     preset_defines = [

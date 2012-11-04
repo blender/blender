@@ -71,7 +71,7 @@ void quicktime_init(void)
 
 void quicktime_exit(void)
 {
-	if(G.have_quicktime) {
+	if (G.have_quicktime) {
 		free_qtcomponentdata();
 	}
 }
@@ -82,27 +82,30 @@ int anim_is_quicktime (const char *name)
 	NSAutoreleasePool *pool;
 	
 	// don't let quicktime movie import handle these
-	if( BLI_testextensie(name, ".swf") ||
-		BLI_testextensie(name, ".txt") ||
-		BLI_testextensie(name, ".mpg") ||
-		BLI_testextensie(name, ".avi") ||	// wouldn't be appropriate ;)
-		BLI_testextensie(name, ".mov") ||	// disabled, suboptimal decoding speed   
-		BLI_testextensie(name, ".mp4") ||	// disabled, suboptimal decoding speed
-		BLI_testextensie(name, ".m4v") ||	// disabled, suboptimal decoding speed
-		BLI_testextensie(name, ".tga") ||
-		BLI_testextensie(name, ".png") ||
-		BLI_testextensie(name, ".bmp") ||
-		BLI_testextensie(name, ".jpg") ||
-		BLI_testextensie(name, ".wav") ||
-		BLI_testextensie(name, ".zip") ||
-		BLI_testextensie(name, ".mp3")) return 0;
+	if (BLI_testextensie(name, ".swf") ||
+	    BLI_testextensie(name, ".txt") ||
+	    BLI_testextensie(name, ".mpg") ||
+	    BLI_testextensie(name, ".avi") ||	// wouldn't be appropriate ;)
+	    BLI_testextensie(name, ".mov") ||	// disabled, suboptimal decoding speed
+	    BLI_testextensie(name, ".mp4") ||	// disabled, suboptimal decoding speed
+	    BLI_testextensie(name, ".m4v") ||	// disabled, suboptimal decoding speed
+	    BLI_testextensie(name, ".tga") ||
+	    BLI_testextensie(name, ".png") ||
+	    BLI_testextensie(name, ".bmp") ||
+	    BLI_testextensie(name, ".jpg") ||
+	    BLI_testextensie(name, ".wav") ||
+	    BLI_testextensie(name, ".zip") ||
+	    BLI_testextensie(name, ".mp3"))
+	{
+		return 0;
+	}
 
-	if(QTIME_DEBUG) printf("qt: checking as movie: %s\n", name);
+	if (QTIME_DEBUG) printf("qt: checking as movie: %s\n", name);
 
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	if([QTMovie canInitWithFile:[NSString stringWithCString:name 
-	                             encoding:[NSString defaultCStringEncoding]]])
+	if ([QTMovie canInitWithFile:[NSString stringWithCString:name
+	                              encoding:[NSString defaultCStringEncoding]]])
 	{
 		[pool drain];
 		return true;

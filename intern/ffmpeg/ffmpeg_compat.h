@@ -110,7 +110,7 @@ void av_update_cur_dts(AVFormatContext *s, AVStream *ref_st, int64_t timestamp)
 #endif
 
 /* there are some version inbetween, which have avio_... functions but no
-   AVIO_FLAG_... */
+ * AVIO_FLAG_... */
 #ifndef AVIO_FLAG_WRITE
 #define AVIO_FLAG_WRITE URL_WRONLY
 #endif

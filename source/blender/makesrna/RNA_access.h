@@ -492,6 +492,7 @@ extern StructRNA RNA_ShaderNodeMath;
 extern StructRNA RNA_ShaderNodeMixRGB;
 extern StructRNA RNA_ShaderNodeNormal;
 extern StructRNA RNA_ShaderNodeOutput;
+extern StructRNA RNA_ShaderNodeScript;
 extern StructRNA RNA_ShaderNodeRGB;
 extern StructRNA RNA_ShaderNodeRGBCurve;
 extern StructRNA RNA_ShaderNodeRGBToBW;
@@ -1066,6 +1067,13 @@ int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *re
 short RNA_type_to_ID_code(StructRNA *type);
 StructRNA *ID_code_to_RNA_type(short idcode);
 
+
+#define RNA_POINTER_INVALIDATE(ptr) {                                         \
+	/* this is checked for validity */                                        \
+	(ptr)->type =                                                             \
+	/* should not be needed but prevent bad pointer access, just in case */   \
+	(ptr)->id.data = NULL;                                                    \
+} (void)0
 
 /* macro which inserts the function name */
 #if defined __GNUC__ || defined __sun

@@ -142,12 +142,12 @@ public:
 protected:
 	/// filter pixel, source float buffer
 	virtual unsigned int filter (float * src, short x, short y,
-		short * size, unsigned int pixSize, unsigned int val)
+	                             short * size, unsigned int pixSize, unsigned int val)
 	{
-        // Copy the float value straight away
-		// The user can retrieve the original float value by using 
-		// 'F' mode in BGL buffer
-        memcpy(&val, src, sizeof (unsigned int));
+		/* Copy the float value straight away
+		 * The user can retrieve the original float value by using
+		 * 'F' mode in BGL buffer */
+		memcpy(&val, src, sizeof (unsigned int));
 		return val;
 	}
 };

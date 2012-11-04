@@ -405,8 +405,7 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 	mul_m4_v3(invmat, origin);
 
 	copy_v3_v3(co1, e->v1->co);
-	add_v3_v3v3(co2, e->v1->co, e->v2->co);
-	mul_v3_fl(co2, 0.5f);
+	mid_v3_v3v3(co2, e->v1->co, e->v2->co);
 	copy_v3_v3(co3, e->v2->co);
 	
 	scale_point(co1, co2, 0.99);

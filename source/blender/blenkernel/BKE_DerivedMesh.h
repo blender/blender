@@ -148,6 +148,11 @@ typedef enum DMDrawFlag {
 typedef enum DMDirtyFlag {
 	/* dm has valid tessellated faces, but tessellated CDDATA need to be updated. */
 	DM_DIRTY_TESS_CDLAYERS = 1 << 0,
+	/* One of the MCOL layers have been updated, force updating of GPUDrawObject's colors buffer.
+	 * This is necessary with modern, VBO draw code, as e.g. in vpaint mode me->mcol may be updated
+	 * without actually rebuilding dm (hence by defautl keeping same GPUDrawObject, and same colors
+	 * buffer, which prevents update during a stroke!). */
+	DM_DIRTY_MCOL_UPDATE_DRAW = 1 << 1,
 } DMDirtyFlag;
 
 typedef struct DerivedMesh DerivedMesh;
@@ -223,6 +228,7 @@ struct DerivedMesh {
 	void *(*getVertData)(DerivedMesh * dm, int index, int type);
 	void *(*getEdgeData)(DerivedMesh * dm, int index, int type);
 	void *(*getTessFaceData)(DerivedMesh * dm, int index, int type);
+	void *(*getPolyData)(DerivedMesh * dm, int index, int type);
 
 	/** Return a pointer to the entire array of vert/edge/face custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not
@@ -231,7 +237,8 @@ struct DerivedMesh {
 	void *(*getVertDataArray)(DerivedMesh * dm, int type);
 	void *(*getEdgeDataArray)(DerivedMesh * dm, int type);
 	void *(*getTessFaceDataArray)(DerivedMesh * dm, int type);
-	
+	void *(*getPolyDataArray)(DerivedMesh * dm, int type);
+
 	/** Retrieves the base CustomData structures for
 	 * verts/edges/tessfaces/loops/facdes*/
 	CustomData *(*getVertDataLayout)(DerivedMesh * dm);
@@ -493,6 +500,7 @@ void DM_add_poly_layer(struct DerivedMesh *dm, int type, int alloctype,
 void *DM_get_vert_data(struct DerivedMesh *dm, int index, int type);
 void *DM_get_edge_data(struct DerivedMesh *dm, int index, int type);
 void *DM_get_tessface_data(struct DerivedMesh *dm, int index, int type);
+void *DM_get_poly_data(struct DerivedMesh *dm, int index, int type);
 
 /* custom data layer access functions
  * return pointer to first data layer which matches type (a flat array)
@@ -700,5 +708,11 @@ char *DM_debug_info(DerivedMesh *dm);
 void DM_debug_print(DerivedMesh *dm);
 void DM_debug_print_cdlayers(CustomData *cdata);
 #endif
+
+BLI_INLINE int DM_origindex_mface_mpoly(const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i)
+{
+	const int j = index_mf_to_mpoly[i];
+	return (j != ORIGINDEX_NONE) ? index_mp_to_orig[j] : ORIGINDEX_NONE;
+}
 
 #endif

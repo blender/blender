@@ -365,7 +365,7 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		len2 = len_v3v3(vec, vec2);
 
 		/* use shortest segment length divided by 3 as merge threshold */
-		BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, MIN2(len, len2) / 3.0f);
+		BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, min_ff(len, len2) / 3.0f);
 	}
 
 	/* and now do imat */

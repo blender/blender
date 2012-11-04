@@ -94,8 +94,8 @@ static void write_buffer_rect(rcti *rect, const bNodeTree *tree,
 
 
 OutputSingleLayerOperation::OutputSingleLayerOperation(
-    const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
-    const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
+        const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
+        const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
 {
 	this->m_rd = rd;
 	this->m_tree = tree;

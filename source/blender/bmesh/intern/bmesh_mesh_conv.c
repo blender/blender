@@ -536,7 +536,9 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	oldverts = me->mvert;
 
 	/* don't free this yet */
-	CustomData_set_layer(&me->vdata, CD_MVERT, NULL);
+	if (oldverts) {
+		CustomData_set_layer(&me->vdata, CD_MVERT, NULL);
+	}
 
 	/* free custom data */
 	CustomData_free(&me->vdata, me->totvert);

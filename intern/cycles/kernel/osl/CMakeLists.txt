@@ -34,4 +34,3 @@ include_directories(SYSTEM ${INC_SYS})
 
 add_library(cycles_kernel_osl ${SRC} ${HEADER_SRC})
 
-add_subdirectory(nodes)

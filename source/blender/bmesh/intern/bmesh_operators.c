@@ -1026,7 +1026,7 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 	int i;
 
 	BMIter iter;
-	BLI_mempool *oldpool = bm->toolflagpool; 		/* old flag pool */
+	BLI_mempool *oldpool = bm->toolflagpool;  /* old flag pool */
 	BLI_mempool *newpool;
 	void *oldflags;
 

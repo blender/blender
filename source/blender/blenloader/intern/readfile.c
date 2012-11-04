@@ -2430,8 +2430,18 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		
 		if (node->storage) {
 			/* could be handlerized at some point */
-			if (ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
+			if (ntree->type==NTREE_SHADER) {
+				if (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB) {
 				direct_link_curvemapping(fd, node->storage);
+				}
+				else if (node->type==SH_NODE_SCRIPT) {
+					NodeShaderScript *nss = (NodeShaderScript *) node->storage;
+					nss->bytecode = newdataadr(fd, nss->bytecode);
+					nss->prop = newdataadr(fd, nss->prop);
+					if (nss->prop)
+						IDP_DirectLinkProperty(nss->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+				}
+			}
 			else if (ntree->type==NTREE_COMPOSIT) {
 				if (ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 					direct_link_curvemapping(fd, node->storage);
@@ -3730,7 +3740,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			/*
 			 * Re-tessellate, even if the polys were just created from tessfaces, this
 			 * is important because it:
-			 *  - fill the CD_POLYINDEX layer
+			 *  - fill the CD_ORIGINDEX layer
 			 *  - gives consistency of tessface between loading from a file and
 			 *    converting an edited BMesh back into a mesh (i.e. it replaces
 			 *    quad tessfaces in a loaded mesh immediately, instead of lazily
@@ -3825,7 +3835,7 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 	/* annoying workaround for bug [#31079] loading legacy files with
 	 * no polygons _but_ have stale customdata */
 	if (UNLIKELY(count == 0 && data->layers == NULL && data->totlayer != 0)) {
-		memset(data, 0, sizeof(*data));
+		CustomData_reset(data);
 		return;
 	}
 	
@@ -7327,6 +7337,29 @@ static void do_version_node_fix_internal_links_264(void *UNUSED(data), ID *UNUSE
 	}
 }
 
+static void do_version_logic_264(ListBase *regionbase)
+{
+	ARegion *ar;
+	
+	/* view settings for logic changed */
+	for (ar = regionbase->first; ar; ar = ar->next) {
+		if (ar->regiontype == RGN_TYPE_WINDOW) {
+			if (ar->v2d.keeptot == 0) {
+				ar->v2d.maxzoom = 1.5f;
+				
+				ar->v2d.keepzoom = V2D_KEEPZOOM | V2D_LIMITZOOM | V2D_KEEPASPECT;
+				ar->v2d.keeptot = V2D_KEEPTOT_BOUNDS;
+				ar->v2d.align = V2D_ALIGN_NO_POS_Y | V2D_ALIGN_NO_NEG_X;
+				ar->v2d.keepofs = V2D_KEEPOFS_Y;
+			}
+		}
+	}
+	
+
+}
+	
+
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -8264,6 +8297,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			Mesh *me;
 			for (me = main->mesh.first; me; me = me->id.next) {
+				CustomData_update_typemap(&me->vdata);
 				CustomData_free_layers(&me->vdata, CD_MSTICKY, me->totvert);
 			}
 		}
@@ -8434,6 +8468,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
 			do_version_node_fix_internal_links_264(NULL, NULL, ntree);
 		
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 6)) {
+		bScreen *sc;
+		
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			ScrArea *sa;
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+				if ( sa->spacetype == SPACE_LOGIC)
+					do_version_logic_264(&sa->regionbase);
+				
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_LOGIC)
+						do_version_logic_264(&sl->regionbase);
+				}
+			}
+		}
+
+	}
+	
+	{
+		Object *ob;
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			if (ob->col_group == 0) {
+				ob->col_group = 0x01;
+				ob->col_mask = 0xff;
+			}
+		}
 	}
 
 	/* default values in Freestyle settings */

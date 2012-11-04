@@ -598,7 +598,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			}
 		}
 	}
-	else { 	/* WIRE EDGE */
+	else {  /* WIRE EDGE */
 		BMIter eiter;
 
 		/* match trunk: mark all connected wire edges */

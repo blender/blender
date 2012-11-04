@@ -174,21 +174,34 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::stop()
 	if(!m_status)
 		return false;
 
-	// AUD_XXX Create a reference of our own object so that it doesn't get
-	// deleted before the end of this function
-	AUD_Reference<AUD_OpenALHandle> This = this;
-
-	if(m_status == AUD_STATUS_PLAYING)
-		m_device->m_playingSounds.remove(This);
-	else
-		m_device->m_pausedSounds.remove(This);
+	m_status = AUD_STATUS_INVALID;
 
 	alDeleteSources(1, &m_source);
 	if(!m_isBuffered)
 		alDeleteBuffers(CYCLE_BUFFERS, m_buffers);
 
-	m_status = AUD_STATUS_INVALID;
-	return true;
+	for(AUD_HandleIterator it = m_device->m_playingSounds.begin(); it != m_device->m_playingSounds.end(); it++)
+	{
+		if(it->get() == this)
+		{
+			AUD_Reference<AUD_OpenALHandle> This = *it;
+
+			m_device->m_playingSounds.erase(it);
+
+			return true;
+		}
+	}
+
+	for(AUD_HandleIterator it = m_device->m_pausedSounds.begin(); it != m_device->m_pausedSounds.end(); it++)
+	{
+		if(it->get() == this)
+		{
+			m_device->m_pausedSounds.erase(it);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool AUD_OpenALDevice::AUD_OpenALHandle::getKeep()

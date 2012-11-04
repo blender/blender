@@ -24,9 +24,9 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
@@ -311,9 +311,16 @@ static bAddon *rna_userdef_addon_new(void)
 	return bext;
 }
 
-static void rna_userdef_addon_remove(bAddon *bext)
+static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *bext_ptr)
 {
+	bAddon *bext = bext_ptr->data;
+	if (BLI_findindex(&U.addons, bext) == -1) {
+		BKE_report(reports, RPT_ERROR, "Addon is no longer valid");
+		return;
+	}
+
 	BLI_freelinkN(&U.addons, bext);
+	RNA_POINTER_INVALIDATE(bext_ptr);
 }
 
 static void rna_userdef_temp_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
@@ -3659,10 +3666,11 @@ static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cpro
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_userdef_addon_remove");
-	RNA_def_function_flag(func, FUNC_NO_SELF);
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove addon");
 	parm = RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 void RNA_def_userdef(BlenderRNA *brna)

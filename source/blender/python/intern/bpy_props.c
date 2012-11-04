@@ -75,7 +75,7 @@ static EnumPropertyItem property_flag_enum_items[] = {
 static EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
-	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
+	{PROP_FILENAME, "FILE_NAME", 0, "Filename", ""},
 	{PROP_BYTESTRING, "BYTE_STRING", 0, "Byte String", ""},
 	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 	{PROP_PASSWORD, "PASSWORD", 0, "Password", 0},
@@ -310,35 +310,38 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 /* terse macros for error checks shared between all funcs cant use function
  * calls because of static strings passed to pyrna_set_to_enum_bitfield */
 #define BPY_PROPDEF_CHECK(_func, _property_flag_items)                        \
-	if (id_len >= MAX_IDPROP_NAME) {                                          \
+	if (UNLIKELY(id_len >= MAX_IDPROP_NAME)) {                                \
 		PyErr_Format(PyExc_TypeError,                                         \
 		             #_func"(): '%.200s' too long, max length is %d",         \
 		             id, MAX_IDPROP_NAME - 1);                                \
 		return NULL;                                                          \
 	}                                                                         \
-	if (RNA_def_property_free_identifier(srna, id) == -1) {                   \
+	if (UNLIKELY(RNA_def_property_free_identifier(srna, id) == -1)) {         \
 		PyErr_Format(PyExc_TypeError,                                         \
 		             #_func"(): '%s' is defined as a non-dynamic type",       \
 		             id);                                                     \
 		return NULL;                                                          \
 	}                                                                         \
-	if (pyopts && pyrna_set_to_enum_bitfield(_property_flag_items,            \
+	if (UNLIKELY(pyopts && pyrna_set_to_enum_bitfield(_property_flag_items,   \
 	                                         pyopts,                          \
 	                                         &opts,                           \
-	                                         #_func"(options={ ...}):"))      \
+	                                         #_func"(options={ ...}):")))     \
 	{                                                                         \
 		return NULL;                                                          \
 	} (void)0
 
 #define BPY_PROPDEF_SUBTYPE_CHECK(_func, _property_flag_items, _subtype)      \
 	BPY_PROPDEF_CHECK(_func, _property_flag_items);                           \
-	if (pysubtype && RNA_enum_value_from_id(_subtype,                         \
+	if (UNLIKELY(pysubtype && RNA_enum_value_from_id(_subtype,                \
 	                                        pysubtype,                        \
-	                                        &subtype) == 0)                   \
+	                                        &subtype) == 0))                  \
 	{                                                                         \
+		const char *enum_str = BPy_enum_as_string(_subtype);                  \
 		PyErr_Format(PyExc_TypeError,                                         \
-		             #_func"(subtype='%s'): invalid subtype",                 \
-		             pysubtype);                                              \
+		             #_func"(subtype='%s'): "                                 \
+		             "subtype not found in (%s)",                             \
+		             pysubtype, enum_str);                                    \
+		MEM_freeN((void *)enum_str);                                          \
 		return NULL;                                                          \
 	} (void)0
 
@@ -922,7 +925,7 @@ BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE'].\n"
 "   :type options: set\n"
-"   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
+"   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILE_NAME', 'NONE'].\n"
 "   :type subtype: string\n"
 BPY_PROPDEF_UPDATE_DOC
 );

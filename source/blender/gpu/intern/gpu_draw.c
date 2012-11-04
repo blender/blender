@@ -620,7 +620,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		GPU_create_gl_tex(bind, rect, frect, rectw, recth, mipmap, use_high_bit_depth, ima);
 	
 	/* mark as non-color data texture */
-	if(*bind) {
+	if (*bind) {
 		if (is_data)
 			ima->tpageflag |= IMA_GLBIND_IS_DATA;	
 		else
@@ -739,7 +739,7 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 		return FALSE;
 	}
 
-	if(!is_power_of_2_i(width) || !is_power_of_2_i(height)) {
+	if (!is_power_of_2_i(width) || !is_power_of_2_i(height)) {
 		printf("Unable to load non-power-of-two DXT image resolution, falling back to uncompressed\n");
 		return FALSE;
 	}

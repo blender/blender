@@ -2208,10 +2208,29 @@ bool CcdOverlapFilterCallBack::needBroadphaseCollision(btBroadphaseProxy* proxy0
 {
 	btCollisionObject *colObj0, *colObj1;
 	CcdPhysicsController *sensorCtrl, *objCtrl;
+
+	KX_GameObject *kxObj0 = KX_GameObject::GetClientObject(
+			(KX_ClientObjectInfo*)
+			((CcdPhysicsController*)
+					(((btCollisionObject*)proxy0->m_clientObject)->getUserPointer()))
+			->getNewClientInfo());
+	KX_GameObject *kxObj1 = KX_GameObject::GetClientObject(
+			(KX_ClientObjectInfo*)
+			((CcdPhysicsController*)
+					(((btCollisionObject*)proxy1->m_clientObject)->getUserPointer()))
+			->getNewClientInfo());
+
+	// First check the filters. Note that this is called during scene
+	// conversion, so we can't assume the KX_GameObject instances exist. This
+	// may make some objects erroneously collide on the first frame, but the
+	// alternative is to have them erroneously miss.
 	bool collides;
-	// first check the filters
 	collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
 	collides = collides && (proxy1->m_collisionFilterGroup & proxy0->m_collisionFilterMask);
+	if (kxObj0 && kxObj1) {
+		collides = collides && kxObj0->CheckCollision(kxObj1);
+		collides = collides && kxObj1->CheckCollision(kxObj0);
+	}
 	if (!collides)
 		return false;
 

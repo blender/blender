@@ -106,13 +106,11 @@ void **g_highlightedNodesRead;
 
 void COM_startReadHighlights()
 {
-	if (!g_highlightInitialized)
-	{
+	if (!g_highlightInitialized) {
 		return;
 	}
 	
-	if (g_highlightedNodesRead) 
-	{
+	if (g_highlightedNodesRead) {
 		MEM_freeN(g_highlightedNodesRead);
 	}
 	

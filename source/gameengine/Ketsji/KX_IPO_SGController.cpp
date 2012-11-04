@@ -52,7 +52,7 @@ typedef unsigned long uint_ptr;
 
 // All objects should start on frame 1! Will we ever need an object to 
 // start on another frame, the 1.0 should change.
-KX_IpoSGController::KX_IpoSGController() 
+KX_IpoSGController::KX_IpoSGController()
 : m_ipo_as_force(false),
   m_ipo_add(false),
   m_ipo_local(false),

@@ -2000,7 +2000,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 /* draws in resolution of 20x4 colors */
 void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const float alpha)
 {
-	const float color_step = (type == UI_GRAD_H) ? 0.02 : 0.05f;
+	const float color_step = (type == UI_GRAD_H) ? 0.02f : 0.05f;
 	int a;
 	float h = hsv[0], s = hsv[1], v = hsv[2];
 	float dx, dy, sx1, sx2, sy;
@@ -2668,7 +2668,7 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), 
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space, arrows are about 0.6 height of button */
-	rect->xmax -= (6*BLI_rcti_size_y(rect))/10;
+	rect->xmax -= (6 * BLI_rcti_size_y(rect)) / 10;
 }
 
 static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)

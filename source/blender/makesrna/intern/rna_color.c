@@ -359,12 +359,27 @@ static CBData *rna_ColorRampElement_new(struct ColorBand *coba, ReportList *repo
 	return element;
 }
 
-static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *reports, CBData *element)
+static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *reports, PointerRNA *element_ptr)
 {
+	CBData *element = element_ptr->data;
 	int index = (int)(element - coba->data);
-	if (colorband_element_remove(coba, index) == 0)
+	if (colorband_element_remove(coba, index) == FALSE) {
 		BKE_report(reports, RPT_ERROR, "Element not found in element collection or last element");
+		return;
+	}
 
+	RNA_POINTER_INVALIDATE(element_ptr);
+}
+
+void rna_CurveMap_remove_point(CurveMap *cuma, ReportList *reports, PointerRNA *point_ptr)
+{
+	CurveMapPoint *point = point_ptr->data;
+	if (curvemap_remove_point(cuma, point) == FALSE) {
+		BKE_report(reports, RPT_ERROR, "Unable to remove curve point");
+		return;
+	}
+
+	RNA_POINTER_INVALIDATE(point_ptr);
 }
 
 static void rna_Scopes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -589,10 +604,12 @@ static void rna_def_curvemap_points_api(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "point", "CurveMapPoint", "", "New point");
 	RNA_def_function_return(func, parm);
 
-	func = RNA_def_function(srna, "remove", "curvemap_remove_point");
+	func = RNA_def_function(srna, "remove", "rna_CurveMap_remove_point");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Delete point from CurveMap");
 	parm = RNA_def_pointer(func, "point", "CurveMapPoint", "", "PointElement to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_curvemap(BlenderRNA *brna)
@@ -741,7 +758,8 @@ static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Delete element from ColorRamp");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "element", "ColorRampElement", "", "Element to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_color_ramp(BlenderRNA *brna)

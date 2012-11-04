@@ -3156,11 +3156,12 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 			for (sa = window->screen->areabase.first; sa; sa = sa->next) {
 				ARegion *ar;
 				for (ar = sa->regionbase.first; ar; ar = ar->next) {
-					if (ar == sad->ar)
+					if (ar == sad->ar) {
 						ED_region_tag_redraw(ar);
-					else
-					if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
+					}
+					else if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws)) {
 						ED_region_tag_redraw(ar);
+					}
 				}
 				
 				if (match_area_with_refresh(sa->spacetype, sad->refresh))

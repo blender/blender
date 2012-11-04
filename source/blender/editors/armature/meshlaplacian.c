@@ -1226,7 +1226,7 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 		hit->dist = dist;
 		copy_v3_v3(hit->co, co);
 		
-		isec->isect = dot_v3v3(no, ray->direction) <= 0.0;
+		isec->isect = (dot_v3v3(no, ray->direction) <= 0.0f);
 		isec->labda = dist;
 		isec->face = mf;
 	}

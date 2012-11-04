@@ -820,8 +820,8 @@ static void basisNurb(float t, short order, short pnts, float *knots, float *bas
 	/* this is for float inaccuracy */
 	if (t < knots[0])
 		t = knots[0];
-	else
-		if (t > knots[opp2]) t = knots[opp2];
+	else if (t > knots[opp2]) 
+		t = knots[opp2];
 
 	/* this part is order '1' */
 	o2 = order + 1;

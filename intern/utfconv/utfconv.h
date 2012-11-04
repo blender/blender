@@ -95,7 +95,7 @@ wchar_t *alloc_utf16_from_8(const char *in8, size_t add);
 		wchar_t *in8str ## _16 = alloc_utf16_from_8((char *)in8str, 0)
 
 #define UTF16_UN_ENCODE(in8str) \
-    free(in8str ## _16); } (void)0
+	free(in8str ## _16); } (void)0
 
 #ifdef __cplusplus 
 }

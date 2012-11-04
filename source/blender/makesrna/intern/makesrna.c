@@ -1661,6 +1661,7 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 		case PROP_STRING:
 		{
 			fprintf(f, "\tinline std::string %s(void);", rna_safe_id(prop->identifier));
+			fprintf(f, "\tinline void %s(const std::string& value);", rna_safe_id(prop->identifier));
 			break;
 		}
 		case PROP_POINTER:
@@ -1676,13 +1677,17 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 		case PROP_COLLECTION:
 		{
 			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)dp->prop;
+			const char *collection_funcs = "DefaultCollectionFunctions";
+
+			if (!(dp->prop->flag & (PROP_IDPROPERTY | PROP_BUILTIN)) && cprop->property.srna)
+				collection_funcs  = (char*)cprop->property.srna;
 
 			if (cprop->item_type)
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", (const char *)cprop->item_type, srna->identifier,
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s, %s)", collection_funcs, (const char *)cprop->item_type, srna->identifier,
 				        rna_safe_id(prop->identifier), (cprop->length ? "TRUE" : "FALSE"),
 				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
 			else
-				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s)", "UnknownType", srna->identifier,
+				fprintf(f, "\tCOLLECTION_PROPERTY(%s, %s, %s, %s, %s, %s, %s)", collection_funcs, "UnknownType", srna->identifier,
 				        rna_safe_id(prop->identifier), (cprop->length ? "TRUE" : "FALSE"),
 				        (cprop->lookupint ? "TRUE" : "FALSE"), (cprop->lookupstring ? "TRUE" : "FALSE"));
 			break;
@@ -1730,9 +1735,6 @@ static void rna_def_struct_function_prototype_cpp(FILE *f, StructRNA *srna, Func
 	if (func->flag & FUNC_USE_CONTEXT)
 		WRITE_PARAM("Context C");
 
-	if (func->flag & FUNC_USE_REPORTS)
-		WRITE_PARAM("void *reports");
-
 	for (dp = dfunc->cont.properties.first; dp; dp = dp->next) {
 		int type, flag, pout;
 		const char *ptrstr;
@@ -1746,6 +1748,8 @@ static void rna_def_struct_function_prototype_cpp(FILE *f, StructRNA *srna, Func
 
 		if (type == PROP_POINTER)
 			ptrstr = "";
+		else if ((type == PROP_POINTER) && (flag & PROP_RNAPTR) && !(flag & PROP_THICK_WRAP))
+			ptrstr = "*";
 		else if (type == PROP_POINTER || dp->prop->arraydimension)
 			ptrstr = "*";
 		else if (type == PROP_STRING && (flag & PROP_THICK_WRAP))
@@ -1905,7 +1909,7 @@ static void rna_def_struct_function_call_impl_cpp(FILE *f, StructRNA *srna, Func
 		WRITE_PARAM("(::bContext *) C.ptr.data");
 
 	if (func->flag & FUNC_USE_REPORTS)
-		WRITE_PARAM("(::ReportList *) reports");
+		WRITE_PARAM("NULL");
 
 	dp = dfunc->cont.properties.first;
 	for (; dp; dp = dp->next) {
@@ -1918,7 +1922,10 @@ static void rna_def_struct_function_call_impl_cpp(FILE *f, StructRNA *srna, Func
 			fprintf(f, "%s_len, ", dp->prop->identifier);
 
 		if (dp->prop->type == PROP_POINTER)
-			fprintf(f, "(::%s *) %s.ptr.data", rna_parameter_type_name(dp->prop), rna_safe_id(dp->prop->identifier));
+			if ((dp->prop->flag & PROP_RNAPTR) && !(dp->prop->flag & PROP_THICK_WRAP))
+				fprintf(f, "(::%s *) &%s.ptr", rna_parameter_type_name(dp->prop), rna_safe_id(dp->prop->identifier));
+			else
+				fprintf(f, "(::%s *) %s.ptr.data", rna_parameter_type_name(dp->prop), rna_safe_id(dp->prop->identifier));
 		else
 			fprintf(f, "%s", rna_safe_id(dp->prop->identifier));
 	}
@@ -1946,23 +1953,23 @@ static void rna_def_struct_function_impl_cpp(FILE *f, StructRNA *srna, FunctionD
 		if (dp->prop->type == PROP_POINTER) {
 			pprop = (PointerPropertyRNA *) dp->prop;
 
-			fprintf(f, "\t\tPointerRNA ptr;\n");
+			fprintf(f, "\t\tPointerRNA result;\n");
 
 			if ((dp->prop->flag & PROP_RNAPTR) == 0) {
 				StructRNA *ret_srna = rna_find_struct((const char *) pprop->type);
 				fprintf(f, "\t\t::%s *retdata = ", rna_parameter_type_name(dp->prop));
 				rna_def_struct_function_call_impl_cpp(f, srna, dfunc);
 				if (ret_srna->flag & STRUCT_ID)
-					fprintf(f, "\t\tRNA_id_pointer_create((::ID *) retdata, &ptr);\n");
+					fprintf(f, "\t\tRNA_id_pointer_create((::ID *) retdata, &result);\n");
 				else
-					fprintf(f, "\t\tRNA_pointer_create(NULL, &RNA_%s, retdata, &ptr);\n", (const char *) pprop->type);
+					fprintf(f, "\t\tRNA_pointer_create((::ID *) ptr.id.data, &RNA_%s, retdata, &result);\n", (const char *) pprop->type);
 			}
 			else {
-				fprintf(f, "\t\tptr = ");
+				fprintf(f, "\t\tresult = ");
 				rna_def_struct_function_call_impl_cpp(f, srna, dfunc);
 			}
 
-			fprintf(f, "\t\treturn %s(ptr);\n", (const char *) pprop->type);
+			fprintf(f, "\t\treturn %s(result);\n", (const char *) pprop->type);
 		}
 		else {
 			fprintf(f, "\t\treturn ");
@@ -2095,6 +2102,8 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		/* fixed size arrays and RNA pointers are pre-allocated on the ParameterList stack, pass a pointer to it */
 		else if (type == PROP_POINTER || dparm->prop->arraydimension)
 			ptrstr = "*";
+		else if ((type == PROP_POINTER) && (flag & PROP_RNAPTR) && !(flag & PROP_THICK_WRAP))
+			ptrstr = "*";
 		/* PROP_THICK_WRAP strings are pre-allocated on the ParameterList stack,
 		 * but type name for string props is already char*, so leave empty */
 		else if (type == PROP_STRING && (flag & PROP_THICK_WRAP))
@@ -2143,6 +2152,10 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		else {
 			const char *data_str;
 			if (cptr || (flag & PROP_DYNAMIC)) {
+				ptrstr = "**";
+				valstr = "*";
+			}
+			else if ((type == PROP_POINTER) && !(flag & PROP_THICK_WRAP)) {
 				ptrstr = "**";
 				valstr = "*";
 			}
@@ -3349,6 +3362,8 @@ static const char *cpp_classes = ""
 "		int len= sname##_##identifier##_length(&ptr); \\\n"
 "		std::string str; str.resize(len); \\\n"
 "		sname##_##identifier##_get(&ptr, &str[0]); return str; } \\\n"
+"	inline void sname::identifier(const std::string& value) { \\\n"
+"		sname##_##identifier##_set(&ptr, value.c_str()); } \\\n"
 "\n"
 "#define POINTER_PROPERTY(type, sname, identifier) \\\n"
 "	inline type sname::identifier(void) { return type(sname##_##identifier##_get(&ptr)); }\n"
@@ -3374,20 +3389,21 @@ static const char *cpp_classes = ""
 "	inline static int sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, PointerRNA *r_ptr) \\\n"
 "	{ \\\n"
 "		CollectionPropertyIterator iter; \\\n"
-"		int i = 0; \\\n"
+"		int i = 0, found = 0; \\\n"
 "		sname##_##identifier##_begin(&iter, ptr); \\\n"
 "		while (iter.valid) { \\\n"
 "			if (i == key) { \\\n"
 "				*r_ptr = iter.ptr; \\\n"
+"				found = 1; \\\n"
 "				break; \\\n"
 "			} \\\n"
 "			sname##_##identifier##_next(&iter); \\\n"
 "			++i; \\\n"
 "		} \\\n"
 "		sname##_##identifier##_end(&iter); \\\n"
-"		if (!iter.valid) \\\n"
+"		if (!found) \\\n"
 "			memset(r_ptr, 0, sizeof(*r_ptr)); \\\n"
-"		return iter.valid; \\\n"
+"		return found; \\\n"
 "	} \n"
 "#define COLLECTION_PROPERTY_LOOKUP_INT_TRUE(sname, identifier) \\\n"
 "	inline static int sname##_##identifier##_lookup_int_wrap(PointerRNA *ptr, int key, PointerRNA *r_ptr) \\\n"
@@ -3403,7 +3419,7 @@ static const char *cpp_classes = ""
 "	inline static int sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char *key, PointerRNA *r_ptr) \\\n"
 "	{ return sname##_##identifier##_lookup_string(ptr, key, r_ptr); } \n"
 "\n"
-"#define COLLECTION_PROPERTY(type, sname, identifier, has_length, has_lookup_int, has_lookup_string) \\\n"
+"#define COLLECTION_PROPERTY(collection_funcs, type, sname, identifier, has_length, has_lookup_int, has_lookup_string) \\\n"
 "	typedef CollectionIterator<type, sname##_##identifier##_begin, \\\n"
 "		sname##_##identifier##_next, sname##_##identifier##_end> identifier##_iterator; \\\n"
 "	COLLECTION_PROPERTY_LENGTH_##has_length(sname, identifier) \\\n"
@@ -3412,7 +3428,7 @@ static const char *cpp_classes = ""
 "	Collection<sname, type, sname##_##identifier##_begin, \\\n"
 "		sname##_##identifier##_next, sname##_##identifier##_end, \\\n"
 "		sname##_##identifier##_length_wrap, \\\n"
-"		sname##_##identifier##_lookup_int_wrap, sname##_##identifier##_lookup_string_wrap> identifier;\n"
+"		sname##_##identifier##_lookup_int_wrap, sname##_##identifier##_lookup_string_wrap, collection_funcs> identifier;\n"
 "\n"
 "class Pointer {\n"
 "public:\n"
@@ -3500,10 +3516,11 @@ static const char *cpp_classes = ""
 "};\n"
 "\n"
 "template<typename Tp, typename T, TBeginFunc Tbegin, TNextFunc Tnext, TEndFunc Tend,\n"
-"         TLengthFunc Tlength, TLookupIntFunc Tlookup_int, TLookupStringFunc Tlookup_string>\n"
-"class Collection {\n"
+"         TLengthFunc Tlength, TLookupIntFunc Tlookup_int, TLookupStringFunc Tlookup_string,\n"
+"         typename Tcollection_funcs>\n"
+"class Collection : public Tcollection_funcs {\n"
 "public:\n"
-"	Collection(const PointerRNA &p) : ptr(p) {}\n"
+"	Collection(const PointerRNA &p) : Tcollection_funcs(p), ptr(p)  {}\n"
 "\n"
 "	void begin(CollectionIterator<T, Tbegin, Tnext, Tend>& iter)\n"
 "	{ iter.begin(ptr); }\n"
@@ -3512,15 +3529,72 @@ static const char *cpp_classes = ""
 ""
 "	int length()\n"
 "	{ return Tlength(&ptr); }\n"
-"	T& operator[](int key)\n"
-"	{ PointerRNA r_ptr; Tlookup_int(&ptr, key, &r_ptr); return *(T*)r_ptr.data; }\n"
-"	T& operator[](const std::string &key)\n"
-"	{ PointerRNA r_ptr; Tlookup_string(&ptr, key.c_str(), &r_ptr); return *(T*)r_ptr.data; }\n"
+"	T operator[](int key)\n"
+"	{ PointerRNA r_ptr; Tlookup_int(&ptr, key, &r_ptr); return T(r_ptr); }\n"
+"	T operator[](const std::string &key)\n"
+"	{ PointerRNA r_ptr; Tlookup_string(&ptr, key.c_str(), &r_ptr); return T(r_ptr); }\n"
 "\n"
 "private:\n"
 "	PointerRNA ptr;\n"
 "};\n"
+"\n"
+"class DefaultCollectionFunctions {\n"
+"public:\n"
+"	DefaultCollectionFunctions(const PointerRNA &p) {}\n"
+"};\n"
+"\n"
 "\n";
+
+static int rna_is_collection_prop(PropertyRNA *prop)
+{
+	if (!(prop->flag & (PROP_IDPROPERTY | PROP_BUILTIN)))
+		if (prop->type == PROP_COLLECTION)
+			return 1;
+
+	return 0;
+}
+
+static int rna_is_collection_functions_struct(const char **collection_structs, const char *struct_name)
+{
+	int a = 0, found = 0;
+
+	while (collection_structs[a]) {
+		if (!strcmp(collection_structs[a], struct_name)) {
+			found = 1;
+			break;
+		}
+		a++;
+	}
+
+	return found;
+}
+
+static void rna_generate_header_class_cpp(StructDefRNA *ds, FILE *f)
+{
+	StructRNA *srna = ds->srna;
+	PropertyDefRNA *dp;
+	FunctionDefRNA *dfunc;
+
+	fprintf(f, "/**************** %s ****************/\n\n", srna->name);
+
+	fprintf(f, "class %s : public %s {\n", srna->identifier, (srna->base) ? srna->base->identifier : "Pointer");
+	fprintf(f, "public:\n");
+	fprintf(f, "\t%s(const PointerRNA &ptr_arg) :\n\t\t%s(ptr_arg)", srna->identifier,
+			(srna->base) ? srna->base->identifier : "Pointer");
+	for (dp = ds->cont.properties.first; dp; dp = dp->next)
+		if (rna_is_collection_prop(dp->prop))
+				fprintf(f, ",\n\t\t%s(ptr_arg)", dp->prop->identifier);
+	fprintf(f, "\n\t\t{}\n\n");
+
+	for (dp = ds->cont.properties.first; dp; dp = dp->next)
+		rna_def_property_funcs_header_cpp(f, ds->srna, dp);
+
+	fprintf(f, "\n");
+	for (dfunc = ds->functions.first; dfunc; dfunc = dfunc->cont.next)
+		rna_def_struct_function_header_cpp(f, srna, dfunc);
+
+	fprintf(f, "};\n\n");
+}
 
 static void rna_generate_header_cpp(BlenderRNA *UNUSED(brna), FILE *f)
 {
@@ -3528,6 +3602,10 @@ static void rna_generate_header_cpp(BlenderRNA *UNUSED(brna), FILE *f)
 	PropertyDefRNA *dp;
 	StructRNA *srna;
 	FunctionDefRNA *dfunc;
+	const char *first_collection_func_struct = NULL;
+	const char *collection_func_structs[256] = {NULL};
+	int all_collection_func_structs = 0;
+	int max_collection_func_structs = sizeof(collection_func_structs) / sizeof(collection_func_structs[0]) - 1;
 
 	fprintf(f, "\n#ifndef __RNA_BLENDER_CPP_H__\n");
 	fprintf(f, "#define __RNA_BLENDER_CPP_H__\n\n");
@@ -3544,33 +3622,59 @@ static void rna_generate_header_cpp(BlenderRNA *UNUSED(brna), FILE *f)
 
 	fprintf(f, "/**************** Declarations ****************/\n\n");
 
-	for (ds = DefRNA.structs.first; ds; ds = ds->cont.next)
+	for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
 		fprintf(f, "class %s;\n", ds->srna->identifier);
+	}
 	fprintf(f, "\n");
 
+	/* first get list of all structures used as collection functions, so they'll be declared first */
+	for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
+		for (dp = ds->cont.properties.first; dp; dp = dp->next) {
+			if (rna_is_collection_prop(dp->prop)) {
+				PropertyRNA *prop = dp->prop;
+
+				if (prop->srna) {
+					/* store name of structure which first uses custom functions for collections */
+					if (first_collection_func_struct == NULL)
+						first_collection_func_struct = ds->srna->identifier;
+
+					if (!rna_is_collection_functions_struct(collection_func_structs, (char*)prop->srna)) {
+						if (all_collection_func_structs >= max_collection_func_structs) {
+							printf("Array size to store all collection structures names is too small\n");
+							exit(1);
+						}
+
+						collection_func_structs[all_collection_func_structs++] = (char*)prop->srna;
+					}
+				}
+			}
+		}
+	}
+
+	/* declare all structures in such order:
+	 * - first N structures which doesn't use custom functions for collections
+	 * - all structures used for custom functions in collections
+	 * - all the rest structures
+	 * such an order prevents usage of non-declared classes
+	 */
 	for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
 		srna = ds->srna;
 
-		fprintf(f, "/**************** %s ****************/\n\n", srna->name);
+		if (!strcmp(srna->identifier, first_collection_func_struct)) {
+			StructDefRNA *ds2;
+			StructRNA *srna2;
 
-		fprintf(f, "class %s : public %s {\n", srna->identifier, (srna->base) ? srna->base->identifier : "Pointer");
-		fprintf(f, "public:\n");
-		fprintf(f, "\t%s(const PointerRNA &ptr_arg) :\n\t\t%s(ptr_arg)", srna->identifier,
-		        (srna->base) ? srna->base->identifier : "Pointer");
-		for (dp = ds->cont.properties.first; dp; dp = dp->next)
-			if (!(dp->prop->flag & (PROP_IDPROPERTY | PROP_BUILTIN)))
-				if (dp->prop->type == PROP_COLLECTION)
-					fprintf(f, ",\n\t\t%s(ptr_arg)", dp->prop->identifier);
-		fprintf(f, "\n\t\t{}\n\n");
+			for (ds2 = DefRNA.structs.first; ds2; ds2 = ds2->cont.next) {
+				srna2 = ds2->srna;
 
-		for (dp = ds->cont.properties.first; dp; dp = dp->next)
-			rna_def_property_funcs_header_cpp(f, ds->srna, dp);
+				if (rna_is_collection_functions_struct(collection_func_structs, srna2->identifier)) {
+					rna_generate_header_class_cpp(ds2, f);
+				}
+			}
+		}
 
-		fprintf(f, "\n");
-		for (dfunc = ds->functions.first; dfunc; dfunc = dfunc->cont.next)
-			rna_def_struct_function_header_cpp(f, srna, dfunc);
-
-		fprintf(f, "};\n\n");
+		if (!rna_is_collection_functions_struct(collection_func_structs, srna->identifier))
+			rna_generate_header_class_cpp(ds, f);
 	}
 
 	fprintf(f, "} /* namespace BL */\n");

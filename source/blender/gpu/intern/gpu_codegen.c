@@ -1046,17 +1046,20 @@ static void gpu_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *a
 					}
 				}
 
-				if (a == attribs->totlayer && a < GPU_MAX_ATTRIB) {
-					input->attribid = attribs->totlayer++;
-					input->attribfirst = 1;
+				if (a < GPU_MAX_ATTRIB) {
+					if (a == attribs->totlayer) {
+						input->attribid = attribs->totlayer++;
+						input->attribfirst = 1;
 
-					attribs->layer[a].type = input->attribtype;
-					attribs->layer[a].attribid = input->attribid;
-					BLI_strncpy(attribs->layer[a].name, input->attribname,
-						sizeof(attribs->layer[a].name));
+						attribs->layer[a].type = input->attribtype;
+						attribs->layer[a].attribid = input->attribid;
+						BLI_strncpy(attribs->layer[a].name, input->attribname,
+						            sizeof(attribs->layer[a].name));
+					}
+					else {
+						input->attribid = attribs->layer[a].attribid;
+					}
 				}
-				else
-					input->attribid = attribs->layer[a].attribid;
 			}
 		}
 	}

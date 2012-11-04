@@ -52,7 +52,10 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_DerivedMesh.h"
+extern "C"{
+	#include "BLI_utildefines.h"
+	#include "BKE_DerivedMesh.h"
+}
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846

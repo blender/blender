@@ -369,7 +369,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	/* Used to hold subsurfed Mesh */
 	DerivedMesh *derivedMesh, *initialDerived;
 	/* holds original indices for subsurfed mesh */
-	int *origVertIndices, *origFaceIndices, *origEdgeIndices;
+	int *origVertIndices, *origEdgeIndices, *origFaceIndices, *origPolyIndices;
 	/* Holds vertices of subsurfed mesh */
 	MVert *subsurfedVerts;
 	MEdge *subsurfedEdges;
@@ -422,6 +422,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 	origVertIndices = derivedMesh->getVertDataArray(derivedMesh, CD_ORIGINDEX);
 	origEdgeIndices = derivedMesh->getEdgeDataArray(derivedMesh, CD_ORIGINDEX);
 	origFaceIndices = derivedMesh->getTessFaceDataArray(derivedMesh, CD_ORIGINDEX);
+	origPolyIndices = derivedMesh->getPolyDataArray(derivedMesh, CD_ORIGINDEX);
 
 	numOfEdges = derivedMesh->getNumEdges(derivedMesh);
 	numOfFaces = derivedMesh->getNumTessFaces(derivedMesh);
@@ -433,7 +434,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, BMEditMesh *e
 
 	/* map subsurfed faces to original editFaces */
 	for (i = 0; i < numOfFaces; i++)
-		faceMap[i] = EDBM_face_at_index(em, origFaceIndices[i]);
+		faceMap[i] = EDBM_face_at_index(em, DM_origindex_mface_mpoly(origFaceIndices, origPolyIndices, i));
 
 	edgeMap = MEM_mallocN(numOfEdges * sizeof(BMEdge *), "unwrap_edit_edge_map");
 
@@ -1170,7 +1171,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	int correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect");
 	int use_subsurf = RNA_boolean_get(op->ptr, "use_subsurf_data");
 	int subsurf_level = RNA_int_get(op->ptr, "uv_subsurf_level");
-	float obsize[3], unitsize[3] = {1.0f, 1.0f, 1.0f};
+	float obsize[3];
 	short implicit = 0;
 
 	if (!uvedit_have_selection(scene, em, implicit)) {
@@ -1183,9 +1184,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	}
 
 	mat4_to_size(obsize, obedit->obmat);
-	if (!compare_v3v3(obsize, unitsize, 1e-4f))
+	if (!(fabsf(obsize[0] - obsize[1]) < 1e-4f && fabsf(obsize[1] - obsize[2]) < 1e-4f))
 		BKE_report(op->reports, RPT_INFO,
-		           "Object scale is not 1.0, unwrap will operate on a non-scaled version of the mesh");
+		           "Object has non-uniform scale, unwrap will operate on a non-scaled version of the mesh");
 
 	/* remember last method for live unwrap */
 	if (RNA_struct_property_is_set(op->ptr, "method"))

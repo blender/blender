@@ -33,8 +33,12 @@
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
+
+#include "BLI_string_utf8.h"  /* own include */
 
 /* from libswish3, originally called u8_isvalid(),
  * modified to return the index of the bad character (byte index not utf).
@@ -153,14 +157,14 @@ int BLI_utf8_invalid_strip(char *str, int length)
  * note: this looks to be at odd's with 'trailingBytesForUTF8',
  * need to find out what gives here! - campbell */
 static const size_t utf8_skip_data[256] = {
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 1, 1
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 1, 1
 };
 
 #define BLI_STR_UTF8_CPY(dst, src, maxncpy)                                   \
@@ -183,6 +187,8 @@ static const size_t utf8_skip_data[256] = {
 char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
 {
 	char *dst_r = dst;
+
+	BLI_assert(maxncpy != 0);
 
 	/* note: currently we don't attempt to deal with invalid utf8 chars */
 	BLI_STR_UTF8_CPY(dst, src, maxncpy);
@@ -207,10 +213,13 @@ char *BLI_strncat_utf8(char *dst, const char *src, size_t maxncpy)
 /* --------------------------------------------------------------------------*/
 /* wchar_t / utf8 functions  */
 
-size_t BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxcpy)
+size_t BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxncpy)
 {
 	size_t len = 0;
-	while (*src && len < maxcpy) { /* XXX can still run over the buffer because utf8 size isn't known :| */
+
+	BLI_assert(maxncpy != 0);
+
+	while (*src && len < maxncpy) { /* XXX can still run over the buffer because utf8 size isn't known :| */
 		len += BLI_str_utf8_from_unicode(*src++, dst + len);
 	}
 
@@ -280,7 +289,7 @@ size_t BLI_strnlen_utf8(const char *start, const size_t maxlen)
 	return len;
 }
 
-size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size_t maxcpy)
+size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size_t maxncpy)
 {
 	int len = 0;
 
@@ -288,7 +297,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 		return 0;
 	}
 
-	while (*src_c && len < maxcpy) {
+	while (*src_c && len < maxncpy) {
 		size_t step = 0;
 		unsigned int unicode = BLI_str_utf8_as_unicode_and_size(src_c, &step);
 		if (unicode != BLI_UTF8_ERR) {

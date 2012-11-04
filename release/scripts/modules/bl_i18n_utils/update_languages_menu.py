@@ -53,7 +53,7 @@ FLAG_MESSAGES = {
 def find_matching_po(languages, stats, forbidden):
     """Match languages defined in LANGUAGES setting to relevant po, if possible!"""
     ret = []
-    for uid, label, org_key in languages:
+    for uid, label, org_key, long_loc in languages:
         key = org_key
         if key not in stats:
             # Try to simplify the key (eg from es_ES to es).
@@ -64,11 +64,11 @@ def find_matching_po(languages, stats, forbidden):
                 key = key + org_key[org_key.index('@'):]
         if key in stats:
             if key in forbidden:
-                ret.append((stats[key], uid, label, org_key, FORBIDDEN))
+                ret.append((stats[key], uid, label, org_key, long_loc, FORBIDDEN))
             else:
-                ret.append((stats[key], uid, label, org_key, OK))
+                ret.append((stats[key], uid, label, org_key, long_loc, OK))
         else:
-            ret.append((0.0, uid, label, org_key, MISSING))
+            ret.append((0.0, uid, label, org_key, long_loc, MISSING))
     return ret
 
 def main():
@@ -103,14 +103,14 @@ def main():
     stats = sorted(stats, key=lambda it: it[0], reverse=True)
     langs_cats = [[] for i in range(len(limits))]
     highest_uid = 0
-    for prop, uid, label, key, flag in stats:
+    for prop, uid, label, key, long_loc, flag in stats:
         if prop < limits[idx][0]:
             # Sub-sort languages by iso-codes.
             langs_cats[idx].sort(key=lambda it: it[2])
             idx += 1
         if prop < min_trans and flag == OK:
             flag = TOOLOW
-        langs_cats[idx].append((uid, label, key, flag))
+        langs_cats[idx].append((uid, label, key, long_loc, flag))
         if abs(uid) > highest_uid:
             highest_uid = abs(uid)
     # Sub-sort last group of languages by iso-codes!
@@ -120,7 +120,7 @@ def main():
         f.write("# and to generate translation menu.\n")
         f.write("#\n")
         f.write("# File format:\n")
-        f.write("# ID:MENULABEL:ISOCODE\n")
+        f.write("# ID:MENULABEL:ISOCODE:WINCODE\n")
         f.write("# ID must be unique, except for 0 value (marks categories for menu).\n")
         f.write("# Line starting with a # are comments!\n")
         f.write("#\n")
@@ -130,17 +130,17 @@ def main():
             f.write("#\n")
             # Write "category menu label"...
             if langs_cat:
-                f.write("0:{}:\n".format(cat[1]))
+                f.write("0:{}::\n".format(cat[1]))
             else:
                 # Do not write the category if it has no language!
                 f.write("# Void category! #0:{}:\n".format(cat[1]))
             # ...and all matching language entries!
-            for uid, label, key, flag in langs_cat:
+            for uid, label, key, long_loc, flag in langs_cat:
                 if flag == OK:
-                    f.write("{}:{}:{}\n".format(uid, label, key))
+                    f.write("{}:{}:{}:{}\n".format(uid, label, key, long_loc))
                 else:
                     # Non-existing, commented entry!
-                    f.write("# {} #{}:{}:{}\n".format(FLAG_MESSAGES[flag], uid, label, key))
+                    f.write("# {} #{}:{}:{}:{}\n".format(FLAG_MESSAGES[flag], uid, label, key, long_loc))
 
 
 if __name__ == "__main__":
