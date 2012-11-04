@@ -122,8 +122,16 @@ static int neighY[8] = {0, 1, 1, 1, 0, -1, -1, -1};
 /* drying limits */
 #define MIN_WETNESS 0.001f
 #define MAX_WETNESS 5.0f
-/* dissolve macro */
-#define VALUE_DISSOLVE(VALUE, TIME, SCALE, LOG) (VALUE) = (LOG) ? (VALUE) *(pow(MIN_WETNESS, 1.0f / (1.2f * ((float)(TIME)) / (SCALE)))) : (VALUE) -1.0f / (TIME)*(SCALE)
+
+
+/* dissolve inline function */
+BLI_INLINE void value_dissolve(float *r_value, const float time, const float scale, const int is_log)
+{
+	*r_value = (is_log) ?
+	              (*r_value) * (powf(MIN_WETNESS, 1.0f / (1.2f * time / scale))) :
+	              (*r_value) - 1.0f / time * scale;
+}
+
 
 /***************************** Internal Structs ***************************/
 
@@ -759,7 +767,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 		volume = td[0] * td[1] * td[2];
 
 		/* determine final grid size by trying to fit average 10.000 points per grid cell */
-		dim_factor = (float)pow(volume / ((double)sData->total_points / 10000.0), 1.0 / (double)axis);
+		dim_factor = (float)pow((double)volume / ((double)sData->total_points / 10000.0), 1.0 / (double)axis);
 
 		/* define final grid size using dim_factor, use min 3 for active axises */
 		for (i = 0; i < 3; i++) {
@@ -4487,7 +4495,7 @@ static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float time
 					int i;
 					float dry_ratio, f_color[4];
 					float p_wetness = pPoint->wetness;
-					VALUE_DISSOLVE(pPoint->wetness, surface->dry_speed, timescale, (surface->flags & MOD_DPAINT_DRY_LOG));
+					value_dissolve(&pPoint->wetness, surface->dry_speed, timescale, (surface->flags & MOD_DPAINT_DRY_LOG));
 					if (pPoint->wetness < 0.0f) pPoint->wetness = 0.0f;
 
 					if (pPoint->wetness < surface->color_dry_threshold) {
@@ -4532,10 +4540,10 @@ static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float time
 			}
 
 			if (surface->flags & MOD_DPAINT_DISSOLVE) {
-				VALUE_DISSOLVE(pPoint->alpha, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
+				value_dissolve(&pPoint->alpha, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
 				if (pPoint->alpha < 0.0f) pPoint->alpha = 0.0f;
 
-				VALUE_DISSOLVE(pPoint->e_alpha, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
+				value_dissolve(&pPoint->e_alpha, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
 				if (pPoint->e_alpha < 0.0f) pPoint->e_alpha = 0.0f;
 			}
 		}
@@ -4547,7 +4555,7 @@ static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float time
 
 			float *point = &((float *)sData->type_data)[index];
 			/* log or linear */
-			VALUE_DISSOLVE(*point, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
+			value_dissolve(point, surface->diss_speed, timescale, (surface->flags & MOD_DPAINT_DISSOLVE_LOG));
 			if (*point < 0.0f) *point = 0.0f;
 		}
 	}
