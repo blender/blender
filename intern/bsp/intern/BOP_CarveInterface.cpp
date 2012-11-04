@@ -60,7 +60,7 @@ static bool isQuadPlanar(carve::geom3d::Vector &v1, carve::geom3d::Vector &v2,
 	float production = carve::geom::dot(cross, vec3);
 	float magnitude = 1e-5 * cross.length();
 
-	return fabs(production) < magnitude;
+	return fabsf(production) < magnitude;
 }
 
 static bool isFacePlanar(CSG_IFace &face, std::vector<carve::geom3d::Vector> &vertices)

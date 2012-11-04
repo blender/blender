@@ -947,7 +947,7 @@ static void getLogToLinLut(float *lut, LogImageFile *logImage, LogImageElement l
 	softClip = 0;
 
 	breakPoint = logImage->referenceWhite - softClip;
-	gain = logElement.maxValue / (1.0 - powf(10, (logImage->referenceBlack - logImage->referenceWhite) * step / negativeFilmGamma * logImage->gamma / 1.7f));
+	gain = logElement.maxValue / (1.0f - powf(10, (logImage->referenceBlack - logImage->referenceWhite) * step / negativeFilmGamma * logImage->gamma / 1.7f));
 	offset = gain - logElement.maxValue;
 	kneeOffset = powf(10, (breakPoint - logImage->referenceWhite) * step / negativeFilmGamma * logImage->gamma / 1.7f) * gain - offset;
 	kneeGain = (logElement.maxValue - kneeOffset) / powf(5 * softClip, softClip / 100);

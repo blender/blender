@@ -48,8 +48,8 @@ void AUD_HighpassFactory::recalculateCoefficients(AUD_SampleRate rate,
 												  std::vector<float> &b,
 												  std::vector<float> &a)
 {
-	float w0 = 2 * M_PI * m_frequency / rate;
-	float alpha = sin(w0) / (2 * m_Q);
+	float w0 = 2.0 * M_PI * (AUD_SampleRate)m_frequency / rate;
+	float alpha = (float)(sin(w0) / (2.0 * (double)m_Q));
 	float norm = 1 + alpha;
 	float c = cos(w0);
 	a.push_back(1);
