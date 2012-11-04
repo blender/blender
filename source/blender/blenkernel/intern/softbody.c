@@ -1170,7 +1170,7 @@ static int sb_detect_face_pointCached(float face_v1[3], float face_v2[3], float 
 
 								*damp=df*tune*ob->pd->pdef_sbdamp;
 
-								df = 0.01f*exp(- 100.0f*df);
+								df = 0.01f * expf(-100.0f * df);
 								Vec3PlusStVec(force, -df, d_nvect);
 								deflected = 3;
 							}
@@ -4008,8 +4008,8 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 			}
 			loops++;
 			if (sb->solverflags & SBSO_MONITOR ) {
-				sct=PIL_check_seconds_timer();
-				if (sct-sst > 0.5f) printf("%3.0f%% \r", 100.0f*timedone/dtime);
+				sct = PIL_check_seconds_timer();
+				if (sct - sst > 0.5) printf("%3.0f%% \r", 100.0f * timedone / dtime);
 			}
 			/* ask for user break */
 			if (SB_localInterruptCallBack && SB_localInterruptCallBack()) break;
@@ -4045,7 +4045,7 @@ static void softbody_step(Scene *scene, Object *ob, SoftBody *sb, float dtime)
 
 	if (sb->solverflags & SBSO_MONITOR ) {
 		sct=PIL_check_seconds_timer();
-		if ((sct-sst > 0.5f) || (G.debug & G_DEBUG)) printf(" solver time %f sec %s\n", sct-sst, ob->id.name);
+		if ((sct - sst > 0.5) || (G.debug & G_DEBUG)) printf(" solver time %f sec %s\n", sct-sst, ob->id.name);
 	}
 }
 

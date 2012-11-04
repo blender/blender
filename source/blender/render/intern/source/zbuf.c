@@ -76,6 +76,9 @@
 /* own includes */
 #include "zbuf.h"
 
+/* could enable at some point but for now there are far too many conversions */
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
@@ -2732,7 +2735,7 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, DrawBufPixel *col, float *v1, float 
 			x= sn2-sn1;
 			
 			while (x>=0) {
-				if ( zverg < *rz) {
+				if (zverg < (double)*rz) {
 					*rz= zverg;
 					*rp= *col;
 				}

@@ -89,6 +89,9 @@
 #include <omp.h>
 #endif
 
+/* could enable at some point but for now there are far too many conversions */
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+
 /* precalculated gaussian factors for 5x super sampling	*/
 static float gaussianFactors[5] = {0.996849f,
                                    0.596145f,

@@ -242,7 +242,7 @@ static void init_time(FluidsimSettings *domainSettings, FluidAnimChannels *chann
 	channels->timeAtFrame[0] = channels->timeAtFrame[1] = domainSettings->animStart; // start at index 1
 	
 	for (i=2; i <= channels->length; i++) {
-		channels->timeAtFrame[i] = channels->timeAtFrame[i-1] + channels->aniFrameTime;
+		channels->timeAtFrame[i] = channels->timeAtFrame[i - 1] + (float)channels->aniFrameTime;
 	}
 }
 
@@ -426,7 +426,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 		/* Domain time */
 		// TODO: have option for not running sim, time mangling, in which case second case comes in handy
 		if (channels->DomainTime) {
-			time = get_fluid_rate(domainSettings) * channels->aniFrameTime;
+			time = get_fluid_rate(domainSettings) * (float)channels->aniFrameTime;
 			timeAtFrame = channels->timeAtFrame[i] + time;
 			
 			channels->timeAtFrame[i+1] = timeAtFrame;
@@ -456,11 +456,11 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 			/* get the rotation from ob->obmat rather than ob->rot to account for parent animations */
 			if (i) {
 				copy_v3_v3(old_rot, fobj->Rotation + 4*(i-1));
-				mul_v3_fl(old_rot, -M_PI/180.f);
+				mul_v3_fl(old_rot, (float)-M_PI / 180.f);
 			}
 
 			mat4_to_compatible_eulO(rot_d, old_rot, 0, ob->obmat);
-			mul_v3_fl(rot_d, -180.f/M_PI);
+			mul_v3_fl(rot_d, -180.0f / (float)M_PI);
 			
 			set_channel(fobj->Translation, timeAtFrame, ob->loc, i, CHANNEL_VEC);
 			set_channel(fobj->Rotation, timeAtFrame, rot_d, i, CHANNEL_VEC);
@@ -962,7 +962,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	/* ******** prepare output file paths ******** */
 	outStringsChanged = fluid_init_filepaths(fsDomain, targetDir, targetFile, debugStrBuffer);
 	channels->length = scene->r.efra;
-	channels->aniFrameTime = (domainSettings->animEnd - domainSettings->animStart)/(double)noFrames;
+	channels->aniFrameTime = (double)(domainSettings->animEnd - domainSettings->animStart) / (double)noFrames;
 	
 	/* ******** initialize and allocate animation channels ******** */
 	fluid_init_all_channels(C, fsDomain, domainSettings, channels, fobjects);

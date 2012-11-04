@@ -105,25 +105,25 @@ int BLI_rctf_isect_pt_v(const rctf *rect, const float xy[2])
 static int isect_segments_i(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {
 	const double div = (double)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
-	if (div == 0.0f) {
+	if (div == 0.0) {
 		return 1; /* co-linear */
 	}
 	else {
 		const double labda = (double)((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 		const double mu    = (double)((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
-		return (labda >= 0.0f && labda <= 1.0f && mu >= 0.0f && mu <= 1.0f);
+		return (labda >= 0.0 && labda <= 1.0 && mu >= 0.0 && mu <= 1.0);
 	}
 }
 static int isect_segments_fl(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 	const double div = (double)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
-	if (div == 0.0f) {
+	if (div == 0.0) {
 		return 1; /* co-linear */
 	}
 	else {
 		const double labda = (double)((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 		const double mu    = (double)((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
-		return (labda >= 0.0f && labda <= 1.0f && mu >= 0.0f && mu <= 1.0f);
+		return (labda >= 0.0 && labda <= 1.0 && mu >= 0.0 && mu <= 1.0);
 	}
 }
 

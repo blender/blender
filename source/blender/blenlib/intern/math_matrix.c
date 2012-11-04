@@ -603,15 +603,15 @@ int invert_m4_m4(float inverse[4][4], float mat[4][4])
 		if (temp == 0)
 			return 0;  /* No non-zero pivot */
 		for (k = 0; k < 4; k++) {
-			tempmat[i][k] = (float)(tempmat[i][k] / temp);
-			inverse[i][k] = (float)(inverse[i][k] / temp);
+			tempmat[i][k] = (float)((double)tempmat[i][k] / temp);
+			inverse[i][k] = (float)((double)inverse[i][k] / temp);
 		}
 		for (j = 0; j < 4; j++) {
 			if (j != i) {
 				temp = tempmat[j][i];
 				for (k = 0; k < 4; k++) {
-					tempmat[j][k] -= (float)(tempmat[i][k] * temp);
-					inverse[j][k] -= (float)(inverse[i][k] * temp);
+					tempmat[j][k] -= (float)((double)tempmat[i][k] * temp);
+					inverse[j][k] -= (float)((double)inverse[i][k] * temp);
 				}
 			}
 		}

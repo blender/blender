@@ -492,7 +492,7 @@ double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int s
 	const float *array_pt_b = array_src_b + (size - 1);
 	int i = size;
 	while (i--) {
-		d += *(array_pt_a--) * *(array_pt_b--);
+		d += (double)(*(array_pt_a--) * *(array_pt_b--));
 	}
 	return d;
 }

@@ -2008,7 +2008,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 			for (row = 0; row < mat1->num_row; row++) {
 				double dot = 0.0f;
 				for (item = 0; item < mat1->num_col; item++) {
-					dot += MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col);
+					dot += (double)(MATRIX_ITEM(mat1, row, item) * MATRIX_ITEM(mat2, item, col));
 				}
 				mat[(col * mat1->num_row) + row] = (float)dot;
 			}

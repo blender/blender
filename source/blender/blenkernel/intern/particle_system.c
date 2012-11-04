@@ -1282,7 +1282,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		i= 0;
 
 		for (p=0; p<totpart; p++, pos+=step) {
-			while ((i < totelem) && (pos > element_sum[i+1]))
+			while ((i < totelem) && (pos > (double)element_sum[i + 1]))
 				i++;
 
 			particle_element[p] = MIN2(totelem-1, i);

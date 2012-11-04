@@ -198,6 +198,9 @@ static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3
 	w3[0] = 1.0f - w1[0] - w2[0];
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+
 DO_INLINE void collision_interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3 )
 {
 	zero_v3(to);
@@ -331,12 +334,12 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			 * We don't use dt!! */
 			float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 
-			float d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
+			float d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - (float)collpair->distance;
 			if ( d > ALMOST_ZERO) {
 				/* stay on the safe side and clamp repulse */
 				float repulse = d*1.0f/spf;
 
-				float impulse = repulse / ( 3.0 * ( 1.0f + w1*w1 + w2*w2 + w3*w3 )); /* original 2.0 / 0.25 */
+				float impulse = repulse / ( 3.0f * ( 1.0f + w1*w1 + w2*w2 + w3*w3 )); /* original 2.0 / 0.25 */
 
 				VECADDMUL ( i1, collpair->normal,  impulse );
 				VECADDMUL ( i2, collpair->normal,  impulse );
@@ -367,6 +370,8 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 	}
 	return result;
 }
+
+#pragma GCC diagnostic pop
 
 //Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
 static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
@@ -459,7 +464,7 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 #endif
 
 		// distance -1 means no collision result
-		if (distance != -1.0f && (distance <= (epsilon1 + epsilon2 + ALMOST_ZERO))) {
+		if (distance != -1.0 && (distance <= (double)(epsilon1 + epsilon2 + ALMOST_ZERO))) {
 			normalize_v3_v3(collpair->normal, collpair->vector);
 
 			collpair->distance = distance;
@@ -869,7 +874,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData * clmd, float step, flo
 								VECADD ( verts[i].tx, verts[i].tx, temp );
 							}
 							else {
-								mul_v3_fl(temp, correction * -0.5);
+								mul_v3_fl(temp, correction * -0.5f);
 								VECADD ( verts[j].tx, verts[j].tx, temp );
 	
 								sub_v3_v3v3(verts[i].tx, verts[i].tx, temp);

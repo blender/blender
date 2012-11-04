@@ -2356,8 +2356,8 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 	const double a = (st0[0] - st[0]) * (st0[1] - st3[1]) - (st0[1] - st[1]) * (st0[0] - st3[0]);
 
 	/* B = ( (p0 - p) X (p1 - p2) + (p1 - p) X (p0 - p3) ) / 2 */
-	const double b = 0.5 * (((st0[0] - st[0]) * (st1[1] - st2[1]) - (st0[1] - st[1]) * (st1[0] - st2[0])) +
-	                        ((st1[0] - st[0]) * (st0[1] - st3[1]) - (st1[1] - st[1]) * (st0[0] - st3[0])));
+	const double b = 0.5 * (double)(((st0[0] - st[0]) * (st1[1] - st2[1]) - (st0[1] - st[1]) * (st1[0] - st2[0])) +
+	                                ((st1[0] - st[0]) * (st0[1] - st3[1]) - (st1[1] - st[1]) * (st0[0] - st3[0])));
 
 	/* C = (p1-p) X (p1-p2) */
 	const double fC = (st1[0] - st[0]) * (st1[1] - st2[1]) - (st1[1] - st[1]) * (st1[0] - st2[0]);
@@ -2393,7 +2393,7 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 		}
 
 		if (IS_ZERO(denom) == 0)
-			r_uv[1] = (float)(((1.0f - r_uv[0]) * (st0[i] - st[i]) + r_uv[0] * (st1[i] - st[i])) / denom);
+			r_uv[1] = (float)((double)((1.0f - r_uv[0]) * (st0[i] - st[i]) + r_uv[0] * (st1[i] - st[i])) / denom);
 	}
 }
 

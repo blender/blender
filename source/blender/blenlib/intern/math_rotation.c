@@ -234,7 +234,7 @@ void quat_to_mat4(float m[][4], const float q[4])
 	double q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
 
 #ifdef DEBUG
-	if (!((q0 = dot_qtqt(q, q)) == 0.0f || (fabsf(q0 - 1.0) < (float)QUAT_EPSILON))) {
+	if (!((q0 = dot_qtqt(q, q)) == 0.0 || (fabs(q0 - 1.0) < QUAT_EPSILON))) {
 		fprintf(stderr, "Warning! quat_to_mat4() called with non-normalized: size %.8f *** report a bug ***\n", (float)q0);
 	}
 #endif
@@ -288,9 +288,9 @@ void mat3_to_quat(float q[4], float wmat[][3])
 		s = sqrt(tr);
 		q[0] = (float)s;
 		s = 1.0 / (4.0 * s);
-		q[1] = (float)((mat[1][2] - mat[2][1]) * s);
-		q[2] = (float)((mat[2][0] - mat[0][2]) * s);
-		q[3] = (float)((mat[0][1] - mat[1][0]) * s);
+		q[1] = (float)((double)(mat[1][2] - mat[2][1]) * s);
+		q[2] = (float)((double)(mat[2][0] - mat[0][2]) * s);
+		q[3] = (float)((double)(mat[0][1] - mat[1][0]) * s);
 	}
 	else {
 		if (mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2]) {
