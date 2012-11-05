@@ -88,7 +88,8 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
             col.prop(cam, "ortho_scale")
 
         elif cam.type == 'PANO':
-            if context.scene.render.engine == 'CYCLES':
+            engine = context.scene.render.engine
+            if engine == 'CYCLES':
                 ccam = cam.cycles
                 col.prop(ccam, "panorama_type", text="Type")
                 if ccam.panorama_type == 'FISHEYE_EQUIDISTANT':
@@ -97,6 +98,13 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
                     row = layout.row()
                     row.prop(ccam, "fisheye_lens", text="Lens")
                     row.prop(ccam, "fisheye_fov")
+            elif engine == 'BLENDER_RENDER':
+                row = col.row()
+                if cam.lens_unit == 'MILLIMETERS':
+                    row.prop(cam, "lens")
+                elif cam.lens_unit == 'DEGREES':
+                    row.prop(cam, "angle")
+                row.prop(cam, "lens_unit", text="")
 
         split = layout.split()
 
