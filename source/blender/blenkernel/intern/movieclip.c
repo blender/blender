@@ -520,6 +520,24 @@ static void movieclip_load_get_szie(MovieClip *clip)
 	}
 }
 
+static void detect_clip_source(MovieClip *clip)
+{
+	ImBuf *ibuf;
+	char name[FILE_MAX];
+
+	BLI_strncpy(name, clip->name, sizeof(name));
+	BLI_path_abs(name, G.main->name);
+
+	ibuf = IMB_testiffname(name, IB_rect | IB_multilayer);
+	if (ibuf) {
+		clip->source = MCLIP_SRC_SEQUENCE;
+		IMB_freeImBuf(ibuf);
+	}
+	else {
+		clip->source = MCLIP_SRC_MOVIE;
+	}
+}
+
 /* checks if image was already loaded, then returns same image
  * otherwise creates new.
  * does not load ibuf itself
@@ -565,10 +583,7 @@ MovieClip *BKE_movieclip_file_add(const char *name)
 	clip = movieclip_alloc(libname);
 	BLI_strncpy(clip->name, name, sizeof(clip->name));
 
-	if (BLI_testextensie_array(name, imb_ext_movie))
-		clip->source = MCLIP_SRC_MOVIE;
-	else
-		clip->source = MCLIP_SRC_SEQUENCE;
+	detect_clip_source(clip);
 
 	movieclip_load_get_szie(clip);
 	if (clip->lastsize[0]) {
@@ -1082,10 +1097,7 @@ void BKE_movieclip_reload(MovieClip *clip)
 	clip->tracking.stabilization.ok = FALSE;
 
 	/* update clip source */
-	if (BLI_testextensie_array(clip->name, imb_ext_movie))
-		clip->source = MCLIP_SRC_MOVIE;
-	else
-		clip->source = MCLIP_SRC_SEQUENCE;
+	detect_clip_source(clip);
 
 	clip->lastsize[0] = clip->lastsize[1] = 0;
 	movieclip_load_get_szie(clip);
