@@ -1830,13 +1830,13 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->totloop = 0;
 				/* -- */
 				backup_mesh.fdata = mesh->fdata;
-				memset(&mesh->fdata, 0, sizeof(CustomData));
+				CustomData_reset(&mesh->fdata);
 				/* -- */
 				backup_mesh.pdata = mesh->pdata;
-				memset(&mesh->pdata, 0, sizeof(CustomData));
+				CustomData_reset(&mesh->pdata);
 				/* -- */
 				backup_mesh.ldata = mesh->ldata;
-				memset(&mesh->ldata, 0, sizeof(CustomData));
+				CustomData_reset(&mesh->ldata);
 				/* -- */
 				backup_mesh.edit_btmesh = mesh->edit_btmesh;
 				mesh->edit_btmesh = NULL;
