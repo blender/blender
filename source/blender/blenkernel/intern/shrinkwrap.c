@@ -210,7 +210,10 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
  *	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
  *	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
  */
-int normal_projection_project_vertex(char options, const float vert[3], const float dir[3], const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
+int normal_projection_project_vertex(char options, const float vert[3], const float dir[3],
+                                     const SpaceTransform *transf,
+                                     BVHTree *tree, BVHTreeRayHit *hit,
+                                     BVHTree_RayCastCallback callback, void *userdata)
 {
 	float tmp_co[3], tmp_no[3];
 	const float *co, *no;
@@ -250,7 +253,7 @@ int normal_projection_project_vertex(char options, const float vert[3], const fl
 			/* apply backface */
 			const float dot = dot_v3v3(dir, hit_tmp.no);
 			if (((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f) ||
-			    ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f))
+			    ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)  && dot >= 0.0f))
 			{
 				return FALSE; /* Ignore hit */
 			}
@@ -259,7 +262,7 @@ int normal_projection_project_vertex(char options, const float vert[3], const fl
 		if (transf) {
 			/* Inverting space transform (TODO make coeherent with the initial dist readjust) */
 			space_transform_invert(transf, hit_tmp.co);
-			hit_tmp.dist = len_v3v3((float *)vert, hit_tmp.co);
+			hit_tmp.dist = len_v3v3(vert, hit_tmp.co);
 		}
 
 		memcpy(hit, &hit_tmp, sizeof(hit_tmp));
@@ -306,8 +309,9 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		normalize_v3(proj_axis);
 
 		/* Invalid projection direction */
-		if (dot_v3v3(proj_axis, proj_axis) < FLT_EPSILON)
-			return; 
+		if (len_squared_v3(proj_axis) < FLT_EPSILON) {
+			return;
+		}
 	}
 
 	if (calc->smd->auxTarget) {
@@ -328,9 +332,11 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		for (i = 0; i < calc->numVerts; ++i) {
 			float *co = calc->vertexCos[i];
 			float tmp_co[3], tmp_no[3];
-			float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+			const float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
-			if (weight == 0.0f) continue;
+			if (weight == 0.0f) {
+				continue;
+			}
 
 			if (calc->vert) {
 				/* calc->vert contains verts from derivedMesh  */
@@ -357,10 +363,15 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 			/* Project over positive direction of axis */
 			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
 
-				if (auxData.tree)
-					normal_projection_project_vertex(0, tmp_co, tmp_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
+				if (auxData.tree) {
+					normal_projection_project_vertex(0, tmp_co, tmp_no,
+					                                 &local2aux, auxData.tree, &hit,
+					                                 auxData.raycast_callback, &auxData);
+				}
 
-				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
+				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no,
+				                                 &calc->local2target, treeData.tree, &hit,
+				                                 treeData.raycast_callback, &treeData);
 			}
 
 			/* Project over negative direction of axis */
@@ -368,10 +379,15 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 				float inv_no[3];
 				negate_v3_v3(inv_no, tmp_no);
 
-				if (auxData.tree)
-					normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
+				if (auxData.tree) {
+					normal_projection_project_vertex(0, tmp_co, inv_no,
+					                                 &local2aux, auxData.tree, &hit,
+					                                 auxData.raycast_callback, &auxData);
+				}
 
-				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
+				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no,
+				                                 &calc->local2target, treeData.tree, &hit,
+				                                 treeData.raycast_callback, &treeData);
 			}
 
 
@@ -453,10 +469,13 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 				/* Adjusting the vertex weight,
 				 * so that after interpolating it keeps a certain distance from the nearest position */
 				float dist = sasqrt(nearest.dist);
-				if (dist > FLT_EPSILON)
-					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist) / dist);  /* linear interpolation */
-				else
+				if (dist > FLT_EPSILON) {
+					/* linear interpolation */
+					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist) / dist);
+				}
+				else {
 					copy_v3_v3(tmp_co, nearest.co);
+				}
 			}
 
 			/* Convert the coordinates back to mesh coordinates */
@@ -469,7 +488,8 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 }
 
 /* Main shrinkwrap function */
-void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm,
+                               float (*vertexCos)[3], int numVerts)
 {
 
 	DerivedMesh *ss_mesh    = NULL;
@@ -561,4 +581,3 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	if (ss_mesh)
 		ss_mesh->release(ss_mesh);
 }
-
