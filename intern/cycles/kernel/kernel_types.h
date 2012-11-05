@@ -36,6 +36,8 @@ CCL_NAMESPACE_BEGIN
 #define PARTICLE_SIZE 		5
 #define TIME_INVALID		FLT_MAX
 
+#define TEX_NUM_FLOAT_IMAGES	5
+
 /* device capabilities */
 #ifdef __KERNEL_CPU__
 #define __KERNEL_SHADING__
