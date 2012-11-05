@@ -137,11 +137,22 @@ bNodeStack **out)
 		break;
 	case 10: /* Power */
 		{
-			/* Don't want any imaginary numbers... */
-			if ( in[0]->vec[0] >= 0 )
+			/* Only raise negative numbers by full integers */
+			if ( in[0]->vec[0] >= 0 ) {
 				out[0]->vec[0] = pow(in[0]->vec[0], in[1]->vec[0]);
-			else
-				out[0]->vec[0] = 0.0;
+			}
+			else {
+				float y_mod_1 = fmod(in[1]->vec[0], 1);
+				
+				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
+				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
+					out[0]->vec[0] = powf(in[0]->vec[0], floorf(in[1]->vec[0] + 0.5f));
+				}
+				else {
+					out[0]->vec[0] = 0.0f;
+				}
+			}
+
 		}
 		break;
 	case 11: /* Logarithm */
