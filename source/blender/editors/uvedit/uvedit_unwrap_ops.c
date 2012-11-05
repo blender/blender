@@ -222,7 +222,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 
 		ED_uvedit_get_aspect(scene, ob, em, &aspx, &aspy);
 
-		if(aspx != aspy)
+		if (aspx != aspy)
 			param_aspect_ratio(handle, aspx, aspy);
 	}
 	
@@ -404,7 +404,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 
 		ED_uvedit_get_aspect(scene, ob, em, &aspx, &aspy);
 
-		if(aspx != aspy)
+		if (aspx != aspy)
 			param_aspect_ratio(handle, aspx, aspy);
 	}
 

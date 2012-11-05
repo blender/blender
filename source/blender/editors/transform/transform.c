@@ -1223,7 +1223,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
-				if(t->spacetype == SPACE_SEQ)
+				if (t->spacetype == SPACE_SEQ)
 					t->flag |= T_ALT_TRANSFORM;
 
 				break;
@@ -1262,7 +1262,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 //			break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
-				if(t->spacetype == SPACE_SEQ)
+				if (t->spacetype == SPACE_SEQ)
 					t->flag &= ~T_ALT_TRANSFORM;
 
 				break;

@@ -82,10 +82,9 @@ extern float originmat[3][3];   /* XXX object.c */
 
 typedef struct TransVert {
 	float *loc;
-	float oldloc[3], maploc[3], fac;
+	float oldloc[3], maploc[3];
 	float *val, oldval;
 	int flag;
-	float *nor;
 } TransVert;
 
               /* SELECT == (1 << 0) */
@@ -193,6 +192,20 @@ static void special_transvert_update(Object *obedit)
 	}
 }
 
+/* currently only used for bmesh index values */
+enum {
+	TM_INDEX_ON      =  1,  /* tag to make trans verts */
+	TM_INDEX_OFF     =  0,  /* don't make verts */
+	TM_INDEX_SKIP    = -1   /* dont make verts (when the index values point to trans-verts) */
+};
+
+/* copied from editobject.c, needs to be replaced with new transform code still */
+/* mode flags: */
+enum {
+	TM_ALL_JOINTS      = 1, /* all joints (for bones only) */
+	TM_SKIP_HANDLES    = 2  /* skip handles when control point is selected (for curves only) */
+};
+
 static void set_mapped_co(void *vuserdata, int index, const float co[3],
                           const float UNUSED(no[3]), const short UNUSED(no_s[3]))
 {
@@ -201,16 +214,12 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3],
 	TransVert *tv = userdata[1];
 	BMVert *eve = EDBM_vert_at_index(em, index);
 	
-	if (BM_elem_index_get(eve) != -1 && !(tv[BM_elem_index_get(eve)].flag & TX_VERT_USE_MAPLOC)) {
+	if (BM_elem_index_get(eve) != TM_INDEX_SKIP && !(tv[BM_elem_index_get(eve)].flag & TX_VERT_USE_MAPLOC)) {
 		copy_v3_v3(tv[BM_elem_index_get(eve)].maploc, co);
 		tv[BM_elem_index_get(eve)].flag |= TX_VERT_USE_MAPLOC;
 	}
 }
 
-/* copied from editobject.c, needs to be replaced with new transform code still */
-/* mode flags: */
-#define TM_ALL_JOINTS       1 /* all joints (for bones only) */
-#define TM_SKIP_HANDLES     2 /* skip handles when control point is selected (for curves only) */
 static void make_trans_verts(Object *obedit, float min[3], float max[3], int mode)
 {
 	Nurb *nu;
@@ -243,35 +252,37 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 		if (em->selectmode & SCE_SELECT_VERTEX) {
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-					BM_elem_index_set(eve, 1); /* set_dirty! */
+					BM_elem_index_set(eve, TM_INDEX_ON); /* set_dirty! */
 					tottrans++;
 				}
-				else BM_elem_index_set(eve, 0);  /* set_dirty! */
+				else {
+					BM_elem_index_set(eve, TM_INDEX_OFF);  /* set_dirty! */
+				}
 			}
 		}
 		else if (em->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *eed;
 
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-				BM_elem_index_set(eve, 0);     /* set_dirty! */
+				BM_elem_index_set(eve, TM_INDEX_OFF);  /* set_dirty! */
 			}
 
 			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-					BM_elem_index_set(eed->v1, 1); /* set_dirty! */
-					BM_elem_index_set(eed->v2, 1); /* set_dirty! */
+					BM_elem_index_set(eed->v1, TM_INDEX_ON);  /* set_dirty! */
+					BM_elem_index_set(eed->v2, TM_INDEX_ON);  /* set_dirty! */
 				}
 			}
 
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-				if (BM_elem_index_get(eve)) tottrans++;
+				if (BM_elem_index_get(eve) == TM_INDEX_ON) tottrans++;
 			}
 		}
 		else {
 			BMFace *efa;
 
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-				BM_elem_index_set(eve, 0); /* set_dirty! */
+				BM_elem_index_set(eve, TM_INDEX_OFF);  /* set_dirty! */
 			}
 
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -280,13 +291,13 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 					BMLoop *l;
 					
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						BM_elem_index_set(l->v, 1); /* set_dirty! */
+						BM_elem_index_set(l->v, TM_INDEX_ON); /* set_dirty! */
 					}
 				}
 			}
 
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-				if (BM_elem_index_get(eve)) tottrans++;
+				if (BM_elem_index_get(eve) == TM_INDEX_ON) tottrans++;
 			}
 		}
 		/* for any of the 3 loops above which all dirty the indices */
@@ -299,17 +310,15 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 			a = 0;
 			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_index_get(eve)) {
-					BM_elem_index_set(eve, a); /* set_dirty! */
+					BM_elem_index_set(eve, a);  /* set_dirty! */
 					copy_v3_v3(tv->oldloc, eve->co);
 					tv->loc = eve->co;
-					if (eve->no[0] != 0.0f || eve->no[1] != 0.0f || eve->no[2] != 0.0f)
-						tv->nor = eve->no;  /* note this is a hackish signal (ton) */
-					tv->flag = BM_elem_index_get(eve) & SELECT;
+					tv->flag = (BM_elem_index_get(eve) == TM_INDEX_ON) ? SELECT : 0;
 					tv++;
 					a++;
 				}
 				else {
-					BM_elem_index_set(eve, -1); /* set_dirty! */
+					BM_elem_index_set(eve, TM_INDEX_SKIP);  /* set_dirty! */
 				}
 			}
 			/* set dirty already, above */
@@ -345,8 +354,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 					if (rootok) {
 						copy_v3_v3(tv->oldloc, ebo->head);
 						tv->loc = ebo->head;
-						tv->nor = NULL;
-						tv->flag = 1;
+						tv->flag = SELECT;
 						tv++;
 						tottrans++;
 					}
@@ -354,8 +362,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 					if ((mode & TM_ALL_JOINTS) && (tipsel)) {
 						copy_v3_v3(tv->oldloc, ebo->tail);
 						tv->loc = ebo->tail;
-						tv->nor = NULL;
-						tv->flag = 1;
+						tv->flag = SELECT;
 						tv++;
 						tottrans++;
 					}
@@ -363,8 +370,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 				else if (tipsel) {
 					copy_v3_v3(tv->oldloc, ebo->tail);
 					tv->loc = ebo->tail;
-					tv->nor = NULL;
-					tv->flag = 1;
+					tv->flag = SELECT;
 					tv++;
 					tottrans++;
 				}
@@ -456,7 +462,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 				copy_v3_v3(tv->oldloc, tv->loc);
 				tv->val = &(ml->rad);
 				tv->oldval = ml->rad;
-				tv->flag = 1;
+				tv->flag = SELECT;
 				tv++;
 				tottrans++;
 			}
