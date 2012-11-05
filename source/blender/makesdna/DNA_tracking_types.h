@@ -167,6 +167,9 @@ typedef struct MovieTrackingSettings {
 		                             * were moved to per-tracking object settings
 		                             */
 
+	float reconstruction_success_threshold;
+	int reconstruction_flag;
+
 	/* which camera intrinsics to refine. uses on the REFINE_* flags */
 	short refine_camera_intrinsics, pad2;
 
@@ -224,6 +227,7 @@ typedef struct MovieTrackingObject {
 	ListBase tracks;        /* list of tracks use to tracking this object */
 	MovieTrackingReconstruction reconstruction; /* reconstruction data for this object */
 
+	/* reconstruction options */
 	int keyframe1, keyframe2;   /* two keyframes for reconstrution initialization */
 } MovieTrackingObject;
 
@@ -330,6 +334,9 @@ enum {
 #define TRACKING_SPEED_HALF         2
 #define TRACKING_SPEED_QUARTER      4
 #define TRACKING_SPEED_DOUBLE       5
+
+/* MovieTrackingObject->reconstruction_flag */
+#define TRACKING_USE_FALLBACK_RECONSTRUCTION  (1 << 0)
 
 /* MovieTrackingSettings->refine_camera_intrinsics */
 #define REFINE_FOCAL_LENGTH         (1 << 0)

@@ -91,13 +91,20 @@ void libmv_tracksDestroy(struct libmv_Tracks *libmv_tracks);
 #define LIBMV_REFINE_RADIAL_DISTORTION_K1 (1<<2)
 #define LIBMV_REFINE_RADIAL_DISTORTION_K2 (1<<4)
 
+/* TODO: make keyframes/distortion model a part of options? */
+struct libmv_reconstructionOptions {
+	double success_threshold;
+	int use_fallback_reconstruction;
+};
+
 typedef void (*reconstruct_progress_update_cb) (void *customdata, double progress, const char *message);
 
 int libmv_refineParametersAreValid(int parameters);
 
 struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *tracks, int keyframe1, int keyframe2,
 			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata);
+			struct libmv_reconstructionOptions *options, reconstruct_progress_update_cb progress_update_callback,
+			void *callback_customdata);
 struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *tracks, double focal_length,
 			double principal_x, double principal_y, double k1, double k2, double k3,
 			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata);

@@ -35,6 +35,9 @@ namespace libmv {
     reconstruction object, and solves for the pose and orientation of the
     camera for that frame.
 
+    \a options are used to define some specific befaviours based on settings
+    see documentation for ReconstructionOptions
+
     \a markers should contain \l Marker markers \endlink belonging to tracks
     visible in the one frame to be resectioned. Each of the tracks associated
     with the markers must have a corresponding reconstructed 3D position in the
@@ -51,7 +54,8 @@ namespace libmv {
 
     \sa EuclideanIntersect, EuclideanReconstructTwoFrames
 */
-bool EuclideanResect(const vector<Marker> &markers,
+bool EuclideanResect(const ReconstructionOptions &options,
+                     const vector<Marker> &markers,
                      EuclideanReconstruction *reconstruction, bool final_pass);
 
 /*!

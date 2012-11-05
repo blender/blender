@@ -173,6 +173,7 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
 	tracking->settings.default_search_size = 61;
 	tracking->settings.dist = 1;
 	tracking->settings.object_distance = 1;
+	tracking->settings.reconstruction_success_threshold = 1e-3;
 
 	tracking->stabilization.scaleinf = 1.0f;
 	tracking->stabilization.locinf = 1.0f;
@@ -2561,6 +2562,9 @@ typedef struct MovieReconstructContext {
 
 	TracksMap *tracks_map;
 
+	float success_threshold;
+	int use_fallback_reconstruction;
+
 	int sfra, efra;
 } MovieReconstructContext;
 
@@ -2830,6 +2834,9 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieTracking *
 	context->k2 = camera->k2;
 	context->k3 = camera->k3;
 
+	context->success_threshold = tracking->settings.reconstruction_success_threshold;
+	context->use_fallback_reconstruction = tracking->settings.reconstruction_flag & TRACKING_USE_FALLBACK_RECONSTRUCTION;
+
 	context->tracks_map = tracks_map_new(context->object_name, context->is_camera, num_tracks, 0);
 
 	track = tracksbase->first;
@@ -2929,12 +2936,18 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *
 		                                           reconstruct_update_solve_cb, &progressdata);
 	}
 	else {
+		struct libmv_reconstructionOptions options;
+
+		options.success_threshold = context->success_threshold;
+		options.use_fallback_reconstruction = context->use_fallback_reconstruction;
+
 		context->reconstruction = libmv_solveReconstruction(context->tracks,
 		                                                    context->keyframe1, context->keyframe2,
 		                                                    context->refine_flags,
 		                                                    context->focal_length,
 		                                                    context->principal_point[0], context->principal_point[1],
 		                                                    context->k1, context->k2, context->k3,
+		                                                    &options,
 		                                                    reconstruct_update_solve_cb, &progressdata);
 	}
 

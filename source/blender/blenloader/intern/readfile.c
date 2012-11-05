@@ -8310,6 +8310,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		/* fallbck resection method settings */
+		{
+			MovieClip *clip;
+
+			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+				if (clip->tracking.settings.reconstruction_success_threshold == 0.0f) {
+					clip->tracking.settings.reconstruction_success_threshold = 1e-3;
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
