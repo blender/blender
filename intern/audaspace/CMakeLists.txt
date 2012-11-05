@@ -116,8 +116,6 @@ set(SRC
 	intern/AUD_PyInit.h
 	intern/AUD_ReadDevice.cpp
 	intern/AUD_ReadDevice.h
-	intern/AUD_Reference.h
-	intern/AUD_ReferenceHandler.cpp
 	intern/AUD_ResampleFactory.h
 	intern/AUD_ResampleReader.cpp
 	intern/AUD_ResampleReader.h
