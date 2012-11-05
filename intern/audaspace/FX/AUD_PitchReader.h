@@ -53,7 +53,7 @@ public:
 	 * \param reader The reader to read from.
 	 * \param pitch The pitch value.
 	 */
-	AUD_PitchReader(AUD_Reference<AUD_IReader> reader, float pitch);
+	AUD_PitchReader(boost::shared_ptr<AUD_IReader> reader, float pitch);
 
 	virtual AUD_Specs getSpecs() const;
 

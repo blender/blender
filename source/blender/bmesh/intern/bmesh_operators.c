@@ -429,6 +429,20 @@ int BMO_slot_bool_get(BMOperator *op, const char *slot_name)
 	return slot->data.i;
 }
 
+/* if you want a copy of the elem buffer */
+void *BMO_slot_as_arrayN(BMOperator *op, const char *slot_name, int *len)
+{
+	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	void *ret;
+
+	/* could add support for mapping type */
+	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+
+	ret = MEM_mallocN(sizeof(void *) * slot->len, __func__);
+	memcpy(ret, slot->data.buf, sizeof(void *) * slot->len);
+	*len = slot->len;
+	return ret;
+}
 
 void *BMO_slot_ptr_get(BMOperator *op, const char *slot_name)
 {

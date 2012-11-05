@@ -39,7 +39,7 @@
 #define BWPB41 0.76536686473
 #define BWPB42 1.84775906502
 
-AUD_ButterworthFactory::AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> factory,
+AUD_ButterworthFactory::AUD_ButterworthFactory(boost::shared_ptr<AUD_IFactory> factory,
 											   float frequency) :
 		AUD_DynamicIIRFilterFactory(factory),
 		m_frequency(frequency)

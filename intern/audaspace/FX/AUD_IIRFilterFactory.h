@@ -31,6 +31,7 @@
 #define __AUD_IIRFILTERFACTORY_H__
 
 #include "AUD_EffectFactory.h"
+#include "AUD_IDynamicIIRFilterCalculator.h"
 
 #include <vector>
 
@@ -61,10 +62,10 @@ public:
 	 * \param b The input filter coefficients.
 	 * \param a The output filter coefficients.
 	 */
-	AUD_IIRFilterFactory(AUD_Reference<AUD_IFactory> factory, std::vector<float> b,
+	AUD_IIRFilterFactory(boost::shared_ptr<AUD_IFactory> factory, std::vector<float> b,
 						 std::vector<float> a);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_IIRFILTERFACTORY_H__

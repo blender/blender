@@ -33,7 +33,7 @@
 
 #include <cstring>
 
-AUD_BufferReader::AUD_BufferReader(AUD_Reference<AUD_Buffer> buffer,
+AUD_BufferReader::AUD_BufferReader(boost::shared_ptr<AUD_Buffer> buffer,
 								   AUD_Specs specs) :
 	m_position(0), m_buffer(buffer), m_specs(specs)
 {

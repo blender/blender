@@ -135,7 +135,7 @@ void TileManager::gen_tiles_sliced()
 				int x = tile_x * tile_size.x;
 				int y = tile_y * tile_size.y;
 				int w = (tile_x == tile_w-1)? image_w - x: tile_size.x;
-				int h = (tile_y == tile_h-1)? device_h - y: tile_size.x;
+				int h = (tile_y == tile_h-1)? device_h - y: tile_size.y;
 
 				state.tiles.push_back(Tile(tile_index, x, y + device_y, w, h, device));
 			}

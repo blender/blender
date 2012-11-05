@@ -43,13 +43,13 @@ class AUD_SequencerHandle
 {
 private:
 	/// The entry this handle belongs to.
-	AUD_Reference<AUD_SequencerEntry> m_entry;
+	boost::shared_ptr<AUD_SequencerEntry> m_entry;
 
 	/// The handle in the read device.
-	AUD_Reference<AUD_IHandle> m_handle;
+	boost::shared_ptr<AUD_IHandle> m_handle;
 
 	/// The 3D handle in the read device.
-	AUD_Reference<AUD_I3DHandle> m_3dhandle;
+	boost::shared_ptr<AUD_I3DHandle> m_3dhandle;
 
 	/// The last read status from the entry.
 	int m_status;
@@ -69,7 +69,7 @@ public:
 	 * \param entry The entry this handle plays.
 	 * \param device The read device to play on.
 	 */
-	AUD_SequencerHandle(AUD_Reference<AUD_SequencerEntry> entry, AUD_ReadDevice& device);
+	AUD_SequencerHandle(boost::shared_ptr<AUD_SequencerEntry> entry, AUD_ReadDevice& device);
 
 	/**
 	 * Destroys the handle.
@@ -81,7 +81,7 @@ public:
 	 * \param entry The entry to compare to.
 	 * \return Whether the entries ID is smaller, equal or bigger.
 	 */
-	int compare(AUD_Reference<AUD_SequencerEntry> entry) const;
+	int compare(boost::shared_ptr<AUD_SequencerEntry> entry) const;
 
 	/**
 	 * Stops playing back the handle.

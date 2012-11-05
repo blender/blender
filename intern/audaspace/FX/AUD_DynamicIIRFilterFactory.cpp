@@ -29,12 +29,14 @@
 #include "AUD_DynamicIIRFilterFactory.h"
 #include "AUD_DynamicIIRFilterReader.h"
 
-AUD_DynamicIIRFilterFactory::AUD_DynamicIIRFilterFactory(AUD_Reference<AUD_IFactory> factory) :
+
+AUD_DynamicIIRFilterFactory::AUD_DynamicIIRFilterFactory(boost::shared_ptr<AUD_IFactory> factory) :
 	AUD_EffectFactory(factory)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_DynamicIIRFilterFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_DynamicIIRFilterFactory::createReader()
 {
-	return new AUD_DynamicIIRFilterReader(getReader(), this);
+	return boost::shared_ptr<AUD_IReader>(new AUD_DynamicIIRFilterReader(getReader(), m_calculator));
 }
+

@@ -31,11 +31,11 @@
 #define __AUD_SNDFILEREADER_H__
 
 #include "AUD_IReader.h"
-#include "AUD_Reference.h"
 #include "AUD_Buffer.h"
 
 #include <string>
 #include <sndfile.h>
+#include <boost/shared_ptr.hpp>
 
 typedef sf_count_t (*sf_read_f)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
 
@@ -78,7 +78,7 @@ private:
 	/**
 	 * The pointer to the memory file.
 	 */
-	AUD_Reference<AUD_Buffer> m_membuffer;
+	boost::shared_ptr<AUD_Buffer> m_membuffer;
 
 	/**
 	 * The current reading pointer of the memory file.
@@ -110,7 +110,7 @@ public:
 	 * \exception AUD_Exception Thrown if the buffer specified cannot be read
 	 *                          with libsndfile.
 	 */
-	AUD_SndFileReader(AUD_Reference<AUD_Buffer> buffer);
+	AUD_SndFileReader(boost::shared_ptr<AUD_Buffer> buffer);
 
 	/**
 	 * Destroys the reader and closes the file.

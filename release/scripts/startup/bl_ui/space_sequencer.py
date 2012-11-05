@@ -601,12 +601,16 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
                 split.label(text="File:")
                 split.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
 
+            layout.prop(strip.colorspace_settings, "name")
+
             layout.operator("sequencer.change_path")
 
         elif seq_type == 'MOVIE':
             split = layout.split(percentage=0.2)
             split.label(text="Path:")
             split.prop(strip, "filepath", text="")
+
+            layout.prop(strip.colorspace_settings, "name")
 
             layout.prop(strip, "mpeg_preseek")
             layout.prop(strip, "stream_index")

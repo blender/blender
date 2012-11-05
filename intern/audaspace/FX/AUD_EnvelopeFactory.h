@@ -73,10 +73,10 @@ public:
 	 * \param threshold The threshold value.
 	 * \param arthreshold The attack/release threshold value.
 	 */
-	AUD_EnvelopeFactory(AUD_Reference<AUD_IFactory> factory, float attack, float release,
+	AUD_EnvelopeFactory(boost::shared_ptr<AUD_IFactory> factory, float attack, float release,
 						float threshold, float arthreshold);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 
 	static sample_t envelopeFilter(AUD_CallbackIIRFilterReader* reader, EnvelopeParameters* param);
 	static void endEnvelopeFilter(EnvelopeParameters* param);

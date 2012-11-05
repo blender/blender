@@ -22,18 +22,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_SequencerFactory.h
+/** \file audaspace/intern/AUD_Sequencer.h
  *  \ingroup audaspaceintern
  */
 
 
-#ifndef __AUD_SEQUENCERFACTORY_H__
-#define __AUD_SEQUENCERFACTORY_H__
+#ifndef __AUD_SEQUENCER_H__
+#define __AUD_SEQUENCER_H__
 
-#include "AUD_IFactory.h"
 #include "AUD_AnimateableProperty.h"
-//#include "AUD_ILockable.h"
-#include "AUD_Sequencer.h"
+#include "AUD_IFactory.h"
+#include "AUD_ILockable.h"
 
 #include <list>
 #include <pthread.h>
@@ -41,18 +40,57 @@
 class AUD_SequencerEntry;
 
 /**
- * This factory represents sequenced entries to play a sound scene.
+ * This class represents sequenced entries to play a sound scene.
  */
-class AUD_SequencerFactory : public AUD_IFactory//, public AUD_ILockable
+class AUD_Sequencer : public AUD_ILockable
 {
 	friend class AUD_SequencerReader;
 private:
-	/// The sequence.
-	boost::shared_ptr<AUD_Sequencer> m_sequence;
+	/// The target specification.
+	AUD_Specs m_specs;
+
+	/// The status of the sequence. Changes every time a non-animated parameter changes.
+	int m_status;
+
+	/// The entry status. Changes every time an entry is removed or added.
+	int m_entry_status;
+
+	/// The next unused ID for the entries.
+	int m_id;
+
+	/// The sequenced entries.
+	std::list<boost::shared_ptr<AUD_SequencerEntry> > m_entries;
+
+	/// Whether the whole scene is muted.
+	bool m_muted;
+
+	/// The FPS of the scene.
+	float m_fps;
+
+	/// Speed of Sound.
+	float m_speed_of_sound;
+
+	/// Doppler factor.
+	float m_doppler_factor;
+
+	/// Distance model.
+	AUD_DistanceModel m_distance_model;
+
+	/// The animated volume.
+	AUD_AnimateableProperty m_volume;
+
+	/// The animated listener location.
+	AUD_AnimateableProperty m_location;
+
+	/// The animated listener orientation.
+	AUD_AnimateableProperty m_orientation;
+
+	/// The mutex for locking.
+	pthread_mutex_t m_mutex;
 
 	// hide copy constructor and operator=
-	AUD_SequencerFactory(const AUD_SequencerFactory&);
-	AUD_SequencerFactory& operator=(const AUD_SequencerFactory&);
+	AUD_Sequencer(const AUD_Sequencer&);
+	AUD_Sequencer& operator=(const AUD_Sequencer&);
 
 public:
 	/**
@@ -61,19 +99,18 @@ public:
 	 * \param fps The FPS of the scene.
 	 * \param muted Whether the whole scene is muted.
 	 */
-	AUD_SequencerFactory(AUD_Specs specs, float fps, bool muted);
+	AUD_Sequencer(AUD_Specs specs, float fps, bool muted);
+	~AUD_Sequencer();
 
-#if 0
 	/**
-	 * Locks the factory.
+	 * Locks the sequence.
 	 */
 	virtual void lock();
 
 	/**
-	 * Unlocks the previously locked factory.
+	 * Unlocks the previously locked sequence.
 	 */
 	virtual void unlock();
-#endif
 
 	/**
 	 * Sets the audio output specification.
@@ -142,10 +179,10 @@ public:
 	void setDistanceModel(AUD_DistanceModel model);
 
 	/**
-	 * Retrieves one of the animated properties of the factory.
+	 * Retrieves one of the animated properties of the sequence.
 	 * \param type Which animated property to retrieve.
 	 * \return A pointer to the animated property, valid as long as the
-	 *         factory is.
+	 *         sequence is.
 	 */
 	AUD_AnimateableProperty* getAnimProperty(AUD_AnimateablePropertyType type);
 
@@ -164,14 +201,6 @@ public:
 	 * \param entry The entry to remove.
 	 */
 	void remove(boost::shared_ptr<AUD_SequencerEntry> entry);
-
-	/**
-	 * Creates a new reader with high quality resampling.
-	 * \return The new reader.
-	 */
-	boost::shared_ptr<AUD_IReader> createQualityReader();
-
-	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
-#endif //__AUD_SEQUENCERFACTORY_H__
+#endif //__AUD_SEQUENCER_H__

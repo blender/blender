@@ -60,7 +60,7 @@ public:
 	 * \param end The desired end time, a negative value signals that it should
 	 *            play to the end.
 	 */
-	AUD_LimiterFactory(AUD_Reference<AUD_IFactory> factory,
+	AUD_LimiterFactory(boost::shared_ptr<AUD_IFactory> factory,
 					   float start = 0, float end = -1);
 
 	/**
@@ -73,7 +73,7 @@ public:
 	 */
 	float getEnd() const;
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_LIMITERFACTORY_H__

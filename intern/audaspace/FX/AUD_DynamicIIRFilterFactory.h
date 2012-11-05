@@ -30,6 +30,7 @@
 #define __AUD_DYNAMICIIRFILTERFACTORY_H__
 
 #include "AUD_EffectFactory.h"
+#include "AUD_IDynamicIIRFilterCalculator.h"
 #include <vector>
 
 /**
@@ -40,24 +41,17 @@
  */
 class AUD_DynamicIIRFilterFactory : public AUD_EffectFactory
 {
+protected:
+	boost::shared_ptr<AUD_IDynamicIIRFilterCalculator> m_calculator;
+
 public:
 	/**
 	 * Creates a new Dynmic IIR filter factory.
 	 * \param factory The input factory.
 	 */
-	AUD_DynamicIIRFilterFactory(AUD_Reference<AUD_IFactory> factory);
+	AUD_DynamicIIRFilterFactory(boost::shared_ptr<AUD_IFactory> factory);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
-
-	/**
-	 * Recalculates the filter coefficients.
-	 * \param rate The sample rate of the audio data.
-	 * \param[out] b The input filter coefficients.
-	 * \param[out] a The output filter coefficients.
-	 */
-	virtual void recalculateCoefficients(AUD_SampleRate rate,
-	                                     std::vector<float>& b,
-	                                     std::vector<float>& a)=0;
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif // __AUD_DYNAMICIIRFILTERFACTORY_H__

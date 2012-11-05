@@ -31,13 +31,13 @@
 #include "AUD_PitchReader.h"
 #include "AUD_Space.h"
 
-AUD_PitchFactory::AUD_PitchFactory(AUD_Reference<AUD_IFactory> factory, float pitch) :
+AUD_PitchFactory::AUD_PitchFactory(boost::shared_ptr<AUD_IFactory> factory, float pitch) :
 		AUD_EffectFactory(factory),
 		m_pitch(pitch)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_PitchFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_PitchFactory::createReader()
 {
-	return new AUD_PitchReader(getReader(), m_pitch);
+	return boost::shared_ptr<AUD_IReader>(new AUD_PitchReader(getReader(), m_pitch));
 }

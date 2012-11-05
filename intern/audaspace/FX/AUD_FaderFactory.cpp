@@ -30,7 +30,7 @@
 #include "AUD_FaderFactory.h"
 #include "AUD_FaderReader.h"
 
-AUD_FaderFactory::AUD_FaderFactory(AUD_Reference<AUD_IFactory> factory, AUD_FadeType type,
+AUD_FaderFactory::AUD_FaderFactory(boost::shared_ptr<AUD_IFactory> factory, AUD_FadeType type,
 								   float start, float length) :
 		AUD_EffectFactory(factory),
 		m_type(type),
@@ -54,7 +54,7 @@ float AUD_FaderFactory::getLength() const
 	return m_length;
 }
 
-AUD_Reference<AUD_IReader> AUD_FaderFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_FaderFactory::createReader()
 {
-	return new AUD_FaderReader(getReader(), m_type, m_start, m_length);
+	return boost::shared_ptr<AUD_IReader>(new AUD_FaderReader(getReader(), m_type, m_start, m_length));
 }

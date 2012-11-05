@@ -91,10 +91,10 @@ extern "C" {
 
 #include <cassert>
 
-typedef AUD_Reference<AUD_IFactory> AUD_Sound;
-typedef AUD_Reference<AUD_ReadDevice> AUD_Device;
-typedef AUD_Reference<AUD_IHandle> AUD_Handle;
-typedef AUD_Reference<AUD_SequencerEntry> AUD_SEntry;
+typedef boost::shared_ptr<AUD_IFactory> AUD_Sound;
+typedef boost::shared_ptr<AUD_ReadDevice> AUD_Device;
+typedef boost::shared_ptr<AUD_IHandle> AUD_Handle;
+typedef boost::shared_ptr<AUD_SequencerEntry> AUD_SEntry;
 
 #define AUD_CAPI_IMPLEMENTATION
 #include "AUD_C-API.h"
@@ -103,7 +103,7 @@ typedef AUD_Reference<AUD_SequencerEntry> AUD_SEntry;
 #  define NULL (void *)0
 #endif
 
-static AUD_Reference<AUD_IDevice> AUD_device;
+static boost::shared_ptr<AUD_IDevice> AUD_device;
 static AUD_I3DDevice *AUD_3ddevice;
 
 void AUD_initOnce()
@@ -115,25 +115,25 @@ void AUD_initOnce()
 
 int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 {
-	AUD_Reference<AUD_IDevice> dev;
+	boost::shared_ptr<AUD_IDevice> dev;
 
-	if (!AUD_device.isNull()) {
+	if (AUD_device.get()) {
 		AUD_exit();
 	}
 
 	try {
 		switch(device) {
 		case AUD_NULL_DEVICE:
-			dev = new AUD_NULLDevice();
+			dev = boost::shared_ptr<AUD_IDevice>(new AUD_NULLDevice());
 			break;
 #ifdef WITH_SDL
 		case AUD_SDL_DEVICE:
-			dev = new AUD_SDLDevice(specs, buffersize);
+			dev = boost::shared_ptr<AUD_IDevice>(new AUD_SDLDevice(specs, buffersize));
 			break;
 #endif
 #ifdef WITH_OPENAL
 		case AUD_OPENAL_DEVICE:
-			dev = new AUD_OpenALDevice(specs, buffersize);
+			dev = boost::shared_ptr<AUD_IDevice>(new AUD_OpenALDevice(specs, buffersize));
 			break;
 #endif
 #ifdef WITH_JACK
@@ -147,7 +147,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 			else
 			{
 #endif
-				dev = new AUD_JackDevice("Blender", specs, buffersize);
+				dev = boost::shared_ptr<AUD_IDevice>(new AUD_JackDevice("Blender", specs, buffersize));
 				break;
 #ifdef __APPLE__
 			}
@@ -170,17 +170,17 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 
 void AUD_exit()
 {
-	AUD_device = AUD_Reference<AUD_IDevice>();
+	AUD_device = boost::shared_ptr<AUD_IDevice>();
 	AUD_3ddevice = NULL;
 }
 
 #ifdef WITH_PYTHON
 static PyObject *AUD_getCDevice(PyObject *self)
 {
-	if (!AUD_device.isNull()) {
+	if (AUD_device.get()) {
 		Device *device = (Device *)Device_empty();
 		if (device != NULL) {
-			device->device = new AUD_Reference<AUD_IDevice>(AUD_device);
+			device->device = new boost::shared_ptr<AUD_IDevice>(AUD_device);
 			return (PyObject *)device;
 		}
 	}
@@ -206,12 +206,12 @@ static PyObject *AUD_getSoundFromPointer(PyObject *self, PyObject *args)
 
 	if (PyArg_Parse(args, "l:_sound_from_pointer", &lptr)) {
 		if (lptr) {
-			AUD_Reference<AUD_IFactory>* factory = (AUD_Reference<AUD_IFactory>*) sound_get_factory((void *) lptr);
+			boost::shared_ptr<AUD_IFactory>* factory = (boost::shared_ptr<AUD_IFactory>*) sound_get_factory((void *) lptr);
 
 			if (factory) {
 				Factory *obj = (Factory *)Factory_empty();
 				if (obj) {
-					obj->factory = new AUD_Reference<AUD_IFactory>(*factory);
+					obj->factory = new boost::shared_ptr<AUD_IFactory>(*factory);
 					return (PyObject *) obj;
 				}
 			}
@@ -246,7 +246,7 @@ void *AUD_getPythonFactory(AUD_Sound *sound)
 	if (sound) {
 		Factory *obj = (Factory *) Factory_empty();
 		if (obj) {
-			obj->factory = new AUD_Reference<AUD_IFactory>(*sound);
+			obj->factory = new boost::shared_ptr<AUD_IFactory>(*sound);
 			return (PyObject *) obj;
 		}
 	}
@@ -261,7 +261,7 @@ AUD_Sound *AUD_getPythonSound(void *sound)
 	if (!factory)
 		return NULL;
 
-	return new AUD_Reference<AUD_IFactory>(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(factory->factory));
+	return new boost::shared_ptr<AUD_IFactory>(*reinterpret_cast<boost::shared_ptr<AUD_IFactory>*>(factory->factory));
 }
 
 #endif
@@ -286,9 +286,9 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound *sound)
 	info.length = 0.0f;
 
 	try {
-		AUD_Reference<AUD_IReader> reader = (*sound)->createReader();
+		boost::shared_ptr<AUD_IReader> reader = (*sound)->createReader();
 
-		if (!reader.isNull()) {
+		if (reader.get()) {
 			info.specs = reader->getSpecs();
 			info.length = reader->getLength() / (float) info.specs.rate;
 		}
@@ -432,7 +432,7 @@ AUD_Handle *AUD_play(AUD_Sound *sound, int keep)
 	assert(sound);
 	try {
 		AUD_Handle handle = AUD_device->play(*sound, keep);
-		if (!handle.isNull()) {
+		if (handle.get()) {
 			return new AUD_Handle(handle);
 		}
 	}
@@ -552,9 +552,9 @@ int AUD_setDistanceModel(AUD_DistanceModel model)
 int AUD_setSourceLocation(AUD_Handle *handle, const float location[3])
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		AUD_Vector3 v(location[0], location[1], location[2]);
 		return h->setSourceLocation(v);
 	}
@@ -565,9 +565,9 @@ int AUD_setSourceLocation(AUD_Handle *handle, const float location[3])
 int AUD_setSourceVelocity(AUD_Handle *handle, const float velocity[3])
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		AUD_Vector3 v(velocity[0], velocity[1], velocity[2]);
 		return h->setSourceVelocity(v);
 	}
@@ -578,9 +578,9 @@ int AUD_setSourceVelocity(AUD_Handle *handle, const float velocity[3])
 int AUD_setSourceOrientation(AUD_Handle *handle, const float orientation[4])
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		AUD_Quaternion q(orientation[3], orientation[0], orientation[1], orientation[2]);
 		return h->setSourceOrientation(q);
 	}
@@ -591,9 +591,9 @@ int AUD_setSourceOrientation(AUD_Handle *handle, const float orientation[4])
 int AUD_setRelative(AUD_Handle *handle, int relative)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setRelative(relative);
 	}
 
@@ -603,9 +603,9 @@ int AUD_setRelative(AUD_Handle *handle, int relative)
 int AUD_setVolumeMaximum(AUD_Handle *handle, float volume)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setVolumeMaximum(volume);
 	}
 
@@ -615,9 +615,9 @@ int AUD_setVolumeMaximum(AUD_Handle *handle, float volume)
 int AUD_setVolumeMinimum(AUD_Handle *handle, float volume)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setVolumeMinimum(volume);
 	}
 
@@ -627,9 +627,9 @@ int AUD_setVolumeMinimum(AUD_Handle *handle, float volume)
 int AUD_setDistanceMaximum(AUD_Handle *handle, float distance)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setDistanceMaximum(distance);
 	}
 
@@ -639,9 +639,9 @@ int AUD_setDistanceMaximum(AUD_Handle *handle, float distance)
 int AUD_setDistanceReference(AUD_Handle *handle, float distance)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setDistanceReference(distance);
 	}
 
@@ -651,9 +651,9 @@ int AUD_setDistanceReference(AUD_Handle *handle, float distance)
 int AUD_setAttenuation(AUD_Handle *handle, float factor)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setAttenuation(factor);
 	}
 
@@ -663,9 +663,9 @@ int AUD_setAttenuation(AUD_Handle *handle, float factor)
 int AUD_setConeAngleOuter(AUD_Handle *handle, float angle)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setConeAngleOuter(angle);
 	}
 
@@ -675,9 +675,9 @@ int AUD_setConeAngleOuter(AUD_Handle *handle, float angle)
 int AUD_setConeAngleInner(AUD_Handle *handle, float angle)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setConeAngleInner(angle);
 	}
 
@@ -687,9 +687,9 @@ int AUD_setConeAngleInner(AUD_Handle *handle, float angle)
 int AUD_setConeVolumeOuter(AUD_Handle *handle, float volume)
 {
 	assert(handle);
-	AUD_Reference<AUD_I3DHandle> h(*handle);
+	boost::shared_ptr<AUD_I3DHandle> h = boost::dynamic_pointer_cast<AUD_I3DHandle>(*handle);
 
-	if (!h.isNull()) {
+	if (h.get()) {
 		return h->setConeVolumeOuter(volume);
 	}
 
@@ -734,7 +734,7 @@ AUD_Handle *AUD_playDevice(AUD_Device *device, AUD_Sound *sound, float seek)
 
 	try {
 		AUD_Handle handle = (*device)->play(*sound);
-		if (!handle.isNull()) {
+		if (handle.get()) {
 			handle->seek(seek);
 			return new AUD_Handle(handle);
 		}
@@ -793,38 +793,38 @@ float *AUD_readSoundBuffer(const char *filename, float low, float high,
 	AUD_DeviceSpecs specs;
 	specs.channels = AUD_CHANNELS_MONO;
 	specs.rate = (AUD_SampleRate)samplerate;
-	AUD_Reference<AUD_IFactory> sound;
+	boost::shared_ptr<AUD_IFactory> sound;
 
-	AUD_Reference<AUD_IFactory> file = new AUD_FileFactory(filename);
+	boost::shared_ptr<AUD_IFactory> file = boost::shared_ptr<AUD_IFactory>(new AUD_FileFactory(filename));
 
 	int position = 0;
 
 	try {
-		AUD_Reference<AUD_IReader> reader = file->createReader();
+		boost::shared_ptr<AUD_IReader> reader = file->createReader();
 
 		AUD_SampleRate rate = reader->getSpecs().rate;
 
-		sound = new AUD_ChannelMapperFactory(file, specs);
+		sound = boost::shared_ptr<AUD_IFactory>(new AUD_ChannelMapperFactory(file, specs));
 
 		if (high < rate)
-			sound = new AUD_LowpassFactory(sound, high);
+			sound = boost::shared_ptr<AUD_IFactory>(new AUD_LowpassFactory(sound, high));
 		if (low > 0)
-			sound = new AUD_HighpassFactory(sound, low);
+			sound = boost::shared_ptr<AUD_IFactory>(new AUD_HighpassFactory(sound, low));
 
-		sound = new AUD_EnvelopeFactory(sound, attack, release, threshold, 0.1f);
-		sound = new AUD_LinearResampleFactory(sound, specs);
+		sound = boost::shared_ptr<AUD_IFactory>(new AUD_EnvelopeFactory(sound, attack, release, threshold, 0.1f));
+		sound = boost::shared_ptr<AUD_IFactory>(new AUD_LinearResampleFactory(sound, specs));
 
 		if (square)
-			sound = new AUD_SquareFactory(sound, sthreshold);
+			sound = boost::shared_ptr<AUD_IFactory>(new AUD_SquareFactory(sound, sthreshold));
 
 		if (accumulate)
-			sound = new AUD_AccumulatorFactory(sound, additive);
+			sound = boost::shared_ptr<AUD_IFactory>(new AUD_AccumulatorFactory(sound, additive));
 		else if (additive)
-			sound = new AUD_SumFactory(sound);
+			sound = boost::shared_ptr<AUD_IFactory>(new AUD_SumFactory(sound));
 
 		reader = sound->createReader();
 
-		if (reader.isNull())
+		if (!reader.get())
 			return NULL;
 
 		int len;
@@ -856,14 +856,14 @@ static void pauseSound(AUD_Handle *handle)
 
 AUD_Handle *AUD_pauseAfter(AUD_Handle *handle, float seconds)
 {
-	AUD_Reference<AUD_IFactory> silence = new AUD_SilenceFactory;
-	AUD_Reference<AUD_IFactory> limiter = new AUD_LimiterFactory(silence, 0, seconds);
+	boost::shared_ptr<AUD_IFactory> silence = boost::shared_ptr<AUD_IFactory>(new AUD_SilenceFactory);
+	boost::shared_ptr<AUD_IFactory> limiter = boost::shared_ptr<AUD_IFactory>(new AUD_LimiterFactory(silence, 0, seconds));
 
 	AUD_MutexLock lock(*AUD_device);
 
 	try {
 		AUD_Handle handle2 = AUD_device->play(limiter);
-		if (!handle2.isNull()) {
+		if (handle2.get()) {
 			handle2->setStopCallback((stopCallback)pauseSound, handle);
 			return new AUD_Handle(handle2);
 		}
@@ -881,7 +881,7 @@ AUD_Sound *AUD_createSequencer(float fps, int muted)
 	AUD_Specs specs;
 	specs.channels = AUD_CHANNELS_STEREO;
 	specs.rate = AUD_RATE_44100;
-	AUD_Sound *sequencer = new AUD_Sound(AUD_Reference<AUD_SequencerFactory>(new AUD_SequencerFactory(specs, fps, muted)));
+	AUD_Sound *sequencer = new AUD_Sound(boost::shared_ptr<AUD_SequencerFactory>(new AUD_SequencerFactory(specs, fps, muted)));
 	return sequencer;
 }
 
@@ -1070,7 +1070,7 @@ int AUD_readSound(AUD_Sound *sound, sample_t *buffer, int length, int samples_pe
 	specs.channels = AUD_CHANNELS_MONO;
 	specs.format = AUD_FORMAT_INVALID;
 
-	AUD_Reference<AUD_IReader> reader = AUD_ChannelMapperFactory(*sound, specs).createReader();
+	boost::shared_ptr<AUD_IReader> reader = AUD_ChannelMapperFactory(*sound, specs).createReader();
 
 	specs.specs = reader->getSpecs();
 	int len;
@@ -1124,7 +1124,7 @@ int AUD_readSound(AUD_Sound *sound, sample_t *buffer, int length, int samples_pe
 
 AUD_Sound *AUD_copy(AUD_Sound *sound)
 {
-	return new AUD_Reference<AUD_IFactory>(*sound);
+	return new boost::shared_ptr<AUD_IFactory>(*sound);
 }
 
 void AUD_freeHandle(AUD_Handle *handle)
@@ -1176,9 +1176,9 @@ const char *AUD_mixdown(AUD_Sound *sound, unsigned int start, unsigned int lengt
 		AUD_SequencerFactory *f = dynamic_cast<AUD_SequencerFactory *>(sound->get());
 
 		f->setSpecs(specs.specs);
-		AUD_Reference<AUD_IReader> reader = f->createQualityReader();
+		boost::shared_ptr<AUD_IReader> reader = f->createQualityReader();
 		reader->seek(start);
-		AUD_Reference<AUD_IWriter> writer = AUD_FileWriter::createWriter(filename, specs, format, codec, bitrate);
+		boost::shared_ptr<AUD_IWriter> writer = AUD_FileWriter::createWriter(filename, specs, format, codec, bitrate);
 		AUD_FileWriter::writeReader(reader, writer, length, buffersize);
 
 		return NULL;
@@ -1196,7 +1196,7 @@ const char *AUD_mixdown_per_channel(AUD_Sound *sound, unsigned int start, unsign
 
 		f->setSpecs(specs.specs);
 
-		std::vector<AUD_Reference<AUD_IWriter> > writers;
+		std::vector<boost::shared_ptr<AUD_IWriter> > writers;
 
 		int channels = specs.channels;
 		specs.channels = AUD_CHANNELS_MONO;
@@ -1220,7 +1220,7 @@ const char *AUD_mixdown_per_channel(AUD_Sound *sound, unsigned int start, unsign
 			writers.push_back(AUD_FileWriter::createWriter(stream.str(), specs, format, codec, bitrate));
 		}
 
-		AUD_Reference<AUD_IReader> reader = f->createQualityReader();
+		boost::shared_ptr<AUD_IReader> reader = f->createQualityReader();
 		reader->seek(start);
 		AUD_FileWriter::writeReader(reader, writers, length, buffersize);
 
@@ -1242,7 +1242,7 @@ AUD_Device *AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound *sequencer, f
 		dynamic_cast<AUD_SequencerFactory *>(sequencer->get())->setSpecs(specs.specs);
 
 		AUD_Handle handle = device->play(*sequencer);
-		if (!handle.isNull()) {
+		if (handle.get()) {
 			handle->seek(start);
 		}
 
@@ -1254,7 +1254,7 @@ AUD_Device *AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound *sequencer, f
 	}
 }
 
-AUD_Reference<AUD_IDevice> AUD_getDevice()
+boost::shared_ptr<AUD_IDevice> AUD_getDevice()
 {
 	return AUD_device;
 }

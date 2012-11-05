@@ -60,7 +60,7 @@ public:
 	 * \param end The desired end time (sample exklusive), a negative value
 	 *            signals that it should play to the end.
 	 */
-	AUD_LimiterReader(AUD_Reference<AUD_IReader> reader, float start = 0, float end = -1);
+	AUD_LimiterReader(boost::shared_ptr<AUD_IReader> reader, float start = 0, float end = -1);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

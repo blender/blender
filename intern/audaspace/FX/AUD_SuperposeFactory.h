@@ -43,12 +43,12 @@ private:
 	/**
 	 * First played factory.
 	 */
-	AUD_Reference<AUD_IFactory> m_factory1;
+	boost::shared_ptr<AUD_IFactory> m_factory1;
 
 	/**
 	 * Second played factory.
 	 */
-	AUD_Reference<AUD_IFactory> m_factory2;
+	boost::shared_ptr<AUD_IFactory> m_factory2;
 
 	// hide copy constructor and operator=
 	AUD_SuperposeFactory(const AUD_SuperposeFactory&);
@@ -60,9 +60,9 @@ public:
 	 * \param factory1 The first input factory.
 	 * \param factory2 The second input factory.
 	 */
-	AUD_SuperposeFactory(AUD_Reference<AUD_IFactory> factory1, AUD_Reference<AUD_IFactory> factory2);
+	AUD_SuperposeFactory(boost::shared_ptr<AUD_IFactory> factory1, boost::shared_ptr<AUD_IFactory> factory2);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_SUPERPOSEFACTORY_H__

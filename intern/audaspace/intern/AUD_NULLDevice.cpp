@@ -127,14 +127,14 @@ AUD_DeviceSpecs AUD_NULLDevice::getSpecs() const
 	return specs;
 }
 
-AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
+boost::shared_ptr<AUD_IHandle> AUD_NULLDevice::play(boost::shared_ptr<AUD_IReader> reader, bool keep)
 {
-	return new AUD_NULLHandle();
+	return boost::shared_ptr<AUD_IHandle>(new AUD_NULLHandle());
 }
 
-AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IFactory> factory, bool keep)
+boost::shared_ptr<AUD_IHandle> AUD_NULLDevice::play(boost::shared_ptr<AUD_IFactory> factory, bool keep)
 {
-	return new AUD_NULLHandle();
+	return boost::shared_ptr<AUD_IHandle>(new AUD_NULLHandle());
 }
 
 void AUD_NULLDevice::stopAll()

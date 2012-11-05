@@ -50,15 +50,15 @@ sample_t AUD_AccumulatorFactory::accumulatorFilter(AUD_CallbackIIRFilterReader* 
 	return out;
 }
 
-AUD_AccumulatorFactory::AUD_AccumulatorFactory(AUD_Reference<AUD_IFactory> factory,
+AUD_AccumulatorFactory::AUD_AccumulatorFactory(boost::shared_ptr<AUD_IFactory> factory,
 											   bool additive) :
 		AUD_EffectFactory(factory),
 		m_additive(additive)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_AccumulatorFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_AccumulatorFactory::createReader()
 {
-	return new AUD_CallbackIIRFilterReader(getReader(), 2, 2,
-							m_additive ? accumulatorFilterAdditive : accumulatorFilter);
+	return boost::shared_ptr<AUD_IReader>(new AUD_CallbackIIRFilterReader(getReader(), 2, 2,
+							m_additive ? accumulatorFilterAdditive : accumulatorFilter));
 }

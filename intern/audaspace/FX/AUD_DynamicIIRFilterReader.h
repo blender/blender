@@ -30,7 +30,7 @@
 #define __AUD_DYNAMICIIRFILTERREADER_H__
 
 #include "AUD_IIRFilterReader.h"
-#include "AUD_DynamicIIRFilterFactory.h"
+#include "AUD_IDynamicIIRFilterCalculator.h"
 
 /**
  * This class is for dynamic infinite impulse response filters with simple
@@ -42,11 +42,11 @@ private:
 	/**
 	 * The factory for dynamically recalculating filter coefficients.
 	 */
-	AUD_Reference<AUD_DynamicIIRFilterFactory> m_factory;
+	boost::shared_ptr<AUD_IDynamicIIRFilterCalculator> m_calculator;
 
 public:
-	AUD_DynamicIIRFilterReader(AUD_Reference<AUD_IReader> reader,
-							   AUD_Reference<AUD_DynamicIIRFilterFactory> factory);
+	AUD_DynamicIIRFilterReader(boost::shared_ptr<AUD_IReader> reader,
+							   boost::shared_ptr<AUD_IDynamicIIRFilterCalculator> calculator);
 
 	virtual void sampleRateChanged(AUD_SampleRate rate);
 };

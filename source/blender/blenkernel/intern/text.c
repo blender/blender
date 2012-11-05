@@ -2862,7 +2862,7 @@ int txt_replace_char(Text *text, unsigned int add)
 
 void txt_indent(Text *text)
 {
-	int len, num;
+	int len, num, curc_old;
 	char *tmp;
 
 	const char *add = "\t";
@@ -2885,6 +2885,8 @@ void txt_indent(Text *text)
 		indentlen = spaceslen;
 	}
 
+	curc_old = text->curc;
+
 	num = 0;
 	while (TRUE) {
 		tmp = MEM_mallocN(text->curl->len + indentlen + 1, "textline_string");
@@ -2905,7 +2907,7 @@ void txt_indent(Text *text)
 		txt_clean_text(text);
 		
 		if (text->curl == text->sell) {
-			text->selc = text->sell->len;
+			text->selc += indentlen;
 			break;
 		}
 		else {
@@ -2913,7 +2915,9 @@ void txt_indent(Text *text)
 			num++;
 		}
 	}
-	text->curc = 0;
+	if (!curc_old) text->curc = 0;
+	else text->curc = curc_old + indentlen;
+
 	while (num > 0) {
 		text->curl = text->curl->prev;
 		num--;
@@ -2928,7 +2932,8 @@ void txt_unindent(Text *text)
 {
 	int num = 0;
 	const char *remove = "\t";
-	int indent = 1;
+	int indentlen = 1;
+	int unindented_first = FALSE;
 	
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
@@ -2940,25 +2945,26 @@ void txt_unindent(Text *text)
 	/* insert spaces rather than tabs */
 	if (text->flags & TXT_TABSTOSPACES) {
 		remove = tab_to_spaces;
-		indent = spaceslen;
+		indentlen = spaceslen;
 	}
 
 	while (TRUE) {
 		int i = 0;
 		
-		if (BLI_strncasecmp(text->curl->line, remove, indent) == 0) {
+		if (BLI_strncasecmp(text->curl->line, remove, indentlen) == 0) {
+			if (num == 0) unindented_first = TRUE;
 			while (i < text->curl->len) {
-				text->curl->line[i] = text->curl->line[i + indent];
+				text->curl->line[i] = text->curl->line[i + indentlen];
 				i++;
 			}
-			text->curl->len -= indent;
+			text->curl->len -= indentlen;
 		}
 	
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
 		if (text->curl == text->sell) {
-			text->selc = text->sell->len;
+			if (i > 0) text->selc = MAX2(text->selc - indentlen, 0);
 			break;
 		}
 		else {
@@ -2967,7 +2973,9 @@ void txt_unindent(Text *text)
 		}
 		
 	}
-	text->curc = 0;
+
+	if (unindented_first) text->curc = MAX2(text->curc - indentlen, 0);
+
 	while (num > 0) {
 		text->curl = text->curl->prev;
 		num--;

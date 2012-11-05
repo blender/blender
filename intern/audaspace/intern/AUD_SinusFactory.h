@@ -66,7 +66,7 @@ public:
 	 */
 	float getFrequency() const;
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_SINUSFACTORY_H__

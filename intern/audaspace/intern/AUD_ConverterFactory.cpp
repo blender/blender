@@ -30,18 +30,18 @@
 #include "AUD_ConverterFactory.h"
 #include "AUD_ConverterReader.h"
 
-AUD_ConverterFactory::AUD_ConverterFactory(AUD_Reference<AUD_IFactory> factory,
+AUD_ConverterFactory::AUD_ConverterFactory(boost::shared_ptr<AUD_IFactory> factory,
 										   AUD_DeviceSpecs specs) :
 		AUD_MixerFactory(factory, specs)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_ConverterFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_ConverterFactory::createReader()
 {
-	AUD_Reference<AUD_IReader> reader = getReader();
+	boost::shared_ptr<AUD_IReader> reader = getReader();
 
 	if(m_specs.format != AUD_FORMAT_FLOAT32)
-		reader = new AUD_ConverterReader(reader, m_specs);
+		reader = boost::shared_ptr<AUD_IReader>(new AUD_ConverterReader(reader, m_specs));
 
 	return reader;
 }

@@ -28,10 +28,10 @@
 
 #include "AUD_DynamicIIRFilterReader.h"
 
-AUD_DynamicIIRFilterReader::AUD_DynamicIIRFilterReader(AUD_Reference<AUD_IReader> reader,
-													   AUD_Reference<AUD_DynamicIIRFilterFactory> factory) :
+AUD_DynamicIIRFilterReader::AUD_DynamicIIRFilterReader(boost::shared_ptr<AUD_IReader> reader,
+													   boost::shared_ptr<AUD_IDynamicIIRFilterCalculator> calculator) :
 	AUD_IIRFilterReader(reader, std::vector<float>(), std::vector<float>()),
-	m_factory(factory)
+	m_calculator(calculator)
 {
 	sampleRateChanged(reader->getSpecs().rate);
 }
@@ -39,6 +39,6 @@ AUD_DynamicIIRFilterReader::AUD_DynamicIIRFilterReader(AUD_Reference<AUD_IReader
 void AUD_DynamicIIRFilterReader::sampleRateChanged(AUD_SampleRate rate)
 {
 	std::vector<float> a, b;
-	m_factory->recalculateCoefficients(rate, b, a);
+	m_calculator->recalculateCoefficients(rate, b, a);
 	setCoefficients(b, a);
 }

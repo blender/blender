@@ -65,7 +65,7 @@ public:
 	 * \param reader The reader to convert.
 	 * \param specs The target specification.
 	 */
-	AUD_ConverterReader(AUD_Reference<AUD_IReader> reader, AUD_DeviceSpecs specs);
+	AUD_ConverterReader(boost::shared_ptr<AUD_IReader> reader, AUD_DeviceSpecs specs);
 
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };

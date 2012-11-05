@@ -110,7 +110,7 @@ public:
 	 * \param reader The reader to map.
 	 * \param mapping The mapping specification as two dimensional float array.
 	 */
-	AUD_ChannelMapperReader(AUD_Reference<AUD_IReader> reader, AUD_Channels channels);
+	AUD_ChannelMapperReader(boost::shared_ptr<AUD_IReader> reader, AUD_Channels channels);
 
 	/**
 	 * Destroys the reader.

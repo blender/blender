@@ -58,9 +58,9 @@ public:
 	 * \param factory The input factory.
 	 * \param additive Whether the accumulator is additive.
 	 */
-	AUD_AccumulatorFactory(AUD_Reference<AUD_IFactory> factory, bool additive = false);
+	AUD_AccumulatorFactory(boost::shared_ptr<AUD_IFactory> factory, bool additive = false);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 
 	static sample_t accumulatorFilterAdditive(AUD_CallbackIIRFilterReader* reader, void* useless);
 	static sample_t accumulatorFilter(AUD_CallbackIIRFilterReader* reader, void* useless);

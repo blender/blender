@@ -676,8 +676,8 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 
 			if (seq->anim) IMB_free_anim(seq->anim);
 
-			/* OCIO_TODO: support configurable input space for strips */
-			seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex, NULL);
+			seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
+			                     seq->streamindex, seq->strip->colorspace_settings.name);
 
 			if (!seq->anim) {
 				return;
@@ -1174,8 +1174,8 @@ static void seq_open_anim_file(Sequence *seq)
 	                 seq->strip->dir, seq->strip->stripdata->name);
 	BLI_path_abs(name, G.main->name);
 	
-	/* OCIO_TODO: support configurable input space for strips */
-	seq->anim = openanim(name, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex, NULL);
+	seq->anim = openanim(name, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
+	                     seq->streamindex, seq->strip->colorspace_settings.name);
 
 	if (seq->anim == NULL) {
 		return;
@@ -1301,7 +1301,6 @@ static ImBuf *seq_proxy_fetch(SeqRenderData context, Sequence *seq, int cfra)
 	}
 
 	if (BLI_exists(name)) {
-		/* OCIO_TODO: support configurable spaces for strips */
 		ImBuf *ibuf = IMB_loadiffname(name, IB_rect, NULL);
 
 		if (ibuf)
@@ -1346,7 +1345,6 @@ static void seq_proxy_build_frame(SeqRenderData context, Sequence *seq, int cfra
 
 	BLI_make_existing_file(name);
 
-	/* OCIO_TODO: support per-strip color space settings */
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
 	if (ok == 0) {
 		perror(name);
@@ -2529,8 +2527,7 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 				BLI_path_abs(name, G.main->name);
 			}
 
-			/* OCIO_TODO: support configurable space for image strips */
-			if (s_elem && (ibuf = IMB_loadiffname(name, IB_rect, NULL))) {
+			if (s_elem && (ibuf = IMB_loadiffname(name, IB_rect, seq->strip->colorspace_settings.name))) {
 				/* we don't need both (speed reasons)! */
 				if (ibuf->rect_float && ibuf->rect)
 					imb_freerectImBuf(ibuf);
@@ -3940,6 +3937,25 @@ Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine)
 	return seq;
 }
 
+void BKE_sequence_init_colorspace(Sequence *seq)
+{
+	if (seq->strip && seq->strip->stripdata) {
+		char name[FILE_MAX];
+		ImBuf *ibuf;
+
+		BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
+		BLI_path_abs(name, G.main->name);
+
+		/* initialize input color space */
+		if (seq->type == SEQ_TYPE_IMAGE) {
+			ibuf = IMB_loadiffname(name, IB_rect, seq->strip->colorspace_settings.name);
+
+			if (ibuf)
+				IMB_freeImBuf(ibuf);
+		}
+	}
+}
+
 /* NOTE: this function doesn't fill in image names */
 Sequence *BKE_sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
@@ -4046,14 +4062,14 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	Sequence *seq;  /* generic strip vars */
 	Strip *strip;
 	StripElem *se;
+	char colorspace[64] = "\0"; /* MAX_COLORSPACE_NAME */
 
 	struct anim *an;
 
 	BLI_strncpy(path, seq_load->path, sizeof(path));
 	BLI_path_abs(path, G.main->name);
 
-	/* OCIO_TODO: support configurable input space for strips */
-	an = openanim(path, IB_rect, 0, NULL);
+	an = openanim(path, IB_rect, 0, colorspace);
 
 	if (an == NULL)
 		return NULL;
@@ -4071,6 +4087,8 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
 	seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
 	strip->us = 1;
+
+	BLI_strncpy(seq->strip->colorspace_settings.name, colorspace, sizeof(seq->strip->colorspace_settings.name));
 
 	/* we only need 1 element for MOVIE strips */
 	strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");

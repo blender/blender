@@ -197,7 +197,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(std::string filename) :
 static const char* streamopen_error = "AUD_FFMPEGReader: Stream couldn't be "
 									  "opened.";
 
-AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer) :
+AUD_FFMPEGReader::AUD_FFMPEGReader(boost::shared_ptr<AUD_Buffer> buffer) :
 		m_pkgbuf(AVCODEC_MAX_AUDIO_FRAME_SIZE<<1),
 		m_membuffer(buffer),
 		m_membufferpos(0)

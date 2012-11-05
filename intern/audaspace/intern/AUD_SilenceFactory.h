@@ -48,7 +48,7 @@ public:
 	 */
 	AUD_SilenceFactory();
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_SILENCEFACTORY_H__

@@ -59,7 +59,7 @@ public:
 	 * \param reader The reader to read from.
 	 * \param delay The delay in seconds.
 	 */
-	AUD_DelayReader(AUD_Reference<AUD_IReader> reader, float delay);
+	AUD_DelayReader(boost::shared_ptr<AUD_IReader> reader, float delay);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

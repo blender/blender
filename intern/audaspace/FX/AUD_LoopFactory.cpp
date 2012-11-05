@@ -30,7 +30,7 @@
 #include "AUD_LoopFactory.h"
 #include "AUD_LoopReader.h"
 
-AUD_LoopFactory::AUD_LoopFactory(AUD_Reference<AUD_IFactory> factory, int loop) :
+AUD_LoopFactory::AUD_LoopFactory(boost::shared_ptr<AUD_IFactory> factory, int loop) :
 		AUD_EffectFactory(factory),
 		m_loop(loop)
 {
@@ -41,7 +41,7 @@ int AUD_LoopFactory::getLoop() const
 	return m_loop;
 }
 
-AUD_Reference<AUD_IReader> AUD_LoopFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_LoopFactory::createReader()
 {
-	return new AUD_LoopReader(getReader(), m_loop);
+	return boost::shared_ptr<AUD_IReader>(new AUD_LoopReader(getReader(), m_loop));
 }
