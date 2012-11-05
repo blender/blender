@@ -1221,6 +1221,12 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				else view_editmove(event->type);
 				t->redraw = 1;
 				break;
+			case LEFTALTKEY:
+			case RIGHTALTKEY:
+				if(t->spacetype == SPACE_SEQ)
+					t->flag |= T_ALT_TRANSFORM;
+
+				break;
 			default:
 				handled = 0;
 				break;
@@ -1254,6 +1260,12 @@ int transformEvent(TransInfo *t, wmEvent *event)
 ////			if (t->options & CTX_TWEAK)
 //				t->state = TRANS_CONFIRM;
 //			break;
+			case LEFTALTKEY:
+			case RIGHTALTKEY:
+				if(t->spacetype == SPACE_SEQ)
+					t->flag &= ~T_ALT_TRANSFORM;
+
+				break;
 			default:
 				handled = 0;
 				break;
