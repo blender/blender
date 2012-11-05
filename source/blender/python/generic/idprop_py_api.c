@@ -1187,7 +1187,7 @@ static PyObject *BPy_IDArray_subscript(BPy_IDArray *self, PyObject *item)
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((void *)item, self->prop->len, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx(item, self->prop->len, &start, &stop, &step, &slicelength) < 0)
 			return NULL;
 
 		if (slicelength <= 0) {
@@ -1222,7 +1222,7 @@ static int BPy_IDArray_ass_subscript(BPy_IDArray *self, PyObject *item, PyObject
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((void *)item, self->prop->len, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx(item, self->prop->len, &start, &stop, &step, &slicelength) < 0)
 			return -1;
 
 		if (step == 1)
