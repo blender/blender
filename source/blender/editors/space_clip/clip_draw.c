@@ -213,7 +213,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	x = (sc->user.framenr - sfra) / (efra - sfra + 1) * ar->winx;
 
 	UI_ThemeColor(TH_CFRAME);
-	glRecti(x, 0, x + framelen, 8);
+	glRecti(x, 0, x + ceil(framelen), 8);
 
 	clip_draw_curfra_label(sc->user.framenr, x, 8.0f);
 
