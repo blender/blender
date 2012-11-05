@@ -30,12 +30,12 @@
 #ifndef __AUD_SEQUENCERENTRY_H__
 #define __AUD_SEQUENCERENTRY_H__
 
-#include "AUD_Reference.h"
 #include "AUD_AnimateableProperty.h"
 #include "AUD_IFactory.h"
 #include "AUD_ILockable.h"
 
 #include <pthread.h>
+#include <boost/shared_ptr.hpp>
 
 /**
  * This class represents a sequenced entry in a sequencer factory.
@@ -57,7 +57,7 @@ private:
 	int m_id;
 
 	/// The sound this entry plays.
-	AUD_Reference<AUD_IFactory> m_sound;
+	boost::shared_ptr<AUD_IFactory> m_sound;
 
 	/// The begin time.
 	float m_begin;
@@ -125,7 +125,7 @@ public:
 	 * \param skip How much seconds should be skipped at the beginning.
 	 * \param id The ID of the entry.
 	 */
-	AUD_SequencerEntry(AUD_Reference<AUD_IFactory> sound, float begin, float end, float skip, int id);
+	AUD_SequencerEntry(boost::shared_ptr<AUD_IFactory> sound, float begin, float end, float skip, int id);
 	virtual ~AUD_SequencerEntry();
 
 	/**
@@ -142,7 +142,7 @@ public:
 	 * Sets the sound of the entry.
 	 * \param sound The new sound.
 	 */
-	void setSound(AUD_Reference<AUD_IFactory> sound);
+	void setSound(boost::shared_ptr<AUD_IFactory> sound);
 
 	/**
 	 * Moves the entry.

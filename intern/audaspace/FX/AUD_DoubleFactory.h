@@ -41,12 +41,12 @@ private:
 	/**
 	 * First played factory.
 	 */
-	AUD_Reference<AUD_IFactory> m_factory1;
+	boost::shared_ptr<AUD_IFactory> m_factory1;
 
 	/**
 	 * Second played factory.
 	 */
-	AUD_Reference<AUD_IFactory> m_factory2;
+	boost::shared_ptr<AUD_IFactory> m_factory2;
 
 	// hide copy constructor and operator=
 	AUD_DoubleFactory(const AUD_DoubleFactory&);
@@ -58,9 +58,9 @@ public:
 	 * \param factory1 The first input factory.
 	 * \param factory2 The second input factory.
 	 */
-	AUD_DoubleFactory(AUD_Reference<AUD_IFactory> factory1, AUD_Reference<AUD_IFactory> factory2);
+	AUD_DoubleFactory(boost::shared_ptr<AUD_IFactory> factory1, boost::shared_ptr<AUD_IFactory> factory2);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_DOUBLEFACTORY_H__

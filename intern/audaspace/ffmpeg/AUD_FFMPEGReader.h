@@ -32,10 +32,10 @@
 
 #include "AUD_ConverterFunctions.h"
 #include "AUD_IReader.h"
-#include "AUD_Reference.h"
 #include "AUD_Buffer.h"
 
 #include <string>
+#include <boost/shared_ptr.hpp>
 
 struct AVCodecContext;
 extern "C" {
@@ -99,7 +99,7 @@ private:
 	/**
 	 * The memory file to read from.
 	 */
-	AUD_Reference<AUD_Buffer> m_membuffer;
+	boost::shared_ptr<AUD_Buffer> m_membuffer;
 
 	/**
 	 * The buffer to read with.
@@ -143,7 +143,7 @@ public:
 	 * \exception AUD_Exception Thrown if the buffer specified cannot be read
 	 *                          with ffmpeg.
 	 */
-	AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer);
+	AUD_FFMPEGReader(boost::shared_ptr<AUD_Buffer> buffer);
 
 	/**
 	 * Destroys the reader and closes the file.

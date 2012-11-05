@@ -43,13 +43,13 @@
 
 static const char* write_error = "AUD_FileWriter: File couldn't be written.";
 
-AUD_Reference<AUD_IWriter> AUD_FileWriter::createWriter(std::string filename,AUD_DeviceSpecs specs,
+boost::shared_ptr<AUD_IWriter> AUD_FileWriter::createWriter(std::string filename,AUD_DeviceSpecs specs,
 														AUD_Container format, AUD_Codec codec, unsigned int bitrate)
 {
 #ifdef WITH_SNDFILE
 	try
 	{
-		return new AUD_SndFileWriter(filename, specs, format, codec, bitrate);
+		return boost::shared_ptr<AUD_IWriter>(new AUD_SndFileWriter(filename, specs, format, codec, bitrate));
 	}
 	catch(AUD_Exception&) {}
 #endif
@@ -57,7 +57,7 @@ AUD_Reference<AUD_IWriter> AUD_FileWriter::createWriter(std::string filename,AUD
 #ifdef WITH_FFMPEG
 	try
 	{
-		return new AUD_FFMPEGWriter(filename, specs, format, codec, bitrate);
+		return boost::shared_ptr<AUD_IWriter>(new AUD_FFMPEGWriter(filename, specs, format, codec, bitrate));
 	}
 	catch(AUD_Exception&) {}
 #endif
@@ -65,7 +65,7 @@ AUD_Reference<AUD_IWriter> AUD_FileWriter::createWriter(std::string filename,AUD
 	AUD_THROW(AUD_ERROR_SPECS, write_error);
 }
 
-void AUD_FileWriter::writeReader(AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_IWriter> writer, unsigned int length, unsigned int buffersize)
+void AUD_FileWriter::writeReader(boost::shared_ptr<AUD_IReader> reader, boost::shared_ptr<AUD_IWriter> writer, unsigned int length, unsigned int buffersize)
 {
 	AUD_Buffer buffer(buffersize * AUD_SAMPLE_SIZE(writer->getSpecs()));
 	sample_t* buf = buffer.getBuffer();
@@ -94,7 +94,7 @@ void AUD_FileWriter::writeReader(AUD_Reference<AUD_IReader> reader, AUD_Referenc
 	}
 }
 
-void AUD_FileWriter::writeReader(AUD_Reference<AUD_IReader> reader, std::vector<AUD_Reference<AUD_IWriter> >& writers, unsigned int length, unsigned int buffersize)
+void AUD_FileWriter::writeReader(boost::shared_ptr<AUD_IReader> reader, std::vector<boost::shared_ptr<AUD_IWriter> >& writers, unsigned int length, unsigned int buffersize)
 {
 	AUD_Buffer buffer(buffersize * AUD_SAMPLE_SIZE(reader->getSpecs()));
 	AUD_Buffer buffer2(buffersize * sizeof(sample_t));

@@ -59,7 +59,7 @@ public:
 	 * \param frequency The cutoff frequency.
 	 * \param Q The Q factor.
 	 */
-	AUD_LowpassFactory(AUD_Reference<AUD_IFactory> factory, float frequency, float Q = 1.0f);
+	AUD_LowpassFactory(boost::shared_ptr<AUD_IFactory> factory, float frequency, float Q = 1.0f);
 
 	virtual void recalculateCoefficients(AUD_SampleRate rate, std::vector<float> &b, std::vector<float> &a);
 };

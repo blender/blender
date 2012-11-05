@@ -34,7 +34,7 @@
 #include <cmath>
 #include <limits>
 
-AUD_SequencerEntry::AUD_SequencerEntry(AUD_Reference<AUD_IFactory> sound, float begin, float end, float skip, int id) :
+AUD_SequencerEntry::AUD_SequencerEntry(boost::shared_ptr<AUD_IFactory> sound, float begin, float end, float skip, int id) :
 	m_status(0),
 	m_pos_status(1),
 	m_sound_status(0),
@@ -86,7 +86,7 @@ void AUD_SequencerEntry::unlock()
 	pthread_mutex_unlock(&m_mutex);
 }
 
-void AUD_SequencerEntry::setSound(AUD_Reference<AUD_IFactory> sound)
+void AUD_SequencerEntry::setSound(boost::shared_ptr<AUD_IFactory> sound)
 {
 	AUD_MutexLock lock(*this);
 

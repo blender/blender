@@ -74,7 +74,7 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_LinearResampleReader(AUD_Reference<AUD_IReader> reader, AUD_Specs specs);
+	AUD_LinearResampleReader(boost::shared_ptr<AUD_IReader> reader, AUD_Specs specs);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

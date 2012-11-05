@@ -72,8 +72,8 @@ public:
 	virtual ~AUD_NULLDevice();
 
 	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
+	virtual boost::shared_ptr<AUD_IHandle> play(boost::shared_ptr<AUD_IReader> reader, bool keep = false);
+	virtual boost::shared_ptr<AUD_IHandle> play(boost::shared_ptr<AUD_IFactory> factory, bool keep = false);
 	virtual void stopAll();
 	virtual void lock();
 	virtual void unlock();

@@ -49,9 +49,9 @@ public:
 	 * \param factory The input factory.
 	 * \param specs The target specifications.
 	 */
-	AUD_ChannelMapperFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
+	AUD_ChannelMapperFactory(boost::shared_ptr<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_CHANNELMAPPERFACTORY_H__

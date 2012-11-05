@@ -67,7 +67,7 @@ public:
 	 * \param start The time where fading should start in seconds.
 	 * \param length How long fading should last in seconds.
 	 */
-	AUD_FaderReader(AUD_Reference<AUD_IReader> reader, AUD_FadeType type,
+	AUD_FaderReader(boost::shared_ptr<AUD_IReader> reader, AUD_FadeType type,
 					float start,float length);
 
 	virtual void read(int& length, bool& eos, sample_t* buffer);

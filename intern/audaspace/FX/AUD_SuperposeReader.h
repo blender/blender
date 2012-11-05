@@ -32,7 +32,8 @@
 
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
-#include "AUD_Reference.h"
+
+#include <boost/shared_ptr.hpp>
 
 /**
  * This reader plays two readers with the same specs in parallel.
@@ -43,12 +44,12 @@ private:
 	/**
 	 * The first reader.
 	 */
-	AUD_Reference<AUD_IReader> m_reader1;
+	boost::shared_ptr<AUD_IReader> m_reader1;
 
 	/**
 	 * The second reader.
 	 */
-	AUD_Reference<AUD_IReader> m_reader2;
+	boost::shared_ptr<AUD_IReader> m_reader2;
 
 	/**
 	 * Buffer used for mixing.
@@ -66,7 +67,7 @@ public:
 	 * \param reader2 The second reader to read from.
 	 * \exception AUD_Exception Thrown if the specs from the readers differ.
 	 */
-	AUD_SuperposeReader(AUD_Reference<AUD_IReader> reader1, AUD_Reference<AUD_IReader> reader2);
+	AUD_SuperposeReader(boost::shared_ptr<AUD_IReader> reader1, boost::shared_ptr<AUD_IReader> reader2);
 
 	/**
 	 * Destroys the reader.

@@ -31,8 +31,8 @@
 
 #include <cstring>
 
-AUD_DoubleReader::AUD_DoubleReader(AUD_Reference<AUD_IReader> reader1,
-								   AUD_Reference<AUD_IReader> reader2) :
+AUD_DoubleReader::AUD_DoubleReader(boost::shared_ptr<AUD_IReader> reader1,
+								   boost::shared_ptr<AUD_IReader> reader2) :
 		m_reader1(reader1), m_reader2(reader2), m_finished1(false)
 {
 	AUD_Specs s1, s2;

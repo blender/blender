@@ -30,13 +30,13 @@
 #include "AUD_LinearResampleFactory.h"
 #include "AUD_LinearResampleReader.h"
 
-AUD_LinearResampleFactory::AUD_LinearResampleFactory(AUD_Reference<AUD_IFactory> factory,
+AUD_LinearResampleFactory::AUD_LinearResampleFactory(boost::shared_ptr<AUD_IFactory> factory,
 													 AUD_DeviceSpecs specs) :
 		AUD_MixerFactory(factory, specs)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_LinearResampleFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_LinearResampleFactory::createReader()
 {
-	return new AUD_LinearResampleReader(getReader(), m_specs.specs);
+	return boost::shared_ptr<AUD_IReader>(new AUD_LinearResampleReader(getReader(), m_specs.specs));
 }

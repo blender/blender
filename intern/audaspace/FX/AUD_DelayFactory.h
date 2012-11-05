@@ -53,14 +53,14 @@ public:
 	 * \param factory The input factory.
 	 * \param delay The desired delay in seconds.
 	 */
-	AUD_DelayFactory(AUD_Reference<AUD_IFactory> factory, float delay = 0);
+	AUD_DelayFactory(boost::shared_ptr<AUD_IFactory> factory, float delay = 0);
 
 	/**
 	 * Returns the delay in seconds.
 	 */
 	float getDelay() const;
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_DELAYFACTORY_H__

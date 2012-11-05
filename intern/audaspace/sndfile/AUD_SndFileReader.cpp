@@ -100,7 +100,7 @@ AUD_SndFileReader::AUD_SndFileReader(std::string filename) :
 	m_seekable = sfinfo.seekable;
 }
 
-AUD_SndFileReader::AUD_SndFileReader(AUD_Reference<AUD_Buffer> buffer) :
+AUD_SndFileReader::AUD_SndFileReader(boost::shared_ptr<AUD_Buffer> buffer) :
 	m_position(0),
 	m_membuffer(buffer),
 	m_memoffset(0)

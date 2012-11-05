@@ -43,10 +43,10 @@ AUD_SndFileFactory::AUD_SndFileFactory(const data_t* buffer, int size) :
 	memcpy(m_buffer->getBuffer(), buffer, size);
 }
 
-AUD_Reference<AUD_IReader> AUD_SndFileFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_SndFileFactory::createReader()
 {
-	if(m_buffer.isNull())
-		return new AUD_SndFileReader(m_filename);
+	if(m_buffer.get())
+		return boost::shared_ptr<AUD_IReader>(new AUD_SndFileReader(m_buffer));
 	else
-		return new AUD_SndFileReader(m_buffer);
+		return boost::shared_ptr<AUD_IReader>(new AUD_SndFileReader(m_filename));
 }

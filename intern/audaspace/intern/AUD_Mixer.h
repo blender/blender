@@ -32,8 +32,9 @@
 
 #include "AUD_ConverterFunctions.h"
 #include "AUD_Buffer.h"
-#include "AUD_Reference.h"
 class AUD_IReader;
+
+#include <boost/shared_ptr.hpp>
 
 /**
  * This abstract class is able to mix audiosignals with same channel count

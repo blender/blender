@@ -36,7 +36,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-AUD_LowpassFactory::AUD_LowpassFactory(AUD_Reference<AUD_IFactory> factory, float frequency,
+AUD_LowpassFactory::AUD_LowpassFactory(boost::shared_ptr<AUD_IFactory> factory, float frequency,
 									   float Q) :
 		AUD_DynamicIIRFilterFactory(factory),
 		m_frequency(frequency),

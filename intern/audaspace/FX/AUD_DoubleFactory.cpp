@@ -30,15 +30,15 @@
 #include "AUD_DoubleFactory.h"
 #include "AUD_DoubleReader.h"
 
-AUD_DoubleFactory::AUD_DoubleFactory(AUD_Reference<AUD_IFactory> factory1, AUD_Reference<AUD_IFactory> factory2) :
+AUD_DoubleFactory::AUD_DoubleFactory(boost::shared_ptr<AUD_IFactory> factory1, boost::shared_ptr<AUD_IFactory> factory2) :
 		m_factory1(factory1), m_factory2(factory2)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_DoubleFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_DoubleFactory::createReader()
 {
-	AUD_Reference<AUD_IReader> reader1 = m_factory1->createReader();
-	AUD_Reference<AUD_IReader> reader2 = m_factory2->createReader();
+	boost::shared_ptr<AUD_IReader> reader1 = m_factory1->createReader();
+	boost::shared_ptr<AUD_IReader> reader2 = m_factory2->createReader();
 
-	return new AUD_DoubleReader(reader1, reader2);
+	return boost::shared_ptr<AUD_IReader>(new AUD_DoubleReader(reader1, reader2));
 }

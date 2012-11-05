@@ -56,15 +56,15 @@ AUD_FileFactory::AUD_FileFactory(const data_t* buffer, int size) :
 
 static const char* read_error = "AUD_FileFactory: File couldn't be read.";
 
-AUD_Reference<AUD_IReader> AUD_FileFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_FileFactory::createReader()
 {
 #ifdef WITH_SNDFILE
 	try
 	{
-		if(m_buffer.isNull())
-			return new AUD_SndFileReader(m_filename);
+		if(m_buffer.get())
+			return boost::shared_ptr<AUD_IReader>(new AUD_SndFileReader(m_buffer));
 		else
-			return new AUD_SndFileReader(m_buffer);
+			return boost::shared_ptr<AUD_IReader>(new AUD_SndFileReader(m_filename));
 	}
 	catch(AUD_Exception&) {}
 #endif
@@ -72,10 +72,10 @@ AUD_Reference<AUD_IReader> AUD_FileFactory::createReader()
 #ifdef WITH_FFMPEG
 	try
 	{
-		if(m_buffer.isNull())
-			return new AUD_FFMPEGReader(m_filename);
+		if(m_buffer.get())
+			return boost::shared_ptr<AUD_IReader>(new AUD_FFMPEGReader(m_buffer));
 		else
-			return new AUD_FFMPEGReader(m_buffer);
+			return boost::shared_ptr<AUD_IReader>(new AUD_FFMPEGReader(m_filename));
 	}
 	catch(AUD_Exception&) {}
 #endif

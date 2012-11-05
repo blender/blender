@@ -30,15 +30,15 @@
 #include "AUD_SuperposeFactory.h"
 #include "AUD_SuperposeReader.h"
 
-AUD_SuperposeFactory::AUD_SuperposeFactory(AUD_Reference<AUD_IFactory> factory1, AUD_Reference<AUD_IFactory> factory2) :
+AUD_SuperposeFactory::AUD_SuperposeFactory(boost::shared_ptr<AUD_IFactory> factory1, boost::shared_ptr<AUD_IFactory> factory2) :
 		m_factory1(factory1), m_factory2(factory2)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_SuperposeFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_SuperposeFactory::createReader()
 {
-	AUD_Reference<AUD_IReader> reader1 = m_factory1->createReader();
-	AUD_Reference<AUD_IReader> reader2 = m_factory2->createReader();
+	boost::shared_ptr<AUD_IReader> reader1 = m_factory1->createReader();
+	boost::shared_ptr<AUD_IReader> reader2 = m_factory2->createReader();
 
-	return new AUD_SuperposeReader(reader1, reader2);
+	return boost::shared_ptr<AUD_IReader>(new AUD_SuperposeReader(reader1, reader2));
 }
