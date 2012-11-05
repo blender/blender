@@ -144,7 +144,8 @@ public:
 		}
 	}
 
-	OpenCLDevice(DeviceInfo& info, bool background_)
+	OpenCLDevice(DeviceInfo& info, Stats &stats, bool background_)
+	  : Device(stats)
 	{
 		background = background_;
 		cpPlatform = NULL;
@@ -473,6 +474,8 @@ public:
 			mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_WRITE, size, NULL, &ciErr);
 
 		opencl_assert(ciErr);
+
+		stats.mem_alloc(size);
 	}
 
 	void mem_copy_to(device_memory& mem)
@@ -506,6 +509,8 @@ public:
 			ciErr = clReleaseMemObject(CL_MEM_PTR(mem.device_pointer));
 			mem.device_pointer = 0;
 			opencl_assert(ciErr);
+
+			stats.mem_free(mem.memory_size());
 		}
 	}
 
@@ -728,9 +733,9 @@ public:
 	}
 };
 
-Device *device_opencl_create(DeviceInfo& info, bool background)
+Device *device_opencl_create(DeviceInfo& info, Stats &stats, bool background)
 {
-	return new OpenCLDevice(info, background);
+	return new OpenCLDevice(info, stats, background);
 }
 
 void device_opencl_info(vector<DeviceInfo>& devices)

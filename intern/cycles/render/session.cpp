@@ -42,13 +42,14 @@ Session::Session(const SessionParams& params_)
 : params(params_),
   tile_manager(params.progressive, params.samples, params.tile_size, params.start_resolution,
        params.background == false || params.progressive_refine, params.background,
-       max(params.device.multi_devices.size(), 1))
+       max(params.device.multi_devices.size(), 1)),
+  stats()
 {
 	device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);
 
 	TaskScheduler::init(params.threads);
 
-	device = Device::create(params.device, params.background, params.threads);
+	device = Device::create(params.device, stats, params.background, params.threads);
 
 	if(params.background) {
 		buffers = NULL;

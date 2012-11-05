@@ -32,8 +32,8 @@ public:
 	boost::asio::io_service io_service;
 	tcp::socket socket;
 
-	NetworkDevice(const char *address)
-	: socket(io_service)
+	NetworkDevice(Stats &stats, const char *address)
+	: Device(stats), socket(io_service)
 	{
 		stringstream portstr;
 		portstr << SERVER_PORT;
@@ -202,9 +202,9 @@ public:
 	}
 };
 
-Device *device_network_create(DeviceInfo& info, const char *address)
+Device *device_network_create(DeviceInfo& info, Stats &stats, const char *address)
 {
-	return new NetworkDevice(address);
+	return new NetworkDevice(stats, address);
 }
 
 void device_network_info(vector<DeviceInfo>& devices)

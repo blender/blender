@@ -115,6 +115,7 @@ void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int
 int RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
 void RE_engine_update_progress(RenderEngine *engine, float progress);
+void RE_engine_update_memory_stats(RenderEngine *engine, float mem_used, float mem_peak);
 void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 
 int RE_engine_render(struct Render *re, int do_all);

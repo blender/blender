@@ -477,11 +477,15 @@ void BlenderSession::update_status_progress()
 	float progress;
 	double total_time;
 	char time_str[128];
+	float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
+	float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
 
 	get_status(status, substatus);
 	get_progress(progress, total_time);
 
-	timestatus = b_scene.name();
+	timestatus = string_printf("Mem: %.2fM, Peak: %.2fM | ", mem_used, mem_peak);
+
+	timestatus += b_scene.name();
 	if(b_rlay_name != "")
 		timestatus += ", "  + b_rlay_name;
 	timestatus += " | ";
@@ -494,6 +498,7 @@ void BlenderSession::update_status_progress()
 
 	if(status != last_status) {
 		b_engine.update_stats("", (timestatus + status).c_str());
+		b_engine.update_memory_stats(mem_used, mem_peak);
 		last_status = status;
 	}
 	if(progress != last_progress) {

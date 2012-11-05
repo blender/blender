@@ -295,7 +295,11 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 		if (rs->tothalo) spos += sprintf(spos, "Ha:%d ", rs->tothalo);
 		if (rs->totstrand) spos += sprintf(spos, "St:%d ", rs->totstrand);
 		if (rs->totlamp) spos += sprintf(spos, "La:%d ", rs->totlamp);
-		spos += sprintf(spos, "Mem:%.2fM (%.2fM, peak %.2fM) ", megs_used_memory, mmap_used_memory, megs_peak_memory);
+
+		if (rs->mem_peak == 0.0f)
+			spos += sprintf(spos, "Mem:%.2fM (%.2fM, peak %.2fM) ", megs_used_memory, mmap_used_memory, megs_peak_memory);
+		else
+			spos += sprintf(spos, "Mem:%.2fM, Peak: %.2fM ", rs->mem_used, rs->mem_peak);
 
 		if (rs->curfield)
 			spos += sprintf(spos, "Field %d ", rs->curfield);
