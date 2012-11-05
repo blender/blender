@@ -711,10 +711,13 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	string status, substatus;
 
 	if(!params.progressive) {
+		bool is_gpu = params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL;
+		bool is_multidevice = params.device.multi_devices.size() > 1;
+		bool is_cpu = params.device.type == DEVICE_CPU;
+
 		substatus = string_printf("Path Tracing Tile %d/%d", tile, num_tiles);
 
-		if(params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL ||
-			(params.device.type == DEVICE_CPU && num_tiles == 1)) {
+		if((is_gpu && !is_multidevice) || (is_cpu && num_tiles == 1)) {
 			/* when rendering on GPU multithreading happens within single tile, as in
 			 * tiles are handling sequentially and in this case we could display
 			 * currently rendering sample number
