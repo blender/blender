@@ -715,7 +715,7 @@ EOF
 
 # NOTE: this sounds strange, but make sure /dev/shm/ is writable by your user,
 #        otherwise syncronization primitives wouldn't be included into python
-if [[ "`stat -c '%a' /dev/shm/`" != "777" ]]; then
+if [[ "\`stat -c '%a' /dev/shm/\`" != "777" ]]; then
   echo "Error checking syncronization primitives"
   exit 1
 fi
