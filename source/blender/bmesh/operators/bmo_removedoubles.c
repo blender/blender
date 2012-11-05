@@ -488,72 +488,71 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 
 static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, const char *targetmapname)
 {
-	BMOIter oiter;
-	BMVert *v, *v2;
-	BMVert **verts = NULL;
-	BLI_array_declare(verts);
-	float dist, dist3;
-	int i, j, len, keepvert = 0;
+	BMVert  **verts;
+	int       verts_len;
 
-	dist = BMO_slot_float_get(op, "dist");
-	dist3 = dist * 3.0f;
+	int i, j, keepvert = 0;
 
-	i = 0;
-	BMO_ITER (v, &oiter, bm, op, "verts", BM_VERT) {
-		BLI_array_grow_one(verts);
-		verts[i++] = v;
-	}
+	const float dist  = BMO_slot_float_get(op, "dist");
+	const float dist3 = dist * 3.0f;
 
 	/* Test whether keep_verts arg exists and is non-empty */
 	if (BMO_slot_exists(op, "keep_verts")) {
+		BMOIter oiter;
 		keepvert = BMO_iter_new(&oiter, bm, op, "keep_verts", BM_VERT) != NULL;
 	}
 
+	/* get the verts as an array we can sort */
+	verts = BMO_slot_as_arrayN(op, "verts", &verts_len);
+
 	/* sort by vertex coordinates added together */
-	qsort(verts, BLI_array_count(verts), sizeof(void *), vergaverco);
+	qsort(verts, verts_len, sizeof(BMVert *), vergaverco);
 
 	/* Flag keep_verts */
 	if (keepvert) {
 		BMO_slot_buffer_flag_enable(bm, op, "keep_verts", BM_VERT, VERT_KEEP);
 	}
 
-	len = BLI_array_count(verts);
-	for (i = 0; i < len; i++) {
-		v = verts[i];
-		if (BMO_elem_flag_test(bm, v, VERT_DOUBLE)) {
+	for (i = 0; i < verts_len; i++) {
+		BMVert *v_check = verts[i];
+
+		if (BMO_elem_flag_test(bm, v_check, VERT_DOUBLE)) {
 			continue;
 		}
 
-		for (j = i + 1; j < len; j++) {
-			v2 = verts[j];
+		for (j = i + 1; j < verts_len; j++) {
+			BMVert *v_other = verts[j];
 
 			/* Compare sort values of the verts using 3x tolerance (allowing for the tolerance
 			 * on each of the three axes). This avoids the more expensive length comparison
 			 * for most vertex pairs. */
-			if ((v2->co[0] + v2->co[1] + v2->co[2]) - (v->co[0] + v->co[1] + v->co[2]) > dist3)
+			if ((v_other->co[0] + v_other->co[1] + v_other->co[2]) -
+			    (v_check->co[0] + v_check->co[1] + v_check->co[2]) > dist3)
+			{
 				break;
+			}
 
 			if (keepvert) {
-				if (BMO_elem_flag_test(bm, v2, VERT_KEEP) == BMO_elem_flag_test(bm, v, VERT_KEEP))
+				if (BMO_elem_flag_test(bm, v_other, VERT_KEEP) == BMO_elem_flag_test(bm, v_check, VERT_KEEP))
 					continue;
 			}
 
-			if (compare_len_v3v3(v->co, v2->co, dist)) {
+			if (compare_len_v3v3(v_check->co, v_other->co, dist)) {
 
 				/* If one vert is marked as keep, make sure it will be the target */
-				if (BMO_elem_flag_test(bm, v2, VERT_KEEP)) {
-					SWAP(BMVert *, v, v2);
+				if (BMO_elem_flag_test(bm, v_other, VERT_KEEP)) {
+					SWAP(BMVert *, v_check, v_other);
 				}
 
-				BMO_elem_flag_enable(bm, v2, VERT_DOUBLE);
-				BMO_elem_flag_enable(bm, v, VERT_TARGET);
+				BMO_elem_flag_enable(bm, v_other, VERT_DOUBLE);
+				BMO_elem_flag_enable(bm, v_check, VERT_TARGET);
 
-				BMO_slot_map_ptr_insert(bm, optarget, targetmapname, v2, v);
+				BMO_slot_map_ptr_insert(bm, optarget, targetmapname, v_other, v_check);
 			}
 		}
 	}
 
-	BLI_array_free(verts);
+	MEM_freeN(verts);
 }
 
 void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op)

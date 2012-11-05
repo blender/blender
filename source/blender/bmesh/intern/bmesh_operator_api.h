@@ -285,6 +285,8 @@ void  BMO_slot_int_set(BMOperator *op, const char *slot_name, const int i);
 int   BMO_slot_int_get(BMOperator *op, const char *slot_name);
 void  BMO_slot_bool_set(BMOperator *op, const char *slot_name, const int i);
 int   BMO_slot_bool_get(BMOperator *op, const char *slot_name);
+void *BMO_slot_as_arrayN(BMOperator *op, const char *slot_name, int *len);
+
 
 /* don't pass in arrays that are supposed to map to elements this way.
  *
