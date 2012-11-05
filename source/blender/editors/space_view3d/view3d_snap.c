@@ -214,9 +214,22 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3],
 	TransVert *tv = userdata[1];
 	BMVert *eve = EDBM_vert_at_index(em, index);
 	
-	if (BM_elem_index_get(eve) != TM_INDEX_SKIP && !(tv[BM_elem_index_get(eve)].flag & TX_VERT_USE_MAPLOC)) {
-		copy_v3_v3(tv[BM_elem_index_get(eve)].maploc, co);
-		tv[BM_elem_index_get(eve)].flag |= TX_VERT_USE_MAPLOC;
+	if (BM_elem_index_get(eve) != TM_INDEX_SKIP) {
+		tv = &tv[BM_elem_index_get(eve)];
+
+		/* be clever, get the closest vertex to the original,
+		 * behaves most logically when the mirror modifier is used for eg [#33051]*/
+		if ((tv->flag & TX_VERT_USE_MAPLOC) == 0) {
+			/* first time */
+			copy_v3_v3(tv->maploc, co);
+			tv->flag |= TX_VERT_USE_MAPLOC;
+		}
+		else {
+			/* find best location to use */
+			if (len_squared_v3v3(eve->co, co) < len_squared_v3v3(eve->co, tv->maploc)) {
+				copy_v3_v3(tv->maploc, co);
+			}
+		}
 	}
 }
 
