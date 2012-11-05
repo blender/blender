@@ -8299,7 +8299,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	{
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 7)) {
 		/* convert tiles size from resolution and number of tiles */
 		{
 			Scene *scene;
@@ -8314,19 +8314,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-	}
-	
-	{
-		Object *ob;
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			if (ob->col_group == 0) {
-				ob->col_group = 0x01;
-				ob->col_mask = 0xff;
+
+		/* collision masks */
+		{
+			Object *ob;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				if (ob->col_group == 0) {
+					ob->col_group = 0x01;
+					ob->col_mask = 0xff;
+				}
 			}
 		}
-	}
 
-	{
 		/* fallbck resection method settings */
 		{
 			MovieClip *clip;
