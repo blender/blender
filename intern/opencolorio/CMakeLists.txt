@@ -23,23 +23,23 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-	set(INC
-		.
+set(INC
+	.
 	../guardedalloc
 	../../source/blender/blenlib
 )
 
 set(INC_SYS
 
-	)
+)
 
-	set(SRC
+set(SRC
 	ocio_capi.cc
 	fallback_impl.cc
 
-		ocio_capi.h
+	ocio_capi.h
 	ocio_impl.h
-	)
+)
 
 if(WITH_OPENCOLORIO)
 	add_definitions(
@@ -52,12 +52,12 @@ if(WITH_OPENCOLORIO)
 
 	list(APPEND SRC
 		ocio_impl.cc
-)
+	)
 
 	if(WIN32 AND NOT MINGW)
 		list(APPEND INC_SYS
 			${BOOST_INCLUDE_DIR}
-)
+		)
 	endif()
 endif()
 
