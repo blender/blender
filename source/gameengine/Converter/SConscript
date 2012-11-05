@@ -24,6 +24,7 @@ incs += ' #extern/recastnavigation/Detour/Include'
 incs += ' #extern/Eigen3'
 
 incs += ' ' + env['BF_BULLET_INC']
+incs += ' ' + env['BF_BOOST_INC']
 
 if env['BF_DEBUG']:
     if env['OURPLATFORM'] in ('win32-mingw', 'win32-vc', 'win64-vc', 'win64-mingw'):

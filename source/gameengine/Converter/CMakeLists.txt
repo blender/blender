@@ -59,7 +59,7 @@ set(INC_SYS
 	../../../extern/recastnavigation/Detour/Include
 	../../../extern/Eigen3
 	${PTHREADS_INCLUDE_DIRS}
-
+	${BOOST_INCLUDE_DIR}
 )
 
 set(SRC

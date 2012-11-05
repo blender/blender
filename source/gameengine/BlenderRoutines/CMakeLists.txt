@@ -33,6 +33,7 @@ set(INC_SYS
 	../../../extern/bullet2/src
 	${PTHREADS_INCLUDE_DIRS}
 	${GLEW_INCLUDE_PATH}
+	${BOOST_INCLUDE_DIR}
 )
 
 set(SRC
