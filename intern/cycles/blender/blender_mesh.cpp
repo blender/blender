@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+ 
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
@@ -121,20 +122,20 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 	MikkUserData userdata(b_mesh, b_layer, nverts.size());
 
 	/* setup interface */
-	SMikkTSpaceInterface interface;
-	memset(&interface, 0, sizeof(interface));
-	interface.m_getNumFaces = mikk_get_num_faces;
-	interface.m_getNumVerticesOfFace = mikk_get_num_verts_of_face;
-	interface.m_getPosition = mikk_get_position;
-	interface.m_getTexCoord = mikk_get_texture_coordinate;
-	interface.m_getNormal = mikk_get_normal;
-	interface.m_setTSpaceBasic = mikk_set_tangent_space;
+	SMikkTSpaceInterface sm_interface;
+	memset(&sm_interface, 0, sizeof(sm_interface));
+	sm_interface.m_getNumFaces = mikk_get_num_faces;
+	sm_interface.m_getNumVerticesOfFace = mikk_get_num_verts_of_face;
+	sm_interface.m_getPosition = mikk_get_position;
+	sm_interface.m_getTexCoord = mikk_get_texture_coordinate;
+	sm_interface.m_getNormal = mikk_get_normal;
+	sm_interface.m_setTSpaceBasic = mikk_set_tangent_space;
 
 	/* setup context */
 	SMikkTSpaceContext context;
 	memset(&context, 0, sizeof(context));
 	context.m_pUserData = &userdata;
-	context.m_pInterface = &interface;
+	context.m_pInterface = &sm_interface;
 
 	/* compute tangents */
 	genTangSpaceDefault(&context);
