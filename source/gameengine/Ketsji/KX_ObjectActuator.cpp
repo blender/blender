@@ -117,7 +117,7 @@ bool KX_ObjectActuator::Update()
 		}
 
 		// Explicitly stop the movement if we're using a character (apply movement is a little different for characters)
-		if (parent->GetPhysicsController()->IsCharacter()) {
+		if (parent->GetPhysicsController() && parent->GetPhysicsController()->IsCharacter()) {
 			MT_Vector3 vec(0.0, 0.0, 0.0);
 			parent->ApplyMovement(vec, true);
 		}
