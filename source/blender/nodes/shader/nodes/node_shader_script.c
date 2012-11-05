@@ -46,15 +46,16 @@ static void node_free_script(bNode *node)
 	NodeShaderScript *nss = node->storage;
 
 	if (nss) {
-		if (nss->bytecode)
+		if (nss->bytecode) {
 			MEM_freeN(nss->bytecode);
+		}
+
+		if (nss->prop) {
+			IDP_FreeProperty(nss->prop);
+			MEM_freeN(nss->prop);
+		}
 
 		MEM_freeN(nss);
-	}
-
-	if (nss->prop) {
-		IDP_FreeProperty(nss->prop);
-		MEM_freeN(nss->prop);
 	}
 }
 
