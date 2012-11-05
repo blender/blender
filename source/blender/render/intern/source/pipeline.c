@@ -677,6 +677,7 @@ float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
 	float borderfac = (float)BLI_rcti_size_x(&re->disprect) / (float)re->winx;
+	int xparts = (re->rectx + re->partx - 1) / re->partx;
 	
 	/* size of 1 pixel mapped to viewplane coords */
 	psize = BLI_rctf_size_x(&re->viewplane) / (float)re->winx;
@@ -684,7 +685,7 @@ float panorama_pixel_rot(Render *re)
 	phi = atan(psize / re->clipsta);
 	
 	/* correction factor for viewplane shifting, first calculate how much the viewplane angle is */
-	xfac = borderfac * BLI_rctf_size_x(&re->viewplane) / (float)re->xparts;
+	xfac = borderfac * BLI_rctf_size_x(&re->viewplane) / (float)xparts;
 	xfac = atan(0.5f * xfac / re->clipsta);
 	/* and how much the same viewplane angle is wrapped */
 	psize = 0.5f * phi * ((float)re->partx);

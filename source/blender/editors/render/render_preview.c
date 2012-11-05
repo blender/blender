@@ -266,10 +266,13 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		BKE_color_managed_view_settings_copy(&sce->view_settings, &scene->view_settings);
 		
 		/* prevent overhead for small renders and icons (32) */
-		if (id && sp->sizex < 40)
-			sce->r.xparts = sce->r.yparts = 1;
-		else
-			sce->r.xparts = sce->r.yparts = 4;
+		if (id && sp->sizex < 40) {
+			sce->r.tilex = sce->r.tiley = 64;
+		}
+		else {
+			sce->r.tilex = sce->r.xsch / 4;
+			sce->r.tiley = sce->r.ysch / 4;
+		}
 		
 		/* exception: don't apply render part of display transform for texture previews or icons */
 		if ((id && sp->pr_method == PR_ICON_RENDER) || id_type == ID_TE) {

@@ -555,30 +555,16 @@ void initparts(Render *re, int do_crop)
 	xmaxb = re->disprect.xmax;
 	ymaxb = re->disprect.ymax;
 	
-	xparts = re->r.xparts;
-	yparts = re->r.yparts;
-	
-	/* minimum part size */
-	if (re->r.mode & R_PANORAMA) {
-		if (ceil(re->rectx / (float)xparts) < 8)
-			xparts = 1 + re->rectx / 8;
-	}
-	else {
-		if (ceil(re->rectx / (float)xparts) < 64)
-			xparts = 1 + re->rectx / 64;
-	}
-	
-	if (ceil(re->recty / (float)yparts) < 64)
-		yparts = 1 + re->recty / 64;
-
 	/* part size */
-	partx = ceil(re->rectx / (float)xparts);
-	party = ceil(re->recty / (float)yparts);
+	partx = min_ii(re->r.tilex, re->rectx);
+	party = min_ii(re->r.tiley, re->recty);
 	
-	re->xparts = xparts;
-	re->yparts = yparts;
 	re->partx = partx;
 	re->party = party;
+	
+	/* part count */
+	xparts = (re->rectx + partx - 1) / partx;
+	yparts = (re->recty + party - 1) / party;
 	
 	/* calculate rotation factor of 1 pixel */
 	if (re->r.mode & R_PANORAMA)

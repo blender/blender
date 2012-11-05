@@ -193,10 +193,10 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(rd, "threads")
 
         sub = col.column(align=True)
-        sub.label(text="Tiles:")
+        sub.label(text="Tile Size:")
 
-        sub.prop(rd, "parts_x", text="X")
-        sub.prop(rd, "parts_y", text="Y")
+        sub.prop(rd, "tile_x", text="X")
+        sub.prop(rd, "tile_y", text="Y")
 
         sub.prop(cscene, "use_progressive_refine")
 

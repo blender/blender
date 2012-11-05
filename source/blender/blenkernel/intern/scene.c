@@ -368,8 +368,8 @@ Scene *BKE_scene_add(const char *name)
 	sce->r.ysch = 1080;
 	sce->r.xasp = 1;
 	sce->r.yasp = 1;
-	sce->r.xparts = 8;
-	sce->r.yparts = 8;
+	sce->r.tilex = 256;
+	sce->r.tiley = 256;
 	sce->r.mblur_samples = 1;
 	sce->r.filtertype = R_FILTER_MITCH;
 	sce->r.size = 50;

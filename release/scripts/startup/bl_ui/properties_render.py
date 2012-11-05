@@ -340,9 +340,9 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
         subsub.prop(rd, "threads")
         
         sub = col.column(align=True)
-        sub.label(text="Tiles:")
-        sub.prop(rd, "parts_x", text="X")
-        sub.prop(rd, "parts_y", text="Y")
+        sub.label(text="Tile Size:")
+        sub.prop(rd, "tile_x", text="X")
+        sub.prop(rd, "tile_y", text="Y")
 
         col = split.column()
         col.label(text="Memory:")

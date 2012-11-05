@@ -3395,16 +3395,16 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Resolution %", "Percentage scale for render resolution");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
-	prop = RNA_def_property(srna, "parts_x", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "xparts");
-	RNA_def_property_range(prop, 1, 512);
-	RNA_def_property_ui_text(prop, "Parts X", "Number of horizontal tiles to use while rendering");
+	prop = RNA_def_property(srna, "tile_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "tilex");
+	RNA_def_property_range(prop, 8, 10000);
+	RNA_def_property_ui_text(prop, "Tile X", "Horizontal tile size to use while rendering");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
-	prop = RNA_def_property(srna, "parts_y", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "yparts");
-	RNA_def_property_range(prop, 1, 512);
-	RNA_def_property_ui_text(prop, "Parts Y", "Number of vertical tiles to use while rendering");
+	prop = RNA_def_property(srna, "tile_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "tiley");
+	RNA_def_property_range(prop, 8, 10000);
+	RNA_def_property_ui_text(prop, "Tile Y", "Vertical tile size to use while rendering");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "pixel_aspect_x", PROP_FLOAT, PROP_NONE);
