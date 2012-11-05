@@ -138,12 +138,6 @@ static void do_node_add_group(bContext *C, void *UNUSED(arg), int event)
 			case NODE_GROUP:
 				ntemp.ngroup = ntreeAddTree("Group", snode->treetype, ntemp.type);
 				break;
-			case NODE_FORLOOP:
-				ntemp.ngroup = ntreeAddTree("For Loop", snode->treetype, ntemp.type);
-				break;
-			case NODE_WHILELOOP:
-				ntemp.ngroup = ntreeAddTree("While Loop", snode->treetype, ntemp.type);
-				break;
 			default:
 				ntemp.ngroup = NULL;
 		}
@@ -199,15 +193,11 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 		/* XXX hack: negative numbers used for empty group types */
 		if (node_tree_has_type(ntree->type, NODE_GROUP))
 			uiItemV(layout, IFACE_("New Group"), 0, -NODE_GROUP);
-		if (node_tree_has_type(ntree->type, NODE_FORLOOP))
-			uiItemV(layout, IFACE_("New For Loop"), 0, -NODE_FORLOOP);
-		if (node_tree_has_type(ntree->type, NODE_WHILELOOP))
-			uiItemV(layout, IFACE_("New While Loop"), 0, -NODE_WHILELOOP);
 		uiItemS(layout);
 		
 		for (ngroup = bmain->nodetree.first, event = 0; ngroup; ngroup = ngroup->id.next, ++event) {
 			/* only use group trees */
-			if (ngroup->type == ntree->type && ELEM3(ngroup->nodetype, NODE_GROUP, NODE_FORLOOP, NODE_WHILELOOP)) {
+			if (ngroup->type == ntree->type && ngroup->nodetype == NODE_GROUP) {
 				uiItemV(layout, ngroup->id.name + 2, 0, event);
 			}
 		}

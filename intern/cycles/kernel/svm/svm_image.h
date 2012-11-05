@@ -52,6 +52,12 @@ __device_inline float svm_image_texture_frac(float x, int *ix)
 
 __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y, uint srgb)
 {
+	/* first slots are used by float textures, which are not supported here */
+	if(id < TEX_NUM_FLOAT_IMAGES)
+		return make_float4(1.0f, 0.0f, 1.0f, 1.0f);
+
+	id -= TEX_NUM_FLOAT_IMAGES;
+
 	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id);
 	uint width = info.x;
 	uint height = info.y;
@@ -265,7 +271,7 @@ __device void svm_node_tex_image_box(KernelGlobals *kg, ShaderData *sd, float *s
 	 * between three textures.
 	 *
 	 * the Nxyz values are the barycentric coordinates in an equilateral
-	 * triangle, which in case of blending in the middle has a smaller
+	 * triangle, which in case of blending, in the middle has a smaller
 	 * equilateral triangle where 3 textures blend. this divides things into
 	 * 7 zones, with an if() test for each zone */
 

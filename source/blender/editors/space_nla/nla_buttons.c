@@ -67,14 +67,11 @@
 
 /* ******************* nla editor space & buttons ************** */
 
-#define B_NOP       1
-#define B_REDR      2
-
 /* -------------- */
 
 static void do_nla_region_buttons(bContext *C, void *UNUSED(arg), int event)
 {
-	//Scene *scene= CTX_data_scene(C);
+	//Scene *scene = CTX_data_scene(C);
 	
 	switch (event) {
 
@@ -159,7 +156,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 						found = -1;
 					}
 				}
-			}	
+			}
 			break;
 		}
 		
@@ -245,7 +242,7 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
 	if (!nla_panel_context(C, &adt_ptr, NULL, NULL))
 		return;
 
-	/* adt= adt_ptr.data; */
+	/* adt = adt_ptr.data; */
 	
 	block = uiLayoutGetBlock(layout);
 	uiBlockSetHandleFunc(block, do_nla_region_buttons, NULL);
@@ -408,7 +405,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 	uiItemR(col, &strip_ptr, "use_animated_influence", 0, NULL, ICON_NONE);
 	
 	sub = uiLayoutColumn(col, TRUE);
-	uiLayoutSetEnabled(sub, RNA_boolean_get(&strip_ptr, "use_animated_influence"));	
+	uiLayoutSetEnabled(sub, RNA_boolean_get(&strip_ptr, "use_animated_influence"));
 	uiItemR(sub, &strip_ptr, "influence", 0, NULL, ICON_NONE);
 
 	col = uiLayoutColumn(layout, TRUE);

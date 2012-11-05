@@ -7,6 +7,7 @@ set(INC
 	../util
 	../subd
 	../../guardedalloc
+	../../mikktspace
 	../../../source/blender/makesdna
 	../../../source/blender/makesrna
 	../../../source/blender/blenloader
@@ -38,6 +39,7 @@ set(ADDON_FILES
 	addon/__init__.py
 	addon/engine.py 
 	addon/enums.py
+	addon/osl.py
 	addon/presets.py
 	addon/properties.py
 	addon/ui.py

@@ -34,8 +34,8 @@
 #define __GPG_KEYBOARDDEVICE_H__
 
 #ifdef WIN32
-#pragma warning (disable : 4786)
-#endif // WIN32
+#pragma warning (disable:4786)
+#endif  /* WIN32 */
 
 #include "GHOST_Types.h"
 #include "GPC_KeyboardDevice.h"
@@ -53,5 +53,4 @@ public:
 	virtual ~GPG_KeyboardDevice(void);
 };
 
-#endif //__GPG_KEYBOARDDEVICE_H__
-
+#endif  /* __GPG_KEYBOARDDEVICE_H__ */

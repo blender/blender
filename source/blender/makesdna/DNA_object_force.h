@@ -54,6 +54,7 @@ typedef enum PFieldType {
 	PFIELD_BOID       = 10,	/* Defines predator / goal for boids									*/
 	PFIELD_TURBULENCE = 11,	/* Force defined by BLI_gTurbulence										*/
 	PFIELD_DRAG       = 12,	/* Linear & quadratic drag												*/
+	PFIELD_SMOKEFLOW  = 13,	/* Force based on smoke simulation air flow								*/
 	NUM_PFIELD_TYPES
 } PFieldType;
 	
@@ -110,14 +111,17 @@ typedef struct PartDeflect {
 	struct RNG *rng;	/* random noise generator for e.g. wind */
 	float f_noise;		/* noise of force						*/
 	int seed;			/* noise random seed					*/
+
+	struct Object *f_source; /* force source object */
 } PartDeflect;
 
 typedef struct EffectorWeights {
 	struct Group *group;		/* only use effectors from this group of objects */
 	
-	float weight[13];			/* effector type specific weights */
+	float weight[14];			/* effector type specific weights */
 	float global_gravity;
 	short flag, rt[3];
+	int pad;
 } EffectorWeights;
 
 /* EffectorWeights->flag */
@@ -276,7 +280,7 @@ typedef struct SoftBody {
 	float nodemass;		/* softbody mass of *vertex* */
 	char  namedVG_Mass[64]; /* MAX_VGROUP_NAME */
 	                        /* along with it introduce mass painting
-	                         * starting to fix old bug .. nastyness that VG are indexes
+	                         * starting to fix old bug .. nastiness that VG are indexes
 	                         * rather find them by name tag to find it -> jow20090613 */
 	float grav;			/* softbody amount of gravitaion to apply */
 	float mediafrict;	/* friction to env */
@@ -291,7 +295,7 @@ typedef struct SoftBody {
 	float defgoal;		/* default goal for vertices without vgroup */
 	short vertgroup;	/* index starting at 1 */
 	char  namedVG_Softgoal[64]; /* MAX_VGROUP_NAME */
-	                            /* starting to fix old bug .. nastyness that VG are indexes
+	                            /* starting to fix old bug .. nastiness that VG are indexes
 	                             * rather find them by name tag to find it -> jow20090613 */
   
 	short fuzzyness;      /* */
@@ -301,7 +305,7 @@ typedef struct SoftBody {
 	float infrict;		/* softbody inner springs friction */
 	char  namedVG_Spring_K[64]; /* MAX_VGROUP_NAME */
 	                            /* along with it introduce Spring_K painting
-	                             * starting to fix old bug .. nastyness that VG are indexes
+	                             * starting to fix old bug .. nastiness that VG are indexes
 	                             * rather find them by name tag to find it -> jow20090613 */
 	
 	/* baking */
@@ -365,6 +369,7 @@ typedef struct SoftBody {
 #define PFIELD_DO_LOCATION		(1<<14)
 #define PFIELD_DO_ROTATION		(1<<15)
 #define PFIELD_GUIDE_PATH_WEIGHT (1<<16)	/* apply curve weights */
+#define PFIELD_SMOKE_DENSITY    (1<<17)		/* multiply smoke force by density */
 
 /* pd->falloff */
 #define PFIELD_FALL_SPHERE		0
@@ -395,7 +400,7 @@ typedef struct SoftBody {
 //#define PTCACHE_BAKE_EDIT			16
 //#define PTCACHE_BAKE_EDIT_ACTIVE	32
 #define PTCACHE_DISK_CACHE			64
-#define PTCACHE_QUICK_CACHE			128
+//#define PTCACHE_QUICK_CACHE		128  /* removed since 2.64 - [#30974], could be added back in a more useful way */
 #define PTCACHE_FRAMES_SKIPPED		256
 #define PTCACHE_EXTERNAL			512
 #define PTCACHE_READ_INFO			1024

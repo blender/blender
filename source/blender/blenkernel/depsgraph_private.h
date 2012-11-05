@@ -61,7 +61,7 @@ typedef struct DagAdjList {
 typedef struct DagNode {
 	int color;
 	short type;
-	float x, y, k;	
+	float x, y, k;
 	void *ob;
 	void *first_ancestor;
 	int ancestor_count;

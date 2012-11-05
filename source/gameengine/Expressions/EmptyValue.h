@@ -45,5 +45,4 @@ public:
 #endif
 };
 
-#endif // !defined __EMPTYVALUE_H__
-
+#endif  /* __EMPTYVALUE_H__ */

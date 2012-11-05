@@ -87,16 +87,16 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
 	int miny = y - this->m_rad;
 	int maxy = y + this->m_rad;
 	int minx = x;
-	int maxx = x;
+	// int maxx = x;  // UNUSED
 	miny = max(miny, inputBuffer->getRect()->ymin);
 	minx = max(minx, inputBuffer->getRect()->xmin);
-	maxy = min(maxy, inputBuffer->getRect()->ymax);
-	maxx = min(maxx, inputBuffer->getRect()->xmax);
+	maxy = min(maxy, inputBuffer->getRect()->ymax - 1);
+	// maxx = min(maxx, inputBuffer->getRect()->xmax);
 
 	int index;
 	int step = getStep();
-	const int bufferIndexx = ((minx - bufferstartx) * 4) ;
-	for (int ny = miny; ny < maxy; ny += step) {
+	const int bufferIndexx = ((minx - bufferstartx) * 4);
+	for (int ny = miny; ny <= maxy; ny += step) {
 		index = (ny - y) + this->m_rad;
 		int bufferindex = bufferIndexx + ((ny - bufferstarty) * 4 * bufferwidth);
 		const float multiplier = this->m_gausstab[index];
@@ -109,8 +109,10 @@ void GaussianYBlurOperation::executePixel(float output[4], int x, int y, void *d
 void GaussianYBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	MEM_freeN(this->m_gausstab);
-	this->m_gausstab = NULL;
+	if (this->m_gausstab) {
+		MEM_freeN(this->m_gausstab);
+		this->m_gausstab = NULL;
+	}
 
 	deinitMutex();
 }

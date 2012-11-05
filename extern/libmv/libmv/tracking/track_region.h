@@ -90,6 +90,11 @@ struct TrackRegionOptions {
   // If zero, no regularization is used.
   double regularization_coefficient;
 
+  // If the maximum shift of any patch corner between successful iterations of
+  // the solver is less than this amount, then the tracking is declared
+  // successful. The solver termination becomes PARAMETER_TOLERANCE.
+  double minimum_corner_shift_tolerance_pixels;
+
   // If non-null, this is used as the pattern mask. It should match the size of
   // image1, even though only values inside the image1 quad are examined. The
   // values must be in the range 0.0 to 0.1.
@@ -111,6 +116,7 @@ struct TrackRegionResult {
     DESTINATION_OUT_OF_BOUNDS,
     FELL_OUT_OF_BOUNDS,
     INSUFFICIENT_CORRELATION,
+    INSUFFICIENT_PATTERN_AREA,
     CONFIGURATION_ERROR,
   };
   Termination termination;

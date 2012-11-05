@@ -52,5 +52,4 @@ public:
 #endif
 };
 
-#endif //__SCA_PROPERTYEVENTMANAGER_H__
-
+#endif  /* __SCA_PROPERTYEVENTMANAGER_H__ */

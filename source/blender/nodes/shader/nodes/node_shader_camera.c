@@ -33,7 +33,7 @@
 #include "node_shader_util.h"
 
 /* **************** CAMERA INFO  ******************** */
-static bNodeSocketTemplate sh_node_camera_out[]= {
+static bNodeSocketTemplate sh_node_camera_out[] = {
 	{	SOCK_VECTOR, 0, N_("View Vector")},
 	{	SOCK_FLOAT, 0, N_("View Z Depth")},
 	{	SOCK_FLOAT, 0, N_("View Distance")},
@@ -47,8 +47,8 @@ static void node_shader_exec_camera(void *data, bNode *UNUSED(node), bNodeStack 
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;  /* Data we need for shading. */
 		
 		copy_v3_v3(out[0]->vec, shi->co);		/* get view vector */
-		out[1]->vec[0]= fabs(shi->co[2]);		/* get view z-depth */
-		out[2]->vec[0]= normalize_v3(out[0]->vec);	/* get view distance */
+		out[1]->vec[0] = fabs(shi->co[2]);		/* get view z-depth */
+		out[2]->vec[0] = normalize_v3(out[0]->vec);	/* get view distance */
 	}
 }
 

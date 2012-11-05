@@ -53,9 +53,12 @@ void MixColorOperation::executePixel(float output[4], float x, float y, PixelSam
 		float tmpr, tmpg, tmpb;
 		rgb_to_hsv(inputColor1[0], inputColor1[1], inputColor1[2], &rH, &rS, &rV);
 		hsv_to_rgb(colH, colS, rV, &tmpr, &tmpg, &tmpb);
-		output[0] = valuem * (inputColor1[0]) + value * tmpr;
-		output[1] = valuem * (inputColor1[1]) + value * tmpg;
-		output[2] = valuem * (inputColor1[2]) + value * tmpb;
+		output[0] = (valuem * inputColor1[0]) + (value * tmpr);
+		output[1] = (valuem * inputColor1[1]) + (value * tmpg);
+		output[2] = (valuem * inputColor1[2]) + (value * tmpb);
+	}
+	else {
+		copy_v3_v3(output, inputColor1);
 	}
 	output[3] = inputColor1[3];
 

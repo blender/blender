@@ -77,7 +77,7 @@ RTBuilder *rtbuild_create(int size)
 	for (int i = 0; i < 3; i++) {
 		builder->sorted_begin[i] = (RTBuilder::Object **)MEM_mallocN(sizeof(RTBuilder::Object *) * size, "RTBuilder.sorted_objects");
 		builder->sorted_end[i]   = builder->sorted_begin[i];
-	} 
+	}
 	
 
 	return builder;
@@ -185,7 +185,7 @@ RTBuilder *rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 	return tmp;
 }
 
-void rtbuild_calc_bb(RTBuilder *b)
+static void rtbuild_calc_bb(RTBuilder *b)
 {
 	if (b->bb[0] == 1.0e30f) {
 		for (RTBuilder::Object **index = b->sorted_begin[0]; index != b->sorted_end[0]; index++)
@@ -193,7 +193,7 @@ void rtbuild_calc_bb(RTBuilder *b)
 	}
 }
 
-void rtbuild_merge_bb(RTBuilder *b, float *min, float *max)
+void rtbuild_merge_bb(RTBuilder *b, float min[3], float max[3])
 {
 	rtbuild_calc_bb(b);
 	DO_MIN(b->bb, min);
@@ -224,7 +224,7 @@ int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 	Mleafs_per_child = s / nchilds;
 	mleafs_per_child = Mleafs_per_child / nchilds;
 	
-	//split min leafs per child	
+	//split min leafs per child
 	b->child_offset[0] = 0;
 	for (i = 1; i <= nchilds; i++)
 		b->child_offset[i] = mleafs_per_child;
@@ -295,7 +295,7 @@ int rtbuild_median_split(RTBuilder *b, float *separators, int nchilds, int axis)
 				return rtbuild_mean_split(b, nchilds, axis);
 		
 		return nchilds;
-	}	
+	}
 }
 
 int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds)
@@ -324,7 +324,7 @@ struct SweepCost {
 /* Object Surface Area Heuristic splitter */
 int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 {
-	int size = rtbuild_size(b);		
+	int size = rtbuild_size(b);
 	assert(nchilds == 2);
 	assert(size > 1);
 	int baxis = -1, boffset = 0;
@@ -348,12 +348,12 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 					sweep[i].cost = obj[i]->cost;
 				}
 				else {
-					sweep[i].bb[0] = MIN2(obj[i]->bb[0], sweep[i + 1].bb[0]);
-					sweep[i].bb[1] = MIN2(obj[i]->bb[1], sweep[i + 1].bb[1]);
-					sweep[i].bb[2] = MIN2(obj[i]->bb[2], sweep[i + 1].bb[2]);
-					sweep[i].bb[3] = MAX2(obj[i]->bb[3], sweep[i + 1].bb[3]);
-					sweep[i].bb[4] = MAX2(obj[i]->bb[4], sweep[i + 1].bb[4]);
-					sweep[i].bb[5] = MAX2(obj[i]->bb[5], sweep[i + 1].bb[5]);
+					sweep[i].bb[0] = min_ff(obj[i]->bb[0], sweep[i + 1].bb[0]);
+					sweep[i].bb[1] = min_ff(obj[i]->bb[1], sweep[i + 1].bb[1]);
+					sweep[i].bb[2] = min_ff(obj[i]->bb[2], sweep[i + 1].bb[2]);
+					sweep[i].bb[3] = max_ff(obj[i]->bb[3], sweep[i + 1].bb[3]);
+					sweep[i].bb[4] = max_ff(obj[i]->bb[4], sweep[i + 1].bb[4]);
+					sweep[i].bb[5] = max_ff(obj[i]->bb[5], sweep[i + 1].bb[5]);
 					sweep[i].cost  = obj[i]->cost + sweep[i + 1].cost;
 				}
 //				right_cost += obj[i]->cost;
@@ -375,8 +375,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				
 				// not using log seems to have no impact on raytracing perf, but
 				// makes tree construction quicker, left out for now to test (brecht)
-				// left_side = bb_area(sweep_left.bb, sweep_left.bb+3)*(sweep_left.cost+logf((float)i));
-				// right_side= bb_area(sweep[i].bb, sweep[i].bb+3)*(sweep[i].cost+logf((float)size-i));
+				// left_side  = bb_area(sweep_left.bb, sweep_left.bb + 3) * (sweep_left.cost + logf((float)i));
+				// right_side = bb_area(sweep[i].bb,   sweep[i].bb   + 3) * (sweep[i].cost   + logf((float)size - i));
 				left_side = bb_area(sweep_left.bb, sweep_left.bb + 3) * (sweep_left.cost);
 				right_side = bb_area(sweep[i].bb, sweep[i].bb + 3) * (sweep[i].cost);
 				hcost = left_side + right_side;
@@ -429,7 +429,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 	for (int i = 0; i < 3; i++)
 		std::stable_partition(b->sorted_begin[i], b->sorted_end[i], selected_node);
 
-	return nchilds;		
+	return nchilds;
 }
 
 /*
@@ -457,26 +457,26 @@ static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis)
 /*
  * Bounding Box utils
  */
-float bb_volume(float *min, float *max)
+float bb_volume(const float min[3], const float max[3])
 {
 	return (max[0] - min[0]) * (max[1] - min[1]) * (max[2] - min[2]);
 }
 
-float bb_area(float *min, float *max)
+float bb_area(const float min[3], const float max[3])
 {
 	float sub[3], a;
 	sub[0] = max[0] - min[0];
 	sub[1] = max[1] - min[1];
 	sub[2] = max[2] - min[2];
 
-	a = (sub[0] * sub[1] + sub[0] * sub[2] + sub[1] * sub[2]) * 2;
+	a = (sub[0] * sub[1] + sub[0] * sub[2] + sub[1] * sub[2]) * 2.0f;
 	/* used to have an assert() here on negative results
 	 * however, in this case its likely some overflow or ffast math error.
 	 * so just return 0.0f instead. */
 	return a < 0.0f ? 0.0f : a;
 }
 
-int bb_largest_axis(float *min, float *max)
+int bb_largest_axis(const float min[3], const float max[3])
 {
 	float sub[3];
 	
@@ -494,10 +494,12 @@ int bb_largest_axis(float *min, float *max)
 			return 1;
 		else
 			return 2;
-	}	
+	}
 }
 
-int bb_fits_inside(float *outer_min, float *outer_max, float *inner_min, float *inner_max)
+/* only returns 0 if merging inner and outerbox would create a box larger than outer box */
+int bb_fits_inside(const float outer_min[3], const float outer_max[3],
+                   const float inner_min[3], const float inner_max[3])
 {
 	int i;
 	for (i = 0; i < 3; i++)
@@ -506,5 +508,5 @@ int bb_fits_inside(float *outer_min, float *outer_max, float *inner_min, float *
 	for (i = 0; i < 3; i++)
 		if (outer_max[i] < inner_max[i]) return 0;
 
-	return 1;	
+	return 1;
 }

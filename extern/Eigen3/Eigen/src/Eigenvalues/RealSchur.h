@@ -4,30 +4,16 @@
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_REAL_SCHUR_H
 #define EIGEN_REAL_SCHUR_H
 
-#include "./EigenvaluesCommon.h"
 #include "./HessenbergDecomposition.h"
+
+namespace Eigen { 
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   *
@@ -235,42 +221,44 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
   // Rows iu+1,...,end are already brought in triangular form.
   Index iu = m_matT.cols() - 1;
   Index iter = 0; // iteration count
-  Scalar exshift = 0.0; // sum of exceptional shifts
+  Scalar exshift(0); // sum of exceptional shifts
   Scalar norm = computeNormOfT();
 
-  while (iu >= 0)
+  if(norm!=0)
   {
-    Index il = findSmallSubdiagEntry(iu, norm);
+    while (iu >= 0)
+    {
+      Index il = findSmallSubdiagEntry(iu, norm);
 
-    // Check for convergence
-    if (il == iu) // One root found
-    {
-      m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
-      if (iu > 0) 
-        m_matT.coeffRef(iu, iu-1) = Scalar(0);
-      iu--;
-      iter = 0;
+      // Check for convergence
+      if (il == iu) // One root found
+      {
+        m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
+        if (iu > 0)
+          m_matT.coeffRef(iu, iu-1) = Scalar(0);
+        iu--;
+        iter = 0;
+      }
+      else if (il == iu-1) // Two roots found
+      {
+        splitOffTwoRows(iu, computeU, exshift);
+        iu -= 2;
+        iter = 0;
+      }
+      else // No convergence yet
+      {
+        // The firstHouseholderVector vector has to be initialized to something to get rid of a silly GCC warning (-O1 -Wall -DNDEBUG )
+        Vector3s firstHouseholderVector(0,0,0), shiftInfo;
+        computeShift(iu, iter, exshift, shiftInfo);
+        iter = iter + 1;
+        if (iter > m_maxIterations * m_matT.cols()) break;
+        Index im;
+        initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
+        performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
+      }
     }
-    else if (il == iu-1) // Two roots found
-    {
-      splitOffTwoRows(iu, computeU, exshift);
-      iu -= 2;
-      iter = 0;
-    }
-    else // No convergence yet
-    {
-      // The firstHouseholderVector vector has to be initialized to something to get rid of a silly GCC warning (-O1 -Wall -DNDEBUG )
-      Vector3s firstHouseholderVector(0,0,0), shiftInfo;
-      computeShift(iu, iter, exshift, shiftInfo);
-      iter = iter + 1; 
-      if (iter > m_maxIterations) break;
-      Index im;
-      initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
-      performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
-    }
-  } 
-
-  if(iter <= m_maxIterations) 
+  }
+  if(iter <= m_maxIterations * m_matT.cols()) 
     m_info = Success;
   else
     m_info = NoConvergence;
@@ -288,7 +276,7 @@ inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
   // FIXME to be efficient the following would requires a triangular reduxion code
   // Scalar norm = m_matT.upper().cwiseAbs().sum() 
   //               + m_matT.bottomLeftCorner(size-1,size-1).diagonal().cwiseAbs().sum();
-  Scalar norm = 0.0;
+  Scalar norm(0);
   for (Index j = 0; j < size; ++j)
     norm += m_matT.row(j).segment((std::max)(j-1,Index(0)), size-(std::max)(j-1,Index(0))).cwiseAbs().sum();
   return norm;
@@ -470,5 +458,7 @@ inline void RealSchur<MatrixType>::performFrancisQRStep(Index il, Index im, Inde
       m_matT.coeffRef(i,i-3) = Scalar(0);
   }
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_REAL_SCHUR_H

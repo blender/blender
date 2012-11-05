@@ -102,7 +102,7 @@ and m_rhs
 		
 		m_cached_calculate = ffleft->Calc(m_op,ffright);
 		
-		//if (m_cached_calculate)				
+		//if (m_cached_calculate)
 		//	m_cached_calculate->Action(CValue::SETOWNEREXPR,&CVoidValue(this,false,CValue::STACKVALUE));
 
 		ffleft->Release();
@@ -163,7 +163,7 @@ bool COperator2Expr::IsInside(float x, float y, float z,bool bBorderInclude)
 			}
 	}
 	
-	return inside;	
+	return inside;
 }
 
 
@@ -241,7 +241,7 @@ CExpression* COperator2Expr::CheckLink(std::vector<CBrokenLinkInfo*>& brokenlink
 	
 	if (m_rhs)
 		return Release(m_rhs->AddRef());
-/		
+/
 
   */
 	return Release();

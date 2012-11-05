@@ -41,8 +41,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
-#include "BLF_translation.h"
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
@@ -331,7 +329,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	cache= clmd->point_cache;
 
 	/* initialize simulation data if it didn't exist already */
-	if (clmd->clothObject == NULL) {	
+	if (clmd->clothObject == NULL) {
 		if (!cloth_from_object(ob, clmd, result, framenr, 1)) {
 			BKE_ptcache_invalidate(cache);
 			return 0;
@@ -773,11 +771,13 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 			else
 				verts->goal= 0.0f;
 
+			/* Reset vertex flags */
+			verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
+			verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
+
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert ) {
-
 				for ( j = 0; j < dvert->totweight; j++ ) {
-					verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
 					if (( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1)) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) {
 						verts->goal = dvert->dw [j].weight;
 
@@ -789,7 +789,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						*/
 						
 						verts->goal  = powf(verts->goal, 4.0f);
-						if ( verts->goal >=SOFTGOALSNAP )
+						if ( verts->goal >= SOFTGOALSNAP )
 							 verts->flags |= CLOTH_VERT_FLAG_PINNED;
 					}
 					
@@ -804,7 +804,6 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						}
 					}
 
-					verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
 					if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF ) {
 						if ( dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol-1)) {
 							if (dvert->dw [j].weight > 0.0f) {
@@ -823,7 +822,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	int i = 0;
 	MVert *mvert = NULL;
 	ClothVertex *verts = NULL;
-	float (*shapekey_rest)[3]= NULL;
+	float (*shapekey_rest)[3] = NULL;
 	float tnull[3] = {0, 0, 0};
 	Cloth *cloth = NULL;
 	float maxdist = 0;
@@ -844,7 +843,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		clmd->clothObject->edgehash = NULL;
 	}
 	else if (!clmd->clothObject) {
-		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject."));
+		modifier_setError(&(clmd->modifier), "Out of memory on allocating clmd->clothObject");
 		return 0;
 	}
 
@@ -906,7 +905,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 	if ( !cloth_build_springs ( clmd, dm ) ) {
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), "%s", TIP_("Can't build springs."));
+		modifier_setError(&(clmd->modifier), "Cannot build springs");
 		printf("cloth_free_modifier cloth_build_springs\n");
 		return 0;
 	}
@@ -948,7 +947,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 	clmd->clothObject->verts = MEM_callocN ( sizeof ( ClothVertex ) * clmd->clothObject->numverts, "clothVertex" );
 	if ( clmd->clothObject->verts == NULL ) {
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject->verts."));
+		modifier_setError(&(clmd->modifier), "Out of memory on allocating clmd->clothObject->verts");
 		printf("cloth_free_modifier clmd->clothObject->verts\n");
 		return;
 	}
@@ -958,7 +957,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 	clmd->clothObject->mfaces = MEM_callocN ( sizeof ( MFace ) * clmd->clothObject->numfaces, "clothMFaces" );
 	if ( clmd->clothObject->mfaces == NULL ) {
 		cloth_free_modifier ( clmd );
-		modifier_setError(&(clmd->modifier), "%s", TIP_("Out of memory on allocating clmd->clothObject->mfaces."));
+		modifier_setError(&(clmd->modifier), "Out of memory on allocating clmd->clothObject->mfaces");
 		printf("cloth_free_modifier clmd->clothObject->mfaces\n");
 		return;
 	}
@@ -1049,29 +1048,25 @@ static void cloth_update_springs( ClothModifierData *clmd )
 
 		spring->stiffness = 0.0f;
 
-		if(spring->type == CLOTH_SPRING_TYPE_STRUCTURAL)
-		{
+		if (spring->type == CLOTH_SPRING_TYPE_STRUCTURAL) {
 			spring->stiffness = (cloth->verts[spring->kl].struct_stiff + cloth->verts[spring->ij].struct_stiff) / 2.0f;
 		}
-		else if(spring->type == CLOTH_SPRING_TYPE_SHEAR)
-		{
+		else if (spring->type == CLOTH_SPRING_TYPE_SHEAR) {
 			spring->stiffness = (cloth->verts[spring->kl].shear_stiff + cloth->verts[spring->ij].shear_stiff) / 2.0f;
 		}
-		else if(spring->type == CLOTH_SPRING_TYPE_BENDING)
-		{
+		else if (spring->type == CLOTH_SPRING_TYPE_BENDING) {
 			spring->stiffness = (cloth->verts[spring->kl].bend_stiff + cloth->verts[spring->ij].bend_stiff) / 2.0f;
 		}
-		else if(spring->type == CLOTH_SPRING_TYPE_GOAL)
-		{
+		else if (spring->type == CLOTH_SPRING_TYPE_GOAL) {
 			/* Warning: Appending NEW goal springs does not work because implicit solver would need reset! */
 
 			/* Activate / Deactivate existing springs */
-			if ((!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED)) && (cloth->verts[spring->ij].goal > ALMOST_ZERO))
+			if ((!(cloth->verts[spring->ij].flags & CLOTH_VERT_FLAG_PINNED)) &&
+			    (cloth->verts[spring->ij].goal > ALMOST_ZERO))
 			{
 				spring->flags &= ~CLOTH_SPRING_FLAG_DEACTIVATE;
 			}
-			else
-			{
+			else {
 				spring->flags |= CLOTH_SPRING_FLAG_DEACTIVATE;
 			}
 		}

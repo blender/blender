@@ -93,7 +93,7 @@ typedef struct MetaBall {
 
 	/* used in editmode */
 	/*ListBase edit_elems;*/
-	MetaElem *lastelem;	
+	MetaElem *lastelem;
 } MetaBall;
 
 /* **************** METABALL ********************* */

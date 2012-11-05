@@ -63,7 +63,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
-#ifdef __MOTION__
+#ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
 		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
 #endif
@@ -106,7 +106,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
-#ifdef __MOTION__
+#ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
 		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
 #endif
@@ -134,7 +134,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 /* Panorama Camera */
 
-__device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float raster_y, Ray *ray)
+__device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
 {
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
@@ -151,6 +151,26 @@ __device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float ra
 
 	ray->D = panorama_to_direction(kg, Pcamera.x, Pcamera.y);
 
+	/* modify ray for depth of field */
+	float aperturesize = kernel_data.cam.aperturesize;
+
+	if(aperturesize > 0.0f) {
+		/* sample point on aperture */
+		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
+
+		/* compute point on plane of focus */
+		float3 D = normalize(ray->D);
+		float3 Pfocus = D * kernel_data.cam.focaldistance;
+
+		/* calculate orthonormal coordinates perpendicular to D */
+		float3 U, V;
+		make_orthonormals(D, &U, &V);
+
+		/* update ray for effect of lens */
+		ray->P = U * lensuv.x + V * lensuv.y;
+		ray->D = normalize(Pfocus - ray->P);
+	}
+
 	/* indicates ray should not receive any light, outside of the lens */
 	if(len_squared(ray->D) == 0.0f) {
 		ray->t = 0.0f;
@@ -160,7 +180,7 @@ __device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float ra
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
-#ifdef __MOTION__
+#ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
 		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
 #endif
@@ -192,12 +212,12 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 	float raster_x = x + kernel_tex_interp(__filter_table, filter_u, FILTER_TABLE_SIZE);
 	float raster_y = y + kernel_tex_interp(__filter_table, filter_v, FILTER_TABLE_SIZE);
 
-#ifdef __MOTION__
+#ifdef __CAMERA_MOTION__
 	/* motion blur */
 	if(kernel_data.cam.shuttertime == 0.0f)
 		ray->time = TIME_INVALID;
 	else
-		ray->time = 0.5f + (time - 0.5f)*kernel_data.cam.shuttertime;
+		ray->time = 0.5f + 0.5f*(time - 0.5f)*kernel_data.cam.shuttertime;
 #endif
 
 	/* sample */
@@ -206,7 +226,7 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 	else if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
 		camera_sample_orthographic(kg, raster_x, raster_y, ray);
 	else
-		camera_sample_panorama(kg, raster_x, raster_y, ray);
+		camera_sample_panorama(kg, raster_x, raster_y, lens_u, lens_v, ray);
 }
 
 CCL_NAMESPACE_END

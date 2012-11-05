@@ -24,8 +24,16 @@
 #include "blender_session.h"
 
 #include "util_foreach.h"
+#include "util_md5.h"
 #include "util_opengl.h"
 #include "util_path.h"
+
+#ifdef WITH_OSL
+#include "osl.h"
+
+#include <OSL/oslquery.h>
+#include <OSL/oslconfig.h>
+#endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -163,6 +171,170 @@ static PyObject *available_devices_func(PyObject *self, PyObject *args)
 	return ret;
 }
 
+#ifdef WITH_OSL
+static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
+{
+	PyObject *pynodegroup, *pynode;
+	const char *filepath = NULL;
+
+	if(!PyArg_ParseTuple(args, "OOs", &pynodegroup, &pynode, &filepath))
+		return NULL;
+
+	/* RNA */
+	PointerRNA nodeptr;
+	RNA_pointer_create((ID*)PyLong_AsVoidPtr(pynodegroup), &RNA_ShaderNodeScript, (void*)PyLong_AsVoidPtr(pynode), &nodeptr);
+	BL::ShaderNodeScript b_node(nodeptr);
+
+	/* update bytecode hash */
+	string bytecode = b_node.bytecode();
+
+	if(!bytecode.empty()) {
+		MD5Hash md5;
+		md5.append((const uint8_t*)bytecode.c_str(), bytecode.size());
+		b_node.bytecode_hash(md5.get_hex().c_str());
+	}
+	else
+		b_node.bytecode_hash("");
+
+	/* query from file path */
+	OSL::OSLQuery query;
+
+	if(!OSLShaderManager::osl_query(query, filepath))
+		Py_RETURN_FALSE;
+
+	/* add new sockets from parameters */
+	set<void*> used_sockets;
+
+	for(int i = 0; i < query.nparams(); i++) {
+		const OSL::OSLQuery::Parameter *param = query.getparam(i);
+
+		/* skip unsupported types */
+		if(param->varlenarray || param->isstruct || param->type.arraylen > 1)
+			continue;
+
+		/* determine socket type */
+		BL::NodeSocket::type_enum socket_type;
+		float default_float4[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+		float default_float = 0.0f;
+		int default_int = 0;
+		
+		if(param->isclosure) {
+			socket_type = BL::NodeSocket::type_SHADER;
+		}
+		else if(param->type.vecsemantics == TypeDesc::COLOR) {
+			socket_type = BL::NodeSocket::type_RGBA;
+
+			if(param->validdefault) {
+				default_float4[0] = param->fdefault[0];
+				default_float4[1] = param->fdefault[1];
+				default_float4[2] = param->fdefault[2];
+			}
+		}
+		else if(param->type.vecsemantics == TypeDesc::POINT ||
+		        param->type.vecsemantics == TypeDesc::VECTOR ||
+		        param->type.vecsemantics == TypeDesc::NORMAL) {
+			socket_type = BL::NodeSocket::type_VECTOR;
+
+			if(param->validdefault) {
+				default_float4[0] = param->fdefault[0];
+				default_float4[1] = param->fdefault[1];
+				default_float4[2] = param->fdefault[2];
+			}
+		}
+		else if(param->type.aggregate == TypeDesc::SCALAR) {
+			if(param->type.basetype == TypeDesc::INT) {
+				socket_type = BL::NodeSocket::type_INT;
+				if(param->validdefault)
+					default_int = param->idefault[0];
+			}
+			else if(param->type.basetype == TypeDesc::FLOAT) {
+				socket_type = BL::NodeSocket::type_VALUE;
+				if(param->validdefault)
+					default_float = param->fdefault[0];
+			}
+		}
+		else
+			continue;
+
+		/* find socket socket */
+		BL::NodeSocket b_sock = b_node.find_socket(param->name.c_str(), param->isoutput);
+
+		/* remove if type no longer matches */
+		if(b_sock && b_sock.type() != socket_type) {
+			b_node.remove_socket(b_sock);
+			b_sock = BL::NodeSocket(PointerRNA_NULL);
+		}
+
+		/* create new socket */
+		if(!b_sock) {
+			b_sock = b_node.add_socket(param->name.c_str(), socket_type, param->isoutput);
+
+			/* set default value */
+			if(socket_type == BL::NodeSocket::type_VALUE) {
+				BL::NodeSocketFloatNone b_float_sock(b_sock.ptr);
+				b_float_sock.default_value(default_float);
+			}
+			else if(socket_type == BL::NodeSocket::type_INT) {
+				BL::NodeSocketIntNone b_int_sock(b_sock.ptr);
+				b_int_sock.default_value(default_int);
+			}
+			else if(socket_type == BL::NodeSocket::type_RGBA) {
+				BL::NodeSocketRGBA b_rgba_sock(b_sock.ptr);
+				b_rgba_sock.default_value(default_float4);
+			}
+			else if(socket_type == BL::NodeSocket::type_VECTOR) {
+				BL::NodeSocketVectorNone b_vector_sock(b_sock.ptr);
+				b_vector_sock.default_value(default_float4);
+			}
+		}
+
+		used_sockets.insert(b_sock.ptr.data);
+	}
+
+	/* remove unused parameters */
+	bool removed;
+
+	do {
+		BL::Node::inputs_iterator b_input;
+		BL::Node::outputs_iterator b_output;
+
+		removed = false;
+
+		for (b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
+			if(used_sockets.find(b_input->ptr.data) == used_sockets.end()) {
+				b_node.remove_socket(*b_input);
+				removed = true;
+				break;
+			}
+		}
+
+		for (b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
+			if(used_sockets.find(b_output->ptr.data) == used_sockets.end()) {
+				b_node.remove_socket(*b_output);
+				removed = true;
+				break;
+			}
+		}
+	} while(removed);
+
+	Py_RETURN_TRUE;
+}
+
+static PyObject *osl_compile_func(PyObject *self, PyObject *args)
+{
+	const char *inputfile = NULL, *outputfile = NULL;
+
+	if(!PyArg_ParseTuple(args, "ss", &inputfile, &outputfile))
+		return NULL;
+	
+	/* return */
+	if(!OSLShaderManager::osl_compile(inputfile, outputfile))
+		Py_RETURN_FALSE;
+
+	Py_RETURN_TRUE;
+}
+#endif
+
 static PyMethodDef methods[] = {
 	{"init", init_func, METH_VARARGS, ""},
 	{"create", create_func, METH_VARARGS, ""},
@@ -170,6 +342,10 @@ static PyMethodDef methods[] = {
 	{"render", render_func, METH_O, ""},
 	{"draw", draw_func, METH_VARARGS, ""},
 	{"sync", sync_func, METH_O, ""},
+#ifdef WITH_OSL
+	{"osl_update_node", osl_update_node_func, METH_VARARGS, ""},
+	{"osl_compile", osl_compile_func, METH_VARARGS, ""},
+#endif
 	{"available_devices", available_devices_func, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL},
 };
@@ -183,7 +359,7 @@ static struct PyModuleDef module = {
 	NULL, NULL, NULL, NULL
 };
 
-CCLDeviceInfo *compute_device_list(DeviceType type)
+static CCLDeviceInfo *compute_device_list(DeviceType type)
 {
 	/* device list stored static */
 	static ccl::vector<CCLDeviceInfo> device_list;

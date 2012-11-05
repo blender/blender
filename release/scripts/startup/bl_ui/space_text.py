@@ -56,12 +56,17 @@ class TEXT_HT_header(Header):
         row.prop(st, "show_syntax_highlight", text="")
 
         if text:
-            row = layout.row()
-            row.operator("text.run_script")
+            osl = text.name.endswith(".osl") or text.name.endswith(".oso")
 
-            row = layout.row()
-            row.active = text.name.endswith(".py")
-            row.prop(text, "use_module")
+            if osl:
+                row = layout.row()
+                row.operator("node.shader_script_update")
+            else:
+                row = layout.row()
+                row.operator("text.run_script")
+
+                row = layout.row()
+                row.prop(text, "use_module")
 
             row = layout.row()
             if text.filepath:
@@ -149,12 +154,7 @@ class TEXT_MT_view(Menu):
         layout = self.layout
 
         layout.operator("text.properties", icon='MENU_PANEL')
-
-        layout.separator()
-
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
-
+        
         layout.separator()
 
         layout.operator("text.move",
@@ -163,6 +163,11 @@ class TEXT_MT_view(Menu):
         layout.operator("text.move",
                         text="Bottom of File",
                         ).type = 'FILE_BOTTOM'
+
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
 
 
 class TEXT_MT_text(Menu):

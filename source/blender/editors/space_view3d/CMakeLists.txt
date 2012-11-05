@@ -51,7 +51,9 @@ set(SRC
 	view3d_edit.c
 	view3d_fly.c
 	view3d_header.c
+	view3d_iterators.c
 	view3d_ops.c
+	view3d_project.c
 	view3d_select.c
 	view3d_snap.c
 	view3d_toolbar.c

@@ -49,6 +49,8 @@ extern "C" {
 // constructor
 ImageBase::ImageBase (bool staticSrc) : m_image(NULL), m_imgSize(0),
 m_avail(false), m_scale(false), m_scaleChange(false), m_flip(false),
+m_zbuff(false),
+m_depth(false),
 m_staticSources(staticSrc), m_pyfilter(NULL)
 {
 	m_size[0] = m_size[1] = 0;
@@ -128,7 +130,7 @@ PyImage * ImageBase::getSource (const char * id)
 
 
 // set source object
-bool ImageBase::setSource (const char * id, PyImage * source)
+bool ImageBase::setSource (const char * id, PyImage *source)
 {
 	// find source
 	ImageSourceList::iterator src = findSource(id);
@@ -315,7 +317,7 @@ bool ImageSource::is (const char * id)
 
 
 // set source object
-void ImageSource::setSource (PyImage * source)
+void ImageSource::setSource (PyImage *source)
 {
 	// reference new source
 	if (source != NULL) Py_INCREF(source);
@@ -358,10 +360,10 @@ PyTypeList pyImageTypes;
 // functions for python interface
 
 // object allocation
-PyObject * Image_allocNew (PyTypeObject * type, PyObject * args, PyObject * kwds)
+PyObject *Image_allocNew (PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	// allocate object
-	PyImage * self = reinterpret_cast<PyImage*>(type->tp_alloc(type, 0));
+	PyImage *self = reinterpret_cast<PyImage*>(type->tp_alloc(type, 0));
 	// initialize object structure
 	self->m_image = NULL;
 	// return allocated object
@@ -369,7 +371,7 @@ PyObject * Image_allocNew (PyTypeObject * type, PyObject * args, PyObject * kwds
 }
 
 // object deallocation
-void Image_dealloc (PyImage * self)
+void Image_dealloc (PyImage *self)
 {
 	// release object attributes
 	if (self->m_image != NULL)
@@ -388,7 +390,7 @@ void Image_dealloc (PyImage * self)
 }
 
 // get image data
-PyObject * Image_getImage (PyImage * self, char * mode)
+PyObject *Image_getImage (PyImage *self, char * mode)
 {
 	try
 	{
@@ -401,6 +403,18 @@ PyObject * Image_getImage (PyImage * self, char * mode)
 			if (mode == NULL || !strcasecmp(mode, "RGBA"))
 			{
 				buffer = BGL_MakeBuffer( GL_BYTE, 1, &dimensions, image);
+			}
+			else if (!strcasecmp(mode, "F"))
+			{
+				// this mode returns the image as an array of float.
+				// This makes sense ONLY for the depth buffer:
+				//   source = VideoTexture.ImageViewport()
+				//   source.depth = True
+				//   depth = VideoTexture.imageToArray(source, 'F')
+
+				// adapt dimension from byte to float
+				dimensions /= sizeof(float);
+				buffer = BGL_MakeBuffer( GL_FLOAT, 1, &dimensions, image);
 			}
 			else 
 			{
@@ -463,7 +477,7 @@ PyObject * Image_getImage (PyImage * self, char * mode)
 					}
 				}
 			}
-			return (PyObject*)buffer;
+			return (PyObject *)buffer;
 		}
 	}
 	catch (Exception & exp)
@@ -475,28 +489,28 @@ PyObject * Image_getImage (PyImage * self, char * mode)
 }
 
 // get image size
-PyObject * Image_getSize (PyImage * self, void * closure)
+PyObject *Image_getSize (PyImage *self, void *closure)
 {
 	return Py_BuildValue("(hh)", self->m_image->getSize()[0],
 		self->m_image->getSize()[1]);
 }
 
 // refresh image
-PyObject * Image_refresh (PyImage * self)
+PyObject *Image_refresh (PyImage *self)
 {
 	self->m_image->refresh();
 	Py_RETURN_NONE;
 }
 
 // get scale
-PyObject * Image_getScale (PyImage * self, void * closure)
+PyObject *Image_getScale (PyImage *self, void *closure)
 {
 	if (self->m_image != NULL && self->m_image->getScale()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
 }
 
 // set scale
-int Image_setScale (PyImage * self, PyObject * value, void * closure)
+int Image_setScale (PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -511,14 +525,14 @@ int Image_setScale (PyImage * self, PyObject * value, void * closure)
 }
 
 // get flip
-PyObject * Image_getFlip (PyImage * self, void * closure)
+PyObject *Image_getFlip (PyImage *self, void *closure)
 {
 	if (self->m_image != NULL && self->m_image->getFlip()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
 }
 
 // set flip
-int Image_setFlip (PyImage * self, PyObject * value, void * closure)
+int Image_setFlip (PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -532,9 +546,55 @@ int Image_setFlip (PyImage * self, PyObject * value, void * closure)
 	return 0;
 }
 
+// get zbuff
+PyObject * Image_getZbuff (PyImage * self, void * closure)
+{
+	if (self->m_image != NULL && self->m_image->getZbuff()) Py_RETURN_TRUE;
+	else Py_RETURN_FALSE;
+}
+
+// set zbuff
+int Image_setZbuff (PyImage * self, PyObject * value, void * closure)
+{
+	// check parameter, report failure
+	if (value == NULL || !PyBool_Check(value))
+	{
+		PyErr_SetString(PyExc_TypeError, "The value must be a bool");
+		return -1;
+	}
+	// set scale
+	if (self->m_image != NULL) self->m_image->setZbuff(value == Py_True);
+	// success
+	return 0;
+}
+
+// get depth
+PyObject * Image_getDepth (PyImage * self, void * closure)
+{
+	if (self->m_image != NULL && self->m_image->getDepth()) Py_RETURN_TRUE;
+	else Py_RETURN_FALSE;
+}
+
+// set depth
+int Image_setDepth (PyImage * self, PyObject * value, void * closure)
+{
+	// check parameter, report failure
+	if (value == NULL || !PyBool_Check(value))
+	{
+		PyErr_SetString(PyExc_TypeError, "The value must be a bool");
+		return -1;
+	}
+	// set scale
+	if (self->m_image != NULL) self->m_image->setDepth(value == Py_True);
+	// success
+	return 0;
+}
+
+
+
 
 // get filter source object
-PyObject * Image_getSource (PyImage * self, PyObject * args)
+PyObject *Image_getSource (PyImage *self, PyObject *args)
 {
 	// get arguments
 	char * id;
@@ -543,7 +603,7 @@ PyObject * Image_getSource (PyImage * self, PyObject * args)
 	if (self->m_image != NULL)
 	{
 		// get source object
-		PyObject * src = reinterpret_cast<PyObject*>(self->m_image->getSource(id));
+		PyObject *src = reinterpret_cast<PyObject*>(self->m_image->getSource(id));
 		// if source is available
 		if (src != NULL)
 		{
@@ -558,11 +618,11 @@ PyObject * Image_getSource (PyImage * self, PyObject * args)
 
 
 // set filter source object
-PyObject * Image_setSource (PyImage * self, PyObject * args)
+PyObject *Image_setSource (PyImage *self, PyObject *args)
 {
 	// get arguments
 	char * id;
-	PyObject * obj;
+	PyObject *obj;
 	if (!PyArg_ParseTuple(args, "sO:setSource", &id, &obj))
 		return NULL;
 	if (self->m_image != NULL)
@@ -593,7 +653,7 @@ PyObject * Image_setSource (PyImage * self, PyObject * args)
 
 
 // get pixel filter object
-PyObject * Image_getFilter (PyImage * self, void * closure)
+PyObject *Image_getFilter (PyImage *self, void *closure)
 {
 	// if image object is available
 	if (self->m_image != NULL)
@@ -614,7 +674,7 @@ PyObject * Image_getFilter (PyImage * self, void * closure)
 
 
 // set pixel filter object
-int Image_setFilter (PyImage * self, PyObject * value, void * closure)
+int Image_setFilter (PyImage *self, PyObject *value, void *closure)
 {
 	// if image object is available
 	if (self->m_image != NULL)
@@ -632,7 +692,7 @@ int Image_setFilter (PyImage * self, PyObject * value, void * closure)
 	// return success
 	return 0;
 }
-PyObject * Image_valid(PyImage * self, void * closure)
+PyObject *Image_valid(PyImage *self, void *closure)
 {
 	if (self->m_image->isImageAvailable())
 	{
@@ -644,7 +704,7 @@ PyObject * Image_valid(PyImage * self, void * closure)
 	}
 }
 
-int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
+static int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
 {
 	unsigned int * image;
 	int ret;
@@ -674,7 +734,7 @@ int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
 		self->m_image->m_exports++;
 		return 0;
 	}
-	ret = PyBuffer_FillInfo(view, (PyObject*)self, image, self->m_image->getBuffSize(), 0, flags);
+	ret = PyBuffer_FillInfo(view, (PyObject *)self, image, self->m_image->getBuffSize(), 0, flags);
 	if (ret >= 0)
 		self->m_image->m_exports++;
 	return ret;
@@ -684,14 +744,14 @@ error:
 	// The bug is fixed in Python SVN 77916, as soon as the python revision used by Blender is
 	// updated, you can simply return -1 and set the error
 	static char* buf = (char *)"";
-	ret = PyBuffer_FillInfo(view, (PyObject*)self, buf, 0, 0, flags);
+	ret = PyBuffer_FillInfo(view, (PyObject *)self, buf, 0, 0, flags);
 	if (ret >= 0)
 		self->m_image->m_exports++;
 	return ret;
 	
 }
 
-void Image_releaseBuffer(PyImage *self, Py_buffer *buffer)
+static void Image_releaseBuffer(PyImage *self, Py_buffer *buffer)
 {
 	self->m_image->m_exports--;
 }

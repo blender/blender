@@ -753,6 +753,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         row = sub.row()
         row.active = bool(mat.light_group)
         row.prop(mat, "use_light_group_exclusive", text="Exclusive")
+        row.prop(mat, "use_light_group_local", text="Local")
 
         col = split.column()
         col.prop(mat, "use_face_texture")
@@ -763,6 +764,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
         col.prop(mat, "use_vertex_color_paint")
         col.prop(mat, "use_vertex_color_light")
         col.prop(mat, "use_object_color")
+        col.prop(mat, "use_uv_project")
         if simple_material(base_mat):
             col.prop(mat, "pass_index")
 

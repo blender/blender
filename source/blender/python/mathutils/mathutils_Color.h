@@ -46,8 +46,8 @@ typedef struct {
  * be stored in py_data) or be a wrapper for data allocated through
  * blender (stored in blend_data). This is an either/or struct not both*/
 
-//prototypes
-PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type);
+/* prototypes */
+PyObject *Color_CreatePyObject(float col[3], int type, PyTypeObject *base_type);
 PyObject *Color_CreatePyObject_cb(PyObject *cb_user,
                                   unsigned char cb_type, unsigned char cb_subtype);
 

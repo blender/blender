@@ -52,7 +52,8 @@ void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, struct Main *maggie);
 void		exitGamePythonScripting();
 
-void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *blenderdata, PyObject *pyGlobalDict, PyObject **gameLogic, PyObject **gameLogic_keys, int argc, char** argv);
+void setupGamePython(KX_KetsjiEngine *ketsjiengine, KX_Scene *startscene, Main *blenderdata,
+                     PyObject *pyGlobalDict, PyObject **gameLogic, PyObject **gameLogic_keys, int argc, char** argv);
 
 void		setGamePythonPath(const char *path);
 void		resetGamePythonPath();
@@ -72,11 +73,12 @@ class KX_Scene* KX_GetActiveScene();
 class KX_KetsjiEngine* KX_GetActiveEngine();
 
 typedef int (*PyNextFrameFunc)(void *);
+
 struct PyNextFrameState {
-    //state: can be either a GPG_NextFrameState or a BL_KetsjiNextFrameState
-    void *state;
-    //func: can be either GPG_PyNextFrame or BL_KetsjiPyNextFrame
-    PyNextFrameFunc func;
+	/** can be either a GPG_NextFrameState or a BL_KetsjiNextFrameState */
+	void *state;
+	/** can be either GPG_PyNextFrame or BL_KetsjiPyNextFrame */
+	PyNextFrameFunc func;
 };
 extern struct PyNextFrameState pynextframestate;
 
@@ -84,8 +86,7 @@ extern struct PyNextFrameState pynextframestate;
 
 void		KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);
 void		KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
-										 const MT_Vector3& normal, int nsector);
+                                         const MT_Vector3& normal, int nsector);
 
 
-#endif //__KX_PYTHONINIT_H__
-
+#endif  /* __KX_PYTHONINIT_H__ */

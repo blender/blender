@@ -60,7 +60,6 @@ struct Image;
 struct ImageUser;
 struct KeyingSet;
 struct KeyingSetInfo;
-struct LOD_Decimation_Info;
 struct MCol;
 struct MTex;
 struct Main;
@@ -76,6 +75,7 @@ struct Nurb;
 struct Object;
 struct PBVHNode;
 struct PyObject;
+struct Quadric;
 struct Render;
 struct RenderEngine;
 struct RenderEngineType;
@@ -134,6 +134,13 @@ int BLI_smallhash_count(struct SmallHash *hash) { return 0; }
 void *BLI_smallhash_iternext(struct SmallHashIter *iter, uintptr_t *key) { return NULL; }
 void *BLI_smallhash_iternew(struct SmallHash *hash, struct SmallHashIter *iter, uintptr_t *key) { return NULL; }
 
+void  BLI_quadric_from_v3_dist(struct Quadric *q, const float v[3], const float offset) {}
+void  BLI_quadric_add_qu_qu(struct Quadric *a, const struct Quadric *b) {}
+void  BLI_quadric_add_qu_ququ(struct Quadric *r, const struct Quadric *a, const struct Quadric *b) {}
+void  BLI_quadric_mul(struct Quadric *a, const float scalar) {}
+float BLI_quadric_evaluate(const struct Quadric *q, const float v[3]) {return 0.0f;}
+int   BLI_quadric_optimize(const struct Quadric *q, float v[3]) {return 0;}
+
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return (float *) NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name) {return (struct RenderLayer *)NULL;}
@@ -191,7 +198,7 @@ struct MenuType *WM_menutype_find(const char *idname, int quiet) {return (struct
 void WM_operator_stack_clear(struct bContext *C) {}
 
 void WM_autosave_init(struct bContext *C) {}
-void WM_jobs_stop_all(struct wmWindowManager *wm) {}
+void WM_jobs_kill_all_except(struct wmWindowManager *wm) {}
 
 char *WM_clipboard_text_get(int selection) {return (char*)0;}
 void WM_clipboard_text_set(char *buf, int selection) {}
@@ -297,6 +304,7 @@ struct BGpic *ED_view3D_background_image_new(struct View3D *v3d) {return (struct
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic) {}
 void ED_view3D_background_image_clear(struct View3D *v3d) {}
 void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[][4], float winmat[][4]) {}
+float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit) {return 0.0f;}
 void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist) {}
 int text_file_modified(struct Text *text) {return 0;}
 void ED_node_shader_default(struct Material *ma) {}

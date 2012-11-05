@@ -104,39 +104,37 @@ this object
 {
 	CValue *ret;
 	
-	switch(dtype)
-	{
-	case VALUE_EMPTY_TYPE:
-	case VALUE_BOOL_TYPE:
+	switch (dtype) {
+		case VALUE_EMPTY_TYPE:
+		case VALUE_BOOL_TYPE:
 		{
-			switch(op)
-			{
-			case VALUE_AND_OPERATOR:
+			switch (op) {
+				case VALUE_AND_OPERATOR:
 				{
 					ret = new CBoolValue (((CBoolValue *) val)->GetBool() && m_bool);
 					break;
 				}
-			case VALUE_OR_OPERATOR:
+				case VALUE_OR_OPERATOR:
 				{
 					ret = new CBoolValue (((CBoolValue *) val)->GetBool() || m_bool);
 					break;
 				}
-			case VALUE_EQL_OPERATOR:
+				case VALUE_EQL_OPERATOR:
 				{
 					ret = new CBoolValue (((CBoolValue *) val)->GetBool() == m_bool);
 					break;
 				}
-			case VALUE_NEQ_OPERATOR:
+				case VALUE_NEQ_OPERATOR:
 				{
 					ret = new CBoolValue (((CBoolValue *) val)->GetBool() != m_bool);
 					break;
 				}
-			case VALUE_NOT_OPERATOR:
+				case VALUE_NOT_OPERATOR:
 				{
 					return new CBoolValue (!m_bool);
 					break;
 				}
-			default:
+				default:
 				{
 					ret =  new CErrorValue(val->GetText() + op2str(op) +
 					                       "[operator not allowed on booleans]");
@@ -145,16 +143,15 @@ this object
 			}
 			break;
 		}
-	case VALUE_STRING_TYPE:
+		case VALUE_STRING_TYPE:
 		{
-			switch(op)
-			{
-			case VALUE_ADD_OPERATOR:
+			switch (op) {
+				case VALUE_ADD_OPERATOR:
 				{
 					ret = new CStringValue(val->GetText() + GetText(),"");
 					break;
 				}
-			default:
+				default:
 				{
 					ret =  new CErrorValue(val->GetText() + op2str(op) + "[Only + allowed on boolean and string]");
 					break;
@@ -162,8 +159,8 @@ this object
 			}
 			break;
 		}
-	default:
-		ret =  new CErrorValue("[type mismatch]" + op2str(op) + GetText());
+		default:
+			ret =  new CErrorValue("[type mismatch]" + op2str(op) + GetText());
 	}
 
 	return ret;
@@ -205,7 +202,7 @@ CValue* CBoolValue::GetReplica()
 }
 
 #ifdef WITH_PYTHON
-PyObject* CBoolValue::ConvertValueToPython()
+PyObject *CBoolValue::ConvertValueToPython()
 {
 	return PyBool_FromLong(m_bool != 0);
 }

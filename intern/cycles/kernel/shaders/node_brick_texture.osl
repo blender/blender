@@ -1,0 +1,93 @@
+/*
+ * Copyright 2012, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+#include "node_texture.h"
+
+/* Brick */
+
+float brick_noise(int n) /* fast integer noise */
+{
+	int nn;
+	n = (n >> 13) ^ n;
+	nn = (n * (n * n * 60493 + 19990303) + 1376312589) & 2147483647;
+	return 0.5 * ((float)nn / 1073741824.0);
+}
+
+float brick(point p, float mortar_size, float bias,
+	float BrickWidth, float row_height, float offset_amount, int offset_frequency,
+	float squash_amount, int squash_frequency, float tint)
+{
+	int bricknum, rownum;
+	float offset = 0.0;
+	float brick_width = BrickWidth;
+	float x, y;
+
+	rownum = (int)floor(p[1] / row_height);
+	
+	if (offset_frequency && squash_frequency) {
+		brick_width *= ((int)(rownum) % squash_frequency) ? 1.0 : squash_amount;                /* squash */
+		offset       = ((int)(rownum) % offset_frequency) ? 0 : (brick_width * offset_amount);  /* offset */
+	}
+
+	bricknum = (int)floor((p[0] + offset) / brick_width);
+
+	x = (p[0] + offset) - brick_width * bricknum;
+	y = p[1] - row_height * rownum;
+
+	tint = clamp((brick_noise((rownum << 16) + (bricknum & 65535)) + bias), 0.0, 1.0);
+
+	return (x < mortar_size || y < mortar_size ||
+	        x > (brick_width - mortar_size) ||
+	        y > (row_height - mortar_size)) ? 1.0 : 0.0;
+}
+
+shader node_brick_texture(
+	float Offset = 0.5,
+	int OffsetFrequency = 2,
+	float Squash = 1.0,
+	int SquashFrequency = 1,
+	point Vector = P,
+	color Color1 = color(0.2, 0.2, 0.2),
+	color Color2 = color(0.8, 0.8, 0.8),
+	color Mortar = color(0.0, 0.0, 0.0),
+	float Scale = 5.0,
+	float MortarSize = 0.02,
+	float Bias = 0.0,
+	float BrickWidth = 0.5,
+	float RowHeight = 0.25,
+	output float Fac = 0.0,
+	output color Color = color(0.2, 0.2, 0.2))
+{
+	float tint = 0.0;
+	color Col = Color1;
+	
+	Fac = brick(Vector * Scale, MortarSize, Bias, BrickWidth, RowHeight,
+		Offset, OffsetFrequency, Squash, SquashFrequency, tint);
+		
+	if (Fac != 1.0) {
+		float facm = 1.0 - tint;
+
+		Col[0] = facm * (Color1[0]) + tint * Color2[0];
+		Col[1] = facm * (Color1[1]) + tint * Color2[1];
+		Col[2] = facm * (Color1[2]) + tint * Color2[2];
+	}
+	
+	Color = (Fac == 1.0) ? Mortar: Col;
+}
+

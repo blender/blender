@@ -1894,7 +1894,7 @@ void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float
 		}
 		else {
 			result = 1.0;
-		}			
+		}
 	}
 }
 
@@ -1992,7 +1992,7 @@ void node_bsdf_diffuse(vec4 color, float roughness, vec3 N, out vec4 result)
 	result = vec4(L*color.rgb, 1.0);
 }
 
-void node_bsdf_glossy(vec4 color, float roughness, vec3 N, vec3 I, out vec4 result)
+void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 {
 	/* ambient light */
 	vec3 L = vec3(0.2);
@@ -2013,12 +2013,12 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, vec3 I, out vec4 resu
 	result = vec4(L*color.rgb, 1.0);
 }
 
-void node_bsdf_anisotropic(vec4 color, float roughnessU, float roughnessV, vec3 N, vec3 I, out vec4 result)
+void node_bsdf_anisotropic(vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T, out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
 
-void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, vec3 I, out vec4 result)
+void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }
@@ -2195,7 +2195,8 @@ void node_light_path(
 	out float is_glossy_ray,
 	out float is_singular_ray,
 	out float is_reflection_ray,
-	out float is_transmission_ray)
+	out float is_transmission_ray,
+	out float ray_length)
 {
 	is_camera_ray = 1.0;
 	is_shadow_ray = 0.0;
@@ -2204,6 +2205,7 @@ void node_light_path(
 	is_singular_ray = 0.0;
 	is_reflection_ray = 0.0;
 	is_transmission_ray = 0.0;
+	ray_length = 1.0;
 }
 
 void node_light_falloff(float strength, float tsmooth, out float quadratic, out float linear, out float constant)
@@ -2221,6 +2223,10 @@ void node_object_info(out vec3 location, out float object_index, out float mater
 	random = 0.0;
 }
 
+void node_bump(float strength, float height, vec3 N, out vec3 result)
+{
+	result = N;
+}
 
 /* output */
 

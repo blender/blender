@@ -166,11 +166,19 @@ class NODE_MT_node(Menu):
         layout.operator("node.delete_reconnect")
 
         layout.separator()
+
+        layout.operator("node.join", text="Join in new Frame")
+        layout.operator("node.detach", text="Remove from Frame")
+
+        layout.separator()
+
         layout.operator("node.link_make")
         layout.operator("node.link_make", text="Make and Replace Links").replace = True
         layout.operator("node.links_cut")
+        layout.operator("node.links_detach")
 
         layout.separator()
+
         layout.operator("node.group_edit")
         layout.operator("node.group_ungroup")
         layout.operator("node.group_make")

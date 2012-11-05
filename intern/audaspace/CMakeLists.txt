@@ -94,6 +94,7 @@ set(SRC
 	intern/AUD_IDevice.h
 	intern/AUD_IFactory.h
 	intern/AUD_IHandle.h
+	intern/AUD_ILockable.h
 	intern/AUD_IReader.h
 	intern/AUD_IWriter.h
 	intern/AUD_JOSResampleFactory.cpp
@@ -108,6 +109,7 @@ set(SRC
 	intern/AUD_Mixer.h
 	intern/AUD_MixerFactory.cpp
 	intern/AUD_MixerFactory.h
+	intern/AUD_MutexLock.h
 	intern/AUD_NULLDevice.cpp
 	intern/AUD_NULLDevice.h
 	intern/AUD_PyInit.h

@@ -32,7 +32,6 @@
  * This is external code.
  */
 
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -49,7 +48,7 @@
 #include "AVI_avi.h"
 #include "avi_intern.h"
 
-#include "endian.h"
+#include "avi_endian.h"
 
 static int AVI_DEBUG = 0;
 static char DEBUG_FCC[4];
@@ -95,7 +94,7 @@ char *fcc_to_char(unsigned int fcc)
 	DEBUG_FCC[2] = (fcc >> 16) & 127;
 	DEBUG_FCC[3] = (fcc >> 24) & 127;
 
-	return DEBUG_FCC;	
+	return DEBUG_FCC;
 }
 
 char *tcc_to_char(unsigned int tcc)
@@ -105,7 +104,7 @@ char *tcc_to_char(unsigned int tcc)
 	DEBUG_FCC[2] = 0;
 	DEBUG_FCC[3] = 0;
 
-	return DEBUG_FCC;	
+	return DEBUG_FCC;
 }
 
 int AVI_get_stream(AviMovie *movie, int avist_type, int stream_num)
@@ -303,7 +302,7 @@ int AVI_is_avi(const char *name)
 			
 			MEM_freeN(movie.streams);
 			fclose(movie.fp);
-			return 0;				
+			return 0;
 		}
 
 		movie.streams[temp].sh.Type = GET_FCC(movie.fp);
@@ -402,12 +401,12 @@ int AVI_is_avi(const char *name)
 					}
 				}
 
-			} 
+			}
 			if (j > 0) fseek(movie.fp, j, SEEK_CUR);
 		}
 		else fseek(movie.fp, movie.streams[temp].sf_size, SEEK_CUR);
 
-		/* Walk to the next LIST */		
+		/* Walk to the next LIST */
 		while (GET_FCC(movie.fp) != FCC("LIST")) {
 			temp = GET_FCC(movie.fp);
 			if (temp < 0 || ftell(movie.fp) > movie.size) {
@@ -415,9 +414,9 @@ int AVI_is_avi(const char *name)
 				
 				MEM_freeN(movie.streams);
 				fclose(movie.fp);
-				return 0;				
+				return 0;
 			}
-			fseek(movie.fp, temp, SEEK_CUR);			
+			fseek(movie.fp, temp, SEEK_CUR);
 		}
 
 		fseek(movie.fp, -4L, SEEK_CUR);
@@ -593,12 +592,12 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 					}
 				}
 
-			} 
+			}
 			if (j > 0) fseek(movie->fp, j, SEEK_CUR);
 		}
 		else fseek(movie->fp, movie->streams[temp].sf_size, SEEK_CUR);
 		
-		/* Walk to the next LIST */		
+		/* Walk to the next LIST */
 		while (GET_FCC(movie->fp) != FCC("LIST")) {
 			temp = GET_FCC(movie->fp);
 			if (temp < 0 || ftell(movie->fp) > movie->size) {
@@ -828,7 +827,7 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 		movie->streams[i].sh.right = 0;
 		movie->streams[i].sh.bottom = 0;
 
-		if (movie->streams[i].sh.Type == FCC("vids")) {	
+		if (movie->streams[i].sh.Type == FCC("vids")) {
 #if 0
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
 				movie->streams[i].sf = MEM_mallocN(sizeof(AviBitmapInfoHeader) +

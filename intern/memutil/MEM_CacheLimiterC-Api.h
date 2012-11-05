@@ -80,7 +80,7 @@ void delete_MEM_CacheLimiter(MEM_CacheLimiterC *This);
  * @return CacheLimiterHandle to ref, unref, touch the managed object
  */
 
-MEM_CacheLimiterHandleC *MEM_CacheLimiter_insert(MEM_CacheLimiterC * This, void * data);
+MEM_CacheLimiterHandleC *MEM_CacheLimiter_insert(MEM_CacheLimiterC *This, void *data);
 
 /**
  * Free objects until memory constraints are satisfied
@@ -140,7 +140,7 @@ int MEM_CacheLimiter_get_refcount(MEM_CacheLimiterHandleC *handle);
  * @param handle of object
  */
 
-void * MEM_CacheLimiter_get(MEM_CacheLimiterHandleC *handle);
+void *MEM_CacheLimiter_get(MEM_CacheLimiterHandleC *handle);
 
 void MEM_CacheLimiter_ItemPriority_Func_set(MEM_CacheLimiterC *This,
                                             MEM_CacheLimiter_ItemPriority_Func item_priority_func);

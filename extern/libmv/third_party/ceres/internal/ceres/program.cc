@@ -32,14 +32,18 @@
 
 #include <map>
 #include <vector>
+#include "ceres/casts.h"
+#include "ceres/compressed_row_sparse_matrix.h"
+#include "ceres/cost_function.h"
+#include "ceres/evaluator.h"
+#include "ceres/internal/port.h"
+#include "ceres/local_parameterization.h"
+#include "ceres/loss_function.h"
+#include "ceres/map_util.h"
 #include "ceres/parameter_block.h"
+#include "ceres/problem.h"
 #include "ceres/residual_block.h"
 #include "ceres/stl_util.h"
-#include "ceres/map_util.h"
-#include "ceres/problem.h"
-#include "ceres/cost_function.h"
-#include "ceres/loss_function.h"
-#include "ceres/local_parameterization.h"
 
 namespace ceres {
 namespace internal {
@@ -69,7 +73,8 @@ vector<ResidualBlock*>* Program::mutable_residual_blocks() {
 
 bool Program::StateVectorToParameterBlocks(const double *state) {
   for (int i = 0; i < parameter_blocks_.size(); ++i) {
-    if (!parameter_blocks_[i]->SetState(state)) {
+    if (!parameter_blocks_[i]->IsConstant() &&
+        !parameter_blocks_[i]->SetState(state)) {
       return false;
     }
     state += parameter_blocks_[i]->Size();
@@ -86,9 +91,18 @@ void Program::ParameterBlocksToStateVector(double *state) const {
 
 void Program::CopyParameterBlockStateToUserState() {
   for (int i = 0; i < parameter_blocks_.size(); ++i) {
-    parameter_blocks_[i]->GetState(
-        parameter_blocks_[i]->mutable_user_state());
+    parameter_blocks_[i]->GetState(parameter_blocks_[i]->mutable_user_state());
   }
+}
+
+bool Program::SetParameterBlockStatePtrsToUserStatePtrs() {
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
+    if (!parameter_blocks_[i]->IsConstant() &&
+        !parameter_blocks_[i]->SetState(parameter_blocks_[i]->user_state())) {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool Program::Plus(const double* state,
@@ -193,40 +207,25 @@ int Program::MaxParametersPerResidualBlock() const {
   return max_parameters;
 }
 
-bool Program::Evaluate(double* cost, double* residuals) {
-  *cost = 0.0;
-
-  // Scratch space is only needed if residuals is NULL.
-  scoped_array<double> scratch;
-  if (residuals == NULL) {
-    scratch.reset(new double[MaxScratchDoublesNeededForEvaluate()]);
-  } else {
-    // TODO(keir): Is this needed? Check by removing the equivalent statement in
-    // dense_evaluator.cc and running the tests.
-    VectorRef(residuals, NumResiduals()).setZero();
-  }
-
+int Program::MaxResidualsPerResidualBlock() const {
+  int max_residuals = 0;
   for (int i = 0; i < residual_blocks_.size(); ++i) {
-    ResidualBlock* residual_block = residual_blocks_[i];
-
-    // Evaluate the cost function for this residual.
-    double residual_cost;
-    if (!residual_block->Evaluate(&residual_cost,
-                                  residuals,
-                                  NULL,  // No jacobian.
-                                  scratch.get())) {
-      return false;
-    }
-
-    // Accumulate residual cost into the total cost.
-    *cost += residual_cost;
-
-    // Update the residuals cursor.
-    if (residuals != NULL) {
-      residuals += residual_block->NumResiduals();
-    }
+    max_residuals = max(max_residuals,
+                        residual_blocks_[i]->NumResiduals());
   }
-  return true;
+  return max_residuals;
+}
+
+string Program::ToString() const {
+  string ret = "Program dump\n";
+  ret += StringPrintf("Number of parameter blocks: %d\n", NumParameterBlocks());
+  ret += StringPrintf("Number of parameters: %d\n", NumParameters());
+  ret += "Parameters:\n";
+  for (int i = 0; i < parameter_blocks_.size(); ++i) {
+    ret += StringPrintf("%d: %s\n",
+                        i, parameter_blocks_[i]->ToString().c_str());
+  }
+  return ret;
 }
 
 }  // namespace internal

@@ -22,11 +22,13 @@
 #include "device_memory.h"
 
 #include "util_string.h"
+#include "util_thread.h"
 #include "util_vector.h"
+
+#include "kernel_types.h"  /* for TEX_NUM_FLOAT_IMAGES */
 
 CCL_NAMESPACE_BEGIN
 
-#define TEX_NUM_FLOAT_IMAGES	5
 #define TEX_NUM_IMAGES			95
 #define TEX_IMAGE_BYTE_START	TEX_NUM_FLOAT_IMAGES
 
@@ -66,6 +68,7 @@ private:
 	int tex_num_images;
 	int tex_num_float_images;
 	int tex_image_byte_start;
+	thread_mutex device_mutex;
 
 	struct Image {
 		string filename;

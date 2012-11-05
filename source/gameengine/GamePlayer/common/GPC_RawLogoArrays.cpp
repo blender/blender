@@ -38,7 +38,8 @@ void GetRawBlenderLogo(unsigned char **data, int *width, int *height)
 {
 	// create an array that will automatically be deleted when)
 	// we're outta this scope
-	static unsigned char logo_blender_raw[]= {  0,   0,   0,   0,   0, 
+	static unsigned char logo_blender_raw[] = {
+		  0,   0,   0,   0,   0,
 		  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
 		  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
 		  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
@@ -1041,7 +1042,8 @@ void GetRawBlender3DLogo(unsigned char **data, int *width, int *height)
 {
 	// create an array that will automatically be deleted when)
 	// we're outta this scope
-	static unsigned char logo_blender3d_raw[]= {255, 255, 255,   0, 255, 255, 255,   0, 255, 255, 255,   0, 255, 255, 
+	static unsigned char logo_blender3d_raw[] = {
+		255, 255, 255,   0, 255, 255, 255,   0, 255, 255, 255,   0, 255, 255,
 		255,   0, 255, 255, 255,   0, 255, 255, 255,   0, 255, 255, 255,   0, 255, 
 		255, 255,   0, 255, 255, 255,   0, 255, 255, 255,   0, 255, 255, 255,   0, 
 		255, 255, 255,   0, 255, 255, 255,   0, 255, 255, 255,   0, 255, 255, 255, 

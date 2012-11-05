@@ -40,43 +40,22 @@
 #  define TRUE 1
 #endif
 
-
-#define ELEM(a, b, c)           ((a) == (b) || (a) == (c))
-#define ELEM3(a, b, c, d)       (ELEM(a, b, c) || (a) == (d) )
-#define ELEM4(a, b, c, d, e)    (ELEM(a, b, c) || ELEM(a, d, e) )
-#define ELEM5(a, b, c, d, e, f) (ELEM(a, b, c) || ELEM3(a, d, e, f) )
-#define ELEM6(a, b, c, d, e, f, g)      (ELEM(a, b, c) || ELEM4(a, d, e, f, g) )
-#define ELEM7(a, b, c, d, e, f, g, h)   (ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
-#define ELEM8(a, b, c, d, e, f, g, h, i)        (ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
-#define ELEM9(a, b, c, d, e, f, g, h, i, j)        (ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
-#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        (ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
-#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        (ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
-
-/* shift around elements */
-#define SHIFT3(type, a, b, c)  {                                              \
-		type tmp;                                                             \
-		tmp = a;                                                              \
-		a = c;                                                                \
-		c = b;                                                                \
-		b = tmp;                                                              \
-} (void)0
-#define SHIFT4(type, a, b, c, d)  {                                           \
-		type tmp;                                                             \
-		tmp = a;                                                              \
-		a = d;                                                                \
-		d = c;                                                                \
-		c = b;                                                                \
-		b = tmp;                                                              \
-} (void)0
+/* useful for finding bad use of min/max */
+#if 0
+/* gcc only */
+#  define _TYPECHECK(a, b)  ((void)(((typeof(a) *)0) == ((typeof(b) *)0)))
+#  define MIN2(x, y)          (_TYPECHECK(x, y), (((x) < (y) ? (x) : (y))))
+#  define MAX2(x, y)          (_TYPECHECK(x, y), (((x) > (y) ? (x) : (y))))
+#endif
 
 /* min/max */
-#define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
-#define MIN3(x, y, z)             MIN2(MIN2((x), (y)), (z) )
-#define MIN4(x, y, z, a)           MIN2(MIN2((x), (y)), MIN2((z), (a)) )
+#define MIN2(x, y)          ((x) < (y) ? (x) : (y))
+#define MIN3(x, y, z)       (MIN2(MIN2((x), (y)), (z)))
+#define MIN4(x, y, z, a)    (MIN2(MIN2((x), (y)), MIN2((z), (a))))
 
-#define MAX2(x, y)               ( (x) > (y) ? (x) : (y) )
-#define MAX3(x, y, z)             MAX2(MAX2((x), (y)), (z) )
-#define MAX4(x, y, z, a)           MAX2(MAX2((x), (y)), MAX2((z), (a)) )
+#define MAX2(x, y)          ((x) > (y) ? (x) : (y))
+#define MAX3(x, y, z)       (MAX2(MAX2((x), (y)), (z)))
+#define MAX4(x, y, z, a)    (MAX2(MAX2((x), (y)), MAX2((z), (a))))
 
 #define INIT_MINMAX(min, max) {                                               \
 		(min)[0] = (min)[1] = (min)[2] =  1.0e30f;                            \
@@ -116,20 +95,28 @@
 /* Causes warning:
  * incompatible types when assigning to type 'Foo' from type 'Bar'
  * ... the compiler optimizes away the temp var */
-#ifndef CHECK_TYPE
 #ifdef __GNUC__
 #define CHECK_TYPE(var, type)  {  \
 	__typeof(var) *__tmp;         \
 	__tmp = (type *)NULL;         \
 	(void)__tmp;                  \
 } (void)0
+
+#define CHECK_TYPE_PAIR(var_a, var_b)  {  \
+	__typeof(var_a) *__tmp;               \
+	__tmp = (__typeof(var_b) *)NULL;      \
+	(void)__tmp;                          \
+} (void)0
 #else
-#define CHECK_TYPE(var, type)
-#endif
+#  define CHECK_TYPE(var, type)
+#  define CHECK_TYPE_PAIR(var_a, var_b)
 #endif
 
-#ifndef SWAP
-#  define SWAP(type, a, b)  {  \
+/* can be used in simple macros */
+#define CHECK_TYPE_INLINE(val, type) \
+	((void)(((type *)0) != (val)))
+
+#define SWAP(type, a, b)  {    \
 	type sw_ap;                \
 	CHECK_TYPE(a, type);       \
 	CHECK_TYPE(b, type);       \
@@ -137,7 +124,53 @@
 	(a) = (b);                 \
 	(b) = sw_ap;               \
 } (void)0
-#endif
+
+/* swap with a temp value */
+#define SWAP_TVAL(tval, a, b)  {  \
+	CHECK_TYPE_PAIR(tval, a);     \
+	CHECK_TYPE_PAIR(tval, b);     \
+	(tval) = (a);                 \
+	(a) = (b);                    \
+	(b) = (tval);                 \
+} (void)0
+
+
+#define ELEM(a, b, c)           ((a) == (b) || (a) == (c))
+#define ELEM3(a, b, c, d)       (ELEM(a, b, c) || (a) == (d) )
+#define ELEM4(a, b, c, d, e)    (ELEM(a, b, c) || ELEM(a, d, e) )
+#define ELEM5(a, b, c, d, e, f) (ELEM(a, b, c) || ELEM3(a, d, e, f) )
+#define ELEM6(a, b, c, d, e, f, g)      (ELEM(a, b, c) || ELEM4(a, d, e, f, g) )
+#define ELEM7(a, b, c, d, e, f, g, h)   (ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
+#define ELEM8(a, b, c, d, e, f, g, h, i)        (ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
+#define ELEM9(a, b, c, d, e, f, g, h, i, j)        (ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
+#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        (ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
+#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        (ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
+
+/* shift around elements */
+#define SHIFT3(type, a, b, c)  {                                              \
+	type tmp;                                                                 \
+	CHECK_TYPE(a, type);                                                      \
+	CHECK_TYPE(b, type);                                                      \
+	CHECK_TYPE(c, type);                                                      \
+	tmp = a;                                                                  \
+	a = c;                                                                    \
+	c = b;                                                                    \
+	b = tmp;                                                                  \
+} (void)0
+
+#define SHIFT4(type, a, b, c, d)  {                                           \
+	type tmp;                                                                 \
+	CHECK_TYPE(a, type);                                                      \
+	CHECK_TYPE(b, type);                                                      \
+	CHECK_TYPE(c, type);                                                      \
+	CHECK_TYPE(d, type);                                                      \
+	tmp = a;                                                                  \
+	a = d;                                                                    \
+	d = c;                                                                    \
+	c = b;                                                                    \
+	b = tmp;                                                                  \
+} (void)0
+
 
 #define ABS(a)          ( (a) < 0 ? (-(a)) : (a) )
 
@@ -188,6 +221,11 @@
 		*(v1) =   *(v2)   + *(v3) * (fac);                                    \
 		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (fac);                            \
 		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (fac);                            \
+} (void)0
+#define VECMADD(v1, v2, v3, v4) {                                             \
+		*(v1) =   *(v2)   + *(v3) * (*(v4));                                     \
+		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (*(v4 + 1));                         \
+		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (*(v4 + 2));                         \
 } (void)0
 #define VECSUBFAC(v1, v2, v3, fac) {                                          \
 		*(v1) =   *(v2)   - *(v3) * (fac);                                    \
@@ -317,6 +355,13 @@
 #  define BLI_assert(a) (void)0
 #endif
 
+#if (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406))  /* gcc4.6+ only */
+#  define BLI_STATIC_ASSERT(a, msg) _Static_assert(a, msg);
+#else
+   /* TODO msvc, clang */
+#  define BLI_STATIC_ASSERT(a, msg)
+#endif
+
 /* hints for branch pradiction, only use in code that runs a _lot_ where */
 #ifdef __GNUC__
 #  define LIKELY(x)       __builtin_expect(!!(x), 1)
@@ -326,4 +371,4 @@
 #  define UNLIKELY(x)     (x)
 #endif
 
-#endif // __BLI_UTILDEFINES_H__
+#endif  /* __BLI_UTILDEFINES_H__ */

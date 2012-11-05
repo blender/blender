@@ -29,6 +29,7 @@ set(INC
 	../blenkernel
 	../blenlib
 	../blenloader
+	../compositor
 	../editors/include
 	../editors/io
 	../gpu
@@ -36,7 +37,6 @@ set(INC
 	../makesdna
 	../makesrna
 	../nodes
-	../compositor
 	../render/extern/include
 	../../gameengine/BlenderRoutines
 	../../../intern/elbeem/extern

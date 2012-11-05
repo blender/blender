@@ -34,6 +34,8 @@
 #include "BLI_array.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
@@ -113,11 +115,11 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 	/* Custom data */
 	VertexSlideOp *vso;
 
-	const char *header_str = "Vertex Slide: Hover over an edge and left-click to select slide edge. "
-	                         "Left-Shift: Midpoint Snap, Left-Alt: Snap, Left-Ctrl: Snap&Merge";
+	const char *header_str = TIP_("Vertex Slide: Hover over an edge and left-click to select slide edge. "
+	                              "Left-Shift: Midpoint Snap, Left-Alt: Snap, Left-Ctrl: Snap & Merge");
 
 	if (!obedit) {
-		BKE_report(op->reports, RPT_ERROR, "Vertex Slide Error: Not object in context");
+		BKE_report(op->reports, RPT_ERROR, "Vertex slide error: no object in context");
 		return FALSE;
 	}
 
@@ -126,7 +128,7 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 
 	/* Is there a starting vertex  ? */
 	if (ese == NULL || (ese->htype != BM_VERT && ese->htype != BM_EDGE)) {
-		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex Slide Error: Select a (single) vertex");
+		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex slide error: select a (single) vertex");
 		return FALSE;
 	}
 
@@ -177,7 +179,7 @@ static int vtx_slide_init(bContext *C, wmOperator *op)
 
 	/* Init frame */
 	if (!vtx_slide_set_frame(vso)) {
-		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex Slide: Can't find starting vertex!");
+		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex slide error: cannot find starting vertex!");
 		vtx_slide_exit(C, op);
 		return FALSE;
 	}
@@ -381,22 +383,23 @@ static BMEdge *vtx_slide_nrst_in_frame(VertexSlideOp *vso, const float mval[2])
 		BMEdge *edge = NULL;
 		
 		float v1_proj[3], v2_proj[3];
-		float dist = 0;
 		float min_dist = FLT_MAX;
 
 		for (i = 0; i < vso->disk_edges; i++) {
 			edge = vso->edge_frame[i];
 
 			mul_v3_m4v3(v1_proj, vso->obj->obmat, edge->v1->co);
-			project_float_noclip(vso->active_region, v1_proj, v1_proj);
-
 			mul_v3_m4v3(v2_proj, vso->obj->obmat, edge->v2->co);
-			project_float_noclip(vso->active_region, v2_proj, v2_proj);
 
-			dist = dist_to_line_segment_v2(mval, v1_proj, v2_proj);
-			if (dist < min_dist) {
-				min_dist = dist;
-				cl_edge = edge;
+			/* we could use ED_view3d_project_float_object here, but for now dont since we dont have the context */
+			if ((ED_view3d_project_float_global(vso->active_region, v1_proj, v1_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) &&
+			    (ED_view3d_project_float_global(vso->active_region, v2_proj, v2_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK))
+			{
+				const float dist = dist_to_line_segment_v2(mval, v1_proj, v2_proj);
+				if (dist < min_dist) {
+					min_dist = dist;
+					cl_edge = edge;
+				}
 			}
 		}
 	}
@@ -408,7 +411,8 @@ static void vtx_slide_find_edge(VertexSlideOp *vso, wmEvent *event)
 	/* Nearest edge */
 	BMEdge *nst_edge = NULL;
 
-	const float mval_float[] = { (float)event->mval[0], (float)event->mval[1]};
+	const float mval_float[2] = {(float)event->mval[0],
+	                             (float)event->mval[1]};
 
 	/* Set mouse coords */
 	copy_v2_v2_int(vso->view_context->mval, event->mval);
@@ -448,17 +452,21 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 		/* Calculate interpolation value for preview */
 		float t_val;
 
-		float mval_float[] = { (float)event->mval[0], (float)event->mval[1]};
+		float mval_float[2] = { (float)event->mval[0], (float)event->mval[1]};
 		float closest_2d[2];
 
 		other = BM_edge_other_vert(edge, vso->start_vtx);
 
 		/* Project points onto screen and do interpolation in 2D */
 		mul_v3_m4v3(start_vtx_proj, vso->obj->obmat, vso->start_vtx->co);
-		project_float_noclip(vso->active_region, start_vtx_proj, start_vtx_proj);
-
 		mul_v3_m4v3(edge_other_proj, vso->obj->obmat, other->co);
-		project_float_noclip(vso->active_region, edge_other_proj, edge_other_proj);
+
+		if ((ED_view3d_project_float_global(vso->active_region, edge_other_proj, edge_other_proj, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) ||
+		    (ED_view3d_project_float_global(vso->active_region, start_vtx_proj, start_vtx_proj, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK))
+		{
+			/* not much we can do here */
+			return;
+		}
 
 		closest_to_line_v2(closest_2d, mval_float, start_vtx_proj, edge_other_proj);
 
@@ -470,7 +478,7 @@ static void vtx_slide_update(VertexSlideOp *vso, wmEvent *event)
 		if (edge_len <= 0.0f)
 			edge_len = VTX_SLIDE_SNAP_THRSH;
 
-		edge_len =  (len_v3v3(edge->v1->co, edge->v2->co) * VTX_SLIDE_SNAP_THRSH) / edge_len;
+		edge_len =  (BM_edge_calc_length(edge) * VTX_SLIDE_SNAP_THRSH) / edge_len;
 
 		vso->snap_threshold =  edge_len;
 
@@ -713,7 +721,7 @@ static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_u
 
 	/* Is there a starting vertex  ? */
 	if ((ese == NULL) || (ese->htype != BM_VERT && ese->htype != BM_EDGE)) {
-		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex Slide Error: Select a (single) vertex");
+		BKE_report(op->reports, RPT_ERROR_INVALID_INPUT, "Vertex slide error: select a (single) vertex");
 		return OPERATOR_CANCELLED;
 	}
 

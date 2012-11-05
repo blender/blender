@@ -742,8 +742,6 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 			ascii = utf8_char[0] & 0x80 ? '?' : utf8_char[0];
 		}
 
-		if (0x80 & state[VK_MENU]) utf8_char[0] = '\0';
-
 		event = new GHOST_EventKey(system->getMilliSeconds(), keyDown ? GHOST_kEventKeyDown : GHOST_kEventKeyUp, window, key, ascii, utf8_char);
 		
 #ifdef GHOST_DEBUG

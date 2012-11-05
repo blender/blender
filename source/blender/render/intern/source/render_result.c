@@ -422,8 +422,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	SceneRenderLayer *srl;
 	int rectx, recty, nr;
 	
-	rectx = BLI_RCT_SIZE_X(partrct);
-	recty = BLI_RCT_SIZE_Y(partrct);
+	rectx = BLI_rcti_size_x(partrct);
+	recty = BLI_rcti_size_y(partrct);
 	
 	if (rectx <= 0 || recty <= 0)
 		return NULL;
@@ -569,8 +569,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	}
 	
 	/* border render; calculate offset for use in compositor. compo is centralized coords */
-	rr->xof = re->disprect.xmin + BLI_RCT_CENTER_X(&re->disprect) - (re->winx / 2);
-	rr->yof = re->disprect.ymin + BLI_RCT_CENTER_Y(&re->disprect) - (re->winy / 2);
+	rr->xof = re->disprect.xmin + BLI_rcti_cent_x(&re->disprect) - (re->winx / 2);
+	rr->yof = re->disprect.ymin + BLI_rcti_cent_y(&re->disprect) - (re->winy / 2);
 	
 	return rr;
 }
@@ -627,12 +627,13 @@ static void ml_addpass_cb(void *UNUSED(base), void *lay, const char *str, float 
 }
 
 /* from imbuf, if a handle was returned we convert this to render result */
-RenderResult *render_result_new_from_exr(void *exrhandle, int rectx, int recty)
+RenderResult *render_result_new_from_exr(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty)
 {
 	RenderResult *rr = MEM_callocN(sizeof(RenderResult), __func__);
 	RenderLayer *rl;
 	RenderPass *rpass;
-	
+	const char *to_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
+
 	rr->rectx = rectx;
 	rr->recty = recty;
 	
@@ -645,6 +646,11 @@ RenderResult *render_result_new_from_exr(void *exrhandle, int rectx, int recty)
 		for (rpass = rl->passes.first; rpass; rpass = rpass->next) {
 			rpass->rectx = rectx;
 			rpass->recty = recty;
+
+			if (rpass->channels >= 3) {
+				IMB_colormanagement_transform(rpass->rect, rpass->rectx, rpass->recty, rpass->channels,
+				                              colorspace, to_colorspace, predivide);
+			}
 		}
 	}
 	
@@ -780,7 +786,7 @@ int RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *file
 	}
 	else {
 		/* TODO, get the error from openexr's exception */
-		BKE_report(reports, RPT_ERROR, "Error Writing Render Result, see console");
+		BKE_report(reports, RPT_ERROR, "Error writing render result (see console)");
 		success = FALSE;
 	}
 	IMB_exr_close(exrhandle);

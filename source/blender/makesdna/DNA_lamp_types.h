@@ -109,7 +109,7 @@ typedef struct Lamp {
 	struct PreviewImage *preview;
 
 	/* nodes */
-	struct bNodeTree *nodetree;	
+	struct bNodeTree *nodetree;
 } Lamp;
 
 /* **************** LAMP ********************* */

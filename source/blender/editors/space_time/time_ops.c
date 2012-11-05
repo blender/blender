@@ -151,7 +151,7 @@ static int time_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	v2d->cur.xmax = (float)PEFRA;
 	
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
-	extra = 0.01f * BLI_RCT_SIZE_X(&v2d->cur);
+	extra = 0.01f * BLI_rctf_size_x(&v2d->cur);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 	

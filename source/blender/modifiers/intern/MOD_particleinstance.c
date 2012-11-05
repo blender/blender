@@ -81,6 +81,44 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 {
 	return 0;
 }
+
+static int isDisabled(ModifierData *md, int useRenderParams)
+{
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
+	ParticleSystem *psys;
+	ModifierData *ob_md;
+	
+	if (!pimd->ob)
+		return TRUE;
+	
+	psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
+	if (psys == NULL)
+		return TRUE;
+	
+	/* If the psys modifier is disabled we cannot use its data.
+	 * First look up the psys modifier from the object, then check if it is enabled.
+	 */
+	for (ob_md = pimd->ob->modifiers.first; ob_md; ob_md = ob_md->next) {
+		if (ob_md->type == eModifierType_ParticleSystem) {
+			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)ob_md;
+			if (psmd->psys == psys) {
+				int required_mode;
+				
+				if (useRenderParams) required_mode = eModifierMode_Render;
+				else required_mode = eModifierMode_Realtime;
+				
+				if (!modifier_isEnabled(md->scene, ob_md, required_mode))
+					return TRUE;
+				
+				break;
+			}
+		}
+	}
+	
+	return FALSE;
+}
+
+
 static void updateDepgraph(ModifierData *md, DagForest *forest,
                            struct Scene *UNUSED(scene),
                            Object *UNUSED(ob),
@@ -363,32 +401,31 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 	return applyModifier(md, ob, derivedData, MOD_APPLY_USECACHE);
 }
 
-
 ModifierTypeInfo modifierType_ParticleInstance = {
-	/* name */ "ParticleInstance",
-	/* structName */ "ParticleInstanceModifierData",
-	/* structSize */ sizeof(ParticleInstanceModifierData),
-	/* type */ eModifierTypeType_Constructive,
-	/* flags */ eModifierTypeFlag_AcceptsMesh |
-	eModifierTypeFlag_SupportsMapping |
-	eModifierTypeFlag_SupportsEditmode |
-	eModifierTypeFlag_EnableInEditmode,
+	/* name */              "ParticleInstance",
+	/* structName */        "ParticleInstanceModifierData",
+	/* structSize */        sizeof(ParticleInstanceModifierData),
+	/* type */              eModifierTypeType_Constructive,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */ copyData,
-	/* deformVerts */ NULL,
-	/* deformMatrices */ NULL,
-	/* deformVertsEM */ NULL,
-	/* deformMatricesEM */ NULL,
-	/* applyModifier */ applyModifier,
-	/* applyModifierEM */ applyModifierEM,
-	/* initData */ initData,
-	/* requiredDataMask */ NULL,
-	/* freeData */ NULL,
-	/* isDisabled */ NULL,
-	/* updateDepgraph */ updateDepgraph,
-	/* dependsOnTime */ dependsOnTime,
-	/* dependsOnNormals */ NULL,
+	/* copyData */          copyData,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     applyModifier,
+	/* applyModifierEM */   applyModifierEM,
+	/* initData */          initData,
+	/* requiredDataMask */  NULL,
+	/* freeData */          NULL,
+	/* isDisabled */        isDisabled,
+	/* updateDepgraph */    updateDepgraph,
+	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */ NULL,
-	/* foreachTexLink */ NULL,
+	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

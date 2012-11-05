@@ -189,7 +189,7 @@ static int bpy_bm_elem_index_set(BPy_BMElem *self, PyObject *value, void *UNUSED
 /* Mesh
  * ^^^^ */
 
-/* doc-strings for all uses of this funcion */
+/* doc-strings for all uses of this function */
 
 PyDoc_STRVAR(bpy_bmvertseq_doc,
 "This meshes vert sequence (read-only).\n\n:type: :class:`BMVertSeq`"
@@ -645,7 +645,7 @@ static PyGetSetDef bpy_bmface_getseters[] = {
 
 static PyGetSetDef bpy_bmloop_getseters[] = {
 	/* generic */
-	// flags are available but not used for loops.
+	/* flags are available but not used for loops. */
 	// {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
 	// {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
 	{(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
@@ -1808,7 +1808,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 		f_new = BM_face_create(bm, vert_array, edge_array, vert_seq_len, FALSE);
 
-		if (f_new == NULL) {
+		if (UNLIKELY(f_new == NULL)) {
 			PyErr_SetString(PyExc_ValueError,
 			                "faces.new(verts): couldn't create the new face, internal error");
 			goto cleanup;
@@ -2581,7 +2581,7 @@ static PyObject *bpy_bmelemseq_subscript(BPy_BMElemSeq *self, PyObject *key)
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmelemseq_length(self);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {

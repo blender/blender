@@ -40,6 +40,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_animsys.h"
@@ -51,7 +53,7 @@
 
 
 
-void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
+static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 {
 	scene->r.cfra = frame;
 	scene->r.subframe = subframe;
@@ -87,29 +89,29 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 #include "../../collada/collada.h"
 
 static void rna_Scene_collada_export(
-    Scene *scene,
-    const char *filepath,
-    int apply_modifiers,
-	int export_mesh_type,
+        Scene *scene,
+        const char *filepath,
+        int apply_modifiers,
+        int export_mesh_type,
 
-	int selected,
-    int include_children,
-    int include_armatures,
-    int deform_bones_only,
+        int selected,
+        int include_children,
+        int include_armatures,
+        int deform_bones_only,
 
-	int active_uv_only,
-	int include_uv_textures,
-	int include_material_textures,
-	int use_texture_copies,
+        int active_uv_only,
+        int include_uv_textures,
+        int include_material_textures,
+        int use_texture_copies,
 
-    int use_object_instantiation,
-    int sort_by_name,
-    int second_life)
+        int use_object_instantiation,
+        int sort_by_name,
+        int second_life)
 {
-	collada_export(scene, filepath, apply_modifiers, export_mesh_type, selected,  
+	collada_export(scene, filepath, apply_modifiers, export_mesh_type, selected,
 	               include_children, include_armatures, deform_bones_only,
-				   active_uv_only, include_uv_textures, include_material_textures,
-				   use_texture_copies, use_object_instantiation, sort_by_name, second_life);
+	               active_uv_only, include_uv_textures, include_material_textures,
+	               use_texture_copies, use_object_instantiation, sort_by_name, second_life);
 }
 
 #endif

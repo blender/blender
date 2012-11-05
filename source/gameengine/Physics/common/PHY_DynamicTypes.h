@@ -32,11 +32,11 @@ struct	PHY__Vector2
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 struct	PHY__Vector3
@@ -46,11 +46,11 @@ struct	PHY__Vector3
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 struct	PHY__Vector4
@@ -75,11 +75,11 @@ struct	PHY__Vector4
 	operator const float* () const 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 	operator float* () 
 	{ 
 		return &m_vec[0];
-	}	
+	}
 };
 
 //typedef 	float	PHY__Vector3[4];
@@ -151,4 +151,4 @@ typedef enum PHY_ShapeType {
 
 typedef float	PHY_Vector3[3];
 
-#endif //__PHY_DYNAMICTYPES_H__
+#endif  /* __PHY_DYNAMICTYPES_H__ */

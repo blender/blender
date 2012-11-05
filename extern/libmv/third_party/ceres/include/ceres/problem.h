@@ -50,13 +50,13 @@ namespace ceres {
 class CostFunction;
 class LossFunction;
 class LocalParameterization;
+class Solver;
 
 namespace internal {
 class Preprocessor;
 class ProblemImpl;
 class ParameterBlock;
 class ResidualBlock;
-class SolverImpl;
 }  // namespace internal
 
 // A ResidualBlockId is a handle clients can use to delete residual
@@ -255,9 +255,9 @@ class Problem {
   int NumResiduals() const;
 
  private:
-  friend class internal::SolverImpl;
+  friend class Solver;
   internal::scoped_ptr<internal::ProblemImpl> problem_impl_;
-  DISALLOW_COPY_AND_ASSIGN(Problem);
+  CERES_DISALLOW_COPY_AND_ASSIGN(Problem);
 };
 
 }  // namespace ceres

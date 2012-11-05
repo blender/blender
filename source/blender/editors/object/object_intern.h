@@ -112,6 +112,7 @@ void OBJECT_OT_add_named(struct wmOperatorType *ot);
 void OBJECT_OT_metaball_add(struct wmOperatorType *ot);
 void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
+void OBJECT_OT_empty_add(struct wmOperatorType *ot);
 void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
@@ -137,6 +138,7 @@ void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
 /* object_lattice.c */
 void LATTICE_OT_select_all(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
+void LATTICE_OT_flip(struct wmOperatorType *ot);
 
 /* object_group.c */
 void GROUP_OT_create(struct wmOperatorType *ot);
@@ -193,6 +195,7 @@ void CONSTRAINT_OT_childof_set_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_childof_clear_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_objectsolver_set_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_objectsolver_clear_inverse(struct wmOperatorType *ot);
+void CONSTRAINT_OT_followpath_path_animate(struct wmOperatorType *ot);
 
 /* object_vgroup.c */
 void OBJECT_OT_vertex_group_add(struct wmOperatorType *ot);
@@ -202,6 +205,7 @@ void OBJECT_OT_vertex_group_remove_from(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_select(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_deselect(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_linked(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_transfer_weight(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_selected(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
@@ -212,6 +216,7 @@ void OBJECT_OT_vertex_group_fix(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_limit_total(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_sort(struct wmOperatorType *ot);

@@ -271,4 +271,4 @@ void mem_read(Stream & mem, BlockATI1 & block);
 void mem_read(Stream & mem, BlockATI2 & block);
 void mem_read(Stream & mem, BlockCTX1 & block);
 
-#endif // __BLOCKDXT_H__
+#endif  /* __BLOCKDXT_H__ */

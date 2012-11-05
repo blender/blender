@@ -46,14 +46,14 @@ public:
 	list<SubDevice> devices;
 	device_ptr unique_ptr;
 
-	MultiDevice(DeviceInfo& info, bool background_)
-	: unique_ptr(1)
+	MultiDevice(DeviceInfo& info, Stats &stats, bool background_)
+	: Device(stats), unique_ptr(1)
 	{
 		Device *device;
 		background = background_;
 
 		foreach(DeviceInfo& subinfo, info.multi_devices) {
-			device = Device::create(subinfo, background);
+			device = Device::create(subinfo, stats, background);
 			devices.push_back(SubDevice(device));
 		}
 
@@ -312,19 +312,11 @@ public:
 		foreach(SubDevice& sub, devices)
 			sub.device->task_cancel();
 	}
-
-	bool task_cancelled()
-	{
-		foreach(SubDevice& sub, devices)
-			if (sub.device->task_cancelled())
-				return true;
-		return false;
-	}
 };
 
-Device *device_multi_create(DeviceInfo& info, bool background)
+Device *device_multi_create(DeviceInfo& info, Stats &stats, bool background)
 {
-	return new MultiDevice(info, background);
+	return new MultiDevice(info, stats, background);
 }
 
 static bool device_multi_add(vector<DeviceInfo>& devices, DeviceType type, bool with_display, bool with_advanced_shading, const char *id_fmt, int num)

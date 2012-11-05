@@ -180,13 +180,9 @@ static void confirm_suggestion(Text *text, int skipleft)
 }
 
 // XXX
-#define L_MOUSE 0
-#define M_MOUSE 0
-#define R_MOUSE 0
 #define LR_SHIFTKEY 0
 #define LR_ALTKEY 0
 #define LR_CTRLKEY 0
-#define LR_OSKEY 0
 
 // XXX
 static int doc_scroll = 0;

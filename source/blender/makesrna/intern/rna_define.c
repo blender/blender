@@ -42,9 +42,22 @@
 #include "BLI_listbase.h"
 #include "BLI_ghash.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"
+
+
+#ifdef DEBUG
+#  define ASSERT_SOFT_HARD_LIMITS \
+	if (softmin < hardmin || softmax > hardmax) { \
+		fprintf(stderr, "Error with soft/hard limits: %s.%s\n", CONTAINER_RNA_ID(cont), identifier); \
+		BLI_assert(!"invalid soft/hard limits"); \
+	} (void)0
+#else
+#  define  ASSERT_SOFT_HARD_LIMITS (void)0
+#endif
 
 /* Global used during defining */
 
@@ -887,7 +900,7 @@ void RNA_def_struct_translation_context(StructRNA *srna, const char *context)
 
 PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier, int type, int subtype)
 {
-	/*StructRNA *srna= DefRNA.laststruct;*/ /* invalid for python defined props */
+	/*StructRNA *srna = DefRNA.laststruct;*/ /* invalid for python defined props */
 	ContainerRNA *cont = cont_;
 	ContainerDefRNA *dcont;
 	PropertyDefRNA *dprop = NULL;
@@ -968,8 +981,10 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 			sprop->defaultvalue = "";
 			break;
 		}
-		case PROP_ENUM:
 		case PROP_POINTER:
+			prop->flag |= PROP_THICK_WRAP;  /* needed for default behavior when PROP_RNAPTR is set */
+			break;
+		case PROP_ENUM:
 		case PROP_COLLECTION:
 			break;
 		default:
@@ -2248,12 +2263,15 @@ PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *iden
 	return prop;
 }
 
-PropertyRNA *RNA_def_int(StructOrFunctionRNA *cont_, const char *identifier, int default_value, int hardmin,
-                         int hardmax, const char *ui_name, const char *ui_description, int softmin, int softmax)
+PropertyRNA *RNA_def_int(StructOrFunctionRNA *cont_, const char *identifier, int default_value,
+                         int hardmin, int hardmax, const char *ui_name, const char *ui_description,
+                         int softmin, int softmax)
 {
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_INT, PROP_NONE);
 	RNA_def_property_int_default(prop, default_value);
 	if (hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2270,6 +2288,8 @@ PropertyRNA *RNA_def_int_vector(StructOrFunctionRNA *cont_, const char *identifi
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_INT, PROP_XYZ); /* XXX */
 	if (len != 0) RNA_def_property_array(prop, len);
 	if (default_value) RNA_def_property_int_array_default(prop, default_value);
@@ -2287,6 +2307,8 @@ PropertyRNA *RNA_def_int_array(StructOrFunctionRNA *cont_, const char *identifie
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_INT, PROP_NONE);
 	if (len != 0) RNA_def_property_array(prop, len);
 	if (default_value) RNA_def_property_int_array_default(prop, default_value);
@@ -2426,6 +2448,8 @@ PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, f
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_default(prop, default_value);
 	if (hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2442,6 +2466,8 @@ PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont_, const char *identi
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_XYZ);
 	if (len != 0) RNA_def_property_array(prop, len);
 	if (default_value) RNA_def_property_float_array_default(prop, default_value);
@@ -2472,6 +2498,8 @@ PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont_, const char *identif
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_COLOR);
 	if (len != 0) RNA_def_property_array(prop, len);
 	if (default_value) RNA_def_property_float_array_default(prop, default_value);
@@ -2489,10 +2517,9 @@ PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_, const char *identi
 {
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
-	int length[2];
+	const int length[2] = {rows, columns};
 
-	length[0] = rows;
-	length[1] = columns;
+	ASSERT_SOFT_HARD_LIMITS;
 
 	prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_multi_array(prop, 2, length);
@@ -2510,7 +2537,9 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_, const char *iden
 {
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
-	
+
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_FLOAT, (len != 0) ? PROP_EULER : PROP_ANGLE);
 	if (len != 0) {
 		RNA_def_property_array(prop, len);
@@ -2534,6 +2563,8 @@ PropertyRNA *RNA_def_float_array(StructOrFunctionRNA *cont_, const char *identif
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_NONE);
 	if (len != 0) RNA_def_property_array(prop, len);
 	if (default_value) RNA_def_property_float_array_default(prop, default_value);
@@ -2551,6 +2582,8 @@ PropertyRNA *RNA_def_float_percentage(StructOrFunctionRNA *cont_, const char *id
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_default(prop, default_value);
 	if (hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2567,6 +2600,8 @@ PropertyRNA *RNA_def_float_factor(StructOrFunctionRNA *cont_, const char *identi
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 	
+	ASSERT_SOFT_HARD_LIMITS;
+
 	prop = RNA_def_property(cont, identifier, PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_default(prop, default_value);
 	if (hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2777,14 +2812,26 @@ int rna_parameter_size(PropertyRNA *parm)
 			{
 #ifdef RNA_RUNTIME
 				if (parm->flag & PROP_RNAPTR)
-					return sizeof(PointerRNA);
+					if (parm->flag & PROP_THICK_WRAP) {
+						return sizeof(PointerRNA);
+					}
+					else {
+						return sizeof(PointerRNA *);
+					}
 				else
 					return sizeof(void *);
 #else
-				if (parm->flag & PROP_RNAPTR)
-					return sizeof(PointerRNA);
-				else
+				if (parm->flag & PROP_RNAPTR) {
+					if (parm->flag & PROP_THICK_WRAP) {
+						return sizeof(PointerRNA);
+					}
+					else {
+						return sizeof(PointerRNA *);
+					}
+				}
+				else {
 					return sizeof(void *);
+				}
 #endif
 			}
 			case PROP_COLLECTION:

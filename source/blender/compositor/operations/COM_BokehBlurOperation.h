@@ -59,6 +59,9 @@ public:
 
 	void setSize(float size) { this->m_size = size; this->m_sizeavailable = true; }
 	
-	void executeOpenCL(OpenCLDevice *device, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp);
+	void executeOpenCL(OpenCLDevice *device,
+	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer,
+	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
+	                   list<cl_kernel> *clKernelsToCleanUp);
 };
 #endif

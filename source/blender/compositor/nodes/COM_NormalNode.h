@@ -35,4 +35,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // COM_NormalNODE_H
+#endif  /* COM_NormalNODE_H */

@@ -2,28 +2,16 @@
 // for linear algebra.
 //
 // Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_DIAGONAL_H
 #define EIGEN_DIAGONAL_H
+
+namespace Eigen { 
 
 /** \class Diagonal
   * \ingroup Core_Module
@@ -53,16 +41,15 @@ struct traits<Diagonal<MatrixType,DiagIndex> >
   typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   typedef typename MatrixType::StorageKind StorageKind;
   enum {
-    AbsDiagIndex = DiagIndex<0 ? -DiagIndex : DiagIndex, // only used if DiagIndex != Dynamic
-    // FIXME these computations are broken in the case where the matrix is rectangular and DiagIndex!=0
     RowsAtCompileTime = (int(DiagIndex) == Dynamic || int(MatrixType::SizeAtCompileTime) == Dynamic) ? Dynamic
-                      : (EIGEN_SIZE_MIN_PREFER_DYNAMIC(MatrixType::RowsAtCompileTime,
-                                        MatrixType::ColsAtCompileTime) - AbsDiagIndex),
+    : (EIGEN_PLAIN_ENUM_MIN(MatrixType::RowsAtCompileTime - EIGEN_PLAIN_ENUM_MAX(-DiagIndex, 0),
+                            MatrixType::ColsAtCompileTime - EIGEN_PLAIN_ENUM_MAX( DiagIndex, 0))),
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = int(MatrixType::MaxSizeAtCompileTime) == Dynamic ? Dynamic
                          : DiagIndex == Dynamic ? EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime,
-                                                                    MatrixType::MaxColsAtCompileTime)
-                         : (EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime) - AbsDiagIndex),
+                                                                              MatrixType::MaxColsAtCompileTime)
+                         : (EIGEN_PLAIN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime - EIGEN_PLAIN_ENUM_MAX(-DiagIndex, 0),
+                                                 MatrixType::MaxColsAtCompileTime - EIGEN_PLAIN_ENUM_MAX( DiagIndex, 0))),
     MaxColsAtCompileTime = 1,
     MaskLvalueBit = is_lvalue<MatrixType>::value ? LvalueBit : 0,
     Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit | MaskLvalueBit | DirectAccessBit) & ~RowMajorBit,
@@ -101,6 +88,15 @@ template<typename MatrixType, int DiagIndex> class Diagonal
       return 0;
     }
 
+    typedef typename internal::conditional<
+                       internal::is_lvalue<MatrixType>::value,
+                       Scalar,
+                       const Scalar
+                     >::type ScalarWithConstIfNotLvalue;
+
+    inline ScalarWithConstIfNotLvalue* data() { return &(m_matrix.const_cast_derived().coeffRef(rowOffset(), colOffset())); }
+    inline const Scalar* data() const { return &(m_matrix.const_cast_derived().coeffRef(rowOffset(), colOffset())); }
+
     inline Scalar& coeffRef(Index row, Index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
@@ -133,8 +129,19 @@ template<typename MatrixType, int DiagIndex> class Diagonal
       return m_matrix.coeff(index+rowOffset(), index+colOffset());
     }
 
+    const typename internal::remove_all<typename MatrixType::Nested>::type& 
+    nestedExpression() const 
+    {
+      return m_matrix;
+    }
+
+    int index() const
+    {
+      return m_index.value();
+    }
+
   protected:
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
     const internal::variable_if_dynamic<Index, DiagIndex> m_index;
 
   private:
@@ -223,5 +230,7 @@ MatrixBase<Derived>::diagonal() const
 {
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_DIAGONAL_H

@@ -55,6 +55,8 @@
 #include "BLI_linklist.h"
 #include "BLI_string.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_cloth.h"
 #include "BKE_key.h"
 #include "BKE_multires.h"
@@ -259,12 +261,13 @@ int modifier_nonGeometrical(ModifierData *md)
 	return (mti->type == eModifierTypeType_NonGeometrical);
 }
 
-void modifier_setError(ModifierData *md, const char *format, ...)
+void modifier_setError(ModifierData *md, const char *_format, ...)
 {
 	char buffer[512];
 	va_list ap;
+	const char *format = TIP_(_format);
 
-	va_start(ap, format);
+	va_start(ap, _format);
 	vsnprintf(buffer, sizeof(buffer), format, ap);
 	va_end(ap);
 	buffer[sizeof(buffer) - 1] = '\0';
@@ -482,7 +485,7 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 	}
 
 	/* shape key modifier, not yet for curves */
-	if (ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
+	if (ELEM(ob->type, OB_MESH, OB_LATTICE) && BKE_key_from_object(ob)) {
 		if (ob->type == OB_MESH && (ob->shapeflag & OB_SHAPE_EDIT_MODE))
 			smd.modifier.mode |= eModifierMode_Editmode | eModifierMode_OnCage;
 		else
@@ -494,8 +497,8 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 
 	return md;
 }
-/* Takes an object and returns its first selected armature, else just its
- * armature
+
+/* Takes an object and returns its first selected armature, else just its armature
  * This should work for multiple armatures per object
  */
 Object *modifiers_isDeformedByArmature(Object *ob)
@@ -518,9 +521,8 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 	return NULL;
 }
 
-/* Takes an object and returns its first selected lattice, else just its
- * lattice
- * This should work for multiple lattics per object
+/* Takes an object and returns its first selected lattice, else just its lattice
+ * This should work for multiple lattices per object
  */
 Object *modifiers_isDeformedByLattice(Object *ob)
 {
@@ -542,7 +544,28 @@ Object *modifiers_isDeformedByLattice(Object *ob)
 	return NULL;
 }
 
-
+/* Takes an object and returns its first selected curve, else just its curve
+ * This should work for multiple curves per object
+ */
+Object *modifiers_isDeformedByCurve(Object *ob)
+{
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	CurveModifierData *cmd = NULL;
+	
+	/* return the first selected curve, this lets us use multiple curves */
+	for (; md; md = md->next) {
+		if (md->type == eModifierType_Curve) {
+			cmd = (CurveModifierData *) md;
+			if (cmd->object && (cmd->object->flag & SELECT))
+				return cmd->object;
+		}
+	}
+	
+	if (cmd) /* if were still here then return the last curve */
+		return cmd->object;
+	
+	return NULL;
+}
 
 int modifiers_usesArmature(Object *ob, bArmature *arm)
 {
@@ -574,10 +597,12 @@ int modifiers_isCorrectableDeformed(Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md = md->next) {
-		if (ob->mode == OB_MODE_EDIT && (md->mode & eModifierMode_Editmode) == 0) ;
-		else 
-		if (modifier_isCorrectableDeformed(md))
+		if (ob->mode == OB_MODE_EDIT && (md->mode & eModifierMode_Editmode) == 0) {
+			/* pass */
+		}
+		else if (modifier_isCorrectableDeformed(md)) {
 			return 1;
+		}
 	}
 	return 0;
 }

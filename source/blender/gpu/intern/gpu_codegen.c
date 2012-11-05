@@ -761,7 +761,7 @@ void GPU_pass_bind(GPUPass *pass, double time, int mipmap)
 	/* now bind the textures */
 	for (input=inputs->first; input; input=input->next) {
 		if (input->ima)
-			input->tex = GPU_texture_from_blender(input->ima, input->iuser, input->imagencd, time, mipmap);
+			input->tex = GPU_texture_from_blender(input->ima, input->iuser, input->image_isdata, time, mipmap);
 
 		if (input->tex && input->bindtex) {
 			GPU_texture_bind(input->tex, input->texid);
@@ -917,7 +917,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, int type)
 
 		input->ima = link->ptr1;
 		input->iuser = link->ptr2;
-		input->imagencd = link->imagencd;
+		input->image_isdata = link->image_isdata;
 		input->textarget = GL_TEXTURE_2D;
 		input->textype = GPU_TEX2D;
 		MEM_freeN(link);
@@ -1046,17 +1046,20 @@ static void gpu_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *a
 					}
 				}
 
-				if (a == attribs->totlayer && a < GPU_MAX_ATTRIB) {
-					input->attribid = attribs->totlayer++;
-					input->attribfirst = 1;
+				if (a < GPU_MAX_ATTRIB) {
+					if (a == attribs->totlayer) {
+						input->attribid = attribs->totlayer++;
+						input->attribfirst = 1;
 
-					attribs->layer[a].type = input->attribtype;
-					attribs->layer[a].attribid = input->attribid;
-					BLI_strncpy(attribs->layer[a].name, input->attribname,
-						sizeof(attribs->layer[a].name));
+						attribs->layer[a].type = input->attribtype;
+						attribs->layer[a].attribid = input->attribid;
+						BLI_strncpy(attribs->layer[a].name, input->attribname,
+						            sizeof(attribs->layer[a].name));
+					}
+					else {
+						input->attribid = attribs->layer[a].attribid;
+					}
 				}
-				else
-					input->attribid = attribs->layer[a].attribid;
 			}
 		}
 	}
@@ -1110,14 +1113,14 @@ GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data)
 	return link;
 }
 
-GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, int ncd)
+GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, int isdata)
 {
 	GPUNodeLink *link = GPU_node_link_create(0);
 
 	link->image= 1;
 	link->ptr1= ima;
 	link->ptr2= iuser;
-	link->imagencd= ncd;
+	link->image_isdata= isdata;
 
 	return link;
 }

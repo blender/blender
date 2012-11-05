@@ -53,7 +53,7 @@ public:
 	) {};
 
 	virtual 
-		bool	
+		bool
 	Update(
 		double time
 	)=0;
@@ -69,13 +69,13 @@ public:
 	);
 
 	virtual 
-		void	
+		void
 	SetSimulatedTime(
 		double time
 	)=0;
 
-	virtual	
-		SG_Controller*	
+	virtual
+		SG_Controller*
 	GetReplica(
 		class SG_Node* destnode
 	)=0;
@@ -121,5 +121,4 @@ protected:
 #endif
 };
 
-#endif //__SG_CONTROLLER_H__
-
+#endif  /* __SG_CONTROLLER_H__ */

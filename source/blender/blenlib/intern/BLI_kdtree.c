@@ -30,16 +30,12 @@
  *  \ingroup bli
  */
 
-
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
 #include "BLI_kdtree.h"
+#include "BLI_utildefines.h"
 
-#ifndef SWAP
-#  define SWAP(type, a, b) { type sw_ap; sw_ap = (a); (a) = (b); (b) = sw_ap; } (void)0
-#endif
 
 typedef struct KDTreeNode {
 	struct KDTreeNode *left, *right;
@@ -132,7 +128,7 @@ void BLI_kdtree_balance(KDTree *tree)
 	tree->root = kdtree_balance(tree->nodes, tree->totnode, 0);
 }
 
-static float squared_distance(const float v2[3], const float v1[3], const float *UNUSED(n1), const float *n2)
+static float squared_distance(const float v2[3], const float v1[3], const float UNUSED(n1[3]), const float n2[3])
 {
 	float d[3], dist;
 
@@ -152,7 +148,7 @@ static float squared_distance(const float v2[3], const float v1[3], const float 
 	return dist;
 }
 
-int BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *nearest)
+int BLI_kdtree_find_nearest(KDTree *tree, const float co[3], const float nor[3], KDTreeNearest *nearest)
 {
 	KDTreeNode *root, *node, *min_node;
 	KDTreeNode **stack, *defaultstack[100];

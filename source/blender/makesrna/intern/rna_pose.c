@@ -148,7 +148,7 @@ void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 	}
 }
 
-void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
+static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = ptr->id.data;
 	bActionGroup *agrp = ptr->data;
@@ -257,7 +257,7 @@ static int rna_PoseChannel_has_ik_get(PointerRNA *ptr)
 	return ED_pose_channel_in_IK_chain(ob, pchan);
 }
 
-StructRNA *rna_IKParam_refine(PointerRNA *ptr)
+static StructRNA *rna_IKParam_refine(PointerRNA *ptr)
 {
 	bIKParam *param = (bIKParam *)ptr->data;
 
@@ -269,7 +269,7 @@ StructRNA *rna_IKParam_refine(PointerRNA *ptr)
 	}
 }
 
-PointerRNA rna_Pose_ikparam_get(struct PointerRNA *ptr)
+static PointerRNA rna_Pose_ikparam_get(struct PointerRNA *ptr)
 {
 	bPose *pose = (bPose *)ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_IKParam, pose->ikparam);
@@ -497,24 +497,28 @@ static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int typ
 	return add_pose_constraint(NULL, pchan, NULL, type);
 }
 
-static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, ReportList *reports, bConstraint *con)
+static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, ReportList *reports, PointerRNA *con_ptr)
 {
+	bConstraint *con = con_ptr->data;
+	const short is_ik = ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
+	Object *ob = (Object *)id;
+
 	if (BLI_findindex(&pchan->constraints, con) == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in pose bone '%s'", con->name, pchan->name);
 		return;
 	}
-	else {
-		Object *ob = (Object *)id;
-		const short is_ik = ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
 
-		remove_constraint(&pchan->constraints, con);
-		ED_object_constraint_update(ob);
-		constraints_set_active(&pchan->constraints, NULL);
-		WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, id);
+	remove_constraint(&pchan->constraints, con);
+	RNA_POINTER_INVALIDATE(con_ptr);
 
-		if (is_ik) {
-			BIK_clear_data(ob->pose);
-		}
+	ED_object_constraint_update(ob);
+
+	constraints_set_active(&pchan->constraints, NULL);  /* XXX, is this really needed? - Campbell */
+
+	WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, id);
+
+	if (is_ik) {
+		BIK_clear_data(ob->pose);
 	}
 }
 
@@ -593,7 +597,7 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
 }
 
 /* not essential, but much faster then the default lookup function */
-int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+static int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
 	bPose *pose = (bPose *)ptr->data;
 	bPoseChannel *pchan = BKE_pose_channel_find_name(pose, key);
@@ -727,7 +731,8 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID); /* ID needed for refresh */
 	/* constraint to remove */
 	parm = RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_pose_channel(BlenderRNA *brna)
@@ -788,8 +793,6 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_location_editable");
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
-	/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
 	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
@@ -797,8 +800,6 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_scale_editable");
 	RNA_def_property_float_array_default(prop, default_scale);
 	RNA_def_property_ui_text(prop, "Scale", "");
-	/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
 	prop = RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
@@ -806,8 +807,6 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
 	RNA_def_property_float_array_default(prop, default_quat);
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions");
-	/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 	
 	/* XXX: for axis-angle, it would have been nice to have 2 separate fields for UI purposes, but
@@ -820,15 +819,11 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
 	RNA_def_property_float_array_default(prop, default_axisAngle);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation");
-	/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 	
 	prop = RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_euler_editable");
-	/* XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too */
-	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 	
@@ -1310,7 +1305,7 @@ static void rna_def_pose(BlenderRNA *brna)
 	/* animviz */
 	rna_def_animviz_common(srna);
 	
-	/* RNA_api_pose(srna); */
+	RNA_api_pose(srna);
 }
 
 void RNA_def_pose(BlenderRNA *brna)

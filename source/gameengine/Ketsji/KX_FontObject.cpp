@@ -52,7 +52,7 @@ extern "C" {
 /* proptotype */
 int GetFontId(VFont *font);
 
-std::vector<STR_String> split_string(STR_String str)
+static std::vector<STR_String> split_string(STR_String str)
 {
 	std::vector<STR_String> text = std::vector<STR_String>();
 
@@ -73,10 +73,10 @@ std::vector<STR_String> split_string(STR_String str)
 	return text;
 }
 
-KX_FontObject::KX_FontObject(	void* sgReplicationInfo,
-								SG_Callbacks callbacks,
-								RAS_IRenderTools* rendertools,
-								Object *ob):
+KX_FontObject::KX_FontObject(void* sgReplicationInfo,
+                             SG_Callbacks callbacks,
+                             RAS_IRenderTools* rendertools,
+                             Object *ob):
 	KX_GameObject(sgReplicationInfo, callbacks),
 	m_object(ob),
 	m_dpi(72),
@@ -252,9 +252,9 @@ PyAttributeDef KX_FontObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_FontObject* self= static_cast<KX_FontObject*>(self_v);
+	KX_FontObject* self = static_cast<KX_FontObject*>(self_v);
 	STR_String str = STR_String();
 	for (int i=0; i<self->m_text.size(); ++i)
 	{
@@ -267,7 +267,7 @@ PyObject* KX_FontObject::pyattr_get_text(void *self_v, const KX_PYATTRIBUTE_DEF 
 
 int KX_FontObject::pyattr_set_text(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_FontObject* self= static_cast<KX_FontObject*>(self_v);
+	KX_FontObject* self = static_cast<KX_FontObject*>(self_v);
 	if (!PyUnicode_Check(value))
 		return PY_SET_ATTR_FAIL;
 	char* chars = _PyUnicode_AsString(value);

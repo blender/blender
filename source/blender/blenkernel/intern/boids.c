@@ -101,13 +101,15 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 				break;
 			}
 		}
-		else if (rule->type == eBoidRuleType_Goal && eob == bpa->ground)
-			; /* skip current object */
+		else if (rule->type == eBoidRuleType_Goal && eob == bpa->ground) {
+			/* skip current object */
+		}
 		else if (pd->forcefield == PFIELD_BOID && mul * pd->f_strength > 0.0f && get_effector_data(cur, &cur_efd, &epoint, 0)) {
 			float temp = mul * pd->f_strength * effector_falloff(cur, &cur_efd, &epoint, bbd->part->effector_weights);
 
-			if (temp == 0.0f)
-				; /* do nothing */
+			if (temp == 0.0f) {
+				/* do nothing */
+			}
 			else if (temp > priority) {
 				priority = temp;
 				eff = cur;
@@ -954,7 +956,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	//	}
 	//}
 
-	bbd->wanted_co[0]=bbd->wanted_co[1]=bbd->wanted_co[2]=bbd->wanted_speed=0.0f;
+	zero_v3(bbd->wanted_co);
+	bbd->wanted_speed = 0.0f;
 
 	/* create random seed for every particle & frame */
 	rand = (int)(PSYS_FRAND(psys->seed + p) * 1000);
@@ -988,7 +991,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 					add_v3_v3(wanted_co, bbd->wanted_co);
 					wanted_speed += bbd->wanted_speed;
 					n++;
-					bbd->wanted_co[0]=bbd->wanted_co[1]=bbd->wanted_co[2]=bbd->wanted_speed=0.0f;
+					zero_v3(bbd->wanted_co);
+					bbd->wanted_speed = 0.0f;
 				}
 			}
 
@@ -1168,7 +1172,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
 			/* constrain direction with maximum angular velocity */
 			angle = saacos(dot_v3v3(old_dir, wanted_dir));
-			angle = minf(angle, val.max_ave);
+			angle = min_ff(angle, val.max_ave);
 
 			cross_v3_v3v3(nor, old_dir, wanted_dir);
 			axis_angle_to_quat(q, nor, angle);
@@ -1264,9 +1268,9 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		{
 			float grav[3];
 
-			grav[0]= 0.0f;
-			grav[1]= 0.0f;
-			grav[2]= bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
+			grav[0] = 0.0f;
+			grav[1] = 0.0f;
+			grav[2] = bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
 
 			/* don't take forward acceleration into account (better banking) */
 			if (dot_v3v3(bpa->data.acc, pa->state.vel) > 0.0f) {
@@ -1307,9 +1311,9 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		{
 			float grav[3];
 
-			grav[0]= 0.0f;
-			grav[1]= 0.0f;
-			grav[2]= bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
+			grav[0] = 0.0f;
+			grav[1] = 0.0f;
+			grav[2] = bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f;
 
 
 			/* gather apparent gravity */

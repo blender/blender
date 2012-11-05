@@ -49,7 +49,6 @@ static char *basename(char *string)
 int main(int argc, char **argv)
 {
 	FILE *fpin,  *fpout;
-	char sizest[256];
 	long size;
 	int i;
 
@@ -79,8 +78,6 @@ int main(int argc, char **argv)
 	for (i = 0; i < (int)strlen(argv[1]); i++)
 		if (argv[1][i] == '.') argv[1][i] = '_';
 
-	sprintf(sizest, "%d", (int)size);
-
 	fpout = fopen(argv[2], "w");
 	if (!fpout) {
 		fprintf(stderr, "Unable to open output <%s>\n", argv[2]);
@@ -88,7 +85,7 @@ int main(int argc, char **argv)
 	}
 
 	fprintf(fpout, "/* DataToC output of file <%s> */\n\n", argv[1]);
-	fprintf(fpout, "int datatoc_%s_size = %s;\n", argv[1], sizest);
+	fprintf(fpout, "int datatoc_%s_size = %d;\n", argv[1], (int)size);
 	fprintf(fpout, "char datatoc_%s[] = {\n", argv[1]);
 	while (size--) {
 		/* if we want to open in an editor

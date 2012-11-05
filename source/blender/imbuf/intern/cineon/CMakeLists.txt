@@ -39,12 +39,24 @@ set(INC_SYS
 )
 
 set(SRC
+	cin_debug_stuff.h
+	cineonfile.h
+	cineonlib.h
+	dpxfile.h
+	dpxlib.h
+	logImageCore.h
+	logImageLib.h
+	logmemfile.h
+
 	cineon_dpx.c
 	cineonlib.c
 	dpxlib.c
 	logImageCore.c
-	logImageLib.c
 	logmemfile.c
 )
+
+if(WITH_IMAGE_CINEON)
+	add_definitions(-DWITH_CINEON)
+endif()
 
 blender_add_lib(bf_imbuf_cineon "${SRC}" "${INC}" "${INC_SYS}")

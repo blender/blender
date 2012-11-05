@@ -34,6 +34,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_rect.h"
 #include "BLI_lasso.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
@@ -148,7 +149,7 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
 		}
 
 		if (action == SEL_INVERT) {
-			/* we don't have generic functons for this, its restricted to this operator
+			/* we don't have generic functions for this, its restricted to this operator
 			 * if one day we need to re-use such functionality, they can be split out */
 
 			MaskSpline *spline;
@@ -485,7 +486,7 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
 
-static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, short select)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -549,7 +550,7 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	int mcords_tot;
-	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
 		short select;
@@ -557,7 +558,7 @@ static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 		select = !RNA_boolean_get(op->ptr, "deselect");
 		do_lasso_select_mask(C, mcords, mcords_tot, select);
 
-		MEM_freeN(mcords);
+		MEM_freeN((void *)mcords);
 
 		return OPERATOR_FINISHED;
 	}
@@ -622,7 +623,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	/* compute ellipse and position in unified coordinates */
 	ED_mask_get_size(sa, &width, &height);
 	ED_mask_zoom(sa, ar, &zoomx, &zoomy);
-	width = height = MAX2(width, height);
+	width = height = max_ii(width, height);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;

@@ -51,7 +51,7 @@ bool BlenderSync::psys_need_update(BL::ParticleSystem b_psys)
 		case BL::ParticleSettings::render_type_PATH: {	/* for strand rendering */
 			BL::ID key = (BKE_object_is_modified(b_ob))? b_ob: b_ob.data();
 			Mesh *mesh = mesh_map.find(key);
-			if (mesh) {
+			if(mesh) {
 				need_update |= mesh->need_attribute(scene, ATTR_STD_PARTICLE) && mesh->need_update;
 			}
 			break;
@@ -60,10 +60,10 @@ bool BlenderSync::psys_need_update(BL::ParticleSystem b_psys)
 		
 		case BL::ParticleSettings::render_type_OBJECT: {
 			BL::Object b_dupli_ob = b_psys.settings().dupli_object();
-			if (b_dupli_ob) {
+			if(b_dupli_ob) {
 				BL::ID key = (BKE_object_is_modified(b_dupli_ob))? b_dupli_ob: b_dupli_ob.data();
 				Mesh *mesh = mesh_map.find(key);
-				if (mesh) {
+				if(mesh) {
 					need_update |= mesh->need_attribute(scene, ATTR_STD_PARTICLE) && mesh->need_update;
 				}
 			}
@@ -72,12 +72,12 @@ bool BlenderSync::psys_need_update(BL::ParticleSystem b_psys)
 		
 		case BL::ParticleSettings::render_type_GROUP: {
 			BL::Group b_dupli_group = b_psys.settings().dupli_group();
-			if (b_dupli_group) {
+			if(b_dupli_group) {
 				BL::Group::objects_iterator b_gob;
 				for (b_dupli_group.objects.begin(b_gob); b_gob != b_dupli_group.objects.end(); ++b_gob) {
 					BL::ID key = (BKE_object_is_modified(*b_gob))? *b_gob: b_gob->data();
 					Mesh *mesh = mesh_map.find(key);
-					if (mesh) {
+					if(mesh) {
 						need_update |= mesh->need_attribute(scene, ATTR_STD_PARTICLE) && mesh->need_update;
 					}
 				}
@@ -109,38 +109,43 @@ static bool use_particle_system(BL::ParticleSystem b_psys)
 	return true;
 }
 
-static bool use_particle(BL::Particle b_pa)
+static bool use_particle(BL::Particle b_pa, bool preview, bool show_unborn, bool use_dead)
 {
-	return b_pa.is_exist() && b_pa.is_visible() &&
-	        (b_pa.alive_state()==BL::Particle::alive_state_ALIVE || b_pa.alive_state()==BL::Particle::alive_state_DYING);
+	return b_pa.is_exist() && (!preview || b_pa.is_visible()) &&
+		(b_pa.alive_state() != BL::Particle::alive_state_UNBORN || show_unborn) &&
+		(b_pa.alive_state() != BL::Particle::alive_state_DEAD || use_dead);
 }
 
-static int psys_count_particles(BL::ParticleSystem b_psys)
+static int psys_count_particles(BL::ParticleSystem b_psys, bool preview)
 {
-	int tot = 0;
 	BL::ParticleSystem::particles_iterator b_pa;
-	for(b_psys.particles.begin(b_pa); b_pa != b_psys.particles.end(); ++b_pa) {
-		if(use_particle(*b_pa))
-			++tot;
-	}
-	return tot;
+	bool show_unborn = b_psys.settings().show_unborn();
+	bool use_dead = b_psys.settings().use_dead();
+	int num = 0;
+
+	for(b_psys.particles.begin(b_pa); b_pa != b_psys.particles.end(); ++b_pa)
+		if(use_particle(*b_pa, preview, show_unborn, use_dead))
+			++num;
+
+	return num;
 }
 
 int BlenderSync::object_count_particles(BL::Object b_ob)
 {
-	int tot = 0;
 	BL::Object::particle_systems_iterator b_psys;
-	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
-		if (use_particle_system(*b_psys))
-			tot += psys_count_particles(*b_psys);
-	}
-	return tot;
+	int num = 0;
+
+	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys)
+		if(use_particle_system(*b_psys))
+			num += psys_count_particles(*b_psys, preview);
+
+	return num;
 }
 
 void BlenderSync::sync_particles(BL::Object b_ob, BL::ParticleSystem b_psys)
 {
 	/* depending on settings the psys may not even be rendered */
-	if (!use_particle_system(b_psys))
+	if(!use_particle_system(b_psys))
 		return;
 	
 	/* key to lookup particle system */
@@ -155,15 +160,19 @@ void BlenderSync::sync_particles(BL::Object b_ob, BL::ParticleSystem b_psys)
 	
 	bool need_update = psys_need_update(b_psys);
 	
-	if (object_updated || need_update) {
-		int tot = psys_count_particles(b_psys);
+	if(object_updated || need_update) {
+		bool show_unborn = b_psys.settings().show_unborn();
+		bool use_dead = b_psys.settings().use_dead();
+
+		int num = psys_count_particles(b_psys, preview);
 		psys->particles.clear();
-		psys->particles.reserve(tot);
+		psys->particles.reserve(num);
 		
-		int index = 0;
 		BL::ParticleSystem::particles_iterator b_pa;
+		int index = 0;
+
 		for(b_psys.particles.begin(b_pa); b_pa != b_psys.particles.end(); ++b_pa) {
-			if(use_particle(*b_pa)) {
+			if(use_particle(*b_pa, preview, show_unborn, use_dead)) {
 				Particle pa;
 				
 				pa.index = index;
@@ -183,36 +192,6 @@ void BlenderSync::sync_particles(BL::Object b_ob, BL::ParticleSystem b_psys)
 		
 		psys->tag_update(scene);
 	}
-}
-
-void BlenderSync::sync_particle_systems()
-{
-	/* layer data */
-	uint scene_layer = render_layer.scene_layer;
-	
-	particle_system_map.pre_sync();
-
-	/* object loop */
-	BL::Scene::objects_iterator b_ob;
-	BL::Scene b_sce = b_scene;
-
-	for(; b_sce; b_sce = b_sce.background_set()) {
-		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end(); ++b_ob) {
-			bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
-			uint ob_layer = get_layer(b_ob->layers(), b_ob->layers_local_view(), render_layer.use_localview, object_is_light(*b_ob));
-			hide = hide || !(ob_layer & scene_layer);
-
-			if(!hide) {
-				BL::Object::particle_systems_iterator b_psys;
-				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
-					sync_particles(*b_ob, *b_psys);
-			}
-		}
-	}
-
-	/* handle removed data and modified pointers */
-	if(particle_system_map.post_sync())
-		scene->particle_system_manager->tag_update(scene);
 }
 
 CCL_NAMESPACE_END

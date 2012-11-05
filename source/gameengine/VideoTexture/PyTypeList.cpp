@@ -41,7 +41,7 @@ PyTypeList::~PyTypeList()
 }
 
 /// check, if type is in list
-bool PyTypeList::in (PyTypeObject * type)
+bool PyTypeList::in (PyTypeObject *type)
 {
 	// if list exists
 	if (m_list.get() != NULL)
@@ -54,7 +54,7 @@ bool PyTypeList::in (PyTypeObject * type)
 }
 
 /// add type to list
-void PyTypeList::add (PyTypeObject * type, const char * name)
+void PyTypeList::add (PyTypeObject *type, const char * name)
 {
 	// if list doesn't exist, create it
 	if (m_list.get() == NULL) 
@@ -78,7 +78,7 @@ bool PyTypeList::ready (void)
 }
 
 /// register types to module
-void PyTypeList::reg (PyObject * module)
+void PyTypeList::reg(PyObject *module)
 {
 	// if list exists
 	if (m_list.get() != NULL)
@@ -88,6 +88,6 @@ void PyTypeList::reg (PyObject * module)
 			// increase ref count
 			Py_INCREF((*it)->getType());
 			// add type to module
-			PyModule_AddObject(module, (char*)(*it)->getName(), (PyObject*)(*it)->getType());
+			PyModule_AddObject(module, (char*)(*it)->getName(), (PyObject *)(*it)->getType());
 		}
 }

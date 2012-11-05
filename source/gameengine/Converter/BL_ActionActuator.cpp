@@ -96,7 +96,7 @@ BL_ActionActuator::BL_ActionActuator(SCA_IObject* gameobj,
 	m_userpose(NULL),
 	m_action(action),
 	m_propname(propname),
-	m_framepropname(framepropname)		
+	m_framepropname(framepropname)
 {
 	if (!end_reset)
 		m_flag |= ACT_FLAG_CONTINUE;
@@ -140,8 +140,7 @@ void BL_ActionActuator::SetLocalTime(float curtime)
 	// Handle wrap around
 	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
 	{
-		switch(m_playtype)
-		{
+		switch (m_playtype) {
 		case ACT_ACTION_PLAY:
 			// Clamp
 			m_localtime = m_endframe;
@@ -196,8 +195,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		return false;
 
 	// Convert our playtype to one that BL_Action likes
-	switch(m_playtype)
-	{
+	switch (m_playtype) {
 		case ACT_ACTION_LOOP_END:
 		case ACT_ACTION_LOOP_STOP:
 			playtype = BL_Action::ACT_MODE_LOOP;
@@ -299,7 +297,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		m_flag |= ACT_FLAG_ATTEMPT_PLAY;
 	}
 	else if ((m_flag & ACT_FLAG_ACTIVE) && bNegativeEvent)
-	{	
+	{
 		m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
 		m_localtime = obj->GetActionFrame(m_layer);
 		bAction *curr_action = obj->GetCurrentAction(m_layer);
@@ -312,8 +310,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			return false;
 		}
 
-		switch(m_playtype)
-		{
+		switch (m_playtype) {
 			case ACT_ACTION_LOOP_STOP:
 				obj->StopAction(m_layer); // Stop the action after getting the frame
 
@@ -347,7 +344,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 /* Python functions                                                          */
 /* ------------------------------------------------------------------------- */
 
-PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
+PyObject *BL_ActionActuator::PyGetChannel(PyObject *value)
 {
 	PyErr_SetString(PyExc_NotImplementedError, "BL_ActionActuator.getChannel() no longer works, please use BL_ArmatureObject.channels instead");
 	return NULL;
@@ -492,9 +489,9 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		
 		// for some reason loc.setValue(pchan->loc) fails
 		if (pchan) {
-			pchan->loc[0]= loc[0]; pchan->loc[1]= loc[1]; pchan->loc[2]= loc[2];
-			pchan->size[0]= size[0]; pchan->size[1]= size[1]; pchan->size[2]= size[2];
-			pchan->quat[0]= quat[3]; pchan->quat[1]= quat[0]; pchan->quat[2]= quat[1]; pchan->quat[3]= quat[2]; /* notice xyzw -> wxyz is intentional */
+			pchan->loc[0] = loc[0]; pchan->loc[1] = loc[1]; pchan->loc[2] = loc[2];
+			pchan->size[0] = size[0]; pchan->size[1] = size[1]; pchan->size[2] = size[2];
+			pchan->quat[0] = quat[3]; pchan->quat[1] = quat[0]; pchan->quat[2] = quat[1]; pchan->quat[3] = quat[2]; /* notice xyzw -> wxyz is intentional */
 		}
 	}
 	
@@ -555,15 +552,15 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* BL_ActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ActionActuator::pyattr_get_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
 	return PyUnicode_FromString(self->GetAction() ? self->GetAction()->id.name+2 : "");
 }
 
 int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
 	
 	if (!PyUnicode_Check(value))
 	{
@@ -589,13 +586,13 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 
 }
 
-PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	PyErr_SetString(PyExc_NotImplementedError, "BL_ActionActuator.channelNames no longer works, please use BL_ArmatureObject.channels instead");
 	return NULL;
 
 #if 0 // XXX To be removed in a later version (first removed in 2.64)
-	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
 	PyObject *ret= PyList_New(0);
 	PyObject *item;
 	
@@ -620,15 +617,15 @@ PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 #endif
 }
 
-PyObject* BL_ActionActuator::pyattr_get_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ActionActuator::pyattr_get_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
 	return PyBool_FromLong(self->m_flag & ACT_FLAG_CONTINUE);
 }
 
 int BL_ActionActuator::pyattr_set_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
 	
 	if (PyObject_IsTrue(value))
 		self->m_flag |= ACT_FLAG_CONTINUE;
@@ -638,15 +635,15 @@ int BL_ActionActuator::pyattr_set_use_continue(void *self_v, const KX_PYATTRIBUT
 	return PY_SET_ATTR_SUCCESS;
 }
 
-PyObject* BL_ActionActuator::pyattr_get_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *BL_ActionActuator::pyattr_get_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
 	return PyFloat_FromDouble(((KX_GameObject*)self->m_gameobj)->GetActionFrame(self->m_layer));
 }
 
 int BL_ActionActuator::pyattr_set_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	BL_ActionActuator* self = static_cast<BL_ActionActuator*>(self_v);
 	
 	((KX_GameObject*)self->m_gameobj)->SetActionFrame(self->m_layer, PyFloat_AsDouble(value));
 	

@@ -1051,7 +1051,7 @@ static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 			
 			sample -= 1.0f;
 		}
-	}	
+	}
 
 	if (do_rect) {
 		// printf("%ld %ld\n", (uchar *)rect - ((uchar *)ibuf->rect), rect_size);

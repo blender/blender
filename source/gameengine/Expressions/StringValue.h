@@ -25,7 +25,7 @@ class CStringValue : public CPropValue
 {
 
 	
-	//PLUGIN_DECLARE_SERIAL(CStringValue,CValue)		
+	//PLUGIN_DECLARE_SERIAL(CStringValue,CValue)
 public:
 	/// Construction / destruction
 	CStringValue();
@@ -45,7 +45,7 @@ public:
 	virtual PyObject*	ConvertValueToPython() {
 		return PyUnicode_From_STR_String(m_strString);
 	}
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 private:
 	// data member
@@ -57,5 +57,4 @@ private:
 #endif
 };
 
-#endif
-
+#endif  /* __STRINGVALUE_H__ */

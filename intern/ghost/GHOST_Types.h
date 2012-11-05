@@ -50,7 +50,7 @@ typedef unsigned short GHOST_TUns16;
 typedef int GHOST_TInt32;
 typedef unsigned int GHOST_TUns32;
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
+#ifdef _MSC_VER
 typedef __int64 GHOST_TInt64;
 typedef unsigned __int64 GHOST_TUns64;
 #else
@@ -388,7 +388,7 @@ typedef struct {
 
 typedef struct {
 	/** Displacement of a mouse wheel. */
-	GHOST_TInt32 z;	
+	GHOST_TInt32 z;
 } GHOST_TEventWheelData;
 
 typedef enum {

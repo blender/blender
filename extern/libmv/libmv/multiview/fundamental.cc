@@ -28,7 +28,7 @@
 
 namespace libmv {
 
-void EliminateRow(const Mat34 &P, int row, Mat *X) {
+static void EliminateRow(const Mat34 &P, int row, Mat *X) {
   X->resize(2, 4);
 
   int first_row = (row + 1) % 3;
@@ -69,7 +69,7 @@ void FundamentalFromProjections(const Mat34 &P1, const Mat34 &P2, Mat3 *F) {
 
 // HZ 11.1 pag.279 (x1 = x, x2 = x')
 // http://www.cs.unc.edu/~marc/tutorial/node54.html
-double EightPointSolver(const Mat &x1, const Mat &x2, Mat3 *F) {
+static double EightPointSolver(const Mat &x1, const Mat &x2, Mat3 *F) {
   DCHECK_EQ(x1.rows(), 2);
   DCHECK_GE(x1.cols(), 8);
   DCHECK_EQ(x1.rows(), x2.rows());

@@ -409,7 +409,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 		MEM_freeN(quats);
 	}
 
-	if (!*deformmats) {
+	if (*deformmats == NULL) {
 		int a, numVerts;
 		Mesh *me = (Mesh *)ob->data;
 

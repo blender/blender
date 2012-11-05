@@ -54,7 +54,10 @@ public:
 	bool get_inverse_matrix(OSL::Matrix44 &result, ustring to, float time);
 	
 	bool get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform);
+	bool get_inverse_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform);
+	
 	bool get_matrix(OSL::Matrix44 &result, ustring from);
+	bool get_inverse_matrix(OSL::Matrix44 &result, ustring from);
 
 	bool get_array_attribute(void *renderstate, bool derivatives,
 	                         ustring object, TypeDesc type, ustring name,

@@ -21,15 +21,13 @@
 #elif defined __INTEL_COMPILER
   // 2196 - routine is both "inline" and "noinline" ("noinline" assumed)
   //        ICC 12 generates this warning even without any inline keyword, when defining class methods 'inline' i.e. inside of class body
-  // 2536 - type qualifiers are meaningless here
-  //        ICC 12 generates this warning when a function return type is const qualified, even if that type is a template-parameter-dependent
   //        typedef that may be a reference type.
   // 279  - controlling expression is constant
   //        ICC 12 generates this warning on assert(constant_expression_depending_on_template_params) and frankly this is a legitimate use case.
   #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
     #pragma warning push
   #endif
-  #pragma warning disable 2196 2536 279
+  #pragma warning disable 2196 279
 #elif defined __clang__
   // -Wconstant-logical-operand - warning: use of logical && with constant operand; switch to bitwise & or remove constant
   //     this is really a stupid warning as it warns on compile-time expressions involving enums

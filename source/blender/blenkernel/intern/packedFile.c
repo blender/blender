@@ -201,7 +201,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 
 	file = BLI_open(name, O_BINARY | O_RDONLY, 0);
 	if (file <= 0) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path not found: \"%s\"", name);
+		BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path '%s' not found", name);
 	}
 	else {
 		filelen = BLI_file_descriptor_size(file);
@@ -238,7 +238,8 @@ void packAll(Main *bmain, ReportList *reports)
 				ima->packedfile = newPackedFile(reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
 			}
 			else if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-				BKE_reportf(reports, RPT_WARNING, "Image '%s' skipped, movies and image sequences not supported.", ima->id.name + 2);
+				BKE_reportf(reports, RPT_WARNING, "Image '%s' skipped, movies and image sequences not supported",
+				            ima->id.name + 2);
 			}
 		}
 	}
@@ -310,20 +311,20 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 	file = BLI_open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file >= 0) {
 		if (write(file, pf->data, pf->size) != pf->size) {
-			BKE_reportf(reports, RPT_ERROR, "Error writing file: %s", name);
+			BKE_reportf(reports, RPT_ERROR, "Error writing file '%s'", name);
 			ret_value = RET_ERROR;
 		}
 		close(file);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Error creating file: %s", name);
+		BKE_reportf(reports, RPT_ERROR, "Error creating file '%s'", name);
 		ret_value = RET_ERROR;
 	}
 	
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
 			if (BLI_rename(tempname, name) != 0) {
-				BKE_reportf(reports, RPT_ERROR, "Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
+				BKE_reportf(reports, RPT_ERROR, "Error restoring temp file (check files '%s' '%s')", tempname, name);
 			}
 		}
 		else {

@@ -34,7 +34,7 @@
 #include "NOD_texture.h"
 
 
-static bNodeSocketTemplate inputs[]= {
+static bNodeSocketTemplate inputs[] = {
 	{ SOCK_FLOAT, 1, N_("Hue"),        0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.5f, PROP_NONE },
 	{ SOCK_FLOAT, 1, N_("Saturation"), 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 2.0f, PROP_FACTOR },
 	{ SOCK_FLOAT, 1, N_("Value"),      1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 2.0f, PROP_FACTOR },
@@ -42,7 +42,7 @@ static bNodeSocketTemplate inputs[]= {
 	{ SOCK_RGBA,  1, N_("Color"),      0.8f, 0.8f, 0.8f, 1.0f },
 	{ -1, 0, "" }
 };
-static bNodeSocketTemplate outputs[]= {
+static bNodeSocketTemplate outputs[] = {
 	{ SOCK_RGBA, 0, N_("Color") },
 	{ -1, 0, "" }
 };
@@ -56,14 +56,14 @@ static void do_hue_sat_fac(bNode *UNUSED(node), float *out, float hue, float sat
 		hsv[0]+= (hue - 0.5f);
 		if (hsv[0]>1.0f) hsv[0]-=1.0f; else if (hsv[0]<0.0f) hsv[0]+= 1.0f;
 		hsv[1]*= sat;
-		if (hsv[1]>1.0f) hsv[1]= 1.0f; else if (hsv[1]<0.0f) hsv[1]= 0.0f;
+		if (hsv[1]>1.0f) hsv[1] = 1.0f; else if (hsv[1]<0.0f) hsv[1] = 0.0f;
 		hsv[2]*= val;
-		if (hsv[2]>1.0f) hsv[2]= 1.0f; else if (hsv[2]<0.0f) hsv[2]= 0.0f;
+		if (hsv[2]>1.0f) hsv[2] = 1.0f; else if (hsv[2]<0.0f) hsv[2] = 0.0f;
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		
-		out[0]= mfac*in[0] + fac*col[0];
-		out[1]= mfac*in[1] + fac*col[1];
-		out[2]= mfac*in[2] + fac*col[2];
+		out[0] = mfac*in[0] + fac*col[0];
+		out[1] = mfac*in[1] + fac*col[1];
+		out[2] = mfac*in[2] + fac*col[2];
 	}
 	else {
 		copy_v4_v4(out, in);

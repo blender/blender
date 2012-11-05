@@ -336,6 +336,15 @@ static void rna_View3D_CursorLocation_set(PointerRNA *ptr, const float *values)
 	copy_v3_v3(cursor, values);
 }
 
+static float rna_View3D_GridScaleUnit_get(PointerRNA *ptr)
+{
+	View3D *v3d = (View3D *)(ptr->data);
+	bScreen *sc = (bScreen *)ptr->id.data;
+	Scene *scene = (Scene *)sc->scene;
+
+	return ED_view3d_grid_scale(scene, v3d, NULL);
+}
+
 static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const int *values)
 {
 	View3D *v3d = (View3D *)(ptr->data);
@@ -478,7 +487,7 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 }
 
 /* api call */
-void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
+static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d)
 {
 	bScreen *sc = (bScreen *)id;
 
@@ -849,7 +858,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 			adt = BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
 		}
 		else if (saction->mode == SACTCONT_SHAPEKEY) {
-			Key *key = ob_get_key(obact);
+			Key *key = BKE_key_from_object(obact);
 			if (key)
 				adt = BKE_id_add_animdata(&key->id);  /* this only adds if non-existant */
 		}
@@ -876,7 +885,7 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 	
 	/* special exceptions for ShapeKey Editor mode */
 	if (saction->mode == SACTCONT_SHAPEKEY) {
-		Key *key = ob_get_key(obact);
+		Key *key = BKE_key_from_object(obact);
 		
 		/* 1)	update the action stored for the editor */
 		if (key)
@@ -949,15 +958,17 @@ static BGpic *rna_BackgroundImage_new(View3D *v3d)
 	return bgpic;
 }
 
-static void rna_BackgroundImage_remove(View3D *v3d, ReportList *reports, BGpic *bgpic)
+static void rna_BackgroundImage_remove(View3D *v3d, ReportList *reports, PointerRNA *bgpic_ptr)
 {
+	BGpic *bgpic = bgpic_ptr->data;
 	if (BLI_findindex(&v3d->bgpicbase, bgpic) == -1) {
-		BKE_report(reports, RPT_ERROR, "BackgroundImage can't be removed");
+		BKE_report(reports, RPT_ERROR, "Background image cannot be removed");
 	}
-	else {
-		ED_view3D_background_image_remove(v3d, bgpic);
-		WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, v3d);
-	}
+
+	ED_view3D_background_image_remove(v3d, bgpic);
+	RNA_POINTER_INVALIDATE(bgpic_ptr);
+
+	WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, v3d);
 }
 
 static void rna_BackgroundImage_clear(View3D *v3d)
@@ -1102,7 +1113,7 @@ static void rna_def_space(BlenderRNA *brna)
 }
 
 /* for all spaces that use a mask */
-void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *mask_set_func)
+static void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *mask_set_func)
 {
 	PropertyRNA *prop;
 
@@ -1324,7 +1335,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "BackgroundImage", NULL);
 	RNA_def_struct_sdna(srna, "BGpic");
-	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background");
+	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3D View background");
 
 	prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "source");
@@ -1442,7 +1453,8 @@ static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove background image");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "image", "BackgroundImage", "", "Image displayed as viewport background");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	func = RNA_def_function(srna, "clear", "rna_BackgroundImage_clear");
 	RNA_def_function_ui_description(func, "Remove all background images");
@@ -1494,7 +1506,39 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Camera",
 	                         "Active camera used in this view (when unlocked from the scene's active camera)");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-	
+
+	/* render border */
+	prop = RNA_def_property(srna, "use_render_border", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_RENDER_BORDER);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Render Border",
+	                         "Use a user-defined border region within the frame size for rendered viewport");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "render_border_min_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "render_border.xmin");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Minimum X", "Minimum X value to for the render border");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "render_border_min_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "render_border.ymin");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Minimum Y", "Minimum Y value for the render border");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "render_border_max_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "render_border.xmax");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Maximum X", "Maximum X value for the render border");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "render_border_max_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "render_border.ymax");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Border Maximum Y", "Maximum Y value for the render border");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	prop = RNA_def_property(srna, "lock_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ob_centre");
@@ -1533,7 +1577,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
-	RNA_def_property_ui_text(prop, "Lens", "Lens angle (mm) in perspective view");
+	RNA_def_property_ui_text(prop, "Lens", "Viewport lens angle (mm)");
 	RNA_def_property_range(prop, 1.0f, 250.0f);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	
@@ -1571,7 +1615,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_int_default(prop, 10);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-	
+
+	prop = RNA_def_property(srna, "grid_scale_unit", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_View3D_GridScaleUnit_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Grid Scale Unit", "Grid cell size scaled by scene unit system settings");
+
 	prop = RNA_def_property(srna, "show_floor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_FLOOR);
 	RNA_def_property_ui_text(prop, "Display Grid Floor", "Show the ground plane grid in perspective view");
@@ -2778,6 +2827,12 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", BLENDERFILE);
 	RNA_def_property_ui_text(prop, "Filter Blender", "Show .blend files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_BLEND, 0);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
+
+	prop = RNA_def_property(srna, "use_filter_backup", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", BLENDERFILE_BACKUP);
+	RNA_def_property_ui_text(prop, "Filter BlenderBackup files", "Show .blend1, .blend2, etc. files");
+	RNA_def_property_ui_icon(prop, ICON_FILE_BACKUP, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_FILE_PARAMS, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_movie", PROP_BOOLEAN, PROP_NONE);

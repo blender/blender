@@ -35,18 +35,19 @@
 #include <vector>
 #include <map>
 
+extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_texture_types.h"
-#include "BKE_context.h"
-#include "BKE_object.h"
-
 #include "DNA_scene_types.h"
 
-extern "C" {
-#include "BKE_DerivedMesh.h"
 #include "BLI_linklist.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_context.h"
+#include "BKE_object.h"
+#include "BKE_DerivedMesh.h"
 }
 
 #include "ExportSettings.h"

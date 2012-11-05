@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2009-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_JACOBISVD_H
 #define EIGEN_JACOBISVD_H
+
+namespace Eigen { 
 
 namespace internal {
 // forward declaration (needed by ICC)
@@ -61,9 +48,12 @@ template<typename MatrixType, int QRPreconditioner, int Case,
 > struct qr_preconditioner_impl {};
 
 template<typename MatrixType, int QRPreconditioner, int Case>
-struct qr_preconditioner_impl<MatrixType, QRPreconditioner, Case, false>
+class qr_preconditioner_impl<MatrixType, QRPreconditioner, Case, false>
 {
-  static bool run(JacobiSVD<MatrixType, QRPreconditioner>&, const MatrixType&)
+public:
+  typedef typename MatrixType::Index Index;
+  void allocate(const JacobiSVD<MatrixType, QRPreconditioner>&) {}
+  bool run(JacobiSVD<MatrixType, QRPreconditioner>&, const MatrixType&)
   {
     return false;
   }
@@ -72,134 +62,279 @@ struct qr_preconditioner_impl<MatrixType, QRPreconditioner, Case, false>
 /*** preconditioner using FullPivHouseholderQR ***/
 
 template<typename MatrixType>
-struct qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
+class qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
 {
-  static bool run(JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+public:
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  enum
+  {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime
+  };
+  typedef Matrix<Scalar, 1, RowsAtCompileTime, RowMajor, 1, MaxRowsAtCompileTime> WorkspaceType;
+
+  void allocate(const JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd)
+  {
+    if (svd.rows() != m_qr.rows() || svd.cols() != m_qr.cols())
+    {
+      m_qr = FullPivHouseholderQR<MatrixType>(svd.rows(), svd.cols());
+    }
+    if (svd.m_computeFullU) m_workspace.resize(svd.rows());
+  }
+
+  bool run(JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
   {
     if(matrix.rows() > matrix.cols())
     {
-      FullPivHouseholderQR<MatrixType> qr(matrix);
-      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
-      if(svd.m_computeFullU) svd.m_matrixU = qr.matrixQ();
-      if(svd.computeV()) svd.m_matrixV = qr.colsPermutation();
+      m_qr.compute(matrix);
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      if(svd.m_computeFullU) m_qr.matrixQ().evalTo(svd.m_matrixU, m_workspace);
+      if(svd.computeV()) svd.m_matrixV = m_qr.colsPermutation();
       return true;
     }
     return false;
   }
+private:
+  FullPivHouseholderQR<MatrixType> m_qr;
+  WorkspaceType m_workspace;
 };
 
 template<typename MatrixType>
-struct qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
+class qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
 {
-  static bool run(JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+public:
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  enum
+  {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Options = MatrixType::Options
+  };
+  typedef Matrix<Scalar, ColsAtCompileTime, RowsAtCompileTime, Options, MaxColsAtCompileTime, MaxRowsAtCompileTime>
+          TransposeTypeWithSameStorageOrder;
+
+  void allocate(const JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd)
+  {
+    if (svd.cols() != m_qr.rows() || svd.rows() != m_qr.cols())
+    {
+      m_qr = FullPivHouseholderQR<TransposeTypeWithSameStorageOrder>(svd.cols(), svd.rows());
+    }
+    m_adjoint.resize(svd.cols(), svd.rows());
+    if (svd.m_computeFullV) m_workspace.resize(svd.cols());
+  }
+
+  bool run(JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
   {
     if(matrix.cols() > matrix.rows())
     {
-      typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime,
-                     MatrixType::Options, MatrixType::MaxColsAtCompileTime, MatrixType::MaxRowsAtCompileTime>
-              TransposeTypeWithSameStorageOrder;
-      FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
-      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
-      if(svd.m_computeFullV) svd.m_matrixV = qr.matrixQ();
-      if(svd.computeU()) svd.m_matrixU = qr.colsPermutation();
+      m_adjoint = matrix.adjoint();
+      m_qr.compute(m_adjoint);
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      if(svd.m_computeFullV) m_qr.matrixQ().evalTo(svd.m_matrixV, m_workspace);
+      if(svd.computeU()) svd.m_matrixU = m_qr.colsPermutation();
       return true;
     }
     else return false;
   }
+private:
+  FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> m_qr;
+  TransposeTypeWithSameStorageOrder m_adjoint;
+  typename internal::plain_row_type<MatrixType>::type m_workspace;
 };
 
 /*** preconditioner using ColPivHouseholderQR ***/
 
 template<typename MatrixType>
-struct qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
+class qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
 {
-  static bool run(JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+public:
+  typedef typename MatrixType::Index Index;
+
+  void allocate(const JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd)
+  {
+    if (svd.rows() != m_qr.rows() || svd.cols() != m_qr.cols())
+    {
+      m_qr = ColPivHouseholderQR<MatrixType>(svd.rows(), svd.cols());
+    }
+    if (svd.m_computeFullU) m_workspace.resize(svd.rows());
+    else if (svd.m_computeThinU) m_workspace.resize(svd.cols());
+  }
+
+  bool run(JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
   {
     if(matrix.rows() > matrix.cols())
     {
-      ColPivHouseholderQR<MatrixType> qr(matrix);
-      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
-      if(svd.m_computeFullU) svd.m_matrixU = qr.householderQ();
-      else if(svd.m_computeThinU) {
+      m_qr.compute(matrix);
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      if(svd.m_computeFullU) m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
+      else if(svd.m_computeThinU)
+      {
         svd.m_matrixU.setIdentity(matrix.rows(), matrix.cols());
-        qr.householderQ().applyThisOnTheLeft(svd.m_matrixU);
+        m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixU, m_workspace);
       }
-      if(svd.computeV()) svd.m_matrixV = qr.colsPermutation();
+      if(svd.computeV()) svd.m_matrixV = m_qr.colsPermutation();
       return true;
     }
     return false;
   }
+
+private:
+  ColPivHouseholderQR<MatrixType> m_qr;
+  typename internal::plain_col_type<MatrixType>::type m_workspace;
 };
 
 template<typename MatrixType>
-struct qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
+class qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
 {
-  static bool run(JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+public:
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  enum
+  {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Options = MatrixType::Options
+  };
+
+  typedef Matrix<Scalar, ColsAtCompileTime, RowsAtCompileTime, Options, MaxColsAtCompileTime, MaxRowsAtCompileTime>
+          TransposeTypeWithSameStorageOrder;
+
+  void allocate(const JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd)
+  {
+    if (svd.cols() != m_qr.rows() || svd.rows() != m_qr.cols())
+    {
+      m_qr = ColPivHouseholderQR<TransposeTypeWithSameStorageOrder>(svd.cols(), svd.rows());
+    }
+    if (svd.m_computeFullV) m_workspace.resize(svd.cols());
+    else if (svd.m_computeThinV) m_workspace.resize(svd.rows());
+    m_adjoint.resize(svd.cols(), svd.rows());
+  }
+
+  bool run(JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
   {
     if(matrix.cols() > matrix.rows())
     {
-      typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime,
-                     MatrixType::Options, MatrixType::MaxColsAtCompileTime, MatrixType::MaxRowsAtCompileTime>
-              TransposeTypeWithSameStorageOrder;
-      ColPivHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
-      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
-      if(svd.m_computeFullV) svd.m_matrixV = qr.householderQ();
-      else if(svd.m_computeThinV) {
+      m_adjoint = matrix.adjoint();
+      m_qr.compute(m_adjoint);
+
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      if(svd.m_computeFullV) m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
+      else if(svd.m_computeThinV)
+      {
         svd.m_matrixV.setIdentity(matrix.cols(), matrix.rows());
-        qr.householderQ().applyThisOnTheLeft(svd.m_matrixV);
+        m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixV, m_workspace);
       }
-      if(svd.computeU()) svd.m_matrixU = qr.colsPermutation();
+      if(svd.computeU()) svd.m_matrixU = m_qr.colsPermutation();
       return true;
     }
     else return false;
   }
+
+private:
+  ColPivHouseholderQR<TransposeTypeWithSameStorageOrder> m_qr;
+  TransposeTypeWithSameStorageOrder m_adjoint;
+  typename internal::plain_row_type<MatrixType>::type m_workspace;
 };
 
 /*** preconditioner using HouseholderQR ***/
 
 template<typename MatrixType>
-struct qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
+class qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
 {
-  static bool run(JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+public:
+  typedef typename MatrixType::Index Index;
+
+  void allocate(const JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd)
+  {
+    if (svd.rows() != m_qr.rows() || svd.cols() != m_qr.cols())
+    {
+      m_qr = HouseholderQR<MatrixType>(svd.rows(), svd.cols());
+    }
+    if (svd.m_computeFullU) m_workspace.resize(svd.rows());
+    else if (svd.m_computeThinU) m_workspace.resize(svd.cols());
+  }
+
+  bool run(JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd, const MatrixType& matrix)
   {
     if(matrix.rows() > matrix.cols())
     {
-      HouseholderQR<MatrixType> qr(matrix);
-      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
-      if(svd.m_computeFullU) svd.m_matrixU = qr.householderQ();
-      else if(svd.m_computeThinU) {
+      m_qr.compute(matrix);
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      if(svd.m_computeFullU) m_qr.householderQ().evalTo(svd.m_matrixU, m_workspace);
+      else if(svd.m_computeThinU)
+      {
         svd.m_matrixU.setIdentity(matrix.rows(), matrix.cols());
-        qr.householderQ().applyThisOnTheLeft(svd.m_matrixU);
+        m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixU, m_workspace);
       }
       if(svd.computeV()) svd.m_matrixV.setIdentity(matrix.cols(), matrix.cols());
       return true;
     }
     return false;
   }
+private:
+  HouseholderQR<MatrixType> m_qr;
+  typename internal::plain_col_type<MatrixType>::type m_workspace;
 };
 
 template<typename MatrixType>
-struct qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
+class qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
 {
-  static bool run(JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+public:
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  enum
+  {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+    MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+    Options = MatrixType::Options
+  };
+
+  typedef Matrix<Scalar, ColsAtCompileTime, RowsAtCompileTime, Options, MaxColsAtCompileTime, MaxRowsAtCompileTime>
+          TransposeTypeWithSameStorageOrder;
+
+  void allocate(const JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd)
+  {
+    if (svd.cols() != m_qr.rows() || svd.rows() != m_qr.cols())
+    {
+      m_qr = HouseholderQR<TransposeTypeWithSameStorageOrder>(svd.cols(), svd.rows());
+    }
+    if (svd.m_computeFullV) m_workspace.resize(svd.cols());
+    else if (svd.m_computeThinV) m_workspace.resize(svd.rows());
+    m_adjoint.resize(svd.cols(), svd.rows());
+  }
+
+  bool run(JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd, const MatrixType& matrix)
   {
     if(matrix.cols() > matrix.rows())
     {
-      typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime,
-                     MatrixType::Options, MatrixType::MaxColsAtCompileTime, MatrixType::MaxRowsAtCompileTime>
-              TransposeTypeWithSameStorageOrder;
-      HouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
-      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
-      if(svd.m_computeFullV) svd.m_matrixV = qr.householderQ();
-      else if(svd.m_computeThinV) {
+      m_adjoint = matrix.adjoint();
+      m_qr.compute(m_adjoint);
+
+      svd.m_workMatrix = m_qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      if(svd.m_computeFullV) m_qr.householderQ().evalTo(svd.m_matrixV, m_workspace);
+      else if(svd.m_computeThinV)
+      {
         svd.m_matrixV.setIdentity(matrix.cols(), matrix.rows());
-        qr.householderQ().applyThisOnTheLeft(svd.m_matrixV);
+        m_qr.householderQ().applyThisOnTheLeft(svd.m_matrixV, m_workspace);
       }
       if(svd.computeU()) svd.m_matrixU.setIdentity(matrix.rows(), matrix.rows());
       return true;
     }
     else return false;
   }
+
+private:
+  HouseholderQR<TransposeTypeWithSameStorageOrder> m_qr;
+  TransposeTypeWithSameStorageOrder m_adjoint;
+  typename internal::plain_row_type<MatrixType>::type m_workspace;
 };
 
 /*** 2x2 SVD implementation
@@ -316,7 +451,7 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   * Here's an example demonstrating basic usage:
   * \include JacobiSVD_basic.cpp
   * Output: \verbinclude JacobiSVD_basic.out
-  * 
+  *
   * This JacobiSVD class is a two-sided Jacobi R-SVD decomposition, ensuring optimal reliability and accuracy. The downside is that it's slower than
   * bidiagonalizing SVD algorithms for large square matrices; however its complexity is still \f$ O(n^2p) \f$ where \a n is the smaller dimension and
   * \a p is the greater dimension, meaning that it is still of the same order of complexity as the faster bidiagonalizing R-SVD algorithms.
@@ -324,7 +459,7 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   *
   * If the input matrix has inf or nan coefficients, the result of the computation is undefined, but the computation is guaranteed to
   * terminate in finite (and reasonable) time.
-  * 
+  *
   * The possible values for QRPreconditioner are:
   * \li ColPivHouseholderQRPreconditioner is the default. In practice it's very safe. It uses column-pivoting QR.
   * \li FullPivHouseholderQRPreconditioner, is the safest and slowest. It uses full-pivoting QR.
@@ -494,7 +629,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       * \param b the right-hand-side of the equation to solve.
       *
       * \note Solving requires both U and V to be computed. Thin U and V are enough, there is no need for full U or V.
-      * 
+      *
       * \note SVD solving is implicitly least-squares. Thus, this method serves both purposes of exact solving and least-squares solving.
       * In other words, the returned solution is guaranteed to minimize the Euclidean norm \f$ \Vert A x - b \Vert \f$.
       */
@@ -535,6 +670,9 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
     friend struct internal::svd_precondition_2x2_block_to_be_real;
     template<typename __MatrixType, int _QRPreconditioner, int _Case, bool _DoAnything>
     friend struct internal::qr_preconditioner_impl;
+
+    internal::qr_preconditioner_impl<MatrixType, QRPreconditioner, internal::PreconditionIfMoreColsThanRows> m_qr_precond_morecols;
+    internal::qr_preconditioner_impl<MatrixType, QRPreconditioner, internal::PreconditionIfMoreRowsThanCols> m_qr_precond_morerows;
 };
 
 template<typename MatrixType, int QRPreconditioner>
@@ -578,6 +716,9 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
                           : m_computeThinV ? m_diagSize
                           : 0);
   m_workMatrix.resize(m_diagSize, m_diagSize);
+  
+  if(m_cols>m_rows) m_qr_precond_morecols.allocate(*this);
+  if(m_rows>m_cols) m_qr_precond_morerows.allocate(*this);
 }
 
 template<typename MatrixType, int QRPreconditioner>
@@ -595,8 +736,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
 
   /*** step 1. The R-SVD step: we use a QR decomposition to reduce to the case of a square matrix */
 
-  if(!internal::qr_preconditioner_impl<MatrixType, QRPreconditioner, internal::PreconditionIfMoreColsThanRows>::run(*this, matrix)
-  && !internal::qr_preconditioner_impl<MatrixType, QRPreconditioner, internal::PreconditionIfMoreRowsThanCols>::run(*this, matrix))
+  if(!m_qr_precond_morecols.run(*this, matrix) && !m_qr_precond_morerows.run(*this, matrix))
   {
     m_workMatrix = matrix.block(0,0,m_diagSize,m_diagSize);
     if(m_computeFullU) m_matrixU.setIdentity(m_rows,m_rows);
@@ -722,6 +862,6 @@ MatrixBase<Derived>::jacobiSvd(unsigned int computationOptions) const
   return JacobiSVD<PlainObject>(*this, computationOptions);
 }
 
-
+} // end namespace Eigen
 
 #endif // EIGEN_JACOBISVD_H

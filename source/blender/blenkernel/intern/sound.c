@@ -701,7 +701,7 @@ void sound_update_scene(struct Scene *scene)
 
 							if (AUD_removeSet(scene->speaker_handles, strip->speaker_handle)) {
 								if (speaker->sound)
-									AUD_moveSequence(strip->speaker_handle, strip->start / FPS, -1, 0);
+									AUD_moveSequence(strip->speaker_handle, (double)strip->start / FPS, -1, 0);
 								else {
 									AUD_removeSequence(scene->sound_scene, strip->speaker_handle);
 									strip->speaker_handle = NULL;
@@ -709,7 +709,9 @@ void sound_update_scene(struct Scene *scene)
 							}
 							else {
 								if (speaker->sound) {
-									strip->speaker_handle = AUD_addSequence(scene->sound_scene, speaker->sound->playback_handle, strip->start / FPS, -1, 0);
+									strip->speaker_handle = AUD_addSequence(scene->sound_scene,
+									                                        speaker->sound->playback_handle,
+									                                        (double)strip->start / FPS, -1, 0);
 									AUD_setRelativeSequence(strip->speaker_handle, 0);
 								}
 							}
@@ -792,7 +794,6 @@ void sound_stop_scene(struct Scene *UNUSED(scene)) {}
 void sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
 float sound_sync_scene(struct Scene *UNUSED(scene)) { return NAN_FLT; }
 int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
-int sound_read_sound_buffer(struct bSound *UNUSED(sound), float *UNUSED(buffer), int UNUSED(length), float UNUSED(start), float UNUSED(end)) { return 0; }
 void sound_read_waveform(struct bSound *sound) { (void)sound; }
 void sound_init_main(struct Main *bmain) { (void)bmain; }
 void sound_set_cfra(int cfra) { (void)cfra; }

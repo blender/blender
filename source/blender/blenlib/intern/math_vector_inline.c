@@ -121,6 +121,13 @@ MINLINE void copy_v4_v4_char(char r[4], const char a[4])
 }
 
 /* short */
+MINLINE void zero_v3_int(int r[3])
+{
+	r[0] = 0;
+	r[1] = 0;
+	r[2] = 0;
+}
+
 MINLINE void copy_v2_v2_short(short r[2], const short a[2])
 {
 	r[0] = a[0];
@@ -561,6 +568,16 @@ MINLINE float len_squared_v3(const float v[3])
 	return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 }
 
+MINLINE float len_manhattan_v2(const float v[2])
+{
+	return fabsf(v[0]) + fabsf(v[1]);
+}
+
+MINLINE float len_manhattan_v3(const float v[3])
+{
+	return fabsf(v[0]) + fabsf(v[1]) + fabsf(v[2]);
+}
+
 MINLINE float len_v2(const float v[2])
 {
 	return sqrtf(v[0] * v[0] + v[1] * v[1]);
@@ -588,20 +605,36 @@ MINLINE float len_squared_v2v2(const float a[2], const float b[2])
 	return dot_v2v2(d, d);
 }
 
-MINLINE float len_v3v3(const float a[3], const float b[3])
-{
-	float d[3];
-
-	sub_v3_v3v3(d, b, a);
-	return len_v3(d);
-}
-
 MINLINE float len_squared_v3v3(const float a[3], const float b[3])
 {
 	float d[3];
 
 	sub_v3_v3v3(d, b, a);
 	return dot_v3v3(d, d);
+}
+
+MINLINE float len_manhattan_v2v2(const float a[2], const float b[2])
+{
+	float d[2];
+
+	sub_v2_v2v2(d, b, a);
+	return len_manhattan_v2(d);
+}
+
+MINLINE float len_manhattan_v3v3(const float a[3], const float b[3])
+{
+	float d[3];
+
+	sub_v3_v3v3(d, b, a);
+	return len_manhattan_v3(d);
+}
+
+MINLINE float len_v3v3(const float a[3], const float b[3])
+{
+	float d[3];
+
+	sub_v3_v3v3(d, b, a);
+	return len_v3(d);
 }
 
 MINLINE float normalize_v2_v2(float r[2], const float a[2])
@@ -689,7 +722,7 @@ MINLINE void normal_float_to_short_v3(short out[3], const float in[3])
 /********************************* Comparison ********************************/
 
 
-MINLINE int is_zero_v2(const float v[3])
+MINLINE int is_zero_v2(const float v[2])
 {
 	return (v[0] == 0 && v[1] == 0);
 }
@@ -722,6 +755,15 @@ MINLINE int equals_v3v3(const float v1[3], const float v2[3])
 MINLINE int equals_v4v4(const float v1[4], const float v2[4])
 {
 	return ((v1[0] == v2[0]) && (v1[1] == v2[1]) && (v1[2] == v2[2]) && (v1[3] == v2[3]));
+}
+
+MINLINE int compare_v2v2(const float v1[2], const float v2[2], const float limit)
+{
+	if (fabsf(v1[0] - v2[0]) < limit)
+		if (fabsf(v1[1] - v2[1]) < limit)
+			return 1;
+
+	return 0;
 }
 
 MINLINE int compare_v3v3(const float v1[3], const float v2[3], const float limit)

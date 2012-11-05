@@ -45,7 +45,7 @@ SCA_IInputDevice::SCA_IInputDevice()
 
 SCA_IInputDevice::~SCA_IInputDevice()
 {
-}	
+}
 
 void SCA_IInputDevice::HookEscape()
 {
@@ -134,6 +134,6 @@ void SCA_IInputDevice::NextFrame()
 			break;
 		default:
 			; /* error */
-		}	
+		}
 	}
 }

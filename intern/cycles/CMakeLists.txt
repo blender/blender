@@ -41,6 +41,7 @@ endif()
 
 if(WITH_CYCLES_OSL)
 	add_definitions(-DWITH_OSL)
+	include_directories(${OSL_INCLUDES})
 endif()
 
 if(WITH_CYCLES_PARTIO)
@@ -56,9 +57,11 @@ add_definitions(-DWITH_CUDA)
 add_definitions(-DWITH_MULTI)
 
 include_directories(
+	SYSTEM
 	${BOOST_INCLUDE_DIR}
 	${OPENIMAGEIO_INCLUDE_DIRS}
-	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO)
+	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO
+	${OPENEXR_INCLUDE_DIR})
 
 # Subdirectories
 

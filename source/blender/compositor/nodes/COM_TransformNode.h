@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_TransformNode_h_
-#define _COM_TransformNode_h_
+#ifndef __COM_TRANSFORMNODE_H__
+#define __COM_TRANSFORMNODE_H__
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"
@@ -36,4 +36,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // _COM_TransformNode_h_
+#endif  /* __COM_TRANSFORMNODE_H__ */

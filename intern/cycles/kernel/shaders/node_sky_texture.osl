@@ -1,0 +1,162 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+
+struct KernelSunSky {
+	/* sun direction in spherical and cartesian */
+	float theta, phi;
+	vector dir;
+
+	/* perez function parameters */
+	float zenith_Y, zenith_x, zenith_y;
+	float perez_Y[5], perez_x[5], perez_y[5];
+};
+
+color xyY_to_xyz(float x, float y, float Y)
+{
+	float X, Z;
+
+	if (y != 0.0) X = (x / y) * Y;
+	else X = 0.0;
+
+	if (y != 0.0 && Y != 0.0) Z = ((1.0 - x - y) / y) * Y;
+	else Z = 0.0;
+
+	return color(X, Y, Z);
+}
+
+color xyz_to_rgb(float x, float y, float z)
+{
+	return color(3.240479 * x + -1.537150 * y + -0.498535 * z,
+				 -0.969256 * x + 1.875991 * y + 0.041556 * z,
+				 0.055648 * x + -0.204043 * y + 1.057311 * z);
+}
+
+float sky_angle_between(float thetav, float phiv, float theta, float phi)
+{
+	float cospsi = sin(thetav) * sin(theta) * cos(phi - phiv) + cos(thetav) * cos(theta);
+
+	if (cospsi > 1.0)
+		return 0.0;
+	if (cospsi < -1.0)
+		return M_PI;
+
+	return acos(cospsi);
+}
+
+vector sky_spherical_coordinates(vector dir)
+{
+	return vector(acos(dir[2]), atan2(dir[0], dir[1]), 0);
+}
+
+float sky_perez_function(float lam[5], float theta, float gamma)
+{
+	float ctheta = cos(theta);
+	float cgamma = cos(gamma);
+
+	return (1.0 + lam[0] * exp(lam[1] / ctheta)) * (1.0 + lam[2] * exp(lam[3] * gamma) + lam[4] * cgamma * cgamma);
+}
+
+color sky_xyz_radiance(KernelSunSky sunsky, vector dir)
+{
+	/* convert vector to spherical coordinates */
+	vector spherical = sky_spherical_coordinates(dir);
+	float theta = spherical[0];
+	float phi = spherical[1];
+
+	/* angle between sun direction and dir */
+	float gamma = sky_angle_between(theta, phi, sunsky.theta, sunsky.phi);
+
+	/* clamp theta to horizon */
+	theta = min(theta, M_PI_2 - 0.001);
+
+	/* compute xyY color space values */
+	float x = sunsky.zenith_x * sky_perez_function(sunsky.perez_x, theta, gamma);
+	float y = sunsky.zenith_y * sky_perez_function(sunsky.perez_y, theta, gamma);
+	float Y = sunsky.zenith_Y * sky_perez_function(sunsky.perez_Y, theta, gamma);
+
+	/* convert to RGB */
+	color xyz = xyY_to_xyz(x, y, Y);
+	return xyz_to_rgb(xyz[0], xyz[1], xyz[2]);
+}
+
+void precompute_sunsky(vector dir, float turbidity, output KernelSunSky sunsky)
+{
+	vector spherical = sky_spherical_coordinates(dir);
+	float theta = spherical[0];
+	float phi = spherical[1];
+
+	sunsky.theta = theta;
+	sunsky.phi = phi;
+	sunsky.dir = dir;
+
+	float theta2 = theta * theta;
+	float theta3 = theta * theta * theta;
+	float T = turbidity;
+	float T2 = T * T;
+
+	float chi = (4.0 / 9.0 - T / 120.0) * (M_PI - 2.0 * theta);
+	sunsky.zenith_Y = (4.0453 * T - 4.9710) * tan(chi) - 0.2155 * T + 2.4192;
+	sunsky.zenith_Y *= 0.06;
+
+	sunsky.zenith_x =
+	        ( 0.00166 * theta3 - 0.00375 * theta2 + 0.00209 * theta) * T2 +
+	        (-0.02903 * theta3 + 0.06377 * theta2 - 0.03202 * theta + 0.00394) * T +
+	        ( 0.11693 * theta3 - 0.21196 * theta2 + 0.06052 * theta + 0.25886);
+
+	sunsky.zenith_y =
+	        ( 0.00275 * theta3 - 0.00610 * theta2 + 0.00317 * theta) * T2 +
+	        (-0.04214 * theta3 + 0.08970 * theta2 - 0.04153 * theta + 0.00516) * T +
+	        ( 0.15346 * theta3 - 0.26756 * theta2 + 0.06670 * theta + 0.26688);
+
+	sunsky.perez_Y[0] = ( 0.1787 * T - 1.4630);
+	sunsky.perez_Y[1] = (-0.3554 * T + 0.4275);
+	sunsky.perez_Y[2] = (-0.0227 * T + 5.3251);
+	sunsky.perez_Y[3] = ( 0.1206 * T - 2.5771);
+	sunsky.perez_Y[4] = (-0.0670 * T + 0.3703);
+
+	sunsky.perez_x[0] = (-0.0193 * T - 0.2592);
+	sunsky.perez_x[1] = (-0.0665 * T + 0.0008);
+	sunsky.perez_x[2] = (-0.0004 * T + 0.2125);
+	sunsky.perez_x[3] = (-0.0641 * T - 0.8989);
+	sunsky.perez_x[4] = (-0.0033 * T + 0.0452);
+
+	sunsky.perez_y[0] = (-0.0167 * T - 0.2608);
+	sunsky.perez_y[1] = (-0.0950 * T + 0.0092);
+	sunsky.perez_y[2] = (-0.0079 * T + 0.2102);
+	sunsky.perez_y[3] = (-0.0441 * T - 1.6537);
+	sunsky.perez_y[4] = (-0.0109 * T + 0.0529);
+
+	sunsky.zenith_Y /= sky_perez_function(sunsky.perez_Y, 0, theta);
+	sunsky.zenith_x /= sky_perez_function(sunsky.perez_x, 0, theta);
+	sunsky.zenith_y /= sky_perez_function(sunsky.perez_y, 0, theta);
+}
+
+shader node_sky_texture(
+	vector Vector = P,
+	vector sun_direction = vector(0, 0, 1),
+	float turbidity = 2.2,
+	output color Color = color(0.0, 0.0, 0.0))
+{
+	KernelSunSky sunsky;
+
+	precompute_sunsky(sun_direction, turbidity, sunsky);
+	Color = sky_xyz_radiance(sunsky, Vector);
+}
+

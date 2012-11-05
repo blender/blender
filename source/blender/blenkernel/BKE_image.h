@@ -66,7 +66,7 @@ int     BKE_imtype_is_movie(const char imtype);
 int     BKE_imtype_supports_zbuf(const char imtype);
 int     BKE_imtype_supports_compress(const char imtype);
 int     BKE_imtype_supports_quality(const char imtype);
-int     BKE_imtype_supports_float(const char imtype);
+int     BKE_imtype_requires_linear_float(const char imtype);
 char    BKE_imtype_valid_channels(const char imtype);
 char    BKE_imtype_valid_depths(const char imtype);
 
@@ -127,6 +127,7 @@ enum {
 #define IMA_SIGNAL_SRC_CHANGE       5
 /* image-user gets a new image, check settings */
 #define IMA_SIGNAL_USER_NEW_IMAGE   6
+#define IMA_SIGNAL_COLORMANAGE      7
 
 #define IMA_CHAN_FLAG_BW    1
 #define IMA_CHAN_FLAG_RGB   2

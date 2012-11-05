@@ -35,7 +35,6 @@
 #include "collada_utils.h"
 
 extern "C" {
-
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
@@ -44,6 +43,7 @@ extern "C" {
 #include "DNA_armature_types.h"
 
 #include "BLI_math.h"
+#include "BLI_linklist.h"
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
@@ -51,10 +51,7 @@ extern "C" {
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
-
 #include "BKE_DerivedMesh.h"
-#include "BLI_linklist.h"
-
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"

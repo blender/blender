@@ -34,10 +34,10 @@
 #include <cmath>
 #include <string>
 #include <vector>
-
-#include "ceres/iteration_callback.h"
+#include "ceres/crs_matrix.h"
 #include "ceres/internal/macros.h"
 #include "ceres/internal/port.h"
+#include "ceres/iteration_callback.h"
 #include "ceres/types.h"
 
 namespace ceres {
@@ -57,24 +57,47 @@ class Solver {
   struct Options {
     // Default constructor that sets up a generic sparse problem.
     Options() {
-      minimizer_type = LEVENBERG_MARQUARDT;
+      trust_region_strategy_type = LEVENBERG_MARQUARDT;
+      dogleg_type = TRADITIONAL_DOGLEG;
+      use_nonmonotonic_steps = false;
+      max_consecutive_nonmonotonic_steps = 5;
       max_num_iterations = 50;
-      max_solver_time_sec = 1.0e9;
+      max_solver_time_in_seconds = 1e9;
       num_threads = 1;
-      tau = 1e-4;
+      initial_trust_region_radius = 1e4;
+      max_trust_region_radius = 1e16;
+      min_trust_region_radius = 1e-32;
       min_relative_decrease = 1e-3;
+      lm_min_diagonal = 1e-6;
+      lm_max_diagonal = 1e32;
+      max_num_consecutive_invalid_steps = 5;
       function_tolerance = 1e-6;
       gradient_tolerance = 1e-10;
       parameter_tolerance = 1e-8;
-#ifndef CERES_NO_SUITESPARSE
-      linear_solver_type = SPARSE_NORMAL_CHOLESKY;
-#else
+
+#if defined(CERES_NO_SUITESPARSE) && defined(CERES_NO_CXSPARSE)
       linear_solver_type = DENSE_QR;
-#endif  // CERES_NO_SUITESPARSE
+#else
+      linear_solver_type = SPARSE_NORMAL_CHOLESKY;
+#endif
+
       preconditioner_type = JACOBI;
+
+      sparse_linear_algebra_library = SUITE_SPARSE;
+#if defined(CERES_NO_SUITESPARSE) && !defined(CERES_NO_CXSPARSE)
+      sparse_linear_algebra_library = CX_SPARSE;
+#endif
+
       num_linear_solver_threads = 1;
       num_eliminate_blocks = 0;
       ordering_type = NATURAL;
+
+#if defined(CERES_NO_SUITESPARSE)
+      use_block_amd = false;
+#else
+      use_block_amd = true;
+#endif
+
       linear_solver_min_num_iterations = 1;
       linear_solver_max_num_iterations = 500;
       eta = 1e-1;
@@ -82,10 +105,13 @@ class Solver {
       logging_type = PER_MINIMIZER_ITERATION;
       minimizer_progress_to_stdout = false;
       return_initial_residuals = false;
+      return_initial_gradient = false;
+      return_initial_jacobian = false;
       return_final_residuals = false;
+      return_final_gradient = false;
+      return_final_jacobian = false;
       lsqp_dump_directory = "/tmp";
       lsqp_dump_format_type = TEXTFILE;
-      crash_and_dump_lsqp_on_failure = false;
       check_gradients = false;
       gradient_check_relative_precision = 1e-8;
       numeric_derivative_relative_step_size = 1e-6;
@@ -94,26 +120,77 @@ class Solver {
 
     // Minimizer options ----------------------------------------
 
-    MinimizerType minimizer_type;
+    TrustRegionStrategyType trust_region_strategy_type;
+
+    // Type of dogleg strategy to use.
+    DoglegType dogleg_type;
+
+    // The classical trust region methods are descent methods, in that
+    // they only accept a point if it strictly reduces the value of
+    // the objective function.
+    //
+    // Relaxing this requirement allows the algorithm to be more
+    // efficient in the long term at the cost of some local increase
+    // in the value of the objective function.
+    //
+    // This is because allowing for non-decreasing objective function
+    // values in a princpled manner allows the algorithm to "jump over
+    // boulders" as the method is not restricted to move into narrow
+    // valleys while preserving its convergence properties.
+    //
+    // Setting use_nonmonotonic_steps to true enables the
+    // non-monotonic trust region algorithm as described by Conn,
+    // Gould & Toint in "Trust Region Methods", Section 10.1.
+    //
+    // The parameter max_consecutive_nonmonotonic_steps controls the
+    // window size used by the step selection algorithm to accept
+    // non-monotonic steps.
+    //
+    // Even though the value of the objective function may be larger
+    // than the minimum value encountered over the course of the
+    // optimization, the final parameters returned to the user are the
+    // ones corresponding to the minimum cost over all iterations.
+    bool use_nonmonotonic_steps;
+    int max_consecutive_nonmonotonic_steps;
 
     // Maximum number of iterations for the minimizer to run for.
     int max_num_iterations;
 
     // Maximum time for which the minimizer should run for.
-    double max_solver_time_sec;
+    double max_solver_time_in_seconds;
 
     // Number of threads used by Ceres for evaluating the cost and
     // jacobians.
     int num_threads;
 
-    // For Levenberg-Marquardt, the initial value for the
-    // regularizer. This is the inversely related to the size of the
-    // initial trust region.
-    double tau;
+    // Trust region minimizer settings.
+    double initial_trust_region_radius;
+    double max_trust_region_radius;
 
-    // For trust region methods, this is lower threshold for the
-    // relative decrease before a step is accepted.
+    // Minimizer terminates when the trust region radius becomes
+    // smaller than this value.
+    double min_trust_region_radius;
+
+    // Lower bound for the relative decrease before a step is
+    // accepted.
     double min_relative_decrease;
+
+    // For the Levenberg-Marquadt algorithm, the scaled diagonal of
+    // the normal equations J'J is used to control the size of the
+    // trust region. Extremely small and large values along the
+    // diagonal can make this regularization scheme
+    // fail. lm_max_diagonal and lm_min_diagonal, clamp the values of
+    // diag(J'J) from above and below. In the normal course of
+    // operation, the user should not have to modify these parameters.
+    double lm_min_diagonal;
+    double lm_max_diagonal;
+
+    // Sometimes due to numerical conditioning problems or linear
+    // solver flakiness, the trust region strategy may return a
+    // numerically invalid step that can be fixed by reducing the
+    // trust region size. So the TrustRegionMinimizer allows for a few
+    // successive invalid steps before it declares NUMERICAL_FAILURE.
+    int max_num_consecutive_invalid_steps;
 
     // Minimizer terminates when
     //
@@ -140,6 +217,12 @@ class Solver {
 
     // Type of preconditioner to use with the iterative linear solvers.
     PreconditionerType preconditioner_type;
+
+    // Ceres supports using multiple sparse linear algebra libraries
+    // for sparse matrix ordering and factorizations. Currently,
+    // SUITE_SPARSE and CX_SPARSE are the valid choices, depending on
+    // whether they are linked into Ceres at build time.
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library;
 
     // Number of threads used by Ceres to solve the Newton
     // step. Currently only the SPARSE_SCHUR solver is capable of
@@ -170,6 +253,19 @@ class Solver {
     // non-empty.
     vector<double*> ordering;
 
+    // By virtue of the modeling layer in Ceres being block oriented,
+    // all the matrices used by Ceres are also block oriented. When
+    // doing sparse direct factorization of these matrices (for
+    // SPARSE_NORMAL_CHOLESKY, SPARSE_SCHUR and ITERATIVE in
+    // conjunction with CLUSTER_TRIDIAGONAL AND CLUSTER_JACOBI
+    // preconditioners), the fill-reducing ordering algorithms can
+    // either be run on the block or the scalar form of these matrices.
+    // Running it on the block form exposes more of the super-nodal
+    // structure of the matrix to the factorization routines. Setting
+    // this parameter to true runs the ordering algorithms in block
+    // form. Currently this option only makes sense with
+    // sparse_linear_algebra_library = SUITE_SPARSE.
+    bool use_block_amd;
 
     // Minimum number of iterations for which the linear solver should
     // run, even if the convergence criterion is satisfied.
@@ -206,7 +302,12 @@ class Solver {
     bool minimizer_progress_to_stdout;
 
     bool return_initial_residuals;
+    bool return_initial_gradient;
+    bool return_initial_jacobian;
+
     bool return_final_residuals;
+    bool return_final_gradient;
+    bool return_final_jacobian;
 
     // List of iterations at which the optimizer should dump the
     // linear least squares problem to disk. Useful for testing and
@@ -216,15 +317,6 @@ class Solver {
     vector<int> lsqp_iterations_to_dump;
     string lsqp_dump_directory;
     DumpFormatType lsqp_dump_format_type;
-
-    // Dump the linear least squares problem to disk if the minimizer
-    // fails due to NUMERICAL_FAILURE and crash the process. This flag
-    // is useful for generating debugging information. The problem is
-    // dumped in a file whose name is determined by
-    // Solver::Options::lsqp_dump_format.
-    //
-    // Note: This requires a version of Ceres built with protocol buffers.
-    bool crash_and_dump_lsqp_on_failure;
 
     // Finite differences options ----------------------------------------------
 
@@ -273,16 +365,25 @@ class Solver {
     bool update_state_every_iteration;
 
     // Callbacks that are executed at the end of each iteration of the
-    // Minimizer. They are executed in the order that they are
-    // specified in this vector. By default, parameter blocks are
-    // updated only at the end of the optimization, i.e when the
-    // Minimizer terminates. This behaviour is controlled by
+    // Minimizer. An iteration may terminate midway, either due to
+    // numerical failures or because one of the convergence tests has
+    // been satisfied. In this case none of the callbacks are
+    // executed.
+
+    // Callbacks are executed in the order that they are specified in
+    // this vector. By default, parameter blocks are updated only at
+    // the end of the optimization, i.e when the Minimizer
+    // terminates. This behaviour is controlled by
     // update_state_every_variable. If the user wishes to have access
     // to the update parameter blocks when his/her callbacks are
     // executed, then set update_state_every_iteration to true.
     //
     // The solver does NOT take ownership of these pointers.
     vector<IterationCallback*> callbacks;
+
+    // If non-empty, a summary of the execution of the solver is
+    // recorded to this file.
+    string solver_log;
   };
 
   struct Summary {
@@ -313,20 +414,74 @@ class Solver {
     // blocks that they depend on were fixed.
     double fixed_cost;
 
-    // Residuals before and after the optimization. Each vector
-    // contains problem.NumResiduals() elements. Residuals are in the
-    // same order in which they were added to the problem object when
-    // constructing this problem.
+    // Vectors of residuals before and after the optimization. The
+    // entries of these vectors are in the order in which
+    // ResidualBlocks were added to the Problem object.
+    //
+    // Whether the residual vectors are populated with values is
+    // controlled by Solver::Options::return_initial_residuals and
+    // Solver::Options::return_final_residuals respectively.
     vector<double> initial_residuals;
     vector<double> final_residuals;
+
+    // Gradient vectors, before and after the optimization.  The rows
+    // are in the same order in which the ParameterBlocks were added
+    // to the Problem object.
+    //
+    // NOTE: Since AddResidualBlock adds ParameterBlocks to the
+    // Problem automatically if they do not already exist, if you wish
+    // to have explicit control over the ordering of the vectors, then
+    // use Problem::AddParameterBlock to explicitly add the
+    // ParameterBlocks in the order desired.
+    //
+    // Whether the vectors are populated with values is controlled by
+    // Solver::Options::return_initial_gradient and
+    // Solver::Options::return_final_gradient respectively.
+    vector<double> initial_gradient;
+    vector<double> final_gradient;
+
+    // Jacobian matrices before and after the optimization. The rows
+    // of these matrices are in the same order in which the
+    // ResidualBlocks were added to the Problem object. The columns
+    // are in the same order in which the ParameterBlocks were added
+    // to the Problem object.
+    //
+    // NOTE: Since AddResidualBlock adds ParameterBlocks to the
+    // Problem automatically if they do not already exist, if you wish
+    // to have explicit control over the column ordering of the
+    // matrix, then use Problem::AddParameterBlock to explicitly add
+    // the ParameterBlocks in the order desired.
+    //
+    // The Jacobian matrices are stored as compressed row sparse
+    // matrices. Please see ceres/crs_matrix.h for more details of the
+    // format.
+    //
+    // Whether the Jacboan matrices are populated with values is
+    // controlled by Solver::Options::return_initial_jacobian and
+    // Solver::Options::return_final_jacobian respectively.
+    CRSMatrix initial_jacobian;
+    CRSMatrix final_jacobian;
 
     vector<IterationSummary> iterations;
 
     int num_successful_steps;
     int num_unsuccessful_steps;
 
+    // When the user calls Solve, before the actual optimization
+    // occurs, Ceres performs a number of preprocessing steps. These
+    // include error checks, memory allocations, and reorderings. This
+    // time is accounted for as preprocessing time.
     double preprocessor_time_in_seconds;
+
+    // Time spent in the TrustRegionMinimizer.
     double minimizer_time_in_seconds;
+
+    // After the Minimizer is finished, some time is spent in
+    // re-evaluating residuals etc. This time is accounted for in the
+    // postprocessor time.
+    double postprocessor_time_in_seconds;
+
+    // Some total of all time spent inside Ceres when Solve is called.
     double total_time_in_seconds;
 
     // Preprocessor summary.
@@ -354,6 +509,10 @@ class Solver {
 
     PreconditionerType preconditioner_type;
     OrderingType ordering_type;
+
+    TrustRegionStrategyType trust_region_strategy_type;
+    DoglegType dogleg_type;
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library;
   };
 
   // Once a least squares problem has been built, this function takes

@@ -33,11 +33,9 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
-#include <numeric>
 #include <set>
 #include <utility>
 #include <vector>
-#include <glog/logging.h>
 #include "Eigen/Dense"
 #include "ceres/block_random_access_sparse_matrix.h"
 #include "ceres/block_sparse_matrix.h"
@@ -46,10 +44,11 @@
 #include "ceres/detect_structure.h"
 #include "ceres/graph.h"
 #include "ceres/graph_algorithms.h"
+#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
 #include "ceres/schur_eliminator.h"
 #include "ceres/visibility.h"
-#include "ceres/internal/scoped_ptr.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -253,7 +252,6 @@ void VisibilityBasedPreconditioner::ComputeBlockPairsInPreconditioner(
   }
 
   int r = 0;
-  set<pair<int, int> > skipped_pairs;
   const int num_row_blocks = bs.rows.size();
   const int num_eliminate_blocks = options_.num_eliminate_blocks;
 
@@ -304,8 +302,6 @@ void VisibilityBasedPreconditioner::ComputeBlockPairsInPreconditioner(
       for (; block2 != f_blocks.end(); ++block2) {
         if (IsBlockPairInPreconditioner(*block1, *block2)) {
           block_pairs_.insert(make_pair(*block1, *block2));
-        } else {
-          skipped_pairs.insert(make_pair(*block1, *block2));
         }
       }
     }
@@ -322,17 +318,13 @@ void VisibilityBasedPreconditioner::ComputeBlockPairsInPreconditioner(
         if (block1 <= block2) {
           if (IsBlockPairInPreconditioner(block1, block2)) {
             block_pairs_.insert(make_pair(block1, block2));
-          } else {
-            skipped_pairs.insert(make_pair(block1, block2));
           }
         }
       }
     }
   }
 
-  VLOG(1) << "Block pair stats: "
-          << block_pairs_.size() << " included "
-          << skipped_pairs.size() << " excluded";
+  VLOG(1) << "Block pair stats: " << block_pairs_.size();
 }
 
 // Initialize the SchurEliminator.
@@ -341,7 +333,6 @@ void VisibilityBasedPreconditioner::InitEliminator(
   LinearSolver::Options eliminator_options;
   eliminator_options.num_eliminate_blocks = options_.num_eliminate_blocks;
   eliminator_options.num_threads = options_.num_threads;
-  eliminator_options.constant_sparsity = true;
 
   DetectStructure(bs, options_.num_eliminate_blocks,
                   &eliminator_options.row_block_size,
@@ -352,9 +343,9 @@ void VisibilityBasedPreconditioner::InitEliminator(
   eliminator_->Init(options_.num_eliminate_blocks, &bs);
 }
 
-// Compute the values of the preconditioner matrix and factorize it.
-bool VisibilityBasedPreconditioner::Compute(const BlockSparseMatrixBase& A,
-                                            const double* D) {
+// Update the values of the preconditioner matrix and factorize it.
+bool VisibilityBasedPreconditioner::Update(const BlockSparseMatrixBase& A,
+                                           const double* D) {
   const time_t start_time = time(NULL);
   const int num_rows = m_->num_rows();
   CHECK_GT(num_rows, 0);
@@ -448,11 +439,20 @@ bool VisibilityBasedPreconditioner::Factorize() {
   // matrix contains the values.
   lhs->stype = 1;
 
-  // Symbolic factorization is computed if we don't already have one
-  // handy.
+  // Symbolic factorization is computed if we don't already have one handy.
   if (factor_ == NULL) {
-    factor_ = ss_.AnalyzeCholesky(lhs);
+    if (options_.use_block_amd) {
+      factor_ = ss_.BlockAnalyzeCholesky(lhs, block_size_, block_size_);
+    } else {
+      factor_ = ss_.AnalyzeCholesky(lhs);
+    }
+
+    if (VLOG_IS_ON(2)) {
+      cholmod_print_common("Symbolic Analysis", ss_.mutable_cc());
+    }
   }
+
+  CHECK_NOTNULL(factor_);
 
   bool status = ss_.Cholesky(lhs, factor_);
   ss_.Free(lhs);

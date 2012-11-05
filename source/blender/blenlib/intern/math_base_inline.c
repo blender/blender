@@ -59,34 +59,34 @@ MINLINE float saacos(float fac)
 {
 	if (fac <= -1.0f) return (float)M_PI;
 	else if (fac >= 1.0f) return 0.0;
-	else return (float)acos(fac);
+	else return acosf(fac);
 }
 
 MINLINE float saasin(float fac)
 {
 	if (fac <= -1.0f) return (float)-M_PI / 2.0f;
 	else if (fac >= 1.0f) return (float)M_PI / 2.0f;
-	else return (float)asin(fac);
+	else return asinf(fac);
 }
 
 MINLINE float sasqrt(float fac)
 {
 	if (fac <= 0.0f) return 0.0f;
-	return (float)sqrt(fac);
+	return sqrtf(fac);
 }
 
 MINLINE float saacosf(float fac)
 {
 	if (fac <= -1.0f) return (float)M_PI;
 	else if (fac >= 1.0f) return 0.0f;
-	else return (float)acosf(fac);
+	else return acosf(fac);
 }
 
 MINLINE float saasinf(float fac)
 {
 	if (fac <= -1.0f) return (float)-M_PI / 2.0f;
 	else if (fac >= 1.0f) return (float)M_PI / 2.0f;
-	else return (float)asinf(fac);
+	else return asinf(fac);
 }
 
 MINLINE float sasqrtf(float fac)
@@ -139,20 +139,20 @@ MINLINE int power_of_2_min_i(int n)
 	return n;
 }
 
-MINLINE float minf(float a, float b)
+MINLINE float min_ff(float a, float b)
 {
 	return (a < b) ? a : b;
 }
-MINLINE float maxf(float a, float b)
+MINLINE float max_ff(float a, float b)
 {
 	return (a > b) ? a : b;
 }
 
-MINLINE int mini(int a, int b)
+MINLINE int min_ii(int a, int b)
 {
 	return (a < b) ? a : b;
 }
-MINLINE int maxi(int a, int b)
+MINLINE int max_ii(int a, int b)
 {
 	return (b < a) ? a : b;
 }

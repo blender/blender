@@ -53,11 +53,11 @@ void AUD_ButterworthFactory::recalculateCoefficients(AUD_SampleRate rate,
 	float omega = 2 * tan(m_frequency * M_PI / rate);
 	float o2 = omega * omega;
 	float o4 = o2 * o2;
-	float x1 = o2 + 2 * BWPB41 * omega + 4;
-	float x2 = o2 + 2 * BWPB42 * omega + 4;
-	float y1 = o2 - 2 * BWPB41 * omega + 4;
-	float y2 = o2 - 2 * BWPB42 * omega + 4;
-	float o228 = 2 * o2 - 8;
+	float x1 = o2 + 2.0f * (float)BWPB41 * omega + 4.0f;
+	float x2 = o2 + 2.0f * (float)BWPB42 * omega + 4.0f;
+	float y1 = o2 - 2.0f * (float)BWPB41 * omega + 4.0f;
+	float y2 = o2 - 2.0f * (float)BWPB42 * omega + 4.0f;
+	float o228 = 2.0f * o2 - 8.0f;
 	float norm = x1 * x2;
 	a.push_back(1);
 	a.push_back((x1 + x2) * o228 / norm);

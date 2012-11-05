@@ -264,8 +264,8 @@ def module_names(path, recursive=False):
                 if recursive:
                     for mod_name, mod_path in module_names(directory, True):
                         modules.append(("%s.%s" % (filename, mod_name),
-                                       mod_path,
-                                       ))
+                                        mod_path,
+                                        ))
 
     return modules
 

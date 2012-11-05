@@ -193,7 +193,7 @@ class BsdfNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BsdfNode)
 
-	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2);
+	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL);
 
 	ClosureType closure;
 };
@@ -201,6 +201,7 @@ public:
 class WardBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(WardBsdfNode)
+	void attributes(AttributeRequestSet *attributes);
 };
 
 class DiffuseBsdfNode : public BsdfNode {
@@ -278,12 +279,15 @@ public:
 class GeometryNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GeometryNode)
+	void attributes(AttributeRequestSet *attributes);
 };
 
 class TextureCoordinateNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(TextureCoordinateNode)
 	void attributes(AttributeRequestSet *attributes);
+	
+	bool from_dupli;
 };
 
 class LightPathNode : public ShaderNode {
@@ -434,6 +438,23 @@ class RGBRampNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(RGBRampNode)
 	float4 ramp[RAMP_TABLE_SIZE];
+};
+
+class SetNormalNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(SetNormalNode)
+};
+
+class OSLScriptNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(OSLScriptNode)
+	string filepath;
+	string bytecode_hash;
+	
+	/* ShaderInput/ShaderOutput only stores a shallow string copy (const char *)!
+	 * The actual socket names have to be stored externally to avoid memory errors. */
+	vector<ustring> input_names;
+	vector<ustring> output_names;
 };
 
 CCL_NAMESPACE_END

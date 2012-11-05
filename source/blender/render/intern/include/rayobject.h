@@ -104,7 +104,7 @@ RayObject *RE_vlakprimitive_from_vlak(VlakPrimitive *face, struct ObjectInstance
 void RE_rayobject_merge_bb(RayObject *ob, float *min, float *max);
 
 /* initializes an hint for optimizing raycast where it is know that a ray will pass by the given BB often the origin point */
-void RE_rayobject_hint_bb(RayObject *r, struct RayHint *hint, float *min, float *max);
+void RE_rayobject_hint_bb(RayObject *r, struct RayHint *hint, float min[3], float max[3]);
 
 /* initializes an hint for optimizing raycast where it is know that a ray will be contained inside the given cone*/
 /* void RE_rayobject_hint_cone(RayObject *r, struct RayHint *hint, float *); */

@@ -43,7 +43,7 @@ class KX_GameObject;
 class KX_ConstraintActuator : public SCA_IActuator
 {
 	Py_Header
-protected:	
+protected:
 	// Damp time (int),
 	int m_posDampTime;
 	int m_rotDampTime;
@@ -145,5 +145,4 @@ protected:
 
 };
 
-#endif //__KX_CONSTRAINTACTUATOR_H__
-
+#endif  /* __KX_CONSTRAINTACTUATOR_H__ */

@@ -92,10 +92,11 @@ def register():
     def addon_filter_items(self, context):
         import addon_utils
 
-        items = [('All', "All", ""),
-                 ('Enabled', "Enabled", ""),
-                 ('Disabled', "Disabled", ""),
-                ]
+        items = [('All', "All", "All Addons"),
+                 ('User', "User", "All Addons Installed by User"),
+                 ('Enabled', "Enabled", "All Enabled Addons"),
+                 ('Disabled', "Disabled", "All Disabled Addons"),
+                 ]
 
         items_unique = set()
 
@@ -119,8 +120,8 @@ def register():
     WindowManager.addon_support = EnumProperty(
             items=[('OFFICIAL', "Official", "Officially supported"),
                    ('COMMUNITY', "Community", "Maintained by community developers"),
-                   ('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)"),
-                  ],
+                   ('TESTING', "Testing", "Newly contributed scripts (excluded from release builds)")
+                   ],
             name="Support",
             description="Display support level",
             default={'OFFICIAL', 'COMMUNITY'},

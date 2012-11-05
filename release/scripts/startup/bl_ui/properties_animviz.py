@@ -65,10 +65,13 @@ class MotionPathButtonsPanel():
             sub.prop(mpath, "frame_start", text="From")
             sub.prop(mpath, "frame_end", text="To")
 
+            sub = col.row(align=True)
             if bones:
-                col.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
+                sub.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
+                sub.operator("pose.paths_clear", text="", icon='X')
             else:
-                col.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
+                sub.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
+                sub.operator("object.paths_clear", text="", icon='X')
         else:
             sub = col.column(align=True)
             sub.label(text="Nothing to show yet...", icon='ERROR')

@@ -29,12 +29,14 @@
 CCL_NAMESPACE_BEGIN
 
 /* constants */
-#define OBJECT_SIZE 		16
+#define OBJECT_SIZE 		22
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
 #define RAMP_TABLE_SIZE		256
 #define PARTICLE_SIZE 		5
 #define TIME_INVALID		FLT_MAX
+
+#define TEX_NUM_FLOAT_IMAGES	5
 
 /* device capabilities */
 #ifdef __KERNEL_CPU__
@@ -108,11 +110,15 @@ CCL_NAMESPACE_BEGIN
 #define __PASSES__
 #define __BACKGROUND_MIS__
 #define __AO__
-//#define __MOTION__
+#define __CAMERA_MOTION__
+
+#ifndef __KERNEL_CUDA__
+#define __OBJECT_MOTION__
+#endif
+
 #endif
 
 //#define __SOBOL_FULL_SCREEN__
-//#define __QBVH__
 
 /* Shader Evaluation */
 
@@ -129,7 +135,7 @@ enum PathTraceDimension {
 	PRNG_FILTER_V = 1,
 	PRNG_LENS_U = 2,
 	PRNG_LENS_V = 3,
-#ifdef __MOTION__
+#ifdef __CAMERA_MOTION__
 	PRNG_TIME = 4,
 	PRNG_UNUSED = 5,
 	PRNG_BASE_NUM = 6,
@@ -148,9 +154,7 @@ enum PathTraceDimension {
 	PRNG_BOUNCE_NUM = 8
 };
 
-/* these flag values correspond exactly to OSL defaults, so be careful not to
- * change this, or if you do, set the "raytypes" shading system attribute with
- * your own new ray types and bitflag values.
+/* these flags values correspond to raytypes in osl.cpp, so keep them in sync!
  *
  * for ray visibility tests in BVH traversal, the upper 20 bits are used for
  * layer visibility tests. */
@@ -370,6 +374,9 @@ typedef struct ShaderClosure {
 	float data0;
 	float data1;
 
+	float3 N;
+	float3 T;
+
 } ShaderClosure;
 
 /* Shader Data
@@ -408,7 +415,7 @@ typedef struct ShaderData {
 	/* view/incoming direction */
 	float3 I;
 	/* shader id */
-	int shader;	
+	int shader;
 	/* booleans describing shader, see ShaderDataFlag */
 	int flag;
 
@@ -426,13 +433,6 @@ typedef struct ShaderData {
 	/* length of the ray being shaded */
 	float ray_length;
 
-#ifdef __MOTION__
-	/* object <-> world space transformations, cached to avoid
-	 * re-interpolating them constantly for shading */
-	Transform ob_tfm;
-	Transform ob_itfm;
-#endif
-
 #ifdef __RAY_DIFFERENTIALS__
 	/* differential of P. these are orthogonal to Ng, not N */
 	differential3 dP;
@@ -446,6 +446,13 @@ typedef struct ShaderData {
 	/* differential of P w.r.t. parametric coordinates. note that dPdu is
 	 * not readily suitable as a tangent for shading on triangles. */
 	float3 dPdu, dPdv;
+#endif
+
+#ifdef __OBJECT_MOTION__
+	/* object <-> world space transformations, cached to avoid
+	 * re-interpolating them constantly for shading */
+	Transform ob_tfm;
+	Transform ob_itfm;
 #endif
 
 #ifdef __MULTI_CLOSURE__
@@ -511,7 +518,9 @@ typedef struct KernelCamera {
 	/* more matrices */
 	Transform screentoworld;
 	Transform rastertoworld;
-	Transform ndctoworld;
+	/* work around cuda sm 2.0 crash, this seems to
+	 * cross some limit in combination with motion 
+	 * Transform ndctoworld; */
 	Transform worldtoscreen;
 	Transform worldtoraster;
 	Transform worldtondc;
@@ -627,7 +636,8 @@ typedef struct KernelBVH {
 	/* root node */
 	int root;
 	int attributes_map_stride;
-	int pad1, pad2;
+	int have_motion;
+	int pad2;
 } KernelBVH;
 
 typedef struct KernelData {

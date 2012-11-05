@@ -162,7 +162,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	char *str;
 
 	if (CTX_wm_space_file(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't activate a file selector, one already open");
+		BKE_report(op->reports, RPT_ERROR, "Cannot activate a file selector, one already open");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -207,7 +207,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		 * user-prefs exception - campbell */
 		if (RNA_struct_find_property(op->ptr, "relative_path")) {
 			if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
-				/* annoying exception!, if were dealign with the user prefs, default relative to be off */
+				/* annoying exception!, if were dealing with the user prefs, default relative to be off */
 				RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS && (ptr.data != &U));
 			}
 		}

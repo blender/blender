@@ -60,5 +60,4 @@ typedef struct IKPlugin IKPlugin;
 }
 #endif
 
-#endif // __IKPLUGIN_API_H__
-
+#endif  /* __IKPLUGIN_API_H__ */

@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Ove M Henriksen.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -28,7 +28,6 @@
 /** \file blender/editors/object/object_vgroup.c
  *  \ingroup edobj
  */
-
 
 #include <string.h>
 #include <stddef.h>
@@ -83,6 +82,19 @@ static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *defgroup);
 static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
 static void vgroup_delete_all(Object *ob);
 
+static int vertex_group_use_vert_sel(Object *ob)
+{
+	if (ob->mode == OB_MODE_EDIT) {
+		return TRUE;
+	}
+	else if (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
 	Lattice *lt = ob->data;
@@ -126,21 +138,12 @@ bDeformGroup *ED_vgroup_add(Object *ob)
 
 void ED_vgroup_delete(Object *ob, bDeformGroup *defgroup) 
 {
-	bDeformGroup *dg = (bDeformGroup *)ob->defbase.first;
-
-	while (dg) {
-		if (dg == defgroup)
-			break;
-		dg = dg->next;
-	}
-
-	if (dg == NULL)
-		return;
+	BLI_assert(BLI_findindex(&ob->defbase, defgroup) != -1);
 
 	if (ED_vgroup_object_is_edit_mode(ob))
-		vgroup_delete_edit_mode(ob, dg);
+		vgroup_delete_edit_mode(ob, defgroup);
 	else
-		vgroup_delete_object_mode(ob, dg);
+		vgroup_delete_object_mode(ob, defgroup);
 }
 
 void ED_vgroup_clear(Object *ob)
@@ -377,6 +380,332 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	return 1;
 }
 
+/***********************Start weight transfer (WT)*********************************/
+
+typedef enum WT_VertexGroupMode {
+	WT_REPLACE_ACTIVE_VERTEX_GROUP = 1,
+	WT_REPLACE_ALL_VERTEX_GROUPS = 2
+} WT_VertexGroupMode;
+
+typedef enum WT_Method {
+	WT_BY_INDEX = 1,
+	WT_BY_NEAREST_VERTEX = 2,
+	WT_BY_NEAREST_FACE = 3,
+	WT_BY_NEAREST_VERTEX_IN_FACE = 4
+} WT_Method;
+
+typedef enum WT_ReplaceMode {
+	WT_REPLACE_ALL_WEIGHTS = 1,
+	WT_REPLACE_EMPTY_WEIGHTS = 2
+} WT_ReplaceMode;
+
+static EnumPropertyItem WT_vertex_group_mode_item[] = {
+	{WT_REPLACE_ACTIVE_VERTEX_GROUP, "WT_REPLACE_ACTIVE_VERTEX_GROUP", 1, "Active", "Transfer active vertex group from selected to active mesh"},
+	{WT_REPLACE_ALL_VERTEX_GROUPS, "WT_REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups from selected to active mesh"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static EnumPropertyItem WT_method_item[] = {
+	{WT_BY_INDEX, "WT_BY_INDEX", 1, "Vertex index", "Copy for identical meshes"},
+	{WT_BY_NEAREST_VERTEX, "WT_BY_NEAREST_VERTEX", 1, "Nearest vertex", "Copy weight from closest vertex"},
+	{WT_BY_NEAREST_FACE, "WT_BY_NEAREST_FACE", 1, "Nearest face", "Barycentric interpolation from nearest face"},
+	{WT_BY_NEAREST_VERTEX_IN_FACE, "WT_BY_NEAREST_VERTEX_IN_FACE", 1, "Nearest vertex in face", "Copy weight from closest vertex in nearest face"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static EnumPropertyItem WT_replace_mode_item[] = {
+	{WT_REPLACE_ALL_WEIGHTS, "WT_REPLACE_ALL_WEIGHTS", 1, "All", "Overwrite all weights"},
+	{WT_REPLACE_EMPTY_WEIGHTS, "WT_REPLACE_EMPTY_WEIGHTS", 1, "Empty", "Add weights to vertices with no weight"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/*copy weight*/
+static void vgroup_transfer_weight(float *r_weight_dst, const float weight_src, const WT_ReplaceMode replace_mode)
+{
+	switch (replace_mode) {
+		case WT_REPLACE_ALL_WEIGHTS:
+			*r_weight_dst = weight_src;
+			break;
+
+		case WT_REPLACE_EMPTY_WEIGHTS:
+			if (*r_weight_dst == 0.0f) {
+				*r_weight_dst = weight_src;
+			}
+			break;
+
+		default:
+			BLI_assert(0);
+			break;
+	}
+}
+
+/* could be exposed externally */
+static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene,
+                                     WT_Method method, WT_ReplaceMode replace_mode, wmOperator *op)
+{
+	bDeformGroup *dg_dst;
+	Mesh *me_dst, *me_src;
+	DerivedMesh *dmesh_src;
+	BVHTreeFromMesh tree_mesh_vertices_src, tree_mesh_faces_src = {NULL};
+	MDeformVert **dv_array_src, **dv_array_dst, **dv_src, **dv_dst;
+	MVert *mv_dst, *mv_src;
+	MFace *mface_src, *mf;
+	BVHTreeNearest nearest;
+	MDeformWeight *dw_dst, *dw_src;
+	int dv_tot_src, dv_tot_dst, i, v_index, index_dst, index_src, index_nearest, index_nearest_vertex;
+	unsigned int f_index;
+	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob_dst);
+
+	/* create new and overwrite vertex group on destination without data */
+	if (!defgroup_find_name(ob_dst, dg_src->name)) {
+		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+		ED_vgroup_add_name(ob_dst, dg_src->name);
+	}
+
+	/* get destination deformgroup */
+	dg_dst = defgroup_find_name(ob_dst, dg_src->name);
+
+	/* get meshes */
+	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH);
+	me_dst = ob_dst->data;
+	me_src = ob_src->data;
+
+	/* sanity check */
+	if (!me_src->dvert) {
+		BKE_report(op->reports, RPT_ERROR, "Transfer failed (source mesh does not have any vertex groups)");
+		return 0;
+	}
+
+	/* create data in memory when nothing there */
+	if (!me_dst->dvert) ED_vgroup_data_create(ob_dst->data);
+
+	/* get vertex group arrays */
+	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
+	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, use_vert_sel);
+
+	/* get indexes of vertex groups */
+	index_src = BLI_findindex(&ob_src->defbase, dg_src);
+	index_dst = BLI_findindex(&ob_dst->defbase, dg_dst);
+
+	/* get vertices */
+	mv_dst = me_dst->mvert;
+	mv_src = dmesh_src->getVertArray(dmesh_src);
+
+	/* prepare transformation matrix */
+	invert_m4_m4(ob_src->imat, ob_src->obmat);
+	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
+
+	/* clear weights */
+	if (replace_mode == WT_REPLACE_ALL_WEIGHTS) {
+		for (i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++) {
+
+			if (*dv_dst == NULL) continue;
+
+			dw_dst = defvert_find_index(*dv_dst, index_dst);
+			/* remove vertex from group */
+			if (dw_dst) defvert_remove_group(*dv_dst, dw_dst);
+		}
+	}
+
+	switch (method) {
+
+		case WT_BY_INDEX:
+			/* check if indices are matching, delete and return if not */
+			if (ob_dst == ob_src || dv_tot_dst == 0 || dv_tot_dst != dv_tot_src ||
+			    dv_array_src == NULL || dv_array_dst == NULL)
+			{
+				ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
+				if (dv_array_src) MEM_freeN(dv_array_src);
+				if (dv_array_dst) MEM_freeN(dv_array_dst);
+				dmesh_src->release(dmesh_src);
+				BKE_report(op->reports, RPT_ERROR, "Transfer failed (indices are not matching)");
+				return 0;
+			}
+
+			/* loop through the vertices*/
+			for (i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, dv_src++, mv_src++, mv_dst++) {
+
+				if (*dv_dst == NULL) {
+					continue;
+				}
+
+				/* copy weight */
+				dw_src = defvert_find_index(*dv_src, index_src);
+				if (dw_src && dw_src->weight) {
+					dw_dst = defvert_verify_index(*dv_dst, index_dst);
+					vgroup_transfer_weight(&dw_dst->weight, dw_src->weight, replace_mode);
+				}
+			}
+			break;
+
+		case WT_BY_NEAREST_VERTEX:
+			/* make node tree */
+			bvhtree_from_mesh_verts(&tree_mesh_vertices_src, dmesh_src, FLT_EPSILON, 2, 6);
+
+			/* loop trough vertices */
+			for (i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
+
+				if (*dv_dst == NULL) {
+					continue;
+				}
+
+				/* reset nearest */
+				nearest.dist = FLT_MAX;
+				/* with current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
+				nearest.index = -1;
+
+				/* transform into target space */
+				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+
+				/* node tree accelerated search for closest vetex */
+				BLI_bvhtree_find_nearest(tree_mesh_vertices_src.tree, tmp_co,
+				                         &nearest, tree_mesh_vertices_src.nearest_callback, &tree_mesh_vertices_src);
+
+				/* copy weight that are not NULL including weight value 0. Existing target weights are overwritten prior to this in relevant cases. */
+				dw_src = defvert_find_index(dv_array_src[nearest.index], index_src);
+				if (dw_src && dw_src->weight) {
+					dw_dst = defvert_verify_index(*dv_dst, index_dst);
+					vgroup_transfer_weight(&dw_dst->weight, dw_src->weight, replace_mode);
+				}
+			}
+
+			/* free memory */
+			free_bvhtree_from_mesh(&tree_mesh_vertices_src);
+			break;
+
+		case WT_BY_NEAREST_FACE:
+			/* get faces */
+			DM_ensure_tessface(dmesh_src);
+			mface_src = dmesh_src->getTessFaceArray(dmesh_src);
+
+			/* make node tree */
+			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, FLT_EPSILON, 2, 6);
+
+			/* loop through the vertices */
+			for (i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
+
+				if (*dv_dst == NULL) {
+					continue;
+				}
+
+				/* reset nearest */
+				nearest.dist = FLT_MAX;
+				/* with current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
+				nearest.index = -1;
+
+				/* transform into target space */
+				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+
+				/* node tree accelerated search for closest face */
+				BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co,
+				                         &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+				index_nearest = nearest.index;
+
+				/* project onto face */
+				mf = &mface_src[index_nearest];
+				normal_tri_v3(normal, mv_src[mf->v1].co, mv_src[mf->v2].co, mv_src[mf->v3].co);
+				project_v3_plane(tmp_co, normal, mv_src[mf->v1].co);
+
+				/* interpolate weights over face*/
+				f_index = mf->v4 ? 3 : 2;
+				if (f_index == 3) {
+					interp_weights_face_v3(tmp_weight, mv_src[mf->v1].co, mv_src[mf->v2].co, mv_src[mf->v3].co, mv_src[mf->v4].co, tmp_co);
+				}
+				else {
+					interp_weights_face_v3(tmp_weight, mv_src[mf->v1].co, mv_src[mf->v2].co, mv_src[mf->v3].co, NULL, tmp_co);
+				}
+
+				/* get weights from face*/
+				weight = 0;
+				do {
+					v_index = (&mf->v1)[f_index];
+					weight += tmp_weight[f_index] * defvert_find_weight(dv_array_src[v_index], index_src);
+				} while (f_index--);
+
+				/* copy weight that are not NULL including weight value 0. Existing target weights are overwritten prior to this in relevant cases. */
+				if (weight > 0) {
+					dw_dst = defvert_verify_index(*dv_dst, index_dst);
+					vgroup_transfer_weight(&dw_dst->weight, weight, replace_mode);
+				}
+			}
+
+			/* free memory */
+			free_bvhtree_from_mesh(&tree_mesh_faces_src);
+			break;
+
+		case WT_BY_NEAREST_VERTEX_IN_FACE:
+			/* get faces */
+			DM_ensure_tessface(dmesh_src);
+			mface_src = dmesh_src->getTessFaceArray(dmesh_src);
+
+			/* make node tree */
+			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, FLT_EPSILON, 2, 6);
+
+			/* loop through the vertices */
+			for (i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
+
+				if (*dv_dst == NULL) {
+					continue;
+				}
+
+				/* reset nearest */
+				nearest.dist = FLT_MAX;
+				/* With current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
+				nearest.index = -1;
+
+				/* transform into target space */
+				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+
+				/* node tree accelerated search for closest face */
+				BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co,
+				                         &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+				index_nearest = nearest.index;
+
+				/* get distances */
+				mf = &mface_src[index_nearest];
+				dist_v1 = len_squared_v3v3(tmp_co, mv_src[mf->v1].co);
+				dist_v2 = len_squared_v3v3(tmp_co, mv_src[mf->v2].co);
+				dist_v3 = len_squared_v3v3(tmp_co, mv_src[mf->v3].co);
+
+				/* get closest vertex */
+				f_index = mf->v4 ? 3 : 2;
+				if (dist_v1 < dist_v2 && dist_v1 < dist_v3) index_nearest_vertex = mf->v1;
+				else if (dist_v2 < dist_v3) index_nearest_vertex = mf->v2;
+				else index_nearest_vertex = mf->v3;
+				if (f_index == 3) {
+					dist_v4 = len_squared_v3v3(tmp_co, mv_src[mf->v4].co);
+					if (dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3) {
+						index_nearest_vertex = mf->v4;
+					}
+				}
+
+				/* copy weight that are not NULL including weight value 0. Existing target weights are overwritten prior to this in relevant cases. */
+				dw_src = defvert_find_index(dv_array_src[index_nearest_vertex], index_src);
+				if (dw_src && dw_src->weight) {
+					dw_dst = defvert_verify_index(*dv_dst, index_dst);
+					vgroup_transfer_weight(&dw_dst->weight, dw_src->weight, replace_mode);
+				}
+			}
+
+			/* free memory */
+			free_bvhtree_from_mesh(&tree_mesh_faces_src);
+			break;
+
+		default:
+			BLI_assert(0);
+			break;
+	}
+
+	/*free memory*/
+	if (dv_array_src) MEM_freeN(dv_array_src);
+	if (dv_array_dst) MEM_freeN(dv_array_dst);
+	dmesh_src->release(dmesh_src);
+
+	return 1;
+}
+
+/***********************End weight transfer (WT)***********************************/
 
 /* for Mesh in Object mode */
 /* allows editmode for Lattice */
@@ -580,7 +909,6 @@ void ED_vgroup_select_by_name(Object *ob, const char *name)
 static void vgroup_select_verts(Object *ob, int select)
 {
 	const int def_nr = ob->actdef - 1;
-	MDeformVert *dv;
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -596,7 +924,7 @@ static void vgroup_select_verts(Object *ob, int select)
 
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-					dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+					MDeformVert *dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 					if (defvert_find_index(dv, def_nr)) {
 						BM_vert_select_set(em->bm, eve, select);
 					}
@@ -604,7 +932,7 @@ static void vgroup_select_verts(Object *ob, int select)
 			}
 
 			/* this has to be called, because this function operates on vertices only */
-			if (select) EDBM_select_flush(em);  // vertices to edges/faces
+			if (select) EDBM_select_flush(em);  /* vertices to edges/faces */
 			else EDBM_deselect_flush(em);
 		}
 		else {
@@ -633,6 +961,7 @@ static void vgroup_select_verts(Object *ob, int select)
 		Lattice *lt = vgroup_edit_lattice(ob);
 		
 		if (lt->dvert) {
+			MDeformVert *dv;
 			BPoint *bp;
 			int a, tot;
 			
@@ -704,7 +1033,7 @@ static void vgroup_normalize(Object *ob)
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
 
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -724,7 +1053,7 @@ static void vgroup_normalize(Object *ob)
 
 			dw = defvert_find_index(dv, def_nr);
 			if (dw) {
-				weight_max = MAX2(dw->weight, weight_max);
+				weight_max = max_ff(dw->weight, weight_max);
 			}
 		}
 
@@ -836,23 +1165,24 @@ static void getVerticalAndHorizontalChange(const float norm[3], float d, const f
                                            const float start[3], float distToStart,
                                            float *end, float (*changes)[2], float *dists, int index)
 {
-	// A=Q-((Q-P).N)N
-	// D = (a*x0 + b*y0 +c*z0 +d)
+	/* A = Q - ((Q - P).N)N
+	 * D = (a * x0 + b * y0 +c * z0 + d) */
 	float projA[3], projB[3];
 
 	closest_to_plane_v3(projA, coord, norm, start);
 	closest_to_plane_v3(projB, coord, norm, end);
-	// (vertical and horizontal refer to the plane's y and xz respectively)
-	// vertical distance
+	/* (vertical and horizontal refer to the plane's y and xz respectively)
+	 * vertical distance */
 	dists[index] = dot_v3v3(norm, end) + d;
-	// vertical change
+	/* vertical change */
 	changes[index][0] = dists[index] - distToStart;
 	//printf("vc %f %f\n", distance(end, projB, 3)-distance(start, projA, 3), changes[index][0]);
-	// horizontal change
+	/* horizontal change */
 	changes[index][1] = len_v3v3(projA, projB);
 }
 
-// I need the derived mesh to be forgotten so the positions are recalculated with weight changes (see dm_deform_recalc)
+/* I need the derived mesh to be forgotten so the positions are recalculated
+ * with weight changes (see dm_deform_recalc) */
 static void dm_deform_clear(DerivedMesh *dm, Object *ob)
 {
 	if (ob->derivedDeform && (ob->derivedDeform) == dm) {
@@ -973,7 +1303,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				}
 			}
 		}
-		// sort the changes by the vertical change
+		/* sort the changes by the vertical change */
 		for (k = 0; k < totweight; k++) {
 			float tf;
 			int ti;
@@ -985,7 +1315,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 					bestIndex = i;
 				}
 			}
-			// switch with k
+			/* switch with k */
 			if (bestIndex != k) {
 				ti = upDown[k];
 				upDown[k] = upDown[bestIndex];
@@ -1109,7 +1439,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
 
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1143,7 +1473,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
 
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (lock_active && !BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1221,7 +1551,7 @@ static void vgroup_invert(Object *ob, const short auto_assign, const short auto_
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1312,11 +1642,11 @@ static void vgroup_blend(Object *ob, const float fac)
 					/* i1 is always the selected one */
 					if (sel1) {
 						i1 = BM_elem_index_get(eed->v1);
-						/* i2= BM_elem_index_get(eed->v2); */ /* UNUSED */
+						/* i2 = BM_elem_index_get(eed->v2); */ /* UNUSED */
 						eve = eed->v2;
 					}
 					else {
-						/* i2= BM_elem_index_get(eed->v1); */ /* UNUSED */
+						/* i2 = BM_elem_index_get(eed->v1); */ /* UNUSED */
 						i1 = BM_elem_index_get(eed->v2);
 						eve = eed->v1;
 					}
@@ -1389,13 +1719,119 @@ static void vgroup_blend(Object *ob, const float fac)
 	}
 }
 
+static int inv_cmp_mdef_vert_weights(const void *a1, const void *a2)
+{
+	/* qsort sorts in ascending order.  We want descending order to save a memcopy
+	 * so this compare function is inverted from the standard greater than comparison qsort needs.
+	 * A normal compare function is called with two pointer arguments and should return an integer less than, equal to,
+	 * or greater than zero corresponding to whether its first argument is considered less than, equal to,
+	 * or greater than its second argument.  This does the opposite. */
+	const struct MDeformWeight *dw1 = a1, *dw2 = a2;
+
+	if      (dw1->weight < dw2->weight) return  1;
+	else if (dw1->weight > dw2->weight) return -1;
+	else if (&dw1 < &dw2)               return  1; /* compare addresses so we have a stable sort algorithm */
+	else                                return -1;
+}
+
+/* Used for limiting the number of influencing bones per vertex when exporting
+ * skinned meshes.  if all_deform_weights is True, limit all deform modifiers
+ * to max_weights regardless of type, otherwise, only limit the number of influencing bones per vertex*/
+static int vertex_group_limit_total(Object *ob,
+                                    const int max_weights,
+                                    const int all_deform_weights)
+{
+	MDeformVert *dv, **dvert_array = NULL;
+	int i, dvert_tot = 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
+	int is_change = FALSE;
+
+	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
+
+	if (dvert_array) {
+		int defbase_tot = BLI_countlist(&ob->defbase);
+		const char *vgroup_validmap = (all_deform_weights == FALSE) ?
+		            BKE_objdef_validmap_get(ob, defbase_tot) :
+		            NULL;
+		int num_to_drop = 0;
+
+		/* only the active group */
+		for (i = 0; i < dvert_tot; i++) {
+
+			/* in case its not selected */
+			if (!(dv = dvert_array[i])) {
+				continue;
+			}
+
+			if (all_deform_weights) {
+				/* keep only the largest weights, discarding the rest
+				 * qsort will put array in descending order because of  invCompare function */
+				num_to_drop = dv->totweight - max_weights;
+				if (num_to_drop > 0) {
+					qsort(dv->dw, dv->totweight, sizeof(MDeformWeight), inv_cmp_mdef_vert_weights);
+					dv->dw = MEM_reallocN(dv->dw, sizeof(MDeformWeight) * max_weights);
+					dv->totweight = max_weights;
+					is_change = TRUE;
+				}
+			}
+			else {
+				MDeformWeight *dw_temp;
+				int bone_count = 0, non_bone_count = 0;
+				int j;
+				/* only consider vgroups with bone modifiers attached (in vgroup_validmap) */
+
+				num_to_drop = dv->totweight - max_weights;
+
+				/* first check if we even need to test further */
+				if (num_to_drop > 0) {
+					/* re-pack dw array so that non-bone weights are first, bone-weighted verts at end
+					 * sort the tail, then copy only the truncated array back to dv->dw */
+					dw_temp = MEM_mallocN(sizeof(MDeformWeight) * (dv->totweight), __func__);
+					bone_count = 0; non_bone_count = 0;
+					for (j = 0; j < dv->totweight; j++) {
+						BLI_assert(dv->dw[j].def_nr < defbase_tot);
+						if (!vgroup_validmap[(dv->dw[j]).def_nr]) {
+							dw_temp[non_bone_count] = dv->dw[j];
+							non_bone_count += 1;
+						}
+						else {
+							dw_temp[dv->totweight - 1 - bone_count] = dv->dw[j];
+							bone_count += 1;
+						}
+					}
+					BLI_assert(bone_count + non_bone_count == dv->totweight);
+					num_to_drop = bone_count - max_weights;
+					if (num_to_drop > 0) {
+						qsort(&dw_temp[non_bone_count], bone_count, sizeof(MDeformWeight), inv_cmp_mdef_vert_weights);
+						dv->totweight -= num_to_drop;
+						/* Do we want to clean/normalize here? */
+						MEM_freeN(dv->dw);
+						dv->dw = MEM_reallocN(dw_temp, sizeof(MDeformWeight) * dv->totweight);
+						is_change = TRUE;
+					}
+					else {
+						MEM_freeN(dw_temp);
+					}
+				}
+			}
+		}
+		MEM_freeN(dvert_array);
+
+		if (vgroup_validmap) {
+			MEM_freeN((void *)vgroup_validmap);
+		}
+	}
+
+	return is_change;
+}
+
 static void vgroup_clean(Object *ob, const float epsilon, int keep_single)
 {
 	MDeformWeight *dw;
 	MDeformVert *dv, **dvert_array = NULL;
 	int i, dvert_tot = 0;
 	const int def_nr = ob->actdef - 1;
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	if (!BLI_findlink(&ob->defbase, def_nr)) {
 		return;
@@ -1431,7 +1867,7 @@ static void vgroup_clean_all(Object *ob, const float epsilon, const int keep_sin
 {
 	MDeformVert **dvert_array = NULL;
 	int i, dvert_tot = 0;
-	const int use_vert_sel = (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) != 0;
+	const int use_vert_sel = vertex_group_use_vert_sel(ob);
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot, use_vert_sel);
 
@@ -2007,7 +2443,6 @@ static void vgroup_delete_all(Object *ob)
 /* only in editmode */
 static void vgroup_assign_verts(Object *ob, const float weight)
 {
-	MDeformVert *dv;
 	const int def_nr = ob->actdef - 1;
 
 	if (!BLI_findlink(&ob->defbase, def_nr))
@@ -2027,6 +2462,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 			/* Go through the list of editverts and assign them */
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 				if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+					MDeformVert *dv;
 					MDeformWeight *dw;
 					dv = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT); /* can be NULL */
 					dw = defvert_verify_index(dv, def_nr);
@@ -2061,6 +2497,7 @@ static void vgroup_assign_verts(Object *ob, const float weight)
 	}
 	else if (ob->type == OB_LATTICE) {
 		Lattice *lt = vgroup_edit_lattice(ob);
+		MDeformVert *dv;
 		BPoint *bp;
 		int a, tot;
 
@@ -2665,6 +3102,47 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	                "Keep verts assigned to at least one group when cleaning");
 }
 
+static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_context(C);
+
+	const int limit = RNA_int_get(op->ptr, "limit");
+	const int all_deform_weights = RNA_boolean_get(op->ptr, "all_deform_weights");
+
+	if (vertex_group_limit_total(ob, limit, all_deform_weights)) {
+
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_WARNING, "No vertex groups limited");
+
+		/* note, would normally return cancelled, except we want the redo
+		 * UI to show up for users to change */
+		return OPERATOR_FINISHED;
+	}
+}
+
+void OBJECT_OT_vertex_group_limit_total(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Limit Number of Weights per Vertex";
+	ot->idname = "OBJECT_OT_vertex_group_limit_total";
+	ot->description = "Limit deform weights associated with a vertex to a specified number by removing lowest weights";
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_limit_total_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "limit", 4, 1, 32, "Limit", "Maximum number of deform weights", 1, 32);
+	RNA_def_boolean(ot->srna, "all_deform_weights", FALSE, "All Deform Weights", "Cull all deform weights, not just bones");
+}
 
 static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 {
@@ -2762,13 +3240,12 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 
 	if ((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indices",
+		            "Copy VGroups to Selected warning, %d done, %d failed (object data must have matching indices)",
 		            change, fail);
 	}
 
 	return OPERATOR_FINISHED;
 }
-
 
 void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 {
@@ -2783,6 +3260,86 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob_act = CTX_data_active_object(C);
+	bDeformGroup *dg_src;
+	int fail = 0;
+
+	WT_VertexGroupMode vertex_group_mode = RNA_enum_get(op->ptr, "WT_vertex_group_mode");
+	WT_Method method = RNA_enum_get(op->ptr, "WT_method");
+	WT_ReplaceMode replace_mode = RNA_enum_get(op->ptr, "WT_replace_mode");
+
+	/* Macro to loop through selected objects and perform operation depending on function, option and method */
+	CTX_DATA_BEGIN (C, Object *, ob_slc, selected_editable_objects)
+	{
+
+		if (ob_act != ob_slc && ob_slc->defbase.first) {
+			switch (vertex_group_mode) {
+
+				case WT_REPLACE_ACTIVE_VERTEX_GROUP:
+					if (!ed_vgroup_transfer_weight(ob_act, ob_slc,
+					                               BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1),
+					                               scene, method, replace_mode, op))
+					{
+						fail++;
+					}
+					break;
+
+				case WT_REPLACE_ALL_VERTEX_GROUPS:
+					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
+						if (!ed_vgroup_transfer_weight(ob_act, ob_slc,
+						                               dg_src, scene, method, replace_mode, op))
+						{
+							fail++;
+						}
+					}
+					break;
+
+				default:
+					BLI_assert(0);
+					break;
+			}
+		}
+	}
+
+	/* Event notifiers for correct display of data */
+	DAG_id_tag_update(&ob_slc->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_slc);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob_slc->data);
+
+	CTX_DATA_END;
+
+	if (fail != 0) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		return OPERATOR_FINISHED;
+	}
+}
+
+/* transfers weight from active to selected */
+void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Transfer Weights";
+	ot->idname = "OBJECT_OT_vertex_group_transfer_weight";
+	ot->description = "Transfer weight paint to active from selected mesh";
+
+	/* api callbacks */
+	ot->poll = vertex_group_poll;
+	ot->exec = vertex_group_transfer_weight_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "WT_vertex_group_mode", WT_vertex_group_mode_item, 1, "Group", "");
+	ot->prop = RNA_def_enum(ot->srna, "WT_method", WT_method_item, 3, "Method", "");
+	ot->prop = RNA_def_enum(ot->srna, "WT_replace_mode", WT_replace_mode_item, 1, "Replace", "");
 }
 
 static EnumPropertyItem vgroup_items[] = {
@@ -2904,7 +3461,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 			}
 		}
 		else {
-			BKE_report(op->reports, RPT_ERROR, "Editmode lattice isn't supported yet");
+			BKE_report(op->reports, RPT_ERROR, "Editmode lattice is not supported yet");
 			MEM_freeN(sort_map_update);
 			return OPERATOR_CANCELLED;
 		}

@@ -28,9 +28,6 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
-
-#define MODSTACK_DEBUG 1
-
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END) */
 
@@ -78,6 +75,7 @@ typedef enum ModifierType {
 	eModifierType_DynamicPaint      = 40,
 	eModifierType_Remesh            = 41,
 	eModifierType_Skin              = 42,
+	eModifierType_LaplacianSmooth   = 43,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -351,7 +349,7 @@ typedef struct UVProjectModifierData {
 	int flags;
 	int num_projectors;
 	float aspectx, aspecty;
-	float scalex, scaley;												
+	float scalex, scaley;
 	char uvlayer_name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
 	int uvlayer_tmp, pad;
 } UVProjectModifierData;
@@ -364,9 +362,29 @@ typedef struct UVProjectModifierData {
 typedef struct DecimateModifierData {
 	ModifierData modifier;
 
-	float percent;
-	int faceCount;
+	float percent;  /* (mode == MOD_DECIM_MODE_COLLAPSE) */
+	short   iter;   /* (mode == MOD_DECIM_MODE_UNSUBDIV) */
+	short   pad;
+	float   angle;  /* (mode == MOD_DECIM_MODE_DISSOLVE) */
+
+	char defgrp_name[64];	/* MAX_VGROUP_NAME */
+	short flag, mode;
+
+	/* runtime only */
+	int face_count, pad2;
 } DecimateModifierData;
+
+enum {
+	MOD_DECIM_FLAG_INVERT_VGROUP       = (1 << 0),
+	MOD_DECIM_FLAG_TRIANGULATE         = (1 << 1),  /* for collapse only. dont convert tri pairs back to quads */
+	MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS  = (1 << 2)   /* for dissolve only. collapse all verts between 2 faces */
+};
+
+enum {
+	MOD_DECIM_MODE_COLLAPSE,
+	MOD_DECIM_MODE_UNSUBDIV,
+	MOD_DECIM_MODE_DISSOLVE   /* called planar in the UI */
+};
 
 /* Smooth modifier flags */
 #define MOD_SMOOTH_X (1<<1)
@@ -686,7 +704,7 @@ typedef struct SimpleDeformModifierData {
 	struct Object *origin;	/* object to control the origin of modifier space coordinates */
 	char vgroup_name[64];	/* optional vertexgroup name, MAX_VGROUP_NAME */
 	float factor;			/* factors to control simple deforms */
-	float limit[2];			/* lower and upper limit */		
+	float limit[2];			/* lower and upper limit */
 
 	char mode;				/* deform function */
 	char axis;				/* lock axis (for taper and strech) */
@@ -705,6 +723,8 @@ typedef struct SimpleDeformModifierData {
 
 /* indicates whether simple deform should use the local
  * coordinates or global coordinates of origin */
+/* XXX, this should have never been an option, all other modifiers work relatively
+ * (so moving both objects makes no change!) - Campbell */
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
 
 #define MOD_UVPROJECT_MAX				10
@@ -1092,5 +1112,18 @@ enum {
 enum {
 	MOD_SKIN_SMOOTH_SHADING = 1
 };
+
+/* Smooth modifier flags */
+#define MOD_LAPLACIANSMOOTH_X (1<<1)
+#define MOD_LAPLACIANSMOOTH_Y (1<<2)
+#define MOD_LAPLACIANSMOOTH_Z (1<<3)
+#define MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION (1<<4)
+
+typedef struct LaplacianSmoothModifierData {
+	ModifierData modifier;
+	float lambda, lambda_border, pad1;
+	char defgrp_name[64]; /* MAX_VGROUP_NAME */
+	short flag, repeat;
+} LaplacianSmoothModifierData;
 
 #endif

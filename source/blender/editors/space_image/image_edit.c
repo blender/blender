@@ -78,8 +78,8 @@ void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *i
 	if (sima->image)
 		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 
-	if (sima->image && sima->image->id.us == 0)
-		sima->image->id.us = 1;
+	if (sima->image && ID_REAL_USERS(sima->image) <= 0)
+		sima->image->id.us = max_ii(sima->image->id.us, 0) + 1;
 
 	if (obedit)
 		WM_main_add_notifier(NC_GEOM | ND_DATA, obedit->data);
@@ -97,8 +97,8 @@ void ED_space_image_set_mask(bContext *C, SpaceImage *sima, Mask *mask)
 	sima->mask_info.mask = mask;
 
 	/* weak, but same as image/space */
-	if (sima->mask_info.mask && sima->mask_info.mask->id.us == 0)
-		sima->mask_info.mask->id.us = 1;
+	if (sima->mask_info.mask && ID_REAL_USERS(sima->mask_info.mask) <= 0)
+		sima->mask_info.mask->id.us = max_ii(sima->mask_info.mask->id.us, 0) + 1;
 
 	if (C) {
 		WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);
@@ -120,6 +120,8 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
 		if (ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
 	}
+	else
+		*lock_r = NULL;
 
 	return NULL;
 }
@@ -161,8 +163,8 @@ void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 		*height = (scene->r.ysch * scene->r.size) / 100;
 
 		if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-			*width  *= BLI_RCT_SIZE_X(&scene->r.border);
-			*height *= BLI_RCT_SIZE_Y(&scene->r.border);
+			*width  *= BLI_rctf_size_x(&scene->r.border);
+			*height *= BLI_rctf_size_y(&scene->r.border);
 		}
 
 	}
@@ -204,8 +206,8 @@ void ED_space_image_get_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float 
 
 	ED_space_image_get_size(sima, &width, &height);
 
-	*zoomx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_X(&ar->v2d.cur) * width);
-	*zoomy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_Y(&ar->v2d.cur) * height);
+	*zoomx = (float)(BLI_rcti_size_x(&ar->winrct) + 1) / (float)(BLI_rctf_size_x(&ar->v2d.cur) * width);
+	*zoomy = (float)(BLI_rcti_size_y(&ar->winrct) + 1) / (float)(BLI_rctf_size_y(&ar->v2d.cur) * height);
 }
 
 void ED_space_image_get_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)

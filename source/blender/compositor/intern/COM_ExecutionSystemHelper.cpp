@@ -49,8 +49,9 @@ void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_star
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
-		addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
-		node = (bNode *)node->next;
+		Node *nnode = addNode(nodes, node, isActiveGroup, system.getContext().isFastCalculation());
+		nnode->setbNodeGroup(groupnode);
+		node = node->next;
 	}
 
 	NodeRange node_range(nodes.begin() + nodes_start, nodes.end());
@@ -59,7 +60,7 @@ void ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_star
 	bNodeLink *nodelink = (bNodeLink *)tree->links.first;
 	while (nodelink != NULL) {
 		addNodeLink(node_range, links, nodelink);
-		nodelink = (bNodeLink *)nodelink->next;
+		nodelink = nodelink->next;
 	}
 
 	/* Expand group nodes */

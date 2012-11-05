@@ -122,6 +122,7 @@ EnumPropertyItem event_timer_type_items[] = {
 };
 
 EnumPropertyItem event_ndof_type_items[] = {
+	{NDOF_MOTION, "NDOF_MOTION", 0, "Motion", ""},
 	/* buttons on all 3dconnexion devices */
 	{NDOF_BUTTON_MENU, "NDOF_BUTTON_MENU", 0, "Menu", ""},
 	{NDOF_BUTTON_FIT, "NDOF_BUTTON_FIT", 0, "Fit", ""},
@@ -622,12 +623,33 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 				kmi->val = KM_NOTHING;
 				break;
 			case KMI_TYPE_NDOF:
-				kmi->type = NDOF_BUTTON_MENU;
-				kmi->val = KM_PRESS;
+				kmi->type = NDOF_MOTION;
+				kmi->val = KM_NOTHING;
 				break;
 		}
 	}
 }
+
+/* assumes value to be an enum from event_type_items */
+/* function makes sure keymodifiers are only valid keys, ESC keeps it unaltered */
+static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
+{
+	wmKeyMapItem *kmi = ptr->data;
+	
+	/* XXX, this should really be managed in an _itemf function,
+	 * giving a list of valid enums, then silently changing them when they are set is not
+	 * a good precedent, don't do this unless you have a good reason! */
+	if (value == ESCKEY) {
+		/* pass */
+	}
+	else if (value >= AKEY) {
+		kmi->keymodifier = value;
+	}
+	else {
+		kmi->keymodifier = 0;
+	}
+}
+
 
 static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop),
                                                    int *UNUSED(free))
@@ -765,14 +787,14 @@ static void rna_wmKeyMapItem_name_get(PointerRNA *ptr, char *value)
 {
 	wmKeyMapItem *kmi = ptr->data;
 	wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-	strcpy(value, ot ? ot->name : kmi->idname);
+	strcpy(value, ot ? RNA_struct_ui_name(ot->srna) : kmi->idname);
 }
 
 static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 {
 	wmKeyMapItem *kmi = ptr->data;
 	wmOperatorType *ot = WM_operatortype_find(kmi->idname, 1);
-	return strlen(ot ? ot->name : kmi->idname);
+	return strlen(ot ? RNA_struct_ui_name(ot->srna) : kmi->idname);
 }
 
 static int rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
@@ -1062,7 +1084,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 				}
 				else {
 					BKE_reportf(reports, RPT_ERROR,
-					            "registering operator class: '%s', invalid bl_idname '%s', at position %d",
+					            "Registering operator class: '%s', invalid bl_idname '%s', at position %d",
 					            identifier, _operator_idname, i);
 					return NULL;
 				}
@@ -1071,7 +1093,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 			}
 
 			if (i > ((int)sizeof(dummyop.idname)) - 3) {
-				BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s', invalid bl_idname '%s', "
+				BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s', invalid bl_idname '%s', "
 				            "is too long, maximum length is %d", identifier, _operator_idname,
 				            (int)sizeof(dummyop.idname) - 3);
 				return NULL;
@@ -1079,7 +1101,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 
 			if (dot != 1) {
 				BKE_reportf(reports, RPT_ERROR,
-				            "registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
+				            "Registering operator class: '%s', invalid bl_idname '%s', must contain 1 '.' character",
 				            identifier, _operator_idname);
 				return NULL;
 			}
@@ -1136,7 +1158,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	return dummyot.ext.srna;
 }
 
-void **rna_Operator_instance(PointerRNA *ptr)
+static void **rna_Operator_instance(PointerRNA *ptr)
 {
 	wmOperator *op = ptr->data;
 	return &op->py_instance;
@@ -1180,7 +1202,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 	}
 
 	if (strlen(identifier) >= sizeof(dummyop.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering operator class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering operator class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummyop.idname));
 		return NULL;
 	}
@@ -1230,24 +1252,30 @@ static void rna_Operator_bl_idname_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data = (wmOperator *)(ptr->data);
 	char *str = (char *)data->type->idname;
-	if (!str[0]) BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
-	else assert(!"setting the bl_idname on a non-builtin operator");
+	if (!str[0])
+		BLI_strncpy(str, value, OP_MAX_TYPENAME);    /* utf8 already ensured */
+	else
+		assert(!"setting the bl_idname on a non-builtin operator");
 }
 
 static void rna_Operator_bl_label_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data = (wmOperator *)(ptr->data);
 	char *str = (char *)data->type->name;
-	if (!str[0]) BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
-	else assert(!"setting the bl_label on a non-builtin operator");
+	if (!str[0])
+		BLI_strncpy(str, value, OP_MAX_TYPENAME);    /* utf8 already ensured */
+	else
+		assert(!"setting the bl_label on a non-builtin operator");
 }
 
 static void rna_Operator_bl_description_set(PointerRNA *ptr, const char *value)
 {
 	wmOperator *data = (wmOperator *)(ptr->data);
 	char *str = (char *)data->type->description;
-	if (!str[0]) BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
-	else assert(!"setting the bl_description on a non-builtin operator");
+	if (!str[0])
+		BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);    /* utf8 already ensured */
+	else
+		assert(!"setting the bl_description on a non-builtin operator");
 }
 
 static void rna_KeyMapItem_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1404,7 +1432,7 @@ static void rna_def_operator_type_macro(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Operator Macro", "Storage of a sub operator in a macro after it has been added");
 	RNA_def_struct_sdna(srna, "wmOperatorTypeMacro");
 
-/*	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE); */
+/*	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE); */
 /*	RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 /*	RNA_def_property_string_sdna(prop, NULL, "idname"); */
 /*	RNA_def_property_ui_text(prop, "Name", "Name of the sub operator"); */
@@ -1793,7 +1821,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	 * fallback on the operator ID */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Name of operator to call on input event");
+	RNA_def_property_ui_text(prop, "Name", "Name of operator (translated) to call on input event");
 	RNA_def_property_string_funcs(prop, "rna_wmKeyMapItem_name_get", "rna_wmKeyMapItem_name_length", NULL);
 	
 	prop = RNA_def_property(srna, "properties", PROP_POINTER, PROP_NONE);
@@ -1865,6 +1893,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "key_modifier", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "keymodifier");
 	RNA_def_property_enum_items(prop, event_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_wmKeyMapItem_keymodifier_set", NULL);
 	RNA_def_property_ui_text(prop, "Key Modifier", "Regular key pressed as a modifier");
 	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 

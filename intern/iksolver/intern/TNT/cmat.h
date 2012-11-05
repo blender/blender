@@ -182,7 +182,7 @@ class Matrix
 
     // constructors
 
-    Matrix() : m_(0), n_(0), mn_(0), v_(0), row_(0), vm1_(0), rowm1_(0) {};
+    Matrix() : m_(0), n_(0), mn_(0), v_(0), row_(0), vm1_(0), rowm1_(0) {}
 
     Matrix(const Matrix<T> &A)
     {

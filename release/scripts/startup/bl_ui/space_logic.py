@@ -107,5 +107,10 @@ class LOGIC_MT_view(Menu):
 
         layout.operator("logic.properties", icon='MENU_PANEL')
 
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

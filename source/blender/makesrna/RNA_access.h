@@ -286,6 +286,7 @@ extern StructRNA RNA_KinematicConstraint;
 extern StructRNA RNA_Lamp;
 extern StructRNA RNA_LampSkySettings;
 extern StructRNA RNA_LampTextureSlot;
+extern StructRNA RNA_LaplacianSmoothModifier;
 extern StructRNA RNA_Lattice;
 extern StructRNA RNA_LatticeModifier;
 extern StructRNA RNA_LatticePoint;
@@ -456,6 +457,7 @@ extern StructRNA RNA_ShaderNodeMath;
 extern StructRNA RNA_ShaderNodeMixRGB;
 extern StructRNA RNA_ShaderNodeNormal;
 extern StructRNA RNA_ShaderNodeOutput;
+extern StructRNA RNA_ShaderNodeScript;
 extern StructRNA RNA_ShaderNodeRGB;
 extern StructRNA RNA_ShaderNodeRGBCurve;
 extern StructRNA RNA_ShaderNodeRGBToBW;
@@ -960,7 +962,9 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 	}
 
 /* check if the idproperty exists, for operators */
+int RNA_property_is_set_ex(PointerRNA *ptr, PropertyRNA *prop, int use_ghost);
 int RNA_property_is_set(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_struct_property_is_set_ex(PointerRNA *ptr, const char *identifier, int use_ghost);
 int RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
 int RNA_property_is_idprop(PropertyRNA *prop);
 
@@ -1028,6 +1032,13 @@ int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *re
 short RNA_type_to_ID_code(StructRNA *type);
 StructRNA *ID_code_to_RNA_type(short idcode);
 
+
+#define RNA_POINTER_INVALIDATE(ptr) {                                         \
+	/* this is checked for validity */                                        \
+	(ptr)->type =                                                             \
+	/* should not be needed but prevent bad pointer access, just in case */   \
+	(ptr)->id.data = NULL;                                                    \
+} (void)0
 
 /* macro which inserts the function name */
 #if defined __GNUC__ || defined __sun

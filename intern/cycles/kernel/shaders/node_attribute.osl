@@ -1,0 +1,43 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+
+shader node_attribute(
+	string bump_offset = "center",
+	string name = "",
+	output point Vector = point(0.0, 0.0, 0.0),
+	output color Color = color(0.0, 0.0, 0.0),
+	output float Fac = 0.0)
+{
+	getattribute(name, Color);
+	Vector = point(Color);
+	getattribute(name, Fac);
+
+	if (bump_offset == "dx") {
+		Color += Dx(Color);
+		Vector += Dx(Vector);
+		Fac += Dx(Fac);
+	}
+	else if (bump_offset == "dy") {
+		Color += Dy(Color);
+		Vector += Dy(Vector);
+		Fac += Dy(Fac);
+	}
+}
+

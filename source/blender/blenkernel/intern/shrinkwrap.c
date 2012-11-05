@@ -84,7 +84,7 @@
 #endif
 
 /* get derived mesh */
-//TODO is anyfunction that does this? returning the derivedFinal without we caring if its in edit mode or not?
+/* TODO is anyfunction that does this? returning the derivedFinal without we caring if its in edit mode or not? */
 DerivedMesh *object_get_derived_final(Object *ob)
 {
 	Mesh *me = ob->data;
@@ -149,7 +149,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		return;
 	}
 
-	//Setup nearest
+	/* Setup nearest */
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
 #ifndef __APPLE__
@@ -159,10 +159,12 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
 		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
-		if (weight == 0.0f) continue;
+		if (weight == 0.0f) {
+			continue;
+		}
 
 
-		//Convert the vertex to tree coordinates
+		/* Convert the vertex to tree coordinates */
 		if (calc->vert) {
 			copy_v3_v3(tmp_co, calc->vert[i].co);
 		}
@@ -171,11 +173,11 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		}
 		space_transform_apply(&calc->local2target, tmp_co);
 
-		//Use local proximity heuristics (to reduce the nearest search)
-		//
-		//If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
-		//so we can initiate the "nearest.dist" with the expected value to that last hit.
-		//This will lead in prunning of the search tree.
+		/* Use local proximity heuristics (to reduce the nearest search)
+		 *
+		 * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
+		 * so we can initiate the "nearest.dist" with the expected value to that last hit.
+		 * This will lead in prunning of the search tree. */
 		if (nearest.index != -1)
 			nearest.dist = len_squared_v3v3(tmp_co, nearest.co);
 		else
@@ -184,22 +186,26 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
 
 
-		//Found the nearest vertex
+		/* Found the nearest vertex */
 		if (nearest.index != -1) {
-			//Adjusting the vertex weight, so that after interpolating it keeps a certain distance from the nearest position
-			float dist = sasqrt(nearest.dist);
-			if (dist > FLT_EPSILON) weight *= (dist - calc->keepDist) / dist;
+			/* Adjusting the vertex weight,
+			 * so that after interpolating it keeps a certain distance from the nearest position */
+			if (nearest.dist > FLT_EPSILON) {
+				const float dist = sqrtf(nearest.dist);
+				weight *= (dist - calc->keepDist) / dist;
+			}
 
-			//Convert the coordinates back to mesh coordinates
+			/* Convert the coordinates back to mesh coordinates */
 			copy_v3_v3(tmp_co, nearest.co);
 			space_transform_invert(&calc->local2target, tmp_co);
 
-			interp_v3_v3v3(co, co, tmp_co, weight); //linear interpolation
+			interp_v3_v3v3(co, co, tmp_co, weight);  /* linear interpolation */
 		}
 	}
 
 	free_bvhtree_from_mesh(&treeData);
 }
+
 
 /*
  * This function raycast a single vertex and updates the hit if the "hit" is considered valid.
@@ -209,16 +215,24 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
  *	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
  *	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
  */
-int normal_projection_project_vertex(char options, const float vert[3], const float dir[3], const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
+int normal_projection_project_vertex(char options, const float vert[3], const float dir[3],
+                                     const SpaceTransform *transf,
+                                     BVHTree *tree, BVHTreeRayHit *hit,
+                                     BVHTree_RayCastCallback callback, void *userdata)
 {
+	/* don't use this because this dist value could be incompatible
+	 * this value used by the callback for comparing prev/new dist values.
+	 * also, at the moment there is no need to have a corrected 'dist' value */
+// #define USE_DIST_CORRECT
+
 	float tmp_co[3], tmp_no[3];
 	const float *co, *no;
 	BVHTreeRayHit hit_tmp;
 
-	//Copy from hit (we need to convert hit rays from one space coordinates to the other
+	/* Copy from hit (we need to convert hit rays from one space coordinates to the other */
 	memcpy(&hit_tmp, hit, sizeof(hit_tmp));
 
-	//Apply space transform (TODO readjust dist)
+	/* Apply space transform (TODO readjust dist) */
 	if (transf) {
 		copy_v3_v3(tmp_co, vert);
 		space_transform_apply(transf, tmp_co);
@@ -228,7 +242,9 @@ int normal_projection_project_vertex(char options, const float vert[3], const fl
 		space_transform_apply_normal(transf, tmp_no);
 		no = tmp_no;
 
+#ifdef USE_DIST_CORRECT
 		hit_tmp.dist *= mat4_to_scale(((SpaceTransform *)transf)->local2target);
+#endif
 	}
 	else {
 		co = vert;
@@ -249,7 +265,7 @@ int normal_projection_project_vertex(char options, const float vert[3], const fl
 			/* apply backface */
 			const float dot = dot_v3v3(dir, hit_tmp.no);
 			if (((options & MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE) && dot <= 0.0f) ||
-			    ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE) && dot >= 0.0f))
+			    ((options & MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)  && dot >= 0.0f))
 			{
 				return FALSE; /* Ignore hit */
 			}
@@ -258,8 +274,12 @@ int normal_projection_project_vertex(char options, const float vert[3], const fl
 		if (transf) {
 			/* Inverting space transform (TODO make coeherent with the initial dist readjust) */
 			space_transform_invert(transf, hit_tmp.co);
-			hit_tmp.dist = len_v3v3((float *)vert, hit_tmp.co);
+#ifdef USE_DIST_CORRECT
+			hit_tmp.dist = len_v3v3(vert, hit_tmp.co);
+#endif
 		}
+
+		BLI_assert(hit_tmp.dist <= hit->dist);
 
 		memcpy(hit, &hit_tmp, sizeof(hit_tmp));
 		return TRUE;
@@ -272,41 +292,46 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 {
 	int i;
 
-	//Options about projection direction
+	/* Options about projection direction */
 	const char use_normal   = calc->smd->shrinkOpts;
 	float proj_axis[3]      = {0.0f, 0.0f, 0.0f};
 
-	//Raycast and tree stuff
+	/* Raycast and tree stuff */
+
+	/** \note 'hit.dist' is kept in the targets space, this is only used
+	 * for finding the best hit, to get the real dist,
+	 * measure the len_v3v3() from the input coord to hit.co */
 	BVHTreeRayHit hit;
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 
-	//auxiliary target
+	/* auxiliary target */
 	DerivedMesh *auxMesh    = NULL;
 	BVHTreeFromMesh auxData = NULL_BVHTreeFromMesh;
 	SpaceTransform local2aux;
 
-	//If the user doesn't allows to project in any direction of projection axis
-	//then theres nothing todo.
+	/* If the user doesn't allows to project in any direction of projection axis
+	 * then theres nothing todo. */
 	if ((use_normal & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
 		return;
 
 
-	//Prepare data to retrieve the direction in which we should project each vertex
+	/* Prepare data to retrieve the direction in which we should project each vertex */
 	if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
 		if (calc->vert == NULL) return;
 	}
 	else {
-		//The code supports any axis that is a combination of X,Y,Z
-		//although currently UI only allows to set the 3 different axis
+		/* The code supports any axis that is a combination of X,Y,Z
+		 * although currently UI only allows to set the 3 different axis */
 		if (calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS) proj_axis[0] = 1.0f;
 		if (calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS) proj_axis[1] = 1.0f;
 		if (calc->smd->projAxis & MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS) proj_axis[2] = 1.0f;
 
 		normalize_v3(proj_axis);
 
-		//Invalid projection direction
-		if (dot_v3v3(proj_axis, proj_axis) < FLT_EPSILON)
-			return; 
+		/* Invalid projection direction */
+		if (len_squared_v3(proj_axis) < FLT_EPSILON) {
+			return;
+		}
 	}
 
 	if (calc->smd->auxTarget) {
@@ -316,7 +341,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		SPACE_TRANSFORM_SETUP(&local2aux, calc->ob, calc->smd->auxTarget);
 	}
 
-	//After sucessufuly build the trees, start projection vertexs
+	/* After sucessufuly build the trees, start projection vertexs */
 	if (bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 4, 6) &&
 	    (auxMesh == NULL || bvhtree_from_mesh_faces(&auxData, auxMesh, 0.0, 4, 6)))
 	{
@@ -327,9 +352,11 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		for (i = 0; i < calc->numVerts; ++i) {
 			float *co = calc->vertexCos[i];
 			float tmp_co[3], tmp_no[3];
-			float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+			const float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
-			if (weight == 0.0f) continue;
+			if (weight == 0.0f) {
+				continue;
+			}
 
 			if (calc->vert) {
 				/* calc->vert contains verts from derivedMesh  */
@@ -351,26 +378,36 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 
 			hit.index = -1;
-			hit.dist = 10000.0f; //TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that
+			hit.dist = 10000.0f; /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
 
-			//Project over positive direction of axis
+			/* Project over positive direction of axis */
 			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
 
-				if (auxData.tree)
-					normal_projection_project_vertex(0, tmp_co, tmp_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
+				if (auxData.tree) {
+					normal_projection_project_vertex(0, tmp_co, tmp_no,
+					                                 &local2aux, auxData.tree, &hit,
+					                                 auxData.raycast_callback, &auxData);
+				}
 
-				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
+				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, tmp_no,
+				                                 &calc->local2target, treeData.tree, &hit,
+				                                 treeData.raycast_callback, &treeData);
 			}
 
-			//Project over negative direction of axis
-			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR && hit.index == -1) {
+			/* Project over negative direction of axis */
+			if (use_normal & MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR) {
 				float inv_no[3];
 				negate_v3_v3(inv_no, tmp_no);
 
-				if (auxData.tree)
-					normal_projection_project_vertex(0, tmp_co, inv_no, &local2aux, auxData.tree, &hit, auxData.raycast_callback, &auxData);
+				if (auxData.tree) {
+					normal_projection_project_vertex(0, tmp_co, inv_no,
+					                                 &local2aux, auxData.tree, &hit,
+					                                 auxData.raycast_callback, &auxData);
+				}
 
-				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no, &calc->local2target, treeData.tree, &hit, treeData.raycast_callback, &treeData);
+				normal_projection_project_vertex(calc->smd->shrinkOpts, tmp_co, inv_no,
+				                                 &calc->local2target, treeData.tree, &hit,
+				                                 treeData.raycast_callback, &treeData);
 			}
 
 
@@ -381,7 +418,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		}
 	}
 
-	//free data structures
+	/* free data structures */
 	free_bvhtree_from_mesh(&treeData);
 	free_bvhtree_from_mesh(&auxData);
 }
@@ -399,19 +436,19 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
-	//Create a bvh-tree of the given target
+	/* Create a bvh-tree of the given target */
 	BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 2, 6));
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
 	}
 
-	//Setup nearest
+	/* Setup nearest */
 	nearest.index = -1;
 	nearest.dist = FLT_MAX;
 
 
-	//Find the nearest vertex
+	/* Find the nearest vertex */
 #ifndef __APPLE__
 #pragma omp parallel for default(none) private(i) firstprivate(nearest) shared(calc,treeData) schedule(static)
 #endif
@@ -421,7 +458,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 		if (weight == 0.0f) continue;
 
-		//Convert the vertex to tree coordinates
+		/* Convert the vertex to tree coordinates */
 		if (calc->vert) {
 			copy_v3_v3(tmp_co, calc->vert[i].co);
 		}
@@ -430,11 +467,11 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		}
 		space_transform_apply(&calc->local2target, tmp_co);
 
-		//Use local proximity heuristics (to reduce the nearest search)
-		//
-		//If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
-		//so we can initiate the "nearest.dist" with the expected value to that last hit.
-		//This will lead in prunning of the search tree.
+		/* Use local proximity heuristics (to reduce the nearest search)
+		 *
+		 * If we already had an hit before.. we assume this vertex is going to have a close hit to that other vertex
+		 * so we can initiate the "nearest.dist" with the expected value to that last hit.
+		 * This will lead in prunning of the search tree. */
 		if (nearest.index != -1)
 			nearest.dist = len_squared_v3v3(tmp_co, nearest.co);
 		else
@@ -442,24 +479,28 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 		BLI_bvhtree_find_nearest(treeData.tree, tmp_co, &nearest, treeData.nearest_callback, &treeData);
 
-		//Found the nearest vertex
+		/* Found the nearest vertex */
 		if (nearest.index != -1) {
 			if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE) {
-				//Make the vertex stay on the front side of the face
+				/* Make the vertex stay on the front side of the face */
 				madd_v3_v3v3fl(tmp_co, nearest.co, nearest.no, calc->keepDist);
 			}
 			else {
-				//Adjusting the vertex weight, so that after interpolating it keeps a certain distance from the nearest position
+				/* Adjusting the vertex weight,
+				 * so that after interpolating it keeps a certain distance from the nearest position */
 				float dist = sasqrt(nearest.dist);
-				if (dist > FLT_EPSILON)
-					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist) / dist);  //linear interpolation
-				else
+				if (dist > FLT_EPSILON) {
+					/* linear interpolation */
+					interp_v3_v3v3(tmp_co, tmp_co, nearest.co, (dist - calc->keepDist) / dist);
+				}
+				else {
 					copy_v3_v3(tmp_co, nearest.co);
+				}
 			}
 
-			//Convert the coordinates back to mesh coordinates
+			/* Convert the coordinates back to mesh coordinates */
 			space_transform_invert(&calc->local2target, tmp_co);
-			interp_v3_v3v3(co, co, tmp_co, weight); //linear interpolation
+			interp_v3_v3v3(co, co, tmp_co, weight);  /* linear interpolation */
 		}
 	}
 
@@ -467,24 +508,25 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 }
 
 /* Main shrinkwrap function */
-void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm,
+                               float (*vertexCos)[3], int numVerts)
 {
 
 	DerivedMesh *ss_mesh    = NULL;
 	ShrinkwrapCalcData calc = NULL_ShrinkwrapCalcData;
 
-	//remove loop dependencies on derived meshs (TODO should this be done elsewhere?)
+	/* remove loop dependencies on derived meshs (TODO should this be done elsewhere?) */
 	if (smd->target == ob) smd->target = NULL;
 	if (smd->auxTarget == ob) smd->auxTarget = NULL;
 
 
-	//Configure Shrinkwrap calc data
+	/* Configure Shrinkwrap calc data */
 	calc.smd = smd;
 	calc.ob = ob;
 	calc.numVerts = numVerts;
 	calc.vertexCos = vertexCos;
 
-	//DeformVertex
+	/* DeformVertex */
 	calc.vgroup = defgroup_name_index(calc.ob, calc.smd->vgroup_name);
 	if (dm) {
 		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -497,12 +539,12 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	if (smd->target) {
 		calc.target = object_get_derived_final(smd->target);
 
-		//TODO there might be several "bugs" on non-uniform scales matrixs
-		//because it will no longer be nearest surface, not sphere projection
-		//because space has been deformed
+		/* TODO there might be several "bugs" on non-uniform scales matrixs
+		 * because it will no longer be nearest surface, not sphere projection
+		 * because space has been deformed */
 		SPACE_TRANSFORM_SETUP(&calc.local2target, ob, smd->target);
 
-		//TODO: smd->keepDist is in global units.. must change to local
+		/* TODO: smd->keepDist is in global units.. must change to local */
 		calc.keepDist = smd->keepDist;
 	}
 
@@ -511,15 +553,15 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	calc.vgroup = defgroup_name_index(calc.ob, smd->vgroup_name);
 
 	if (dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
-		//Setup arrays to get vertexs positions, normals and deform weights
+		/* Setup arrays to get vertexs positions, normals and deform weights */
 		calc.vert   = dm->getVertDataArray(dm, CD_MVERT);
 		calc.dvert  = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
-		//Using vertexs positions/normals as if a subsurface was applied 
+		/* Using vertexs positions/normals as if a subsurface was applied */
 		if (smd->subsurfLevels) {
 			SubsurfModifierData ssmd = {{NULL}};
-			ssmd.subdivType = ME_CC_SUBSURF;        //catmull clark
-			ssmd.levels     = smd->subsurfLevels;   //levels
+			ssmd.subdivType = ME_CC_SUBSURF;        /* catmull clark */
+			ssmd.levels     = smd->subsurfLevels;   /* levels */
 
 			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, NULL, (ob->mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : 0);
 
@@ -532,13 +574,13 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 				}
 			}
 
-			//Just to make sure we are not leaving any memory behind
+			/* Just to make sure we are not leaving any memory behind */
 			assert(ssmd.emCache == NULL);
 			assert(ssmd.mCache == NULL);
 		}
 	}
 
-	//Projecting target defined - lets work!
+	/* Projecting target defined - lets work! */
 	if (calc.target) {
 		switch (smd->shrinkType) {
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
@@ -555,8 +597,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 		}
 	}
 
-	//free memory
+	/* free memory */
 	if (ss_mesh)
 		ss_mesh->release(ss_mesh);
 }
-

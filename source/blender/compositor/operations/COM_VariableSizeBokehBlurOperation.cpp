@@ -118,7 +118,7 @@ void VariableSizeBokehBlurOperation::executePixel(float output[4], int x, int y,
 
 #ifdef COM_DEFOCUS_SEARCH
 	float search[4];
-	this->m_inputSearchProgram->read(search, x/InverseSearchRadiusOperation::DIVIDER, y / InverseSearchRadiusOperation::DIVIDER, NULL);
+	this->m_inputSearchProgram->read(search, x / InverseSearchRadiusOperation::DIVIDER, y / InverseSearchRadiusOperation::DIVIDER, NULL);
 	int minx = search[0];
 	int miny = search[1];
 	int maxx = search[2];
@@ -192,13 +192,13 @@ void VariableSizeBokehBlurOperation::executeOpenCL(OpenCLDevice *device,
 	cl_int maxBlur;
 	cl_float threshold = this->m_threshold;
 	
-	MemoryBuffer *sizeMemoryBuffer = (MemoryBuffer *)this->m_inputSizeProgram->getInputMemoryBuffer(inputMemoryBuffers);
+	MemoryBuffer *sizeMemoryBuffer = this->m_inputSizeProgram->getInputMemoryBuffer(inputMemoryBuffers);
 
 	const float max_dim = max(m_width, m_height);
 	cl_float scalar = this->m_do_size_scale ? (max_dim / 100.0f) : 1.0f;
 
 	maxBlur = (cl_int)sizeMemoryBuffer->getMaximumValue() * scalar;
-	maxBlur = MIN2(maxBlur, this->m_maxBlur);
+	maxBlur = min(maxBlur, this->m_maxBlur);
 
 	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 0, -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputProgram);
 	device->COM_clAttachMemoryBufferToKernelParameter(defocusKernel, 1,  -1, clMemToCleanUp, inputMemoryBuffers, this->m_inputBokehProgram);
@@ -298,9 +298,9 @@ voi *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 			int rx = x * DIVIDER;
 			int ry = y * DIVIDER;
 			buffer[offset] = MAX2(rx - m_maxBlur, 0);
-			buffer[offset+1] = MAX2(ry- m_maxBlur, 0);
-			buffer[offset+2] = MIN2(rx+DIVIDER + m_maxBlur, width);
-			buffer[offset+3] = MIN2(ry+DIVIDER + m_maxBlur, height);
+			buffer[offset + 1] = MAX2(ry - m_maxBlur, 0);
+			buffer[offset + 2] = MIN2(rx + DIVIDER + m_maxBlur, width);
+			buffer[offset + 3] = MIN2(ry + DIVIDER + m_maxBlur, height);
 			offset += 4;
 		}
 	}

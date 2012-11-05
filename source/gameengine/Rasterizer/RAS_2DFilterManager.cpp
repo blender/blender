@@ -110,7 +110,7 @@ void RAS_2DFilterManager::PrintShaderErrors(unsigned int shader, const char *tas
 
 unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)
 {
-	GLuint program = 0;	
+	GLuint program = 0;
 	GLuint fShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER);
 	GLint success;
 
@@ -153,8 +153,7 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(const char* shadersource)
 
 unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
 {
-	switch(filtermode)
-	{
+	switch (filtermode) {
 		case RAS_2DFILTER_BLUR:
 			return CreateShaderProgram(BlurFragmentShader);
 		case RAS_2DFILTER_SHARPEN:
@@ -398,8 +397,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	if (num_filters <= 0)
 		return;
 
-	GLuint	viewport[4]={0};
-	glGetIntegerv(GL_VIEWPORT,(GLint *)viewport);
+	const GLint *viewport = canvas->GetViewPort();
 	RAS_Rect rect = canvas->GetWindowArea();
 	int rect_width = rect.GetWidth()+1, rect_height = rect.GetHeight()+1;
 
@@ -469,7 +467,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 
 	glEnable(GL_DEPTH_TEST);
 	glViewport(viewport[0],viewport[1],viewport[2],viewport[3]);
-	EndShaderProgram();	
+	EndShaderProgram();
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();

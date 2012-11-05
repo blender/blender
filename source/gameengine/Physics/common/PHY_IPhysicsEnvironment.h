@@ -40,6 +40,7 @@
 #endif
 
 class PHY_IVehicle;
+class PHY_ICharacter;
 class RAS_MeshObject;
 class PHY_IPhysicsController;
 
@@ -48,7 +49,7 @@ class PHY_IPhysicsController;
  */
 struct PHY_RayCastResult
 {
-	PHY_IPhysicsController* m_controller;	
+	PHY_IPhysicsController* m_controller;
 	PHY__Vector3			m_hitPoint;
 	PHY__Vector3			m_hitNormal;
 	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers) 
@@ -156,12 +157,15 @@ class PHY_IPhysicsEnvironment
 		//complex constraint for vehicles
 		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId) =0;
 
+		// Character physics wrapper
+		virtual PHY_ICharacter*	getCharacterController(class KX_GameObject* ob) =0;
+
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)=0;
 
 		//culling based on physical broad phase
 		// the plane number must be set as follow: near, far, left, right, top, botton
 		// the near plane must be the first one and must always be present, it is used to get the direction of the view
-		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes) = 0;
+		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes, const int *viewport, double modelview[16], double projection[16]) = 0;
 
 		//Methods for gamelogic collision/physics callbacks
 		//todo:
@@ -185,5 +189,4 @@ class PHY_IPhysicsEnvironment
 #endif
 };
 
-#endif //__PHY_IPHYSICSENVIRONMENT_H__
-
+#endif  /* __PHY_IPHYSICSENVIRONMENT_H__ */

@@ -39,6 +39,7 @@
 #include "BLI_string.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_text.h" /* only for character utility funcs */
@@ -449,7 +450,9 @@ static int console_indent_exec(bContext *C, wmOperator *UNUSED(op))
 	memmove(ci->line + len, ci->line, ci->len);
 	memset(ci->line, ' ', len);
 	ci->len += len;
+	BLI_assert(ci->len >= 0);
 	console_line_cursor_set(ci, ci->cursor + len);
+	console_select_offset(sc, len);
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -495,9 +498,10 @@ static int console_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 
 	memmove(ci->line, ci->line + len, (ci->len - len) + 1);
 	ci->len -= len;
-	console_line_cursor_set(ci, ci->cursor - len);
+	BLI_assert(ci->len >= 0);
 
-	//console_select_offset(sc, -4);
+	console_line_cursor_set(ci, ci->cursor - len);
+	console_select_offset(sc, -len);
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
@@ -554,6 +558,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				if (stride) {
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
 					ci->len -= stride;
+					BLI_assert(ci->len >= 0);
 					done = TRUE;
 				}
 			}
@@ -570,6 +575,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 					ci->cursor -= stride; /* same as above */
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
 					ci->len -= stride;
+					BLI_assert(ci->len >= 0);
 					done = TRUE;
 				}
 			}
@@ -580,7 +586,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		console_select_offset(sc, -1);
+		console_select_offset(sc, -stride);
 	}
 
 	console_textview_update_rect(sc, ar);
@@ -650,7 +656,7 @@ static int console_clear_exec(bContext *C, wmOperator *op)
 	short scrollback = RNA_boolean_get(op->ptr, "scrollback");
 	short history = RNA_boolean_get(op->ptr, "history");
 	
-	/*ConsoleLine *ci= */ console_history_verify(C);
+	/*ConsoleLine *ci = */ console_history_verify(C);
 	
 	if (scrollback) { /* last item in mistory */
 		while (sc->scrollback.first)
@@ -803,7 +809,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	ot->poll = ED_operator_console_active;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");	
+	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
 	RNA_def_int(ot->srna, "current_character", 0, 0, INT_MAX, "Cursor", "The index of the cursor", 0, 10000);
 	RNA_def_boolean(ot->srna, "remove_duplicates", 0, "Remove Duplicates", "Remove duplicate items in the history");
 }
@@ -904,8 +910,8 @@ static int console_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (cl = sc->scrollback.first; cl; cl = cl->next) {
 		if (sel[0] <= cl->len && sel[1] >= 0) {
-			int sta = MAX2(sel[0], 0);
-			int end = MIN2(sel[1], cl->len);
+			int sta = max_ii(sel[0], 0);
+			int end = min_ii(sel[1], cl->len);
 
 			if (BLI_dynstr_get_len(buf_dyn))
 				BLI_dynstr_append(buf_dyn, "\n");
@@ -1050,7 +1056,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *eve
 
 static void console_cursor_set_exit(bContext *UNUSED(C), wmOperator *op)
 {
-//	SpaceConsole *sc= CTX_wm_space_console(C);
+//	SpaceConsole *sc = CTX_wm_space_console(C);
 	SetConsoleCursor *scu = op->customdata;
 
 #if 0
@@ -1067,7 +1073,7 @@ static void console_cursor_set_exit(bContext *UNUSED(C), wmOperator *op)
 static int console_modal_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceConsole *sc = CTX_wm_space_console(C);
-//	ARegion *ar= CTX_wm_region(C);
+//	ARegion *ar = CTX_wm_region(C);
 	SetConsoleCursor *scu;
 
 	op->customdata = MEM_callocN(sizeof(SetConsoleCursor), "SetConsoleCursor");

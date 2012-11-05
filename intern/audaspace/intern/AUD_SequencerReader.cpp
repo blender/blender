@@ -28,6 +28,7 @@
 
 
 #include "AUD_SequencerReader.h"
+#include "AUD_MutexLock.h"
 
 typedef std::list<AUD_Reference<AUD_SequencerHandle> >::iterator AUD_HandleIterator;
 typedef std::list<AUD_Reference<AUD_SequencerEntry> >::iterator AUD_EntryIterator;
@@ -77,7 +78,7 @@ AUD_Specs AUD_SequencerReader::getSpecs() const
 
 void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	m_factory->lock();
+	AUD_MutexLock lock(*m_factory);
 
 	if(m_factory->m_status != m_status)
 	{
@@ -196,8 +197,6 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 		pos += len;
 		time += float(len) / float(specs.rate);
 	}
-
-	m_factory->unlock();
 
 	m_position += length;
 

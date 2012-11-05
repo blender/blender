@@ -49,9 +49,9 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
             angle = 2 * pi * minor_index / minor_seg
 
             vec = quat * Vector((major_rad + (cos(angle) * minor_rad),
-                                0.0,
-                                (sin(angle) * minor_rad),
-                                ))
+                                 0.0,
+                                 (sin(angle) * minor_rad),
+                                 ))
 
             verts.extend(vec[:])
 
@@ -133,13 +133,15 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
             )
 
     def execute(self, context):
-        if self.use_abso == True:
+        grid_scale = object_utils.object_add_grid_scale(context)
+
+        if self.use_abso is True:
             extra_helper = (self.abso_major_rad - self.abso_minor_rad) * 0.5
             self.major_radius = self.abso_minor_rad + extra_helper
             self.minor_radius = extra_helper
 
-        verts_loc, faces = add_torus(self.major_radius,
-                                     self.minor_radius,
+        verts_loc, faces = add_torus(self.major_radius * grid_scale,
+                                     self.minor_radius * grid_scale,
                                      self.major_segments,
                                      self.minor_segments)
 

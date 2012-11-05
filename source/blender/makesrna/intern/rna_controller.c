@@ -77,7 +77,7 @@ static StructRNA *rna_Controller_refine(struct PointerRNA *ptr)
 	}
 }
 
-void rna_Constroller_name_set(PointerRNA *ptr, const char *value)
+static void rna_Constroller_name_set(PointerRNA *ptr, const char *value)
 {
 	bController *cont = (bController *)ptr->data;
 
@@ -240,7 +240,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	/* State */
 	
 	/* array of OB_MAX_STATES */
-	/*prop= RNA_def_property(srna, "states", PROP_BOOLEAN, PROP_LAYER_MEMBER); */
+	/*prop = RNA_def_property(srna, "states", PROP_BOOLEAN, PROP_LAYER_MEMBER); */
 	/*RNA_def_property_array(prop, OB_MAX_STATES); */
 	/*RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	/*RNA_def_property_ui_text(prop, "", "Set Controller state index (1 to 30)"); */

@@ -52,6 +52,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
@@ -71,6 +72,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_movieclip.h"
+#include "BKE_node.h"
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"
 
@@ -292,11 +294,11 @@ static void movieclip_calc_length(MovieClip *clip)
 			clip->len = framenr + 1;
 		}
 		else {
-			for (;; ) {
+			for (;;) {
 				get_sequence_fname(clip, framenr, name);
 
 				if (!BLI_exists(name)) {
-					clip->len = framenr + 1;
+					clip->len = framenr;
 					break;
 				}
 
@@ -518,6 +520,24 @@ static void movieclip_load_get_szie(MovieClip *clip)
 	}
 }
 
+static void detect_clip_source(MovieClip *clip)
+{
+	ImBuf *ibuf;
+	char name[FILE_MAX];
+
+	BLI_strncpy(name, clip->name, sizeof(name));
+	BLI_path_abs(name, G.main->name);
+
+	ibuf = IMB_testiffname(name, IB_rect | IB_multilayer);
+	if (ibuf) {
+		clip->source = MCLIP_SRC_SEQUENCE;
+		IMB_freeImBuf(ibuf);
+	}
+	else {
+		clip->source = MCLIP_SRC_MOVIE;
+	}
+}
+
 /* checks if image was already loaded, then returns same image
  * otherwise creates new.
  * does not load ibuf itself
@@ -563,10 +583,7 @@ MovieClip *BKE_movieclip_file_add(const char *name)
 	clip = movieclip_alloc(libname);
 	BLI_strncpy(clip->name, name, sizeof(clip->name));
 
-	if (BLI_testextensie_array(name, imb_ext_movie))
-		clip->source = MCLIP_SRC_MOVIE;
-	else
-		clip->source = MCLIP_SRC_SEQUENCE;
+	detect_clip_source(clip);
 
 	movieclip_load_get_szie(clip);
 	if (clip->lastsize[0]) {
@@ -614,34 +631,27 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	else
 		undistibuf = BKE_tracking_undistort_frame(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
-	if (undistibuf->userflags & IB_RECT_INVALID) {
-		ibuf->userflags &= ~IB_RECT_INVALID;
-		IMB_rect_from_float(undistibuf);
-	}
-
 	IMB_scaleImBuf(undistibuf, ibuf->x, ibuf->y);
 
 	return undistibuf;
 }
 
-static int need_undistortion_postprocess(MovieClipUser *user, int flag)
+static int need_undistortion_postprocess(MovieClipUser *user)
 {
 	int result = 0;
 
 	/* only full undistorted render can be used as on-fly undistorting image */
-	if (flag & MCLIP_USE_PROXY) {
-		result |= (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL) &&
-		          (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
-	}
+	result |= (user->render_size == MCLIP_PROXY_RENDER_SIZE_FULL) &&
+	          (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) != 0;
 
 	return result;
 }
 
-static int need_postprocessed_frame(MovieClipUser *user, int flag, int postprocess_flag)
+static int need_postprocessed_frame(MovieClipUser *user, int postprocess_flag)
 {
 	int result = postprocess_flag;
 
-	result |= need_undistortion_postprocess(user, flag);
+	result |= need_undistortion_postprocess(user);
 
 	return result;
 }
@@ -688,7 +698,7 @@ static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *use
 	if (cache->postprocessed.flag != postprocess_flag)
 		return NULL;
 
-	if (need_undistortion_postprocess(user, flag)) {
+	if (need_undistortion_postprocess(user)) {
 		if (!check_undistortion_cache_flags(clip))
 			return NULL;
 	}
@@ -719,7 +729,7 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 		cache->postprocessed.render_flag = 0;
 	}
 
-	if (need_undistortion_postprocess(user, flag)) {
+	if (need_undistortion_postprocess(user)) {
 		copy_v2_v2(cache->postprocessed.principal, camera->principal);
 		copy_v3_v3(&cache->postprocessed.k1, &camera->k1);
 		cache->postprocessed.undistortion_used = TRUE;
@@ -763,7 +773,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip, MovieClipUser *u
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	/* try to obtain cached postprocessed frame first */
-	if (need_postprocessed_frame(user, flag, postprocess_flag)) {
+	if (need_postprocessed_frame(user, postprocess_flag)) {
 		ibuf = get_postprocessed_cached_frame(clip, user, flag, postprocess_flag);
 
 		if (!ibuf)
@@ -1087,15 +1097,24 @@ void BKE_movieclip_reload(MovieClip *clip)
 	clip->tracking.stabilization.ok = FALSE;
 
 	/* update clip source */
-	if (BLI_testextensie_array(clip->name, imb_ext_movie))
-		clip->source = MCLIP_SRC_MOVIE;
-	else
-		clip->source = MCLIP_SRC_SEQUENCE;
+	detect_clip_source(clip);
 
 	clip->lastsize[0] = clip->lastsize[1] = 0;
 	movieclip_load_get_szie(clip);
 
 	movieclip_calc_length(clip);
+
+	/* same as for image update -- don't use notifiers because they are not 100% sure to succeeded
+	 * (node trees which are not currently visible wouldn't be refreshed)
+	 */
+	{
+		Scene *scene;
+		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
+			if (scene->nodetree) {
+				nodeUpdateID(scene->nodetree, &clip->id);
+			}
+		}
+	}
 }
 
 void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
@@ -1324,6 +1343,11 @@ void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 					data->clip = NULL;
 			}
 		}
+	}
+
+	{
+		bNodeTreeType *treetype = ntreeGetType(NTREE_COMPOSIT);
+		treetype->foreach_nodetree(bmain, (void *)clip, &BKE_node_tree_unlink_id_cb);
 	}
 
 	clip->id.us = 0;

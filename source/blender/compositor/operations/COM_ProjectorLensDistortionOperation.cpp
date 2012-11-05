@@ -81,7 +81,7 @@ bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(rcti *in
 	}
 	else {
 		rcti dispInput;
-		BLI_rcti_init(&dispInput, 0,5,0,5);
+		BLI_rcti_init(&dispInput, 0, 5, 0, 5);
 		if (this->getInputOperation(1)->determineDependingAreaOfInterest(&dispInput, readOperation, output)) {
 			return true;
 		}
@@ -104,7 +104,7 @@ void ProjectorLensDistortionOperation::updateDispersion()
 		float result[4];
 		this->getInputSocketReader(1)->read(result, 1, 1, COM_PS_NEAREST);
 		this->m_dispersion = result[0];
-		this->m_kr = 0.25f * maxf(minf(this->m_dispersion, 1.0f), 0.0f);
+		this->m_kr = 0.25f * max_ff(min_ff(this->m_dispersion, 1.0f), 0.0f);
 		this->m_kr2 = this->m_kr * 20;
 		this->m_dispersionAvailable = true;
 	}

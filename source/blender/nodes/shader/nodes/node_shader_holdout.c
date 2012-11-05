@@ -29,11 +29,11 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_holdout_in[]= {
+static bNodeSocketTemplate sh_node_holdout_in[] = {
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_holdout_out[]= {
+static bNodeSocketTemplate sh_node_holdout_out[] = {
 	{	SOCK_SHADER, 0, N_("Holdout")},
 	{	-1, 0, ""	}
 };

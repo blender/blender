@@ -32,8 +32,8 @@
 #ifndef __RAS_OPENGLRASTERIZER_H__
 #define __RAS_OPENGLRASTERIZER_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
 #endif
 
 #include "MT_CmMatrix4x4.h"
@@ -278,7 +278,7 @@ public:
 		line.m_type = OglDebugShape::CIRCLE;
 		line.m_pos= center;
 		line.m_param = normal;
-		line.m_color = color;	
+		line.m_color = color;
 		line.m_param2.x() = radius;
 		line.m_param2.y() = (float) nsector;
 		m_debugShapes.push_back(line);
@@ -322,6 +322,4 @@ public:
 #endif
 };
 
-#endif //__RAS_OPENGLRASTERIZER_H__
-
-
+#endif  /* __RAS_OPENGLRASTERIZER_H__ */

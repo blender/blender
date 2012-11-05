@@ -193,7 +193,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 typedef struct RegionDrawCB {
 	struct RegionDrawCB *next, *prev;
 	
-	void (*draw)(const struct bContext *, struct ARegion *, void *);	
+	void (*draw)(const struct bContext *, struct ARegion *, void *);
 	void *customdata;
 	
 	int type;
@@ -239,7 +239,7 @@ void ED_region_draw_cb_draw(const bContext *C, ARegion *ar, int type)
 	for (rdc = ar->type->drawcalls.first; rdc; rdc = rdc->next) {
 		if (rdc->type == type)
 			rdc->draw(C, ar, rdc->customdata);
-	}		
+	}
 }
 
 

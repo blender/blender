@@ -29,22 +29,22 @@
  *  \ingroup ctr
  */
 
-
-#ifndef CTR_MAP_H
-#define CTR_MAP_H
+#ifndef __CTR_MAP_H__
+#define __CTR_MAP_H__
 
 template <class Key, class Value>
 class CTR_Map {
 private:
 	struct Entry {
 		Entry (Entry *next, Key key, Value value) :
-		    m_next(next),
-		    m_key(key),
-		    m_value(value) {}
+			m_next(next),
+			m_key(key),
+			m_value(value) {
+		}
 
 		Entry *m_next;
-		Key    m_key;
-		Value  m_value;
+		Key m_key;
+		Value m_value;
 	};
 
 public:
@@ -63,18 +63,18 @@ public:
 		for (int i = 0; i < m_num_buckets; ++i) {
 			m_buckets[i] = 0;
 
-			for (Entry *entry = map.m_buckets[i]; entry; entry=entry->m_next)
+			for (Entry *entry = map.m_buckets[i]; entry; entry = entry->m_next) {
 				insert(entry->m_key, entry->m_value);
+			}
 		}
 	}
 
-	int size() {
-		int count=0;
-		for (int i=0;i<m_num_buckets;i++)
-		{
-			Entry* bucket = m_buckets[i];
-			while(bucket)
-			{
+	int size()
+	{
+		int count = 0;
+		for (int i = 0; i < m_num_buckets; i++) {
+			Entry *bucket = m_buckets[i];
+			while (bucket) {
 				bucket = bucket->m_next;
 				count++;
 			}
@@ -82,15 +82,13 @@ public:
 		return count;
 	}
 
-	Value* at(int index) {
-		int count=0;
-		for (int i=0;i<m_num_buckets;i++)
-		{
-			Entry* bucket = m_buckets[i];
-			while(bucket)
-			{
-				if (count==index)
-				{
+	Value *at(int index)
+	{
+		int count = 0;
+		for (int i = 0; i < m_num_buckets; i++) {
+			Entry *bucket = m_buckets[i];
+			while (bucket) {
+				if (count == index) {
 					return &bucket->m_value;
 				}
 				bucket = bucket->m_next;
@@ -100,15 +98,13 @@ public:
 		return 0;
 	}
 
-	Key* getKey(int index) {
-		int count=0;
-		for (int i=0;i<m_num_buckets;i++)
-		{
-			Entry* bucket = m_buckets[i];
-			while(bucket)
-			{
-				if (count==index)
-				{
+	Key *getKey(int index)
+	{
+		int count = 0;
+		for (int i = 0; i < m_num_buckets; i++) {
+			Entry *bucket = m_buckets[i];
+			while (bucket) {
+				if (count == index) {
 					return &bucket->m_key;
 				}
 				bucket = bucket->m_next;
@@ -118,7 +114,8 @@ public:
 		return 0;
 	}
 
-	void clear() {
+	void clear()
+	{
 		for (int i = 0; i < m_num_buckets; ++i) {
 			Entry *entry_ptr = m_buckets[i];
 
@@ -131,12 +128,14 @@ public:
 		}
 	}
 
-	~CTR_Map() {
+	~CTR_Map()
+	{
 		clear();
-		delete [] m_buckets;
+		delete[] m_buckets;
 	}
 
-	void insert(const Key& key, const Value& value) {
+	void insert(const Key& key, const Value& value)
+	{
 		Entry *entry_ptr = m_buckets[key.hash() % m_num_buckets];
 		while ((entry_ptr != 0) && !(key == entry_ptr->m_key)) {
 			entry_ptr = entry_ptr->m_next;
@@ -151,7 +150,8 @@ public:
 		}
 	}
 
-	void remove(const Key& key) {
+	void remove(const Key& key)
+	{
 		Entry **entry_ptr = &m_buckets[key.hash() % m_num_buckets];
 		while ((*entry_ptr != 0) && !(key == (*entry_ptr)->m_key)) {
 			entry_ptr = &(*entry_ptr)->m_next;
@@ -164,7 +164,8 @@ public:
 		}
 	}
 
-	Value *operator[](Key key) {
+	Value *operator[](Key key)
+	{
 		Entry *bucket = m_buckets[key.hash() % m_num_buckets];
 		while ((bucket != 0) && !(key == bucket->m_key)) {
 			bucket = bucket->m_next;
@@ -177,5 +178,4 @@ private:
 	Entry **m_buckets;
 };
 
-#endif
-
+#endif  /* __CTR_MAP_H__ */

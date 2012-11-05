@@ -31,9 +31,13 @@
 #ifndef CERES_INTERNAL_SCHUR_COMPLEMENT_SOLVER_H_
 #define CERES_INTERNAL_SCHUR_COMPLEMENT_SOLVER_H_
 
+#include <set>
+#include <utility>
+
 #include "ceres/block_random_access_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
+#include "ceres/cxsparse.h"
 #include "ceres/linear_solver.h"
 #include "ceres/schur_eliminator.h"
 #include "ceres/suitesparse.h"
@@ -128,7 +132,7 @@ class SchurComplementSolver : public BlockSparseMatrixBaseSolver {
   scoped_ptr<BlockRandomAccessMatrix> lhs_;
   scoped_array<double> rhs_;
 
-  DISALLOW_COPY_AND_ASSIGN(SchurComplementSolver);
+  CERES_DISALLOW_COPY_AND_ASSIGN(SchurComplementSolver);
 };
 
 // Dense Cholesky factorization based solver.
@@ -142,10 +146,10 @@ class DenseSchurComplementSolver : public SchurComplementSolver {
   virtual void InitStorage(const CompressedRowBlockStructure* bs);
   virtual bool SolveReducedLinearSystem(double* solution);
 
-  DISALLOW_COPY_AND_ASSIGN(DenseSchurComplementSolver);
+  CERES_DISALLOW_COPY_AND_ASSIGN(DenseSchurComplementSolver);
 };
 
-#ifndef CERES_NO_SUITESPARSE
+
 // Sparse Cholesky factorization based solver.
 class SparseSchurComplementSolver : public SchurComplementSolver {
  public:
@@ -155,26 +159,26 @@ class SparseSchurComplementSolver : public SchurComplementSolver {
  private:
   virtual void InitStorage(const CompressedRowBlockStructure* bs);
   virtual bool SolveReducedLinearSystem(double* solution);
+  bool SolveReducedLinearSystemUsingSuiteSparse(double* solution);
+  bool SolveReducedLinearSystemUsingCXSparse(double* solution);
 
+  // Size of the blocks in the Schur complement.
+  vector<int> blocks_;
 
+#ifndef CERES_NO_SUITESPARSE
   SuiteSparse ss_;
   // Symbolic factorization of the reduced linear system. Precomputed
-  // once and reused if constant_sparsity_ is true.
-  cholmod_factor* symbolic_factor_;
-  DISALLOW_COPY_AND_ASSIGN(SparseSchurComplementSolver);
-};
-#else  // CERES_NO_SUITESPARSE
-class SparseSchurComplementSolver : public SchurComplementSolver {
- public:
-  explicit SparseSchurComplementSolver(const LinearSolver::Options& options)
-      : SchurComplementSolver(options) {
-    LOG(FATAL) << "SPARSE_SCHUR is not available. Please "
-        "build Ceres with SuiteSparse.";
-  }
-
-  virtual ~SparseSchurComplementSolver() {}
-};
+  // once and reused in subsequent calls.
+  cholmod_factor* factor_;
 #endif  // CERES_NO_SUITESPARSE
+
+#ifndef CERES_NO_CXSPARSE
+  CXSparse cxsparse_;
+  // Cached factorization
+  cs_dis* cxsparse_factor_;
+#endif  // CERES_NO_CXSPARSE
+  CERES_DISALLOW_COPY_AND_ASSIGN(SparseSchurComplementSolver);
+};
 
 }  // namespace internal
 }  // namespace ceres

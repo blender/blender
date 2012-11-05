@@ -114,7 +114,7 @@ static int imb_tiff_DummyMapProc(thandle_t fd, tdata_t *pbase, toff_t *psize)
  * Reads data from an in-memory TIFF file.
  *
  * \param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
- * \param data:   Buffer to contain data (treat as void*).
+ * \param data:   Buffer to contain data (treat as (void *)).
  * \param n:      Number of bytes to read.
  *
  * \return: Number of bytes actually read.
@@ -790,7 +790,14 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 				/* convert from float source */
 				float rgb[4];
 				
-				linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
+				if (ibuf->float_colorspace) {
+					/* float buffer was managed already, no need in color space conversion */
+					copy_v3_v3(rgb, &fromf[from_i]);
+				}
+				else {
+					/* standard linear-to-srgb conversion if float buffer wasn't managed */
+					linearrgb_to_srgb_v3_v3(rgb, &fromf[from_i]);
+				}
 
 				rgb[3] = fromf[from_i + 3];
 

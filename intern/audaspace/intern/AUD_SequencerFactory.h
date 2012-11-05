@@ -32,6 +32,7 @@
 
 #include "AUD_IFactory.h"
 #include "AUD_AnimateableProperty.h"
+#include "AUD_ILockable.h"
 
 #include <list>
 #include <pthread.h>
@@ -41,7 +42,7 @@ class AUD_SequencerEntry;
 /**
  * This factory represents sequenced entries to play a sound scene.
  */
-class AUD_SequencerFactory : public AUD_IFactory
+class AUD_SequencerFactory : public AUD_IFactory, public AUD_ILockable
 {
 	friend class AUD_SequencerReader;
 private:
@@ -104,12 +105,12 @@ public:
 	/**
 	 * Locks the factory.
 	 */
-	void lock();
+	virtual void lock();
 
 	/**
 	 * Unlocks the previously locked factory.
 	 */
-	void unlock();
+	virtual void unlock();
 
 	/**
 	 * Sets the audio output specification.

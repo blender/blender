@@ -35,22 +35,31 @@
 extern "C" {
 #endif
 
+struct BMEdge;
+struct BMFace;
+struct BMVert;
+struct BPoint;
 struct Base;
-struct bConstraint;
-struct bContext;
-struct bPoseChannel;
+struct BezTriple;
 struct Curve;
+struct EditBone;
 struct EnumPropertyItem;
 struct ID;
 struct KeyBlock;
 struct Lattice;
 struct Main;
 struct Mesh;
+struct MetaElem;
 struct ModifierData;
+struct Nurb;
 struct Object;
 struct ReportList;
 struct Scene;
 struct View3D;
+struct ViewContext;
+struct bConstraint;
+struct bContext;
+struct bPoseChannel;
 struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
@@ -82,11 +91,13 @@ typedef enum eParentType {
 	PAR_TRIA
 } eParentType;
 
+#ifdef __RNA_TYPES_H__
 extern struct EnumPropertyItem prop_clear_parent_types[];
 extern struct EnumPropertyItem prop_make_parent_types[];
+#endif
 
 int ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob,
-                         struct Object *par, int partype, int xmirror);
+                         struct Object *par, int partype, int xmirror, int keep_transform);
 void ED_object_parent_clear(struct Object *ob, int type);
 struct Base *ED_object_scene_link(struct Scene *scene, struct Object *ob);
 
@@ -123,10 +134,10 @@ void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3]);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, const float loc[3], const float rot[3]);
 float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob,
-                                     const float loc[3], const float rot[3], float primmat[][4]);
+                                     const float loc[3], const float rot[3], float primmat[][4],
+                                     int apply_diameter);
 
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
-int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op,  float loc[3], float rot[3],
                                    int *enter_editmode, unsigned int *layer, int *is_view_aligned);
 
@@ -184,7 +195,7 @@ int ED_object_iter_other(struct Main *bmain, struct Object *orig_ob, int include
 
 int ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
 
-/* ibject_select.c */
+/* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 
 #ifdef __cplusplus
@@ -192,4 +203,3 @@ void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);
 #endif
 
 #endif /* __ED_OBJECT_H__ */
-

@@ -238,7 +238,9 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 	float indexf, t, idxf;
 	int index;
 
-	if (rr > (RD_TABLE_RANGE_2*RD_TABLE_RANGE_2));
+	if (rr > (RD_TABLE_RANGE_2 * RD_TABLE_RANGE_2)) {
+		/* pass */
+	}
 	else if (rr > RD_TABLE_RANGE) {
 		rr= sqrt(rr);
 		indexf= rr*(RD_TABLE_SIZE/RD_TABLE_RANGE_2);
@@ -305,7 +307,7 @@ ScatterSettings *scatter_settings_new(float refl, float radius, float ior, float
 	ss->Fdr= -1.440f/ior*ior + 0.710f/ior + 0.668f + 0.0636f*ior;
 	ss->A= (1.0f + ss->Fdr)/(1.0f - ss->Fdr);
 	ss->ld= radius;
-	ss->ro= minf(refl, 0.999f);
+	ss->ro= min_ff(refl, 0.999f);
 	ss->color= ss->ro*reflfac + (1.0f-reflfac);
 
 	ss->alpha_= compute_reduced_albedo(ss);
@@ -379,7 +381,7 @@ static void add_radiance(ScatterTree *tree, float *frontrad, float *backrad, flo
 	}
 }
 
-static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int self, ScatterResult *result)
+static void traverse_octree(ScatterTree *tree, ScatterNode *node, const float co[3], int self, ScatterResult *result)
 {
 	float sub[3], dist;
 	int i, index = 0;
@@ -430,7 +432,7 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 	}
 }
 
-static void compute_radiance(ScatterTree *tree, float *co, float *rad)
+static void compute_radiance(ScatterTree *tree, const float co[3], float *rad)
 {
 	ScatterResult result;
 	float rdsum[3], backrad[3], backrdsum[3];

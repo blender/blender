@@ -54,6 +54,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_noise.h"
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
@@ -84,6 +85,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_smoke.h"
 
 
 #include "RE_render_ext.h"
@@ -137,6 +139,9 @@ PartDeflect *object_add_collision_fields(int type)
 		case PFIELD_TEXTURE:
 			pd->f_size = 1.0f;
 			break;
+		case PFIELD_SMOKEFLOW:
+			pd->f_flow = 1.0f;
+			break;
 	}
 	pd->flag = PFIELD_DO_LOCATION|PFIELD_DO_ROTATION;
 
@@ -161,7 +166,7 @@ void free_partdeflect(PartDeflect *pd)
 		pd->tex->id.us--;
 
 	if (pd->rng)
-		rng_free(pd->rng);
+		BLI_rng_free(pd->rng);
 
 	MEM_freeN(pd);
 }
@@ -170,9 +175,9 @@ static void precalculate_effector(EffectorCache *eff)
 {
 	unsigned int cfra = (unsigned int)(eff->scene->r.cfra >= 0 ? eff->scene->r.cfra : -eff->scene->r.cfra);
 	if (!eff->pd->rng)
-		eff->pd->rng = rng_new(eff->pd->seed + cfra);
+		eff->pd->rng = BLI_rng_new(eff->pd->seed + cfra);
 	else
-		rng_srandom(eff->pd->rng, eff->pd->seed + cfra);
+		BLI_rng_srandom(eff->pd->rng, eff->pd->seed + cfra);
 
 	if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type==OB_CURVE) {
 		Curve *cu= eff->ob->data;
@@ -200,7 +205,7 @@ static void precalculate_effector(EffectorCache *eff)
 		float old_vel[3];
 
 		BKE_object_where_is_calc_time(eff->scene, eff->ob, cfra - 1.0f);
-		copy_v3_v3(old_vel, eff->ob->obmat[3]);	
+		copy_v3_v3(old_vel, eff->ob->obmat[3]);
 		BKE_object_where_is_calc_time(eff->scene, eff->ob, cfra);
 		sub_v3_v3v3(eff->velocity, eff->ob->obmat[3], old_vel);
 	}
@@ -450,8 +455,8 @@ static float eff_calc_visibility(ListBase *colliders, EffectorCache *eff, Effect
 // noise function for wind e.g.
 static float wind_func(struct RNG *rng, float strength)
 {
-	int random = (rng_getInt(rng)+1) % 128; // max 2357
-	float force = rng_getFloat(rng) + 1.0f;
+	int random = (BLI_rng_get_int(rng)+1) % 128; // max 2357
+	float force = BLI_rng_get_float(rng) + 1.0f;
 	float ret;
 	float sign = 0;
 	
@@ -713,8 +718,8 @@ static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoin
 		
 		if (eff->pd->forcefield == PFIELD_CHARGE) {
 			/* Only the charge of the effected particle is used for 
-			 * interaction, not fall-offs. If the fall-offs aren't the	
-			 * same this will be unphysical, but for animation this		
+			 * interaction, not fall-offs. If the fall-offs aren't the
+			 * same this will be unphysical, but for animation this
 			 * could be the wanted behavior. If you want physical
 			 * correctness the fall-off should be spherical 2.0 anyways.
 			 */
@@ -823,7 +828,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 {
 	PartDeflect *pd = eff->pd;
 	RNG *rng = pd->rng;
-	float force[3]={0, 0, 0};
+	float force[3] = {0, 0, 0};
 	float temp[3];
 	float fac;
 	float strength = pd->f_strength;
@@ -922,12 +927,27 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 
 			mul_v3_fl(force, -efd->falloff * fac * (strength * fac + damp));
 			break;
+		case PFIELD_SMOKEFLOW:
+			zero_v3(force);
+			if (pd->f_source) {
+				float density;
+				if ((density = smoke_get_velocity_at(pd->f_source, point->loc, force)) >= 0.0f) {
+					float influence = strength * efd->falloff;
+					if (pd->flag & PFIELD_SMOKE_DENSITY)
+						influence *= density;
+					mul_v3_fl(force, influence);
+					/* apply flow */
+					madd_v3_v3fl(total_force, point->vel, -pd->f_flow * influence);
+				}
+			}
+			break;
+
 	}
 
 	if (pd->flag & PFIELD_DO_LOCATION) {
 		madd_v3_v3fl(total_force, force, 1.0f/point->vel_to_sec);
 
-		if (ELEM(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG)==0 && pd->f_flow != 0.0f) {
+		if (ELEM3(pd->forcefield, PFIELD_HARMONIC, PFIELD_DRAG, PFIELD_SMOKEFLOW)==0 && pd->f_flow != 0.0f) {
 			madd_v3_v3fl(total_force, point->vel, -pd->f_flow * efd->falloff);
 		}
 	}
@@ -993,12 +1013,14 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 				if (efd.falloff > 0.0f)
 					efd.falloff *= eff_calc_visibility(colliders, eff, &efd, point);
 
-				if (efd.falloff <= 0.0f)
-					;	/* don't do anything */
-				else if (eff->pd->forcefield == PFIELD_TEXTURE)
+				if (efd.falloff <= 0.0f) {
+					/* don't do anything */
+				}
+				else if (eff->pd->forcefield == PFIELD_TEXTURE) {
 					do_texture_effector(eff, &efd, point, force);
+				}
 				else {
-					float temp1[3]={0, 0, 0}, temp2[3];
+					float temp1[3] = {0, 0, 0}, temp2[3];
 					copy_v3_v3(temp1, force);
 
 					do_physical_effector(eff, &efd, point, force);

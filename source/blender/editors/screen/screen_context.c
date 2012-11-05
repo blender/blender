@@ -194,7 +194,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 							CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 					}
 				}
-			}	
+			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
@@ -236,7 +236,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 							CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 					}
 				}
-			}	
+			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}

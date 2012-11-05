@@ -358,8 +358,8 @@ float nearest_point_in_tri_surface(const float v0[3], const float v1[3], const f
  * BVH from meshs callbacks
  */
 
-// Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_faces.
-// userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
+/* Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_faces.
+ * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
 static void mesh_faces_nearest_point(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
@@ -395,8 +395,8 @@ static void mesh_faces_nearest_point(void *userdata, int index, const float co[3
 	} while (t2);
 }
 
-// Callback to bvh tree raycast. The tree must bust have been built using bvhtree_from_mesh_faces.
-// userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
+/* Callback to bvh tree raycast. The tree must bust have been built using bvhtree_from_mesh_faces.
+ * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
 static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
@@ -435,8 +435,8 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	} while (t2);
 }
 
-// Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_edges.
-// userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree.
+/* Callback to bvh tree nearest point. The tree must bust have been built using bvhtree_from_mesh_edges.
+ * userdata must be a BVHMeshCallbackUserdata built from the same mesh as the tree. */
 static void mesh_edges_nearest_point(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
 {
 	const BVHTreeFromMesh *data = (BVHTreeFromMesh *) userdata;
@@ -463,12 +463,12 @@ static void mesh_edges_nearest_point(void *userdata, int index, const float co[3
 /*
  * BVH builders
  */
-// Builds a bvh tree.. where nodes are the vertexs of the given mesh
+/* Builds a bvh tree.. where nodes are the vertexs of the given mesh */
 BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
 {
 	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_VERTICES);
 
-	//Not in cache
+	/* Not in cache */
 	if (tree == NULL) {
 		int i;
 		int numVerts = mesh->getNumVerts(mesh);
@@ -484,7 +484,7 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 				BLI_bvhtree_balance(tree);
 
-				//Save on cache for later use
+				/* Save on cache for later use */
 //				printf("BVHTree built and saved on cache\n");
 				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_VERTICES);
 			}
@@ -495,15 +495,15 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	}
 
 
-	//Setup BVHTreeFromMesh
+	/* Setup BVHTreeFromMesh */
 	memset(data, 0, sizeof(*data));
 	data->tree = tree;
 
 	if (data->tree) {
 		data->cached = TRUE;
 
-		//a NULL nearest callback works fine
-		//remeber the min distance to point is the same as the min distance to BV of point
+		/* a NULL nearest callback works fine
+		 * remeber the min distance to point is the same as the min distance to BV of point */
 		data->nearest_callback = NULL;
 		data->raycast_callback = NULL;
 
@@ -517,12 +517,12 @@ BVHTree *bvhtree_from_mesh_verts(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	return data->tree;
 }
 
-// Builds a bvh tree.. where nodes are the faces of the given mesh.
+/* Builds a bvh tree.. where nodes are the faces of the given mesh. */
 BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
 {
 	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_FACES);
 
-	//Not in cache
+	/* Not in cache */
 	if (tree == NULL) {
 		int i;
 		int numFaces = mesh->getNumTessFaces(mesh);
@@ -616,7 +616,7 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 				}
 				BLI_bvhtree_balance(tree);
 
-				//Save on cache for later use
+				/* Save on cache for later use */
 //				printf("BVHTree built and saved on cache\n");
 				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_FACES);
 			}
@@ -627,7 +627,7 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	}
 
 
-	//Setup BVHTreeFromMesh
+	/* Setup BVHTreeFromMesh */
 	memset(data, 0, sizeof(*data));
 	data->tree = tree;
 
@@ -647,12 +647,12 @@ BVHTree *bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 }
 
-// Builds a bvh tree.. where nodes are the faces of the given mesh.
+/* Builds a bvh tree.. where nodes are the faces of the given mesh. */
 BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float epsilon, int tree_type, int axis)
 {
 	BVHTree *tree = bvhcache_find(&mesh->bvhCache, BVHTREE_FROM_EDGES);
 
-	//Not in cache
+	/* Not in cache */
 	if (tree == NULL) {
 		int i;
 		int numEdges = mesh->getNumEdges(mesh);
@@ -672,7 +672,7 @@ BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 				}
 				BLI_bvhtree_balance(tree);
 
-				//Save on cache for later use
+				/* Save on cache for later use */
 //				printf("BVHTree built and saved on cache\n");
 				bvhcache_insert(&mesh->bvhCache, tree, BVHTREE_FROM_EDGES);
 			}
@@ -683,7 +683,7 @@ BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	}
 
 
-	//Setup BVHTreeFromMesh
+	/* Setup BVHTreeFromMesh */
 	memset(data, 0, sizeof(*data));
 	data->tree = tree;
 
@@ -703,7 +703,7 @@ BVHTree *bvhtree_from_mesh_edges(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 
 }
 
-// Frees data allocated by a call to bvhtree_from_mesh_*.
+/* Frees data allocated by a call to bvhtree_from_mesh_*. */
 void free_bvhtree_from_mesh(struct BVHTreeFromMesh *data)
 {
 	if (data->tree) {
@@ -728,7 +728,7 @@ static void bvhcacheitem_set_if_match(void *_cached, void *_search)
 	BVHCacheItem *search = (BVHCacheItem *)_search;
 
 	if (search->type == cached->type) {
-		search->tree = cached->tree;		
+		search->tree = cached->tree;
 	}
 } 
 

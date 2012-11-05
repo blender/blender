@@ -279,7 +279,9 @@ char handleNumInput(NumInput *n, wmEvent *event)
 				if (!n->ctrl[idx])
 					n->ctrl[idx] = 1;
 
-				if (fabsf(n->val[idx]) > 9999999.0f) ;
+				if (fabsf(n->val[idx]) > 9999999.0f) {
+					/* pass */
+				}
 				else if (n->ctrl[idx] == 1) {
 					n->val[idx] *= 10;
 					n->val[idx] += Val;

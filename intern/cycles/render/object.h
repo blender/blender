@@ -49,6 +49,9 @@ public:
 	bool use_motion;
 	bool use_holdout;
 
+	float3 dupli_generated;
+	float2 dupli_uv;
+
 	int particle_id;
 
 	Object();
@@ -56,7 +59,7 @@ public:
 
 	void tag_update(Scene *scene);
 
-	void compute_bounds(bool motion_blur);
+	void compute_bounds(bool motion_blur, float shuttertime);
 	void apply_transform();
 };
 

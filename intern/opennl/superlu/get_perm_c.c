@@ -173,17 +173,19 @@ getata(
 	/* Flag the diagonal so it's not included in the B matrix */
 	marker[j] = j;
 
-	for (i = colptr[j]; i < colptr[j+1]; ++i) {
-	    /* A_kj is nonzero, add pattern of column T_*k to B_*j */
-	    k = rowind[i];
-	    for (ti = t_colptr[k]; ti < t_colptr[k+1]; ++ti) {
-		trow = t_rowind[ti];
-		if ( marker[trow] != j ) {
-		    marker[trow] = j;
-		    b_rowind[num_nz++] = trow;
+		if ( *atanz ) {
+			for (i = colptr[j]; i < colptr[j+1]; ++i) {
+				/* A_kj is nonzero, add pattern of column T_*k to B_*j */
+				k = rowind[i];
+				for (ti = t_colptr[k]; ti < t_colptr[k+1]; ++ti) {
+				trow = t_rowind[ti];
+				if ( marker[trow] != j ) {
+					marker[trow] = j;
+					b_rowind[num_nz++] = trow;
+				}
+				}
+			}
 		}
-	    }
-	}
     }
     b_colptr[n] = num_nz;
        
@@ -305,21 +307,23 @@ at_plus_a(
 	marker[j] = j;
 
 	/* Add pattern of column A_*k to B_*j */
-	for (i = colptr[j]; i < colptr[j+1]; ++i) {
-	    k = rowind[i];
-	    if ( marker[k] != j ) {
-		marker[k] = j;
-		(*b_rowind)[num_nz++] = k;
-	    }
-	}
+	if (*bnz) {
+		for (i = colptr[j]; i < colptr[j+1]; ++i) {
+			k = rowind[i];
+			if ( marker[k] != j ) {
+			marker[k] = j;
+			(*b_rowind)[num_nz++] = k;
+			}
+		}
 
-	/* Add pattern of column T_*k to B_*j */
-	for (i = t_colptr[j]; i < t_colptr[j+1]; ++i) {
-	    k = t_rowind[i];
-	    if ( marker[k] != j ) {
-		marker[k] = j;
-		(*b_rowind)[num_nz++] = k;
-	    }
+		/* Add pattern of column T_*k to B_*j */
+		for (i = t_colptr[j]; i < t_colptr[j+1]; ++i) {
+			k = t_rowind[i];
+			if ( marker[k] != j ) {
+			marker[k] = j;
+			(*b_rowind)[num_nz++] = k;
+			}
+		}
 	}
     }
     (*b_colptr)[n] = num_nz;

@@ -79,4 +79,4 @@ public:
 #endif
 };
 
-#endif//__BL_TEXTURE_H__
+#endif /* __BL_TEXTURE_H__ */

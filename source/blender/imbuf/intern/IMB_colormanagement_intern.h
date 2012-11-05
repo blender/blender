@@ -35,7 +35,7 @@
 
 #define BCM_CONFIG_FILE "config.ocio"
 
-struct ConstProcessorRcPtr;
+struct OCIO_ConstProcessorRcPtr;
 struct ImBuf;
 
 typedef struct ColorSpace {
@@ -44,10 +44,11 @@ typedef struct ColorSpace {
 	char name[64];
 	char description[64];
 
-	struct ConstProcessorRcPtr *to_scene_linear;
-	struct ConstProcessorRcPtr *from_scene_linear;
+	struct OCIO_ConstProcessorRcPtr *to_scene_linear;
+	struct OCIO_ConstProcessorRcPtr *from_scene_linear;
 
 	int is_invertible;
+	int is_data;
 } ColorSpace;
 
 typedef struct ColorManagedDisplay {
@@ -56,8 +57,8 @@ typedef struct ColorManagedDisplay {
 	char name[64];
 	ListBase views;
 
-	struct ConstProcessorRcPtr *to_scene_linear;
-	struct ConstProcessorRcPtr *from_scene_linear;
+	struct OCIO_ConstProcessorRcPtr *to_scene_linear;
+	struct OCIO_ConstProcessorRcPtr *from_scene_linear;
 } ColorManagedDisplay;
 
 typedef struct ColorManagedView {
@@ -66,8 +67,14 @@ typedef struct ColorManagedView {
 	char name[64];
 } ColorManagedView;
 
+/* ** Initialization / De-initialization ** */
+
+void colormanagement_init(void);
+void colormanagement_exit(void);
+
 void colormanage_cache_free(struct ImBuf *ibuf);
 
+const char *colormanage_display_get_default_name(void);
 struct ColorManagedDisplay *colormanage_display_get_default(void);
 struct ColorManagedDisplay *colormanage_display_add(const char *name);
 struct ColorManagedDisplay *colormanage_display_get_named(const char *name);
@@ -79,7 +86,7 @@ struct ColorManagedView *colormanage_view_add(const char *name);
 struct ColorManagedView *colormanage_view_get_indexed(int index);
 struct ColorManagedView *colormanage_view_get_named(const char *name);
 
-struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible);
+struct ColorSpace *colormanage_colorspace_add(const char *name, const char *description, int is_invertible, int is_data);
 struct ColorSpace *colormanage_colorspace_get_named(const char *name);
 struct ColorSpace *colormanage_colorspace_get_roled(int role);
 struct ColorSpace *colormanage_colorspace_get_indexed(int index);

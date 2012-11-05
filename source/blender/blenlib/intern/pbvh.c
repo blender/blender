@@ -157,6 +157,8 @@ struct PBVH {
 
 	/* flag are verts/faces deformed */
 	int deformed;
+
+	int show_diffuse_color;
 };
 
 #define STACK_FIXED_DEPTH   100
@@ -189,8 +191,8 @@ static void BB_expand(BB *bb, float co[3])
 {
 	int i;
 	for (i = 0; i < 3; ++i) {
-		bb->bmin[i] = minf(bb->bmin[i], co[i]);
-		bb->bmax[i] = maxf(bb->bmax[i], co[i]);
+		bb->bmin[i] = min_ff(bb->bmin[i], co[i]);
+		bb->bmax[i] = max_ff(bb->bmax[i], co[i]);
 	}
 }
 
@@ -199,8 +201,8 @@ static void BB_expand_with_bb(BB *bb, BB *bb2)
 {
 	int i;
 	for (i = 0; i < 3; ++i) {
-		bb->bmin[i] = minf(bb->bmin[i], bb2->bmin[i]);
-		bb->bmax[i] = maxf(bb->bmax[i], bb2->bmax[i]);
+		bb->bmin[i] = min_ff(bb->bmin[i], bb2->bmin[i]);
+		bb->bmax[i] = max_ff(bb->bmax[i], bb2->bmax[i]);
 	}
 }
 
@@ -663,7 +665,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
 	bvh->totgrid = totgrid;
 	bvh->gridkey = *key;
 	bvh->grid_hidden = grid_hidden;
-	bvh->leaf_limit = maxi(LEAF_LIMIT / ((gridsize - 1) * (gridsize - 1)), 1);
+	bvh->leaf_limit = max_ii(LEAF_LIMIT / ((gridsize - 1) * (gridsize - 1)), 1);
 
 	BB_reset(&cb);
 
@@ -1001,7 +1003,7 @@ static int update_search_cb(PBVHNode *node, void *data_v)
 
 	if (node->flag & PBVH_Leaf)
 		return (node->flag & flag);
-	
+
 	return 1;
 }
 
@@ -1165,7 +1167,8 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					                        bvh->grid_flag_mats,
 					                        node->prim_indices,
 					                        node->totprim,
-					                        &bvh->gridkey);
+					                        &bvh->gridkey,
+					                        bvh->show_diffuse_color);
 					break;
 				case PBVH_FACES:
 					GPU_update_mesh_buffers(node->draw_buffers,
@@ -1174,7 +1177,9 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					                        node->uniq_verts +
 					                        node->face_verts,
 					                        CustomData_get_layer(bvh->vdata,
-					                                             CD_PAINT_MASK));
+					                                             CD_PAINT_MASK),
+					                        node->face_vert_indices,
+					                        bvh->show_diffuse_color);
 					break;
 			}
 
@@ -1630,9 +1635,9 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
 	PlaneAABBIsect ret = ISECT_INSIDE;
 	int i, axis;
 	
-	for (i = 0; i < 4; ++i) { 
+	for (i = 0; i < 4; ++i) {
 		for (axis = 0; axis < 3; ++axis) {
-			if (planes[i][axis] > 0) { 
+			if (planes[i][axis] > 0) {
 				vmin[axis] = bb_min[axis];
 				vmax[axis] = bb_max[axis];
 			}
@@ -1646,7 +1651,7 @@ static PlaneAABBIsect test_planes_aabb(const float bb_min[3],
 			return ISECT_OUTSIDE;
 		else if (dot_v3v3(planes[i], vmax) + planes[i][3] >= 0)
 			ret = ISECT_INTERSECT;
-	} 
+	}
 
 	return ret;
 }
@@ -1667,11 +1672,23 @@ int BLI_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
 	return test_planes_aabb(bb_min, bb_max, data) != ISECT_INSIDE;
 }
 
+static void pbvh_node_check_diffuse_changed(PBVH *bvh, PBVHNode *node)
+{
+	if (!node->draw_buffers)
+		return;
+
+	if (GPU_buffers_diffuse_changed(node->draw_buffers, bvh->show_diffuse_color))
+		node->flag |= PBVH_UpdateDrawBuffers;
+}
+
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
                    DMSetMaterial setMaterial)
 {
 	PBVHNode **nodes;
-	int totnode;
+	int a, totnode;
+
+	for (a = 0; a < bvh->totnode; a++)
+		pbvh_node_check_diffuse_changed(bvh, &bvh->nodes[a]);
 
 	BLI_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
 	                       &nodes, &totnode);
@@ -1875,4 +1892,9 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 	vi->mask = NULL;
 	if (!vi->grids)
 		vi->vmask = CustomData_get_layer(bvh->vdata, CD_PAINT_MASK);
+}
+
+void pbvh_show_diffuse_color_set(PBVH *bvh, int show_diffuse_color)
+{
+	bvh->show_diffuse_color = show_diffuse_color;
 }

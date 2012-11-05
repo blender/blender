@@ -99,7 +99,7 @@ void BKE_pose_where_is_bone_tail(struct bPoseChannel *pchan);
 /* get_objectspace_bone_matrix has to be removed still */
 void get_objectspace_bone_matrix(struct Bone *bone, float M_accumulatedMatrix[][4], int root, int posed);
 void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3]);
-void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
+void mat3_to_vec_roll(float mat[][3], float r_vec[3], float *r_roll);
 
 /* Common Conversions Between Co-ordinate Spaces */
 void BKE_armature_mat_world_to_pose(struct Object *ob, float inmat[][4], float outmat[][4]);
@@ -131,7 +131,14 @@ typedef struct Mat4 {
 Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan, int rest);
 
 /* like EBONE_VISIBLE */
-#define PBONE_VISIBLE(arm, bone) (((bone)->layer & (arm)->layer) && !((bone)->flag & BONE_HIDDEN_P))
+#define PBONE_VISIBLE(arm, bone) ( \
+	CHECK_TYPE_INLINE(arm, bArmature), \
+	CHECK_TYPE_INLINE(bone, Bone), \
+	(((bone)->layer & (arm)->layer) && !((bone)->flag & BONE_HIDDEN_P)) \
+	)
+
+#define PBONE_SELECTABLE(arm, bone) \
+	(PBONE_VISIBLE(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
 
 #ifdef __cplusplus
 }

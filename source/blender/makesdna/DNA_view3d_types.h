@@ -169,6 +169,7 @@ typedef struct View3D {
 	short view   DNA_DEPRECATED;
 	
 	struct Object *camera, *ob_centre;
+	rctf render_border;
 
 	struct ListBase bgpicbase;
 	struct BGpic *bgpic  DNA_DEPRECATED; /* deprecated, use bgpicbase, only kept for do_versions(...) */
@@ -267,6 +268,7 @@ typedef struct View3D {
 #define V3D_SHOW_CAMERAPATH		256
 #define V3D_SHOW_BUNDLENAME		512
 #define V3D_BACKFACE_CULLING	1024
+#define V3D_RENDER_BORDER	2048
 
 /* View3D->around */
 #define V3D_CENTER		 0

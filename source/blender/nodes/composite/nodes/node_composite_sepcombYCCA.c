@@ -34,11 +34,11 @@
 
 
 /* **************** SEPARATE YCCA ******************** */
-static bNodeSocketTemplate cmp_node_sepycca_in[]= {
+static bNodeSocketTemplate cmp_node_sepycca_in[] = {
 	{  SOCK_RGBA, 1, N_("Image"),        1.0f, 1.0f, 1.0f, 1.0f},
 	{  -1, 0, ""   }
 };
-static bNodeSocketTemplate cmp_node_sepycca_out[]= {
+static bNodeSocketTemplate cmp_node_sepycca_out[] = {
 	{  SOCK_FLOAT, 0, N_("Y")},
 	{  SOCK_FLOAT, 0, N_("Cb")},
 	{  SOCK_FLOAT, 0, N_("Cr")},
@@ -55,10 +55,10 @@ static void do_sepycca_601(bNode *UNUSED(node), float *out, float *in)
 	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_ITU_BT601);
 	
 	/*divided by 255 to normalize for viewing in */
-	out[0]=  y/255.0f;
-	out[1]= cb/255.0f;
-	out[2]= cr/255.0f;
-	out[3]= in[3];
+	out[0] =  y/255.0f;
+	out[1] = cb/255.0f;
+	out[2] = cr/255.0f;
+	out[3] = in[3];
 }
 
 static void do_sepycca_709(bNode *UNUSED(node), float *out, float *in)
@@ -68,10 +68,10 @@ static void do_sepycca_709(bNode *UNUSED(node), float *out, float *in)
 	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_ITU_BT709);
 	
 	/*divided by 255 to normalize for viewing in */
-	out[0]=  y/255.0f;
-	out[1]= cb/255.0f;
-	out[2]= cr/255.0f;
-	out[3]= in[3];
+	out[0] =  y/255.0f;
+	out[1] = cb/255.0f;
+	out[2] = cr/255.0f;
+	out[3] = in[3];
 }
 
 static void do_sepycca_jfif(bNode *UNUSED(node), float *out, float *in)
@@ -81,10 +81,10 @@ static void do_sepycca_jfif(bNode *UNUSED(node), float *out, float *in)
 	rgb_to_ycc(in[0], in[1], in[2], &y, &cb, &cr, BLI_YCC_JFIF_0_255);
 	
 	/*divided by 255 to normalize for viewing in */
-	out[0]=  y/255.0f;
-	out[1]= cb/255.0f;
-	out[2]= cr/255.0f;
-	out[3]= in[3];
+	out[0] =  y/255.0f;
+	out[1] = cb/255.0f;
+	out[2] = cr/255.0f;
+	out[3] = in[3];
 }
 
 static void node_composit_exec_sepycca(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
@@ -167,14 +167,14 @@ void register_node_type_cmp_sepycca(bNodeTreeType *ttype)
 
 
 /* **************** COMBINE YCCA ******************** */
-static bNodeSocketTemplate cmp_node_combycca_in[]= {
+static bNodeSocketTemplate cmp_node_combycca_in[] = {
 	{	SOCK_FLOAT, 1, N_("Y"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("Cb"),			0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("Cr"),			0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{	SOCK_FLOAT, 1, N_("A"),			1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_combycca_out[]= {
+static bNodeSocketTemplate cmp_node_combycca_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -296,7 +296,7 @@ static void node_composit_exec_combycca(void *UNUSED(data), bNode *node, bNodeSt
 		}
 
 		out[0]->data= stackbuf;
-	}	
+	}
 }
 
 #endif  /* WITH_COMPOSITOR_LEGACY */

@@ -50,16 +50,16 @@
  * type ObjectType must have the following public methods to be used by
  * this template class:
  *
- * 	int
+ *  int
  * OpenTag(void) --- return a persistent tag value for the primitive
  *
- *	void
+ *  void
  * SetOpenTag(int bla) --- set the persistent tag value for this primitive to bla.
  *
- *	bool
+ *  bool
  * SelectTag() --- return a persistent boolean tag for this primitive
  *
- *	void
+ *  void
  * SetSelectTag(bool bla) --- set the persistent boolean tag for this primitive to bla.
  *
  * Here persistent means that the tag should be associated with the object for the
@@ -86,16 +86,16 @@ public :
 		unsigned int shift
 	) {
 
-		// iterate through vectors in index_list
-		// iterate through individual members of each vector
-		// mark each obejct that the index points to 
+		/* iterate through vectors in index_list
+		 * iterate through individual members of each vector
+		 * mark each obejct that the index points to */
 
 		typename std::vector< std::vector<IndexType> >::const_iterator 
 			last_vector = index_list.end();
 		typename std::vector< std::vector<IndexType> >::const_iterator 
 			start_vector = index_list.begin();
 
-		// FIXME some temporary space
+		/* FIXME some temporary space */
 
 		std::vector<IndexType> temp_union;
 		temp_union.reserve(64);
@@ -114,7 +114,7 @@ public :
 				ObjectType & prim = primitives[*start_index];
 
 				if (!prim.OpenTag()) {
-					// compute the union
+					/* compute the union */
 					temp_union.push_back(*start_index);
 				}
 				int tag = prim.OpenTag();
@@ -126,7 +126,7 @@ public :
 			++tag_num;
 		}
 				
-		// now iterate through the union and pull out all those with the right tag
+		/* now iterate through the union and pull out all those with the right tag */
 		
 		typename std::vector<IndexType>::const_iterator last_index = 
 			temp_union.end();
@@ -138,20 +138,20 @@ public :
 			ObjectType & prim = primitives[*start_index];
 
 			if (prim.OpenTag() == tag_num) {
-				//it's part of the intersection!
+				/* it's part of the intersection! */
 
 				output.push_back(*start_index);
-				// because we're iterating through the union 
-				// it's safe to remove the tag at this point
+				/* because we're iterating through the union
+				 * it's safe to remove the tag at this point */
 
 				prim.SetOpenTag(prim.OpenTag() & ~mask);
 			}
 		}
 	};
 		
-	// note not a strict set intersection!
-	// if x appears twice in b and is part of the intersection
-	// it will appear twice in the intersection
+	/* note not a strict set intersection!
+	 * if x appears twice in b and is part of the intersection
+	 * it will appear twice in the intersection */
 
 	static
 		void
@@ -180,7 +180,7 @@ public :
 				output.push_back(*start_index);
 			}
 		}
-		// deselect
+		/* deselect */
 		last_index = a.end();
 		start_index = a.begin();
 
@@ -199,9 +199,9 @@ public :
 		std::vector<IndexType> &output
 	) {
 	
-		// iterate through vectors in index_list
-		// iterate through individual members of each vector
-		// mark each obejct that the index points to 
+		/* iterate through vectors in index_list
+		 * iterate through individual members of each vector
+		 * mark each obejct that the index points to */
 
 		typename std::vector< std::vector<IndexType> >::const_iterator 
 			last_vector = index_list.end();
@@ -220,15 +220,15 @@ public :
 				ObjectType & prim = primitives[*start_index];
 
 				if (!prim.SelectTag()) {
-					// compute the union
+					/* compute the union */
 					output.push_back(*start_index);
 					prim.SetSelectTag(true);
 				}
 			}
 		}
 				
-		// now iterate through the union and reset the tags
-		
+		/* now iterate through the union and reset the tags */
+
 		typename std::vector<IndexType>::const_iterator last_index = 
 			output.end();
 		typename std::vector<IndexType>::iterator start_index = 
@@ -238,7 +238,7 @@ public :
 
 			ObjectType & prim = primitives[*start_index];
 			prim.SetSelectTag(false);
-		}			
+		}
 	}
 
 
@@ -251,8 +251,8 @@ public :
 		std::vector< IndexType> &output
 	) {
 
-		// iterate through b mark all
-		// iterate through a and add to output all unmarked 
+		/* iterate through b mark all
+		 * iterate through a and add to output all unmarked */
 
 		typename std::vector<IndexType>::const_iterator last_index = 
 			b.end();
@@ -276,7 +276,7 @@ public :
 			}
 		}
 
-		// clean up the tags
+		/* clean up the tags */
 	
 		last_index = b.end();
 		start_index = b.begin();
@@ -290,12 +290,11 @@ public :
 
 private :
 
-	// private constructor - this class is not meant for
-	// instantiation
+	/* private constructor - this class is not meant for
+	 * instantiation */
 
 	CTR_TaggedSetOps();
 
 };
 
-#endif
-
+#endif  /* __CTR_TAGGEDSETOPS_H__ */

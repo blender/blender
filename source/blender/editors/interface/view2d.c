@@ -96,11 +96,11 @@ static void view2d_masks(View2D *v2d)
 	/* check size if: */
 	if (v2d->scroll & V2D_SCROLL_HORIZONTAL)
 		if (!(v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL))
-			if (BLI_RCT_SIZE_X(&v2d->tot) <= BLI_RCT_SIZE_X(&v2d->cur))
+			if (BLI_rctf_size_x(&v2d->tot) <= BLI_rcti_size_x(&v2d->cur))
 				v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 	if (v2d->scroll & V2D_SCROLL_VERTICAL)
 		if (!(v2d->scroll & V2D_SCROLL_SCALE_VERTICAL))
-			if (BLI_RCT_SIZE_Y(&v2d->tot) <= BLI_RCT_SIZE_Y(&v2d->cur))
+			if (BLI_rctf_size_y(&v2d->tot) <= BLI_rctf_size_y(&v2d->cur))
 				v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
 #endif
 	scroll = view2d_scroll_mapped(v2d->scroll);
@@ -299,7 +299,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			/* other view types are completely defined using their own settings already */
 			default:
 				/* we don't do anything here, as settings should be fine, but just make sure that rect */
-				break;	
+				break;
 		}
 	}
 	
@@ -328,8 +328,8 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 	rctf *cur, *tot;
 	
 	/* use mask as size of region that View2D resides in, as it takes into account scrollbars already  */
-	winx = (float)(BLI_RCT_SIZE_X(&v2d->mask) + 1);
-	winy = (float)(BLI_RCT_SIZE_Y(&v2d->mask) + 1);
+	winx = (float)(BLI_rcti_size_x(&v2d->mask) + 1);
+	winy = (float)(BLI_rcti_size_y(&v2d->mask) + 1);
 	
 	/* get pointers to rcts for less typing */
 	cur = &v2d->cur;
@@ -347,10 +347,10 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 	 *	- firstly, we calculate the sizes of the rects
 	 *	- curwidth and curheight are saved as reference... modify width and height values here
 	 */
-	totwidth  = BLI_RCT_SIZE_X(tot);
-	totheight = BLI_RCT_SIZE_Y(tot);
-	curwidth  = width  = BLI_RCT_SIZE_X(cur);
-	curheight = height = BLI_RCT_SIZE_Y(cur);
+	totwidth  = BLI_rctf_size_x(tot);
+	totheight = BLI_rctf_size_y(tot);
+	curwidth  = width  = BLI_rctf_size_x(cur);
+	curheight = height = BLI_rctf_size_y(cur);
 	
 	/* if zoom is locked, size on the appropriate axis is reset to mask size */
 	if (v2d->keepzoom & V2D_LOCKZOOM_X)
@@ -476,8 +476,14 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 				if (winy < v2d->oldwiny) {
 					float temp = v2d->oldwiny - winy;
 					
-					cur->ymin += temp;
-					cur->ymax += temp;
+					if (v2d->align & V2D_ALIGN_NO_NEG_Y) {
+						cur->ymin -= temp;
+						cur->ymax -= temp;
+					}
+					else { /* Assume V2D_ALIGN_NO_POS_Y or combination */
+						cur->ymin += temp;
+						cur->ymax += temp;
+					}
 				}
 
 			}
@@ -499,16 +505,16 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 		/* resize from centerpoint, unless otherwise specified */
 		if (width != curwidth) {
 			if (v2d->keepofs & V2D_LOCKOFS_X) {
-				cur->xmax += width - BLI_RCT_SIZE_X(cur);
+				cur->xmax += width - BLI_rctf_size_x(cur);
 			}
 			else if (v2d->keepofs & V2D_KEEPOFS_X) {
 				if (v2d->align & V2D_ALIGN_NO_POS_X)
-					cur->xmin -= width - BLI_RCT_SIZE_X(cur);
+					cur->xmin -= width - BLI_rctf_size_x(cur);
 				else
-					cur->xmax += width - BLI_RCT_SIZE_X(cur);
+					cur->xmax += width - BLI_rctf_size_x(cur);
 			}
 			else {
-				temp = BLI_RCT_CENTER_X(cur);
+				temp = BLI_rctf_cent_x(cur);
 				dh = width * 0.5f;
 				
 				cur->xmin = temp - dh;
@@ -517,16 +523,16 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 		}
 		if (height != curheight) {
 			if (v2d->keepofs & V2D_LOCKOFS_Y) {
-				cur->ymax += height - BLI_RCT_SIZE_Y(cur);
+				cur->ymax += height - BLI_rctf_size_y(cur);
 			}
 			else if (v2d->keepofs & V2D_KEEPOFS_Y) {
 				if (v2d->align & V2D_ALIGN_NO_POS_Y)
-					cur->ymin -= height - BLI_RCT_SIZE_Y(cur);
+					cur->ymin -= height - BLI_rctf_size_y(cur);
 				else
-					cur->ymax += height - BLI_RCT_SIZE_Y(cur);
+					cur->ymax += height - BLI_rctf_size_y(cur);
 			}
 			else {
-				temp = BLI_RCT_CENTER_Y(cur);
+				temp = BLI_rctf_cent_y(cur);
 				dh = height * 0.5f;
 				
 				cur->ymin = temp - dh;
@@ -540,8 +546,8 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 		float temp, diff;
 		
 		/* recalculate extents of cur */
-		curwidth  = BLI_RCT_SIZE_X(cur);
-		curheight = BLI_RCT_SIZE_Y(cur);
+		curwidth  = BLI_rctf_size_x(cur);
+		curheight = BLI_rctf_size_y(cur);
 		
 		/* width */
 		if ((curwidth > totwidth) && !(v2d->keepzoom & (V2D_KEEPZOOM | V2D_LOCKZOOM_X | V2D_LIMITZOOM))) {
@@ -592,8 +598,8 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 			 */
 			if ((cur->xmin < tot->xmin) && (cur->xmax > tot->xmax)) {
 				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
-				temp = BLI_RCT_CENTER_X(tot);
-				diff = curheight * 0.5f;
+				temp = BLI_rctf_cent_x(tot);
+				diff = curwidth * 0.5f;
 				
 				cur->xmin = temp - diff;
 				cur->xmax = temp + diff;
@@ -642,7 +648,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 			 */
 			if ((cur->ymin < tot->ymin) && (cur->ymax > tot->ymax)) {
 				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
-				temp = BLI_RCT_CENTER_Y(tot);
+				temp = BLI_rctf_cent_y(tot);
 				diff = curheight * 0.5f;
 				
 				cur->ymin = temp - diff;
@@ -791,8 +797,8 @@ void UI_view2d_curRect_reset(View2D *v2d)
 	float width, height;
 	
 	/* assume width and height of 'cur' rect by default, should be same size as mask */
-	width  = (float)(BLI_RCT_SIZE_X(&v2d->mask) + 1);
-	height = (float)(BLI_RCT_SIZE_Y(&v2d->mask) + 1);
+	width  = (float)(BLI_rcti_size_x(&v2d->mask) + 1);
+	height = (float)(BLI_rcti_size_y(&v2d->mask) + 1);
 	
 	/* handle width - posx and negx flags are mutually exclusive, so watch out */
 	if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
@@ -958,8 +964,8 @@ static void view2d_map_cur_using_mask(View2D *v2d, rctf *curmasked)
 	*curmasked = v2d->cur;
 	
 	if (view2d_scroll_mapped(v2d->scroll)) {
-		float dx = BLI_RCT_SIZE_X(&v2d->cur) / ((float)(BLI_RCT_SIZE_X(&v2d->mask) + 1));
-		float dy = BLI_RCT_SIZE_Y(&v2d->cur) / ((float)(BLI_RCT_SIZE_Y(&v2d->mask) + 1));
+		float dx = BLI_rctf_size_x(&v2d->cur) / ((float)(BLI_rcti_size_x(&v2d->mask) + 1));
+		float dy = BLI_rctf_size_y(&v2d->cur) / ((float)(BLI_rcti_size_y(&v2d->mask) + 1));
 		
 		if (v2d->mask.xmin != 0)
 			curmasked->xmin -= dx * (float)v2d->mask.xmin;
@@ -985,14 +991,13 @@ void UI_view2d_view_ortho(View2D *v2d)
 	 */
 	/* XXX brecht: instead of zero at least use a tiny offset, otherwise
 	 * pixel rounding is effectively random due to float inaccuracy */
-	xofs = 0.001f * BLI_RCT_SIZE_X(&v2d->cur) / BLI_RCT_SIZE_X(&v2d->mask);
-	yofs = 0.001f * BLI_RCT_SIZE_Y(&v2d->cur) / BLI_RCT_SIZE_Y(&v2d->mask);
+	xofs = 0.001f * BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
+	yofs = 0.001f * BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
 	
 	/* apply mask-based adjustments to cur rect (due to scrollers), to eliminate scaling artifacts */
 	view2d_map_cur_using_mask(v2d, &curmasked);
-	
-	curmasked.xmin -= xofs; curmasked.xmax -= xofs;
-	curmasked.ymin -= yofs; curmasked.ymax -= yofs;
+
+	BLI_rctf_translate(&curmasked, -xofs, -yofs);
 	
 	/* XXX ton: this flag set by outliner, for icons */
 	if (v2d->flag & V2D_PIXELOFS_X) {
@@ -1044,8 +1049,8 @@ void UI_view2d_view_orthoSpecial(ARegion *ar, View2D *v2d, short xaxis)
 void UI_view2d_view_restore(const bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
-	int width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	int height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	int width  = BLI_rcti_size_x(&ar->winrct) + 1;
+	int height = BLI_rcti_size_y(&ar->winrct) + 1;
 	
 	wmOrtho2(0.0f, (float)width, 0.0f, (float)height);
 	glLoadIdentity();
@@ -1090,7 +1095,7 @@ static void step_to_grid(float *step, int *power, int unit)
 		}
 		
 		/* prevents printing 1.0 2.0 3.0 etc */
-		if (rem == 1.0f) (*power)++;	
+		if (rem == 1.0f) (*power)++;
 	}
 	else {
 		if (rem < 2.0f) rem = 2.0f;
@@ -1101,7 +1106,7 @@ static void step_to_grid(float *step, int *power, int unit)
 		
 		(*power)++;
 		/* prevents printing 1.0, 2.0, 3.0, etc. */
-		if (rem == 10.0f) (*power)++;	
+		if (rem == 10.0f) (*power)++;
 	}
 }
 
@@ -1117,7 +1122,8 @@ static void step_to_grid(float *step, int *power, int unit)
  *	- winx			= width of region we're drawing to, note: not used but keeping for completeness.
  *	- winy			= height of region we're drawing into
  */
-View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp, int UNUSED(winx), int winy)
+View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d,
+                                short xunits, short xclamp, short yunits, short yclamp, int UNUSED(winx), int winy)
 {
 
 	View2DGrid *grid;
@@ -1140,8 +1146,8 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short x
 	
 	/* calculate x-axis grid scale (only if both args are valid) */
 	if (ELEM(V2D_ARG_DUMMY, xunits, xclamp) == 0) {
-		space = BLI_RCT_SIZE_X(&v2d->cur);
-		pixels = (float)BLI_RCT_SIZE_X(&v2d->mask);
+		space = BLI_rctf_size_x(&v2d->cur);
+		pixels = (float)BLI_rcti_size_x(&v2d->mask);
 		
 		if (pixels != 0.0f) {
 			grid->dx = (U.v2d_min_gridsize * space) / (seconddiv * pixels);
@@ -1158,7 +1164,7 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d, short xunits, short x
 	
 	/* calculate y-axis grid scale (only if both args are valid) */
 	if (ELEM(V2D_ARG_DUMMY, yunits, yclamp) == 0) {
-		space = BLI_RCT_SIZE_Y(&v2d->cur);
+		space = BLI_rctf_size_y(&v2d->cur);
 		pixels = (float)winy;
 		
 		grid->dy = U.v2d_min_gridsize * space / pixels;
@@ -1206,7 +1212,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = v2d->cur.ymax;
 		
 		/* minor gridlines */
-		step = (BLI_RCT_SIZE_X(&v2d->mask) + 1) / U.v2d_min_gridsize;
+		step = (BLI_rcti_size_x(&v2d->mask) + 1) / U.v2d_min_gridsize;
 		UI_ThemeColor(TH_GRID);
 		
 		for (a = 0; a < step; a++) {
@@ -1240,7 +1246,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec1[0] = grid->startx;
 		vec2[0] = v2d->cur.xmax;
 		
-		step = (BLI_RCT_SIZE_Y(&v2d->mask) + 1) / U.v2d_min_gridsize;
+		step = (BLI_rcti_size_y(&v2d->mask) + 1) / U.v2d_min_gridsize;
 		
 		UI_ThemeColor(TH_GRID);
 		for (a = 0; a <= step; a++) {
@@ -1256,7 +1262,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = vec1[1] -= 0.5f * grid->dy;
 		step++;
 		
-		if (flag & V2D_HORIZONTAL_FINELINES) { 
+		if (flag & V2D_HORIZONTAL_FINELINES) {
 			UI_ThemeColorShade(TH_GRID, 16);
 			for (a = 0; a < step; a++) {
 				glBegin(GL_LINE_STRIP);
@@ -1414,7 +1420,8 @@ struct View2DScrollers {
 };
 
 /* Calculate relevant scroller properties */
-View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short xunits, short xclamp, short yunits, short yclamp)
+View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d,
+                                          short xunits, short xclamp, short yunits, short yclamp)
 {
 	View2DScrollers *scrollers;
 	rcti vert, hor;
@@ -1457,8 +1464,8 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	/* horizontal scrollers */
 	if (scroll & V2D_SCROLL_HORIZONTAL) {
 		/* scroller 'button' extents */
-		totsize = BLI_RCT_SIZE_X(&v2d->tot);
-		scrollsize = (float)BLI_RCT_SIZE_X(&hor);
+		totsize = BLI_rctf_size_x(&v2d->tot);
+		scrollsize = (float)BLI_rcti_size_x(&hor);
 		if (totsize == 0.0f) totsize = 1.0f;  /* avoid divide by zero */
 
 		fac1 = (v2d->cur.xmin - v2d->tot.xmin) / totsize;
@@ -1486,7 +1493,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		
 		/* check whether sliders can disappear due to the full-range being used */
 		if (v2d->keeptot) {
-			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) { 
+			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) {
 				v2d->scroll |= V2D_SCROLL_HORIZONTAL_FULLR;
 				scrollers->horfull = 1;
 			}
@@ -1498,8 +1505,8 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	/* vertical scrollers */
 	if (scroll & V2D_SCROLL_VERTICAL) {
 		/* scroller 'button' extents */
-		totsize    =        BLI_RCT_SIZE_Y(&v2d->tot);
-		scrollsize = (float)BLI_RCT_SIZE_Y(&vert);
+		totsize    =        BLI_rctf_size_y(&v2d->tot);
+		scrollsize = (float)BLI_rcti_size_y(&vert);
 		if (totsize == 0.0f) totsize = 1.0f;  /* avoid divide by zero */
 
 		fac1 = (v2d->cur.ymin - v2d->tot.ymin) / totsize;
@@ -1528,7 +1535,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 
 		/* check whether sliders can disappear due to the full-range being used */
 		if (v2d->keeptot) {
-			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) { 
+			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) {
 				v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR;
 				scrollers->vertfull = 1;
 			}
@@ -1547,7 +1554,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		
 		scrollers->grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d,
 		                                      xunits, xclamp, yunits, yclamp,
-		                                      BLI_RCT_SIZE_X(&hor), BLI_RCT_SIZE_Y(&vert));
+		                                      BLI_rcti_size_x(&hor), BLI_rcti_size_y(&vert));
 	}
 	
 	/* return scrollers */
@@ -1631,7 +1638,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 */
 			if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 &&
 			    (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) &&
-			    (BLI_RCT_SIZE_X(&slider) > V2D_SCROLLER_HANDLE_SIZE))
+			    (BLI_rcti_size_x(&slider) > V2D_SCROLLER_HANDLE_SIZE))
 			{
 				state |= UI_SCROLL_ARROWS;
 			}
@@ -1651,11 +1658,11 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 *	- fac is x-coordinate to draw to
 			 *	- dfac is gap between scale markings
 			 */
-			fac = (grid->startx - v2d->cur.xmin) / BLI_RCT_SIZE_X(&v2d->cur);
-			fac = (float)hor.xmin + fac * BLI_RCT_SIZE_X(&hor);
+			fac = (grid->startx - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
+			fac = (float)hor.xmin + fac * BLI_rcti_size_x(&hor);
 			
-			dfac = grid->dx / BLI_RCT_SIZE_X(&v2d->cur);
-			dfac = dfac * BLI_RCT_SIZE_X(&hor);
+			dfac = grid->dx / BLI_rctf_size_x(&v2d->cur);
+			dfac = dfac * BLI_rcti_size_x(&hor);
 			
 			/* set starting value, and text color */
 			UI_ThemeColor(TH_TEXT);
@@ -1681,7 +1688,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 					if (fac < hor.xmin + 10)
 						continue;
 					
-					switch (vs->xunits) {							
+					switch (vs->xunits) {
 						case V2D_UNIT_FRAMES:       /* frames (as whole numbers)*/
 							scroll_printstr(scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMES, 'h');
 							break;
@@ -1742,7 +1749,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 */
 			if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 &&
 			    (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) &&
-			    (BLI_RCT_SIZE_Y(&slider) > V2D_SCROLLER_HANDLE_SIZE))
+			    (BLI_rcti_size_y(&slider) > V2D_SCROLLER_HANDLE_SIZE))
 			{
 				state |= UI_SCROLL_ARROWS;
 			}
@@ -1765,11 +1772,11 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			 *	- these involve a correction for horizontal scrollbar
 			 *	  NOTE: it's assumed that that scrollbar is there if this is involved!
 			 */
-			fac = (grid->starty - v2d->cur.ymin) / BLI_RCT_SIZE_Y(&v2d->cur);
-			fac = vert.ymin + fac * BLI_RCT_SIZE_Y(&vert);
+			fac = (grid->starty - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
+			fac = vert.ymin + fac * BLI_rcti_size_y(&vert);
 			
-			dfac = grid->dy / BLI_RCT_SIZE_Y(&v2d->cur);
-			dfac = dfac     * BLI_RCT_SIZE_Y(&vert);
+			dfac = grid->dy / BLI_rctf_size_y(&v2d->cur);
+			dfac = dfac     * BLI_rcti_size_y(&vert);
 			
 			/* set starting value, and text color */
 			UI_ThemeColor(TH_TEXT);
@@ -1796,7 +1803,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				
 				BLF_disable_default(BLF_ROTATION);
 			}
-		}	
+		}
 	}
 	
 }
@@ -1823,7 +1830,9 @@ void UI_view2d_scrollers_free(View2DScrollers *scrollers)
  *	- column, row				= the 2d-coordinates (in 2D-view / 'tot' rect space) the cell exists at
  *	- rect					= coordinates of the cell (passed as single var instead of 4 separate, as it's more useful this way)
  */
-void UI_view2d_listview_cell_to_view(View2D *v2d, short columnwidth, short rowheight, float startx, float starty, int column, int row, rctf *rect)
+void UI_view2d_listview_cell_to_view(View2D *v2d, short columnwidth, short rowheight,
+                                     float startx, float starty,
+                                     int column, int row, rctf *rect)
 {
 	/* sanity checks */
 	if (ELEM(NULL, v2d, rect)) {
@@ -1927,17 +1936,17 @@ void UI_view2d_region_to_view(View2D *v2d, int x, int y, float *r_viewx, float *
 	float div, ofs;
 
 	if (r_viewx) {
-		div = (float)BLI_RCT_SIZE_X(&v2d->mask);
+		div = (float)BLI_rcti_size_x(&v2d->mask);
 		ofs = (float)v2d->mask.xmin;
 		
-		*r_viewx = v2d->cur.xmin + BLI_RCT_SIZE_X(&v2d->cur) * ((float)x - ofs) / div;
+		*r_viewx = v2d->cur.xmin + BLI_rctf_size_x(&v2d->cur) * ((float)x - ofs) / div;
 	}
 
 	if (r_viewy) {
-		div = (float)BLI_RCT_SIZE_Y(&v2d->mask);
+		div = (float)BLI_rcti_size_y(&v2d->mask);
 		ofs = (float)v2d->mask.ymin;
 		
-		*r_viewy = v2d->cur.ymin + BLI_RCT_SIZE_Y(&v2d->cur) * ((float)y - ofs) / div;
+		*r_viewy = v2d->cur.ymin + BLI_rctf_size_y(&v2d->cur) * ((float)y - ofs) / div;
 	}
 }
 
@@ -1956,15 +1965,15 @@ void UI_view2d_view_to_region(View2D *v2d, float x, float y, int *regionx, int *
 		*regiony = V2D_IS_CLIPPED;
 	
 	/* express given coordinates as proportional values */
-	x = (x - v2d->cur.xmin) / BLI_RCT_SIZE_X(&v2d->cur);
-	y = (y - v2d->cur.ymin) / BLI_RCT_SIZE_Y(&v2d->cur);
+	x = (x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
+	y = (y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
 	
 	/* check if values are within bounds */
 	if ((x >= 0.0f) && (x <= 1.0f) && (y >= 0.0f) && (y <= 1.0f)) {
 		if (regionx)
-			*regionx = (int)(v2d->mask.xmin + x * BLI_RCT_SIZE_X(&v2d->mask));
+			*regionx = (int)(v2d->mask.xmin + x * BLI_rcti_size_x(&v2d->mask));
 		if (regiony)
-			*regiony = (int)(v2d->mask.ymin + y * BLI_RCT_SIZE_Y(&v2d->mask));
+			*regiony = (int)(v2d->mask.ymin + y * BLI_rcti_size_y(&v2d->mask));
 	}
 }
 
@@ -1977,12 +1986,12 @@ void UI_view2d_view_to_region(View2D *v2d, float x, float y, int *regionx, int *
 void UI_view2d_to_region_no_clip(View2D *v2d, float x, float y, int *regionx, int *regiony)
 {
 	/* step 1: express given coordinates as proportional values */
-	x = (x - v2d->cur.xmin) / BLI_RCT_SIZE_X(&v2d->cur);
-	y = (y - v2d->cur.ymin) / BLI_RCT_SIZE_Y(&v2d->cur);
+	x = (x - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
+	y = (y - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
 	
 	/* step 2: convert proportional distances to screen coordinates  */
-	x = v2d->mask.xmin + x * BLI_RCT_SIZE_X(&v2d->mask);
-	y = v2d->mask.ymin + y * BLI_RCT_SIZE_Y(&v2d->mask);
+	x = v2d->mask.xmin + x * BLI_rcti_size_x(&v2d->mask);
+	y = v2d->mask.ymin + y * BLI_rcti_size_y(&v2d->mask);
 	
 	/* although we don't clamp to lie within region bounds, we must avoid exceeding size of ints */
 	if (regionx) {
@@ -2035,8 +2044,8 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
  */
 void UI_view2d_getscale(View2D *v2d, float *x, float *y) 
 {
-	if (x) *x = BLI_RCT_SIZE_X(&v2d->mask) / BLI_RCT_SIZE_X(&v2d->cur);
-	if (y) *y = BLI_RCT_SIZE_Y(&v2d->mask) / BLI_RCT_SIZE_Y(&v2d->cur);
+	if (x) *x = BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
+	if (y) *y = BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
 
 /* Check if mouse is within scrollers
@@ -2063,7 +2072,7 @@ short UI_view2d_mouse_in_scrollers(const bContext *C, View2D *v2d, int x, int y)
 	}
 	if (scroll & V2D_SCROLL_VERTICAL) {
 		if (IN_2D_VERT_SCROLL(v2d, co)) return 'v';
-	}	
+	}
 	
 	/* not found */
 	return 0;
@@ -2142,7 +2151,7 @@ void UI_view2d_text_cache_draw(ARegion *ar)
 		const char *str = (const char *)(v2s + 1);
 		int xofs = 0, yofs;
 
-		yofs = ceil(0.5f * (BLI_RCT_SIZE_Y(&v2s->rect) - default_height));
+		yofs = ceil(0.5f * (BLI_rcti_size_y(&v2s->rect) - default_height));
 		if (yofs < 1) yofs = 1;
 
 		if (col_pack_prev != v2s->col.pack) {

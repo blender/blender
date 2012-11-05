@@ -83,7 +83,7 @@ typedef struct RenderLayer {
 	/* copy of RenderData */
 	char name[RE_MAXNAME];
 	unsigned int lay, lay_zmask, lay_exclude;
-	int layflag, passflag, pass_xor;		
+	int layflag, passflag, pass_xor;
 	
 	struct Material *mat_override;
 	struct Group *light_override;
@@ -148,6 +148,7 @@ typedef struct RenderStats {
 	double starttime, lastframetime;
 	const char *infostr, *statstr;
 	char scene_name[MAX_ID_NAME - 2];
+	float mem_used, mem_peak;
 } RenderStats;
 
 /* *********************** API ******************** */
@@ -225,7 +226,7 @@ void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene
 
 int RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 int RE_WriteRenderResult(struct ReportList *reports, RenderResult *rr, const char *filename, int compress);
-struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
+struct RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty);
 
 extern const float default_envmap_layout[];
 int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, const char imtype, float layout[12]);
@@ -235,7 +236,7 @@ void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce
 
 /* ancient stars function... go away! */
 void RE_make_stars(struct Render *re, struct Scene *scenev3d, void (*initfunc)(void),
-                   void (*vertexfunc)(float*),  void (*termfunc)(void));
+                   void (*vertexfunc)(float *),  void (*termfunc)(void));
 
 /* display and event callbacks */
 void RE_display_init_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr));

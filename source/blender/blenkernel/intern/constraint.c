@@ -221,51 +221,6 @@ void constraints_clear_evalob(bConstraintOb *cob)
 
 /* -------------- Space-Conversion API -------------- */
 
-#if 0 /* XXX Old code, does the same as one in armature.c, will remove it later. */
-static void constraint_pchan_diff_mat(bPoseChannel *pchan, float diff_mat[4][4])
-{
-	if (pchan->parent) {
-		float offs_bone[4][4];
-
-		/* construct offs_bone the same way it is done in armature.c */
-		copy_m4_m3(offs_bone, pchan->bone->bone_mat);
-		copy_v3_v3(offs_bone[3], pchan->bone->head);
-		offs_bone[3][1] += pchan->bone->parent->length;
-
-		if (pchan->bone->flag & BONE_HINGE) {
-			/* pose_mat = par_pose-space_location * chan_mat */
-			float tmat[4][4];
-
-			/* the rotation of the parent restposition */
-			copy_m4_m4(tmat, pchan->bone->parent->arm_mat);
-
-			/* the location of actual parent transform */
-			copy_v3_v3(tmat[3], offs_bone[3]);
-			zero_v3(offs_bone[3]);
-			mul_m4_v3(pchan->parent->pose_mat, tmat[3]);
-
-			mult_m4_m4m4(diff_mat, tmat, offs_bone);
-		}
-		else {
-			/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-			if (pchan->bone->flag & BONE_NO_SCALE) {
-				float tmat[4][4];
-				copy_m4_m4(tmat, pchan->parent->pose_mat);
-				normalize_m4(tmat);
-				mult_m4_m4m4(diff_mat, tmat, offs_bone);
-			}
-			else {
-				mult_m4_m4m4(diff_mat, pchan->parent->pose_mat, offs_bone);
-			}
-		}
-	}
-	else {
-		/* pose_mat = chan_mat * arm_mat */
-		copy_m4_m4(diff_mat, pchan->bone->arm_mat);
-	}
-}
-#endif
-
 /* This function is responsible for the correct transformations/conversions 
  * of a matrix from one space to another for constraint evaluation.
  * For now, this is only implemented for Objects and PoseChannels.
@@ -307,18 +262,6 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 				else if (to == CONSTRAINT_SPACE_LOCAL) {
 					if (pchan->bone) {
 						BKE_armature_mat_pose_to_bone(pchan, mat, mat);
-#if 0  /* XXX Old code, will remove it later. */
-						constraint_pchan_diff_mat(pchan, diff_mat);
-
-						invert_m4_m4(imat, diff_mat);
-						mult_m4_m4m4(mat, imat, mat);
-
-						/* override with local location */
-						if ((pchan->parent) && (pchan->bone->flag & BONE_NO_LOCAL_LOCATION)) {
-							BKE_armature_mat_pose_to_bone_ex(ob, pchan, pchan->pose_mat, tempmat);
-							copy_v3_v3(mat[3], tempmat[3]);
-						}
-#endif
 					}
 				}
 				/* pose to local with parent */
@@ -336,24 +279,19 @@ void constraint_mat_convertspace(Object *ob, bPoseChannel *pchan, float mat[][4]
 				if (pchan->bone) {
 					/* we need the posespace_matrix = local_matrix + (parent_posespace_matrix + restpos) */
 					BKE_armature_mat_bone_to_pose(pchan, mat, mat);
-#if 0
-					constraint_pchan_diff_mat(pchan, diff_mat);
-
-					mult_m4_m4m4(mat, diff_mat, mat);
-#endif
 				}
 				
 				/* use pose-space as stepping stone for other spaces */
 				if (ELEM(to, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL)) {
 					/* call self with slightly different values */
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, to);
-				}				
+				}
 			}
 			break;
 			case CONSTRAINT_SPACE_PARLOCAL: /* -------------- FROM LOCAL WITH PARENT ---------- */
 			{
 				/* local + parent to pose */
-				if (pchan->bone) {					
+				if (pchan->bone) {
 					copy_m4_m4(diff_mat, pchan->bone->arm_mat);
 					mult_m4_m4m4(mat, mat, diff_mat);
 				}
@@ -432,7 +370,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
 	/* get DerivedMesh */
 	if (em) {
 		/* target is in editmode, so get a special derived mesh */
-		dm = CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
+		dm = CDDM_from_editbmesh(em, FALSE, FALSE);
 		freeDM = 1;
 	}
 	else {
@@ -604,15 +542,15 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 				float tempmat[4][4], loc[3];
 				
 				/* interpolate along length of bone */
-				interp_v3_v3v3(loc, pchan->pose_head, pchan->pose_tail, headtail);	
+				interp_v3_v3v3(loc, pchan->pose_head, pchan->pose_tail, headtail);
 				
 				/* use interpolated distance for subtarget */
-				copy_m4_m4(tempmat, pchan->pose_mat);	
+				copy_m4_m4(tempmat, pchan->pose_mat);
 				copy_v3_v3(tempmat[3], loc);
 				
 				mult_m4_m4m4(mat, ob->obmat, tempmat);
 			}
-		} 
+		}
 		else
 			copy_m4_m4(mat, ob->obmat);
 			
@@ -976,11 +914,11 @@ static void vectomat(const float vec[3], const float target_up[3], short axis, s
 	else negate_v3(n);
 
 	/* n specifies the transformation of the track axis */
-	if (flags & TARGET_Z_UP) { 
+	if (flags & TARGET_Z_UP) {
 		/* target Z axis is the global up axis */
 		copy_v3_v3(u, target_up);
 	}
-	else { 
+	else {
 		/* world Z axis is the global up axis */
 		u[0] = 0;
 		u[1] = 0;
@@ -1030,12 +968,11 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 	if (VALID_CONS_TARGET(ct)) {
 		float size[3], vec[3];
 		float totmat[3][3];
-		float tmat[4][4];
 		
 		/* Get size property, since ob->size is only the object's own relative size, not its global one */
 		mat4_to_size(size, cob->matrix);
 		
-		/* Clear the object's rotation */ 	
+		/* Clear the object's rotation */
 		cob->matrix[0][0] = size[0];
 		cob->matrix[0][1] = 0;
 		cob->matrix[0][2] = 0;
@@ -1053,9 +990,8 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		vectomat(vec, ct->matrix[2], 
 		         (short)data->reserved1, (short)data->reserved2,
 		         data->flags, totmat);
-		
-		copy_m4_m4(tmat, cob->matrix);
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -1470,7 +1406,7 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 	
 	if (data->flag & LIMIT_XMIN) {
 		if (size[0] < data->xmin) 
-			size[0] = data->xmin;	
+			size[0] = data->xmin;
 	}
 	if (data->flag & LIMIT_XMAX) {
 		if (size[0] > data->xmax) 
@@ -1478,7 +1414,7 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 	}
 	if (data->flag & LIMIT_YMIN) {
 		if (size[1] < data->ymin) 
-			size[1] = data->ymin;	
+			size[1] = data->ymin;
 	}
 	if (data->flag & LIMIT_YMAX) {
 		if (size[1] > data->ymax) 
@@ -1486,7 +1422,7 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 	}
 	if (data->flag & LIMIT_ZMIN) {
 		if (size[2] < data->zmin) 
-			size[2] = data->zmin;	
+			size[2] = data->zmin;
 	}
 	if (data->flag & LIMIT_ZMAX) {
 		if (size[2] > data->zmax) 
@@ -2004,7 +1940,7 @@ static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTa
 			
 			/* this check is to make sure curve objects get updated on file load correctly.*/
 			if (cu->path == NULL || cu->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
-				BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);				
+				BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 		}
 		
 		/* firstly calculate the matrix the normal way, then let the py-function override
@@ -2281,7 +2217,6 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		float totmat[3][3];
 		float tmpmat[3][3];
 		float invmat[3][3];
-		float tmat[4][4];
 		float mdet;
 		
 		/* Vector object -> target */
@@ -2509,8 +2444,6 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		totmat[1][0] = tmpmat[1][0]; totmat[1][1] = tmpmat[1][1]; totmat[1][2] = tmpmat[1][2];
 		totmat[2][0] = tmpmat[2][0]; totmat[2][1] = tmpmat[2][1]; totmat[2][2] = tmpmat[2][2];
 		
-		copy_m4_m4(tmat, cob->matrix);
-		
 		mdet = determinant_m3(totmat[0][0], totmat[0][1], totmat[0][2],
 		                      totmat[1][0], totmat[1][1], totmat[1][2],
 		                      totmat[2][0], totmat[2][1], totmat[2][2]);
@@ -2519,7 +2452,7 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		}
 		
 		/* apply out transformaton to the object */
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -2717,7 +2650,6 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 	if (VALID_CONS_TARGET(ct)) {
 		float size[3], scale[3], vec[3], xx[3], zz[3], orth[3];
 		float totmat[3][3];
-		float tmat[4][4];
 		float dist;
 		
 		/* store scaling before destroying obmat */
@@ -2770,7 +2702,7 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			default: /* should not happen, but in case*/
 				return;
 		} /* switch (data->volmode) */
-
+		
 		/* Clear the object's rotation and scale */
 		cob->matrix[0][0] = size[0] * scale[0];
 		cob->matrix[0][1] = 0;
@@ -2793,10 +2725,10 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				/* othogonal to "new Y" "old X! plane */
 				cross_v3_v3v3(orth, vec, xx);
 				normalize_v3(orth);
-
+				
 				/* new Z*/
 				copy_v3_v3(totmat[2], orth);
-
+				
 				/* we decided to keep X plane*/
 				cross_v3_v3v3(xx, orth, vec);
 				normalize_v3_v3(totmat[0], xx);
@@ -2806,18 +2738,17 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 				/* othogonal to "new Y" "old Z! plane */
 				cross_v3_v3v3(orth, vec, zz);
 				normalize_v3(orth);
-
+				
 				/* new X */
 				negate_v3_v3(totmat[0], orth);
-
+				
 				/* we decided to keep Z */
 				cross_v3_v3v3(zz, orth, vec);
 				normalize_v3_v3(totmat[2], zz);
 				break;
 		} /* switch (data->plane) */
 		
-		copy_m4_m4(tmat, cob->matrix);
-		mul_m4_m3m4(cob->matrix, totmat, tmat);
+		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }
 
@@ -2944,7 +2875,7 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 			if (data->flag & MINMAX_STICKY) {
 				if (data->flag & MINMAX_STUCK) {
 					copy_v3_v3(obmat[3], data->cache);
-				} 
+				}
 				else {
 					copy_v3_v3(data->cache, obmat[3]);
 					data->flag |= MINMAX_STUCK;
@@ -2954,11 +2885,11 @@ static void minmax_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
 				/* get out of localspace */
 				mult_m4_m4m4(tmat, ct->matrix, obmat);
 				copy_m4_m4(cob->matrix, tmat);
-			} 
-			else {			
+			}
+			else {
 				copy_v3_v3(cob->matrix[3], obmat[3]);
 			}
-		} 
+		}
 		else {
 			data->flag &= ~MINMAX_STUCK;
 		}
@@ -3298,7 +3229,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		/* extract components of owner's matrix */
 		copy_v3_v3(loc, cob->matrix[3]);
 		mat4_to_eulO(eul, cob->rotOrder, cob->matrix);
-		mat4_to_size(size, cob->matrix);	
+		mat4_to_size(size, cob->matrix);
 		
 		/* determine where in range current transforms lie */
 		if (data->expo) {
@@ -3622,7 +3553,7 @@ static void damptrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		cross_v3_v3v3(raxis, obvec, tarvec);
 		
 		rangle = dot_v3v3(obvec, tarvec);
-		rangle = acos(maxf(-1.0f, minf(1.0f, rangle)));
+		rangle = acos(max_ff(-1.0f, min_ff(1.0f, rangle)));
 		
 		/* construct rotation matrix from the axis-angle rotation found above 
 		 *	- this call takes care to make sure that the axis provided is a unit vector first
@@ -4061,32 +3992,36 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 				copy_v3_v3(cob->matrix[3], disp);
 			}
 
-			if (data->depth_ob && data->depth_ob->derivedFinal) {
+			if (data->depth_ob) {
 				Object *depth_ob = data->depth_ob;
-				BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
-				BVHTreeRayHit hit;
-				float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
-				int result;
+				DerivedMesh *target = object_get_derived_final(depth_ob);
+				if (target) {
+					BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
+					BVHTreeRayHit hit;
+					float ray_start[3], ray_end[3], ray_nor[3], imat[4][4];
+					int result;
 
-				invert_m4_m4(imat, depth_ob->obmat);
+					invert_m4_m4(imat, depth_ob->obmat);
 
-				mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
-				mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
+					mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
+					mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
 
-				sub_v3_v3v3(ray_nor, ray_end, ray_start);
+					sub_v3_v3v3(ray_nor, ray_end, ray_start);
 
-				bvhtree_from_mesh_faces(&treeData, depth_ob->derivedFinal, 0.0f, 4, 6);
+					bvhtree_from_mesh_faces(&treeData, target, 0.0f, 4, 6);
 
-				hit.dist = FLT_MAX;
-				hit.index = -1;
+					hit.dist = FLT_MAX;
+					hit.index = -1;
 
-				result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
+					result = BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData);
 
-				if (result != -1) {
-					mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
+					if (result != -1) {
+						mul_v3_m4v3(cob->matrix[3], depth_ob->obmat, hit.co);
+					}
+
+					free_bvhtree_from_mesh(&treeData);
+					target->release(target);
 				}
-
-				free_bvhtree_from_mesh(&treeData);
 			}
 		}
 	}
@@ -4666,7 +4601,7 @@ short proxylocked_constraints_owner(Object *ob, bPoseChannel *pchan)
 		else {
 			/* FIXME: constraints on object-level are not handled well yet */
 			return 1;
-		}	
+		}
 	}
 	
 	return 0;
@@ -4706,7 +4641,7 @@ void get_constraint_target_matrix(struct Scene *scene, bConstraint *con, int n, 
 					unit_m4(cob->matrix);
 					unit_m4(cob->startmat);
 				}
-			}	
+			}
 			break;
 			case CONSTRAINT_OBTYPE_BONE: /* this may occur in some cases */
 			{
@@ -4842,7 +4777,7 @@ void solve_constraints(ListBase *conlist, bConstraintOb *cob, float ctime)
 		 *    since some constraints may not convert the solution back to the input space before blending
 		 *    but all are guaranteed to end up in good "worldspace" result
 		 */
-		/* Note: all kind of stuff here before (caused trouble), much easier to just interpolate, or did I miss something? -jahka */
+		/* Note: all kind of stuff here before (caused trouble), much easier to just interpolate, or did I miss something? -jahka (r.32105) */
 		if (enf < 1.0f) {
 			float solution[4][4];
 			copy_m4_m4(solution, cob->matrix);

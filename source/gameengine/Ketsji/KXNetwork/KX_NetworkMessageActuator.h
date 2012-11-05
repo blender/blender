@@ -69,5 +69,4 @@ public:
 
 };
 
-#endif //__KX_NETWORKMESSAGEACTUATOR_H__
-
+#endif  /* __KX_NETWORKMESSAGEACTUATOR_H__ */

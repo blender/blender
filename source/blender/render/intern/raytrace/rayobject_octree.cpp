@@ -382,8 +382,12 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 	
 	while (TRUE) {
 		
-		if (x < 0 || y < 0 || x >= oc->ocres || y >= oc->ocres) ;
-		else ocface[oc->ocres * x + y] = 1;
+		if (x < 0 || y < 0 || x >= oc->ocres || y >= oc->ocres) {
+			/* pass*/
+		}
+		else {
+			ocface[oc->ocres * x + y] = 1;
+		}
 		
 		labdao = labda;
 		if (labdax == labday) {

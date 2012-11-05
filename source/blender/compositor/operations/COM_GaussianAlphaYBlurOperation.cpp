@@ -104,11 +104,11 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
 	int miny = y - this->m_rad;
 	int maxy = y + this->m_rad;
 	int minx = x;
-	int maxx = x;
+	// int maxx = x;  // UNUSED
 	miny = max(miny, inputBuffer->getRect()->ymin);
 	minx = max(minx, inputBuffer->getRect()->xmin);
-	maxy = min(maxy, inputBuffer->getRect()->ymax);
-	maxx = min(maxx, inputBuffer->getRect()->xmax);
+	maxy = min(maxy, inputBuffer->getRect()->ymax - 1);
+	// maxx = min(maxx, inputBuffer->getRect()->xmax);
 
 	/* *** this is the main part which is different to 'GaussianYBlurOperation'  *** */
 	int step = getStep();
@@ -121,7 +121,7 @@ void GaussianAlphaYBlurOperation::executePixel(float output[4], int x, int y, vo
 	float value_max = finv_test(buffer[(x * 4) + (y * 4 * bufferwidth)], do_invert); /* init with the current color to avoid unneeded lookups */
 	float distfacinv_max = 1.0f; /* 0 to 1 */
 
-	for (int ny = miny; ny < maxy; ny += step) {
+	for (int ny = miny; ny <= maxy; ny += step) {
 		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
 
 		const int index = (ny - y) + this->m_rad;

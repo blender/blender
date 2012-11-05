@@ -284,7 +284,7 @@ void bpy_app_generic_callback(struct Main *UNUSED(main), struct ID *id, void *ar
 	if (PyList_GET_SIZE(cb_list) > 0) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 
-		PyObject *args = PyTuple_New(1); // save python creating each call
+		PyObject *args = PyTuple_New(1);  /* save python creating each call */
 		PyObject *func;
 		PyObject *ret;
 		Py_ssize_t pos;

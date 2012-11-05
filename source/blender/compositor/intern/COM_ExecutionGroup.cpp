@@ -204,7 +204,7 @@ void ExecutionGroup::determineNumberOfChunks()
 		this->m_numberOfXChunks = 1;
 		this->m_numberOfYChunks = 1;
 		this->m_numberOfChunks = 1;
-	} 
+	}
 	else {
 		const float chunkSizef = this->m_chunkSize;
 		this->m_numberOfXChunks = ceil(this->m_width / chunkSizef);
@@ -475,10 +475,10 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 	int maxxchunk = ceil((area->xmax - 1) / chunkSizef);
 	int minychunk = floor(area->ymin / chunkSizef);
 	int maxychunk = ceil((area->ymax - 1) / chunkSizef);
-	minxchunk = MAX2(minxchunk, 0);
-	minychunk = MAX2(minychunk, 0);
-	maxxchunk = MIN2(maxxchunk, this->m_numberOfXChunks);
-	maxychunk = MIN2(maxychunk, this->m_numberOfYChunks);
+	minxchunk = max(minxchunk, 0);
+	minychunk = max(minychunk, 0);
+	maxxchunk = min(maxxchunk, (int)this->m_numberOfXChunks);
+	maxychunk = min(maxychunk, (int)this->m_numberOfYChunks);
 
 	bool result = true;
 	for (indexx = minxchunk; indexx < maxxchunk; indexx++) {

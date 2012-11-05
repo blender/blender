@@ -93,7 +93,7 @@ static SpaceLink *info_new(const bContext *UNUSED(C))
 	ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
 
 	/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-	//ar->v2d.keepzoom= (V2D_KEEPASPECT|V2D_LIMITZOOM);
+	//ar->v2d.keepzoom = (V2D_KEEPASPECT|V2D_LIMITZOOM);
 	
 	return (SpaceLink *)sinfo;
 }
@@ -101,7 +101,7 @@ static SpaceLink *info_new(const bContext *UNUSED(C))
 /* not spacelink itself */
 static void info_free(SpaceLink *UNUSED(sl))
 {	
-//	SpaceInfo *sinfo= (SpaceInfo*) sl;
+//	SpaceInfo *sinfo = (SpaceInfo *) sl;
 	
 }
 
@@ -228,7 +228,7 @@ static void info_header_area_draw(const bContext *C, ARegion *ar)
 
 static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
-	// SpaceInfo *sinfo= sa->spacedata.first;
+	// SpaceInfo *sinfo = sa->spacedata.first;
 
 	/* context changes */
 	switch (wmn->category) {
@@ -249,7 +249,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if (ELEM(wmn->data, ND_SCREENCAST, ND_ANIMPLAY))
 				ED_region_tag_redraw(ar);
 			break;
-		case NC_WM:	
+		case NC_WM:
 			if (wmn->data == ND_JOB)
 				ED_region_tag_redraw(ar);
 			break;
@@ -257,7 +257,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if (wmn->data == ND_RENDER_RESULT)
 				ED_region_tag_redraw(ar);
 			break;
-		case NC_SPACE:	
+		case NC_SPACE:
 			if (wmn->data == ND_SPACE_INFO)
 				ED_region_tag_redraw(ar);
 			break;

@@ -32,9 +32,9 @@
 #ifndef __RAS_DEFORMER_H__
 #define __RAS_DEFORMER_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)  /* get rid of stupid stl-visual compiler debug warning */
+#endif
 
 #include <stdlib.h>
 #include "CTR_Map.h"
@@ -91,7 +91,7 @@ public:
 
 protected:
 	class RAS_MeshObject	*m_pMesh;
-	bool  m_bDynamic;	
+	bool  m_bDynamic;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

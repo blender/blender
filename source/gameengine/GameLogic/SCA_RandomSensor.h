@@ -68,5 +68,4 @@ public:
 #endif
 };
 
-#endif //__SCA_RANDOMSENSOR_H__
-
+#endif  /* __SCA_RANDOMSENSOR_H__ */

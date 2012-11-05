@@ -151,7 +151,7 @@ float BKE_camera_object_dof_distance(Object *ob)
 	Camera *cam = (Camera *)ob->data; 
 	if (ob->type != OB_CAMERA)
 		return 0.0f;
-	if (cam->dof_ob) {	
+	if (cam->dof_ob) {
 		/* too simple, better to return the distance on the view axis only
 		 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
 		float mat[4][4], imat[4][4], obmat[4][4];
@@ -262,11 +262,12 @@ void BKE_camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView
 	}
 	else if (rv3d->persp == RV3D_ORTHO) {
 		/* orthographic view */
+		int sensor_size = BKE_camera_sensor_size(params->sensor_fit, params->sensor_x, params->sensor_y);
 		params->clipend *= 0.5f;    // otherwise too extreme low zbuffer quality
 		params->clipsta = -params->clipend;
 
 		params->is_ortho = TRUE;
-		params->ortho_scale = rv3d->dist;
+		params->ortho_scale = rv3d->dist * sensor_size / v3d->lens;
 		params->zoom = 2.0f;
 	}
 	else {

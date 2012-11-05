@@ -55,7 +55,7 @@ extern struct Render R;
 
 
 /* ***** actual texture sampling ***** */
-int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
+int ocean_texture(Tex *tex, const float texvec[2], TexResult *texres)
 {
 	OceanTex *ot = tex->ot;
 	ModifierData *md;

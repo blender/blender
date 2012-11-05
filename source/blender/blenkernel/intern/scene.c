@@ -54,6 +54,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
+#include "BLI_string.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -135,8 +136,6 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		MEM_freeN(scen->toolsettings);
 	}
 	else {
-		ImageFormatData *im_format, *im_formatn;
-
 		scen = BKE_libblock_copy(&sce->id);
 		BLI_duplicatelist(&(scen->base), &(sce->base));
 		
@@ -174,11 +173,12 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		}
 
 		/* copy color management settings */
-		im_format = &sce->r.im_format;
-		im_formatn = &scen->r.im_format;
-
 		BKE_color_managed_display_settings_copy(&scen->display_settings, &sce->display_settings);
 		BKE_color_managed_view_settings_copy(&scen->view_settings, &sce->view_settings);
+		BKE_color_managed_view_settings_copy(&scen->r.im_format.view_settings, &sce->r.im_format.view_settings);
+
+		BLI_strncpy(scen->sequencer_colorspace_settings.name, sce->sequencer_colorspace_settings.name,
+		            sizeof(scen->sequencer_colorspace_settings.name));
 	}
 
 	/* tool settings */
@@ -325,7 +325,7 @@ void BKE_scene_free(Scene *sce)
 		BKE_paint_free(&sce->toolsettings->imapaint.paint);
 
 		MEM_freeN(sce->toolsettings);
-		sce->toolsettings = NULL;	
+		sce->toolsettings = NULL;
 	}
 	
 	if (sce->theDag) {
@@ -354,6 +354,7 @@ Scene *BKE_scene_add(const char *name)
 	Scene *sce;
 	ParticleEditSettings *pset;
 	int a;
+	const char *colorspace_name;
 
 	sce = BKE_libblock_alloc(&bmain->scene, ID_SCE, name);
 	sce->lay = sce->layact = 1;
@@ -367,8 +368,8 @@ Scene *BKE_scene_add(const char *name)
 	sce->r.ysch = 1080;
 	sce->r.xasp = 1;
 	sce->r.yasp = 1;
-	sce->r.xparts = 8;
-	sce->r.yparts = 8;
+	sce->r.tilex = 256;
+	sce->r.tiley = 256;
 	sce->r.mblur_samples = 1;
 	sce->r.filtertype = R_FILTER_MITCH;
 	sce->r.size = 50;
@@ -387,7 +388,7 @@ Scene *BKE_scene_add(const char *name)
 	sce->r.edgeint = 10;
 	sce->r.ocres = 128;
 
-	/* OCIO_TODO: for forwards compatibiliy only, so if no tonecurve are used,
+	/* OCIO_TODO: for forwards compatibility only, so if no tonecurve are used,
 	 *            images would look in the same way as in current blender
 	 *
 	 *            perhaps at some point should be completely deprecated?
@@ -435,7 +436,7 @@ Scene *BKE_scene_add(const char *name)
 	sce->toolsettings->cornertype = 1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;
-	sce->toolsettings->turn = 1; 				
+	sce->toolsettings->turn = 1;
 	sce->toolsettings->extr_offs = 1; 
 	sce->toolsettings->doublimit = 0.001;
 	sce->toolsettings->segments = 32;
@@ -445,6 +446,7 @@ Scene *BKE_scene_add(const char *name)
 	sce->toolsettings->uvcalc_cubesize = 1.0f;
 	sce->toolsettings->uvcalc_mapdir = 1;
 	sce->toolsettings->uvcalc_mapalign = 1;
+	sce->toolsettings->uvcalc_margin = 0.001f;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh = 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
@@ -567,8 +569,13 @@ Scene *BKE_scene_add(const char *name)
 
 	sound_create_scene(sce);
 
+	/* color management */
+	colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_SEQUENCER);
+
 	BKE_color_managed_display_settings_init(&sce->display_settings);
 	BKE_color_managed_view_settings_init(&sce->view_settings);
+	BLI_strncpy(sce->sequencer_colorspace_settings.name, colorspace_name,
+	            sizeof(sce->sequencer_colorspace_settings.name));
 
 	return sce;
 }
@@ -748,7 +755,7 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of group_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							duplilist = object_duplilist((*scene), (*base)->object);
+							duplilist = object_duplilist((*scene), (*base)->object, FALSE);
 							
 							dupob = duplilist->first;
 
@@ -951,7 +958,7 @@ float BKE_scene_frame_get_from_ctime(Scene *scene, const float frame)
 {
 	float ctime = frame;
 	ctime += scene->r.subframe;
-	ctime *= scene->r.framelen;	
+	ctime *= scene->r.framelen;
 	
 	return ctime;
 }
@@ -1035,7 +1042,7 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);
 
-	scene->physics_settings.quick_cache_step = 0;
+	/* removed calls to quick_cache, see pointcache.c */
 	
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
 	 * when trying to find materials with drivers that need evaluating [#32017] 
@@ -1058,10 +1065,6 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 	
-	/* quick point cache updates */
-	if (scene->physics_settings.quick_cache_step)
-		BKE_ptcache_quick_cache_all(bmain, scene);
-
 	/* notify editors and python about recalc */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	DAG_ids_check_recalc(bmain, scene, FALSE);
@@ -1109,6 +1112,11 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 */
 	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
+
+	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
+	 * when trying to find materials with drivers that need evaluating [#32017] 
+	 */
+	tag_main_idcode(bmain, ID_MA, FALSE);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);
@@ -1186,7 +1194,7 @@ int BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *s
 int get_render_subsurf_level(RenderData *r, int lvl)
 {
 	if (r->mode & R_SIMPLIFY)
-		return MIN2(r->simplify_subsurf, lvl);
+		return min_ii(r->simplify_subsurf, lvl);
 	else
 		return lvl;
 }
@@ -1202,7 +1210,7 @@ int get_render_child_particle_number(RenderData *r, int num)
 int get_render_shadow_samples(RenderData *r, int samples)
 {
 	if ((r->mode & R_SIMPLIFY) && samples > 0)
-		return MIN2(r->simplify_shadowsamples, samples);
+		return min_ii(r->simplify_shadowsamples, samples);
 	else
 		return samples;
 }
@@ -1270,13 +1278,20 @@ void BKE_scene_disable_color_management(Scene *scene)
 	ColorManagedDisplaySettings *display_settings = &scene->display_settings;
 	ColorManagedViewSettings *view_settings = &scene->view_settings;
 	const char *view;
+	const char *none_display_name;
 
-	/* NOTE: None display with Default view should always exist in OCIO configuration, otherwise it wouldn't work as expected */
-	BLI_strncpy(display_settings->display_device, "None", sizeof(display_settings->display_device));
+	none_display_name = IMB_colormanagement_display_get_none_name();
+
+	BLI_strncpy(display_settings->display_device, none_display_name, sizeof(display_settings->display_device));
 
 	view = IMB_colormanagement_view_get_default_name(display_settings->display_device);
 
 	if (view) {
 		BLI_strncpy(view_settings->view_transform, view, sizeof(view_settings->view_transform));
 	}
+}
+
+int BKE_scene_check_color_management_enabled(const Scene *scene)
+{
+	return strcmp(scene->display_settings.display_device, "None") != 0;
 }

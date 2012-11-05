@@ -91,7 +91,7 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 	adt = BKE_animdata_from_id(id);
 	if ((adt == NULL) && (add))
 		adt = BKE_id_add_animdata(id);
-	if (adt == NULL) { 
+	if (adt == NULL) {
 		/* if still none (as not allowed to add, or ID doesn't have animdata for some reason) */
 		return NULL;
 	}
@@ -147,7 +147,7 @@ short ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int ar
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
 		BKE_reportf(reports, RPT_ERROR, 
-		            "Could not add Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)",
+		            "Could not add driver, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            id->name, rna_path);
 		return 0;
 	}
@@ -310,7 +310,7 @@ short ANIM_copy_driver(ReportList *reports, ID *id, const char rna_path[], int a
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "Could not find Driver to copy, as RNA Path is invalid for the given ID (ID = %s, Path = %s)",
+		            "Could not find driver to copy, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            id->name, rna_path);
 		return 0;
 	}
@@ -357,14 +357,14 @@ short ANIM_paste_driver(ReportList *reports, ID *id, const char rna_path[], int 
 	RNA_id_pointer_create(id, &id_ptr);
 	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
 		BKE_reportf(reports, RPT_ERROR,
-		            "Could not paste Driver, as RNA Path is invalid for the given ID (ID = %s, Path = %s)",
+		            "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)",
 		            id->name, rna_path);
 		return 0;
 	}
 	
 	/* if the buffer is empty, cannot paste... */
 	if (channeldriver_copypaste_buf == NULL) {
-		BKE_report(reports, RPT_ERROR, "Paste Driver: No Driver to paste");
+		BKE_report(reports, RPT_ERROR, "Paste driver: no driver to paste");
 		return 0;
 	}
 	
@@ -478,7 +478,7 @@ static int add_driver_button_exec(bContext *C, wmOperator *op)
 		char *path = get_driver_path_hack(C, &ptr, prop);
 		short flags = CREATEDRIVER_WITH_DEFAULT_DVAR;
 		
-		if (path) {			
+		if (path) {
 			success += ANIM_add_driver(op->reports, ptr.id.data, path, index, flags, DRIVER_TYPE_PYTHON);
 			
 			MEM_freeN(path);

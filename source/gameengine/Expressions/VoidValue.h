@@ -78,4 +78,3 @@ public:
 };
 
 #endif  /* __VOIDVALUE_H__ */
-

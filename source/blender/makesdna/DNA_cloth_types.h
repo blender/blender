@@ -45,7 +45,7 @@
  */
 
 typedef struct ClothSimSettings {
-	struct	LinkNode *cache; /* UNUSED atm */	
+	struct	LinkNode *cache; /* UNUSED atm */
 	float 	mingoal; 	/* see SB */
 	float	Cdis;		/* Mechanical damping of springs.		*/
 	float	Cvi;		/* Viscous/fluid damping.			*/

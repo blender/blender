@@ -98,7 +98,7 @@ void BKE_group_unlink(Group *group)
 				base->object->flag &= ~OB_FROMGROUP;
 				base->flag &= ~OB_FROMGROUP;
 			}
-		}			
+		}
 		
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
 			if (srl->light_override == group)
@@ -110,16 +110,6 @@ void BKE_group_unlink(Group *group)
 		
 		if (ob->dup_group == group) {
 			ob->dup_group = NULL;
-#if 0       /* XXX OLD ANIMSYS, NLASTRIPS ARE NO LONGER USED */
-			{
-				bActionStrip *strip;
-				/* duplicator strips use a group object, we remove it */
-				for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-					if (strip->object)
-						strip->object = NULL;
-				}
-			}
-#endif
 		}
 		
 		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
@@ -383,57 +373,3 @@ void group_handle_recalc_and_update(Scene *scene, Object *UNUSED(parent), Group 
 		}
 	}
 }
-
-#if 0
-Object *group_get_member_with_action(Group *group, bAction *act)
-{
-	GroupObject *go;
-	
-	if (group == NULL || act == NULL) return NULL;
-	
-	for (go = group->gobject.first; go; go = go->next) {
-		if (go->ob) {
-			if (go->ob->action == act)
-				return go->ob;
-			if (go->ob->nlastrips.first) {
-				bActionStrip *strip;
-				
-				for (strip = go->ob->nlastrips.first; strip; strip = strip->next) {
-					if (strip->act == act)
-						return go->ob;
-				}
-			}
-		}
-	}
-	return NULL;
-}
-
-/* if group has NLA, we try to map the used objects in NLA to group members */
-/* this assuming that object has received a new group link */
-void group_relink_nla_objects(Object *ob)
-{
-	Group *group;
-	GroupObject *go;
-	bActionStrip *strip;
-	
-	if (ob == NULL || ob->dup_group == NULL) return;
-	group = ob->dup_group;
-	
-	for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-		if (strip->object) {
-			for (go = group->gobject.first; go; go = go->next) {
-				if (go->ob) {
-					if (strcmp(go->ob->id.name, strip->object->id.name) == 0)
-						break;
-				}
-			}
-			if (go)
-				strip->object = go->ob;
-			else
-				strip->object = NULL;
-		}
-			
-	}
-}
-
-#endif

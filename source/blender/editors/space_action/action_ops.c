@@ -168,9 +168,8 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	
 	/* action_edit.c */
-	/* snap - current frame to selected keys */
-	// TODO: maybe since this is called jump, we're better to have it on <something>-J?
-	WM_keymap_add_item(keymap, "ACTION_OT_frame_jump", SKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	/* jump to selected keyframes */
+	WM_keymap_add_item(keymap, "ACTION_OT_frame_jump", GKEY, KM_PRESS, KM_CTRL, 0);
 		
 	/* menu + single-step transform */
 	WM_keymap_add_item(keymap, "ACTION_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);

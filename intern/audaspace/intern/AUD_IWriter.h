@@ -41,7 +41,7 @@ public:
 	/**
 	 * Destroys the writer.
 	 */
-	virtual ~AUD_IWriter(){}
+	virtual ~AUD_IWriter() {}
 
 	/**
 	 * Returns how many samples have been written so far.

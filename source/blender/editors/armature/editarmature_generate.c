@@ -55,7 +55,7 @@ void setBoneRollFromNormal(EditBone *bone, const float no[3], float UNUSED(invma
 	if (no != NULL && !is_zero_v3(no)) {
 		float normal[3];
 
-		copy_v3_v3(normal, no);	
+		copy_v3_v3(normal, no);
 		mul_m3_v3(tmat, normal);
 		
 		bone->roll = ED_rollBoneToVector(bone, normal, FALSE);

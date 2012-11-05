@@ -233,6 +233,6 @@ struct Reorganize_VBVH {
 		*child_ptr = 0;
 		
 		return node;
-	}	
+	}
 };
 #endif

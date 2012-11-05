@@ -34,12 +34,12 @@
 
 
 /* **************** NORMAL  ******************** */
-static bNodeSocketTemplate cmp_node_normal_in[]= {
+static bNodeSocketTemplate cmp_node_normal_in[] = {
 	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate cmp_node_normal_out[]= {
+static bNodeSocketTemplate cmp_node_normal_out[] = {
 	{	SOCK_VECTOR, 0, N_("Normal")},
 	{	SOCK_FLOAT, 0, N_("Dot")},
 	{	-1, 0, ""	}
@@ -53,7 +53,7 @@ static void do_normal(bNode *node, float *out, float *in)
 	float *nor= ((bNodeSocketValueVector*)sock->default_value)->value;
 	
 	/* render normals point inside... the widget points outside */
-	out[0]= -dot_v3v3(nor, in);
+	out[0] = -dot_v3v3(nor, in);
 }
 
 /* generates normal, does dot product */
@@ -68,7 +68,7 @@ static void node_composit_exec_normal(void *UNUSED(data), bNode *node, bNodeStac
 	if (in[0]->data==NULL) {
 		copy_v3_v3(out[0]->vec, nor);
 		/* render normals point inside... the widget points outside */
-		out[1]->vec[0]= -dot_v3v3(out[0]->vec, in[0]->vec);
+		out[1]->vec[0] = -dot_v3v3(out[0]->vec, in[0]->vec);
 	}
 	else if (out[1]->hasoutput) {
 		/* make output size of input image */

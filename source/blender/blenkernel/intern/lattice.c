@@ -64,19 +64,19 @@
 #include "BKE_deform.h"
 
 
-void calc_lat_fudu(int flag, int res, float *fu, float *du)
+void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du)
 {
 	if (res == 1) {
-		*fu = 0.0;
-		*du = 0.0;
+		*r_fu = 0.0;
+		*r_du = 0.0;
 	}
 	else if (flag & LT_GRID) {
-		*fu = -0.5f * (res - 1);
-		*du = 1.0f;
+		*r_fu = -0.5f * (res - 1);
+		*r_du = 1.0f;
 	}
 	else {
-		*fu = -1.0f;
-		*du = 2.0f / (res - 1);
+		*r_fu = -1.0f;
+		*r_du = 2.0f / (res - 1);
 	}
 }
 
@@ -348,7 +348,7 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 	int ui, vi, wi, uu, vv, ww;
 
 	/* vgroup influence */
-	int defgroup_nr = -1;
+	int defgrp_index = -1;
 	float co_prev[3], weight_blend = 0.0f;
 	MDeformVert *dvert = BKE_lattice_deform_verts_get(ob);
 
@@ -357,7 +357,7 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 	if (lt->latticedata == NULL) return;
 
 	if (lt->vgroup[0] && dvert) {
-		defgroup_nr = defgroup_name_index(ob, lt->vgroup);
+		defgrp_index = defgroup_name_index(ob, lt->vgroup);
 		copy_v3_v3(co_prev, co);
 	}
 
@@ -431,8 +431,8 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 
 							madd_v3_v3fl(co, &lt->latticedata[idx_u * 3], u);
 
-							if (defgroup_nr != -1)
-								weight_blend += (u * defvert_find_weight(dvert + idx_u, defgroup_nr));
+							if (defgrp_index != -1)
+								weight_blend += (u * defvert_find_weight(dvert + idx_u, defgrp_index));
 						}
 					}
 				}
@@ -440,7 +440,7 @@ void calc_latt_deform(Object *ob, float co[3], float weight)
 		}
 	}
 
-	if (defgroup_nr != -1)
+	if (defgrp_index != -1)
 		interp_v3_v3v3(co, co_prev, co, weight_blend);
 
 }
@@ -669,9 +669,9 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	
 	if (vgroup && vgroup[0] && use_vgroups) {
 		Mesh *me = target->data;
-		int index = defgroup_name_index(target, vgroup);
+		const int defgrp_index = defgroup_name_index(target, vgroup);
 
-		if (index != -1 && (me->dvert || dm)) {
+		if (defgrp_index != -1 && (me->dvert || dm)) {
 			MDeformVert *dvert = me->dvert;
 			float vec[3];
 			float weight;
@@ -681,7 +681,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 				dvert = me->dvert;
 				for (a = 0; a < numVerts; a++, dvert++) {
 					if (dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
-					weight = defvert_find_weight(dvert, index);
+					weight = defvert_find_weight(dvert, defgrp_index);
 	
 					if (weight > 0.0f) {
 						mul_m4_v3(cd.curvespace, vertexCos[a]);
@@ -699,7 +699,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 				for (a = 0; a < numVerts; a++, dvert++) {
 					if (dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
 					
-					if (defvert_find_weight(dvert, index) > 0.0f) {
+					if (defvert_find_weight(dvert, defgrp_index) > 0.0f) {
 						mul_m4_v3(cd.curvespace, vertexCos[a]);
 						minmax_v3v3_v3(cd.dmin, cd.dmax, vertexCos[a]);
 					}
@@ -709,7 +709,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 				for (a = 0; a < numVerts; a++, dvert++) {
 					if (dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
 					
-					weight = defvert_find_weight(dvert, index);
+					weight = defvert_find_weight(dvert, defgrp_index);
 	
 					if (weight > 0.0f) {
 						/* already in 'cd.curvespace', prev for loop */
@@ -815,16 +815,16 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	
 	if (vgroup && vgroup[0] && use_vgroups) {
 		Mesh *me = target->data;
-		int index = defgroup_name_index(target, vgroup);
+		const int defgrp_index = defgroup_name_index(target, vgroup);
 		float weight;
 
-		if (index >= 0 && (me->dvert || dm)) {
+		if (defgrp_index >= 0 && (me->dvert || dm)) {
 			MDeformVert *dvert = me->dvert;
 			
 			for (a = 0; a < numVerts; a++, dvert++) {
 				if (dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
 
-				weight = defvert_find_weight(dvert, index);
+				weight = defvert_find_weight(dvert, defgrp_index);
 
 				if (weight > 0.0f)
 					calc_latt_deform(laOb, vertexCos[a], weight * fac);
@@ -879,9 +879,10 @@ void outside_lattice(Lattice *lt)
 			for (v = 0; v < lt->pntsv; v++) {
 			
 				for (u = 0; u < lt->pntsu; u++, bp++) {
-					if (u == 0 || v == 0 || w == 0 || u == lt->pntsu - 1 || v == lt->pntsv - 1 || w == lt->pntsw - 1) ;
+					if (u == 0 || v == 0 || w == 0 || u == lt->pntsu - 1 || v == lt->pntsv - 1 || w == lt->pntsw - 1) {
+						/* pass */
+					}
 					else {
-					
 						bp->hide = 1;
 						bp->f1 &= ~SELECT;
 						

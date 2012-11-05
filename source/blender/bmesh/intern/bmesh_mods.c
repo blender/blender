@@ -130,6 +130,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 	/* this code for handling 2 and 3-valence verts
 	 * may be totally bad */
 	if (keepedge == NULL && len == 3) {
+#if 0
 		/* handle specific case for three-valence.  solve it by
 		 * increasing valence to four.  this may be hackish. .  */
 		BMLoop *loop = e->l;
@@ -140,6 +141,13 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		if (!BM_disk_dissolve(bm, v)) {
 			return FALSE;
 		}
+#else
+		BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
+
+		if (!BM_vert_collapse_faces(bm, v->e, v, 1.0, FALSE, TRUE)) {
+			return FALSE;
+		}
+#endif
 		return TRUE;
 	}
 	else if (keepedge == NULL && len == 2) {
@@ -188,8 +196,9 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 			} while (e != v->e);
 		}
 
-		/* collapse the verte */
-		e = BM_vert_collapse_faces(bm, baseedge, v, 1.0, TRUE, TRUE);
+		/* collapse the vertex */
+		/* note, the baseedge can be a boundary of manifold, use this as join_faces arg */
+		e = BM_vert_collapse_faces(bm, baseedge, v, 1.0, !BM_edge_is_boundary(baseedge), TRUE);
 
 		if (!e) {
 			return FALSE;
@@ -428,7 +437,7 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
 			/* bmesh_semv returns in newe the edge going from newv to tv */
 			copy_v3_v3(newv->co, cos[i]);
 
-			/* interpolate the loop data for the loops with v==newv, using orig face */
+			/* interpolate the loop data for the loops with (v == newv), using orig face */
 			for (j = 0; j < 2; j++) {
 				BMEdge *e_iter = (j == 0) ? e : newe;
 				BMLoop *l_iter = e_iter->l;
@@ -460,9 +469,6 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, float cos[
  * \note this function is very close to #BM_vert_collapse_edge,
  * both collapse a vertex and return a new edge.
  * Except this takes a factor and merges custom data.
- *
- *  BMESH_TODO:
- *    Insert error checking for KV valance.
  *
  * \param bm The bmesh
  * \param ke The edge to collapse
@@ -558,7 +564,7 @@ BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
 				/* cant kill data we loop on, build a list and remove those */
 				BLI_array_empty(bad_faces);
 				BM_ITER_ELEM (f, &fiter, verts[i], BM_FACES_OF_VERT) {
-					if (f->len < 3) {
+					if (UNLIKELY(f->len < 3)) {
 						BLI_array_append(bad_faces, f);
 					}
 				}

@@ -29,4 +29,4 @@
 
 PyObject *BPY_app_ffmpeg_struct(void);
 
-#endif // __BPY_APP_FFMPEG_H__
+#endif  /* __BPY_APP_FFMPEG_H__ */

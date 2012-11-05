@@ -88,8 +88,8 @@ extern "C" {
 
 
 /*
-   COLLADA Importer limitations:
-   - no multiple scene import, all objects are added to active scene
+ * COLLADA Importer limitations:
+ * - no multiple scene import, all objects are added to active scene
  */
 
 // #define COLLADA_DEBUG
@@ -210,7 +210,7 @@ void DocumentImporter::finish()
 	}
 
 
-	mesh_importer.optimize_material_assignements();
+	mesh_importer.optimize_material_assignments();
 
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);
@@ -311,7 +311,7 @@ bool DocumentImporter::writeScene(const COLLADAFW::Scene *scene)
 Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera, Scene *sce)
 {
 	const COLLADAFW::UniqueId& cam_uid = camera->getInstanciatedObjectId();
-	if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {	
+	if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {
 		// fprintf(stderr, "Couldn't find camera by UID.\n");
 		return NULL;
 	}
@@ -329,7 +329,7 @@ Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 Object *DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Scene *sce)
 {
 	const COLLADAFW::UniqueId& lamp_uid = lamp->getInstanciatedObjectId();
-	if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {	
+	if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {
 		fprintf(stderr, "Couldn't find lamp by UID.\n");
 		return NULL;
 	}
@@ -524,7 +524,7 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	}
 	// if node has child nodes write them
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
-	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {	
+	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
 		write_node(child_nodes[i], node, sce, ob, is_library_node);
 	}
 }
@@ -878,7 +878,7 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 		}
 		break;
 		/* XXX correct way to do following four is probably to get also render
-		   size and determine proper settings from that somehow */
+		 * size and determine proper settings from that somehow */
 		case COLLADAFW::Camera::ASPECTRATIO_AND_X:
 		case COLLADAFW::Camera::SINGLE_X:
 		case COLLADAFW::Camera::X_AND_Y:

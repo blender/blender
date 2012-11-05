@@ -32,10 +32,10 @@
  *  \ingroup modifiers
  */
 
-
-#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
@@ -44,12 +44,16 @@
 
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_deform.h"
 #include "BKE_particle.h"
 #include "BKE_cdderivedmesh.h"
 
+#include "bmesh.h"
 
-#ifdef WITH_MOD_DECIMATE
-#include "LOD_decimation.h"
+// #define USE_TIMEIT
+
+#ifdef USE_TIMEIT
+#  include "PIL_time.h"
 #endif
 
 #include "MOD_util.h"
@@ -59,6 +63,7 @@ static void initData(ModifierData *md)
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 
 	dmd->percent = 1.0;
+	dmd->angle   = DEG2RADF(15.0f);
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -67,146 +72,136 @@ static void copyData(ModifierData *md, ModifierData *target)
 	DecimateModifierData *tdmd = (DecimateModifierData *) target;
 
 	tdmd->percent = dmd->percent;
+	tdmd->iter = dmd->iter;
+	tdmd->angle = dmd->angle;
+	BLI_strncpy(tdmd->defgrp_name, dmd->defgrp_name, sizeof(tdmd->defgrp_name));
+	tdmd->flag = dmd->flag;
+	tdmd->mode = dmd->mode;
 }
 
-#ifdef WITH_MOD_DECIMATE
-static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
+static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
+{
+	DecimateModifierData *dmd = (DecimateModifierData *) md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if (dmd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
+
+	return dataMask;
+}
+
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 	DerivedMesh *dm = derivedData, *result = NULL;
-	MVert *mvert;
-	MFace *mface;
-	LOD_Decimation_Info lod;
-	int totvert, totface;
-	int a, numTris;
+	BMesh *bm;
 
-	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+	float *vweights = NULL;
 
-	mvert = dm->getVertArray(dm);
-	mface = dm->getTessFaceArray(dm);
-	totvert = dm->getNumVerts(dm);
-	totface = dm->getNumTessFaces(dm);
+#ifdef USE_TIMEIT
+	TIMEIT_START(decim);
+#endif
 
-	numTris = 0;
-	for (a = 0; a < totface; a++) {
-		MFace *mf = &mface[a];
-		numTris++;
-		if (mf->v4) numTris++;
+	/* set up front so we dont show invalid info in the UI */
+	dmd->face_count = dm->getNumPolys(dm);
+
+	switch (dmd->mode) {
+		case MOD_DECIM_MODE_COLLAPSE:
+			if (dmd->percent == 1.0f) {
+				return dm;
+			}
+			break;
+		case MOD_DECIM_MODE_UNSUBDIV:
+			if (dmd->iter == 0) {
+				return dm;
+			}
+			break;
+		case MOD_DECIM_MODE_DISSOLVE:
+			if (dmd->angle == 0.0f) {
+				return dm;
+			}
+			break;
 	}
 
-	if (numTris < 3) {
-		modifier_setError(md, "%s", TIP_("Modifier requires more than 3 input faces (triangles)."));
-		dm = CDDM_copy(dm);
+	if (dmd->face_count <= 3) {
+		modifier_setError(md, "Modifier requires more than 3 input faces");
 		return dm;
 	}
 
-	lod.vertex_buffer = MEM_mallocN(3 * sizeof(float) * totvert, "vertices");
-	lod.vertex_normal_buffer = MEM_mallocN(3 * sizeof(float) * totvert, "normals");
-	lod.triangle_index_buffer = MEM_mallocN(3 * sizeof(int) * numTris, "trias");
-	lod.vertex_num = totvert;
-	lod.face_num = numTris;
+	if (dmd->mode == MOD_DECIM_MODE_COLLAPSE) {
+		if (dmd->defgrp_name[0]) {
+			MDeformVert *dvert;
+			int defgrp_index;
 
-	for (a = 0; a < totvert; a++) {
-		MVert *mv = &mvert[a];
-		float *vbCo = &lod.vertex_buffer[a * 3];
-		float *vbNo = &lod.vertex_normal_buffer[a * 3];
+			modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
 
-		copy_v3_v3(vbCo, mv->co);
-		normal_short_to_float_v3(vbNo, mv->no);
-	}
+			if (dvert) {
+				const unsigned int vert_tot = dm->getNumVerts(dm);
+				unsigned int i;
 
-	numTris = 0;
-	for (a = 0; a < totface; a++) {
-		MFace *mf = &mface[a];
-		int *tri = &lod.triangle_index_buffer[3 * numTris++];
-		tri[0] = mf->v1;
-		tri[1] = mf->v2;
-		tri[2] = mf->v3;
+				vweights = MEM_mallocN(vert_tot * sizeof(float), __func__);
 
-		if (mf->v4) {
-			tri = &lod.triangle_index_buffer[3 * numTris++];
-			tri[0] = mf->v1;
-			tri[1] = mf->v3;
-			tri[2] = mf->v4;
-		}
-	}
-
-	dmd->faceCount = 0;
-	if (LOD_LoadMesh(&lod) ) {
-		if (LOD_PreprocessMesh(&lod) ) {
-			/* we assume the decim_faces tells how much to reduce */
-
-			while (lod.face_num > numTris * dmd->percent) {
-				if (LOD_CollapseEdge(&lod) == 0) break;
-			}
-
-			if (lod.vertex_num > 2) {
-				result = CDDM_new(lod.vertex_num, 0, lod.face_num, 0, 0);
-				dmd->faceCount = lod.face_num;
-			}
-			else
-				result = CDDM_new(lod.vertex_num, 0, 0, 0, 0);
-
-			mvert = CDDM_get_verts(result);
-			for (a = 0; a < lod.vertex_num; a++) {
-				MVert *mv = &mvert[a];
-				float *vbCo = &lod.vertex_buffer[a * 3];
-				
-				copy_v3_v3(mv->co, vbCo);
-			}
-
-			if (lod.vertex_num > 2) {
-				mface = CDDM_get_tessfaces(result);
-				for (a = 0; a < lod.face_num; a++) {
-					MFace *mf = &mface[a];
-					int *tri = &lod.triangle_index_buffer[a * 3];
-					mf->v1 = tri[0];
-					mf->v2 = tri[1];
-					mf->v3 = tri[2];
-					test_index_face(mf, NULL, 0, 3);
+				if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
+					for (i = 0; i < vert_tot; i++) {
+						vweights[i] = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
+					}
+				}
+				else {
+					for (i = 0; i < vert_tot; i++) {
+						vweights[i] = defvert_find_weight(&dvert[i], defgrp_index);
+					}
 				}
 			}
-
-			CDDM_calc_edges_tessface(result);
 		}
-		else
-			modifier_setError(md, "%s", TIP_("Out of memory."));
-
-		LOD_FreeDecimationData(&lod);
 	}
-	else
-		modifier_setError(md, "%s", TIP_("Non-manifold mesh as input."));
 
-	MEM_freeN(lod.vertex_buffer);
-	MEM_freeN(lod.vertex_normal_buffer);
-	MEM_freeN(lod.triangle_index_buffer);
+	bm = DM_to_bmesh(dm);
 
-	if (result) {
-		CDDM_tessfaces_to_faces(result); /*builds ngon faces from tess (mface) faces*/
-
-		return result;
+	switch (dmd->mode) {
+		case MOD_DECIM_MODE_COLLAPSE:
+		{
+			const int do_triangulate = (dmd->flag & MOD_DECIM_FLAG_TRIANGULATE) != 0;
+			BM_mesh_decimate_collapse(bm, dmd->percent, vweights, do_triangulate);
+			break;
+		}
+		case MOD_DECIM_MODE_UNSUBDIV:
+		{
+			BM_mesh_decimate_unsubdivide(bm, dmd->iter);
+			break;
+		}
+		case MOD_DECIM_MODE_DISSOLVE:
+		{
+			const int do_dissolve_boundaries = (dmd->flag & MOD_DECIM_FLAG_ALL_BOUNDARY_VERTS) != 0;
+			BM_mesh_decimate_dissolve(bm, dmd->angle, do_dissolve_boundaries);
+			break;
+		}
 	}
-	else {
-		return dm;
+
+	if (vweights) {
+		MEM_freeN(vweights);
 	}
+
+	/* update for display only */
+	dmd->face_count = bm->totface;
+	result = CDDM_from_bmesh(bm, FALSE);
+	BM_mesh_free(bm);
+
+#ifdef USE_TIMEIT
+	TIMEIT_END(decim);
+#endif
+
+	return result;
 }
-#else // WITH_MOD_DECIMATE
-static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
-                                  DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
-{
-	return derivedData;
-}
-#endif // WITH_MOD_DECIMATE
 
 ModifierTypeInfo modifierType_Decimate = {
 	/* name */              "Decimate",
 	/* structName */        "DecimateModifierData",
 	/* structSize */        sizeof(DecimateModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_AcceptsCVs,
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
@@ -215,7 +210,7 @@ ModifierTypeInfo modifierType_Decimate = {
 	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
-	/* requiredDataMask */  NULL,
+	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    NULL,

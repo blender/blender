@@ -112,7 +112,7 @@ branch = get_branch(packagename)
 
 if platform == '':
     sys.stderr.write('Failed to detect platform ' +
-        'from package: %r\n' % packagename)
+                     'from package: %r\n' % packagename)
     sys.exit(1)
 
 # extract

@@ -738,4 +738,3 @@ int		STR_String::Serialize(pCStream stream)
 	return this->m_len + sizeof(this->m_len);
 }
 #endif
-

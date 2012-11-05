@@ -102,7 +102,7 @@ GHOST_TSuccess GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(GHOST_TUns8 d
 	
 	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerCocoa::getCurrentDisplaySetting(): only main display is supported");
 
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	if (display == kMainDisplay) //Screen #0 may not be the main one
 		askedDisplay = [NSScreen mainScreen];

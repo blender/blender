@@ -78,8 +78,6 @@
 
 #include "image_intern.h"
 
-#define HEADER_HEIGHT 18
-
 static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
 {
 	RenderResult *rr;
@@ -118,7 +116,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 
 	/* noisy, high contrast make impossible to read if lower alpha is used. */
 	glColor4ub(0, 0, 0, 190);
-	glRecti(0.0, 0.0, BLI_RCT_SIZE_X(&ar->winrct) + 1, 20);
+	glRecti(0.0, 0.0, BLI_rcti_size_x(&ar->winrct) + 1, 20);
 	glDisable(GL_BLEND);
 
 	BLF_size(blf_mono_font, 11, 72);
@@ -524,7 +522,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 	dy = ibuf->y / ima->yrep;
 	sx = (sima->curtile % ima->xrep) * dx;
 	sy = (sima->curtile / ima->xrep) * dy;
-	rect = get_part_from_buffer((unsigned int*)display_buffer, ibuf->x, sx, sy, sx + dx, sy + dy);
+	rect = get_part_from_buffer((unsigned int *)display_buffer, ibuf->x, sx, sy, sx + dx, sy + dy);
 	
 	/* draw repeated */
 	for (sy = 0; sy + dy <= ibuf->y; sy += dy) {
@@ -580,7 +578,7 @@ void draw_image_grease_pencil(bContext *C, short onlyv2d)
 	}
 	else {
 		/* assume that UI_view2d_restore(C) has been called... */
-		//SpaceImage *sima= (SpaceImage *)CTX_wm_space_data(C);
+		//SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
 		
 		/* draw grease-pencil ('screen' strokes) */
 		draw_gpencil_view2d(C, 0);
@@ -793,7 +791,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 			xoffs = scene->r.disprect.xmin;
 			yoffs = scene->r.disprect.ymin;
 			glColor3ub(0, 0, 0);
-			calc_image_view(sima, 'f');	
+			calc_image_view(sima, 'f');
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			glRectf(0.0f, 0.0f, 1.0f, 1.0f);
 			glLoadIdentity();

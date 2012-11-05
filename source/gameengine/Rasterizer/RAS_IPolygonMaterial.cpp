@@ -254,12 +254,18 @@ bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 {
 	bool dolights = false;
 
-	if (m_flag & RAS_BLENDERMAT)
-		dolights = (m_flag &RAS_MULTILIGHT)!=0;
-	else if (rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID);
-	else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW);
-	else
+	if (m_flag & RAS_BLENDERMAT) {
+		dolights = (m_flag & RAS_MULTILIGHT) != 0;
+	}
+	else if (rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID) {
+		/* pass */
+	}
+	else if (rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW) {
+		/* pass */
+	}
+	else {
 		dolights = m_light;
+	}
 	
 	return dolights;
 }

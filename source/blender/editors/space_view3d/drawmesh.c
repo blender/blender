@@ -373,13 +373,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.ob = ob;
 	Gtexdraw.is_tex = is_tex;
 
-	/* OCIO_TODO: for now assume OpenGL is always doing color management and working in sRGB space
-	 *            supporting for real display conversion could be nice here, but it's a bit challenging
-	 *            since all the shaders should be aware of such a transform
-	 *            perhaps this flag could be completely removed before release in separated commit and
-	 *            be re-implemented if real display transform would be needed
-	 */
-	Gtexdraw.color_profile = TRUE;
+	Gtexdraw.color_profile = BKE_scene_check_color_management_enabled(scene);
 
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, NULL, NULL, Gtexdraw);
@@ -388,7 +382,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 	}
-	else {		
+	else {
 		glDisable(GL_CULL_FACE);
 	}
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
@@ -412,7 +406,7 @@ static void draw_textured_end(void)
 	 *  - zr
 	 */
 	glPushMatrix();
-	glLoadIdentity();	
+	glLoadIdentity();
 	GPU_default_lights();
 	glPopMatrix();
 }
@@ -539,8 +533,7 @@ static void update_tface_color_layer(DerivedMesh *dm)
 			}
 			else {
 				float col[3];
-				Material *ma = give_current_material(Gtexdraw.ob, mface[i].mat_nr + 1);
-				
+
 				if (ma) {
 					if (Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
 					else copy_v3_v3(col, &ma->r);
@@ -638,12 +631,12 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	MLoopCol *mloopcol = me->mloopcol;  /* why does mcol exist? */
 	MLoopCol *lcol;
 
-	bProperty *prop = get_ob_property(ob, "Text");
+	bProperty *prop = BKE_bproperty_object_get(ob, "Text");
 	GPUVertexAttribs gattribs;
 	int a, totpoly = me->totpoly;
 
 	/* fake values to pass to GPU_render_text() */
-	MCol tmp_mcol[4]  = {{0}};
+	MCol  tmp_mcol[4]  = {{0}};
 	MCol *tmp_mcol_pt  = mloopcol ? tmp_mcol : NULL;
 	MTFace tmp_tf      = {{{0}}};
 
@@ -710,11 +703,11 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 			/* COLOR */
 			if (mloopcol) {
-				unsigned int totloop_clamp = MIN2(4, mp->totloop);
+				unsigned int totloop_clamp = min_ii(4, mp->totloop);
 				unsigned int j;
 				lcol = &mloopcol[mp->loopstart];
 
-				for (j = 0; j <= totloop_clamp; j++, lcol++) {
+				for (j = 0; j < totloop_clamp; j++, lcol++) {
 					MESH_MLOOPCOL_TO_MCOL(lcol, &tmp_mcol[j]);
 				}
 			}
@@ -732,7 +725,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			/* The BM_FONT handling is in the gpu module, shared with the
 			 * game engine, was duplicated previously */
 
-			set_property_valstr(prop, string);
+			BKE_bproperty_set_valstr(prop, string);
 			characters = strlen(string);
 			
 			if (!BKE_image_get_ibuf(mtpoly->tpage, NULL))
@@ -832,7 +825,7 @@ static void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	}
 
 	/* draw game engine text hack */
-	if (get_ob_property(ob, "Text"))
+	if (BKE_bproperty_object_get(ob, "Text"))
 		draw_mesh_text(scene, ob, 0);
 
 	draw_textured_end();

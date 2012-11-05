@@ -29,7 +29,7 @@
 
 /* **************** INPUT ********************* */
 
-static bNodeSocketTemplate sh_node_light_falloff_in[]= {
+static bNodeSocketTemplate sh_node_light_falloff_in[] = {
 	{	SOCK_FLOAT, 0, N_("Strength"),			100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
 	{	SOCK_FLOAT, 0, N_("Smooth"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
 	{	-1, 0, ""	}
@@ -37,7 +37,7 @@ static bNodeSocketTemplate sh_node_light_falloff_in[]= {
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_light_falloff_out[]= {
+static bNodeSocketTemplate sh_node_light_falloff_out[] = {
 	{	SOCK_FLOAT, 0, N_("Quadratic"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Linear"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, N_("Constant"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},

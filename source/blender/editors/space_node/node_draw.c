@@ -62,10 +62,8 @@
 #include "node_intern.h"  /* own include */
 #include "COM_compositor.h"
 
-/* width of socket columns in group display */
-#define NODE_GROUP_FRAME  120
 /* XXX interface.h */
-extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);
+extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 /* XXX update functions for node editor are a mess, needs a clear concept */
 void ED_node_tree_update(SpaceNode *snode, Scene *scene)
@@ -103,7 +101,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 			nodeUpdateID(nodetree, node->id);
 
 		WM_main_add_notifier(NC_SCENE | ND_NODES, id);
-	}			
+	}
 	else if (treetype == NTREE_TEXTURE) {
 		DAG_id_tag_update(id, 0);
 		WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);
@@ -343,7 +341,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 			if (node->prvr.ymax < node->prvr.ymin) SWAP(float, node->prvr.ymax, node->prvr.ymin);
 		}
 		else {
-			float oldh = BLI_RCT_SIZE_Y(&node->prvr);
+			float oldh = BLI_rctf_size_y(&node->prvr);
 			if (oldh == 0.0f)
 				oldh = 0.6f * node->width - NODE_DY;
 			dy -= NODE_DYS / 2;
@@ -393,7 +391,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	node->totr.xmin = locx;
 	node->totr.xmax = locx + node->width;
 	node->totr.ymax = locy;
-	node->totr.ymin = minf(dy, locy - 2 * NODE_DY);
+	node->totr.ymin = min_ff(dy, locy - 2 * NODE_DY);
 	
 	/* Set the block bounds to clip mouse events from underlying nodes.
 	 * Add a margin for sockets on each side.
@@ -508,25 +506,16 @@ int node_get_colorid(bNode *node)
 /* note: in node_edit.c is similar code, for untangle node */
 static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
-	ListBase links;
 	bNodeLink *link;
-
-	if (node->typeinfo->internal_connect == NULL)
-		return;
-
-	/* Get default muting links. */
-	links = node->typeinfo->internal_connect(snode->edittree, node);
 
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 
-	for (link = links.first; link; link = link->next)
+	for (link = node->internal_links.first; link; link = link->next)
 		node_draw_link_bezier(v2d, snode, link, TH_REDALERT, 0, TH_WIRE, 0, TH_WIRE);
 
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
-
-	BLI_freelistN(&links);
 }
 
 /* this might have some more generic use */
@@ -584,9 +573,9 @@ void node_socket_circle_draw(bNodeTree *UNUSED(ntree), bNodeSocket *sock, float 
 /* not a callback */
 static void node_draw_preview(bNodePreview *preview, rctf *prv)
 {
-	float xscale = BLI_RCT_SIZE_X(prv) / ((float)preview->xsize);
-	float yscale = BLI_RCT_SIZE_Y(prv) / ((float)preview->ysize);
-	float tile   = BLI_RCT_SIZE_X(prv) / 10.0f;
+	float xscale = BLI_rctf_size_x(prv) / ((float)preview->xsize);
+	float yscale = BLI_rctf_size_y(prv) / ((float)preview->ysize);
+	float tile   = BLI_rctf_size_x(prv) / 10.0f;
 	float x, y;
 	
 	/* draw checkerboard backdrop to show alpha */
@@ -670,7 +659,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	bNodeSocket *sock;
 	rctf *rct = &node->totr;
 	float iconofs;
-	/* float socket_size= NODE_SOCKSIZE*U.dpi/72; */ /* UNUSED */
+	/* float socket_size = NODE_SOCKSIZE*U.dpi/72; */ /* UNUSED */
 	float iconbutw = 0.8f * UI_UNIT_X;
 	int color_id = node_get_colorid(node);
 	char showname[128]; /* 128 used below */
@@ -852,8 +841,8 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 {
 	bNodeSocket *sock;
 	rctf *rct = &node->totr;
-	float dx, centy = BLI_RCT_CENTER_Y(rct);
-	float hiddenrad = BLI_RCT_SIZE_Y(rct) / 2.0f;
+	float dx, centy = BLI_rctf_cent_y(rct);
+	float hiddenrad = BLI_rctf_size_y(rct) / 2.0f;
 	float socket_size = NODE_SOCKSIZE * U.dpi / 72;
 	int color_id = node_get_colorid(node);
 	char showname[128]; /* 128 is used below */
@@ -917,7 +906,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	
 	/* disable lines */
 	if (node->flag & NODE_MUTED)
-		node_draw_mute_line(&ar->v2d, snode, node);	
+		node_draw_mute_line(&ar->v2d, snode, node);
 	
 	if (node->flag & SELECT) 
 		UI_ThemeColor(TH_SELECT);
@@ -932,9 +921,9 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 
 		uiDefBut(node->block, LABEL, 0, showname,
 		         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(centy - 10),
-		         (short)(BLI_RCT_SIZE_X(rct) - 18.0f - 12.0f), (short)NODE_DY,
+		         (short)(BLI_rctf_size_x(rct) - 18.0f - 12.0f), (short)NODE_DY,
 		         NULL, 0, 0, 0, 0, "");
-	}	
+	}
 
 	/* scale widget thing */
 	UI_ThemeColorShade(color_id, -10);
@@ -1108,9 +1097,9 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	glEnable(GL_MAP1_VERTEX_3);
 
 	/* aspect+font, set each time */
-	snode->aspect = BLI_RCT_SIZE_X(&v2d->cur) / (float)ar->winx;
+	snode->aspect = BLI_rctf_size_x(&v2d->cur) / (float)ar->winx;
 	snode->aspect_sqrt = sqrtf(snode->aspect);
-	// XXX snode->curfont= uiSetCurFont_ext(snode->aspect);
+	// XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 
 	/* grid */
 	UI_view2d_multi_grid_draw(v2d, 25.0f, 5, 2);
@@ -1140,7 +1129,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 #ifdef WITH_COMPOSITOR
 		if (snode->nodetree->type == NTREE_COMPOSIT) {
 			COM_startReadHighlights();
-		} 
+		}
 #endif
 
 		node_draw_nodetree(C, ar, snode, snode->nodetree);

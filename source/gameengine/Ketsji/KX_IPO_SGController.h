@@ -126,6 +126,4 @@ public:
 #endif
 };
 
-#endif //__KX_IPO_SGCONTROLLER_H__
-
-
+#endif  /* __KX_IPO_SGCONTROLLER_H__ */

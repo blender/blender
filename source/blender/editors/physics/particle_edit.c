@@ -328,7 +328,7 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
 static int pe_x_mirror(Object *ob)
 {
 	if (ob->type == OB_MESH)
-		return (((Mesh*)ob->data)->editflag & ME_EDIT_MIRROR_X);
+		return (((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_X);
 	
 	return 0;
 }
@@ -398,41 +398,41 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 /*************************** selection utilities *******************************/
 
-static int key_test_depth(PEData *data, const float co[3])
+static int key_test_depth(PEData *data, const float co[3], const int screen_co[2])
 {
 	View3D *v3d= data->vc.v3d;
 	double ux, uy, uz;
 	float depth;
-	short wco[3], x, y;
 
 	/* nothing to do */
 	if ((v3d->drawtype<=OB_WIRE) || (v3d->flag & V3D_ZBUF_SELECT)==0)
 		return 1;
 
-	project_short(data->vc.ar, co, wco);
-	
-	if (wco[0] == IS_CLIPPED)
+	/* used to calculate here but all callers have  the screen_co already, so pass as arg */
+#if 0
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co,
+	                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK)
+	{
 		return 0;
+	}
+#endif
 
 	gluProject(co[0], co[1], co[2], data->mats.modelview, data->mats.projection,
 	           (GLint *)data->mats.viewport, &ux, &uy, &uz);
 
-	x=wco[0];
-	y=wco[1];
-
 #if 0 /* works well but too slow on some systems [#23118] */
-	x+= (short)data->vc.ar->winrct.xmin;
-	y+= (short)data->vc.ar->winrct.ymin;
+	screen_co[0] += (short)data->vc.ar->winrct.xmin;
+	screen_co[1] += (short)data->vc.ar->winrct.ymin;
 
 	/* PE_set_view3d_data calls this. no need to call here */
 	/* view3d_validate_backbuf(&data->vc); */
-	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+	glReadPixels(screen_co[0], screen_co[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 #else /* faster to use depths, these are calculated in PE_set_view3d_data */
 	{
 		ViewDepths *vd = data->vc.rv3d->depths;
 		assert(vd && vd->depths);
 		/* we know its not clipped */
-		depth= vd->depths[y * vd->w + x];
+		depth = vd->depths[screen_co[1] * vd->w + screen_co[0]];
 	}
 #endif
 
@@ -445,21 +445,21 @@ static int key_test_depth(PEData *data, const float co[3])
 static int key_inside_circle(PEData *data, float rad, const float co[3], float *distance)
 {
 	float dx, dy, dist;
-	int sco[2];
+	int screen_co[2];
 
-	project_int(data->vc.ar, co, sco);
-	
-	if (sco[0] == IS_CLIPPED)
+	/* TODO, should this check V3D_PROJ_TEST_CLIP_BB too? */
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK) {
 		return 0;
-	
-	dx= data->mval[0] - sco[0];
-	dy= data->mval[1] - sco[1];
+	}
+
+	dx= data->mval[0] - screen_co[0];
+	dy= data->mval[1] - screen_co[1];
 	dist= sqrt(dx*dx + dy*dy);
 
 	if (dist > rad)
 		return 0;
 
-	if (key_test_depth(data, co)) {
+	if (key_test_depth(data, co, screen_co)) {
 		if (distance)
 			*distance=dist;
 
@@ -471,17 +471,16 @@ static int key_inside_circle(PEData *data, float rad, const float co[3], float *
 
 static int key_inside_rect(PEData *data, const float co[3])
 {
-	int sco[2];
+	int screen_co[2];
 
-	project_int(data->vc.ar, co, sco);
-
-	if (sco[0] == IS_CLIPPED)
+	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK) {
 		return 0;
+	}
 
-	if (sco[0] > data->rect->xmin && sco[0] < data->rect->xmax &&
-	    sco[1] > data->rect->ymin && sco[1] < data->rect->ymax)
+	if (screen_co[0] > data->rect->xmin && screen_co[0] < data->rect->xmax &&
+	    screen_co[1] > data->rect->ymin && screen_co[1] < data->rect->ymax)
 	{
-		return key_test_depth(data, co);
+		return key_test_depth(data, co, screen_co);
 	}
 
 	return 0;
@@ -604,7 +603,7 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 	ParticleSystemModifierData *psmd = NULL;
 	ParticleEditSettings *pset= PE_settings(data->scene);
 	POINT_P; KEY_K;
-	float mat[4][4]= MAT4_UNITY, imat[4][4]= MAT4_UNITY;
+	float mat[4][4] = MAT4_UNITY, imat[4][4] = MAT4_UNITY;
 
 	if (edit->psys)
 		psmd= psys_get_modifier(data->ob, edit->psys);
@@ -674,7 +673,7 @@ static void foreach_point(PEData *data, ForPointFunc func)
 	PTCacheEdit *edit = data->edit;
 	POINT_P;
 
-	LOOP_POINTS { 
+	LOOP_POINTS {
 		func(data, p);
 	}
 }
@@ -745,15 +744,15 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
 		copy_v3_v3(co, key->co);
 		mul_m4_v3(mat, co);
-		co[0]= -co[0];
+		co[0] = -co[0];
 
 		index= BLI_kdtree_find_nearest(tree, co, NULL, &nearest);
 
 		/* this needs a custom threshold still, duplicated for editmode mirror */
 		if (index != -1 && index != p && (nearest.dist <= 0.0002f))
-			edit->mirror_cache[p]= index;
+			edit->mirror_cache[p] = index;
 		else
-			edit->mirror_cache[p]= -1;
+			edit->mirror_cache[p] = -1;
 	}
 
 	/* make sure mirrors are in two directions */
@@ -761,7 +760,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 		if (edit->mirror_cache[p]) {
 			index= edit->mirror_cache[p];
 			if (edit->mirror_cache[index] != p)
-				edit->mirror_cache[p]= -1;
+				edit->mirror_cache[p] = -1;
 		}
 	}
 
@@ -830,7 +829,7 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	for (k=0; k<pa->totkey; k++, hkey++, mhkey++, key++, mkey++) {
 		copy_v3_v3(mhkey->co, hkey->co);
 		mul_m4_v3(mat, mhkey->co);
-		mhkey->co[0]= -mhkey->co[0];
+		mhkey->co[0] = -mhkey->co[0];
 		mul_m4_v3(immat, mhkey->co);
 
 		if (key->flag & PEK_TAG)
@@ -987,9 +986,9 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
 	PTCacheEditKey *key;
 	int j, k;
 	float tlen;
-	float dv0[3]= {0.0f, 0.0f, 0.0f};
-	float dv1[3]= {0.0f, 0.0f, 0.0f};
-	float dv2[3]= {0.0f, 0.0f, 0.0f};
+	float dv0[3] = {0.0f, 0.0f, 0.0f};
+	float dv1[3] = {0.0f, 0.0f, 0.0f};
+	float dv2[3] = {0.0f, 0.0f, 0.0f};
 
 	if (edit==0 || (pset->flag & PE_KEEP_LENGTHS)==0)
 		return;
@@ -1004,12 +1003,12 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
 			if (pset->flag & PE_LOCK_FIRST) {
 				key= point->keys + 1;
 				k= 1;
-				dv1[0]= dv1[1]= dv1[2]= 0.0;
+				dv1[0] = dv1[1] = dv1[2] = 0.0;
 			}
 			else {
 				key= point->keys;
 				k= 0;
-				dv0[0]= dv0[1]= dv0[2]= 0.0;
+				dv0[0] = dv0[1] = dv0[2] = 0.0;
 			}
 
 			for (; k<point->totkey; k++, key++) {
@@ -1528,8 +1527,8 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	int location[2];
 
 	RNA_int_get_array(op->ptr, "location", location);
-	mval[0]= location[0];
-	mval[1]= location[1];
+	mval[0] = location[0];
+	mval[1] = location[1];
 
 	PE_set_view3d_data(C, &data);
 	data.mval= mval;
@@ -1634,7 +1633,7 @@ int PE_circle_select(bContext *C, int selecting, const int mval[2], float rad)
 
 /************************ lasso select operator ************************/
 
-int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, short select)
+int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, short extend, short select)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -1644,8 +1643,8 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	POINT_P; KEY_K;
-	float co[3], mat[4][4]= MAT4_UNITY;
-	int vertco[2];
+	float co[3], mat[4][4] = MAT4_UNITY;
+	int screen_co[2];
 
 	PEData data;
 
@@ -1666,9 +1665,9 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 			LOOP_KEYS {
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
-				project_int(ar, co, vertco);
-				if (BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
-				    key_test_depth(&data, co))
+				if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
+				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
+				    key_test_depth(&data, co, screen_co))
 				{
 					if (select && !(key->flag & PEK_SELECT)) {
 						key->flag |= PEK_SELECT;
@@ -1686,9 +1685,9 @@ int PE_lasso_select(bContext *C, int mcords[][2], short moves, short extend, sho
 
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			project_int(ar, co, vertco);
-			if (BLI_lasso_is_point_inside(mcords, moves, vertco[0], vertco[1], IS_CLIPPED) &&
-			    key_test_depth(&data, co))
+			if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
+			    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
+			    key_test_depth(&data, co, screen_co))
 			{
 				if (select && !(key->flag & PEK_SELECT)) {
 					key->flag |= PEK_SELECT;
@@ -2415,7 +2414,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	if (totremoved == 0)
 		return OPERATOR_CANCELLED;
 
-	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles", totremoved);
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d double particles", totremoved);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
@@ -2536,7 +2535,7 @@ static void toggle_particle_cursor(bContext *C, int enable)
 
 enum { DEL_PARTICLE, DEL_KEY };
 
-static EnumPropertyItem delete_type_items[]= {
+static EnumPropertyItem delete_type_items[] = {
 	{DEL_PARTICLE, "PARTICLE", 0, "Particle", ""},
 	{DEL_KEY, "KEY", 0, "Key", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -2602,7 +2601,7 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 
 static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 {
-	Mesh *me= (Mesh*)(ob->data);
+	Mesh *me= (Mesh *)(ob->data);
 	ParticleSystemModifierData *psmd;
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	ParticleSystem *psys = edit->psys;
@@ -2692,10 +2691,10 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 
 			/* rotate weights according to vertex index rotation */
 			rotation= mirrorfaces[pa->num*2+1];
-			newpa->fuv[0]= pa->fuv[2];
-			newpa->fuv[1]= pa->fuv[1];
-			newpa->fuv[2]= pa->fuv[0];
-			newpa->fuv[3]= pa->fuv[3];
+			newpa->fuv[0] = pa->fuv[2];
+			newpa->fuv[1] = pa->fuv[1];
+			newpa->fuv[2] = pa->fuv[0];
+			newpa->fuv[3] = pa->fuv[3];
 			while (rotation-- > 0)
 				if (me->mface[pa->num].v4) {
 					SHIFT4(float, newpa->fuv[0], newpa->fuv[1], newpa->fuv[2], newpa->fuv[3]);
@@ -2789,7 +2788,7 @@ static void brush_cut(PEData *data, int pa_index)
 	float rad2, cut_time= 1.0;
 	float x0, x1, v0, v1, o0, o1, xo0, xo1, d, dv;
 	int k, cut, keys= (int)pow(2.0, (double)pset->draw_step);
-	int vertco[2];
+	int screen_co[2];
 
 	/* blunt scissors */
 	if (BLI_frand() > data->cutfac) return;
@@ -2798,13 +2797,15 @@ static void brush_cut(PEData *data, int pa_index)
 	if (edit->points[pa_index].flag & PEP_HIDE)
 		return;
 
+	if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK)
+		return;
+
 	rad2= data->rad * data->rad;
 
 	cut=0;
 
-	project_int_noclip(ar, key->co, vertco);
-	x0= (float)vertco[0];
-	x1= (float)vertco[1];
+	x0 = (float)screen_co[0];
+	x1 = (float)screen_co[1];
 
 	o0= (float)data->mval[0];
 	o1= (float)data->mval[1];
@@ -2813,26 +2814,27 @@ static void brush_cut(PEData *data, int pa_index)
 	xo1= x1 - o1;
 
 	/* check if root is inside circle */
-	if (xo0*xo0 + xo1*xo1 < rad2 && key_test_depth(data, key->co)) {
+	if (xo0*xo0 + xo1*xo1 < rad2 && key_test_depth(data, key->co, screen_co)) {
 		cut_time= -1.0f;
 		cut= 1;
 	}
 	else {
 		/* calculate path time closest to root that was inside the circle */
 		for (k=1, key++; k<=keys; k++, key++) {
-			project_int_noclip(ar, key->co, vertco);
 
-			if (key_test_depth(data, key->co) == 0) {
-				x0= (float)vertco[0];
-				x1= (float)vertco[1];
+			if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) ||
+			    key_test_depth(data, key->co, screen_co) == 0)
+			{
+				x0 = (float)screen_co[0];
+				x1 = (float)screen_co[1];
 
 				xo0= x0 - o0;
 				xo1= x1 - o1;
 				continue;
 			}
 
-			v0= (float)vertco[0] - x0;
-			v1= (float)vertco[1] - x1;
+			v0 = (float)screen_co[0] - x0;
+			v1 = (float)screen_co[1] - x1;
 
 			dv= v0*v0 + v1*v1;
 
@@ -2857,8 +2859,8 @@ static void brush_cut(PEData *data, int pa_index)
 				}
 			}
 
-			x0= (float)vertco[0];
-			x1= (float)vertco[1];
+			x0 = (float)screen_co[0];
+			x1 = (float)screen_co[1];
 
 			xo0= x0 - o0;
 			xo1= x1 - o1;
@@ -3086,9 +3088,9 @@ static void intersect_dm_quad_weights(const float v1[3], const float v2[3], cons
 	copy_v3_v3(vert[2], v3);
 	copy_v3_v3(vert[3], v4);
 
-	co[0]= v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2] + v4[0]*w[3];
-	co[1]= v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2] + v4[1]*w[3];
-	co[2]= v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2] + v4[2]*w[3];
+	co[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2] + v4[0]*w[3];
+	co[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2] + v4[1]*w[3];
+	co[2] = v1[2]*w[0] + v2[2]*w[1] + v3[2]*w[2] + v4[2]*w[3];
 
 	interp_weights_poly_v3(w, vert, 4, co);
 }
@@ -3196,10 +3198,10 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 			if (isect_line_tri_v3(co1, co2, v1, v2, v3, &cur_d, cur_uv)) {
 				if (cur_d<*min_d) {
 					*min_d=cur_d;
-					min_w[0]= 1.0f - cur_uv[0] - cur_uv[1];
-					min_w[1]= cur_uv[0];
-					min_w[2]= cur_uv[1];
-					min_w[3]= 0.0f;
+					min_w[0] = 1.0f - cur_uv[0] - cur_uv[1];
+					min_w[1] = cur_uv[0];
+					min_w[2] = cur_uv[1];
+					min_w[3] = 0.0f;
 					if (mface->v4)
 						intersect_dm_quad_weights(v1, v2, v3, v4, min_w);
 					*min_face=i;
@@ -3210,10 +3212,10 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 				if (isect_line_tri_v3(co1, co2, v1, v3, v4, &cur_d, cur_uv)) {
 					if (cur_d<*min_d) {
 						*min_d=cur_d;
-						min_w[0]= 1.0f - cur_uv[0] - cur_uv[1];
-						min_w[1]= 0.0f;
-						min_w[2]= cur_uv[0];
-						min_w[3]= cur_uv[1];
+						min_w[0] = 1.0f - cur_uv[0] - cur_uv[1];
+						min_w[1] = 0.0f;
+						min_w[2] = cur_uv[0];
+						min_w[3] = cur_uv[1];
 						intersect_dm_quad_weights(v1, v2, v3, v4, min_w);
 						*min_face=i;
 						intersect=1;
@@ -3272,8 +3274,8 @@ static int brush_add(PEData *data, short number)
 			}
 		}
 
-		mco[0]= data->mval[0] + dmx;
-		mco[1]= data->mval[1] + dmy;
+		mco[0] = data->mval[0] + dmx;
+		mco[1] = data->mval[1] + dmy;
 		ED_view3d_win_to_segment_clip(data->vc.ar, data->vc.v3d, mco, co1, co2);
 
 		mul_m4_v3(imat, co1);
@@ -3366,11 +3368,11 @@ static int brush_add(PEData *data, short number)
 				maxd= ptn[maxw-1].dist;
 				
 				for (w=0; w<maxw; w++) {
-					weight[w]= (float)pow(2.0, (double)(-6.0f * ptn[w].dist / maxd));
+					weight[w] = (float)pow(2.0, (double)(-6.0f * ptn[w].dist / maxd));
 					totw += weight[w];
 				}
 				for (;w<3; w++) {
-					weight[w]= 0.0f;
+					weight[w] = 0.0f;
 				}
 
 				for (w=0; w<maxw; w++)
@@ -3379,7 +3381,7 @@ static int brush_add(PEData *data, short number)
 				ppa= psys->particles+ptn[0].index;
 
 				for (k=0; k<pset->totaddkey; k++) {
-					thkey= (HairKey*)pa->hair + k;
+					thkey= (HairKey *)pa->hair + k;
 					thkey->time= pa->time + k * framestep;
 
 					key3[0].time= thkey->time/ 100.0f;
@@ -3504,15 +3506,15 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	flip= RNA_boolean_get(itemptr, "pen_flip");
 
 	if (bedit->first) {
-		bedit->lastmouse[0]= mouse[0];
-		bedit->lastmouse[1]= mouse[1];
+		bedit->lastmouse[0] = mouse[0];
+		bedit->lastmouse[1] = mouse[1];
 	}
 
 	dx= mouse[0] - bedit->lastmouse[0];
 	dy= mouse[1] - bedit->lastmouse[1];
 
-	mval[0]= mouse[0];
-	mval[1]= mouse[1];
+	mval[0] = mouse[0];
+	mval[1] = mouse[1];
 
 
 	/* disable locking temporatily for disconnected hair */
@@ -3527,7 +3529,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		view3d_operator_needs_opengl(C);
 		selected= (short)count_selected_keys(scene, edit);
 
-		dmax = maxf(fabsf(dx), fabsf(dy));
+		dmax = max_ff(fabsf(dx), fabsf(dy));
 		tot_steps = dmax/(0.2f * brush->size) + 1;
 
 		dx /= (float)tot_steps;
@@ -3637,7 +3639,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					data.mval= mval;
 					data.rad= (float)brush->size;
 
-					data.vec[0]= data.vec[1]= data.vec[2]= 0.0f;
+					data.vec[0] = data.vec[1] = data.vec[2] = 0.0f;
 					data.tot= 0;
 
 					data.smoothfac= brush->strength;
@@ -3691,8 +3693,8 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 		}
 
-		bedit->lastmouse[0]= mouse[0];
-		bedit->lastmouse[1]= mouse[1];
+		bedit->lastmouse[0] = mouse[0];
+		bedit->lastmouse[1] = mouse[1];
 		bedit->first= 0;
 	}
 
@@ -3987,7 +3989,9 @@ void PE_undo_step(Scene *scene, int step)
 	}
 	else if (step==1) {
 		
-		if (edit->curundo==NULL || edit->curundo->prev==NULL);
+		if (edit->curundo==NULL || edit->curundo->prev==NULL) {
+			/* pass */
+		}
 		else {
 			if (G.debug & G_DEBUG) printf("undo %s\n", edit->curundo->name);
 			edit->curundo= edit->curundo->prev;
@@ -3997,7 +4001,9 @@ void PE_undo_step(Scene *scene, int step)
 	else {
 		/* curundo has to remain current situation! */
 		
-		if (edit->curundo==NULL || edit->curundo->next==NULL);
+		if (edit->curundo==NULL || edit->curundo->next==NULL) {
+			/* pass */
+		}
 		else {
 			get_PTCacheUndo(edit, edit->curundo->next);
 			edit->curundo= edit->curundo->next;
@@ -4103,7 +4109,7 @@ int PE_minmax(Scene *scene, float min[3], float max[3])
 		LOOP_SELECTED_KEYS {
 			copy_v3_v3(co, key->co);
 			mul_m4_v3(mat, co);
-			DO_MINMAX(co, min, max);		
+			DO_MINMAX(co, min, max);
 			ok= 1;
 		}
 	}
@@ -4139,7 +4145,7 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 		return;
 
 	if (!edit) {
-		totpoint = psys ? psys->totpart : (int)((PTCacheMem*)cache->mem_cache.first)->totpoint;
+		totpoint = psys ? psys->totpart : (int)((PTCacheMem *)cache->mem_cache.first)->totpoint;
 
 		edit= MEM_callocN(sizeof(PTCacheEdit), "PE_create_particle_edit");
 		edit->points=MEM_callocN(totpoint*sizeof(PTCacheEditPoint), "PTCacheEditPoints");

@@ -107,7 +107,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 
 			f_no = face_nors[i];
 			if (calc_face_nors)
-				mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
+				BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
 
 			ml = mloop + mp->loopstart;
 
@@ -223,7 +223,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const int numEdges = dm->getNumEdges(dm);
 	const int numFaces = dm->getNumPolys(dm);
 	int numLoops = 0, newLoops = 0, newFaces = 0, newEdges = 0;
-	int j;
 
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max = ob->totcol > 1 ? ob->totcol - 1 : 0;
@@ -292,9 +291,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		for (i = 0, mp = orig_mpoly; i < numFaces; i++, mp++) {
-			MLoop *ml = orig_mloop + mp->loopstart;
 			unsigned int ml_v1;
 			unsigned int ml_v2;
+			int j;
+
+			ml = orig_mloop + mp->loopstart;
 
 			for (j = 0, ml_v1 = ml->v, ml_v2 = ml[mp->totloop - 1].v;
 			     j < mp->totloop;
@@ -376,6 +377,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		MLoop *ml2;
 		int e;
+		int j;
 
 		ml2 = mloop + mp->loopstart + dm->numLoopData;
 		for (j = 0; j < mp->totloop; j++) {
@@ -483,7 +485,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			/* --- not related to angle calc --- */
 			if (face_nors_calc)
-				mesh_calc_poly_normal(mp, ml, mvert, face_nors[i]);
+				BKE_mesh_calc_poly_normal(mp, ml, mvert, face_nors[i]);
 			/* --- end non-angle-calc section --- */
 
 			sub_v3_v3v3(nor_prev, mvert[ml[i_this - 1].v].co, mvert[ml[i_this].v].co);
@@ -591,6 +593,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		int *origindex_edge;
 		int *orig_ed;
+		int j;
 
 		/* add faces & edges */
 		origindex_edge = result->getEdgeDataArray(result, CD_ORIGINDEX);
@@ -635,15 +638,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* notice we use 'mp->totloop' which is later overwritten,
 			 * we could lookup the original face but theres no point since this is a copy
 			 * and will have the same value, just take care when changing order of assignment */
-			k1 = mpoly[fidx].loopstart + ((edge_order[eidx] + 1) % mp->totloop);
+			k1 = mpoly[fidx].loopstart + (((edge_order[eidx] - 1) + mp->totloop) % mp->totloop);  /* prev loop */
 			k2 = mpoly[fidx].loopstart +  (edge_order[eidx]);
 
 			mp->totloop = 4;
 
-			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops * 2 + j + 0, 1);
-			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops * 2 + j + 1, 1);
-			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops * 2 + j + 2, 1);
-			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops * 2 + j + 3, 1);
+			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops * 2 + j + 0, 1);
+			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops * 2 + j + 1, 1);
+			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops * 2 + j + 2, 1);
+			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops * 2 + j + 3, 1);
 
 			if (flip == FALSE) {
 				ml[j].v = ed->v1;
@@ -715,13 +718,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		for (i = 0; i < newEdges; i++, ed++) {
 			float nor_cpy[3];
 			short *nor_short;
-			int j;
+			int k;
 
 			/* note, only the first vertex (lower half of the index) is calculated */
 			normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
 
-			for (j = 0; j < 2; j++) { /* loop over both verts of the edge */
-				nor_short = mvert[*(&ed->v1 + j)].no;
+			for (k = 0; k < 2; k++) { /* loop over both verts of the edge */
+				nor_short = mvert[*(&ed->v1 + k)].no;
 				normal_short_to_float_v3(nor, nor_short);
 				add_v3_v3(nor, nor_cpy);
 				normalize_v3(nor);

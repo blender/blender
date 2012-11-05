@@ -32,13 +32,13 @@
 #include "node_composite_util.h"
 
 /* **************** MIX RGB ******************** */
-static bNodeSocketTemplate cmp_node_mix_rgb_in[]= {
+static bNodeSocketTemplate cmp_node_mix_rgb_in[] = {
 	{	SOCK_FLOAT, 1, N_("Fac"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 5.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_mix_rgb_out[]= {
+static bNodeSocketTemplate cmp_node_mix_rgb_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -55,7 +55,7 @@ static void do_mix_rgb(bNode *node, float *out, float *in1, float *in2, float *f
 	else
 		ramp_blend(node->custom1, col, fac[0], in2);
 	copy_v3_v3(out, col);
-	out[3]= in1[3];
+	out[3] = in1[3];
 }
 
 static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

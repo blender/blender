@@ -108,5 +108,4 @@ class PHY_IPhysicsController : public PHY_IController
 #endif
 };
 
-#endif //__PHY_IPHYSICSCONTROLLER_H__
-
+#endif  /* __PHY_IPHYSICSCONTROLLER_H__ */

@@ -238,7 +238,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 		     (fac = (wmd->falloff_radius - fac) / wmd->falloff_radius)))
 		{
 			/* skip if no vert group found */
-			if (dvert && defgrp_index >= 0) {
+			if (dvert && defgrp_index != -1) {
 				dv = &dvert[i];
 
 				if (dv) {
@@ -337,7 +337,7 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	}
 }
 
-static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editData,
+static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *em,
                           DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
@@ -345,7 +345,7 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 
 	if (use_dm) {
 		if (!derivedData)
-			dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
+			dm = CDDM_from_editbmesh(em, FALSE, FALSE);
 	}
 
 	deformVerts(md, ob, dm, vertexCos, numVerts, 0);
@@ -357,27 +357,27 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 
 
 ModifierTypeInfo modifierType_Warp = {
-	/* name */ "Warp",
-	/* structName */ "WarpModifierData",
-	/* structSize */ sizeof(WarpModifierData),
-	/* type */ eModifierTypeType_OnlyDeform,
-	/* flags */ eModifierTypeFlag_AcceptsCVs |
-	eModifierTypeFlag_SupportsEditmode,
-	/* copyData */ copyData,
-	/* deformVerts */ deformVerts,
-	/* deformMatrices */ NULL,
-	/* deformVertsEM */ deformVertsEM,
-	/* deformMatricesEM */ NULL,
-	/* applyModifier */ 0,
-	/* applyModifierEM */ 0,
-	/* initData */ initData,
-	/* requiredDataMask */ requiredDataMask,
-	/* freeData */ freeData,
-	/* isDisabled */ isDisabled,
-	/* updateDepgraph */ updateDepgraph,
-	/* dependsOnTime */ dependsOnTime,
-	/* dependsOnNormals */ NULL,
+	/* name */              "Warp",
+	/* structName */        "WarpModifierData",
+	/* structSize */        sizeof(WarpModifierData),
+	/* type */              eModifierTypeType_OnlyDeform,
+	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsEditmode,
+	/* copyData */          copyData,
+	/* deformVerts */       deformVerts,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     deformVertsEM,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     0,
+	/* applyModifierEM */   0,
+	/* initData */          initData,
+	/* requiredDataMask */  requiredDataMask,
+	/* freeData */          freeData,
+	/* isDisabled */        isDisabled,
+	/* updateDepgraph */    updateDepgraph,
+	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */ foreachIDLink,
-	/* foreachTexLink */ foreachTexLink,
+	/* foreachIDLink */     foreachIDLink,
+	/* foreachTexLink */    foreachTexLink,
 };

@@ -167,6 +167,7 @@ typedef struct bNode {
 	struct ID *id;			/* optional link to libdata */
 	void *storage;			/* custom data, must be struct, for storage in file */
 	struct bNode *original;	/* the original node in the tree (for localized tree) */
+	ListBase internal_links; /* list of cached internal links (input to output), for muted nodes and operators */
 	
 	float locx, locy;		/* root offset for drawing (parent space) */
 	float width, height;	/* node custom width and height */
@@ -240,6 +241,7 @@ typedef struct bNodeLink {
 /* link->flag */
 #define NODE_LINKFLAG_HILITE	1		/* link has been successfully validated */
 #define NODE_LINK_VALID			2
+#define NODE_LINK_TEST			4		/* free test flag, undefined */
 
 /* tree->edit_quality/tree->render_quality */
 #define NTREE_QUALITY_HIGH    0
@@ -701,6 +703,26 @@ typedef struct NodeTrackPosData {
 	char tracking_object[64];
 	char track_name[64];
 } NodeTrackPosData;
+
+typedef struct NodeShaderScript {
+	int mode;
+	int flag;
+
+	char filepath[1024]; /* 1024 = FILE_MAX */
+
+	char bytecode_hash[64];
+	char *bytecode;
+
+	IDProperty *prop;
+} NodeShaderScript;
+
+/* script node mode */
+#define NODE_SCRIPT_INTERNAL		0
+#define NODE_SCRIPT_EXTERNAL		1
+
+/* script node flag */
+#define NODE_SCRIPT_AUTO_UPDATE		1
+
 
 /* frame node flags */
 #define NODE_FRAME_SHRINK		1	/* keep the bounding box minimal */

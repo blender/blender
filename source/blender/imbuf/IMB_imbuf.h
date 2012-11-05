@@ -103,7 +103,7 @@ struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, 
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_testiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
+struct ImBuf *IMB_testiffname(const char *filepath, int flags);
 
 /**
  *
@@ -371,7 +371,7 @@ void IMB_interlace(struct ImBuf *ibuf);
 void IMB_rect_from_float(struct ImBuf *ibuf);
 /* Create char buffer for part of the image, color corrected if necessary,
  * Changed part will be stored in buffer. This is expected to be used for texture painting updates */
-void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h);
+void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h, int is_data);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
@@ -410,10 +410,10 @@ void bicubic_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v
 void neareast_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 void bilinear_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 
-void bicubic_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
-void neareast_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
-void bilinear_interpolation_color(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
-void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char *col, float *col_float, float u, float v);
+void bicubic_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+void neareast_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+void bilinear_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 
 /**
  *

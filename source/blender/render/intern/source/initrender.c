@@ -555,31 +555,16 @@ void initparts(Render *re, int do_crop)
 	xmaxb = re->disprect.xmax;
 	ymaxb = re->disprect.ymax;
 	
-	xparts = re->r.xparts;
-	yparts = re->r.yparts;
-	
-	/* mininum part size, but for exr tile saving it was checked already */
-	if (!(re->r.scemode & (R_EXR_TILE_FILE | R_FULL_SAMPLE))) {
-		if (re->r.mode & R_PANORAMA) {
-			if (ceil(re->rectx / (float)xparts) < 8)
-				xparts = 1 + re->rectx / 8;
-		}
-		else
-		if (ceil(re->rectx / (float)xparts) < 64)
-			xparts = 1 + re->rectx / 64;
-		
-		if (ceil(re->recty / (float)yparts) < 64)
-			yparts = 1 + re->recty / 64;
-	}
-	
 	/* part size */
-	partx = ceil(re->rectx / (float)xparts);
-	party = ceil(re->recty / (float)yparts);
+	partx = min_ii(re->r.tilex, re->rectx);
+	party = min_ii(re->r.tiley, re->recty);
 	
-	re->xparts = xparts;
-	re->yparts = yparts;
 	re->partx = partx;
 	re->party = party;
+	
+	/* part count */
+	xparts = (re->rectx + partx - 1) / partx;
+	yparts = (re->recty + party - 1) / party;
 	
 	/* calculate rotation factor of 1 pixel */
 	if (re->r.mode & R_PANORAMA)
@@ -610,8 +595,8 @@ void initparts(Render *re, int do_crop)
 		}
 		else disprect.ymax = ymaxb;
 		
-		rectx = BLI_RCT_SIZE_X(&disprect);
-		recty = BLI_RCT_SIZE_Y(&disprect);
+		rectx = BLI_rcti_size_x(&disprect);
+		recty = BLI_rcti_size_y(&disprect);
 		
 		/* so, now can we add this part? */
 		if (rectx > 0 && recty > 0) {

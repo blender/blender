@@ -44,7 +44,7 @@ public:
 	bool append_file(const string& filepath);
 	string get_hex();
 
-	protected:
+protected:
 	void process(const uint8_t *data);
 	void finish(uint8_t digest[16]);
 

@@ -91,7 +91,7 @@ struct GPUNodeLink {
 	const char *attribname;
 
 	int image;
-	int imagencd;
+	int image_isdata;
 
 	int texture;
 	int texturesize;
@@ -99,7 +99,7 @@ struct GPUNodeLink {
 	void *ptr1, *ptr2;
 
 	int dynamic;
-	int dynamictype;	
+	int dynamictype;
 
 	int type;
 	int users;
@@ -138,7 +138,7 @@ typedef struct GPUInput {
 
 	struct Image *ima;		/* image */
 	struct ImageUser *iuser;/* image user */
-	int imagencd;			/* image does not contain color data */
+	int image_isdata;		/* image does not contain color data */
 	float *dynamicvec;		/* vector data in case it is dynamic */
 	int dynamictype;		/* origin of the dynamic uniform (GPUDynamicType) */
 	void *dynamicdata;		/* data source of the dynamic uniform */

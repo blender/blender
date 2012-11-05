@@ -179,7 +179,7 @@ int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 #ifdef WITH_PYTHON
 
 /* warning, self is not the SCA_PythonController, its a PyObjectPlus_Proxy */
-PyObject* SCA_PythonController::sPyGetCurrentController(PyObject *self)
+PyObject *SCA_PythonController::sPyGetCurrentController(PyObject *self)
 {
 	if (m_sCurrentController==NULL)
 	{
@@ -271,7 +271,7 @@ void SCA_PythonController::ErrorPrint(const char *error_msg)
 }
 
 bool SCA_PythonController::Compile()
-{	
+{
 	//printf("py script modified '%s'\n", m_scriptName.Ptr());
 	m_bModified= false;
 	
@@ -374,66 +374,65 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 	m_sCurrentLogicManager = logicmgr;
 	
 	PyObject *excdict=		NULL;
-	PyObject* resultobj=	NULL;
+	PyObject *resultobj=	NULL;
 	
-	switch(m_mode) {
-	case SCA_PYEXEC_SCRIPT:
-	{
-		if (m_bModified)
-			if (Compile()==false) // sets m_bModified to false
+	switch (m_mode) {
+		case SCA_PYEXEC_SCRIPT:
+		{
+			if (m_bModified)
+				if (Compile()==false) // sets m_bModified to false
+					return;
+			if (!m_bytecode)
 				return;
-		if (!m_bytecode)
-			return;
-		
-		/*
-		 * This part here with excdict is a temporary patch
-		 * to avoid python/gameengine crashes when python
-		 * inadvertently holds references to game objects
-		 * in global variables.
-		 * 
-		 * The idea is always make a fresh dictionary, and
-		 * destroy it right after it is used to make sure
-		 * python won't hold any gameobject references.
-		 * 
-		 * Note that the PyDict_Clear _is_ necessary before
-		 * the Py_DECREF() because it is possible for the
-		 * variables inside the dictionary to hold references
-		 * to the dictionary (ie. generate a cycle), so we
-		 * break it by hand, then DECREF (which in this case
-		 * should always ensure excdict is cleared).
-		 */
 
-		excdict= PyDict_Copy(m_pythondictionary);
+			/*
+			 * This part here with excdict is a temporary patch
+			 * to avoid python/gameengine crashes when python
+			 * inadvertently holds references to game objects
+			 * in global variables.
+			 *
+			 * The idea is always make a fresh dictionary, and
+			 * destroy it right after it is used to make sure
+			 * python won't hold any gameobject references.
+			 *
+			 * Note that the PyDict_Clear _is_ necessary before
+			 * the Py_DECREF() because it is possible for the
+			 * variables inside the dictionary to hold references
+			 * to the dictionary (ie. generate a cycle), so we
+			 * break it by hand, then DECREF (which in this case
+			 * should always ensure excdict is cleared).
+			 */
 
-		resultobj = PyEval_EvalCode((PyObject *)m_bytecode, excdict, excdict);
+			excdict= PyDict_Copy(m_pythondictionary);
 
-		/* PyRun_SimpleString(m_scriptText.Ptr()); */
-		break;
-	}
-	case SCA_PYEXEC_MODULE:
-	{
-		if (m_bModified || m_debug)
-			if (Import()==false) // sets m_bModified to false
-				return;
-		if (!m_function)
-			return;
-		
-		PyObject *args= NULL;
-		
-		if (m_function_argc==1) {
-			args = PyTuple_New(1);
-			PyTuple_SET_ITEM(args, 0, GetProxy());
+			resultobj = PyEval_EvalCode((PyObject *)m_bytecode, excdict, excdict);
+
+			/* PyRun_SimpleString(m_scriptText.Ptr()); */
+			break;
 		}
-		
-		resultobj = PyObject_CallObject(m_function, args);
-		Py_XDECREF(args);
-		break;
-	}
-	
+		case SCA_PYEXEC_MODULE:
+		{
+			if (m_bModified || m_debug)
+				if (Import()==false) // sets m_bModified to false
+					return;
+			if (!m_function)
+				return;
+
+			PyObject *args= NULL;
+
+			if (m_function_argc==1) {
+				args = PyTuple_New(1);
+				PyTuple_SET_ITEM(args, 0, GetProxy());
+			}
+
+			resultobj = PyObject_CallObject(m_function, args);
+			Py_XDECREF(args);
+			break;
+		}
+
 	} /* end switch */
-	
-	
-	
+
+
 	/* Free the return value and print the error */
 	if (resultobj)
 		Py_DECREF(resultobj);
@@ -447,13 +446,13 @@ void SCA_PythonController::Trigger(SCA_LogicManager* logicmgr)
 		// This doesn't appear to be needed anymore
 		//PyDict_Clear(excdict);
 		Py_DECREF(excdict);
-	}	
+	}
 	
 	m_triggeredSensors.clear();
 	m_sCurrentController = NULL;
 }
 
-PyObject* SCA_PythonController::PyActivate(PyObject *value)
+PyObject *SCA_PythonController::PyActivate(PyObject *value)
 {
 	if (m_sCurrentController != this) {
 		PyErr_SetString(PyExc_SystemError, "Cannot add an actuator from a non-active controller");
@@ -468,7 +467,7 @@ PyObject* SCA_PythonController::PyActivate(PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
+PyObject *SCA_PythonController::PyDeActivate(PyObject *value)
 {
 	if (m_sCurrentController != this) {
 		PyErr_SetString(PyExc_SystemError, "Cannot add an actuator from a non-active controller");
@@ -483,12 +482,12 @@ PyObject* SCA_PythonController::PyDeActivate(PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	//SCA_PythonController* self= static_cast<SCA_PythonController*>(static_cast<SCA_IController*>(static_cast<SCA_ILogicBrick*>(static_cast<CValue*>(static_cast<PyObjectPlus*>(self_v)))));
+	//SCA_PythonController* self = static_cast<SCA_PythonController*>(static_cast<SCA_IController*>(static_cast<SCA_ILogicBrick*>(static_cast<CValue*>(static_cast<PyObjectPlus*>(self_v)))));
 	// static_cast<void *>(dynamic_cast<Derived *>(obj)) - static_cast<void *>(obj)
 
-	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
+	SCA_PythonController* self = static_cast<SCA_PythonController*>(self_v);
 	return PyUnicode_From_STR_String(self->m_scriptText);
 }
 
@@ -496,7 +495,7 @@ PyObject* SCA_PythonController::pyattr_get_script(void *self_v, const KX_PYATTRI
 
 int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	SCA_PythonController* self= static_cast<SCA_PythonController*>(self_v);
+	SCA_PythonController* self = static_cast<SCA_PythonController*>(self_v);
 	
 	const char *scriptArg = _PyUnicode_AsString(value);
 	

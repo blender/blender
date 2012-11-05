@@ -173,7 +173,7 @@ const STR_String& RAS_MeshObject::GetMaterialName(unsigned int matid)
 
 RAS_MeshMaterial* RAS_MeshObject::GetMeshMaterial(unsigned int matid)
 {
-	if (m_materials.size() > 0 && (matid < m_materials.size()))
+	if ((m_materials.empty() == false) && (matid < m_materials.size()))
 	{
 		list<RAS_MeshMaterial>::iterator it = m_materials.begin();
 		while (matid--) ++it;
@@ -584,7 +584,7 @@ void RAS_MeshObject::CheckWeightCache(Object* obj)
 	if (!m_mesh->key)
 		return;
 
-	for (kbindex=0, kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next, kbindex++)
+	for (kbindex = 0, kb = (KeyBlock *)m_mesh->key->block.first; kb; kb = kb->next, kbindex++)
 	{
 		// first check the cases where the weight must be cleared
 		if (kb->vgroup[0] == 0 ||
@@ -608,7 +608,7 @@ void RAS_MeshObject::CheckWeightCache(Object* obj)
 			weights= (float*)MEM_mallocN(totvert*sizeof(float), "weights");
 		
 			for (i=0; i < totvert; i++, dv++) {
-				weights[i]= defvert_find_weight(dv, defindex);
+				weights[i] = defvert_find_weight(dv, defindex);
 			}
 
 			kb->weights = weights;

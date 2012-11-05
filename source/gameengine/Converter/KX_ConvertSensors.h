@@ -42,5 +42,4 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	   class RAS_ICanvas* canvas, 
 	   class KX_BlenderSceneConverter* converter);
 
-#endif //__KX_CONVERTSENSORS_H__
-
+#endif  /* __KX_CONVERTSENSORS_H__ */

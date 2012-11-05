@@ -85,7 +85,7 @@ static ARegionType *region_type_find(ReportList *reports, int space_type, int re
 	
 	/* region type not found? abort */
 	if (art == NULL) {
-		BKE_report(reports, RPT_ERROR, "Region not found in spacetype");
+		BKE_report(reports, RPT_ERROR, "Region not found in space type");
 		return NULL;
 	}
 
@@ -192,7 +192,7 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 		return NULL;
 		
 	if (strlen(identifier) >= sizeof(dummypt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering panel class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering panel class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummypt.idname));
 		return NULL;
 	}
@@ -309,7 +309,7 @@ static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *da
 		return NULL;
 
 	if (strlen(identifier) >= sizeof(dummyht.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering header class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering header class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummyht.idname));
 		return NULL;
 	}
@@ -438,7 +438,7 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 		return NULL;
 	
 	if (strlen(identifier) >= sizeof(dummymt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering menu class: '%s' is too long, maximum length is %d",
+		BKE_reportf(reports, RPT_ERROR, "Registering menu class: '%s' is too long, maximum length is %d",
 		            identifier, (int)sizeof(dummymt.idname));
 		return NULL;
 	}

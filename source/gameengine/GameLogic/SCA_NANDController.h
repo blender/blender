@@ -49,5 +49,4 @@ public:
 	/* --------------------------------------------------------------------- */
 };
 
-#endif //__SCA_NANDCONTROLLER_H__
-
+#endif  /* __SCA_NANDCONTROLLER_H__ */

@@ -378,8 +378,8 @@ float BKE_mask_spline_project_co(MaskSpline *spline, MaskSplinePoint *point,
 
 				if (len_squared_v2(v1) > proj_eps_squared) {
 					ang1 = angle_v2v2(v1, n1);
-					if (ang1 > M_PI / 2.0f)
-						ang1 = M_PI  - ang1;
+					if (ang1 > (float)M_PI / 2.0f)
+						ang1 = (float)M_PI - ang1;
 
 					if (ang < 0.0f || ang1 < ang) {
 						ang = ang1;
@@ -405,8 +405,8 @@ float BKE_mask_spline_project_co(MaskSpline *spline, MaskSplinePoint *point,
 
 				if (len_squared_v2(v2) > proj_eps_squared) {
 					ang2 = angle_v2v2(v2, n2);
-					if (ang2 > M_PI / 2.0f)
-						ang2 = M_PI  - ang2;
+					if (ang2 > (float)M_PI / 2.0f)
+						ang2 = (float)M_PI - ang2;
 
 					if (ang2 < ang) {
 						ang = ang2;
@@ -555,7 +555,7 @@ float BKE_mask_point_weight_scalar(MaskSpline *spline, MaskSplinePoint *point, c
 	if (!bezt_next) {
 		return bezt->weight;
 	}
-	else if (u <= 0.0) {
+	else if (u <= 0.0f) {
 		return bezt->weight;
 	}
 	else if (u >= 1.0f) {
@@ -576,7 +576,7 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, const fl
 	if (!bezt_next) {
 		return bezt->weight;
 	}
-	else if (u <= 0.0) {
+	else if (u <= 0.0f) {
 		return bezt->weight;
 	}
 	else if (u >= 1.0f) {
@@ -916,19 +916,6 @@ void BKE_mask_free_nolib(Mask *mask)
 	BKE_mask_layer_free_list(&mask->masklayers);
 }
 
-
-static void ntree_unlink_mask_cb(void *calldata, struct ID *UNUSED(owner_id), struct bNodeTree *ntree)
-{
-	ID *id = (ID *)calldata;
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->id == id) {
-			node->id = NULL;
-		}
-	}
-}
-
 void BKE_mask_free(Main *bmain, Mask *mask)
 {
 	bScreen *scr;
@@ -975,21 +962,11 @@ void BKE_mask_free(Main *bmain, Mask *mask)
 			}
 			SEQ_END
 		}
-
-
-		if (scene->nodetree) {
-			bNode *node;
-			for (node = scene->nodetree->nodes.first; node; node = node->next) {
-				if (node->id == &mask->id) {
-					node->id = NULL;
-				}
-			}
-		}
 	}
 
 	{
 		bNodeTreeType *treetype = ntreeGetType(NTREE_COMPOSIT);
-		treetype->foreach_nodetree(bmain, (void *)mask, &ntree_unlink_mask_cb);
+		treetype->foreach_nodetree(bmain, (void *)mask, &BKE_node_tree_unlink_id_cb);
 	}
 
 	/* free mask data */
@@ -1548,7 +1525,7 @@ void BKE_mask_parent_init(MaskParent *parent)
 }
 
 
-/* *** own animation/shapekey implimentation ***
+/* *** own animation/shapekey implementation ***
  * BKE_mask_layer_shape_XXX */
 
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)
@@ -1828,7 +1805,7 @@ static void interp_weights_uv_v2_calc(float r_uv[2], const float pt[2], const fl
 	float pt_on_line[2];
 	r_uv[0] = closest_to_line_v2(pt_on_line, pt, pt_a, pt_b);
 	r_uv[1] = (len_v2v2(pt_on_line, pt) / len_v2v2(pt_a, pt_b)) *
-	          ((line_point_side_v2(pt_a, pt_b, pt) < 0.0f) ? -1.0 : 1.0);  /* this line only sets the sign */
+	          ((line_point_side_v2(pt_a, pt_b, pt) < 0.0f) ? -1.0f : 1.0f);  /* this line only sets the sign */
 }
 
 
@@ -1978,5 +1955,5 @@ void BKE_mask_layer_shape_changed_remove(MaskLayer *masklay, int index, int coun
 
 int BKE_mask_get_duration(Mask *mask)
 {
-	return maxi(1, mask->efra - mask->sfra);
+	return max_ii(1, mask->efra - mask->sfra);
 }

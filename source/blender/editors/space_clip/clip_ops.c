@@ -41,6 +41,8 @@
 #include "BLI_math.h"
 #include "BLI_rect.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
@@ -90,9 +92,9 @@ static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
 
 		if ((width < 4) && (height < 4))
 			sc->zoom = oldzoom;
-		else if (BLI_RCT_SIZE_X(&ar->winrct) <= sc->zoom)
+		else if (BLI_rcti_size_x(&ar->winrct) <= sc->zoom)
 			sc->zoom = oldzoom;
-		else if (BLI_RCT_SIZE_Y(&ar->winrct) <= sc->zoom)
+		else if (BLI_rcti_size_y(&ar->winrct) <= sc->zoom)
 			sc->zoom = oldzoom;
 	}
 
@@ -180,7 +182,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		BLI_join_dirfile(str, sizeof(str), dir_only, file_only);
 	}
 	else {
-		BKE_reportf(op->reports, RPT_ERROR, "No files selected to be opened");
+		BKE_report(op->reports, RPT_ERROR, "No files selected to be opened");
 
 		return OPERATOR_CANCELLED;
 	}
@@ -195,8 +197,8 @@ static int open_exec(bContext *C, wmOperator *op)
 		if (op->customdata)
 			MEM_freeN(op->customdata);
 
-		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", str,
-		            errno ? strerror(errno) : "Unsupported movie clip format");
+		BKE_reportf(op->reports, RPT_ERROR, "Cannot read '%s': %s", str,
+		            errno ? strerror(errno) : TIP_("unsupported movie clip format"));
 
 		return OPERATOR_CANCELLED;
 	}
@@ -514,9 +516,14 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (event->type == MOUSEZOOM) {
-		float factor;
+		float delta, factor;
 
-		factor = 1.0f + (event->x - event->prevx + event->y - event->prevy) / 300.0f;
+		delta = event->x - event->prevx + event->y - event->prevy;
+
+		if (U.uiflag & USER_ZOOM_INVERT)
+			delta *= -1;
+
+		factor = 1.0f + delta / 300.0f;
 		RNA_float_set(op->ptr, "factor", factor);
 
 		sclip_zoom_set_factor_exec(C, event, factor);
@@ -533,11 +540,16 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewZoomData *vpd = op->customdata;
-	float factor;
+	float delta, factor;
 
 	switch (event->type) {
 		case MOUSEMOVE:
-			factor = 1.0f + (vpd->x - event->x + vpd->y - event->y) / 300.0f;
+			delta = event->x - vpd->x + event->y - vpd->y;
+
+			if (U.uiflag & USER_ZOOM_INVERT)
+				delta *= -1;
+
+			factor = 1.0f + delta / 300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
 			sclip_zoom_set(C, vpd->zoom * factor, vpd->location);
 			ED_region_tag_redraw(CTX_wm_region(C));
@@ -579,7 +591,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
 
 	/* properties */
-	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
+	RNA_def_float(ot->srna, "factor", 0.0f, -FLT_MAX, FLT_MAX,
 	              "Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out", -FLT_MAX, FLT_MAX);
 }
 
@@ -700,7 +712,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* properties */
-	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
+	RNA_def_float(ot->srna, "ratio", 0.0f, -FLT_MAX, FLT_MAX,
 	              "Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 
@@ -726,8 +738,8 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	h = h * aspy;
 
 	/* check if the image will fit in the image with zoom == 1 */
-	width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-	height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+	width  = BLI_rcti_size_x(&ar->winrct) + 1;
+	height = BLI_rcti_size_y(&ar->winrct) + 1;
 
 	if (fit_view) {
 		const int margin = 5; /* margin from border */
@@ -735,7 +747,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 		zoomx = (float) width / (w + 2 * margin);
 		zoomy = (float) height / (h + 2 * margin);
 
-		sclip_zoom_set(C, minf(zoomx, zoomy), NULL);
+		sclip_zoom_set(C, min_ff(zoomx, zoomy), NULL);
 	}
 	else {
 		if ((w >= width || h >= height) && (width > 0 && height > 0)) {
@@ -743,7 +755,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 			zoomy = (float) height / h;
 
 			/* find the zoom value that will fit the image in the image space */
-			sclip_zoom_set(C, 1.0f / power_of_2(1.0f / minf(zoomx, zoomy)), NULL);
+			sclip_zoom_set(C, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), NULL);
 		}
 		else
 			sclip_zoom_set(C, 1.0f, NULL);

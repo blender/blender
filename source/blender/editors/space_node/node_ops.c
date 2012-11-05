@@ -117,6 +117,8 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_clipboard_copy);
 	WM_operatortype_append(NODE_OT_clipboard_paste);
+	
+	WM_operatortype_append(NODE_OT_shader_script_update);
 }
 
 void ED_operatormacros_node(void)
@@ -167,7 +169,7 @@ void ED_operatormacros_node(void)
 	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links_release", "Detach", "Move a node to detach links",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
-	mot = WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
+	WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 }
 
 /* helper function for repetitive select operator keymap */

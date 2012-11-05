@@ -44,7 +44,7 @@ double PIL_check_seconds_timer(void)
 		__int64 ifreq;
 		hasperfcounter = QueryPerformanceFrequency((LARGE_INTEGER *) &ifreq);
 		perffreq = (double) ifreq;
-	} 
+	}
 
 	if (hasperfcounter) {
 		__int64 count;

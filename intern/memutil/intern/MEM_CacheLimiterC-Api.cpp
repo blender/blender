@@ -59,9 +59,9 @@ public:
 	}
 	~MEM_CacheLimiterCClass();
 
-	handle_t * insert(void * data);
+	handle_t * insert(void *data);
 
-	void destruct(void * data, list_t::iterator it);
+	void destruct(void *data, list_t::iterator it);
 
 	cache_t * get_cache() {
 		return &cache;
@@ -76,7 +76,7 @@ private:
 
 class MEM_CacheLimiterHandleCClass {
 public:
-	MEM_CacheLimiterHandleCClass(void * data_, MEM_CacheLimiterCClass * parent_) :
+	MEM_CacheLimiterHandleCClass(void *data_, MEM_CacheLimiterCClass *parent_) :
 		data(data_),
 		parent(parent_)
 	{ }
@@ -87,7 +87,7 @@ public:
 		it = it_;
 	}
 
-	void set_data(void * data_) {
+	void set_data(void *data_) {
 		data = data_;
 	}
 
@@ -101,7 +101,7 @@ private:
 	list_t::iterator it;
 };
 
-handle_t *MEM_CacheLimiterCClass::insert(void * data)
+handle_t *MEM_CacheLimiterCClass::insert(void *data)
 {
 	cclass_list.push_back(new MEM_CacheLimiterHandleCClass(data, this));
 	list_t::iterator it = cclass_list.end();
@@ -111,7 +111,7 @@ handle_t *MEM_CacheLimiterCClass::insert(void * data)
 	return cache.insert(cclass_list.back());
 }
 
-void MEM_CacheLimiterCClass::destruct(void * data, list_t::iterator it)
+void MEM_CacheLimiterCClass::destruct(void *data, list_t::iterator it)
 {
 	data_destructor(data);
 	cclass_list.erase(it);

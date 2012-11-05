@@ -71,28 +71,6 @@
 
 #include "image_intern.h"
 
-#define B_REDR                1
-#define B_IMAGECHANGED        2
-#define B_NOP                 0
-#define B_TWINANIM            5
-#define B_SIMAGETILE          6
-#define B_IDNAME             10
-#define B_FACESEL_PAINT_TEST 11
-#define B_SIMA_RECORD        12
-#define B_SIMA_PLAY          13
-
-#define B_SIMANOTHING        16
-#define B_SIMABRUSHCHANGE    17
-#define B_SIMABRUSHBROWSE    18
-#define B_SIMABRUSHLOCAL     19
-#define B_SIMABRUSHDELETE    20
-#define B_KEEPDATA           21
-#define B_SIMABTEXBROWSE     22
-#define B_SIMABTEXDELETE     23
-#define B_VPCOLSLI           24
-#define B_SIMACLONEBROWSE    25
-#define B_SIMACLONEDELETE    26
-
 /* proto */
 
 static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, char *str)
@@ -213,7 +191,7 @@ void image_preview_event(int event)
 		waitcursor(0);
 		
 		WM_event_add_notifier(C, NC_IMAGE, ima_v);
-	}	
+	}
 }
 
 
@@ -228,13 +206,13 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 	int mval[2];
 	
 	if (G.scene->r.mode & R_BORDER) {
-		winx *= BLI_RCT_SIZE_X(&G.scene->r.border);
-		winy *= BLI_RCT_SIZE_Y(&G.scene->r.border);
+		winx *= BLI_rcti_size_x(&G.scene->r.border);
+		winy *= BLI_rctf_size_y(&G.scene->r.border);
 	}
 	
 	/* while dragging we need to update the rects, otherwise it doesn't end with correct one */
 
-	BLI_rctf_init(&dispf, 15.0f, BLI_RCT_SIZE_X(&block->rect) - 15.0f, 15.0f, (BLI_RCT_SIZE_Y(&block->rect)) - 15.0f);
+	BLI_rctf_init(&dispf, 15.0f, BLI_rcti_size_x(&block->rect) - 15.0f, 15.0f, (BLI_rctf_size_y(&block->rect)) - 15.0f);
 	ui_graphics_to_window_rct(sa->win, &dispf, disprect);
 	
 	/* correction for gla draw */
@@ -744,8 +722,10 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				split = uiLayoutSplit(layout, 0.0f, FALSE);
 
 				col = uiLayoutColumn(split, TRUE);
+				uiLayoutSetEnabled(col, 0);
 				uiItemR(col, &imaptr, "generated_width", 0, "X", ICON_NONE);
 				uiItemR(col, &imaptr, "generated_height", 0, "Y", ICON_NONE);
+				
 				uiItemR(col, &imaptr, "use_generated_float", 0, NULL, ICON_NONE);
 
 				uiItemR(split, &imaptr, "generated_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
@@ -781,9 +761,10 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 	uiItemR(sub, imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
 
 	/* only display depth setting if multiple depths can be used */
-	if ((ELEM6(depth_ok,
+	if ((ELEM7(depth_ok,
 	           R_IMF_CHAN_DEPTH_1,
 	           R_IMF_CHAN_DEPTH_8,
+	           R_IMF_CHAN_DEPTH_10,
 	           R_IMF_CHAN_DEPTH_12,
 	           R_IMF_CHAN_DEPTH_16,
 	           R_IMF_CHAN_DEPTH_24,
@@ -823,9 +804,13 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 		uiItemR(col, imfptr, "use_jpeg2k_ycc", 0, NULL, ICON_NONE);
 	}
 
+	if (imf->imtype == R_IMF_IMTYPE_DPX) {
+		uiItemR(col, imfptr, "use_cineon_log", 0, NULL, ICON_NONE);
+	}
+
 	if (imf->imtype == R_IMF_IMTYPE_CINEON) {
 #if 1
-		uiItemL(col, IFACE_("Hard coded Non-Linear, Gamma: 1.0"), ICON_NONE);
+		uiItemL(col, IFACE_("Hard coded Non-Linear, Gamma:1.7"), ICON_NONE);
 #else
 		uiItemR(col, imfptr, "use_cineon_log", 0, NULL, ICON_NONE);
 		uiItemR(col, imfptr, "cineon_black", 0, NULL, ICON_NONE);
@@ -836,7 +821,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 
 	/* color management */
 	if (color_management &&
-	    (!BKE_imtype_supports_float(imf->imtype) ||
+	    (!BKE_imtype_requires_linear_float(imf->imtype) ||
 	     (show_preview && imf->flag & R_IMF_FLAG_PREVIEW_JPG)))
 	{
 		prop = RNA_struct_find_property(imfptr, "display_settings");

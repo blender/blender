@@ -52,7 +52,7 @@ BL_InterpolatorList::BL_InterpolatorList(bAction *action)
 	if (action==NULL)
 		return;
 	
-	for (FCurve *fcu= (FCurve *)action->curves.first; fcu; fcu= (FCurve *)fcu->next) {
+	for (FCurve *fcu = (FCurve *)action->curves.first; fcu; fcu = fcu->next) {
 		if (fcu->rna_path) {
 			BL_ScalarInterpolator *new_ipo = new BL_ScalarInterpolator(fcu); 
 			//assert(new_ipo);
@@ -78,5 +78,5 @@ KX_IScalarInterpolator *BL_InterpolatorList::GetScalarInterpolator(const char *r
 			return *i;
 	}
 	return NULL;
-}	
+}
 

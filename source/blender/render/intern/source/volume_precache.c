@@ -92,7 +92,7 @@ static int intersect_outside_volume(RayObject *tree, Isect *isect, float *offset
 }
 
 /* Uses ray tracing to check if a point is inside or outside an ObjectInstanceRen */
-static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), float *co)
+static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), const float co[3])
 {
 	Isect isect= {{0}};
 	float dir[3] = {0.0f, 0.0f, 1.0f};
@@ -118,7 +118,7 @@ static int point_inside_obi(RayObject *tree, ObjectInstanceRen *UNUSED(obi), flo
 }
 
 /* find the bounding box of an objectinstance in global space */
-void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float *bbmin, float *bbmax)
+void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float bbmin[3], float bbmax[3])
 {
 	ObjectRen *obr = obi->obr;
 	VolumePrecache *vp = obi->volume_precache;
@@ -270,7 +270,7 @@ BLI_INLINE int ms_I(int x, int y, int z, int *n) /* has a pad of 1 voxel surroun
 BLI_INLINE int v_I_pad(int x, int y, int z, int *n) /* has a pad of 1 voxel surrounding the core for boundary simulation */
 {
 	/* same ordering to light cache, with padding */
-	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;  	
+	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;
 }
 
 BLI_INLINE int lc_to_ms_I(int x, int y, int z, int *n)
@@ -389,7 +389,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 					const int j = ms_I(x, y, z, n);			//ms index
 					
 					time= PIL_check_seconds_timer();
-					c++;										
+					c++;
 					if (vp->data_r[i] > 0.0f)
 						sr[j] += vp->data_r[i];
 					if (vp->data_g[i] > 0.0f)
@@ -826,7 +826,7 @@ void free_volume_precache(Render *re)
 	BLI_freelistN(&re->volumes);
 }
 
-int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float *co)
+int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, const float co[3])
 {
 	RayObject *tree;
 	int inside=0;

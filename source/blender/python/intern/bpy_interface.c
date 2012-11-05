@@ -53,6 +53,7 @@
 
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -68,7 +69,7 @@
 
 #include "BPY_extern.h"
 
-#include "../generic/bpy_internal_import.h" // our own imports
+#include "../generic/bpy_internal_import.h"  /* our own imports */
 #include "../generic/py_capi_utils.h"
 
 /* inittab initialization functions */
@@ -179,10 +180,10 @@ void BPY_text_free_code(Text *text)
 
 void BPY_modules_update(bContext *C)
 {
-#if 0 // slow, this runs all the time poll, draw etc 100's of time a sec.
+#if 0  /* slow, this runs all the time poll, draw etc 100's of time a sec. */
 	PyObject *mod = PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
 	PyModule_AddObject(mod, "data", BPY_rna_module());
-	PyModule_AddObject(mod, "types", BPY_rna_types()); // atm this does not need updating
+	PyModule_AddObject(mod, "types", BPY_rna_types());  /* atm this does not need updating */
 #endif
 
 	/* refreshes the main struct */
@@ -250,6 +251,10 @@ void BPY_python_start(int argc, const char **argv)
 	 * an error, this is highly annoying, another stumbling block for devs,
 	 * so use a more relaxed error handler and enforce utf-8 since the rest of
 	 * blender is utf-8 too - campbell */
+
+	/* XXX, update: this is unreliable! 'PYTHONIOENCODING' is ignored in MS-Windows
+	 * when dynamically linked, see: [#31555] for details.
+	 * Python doesn't expose a good way to set this. */
 	BLI_setenv("PYTHONIOENCODING", "utf-8:surrogateescape");
 
 	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
@@ -263,16 +268,7 @@ void BPY_python_start(int argc, const char **argv)
 
 	Py_Initialize();
 
-#ifdef WIN32
-	/* this is disappointing, its likely a bug in python?
-	 * for some reason 'PYTHONIOENCODING' is ignored in windows
-	 * see: [#31555] for details. */
-	PyRun_SimpleString("import sys, io\n"
-	                   "sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='surrogateescape', line_buffering=True)\n"
-	                   "sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='surrogateescape', line_buffering=True)\n");
-#endif  /* WIN32 */
-
-	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
+	// PySys_SetArgv(argc, argv);  /* broken in py3, not a huge deal */
 	/* sigh, why do python guys not have a (char **) version anymore? */
 	{
 		int i;
@@ -383,6 +379,7 @@ typedef struct {
 static int python_script_exec(bContext *C, const char *fn, struct Text *text,
                               struct ReportList *reports, const short do_jump)
 {
+	Main *bmain_old = CTX_data_main(C);
 	PyObject *main_mod = NULL;
 	PyObject *py_dict = NULL, *py_result = NULL;
 	PyGILState_STATE gilstate;
@@ -461,7 +458,11 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 	if (!py_result) {
 		if (text) {
 			if (do_jump) {
-				python_script_error_jump_text(text);
+				/* ensure text is valid before use, the script may have freed its self */
+				Main *bmain_new = CTX_data_main(C);
+				if ((bmain_old == bmain_new) && (BLI_findindex(&bmain_new->text, text) != -1)) {
+					python_script_error_jump_text(text);
+				}
 			}
 		}
 		BPy_errors_to_report(reports);
@@ -508,6 +509,18 @@ void BPY_DECREF(void *pyob_ptr)
 	Py_DECREF((PyObject *)pyob_ptr);
 	PyGILState_Release(gilstate);
 }
+
+void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
+{
+	PyGILState_STATE gilstate = PyGILState_Ensure();
+	const int do_invalidate = (Py_REFCNT((PyObject *)pyob_ptr) > 1);
+	Py_DECREF((PyObject *)pyob_ptr);
+	if (do_invalidate) {
+		pyrna_invalidate(pyob_ptr);
+	}
+	PyGILState_Release(gilstate);
+}
+
 
 /* return -1 on error, else 0 */
 int BPY_button_exec(bContext *C, const char *expr, double *value, const short verbose)
@@ -672,6 +685,11 @@ void BPY_modules_load_user(bContext *C)
 				else {
 					Py_DECREF(module);
 				}
+
+				/* check if the script loaded a new file */
+				if (bmain != CTX_data_main(C)) {
+					break;
+				}
 			}
 		}
 	}
@@ -680,10 +698,19 @@ void BPY_modules_load_user(bContext *C)
 
 int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
-	PyObject *pyctx = (PyObject *)CTX_py_dict_get(C);
-	PyObject *item = PyDict_GetItemString(pyctx, member);
+	PyGILState_STATE gilstate;
+	int use_gil = !PYC_INTERPRETER_ACTIVE;
+
+	PyObject *pyctx;
+	PyObject *item;
 	PointerRNA *ptr = NULL;
 	int done = FALSE;
+
+	if (use_gil)
+		gilstate = PyGILState_Ensure();
+
+	pyctx = (PyObject *)CTX_py_dict_get(C);
+	item = PyDict_GetItemString(pyctx, member);
 
 	if (item == NULL) {
 		/* pass */
@@ -720,7 +747,8 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 					CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
 				}
 				else {
-					printf("List item not a valid type\n");
+					printf("PyContext: '%s' list item not a valid type in sequece type '%s'\n",
+					       member, Py_TYPE(item)->tp_name);
 				}
 
 			}
@@ -739,6 +767,9 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 			printf("PyContext '%s' found\n", member);
 		}
 	}
+
+	if (use_gil)
+		PyGILState_Release(gilstate);
 
 	return done;
 }

@@ -58,7 +58,7 @@ struct BIK_ParamValue {
 		float f[8];
 		int   i[8];
 		char  s[32];
-	} value;		
+	} value;
 };
 typedef struct BIK_ParamValue BIK_ParamValue;
 
@@ -92,5 +92,4 @@ void BIK_test_constraint(struct Object *ob, struct bConstraint *cons);
 }
 #endif
 
-#endif // __BIK_API_H__
-
+#endif  /* __BIK_API_H__ */

@@ -102,16 +102,28 @@ int BLI_rctf_isect_pt_v(const rctf *rect, const float xy[2])
 }
 
 /* based closely on 'isect_line_line_v2_int', but in modified so corner cases are treated as intersections */
-static int isect_segments(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
+static int isect_segments_i(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {
 	const double div = (double)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
-	if (div == 0.0f) {
+	if (div == 0.0) {
 		return 1; /* co-linear */
 	}
 	else {
 		const double labda = (double)((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 		const double mu    = (double)((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
-		return (labda >= 0.0f && labda <= 1.0f && mu >= 0.0f && mu <= 1.0f);
+		return (labda >= 0.0 && labda <= 1.0 && mu >= 0.0 && mu <= 1.0);
+	}
+}
+static int isect_segments_fl(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
+{
+	const double div = (double)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
+	if (div == 0.0) {
+		return 1; /* co-linear */
+	}
+	else {
+		const double labda = (double)((v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+		const double mu    = (double)((v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
+		return (labda >= 0.0 && labda <= 1.0 && mu >= 0.0 && mu <= 1.0);
 	}
 }
 
@@ -134,14 +146,49 @@ int BLI_rcti_isect_segment(const rcti *rect, const int s1[2], const int s2[2])
 		/* diagonal: [/] */
 		tvec1[0] = rect->xmin; tvec1[1] = rect->ymin;
 		tvec2[0] = rect->xmin; tvec2[1] = rect->ymax;
-		if (isect_segments(s1, s2, tvec1, tvec2)) {
+		if (isect_segments_i(s1, s2, tvec1, tvec2)) {
 			return 1;
 		}
 
 		/* diagonal: [\] */
 		tvec1[0] = rect->xmin; tvec1[1] = rect->ymax;
 		tvec2[0] = rect->xmax; tvec2[1] = rect->ymin;
-		if (isect_segments(s1, s2, tvec1, tvec2)) {
+		if (isect_segments_i(s1, s2, tvec1, tvec2)) {
+			return 1;
+		}
+
+		/* no intersection */
+		return 0;
+	}
+}
+
+int BLI_rctf_isect_segment(const rctf *rect, const float s1[2], const float s2[2])
+{
+	/* first do outside-bounds check for both points of the segment */
+	if (s1[0] < rect->xmin && s2[0] < rect->xmin) return 0;
+	if (s1[0] > rect->xmax && s2[0] > rect->xmax) return 0;
+	if (s1[1] < rect->ymin && s2[1] < rect->ymin) return 0;
+	if (s1[1] > rect->ymax && s2[1] > rect->ymax) return 0;
+
+	/* if either points intersect then we definetly intersect */
+	if (BLI_rctf_isect_pt_v(rect, s1) || BLI_rctf_isect_pt_v(rect, s2)) {
+		return 1;
+	}
+	else {
+		/* both points are outside but may insersect the rect */
+		float tvec1[2];
+		float tvec2[2];
+		/* diagonal: [/] */
+		tvec1[0] = rect->xmin; tvec1[1] = rect->ymin;
+		tvec2[0] = rect->xmin; tvec2[1] = rect->ymax;
+		if (isect_segments_fl(s1, s2, tvec1, tvec2)) {
+			return 1;
+		}
+
+		/* diagonal: [\] */
+		tvec1[0] = rect->xmin; tvec1[1] = rect->ymax;
+		tvec2[0] = rect->xmax; tvec2[1] = rect->ymin;
+		if (isect_segments_fl(s1, s2, tvec1, tvec2)) {
 			return 1;
 		}
 
@@ -252,8 +299,8 @@ void BLI_rctf_translate(rctf *rect, float x, float y)
 /* change width & height around the central location */
 void BLI_rcti_resize(rcti *rect, int x, int y)
 {
-	rect->xmin = rect->xmax = BLI_RCT_CENTER_X(rect);
-	rect->ymin = rect->ymax = BLI_RCT_CENTER_Y(rect);
+	rect->xmin = rect->xmax = BLI_rcti_cent_x(rect);
+	rect->ymin = rect->ymax = BLI_rcti_cent_y(rect);
 	rect->xmin -= x / 2;
 	rect->ymin -= y / 2;
 	rect->xmax = rect->xmin + x;
@@ -262,8 +309,8 @@ void BLI_rcti_resize(rcti *rect, int x, int y)
 
 void BLI_rctf_resize(rctf *rect, float x, float y)
 {
-	rect->xmin = rect->xmax = BLI_RCT_CENTER_X(rect);
-	rect->ymin = rect->ymax = BLI_RCT_CENTER_Y(rect);
+	rect->xmin = rect->xmax = BLI_rctf_cent_x(rect);
+	rect->ymin = rect->ymax = BLI_rctf_cent_y(rect);
 	rect->xmin -= x * 0.5f;
 	rect->ymin -= y * 0.5f;
 	rect->xmax = rect->xmin + x;
@@ -280,6 +327,27 @@ void BLI_rctf_interp(rctf *rect, const rctf *rect_a, const rctf *rect_b, const f
 }
 
 /* BLI_rcti_interp() not needed yet */
+
+
+int BLI_rctf_clamp_pt_v(const struct rctf *rect, float xy[2])
+{
+	int change = 0;
+	if (xy[0] < rect->xmin) { xy[0] = rect->xmin; change = 1; }
+	if (xy[0] > rect->xmax) { xy[0] = rect->xmax; change = 1; }
+	if (xy[1] < rect->ymin) { xy[1] = rect->ymin; change = 1; }
+	if (xy[1] > rect->ymax) { xy[1] = rect->ymax; change = 1; }
+	return change;
+}
+
+int BLI_rcti_clamp_pt_v(const struct rcti *rect, int xy[2])
+{
+	int change = 0;
+	if (xy[0] < rect->xmin) { xy[0] = rect->xmin; change = 1; }
+	if (xy[0] > rect->xmax) { xy[0] = rect->xmax; change = 1; }
+	if (xy[1] < rect->ymin) { xy[1] = rect->ymin; change = 1; }
+	if (xy[1] > rect->ymax) { xy[1] = rect->ymax; change = 1; }
+	return change;
+}
 
 int BLI_rctf_compare(const struct rctf *rect_a, const struct rctf *rect_b, const float limit)
 {
@@ -366,9 +434,9 @@ int BLI_rcti_isect(const rcti *src1, const rcti *src2, rcti *dest)
 void BLI_rcti_rctf_copy(rcti *dst, const rctf *src)
 {
 	dst->xmin = floorf(src->xmin + 0.5f);
-	dst->xmax = dst->xmin + floorf(BLI_RCT_SIZE_X(src) + 0.5f);
+	dst->xmax = dst->xmin + floorf(BLI_rctf_size_x(src) + 0.5f);
 	dst->ymin = floorf(src->ymin + 0.5f);
-	dst->ymax = dst->ymin + floorf(BLI_RCT_SIZE_Y(src) + 0.5f);
+	dst->ymax = dst->ymin + floorf(BLI_rctf_size_y(src) + 0.5f);
 }
 
 void BLI_rctf_rcti_copy(rctf *dst, const rcti *src)
@@ -382,11 +450,11 @@ void BLI_rctf_rcti_copy(rctf *dst, const rcti *src)
 void print_rctf(const char *str, const rctf *rect)
 {
 	printf("%s: xmin %.3f, xmax %.3f, ymin %.3f, ymax %.3f (%.3fx%.3f)\n", str,
-	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_RCT_SIZE_X(rect), BLI_RCT_SIZE_Y(rect));
+	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_rctf_size_x(rect), BLI_rctf_size_y(rect));
 }
 
 void print_rcti(const char *str, const rcti *rect)
 {
 	printf("%s: xmin %d, xmax %d, ymin %d, ymax %d (%dx%d)\n", str,
-	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_RCT_SIZE_X(rect), BLI_RCT_SIZE_Y(rect));
+	       rect->xmin, rect->xmax, rect->ymin, rect->ymax, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
 }

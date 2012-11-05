@@ -90,5 +90,4 @@ protected:
 #endif
 };
 
-#endif // !defined __VECTORVALUE_H__
-
+#endif  /* __VECTORVALUE_H__ */

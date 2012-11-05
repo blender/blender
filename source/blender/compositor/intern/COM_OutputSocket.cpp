@@ -54,6 +54,16 @@ void OutputSocket::addConnection(SocketConnection *connection)
 	this->m_connections.push_back(connection);
 }
 
+void OutputSocket::removeConnection(SocketConnection *connection)
+{
+	for (vector<SocketConnection *>::iterator it = m_connections.begin(); it != m_connections.end(); ++it) {
+		if (*it == connection) {
+			m_connections.erase(it);
+			return;
+		}
+	}
+}
+
 void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single)
 {
 	if (isConnected()) {

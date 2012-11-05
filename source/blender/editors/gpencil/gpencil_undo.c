@@ -111,7 +111,7 @@ int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL);
+	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
 }

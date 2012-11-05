@@ -72,7 +72,7 @@ GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[GHOST_kKey7                     ] = KX_SEVENKEY                ;
 	m_reverseKeyTranslateTable[GHOST_kKey8                     ] = KX_EIGHTKEY                ;
 	m_reverseKeyTranslateTable[GHOST_kKey9                     ] = KX_NINEKEY                 ;
-	
+
 	// Middle keyboard area keys
 	m_reverseKeyTranslateTable[GHOST_kKeyPause                 ] = KX_PAUSEKEY                ;
 	m_reverseKeyTranslateTable[GHOST_kKeyInsert                ] = KX_INSERTKEY               ;
@@ -81,7 +81,7 @@ GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[GHOST_kKeyEnd                   ] = KX_ENDKEY                  ;
 	m_reverseKeyTranslateTable[GHOST_kKeyUpPage                ] = KX_PAGEUPKEY               ;
 	m_reverseKeyTranslateTable[GHOST_kKeyDownPage              ] = KX_PAGEDOWNKEY             ;
-	
+
 	// Arrow keys
 	m_reverseKeyTranslateTable[GHOST_kKeyUpArrow               ] = KX_UPARROWKEY              ;
 	m_reverseKeyTranslateTable[GHOST_kKeyDownArrow             ] = KX_DOWNARROWKEY            ;
@@ -108,19 +108,19 @@ GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[GHOST_kKeyF17                   ] = KX_F17KEY                  ;
 	m_reverseKeyTranslateTable[GHOST_kKeyF18                   ] = KX_F18KEY                  ;
 	m_reverseKeyTranslateTable[GHOST_kKeyF19                   ] = KX_F19KEY                  ;
-	
+
 
 	// Numpad keys
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad0	           ] = KX_PAD0	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad1	           ] = KX_PAD1	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad2	           ] = KX_PAD2	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad3	           ] = KX_PAD3	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad4	           ] = KX_PAD4	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad5	           ] = KX_PAD5	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad6	           ] = KX_PAD6	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad7	           ] = KX_PAD7	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad8	           ] = KX_PAD8	                   ;
-	m_reverseKeyTranslateTable[GHOST_kKeyNumpad9	           ] = KX_PAD9	                   ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad0               ] = KX_PAD0                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad1               ] = KX_PAD1                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad2               ] = KX_PAD2                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad3               ] = KX_PAD3                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad4               ] = KX_PAD4                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad5               ] = KX_PAD5                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad6               ] = KX_PAD6                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad7               ] = KX_PAD7                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad8               ] = KX_PAD8                     ;
+	m_reverseKeyTranslateTable[GHOST_kKeyNumpad9               ] = KX_PAD9                     ;
 	m_reverseKeyTranslateTable[GHOST_kKeyNumpadAsterisk        ] = KX_PADASTERKEY              ;
 	m_reverseKeyTranslateTable[GHOST_kKeyNumpadPlus            ] = KX_PADPLUSKEY               ;
 	m_reverseKeyTranslateTable[GHOST_kKeyNumpadPeriod          ] = KX_PADPERIOD                ;
@@ -133,7 +133,7 @@ GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[GHOST_kKeyEsc                   ] = KX_ESCKEY                   ;
 	m_reverseKeyTranslateTable[GHOST_kKeyTab                   ] = KX_TABKEY                   ;
 	m_reverseKeyTranslateTable[GHOST_kKeySpace                 ] = KX_SPACEKEY                 ;
-	m_reverseKeyTranslateTable[GHOST_kKeyEnter                 ] = KX_RETKEY			       ;
+	m_reverseKeyTranslateTable[GHOST_kKeyEnter                 ] = KX_RETKEY                   ;
 	m_reverseKeyTranslateTable[GHOST_kKeyBackSpace             ] = KX_BACKSPACEKEY             ;
 	m_reverseKeyTranslateTable[GHOST_kKeySemicolon             ] = KX_SEMICOLONKEY             ;
 	m_reverseKeyTranslateTable[GHOST_kKeyPeriod                ] = KX_PERIODKEY                ;
@@ -141,19 +141,19 @@ GPG_KeyboardDevice::GPG_KeyboardDevice(void)
 	m_reverseKeyTranslateTable[GHOST_kKeyQuote                 ] = KX_QUOTEKEY                 ;
 	m_reverseKeyTranslateTable[GHOST_kKeyAccentGrave           ] = KX_ACCENTGRAVEKEY           ;
 	m_reverseKeyTranslateTable[GHOST_kKeyMinus                 ] = KX_MINUSKEY                 ;
-	m_reverseKeyTranslateTable[GHOST_kKeySlash	               ] = KX_SLASHKEY                 ;
+	m_reverseKeyTranslateTable[GHOST_kKeySlash                 ] = KX_SLASHKEY                 ;
 	m_reverseKeyTranslateTable[GHOST_kKeyBackslash             ] = KX_BACKSLASHKEY             ;
 	m_reverseKeyTranslateTable[GHOST_kKeyEqual                 ] = KX_EQUALKEY                 ;
-	m_reverseKeyTranslateTable[GHOST_kKeyLeftBracket	       ] = KX_LEFTBRACKETKEY           ;
-	m_reverseKeyTranslateTable[GHOST_kKeyRightBracket	       ] = KX_RIGHTBRACKETKEY          ;
+	m_reverseKeyTranslateTable[GHOST_kKeyLeftBracket           ] = KX_LEFTBRACKETKEY           ;
+	m_reverseKeyTranslateTable[GHOST_kKeyRightBracket          ] = KX_RIGHTBRACKETKEY          ;
 
 	// Modifier keys.
-	m_reverseKeyTranslateTable[GHOST_kKeyLeftControl	       ] = KX_LEFTCTRLKEY	           ;
-	m_reverseKeyTranslateTable[GHOST_kKeyRightControl 	       ] = KX_RIGHTCTRLKEY 	           ;
+	m_reverseKeyTranslateTable[GHOST_kKeyLeftControl           ] = KX_LEFTCTRLKEY              ;
+	m_reverseKeyTranslateTable[GHOST_kKeyRightControl          ] = KX_RIGHTCTRLKEY             ;
 	m_reverseKeyTranslateTable[GHOST_kKeyLeftAlt               ] = KX_LEFTALTKEY               ;
 	m_reverseKeyTranslateTable[GHOST_kKeyRightAlt              ] = KX_RIGHTALTKEY              ;
 	m_reverseKeyTranslateTable[GHOST_kKeyLeftShift             ] = KX_LEFTSHIFTKEY             ;
-	m_reverseKeyTranslateTable[GHOST_kKeyRightShift	           ] = KX_RIGHTSHIFTKEY            ;
+	m_reverseKeyTranslateTable[GHOST_kKeyRightShift            ] = KX_RIGHTSHIFTKEY            ;
 }
 
 

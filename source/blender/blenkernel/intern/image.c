@@ -603,7 +603,8 @@ Image *BKE_image_load_exists(const char *filepath)
 	return BKE_image_load(filepath);
 }
 
-static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
+static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type,
+                            float color[4], ColorManagedColorspaceSettings *colorspace_settings)
 {
 	ImBuf *ibuf;
 	unsigned char *rect = NULL;
@@ -612,10 +613,26 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	if (floatbuf) {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
 		rect_float = ibuf->rect_float;
+
+		if (colorspace_settings->name[0] == '\0') {
+			const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
+
+			BLI_strncpy(colorspace_settings->name, colorspace, sizeof(colorspace_settings->name));
+		}
+
+		IMB_colormanagement_check_is_data(ibuf, colorspace_settings->name);
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
 		rect = (unsigned char *)ibuf->rect;
+
+		if (colorspace_settings->name[0] == '\0') {
+			const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+
+			BLI_strncpy(colorspace_settings->name, colorspace, sizeof(colorspace_settings->name));
+		}
+
+		IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace_settings->name);
 	}
 
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
@@ -650,7 +667,7 @@ Image *BKE_image_add_generated(unsigned int width, unsigned int height, const ch
 		ima->gen_type = gen_type;
 		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 
-		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color);
+		ibuf = add_ibuf_size(width, height, ima->name, depth, floatbuf, gen_type, color, &ima->colorspace_settings);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 
 		ima->ok = IMA_OK_LOADED;
@@ -1016,7 +1033,7 @@ int BKE_imtype_supports_quality(const char imtype)
 	return 0;
 }
 
-int BKE_imtype_supports_float(const char imtype)
+int BKE_imtype_requires_linear_float(const char imtype)
 {
 	switch (imtype) {
 		case R_IMF_IMTYPE_CINEON:
@@ -1046,6 +1063,7 @@ char BKE_imtype_valid_channels(const char imtype)
 		case R_IMF_IMTYPE_DDS:
 		case R_IMF_IMTYPE_JP2:
 		case R_IMF_IMTYPE_QUICKTIME:
+		case R_IMF_IMTYPE_DPX:
 			chan_flag |= IMA_CHAN_FLAG_ALPHA;
 	}
 
@@ -1074,10 +1092,11 @@ char BKE_imtype_valid_depths(const char imtype)
 			return R_IMF_CHAN_DEPTH_16 | R_IMF_CHAN_DEPTH_32;
 		case R_IMF_IMTYPE_MULTILAYER:
 			return R_IMF_CHAN_DEPTH_32;
-		/* eeh, cineone does some strange 10bits per channel */
+		/* eeh, cineon does some strange 10bits per channel */
 		case R_IMF_IMTYPE_DPX:
+			return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_10 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
 		case R_IMF_IMTYPE_CINEON:
-			return R_IMF_CHAN_DEPTH_12;
+			return R_IMF_CHAN_DEPTH_10;
 		case R_IMF_IMTYPE_JP2:
 			return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
 		/* most formats are 8bit only */
@@ -1227,6 +1246,9 @@ void BKE_imformat_defaults(ImageFormatData *im_format)
 	im_format->imtype = R_IMF_IMTYPE_PNG;
 	im_format->quality = 90;
 	im_format->compress = 90;
+
+	BKE_color_managed_display_settings_init(&im_format->display_settings);
+	BKE_color_managed_view_settings_init(&im_format->view_settings);
 }
 
 void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *imbuf)
@@ -1805,9 +1827,33 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 #ifdef WITH_CINEON
 	else if (imtype == R_IMF_IMTYPE_CINEON) {
 		ibuf->ftype = CINEON;
+		if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
+			ibuf->ftype |= CINEON_LOG;
+		}
+		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
+			ibuf->ftype |= CINEON_16BIT;
+		}
+		else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
+			ibuf->ftype |= CINEON_12BIT;
+		}
+		else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
+			ibuf->ftype |= CINEON_10BIT;
+		}
 	}
 	else if (imtype == R_IMF_IMTYPE_DPX) {
 		ibuf->ftype = DPX;
+		if (imf->cineon_flag & R_IMF_CINEON_FLAG_LOG) {
+		  ibuf->ftype |= CINEON_LOG;
+		}
+		if (imf->depth == R_IMF_CHAN_DEPTH_16) {
+			ibuf->ftype |= CINEON_16BIT;
+		}
+		else if (imf->depth == R_IMF_CHAN_DEPTH_12) {
+			ibuf->ftype |= CINEON_12BIT;
+		}
+		else if (imf->depth == R_IMF_CHAN_DEPTH_10) {
+			ibuf->ftype |= CINEON_10BIT;
+		}
 	}
 #endif
 	else if (imtype == R_IMF_IMTYPE_TARGA) {
@@ -2100,6 +2146,15 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 				}
 			}
 			break;
+		case IMA_SIGNAL_COLORMANAGE:
+			image_free_buffers(ima);
+
+			ima->ok = 1;
+
+			if (iuser)
+				iuser->ok = 1;
+
+			break;
 	}
 
 	/* don't use notifiers because they are not 100% sure to succeeded
@@ -2201,8 +2256,10 @@ void BKE_image_backup_render(Scene *scene, Image *ima)
 /* in that case we have to build a render-result */
 static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 {
+	const char *colorspace = ima->colorspace_settings.name;
+	int predivide = ima->flag & IMA_CM_PREDIVIDE;
 
-	ima->rr = RE_MultilayerConvert(ibuf->userdata, ibuf->x, ibuf->y);
+	ima->rr = RE_MultilayerConvert(ibuf->userdata, colorspace, predivide, ibuf->x, ibuf->y);
 
 #ifdef WITH_OPENEXR
 	IMB_exr_close(ibuf->userdata);
@@ -2541,7 +2598,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		*lock_r = re;
 	}
 
-	/* this gives active layer, composite or seqence result */
+	/* this gives active layer, composite or sequence result */
 	rect = (unsigned int *)rres.rect32;
 	rectf = rres.rectf;
 	rectz = rres.rectz;
@@ -2595,15 +2652,21 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	/* free rect buffer if float buffer changes, so it can be recreated with
 	 * the updated result, and also in case we got byte buffer from sequencer,
 	 * so we don't keep reference to freed buffer */
-	
-	/* todo: this fix breaks save buffers render progress 
-	   if (ibuf->rect_float != rectf || rect || !rectf) */
-
 	if (ibuf->rect_float != rectf || rect)
 		imb_freerectImBuf(ibuf);
 
-	if (rect)
+	if (rect) {
 		ibuf->rect = rect;
+	}
+	else {
+		/* byte buffer of render result has been freed, make sure image buffers
+		 * does not reference to this buffer anymore
+		 * need check for whether byte buffer was allocated and owned by image itself
+		 * or if it's reusing buffer from render result
+		 */
+		if ((ibuf->mall & IB_rect) == 0)
+			ibuf->rect = NULL;
+	}
 
 	if (rectf) {
 		ibuf->rect_float = rectf;
@@ -2782,7 +2845,8 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				/* UV testgrid or black or solid etc */
 				if (ima->gen_x == 0) ima->gen_x = 1024;
 				if (ima->gen_y == 0) ima->gen_y = 1024;
-				ibuf = add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type, color);
+				ibuf = add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type,
+				                     color, &ima->colorspace_settings);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok = IMA_OK_LOADED;
 			}
@@ -2998,5 +3062,8 @@ void BKE_image_get_aspect(Image *image, float *aspx, float *aspy)
 	*aspx = 1.0;
 
 	/* x is always 1 */
-	*aspy = image->aspy / image->aspx;
+	if (image)
+		*aspy = image->aspy / image->aspx;
+	else
+		*aspy = 1.0f;
 }

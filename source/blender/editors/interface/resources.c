@@ -651,7 +651,7 @@ void ui_theme_init_default(void)
 		strcpy(btheme->name, "Default");
 	}
 	
-	UI_SetTheme(0, 0);  // make sure the global used in this file is set
+	UI_SetTheme(0, 0);  /* make sure the global used in this file is set */
 
 	/* UI buttons */
 	ui_widget_color_init(&btheme->tui);
@@ -808,9 +808,9 @@ void ui_theme_init_default(void)
 	rgba_char_args_set_fl(btheme->tfile.list, 0.4, 0.4, 0.4, 1);
 	rgba_char_args_set(btheme->tfile.text,  250, 250, 250, 255);
 	rgba_char_args_set(btheme->tfile.text_hi, 15, 15, 15, 255);
-	rgba_char_args_set(btheme->tfile.panel, 145, 145, 145, 255);    // bookmark/ui regions
-	rgba_char_args_set(btheme->tfile.active, 130, 130, 130, 255); // selected files
-	rgba_char_args_set(btheme->tfile.hilite, 255, 140, 25, 255); // selected files
+	rgba_char_args_set(btheme->tfile.panel, 145, 145, 145, 255);  /* bookmark/ui regions */
+	rgba_char_args_set(btheme->tfile.active, 130, 130, 130, 255); /* selected files */
+	rgba_char_args_set(btheme->tfile.hilite, 255, 140, 25, 255);  /* selected files */
 	
 	rgba_char_args_set(btheme->tfile.grid,  250, 250, 250, 255);
 	rgba_char_args_set(btheme->tfile.image, 250, 250, 250, 255);
@@ -891,7 +891,7 @@ void ui_theme_init_default(void)
 	btheme->ttime = btheme->tv3d;
 	rgba_char_args_set_fl(btheme->ttime.back,   0.45, 0.45, 0.45, 1.0);
 	rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);
-	rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);      // sliders
+	rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);      /* sliders */
 	
 	/* space node, re-uses syntax color storage */
 	btheme->tnode = btheme->tv3d;
@@ -901,6 +901,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tnode.syntaxb, 108, 105, 111, 255);  /* operator */
 	rgba_char_args_set(btheme->tnode.syntaxv, 104, 106, 117, 255);  /* generator */
 	rgba_char_args_set(btheme->tnode.syntaxc, 105, 117, 110, 255);  /* group */
+	rgba_char_args_set(btheme->tnode.movie, 155, 155, 155, 160);  /* frame */
 	btheme->tnode.noodle_curving = 5;
 
 	/* space logic */
@@ -931,7 +932,7 @@ void ui_theme_init_default(void)
 
 void UI_SetTheme(int spacetype, int regionid)
 {
-	if (spacetype == 0) { // called for safety, when delete themes
+	if (spacetype == 0) {  /* called for safety, when delete themes */
 		theme_active = U.themes.first;
 		theme_spacetype = SPACE_VIEW3D;
 		theme_regionid = RGN_TYPE_WINDOW;
@@ -949,7 +950,7 @@ bTheme *UI_GetTheme(void)
 	return U.themes.first;
 }
 
-// for space windows only
+/* for space windows only */
 void UI_ThemeColor(int colorid)
 {
 	const unsigned char *cp;
@@ -959,7 +960,7 @@ void UI_ThemeColor(int colorid)
 
 }
 
-// plus alpha
+/* plus alpha */
 void UI_ThemeColor4(int colorid)
 {
 	const unsigned char *cp;
@@ -969,7 +970,7 @@ void UI_ThemeColor4(int colorid)
 
 }
 
-// set the color with offset for shades
+/* set the color with offset for shades */
 void UI_ThemeColorShade(int colorid, int offset)
 {
 	int r, g, b;
@@ -1002,7 +1003,7 @@ void UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 	glColor4ub(r, g, b, a);
 }
 
-// blend between to theme colors, and set it
+/* blend between to theme colors, and set it */
 void UI_ThemeColorBlend(int colorid1, int colorid2, float fac)
 {
 	int r, g, b;
@@ -1019,7 +1020,7 @@ void UI_ThemeColorBlend(int colorid1, int colorid2, float fac)
 	glColor3ub(r, g, b);
 }
 
-// blend between to theme colors, shade it, and set it
+/* blend between to theme colors, shade it, and set it */
 void UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 {
 	int r, g, b;
@@ -1040,7 +1041,7 @@ void UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset)
 	glColor3ub(r, g, b);
 }
 
-// blend between to theme colors, shade it, and set it
+/* blend between to theme colors, shade it, and set it */
 void UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int offset, int alphaoffset)
 {
 	int r, g, b, a;
@@ -1064,7 +1065,7 @@ void UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int off
 }
 
 
-// get individual values, not scaled
+/* get individual values, not scaled */
 float UI_GetThemeValuef(int colorid)
 {
 	const unsigned char *cp;
@@ -1074,7 +1075,7 @@ float UI_GetThemeValuef(int colorid)
 
 }
 
-// get individual values, not scaled
+/* get individual values, not scaled */
 int UI_GetThemeValue(int colorid)
 {
 	const unsigned char *cp;
@@ -1085,7 +1086,7 @@ int UI_GetThemeValue(int colorid)
 }
 
 
-// get the color, range 0.0-1.0
+/* get the color, range 0.0-1.0 */
 void UI_GetThemeColor3fv(int colorid, float col[3])
 {
 	const unsigned char *cp;
@@ -1107,7 +1108,7 @@ void UI_GetThemeColor4fv(int colorid, float col[4])
 	col[3] = ((float)cp[3]) / 255.0f;
 }
 
-// get the color, range 0.0-1.0, complete with shading offset
+/* get the color, range 0.0-1.0, complete with shading offset */
 void UI_GetThemeColorShade3fv(int colorid, int offset, float col[3])
 {
 	int r, g, b;
@@ -1146,7 +1147,7 @@ void UI_GetThemeColorShade3ubv(int colorid, int offset, unsigned char col[3])
 	col[2] = b;
 }
 
-// get the color, in char pointer
+/* get the color, in char pointer */
 void UI_GetThemeColor3ubv(int colorid, unsigned char col[3])
 {
 	const unsigned char *cp;
@@ -1157,7 +1158,7 @@ void UI_GetThemeColor3ubv(int colorid, unsigned char col[3])
 	col[2] = cp[2];
 }
 
-// get the color, in char pointer
+/* get the color, in char pointer */
 void UI_GetThemeColor4ubv(int colorid, unsigned char col[4])
 {
 	const unsigned char *cp;
@@ -1180,7 +1181,7 @@ void UI_GetThemeColorType4ubv(int colorid, int spacetype, char col[4])
 	col[3] = cp[3];
 }
 
-// blends and shades between two char color pointers
+/* blends and shades between two char color pointers */
 void UI_ColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], float fac, int offset)
 {
 	int r, g, b;
@@ -1213,7 +1214,7 @@ void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], in
 	col[2] = b;
 }
 
-// get a 3 byte color, blended and shaded between two other char color pointers
+/* get a 3 byte color, blended and shaded between two other char color pointers */
 void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3],
                                   float fac, int offset)
 {
@@ -1359,7 +1360,7 @@ void init_userdef_do_versions(void)
 				btheme->ttime = btheme->tv3d;
 				rgba_char_args_set_fl(btheme->ttime.back,   0.45, 0.45, 0.45, 1.0);
 				rgba_char_args_set_fl(btheme->ttime.grid,   0.36, 0.36, 0.36, 1.0);
-				rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);      // sliders
+				rgba_char_args_set(btheme->ttime.shade1,  173, 173, 173, 255);  /* sliders */
 			}
 			if (btheme->text.syntaxn[3] == 0) {
 				rgba_char_args_set(btheme->text.syntaxn,    0, 0, 200, 255);    /* Numbers  Blue*/
@@ -1934,6 +1935,18 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 22)) {
+		bTheme *btheme;
+
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tipo.lastsel_point[3] == 0)
+				rgba_char_args_set(btheme->tipo.lastsel_point, 0xff, 0xff, 0xff, 255);
+
+			if (btheme->tv3d.skin_root[3] == 0)
+				rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;
@@ -1969,7 +1982,10 @@ void init_userdef_do_versions(void)
 	}
 	
 	if (U.ndof_orbit_sensitivity == 0.0f) {
-		U.ndof_orbit_sensitivity = 1.0f;
+		U.ndof_orbit_sensitivity = U.ndof_sensitivity;
+
+		if (!(U.flag & USER_TRACKBALL))
+			U.ndof_flag |= NDOF_TURNTABLE;
 	}
 	if (U.tweak_threshold == 0)
 		U.tweak_threshold = 10;

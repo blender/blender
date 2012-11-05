@@ -114,6 +114,26 @@ static BMOpDefine bmo_smooth_vert_def = {
 };
 
 /*
+ * Vertext Smooth Laplacian 
+ * Smooths vertices by using Laplacian smoothing propose by.
+ * Desbrun, et al. Implicit Fairing of Irregular Meshes using Diffusion and Curvature Flow
+*/
+static BMOpDefine bmo_smooth_laplacian_vert_def = {
+	"smooth_laplacian_vert",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, //input vertices
+	 {BMO_OP_SLOT_FLT, "lambda"}, //lambda param
+	 {BMO_OP_SLOT_FLT, "lambda_border"}, //lambda param in border
+	 {BMO_OP_SLOT_BOOL, "use_x"}, //Smooth object along X axis
+	 {BMO_OP_SLOT_BOOL, "use_y"}, //Smooth object along Y axis
+	 {BMO_OP_SLOT_BOOL, "use_z"}, //Smooth object along Z axis
+	 {BMO_OP_SLOT_BOOL, "volume_preservation"}, //Apply volume preservation after smooth
+	{0} /* null-terminating sentinel */,
+	},
+	bmo_smooth_laplacian_vert_exec,
+	0
+};
+
+/*
  * Right-Hand Faces
  *
  * Computes an "outside" normal for the specified input faces.
@@ -679,6 +699,7 @@ static BMOpDefine bmo_dissolve_faces_def = {
 static BMOpDefine bmo_dissolve_limit_def = {
 	"dissolve_limit",
 	{{BMO_OP_SLOT_FLT, "angle_limit"}, /* total rotation angle (degrees) */
+	 {BMO_OP_SLOT_BOOL, "use_dissolve_boundaries"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},
 	 {BMO_OP_SLOT_ELEMENT_BUF, "edges"},
 	 {0} /* null-terminating sentinel */},
@@ -695,6 +716,15 @@ static BMOpDefine bmo_triangulate_def = {
 	 {BMO_OP_SLOT_BOOL, "use_beauty"},
 	 {0} /* null-terminating sentinel */},
 	bmo_triangulate_exec,
+	BMO_OP_FLAG_UNTAN_MULTIRES
+};
+
+static BMOpDefine bmo_unsubdivide_def = {
+	"unsubdivide",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertices */
+	 {BMO_OP_SLOT_INT, "iterations"},
+	 {0} /* null-terminating sentinel */},
+	bmo_unsubdivide_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
@@ -792,10 +822,11 @@ static BMOpDefine bmo_spin_def = {
  */
 static BMOpDefine bmo_similar_faces_def = {
 	"similar_faces",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, /* input faces */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* output faces */
-	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
+	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"},  /* output faces */
+	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
+	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
+	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
 	 {0} /* null-terminating sentinel */},
 	bmo_similar_faces_exec,
 	0
@@ -808,10 +839,11 @@ static BMOpDefine bmo_similar_faces_def = {
  */
 static BMOpDefine bmo_similar_edges_def = {
 	"similar_edges",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edges */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"}, /* output edges */
-	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
+	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input edges */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "edgeout"},  /* output edges */
+	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
+	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
+	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
 	 {0} /* null-terminating sentinel */},
 	bmo_similar_edges_exec,
 	0
@@ -824,10 +856,11 @@ static BMOpDefine bmo_similar_edges_def = {
  */
 static BMOpDefine bmo_similar_verts_def = {
 	"similar_verts",
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertices */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"}, /* output vertices */
-	 {BMO_OP_SLOT_INT, "type"},			/* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},		/* threshold of selection */
+	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* input vertices */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "vertout"},  /* output vertices */
+	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
+	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
+	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
 	 {0} /* null-terminating sentinel */},
 	bmo_similar_verts_exec,
 	0
@@ -1152,6 +1185,7 @@ static BMOpDefine bmo_slide_vert_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+#ifdef WITH_BULLET
 /*
  * Convex Hull
  *
@@ -1181,6 +1215,30 @@ static BMOpDefine bmo_convex_hull_def = {
 	bmo_convex_hull_exec,
 	0
 };
+#endif
+
+/*
+ * Symmetrize
+ *
+ * Mekes the mesh elements in the "input" slot symmetrical. Unlike
+ * normal mirroring, it only copies in one direction, as specified by
+ * the "direction" slot. The edges and faces that cross the plane of
+ * symmetry are split as needed to enforce symmetry.
+ *
+ * All new vertices, edges, and faces are added to the "geomout" slot.
+ */
+static BMOpDefine bmo_symmetrize_def = {
+	"symmetrize",
+	{{BMO_OP_SLOT_ELEMENT_BUF, "input"},
+	 {BMO_OP_SLOT_INT, "direction"},
+
+	 /* Outputs */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "geomout"},
+
+	 {0} /* null-terminating sentinel */},
+	bmo_symmetrize_exec,
+	0
+};
 
 BMOpDefine *opdefines[] = {
 	&bmo_automerge_def,
@@ -1194,7 +1252,9 @@ BMOpDefine *opdefines[] = {
 	&bmo_collapse_uvs_def,
 	&bmo_connect_verts_def,
 	&bmo_contextual_create_def,
+#ifdef WITH_BULLET
 	&bmo_convex_hull_def,
+#endif
 	&bmo_create_circle_def,
 	&bmo_create_cone_def,
 	&bmo_create_cube_def,
@@ -1241,15 +1301,18 @@ BMOpDefine *opdefines[] = {
 	&bmo_similar_verts_def,
 	&bmo_slide_vert_def,
 	&bmo_smooth_vert_def,
+	&bmo_smooth_laplacian_vert_def,
 	&bmo_solidify_def,
 	&bmo_spin_def,
 	&bmo_split_def,
 	&bmo_split_edges_def,
 	&bmo_subdivide_edges_def,
+	&bmo_symmetrize_def,
 	&bmo_transform_def,
 	&bmo_translate_def,
 	&bmo_triangle_fill_def,
 	&bmo_triangulate_def,
+	&bmo_unsubdivide_def,
 	&bmo_weld_verts_def,
 	&bmo_wireframe_def,
 

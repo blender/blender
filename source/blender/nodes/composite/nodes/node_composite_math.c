@@ -33,15 +33,15 @@
 #include "node_composite_util.h"
 
 /* **************** SCALAR MATH ******************** */ 
-static bNodeSocketTemplate cmp_node_math_in[]= { 
-	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, 
-	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE}, 
-	{ -1, 0, "" } 
+static bNodeSocketTemplate cmp_node_math_in[] = {
+	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+	{ SOCK_FLOAT, 1, N_("Value"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+	{ -1, 0, "" }
 };
 
-static bNodeSocketTemplate cmp_node_math_out[]= { 
-	{ SOCK_FLOAT, 0, N_("Value")}, 
-	{ -1, 0, "" } 
+static bNodeSocketTemplate cmp_node_math_out[] = {
+	{ SOCK_FLOAT, 0, N_("Value")},
+	{ -1, 0, "" }
 };
 
 #ifdef WITH_COMPOSITOR_LEGACY
@@ -50,63 +50,63 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 {
 	switch (node->custom1) {
 	case 0: /* Add */
-		out[0]= in[0] + in2[0]; 
+		out[0] = in[0] + in2[0];
 		break; 
 	case 1: /* Subtract */
-		out[0]= in[0] - in2[0];
+		out[0] = in[0] - in2[0];
 		break; 
 	case 2: /* Multiply */
-		out[0]= in[0] * in2[0]; 
+		out[0] = in[0] * in2[0];
 		break; 
 	case 3: /* Divide */
 		{
 			if (in2[0]==0)	/* We don't want to divide by zero. */
-				out[0]= 0.0;
+				out[0] = 0.0;
 			else
-				out[0]= in[0] / in2[0];
+				out[0] = in[0] / in2[0];
 			}
 		break;
 	case 4: /* Sine */
-		out[0]= sin(in[0]);
+		out[0] = sin(in[0]);
 		break;
 	case 5: /* Cosine */
-		out[0]= cos(in[0]);
+		out[0] = cos(in[0]);
 		break;
 	case 6: /* Tangent */
-		out[0]= tan(in[0]);
+		out[0] = tan(in[0]);
 		break;
 	case 7: /* Arc-Sine */
 		{
 			/* Can't do the impossible... */
 			if (in[0] <= 1 && in[0] >= -1 )
-				out[0]= asin(in[0]);
+				out[0] = asin(in[0]);
 			else
-				out[0]= 0.0;
+				out[0] = 0.0;
 		}
 		break;
 	case 8: /* Arc-Cosine */
 		{
 			/* Can't do the impossible... */
 			if ( in[0] <= 1 && in[0] >= -1 )
-				out[0]= acos(in[0]);
+				out[0] = acos(in[0]);
 			else
-				out[0]= 0.0;
+				out[0] = 0.0;
 		}
 		break;
 	case 9: /* Arc-Tangent */
-		out[0]= atan(in[0]);
+		out[0] = atan(in[0]);
 		break;
 	case 10: /* Power */
 		{
 			/* Only raise negative numbers by full integers */
 			if ( in[0] >= 0 ) {
-				out[0]= pow(in[0], in2[0]);
+				out[0] = pow(in[0], in2[0]);
 			}
 			else {
 				float y_mod_1 = fmod(in2[0], 1);
 				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
 				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
-					out[0]= powf(in[0], floorf(in2[0] + 0.5f));
+					out[0] = powf(in[0], floorf(in2[0] + 0.5f));
 				}
 				else {
 					out[0] = 0.0f;
@@ -118,50 +118,50 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 		{
 			/* Don't want any imaginary numbers... */
 			if ( in[0] > 0  && in2[0] > 0 )
-				out[0]= log(in[0]) / log(in2[0]);
+				out[0] = log(in[0]) / log(in2[0]);
 			else
-				out[0]= 0.0;
+				out[0] = 0.0;
 		}
 		break;
 	case 12: /* Minimum */
 		{
 			if ( in[0] < in2[0] )
-				out[0]= in[0];
+				out[0] = in[0];
 			else
-				out[0]= in2[0];
+				out[0] = in2[0];
 		}
 		break;
 	case 13: /* Maximum */
 		{
 			if ( in[0] > in2[0] )
-				out[0]= in[0];
+				out[0] = in[0];
 			else
-				out[0]= in2[0];
+				out[0] = in2[0];
 		}
 		break;
 	case 14: /* Round */
 		{
 			/* round by the second value */
 			if ( in2[0] != 0.0f )
-				out[0]= floorf(in[0] / in2[0] + 0.5f) * in2[0];
+				out[0] = floorf(in[0] / in2[0] + 0.5f) * in2[0];
 			else
-				out[0]= floorf(in[0] + 0.5f);
+				out[0] = floorf(in[0] + 0.5f);
 		}
 		break;
 	case 15: /* Less Than */
 		{
 			if ( in[0] < in2[0] )
-				out[0]= 1.0f;
+				out[0] = 1.0f;
 			else
-				out[0]= 0.0f;
+				out[0] = 0.0f;
 		}
 		break;
 	case 16: /* Greater Than */
 		{
 			if ( in[0] > in2[0] )
-				out[0]= 1.0f;
+				out[0] = 1.0f;
 			else
-				out[0]= 0.0f;
+				out[0] = 0.0f;
 		}
 		break;
 	}

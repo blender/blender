@@ -43,6 +43,8 @@ public:
 		tile_time = 0.0f;
 		status = "Initializing";
 		substatus = "";
+		sync_status = "";
+		sync_substatus = "";
 		update_cb = NULL;
 		cancel = false;
 		cancel_message = "";
@@ -164,11 +166,42 @@ public:
 		set_update();
 	}
 
+	void set_sync_status(const string& status_, const string& substatus_ = "")
+	{
+		{
+			thread_scoped_lock lock(progress_mutex);
+			sync_status = status_;
+			sync_substatus = substatus_;
+			total_time = time_dt() - start_time;
+		}
+
+		set_update();
+
+	}
+
+	void set_sync_substatus(const string& substatus_)
+	{
+		{
+			thread_scoped_lock lock(progress_mutex);
+			sync_substatus = substatus_;
+			total_time = time_dt() - start_time;
+		}
+
+		set_update();
+	}
+
 	void get_status(string& status_, string& substatus_)
 	{
 		thread_scoped_lock lock(progress_mutex);
-		status_ = status;
-		substatus_ = substatus;
+
+		if(sync_status != "") {
+			status_ = sync_status;
+			substatus_ = sync_substatus;
+		}
+		else {
+			status_ = status;
+			substatus_ = substatus;
+		}
 	}
 
 	/* callback */
@@ -201,6 +234,9 @@ protected:
 
 	string status;
 	string substatus;
+
+	string sync_status;
+	string sync_substatus;
 
 	volatile bool cancel;
 	string cancel_message;

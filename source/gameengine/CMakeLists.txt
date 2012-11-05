@@ -25,7 +25,7 @@
 
 # there are too many inter-includes so best define here
 if(WITH_PYTHON)
-	blender_include_dirs("${PYTHON_INCLUDE_DIRS}")
+	blender_include_dirs_sys("${PYTHON_INCLUDE_DIRS}")
 	add_definitions(-DWITH_PYTHON)
 endif()
 

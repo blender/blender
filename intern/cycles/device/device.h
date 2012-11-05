@@ -25,6 +25,7 @@
 #include "device_task.h"
 
 #include "util_list.h"
+#include "util_stats.h"
 #include "util_string.h"
 #include "util_thread.h"
 #include "util_types.h"
@@ -72,7 +73,7 @@ public:
 
 class Device {
 protected:
-	Device() {}
+	Device(Stats &stats_) : stats(stats_) {}
 
 	bool background;
 	string error_msg;
@@ -83,6 +84,9 @@ public:
 	/* info */
 	DeviceInfo info;
 	virtual const string& error_message() { return error_msg; }
+
+	/* statistics */
+	Stats &stats;
 
 	/* regular memory */
 	virtual void mem_alloc(device_memory& mem, MemoryType type) = 0;
@@ -115,7 +119,6 @@ public:
 	virtual void task_add(DeviceTask& task) = 0;
 	virtual void task_wait() = 0;
 	virtual void task_cancel() = 0;
-	virtual bool task_cancelled() = 0;
 	
 	/* opengl drawing */
 	virtual void draw_pixels(device_memory& mem, int y, int w, int h,
@@ -131,7 +134,7 @@ public:
 	virtual int device_number(Device *sub_device) { return 0; }
 
 	/* static */
-	static Device *create(DeviceInfo& info, bool background = true, int threads = 0);
+	static Device *create(DeviceInfo& info, Stats &stats, bool background = true, int threads = 0);
 
 	static DeviceType type_from_string(const char *name);
 	static string string_from_type(DeviceType type);

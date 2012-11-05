@@ -47,7 +47,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_blender.h"    // BLENDER_VERSION
+#include "BKE_blender.h"  /* BLENDER_VERSION */
 
 #include "GHOST_Path-api.h"
 
@@ -330,7 +330,7 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	if (strcmp(dir, ".") == 0) {  /* happens for example in FILE_MAIN */
 		get_default_root(dir);
 		return;
-	}	
+	}
 
 	while ( (start = strstr(dir, "\\..\\")) ) {
 		eind = start + strlen("\\..\\") - 1;
@@ -492,7 +492,7 @@ void BLI_path_rel(char *file, const char *relfile)
 		 */
 		if (*q != '/') {
 			while ( (q >= file) && (*q != '/') ) { --q; --p; }
-		} 
+		}
 		else if (*p != '/') {
 			while ( (p >= temp) && (*p != '/') ) { --p; --q; }
 		}
@@ -544,7 +544,7 @@ int BLI_parent_dir(char *path)
 	BLI_cleanup_dir(NULL, tmp);
 
 	if (!BLI_testextensie(tmp, parent_dir)) {
-		BLI_strncpy(path, tmp, sizeof(tmp));	
+		BLI_strncpy(path, tmp, sizeof(tmp));
 		return 1;
 	}
 	else {
@@ -691,7 +691,7 @@ int BLI_path_abs(char *path, const char *basepath)
 	 * of paths and solving some problems (and prevent potential future
 	 * ones) -jesterKing. */
 	BLI_char_switch(tmp, '\\', '/');
-	BLI_char_switch(base, '\\', '/');	
+	BLI_char_switch(base, '\\', '/');
 
 	/* Paths starting with // will get the blend file as their base,
 	 * this isn't standard in any os but is used in blender all over the place */
@@ -1300,7 +1300,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 	BLI_char_switch(file, '\\', '/');
 #endif
 
-	/* Resolve relative references */	
+	/* Resolve relative references */
 	if (relabase && dir[0] == '/' && dir[1] == '/') {
 		char *lslash;
 		
@@ -1321,7 +1321,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 		else { /* no drive specified */
 			   /* first option: get the drive from the relabase if it has one */
 			if (relabase && strlen(relabase) >= 2 && relabase[1] == ':') {
-				BLI_strncpy(string, relabase, 3);	
+				BLI_strncpy(string, relabase, 3);
 				string[2] = '\\';
 				string[3] = '\0';
 			}
@@ -1337,7 +1337,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 
 	strcat(string, dir);
 
-	/* Make sure string ends in one (and only one) slash */	
+	/* Make sure string ends in one (and only one) slash */
 	/* first trim all slashes from the end of the string */
 	sl = strlen(string);
 	while (sl > 0 && (string[sl - 1] == '/' || string[sl - 1] == '\\') ) {
@@ -1368,7 +1368,7 @@ int BLI_testextensie(const char *str, const char *ext)
 		retval = 0;
 	}
 	else if (BLI_strcasecmp(ext, str + a - b)) {
-		retval = 0;	
+		retval = 0;
 	}
 	else {
 		retval = 1;

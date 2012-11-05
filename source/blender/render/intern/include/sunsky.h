@@ -43,8 +43,7 @@ typedef struct SunSky {
 
 	float perez_Y[5], perez_x[5], perez_y[5];
 
-	/* suggested by glome in 
-	 * http://projects.blender.org/tracker/?func=detail&atid=127&aid=8063&group_id=9*/
+	/* suggested by glome in patch [#8063] */
 	float horizon_brightness;
 	float spread;
 	float sun_brightness;
@@ -69,7 +68,7 @@ typedef struct SunSky {
 	float atm_BetaRM[3];
 } SunSky;
 
-void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_brightness, 
+void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float horizon_brightness,
                 float spread, float sun_brightness, float sun_size, float back_scatter,
                 float skyblendfac, short skyblendtype, float sky_exposure, float sky_colorspace);
 

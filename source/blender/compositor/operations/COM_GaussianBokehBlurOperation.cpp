@@ -236,7 +236,7 @@ void GaussianBlurReferenceOperation::initExecution()
 	
 	/* horizontal */
 	m_radx = (float)this->m_data->sizex;
-	int imgx = getWidth()/2;
+	int imgx = getWidth() / 2;
 	if (m_radx > imgx)
 		m_radx = imgx;
 	else if (m_radx < 1)
@@ -245,7 +245,7 @@ void GaussianBlurReferenceOperation::initExecution()
 
 	/* vertical */
 	m_rady = (float)this->m_data->sizey;
-	int imgy = getHeight()/2;
+	int imgy = getHeight() / 2;
 	if (m_rady > imgy)
 		m_rady = imgy;
 	else if (m_rady < 1)
@@ -257,7 +257,7 @@ void GaussianBlurReferenceOperation::initExecution()
 void GaussianBlurReferenceOperation::updateGauss()
 {
 	int i;
-	int x = MAX2(m_radx, m_rady);
+	int x = max(m_radx, m_rady);
 	this->m_maintabs = (float **)MEM_mallocN(x * sizeof(float *), "gauss array");
 	for (i = 0; i < x; i++) {
 		m_maintabs[i] = make_gausstab(i + 1);
@@ -327,11 +327,11 @@ void GaussianBlurReferenceOperation::executePixel(float output[4], int x, int y,
 void GaussianBlurReferenceOperation::deinitExecution()
 {
 	int x, i;
-	x = MAX2(m_radx, m_rady);
+	x = max(this->m_radx, this->m_rady);
 	for (i = 0; i < x; i++) {
-		MEM_freeN(m_maintabs[i]);
+		MEM_freeN(this->m_maintabs[i]);
 	}
-	MEM_freeN(m_maintabs);
+	MEM_freeN(this->m_maintabs);
 	BlurBaseOperation::deinitExecution();
 }
 
@@ -344,8 +344,8 @@ bool GaussianBlurReferenceOperation::determineDependingAreaOfInterest(rcti *inpu
 		return true;
 	}
 	else {
-		int addx = this->m_data->sizex+2;
-		int addy = this->m_data->sizey+2;
+		int addx = this->m_data->sizex + 2;
+		int addy = this->m_data->sizey + 2;
 		newInput.xmax = input->xmax + addx;
 		newInput.xmin = input->xmin - addx;
 		newInput.ymax = input->ymax + addy;

@@ -259,7 +259,7 @@ static struct bUnitCollection buNaturalTimeCollecton = {buNaturalTimeDef, 3, 0, 
 
 
 static struct bUnitDef buNaturalRotDef[] = {
-	{"degree", "degrees",			"°", NULL, "Degrees",		M_PI/180.0, 0.0,	B_UNIT_DEF_NONE},
+	{"degree", "degrees",			"°", NULL, "Degrees",		M_PI / 180.0, 0.0,	B_UNIT_DEF_NONE},
 //	{"radian", "radians",			"r", NULL, "Radians",		1.0, 0.0,			B_UNIT_DEF_NONE},
 //	{"turn", "turns",				"t", NULL, "Turns",			1.0/(M_PI*2.0), 0.0,B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
@@ -350,7 +350,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 	/* Add unit prefix and strip zeros */
 
 	/* replace trailing zero's with spaces
-	 * so the number is less complicated but allignment in a button wont
+	 * so the number is less complicated but alignment in a button wont
 	 * jump about while dragging */
 	i = len - 1;
 

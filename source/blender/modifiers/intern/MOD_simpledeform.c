@@ -72,7 +72,7 @@ static void simpleDeform_taper(const float factor, const float dcut[3], float r_
 	r_co[1] = y + y * scale;
 	r_co[2] = z;
 
-	if (dcut) {
+	{
 		r_co[0] += dcut[0];
 		r_co[1] += dcut[1];
 		r_co[2] += dcut[2];
@@ -90,7 +90,7 @@ static void simpleDeform_stretch(const float factor, const float dcut[3], float 
 	r_co[1] = y * scale;
 	r_co[2] = z * (1.0f + factor);
 
-	if (dcut) {
+	{
 		r_co[0] += dcut[0];
 		r_co[1] += dcut[1];
 		r_co[2] += dcut[2];
@@ -110,7 +110,7 @@ static void simpleDeform_twist(const float factor, const float *dcut, float r_co
 	r_co[1] = x * sint + y * cost;
 	r_co[2] = z;
 
-	if (dcut) {
+	{
 		r_co[0] += dcut[0];
 		r_co[1] += dcut[1];
 		r_co[2] += dcut[2];
@@ -132,7 +132,7 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float r_c
 		r_co[2] = z;
 	}
 
-	if (dcut) {
+	{
 		r_co[0] += cost * dcut[0];
 		r_co[1] += sint * dcut[0];
 		r_co[2] += dcut[2];
@@ -161,9 +161,9 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	if (smd->limit[0] < 0.0f) smd->limit[0] = 0.0f;
 	if (smd->limit[0] > 1.0f) smd->limit[0] = 1.0f;
 
-	smd->limit[0] = minf(smd->limit[0], smd->limit[1]);  /* Upper limit >= than lower limit */
+	smd->limit[0] = min_ff(smd->limit[0], smd->limit[1]);  /* Upper limit >= than lower limit */
 
-	//Calculate matrixs do convert between coordinate spaces
+	/* Calculate matrixs do convert between coordinate spaces */
 	if (smd->origin) {
 		transf = &tmp_transf;
 
@@ -176,10 +176,11 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		}
 	}
 
-	//Setup vars
-	limit_axis  = (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) ? 0 : 2; //Bend limits on X.. all other modes limit on Z
+	/* Setup vars,
+	 * Bend limits on X.. all other modes limit on Z */
+	limit_axis  = (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) ? 0 : 2;
 
-	//Update limits if needed
+	/* Update limits if needed */
 	{
 		float lower =  FLT_MAX;
 		float upper = -FLT_MAX;
@@ -190,8 +191,8 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 
 			if (transf) space_transform_apply(transf, tmp);
 
-			lower = minf(lower, tmp[limit_axis]);
-			upper = maxf(upper, tmp[limit_axis]);
+			lower = min_ff(lower, tmp[limit_axis]);
+			upper = max_ff(upper, tmp[limit_axis]);
 		}
 
 
@@ -199,7 +200,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		smd_limit[1] = lower + (upper - lower) * smd->limit[1];
 		smd_limit[0] = lower + (upper - lower) * smd->limit[0];
 
-		smd_factor   = smd->factor / MAX2(FLT_EPSILON, smd_limit[1] - smd_limit[0]);
+		smd_factor   = smd->factor / max_ff(FLT_EPSILON, smd_limit[1] - smd_limit[0]);
 	}
 
 	modifier_get_vgroup(ob, dm, smd->vgroup_name, &dvert, &vgroup);
@@ -235,7 +236,9 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 			simpleDeform_callback(smd_factor, dcut, co);  /* apply deform */
 			interp_v3_v3v3(vertexCos[i], vertexCos[i], co, weight);  /* Use vertex weight has coef of linear interpolation */
 
-			if (transf) space_transform_invert(transf, vertexCos[i]);
+			if (transf) {
+				space_transform_invert(transf, vertexCos[i]);
+			}
 		}
 	}
 }
@@ -249,6 +252,7 @@ static void initData(ModifierData *md)
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData *) md;
 
 	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
+	smd->originOpts = MOD_SIMPLEDEFORM_ORIGIN_LOCAL;
 	smd->axis = 0;
 
 	smd->origin   =  NULL;
@@ -349,9 +353,9 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 	/* type */              eModifierTypeType_OnlyDeform,
 
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
-							eModifierTypeFlag_AcceptsCVs |
-							eModifierTypeFlag_SupportsEditmode |
-							eModifierTypeFlag_EnableInEditmode,
+	                        eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,

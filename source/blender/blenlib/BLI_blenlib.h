@@ -78,8 +78,6 @@ extern "C" {
 
 #include "BLI_rect.h"
 
-#include "BLI_noise.h"
-
 #ifdef __cplusplus
 }
 #endif

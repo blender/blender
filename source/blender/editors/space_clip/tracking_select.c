@@ -107,7 +107,7 @@ static int mouse_on_crns(float co[2], float pos[2], float crns[4][2], float epsx
 {
 	float dist = dist_to_crns(co, pos, crns);
 
-	return dist < maxf(epsx, epsy);
+	return dist < max_ff(epsx, epsy);
 }
 
 static int track_mouse_area(const bContext *C, float co[2], MovieTrackingTrack *track)
@@ -128,8 +128,8 @@ static int track_mouse_area(const bContext *C, float co[2], MovieTrackingTrack *
 	epsy = MIN4(pat_min[1] - marker->search_min[1], marker->search_max[1] - pat_max[1],
 	            fabsf(pat_min[1]), fabsf(pat_max[1])) / 2;
 
-	epsx = maxf(epsx, 2.0f / width);
-	epsy = maxf(epsy, 2.0f / height);
+	epsx = max_ff(epsx, 2.0f / width);
+	epsy = max_ff(epsy, 2.0f / height);
 
 	if (sc->flag & SC_SHOW_MARKER_SEARCH) {
 		if (mouse_on_rect(co, marker->pos, marker->search_min, marker->search_max, epsx, epsy))
@@ -291,7 +291,6 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		MovieTrackingTrack *track = tracking_marker_check_slide(C, event, NULL, NULL, NULL);
 
 		if (track) {
-			SpaceClip *sc = CTX_wm_space_clip(C);
 			MovieClip *clip = ED_space_clip_get_clip(sc);
 
 			clip->tracking.act_track = track;
@@ -413,7 +412,7 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 
 /********************** lasso select operator *********************/
 
-static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_marker(bContext *C, const int mcords[][2], const short moves, short select)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -469,7 +468,7 @@ static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, sho
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	int mcords_tot;
-	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
 		short select;
@@ -477,7 +476,7 @@ static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 		select = !RNA_boolean_get(op->ptr, "deselect");
 		do_lasso_select_marker(C, mcords, mcords_tot, select);
 
-		MEM_freeN(mcords);
+		MEM_freeN((void *)mcords);
 
 		return OPERATOR_FINISHED;
 	}

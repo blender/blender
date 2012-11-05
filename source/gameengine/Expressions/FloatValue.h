@@ -54,5 +54,4 @@ protected:
 #endif
 };
 
-#endif // !defined __FLOATVALUE_H__
-
+#endif  /* __FLOATVALUE_H__ */

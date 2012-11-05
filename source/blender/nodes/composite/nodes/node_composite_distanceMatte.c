@@ -33,13 +33,13 @@
 #include "node_composite_util.h"
 
 /* ******************* channel Distance Matte ********************************* */
-static bNodeSocketTemplate cmp_node_distance_matte_in[]={
+static bNodeSocketTemplate cmp_node_distance_matte_in[] = {
 	{SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
 	{SOCK_RGBA, 1, N_("Key Color"), 1.0f, 1.0f, 1.0f, 1.0f},
 	{-1, 0, ""}
 };
 
-static bNodeSocketTemplate cmp_node_distance_matte_out[]={
+static bNodeSocketTemplate cmp_node_distance_matte_out[] = {
 	{SOCK_RGBA, 0, N_("Image")},
 	{SOCK_FLOAT, 0, N_("Matte")},
 	{-1, 0, ""}
@@ -159,9 +159,9 @@ static void node_composit_exec_distance_matte(void *data, bNode *node, bNodeStac
 	workbuf=dupalloc_compbuf(inbuf);
 
 	/*use the input color*/
-	c->key[0]= in[1]->vec[0];
-	c->key[1]= in[1]->vec[1];
-	c->key[2]= in[1]->vec[2];
+	c->key[0] = in[1]->vec[0];
+	c->key[1] = in[1]->vec[1];
+	c->key[2] = in[1]->vec[2];
 
 	/* work in RGB color space */
 	if (c->channel == 1) {

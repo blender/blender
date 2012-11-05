@@ -40,6 +40,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
@@ -51,6 +52,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -71,6 +73,7 @@
 
 #include "ED_object.h"
 #include "ED_armature.h"
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"
@@ -491,9 +494,9 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 								/* auto-set 'Path' setting on curve so this works  */
 								cu->flag |= CU_PATH;
 							}
-						}						
+						}
 					}
-				}	
+				}
 				
 				/* free any temporary targets */
 				if (cti->flush_constraint_targets)
@@ -590,7 +593,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 	
 	if (owner == EDIT_CONSTRAINT_OWNER_OBJECT) {
 		list = &ob->constraints;
-	} 
+	}
 	else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
 		bPoseChannel *pchan = BKE_pose_channel_active(ob);
 		if (pchan)
@@ -655,12 +658,15 @@ void CONSTRAINT_OT_stretchto_reset(wmOperatorType *ot)
 	ot->idname = "CONSTRAINT_OT_stretchto_reset";
 	ot->description = "Reset original length of bone for Stretch To Constraint";
 	
-	ot->exec = stretchto_reset_exec;
+	/* callbacks */
 	ot->invoke = stretchto_reset_invoke;
+	ot->exec = stretchto_reset_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -698,12 +704,15 @@ void CONSTRAINT_OT_limitdistance_reset(wmOperatorType *ot)
 	ot->idname = "CONSTRAINT_OT_limitdistance_reset";
 	ot->description = "Reset limiting distance for Limit Distance Constraint";
 	
-	ot->exec = limitdistance_reset_exec;
+	/* callbacks */
 	ot->invoke = limitdistance_reset_invoke;
+	ot->exec = limitdistance_reset_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -798,7 +807,7 @@ static int childof_set_inverse_exec(bContext *C, wmOperator *op)
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
 	if (data == NULL) {
 		printf("DEBUG: Child-Of Set Inverse - object = '%s'\n", (ob) ? ob->id.name + 2 : "<None>");
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find constraint data for Child-Of Set Inverse");
+		BKE_report(op->reports, RPT_ERROR, "Could not find constraint data for Child-Of Set Inverse");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -824,12 +833,15 @@ void CONSTRAINT_OT_childof_set_inverse(wmOperatorType *ot)
 	ot->idname = "CONSTRAINT_OT_childof_set_inverse";
 	ot->description = "Set inverse correction for ChildOf constraint";
 	
-	ot->exec = childof_set_inverse_exec;
+	/* callbacks */
 	ot->invoke = childof_set_inverse_invoke;
+	ot->exec = childof_set_inverse_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -841,7 +853,7 @@ static int childof_clear_inverse_exec(bContext *C, wmOperator *op)
 	bChildOfConstraint *data = (con) ? (bChildOfConstraint *)con->data : NULL;
 	
 	if (data == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Childof constraint not found");
+		BKE_report(op->reports, RPT_ERROR, "Child Of constraint not found");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -868,13 +880,140 @@ void CONSTRAINT_OT_childof_clear_inverse(wmOperatorType *ot)
 	ot->idname = "CONSTRAINT_OT_childof_clear_inverse";
 	ot->description = "Clear inverse correction for ChildOf constraint";
 	
-	ot->exec = childof_clear_inverse_exec;
+	/* callbacks */
 	ot->invoke = childof_clear_inverse_invoke;
+	ot->exec = childof_clear_inverse_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
+}
+
+/* --------------- Follow Path Constraint ------------------ */
+
+static int followpath_path_animate_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = ED_object_active_context(C);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_FOLLOWPATH);
+	bFollowPathConstraint *data = (con) ? (bFollowPathConstraint *)con->data : NULL;
+	
+	bAction *act = NULL;
+	FCurve *fcu = NULL;
+	int sfra = RNA_int_get(op->ptr, "frame_start");
+	int len  = RNA_int_get(op->ptr, "length");
+	float standardRange = 1.0;
+	
+	/* nearly impossible sanity check */
+	if (data == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Follow Path constraint not found");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* add F-Curve as appropriate */
+	if (data->tar) {
+		Curve *cu = (Curve *)data->tar->data;
+		
+		if ( ELEM(NULL, cu->adt, cu->adt->action) ||
+			(list_find_fcurve(&cu->adt->action->curves, "eval_time", 0) == NULL))
+		{
+			/* create F-Curve for path animation */
+			act = verify_adt_action(&cu->id, 1);
+			fcu = verify_fcurve(act, NULL, NULL, "eval_time", 0, 1);
+			
+			/* standard vertical range - 1:1 = 100 frames */
+			standardRange = 100.0f;
+		}
+		else {
+			/* path anim exists already - abort for now as this may well be what was intended */
+			BKE_report(op->reports, RPT_WARNING, "Path is already animated");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		/* animate constraint's "fixed offset" */
+		PointerRNA ptr;
+		PropertyRNA *prop;
+		char *path;
+		
+		/* get RNA pointer to constraint's "offset_factor" property - to build RNA path */
+		RNA_pointer_create(&ob->id, &RNA_FollowPathConstraint, con, &ptr);
+		prop = RNA_struct_find_property(&ptr, "offset_factor");
+		
+		path = RNA_path_from_ID_to_property(&ptr, prop);
+		
+		/* create F-Curve for constraint */
+		act = verify_adt_action(&ob->id, 1);
+		fcu = verify_fcurve(act, NULL, NULL, path, 0, 1);
+		
+		/* standard vertical range - 0.0 to 1.0 */
+		standardRange = 1.0f;
+		
+		/* enable "Use Fixed Position" so that animating this has effect */
+		data->followflag |= FOLLOWPATH_STATIC;
+		
+		/* path needs to be freed */
+		if (path) 
+			MEM_freeN(path);
+	}
+	
+	/* setup dummy 'generator' modifier here to get 1-1 correspondence still working
+	 * and define basic slope of this curve based on the properties
+	 */
+	if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first) {
+		FModifier *fcm = add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
+		FMod_Generator *gen = fcm->data;
+		
+		/* Assume that we have the following equation:
+		 *     y = Ax + B
+		 *         1    0       <-- coefficients array indices
+		 */
+		float A = standardRange / (float)(len);
+		float B = (float)(-sfra) * A;
+		
+		gen->coefficients[1] = A;
+		gen->coefficients[0] = B;
+	}
+	
+	/* updates... */
+	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
+	return OPERATOR_FINISHED;
+}
+
+static int followpath_path_animate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	/* hook up invoke properties for figuring out which constraint we're dealing with */
+	if (edit_constraint_invoke_properties(C, op)) {
+		return followpath_path_animate_exec(C, op);
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void CONSTRAINT_OT_followpath_path_animate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Auto Animate Path";
+	ot->idname = "CONSTRAINT_OT_followpath_path_animate";
+	ot->description = "Add default animation for path used by constraint if it isn't animated already";
+	
+	/* callbacks */
+	ot->invoke = followpath_path_animate_invoke;
+	ot->exec = followpath_path_animate_exec;
+	ot->poll = edit_constraint_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* props */
+	edit_constraint_properties(ot);
+	RNA_def_int(ot->srna, "frame_start", 1, MINAFRAME, MAXFRAME, "Start Frame", 
+	            "First frame of path animation", MINAFRAME, MAXFRAME);
+	RNA_def_int(ot->srna, "length", 100, 0, MAXFRAME, "Length", 
+	            "Number of frames that path animation should take", 0, MAXFRAME);
 }
 
 /* ------------- Object Solver Constraint ------------------ */
@@ -889,7 +1028,7 @@ static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
 	if (data == NULL) {
 		printf("DEBUG: Child-Of Set Inverse - object = '%s'\n", (ob) ? ob->id.name + 2 : "<None>");
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find constraint data for Child-Of Set Inverse");
+		BKE_report(op->reports, RPT_ERROR, "Could not find constraint data for Child-Of Set Inverse");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -914,13 +1053,16 @@ void CONSTRAINT_OT_objectsolver_set_inverse(wmOperatorType *ot)
 	ot->name = "Set Inverse";
 	ot->idname = "CONSTRAINT_OT_objectsolver_set_inverse";
 	ot->description = "Set inverse correction for ObjectSolver constraint";
-
-	ot->exec = objectsolver_set_inverse_exec;
+	
+	/* callbacks */
 	ot->invoke = objectsolver_set_inverse_invoke;
+	ot->exec = objectsolver_set_inverse_exec;
 	ot->poll = edit_constraint_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -931,7 +1073,7 @@ static int objectsolver_clear_inverse_exec(bContext *C, wmOperator *op)
 	bObjectSolverConstraint *data = (con) ? (bObjectSolverConstraint *)con->data : NULL;
 
 	if (data == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Childof constraint not found");
+		BKE_report(op->reports, RPT_ERROR, "Child Of constraint not found");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -957,13 +1099,16 @@ void CONSTRAINT_OT_objectsolver_clear_inverse(wmOperatorType *ot)
 	ot->name = "Clear Inverse";
 	ot->idname = "CONSTRAINT_OT_objectsolver_clear_inverse";
 	ot->description = "Clear inverse correction for ObjectSolver constraint";
-
-	ot->exec = objectsolver_clear_inverse_exec;
+	
+	/* callbacks */
 	ot->invoke = objectsolver_clear_inverse_invoke;
+	ot->exec = objectsolver_clear_inverse_exec;
 	ot->poll = edit_constraint_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -983,13 +1128,14 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 
 void ED_object_constraint_update(Object *ob)
 {
-
 	if (ob->pose) BKE_pose_update_constraint_flags(ob->pose);
 
 	object_test_constraints(ob);
 
-	if (ob->type == OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
-	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+	if (ob->type == OB_ARMATURE) 
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
+	else 
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
 void ED_object_constraint_dependency_update(Main *bmain, Scene *scene, Object *ob)
@@ -1006,6 +1152,7 @@ static int constraint_poll(bContext *C)
 	return (ptr.id.data && ptr.data);
 }
 
+
 static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
@@ -1020,12 +1167,12 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		constraints_set_active(lb, NULL);
 		
 		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
-
+		
 		/* ITASC needs to be rebuilt once a constraint is removed [#26920] */
 		if (is_ik) {
 			BIK_clear_data(ob->pose);
 		}
-
+		
 		/* notifiers */
 		WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
 		
@@ -1051,6 +1198,7 @@ void CONSTRAINT_OT_delete(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
 
 static int constraint_move_down_exec(bContext *C, wmOperator *op)
 {
@@ -1081,7 +1229,6 @@ static int constraint_move_down_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 		return OPERATOR_CANCELLED;
 }
 
-
 void CONSTRAINT_OT_move_down(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1090,12 +1237,14 @@ void CONSTRAINT_OT_move_down(wmOperatorType *ot)
 	ot->description = "Move constraint down in constraint stack";
 	
 	/* callbacks */
-	ot->exec = constraint_move_down_exec;
 	ot->invoke = constraint_move_down_invoke;
+	ot->exec = constraint_move_down_exec;
 	ot->poll = edit_constraint_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* properties */
 	edit_constraint_properties(ot);
 }
 
@@ -1479,15 +1628,15 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		return OPERATOR_CANCELLED;
 	}
 	if ((type == CONSTRAINT_TYPE_RIGIDBODYJOINT) && (list != &ob->constraints)) {
-		BKE_report(op->reports, RPT_ERROR, "Rigid Body Joint Constraint can only be added to Objects");
+		BKE_report(op->reports, RPT_ERROR, "Rigid Body Joint constraint can only be added to objects");
 		return OPERATOR_CANCELLED;
 	}
 	if ((type == CONSTRAINT_TYPE_KINEMATIC) && ((!pchan) || (list != &pchan->constraints))) {
-		BKE_report(op->reports, RPT_ERROR, "IK Constraint can only be added to Bones");
+		BKE_report(op->reports, RPT_ERROR, "IK constraint can only be added to bones");
 		return OPERATOR_CANCELLED;
 	}
 	if ((type == CONSTRAINT_TYPE_SPLINEIK) && ((!pchan) || (list != &pchan->constraints))) {
-		BKE_report(op->reports, RPT_ERROR, "Spline IK Constraint can only be added to Bones");
+		BKE_report(op->reports, RPT_ERROR, "Spline IK constraint can only be added to bones");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1707,7 +1856,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 	
 	/* must have active bone */
 	if (ELEM(NULL, ob, pchan)) {
-		BKE_report(op->reports, RPT_ERROR, "Must have active bone to add IK Constraint to");
+		BKE_report(op->reports, RPT_ERROR, "Must have an active bone to add IK constraint to");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1716,7 +1865,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 		if (con->type == CONSTRAINT_TYPE_KINEMATIC) break;
 	}
 	if (con) {
-		BKE_report(op->reports, RPT_ERROR, "Bone already has IK Constraint");
+		BKE_report(op->reports, RPT_ERROR, "Bone already has an IK constraint");
 		return OPERATOR_CANCELLED;
 	}
 	

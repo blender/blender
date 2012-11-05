@@ -30,11 +30,10 @@
  *  \ingroup bgeconv
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// This warning tells us about truncation of __long__ stl-generated names.
-// It can occasionally cause DevStudio to have internal compiler warnings.
-#pragma warning( disable : 4786 )     
+#ifdef _MSC_VER
+  /* This warning tells us about truncation of __long__ stl-generated names.
+   * It can occasionally cause DevStudio to have internal compiler warnings. */
+#  pragma warning( disable:4786 )
 #endif
 
 #include "RAS_IPolygonMaterial.h"
@@ -84,7 +83,7 @@ bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 }
 
 BL_MeshDeformer::~BL_MeshDeformer()
-{	
+{
 	if (m_transverts)
 		delete [] m_transverts;
 	if (m_transnors)
@@ -155,27 +154,27 @@ void BL_MeshDeformer::RecalcNormals()
 					v4 = &it.vertex[it.index[i+3]];
 					co4 = m_transverts[v4->getOrigIndex()];
 
-					n1[0]= co1[0]-co3[0];
-					n1[1]= co1[1]-co3[1];
-					n1[2]= co1[2]-co3[2];
+					n1[0] = co1[0] - co3[0];
+					n1[1] = co1[1] - co3[1];
+					n1[2] = co1[2] - co3[2];
 
-					n2[0]= co2[0]-co4[0];
-					n2[1]= co2[1]-co4[1];
-					n2[2]= co2[2]-co4[2];
+					n2[0] = co2[0] - co4[0];
+					n2[1] = co2[1] - co4[1];
+					n2[2] = co2[2] - co4[2];
 				}
 				else {
-					n1[0]= co1[0]-co2[0];
-					n2[0]= co2[0]-co3[0];
-					n1[1]= co1[1]-co2[1];
+					n1[0] = co1[0] - co2[0];
+					n2[0] = co2[0] - co3[0];
+					n1[1] = co1[1] - co2[1];
 
-					n2[1]= co2[1]-co3[1];
-					n1[2]= co1[2]-co2[2];
-					n2[2]= co2[2]-co3[2];
+					n2[1] = co2[1] - co3[1];
+					n1[2] = co1[2] - co2[2];
+					n2[2] = co2[2] - co3[2];
 				}
 
-				fnor[0]= n1[1]*n2[2] - n1[2]*n2[1];
-				fnor[1]= n1[2]*n2[0] - n1[0]*n2[2];
-				fnor[2]= n1[0]*n2[1] - n1[1]*n2[0];
+				fnor[0] = n1[1] * n2[2] - n1[2] * n2[1];
+				fnor[1] = n1[2] * n2[0] - n1[0] * n2[2];
+				fnor[2] = n1[0] * n2[1] - n1[1] * n2[0];
 				normalize_v3(fnor);
 
 				/* add to vertices for smooth normals */

@@ -101,38 +101,38 @@
 			}
 		}
 
-        inline float quantizeCeil(float f, int inbits, int outbits)
-        {
-            //uint i = f * (float(1 << inbits) - 1);
-            //i = convert(i, inbits, outbits);
-            //float result = float(i) / (float(1 << outbits) - 1);
-            //nvCheck(result >= f);
-            float result;
-            int offset = 0;
-            do {
-                uint i = offset + uint(f * (float(1 << inbits) - 1));
-                i = convert(i, inbits, outbits);
-                result = float(i) / (float(1 << outbits) - 1);
-                offset++;
-            } while (result < f);
+		inline float quantizeCeil(float f, int inbits, int outbits)
+		{
+			//uint i = f * (float(1 << inbits) - 1);
+			//i = convert(i, inbits, outbits);
+			//float result = float(i) / (float(1 << outbits) - 1);
+			//nvCheck(result >= f);
+			float result;
+			int offset = 0;
+			do {
+				uint i = offset + uint(f * (float(1 << inbits) - 1));
+				i = convert(i, inbits, outbits);
+				result = float(i) / (float(1 << outbits) - 1);
+				offset++;
+			} while (result < f);
 
-            return result;
-        }
+			return result;
+		}
 
-        /*
-        inline float quantizeRound(float f, int bits)
-        {
-            float scale = float(1 << bits);
-            return fround(f * scale) / scale;
-        }
+#if 0
+		inline float quantizeRound(float f, int bits)
+		{
+			float scale = float(1 << bits);
+			return fround(f * scale) / scale;
+		}
 
-        inline float quantizeFloor(float f, int bits)
-        {
-            float scale = float(1 << bits);
-            return floor(f * scale) / scale;
-        }
-        */
+		inline float quantizeFloor(float f, int bits)
+		{
+			float scale = float(1 << bits);
+			return floor(f * scale) / scale;
+		}
+#endif
 
 	} // PixelFormat namespace
 
-#endif // _DDS_IMAGE_PIXELFORMAT_H
+#endif  /* __PIXELFORMAT_H__ */

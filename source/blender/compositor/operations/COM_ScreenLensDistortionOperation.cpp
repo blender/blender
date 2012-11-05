@@ -98,7 +98,7 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 			const float sd = 1.0f / (float)ds;
 
 			for (z = 0; z < ds; ++z) {
-				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
+				const float tz = (z + (jit ? BLI_frand() : 0.5f)) * sd;
 				t = 1.0f - (this->m_kr4 + tz * this->m_drg) * uv_dot;
 				d = 1.0f / (1.0f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
@@ -116,7 +116,7 @@ void ScreenLensDistortionOperation::executePixel(float output[4], int x, int y, 
 			const float sd = 1.0f / (float)ds;
 
 			for (z = 0; z < ds; ++z) {
-				const float tz = ((float)z + (jit ? BLI_frand() : 0.5f)) * sd;
+				const float tz = (z + (jit ? BLI_frand() : 0.5f)) * sd;
 				t = 1.0f - (this->m_kg4 + tz * this->m_dgb) * uv_dot;
 				d = 1.0f / (1.0f + sqrtf(t));
 				const float nx = (u * d + 0.5f) * width - 0.5f;
@@ -226,7 +226,7 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 		UPDATE_INPUT;
 		determineUV(coords, input->xmax, input->ymin);
 		UPDATE_INPUT;
-	} 
+	}
 	else {
 		determineUV(coords, input->xmin, input->ymin, 1.0f, 1.0f);
 		newInput.xmin = coords[0];
@@ -268,11 +268,11 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 
 void ScreenLensDistortionOperation::updateVariables(float distortion, float dispersion)
 {
-	this->m_kg = maxf(minf(distortion, 1.0f), -0.999f);
+	this->m_kg = max_ff(min_ff(distortion, 1.0f), -0.999f);
 	// smaller dispersion range for somewhat more control
-	const float d = 0.25f * maxf(minf(dispersion, 1.0f), 0.0f);
-	this->m_kr = maxf(minf((this->m_kg + d), 1.0f), -0.999f);
-	this->m_kb = maxf(minf((this->m_kg - d), 1.0f), -0.999f);
+	const float d = 0.25f * max_ff(min_ff(dispersion, 1.0f), 0.0f);
+	this->m_kr = max_ff(min_ff((this->m_kg + d), 1.0f), -0.999f);
+	this->m_kb = max_ff(min_ff((this->m_kg - d), 1.0f), -0.999f);
 	this->m_maxk = MAX3(this->m_kr, this->m_kg, this->m_kb);
 	this->m_sc = (this->m_data->fit && (this->m_maxk > 0.0f)) ? (1.0f / (1.0f + 2.0f * this->m_maxk)) :
 	                                                            (1.0f / (1.0f +        this->m_maxk));

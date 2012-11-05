@@ -111,7 +111,7 @@ enum {
 	ACTKEYS_SNAP_CFRA = 1,
 	ACTKEYS_SNAP_NEAREST_FRAME,
 	ACTKEYS_SNAP_NEAREST_SECOND,
-	ACTKEYS_SNAP_NEAREST_MARKER,	
+	ACTKEYS_SNAP_NEAREST_MARKER,
 } eActKeys_Snap_Mode;
 
 /* defines for mirror keyframes 
@@ -121,7 +121,7 @@ enum {
 	ACTKEYS_MIRROR_CFRA = 1,
 	ACTKEYS_MIRROR_YAXIS,
 	ACTKEYS_MIRROR_XAXIS,
-	ACTKEYS_MIRROR_MARKER,	
+	ACTKEYS_MIRROR_MARKER,
 } eActKeys_Mirror_Mode;
 	
 /* ***************************************** */

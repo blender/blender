@@ -160,7 +160,7 @@ void MemoryBuffer::writePixel(int x, int y, const float color[4])
 	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
 	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int offset = (this->m_chunkWidth * (y-this->m_rect.ymin) + x-this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
+		const int offset = (this->m_chunkWidth * (y - this->m_rect.ymin) + x - this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
 		copy_v4_v4(&this->m_buffer[offset], color);
 	}
 }
@@ -170,7 +170,7 @@ void MemoryBuffer::addPixel(int x, int y, const float color[4])
 	if (x >= this->m_rect.xmin && x < this->m_rect.xmax &&
 	    y >= this->m_rect.ymin && y < this->m_rect.ymax)
 	{
-		const int offset = (this->m_chunkWidth * (y-this->m_rect.ymin) + x-this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
+		const int offset = (this->m_chunkWidth * (y - this->m_rect.ymin) + x - this->m_rect.xmin) * COM_NUMBER_OF_CHANNELS;
 		add_v4_v4(&this->m_buffer[offset], color);
 	}
 }
@@ -253,7 +253,7 @@ static void imp2radangle(float A, float B, float C, float F, float *a, float *b,
 	}
 }
 
-float clipuv(float x, float limit)
+static float clipuv(float x, float limit)
 {
 	x = (x < 0) ? 0 : ((x >= limit) ? (limit - 1) : x);
 	return x;

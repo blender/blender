@@ -24,19 +24,17 @@
  *  \ingroup bmesh
  */
 
+#ifdef WITH_BULLET
+
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-/*XXX: This operator doesn't work well (at all?) for flat surfaces with
- * >3 sides - creating overlapping faces at times.
- * An easy workaround is to add in some noise but this is
- * weak and unreliable, ideally this would detect flat surfaces
- * (possibly making them into ngons) - see
- */
+#include "Bullet-C-Api.h"
 
 /* XXX: using 128 for totelem and pchunk of mempool, no idea what good
  * values would be though */
@@ -46,21 +44,15 @@
 
 #include "intern/bmesh_operators_private.h"  /* own include */
 
-#define HULL_EPSILON_FLT 0.0001f
-/* values above 0.0001 cause errors, see below for details, don't increase
- * without checking against bug [#32027] */
-#define HULL_EPSILON_DOT_FLT 0.00000001f
-
 /* Internal operator flags */
 typedef enum {
 	HULL_FLAG_INPUT =           (1 << 0),
-	HULL_FLAG_TETRA_VERT =      (1 << 1),
 	
-	HULL_FLAG_INTERIOR_ELE =    (1 << 2),
-	HULL_FLAG_OUTPUT_GEOM =     (1 << 3),
+	HULL_FLAG_INTERIOR_ELE =    (1 << 1),
+	HULL_FLAG_OUTPUT_GEOM =     (1 << 2),
 	
-	HULL_FLAG_DEL =             (1 << 4),
-	HULL_FLAG_HOLE =            (1 << 5)
+	HULL_FLAG_DEL =             (1 << 3),
+	HULL_FLAG_HOLE =            (1 << 4)
 } HullFlags;
 
 /* Store hull triangles separate from BMesh faces until the end; this
@@ -71,63 +63,6 @@ typedef struct HullTriangle {
 	float no[3];
 	int skip;
 } HullTriangle;
-
-/* These edges define the hole created in the hull by deleting faces
- * that can "see" a new vertex (the boundary edges then form the edge
- * of a new triangle fan that has the new vertex as its center) */
-typedef struct HullBoundaryEdge {
-	struct HullBoundaryEdge *next, *prev;
-	BMVert *v[2];
-} HullBoundaryEdge;
-
-
-
-/*************************** Boundary Edges ***************************/
-
-static int edge_match(BMVert *e1_v1, BMVert *e1_v2, BMVert *e2[2])
-{
-	return (e1_v1 == e2[0] && e1_v2 == e2[1]) ||
-	       (e1_v1 == e2[1] && e1_v2 == e2[0]);
-}
-
-/* Returns true if the edge (e1, e2) is already in edges; that edge is
- * deleted here as well. if not found just returns 0 */
-static int check_for_dup(ListBase *edges, BLI_mempool *pool,
-                         BMVert *v1, BMVert *v2)
-{
-	HullBoundaryEdge *e, *e_next;
-
-	for (e = edges->first; e; e = e_next) {
-		e_next = e->next;
-
-		if (edge_match(v1, v2, e->v)) {
-			/* remove the interior edge */
-			BLI_remlink(edges, e);
-			BLI_mempool_free(pool, e);
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-static void expand_boundary_edges(ListBase *edges, BLI_mempool *edge_pool,
-                                  const HullTriangle *t)
-{
-	HullBoundaryEdge *e_new;
-	int i;
-
-	/* Insert each triangle edge into the boundary list; if any of
-	 * its edges are already in there, remove the edge entirely */
-	for (i = 0; i < 3; i++) {
-		if (!check_for_dup(edges, edge_pool, t->v[i], t->v[(i + 1) % 3])) {
-			e_new = BLI_mempool_calloc(edge_pool);
-			e_new->v[0] = t->v[i];
-			e_new->v[1] = t->v[(i + 1) % 3];
-			BLI_addtail(edges, e_new);
-		}
-	}
-}
 
 
 
@@ -152,75 +87,6 @@ static void hull_add_triangle(BMesh *bm, GHash *hull_triangles, BLI_mempool *poo
 	normal_tri_v3(t->no, v1->co, v2->co, v3->co);
 }
 
-static int hull_point_tri_side(const HullTriangle *t, const float co[3])
-{
-	/* Added epsilon to fix bug [#31941], improves output when some
-	 * vertices are nearly coplanar. Might need further tweaking for
-	 * other cases though.
-	 * ...
-	 * Update: epsilon of 0.0001 causes [#32027], use HULL_EPSILON_DOT_FLT
-	 * and give it a much smaller value
-	 * */
-	float p[3], d;
-	sub_v3_v3v3(p, co, t->v[0]->co);
-	d = dot_v3v3(t->no, p);
-	if      (d < -HULL_EPSILON_DOT_FLT) return -1;
-	else if (d >  HULL_EPSILON_DOT_FLT) return  1;
-	else return 0;
-}
-
-/* Get all hull triangles that vertex 'v' is outside of */
-static GHash *hull_triangles_v_outside(GHash *hull_triangles, const BMVert *v)
-{
-	GHash *outside;
-	GHashIterator iter;
-
-	outside = BLI_ghash_ptr_new("outside");
-
-	GHASH_ITER (iter, hull_triangles) {
-		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
-		
-		if (hull_point_tri_side(t, v->co) > 0)
-			BLI_ghash_insert(outside, t, NULL);
-	}
-
-	return outside;
-}
-
-/* For vertex 'v', find which triangles must be deleted to extend the
- * hull; find the boundary edges of that hole so that it can be filled
- * with connections to the new vertex, and update the hull_triangles
- * to delete the marked triangles */
-static void add_point(BMesh *bm, GHash *hull_triangles, BLI_mempool *hull_pool,
-                      BLI_mempool *edge_pool, GHash *outside, BMVert *v)
-{
-	ListBase edges = {NULL, NULL};
-	HullBoundaryEdge *e, *e_next;
-	GHashIterator iter;
-
-	GHASH_ITER (iter, outside) {
-		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
-		int i;
-		
-		expand_boundary_edges(&edges, edge_pool, t);
-
-		/* Mark triangle's vertices as interior */
-		for (i = 0; i < 3; i++)
-			BMO_elem_flag_enable(bm, t->v[i], HULL_FLAG_INTERIOR_ELE);
-		
-		/* Delete the triangle */
-		BLI_ghash_remove(hull_triangles, t, NULL, NULL);
-		BLI_mempool_free(hull_pool, t);
-	}
-
-	/* Fill hole boundary with triangles to new point */
-	for (e = edges.first; e; e = e_next) {
-		e_next = e->next;
-		hull_add_triangle(bm, hull_triangles, hull_pool, e->v[0], e->v[1], v);
-		BLI_mempool_free(edge_pool, e);
-	}
-}
-
 static BMFace *hull_find_example_face(BMesh *bm, BMEdge *e)
 {
 	BMIter iter;
@@ -243,6 +109,7 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 	
 	GHASH_ITER (iter, hull_triangles) {
 		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
+		int i;
 
 		if (!t->skip) {
 			BMEdge *edges[3] = {
@@ -251,24 +118,52 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 				BM_edge_create(bm, t->v[2], t->v[0], NULL, TRUE)
 			};
 			BMFace *f, *example = NULL;
-			int i;
 
-			/* Look for an adjacent face that existed before the hull */
-			for (i = 0; i < 3; i++) {
-				if (!example)
-					example = hull_find_example_face(bm, edges[i]);
+			if (BM_face_exists(bm, t->v, 3, &f)) {
+				/* If the operator is run with "use_existing_faces"
+				 * disabled, but an output face in the hull is the
+				 * same as a face in the existing mesh, it should not
+				 * be marked as unused or interior. */
+				BMO_elem_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
+				BMO_elem_flag_disable(bm, f, HULL_FLAG_HOLE);
+				BMO_elem_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
 			}
+			else {
+				/* Look for an adjacent face that existed before the hull */
+				for (i = 0; i < 3; i++) {
+					if (!example)
+						example = hull_find_example_face(bm, edges[i]);
+				}
 
-			f = BM_face_create_quad_tri_v(bm, t->v, 3, example, FALSE);
-			BM_face_copy_shared(bm, f);
-
-			/* Mark face/verts/edges for 'geomout' slot and select */
+				/* Create new hull face */
+				f = BM_face_create_quad_tri_v(bm, t->v, 3, example, TRUE);
+				BM_face_copy_shared(bm, f);
+			}
+			/* Mark face for 'geomout' slot and select */
 			BMO_elem_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
 			BM_face_select_set(bm, f, TRUE);
+
+			/* Mark edges for 'geomout' slot */
 			for (i = 0; i < 3; i++) {
-				BMO_elem_flag_enable(bm, t->v[i], HULL_FLAG_OUTPUT_GEOM);
 				BMO_elem_flag_enable(bm, edges[i], HULL_FLAG_OUTPUT_GEOM);
 			}
+		}
+		else {
+			/* Mark input edges for 'geomout' slot */
+			for (i = 0; i < 3; i++) {
+				const int next = (i == 2 ? 0 : i + 1);
+				BMEdge *e = BM_edge_exists(t->v[i], t->v[next]);
+				if (e &&
+					BMO_elem_flag_test(bm, e, HULL_FLAG_INPUT) &&
+					!BMO_elem_flag_test(bm, e, HULL_FLAG_HOLE)) {
+					BMO_elem_flag_enable(bm, e, HULL_FLAG_OUTPUT_GEOM);
+				}
+			}
+		}
+
+		/* Mark verts for 'geomout' slot */
+		for (i = 0; i < 3; i++) {
+			BMO_elem_flag_enable(bm, t->v[i], HULL_FLAG_OUTPUT_GEOM);
 		}
 	}
 }
@@ -358,158 +253,6 @@ static void hull_final_edges_free(HullFinalEdges *final_edges)
 	BLI_mempool_destroy(final_edges->base_pool);
 	BLI_mempool_destroy(final_edges->link_pool);
 	MEM_freeN(final_edges);
-}
-
-
-
-/************************* Initial Tetrahedron ************************/
-
-static void hull_add_tetrahedron(BMesh *bm, GHash *hull_triangles, BLI_mempool *pool,
-                                 BMVert *tetra[4])
-{
-	float center[3];
-	int i, indices[4][3] = {
-		{0, 1, 2},
-		{0, 2, 3},
-		{1, 0, 3},
-		{2, 1, 3}
-	};
-
-	/* Calculate center */
-	zero_v3(center);
-	for (i = 0; i < 4; i++)
-		add_v3_v3(center, tetra[i]->co);
-	mul_v3_fl(center, 0.25f);
-
-	for (i = 0; i < 4; i++) {
-		BMVert *v1 = tetra[indices[i][0]];
-		BMVert *v2 = tetra[indices[i][1]];
-		BMVert *v3 = tetra[indices[i][2]];
-		float no[3], d[3];
-
-		normal_tri_v3(no, v1->co, v2->co, v3->co);
-		sub_v3_v3v3(d, center, v1->co);
-		if (dot_v3v3(no, d) > 0)
-			SWAP(BMVert *, v1, v3);
-
-		hull_add_triangle(bm, hull_triangles, pool, v1, v2, v3);
-	}
-}
-
-/* For each axis, get the minimum and maximum input vertices */
-static void hull_get_min_max(BMesh *bm, BMOperator *op,
-                             BMVert *min[3], BMVert *max[3])
-{
-	BMOIter oiter;
-	BMVert *v;
-
-	min[0] = min[1] = min[2] = NULL;
-	max[0] = max[1] = max[2] = NULL;
-
-	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
-		int i;
-		
-		for (i = 0; i < 3; i++) {
-			if (!min[i] || v->co[i] < min[i]->co[i])
-				min[i] = v;
-			if (!max[i] || v->co[i] > max[i]->co[i])
-				max[i] = v;
-		}
-	}
-}
-
-/* Returns true if input is coplanar */
-static int hull_find_large_tetrahedron(BMesh *bm, BMOperator *op,
-                                       BMVert *tetra[4])
-{
-	BMVert *min[3], *max[3], *v;
-	BMOIter oiter;
-	float widest_axis_len, largest_dist, plane_normal[3];
-	int i, j, widest_axis;
-	
-	tetra[0] = tetra[1] = tetra[2] = tetra[3] = NULL;
-	hull_get_min_max(bm, op, min, max);
-
-	/* Check for flat axis */
-	for (i = 0; i < 3; i++) {
-		if (min[i] == max[i]) {
-			return TRUE;
-		}
-	}
-
-	/* Find widest axis */
-	widest_axis_len = 0.0f;
-	widest_axis = 0; /* set here in the unlikey case this isn't set below */
-	for (i = 0; i < 3; i++) {
-		float len = (max[i]->co[i] - min[i]->co[i]);
-		if (len >= widest_axis_len) {
-			widest_axis_len = len;
-			widest_axis = i;
-		}
-	}
-
-	/* Use widest axis for first two points */
-	tetra[0] = min[widest_axis];
-	tetra[1] = max[widest_axis];
-	BMO_elem_flag_enable(bm, tetra[0], HULL_FLAG_TETRA_VERT);
-	BMO_elem_flag_enable(bm, tetra[1], HULL_FLAG_TETRA_VERT);
-
-	/* Choose third vertex farthest from existing line segment */
-	largest_dist = 0;
-	for (i = 0; i < 3; i++) {
-		BMVert *v;
-		float dist;
-
-		if (i == widest_axis)
-			continue;
-
-		v = min[i];
-		for (j = 0; j < 2; j++) {
-			dist = dist_to_line_segment_v3(v->co, tetra[0]->co, tetra[1]->co);
-			if (dist > largest_dist) {
-				largest_dist = dist;
-				tetra[2] = v;
-			}
-
-			v = max[i];
-		}
-	}
-
-	if (tetra[2]) {
-		BMO_elem_flag_enable(bm, tetra[2], HULL_FLAG_TETRA_VERT);
-	}
-	else {
-		return TRUE;
-	}
-
-	/* Check for colinear vertices */
-	if (largest_dist < HULL_EPSILON_FLT)
-		return TRUE;
-
-	/* Choose fourth point farthest from existing plane */
-	largest_dist = 0;
-	normal_tri_v3(plane_normal, tetra[0]->co, tetra[1]->co, tetra[2]->co);
-	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
-		if (!BMO_elem_flag_test(bm, v, HULL_FLAG_TETRA_VERT)) {
-			float dist = fabsf(dist_to_plane_v3(v->co, tetra[0]->co, plane_normal));
-			if (dist > largest_dist) {
-				largest_dist = dist;
-				tetra[3] = v;
-			}
-		}
-	}
-
-	if (tetra[3]) {
-		BMO_elem_flag_enable(bm, tetra[3], HULL_FLAG_TETRA_VERT);
-	}
-	else {
-		return TRUE;
-	}
-
-	if (largest_dist < HULL_EPSILON_FLT)
-		return TRUE;
-
-	return FALSE;
 }
 
 
@@ -650,44 +393,175 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	/* Mark edges too if all adjacent faces are holes */
+	/* Mark edges too if all adjacent faces are holes and the edge is
+	 * not already isolated */
 	BMO_ITER (e, &oiter, bm, op, "input", BM_EDGE) {
 		int hole = TRUE;
+		int any_faces = FALSE;
 		
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
+			any_faces = TRUE;
 			if (!BMO_elem_flag_test(bm, f, HULL_FLAG_HOLE)) {
 				hole = FALSE;
 				break;
 			}
 		}
 
-		if (hole)
+		if (hole && any_faces)
 			BMO_elem_flag_enable(bm, e, HULL_FLAG_HOLE);
 	}
+}
+
+static int hull_input_vert_count(BMesh *bm, BMOperator *op)
+{
+	BMOIter oiter;
+	BMVert *v;
+	int count = 0;
+
+	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
+		count++;
+	}
+
+	return count;
+}
+
+static BMVert **hull_input_verts_copy(BMesh *bm, BMOperator *op,
+									  const int num_input_verts)
+{
+	BMOIter oiter;
+	BMVert *v;
+	BMVert **input_verts = MEM_callocN(sizeof(*input_verts) *
+									   num_input_verts, AT);
+	int i = 0;
+
+	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
+		input_verts[i++] = v;
+	}
+
+	return input_verts;
+}
+
+static float (*hull_verts_for_bullet(BMVert **input_verts,
+									 const int num_input_verts))[3]
+{
+	float (*coords)[3] = MEM_callocN(sizeof(*coords) * num_input_verts, AT);
+	int i;
+
+	for (i = 0; i < num_input_verts; i++) {
+		copy_v3_v3(coords[i], input_verts[i]->co);
+	}
+
+	return coords;
+}
+
+static BMVert **hull_verts_from_bullet(plConvexHull hull,
+									   BMVert **input_verts,
+									   const int num_input_verts)
+{
+	const int num_verts = plConvexHullNumVertices(hull);
+	BMVert **hull_verts = MEM_mallocN(sizeof(*hull_verts) *
+									  num_verts, AT);
+	int i;
+
+	for (i = 0; i < num_verts; i++) {
+		float co[3];
+		int original_index;
+		plConvexHullGetVertex(hull, i, co, &original_index);
+
+		if (original_index >= 0 && original_index < num_input_verts) {
+			hull_verts[i] = input_verts[original_index];
+		}
+		else
+			BLI_assert(!"Unexpected new vertex in hull output");
+	}
+
+	return hull_verts;
+}
+
+static void hull_from_bullet(BMesh *bm, BMOperator *op,
+							 GHash *hull_triangles,
+							 BLI_mempool *pool)
+{
+	int *fvi = NULL;
+	BLI_array_declare(fvi);
+
+	BMVert **input_verts;
+	float (*coords)[3];
+	BMVert **hull_verts;
+
+	plConvexHull hull;
+	int i, count = 0;
+
+	const int num_input_verts = hull_input_vert_count(bm, op);
+
+	input_verts = hull_input_verts_copy(bm, op, num_input_verts);
+	coords = hull_verts_for_bullet(input_verts, num_input_verts);
+
+	hull = plConvexHullCompute(coords, num_input_verts);
+	hull_verts = hull_verts_from_bullet(hull, input_verts, num_input_verts);
+	
+	count = plConvexHullNumFaces(hull);
+	for (i = 0; i < count; i++) {
+		const int len = plConvexHullGetFaceSize(hull, i);
+
+		if (len > 2) {
+			BMVert *fv[3];
+			int j;
+
+			/* Get face vertex indices */
+			BLI_array_empty(fvi);
+			BLI_array_grow_items(fvi, len);
+			plConvexHullGetFaceVertices(hull, i, fvi);
+
+			/* Note: here we throw away any NGons from Bullet and turn
+			 * them into triangle fans. Would be nice to use these
+			 * directly, but will have to wait until HullTriangle goes
+			 * away (TODO) */
+			fv[0] = hull_verts[fvi[0]];
+			for (j = 2; j < len; j++) {
+				fv[1] = hull_verts[fvi[j - 1]];
+				fv[2] = hull_verts[fvi[j]];
+
+				hull_add_triangle(bm, hull_triangles, pool,
+								  fv[0], fv[1], fv[2]);
+			}
+		}
+	}
+
+	BLI_array_free(fvi);
+	MEM_freeN(hull_verts);
+	MEM_freeN(coords);
+	MEM_freeN(input_verts);
+}
+
+/* Check that there are at least three vertices in the input */
+static int hull_num_input_verts_is_ok(BMesh *bm, BMOperator *op)
+{
+	BMOIter oiter;
+	BMVert *v;
+	int partial_num_verts = 0;
+
+	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
+		partial_num_verts++;
+		if (partial_num_verts >= 3)
+			break;
+	}
+
+	return (partial_num_verts >= 3);
 }
 
 void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 {
 	HullFinalEdges *final_edges;
-	BLI_mempool *hull_pool, *edge_pool;
-	BMVert *v, *tetra[4];
+	BLI_mempool *hull_pool;
 	BMElemF *ele;
 	BMOIter oiter;
 	GHash *hull_triangles;
 
-	/* Verify that at least four verts in the input */
-	if (BMO_slot_get(op, "input")->len < 4) {
+	/* Verify that at least three verts in the input */
+	if (!hull_num_input_verts_is_ok(bm, op)) {
 		BMO_error_raise(bm, op, BMERR_CONVEX_HULL_FAILED,
-		                "Requires at least four vertices");
-		return;
-	}
-
-	/* Initialize the convex hull by building a tetrahedron. A
-	 * degenerate tetrahedron can cause problems, so report error and
-	 * fail if the result is coplanar */
-	if (hull_find_large_tetrahedron(bm, op, tetra)) {
-		BMO_error_raise(bm, op, BMERR_CONVEX_HULL_FAILED,
-		                "Input vertices are coplanar");
+		                "Requires at least three vertices");
 		return;
 	}
 
@@ -700,26 +574,11 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 			BMO_elem_flag_enable(bm, ele, HULL_FLAG_INTERIOR_ELE);
 	}
 
-	edge_pool = BLI_mempool_create(sizeof(HullBoundaryEdge), 128, 128, 0);
 	hull_pool = BLI_mempool_create(sizeof(HullTriangle), 128, 128, 0);
 	hull_triangles = BLI_ghash_ptr_new("hull_triangles");
 
-	/* Add tetrahedron triangles */
-	hull_add_tetrahedron(bm, hull_triangles, hull_pool, tetra);
+	hull_from_bullet(bm, op, hull_triangles, hull_pool);
 
-	/* Expand hull to cover new vertices outside the existing hull */
-	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
-		if (!BMO_elem_flag_test(bm, v, HULL_FLAG_TETRA_VERT)) {
-			GHash *outside = hull_triangles_v_outside(hull_triangles, v);
-			if (BLI_ghash_size(outside)) {
-				/* Expand hull and delete interior triangles */
-				add_point(bm, hull_triangles, hull_pool, edge_pool, outside, v);
-			}
-			BLI_ghash_free(outside, NULL, NULL);
-		}
-	}
-
-	BLI_mempool_destroy(edge_pool);
 	final_edges = hull_final_edges(hull_triangles);
 	
 	hull_mark_interior_elements(bm, op, final_edges);
@@ -762,3 +621,5 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL,
 	                                  HULL_FLAG_OUTPUT_GEOM);
 }
+
+#endif  /* WITH_BULLET */

@@ -2661,6 +2661,7 @@ btScalar btConvexHullComputer::compute(const void* coords, bool doubleCoords, in
 	}
 
 	vertices.resize(0);
+	original_vertex_index.resize(0);
 	edges.resize(0);
 	faces.resize(0);
 
@@ -2671,6 +2672,7 @@ btScalar btConvexHullComputer::compute(const void* coords, bool doubleCoords, in
 	{
 		btConvexHullInternal::Vertex* v = oldVertices[copied];
 		vertices.push_back(hull.getCoordinates(v));
+		original_vertex_index.push_back(v->point.index);
 		btConvexHullInternal::Edge* firstEdge = v->edges;
 		if (firstEdge)
 		{

@@ -72,7 +72,7 @@ typedef struct MVert {
  * at the moment alpha is abused for vertex painting
  * and not used for transparency, note that red and blue are swapped */
 typedef struct MCol {
-	char a, r, g, b;	
+	char a, r, g, b;
 } MCol;
 
 /* new face structure, replaces MFace, which is now
@@ -146,13 +146,9 @@ typedef struct MLoopCol {
 	mcol__tmp->a = mloopcol__tmp->a;            \
 } (void)0
 
-typedef struct MSticky {
-	float co[2];
-} MSticky;
-
 typedef struct MSelect {
 	int index;
-	int type; /* EDITVERT/EDITEDGE/EDITFACE */
+	int type;  /* ME_VSEL/ME_ESEL/ME_FSEL */
 } MSelect;
 
 /*tessellation uv face data*/

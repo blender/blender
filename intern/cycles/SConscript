@@ -29,7 +29,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna'.split())
 incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.split())
-incs.extend('#extern/glew/include'.split())
+incs.extend('#extern/glew/include #intern/mikktspace'.split())
 incs.append(cycles['BF_OIIO_INC'])
 incs.append(cycles['BF_BOOST_INC'])
 incs.append(cycles['BF_PYTHON_INC'])

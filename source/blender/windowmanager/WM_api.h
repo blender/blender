@@ -71,8 +71,18 @@ void		WM_init_state_normal_set(void);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit_ext			(struct bContext *C, const short do_python);
-void		WM_exit				(struct bContext *C);
-void		WM_main				(struct bContext *C);
+
+void		WM_exit				(struct bContext *C)
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((noreturn))
+#endif
+;
+
+void		WM_main				(struct bContext *C)
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((noreturn))
+#endif
+;
 
 int 		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
@@ -104,8 +114,8 @@ void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(int val);
-void		WM_cursor_grab_enable(struct wmWindow *win, int wrap, int hide, int *bounds);
-void		WM_cursor_grab_disable(struct wmWindow *win);
+void		WM_cursor_grab_enable(struct wmWindow *win, int wrap, int hide, int bounds[4]);
+void		WM_cursor_grab_disable(struct wmWindow *win, int mouse_ungrab_xy[2]);
 void		WM_cursor_time		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm,
@@ -145,6 +155,7 @@ struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase
 
 			/* mouse */
 void		WM_event_add_mousemove(struct bContext *C);
+void		WM_event_add_mousemove_window(struct wmWindow *window);
 int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
 			/* notifiers */
@@ -203,6 +214,7 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, short c
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
 void		WM_operator_properties_sanitize(struct PointerRNA *ptr, const short no_context); /* make props context sensitive or not */
+int         WM_operator_properties_default(struct PointerRNA *ptr, const int do_update);
 void        WM_operator_properties_reset(struct wmOperator *op);
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
@@ -262,7 +274,7 @@ int			WM_gesture_lines_cancel(struct bContext *C, struct wmOperator *op);
 int			WM_gesture_lasso_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_lasso_cancel(struct bContext *C, struct wmOperator *op);
-int       (*WM_gesture_lasso_path_to_array(struct bContext *C, struct wmOperator *op, int *mcords_tot))[2];
+const int (*WM_gesture_lasso_path_to_array(struct bContext *C, struct wmOperator *op, int *mcords_tot))[2];
 int			WM_gesture_straightline_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_straightline_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_gesture_straightline_cancel(struct bContext *C, struct wmOperator *op);
@@ -346,8 +358,9 @@ void        WM_jobs_callbacks(struct wmJob *,
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
 void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void (*)(void *, short int *, short int *, float *));
-void		WM_jobs_stop_all(struct wmWindowManager *wm);
-
+void		WM_jobs_kill_all(struct wmWindowManager *wm);
+	void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
+	
 int			WM_jobs_has_running(struct wmWindowManager *wm);
 
 			/* clipboard */

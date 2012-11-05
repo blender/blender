@@ -44,6 +44,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_rect.h"
 
 #include "GPU_extensions.h"
@@ -149,8 +150,8 @@ void ED_space_clip_get_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoo
 
 	ED_space_clip_get_size(sc, &width, &height);
 
-	*zoomx = (float)(BLI_RCT_SIZE_X(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_X(&ar->v2d.cur) * width);
-	*zoomy = (float)(BLI_RCT_SIZE_Y(&ar->winrct) + 1) / (float)(BLI_RCT_SIZE_Y(&ar->v2d.cur) * height);
+	*zoomx = (float)(BLI_rcti_size_x(&ar->winrct) + 1) / (BLI_rctf_size_x(&ar->v2d.cur) * width);
+	*zoomy = (float)(BLI_rcti_size_y(&ar->winrct) + 1) / (BLI_rctf_size_y(&ar->v2d.cur) * height);
 }
 
 void ED_space_clip_get_aspect(SpaceClip *sc, float *aspx, float *aspy)
@@ -368,7 +369,7 @@ int ED_clip_view_selection(const bContext *C, ARegion *ar, int fit)
 
 	ED_space_clip_get_size(sc, &frame_width, &frame_height);
 
-	if (frame_width == 0 || frame_height == 0)
+	if ((frame_width == 0) || (frame_height == 0) || (sc->clip == NULL))
 		return FALSE;
 
 	if (!selected_boundbox(sc, min, max))
@@ -388,13 +389,13 @@ int ED_clip_view_selection(const bContext *C, ARegion *ar, int fit)
 
 		ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-		width  = BLI_RCT_SIZE_X(&ar->winrct) + 1;
-		height = BLI_RCT_SIZE_Y(&ar->winrct) + 1;
+		width  = BLI_rcti_size_x(&ar->winrct) + 1;
+		height = BLI_rcti_size_y(&ar->winrct) + 1;
 
 		zoomx = (float)width / w / aspx;
 		zoomy = (float)height / h / aspy;
 
-		newzoom = 1.0f / power_of_2(1.0f / minf(zoomx, zoomy));
+		newzoom = 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy));
 
 		if (fit || sc->zoom > newzoom)
 			sc->zoom = newzoom;
@@ -692,7 +693,7 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf, const unsign
 		context->start_frame = clip->start_frame;
 		context->frame_offset = clip->frame_offset;
 
-		strcpy(context->colorspace, clip->colorspace_settings.name);
+		BLI_strncpy(context->colorspace, clip->colorspace_settings.name, sizeof(context->colorspace));
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,

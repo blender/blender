@@ -66,5 +66,4 @@ void BL_ConvertMaterialIpos(struct Object* blenderobject,
 	class KX_BlenderSceneConverter *converter);
 
 
-#endif //__KX_IPOCONVERT_H__
-
+#endif  /* __KX_IPOCONVERT_H__ */

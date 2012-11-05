@@ -284,7 +284,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "name", name);
 
 	if (use && !CTX_wm_view3d(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Create Orientation \"use\" parameter only valid in a 3dView context");
+		BKE_report(op->reports, RPT_ERROR, "Create Orientation's 'use' parameter only valid in a 3DView context");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -605,8 +605,10 @@ static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 
 static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
-	ot->name   = "Rotate";
+	ot->name = "Rotate";
 	ot->description = "Rotate selected items";
 	ot->idname = OP_ROTATION;
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
@@ -618,19 +620,22 @@ static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_screenactive;
 
-	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
+	prop = RNA_def_float(ot->srna, "value", 0.0f, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
+	RNA_def_property_subtype(prop, PROP_ANGLE);
 
 	Transform_Properties(ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_GEO_SNAP);
 }
 
 static void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
-	ot->name   = "Tilt";
+	ot->name = "Tilt";
 	/* optionals - 
 	 * "Tilt selected vertices"
-	 * "Specify an extra axis rotation for selected vertices of 3d curve" */
-	ot->description = "Tilt selected control vertices of 3d curve"; 
+	 * "Specify an extra axis rotation for selected vertices of 3D curve" */
+	ot->description = "Tilt selected control vertices of 3D curve"; 
 	ot->idname = OP_TILT;
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
@@ -641,9 +646,10 @@ static void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_editcurve_3d;
 
-	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
+	prop = RNA_def_float(ot->srna, "value", 0.0, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI * 2, M_PI * 2);
+	RNA_def_property_subtype(prop, PROP_ANGLE);
 
-	Transform_Properties(ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_SNAP);
+	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP);
 }
 
 static void TRANSFORM_OT_warp(struct wmOperatorType *ot)

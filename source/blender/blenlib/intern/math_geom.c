@@ -404,8 +404,8 @@ int isect_seg_seg_v2_point(const float v1[2], const float v2[2], const float v3[
 			if (u > u2) SWAP(float, u, u2);
 
 			if (u > 1.0f + eps || u2 < -eps) return -1;  /* non-ovlerlapping segments */
-			else if (maxf(0.0f, u) == minf(1.0f, u2)) { /* one common point: can return result */
-				interp_v2_v2v2(vi, v1, v2, maxf(0, u));
+			else if (max_ff(0.0f, u) == min_ff(1.0f, u2)) { /* one common point: can return result */
+				interp_v2_v2v2(vi, v1, v2, max_ff(0, u));
 				return 1;
 			}
 		}
@@ -560,7 +560,8 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 	}
 }
 
-/*
+/**
+ * \return
  * -1: collinear
  *  1: intersection
  */
@@ -758,6 +759,10 @@ int isect_ray_tri_v3(const float p1[3], const float d[3],
 	return 1;
 }
 
+/**
+ * if clip is nonzero, will only return true if lambda is >= 0.0
+ * (i.e. intersection point is along positive d)
+ */
 int isect_ray_plane_v3(const float p1[3], const float d[3],
                        const float v0[3], const float v1[3], const float v2[3],
                        float *r_lambda, const int clip)
@@ -876,6 +881,16 @@ int isect_ray_tri_threshold_v3(const float p1[3], const float d[3],
 	return 1;
 }
 
+/**
+ * Intersect line/plane, optionally treat line as directional (like a ray) with the no_flip argument.
+ *
+ * \param out The intersection point.
+ * \param l1 The first point of the line.
+ * \param l2 The second point of the line.
+ * \param plane_co A point on the plane to intersect with.
+ * \param plane_no The direction of the plane (does not need to be normalized).
+ * \param no_flip When true, the intersection point will always be from l1 to l2, even if this is not on the plane.
+ */
 int isect_line_plane_v3(float out[3],
                         const float l1[3], const float l2[3],
                         const float plane_co[3], const float plane_no[3], const short no_flip)
@@ -921,7 +936,20 @@ int isect_line_plane_v3(float out[3],
 	}
 }
 
-/* note: return normal isn't unit length */
+/**
+ * Intersect two planes, return a point on the intersection and a vector
+ * that runs on the direction of the intersection.
+ * Return error code is the same as 'isect_line_line_v3'.
+ *
+ * \param r_isect_co The resulting intersection point.
+ * \param r_isect_no The resulting vector of the intersection.
+ * \param plane_a_co The point on the first plane.
+ * \param plane_a_no The normal of the first plane.
+ * \param plane_b_co The point on the second plane.
+ * \param plane_b_no The normal of the second plane.
+ *
+ * \note return normal isn't unit length
+ */
 void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
                           const float plane_a_co[3], const float plane_a_no[3],
                           const float plane_b_co[3], const float plane_b_no[3])
@@ -939,10 +967,10 @@ void isect_plane_plane_v3(float r_isect_co[3], float r_isect_no[3],
 /* "Improved Collision detection and Response" */
 static int getLowestRoot(const float a, const float b, const float c, const float maxR, float *root)
 {
-	// Check if a solution exists
+	/* Check if a solution exists */
 	float determinant = b * b - 4.0f * a * c;
 
-	// If determinant is negative it means no solutions.
+	/* If determinant is negative it means no solutions. */
 	if (determinant >= 0.0f) {
 		/* calculate the two roots: (if determinant == 0 then
 		 * x1==x2 but lets disregard that slight optimization) */
@@ -950,24 +978,24 @@ static int getLowestRoot(const float a, const float b, const float c, const floa
 		float r1 = (-b - sqrtD) / (2.0f * a);
 		float r2 = (-b + sqrtD) / (2.0f * a);
 
-		// Sort so x1 <= x2
+		/* Sort so x1 <= x2 */
 		if (r1 > r2)
 			SWAP(float, r1, r2);
 
-		// Get lowest root:
+		/* Get lowest root: */
 		if (r1 > 0.0f && r1 < maxR) {
 			*root = r1;
 			return 1;
 		}
 
-		// It is possible that we want x2 - this can happen
-		// if x1 < 0
+		/* It is possible that we want x2 - this can happen */
+		/* if x1 < 0 */
 		if (r2 > 0.0f && r2 < maxR) {
 			*root = r2;
 			return 1;
 		}
 	}
-	// No (valid) solutions
+	/* No (valid) solutions */
 	return 0;
 }
 
@@ -1080,7 +1108,7 @@ int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const flo
 	}
 
 	/*---test edges---*/
-	sub_v3_v3v3(e3, v2, v1); //wasnt yet calculated
+	sub_v3_v3v3(e3, v2, v1);  /* wasnt yet calculated */
 
 
 	/*e1*/
@@ -1206,11 +1234,12 @@ int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3]
 	return 1;
 }
 
-/* Returns the number of point of interests
+/**
+ * \return The number of point of interests
  * 0 - lines are colinear
  * 1 - lines are coplanar, i1 is set to intersection
  * 2 - i1 and i2 are the nearest points on line 1 (v1, v2) and line 2 (v3, v4) respectively
- * */
+ */
 int isect_line_line_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3], float i1[3], float i2[3])
 {
 	float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
@@ -1344,7 +1373,7 @@ void isect_ray_aabb_initialize(IsectRayAABBData *data, const float ray_start[3],
 
 /* Adapted from http://www.gamedev.net/community/forums/topic.asp?topic_id=459973 */
 int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
-				   const float bb_max[3], float *tmin_out)
+                   const float bb_max[3], float *tmin_out)
 {
 	float bbox[2][3];
 	float tmin, tmax, tymin, tymax, tzmin, tzmax;
@@ -1387,7 +1416,7 @@ int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
 }
 
 /* find closest point to p on line through l1,l2 and return lambda,
- * where (0 <= lambda <= 1) when cp is in the line segement l1,l2
+ * where (0 <= lambda <= 1) when cp is in the line segment l1,l2
  */
 float closest_to_line_v3(float cp[3], const float p[3], const float l1[3], const float l2[3])
 {
@@ -1429,7 +1458,7 @@ float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2
 	return (dot_v2v2(u, h) / dot_v2v2(u, u));
 }
 
-/* ensyre the distance between these points is no greater then 'dist'
+/* ensure the distance between these points is no greater then 'dist'
  * if it is, scale then both into the center */
 void limit_dist_v3(float v1[3], float v2[3], const float dist)
 {
@@ -1587,7 +1616,7 @@ void isect_point_face_uv_v2(const int isquad,
 	}
 }
 
-#if 0 // XXX this version used to be used in isect_point_tri_v2_int() and was called IsPointInTri2D
+#if 0  /* XXX this version used to be used in isect_point_tri_v2_int() and was called IsPointInTri2D */
 
 int isect_point_tri_v2(float pt[2], float v1[2], float v2[2], float v3[2])
 {
@@ -1672,7 +1701,7 @@ static int point_in_slice(const float p[3], const float v1[3], const float l1[3]
 	 * the room inside usually is rather small compared to R3 though still infinite
 	 * useful for restricting (speeding up) searches
 	 * e.g. all points of triangular prism are within the intersection of 3 'slices'
-	 * onother trivial case : cube
+	 * another trivial case : cube
 	 * but see a 'spat' which is a deformed cube with paired parallel planes needs only 3 slices too
 	 */
 	float h, rp[3], cp[3], q[3];
@@ -1777,7 +1806,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 	signed char ix;
 	signed char iy;
 
-	// if x1 == x2 or y1 == y2, then it does not matter what we set here
+	/* if x1 == x2 or y1 == y2, then it does not matter what we set here */
 	int delta_x = (x2 > x1 ? (ix = 1, x2 - x1) : (ix = -1, x1 - x2)) << 1;
 	int delta_y = (y2 > y1 ? (iy = 1, y2 - y1) : (iy = -1, y1 - y2)) << 1;
 
@@ -1786,7 +1815,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 	}
 
 	if (delta_x >= delta_y) {
-		// error may go below zero
+		/* error may go below zero */
 		int error = delta_y - (delta_x >> 1);
 
 		while (x1 != x2) {
@@ -1795,9 +1824,9 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 					y1 += iy;
 					error -= delta_x;
 				}
-				// else do nothing
+				/* else do nothing */
 			}
-			// else do nothing
+			/* else do nothing */
 
 			x1 += ix;
 			error += delta_y;
@@ -1808,7 +1837,7 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 		}
 	}
 	else {
-		// error may go below zero
+		/* error may go below zero */
 		int error = delta_x - (delta_y >> 1);
 
 		while (y1 != y2) {
@@ -1817,9 +1846,9 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 					x1 += ix;
 					error -= delta_y;
 				}
-				// else do nothing
+				/* else do nothing */
 			}
-			// else do nothing
+			/* else do nothing */
 
 			y1 += iy;
 			error += delta_x;
@@ -1992,8 +2021,8 @@ void barycentric_weights_v2_quad(const float v1[2], const float v2[2], const flo
                                  const float co[2], float w[4])
 {
 	/* note: fabsf() here is not needed for convex quads (and not used in interp_weights_poly_v2).
-	 *       but in the case of concave/bowtie quads for the mask rasterizer it gives unreliable results
-	 *       without adding absf(). If this becomes an issue for more general useage we could have
+	 *       but in the case of concave/bow-tie quads for the mask rasterizer it gives unreliable results
+	 *       without adding absf(). If this becomes an issue for more general usage we could have
 	 *       this optional or use a different function - Campbell */
 #define MEAN_VALUE_HALF_TAN_V2(_area, i1, i2) \
 	        ((_area = cross_v2v2(dirs[i1], dirs[i2])) != 0.0f ? \
@@ -2323,18 +2352,18 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 	                           (st2[0] * st3[1] - st2[1] * st3[0]) + (st3[0] * st0[1] - st3[1] * st0[0]);
 
 	/* X is 2D cross product (determinant)
-	 * A= (p0-p) X (p0-p3)*/
+	 * A = (p0 - p) X (p0 - p3)*/
 	const double a = (st0[0] - st[0]) * (st0[1] - st3[1]) - (st0[1] - st[1]) * (st0[0] - st3[0]);
 
-	/* B= ( (p0-p) X (p1-p2) + (p1-p) X (p0-p3) ) / 2 */
-	const double b = 0.5 * (((st0[0] - st[0]) * (st1[1] - st2[1]) - (st0[1] - st[1]) * (st1[0] - st2[0])) +
-	                        ((st1[0] - st[0]) * (st0[1] - st3[1]) - (st1[1] - st[1]) * (st0[0] - st3[0])));
+	/* B = ( (p0 - p) X (p1 - p2) + (p1 - p) X (p0 - p3) ) / 2 */
+	const double b = 0.5 * (double)(((st0[0] - st[0]) * (st1[1] - st2[1]) - (st0[1] - st[1]) * (st1[0] - st2[0])) +
+	                                ((st1[0] - st[0]) * (st0[1] - st3[1]) - (st1[1] - st[1]) * (st0[0] - st3[0])));
 
 	/* C = (p1-p) X (p1-p2) */
 	const double fC = (st1[0] - st[0]) * (st1[1] - st2[1]) - (st1[1] - st[1]) * (st1[0] - st2[0]);
 	const double denom = a - 2 * b + fC;
 
-	// clear outputs
+	/* clear outputs */
 	zero_v2(r_uv);
 
 	if (IS_ZERO(denom) != 0) {
@@ -2364,7 +2393,7 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 		}
 
 		if (IS_ZERO(denom) == 0)
-			r_uv[1] = (float)(((1.0f - r_uv[0]) * (st0[i] - st[i]) + r_uv[0] * (st1[i] - st[i])) / denom);
+			r_uv[1] = (float)((double)((1.0f - r_uv[0]) * (st0[i] - st[i]) + r_uv[0] * (st1[i] - st[i])) / denom);
 	}
 }
 
@@ -2650,7 +2679,7 @@ void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
 			const float *cur_edge = vdiffs[i];
 			const float fac = saacos(-dot_v3v3(cur_edge, prev_edge));
 
-			// accumulate
+			/* accumulate */
 			madd_v3_v3fl(vn[i], f_no, fac);
 			prev_edge = cur_edge;
 		}
@@ -2690,50 +2719,6 @@ void accumulate_vertex_normals_poly(float **vertnos, float polyno[3],
 }
 
 /********************************* Tangents **********************************/
-
-/* For normal map tangents we need to detect uv boundaries, and only average
- * tangents in case the uvs are connected. Alternative would be to store 1
- * tangent per face rather than 4 per face vertex, but that's not compatible
- * with games */
-
-
-/* from BKE_mesh.h */
-#define STD_UV_CONNECT_LIMIT  0.0001f
-
-void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang, const float tang[3], const float uv[2])
-{
-	VertexTangent *vt;
-
-	/* find a tangent with connected uvs */
-	for (vt = *vtang; vt; vt = vt->next) {
-		if (fabsf(uv[0] - vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabsf(uv[1] - vt->uv[1]) < STD_UV_CONNECT_LIMIT) {
-			add_v3_v3(vt->tang, tang);
-			return;
-		}
-	}
-
-	/* if not found, append a new one */
-	vt = BLI_memarena_alloc((MemArena *) arena, sizeof(VertexTangent));
-	copy_v3_v3(vt->tang, tang);
-	vt->uv[0] = uv[0];
-	vt->uv[1] = uv[1];
-
-	if (*vtang)
-		vt->next = *vtang;
-	*vtang = vt;
-}
-
-float *find_vertex_tangent(VertexTangent *vtang, const float uv[2])
-{
-	VertexTangent *vt;
-	static float nulltang[3] = {0.0f, 0.0f, 0.0f};
-
-	for (vt = vtang; vt; vt = vt->next)
-		if (fabsf(uv[0] - vt->uv[0]) < STD_UV_CONNECT_LIMIT && fabsf(uv[1] - vt->uv[1]) < STD_UV_CONNECT_LIMIT)
-			return vt->tang;
-
-	return nulltang; /* shouldn't happen, except for nan or so */
-}
 
 void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], float co2[3], float co3[3], float n[3], float tang[3])
 {

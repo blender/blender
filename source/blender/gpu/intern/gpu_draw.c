@@ -422,7 +422,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap, int ncd)
+int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int mipmap, int is_data)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -492,7 +492,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		}
 
 		/* TODO unneeded when float images are correctly treated as linear always */
-		if (!ncd)
+		if (!is_data)
 			do_color_management = TRUE;
 
 		if (ibuf->rect==NULL)
@@ -611,12 +611,21 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 			rect= tilerect;
 		}
 	}
+
 #ifdef WITH_DDS
 	if (ibuf->ftype & DDS)
 		GPU_create_gl_tex_compressed(bind, rect, rectw, recth, mipmap, ima, ibuf);
 	else
 #endif
 		GPU_create_gl_tex(bind, rect, frect, rectw, recth, mipmap, use_high_bit_depth, ima);
+	
+	/* mark as non-color data texture */
+	if (*bind) {
+		if (is_data)
+			ima->tpageflag |= IMA_GLBIND_IS_DATA;	
+		else
+			ima->tpageflag &= ~IMA_GLBIND_IS_DATA;	
+	}
 
 	/* clean up */
 	if (tilerect)
@@ -709,7 +718,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
  */
 int GPU_upload_dxt_texture(ImBuf *ibuf)
 {
-#if WITH_DDS
+#ifdef WITH_DDS
 	GLint format = 0;
 	int blocksize, height, width, i, size, offset = 0;
 
@@ -730,12 +739,17 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 		return FALSE;
 	}
 
+	if (!is_power_of_2_i(width) || !is_power_of_2_i(height)) {
+		printf("Unable to load non-power-of-two DXT image resolution, falling back to uncompressed\n");
+		return FALSE;
+	}
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	blocksize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
+	blocksize = (ibuf->dds_data.fourcc == FOURCC_DXT1) ? 8 : 16;
 	for (i=0; i<ibuf->dds_data.nummipmaps && (width||height); ++i) {
 		if (width == 0)
 			width = 1;
@@ -878,13 +892,13 @@ void GPU_paint_set_mipmap(int mipmap)
 	}
 }
 
-void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
+void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 {
 	ImBuf *ibuf;
 	
 	ibuf = BKE_image_get_ibuf(ima, NULL);
 	
-	if (ima->repbind || (GPU_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
+	if (ima->repbind || (GPU_get_mipmap() && !GTS.gpu_mipmap) || !ima->bindcode || !ibuf ||
 	    (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
 	    (w == 0) || (h == 0))
 	{
@@ -903,7 +917,8 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 		/* if color correction is needed, we must update the part that needs updating. */
 		if (ibuf->rect_float) {
 			float *buffer = MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
-			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h);
+			int is_data = (ima->tpageflag & IMA_GLBIND_IS_DATA);
+			IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h, is_data);
 
 			glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
@@ -911,8 +926,14 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 
 			MEM_freeN(buffer);
 
-			if (ima->tpageflag & IMA_MIPMAP_COMPLETE)
+			/* we have already accounted for the case where GTS.gpu_mipmap is false
+			 * so we will be using GPU mipmap generation here */
+			if (GPU_get_mipmap()) {
+				glGenerateMipmapEXT(GL_TEXTURE_2D);
+			}
+			else {
 				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+			}
 
 			return;
 		}
@@ -923,19 +944,20 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
 
-		if (ibuf->rect_float)
-			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
-				GL_FLOAT, ibuf->rect_float);
-		else
-			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
-				GL_UNSIGNED_BYTE, ibuf->rect);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
+			GL_UNSIGNED_BYTE, ibuf->rect);
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
 
-		if (ima->tpageflag & IMA_MIPMAP_COMPLETE)
+		/* see comment above as to why we are using gpu mipmap generation here */
+		if (GPU_get_mipmap()) {
+			glGenerateMipmapEXT(GL_TEXTURE_2D);
+		}
+		else {
 			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+		}
 	}
 }
 
@@ -1008,21 +1030,53 @@ void GPU_free_smoke(SmokeModifierData *smd)
 		if (smd->domain->tex_shadow)
 			GPU_texture_free(smd->domain->tex_shadow);
 		smd->domain->tex_shadow = NULL;
+
+		if (smd->domain->tex_flame)
+			GPU_texture_free(smd->domain->tex_flame);
+		smd->domain->tex_flame = NULL;
 	}
 }
 
 void GPU_create_smoke(SmokeModifierData *smd, int highres)
 {
 #ifdef WITH_SMOKE
-	if (smd->type & MOD_SMOKE_TYPE_DOMAIN && !smd->domain->tex && !highres)
-		smd->domain->tex = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smoke_get_density(smd->domain->fluid));
-	else if (smd->type & MOD_SMOKE_TYPE_DOMAIN && !smd->domain->tex && highres)
-		smd->domain->tex = GPU_texture_create_3D(smd->domain->res_wt[0], smd->domain->res_wt[1], smd->domain->res_wt[2], smoke_turbulence_get_density(smd->domain->wt));
+	if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+		SmokeDomainSettings *sds = smd->domain;
+		if (!sds->tex && !highres) {
+			/* rgba texture for color + density */
+			if (smoke_has_colors(sds->fluid)) {
+				float *data = MEM_callocN(sizeof(float)*sds->total_cells*4, "smokeColorTexture");
+				smoke_get_rgba(sds->fluid, data, 0);
+				sds->tex = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 4, data);
+				MEM_freeN(data);
+			}
+			/* density only */
+			else {
+				sds->tex = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 1, smoke_get_density(sds->fluid));
+			}
+			sds->tex_flame = (smoke_has_fuel(sds->fluid)) ? GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 1, smoke_get_flame(sds->fluid)) : NULL;
+		}
+		else if (!sds->tex && highres) {
+			/* rgba texture for color + density */
+			if (smoke_turbulence_has_colors(sds->wt)) {
+				float *data = MEM_callocN(sizeof(float)*smoke_turbulence_get_cells(sds->wt)*4, "smokeColorTexture");
+				smoke_turbulence_get_rgba(sds->wt, data, 0);
+				sds->tex = GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 4, data);
+				MEM_freeN(data);
+			}
+			/* density only */
+			else {
+				sds->tex = GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 1, smoke_turbulence_get_density(sds->wt));
+			}
+			sds->tex_flame = (smoke_turbulence_has_fuel(sds->wt)) ? GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 1, smoke_turbulence_get_flame(sds->wt)) : NULL;
+		}
 
-	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
+		sds->tex_shadow = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], 1, sds->shadow);
+	}
 #else // WITH_SMOKE
 	(void)highres;
 	smd->domain->tex= NULL;
+	smd->domain->tex_flame= NULL;
 	smd->domain->tex_shadow= NULL;
 #endif // WITH_SMOKE
 }
@@ -1087,7 +1141,7 @@ void GPU_free_image(Image *ima)
 		ima->repbind= NULL;
 	}
 
-	ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
+	ima->tpageflag &= ~(IMA_MIPMAP_COMPLETE|IMA_GLBIND_IS_DATA);
 }
 
 void GPU_free_images(void)
@@ -1173,7 +1227,7 @@ static void gpu_material_to_fixed(GPUMaterialFixed *smat, const Material *bmat, 
 		if (gamma) {
 			linearrgb_to_srgb_v3_v3(smat->diff, smat->diff);
 			linearrgb_to_srgb_v3_v3(smat->spec, smat->spec);
-		}	
+		}
 	}
 }
 
@@ -1198,10 +1252,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUBlendMode alphablend;
 	int a;
 
-	/* OCIO_TODO: assume color management is always enabled. could be nice to support real display transform here,
-	 *            but that's not so important and could be done later
-	 */
-	int gamma = TRUE;
+	int gamma = BKE_scene_check_color_management_enabled(scene);
 
 	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	
@@ -1429,6 +1480,21 @@ void GPU_disable_material(void)
 	GPU_set_material_alpha_blend(GPU_BLEND_SOLID);
 }
 
+void GPU_material_diffuse_get(int nr, float diff[4])
+{
+	/* prevent index to use un-initialized array items */
+	if (nr >= GMS.totmat)
+		nr = 0;
+
+	/* no GPU_begin_object_materials, use default material */
+	if (!GMS.matbuf) {
+		mul_v3_v3fl(diff, &defmaterial.r, defmaterial.ref + defmaterial.emit);
+	}
+	else {
+		copy_v4_v4(diff, GMS.matbuf[nr].diff);
+	}
+}
+
 void GPU_end_object_materials(void)
 {
 	GPU_disable_material();
@@ -1587,7 +1653,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		glLightfv(GL_LIGHT0+count, GL_SPECULAR, energy);
 		glEnable(GL_LIGHT0+count);
 		
-		glPopMatrix();					
+		glPopMatrix();
 		
 		count++;
 		if (count==8)

@@ -64,7 +64,7 @@ public:
 
 	static int CheckActuator(void *self, const PyAttributeDef*);
 	
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 };
 
-#endif
+#endif  /* __SCA_ACTUATORSENSOR_H__ */

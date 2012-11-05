@@ -84,7 +84,7 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 BLI_INLINE BMDiskLink *rs_edge_link_get(BMEdge *e, BMVert *v, EdgeData *e_data)
 {
 	return v == ((BMEdge *)e)->v1 ? &(((EdgeData *)e_data)->v1_disk_link) :
-	                                &(((EdgeData *)e_data)->v2_disk_link) ;
+	                                &(((EdgeData *)e_data)->v2_disk_link);
 }
 
 static int rotsys_append_edge(BMEdge *e, BMVert *v,
@@ -275,8 +275,9 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 				continue;
 			
 			f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), TRUE);
-			if (!f)
+			if (UNLIKELY(f == NULL)) {
 				continue;
+			}
 		}
 	}
 	
@@ -363,8 +364,6 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	/* BMVert **verts = NULL; */
 	/* BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE); */ /* UNUSE */
 	int i;
-	
-#define SIGN(n) ((n) < 0.0f)
 	
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		BMIter eiter;
@@ -1225,7 +1224,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 			v4 = BM_vert_in_edge(edges2[i - 1], edges2[i]->v1) ? edges2[i]->v2 : edges2[i]->v1;
 		}
 
-		/* if there is ever bowtie quads between two edges the problem is here! [#30367] */
+		/* if there is ever bow-tie quads between two edges the problem is here! [#30367] */
 #if 0
 		normal_tri_v3(dvec1, v1->co, v2->co, v4->co);
 		normal_tri_v3(dvec2, v1->co, v4->co, v3->co);

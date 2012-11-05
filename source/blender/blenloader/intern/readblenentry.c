@@ -175,7 +175,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 		else if (bhead->code == DATA) {
 			if (looking) {
 				if (bhead->SDNAnr == DNA_struct_find_nr(fd->filesdna, "PreviewImage") ) {
-					prv = BLO_library_read_struct(fd, bhead, "PreviewImage");	
+					prv = BLO_library_read_struct(fd, bhead, "PreviewImage");
 					if (prv) {
 						memcpy(new_prv, prv, sizeof(PreviewImage));
 						if (prv->rect[0]) {
@@ -183,7 +183,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							new_prv->rect[0] = MEM_callocN(new_prv->w[0] * new_prv->h[0] * sizeof(unsigned int), "prvrect");
 							bhead = blo_nextbhead(fd, bhead);
 							rect = (unsigned int *)(bhead + 1);
-							memcpy(new_prv->rect[0], rect, bhead->len);					
+							memcpy(new_prv->rect[0], rect, bhead->len);
 						}
 						else {
 							new_prv->rect[0] = NULL;
@@ -194,7 +194,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 							new_prv->rect[1] = MEM_callocN(new_prv->w[1] * new_prv->h[1] * sizeof(unsigned int), "prvrect");
 							bhead = blo_nextbhead(fd, bhead);
 							rect = (unsigned int *)(bhead + 1);
-							memcpy(new_prv->rect[1], rect, bhead->len);							
+							memcpy(new_prv->rect[1], rect, bhead->len);
 						}
 						else {
 							new_prv->rect[1] = NULL;
@@ -265,10 +265,10 @@ BlendFileData *BLO_read_from_file(const char *filepath, ReportList *reports)
 	if (fd) {
 		fd->reports = reports;
 		bfd = blo_read_file_internal(fd, filepath);
-		blo_freefiledata(fd);			
+		blo_freefiledata(fd);
 	}
 
-	return bfd;	
+	return bfd;
 }
 
 BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
@@ -280,10 +280,10 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
 	if (fd) {
 		fd->reports = reports;
 		bfd = blo_read_file_internal(fd, "");
-		blo_freefiledata(fd);			
+		blo_freefiledata(fd);
 	}
 
-	return bfd;	
+	return bfd;
 }
 
 BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFile *memfile, ReportList *reports)
@@ -332,10 +332,10 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		}
 		blo_join_main(&mainlist);
 		
-		blo_freefiledata(fd);			
+		blo_freefiledata(fd);
 	}
 
-	return bfd;	
+	return bfd;
 }
 
 void BLO_blendfiledata_free(BlendFileData *bfd)

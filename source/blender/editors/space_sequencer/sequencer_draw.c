@@ -355,7 +355,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
 	/* set up co-ordinates/dimensions for either left or right handle */
-	if (direction == SEQ_LEFTHANDLE) {	
+	if (direction == SEQ_LEFTHANDLE) {
 		rx1 = x1;
 		rx2 = x1 + handsize_clamped * 0.75f;
 		
@@ -415,7 +415,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 			y1 = y2 + 0.05f;
 		}
 		UI_view2d_text_cache_add(v2d, x1, y1, numstr, col);
-	}	
+	}
 }
 
 static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
@@ -432,7 +432,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 	y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
-	pixely = BLI_RCT_SIZE_Y(&v2d->cur) / BLI_RCT_SIZE_Y(&v2d->mask);
+	pixely = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
 	
 	if (pixely <= 0) return;  /* can happen when the view is split/resized */
 	
@@ -725,7 +725,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	
 	/* draw sound wave */
 	if (seq->type == SEQ_TYPE_SOUND_RAM) {
-		drawseqwave(scene, seq, x1, y1, x2, y2, BLI_RCT_SIZE_X(&ar->v2d.cur) / ar->winx);
+		drawseqwave(scene, seq, x1, y1, x2, y2, BLI_rctf_size_x(&ar->v2d.cur) / ar->winx);
 	}
 
 	/* draw lock */
@@ -747,7 +747,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 		glDisable(GL_BLEND);
 	}
 
-	if (!BKE_seqence_is_valid_check(seq)) {
+	if (!BKE_sequence_is_valid_check(seq)) {
 		glEnable(GL_POLYGON_STIPPLE);
 
 		/* panic! */
@@ -810,7 +810,7 @@ static void UNUSED_FUNCTION(set_special_seq_update) (int val)
 
 	/* if mouse over a sequence && LEFTMOUSE */
 	if (val) {
-// XXX		special_seq_update= find_nearest_seq(&x);
+// XXX		special_seq_update = find_nearest_seq(&x);
 	}
 	else special_seq_update = NULL;
 }
@@ -885,7 +885,10 @@ static ImBuf *sequencer_make_scope(Scene *scene, ImBuf *ibuf, ImBuf *(*make_scop
 	ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 	ImBuf *scope;
 
-	IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings, &scene->display_settings);
+	if (display_ibuf->rect_float) {
+		IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
+		                                             &scene->display_settings);
+	}
 
 	scope = make_scope_cb(display_ibuf);
 
@@ -967,7 +970,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 				if (!scopes->zebra_ibuf) {
 					ImBuf *display_ibuf = IMB_dupImBuf(ibuf);
 
-					IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings, &scene->display_settings);
+					if (display_ibuf->rect_float) {
+						IMB_colormanagement_imbuf_make_display_space(display_ibuf, &scene->view_settings,
+						                                             &scene->display_settings);
+					}
 					scopes->zebra_ibuf = make_zebra_view_from_ibuf(display_ibuf, sseq->zebra);
 					IMB_freeImBuf(display_ibuf);
 				}
@@ -1032,10 +1038,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (draw_overlay) {
 		if (sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
 			rctf tot_clip;
-			tot_clip.xmin = v2d->tot.xmin + (ABS(BLI_RCT_SIZE_X(&v2d->tot)) * scene->ed->over_border.xmin);
-			tot_clip.ymin = v2d->tot.ymin + (ABS(BLI_RCT_SIZE_Y(&v2d->tot)) * scene->ed->over_border.ymin);
-			tot_clip.xmax = v2d->tot.xmin + (ABS(BLI_RCT_SIZE_X(&v2d->tot)) * scene->ed->over_border.xmax);
-			tot_clip.ymax = v2d->tot.ymin + (ABS(BLI_RCT_SIZE_Y(&v2d->tot)) * scene->ed->over_border.ymax);
+			tot_clip.xmin = v2d->tot.xmin + (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmin);
+			tot_clip.ymin = v2d->tot.ymin + (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymin);
+			tot_clip.xmax = v2d->tot.xmin + (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmax);
+			tot_clip.ymax = v2d->tot.ymin + (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymax);
 
 			glTexCoord2f(scene->ed->over_border.xmin, scene->ed->over_border.ymin); glVertex2f(tot_clip.xmin, tot_clip.ymin);
 			glTexCoord2f(scene->ed->over_border.xmin, scene->ed->over_border.ymax); glVertex2f(tot_clip.xmin, tot_clip.ymax);
@@ -1183,7 +1189,7 @@ static void draw_seq_backdrop(View2D *v2d)
 	glRectf(v2d->cur.xmin,  -1.0,  v2d->cur.xmax,  1.0);
 
 	/* Alternating horizontal stripes */
-	i = maxi(1, ((int)v2d->cur.ymin) - 1);
+	i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 
 	glBegin(GL_QUADS);
 	while (i < v2d->cur.ymax) {
@@ -1202,7 +1208,7 @@ static void draw_seq_backdrop(View2D *v2d)
 	glEnd();
 	
 	/* Darker lines separating the horizontal bands */
-	i = maxi(1, ((int)v2d->cur.ymin) - 1);
+	i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 	UI_ThemeColor(TH_GRID);
 	
 	glBegin(GL_LINES);
@@ -1222,7 +1228,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	Sequence *last_seq = BKE_sequencer_active_get(scene);
 	int sel = 0, j;
-	float pixelx = BLI_RCT_SIZE_X(&v2d->cur) / BLI_RCT_SIZE_X(&v2d->mask);
+	float pixelx = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
 	
 	/* loop through twice, first unselected, then selected */
 	for (j = 0; j < 2; j++) {
@@ -1234,8 +1240,8 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 			/* boundbox and selection tests for NOT drawing the strip... */
 			if ((seq->flag & SELECT) != sel) continue;
 			else if (seq == last_seq) continue;
-			else if (MIN2(seq->startdisp, seq->start) > v2d->cur.xmax) continue;
-			else if (MAX2(seq->enddisp, seq->start + seq->len) < v2d->cur.xmin) continue;
+			else if (min_ii(seq->startdisp, seq->start) > v2d->cur.xmax) continue;
+			else if (max_ii(seq->enddisp, seq->start + seq->len) < v2d->cur.xmin) continue;
 			else if (seq->machine + 1.0f < v2d->cur.ymin) continue;
 			else if (seq->machine > v2d->cur.ymax) continue;
 			

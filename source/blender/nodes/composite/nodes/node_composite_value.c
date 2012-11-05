@@ -33,7 +33,7 @@
 #include "node_composite_util.h"
 
 /* **************** VALUE ******************** */
-static bNodeSocketTemplate cmp_node_value_out[]= {
+static bNodeSocketTemplate cmp_node_value_out[] = {
 	/* XXX value nodes use the output sockets for buttons, so we need explicit limits here! */
 	{	SOCK_FLOAT, 0, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
 	{	-1, 0, ""	}
@@ -56,7 +56,7 @@ static void node_composit_exec_value(void *UNUSED(data), bNode *node, bNodeStack
 	bNodeSocket *sock= node->outputs.first;
 	float val= ((bNodeSocketValueFloat*)sock->default_value)->value;
 	
-	out[0]->vec[0]= val;
+	out[0]->vec[0] = val;
 }
 
 #endif  /* WITH_COMPOSITOR_LEGACY */

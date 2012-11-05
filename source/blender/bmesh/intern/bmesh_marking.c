@@ -584,8 +584,7 @@ void BM_editselection_center(BMEditSelection *ese, float r_center[3])
 	}
 	else if (ese->htype == BM_EDGE) {
 		BMEdge *eed = (BMEdge *)ese->ele;
-		add_v3_v3v3(r_center, eed->v1->co, eed->v2->co);
-		mul_v3_fl(r_center, 0.5);
+		mid_v3_v3v3(r_center, eed->v1->co, eed->v2->co);
 	}
 	else if (ese->htype == BM_FACE) {
 		BMFace *efa = (BMFace *)ese->ele;
@@ -672,7 +671,7 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 		 * we cant make a crossvec from a vec thats the same as the vec
 		 * unlikely but possible, so make sure if the normal is (0, 0, 1)
 		 * that vec isn't the same or in the same direction even. */
-		if (efa->len < 3) {
+		if (UNLIKELY(efa->len < 3)) {
 			/* crappy fallback method */
 			if      (efa->no[0] < 0.5f)	vec[0] = 1.0f;
 			else if (efa->no[1] < 0.5f)	vec[1] = 1.0f;

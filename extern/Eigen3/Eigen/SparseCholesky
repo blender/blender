@@ -1,0 +1,30 @@
+#ifndef EIGEN_SPARSECHOLESKY_MODULE_H
+#define EIGEN_SPARSECHOLESKY_MODULE_H
+
+#include "SparseCore"
+
+#include "src/Core/util/DisableStupidWarnings.h"
+
+/** \ingroup Sparse_modules
+  * \defgroup SparseCholesky_Module SparseCholesky module
+  *
+  * This module currently provides two variants of the direct sparse Cholesky decomposition for selfadjoint (hermitian) matrices.
+  * Those decompositions are accessible via the following classes:
+  *  - SimplicialLLt,
+  *  - SimplicialLDLt
+  *
+  * Such problems can also be solved using the ConjugateGradient solver from the IterativeLinearSolvers module.
+  *
+  * \code
+  * #include <Eigen/SparseCholesky>
+  * \endcode
+  */
+
+#include "src/misc/Solve.h"
+#include "src/misc/SparseSolve.h"
+
+#include "src/SparseCholesky/SimplicialCholesky.h"
+
+#include "src/Core/util/ReenableStupidWarnings.h"
+
+#endif // EIGEN_SPARSECHOLESKY_MODULE_H

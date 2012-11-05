@@ -258,13 +258,10 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 
 /******************** create new mask *********************/
 
-static int mask_new_exec(bContext *C, wmOperator *op)
+Mask *ED_mask_new(bContext *C, const char *name)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	Mask *mask;
-	char name[MAX_ID_NAME - 2];
-
-	RNA_string_get(op->ptr, "name", name);
 
 	mask = BKE_mask_new(name);
 
@@ -289,6 +286,17 @@ static int mask_new_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
+
+	return mask;
+}
+
+static int mask_new_exec(bContext *C, wmOperator *op)
+{
+	char name[MAX_ID_NAME - 2];
+
+	RNA_string_get(op->ptr, "name", name);
+
+	ED_mask_new(C, name);
 
 	return OPERATOR_FINISHED;
 }
@@ -483,15 +491,15 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 		customdata->uw = uw;
 
 		if (uw) {
-			float co[2];
+			float co_uw[2];
 			float weight_scalar = BKE_mask_point_weight_scalar(spline, point, uw->u);
 
 			customdata->weight = uw->w;
 			customdata->weight_scalar = weight_scalar;
-			BKE_mask_point_segment_co(spline, point, uw->u, co);
+			BKE_mask_point_segment_co(spline, point, uw->u, co_uw);
 			BKE_mask_point_normal(spline, point, uw->u, customdata->no);
 
-			madd_v2_v2v2fl(customdata->feather, co, customdata->no, uw->w * weight_scalar);
+			madd_v2_v2v2fl(customdata->feather, co_uw, customdata->no, uw->w * weight_scalar);
 		}
 		else {
 			BezTriple *bezt = &point->bezt;

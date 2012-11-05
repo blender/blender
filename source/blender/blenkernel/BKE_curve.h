@@ -93,6 +93,8 @@ void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float
 
 /* ** Nurbs ** */
 
+int BKE_nurbList_index_get_co(struct ListBase *editnurb, const int index, float r_co[3]);
+
 int BKE_nurbList_verts_count(struct ListBase *nurb);
 int BKE_nurbList_verts_count_without_handles(struct ListBase *nurb);
 
@@ -106,7 +108,7 @@ void BKE_nurb_free(struct Nurb *nu);
 struct Nurb *BKE_nurb_duplicate(struct Nurb *nu);
 
 void BKE_nurb_test2D(struct Nurb *nu);
-void BKE_nurb_minmax(struct Nurb *nu, float *min, float *max);
+void BKE_nurb_minmax(struct Nurb *nu, float min[3], float max[3]);
 
 void BKE_nurb_makeFaces(struct Nurb *nu, float *coord_array, int rowstride, int resolu, int resolv);
 void BKE_nurb_makeCurve(struct Nurb *nu, float *coord_array, float *tilt_array, float *radius_array, float *weight_array, int resolu, int stride);

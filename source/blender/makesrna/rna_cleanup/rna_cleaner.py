@@ -130,11 +130,11 @@ def get_props_from_txt(input_filename):
             line = line[1:]
 
         # class
-        [bclass, tail] = [x.strip() for x in line.split('.', 1)]
+        bclass, tail = [x.strip() for x in line.split('.', 1)]
 
         # comment
         if '*' in bclass:
-            [comment, bclass] = [x.strip() for x in bclass.split('*', 1)]
+            comment, bclass = [x.strip() for x in bclass.split('*', 1)]
         else:
             comment= ''
 
@@ -144,18 +144,18 @@ def get_props_from_txt(input_filename):
             continue
 
         # from
-        [bfrom, tail] = [x.strip() for x in tail.split('->', 1)]
+        bfrom, tail = [x.strip() for x in tail.split('->', 1)]
 
         # to
-        [bto, tail] = [x.strip() for x in tail.split(':', 1)]
+        bto, tail = [x.strip() for x in tail.split(':', 1)]
 
         # type, description
         try:
-            [btype, description] = tail.split(None, 1)
+            btype, description = tail.split(None, 1)
             # make life easy and strip quotes
             description = description.replace("'", "").replace('"', "").replace("\\", "").strip()
         except ValueError:
-            [btype, description] = [tail,'NO DESCRIPTION']
+            btype, description = [tail,'NO DESCRIPTION']
 
         # keyword-check
         kwcheck = check_prefix(bto, btype)

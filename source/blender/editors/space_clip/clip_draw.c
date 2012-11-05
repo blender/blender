@@ -117,6 +117,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	int *points, totseg, i, a;
 	float sfra = SFRA, efra = EFRA, framelen = ar->winx / (efra - sfra + 1);
 	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *act_object = BKE_tracking_object_get_active(tracking);
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
 	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
 
@@ -212,14 +213,14 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	x = (sc->user.framenr - sfra) / (efra - sfra + 1) * ar->winx;
 
 	UI_ThemeColor(TH_CFRAME);
-	glRecti(x, 0, x + framelen, 8);
+	glRecti(x, 0, x + ceilf(framelen), 8);
 
 	clip_draw_curfra_label(sc->user.framenr, x, 8.0f);
 
 	/* solver keyframes */
 	glColor4ub(175, 255, 0, 255);
-	draw_keyframe(tracking->settings.keyframe1 + clip->start_frame - 1, CFRA, sfra, framelen, 2);
-	draw_keyframe(tracking->settings.keyframe2 + clip->start_frame - 1, CFRA, sfra, framelen, 2);
+	draw_keyframe(act_object->keyframe1 + clip->start_frame - 1, CFRA, sfra, framelen, 2);
+	draw_keyframe(act_object->keyframe2 + clip->start_frame - 1, CFRA, sfra, framelen, 2);
 
 	/* movie clip animation */
 	if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask_info.mask) {
@@ -715,7 +716,7 @@ static float get_shortest_pattern_side(MovieTrackingMarker *marker)
 
 		cur_len = len_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
-		len = minf(cur_len, len);
+		len = min_ff(cur_len, len);
 	}
 
 	return len;
@@ -787,11 +788,11 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	dy = 6.0f / height / sc->zoom;
 
 	side = get_shortest_pattern_side(marker);
-	patdx = minf(dx * 2.0f / 3.0f, side / 6.0f);
-	patdy = minf(dy * 2.0f / 3.0f, side * width / height / 6.0f);
+	patdx = min_ff(dx * 2.0f / 3.0f, side / 6.0f);
+	patdy = min_ff(dy * 2.0f / 3.0f, side * width / height / 6.0f);
 
-	searchdx = minf(dx, (marker->search_max[0] - marker->search_min[0]) / 6.0f);
-	searchdy = minf(dy, (marker->search_max[1] - marker->search_min[1]) / 6.0f);
+	searchdx = min_ff(dx, (marker->search_max[0] - marker->search_min[0]) / 6.0f);
+	searchdy = min_ff(dy, (marker->search_max[1] - marker->search_min[1]) / 6.0f);
 
 	px[0] = 1.0f / sc->zoom / width / sc->scale;
 	px[1] = 1.0f / sc->zoom / height / sc->scale;
@@ -957,12 +958,12 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx, float *regiony)
 {
 	/* express given coordinates as proportional values */
-	x = -v2d->cur.xmin / BLI_RCT_SIZE_X(&v2d->cur);
-	y = -v2d->cur.ymin / BLI_RCT_SIZE_Y(&v2d->cur);
+	x = -v2d->cur.xmin / BLI_rctf_size_x(&v2d->cur);
+	y = -v2d->cur.ymin / BLI_rctf_size_y(&v2d->cur);
 
 	/* convert proportional distances to screen coordinates */
-	*regionx = v2d->mask.xmin + x * BLI_RCT_SIZE_X(&v2d->mask);
-	*regiony = v2d->mask.ymin + y * BLI_RCT_SIZE_Y(&v2d->mask);
+	*regionx = v2d->mask.xmin + x * BLI_rcti_size_x(&v2d->mask);
+	*regiony = v2d->mask.ymin + y * BLI_rcti_size_y(&v2d->mask);
 }
 
 static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
@@ -1126,7 +1127,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 				if (MARKER_VISIBLE(sc, track, marker)) {
 					float npos[2];
-					copy_v4_v4(vec, track->bundle_pos);
+					copy_v3_v3(vec, track->bundle_pos);
 					vec[3] = 1;
 
 					mul_v4_m4v4(pos, mat, vec);

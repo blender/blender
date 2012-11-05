@@ -41,6 +41,8 @@
 
 #include "BIF_gl.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_image.h"
@@ -78,26 +80,29 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 		ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
 		if (ibuf == NULL) {
-			BKE_reportf(reports, RPT_ERROR, "Couldn't acquire buffer from image");
+			BKE_report(reports, RPT_ERROR, "Could not acquire buffer from image");
 		}
 		else {
-			ImBuf *write_ibuf = IMB_dupImBuf(ibuf);
+			ImBuf *write_ibuf;
 
-			IMB_display_buffer_to_imbuf_rect(write_ibuf, &scene->view_settings, &scene->display_settings);
+			write_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, TRUE, TRUE, &scene->view_settings,
+			                                                 &scene->display_settings, &scene->r.im_format);
 
 			write_ibuf->planes = scene->r.im_format.planes;
 			write_ibuf->dither = scene->r.dither_intensity;
 
 			if (!BKE_imbuf_write(write_ibuf, path, &scene->r.im_format)) {
-				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
+				BKE_reportf(reports, RPT_ERROR, "Could not write image '%s'", path);
 			}
-			IMB_freeImBuf(write_ibuf);
+
+			if (write_ibuf != ibuf)
+				IMB_freeImBuf(write_ibuf);
 		}
 
 		BKE_image_release_ibuf(image, lock);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Scene not in context, couldn't get save parameters");
+		BKE_report(reports, RPT_ERROR, "Scene not in context, could not get save parameters");
 	}
 }
 
@@ -111,7 +116,7 @@ static void rna_Image_save(Image *image, ReportList *reports)
 
 		if (image->packedfile) {
 			if (writePackedFile(reports, image->name, image->packedfile, 0) != RET_OK) {
-				BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could saved packed file to \"%s\"", image->id.name + 2, image->name);
+				BKE_reportf(reports, RPT_ERROR, "Image '%s' could not save packed file to '%s'", image->id.name + 2, image->name);
 			}
 		}
 		else if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
@@ -125,11 +130,11 @@ static void rna_Image_save(Image *image, ReportList *reports)
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
 		else {
-			BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could not be saved to \"%s\"", image->id.name + 2, image->name);
+			BKE_reportf(reports, RPT_ERROR, "Image '%s' could not be saved to '%s'", image->id.name + 2, image->name);
 		}
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
 	}
 }
 
@@ -138,7 +143,7 @@ static void rna_Image_pack(Image *image, ReportList *reports, int as_png)
 	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
 
 	if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		BKE_reportf(reports, RPT_ERROR, "Can't pack edited image from disk, only as internal PNG");
+		BKE_report(reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
 	}
 	else {
 		if (as_png) {
@@ -175,17 +180,20 @@ static void rna_Image_update(Image *image, ReportList *reports)
 	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
 
 	if (ibuf == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
 		return;
 	}
 
-	IMB_rect_from_float(ibuf);
+	if (ibuf->rect)
+		IMB_rect_from_float(ibuf);
+
+	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
 static void rna_Image_scale(Image *image, ReportList *reports, int width, int height)
 {
 	if (!BKE_image_scale(image, width, height)) {
-		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
 	}
 }
 
@@ -201,7 +209,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 	ibuf = BKE_image_get_ibuf(image, NULL);
 
 	if (ibuf == NULL || ibuf->rect == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
 		return (int)GL_INVALID_OPERATION;
 	}
 
@@ -292,9 +300,9 @@ void RNA_api_image(StructRNA *srna)
 	func = RNA_def_function(srna, "scale", "rna_Image_scale");
 	RNA_def_function_ui_description(func, "Scale the image in pixels");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_int(func, "width", 0, 1, 10000, "", "Width", 1, 10000);
+	parm = RNA_def_int(func, "width", 1, 1, 10000, "", "Width", 1, 10000);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "height", 0, 1, 10000, "", "Height", 1, 10000);
+	parm = RNA_def_int(func, "height", 1, 1, 10000, "", "Height", 1, 10000);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func = RNA_def_function(srna, "gl_touch", "rna_Image_gl_touch");

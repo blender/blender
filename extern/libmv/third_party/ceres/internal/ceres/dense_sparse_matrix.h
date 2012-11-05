@@ -52,7 +52,7 @@ class DenseSparseMatrix : public SparseMatrix {
   // m. This assumes that m does not have any repeated entries.
   explicit DenseSparseMatrix(const TripletSparseMatrix& m);
   explicit DenseSparseMatrix(const Matrix& m);
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   explicit DenseSparseMatrix(const SparseMatrixProto& proto);
 #endif
 
@@ -67,7 +67,7 @@ class DenseSparseMatrix : public SparseMatrix {
   virtual void SquaredColumnNorm(double* x) const;
   virtual void ScaleColumns(const double* scale);
   virtual void ToDenseMatrix(Matrix* dense_matrix) const;
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
   virtual void ToProto(SparseMatrixProto* proto) const;
 #endif
   virtual void ToTextFile(FILE* file) const;

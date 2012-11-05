@@ -67,15 +67,16 @@ static void dump_background_pixels(Device *device, DeviceScene *dscene, int res,
 	main_task.shader_x = 0;
 	main_task.shader_w = width*height;
 
+	/* disabled splitting for now, there's an issue with multi-GPU mem_copy_from */
 	list<DeviceTask> split_tasks;
-	main_task.split_max_size(split_tasks, 128*128);
+	main_task.split_max_size(split_tasks, 128*128); 
 
 	foreach(DeviceTask& task, split_tasks) {
 		device->task_add(task);
 		device->task_wait();
+		device->mem_copy_from(d_output, task.shader_x, 1, task.shader_w, sizeof(float4));
 	}
 
-	device->mem_copy_from(d_output, 0, 1, d_output.size(), sizeof(float4));
 	device->mem_free(d_input);
 	device->mem_free(d_output);
 

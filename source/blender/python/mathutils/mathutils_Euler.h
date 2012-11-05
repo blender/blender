@@ -47,7 +47,7 @@ typedef struct {
  * be stored in py_data) or be a wrapper for data allocated through
  * blender (stored in blend_data). This is an either/or struct not both */
 
-//prototypes
+/* prototypes */
 PyObject *Euler_CreatePyObject(float *eul, const short order, int type, PyTypeObject *base_type);
 PyObject *Euler_CreatePyObject_cb(PyObject *cb_user, const short order,
                                   unsigned char cb_type, unsigned char cb_subtype);

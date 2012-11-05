@@ -30,6 +30,8 @@
 
 #include "RNA_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "bpy_rna.h"
 #include "BKE_global.h"
 #include "MEM_guardedalloc.h"
@@ -664,7 +666,8 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 	len = RNA_property_multi_array_length(ptr, prop, arraydim);
 	if (index >= len || index < 0) {
 		/* this shouldn't happen because higher level funcs must check for invalid index */
-		if (G.debug & G_DEBUG_PYTHON) printf("pyrna_py_from_array_index: invalid index %d for array with length=%d\n", index, len);
+		if (G.debug & G_DEBUG_PYTHON)
+			printf("%s: invalid index %d for array with length=%d\n", __func__, index, len);
 
 		PyErr_SetString(PyExc_IndexError, "out of range");
 		return NULL;

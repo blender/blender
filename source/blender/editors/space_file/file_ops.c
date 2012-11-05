@@ -64,11 +64,6 @@
 #include <stdio.h>
 #include <ctype.h>
 
-/* for events */
-#define NOTACTIVEFILE       0
-#define ACTIVATE            1
-#define INACTIVATE          2
-
 /* ---------- FILE SELECTION ------------ */
 static FileSelection find_file_mouse_rect(SpaceFile *sfile, ARegion *ar, const rcti *rect)
 {
@@ -312,7 +307,7 @@ void FILE_OT_select_border(wmOperatorType *ot)
 	ot->poll = ED_operator_file_active;
 	ot->cancel = WM_border_select_cancel;
 
-	/* rna */
+	/* properties */
 	WM_operator_properties_gesture_border(ot, 1);
 }
 
@@ -352,6 +347,8 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void FILE_OT_select(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Activate/Select File";
 	ot->description = "Activate/select file";
@@ -361,10 +358,13 @@ void FILE_OT_select(wmOperatorType *ot)
 	ot->invoke = file_select_invoke;
 	ot->poll = ED_operator_file_active;
 
-	/* rna */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
-	RNA_def_boolean(ot->srna, "fill", FALSE, "Fill", "Select everything beginning with the last selection");
-	RNA_def_boolean(ot->srna, "open", TRUE, "Open", "Open a directory when selecting it");
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "fill", FALSE, "Fill", "Select everything beginning with the last selection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "open", TRUE, "Open", "Open a directory when selecting it");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -409,9 +409,7 @@ void FILE_OT_select_all_toggle(wmOperatorType *ot)
 	ot->exec = file_select_all_exec;
 	ot->poll = ED_operator_file_active;
 
-	/* rna */
-
-	
+	/* properties */
 }
 
 /* ---------- BOOKMARKS ----------- */
@@ -437,6 +435,8 @@ static int bookmark_select_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_select_bookmark(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Select Directory";
 	ot->description = "Select a bookmarked directory";
@@ -446,7 +446,9 @@ void FILE_OT_select_bookmark(wmOperatorType *ot)
 	ot->exec = bookmark_select_exec;
 	ot->poll = ED_operator_file_active;
 
-	RNA_def_string(ot->srna, "dir", "", 256, "Dir", "");
+	/* properties */
+	prop = RNA_def_string(ot->srna, "dir", "", FILE_MAXDIR, "Dir", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
@@ -459,7 +461,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *UNUSED(op))
 	if (params->dir[0] != '\0') {
 		char name[FILE_MAX];
 	
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, 0, 1);
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, params->dir, FS_INSERT_SAVE);
 		BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu, name);
 	}
@@ -503,6 +505,8 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_delete_bookmark(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Delete Bookmark";
 	ot->description = "Delete selected bookmark";
@@ -512,14 +516,45 @@ void FILE_OT_delete_bookmark(wmOperatorType *ot)
 	ot->exec = bookmark_delete_exec;
 	ot->poll = ED_operator_file_active;
 
-	RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+	/* properties */
+	prop = RNA_def_int(ot->srna, "index", -1, -1, 20000, "Index", "", -1, 20000);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+static int reset_recent_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ScrArea *sa = CTX_wm_area(C);
+	char name[FILE_MAX];
+	struct FSMenu *fsmenu = fsmenu_get();
+	
+	while (fsmenu_get_entry(fsmenu, FS_CATEGORY_RECENT, 0) != NULL) {
+		fsmenu_remove_entry(fsmenu, FS_CATEGORY_RECENT, 0);
+	}
+	BLI_make_file_string("/", name, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
+	fsmenu_write_file(fsmenu, name);
+	ED_area_tag_redraw(sa);
+		
+	return OPERATOR_FINISHED;
+}
+
+void FILE_OT_reset_recent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Reset Recent";
+	ot->description = "Reset Recent files";
+	ot->idname = "FILE_OT_reset_recent";
+	
+	/* api callbacks */
+	ot->exec = reset_recent_exec;
+	ot->poll = ED_operator_file_active;
+
 }
 
 int file_highlight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 {
 	View2D *v2d = &ar->v2d;
 	FileSelectParams *params;
-	int numfiles, origfile;	
+	int numfiles, origfile;
 
 	if (sfile == NULL || sfile->files == NULL) return 0;
 
@@ -770,8 +805,9 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		file_sfile_to_operator(op, sfile, filepath);
 
-		if (BLI_exists(sfile->params->dir))
-			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, 0, 1);
+		if (BLI_exists(sfile->params->dir)) {
+			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, FS_INSERT_SAVE | FS_INSERT_FIRST);
+		}
 
 		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
@@ -794,7 +830,8 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = file_exec;
 	ot->poll = file_operator_poll; 
-	
+
+	/* properties */
 	prop = RNA_def_boolean(ot->srna, "need_active", 0, "Need Active",
 	                       "Only execute if there's an active selected file in the file list");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -812,7 +849,7 @@ int file_parent_exec(bContext *C, wmOperator *UNUSED(unused))
 			file_change_dir(C, 0);
 			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 		}
-	}		
+	}
 	
 	return OPERATOR_FINISHED;
 
@@ -905,7 +942,7 @@ int file_next_exec(bContext *C, wmOperator *UNUSED(unused))
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
 		file_change_dir(C, 1);
-	}		
+	}
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1068,7 +1105,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	if (generate_name) {
 		/* create a new, non-existing folder name */
 		if (!new_folder_path(sfile->params->dir, path, name)) {
-			BKE_report(op->reports, RPT_ERROR, "Couldn't create new folder name");
+			BKE_report(op->reports, RPT_ERROR, "Could not create new folder name");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -1077,9 +1114,9 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	BLI_dir_create_recursive(path);
 
 	if (!BLI_exists(path)) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't create new folder");
+		BKE_report(op->reports, RPT_ERROR, "Could not create new folder");
 		return OPERATOR_CANCELLED;
-	} 
+	}
 
 	/* now remember file to jump into editing */
 	BLI_strncpy(sfile->params->renamefile, name, FILE_MAXFILE);
@@ -1098,6 +1135,8 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 
 void FILE_OT_directory_new(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Create New Directory";
 	ot->description = "Create a new directory";
@@ -1108,7 +1147,8 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 	ot->exec = file_directory_new_exec;
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 
-	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
+	prop = RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Name of new directory");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
 }
 
@@ -1387,11 +1427,11 @@ static int file_rename_poll(bContext *C)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 
 	if (sfile && sfile->params) {
-		if (sfile->params->active_file < 0) { 
+		if (sfile->params->active_file < 0) {
 			poll = 0;
 		}
 		else {
-			char dir[FILE_MAX], group[FILE_MAX];	
+			char dir[FILE_MAX], group[FILE_MAX];
 			if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
 		}
 	}
@@ -1420,11 +1460,11 @@ static int file_delete_poll(bContext *C)
 	struct direntry *file;
 
 	if (sfile && sfile->params) {
-		if (sfile->params->active_file < 0) { 
+		if (sfile->params->active_file < 0) {
 			poll = 0;
 		}
 		else {
-			char dir[FILE_MAX], group[FILE_MAX];	
+			char dir[FILE_MAX], group[FILE_MAX];
 			if (filelist_islibrary(sfile->files, dir, group)) poll = 0;
 			file = filelist_file(sfile->files, sfile->params->active_file);
 			if (file && S_ISDIR(file->type)) poll = 0;
@@ -1445,7 +1485,7 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	file = filelist_file(sfile->files, sfile->params->active_file);
 	BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relname);
-	BLI_delete(str, 0, 0);	
+	BLI_delete(str, 0, 0);
 	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	

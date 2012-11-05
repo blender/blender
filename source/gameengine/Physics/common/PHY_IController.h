@@ -45,7 +45,7 @@ class PHY_IPhysicsEnvironment;
 	controlled by the physics engine. This includes the physics objects
 	and the graphics object for view frustrum and occlusion culling.
 */
-class PHY_IController	
+class PHY_IController
 {
 	public:
 		virtual ~PHY_IController();
@@ -60,5 +60,4 @@ class PHY_IController
 #endif
 };
 
-#endif //__PHY_ICONTROLLER_H__
-
+#endif  /* __PHY_ICONTROLLER_H__ */

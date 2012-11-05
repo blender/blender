@@ -195,7 +195,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active Object contains no groups");
+	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active object contains no groups");
 	
 	DAG_scene_sort(bmain, scene);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
@@ -211,7 +211,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 	ot->idname = "GROUP_OT_objects_remove_active";
 	
 	/* api callbacks */
-	ot->exec = objects_remove_active_exec;	
+	ot->exec = objects_remove_active_exec;
 	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
@@ -333,7 +333,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 	ot->idname = "GROUP_OT_create";
 	
 	/* api callbacks */
-	ot->exec = group_create_exec;	
+	ot->exec = group_create_exec;
 	ot->poll = ED_operator_objectmode;
 	
 	/* flags */

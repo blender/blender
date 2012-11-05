@@ -206,6 +206,8 @@ void NODE_OT_output_file_move_active_socket(struct wmOperatorType *ot);
 void NODE_OT_clipboard_copy(struct wmOperatorType *ot);
 void NODE_OT_clipboard_paste(struct wmOperatorType *ot);
 
+void NODE_OT_shader_script_update(struct wmOperatorType *ot);
+
 extern const char *node_context_dir[];
 
 // XXXXXX

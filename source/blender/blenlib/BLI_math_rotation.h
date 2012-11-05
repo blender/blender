@@ -78,6 +78,8 @@ void quat_to_mat4(float mat[4][4], const float q[4]);
 
 void mat3_to_quat(float q[4], float mat[3][3]);
 void mat4_to_quat(float q[4], float mat[4][4]);
+void tri_to_quat_ex(float quat[4], const float v1[3], const float v2[3], const float v3[3],
+                    const float no_orig[3]);
 void tri_to_quat(float q[4], const float a[3], const float b[3], const float c[3]);
 void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag);
 /* note: v1 and v2 must be normalized */
@@ -105,7 +107,7 @@ void single_axis_angle_to_mat3(float R[3][3], const char axis, const float angle
 
 /****************************** Vector/Rotation ******************************/
 /* old axis angle code                                                       */
-/* TODO: the following calls should probably be depreceated sometime         */
+/* TODO: the following calls should probably be deprecated sometime         */
 
 /* conversion */
 void vec_rot_to_mat3(float mat[3][3], const float vec[3], const float phi);

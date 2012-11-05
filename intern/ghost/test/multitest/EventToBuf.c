@@ -197,31 +197,32 @@ static char *keytype_to_string(GHOST_TKey key)
 
 void event_to_buf(GHOST_EventHandle evt, char buf[128])
 {
-	GHOST_TEventType type= GHOST_GetEventType(evt);
-	double time= (double) ((GHOST_TInt64) GHOST_GetEventTime(evt))/1000;
-	GHOST_WindowHandle win= GHOST_GetEventWindow(evt);
-	void *data= GHOST_GetEventData(evt);
-	char *pos= buf;
+	GHOST_TEventType type = GHOST_GetEventType(evt);
+	double time = (double) ((GHOST_TInt64) GHOST_GetEventTime(evt))/1000;
+	GHOST_WindowHandle win = GHOST_GetEventWindow(evt);
+	void *data = GHOST_GetEventData(evt);
+	char *pos = buf;
 
 	pos += sprintf(pos, "event: %6.2f, %16s", time, eventtype_to_string(type));
 	if (win) {
-		char *s= GHOST_GetTitle(win);
+		char *s = GHOST_GetTitle(win);
 		pos += sprintf(pos, " - win: %s", s);
 		free(s);
-	} else {
+	}
+	else {
 		pos+= sprintf(pos, " - sys evt");
 	}
 	switch (type) {
 		case GHOST_kEventCursorMove:
 		{
-			GHOST_TEventCursorData *cd= data;
+			GHOST_TEventCursorData *cd = data;
 			pos += sprintf(pos, " - pos: (%d, %d)", cd->x, cd->y);
 			break;
 		}
 		case GHOST_kEventButtonDown:
 		case GHOST_kEventButtonUp:
 		{
-			GHOST_TEventButtonData *bd= data;
+			GHOST_TEventButtonData *bd = data;
 			pos += sprintf(pos, " - but: %d", bd->button);
 			break;
 		}
@@ -229,7 +230,7 @@ void event_to_buf(GHOST_EventHandle evt, char buf[128])
 		case GHOST_kEventKeyDown:
 		case GHOST_kEventKeyUp:
 		{
-			GHOST_TEventKeyData *kd= data;
+			GHOST_TEventKeyData *kd = data;
 			pos += sprintf(pos, " - key: %s (%d)", keytype_to_string(kd->key), kd->key);
 			if (kd->ascii) pos+= sprintf(pos, " ascii: '%c' (%d)", kd->ascii, kd->ascii);
 			break;

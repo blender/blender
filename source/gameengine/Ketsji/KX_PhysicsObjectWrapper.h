@@ -49,12 +49,11 @@ public:
 	KX_PYMETHOD_VARARGS(KX_PhysicsObjectWrapper,SetAngularVelocity);
 	KX_PYMETHOD_VARARGS(KX_PhysicsObjectWrapper,SetActive);
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 private:
 	class PHY_IPhysicsController*	m_ctrl;
 	PHY_IPhysicsEnvironment* m_physenv;
 };
 
-#endif //__KX_PHYSICSOBJECTWRAPPER_H__
-
+#endif  /* __KX_PHYSICSOBJECTWRAPPER_H__ */

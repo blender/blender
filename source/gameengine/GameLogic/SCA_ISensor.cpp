@@ -248,7 +248,7 @@ void SCA_ISensor::Activate(class SCA_LogicManager* logicmgr)
 		if (result) {
 			// the sensor triggered this frame
 			if (m_state || !m_tap) {
-				ActivateControllers(logicmgr);	
+				ActivateControllers(logicmgr);
 				// reset these counters so that pulse are synchronized with transition
 				m_pos_ticks = 0;
 				m_neg_ticks = 0;
@@ -380,24 +380,24 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 };
 
 
-PyObject* SCA_ISensor::pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_ISensor::pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
 	int retval = 0;
 	if (SCA_PythonController::m_sCurrentController)
 		retval = SCA_PythonController::m_sCurrentController->IsTriggered(self);
 	return PyLong_FromSsize_t(retval);
 }
 
-PyObject* SCA_ISensor::pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_ISensor::pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
 	return PyLong_FromSsize_t(self->GetState());
 }
 
-PyObject* SCA_ISensor::pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_ISensor::pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
 	int status = 0;
 	if (self->GetState()) 
 	{
@@ -417,21 +417,21 @@ PyObject* SCA_ISensor::pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF 
 	return PyLong_FromSsize_t(status);
 }
 
-PyObject* SCA_ISensor::pyattr_get_posTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_ISensor::pyattr_get_posTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
 	return PyLong_FromLong(self->GetPosTicks());
 }
 
-PyObject* SCA_ISensor::pyattr_get_negTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_ISensor::pyattr_get_negTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
 	return PyLong_FromLong(self->GetNegTicks());
 }
 
 int SCA_ISensor::pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
 	if (self->m_level)
 		self->m_tap = false;
 	return 0;
@@ -439,7 +439,7 @@ int SCA_ISensor::pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attr
 
 int SCA_ISensor::pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
 	if (self->m_tap)
 		self->m_level = false;
 	return 0;

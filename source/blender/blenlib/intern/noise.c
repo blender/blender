@@ -31,9 +31,9 @@
  */
 
 
-#ifdef _WIN32 	 
-#pragma warning (disable : 4244) // "conversion from double to float"
-#pragma warning (disable : 4305) // "truncation from const double to float" 
+#ifdef _MSC_VER
+#  pragma warning (disable:4244)  /* "conversion from double to float" */
+#  pragma warning (disable:4305)  /* "truncation from const double to float" */
 #endif
 
 #include <math.h>
@@ -45,7 +45,8 @@ static float noise3_perlin(float vec[3]);
 //static float turbulence_perlin(float *point, float lofreq, float hifreq);
 //static float turbulencep(float noisesize, float x, float y, float z, int nr);
 
-#define HASHVEC(x, y, z) hashvectf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
+/* UNUSED */
+// #define HASHVEC(x, y, z) hashvectf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
 
 /* needed for voronoi */
 #define HASHPNT(x, y, z) hashpntf + 3 * hash[(hash[(hash[(z) & 255] + (y)) & 255] + (x)) & 255]
@@ -300,8 +301,8 @@ static float newPerlin(float x, float y, float z)
 	u = npfade(x);      /* COMPUTE FADE CURVES */
 	v = npfade(y);      /* FOR EACH OF X,Y,Z. */
 	w = npfade(z);
-	A = hash[X  ]+Y;  AA = hash[A]+Z;  AB = hash[A+1]+Z;      /* HASH COORDINATES OF */
-	B = hash[X+1]+Y;  BA = hash[B]+Z;  BB = hash[B+1]+Z;      /* THE 8 CUBE CORNERS, */
+	A = hash[X    ] + Y;  AA = hash[A] + Z;  AB = hash[A + 1] + Z;      /* HASH COORDINATES OF */
+	B = hash[X + 1] + Y;  BA = hash[B] + Z;  BB = hash[B + 1] + Z;      /* THE 8 CUBE CORNERS, */
 	return lerp(w, lerp(v, lerp(u, grad(hash[AA   ],  x,     y,     z    ),   /* AND ADD */
 	                               grad(hash[BA   ],  x - 1, y,     z    )),  /* BLENDED */
 	                       lerp(u, grad(hash[AB   ],  x,     y - 1, z    ),   /* RESULTS */

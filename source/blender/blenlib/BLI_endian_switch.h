@@ -27,16 +27,36 @@
  *  \ingroup bli
  */
 
-#include "BLI_endian_switch_inline.h"
+#ifdef __GNUC__
+#  define ATTR_ENDIAN_SWITCH \
+	__attribute__((nonnull(1))) \
+	__attribute__((pure))
+#else
+#  define ATTR_ENDIAN_SWITCH
+#endif
+
+/* BLI_endian_switch_inline.h */
+BLI_INLINE void BLI_endian_switch_int16(short *val)                       ATTR_ENDIAN_SWITCH;
+BLI_INLINE void BLI_endian_switch_uint16(unsigned short *val)             ATTR_ENDIAN_SWITCH;
+BLI_INLINE void BLI_endian_switch_int32(int *val)                         ATTR_ENDIAN_SWITCH;
+BLI_INLINE void BLI_endian_switch_uint32(unsigned int *val)               ATTR_ENDIAN_SWITCH;
+BLI_INLINE void BLI_endian_switch_float(float *val)                       ATTR_ENDIAN_SWITCH;
+BLI_INLINE void BLI_endian_switch_int64(int64_t *val)                     ATTR_ENDIAN_SWITCH;
+BLI_INLINE void BLI_endian_switch_uint64(uint64_t *val)                   ATTR_ENDIAN_SWITCH;
+BLI_INLINE void BLI_endian_switch_double(double *val)                     ATTR_ENDIAN_SWITCH;
 
 /* endian_switch.c */
-void BLI_endian_switch_int16_array(short *val, const int size);
-void BLI_endian_switch_uint16_array(unsigned short *val, const int size);
-void BLI_endian_switch_int32_array(int *val, const int size);
-void BLI_endian_switch_uint32_array(unsigned int *val, const int size);
-void BLI_endian_switch_float_array(float *val, const int size);
-void BLI_endian_switch_int64_array(int64_t *val, const int size);
-void BLI_endian_switch_uint64_array(uint64_t *val, const int size);
-void BLI_endian_switch_double_array(double *val, const int size);
+void BLI_endian_switch_int16_array(short *val, const int size)            ATTR_ENDIAN_SWITCH;
+void BLI_endian_switch_uint16_array(unsigned short *val, const int size)  ATTR_ENDIAN_SWITCH;
+void BLI_endian_switch_int32_array(int *val, const int size)              ATTR_ENDIAN_SWITCH;
+void BLI_endian_switch_uint32_array(unsigned int *val, const int size)    ATTR_ENDIAN_SWITCH;
+void BLI_endian_switch_float_array(float *val, const int size)            ATTR_ENDIAN_SWITCH;
+void BLI_endian_switch_int64_array(int64_t *val, const int size)          ATTR_ENDIAN_SWITCH;
+void BLI_endian_switch_uint64_array(uint64_t *val, const int size)        ATTR_ENDIAN_SWITCH;
+void BLI_endian_switch_double_array(double *val, const int size)          ATTR_ENDIAN_SWITCH;
+
+#include "BLI_endian_switch_inline.h"
+
+#undef ATTR_ENDIAN_SWITCH
 
 #endif  /* __BLI_ENDIAN_SWITCH_H__ */

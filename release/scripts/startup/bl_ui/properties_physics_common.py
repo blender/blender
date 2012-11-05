@@ -133,7 +133,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             row.prop(cache, "frame_end")
         if cachetype not in {'SMOKE', 'CLOTH', 'DYNAMIC_PAINT'}:
             row.prop(cache, "frame_step")
-            row.prop(cache, "use_quick_cache")
+            
         if cachetype != 'SMOKE':
             layout.label(text=cache.info)
 
@@ -160,7 +160,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
         col = split.column()
 
-        if cache.is_baked == True:
+        if cache.is_baked is True:
             col.operator("ptcache.free_bake", text="Free Bake")
         else:
             col.operator("ptcache.bake", text="Bake").bake = True
@@ -179,7 +179,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
 
 
-def effector_weights_ui(self, context, weights):
+def effector_weights_ui(self, context, weights, weight_type):
     layout = self.layout
 
     layout.prop(weights, "group")
@@ -200,6 +200,8 @@ def effector_weights_ui(self, context, weights):
     col.prop(weights, "wind", slider=True)
     col.prop(weights, "curve_guide", slider=True)
     col.prop(weights, "texture", slider=True)
+    if weight_type != 'SMOKE':
+        col.prop(weights, "smokeflow", slider=True)
 
     col = split.column()
     col.prop(weights, "harmonic", slider=True)

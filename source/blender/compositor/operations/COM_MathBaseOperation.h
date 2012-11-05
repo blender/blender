@@ -45,7 +45,7 @@ protected:
 	 */
 	MathBaseOperation();
 
-	void clampIfNeeded(float *color);
+	void clampIfNeeded(float color[4]);
 public:
 	/**
 	 * the inner loop of this program

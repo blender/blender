@@ -529,7 +529,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 	unsigned char *dst, crgb[3];
 	const float alpha = BKE_brush_alpha_get(scene, brush);
 	float brush_rgb[3];
-    
+
 	imbflag = (flt) ? IB_rectfloat : IB_rect;
 	xoff = -bufsize / 2.0f + 0.5f;
 	yoff = -bufsize / 2.0f + 0.5f;
@@ -563,7 +563,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				else {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
 					mul_v3_v3v3(dstf, rgba, brush_rgb);
-					dstf[3] = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 			}
 		}
@@ -594,7 +594,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				else if (texfall == 2) {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
 					mul_v3_v3(rgba, brush->rgb);
-					alpha_f = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					rgb_float_to_uchar(dst, rgba);
 
@@ -602,7 +602,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				}
 				else {
 					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
-					alpha_f = rgba[3] *alpha *BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+					alpha_f = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 
 					dst[0] = crgb[0];
 					dst[1] = crgb[1];
@@ -618,18 +618,18 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 
 /* Unified Size and Strength */
 
-// XXX: be careful about setting size and unprojected radius
-// because they depend on one another
-// these functions do not set the other corresponding value
-// this can lead to odd behavior if size and unprojected
-// radius become inconsistent.
-// the biggest problem is that it isn't possible to change
-// unprojected radius because a view context is not
-// available.  my ussual solution to this is to use the
-// ratio of change of the size to change the unprojected
-// radius.  Not completely convinced that is correct.
-// In anycase, a better solution is needed to prevent
-// inconsistency.
+/* XXX: be careful about setting size and unprojected radius
+ * because they depend on one another
+ * these functions do not set the other corresponding value
+ * this can lead to odd behavior if size and unprojected
+ * radius become inconsistent.
+ * the biggest problem is that it isn't possible to change
+ * unprojected radius because a view context is not
+ * available.  my ussual solution to this is to use the
+ * ratio of change of the size to change the unprojected
+ * radius.  Not completely convinced that is correct.
+ * In anycase, a better solution is needed to prevent
+ * inconsistency. */
 
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
 {
@@ -741,7 +741,7 @@ void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
 }
 
 /* scale brush size to reflect a change in the brush's unprojected radius */
-void BKE_brush_scale_size(int *BKE_brush_size_get,
+void BKE_brush_scale_size(int *r_brush_size,
                           float new_unprojected_radius,
                           float old_unprojected_radius)
 {
@@ -749,7 +749,7 @@ void BKE_brush_scale_size(int *BKE_brush_size_get,
 	/* avoid division by zero */
 	if (old_unprojected_radius != 0)
 		scale /= new_unprojected_radius;
-	(*BKE_brush_size_get) = (int)((float)(*BKE_brush_size_get) * scale);
+	(*r_brush_size) = (int)((float)(*r_brush_size) * scale);
 }
 
 /* Brush Painting */
@@ -876,8 +876,8 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
 	/* not sure if it's actually needed or it's a mistake in coords/sizes
 	 * calculation in brush_painter_fixed_tex_partial_update(), but without this
 	 * limitation memory gets corrupted at fast strokes with quite big spacing (sergey) */
-	w = MIN2(w, ibuf->x);
-	h = MIN2(h, ibuf->y);
+	w = min_ii(w, ibuf->x);
+	h = min_ii(h, ibuf->y);
 
 	if (painter->cache.flt) {
 		for (; y < h; y++) {
@@ -1052,13 +1052,13 @@ void BKE_brush_painter_break_stroke(BrushPainter *painter)
 static void brush_pressure_apply(BrushPainter *painter, Brush *brush, float pressure)
 {
 	if (BKE_brush_use_alpha_pressure(painter->scene, brush))
-		brush_alpha_set(painter->scene, brush, maxf(0.0f, painter->startalpha * pressure));
+		brush_alpha_set(painter->scene, brush, max_ff(0.0f, painter->startalpha * pressure));
 	if (BKE_brush_use_size_pressure(painter->scene, brush))
-		BKE_brush_size_set(painter->scene, brush, maxf(1.0f, painter->startsize * pressure));
+		BKE_brush_size_set(painter->scene, brush, max_ff(1.0f, painter->startsize * pressure));
 	if (brush->flag & BRUSH_JITTER_PRESSURE)
-		brush->jitter = maxf(0.0f, painter->startjitter * pressure);
+		brush->jitter = max_ff(0.0f, painter->startjitter * pressure);
 	if (brush->flag & BRUSH_SPACING_PRESSURE)
-		brush->spacing = maxf(1.0f, painter->startspacing * (1.5f - pressure));
+		brush->spacing = max_ff(1.0f, painter->startspacing * (1.5f - pressure));
 }
 
 void BKE_brush_jitter_pos(const Scene *scene, Brush *brush, const float pos[2], float jitterpos[2])
@@ -1158,7 +1158,7 @@ int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float p
 		/* compute brush spacing adapted to brush radius, spacing may depend
 		 * on pressure, so update it */
 		brush_pressure_apply(painter, brush, painter->lastpressure);
-		spacing = maxf(1.0f, radius) * brush->spacing * 0.01f;
+		spacing = max_ff(1.0f, radius) * brush->spacing * 0.01f;
 
 		/* setup starting distance, direction vector and accumulated distance */
 		startdistance = painter->accumdistance;
@@ -1176,7 +1176,7 @@ int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float p
 				t = step / len;
 				press = (1.0f - t) * painter->lastpressure + t * pressure;
 				brush_pressure_apply(painter, brush, press);
-				spacing = maxf(1.0f, radius) * brush->spacing * 0.01f;
+				spacing = max_ff(1.0f, radius) * brush->spacing * 0.01f;
 
 				BKE_brush_jitter_pos(scene, brush, paintpos, finalpos);
 

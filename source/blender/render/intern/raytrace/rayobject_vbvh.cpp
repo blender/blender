@@ -112,7 +112,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 						   
 		//Finds the optimal packing of this tree using a given cost model
 		//TODO this uses quite a lot of memory, find ways to reduce memory usage during building
-		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena2).transform(obj->builder);			
+		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena2).transform(obj->builder);
 		VBVH_optimalPackSIMD<OVBVHNode, PackCost>(PackCost()).transform(root);
 		obj->root = Reorganize_VBVH<OVBVHNode>(arena1).transform(root);
 		
@@ -125,7 +125,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 	obj->builder = NULL;
 
 	obj->node_arena = arena1;
-	obj->cost = 1.0;	
+	obj->cost = 1.0;
 }
 
 template<int StackSize>
@@ -152,7 +152,8 @@ void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(m
 	}
 }
 
-void bfree(VBVHTree *tree)
+#if 0  /* UNUSED */
+static void bfree(VBVHTree *tree)
 {
 	if (tot_pushup + tot_pushdown + tot_hints + tot_moves) {
 		if (G.debug & G_DEBUG) {
@@ -169,6 +170,7 @@ void bfree(VBVHTree *tree)
 	}
 	bvh_free(tree);
 }
+#endif
 
 /* the cast to pointer function is needed to workarround gcc bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=11407 */
 template<class Tree, int STACK_SIZE>

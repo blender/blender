@@ -62,14 +62,14 @@ static void slice_get_byte_buffers(const SeqRenderData *context, const ImBuf *ib
 {
 	int offset = 4 * start_line * context->rectx;
 
-	*rect1 = (unsigned char*) ibuf1->rect + offset;
-	*rect_out = (unsigned char*) out->rect + offset;
+	*rect1 = (unsigned char *)ibuf1->rect + offset;
+	*rect_out = (unsigned char *)out->rect + offset;
 
 	if (ibuf2)
-		*rect2 = (unsigned char*) ibuf2->rect + offset;
+		*rect2 = (unsigned char *)ibuf2->rect + offset;
 
 	if (ibuf3)
-		*rect3 = (unsigned char*) ibuf3->rect + offset;
+		*rect3 = (unsigned char *)ibuf3->rect + offset;
 }
 
 static void slice_get_float_buffers(const SeqRenderData *context, const ImBuf *ibuf1, const ImBuf *ibuf2,
@@ -600,7 +600,7 @@ static void makeGammaTables(float gamma)
 	color_step        = 1.0f / RE_GAMMA_TABLE_SIZE;
 	inv_color_step    = (float) RE_GAMMA_TABLE_SIZE; 
 
-	/* We could squeeze out the two range tables to gain some memory */	
+	/* We could squeeze out the two range tables to gain some memory */
 	for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
 		color_domain_table[i]    = i * color_step;
 		gamma_range_table[i]     = pow(color_domain_table[i], valid_gamma);
@@ -609,9 +609,9 @@ static void makeGammaTables(float gamma)
 
 	/* The end of the table should match 1.0 carefully. In order to avoid
 	 * rounding errors, we just set this explicitly. The last segment may
-	* have a different length than the other segments, but our
-	* interpolation is insensitive to that
-	*/
+	 * have a different length than the other segments, but our
+	 * interpolation is insensitive to that
+	 */
 	color_domain_table[RE_GAMMA_TABLE_SIZE]    = 1.0;
 	gamma_range_table[RE_GAMMA_TABLE_SIZE]     = 1.0;
 	inv_gamma_range_table[RE_GAMMA_TABLE_SIZE] = 1.0;
@@ -1178,7 +1178,7 @@ static void do_mul_effect_float(float facf0, float facf1, int x, int y, float *r
 	fac3 = facf1;
 
 	/* formula:
-	 *		fac*(a*b) + (1-fac)*a  => fac*a*(b-1)+a
+	 * fac * (a * b) + (1 - fac) * a  =>  fac * a * (b - 1) + a
 	 */
 
 	while (y--) {
@@ -1353,7 +1353,7 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 				hyp2 = fabsf(angle * x + y + (-(yo - posy * 0.5f) - angle * (xo - posx * 0.5f))) * wipezone->pythangle;
 			}
 
-			hwidth = minf(hwidth, fabsf(b3 - b1) / 2.0f);
+			hwidth = min_ff(hwidth, fabsf(b3 - b1) / 2.0f);
 
 			if (b2 < b1 && b2 < b3) {
 				output = in_band(hwidth, hyp, 0, 1);
@@ -2373,7 +2373,7 @@ static ImBuf *do_solid_color(SeqRenderData context, Sequence *seq, float UNUSED(
 					rect[1] = col1[1];
 					rect[2] = col1[2];
 					rect[3] = 255;
-				}	
+				}
 			}
 		}
 
@@ -2609,7 +2609,7 @@ static void store_icu_yrange_speed(Sequence *seq, short UNUSED(adrcode), float *
 			*ymin = 0.0;
 			*ymax = seq->len;
 		}
-	}	
+	}
 }
 
 void BKE_sequence_effect_speed_rebuild_map(Scene *scene, Sequence *seq, int force)

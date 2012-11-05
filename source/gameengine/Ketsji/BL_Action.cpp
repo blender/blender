@@ -352,29 +352,27 @@ void BL_Action::Update(float curtime)
 	}
 
 	// Handle wrap around
-	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
-	{
-		switch(m_playmode)
-		{
-		case ACT_MODE_PLAY:
-			// Clamp
-			m_localtime = m_endframe;
-			m_done = true;
-			break;
-		case ACT_MODE_LOOP:
-			// Put the time back to the beginning
-			m_localtime = m_startframe;
-			m_starttime = curtime;
-			break;
-		case ACT_MODE_PING_PONG:
-			// Swap the start and end frames
-			float temp = m_startframe;
-			m_startframe = m_endframe;
-			m_endframe = temp;
+	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe)) {
+		switch (m_playmode) {
+			case ACT_MODE_PLAY:
+				// Clamp
+				m_localtime = m_endframe;
+				m_done = true;
+				break;
+			case ACT_MODE_LOOP:
+				// Put the time back to the beginning
+				m_localtime = m_startframe;
+				m_starttime = curtime;
+				break;
+			case ACT_MODE_PING_PONG:
+				// Swap the start and end frames
+				float temp = m_startframe;
+				m_startframe = m_endframe;
+				m_endframe = temp;
 
-			m_starttime = curtime;
+				m_starttime = curtime;
 
-			break;
+				break;
 		}
 	}
 

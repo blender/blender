@@ -20,6 +20,7 @@
 
 set(INC
 	../include
+	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
@@ -52,6 +53,10 @@ endif()
 
 if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 blender_add_lib(bf_editor_physics "${SRC}" "${INC}" "${INC_SYS}")

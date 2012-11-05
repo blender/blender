@@ -149,8 +149,8 @@ static void screenshot_crop(ImBuf *ibuf, rcti crop)
 {
 	unsigned int *to = ibuf->rect;
 	unsigned int *from = ibuf->rect + crop.ymin * ibuf->x + crop.xmin;
-	int crop_x = BLI_RCT_SIZE_X(&crop);
-	int crop_y = BLI_RCT_SIZE_Y(&crop);
+	int crop_x = BLI_rcti_size_x(&crop);
+	int crop_y = BLI_rcti_size_y(&crop);
 	int y;
 
 	if (crop_x > 0 && crop_y > 0) {
@@ -214,7 +214,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 		WM_event_add_fileselect(C, op);
 	
 		return OPERATOR_RUNNING_MODAL;
-	}	
+	}
 	return OPERATOR_CANCELLED;
 }
 
@@ -245,7 +245,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* image template */
 	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &scd->im_format, &ptr);
-	uiTemplateImageSettings(layout, &ptr, TRUE);
+	uiTemplateImageSettings(layout, &ptr, FALSE);
 
 	/* main draw call */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
@@ -365,7 +365,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				
 				if (ok == 0) {
 					printf("Write error: cannot save %s\n", name);
-					BKE_reportf(&sj->reports, RPT_INFO, "Write error: cannot save %s\n", name);
+					BKE_reportf(&sj->reports, RPT_INFO, "Write error: cannot save %s", name);
 					break;
 				}
 				else {
@@ -374,7 +374,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				}
 				
 				/* imbuf knows which rects are not part of ibuf */
-				IMB_freeImBuf(ibuf);	
+				IMB_freeImBuf(ibuf);
 			}
 			
 			MEM_freeN(sj->dumprect);
@@ -408,7 +408,7 @@ static int screencast_exec(bContext *C, wmOperator *op)
 		sj->y = 0;
 		sj->dumpsx = win->sizex;
 		sj->dumpsy = win->sizey;
-	} 
+	}
 	else {
 		ScrArea *curarea = CTX_wm_area(C);
 		sj->x = curarea->totrct.xmin;

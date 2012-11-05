@@ -6,6 +6,8 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
@@ -143,9 +145,9 @@ void BL_BlenderShader::Update(const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 	viewinv.getValue((float*)viewinvmat);
 
 	if (ms.m_bObjectColor)
-		ms.m_RGBAcolor.getValue((float*)obcol);
+		ms.m_RGBAcolor.getValue((float *)obcol);
 	else
-		obcol[0]= obcol[1]= obcol[2]= obcol[3]= 1.0f;
+		obcol[0] = obcol[1] = obcol[2] = obcol[3] = 1.0f;
 
 	float auto_bump_scale = ms.m_pDerivedMesh!=0 ? ms.m_pDerivedMesh->auto_bump_scale : 1.0f;
 	GPU_material_bind_uniforms(gpumat, obmat, viewmat, viewinvmat, obcol, auto_bump_scale);

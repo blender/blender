@@ -122,6 +122,7 @@ static void node_socket_disconnect(Main *bmain, bNodeTree *ntree, bNode *node_to
 		return;
 
 	nodeRemLink(ntree, sock_to->link);
+	sock_to->flag |= SOCK_COLLAPSED;
 
 	nodeUpdate(ntree, node_to);
 	ntreeUpdateTree(ntree);
@@ -136,6 +137,7 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
 		return;
 
 	node_remove_linked(ntree, sock_to->link->fromnode);
+	sock_to->flag |= SOCK_COLLAPSED;
 
 	nodeUpdate(ntree, node_to);
 	ntreeUpdateTree(ntree);
@@ -147,7 +149,7 @@ static void node_socket_remove(Main *bmain, bNodeTree *ntree, bNode *node_to, bN
 static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_to, bNodeSocket *sock_to, bNodeTemplate *ntemp, int sock_num)
 {
 	bNode *node_from;
-	bNodeSocket *sock_from;
+	bNodeSocket *sock_from_tmp;
 	bNode *node_prev = NULL;
 
 	/* unlink existing node */
@@ -183,8 +185,9 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 	nodeSetActive(ntree, node_from);
 
 	/* add link */
-	sock_from = BLI_findlink(&node_from->outputs, sock_num);
-	nodeAddLink(ntree, node_from, sock_from, node_to, sock_to);
+	sock_from_tmp = BLI_findlink(&node_from->outputs, sock_num);
+	nodeAddLink(ntree, node_from, sock_from_tmp, node_to, sock_to);
+	sock_to->flag &= ~SOCK_COLLAPSED;
 
 	/* copy input sockets from previous node */
 	if (node_prev && node_from != node_prev) {
@@ -230,7 +233,7 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 
 /****************************** Node Link Menu *******************************/
 
-#define UI_NODE_LINK_ADD        0
+// #define UI_NODE_LINK_ADD        0
 #define UI_NODE_LINK_DISCONNECT -1
 #define UI_NODE_LINK_REMOVE     -2
 
@@ -289,8 +292,7 @@ static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 			BLI_strncpy(node_name, node->typeinfo->name, UI_MAX_NAME_STR);
 
 		if (node->inputs.first == NULL &&
-		    node->outputs.first != node->outputs.last &&
-		    !(node->typeinfo->flag & NODE_OPTIONS))
+		    node->outputs.first != node->outputs.last)
 		{
 			BLI_snprintf(name, UI_MAX_NAME_STR, "%s | %s", IFACE_(node_name), IFACE_(sock->link->fromsock->name));
 		}
@@ -613,7 +615,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 		/* input linked to a node */
 		uiTemplateNodeLink(split, ntree, node, input);
 
-		if (!(input->flag & SOCK_COLLAPSED)) {
+		if (depth == 0 || !(input->flag & SOCK_COLLAPSED)) {
 			if (depth == 0)
 				uiItemS(layout);
 

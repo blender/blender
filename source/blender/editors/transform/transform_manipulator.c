@@ -441,7 +441,7 @@ int calc_manipulator_stats(const bContext *C)
 		}
 		else if (obedit->type == OB_MBALL) {
 			MetaBall *mb = (MetaBall *)obedit->data;
-			MetaElem *ml /* , *ml_sel=NULL */ /* UNUSED */;
+			MetaElem *ml /* , *ml_sel = NULL */ /* UNUSED */;
 
 			ml = mb->editelems->first;
 			while (ml) {
@@ -498,7 +498,7 @@ int calc_manipulator_stats(const bContext *C)
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
-		;
+		/* pass */
 	}
 	else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		PTCacheEdit *edit = PE_get_current(scene, ob);

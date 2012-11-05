@@ -36,8 +36,6 @@
 extern "C" {
 #endif
 
-#include "DNA_defs.h" /* USE_BMESH_FORWARD_COMPAT */
-
 /** descriptor and storage for a custom data layer */
 typedef struct CustomDataLayer {
 	int type;       /* type of data in layer */
@@ -74,7 +72,7 @@ typedef struct CustomData {
 
 /* CustomData.type */
 #define CD_MVERT		0
-#define CD_MSTICKY		1
+#define CD_MSTICKY		1  /* DEPRECATED */
 #define CD_MDEFORMVERT	2
 #define CD_MEDGE		3
 #define CD_MFACE		4
@@ -82,7 +80,7 @@ typedef struct CustomData {
 #define CD_MCOL			6
 #define CD_ORIGINDEX	7
 #define CD_NORMAL		8
-#define CD_POLYINDEX	9
+//#define CD_POLYINDEX	9
 #define CD_PROP_FLT		10
 #define CD_PROP_INT		11
 #define CD_PROP_STR		12
@@ -118,7 +116,7 @@ typedef struct CustomData {
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
-#define CD_MASK_MSTICKY		(1 << CD_MSTICKY)
+#define CD_MASK_MSTICKY		(1 << CD_MSTICKY)  /* DEPRECATED */
 #define CD_MASK_MDEFORMVERT	(1 << CD_MDEFORMVERT)
 #define CD_MASK_MEDGE		(1 << CD_MEDGE)
 #define CD_MASK_MFACE		(1 << CD_MFACE)
@@ -126,7 +124,7 @@ typedef struct CustomData {
 #define CD_MASK_MCOL		(1 << CD_MCOL)
 #define CD_MASK_ORIGINDEX	(1 << CD_ORIGINDEX)
 #define CD_MASK_NORMAL		(1 << CD_NORMAL)
-#define CD_MASK_POLYINDEX	(1 << CD_POLYINDEX)
+// #define CD_MASK_POLYINDEX	(1 << CD_POLYINDEX)
 #define CD_MASK_PROP_FLT	(1 << CD_PROP_FLT)
 #define CD_MASK_PROP_INT	(1 << CD_PROP_INT)
 #define CD_MASK_PROP_STR	(1 << CD_PROP_STR)

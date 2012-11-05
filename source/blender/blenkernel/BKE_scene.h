@@ -55,7 +55,12 @@ struct Text;
 #define SCE_COPY_LINK_DATA  3
 #define SCE_COPY_FULL       4
 
-#define SETLOOPER(_sce_basis, _sce_iter, _base) _sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, NULL); _base; _base = _setlooper_base_step(&_sce_iter, _base)
+/* Use as the contents of a 'for' loop: for (SETLOOPER(...)) { ... */
+#define SETLOOPER(_sce_basis, _sce_iter, _base)                               \
+	_sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, NULL);   \
+	_base;                                                                    \
+	_base = _setlooper_base_step(&_sce_iter, _base)
+
 struct Base *_setlooper_base_step(struct Scene **sce_iter, struct Base *base);
 
 void free_avicodecdata(struct AviCodecData *acd);
@@ -109,6 +114,7 @@ float get_render_aosss_error(struct RenderData *r, float error);
 int BKE_scene_use_new_shading_nodes(struct Scene *scene);
 
 void BKE_scene_disable_color_management(struct Scene *scene);
+int BKE_scene_check_color_management_enabled(const struct Scene *scene);
 
 #ifdef __cplusplus
 }

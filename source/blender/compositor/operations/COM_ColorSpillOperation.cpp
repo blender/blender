@@ -100,7 +100,7 @@ void ColorSpillOperation::executePixel(float output[4], float x, float y, PixelS
 	}
 	else {
 		copy_v4_v4(output, input);
-	}	
+	}
 }
 float ColorSpillOperation::calculateMapValue(float fac, float *input)
 {

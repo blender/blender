@@ -210,7 +210,7 @@ void unlink_controllers(ListBase *lb)
 	bController *cont;
 	
 	for (cont= lb->first; cont; cont= cont->next)
-		unlink_controller(cont);	
+		unlink_controller(cont);
 }
 
 void free_controller(bController *cont)
@@ -536,7 +536,7 @@ void clear_sca_new_poins(void)
 	ob= G.main->object.first;
 	while (ob) {
 		clear_sca_new_poins_ob(ob);
-		ob= ob->id.next;	
+		ob= ob->id.next;
 	}
 }
 
@@ -552,7 +552,7 @@ void set_sca_new_poins_ob(Object *ob)
 		if (sens->flag & SENS_NEW) {
 			for (a=0; a<sens->totlinks; a++) {
 				if (sens->links[a] && sens->links[a]->mynew)
-					sens->links[a]= sens->links[a]->mynew;
+					sens->links[a] = sens->links[a]->mynew;
 			}
 		}
 		sens= sens->next;
@@ -563,7 +563,7 @@ void set_sca_new_poins_ob(Object *ob)
 		if (cont->flag & CONT_NEW) {
 			for (a=0; a<cont->totlinks; a++) {
 				if ( cont->links[a] && cont->links[a]->mynew)
-					cont->links[a]= cont->links[a]->mynew;
+					cont->links[a] = cont->links[a]->mynew;
 			}
 		}
 		cont= cont->next;
@@ -624,7 +624,7 @@ void set_sca_new_poins(void)
 	ob= G.main->object.first;
 	while (ob) {
 		set_sca_new_poins_ob(ob);
-		ob= ob->id.next;	
+		ob= ob->id.next;
 	}
 }
 
@@ -696,7 +696,7 @@ void sca_remove_ob_poin(Object *obt, Object *ob)
 			if (sta->target == ob) sta->target = NULL;
 		}
 		act= act->next;
-	}	
+	}
 }
 
 /* ******************** INTERFACE ******************* */
@@ -875,3 +875,20 @@ void unlink_logicbricks(void **poin, void ***ppoin, short *tot)
 		return;
 	}
 }
+
+const char *sca_state_name_get(Object *ob, short bit)
+{
+	bController *cont;
+	unsigned int mask;
+
+	mask = (1<<bit);
+	cont = ob->controllers.first;
+	while (cont) {
+		if (cont->state_mask & mask) {
+			return cont->name;
+		}
+		cont = cont->next;
+	}
+	return NULL;
+}
+

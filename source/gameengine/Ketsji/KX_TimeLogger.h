@@ -32,14 +32,14 @@
 #ifndef __KX_TIMELOGGER_H__
 #define __KX_TIMELOGGER_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)  /* suppress stl-MSVC debug info warning */
 #endif
 
 #include <deque>
 
 #ifdef WITH_CXX_GUARDEDALLOC
-#include "MEM_guardedalloc.h"
+#  include "MEM_guardedalloc.h"
 #endif
 
 /**
@@ -111,5 +111,4 @@ protected:
 #endif
 };
 
-#endif // __KX_TIMELOGGER_H__
-
+#endif  /* __KX_TIMELOGGER_H__ */

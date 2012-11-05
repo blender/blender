@@ -163,7 +163,7 @@ static void nla_strip_get_color_inside(AnimData *adt, NlaStrip *strip, float col
 			/* normal, unselected strip - use (hardly noticeable) blue tinge */
 			UI_GetThemeColor3fv(TH_NLA_TRANSITION, color);
 		}
-	}	
+	}
 	else if (strip->type == NLASTRIP_TYPE_META) {
 		/* Meta Clip */
 		// TODO: should temporary metas get different colors too?
@@ -528,7 +528,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	 */
 	v2d->tot.ymin = (float)(-height);
 	
-	/* loop through channels, and set up drawing depending on their type  */	
+	/* loop through channels, and set up drawing depending on their type  */
 	y = (float)(-NLACHANNEL_HEIGHT(snla));
 	
 	for (ale = anim_data.first; ale; ale = ale->next) {
@@ -628,7 +628,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 	bAnimListElem *ale;
 	float x = 0.0f;
 	
-	/* loop through channels, and set up drawing depending on their type  */	
+	/* loop through channels, and set up drawing depending on their type  */
 	for (ale = anim_data->first; ale; ale = ale->next) {
 		const float yminc = (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
 		const float ymaxc = (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
@@ -709,7 +709,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					// draw backdrops only...
 					ANIM_channel_draw(ac, ale, yminc, ymaxc);
 					break;
-			}	
+			}
 			
 			/* if special types, draw manually for now... */
 			if (do_draw) {
@@ -737,7 +737,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 								/* even more */
 								offset = 21;
 								indent = 1;
-							}	
+							}
 							break;
 								
 							default:
@@ -775,7 +775,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 						glColor3fv(color);
 					}
 					else {
-						float alpha = (adt && (adt->flag & ADT_NLA_SOLO_TRACK)) ? 0.3 : 1.0f;
+						float alpha = (adt && (adt->flag & ADT_NLA_SOLO_TRACK)) ? 0.3f : 1.0f;
 						glColor4f(color[0], color[1], color[2], alpha);
 					}
 					
@@ -849,8 +849,6 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 				
 				/* draw NLA-action line 'status-icons' - only when there's an action */
 				if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {
-					AnimData *adt = ale->adt;
-					
 					offset += 16;
 					
 					/* now draw some indicator icons  */
@@ -938,7 +936,7 @@ void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		
-		/* loop through channels, and set up drawing depending on their type  */	
+		/* loop through channels, and set up drawing depending on their type  */
 		for (ale = anim_data.first; ale; ale = ale->next) {
 			const float yminc = (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
 			const float ymaxc = (float)(y + NLACHANNEL_HEIGHT_HALF(snla));

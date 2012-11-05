@@ -1,0 +1,35 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+
+shader node_convert_from_vector(
+	vector Vector = vector(0.0, 0.0, 0.0),
+	output float Val = 0.0,
+	output int ValInt = 0,
+	output color Color = color(0.0, 0.0, 0.0),
+	output point Point = point(0.0, 0.0, 0.0),
+	output normal Normal = normal(0.0, 0.0, 0.0))
+{
+	Val = (Vector[0] + Vector[1] + Vector[2]) * (1.0 / 3.0);
+	ValInt = (int)((Normal[0] + Normal[1] + Normal[2]) * (1.0 / 3.0));
+	Color = color(Vector[0], Vector[1], Vector[2]);
+	Point = point(Vector[0], Vector[1], Vector[2]);
+	Normal = normal(Vector[0], Vector[1], Vector[2]);
+}
+

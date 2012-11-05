@@ -86,5 +86,4 @@ public:
 	
 };
 
-#endif //__KX_PROPERTYACTUATOR_DOC
-
+#endif  /* __KX_PROPERTYACTUATOR_DOC */

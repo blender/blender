@@ -82,6 +82,25 @@ __device_inline void stack_store_float(float *stack, uint a, float f)
 	stack[a] = f;
 }
 
+__device_inline int stack_load_int(float *stack, uint a)
+{
+	kernel_assert(a < SVM_STACK_SIZE);
+
+	return __float_as_int(stack[a]);
+}
+
+__device_inline float stack_load_int_default(float *stack, uint a, uint value)
+{
+	return (a == (uint)SVM_STACK_INVALID)? (int)value: stack_load_int(stack, a);
+}
+
+__device_inline void stack_store_int(float *stack, uint a, int i)
+{
+	kernel_assert(a < SVM_STACK_SIZE);
+
+	stack[a] = __int_as_float(i);
+}
+
 __device_inline bool stack_valid(uint a)
 {
 	return a != (uint)SVM_STACK_INVALID;
@@ -185,7 +204,7 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			}
 			case NODE_CLOSURE_BSDF:
-				svm_node_closure_bsdf(kg, sd, stack, node, randb, path_flag);
+				svm_node_closure_bsdf(kg, sd, stack, node, randb, path_flag, &offset);
 				break;
 			case NODE_CLOSURE_EMISSION:
 				svm_node_closure_emission(sd, stack, node);
@@ -261,14 +280,14 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				svm_node_camera(kg, sd, stack, node.y, node.z, node.w);
 				break;
 			case NODE_GEOMETRY:
-				svm_node_geometry(sd, stack, node.y, node.z);
+				svm_node_geometry(kg, sd, stack, node.y, node.z);
 				break;
 #ifdef __EXTRA_NODES__
 			case NODE_GEOMETRY_BUMP_DX:
-				svm_node_geometry_bump_dx(sd, stack, node.y, node.z);
+				svm_node_geometry_bump_dx(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_GEOMETRY_BUMP_DY:
-				svm_node_geometry_bump_dy(sd, stack, node.y, node.z);
+				svm_node_geometry_bump_dy(kg, sd, stack, node.y, node.z);
 				break;
 			case NODE_LIGHT_PATH:
 				svm_node_light_path(sd, stack, node.y, node.z, path_flag);
@@ -334,7 +353,7 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				svm_node_set_displacement(sd, stack, node.y);
 				break;
 			case NODE_SET_BUMP:
-				svm_node_set_bump(sd, stack, node.y, node.z, node.w);
+				svm_node_set_bump(kg, sd, stack, node);
 				break;
 			case NODE_MATH:
 				svm_node_math(kg, sd, stack, node.y, node.z, node.w, &offset);
@@ -362,6 +381,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_TEX_COORD_BUMP_DY:
 				svm_node_tex_coord_bump_dy(kg, sd, stack, node.y, node.z);
 				break;
+			case NODE_CLOSURE_SET_NORMAL:
+				svm_node_set_normal(kg, sd, stack, node.y, node.z );
+				break;			
 #endif
 			case NODE_EMISSION_SET_WEIGHT_TOTAL:
 				svm_node_emission_set_weight_total(kg, sd, node.y, node.z, node.w);
@@ -376,7 +398,7 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_LIGHT_FALLOFF:
 				svm_node_light_falloff(sd, stack, node);
 				break;
-#endif
+#endif			
 			case NODE_END:
 			default:
 #ifndef __MULTI_CLOSURE__

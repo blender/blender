@@ -50,7 +50,7 @@ typedef struct bActionModifier {
 	
 	/* path deform modifier */
 	short no_rot_axis;
-	struct Object *ob;	
+	struct Object *ob;
 } bActionModifier;
 
 /* NLA-Modifier Types */

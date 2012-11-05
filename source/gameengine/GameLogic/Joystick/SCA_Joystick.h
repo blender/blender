@@ -65,7 +65,7 @@ class SCA_Joystick
 	/** 
 	 *support for JOYHAT_MAX hats (each is a direction)
 	 */
-	int m_hat_array[JOYHAT_MAX];	
+	int m_hat_array[JOYHAT_MAX];
 	
 	/**
 	 * Precision or range of the axes

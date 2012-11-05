@@ -34,11 +34,15 @@
 #include <string.h>
 #include <time.h>
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 
 #include "DNA_object_types.h"
 
 /* #include "BLO_sys_types.h" */
+
+#include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
 
@@ -57,7 +61,7 @@ static float rna_PoseBone_do_envelope(bPoseChannel *chan, float *vec)
 }
 #else
 
-void RNA_api_pose(StructRNA *srna)
+void RNA_api_pose(StructRNA *UNUSED(srna))
 {
 	/* FunctionRNA *func; */
 	/* PropertyRNA *parm; */

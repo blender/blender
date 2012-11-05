@@ -4,27 +4,14 @@
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2009-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_PERMUTATIONMATRIX_H
 #define EIGEN_PERMUTATIONMATRIX_H
+
+namespace Eigen { 
 
 template<int RowCol,typename IndicesType,typename MatrixType, typename StorageKind> class PermutedImpl;
 
@@ -56,6 +43,8 @@ namespace internal {
 
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false>
 struct permut_matrix_product_retval;
+template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false>
+struct permut_sparsematrix_product_retval;
 enum PermPermProduct_t {PermPermProduct};
 
 } // end namespace internal
@@ -511,7 +500,7 @@ class PermutationWrapper : public PermutationBase<PermutationWrapper<_IndicesTyp
 
   protected:
 
-    const typename IndicesType::Nested m_indices;
+    typename IndicesType::Nested m_indices;
 };
 
 /** \returns the matrix with the permutation applied to the columns.
@@ -608,7 +597,7 @@ struct permut_matrix_product_retval
 
   protected:
     const PermutationType& m_permutation;
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
 };
 
 /* Template partial specialization for transposed/inverse permutations */
@@ -692,5 +681,7 @@ const PermutationWrapper<const Derived> MatrixBase<Derived>::asPermutation() con
 {
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_PERMUTATIONMATRIX_H

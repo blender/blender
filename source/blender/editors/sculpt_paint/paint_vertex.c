@@ -79,6 +79,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "GPU_buffers.h"
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
@@ -106,18 +107,40 @@ static int vertex_paint_use_fast_update_check(Object *ob)
 /* if the polygons from the mesh and the 'derivedFinal' match
  * we can assume that no modifiers are applied and that its worth adding tessellated faces
  * so 'vertex_paint_use_fast_update_check()' returns TRUE */
-static int vertex_paint_use_tessface_check(Object *ob)
+static int vertex_paint_use_tessface_check(Object *ob, Mesh *me)
 {
 	DerivedMesh *dm = ob->derivedFinal;
 
-	if (dm) {
-		Mesh *me = BKE_mesh_from_object(ob);
-		return (me->mpoly == CustomData_get_layer(&dm->faceData, CD_MPOLY));
+	if (me && dm) {
+		return (me->mpoly == CustomData_get_layer(&dm->polyData, CD_MPOLY));
 	}
 
 	return FALSE;
 }
 
+static void update_tessface_data(Object *ob, Mesh *me)
+{
+	if (vertex_paint_use_tessface_check(ob, me)) {
+		/* assume if these exist, that they are up to date & valid */
+		if (!me->mcol || !me->mface) {
+			/* should always be true */
+			/* XXX Why this clearing? tessface_calc will reset it anyway! */
+/*			if (me->mcol) {*/
+/*				memset(me->mcol, 255, 4 * sizeof(MCol) * me->totface);*/
+/*			}*/
+
+			/* create tessfaces because they will be used for drawing & fast updates */
+			BKE_mesh_tessface_calc(me); /* does own call to update pointers */
+		}
+	}
+	else {
+		if (me->totface) {
+			/* this wont be used, theres no need to keep it */
+			BKE_mesh_tessface_clear(me);
+		}
+	}
+
+}
 /* polling - retrieve whether cursor should be set or operator should be done */
 
 /* Returns true if vertex paint mode is active */
@@ -134,7 +157,7 @@ int vertex_paint_poll(bContext *C)
 	    paint_brush(&CTX_data_tool_settings(C)->vpaint->paint))
 	{
 		ScrArea *sa = CTX_wm_area(C);
-		if (sa->spacetype == SPACE_VIEW3D) {
+		if (sa && sa->spacetype == SPACE_VIEW3D) {
 			ARegion *ar = CTX_wm_region(C);
 			if (ar->regiontype == RGN_TYPE_WINDOW)
 				return 1;
@@ -326,29 +349,12 @@ static void make_vertexcol(Object *ob)  /* single ob */
 			CustomData_add_layer(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface);
 		}
 		if (!me->mloopcol) {
-			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);	
+			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);
 		}
 		mesh_update_customdata_pointers(me, TRUE);
 	}
 
-	if (vertex_paint_use_tessface_check(ob)) {
-		/* assume if these exist, that they are up to date & valid */
-		if (!me->mcol || !me->mface) {
-			/* should always be true */
-			if (me->mcol) {
-				memset(me->mcol, 255, 4 * sizeof(MCol) * me->totface);
-			}
-
-			/* create tessfaces because they will be used for drawing & fast updates */
-			BKE_mesh_tessface_calc(me); /* does own call to update pointers */
-		}
-	}
-	else {
-		if (me->totface) {
-			/* this wont be used, theres no need to keep it */
-			BKE_mesh_tessface_clear(me);
-		}
-	}
+	update_tessface_data(ob, me);
 
 	//if (shade)
 	//	shadeMeshMCol(scene, ob, me);
@@ -846,20 +852,22 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float vert_nor[3],
                                  const float mval[2], const float brush_size_pressure)
 {
-	Brush *brush = paint_brush(&vp->paint);
-	float dist_squared;
-	float vertco[2], delta[2];
+	float vertco[2];
 
-	project_float_noclip(vc->ar, vert_nor, vertco);
-	sub_v2_v2v2(delta, mval, vertco);
-	dist_squared = dot_v2v2(delta, delta); /* len squared */
-	if (dist_squared > brush_size_pressure * brush_size_pressure) {
-		return 0.0f;
+	if (ED_view3d_project_float_global(vc->ar, vert_nor, vertco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+		float delta[2];
+		float dist_squared;
+
+		sub_v2_v2v2(delta, mval, vertco);
+		dist_squared = dot_v2v2(delta, delta); /* len squared */
+		if (dist_squared <= brush_size_pressure * brush_size_pressure) {
+			Brush *brush = paint_brush(&vp->paint);
+			const float dist = sqrtf(dist_squared);
+			return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
+		}
 	}
-	else {
-		const float dist = sqrtf(dist_squared);
-		return BKE_brush_curve_strength_clamp(brush, dist, brush_size_pressure);
-	}
+
+	return 0.0f;
 }
 
 static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
@@ -1524,7 +1532,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 				if (total_changed > 1 && do_multipaint) {
 					float undo_change = get_mp_change(ndv, defbase_tot, defbase_sel, left_over);
 					multipaint_selection(ndv, defbase_tot, undo_change, defbase_sel);
-				}	
+				}
 				/* or designatedw is still -1 put weight back as evenly as possible */
 				else {
 					redistribute_change(ndv, defbase_tot, change_status, 2, -2, left_over, total_changed, do_auto_normalize);
@@ -1533,7 +1541,6 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv,
 		}
 		else {
 			/* reset the weights */
-			unsigned int i;
 			MDeformWeight *dw_old = odv->dw;
 			MDeformWeight *dw_new = ndv->dw;
 
@@ -2047,7 +2054,6 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	Object *ob = CTX_data_active_object(C);
 	struct WPaintData *wpd;
 	Mesh *me;
-	bDeformGroup *dg;
 
 	float mat[4][4], imat[4][4];
 	
@@ -2096,12 +2102,14 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 		return FALSE;
 	}
 
-	/* check if we are attempting to paint onto a locked vertex group,
-	 * and other options disallow it from doing anything useful */
-	dg = BLI_findlink(&ob->defbase, (ob->actdef - 1));
-	if (dg->flag & DG_LOCK_WEIGHT) {
-		BKE_report(op->reports, RPT_WARNING, "Active group is locked, aborting");
-		return FALSE;
+	{
+		/* check if we are attempting to paint onto a locked vertex group,
+		 * and other options disallow it from doing anything useful */
+		bDeformGroup *dg = BLI_findlink(&ob->defbase, (ob->actdef - 1));
+		if (dg->flag & DG_LOCK_WEIGHT) {
+			BKE_report(op->reports, RPT_WARNING, "Active group is locked, aborting");
+			return FALSE;
+		}
 	}
 
 	/* ALLOCATIONS! no return after this line */
@@ -2227,19 +2235,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		if (indexar[0]) totindex = 1;
 		else totindex = 0;
 	}
-			
-	if (wp->flag & VP_COLINDEX) {
-		for (index = 0; index < totindex; index++) {
-			if (indexar[index] && indexar[index] <= me->totpoly) {
-				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
-						
-				if (mpoly->mat_nr != ob->actcol - 1) {
-					indexar[index] = 0;
-				}
-			}
-		}
-	}
-			
+
 	if ((me->editflag & ME_EDIT_PAINT_MASK) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {
 			if (indexar[index] && indexar[index] <= me->totpoly) {
@@ -2382,7 +2378,8 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
 static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	
+	int retval;
+
 	op->customdata = paint_stroke_new(C, NULL, wpaint_stroke_test_start,
 	                                  wpaint_stroke_update_step,
 	                                  wpaint_stroke_done, event->type);
@@ -2390,7 +2387,9 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
-	op->type->modal(C, op, event);
+	retval = op->type->modal(C, op, event);
+	OPERATOR_RETVAL_CHECK(retval);
+	BLI_assert(retval == OPERATOR_RUNNING_MODAL);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -2571,7 +2570,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 
 	vd->polyfacemap = BLI_memarena_alloc(vd->polyfacemap_arena, sizeof(ListBase) * me->totpoly);
 
-	origIndex = CustomData_get_layer(&me->fdata, CD_POLYINDEX);
+	origIndex = CustomData_get_layer(&me->fdata, CD_ORIGINDEX);
 	mf = me->mface;
 
 	if (!origIndex)
@@ -2607,7 +2606,12 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 		make_vertexcol(ob);
 	if (me->mloopcol == NULL)
 		return OPERATOR_CANCELLED;
-	
+
+	/* Update tessface data if needed
+	 * Added here too because e.g. switching to/from edit mode would remove tessface data,
+	 * yet "fast_update" could still be used! */
+	update_tessface_data(ob, me);
+
 	/* make mode data storage */
 	vpd = MEM_callocN(sizeof(struct VPaintData), "VPaintData");
 	paint_stroke_set_mode_data(stroke, vpd);
@@ -2623,9 +2627,11 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	if (vertex_paint_use_fast_update_check(ob)) {
 		vpaint_build_poly_facemap(vpd, me);
 		vpd->use_fast_update = TRUE;
+/*		printf("Fast update!\n");*/
 	}
 	else {
 		vpd->use_fast_update = FALSE;
+/*		printf("No fast update!\n");*/
 	}
 
 	/* for filtering */
@@ -2638,53 +2644,6 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 
 	return 1;
 }
-
-#if 0
-static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
-                              const unsigned int index, const float mval[2],
-                              const float brush_size_pressure, const float brush_alpha_pressure,
-                              int UNUSED(flip))
-{
-	ViewContext *vc = &vpd->vc;
-	Brush *brush = paint_brush(&vp->paint);
-	Mesh *me = BKE_mesh_from_object(ob);
-	MFace *mface = &me->mface[index];
-	unsigned int *mcol = ((unsigned int *)me->mcol) + 4 * index;
-	unsigned int *mcolorig = ((unsigned int *)vp->vpaint_prev) + 4 * index;
-	float alpha;
-	int i;
-
-	int brush_alpha_pressure_i;
-	
-	if ((vp->flag & VP_COLINDEX && mface->mat_nr != ob->actcol - 1) ||
-	    ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL)))
-		return;
-
-	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-		unsigned int fcol1 = mcol_blend(mcol[0], mcol[1], 128);
-		if (mface->v4) {
-			unsigned int fcol2 = mcol_blend(mcol[2], mcol[3], 128);
-			vpd->paintcol = mcol_blend(fcol1, fcol2, 128);
-		}
-		else {
-			vpd->paintcol = mcol_blend(mcol[2], fcol1, 170);
-		}
-	}
-
-	brush_alpha_pressure_i = (int)(brush_alpha_pressure * 255.0f);
-
-	for (i = 0; i < (mface->v4 ? 4 : 3); ++i) {
-		alpha = calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos + 6 * (&mface->v1)[i],
-		                         mval, brush_size_pressure, brush_alpha_pressure);
-		if (alpha) {
-			const int alpha_i = (int)(alpha * 255.0f);
-			mcol[i] = vpaint_blend(vp, mcol[i], mcolorig[i], vpd->paintcol, alpha_i, brush_alpha_pressure_i);
-		}
-	}
-}
-#endif
-
-/* BMESH version of vpaint_paint_face (commented above) */
 
 static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
                               const unsigned int index, const float mval[2],
@@ -2744,33 +2703,29 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
 	}
 
 	if (vpd->use_fast_update) {
-
-#ifdef CPYCOL
-#  undef CPYCOL
-#endif
-#define CPYCOL(c, l) (c)->a = (l)->a, (c)->r = (l)->r, (c)->g = (l)->g, (c)->b = (l)->b
-
 		/* update vertex colors for tessellations incrementally,
 		 * rather then regenerating the tessellation altogether */
 		for (e = vpd->polyfacemap[index].first; e; e = e->next) {
-			mf = me->mface + e->facenr;
-			mc = me->mcol + e->facenr * 4;
+			mf = &me->mface[e->facenr];
+			mc = &me->mcol[e->facenr * 4];
 
 			ml = me->mloop + mpoly->loopstart;
 			mlc = me->mloopcol + mpoly->loopstart;
 			for (j = 0; j < mpoly->totloop; j++, ml++, mlc++) {
-				if (ml->v == mf->v1)
-					CPYCOL(mc, mlc);
-				else if (ml->v == mf->v2)
-					CPYCOL(mc + 1, mlc);
-				else if (ml->v == mf->v3)
-					CPYCOL(mc + 2, mlc);
-				else if (mf->v4 && ml->v == mf->v4)
-					CPYCOL(mc + 3, mlc);
-
+				if (ml->v == mf->v1) {
+					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 0);
+				}
+				else if (ml->v == mf->v2) {
+					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 1);
+				}
+				else if (ml->v == mf->v3) {
+					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 2);
+				}
+				else if (mf->v4 && ml->v == mf->v4) {
+					MESH_MLOOPCOL_TO_MCOL(mlc, mc + 3);
+				}
 			}
 		}
-#undef CPYCOL
 	}
 
 }
@@ -2804,7 +2759,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mval[0] -= vc->ar->winrct.xmin;
 	mval[1] -= vc->ar->winrct.ymin;
 
-			
+
 	/* which faces are involved */
 	if (vp->flag & VP_AREA) {
 		totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
@@ -2814,19 +2769,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		if (indexar[0]) totindex = 1;
 		else totindex = 0;
 	}
-			
-			
-	if (vp->flag & VP_COLINDEX) {
-		for (index = 0; index < totindex; index++) {
-			if (indexar[index] && indexar[index] <= me->totpoly) {
-				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
-						
-				if (mpoly->mat_nr != ob->actcol - 1) {
-					indexar[index] = 0;
-				}
-			}
-		}
-	}
 
 	if ((me->editflag & ME_EDIT_PAINT_MASK) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {
@@ -2835,15 +2777,13 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 						
 				if ((mpoly->flag & ME_FACE_SEL) == 0)
 					indexar[index] = 0;
-			}					
+			}
 		}
 	}
 	
 	swap_m4m4(vc->rv3d->persmat, mat);
 
-			
 	for (index = 0; index < totindex; index++) {
-				
 		if (indexar[index] && indexar[index] <= me->totpoly) {
 			vpaint_paint_poly(vp, vpd, ob, indexar[index] - 1, mval, brush_size_pressure, brush_alpha_pressure);
 		}
@@ -2863,6 +2803,10 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		/* recalculate modifier stack to get new colors, slow,
 		 * avoid this if we can! */
 		DAG_id_tag_update(ob->data, 0);
+	}
+	else if (!GPU_buffer_legacy(ob->derivedFinal)) {
+		/* If using new VBO drawing, mark mcol as dirty to force colors gpu buffer refresh! */
+		ob->derivedFinal->dirty |= DM_DIRTY_MCOL_UPDATE_DRAW;
 	}
 }
 
@@ -2891,7 +2835,8 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
 static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	
+	int retval;
+
 	op->customdata = paint_stroke_new(C, NULL, vpaint_stroke_test_start,
 	                                  vpaint_stroke_update_step,
 	                                  vpaint_stroke_done, event->type);
@@ -2899,7 +2844,9 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
-	op->type->modal(C, op, event);
+	retval = op->type->modal(C, op, event);
+	OPERATOR_RETVAL_CHECK(retval);
+	BLI_assert(retval == OPERATOR_RUNNING_MODAL);
 	
 	return OPERATOR_RUNNING_MODAL;
 }

@@ -117,5 +117,4 @@ class SCA_MouseSensor : public SCA_ISensor
 #endif
 };
 
-#endif //__SCA_MOUSESENSOR_H__
-
+#endif  /* __SCA_MOUSESENSOR_H__ */

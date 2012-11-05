@@ -106,9 +106,9 @@ typedef struct uiLayout uiLayout;
 /* uiBlock->flag (controls) */
 #define UI_BLOCK_LOOP           1
 #define UI_BLOCK_REDRAW         2
-#define UI_BLOCK_RET_1          4       /* XXX 2.5 not implemented */
+#define UI_BLOCK_SEARCH_MENU    4
 #define UI_BLOCK_NUMSELECT      8
-/*#define UI_BLOCK_ENTER_OK		16*/ /*UNUSED*/
+#define UI_BLOCK_NO_WIN_CLIP    16      /* don't apply window clipping */ /* was UI_BLOCK_ENTER_OK */
 #define UI_BLOCK_CLIPBOTTOM     32
 #define UI_BLOCK_CLIPTOP        64
 #define UI_BLOCK_MOVEMOUSE_QUIT 128
@@ -120,11 +120,12 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_CLIP_EVENTS    8192    /* stop handling mouse events */
 
 /* uiPopupBlockHandle->menuretval */
-#define UI_RETURN_CANCEL    1       /* cancel all menus cascading */
-#define UI_RETURN_OK        2       /* choice made */
-#define UI_RETURN_OUT       4       /* left the menu */
-#define UI_RETURN_UPDATE    8       /* update the button that opened */
-#define UI_RETURN_POPUP_OK  16      /* popup is ok to be handled */
+#define UI_RETURN_CANCEL     1       /* cancel all menus cascading */
+#define UI_RETURN_OK         2       /* choice made */
+#define UI_RETURN_OUT        4       /* left the menu */
+#define UI_RETURN_OUT_PARENT 8       /* let the parent handle this event */
+#define UI_RETURN_UPDATE     16      /* update the button that opened */
+#define UI_RETURN_POPUP_OK   32      /* popup is ok to be handled */
 
 /* block->flag bits 12-15 are identical to but->flag bits */
 
@@ -420,7 +421,6 @@ void    uiBlockSetDirection(uiBlock *block, int direction);
 void    uiBlockFlipOrder(uiBlock *block);
 void    uiBlockSetFlag(uiBlock *block, int flag);
 void    uiBlockClearFlag(uiBlock *block, int flag);
-void    uiBlockSetXOfs(uiBlock *block, int xofs);
 
 int     uiButGetRetVal(uiBut *but);
 
@@ -810,6 +810,8 @@ void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, const char
 void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                       PointerRNA *used_ptr, const char *used_propname, int active_layer);
+void uiTemplateGameStates(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
+                      PointerRNA *used_ptr, const char *used_propname, int active_state);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, int color_management);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);

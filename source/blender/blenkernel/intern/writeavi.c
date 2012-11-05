@@ -47,7 +47,11 @@
 #include "BKE_report.h"
 
 #include "BKE_writeavi.h"
-#include "AVI_avi.h"
+
+/* ********************** general blender movie support ***************************** */
+
+#ifdef WITH_AVI
+#  include "AVI_avi.h"
 
 /* callbacks */
 static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportList *reports);
@@ -55,30 +59,31 @@ static void end_avi(void);
 static int append_avi(RenderData *rd, int start_frame, int frame, int *pixels,
                       int rectx, int recty, ReportList *reports);
 static void filepath_avi(char *string, RenderData *rd);
-
-/* ********************** general blender movie support ***************************** */
+#endif  /* WITH_AVI */
 
 #ifdef WITH_QUICKTIME
-#include "quicktime_export.h"
+#  include "quicktime_export.h"
 #endif
 
 #ifdef WITH_FFMPEG
-#include "BKE_writeffmpeg.h"
+#  include "BKE_writeffmpeg.h"
 #endif
 
 #include "BKE_writeframeserver.h"
 
 bMovieHandle *BKE_movie_handle_get(const char imtype)
 {
-	static bMovieHandle mh;
+	static bMovieHandle mh = {0};
 	
 	/* set the default handle, as builtin */
+#ifdef WITH_AVI
 	mh.start_movie = start_avi;
 	mh.append_movie = append_avi;
 	mh.end_movie = end_avi;
 	mh.get_next_frame = NULL;
 	mh.get_movie_path = filepath_avi;
-	
+#endif
+
 	/* do the platform specific handles */
 #ifdef WITH_QUICKTIME
 	if (imtype == R_IMF_IMTYPE_QUICKTIME) {
@@ -113,6 +118,8 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 
 /* ****************************************************************** */
 
+
+#ifdef WITH_AVI
 
 static AviMovie *avi = NULL;
 
@@ -155,7 +162,7 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	else format = AVI_FORMAT_MJPEG;
 
 	if (AVI_open_compress(name, avi, 1, format) != AVI_ERROR_NONE) {
-		BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file.");
+		BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file");
 		MEM_freeN(avi);
 		avi = NULL;
 		return 0;
@@ -168,8 +175,8 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 
 	avi->interlace = 0;
 	avi->odd_fields = 0;
-/*  avi->interlace= rd->mode & R_FIELDS; */
-/*  avi->odd_fields= (rd->mode & R_ODDFIELD)?1:0; */
+/*  avi->interlace = rd->mode & R_FIELDS; */
+/*  avi->odd_fields = (rd->mode & R_ODDFIELD) ? 1 : 0; */
 	
 	printf("Created avi: %s\n", name);
 	return 1;
@@ -219,6 +226,7 @@ static void end_avi(void)
 	MEM_freeN(avi);
 	avi = NULL;
 }
+#endif  /* WITH_AVI */
 
 /* similar to BKE_makepicstring() */
 void BKE_movie_filepath_get(char *string, RenderData *rd)

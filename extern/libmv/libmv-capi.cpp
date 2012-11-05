@@ -523,7 +523,7 @@ int libmv_refineParametersAreValid(int parameters) {
 	                       LIBMV_REFINE_RADIAL_DISTORTION_K1));
 }
 
-void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntrinsics *intrinsics,
+static void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntrinsics *intrinsics,
 			libmv::EuclideanReconstruction *reconstruction, int refine_intrinsics,
 			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
 {
@@ -550,7 +550,8 @@ void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntrinsics 
 }
 
 libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyframe1, int keyframe2,
-			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			int refine_intrinsics, double focal_length, double principal_x, double principal_y,
+			double k1, double k2, double k3, struct libmv_reconstructionOptions *options,
 			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
 {
 	/* Invert the camera intrinsics. */
@@ -558,6 +559,7 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
 	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
 	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
+	libmv::ReconstructionOptions reconstruction_options;
 
 	ReconstructUpdateCallback update_callback =
 		ReconstructUpdateCallback(progress_update_callback, callback_customdata);
@@ -565,6 +567,9 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	intrinsics->SetFocalLength(focal_length, focal_length);
 	intrinsics->SetPrincipalPoint(principal_x, principal_y);
 	intrinsics->SetRadialDistortion(k1, k2, k3);
+
+	reconstruction_options.success_threshold = options->success_threshold;
+	reconstruction_options.use_fallback_reconstruction = options->use_fallback_reconstruction;
 
 	for (int i = 0; i < markers.size(); ++i) {
 		intrinsics->InvertIntrinsics(markers[i].x,
@@ -584,7 +589,8 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 
 	libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
 	libmv::EuclideanBundle(normalized_tracks, reconstruction);
-	libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction, &update_callback);
+	libmv::EuclideanCompleteReconstruction(reconstruction_options, normalized_tracks,
+	                                       reconstruction, &update_callback);
 
 	if (refine_intrinsics) {
 		libmv_solveRefineIntrinsics((libmv::Tracks *)tracks, intrinsics, reconstruction,
@@ -1027,7 +1033,7 @@ void libmv_InvertIntrinsics(double focal_length, double principal_x, double prin
 
 /* ************ point clouds ************ */
 
-void libmvTransformToMat4(libmv::Mat3 &R, libmv::Vec3 &S, libmv::Vec3 &t, double M[4][4])
+static void libmvTransformToMat4(libmv::Mat3 &R, libmv::Vec3 &S, libmv::Vec3 &t, double M[4][4])
 {
 	for (int j = 0; j < 3; ++j)
 		for (int k = 0; k < 3; ++k)

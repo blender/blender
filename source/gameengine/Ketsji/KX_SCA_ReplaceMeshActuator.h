@@ -84,14 +84,13 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 		m_scene= val;
 	};
 
-	static PyObject* pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	KX_PYMETHOD_DOC(KX_SCA_ReplaceMeshActuator,instantReplaceMesh);
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 }; 
 
-#endif
-
+#endif  /* __KX_SCA_REPLACEMESHACTUATOR_H__ */

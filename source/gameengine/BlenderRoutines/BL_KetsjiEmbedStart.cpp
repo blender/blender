@@ -35,9 +35,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// don't show stl-warnings
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+   /* don't show stl-warnings */
+#  pragma warning (disable:4786)
 #endif
 
 #include "GL/glew.h"
@@ -69,37 +69,33 @@
 #include "Value.h"
 
 
-
-#ifdef __cplusplus
 extern "C" {
-#endif
-	/***/
-#include "DNA_view3d_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
-#include "BKE_global.h"
-#include "BKE_report.h"
+	#include "DNA_view3d_types.h"
+	#include "DNA_screen_types.h"
+	#include "DNA_userdef_types.h"
+	#include "DNA_scene_types.h"
+	#include "DNA_windowmanager_types.h"
 
-#include "MEM_guardedalloc.h"
+	#include "BKE_global.h"
+	#include "BKE_report.h"
+	#include "BKE_ipo.h"
+	#include "BKE_main.h"
+	#include "BKE_context.h"
 
-/* #include "BKE_screen.h" */ /* cant include this because of 'new' function name */
-extern float BKE_screen_view3d_zoom_to_fac(float camzoom);
+	/* avoid c++ conflict with 'new' */
+	#define new _new
+	#include "BKE_screen.h"
+	#undef new
 
-#include "BKE_main.h"
-#include "BLI_blenlib.h"
-#include "BLO_readfile.h"
-#include "DNA_scene_types.h"
-#include "BKE_ipo.h"
-	/***/
+	#include "MEM_guardedalloc.h"
 
-#include "BKE_context.h"
-#include "../../blender/windowmanager/WM_types.h"
-#include "../../blender/windowmanager/wm_window.h"
-#include "../../blender/windowmanager/wm_event_system.h"
-#ifdef __cplusplus
+	#include "BLI_blenlib.h"
+	#include "BLO_readfile.h"
+
+	#include "../../blender/windowmanager/WM_types.h"
+	#include "../../blender/windowmanager/wm_window.h"
+	#include "../../blender/windowmanager/wm_event_system.h"
 }
-#endif
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
@@ -125,8 +121,8 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win, Scene *scene, ARegion *ar,
-                       KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
+static int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win, Scene *scene, ARegion *ar,
+                              KX_BlenderKeyboardDevice* keyboarddevice, KX_BlenderMouseDevice* mousedevice, int draw_letterbox)
 {
 	int exitrequested;
 
@@ -143,7 +139,7 @@ int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWindow *win
 			// itself is unaware of the extra space, so we clear the whole region for it.
 			glClearColor(scene->gm.framing.col[0], scene->gm.framing.col[1], scene->gm.framing.col[2], 1.0f);
 			glViewport(ar->winrct.xmin, ar->winrct.ymin,
-			           BLI_RCT_SIZE_X(&ar->winrct), BLI_RCT_SIZE_Y(&ar->winrct));
+			           BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
 
@@ -198,7 +194,7 @@ struct BL_KetsjiNextFrameState {
 	int draw_letterbox;
 } ketsjinextframestate;
 
-int BL_KetsjiPyNextFrame(void *state0) 
+static int BL_KetsjiPyNextFrame(void *state0)
 {
 	BL_KetsjiNextFrameState *state = (BL_KetsjiNextFrameState *) state0;
 	return BL_KetsjiNextFrame(
@@ -552,7 +548,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 						ketsjinextframestate.draw_letterbox = draw_letterbox;
 			
 						pynextframestate.state = &ketsjinextframestate;
-						pynextframestate.func = &BL_KetsjiPyNextFrame;			
+						pynextframestate.func = &BL_KetsjiPyNextFrame;
 						printf("Yielding control to Python script '%s'...\n", python_main);
 						PyRun_SimpleString(python_code);
 						printf("Exit Python script '%s'\n", python_main);
@@ -590,7 +586,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				const Py_ssize_t numitems= PyList_GET_SIZE(gameLogic_keys_new);
 				Py_ssize_t listIndex;
 				for (listIndex=0; listIndex < numitems; listIndex++) {
-					PyObject* item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
+					PyObject *item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
 					if (!PySequence_Contains(gameLogic_keys, item)) {
 						PyDict_DelItem(	PyModule_GetDict(gameLogic), item);
 					}

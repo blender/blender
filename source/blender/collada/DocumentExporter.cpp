@@ -79,11 +79,26 @@ extern "C"
 #include "DNA_modifier_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_fcurve.h"
-#include "BKE_animsys.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
+#include "BKE_DerivedMesh.h"
+#include "BKE_action.h" // pose functions
+#include "BKE_animsys.h"
+#include "BKE_armature.h"
+#include "BKE_blender.h" // version info
+#include "BKE_fcurve.h"
+#include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
+#include "BKE_object.h"
+#include "BKE_scene.h"
+
 #include "ED_keyframing.h"
 #ifdef WITH_BUILDINFO
 extern char build_rev[];
@@ -91,24 +106,11 @@ extern char build_rev[];
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_blender.h" // version info
-#include "BKE_scene.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_action.h" // pose functions
-#include "BKE_armature.h"
-#include "BKE_image.h"
-#include "BKE_object.h"
-
-#include "BLI_math.h"
-#include "BLI_string.h"
-#include "BLI_listbase.h"
-
 #include "RNA_access.h"
 }
 
 #include "collada_internal.h"
+#include "collada_utils.h"
 #include "DocumentExporter.h"
 
 extern bool bc_has_object_type(LinkNode *export_set, short obtype);
@@ -160,7 +162,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	clear_global_id_map();
 	
 	COLLADABU::NativeString native_filename =
-	    COLLADABU::NativeString(std::string(this->export_settings->filepath));
+	    COLLADABU::NativeString(std::string(this->export_settings->filepath), COLLADABU::NativeString::ENCODING_UTF8);
 	COLLADASW::StreamWriter sw(native_filename);
 
 	fprintf(stdout, "Collada export: %s\n", this->export_settings->filepath);

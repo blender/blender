@@ -24,6 +24,7 @@
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/levenberg_marquardt.h"
 #include "libmv/numeric/numeric.h"
+#include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 #include "libmv/simple_pipeline/tracks.h"
 

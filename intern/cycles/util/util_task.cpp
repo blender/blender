@@ -38,8 +38,6 @@ TaskPool::~TaskPool()
 
 void TaskPool::push(Task *task, bool front)
 {
-	thread_scoped_lock num_lock(num_mutex);
-
 	TaskScheduler::Entry entry;
 
 	entry.task = task;
@@ -104,17 +102,22 @@ void TaskPool::wait_work()
 
 void TaskPool::cancel()
 {
-	thread_scoped_lock num_lock(num_mutex);
-
 	do_cancel = true;
 
 	TaskScheduler::clear(this);
+	
+	{
+		thread_scoped_lock num_lock(num_mutex);
+
+		while(num)
+			num_cond.wait(num_lock);
+	}
+
+	do_cancel = false;
 }
 
 void TaskPool::stop()
 {
-	thread_scoped_lock num_lock(num_mutex);
-	
 	TaskScheduler::clear(this);
 
 	assert(num == 0);
@@ -127,20 +130,20 @@ bool TaskPool::cancelled()
 
 void TaskPool::num_decrease(int done)
 {
+	num_mutex.lock();
 	num -= done;
+
 	assert(num >= 0);
-	
-	if(num == 0) {
-		do_cancel = false;
-		
+	if(num == 0)
 		num_cond.notify_all();
-	}
+
+	num_mutex.unlock();
 }
 
 void TaskPool::num_increase()
 {
+	thread_scoped_lock num_lock(num_mutex);
 	num++;
-	
 	num_cond.notify_all();
 }
 
@@ -236,11 +239,7 @@ void TaskScheduler::thread_run(int thread_id)
 		delete entry.task;
 
 		/* notify pool task was done */
-		{
-			/* not called from TaskPool, have to explicitly lock the mutex here */
-			thread_scoped_lock num_lock(entry.pool->num_mutex);
-			entry.pool->num_decrease(1);
-		}
+		entry.pool->num_decrease(1);
 	}
 }
 

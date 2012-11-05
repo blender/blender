@@ -30,6 +30,7 @@ CCL_NAMESPACE_BEGIN
 
 class Tile {
 public:
+	int index;
 	int x, y, w, h;
 	int device;
 	bool rendering;
@@ -37,8 +38,8 @@ public:
 	Tile()
 	{}
 
-	Tile(int x_, int y_, int w_, int h_, int device_)
-	: x(x_), y(y_), w(w_), h(h_), device(device_), rendering(false) {}
+	Tile(int index_, int x_, int y_, int w_, int h_, int device_)
+	: index(index_), x(x_), y(y_), w(w_), h(h_), device(device_), rendering(false) {}
 };
 
 /* Tile Manager */
@@ -51,13 +52,14 @@ public:
 		BufferParams buffer;
 		int sample;
 		int num_samples;
-		int resolution;
+		int resolution_divider;
 		int num_tiles;
 		int num_rendered_tiles;
 		list<Tile> tiles;
 	} state;
 
-	TileManager(bool progressive, int num_samples, int2 tile_size, int resolution, int num_devices = 1);
+	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution,
+	            bool preserve_tile_device, bool background, int num_devices = 1);
 	~TileManager();
 
 	void reset(BufferParams& params, int num_samples);
@@ -72,12 +74,41 @@ protected:
 	bool progressive;
 	int num_samples;
 	int2 tile_size;
-	int resolution;
+	int start_resolution;
 	int num_devices;
 
-	int start_resolution;
+	/* in some cases it is important that the same tile will be returned for the same
+	 * device it was originally generated for (i.e. viewport rendering when buffer is
+	 * allocating once for tile and then always used by it)
+	 *
+	 * in other cases any tile could be handled by any device (i.e. final rendering
+	 * without progressive refine)
+	 */
+	bool preserve_tile_device;
 
-	list<Tile>::iterator next_center_tile(int device = 0);
+	/* for background render tiles should exactly match render parts generated from
+	 * blender side, which means image first gets split into tiles and then tiles are
+	 * assigning to render devices
+	 *
+	 * however viewport rendering expects tiles to be allocated in a special way,
+	 * meaning image is being sliced horizontally first and every device handles
+	 * it's own slice
+	 */
+	bool background;
+
+	/* splits image into tiles and assigns equal amount of tiles to every render device */
+	void gen_tiles_global();
+
+	/* slices image into as much pieces as how many devices are rendering this image */
+	void gen_tiles_sliced();
+
+	/* returns closest tile to center of rendered tiles
+	 * mimics behavior of blender internal's tile order
+	 */
+	list<Tile>::iterator next_center_tile(int device);
+
+	/* returns first unhandled tile starting from left bottom corner of the image */
+	list<Tile>::iterator next_simple_tile(int device);
 };
 
 CCL_NAMESPACE_END

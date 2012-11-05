@@ -76,9 +76,9 @@ bool KX_RayCast::RayTest(PHY_IPhysicsEnvironment* physics_environment, const MT_
 	
 	PHY_IPhysicsController* hit_controller;
 
-	while((hit_controller = physics_environment->rayTest(callback,
-			frompoint.x(),frompoint.y(),frompoint.z(),
-			topoint.x(),topoint.y(),topoint.z())) != NULL) 
+	while ((hit_controller = physics_environment->rayTest(callback,
+	                                                      frompoint.x(),frompoint.y(),frompoint.z(),
+	                                                      topoint.x(),topoint.y(),topoint.z())) != NULL)
 	{
 		KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(hit_controller->getNewClientInfo());
 		

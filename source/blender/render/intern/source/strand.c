@@ -449,6 +449,7 @@ typedef struct StrandPart {
 	int sample;
 	int shadow;
 	float (*jit)[2];
+	int samples;
 
 	StrandSegment *segment;
 	float t[3], s[3];
@@ -545,7 +546,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 		bufferz= 0x7FFFFFFF;
 		if (spart->rectmask) maskz= 0x7FFFFFFF;
 		
-		if (*rd) {	
+		if (*rd) {
 			for (ps= (PixStr *)(*rd); ps; ps= ps->next) {
 				if (mask & ps->mask) {
 					bufferz= ps->z;
@@ -669,12 +670,8 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 		float dt= p2->t - p1->t;
 		int a;
 
-		if (re->osa) {
-			for (a=0; a<re->osa; a++)
-				do_scanconvert_strand(re, spart, zspan, t, dt, p1->zco2, p1->zco1, p2->zco1, p2->zco2, a);
-		}
-		else
-			do_scanconvert_strand(re, spart, zspan, t, dt, p1->zco2, p1->zco1, p2->zco1, p2->zco2, 0);
+		for (a=0; a<spart->samples; a++)
+			do_scanconvert_strand(re, spart, zspan, t, dt, p1->zco2, p1->zco1, p2->zco1, p2->zco2, a);
 	}
 	else {
 		float hoco1[4], hoco2[4];
@@ -786,7 +783,7 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 }
 
 /* render call to fill in strands */
-int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBase *apsmbase, unsigned int lay, int UNUSED(negzmask), float winmat[][4], int winx, int winy, int UNUSED(sample), float (*jit)[2], float clipcrop, int shadow, StrandShadeCache *cache)
+int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBase *apsmbase, unsigned int lay, int UNUSED(negzmask), float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float clipcrop, int shadow, StrandShadeCache *cache)
 {
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
@@ -820,6 +817,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	spart.cache= cache;
 	spart.shadow= shadow;
 	spart.jit= jit;
+	spart.samples= samples;
 
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty, clipcrop);
 

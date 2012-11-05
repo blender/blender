@@ -34,12 +34,12 @@
 
 
 /* ******************* Channel Matte Node ********************************* */
-static bNodeSocketTemplate cmp_node_channel_matte_in[]={
+static bNodeSocketTemplate cmp_node_channel_matte_in[] ={
 	{SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
 	{-1, 0, ""}
 };
 
-static bNodeSocketTemplate cmp_node_channel_matte_out[]={
+static bNodeSocketTemplate cmp_node_channel_matte_out[] ={
 	{SOCK_RGBA, 0, N_("Image")},
 	{SOCK_FLOAT, 0, N_("Matte")},
 	{-1, 0, ""}
@@ -71,7 +71,7 @@ static void do_normalized_ycca_to_rgba2(bNode *UNUSED(node), float *out, float *
 static void do_channel_matte(bNode *node, float *out, float *in)
 {
 	NodeChroma *c=(NodeChroma *)node->storage;
-	float alpha=0.0;	
+	float alpha=0.0;
 
 	switch (c->algorithm) {
 	case 0: { /* Alpha=key_channel-limit channel */

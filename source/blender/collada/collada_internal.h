@@ -88,6 +88,7 @@ extern std::string translate_id(const std::string &id);
 
 extern std::string id_name(void *id);
 
+extern std::string get_geometry_id(Object *ob);
 extern std::string get_geometry_id(Object *ob, bool use_instantiation);
 
 extern std::string get_light_id(Object *ob);

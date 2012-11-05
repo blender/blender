@@ -436,7 +436,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 	parameters->image_offset_y0 = 0;
 
 	/*Codeblock size = 32 * 32*/
-	parameters->cblockw_init = 32;	
+	parameters->cblockw_init = 32;
 	parameters->cblockh_init = 32;
 	parameters->csty |= 0x01;
 
@@ -544,6 +544,10 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 	parameters->cp_disto_alloc = 1;
 }
 
+static float channel_colormanage_noop(float value)
+{
+	return value;
+}
 
 static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 {
@@ -560,8 +564,19 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	opj_image_cmptparm_t cmptparm[4];   /* maximum of 4 components */
 	opj_image_t *image = NULL;
 	
+	float (*chanel_colormanage_cb)(float);
+	
 	img_fol_t img_fol; /* only needed for cinema presets */
 	memset(&img_fol, 0, sizeof(img_fol_t));
+	
+	if (ibuf->float_colorspace) {
+		/* float buffer was managed already, no need in color space conversion */
+		chanel_colormanage_cb = channel_colormanage_noop;
+	}
+	else {
+		/* standard linear-to-srgb conversion if float buffer wasn't managed */
+		chanel_colormanage_cb = linearrgb_to_srgb;
+	}
 	
 	if (ibuf->ftype & JP2_CINE) {
 		
@@ -587,7 +602,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 		prec = 12;
 		numcomps = 3;
 	}
-	else { 
+	else {
 		/* Get settings from the imbuf */
 		color_space = (ibuf->ftype & JP2_YCC) ? CLRSPC_SYCC : CLRSPC_SRGB;
 		
@@ -649,9 +664,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 				if (numcomps == 4) {
 					PIXEL_LOOPER_BEGIN(rect_float)
 					{
-						r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[0]));
-						g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[1]));
-						b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[2]));
+						r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[0]));
+						g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[1]));
+						b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[2]));
 						a[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
 					}
 					PIXEL_LOOPER_END;
@@ -659,9 +674,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 				else {
 					PIXEL_LOOPER_BEGIN(rect_float)
 					{
-						r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[0]));
-						g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[1]));
-						b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[2]));
+						r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[0]));
+						g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[1]));
+						b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(chanel_colormanage_cb(rect_float[2]));
 					}
 					PIXEL_LOOPER_END;
 				}
@@ -671,9 +686,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 				if (numcomps == 4) {
 					PIXEL_LOOPER_BEGIN(rect_float)
 					{
-						r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[0]));
-						g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[1]));
-						b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[2]));
+						r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[0]));
+						g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[1]));
+						b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[2]));
 						a[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
 					}
 					PIXEL_LOOPER_END;
@@ -681,9 +696,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 				else {
 					PIXEL_LOOPER_BEGIN(rect_float)
 					{
-						r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[0]));
-						g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[1]));
-						b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[2]));
+						r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[0]));
+						g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[1]));
+						b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(chanel_colormanage_cb(rect_float[2]));
 					}
 					PIXEL_LOOPER_END;
 				}
@@ -693,9 +708,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 				if (numcomps == 4) {
 					PIXEL_LOOPER_BEGIN(rect_float)
 					{
-						r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[0]));
-						g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[1]));
-						b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[2]));
+						r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[0]));
+						g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[1]));
+						b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[2]));
 						a[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
 					}
 					PIXEL_LOOPER_END;
@@ -703,9 +718,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 				else {
 					PIXEL_LOOPER_BEGIN(rect_float)
 					{
-						r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[0]));
-						g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[1]));
-						b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[2]));
+						r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[0]));
+						g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[1]));
+						b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(chanel_colormanage_cb(rect_float[2]));
 					}
 					PIXEL_LOOPER_END;
 				}

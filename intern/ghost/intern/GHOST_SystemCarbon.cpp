@@ -126,7 +126,7 @@ static GHOST_TKey convertKey(int rawCode)
 	 */
 	static UInt32 dummy = 0;
 	Handle transData = (Handle) GetScriptManagerVariable(smKCHRCache);
-	unsigned char vk = KeyTranslate(transData, rawCode, &dummy);	
+	unsigned char vk = KeyTranslate(transData, rawCode, &dummy);
 	/* Map numpad based on rawcodes first, otherwise they
 	 * look like non-numpad events.
 	 * Added too: mapping the number keys, for french keyboards etc (ton)

@@ -35,24 +35,25 @@ extern "C"
 #include "DNA_armature_types.h"
 #include "DNA_material_types.h"
 
+#include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 #include "BKE_scene.h"
+#include "BKE_action.h" // pose functions
+#include "BKE_armature.h"
+#include "BKE_object.h"
+
 #ifdef NAN_BUILDINFO
 extern char build_rev[];
 #endif
 }
 
 #include "MEM_guardedalloc.h"
-
-#include "BKE_action.h" // pose functions
-#include "BKE_armature.h"
-#include "BKE_object.h"
-
-#include "BLI_math.h"
-#include "BLI_string.h"
-#include "BLI_listbase.h"
 
 #include "RNA_access.h"
 
@@ -122,7 +123,7 @@ protected:
 
 	float convert_angle(float angle);
 
-	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic);	
+	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic);
 
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
 							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis, bool transform);

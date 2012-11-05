@@ -636,7 +636,7 @@ elseif(WIN32)
 
 	if(WITH_OPENIMAGEIO)
 		if(NOT MINGW)
-			set_lib_path(OIIOBIN "openimageio")
+			set(OIIOBIN ${LIBDIR}/openimageio)
 			install(
 				FILES
 					${OIIOBIN}/bin/OpenImageIO.dll
@@ -646,11 +646,17 @@ elseif(WIN32)
 	endif()
 
 	if(WITH_OPENCOLORIO)
+		set(OCIOBIN ${LIBDIR}/opencolorio/bin)
 		if(NOT MINGW)
-			set_lib_path(OCIOBIN "opencolorio/bin")
 			install(
 				FILES
 					${OCIOBIN}/OpenColorIO.dll
+				DESTINATION ${TARGETDIR}
+			)
+		else()
+			install(
+				FILES
+					${OCIOBIN}/libOpenColorIO.dll
 				DESTINATION ${TARGETDIR}
 			)
 		endif()
@@ -730,7 +736,7 @@ elseif(APPLE)
 		)
 
 	endif()
-
+	
 	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
 	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
@@ -772,6 +778,7 @@ elseif(APPLE)
 		endif()
 
 	endif()
+		
 endif()
 
 # -----------------------------------------------------------------------------
@@ -883,7 +890,6 @@ endif()
 		bf_imbuf_dds
 		bf_collada
 		bf_intern_bsp
-		bf_intern_decimate
 		bf_intern_elbeem
 		bf_intern_memutil
 		bf_intern_guardedalloc

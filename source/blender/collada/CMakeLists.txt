@@ -70,7 +70,7 @@ set(SRC
 	collada_utils.cpp
 
 	AnimationImporter.h
-	AnimationExporter.h	
+	AnimationExporter.h
 	ArmatureExporter.h
 	ArmatureImporter.h
 	CameraExporter.h

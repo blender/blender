@@ -36,25 +36,28 @@ void CropBaseOperation::updateArea()
 	SocketReader *inputReference = this->getInputSocketReader(0);
 	float width = inputReference->getWidth();
 	float height = inputReference->getHeight();
-	if (this->m_relative) {
-		this->m_settings->x1 = width * this->m_settings->fac_x1;
-		this->m_settings->x2 = width * this->m_settings->fac_x2;
-		this->m_settings->y1 = height * this->m_settings->fac_y1;
-		this->m_settings->y2 = height * this->m_settings->fac_y2;
-	}
-	if (width <= this->m_settings->x1 + 1)
-		this->m_settings->x1 = width - 1;
-	if (height <= this->m_settings->y1 + 1)
-		this->m_settings->y1 = height - 1;
-	if (width <= this->m_settings->x2 + 1)
-		this->m_settings->x2 = width - 1;
-	if (height <= this->m_settings->y2 + 1)
-		this->m_settings->y2 = height - 1;
 	
-	this->m_xmax = MAX2(this->m_settings->x1, this->m_settings->x2) + 1;
-	this->m_xmin = MIN2(this->m_settings->x1, this->m_settings->x2);
-	this->m_ymax = MAX2(this->m_settings->y1, this->m_settings->y2) + 1;
-	this->m_ymin = MIN2(this->m_settings->y1, this->m_settings->y2);
+	if (width > 0.0f && height > 0.0f) {
+		if (this->m_relative) {
+			this->m_settings->x1 = width * this->m_settings->fac_x1;
+			this->m_settings->x2 = width * this->m_settings->fac_x2;
+			this->m_settings->y1 = height * this->m_settings->fac_y1;
+			this->m_settings->y2 = height * this->m_settings->fac_y2;
+		}
+		if (width <= this->m_settings->x1 + 1)
+			this->m_settings->x1 = width - 1;
+		if (height <= this->m_settings->y1 + 1)
+			this->m_settings->y1 = height - 1;
+		if (width <= this->m_settings->x2 + 1)
+			this->m_settings->x2 = width - 1;
+		if (height <= this->m_settings->y2 + 1)
+			this->m_settings->y2 = height - 1;
+		
+		this->m_xmax = max(this->m_settings->x1, this->m_settings->x2) + 1;
+		this->m_xmin = min(this->m_settings->x1, this->m_settings->x2);
+		this->m_ymax = max(this->m_settings->y1, this->m_settings->y2) + 1;
+		this->m_ymin = min(this->m_settings->y1, this->m_settings->y2);
+	}
 }
 
 void CropBaseOperation::initExecution()
@@ -110,5 +113,10 @@ void CropImageOperation::determineResolution(unsigned int resolution[2], unsigne
 
 void CropImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-	this->m_inputOperation->read(output, (x + this->m_xmin), (y + this->m_ymin), sampler);
+	if (x >= 0 && x < getWidth() && y >= 0 && y < getHeight())  {
+		this->m_inputOperation->read(output, (x + this->m_xmin), (y + this->m_ymin), sampler);
+	}
+	else {
+		zero_v4(output);
+	}
 }

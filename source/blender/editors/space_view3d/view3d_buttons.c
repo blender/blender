@@ -83,9 +83,10 @@
 
 
 /* ******************* view3d space & buttons ************** */
-#define B_NOP               1
 #define B_REDR              2
 #define B_OBJECTPANELMEDIAN 1008
+
+#define NBR_TRANSFORM_PROPERTIES 7
 
 /* temporary struct for storing transform properties */
 typedef struct {
@@ -93,7 +94,7 @@ typedef struct {
 	float ob_scale[3]; /* need temp space due to linked values */
 	float ob_dims[3];
 	short link_scale;
-	float ve_median[9];
+	float ve_median[NBR_TRANSFORM_PROPERTIES];
 	int curdef;
 	float *defweightp;
 } TransformProperties;
@@ -132,17 +133,38 @@ static float compute_scale_factor(const float ve_median, const float median)
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
+/* Get rid of those ugly magic numbers, even in a single func they become confusing! */
+/* Location, common to all. */
+/* XXX Those two *must* remain contiguous (used as array)! */
+#define LOC_X     0
+#define LOC_Y     1
+#define LOC_Z     2
+/* Meshes... */
+#define M_CREASE  3
+#define M_WEIGHT  4
+/* XXX Those two *must* remain contiguous (used as array)! */
+#define M_SKIN_X  5
+#define M_SKIN_Y  6
+/* Curves... */
+#define C_BWEIGHT 3
+#define C_WEIGHT  4
+#define C_RADIUS  5
+#define C_TILT    6
+/*Lattice... */
+#define L_WEIGHT  4
+
 	uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
 	MDeformVert *dvert = NULL;
 	TransformProperties *tfp;
-	float median[9], ve_median[9];
-	int tot, totw, totweight, totedge, totradius, totskinradius;
+	float median[NBR_TRANSFORM_PROPERTIES], ve_median[NBR_TRANSFORM_PROPERTIES];
+	int tot, totedgedata, totcurvedata, totlattdata, totskinradius, totcurvebweight;
+	int meshdata = FALSE;
 	char defstr[320];
-	PointerRNA radius_ptr;
+	PointerRNA data_ptr;
 
-	median[0] = median[1] = median[2] = median[3] = median[4] = median[5] = median[6] = median[7] = median[8] = 0.0;
-	tot = totw = totweight = totedge = totradius = totskinradius = 0;
-	defstr[0] = 0;
+	fill_vn_fl(median, NBR_TRANSFORM_PROPERTIES, 0.0f);
+	tot = totedgedata = totcurvedata = totlattdata = totskinradius = totcurvebweight = 0;
+	defstr[0] = '\0';
 
 	/* make sure we got storage */
 	if (v3d->properties_storage == NULL)
@@ -163,11 +185,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 				evedef = eve;
 				tot++;
-				add_v3_v3(median, eve->co);
+				add_v3_v3(&median[LOC_X], eve->co);
 
 				vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
 				if (vs) {
-					add_v2_v2(median + 7, vs->radius); /* Third val not used currently. */
+					add_v2_v2(&median[M_SKIN_X], vs->radius); /* Third val not used currently. */
 					totskinradius++;
 				}
 			}
@@ -177,12 +199,12 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				float *f;
 
-				totedge++;
+				totedgedata++;
 				f = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_CREASE);
-				median[3] += f ? *f : 0.0f;
+				median[M_CREASE] += f ? *f : 0.0f;
 
 				f = (float *)CustomData_bmesh_get(&bm->edata, eed->head.data, CD_BWEIGHT);
-				median[6] += f ? *f : 0.0f;
+				median[M_WEIGHT] += f ? *f : 0.0f;
 			}
 		}
 
@@ -212,6 +234,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				tfp->defweightp = &dvert->dw[0].weight;
 			}
 		}
+
+		meshdata = totedgedata || totskinradius;
 	}
 	else if (ob->type == OB_CURVE || ob->type == OB_SURF) {
 		Curve *cu = ob->data;
@@ -230,22 +254,24 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				a = nu->pntsu;
 				while (a--) {
 					if (bezt->f2 & SELECT) {
-						add_v3_v3(median, bezt->vec[1]);
+						add_v3_v3(&median[LOC_X], bezt->vec[1]);
 						tot++;
-						median[4] += bezt->weight;
-						totweight++;
-						median[5] += bezt->radius;
-						totradius++;
-						selp = bezt;
-						seltype = &RNA_BezierSplinePoint;
+						median[C_WEIGHT] += bezt->weight;
+						median[C_RADIUS] += bezt->radius;
+						median[C_TILT] += bezt->alfa;
+						if (!totcurvedata) { /* I.e. first time... */
+							selp = bezt;
+							seltype = &RNA_BezierSplinePoint;
+						}
+						totcurvedata++;
 					}
 					else {
 						if (bezt->f1 & SELECT) {
-							add_v3_v3(median, bezt->vec[0]);
+							add_v3_v3(&median[LOC_X], bezt->vec[0]);
 							tot++;
 						}
 						if (bezt->f3 & SELECT) {
-							add_v3_v3(median, bezt->vec[2]);
+							add_v3_v3(&median[LOC_X], bezt->vec[2]);
 							tot++;
 						}
 					}
@@ -257,16 +283,18 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				a = nu->pntsu * nu->pntsv;
 				while (a--) {
 					if (bp->f1 & SELECT) {
-						add_v3_v3(median, bp->vec);
-						median[3] += bp->vec[3];
-						totw++;
+						add_v3_v3(&median[LOC_X], bp->vec);
+						median[C_BWEIGHT] += bp->vec[3];
+						totcurvebweight++;
 						tot++;
-						median[4] += bp->weight;
-						totweight++;
-						median[5] += bp->radius;
-						totradius++;
-						selp = bp;
-						seltype = &RNA_SplinePoint;
+						median[C_WEIGHT] += bp->weight;
+						median[C_RADIUS] += bp->radius;
+						median[C_TILT] += bp->alfa;
+						if (!totcurvedata) { /* I.e. first time... */
+							selp = bp;
+							seltype = &RNA_SplinePoint;
+						}
+						totcurvedata++;
 					}
 					bp++;
 				}
@@ -274,84 +302,102 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			nu = nu->next;
 		}
 
-		if (totradius == 1)
-			RNA_pointer_create(&cu->id, seltype, selp, &radius_ptr);
+		if (totcurvedata == 1)
+			RNA_pointer_create(&cu->id, seltype, selp, &data_ptr);
 	}
 	else if (ob->type == OB_LATTICE) {
 		Lattice *lt = ob->data;
 		BPoint *bp;
 		int a;
+		StructRNA *seltype = NULL;
+		void *selp = NULL;
 
 		a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 		bp = lt->editlatt->latt->def;
 		while (a--) {
 			if (bp->f1 & SELECT) {
-				add_v3_v3(median, bp->vec);
+				add_v3_v3(&median[LOC_X], bp->vec);
 				tot++;
-				median[4] += bp->weight;
-				totweight++;
+				median[L_WEIGHT] += bp->weight;
+				if (!totlattdata) { /* I.e. first time... */
+					selp = bp;
+					seltype = &RNA_LatticePoint;
+				}
+				totlattdata++;
 			}
 			bp++;
 		}
+
+		if (totlattdata == 1)
+			RNA_pointer_create(&lt->id, seltype, selp, &data_ptr);
 	}
 
 	if (tot == 0) {
 		uiDefBut(block, LABEL, 0, IFACE_("Nothing selected"), 0, 130, 200, 20, NULL, 0, 0, 0, 0, "");
 		return;
 	}
-	median[0] /= (float)tot;
-	median[1] /= (float)tot;
-	median[2] /= (float)tot;
-	if (totedge) {
-		median[3] /= (float)totedge;
-		median[6] /= (float)totedge;
-	}
-	else if (totw)
-		median[3] /= (float)totw;
-	if (totweight)
-		median[4] /= (float)totweight;
-	if (totradius)
-		median[5] /= (float)totradius;
-	if (totskinradius) {
-		median[7] /= (float)totskinradius;
-		median[8] /= (float)totskinradius;
-	}
 
+	/* Location, X/Y/Z */
+	mul_v3_fl(&median[LOC_X], 1.0f / (float)tot);
 	if (v3d->flag & V3D_GLOBAL_STATS)
-		mul_m4_v3(ob->obmat, median);
+		mul_m4_v3(ob->obmat, &median[LOC_X]);
+
+	if (meshdata) {
+		if (totedgedata) {
+			median[M_CREASE] /= (float)totedgedata;
+			median[M_WEIGHT] /= (float)totedgedata;
+		}
+		if (totskinradius) {
+			median[M_SKIN_X] /= (float)totskinradius;
+			median[M_SKIN_Y] /= (float)totskinradius;
+		}
+	}
+	else if (totcurvedata) {
+		median[C_WEIGHT] /= (float)totcurvedata;
+		median[C_RADIUS] /= (float)totcurvedata;
+		median[C_TILT] /= (float)totcurvedata;
+		if (totcurvebweight)
+			median[C_BWEIGHT] /= (float)totcurvebweight;
+	}
+	else if (totlattdata)
+		median[L_WEIGHT] /= (float)totlattdata;
 
 	if (block) { /* buttons */
 		uiBut *but;
 		int yi = 200;
 		const int buth = 20 * UI_DPI_ICON_FAC;
 		const int but_margin = 2;
+		const char *c;
 
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 
 		uiBlockBeginAlign(block);
 		if (tot == 1) {
-			uiDefBut(block, LABEL, 0, IFACE_("Vertex:"), 0, yi -= buth, 200, buth, NULL, 0, 0, 0, 0, "");
+			if (totcurvedata) /* Curve */
+				c = IFACE_("Control Point:");
+			else /* Mesh or lattice */
+				c = IFACE_("Vertex:");
 		}
-		else {
-			uiDefBut(block, LABEL, 0, IFACE_("Median:"), 0, yi -= buth, 200, buth, NULL, 0, 0, 0, 0, "");
-		}
+		else
+			c = IFACE_("Median:");
+		uiDefBut(block, LABEL, 0, c, 0, yi -= buth, 200, buth, NULL, 0, 0, 0, 0, "");
 
 		uiBlockBeginAlign(block);
 
 		/* Should be no need to translate these. */
 		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:", 0, yi -= buth, 200, buth,
-		                &(tfp->ve_median[0]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
+		                &(tfp->ve_median[LOC_X]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
 		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:", 0, yi -= buth, 200, buth,
-		                &(tfp->ve_median[1]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
+		                &(tfp->ve_median[LOC_Y]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
 		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:", 0, yi -= buth, 200, buth,
-		                &(tfp->ve_median[2]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
+		                &(tfp->ve_median[LOC_Z]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
 
-		if (totw == tot) {
+		if (totcurvebweight == tot) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:", 0, yi -= buth, 200, buth,
-			          &(tfp->ve_median[3]), 0.01, 100.0, 1, 3, "");
+			          &(tfp->ve_median[C_BWEIGHT]), 0.01, 100.0, 1, 3, "");
 		}
 
 		uiBlockBeginAlign(block);
@@ -363,60 +409,60 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		             &v3d->flag, 0, 0, 0, 0, "Displays local values");
 		uiBlockEndAlign(block);
 
-		if (totweight == 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Weight:"),
-			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, TIP_("Weight used for SoftBody Goal"));
+		/* Meshes... */
+		if (meshdata) {
+			if (totedgedata) {
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
+					      totedgedata == 1 ? IFACE_("Crease:") : IFACE_("Mean Crease:"),
+					      0, yi -= buth + but_margin, 200, buth,
+					      &(tfp->ve_median[M_CREASE]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
+					      totedgedata == 1 ? IFACE_("Bevel Weight:") : IFACE_("Mean Bevel Weight:"),
+					      0, yi -= buth + but_margin, 200, buth,
+					      &(tfp->ve_median[M_WEIGHT]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
+			}
+			if (totskinradius) {
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
+				          totskinradius == 1 ? IFACE_("Radius X:") : IFACE_("Mean Radius X:"),
+				          0, yi -= buth + but_margin, 200, buth,
+				          &(tfp->ve_median[M_SKIN_X]), 0.0, 100.0, 1, 3, TIP_("X radius used by Skin modifier"));
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
+				          totskinradius == 1 ? IFACE_("Radius Y:") : IFACE_("Mean Radius Y:"),
+				          0, yi -= buth + but_margin, 200, buth,
+				          &(tfp->ve_median[M_SKIN_Y]), 0.0, 100.0, 1, 3, TIP_("Y radius used by Skin modifier"));
+			}
 		}
-		else if (totweight > 1) {
+		/* Curve... */
+		else if (totcurvedata == 1) {
+			uiDefButR(block, NUM, 0, "Weight", 0, yi -= buth + but_margin, 200, buth,
+			          &data_ptr, "weight_softbody", 0, 0.0, 1.0, 1, 3, NULL);
+			uiDefButR(block, NUM, 0, "Radius", 0, yi -= buth + but_margin, 200, buth,
+			          &data_ptr, "radius", 0, 0.0, 100.0, 1, 3, NULL);
+			uiDefButR(block, NUM, 0, "Tilt", 0, yi -= buth + but_margin, 200, buth,
+			          &data_ptr, "tilt", 0, -M_PI * 2.0, M_PI * 2.0, 1, 3, NULL);
+		}
+		else if (totcurvedata > 1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Weight:"),
-			          0, yi -= buth, 200, buth,
-			          &(tfp->ve_median[4]), 0.0, 1.0, 1, 3, TIP_("Weight used for SoftBody Goal"));
-		}
-
-		if (totradius == 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Radius:"),
 			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
-		}
-		else if (totradius > 1) {
+			          &(tfp->ve_median[C_WEIGHT]), 0.0, 1.0, 1, 3, TIP_("Weight used for SoftBody Goal"));
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Radius:"),
 			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[5]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
+			          &(tfp->ve_median[C_RADIUS]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
+			but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Tilt:"),
+			                0, yi -= buth + but_margin, 200, buth,
+			                &(tfp->ve_median[C_TILT]), -M_PI * 2.0, M_PI * 2.0, 1, 3,
+			                TIP_("Tilt of curve control points"));
+			uiButSetUnitType(but, PROP_UNIT_ROTATION);
 		}
-
-		if (totskinradius == 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Radius X:"),
-			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[7]), 0.0, 100.0, 1, 3, TIP_("X radius used by Skin modifier"));
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Radius Y:"),
-			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[8]), 0.0, 100.0, 1, 3, TIP_("Y radius used by Skin modifier"));
+		/* Lattice... */
+		else if (totlattdata == 1) {
+			uiDefButR(block, NUM, 0, "Weight", 0, yi -= buth + but_margin, 200, buth,
+			          &data_ptr, "weight_softbody", 0, 0.0, 1.0, 1, 3, NULL);
 		}
-		else if (totskinradius > 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Radius X:"),
+		else if (totlattdata > 1) {
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Weight:"),
 			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[7]), 0.0, 100.0, 1, 3, TIP_("Median X radius used by Skin modifier"));
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Radius Y:"),
-			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[8]), 0.0, 100.0, 1, 3, TIP_("Median Y radius used by Skin modifier"));
-		}
-
-		if (totedge == 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Crease:"),
-			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[3]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Bevel Weight:"),
-			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[6]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
-		}
-		else if (totedge > 1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Crease:"),
-			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[3]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Bevel Weight:"),
-			          0, yi -= buth + but_margin, 200, buth,
-			          &(tfp->ve_median[6]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
+			          &(tfp->ve_median[L_WEIGHT]), 0.0, 1.0, 1, 3, TIP_("Weight used for SoftBody Goal"));
 		}
 
 		uiBlockEndAlign(block);
@@ -424,42 +470,40 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 	}
 	else { /* apply */
+		int i;
+
 		memcpy(ve_median, tfp->ve_median, sizeof(tfp->ve_median));
 
 		if (v3d->flag & V3D_GLOBAL_STATS) {
 			invert_m4_m4(ob->imat, ob->obmat);
-			mul_m4_v3(ob->imat, median);
-			mul_m4_v3(ob->imat, ve_median);
+			mul_m4_v3(ob->imat, &median[LOC_X]);
+			mul_m4_v3(ob->imat, &ve_median[LOC_X]);
 		}
-		sub_v3_v3v3(median, ve_median, median);
-		median[3] = ve_median[3] - median[3];
-		median[4] = ve_median[4] - median[4];
-		median[5] = ve_median[5] - median[5];
-		median[6] = ve_median[6] - median[6];
-		median[7] = ve_median[7] - median[7];
-		median[8] = ve_median[8] - median[8];
+		i = NBR_TRANSFORM_PROPERTIES;
+		while (i--)
+			median[i] = ve_median[i] - median[i];
 
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
 			BMEditMesh *em = me->edit_btmesh;
 			BMesh *bm = em->bm;
-			BMVert *eve;
 			BMIter iter;
 
-			if (len_v3(median) > 0.000001f) {
+			if (len_v3(&median[LOC_X]) > 0.000001f) {
+				BMVert *eve;
 
 				BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 					if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-						add_v3_v3(eve->co, median);
+						add_v3_v3(eve->co, &median[LOC_X]);
 					}
 				}
 
 				EDBM_mesh_normals_update(em);
 			}
 
-			if (median[3] != 0.0f) {
+			if (median[M_CREASE] != 0.0f) {
 				BMEdge *eed;
-				const float sca = compute_scale_factor(ve_median[3], median[3]);
+				const float sca = compute_scale_factor(ve_median[M_CREASE], median[M_CREASE]);
 
 				if (ELEM(sca, 0.0f, 1.0f)) {
 					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
@@ -495,9 +539,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 			}
 
-			if (median[6] != 0.0f) {
+			if (median[M_WEIGHT] != 0.0f) {
 				BMEdge *eed;
-				const float sca = compute_scale_factor(ve_median[6], median[6]);
+				const float sca = compute_scale_factor(ve_median[M_WEIGHT], median[M_WEIGHT]);
 
 				if (ELEM(sca, 0.0f, 1.0f)) {
 					BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
@@ -533,11 +577,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 			}
 
-			if (median[7] != 0.0f) {
+			if (median[M_SKIN_X] != 0.0f) {
 				BMVert *eve;
 				/* That one is not clamped to [0.0, 1.0]. */
-				float sca = ve_median[7];
-				if (ve_median[7] - median[7] == 0.0f) {
+				float sca = ve_median[M_SKIN_X];
+				if (ve_median[M_SKIN_X] - median[M_SKIN_X] == 0.0f) {
 					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							MVertSkin *vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
@@ -547,7 +591,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					}
 				}
 				else {
-					sca /= (ve_median[7] - median[7]);
+					sca /= (ve_median[M_SKIN_X] - median[M_SKIN_X]);
 					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							MVertSkin *vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
@@ -557,11 +601,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					}
 				}
 			}
-			if (median[8] != 0.0f) {
+			if (median[M_SKIN_Y] != 0.0f) {
 				BMVert *eve;
 				/* That one is not clamped to [0.0, 1.0]. */
-				float sca = ve_median[8];
-				if (ve_median[8] - median[8] == 0.0f) {
+				float sca = ve_median[M_SKIN_Y];
+				if (ve_median[M_SKIN_Y] - median[M_SKIN_Y] == 0.0f) {
 					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							MVertSkin *vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
@@ -571,7 +615,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					}
 				}
 				else {
-					sca /= (ve_median[8] - median[8]);
+					sca /= (ve_median[M_SKIN_Y] - median[M_SKIN_Y]);
 					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
 						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 							MVertSkin *vs = (MVertSkin *)CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MVERT_SKIN);
@@ -590,7 +634,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			BezTriple *bezt;
 			int a;
 			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-			const float scale_w = compute_scale_factor(ve_median[4], median[4]);
+			const float scale_w = compute_scale_factor(ve_median[C_WEIGHT], median[C_WEIGHT]);
 
 			nu = nurbs->first;
 			while (nu) {
@@ -599,11 +643,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					a = nu->pntsu;
 					while (a--) {
 						if (bezt->f2 & SELECT) {
-							add_v3_v3(bezt->vec[0], median);
-							add_v3_v3(bezt->vec[1], median);
-							add_v3_v3(bezt->vec[2], median);
+							add_v3_v3(bezt->vec[0], &median[LOC_X]);
+							add_v3_v3(bezt->vec[1], &median[LOC_X]);
+							add_v3_v3(bezt->vec[2], &median[LOC_X]);
 
-							if (median[4] != 0.0f) {
+							if (median[C_WEIGHT] != 0.0f) {
 								if (ELEM(scale_w, 0.0f, 1.0f)) {
 									bezt->weight = scale_w;
 								}
@@ -614,14 +658,15 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 								}
 							}
 
-							bezt->radius += median[5];
+							bezt->radius += median[C_RADIUS];
+							bezt->alfa += median[C_TILT];
 						}
 						else {
 							if (bezt->f1 & SELECT) {
-								add_v3_v3(bezt->vec[0], median);
+								add_v3_v3(bezt->vec[0], &median[LOC_X]);
 							}
 							if (bezt->f3 & SELECT) {
-								add_v3_v3(bezt->vec[2], median);
+								add_v3_v3(bezt->vec[2], &median[LOC_X]);
 							}
 						}
 						bezt++;
@@ -632,10 +677,10 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 					a = nu->pntsu * nu->pntsv;
 					while (a--) {
 						if (bp->f1 & SELECT) {
-							add_v3_v3(bp->vec, median);
-							bp->vec[3] += median[3];
+							add_v3_v3(bp->vec, &median[LOC_X]);
+							bp->vec[3] += median[C_BWEIGHT];
 
-							if (median[4] != 0.0f) {
+							if (median[C_WEIGHT] != 0.0f) {
 								if (ELEM(scale_w, 0.0f, 1.0f)) {
 									bp->weight = scale_w;
 								}
@@ -646,7 +691,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 								}
 							}
 
-							bp->radius += median[5];
+							bp->radius += median[C_RADIUS];
+							bp->alfa += median[C_TILT];
 						}
 						bp++;
 					}
@@ -661,15 +707,15 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			Lattice *lt = ob->data;
 			BPoint *bp;
 			int a;
-			const float scale_w = compute_scale_factor(ve_median[4], median[4]);
+			const float scale_w = compute_scale_factor(ve_median[L_WEIGHT], median[L_WEIGHT]);
 
 			a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 			bp = lt->editlatt->latt->def;
 			while (a--) {
 				if (bp->f1 & SELECT) {
-					add_v3_v3(bp->vec, median);
+					add_v3_v3(bp->vec, &median[LOC_X]);
 
-					if (median[4] != 0.0f) {
+					if (median[L_WEIGHT] != 0.0f) {
 						if (ELEM(scale_w, 0.0f, 1.0f)) {
 							bp->weight = scale_w;
 						}
@@ -686,7 +732,28 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 /*		ED_undo_push(C, "Transform properties"); */
 	}
+
+/* Clean up! */
+/* Location, common to all. */
+#undef LOC_X
+#undef LOC_Y
+#undef LOC_Z
+/* Meshes (and lattice)... */
+#undef M_CREASE
+#undef M_WEIGHT
+#undef M_SKIN_X
+#undef M_SKIN_Y
+/* Curves... */
+#undef C_BWEIGHT
+#undef C_WEIGHT
+#undef C_RADIUS
+#undef C_TILT
+/* Lattice... */
+#undef L_WEIGHT
 }
+#undef NBR_TRANSFORM_PROPERTIES
+
+
 #define B_VGRP_PNL_COPY 1
 #define B_VGRP_PNL_NORMALIZE 2
 #define B_VGRP_PNL_EDIT_SINGLE 8 /* or greater */
@@ -1156,13 +1223,12 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	if (ob == NULL)
 		return;
 
-	lim = 10000.0f * MAX2(1.0f, v3d->grid);
+	lim = 10000.0f * max_ff(1.0f, v3d->grid);
 
 	block = uiLayoutGetBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
 	col = uiLayoutColumn(pa->layout, FALSE);
-	/* row = uiLayoutRow(col, FALSE); */ /* UNUSED */
 	RNA_id_pointer_create(&ob->id, &obptr);
 
 	if (ob == obedit) {

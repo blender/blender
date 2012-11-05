@@ -703,11 +703,6 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Z Rot", "Constraint rotation along Z axis");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Constraint_dependency_update");
 
-	prop = RNA_def_property(srna, "use_target", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CONSTRAINT_IK_AUTO);
-	RNA_def_property_ui_text(prop, "Target", "Disable for targetless IK");
-	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
-
 	prop = RNA_def_property(srna, "use_stretch", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_IK_STRETCH);
 	RNA_def_property_ui_text(prop, "Stretch", "Enable IK Stretching");
@@ -1243,7 +1238,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "offset_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of bone");
+	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of curve");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "forward_axis", PROP_ENUM, PROP_NONE);
@@ -2422,7 +2417,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rot_error");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Rot error",
-	                         "Amount of residual error in radiant for constraints that work on orientation");
+	                         "Amount of residual error in radians for constraints that work on orientation");
 
 	/* pointers */
 	rna_def_constrainttarget(brna);

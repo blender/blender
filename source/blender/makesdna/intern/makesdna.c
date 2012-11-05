@@ -87,14 +87,14 @@ static const char *includefiles[] = {
 	"DNA_mesh_types.h",
 	"DNA_meshdata_types.h",
 	"DNA_modifier_types.h",
-	"DNA_lattice_types.h",	
+	"DNA_lattice_types.h",
 	"DNA_object_types.h",
 	"DNA_object_force.h",
 	"DNA_object_fluidsim.h",
 	"DNA_world_types.h",
 	"DNA_scene_types.h",
 	"DNA_view3d_types.h",
-	"DNA_view2d_types.h",	
+	"DNA_view2d_types.h",
 	"DNA_space_types.h",
 	"DNA_userdef_types.h",
 	"DNA_screen_types.h",
@@ -485,11 +485,15 @@ static int preprocess_include(char *maindata, int len)
 		}
 
 		/* do not copy when: */
-		if (comment) ;
-		else if (cp[0] == ' ' && cp[1] == ' ') ;
-		else if (cp[-1] == '*' && cp[0] == ' ') ;  /* pointers with a space */
-
-		/* skip special keywords */
+		if (comment) {
+			/* pass */
+		}
+		else if (cp[0] == ' ' && cp[1] == ' ') {
+			/* pass */
+		}
+		else if (cp[-1] == '*' && cp[0] == ' ') {
+			/* pointers with a space */
+		}	/* skip special keywords */
 		else if (strncmp("DNA_DEPRECATED", cp, 14) == 0) {
 			/* single values are skipped already, so decrement 1 less */
 			a -= 13;
@@ -1028,7 +1032,9 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 
 	if (debugSDNA > -1) printf("Writing file ... ");
 		
-	if (nr_names == 0 || nr_structs == 0) ;
+	if (nr_names == 0 || nr_structs == 0) {
+		/* pass */
+	}
 	else {
 		strcpy(str, "SDNA");
 		dna_write(file, str, 4);
@@ -1088,7 +1094,9 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 			int a;
 			
 			fp = fopen("padding.c", "w");
-			if (fp == NULL) ;
+			if (fp == NULL) {
+				/* pass */
+			}
 			else {
 
 				/* add all include files defined in the global array */
@@ -1166,7 +1174,7 @@ int main(int argc, char **argv)
 				strcpy(baseDirectory, BASE_HEADER);
 			}
 
-			fprintf(file, "unsigned char DNAstr[]= {\n");
+			fprintf(file, "const unsigned char DNAstr[] = {\n");
 			if (make_structDNA(baseDirectory, file)) {
 				/* error */
 				fclose(file);
@@ -1175,7 +1183,7 @@ int main(int argc, char **argv)
 			}
 			else {
 				fprintf(file, "};\n");
-				fprintf(file, "int DNAlen = sizeof(DNAstr);\n");
+				fprintf(file, "const int DNAlen = sizeof(DNAstr);\n");
 	
 				fclose(file);
 			}
@@ -1186,7 +1194,19 @@ int main(int argc, char **argv)
 	return(return_status);
 }
 
+/* handy but fails on struct bounds which makesdna doesnt care about
+ * with quite the same strictness as GCC does */
+#if 0
 /* include files for automatic dependencies */
+
+/* extra safety check that we are aligned,
+ * warnings here are easier to fix the makesdna's */
+#ifdef __GNUC__
+#  pragma GCC diagnostic error "-Wpadded"
+#endif
+
+#endif /* if 0 */
+
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 #include "DNA_ID.h"

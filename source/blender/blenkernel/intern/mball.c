@@ -186,7 +186,7 @@ void BKE_mball_unlink(MetaBall *mb)
 /* do not free mball itself */
 void BKE_mball_free(MetaBall *mb)
 {
-	BKE_mball_unlink(mb);	
+	BKE_mball_unlink(mb);
 	
 	if (mb->adt) {
 		BKE_free_animdata((ID *)mb);
@@ -562,7 +562,7 @@ Object *BKE_mball_basis_find(Scene *scene, Object *basis)
 							basis = ob;
 							basisnr = obnr;
 						}
-					}	
+					}
 				}
 			}
 			
@@ -691,7 +691,7 @@ static float densfunc(MetaElem *ball, float x, float y, float z)
 		/* *** end deprecated *** */
 	}
 
-	dist2 = 1.0f - (len_v3(dvec) / ball->rad2);
+	dist2 = 1.0f - (len_squared_v3(dvec) / ball->rad2);
 
 	if ((ball->flag & MB_NEGATIVE) == 0) {
 		return (dist2 < 0.0f) ? -0.5f : (ball->s * dist2 * dist2 * dist2) - 0.5f;
@@ -732,7 +732,7 @@ static octal_node *find_metaball_octal_node(octal_node *node, float x, float y, 
 					return find_metaball_octal_node(node->nodes[2], x, y, z, depth--);
 				else
 					return node;
-			}		
+			}
 		}
 	}
 	else {
@@ -762,7 +762,7 @@ static octal_node *find_metaball_octal_node(octal_node *node, float x, float y, 
 					return find_metaball_octal_node(node->nodes[6], x, y, z, depth--);
 				else
 					return node;
-			}		
+			}
 		}
 	}
 	
@@ -861,7 +861,7 @@ static void *new_pgn_element(int size)
 		}
 		BLI_freelistN(&lb);
 		
-		return NULL;	
+		return NULL;
 	}
 	
 	size = 4 * ( (size + 3) / 4);
@@ -1319,12 +1319,16 @@ static void addtovertices(VERTICES *vertices, VERTEX v)
 
 static void vnormal(const float point[3], PROCESS *p, float r_no[3])
 {
-	float delta = 0.2f * p->delta;
-	float f = p->function(point[0], point[1], point[2]);
+	const float delta = 0.2f * p->delta;
+	const float f = p->function(point[0], point[1], point[2]);
 
 	r_no[0] = p->function(point[0] + delta, point[1], point[2]) - f;
 	r_no[1] = p->function(point[0], point[1] + delta, point[2]) - f;
 	r_no[2] = p->function(point[0], point[1], point[2] + delta) - f;
+
+#if 1
+	normalize_v3(r_no);
+#else
 	f = normalize_v3(r_no);
 	
 	if (0) {
@@ -1343,6 +1347,7 @@ static void vnormal(const float point[3], PROCESS *p, float r_no[3])
 			normalize_v3(r_no);
 		}
 	}
+#endif
 }
 
 
@@ -1500,7 +1505,7 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 	float f = 0.0f;
 
 	ml = G_mb.mainb[a];
-	f = 1.0 - (mb->thresh / ml->s);
+	f = 1.0f - (mb->thresh / ml->s);
 
 	/* Skip, when Stiffness of MetaElement is too small ... MetaElement can't be
 	 * visible alone ... but still can influence others MetaElements :-) */
@@ -1628,7 +1633,7 @@ static void polygonize(PROCESS *mbproc, MetaBall *mb)
 	for (a = 0; a < G_mb.totelem; a++) {
 
 		/* try to find 8 points on the surface for each MetaElem */
-		find_first_points(mbproc, mb, a);	
+		find_first_points(mbproc, mb, a);
 	}
 
 	/* polygonize all MetaElems of current MetaBall */
@@ -2038,7 +2043,7 @@ static void subdivide_metaball_octal_node(octal_node *node, float size_x, float 
 						
 					}
 			
-					/* ml belongs to the (4)5th node too */	
+					/* ml belongs to the (4)5th node too */
 					if (ml->bb->vec[6][2] >= z) {
 						fill_metaball_octal_node(node, ml, 4);
 					}
@@ -2226,7 +2231,7 @@ static void init_metaball_octal_tree(int depth)
 		}
 	}
 
-	/* size of first node */	
+	/* size of first node */
 	size[0] = node->x_max - node->x_min;
 	size[1] = node->y_max - node->y_min;
 	size[2] = node->z_max - node->z_min;
@@ -2388,7 +2393,7 @@ int BKE_mball_center_bounds(MetaBall *mb, float r_cent[3])
 	return 0;
 }
 
-void BKE_mball_translate(MetaBall *mb, float offset[3])
+void BKE_mball_translate(MetaBall *mb, const float offset[3])
 {
 	MetaElem *ml;
 
@@ -2396,3 +2401,32 @@ void BKE_mball_translate(MetaBall *mb, float offset[3])
 		add_v3_v3(&ml->x, offset);
 	}
 }
+
+/* *** select funcs *** */
+void BKE_mball_select_all(struct MetaBall *mb)
+{
+	MetaElem *ml;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		ml->flag |= SELECT;
+	}
+}
+
+void BKE_mball_deselect_all(MetaBall *mb)
+{
+	MetaElem *ml;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		ml->flag &= ~SELECT;
+	}
+}
+
+void BKE_mball_select_swap(struct MetaBall *mb)
+{
+	MetaElem *ml;
+
+	for (ml = mb->editelems->first; ml; ml = ml->next) {
+		ml->flag ^= SELECT;
+	}
+}
+

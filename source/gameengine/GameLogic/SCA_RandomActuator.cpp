@@ -48,13 +48,13 @@
 /* ------------------------------------------------------------------------- */
 
 SCA_RandomActuator::SCA_RandomActuator(SCA_IObject *gameobj, 
-									 long seed,
-									 SCA_RandomActuator::KX_RANDOMACT_MODE mode,
-									 float para1,
-									 float para2,
-									 const STR_String &propName)
-	: SCA_IActuator(gameobj, KX_ACT_RANDOM),
-	  m_propname(propName),
+                                       long seed,
+                                       SCA_RandomActuator::KX_RANDOMACT_MODE mode,
+                                       float para1,
+                                       float para2,
+                                       const STR_String &propName)
+    : SCA_IActuator(gameobj, KX_ACT_RANDOM),
+      m_propname(propName),
 	  m_parameter1(para1),
 	  m_parameter2(para2),
 	  m_distribution(mode)
@@ -161,7 +161,7 @@ bool SCA_RandomActuator::Update()
 		while (b >= a) {
 			b = b * m_base->DrawFloat();
 			res++;
-		};	
+		};
 		tmpval = new CIntValue(res);
 	}
 	break;
@@ -196,33 +196,30 @@ bool SCA_RandomActuator::Update()
 
 			 */
 			tmpval = new CFloatValue(m_parameter1);
-		} else {
-			/*
-
-			  070301 - nzc 
-			  Now, with seed != 0, we will most assuredly get some
-			  sensible values. The termination condition states two 
-			  things: 
-			  1. s >= 0 is not allowed: to prevent the distro from 
-				 getting a bias towards high values. This is a small
-				 correction, really, and might also be left out.
-			  2. s == 0 is not allowed: to prevent a division by zero
-				 when renormalising the drawn value to the desired
-				 distribution shape. As a side effect, the distro will
-				 never yield the exact mean. 
-			  I am not sure whether this is consistent, since the error 
-			  cause by #2 is of the same magnitude as the one 
-			  prevented by #1. The error introduced into the SD will be 
-			  improved, though. By how much? Hard to say... If you like
-			  the maths, feel free to analyse. Be aware that this is 
-			  one of the really old standard algorithms. I think the 
-			  original came in Fortran, was translated to Pascal, and 
-			  then someone came up with the C code. My guess it that
-			  this will be quite sufficient here.
-
+		}
+		else {
+			/* 070301 - nzc
+			 * Now, with seed != 0, we will most assuredly get some
+			 * sensible values. The termination condition states two
+			 * things:
+			 * 1. s >= 0 is not allowed: to prevent the distro from
+			 *    getting a bias towards high values. This is a small
+			 *    correction, really, and might also be left out.
+			 * 2. s == 0 is not allowed: to prevent a division by zero
+			 *    when renormalising the drawn value to the desired
+			 *    distribution shape. As a side effect, the distro will
+			 *    never yield the exact mean.
+			 * I am not sure whether this is consistent, since the error
+			 * cause by #2 is of the same magnitude as the one
+			 * prevented by #1. The error introduced into the SD will be
+			 * improved, though. By how much? Hard to say... If you like
+			 * the maths, feel free to analyse. Be aware that this is
+			 * one of the really old standard algorithms. I think the
+			 * original came in Fortran, was translated to Pascal, and
+			 * then someone came up with the C code. My guess it that
+			 * this will be quite sufficient here.
 			 */
-			do 
-			{
+			do {
 				x = 2.0 * m_base->DrawFloat() - 1.0;
 				y = 2.0 * m_base->DrawFloat() - 1.0;
 				s = x*x + y*y;
@@ -361,9 +358,9 @@ PyAttributeDef SCA_RandomActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW_CHECK("propName",0,MAX_PROP_NAME,false,SCA_RandomActuator,m_propname,CheckProperty),
 	KX_PYATTRIBUTE_RW_FUNCTION("seed",SCA_RandomActuator,pyattr_get_seed,pyattr_set_seed),
 	{ NULL }	//Sentinel
-};	
+};
 
-PyObject* SCA_RandomActuator::pyattr_get_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_RandomActuator::pyattr_get_seed(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_RandomActuator* act = static_cast<SCA_RandomActuator*>(self);
 	return PyLong_FromSsize_t(act->m_base->GetSeed());
@@ -420,7 +417,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setBoolBernouilli,
 	}
 	
 	m_distribution = KX_RANDOMACT_BOOL_BERNOUILLI;
-	m_parameter1 = paraArg;	
+	m_parameter1 = paraArg;
 	enforceConstraints();
 	Py_RETURN_NONE;
 }
@@ -473,7 +470,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setIntPoisson,
 	}
 	
 	m_distribution = KX_RANDOMACT_INT_POISSON;
-	m_parameter1 = paraArg;	
+	m_parameter1 = paraArg;
 	enforceConstraints();
 	Py_RETURN_NONE;
 }
@@ -489,7 +486,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatConst,
 	}
 	
 	m_distribution = KX_RANDOMACT_FLOAT_CONST;
-	m_parameter1 = paraArg;	
+	m_parameter1 = paraArg;
 	enforceConstraints();
 	Py_RETURN_NONE;
 }
@@ -544,7 +541,7 @@ KX_PYMETHODDEF_DOC_VARARGS(SCA_RandomActuator, setFloatNegativeExponential,
 	}
 	
 	m_distribution = KX_RANDOMACT_FLOAT_NEGATIVE_EXPONENTIAL;
-	m_parameter1 = paraArg;	
+	m_parameter1 = paraArg;
 	enforceConstraints();
 	Py_RETURN_NONE;
 }

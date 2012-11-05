@@ -27,19 +27,42 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Author: keir@google.com (Keir Mierle)
+//         sameeragarwal@google.com (Sameer Agarwal)
 
 #ifndef CERES_INTERNAL_RANDOM_H_
 #define CERES_INTERNAL_RANDOM_H_
 
+#include <cmath>
+#include <cstdlib>
+#include "ceres/internal/port.h"
+
 namespace ceres {
 
-inline double RandDouble() {
-  double r = rand();
-  return r / RAND_MAX;
+inline void SetRandomState(int state) {
+  srand(state);
 }
 
 inline int Uniform(int n) {
   return rand() % n;
+}
+
+inline double RandDouble() {
+  double r = static_cast<double>(rand());
+  return r / RAND_MAX;
+}
+
+// Box-Muller algorithm for normal random number generation.
+// http://en.wikipedia.org/wiki/Box-Muller_transform
+inline double RandNormal() {
+  double x1, x2, w;
+  do {
+    x1 = 2.0 * RandDouble() - 1.0;
+    x2 = 2.0 * RandDouble() - 1.0;
+    w = x1 * x1 + x2 * x2;
+  } while ( w >= 1.0 || w == 0.0 );
+
+  w = sqrt((-2.0 * log(w)) / w);
+  return x1 * w;
 }
 
 }  // namespace ceres

@@ -534,10 +534,12 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		mul_m4_v3(imat, h2);
 
 		/* if next bone is B-bone too, use average handle direction */
-		if (next->bone->segments > 1)
-			;
-		else
+		if (next->bone->segments > 1) {
+			/* pass */
+		}
+		else {
 			h2[1] -= length;
+		}
 		normalize_v3(h2);
 
 		/* find the next roll to interpolate as well */
@@ -945,7 +947,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 			}
 		}
 
-		if (use_dverts || armature_def_nr >= 0) {
+		if (use_dverts || armature_def_nr != -1) {
 			if (dm)
 				dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
 			else if (dverts && i < target_totvert)
@@ -956,7 +958,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 		else
 			dvert = NULL;
 
-		if (armature_def_nr >= 0 && dvert) {
+		if (armature_def_nr != -1 && dvert) {
 			armature_weight = defvert_find_weight(dvert, armature_def_nr);
 
 			if (invert_vgroup)
@@ -1423,19 +1425,20 @@ void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float
  * *************************************************************************** */
 /* Computes vector and roll based on a rotation.
  * "mat" must contain only a rotation, and no scaling. */
-void mat3_to_vec_roll(float mat[][3], float vec[3], float *roll)
+void mat3_to_vec_roll(float mat[][3], float r_vec[3], float *r_roll)
 {
-	if (vec)
-		copy_v3_v3(vec, mat[1]);
+	if (r_vec) {
+		copy_v3_v3(r_vec, mat[1]);
+	}
 
-	if (roll) {
+	if (r_roll) {
 		float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
 
 		vec_roll_to_mat3(mat[1], 0.0f, vecmat);
 		invert_m3_m3(vecmatinv, vecmat);
 		mul_m3_m3m3(rollmat, vecmatinv, mat);
 
-		*roll = (float)atan2(rollmat[2][0], rollmat[2][2]);
+		*r_roll = atan2f(rollmat[2][0], rollmat[2][2]);
 	}
 }
 
@@ -1459,7 +1462,7 @@ void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3])
 	 * so a value inbetween these is needed.
 	 *
 	 * was 0.000001, causes bug [#30438] (which is same as [#27675, imho).
-	 * Reseting it to org value seems to cause no more [#23954]...
+	 * Resetting it to org value seems to cause no more [#23954]...
 	 *
 	 * was 0.0000000000001, caused bug [#31333], smaller values give unstable
 	 * roll when toggling editmode again...
@@ -1590,7 +1593,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 		
 		if (UNLIKELY(pchanp == NULL)) {
 			/* happens for proxies that become invalid because of a missing link
-			 * for regulat cases it shouldn't happen at all */
+			 * for regular cases it shouldn't happen at all */
 		}
 		else if (pchan->bone->layer & layer_protected) {
 			ListBase proxylocal_constraints = {NULL, NULL};

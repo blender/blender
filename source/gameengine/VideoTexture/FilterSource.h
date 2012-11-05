@@ -31,7 +31,6 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "FilterBase.h"
 
-
 /// class for RGB24 conversion
 class FilterRGB24 : public FilterBase
 {
@@ -96,6 +95,65 @@ protected:
 		short * size, unsigned int pixSize, unsigned int val)
 	{ VT_RGBA(val,src[2],src[1],src[0],0xFF); return val; }
 };
+
+/// class for Z_buffer conversion
+class FilterZZZA : public FilterBase
+{
+public:
+	/// constructor
+	FilterZZZA (void) {}
+	/// destructor
+	virtual ~FilterZZZA (void) {}
+
+	/// get source pixel size
+	virtual unsigned int getPixelSize (void) { return 1; }
+
+protected:
+	/// filter pixel, source float buffer
+	virtual unsigned int filter (float * src, short x, short y,
+		short * size, unsigned int pixSize, unsigned int val)
+	{
+		// calculate gray value
+        // convert float to unsigned char
+		unsigned int depth = int(src[0] * 255);
+		// return depth scale value
+		VT_R(val) = depth;
+		VT_G(val) = depth;
+		VT_B(val) = depth;
+		VT_A(val) = 0xFF;
+
+		return val;
+	}
+};
+
+
+/// class for Z_buffer conversion
+class FilterDEPTH : public FilterBase
+{
+public:
+	/// constructor
+	FilterDEPTH (void) {}
+	/// destructor
+	virtual ~FilterDEPTH (void) {}
+
+	/// get source pixel size
+	virtual unsigned int getPixelSize (void) { return 1; }
+
+protected:
+	/// filter pixel, source float buffer
+	virtual unsigned int filter (float * src, short x, short y,
+	                             short * size, unsigned int pixSize, unsigned int val)
+	{
+		/* Copy the float value straight away
+		 * The user can retrieve the original float value by using
+		 * 'F' mode in BGL buffer */
+		memcpy(&val, src, sizeof (unsigned int));
+		return val;
+	}
+};
+
+
+
 
 /// class for YV12 conversion
 class FilterYV12 : public FilterBase

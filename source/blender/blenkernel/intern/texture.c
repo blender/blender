@@ -571,7 +571,7 @@ void default_mtex(MTex *mtex)
 	mtex->size[1] = 1.0;
 	mtex->size[2] = 1.0;
 	mtex->tex = NULL;
-	mtex->texflag = MTEX_3TAP_BUMP | MTEX_BUMP_OBJECTSPACE;
+	mtex->texflag = MTEX_3TAP_BUMP | MTEX_BUMP_OBJECTSPACE | MTEX_MAPTO_BOUNDS;
 	mtex->colormodel = 0;
 	mtex->r = 1.0;
 	mtex->g = 0.0;
@@ -646,7 +646,7 @@ MTex *add_mtex_id(ID *id, int slot)
 	
 	if (slot == -1) {
 		/* find first free */
-		int i;		
+		int i;
 		for (i = 0; i < MAX_MTEX; i++) {
 			if (!mtex_ar[i]) {
 				slot = i;
@@ -909,8 +909,7 @@ void autotexname(Tex *tex)
 		if (tex->use_nodes) {
 			new_id(&bmain->tex, (ID *)tex, "Noddy");
 		}
-		else
-		if (tex->type == TEX_IMAGE) {
+		else if (tex->type == TEX_IMAGE) {
 			ima = tex->ima;
 			if (ima) {
 				BLI_strncpy(di, ima->name, sizeof(di));
@@ -1073,19 +1072,21 @@ void set_current_material_texture(Material *ma, Tex *newtex)
 {
 	Tex *tex = NULL;
 	bNode *node;
-	
-	if (ma && ma->use_nodes && ma->nodetree) {
-		node = nodeGetActiveID(ma->nodetree, ID_TE);
 
-		if (node) {
-			tex = (Tex *)node->id;
-			id_us_min(&tex->id);
+	if ((ma->use_nodes && ma->nodetree) &&
+	    (node = nodeGetActiveID(ma->nodetree, ID_TE)))
+	{
+		tex = (Tex *)node->id;
+		id_us_min(&tex->id);
+		if (newtex) {
 			node->id = &newtex->id;
 			id_us_plus(&newtex->id);
-			ma = NULL;
+		}
+		else {
+			node->id = NULL;
 		}
 	}
-	if (ma) {
+	else {
 		int act = (int)ma->texact;
 
 		tex = (ma->mtex[act]) ? ma->mtex[act]->tex : NULL;

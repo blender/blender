@@ -2,9 +2,9 @@
 Game Logic (bge.logic)
 ======================
 
-*****
-Intro
-*****
+************
+Introduction
+************
 
 Module to access logic functions, imported automatically into the python controllers namespace.
 

@@ -38,7 +38,7 @@ bool CellLessThan(const Cell& lhs, const Cell& rhs) {
   return (lhs.block_id < rhs.block_id);
 }
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 void ProtoToBlockStructure(const BlockStructureProto &proto,
                            CompressedRowBlockStructure *block_structure) {
   // Decode the column blocks.

@@ -35,6 +35,8 @@
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
+struct bNode;
+struct bNodeTree;
 struct Object;
 struct Render;
 struct RenderEngine;
@@ -75,6 +77,8 @@ typedef struct RenderEngineType {
 	void (*view_update)(struct RenderEngine *engine, const struct bContext *context);
 	void (*view_draw)(struct RenderEngine *engine, const struct bContext *context);
 
+	void (*update_script_node)(struct RenderEngine *engine, struct bNodeTree *ntree, struct bNode *node);
+
 	/* RNA integration */
 	ExtensionRNA ext;
 } RenderEngineType;
@@ -94,6 +98,8 @@ typedef struct RenderEngine {
 	char *text;
 
 	int resolution_x, resolution_y;
+
+	struct ReportList *reports;
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);
@@ -109,6 +115,7 @@ void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result, int
 int RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
 void RE_engine_update_progress(RenderEngine *engine, float progress);
+void RE_engine_update_memory_stats(RenderEngine *engine, float mem_used, float mem_peak);
 void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 
 int RE_engine_render(struct Render *re, int do_all);

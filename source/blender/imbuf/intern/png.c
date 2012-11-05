@@ -558,7 +558,8 @@ ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags, char colorspace[I
 		MEM_freeN(pixels);
 	if (pixels16)
 		MEM_freeN(pixels16);
-	MEM_freeN(row_pointers);
+	if (row_pointers)
+		MEM_freeN(row_pointers);
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 
 	return(ibuf);

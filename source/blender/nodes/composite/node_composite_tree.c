@@ -226,7 +226,7 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 			}
 			else if (lnode->type==CMP_NODE_MOVIEDISTORTION) {
 				/* special case for distortion node: distortion context is allocating in exec function
-				 * and to achive much better performance on further calls this context should be
+				 * and to achieve much better performance on further calls this context should be
 				 * copied back to original node */
 				if (lnode->storage) {
 					if (lnode->new_node->storage)
@@ -273,7 +273,7 @@ bNodeTreeType ntreeType_Composite = {
 	/* update */			update,
 	/* update_node */		update_node,
 	/* validate_link */		NULL,
-	/* internal_connect */	node_internal_connect_default
+	/* update_internal_links */	node_update_internal_links_default
 };
 
 
@@ -301,7 +301,7 @@ struct bNodeTreeExec *ntreeCompositBeginExecTree(bNodeTree *ntree, int use_tree_
 	
 	for (node= exec->nodetree->nodes.first; node; node= node->next) {
 		/* initialize needed for groups */
-		node->exec= 0;	
+		node->exec= 0;
 		
 		for (sock= node->outputs.first; sock; sock= sock->next) {
 			bNodeStack *ns= node_get_socket_stack(exec->stack, sock);
@@ -515,9 +515,9 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 static void freeExecutableNode(bNodeTreeExec *exec)
 {
 	/* node outputs can be freed when:
-	- not a render result or image node
-	- when node outputs go to nodes all being set NODE_FINISHED
-	*/
+	 * - not a render result or image node
+	 * - when node outputs go to nodes all being set NODE_FINISHED
+	 */
 	bNodeTree *ntree = exec->nodetree;
 	bNodeExec *nodeexec;
 	bNode *node;

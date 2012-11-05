@@ -39,7 +39,7 @@
 #include "BLI_voronoi.h"
 #include "BLI_utildefines.h"
 
-#define VORONOI_EPS 1e-2
+#define VORONOI_EPS 1e-2f
 
 enum {
 	voronoiEventType_Site = 0,
@@ -259,9 +259,9 @@ static float voronoi_getXOfEdge(VoronoiProcess *process, VoronoiParabola *par, f
 	x2 = (-b - sqrtf(disc)) / (2 * a);
 
 	if (p[1] < r[1])
-		ry = maxf(x1, x2);
+		ry = max_ff(x1, x2);
 	else
-		ry = minf(x1, x2);
+		ry = min_ff(x1, x2);
 
 	return ry;
 }
@@ -490,9 +490,9 @@ static void voronoi_finishEdge(VoronoiProcess *process, VoronoiParabola *parabol
 	}
 
 	if (parabola->edge->direction[0] > 0.0f)
-		mx = MAX2(process->width, parabola->edge->start[0] + 10);
+		mx = max_ff(process->width, parabola->edge->start[0] + 10);
 	else
-		mx = MIN2(0.0, parabola->edge->start[0] - 10);
+		mx = min_ff(0.0f, parabola->edge->start[0] - 10.0f);
 
 	parabola->edge->end[0] = mx;
 	parabola->edge->end[1] = mx * parabola->edge->f + parabola->edge->g;

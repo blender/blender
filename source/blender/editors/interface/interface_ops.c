@@ -216,7 +216,7 @@ static void eyedropper_color_set(bContext *C, Eyedropper *eye, const float col[3
 /* set sample from accumulated values */
 static void eyedropper_color_set_accum(bContext *C, Eyedropper *eye)
 {
-	float col[4];
+	float col[3];
 	mul_v3_v3fl(col, eye->accum_col, 1.0f / (float)eye->accum_tot);
 	eyedropper_color_set(C, eye, col);
 }
@@ -807,8 +807,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 	}
 
 	if (text == NULL) {
-		BKE_reportf(op->reports, RPT_WARNING,
-		            "file: '%s' can't be opened", filepath);
+		BKE_reportf(op->reports, RPT_WARNING, "File '%s' cannot be opened", filepath);
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -820,8 +819,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 			st->text = text;
 		}
 		else {
-			BKE_reportf(op->reports, RPT_INFO,
-			            "See '%s' in the text editor", text->id.name + 2);
+			BKE_reportf(op->reports, RPT_INFO, "See '%s' in the text editor", text->id.name + 2);
 		}
 
 		txt_move_toline(text, line - 1, FALSE);
@@ -857,8 +855,8 @@ static int editsource_exec(bContext *C, wmOperator *op)
 		     !BLI_ghashIterator_isDone(&ghi);
 		     BLI_ghashIterator_step(&ghi))
 		{
-			uiBut *but = BLI_ghashIterator_getKey(&ghi);
-			if (but && ui_editsource_uibut_match(&ui_editsource_info->but_orig, but)) {
+			uiBut *but_key = BLI_ghashIterator_getKey(&ghi);
+			if (but_key && ui_editsource_uibut_match(&ui_editsource_info->but_orig, but_key)) {
 				but_store = BLI_ghashIterator_getValue(&ghi);
 				break;
 			}
@@ -872,14 +870,12 @@ static int editsource_exec(bContext *C, wmOperator *op)
 				                           but_store->py_dbg_ln);
 			}
 			else {
-				BKE_report(op->reports, RPT_ERROR,
-				           "Active button isn't from a script, cant edit source.");
+				BKE_report(op->reports, RPT_ERROR, "Active button is not from a script, cannot edit source");
 				ret = OPERATOR_CANCELLED;
 			}
 		}
 		else {
-			BKE_report(op->reports, RPT_ERROR,
-			           "Active button match can't be found.");
+			BKE_report(op->reports, RPT_ERROR, "Active button match cannot be found");
 			ret = OPERATOR_CANCELLED;
 		}
 
@@ -915,20 +911,41 @@ static void UI_OT_editsource(wmOperatorType *ot)
 static void edittranslation_find_po_file(const char *root, const char *uilng, char *path, const size_t maxlen)
 {
 	char tstr[32]; /* Should be more than enough! */
+
 	/* First, full lang code. */
 	BLI_snprintf(tstr, sizeof(tstr), "%s.po", uilng);
 	BLI_join_dirfile(path, maxlen, root, uilng);
 	BLI_join_dirfile(path, maxlen, path, tstr);
 	if (BLI_is_file(path))
 		return;
+
 	/* Now try without the second iso code part (_ES in es_ES). */
-	strncpy(tstr, uilng, 2);
-	BLI_strncpy(tstr + 2, uilng + 5, sizeof(tstr) - 2); /* Because of some codes like sr_SR@latin... */
-	BLI_join_dirfile(path, maxlen, root, tstr);
-	strcat(tstr, ".po");
-	BLI_join_dirfile(path, maxlen, path, tstr);
-	if (BLI_is_file(path))
-		return;
+	{
+		char *tc = NULL;
+		size_t szt = 0;
+		tstr[0] = '\0';
+
+		tc = strchr(uilng, '_');
+		if (tc) {
+			szt = tc - uilng;
+			if (szt < sizeof(tstr)) /* Paranoid, should always be true! */
+				BLI_strncpy(tstr, uilng, szt + 1); /* +1 for '\0' char! */
+		}
+		if (tstr[0]) {
+			/* Because of some codes like sr_SR@latin... */
+			tc = strchr(uilng, '@');
+			if (tc)
+				BLI_strncpy(tstr + szt, tc, sizeof(tstr) - szt);
+
+			BLI_join_dirfile(path, maxlen, root, tstr);
+			strcat(tstr, ".po");
+			BLI_join_dirfile(path, maxlen, path, tstr);
+			if (BLI_is_file(path))
+				return;
+		}
+	}
+
+	/* Else no po file! */
 	path[0] = '\0';
 }
 
@@ -956,20 +973,20 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, NULL};
 
 		if (!BLI_is_dir(root)) {
-			BKE_report(op->reports, RPT_ERROR, "Please set your User Preferences' \"Translation Branches "
-			                                   "Directory\" path to a valid directory.");
+			BKE_report(op->reports, RPT_ERROR, "Please set your User Preferences' 'Translation Branches "
+			                                   "Directory' path to a valid directory");
 			return OPERATOR_CANCELLED;
 		}
 		if (!WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0)) {
-			BKE_reportf(op->reports, RPT_ERROR, "Could not find operator \"%s\"! Please enable ui_translate addon "
-			                                    "in the User Preferences.", EDTSRC_I18N_OP_NAME);
+			BKE_reportf(op->reports, RPT_ERROR, "Could not find operator '%s'! Please enable ui_translate addon "
+			                                    "in the User Preferences", EDTSRC_I18N_OP_NAME);
 			return OPERATOR_CANCELLED;
 		}
 		/* Try to find a valid po file for current language... */
 		edittranslation_find_po_file(root, uilng, popath, FILE_MAX);
-		printf("po path: %s\n", popath);
+/*		printf("po path: %s\n", popath);*/
 		if (popath[0] == '\0') {
-			BKE_reportf(op->reports, RPT_ERROR, "No valid po found for language '%s' under %s.", uilng, root);
+			BKE_reportf(op->reports, RPT_ERROR, "No valid po found for language '%s' under %s", uilng, root);
 			return OPERATOR_CANCELLED;
 		}
 
@@ -1021,14 +1038,6 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 	}
 }
 
-#if 0
-static int edittranslation_poll(bContext *UNUSED(C))
-{
-	/* We need the i18n py addon to be enabled! */
-	return WM_operatortype_find(EDTSRC_I18N_OP_NAME, 0) ? TRUE : FALSE;
-}
-#endif
-
 static void UI_OT_edittranslation_init(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1038,7 +1047,6 @@ static void UI_OT_edittranslation_init(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = edittranslation_exec;
-/*	ot->poll = edittranslation_poll;*/
 }
 
 #endif /* WITH_PYTHON */

@@ -244,6 +244,9 @@ macro(SETUP_LIBDIRS)
 		link_directories(${PCRE_LIBPATH})
 		link_directories(${EXPAT_LIBPATH})
 	endif()
+	if(WITH_LLVM)
+		link_directories(${LLVM_LIB_DIR})
+	endif()
 	if(WITH_MEM_JEMALLOC)
 		link_directories(${JEMALLOC_LIBPATH})
 	endif()
@@ -382,6 +385,9 @@ macro(setup_liblinks
 	if(WITH_CYCLES_OSL)
 		target_link_libraries(${target} ${OSL_LIBRARIES})
 	endif()
+	if(WITH_LLVM)
+		target_link_libraries(${target} ${LLVM_LIBRARY})
+	endif()
 	if(WIN32 AND NOT UNIX)
 		target_link_libraries(${target} ${PTHREADS_LIBRARIES})
 	endif()
@@ -519,7 +525,7 @@ macro(remove_strict_flags_file
 			# TODO
 		endif()
 
-	endforeach()	
+	endforeach()
 
 	unset(_SOURCE)
 

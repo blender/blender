@@ -264,7 +264,6 @@ if 'blenderlite' in B.targets:
     target_env_defs['WITH_BF_FLUID'] = False
     target_env_defs['WITH_BF_OCEANSIM'] = False
     target_env_defs['WITH_BF_SMOKE'] = False
-    target_env_defs['WITH_BF_DECIMATE'] = False
     target_env_defs['WITH_BF_BOOLEAN'] = False
     target_env_defs['WITH_BF_REMESH'] = False
     target_env_defs['WITH_BF_PYTHON'] = False
@@ -366,6 +365,7 @@ else:
 
 # TODO, make optional
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
+env['CPPFLAGS'].append('-DWITH_AVI')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
@@ -871,9 +871,13 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     if env['WITH_BF_OIIO'] and env['OURPLATFORM'] != 'win32-mingw':
         dllsources.append('${LCGDIR}/openimageio/bin/OpenImageIO.dll')
 
-    if env['WITH_BF_OCIO'] and env['OURPLATFORM'] != 'win32-mingw':
-        dllsources.append('${LCGDIR}/opencolorio/bin/OpenColorIO.dll')
+    if env['WITH_BF_OCIO']:
+        if not env['OURPLATFORM'] in ('win32-mingw', 'linuxcross'):
+            dllsources.append('${LCGDIR}/opencolorio/bin/OpenColorIO.dll')
 
+        else:
+            dllsources.append('${LCGDIR}/opencolorio/bin/libOpenColorIO.dll')
+			
     dllsources.append('#source/icons/blender.exe.manifest')
 
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
@@ -903,6 +907,9 @@ if env['OURPLATFORM'] == 'win64-mingw':
 
     if(env['WITH_BF_OPENMP']):
         dllsources.append('${LCGDIR}/binaries/libgomp-1.dll')
+		
+    if env['WITH_BF_OCIO']:
+        dllsources.append('${LCGDIR}/opencolorio/bin/libOpenColorIO.dll')
 
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
     dllsources.append('${LCGDIR}/binaries/libgcc_s_sjlj-1.dll')

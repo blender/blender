@@ -61,7 +61,6 @@
 
 /* ------------------------- Declarations --------------------------- */
 
-#define INVALID_INDEX ((int)(~0))
 #define INVPI ((float)M_1_PI)
 #define TOTCHILD 8
 #define CACHE_STEP 3
@@ -185,7 +184,7 @@ static void occ_shade(ShadeSample *ssamp, ObjectInstanceRen *obi, VlakRen *vlr, 
 	if (shi->flippednor)
 		shade_input_flip_normals(shi);
 
-	madd_v3_v3fl(shi->co, shi->vn, 0.0001f); /* ugly.. */
+	madd_v3_v3fl(shi->co, shi->facenor, -0.0001f); /* ugly.. */
 
 	/* not a pretty solution, but fixes common cases */
 	if (shi->obr->ob && shi->obr->ob->transflag & OB_NEG_SCALE) {
@@ -233,9 +232,9 @@ static void occ_build_shade(Render *re, OcclusionTree *tree)
 /* ------------------------- Spherical Harmonics --------------------------- */
 
 /* Use 2nd order SH => 9 coefficients, stored in this order:
-* 0 = (0,0),
-* 1 = (1,-1), 2 = (1,0), 3 = (1,1),
-* 4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
+ * 0 = (0,0),
+ * 1 = (1,-1), 2 = (1,0), 3 = (1,1),
+ * 4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
 
 static void sh_copy(float *shresult, float *sh)
 {
@@ -626,9 +625,12 @@ static void occ_build_sh_normalize(OccNode *node)
 		sh_mul(node->sh, 1.0f / node->area);
 
 	for (b = 0; b < TOTCHILD; b++) {
-		if (node->childflag & (1 << b)) ;
-		else if (node->child[b].node)
+		if (node->childflag & (1 << b)) {
+			/* pass */
+		}
+		else if (node->child[b].node) {
 			occ_build_sh_normalize(node->child[b].node);
+		}
 	}
 }
 
@@ -1057,8 +1059,8 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 static __m128 sse_approx_acos(__m128 x)
 {
 	/* needs a better approximation than taylor expansion of acos, since that
-	* gives big erros for near 1.0 values, sqrt(2*x)*acos(1-x) should work
-	* better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
+	 * gives big erros for near 1.0 values, sqrt(2*x)*acos(1-x) should work
+	 * better, see http://www.tom.womack.net/projects/sse-fast-arctrig.html */
 
 	return _mm_set_ps1(1.0f);
 }
@@ -1128,7 +1130,7 @@ static void normalizef(float *n)
 		n[0] *= d; 
 		n[1] *= d; 
 		n[2] *= d;
-	} 
+	}
 }
 
 /* TODO: exact duplicate of ff_quad_form_factor() in math_geom.c
@@ -1545,7 +1547,7 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 
 	for (i = 0; i < 4; i++) {
 		sub_v3_v3v3(d, samples[i]->co, co);
-		//dist2= dot_v3v3(d, d);
+		//dist2 = dot_v3v3(d, d);
 
 		wz[i] = 1.0f; //(samples[i]->dist2/(1e-4f + dist2));
 		wn[i] = pow(dot_v3v3(samples[i]->n, n), 32.0f);

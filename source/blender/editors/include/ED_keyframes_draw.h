@@ -157,4 +157,3 @@ short compare_ab_cfraPtr(void *node, void *data);
 short actkeyblock_is_valid(ActKeyBlock *ab, struct DLRBT_Tree *keys);
 
 #endif  /*  __ED_KEYFRAMES_DRAW_H__ */
-

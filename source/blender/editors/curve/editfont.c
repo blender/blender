@@ -94,7 +94,8 @@ static char findaccent(char char1, unsigned int code)
 	}
 	else if (char1 == 'c') {
 		if (code == ',') new = 231;
-		if (code == '|') new = 162;
+		else if (code == '|') new = 162;
+		else if (code == 'o') new = 169;
 	}
 	else if (char1 == 'e') {
 		if (code == '`') new = 232;
@@ -120,9 +121,17 @@ static char findaccent(char char1, unsigned int code)
 		else if (code == '/') new = 248;
 		else if (code == '-') new = 186;
 		else if (code == 'e') new = 143;
+		else if (code == 'c') new = 169;
+		else if (code == 'r') new = 174;
+	}
+	else if (char1 == 'r') {
+		if (code == 'o') new = 174;
 	}
 	else if (char1 == 's') {
 		if (code == 's') new = 167;
+	}
+	else if (char1 == 't') {
+		if (code == 'm') new = 153;
 	}
 	else if (char1 == 'u') {
 		if (code == '`') new = 249;
@@ -310,7 +319,7 @@ static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
 		lastlorem = ED_lorem;
 	
 	insert_into_textbuf(obedit, '\n');
-	insert_into_textbuf(obedit, '\n');	
+	insert_into_textbuf(obedit, '\n');
 
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -441,8 +450,9 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 	obedit = BKE_object_add(scene, OB_FONT);
 	base = scene->basact;
 
-	
-	ED_object_base_init_transform(C, base, NULL, rot); /* seems to assume view align ? TODO - look into this, could be an operator option */
+	/* seems to assume view align ? TODO - look into this, could be an operator option */
+	ED_object_base_init_transform(C, base, NULL, rot);
+
 	BKE_object_where_is_calc(scene, obedit);
 
 	obedit->loc[0] += offset[0];
@@ -457,7 +467,7 @@ static void txt_add_object(bContext *C, TextLine *firstline, int totline, float 
 		nchars += strlen(tmp->line) + 1;
 
 	if (cu->str) MEM_freeN(cu->str);
-	if (cu->strinfo) MEM_freeN(cu->strinfo);	
+	if (cu->strinfo) MEM_freeN(cu->strinfo);
 
 	cu->str = MEM_callocN(nchars + 4, "str");
 	cu->strinfo = MEM_callocN((nchars + 4) * sizeof(CharInfo), "strinfo");
@@ -756,7 +766,7 @@ static int paste_selection(Object *obedit, ReportList *reports)
 
 	/* Verify that the copy buffer => [copy buffer len] + cu->len < MAXTEXT */
 	if (cu->len + len <= MAXTEXT) {
-		if (len) {	
+		if (len) {
 			int size = (cu->len * sizeof(wchar_t)) - (cu->pos * sizeof(wchar_t)) + sizeof(wchar_t);
 			memmove(ef->textbuf + cu->pos + len, ef->textbuf + cu->pos, size);
 			memcpy(ef->textbuf + cu->pos, ef->copybuf, len * sizeof(wchar_t));
@@ -834,7 +844,7 @@ static int move_cursor(bContext *C, int type, int select)
 				if (ef->textbuf[cu->pos - 1] == '\n') break;
 				if (ef->textbufinfo[cu->pos - 1].flag & CU_CHINFO_WRAP) break;
 				cu->pos--;
-			}		
+			}
 			cursmove = FO_CURS;
 			break;
 			
@@ -867,7 +877,7 @@ static int move_cursor(bContext *C, int type, int select)
 			cursmove = FO_CURS;
 			break;
 
-		case NEXT_CHAR:	
+		case NEXT_CHAR:
 			if ((select) && (cu->selstart == 0)) cu->selstart = cu->selend = cu->pos + 1;
 			cu->pos++;
 			cursmove = FO_CURS;
@@ -1250,8 +1260,12 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		else
 			ascii = 9;
 	}
-	else if (event == BACKSPACEKEY)
-		ascii = 0;
+	
+	if (event == BACKSPACEKEY) {
+		if (alt && cu->len != 0 && cu->pos > 0)
+			accentcode = 1;
+		return OPERATOR_PASS_THROUGH;
+	}
 
 	if (val && (ascii || evt->utf8_buf[0])) {
 		/* handle case like TAB (== 9) */
@@ -1262,44 +1276,18 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		         (evt->utf8_buf[0]))
 		{
 
-			if (evt->utf8_buf[0]) {
-				BLI_strncpy_wchar_from_utf8(inserted_text, evt->utf8_buf, 1);
-				ascii = inserted_text[0];
-				insert_into_textbuf(obedit, ascii);
-				accentcode = 0;
-			}
-			else if (accentcode) {
+			if (accentcode) {
 				if (cu->pos > 0) {
 					inserted_text[0] = findaccent(ef->textbuf[cu->pos - 1], ascii);
 					ef->textbuf[cu->pos - 1] = inserted_text[0];
 				}
 				accentcode = 0;
 			}
-			else if (cu->len < MAXTEXT - 1) {
-				if (alt) {
-					/* might become obsolete, apple has default values for this, other OS's too? */
-					if (ascii == 't') ascii = 137;
-					else if (ascii == 'c') ascii = 169;
-					else if (ascii == 'f') ascii = 164;
-					else if (ascii == 'g') ascii = 176;
-					else if (ascii == 'l') ascii = 163;
-					else if (ascii == 'r') ascii = 174;
-					else if (ascii == 's') ascii = 223;
-					else if (ascii == 'y') ascii = 165;
-					else if (ascii == '.') ascii = 138;
-					else if (ascii == '1') ascii = 185;
-					else if (ascii == '2') ascii = 178;
-					else if (ascii == '3') ascii = 179;
-					else if (ascii == '%') ascii = 139;
-					else if (ascii == '?') ascii = 191;
-					else if (ascii == '!') ascii = 161;
-					else if (ascii == 'x') ascii = 215;
-					else if (ascii == '>') ascii = 187;
-					else if (ascii == '<') ascii = 171;
-				}
-
-				inserted_text[0] = ascii;
+			else if (evt->utf8_buf[0]) {
+				BLI_strncpy_wchar_from_utf8(inserted_text, evt->utf8_buf, 1);
+				ascii = inserted_text[0];
 				insert_into_textbuf(obedit, ascii);
+				accentcode = 0;
 			}
 			
 			kill_selection(obedit, 1);
@@ -1310,12 +1298,6 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 			insert_into_textbuf(obedit, ascii);
 			text_update_edited(C, scene, obedit, 1, FO_EDIT);
 		}
-	}
-	else if (val && event == BACKSPACEKEY) {
-		if (alt && cu->len != 0 && cu->pos > 0)
-			accentcode = 1;
-
-		return OPERATOR_PASS_THROUGH;
 	}
 	else
 		return OPERATOR_PASS_THROUGH;
@@ -1329,7 +1311,8 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 	}
 
 	/* reset property? */
-	accentcode = 0;
+	if (val == 0)
+		accentcode = 0;
 	
 	return OPERATOR_FINISHED;
 }

@@ -366,8 +366,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		device_vector<float4>& tex_img = dscene->tex_float_image[slot];
 
-		if(tex_img.device_pointer)
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
 			device->tex_free(tex_img);
+		}
 
 		if(!file_load_float_image(img, tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
@@ -384,8 +386,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 		if(slot >= 10) name = string_printf("__tex_image_float_0%d", slot);
 		else name = string_printf("__tex_image_float_00%d", slot);
 
-		if(!pack_images)
+		if(!pack_images) {
+			thread_scoped_lock device_lock(device_mutex);
 			device->tex_alloc(name.c_str(), tex_img, true, true);
+		}
 	}
 	else {
 		string filename = path_filename(images[slot - tex_image_byte_start]->filename);
@@ -393,8 +397,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		device_vector<uchar4>& tex_img = dscene->tex_image[slot - tex_image_byte_start];
 
-		if(tex_img.device_pointer)
+		if(tex_img.device_pointer) {
+			thread_scoped_lock device_lock(device_mutex);
 			device->tex_free(tex_img);
+		}
 
 		if(!file_load_image(img, tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
@@ -411,8 +417,10 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 		if(slot >= 10) name = string_printf("__tex_image_0%d", slot);
 		else name = string_printf("__tex_image_00%d", slot);
 
-		if(!pack_images)
+		if(!pack_images) {
+			thread_scoped_lock device_lock(device_mutex);
 			device->tex_alloc(name.c_str(), tex_img, true, true);
+		}
 	}
 
 	img->need_load = false;
@@ -440,15 +448,27 @@ void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int sl
 #endif
 		}
 		else if(is_float) {
-			device->tex_free(dscene->tex_float_image[slot]);
-			dscene->tex_float_image[slot].clear();
+			device_vector<float4>& tex_img = dscene->tex_float_image[slot];
+
+			if(tex_img.device_pointer) {
+				thread_scoped_lock device_lock(device_mutex);
+				device->tex_free(tex_img);
+			}
+
+			tex_img.clear();
 
 			delete float_images[slot];
 			float_images[slot] = NULL;
 		}
 		else {
-			device->tex_free(dscene->tex_image[slot - tex_image_byte_start]);
-			dscene->tex_image[slot - tex_image_byte_start].clear();
+			device_vector<uchar4>& tex_img = dscene->tex_image[slot - tex_image_byte_start];
+
+			if(tex_img.device_pointer) {
+				thread_scoped_lock device_lock(device_mutex);
+				device->tex_free(tex_img);
+			}
+
+			tex_img.clear();
 
 			delete images[slot - tex_image_byte_start];
 			images[slot - tex_image_byte_start] = NULL;
@@ -460,7 +480,7 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 {
 	if(!need_update)
 		return;
-	
+
 	TaskPool pool;
 
 	for(size_t slot = 0; slot < images.size(); slot++) {
@@ -542,9 +562,9 @@ void ImageManager::device_free(Device *device, DeviceScene *dscene)
 		device_free_image(device, dscene, slot);
 
 	device->tex_free(dscene->tex_image_packed);
-	dscene->tex_image_packed.clear();
-
 	device->tex_free(dscene->tex_image_packed_info);
+
+	dscene->tex_image_packed.clear();
 	dscene->tex_image_packed_info.clear();
 
 	images.clear();

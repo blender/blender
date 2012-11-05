@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+ 
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
@@ -29,9 +30,137 @@
 
 #include "util_foreach.h"
 
+#include "mikktspace.h"
+
 CCL_NAMESPACE_BEGIN
 
-/* Find/Add */
+/* Tangent Space */
+
+struct MikkUserData {
+	MikkUserData(const BL::Mesh mesh_, const BL::MeshTextureFaceLayer layer_, int num_faces_)
+	: mesh(mesh_), layer(layer_), num_faces(num_faces_)
+	{
+		tangent.resize(num_faces*4);
+	}
+
+	BL::Mesh mesh;
+	BL::MeshTextureFaceLayer layer;
+	int num_faces;
+	vector<float4> tangent;
+};
+
+static int mikk_get_num_faces(const SMikkTSpaceContext *context)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	return userdata->num_faces;
+}
+
+static int mikk_get_num_verts_of_face(const SMikkTSpaceContext *context, const int face_num)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	int4 vi = get_int4(f.vertices_raw());
+
+	return (vi[3] == 0)? 3: 4;
+}
+
+static void mikk_get_position(const SMikkTSpaceContext *context, float P[3], const int face_num, const int vert_num)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	int4 vi = get_int4(f.vertices_raw());
+	BL::MeshVertex v = userdata->mesh.vertices[vi[vert_num]];
+	float3 vP = get_float3(v.co());
+
+	P[0] = vP.x;
+	P[1] = vP.y;
+	P[2] = vP.z;
+}
+
+static void mikk_get_texture_coordinate(const SMikkTSpaceContext *context, float uv[2], const int face_num, const int vert_num)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	BL::MeshTextureFace tf = userdata->layer.data[face_num];
+	float3 tfuv;
+
+	if(vert_num == 0)
+		tfuv = get_float3(tf.uv1());
+	else if(vert_num == 1)
+		tfuv = get_float3(tf.uv2());
+	else if(vert_num == 2)
+		tfuv = get_float3(tf.uv3());
+	else
+		tfuv = get_float3(tf.uv4());
+	
+	uv[0] = tfuv.x;
+	uv[1] = tfuv.y;
+}
+
+static void mikk_get_normal(const SMikkTSpaceContext *context, float N[3], const int face_num, const int vert_num)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+	BL::MeshTessFace f = userdata->mesh.tessfaces[face_num];
+	int4 vi = get_int4(f.vertices_raw());
+	BL::MeshVertex v = userdata->mesh.vertices[vi[vert_num]];
+	float3 vN = get_float3(v.normal());
+
+	N[0] = vN.x;
+	N[1] = vN.y;
+	N[2] = vN.z;
+}
+
+static void mikk_set_tangent_space(const SMikkTSpaceContext *context, const float T[], const float sign, const int face, const int vert)
+{
+	MikkUserData *userdata = (MikkUserData*)context->m_pUserData;
+
+	userdata->tangent[face*4 + vert] = make_float4(T[0], T[1], T[2], sign);
+}
+
+static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_layer, Mesh *mesh, vector<int>& nverts)
+{
+	/* setup userdata */
+	MikkUserData userdata(b_mesh, b_layer, nverts.size());
+
+	/* setup interface */
+	SMikkTSpaceInterface sm_interface;
+	memset(&sm_interface, 0, sizeof(sm_interface));
+	sm_interface.m_getNumFaces = mikk_get_num_faces;
+	sm_interface.m_getNumVerticesOfFace = mikk_get_num_verts_of_face;
+	sm_interface.m_getPosition = mikk_get_position;
+	sm_interface.m_getTexCoord = mikk_get_texture_coordinate;
+	sm_interface.m_getNormal = mikk_get_normal;
+	sm_interface.m_setTSpaceBasic = mikk_set_tangent_space;
+
+	/* setup context */
+	SMikkTSpaceContext context;
+	memset(&context, 0, sizeof(context));
+	context.m_pUserData = &userdata;
+	context.m_pInterface = &sm_interface;
+
+	/* compute tangents */
+	genTangSpaceDefault(&context);
+
+	/* create attribute */
+	/* todo: create float4 attribute for sign */
+	Attribute *attr = mesh->attributes.add(ATTR_STD_TANGENT, ustring("tangent"));
+	float3 *tangent = attr->data_float3();
+
+	for (int i = 0; i < nverts.size(); i++) {
+		tangent[0] = float4_to_float3(userdata.tangent[i*4 + 0]);
+		tangent[1] = float4_to_float3(userdata.tangent[i*4 + 1]);
+		tangent[2] = float4_to_float3(userdata.tangent[i*4 + 2]);
+		tangent += 3;
+
+		if(nverts[i] == 4) {
+			tangent[0] = float4_to_float3(userdata.tangent[i*4 + 0]);
+			tangent[1] = float4_to_float3(userdata.tangent[i*4 + 2]);
+			tangent[2] = float4_to_float3(userdata.tangent[i*4 + 3]);
+			tangent += 3;
+		}
+	}
+}
+
+/* Create Mesh */
 
 static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<uint>& used_shaders)
 {
@@ -65,27 +194,6 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			mesh->add_triangle(vi[0], vi[2], vi[3], shader, smooth);
 
 		nverts.push_back(n);
-	}
-
-	/* create generated coordinates. todo: we should actually get the orco
-	 * coordinates from modifiers, for now we use texspace loc/size which
-	 * is available in the api. */
-	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
-		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-		float3 loc = get_float3(b_mesh.texspace_location());
-		float3 size = get_float3(b_mesh.texspace_size());
-
-		if(size.x != 0.0f) size.x = 0.5f/size.x;
-		if(size.y != 0.0f) size.y = 0.5f/size.y;
-		if(size.z != 0.0f) size.z = 0.5f/size.z;
-
-		loc = loc*size - make_float3(0.5f, 0.5f, 0.5f);
-
-		float3 *fdata = attr->data_float3();
-		size_t i = 0;
-
-		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
-			fdata[i++] = get_float3(v->co())*size - loc;
 	}
 
 	/* create vertex color attributes */
@@ -156,6 +264,39 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				}
 			}
 		}
+	}
+
+	/* create texcoord-based tangent attributes */
+	if(mesh->need_attribute(scene, ATTR_STD_TANGENT)) {
+		BL::Mesh::tessface_uv_textures_iterator l;
+
+		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
+			if(!l->active_render())
+				continue;
+
+			mikk_compute_tangents(b_mesh, *l, mesh, nverts);
+		}
+	}
+
+	/* create generated coordinates. todo: we should actually get the orco
+	 * coordinates from modifiers, for now we use texspace loc/size which
+	 * is available in the api. */
+	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
+		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
+		float3 loc = get_float3(b_mesh.texspace_location());
+		float3 size = get_float3(b_mesh.texspace_size());
+
+		if(size.x != 0.0f) size.x = 0.5f/size.x;
+		if(size.y != 0.0f) size.y = 0.5f/size.y;
+		if(size.z != 0.0f) size.z = 0.5f/size.z;
+
+		loc = loc*size - make_float3(0.5f, 0.5f, 0.5f);
+
+		float3 *generated = attr->data_float3();
+		size_t i = 0;
+
+		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
+			generated[i++] = get_float3(v->co())*size - loc;
 	}
 }
 
@@ -270,7 +411,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 			create_mesh(scene, mesh, b_mesh, used_shaders);
 
 		/* free derived mesh */
-		object_remove_mesh(b_data, b_mesh);
+		b_data.meshes.remove(b_mesh);
 	}
 
 	/* displacement method */
@@ -328,7 +469,7 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 			mesh->attributes.remove(std);
 
 		/* free derived mesh */
-		object_remove_mesh(b_data, b_mesh);
+		b_data.meshes.remove(b_mesh);
 	}
 }
 

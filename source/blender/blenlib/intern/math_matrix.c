@@ -195,7 +195,7 @@ void mul_m3_m3m3(float m1[][3], float m3_[][3], float m2_[][3])
 	m1[2][2] = m2[2][0] * m3[0][2] + m2[2][1] * m3[1][2] + m2[2][2] * m3[2][2];
 }
 
-void mul_m4_m4m3(float (*m1)[4], float (*m3_)[4], float (*m2_)[3])
+void mul_m4_m4m3(float m1[][4], float m3_[][4], float m2_[][3])
 {
 	float m2[3][3], m3[4][4];
 
@@ -215,8 +215,14 @@ void mul_m4_m4m3(float (*m1)[4], float (*m3_)[4], float (*m2_)[3])
 }
 
 /* m1 = m2 * m3, ignore the elements on the 4th row/column of m3 */
-void mult_m3_m3m4(float m1[][3], float m3[][4], float m2[][3])
+void mult_m3_m3m4(float m1[][3], float m3_[][4], float m2_[][3])
 {
+	float m2[3][3], m3[4][4];
+
+	/* copy so it works when m1 is the same pointer as m2 or m3 */
+	copy_m3_m3(m2, m2_);
+	copy_m4_m4(m3, m3_);
+
 	/* m1[i][j] = m2[i][k] * m3[k][j] */
 	m1[0][0] = m2[0][0] * m3[0][0] + m2[0][1] * m3[1][0] + m2[0][2] * m3[2][0];
 	m1[0][1] = m2[0][0] * m3[0][1] + m2[0][1] * m3[1][1] + m2[0][2] * m3[2][1];
@@ -231,8 +237,14 @@ void mult_m3_m3m4(float m1[][3], float m3[][4], float m2[][3])
 	m1[2][2] = m2[2][0] * m3[0][2] + m2[2][1] * m3[1][2] + m2[2][2] * m3[2][2];
 }
 
-void mul_m4_m3m4(float (*m1)[4], float (*m3)[3], float (*m2)[4])
+void mul_m4_m3m4(float m1[][4], float m3_[][3], float m2_[][4])
 {
+	float m2[4][4], m3[3][3];
+
+	/* copy so it works when m1 is the same pointer as m2 or m3 */
+	copy_m4_m4(m2, m2_);
+	copy_m3_m3(m3, m3_);
+
 	m1[0][0] = m2[0][0] * m3[0][0] + m2[0][1] * m3[1][0] + m2[0][2] * m3[2][0];
 	m1[0][1] = m2[0][0] * m3[0][1] + m2[0][1] * m3[1][1] + m2[0][2] * m3[2][1];
 	m1[0][2] = m2[0][0] * m3[0][2] + m2[0][1] * m3[1][2] + m2[0][2] * m3[2][2];
@@ -591,15 +603,15 @@ int invert_m4_m4(float inverse[4][4], float mat[4][4])
 		if (temp == 0)
 			return 0;  /* No non-zero pivot */
 		for (k = 0; k < 4; k++) {
-			tempmat[i][k] = (float)(tempmat[i][k] / temp);
-			inverse[i][k] = (float)(inverse[i][k] / temp);
+			tempmat[i][k] = (float)((double)tempmat[i][k] / temp);
+			inverse[i][k] = (float)((double)inverse[i][k] / temp);
 		}
 		for (j = 0; j < 4; j++) {
 			if (j != i) {
 				temp = tempmat[j][i];
 				for (k = 0; k < 4; k++) {
-					tempmat[j][k] -= (float)(tempmat[i][k] * temp);
-					inverse[j][k] -= (float)(inverse[i][k] * temp);
+					tempmat[j][k] -= (float)((double)tempmat[i][k] * temp);
+					inverse[j][k] -= (float)((double)inverse[i][k] * temp);
 				}
 			}
 		}
@@ -933,8 +945,18 @@ void normalize_m4_m4(float rmat[][4], float mat[][4])
 	if (len != 0.0f) rmat[2][3] = mat[2][3] / len;
 }
 
+void adjoint_m2_m2(float m1[][2], float m[][2])
+{
+	BLI_assert(m1 != m);
+	m1[0][0] =  m[1][1];
+	m1[0][1] = -m[1][0];
+	m1[1][0] = -m[0][1];
+	m1[1][1] =  m[0][0];
+}
+
 void adjoint_m3_m3(float m1[][3], float m[][3])
 {
+	BLI_assert(m1 != m);
 	m1[0][0] = m[1][1] * m[2][2] - m[1][2] * m[2][1];
 	m1[0][1] = -m[0][1] * m[2][2] + m[0][2] * m[2][1];
 	m1[0][2] = m[0][1] * m[1][2] - m[0][2] * m[1][1];
@@ -1388,7 +1410,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	int m = 4;
 	int n = 4;
 	int maxiter = 200;
-	int nu = minf(m, n);
+	int nu = min_ff(m, n);
 
 	float *work = work1;
 	float *e = work2;
@@ -1396,22 +1418,22 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 
 	int i = 0, j = 0, k = 0, p, pp, iter;
 
-	// Reduce A to bidiagonal form, storing the diagonal elements
-	// in s and the super-diagonal elements in e.
+	/* Reduce A to bidiagonal form, storing the diagonal elements
+	 * in s and the super-diagonal elements in e. */
 
-	int nct = minf(m - 1, n);
-	int nrt = maxf(0, minf(n - 2, m));
+	int nct = min_ff(m - 1, n);
+	int nrt = max_ff(0, min_ff(n - 2, m));
 
 	copy_m4_m4(A, A_);
 	zero_m4(U);
 	zero_v4(s);
 
-	for (k = 0; k < maxf(nct, nrt); k++) {
+	for (k = 0; k < max_ff(nct, nrt); k++) {
 		if (k < nct) {
 
-			// Compute the transformation for the k-th column and
-			// place the k-th diagonal in s[k].
-			// Compute 2-norm of k-th column without under/overflow.
+			/* Compute the transformation for the k-th column and
+			 * place the k-th diagonal in s[k].
+			 * Compute 2-norm of k-th column without under/overflow. */
 			s[k] = 0;
 			for (i = k; i < m; i++) {
 				s[k] = hypotf(s[k], A[i][k]);
@@ -1432,7 +1454,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 		for (j = k + 1; j < n; j++) {
 			if ((k < nct) && (s[k] != 0.0f)) {
 
-				// Apply the transformation.
+				/* Apply the transformation. */
 
 				float t = 0;
 				for (i = k; i < m; i++) {
@@ -1444,24 +1466,24 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				}
 			}
 
-			// Place the k-th row of A into e for the
-			// subsequent calculation of the row transformation.
+			/* Place the k-th row of A into e for the */
+			/* subsequent calculation of the row transformation. */
 
 			e[j] = A[k][j];
 		}
 		if (k < nct) {
 
-			// Place the transformation in U for subsequent back
-			// multiplication.
+			/* Place the transformation in U for subsequent back
+			 * multiplication. */
 
 			for (i = k; i < m; i++)
 				U[i][k] = A[i][k];
 		}
 		if (k < nrt) {
 
-			// Compute the k-th row transformation and place the
-			// k-th super-diagonal in e[k].
-			// Compute 2-norm without under/overflow.
+			/* Compute the k-th row transformation and place the
+			 * k-th super-diagonal in e[k].
+			 * Compute 2-norm without under/overflow. */
 			e[k] = 0;
 			for (i = k + 1; i < n; i++) {
 				e[k] = hypotf(e[k], e[i]);
@@ -1481,7 +1503,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 			if ((k + 1 < m) & (e[k] != 0.0f)) {
 				float invek1;
 
-				// Apply the transformation.
+				/* Apply the transformation. */
 
 				for (i = k + 1; i < m; i++) {
 					work[i] = 0.0f;
@@ -1500,17 +1522,17 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				}
 			}
 
-			// Place the transformation in V for subsequent
-			// back multiplication.
+			/* Place the transformation in V for subsequent
+			 * back multiplication. */
 
 			for (i = k + 1; i < n; i++)
 				V[i][k] = e[i];
 		}
 	}
 
-	// Set up the final bidiagonal matrix or order p.
+	/* Set up the final bidiagonal matrix or order p. */
 
-	p = minf(n, m + 1);
+	p = min_ff(n, m + 1);
 	if (nct < n) {
 		s[nct] = A[nct][nct];
 	}
@@ -1522,7 +1544,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	}
 	e[p - 1] = 0.0f;
 
-	// If required, generate U.
+	/* If required, generate U. */
 
 	for (j = nct; j < nu; j++) {
 		for (i = 0; i < m; i++) {
@@ -1558,7 +1580,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 		}
 	}
 
-	// If required, generate V.
+	/* If required, generate V. */
 
 	for (k = n - 1; k >= 0; k--) {
 		if ((k < nrt) & (e[k] != 0.0f)) {
@@ -1579,7 +1601,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 		V[k][k] = 1.0f;
 	}
 
-	// Main iteration loop for the singular values.
+	/* Main iteration loop for the singular values. */
 
 	pp = p - 1;
 	iter = 0;
@@ -1587,20 +1609,20 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 	while (p > 0) {
 		int kase = 0;
 
-		// Test for maximum iterations to avoid infinite loop
+		/* Test for maximum iterations to avoid infinite loop */
 		if (maxiter == 0)
 			break;
 		maxiter--;
 
-		// This section of the program inspects for
-		// negligible elements in the s and e arrays.  On
-		// completion the variables kase and k are set as follows.
-
-		// kase = 1	  if s(p) and e[k - 1] are negligible and k<p
-		// kase = 2	  if s(k) is negligible and k<p
-		// kase = 3	  if e[k - 1] is negligible, k<p, and
-		//               s(k), ..., s(p) are not negligible (qr step).
-		// kase = 4	  if e(p - 1) is negligible (convergence).
+		/* This section of the program inspects for
+		 * negligible elements in the s and e arrays.  On
+		 * completion the variables kase and k are set as follows.
+		 *
+		 * kase = 1	  if s(p) and e[k - 1] are negligible and k<p
+		 * kase = 2	  if s(k) is negligible and k<p
+		 * kase = 3	  if e[k - 1] is negligible, k<p, and
+		 *               s(k), ..., s(p) are not negligible (qr step).
+		 * kase = 4	  if e(p - 1) is negligible (convergence). */
 
 		for (k = p - 2; k >= -1; k--) {
 			if (k == -1) {
@@ -1641,11 +1663,11 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 		}
 		k++;
 
-		// Perform the task indicated by kase.
+		/* Perform the task indicated by kase. */
 
 		switch (kase) {
 
-			// Deflate negligible s(p).
+			/* Deflate negligible s(p). */
 
 			case 1:
 			{
@@ -1671,7 +1693,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				break;
 			}
 
-			// Split at negligible s(k).
+			/* Split at negligible s(k). */
 
 			case 2:
 			{
@@ -1695,14 +1717,14 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				break;
 			}
 
-			// Perform one qr step.
+			/* Perform one qr step. */
 
 			case 3:
 			{
 
-				// Calculate the shift.
+				/* Calculate the shift. */
 
-				float scale = maxf(maxf(maxf(maxf(
+				float scale = max_ff(max_ff(max_ff(max_ff(
 				                   fabsf(s[p - 1]), fabsf(s[p - 2])), fabsf(e[p - 2])),
 				                   fabsf(s[k])), fabsf(e[k]));
 				float invscale = 1.0f / scale;
@@ -1725,7 +1747,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				f = (sk + sp) * (sk - sp) + shift;
 				g = sk * ek;
 
-				// Chase zeros.
+				/* Chase zeros. */
 
 				for (j = k; j < p - 1; j++) {
 					float t = hypotf(f, g);
@@ -1767,12 +1789,12 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				iter = iter + 1;
 				break;
 			}
-			// Convergence.
+			/* Convergence. */
 
 			case 4:
 			{
 
-				// Make the singular values positive.
+				/* Make the singular values positive. */
 
 				if (s[k] <= 0.0f) {
 					s[k] = (s[k] < 0.0f ? -s[k] : 0.0f);
@@ -1781,7 +1803,7 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 						V[i][k] = -V[i][k];
 				}
 
-				// Order the singular values.
+				/* Order the singular values. */
 
 				while (k < pp) {
 					float t;

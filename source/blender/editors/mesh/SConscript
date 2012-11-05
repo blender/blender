@@ -5,7 +5,7 @@ sources = env.Glob('*.c')
 
 defs = []
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../gpu ../../blenloader'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
@@ -23,5 +23,11 @@ if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
 else:
     sources.remove('mesh_navmesh.c')
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+if env['WITH_BF_BULLET']:
+    defs.append('WITH_BULLET')
 
 env.BlenderLib ( 'bf_editors_mesh', sources, Split(incs), defs, libtype=['core'], priority=[45] )

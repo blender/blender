@@ -85,18 +85,18 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
 	int bufferstarty = inputBuffer->getRect()->ymin;
 
 	int miny = y;
-	int maxy = y;
+	// int maxy = y;  // UNUSED
 	int minx = x - this->m_rad;
 	int maxx = x + this->m_rad;
 	miny = max(miny, inputBuffer->getRect()->ymin);
 	minx = max(minx, inputBuffer->getRect()->xmin);
-	maxy = min(maxy, inputBuffer->getRect()->ymax);
-	maxx = min(maxx, inputBuffer->getRect()->xmax);
+	// maxy = min(maxy, inputBuffer->getRect()->ymax);
+	maxx = min(maxx, inputBuffer->getRect()->xmax - 1);
 
 	int step = getStep();
 	int offsetadd = getOffsetAdd();
 	int bufferindex = ((minx - bufferstartx) * 4) + ((miny - bufferstarty) * 4 * bufferwidth);
-	for (int nx = minx, index = (minx - x) + this->m_rad; nx < maxx; nx += step, index += step) {
+	for (int nx = minx, index = (minx - x) + this->m_rad; nx <= maxx; nx += step, index += step) {
 		const float multiplier = this->m_gausstab[index];
 		madd_v4_v4fl(color_accum, &buffer[bufferindex], multiplier);
 		multiplier_accum += multiplier;
@@ -108,8 +108,10 @@ void GaussianXBlurOperation::executePixel(float output[4], int x, int y, void *d
 void GaussianXBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	MEM_freeN(this->m_gausstab);
-	this->m_gausstab = NULL;
+	if (this->m_gausstab) {
+		MEM_freeN(this->m_gausstab);
+		this->m_gausstab = NULL;
+	}
 
 	deinitMutex();
 }

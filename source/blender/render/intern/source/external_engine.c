@@ -64,7 +64,7 @@
 static RenderEngineType internal_render_type = {
 	NULL, NULL,
 	"BLENDER_RENDER", N_("Blender Render"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -73,7 +73,7 @@ static RenderEngineType internal_render_type = {
 static RenderEngineType internal_game_type = {
 	NULL, NULL,
 	"BLENDER_GAME", N_("Blender Game"), RE_INTERNAL | RE_GAME,
-	NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL,
 	{NULL, NULL, NULL}
 };
 
@@ -138,7 +138,7 @@ void RE_engine_free(RenderEngine *engine)
 {
 #ifdef WITH_PYTHON
 	if (engine->py_instance) {
-		BPY_DECREF(engine->py_instance);
+		BPY_DECREF_RNA_INVALIDATE(engine->py_instance);
 	}
 #endif
 
@@ -290,9 +290,24 @@ void RE_engine_update_progress(RenderEngine *engine, float progress)
 	}
 }
 
+void RE_engine_update_memory_stats(RenderEngine *engine, float mem_used, float mem_peak)
+{
+	Render *re = engine->re;
+
+	if (re) {
+		re->i.mem_used = mem_used;
+		re->i.mem_peak = mem_peak;
+	}
+}
+
 void RE_engine_report(RenderEngine *engine, int type, const char *msg)
 {
-	BKE_report(engine->re->reports, type, msg);
+	Render *re = engine->re;
+
+	if (re)
+		BKE_report(engine->re->reports, type, msg);
+	else if(engine->reports)
+		BKE_report(engine->reports, type, msg);
 }
 
 /* Render */

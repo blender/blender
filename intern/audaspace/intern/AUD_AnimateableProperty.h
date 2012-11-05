@@ -31,13 +31,14 @@
 #define __AUD_ANIMATEABLEPROPERTY_H__
 
 #include "AUD_Buffer.h"
+#include "AUD_ILockable.h"
 
 #include <pthread.h>
 
 /**
  * This class saves animation data for float properties.
  */
-class AUD_AnimateableProperty : private AUD_Buffer
+class AUD_AnimateableProperty : private AUD_Buffer, public AUD_ILockable
 {
 private:
 	/// The count of floats for a single property.
@@ -68,12 +69,12 @@ public:
 	/**
 	 * Locks the property.
 	 */
-	void lock();
+	virtual void lock();
 
 	/**
 	 * Unlocks the previously locked property.
 	 */
-	void unlock();
+	virtual void unlock();
 
 	/**
 	 * Writes the properties value and marks it non-animated.

@@ -47,5 +47,4 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 }
 #endif
 
-#endif // __IKSOLVER_PLUGIN_H__
-
+#endif  /* __IKSOLVER_PLUGIN_H__ */

@@ -80,11 +80,10 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	float *rectf = NULL;
 	int ymin, ymax, xmin, xmax;
 	int rymin, rxmin;
-	unsigned char *rectc;
 
 	/* if renrect argument, we only refresh scanlines */
 	if (renrect) {
-		/* if ymax==recty, rendering of layer is ready, we should not draw, other things happen... */
+		/* if (ymax == recty), rendering of layer is ready, we should not draw, other things happen... */
 		if (rr->renlay == NULL || renrect->ymax >= rr->recty)
 			return;
 
@@ -124,8 +123,14 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 	if (rr->rectf)
 		rectf = rr->rectf;
 	else {
-		if (rr->rect32)
+		if (rr->rect32) {
+			/* special case, currently only happens with sequencer rendering,
+			 * which updates the whole frame, so we can only mark display buffer
+			 * as invalid here (sergey)
+			 */
+			ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 			return;
+		}
 		else {
 			if (rr->renlay == NULL || rr->renlay->rectf == NULL) return;
 			rectf = rr->renlay->rectf;
@@ -137,11 +142,10 @@ void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volat
 		imb_addrectImBuf(ibuf);
 	
 	rectf += 4 * (rr->rectx * ymin + xmin);
-	rectc = (unsigned char *)(ibuf->rect + ibuf->x * rymin + rxmin);
 
 	IMB_partial_display_buffer_update(ibuf, rectf, NULL, rr->rectx, rxmin, rymin,
 	                                  &scene->view_settings, &scene->display_settings,
-	                                  rxmin, rymin, rxmin + xmax, rymin + ymax);
+	                                  rxmin, rymin, rxmin + xmax, rymin + ymax, TRUE);
 }
 
 /* ****************************** render invoking ***************** */
@@ -198,7 +202,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	screen_render_scene_layer_set(op, mainp, &scene, &srl);
 
 	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
+		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -291,7 +295,11 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 		if (rs->tothalo) spos += sprintf(spos, "Ha:%d ", rs->tothalo);
 		if (rs->totstrand) spos += sprintf(spos, "St:%d ", rs->totstrand);
 		if (rs->totlamp) spos += sprintf(spos, "La:%d ", rs->totlamp);
-		spos += sprintf(spos, "Mem:%.2fM (%.2fM, peak %.2fM) ", megs_used_memory, mmap_used_memory, megs_peak_memory);
+
+		if (rs->mem_peak == 0.0f)
+			spos += sprintf(spos, "Mem:%.2fM (%.2fM, peak %.2fM) ", megs_used_memory, mmap_used_memory, megs_peak_memory);
+		else
+			spos += sprintf(spos, "Mem:%.2fM, Peak: %.2fM ", rs->mem_used, rs->mem_peak);
 
 		if (rs->curfield)
 			spos += sprintf(spos, "Field %d ", rs->curfield);
@@ -489,12 +497,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
+		BKE_report(op->reports, RPT_ERROR, "Cannot write a single file with an animation format selected");
 		return OPERATOR_CANCELLED;
-	}	
+	}
 	
-	/* stop all running jobs, currently previews frustrate Render */
-	WM_jobs_stop_all(CTX_wm_manager(C));
+	/* stop all running jobs, except screen one. currently previews frustrate Render */
+	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
 
 	/* get main */
 	if (G.debug_value == 101) {

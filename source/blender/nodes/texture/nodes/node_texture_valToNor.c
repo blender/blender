@@ -33,23 +33,23 @@
 #include "node_texture_util.h"
 #include "NOD_texture.h"
 
-static bNodeSocketTemplate inputs[]= { 
+static bNodeSocketTemplate inputs[] = {
 	{ SOCK_FLOAT, 1, N_("Val"),   0.0f,   0.0f, 0.0f, 1.0f,  0.0f,   1.0f, PROP_NONE },
 	{ SOCK_FLOAT, 1, N_("Nabla"), 0.025f, 0.0f, 0.0f, 0.0f,  0.001f, 0.1f, PROP_UNSIGNED },
-	{ -1, 0, "" } 
+	{ -1, 0, "" }
 };
 
-static bNodeSocketTemplate outputs[]= { 
-	{ SOCK_VECTOR, 0, N_("Normal") }, 
-	{ -1, 0, "" } 
+static bNodeSocketTemplate outputs[] = {
+	{ SOCK_VECTOR, 0, N_("Normal") },
+	{ -1, 0, "" }
 };
 
 static void normalfn(float *out, TexParams *p, bNode *UNUSED(node), bNodeStack **in, short thread)
 {
 	float new_co[3];
-	float *co = p->co;
+	const float *co = p->co;
 
-	float nabla = tex_input_value(in[1], p, thread);	
+	float nabla = tex_input_value(in[1], p, thread);
 	float val;
 	float nor[3];
 	

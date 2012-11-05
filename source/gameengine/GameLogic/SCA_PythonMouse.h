@@ -36,7 +36,7 @@ private:
 	class SCA_IInputDevice *m_mouse;
 	class RAS_ICanvas *m_canvas;
 #ifdef WITH_PYTHON
-	PyObject* m_event_dict;
+	PyObject *m_event_dict;
 #endif
 public:
 	SCA_PythonMouse(class SCA_IInputDevice* mouse, class RAS_ICanvas* canvas);
@@ -47,14 +47,13 @@ public:
 #ifdef WITH_PYTHON
 	KX_PYMETHOD_DOC(SCA_PythonMouse, show);
 
-	static PyObject*	pyattr_get_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static PyObject*	pyattr_get_active_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static PyObject*	pyattr_get_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static int			pyattr_set_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value);
-	static PyObject*	pyattr_get_visible(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static int			pyattr_set_visible(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value);
+	static PyObject *pyattr_get_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_active_events(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_position(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject *pyattr_get_visible(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int       pyattr_set_visible(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 #endif
 };
 
-#endif //__SCA_PYTHONMOUSE_H__
-
+#endif  /* __SCA_PYTHONMOUSE_H__ */

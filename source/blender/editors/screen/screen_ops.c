@@ -192,7 +192,7 @@ int ED_operator_region_view3d_active(bContext *C)
 		return TRUE;
 
 	CTX_wm_operator_poll_msg_set(C, "expected a view3d region");
-	return FALSE;	
+	return FALSE;
 }
 
 /* generic for any view2d which uses anim_ops */
@@ -256,7 +256,7 @@ int ED_operator_node_active(bContext *C)
 	return 0;
 }
 
-// XXX rename
+/* XXX rename */
 int ED_operator_graphedit_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IPO);
@@ -366,6 +366,21 @@ int ED_operator_posemode_exclusive(bContext *C)
 			if (obact == obpose) {
 				return 1;
 			}
+		}
+	}
+
+	return 0;
+}
+
+/* allows for pinned pose objects to be used in the object buttons
+ * and the the non-active pose object to be used in the 3D view */
+int ED_operator_posemode_context(bContext *C)
+{
+	Object *obpose = ED_pose_object_from_context(C);
+
+	if (obpose && !(obpose->mode & OB_MODE_EDIT)) {
+		if (BKE_object_pose_context_check(obpose)) {
+			return 1;
 		}
 	}
 
@@ -565,7 +580,7 @@ static int actionzone_area_poll(bContext *C)
 		for (az = sa->actionzones.first; az; az = az->next)
 			if (BLI_rcti_isect_pt(&az->rect, x, y))
 				return 1;
-	}	
+	}
 	return 0;
 }
 
@@ -613,6 +628,7 @@ static void actionzone_apply(bContext *C, wmOperator *op, int type)
 		event.type = EVT_ACTIONZONE_AREA;
 	else
 		event.type = EVT_ACTIONZONE_REGION;
+	event.val = 0;
 	event.customdata = op->customdata;
 	event.customdatafree = TRUE;
 	op->customdata = NULL;
@@ -686,7 +702,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case ESCKEY:
 			actionzone_exit(op);
 			return OPERATOR_CANCELLED;
-		case LEFTMOUSE:				
+		case LEFTMOUSE:
 			actionzone_exit(op);
 			return OPERATOR_CANCELLED;
 			
@@ -954,18 +970,18 @@ static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller
 			
 			/* if top or down edge selected, test height */
 			if (sa->v1->flag && sa->v4->flag)
-				*bigger = MIN2(*bigger, y1);
+				*bigger = min_ii(*bigger, y1);
 			else if (sa->v2->flag && sa->v3->flag)
-				*smaller = MIN2(*smaller, y1);
+				*smaller = min_ii(*smaller, y1);
 		}
 		else {
 			int x1 = sa->v4->vec.x - sa->v1->vec.x - AREAMINX;
 			
 			/* if left or right edge selected, test width */
 			if (sa->v1->flag && sa->v2->flag)
-				*bigger = MIN2(*bigger, x1);
+				*bigger = min_ii(*bigger, x1);
 			else if (sa->v3->flag && sa->v4->flag)
-				*smaller = MIN2(*smaller, x1);
+				*smaller = min_ii(*smaller, x1);
 		}
 	}
 }
@@ -1196,9 +1212,6 @@ static void SCREEN_OT_area_move(wmOperatorType *ot)
  * call exit() or cancel() and remove handler
  */
 
-#define SPLIT_STARTED   1
-#define SPLIT_PROGRESS  2
-
 typedef struct sAreaSplitData {
 	int x, y;   /* last used mouse position */
 	
@@ -1329,7 +1342,7 @@ static int area_split_apply(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
 		
 		return 1;
-	}		
+	}
 	
 	return 0;
 }
@@ -1635,10 +1648,10 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 	int dist;
 	
 	if (edge == AE_RIGHT_TO_TOPLEFT || edge == AE_LEFT_TO_TOPRIGHT) {
-		dist = BLI_RCT_SIZE_X(&sa->totrct);
+		dist = BLI_rcti_size_x(&sa->totrct);
 	}
 	else {  /* AE_BOTTOM_TO_TOPLEFT, AE_TOP_TO_BOTTOMRIGHT */
-		dist = BLI_RCT_SIZE_Y(&sa->totrct);
+		dist = BLI_rcti_size_y(&sa->totrct);
 	}
 	
 	/* subtractwidth of regions on opposite side 
@@ -1679,7 +1692,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	AZone *az;
 	
 	if (event->type != EVT_ACTIONZONE_REGION) {
-		BKE_report(op->reports, RPT_ERROR, "Can only scale region size from an action zone");	
+		BKE_report(op->reports, RPT_ERROR, "Can only scale region size from an action zone");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1843,7 +1856,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case ESCKEY:
-			;
+			break;
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -2059,15 +2072,23 @@ static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
 
 /* ************** switch screen operator ***************************** */
 
+static int screen_set_is_ok(bScreen *screen, bScreen *screen_prev)
+{
+	return ((screen->winid == 0)    &&
+	        (screen->full == 0)     &&
+	        (screen != screen_prev) &&
+	        (screen->id.name[2] != '.' || !(U.uiflag & USER_HIDE_DOT)));
+}
 
 /* function to be called outside UI context, or for redo */
 static int screen_set_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	bScreen *screen = CTX_wm_screen(C);
 	bScreen *screen_prev = screen;
 	
 	ScrArea *sa = CTX_wm_area(C);
-	int tot = BLI_countlist(&CTX_data_main(C)->screen);
+	int tot = BLI_countlist(&bmain->screen);
 	int delta = RNA_int_get(op->ptr, "delta");
 	
 	/* temp screens are for userpref or render display */
@@ -2077,17 +2098,19 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 	if (delta == 1) {
 		while (tot--) {
 			screen = screen->id.next;
-			if (screen == NULL) screen = CTX_data_main(C)->screen.first;
-			if (screen->winid == 0 && screen->full == 0 && screen != screen_prev)
+			if (screen == NULL) screen = bmain->screen.first;
+			if (screen_set_is_ok(screen, screen_prev)) {
 				break;
+			}
 		}
 	}
 	else if (delta == -1) {
 		while (tot--) {
 			screen = screen->id.prev;
-			if (screen == NULL) screen = CTX_data_main(C)->screen.last;
-			if (screen->winid == 0 && screen->full == 0 && screen != screen_prev)
+			if (screen == NULL) screen = bmain->screen.last;
+			if (screen_set_is_ok(screen, screen_prev)) {
 				break;
+			}
 		}
 	}
 	else {
@@ -2347,14 +2370,14 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 			ScrArea *sa = screen_areahascursor(sc, event->x, event->y);
 			int dir;
 			
-			if (sa) {					
+			if (sa) {
 				if (jd->sa1 != sa) {
 					dir = area_getorientation(jd->sa1, sa);
 					if (dir >= 0) {
 						if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 						jd->sa2 = sa;
 						jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-					} 
+					}
 					else {
 						/* we are not bordering on the previously selected area 
 						 * we check if area has common border with the one marked for removal
@@ -2368,14 +2391,14 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 							jd->sa2 = sa;
 							if (jd->sa1) jd->sa1->flag |= AREA_FLAG_DRAWJOINFROM;
 							if (jd->sa2) jd->sa2->flag |= AREA_FLAG_DRAWJOINTO;
-						} 
+						}
 						else {
 							if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;
 							jd->sa2 = NULL;
 						}
 					}
 					WM_event_add_notifier(C, NC_WINDOW, NULL);
-				} 
+				}
 				else {
 					/* we are back in the area previously selected for keeping 
 					 * we swap the areas if possible to allow user to choose */
@@ -2390,7 +2413,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 						if (dir < 0) {
 							printf("oops, didn't expect that!\n");
 						}
-					} 
+					}
 					else {
 						dir = area_getorientation(jd->sa1, sa);
 						if (dir >= 0) {
@@ -2704,6 +2727,8 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 		
 		/* lock views and set them */
 		if (sa->spacetype == SPACE_VIEW3D) {
+			View3D *v3d = sa->spacedata.first;
+
 			/* run ED_view3d_lock() so the correct 'rv3d->viewquat' is set,
 			 * otherwise when restoring rv3d->localvd the 'viewquat' won't
 			 * match the 'view', set on entering localview See: [#26315],
@@ -2731,7 +2756,15 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 			
 			ar = ar->next;
 			rv3d = ar->regiondata;
-			rv3d->view = RV3D_VIEW_CAMERA; rv3d->persp = RV3D_CAMOB;
+
+			/* check if we have a camera */
+			if (v3d->camera) {
+				rv3d->view = RV3D_VIEW_CAMERA; rv3d->persp = RV3D_CAMOB;
+			}
+			else {
+				rv3d->view = RV3D_VIEW_PERSPORTHO; rv3d->persp = RV3D_PERSP;
+			}
+
 			ED_view3d_lock(rv3d);
 			view3d_localview_update_rv3d(rv3d);
 		}
@@ -2815,7 +2848,7 @@ static int header_flip_exec(bContext *C, wmOperator *UNUSED(op))
 		/* don't do anything if no region */
 		if (ar == NULL)
 			return OPERATOR_CANCELLED;
-	}	
+	}
 	
 	/* copied from SCREEN_OT_region_flip */
 	if (ar->alignment == RGN_ALIGN_TOP)
@@ -2849,36 +2882,78 @@ static void SCREEN_OT_header_flip(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
-/* ************** header tools operator ***************************** */
 
-static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+
+/* ************** show menus operator ***************************** */
+
+/* show/hide header text menus */
+static int header_toggle_menus_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ScrArea *sa = CTX_wm_area(C);
+
+	sa->flag = sa->flag ^ HEADER_NO_PULLDOWN;
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);	
+
+	return OPERATOR_FINISHED;
+}
+
+
+static void SCREEN_OT_header_toggle_menus(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Show/Hide Header Menus";
+	ot->idname = "SCREEN_OT_header_toggle_menus";
+	ot->description = "Show or hide the header pulldown menus";
+	
+	/* api callbacks */
+	ot->exec = header_toggle_menus_exec;
+	ot->poll = ED_operator_areaactive;
+	ot->flag = 0;
+}
+
+
+/* ************** header tools operator ***************************** */
+void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	
-	pup = uiPupMenuBegin(C, "Header", ICON_NONE);
-	layout = uiPupMenuLayout(pup);
-	
-	// XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator
+
+	/* XXX SCREEN_OT_region_flip doesn't work - gets wrong context for active region, so added custom operator. */
 	if (ar->alignment == RGN_ALIGN_TOP)
-		uiItemO(layout, "Flip to Bottom", ICON_NONE, "SCREEN_OT_header_flip");
+		uiItemO(layout, IFACE_("Flip to Bottom"), ICON_NONE, "SCREEN_OT_header_flip");
 	else
-		uiItemO(layout, "Flip to Top", ICON_NONE, "SCREEN_OT_header_flip");
-	
+		uiItemO(layout, IFACE_("Flip to Top"), ICON_NONE, "SCREEN_OT_header_flip");
+
+	if (sa->flag & HEADER_NO_PULLDOWN)
+		uiItemO(layout, IFACE_("Show Menus"), ICON_NONE, "SCREEN_OT_header_toggle_menus");
+	else
+		uiItemO(layout, IFACE_("Hide Menus"), ICON_NONE, "SCREEN_OT_header_toggle_menus");
+
 	uiItemS(layout);
-	
+
 	/* file browser should be fullscreen all the time, but other regions can be maximized/restored... */
 	if (sa->spacetype != SPACE_FILE) {
 		if (sa->full) 
-			uiItemO(layout, "Tile Area", ICON_NONE, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, IFACE_("Tile Area"), ICON_NONE, "SCREEN_OT_screen_full_area");
 		else
-			uiItemO(layout, "Maximize Area", ICON_NONE, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, IFACE_("Maximize Area"), ICON_NONE, "SCREEN_OT_screen_full_area");
 	}
-	
+}
+
+static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup = uiPupMenuBegin(C, N_("Header"), ICON_NONE);
+	layout = uiPupMenuLayout(pup);
+
+	ED_screens_header_tools_menu_create(C, layout, NULL);
+
 	uiPupMenuEnd(C, pup);
-	
+
 	return OPERATOR_CANCELLED;
 }
 
@@ -3008,7 +3083,11 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		}
 		else {
 			if (sync) {
-				int step = floor((wt->duration - sad->last_duration) * FPS);
+				/* note: this is very simplistic,
+				 * its has problem that it may skip too many frames.
+				 * however at least this gives a less jittery playback */
+				const int step = max_ii(1, floor((wt->duration - sad->last_duration) * FPS));
+
 				/* skip frames */
 				if (sad->flag & ANIMPLAY_FLAG_REVERSE)
 					scene->r.cfra -= step;
@@ -3077,11 +3156,12 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 			for (sa = window->screen->areabase.first; sa; sa = sa->next) {
 				ARegion *ar;
 				for (ar = sa->regionbase.first; ar; ar = ar->next) {
-					if (ar == sad->ar)
+					if (ar == sad->ar) {
 						ED_region_tag_redraw(ar);
-					else
-					if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
+					}
+					else if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws)) {
 						ED_region_tag_redraw(ar);
+					}
 				}
 				
 				if (match_area_with_refresh(sa->spacetype, sad->refresh))
@@ -3098,7 +3178,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		/* recalculate the timestep for the timer now that we've finished calculating this,
 		 * since the frames-per-second value may have been changed
 		 */
-		// TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this?
+		/* TODO: this may make evaluation a bit slower if the value doesn't change... any way to avoid this? */
 		wt->timestep = (1.0 / FPS);
 		
 		return OPERATOR_FINISHED;
@@ -3148,7 +3228,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 	else {
 		int refresh = SPACE_TIME; /* these settings are currently only available from a menu in the TimeLine */
 		
-		if (mode == 1) // XXX only play audio forwards!?
+		if (mode == 1)  /* XXX only play audio forwards!? */
 			sound_play_scene(scene);
 		
 		ED_screen_animation_timer(C, screen->redraws_flag, refresh, sync, mode);
@@ -3400,7 +3480,7 @@ static int screen_delete_exec(bContext *C, wmOperator *UNUSED(op))
 static void SCREEN_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Delete Screen"; //was scene
+	ot->name = "Delete Screen";  /* was scene */
 	ot->description = "Delete active screen";
 	ot->idname = "SCREEN_OT_delete";
 	
@@ -3520,6 +3600,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_region_scale);
 	WM_operatortype_append(SCREEN_OT_region_flip);
 	WM_operatortype_append(SCREEN_OT_header_flip);
+	WM_operatortype_append(SCREEN_OT_header_toggle_menus);
 	WM_operatortype_append(SCREEN_OT_header_toolbox);
 	WM_operatortype_append(SCREEN_OT_screen_set);
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
@@ -3547,7 +3628,7 @@ void ED_operatortypes_screen(void)
 	/* tools shared by more space types */
 	WM_operatortype_append(ED_OT_undo);
 	WM_operatortype_append(ED_OT_undo_push);
-	WM_operatortype_append(ED_OT_redo);	
+	WM_operatortype_append(ED_OT_redo);
 	WM_operatortype_append(ED_OT_undo_history);
 	
 }
@@ -3717,7 +3798,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_cancel", MEDIASTOP, KM_PRESS, 0, 0);
 	
 	/* Alternative keys for animation and sequencer playing */
-#if 0 // XXX: disabled for restoring later... bad implementation
+#if 0 /* XXX: disabled for restoring later... bad implementation */
 	keymap = WM_keymap_find(keyconf, "Frames", 0, 0);
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "cycle_speed", TRUE);

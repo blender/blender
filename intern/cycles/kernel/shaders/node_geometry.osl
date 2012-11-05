@@ -1,0 +1,72 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+
+shader node_geometry(
+	normal NormalIn = N,
+	string bump_offset = "center",
+
+	output point Position = point(0.0, 0.0, 0.0),
+	output normal Normal = normal(0.0, 0.0, 0.0),
+	output normal Tangent = normal(0.0, 0.0, 0.0),
+	output normal TrueNormal = normal(0.0, 0.0, 0.0),
+	output vector Incoming = vector(0.0, 0.0, 0.0),
+	output point Parametric = point(0.0, 0.0, 0.0),
+	output float Backfacing = 0.0)
+{
+	Position = P;
+	Normal = NormalIn;
+	TrueNormal = Ng;
+	Incoming = I;
+	Parametric = point(u, v, 0.0);
+	Backfacing = backfacing();
+
+	if (bump_offset == "dx") {
+		Position += Dx(Position);
+		Parametric += Dx(Parametric);
+	}
+	else if (bump_offset == "dy") {
+		Position += Dy(Position);
+		Parametric += Dy(Parametric);
+	}
+
+	/* first try to get tangent attribute */
+	vector T;
+
+	if (getattribute("geom:tangent", T)) {
+		/* ensure orthogonal and normalized (interpolation breaks it) */
+		T = transform("object", "world", T);
+		Tangent = cross(Normal, normalize(cross(T, Normal)));
+	}
+	else {
+		point generated;
+
+		/* try to create spherical tangent from generated coordinates */
+		if (getattribute("geom:generated", generated)) {
+			T = vector(-(generated[1] - 0.5), (generated[0] - 0.5), 0.0);
+			T = transform("object", "world", T);
+			Tangent = cross(Normal, normalize(cross(T, Normal)));
+		}
+		else {
+			/* otherwise use surface derivatives */
+			Tangent = normalize(dPdu);
+		}
+	}
+}
+

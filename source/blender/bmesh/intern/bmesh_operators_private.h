@@ -91,15 +91,18 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op);
 void bmo_similar_verts_exec(BMesh *bm, BMOperator *op);
 void bmo_slide_vert_exec(BMesh *bm, BMOperator *op);
 void bmo_smooth_vert_exec(BMesh *bm, BMOperator *op);
+void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op);
 void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op);
 void bmo_spin_exec(BMesh *bm, BMOperator *op);
 void bmo_split_edges_exec(BMesh *bm, BMOperator *op);
 void bmo_split_exec(BMesh *bm, BMOperator *op);
 void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op);
+void bmo_symmetrize_exec(BMesh *bm, BMOperator *op);
 void bmo_transform_exec(BMesh *bm, BMOperator *op);
 void bmo_translate_exec(BMesh *bm, BMOperator *op);
 void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op);
 void bmo_triangulate_exec(BMesh *bm, BMOperator *op);
+void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op);
 void bmo_weld_verts_exec(BMesh *bm, BMOperator *op);
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op);
 

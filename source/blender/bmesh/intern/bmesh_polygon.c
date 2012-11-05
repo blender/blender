@@ -313,7 +313,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 
 	float up[3] = {0.0f, 0.0f, 1.0f}, axis[3], q[4];
 	float mat[3][3];
-	double angle;
+	float angle;
 	int i;
 
 	cross_v3_v3v3(axis, normal, up);
@@ -329,7 +329,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 		axis[2] = 0.0f;
 	}
 
-	axis_angle_to_quat(q, axis, (float)angle);
+	axis_angle_to_quat(q, axis, angle);
 	quat_to_mat3(mat, q);
 
 	for (i = 0; i < nverts; i++)
@@ -507,8 +507,8 @@ static int line_crosses_v2f(const float v1[2], const float v2[2], const float v3
 
 #define GETMIN2_AXIS(a, b, ma, mb, axis)   \
 	{                                      \
-		ma[axis] = minf(a[axis], b[axis]); \
-		mb[axis] = maxf(a[axis], b[axis]); \
+		ma[axis] = min_ff(a[axis], b[axis]); \
+		mb[axis] = max_ff(a[axis], b[axis]); \
 	} (void)0
 
 #define GETMIN2(a, b, ma, mb)          \
@@ -994,8 +994,8 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 
 	for (i = 0, l = BM_FACE_FIRST_LOOP(f); i < f->len; i++, l = l->next) {
 		p1 = projverts[i];
-		out[0] = maxf(out[0], p1[0]);
-		out[1] = maxf(out[1], p1[1]);
+		out[0] = max_ff(out[0], p1[0]);
+		out[1] = max_ff(out[1], p1[1]);
 		/* out[2] = 0.0f; */ /* keep at zero */
 
 		p1[2] = 0.0f;

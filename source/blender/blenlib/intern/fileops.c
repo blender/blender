@@ -42,6 +42,9 @@
 #include "zlib.h"
 
 #ifdef WIN32
+#ifdef __MINGW32__
+#include <ctype.h>
+#endif
 #include <io.h>
 #  include "BLI_winstuff.h"
 #  include "BLI_callbacks.h"
@@ -137,6 +140,8 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 		}
 		else break;
 	}
+	
+	gzclose(gzfile);
 
 	if (size == 0) {
 		MEM_freeN(mem);
@@ -207,6 +212,22 @@ FILE *BLI_fopen(const char *filename, const char *mode)
 	return ufopen(filename, mode);
 }
 
+void BLI_get_short_name(char short_name[256], const char *filename)
+{
+	wchar_t short_name_16[256];
+	int i = 0;
+
+	UTF16_ENCODE(filename);
+
+	GetShortPathNameW(filename_16, short_name_16, 256);
+
+	for (i = 0; i < 256; i++) {
+		short_name[i] = (char)short_name_16[i];
+	}
+
+	UTF16_UN_ENCODE(filename);
+}
+
 void *BLI_gzopen(const char *filename, const char *mode)
 {
 	gzFile gzfile;
@@ -215,25 +236,15 @@ void *BLI_gzopen(const char *filename, const char *mode)
 		return 0;
 	}
 	else {
-		wchar_t short_name_16[256];
 		char short_name[256];
-		int i = 0;
 
 		/* xxx Creates file before transcribing the path */
 		if (mode[0] == 'w')
 			fclose(ufopen(filename, "a"));
 
-		UTF16_ENCODE(filename);
-
-		GetShortPathNameW(filename_16, short_name_16, 256);
-
-		for (i = 0; i < 256; i++) {
-			short_name[i] = (char)short_name_16[i];
-		}
+		BLI_get_short_name(short_name, filename);
 
 		gzfile = gzopen(short_name, mode);
-
-		UTF16_UN_ENCODE(filename);
 	}
 
 	return gzfile;
@@ -341,7 +352,7 @@ void BLI_dir_create_recursive(const char *dirname)
 {
 	char *lslash;
 	char tmp[MAXPATHLEN];
-	
+
 	/* First remove possible slash at the end of the dirname.
 	 * This routine otherwise tries to create
 	 * blah1/blah2/ (with slash) after creating
@@ -349,23 +360,29 @@ void BLI_dir_create_recursive(const char *dirname)
 
 	BLI_strncpy(tmp, dirname, sizeof(tmp));
 	lslash = BLI_last_slash(tmp);
-	
-	if (lslash == tmp + strlen(tmp) - 1) {
-		*lslash = 0;
+
+	if (lslash && (*(lslash + 1) == '\0')) {
+		*lslash = '\0';
 	}
-	
+
+	/* check special case "c:\foo", don't try create "c:", harmless but prints an error below */
+	if (isalpha(tmp[0]) && (tmp[1] == ':') && tmp[2] == '\0') return;
+
 	if (BLI_exists(tmp)) return;
 
 	lslash = BLI_last_slash(tmp);
+
 	if (lslash) {
 		/* Split about the last slash and recurse */
 		*lslash = 0;
 		BLI_dir_create_recursive(tmp);
 	}
-	
-	if (dirname[0]) /* patch, this recursive loop tries to create a nameless directory */
-		if (umkdir(dirname) == -1)
+
+	if (dirname[0]) {  /* patch, this recursive loop tries to create a nameless directory */
+		if (umkdir(dirname) == -1) {
 			printf("Unable to create directory %s\n", dirname);
+		}
+	}
 }
 
 int BLI_rename(const char *from, const char *to)
@@ -508,8 +525,9 @@ static int recursive_operation(const char *startfrom, const char *startto, Recur
 		}
 
 		if (ret != 0) {
-			while (i < n)
-				free(dirlist[i]);
+			while (i < n) {
+				free(dirlist[i++]);
+			}
 			break;
 		}
 	}

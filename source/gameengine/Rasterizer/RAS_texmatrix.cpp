@@ -93,10 +93,10 @@ int main()
 	MT_Point2 puv0={0,0};
 	MT_Point3 pxyz0 (0,0,128);
 
-	MT_Scalar puv1[2]={1,0};
+	MT_Scalar puv1[2] = {1,0};
 	MT_Point3 pxyz1(128,0,128);
 
-	MT_Scalar puv2[2]={1,1};
+	MT_Scalar puv2[2] = {1,1};
 	MT_Point3 pxyz2(128,0,0);
 
 	RAS_TexVert p0(pxyz0,puv0);

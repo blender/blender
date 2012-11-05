@@ -86,8 +86,8 @@ static void FHT(fREAL *data, unsigned int M, unsigned int inverse)
 				fREAL *data_nbd = &data_n[bd];
 				fREAL *data_bd = &data[bd];
 				for (k = bl; k < len; k += istep) {
-					t1 = fc * data_n[k] + fs * data_nbd[k];
-					t2 = fs * data_n[k] - fc * data_nbd[k];
+					t1 = fc * (double)data_n[k] + fs * (double)data_nbd[k];
+					t2 = fs * (double)data_n[k] - fc * (double)data_nbd[k];
 					data_n[k] = data[k] - t1;
 					data_nbd[k] = data_bd[k] - t2;
 					data[k] += t1;
@@ -244,7 +244,7 @@ static void fht_convolve(fREAL *d1, fREAL *d2, unsigned int M, unsigned int N)
 }
 //------------------------------------------------------------------------------
 
-void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
+static void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 {
 	fREAL *data1, *data2, *fp;
 	unsigned int w2, h2, hw, hh, log2_w, log2_h;
@@ -395,7 +395,7 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 			// linear window good enough here, visual result counts, not scientific analysis
 			//w = (1.f-fabs(u))*(1.f-fabs(v));
 			// actually, Hanning window is ok, cos^2 for some reason is slower
-			w = (0.5f + 0.5f * cos((double)u * M_PI)) * (0.5f + 0.5f * cos((double)v * M_PI));
+			w = (0.5f + 0.5f * cosf(u * (float)M_PI)) * (0.5f + 0.5f * cosf(v * (float)M_PI));
 			mul_v3_fl(fcol, w);
 			ckrn->writePixel(x, y, fcol);
 		}

@@ -127,6 +127,11 @@ class TIME_MT_view(Menu):
 
         layout.operator("marker.camera_bind")
 
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
+        layout.operator("screen.screen_full_area")
+
 
 class TIME_MT_cache(Menu):
     bl_label = "Cache"

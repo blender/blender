@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
 #endif
 
 #include "MT_assert.h"
@@ -54,6 +54,7 @@
 #include "KX_MotionState.h" // bridge between motionstate and scenegraph node
 
 extern "C"{
+	#include "BLI_utildefines.h"
 	#include "BKE_DerivedMesh.h"
 }
 
@@ -282,7 +283,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			relativeRot.getValue(rot);
 			shapeInfo->m_childTrans.getBasis().setFromOpenGLSubMatrix(rot);
 
-			parentShapeInfo->AddShape(shapeInfo);	
+			parentShapeInfo->AddShape(shapeInfo);
 			compoundShape->addChildShape(shapeInfo->m_childTrans,bm);
 			//do some recalc?
 			//recalc inertia for rigidbody
@@ -439,7 +440,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	{
 		env->addCcdPhysicsController( physicscontroller);
 	}
-	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
+	physicscontroller->setNewClientInfo(gameobj->getClientInfo());
 	{
 		btRigidBody* rbody = physicscontroller->GetRigidBody();
 

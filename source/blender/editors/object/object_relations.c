@@ -423,29 +423,92 @@ void OBJECT_OT_proxy_make(wmOperatorType *ot)
 
 /********************** Clear Parent Operator ******************* */
 
+typedef enum eObClearParentTypes {
+	CLEAR_PARENT_ALL = 0,
+	CLEAR_PARENT_KEEP_TRANSFORM,
+	CLEAR_PARENT_INVERSE
+} eObClearParentTypes;
+
 EnumPropertyItem prop_clear_parent_types[] = {
-	{0, "CLEAR", 0, "Clear Parent", ""},
-	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation", ""},
-	{2, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
+	{CLEAR_PARENT_ALL, "CLEAR", 0, "Clear Parent", ""},
+	{CLEAR_PARENT_KEEP_TRANSFORM, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation", ""},
+	{CLEAR_PARENT_INVERSE, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
+/* Helper for ED_object_parent_clear() - Remove deform-modifiers associated with parent */
+static void object_remove_parent_deform_modifiers(Object *ob, const Object *par)
+{
+	if (ELEM3(par->type, OB_ARMATURE, OB_LATTICE, OB_CURVE)) {
+		ModifierData *md, *mdn;
+		
+		/* assume that we only need to remove the first instance of matching deform modifier here */
+		for (md = ob->modifiers.first; md; md = mdn) {
+			short free = FALSE;
+			
+			mdn = md->next;
+			
+			/* need to match types (modifier + parent) and references */
+			if ((md->type == eModifierType_Armature) && (par->type == OB_ARMATURE)) {
+				ArmatureModifierData *amd = (ArmatureModifierData *)md;
+				if (amd->object == par) {
+					free = TRUE;
+				}
+			}
+			else if ((md->type == eModifierType_Lattice) && (par->type == OB_LATTICE)) {
+				LatticeModifierData *lmd = (LatticeModifierData *)md;
+				if (lmd->object == par) {
+					free = TRUE;
+				}
+			}
+			else if ((md->type == eModifierType_Curve) && (par->type == OB_CURVE)) {
+				CurveModifierData *cmd = (CurveModifierData *)md;
+				if (cmd->object == par) {
+					free = TRUE;
+				}
+			}
+			
+			/* free modifier if match */
+			if (free) {
+				BLI_remlink(&ob->modifiers, md);
+				modifier_free(md);
+			}
+		}
+	}
+}
+
 void ED_object_parent_clear(Object *ob, int type)
 {
-
 	if (ob->parent == NULL)
 		return;
+	
+	switch (type) {
+		case CLEAR_PARENT_ALL:
+		{
+			/* for deformers, remove corresponding modifiers to prevent a large number of modifiers building up */
+			object_remove_parent_deform_modifiers(ob, ob->parent);
+			
+			/* clear parenting relationship completely */
+			ob->parent = NULL;
+		}
+		break;
 		
-	if (type == 0) {
-		ob->parent = NULL;
-	}
-	else if (type == 1) {
-		ob->parent = NULL;
-		BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
-	}
-	else if (type == 2)
-		unit_m4(ob->parentinv);
+		case CLEAR_PARENT_KEEP_TRANSFORM:
+		{
+			/* remove parent, and apply the parented transform result as object's local transforms */
+			ob->parent = NULL;
+			BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
+		}
+		break;
 		
+		case CLEAR_PARENT_INVERSE:
+		{
+			/* object stays parented, but the parent inverse (i.e. offset from parent to retain binding state) is cleared */
+			unit_m4(ob->parentinv);
+		}
+		break;
+	}
+	
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 }
 
@@ -525,7 +588,7 @@ EnumPropertyItem prop_make_parent_types[] = {
 };
 
 int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object *ob, Object *par,
-                         int partype, int xmirror)
+                         int partype, int xmirror, int keep_transform)
 {
 	bPoseChannel *pchan = NULL;
 	int pararm = ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
@@ -559,13 +622,13 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			/* fall back on regular parenting now (for follow only) */
 			if (partype == PAR_FOLLOW)
 				partype = PAR_OBJECT;
-		}		
+		}
 	}
 	else if (partype == PAR_BONE) {
 		pchan = BKE_pose_channel_active(par);
 		
 		if (pchan == NULL) {
-			BKE_report(reports, RPT_ERROR, "No active Bone");
+			BKE_report(reports, RPT_ERROR, "No active bone");
 			return 0;
 		}
 	}
@@ -577,10 +640,14 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 		}
 		else {
 			Object workob;
-			
+
 			/* apply transformation of previous parenting */
-			/* BKE_object_apply_mat4(ob, ob->obmat); */ /* removed because of bug [#23577] */
-			
+			if (keep_transform) {
+				 /* was removed because of bug [#23577],
+				  * but this can be handy in some cases too [#32616], so make optional */
+				BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+			}
+
 			/* set the parent (except for follow-path constraint option) */
 			if (partype != PAR_PATH_CONST) {
 				ob->parent = par;
@@ -600,25 +667,40 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				 * NOTE: the old (2.4x) method was to set ob->partype = PARSKEL, creating the virtual modifiers
 				 */
 				ob->partype = PAROBJECT; /* note, dna define, not operator property */
-				//ob->partype= PARSKEL; /* note, dna define, not operator property */
+				//ob->partype = PARSKEL; /* note, dna define, not operator property */
 				
-				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses */
+				/* BUT, to keep the deforms, we need a modifier, and then we need to set the object that it uses 
+				 * - We need to ensure that the modifier we're adding doesn't already exist, so we check this by
+				 *   assuming that the parent is selected too...
+				 */
 				// XXX currently this should only happen for meshes, curves, surfaces, and lattices - this stuff isn't available for metas yet
 				if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 					ModifierData *md;
 					
 					switch (partype) {
 						case PAR_CURVE: /* curve deform */
-							md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
-							((CurveModifierData *)md)->object = par;
+							if ( modifiers_isDeformedByCurve(ob) != par) {
+								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Curve);
+								if (md) {
+									((CurveModifierData *)md)->object = par;
+								}
+							}
 							break;
 						case PAR_LATTICE: /* lattice deform */
-							md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Lattice);
-							((LatticeModifierData *)md)->object = par;
+							if (modifiers_isDeformedByLattice(ob) != par) {
+								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Lattice);
+								if (md) {
+									((LatticeModifierData *)md)->object = par;
+								}
+							}
 							break;
 						default: /* armature deform */
-							md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Armature);
-							((ArmatureModifierData *)md)->object = par;
+							if (modifiers_isDeformedByArmature(ob) != par) {
+								md = ED_object_modifier_add(reports, bmain, scene, ob, NULL, eModifierType_Armature);
+								if (md) {
+									((ArmatureModifierData *)md)->object = par;
+								}
+							}
 							break;
 					}
 				}
@@ -682,11 +764,12 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Object *par = ED_object_active_context(C);
 	int partype = RNA_enum_get(op->ptr, "type");
 	int xmirror = RNA_boolean_get(op->ptr, "xmirror");
+	int keep_transform = RNA_boolean_get(op->ptr, "keep_transform");
 	int ok = 1;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror)) {
+		if (!ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, xmirror, keep_transform)) {
 			ok = 0;
 			break;
 		}
@@ -710,25 +793,36 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 	Object *ob = ED_object_active_context(C);
 	uiPopupMenu *pup = uiPupMenuBegin(C, "Set Parent To", ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
-	
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-	uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_OBJECT);
-	
+
+	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_parent_set", TRUE);
+	PointerRNA opptr;
+
+#if 0
+	uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_OBJECT);
+#else
+	opptr = uiItemFullO_ptr(layout, ot, "Object", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "type", PAR_OBJECT);
+	RNA_boolean_set(&opptr, "keep_transform", FALSE);
+
+	opptr = uiItemFullO_ptr(layout, ot, "Object (Keep Transform)", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_enum_set(&opptr, "type", PAR_OBJECT);
+	RNA_boolean_set(&opptr, "keep_transform", TRUE);
+#endif
 	/* ob becomes parent, make the associated menus */
 	if (ob->type == OB_ARMATURE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_NAME);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_ARMATURE_AUTO);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_BONE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_NAME);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_AUTO);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE);
 	}
 	else if (ob->type == OB_CURVE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_CURVE);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_FOLLOW);
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_PATH_CONST);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_CURVE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_FOLLOW);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_PATH_CONST);
 	}
 	else if (ob->type == OB_LATTICE) {
-		uiItemEnumO(layout, "OBJECT_OT_parent_set", NULL, 0, "type", PAR_LATTICE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_LATTICE);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -783,6 +877,9 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "xmirror", FALSE, "X Mirror",
 	                "Apply weights symmetrically along X axis, for Envelope/Automatic vertex groups creation");
+	RNA_def_boolean(ot->srna, "keep_transform", FALSE, "Keep Transform",
+	                "Apply transformation before parenting");
+
 }
 
 /* ************ Make Parent Without Inverse Operator ******************* */
@@ -939,7 +1036,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (CTX_data_edit_object(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
+		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -1163,7 +1260,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			base->object->lay = lay;
 			base->object->flag &= ~SELECT;
 			base->flag &= ~SELECT;
-			/* if (base->object->type==OB_LAMP) is_lamp = TRUE; */
+			/* if (base->object->type == OB_LAMP) is_lamp = TRUE; */
 		}
 		CTX_DATA_END;
 	}
@@ -1176,7 +1273,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			local = base->lay & 0xFF000000;
 			base->lay = lay + local;
 			base->object->lay = lay;
-			/* if (base->object->type==OB_LAMP) is_lamp = TRUE; */
+			/* if (base->object->type == OB_LAMP) is_lamp = TRUE; */
 		}
 		CTX_DATA_END;
 	}
@@ -1253,17 +1350,17 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
 	if (scene_to == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find scene");
+		BKE_report(op->reports, RPT_ERROR, "Could not find scene");
 		return OPERATOR_CANCELLED;
 	}
 
 	if (scene_to == CTX_data_scene(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
+		BKE_report(op->reports, RPT_ERROR, "Cannot link objects into the same scene");
 		return OPERATOR_CANCELLED;
 	}
 
 	if (scene_to->id.lib) {
-		BKE_report(op->reports, RPT_ERROR, "Can't link objects into a linked scene");
+		BKE_report(op->reports, RPT_ERROR, "Cannot link objects into a linked scene");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1274,6 +1371,9 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	DAG_ids_flush_update(bmain, 0);
+
+	/* redraw the 3D view because the object center points are colored differently */
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
 	/* one day multiple scenes will be visible, then we should have some update function for them */
 	return OPERATOR_FINISHED;
@@ -1610,7 +1710,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						break;
 					case OB_MESH:
 						ob->data = BKE_mesh_copy(ob->data);
-						//me= ob->data;
+						//me = ob->data;
 						//if (me && me->key)
 						//	ipo_idnew(me->key->ipo);	/* drivers */
 						break;

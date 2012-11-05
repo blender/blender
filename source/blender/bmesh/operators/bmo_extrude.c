@@ -87,8 +87,8 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, f, EXT_DEL);
 
 		f2 = BM_face_create_ngon(bm, firstv, BM_edge_other_vert(edges[0], firstv), edges, f->len, FALSE);
-		if (!f2) {
-			BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Extrude failed; could not create face");
+		if (UNLIKELY(f2 == NULL)) {
+			BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Extrude failed: could not create face");
 			BLI_array_free(edges);
 			return;
 		}
@@ -104,6 +104,7 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 			l4 = l2->next;
 
 			f3 = BM_face_create_quad_tri(bm, l3->v, l4->v, l2->v, l->v, f, FALSE);
+			/* XXX, no error check here, why? - Campbell */
 
 			l_tmp = BM_FACE_FIRST_LOOP(f3);
 
@@ -131,46 +132,36 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
  * This function won't crash if its not but won't work right either.
  * \a e_b is the new edge.
  *
- * \note this function could be exposed as an api call if other areas need it,
- * so far only extrude does.
+ * \note The edge this face comes from needs to be from the first and second verts fo the face.
+ * The caller must ensure this else we will copy from the wrong source.
  */
-static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f, BMEdge *e_a, BMEdge *e_b)
+static void bm_extrude_copy_face_loop_attributes(BMesh *bm, BMFace *f)
 {
-	/* 'a' is the starting edge #e, 'b' is the final edge #newedge */
-	BMLoop *l_dst_a = BM_face_edge_share_loop(f, e_a);
-	BMLoop *l_dst_b = BM_face_edge_share_loop(f, e_b);
-	/* we could only have a face on one-or the other edges,
-	 * check if either side of the face has an adjacent face */
-	BMLoop *l_src_1;
-	BMLoop *l_src_2;
+	/* edge we are extruded from */
+	BMLoop *l_first_0 = BM_FACE_FIRST_LOOP(f);
+	BMLoop *l_first_1 = l_first_0->next;
+	BMLoop *l_first_2 = l_first_1->next;
+	BMLoop *l_first_3 = l_first_2->next;
 
-	/* there is no l_src_b */
+	BMLoop *l_other_0;
+	BMLoop *l_other_1;
 
-	/* sanity */
-	BLI_assert(l_dst_a->f == l_dst_b->f);
-
-	if (l_dst_a != l_dst_a->radial_next) {
-		l_src_1 = l_dst_a->radial_next;
-		l_src_2 = l_src_1->next;
-	}
-	else if (l_dst_b != l_dst_b->radial_next) {
-		l_src_2 = l_dst_b->radial_next;
-		l_src_1 = l_src_2->next;
-	}
-	else {
-		/* no new faces on either edge, nothing to copy from */
+	if (UNLIKELY(l_first_0 == l_first_0->radial_next)) {
 		return;
 	}
 
-	BM_elem_attrs_copy(bm, bm, l_src_1->f, l_dst_a->f);
-	BM_elem_flag_disable(f, BM_ELEM_HIDDEN); /* possibly we copy from a hidden face */
+	l_other_0 = BM_edge_other_loop(l_first_0->e, l_first_0);
+	l_other_1 = BM_edge_other_loop(l_first_0->e, l_first_1);
 
 	/* copy data */
-	BM_elem_attrs_copy(bm, bm, l_src_2, l_dst_a);
-	BM_elem_attrs_copy(bm, bm, l_src_2, l_dst_b->next);
+	BM_elem_attrs_copy(bm, bm, l_other_0->f, f);
+	BM_elem_flag_disable(f, BM_ELEM_HIDDEN);  /* possibly we copy from a hidden face */
 
-	BM_elem_attrs_copy(bm, bm, l_src_1, l_dst_a->next);
-	BM_elem_attrs_copy(bm, bm, l_src_1, l_dst_b);
+	BM_elem_attrs_copy(bm, bm, l_other_0, l_first_0);
+	BM_elem_attrs_copy(bm, bm, l_other_0, l_first_3);
+
+	BM_elem_attrs_copy(bm, bm, l_other_1, l_first_1);
+	BM_elem_attrs_copy(bm, bm, l_other_1, l_first_2);
 }
 
 /* Disable the skin root flag on the input vert, assumes that the vert
@@ -187,9 +178,8 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMOperator dupeop;
-	BMVert *v1, *v2, *v3, *v4;
-	BMEdge *e, *e2;
 	BMFace *f;
+	BMEdge *e, *e_new;
 	
 	BMO_ITER (e, &siter, bm, op, "edges", BM_EDGE) {
 		BMO_elem_flag_enable(bm, e, EXT_INPUT);
@@ -202,33 +192,34 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	/* disable root flag on all new skin nodes */
 	if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
-		BMO_ITER(v1, &siter, bm, &dupeop, "newout", BM_VERT) {
-			bm_extrude_disable_skin_root(bm, v1);
+		BMVert *v;
+		BMO_ITER(v, &siter, bm, &dupeop, "newout", BM_VERT) {
+			bm_extrude_disable_skin_root(bm, v);
 		}
 	}
 
 	for (e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0); e; e = BMO_iter_step(&siter)) {
-		e2 = BMO_iter_map_value(&siter);
-		e2 = *(BMEdge **)e2;
+		BMVert *f_verts[4];
+		e_new = *(BMEdge **)BMO_iter_map_value(&siter);
 
 		if (e->l && e->v1 != e->l->v) {
-			v1 = e->v1;
-			v2 = e->v2;
-			v3 = e2->v2;
-			v4 = e2->v1;
+			f_verts[0] = e->v1;
+			f_verts[1] = e->v2;
+			f_verts[2] = e_new->v2;
+			f_verts[3] = e_new->v1;
 		}
 		else {
-			v1 = e2->v1;
-			v2 = e2->v2;
-			v3 = e->v2;
-			v4 = e->v1;
+			f_verts[0] = e->v2;
+			f_verts[1] = e->v1;
+			f_verts[2] = e_new->v1;
+			f_verts[3] = e_new->v2;
 		}
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, FALSE);
-		bm_extrude_copy_face_loop_attributes(bm, f, e, e2);
+		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, FALSE);
+		bm_extrude_copy_face_loop_attributes(bm, f);
 		
 		if (BMO_elem_flag_test(bm, e, EXT_INPUT))
-			e = e2;
+			e = e_new;
 		
 		BMO_elem_flag_enable(bm, f, EXT_KEEP);
 		BMO_elem_flag_enable(bm, e, EXT_KEEP);
@@ -269,8 +260,8 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMOperator dupeop, delop;
 	BMOIter siter;
 	BMIter iter, fiter, viter;
-	BMEdge *e, *newedge;
-	BMVert *verts[4], *v, *v2;
+	BMEdge *e, *e_new;
+	BMVert *v, *v2;
 	BMFace *f;
 	int found, fwd, delorig = FALSE;
 
@@ -377,6 +368,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(&dupeop, op, "newout", "geomout");
 
 	for (e = BMO_iter_new(&siter, bm, &dupeop, "boundarymap", 0); e; e = BMO_iter_step(&siter)) {
+		BMVert *f_verts[4];
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
 		if (BM_edge_is_wire(e) && BMO_slot_map_contains(bm, op, "exclude", e)) {
@@ -395,37 +387,37 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		newedge = *(BMEdge **)BMO_iter_map_value(&siter);
+		e_new = *(BMEdge **)BMO_iter_map_value(&siter);
 
-		if (!newedge) {
+		if (!e_new) {
 			continue;
 		}
 
 		/* orient loop to give same normal as a loop of newedge
 		 * if it exists (will be an extruded face),
 		 * else same normal as a loop of e, if it exists */
-		if (!newedge->l)
+		if (!e_new->l)
 			fwd = !e->l || !(e->l->v == e->v1);
 		else
-			fwd = (newedge->l->v == newedge->v1);
+			fwd = (e_new->l->v == e_new->v1);
 
 		
 		if (fwd) {
-			verts[0] = e->v1;
-			verts[1] = e->v2;
-			verts[2] = newedge->v2;
-			verts[3] = newedge->v1;
+			f_verts[0] = e->v1;
+			f_verts[1] = e->v2;
+			f_verts[2] = e_new->v2;
+			f_verts[3] = e_new->v1;
 		}
 		else {
-			verts[3] = e->v1;
-			verts[2] = e->v2;
-			verts[1] = newedge->v2;
-			verts[0] = newedge->v1;
+			f_verts[0] = e->v2;
+			f_verts[1] = e->v1;
+			f_verts[2] = e_new->v1;
+			f_verts[3] = e_new->v2;
 		}
 
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_face_create_quad_tri_v(bm, verts, 4, NULL, FALSE);
-		bm_extrude_copy_face_loop_attributes(bm, f, e, newedge);
+		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, FALSE);
+		bm_extrude_copy_face_loop_attributes(bm, f);
 	}
 
 	/* link isolated vert */

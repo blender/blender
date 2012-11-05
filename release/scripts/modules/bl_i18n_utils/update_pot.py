@@ -38,6 +38,9 @@ except:
     from . import (settings, utils)
 
 
+LANGUAGES_CATEGORIES = settings.LANGUAGES_CATEGORIES
+LANGUAGES = settings.LANGUAGES
+
 COMMENT_PREFIX = settings.COMMENT_PREFIX
 COMMENT_PREFIX_SOURCE = settings.COMMENT_PREFIX_SOURCE
 CONTEXT_PREFIX = settings.CONTEXT_PREFIX
@@ -117,28 +120,30 @@ def check_file(path, rel_path, messages):
 
 
 def py_xgettext(messages):
+    forbidden = set()
+    forced = set()
     with open(SRC_POTFILES) as src:
-        forbidden = set()
-        forced = set()
         for l in src:
             if l[0] == '-':
                 forbidden.add(l[1:].rstrip('\n'))
             elif l[0] != '#':
                 forced.add(l.rstrip('\n'))
-        for root, dirs, files in os.walk(POTFILES_DIR):
-            if "/.svn" in root:
+    for root, dirs, files in os.walk(POTFILES_DIR):
+        if "/.svn" in root:
+            continue
+        for fname in files:
+            if os.path.splitext(fname)[1] not in PYGETTEXT_ALLOWED_EXTS:
                 continue
-            for fname in files:
-                if os.path.splitext(fname)[1] not in PYGETTEXT_ALLOWED_EXTS:
-                    continue
-                path = os.path.join(root, fname)
-                rel_path = os.path.relpath(path, SOURCE_DIR)
-                if rel_path in forbidden | forced:
-                    continue
-                check_file(path, rel_path, messages)
-        for path in forced:
-            if os.path.exists(path):
-                check_file(os.path.join(SOURCE_DIR, path), path, messages)
+            path = os.path.join(root, fname)
+            rel_path = os.path.relpath(path, SOURCE_DIR)
+            if rel_path in forbidden:
+                continue
+            elif rel_path in forced:
+                forced.remove(rel_path)
+            check_file(path, rel_path, messages)
+    for path in forced:
+        if os.path.exists(path):
+            check_file(os.path.join(SOURCE_DIR, path), path, messages)
 
 
 # Spell checking!
@@ -187,7 +192,7 @@ def get_svnrev():
 
 
 def gen_empty_pot():
-    blender_rev = get_svnrev()
+    blender_rev = get_svnrev().decode()
     utctime = time.gmtime()
     time_str = time.strftime("%Y-%m-%d %H:%M+0000", utctime)
     year_str = time.strftime("%Y", utctime)
@@ -231,8 +236,8 @@ def merge_messages(msgs, states, messages, do_checks, spell_cache):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Update blender.pot file " \
-                                                 "from messages.txt")
+    parser = argparse.ArgumentParser(description="Update blender.pot file from messages.txt and source code parsing, "
+                                                 "and performs some checks over msgids.")
     parser.add_argument('-w', '--warning', action="store_true",
                         help="Show warnings.")
     parser.add_argument('-i', '--input', metavar="File",
@@ -250,7 +255,7 @@ def main():
 
     print("Running fake py gettext…")
     # Not using any more xgettext, simpler to do it ourself!
-    messages = {}
+    messages = utils.new_messages()
     py_xgettext(messages)
     print("Finished, found {} messages.".format(len(messages)))
 
@@ -259,7 +264,6 @@ def main():
             spell_cache = pickle.load(f)
     else:
         spell_cache = set()
-    print(len(spell_cache))
 
     print("Generating POT file {}…".format(FILE_NAME_POT))
     msgs, states = gen_empty_pot()
@@ -268,7 +272,7 @@ def main():
 
     # add messages collected automatically from RNA
     print("\tMerging RNA messages from {}…".format(FILE_NAME_MESSAGES))
-    messages = {}
+    messages = utils.new_messages()
     with open(FILE_NAME_MESSAGES, encoding="utf-8") as f:
         srcs = []
         context = ""
@@ -290,11 +294,22 @@ def main():
     print("\tMerged {} messages ({} were already present)."
           "".format(num_added, num_present))
 
+    print("\tAdding languages labels...")
+    messages = {(CONTEXT_DEFAULT, lng[1]):
+                ("Languages’ labels from bl_i18n_utils/settings.py",)
+                for lng in LANGUAGES}
+    messages.update({(CONTEXT_DEFAULT, cat[1]):
+                     ("Language categories’ labels from bl_i18n_utils/settings.py",)
+                     for cat in LANGUAGES_CATEGORIES})
+    num_added, num_present = merge_messages(msgs, states, messages,
+                                            True, spell_cache)
+    tot_messages += num_added
+    print("\tAdded {} language messages.".format(num_added))
+
     # Write back all messages into blender.pot.
     utils.write_messages(FILE_NAME_POT, msgs, states["comm_msg"],
                          states["fuzzy_msg"])
 
-    print(len(spell_cache))
     if SPELL_CACHE and spell_cache:
         with open(SPELL_CACHE, 'wb') as f:
             pickle.dump(spell_cache, f)

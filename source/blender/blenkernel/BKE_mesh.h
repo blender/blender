@@ -88,8 +88,8 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
                             struct CustomData *pdata, int totface, int totloop, int totpoly);
 
 /*calculates a face normal.*/
-void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 
-                           struct MVert *mvarray, float no[3]);
+void BKE_mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart,
+                               struct MVert *mvarray, float no[3]);
 
 void BKE_mesh_calc_poly_normal_coords(struct MPoly *mpoly, struct MLoop *loopstart,
                                       const float (*vertex_coords)[3], float no[3]);
@@ -98,7 +98,7 @@ void BKE_mesh_calc_poly_center(struct MPoly *mpoly, struct MLoop *loopstart,
                                struct MVert *mvarray, float cent[3]);
 
 float BKE_mesh_calc_poly_area(struct MPoly *mpoly, struct MLoop *loopstart,
-                              struct MVert *mvarray, float polynormal[3]);
+                              struct MVert *mvarray, const float polynormal[3]);
 
 /* Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found */
@@ -130,7 +130,7 @@ struct Mesh *BKE_mesh_copy(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me, const short do_ensure_tess_cd);
 
 void BKE_mesh_make_local(struct Mesh *me);
-void BKE_mesh_boundbox_calc(struct Mesh *me, float *loc, float *size);
+void BKE_mesh_boundbox_calc(struct Mesh *me, float r_loc[3], float r_size[3]);
 void BKE_mesh_texspace_calc(struct Mesh *me);
 float *BKE_mesh_orco_verts_get(struct Object *ob);
 void   BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
@@ -292,6 +292,7 @@ void create_vert_edge_map(MeshElemMap **map, int **mem,
 int BKE_mesh_minmax(struct Mesh *me, float r_min[3], float r_max[3]);
 int BKE_mesh_center_median(struct Mesh *me, float cent[3]);
 int BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
+int BKE_mesh_center_centroid(struct Mesh *me, float cent[3]);
 void BKE_mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */

@@ -63,7 +63,7 @@ void bmo_slide_vert_exec(BMesh *bm, BMOperator *op)
 		if (G.debug & G_DEBUG) {
 			fprintf(stderr, "slide_vert: No vertex selected...");
 		}
-		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Vertex Slide Error: Invalid selection.");
+		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Vertex Slide error: invalid selection");
 		return;
 	}
 
@@ -83,7 +83,7 @@ void bmo_slide_vert_exec(BMesh *bm, BMOperator *op)
 		if (G.debug & G_DEBUG) {
 			fprintf(stderr, "slide_vert: select a single edge\n");
 		}
-		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Vertex Slide Error: Invalid selection.");
+		BMO_error_raise(bm, op, BMERR_INVALID_SELECTION, "Vertex Slide error: invalid selection");
 		return;
 	}
 

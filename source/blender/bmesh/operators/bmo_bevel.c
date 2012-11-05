@@ -126,7 +126,7 @@ static void calc_corner_co(BMLoop *l, const float fac, float r_co[3],
 		 * gives nicer, move even output.
 		 *
 		 * Use the minimum rather then the middle value so skinny faces don't flip along the short axis */
-		float min_fac = minf(normalize_v3(l_vec_prev), normalize_v3(l_vec_next));
+		float min_fac = min_ff(normalize_v3(l_vec_prev), normalize_v3(l_vec_next));
 		float angle;
 
 		if (do_even) {
@@ -233,7 +233,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	}
 
 #if 0
-	//a bit of cleaner code that, alas, doens't work.
+	/* a bit of cleaner code that, alas, doens't work. */
 	/* build edge tag */
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e->v1, BEVEL_FLAG) || BMO_elem_flag_test(bm, e->v2, BEVEL_FLAG)) {
@@ -475,7 +475,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		BLI_array_append(edges, e);
 		
 		f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), FALSE);
-		if (!f) {
+		if (UNLIKELY(f == NULL)) {
 			printf("%s: could not make face!\n", __func__);
 			continue;
 		}
@@ -592,7 +592,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 					*d3 = (d1 + d2) * 0.5f;
 				}
 
-				if (!f) {
+				if (UNLIKELY(f == NULL)) {
 					fprintf(stderr, "%s: face index out of range! (bmesh internal error)\n", __func__);
 					continue;
 				}
@@ -771,7 +771,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 				continue;
 			
 			f = BM_face_create_ngon(bm, lastv, vstart, edges, BLI_array_count(edges), FALSE);
-			if (!f) {
+			if (UNLIKELY(f == NULL)) {
 				fprintf(stderr, "%s: in bevel vert fill! (bmesh internal error)\n", __func__);
 			}
 			else {

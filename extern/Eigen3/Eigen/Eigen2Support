@@ -3,24 +3,9 @@
 //
 // Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN2SUPPORT_H
 #define EIGEN2SUPPORT_H
@@ -31,9 +16,8 @@
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
-namespace Eigen {
-
-/** \defgroup Eigen2Support_Module Eigen2 support module
+/** \ingroup Support_modules
+  * \defgroup Eigen2Support_Module Eigen2 support module
   * This module provides a couple of deprecated functions improving the compatibility with Eigen2.
   *
   * To use it, define EIGEN2_SUPPORT before including any Eigen header
@@ -56,12 +40,28 @@ namespace Eigen {
 #include "src/Eigen2Support/MathFunctions.h"
 
 
-} // namespace Eigen
-
 #include "src/Core/util/ReenableStupidWarnings.h"
 
 // Eigen2 used to include iostream
 #include<iostream>
+
+#define EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, SizeSuffix) \
+using Eigen::Matrix##SizeSuffix##TypeSuffix; \
+using Eigen::Vector##SizeSuffix##TypeSuffix; \
+using Eigen::RowVector##SizeSuffix##TypeSuffix;
+
+#define EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(TypeSuffix) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 2) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 3) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, 4) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE_AND_SIZE(TypeSuffix, X) \
+
+#define EIGEN_USING_MATRIX_TYPEDEFS \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(i) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(f) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(d) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(cf) \
+EIGEN_USING_MATRIX_TYPEDEFS_FOR_TYPE(cd)
 
 #define USING_PART_OF_NAMESPACE_EIGEN \
 EIGEN_USING_MATRIX_TYPEDEFS \

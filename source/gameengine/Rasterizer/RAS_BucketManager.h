@@ -34,7 +34,6 @@
 
 #include "MT_Transform.h"
 #include "RAS_MaterialBucket.h"
-#include "CTR_Map.h"
 
 #include <vector>
 
@@ -90,5 +89,4 @@ private:
 #endif
 };
 
-#endif //__RAS_BUCKETMANAGER_H__
-
+#endif  /* __RAS_BUCKETMANAGER_H__ */

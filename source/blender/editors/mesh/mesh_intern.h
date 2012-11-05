@@ -121,7 +121,7 @@ void MESH_OT_select_linked(struct wmOperatorType *ot);
 void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
 void MESH_OT_hide(struct wmOperatorType *ot);
 void MESH_OT_reveal(struct wmOperatorType *ot);
-void MESH_OT_select_by_number_vertices(struct wmOperatorType *ot);
+void MESH_OT_select_face_by_sides(struct wmOperatorType *ot);
 void MESH_OT_select_loose_verts(struct wmOperatorType *ot);
 void MESH_OT_select_mirror(struct wmOperatorType *ot);
 void MESH_OT_normals_make_consistent(struct wmOperatorType *ot);
@@ -134,6 +134,7 @@ void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
+void MESH_OT_vertices_smooth_laplacian(struct wmOperatorType *ot);
 void MESH_OT_noise(struct wmOperatorType *ot);
 void MESH_OT_flip_normals(struct wmOperatorType *ot);
 void MESH_OT_solidify(struct wmOperatorType *ot);
@@ -144,6 +145,7 @@ extern struct EnumPropertyItem *corner_type_items;
 
 void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
+void MESH_OT_unsubdivide(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);
@@ -187,8 +189,10 @@ void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
 void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
 void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
 void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
-void MESH_OT_sticky_add(struct wmOperatorType *ot);
-void MESH_OT_sticky_remove(struct wmOperatorType *ot);
+/* no create_mask yet */
+void MESH_OT_customdata_clear_mask(struct wmOperatorType *ot);
+void MESH_OT_customdata_clear_skin(struct wmOperatorType *ot);
+
 void MESH_OT_drop_named_image(struct wmOperatorType *ot);
 
 /* ************* bmesh_tools.c ***********/
@@ -212,6 +216,8 @@ void MESH_OT_vert_slide(struct wmOperatorType *ot);
 
 void MESH_OT_convex_hull(struct wmOperatorType *ot);
 
+void MESH_OT_symmetrize(struct wmOperatorType *ot);
+
 /* ******************* mesh_navmesh.c */
 void MESH_OT_navmesh_make(struct wmOperatorType *ot);
 void MESH_OT_navmesh_face_copy(struct wmOperatorType *ot);
@@ -219,5 +225,4 @@ void MESH_OT_navmesh_face_add(struct wmOperatorType *ot);
 void MESH_OT_navmesh_reset(struct wmOperatorType *ot);
 void MESH_OT_navmesh_clear(struct wmOperatorType *ot);
 
-#endif // __MESH_INTERN_H__
-
+#endif  /* __MESH_INTERN_H__ */

@@ -62,7 +62,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 	if (not_yet_exported) {
 
 		ImBuf *imbuf       = BKE_image_get_ibuf(image, NULL);
-		if(!imbuf) {
+		if (!imbuf) {
 			fprintf(stderr, "Collada export: image does not exist:\n%s\n", image->name);
 			return;
 		}
@@ -103,7 +103,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 			// So we have to export it. The export will keep the image state intact,
 			// so the exported file will not be associated with the image.
 
-			if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, image->colorspace_settings.name, true) == 0) {
+			if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == 0) {
 				fprintf(stderr, "Collada export: Cannot export image to:\n%s\n", export_path);
 				return;
 			}

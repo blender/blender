@@ -61,7 +61,7 @@ inline unsigned int Size(const MT_Tuple4&)                { return 4; }
  *  Converts the given python matrix (column-major) to an MT class (row-major).
  */
 template<class T>
-bool PyMatTo(PyObject* pymat, T& mat)
+bool PyMatTo(PyObject *pymat, T& mat)
 {
 	bool noerror = true;
 	mat.setIdentity();
@@ -133,7 +133,7 @@ bool PyMatTo(PyObject* pymat, T& mat)
  *  Converts a python sequence to a MT class.
  */
 template<class T>
-bool PyVecTo(PyObject* pyval, T& vec)
+bool PyVecTo(PyObject *pyval, T& vec)
 {
 #ifdef USE_MATHUTILS
 	/* no need for BaseMath_ReadCallback() here, reading the sequences will do this */
@@ -235,42 +235,42 @@ bool PyVecTo(PyObject* pyval, T& vec)
 }
 
 
-bool PyQuatTo(PyObject* pyval, MT_Quaternion &qrot);
+bool PyQuatTo(PyObject *pyval, MT_Quaternion &qrot);
 
-bool PyOrientationTo(PyObject* pyval, MT_Matrix3x3 &mat, const char *error_prefix);
+bool PyOrientationTo(PyObject *pyval, MT_Matrix3x3 &mat, const char *error_prefix);
 
 /**
  * Converts an MT_Matrix4x4 to a python object.
  */
-PyObject* PyObjectFrom(const MT_Matrix4x4 &mat);
+PyObject *PyObjectFrom(const MT_Matrix4x4 &mat);
 
 /**
  * Converts an MT_Matrix3x3 to a python object.
  */
-PyObject* PyObjectFrom(const MT_Matrix3x3 &mat);
+PyObject *PyObjectFrom(const MT_Matrix3x3 &mat);
 
 /**
  * Converts an MT_Tuple2 to a python object.
  */
-PyObject* PyObjectFrom(const MT_Tuple2 &vec);
+PyObject *PyObjectFrom(const MT_Tuple2 &vec);
 
 /**
  * Converts an MT_Tuple3 to a python object
  */
-PyObject* PyObjectFrom(const MT_Tuple3 &vec);
+PyObject *PyObjectFrom(const MT_Tuple3 &vec);
 
 #ifdef USE_MATHUTILS
 /**
  * Converts an MT_Quaternion to a python object.
  */
-PyObject* PyObjectFrom(const MT_Quaternion &qrot);
+PyObject *PyObjectFrom(const MT_Quaternion &qrot);
 #endif
 
 /**
  * Converts an MT_Tuple4 to a python object.
  */
-PyObject* PyObjectFrom(const MT_Tuple4 &pos);
+PyObject *PyObjectFrom(const MT_Tuple4 &pos);
 
 #endif
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */

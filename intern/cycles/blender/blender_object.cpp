@@ -17,12 +17,14 @@
  */
 
 #include "camera.h"
+#include "integrator.h"
 #include "graph.h"
 #include "light.h"
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
 #include "nodes.h"
+#include "particles.h"
 #include "shader.h"
 
 #include "blender_sync.h"
@@ -194,8 +196,10 @@ void BlenderSync::sync_background_light()
 
 /* Object */
 
-void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint layer_flag, int motion, int particle_id)
+void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::DupliObject b_dupli_ob, Transform& tfm, uint layer_flag, int motion, int particle_id)
 {
+	BL::Object b_ob = (b_dupli_ob ? b_dupli_ob.object() : b_parent);
+	
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
 		if(!motion)
@@ -225,7 +229,9 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 				object->use_motion = true;
 			}
 
-			sync_mesh_motion(b_ob, object->mesh, motion);
+			/* mesh deformation blur not supported yet */
+			if(!scene->integrator->motion_blur)
+				sync_mesh_motion(b_ob, object->mesh, motion);
 		}
 
 		return;
@@ -274,6 +280,15 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 			object->visibility &= ~PATH_RAY_CAMERA;
 		}
 
+		if (b_dupli_ob) {
+			object->dupli_generated = get_float3(b_dupli_ob.orco());
+			object->dupli_uv = get_float2(b_dupli_ob.uv());
+		}
+		else {
+			object->dupli_generated = make_float3(0.0f, 0.0f, 0.0f);
+			object->dupli_uv = make_float2(0.0f, 0.0f);
+		}
+
 		object->particle_id = particle_id;
 
 		object->tag_update(scene);
@@ -293,6 +308,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 		mesh_map.pre_sync();
 		object_map.pre_sync();
 		mesh_synced.clear();
+		particle_system_map.pre_sync();
 	}
 
 	/* object loop */
@@ -309,15 +325,15 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 			hide = hide || !(ob_layer & scene_layer);
 
 			if(!hide) {
-				progress.set_status("Synchronizing object", (*b_ob).name());
+				progress.set_sync_status("Synchronizing object", (*b_ob).name());
 
 				int num_particles = object_count_particles(*b_ob);
 
 				if(b_ob->is_duplicator()) {
-					hide = true;	/* duplicators hidden by default */
+					hide = true; /* duplicators hidden by default */
 
 					/* dupli objects */
-					object_create_duplilist(*b_ob, b_scene);
+					b_ob->dupli_list_create(b_scene, 2);
 
 					BL::Object::dupli_list_iterator b_dup;
 					int b_index = 0;
@@ -326,27 +342,42 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 						Transform tfm = get_transform(b_dup->matrix());
 						BL::Object b_dup_ob = b_dup->object();
 						bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
+						bool emitter_hide = false;
 
-						if(!(b_dup->hide() || dup_hide)) {
-							sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer, motion, b_dup->particle_index() + particle_offset);
+						if(b_dup_ob.is_duplicator()) {
+							emitter_hide = true;	/* duplicators hidden by default */
+							
+							/* check if we should render or hide particle emitter */
+							BL::Object::particle_systems_iterator b_psys;
+							for(b_dup_ob.particle_systems.begin(b_psys); b_psys != b_dup_ob.particle_systems.end(); ++b_psys)
+								if(b_psys->settings().use_render_emitter())
+									emitter_hide = false;
+						}
+
+						if(!(b_dup->hide() || dup_hide || emitter_hide)) {
+							sync_object(*b_ob, b_index, *b_dup, tfm, ob_layer, motion, b_dup->particle_index() + particle_offset);
 						}
 						
 						++b_index;
 					}
 
-					object_free_duplilist(*b_ob);
+					b_ob->dupli_list_clear();
 				}
 
-				/* check if we should render or hide particle emitter */
+				/* sync particles and check if we should render or hide particle emitter */
 				BL::Object::particle_systems_iterator b_psys;
-				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
+				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys) {
+					if(!motion)
+						sync_particles(*b_ob, *b_psys);
+
 					if(b_psys->settings().use_render_emitter())
 						hide = false;
+				}
 
 				if(!hide) {
 					/* object itself */
 					Transform tfm = get_transform(b_ob->matrix_world());
-					sync_object(*b_ob, 0, *b_ob, tfm, ob_layer, motion, 0);
+					sync_object(*b_ob, 0, PointerRNA_NULL, tfm, ob_layer, motion, 0);
 				}
 
 				particle_offset += num_particles;
@@ -355,6 +386,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 			cancel = progress.get_cancel();
 		}
 	}
+
+	progress.set_sync_status("");
 
 	if(!cancel && !motion) {
 		sync_background_light();
@@ -366,6 +399,8 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 			scene->mesh_manager->tag_update(scene);
 		if(object_map.post_sync())
 			scene->object_manager->tag_update(scene);
+		if(particle_system_map.post_sync())
+			scene->particle_system_manager->tag_update(scene);
 		mesh_synced.clear();
 	}
 }
@@ -380,11 +415,13 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override)
 	if(b_override)
 		b_cam = b_override;
 
+	Camera prevcam = *(scene->camera);
+	
 	/* go back and forth one frame */
 	int frame = b_scene.frame_current();
 
 	for(int motion = -1; motion <= 1; motion += 2) {
-		scene_frame_set(b_scene, frame + motion);
+		b_scene.frame_set(frame + motion, 0.0f);
 
 		/* camera object */
 		if(b_cam)
@@ -394,7 +431,11 @@ void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override)
 		sync_objects(b_v3d, motion);
 	}
 
-	scene_frame_set(b_scene, frame);
+	b_scene.frame_set(frame, 0.0f);
+
+	/* tag camera for motion update */
+	if(scene->camera->motion_modified(prevcam))
+		scene->camera->tag_update();
 }
 
 CCL_NAMESPACE_END

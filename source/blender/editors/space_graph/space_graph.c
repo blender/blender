@@ -441,7 +441,7 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
-			switch (wmn->data) {	
+			switch (wmn->data) {
 				case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush (needs flag set to do syncing)  */
 				case ND_OB_SELECT:
 					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
@@ -461,7 +461,7 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 					break;
 				case ND_TRANSFORM:
-					break; /*do nothing*/					
+					break; /*do nothing*/
 					
 				default: /* just redrawing the view will do */
 					ED_area_tag_redraw(sa);

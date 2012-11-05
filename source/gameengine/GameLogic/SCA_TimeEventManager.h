@@ -59,5 +59,4 @@ public:
 #endif
 };
 
-#endif //__SCA_TIMEEVENTMANAGER_H__
-
+#endif  /* __SCA_TIMEEVENTMANAGER_H__ */

@@ -105,7 +105,7 @@ void BlenderSession::create_session()
 		sync->sync_camera(b_engine.camera_override(), width, height);
 
 	/* set buffer parameters */
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 	session->reset(buffer_params, session_params.samples);
 }
 
@@ -178,15 +178,12 @@ static PassType get_pass_type(BL::RenderPass b_pass)
 
 static BL::RenderResult begin_render_result(BL::RenderEngine b_engine, int x, int y, int w, int h, const char *layername)
 {
-	RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, x, y, w, h, layername);
-	PointerRNA rrptr;
-	RNA_pointer_create(NULL, &RNA_RenderResult, rrp, &rrptr);
-	return BL::RenderResult(rrptr);
+	return b_engine.begin_result(x, y, w, h, layername);
 }
 
 static void end_render_result(BL::RenderEngine b_engine, BL::RenderResult b_rr, bool cancel = false)
 {
-	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data, (int)cancel);
+	b_engine.end_result(b_rr, (int)cancel);
 }
 
 void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_update_only)
@@ -239,7 +236,7 @@ void BlenderSession::render()
 
 	/* get buffer parameters */
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 
 	/* render each layer */
 	BL::RenderSettings r = b_scene.render();
@@ -335,16 +332,16 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::Re
 
 			/* copy pixels */
 			if(buffers->get_pass_rect(pass_type, exposure, rtile.sample, components, &pixels[0]))
-				rna_RenderPass_rect_set(&b_pass.ptr, &pixels[0]);
+				b_pass.rect(&pixels[0]);
 		}
 	}
 
 	/* copy combined pass */
 	if(buffers->get_pass_rect(PASS_COMBINED, exposure, rtile.sample, 4, &pixels[0]))
-		rna_RenderLayer_rect_set(&b_rlay.ptr, &pixels[0]);
+		b_rlay.rect(&pixels[0]);
 
 	/* tag result as updated */
-	RE_engine_update_result((RenderEngine*)b_engine.ptr.data, (RenderResult*)b_rr.ptr.data);
+	b_engine.update_result(b_rr);
 }
 
 void BlenderSession::write_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile)
@@ -369,12 +366,6 @@ void BlenderSession::synchronize()
 		free_session();
 		create_session();
 		session->start();
-		return;
-	}
-
-	/* if the session is still resetting the device come back later */
-	if(session->resetting()) {
-		tag_update();
 		return;
 	}
 
@@ -405,7 +396,7 @@ void BlenderSession::synchronize()
 
 	/* reset if needed */
 	if(scene->need_reset()) {
-		BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
+		BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 		session->reset(buffer_params, session_params.samples);
 	}
 }
@@ -443,7 +434,7 @@ bool BlenderSession::draw(int w, int h)
 		/* reset if requested */
 		if(reset) {
 			SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
-			BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, w, h);
+			BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, w, h);
 
 			session->reset(buffer_params, session_params.samples);
 		}
@@ -453,7 +444,7 @@ bool BlenderSession::draw(int w, int h)
 	update_status_progress();
 
 	/* draw */
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 
 	return !session->draw(buffer_params);
 }
@@ -472,9 +463,12 @@ void BlenderSession::get_progress(float& progress, double& total_time)
 	session->progress.get_tile(tile, total_time, tile_time);
 
 	sample = session->progress.get_sample();
-	samples_per_tile = session->tile_manager.state.num_samples;
+	samples_per_tile = session->params.samples;
 
-	progress = ((float)sample/(float)(tile_total * samples_per_tile));
+	if(samples_per_tile)
+		progress = ((float)sample/(float)(tile_total * samples_per_tile));
+	else
+		progress = 0.0;
 }
 
 void BlenderSession::update_status_progress()
@@ -483,11 +477,15 @@ void BlenderSession::update_status_progress()
 	float progress;
 	double total_time;
 	char time_str[128];
+	float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
+	float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
 
 	get_status(status, substatus);
 	get_progress(progress, total_time);
 
-	timestatus = b_scene.name();
+	timestatus = string_printf("Mem: %.2fM, Peak: %.2fM | ", mem_used, mem_peak);
+
+	timestatus += b_scene.name();
 	if(b_rlay_name != "")
 		timestatus += ", "  + b_rlay_name;
 	timestatus += " | ";
@@ -499,11 +497,12 @@ void BlenderSession::update_status_progress()
 		status += " | " + substatus;
 
 	if(status != last_status) {
-		RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", (timestatus + status).c_str());
+		b_engine.update_stats("", (timestatus + status).c_str());
+		b_engine.update_memory_stats(mem_used, mem_peak);
 		last_status = status;
 	}
 	if(progress != last_progress) {
-		RE_engine_update_progress((RenderEngine*)b_engine.ptr.data, progress);
+		b_engine.update_progress(progress);
 		last_progress = progress;
 	}
 }
@@ -511,7 +510,7 @@ void BlenderSession::update_status_progress()
 void BlenderSession::tag_update()
 {
 	/* tell blender that we want to get another update callback */
-	engine_tag_update((RenderEngine*)b_engine.ptr.data);
+	b_engine.tag_update();
 }
 
 void BlenderSession::tag_redraw()
@@ -523,13 +522,13 @@ void BlenderSession::tag_redraw()
 
 		/* offline render, redraw if timeout passed */
 		if(time_dt() - last_redraw_time > 1.0) {
-			engine_tag_redraw((RenderEngine*)b_engine.ptr.data);
+			b_engine.tag_redraw();
 			last_redraw_time = time_dt();
 		}
 	}
 	else {
 		/* tell blender that we want to redraw */
-		engine_tag_redraw((RenderEngine*)b_engine.ptr.data);
+		b_engine.tag_redraw();
 	}
 }
 
@@ -537,7 +536,7 @@ void BlenderSession::test_cancel()
 {
 	/* test if we need to cancel rendering */
 	if(background)
-		if(RE_engine_test_break((RenderEngine*)b_engine.ptr.data))
+		if(b_engine.test_break())
 			session->progress.set_cancel("Cancelled");
 }
 

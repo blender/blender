@@ -72,6 +72,9 @@
 #  define ACOMP	3
 #endif
 
+#define RCT_SIZE_X(rct)       ((rct)->xmax - (rct)->xmin)
+#define RCT_SIZE_Y(rct)       ((rct)->ymax - (rct)->ymin)
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
@@ -86,7 +89,7 @@ extern struct Render R;
 
 static void copy_to_ztile(int *rectz, int size, int x1, int y1, int tile, char *r1)
 {
-	int len4, *rz;	
+	int len4, *rz;
 	int x2, y2;
 	
 	x2= x1+tile;
@@ -156,9 +159,9 @@ static void make_jitter_weight_tab(Render *re, ShadBuf *shb, short filtertype)
 	
 	for (jit= shb->jit, a=0; a<tot; a++, jit+=2) {
 		if (filtertype==LA_SHADBUF_TENT)
-			shb->weight[a]= 0.71f - sqrt(jit[0]*jit[0] + jit[1]*jit[1]);
+			shb->weight[a] = 0.71f - sqrtf(jit[0] * jit[0] + jit[1] * jit[1]);
 		else if (filtertype==LA_SHADBUF_GAUSS)
-			shb->weight[a]= RE_filter_value(R_FILTER_GAUSS, 1.8f*sqrt(jit[0]*jit[0] + jit[1]*jit[1]));
+			shb->weight[a] = RE_filter_value(R_FILTER_GAUSS, 1.8f * sqrtf(jit[0] * jit[0] + jit[1] * jit[1]));
 		else
 			shb->weight[a]= 1.0f;
 		
@@ -214,15 +217,15 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 			if (ds->z == newds->z) {
 				/* still in same z position, simply check
 				 * visibility difference against epsilon */
-				if (!(fabs(newds->v - ds->v) <= epsilon)) {
+				if (!(fabsf(newds->v - ds->v) <= epsilon)) {
 					break;
 				}
 			}
 			else {
 				/* compute slopes */
-				div= (double)0x7FFFFFFF/((double)ds->z - (double)newds->z);
-				min= ((ds->v - epsilon) - newds->v)*div;
-				max= ((ds->v + epsilon) - newds->v)*div;
+				div= (double)0x7FFFFFFF / ((double)ds->z - (double)newds->z);
+				min= (double)((ds->v - epsilon) - newds->v) * div;
+				max= (double)((ds->v + epsilon) - newds->v) * div;
 
 				/* adapt existing slopes */
 				if (first) {
@@ -261,8 +264,8 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 		}
 		else {
 			/* compute visibility at center between slopes at z */
-			slope= (slopemin+slopemax)*0.5f;
-			v= newds->v + slope*((z - newds->z)/(double)0x7FFFFFFF);
+			slope = (slopemin + slopemax) * 0.5;
+			v = (double)newds->v + slope * ((double)(z - newds->z) / (double)0x7FFFFFFF);
 		}
 
 		newds++;
@@ -525,21 +528,21 @@ static void compress_shadowbuf(ShadBuf *shb, int *rectz, int square)
 	
 	for (y=0; y<size; y+=16) {
 		if (y< size/2) miny= y+15-size/2;
-		else miny= y-size/2;	
+		else miny= y-size/2;
 		
 		for (x=0; x<size; x+=16) {
 			
 			/* is tile within spotbundle? */
 			a= size/2;
 			if (x< a) minx= x+15-a;
-			else minx= x-a;	
+			else minx= x-a;
 			
 			dist= sqrt( (float)(minx*minx+miny*miny) );
 			
 			if (square==0 && dist>(float)(a+12)) {	/* 12, tested with a onlyshadow lamp */
 				a= 256; verg= 0; /* 0x80000000; */ /* 0x7FFFFFFF; */
 				rz1= (&verg)+1;
-			} 
+			}
 			else {
 				copy_to_ztile(rectz, size, x, y, 16, rcline);
 				rz1= (int *)rcline;
@@ -666,8 +669,8 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 				clipflag[vlr->v2->index]= 1;
 				clipflag[vlr->v3->index]= 1;
 				if (vlr->v4) clipflag[vlr->v4->index]= 1;
-			}				
-		}		
+			}
+		}
 		
 		/* calculate min and max */
 		for (a=0; a< obr->totvert;a++) {
@@ -775,7 +778,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	 * transforming from observer view to lamp view, including lamp window matrix */
 	
 	angle= saacos(lar->spotsi);
-	temp= 0.5f*shb->size*cos(angle)/sin(angle);
+	temp = 0.5f * shb->size * cosf(angle) / sinf(angle);
 	shb->pixsize= (shb->d)/temp;
 	wsize= shb->pixsize*(shb->size/2.0f);
 	
@@ -853,10 +856,10 @@ void threaded_makeshadowbufs(Render *re)
 			if (lar->shb)
 				totthread++;
 		
-		totthread= MIN2(totthread, re->r.threads);
+		totthread = min_ii(totthread, re->r.threads);
 	}
 	else
-		totthread= 1; /* preview render */
+		totthread = 1; /* preview render */
 
 	if (totthread <= 1) {
 		for (lar=re->lampren.first; lar; lar= lar->next) {
@@ -1391,7 +1394,7 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 			}
 		}
 		
-		labda = minf(labdax, labday);
+		labda = min_ff(labdax, labday);
 		if (labda==labdao || labda>=1.0f) break;
 		
 		zf= zf1 + labda*(zf2-zf1);
@@ -1506,7 +1509,7 @@ static void isb_bsp_split_init(ISBBranch *root, MemArena *mem, int level)
 		root->divider[1]= 0.5f*(root->box.ymin+root->box.ymax);
 		
 		/* find best splitpoint */
-		if (BLI_RCT_SIZE_X(&root->box) > BLI_RCT_SIZE_Y(&root->box))
+		if (RCT_SIZE_X(&root->box) > RCT_SIZE_Y(&root->box))
 			i = root->index = 0;
 		else
 			i = root->index = 1;
@@ -1551,7 +1554,7 @@ static void isb_bsp_split(ISBBranch *root, MemArena *mem)
 	root->divider[1]/= BSPMAX_SAMPLE;
 	
 	/* find best splitpoint */
-	if (BLI_RCT_SIZE_X(&root->box) > BLI_RCT_SIZE_Y(&root->box))
+	if (RCT_SIZE_X(&root->box) > RCT_SIZE_Y(&root->box))
 		i = root->index = 0;
 	else
 		i = root->index = 1;
@@ -1660,9 +1663,9 @@ static void bspface_init_strand(BSPFace *face)
 	
 	face->len= face->rc[0]*face->rc[0]+ face->rc[1]*face->rc[1];
 	
-	if (face->len!=0.0f) {
-		face->radline_end= face->radline/sqrt(face->len);
-		face->len= 1.0f/face->len;
+	if (face->len != 0.0f) {
+		face->radline_end = face->radline / sqrtf(face->len);
+		face->len = 1.0f / face->len;
 	}
 }
 
@@ -1864,7 +1867,7 @@ static void isb_bsp_recalc_box(ISBBranch *root)
 		init_box(&root->box);
 		for (a=root->totsamp-1; a>=0; a--)
 			bound_boxf(&root->box, root->samples[a]->zco);
-	}	
+	}
 }
 
 /* callback function for zbuf clip */
@@ -2037,7 +2040,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 					if (vlr->v4)
 						c4= testclip(hoco[3]); 
 					
-					/* ***** NO WIRE YET */			
+					/* ***** NO WIRE YET */
 					if (ma->material_type == MA_TYPE_WIRE) {
 						if (vlr->v4)
 							zbufclipwire(&zspan, i, a+1, vlr->ec, hoco[0], hoco[1], hoco[2], hoco[3], c1, c2, c3, c4);
@@ -2184,7 +2187,7 @@ static int isb_add_samples(RenderPart *pa, ISBBranch *root, MemArena *memarena, 
 			}
 			if (bsp_err) break;
 		}
-	}	
+	}
 	
 	MEM_freeN(xcos);
 	MEM_freeN(ycos);
@@ -2391,7 +2394,7 @@ static int isb_add_samples_transp(RenderPart *pa, ISBBranch *root, MemArena *mem
 			}
 			if (bsp_err) break;
 		}
-	}	
+	}
 	
 	MEM_freeN(xcos);
 	MEM_freeN(ycos);

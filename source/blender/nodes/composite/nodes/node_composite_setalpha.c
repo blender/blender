@@ -33,12 +33,12 @@
 #include "node_composite_util.h"
 
 /* **************** SET ALPHA ******************** */
-static bNodeSocketTemplate cmp_node_setalpha_in[]= {
+static bNodeSocketTemplate cmp_node_setalpha_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Alpha"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_setalpha_out[]= {
+static bNodeSocketTemplate cmp_node_setalpha_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };

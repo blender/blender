@@ -35,34 +35,55 @@ import shutil
 
 try:
     import settings
+    import utils
 except:
-    from . import settings
+    from . import (settings, utils)
 
+BRANCHES_DIR = settings.BRANCHES_DIR
 TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 TRUNK_MO_DIR = settings.TRUNK_MO_DIR
+
+LANGUAGES_CATEGORIES = settings.LANGUAGES_CATEGORIES
+LANGUAGES = settings.LANGUAGES
+LANGUAGES_FILE = settings.LANGUAGES_FILE
 
 PY3 = settings.PYTHON3_EXEC
 
 
+def find_matching_po(languages, stats):
+    """Match languages defined in LANGUAGES setting to relevant po, if possible!"""
+    ret = []
+    for uid, label, org_key in languages:
+        key = org_key
+        if key not in stats:
+            # Try to simplify the key (eg from es_ES to es).
+            if '_' in org_key:
+                key = org_key[0:org_key.index('_')]
+            if '@' in org_key:
+                key = key + org_key[org_key.index('@'):]
+        if key in stats:
+            ret.append((stats[key], uid, label, org_key))
+        else:
+            # Mark invalid entries, so that we can put them in the languages file,
+            # but commented!
+            ret.append((0.0, -uid, label, org_key))
+    return ret
+
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="" \
-                        "Update trunk from branches:\n" \
-                        "* Remove po’s in trunk.\n" \
-                        "* Copy po’s from branches advanced enough.\n" \
-                        "* Clean po’s in trunk.\n" \
-                        "* Compile po’s in trunk in mo’s, keeping " \
-                        "track of those failing.\n" \
-                        "* Remove po’s and mo’s (and their dir’s) that " \
-                        "failed to compile or are no more present in trunk.")
-    parser.add_argument('-t', '--threshold', type=int,
-                        help="Import threshold, as a percentage.")
-    parser.add_argument('-p', '--po', action="store_false",
-                        help="Do not remove failing po’s.")
-    parser.add_argument('-m', '--mo', action="store_false",
-                        help="Do not remove failing mo’s.")
-    parser.add_argument('langs', metavar='ISO_code', nargs='*',
-                        help="Restrict processed languages to those.")
+    parser = argparse.ArgumentParser(description=""
+                        "Update trunk from branches:\n"
+                        "* Remove po’s in trunk.\n"
+                        "* Copy po’s from branches advanced enough.\n"
+                        "* Clean po’s in trunk.\n"
+                        "* Compile po’s in trunk in mo’s, keeping track of those failing.\n"
+                        "* Remove po’s and mo’s (and their dir’s) that "
+                        "failed to compile or are no more present in trunk."
+                        "* Generate languages file used by Blender's i18n.")
+    parser.add_argument('-t', '--threshold', type=int, help="Import threshold, as a percentage.")
+    parser.add_argument('-p', '--po', action="store_true", help="Remove failing po’s.")
+    parser.add_argument('-m', '--mo', action="store_true", help="Remove failing mo’s.")
+    parser.add_argument('langs', metavar='ISO_code', nargs='*', help="Restrict processed languages to those.")
     args = parser.parse_args()
 
     ret = 0
@@ -89,7 +110,7 @@ def main():
 
     # Add in failed all mo’s no more having relevant po’s in trunk.
     for lang in os.listdir(TRUNK_MO_DIR):
-        if lang == ".svn":
+        if lang in {".svn", LANGUAGES_FILE}:
             continue  # !!!
         if not os.path.exists(os.path.join(TRUNK_PO_DIR, ".".join((lang, "po")))):
             failed.add(lang)
@@ -115,6 +136,13 @@ def main():
             if t:
                 ret = t
                 failed.add(lang)
+                continue
+
+    # Generate languages file used by Blender's i18n system.
+    cmd = [PY3, "./update_languages_menu.py"]
+    t = subprocess.call(cmd)
+    if t:
+        ret = t
 
     # Remove failing po’s, mo’s and related dir’s.
     for lang in failed:

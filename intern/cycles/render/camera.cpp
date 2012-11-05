@@ -19,6 +19,8 @@
 #include "camera.h"
 #include "scene.h"
 
+#include "device.h"
+
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -141,7 +143,7 @@ void Camera::update()
 
 void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
-	Scene::MotionType need_motion = scene->need_motion();
+	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
 
 	update();
 
@@ -160,7 +162,6 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	/* store matrices */
 	kcam->screentoworld = screentoworld;
 	kcam->rastertoworld = rastertoworld;
-	kcam->ndctoworld = ndctoworld;
 	kcam->rastertocamera = rastertocamera;
 	kcam->cameratoworld = cameratoworld;
 	kcam->worldtoscreen = transform_inverse(screentoworld);
@@ -193,13 +194,14 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 			}
 		}
 	}
+#ifdef __CAMERA_MOTION__
 	else if(need_motion == Scene::MOTION_BLUR) {
-		/* todo: exact camera position will not be hit this way */
 		if(use_motion) {
-			transform_motion_decompose(&kcam->motion, &motion);
+			transform_motion_decompose(&kcam->motion, &motion, &matrix);
 			kcam->have_motion = 1;
 		}
 	}
+#endif
 
 	/* depth of field */
 	kcam->aperturesize = aperturesize;
@@ -208,7 +210,11 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->bladesrotation = bladesrotation;
 
 	/* motion blur */
+#ifdef __CAMERA_MOTION__
 	kcam->shuttertime = (need_motion == Scene::MOTION_BLUR) ? shuttertime: 0.0f;
+#else
+	kcam->shuttertime = 0.0f;
+#endif
 
 	/* type */
 	kcam->type = type;
@@ -245,7 +251,7 @@ void Camera::device_free(Device *device, DeviceScene *dscene)
 
 bool Camera::modified(const Camera& cam)
 {
-	return !((shuttertime== cam.shuttertime) &&
+	return !((shuttertime == cam.shuttertime) &&
 		(aperturesize == cam.aperturesize) &&
 		(blades == cam.blades) &&
 		(bladesrotation == cam.bladesrotation) &&
@@ -268,11 +274,15 @@ bool Camera::modified(const Camera& cam)
 		(border_bottom == cam.border_bottom) &&
 		(border_top == cam.border_top) &&
 		(matrix == cam.matrix) &&
-		(motion == cam.motion) &&
-		(use_motion == cam.use_motion) &&
 		(panorama_type == cam.panorama_type) &&
 		(fisheye_fov == cam.fisheye_fov) &&
 		(fisheye_lens == cam.fisheye_lens));
+}
+
+bool Camera::motion_modified(const Camera& cam)
+{
+	return !((motion == cam.motion) &&
+		(use_motion == cam.use_motion));
 }
 
 void Camera::tag_update()

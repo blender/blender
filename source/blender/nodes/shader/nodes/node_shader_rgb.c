@@ -33,7 +33,7 @@
 #include "node_shader_util.h"
 
 /* **************** RGB ******************** */
-static bNodeSocketTemplate sh_node_rgb_out[]= {
+static bNodeSocketTemplate sh_node_rgb_out[] = {
 	{	SOCK_RGBA, 0, N_("Color")},
 	{	-1, 0, ""	}
 };

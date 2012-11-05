@@ -36,7 +36,7 @@
 #include "NG_NetworkDeviceInterface.h"
 
 class NG_LoopBackNetworkDeviceInterface : public NG_NetworkDeviceInterface
-{	
+{
 	std::deque<NG_NetworkMessage*> m_messages[2];
 	int		m_currentQueue;
 
@@ -60,5 +60,4 @@ public:
 	virtual std::vector<NG_NetworkMessage*>		RetrieveNetworkMessages();
 };
 
-#endif //__NG_LOOPBACKNETWORKDEVICEINTERFACE_H__
-
+#endif  /* __NG_LOOPBACKNETWORKDEVICEINTERFACE_H__ */

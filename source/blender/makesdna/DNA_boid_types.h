@@ -36,18 +36,18 @@
 
 typedef enum BoidRuleType {
 	eBoidRuleType_None = 0,
-	eBoidRuleType_Goal = 1,			/* go to goal assigned object or loudest assigned signal source */
-	eBoidRuleType_Avoid = 2,		/* get away from assigned object or loudest assigned signal source */
-	eBoidRuleType_AvoidCollision = 3,	/* manoeuver to avoid collisions with other boids and deflector object in near future */
-	eBoidRuleType_Separate = 4,		/* keep from going through other boids */
-	eBoidRuleType_Flock = 5,		/* move to center of neighbors and match their velocity */
-	eBoidRuleType_FollowLeader = 6,		/* follow a boid or assigned object */
-	eBoidRuleType_AverageSpeed = 7,		/* maintain speed, flight level or wander*/
-	eBoidRuleType_Fight = 8,		/* go to closest enemy and attack when in range */
-	//eBoidRuleType_Protect = 9,		/* go to enemy closest to target and attack when in range */
-	//eBoidRuleType_Hide = 10,		/* find a deflector move to it's other side from closest enemy */
-	//eBoidRuleType_FollowPath = 11,	/* move along a assigned curve or closest curve in a group */
-	//eBoidRuleType_FollowWall = 12,	/* move next to a deflector object's in direction of it's tangent */
+	eBoidRuleType_Goal = 1,             /* go to goal assigned object or loudest assigned signal source */
+	eBoidRuleType_Avoid = 2,            /* get away from assigned object or loudest assigned signal source */
+	eBoidRuleType_AvoidCollision = 3,   /* manoeuver to avoid collisions with other boids and deflector object in near future */
+	eBoidRuleType_Separate = 4,         /* keep from going through other boids */
+	eBoidRuleType_Flock = 5,            /* move to center of neighbors and match their velocity */
+	eBoidRuleType_FollowLeader = 6,     /* follow a boid or assigned object */
+	eBoidRuleType_AverageSpeed = 7,     /* maintain speed, flight level or wander*/
+	eBoidRuleType_Fight = 8,            /* go to closest enemy and attack when in range */
+	//eBoidRuleType_Protect = 9,        /* go to enemy closest to target and attack when in range */
+	//eBoidRuleType_Hide = 10,          /* find a deflector move to it's other side from closest enemy */
+	//eBoidRuleType_FollowPath = 11,    /* move along a assigned curve or closest curve in a group */
+	//eBoidRuleType_FollowWall = 12,    /* move next to a deflector object's in direction of it's tangent */
 	NUM_BOID_RULE_TYPES
 } BoidRuleType;
 
@@ -67,7 +67,7 @@ typedef struct BoidRuleGoalAvoid {
 	BoidRule rule;
 	struct Object *ob;
 	int options;
-	float fear_factor;	
+	float fear_factor;
 
 	/* signals */
 	int signal_id, channels;

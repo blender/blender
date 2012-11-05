@@ -215,7 +215,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			if (totlen != 0.0f) {
 				float zero[3] = {0.0f, 0.0f, 0.0f};
-				float cp[3];				
+				float cp[3];
 				screw_ofs = closest_to_line_v3(cp, mtx_tx[3], zero, axis_vec);
 			}
 			else {
@@ -363,7 +363,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		 */
 
 		vert_connect = MEM_mallocN(sizeof(ScrewVertConnect) * totvert, "ScrewVertConnect");
-		//vert_connect= (ScrewVertConnect *) &medge_new[totvert]; /* skip the first slice of verts */
+		//vert_connect = (ScrewVertConnect *) &medge_new[totvert];  /* skip the first slice of verts */
 		vc = vert_connect;
 
 		/* Copy Vert Locations */
@@ -393,7 +393,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 					mul_m4_v3(mtx_tx, vc->co);
 					/* length in 2d, don't sqrt because this is only for comparison */
-					vc->dist =  vc->co[other_axis_1] * vc->co[other_axis_1] +
+					vc->dist = vc->co[other_axis_1] * vc->co[other_axis_1] +
 					           vc->co[other_axis_2] * vc->co[other_axis_2];
 
 					/* printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);*/
@@ -410,7 +410,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					vc->v[0] = vc->v[1] = -1;
 
 					/* length in 2d, don't sqrt because this is only for comparison */
-					vc->dist =  vc->co[other_axis_1] * vc->co[other_axis_1] +
+					vc->dist = vc->co[other_axis_1] * vc->co[other_axis_1] +
 					           vc->co[other_axis_2] * vc->co[other_axis_2];
 
 					/* printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);*/
@@ -430,7 +430,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					vc->e[1] = med_new;
 				}
 				else {
-					vc->v[0] = vc->v[1] = -2; /* erro value  - don't use, 3 edges on vert */
+					vc->v[0] = vc->v[1] = -2; /* error value  - don't use, 3 edges on vert */
 				}
 
 				vc = &vert_connect[med_new->v2];
@@ -445,7 +445,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					vc->e[1] = med_new;
 				}
 				else {
-					vc->v[0] = vc->v[1] = -2; /* erro value  - don't use, 3 edges on vert */
+					vc->v[0] = vc->v[1] = -2; /* error value  - don't use, 3 edges on vert */
 				}
 			}
 
@@ -475,7 +475,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							/*printf("\t\tVERT: %i\n", lt_iter.v);*/
 							if (lt_iter.v_poin->flag) {
 								/*printf("\t\t\tBreaking Found end\n");*/
-								//endpoints[0]= endpoints[1]= -1;
+								//endpoints[0] = endpoints[1] = -1;
 								ed_loop_closed = 1; /* circle */
 								break;
 							}
@@ -490,7 +490,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 							screwvert_iter_step(&lt_iter);
 							if (!lt_iter.v_poin) {
 								/*printf("\t\t\tFound End Also Num %i\n", j);*/
-								/*endpoints[j]= lt_iter.v_other;*/ /* other is still valid */
+								/*endpoints[j] = lt_iter.v_other;*/ /* other is still valid */
 								break;
 							}
 						}
@@ -732,7 +732,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			copy_v3_v3(mv_new->co, mv_new_base->co);
 			
 			/* only need to set these if using non cleared memory */
-			/*mv_new->mat_nr= mv_new->flag= 0;*/
+			/*mv_new->mat_nr = mv_new->flag = 0;*/
 				
 			if (ltmd->ob_axis) {
 				sub_v3_v3(mv_new->co, mtx_tx[3]);
@@ -831,7 +831,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 		
 		/* close the loop*/
-		if (close) { 
+		if (close) {
 			if (do_flip) {
 				ml_new[3].v = i1;
 				ml_new[2].v = i2;

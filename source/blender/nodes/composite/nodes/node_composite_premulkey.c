@@ -35,11 +35,11 @@
 
 /* **************** Premul and Key Alpha Convert ******************** */
 
-static bNodeSocketTemplate cmp_node_premulkey_in[]= {
+static bNodeSocketTemplate cmp_node_premulkey_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_premulkey_out[]= {
+static bNodeSocketTemplate cmp_node_premulkey_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };

@@ -78,7 +78,7 @@ static void ED_object_shape_key_add(bContext *C, Scene *scene, Object *ob, int f
 {
 	KeyBlock *kb;
 	if ((kb = BKE_object_insert_shape_key(scene, ob, NULL, from_mix))) {
-		Key *key = ob_get_key(ob);
+		Key *key = BKE_key_from_object(ob);
 		/* for absolute shape keys, new keys may not be added last */
 		ob->shapenr = BLI_findindex(&key->block, kb) + 1;
 
@@ -95,7 +95,7 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 	Key *key;
 	//IpoCurve *icu;
 
-	key = ob_get_key(ob);
+	key = BKE_key_from_object(ob);
 	if (key == NULL)
 		return 0;
 	
@@ -115,14 +115,14 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 				/* apply new basis key on original data */
 				switch (ob->type) {
 					case OB_MESH:
-						key_to_mesh(key->refkey, ob->data);
+						BKE_key_convert_to_mesh(key->refkey, ob->data);
 						break;
 					case OB_CURVE:
 					case OB_SURF:
-						key_to_curve(key->refkey, ob->data, BKE_curve_nurbs_get(ob->data));
+						BKE_key_convert_to_curve(key->refkey, ob->data, BKE_curve_nurbs_get(ob->data));
 						break;
 					case OB_LATTICE:
-						key_to_latt(key->refkey, ob->data);
+						BKE_key_convert_to_lattice(key->refkey, ob->data);
 						break;
 				}
 			}
@@ -155,22 +155,22 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 	KeyBlock *kb;
 	Key *key;
 
-	key = ob_get_key(ob);
+	key = BKE_key_from_object(ob);
 	if (key == NULL)
 		return 0;
 	
 	kb = BLI_findlink(&key->block, ob->shapenr - 1);
 
 	if (kb) {
-		int i1, i2;
-		float *fp1, *fp2;
-		float tvec[3];
 		char *tag_elem = MEM_callocN(sizeof(char) * kb->totelem, "shape_key_mirror");
 
 
 		if (ob->type == OB_MESH) {
 			Mesh *me = ob->data;
 			MVert *mv;
+			int i1, i2;
+			float *fp1, *fp2;
+			float tvec[3];
 
 			mesh_octree_table(ob, NULL, NULL, 's');
 
@@ -211,7 +211,7 @@ static int object_shape_key_mirror(bContext *C, Object *ob)
 			/* currently editmode isn't supported by mesh so
 			 * ignore here for now too */
 
-			/* if (lt->editlatt) lt= lt->editlatt->latt; */
+			/* if (lt->editlatt) lt = lt->editlatt->latt; */
 
 			for (w = 0; w < lt->pntsw; w++) {
 				for (v = 0; v < lt->pntsv; v++) {
@@ -323,8 +323,8 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
-	Key *key = ob_get_key(ob);
-	KeyBlock *kb = ob_get_keyblock(ob);
+	Key *key = BKE_key_from_object(ob);
+	KeyBlock *kb = BKE_keyblock_from_object(ob);
 
 	if (!key || !kb)
 		return OPERATOR_CANCELLED;
@@ -357,8 +357,8 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 static int shape_key_retime_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
-	Key *key = ob_get_key(ob);
-	KeyBlock *kb = ob_get_keyblock(ob);
+	Key *key = BKE_key_from_object(ob);
+	KeyBlock *kb = BKE_keyblock_from_object(ob);
 	float cfra = 0.0f;
 
 	if (!key || !kb)
@@ -419,7 +419,7 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_context(C);
 
 	int type = RNA_enum_get(op->ptr, "type");
-	Key *key = ob_get_key(ob);
+	Key *key = BKE_key_from_object(ob);
 
 	if (key) {
 		KeyBlock *kb, *kb_other;

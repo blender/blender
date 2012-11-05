@@ -56,6 +56,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
 #include "BLI_callbacks.h"
 
 #include "BLF_translation.h"
@@ -143,7 +144,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	/* code copied from wm_init_exit.c */
 	for (wm = wmlist->first; wm; wm = wm->id.next) {
 		
-		WM_jobs_stop_all(wm);
+		WM_jobs_kill_all(wm);
 		
 		for (win = wm->windows.first; win; win = win->next) {
 		
@@ -189,9 +190,12 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 	
 	/* cases 1 and 2 */
 	if (oldwmlist->first == NULL) {
-		if (G.main->wm.first) ;  /* nothing todo */
-		else
+		if (G.main->wm.first) {
+			/* nothing todo */
+		}
+		else {
 			wm_add_default(C);
+		}
 	}
 	else {
 		/* cases 3 and 4 */
@@ -446,9 +450,8 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 				if (sce->r.engine[0] &&
 				    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
 				{
-					BKE_reportf(reports, RPT_WARNING,
-					            "Engine not available: '%s' for scene: %s, "
-					            "an addon may need to be installed or enabled",
+					BKE_reportf(reports, RPT_ERROR, "Engine '%s' not available for scene '%s' "
+					            "(an addon may need to be installed or enabled)",
 					            sce->r.engine, sce->id.name + 2);
 				}
 			}
@@ -461,17 +464,17 @@ void WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 	else if (retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
 	else if (retval == BKE_READ_EXOTIC_FAIL_OPEN) {
-		BKE_reportf(reports, RPT_ERROR, IFACE_("Can't read file: \"%s\", %s."), filepath,
-		            errno ? strerror(errno) : IFACE_("Unable to open the file"));
+		BKE_reportf(reports, RPT_ERROR, "Cannot read file '%s': %s", filepath,
+		            errno ? strerror(errno) : TIP_("unable to open the file"));
 	}
 	else if (retval == BKE_READ_EXOTIC_FAIL_FORMAT) {
-		BKE_reportf(reports, RPT_ERROR, IFACE_("File format is not supported in file: \"%s\"."), filepath);
+		BKE_reportf(reports, RPT_ERROR, "File format is not supported in file '%s'", filepath);
 	}
 	else if (retval == BKE_READ_EXOTIC_FAIL_PATH) {
-		BKE_reportf(reports, RPT_ERROR, IFACE_("File path invalid: \"%s\"."), filepath);
+		BKE_reportf(reports, RPT_ERROR, "File path '%s' invalid", filepath);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, IFACE_("Unknown error loading: \"%s\"."), filepath);
+		BKE_reportf(reports, RPT_ERROR, "Unknown error loading '%s'", filepath);
 		BLI_assert(!"invalid 'retval'");
 	}
 
@@ -712,7 +715,7 @@ static ImBuf *blend_file_thumb(Scene *scene, bScreen *screen, int **thumb_pt)
 		                                      IB_rect, FALSE, FALSE, err_out);
 	}
 
-	if (ibuf) {		
+	if (ibuf) {
 		float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
 
 		/* dirty oversampling */
@@ -787,14 +790,14 @@ int WM_file_write(bContext *C, const char *target, int fileflags, ReportList *re
 	/* send the OnSave event */
 	for (li = G.main->library.first; li; li = li->id.next) {
 		if (BLI_path_cmp(li->filepath, filepath) == 0) {
-			BKE_reportf(reports, RPT_ERROR, "Can't overwrite used library '%.240s'", filepath);
+			BKE_reportf(reports, RPT_ERROR, "Cannot overwrite used library '%.240s'", filepath);
 			return -1;
 		}
 	}
 
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
-	if (U.flag & USER_SAVE_PREVIEWS) {
+	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
 		ibuf_thumb = blend_file_thumb(CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}
 

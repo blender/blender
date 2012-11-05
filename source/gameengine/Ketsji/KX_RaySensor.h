@@ -94,11 +94,10 @@ public:
 #ifdef WITH_PYTHON
 
 	/* Attributes */
-	static PyObject* pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject *pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 };
 
-#endif //__KX_RAYSENSOR_H__
-
+#endif  /* __KX_RAYSENSOR_H__ */

@@ -56,8 +56,10 @@ endif()
 if(WITH_IK_ITASC)
 	add_definitions(-DWITH_IK_ITASC)
 	list(APPEND INC
-		../../../extern/Eigen3
 		../../../intern/itasc
+	)
+	list(APPEND INC_SYS
+		../../../extern/Eigen3
 	)
 	list(APPEND SRC
 		intern/itasc_plugin.cpp

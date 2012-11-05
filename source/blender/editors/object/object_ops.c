@@ -113,6 +113,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_delete);
 	WM_operatortype_append(OBJECT_OT_text_add);
 	WM_operatortype_append(OBJECT_OT_armature_add);
+	WM_operatortype_append(OBJECT_OT_empty_add);
 	WM_operatortype_append(OBJECT_OT_lamp_add);
 	WM_operatortype_append(OBJECT_OT_camera_add);
 	WM_operatortype_append(OBJECT_OT_speaker_add);
@@ -168,6 +169,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(CONSTRAINT_OT_childof_clear_inverse);
 	WM_operatortype_append(CONSTRAINT_OT_objectsolver_set_inverse);
 	WM_operatortype_append(CONSTRAINT_OT_objectsolver_clear_inverse);
+	WM_operatortype_append(CONSTRAINT_OT_followpath_path_animate);
 
 	WM_operatortype_append(OBJECT_OT_vertex_group_add);
 	WM_operatortype_append(OBJECT_OT_vertex_group_remove);
@@ -176,6 +178,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_select);
 	WM_operatortype_append(OBJECT_OT_vertex_group_deselect);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_linked);
+	WM_operatortype_append(OBJECT_OT_vertex_group_transfer_weight);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_selected);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
@@ -186,6 +189,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_levels);
 	WM_operatortype_append(OBJECT_OT_vertex_group_blend);
 	WM_operatortype_append(OBJECT_OT_vertex_group_clean);
+	WM_operatortype_append(OBJECT_OT_vertex_group_limit_total);
 	WM_operatortype_append(OBJECT_OT_vertex_group_mirror);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 	WM_operatortype_append(OBJECT_OT_vertex_group_sort);
@@ -207,6 +211,7 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(LATTICE_OT_select_all);
 	WM_operatortype_append(LATTICE_OT_make_regular);
+	WM_operatortype_append(LATTICE_OT_flip);
 
 	WM_operatortype_append(OBJECT_OT_group_add);
 	WM_operatortype_append(OBJECT_OT_group_link);
@@ -388,7 +393,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_make_local", LKEY, KM_PRESS, 0, 0);
 
-	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
+	/* XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith */
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_keying_set_active_set", IKEY, KM_PRESS, KM_CTRL | KM_SHIFT | KM_ALT, 0);
@@ -419,6 +424,8 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "LATTICE_OT_flip", FKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* menus */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);

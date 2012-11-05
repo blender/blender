@@ -67,5 +67,4 @@ private:
 #endif
 };
 
-#endif //__RAS_VAOPENGLRASTERIZER_H__
-
+#endif  /* __RAS_VAOPENGLRASTERIZER_H__ */

@@ -118,7 +118,7 @@ class DATA_PT_lamp(DataButtonsPanel, Panel):
 
 class DATA_PT_sunsky(DataButtonsPanel, Panel):
     bl_label = "Sky & Atmosphere"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):

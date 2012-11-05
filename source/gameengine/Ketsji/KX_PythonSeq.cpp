@@ -69,38 +69,38 @@ static void KX_PythonSeq_dealloc(KX_PythonSeq * self)
 	PyObject_GC_Del(self);
 }
 
-static Py_ssize_t KX_PythonSeq_len( PyObject * self )
+static Py_ssize_t KX_PythonSeq_len( PyObject *self )
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
-	 
+
 	if (self_plus==NULL) {
 		PyErr_SetString(PyExc_SystemError, "len(seq): "BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
 	
-	switch(((KX_PythonSeq *)self)->type) {
-	case KX_PYGENSEQ_CONT_TYPE_SENSORS:
-		return ((SCA_IController *)self_plus)->GetLinkedSensors().size();
-	case KX_PYGENSEQ_CONT_TYPE_ACTUATORS:
-		return ((SCA_IController *)self_plus)->GetLinkedActuators().size();
-	case KX_PYGENSEQ_OB_TYPE_SENSORS:
-		return ((KX_GameObject *)self_plus)->GetSensors().size();
-	case KX_PYGENSEQ_OB_TYPE_CONTROLLERS:
-		return ((KX_GameObject *)self_plus)->GetControllers().size();
-	case KX_PYGENSEQ_OB_TYPE_ACTUATORS:
-		return ((KX_GameObject *)self_plus)->GetActuators().size();
-	case KX_PYGENSEQ_OB_TYPE_CONSTRAINTS:
-		return ((BL_ArmatureObject *)self_plus)->GetConstraintNumber();
-	case KX_PYGENSEQ_OB_TYPE_CHANNELS:
-		return ((BL_ArmatureObject *)self_plus)->GetChannelNumber();
-	default:
-		/* Should never happen */
-		PyErr_SetString(PyExc_SystemError, "invalid type, internal error");
-		return -1;
+	switch (((KX_PythonSeq *)self)->type) {
+		case KX_PYGENSEQ_CONT_TYPE_SENSORS:
+			return ((SCA_IController *)self_plus)->GetLinkedSensors().size();
+		case KX_PYGENSEQ_CONT_TYPE_ACTUATORS:
+			return ((SCA_IController *)self_plus)->GetLinkedActuators().size();
+		case KX_PYGENSEQ_OB_TYPE_SENSORS:
+			return ((KX_GameObject *)self_plus)->GetSensors().size();
+		case KX_PYGENSEQ_OB_TYPE_CONTROLLERS:
+			return ((KX_GameObject *)self_plus)->GetControllers().size();
+		case KX_PYGENSEQ_OB_TYPE_ACTUATORS:
+			return ((KX_GameObject *)self_plus)->GetActuators().size();
+		case KX_PYGENSEQ_OB_TYPE_CONSTRAINTS:
+			return ((BL_ArmatureObject *)self_plus)->GetConstraintNumber();
+		case KX_PYGENSEQ_OB_TYPE_CHANNELS:
+			return ((BL_ArmatureObject *)self_plus)->GetChannelNumber();
+		default:
+			/* Should never happen */
+			PyErr_SetString(PyExc_SystemError, "invalid type, internal error");
+			return -1;
 	}
 }
 
-static PyObject *KX_PythonSeq_getIndex(PyObject* self, int index)
+static PyObject *KX_PythonSeq_getIndex(PyObject *self, int index)
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	 
@@ -109,7 +109,7 @@ static PyObject *KX_PythonSeq_getIndex(PyObject* self, int index)
 		return NULL;
 	}
 	
-	switch(((KX_PythonSeq *)self)->type) {
+	switch (((KX_PythonSeq *)self)->type) {
 		case KX_PYGENSEQ_CONT_TYPE_SENSORS:
 		{
 			vector<SCA_ISensor*>& linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
@@ -193,7 +193,7 @@ static PyObjectPlus * KX_PythonSeq_subscript__internal(PyObject *self, const cha
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	
-	switch(((KX_PythonSeq *)self)->type) {
+	switch (((KX_PythonSeq *)self)->type) {
 		case KX_PYGENSEQ_CONT_TYPE_SENSORS:
 		{
 			vector<SCA_ISensor*>& linkedsensors = ((SCA_IController *)self_plus)->GetLinkedSensors();
@@ -264,7 +264,7 @@ static PyObjectPlus * KX_PythonSeq_subscript__internal(PyObject *self, const cha
 }
 
 
-static PyObject * KX_PythonSeq_subscript(PyObject * self, PyObject *key)
+static PyObject * KX_PythonSeq_subscript(PyObject *self, PyObject *key)
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	
@@ -314,10 +314,10 @@ static int KX_PythonSeq_contains(PyObject *self, PyObject *key)
 }
 
 /* Matches python dict.get(key, [default]) */
-PyObject* KX_PythonSeq_get(PyObject * self, PyObject *args)
+static PyObject *KX_PythonSeq_get(PyObject *self, PyObject *args)
 {
 	char *key;
-	PyObject* def = Py_None;
+	PyObject *def = Py_None;
 	PyObjectPlus* ret_plus;
 
 	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
@@ -396,7 +396,7 @@ static PyObject *KX_PythonSeq_nextIter(KX_PythonSeq *self)
 
 static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b )
 {
-	return ( a->type == b->type && a->base == b->base) ? 0 : -1;	
+	return ( a->type == b->type && a->base == b->base) ? 0 : -1;
 }
 
 static PyObject *KX_PythonSeq_richcmp(PyObject *a, PyObject *b, int op)

@@ -185,10 +185,12 @@ class ExecutePreset(Operator):
 
     filepath = StringProperty(
             subtype='FILE_PATH',
+            options={'SKIP_SAVE'},
             )
     menu_idname = StringProperty(
             name="Menu ID Name",
             description="ID name of the menu this was called from",
+            options={'SKIP_SAVE'},
             )
 
     def execute(self, context):
@@ -436,19 +438,19 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
     ]
 
     preset_values = [
-        "default_correlation_min",
-        "default_pattern_size",
-        "default_search_size",
-        "default_frames_limit",
-        "default_pattern_match",
-        "default_margin",
-        "default_motion_model",
-        "use_default_brute",
-        "use_default_normalization",
-        "use_default_mask",
-        "use_default_red_channel",
-        "use_default_green_channel",
-        "use_default_blue_channel"
+        "settings.default_correlation_min",
+        "settings.default_pattern_size",
+        "settings.default_search_size",
+        "settings.default_frames_limit",
+        "settings.default_pattern_match",
+        "settings.default_margin",
+        "settings.default_motion_model",
+        "settings.use_default_brute",
+        "settings.use_default_normalization",
+        "settings.use_default_mask",
+        "settings.use_default_red_channel",
+        "settings.use_default_green_channel",
+        "settings.use_default_blue_channel"
     ]
 
     preset_subdir = "tracking_settings"
@@ -504,7 +506,7 @@ class AddPresetKeyconfig(AddPresetBase, Operator):
 
 
 class AddPresetOperator(AddPresetBase, Operator):
-    """Add an Application Interaction Preset"""
+    """Add an Operator Preset"""
     bl_idname = "wm.operator_preset_add"
     bl_label = "Operator Preset"
     preset_menu = "WM_MT_operator_presets"
@@ -512,7 +514,7 @@ class AddPresetOperator(AddPresetBase, Operator):
     operator = StringProperty(
             name="Operator",
             maxlen=64,
-            options={'HIDDEN'},
+            options={'HIDDEN', 'SKIP_SAVE'},
             )
 
     preset_defines = [

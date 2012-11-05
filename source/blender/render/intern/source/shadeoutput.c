@@ -57,6 +57,9 @@
 
 #include "shading.h" /* own include */
 
+/* could enable at some point but for now there are far too many conversions */
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
 /* only to be used here in this file, it's for speed */
@@ -114,7 +117,7 @@ static void fogcolor(const float colf[3], float *rco, float *view)
 		addAlphaOverFloat(colf, hor);
 		
 		sub_v3_v3(vec, dview);
-	}	
+	}
 }
 #endif
 
@@ -123,37 +126,52 @@ float mistfactor(float zcor, float const co[3])
 {
 	float fac, hi;
 	
-	fac= zcor - R.wrld.miststa;	/* zcor is calculated per pixel */
+	fac = zcor - R.wrld.miststa;	/* zcor is calculated per pixel */
 
 	/* fac= -co[2]-R.wrld.miststa; */
 
-	if (fac>0.0f) {
-		if (fac< R.wrld.mistdist) {
+	if (fac > 0.0f) {
+		if (fac < R.wrld.mistdist) {
 			
-			fac= (fac/(R.wrld.mistdist));
+			fac = (fac / R.wrld.mistdist);
 			
-			if (R.wrld.mistype==0) fac*= fac;
-			else if (R.wrld.mistype==1);
-			else fac= sqrt(fac);
+			if (R.wrld.mistype == 0) {
+				fac *= fac;
+			}
+			else if (R.wrld.mistype == 1) {
+				/* pass */
+			}
+			else {
+				fac = sqrt(fac);
+			}
 		}
-		else fac= 1.0f;
+		else {
+			fac = 1.0f;
+		}
 	}
-	else fac= 0.0f;
+	else {
+		fac = 0.0f;
+	}
 	
 	/* height switched off mist */
 	if (R.wrld.misthi!=0.0f && fac!=0.0f) {
 		/* at height misthi the mist is completely gone */
 
-		hi= R.viewinv[0][2]*co[0]+R.viewinv[1][2]*co[1]+R.viewinv[2][2]*co[2]+R.viewinv[3][2];
+		hi = R.viewinv[0][2] * co[0] +
+		     R.viewinv[1][2] * co[1] +
+		     R.viewinv[2][2] * co[2] +
+		     R.viewinv[3][2];
 		
-		if (hi>R.wrld.misthi) fac= 0.0f;
+		if (hi > R.wrld.misthi) {
+			fac = 0.0f;
+		}
 		else if (hi>0.0f) {
 			hi= (R.wrld.misthi-hi)/R.wrld.misthi;
 			fac*= hi*hi;
 		}
 	}
 
-	return (1.0f-fac)* (1.0f-R.wrld.misi);	
+	return (1.0f-fac)* (1.0f-R.wrld.misi);
 }
 
 static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
@@ -213,7 +231,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		}
 	}
 	
-	/* scale z to make sure volume is normalized */	
+	/* scale z to make sure volume is normalized */
 	nray[2] *= (double)lar->sh_zfac;
 	/* nray does not need normalization */
 	
@@ -299,8 +317,8 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		
 		/* calculate t0: is the maximum visible z (when halo is intersected by face) */ 
 		if (do_clip) {
-			if (use_yco == FALSE) t0 = (maxz - npos[2]) / nray[2];
-			else t0 = (maxy - npos[1]) / nray[1];
+			if (use_yco == FALSE) t0 = ((double)maxz - npos[2]) / nray[2];
+			else                  t0 = ((double)maxy - npos[1]) / nray[1];
 
 			if (t0 < t1) return;
 			if (t0 < t2) t2= t0;
@@ -453,9 +471,10 @@ static float area_lamp_energy(float (*area)[3], const float co[3], const float v
 
 	/* cross product */
 #define CROSS(dest, a, b) \
-	{ dest[0]= a[1] * b[2] - a[2] * b[1]; \
-	  dest[1]= a[2] * b[0] - a[0] * b[2]; \
-	  dest[2]= a[0] * b[1] - a[1] * b[0]; \
+	{ \
+		dest[0]= a[1] * b[2] - a[2] * b[1]; \
+		dest[1]= a[2] * b[0] - a[0] * b[2]; \
+		dest[2]= a[0] * b[1] - a[1] * b[0]; \
 	} (void)0
 
 	CROSS(cross[0], vec[0], vec[1]);
@@ -532,7 +551,7 @@ static float spec(float inp, int hard)
 	
 	b1= inp*inp;
 	/* avoid FPE */
-	if (b1<0.01f) b1= 0.01f;	
+	if (b1<0.01f) b1= 0.01f;
 	
 	if ((hard & 1)==0)  inp= 1.0f;
 	if (hard & 2)  inp*= b1;
@@ -545,7 +564,7 @@ static float spec(float inp, int hard)
 	b1*= b1;
 
 	/* avoid FPE */
-	if (b1<0.001f) b1= 0.0f;	
+	if (b1<0.001f) b1= 0.0f;
 
 	if (hard & 32) inp*= b1;
 	b1*= b1;
@@ -553,7 +572,7 @@ static float spec(float inp, int hard)
 	b1*= b1;
 	if (hard & 128) inp*=b1;
 
-	if (b1<0.001f) b1= 0.0f;	
+	if (b1<0.001f) b1= 0.0f;
 
 	if (hard & 256) {
 		b1*= b1;
@@ -811,7 +830,7 @@ static float Minnaert_Diff(float nl, const float n[3], const float v[3], float d
 		nv = 0.0f;
 
 	if (darkness <= 1.0f)
-		i = nl * pow(maxf(nv * nl, 0.1f), (darkness - 1.0f) ); /*The Real model*/
+		i = nl * pow(max_ff(nv * nl, 0.1f), (darkness - 1.0f) ); /*The Real model*/
 	else
 		i = nl * pow( (1.001f - nv), (darkness  - 1.0f) ); /*Nvidia model*/
 
@@ -1217,7 +1236,7 @@ float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *d
 							copy_v3_v3(lvrot, lv);
 							mul_m3_v3(lar->imat, lvrot);
 							
-							x = maxf(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
+							x = max_ff(fabsf(lvrot[0]/lvrot[2]), fabsf(lvrot[1]/lvrot[2]));
 							/* 1.0f/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
 							
 							inpr= 1.0f/(sqrt(1.0f+x*x));
@@ -1301,7 +1320,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	if (lar->mode & LA_TEXTURE)	do_lamp_tex(lar, lv, shi, lacol, LA_TEXTURE);
 	if (lar->mode & LA_SHAD_TEX)	do_lamp_tex(lar, lv, shi, lashdw, LA_SHAD_TEX);
 
-		/* tangent case; calculate fake face normal, aligned with lampvector */	
+		/* tangent case; calculate fake face normal, aligned with lampvector */
 		/* note, vnor==vn is used as tangent trigger for buffer shadow */
 	if (vlr->flag & R_TANGENT) {
 		float cross[3], nstrand[3], blend;
@@ -1347,11 +1366,13 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	/* inp = dotproduct, is = shader result, i = lamp energy (with shadow), i_noshad = i without shadow */
 	inp= dot_v3v3(vn, lv);
 
-	/* phong threshold to prevent backfacing faces having artefacts on ray shadow (terminator problem) */
+	/* phong threshold to prevent backfacing faces having artifacts on ray shadow (terminator problem) */
 	/* this complex construction screams for a nicer implementation! (ton) */
 	if (R.r.mode & R_SHADOW) {
 		if (ma->mode & MA_SHADOW) {
-			if (lar->type==LA_HEMI || lar->type==LA_AREA);
+			if (lar->type == LA_HEMI || lar->type == LA_AREA) {
+				/* pass */
+			}
 			else if ((ma->mode & MA_RAYBIAS) && (lar->mode & LA_SHAD_RAY) && (vlr->flag & R_SMOOTH)) {
 				float thresh= shi->obr->ob->smoothresh;
 				if (inp>thresh)
@@ -1466,8 +1487,10 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		
 		if (shadfac[3]>0.0f && shi->spec!=0.0f && !(lar->mode & LA_NO_SPEC) && !(lar->mode & LA_ONLYSHADOW)) {
 			
-			if (!(passflag & (SCE_PASS_COMBINED|SCE_PASS_SPEC)));
-			else if (lar->type==LA_HEMI) {
+			if (!(passflag & (SCE_PASS_COMBINED | SCE_PASS_SPEC))) {
+				/* pass */
+			}
+			else if (lar->type == LA_HEMI) {
 				float t;
 				/* hemi uses no spec shaders (yet) */
 				
@@ -1617,7 +1640,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 		}
 	}
 	
-	/* quite disputable this...  also note it doesn't mirror-raytrace */	
+	/* quite disputable this...  also note it doesn't mirror-raytrace */
 	if ((R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT)) && shi->amb!=0.0f) {
 		float f;
 		
@@ -1825,7 +1848,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			}
 		}
 		
-		if (shi->combinedflag & SCE_PASS_SHADOW)	
+		if (shi->combinedflag & SCE_PASS_SHADOW)
 			copy_v3_v3(shr->combined, shr->shad); 	/* note, no ';' ! */
 		else
 			copy_v3_v3(shr->combined, shr->diff);

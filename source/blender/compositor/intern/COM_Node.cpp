@@ -51,7 +51,7 @@ Node::Node(bNode *editorNode, bool create_sockets): NodeBase()
 			if (input->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
 			
 			this->addInputSocket(dt, (InputSocketResizeMode)input->resizemode, input);
-			input = (bNodeSocket *)input->next;
+			input = input->next;
 		}
 		bNodeSocket *output = (bNodeSocket *)editorNode->outputs.first;
 		while (output != NULL) {
@@ -60,14 +60,14 @@ Node::Node(bNode *editorNode, bool create_sockets): NodeBase()
 			if (output->type == SOCK_VECTOR) dt = COM_DT_VECTOR;
 			
 			this->addOutputSocket(dt, output);
-			output = (bNodeSocket *)output->next;
+			output = output->next;
 		}
 	}
 }
 
 void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)
 {
-	bNodeSocket *bSock = (bNodeSocket *)this->getEditorInputSocket(editorNodeInputSocketIndex);
+	bNodeSocket *bSock = this->getEditorInputSocket(editorNodeInputSocketIndex);
 	SetValueOperation *operation = new SetValueOperation();
 	bNodeSocketValueFloat *val = (bNodeSocketValueFloat *)bSock->default_value;
 	operation->setValue(val->value);
@@ -114,7 +114,7 @@ SocketConnection *Node::addLink(ExecutionSystem *graph, OutputSocket *outputSock
 
 void Node::addSetColorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)
 {
-	bNodeSocket *bSock = (bNodeSocket *)this->getEditorInputSocket(editorNodeInputSocketIndex);
+	bNodeSocket *bSock = this->getEditorInputSocket(editorNodeInputSocketIndex);
 	SetColorOperation *operation = new SetColorOperation();
 	bNodeSocketValueRGBA *val = (bNodeSocketValueRGBA *)bSock->default_value;
 	operation->setChannel1(val->value[0]);
@@ -127,7 +127,7 @@ void Node::addSetColorOperation(ExecutionSystem *graph, InputSocket *inputsocket
 
 void Node::addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex)
 {
-	bNodeSocket *bSock = (bNodeSocket *)this->getEditorInputSocket(editorNodeInputSocketIndex);
+	bNodeSocket *bSock = this->getEditorInputSocket(editorNodeInputSocketIndex);
 	bNodeSocketValueVector *val = (bNodeSocketValueVector *)bSock->default_value;
 	SetVectorOperation *operation = new SetVectorOperation();
 	operation->setX(val->value[0]);

@@ -34,4 +34,4 @@ public:
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
-#endif // COM_ChromaMatteNODE_H
+#endif  /* COM_ChromaMatteNODE_H */

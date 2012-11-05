@@ -38,9 +38,9 @@
 #include "MT_Point3.h"
 #include <stdlib.h>
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)  /* get rid of stupid stl-visual compiler debug warning */
+#endif
 
 class BL_DeformableGameObject;
 
@@ -70,7 +70,7 @@ public:
 	virtual	RAS_Deformer*	GetReplica() {return NULL;}
 	virtual void ProcessReplica();
 	struct Mesh* GetMesh() { return m_bmesh; }
-	virtual class RAS_MeshObject* GetRasMesh() { return (RAS_MeshObject*)m_pMeshObject; }
+	virtual class RAS_MeshObject* GetRasMesh() { return m_pMeshObject; }
 	virtual float (* GetTransVerts(int *tot))[3]	{	*tot= m_tvtot; return m_transverts; }
 	//	virtual void InitDeform(double time) {}
 

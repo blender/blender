@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-source_files = ['dds_api.cpp', 'DirectDrawSurface.cpp', 'Stream.cpp', 'BlockDXT.cpp', 'ColorBlock.cpp', 'Image.cpp']
+source_files = ['dds_api.cpp', 'DirectDrawSurface.cpp', 'Stream.cpp', 'BlockDXT.cpp', 'ColorBlock.cpp', 'Image.cpp', 'FlipDXT.cpp']
 
 incs = ['.',
     '../../',

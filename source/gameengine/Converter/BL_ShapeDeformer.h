@@ -32,9 +32,9 @@
 #ifndef __BL_SHAPEDEFORMER_H__
 #define __BL_SHAPEDEFORMER_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)  /* get rid of stupid stl-visual compiler debug warning */
+#endif
 
 #include "BL_SkinDeformer.h"
 #include "BL_DeformableGameObject.h"
@@ -73,7 +73,7 @@ public:
 	};
 
 protected:
-	bool			m_useShapeDrivers;	
+	bool			m_useShapeDrivers;
 	double			m_lastShapeUpdate;
 	struct Key*		m_key;
 

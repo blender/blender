@@ -29,13 +29,11 @@
  *  \ingroup bgerast
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// don't show these anoying STL warnings
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+   /* don't show these anoying STL warnings */
+#  pragma warning (disable:4786)
 #endif
 
-#include "CTR_Map.h"
 #include "RAS_MaterialBucket.h"
 #include "STR_HashedString.h"
 #include "RAS_MeshObject.h"
@@ -130,7 +128,7 @@ void RAS_BucketManager::OrderBuckets(const MT_Transform& cameratrans, BucketList
 		RAS_MaterialBucket* bucket = *bit;
 		RAS_MeshSlot* ms;
 		// remove the mesh slot form the list, it culls them automatically for next frame
-		while((ms = bucket->GetNextActiveMeshSlot())) {
+		while ((ms = bucket->GetNextActiveMeshSlot())) {
 			slots[i++].set(ms, bucket, pnorm);
 		}
 	}
@@ -157,7 +155,7 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	for (sit=slots.begin(); sit!=slots.end(); ++sit) {
 		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
 
-		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
+		while (sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
 			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(sit->m_ms));
 
 		// make this mesh slot culled automatically for next frame
@@ -180,8 +178,7 @@ void RAS_BucketManager::RenderSolidBuckets(
 		RAS_MaterialBucket* bucket = *bit;
 		RAS_MeshSlot* ms;
 		// remove the mesh slot form the list, it culls them automatically for next frame
-		while((ms = bucket->GetNextActiveMeshSlot()))
-		{
+		while ((ms = bucket->GetNextActiveMeshSlot())) {
 			rendertools->SetClientObject(rasty, ms->m_clientObj);
 			while (bucket->ActivateMaterial(cameratrans, rasty, rendertools))
 				bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *ms);
@@ -220,7 +217,7 @@ void RAS_BucketManager::RenderSolidBuckets(
 	for (sit=slots.begin(); sit!=slots.end(); ++sit) {
 		rendertools->SetClientObject(rasty, sit->m_ms->m_clientObj);
 
-		while(sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
+		while (sit->m_bucket->ActivateMaterial(cameratrans, rasty, rendertools))
 			sit->m_bucket->RenderMeshSlot(cameratrans, rasty, rendertools, *(sit->m_ms));
 	}
 #endif
@@ -232,8 +229,8 @@ void RAS_BucketManager::Renderbuckets(
 	/* beginning each frame, clear (texture/material) caching information */
 	rasty->ClearCachingInfo();
 
-	RenderSolidBuckets(cameratrans, rasty, rendertools);	
-	RenderAlphaBuckets(cameratrans, rasty, rendertools);	
+	RenderSolidBuckets(cameratrans, rasty, rendertools);
+	RenderAlphaBuckets(cameratrans, rasty, rendertools);
 
 	rendertools->SetClientObject(rasty, NULL);
 }

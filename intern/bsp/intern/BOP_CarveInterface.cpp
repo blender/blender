@@ -58,9 +58,9 @@ static bool isQuadPlanar(carve::geom3d::Vector &v1, carve::geom3d::Vector &v2,
 	cross = carve::geom::cross(vec1, vec2);
 
 	float production = carve::geom::dot(cross, vec3);
-	float magnitude = 1e-6 * cross.length();
+	float magnitude = 1e-5 * cross.length();
 
-	return fabs(production) < magnitude;
+	return fabsf(production) < magnitude;
 }
 
 static bool isFacePlanar(CSG_IFace &face, std::vector<carve::geom3d::Vector> &vertices)
@@ -135,10 +135,10 @@ static bool Carve_checkEdgeFaceIntersections(carve::csg::Intersections &intersec
 
 static inline bool Carve_facesAreCoplanar(const MeshSet<3>::face_t *a, const MeshSet<3>::face_t *b)
 {
-  carve::geom3d::Ray temp;
-  // XXX: Find a better definition. This may be a source of problems
-  // if floating point inaccuracies cause an incorrect answer.
-  return !carve::geom3d::planeIntersection(a->plane, b->plane, temp);
+	carve::geom3d::Ray temp;
+	// XXX: Find a better definition. This may be a source of problems
+	// if floating point inaccuracies cause an incorrect answer.
+	return !carve::geom3d::planeIntersection(a->plane, b->plane, temp);
 }
 
 static bool Carve_checkMeshSetInterseciton_do(carve::csg::Intersections &intersections,

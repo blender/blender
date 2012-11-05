@@ -490,39 +490,39 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 			break;
 	}
 	if (sock) {
-		sock->type= stemp->type;		/* in future, read this from tydefs! */
-		if (stemp->limit==0) sock->limit= 0xFFF;
-		else sock->limit= stemp->limit;
+		sock->type = stemp->type;  /* in future, read this from tydefs! */
+		if (stemp->limit == 0) sock->limit= 0xFFF;
+		else sock->limit = stemp->limit;
 		sock->flag |= stemp->flag;
 		
 		/* Copy the property range and subtype parameters in case the template changed.
 		 * NOT copying the actual value here, only button behavior changes!
 		 */
 		switch (sock->type) {
-		case SOCK_FLOAT:
+			case SOCK_FLOAT:
 			{
 				bNodeSocketValueFloat *dval= sock->default_value;
 				dval->min = stemp->min;
 				dval->max = stemp->max;
 				dval->subtype = stemp->subtype;
+				break;
 			}
-			break;
-		case SOCK_INT:
+			case SOCK_INT:
 			{
 				bNodeSocketValueInt *dval= sock->default_value;
 				dval->min = stemp->min;
 				dval->max = stemp->max;
 				dval->subtype = stemp->subtype;
+				break;
 			}
-			break;
-		case SOCK_VECTOR:
+			case SOCK_VECTOR:
 			{
 				bNodeSocketValueVector *dval= sock->default_value;
 				dval->min = stemp->min;
 				dval->max = stemp->max;
 				dval->subtype = stemp->subtype;
+				break;
 			}
-			break;
 		}
 		
 		BLI_remlink(socklist, sock);
@@ -600,7 +600,9 @@ void node_verify_socket_templates(bNodeTree *ntree, bNode *node)
 	 * This also prevents group node sockets from being removed, without the need to explicitly
 	 * check the node type here.
 	 */
-	if (ntype && ((ntype->inputs && ntype->inputs[0].type>=0) || (ntype->outputs && ntype->outputs[0].type>=0))) {
+	if (ntype && ((ntype->inputs && ntype->inputs[0].type >= 0) ||
+	              (ntype->outputs && ntype->outputs[0].type >= 0)))
+	{
 		verify_socket_template_list(ntree, node, SOCK_IN, &node->inputs, ntype->inputs);
 		verify_socket_template_list(ntree, node, SOCK_OUT, &node->outputs, ntype->outputs);
 	}

@@ -33,7 +33,7 @@
 #include "node_composite_util.h"
 
 /* **************** SPLIT VIEWER ******************** */
-static bNodeSocketTemplate cmp_node_splitviewer_in[]= {
+static bNodeSocketTemplate cmp_node_splitviewer_in[] = {
 	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
@@ -167,7 +167,7 @@ void register_node_type_cmp_splitviewer(bNodeTreeType *ttype)
 #endif
 
 	/* Do not allow muting for this node. */
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -41,6 +41,7 @@ set(SRC
 	PHY_IVehicle.cpp
 
 	PHY_DynamicTypes.h
+	PHY_ICharacter.h
 	PHY_IController.h
 	PHY_IGraphicController.h
 	PHY_IMotionState.h

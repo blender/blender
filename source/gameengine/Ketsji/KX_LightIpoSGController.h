@@ -74,15 +74,15 @@ public:
 		m_modified = true;
 	}
 
-	void	SetModifyEnergy(bool modify) {	
+	void	SetModifyEnergy(bool modify) {
 		m_modify_energy = modify;
 	}
 
-	void	SetModifyColor(bool modify) {	
+	void	SetModifyColor(bool modify) {
 		m_modify_color = modify;
 	}
 
-	void	SetModifyDist(bool modify) {	
+	void	SetModifyDist(bool modify) {
 		m_modify_dist = modify;
 	}
 
@@ -102,5 +102,4 @@ public:
 #endif
 };
 
-#endif // __KX_LIGHTIPOSGCONTROLLER_H__
-
+#endif  /* __KX_LIGHTIPOSGCONTROLLER_H__ */

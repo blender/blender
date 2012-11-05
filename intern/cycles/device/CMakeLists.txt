@@ -6,6 +6,9 @@ set(INC
 	../kernel/osl
 	../util
 	../render
+)
+
+set(INC_SYS
 	${OPENGL_INCLUDE_DIR}
 	${GLEW_INCLUDE_PATH}
 )
@@ -31,5 +34,6 @@ set(SRC_HEADERS
 add_definitions(-DGLEW_STATIC)
 
 include_directories(${INC})
+include_directories(SYSTEM ${INC_SYS})
 
 add_library(cycles_device ${SRC} ${SRC_HEADERS})

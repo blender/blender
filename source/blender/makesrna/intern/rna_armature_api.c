@@ -36,18 +36,20 @@
 
 #include "RNA_define.h"
 
+#include "rna_internal.h"  /* own include */
+
 #ifdef RNA_RUNTIME
 
 #include <stddef.h>
 
 #include "BKE_armature.h"
 
-void rna_EditBone_align_roll(EditBone *ebo, float no[3])
+static void rna_EditBone_align_roll(EditBone *ebo, float no[3])
 {
 	ebo->roll = ED_rollBoneToVector(ebo, no, FALSE);
 }
 
-float rna_Bone_do_envelope(Bone *bone, float *vec)
+static float rna_Bone_do_envelope(Bone *bone, float *vec)
 {
 	float scale = (bone->flag & BONE_MULT_VG_ENV) == BONE_MULT_VG_ENV ? bone->weight : 1.0f;
 	return distfactor_to_bone(vec, bone->arm_head, bone->arm_tail, bone->rad_head * scale,

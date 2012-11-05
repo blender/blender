@@ -20,7 +20,6 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 import os
-import addon_utils
 
 
 def ui_items_general(col, context):
@@ -93,7 +92,7 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.keyconfig_import")
             layout.operator("wm.keyconfig_export")
         elif userpref.active_section == 'ADDONS':
-            layout.operator("wm.addon_install")
+            layout.operator("wm.addon_install", icon="FILESEL")
             layout.menu("USERPREF_MT_addons_dev_guides")
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
@@ -249,7 +248,7 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "show_splash")
 
         if os.name == "nt":
-            col.prop(view, "quit_dialog")
+            col.prop(view, "use_quit_dialog")
 
 
 class USERPREF_PT_edit(Panel):
@@ -300,9 +299,9 @@ class USERPREF_PT_edit(Panel):
         col.label(text="Grease Pencil:")
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
-        #~ col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "use_grease_pencil_smooth_stroke", text="Smooth Stroke")
+        col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.separator()
         col.separator()
         col.separator()
@@ -325,6 +324,7 @@ class USERPREF_PT_edit(Panel):
         col.separator()
 
         col.prop(edit, "use_auto_keying", text="Auto Keyframing:")
+        col.prop(edit, "use_auto_keying_warning")
 
         sub = col.column()
 
@@ -823,6 +823,7 @@ class USERPREF_PT_file(Panel):
         col.prop(paths, "use_filter_files")
         col.prop(paths, "show_hidden_files_datablocks")
         col.prop(paths, "hide_recent_locations")
+        col.prop(paths, "hide_system_bookmarks")
         col.prop(paths, "show_thumbnails")
 
         col.separator()
@@ -866,7 +867,7 @@ class USERPREF_MT_ndof_settings(Menu):
 
             layout.separator()
             layout.label(text="Orbit options")
-            layout.prop(input_prefs, "ndof_turntable")
+            layout.row().prop(input_prefs, "ndof_view_rotate_method", text="")
             layout.prop(input_prefs, "ndof_roll_invert_axis")
             layout.prop(input_prefs, "ndof_tilt_invert_axis")
             layout.prop(input_prefs, "ndof_rotate_invert_axis")
@@ -953,6 +954,8 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub = col.column()
         sub.label(text="NDOF Device:")
         sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
+        sub.prop(inputs, "ndof_orbit_sensitivity", text="NDOF Orbit Sensitivity")
+        sub.row().prop(inputs, "ndof_view_rotate_method", expand=True)
 
         row.separator()
 
@@ -1031,11 +1034,16 @@ class USERPREF_PT_addons(Panel):
             box.label(l)
 
     def draw(self, context):
+        import addon_utils
+
         layout = self.layout
 
         userpref = context.user_preferences
         used_ext = {ext.module for ext in userpref.addons}
 
+        userpref_addons_folder = os.path.join(userpref.filepaths.script_directory, "addons")
+        scripts_addons_folder  = bpy.utils.user_resource('SCRIPTS', "addons")
+        
         # collect the categories that can be filtered on
         addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(addon_utils.addons_fake_modules)]
 
@@ -1081,10 +1089,12 @@ class USERPREF_PT_addons(Panel):
                 continue
 
             # check if addon should be visible with current filters
-            if ((filter == "All") or
-                (filter == info["category"]) or
-                (filter == "Enabled" and is_enabled) or
-                (filter == "Disabled" and not is_enabled)):
+            if     ((filter == "All") or
+                    (filter == info["category"]) or
+                    (filter == "Enabled" and is_enabled) or
+                    (filter == "Disabled" and not is_enabled) or
+                    (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
+                   ):
 
                 if search and search not in info["name"].lower():
                     if info["author"]:

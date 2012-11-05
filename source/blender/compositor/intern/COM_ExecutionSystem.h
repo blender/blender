@@ -189,6 +189,11 @@ public:
 	void addSocketConnection(SocketConnection *connection);
 
 	/**
+	 * Remove a socket connection from the system.
+	 */
+	void removeSocketConnection(SocketConnection *connection);
+
+	/**
 	 * @brief Convert all nodes to operations
 	 */
 	void convertToOperations();

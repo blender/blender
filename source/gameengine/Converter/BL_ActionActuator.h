@@ -108,7 +108,7 @@ public:
 				return 1;
 		}
 	}
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 	
 protected:
 	MT_Point3	m_lastpos;

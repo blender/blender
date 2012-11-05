@@ -81,7 +81,7 @@ static int outliner_open_back(SpaceOops *soops, TreeElement *te)
 	
 	for (te = te->parent; te; te = te->parent) {
 		tselem = TREESTORE(te);
-		if (tselem->flag & TSE_CLOSED) { 
+		if (tselem->flag & TSE_CLOSED) {
 			tselem->flag &= ~TSE_CLOSED;
 			retval = 1;
 		}
@@ -197,10 +197,10 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 	}
 	else if (tselem->id->lib) {
 		// XXX						error_libdata();
-	} 
+	}
 	else if (te->idcode == ID_LI && te->parent) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
-	} 
+	}
 	else {
 		tselem->flag |= TSE_TEXTBUT;
 		ED_region_tag_redraw(ar);
@@ -368,12 +368,14 @@ void group_toggle_visibility_cb(bContext *UNUSED(C), Scene *scene, TreeElement *
 
 static int outliner_toggle_visibility_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_visibility_cb);
 	
+	DAG_id_type_tag(bmain, ID_OB);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_VISIBLE, scene);
 	ED_region_tag_redraw(ar);
 	
@@ -464,11 +466,13 @@ void group_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 
 static int outliner_toggle_renderability_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	Scene *scene = CTX_data_scene(C);
 	
 	outliner_do_object_operation(C, scene, soops, &soops->tree, object_toggle_renderability_cb);
 	
+	DAG_id_type_tag(bmain, ID_OB);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_RENDER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -579,11 +583,11 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 	te = outliner_find_id(so, &so->tree, (ID *)OBACT);
 	if (te) {
 		/* make te->ys center of view */
-		ytop = (int)(te->ys + BLI_RCT_SIZE_Y(&v2d->mask) / 2);
+		ytop = (int)(te->ys + BLI_rcti_size_y(&v2d->mask) / 2);
 		if (ytop > 0) ytop = 0;
 		
 		v2d->cur.ymax = (float)ytop;
-		v2d->cur.ymin = (float)(ytop - BLI_RCT_SIZE_Y(&v2d->mask));
+		v2d->cur.ymin = (float)(ytop - BLI_rcti_size_y(&v2d->mask));
 		
 		/* make te->xs ==> te->xend center of view */
 		xdelta = (int)(te->xs - v2d->cur.xmin);
@@ -615,7 +619,7 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
 static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
-	int dy = BLI_RCT_SIZE_Y(&ar->v2d.mask);
+	int dy = BLI_rcti_size_y(&ar->v2d.mask);
 	int up = 0;
 	
 	if (RNA_boolean_get(op->ptr, "up"))
@@ -726,7 +730,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 	
 	/* determine which type of search to do */
 	if (again && last_find) {
-		/* no popup panel - previous + user wanted to search for next after previous */		
+		/* no popup panel - previous + user wanted to search for next after previous */
 		BLI_strncpy(name, soops->search_string, sizeof(name));
 		flags = soops->search_flags;
 		
@@ -742,7 +746,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 		/* pop up panel - no previous, or user didn't want search after previous */
 		name[0] = '\0';
 // XXX		if (sbutton(name, 0, sizeof(name)-1, "Find: ") && name[0]) {
-//			te= outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
+//			te = outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
 //		}
 //		else return; /* XXX RETURN! XXX */
 	}
@@ -760,10 +764,10 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 			tselem->flag |= TSE_SELECTED;
 			
 			/* make te->ys center of view */
-			ytop = (int)(te->ys + BLI_RCT_SIZE_Y(&ar->v2d.mask) / 2);
+			ytop = (int)(te->ys + BLI_rctf_size_y(&ar->v2d.mask) / 2);
 			if (ytop > 0) ytop = 0;
 			ar->v2d.cur.ymax = (float)ytop;
-			ar->v2d.cur.ymin = (float)(ytop - BLI_RCT_SIZE_Y(&ar->v2d.mask));
+			ar->v2d.cur.ymin = (float)(ytop - BLI_rctf_size_y(&ar->v2d.mask));
 			
 			/* make te->xs ==> te->xend center of view */
 			xdelta = (int)(te->xs - ar->v2d.cur.xmin);
@@ -782,7 +786,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 	}
 	else {
 		/* no tree-element found */
-		BKE_report(reports, RPT_WARNING, "Not found: %s", name);
+		BKE_reportf(reports, RPT_WARNING, "Not found: %s", name);
 	}
 }
 #endif
@@ -994,7 +998,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					char buf[128], *name;
 					
 					temnext = (TreeElement *)(ld->next->data);
-					/* tsenext= TREESTORE(temnext); */ /* UNUSED */
+					/* tsenext = TREESTORE(temnext); */ /* UNUSED */
 					
 					nextptr = &temnext->rnaptr;
 					name = RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf), NULL);
@@ -1340,7 +1344,7 @@ static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
 	
 	/* check for invalid states */
 	if (ks == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Operation requires an Active Keying Set");
+		BKE_report(op->reports, RPT_ERROR, "Operation requires an active keying set");
 		return OPERATOR_CANCELLED;
 	}
 	if (soutliner == NULL)
@@ -1423,7 +1427,7 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "child", childname);
 	ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
 
-	ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, FALSE);
+	ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, FALSE, FALSE);
 
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
@@ -1514,7 +1518,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 
 		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
-			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, FALSE)) {
+			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, FALSE, FALSE)) {
 				DAG_scene_sort(bmain, scene);
 				DAG_ids_flush_update(bmain, 0);
 				WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -1854,7 +1858,7 @@ static int material_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		assign_material(ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 
 		DAG_ids_flush_update(bmain, 0);
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));		
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, ma);
 
 		return OPERATOR_FINISHED;

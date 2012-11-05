@@ -80,6 +80,13 @@ void customData_mask_layers__print(CustomDataMask mask);
  * the below operations.
  */
 int CustomData_layer_has_math(struct CustomData *data, int layer_n);
+int CustomData_layer_has_interp(struct CustomData *data, int layer_n);
+
+/**
+ * Checks if any of the customdata layers has math.
+ */
+int CustomData_has_math(struct CustomData *data);
+int CustomData_has_interp(struct CustomData *data);
 
 /* copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
  * another, while not overwriting anything else (e.g. flags).  probably only
@@ -115,7 +122,10 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 void CustomData_bmesh_merge(struct CustomData *source, struct CustomData *dest, 
                             CustomDataMask mask, int alloctype, struct BMesh *bm, const char htype);
 
-/* frees data associated with a CustomData object (doesn't free the object
+/** NULL's all members and resets the typemap. */
+void CustomData_reset(struct CustomData *data);
+
+/** frees data associated with a CustomData object (doesn't free the object
  * itself, though)
  */
 void CustomData_free(struct CustomData *data, int totelem);
@@ -205,8 +215,8 @@ void CustomData_free_elem(struct CustomData *data, int index, int count);
 void CustomData_interp(const struct CustomData *source, struct CustomData *dest,
                        int *src_indices, float *weights, float *sub_weights,
                        int count, int dest_index);
-void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks, 
-                             float *weights, float *sub_weights, int count,
+void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks,
+                             const float *weights, const float *sub_weights, int count,
                              void *dest_block);
 
 

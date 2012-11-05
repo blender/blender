@@ -6,6 +6,10 @@ set(INC
 	svm
 )
 
+set(INC_SYS
+
+)
+
 set(SRC
 	kernel.cpp
 	kernel_optimized.cpp
@@ -29,13 +33,11 @@ set(SRC_HEADERS
 	kernel_globals.h
 	kernel_light.h
 	kernel_math.h
-	kernel_mbvh.h
 	kernel_montecarlo.h
 	kernel_object.h
 	kernel_passes.h
 	kernel_path.h
 	kernel_projection.h
-	kernel_qbvh.h
 	kernel_random.h
 	kernel_shader.h
 	kernel_textures.h
@@ -43,18 +45,21 @@ set(SRC_HEADERS
 	kernel_types.h
 )
 
+set(SRC_CLOSURE_HEADERS
+	closure/bsdf.h
+	closure/bsdf_ashikhmin_velvet.h
+	closure/bsdf_diffuse.h
+	closure/bsdf_microfacet.h
+	closure/bsdf_oren_nayar.h
+	closure/bsdf_reflection.h
+	closure/bsdf_refraction.h
+	closure/bsdf_transparent.h
+	closure/bsdf_ward.h
+	closure/bsdf_westin.h
+	closure/emissive.h
+	closure/volume.h
+)
 set(SRC_SVM_HEADERS
-	svm/bsdf.h
-	svm/bsdf_ashikhmin_velvet.h
-	svm/bsdf_diffuse.h
-	svm/bsdf_oren_nayar.h
-	svm/bsdf_microfacet.h
-	svm/bsdf_reflection.h
-	svm/bsdf_refraction.h
-	svm/bsdf_transparent.h
-	svm/bsdf_ward.h
-	svm/bsdf_westin.h
-	svm/emissive.h
 	svm/svm.h
 	svm/svm_attribute.h
 	svm/svm_bsdf.h
@@ -90,7 +95,6 @@ set(SRC_SVM_HEADERS
 	svm/svm_value.h
 	svm/svm_voronoi.h
 	svm/svm_wave.h
-	svm/volume.h
 )
 
 set(SRC_UTIL_HEADERS
@@ -108,7 +112,7 @@ if(WITH_CYCLES_CUDA_BINARIES)
 		set(CUDA_BITS 32)
 	endif()
 
-	set(cuda_sources kernel.cu ${SRC_HEADERS} ${SRC_SVM_HEADERS} ${SRC_UTIL_HEADERS})
+	set(cuda_sources kernel.cu ${SRC_HEADERS} ${SRC_SVM_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_UTIL_HEADERS})
 	set(cuda_cubins)
 
 	foreach(arch ${CYCLES_CUDA_BINARIES_ARCH})
@@ -130,13 +134,15 @@ endif()
 
 if(WITH_CYCLES_OSL)
 	add_subdirectory(osl)
+	add_subdirectory(shaders)
 endif()
 
 # CPU module
 
 include_directories(${INC})
+include_directories(SYSTEM ${INC_SYS})
 
-add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_SVM_HEADERS})
+add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_SVM_HEADERS})
 
 if(WITH_CYCLES_OPTIMIZED_KERNEL)
 	set_source_files_properties(kernel_optimized.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_OPTIMIZED_KERNEL_FLAGS}")
@@ -159,6 +165,7 @@ endif()
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cl" ${CYCLES_INSTALL_PATH}/kernel)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cu" ${CYCLES_INSTALL_PATH}/kernel)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_CLOSURE_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/closure)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_SVM_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel/svm)
 delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${SRC_UTIL_HEADERS}" ${CYCLES_INSTALL_PATH}/kernel)
 

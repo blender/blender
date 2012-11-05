@@ -62,5 +62,5 @@ private:
 #endif
 };
 
-#endif // !defined __OPERATOR2EXPR_H__
+#endif  /* __OPERATOR2EXPR_H__ */
 

@@ -156,7 +156,7 @@ bool SCA_MouseSensor::Evaluate()
 	case KX_MOUSESENSORMODE_WHEELDOWN:
 		{
 			const SCA_InputEvent& mevent = mousedev->GetEventValue(m_hotkey);
-			switch (mevent.m_status) {	
+			switch (mevent.m_status) {
 			case SCA_InputEvent::KX_JUSTACTIVATED:
 				m_val = 1;
 				result = true;
@@ -189,15 +189,15 @@ bool SCA_MouseSensor::Evaluate()
 			const SCA_InputEvent& eventY = mousedev->GetEventValue(SCA_IInputDevice::KX_MOUSEY);
 
 			if (eventX.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
-				eventY.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
-				eventX.m_status == SCA_InputEvent::KX_ACTIVE ||
-				eventY.m_status == SCA_InputEvent::KX_ACTIVE)	
+			    eventY.m_status == SCA_InputEvent::KX_JUSTACTIVATED ||
+			    eventX.m_status == SCA_InputEvent::KX_ACTIVE ||
+			    eventY.m_status == SCA_InputEvent::KX_ACTIVE)
 			{
 				m_val = 1;
 				result = true;
 			} 
 			else if (eventX.m_status == SCA_InputEvent::KX_JUSTRELEASED ||
-					eventY.m_status == SCA_InputEvent::KX_JUSTRELEASED )
+			         eventY.m_status == SCA_InputEvent::KX_JUSTRELEASED )
 			{
 				m_val = 0;
 				result = true;

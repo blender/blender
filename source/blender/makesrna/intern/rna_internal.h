@@ -34,8 +34,14 @@
 
 #define RNA_MAGIC ((int)~0)
 
+struct ColorBand;
 struct ID;
 struct IDProperty;
+struct Main;
+struct Mesh;
+struct Object;
+struct RenderEngine;
+struct ReportList;
 struct SDNA;
 struct Sequence;
 
@@ -259,6 +265,7 @@ void RNA_api_material(StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
 void RNA_api_object_base(struct StructRNA *srna);
+void RNA_api_pose(struct StructRNA *srna);
 void RNA_api_pose_channel(struct StructRNA *srna);
 void RNA_api_scene(struct StructRNA *srna);
 void RNA_api_scene_render(struct StructRNA *srna);
@@ -352,7 +359,7 @@ typedef struct ArrayIterator {
 	void *free_ptr; /* will be freed if set */
 	int itemsize;
 
-	/* array length with no skip functins applied, take care not to compare against index from animsys
+	/* array length with no skip functions applied, take care not to compare against index from animsys
 	 * or python indices */
 	int length;
 
@@ -397,6 +404,11 @@ void rna_mtex_texture_slots_clear(struct ID *self, struct bContext *C, struct Re
 
 
 int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
+
+
+/* Internal functions that cycles uses so we need to declare (tsk tsk) */
+void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values);
+void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
 
 #endif /* __RNA_INTERNAL_H__ */
 

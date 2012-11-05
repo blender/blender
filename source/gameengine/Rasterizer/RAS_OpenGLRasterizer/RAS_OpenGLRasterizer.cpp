@@ -52,7 +52,10 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_DerivedMesh.h"
+extern "C"{
+	#include "BLI_utildefines.h"
+	#include "BKE_DerivedMesh.h"
+}
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
@@ -239,10 +242,10 @@ void RAS_OpenGLRasterizer::DisplayFog()
 		glFogf(GL_FOG_DENSITY, 0.1f);
 		glFogf(GL_FOG_START, m_fogstart);
 		glFogf(GL_FOG_END, m_fogstart + m_fogdist);
-		params[0]= m_fogr;
-		params[1]= m_fogg;
-		params[2]= m_fogb;
-		params[3]= 0.0;
+		params[0] = m_fogr;
+		params[1] = m_fogg;
+		params[2] = m_fogb;
+		params[3] = 0.0;
 		glFogfv(GL_FOG_COLOR, params); 
 		glEnable(GL_FOG);
 	} 
@@ -359,7 +362,7 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 
 void RAS_OpenGLRasterizer::FlushDebugShapes()
 {
-	if (!m_debugShapes.size())
+	if (m_debugShapes.empty())
 		return;
 
 	// DrawDebugLines
@@ -438,7 +441,7 @@ void RAS_OpenGLRasterizer::EndFrame()
 	glDisable(GL_MULTISAMPLE_ARB);
 
 	m_2DCanvas->EndFrame();
-}	
+}
 
 void RAS_OpenGLRasterizer::SetRenderArea()
 {
@@ -447,8 +450,7 @@ void RAS_OpenGLRasterizer::SetRenderArea()
 	switch (m_stereomode)
 	{
 		case RAS_STEREO_ABOVEBELOW:
-			switch(m_curreye)
-			{
+			switch (m_curreye) {
 				case RAS_STEREO_LEFTEYE:
 					// upper half of window
 					area.SetLeft(0);
@@ -716,53 +718,53 @@ void RAS_OpenGLRasterizer::TexCoord(const RAS_TexVert &tv)
 				glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
 				continue;
 			}
-			switch(m_texco[unit]) {
-			case RAS_TEXCO_ORCO:
-			case RAS_TEXCO_GLOB:
-				glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getXYZ());
-				break;
-			case RAS_TEXCO_UV1:
-				glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV1());
-				break;
-			case RAS_TEXCO_NORM:
-				glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getNormal());
-				break;
-			case RAS_TEXTANGENT:
-				glMultiTexCoord4fvARB(GL_TEXTURE0_ARB+unit, tv.getTangent());
-				break;
-			case RAS_TEXCO_UV2:
-				glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
-				break;
-			default:
-				break;
+			switch (m_texco[unit]) {
+				case RAS_TEXCO_ORCO:
+				case RAS_TEXCO_GLOB:
+					glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getXYZ());
+					break;
+				case RAS_TEXCO_UV1:
+					glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV1());
+					break;
+				case RAS_TEXCO_NORM:
+					glMultiTexCoord3fvARB(GL_TEXTURE0_ARB+unit, tv.getNormal());
+					break;
+				case RAS_TEXTANGENT:
+					glMultiTexCoord4fvARB(GL_TEXTURE0_ARB+unit, tv.getTangent());
+					break;
+				case RAS_TEXCO_UV2:
+					glMultiTexCoord2fvARB(GL_TEXTURE0_ARB+unit, tv.getUV2());
+					break;
+				default:
+					break;
 			}
 		}
 	}
 
 	if (GLEW_ARB_vertex_program) {
 		for (unit=0; unit<m_attrib_num; unit++) {
-			switch(m_attrib[unit]) {
-			case RAS_TEXCO_ORCO:
-			case RAS_TEXCO_GLOB:
-				glVertexAttrib3fvARB(unit, tv.getXYZ());
-				break;
-			case RAS_TEXCO_UV1:
-				glVertexAttrib2fvARB(unit, tv.getUV1());
-				break;
-			case RAS_TEXCO_NORM:
-				glVertexAttrib3fvARB(unit, tv.getNormal());
-				break;
-			case RAS_TEXTANGENT:
-				glVertexAttrib4fvARB(unit, tv.getTangent());
-				break;
-			case RAS_TEXCO_UV2:
-				glVertexAttrib2fvARB(unit, tv.getUV2());
-				break;
-			case RAS_TEXCO_VCOL:
-				glVertexAttrib4ubvARB(unit, tv.getRGBA());
-				break;
-			default:
-				break;
+			switch (m_attrib[unit]) {
+				case RAS_TEXCO_ORCO:
+				case RAS_TEXCO_GLOB:
+					glVertexAttrib3fvARB(unit, tv.getXYZ());
+					break;
+				case RAS_TEXCO_UV1:
+					glVertexAttrib2fvARB(unit, tv.getUV1());
+					break;
+				case RAS_TEXCO_NORM:
+					glVertexAttrib3fvARB(unit, tv.getNormal());
+					break;
+				case RAS_TEXTANGENT:
+					glVertexAttrib4fvARB(unit, tv.getTangent());
+					break;
+				case RAS_TEXCO_UV2:
+					glVertexAttrib2fvARB(unit, tv.getUV2());
+					break;
+				case RAS_TEXCO_VCOL:
+					glVertexAttrib4ubvARB(unit, tv.getRGBA());
+					break;
+				default:
+					break;
 			}
 		}
 	}
@@ -975,7 +977,7 @@ void RAS_OpenGLRasterizer::SetProjectionMatrix(const MT_Matrix4x4 & mat)
 	/* Get into argument. Looks a bit dodgy, but it's ok. */
 	mat.getValue(matrix);
 	/* Internally, MT_Matrix4x4 uses doubles (MT_Scalar). */
-	glLoadMatrixd(matrix);	
+	glLoadMatrixd(matrix);
 
 	m_camortho= (mat[3][3] != 0.0);
 }
@@ -1007,8 +1009,7 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 
 			near_div_focallength = frustnear / m_focallength;
 			offset = 0.5f * m_eyeseparation * near_div_focallength;
-			switch(m_curreye)
-			{
+			switch (m_curreye) {
 				case RAS_STEREO_LEFTEYE:
 						left += offset;
 						right += offset;
@@ -1078,8 +1079,7 @@ void RAS_OpenGLRasterizer::SetViewMatrix(const MT_Matrix4x4 &mat,
 		// vector between eyes
 		eyeline = viewDir.cross(viewupVec);
 
-		switch(m_curreye)
-		{
+		switch (m_curreye) {
 			case RAS_STEREO_LEFTEYE:
 				{
 				// translate to left by half the eye distance

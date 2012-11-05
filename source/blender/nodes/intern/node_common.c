@@ -92,7 +92,7 @@ bNodeSocket *node_group_add_extern_socket(bNodeTree *UNUSED(ntree), ListBase *lb
 	sock->new_sock = NULL;
 	
 	/* group sockets are dynamically added */
-	sock->flag |= SOCK_DYNAMIC;
+	sock->flag |= SOCK_DYNAMIC|SOCK_COLLAPSED;
 	
 	sock->own_index = gsock->own_index;
 	sock->groupsock = gsock;
@@ -115,7 +115,7 @@ bNodeSocket *node_group_add_socket(bNodeTree *ngroup, const char *name, int type
 	BLI_strncpy(gsock->name, name, sizeof(gsock->name));
 	gsock->type = type;
 	/* group sockets are dynamically added */
-	gsock->flag |= SOCK_DYNAMIC;
+	gsock->flag |= SOCK_DYNAMIC|SOCK_COLLAPSED;
 
 	gsock->next = gsock->prev = NULL;
 	gsock->new_sock = NULL;
@@ -223,13 +223,13 @@ bNodeTemplate node_group_template(bNode *node)
 {
 	bNodeTemplate ntemp;
 	ntemp.type = NODE_GROUP;
-	ntemp.ngroup = (bNodeTree*)node->id;
+	ntemp.ngroup = (bNodeTree *)node->id;
 	return ntemp;
 }
 
 void node_group_init(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
-	node->id = (ID*)ntemp->ngroup;
+	node->id = (ID *)ntemp->ngroup;
 	
 	/* NB: group socket input/output roles are inverted internally!
 	 * Group "inputs" work as outputs in links and vice versa.
@@ -354,168 +354,6 @@ static void UNUSED_FUNCTION(node_group_link)(bNodeTree *ntree, bNodeSocket *sock
 	node_group_expose_socket(ntree, sock, in_out);
 }
 
-/**** For Loop ****/
-
-/* Essentially a group node with slightly different behavior.
- * The internal tree is executed several times, with each output being re-used
- * as an input in the next iteration. For this purpose, input and output socket
- * lists are kept identical!
- */
-
-bNodeTemplate node_forloop_template(bNode *node)
-{
-	bNodeTemplate ntemp;
-	ntemp.type = NODE_FORLOOP;
-	ntemp.ngroup = (bNodeTree*)node->id;
-	return ntemp;
-}
-
-void node_forloop_init(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
-{
-	bNodeSocket *sock;
-	
-	node->id = (ID*)ntemp->ngroup;
-	
-	sock = nodeAddSocket(ntree, node, SOCK_IN, "Iterations", SOCK_FLOAT);
-	node_socket_set_default_value_float(sock->default_value, PROP_UNSIGNED, 1, 0, 10000);
-	
-	/* NB: group socket input/output roles are inverted internally!
-	 * Group "inputs" work as outputs in links and vice versa.
-	 */
-	if (ntemp->ngroup) {
-		bNodeSocket *gsock;
-		for (gsock=ntemp->ngroup->inputs.first; gsock; gsock=gsock->next)
-			node_group_add_extern_socket(ntree, &node->inputs, SOCK_IN, gsock);
-		for (gsock=ntemp->ngroup->outputs.first; gsock; gsock=gsock->next)
-			node_group_add_extern_socket(ntree, &node->outputs, SOCK_OUT, gsock);
-	}
-}
-
-void node_forloop_init_tree(bNodeTree *ntree)
-{
-	bNodeSocket *sock;
-	sock = node_group_add_socket(ntree, "Iteration", SOCK_FLOAT, SOCK_IN);
-	sock->flag |= SOCK_INTERNAL;
-}
-
-static void loop_sync(bNodeTree *ntree, int sync_in_out)
-{
-	bNodeSocket *sock, *sync, *nsync, *mirror;
-	ListBase *sync_lb;
-	
-	if (sync_in_out==SOCK_IN) {
-		sock = ntree->outputs.first;
-		
-		sync = ntree->inputs.first;
-		sync_lb = &ntree->inputs;
-	}
-	else {
-		sock = ntree->inputs.first;
-		
-		sync = ntree->outputs.first;
-		sync_lb = &ntree->outputs;
-	}
-	
-	/* NB: the sock->storage pointer is used here directly to store the own_index int
-	 * out the mirrored socket counterpart!
-	 */
-	
-	while (sock) {
-		/* skip static and internal sockets on the sync side (preserves socket order!) */
-		while (sync && ((sync->flag & SOCK_INTERNAL) || !(sync->flag & SOCK_DYNAMIC)))
-			sync = sync->next;
-		
-		if (sync && !(sync->flag & SOCK_INTERNAL) && (sync->flag & SOCK_DYNAMIC)) {
-			if (sock->storage==NULL) {
-				/* if mirror index is 0, the sockets is newly added and a new mirror must be created. */
-				mirror = node_group_expose_socket(ntree, sock, sync_in_out);
-				/* store the mirror index */
-				sock->storage = SET_INT_IN_POINTER(mirror->own_index);
-				mirror->storage = SET_INT_IN_POINTER(sock->own_index);
-				/* move mirror to the right place */
-				BLI_remlink(sync_lb, mirror);
-				if (sync)
-					BLI_insertlinkbefore(sync_lb, sync, mirror);
-				else
-					BLI_addtail(sync_lb, mirror);
-			}
-			else {
-				/* look up the mirror socket */
-				for (mirror=sync; mirror; mirror=mirror->next)
-					if (mirror->own_index == GET_INT_FROM_POINTER(sock->storage))
-						break;
-				/* make sure the name is the same (only for identification by user, no deeper meaning) */
-				BLI_strncpy(mirror->name, sock->name, sizeof(mirror->name));
-				/* fix the socket order if necessary */
-				if (mirror != sync) {
-					BLI_remlink(sync_lb, mirror);
-					BLI_insertlinkbefore(sync_lb, sync, mirror);
-				}
-				else
-					sync = sync->next;
-			}
-		}
-		
-		sock = sock->next;
-	}
-	
-	/* remaining sockets in sync_lb are leftovers from deleted sockets, remove them */
-	while (sync) {
-		nsync = sync->next;
-		if (!(sync->flag & SOCK_INTERNAL) && (sync->flag & SOCK_DYNAMIC))
-			node_group_remove_socket(ntree, sync, sync_in_out);
-		sync = nsync;
-	}
-}
-
-void node_loop_update_tree(bNodeTree *ngroup)
-{
-	/* make sure inputs & outputs are identical */
-	if (ngroup->update & NTREE_UPDATE_GROUP_IN)
-		loop_sync(ngroup, SOCK_OUT);
-	if (ngroup->update & NTREE_UPDATE_GROUP_OUT)
-		loop_sync(ngroup, SOCK_IN);
-}
-
-void node_whileloop_init(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
-{
-	bNodeSocket *sock;
-	
-	node->id = (ID*)ntemp->ngroup;
-	
-	sock = nodeAddSocket(ntree, node, SOCK_IN, "Condition", SOCK_FLOAT);
-	node_socket_set_default_value_float(sock->default_value, PROP_NONE, 1, 0, 1);
-	
-	/* max iterations */
-	node->custom1 = 10000;
-	
-	/* NB: group socket input/output roles are inverted internally!
-	 * Group "inputs" work as outputs in links and vice versa.
-	 */
-	if (ntemp->ngroup) {
-		bNodeSocket *gsock;
-		for (gsock=ntemp->ngroup->inputs.first; gsock; gsock=gsock->next)
-			node_group_add_extern_socket(ntree, &node->inputs, SOCK_IN, gsock);
-		for (gsock=ntemp->ngroup->outputs.first; gsock; gsock=gsock->next)
-			node_group_add_extern_socket(ntree, &node->outputs, SOCK_OUT, gsock);
-	}
-}
-
-void node_whileloop_init_tree(bNodeTree *ntree)
-{
-	bNodeSocket *sock;
-	sock = node_group_add_socket(ntree, "Condition", SOCK_FLOAT, SOCK_OUT);
-	sock->flag |= SOCK_INTERNAL;
-}
-
-bNodeTemplate node_whileloop_template(bNode *node)
-{
-	bNodeTemplate ntemp;
-	ntemp.type = NODE_WHILELOOP;
-	ntemp.ngroup = (bNodeTree*)node->id;
-	return ntemp;
-}
-
 /**** FRAME ****/
 
 static void node_frame_init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
@@ -547,16 +385,13 @@ void register_node_type_frame(bNodeTreeType *ttype)
 /* **************** REROUTE ******************** */
 
 /* simple, only a single input and output here */
-static ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
+static void node_reroute_update_internal_links(bNodeTree *ntree, bNode *node)
 {
 	bNodeLink *link;
-	ListBase ret;
-
-	ret.first = ret.last = NULL;
 
 	/* Security check! */
 	if (!ntree)
-		return ret;
+		return;
 
 	link = MEM_callocN(sizeof(bNodeLink), "internal node link");
 	link->fromnode = node;
@@ -565,9 +400,7 @@ static ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
 	link->tosock = node->outputs.first;
 	/* internal link is always valid */
 	link->flag |= NODE_LINK_VALID;
-	BLI_addtail(&ret, link);
-
-	return ret;
+	BLI_addtail(&node->internal_links, link);
 }
 
 static void node_reroute_init(bNodeTree *ntree, bNode *node, bNodeTemplate *UNUSED(ntemp))
@@ -586,7 +419,7 @@ void register_node_type_reroute(bNodeTreeType *ttype)
 	
 	node_type_base(ttype, ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
 	node_type_init(ntype, node_reroute_init);
-	node_type_internal_connect(ntype, node_reroute_internal_connect);
+	node_type_internal_links(ntype, node_reroute_update_internal_links);
 	
 	ntype->needs_free = 1;
 	nodeRegisterType(ttype, ntype);
@@ -649,4 +482,16 @@ void ntree_update_reroute_nodes(bNodeTree *ntree)
 	for (node = ntree->nodes.first; node; node = node->next)
 		if (node->type == NODE_REROUTE && !node->done)
 			node_reroute_inherit_type_recursive(ntree, node);
+}
+
+void BKE_node_tree_unlink_id_cb(void *calldata, struct ID *UNUSED(owner_id), struct bNodeTree *ntree)
+{
+	ID *id = (ID *)calldata;
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->id == id) {
+			node->id = NULL;
+		}
+	}
 }

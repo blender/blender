@@ -88,7 +88,6 @@ class ConstraintButtonsPanel():
 
         col = split.column()
         col.prop(con, "chain_count")
-        col.prop(con, "use_target")
 
     def CHILD_OF(self, context, layout, con):
         self.target_template(layout, con)
@@ -162,7 +161,6 @@ class ConstraintButtonsPanel():
             col.prop(con, "use_tail")
             col.prop(con, "use_stretch")
             col.separator()
-            col.prop(con, "use_target")
             col.prop(con, "use_rotation")
 
     def IK_COPY_POSE(self, context, layout, con):
@@ -212,6 +210,7 @@ class ConstraintButtonsPanel():
 
     def FOLLOW_PATH(self, context, layout, con):
         self.target_template(layout, con)
+        layout.operator("constraint.followpath_path_animate", text="Animate Path", icon='ANIM_DATA')
 
         split = layout.split()
 
@@ -483,6 +482,8 @@ class ConstraintButtonsPanel():
         row = layout.row()
         row.prop(con, "use_transform_limit")
         row.label()
+
+        self.space_template(layout, con)
 
     def STRETCH_TO(self, context, layout, con):
         self.target_template(layout, con)

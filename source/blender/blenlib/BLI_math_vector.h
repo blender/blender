@@ -67,6 +67,7 @@ MINLINE void copy_v2_v2_short(short r[2], const short a[2]);
 MINLINE void copy_v3_v3_short(short r[3], const short a[3]);
 MINLINE void copy_v4_v4_short(short r[4], const short a[4]);
 /* int */
+MINLINE void zero_v3_int(int r[3]);
 MINLINE void copy_v2_v2_int(int r[2], const int a[2]);
 MINLINE void copy_v3_v3_int(int r[3], const int a[3]);
 MINLINE void copy_v4_v4_int(int r[4], const int a[4]);
@@ -139,12 +140,16 @@ MINLINE void star_m3_v3(float rmat[3][3], float a[3]);
 
 MINLINE float len_squared_v2(const float v[2]);
 MINLINE float len_squared_v3(const float v[3]);
+MINLINE float len_manhattan_v2(const float v[2]);
+MINLINE float len_manhattan_v3(const float v[3]);
 MINLINE float len_v2(const float a[2]);
 MINLINE float len_v2v2(const float a[2], const float b[2]);
 MINLINE float len_squared_v2v2(const float a[2], const float b[2]);
+MINLINE float len_squared_v3v3(const float a[3], const float b[3]);
+MINLINE float len_manhattan_v2v2(const float a[2], const float b[2]);
+MINLINE float len_manhattan_v3v3(const float a[3], const float b[3]);
 MINLINE float len_v3(const float a[3]);
 MINLINE float len_v3v3(const float a[3], const float b[3]);
-MINLINE float len_squared_v3v3(const float a[3], const float b[3]);
 
 MINLINE float normalize_v2(float r[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);
@@ -173,6 +178,7 @@ MINLINE int is_one_v3(const float a[3]);
 
 MINLINE int equals_v2v2(const float v1[2], const float v2[2]);
 MINLINE int equals_v3v3(const float a[3], const float b[3]);
+MINLINE int compare_v2v2(const float a[3], const float b[3], const float limit);
 MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit);
 MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit);
 
@@ -220,6 +226,7 @@ MINLINE void normal_short_to_float_v3(float r[3], const short n[3]);
 MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);
 
 void minmax_v3v3_v3(float min[3], float max[3], const float vec[3]);
+void minmax_v2v2_v2(float min[2], float max[2], const float vec[2]);
 
 void dist_ensure_v3_v3fl(float v1[3], const float v2[3], const float dist);
 void dist_ensure_v2_v2fl(float v1[2], const float v2[2], const float dist);

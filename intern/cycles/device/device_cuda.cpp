@@ -157,7 +157,7 @@ public:
 		cuda_assert(cuCtxSetCurrent(NULL));
 	}
 
-	CUDADevice(DeviceInfo& info, bool background_)
+	CUDADevice(DeviceInfo& info, Stats &stats, bool background_) : Device(stats)
 	{
 		background = background_;
 
@@ -316,8 +316,10 @@ public:
 	{
 		cuda_push_context();
 		CUdeviceptr device_pointer;
-		cuda_assert(cuMemAlloc(&device_pointer, mem.memory_size()))
+		size_t size = mem.memory_size();
+		cuda_assert(cuMemAlloc(&device_pointer, size))
 		mem.device_pointer = (device_ptr)device_pointer;
+		stats.mem_alloc(size);
 		cuda_pop_context();
 	}
 
@@ -356,6 +358,8 @@ public:
 			cuda_pop_context();
 
 			mem.device_pointer = 0;
+
+			stats.mem_free(mem.memory_size());
 		}
 	}
 
@@ -424,6 +428,8 @@ public:
 			cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_NORMALIZED_COORDINATES))
 
 			mem.device_pointer = (device_ptr)handle;
+
+			stats.mem_alloc(size);
 		}
 		else {
 			cuda_pop_context();
@@ -463,6 +469,8 @@ public:
 
 				tex_interp_map.erase(tex_interp_map.find(mem.device_pointer));
 				mem.device_pointer = 0;
+
+				stats.mem_free(mem.memory_size());
 			}
 			else {
 				tex_interp_map.erase(tex_interp_map.find(mem.device_pointer));
@@ -707,6 +715,8 @@ public:
 				mem.device_pointer = pmem.cuTexId;
 				pixel_mem_map[mem.device_pointer] = pmem;
 
+				stats.mem_alloc(mem.memory_size());
+
 				return;
 			}
 			else {
@@ -761,6 +771,8 @@ public:
 
 				pixel_mem_map.erase(pixel_mem_map.find(mem.device_pointer));
 				mem.device_pointer = 0;
+
+				stats.mem_free(mem.memory_size());
 
 				return;
 			}
@@ -837,8 +849,10 @@ public:
 				int end_sample = tile.start_sample + tile.num_samples;
 
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task->get_cancel())
-						break;
+					if (task->get_cancel()) {
+						if(task->need_finish_queue == false)
+							break;
+					}
 
 					path_trace(tile, sample);
 
@@ -892,16 +906,11 @@ public:
 	{
 		task_pool.cancel();
 	}
-
-	bool task_cancelled()
-	{
-		return task_pool.cancelled();
-	}
 };
 
-Device *device_cuda_create(DeviceInfo& info, bool background)
+Device *device_cuda_create(DeviceInfo& info, Stats &stats, bool background)
 {
-	return new CUDADevice(info, background);
+	return new CUDADevice(info, stats, background);
 }
 
 void device_cuda_info(vector<DeviceInfo>& devices)

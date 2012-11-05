@@ -63,7 +63,7 @@ public:
 	static SceneParams get_scene_params(BL::Scene b_scene, bool background);
 	static SessionParams get_session_params(BL::RenderEngine b_engine, BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
 	static bool get_session_pause(BL::Scene b_scene, bool background);
-	static BufferParams get_buffer_params(BL::Scene b_scene, Camera *cam, int width, int height);
+	static BufferParams get_buffer_params(BL::Scene b_scene, BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, Camera *cam, int width, int height);
 
 private:
 	/* sync */
@@ -77,11 +77,10 @@ private:
 	void sync_world();
 	void sync_render_layers(BL::SpaceView3D b_v3d, const char *layer);
 	void sync_shaders();
-	void sync_particle_systems();
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
-	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag, int motion, int particle_id);
+	void sync_object(BL::Object b_parent, int b_index, BL::DupliObject b_dupli_object, Transform& tfm, uint layer_flag, int motion, int particle_id);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 	void sync_background_light();
 	void sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion);

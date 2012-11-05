@@ -84,7 +84,7 @@ typedef struct ConsoleDrawContext {
 #if 0 /* used by textview, may use later */
 	int *xy; // [2]
 	int *sel; // [2]
-	int *pos_pick; // bottom of view == 0, top of file == combine chars, end of line is lower then start. 
+	int *pos_pick;  /* bottom of view == 0, top of file == combine chars, end of line is lower then start. */
 	int *mval; // [2]
 	int draw;
 #endif
@@ -94,12 +94,14 @@ void console_scrollback_prompt_begin(struct SpaceConsole *sc, ConsoleLine *cl_du
 {
 	/* fake the edit line being in the scroll buffer */
 	ConsoleLine *cl = sc->history.last;
+	int prompt_len = strlen(sc->prompt);
+	
 	cl_dummy->type = CONSOLE_LINE_INPUT;
-	cl_dummy->len = cl_dummy->len_alloc = strlen(sc->prompt) + cl->len;
+	cl_dummy->len = prompt_len + cl->len;
 	cl_dummy->len_alloc = cl_dummy->len + 1;
 	cl_dummy->line = MEM_mallocN(cl_dummy->len_alloc, "cl_dummy");
-	memcpy(cl_dummy->line, sc->prompt, (cl_dummy->len_alloc - cl->len));
-	memcpy(cl_dummy->line + ((cl_dummy->len_alloc - cl->len)) - 1, cl->line, cl->len + 1);
+	memcpy(cl_dummy->line, sc->prompt, prompt_len);
+	memcpy(cl_dummy->line + prompt_len, cl->line, cl->len + 1);
 	BLI_addtail(&sc->scrollback, cl_dummy);
 }
 void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dummy) 
@@ -158,12 +160,13 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 		const ConsoleLine *cl = (ConsoleLine *)sc->history.last;
 		const int prompt_len = strlen(sc->prompt);
 		const int cursor_loc = cl->cursor + prompt_len;
+		const int line_len = cl->len + prompt_len;
 		int xy[2] = {CONSOLE_DRAW_MARGIN, CONSOLE_DRAW_MARGIN};
 		int pen[2];
 		xy[1] += tvc->lheight / 6;
 
 		/* account for wrapping */
-		if (cl->len < tvc->console_width) {
+		if (line_len < tvc->console_width) {
 			/* simple case, no wrapping */
 			pen[0] = tvc->cwidth * cursor_loc;
 			pen[1] = -2;
@@ -171,7 +174,7 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 		else {
 			/* wrap */
 			pen[0] = tvc->cwidth * (cursor_loc % tvc->console_width);
-			pen[1] = -2 + (((cl->len / tvc->console_width) - (cursor_loc / tvc->console_width)) * tvc->lheight);
+			pen[1] = -2 + (((line_len / tvc->console_width) - (cursor_loc / tvc->console_width)) * tvc->lheight);
 		}
 
 		/* cursor */

@@ -35,8 +35,8 @@
 
 struct SDNA;
 
-extern unsigned char DNAstr[];  /* DNA.c */
-extern int DNAlen;
+extern const unsigned char DNAstr[];  /* DNA.c */
+extern const int DNAlen;
 
 typedef enum eSDNA_Type {
 	SDNA_TYPE_CHAR     = 0,
@@ -56,7 +56,7 @@ typedef enum eSDNA_Type {
 /* define so switch statements don't complain */
 #define SDNA_TYPE_VOID 9
 
-struct SDNA *DNA_sdna_from_data(void *data, int datalen, int do_endian_swap);
+struct SDNA *DNA_sdna_from_data(const void *data, const int datalen, int do_endian_swap);
 void DNA_sdna_free(struct SDNA *sdna);
 
 int DNA_struct_find_nr(struct SDNA *sdna, const char *str);

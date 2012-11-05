@@ -29,11 +29,10 @@
  *  \ingroup render
  */
 
-
-#ifdef __SSE__
- 
 #ifndef __SVBVH_H__
 #define __SVBVH_H__
+
+#ifdef __SSE__
 
 #include "bvh.h"
 #include "BLI_memarena.h"
@@ -94,10 +93,10 @@ static int svbvh_bb_intersect_test(const Isect *isec, const float *_bb)
 	RE_RC_COUNT(isec->raycounter->bb.test);
 
 	if (t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
-	if (t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
+	if (t2x < 0.0f || t2y < 0.0f || t2z < 0.0f) return 0;
 	if (t1x > isec->dist || t1y > isec->dist || t1z > isec->dist) return 0;
 
-	RE_RC_COUNT(isec->raycounter->bb.hit);	
+	RE_RC_COUNT(isec->raycounter->bb.hit);
 
 	return 1;
 }
@@ -166,16 +165,16 @@ inline void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float min[3], float ma
 		for (i = 0; i + 4 <= node->nchilds; i += 4) {
 			float *res = node->child_bb + 6 * i;
 			for (int j = 0; j < 3; j++) {
-				min[j] = minf(res[4 * j + 0],
-				         minf(res[4 * j + 1],
-				         minf(res[4 * j + 2],
-				         minf(res[4 * j + 3], min[j]))));
+				min[j] = min_ff(res[4 * j + 0],
+				         min_ff(res[4 * j + 1],
+				         min_ff(res[4 * j + 2],
+				         min_ff(res[4 * j + 3], min[j]))));
 			}
 			for (int j = 0; j < 3; j++) {
-				max[j] = maxf(res[4 * (j + 3) + 0],
-				         maxf(res[4 * (j + 3) + 1],
-				         maxf(res[4 * (j + 3) + 2],
-				         maxf(res[4 * (j + 3) + 3], max[j]))));
+				max[j] = max_ff(res[4 * (j + 3) + 0],
+				         max_ff(res[4 * (j + 3) + 1],
+				         max_ff(res[4 * (j + 3) + 2],
+				         max_ff(res[4 * (j + 3) + 3], max[j]))));
 			}
 		}
 
@@ -231,7 +230,7 @@ struct Reorganize_SVBVH {
 		return node;
 	}
 	
-	void copy_bb(float *bb, const float *old_bb)
+	void copy_bb(float bb[6], const float old_bb[6])
 	{
 		std::copy(old_bb, old_bb + 6, bb);
 	}
@@ -282,7 +281,7 @@ struct Reorganize_SVBVH {
 		
 		useless_bb += alloc_childs - nchilds;
 		while (alloc_childs > nchilds) {
-			const static float def_bb[6] = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MIN, FLT_MIN, FLT_MIN };
+			const static float def_bb[6] = {FLT_MAX,  FLT_MAX,  FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX};
 			alloc_childs--;
 			node->child[alloc_childs] = NULL;
 			copy_bb(node->child_bb + alloc_childs * 6, def_bb);
@@ -308,10 +307,9 @@ struct Reorganize_SVBVH {
 		prepare_for_simd(node);
 		
 		return node;
-	}	
+	}
 };
 
-#endif
+#endif  /* __SSE__ */
 
-#endif //__SSE__
-
+#endif  /* __SVBVH_H__ */

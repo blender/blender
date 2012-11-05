@@ -346,9 +346,8 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	
 	/* graph_edit.c */
-	/* snap - current frame to selected keys */
-	// TODO: maybe since this is called jump, we're better to have it on <something>-J?
-	WM_keymap_add_item(keymap, "GRAPH_OT_frame_jump", SKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	/* jump to selected keyframes */
+	WM_keymap_add_item(keymap, "GRAPH_OT_frame_jump", GKEY, KM_PRESS, KM_CTRL, 0);
 		
 	/* menu + single-step transform */
 	WM_keymap_add_item(keymap, "GRAPH_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
@@ -372,7 +371,7 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* insertkey */
 	WM_keymap_add_item(keymap, "GRAPH_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "GRAPH_OT_click_insert", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_click_insert", ACTIONMOUSE, KM_CLICK, KM_CTRL, 0);
 	
 	/* copy/paste */
 	WM_keymap_add_item(keymap, "GRAPH_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);

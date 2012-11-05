@@ -23,8 +23,12 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	.
+	composite
+	intern
+	shader
+	texture
 	../blenfont
 	../blenkernel
 	../blenlib
@@ -39,10 +43,6 @@ set(INC
 
 set(INC_SYS
 	${GLEW_INCLUDE_PATH}
-	intern
-	composite
-	shader
-	texture
 )
 
 set(SRC
@@ -119,7 +119,8 @@ set(SRC
 	composite/nodes/node_composite_ellipsemask.c
 	composite/nodes/node_composite_switch.c
 	composite/nodes/node_composite_colorcorrection.c
-	
+	composite/nodes/node_composite_pixelate.c
+
 	composite/node_composite_tree.c
 	composite/node_composite_util.c
 
@@ -146,13 +147,14 @@ set(SRC
 	shader/nodes/node_shader_vectMath.c
 	shader/nodes/node_shader_attribute.c
 	shader/nodes/node_shader_background.c
-	# shader/nodes/node_shader_bsdf_anisotropic.c  # XXX, why not included?
+	shader/nodes/node_shader_bsdf_anisotropic.c
 	shader/nodes/node_shader_bsdf_diffuse.c
 	shader/nodes/node_shader_bsdf_glossy.c
 	shader/nodes/node_shader_bsdf_glass.c
 	shader/nodes/node_shader_bsdf_translucent.c
 	shader/nodes/node_shader_bsdf_transparent.c
 	shader/nodes/node_shader_bsdf_velvet.c
+	shader/nodes/node_shader_bump.c
 	shader/nodes/node_shader_emission.c
 	shader/nodes/node_shader_fresnel.c
 	shader/nodes/node_shader_layer_weight.c
@@ -163,6 +165,7 @@ set(SRC
 	shader/nodes/node_shader_light_path.c
 	shader/nodes/node_shader_light_falloff.c
 	shader/nodes/node_shader_object_info.c
+	shader/nodes/node_shader_script.c
 	shader/nodes/node_shader_particle_info.c
 	shader/nodes/node_shader_mix_shader.c
 	shader/nodes/node_shader_add_shader.c

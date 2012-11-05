@@ -29,8 +29,8 @@
  *  \ingroup ketsji
  */
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
 #endif
 
 #include <stdio.h>
@@ -50,9 +50,9 @@
 #include "GPU_material.h"
  
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
-							   class RAS_IRenderTools* rendertools,
-							   const RAS_LightObject&	lightobj,
-							   bool glsl)
+                               class RAS_IRenderTools* rendertools,
+                               const RAS_LightObject&	lightobj,
+                               bool glsl)
 	: KX_GameObject(sgReplicationInfo,callbacks),
 	  m_rendertools(rendertools)
 {
@@ -126,14 +126,14 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 		vec[0] = worldmatrix(0,2);
 		vec[1] = worldmatrix(1,2);
 		vec[2] = worldmatrix(2,2);
-		//vec[0]= base->object->obmat[2][0];
-		//vec[1]= base->object->obmat[2][1];
-		//vec[2]= base->object->obmat[2][2];
-		vec[3]= 0.0;
+		//vec[0] = base->object->obmat[2][0];
+		//vec[1] = base->object->obmat[2][1];
+		//vec[2] = base->object->obmat[2][2];
+		vec[3] = 0.0;
 		glLightfv((GLenum)(GL_LIGHT0+slot), GL_POSITION, vec); 
 	}
 	else {
-		//vec[3]= 1.0;
+		//vec[3] = 1.0;
 		glLightfv((GLenum)(GL_LIGHT0+slot), GL_POSITION, vec); 
 		glLightf((GLenum)(GL_LIGHT0+slot), GL_CONSTANT_ATTENUATION, 1.0);
 		glLightf((GLenum)(GL_LIGHT0+slot), GL_LINEAR_ATTENUATION, m_lightobj.m_att1/m_lightobj.m_distance);
@@ -145,9 +145,9 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 			vec[0] = -worldmatrix(0,2);
 			vec[1] = -worldmatrix(1,2);
 			vec[2] = -worldmatrix(2,2);
-			//vec[0]= -base->object->obmat[2][0];
-			//vec[1]= -base->object->obmat[2][1];
-			//vec[2]= -base->object->obmat[2][2];
+			//vec[0] = -base->object->obmat[2][0];
+			//vec[1] = -base->object->obmat[2][1];
+			//vec[2] = -base->object->obmat[2][2];
 			glLightfv((GLenum)(GL_LIGHT0+slot), GL_SPOT_DIRECTION, vec);
 			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_CUTOFF, m_lightobj.m_spotsize / 2.0f);
 			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_EXPONENT, 128.0f * m_lightobj.m_spotblend);
@@ -161,10 +161,10 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
 	}
 	else {
-		vec[0]= m_lightobj.m_energy*m_lightobj.m_red;
-		vec[1]= m_lightobj.m_energy*m_lightobj.m_green;
-		vec[2]= m_lightobj.m_energy*m_lightobj.m_blue;
-		vec[3]= 1.0;
+		vec[0] = m_lightobj.m_energy*m_lightobj.m_red;
+		vec[1] = m_lightobj.m_energy*m_lightobj.m_green;
+		vec[2] = m_lightobj.m_energy*m_lightobj.m_blue;
+		vec[3] = 1.0;
 	}
 
 	glLightfv((GLenum)(GL_LIGHT0+slot), GL_DIFFUSE, vec);
@@ -173,10 +173,10 @@ bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
 		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
 	}
 	else if (m_lightobj.m_nodiffuse) {
-		vec[0]= m_lightobj.m_energy*m_lightobj.m_red;
-		vec[1]= m_lightobj.m_energy*m_lightobj.m_green;
-		vec[2]= m_lightobj.m_energy*m_lightobj.m_blue;
-		vec[3]= 1.0;
+		vec[0] = m_lightobj.m_energy*m_lightobj.m_red;
+		vec[1] = m_lightobj.m_energy*m_lightobj.m_green;
+		vec[2] = m_lightobj.m_energy*m_lightobj.m_blue;
+		vec[3] = 1.0;
 	}
 
 	glLightfv((GLenum)(GL_LIGHT0+slot), GL_SPECULAR, vec);
@@ -344,7 +344,7 @@ PyAttributeDef KX_LightObject::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_LightObject::pyattr_get_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_LightObject::pyattr_get_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	return Py_BuildValue("[fff]", self->m_lightobj.m_red, self->m_lightobj.m_green, self->m_lightobj.m_blue);
@@ -365,9 +365,9 @@ int KX_LightObject::pyattr_set_color(void *self_v, const KX_PYATTRIBUTE_DEF *att
 	return PY_SET_ATTR_FAIL;
 }
 
-PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	PyObject* retvalue;
+	PyObject *retvalue;
 
 	const char* type = attrdef->m_name;
 
@@ -387,13 +387,13 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 	return retvalue;
 }
 
-PyObject* KX_LightObject::pyattr_get_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_LightObject::pyattr_get_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	return PyLong_FromSsize_t(self->m_lightobj.m_type);
 }
 
-int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value)
+int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
 	int val = PyLong_AsSsize_t(value);
@@ -402,7 +402,7 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 		return PY_SET_ATTR_FAIL;
 	}
 	
-	switch(val) {
+	switch (val) {
 		case 0:
 			self->m_lightobj.m_type = self->m_lightobj.LIGHT_SPOT;
 			break;

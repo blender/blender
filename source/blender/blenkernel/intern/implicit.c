@@ -48,7 +48,9 @@
 #include "BKE_global.h"
 
 
-#define CLOTH_OPENMP_LIMIT 512
+#ifdef _OPENMP
+#  define CLOTH_OPENMP_LIMIT 512
+#endif
 
 #if 0  /* debug timing */
 #ifdef _WIN32
@@ -588,7 +590,7 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector
 			for (i = from[0].vcount; i < from[0].vcount+from[0].scount; i++) {
 				muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
 			}
-		}	
+		}
 #pragma omp section
 		{
 			for (i = 0; i < from[0].vcount+from[0].scount; i++) {
@@ -621,7 +623,7 @@ DO_INLINE void add_bfmatrix_bfmatrix( fmatrix3x3 *to, fmatrix3x3 *from,  fmatrix
 
 	/* process diagonal elements */
 	for (i = 0; i < matrix[0].vcount+matrix[0].scount; i++) {
-		add_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);	
+		add_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);
 	}
 
 }
@@ -632,7 +634,7 @@ DO_INLINE void addadd_bfmatrix_bfmatrix( fmatrix3x3 *to, fmatrix3x3 *from,  fmat
 
 	/* process diagonal elements */
 	for (i = 0; i < matrix[0].vcount+matrix[0].scount; i++) {
-		addadd_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);	
+		addadd_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);
 	}
 
 }
@@ -643,7 +645,7 @@ DO_INLINE void subadd_bfmatrix_bfmatrix( fmatrix3x3 *to, fmatrix3x3 *from,  fmat
 
 	/* process diagonal elements */
 	for (i = 0; i < matrix[0].vcount+matrix[0].scount; i++) {
-		subadd_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);	
+		subadd_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);
 	}
 
 }
@@ -654,7 +656,7 @@ DO_INLINE void sub_bfmatrix_bfmatrix( fmatrix3x3 *to, fmatrix3x3 *from,  fmatrix
 
 	/* process diagonal elements */
 	for (i = 0; i < matrix[0].vcount+matrix[0].scount; i++) {
-		sub_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);	
+		sub_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);
 	}
 
 }
@@ -665,7 +667,7 @@ DO_INLINE void sub_bfmatrix_Smatrix( fmatrix3x3 *to, fmatrix3x3 *from,  fmatrix3
 
 	/* process diagonal elements */
 	for (i = 0; i < matrix[0].vcount; i++) {
-		sub_fmatrix_fmatrix(to[matrix[i].c].m, from[matrix[i].c].m, matrix[i].m);	
+		sub_fmatrix_fmatrix(to[matrix[i].c].m, from[matrix[i].c].m, matrix[i].m);
 	}
 
 }
@@ -676,7 +678,7 @@ DO_INLINE void addsub_bfmatrix_bfmatrix( fmatrix3x3 *to, fmatrix3x3 *from,  fmat
 
 	/* process diagonal elements */
 	for (i = 0; i < matrix[0].vcount+matrix[0].scount; i++) {
-		addsub_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);	
+		addsub_fmatrix_fmatrix(to[i].m, from[i].m, matrix[i].m);
 	}
 
 }
@@ -689,7 +691,7 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 
 	/* process diagonal elements */
 	for (i = 0; i < matrix[0].vcount+matrix[0].scount; i++) {
-		subadd_fmatrixS_fmatrixS(to[i].m, from[i].m, aS, matrix[i].m, bS);	
+		subadd_fmatrixS_fmatrixS(to[i].m, from[i].m, aS, matrix[i].m, bS);
 	}
 
 }
@@ -709,7 +711,7 @@ static void update_matrixS(ClothVertex *verts, int numverts, fmatrix3x3 *S)
 	int i = 0;
 
 	/* Clear matrix from old vertex constraints */
-	for(i = 0; i < S[0].vcount; i++)
+	for (i = 0; i < S[0].vcount; i++)
 		S[i].c = S[i].r = 0;
 
 	/* Set new vertex constraints */
@@ -747,7 +749,7 @@ int implicit_init(Object *UNUSED(ob), ClothModifierData *clmd)
 	id = (Implicit_Data *)MEM_callocN(sizeof(Implicit_Data), "implicit vecmat");
 	cloth->implicit = id;
 
-	/* process diagonal elements */		
+	/* process diagonal elements */
 	id->A = create_bfmatrix(cloth->numverts, cloth->numsprings);
 	id->dFdV = create_bfmatrix(cloth->numverts, cloth->numsprings);
 	id->dFdX = create_bfmatrix(cloth->numverts, cloth->numsprings);
@@ -842,41 +844,40 @@ int	implicit_free(ClothModifierData *clmd)
 
 DO_INLINE float fb(float length, float L)
 {
-	float x = length/L;
-	return (-11.541f*pow(x, 4)+34.193f*pow(x, 3)-39.083f*pow(x, 2)+23.116f*x-9.713f);
+	float x = length / L;
+	return (-11.541f * powf(x, 4) + 34.193f * powf(x, 3) - 39.083f * powf(x, 2) + 23.116f * x - 9.713f);
 }
 
 DO_INLINE float fbderiv(float length, float L)
 {
 	float x = length/L;
 
-	return (-46.164f*pow(x, 3)+102.579f*pow(x, 2)-78.166f*x+23.116f);
+	return (-46.164f * powf(x, 3) + 102.579f * powf(x, 2) - 78.166f * x + 23.116f);
 }
 
 DO_INLINE float fbstar(float length, float L, float kb, float cb)
 {
-	float tempfb = kb * fb(length, L);
-
-	float fbstar = cb * (length - L);
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
 	
-	if (tempfb < fbstar)
-		return fbstar;
+	if (tempfb_fl < fbstar_fl)
+		return fbstar_fl;
 	else
-		return tempfb;		
+		return tempfb_fl;
 }
 
 // function to calculae bending spring force (taken from Choi & Co)
 DO_INLINE float fbstar_jacobi(float length, float L, float kb, float cb)
 {
-	float tempfb = kb * fb(length, L);
-	float fbstar = cb * (length - L);
+	float tempfb_fl = kb * fb(length, L);
+	float fbstar_fl = cb * (length - L);
 
-	if (tempfb < fbstar) {
+	if (tempfb_fl < fbstar_fl) {
 		return cb;
 	}
 	else {
-		return kb * fbderiv(length, L);	
-	}	
+		return kb * fbderiv(length, L);
+	}
 }
 
 DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
@@ -916,7 +917,7 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 	cp_lfvector(d, r, numverts);
 
 	s = dot_lfvector(r, r, numverts);
-	starget = s * sqrt(conjgrad_epsilon);
+	starget = s * sqrtf(conjgrad_epsilon);
 
 	while (s>starget && conjgrad_loopcount < conjgrad_looplimit) {
 		// Mul(q, A, d); // q = A*d;
@@ -1147,9 +1148,9 @@ DO_INLINE void dfdx_spring_type1(float to[3][3], float extent[3], float length, 
 	// dir is unit length direction, rest is spring's restlength, k is spring constant.
 	// return  (outerprod(dir, dir)*k + (I - outerprod(dir, dir))*(k - ((k*L)/length)));
 	float temp[3][3];
-	float temp1 = k*(1.0 - (L/length));	
+	float temp1 = k * (1.0f - (L / length));
 	
-	mul_fvectorT_fvectorS(temp, extent, extent, 1.0 / dot);
+	mul_fvectorT_fvectorS(temp, extent, extent, 1.0f / dot);
 	sub_fmatrix_fmatrix(to, I, temp);
 	mul_fmatrix_S(to, temp1);
 	
@@ -1217,7 +1218,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float stretch_force[3] = {0, 0, 0};
 	float bending_force[3] = {0, 0, 0};
 	float damping_force[3] = {0, 0, 0};
-	float nulldfdx[3][3]={ {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	float nulldfdx[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 	
 	float scaling = 0.0;
 
@@ -1245,7 +1246,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		s->flags |= CSPRING_FLAG_DEACTIVATE;
 		return;
 	}
-	} 
+	}
 		*/
 		mul_fvector_S(dir, extent, 1.0f/length);
 	}
@@ -1306,7 +1307,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		
 		VECADDS(s->f, s->f, extent, -k);
 		
-		mul_fvector_S(damping_force, dir, clmd->sim_parms->goalfrict * 0.01 * dot_v3v3(vel, dir));
+		mul_fvector_S(damping_force, dir, clmd->sim_parms->goalfrict * 0.01f * dot_v3v3(vel, dir));
 		VECADD(s->f, s->f, damping_force);
 		
 		// HERE IS THE PROBLEM!!!!
@@ -1317,10 +1318,10 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		if (length < L) {
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
-			k = clmd->sim_parms->bending;	
+			k = clmd->sim_parms->bending;
 			
-			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_bend-k);			
-			cb = k = scaling / (20.0*(clmd->sim_parms->avg_spring_len + FLT_EPSILON));
+			scaling = k + s->stiffness * ABS(clmd->sim_parms->max_bend-k);
+			cb = k = scaling / (20.0f * (clmd->sim_parms->avg_spring_len + FLT_EPSILON));
 
 			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
 			VECADD(s->f, s->f, bending_force);
@@ -1336,7 +1337,7 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *UNUSED(clmd), ClothSp
 		if (!(s->type & CLOTH_SPRING_TYPE_BENDING)) {
 			sub_fmatrix_fmatrix(dFdV[s->ij].m, dFdV[s->ij].m, s->dfdv);
 			sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, s->dfdv);
-			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);	
+			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);
 		}
 
 		VECADD(lF[s->ij], lF[s->ij], s->f);
@@ -1347,7 +1348,7 @@ DO_INLINE void cloth_apply_spring_force(ClothModifierData *UNUSED(clmd), ClothSp
 		sub_fmatrix_fmatrix(dFdX[s->kl].m, dFdX[s->kl].m, s->dfdx);
 		sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
 		add_fmatrix_fmatrix(dFdX[s->matrix_index].m, dFdX[s->matrix_index].m, s->dfdx);
-	}	
+	}
 }
 
 
@@ -1355,15 +1356,15 @@ static void CalcFloat( float *v1, float *v2, float *v3, float *n)
 {
 	float n1[3], n2[3];
 
-	n1[0]= v1[0]-v2[0];
-	n2[0]= v2[0]-v3[0];
-	n1[1]= v1[1]-v2[1];
-	n2[1]= v2[1]-v3[1];
-	n1[2]= v1[2]-v2[2];
-	n2[2]= v2[2]-v3[2];
-	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
-	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
-	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
+	n1[0] = v1[0]-v2[0];
+	n2[0] = v2[0]-v3[0];
+	n1[1] = v1[1]-v2[1];
+	n2[1] = v2[1]-v3[1];
+	n1[2] = v1[2]-v2[2];
+	n2[2] = v2[2]-v3[2];
+	n[0] = n1[1]*n2[2]-n1[2]*n2[1];
+	n[1] = n1[2]*n2[0]-n1[0]*n2[2];
+	n[2] = n1[0]*n2[1]-n1[1]*n2[0];
 }
 
 static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
@@ -1371,17 +1372,17 @@ static void CalcFloat4( float *v1, float *v2, float *v3, float *v4, float *n)
 	/* real cross! */
 	float n1[3], n2[3];
 
-	n1[0]= v1[0]-v3[0];
-	n1[1]= v1[1]-v3[1];
-	n1[2]= v1[2]-v3[2];
+	n1[0] = v1[0]-v3[0];
+	n1[1] = v1[1]-v3[1];
+	n1[2] = v1[2]-v3[2];
 
-	n2[0]= v2[0]-v4[0];
-	n2[1]= v2[1]-v4[1];
-	n2[2]= v2[2]-v4[2];
+	n2[0] = v2[0]-v4[0];
+	n2[1] = v2[1]-v4[1];
+	n2[2] = v2[2]-v4[2];
 
-	n[0]= n1[1]*n2[2]-n1[2]*n2[1];
-	n[1]= n1[2]*n2[0]-n1[0]*n2[2];
-	n[2]= n1[0]*n2[1]-n1[1]*n2[0];
+	n[0] = n1[1]*n2[2]-n1[2]*n2[1];
+	n[1] = n1[2]*n2[0]-n1[0]*n2[2];
+	n[2] = n1[0]*n2[1]-n1[1]*n2[0];
 }
 
 static float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
@@ -1448,7 +1449,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
 		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
 		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
-		if (i < 0 || j < 0 || k < 0 || i > 10 || j >= 10 || k >= 10)
+		if (i < 0 || j < 0 || k < 0 || i >= 10 || j >= 10 || k >= 10)
 			continue;
 
 		grid[i][j][k].velocity[0] += lV[v][0];
@@ -1478,7 +1479,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 						colg[i][j][k].velocity[0] += vel[0];
 						colg[i][j][k].velocity[1] += vel[1];
 						colg[i][j][k].velocity[2] += vel[2];
-						colg[i][j][k].density += 1.0;
+						colg[i][j][k].density += 1.0f;
 					}
 				}
 			}
@@ -1512,7 +1513,7 @@ static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVec
 		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
 		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
 		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
-		if (i < 0 || j < 0 || k < 0 || i > 10 || j >= 10 || k >= 10)
+		if (i < 0 || j < 0 || k < 0 || i >= 10 || j >= 10 || k >= 10)
 			continue;
 
 		lF[v][0] += smoothfac * (grid[i][j][k].velocity[0] - lV[v][0]);
@@ -1543,7 +1544,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	lfVector *winvec;
 	EffectedPoint epoint;
 
-	tm2[0][0]= tm2[1][1]= tm2[2][2]= -spring_air;
+	tm2[0][0] = tm2[1][1] = tm2[2][2] = -spring_air;
 	
 	/* global acceleration (gravitation) */
 	if (clmd->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
@@ -1587,11 +1588,11 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		}
 		
 		for (i = 0; i < cloth->numfaces; i++) {
-			float trinormal[3]={0, 0, 0}; // normalized triangle normal
-			float triunnormal[3]={0, 0, 0}; // not-normalized-triangle normal
-			float tmp[3]={0, 0, 0};
+			float trinormal[3] = {0, 0, 0}; // normalized triangle normal
+			float triunnormal[3] = {0, 0, 0}; // not-normalized-triangle normal
+			float tmp[3] = {0, 0, 0};
 			float factor = (mfaces[i].v4) ? 0.25 : 1.0 / 3.0;
-			factor *= 0.02;
+			factor *= 0.02f;
 			
 			// calculate face normal
 			if (mfaces[i].v4)
@@ -1627,9 +1628,9 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 		/* Hair has only edges */
 		if (cloth->numfaces == 0) {
 			ClothSpring *spring;
-			float edgevec[3]={0, 0, 0}; //edge vector
-			float edgeunnormal[3]={0, 0, 0}; // not-normalized-edge normal
-			float tmp[3]={0, 0, 0};
+			float edgevec[3] = {0, 0, 0}; //edge vector
+			float edgeunnormal[3] = {0, 0, 0}; // not-normalized-edge normal
+			float tmp[3] = {0, 0, 0};
 			float factor = 0.01;
 
 			search = cloth->springs;
@@ -1661,7 +1662,7 @@ static void cloth_calc_force(ClothModifierData *clmd, float UNUSED(frame), lfVec
 	while (search) {
 		// only handle active springs
 		ClothSpring *spring = search->link;
-		if( !(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
+		if (!(spring->flags & CLOTH_SPRING_FLAG_DEACTIVATE))
 			cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, time);
 
 		search = search->next;
@@ -1729,8 +1730,8 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 	for (i=0; i<cloth->numverts; i++, cv++) {
 		copy_v3_v3(cos[i], cv->tx);
 		
-		if (cv->goal == 1.0f || len_v3v3(initial_cos[i], cv->tx) != 0.0) {
-			masses[i] = 1e+10;	
+		if (cv->goal == 1.0f || len_squared_v3v3(initial_cos[i], cv->tx) != 0.0f) {
+			masses[i] = 1e+10;
 		}
 		else {
 			masses[i] = cv->mass;
@@ -1757,18 +1758,18 @@ static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob), ClothMo
 			normalize_v3(vec);
 			
 			c = (len - spring->restlen);
-			if (c == 0.0)
+			if (c == 0.0f)
 				continue;
 			
-			l = c / ((1.0/masses[v1]) + (1.0/masses[v2]));
+			l = c / ((1.0f / masses[v1]) + (1.0f / masses[v2]));
 			
-			mul_v3_fl(vec, -(1.0/masses[v1])*l);
+			mul_v3_fl(vec, -(1.0f / masses[v1]) * l);
 			add_v3_v3(cos[v1], vec);
 	
 			sub_v3_v3v3(vec, cos[v2], cos[v1]);
 			normalize_v3(vec);
 			
-			mul_v3_fl(vec, -(1.0/masses[v2])*l);
+			mul_v3_fl(vec, -(1.0f / masses[v2]) * l);
 			add_v3_v3(cos[v2], vec);
 		}
 	}
@@ -1813,7 +1814,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 				sub_v3_v3v3(id->V[i], verts[i].xconst, verts[i].xold);
 				// mul_v3_fl(id->V[i], clmd->sim_parms->stepsPerFrame);
 			}
-		}	
+		}
 	}
 	
 	while (step < tf) {
@@ -1838,7 +1839,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 					mul_fvector_S(tvect, tvect, step+dt);
 					VECADD(tvect, tvect, verts[i].xold);
 					copy_v3_v3(id->Xnew[i], tvect);
-				}	
+				}
 			}
 			
 			copy_v3_v3(verts[i].txold, id->X[i]);
@@ -1896,7 +1897,7 @@ int implicit_solver(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 				cp_lfvector(id->V, id->Vnew, numverts);
 
 				// calculate 
-				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);	
+				cloth_calc_force(clmd, frame, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step+dt, id->M);
 				
 				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
 			}
@@ -1945,6 +1946,6 @@ void implicit_set_positions(ClothModifierData *clmd)
 		copy_v3_v3(id->V[i], verts[i].v);
 	}
 	if (G.debug_value > 0)
-		printf("implicit_set_positions\n");	
+		printf("implicit_set_positions\n");
 }
 

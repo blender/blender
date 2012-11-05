@@ -116,5 +116,4 @@ void multires_topology_changed(struct Mesh *me);
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v);
 int mdisp_rot_face_to_crn(const int corners, const int face_side, const float u, const float v, float *x, float *y);
 
-#endif // __BKE_MULTIRES_H__
-
+#endif  /* __BKE_MULTIRES_H__ */

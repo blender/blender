@@ -193,7 +193,7 @@ static void rna_MaskLayer_splines_begin(CollectionPropertyIterator *iter, Pointe
 	rna_iterator_listbase_begin(iter, &masklay->splines, NULL);
 }
 
-void rna_MaskLayer_name_set(PointerRNA *ptr, const char *value)
+static void rna_MaskLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Mask *mask = (Mask *)ptr->id.data;
 	MaskLayer *masklay = (MaskLayer *)ptr->data;
@@ -315,14 +315,16 @@ static MaskLayer *rna_Mask_layers_new(Mask *mask, const char *name)
 	return masklay;
 }
 
-void rna_Mask_layers_remove(Mask *mask, ReportList *reports, MaskLayer *masklay)
+static void rna_Mask_layers_remove(Mask *mask, ReportList *reports, PointerRNA *masklay_ptr)
 {
+	MaskLayer *masklay = masklay_ptr->data;
 	if (BLI_findindex(&mask->masklayers, masklay) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "MaskLayer '%s' not found in mask '%s'", masklay->name, mask->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Mask layer '%s' not found in mask '%s'", masklay->name, mask->id.name + 2);
 		return;
 	}
 
 	BKE_mask_layer_remove(mask, masklay);
+	RNA_POINTER_INVALIDATE(masklay_ptr);
 
 	WM_main_add_notifier(NC_MASK | NA_EDITED, mask);
 }
@@ -705,7 +707,9 @@ static void rna_def_masklayers(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "remove", "rna_Mask_layers_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove layer from this mask");
-	RNA_def_pointer(func, "layer", "MaskLayer", "", "Shape to be removed");
+	parm = RNA_def_pointer(func, "layer", "MaskLayer", "", "Shape to be removed");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 
 	/* clear all layers */
 	func = RNA_def_function(srna, "clear", "rna_Mask_layers_clear");

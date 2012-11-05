@@ -57,10 +57,10 @@ extern "C"
 {
 #endif  // __cplusplus
 #include "MEM_guardedalloc.h"
-#include "BKE_blender.h"	
-#include "BKE_global.h"	
-#include "BKE_icons.h"	
-#include "BKE_node.h"	
+#include "BKE_blender.h"
+#include "BKE_global.h"
+#include "BKE_icons.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_library.h"
 #include "BLI_threads.h"
@@ -119,11 +119,11 @@ static void mem_error_cb(const char *errorStr)
 
 #ifdef WIN32
 typedef enum {
-  SCREEN_SAVER_MODE_NONE = 0,
-  SCREEN_SAVER_MODE_PREVIEW,
-  SCREEN_SAVER_MODE_SAVER,
-  SCREEN_SAVER_MODE_CONFIGURATION,
-  SCREEN_SAVER_MODE_PASSWORD,
+	SCREEN_SAVER_MODE_NONE = 0,
+	SCREEN_SAVER_MODE_PREVIEW,
+	SCREEN_SAVER_MODE_SAVER,
+	SCREEN_SAVER_MODE_CONFIGURATION,
+	SCREEN_SAVER_MODE_PASSWORD,
 } ScreenSaverMode;
 
 static ScreenSaverMode scr_saver_mode = SCREEN_SAVER_MODE_NONE;
@@ -223,7 +223,7 @@ void usage(const char* program, bool isBlenderPlayer)
 	printf("       --Optional parameters--\n");
 	printf("       angle    = field of view in degrees\n");
 	printf("       tilt     = tilt angle in degrees\n");
-	printf("       warpdata = a file to use for warping the image (absolute path)\n");	
+	printf("       warpdata = a file to use for warping the image (absolute path)\n");
 	printf("       mode: fisheye                (Fisheye)\n");
 	printf("             truncatedfront         (Front-Truncated)\n");
 	printf("             truncatedrear          (Rear-Truncated)\n");
@@ -1016,12 +1016,12 @@ int main(int argc, char** argv)
 								gpg_nextframestate.app = &app;
 								gpg_nextframestate.gs = &gs;
 								pynextframestate.state = &gpg_nextframestate;
-								pynextframestate.func = &GPG_PyNextFrame;			
+								pynextframestate.func = &GPG_PyNextFrame;
 
                                 printf("Yielding control to Python script '%s'...\n", python_main);
                                 PyRun_SimpleString(python_code);
                                 printf("Exit Python script '%s'\n", python_main);
-#endif // WITH_PYTHON				
+#endif // WITH_PYTHON
                                 MEM_freeN(python_code);
                             }
                             else {
@@ -1064,6 +1064,7 @@ int main(int argc, char** argv)
 
 #ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();
+	BLF_lang_free();
 #endif
 
 	IMB_exit();

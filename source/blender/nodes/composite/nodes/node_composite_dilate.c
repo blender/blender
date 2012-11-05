@@ -54,28 +54,28 @@ static void morpho_dilate(CompBuf *cbuf)
 	for (y = 0; y < cbuf->y; y++) {
 		for (x = 0; x < cbuf->x - 1; x++) {
 			p = rectf + cbuf->x * y + x;
-			*p = maxf(*p, *(p + 1));
+			*p = max_ff(*p, *(p + 1));
 		}
 	}
 
 	for (y = 0; y < cbuf->y; y++) {
 		for (x = cbuf->x - 1; x >= 1; x--) {
 			p = rectf + cbuf->x * y + x;
-			*p = maxf(*p, *(p - 1));
+			*p = max_ff(*p, *(p - 1));
 		}
 	}
 
 	for (x = 0; x < cbuf->x; x++) {
 		for (y = 0; y < cbuf->y - 1; y++) {
 			p = rectf + cbuf->x * y + x;
-			*p = maxf(*p, *(p + cbuf->x));
+			*p = max_ff(*p, *(p + cbuf->x));
 		}
 	}
 
 	for (x = 0; x < cbuf->x; x++) {
 		for (y = cbuf->y - 1; y >= 1; y--) {
 			p = rectf + cbuf->x * y + x;
-			*p = maxf(*p, *(p - cbuf->x));
+			*p = max_ff(*p, *(p - cbuf->x));
 		}
 	}
 }
@@ -88,28 +88,28 @@ static void morpho_erode(CompBuf *cbuf)
 	for (y = 0; y < cbuf->y; y++) {
 		for (x = 0; x < cbuf->x - 1; x++) {
 			p = rectf + cbuf->x * y + x;
-			*p = minf(*p, *(p + 1));
+			*p = min_ff(*p, *(p + 1));
 		}
 	}
 
 	for (y = 0; y < cbuf->y; y++) {
 		for (x = cbuf->x - 1; x >= 1; x--) {
 			p = rectf + cbuf->x * y + x;
-			*p = minf(*p, *(p - 1));
+			*p = min_ff(*p, *(p - 1));
 		}
 	}
 
 	for (x = 0; x < cbuf->x; x++) {
 		for (y = 0; y < cbuf->y - 1; y++) {
 			p = rectf + cbuf->x * y + x;
-			*p = minf(*p, *(p + cbuf->x));
+			*p = min_ff(*p, *(p + cbuf->x));
 		}
 	}
 
 	for (x = 0; x < cbuf->x; x++) {
 		for (y = cbuf->y - 1; y >= 1; y--) {
 			p = rectf + cbuf->x * y + x;
-			*p = minf(*p, *(p - cbuf->x));
+			*p = min_ff(*p, *(p - cbuf->x));
 		}
 	}
 	

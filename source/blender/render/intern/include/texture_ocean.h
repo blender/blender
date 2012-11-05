@@ -23,4 +23,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-int ocean_texture(struct Tex *tex, float *texvec, struct TexResult *texres);
+#ifndef __TEXTURE_OCEAN_H__
+#define __TEXTURE_OCEAN_H__
+
+int ocean_texture(struct Tex *tex, const float texvec[2], struct TexResult *texres);
+
+#endif  /* __TEXTURE_OCEAN_H__ */

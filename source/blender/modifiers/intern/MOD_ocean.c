@@ -33,16 +33,16 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_cdderivedmesh.h"
-#include "BKE_global.h"
-#include "BKE_modifier.h"
-#include "BKE_ocean.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_math_inline.h"
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+
+#include "BKE_cdderivedmesh.h"
+#include "BKE_global.h"
+#include "BKE_modifier.h"
+#include "BKE_ocean.h"
 
 #include "MOD_util.h"
 
@@ -241,13 +241,13 @@ static void dm_get_bounds(DerivedMesh *dm, float *sx, float *sy, float *ox, floa
 	copy_v3_v3(max, mvert->co);
 
 	for (v = 1; v < totvert; v++, mvert++) {
-		min[0] = minf(min[0], mvert->co[0]);
-		min[1] = minf(min[1], mvert->co[1]);
-		min[2] = minf(min[2], mvert->co[2]);
+		min[0] = min_ff(min[0], mvert->co[0]);
+		min[1] = min_ff(min[1], mvert->co[1]);
+		min[2] = min_ff(min[2], mvert->co[2]);
 
-		max[0] = maxf(max[0], mvert->co[0]);
-		max[1] = maxf(max[1], mvert->co[1]);
-		max[2] = maxf(max[2], mvert->co[2]);
+		max[0] = max_ff(max[0], mvert->co[0]);
+		max[1] = max_ff(max[1], mvert->co[1]);
+		max[2] = max_ff(max[2], mvert->co[2]);
 	}
 
 	sub_v3_v3v3(delta, max, min);

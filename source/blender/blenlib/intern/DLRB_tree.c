@@ -364,7 +364,7 @@ static void rotate_right(DLRBT_Tree *tree, DLRBT_Node *root)
 			root_slot = &root->parent->right;
 	}
 	else
-		root_slot = ((DLRBT_Node **)&tree->root);  /* &((DLRBT_Node*)tree->root); */
+		root_slot = ((DLRBT_Node **)&tree->root);  /* &((DLRBT_Node *)tree->root); */
 		
 	/* - pivot's right child becomes root's left child
 	 * - root now becomes pivot's right child  
@@ -502,7 +502,7 @@ void BLI_dlrbTree_insert(DLRBT_Tree *tree, DLRBT_Node *node)
 /* ----- */
 
 /* Add the given data to the tree, and return the node added */
-// NOTE: for duplicates, the update_cb is called (if available), and the existing node is returned
+/* NOTE: for duplicates, the update_cb is called (if available), and the existing node is returned */
 DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, 
                              DLRBT_NAlloc_FP new_cb, DLRBT_NUpdate_FP update_cb, void *data)
 {

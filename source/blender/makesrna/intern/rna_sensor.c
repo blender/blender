@@ -104,7 +104,7 @@ static StructRNA *rna_Sensor_refine(struct PointerRNA *ptr)
 	}
 }
 
-void rna_Sensor_name_set(PointerRNA *ptr, const char *value)
+static void rna_Sensor_name_set(PointerRNA *ptr, const char *value)
 {
 	bSensor *sens = (bSensor *)ptr->data;
 

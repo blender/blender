@@ -563,6 +563,7 @@ typedef enum eDopeSheet_FilterFlag {
 	/* general filtering 3 */
 	ADS_FILTER_INCL_HIDDEN      = (1 << 26),  /* include 'hidden' channels too (i.e. those from hidden Objects/Bones) */
 	ADS_FILTER_BY_FCU_NAME      = (1 << 27),  /* for F-Curves, filter by the displayed name (i.e. to isolate all Location curves only) */
+	ADS_FILTER_ONLY_ERRORS		= (1 << 28),  /* show only F-Curves which are disabled/have errors - for debugging drivers */
 	
 	/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM | ADS_FILTER_NOMAT | ADS_FILTER_NOLAM | ADS_FILTER_NOCUR | ADS_FILTER_NOPART | ADS_FILTER_NOARM | ADS_FILTER_NOSPK)
@@ -604,11 +605,11 @@ typedef enum eSAction_Flag {
 	/* draw time in seconds instead of time in frames */
 	SACTION_DRAWTIME = (1 << 2),
 	/* don't filter action channels according to visibility */
-	//SACTION_NOHIDE = (1<<3), // XXX depreceated... old animation system
+	//SACTION_NOHIDE = (1<<3), // XXX deprecated... old animation system
 	/* don't kill overlapping keyframes after transform */
 	SACTION_NOTRANSKEYCULL = (1 << 4),
 	/* don't include keyframes that are out of view */
-	//SACTION_HORIZOPTIMISEON = (1<<5), // XXX depreceated... old irrelevant trick
+	//SACTION_HORIZOPTIMISEON = (1<<5), // XXX deprecated... old irrelevant trick
 	/* show pose-markers (local to action) in Action Editor mode  */
 	SACTION_POSEMARKERS_SHOW = (1 << 6),
 	/* don't draw action channels using group colors (where applicable) */
@@ -653,7 +654,7 @@ typedef enum eAnimEdit_AutoSnap {
 /* ************************************************ */
 /* Legacy Data */
 
-/* WARNING: Action Channels are now depreceated... they were part of the old animation system!
+/* WARNING: Action Channels are now deprecated... they were part of the old animation system!
  *        (ONLY USED FOR DO_VERSIONS...)
  * 
  * Action Channels belong to Actions. They are linked with an IPO block, and can also own 

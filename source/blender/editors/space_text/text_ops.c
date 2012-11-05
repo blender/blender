@@ -44,6 +44,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "PIL_time.h"
 
 #include "BKE_context.h"
@@ -93,7 +95,7 @@ static int text_edit_poll(bContext *C)
 		return 0;
 
 	if (text->id.lib) {
-		// BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}
 
@@ -109,7 +111,7 @@ static int text_space_edit_poll(bContext *C)
 		return 0;
 
 	if (text->id.lib) {
-		// BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}
 
@@ -129,7 +131,7 @@ static int text_region_edit_poll(bContext *C)
 		return 0;
 
 	if (text->id.lib) {
-		// BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
+		// BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return 0;
 	}
 
@@ -463,7 +465,8 @@ static void txt_write_file(Text *text, ReportList *reports)
 	
 	fp = BLI_fopen(filepath, "w");
 	if (fp == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to save \"%s\": %s", filepath, errno ? strerror(errno) : "Unknown error writing file");
+		BKE_reportf(reports, RPT_ERROR, "Unable to save '%s': %s",
+		            filepath, errno ? strerror(errno) : TIP_("unknown error writing file"));
 		return;
 	}
 
@@ -482,7 +485,8 @@ static void txt_write_file(Text *text, ReportList *reports)
 	}
 	else {
 		text->mtime = 0;
-		BKE_reportf(reports, RPT_WARNING, "Unable to stat \"%s\": %s", filepath, errno ? strerror(errno) : "Unknown error starrng file");
+		BKE_reportf(reports, RPT_WARNING, "Unable to stat '%s': %s",
+		            filepath, errno ? strerror(errno) : TIP_("unknown error stating file"));
 	}
 	
 	if (text->flags & TXT_ISDIRTY)
@@ -602,9 +606,12 @@ static int text_run_script(bContext *C, ReportList *reports)
 
 	/* Don't report error messages while live editing */
 	if (!is_live) {
-		if (text->curl != curl_prev || curc_prev != text->curc) {
-			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+		/* text may have freed its self */
+		if (CTX_data_edit_text(C) == text) {
+			if (text->curl != curl_prev || curc_prev != text->curc) {
+				text_update_cursor_moved(C);
+				WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+			}
 		}
 
 		BKE_report(reports, RPT_ERROR, "Python script fail, look in the console for now...");
@@ -967,21 +974,17 @@ static int text_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Text *text = CTX_data_edit_text(C);
 
-	if (txt_has_sel(text)) {
-		text_drawcache_tag_update(CTX_wm_space_text(C), 0);
+	text_drawcache_tag_update(CTX_wm_space_text(C), 0);
 
-		txt_order_cursors(text);
-		txt_unindent(text);
+	txt_order_cursors(text);
+	txt_unindent(text);
 
-		text_update_edited(text);
+	text_update_edited(text);
 
-		text_update_cursor_moved(C);
-		WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+	text_update_cursor_moved(C);
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
-		return OPERATOR_FINISHED;
-	}
-
-	return OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }
 
 void TEXT_OT_unindent(wmOperatorType *ot)
@@ -1945,7 +1948,7 @@ static int text_move_cursor(bContext *C, int type, int select)
 			txt_move_left(text, select);
 			break;
 
-		case NEXT_CHAR:	
+		case NEXT_CHAR:
 			txt_move_right(text, select);
 			break;
 
@@ -2409,8 +2412,8 @@ static int text_scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* jump scroll, works in v2d but needs to be added here too :S */
 	if (event->type == MIDDLEMOUSE) {
-		tsc->old[0] = ar->winrct.xmin + BLI_RCT_CENTER_X(&st->txtbar);
-		tsc->old[1] = ar->winrct.ymin + BLI_RCT_CENTER_Y(&st->txtbar);
+		tsc->old[0] = ar->winrct.xmin + BLI_rcti_cent_x(&st->txtbar);
+		tsc->old[1] = ar->winrct.ymin + BLI_rcti_cent_y(&st->txtbar);
 
 		tsc->delta[0] = 0;
 		tsc->delta[1] = 0;
@@ -2666,7 +2669,7 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
-	} 
+	}
 	else if (!st->wordwrap && (event->mval[0] < 0 || event->mval[0] > ar->winx)) {
 		if (event->mval[0] > ar->winx) st->left++;
 		else if (event->mval[0] < 0 && st->left > 0) st->left--;
@@ -2676,7 +2679,7 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
 		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
 		// XXX PIL_sleep_ms(10);
-	} 
+	}
 	else {
 		text_cursor_set_to_pos(st, ar, event->mval[0], event->mval[1], 1);
 
@@ -2685,7 +2688,7 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 		ssel->old[0] = event->mval[0];
 		ssel->old[1] = event->mval[1];
-	} 
+	}
 }
 
 static void text_cursor_set_exit(bContext *C, wmOperator *op)
@@ -3349,7 +3352,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "To 3D Object";
 	ot->idname = "TEXT_OT_to_3d_object";
-	ot->description = "Create 3d text object from active text data block";
+	ot->description = "Create 3D text object from active text data block";
 	
 	/* api callbacks */
 	ot->exec = text_to_3d_object_exec;

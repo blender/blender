@@ -1,6 +1,4 @@
 /*
- * $Id: CMP_math.c 36271 2011-04-21 13:11:51Z campbellbarton $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -35,15 +33,15 @@
 #include "../node_composite_util.h"
 
 /* **************** SCALAR MATH ******************** */ 
-static bNodeSocketTemplate cmp_node_boxmask_in[]= {
+static bNodeSocketTemplate cmp_node_boxmask_in[] = {
 	{	SOCK_FLOAT, 1, N_("Mask"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Value"), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, "" } 
+	{   -1, 0, "" }
 };
 
-static bNodeSocketTemplate cmp_node_boxmask_out[]= {
+static bNodeSocketTemplate cmp_node_boxmask_out[] = {
 	{	SOCK_FLOAT, 0, N_("Mask"), 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, "" } 
+	{   -1, 0, "" }
 };
 
 static void node_composit_init_boxmask(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))

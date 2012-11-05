@@ -154,7 +154,7 @@ static void FLOAT2RGBE(fCOLOR fcol, RGBE rgbe)
 	if (d <= 1e-32f)
 		rgbe[RED] = rgbe[GRN] = rgbe[BLU] = rgbe[EXP] = 0;
 	else {
-		d = frexp(d, &e) * 256.f / d;
+		d = (float)frexp(d, &e) * 256.0f / d;
 		rgbe[RED] = (unsigned char)(fcol[RED] * d);
 		rgbe[GRN] = (unsigned char)(fcol[GRN] * d);
 		rgbe[BLU] = (unsigned char)(fcol[BLU] * d);
@@ -168,9 +168,9 @@ int imb_is_a_hdr(unsigned char *buf)
 {
 	/* For recognition, Blender only loads first 32 bytes, so use #?RADIANCE id instead */
 	/* update: actually, the 'RADIANCE' part is just an optional program name, the magic word is really only the '#?' part */
-	//if (strstr((char*)buf, "#?RADIANCE")) return 1;
+	//if (strstr((char *)buf, "#?RADIANCE")) return 1;
 	if (strstr((char *)buf, "#?")) return 1;
-	// if (strstr((char*)buf, "32-bit_rle_rgbe")) return 1;
+	// if (strstr((char *)buf, "32-bit_rle_rgbe")) return 1;
 	return 0;
 }
 

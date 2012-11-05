@@ -97,6 +97,11 @@ typedef enum {
 	UI_WTYPE_PROGRESSBAR
 } uiWidgetTypeEnum;
 
+/* menu scrolling */
+#define UI_MENU_SCROLL_ARROW	12
+#define UI_MENU_SCROLL_MOUSE	(UI_MENU_SCROLL_ARROW + 2)
+#define UI_MENU_SCROLL_PAD		4
+
 /* panel limits */
 #define UI_PANEL_MINX   100
 #define UI_PANEL_MINY   70
@@ -160,7 +165,8 @@ struct uiBut {
 	int flag, drawflag;
 	eButType         type;
 	eButPointerType  pointype;
-	short bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
+	short bit, bitnr, retval, strwidth, alignnr;
+	short ofs, pos, selsta, selend;
 
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
@@ -305,17 +311,7 @@ struct uiBlock {
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
 	char auto_open;
-
-	/* this setting is used so newly opened menu's dont popout the first item under the mouse,
-	 * the reasoning behind this is because of muscle memory for opening menus.
-	 *
-	 * Without this, the first time opening a Submenu and activating an item in it will be 2 steps,
-	 * but the second time the same item is accessed the menu memory would auto activate the
-	 * last used menu and the key intended to select that submenu ends up being passed into the submenu.
-	 * - Campbell
-	 */
-	char auto_is_first_event;
-	char _pad[6];
+	char _pad[7];
 	double auto_open_last;
 
 	const char *lockstr;
@@ -325,7 +321,6 @@ struct uiBlock {
 	char tooltipdisabled;       /* to avoid tooltip after click */
 	char endblock;              /* uiEndBlock done? */
 
-	float xofs, yofs;           /* offset to parent button */
 	eBlockBoundsCalc bounds_type;  /* for doing delayed */
 	int mx, my;
 	int bounds, minbounds;      /* for doing delayed */
@@ -375,7 +370,8 @@ extern void ui_set_but_hsv(uiBut *but);
 extern void ui_get_but_vectorf(uiBut *but, float vec[3]);
 extern void ui_set_but_vectorf(uiBut *but, const float vec[3]);
 
-extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
+extern void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rect,
+                                       const float mx, const float my);
 
 extern void ui_get_but_string(uiBut *but, char *str, size_t maxlen);
 extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen);
@@ -428,6 +424,9 @@ struct uiPopupBlockHandle {
 	int menuretval;
 	float retvalue;
 	float retvec[4];
+
+	/* menu direction */
+	int direction;
 };
 
 uiBlock *ui_block_func_COLOR(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
@@ -473,7 +472,7 @@ extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
 extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
-extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);
+extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
 void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const float alpha);
 
@@ -490,6 +489,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, struct uiWidgetColors *wc
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
 extern int ui_button_is_active(struct ARegion *ar);
+extern int ui_button_open_menu_direction(uiBut *but);
+extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiBut *but, int restore);
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
@@ -509,7 +510,7 @@ void ui_widget_color_init(struct ThemeUI *tui);
 void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *name, int iconid, int state);
 
-extern unsigned char checker_stipple_sml[];
+extern unsigned char checker_stipple_sml[32 * 32 / 8];
 /* used for transp checkers */
 #define UI_TRANSP_DARK 100
 #define UI_TRANSP_LIGHT 160

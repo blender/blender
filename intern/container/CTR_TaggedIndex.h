@@ -29,13 +29,6 @@
  *  \ingroup ctr
  */
 
-
-/**
-
- * Copyright (C) 2001 NaN Technologies B.V.
- * Simple tagged index class.
- */
-
 #ifndef __CTR_TAGGEDINDEX_H__
 #define __CTR_TAGGEDINDEX_H__
 
@@ -53,7 +46,6 @@
 #include "MEM_sys_types.h"
 
 enum {
-
 	empty_tag = 0x0,
 	empty_index = 0xffffffff
 };
@@ -191,7 +183,7 @@ public:
 		return (Tag() == Empty().Tag());
 	}
 	
-	// functionals 
+	/* functionals */
 
 	struct greater : std::binary_function<CTR_TaggedIndex, CTR_TaggedIndex, bool>
 	{
@@ -213,7 +205,6 @@ private :
 	unsigned int m_val;
 
 
-};			
+};
 
-#endif
-
+#endif  /* __CTR_TAGGEDINDEX_H__ */

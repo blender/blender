@@ -46,16 +46,19 @@ __device void to_unit_disk(float *x, float *y)
 	if(a > -b) {
 		if(a > b) {
 			r = a;
-			 phi = M_PI_4_F *(b/a);
-		 } else {
-			 r = b;
-			 phi = M_PI_4_F *(2.0f - a/b);
-		 }
-	} else {
+			phi = M_PI_4_F *(b/a);
+		}
+		else {
+			r = b;
+			phi = M_PI_4_F *(2.0f - a/b);
+		}
+	}
+	else {
 		if(a < b) {
 			r = -a;
 			phi = M_PI_4_F *(4.0f + b/a);
-		} else {
+		}
+		else {
 			r = -b;
 			if(b != 0.0f)
 				phi = M_PI_4_F *(6.0f - a/b);
@@ -69,7 +72,7 @@ __device void to_unit_disk(float *x, float *y)
 
 __device void make_orthonormals_tangent(const float3 N, const float3 T, float3 *a, float3 *b)
 {
-	*b = cross(N, T);
+	*b = normalize(cross(N, T));
 	*a = cross(*b, N);
 }
 

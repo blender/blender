@@ -84,5 +84,4 @@ public:
 #endif
 };
 
-#endif //__KX_CLIENTOBJECTINFO_H__
-
+#endif  /* __KX_CLIENTOBJECTINFO_H__ */

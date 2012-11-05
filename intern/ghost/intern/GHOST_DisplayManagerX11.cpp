@@ -88,8 +88,8 @@ getNumDisplaySettings(
 
 #else
 	/* We only have one X11 setting at the moment. */
-	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");	
-	numSettings = GHOST_TInt32(1);
+	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
+	numSettings = 1;
 #endif
 
 	return GHOST_kSuccess;
@@ -130,8 +130,8 @@ getDisplaySetting(
 	setting.bpp = DefaultDepth(dpy, DefaultScreen(dpy));
 
 #else
-	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");	
-	GHOST_ASSERT(index < 1, "Requested setting outside of valid range.\n");	
+	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
+	GHOST_ASSERT(index < 1, "Requested setting outside of valid range.\n");
 	
 	Display *x_display = m_system->getXDisplay();
 
@@ -160,7 +160,7 @@ getCurrentDisplaySetting(
 	/* According to the xf86vidmodegetallmodelines man page,
 	 * "The first element of the array corresponds to the current video mode."
 	 */
-	return getDisplaySetting(display, GHOST_TInt32(0), setting);
+	return getDisplaySetting(display, 0, setting);
 }
 
 

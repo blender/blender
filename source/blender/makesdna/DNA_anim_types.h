@@ -246,13 +246,13 @@ typedef enum eFMod_Noise_Modifications {
 
 /* stepped modifier data */
 typedef struct FMod_Stepped {
-	float step_size;				/* Number of frames each interpolated value should be held */
-	float offset;					/* Reference frame number that stepping starts from */
-	
-	float start_frame;				/* start frame of the frame range that modifier works in */				
-	float end_frame;				/* end frame of the frame range that modifier works in */
-	
-	int flag;						/* various settings */	
+	float step_size;                /* Number of frames each interpolated value should be held */
+	float offset;                   /* Reference frame number that stepping starts from */
+
+	float start_frame;              /* start frame of the frame range that modifier works in */
+	float end_frame;                /* end frame of the frame range that modifier works in */
+
+	int flag;                       /* various settings */
 } FMod_Stepped;
 
 /* stepped modifier range flags */
@@ -325,14 +325,14 @@ typedef enum eDriverTarget_TransformChannels {
  */
 typedef struct DriverVar {
 	struct DriverVar *next, *prev;
-	
-	char name[64];				/* name of the variable to use in py-expression (must be valid python identifier) */
-	
-	DriverTarget targets[8];	/* MAX_DRIVER_TARGETS, target slots */	
-	short num_targets;			/* number of targets actually used by this variable */
-	
-	short type;					/* type of driver target (eDriverTarget_Types) */	
-	float curval;				/* result of previous evaluation */
+
+	char name[64];              /* name of the variable to use in py-expression (must be valid python identifier) */
+
+	DriverTarget targets[8];    /* MAX_DRIVER_TARGETS, target slots */
+	short num_targets;          /* number of targets actually used by this variable */
+
+	short type;                 /* type of driver target (eDriverTarget_Types) */
+	float curval;               /* result of previous evaluation */
 } DriverVar;
 
 /* Driver Variable Types */
@@ -556,36 +556,36 @@ typedef struct AnimMapper {
  */
 typedef struct NlaStrip {
 	struct NlaStrip *next, *prev;
-	
-	ListBase strips;			/* 'Child' strips (used for 'meta' strips) */
-	bAction *act;				/* Action that is referenced by this strip (strip is 'user' of the action) */
-	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondence of action with context) */
-	
-	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */	// TODO: move out?
-	ListBase modifiers;			/* F-Curve modifiers to be applied to the entire strip's referenced F-Curves */
-	
-	char name[64];				/* User-Visible Identifier for Strip */
-	
-	float influence;			/* Influence of strip */
-	float strip_time;			/* Current 'time' within action being used (automatically evaluated, but can be overridden) */
-	
-	float start, end;			/* extents of the strip */
-	float actstart, actend;		/* range of the action to use */
-	
-	float repeat;				/* The number of times to repeat the action range (only when no F-Curves) */
-	float scale;				/* The amount the action range is scaled by (only when no F-Curves) */
-	
-	float blendin, blendout;	/* strip blending length (only used when there are no F-Curves) */	
-	short blendmode;			/* strip blending mode (layer-based mixing) */
-	
-	short extendmode;			/* strip extrapolation mode (time-based mixing) */
+
+	ListBase strips;            /* 'Child' strips (used for 'meta' strips) */
+	bAction *act;               /* Action that is referenced by this strip (strip is 'user' of the action) */
+	AnimMapper *remap;          /* Remapping info this strip (for tweaking correspondence of action with context) */
+
+	ListBase fcurves;           /* F-Curves for controlling this strip's influence and timing */    // TODO: move out?
+	ListBase modifiers;         /* F-Curve modifiers to be applied to the entire strip's referenced F-Curves */
+
+	char name[64];              /* User-Visible Identifier for Strip */
+
+	float influence;            /* Influence of strip */
+	float strip_time;           /* Current 'time' within action being used (automatically evaluated, but can be overridden) */
+
+	float start, end;           /* extents of the strip */
+	float actstart, actend;     /* range of the action to use */
+
+	float repeat;               /* The number of times to repeat the action range (only when no F-Curves) */
+	float scale;                /* The amount the action range is scaled by (only when no F-Curves) */
+
+	float blendin, blendout;    /* strip blending length (only used when there are no F-Curves) */
+	short blendmode;            /* strip blending mode (layer-based mixing) */
+
+	short extendmode;           /* strip extrapolation mode (time-based mixing) */
 	short pad1;
-	
-	short type;					/* type of NLA strip */
-	
-	void *speaker_handle;		/* handle for speaker objects */
-	
-	int flag;					/* settings */
+
+	short type;                 /* type of NLA strip */
+
+	void *speaker_handle;       /* handle for speaker objects */
+
+	int flag;                   /* settings */
 	int pad2;
 } NlaStrip;
 
@@ -600,48 +600,48 @@ typedef enum eNlaStrip_Blend_Mode {
 /* NLA Strip Extrpolation Mode */
 typedef enum eNlaStrip_Extrapolate_Mode {
 		/* extend before first frame if no previous strips in track, and always hold+extend last frame */
-	NLASTRIP_EXTEND_HOLD	= 0,		
+	NLASTRIP_EXTEND_HOLD = 0,
 		/* only hold+extend last frame */
-	NLASTRIP_EXTEND_HOLD_FORWARD,	
+	NLASTRIP_EXTEND_HOLD_FORWARD = 1,
 		/* don't contribute at all */
-	NLASTRIP_EXTEND_NOTHING
+	NLASTRIP_EXTEND_NOTHING = 2
 } eNlaStrip_Extrapolate_Mode;
 
 /* NLA Strip Settings */
 typedef enum eNlaStrip_Flag {
 	/* UI selection flags */
 		/* NLA strip is the active one in the track (also indicates if strip is being tweaked) */
-	NLASTRIP_FLAG_ACTIVE		= (1<<0),	
+	NLASTRIP_FLAG_ACTIVE        = (1<<0),
 		/* NLA strip is selected for editing */
-	NLASTRIP_FLAG_SELECT		= (1<<1),
-//	NLASTRIP_FLAG_SELECT_L		= (1<<2),	// left handle selected
-//	NLASTRIP_FLAG_SELECT_R		= (1<<3),	// right handle selected
+	NLASTRIP_FLAG_SELECT        = (1<<1),
+//  NLASTRIP_FLAG_SELECT_L      = (1<<2),   // left handle selected
+//  NLASTRIP_FLAG_SELECT_R      = (1<<3),   // right handle selected
 		/* NLA strip uses the same action that the action being tweaked uses (not set for the twaking one though) */
-	NLASTRIP_FLAG_TWEAKUSER		= (1<<4),
-	
+	NLASTRIP_FLAG_TWEAKUSER     = (1<<4),
+
 	/* controls driven by local F-Curves */
 		/* strip influence is controlled by local F-Curve */
-	NLASTRIP_FLAG_USR_INFLUENCE	= (1<<5),
-	NLASTRIP_FLAG_USR_TIME		= (1<<6),
+	NLASTRIP_FLAG_USR_INFLUENCE = (1<<5),
+	NLASTRIP_FLAG_USR_TIME      = (1<<6),
 	NLASTRIP_FLAG_USR_TIME_CYCLIC = (1<<7),
-	
+
 		/* NLA strip length is synced to the length of the referenced action */
-	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<9),
-	
+	NLASTRIP_FLAG_SYNC_LENGTH   = (1<<9),
+
 	/* playback flags (may be overridden by F-Curves) */
 		/* NLA strip blendin/out values are set automatically based on overlaps */
-	NLASTRIP_FLAG_AUTO_BLENDS	= (1<<10),
+	NLASTRIP_FLAG_AUTO_BLENDS   = (1<<10),
 		/* NLA strip is played back in reverse order */
-	NLASTRIP_FLAG_REVERSE		= (1<<11),
+	NLASTRIP_FLAG_REVERSE       = (1<<11),
 		/* NLA strip is muted (i.e. doesn't contribute in any way) */
-	NLASTRIP_FLAG_MUTED			= (1<<12),
+	NLASTRIP_FLAG_MUTED         = (1<<12),
 		/* NLA Strip is played back in 'ping-pong' style */
-	NLASTRIP_FLAG_MIRROR		= (1<<13),
-	
+	NLASTRIP_FLAG_MIRROR        = (1<<13),
+
 	/* temporary editing flags */
 		/* NLA-Strip is really just a temporary meta used to facilitate easier transform code */
-	NLASTRIP_FLAG_TEMP_META		= (1<<30),
-	NLASTRIP_FLAG_EDIT_TOUCHED	= (1<<31)
+	NLASTRIP_FLAG_TEMP_META     = (1<<30),
+	NLASTRIP_FLAG_EDIT_TOUCHED  = (1<<31)
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */
@@ -651,7 +651,7 @@ typedef enum eNlaStrip_Type {
 		/* 'transition' - blends between the adjacent strips */
 	NLASTRIP_TYPE_TRANSITION,
 		/* 'meta' - a strip which acts as a container for a few others */
-	NLASTRIP_TYPE_META,	
+	NLASTRIP_TYPE_META,
 	
 		/* 'emit sound' - a strip which is used for timing when speaker emits sounds */
 	NLASTRIP_TYPE_SOUND
@@ -827,71 +827,71 @@ typedef struct AnimOverride {
  * This datablock should be placed immediately after the ID block where it is used, so that
  * the code which retrieves this data can do so in an easier manner. See blenkernel/intern/anim_sys.c for details.
  */
-typedef struct AnimData {	
+typedef struct AnimData {
 		/* active action - acts as the 'tweaking track' for the NLA */
-	bAction 	*action;	
-		/* temp-storage for the 'real' active action (i.e. the one used before the tweaking-action 
-		 * took over to be edited in the Animation Editors) 
+	bAction     *action;
+		/* temp-storage for the 'real' active action (i.e. the one used before the tweaking-action
+		 * took over to be edited in the Animation Editors)
 		 */
-	bAction 	*tmpact;
-		/* remapping-info for active action - should only be used if needed 
-		 * (for 'foreign' actions that aren't working correctly) 
+	bAction     *tmpact;
+		/* remapping-info for active action - should only be used if needed
+		 * (for 'foreign' actions that aren't working correctly)
 		 */
-	AnimMapper	*remap;			
-	
+	AnimMapper  *remap;
+
 		/* nla-tracks */
-	ListBase 	nla_tracks;
+	ListBase    nla_tracks;
 		/* active NLA-strip (only set/used during tweaking, so no need to worry about dangling pointers) */
-	NlaStrip	*actstrip;
-	
-	/* 'drivers' for this ID-block's settings - FCurves, but are completely 
-	 * separate from those for animation data 
+	NlaStrip    *actstrip;
+
+	/* 'drivers' for this ID-block's settings - FCurves, but are completely
+	 * separate from those for animation data
 	 */
-	ListBase	drivers;	/* standard user-created Drivers/Expressions (used as part of a rig) */
-	ListBase 	overrides;	/* temp storage (AnimOverride) of values for settings that are animated (but the value hasn't been keyframed) */
-	
+	ListBase    drivers;    /* standard user-created Drivers/Expressions (used as part of a rig) */
+	ListBase    overrides;  /* temp storage (AnimOverride) of values for settings that are animated (but the value hasn't been keyframed) */
+
 		/* settings for animation evaluation */
-	int flag;				/* user-defined settings */
-	int recalc;				/* depsgraph recalculation flags */	
-	
+	int flag;               /* user-defined settings */
+	int recalc;             /* depsgraph recalculation flags */
+
 		/* settings for active action evaluation (based on NLA strip settings) */
-	short act_blendmode;	/* accumulation mode for active action */
-	short act_extendmode;	/* extrapolation mode for active action */
-	float act_influence;	/* influence for active action */
+	short act_blendmode;    /* accumulation mode for active action */
+	short act_extendmode;   /* extrapolation mode for active action */
+	float act_influence;    /* influence for active action */
 } AnimData;
 
 /* Animation Data settings (mostly for NLA) */
 typedef enum eAnimData_Flag {
 		/* only evaluate a single track in the NLA */
-	ADT_NLA_SOLO_TRACK		= (1<<0),
+	ADT_NLA_SOLO_TRACK      = (1<<0),
 		/* don't use NLA */
-	ADT_NLA_EVAL_OFF		= (1<<1),
+	ADT_NLA_EVAL_OFF        = (1<<1),
 		/* NLA is being 'tweaked' (i.e. in EditMode) */
-	ADT_NLA_EDIT_ON			= (1<<2),
+	ADT_NLA_EDIT_ON         = (1<<2),
 		/* active Action for 'tweaking' does not have mapping applied for editing */
-	ADT_NLA_EDIT_NOMAP		= (1<<3),
+	ADT_NLA_EDIT_NOMAP      = (1<<3),
 		/* NLA-Strip F-Curves are expanded in UI */
-	ADT_NLA_SKEYS_COLLAPSED	= (1<<4),
-	
+	ADT_NLA_SKEYS_COLLAPSED = (1<<4),
+
 		/* drivers expanded in UI */
-	ADT_DRIVERS_COLLAPSED	= (1<<10),
+	ADT_DRIVERS_COLLAPSED   = (1<<10),
 		/* don't execute drivers */
-	ADT_DRIVERS_DISABLED	= (1<<11),
-	
+	ADT_DRIVERS_DISABLED    = (1<<11),
+
 		/* AnimData block is selected in UI */
-	ADT_UI_SELECTED			= (1<<14),
+	ADT_UI_SELECTED         = (1<<14),
 		/* AnimData block is active in UI */
-	ADT_UI_ACTIVE			= (1<<15),
-	
+	ADT_UI_ACTIVE           = (1<<15),
+
 		/* F-Curves from this AnimData block are not visible in the Graph Editor */
-	ADT_CURVES_NOT_VISIBLE	= (1<<16)
+	ADT_CURVES_NOT_VISIBLE  = (1<<16)
 } eAnimData_Flag;
 
 /* Animation Data recalculation settings (to be set by depsgraph) */
 typedef enum eAnimData_Recalc {
-	ADT_RECALC_DRIVERS		= (1<<0),
-	ADT_RECALC_ANIM			= (1<<1),
-	ADT_RECALC_ALL			= (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM)
+	ADT_RECALC_DRIVERS      = (1 << 0),
+	ADT_RECALC_ANIM         = (1 << 1),
+	ADT_RECALC_ALL          = (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM)
 } eAnimData_Recalc;
 
 /* Base Struct for Anim ------------------------------------- */

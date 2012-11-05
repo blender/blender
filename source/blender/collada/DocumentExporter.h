@@ -40,7 +40,7 @@ class DocumentExporter
  public:
 	DocumentExporter(const ExportSettings *export_settings);
 	void exportCurrentScene(Scene *sce);
-	void exportScenes(const char* filename);
+	void exportScenes(const char *filename);
 private:
 	const ExportSettings *export_settings;
 };

@@ -114,7 +114,7 @@ typedef struct ReebArc {
 	int bcount;
 	struct EmbedBucket *buckets;
 
-	struct GHash *faces;	
+	struct GHash *faces;
 	float angle;
 	struct ReebArc *link_up; /* for multi resolution filtering, points to higher levels */
 } ReebArc;

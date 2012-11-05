@@ -157,11 +157,10 @@ protected:
 	bool PyArgToBool(int boolArg);
 
 	/** Convert a a c++ value to KX_TRUE, KX_FALSE in Python. */
-	PyObject* BoolToPyArg(bool);
+	PyObject *BoolToPyArg(bool);
 	
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
 };
 
-#endif
-
+#endif  /* __SCA_ILOGICBRICK_H__ */

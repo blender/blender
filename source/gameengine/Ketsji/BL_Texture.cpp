@@ -47,7 +47,7 @@ static int power_of_2_min_i(int num)
 {
 	while (!is_power_of_2_i(num))
 		num= num&(num-1);
-	return num;	
+	return num;
 }
 
 // Place holder for a full texture manager
@@ -427,7 +427,7 @@ void BL_Texture::DisableAllTextures()
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 		glMatrixMode(GL_MODELVIEW);
-		glDisable(GL_TEXTURE_2D);	
+		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_TEXTURE_GEN_S);
 		glDisable(GL_TEXTURE_GEN_T);
 		glDisable(GL_TEXTURE_GEN_R);
@@ -447,14 +447,14 @@ void BL_Texture::ActivateTexture()
 
 	if (mType == GL_TEXTURE_CUBE_MAP_ARB && GLEW_ARB_texture_cube_map)
 	{
-		glBindTexture( GL_TEXTURE_CUBE_MAP_ARB, mTexture );	
+		glBindTexture( GL_TEXTURE_CUBE_MAP_ARB, mTexture );
 		glEnable(GL_TEXTURE_CUBE_MAP_ARB);
 	}
 	else {
 		if (GLEW_ARB_texture_cube_map )
 			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
 
-		glBindTexture( GL_TEXTURE_2D, mTexture );	
+		glBindTexture( GL_TEXTURE_2D, mTexture );
 		glEnable(GL_TEXTURE_2D);
 	}
 }
@@ -562,7 +562,7 @@ void BL_Texture::setTexEnv(BL_Material *mat, bool modulate)
 		using_alpha = true;
 	}
 
-	switch( mat->blend_mode[mUnit] ) {
+	switch (mat->blend_mode[mUnit]) {
 		case BLEND_MIX:
 			{
 				// ------------------------------
@@ -659,7 +659,7 @@ void my_envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 {
 	int dx, part;
 	
-	my_free_envmapdata(env);	
+	my_free_envmapdata(env);
 	
 	dx= ibuf->y;
 	dx/= 2;
@@ -670,7 +670,7 @@ void my_envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	}
 	else {
 		for (part=0; part<6; part++) {
-			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect);
+			env->cube[part] = IMB_allocImBuf(dx, dx, 24, IB_rect);
 		}
 		IMB_rectcpy(env->cube[0], ibuf, 
 			0, 0, 0, 0, dx, dx);
@@ -698,7 +698,7 @@ void my_free_envmapdata(EnvMap *env)
 		ImBuf *ibuf= env->cube[part];
 		if (ibuf) {
 			IMB_freeImBuf(ibuf);
-			env->cube[part]= NULL;
+			env->cube[part] = NULL;
 		}
 	}
 	env->ok= 0;

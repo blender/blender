@@ -56,5 +56,4 @@ public:
 #endif
 };
 
-#endif //__IDENTIFIEREXPR_H__
-
+#endif  /* __IDENTIFIEREXPR_H__ */

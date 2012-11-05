@@ -186,7 +186,7 @@ static void waveModifier_do(WaveModifierData *md,
 	const float falloff = wmd->falloff;
 	float falloff_fac = 1.0f; /* when falloff == 0.0f this stays at 1.0f */
 
-	if (wmd->flag & MOD_WAVE_NORM && ob->type == OB_MESH)
+	if ((wmd->flag & MOD_WAVE_NORM) && (ob->type == OB_MESH))
 		mvert = dm->getVertArray(dm);
 
 	if (wmd->objectcenter) {

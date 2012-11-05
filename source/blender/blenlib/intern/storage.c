@@ -34,7 +34,7 @@
 
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdlib.h>	
+#include <stdlib.h>
 
 #ifndef WIN32
 #include <dirent.h>
@@ -187,7 +187,7 @@ double BLI_dir_free_space(const char *dir)
 #endif
 
 #if defined(__sun__) || defined(__sun) || defined(__NetBSD__)
-	if (statvfs(name, &disk)) return(-1);	
+	if (statvfs(name, &disk)) return(-1);
 #elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
 	if (statfs(name, &disk, sizeof(struct statfs), 0)) return(-1);
@@ -418,9 +418,9 @@ static void bli_adddirstrings(void)
 
 unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 {
-	// reset global variables
-	// memory stored in files is free()'d in
-	// filesel.c:freefilelist()
+	/* reset global variables
+	 * memory stored in files is free()'d in
+	 * filesel.c:freefilelist() */
 
 	actnum = totnum = 0;
 	files = NULL;

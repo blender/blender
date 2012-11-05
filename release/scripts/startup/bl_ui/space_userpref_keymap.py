@@ -186,10 +186,10 @@ class InputKeyMapPanel:
                 sub = split.column()
                 subrow = sub.row(align=True)
 
-                if map_type in {'KEYBOARD', 'NDOF'}:
+                if map_type == 'KEYBOARD':
                     subrow.prop(kmi, "type", text="", event=True)
                     subrow.prop(kmi, "value", text="")
-                elif map_type == 'MOUSE':
+                elif map_type in {'MOUSE', 'NDOF'}:
                     subrow.prop(kmi, "type", text="")
                     subrow.prop(kmi, "value", text="")
 
@@ -218,8 +218,8 @@ class InputKeyMapPanel:
             layout.context_pointer_set("keymap", km)
 
             filtered_items = [kmi for kmi in km.keymap_items
-                              if filter_text in kmi.idname.lower() or
-                                 filter_text in kmi.name.lower()]
+                              if (filter_text in kmi.idname.lower() or
+                                  filter_text in kmi.name.lower())]
 
             if filtered_items:
                 col = layout.column()

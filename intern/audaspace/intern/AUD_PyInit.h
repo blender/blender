@@ -38,9 +38,9 @@ extern "C" {
 #endif
 
 /**
- * Initalizes the Python module.
+ * Initializes the Python module.
  */
-extern PyObject* AUD_initPython(void);
+extern PyObject *AUD_initPython(void);
 
 #ifdef __cplusplus
 }

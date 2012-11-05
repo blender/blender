@@ -29,6 +29,7 @@ from bpy.types import Header, Menu
 def dopesheet_filter(layout, context, genericFiltersOnly=False):
     dopesheet = context.space_data.dopesheet
     is_nla = context.area.type == 'NLA_EDITOR'
+    is_drivers = (context.area.type == 'GRAPH_EDITOR' and context.space_data.mode == 'DRIVERS')
 
     row = layout.row(align=True)
     row.prop(dopesheet, "show_only_selected", text="")
@@ -36,6 +37,9 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
 
     if is_nla:
         row.prop(dopesheet, "show_missing_nla", text="")
+
+    if is_drivers:
+        row.prop(dopesheet, "show_only_errors", text="")
 
     if not genericFiltersOnly:
         if bpy.data.groups:
@@ -161,7 +165,6 @@ class DOPESHEET_MT_view(Menu):
         layout.operator("action.previewrange_set")
 
         layout.separator()
-        layout.operator("action.frame_jump")
         layout.operator("action.view_all")
         layout.operator("action.view_selected")
 
@@ -271,6 +274,9 @@ class DOPESHEET_MT_key(Menu):
         layout.separator()
         layout.operator("action.keyframe_insert")
 
+        layout.separator()
+        layout.operator("action.frame_jump")        
+        
         layout.separator()
         layout.operator("action.duplicate_move")
         layout.operator("action.delete")

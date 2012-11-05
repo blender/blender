@@ -29,6 +29,7 @@
 
 #include "BLI_math.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -100,28 +101,30 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const char *name)
+static EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const char *name)
 {
 	if (arm->edbo == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant add an editbone", arm->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in edit mode, cannot add an editbone", arm->id.name + 2);
 		return NULL;
 	}
 	return ED_armature_edit_bone_add(arm, name);
 }
 
-void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone *ebone)
+static void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, PointerRNA *ebone_ptr)
 {
+	EditBone *ebone = ebone_ptr->data;
 	if (arm->edbo == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant remove an editbone", arm->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in edit mode, cannot remove an editbone", arm->id.name + 2);
 		return;
 	}
 
 	if (BLI_findindex(arm->edbo, ebone) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Armature '%s' doesn't contain bone '%s'", arm->id.name + 2, ebone->name);
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' does not contain bone '%s'", arm->id.name + 2, ebone->name);
 		return;
 	}
 
 	ED_armature_edit_bone_remove(arm, ebone);
+	RNA_POINTER_INVALIDATE(ebone_ptr);
 }
 
 static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -271,7 +274,7 @@ static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
 	}
 }
 
-/* XXX depreceated.... old armature only animviz */
+/* XXX deprecated.... old armature only animviz */
 static void rna_Armature_ghost_start_frame_set(PointerRNA *ptr, int value)
 {
 	bArmature *data = (bArmature *)ptr->data;
@@ -293,7 +296,7 @@ static void rna_Armature_ghost_end_frame_set(PointerRNA *ptr, int value)
 		data->ghostsf = MAX2(data->ghostef, 1);
 	}
 }
-/* XXX depreceated... old armature only animviz */
+/* XXX deprecated... old armature only animviz */
 
 static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 {
@@ -564,7 +567,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	if (editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	else RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	RNA_def_property_float_sdna(prop, NULL, "rad_head");
-	/* XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid); */
+	/* XXX range is 0 to lim, where lim = 10000.0f * MAX2(1.0, view3d->grid); */
 	/*RNA_def_property_range(prop, 0, 1000); */
 	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Head Radius", "Radius of head of bone (for Envelope deform only)");
@@ -573,7 +576,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	if (editbone) RNA_def_property_update(prop, 0, "rna_Armature_editbone_transform_update");
 	else RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	RNA_def_property_float_sdna(prop, NULL, "rad_tail");
-	/* XXX range is 0 to lim, where lim= 10000.0f*MAX2(1.0, view3d->grid); */
+	/* XXX range is 0 to lim, where lim = 10000.0f * MAX2(1.0, view3d->grid); */
 	/*RNA_def_property_range(prop, 0, 1000); */
 	RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Envelope Tail Radius", "Radius of tail of bone (for Envelope deform only)");
@@ -865,7 +868,8 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove an existing bone from the armature");
 	/* target to remove*/
 	parm = RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_armature(BlenderRNA *brna)
@@ -945,14 +949,14 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
-/* XXX depreceated ....... old animviz for armatures only */
+/* XXX deprecated ....... old animviz for armatures only */
 	prop = RNA_def_property(srna, "ghost_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ghosttype");
 	RNA_def_property_enum_items(prop, prop_ghost_type_items);
 	RNA_def_property_ui_text(prop, "Ghost Type", "Method of Onion-skinning for active Action");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-/* XXX depreceated ....... old animviz for armatures only	 */
+/* XXX deprecated ....... old animviz for armatures only	 */
 
 	/* Boolean values */
 	/* layer */
@@ -1013,16 +1017,16 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Bone Group Colors", "Draw bone group colors");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
-/* XXX depreceated ....... old animviz for armatures only */
+/* XXX deprecated ....... old animviz for armatures only */
 	prop = RNA_def_property(srna, "show_only_ghost_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_GHOST_ONLYSEL);
 	RNA_def_property_ui_text(prop, "Draw Ghosts on Selected Bones Only", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-/* XXX depreceated ....... old animviz for armatures only */
+/* XXX deprecated ....... old animviz for armatures only */
 
 	/* Number fields */
-/* XXX depreceated ....... old animviz for armatures only */
+/* XXX deprecated ....... old animviz for armatures only */
 	/* ghost/onionskining settings */
 	prop = RNA_def_property(srna, "ghost_step", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghostep");
@@ -1058,7 +1062,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	                         "(not for 'Around Current Frame' Onion-skinning method)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-/* XXX depreceated ....... old animviz for armatures only */
+/* XXX deprecated ....... old animviz for armatures only */
 }
 
 void RNA_def_armature(BlenderRNA *brna)

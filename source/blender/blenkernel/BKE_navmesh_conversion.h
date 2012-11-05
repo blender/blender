@@ -60,4 +60,4 @@ int polyFindVertex(const unsigned short *p, const int vertsPerPoly, unsigned sho
 float distPointToSegmentSq(const float *point, const float *a, const float *b);
 
 
-#endif //NAVMESH_CONVERSION_H
+#endif  /* NAVMESH_CONVERSION_H */

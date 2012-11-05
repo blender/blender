@@ -46,21 +46,21 @@ typedef struct bAddObjectActuator {
 	struct Object *ob;
 } bAddObjectActuator;
 
-typedef struct bActionActuator {								
-	struct bAction *act;	/* Pointer to action */				
-	short	type, flag;		/* Playback type */  // not in use
-	float	sta, end;		/* Start & End frames */			
-	char	name[64];		/* For property-driven playback, MAX_NAME */	
-	char	frameProp[64];	/* Set this property to the actions current frame, MAX_NAME */
-	short	blendin;		/* Number of frames of blending */
-	short	priority;		/* Execution priority */
-	short	layer;			/* Animation layer */
-	short	end_reset;	/* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
-	short	strideaxis;		/* Displacement axis */
-	short	pad;
-	float	stridelength;	/* Displacement incurred by cycle */ // not in use
-	float	layer_weight;	/* How much of the previous layer to use for blending. (<0 = disable, 0 = add mode) */
-} bActionActuator;												
+typedef struct bActionActuator {
+	struct bAction *act;    /* Pointer to action */
+	short   type, flag;     /* Playback type */  // not in use
+	float   sta, end;       /* Start & End frames */
+	char    name[64];       /* For property-driven playback, MAX_NAME */
+	char    frameProp[64];  /* Set this property to the actions current frame, MAX_NAME */
+	short   blendin;        /* Number of frames of blending */
+	short   priority;       /* Execution priority */
+	short   layer;          /* Animation layer */
+	short   end_reset;      /* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
+	short   strideaxis;     /* Displacement axis */
+	short   pad;
+	float   stridelength;   /* Displacement incurred by cycle */ // not in use
+	float   layer_weight;   /* How much of the previous layer to use for blending. (<0 = disable, 0 = add mode) */
+} bActionActuator;
 
 typedef struct Sound3D {
 	float min_gain;
@@ -261,7 +261,7 @@ typedef struct bActuator {
 	/**
 	 * For ipo's and props: to find out which object the actuator
 	 * belongs to */
-	struct Object *ob;		
+	struct Object *ob;
 	
 } bActuator;
 

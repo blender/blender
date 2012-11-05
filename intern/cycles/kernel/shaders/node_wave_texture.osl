@@ -1,0 +1,61 @@
+/*
+ * Copyright 2012, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+#include "node_texture.h"
+
+/* Wave */
+
+float wave(point p, float scale, string type, float detail, float distortion, float dscale)
+{
+	float x = p[0] * scale;
+	float y = p[1] * scale;
+	float z = p[2] * scale;
+
+	float result = 0.0;
+	float n = 0.0;
+
+	if (type == "Bands") {
+		n = (x + y + z) * 10.0;
+	}
+	else if (type == "Rings") {
+		n = (sqrt(x * x + y * y + z * z) * 20.0);
+	}
+
+	if (distortion != 0.0) {
+		n = n + (distortion * noise_turbulence(p * dscale, "Perlin", detail, 0));
+	}
+	result = noise_wave("Sine", n);
+	
+	return result;
+}
+
+shader node_wave_texture(
+	string Type = "Bands",
+	float Scale = 5.0,
+	float Distortion = 0.0,
+	float Detail = 2.0,
+	float DetailScale = 1.0,
+	point Vector = P,
+	output float Fac = 0.0,
+	output color Color = color (0.0, 0.0, 0.0))
+{
+	Fac = wave(Vector, Scale, Type, Detail, Distortion, DetailScale);
+	Color = color(Fac, Fac, Fac);
+}
+

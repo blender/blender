@@ -4,27 +4,14 @@
 // Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_HOUSEHOLDER_SEQUENCE_H
 #define EIGEN_HOUSEHOLDER_SEQUENCE_H
+
+namespace Eigen { 
 
 /** \ingroup Householder_Module
   * \householder_module
@@ -237,13 +224,20 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     ConjugateReturnType inverse() const { return adjoint(); }
 
     /** \internal */
-    template<typename DestType> void evalTo(DestType& dst) const
+    template<typename DestType> inline void evalTo(DestType& dst) const
     {
-      Index vecs = m_length;
-      // FIXME find a way to pass this temporary if the user wants to
       Matrix<Scalar, DestType::RowsAtCompileTime, 1,
-             AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
-      if(    internal::is_same<typename internal::remove_all<VectorsType>::type,DestType>::value
+             AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> workspace(rows());
+      evalTo(dst, workspace);
+    }
+
+    /** \internal */
+    template<typename Dest, typename Workspace>
+    void evalTo(Dest& dst, Workspace& workspace) const
+    {
+      workspace.resize(rows());
+      Index vecs = m_length;
+      if(    internal::is_same<typename internal::remove_all<VectorsType>::type,Dest>::value
           && internal::extract_data(dst) == internal::extract_data(m_vectors))
       {
         // in-place
@@ -254,10 +248,10 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
           Index cornerSize = rows() - k - m_shift;
           if(m_trans)
             dst.bottomRightCorner(cornerSize, cornerSize)
-            .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+               .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), workspace.data());
           else
             dst.bottomRightCorner(cornerSize, cornerSize)
-              .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+               .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), workspace.data());
 
           // clear the off diagonal vector
           dst.col(k).tail(rows()-k-1).setZero();
@@ -274,10 +268,10 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
           Index cornerSize = rows() - k - m_shift;
           if(m_trans)
             dst.bottomRightCorner(cornerSize, cornerSize)
-            .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+               .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &workspace.coeffRef(0));
           else
             dst.bottomRightCorner(cornerSize, cornerSize)
-              .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+               .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), &workspace.coeffRef(0));
         }
       }
     }
@@ -285,24 +279,40 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     /** \internal */
     template<typename Dest> inline void applyThisOnTheRight(Dest& dst) const
     {
-      Matrix<Scalar,1,Dest::RowsAtCompileTime> temp(dst.rows());
+      Matrix<Scalar,1,Dest::RowsAtCompileTime,RowMajor,1,Dest::MaxRowsAtCompileTime> workspace(dst.rows());
+      applyThisOnTheRight(dst, workspace);
+    }
+
+    /** \internal */
+    template<typename Dest, typename Workspace>
+    inline void applyThisOnTheRight(Dest& dst, Workspace& workspace) const
+    {
+      workspace.resize(dst.rows());
       for(Index k = 0; k < m_length; ++k)
       {
         Index actual_k = m_trans ? m_length-k-1 : k;
         dst.rightCols(rows()-m_shift-actual_k)
-           .applyHouseholderOnTheRight(essentialVector(actual_k), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
+           .applyHouseholderOnTheRight(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
       }
     }
 
     /** \internal */
     template<typename Dest> inline void applyThisOnTheLeft(Dest& dst) const
     {
-      Matrix<Scalar,1,Dest::ColsAtCompileTime> temp(dst.cols());
+      Matrix<Scalar,1,Dest::ColsAtCompileTime,RowMajor,1,Dest::MaxColsAtCompileTime> workspace(dst.cols());
+      applyThisOnTheLeft(dst, workspace);
+    }
+
+    /** \internal */
+    template<typename Dest, typename Workspace>
+    inline void applyThisOnTheLeft(Dest& dst, Workspace& workspace) const
+    {
+      workspace.resize(dst.cols());
       for(Index k = 0; k < m_length; ++k)
       {
         Index actual_k = m_trans ? k : m_length-k-1;
         dst.bottomRows(rows()-m_shift-actual_k)
-           .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
+           .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), workspace.data());
       }
     }
 
@@ -425,5 +435,7 @@ HouseholderSequence<VectorsType,CoeffsType,OnTheRight> rightHouseholderSequence(
 {
   return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_HOUSEHOLDER_SEQUENCE_H

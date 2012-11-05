@@ -146,7 +146,7 @@ static float PerezFunction(struct SunSky *sunsky, const float *lam, float theta,
  * sun_size, controls sun's size
  * back_scatter, controls back scatter light
  * */
-void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_brightness, 
+void InitSunSky(struct SunSky *sunsky, float turb, const float toSun[3], float horizon_brightness,
                 float spread, float sun_brightness, float sun_size, float back_scatter,
                 float skyblendfac, short skyblendtype, float sky_exposure, float sky_colorspace)
 {
@@ -217,8 +217,7 @@ void InitSunSky(struct SunSky *sunsky, float turb, float *toSun, float horizon_b
 	sunsky->perez_y[3] = -0.04405f * T - 1.65369f;
 	sunsky->perez_y[4] = -0.01092f * T + 0.05291f;
 	
-	/* suggested by glome in 
-	 * http://projects.blender.org/tracker/?func=detail&atid=127&aid=8063&group_id=9*/
+	/* suggested by glome in patch [#8063] */
 	sunsky->perez_Y[0] *= sunsky->horizon_brightness;
 	sunsky->perez_x[0] *= sunsky->horizon_brightness;
 	sunsky->perez_y[0] *= sunsky->horizon_brightness;
@@ -275,7 +274,7 @@ void GetSkyXYZRadiance(struct SunSky *sunsky, float theta, float phi, float colo
 	/* Compute xyY values */
 	x = PerezFunction(sunsky, sunsky->perez_x, theta, gamma, sunsky->zenith_x);
 	y = PerezFunction(sunsky, sunsky->perez_y, theta, gamma, sunsky->zenith_y);
-	Y = 6.666666667e-5f *nfade *hfade *PerezFunction(sunsky, sunsky->perez_Y, theta, gamma, sunsky->zenith_Y);
+	Y = 6.666666667e-5f * nfade * hfade * PerezFunction(sunsky, sunsky->perez_Y, theta, gamma, sunsky->zenith_Y);
 
 	if (sunsky->sky_exposure != 0.0f)
 		Y = 1.0 - exp(Y * sunsky->sky_exposure);
@@ -330,8 +329,8 @@ static void ComputeAttenuatedSunlight(float theta, int turbidity, float fTau[3])
 
 	int i;
 	float fLambda[3]; 
-	fLambda[0] = 0.65f;	
-	fLambda[1] = 0.57f;	
+	fLambda[0] = 0.65f;
+	fLambda[1] = 0.57f;
 	fLambda[2] = 0.475f;
 
 	fAlpha = 1.3f;

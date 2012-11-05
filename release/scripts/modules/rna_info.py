@@ -249,7 +249,7 @@ class InfoPropertyRNA:
 
     def get_arg_default(self, force=True):
         default = self.default_str
-        if default and (force or self.is_required == False):
+        if default and (force or self.is_required is False):
             return "%s=%s" % (self.identifier, default)
         return self.identifier
 
@@ -493,7 +493,7 @@ def BuildRNAInfo():
 
     # Arrange so classes are always defined in the correct order
     deps_ok = False
-    while deps_ok == False:
+    while deps_ok is False:
         deps_ok = True
         rna_done = set()
 

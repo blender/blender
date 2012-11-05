@@ -85,7 +85,7 @@ static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), co
 	ReportList *reports = (ReportList *)userdata;
 
 	if (!BLI_exists(path_src)) {
-		BKE_reportf(reports, RPT_WARNING, "Path Not Found \"%s\"", path_src);
+		BKE_reportf(reports, RPT_WARNING, "Path '%s' not found", path_src);
 	}
 
 	return FALSE;
@@ -122,7 +122,7 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 			data->count_changed++;
 		}
 		else {
-			BKE_reportf(data->reports, RPT_WARNING, "Path cant be made relative \"%s\"", path_src);
+			BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made relative", path_src);
 			data->count_failed++;
 		}
 		return TRUE;
@@ -144,7 +144,7 @@ void BLI_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *re
 	BLI_bpath_traverse_main(bmain, makeFilesRelative_visit_cb, 0, (void *)&data);
 
 	BKE_reportf(reports, data.count_failed ? RPT_WARNING : RPT_INFO,
-	            "Total files %d|Changed %d|Failed %d",
+	            "Total files %d | Changed %d | Failed %d",
 	            data.count_tot, data.count_changed, data.count_failed);
 }
 
@@ -164,7 +164,7 @@ static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char
 			data->count_changed++;
 		}
 		else {
-			BKE_reportf(data->reports, RPT_WARNING, "Path cant be made absolute \"%s\"", path_src);
+			BKE_reportf(data->reports, RPT_WARNING, "Path '%s' cannot be made absolute", path_src);
 			data->count_failed++;
 		}
 		return TRUE;
@@ -187,13 +187,13 @@ void BLI_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *re
 	BLI_bpath_traverse_main(bmain, makeFilesAbsolute_visit_cb, 0, (void *)&data);
 
 	BKE_reportf(reports, data.count_failed ? RPT_WARNING : RPT_INFO,
-	            "Total files %d|Changed %d|Failed %d",
+	            "Total files %d | Changed %d | Failed %d",
 	            data.count_tot, data.count_changed, data.count_failed);
 }
 
 /**
  * find this file recursively, use the biggest file so thumbnails don't get used by mistake
- * \param filename_new: the path will be copied here, caller must initialize as empyu string.
+ * \param filename_new: the path will be copied here, caller must initialize as empty string.
  * \param dirname: subdir to search
  * \param filename: set this filename
  * \param filesize: filesize for the file
@@ -279,13 +279,13 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 
 	if (filesize == -1) { /* could not open dir */
 		BKE_reportf(data->reports, RPT_WARNING,
-		            "Could open directory \"%s\"",
+		            "Could not open directory '%s'",
 		            BLI_path_basename(data->searchdir));
 		return FALSE;
 	}
 	else if (found == FALSE) {
 		BKE_reportf(data->reports, RPT_WARNING,
-		            "Could not find \"%s\" in \"%s\"",
+		            "Could not find '%s' in '%s'",
 		            BLI_path_basename((char *)path_src), data->searchdir);
 		return FALSE;
 	}
@@ -544,8 +544,8 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_ME:
 		{
 			Mesh *me = (Mesh *)id;
-			if (me->fdata.external) {
-				rewrite_path_fixed(me->fdata.external->filename, visit_cb, absbase, bpath_user_data);
+			if (me->ldata.external) {
+				rewrite_path_fixed(me->ldata.external->filename, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;

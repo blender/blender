@@ -63,10 +63,10 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
 
         rd = context.scene.render
 
-        row = layout.row()
-        row.operator("render.render", text="Image", icon='RENDER_STILL')
+        row = layout.row(align=True)
+        row.operator("render.render", text="Render", icon='RENDER_STILL')
         row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
-        row.operator("render.play_rendered_anim", text="Play", icon='RENDER_ANIMATION')
+        row.operator("render.play_rendered_anim", text="Play", icon='PLAY')
 
         layout.prop(rd, "display_mode", text="Display")
 
@@ -225,7 +225,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         # TODO: Change the following to iterate over existing presets
         custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
 
-        if custom_framerate == True:
+        if custom_framerate is True:
             fps_label_text = "Custom (" + str(fps_rate) + " fps)"
         else:
             fps_label_text = str(fps_rate) + " fps"
@@ -316,7 +316,6 @@ class RENDER_PT_shading(RenderButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rd, "use_raytrace", text="Ray Tracing")
-        col.prop(rd, "use_color_unpremultiply")
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
@@ -333,15 +332,17 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Threads:")
-        col.row().prop(rd, "threads_mode", expand=True)
-        sub = col.column()
-        sub.enabled = rd.threads_mode == 'FIXED'
-        sub.prop(rd, "threads")
         sub = col.column(align=True)
-        sub.label(text="Tiles:")
-        sub.prop(rd, "parts_x", text="X")
-        sub.prop(rd, "parts_y", text="Y")
+        sub.label(text="Threads:")
+        sub.row().prop(rd, "threads_mode", expand=True)
+        subsub = sub.column()
+        subsub.enabled = rd.threads_mode == 'FIXED'
+        subsub.prop(rd, "threads")
+        
+        sub = col.column(align=True)
+        sub.label(text="Tile Size:")
+        sub.prop(rd, "tile_x", text="X")
+        sub.prop(rd, "tile_y", text="Y")
 
         col = split.column()
         col.label(text="Memory:")

@@ -34,7 +34,7 @@
 #include "NOD_texture.h"
 
 /* **************** COMPOSITE ******************** */
-static bNodeSocketTemplate inputs[]= {
+static bNodeSocketTemplate inputs[] = {
 	{ SOCK_RGBA,   1, N_("Color"),  0.0f, 0.0f, 0.0f, 1.0f},
 	{ SOCK_VECTOR, 1, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_DIRECTION},
 	{ -1, 0, ""	}
@@ -65,7 +65,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(o
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
 		
 			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
-			target->talpha = 1;
+			target->talpha = TRUE;
 		
 			if (target->nor) {
 				if (in[1] && in[1]->hasinput)
@@ -170,7 +170,7 @@ void register_node_type_tex_output(bNodeTreeType *ttype)
 	node_type_exec(&ntype, exec);
 	
 	/* Do not allow muting output. */
-	node_type_internal_connect(&ntype, NULL);
+	node_type_internal_links(&ntype, NULL);
 	
 	nodeRegisterType(ttype, &ntype);
 }

@@ -583,7 +583,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 		ntreeUpdateTree(snode->nodetree);
 	}
 	else {
-		BKE_report(op->reports, RPT_WARNING, "Can't ungroup");
+		BKE_report(op->reports, RPT_WARNING, "Cannot ungroup");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -755,13 +755,13 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 	switch (type) {
 		case NODE_GS_COPY:
 			if (!node_group_separate_selected(snode->nodetree, gnode, 1)) {
-				BKE_report(op->reports, RPT_WARNING, "Can't separate nodes");
+				BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
 				return OPERATOR_CANCELLED;
 			}
 			break;
 		case NODE_GS_MOVE:
 			if (!node_group_separate_selected(snode->nodetree, gnode, 0)) {
-				BKE_report(op->reports, RPT_WARNING, "Can't separate nodes");
+				BKE_report(op->reports, RPT_WARNING, "Cannot separate nodes");
 				return OPERATOR_CANCELLED;
 			}
 			break;
@@ -875,7 +875,7 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeLink *link, *linkn;
 	bNode *node, *nextn;
-	bNodeSocket *gsock;
+	bNodeSocket *gsock, *sock;
 	ListBase anim_basepaths = {NULL, NULL};
 	float min[2], max[2];
 
@@ -982,8 +982,42 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 		}
 	}
 
+	/* auto-add interface for "solo" nodes */
+	node = ((bNodeTree *)gnode->id)->nodes.first;
+	if (node && !node->next) {
+		for (sock = node->inputs.first; sock; sock = sock->next) {
+			int skip = FALSE;
+			
+			for (link = ((bNodeTree *)gnode->id)->links.first; link; link = link->next)
+				if (link->tosock == sock)
+					skip = TRUE;
+
+			if (skip == TRUE)
+				continue;
+
+			gsock = node_group_expose_socket(ngroup, sock, SOCK_IN);
+			node_group_add_extern_socket(ntree, &gnode->inputs, SOCK_IN, gsock);
+			nodeAddLink(ngroup, NULL, gsock, node, sock);
+		}
+
+		for (sock = node->outputs.first; sock; sock = sock->next) {
+			int skip = FALSE;
+			
+			for (link = ((bNodeTree *)gnode->id)->links.first; link; link = link->next)
+				if (link->fromsock == sock)
+					skip = TRUE;
+
+			if (skip == TRUE)
+				continue;
+
+			gsock = node_group_expose_socket(ngroup, sock, SOCK_OUT);
+			node_group_add_extern_socket(ntree, &gnode->outputs, SOCK_OUT, gsock);
+			nodeAddLink(ngroup, NULL, gsock, node, sock);
+		}
+	}
+
 	/* update of the group tree */
-	ngroup->update |= NTREE_UPDATE;
+	ngroup->update |= NTREE_UPDATE | NTREE_UPDATE_LINKS;
 	/* update of the tree containing the group instance node */
 	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 
@@ -1036,7 +1070,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (snode->edittree != snode->nodetree) {
-		BKE_report(op->reports, RPT_WARNING, "Can not add a new Group in a Group");
+		BKE_report(op->reports, RPT_WARNING, "Cannot add a new group in a group");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1049,7 +1083,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 		}
 
 		if (gnode) {
-			BKE_report(op->reports, RPT_WARNING, "Can not add RenderLayer in a Group");
+			BKE_report(op->reports, RPT_WARNING, "Cannot add a Render Layers node in a group");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -1062,21 +1096,21 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 				gnode = node_group_make_from_selected(snode->nodetree);
 			}
 			else {
-				BKE_report(op->reports, RPT_WARNING, "Can not make Group");
+				BKE_report(op->reports, RPT_WARNING, "Cannot make group");
 				return OPERATOR_CANCELLED;
 			}
 			break;
 		case NODE_GM_INSERT:
 			gnode = nodeGetActive(snode->nodetree);
 			if (!gnode || gnode->type != NODE_GROUP) {
-				BKE_report(op->reports, RPT_WARNING, "No active Group node");
+				BKE_report(op->reports, RPT_WARNING, "No active group node");
 				return OPERATOR_CANCELLED;
 			}
 			if (node_group_make_test(snode->nodetree, gnode)) {
 				node_group_make_insert_selected(snode->nodetree, gnode);
 			}
 			else {
-				BKE_report(op->reports, RPT_WARNING, "Can not insert into Group");
+				BKE_report(op->reports, RPT_WARNING, "Cannot insert into group");
 				return OPERATOR_CANCELLED;
 			}
 			break;

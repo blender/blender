@@ -705,7 +705,7 @@ static void recalcData_view3d(TransInfo *t)
 					BKE_nurb_handles_calc(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
 					nu = nu->next;
 				}
-			} 
+			}
 			else {
 				/* Normal updating */
 				while (nu) {
@@ -895,16 +895,20 @@ static void recalcData_view3d(TransInfo *t)
 /* helper for recalcData() - for sequencer transforms */
 static void recalcData_sequencer(TransInfo *t)
 {
-	Editing *ed = BKE_sequencer_editing_get(t->scene, FALSE);
-	Sequence *seq;
+	TransData *td;
+	int a;
+	Sequence *seq_prev = NULL;
 
-	SEQ_BEGIN(ed, seq)
-	{
-		if (seq->flag & SELECT) {
-			BKE_sequence_invalidate_deendent(t->scene, seq);
+	for (a = 0, td = t->data; a < t->total; a++, td++) {
+		TransDataSeq *tdsq = (TransDataSeq *) td->extra;
+		Sequence *seq = tdsq->seq;
+
+		if (seq != seq_prev) {
+			BKE_sequence_invalidate_dependent(t->scene, seq);
 		}
+
+		seq_prev = seq;
 	}
-	SEQ_END
 
 	BKE_sequencer_preprocessed_cache_cleanup();
 
@@ -998,9 +1002,9 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	/* moving: is shown in drawobject() (transform color) */
 //  TRANSFORM_FIX_ME
-//	if (obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
-//	else if (G.f & G_PARTICLEEDIT) G.moving= G_TRANSFORM_PARTICLE;
-//	else G.moving= G_TRANSFORM_OBJ;
+//	if (obedit || (t->flag & T_POSE) ) G.moving = G_TRANSFORM_EDIT;
+//	else if (G.f & G_PARTICLEEDIT) G.moving = G_TRANSFORM_PARTICLE;
+//	else G.moving = G_TRANSFORM_OBJ;
 	
 	t->scene = sce;
 	t->sa = sa;
@@ -1248,7 +1252,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		
 		/* TRANSFORM_FIX_ME rna restrictions */
 		if (t->prop_size <= 0.00001f) {
-			printf("Proportional size (%f) under 0.00001, reseting to 1!\n", t->prop_size);
+			printf("Proportional size (%f) under 0.00001, resetting to 1!\n", t->prop_size);
 			t->prop_size = 1.0f;
 		}
 		
@@ -1293,19 +1297,26 @@ void postTrans(bContext *C, TransInfo *t)
 	if (t->customFree) {
 		/* Can take over freeing t->data and data2d etc... */
 		t->customFree(t);
+		BLI_assert(t->customData == NULL);
 	}
 	else if ((t->customData != NULL) && (t->flag & T_FREE_CUSTOMDATA)) {
 		MEM_freeN(t->customData);
+		t->customData = NULL;
 	}
 
 	/* postTrans can be called when nothing is selected, so data is NULL already */
 	if (t->data) {
-		int a;
 		
 		/* free data malloced per trans-data */
-		for (a = 0, td = t->data; a < t->total; a++, td++) {
-			if (td->flag & TD_BEZTRIPLE) 
-				MEM_freeN(td->hdata);
+		if ((t->obedit && ELEM(t->obedit->type, OB_CURVE, OB_SURF)) ||
+		    (t->spacetype == SPACE_IPO))
+		{
+			int a;
+			for (a = 0, td = t->data; a < t->total; a++, td++) {
+				if (td->flag & TD_BEZTRIPLE) {
+					MEM_freeN(td->hdata);
+				}
+			}
 		}
 		MEM_freeN(t->data);
 	}
@@ -1557,9 +1568,8 @@ void calculateCenterBound(TransInfo *t)
 			copy_v3_v3(min, t->data[i].center);
 		}
 	}
-	add_v3_v3v3(t->center, min, max);
-	mul_v3_fl(t->center, 0.5);
-	
+	mid_v3_v3v3(t->center, min, max);
+
 	calculateCenter2D(t);
 }
 
@@ -1701,8 +1711,9 @@ void calculatePropRatio(TransInfo *t)
 				/*
 				 * The elements are sorted according to their dist member in the array,
 				 * that means we can stop when it finds one element outside of the propsize.
+				 * do not set 'td->flag |= TD_NOACTION', the prop circle is being changed.
 				 */
-				td->flag |= TD_NOACTION;
+				
 				td->factor = 0.0f;
 				restoreElement(td);
 			}

@@ -134,11 +134,8 @@ bool IsPrintable(int keyIndex);
 
 /**
  * Tests whether this is a delete key.
- */	
+ */
 bool IsDelete(int keyIndex);
 
 
-#endif //__SCA_KEYBOARDSENSOR_H__
-
-
-
+#endif  /* __SCA_KEYBOARDSENSOR_H__ */

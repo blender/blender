@@ -539,7 +539,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 
 /* ****** Lasso Select ****** */
 
-static int do_lasso_select_node(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_node(bContext *C, const int mcords[][2], short moves, short select)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
@@ -555,8 +555,8 @@ static int do_lasso_select_node(bContext *C, int mcords[][2], short moves, short
 	/* do actual selection */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
 		int screen_co[2];
-		const float cent[2] = {BLI_RCT_CENTER_X(&node->totr),
-		                       BLI_RCT_CENTER_Y(&node->totr)};
+		const float cent[2] = {BLI_rctf_cent_x(&node->totr),
+		                       BLI_rctf_cent_y(&node->totr)};
 
 		/* marker in screen coords */
 		UI_view2d_view_to_region(&ar->v2d,
@@ -585,7 +585,7 @@ static int do_lasso_select_node(bContext *C, int mcords[][2], short moves, short
 static int node_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	int mcords_tot;
-	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
+	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
 		short select;
@@ -593,7 +593,7 @@ static int node_lasso_select_exec(bContext *C, wmOperator *op)
 		select = !RNA_boolean_get(op->ptr, "deselect");
 		do_lasso_select_node(C, mcords, mcords_tot, select);
 
-		MEM_freeN(mcords);
+		MEM_freeN((void *)mcords);
 
 		return OPERATOR_FINISHED;
 	}

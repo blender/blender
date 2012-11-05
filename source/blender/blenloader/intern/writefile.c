@@ -30,46 +30,46 @@
 
 
 /*
-FILEFORMAT: IFF-style structure  (but not IFF compatible!)
-
-start file:
-	BLENDER_V100	12 bytes  (versie 1.00)
-					V = big endian, v = little endian
-					_ = 4 byte pointer, - = 8 byte pointer
-
-datablocks:		also see struct BHead
-	<bh.code>			4 chars
-	<bh.len>			int,  len data after BHead
-	<bh.old>			void,  old pointer
-	<bh.SDNAnr>			int
-	<bh.nr>				int, in case of array: amount of structs
-	data
-	...
-	...
-
-Almost all data in Blender are structures. Each struct saved
-gets a BHead header.  With BHead the struct can be linked again
-and compared with StructDNA .
-
-WRITE
-
-Preferred writing order: (not really a must, but why would you do it random?)
-Any case: direct data is ALWAYS after the lib block
-
-(Local file data)
-- for each LibBlock
-	- write LibBlock
-	- write associated direct data
-(External file data)
-- per library
-	- write library block
-	- per LibBlock
-		- write the ID of LibBlock
-- write TEST (128x128, blend file preview, optional)
-- write FileGlobal (some global vars)
-- write SDNA
-- write USER if filename is ~/X.XX/config/startup.blend
-*/
+ * FILEFORMAT: IFF-style structure  (but not IFF compatible!)
+ *
+ * start file:
+ *     BLENDER_V100    12 bytes  (versie 1.00)
+ *                     V = big endian, v = little endian
+ *                     _ = 4 byte pointer, - = 8 byte pointer
+ *
+ * datablocks:     also see struct BHead
+ *     <bh.code>           4 chars
+ *     <bh.len>            int,  len data after BHead
+ *     <bh.old>            void,  old pointer
+ *     <bh.SDNAnr>         int
+ *     <bh.nr>             int, in case of array: amount of structs
+ *     data
+ *     ...
+ *     ...
+ *
+ * Almost all data in Blender are structures. Each struct saved
+ * gets a BHead header.  With BHead the struct can be linked again
+ * and compared with StructDNA .
+ *
+ * WRITE
+ *
+ * Preferred writing order: (not really a must, but why would you do it random?)
+ * Any case: direct data is ALWAYS after the lib block
+ *
+ * (Local file data)
+ * - for each LibBlock
+ *     - write LibBlock
+ *     - write associated direct data
+ * (External file data)
+ * - per library
+ *     - write library block
+ *     - per LibBlock
+ *         - write the ID of LibBlock
+ * - write TEST (128x128, blend file preview, optional)
+ * - write FileGlobal (some global vars)
+ * - write SDNA
+ * - write USER if filename is ~/X.XX/config/startup.blend
+ */
 
 
 #include <math.h>
@@ -197,7 +197,7 @@ static WriteData *writedata_new(int file)
 
 	if (wd == NULL) return NULL;
 
-	wd->sdna= DNA_sdna_from_data(DNAstr, DNAlen, 0);
+	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, 0);
 
 	wd->file= file;
 
@@ -511,7 +511,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 		writestruct(wd, DATA, "FCurve", 1, fcu);
 		
 		/* curve data */
-		if (fcu->bezt)  	
+		if (fcu->bezt)
 			writestruct(wd, DATA, "BezTriple", fcu->totvert, fcu->bezt);
 		if (fcu->fpt)
 			writestruct(wd, DATA, "FPoint", fcu->totvert, fcu->fpt);
@@ -720,18 +720,31 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			write_node_socket(wd, sock);
 		for (sock= node->outputs.first; sock; sock= sock->next)
 			write_node_socket(wd, sock);
-
+		
+		for (link = node->internal_links.first; link; link = link->next)
+			writestruct(wd, DATA, "bNodeLink", 1, link);
 		
 		if (node->storage) {
 			/* could be handlerized at some point, now only 1 exception still */
 			if (ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
+			else if (ntree->type==NTREE_SHADER && node->type==SH_NODE_SCRIPT) {
+				NodeShaderScript *nss = (NodeShaderScript *)node->storage;
+				if (nss->bytecode)
+					writedata(wd, DATA, strlen(nss->bytecode)+1, nss->bytecode);
+				/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+				 * of library blocks that implement this.*/
+				if (nss->prop)
+					IDP_WriteProperty(nss->prop, wd);
+				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+			}
 			else if (ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 				write_curvemapping(wd, node->storage);
 			else if (ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
-			else if (ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION)
-				/* pass */;
+			else if (ntree->type==NTREE_COMPOSIT && node->type==CMP_NODE_MOVIEDISTORTION) {
+				/* pass */
+			}
 			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
@@ -776,13 +789,16 @@ typedef struct RenderInfo {
 	char scene_name[MAX_ID_NAME - 2];
 } RenderInfo;
 
-static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon */
+/* was for historic render-deamon feature,
+ * now write because it can be easily extracted without
+ * reading the whole blend file */
+static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
 	bScreen *curscreen;
 	Scene *sce;
 	RenderInfo data;
 
-	/* XXX in future, handle multiple windows with multiple screnes? */
+	/* XXX in future, handle multiple windows with multiple screens? */
 	current_screen_compat(mainvar, &curscreen);
 
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
@@ -884,7 +900,7 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_ROTATION
 	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
 	"", // BPHYS_DATA_SIZE:
-	"", // BPHYS_DATA_TIMES:	
+	"", // BPHYS_DATA_TIMES:
 	"BoidData" // case BPHYS_DATA_BOIDS:
 };
 static const char *ptcache_extra_struct[] = {
@@ -1237,7 +1253,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 					break;
 				case CONSTRAINT_TYPE_SPLINEIK: 
 				{
-					bSplineIKConstraint *data= (bSplineIKConstraint*)con->data;
+					bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
 					
 					/* write points array */
 					writedata(wd, DATA, sizeof(float)*(data->numpoints), data->points);
@@ -1325,7 +1341,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
 			writestruct(wd, DATA, "EffectorWeights", 1, clmd->sim_parms->effector_weights);
 			write_pointcaches(wd, &clmd->ptcaches);
-		} 
+		}
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
@@ -1355,7 +1371,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
 			else if (smd->type & MOD_SMOKE_TYPE_COLL)
 				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
-		} 
+		}
 		else if (md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
@@ -1383,7 +1399,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->vel_ramp);
 			}
-		} 
+		}
 		else if (md->type==eModifierType_Collision) {
 			
 #if 0
@@ -1603,7 +1619,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			if (cu->vfont) {
 				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
 				writestruct(wd, DATA, "CharInfo", cu->len+1, cu->strinfo);
-				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);				
+				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);
 			}
 			else {
 				/* is also the order of reading */
@@ -1725,9 +1741,10 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 
 				writestruct(wd, DATA, structname, datasize, layer->data);
 			}
-			else
+			else {
 				printf("%s error: layer '%s':%d - can't be written to file\n",
 				       __func__, structname, layer->type);
+			}
 		}
 	}
 
@@ -1759,6 +1776,9 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				backup_mesh.totface = mesh->totface;
 				mesh->totface = 0;
 				/* -- */
+				backup_mesh.fdata = mesh->fdata;
+				memset(&mesh->fdata, 0, sizeof(mesh->fdata));
+				/* -- */
 #endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 				writestruct(wd, ID_ME, "Mesh", 1, mesh);
@@ -1782,6 +1802,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->mface = backup_mesh.mface;
 				/* -- */
 				mesh->totface = backup_mesh.totface;
+				/* -- */
+				mesh->fdata = backup_mesh.fdata;
 #endif /* USE_BMESH_SAVE_WITHOUT_MFACE */
 
 			}
@@ -1808,13 +1830,13 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 				mesh->totloop = 0;
 				/* -- */
 				backup_mesh.fdata = mesh->fdata;
-				memset(&mesh->fdata, 0, sizeof(CustomData));
+				CustomData_reset(&mesh->fdata);
 				/* -- */
 				backup_mesh.pdata = mesh->pdata;
-				memset(&mesh->pdata, 0, sizeof(CustomData));
+				CustomData_reset(&mesh->pdata);
 				/* -- */
 				backup_mesh.ldata = mesh->ldata;
-				memset(&mesh->ldata, 0, sizeof(CustomData));
+				CustomData_reset(&mesh->ldata);
 				/* -- */
 				backup_mesh.edit_btmesh = mesh->edit_btmesh;
 				mesh->edit_btmesh = NULL;
@@ -2021,7 +2043,7 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 				write_nodetree(wd, ma->nodetree);
 			}
 
-			write_previews(wd, ma->preview);			
+			write_previews(wd, ma->preview);
 		}
 		ma= ma->id.next;
 	}
@@ -2077,7 +2099,7 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			}
 			
 			if (la->curfalloff)
-				write_curvemapping(wd, la->curfalloff);	
+				write_curvemapping(wd, la->curfalloff);
 			
 			/* nodetree is integral part of lamps, no libdata */
 			if (la->nodetree) {
@@ -2300,7 +2322,7 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 					/* write strokes */
 					for (gps= gpf->strokes.first; gps; gps= gps->next) {
 						writestruct(wd, DATA, "bGPDstroke", 1, gps);
-						writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);				
+						writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);
 					}
 				}
 			}
@@ -2536,7 +2558,7 @@ static void write_bone(WriteData *wd, Bone *bone)
 	Bone*	cbone;
 
 	// PATCH for upward compatibility after 2.37+ armature recode
-	bone->size[0]= bone->size[1]= bone->size[2]= 1.0f;
+	bone->size[0] = bone->size[1] = bone->size[2] = 1.0f;
 		
 	// Write this bone
 	writestruct(wd, DATA, "Bone", 1, bone);
@@ -2995,7 +3017,7 @@ static int do_history(const char *name, ReportList *reports)
 		if (BLI_rename(tempname1, tempname2)) {
 			BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 			return 1;
-		}	
+		}
 		hisnr--;
 	}
 
@@ -3022,7 +3044,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if (file == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
+		BKE_reportf(reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
 		return 0;
 	}
 
@@ -3070,10 +3092,10 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	/* file save to temporary file was successful */
 	/* now do reverse file history (move .blend1 -> .blend2, .blend -> .blend1) */
-	if (write_flags & G_FILE_HISTORY) { 
+	if (write_flags & G_FILE_HISTORY) {
 		int err_hist = do_history(filepath, reports);
 		if (err_hist) {
-			BKE_report(reports, RPT_ERROR, "Version backup failed. File saved with @");
+			BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
 			return 0;
 		}
 	}
@@ -3090,23 +3112,23 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		if (0==ret) {
 			/* now rename to real file name, and delete temp @ file too */
 			if (BLI_rename(gzname, filepath) != 0) {
-				BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
+				BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
 				return 0;
 			}
 
 			BLI_delete(tempname, 0, 0);
 		}
 		else if (-1==ret) {
-			BKE_report(reports, RPT_ERROR, "Failed opening .gz file.");
+			BKE_report(reports, RPT_ERROR, "Failed opening .gz file");
 			return 0;
 		}
 		else if (-2==ret) {
-			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression.");
+			BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression");
 			return 0;
 		}
 	}
 	else if (BLI_rename(tempname, filepath) != 0) {
-		BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
+		BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
 		return 0;
 	}
 

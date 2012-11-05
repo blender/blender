@@ -231,9 +231,9 @@ int SCA_ILogicBrick::CheckProperty(void *self, const PyAttributeDef *attrdef)
 }
 
 /*Attribute functions */
-PyObject* SCA_ILogicBrick::pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *SCA_ILogicBrick::pyattr_get_owner(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	SCA_ILogicBrick* self= static_cast<SCA_ILogicBrick*>(self_v);
+	SCA_ILogicBrick* self = static_cast<SCA_ILogicBrick*>(self_v);
 	CValue* parent = self->GetParent();
 	
 	if (parent)
@@ -254,9 +254,9 @@ bool SCA_ILogicBrick::PyArgToBool(int boolArg)
 	}
 }
 
-PyObject* SCA_ILogicBrick::BoolToPyArg(bool boolarg)
+PyObject *SCA_ILogicBrick::BoolToPyArg(bool boolarg)
 {
-	return PyLong_FromSsize_t(boolarg? KX_TRUE: KX_FALSE);	
+	return PyLong_FromSsize_t(boolarg? KX_TRUE: KX_FALSE);
 }
 
 #endif // WITH_PYTHON

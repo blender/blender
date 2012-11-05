@@ -1,0 +1,46 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+#include "node_fresnel.h"
+
+shader node_layer_weight(
+	float Blend = 0.5,
+	normal Normal = N,
+	output float Fresnel = 0.0,
+	output float Facing = 0.0)
+{
+	float blend = Blend;
+
+	/* Fresnel */ 
+	float eta = max(1.0 - Blend, 1e-5);
+	eta = backfacing() ? eta : 1.0 / eta;
+	Fresnel = fresnel_dielectric(I, Normal, eta);
+
+	/* Facing */ 
+	Facing = abs(dot(I, Normal));
+
+	if (blend != 0.5) {
+		blend = clamp(blend, 0.0, 1.0 - 1e-5);
+		blend = (blend < 0.5) ? 2.0 * blend : 0.5 / (1.0 - blend);
+
+		Facing = pow(Facing, blend);
+	}
+
+	Facing = 1.0 - Facing;
+}

@@ -796,6 +796,18 @@ static void animdata_dtar_clear_cb(ID *UNUSED(id), AnimData *adt, void *userdata
 	}
 }
 
+void BKE_libblock_free_data(ID *id)
+{
+	Main *bmain = G.main;  /* should eventually be an arg */
+	
+	if (id->properties) {
+		IDP_FreeProperty(id->properties);
+		MEM_freeN(id->properties);
+	}
+	
+	/* this ID may be a driver target! */
+	BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
+}
 
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
 void BKE_libblock_free(ListBase *lb, void *idv)
@@ -904,15 +916,9 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			break;
 	}
 
-	if (id->properties) {
-		IDP_FreeProperty(id->properties);
-		MEM_freeN(id->properties);
-	}
-
 	BLI_remlink(lb, id);
 
-	/* this ID may be a driver target! */
-	BKE_animdata_main_cb(bmain, animdata_dtar_clear_cb, (void *)id);
+	BKE_libblock_free_data(id);
 
 	MEM_freeN(id);
 }
@@ -1200,7 +1206,7 @@ static int check_for_dupid(ListBase *lb, ID *id, char *name)
 	char left[MAX_ID_NAME + 8], leftest[MAX_ID_NAME + 8];
 
 	/* make sure input name is terminated properly */
-	/* if ( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3]= 0; */
+	/* if ( strlen(name) > MAX_ID_NAME-3 ) name[MAX_ID_NAME-3] = 0; */
 	/* removed since this is only ever called from one place - campbell */
 
 	while (1) {
@@ -1547,7 +1553,7 @@ void rename_id(ID *id, const char *name)
 	BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
 	lb = which_libbase(G.main, GS(id->name) );
 	
-	new_id(lb, id, name);				
+	new_id(lb, id, name);
 }
 
 void name_uiprefix_id(char *name, ID *id)

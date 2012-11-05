@@ -196,7 +196,7 @@ static SpaceLink *sequencer_new(const bContext *C)
 /* not spacelink itself */
 static void sequencer_free(SpaceLink *sl)
 {	
-	SpaceSeq *sseq= (SpaceSeq *) sl;
+	SpaceSeq *sseq = (SpaceSeq *) sl;
 	SequencerScopes *scopes = &sseq->scopes;
 
 // XXX	if (sseq->gpd) BKE_gpencil_free(sseq->gpd);
@@ -311,7 +311,7 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 	SpaceSeq *sseqn = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
-// XXX	sseq->gpd= gpencil_data_duplicate(sseq->gpd);
+// XXX	sseq->gpd = gpencil_data_duplicate(sseq->gpd);
 
 	return (SpaceLink *)sseqn;
 }
@@ -363,7 +363,7 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void sequencer_main_area_draw(const bContext *C, ARegion *ar)
 {
-//	ScrArea *sa= CTX_wm_area(C);
+//	ScrArea *sa = CTX_wm_area(C);
 	
 	/* NLE - strip editing timeline interface */
 	draw_timeline_seq(C, ar);
@@ -556,8 +556,8 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
-		case NC_SCREEN:
-			if (wmn->data == ND_GPENCIL) {
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED) {
 				ED_region_tag_redraw(ar);
 			}
 			break;
@@ -610,8 +610,8 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
-		case NC_SCREEN:
-			if (wmn->data == ND_GPENCIL) {
+		case NC_GPENCIL:
+			if (wmn->data == ND_DATA) {
 				ED_region_tag_redraw(ar);
 			}
 			break;

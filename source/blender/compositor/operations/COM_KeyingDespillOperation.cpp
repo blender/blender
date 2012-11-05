@@ -28,18 +28,6 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-static int get_pixel_primary_channel(float *pixel)
-{
-	float max_value = MAX3(pixel[0], pixel[1], pixel[2]);
-
-	if (max_value == pixel[0])
-		return 0;
-	else if (max_value == pixel[1])
-		return 1;
-
-	return 2;
-}
-
 KeyingDespillOperation::KeyingDespillOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
@@ -73,12 +61,12 @@ void KeyingDespillOperation::executePixel(float output[4], float x, float y, Pix
 	this->m_pixelReader->read(pixelColor, x, y, sampler);
 	this->m_screenReader->read(screenColor, x, y, sampler);
 
-	int screen_primary_channel = get_pixel_primary_channel(screenColor);
-	int other_1 = (screen_primary_channel + 1) % 3;
-	int other_2 = (screen_primary_channel + 2) % 3;
+	const int screen_primary_channel = max_axis_v3(screenColor);
+	const int other_1 = (screen_primary_channel + 1) % 3;
+	const int other_2 = (screen_primary_channel + 2) % 3;
 
-	int min_channel = MIN2(other_1, other_2);
-	int max_channel = MAX2(other_1, other_2);
+	const int min_channel = min(other_1, other_2);
+	const int max_channel = max(other_1, other_2);
 
 	float average_value, amount;
 
@@ -87,7 +75,8 @@ void KeyingDespillOperation::executePixel(float output[4], float x, float y, Pix
 
 	copy_v4_v4(output, pixelColor);
 
-	if (this->m_despillFactor * amount > 0) {
-		output[screen_primary_channel] = pixelColor[screen_primary_channel] - this->m_despillFactor * amount;
+	const float amount_despill = this->m_despillFactor * amount;
+	if (amount_despill > 0.0f) {
+		output[screen_primary_channel] = pixelColor[screen_primary_channel] - amount_despill;
 	}
 }

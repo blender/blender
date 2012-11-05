@@ -87,15 +87,9 @@ public:
 	/**
 	 * @brief determine the resolution of this data going through this socket
 	 * @param resolution the result of this operation
-	 * @param preferredResolution the preferrable resolution as no resolution could be determined
+	 * @param preferredResolution the preferable resolution as no resolution could be determined
 	 */
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	
-	/**
-	 * @brief Notifies the Input of the data type (via a SocketConnection)
-	 * @param datatype the datatype to evaluate
-	 */
-	void notifyActualInputType(DataType datatype);
 	
 	/**
 	 * @brief move all connections of this input socket to another socket
@@ -114,12 +108,20 @@ public:
 	void relinkConnections(InputSocket *relinkToSocket, int editorNodeInputSocketIndex, ExecutionSystem *system);
 	
 	/**
-	 * @brief move all connections of this input socket to another socket
+	 * @brief add a connection of this input socket to another socket
+	 * @warning make sure to remove the original connection with \a unlinkConnections afterward.
 	 * @param relinkToSocket the socket to move to connections to
 	 * @param editorNodeInputSocketIndex index of the socket number of the bNode (used to retrieve the value for autoconnection)
 	 * @param system ExecutionSystem to update to
 	 */
 	void relinkConnectionsDuplicate(InputSocket *relinkToSocket, int editorNodeInputSocketIndex, ExecutionSystem *system);
+	
+	/**
+	 * @brief remove all connections of this input socket.
+	 * @warning \a relinkConnectionsDuplicate should be used to ensure this socket is still connected.
+	 * @param system ExecutionSystem to update to
+	 */
+	void unlinkConnections(ExecutionSystem *system);
 	
 	/**
 	 * @brief set the resize mode

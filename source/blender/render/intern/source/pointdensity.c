@@ -36,6 +36,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_noise.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
 
@@ -170,7 +171,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 				pd->point_data[i*3 + 0] = state.vel[0];
 				pd->point_data[i*3 + 1] = state.vel[1];
 				pd->point_data[i*3 + 2] = state.vel[2];
-			} 
+			}
 			if (data_used & POINT_DATA_LIFE) {
 				float pa_time;
 				
@@ -405,7 +406,7 @@ static void init_pointdensityrangedata(PointDensity *pd, PointDensityRangeData *
 }
 
 
-int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
+int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
 {
 	int retval = TEX_INT;
 	PointDensity *pd = tex->pd;
@@ -418,7 +419,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 	
 	texres->tin = 0.0f;
 	
-	if ((!pd) || (!pd->point_tree))		
+	if ((!pd) || (!pd->point_tree))
 		return 0;
 		
 	init_pointdensityrangedata(pd, &pdr, &density, vec, &age, 
@@ -481,7 +482,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 		case TEX_PD_COLOR_PARTAGE:
 			if (pd->coba) {
 				if (do_colorband(pd->coba, age, col)) {
-					texres->talpha= 1;
+					texres->talpha = TRUE;
 					copy_v3_v3(&texres->tr, col);
 					texres->tin *= col[3];
 					texres->ta = texres->tin;
@@ -494,7 +495,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 			
 			if (pd->coba) {
 				if (do_colorband(pd->coba, speed, col)) {
-					texres->talpha= 1;	
+					texres->talpha = TRUE;
 					copy_v3_v3(&texres->tr, col);
 					texres->tin *= col[3];
 					texres->ta = texres->tin;
@@ -503,7 +504,7 @@ int pointdensitytex(Tex *tex, float *texvec, TexResult *texres)
 			break;
 		}
 		case TEX_PD_COLOR_PARTVEL:
-			texres->talpha= 1;
+			texres->talpha = TRUE;
 			mul_v3_fl(vec, pd->speed_scale);
 			copy_v3_v3(&texres->tr, vec);
 			texres->ta = texres->tin;

@@ -104,7 +104,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	MLoop *mloop = NULL;
 	Key *key, *nkey = NULL;
 	KeyBlock *kb, *okb, *kbn;
-	float imat[4][4], cmat[4][4], *fp1, *fp2, curpos;
+	float imat[4][4], cmat[4][4], *fp1, *fp2;
 	int a, b, totcol, totmat = 0, totedge = 0, totvert = 0, ok = 0;
 	int totloop = 0, totpoly = 0, vertofs, *matmap = NULL;
 	int i, j, index, haskey = 0, edgeofs, loopofs, polyofs;
@@ -113,7 +113,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	CustomData vdata, edata, fdata, ldata, pdata;
 
 	if (scene->obedit) {
-		BKE_report(op->reports, RPT_WARNING, "Cant join while in editmode");
+		BKE_report(op->reports, RPT_WARNING, "Cannot join while in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -161,9 +161,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	
 	if (totvert > MESH_MAX_VERTS) {
-		BKE_reportf(op->reports, RPT_WARNING, "Joining results in %d vertices, limit is " STRINGIFY(MESH_MAX_VERTS), totvert);
-		return OPERATOR_CANCELLED;		
+		BKE_reportf(op->reports, RPT_WARNING, "Joining results in %d vertices, limit is %ld", totvert, MESH_MAX_VERTS);
+		return OPERATOR_CANCELLED;
 	}
+
+	/* remove tessface to ensure we don't old references to invalid faces */
+	BKE_mesh_tessface_clear(me);
 
 	/* new material indices and material array */
 	matar = MEM_callocN(sizeof(void *) * totmat, "join_mesh matar");
@@ -196,7 +199,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 	else if (haskey) {
 		/* add a new key-block and add to the mesh */
-		key = me->key = add_key((ID *)me);
+		key = me->key = BKE_key_add((ID *)me);
 		key->type = KEY_RELATIVE;
 	}
 	
@@ -243,29 +246,29 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 				
 				/* if this mesh has shapekeys, check if destination mesh already has matching entries too */
 				if (me->key && key) {
-					for (kb = me->key->block.first; kb; kb = kb->next) {
+					/* for remapping KeyBlock.relative */
+					int      *index_map = MEM_mallocN(sizeof(int)        * me->key->totkey, __func__);
+					KeyBlock **kb_map   = MEM_mallocN(sizeof(KeyBlock *) * me->key->totkey, __func__);
+
+					for (kb = me->key->block.first, i = 0; kb; kb = kb->next, i++) {
+						BLI_assert(i < me->key->totkey);
+
+						kbn = BKE_keyblock_find_name(key, kb->name);
 						/* if key doesn't exist in destination mesh, add it */
-						if (key_get_named_keyblock(key, kb->name) == NULL) {
-							/* copy this existing one over to the new shapekey block */
-							kbn = MEM_dupallocN(kb);
-							kbn->prev = kbn->next = NULL;
-							
+						if (kbn) {
+							index_map[i] = BLI_findindex(&key->block, kbn);
+						}
+						else {
+							index_map[i] = key->totkey;
+
+							kbn = BKE_keyblock_add(key, kb->name);
+
+							BKE_keyblock_copy_settings(kbn, kb);
+
 							/* adjust settings to fit (allocate a new data-array) */
 							kbn->data = MEM_callocN(sizeof(float) * 3 * totvert, "joined_shapekey");
 							kbn->totelem = totvert;
-							kbn->weights = NULL;
-							
-							okb = key->block.last;
-							curpos = (okb) ? okb->pos : -0.1f;
-							if (key->type == KEY_RELATIVE)
-								kbn->pos = curpos + 0.1f;
-							else
-								kbn->pos = curpos;
-							
-							BLI_addtail(&key->block, kbn);
-							key->totkey++;
-							if (key->totkey == 1) key->refkey = kbn;
-							
+		
 							/* XXX 2.5 Animato */
 #if 0
 							/* also, copy corresponding ipo-curve to ipo-block if applicable */
@@ -275,20 +278,33 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							}
 #endif
 						}
+
+						kb_map[i] = kbn;
 					}
+
+					/* remap relative index values */
+					for (kb = me->key->block.first, i = 0; kb; kb = kb->next, i++) {
+						if (LIKELY(kb->relative < me->key->totkey)) {  /* sanity check, should always be true */
+							kb_map[i]->relative = index_map[kb->relative];
+						}
+					}
+
+					MEM_freeN(index_map);
+					MEM_freeN(kb_map);
 				}
 			}
 		}
 	}
 	CTX_DATA_END;
-	
+
+
 	/* setup new data for destination mesh */
-	memset(&vdata, 0, sizeof(vdata));
-	memset(&edata, 0, sizeof(edata));
-	memset(&fdata, 0, sizeof(fdata));
-	memset(&ldata, 0, sizeof(ldata));
-	memset(&pdata, 0, sizeof(pdata));
-	
+	CustomData_reset(&vdata);
+	CustomData_reset(&edata);
+	CustomData_reset(&fdata);
+	CustomData_reset(&ldata);
+	CustomData_reset(&pdata);
+
 	mvert = CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
 	medge = CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
 	mloop = CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);
@@ -356,7 +372,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							fp1 = ((float *)kb->data) + (vertofs * 3);
 							
 							/* check if this mesh has such a shapekey */
-							okb = key_get_named_keyblock(me->key, kb->name);
+							okb = me->key ? BKE_keyblock_find_name(me->key, kb->name) : NULL;
+
 							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey (need to transform first) */
 								fp2 = ((float *)(okb->data));
@@ -386,7 +403,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							fp1 = ((float *)kb->data) + (vertofs * 3);
 							
 							/* check if this was one of the original shapekeys */
-							okb = key_get_named_keyblock(nkey, kb->name);
+							okb = nkey ? BKE_keyblock_find_name(nkey, kb->name) : NULL;
 							if (okb) {
 								/* copy this mesh's shapekey to the destination shapekey */
 								fp2 = ((float *)(okb->data));
@@ -427,8 +444,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 
 					if ((mmd = get_multires_modifier(scene, base->object, TRUE))) {
 						ED_object_iter_other(bmain, base->object, TRUE,
-											 ED_object_multires_update_totlevels_cb,
-											 &mmd->totlvl);
+						                     ED_object_multires_update_totlevels_cb,
+						                     &mmd->totlvl);
 					}
 				}
 				
@@ -499,7 +516,8 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	me->ldata = ldata;
 	me->pdata = pdata;
 
-	mesh_update_customdata_pointers(me, TRUE); /* BMESH_TODO, check if this arg can be failse, non urgent - campbell */
+	/* tessface data removed above, no need to update */
+	mesh_update_customdata_pointers(me, FALSE);
 	
 	/* old material array */
 	for (a = 1; a <= ob->totcol; a++) {
@@ -548,6 +566,12 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		MEM_freeN(nkey);
 	}
 	
+	/* ensure newly inserted keys are time sorted */
+	if (key && (key->type != KEY_RELATIVE)) {
+		BKE_key_sort(key);
+	}
+
+
 	DAG_scene_sort(bmain, scene);   // removed objects, need to rebuild dag before editmode call
 
 #if 0
@@ -607,12 +631,12 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	}
 	
 	if (key == NULL) {
-		key = me->key = add_key((ID *)me);
+		key = me->key = BKE_key_add((ID *)me);
 		key->type = KEY_RELATIVE;
 
 		/* first key added, so it was the basis. initialize it with the existing mesh */
-		kb = add_keyblock(key, NULL);
-		mesh_to_key(me, kb);
+		kb = BKE_keyblock_add(key, NULL);
+		BKE_key_convert_from_mesh(me, kb);
 	}
 	
 	/* now ready to add new keys from selected meshes */
@@ -628,7 +652,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 				
 				if (!dm) continue;
 					
-				kb = add_keyblock(key, base->object->id.name + 2);
+				kb = BKE_keyblock_add(key, base->object->id.name + 2);
 				
 				DM_to_meshkey(dm, me, kb);
 				
@@ -709,9 +733,9 @@ static void mesh_octree_add_nodes(MocNode **basetable, const float co[3], const 
 	float fx, fy, fz;
 	int vx, vy, vz;
 	
-	if (!finite(co[0]) ||
-	    !finite(co[1]) ||
-	    !finite(co[2]))
+	if ((finite(co[0]) == FALSE) ||
+	    (finite(co[1]) == FALSE) ||
+	    (finite(co[2]) == FALSE))
 	{
 		return;
 	}
@@ -823,7 +847,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char m
 				minmax_v3v3_v3(min, max, eve->co);
 			}
 		}
-		else {		
+		else {
 			MVert *mvert;
 			int a;
 			
@@ -858,7 +882,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char m
 				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (intptr_t)(eve));
 			}
 		}
-		else {		
+		else {
 			MVert *mvert;
 			int a;
 			
@@ -940,9 +964,9 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
 	intptr_t poinval;
 	
 	/* ignore nan verts */
-	if (!finite(co[0]) ||
-	    !finite(co[1]) ||
-	    !finite(co[2]))
+	if ((finite(co[0]) == FALSE) ||
+	    (finite(co[1]) == FALSE) ||
+	    (finite(co[2]) == FALSE))
 	{
 		return NULL;
 	}
@@ -1172,7 +1196,7 @@ int ED_mesh_pick_face(bContext *C, Mesh *me, const int mval[2], unsigned int *in
 		/* sample rect to increase chances of selecting, so that when clicking
 		 * on an edge in the backbuf, we can still select a face */
 
-		int dummy_dist;
+		float dummy_dist;
 		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totpoly + 1, &dummy_dist, 0, NULL, NULL);
 	}
 	else {
@@ -1217,11 +1241,12 @@ int ED_mesh_pick_face_vert(bContext *C, Mesh *me, Object *ob, const int mval[2],
 				const int v_idx = me->mloop[mp->loopstart + fidx].v;
 				dm->getVertCo(dm, v_idx, co);
 				mul_m4_v3(ob->obmat, co);
-				project_float_noclip(ar, co, sco);
-				len = len_squared_v2v2(mval_f, sco);
-				if (len < len_best) {
-					len_best = len;
-					v_idx_best = v_idx;
+				if (ED_view3d_project_float_global(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+					len = len_squared_v2v2(mval_f, sco);
+					if (len < len_best) {
+						len_best = len;
+						v_idx_best = v_idx;
+					}
 				}
 			} while (fidx--);
 		}
@@ -1256,7 +1281,7 @@ int ED_mesh_pick_vert(bContext *C, Mesh *me, const int mval[2], unsigned int *in
 		/* sample rect to increase chances of selecting, so that when clicking
 		 * on an face in the backbuf, we can still select a vert */
 
-		int dummy_dist;
+		float dummy_dist;
 		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist, 0, NULL, NULL);
 	}
 	else {

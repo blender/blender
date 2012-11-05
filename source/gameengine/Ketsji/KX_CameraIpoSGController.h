@@ -77,13 +77,13 @@ public:
 		m_ipotime = time;
 		m_modified = true;
 	}
-	void	SetModifyLens(bool modify) {	
+	void	SetModifyLens(bool modify) {
 		m_modify_lens = modify;
 	}
-	void	SetModifyClipEnd(bool modify) {	
+	void	SetModifyClipEnd(bool modify) {
 		m_modify_clipend = modify;
 	}
-	void	SetModifyClipStart(bool modify) {	
+	void	SetModifyClipStart(bool modify) {
 		m_modify_clipstart = modify;
 	}
 	void	AddInterpolator(KX_IInterpolator* interp);
@@ -94,5 +94,4 @@ public:
 #endif
 };
 
-#endif // __KX_CAMERAIPOSGCONTROLLER_H__
-
+#endif  /* __KX_CAMERAIPOSGCONTROLLER_H__ */

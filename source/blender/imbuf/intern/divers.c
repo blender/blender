@@ -43,6 +43,8 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
+#include "BLI_threads.h"
+
 #include "MEM_guardedalloc.h"
 
 /**************************** Interlace/Deinterlace **************************/
@@ -60,7 +62,7 @@ void IMB_de_interlace(ImBuf *ibuf)
 		tbuf1 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect);
 		tbuf2 = IMB_allocImBuf(ibuf->x, ibuf->y / 2, 32, IB_rect);
 		
-		ibuf->x *= 2;	
+		ibuf->x *= 2;
 		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
 		IMB_rectcpy(tbuf2, ibuf, 0, 0, tbuf2->x, 0, ibuf->x, ibuf->y);
 	
@@ -559,7 +561,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
 }
 
 /* converts from linear float to sRGB byte for part of the texture, buffer will hold the changed part */
-void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w, int h)
+void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w, int h, int is_data)
 {
 	float *rect_float;
 	uchar *rect_byte;
@@ -578,14 +580,27 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 	rect_float = ibuf->rect_float + (x + y * ibuf->x) * ibuf->channels;
 	rect_byte = (uchar *)ibuf->rect + (x + y * ibuf->x) * 4;
 
-	IMB_buffer_float_from_float(buffer, rect_float,
-	                            ibuf->channels, IB_PROFILE_SRGB, profile_from, predivide,
-	                            w, h, w, ibuf->x);
+	if (is_data) {
+		/* exception for non-color data, just copy float */
+		IMB_buffer_float_from_float(buffer, rect_float,
+									ibuf->channels, IB_PROFILE_LINEAR_RGB, IB_PROFILE_LINEAR_RGB, 0,
+									w, h, w, ibuf->x);
 
-	/* XXX: need to convert to image buffer's rect space */
-	IMB_buffer_byte_from_float(rect_byte, buffer,
-	                           4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0,
-	                           w, h, ibuf->x, w);
+		/* and do color space conversion to byte */
+		IMB_buffer_byte_from_float(rect_byte, rect_float,
+								   4, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
+								   w, h, ibuf->x, w);
+	}
+	else {
+		IMB_buffer_float_from_float(buffer, rect_float,
+									ibuf->channels, IB_PROFILE_SRGB, profile_from, predivide,
+									w, h, w, ibuf->x);
+
+		/* XXX: need to convert to image buffer's rect space */
+		IMB_buffer_byte_from_float(rect_byte, buffer,
+								   4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0,
+								   w, h, ibuf->x, w);
+	}
 
 	/* ensure user flag is reset */
 	ibuf->userflags &= ~IB_RECT_INVALID;
@@ -599,9 +614,18 @@ void IMB_float_from_rect(ImBuf *ibuf)
 	if (ibuf->rect == NULL)
 		return;
 
+	/* lock the color management thread
+	 * need this because allocated but not filled float buffer will confuse
+	 * display transform which lead to black areas across the frame
+	 */
+	BLI_lock_thread(LOCK_COLORMANAGE);
+
 	if (ibuf->rect_float == NULL) {
-		if (imb_addrectfloatImBuf(ibuf) == 0)
+		if (imb_addrectfloatImBuf(ibuf) == 0) {
+			BLI_unlock_thread(LOCK_COLORMANAGE);
+
 			return;
+		}
 	}
 
 	/* first, create float buffer in non-linear space */
@@ -611,6 +635,8 @@ void IMB_float_from_rect(ImBuf *ibuf)
 	/* then make float be in linear space */
 	IMB_colormanagement_colorspace_to_scene_linear(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
 	                                               ibuf->rect_colorspace, predivide);
+
+	BLI_unlock_thread(LOCK_COLORMANAGE);
 }
 
 /* no profile conversion */
@@ -697,7 +723,7 @@ void IMB_buffer_float_clamp(float *buf, int width, int height)
 {
 	int i, total = width * height * 4;
 	for (i = 0; i < total; i++) {
-		buf[i] = minf(1.0, buf[i]);
+		buf[i] = min_ff(1.0, buf[i]);
 	}
 }
 

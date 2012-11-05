@@ -65,6 +65,7 @@ public:
 	boost::function<void(RenderTile&)> release_tile;
 	boost::function<bool(void)> get_cancel;
 
+	bool need_finish_queue;
 protected:
 	double last_update_time;
 };

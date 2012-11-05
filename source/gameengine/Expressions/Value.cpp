@@ -340,7 +340,7 @@ vector<STR_String> CValue::GetPropertyNames()
 // Clear all properties
 //
 void CValue::ClearProperties()
-{		
+{
 	// Check if we have any properties
 	if (m_pNamedPropertyArray == NULL)
 		return;
@@ -530,13 +530,13 @@ PyAttributeDef CValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef)
+PyObject *CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	CValue * self = static_cast<CValue *> (self_v);
 	return PyUnicode_From_STR_String(self->GetName());
 }
 
-CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
+CValue* CValue::ConvertPythonToValue(PyObject *pyobj, const char *error_prefix)
 {
 
 	CValue* vallie = NULL;
@@ -551,7 +551,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 		Py_ssize_t numitems = PyList_GET_SIZE(pyobj);
 		for (i=0;i<numitems;i++)
 		{
-			PyObject* listitem = PyList_GetItem(pyobj,i); /* borrowed ref */
+			PyObject *listitem = PyList_GetItem(pyobj,i); /* borrowed ref */
 			CValue* listitemval = ConvertPythonToValue(listitem, error_prefix);
 			if (listitemval)
 			{
@@ -597,7 +597,7 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 
 }
 
-PyObject* CValue::ConvertKeysToPython(void)
+PyObject *CValue::ConvertKeysToPython(void)
 {
 	if (m_pNamedPropertyArray)
 	{
@@ -636,5 +636,5 @@ void CValue::SetColorOperator(VALUE_OPERATOR op)
 void CValue::SetValue(CValue* newval)
 { 
 	// no one should get here
-	assertd(newval->GetNumber() == 10121969);	
+	assertd(newval->GetNumber() == 10121969);
 }

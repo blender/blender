@@ -45,7 +45,7 @@ public:
 	TaskPool task_pool;
 	KernelGlobals *kg;
 	
-	CPUDevice(int threads_num)
+	CPUDevice(Stats &stats, int threads_num) : Device(stats)
 	{
 		kg = kernel_globals_create();
 
@@ -67,6 +67,8 @@ public:
 	void mem_alloc(device_memory& mem, MemoryType type)
 	{
 		mem.device_pointer = mem.data_pointer;
+
+		stats.mem_alloc(mem.memory_size());
 	}
 
 	void mem_copy_to(device_memory& mem)
@@ -87,6 +89,8 @@ public:
 	void mem_free(device_memory& mem)
 	{
 		mem.device_pointer = 0;
+
+		stats.mem_free(mem.memory_size());
 	}
 
 	void const_copy_to(const char *name, void *host, size_t size)
@@ -98,11 +102,15 @@ public:
 	{
 		kernel_tex_copy(kg, name, mem.data_pointer, mem.data_width, mem.data_height);
 		mem.device_pointer = mem.data_pointer;
+
+		stats.mem_alloc(mem.memory_size());
 	}
 
 	void tex_free(device_memory& mem)
 	{
 		mem.device_pointer = 0;
+
+		stats.mem_free(mem.memory_size());
 	}
 
 	void *osl_memory()
@@ -135,8 +143,10 @@ public:
 
 	void thread_path_trace(DeviceTask& task)
 	{
-		if(task_pool.cancelled())
-			return;
+		if(task_pool.cancelled()) {
+			if(task.need_finish_queue == false)
+				return;
+		}
 
 #ifdef WITH_OSL
 		if(kernel_osl_use(kg))
@@ -154,8 +164,10 @@ public:
 #ifdef WITH_OPTIMIZED_KERNEL
 			if(system_cpu_support_optimized()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.cancelled())
-						break;
+					if (task.get_cancel() || task_pool.cancelled()) {
+						if(task.need_finish_queue == false)
+							break;
+					}
 
 					for(int y = tile.y; y < tile.y + tile.h; y++) {
 						for(int x = tile.x; x < tile.x + tile.w; x++) {
@@ -173,8 +185,10 @@ public:
 #endif
 			{
 				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.cancelled())
-						break;
+					if (task.get_cancel() || task_pool.cancelled()) {
+						if(task.need_finish_queue == false)
+							break;
+					}
 
 					for(int y = tile.y; y < tile.y + tile.h; y++) {
 						for(int x = tile.x; x < tile.x + tile.w; x++) {
@@ -191,8 +205,10 @@ public:
 
 			task.release_tile(tile);
 
-			if(task_pool.cancelled())
-				break;
+			if(task_pool.cancelled()) {
+				if(task.need_finish_queue == false)
+					break;
+			}
 		}
 
 #ifdef WITH_OSL
@@ -273,16 +289,11 @@ public:
 	{
 		task_pool.cancel();
 	}
-
-	bool task_cancelled()
-	{
-		return task_pool.cancelled();
-	}
 };
 
-Device *device_cpu_create(DeviceInfo& info, int threads)
+Device *device_cpu_create(DeviceInfo& info, Stats &stats, int threads)
 {
-	return new CPUDevice(threads);
+	return new CPUDevice(stats, threads);
 }
 
 void device_cpu_info(vector<DeviceInfo>& devices)

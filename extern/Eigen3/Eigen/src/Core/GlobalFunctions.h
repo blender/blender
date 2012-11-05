@@ -4,24 +4,9 @@
 // Copyright (C) 2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_GLOBAL_FUNCTIONS_H
 #define EIGEN_GLOBAL_FUNCTIONS_H
@@ -66,13 +51,36 @@ namespace std
 
   template<typename Derived>
   inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar>, const Derived>
-  pow(const Eigen::ArrayBase<Derived>& x, const typename Derived::Scalar& exponent) { \
-    return x.derived().pow(exponent); \
+  pow(const Eigen::ArrayBase<Derived>& x, const typename Derived::Scalar& exponent) {
+    return x.derived().pow(exponent);
+  }
+
+  template<typename Derived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const Derived, const Derived>
+  pow(const Eigen::ArrayBase<Derived>& x, const Eigen::ArrayBase<Derived>& exponents) 
+  {
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const Derived, const Derived>(
+      x.derived(),
+      exponents.derived()
+    );
   }
 }
 
 namespace Eigen
 {
+  /**
+  * \brief Component-wise division of a scalar by array elements.
+  **/
+  template <typename Derived>
+  inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>
+    operator/(typename Derived::Scalar s, const Eigen::ArrayBase<Derived>& a)
+  {
+    return Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>(
+      a.derived(),
+      Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>(s)  
+    );
+  }
+
   namespace internal
   {
     EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(real,scalar_real_op)

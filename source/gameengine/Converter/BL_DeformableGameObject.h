@@ -32,9 +32,9 @@
 #ifndef __BL_DEFORMABLEGAMEOBJECT_H__
 #define __BL_DEFORMABLEGAMEOBJECT_H__
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
+#endif
 
 #include "DNA_mesh_types.h"
 #include "KX_GameObject.h"
@@ -89,7 +89,7 @@ public:
 
 public:
 	
-protected:	
+protected:
 	
 	RAS_Deformer		*m_pDeformer;
 
@@ -104,5 +104,4 @@ protected:
 #endif
 };
 
-#endif
-
+#endif  /* __BL_DEFORMABLEGAMEOBJECT_H__ */

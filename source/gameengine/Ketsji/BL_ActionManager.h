@@ -98,5 +98,4 @@ public:
 #endif
 };
 
-#endif //BL_ACTIONMANAGER
-
+#endif  /* BL_ACTIONMANAGER */

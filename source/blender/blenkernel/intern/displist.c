@@ -299,7 +299,9 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 			else
 				resolu = nu->resolu;
 
-			if (!BKE_nurb_check_valid_u(nu)) ;
+			if (!BKE_nurb_check_valid_u(nu)) {
+				/* pass */
+			}
 			else if (nu->type == CU_BEZIER) {
 				/* count */
 				len = 0;
@@ -1384,8 +1386,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 						ListBase top_capbase = {NULL, NULL};
 
 						for (dlb = dlbev.first; dlb; dlb = dlb->next) {
-							const float bevfac1 = minf(cu->bevfac1, cu->bevfac2);
-							const float bevfac2 = maxf(cu->bevfac1, cu->bevfac2);
+							const float bevfac1 = min_ff(cu->bevfac1, cu->bevfac2);
+							const float bevfac2 = max_ff(cu->bevfac1, cu->bevfac2);
 							float firstblend = 0.0f, lastblend = 0.0f;
 							int i, start, steps;
 

@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_SELECT_H
 #define EIGEN_SELECT_H
+
+namespace Eigen { 
 
 /** \class Select
   * \ingroup Core_Module
@@ -101,10 +88,25 @@ class Select : internal::no_assignment_operator,
         return m_else.coeff(i);
     }
 
+    const ConditionMatrixType& conditionMatrix() const
+    {
+      return m_condition;
+    }
+
+    const ThenMatrixType& thenMatrix() const
+    {
+      return m_then;
+    }
+
+    const ElseMatrixType& elseMatrix() const
+    {
+      return m_else;
+    }
+
   protected:
-    const typename ConditionMatrixType::Nested m_condition;
-    const typename ThenMatrixType::Nested m_then;
-    const typename ElseMatrixType::Nested m_else;
+    typename ConditionMatrixType::Nested m_condition;
+    typename ThenMatrixType::Nested m_then;
+    typename ElseMatrixType::Nested m_else;
 };
 
 
@@ -154,5 +156,7 @@ DenseBase<Derived>::select(typename ElseDerived::Scalar thenScalar,
   return Select<Derived,typename ElseDerived::ConstantReturnType,ElseDerived>(
     derived(), ElseDerived::Constant(rows(),cols(),thenScalar), elseMatrix.derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELECT_H

@@ -29,10 +29,9 @@
  *  \ingroup bgeconv
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 // Eigen3 stuff used for BGEDeformVerts
 #include <Eigen/Core>
@@ -67,12 +66,12 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
-short get_deformflags(struct Object *bmeshobj)
+static short get_deformflags(struct Object *bmeshobj)
 {
 	short flags = ARM_DEF_VGROUP;
 
 	ModifierData *md;
-	for (md = (ModifierData*)bmeshobj->modifiers.first; md; md = (ModifierData*)md->next)
+	for (md = (ModifierData *)bmeshobj->modifiers.first; md; md = md->next)
 	{
 		if (md->type == eModifierType_Armature)
 		{
@@ -85,9 +84,9 @@ short get_deformflags(struct Object *bmeshobj)
 }
 
 BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
-								struct Object *bmeshobj, 
-								class RAS_MeshObject *mesh,
-								BL_ArmatureObject* arma)
+                                 struct Object *bmeshobj,
+                                 class RAS_MeshObject *mesh,
+                                 BL_ArmatureObject* arma)
 							:	//
 							BL_MeshDeformer(gameobj, bmeshobj, mesh),
 							m_armobj(arma),
@@ -110,7 +109,7 @@ BL_SkinDeformer::BL_SkinDeformer(
 	class RAS_MeshObject *mesh,
 	bool release_object,
 	bool recalc_normal,
-	BL_ArmatureObject* arma)	:	
+	BL_ArmatureObject* arma)	:
 		BL_MeshDeformer(gameobj, bmeshobj_old, mesh),
 		m_armobj(arma),
 		m_lastArmaUpdate(-1),
@@ -249,7 +248,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 		int i;
 		for (i=0, dg=(bDeformGroup*)m_objMesh->defbase.first;
 			dg;
-			++i, dg=(bDeformGroup*)dg->next)
+			++i, dg = dg->next)
 		{
 			m_dfnrToPC[i] = BKE_pose_channel_find_name(par_arma->pose, dg->name);
 
@@ -327,7 +326,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 {
 	/* See if the armature has been updated for this frame */
-	if (PoseUpdated()) {	
+	if (PoseUpdated()) {
 
 		if (!shape_applied) {
 			/* store verts locally */

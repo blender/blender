@@ -311,14 +311,21 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
 
         col = layout.column(align=True)
         col.active = not settings.use_tripod_solver
-        col.prop(settings, "keyframe_a")
-        col.prop(settings, "keyframe_b")
+        col.prop(tracking_object, "keyframe_a")
+        col.prop(tracking_object, "keyframe_b")
 
         col = layout.column(align=True)
         col.active = (tracking_object.is_camera and
                       not settings.use_tripod_solver)
         col.label(text="Refine:")
         col.prop(settings, "refine_intrinsics", text="")
+
+        col = layout.column(align=True)
+        col.active = not settings.use_tripod_solver
+        col.prop(settings, "use_fallback_reconstruction", text="Allow Fallback")
+        sub = col.column()
+        sub.active = settings.use_fallback_reconstruction
+        sub.prop(settings, "reconstruction_success_threshold")
 
 
 class CLIP_PT_tools_cleanup(CLIP_PT_tracking_panel, Panel):
@@ -790,42 +797,45 @@ class CLIP_PT_proxy(CLIP_PT_clip_view_panel, Panel):
         sc = context.space_data
         clip = sc.clip
 
-        layout.active = clip.use_proxy
+        col = layout.column()
+        col.active = clip.use_proxy
 
-        layout.label(text="Build Original:")
+        col.label(text="Build Original:")
 
-        row = layout.row(align=True)
+        row = col.row(align=True)
         row.prop(clip.proxy, "build_25", toggle=True)
         row.prop(clip.proxy, "build_50", toggle=True)
         row.prop(clip.proxy, "build_75", toggle=True)
         row.prop(clip.proxy, "build_100", toggle=True)
 
-        layout.label(text="Build Undistorted:")
+        col.label(text="Build Undistorted:")
 
-        row = layout.row(align=True)
+        row = col.row(align=True)
         row.prop(clip.proxy, "build_undistorted_25", toggle=True)
         row.prop(clip.proxy, "build_undistorted_50", toggle=True)
         row.prop(clip.proxy, "build_undistorted_75", toggle=True)
         row.prop(clip.proxy, "build_undistorted_100", toggle=True)
 
-        layout.prop(clip.proxy, "quality")
+        col.prop(clip.proxy, "quality")
 
-        layout.prop(clip, "use_proxy_custom_directory")
+        col.prop(clip, "use_proxy_custom_directory")
         if clip.use_proxy_custom_directory:
-            layout.prop(clip.proxy, "directory")
+            col.prop(clip.proxy, "directory")
 
-        layout.operator("clip.rebuild_proxy", text="Build Proxy")
+        col.operator("clip.rebuild_proxy", text="Build Proxy")
 
         if clip.source == 'MOVIE':
-            col = layout.column()
+            col2 = col.column()
 
-            col.label(text="Use timecode index:")
-            col.prop(clip.proxy, "timecode", text="")
+            col2.label(text="Use timecode index:")
+            col2.prop(clip.proxy, "timecode", text="")
 
-        col = layout.column()
-        col.label(text="Proxy render size:")
+        col2 = col.column()
+        col2.label(text="Proxy render size:")
 
         col.prop(sc.clip_user, "proxy_render_size", text="")
+
+        col = layout.column()
         col.prop(sc.clip_user, "use_render_undistorted")
 
 
@@ -888,6 +898,12 @@ class CLIP_MT_view(Menu):
                 layout.operator("clip.view_zoom_ratio",
                                 text=text).ratio = a / b
         else:
+            if sc.view == 'GRAPH':
+                layout.operator_context = 'INVOKE_REGION_PREVIEW'
+                layout.operator("clip.graph_center_current_frame")
+                layout.operator("clip.graph_view_all")
+                layout.operator_context = 'INVOKE_DEFAULT'
+
             layout.prop(sc, "show_seconds")
             layout.separator()
 
@@ -939,7 +955,7 @@ class CLIP_MT_track(Menu):
         props.action = 'UPTO'
 
         props = layout.operator("clip.clear_track_path",
-            text="Clear Track Path")
+                                text="Clear Track Path")
         props.action = 'ALL'
 
         layout.separator()
@@ -954,7 +970,7 @@ class CLIP_MT_track(Menu):
 
         layout.separator()
         props = layout.operator("clip.track_markers",
-            text="Track Frame Backwards")
+                                text="Track Frame Backwards")
         props.backwards = True
 
         props = layout.operator("clip.track_markers", text="Track Backwards")

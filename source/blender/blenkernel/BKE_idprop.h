@@ -154,6 +154,12 @@ __attribute__((nonnull))
 #endif
 ;
 
+void IDP_MergeGroup(IDProperty *dest, IDProperty *src, const int do_overwrite)
+#ifdef __GNUC__
+__attribute__((nonnull))
+#endif
+;
+
 /**
  * This function has a sanity check to make sure ID properties with the same name don't
  * get added to the group.
@@ -260,6 +266,12 @@ __attribute__((nonnull))
 #endif
 ;
 
+int IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const int is_strict)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+#endif
+;
+
 int IDP_EqualsProperties(struct IDProperty *prop1, struct IDProperty *prop2)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
@@ -306,11 +318,16 @@ void IDP_FreeProperty(struct IDProperty *prop);
 /** Unlinks any struct IDProperty<->ID linkage that might be going on.*/
 void IDP_UnlinkProperty(struct IDProperty *prop);
 
-#define IDP_Int(prop) ((prop)->data.val)
-#define IDP_Float(prop) (*(float *)&(prop)->data.val)
-#define IDP_String(prop) ((char *)(prop)->data.pointer)
-#define IDP_Array(prop) ((prop)->data.pointer)
-#define IDP_IDPArray(prop) ((IDProperty *)(prop)->data.pointer)
-#define IDP_Double(prop) (*(double *)&(prop)->data.val)
+#define IDP_Int(prop)                     ((prop)->data.val)
+#define IDP_Float(prop)        (*(float *)&(prop)->data.val)
+#define IDP_Double(prop)      (*(double *)&(prop)->data.val)
+#define IDP_String(prop)         ((char *) (prop)->data.pointer)
+#define IDP_Array(prop)                   ((prop)->data.pointer)
+#define IDP_IDPArray(prop) ((IDProperty *) (prop)->data.pointer)
+
+#ifdef DEBUG
+/* for printout only */
+void IDP_spit(IDProperty *prop);
+#endif
 
 #endif /* __BKE_IDPROP_H__ */

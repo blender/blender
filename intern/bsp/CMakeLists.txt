@@ -29,11 +29,10 @@ set(INC
 	../guardedalloc
 	../memutil
 	../moto/include
-	../../extern/carve/include
 )
 
 set(INC_SYS
-
+	../../extern/carve/include
 )
 
 set(SRC
@@ -62,7 +61,7 @@ if(WITH_BOOST)
 		-DCARVE_SYSTEM_BOOST
 	)
 
-	list(APPEND INC
+	list(APPEND INC_SYS
 		${BOOST_INCLUDE_DIR}
 	)
 endif()

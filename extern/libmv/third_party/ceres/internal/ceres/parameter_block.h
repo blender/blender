@@ -32,13 +32,15 @@
 #define CERES_INTERNAL_PARAMETER_BLOCK_H_
 
 #include <cstdlib>
+#include <string>
+#include "ceres/array_utils.h"
 #include "ceres/integral_types.h"
-#include <glog/logging.h>
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/local_parameterization.h"
-#include "ceres/residual_block_utils.h"
+#include "ceres/stringprintf.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -170,6 +172,19 @@ class ParameterBlock {
       return true;
     }
     return local_parameterization_->Plus(x, delta, x_plus_delta);
+  }
+
+  string ToString() const {
+    return StringPrintf("{ user_state=%p, state=%p, size=%d, "
+                        "constant=%d, index=%d, state_offset=%d, "
+                        "delta_offset=%d }",
+                        user_state_,
+                        state_,
+                        size_,
+                        is_constant_,
+                        index_,
+                        state_offset_,
+                        delta_offset_);
   }
 
  private:

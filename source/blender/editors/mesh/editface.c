@@ -85,7 +85,7 @@ void paintface_flush_flags(Object *ob)
 	 *  - Final derived polys => Final derived tessfaces
 	 */
 
-	if ((index_array = CustomData_get_layer(&me->fdata, CD_POLYINDEX))) {
+	if ((index_array = CustomData_get_layer(&me->fdata, CD_ORIGINDEX))) {
 		faces = me->mface;
 		totface = me->totface;
 		
@@ -109,7 +109,7 @@ void paintface_flush_flags(Object *ob)
 		}
 	}
 
-	if ((index_array = CustomData_get_layer(&dm->faceData, CD_POLYINDEX))) {
+	if ((index_array = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX))) {
 		polys = dm->getPolyArray(dm);
 		faces = dm->getTessFaceArray(dm);
 		totface = dm->getNumTessFaces(dm);
@@ -214,7 +214,9 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 		/* fill array by selection */
 		mp = me->mpoly;
 		for (a = 0; a < me->totpoly; a++, mp++) {
-			if (mp->flag & ME_HIDE) ;
+			if (mp->flag & ME_HIDE) {
+				/* pass */
+			}
 			else if (mp->flag & ME_FACE_SEL) {
 				hash_add_face(ehash, mp, me->mloop + mp->loopstart);
 				linkflag[a] = 1;
@@ -426,7 +428,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 	if (me == 0 ||  me->totpoly == 0) return;
 
 	if (mode == 0)
-		mode = pupmenu("Seams%t|Mark Border Seam %x1|Clear Seam %x2");
+		mode = pupmenu("Seams %t|Mark Border Seam %x1|Clear Seam %x2");
 
 	if (mode != 1 && mode != 2)
 		return;
@@ -533,8 +535,8 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	unsigned int *rt;
 	char *selar;
 	int a, index;
-	int sx = BLI_RCT_SIZE_X(rect) + 1;
-	int sy = BLI_RCT_SIZE_Y(rect) + 1;
+	int sx = BLI_rcti_size_x(rect) + 1;
+	int sy = BLI_rcti_size_y(rect) + 1;
 	
 	me = BKE_mesh_from_object(ob);
 
@@ -572,7 +574,9 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	mpoly = me->mpoly;
 	for (a = 1; a <= me->totpoly; a++, mpoly++) {
 		if (selar[a]) {
-			if (mpoly->flag & ME_HIDE) ;
+			if (mpoly->flag & ME_HIDE) {
+				/* pass */
+			}
 			else {
 				if (select) mpoly->flag |= ME_FACE_SEL;
 				else mpoly->flag &= ~ME_FACE_SEL;

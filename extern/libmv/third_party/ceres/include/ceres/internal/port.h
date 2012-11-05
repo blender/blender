@@ -31,6 +31,8 @@
 #ifndef CERES_PUBLIC_INTERNAL_PORT_H_
 #define CERES_PUBLIC_INTERNAL_PORT_H_
 
+#include <string>
+
 namespace ceres {
 
 // It is unfortunate that this import of the entire standard namespace is
@@ -38,6 +40,10 @@ namespace ceres {
 // suffice to say it is not a mistake and can't be removed without breaking
 // things outside of the Ceres optimization package.
 using namespace std;
+
+// This is necessary to properly handle the case that there is a different
+// "string" implementation in the global namespace.
+using std::string;
 
 }  // namespace ceres
 

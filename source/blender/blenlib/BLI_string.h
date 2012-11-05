@@ -74,7 +74,7 @@ __attribute__((nonnull))
  * \param str2 second string for append
  * \retval Returns dst
  */
-char *BLI_strdupcat(const char *str1, const char *str2)
+char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
@@ -91,7 +91,7 @@ __attribute__((nonnull))
  *   the size of dst)
  * \retval Returns dst
  */
-char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy)
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 #ifdef __GNUC__
 __attribute__((nonnull))
 #endif
@@ -107,7 +107,7 @@ __attribute__((nonnull))
  * Assume that the strings returned must be freed afterwards, and that the inputs will contain
  * data we want...
  */
-char *BLI_str_quoted_substrN(const char *str, const char *prefix)
+char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
@@ -124,7 +124,7 @@ __attribute__((nonnull))
  * \param newText The text in the string to find and replace
  * \retval Returns the duplicated string
  */
-char *BLI_replacestr(char *str, const char *oldText, const char *newText)
+char *BLI_replacestr(char *__restrict str, const char *__restrict oldText, const char *__restrict newText)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
@@ -134,7 +134,7 @@ __attribute__((nonnull))
 /*
  * Replacement for snprintf
  */
-size_t BLI_snprintf(char *buffer, size_t len, const char *format, ...)
+size_t BLI_snprintf(char *__restrict buffer, size_t len, const char *__restrict format, ...)
 #ifdef __GNUC__
 __attribute__ ((format(printf, 3, 4)))
 __attribute__((nonnull))
@@ -144,13 +144,17 @@ __attribute__((nonnull))
 /*
  * Replacement for vsnprintf
  */
-size_t BLI_vsnprintf(char *buffer, size_t count, const char *format, va_list arg);
+size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restrict format, va_list arg)
+#ifdef __GNUC__
+__attribute__ ((format(printf, 3, 0)))
+#endif
+;
 
 /*
  * Print formatted string into a newly mallocN'd string
  * and return it.
  */
-char *BLI_sprintfN(const char *format, ...)
+char *BLI_sprintfN(const char *__restrict format, ...)
 #ifdef __GNUC__
 __attribute__ ((format(printf, 1, 2)))
 __attribute__((warn_unused_result))
@@ -158,7 +162,7 @@ __attribute__((nonnull))
 #endif
 ;
 
-size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
+size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 #ifdef __GNUC__
 __attribute__((nonnull))
 #endif
@@ -200,7 +204,7 @@ __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
 ;
-size_t BLI_strnlen(const char *str, size_t maxlen)
+size_t BLI_strnlen(const char *str, const size_t maxlen)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 __attribute__((nonnull))
@@ -212,12 +216,12 @@ __attribute__((nonnull))
 #endif
 ; /* time var is global */
 
-void BLI_ascii_strtolower(char *str, int len)
+void BLI_ascii_strtolower(char *str, const size_t len)
 #ifdef __GNUC__
 __attribute__((nonnull))
 #endif
 ;
-void BLI_ascii_strtoupper(char *str, int len)
+void BLI_ascii_strtoupper(char *str, const size_t len)
 #ifdef __GNUC__
 __attribute__((nonnull))
 #endif

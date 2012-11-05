@@ -116,24 +116,24 @@ void Video_open (VideoBase * self, char * file, short captureID)
 
 
 // play video
-PyObject * Video_play (PyImage * self)
+PyObject *Video_play(PyImage *self)
 { if (getVideo(self)->play()) Py_RETURN_TRUE; else Py_RETURN_FALSE; }
 
 // pause video
-PyObject * Video_pause (PyImage * self)
+PyObject *Video_pause(PyImage *self)
 { if (getVideo(self)->pause()) Py_RETURN_TRUE; else Py_RETURN_FALSE; }
 
-PyObject * Video_stop (PyImage * self)
+PyObject *Video_stop(PyImage *self)
 { if (getVideo(self)->stop()) Py_RETURN_TRUE; else Py_RETURN_FALSE; }
 
 // get status
-PyObject * Video_getStatus (PyImage * self, void * closure)
+PyObject *Video_getStatus(PyImage *self, void *closure)
 {
 	return Py_BuildValue("h", getVideo(self)->getStatus());
 }
 
 // refresh video
-PyObject * Video_refresh (PyImage * self)
+PyObject *Video_refresh(PyImage *self)
 {
 	getVideo(self)->refresh();
 	return Video_getStatus(self, NULL);
@@ -141,19 +141,20 @@ PyObject * Video_refresh (PyImage * self)
 
 
 // get range
-PyObject * Video_getRange (PyImage * self, void * closure)
+PyObject *Video_getRange(PyImage *self, void *closure)
 {
 	return Py_BuildValue("[ff]", getVideo(self)->getRange()[0],
 		getVideo(self)->getRange()[1]);
 }
 
 // set range
-int Video_setRange (PyImage * self, PyObject * value, void * closure)
+int Video_setRange(PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
-		|| !PyFloat_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyFloat_Check(PySequence_Fast_GET_ITEM(value, 1)))
+	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2 ||
+	    /* XXX - this is incorrect if the sequence is not a list/tuple! */
+	    !PyFloat_Check(PySequence_Fast_GET_ITEM(value, 0)) ||
+	    !PyFloat_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 float");
 		return -1;
@@ -166,11 +167,11 @@ int Video_setRange (PyImage * self, PyObject * value, void * closure)
 }
 
 // get repeat
-PyObject * Video_getRepeat (PyImage * self, void * closure)
+PyObject *Video_getRepeat (PyImage *self, void *closure)
 { return Py_BuildValue("h", getVideo(self)->getRepeat()); }
 
 // set repeat
-int Video_setRepeat (PyImage * self, PyObject * value, void * closure)
+int Video_setRepeat(PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PyLong_Check(value))
@@ -185,11 +186,11 @@ int Video_setRepeat (PyImage * self, PyObject * value, void * closure)
 }
 
 // get frame rate
-PyObject * Video_getFrameRate (PyImage * self, void * closure)
+PyObject *Video_getFrameRate (PyImage *self, void *closure)
 { return Py_BuildValue("f", double(getVideo(self)->getFrameRate())); }
 
 // set frame rate
-int Video_setFrameRate (PyImage * self, PyObject * value, void * closure)
+int Video_setFrameRate(PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PyFloat_Check(value))

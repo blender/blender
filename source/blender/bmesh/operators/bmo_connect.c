@@ -380,8 +380,9 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 
 				/* compute summed length between vertices in forward direction */
 				len = 0.0f;
-				for (j = 0; j < lenv2; j++)
-					len += len_v3v3(vv1[clamp_index(i+j, lenv1)]->co, vv2[j]->co);
+				for (j = 0; j < lenv2; j++) {
+					len += len_v3v3(vv1[clamp_index(i + j, lenv1)]->co, vv2[j]->co);
+				}
 
 				if (len < min) {
 					min = len;
@@ -390,8 +391,9 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 
 				/* compute summed length between vertices in backward direction */
 				len = 0.0f;
-				for (j = 0; j < lenv2; j++)
-					len += len_v3v3(vv1[clamp_index(i-j, lenv1)]->co, vv2[j]->co);
+				for (j = 0; j < lenv2; j++) {
+					len += len_v3v3(vv1[clamp_index(i - j, lenv1)]->co, vv2[j]->co);
+				}
 
 				if (len < min) {
 					min = len;
@@ -423,8 +425,8 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		
 		/* merge loops of bridge faces */
 		if (use_merge) {
-			const int vert_len = mini(BLI_array_count(vv1), BLI_array_count(vv2)) - ((cl1 || cl2) ? 1 : 0);
-			const int edge_len = mini(BLI_array_count(ee1), BLI_array_count(ee2));
+			const int vert_len = min_ii(BLI_array_count(vv1), BLI_array_count(vv2)) - ((cl1 || cl2) ? 1 : 0);
+			const int edge_len = min_ii(BLI_array_count(ee1), BLI_array_count(ee2));
 
 			if (merge_factor <= 0.0f) {
 				/* 2 --> 1 */
@@ -504,7 +506,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				                            vv2[i2next],
 				                            vv1[i1next],
 				                            f_example, TRUE);
-				if (!f || f->len != 4) {
+				if (UNLIKELY((f == NULL) || (f->len != 4))) {
 					fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
 				}
 				else {

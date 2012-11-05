@@ -29,10 +29,9 @@
  *  \ingroup bgeconv
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
-#endif //WIN32
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
+#endif
 
 #include "MEM_guardedalloc.h"
 #include "BL_ShapeDeformer.h"
@@ -41,7 +40,6 @@
 #include "RAS_IPolygonMaterial.h"
 #include "RAS_MeshObject.h"
 
-//#include "BL_ArmatureController.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
@@ -60,7 +58,6 @@ extern "C"{
 	#include "BKE_lattice.h"
 	#include "BKE_animsys.h"
 }
- 
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -173,7 +170,7 @@ bool BL_ShapeDeformer::Update(void)
 			/* store verts locally */
 			VerifyStorage();
 
-			do_rel_key(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts, m_bmesh->key, NULL, 0); /* last arg is ignored */
+			BKE_key_evaluate_relative(0, m_bmesh->totvert, m_bmesh->totvert, (char *)(float *)m_transverts, m_bmesh->key, NULL, 0); /* last arg is ignored */
 			m_bDynamic = true;
 		}
 

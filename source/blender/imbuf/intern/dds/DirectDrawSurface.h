@@ -169,7 +169,7 @@ public:
 
 	void setNormalFlag(bool b);
 	void setHasAlphaFlag(bool b);
-        void setUserVersion(int version);
+	void setUserVersion(int version);
 	
 	void mipmap(Image * img, uint f, uint m);
 	void* readData(uint &size);
@@ -200,4 +200,4 @@ void mem_read(Stream & mem, DDSCaps & caps);
 void mem_read(Stream & mem, DDSHeader & header);
 void mem_read(Stream & mem, DDSHeader10 & header);
 
-#endif // __DIRECTDRAWSURFACE_H__
+#endif  /* __DIRECTDRAWSURFACE_H__ */

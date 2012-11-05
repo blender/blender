@@ -49,16 +49,16 @@ public:
 	~PyTypeList();
 
 	/// check, if type is in list
-	bool in (PyTypeObject * type);
+	bool in (PyTypeObject *type);
 
 	/// add type to list
-	void add (PyTypeObject * type, const char * name);
+	void add (PyTypeObject *type, const char * name);
 
 	/// prepare types
 	bool ready (void);
 
 	/// register types to module
-	void reg (PyObject * module);
+	void reg(PyObject *module);
 
 protected:
 	/// pointer to list of types
@@ -71,21 +71,21 @@ class PyTypeListItem
 {
 public:
 	/// constructor adds type into list
-	PyTypeListItem (PyTypeObject * type, const char * name)
+	PyTypeListItem (PyTypeObject *type, const char * name)
 		: m_type(type), m_name(name)
 	{ }
 
 	/// does type match
-	PyTypeObject * getType (void) { return m_type; }
+	PyTypeObject *getType (void) { return m_type; }
 
 	/// get name of type
 	const char * getName (void) { return m_name; }
 
 protected:
 	/// pointer to type object
-	PyTypeObject * m_type;
+	PyTypeObject *m_type;
 	/// name of type
-	const char * m_name;
+	const char *m_name;
 };
 
 

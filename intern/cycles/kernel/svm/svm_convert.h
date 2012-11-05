@@ -23,6 +23,11 @@ CCL_NAMESPACE_BEGIN
 __device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint from, uint to)
 {
 	switch(type) {
+		case NODE_CONVERT_FI: {
+			float f = stack_load_float(stack, from);
+			stack_store_int(stack, to, (int)f);
+			break;
+		}
 		case NODE_CONVERT_FV: {
 			float f = stack_load_float(stack, from);
 			stack_store_float3(stack, to, make_float3(f, f, f));
@@ -34,13 +39,34 @@ __device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint fro
 			stack_store_float(stack, to, g);
 			break;
 		}
+		case NODE_CONVERT_CI: {
+			float3 f = stack_load_float3(stack, from);
+			int i = (int)linear_rgb_to_gray(f);
+			stack_store_int(stack, to, i);
+			break;
+		}
 		case NODE_CONVERT_VF: {
 			float3 f = stack_load_float3(stack, from);
 			float g = (f.x + f.y + f.z)*(1.0f/3.0f);
 			stack_store_float(stack, to, g);
 			break;
 		}
-
+		case NODE_CONVERT_VI: {
+			float3 f = stack_load_float3(stack, from);
+			int i = (f.x + f.y + f.z)*(1.0f/3.0f);
+			stack_store_int(stack, to, i);
+			break;
+		}
+		case NODE_CONVERT_IF: {
+			float f = (float)stack_load_int(stack, from);
+			stack_store_float(stack, to, f);
+			break;
+		}
+		case NODE_CONVERT_IV: {
+			float f = (float)stack_load_int(stack, from);
+			stack_store_float3(stack, to, make_float3(f, f, f));
+			break;
+		}
 	}
 }
 

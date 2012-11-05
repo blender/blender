@@ -76,7 +76,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	BLI_lock_thread(LOCK_IMAGE);
 	if (env->cube[1] == NULL) {
 
-		BKE_free_envmapdata(env);	
+		BKE_free_envmapdata(env);
 	
 		dx = ibuf->y;
 		dx /= 2;
@@ -120,7 +120,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 				IMB_float_from_rect(env->cube[1]);
 			}
 		}
-	}	
+	}
 	BLI_unlock_thread(LOCK_IMAGE);
 }
 
@@ -148,12 +148,14 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
 	envre->r.layers.first = envre->r.layers.last = NULL;
 	envre->r.filtertype = 0;
-	envre->r.xparts = envre->r.yparts = 2;
+	envre->r.tilex = envre->r.xsch / 2;
+	envre->r.tiley = envre->r.ysch / 2;
 	envre->r.size = 100;
 	envre->r.yasp = envre->r.xasp = 1;
 	
 	RE_InitState(envre, NULL, &envre->r, NULL, cuberes, cuberes, NULL);
 	envre->scene = re->scene;    /* unsure about this... */
+	envre->scene_color_manage = re->scene_color_manage;
 	envre->lay = re->lay;
 
 	/* view stuff in env render */
@@ -215,7 +217,7 @@ static void envmap_transmatrix(float mat[][4], int part)
 	eul[0] = eul[1] = eul[2] = 0.0;
 	
 	if (part == 0) {          /* neg z */
-		;
+		/* pass */
 	}
 	else if (part == 1) { /* pos z */
 		eul[0] = M_PI;
@@ -575,7 +577,7 @@ void make_envmaps(Render *re)
 		re->display_init(re->dih, re->result);
 		re->display_clear(re->dch, re->result);
 		// re->flag |= R_REDRAW_PRV;
-	}	
+	}
 	/* restore */
 	re->r.mode |= trace;
 
@@ -642,31 +644,31 @@ static int envcube_isect(EnvMap *env, const float vec[3], float answ[2])
 
 /* ------------------------------------------------------------------------- */
 
-static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int face)
+static void set_dxtdyt(float r_dxt[3], float r_dyt[3], const float dxt[3], const float dyt[3], int face)
 {
 	if (face == 2 || face == 4) {
-		dxts[0] = dxt[0];
-		dyts[0] = dyt[0];
-		dxts[1] = dxt[2];
-		dyts[1] = dyt[2];
+		r_dxt[0] = dxt[0];
+		r_dyt[0] = dyt[0];
+		r_dxt[1] = dxt[2];
+		r_dyt[1] = dyt[2];
 	}
 	else if (face == 3 || face == 5) {
-		dxts[0] = dxt[1];
-		dxts[1] = dxt[2];
-		dyts[0] = dyt[1];
-		dyts[1] = dyt[2];
+		r_dxt[0] = dxt[1];
+		r_dxt[1] = dxt[2];
+		r_dyt[0] = dyt[1];
+		r_dyt[1] = dyt[2];
 	}
 	else {
-		dxts[0] = dxt[0];
-		dyts[0] = dyt[0];
-		dxts[1] = dxt[1];
-		dyts[1] = dyt[1];
+		r_dxt[0] = dxt[0];
+		r_dyt[0] = dyt[0];
+		r_dxt[1] = dxt[1];
+		r_dyt[1] = dyt[1];
 	}
 }
 
 /* ------------------------------------------------------------------------- */
 
-int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+int envmaptex(Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int osatex, TexResult *texres)
 {
 	extern Render R;                /* only in this call */
 	/* texvec should be the already reflected normal */

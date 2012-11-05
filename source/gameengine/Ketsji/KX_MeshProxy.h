@@ -37,7 +37,7 @@
 #include "SCA_IObject.h"
 
 /* utility conversion function */
-bool ConvertPythonToMesh(PyObject * value, class RAS_MeshObject **object, bool py_none_ok, const char *error_prefix);
+bool ConvertPythonToMesh(PyObject *value, class RAS_MeshObject **object, bool py_none_ok, const char *error_prefix);
 
 class KX_MeshProxy	: public CValue
 {
@@ -73,11 +73,10 @@ public:
 	KX_PYMETHOD(KX_MeshProxy,GetPolygon);
 	
 	static PyObject*	pyattr_get_materials(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);
-	static PyObject * pyattr_get_numMaterials(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
-	static PyObject * pyattr_get_numPolygons(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	static PyObject *pyattr_get_numMaterials(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
+	static PyObject *pyattr_get_numPolygons(void * self, const KX_PYATTRIBUTE_DEF * attrdef);
 };
 
-#endif // WITH_PYTHON
+#endif  /* WITH_PYTHON */
 
-#endif //__KX_MESHPROXY_H__
-
+#endif  /* __KX_MESHPROXY_H__ */

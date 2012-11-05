@@ -325,7 +325,7 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
-		if ((BLI_RCT_SIZE_X(&rect)) >= (BLI_RCT_SIZE_Y(&rect)))
+		if ((BLI_rcti_size_x(&rect)) >= (BLI_rcti_size_y(&rect)))
 			mode = BEZT_OK_FRAMERANGE;
 		else
 			mode = BEZT_OK_VALUERANGE;
@@ -757,7 +757,7 @@ static void graphkeys_select_leftright(bAnimContext *ac, short leftright, short 
 	if (leftright == GRAPHKEYS_LRSEL_LEFT) {
 		ked.f1 = MINAFRAMEF;
 		ked.f2 = (float)(CFRA + 0.1f);
-	} 
+	}
 	else {
 		ked.f1 = (float)(CFRA - 0.1f);
 		ked.f2 = MAXFRAMEF;
@@ -835,7 +835,7 @@ static int graphkeys_select_leftright_invoke(bContext *C, wmOperator *op, wmEven
 		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 		if (x < CFRA)
 			RNA_enum_set(op->ptr, "mode", GRAPHKEYS_LRSEL_LEFT);
-		else 	
+		else
 			RNA_enum_set(op->ptr, "mode", GRAPHKEYS_LRSEL_RIGHT);
 	}
 	
@@ -1113,7 +1113,7 @@ static void mouse_graph_keys(bAnimContext *ac, const int mval[2], short select_m
 	nvi = find_nearest_fcurve_vert(ac, mval);
 	
 	/* check if anything to select */
-	if (nvi == NULL)	
+	if (nvi == NULL)
 		return;
 	
 	/* deselect all other curves? */
@@ -1241,7 +1241,7 @@ static void graphkeys_mselect_column(bAnimContext *ac, const int mval[2], short 
 	nvi = find_nearest_fcurve_vert(ac, mval);
 	
 	/* check if anything to select */
-	if (nvi == NULL)	
+	if (nvi == NULL)
 		return;
 	
 	/* get frame number on which elements should be selected */

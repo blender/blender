@@ -53,7 +53,6 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 
-
 #ifdef RIGID_DEFORM
 #include "BLI_polardecomp.h"
 #endif
@@ -563,7 +562,7 @@ static void heat_set_H(LaplacianSystem *sys, int vertex)
 
 	/* compute H entry */
 	if (numclosest > 0) {
-		mindist = maxf(mindist, 1e-4f);
+		mindist = max_ff(mindist, 1e-4f);
 		h = numclosest * C_WEIGHT / (mindist * mindist);
 	}
 	else
@@ -794,7 +793,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 			}
 		}
 		else if (*err_str == NULL) {
-			*err_str = "Bone Heat Weighting: failed to find solution for one or more bones";
+			*err_str = N_("Bone Heat Weighting: failed to find solution for one or more bones");
 			break;
 		}
 
@@ -1113,6 +1112,9 @@ typedef struct MeshDeformBind {
 
 	/* direct solver */
 	int *varidx;
+	
+	BVHTree *bvhtree;
+	BVHTreeFromMesh bvhdata;
 } MeshDeformBind;
 
 typedef struct MeshDeformIsect {
@@ -1130,8 +1132,9 @@ typedef struct MeshDeformIsect {
 
 /* our own triangle intersection, so we can fully control the epsilons and
  * prevent corner case from going wrong*/
-static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
-                                    float vert1[3], float vert2[3], float *isectco, float *uvw)
+static int meshdeform_tri_intersect(const float orig[3], const float end[3], const float vert0[3],
+                                    const float vert1[3], const float vert2[3],
+                                    float r_isectco[3], float r_uvw[3])
 {
 	float edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
 	float det, inv_det, u, v, dir[3], isectdir[3];
@@ -1148,8 +1151,10 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	/* if determinant is near zero, ray lies in plane of triangle */
 	det = dot_v3v3(edge1, pvec);
 
-	if (det == 0.0f)
+	if (UNLIKELY(det == 0.0f)) {
 		return 0;
+	}
+
 	inv_det = 1.0f / det;
 
 	/* calculate distance from vert0 to ray origin */
@@ -1168,16 +1173,16 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	if (v < -EPSILON || u + v > 1.0f + EPSILON)
 		return 0;
 
-	isectco[0] = (1.0f - u - v) * vert0[0] + u * vert1[0] + v * vert2[0];
-	isectco[1] = (1.0f - u - v) * vert0[1] + u * vert1[1] + v * vert2[1];
-	isectco[2] = (1.0f - u - v) * vert0[2] + u * vert1[2] + v * vert2[2];
+	r_isectco[0] = (1.0f - u - v) * vert0[0] + u * vert1[0] + v * vert2[0];
+	r_isectco[1] = (1.0f - u - v) * vert0[1] + u * vert1[1] + v * vert2[1];
+	r_isectco[2] = (1.0f - u - v) * vert0[2] + u * vert1[2] + v * vert2[2];
 
-	uvw[0] = 1.0f - u - v;
-	uvw[1] = u;
-	uvw[2] = v;
+	r_uvw[0] = 1.0f - u - v;
+	r_uvw[1] = u;
+	r_uvw[2] = v;
 
 	/* check if it is within the length of the line segment */
-	sub_v3_v3v3(isectdir, isectco, orig);
+	sub_v3_v3v3(isectdir, r_isectco, orig);
 
 	if (dot_v3v3(dir, isectdir) < -EPSILON)
 		return 0;
@@ -1188,83 +1193,79 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	return 1;
 }
 
-static int meshdeform_intersect(MeshDeformBind *mdb, MeshDeformIsect *isec)
+static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit)
 {
-	MFace *mface;
-	float face[4][3], co[3], uvw[3], len, nor[3], end[3];
-	int f, hit, is = 0, totface;
-
-	isec->labda = 1e10;
-
-	mface = mdb->cagedm->getTessFaceArray(mdb->cagedm);
-	totface = mdb->cagedm->getNumTessFaces(mdb->cagedm);
-
+	void **data = userdata;
+	MeshDeformBind *mdb = data[1];
+	MFace *mface = data[0], *mf;
+	MeshDeformIsect *isec = data[2];
+	float no[3], co[3], end[3], uvw[3], dist, face[4][3];
+	
+	mf = mface + index;
+	
+	copy_v3_v3(face[0], mdb->cagecos[mf->v1]);
+	copy_v3_v3(face[1], mdb->cagecos[mf->v2]);
+	copy_v3_v3(face[2], mdb->cagecos[mf->v3]);
+	if (mf->v4)
+		copy_v3_v3(face[3], mdb->cagecos[mf->v4]);
+	
 	add_v3_v3v3(end, isec->start, isec->vec);
-
-	for (f = 0; f < totface; f++, mface++) {
-		copy_v3_v3(face[0], mdb->cagecos[mface->v1]);
-		copy_v3_v3(face[1], mdb->cagecos[mface->v2]);
-		copy_v3_v3(face[2], mdb->cagecos[mface->v3]);
-
-		if (mface->v4) {
-			copy_v3_v3(face[3], mdb->cagecos[mface->v4]);
-			hit = meshdeform_tri_intersect(isec->start, end, face[0], face[1], face[2], co, uvw);
-
-			if (hit) {
-				normal_tri_v3(nor, face[0], face[1], face[2]);
-			}
-			else {
-				hit = meshdeform_tri_intersect(isec->start, end, face[0], face[2], face[3], co, uvw);
-				normal_tri_v3(nor, face[0], face[2], face[3]);
-			}
-		}
-		else {
-			hit = meshdeform_tri_intersect(isec->start, end, face[0], face[1], face[2], co, uvw);
-			normal_tri_v3(nor, face[0], face[1], face[2]);
-		}
-
-		if (hit) {
-			len = len_v3v3(isec->start, co) / len_v3v3(isec->start, end);
-			if (len < isec->labda) {
-				isec->labda = len;
-				isec->face = mface;
-				isec->isect = (dot_v3v3(isec->vec, nor) <= 0.0f);
-				is = 1;
-			}
-		}
+	
+	if (!meshdeform_tri_intersect(ray->origin, end, face[0], face[1], face[2], co, uvw)) 
+		if (!mf->v4 || !meshdeform_tri_intersect(ray->origin, end, face[0], face[2], face[3], co, uvw))
+			return;
+	
+	if (!mf->v4)
+		normal_tri_v3(no, face[0], face[1], face[2]);
+	else
+		normal_quad_v3(no, face[0], face[1], face[2], face[3]);
+	
+	dist = len_v3v3(ray->origin, co) / len_v3(isec->vec);
+	if (dist < hit->dist) {
+		hit->index = index;
+		hit->dist = dist;
+		copy_v3_v3(hit->co, co);
+		
+		isec->isect = (dot_v3v3(no, ray->direction) <= 0.0f);
+		isec->labda = dist;
+		isec->face = mf;
 	}
-
-	return is;
 }
 
 static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float *co1, float *co2)
 {
 	MDefBoundIsect *isect;
-	MeshDeformIsect isec;
+	BVHTreeRayHit hit;
+	MeshDeformIsect isect_mdef;
 	float (*cagecos)[3];
-	MFace *mface;
+	void *data[3] = {mdb->cagedm->getTessFaceArray(mdb->cagedm), mdb, &isect_mdef};
+	MFace *mface1 = data[0], *mface;
 	float vert[4][3], len, end[3];
 	static float epsilon[3] = {0, 0, 0}; //1e-4, 1e-4, 1e-4};
 
 	/* setup isec */
-	memset(&isec, 0, sizeof(isec));
-	isec.labda = 1e10f;
+	memset(&isect_mdef, 0, sizeof(isect_mdef));
+	isect_mdef.labda = 1e10f;
 
-	add_v3_v3v3(isec.start, co1, epsilon);
+	add_v3_v3v3(isect_mdef.start, co1, epsilon);
 	add_v3_v3v3(end, co2, epsilon);
-	sub_v3_v3v3(isec.vec, end, isec.start);
+	sub_v3_v3v3(isect_mdef.vec, end, isect_mdef.start);
 
-	if (meshdeform_intersect(mdb, &isec)) {
-		len = isec.labda;
-		mface = (MFace *)isec.face;
+	hit.index = -1;
+	hit.dist = FLT_MAX;
+	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
+	                         0.0, &hit, harmonic_ray_callback, data) != -1)
+	{
+		len = isect_mdef.labda;
+		isect_mdef.face = mface = mface1 + hit.index;
 
 		/* create MDefBoundIsect */
 		isect = BLI_memarena_alloc(mdb->memarena, sizeof(*isect));
 
 		/* compute intersection coordinate */
-		isect->co[0] = co1[0] + isec.vec[0] * len;
-		isect->co[1] = co1[1] + isec.vec[1] * len;
-		isect->co[2] = co1[2] + isec.vec[2] * len;
+		isect->co[0] = co1[0] + isect_mdef.vec[0] * len;
+		isect->co[1] = co1[1] + isect_mdef.vec[1] * len;
+		isect->co[2] = co1[2] + isect_mdef.vec[2] * len;
 
 		isect->len = len_v3v3(co1, isect->co);
 		if (isect->len < MESHDEFORM_LEN_THRESHOLD)
@@ -1276,7 +1277,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 		isect->v[3] = mface->v4;
 		isect->nvert = (mface->v4) ? 4 : 3;
 
-		isect->facing = isec.isect;
+		isect->facing = isect_mdef.isect;
 
 		/* compute mean value coordinates for interpolation */
 		cagecos = mdb->cagecos;
@@ -1720,7 +1721,7 @@ static void meshdeform_matrix_solve(MeshDeformModifierData *mmd, MeshDeformBind 
 			}
 		}
 		else {
-			modifier_setError(&mmd->modifier, "%s", TIP_("Failed to find bind solution (increase precision?)."));
+			modifier_setError(&mmd->modifier, "Failed to find bind solution (increase precision?)");
 			error("Mesh Deform: failed to find bind solution.");
 			break;
 		}
@@ -1766,7 +1767,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 	mdb->totalphi = MEM_callocN(sizeof(float) * mdb->size3, "MeshDeformBindTotalPhi");
 	mdb->boundisect = MEM_callocN(sizeof(*mdb->boundisect) * mdb->size3, "MDefBoundIsect");
 	mdb->semibound = MEM_callocN(sizeof(int) * mdb->size3, "MDefSemiBound");
-
+	mdb->bvhtree = bvhtree_from_mesh_faces(&mdb->bvhdata, mdb->cagedm, FLT_EPSILON*100, 4, 6);
 	mdb->inside = MEM_callocN(sizeof(int) * mdb->totvert, "MDefInside");
 
 	if (mmd->flag & MOD_MDEF_DYNAMIC_BIND)
@@ -1882,6 +1883,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 	MEM_freeN(mdb->boundisect);
 	MEM_freeN(mdb->semibound);
 	BLI_memarena_free(mdb->memarena);
+	free_bvhtree_from_mesh(&mdb->bvhdata);
 }
 
 #if 0

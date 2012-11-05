@@ -96,4 +96,4 @@ public:
 	};
 };
 
-#endif // __COLOR_H__
+#endif  /* __COLOR_H__ */

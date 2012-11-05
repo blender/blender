@@ -55,10 +55,11 @@ class LinearOperator;
 //   Ax = b
 //
 // It is expected that a single instance of a LinearSolver object
-// maybe used multiple times for solving different linear
-// systems. This allows them to cache and reuse information across
-// solves if for example the sparsity of the linear system remains
-// constant.
+// maybe used multiple times for solving multiple linear systems with
+// the same sparsity structure. This allows them to cache and reuse
+// information across solves. This means that calling Solve on the
+// same LinearSolver instance with two different linear systems will
+// result in undefined behaviour.
 //
 // Subclasses of LinearSolver use two structs to configure themselves.
 // The Options struct configures the LinearSolver object for its
@@ -70,10 +71,11 @@ class LinearSolver {
     Options()
         : type(SPARSE_NORMAL_CHOLESKY),
           preconditioner_type(JACOBI),
+          sparse_linear_algebra_library(SUITE_SPARSE),
+          use_block_amd(true),
           min_num_iterations(1),
           max_num_iterations(1),
           num_threads(1),
-          constant_sparsity(false),
           num_eliminate_blocks(0),
           residual_reset_period(10),
           row_block_size(Dynamic),
@@ -85,6 +87,11 @@ class LinearSolver {
 
     PreconditionerType preconditioner_type;
 
+    SparseLinearAlgebraLibraryType sparse_linear_algebra_library;
+
+    // See solver.h for explanation of this option.
+    bool use_block_amd;
+
     // Number of internal iterations that the solver uses. This
     // parameter only makes sense for iterative solvers like CG.
     int min_num_iterations;
@@ -92,10 +99,6 @@ class LinearSolver {
 
     // If possible, how many threads can the solver use.
     int num_threads;
-
-    // If possible cache and reuse the symbolic factorization across
-    // multiple calls.
-    bool constant_sparsity;
 
     // Eliminate 0 to num_eliminate_blocks - 1 from the Normal
     // equations to form a schur complement. Only used by the Schur
@@ -121,8 +124,8 @@ class LinearSolver {
     // It is expected that these parameters are set programmatically
     // rather than manually.
     //
-    // Please see explicit_schur_complement_solver_impl.h for more
-    // details.
+    // Please see schur_complement_solver.h and schur_eliminator.h for
+    // more details.
     int row_block_size;
     int e_block_size;
     int f_block_size;
@@ -244,6 +247,7 @@ class LinearSolver {
                         const PerSolveOptions& per_solve_options,
                         double* x) = 0;
 
+  // Factory
   static LinearSolver* Create(const Options& options);
 };
 

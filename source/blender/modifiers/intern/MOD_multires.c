@@ -80,6 +80,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 	Mesh *me = (Mesh *)ob->data;
 	const int useRenderParams = flag & MOD_APPLY_RENDER;
 	MultiresFlags flags = 0;
+	int has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
 
 	if (mmd->totlvl) {
 		if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
@@ -88,7 +89,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		}
 	}
 
-	flags = MULTIRES_ALLOC_PAINT_MASK;
+	if (has_mask)
+		flags |= MULTIRES_ALLOC_PAINT_MASK;
+
 	if (useRenderParams)
 		flags |= MULTIRES_USE_RENDER_PARAMS;
 

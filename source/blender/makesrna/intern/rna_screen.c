@@ -140,12 +140,12 @@ static void rna_Area_type_update(bContext *C, PointerRNA *ptr)
 	}
 }
 
-void rna_View2D_region_to_view(struct View2D *v2d, int x, int y, float result[2])
+static void rna_View2D_region_to_view(struct View2D *v2d, int x, int y, float result[2])
 {
 	UI_view2d_region_to_view(v2d, x, y, &result[0], &result[1]);
 }
 
-void rna_View2D_view_to_region(struct View2D *v2d, float x, float y, int clip, int result[2])
+static void rna_View2D_view_to_region(struct View2D *v2d, float x, float y, int clip, int result[2])
 {
 	if (clip)
 		UI_view2d_view_to_region(v2d, x, y, &result[0], &result[1]);

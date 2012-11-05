@@ -148,6 +148,7 @@ endif()
 		extern_recastnavigation
 		bf_intern_raskter
 		bf_intern_opencolorio
+		bf_intern_opennl
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
@@ -168,10 +169,6 @@ endif()
 	endif()
 
 	list(APPEND BLENDER_SORTED_LIBS extern_colamd)
-
-	if(WITH_MOD_DECIMATE)
-		list(APPEND BLENDER_SORTED_LIBS bf_intern_decimate)
-	endif()
 
 	if(WITH_MOD_BOOLEAN)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_bsp)

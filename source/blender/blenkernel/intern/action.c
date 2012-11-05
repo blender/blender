@@ -224,7 +224,7 @@ bActionGroup *get_active_actiongroup(bAction *act)
 {
 	bActionGroup *agrp = NULL;
 	
-	if (act && act->groups.first) {	
+	if (act && act->groups.first) {
 		for (agrp = act->groups.first; agrp; agrp = agrp->next) {
 			if (agrp->flag & AGRP_ACTIVE)
 				break;
@@ -301,7 +301,7 @@ bActionGroup *action_groups_add_new(bAction *act, const char name[])
 	
 	/* add to action, and validate */
 	BLI_addtail(&act->groups, agrp);
-	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));	
+	BLI_uniquename(&act->groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
 	
 	/* return the new group */
 	return agrp;
@@ -380,7 +380,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 void action_groups_remove_channel(bAction *act, FCurve *fcu)
 {
 	/* sanity checks */
-	if (ELEM(NULL, act, fcu))	
+	if (ELEM(NULL, act, fcu))
 		return;
 	
 	/* check if any group used this directly */
@@ -539,6 +539,7 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 	outPose->iksolver = src->iksolver;
 	outPose->ikdata = NULL;
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
+	outPose->avs = src->avs;
 	
 	for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
 		/* TODO: rename this argument... */
@@ -905,8 +906,8 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				calc_fcurve_range(fcu, &nmin, &nmax, FALSE, TRUE);
 				
 				/* compare to the running tally */
-				min = MIN2(min, nmin);
-				max = MAX2(max, nmax);
+				min = min_ff(min, nmin);
+				max = max_ff(max, nmax);
 				
 				foundvert = 1;
 			}
@@ -924,10 +925,10 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 						FMod_Limits *fmd = (FMod_Limits *)fcm->data;
 						
 						if (fmd->flag & FCM_LIMIT_XMIN) {
-							min = MIN2(min, fmd->rect.xmin);
+							min = min_ff(min, fmd->rect.xmin);
 						}
 						if (fmd->flag & FCM_LIMIT_XMAX) {
-							max = MAX2(max, fmd->rect.xmax);
+							max = max_ff(max, fmd->rect.xmax);
 						}
 					}
 					break;
@@ -954,7 +955,7 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				foundmod = 1;
 			}
 		}
-	}	
+	}
 	
 	if (foundvert || foundmod) {
 		if (min == max) max += 1.0f;
@@ -1214,475 +1215,3 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 	}
 }
 
-/* ********** NLA with non-poses works with ipo channels ********** */
-
-#if 0 // XXX OLD ANIMATION SYSTEM (TO BE REMOVED)
-
-/* ************************ Blending with NLA *************** */
-
-static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mode)
-{
-	float dstweight;
-	
-	switch (mode) {
-		case ACTSTRIPMODE_BLEND:
-			dstweight = 1.0F - srcweight;
-			break;
-		case ACTSTRIPMODE_ADD:
-			dstweight = 1.0F;
-			break;
-		default:
-			dstweight = 1.0F;
-	}
-	
-	interp_v3_v3v3(dst->stride_offset, dst->stride_offset, src->stride_offset, srcweight);
-}
-
-
-/*
- * bone matching diagram, strips A and B
- * 
- *                  .------------------------.
- *                  |         A              |
- *                  '------------------------'
- *                  .          .             b2
- *                  .          .-------------v----------.
- *                  .          |         B   .          |
- *                  .          '------------------------'
- *                  .          .             .
- *                  .          .             .
- * offset:          .    0     .    A-B      .  A-b2+B
- *                  .          .             .
- *
- * */
-
-
-static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, float srcweight, short mode)
-{
-	/* matching offset bones */
-	/* take dst offset, and put src on on that location */
-	
-	if (strip->offs_bone[0] == 0)
-		return;
-	
-	/* are we also blending with matching bones? */
-	if (strip->prev && strip->start >= strip->prev->start) {
-		bPoseChannel *dpchan = BKE_pose_channel_find_name(dst, strip->offs_bone);
-		if (dpchan) {
-			bPoseChannel *spchan = BKE_pose_channel_find_name(src, strip->offs_bone);
-			if (spchan) {
-				float vec[3];
-				
-				/* dst->ctime has the internal strip->prev action time */
-				/* map this time to nla time */
-				
-				float ctime = get_actionstrip_frame(strip, src->ctime, 1);
-				
-				if (ctime > strip->prev->end) {
-					bActionChannel *achan;
-					
-					/* add src to dest, minus the position of src on strip->prev->end */
-					
-					ctime = get_actionstrip_frame(strip, strip->prev->end, 0);
-					
-					achan = get_action_channel(strip->act, strip->offs_bone);
-					if (achan && achan->ipo) {
-						bPoseChannel pchan;
-						/* Evaluates and sets the internal ipo value */
-						calc_ipo(achan->ipo, ctime);
-						/* This call also sets the pchan flags */
-						execute_action_ipo(achan, &pchan);
-						
-						/* store offset that moves src to location of pchan */
-						sub_v3_v3v3(vec, dpchan->loc, pchan.loc);
-						
-						mul_mat3_m4_v3(dpchan->bone->arm_mat, vec);
-					}
-				}
-				else {
-					/* store offset that moves src to location of dst */
-					
-					sub_v3_v3v3(vec, dpchan->loc, spchan->loc);
-					mul_mat3_m4_v3(dpchan->bone->arm_mat, vec);
-				}
-				
-				/* if blending, we only add with factor scrweight */
-				mul_v3_fl(vec, srcweight);
-				
-				add_v3_v3(dst->cyclic_offset, vec);
-			}
-		}
-	}
-	
-	add_v3_v3(dst->cyclic_offset, src->cyclic_offset);
-}
-
-/* added "sizecorr" here, to allow armatures to be scaled and still have striding.
- * Only works for uniform scaling. In general I'd advise against scaling armatures ever though! (ton)
- */
-static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
-{
-	bAction *act = strip->act;
-	const char *name = strip->stridechannel;
-	bActionChannel *achan = get_action_channel(act, name);
-	int stride_axis = strip->stride_axis;
-
-	if (achan && achan->ipo) {
-		IpoCurve *icu = NULL;
-		float minx = 0.0f, maxx = 0.0f, miny = 0.0f, maxy = 0.0f;
-		int foundvert = 0;
-
-		if (stride_axis == 0) stride_axis = AC_LOC_X;
-		else if (stride_axis == 1) stride_axis = AC_LOC_Y;
-		else stride_axis = AC_LOC_Z;
-		
-		/* calculate the min/max */
-		for (icu = achan->ipo->curve.first; icu; icu = icu->next) {
-			if (icu->adrcode == stride_axis) {
-				if (icu->totvert > 1) {
-					foundvert = 1;
-					minx = icu->bezt[0].vec[1][0];
-					maxx = icu->bezt[icu->totvert - 1].vec[1][0];
-					
-					miny = icu->bezt[0].vec[1][1];
-					maxy = icu->bezt[icu->totvert - 1].vec[1][1];
-				}
-				break;
-			}
-		}
-		
-		if (foundvert && miny != maxy) {
-			float stridelen = sizecorr * fabs(maxy - miny), striptime;
-			float actiondist, pdist, pdistNewNormalized, offs;
-			float vec1[4], vec2[4], dir[3];
-			
-			/* internal cycling, actoffs is in frames */
-			offs = stridelen * strip->actoffs / (maxx - minx);
-			
-			/* amount path moves object */
-			pdist = (float)fmod(pathdist + offs, stridelen);
-			striptime = pdist / stridelen;
-			
-			/* amount stride bone moves */
-			actiondist = sizecorr * eval_icu(icu, minx + striptime * (maxx - minx)) - miny;
-			
-			pdist = fabs(actiondist) - pdist;
-			pdistNewNormalized = (pathdist + pdist) / path->totdist;
-			
-			/* now we need to go pdist further (or less) on cu path */
-			where_on_path(ob, (pathdist) / path->totdist, vec1, dir); /* vec needs size 4 */
-			if (pdistNewNormalized <= 1) {
-				/* search for correction in positive path-direction */
-				where_on_path(ob, pdistNewNormalized, vec2, dir);   /* vec needs size 4 */
-				sub_v3_v3v3(stride_offset, vec2, vec1);
-			}
-			else {
-				/* we reached the end of the path, search backwards instead */
-				where_on_path(ob, (pathdist - pdist) / path->totdist, vec2, dir);   /* vec needs size 4 */
-				sub_v3_v3v3(stride_offset, vec1, vec2);
-			}
-			mul_mat3_m4_v3(ob->obmat, stride_offset);
-			return striptime;
-		}
-	}
-	return 0.0f;
-}
-
-static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float time)
-{
-	/* only called when strip has cyclic, so >= 1.0f works... */
-	if (time >= 1.0f) {
-		bActionChannel *achan = get_action_channel(strip->act, strip->offs_bone);
-
-		if (achan && achan->ipo) {
-			IpoCurve *icu = NULL;
-			Bone *bone;
-			float min[3] = {0.0f, 0.0f, 0.0f}, max[3] = {0.0f, 0.0f, 0.0f};
-			int index = 0, foundvert = 0;
-			
-			/* calculate the min/max */
-			for (icu = achan->ipo->curve.first; icu; icu = icu->next) {
-				if (icu->totvert > 1) {
-					
-					if (icu->adrcode == AC_LOC_X)
-						index = 0;
-					else if (icu->adrcode == AC_LOC_Y)
-						index = 1;
-					else if (icu->adrcode == AC_LOC_Z)
-						index = 2;
-					else
-						continue;
-				
-					foundvert = 1;
-					min[index] = icu->bezt[0].vec[1][1];
-					max[index] = icu->bezt[icu->totvert - 1].vec[1][1];
-				}
-			}
-			if (foundvert) {
-				/* bring it into armature space */
-				sub_v3_v3v3(min, max, min);
-				bone = BKE_armature_find_bone_name(ob->data, strip->offs_bone);  /* weak */
-				if (bone) {
-					mul_mat3_m4_v3(bone->arm_mat, min);
-					
-					/* dominant motion, cyclic_offset was cleared in BKE_pose_rest */
-					if (strip->flag & (ACTSTRIP_CYCLIC_USEX | ACTSTRIP_CYCLIC_USEY | ACTSTRIP_CYCLIC_USEZ)) {
-						if (strip->flag & ACTSTRIP_CYCLIC_USEX) pose->cyclic_offset[0] = time * min[0];
-						if (strip->flag & ACTSTRIP_CYCLIC_USEY) pose->cyclic_offset[1] = time * min[1];
-						if (strip->flag & ACTSTRIP_CYCLIC_USEZ) pose->cyclic_offset[2] = time * min[2];
-					}
-					else {
-						if (fabsf(min[0]) >= fabsf(min[1]) && fabsf(min[0]) >= fabsf(min[2]))
-							pose->cyclic_offset[0] = time * min[0];
-						else if (fabsf(min[1]) >= fabsf(min[0]) && fabsf(min[1]) >= fabsf(min[2]))
-							pose->cyclic_offset[1] = time * min[1];
-						else
-							pose->cyclic_offset[2] = time * min[2];
-					}
-				}
-			}
-		}
-	}
-}
-
-/* simple case for now; only the curve path with constraint value > 0.5 */
-/* blending we might do later... */
-static Object *get_parent_path(Object *ob)
-{
-	bConstraint *con;
-	
-	if (ob->parent && ob->parent->type == OB_CURVE)
-		return ob->parent;
-	
-	for (con = ob->constraints.first; con; con = con->next) {
-		if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
-			if (con->enforce > 0.5f) {
-				bFollowPathConstraint *data = con->data;
-				return data->tar;
-			}
-		}
-	}
-	return NULL;
-}
-
-/* ************** do the action ************ */
-
-/* ----- nla, etc. --------- */
-
-static void do_nla(Scene *scene, Object *ob, int blocktype)
-{
-	bPose *tpose = NULL;
-	Key *key = NULL;
-	ListBase tchanbase = {NULL, NULL}, chanbase = {NULL, NULL};
-	bActionStrip *strip, *striplast = NULL, *stripfirst = NULL;
-	float striptime, frametime, length, actlength;
-	float blendfac, stripframe;
-	float scene_cfra = BKE_scene_frame_get(scene);
-	int doit, dostride;
-	
-	if (blocktype == ID_AR) {
-		BKE_pose_copy_data(&tpose, ob->pose, 1);
-		BKE_pose_rest(ob->pose);        // potentially destroying current not-keyed pose
-	}
-	else {
-		key = ob_get_key(ob);
-	}
-	
-	/* check on extend to left or right, when no strip is hit by 'cfra' */
-	for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-		/* escape loop on a hit */
-		if (scene_cfra >= strip->start && scene_cfra <= strip->end + 0.1f)  /* note 0.1 comes back below */
-			break;
-		if (scene_cfra < strip->start) {
-			if (stripfirst == NULL)
-				stripfirst = strip;
-			else if (stripfirst->start > strip->start)
-				stripfirst = strip;
-		}
-		else if (scene_cfra > strip->end) {
-			if (striplast == NULL)
-				striplast = strip;
-			else if (striplast->end < strip->end)
-				striplast = strip;
-		}
-	}
-	if (strip == NULL) {  /* extend */
-		if (striplast)
-			scene_cfra = striplast->end;
-		else if (stripfirst)
-			scene_cfra = stripfirst->start;
-	}
-	
-	/* and now go over all strips */
-	for (strip = ob->nlastrips.first; strip; strip = strip->next) {
-		doit = dostride = 0;
-		
-		if (strip->act && !(strip->flag & ACTSTRIP_MUTE)) { /* so theres an action */
-			
-			/* Determine if the current frame is within the strip's range */
-			length = strip->end - strip->start;
-			actlength = strip->actend - strip->actstart;
-			striptime = (scene_cfra - strip->start) / length;
-			stripframe = (scene_cfra - strip->start);
-
-			if (striptime >= 0.0) {
-				
-				if (blocktype == ID_AR)
-					BKE_pose_rest(tpose);
-				
-				/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
-				if (striptime < 1.0f + 0.1f / length) {
-					
-					/* Handle path */
-					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype == ID_AR) && (ob->ipoflag & OB_DISABLE_PATH) == 0) {
-						Object *parent = get_parent_path(ob);
-						
-						if (parent) {
-							Curve *cu = parent->data;
-							float ctime, pdist;
-							
-							if (cu->flag & CU_PATH) {
-								/* Ensure we have a valid path */
-								if (cu->path == NULL || cu->path->data == NULL) makeDispListCurveTypes(scene, parent, 0);
-								if (cu->path) {
-									
-									/* Find the position on the path */
-									ctime = bsystem_time(scene, ob, scene_cfra, 0.0);
-									
-									if (calc_ipo_spec(cu->ipo, CU_SPEED, &ctime) == 0) {
-										/* correct for actions not starting on zero */
-										ctime = (ctime - strip->actstart) / cu->pathlen;
-										CLAMP(ctime, 0.0, 1.0);
-									}
-									pdist = ctime * cu->path->totdist;
-									
-									if (tpose && strip->stridechannel[0]) {
-										striptime = stridechannel_frame(parent, ob->size[0], strip, cu->path, pdist, tpose->stride_offset);
-									}									
-									else {
-										if (strip->stridelen) {
-											striptime = pdist / strip->stridelen;
-											striptime = (float)fmod(striptime + strip->actoffs, 1.0);
-										}
-										else
-											striptime = 0;
-									}
-									
-									frametime = (striptime * actlength) + strip->actstart;
-									frametime = bsystem_time(scene, ob, frametime, 0.0);
-									
-									if (blocktype == ID_AR) {
-										extract_pose_from_action(tpose, strip->act, frametime);
-									}
-									else if (blocktype == ID_OB) {
-										extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-										if (key)
-											extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
-									}
-									doit = dostride = 1;
-								}
-							}
-						}
-					}
-					/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
-					else {
-						
-						/* Mod to repeat */
-						if (strip->repeat != 1.0f) {
-							float cycle = striptime * strip->repeat;
-							
-							striptime = (float)fmod(cycle, 1.0f + 0.1f / length);
-							cycle -= striptime;
-							
-							if (blocktype == ID_AR)
-								cyclic_offs_bone(ob, tpose, strip, cycle);
-						}
-
-						frametime = (striptime * actlength) + strip->actstart;
-						frametime = nla_time(scene, frametime, (float)strip->repeat);
-							
-						if (blocktype == ID_AR) {
-							extract_pose_from_action(tpose, strip->act, frametime);
-						}
-						else if (blocktype == ID_OB) {
-							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-							if (key)
-								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
-						}
-						
-						doit = 1;
-					}
-				}
-				/* Handle extend */
-				else {
-					if (strip->flag & ACTSTRIP_HOLDLASTFRAME) {
-						/* we want the strip to hold on the exact fraction of the repeat value */
-						
-						frametime = actlength * (strip->repeat - (int)strip->repeat);
-						if (frametime <= 0.000001f) frametime = actlength;  /* rounding errors... */
-						frametime = bsystem_time(scene, ob, frametime + strip->actstart, 0.0);
-
-						if (blocktype == ID_AR)
-							extract_pose_from_action(tpose, strip->act, frametime);
-						else if (blocktype == ID_OB) {
-							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
-							if (key)
-								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
-						}
-						
-						/* handle cycle hold */
-						if (strip->repeat != 1.0f) {
-							if (blocktype == ID_AR)
-								cyclic_offs_bone(ob, tpose, strip, strip->repeat - 1.0f);
-						}
-						
-						doit = 1;
-					}
-				}
-				
-				/* Handle blendin & blendout */
-				if (doit) {
-					/* Handle blendin */
-					
-					if (strip->blendin > 0.0 && stripframe <= strip->blendin && scene_cfra >= strip->start) {
-						blendfac = stripframe / strip->blendin;
-					}
-					else if (strip->blendout > 0.0 && stripframe >= (length - strip->blendout) && scene_cfra <= strip->end) {
-						blendfac = (length - stripframe) / (strip->blendout);
-					}
-					else
-						blendfac = 1;
-					
-					if (blocktype == ID_AR) { /* Blend this pose with the accumulated pose */
-						/* offset bone, for matching cycles */
-						blend_pose_offset_bone(strip, ob->pose, tpose, blendfac, strip->mode);
-						
-						blend_poses(ob->pose, tpose, blendfac, strip->mode);
-						if (dostride)
-							blend_pose_strides(ob->pose, tpose, blendfac, strip->mode);
-					}
-					else {
-						blend_ipochannels(&chanbase, &tchanbase, blendfac, strip->mode);
-						BLI_freelistN(&tchanbase);
-					}
-				}
-			}					
-		}
-	}
-	
-	if (blocktype == ID_OB) {
-		execute_ipochannels(&chanbase);
-	}
-	else if (blocktype == ID_AR) {
-		/* apply stride offset to object */
-		add_v3_v3(ob->obmat[3], ob->pose->stride_offset);
-	}
-	
-	/* free */
-	if (tpose)
-		BKE_pose_free(tpose);
-	if (chanbase.first)
-		BLI_freelistN(&chanbase);
-}
-
-#endif // XXX OLD ANIMATION SYSTEM (TO BE REMOVED)

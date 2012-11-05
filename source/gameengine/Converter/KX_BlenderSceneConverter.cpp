@@ -29,9 +29,8 @@
  *  \ingroup bgeconv
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)  /* suppress stl-MSVC debug info warning */
 #endif
 
 #include "KX_Scene.h"
@@ -160,7 +159,7 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	while (itmat != m_materials.end()) {
 		delete (*itmat).second;
 		itmat++;
-	}	
+	}
 
 
 	vector<pair<KX_Scene*,RAS_MeshObject*> >::iterator itm = m_meshobjects.begin();
@@ -201,7 +200,7 @@ bool KX_BlenderSceneConverter::TryAndLoadNewFile()
 	// if not, clear the newfilename
 	else
 	{
-		m_newfilename = "";	
+		m_newfilename = "";
 	}
 */
 	return result;
@@ -335,7 +334,7 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 					ccdPhysEnv->setDebugMode(btIDebugDraw::DBG_DrawWireframe|btIDebugDraw::DBG_DrawAabb|btIDebugDraw::DBG_DrawContactPoints|btIDebugDraw::DBG_DrawText|btIDebugDraw::DBG_DrawConstraintLimits|btIDebugDraw::DBG_DrawConstraints);
 		
 				//todo: get a button in blender ?
-				//disable / enable debug drawing (contact points, aabb's etc)	
+				//disable / enable debug drawing (contact points, aabb's etc)
 				//ccdPhysEnv->setDebugMode(1);
 				destinationscene->SetPhysicsEnvironment(ccdPhysEnv);
 				break;
@@ -689,7 +688,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 
 void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo()
 {
-	if (addInitFromFrame) {		
+	if (addInitFromFrame) {
 		KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
 		int numScenes = scenes->size();
 		if (numScenes>=0) {
@@ -704,7 +703,7 @@ void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo()
 					if (blenderobject->type==OB_ARMATURE)
 						continue;
 					float eu[3];
-					mat4_to_eul(eu,blenderobject->obmat);					
+					mat4_to_eul(eu,blenderobject->obmat);
 					MT_Point3 pos = MT_Point3(
 						blenderobject->obmat[3][0],
 						blenderobject->obmat[3][1],
@@ -779,8 +778,8 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
 					const MT_Matrix3x3& orn = gameObj->NodeGetWorldOrientation();
 					
-					float eulerAngles[3];	
-					float eulerAnglesOld[3] = {0.0f, 0.0f, 0.0f};						
+					float eulerAngles[3];
+					float eulerAnglesOld[3] = {0.0f, 0.0f, 0.0f};
 					float tmat[3][3];
 					
 					// XXX animato
@@ -819,13 +818,13 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu_rz) icu_rz->ipo = IPO_LIN;
 					}
 					
-					if (icu_rx) eulerAnglesOld[0]= eval_icu( icu_rx, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
-					if (icu_ry) eulerAnglesOld[1]= eval_icu( icu_ry, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
-					if (icu_rz) eulerAnglesOld[2]= eval_icu( icu_rz, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_rx) eulerAnglesOld[0] = eval_icu( icu_rx, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_ry) eulerAnglesOld[1] = eval_icu( icu_ry, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
+					if (icu_rz) eulerAnglesOld[2] = eval_icu( icu_rz, frameNumber - 1 ) / ((180 / 3.14159265f) / 10);
 					
 					// orn.getValue((float *)tmat); // uses the wrong ordering, cant use this
-					for (int r=0;r<3;r++)
-						for (int c=0;c<3;c++)
+					for (int r = 0; r < 3; r++)
+						for (int c = 0; c < 3; c++)
 							tmat[r][c] = orn[c][r];
 					
 					// mat3_to_eul( eulerAngles,tmat); // better to use Mat3ToCompatibleEul
@@ -945,7 +944,7 @@ static void load_datablocks(Main *main_newlib, BlendHandle *bpy_openlib, const c
 	
 	int i=0;
 	LinkNode *n= names;
-	while(n) {
+	while (n) {
 		BLO_library_append_named_part(main_tmp, &bpy_openlib, (char *)n->link, idcode);
 		n= (LinkNode *)n->next;
 		i++;
@@ -984,7 +983,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	}
 	
 	main_newlib= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
-	BKE_reports_init(&reports, RPT_STORE);	
+	BKE_reports_init(&reports, RPT_STORE);
 
 	load_datablocks(main_newlib, bpy_openlib, path, idcode);
 
@@ -1000,11 +999,11 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	BLO_blendhandle_close(bpy_openlib);
 
 	BKE_reports_clear(&reports);
-	/* done linking */	
+	/* done linking */
 	
 	/* needed for lookups*/
 	GetMainDynamic().push_back(main_newlib);
-	strncpy(main_newlib->name, path, sizeof(main_newlib->name));	
+	strncpy(main_newlib->name, path, sizeof(main_newlib->name));
 	
 	
 	if (idcode==ID_ME) {
@@ -1028,7 +1027,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 			scene_merge->GetLogicManager()->RegisterActionName(action->name+2, action);
 		}
 	}
-	else if (idcode==ID_SCE) {		
+	else if (idcode==ID_SCE) {
 		/* Merge all new linked in scene into the existing one */
 		ID *scene;
 		for (scene= (ID *)main_newlib->scene.first; scene; scene= (ID *)scene->next ) {
@@ -1117,7 +1116,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 				{
 					RAS_MeshObject *meshobj= (RAS_MeshObject *) *mapStringToMeshes.at(i);
 					if (meshobj && IS_TAGGED(meshobj->GetMesh()))
-					{	
+					{
 						STR_HashedString mn = meshobj->GetName();
 						mapStringToMeshes.remove(mn);
 						m_map_mesh_to_gamemesh.remove(CHashedPtr(meshobj->GetMesh()));
@@ -1171,7 +1170,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 					else {
 						/* free the mesh, we could be referecing a linked one! */
 						int mesh_index= gameobj->GetMeshCount();
-						while(mesh_index--) {
+						while (mesh_index--) {
 							mesh= gameobj->GetMesh(mesh_index);
 							if (IS_TAGGED(mesh->GetMesh())) {
 								gameobj->RemoveMeshes(); /* XXX - slack, should only remove meshes that are library items but mostly objects only have 1 mesh */
@@ -1255,7 +1254,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		RAS_IPolyMaterial *mat= (*polymit).second;
 		Material *bmat= NULL;
 
-		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject*)? - Campbell */
+		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject *)? - Campbell */
 		if (mat->GetFlag() & RAS_BLENDERMAT) {
 			KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
 			bmat= bl_mat->GetBlenderMaterial();
@@ -1280,7 +1279,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		RAS_IPolyMaterial *mat= (*polymit).second;
 		Material *bmat= NULL;
 
-		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject*)? - Campbell */
+		/* Why do we need to check for RAS_BLENDERMAT if both are cast to a (PyObject *)? - Campbell */
 		if (mat->GetFlag() & RAS_BLENDERMAT) {
 			KX_BlenderMaterial *bl_mat = static_cast<KX_BlenderMaterial*>(mat);
 			bmat= bl_mat->GetBlenderMaterial();
@@ -1451,14 +1450,12 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 				BLI_remlink(&m_maggie->mat, mat_new);
 				BLI_addtail(&maggie->mat, mat_new);
 				
-				mesh->mat[i]= mat_new;
+				mesh->mat[i] = mat_new;
 				
 				/* the same material may be used twice */
-				for (int j=i+1; j<mesh->totcol; j++)
-				{
-					if (mesh->mat[j]==mat_old)
-					{
-						mesh->mat[j]= mat_new;
+				for (int j = i + 1; j < mesh->totcol; j++) {
+					if (mesh->mat[j] == mat_old) {
+						mesh->mat[j] = mat_new;
 						mat_new->id.us++;
 						mat_old->id.us--;
 					}

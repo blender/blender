@@ -266,14 +266,18 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 		BKE_color_managed_view_settings_copy(&sce->view_settings, &scene->view_settings);
 		
 		/* prevent overhead for small renders and icons (32) */
-		if (id && sp->sizex < 40)
-			sce->r.xparts = sce->r.yparts = 1;
-		else
-			sce->r.xparts = sce->r.yparts = 4;
+		if (id && sp->sizex < 40) {
+			sce->r.tilex = sce->r.tiley = 64;
+		}
+		else {
+			sce->r.tilex = sce->r.xsch / 4;
+			sce->r.tiley = sce->r.ysch / 4;
+		}
 		
-		/* exception: don't color manage texture previews or icons */
-		if ((id && sp->pr_method == PR_ICON_RENDER) || id_type == ID_TE)
+		/* exception: don't apply render part of display transform for texture previews or icons */
+		if ((id && sp->pr_method == PR_ICON_RENDER) || id_type == ID_TE) {
 			BKE_scene_disable_color_management(sce);
+		}
 		
 		if ((id && sp->pr_method == PR_ICON_RENDER) && id_type != ID_WO)
 			sce->r.alphamode = R_ALPHAPREMUL;
@@ -340,7 +344,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				if (sp->pr_method == PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
 						sce->lay = 1 << MA_FLAT;
-					} 
+					}
 					else {
 						sce->lay = 1 << MA_SPHERE_A;
 					}
@@ -367,7 +371,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					if (OB_TYPE_SUPPORT_MATERIAL(base->object->type)) {
 						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
 						Material ***matar = give_matarar(base->object);
-						int actcol = MAX2(base->object->actcol - 1, 0);
+						int actcol = max_ii(base->object->actcol - 1, 0);
 
 						if (matar && actcol < base->object->totcol)
 							(*matar)[actcol] = mat;
@@ -385,7 +389,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				tex = localize_texture(origtex);
 				sp->texcopy = tex;
 				BLI_addtail(&pr_main->tex, tex);
-			}			
+			}
 			sce->lay = 1 << MA_TEXTURE;
 			
 			for (base = sce->base.first; base; base = base->next) {
@@ -485,8 +489,8 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	char name[32];
 	int do_gamma_correct = FALSE, do_predivide = FALSE;
 	int offx = 0;
-	int newx = BLI_RCT_SIZE_X(rect);
-	int newy = BLI_RCT_SIZE_Y(rect);
+	int newx = BLI_rcti_size_x(rect);
+	int newy = BLI_rcti_size_y(rect);
 
 	if (id && GS(id->name) != ID_TE) {
 		/* exception: don't color manage texture previews - show the raw values */
@@ -517,8 +521,8 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		
 		if (ABS(rres.rectx - newx) < 2 && ABS(rres.recty - newy) < 2) {
 
-			newrect->xmax = MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
-			newrect->ymax = MAX2(newrect->ymax, rect->ymin + rres.recty);
+			newrect->xmax = max_ii(newrect->xmax, rect->xmin + rres.rectx + offx);
+			newrect->ymax = max_ii(newrect->ymax, rect->ymin + rres.recty);
 
 			if (rres.rectx && rres.recty) {
 				/* temporary conversion to byte for drawing */
@@ -540,7 +544,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 					 *            color managed as well?
 					 */
 					IMB_buffer_byte_from_float(rect_byte, rres.rectf,
-					                           4, dither, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, do_predivide,
+					                           4, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, do_predivide,
 					                           rres.rectx, rres.recty, rres.rectx, rres.rectx);
 				}
 
@@ -569,8 +573,8 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		SpaceButs *sbuts = sa->spacedata.first;
 		rcti newrect;
 		int ok;
-		int newx = BLI_RCT_SIZE_X(rect);
-		int newy = BLI_RCT_SIZE_Y(rect);
+		int newx = BLI_rcti_size_x(rect);
+		int newy = BLI_rcti_size_y(rect);
 
 		newrect.xmin = rect->xmin;
 		newrect.xmax = rect->xmin;
@@ -596,7 +600,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
 		if (ok == 0) {
 			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy, PR_BUTS_RENDER);
 		}
-	}	
+	}
 }
 
 /* **************************** new shader preview system ****************** */
@@ -648,7 +652,7 @@ static void shader_preview_updatejob(void *spv)
 				if (sp->lampcopy && la->nodetree && sp->lampcopy->nodetree)
 					ntreeLocalSync(sp->lampcopy->nodetree, la->nodetree);
 			}
-		}		
+		}
 	}
 }
 
@@ -808,7 +812,7 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied world */
 		BLI_remlink(&pr_main->world, sp->worldcopy);
-		BKE_world_free_ex(sp->worldcopy, FALSE);
+		BKE_world_free_ex(sp->worldcopy, TRUE); /* [#32865] - we need to unlink the texture copies, unlike for materials */
 		
 		properties = IDP_GetProperties((ID *)sp->worldcopy, FALSE);
 		if (properties) {
@@ -860,7 +864,7 @@ static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned
 		scaledx = (float)w;
 		scaledy =  ( (float)ima->y / (float)ima->x) * (float)w;
 	}
-	else {			
+	else {
 		scaledx =  ( (float)ima->x / (float)ima->y) * (float)h;
 		scaledy = (float)h;
 	}

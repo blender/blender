@@ -94,6 +94,9 @@ FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile)
 	return sfile->params;
 }
 
+/**
+ * \note RNA_struct_property_is_set_ex is used here because we wan't
+ *       the previously used settings to be used here rather then overriding them */
 short ED_fileselect_set_params(SpaceFile *sfile)
 {
 	FileSelectParams *params;
@@ -124,7 +127,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		else
 			params->type = FILE_SPECIAL;
 
-		if (is_filepath && RNA_struct_property_is_set(op->ptr, "filepath")) {
+		if (is_filepath && RNA_struct_property_is_set_ex(op->ptr, "filepath", FALSE)) {
 			char name[FILE_MAX];
 			RNA_string_get(op->ptr, "filepath", name);
 			if (params->type == FILE_LOADLIB) {
@@ -136,12 +139,12 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			}
 		}
 		else {
-			if (is_directory && RNA_struct_property_is_set(op->ptr, "directory")) {
+			if (is_directory && RNA_struct_property_is_set_ex(op->ptr, "directory", FALSE)) {
 				RNA_string_get(op->ptr, "directory", params->dir);
 				sfile->params->file[0] = '\0';
 			}
 
-			if (is_filename && RNA_struct_property_is_set(op->ptr, "filename")) {
+			if (is_filename && RNA_struct_property_is_set_ex(op->ptr, "filename", FALSE)) {
 				RNA_string_get(op->ptr, "filename", params->file);
 			}
 		}
@@ -165,8 +168,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 			params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_movie"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_movie") ? MOVIEFILE : 0;
-		if (RNA_struct_find_property(op->ptr, "filter_text"))
-			params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_python"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_python") ? PYSCRIPTFILE : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_font"))
@@ -228,7 +229,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 
 		if (is_relative_path) {
-			if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
+			if (!RNA_struct_property_is_set_ex(op->ptr, "relative_path", FALSE)) {
 				RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
 			}
 		}
@@ -270,12 +271,12 @@ int ED_fileselect_layout_numfiles(FileLayout *layout, ARegion *ar)
 	int numfiles;
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
-		int width = (int)(BLI_RCT_SIZE_X(&ar->v2d.cur) - 2 * layout->tile_border_x);
+		int width = (int)(BLI_rctf_size_x(&ar->v2d.cur) - 2 * layout->tile_border_x);
 		numfiles = (int)((float)width / (float)layout->tile_w + 0.5f);
 		return numfiles * layout->rows;
 	}
 	else {
-		int height = (int)(BLI_RCT_SIZE_Y(&ar->v2d.cur) - 2 * layout->tile_border_y);
+		int height = (int)(BLI_rctf_size_y(&ar->v2d.cur) - 2 * layout->tile_border_y);
 		numfiles = (int)((float)height / (float)layout->tile_h + 0.5f);
 		return numfiles * layout->columns;
 	}
@@ -307,7 +308,7 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const rcti *r
 		CLAMP(rowmin, 0, layout->rows - 1);
 		CLAMP(colmax, 0, layout->columns - 1);
 		CLAMP(rowmax, 0, layout->rows - 1);
-	} 
+	}
 	
 	if ((colmin > layout->columns - 1) || (rowmin > layout->rows - 1)) {
 		sel.first = -1;
@@ -503,7 +504,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		layout->prv_border_y = 6;
 		layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
 		layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
-		layout->width = (int)(BLI_RCT_SIZE_X(&v2d->cur) - 2 * layout->tile_border_x);
+		layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
 		layout->columns = layout->width / (layout->tile_w + 2 * layout->tile_border_x);
 		if (layout->columns > 0)
 			layout->rows = numfiles / layout->columns + 1;  // XXX dirty, modulo is zero
@@ -522,7 +523,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		layout->prv_border_x = 0;
 		layout->prv_border_y = 0;
 		layout->tile_h = textheight * 3 / 2;
-		layout->height = (int)(BLI_RCT_SIZE_Y(&v2d->cur) - 2 * layout->tile_border_y);
+		layout->height = (int)(BLI_rctf_size_y(&v2d->cur) - 2 * layout->tile_border_y);
 		layout->rows = layout->height / (layout->tile_h + 2 * layout->tile_border_y);
 
 		column_widths(sfile->files, layout);

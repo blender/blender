@@ -84,7 +84,7 @@ void draw_motion_paths_init(View3D *v3d, ARegion *ar)
 void draw_motion_path_instance(Scene *scene, 
                                Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)
 {
-	//RegionView3D *rv3d= ar->regiondata;
+	//RegionView3D *rv3d = ar->regiondata;
 	bMotionPathVert *mpv, *mpv_start;
 	int i, stepsize = avs->path_step;
 	int sfra, efra, sind, len;
@@ -107,11 +107,6 @@ void draw_motion_path_instance(Scene *scene,
 	 * - abort if whole range is past ends of path
 	 * - otherwise clamp endpoints to extents of path
 	 */
-	if ((sfra > mpath->end_frame) || (efra < mpath->start_frame)) {
-		/* whole path is out of bounds */
-		return;
-	}
-	
 	if (sfra < mpath->start_frame) {
 		/* start clamp */
 		sfra = mpath->start_frame;
@@ -121,9 +116,14 @@ void draw_motion_path_instance(Scene *scene,
 		efra = mpath->end_frame;
 	}
 	
+	if ((sfra > mpath->end_frame) || (efra < mpath->start_frame)) {
+		/* whole path is out of bounds */
+		return;
+	}
+	
 	len = efra - sfra;
 	
-	if (len <= 0) {
+	if ((len <= 0) || (mpath->points == NULL)) {
 		return;
 	}
 	
@@ -148,11 +148,11 @@ void draw_motion_path_instance(Scene *scene,
 		if ((sfra + i) < CFRA) {
 			/* black - before cfra */
 			if (sel) {
-				// intensity= 0.5f;
+				// intensity = 0.5f;
 				intensity = SET_INTENSITY(sfra, i, CFRA, 0.25f, 0.75f);
 			}
 			else {
-				//intensity= 0.8f;
+				//intensity = 0.8f;
 				intensity = SET_INTENSITY(sfra, i, CFRA, 0.68f, 0.92f);
 			}
 			UI_ThemeColorBlend(TH_WIRE, TH_BACK, intensity);
@@ -178,9 +178,9 @@ void draw_motion_path_instance(Scene *scene,
 				intensity = 0.99f;
 			}
 			UI_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
-		}	
+		}
 		
-		/* draw a vertex with this color */ 
+		/* draw a vertex with this color */
 		glVertex3fv(mpv->co);
 	}
 	
@@ -230,7 +230,7 @@ void draw_motion_path_instance(Scene *scene,
 		unsigned char col[4];
 		UI_GetThemeColor3ubv(TH_TEXT_HI, col);
 		col[3] = 255;
-
+		
 		for (i = 0, mpv = mpv_start; i < len; i += stepsize, mpv += stepsize) {
 			char numstr[32];
 			float co[3];

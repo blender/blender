@@ -50,6 +50,8 @@ ImageViewport::ImageViewport (void) : m_alpha(false), m_texInit(false)
 	
 	//glGetIntegerv(GL_VIEWPORT, m_viewport);
 	// create buffer for viewport image
+	// Warning: this buffer is also used to get the depth buffer as an array of
+	//          float (1 float = 4 bytes per pixel)
 	m_viewportImage = new BYTE [4 * getViewportSize()[0] * getViewportSize()[1]];
 	// set attributes
 	setWhole(false);
@@ -57,7 +59,9 @@ ImageViewport::ImageViewport (void) : m_alpha(false), m_texInit(false)
 
 // destructor
 ImageViewport::~ImageViewport (void)
-{ delete [] m_viewportImage; }
+{
+	delete [] m_viewportImage;
+}
 
 
 // use whole viewport to capture image
@@ -123,15 +127,14 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 		// reset image
 		init(m_capSize[0], m_capSize[1]);
 	// if texture wasn't initialized
-	if (!m_texInit)
-	{
+	if (!m_texInit) {
 		// initialize it
 		loadTexture(texId, m_image, m_size);
 		m_texInit = true;
 	}
 	// if texture can be directly created
 	if (texId != 0 && m_pyfilter == NULL && m_capSize[0] == calcSize(m_capSize[0])
-	        && m_capSize[1] == calcSize(m_capSize[1]) && !m_flip)
+	    && m_capSize[1] == calcSize(m_capSize[1]) && !m_flip && !m_zbuff && !m_depth)
 	{
 		// just copy current viewport to texture
 		glBindTexture(GL_TEXTURE_2D, texId);
@@ -140,24 +143,47 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 		m_avail = false;
 	}
 	// otherwise copy viewport to buffer, if image is not available
-	else if (!m_avail)
-	{
-		// get frame buffer data
-		if (m_alpha)
-		{
-			glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGBA,
-			             GL_UNSIGNED_BYTE, m_viewportImage);
+	else if (!m_avail) {
+		if (m_zbuff) {
+			// Use read pixels with the depth buffer
+			// *** misusing m_viewportImage here, but since it has the correct size
+			//     (4 bytes per pixel = size of float) and we just need it to apply
+			//     the filter, it's ok
+			glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1],
+			        GL_DEPTH_COMPONENT, GL_FLOAT, m_viewportImage);
 			// filter loaded data
-			FilterRGBA32 filt;
-			filterImage(filt, m_viewportImage, m_capSize);
+			FilterZZZA filt;
+			filterImage(filt, (float *)m_viewportImage, m_capSize);
 		}
-		else
-		{
-			glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
-			             GL_UNSIGNED_BYTE, m_viewportImage);
-			// filter loaded data
-			FilterRGB24 filt;
-			filterImage(filt, m_viewportImage, m_capSize);
+		else {
+
+			if (m_depth) {
+				// Use read pixels with the depth buffer
+				// See warning above about m_viewportImage.
+				glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1],
+				        GL_DEPTH_COMPONENT, GL_FLOAT, m_viewportImage);
+				// filter loaded data
+				FilterDEPTH filt;
+				filterImage(filt, (float *)m_viewportImage, m_capSize);
+			}
+			else {
+
+				// get frame buffer data
+				if (m_alpha) {
+					glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGBA,
+					        GL_UNSIGNED_BYTE, m_viewportImage);
+					// filter loaded data
+					FilterRGBA32 filt;
+					filterImage(filt, m_viewportImage, m_capSize);
+				}
+				else {
+					glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
+					        GL_UNSIGNED_BYTE, m_viewportImage);
+					// filter loaded data
+					FilterRGB24 filt;
+					filterImage(filt, m_viewportImage, m_capSize);
+				}
+			}
 		}
 	}
 }
@@ -165,7 +191,7 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 
 
 // cast Image pointer to ImageViewport
-inline ImageViewport * getImageViewport (PyImage * self)
+inline ImageViewport * getImageViewport (PyImage *self)
 { return static_cast<ImageViewport*>(self->m_image); }
 
 
@@ -173,14 +199,14 @@ inline ImageViewport * getImageViewport (PyImage * self)
 
 
 // get whole
-PyObject * ImageViewport_getWhole (PyImage * self, void * closure)
+PyObject *ImageViewport_getWhole (PyImage *self, void *closure)
 {
 	if (self->m_image != NULL && getImageViewport(self)->getWhole()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
 }
 
 // set whole
-int ImageViewport_setWhole (PyImage * self, PyObject * value, void * closure)
+int ImageViewport_setWhole (PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -203,14 +229,14 @@ int ImageViewport_setWhole (PyImage * self, PyObject * value, void * closure)
 }
 
 // get alpha
-PyObject * ImageViewport_getAlpha (PyImage * self, void * closure)
+PyObject *ImageViewport_getAlpha (PyImage *self, void *closure)
 {
 	if (self->m_image != NULL && getImageViewport(self)->getAlpha()) Py_RETURN_TRUE;
 	else Py_RETURN_FALSE;
 }
 
 // set whole
-int ImageViewport_setAlpha (PyImage * self, PyObject * value, void * closure)
+int ImageViewport_setAlpha (PyImage *self, PyObject *value, void *closure)
 {
 	// check parameter, report failure
 	if (value == NULL || !PyBool_Check(value))
@@ -226,14 +252,14 @@ int ImageViewport_setAlpha (PyImage * self, PyObject * value, void * closure)
 
 
 // get position
-static PyObject * ImageViewport_getPosition (PyImage * self, void * closure)
+static PyObject *ImageViewport_getPosition (PyImage *self, void *closure)
 {
 	return Py_BuildValue("(ii)", getImageViewport(self)->getPosition()[0],
 		getImageViewport(self)->getPosition()[1]);
 }
 
 // set position
-static int ImageViewport_setPosition (PyImage * self, PyObject * value, void * closure)
+static int ImageViewport_setPosition (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
@@ -254,14 +280,14 @@ static int ImageViewport_setPosition (PyImage * self, PyObject * value, void * c
 }
 
 // get capture size
-PyObject * ImageViewport_getCaptureSize (PyImage * self, void * closure)
+PyObject *ImageViewport_getCaptureSize (PyImage *self, void *closure)
 {
 	return Py_BuildValue("(ii)", getImageViewport(self)->getCaptureSize()[0],
 		getImageViewport(self)->getCaptureSize()[1]);
 }
 
 // set capture size
-int ImageViewport_setCaptureSize (PyImage * self, PyObject * value, void * closure)
+int ImageViewport_setCaptureSize (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
@@ -310,6 +336,8 @@ static PyGetSetDef imageViewportGetSets[] =
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbor)", NULL},
 	{(char*)"flip", (getter)Image_getFlip, (setter)Image_setFlip, (char*)"flip image vertically", NULL},
+	{(char*)"zbuff", (getter)Image_getZbuff, (setter)Image_setZbuff, (char*)"use depth buffer as texture", NULL},
+	{(char*)"depth", (getter)Image_getDepth, (setter)Image_setDepth, (char*)"get depth information from z-buffer as array of float", NULL},
 	{(char*)"filter", (getter)Image_getFilter, (setter)Image_setFilter, (char*)"pixel filter", NULL},
 	{NULL}
 };

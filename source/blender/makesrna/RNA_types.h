@@ -113,6 +113,7 @@ typedef enum PropertySubType {
 	PROP_BYTESTRING = 4, /* a string which should be represented as bytes
 	                      * in python, still NULL terminated though. */
 	PROP_TRANSLATE = 5, /* a string which should be translated */
+	PROP_PASSWORD = 6,	/* a string which should not be displayed in UI */
 
 	/* numbers */
 	PROP_UNSIGNED = 13,
@@ -312,6 +313,7 @@ typedef enum FunctionFlag {
 	FUNC_USE_CONTEXT = 4,
 	FUNC_USE_REPORTS = 8,
 	FUNC_USE_SELF_ID = 2048,
+	FUNC_ALLOW_WRITE = 4096,
 
 	/* registering */
 	FUNC_REGISTER = 16,

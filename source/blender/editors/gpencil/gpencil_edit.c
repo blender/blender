@@ -212,7 +212,7 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
 	bGPdata **gpd_ptr = gpencil_data_get_pointers(C, NULL);
 	
 	if (gpd_ptr == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
+		BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -224,7 +224,7 @@ static int gp_data_add_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -260,7 +260,7 @@ static int gp_data_unlink_exec(bContext *C, wmOperator *op)
 	bGPdata **gpd_ptr = gpencil_data_get_pointers(C, NULL);
 	
 	if (gpd_ptr == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
+		BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -272,7 +272,7 @@ static int gp_data_unlink_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX need a nicer one that will work
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL); 
 	
 	return OPERATOR_FINISHED;
 }
@@ -299,17 +299,17 @@ static int gp_layer_add_exec(bContext *C, wmOperator *op)
 	
 	/* if there's no existing Grease-Pencil data there, add some */
 	if (gpd_ptr == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Nowhere for Grease Pencil data to go");
+		BKE_report(op->reports, RPT_ERROR, "Nowhere for grease pencil data to go");
 		return OPERATOR_CANCELLED;
 	}
 	if (*gpd_ptr == NULL)
 		*gpd_ptr = gpencil_data_addnew("GPencil");
 		
 	/* add new layer now */
-	gpencil_layer_addnew(*gpd_ptr);
+	gpencil_layer_addnew(*gpd_ptr, "GP_Layer", 1);
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -348,7 +348,7 @@ static int gp_actframe_delete_exec(bContext *C, wmOperator *op)
 	
 	/* if there's no existing Grease-Pencil data there, add some */
 	if (gpd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+		BKE_report(op->reports, RPT_ERROR, "No grease pencil data");
 		return OPERATOR_CANCELLED;
 	}
 	if (ELEM(NULL, gpl, gpf)) {
@@ -360,7 +360,7 @@ static int gp_actframe_delete_exec(bContext *C, wmOperator *op)
 	gpencil_layer_delframe(gpl, gpf);
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -422,8 +422,8 @@ static void gp_strokepoint_convertcoords(bContext *C, bGPDstroke *gps, bGPDspoin
 		}
 		else {
 			if (subrect) {
-				mvalf[0] = (((float)pt->x / 100.0f) * BLI_RCT_SIZE_X(subrect)) + subrect->xmin;
-				mvalf[1] = (((float)pt->y / 100.0f) * BLI_RCT_SIZE_Y(subrect)) + subrect->ymin;
+				mvalf[0] = (((float)pt->x / 100.0f) * BLI_rctf_size_x(subrect)) + subrect->xmin;
+				mvalf[1] = (((float)pt->y / 100.0f) * BLI_rctf_size_y(subrect)) + subrect->ymin;
 			}
 			else {
 				mvalf[0] = (float)pt->x / 100.0f * ar->winx;
@@ -634,7 +634,7 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 
 	/* check if there's data to work with */
 	if (gpd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data to work on");
+		BKE_report(op->reports, RPT_ERROR, "No grease pencil data to work on");
 		return OPERATOR_CANCELLED;
 	}
 

@@ -118,13 +118,13 @@ int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx
 	(void)scene; /* unused */
 
 	if (!startup_socket_system()) {
-		BKE_report(reports, RPT_ERROR, "Can't startup socket system");
+		BKE_report(reports, RPT_ERROR, "Cannot startup socket system");
 		return 0;
 	}
 
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		shutdown_socket_system();
-		BKE_report(reports, RPT_ERROR, "Can't open socket");
+		BKE_report(reports, RPT_ERROR, "Cannot open socket");
 		return 0;
 	}
 
@@ -136,13 +136,13 @@ int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		shutdown_socket_system();
-		BKE_report(reports, RPT_ERROR, "Can't bind to socket");
+		BKE_report(reports, RPT_ERROR, "Cannot bind to socket");
 		return 0;
 	}
 
 	if (listen(sock, SOMAXCONN) < 0) {
 		shutdown_socket_system();
-		BKE_report(reports, RPT_ERROR, "Can't establish listen backlog");
+		BKE_report(reports, RPT_ERROR, "Cannot establish listen backlog");
 		return 0;
 	}
 	connsock = -1;

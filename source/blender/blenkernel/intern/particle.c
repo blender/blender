@@ -48,6 +48,7 @@
 #include "DNA_dynamicpaint_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_noise.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_kdtree.h"
@@ -97,8 +98,8 @@ int count_particles(ParticleSystem *psys)
 	int tot = 0;
 
 	LOOP_SHOWN_PARTICLES {
-		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) ;
-		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) ;
+		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) {}
+		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) {}
 		else tot++;
 	}
 	return tot;
@@ -110,13 +111,13 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur)
 	int tot = 0;
 
 	LOOP_SHOWN_PARTICLES {
-		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) ;
-		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) ;
+		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) {}
+		else if (pa->alive == PARS_DEAD && (part->flag & PART_DIED) == 0) {}
 		else if (p % totgr == cur) tot++;
 	}
 	return tot;
 }
-/* we allocate path cache memory in chunks instead of a big continguous
+/* we allocate path cache memory in chunks instead of a big contiguous
  * chunk, windows' memory allocater fails to find big blocks of memory often */
 
 #define PATH_CACHE_BUF_SIZE 1024
@@ -335,7 +336,7 @@ void psys_check_group_weights(ParticleSettings *part)
 				BLI_addtail(&part->dupliweights, dw);
 			}
 
-			go = go->next;	
+			go = go->next;
 		}
 
 		dw = part->dupliweights.first;
@@ -560,7 +561,7 @@ void psys_free(Object *ob, ParticleSystem *psys)
 			ob->transflag &= ~OB_DUPLIPARTS;
 
 		if (psys->part) {
-			psys->part->id.us--;		
+			psys->part->id.us--;
 			psys->part = NULL;
 		}
 
@@ -617,7 +618,10 @@ typedef struct ParticleRenderData {
 	int do_simplify;
 	int timeoffset;
 	ParticleRenderElem *elems;
-	int *origindex;
+
+	/* ORIGINDEX */
+	const int *index_mf_to_mpoly;
+	const int *index_mp_to_orig;
 } ParticleRenderData;
 
 static float psys_render_viewport_falloff(double rate, float dist, float width)
@@ -790,8 +794,12 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	float *facearea, (*facecenter)[3], size[3], fac, powrate, scaleclamp;
 	float co1[3], co2[3], co3[3], co4[3], lambda, arearatio, t, area, viewport;
 	double vprate;
-	int *origindex, *facetotvert;
+	int *facetotvert;
 	int a, b, totorigface, totface, newtot, skipped;
+
+	/* double lookup */
+	const int *index_mf_to_mpoly;
+	const int *index_mp_to_orig;
 
 	if (part->ren_as != PART_DRAW_PATH || !(part->draw & PART_DRAW_REN_STRAND))
 		return tot;
@@ -806,12 +814,17 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	mvert = dm->getVertArray(dm);
 	mface = dm->getTessFaceArray(dm);
-	origindex = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	totface = dm->getNumTessFaces(dm);
 	totorigface = me->totpoly;
 
 	if (totface == 0 || totorigface == 0)
 		return tot;
+
+	index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
+		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	}
 
 	facearea = MEM_callocN(sizeof(float) * totorigface, "SimplifyFaceArea");
 	facecenter = MEM_callocN(sizeof(float[3]) * totorigface, "SimplifyFaceCenter");
@@ -823,20 +836,22 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	data->do_simplify = TRUE;
 	data->elems = elems;
-	data->origindex = origindex;
+	data->index_mf_to_mpoly = index_mf_to_mpoly;
+	data->index_mp_to_orig  = index_mp_to_orig;
 
 	/* compute number of children per original face */
 	for (a = 0; a < tot; a++) {
-		b = (origindex) ? origindex[ctx->index[a]] : ctx->index[a];
-		if (b != -1)
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, ctx->index[a]) : ctx->index[a];
+		if (b != ORIGINDEX_NONE) {
 			elems[b].totchild++;
+		}
 	}
 
 	/* compute areas and centers of original faces */
 	for (mf = mface, a = 0; a < totface; a++, mf++) {
-		b = (origindex) ? origindex[a] : a;
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
 
-		if (b != -1) {
+		if (b != ORIGINDEX_NONE) {
 			copy_v3_v3(co1, mvert[mf->v1].co);
 			copy_v3_v3(co2, mvert[mf->v2].co);
 			copy_v3_v3(co3, mvert[mf->v3].co);
@@ -898,7 +913,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 			elem->scalemax = sqrt(elem->scalemax);
 
 			/* clamp scaling */
-			scaleclamp = MIN2(elem->totchild, 10.0f);
+			scaleclamp = (float)min_ii(elem->totchild, 10);
 			elem->scalemin = MIN2(scaleclamp, elem->scalemin);
 			elem->scalemax = MIN2(scaleclamp, elem->scalemax);
 
@@ -930,8 +945,9 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	skipped = 0;
 	for (a = 0, newtot = 0; a < tot; a++) {
-		b = (origindex) ? origindex[ctx->index[a]] : ctx->index[a];
-		if (b != -1) {
+		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, ctx->index[a]) : ctx->index[a];
+
+		if (b != ORIGINDEX_NONE) {
 			if (elems[b].curchild++ < ceil(elems[b].lambda * elems[b].totchild)) {
 				ctx->index[newtot] = ctx->index[a];
 				ctx->skip[newtot] = skipped;
@@ -962,10 +978,10 @@ int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float 
 	data = psys->renderdata;
 	if (!data->do_simplify)
 		return 0;
-	
-	b = (data->origindex) ? data->origindex[cpa->num] : cpa->num;
-	if (b == -1)
+	b = (data->index_mf_to_mpoly) ? DM_origindex_mface_mpoly(data->index_mf_to_mpoly, data->index_mp_to_orig, cpa->num) : cpa->num;
+	if (b == ORIGINDEX_NONE) {
 		return 0;
+	}
 
 	elem = &data->elems[b];
 
@@ -1403,7 +1419,8 @@ static void interpolate_pathcache(ParticleCacheKey *first, float t, ParticleCach
 /************************************************/
 /* interpolate a location on a face based on face coordinates */
 void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*orcodata)[3],
-                           float *w, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
+                           float w[4], float vec[3], float nor[3], float utan[3], float vtan[3],
+                           float orco[3], float ornor[3])
 {
 	float *v1 = 0, *v2 = 0, *v3 = 0, *v4 = 0;
 	float e1[3], e2[3], s1, s2, t1, t2;
@@ -1622,17 +1639,22 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 	Mesh *me = (Mesh *)ob->data;
 	MPoly *mpoly;
 	OrigSpaceFace *osface;
-	int *origindex;
 	int quad, findex, totface;
 	float uv[2], (*faceuv)[2];
 
+	/* double lookup */
+	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
+		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	}
+
 	mpoly = dm->getPolyArray(dm);
-	origindex = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	osface = dm->getTessFaceDataArray(dm, CD_ORIGSPACE);
 
 	totface = dm->getNumTessFaces(dm);
 	
-	if (osface == NULL || origindex == NULL) {
+	if (osface == NULL || index_mf_to_mpoly == NULL) {
 		/* Assume we don't need osface data */
 		if (index < totface) {
 			//printf("\tNO CD_ORIGSPACE, assuming not needed\n");
@@ -1666,7 +1688,8 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 	}
 	else { /* if we have no node, try every face */
 		for (findex = 0; findex < totface; findex++) {
-			if (origindex[findex] == index) {
+			const int findex_orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, findex);
+			if (findex_orig == index) {
 				faceuv = osface[findex].uv;
 				quad = (mpoly[findex].totloop == 4);
 
@@ -1746,7 +1769,9 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 }
 
 /* interprets particle data to get a point on a mesh in object space */
-void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, const float fw[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3], float orco[3], float ornor[3])
+void psys_particle_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache,
+                         const float fw[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3],
+                         float orco[3], float ornor[3])
 {
 	float tmpnor[3], mapfw[4];
 	float (*orcodata)[3];
@@ -1842,7 +1867,9 @@ ParticleSystemModifierData *psys_get_modifier(Object *ob, ParticleSystem *psys)
 /*			Particles on a shape				*/
 /************************************************/
 /* ready for future use */
-static void psys_particle_on_shape(int UNUSED(distr), int UNUSED(index), float *UNUSED(fuv), float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
+static void psys_particle_on_shape(int UNUSED(distr), int UNUSED(index),
+                                   float *UNUSED(fuv), float vec[3], float nor[3], float utan[3], float vtan[3],
+                                   float orco[3], float ornor[3])
 {
 	/* TODO */
 	float zerovec[3] = {0.0f, 0.0f, 0.0f};
@@ -1868,7 +1895,9 @@ static void psys_particle_on_shape(int UNUSED(distr), int UNUSED(index), float *
 /************************************************/
 /*			Particles on emitter				*/
 /************************************************/
-void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
+void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int index, int index_dmcache,
+                              float fuv[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3],
+                              float orco[3], float ornor[3])
 {
 	if (psmd) {
 		if (psmd->psys->part->distr == PART_DISTR_GRID && psmd->psys->part->from != PART_FROM_VERT) {
@@ -2456,7 +2485,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 		totthread = 1;
 	
 	for (i = 0; i < totthread; i++) {
-		threads[i].rng_path = rng_new(seed);
+		threads[i].rng_path = BLI_rng_new(seed);
 		threads[i].tot = totthread;
 	}
 
@@ -3298,7 +3327,7 @@ void copy_particle_key(ParticleKey *to, ParticleKey *from, int time)
 		to->time = to_time;
 	}
 }
-void psys_get_from_key(ParticleKey *key, float *loc, float *vel, float *rot, float *time)
+void psys_get_from_key(ParticleKey *key, float loc[3], float vel[3], float rot[4], float *time)
 {
 	if (loc) copy_v3_v3(loc, key->co);
 	if (vel) copy_v3_v3(vel, key->vel);
@@ -3776,7 +3805,7 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 	                                                         ptex->gravity = ptex->field = ptex->time = ptex->clump = ptex->kink =
 	                                                                                                                      ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.f;
 
-	ptex->length = 1.0f - part->randlength *PSYS_FRAND(child_index + 26);
+	ptex->length = 1.0f - part->randlength * PSYS_FRAND(child_index + 26);
 	ptex->length *= part->clength_thres < PSYS_FRAND(child_index + 27) ? part->clength : 1.0f;
 
 	for (m = 0; m < MAX_MTEX; m++, mtexp++) {
@@ -3968,7 +3997,7 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float UNUSED
 	size *= part->childsize;
 
 	if (part->childrandsize != 0.0f)
-		size *= 1.0f - part->childrandsize *PSYS_FRAND(cpa - psys->child + 26);
+		size *= 1.0f - part->childrandsize * PSYS_FRAND(cpa - psys->child + 26);
 
 	return size;
 }
@@ -4319,7 +4348,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	if (pa) {
 		if (!always) {
 			if ((cfra < pa->time    && (part->flag & PART_UNBORN) == 0) ||
-			    (cfra > pa->dietime && (part->flag & PART_DIED)   == 0))
+			    (cfra >= pa->dietime && (part->flag & PART_DIED)  == 0))
 			{
 				return 0;
 			}
@@ -4414,7 +4443,9 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	}
 }
 
-void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, float *uv, float *orco)
+void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
+                            ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa,
+                            float uv[2], float orco[3])
 {
 	MFace *mface;
 	MTFace *mtface;
@@ -4539,8 +4570,8 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	/* can happen with bad pointcache or physics calculation
 	 * since this becomes geometry, nan's and inf's crash raytrace code.
 	 * better not allow this. */
-	if (!finite(bb->vec[0]) || !finite(bb->vec[1]) || !finite(bb->vec[2]) ||
-	    !finite(bb->vel[0]) || !finite(bb->vel[1]) || !finite(bb->vel[2]) )
+	if ((!finite(bb->vec[0])) || (!finite(bb->vec[1])) || (!finite(bb->vec[2])) ||
+	    (!finite(bb->vel[0])) || (!finite(bb->vel[1])) || (!finite(bb->vel[2])) )
 	{
 		zero_v3(bb->vec);
 		zero_v3(bb->vel);

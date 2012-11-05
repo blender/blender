@@ -218,7 +218,7 @@ static void meshdeformModifier_do(
 	}
 	
 	if (!cagedm) {
-		modifier_setError(md, "%s", TIP_("Can't get mesh from cage object."));
+		modifier_setError(md, "Cannot get mesh from cage object");
 		return;
 	}
 
@@ -246,17 +246,17 @@ static void meshdeformModifier_do(
 	totcagevert = cagedm->getNumVerts(cagedm);
 
 	if (mmd->totvert != totvert) {
-		modifier_setError(md, TIP_("Verts changed from %d to %d."), mmd->totvert, totvert);
+		modifier_setError(md, "Verts changed from %d to %d", mmd->totvert, totvert);
 		cagedm->release(cagedm);
 		return;
 	}
 	else if (mmd->totcagevert != totcagevert) {
-		modifier_setError(md, TIP_("Cage verts changed from %d to %d."), mmd->totcagevert, totcagevert);
+		modifier_setError(md, "Cage verts changed from %d to %d", mmd->totcagevert, totcagevert);
 		cagedm->release(cagedm);
 		return;
 	}
 	else if (mmd->bindcagecos == NULL) {
-		modifier_setError(md, "%s", TIP_("Bind data missing."));
+		modifier_setError(md, "Bind data missing");
 		cagedm->release(cagedm);
 		return;
 	}
@@ -431,28 +431,28 @@ void modifier_mdef_compact_influences(ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_MeshDeform = {
-	/* name */ "MeshDeform",
-	/* structName */ "MeshDeformModifierData",
-	/* structSize */ sizeof(MeshDeformModifierData),
-	/* type */ eModifierTypeType_OnlyDeform,
-	/* flags */ eModifierTypeFlag_AcceptsCVs |
-	eModifierTypeFlag_SupportsEditmode,
+	/* name */              "MeshDeform",
+	/* structName */        "MeshDeformModifierData",
+	/* structSize */        sizeof(MeshDeformModifierData),
+	/* type */              eModifierTypeType_OnlyDeform,
+	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */ copyData,
-	/* deformVerts */ deformVerts,
-	/* deformMatrices */ NULL,
-	/* deformVertsEM */ deformVertsEM,
-	/* deformMatricesEM */ NULL,
-	/* applyModifier */ NULL,
-	/* applyModifierEM */ NULL,
-	/* initData */ initData,
-	/* requiredDataMask */ requiredDataMask,
-	/* freeData */ freeData,
-	/* isDisabled */ isDisabled,
-	/* updateDepgraph */ updateDepgraph,
-	/* dependsOnTime */ NULL,
-	/* dependsOnNormals */ NULL,
+	/* copyData */          copyData,
+	/* deformVerts */       deformVerts,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     deformVertsEM,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
+	/* initData */          initData,
+	/* requiredDataMask */  requiredDataMask,
+	/* freeData */          freeData,
+	/* isDisabled */        isDisabled,
+	/* updateDepgraph */    updateDepgraph,
+	/* dependsOnTime */     NULL,
+	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */ NULL,
-	/* foreachTexLink */ NULL,
+	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

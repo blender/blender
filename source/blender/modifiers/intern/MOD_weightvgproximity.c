@@ -347,7 +347,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	int numVerts;
 	float (*v_cos)[3] = NULL; /* The vertices coordinates. */
 	Object *obr = NULL; /* Our target object. */
-	int defgrp_idx;
+	int defgrp_index;
 	float *tw = NULL;
 	float *org_w = NULL;
 	float *new_w = NULL;
@@ -378,8 +378,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		return dm;
 
 	/* Get vgroup idx from its name. */
-	defgrp_idx = defgroup_name_index(ob, wmd->defgrp_name);
-	if (defgrp_idx < 0)
+	defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
+	if (defgrp_index == -1)
 		return dm;
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
@@ -394,7 +394,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	tw = MEM_mallocN(sizeof(float) * numVerts, "WeightVGProximity Modifier, tw");
 	tdw = MEM_mallocN(sizeof(MDeformWeight *) * numVerts, "WeightVGProximity Modifier, tdw");
 	for (i = 0; i < numVerts; i++) {
-		MDeformWeight *_dw = defvert_find_index(&dvert[i], defgrp_idx);
+		MDeformWeight *_dw = defvert_find_index(&dvert[i], defgrp_index);
 		if (_dw) {
 			tidx[numIdx] = i;
 			tw[numIdx] = _dw->weight;
@@ -460,7 +460,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				else if (obr->type == OB_MESH) {
 					Mesh *me = (Mesh *)obr->data;
 					if (me->edit_btmesh)
-						target_dm = CDDM_from_BMEditMesh(me->edit_btmesh, me, FALSE, FALSE);
+						target_dm = CDDM_from_editbmesh(me->edit_btmesh, FALSE, FALSE);
 					else
 						target_dm = CDDM_from_mesh(me, obr);
 				}
@@ -480,9 +480,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				for (i = 0; i < numIdx; i++) {
 					new_w[i] = dists_v ? dists_v[i] : FLT_MAX;
 					if (dists_e)
-						new_w[i] = minf(dists_e[i], new_w[i]);
+						new_w[i] = min_ff(dists_e[i], new_w[i]);
 					if (dists_f)
-						new_w[i] = minf(dists_f[i], new_w[i]);
+						new_w[i] = min_ff(dists_f[i], new_w[i]);
 				}
 				if (free_target_dm) target_dm->release(target_dm);
 				if (dists_v) MEM_freeN(dists_v);
@@ -509,7 +509,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
-	weightvg_update_vg(dvert, defgrp_idx, dw, numIdx, indices, org_w, FALSE, 0.0f, FALSE, 0.0f);
+	weightvg_update_vg(dvert, defgrp_index, dw, numIdx, indices, org_w, FALSE, 0.0f, FALSE, 0.0f);
 
 	/* If weight preview enabled... */
 #if 0 /* XXX Currently done in mod stack :/ */

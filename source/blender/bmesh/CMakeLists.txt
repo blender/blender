@@ -1,4 +1,3 @@
-# $Id: CMakeLists.txt 31746 2010-09-04 05:31:25Z joeedh $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -26,10 +25,13 @@
 
 set(INC 
 	.
+	../blenfont
 	../blenkernel
 	../blenlib
 	../makesdna
 	../../../intern/guardedalloc
+	../../../extern/bullet2/src
+	../../../intern/opennl/extern
 )
 
 set(INC_SYS
@@ -52,9 +54,13 @@ set(SRC
 	operators/bmo_mirror.c
 	operators/bmo_primitive.c
 	operators/bmo_removedoubles.c
+	operators/bmo_similar.c
+	operators/bmo_smooth_laplacian.c
+	operators/bmo_symmetrize.c
 	operators/bmo_subdivide.c
 	operators/bmo_subdivide.h
 	operators/bmo_triangulate.c
+	operators/bmo_unsubdivide.c
 	operators/bmo_utils.c
 	operators/bmo_wireframe.c
 
@@ -62,6 +68,10 @@ set(SRC
 	intern/bmesh_construct.h
 	intern/bmesh_core.c
 	intern/bmesh_core.h
+	intern/bmesh_decimate_collapse.c
+	intern/bmesh_decimate_dissolve.c
+	intern/bmesh_decimate_unsubdivide.c
+	intern/bmesh_decimate.h
 	intern/bmesh_inline.h
 	intern/bmesh_interp.c
 	intern/bmesh_interp.h
@@ -106,6 +116,14 @@ set(SRC
 
 if(MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+endif()
+
+if(WITH_BULLET)
+	add_definitions(-DWITH_BULLET)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}")

@@ -266,6 +266,16 @@ enum {
 	DEL_ONLYTAGGED
 };
 
+typedef enum {
+	BMO_SYMMETRIZE_NEGATIVE_X,
+	BMO_SYMMETRIZE_NEGATIVE_Y,
+	BMO_SYMMETRIZE_NEGATIVE_Z,
+
+	BMO_SYMMETRIZE_POSITIVE_X,
+	BMO_SYMMETRIZE_POSITIVE_Y,
+	BMO_SYMMETRIZE_POSITIVE_Z,
+} BMO_SymmDirection;
+
 void BMO_op_flag_enable(BMesh *bm, BMOperator *op, const int op_flag);
 void BMO_op_flag_disable(BMesh *bm, BMOperator *op, const int op_flag);
 

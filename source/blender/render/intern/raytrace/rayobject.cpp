@@ -467,7 +467,7 @@ float RE_rayobject_cost(RayObject *r)
 
 /* Bounding Boxes */
 
-void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
+void RE_rayobject_merge_bb(RayObject *r, float min[3], float max[3])
 {
 	if (RE_rayobject_isRayFace(r)) {
 		RayFace *face = (RayFace *) RE_rayobject_align(r);

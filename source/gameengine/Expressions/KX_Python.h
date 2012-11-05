@@ -79,5 +79,4 @@
 #undef toupper
 #endif
 
-#endif // __KX_PYTHON_H__
-
+#endif  /* __KX_PYTHON_H__ */

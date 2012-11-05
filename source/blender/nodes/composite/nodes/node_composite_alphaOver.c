@@ -32,13 +32,13 @@
 #include "node_composite_util.h"
 
 /* **************** ALPHAOVER ******************** */
-static bNodeSocketTemplate cmp_node_alphaover_in[]= {
+static bNodeSocketTemplate cmp_node_alphaover_in[] = {
 	{	SOCK_FLOAT, 1, N_("Fac"),			1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
-static bNodeSocketTemplate cmp_node_alphaover_out[]= {
+static bNodeSocketTemplate cmp_node_alphaover_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
@@ -48,7 +48,7 @@ static bNodeSocketTemplate cmp_node_alphaover_out[]= {
 static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, float *over, float *fac)
 {
 	
-	/* Zero alpha values should still permit an add of RGB data */	
+	/* Zero alpha values should still permit an add of RGB data */
 	if (over[3]<0.0f) {
 		copy_v4_v4(out, src);
 	}
@@ -58,11 +58,11 @@ static void do_alphaover_premul(bNode *UNUSED(node), float *out, float *src, flo
 	else {
 		float mul= 1.0f - fac[0]*over[3];
 
-		out[0]= (mul*src[0]) + fac[0]*over[0];
-		out[1]= (mul*src[1]) + fac[0]*over[1];
-		out[2]= (mul*src[2]) + fac[0]*over[2];
-		out[3]= (mul*src[3]) + fac[0]*over[3];
-	}	
+		out[0] = (mul*src[0]) + fac[0]*over[0];
+		out[1] = (mul*src[1]) + fac[0]*over[1];
+		out[2] = (mul*src[2]) + fac[0]*over[2];
+		out[3] = (mul*src[3]) + fac[0]*over[3];
+	}
 }
 
 /* result will be still premul, but the over part is premulled */
@@ -79,10 +79,10 @@ static void do_alphaover_key(bNode *UNUSED(node), float *out, float *src, float 
 		float premul= fac[0]*over[3];
 		float mul= 1.0f - premul;
 
-		out[0]= (mul*src[0]) + premul*over[0];
-		out[1]= (mul*src[1]) + premul*over[1];
-		out[2]= (mul*src[2]) + premul*over[2];
-		out[3]= (mul*src[3]) + fac[0]*over[3];
+		out[0] = (mul*src[0]) + premul*over[0];
+		out[1] = (mul*src[1]) + premul*over[1];
+		out[2] = (mul*src[2]) + premul*over[2];
+		out[3] = (mul*src[3]) + fac[0]*over[3];
 	}
 }
 
@@ -102,10 +102,10 @@ static void do_alphaover_mixed(bNode *node, float *out, float *src, float *over,
 		float premul= fac[0]*addfac;
 		float mul= 1.0f - fac[0]*over[3];
 		
-		out[0]= (mul*src[0]) + premul*over[0];
-		out[1]= (mul*src[1]) + premul*over[1];
-		out[2]= (mul*src[2]) + premul*over[2];
-		out[3]= (mul*src[3]) + fac[0]*over[3];
+		out[0] = (mul*src[0]) + premul*over[0];
+		out[1] = (mul*src[1]) + premul*over[1];
+		out[2] = (mul*src[2]) + premul*over[2];
+		out[3] = (mul*src[3]) + fac[0]*over[3];
 	}
 }
 

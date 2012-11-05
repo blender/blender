@@ -608,9 +608,9 @@ class WM_OT_context_collection_boolean_set(Operator):
             except:
                 continue
 
-            if value_orig == True:
+            if value_orig is True:
                 is_set = True
-            elif value_orig == False:
+            elif value_orig is False:
                 pass
             else:
                 self.report({'WARNING'}, "Non boolean value found: %s[ ].%s" %
@@ -1028,7 +1028,7 @@ class WM_OT_properties_edit(Operator):
     min = rna_min
     max = rna_max
     description = StringProperty(
-            name="Tip",
+            name="Tooltip",
             )
 
     def execute(self, context):
@@ -1124,9 +1124,15 @@ class WM_OT_properties_add(Operator):
 
             return prop_new
 
-        property = unique_name(item.keys())
+        prop = unique_name(item.keys())
 
-        item[property] = 1.0
+        item[prop] = 1.0
+
+        # not essential, but without this we get [#31661]
+        prop_ui = rna_idprop_ui_prop_get(item, prop)
+        prop_ui["soft_min"] = prop_ui["min"] = 0.0
+        prop_ui["soft_max"] = prop_ui["max"] = 1.0
+
         return {'FINISHED'}
 
 
@@ -1284,7 +1290,7 @@ class WM_OT_blenderplayer_start(Operator):
             return {'CANCELLED'}
 
         filepath = os.path.join(bpy.app.tempdir, "game.blend")
-        bpy.ops.wm.save_as_mainfile(filepath=filepath, check_existing=False, copy=True)
+        bpy.ops.wm.save_as_mainfile('EXEC_DEFAULT', filepath=filepath, copy=True)
         subprocess.call([player_path, filepath])
         return {'FINISHED'}
 
@@ -1583,7 +1589,7 @@ class WM_OT_addon_enable(Operator):
                                           "version %d.%d.%d and might not "
                                           "function (correctly), "
                                           "though it is enabled") %
-                                         info_ver)
+                                          info_ver)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
@@ -1668,7 +1674,7 @@ class WM_OT_theme_install(Operator):
 class WM_OT_addon_install(Operator):
     "Install an addon"
     bl_idname = "wm.addon_install"
-    bl_label = "Install Addon..."
+    bl_label = "Install from File..."
 
     overwrite = BoolProperty(
             name="Overwrite",
@@ -1773,12 +1779,6 @@ class WM_OT_addon_install(Operator):
 
             try:  # extract the file to "addons"
                 file_to_extract.extractall(path_addons)
-
-                # zip files can create this dir with metadata, don't need it
-                macosx_dir = os.path.join(path_addons, '__MACOSX')
-                if os.path.isdir(macosx_dir):
-                    shutil.rmtree(macosx_dir)
-
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}
@@ -1822,8 +1822,11 @@ class WM_OT_addon_install(Operator):
         # in case a new module path was created to install this addon.
         bpy.utils.refresh_script_paths()
 
-        # TODO, should not be a warning.
-        #~ self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
+        # print message
+        msg = "Modules Installed from %r into %r (%s)" % (pyfile, path_addons, ", ".join(sorted(addons_new)))
+        print(msg)
+        self.report({'INFO'}, msg)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):

@@ -165,11 +165,11 @@ void KX_BlenderMaterial::InitTextures()
 				continue;
 			}
 			if (!mTextures[i].InitCubeMap(i, mMaterial->cubemap[i] ) )
-				spit("unable to initialize image("<<i<<") in "<< 
-						 mMaterial->matname<< ", image will not be available");
-		} 
-		// If we're using glsl materials, the textures are handled by bf_gpu, so don't load them twice!
-		// However, if we're using a custom shader, then we still need to load the textures ourselves.
+				spit("unable to initialize image("<<i<<") in "<<
+				     mMaterial->matname<< ", image will not be available");
+		}
+		/* If we're using glsl materials, the textures are handled by bf_gpu, so don't load them twice!
+		 * However, if we're using a custom shader, then we still need to load the textures ourselves. */
 		else if (!mMaterial->glslmat || mShader) {
 			if ( mMaterial->img[i] ) {
 				if ( ! mTextures[i].InitFromImage(i, mMaterial->img[i], (mMaterial->flag[i] &MIPMAP)!=0 ))
@@ -412,7 +412,7 @@ KX_BlenderMaterial::ActivatShaders(
 
 		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
-		{		
+		{
 			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
@@ -457,7 +457,7 @@ KX_BlenderMaterial::ActivateBlenderShaders(
 
 		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
-		{		
+		{
 			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
@@ -506,7 +506,7 @@ KX_BlenderMaterial::ActivateMat(
 
 		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
-		{		
+		{
 			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
@@ -614,7 +614,7 @@ void KX_BlenderMaterial::ActivatGLMaterials( RAS_IRasterizer* rasty )const
 			mMaterial->matcolor[2]*mMaterial->ref+mMaterial->emit,
 			1.0f);
 
-		rasty->SetEmissive(	
+		rasty->SetEmissive(
 			mMaterial->matcolor[0]*mMaterial->emit,
 			mMaterial->matcolor[1]*mMaterial->emit,
 			mMaterial->matcolor[2]*mMaterial->emit,
@@ -726,7 +726,7 @@ void KX_BlenderMaterial::setObjectMatrixData(int i, RAS_IRasterizer *ras)
 	GLenum plane = GL_EYE_PLANE;
 
 	// figure plane gen
-	float proj[4]= {0.f,0.f,0.f,0.f};
+	float proj[4] = {0.f,0.f,0.f,0.f};
 	GetProjPlane(mMaterial, i, 0, proj);
 	glTexGenfv(GL_S, plane, proj);
 	
@@ -835,29 +835,29 @@ PyTypeObject KX_BlenderMaterial::Type = {
 	py_base_new
 };
 
-PyObject* KX_BlenderMaterial::pyattr_get_shader(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_BlenderMaterial::pyattr_get_shader(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
+	KX_BlenderMaterial* self = static_cast<KX_BlenderMaterial*>(self_v);
 	return self->PygetShader(NULL, NULL);
 }
 
-PyObject* KX_BlenderMaterial::pyattr_get_materialIndex(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_BlenderMaterial::pyattr_get_materialIndex(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
+	KX_BlenderMaterial* self = static_cast<KX_BlenderMaterial*>(self_v);
 	return PyLong_FromSsize_t(self->GetMaterialIndex());
 }
 
-PyObject* KX_BlenderMaterial::pyattr_get_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_BlenderMaterial::pyattr_get_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
+	KX_BlenderMaterial* self = static_cast<KX_BlenderMaterial*>(self_v);
 	unsigned int* bfunc = self->getBlendFunc();
 	return Py_BuildValue("(ll)", (long int)bfunc[0], (long int)bfunc[1]);
 }
 
 int KX_BlenderMaterial::pyattr_set_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
-	KX_BlenderMaterial* self= static_cast<KX_BlenderMaterial*>(self_v);
-	PyObject* obj = self->PysetBlending(value, NULL);
+	KX_BlenderMaterial* self = static_cast<KX_BlenderMaterial*>(self_v);
+	PyObject *obj = self->PysetBlending(value, NULL);
 	if (obj)
 	{
 		Py_DECREF(obj);

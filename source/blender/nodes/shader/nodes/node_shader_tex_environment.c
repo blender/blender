@@ -27,14 +27,16 @@
 
 #include "../node_shader_util.h"
 
+#include "IMB_colormanagement.h"
+
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketTemplate sh_node_tex_environment_in[]= {
+static bNodeSocketTemplate sh_node_tex_environment_in[] = {
 	{	SOCK_VECTOR, 1, N_("Vector"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketTemplate sh_node_tex_environment_out[]= {
+static bNodeSocketTemplate sh_node_tex_environment_out[] = {
 	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
@@ -59,7 +61,8 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
 	NodeTexImage *tex = node->storage;
-	int ncd = tex->color_space == SHD_COLORSPACE_NONE;
+	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
+	int ret;
 
 	if (!ima)
 		return GPU_stack_link(mat, "node_tex_environment_empty", in, out);
@@ -69,10 +72,18 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	if (out[0].link && GPU_material_do_color_management(mat))
-		GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
+	ret = GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser, isdata));
 
-	return GPU_stack_link(mat, "node_tex_environment", in, out, GPU_image(ima, iuser, ncd));
+	if (ret) {
+		ImBuf *ibuf = BKE_image_get_ibuf(ima, iuser);
+		if (ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&
+		    GPU_material_do_color_management(mat))
+		{
+			GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
+		}
+	}
+
+	return ret;
 }
 
 /* node type definition */

@@ -37,10 +37,10 @@ typedef unsigned __int64 uint_ptr;
 typedef unsigned long uint_ptr;
 #endif
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// This warning tells us about truncation of __long__ stl-generated names.
-// It can occasionally cause DevStudio to have internal compiler warnings.
-#pragma warning( disable : 4786 )     
+#ifdef _MSC_VER
+   /* This warning tells us about truncation of __long__ stl-generated names.
+    * It can occasionally cause DevStudio to have internal compiler warnings. */
+#  pragma warning(disable:4786)
 #endif
 
 #include "KX_IPO_SGController.h"
@@ -52,7 +52,7 @@ typedef unsigned long uint_ptr;
 
 // All objects should start on frame 1! Will we ever need an object to 
 // start on another frame, the 1.0 should change.
-KX_IpoSGController::KX_IpoSGController() 
+KX_IpoSGController::KX_IpoSGController()
 : m_ipo_as_force(false),
   m_ipo_add(false),
   m_ipo_local(false),

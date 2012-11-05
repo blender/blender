@@ -32,12 +32,12 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <glog/logging.h>
-#include "ceres/matrix_proto.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/matrix_proto.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -82,7 +82,7 @@ TripletSparseMatrix::TripletSparseMatrix(const TripletSparseMatrix& orig)
   CopyData(orig);
 }
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 TripletSparseMatrix::TripletSparseMatrix(const SparseMatrixProto& outer_proto) {
   CHECK(outer_proto.has_triplet_matrix());
 
@@ -130,7 +130,7 @@ bool TripletSparseMatrix::AllTripletsWithinBounds() const {
 
 void TripletSparseMatrix::Reserve(int new_max_num_nonzeros) {
   CHECK_LE(num_nonzeros_, new_max_num_nonzeros)
-    << "Reallocation will cause data loss";
+      << "Reallocation will cause data loss";
 
   // Nothing to do if we have enough space already.
   if (new_max_num_nonzeros <= max_num_nonzeros_)
@@ -214,7 +214,7 @@ void TripletSparseMatrix::ToDenseMatrix(Matrix* dense_matrix) const {
   }
 }
 
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+#ifndef CERES_NO_PROTOCOL_BUFFERS
 void TripletSparseMatrix::ToProto(SparseMatrixProto *proto) const {
   proto->Clear();
 

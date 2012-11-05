@@ -45,7 +45,7 @@
 
 #ifdef WITH_PYTHON
 /* utility conversion function */
-bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
+bool ConvertPythonToCamera(PyObject *value, KX_Camera **object, bool py_none_ok, const char *error_prefix);
 #endif
 
 class KX_Camera : public KX_GameObject
@@ -120,7 +120,7 @@ protected:
 	/**
 	 * whether the camera should delete the node itself (only for shadow camera)
 	 */
-	bool		 m_delete_node;
+	bool         m_delete_node;
 
 	/**
 	 * Extracts the camera clip frames from the projection and world-to-camera matrices.
@@ -156,7 +156,7 @@ public:
 	 * instance allocated on the heap. Ownership of the new 
 	 * object belongs with the caller.
 	 */
-	virtual	CValue*				
+	virtual	CValue*
 	GetReplica(
 	);
 	virtual void ProcessReplica();
@@ -286,8 +286,8 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getCameraToWorld);
 	KX_PYMETHOD_DOC_NOARGS(KX_Camera, getWorldToCamera);
 	
-	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);	
-	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);	
+	KX_PYMETHOD_DOC_VARARGS(KX_Camera, setViewport);
+	KX_PYMETHOD_DOC_NOARGS(KX_Camera, setOnTop);
 
 	KX_PYMETHOD_DOC_O(KX_Camera, getScreenPosition);
 	KX_PYMETHOD_DOC_VARARGS(KX_Camera, getScreenVect);
@@ -321,5 +321,4 @@ public:
 #endif
 };
 
-#endif //__KX_CAMERA_H__
-
+#endif  /* __KX_CAMERA_H__ */

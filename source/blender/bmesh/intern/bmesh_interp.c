@@ -224,10 +224,8 @@ static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], 
 	/* computer center */
 	BM_face_calc_center_mean(l->f, cent);
 
-	add_v3_v3v3(p, l->prev->v->co, l->v->co);
-	mul_v3_fl(p, 0.5);
-	add_v3_v3v3(n, l->next->v->co, l->v->co);
-	mul_v3_fl(n, 0.5);
+	mid_v3_v3v3(p, l->prev->v->co, l->v->co);
+	mid_v3_v3v3(n, l->next->v->co, l->v->co);
 	
 	copy_v3_v3(v1, cent);
 	copy_v3_v3(v2, p);
@@ -257,7 +255,7 @@ static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int 
 
 		f1 = fabsf(f1);
 		f2 = fabsf(f2);
-		f1 = minf(f1, f2);
+		f1 = min_ff(f1, f2);
 		CLAMP(f1, 0.0f, 1.0f + FLT_EPSILON);
 	}
 	else {
@@ -345,9 +343,9 @@ static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float
 	float v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	float eps = FLT_EPSILON * 4000;
 	
-	if (len_v3(l->v->no) == 0.0f)
+	if (is_zero_v3(l->v->no))
 		BM_vert_normal_update_all(l->v);
-	if (len_v3(tl->v->no) == 0.0f)
+	if (is_zero_v3(tl->v->no))
 		BM_vert_normal_update_all(tl->v);
 
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
@@ -424,7 +422,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	float axis_x[3], axis_y[3];
 	
 	/* ignore 2-edged faces */
-	if (target->f->len < 3)
+	if (UNLIKELY(target->f->len < 3))
 		return;
 	
 	if (!CustomData_has_layer(&bm->ldata, CD_MDISPS))
@@ -490,7 +488,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 }
 
 /**
- * smoothes boundaries between multires grids,
+ * smooths boundaries between multires grids,
  * including some borders in adjacent faces
  */
 void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
@@ -525,8 +523,7 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 
 		sides = (int)sqrt(mdp->totdisp);
 		for (y = 0; y < sides; y++) {
-			add_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
-			mul_v3_fl(co1, 0.5);
+			mid_v3_v3v3(co1, mdn->disps[y * sides], mdl->disps[y]);
 
 			copy_v3_v3(mdn->disps[y * sides], co1);
 			copy_v3_v3(mdl->disps[y], co1);

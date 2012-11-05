@@ -74,13 +74,6 @@
 #define B_REDR                  1
 #define B_FMODIFIER_REDRAW      20
 
-/* macro for use here to draw background box and set height */
-// XXX for now, roundbox has it's callback func set to NULL to not intercept events
-#define DRAW_BACKDROP(height) \
-	{ \
-		uiDefBut(block, ROUNDBOX, B_REDR, "", -3, yco - height, width + 3, height - 1, NULL, 5.0, 0.0, 12.0, (float)rb_col, ""); \
-	} (void)0
-
 /* callback to verify modifier data */
 static void validate_fmodifier_cb(bContext *UNUSED(C), void *fcm_v, void *UNUSED(arg))
 {
@@ -118,6 +111,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	uiBlock *block;
 	uiBut *but;
 	PointerRNA ptr;
+	short bwidth = width - 30; /* max button width */
 	
 	/* init the RNA-pointer */
 	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
@@ -126,10 +120,10 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	/* col = uiLayoutColumn(layout, TRUE); */ /* UNUSED */
 	block = uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
-	but = uiDefButR(block, MENU, B_FMODIFIER_REDRAW, NULL, 0, 0, width - 30, UI_UNIT_Y, &ptr, "mode", -1, 0, 0, -1, -1, NULL);
+	but = uiDefButR(block, MENU, B_FMODIFIER_REDRAW, NULL, 0, 0, bwidth, UI_UNIT_Y, &ptr, "mode", -1, 0, 0, -1, -1, NULL);
 	uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
-		
-	uiDefButR(block, TOG, B_FMODIFIER_REDRAW, NULL, 0, 0, width - 30, UI_UNIT_Y, &ptr, "use_additive", -1, 0, 0, -1, -1, NULL);
+	
+	uiDefButR(block, TOG, B_FMODIFIER_REDRAW, NULL, 0, 0, bwidth, UI_UNIT_Y, &ptr, "use_additive", -1, 0, 0, -1, -1, NULL);
 	uiBlockEndAlign(block);
 	
 	/* now add settings for individual modes */
@@ -139,15 +133,26 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			float *cp = NULL;
 			char xval[32];
 			unsigned int i;
+			int maxXWidth;
 			
 			/* draw polynomial order selector */
 			row = uiLayoutRow(layout, FALSE);
 			block = uiLayoutGetBlock(row);
-			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 10, 0, width - 30, 19,
+			but = uiDefButI(block, NUM, B_FMODIFIER_REDRAW, IFACE_("Poly Order:"), 10, 0, bwidth, 20,
 			                &data->poly_order, 1, 100, 0, 0,
 			                TIP_("'Order' of the Polynomial (for a polynomial with n terms, 'order' is n-1)"));
 			uiButSetFunc(but, validate_fmodifier_cb, fcm, NULL);
 			
+			
+			/* calculate maximum width of label for "x^n" labels */
+			if (data->arraysize > 2) {
+				BLI_snprintf(xval, sizeof(xval), "x^%u", data->arraysize);
+				maxXWidth = UI_GetStringWidth(xval) + 10; /* XXX: UI_GetStringWidth is not accurate */
+			}
+			else {
+				/* basic size (just "x") */
+				maxXWidth = 15; 
+			}
 			
 			/* draw controls for each coefficient and a + sign at end of row */
 			row = uiLayoutRow(layout, TRUE);
@@ -155,34 +160,35 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 			
 			cp = data->coefficients;
 			for (i = 0; (i < data->arraysize) && (cp); i++, cp++) {
-				/* To align with first line */
+				/* To align with first line... */
 				if (i)
-					uiDefBut(block, LABEL, 1, "   ", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "   ", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
 				else
-					uiDefBut(block, LABEL, 1, "y =", 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "y =", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+				
 				/* coefficient */
-				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 150, 20, cp, -UI_FLT_MAX, UI_FLT_MAX,
+				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, bwidth / 2, 20, cp, -UI_FLT_MAX, UI_FLT_MAX,
 				          10, 3, TIP_("Coefficient for polynomial"));
 				
 				/* 'x' param (and '+' if necessary) */
 				if (i == 0)
-					strcpy(xval, "");
+					BLI_strncpy(xval, "", sizeof(xval));
 				else if (i == 1)
-					strcpy(xval, "x");
+					BLI_strncpy(xval, "x", sizeof(xval));
 				else
-					sprintf(xval, "x^%u", i);
-				uiDefBut(block, LABEL, 1, xval, 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, TIP_("Power of x"));
+					BLI_snprintf(xval, sizeof(xval), "x^%u", i);
+				uiDefBut(block, LABEL, 1, xval, 0, 0, maxXWidth, 20, NULL, 0.0, 0.0, 0, 0, TIP_("Power of x"));
 				
 				if ( (i != (data->arraysize - 1)) || ((i == 0) && data->arraysize == 2) ) {
-					uiDefBut(block, LABEL, 1, "+", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, "+", 0, 0, 20, 20, NULL, 0.0, 0.0, 0, 0, "");
 					
 					/* next coefficient on a new row */
 					row = uiLayoutRow(layout, TRUE);
 					block = uiLayoutGetBlock(row);
 				}
 				else {
-					/* For alignement in UI! */
-					uiDefBut(block, LABEL, 1, " ", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+					/* For alignment in UI! */
+					uiDefBut(block, LABEL, 1, " ", 0, 0, 20, 20, NULL, 0.0, 0.0, 0, 0, "");
 				}
 			}
 			break;

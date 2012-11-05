@@ -142,7 +142,7 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports)
 		strncpy(name, ob->id.name + 2, MAX_ID_NAME - 2);
 	}
 
-	return addMatrixSpace(C, mat, name, overwrite);	
+	return addMatrixSpace(C, mat, name, overwrite);
 }
 
 TransformOrientation *createBoneSpace(bContext *C, ReportList *reports, char *name, int overwrite)
@@ -402,7 +402,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 
 const char *BIF_menustringTransformOrientation(const bContext *C, const char *title)
 {
-	const char *menu = IFACE_("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
+	const char *menu = IFACE_("%t|Global %x0|Local %x1|Gimbal %x4|Normal %x2|View %x3");
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
@@ -411,14 +411,14 @@ const char *BIF_menustringTransformOrientation(const bContext *C, const char *ti
 
 	title = IFACE_(title);
 
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + elem_size * BIF_countTransformOrientation(C), TIP_("UserTransSpace from matrix"));
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + elem_size * BIF_countTransformOrientation(C), "UserTransSpace from matrix");
 	p = str_menu;
 	
 	p += sprintf(str_menu, "%s", title);
 	p += sprintf(p, "%s", menu);
 	
 	for (ts = transform_spaces->first; ts; ts = ts->next) {
-		p += sprintf(p, "|%s%%x%d", ts->name, i++);
+		p += sprintf(p, "|%s %%x%d", ts->name, i++);
 	}
 	
 	return str_menu;
@@ -631,7 +631,6 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					/* if there's an edge available, use that for the tangent */
 					if (em->bm->totedgesel >= 1) {
 						BMEdge *eed = NULL;
-						BMIter iter;
 						
 						BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 							if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
@@ -746,14 +745,14 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			MetaBall *mb = obedit->data;
 			
 			if (mb->lastelem) {
-				float mat[4][4];
+				float qmat[3][3];
 
 				/* Rotation of MetaElem is stored in quat */
-				quat_to_mat4(mat, mb->lastelem->quat);
+				quat_to_mat3(qmat, mb->lastelem->quat);
 
-				copy_v3_v3(normal, mat[2]);
+				copy_v3_v3(normal, qmat[2]);
 
-				negate_v3_v3(plane, mat[1]);
+				negate_v3_v3(plane, qmat[1]);
 				
 				result = ORIENTATION_FACE;
 			}

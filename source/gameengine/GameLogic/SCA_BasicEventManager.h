@@ -54,5 +54,4 @@ public:
 #endif
 };
 
-#endif //__SCA_BASICEVENTMANAGER_H__
-
+#endif  /* __SCA_BASICEVENTMANAGER_H__ */

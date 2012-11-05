@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_GENERAL_MATRIX_VECTOR_H
 #define EIGEN_GENERAL_MATRIX_VECTOR_H
+
+namespace Eigen { 
 
 namespace internal {
 
@@ -40,8 +27,8 @@ namespace internal {
  *  |cplx |real |cplx | invalid, the caller has to do tmp: = A * B; C += alpha*tmp
  *  |cplx |real |real | optimal case, vectorization possible via real-cplx mul
  */
-template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
-struct general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjugateLhs,RhsScalar,ConjugateRhs>
+template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version>
+struct general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjugateLhs,RhsScalar,ConjugateRhs,Version>
 {
 typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
@@ -99,7 +86,7 @@ EIGEN_DONT_INLINE static void run(
   
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type.
-  Index alignedStart = first_aligned(res,size);
+  Index alignedStart = internal::first_aligned(res,size);
   Index alignedSize = ResPacketSize>1 ? alignedStart + ((size-alignedStart) & ~ResPacketAlignedMask) : 0;
   const Index peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
@@ -109,7 +96,7 @@ EIGEN_DONT_INLINE static void run(
                        : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
-  const Index lhsAlignmentOffset = first_aligned(lhs,size);
+  const Index lhsAlignmentOffset = internal::first_aligned(lhs,size);
 
   // find how many columns do we have to skip to be aligned with the result (if possible)
   Index skipColumns = 0;
@@ -296,8 +283,8 @@ EIGEN_DONT_INLINE static void run(
  *  - alpha is always a complex (or converted to a complex)
  *  - no vectorization
  */
-template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
-struct general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjugateLhs,RhsScalar,ConjugateRhs>
+template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version>
+struct general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjugateLhs,RhsScalar,ConjugateRhs,Version>
 {
 typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
@@ -351,7 +338,7 @@ EIGEN_DONT_INLINE static void run(
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type
   // if that's not the case then vectorization is discarded, see below.
-  Index alignedStart = first_aligned(rhs, depth);
+  Index alignedStart = internal::first_aligned(rhs, depth);
   Index alignedSize = RhsPacketSize>1 ? alignedStart + ((depth-alignedStart) & ~RhsPacketAlignedMask) : 0;
   const Index peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
@@ -361,7 +348,7 @@ EIGEN_DONT_INLINE static void run(
                          : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
-  const Index lhsAlignmentOffset = first_aligned(lhs,depth);
+  const Index lhsAlignmentOffset = internal::first_aligned(lhs,depth);
 
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   Index skipRows = 0;
@@ -555,5 +542,7 @@ EIGEN_DONT_INLINE static void run(
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_MATRIX_VECTOR_H

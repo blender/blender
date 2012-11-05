@@ -62,7 +62,7 @@ const char *node_math_label(struct bNode *node);
 const char *node_vect_math_label(struct bNode *node);
 const char *node_filter_label(struct bNode *node);
 
-ListBase node_internal_connect_default(struct bNodeTree *ntree, struct bNode *node);
+void node_update_internal_links_default(struct bNodeTree *ntree, struct bNode *node);
 
 #endif
 

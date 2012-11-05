@@ -248,5 +248,4 @@ public:
 
 };
 
-#endif //__SG_DLIST_H__
-
+#endif  /* __SG_DLIST_H__ */

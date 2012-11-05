@@ -303,8 +303,7 @@ static void *bmw_IslandboundWalker_step(BMWalker *walker)
 	if (!BM_vert_is_manifold(v)) {
 		BMW_reset(walker);
 		BMO_error_raise(walker->bm, NULL, BMERR_WALKER_FAILED,
-		                "Non-manifold vert "
-		                "while searching region boundary");
+		                "Non-manifold vert while searching region boundary");
 		return NULL;
 	}
 	
@@ -499,7 +498,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 	BMEdge *e = lwalk->cur, *nexte = NULL;
 	BMLoop *l;
 	BMVert *v;
-	int i;
+	int i = 0;
 
 	owalk = *lwalk;
 	BMW_state_remove(walker);
@@ -534,7 +533,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 	}
 	else if (l) { /* NORMAL EDGE WITH FACES */
 		int vert_edge_tot;
-		int stopi;
+		int stopi = 0;
 
 		v = BM_edge_other_vert(e, lwalk->lastv);
 
@@ -599,7 +598,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			}
 		}
 	}
-	else { 	/* WIRE EDGE */
+	else {  /* WIRE EDGE */
 		BMIter eiter;
 
 		/* match trunk: mark all connected wire edges */

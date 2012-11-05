@@ -203,9 +203,9 @@ RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
 	}
 }
 
-RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
+RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, int predivide, int rectx, int recty)
 {
-	return render_result_new_from_exr(exrhandle, rectx, recty);
+	return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
 }
 
 RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
@@ -437,8 +437,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	re->winy = winy;
 	if (disprect) {
 		re->disprect = *disprect;
-		re->rectx = BLI_RCT_SIZE_X(disprect);
-		re->recty = BLI_RCT_SIZE_Y(disprect);
+		re->rectx = BLI_rcti_size_x(disprect);
+		re->recty = BLI_rcti_size_y(disprect);
 	}
 	else {
 		re->disprect.xmin = re->disprect.ymin = 0;
@@ -499,13 +499,15 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	}
 		
 	/* always call, checks for gamma, gamma tables and jitter too */
-	make_sample_tables(re);	
+	make_sample_tables(re);
 	
 	/* if preview render, we try to keep old result */
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
 	if (re->r.scemode & R_PREVIEWBUTS) {
-		if (re->result && re->result->rectx == re->rectx && re->result->recty == re->recty) ;
+		if (re->result && re->result->rectx == re->rectx && re->result->recty == re->recty) {
+			/* pass */
+		}
 		else {
 			render_result_free(re->result);
 			re->result = NULL;
@@ -654,8 +656,12 @@ static void *do_part_thread(void *pa_v)
 		}
 		else if (render_display_draw_enabled(&R)) {
 			/* on break, don't merge in result for preview renders, looks nicer */
-			if (R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS)) ;
-			else render_result_merge(R.result, pa->result);
+			if (R.test_break(R.tbh) && (R.r.scemode & R_PREVIEWBUTS)) {
+				/* pass */
+			}
+			else {
+				render_result_merge(R.result, pa->result);
+			}
 		}
 	}
 	
@@ -670,15 +676,16 @@ static void *do_part_thread(void *pa_v)
 float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
-	float borderfac = (float)BLI_RCT_SIZE_X(&re->disprect) / (float)re->winx;
+	float borderfac = (float)BLI_rcti_size_x(&re->disprect) / (float)re->winx;
+	int xparts = (re->rectx + re->partx - 1) / re->partx;
 	
 	/* size of 1 pixel mapped to viewplane coords */
-	psize = BLI_RCT_SIZE_X(&re->viewplane) / (float)re->winx;
+	psize = BLI_rctf_size_x(&re->viewplane) / (float)re->winx;
 	/* angle of a pixel */
 	phi = atan(psize / re->clipsta);
 	
 	/* correction factor for viewplane shifting, first calculate how much the viewplane angle is */
-	xfac = borderfac * BLI_RCT_SIZE_X(&re->viewplane) / (float)re->xparts;
+	xfac = borderfac * BLI_rctf_size_x(&re->viewplane) / (float)xparts;
 	xfac = atan(0.5f * xfac / re->clipsta);
 	/* and how much the same viewplane angle is wrapped */
 	psize = 0.5f * phi * ((float)re->partx);
@@ -711,7 +718,7 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 		float phi = panorama_pixel_rot(re);
 
 		R.panodxp = (re->winx - (best->disprect.xmin + best->disprect.xmax) ) / 2;
-		R.panodxv = (BLI_RCT_SIZE_X(viewplane) * R.panodxp) / (float)(re->winx);
+		R.panodxv = (BLI_rctf_size_x(viewplane) * R.panodxp) / (float)(re->winx);
 
 		/* shift viewplane */
 		R.viewplane.xmin = viewplane->xmin + R.panodxv;
@@ -738,8 +745,8 @@ static RenderPart *find_next_part(Render *re, int minx)
 	/* find center of rendered parts, image center counts for 1 too */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->ready) {
-			centx += BLI_RCT_CENTER_X(&pa->disprect);
-			centy += BLI_RCT_CENTER_Y(&pa->disprect);
+			centx += BLI_rcti_cent_x(&pa->disprect);
+			centy += BLI_rcti_cent_y(&pa->disprect);
 			tot++;
 		}
 	}
@@ -749,8 +756,8 @@ static RenderPart *find_next_part(Render *re, int minx)
 	/* closest of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->ready == 0 && pa->nr == 0) {
-			long long int distx = centx - BLI_RCT_CENTER_X(&pa->disprect);
-			long long int disty = centy - BLI_RCT_CENTER_Y(&pa->disprect);
+			long long int distx = centx - BLI_rcti_cent_x(&pa->disprect);
+			long long int disty = centy - BLI_rcti_cent_y(&pa->disprect);
 			distx = (long long int)sqrt(distx * distx + disty * disty);
 			if (distx < mindist) {
 				if (re->r.mode & R_PANORAMA) {
@@ -978,7 +985,7 @@ static void addblur_rect_key(RenderResult *rr, float *rectf, float *rectf1, floa
 					rf[1] = mfac * rf[1] + blurfac * rf1[1];
 					rf[2] = mfac * rf[2] + blurfac * rf1[2];
 					rf[3] = mfac * rf[3] + blurfac * rf1[3];
-				}				
+				}
 			}
 		}
 		rectf += stride;
@@ -1070,7 +1077,7 @@ static void do_render_blur_3d(Render *re)
 	
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay = render_get_active_layer(re, re->result);
-	re->display_draw(re->ddh, re->result, NULL);	
+	re->display_draw(re->ddh, re->result, NULL);
 }
 
 
@@ -1387,7 +1394,7 @@ static void render_composit_stats(void *UNUSED(arg), char *str)
 static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 {
 	float *rectf, filt[3][3];
-	int sample;
+	int x, y, sample;
 	
 	/* interaction callbacks */
 	if (ntree) {
@@ -1408,7 +1415,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 	for (sample = 0; sample < re->r.osa; sample++) {
 		Render *re1;
 		RenderResult rres;
-		int x, y, mask;
+		int mask;
 		
 		/* enable full sample print */
 		R.i.curfsa = sample + 1;
@@ -1471,6 +1478,18 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 		if (re->test_break(re->tbh))
 			break;
 	}
+
+	/* clamp alpha and RGB to 0..1 and 0..inf, can go outside due to filter */
+	for (y = 0; y < re->recty; y++) {
+		float *rf = rectf + 4 * y * re->rectx;
+			
+		for (x = 0; x < re->rectx; x++, rf += 4) {
+			rf[0] = MAX2(rf[0], 0.0f);
+			rf[1] = MAX2(rf[1], 0.0f);
+			rf[2] = MAX2(rf[2], 0.0f);
+			CLAMP(rf[3], 0.0f, 1.0f);
+		}
+	}
 	
 	/* clear interaction callbacks */
 	if (ntree) {
@@ -1501,6 +1520,7 @@ void RE_MergeFullSample(Render *re, Main *bmain, Scene *sce, bNodeTree *ntree)
 	
 	re->main = bmain;
 	re->scene = sce;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	
 	/* first call RE_ReadRenderResult on every renderlayer scene. this creates Render structs */
 	
@@ -1548,7 +1568,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		ntreeFreeCache(ntree);
 		
 		do_render_fields_blur_3d(re);
-	} 
+	}
 	else {
 		/* ensure new result gets added, like for regular renders */
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
@@ -1677,9 +1697,14 @@ static void do_render_seq(Render *re)
 
 	out = BKE_sequencer_give_ibuf(context, cfra, 0);
 
-	ibuf = IMB_dupImBuf(out);
-	IMB_freeImBuf(out);
-	BKE_sequencer_imbuf_from_sequencer_space(re->scene, ibuf);
+	if (out) {
+		ibuf = IMB_dupImBuf(out);
+		IMB_freeImBuf(out);
+		BKE_sequencer_imbuf_from_sequencer_space(re->scene, ibuf);
+	}
+	else {
+		ibuf = NULL;
+	}
 
 	recurs_depth--;
 
@@ -1713,6 +1738,9 @@ static void do_render_seq(Render *re)
 		re->progress(re->prh, (float)(cfra - re->r.sfra) / (re->r.efra - re->r.sfra));
 	else
 		re->progress(re->prh, 1.0f);
+
+	/* would mark display buffers as invalid */
+	re->display_draw(re->ddh, re->result, NULL);
 }
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1845,7 +1873,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		if (scene->r.border.xmax <= scene->r.border.xmin ||
 		    scene->r.border.ymax <= scene->r.border.ymin)
 		{
-			BKE_report(reports, RPT_ERROR, "No border area selected.");
+			BKE_report(reports, RPT_ERROR, "No border area selected");
 			return 0;
 		}
 	}
@@ -1856,13 +1884,13 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		render_result_exr_file_path(scene, "", 0, str);
 		
 		if (BLI_file_is_writable(str) == 0) {
-			BKE_report(reports, RPT_ERROR, "Can not save render buffers, check the temp default path");
+			BKE_report(reports, RPT_ERROR, "Cannot save render buffers, check the temp default path");
 			return 0;
 		}
 		
 		/* no fullsample and edge */
 		if ((scene->r.scemode & R_FULL_SAMPLE) && (scene->r.mode & R_EDGE)) {
-			BKE_report(reports, RPT_ERROR, "Full Sample doesn't support Edge Enhance");
+			BKE_report(reports, RPT_ERROR, "Full sample does not support edge enhance");
 			return 0;
 		}
 		
@@ -1873,18 +1901,18 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	if (scene->r.scemode & R_DOCOMP) {
 		if (scene->use_nodes) {
 			if (!scene->nodetree) {
-				BKE_report(reports, RPT_ERROR, "No Nodetree in Scene");
+				BKE_report(reports, RPT_ERROR, "No node tree in scene");
 				return 0;
 			}
 			
 			if (!check_composite_output(scene)) {
-				BKE_report(reports, RPT_ERROR, "No Render Output Node in Scene");
+				BKE_report(reports, RPT_ERROR, "No render output node in scene");
 				return 0;
 			}
 			
 			if (scene->r.scemode & R_FULL_SAMPLE) {
 				if (composite_needs_render(scene, 0) == 0) {
-					BKE_report(reports, RPT_ERROR, "Full Sample AA not supported without 3d rendering");
+					BKE_report(reports, RPT_ERROR, "Full sample AA not supported without 3D rendering");
 					return 0;
 				}
 			}
@@ -1903,7 +1931,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	/* forbidden combinations */
 	if (scene->r.mode & R_PANORAMA) {
 		if (scene->r.mode & R_ORTHO) {
-			BKE_report(reports, RPT_ERROR, "No Ortho render possible for Panorama");
+			BKE_report(reports, RPT_ERROR, "No ortho render possible for panorama");
 			return 0;
 		}
 	}
@@ -1919,7 +1947,7 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 		if (!(srl->layflag & SCE_LAY_DISABLE))
 			break;
 	if (srl == NULL) {
-		BKE_report(reports, RPT_ERROR, "All RenderLayers are disabled");
+		BKE_report(reports, RPT_ERROR, "All render layers are disabled");
 		return 0;
 	}
 
@@ -1988,6 +2016,7 @@ static int render_initialize_from_main(Render *re, Main *bmain, Scene *scene, Sc
 	
 	re->main = bmain;
 	re->scene = scene;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	re->camera_override = camera_override;
 	re->lay = lay;
 	
@@ -2074,14 +2103,6 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	G.is_rendering = FALSE;
 }
 
-static void colormanage_image_for_write(Scene *scene, ImBuf *ibuf)
-{
-	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->view_settings, &scene->display_settings);
-
-	if (ibuf)
-		imb_freerectfloatImBuf(ibuf);
-}
-
 static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override)
 {
 	char name[FILE_MAX];
@@ -2099,24 +2120,28 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		/* note; the way it gets 32 bits rects is weak... */
 		if (ibuf->rect == NULL) {
 			ibuf->rect = MEM_mapallocN(sizeof(int) * rres.rectx * rres.recty, "temp 32 bits rect");
+			ibuf->mall |= IB_rect;
 			RE_ResultGet32(re, ibuf->rect);
 			do_free = TRUE;
 		}
 
-		colormanage_image_for_write(scene, ibuf);
+
+		IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+		                                    &scene->display_settings, &scene->r.im_format);
 
 		ok = mh->append_movie(&re->r, scene->r.sfra, scene->r.cfra, (int *) ibuf->rect,
 		                      ibuf->x, ibuf->y, re->reports);
 		if (do_free) {
 			MEM_freeN(ibuf->rect);
 			ibuf->rect = NULL;
+			ibuf->mall &= ~IB_rect;
 		}
 
 		/* imbuf knows which rects are not part of ibuf */
 		IMB_freeImBuf(ibuf);
 
 		printf("Append frame %d", scene->r.cfra);
-	} 
+	}
 	else {
 		if (name_override)
 			BLI_strncpy(name, name_override, sizeof(name));
@@ -2131,12 +2156,9 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		}
 		else {
 			ImBuf *ibuf = render_result_rect_to_ibuf(&rres, &scene->r);
-			int do_colormanagement;
 
-			do_colormanagement = !BKE_imtype_supports_float(scene->r.im_format.imtype);
-
-			if (do_colormanagement)
-				colormanage_image_for_write(scene, ibuf);
+			IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+			                                    &scene->display_settings, &scene->r.im_format);
 
 			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 			
@@ -2155,7 +2177,8 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
 				ibuf->planes = 24;
 
-				colormanage_image_for_write(scene, ibuf);
+				IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
+				                                    &scene->display_settings, &imf);
 
 				BKE_imbuf_write_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);
@@ -2332,6 +2355,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 
 	re->main = bmain;
 	re->scene = sce;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	re->lay = sce->lay;
 
 	camera = RE_GetCamera(re);
@@ -2376,6 +2400,7 @@ int RE_ReadRenderResult(Scene *scene, Scene *scenode)
 		re = RE_NewRender(scene->id.name);
 	RE_InitState(re, NULL, &scene->r, NULL, winx, winy, &disprect);
 	re->scene = scene;
+	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	success = render_result_exr_file_read(re, 0);
@@ -2436,25 +2461,25 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 					IMB_freeImBuf(ibuf_clip);
 				}
 				else {
-					BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to allocate clip buffer '%s'\n", filename);
+					BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to allocate clip buffer '%s'", filename);
 				}
 			}
 			else {
-				BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: incorrect dimensions for partial copy '%s'\n", filename);
+				BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: incorrect dimensions for partial copy '%s'", filename);
 			}
 		}
 
 		IMB_freeImBuf(ibuf);
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
+		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'", filename);
 	}
 }
 
 void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filename)
 {
 	if (!render_result_exr_file_read_path(result, NULL, filename)) {
-		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
+		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'", filename);
 		return;
 	}
 }
@@ -2501,7 +2526,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 		return 0;
 	}
 
-	IMB_display_buffer_to_imbuf_rect(ibuf, &scene->view_settings, &scene->display_settings);
+	IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings, &scene->display_settings, &imf);
 
 	/* to save, we first get absolute path */
 	BLI_strncpy(filepath, relpath, sizeof(filepath));
@@ -2515,7 +2540,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 		return TRUE;
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Error writing environment map.");
+		BKE_report(reports, RPT_ERROR, "Error writing environment map");
 		return FALSE;
 	}
 }

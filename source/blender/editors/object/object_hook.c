@@ -442,7 +442,7 @@ static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob
 	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
 
 	if (!ok) {
-		BKE_report(reports, RPT_ERROR, "Requires selected vertices or active Vertex Group");
+		BKE_report(reports, RPT_ERROR, "Requires selected vertices or active vertex group");
 		return FALSE;
 	}
 
@@ -515,12 +515,12 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	if (!obsel) {
-		BKE_report(op->reports, RPT_ERROR, "Can't add hook with no other selected objects");
+		BKE_report(op->reports, RPT_ERROR, "Cannot add hook with no other selected objects");
 		return OPERATOR_CANCELLED;
 	}
 
 	if (use_bone && obsel->type != OB_ARMATURE) {
-		BKE_report(op->reports, RPT_ERROR, "Can't add hook bone for a non armature object");
+		BKE_report(op->reports, RPT_ERROR, "Cannot add hook bone for a non armature object");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -590,7 +590,7 @@ static int object_hook_remove_exec(bContext *C, wmOperator *op)
 
 	hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	if (!hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -667,13 +667,13 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {     /* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd = ptr.data;
-	} 
+	}
 	else {          /* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
 	if (!ob || !hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -735,13 +735,13 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {  /* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd = ptr.data;
-	} 
+	}
 	else {  /* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
 	if (!ob || !hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -793,13 +793,13 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {     /* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd = ptr.data;
-	} 
+	}
 	else {          /* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
 	if (!ob || !hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -855,13 +855,13 @@ static int object_hook_select_exec(bContext *C, wmOperator *op)
 	if (ptr.data) {     /* if modifier context is available, use that */
 		ob = ptr.id.data;
 		hmd = ptr.data;
-	} 
+	}
 	else {          /* use the provided property */
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
 	if (!ob || !hmd) {
-		BKE_report(op->reports, RPT_ERROR, "Couldn't find hook modifier");
+		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
 	

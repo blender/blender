@@ -72,8 +72,8 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 	int tot = 0;
 	int has_frame = FALSE;
 	
-	oldwidth  = BLI_RCT_SIZE_X(&ar->v2d.cur);
-	oldheight = BLI_RCT_SIZE_Y(&ar->v2d.cur);
+	oldwidth  = BLI_rctf_size_x(&ar->v2d.cur);
+	oldheight = BLI_rctf_size_y(&ar->v2d.cur);
 
 	BLI_rctf_init_minmax(&cur_new);
 
@@ -91,8 +91,8 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 	}
 
 	if (tot) {
-		width  = BLI_RCT_SIZE_X(&cur_new);
-		height = BLI_RCT_SIZE_Y(&cur_new);
+		width  = BLI_rctf_size_x(&cur_new);
+		height = BLI_rctf_size_y(&cur_new);
 
 		/* for single non-frame nodes, don't zoom in, just pan view,
 		 * but do allow zooming out, this allows for big nodes to be zoomed out */
@@ -357,6 +357,13 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 	ImBuf *ibuf;
 	float fx, fy, bufx, bufy;
 	int ret = FALSE;
+
+	if (snode->treetype != NTREE_COMPOSIT || (snode->flag & SNODE_BACKDRAW) == 0) {
+		/* use viewer image for color sampling only if we're in compositor tree
+		 * with backdrop enabled
+		 */
+		return FALSE;
+	}
 
 	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);

@@ -206,11 +206,11 @@ static MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFa
 }
 
 #define SET_VERTS(a, b, c, d)  {        \
-        v[0] = mf->v##a; uv[0] = a - 1; \
-        v[1] = mf->v##b; uv[1] = b - 1; \
-        v[2] = mf->v##c; uv[2] = c - 1; \
-        v[3] = mf->v##d; uv[3] = d - 1; \
-    } (void)0
+		v[0] = mf->v##a; uv[0] = a - 1; \
+		v[1] = mf->v##b; uv[1] = b - 1; \
+		v[2] = mf->v##c; uv[2] = c - 1; \
+		v[3] = mf->v##d; uv[3] = d - 1; \
+	} (void)0
 
 #define GET_ES(v1, v2) edgecut_get(eh, v1, v2)
 #define INT_UV(uvf, c0, c1) interp_v2_v2v2(uvf, mf->uv[c0], mf->uv[c1], 0.5f)
@@ -669,8 +669,7 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 
 		mv = CDDM_get_vert(splitdm, ed_v1);
 
-		add_v3_v3(dupve->co, mv->co);
-		mul_v3_fl(dupve->co, 0.5f);
+		mid_v3_v3v3(dupve->co, dupve->co, mv->co);
 	}
 	BLI_edgehashIterator_free(ehi);
 
@@ -813,7 +812,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	sim.psys = psmd->psys;
 	sim.psmd = psmd;
 
-	/* timestep= psys_get_timestep(&sim); */
+	/* timestep = psys_get_timestep(&sim); */
 
 	cfra = BKE_scene_frame_get(scene);
 
@@ -861,7 +860,7 @@ static DerivedMesh *explodeMesh(ExplodeModifierData *emd,
 	/* the final duplicated vertices */
 	explode = CDDM_from_template(dm, totdup, 0, totface - delface, 0, 0);
 	mtface = CustomData_get_layer_named(&explode->faceData, CD_MTFACE, emd->uvname);
-	/*dupvert= CDDM_get_verts(explode);*/
+	/*dupvert = CDDM_get_verts(explode);*/
 
 	/* getting back to object space */
 	invert_m4_m4(imat, ob->obmat);
@@ -1039,26 +1038,26 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 
 ModifierTypeInfo modifierType_Explode = {
-	/* name */ "Explode",
-	/* structName */ "ExplodeModifierData",
-	/* structSize */ sizeof(ExplodeModifierData),
-	/* type */ eModifierTypeType_Constructive,
-	/* flags */ eModifierTypeFlag_AcceptsMesh,
-	/* copyData */ copyData,
-	/* deformVerts */ NULL,
-	/* deformMatrices */ NULL,
-	/* deformVertsEM */ NULL,
-	/* deformMatricesEM */ NULL,
-	/* applyModifier */ applyModifier,
-	/* applyModifierEM */ NULL,
-	/* initData */ initData,
-	/* requiredDataMask */ requiredDataMask,
-	/* freeData */ freeData,
-	/* isDisabled */ NULL,
-	/* updateDepgraph */ NULL,
-	/* dependsOnTime */ dependsOnTime,
-	/* dependsOnNormals */ NULL,
+	/* name */              "Explode",
+	/* structName */        "ExplodeModifierData",
+	/* structSize */        sizeof(ExplodeModifierData),
+	/* type */              eModifierTypeType_Constructive,
+	/* flags */             eModifierTypeFlag_AcceptsMesh,
+	/* copyData */          copyData,
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
+	/* applyModifier */     applyModifier,
+	/* applyModifierEM */   NULL,
+	/* initData */          initData,
+	/* requiredDataMask */  requiredDataMask,
+	/* freeData */          freeData,
+	/* isDisabled */        NULL,
+	/* updateDepgraph */    NULL,
+	/* dependsOnTime */     dependsOnTime,
+	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */ NULL,
-	/* foreachTexLink */ NULL,
+	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_Node_h
-#define _COM_Node_h
+#ifndef __COM_NODE_H__
+#define __COM_NODE_H__
 
 #include "COM_NodeBase.h"
 #include "COM_InputSocket.h"
@@ -53,6 +53,12 @@ private:
 	 * @brief Is this node part of the active group
 	 */
 	bool m_inActiveGroup;
+	
+	/**
+	 * @brief The group node this node belongs to.
+	 * @note: used to find the links in the current subtree for muting nodes
+	 */
+	bNode* m_bNodeGroup;
 
 public:
 	Node(bNode *editorNode, bool create_sockets = true);
@@ -134,6 +140,9 @@ public:
 	 * @param socket
 	 */
 	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
+	
+	inline void setbNodeGroup(bNode* group) {this->m_bNodeGroup = group;}
+	inline bNode* getbNodeGroup() {return this->m_bNodeGroup;}
 protected:
 	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, InputSocket *inputSocket);
 	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, OutputSocket *outputSocket);
@@ -143,4 +152,4 @@ protected:
 private:
 };
 
-#endif
+#endif  /* __COM_NODE_H__ */

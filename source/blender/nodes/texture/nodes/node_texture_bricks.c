@@ -35,7 +35,7 @@
 
 #include <math.h>
 
-static bNodeSocketTemplate inputs[]= {
+static bNodeSocketTemplate inputs[] = {
 	{ SOCK_RGBA,  1, N_("Bricks 1"),    0.596f, 0.282f, 0.0f,  1.0f },
 	{ SOCK_RGBA,  1, N_("Bricks 2"),    0.632f, 0.504f, 0.05f, 1.0f },
 	{ SOCK_RGBA,  1, N_("Mortar"),      0.0f,   0.0f,   0.0f,  1.0f },
@@ -45,7 +45,7 @@ static bNodeSocketTemplate inputs[]= {
 	{ SOCK_FLOAT, 1, N_("Row Height"),  0.25f,  0.0f,   0.0f,  0.0f,  0.001f, 99.0f, PROP_UNSIGNED },
 	{ -1, 0, "" }
 };
-static bNodeSocketTemplate outputs[]= {
+static bNodeSocketTemplate outputs[] = {
 	{ SOCK_RGBA, 0, N_("Color")},
 	{ -1, 0, ""	}
 };
@@ -66,7 +66,7 @@ static float noise(int n) /* fast integer noise */
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float *co = p->co;
+	const float *co = p->co;
 	
 	float x = co[0];
 	float y = co[1];

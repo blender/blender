@@ -30,8 +30,8 @@
  *  \ingroup bgeconv
  */
 
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-#pragma warning (disable : 4786)
+#ifdef _MSC_VER
+#  pragma warning (disable:4786)
 #endif
 
 #include <math.h>
@@ -216,7 +216,7 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 		
 	// SYSTEM                                                                                                  
 		
-#if 0			
+#if 0
 	/* **** XXX **** */
 	m[KEYBD				] = SCA_IInputDevice::KX_KEYBD;                  
 	m[RAWKEYBD			] = SCA_IInputDevice::KX_RAWKEYBD;                  
@@ -229,7 +229,7 @@ static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
 	m[WINQUIT			] = SCA_IInputDevice::KX_WINQUIT;                  
 	m[Q_FIRSTTIME		] = SCA_IInputDevice::KX_Q_FIRSTTIME;                  
 	/* **** XXX **** */
-#endif	
+#endif
 		
 	// standard keyboard                                                                                       
 		
@@ -433,8 +433,7 @@ static void GetRGB(short type,
 	unsigned int &c3)
 {
 	unsigned int color = 0xFFFFFFFFL;
-	switch(type)
-	{
+	switch (type) {
 		case 0:	// vertex colors
 		{
 			if (mmcol) {
@@ -447,7 +446,7 @@ static void GetRGB(short type,
 			else { // backup white
 				c0 = KX_rgbaint2uint_new(color);
 				c1 = KX_rgbaint2uint_new(color);
-				c2 = KX_rgbaint2uint_new(color);	
+				c2 = KX_rgbaint2uint_new(color);
 				if (mface->v4)
 					c3 = KX_rgbaint2uint_new( color );
 			}
@@ -469,7 +468,7 @@ static void GetRGB(short type,
 			}
 			c0 = KX_rgbaint2uint_new(color);
 			c1 = KX_rgbaint2uint_new(color);
-			c2 = KX_rgbaint2uint_new(color);	
+			c2 = KX_rgbaint2uint_new(color);
 			if (mface->v4)
 				c3 = KX_rgbaint2uint_new(color);
 		} break;
@@ -478,7 +477,7 @@ static void GetRGB(short type,
 		{
 			c0 = KX_rgbaint2uint_new(color);
 			c1 = KX_rgbaint2uint_new(color);
-			c2 = KX_rgbaint2uint_new(color);	
+			c2 = KX_rgbaint2uint_new(color);
 			if (mface->v4)
 				c3 = KX_rgbaint2uint_new(color);
 		} break;
@@ -491,7 +490,7 @@ typedef struct MTF_localLayer {
 } MTF_localLayer;
 
 // ------------------------------------
-bool ConvertMaterial(
+static bool ConvertMaterial(
 	BL_Material *material,
 	Material *mat, 
 	MTFace* tface,  
@@ -627,7 +626,7 @@ bool ConvertMaterial(
 								if (!material->cubemap[i]->cube[0])
 									BL_Texture::SplitEnvMap(material->cubemap[i]);
 
-								material->texname[i]= material->cubemap[i]->ima->id.name;
+								material->texname[i] = material->cubemap[i]->ima->id.name;
 								material->mapping[i].mapping |= USEENV;
 							}
 						}
@@ -677,7 +676,7 @@ bool ConvertMaterial(
 					material->mapping[i].projplane[2] = mttmp->projz;
 					/// --------------------------------
 					
-					switch( mttmp->blendtype ) {
+					switch (mttmp->blendtype) {
 					case MTEX_BLEND:
 						material->blend_mode[i] = BLEND_MIX;
 						break;
@@ -701,7 +700,7 @@ bool ConvertMaterial(
 
 		// above one tex the switches here
 		// are not used
-		switch(valid_index) {
+		switch (valid_index) {
 		case 0:
 			material->IdMode = DEFAULT_BLENDER;
 			break;
@@ -778,7 +777,7 @@ bool ConvertMaterial(
 	const char *uvName = "", *uv2Name = "";
 
 	
-	uv2[0]= uv2[1]= uv2[2]= uv2[3]= MT_Point2(0.0f, 0.0f);
+	uv2[0] = uv2[1] = uv2[2] = uv2[3] = MT_Point2(0.0f, 0.0f);
 
 	/* No material, what to do? let's see what is in the UV and set the material accordingly
 	 * light and visible is always on */
@@ -799,7 +798,7 @@ bool ConvertMaterial(
 		material->alphablend	= GEMAT_SOLID;
 		material->tile		= 0;
 		
-		uv[0]= uv[1]= uv[2]= uv[3]= MT_Point2(0.0f, 0.0f);
+		uv[0] = uv[1] = uv[2] = uv[3] = MT_Point2(0.0f, 0.0f);
 	}
 
 	if (validmat && validface) {
@@ -1150,7 +1149,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 
 					rgb0 = KX_rgbaint2uint_new(color);
 					rgb1 = KX_rgbaint2uint_new(color);
-					rgb2 = KX_rgbaint2uint_new(color);	
+					rgb2 = KX_rgbaint2uint_new(color);
 					
 					if (mface->v4)
 						rgb3 = KX_rgbaint2uint_new(color);
@@ -1390,32 +1389,30 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	}
 		
 	if (me->totvert) {
-		loc[0]= (min[0]+max[0])/2.0f;
-		loc[1]= (min[1]+max[1])/2.0f;
-		loc[2]= (min[2]+max[2])/2.0f;
+		loc[0] = (min[0] + max[0]) / 2.0f;
+		loc[1] = (min[1] + max[1]) / 2.0f;
+		loc[2] = (min[2] + max[2]) / 2.0f;
 		
-		size[0]= (max[0]-min[0])/2.0f;
-		size[1]= (max[1]-min[1])/2.0f;
-		size[2]= (max[2]-min[2])/2.0f;
+		size[0] = (max[0] - min[0]) / 2.0f;
+		size[1] = (max[1] - min[1]) / 2.0f;
+		size[2] = (max[2] - min[2]) / 2.0f;
 	}
 	else {
-		loc[0]= loc[1]= loc[2]= 0.0f;
-		size[0]= size[1]= size[2]= 0.0f;
+		loc[0] = loc[1] = loc[2] = 0.0f;
+		size[0] = size[1] = size[2] = 0.0f;
 	}
 		
-	bb->vec[0][0]=bb->vec[1][0]=bb->vec[2][0]=bb->vec[3][0]= loc[0]-size[0];
-	bb->vec[4][0]=bb->vec[5][0]=bb->vec[6][0]=bb->vec[7][0]= loc[0]+size[0];
+	bb->vec[0][0] = bb->vec[1][0] = bb->vec[2][0] = bb->vec[3][0] = loc[0]-size[0];
+	bb->vec[4][0] = bb->vec[5][0] = bb->vec[6][0] = bb->vec[7][0] = loc[0]+size[0];
 		
-	bb->vec[0][1]=bb->vec[1][1]=bb->vec[4][1]=bb->vec[5][1]= loc[1]-size[1];
-	bb->vec[2][1]=bb->vec[3][1]=bb->vec[6][1]=bb->vec[7][1]= loc[1]+size[1];
+	bb->vec[0][1] = bb->vec[1][1] = bb->vec[4][1] = bb->vec[5][1] = loc[1]-size[1];
+	bb->vec[2][1] = bb->vec[3][1] = bb->vec[6][1] = bb->vec[7][1] = loc[1]+size[1];
 
-	bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= loc[2]-size[2];
-	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= loc[2]+size[2];
+	bb->vec[0][2] = bb->vec[3][2] = bb->vec[4][2] = bb->vec[7][2] = loc[2]-size[2];
+	bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = loc[2]+size[2];
 
 	return sqrt(radius);
 }
-		
-
 
 
 static void my_tex_space_mesh(Mesh *me)
@@ -1438,12 +1435,12 @@ static void my_tex_space_mesh(Mesh *me)
 					minmax_v3v3_v3(min, max, fp);
 				}
 				if (kb->totelem) {
-					loc[0]= (min[0]+max[0])/2.0f; loc[1]= (min[1]+max[1])/2.0f; loc[2]= (min[2]+max[2])/2.0f;
-					size[0]= (max[0]-min[0])/2.0f; size[1]= (max[1]-min[1])/2.0f; size[2]= (max[2]-min[2])/2.0f;
+					loc[0] = (min[0]+max[0])/2.0f; loc[1] = (min[1]+max[1])/2.0f; loc[2] = (min[2]+max[2])/2.0f;
+					size[0] = (max[0]-min[0])/2.0f; size[1] = (max[1]-min[1])/2.0f; size[2] = (max[2]-min[2])/2.0f;
 				}
 				else {
-					loc[0]= loc[1]= loc[2]= 0.0;
-					size[0]= size[1]= size[2]= 0.0;
+					loc[0] = loc[1] = loc[2] = 0.0;
+					size[0] = size[1] = size[2] = 0.0;
 				}
 				
 			}
@@ -1451,19 +1448,19 @@ static void my_tex_space_mesh(Mesh *me)
 
 		copy_v3_v3(me->loc, loc);
 		copy_v3_v3(me->size, size);
-		me->rot[0]= me->rot[1]= me->rot[2]= 0.0f;
+		me->rot[0] = me->rot[1] = me->rot[2] = 0.0f;
 
 		if (me->size[0] == 0.0f) me->size[0] = 1.0f;
-		else if (me->size[0] > 0.0f && me->size[0]< 0.00001f) me->size[0]= 0.00001f;
-		else if (me->size[0] < 0.0f && me->size[0]> -0.00001f) me->size[0]= -0.00001f;
+		else if (me->size[0] > 0.0f && me->size[0]< 0.00001f) me->size[0] = 0.00001f;
+		else if (me->size[0] < 0.0f && me->size[0]> -0.00001f) me->size[0] = -0.00001f;
 
-		if (me->size[1] == 0.0f) me->size[1]= 1.0f;
-		else if (me->size[1] > 0.0f && me->size[1]< 0.00001f) me->size[1]= 0.00001f;
-		else if (me->size[1] < 0.0f && me->size[1]> -0.00001f) me->size[1]= -0.00001f;
+		if (me->size[1] == 0.0f) me->size[1] = 1.0f;
+		else if (me->size[1] > 0.0f && me->size[1]< 0.00001f) me->size[1] = 0.00001f;
+		else if (me->size[1] < 0.0f && me->size[1]> -0.00001f) me->size[1] = -0.00001f;
 
-		if (me->size[2] == 0.0f) me->size[2]= 1.0f;
-		else if (me->size[2] > 0.0f && me->size[2]< 0.00001f) me->size[2]= 0.00001f;
-		else if (me->size[2] < 0.0f && me->size[2]> -0.00001f) me->size[2]= -0.00001f;
+		if (me->size[2] == 0.0f) me->size[2] = 1.0f;
+		else if (me->size[2] > 0.0f && me->size[2]< 0.00001f) me->size[2] = 0.00001f;
+		else if (me->size[2] < 0.0f && me->size[2]> -0.00001f) me->size[2] = -0.00001f;
 	}
 	
 }
@@ -1480,13 +1477,13 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 				float min_r[3], max_r[3];
 				INIT_MINMAX(min_r, max_r);
 				dm->getMinMax(dm, min_r, max_r);
-				size[0]= 0.5f*fabsf(max_r[0] - min_r[0]);
-				size[1]= 0.5f*fabsf(max_r[1] - min_r[1]);
-				size[2]= 0.5f*fabsf(max_r[2] - min_r[2]);
+				size[0] = 0.5f * fabsf(max_r[0] - min_r[0]);
+				size[1] = 0.5f * fabsf(max_r[1] - min_r[1]);
+				size[2] = 0.5f * fabsf(max_r[2] - min_r[2]);
 					
-				center[0]= 0.5f*(max_r[0] + min_r[0]);
-				center[1]= 0.5f*(max_r[1] + min_r[1]);
-				center[2]= 0.5f*(max_r[2] + min_r[2]);
+				center[0] = 0.5f * (max_r[0] + min_r[0]);
+				center[1] = 0.5f * (max_r[1] + min_r[1]);
+				center[2] = 0.5f * (max_r[2] + min_r[2]);
 				return;
 			} else
 			{
@@ -1500,11 +1497,11 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 			break;
 		case OB_CURVE:
 		case OB_SURF:
-			center[0]= center[1]= center[2]= 0.0;
+			center[0] = center[1] = center[2] = 0.0;
 			size[0]  = size[1]=size[2]=0.0;
 			break;
 		case OB_FONT:
-			center[0]= center[1]= center[2]= 0.0;
+			center[0] = center[1] = center[2] = 0.0;
 			size[0]  = size[1]=size[2]=1.0;
 			break;
 		case OB_MBALL:
@@ -1514,15 +1511,15 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 	
 	if (bb==NULL) 
 	{
-		center[0]= center[1]= center[2]= 0.0;
-		size[0] = size[1]=size[2]=1.0;
+		center[0] = center[1] = center[2] = 0.0;
+		size[0] = size[1] = size[2] = 1.0;
 	}
 	else 
 	{
 		size[0] = 0.5f * fabsf(bb->vec[0][0] - bb->vec[4][0]);
 		size[1] = 0.5f * fabsf(bb->vec[0][1] - bb->vec[2][1]);
 		size[2] = 0.5f * fabsf(bb->vec[0][2] - bb->vec[1][2]);
-					
+
 		center[0] = 0.5f * (bb->vec[0][0] + bb->vec[4][0]);
 		center[1] = 0.5f * (bb->vec[0][1] + bb->vec[2][1]);
 		center[2] = 0.5f * (bb->vec[0][2] + bb->vec[1][2]);
@@ -1535,14 +1532,14 @@ static void my_get_local_bounds(Object *ob, DerivedMesh *dm, float *center, floa
 //////////////////////////////////////////////////////
 
 
-void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
-							   const MT_Point3& localAabbMin,
-							   const MT_Point3& localAabbMax,
-							   KX_Scene* kxscene,
-							   bool isActive,
-							   e_PhysicsEngine physics_engine)
+static void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
+                                      const MT_Point3& localAabbMin,
+                                      const MT_Point3& localAabbMax,
+                                      KX_Scene* kxscene,
+                                      bool isActive,
+                                      e_PhysicsEngine physics_engine)
 {
-	if (gameobj->GetMeshCount() > 0) 
+	if (gameobj->GetMeshCount() > 0)
 	{
 		switch (physics_engine)
 		{
@@ -1574,28 +1571,36 @@ void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
 	}
 }
 
-void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
-						 struct Object* blenderobject,
-						 RAS_MeshObject* meshobj,
-						 KX_Scene* kxscene,
-						 int activeLayerBitInfo,
-						 e_PhysicsEngine	physics_engine,
-						 KX_BlenderSceneConverter *converter,
-						 bool processCompoundChildren
-						 )
-					
+static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
+                                      struct Object* blenderobject,
+                                      RAS_MeshObject* meshobj,
+                                      KX_Scene* kxscene,
+                                      int activeLayerBitInfo,
+                                      e_PhysicsEngine	physics_engine,
+                                      KX_BlenderSceneConverter *converter,
+                                      bool processCompoundChildren
+                                      )
+
 {
 	//SYS_SystemHandle syshandle = SYS_GetSystem(); /*unused*/
 	//int userigidbody = SYS_GetCommandLineInt(syshandle,"norigidbody",0);
 	//bool bRigidBody = (userigidbody == 0);
 
 	// object has physics representation?
-	if (!(blenderobject->gameflag & OB_COLLISION))
+	if (!(blenderobject->gameflag & OB_COLLISION)) {
+		// Respond to all collisions so that Near sensors work on No Collision
+		// objects.
+		gameobj->SetUserCollisionGroup(0xff);
+		gameobj->SetUserCollisionMask(0xff);
 		return;
+	}
+
+	gameobj->SetUserCollisionGroup(blenderobject->col_group);
+	gameobj->SetUserCollisionMask(blenderobject->col_mask);
 
 	// get Root Parent of blenderobject
 	struct Object* parent= blenderobject->parent;
-	while(parent && parent->parent) {
+	while (parent && parent->parent) {
 		parent= parent->parent;
 	}
 
@@ -1694,7 +1699,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 			objprop.m_soft_numclusteriterations= blenderobject->bsoft->numclusteriterations;	/* number of iterations to refine collision clusters*/
 			//objprop.m_soft_welding = blenderobject->bsoft->welding;		/* welding */
 			/* disable welding: it doesn't bring any additional stability and it breaks the relation between soft body collision shape and graphic mesh */
-			objprop.m_soft_welding = 0.f;		
+			objprop.m_soft_welding = 0.f;
 			objprop.m_margin = blenderobject->bsoft->margin;
 			objprop.m_contactProcessingThreshold = 0.f;
 		} else
@@ -1929,8 +1934,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 	KX_GameObject *gameobj = NULL;
 	Scene *blenderscene = kxscene->GetBlenderScene();
 	
-	switch(ob->type)
-	{
+	switch (ob->type) {
 	case OB_LAMP:
 	{
 		KX_LightObject* gamelight = gamelight_from_blamp(ob, static_cast<Lamp*>(ob->data), ob->lay, kxscene, rendertools, converter);
@@ -2086,7 +2090,7 @@ struct parentChildLink {
 #include "DNA_constraint_types.h"
 //XXX #include "BIF_editconstraint.h"
 
-bPoseChannel *get_active_posechannel2 (Object *ob)
+static bPoseChannel *get_active_posechannel2 (Object *ob)
 {
 	bArmature *arm= (bArmature*)ob->data;
 	bPoseChannel *pchan;
@@ -2100,7 +2104,7 @@ bPoseChannel *get_active_posechannel2 (Object *ob)
 	return NULL;
 }
 
-ListBase *get_active_constraints2(Object *ob)
+static ListBase *get_active_constraints2(Object *ob)
 {
 	if (!ob)
 		return NULL;
@@ -2119,8 +2123,7 @@ ListBase *get_active_constraints2(Object *ob)
 	return NULL;
 }
 
-
-void RBJconstraints(Object *ob)//not used
+static void UNUSED_FUNCTION(RBJconstraints)(Object *ob)//not used
 {
 	ListBase *conlist;
 	bConstraint *curcon;
@@ -2141,7 +2144,8 @@ void RBJconstraints(Object *ob)//not used
 #include "KX_IPhysicsController.h"
 #include "PHY_DynamicTypes.h"
 
-KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
+#if 0  /* UNUSED */
+static KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
 
 	for (int j=0;j<sumolist->GetCount();j++)
 	{
@@ -2151,10 +2155,10 @@ KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc) {//not used
 	}
 
 	return 0;
-
 }
+#endif
 
-KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
+static KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist)
 {
 
 	for (int j=0;j<sumolist->GetCount();j++)
@@ -2617,7 +2621,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				KX_SlowParentRelation * slow_parent_relation = KX_SlowParentRelation::New(blenderchild->sf);
 				pcit->m_gamechildnode->SetParentRelation(slow_parent_relation);
 				break;
-			}	
+			}
 			case PARBONE:
 			{
 				// parent this to a bone
@@ -2741,7 +2745,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			}
 		
 		
-		}	
+		}
 
 		// create physics joints
 	for (i=0;i<sumolist->GetCount();i++)
@@ -2825,7 +2829,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 											kxscene->GetPhysicsEnvironment()->setConstraintParam(constraintId,dof,1,-1);
 										}
 										dofbit<<=1;
-									}								
+									}
 								}
 								else if (dat->type == PHY_LINEHINGE_CONSTRAINT)
 								{

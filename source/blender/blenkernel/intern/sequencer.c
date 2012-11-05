@@ -53,6 +53,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -313,7 +315,7 @@ void BKE_sequencer_editing_free(Scene *scene)
 
 static void sequencer_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 {
-	IMB_colormanagement_imbuf_assign_float_space(ibuf, &scene->sequencer_colorspace_settings);
+	IMB_colormanagement_assign_float_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
 }
 
 void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, int make_float)
@@ -461,7 +463,7 @@ static void seq_array(Editing *ed, Sequence ***seqarray, int *tot, int use_point
 		seq_build_array(&ed->seqbase, &array, 0);
 }
 
-void BKE_seqence_iterator_begin(Editing *ed, SeqIterator *iter, int use_pointer)
+void BKE_sequence_iterator_begin(Editing *ed, SeqIterator *iter, int use_pointer)
 {
 	memset(iter, 0, sizeof(*iter));
 	seq_array(ed, &iter->array, &iter->tot, use_pointer);
@@ -473,7 +475,7 @@ void BKE_seqence_iterator_begin(Editing *ed, SeqIterator *iter, int use_pointer)
 	}
 }
 
-void BKE_seqence_iterator_next(SeqIterator *iter)
+void BKE_sequence_iterator_next(SeqIterator *iter)
 {
 	if (++iter->cur < iter->tot)
 		iter->seq = iter->array[iter->cur];
@@ -481,7 +483,7 @@ void BKE_seqence_iterator_next(SeqIterator *iter)
 		iter->valid = 0;
 }
 
-void BKE_seqence_iterator_end(SeqIterator *iter)
+void BKE_sequence_iterator_end(SeqIterator *iter)
 {
 	if (iter->array)
 		MEM_freeN(iter->array);
@@ -507,8 +509,8 @@ static void seq_update_sound_bounds_recursive_rec(Scene *scene, Sequence *metase
 	 * since sound is played outside of evaluating the imbufs, */
 	for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
 		if (seq->type == SEQ_TYPE_META) {
-			seq_update_sound_bounds_recursive_rec(scene, seq, maxi(start, metaseq_start(seq)),
-			                                      mini(end, metaseq_end(seq)));
+			seq_update_sound_bounds_recursive_rec(scene, seq, max_ii(start, metaseq_start(seq)),
+			                                      min_ii(end, metaseq_end(seq)));
 		}
 		else if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
 			if (seq->scene_sound) {
@@ -717,7 +719,7 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 #ifdef WITH_AUDASPACE
 			if (!seq->sound)
 				return;
-			seq->len = ceil(AUD_getInfo(seq->sound->playback_handle).length * FPS);
+			seq->len = ceil((double)AUD_getInfo(seq->sound->playback_handle).length * FPS);
 			seq->len -= seq->anim_startofs;
 			seq->len -= seq->anim_endofs;
 			if (seq->len < 0) {
@@ -843,7 +845,7 @@ static int seqbase_unique_name_recursive_cb(Sequence *seq, void *arg_pt)
 	return 1;
 }
 
-void BKE_seqence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
+void BKE_sequence_base_unique_name_recursive(ListBase *seqbasep, Sequence *seq)
 {
 	SeqUniqueInfo sui;
 	char *dot;
@@ -991,7 +993,7 @@ static float give_stripelem_index(Sequence *seq, float cfra)
 
 	if (seq->type & SEQ_TYPE_EFFECT) {
 		end = seq->enddisp;
-	} 
+	}
 
 	if (end < sta) {
 		return -1;
@@ -1835,8 +1837,6 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		StripCrop c = {0};
 		StripTransform t = {0};
 		int sx, sy, dx, dy;
-		double xscale = 1.0;
-		double yscale = 1.0;
 
 		if (is_proxy_image) {
 			double f = seq_rendersize_to_scale_factor(context.preview_render_size);
@@ -1852,14 +1852,6 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		if (seq->flag & SEQ_USE_TRANSFORM && seq->strip->transform) {
 			t = *seq->strip->transform;
 		}
-
-		xscale = context.scene->r.xsch ? ((double) context.rectx / (double) context.scene->r.xsch) : 1.0;
-		yscale = context.scene->r.ysch ? ((double) context.recty / (double) context.scene->r.ysch) : 1.0;
-
-		c.left *= xscale; c.right *= xscale;
-		c.top *= yscale; c.bottom *= yscale;
-
-		t.xofs *= xscale; t.yofs *= yscale;
 
 		sx = ibuf->x - c.left - c.right;
 		sy = ibuf->y - c.top - c.bottom;
@@ -1892,7 +1884,7 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 
 			ibuf = i;
 		}
-	} 
+	}
 
 	if (seq->flag & SEQ_FLIPX) {
 		IMB_flipx(ibuf);
@@ -1975,17 +1967,20 @@ static ImBuf *copy_from_ibuf_still(SeqRenderData context, Sequence *seq, float n
 
 static void copy_to_ibuf_still(SeqRenderData context, Sequence *seq, float nr, ImBuf *ibuf)
 {
+	/* warning: ibuf may be NULL if the video fails to load */
 	if (nr == 0 || nr == seq->len - 1) {
 		/* we have to store a copy, since the passed ibuf
 		 * could be preprocessed afterwards (thereby silently
 		 * changing the cached image... */
 		ibuf = IMB_dupImBuf(ibuf);
 
-		sequencer_imbuf_assign_spaces(context.scene, ibuf);
+		if (ibuf) {
+			sequencer_imbuf_assign_spaces(context.scene, ibuf);
+		}
 
 		if (nr == 0) {
 			BKE_sequencer_cache_put(context, seq, seq->start, SEQ_STRIPELEM_IBUF_STARTSTILL, ibuf);
-		} 
+		}
 
 		if (nr == seq->len - 1) {
 			BKE_sequencer_cache_put(context, seq, seq->start, SEQ_STRIPELEM_IBUF_ENDSTILL, ibuf);
@@ -2186,7 +2181,7 @@ static ImBuf *seq_render_movieclip_strip(SeqRenderData context, Sequence *seq, f
 
 	memset(&user, 0, sizeof(MovieClipUser));
 	
-	BKE_movieclip_user_set_frame(&user, nr + seq->anim_startofs);
+	BKE_movieclip_user_set_frame(&user, nr + seq->anim_startofs + seq->clip->start_frame);
 
 	user.render_size = MCLIP_PROXY_RENDER_SIZE_FULL;
 
@@ -2344,9 +2339,11 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	 * -jahka
 	 */
 
-	int rendering = G.is_rendering;
-	int doseq;
-	int doseq_gl = G.is_rendering ? /*(scene->r.seq_flag & R_SEQ_GL_REND)*/ 0 : /*(scene->r.seq_flag & R_SEQ_GL_PREV)*/ 1;
+	const short is_rendering = G.is_rendering;
+	const int do_seq_gl = G.is_rendering ?
+	            0 /* (context.scene->r.seq_flag & R_SEQ_GL_REND) */ :
+	            (context.scene->r.seq_flag & R_SEQ_GL_PREV);
+	int do_seq;
 	int have_seq = FALSE;
 	Scene *scene;
 
@@ -2363,9 +2360,10 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	oldcfra = scene->r.cfra;
 	scene->r.cfra = frame;
 
-	if (seq->scene_camera)	
+	if (seq->scene_camera) {
 		camera = seq->scene_camera;
-	else {	
+	}
+	else {
 		BKE_scene_camera_switch_update(scene);
 		camera = scene->camera;
 	}
@@ -2376,7 +2374,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	}
 
 	/* prevent eternal loop */
-	doseq = context.scene->r.scemode & R_DOSEQ;
+	do_seq = context.scene->r.scemode & R_DOSEQ;
 	context.scene->r.scemode &= ~R_DOSEQ;
 	
 #ifdef DURIAN_CAMERA_SWITCH
@@ -2386,8 +2384,11 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 #else
 	(void)oldmarkers;
 #endif
-	
-	if (sequencer_view3d_cb && BLI_thread_is_main() && doseq_gl && (scene == context.scene || have_seq == 0) && camera) {
+
+	if ((sequencer_view3d_cb && do_seq_gl && camera) &&
+	    (BLI_thread_is_main() == TRUE) &&
+	    ((have_seq == FALSE) || (scene == context.scene)))
+	{
 		char err_out[256] = "unknown";
 		/* for old scened this can be uninitialized,
 		 * should probably be added to do_versions at some point if the functionality stays */
@@ -2407,14 +2408,14 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		RenderResult rres;
 
 		/* XXX: this if can be removed when sequence preview rendering uses the job system */
-		if (rendering || context.scene != scene) {
+		if (is_rendering || context.scene != scene) {
 			if (re == NULL)
 				re = RE_NewRender(scene->id.name);
 			
 			RE_BlenderFrame(re, context.bmain, scene, NULL, camera, scene->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
-			G.is_rendering = rendering;
+			G.is_rendering = is_rendering;
 		}
 		
 		RE_AcquireResultImage(re, &rres);
@@ -2441,7 +2442,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	}
 	
 	/* restore */
-	context.scene->r.scemode |= doseq;
+	context.scene->r.scemode |= do_seq;
 	
 	scene->r.cfra = oldcfra;
 
@@ -2583,17 +2584,19 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 		case SEQ_TYPE_MOVIECLIP:
 		{
 			ibuf = seq_render_movieclip_strip(context, seq, nr);
-			sequencer_imbuf_assign_spaces(context.scene, ibuf);
 
-			if (ibuf && use_preprocess) {
+			if (ibuf) {
+				/* duplicate frame so movie cache wouldn't be confused by sequencer's stuff */
 				ImBuf *i = IMB_dupImBuf(ibuf);
-
 				IMB_freeImBuf(ibuf);
-
 				ibuf = i;
+
+				if (ibuf->rect_float)
+					BKE_sequencer_imbuf_to_sequencer_space(context.scene, ibuf, FALSE);
+
+				copy_to_ibuf_still(context, seq, nr, ibuf);
 			}
 
-			copy_to_ibuf_still(context, seq, nr, ibuf);
 			break;
 		}
 
@@ -2830,7 +2833,7 @@ ImBuf *BKE_sequencer_give_ibuf(SeqRenderData context, float cfra, int chanshown)
 
 	count = BLI_countlist(&ed->metastack);
 	if ((chanshown < 0) && (count > 0)) {
-		count = MAX2(count + chanshown, 0);
+		count = max_ii(count + chanshown, 0);
 		seqbasep = ((MetaStack *)BLI_findlink(&ed->metastack, count))->oldbasep;
 	}
 	else {
@@ -3040,10 +3043,27 @@ int BKE_sequence_check_depend(Sequence *seq, Sequence *cur)
 	return TRUE;
 }
 
+static void sequence_do_invalidate_dependent(Sequence *seq, ListBase *seqbase)
+{
+	Sequence *cur;
+
+	for (cur = seqbase->first; cur; cur = cur->next) {
+		if (cur == seq)
+			continue;
+
+		if (BKE_sequence_check_depend(seq, cur)) {
+			BKE_sequencer_cache_cleanup_sequence(cur);
+			BKE_sequencer_preprocessed_cache_cleanup_sequence(cur);
+		}
+
+		if (cur->seqbase.first)
+			sequence_do_invalidate_dependent(seq, &cur->seqbase);
+	}
+}
+
 static void sequence_invalidate_cache(Scene *scene, Sequence *seq, int invalidate_self, int invalidate_preprocess)
 {
 	Editing *ed = scene->ed;
-	Sequence *cur;
 
 	/* invalidate cache for current sequence */
 	if (invalidate_self)
@@ -3057,17 +3077,11 @@ static void sequence_invalidate_cache(Scene *scene, Sequence *seq, int invalidat
 		BKE_sequencer_preprocessed_cache_cleanup_sequence(seq);
 
 	/* invalidate cache for all dependent sequences */
-	SEQ_BEGIN (ed, cur)
-	{
-		if (cur == seq)
-			continue;
 
-		if (BKE_sequence_check_depend(seq, cur)) {
-			BKE_sequencer_cache_cleanup_sequence(cur);
-			BKE_sequencer_preprocessed_cache_cleanup_sequence(cur);
-		}
-	}
-	SEQ_END
+	/* NOTE: can not use SEQ_BEGIN/SEQ_END here because that macro will change sequence's depth,
+	 *       which makes transformation routines work incorrect
+	 */
+	sequence_do_invalidate_dependent(seq, &ed->seqbase);
 }
 
 void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
@@ -3075,7 +3089,7 @@ void BKE_sequence_invalidate_cache(Scene *scene, Sequence *seq)
 	sequence_invalidate_cache(scene, seq, TRUE, TRUE);
 }
 
-void BKE_sequence_invalidate_deendent(Scene *scene, Sequence *seq)
+void BKE_sequence_invalidate_dependent(Scene *scene, Sequence *seq)
 {
 	sequence_invalidate_cache(scene, seq, FALSE, TRUE);
 }
@@ -3188,7 +3202,7 @@ int BKE_sequence_tx_get_final_left(Sequence *seq, int metaclip)
 {
 	if (metaclip && seq->tmp) {
 		/* return the range clipped by the parents range */
-		return maxi(BKE_sequence_tx_get_final_left(seq, 0), BKE_sequence_tx_get_final_left((Sequence *)seq->tmp, TRUE));
+		return max_ii(BKE_sequence_tx_get_final_left(seq, 0), BKE_sequence_tx_get_final_left((Sequence *)seq->tmp, TRUE));
 	}
 	else {
 		return (seq->start - seq->startstill) + seq->startofs;
@@ -3199,7 +3213,7 @@ int BKE_sequence_tx_get_final_right(Sequence *seq, int metaclip)
 {
 	if (metaclip && seq->tmp) {
 		/* return the range clipped by the parents range */
-		return mini(BKE_sequence_tx_get_final_right(seq, 0), BKE_sequence_tx_get_final_right((Sequence *)seq->tmp, TRUE));
+		return min_ii(BKE_sequence_tx_get_final_right(seq, 0), BKE_sequence_tx_get_final_right((Sequence *)seq->tmp, TRUE));
 	}
 	else {
 		return ((seq->start + seq->len) + seq->endstill) - seq->endofs;
@@ -3451,7 +3465,7 @@ int BKE_sequence_base_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_sc
 
 		for (seq = seqbasep->first; seq; seq = seq->next) {
 			if (seq->machine == orig_machine)
-				new_frame = MAX2(new_frame, seq->enddisp);
+				new_frame = max_ii(new_frame, seq->enddisp);
 		}
 
 		test->machine = orig_machine;
@@ -3476,10 +3490,10 @@ static int shuffle_seq_time_offset_test(ListBase *seqbasep, char dir)
 			for (seq_other = seqbasep->first; seq_other; seq_other = seq_other->next) {
 				if (!seq_other->tmp && seq_overlap(seq, seq_other)) {
 					if (dir == 'L') {
-						offset = MIN2(offset, seq_other->startdisp - seq->enddisp);
+						offset = min_ii(offset, seq_other->startdisp - seq->enddisp);
 					}
 					else {
-						offset = MAX2(offset, seq_other->enddisp - seq->startdisp);
+						offset = max_ii(offset, seq_other->enddisp - seq->startdisp);
 					}
 				}
 			}
@@ -3664,26 +3678,26 @@ int BKE_sequence_swap(Sequence *seq_a, Sequence *seq_b, const char **error_str)
 	char name[sizeof(seq_a->name)];
 
 	if (seq_a->len != seq_b->len) {
-		*error_str = "Strips must be the same length";
+		*error_str = N_("Strips must be the same length");
 		return 0;
 	}
 
-	/* type checking, could be more advanced but disalow sound vs non-sound copy */
+	/* type checking, could be more advanced but disallow sound vs non-sound copy */
 	if (seq_a->type != seq_b->type) {
 		if (seq_a->type == SEQ_TYPE_SOUND_RAM || seq_b->type == SEQ_TYPE_SOUND_RAM) {
-			*error_str = "Strips were not compatible";
+			*error_str = N_("Strips were not compatible");
 			return 0;
 		}
 
 		/* disallow effects to swap with non-effects strips */
 		if ((seq_a->type & SEQ_TYPE_EFFECT) != (seq_b->type & SEQ_TYPE_EFFECT)) {
-			*error_str = "Strips were not compatible";
+			*error_str = N_("Strips were not compatible");
 			return 0;
 		}
 
 		if ((seq_a->type & SEQ_TYPE_EFFECT) && (seq_b->type & SEQ_TYPE_EFFECT)) {
 			if (BKE_sequence_effect_get_num_inputs(seq_a->type) != BKE_sequence_effect_get_num_inputs(seq_b->type)) {
-				*error_str = "Strips must have the same number of inputs";
+				*error_str = N_("Strips must have the same number of inputs");
 				return 0;
 			}
 		}
@@ -3880,7 +3894,7 @@ static void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 {
 	if (seq) {
 		BLI_strncpy(seq->name + 2, seq_load->name, sizeof(seq->name) - 2);
-		BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+		BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 
 		if (seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
 			seq_load->start_frame += (seq->enddisp - seq->startdisp);
@@ -3967,10 +3981,10 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	sound = sound_new_file(bmain, seq_load->path); /* handles relative paths */
 
 	if (sound == NULL || sound->playback_handle == NULL) {
-		/*
+#if 0
 		 if (op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
-		*/
+#endif
 
 		return NULL;
 	}
@@ -3979,10 +3993,10 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(bmain, sound);
-		/*
+#if 0
 		if (op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
-		*/
+#endif
 		return NULL;
 	}
 
@@ -3991,11 +4005,11 @@ Sequence *BKE_sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	seq->type = SEQ_TYPE_SOUND_RAM;
 	seq->sound = sound;
 	BLI_strncpy(seq->name + 2, "Sound", SEQ_NAME_MAXSTR - 2);
-	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
-	seq->len = ceil(info.length * FPS);
+	seq->len = (int)ceil((double)info.length * FPS);
 	strip->us = 1;
 
 	/* we only need 1 element to store the filename */
@@ -4051,7 +4065,7 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 	seq->anim = an;
 	seq->anim_preseek = IMB_anim_get_preseek(an);
 	BLI_strncpy(seq->name + 2, "Movie", SEQ_NAME_MAXSTR - 2);
-	BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seq);
+	BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seq);
 
 	/* basic defaults */
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
@@ -4163,7 +4177,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 	}
 
 	if (dupe_flag & SEQ_DUPE_UNIQUE_NAME)
-		BKE_seqence_base_unique_name_recursive(&scene->ed->seqbase, seqn);
+		BKE_sequence_base_unique_name_recursive(&scene->ed->seqbase, seqn);
 
 	if (dupe_flag & SEQ_DUPE_ANIM)
 		BKE_sequencer_dupe_animdata(scene, seq->name + 2, seqn->name + 2);
@@ -4218,7 +4232,7 @@ void BKE_sequence_base_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *
 
 /* called on draw, needs to be fast,
  * we could cache and use a flag if we want to make checks for file paths resolving for eg. */
-int BKE_seqence_is_valid_check(Sequence *seq)
+int BKE_sequence_is_valid_check(Sequence *seq)
 {
 	switch (seq->type) {
 		case SEQ_TYPE_MASK:

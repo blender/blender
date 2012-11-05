@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_NodeBase_h
-#define _COM_NodeBase_h
+#ifndef __COM_NODEBASE_H__
+#define __COM_NODEBASE_H__
 
 #include "COM_InputSocket.h"
 #include "COM_OutputSocket.h"
@@ -97,7 +97,7 @@ public:
 	 * @return [true:false]
 	 * @see NodeOperation
 	 */
-	virtual const int isOperation() const { return false; }
+	virtual const bool isOperation() const { return false; }
 	
 	/**
 	 * @brief check if this is an input node
@@ -166,4 +166,4 @@ protected:
 #endif
 };
 
-#endif
+#endif  /* __COM_NODEBASE_H__ */

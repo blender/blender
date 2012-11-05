@@ -54,7 +54,7 @@ public:
 
 	bool			IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode);
 	
-	virtual void 	NextFrame();	
+	virtual void 	NextFrame();
 	SCA_IInputDevice* GetInputDevice();
 
 
@@ -63,5 +63,4 @@ public:
 #endif
 };
 
-#endif //__SCA_KEYBOARDMANAGER_H__
-
+#endif  /* __SCA_KEYBOARDMANAGER_H__ */

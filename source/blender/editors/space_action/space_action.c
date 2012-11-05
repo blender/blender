@@ -129,7 +129,7 @@ static SpaceLink *action_new(const bContext *C)
 /* not spacelink itself */
 static void action_free(SpaceLink *UNUSED(sl))
 {	
-//	SpaceAction *saction= (SpaceAction *) sl;
+//	SpaceAction *saction = (SpaceAction *) sl;
 }
 
 
@@ -357,8 +357,8 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 	
 	/* context changes */
 	switch (wmn->category) {
-		case NC_SCREEN:
-			if (wmn->data == ND_GPENCIL) {
+		case NC_GPENCIL:
+			if (wmn->action == NA_EDITED) {
 				/* only handle this event in GPencil mode for performance considerations */
 				if (saction->mode == SACTCONT_GPENCIL)
 					ED_area_tag_redraw(sa);
@@ -377,7 +377,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
-			switch (wmn->data) {	
+			switch (wmn->data) {
 				case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_OB_SELECT:
 					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
@@ -409,6 +409,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 				switch (wmn->data) {
 					case ND_DATA:
 						ED_area_tag_refresh(sa);
+						ED_area_tag_redraw(sa);
 						break;
 					default: /* just redrawing the view will do */
 						ED_area_tag_redraw(sa);
@@ -432,7 +433,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
-			}			
+			}
 			break;
 		case NC_WINDOW:
 			if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {

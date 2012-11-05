@@ -26,6 +26,17 @@
 
 namespace libmv {
 
+struct ReconstructionOptions {
+	// threshold value of reconstruction error which is still considered successful
+	// if reconstruction error bigger than this value, fallback reconstruction
+	// algorithm would be used (if enabled)
+	double success_threshold;
+
+	// use fallback reconstruction algorithm in cases main reconstruction algorithm
+	// failed to reconstruct
+	bool use_fallback_reconstruction;
+};
+
 /*!
     A EuclideanCamera is the location and rotation of the camera viewing \a image.
 

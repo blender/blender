@@ -3,27 +3,14 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_ROTATIONBASE_H
 #define EIGEN_ROTATIONBASE_H
+
+namespace Eigen { 
 
 // forward declaration
 namespace internal {
@@ -115,7 +102,7 @@ struct rotation_base_generic_product_selector<RotationDerived,MatrixType,false>
 {
   enum { Dim = RotationDerived::Dim };
   typedef Matrix<typename RotationDerived::Scalar,Dim,Dim> ReturnType;
-  inline static ReturnType run(const RotationDerived& r, const MatrixType& m)
+  static inline ReturnType run(const RotationDerived& r, const MatrixType& m)
   { return r.toRotationMatrix() * m; }
 };
 
@@ -123,7 +110,7 @@ template<typename RotationDerived, typename Scalar, int Dim, int MaxDim>
 struct rotation_base_generic_product_selector< RotationDerived, DiagonalMatrix<Scalar,Dim,MaxDim>, false >
 {
   typedef Transform<Scalar,Dim,Affine> ReturnType;
-  inline static ReturnType run(const RotationDerived& r, const DiagonalMatrix<Scalar,Dim,MaxDim>& m)
+  static inline ReturnType run(const RotationDerived& r, const DiagonalMatrix<Scalar,Dim,MaxDim>& m)
   {
     ReturnType res(r);
     res.linear() *= m;
@@ -136,7 +123,7 @@ struct rotation_base_generic_product_selector<RotationDerived,OtherVectorType,tr
 {
   enum { Dim = RotationDerived::Dim };
   typedef Matrix<typename RotationDerived::Scalar,Dim,1> ReturnType;
-  EIGEN_STRONG_INLINE static ReturnType run(const RotationDerived& r, const OtherVectorType& v)
+  static EIGEN_STRONG_INLINE ReturnType run(const RotationDerived& r, const OtherVectorType& v)
   {
     return r._transformVector(v);
   }
@@ -192,20 +179,20 @@ namespace internal {
   * \sa class Transform, class Rotation2D, class Quaternion, class AngleAxis
   */
 template<typename Scalar, int Dim>
-inline static Matrix<Scalar,2,2> toRotationMatrix(const Scalar& s)
+static inline Matrix<Scalar,2,2> toRotationMatrix(const Scalar& s)
 {
   EIGEN_STATIC_ASSERT(Dim==2,YOU_MADE_A_PROGRAMMING_MISTAKE)
   return Rotation2D<Scalar>(s).toRotationMatrix();
 }
 
 template<typename Scalar, int Dim, typename OtherDerived>
-inline static Matrix<Scalar,Dim,Dim> toRotationMatrix(const RotationBase<OtherDerived,Dim>& r)
+static inline Matrix<Scalar,Dim,Dim> toRotationMatrix(const RotationBase<OtherDerived,Dim>& r)
 {
   return r.toRotationMatrix();
 }
 
 template<typename Scalar, int Dim, typename OtherDerived>
-inline static const MatrixBase<OtherDerived>& toRotationMatrix(const MatrixBase<OtherDerived>& mat)
+static inline const MatrixBase<OtherDerived>& toRotationMatrix(const MatrixBase<OtherDerived>& mat)
 {
   EIGEN_STATIC_ASSERT(OtherDerived::RowsAtCompileTime==Dim && OtherDerived::ColsAtCompileTime==Dim,
     YOU_MADE_A_PROGRAMMING_MISTAKE)
@@ -213,5 +200,7 @@ inline static const MatrixBase<OtherDerived>& toRotationMatrix(const MatrixBase<
 }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_ROTATIONBASE_H

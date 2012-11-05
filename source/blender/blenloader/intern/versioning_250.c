@@ -32,7 +32,7 @@
 #include "zlib.h"
 
 #ifndef WIN32
-#  include <unistd.h> // for read close
+#  include <unistd.h>  /* for read close */
 #else
 #  include <io.h> // for open close read
 #  include "winsock2.h"
@@ -652,7 +652,7 @@ static void do_versions_seq_unique_name_all_strips(Scene * sce, ListBase *seqbas
 	Sequence * seq = seqbasep->first;
 
 	while (seq) {
-		BKE_seqence_base_unique_name_recursive(&sce->ed->seqbase, seq);
+		BKE_sequence_base_unique_name_recursive(&sce->ed->seqbase, seq);
 		if (seq->seqbase.first) {
 			do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
 		}
@@ -1134,7 +1134,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		/* Add default gravity to scenes */
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			if ((sce->physics_settings.flag & PHYS_GLOBAL_GRAVITY) == 0 &&
-			    len_v3(sce->physics_settings.gravity) == 0.0f)
+			    is_zero_v3(sce->physics_settings.gravity))
 			{
 				sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
 				sce->physics_settings.gravity[2] = -9.81f;
@@ -2062,7 +2062,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				{
 					brush->add_col[0] = 1.00f;
 					brush->add_col[1] = 0.39f;
- 					brush->add_col[2] = 0.39f;
+					brush->add_col[2] = 0.39f;
 				}
 
 				if (brush->sub_col[0] == 0 &&
@@ -2333,7 +2333,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		for (sc = main->screen.first; sc; sc = sc->id.next) {
 			if (sc->redraws_flag == 0) {
 				/* just initialize to default? */
-				// XXX: we could also have iterated through areas, and taken them from the first timeline available...
+				/* XXX: we could also have iterated through areas, and taken them from the first timeline available... */
 				sc->redraws_flag = TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 			}
 		}

@@ -309,7 +309,7 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 		 *	- the frame-range select option is favored over the channel one (x over y), as frame-range one is often
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
-		if (BLI_RCT_SIZE_X(&rect) >= BLI_RCT_SIZE_Y(&rect))
+		if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
 			mode = ACTKEYS_BORDERSEL_FRAMERANGE;
 		else
 			mode = ACTKEYS_BORDERSEL_CHANNELS;
@@ -763,7 +763,7 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 	if (leftright == ACTKEYS_LRSEL_LEFT) {
 		ked.f1 = MINAFRAMEF;
 		ked.f2 = (float)(CFRA + 0.1f);
-	} 
+	}
 	else {
 		ked.f1 = (float)(CFRA - 0.1f);
 		ked.f2 = MAXFRAMEF;
@@ -785,7 +785,7 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
-		else if (ale->type == ANIMTYPE_GPLAYER)	
+		else if (ale->type == ANIMTYPE_GPLAYER)
 			ED_gplayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
 		else if (ale->type == ANIMTYPE_MASKLAYER)
 			ED_masklayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
@@ -869,7 +869,7 @@ static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, wmEvent 
 		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 		if (x < CFRA)
 			RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
-		else 	
+		else
 			RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
 	}
 	
@@ -911,9 +911,6 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
  * In addition to these basic options, the SHIFT modifier can be used to toggle the 
  * selection mode between replacing the selection (without) and inverting the selection (with).
  */
-
-/* sensitivity factor for frame-selections */
-#define FRAME_CLICK_THRESH      0.1f
 
 /* ------------------- */
  
@@ -1084,7 +1081,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 			/* dopesheet summary covers everything */
 			summary_to_keylist(ac, &anim_keys, NULL);
 		}
-		else if (ale->type == ANIMTYPE_GROUP) { 
+		else if (ale->type == ANIMTYPE_GROUP) {
 			// TODO: why don't we just give groups key_data too?
 			bActionGroup *agrp = (bActionGroup *)ale->data;
 			agroup_to_keylist(adt, agrp, &anim_keys, NULL);
@@ -1147,7 +1144,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 					
 					agrp->flag |= AGRP_SELECTED;
 					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
-				}	
+				}
 				else if (ale->type == ANIMTYPE_FCURVE) {
 					FCurve *fcu = ale->data;
 					
@@ -1213,7 +1210,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
-	/* ar= ac.ar; */ /* UNUSED */
+	/* ar = ac.ar; */ /* UNUSED */
 
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))

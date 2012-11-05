@@ -142,7 +142,7 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
 	new_icon->obj = NULL; /* icon is not for library object */
-	new_icon->type = 0;	
+	new_icon->type = 0;
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type = type;
@@ -852,7 +852,7 @@ static void icon_set_image(bContext *C, ID *id, PreviewImage *prv_img, enum eIco
 		if (G.debug & G_DEBUG)
 			printf("%s: no preview image for this ID: %s\n", __func__, id->name);
 		return;
-	}	
+	}
 
 	icon_create_rect(prv_img, size);
 
@@ -982,8 +982,8 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	if (!di) {
 		di = icon_create_drawinfo();
 	
-		icon->drawinfo = di;		
-		icon->drawinfo_free = UI_icons_free_drawinfo;		
+		icon->drawinfo = di;
+		icon->drawinfo_free = UI_icons_free_drawinfo;
 	}
 	
 	/* scale width and height according to aspect */
@@ -994,13 +994,13 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 		/* vector icons use the uiBlock transformation, they are not drawn
 		 * with untransformed coordinates like the other icons */
 		di->data.vector.func((int)x, (int)y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
-	} 
+	}
 	else if (di->type == ICON_TYPE_TEXTURE) {
 		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 		                  di->data.texture.w, di->data.texture.h, alpha, rgb);
 	}
 	else if (di->type == ICON_TYPE_BUFFER) {
-		/* it is a builtin icon */		
+		/* it is a builtin icon */
 		iimg = di->data.buffer.image;
 
 		if (!iimg->rect) return;  /* something has gone wrong! */
@@ -1010,7 +1010,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	else if (di->type == ICON_TYPE_PREVIEW) {
 		PreviewImage *pi = BKE_previewimg_get((ID *)icon->obj);
 
-		if (pi) {			
+		if (pi) {
 			/* no create icon on this level in code */
 			if (!pi->rect[size]) return;  /* something has gone wrong! */
 			

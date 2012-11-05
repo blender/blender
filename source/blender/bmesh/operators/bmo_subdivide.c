@@ -53,6 +53,9 @@
 #define ELE_INNER	8
 #define ELE_SPLIT	16
 
+/* see bug [#32665], 0.00005 means a we get face splits at a little under 1.0 degrees */
+#define FLT_FACE_SPLIT_EPSILON 0.00005f
+
 /*
  * NOTE: beauty has been renamed to flag!
  */
@@ -823,16 +826,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 		/* make sure the two edges have a valid angle to each other */
 		if (totesel == 2 && BM_edge_share_vert_count(e1, e2)) {
-			float angle;
-
 			sub_v3_v3v3(vec1, e1->v2->co, e1->v1->co);
 			sub_v3_v3v3(vec2, e2->v2->co, e2->v1->co);
 			normalize_v3(vec1);
 			normalize_v3(vec2);
 
-			angle = dot_v3v3(vec1, vec2);
-			angle = fabsf(angle);
-			if (fabsf(angle - 1.0f) < 0.01f) {
+			if (fabsf(dot_v3v3(vec1, vec2)) > 1.0f - FLT_FACE_SPLIT_EPSILON) {
 				totesel = 0;
 			}
 		}
@@ -983,7 +982,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 				 * This edge pair could be used by more then one face,
 				 * in this case it used to (2.63), split both faces along the same verts
 				 * while it could be calculated which face should do the split,
-				 * its ambigious, so in this case we're better off to skip them as exceptional cases
+				 * it's ambiguous, so in this case we're better off to skip them as exceptional cases
 				 * and not try to be clever guessing which face to cut up.
 				 *
 				 * To avoid this case we need to check:

@@ -42,7 +42,7 @@ struct Text;
 struct Ipo;
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
-// XXX depreceated... old AnimSys
+// XXX deprecated... old AnimSys
 typedef struct bConstraintChannel {
 	struct bConstraintChannel *next, *prev;
 	struct Ipo			*ipo;
@@ -170,7 +170,7 @@ typedef struct bSplineIKConstraint {
 	short 		numpoints;	/* number of points to bound in points array */
 	short		chainlen;	/* number of bones ('n') that are in the chain */
 	
-		/* settings */	
+		/* settings */
 	short flag;				/* general settings for constraint */
 	short xzScaleMode;		/* method used for determining the x & z scaling of the bones */
 } bSplineIKConstraint;
@@ -182,7 +182,7 @@ typedef struct bSplineIKConstraint {
 typedef struct bTrackToConstraint {
 	struct Object		*tar;
 	int			reserved1; /* I'll be using reserved1 and reserved2 as Track and Up flags,
-	                        * not sure if that's what they were intented for anyway.
+	                        * not sure if that's what they were intended for anyway.
 	                        * Not sure either if it would create backward incompatibility if I were to rename them.
 	                        * - theeth*/
 	int			reserved2;
@@ -340,7 +340,7 @@ typedef struct bTransformConstraint {
 	float		from_max[3];	/* 	to map on to to_min/max range. 			*/
 	
 	float		to_min[3];		/* range of motion on owner caused by target  */
-	float		to_max[3];	
+	float		to_max[3];
 } bTransformConstraint;
 
 /* Pivot Constraint */
@@ -486,7 +486,7 @@ typedef enum eBConstraint_Flags {
 	CONSTRAINT_EXPAND =		(1<<0), 
 		/* pre-check for illegal object name or bone name */
 	CONSTRAINT_DISABLE = 	(1<<2), 
-		/* to indicate which Ipo should be shown, maybe for 3d access later too */	
+		/* to indicate which Ipo should be shown, maybe for 3d access later too */
 	CONSTRAINT_ACTIVE = 	(1<<4), 
 		/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
 	CONSTRAINT_SPACEONCE = 	(1<<6),
@@ -515,7 +515,7 @@ typedef enum eBConstraint_SpaceTypes {
 } eBConstraint_SpaceTypes;
 
 /* bConstraintChannel.flag */
-// XXX depreceated... old AnimSys
+// XXX deprecated... old AnimSys
 typedef enum eConstraintChannel_Flags {
 	CONSTRAINT_CHANNEL_SELECT =		(1<<0),
 	CONSTRAINT_CHANNEL_PROTECTED =	(1<<1)
@@ -539,7 +539,7 @@ typedef enum eCopyLocation_Flags {
 	LOCLIKE_X			= (1<<0),
 	LOCLIKE_Y			= (1<<1),
 	LOCLIKE_Z			= (1<<2),
-		/* LOCLIKE_TIP is a depreceated option... use headtail=1.0f instead */
+		/* LOCLIKE_TIP is a deprecated option... use headtail=1.0f instead */
 	LOCLIKE_TIP			= (1<<3),
 	LOCLIKE_X_INVERT	= (1<<4),
 	LOCLIKE_Y_INVERT	= (1<<5),
@@ -664,7 +664,7 @@ typedef enum eSplineIK_Flags {
 	/* bones in the chain should not scale to fit the curve */
 	CONSTRAINT_SPLINEIK_SCALE_LIMITED	= (1<<2),
 	/* evenly distribute the bones along the path regardless of length */
-	CONSTRAINT_SPLINEIK_EVENSPLITS		= (1<<3),	
+	CONSTRAINT_SPLINEIK_EVENSPLITS		= (1<<3),
 	/* don't adjust the x and z scaling of the bones by the curve radius */
 	CONSTRAINT_SPLINEIK_NO_CURVERAD	= (1<<4)
 } eSplineIK_Flags;
@@ -751,7 +751,7 @@ typedef enum eChildOf_Flags {
 	/* Restrictions for Pivot Constraint axis to consider for enabling constraint */
 typedef enum ePivotConstraint_Axis {
 	/* do not consider this activity-clamping */
-	PIVOTCON_AXIS_NONE = -1,	
+	PIVOTCON_AXIS_NONE = -1,
 	
 	/* consider -ve x-axis rotations */
 	PIVOTCON_AXIS_X_NEG = 0,

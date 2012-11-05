@@ -38,6 +38,8 @@
 #include "DNA_meshdata_types.h"
 
 extern "C" {
+	#include "BLI_utildefines.h"
+
 	#include "BKE_DerivedMesh.h"
 	#include "BKE_main.h"
 	#include "BKE_global.h"
@@ -78,7 +80,7 @@ void GeometryExporter::operator()(Object *ob)
 	Mesh *me;
 	if (this->export_settings->apply_modifiers) {
 		me = bc_to_mesh_apply_modifiers(mScene, ob, this->export_settings->export_mesh_type);
-	} 
+	}
 	else {
 		me = (Mesh *)ob->data;
 	}
@@ -358,13 +360,13 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 	param.push_back("X");
 	param.push_back("Y");
 	param.push_back("Z");
-	/*main function, it creates <source id = "">, <float_array id = ""
-	   count = ""> */
+	/* main function, it creates <source id = "">, <float_array id = ""
+	 * count = ""> */
 	source.prepareToAppendValues();
 	//appends data to <float_array>
 	int i = 0;
 	for (i = 0; i < totverts; i++) {
-		source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);			
+		source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);
 	}
 	
 	source.finish();

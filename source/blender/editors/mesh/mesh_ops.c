@@ -68,12 +68,13 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_random);
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
-	WM_operatortype_append(MESH_OT_select_by_number_vertices);
+	WM_operatortype_append(MESH_OT_select_face_by_sides);
 	WM_operatortype_append(MESH_OT_select_loose_verts);
 	WM_operatortype_append(MESH_OT_select_mirror);
 	WM_operatortype_append(MESH_OT_normals_make_consistent);
 	WM_operatortype_append(MESH_OT_merge);
 	WM_operatortype_append(MESH_OT_subdivide);
+	WM_operatortype_append(MESH_OT_unsubdivide);
 	WM_operatortype_append(MESH_OT_faces_select_linked_flat);
 	WM_operatortype_append(MESH_OT_edges_select_sharp);
 	WM_operatortype_append(MESH_OT_primitive_plane_add);
@@ -132,9 +133,9 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_mark_seam);
 	WM_operatortype_append(MESH_OT_mark_sharp);
 	WM_operatortype_append(MESH_OT_vertices_smooth);
+	WM_operatortype_append(MESH_OT_vertices_smooth_laplacian);
 	WM_operatortype_append(MESH_OT_noise);
 	WM_operatortype_append(MESH_OT_flip_normals);
-	//WM_operatortype_append(MESH_OT_knife_cut);
 	WM_operatortype_append(MESH_OT_rip);
 	WM_operatortype_append(MESH_OT_blend_from_shape);
 	WM_operatortype_append(MESH_OT_shape_propagate_to_all);
@@ -143,8 +144,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_uv_texture_remove);
 	WM_operatortype_append(MESH_OT_vertex_color_add);
 	WM_operatortype_append(MESH_OT_vertex_color_remove);
-	WM_operatortype_append(MESH_OT_sticky_add);
-	WM_operatortype_append(MESH_OT_sticky_remove);
+	WM_operatortype_append(MESH_OT_customdata_clear_mask);
+	WM_operatortype_append(MESH_OT_customdata_clear_skin);
 	WM_operatortype_append(MESH_OT_drop_named_image);
 
 	WM_operatortype_append(MESH_OT_edgering_select);
@@ -165,7 +166,11 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_wireframe);
 	WM_operatortype_append(MESH_OT_edge_split);
 
+#ifdef WITH_BULLET
 	WM_operatortype_append(MESH_OT_convex_hull);
+#endif
+
+	WM_operatortype_append(MESH_OT_symmetrize);
 
 #ifdef WITH_GAMEENGINE
 	WM_operatortype_append(MESH_OT_navmesh_make);
@@ -210,7 +215,17 @@ void ED_operatormacros_mesh(void)
 
 	ot = WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", "Rip polygons and move the result",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "MESH_OT_rip");
+	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_rip");
+	RNA_boolean_set(otmacro->ptr, "use_fill", FALSE);
+	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
+
+	/* annoying we can't pass 'use_fill' through the macro */
+	ot = WM_operatortype_append_macro("MESH_OT_rip_move_fill", "Rip Fill", "Rip-fill polygons and move the result",
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
+	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_rip");
+	RNA_boolean_set(otmacro->ptr, "use_fill", TRUE);
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
@@ -325,6 +340,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_rip_move", VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_rip_move_fill", VKEY, KM_PRESS, KM_ALT, 0);
+
 	WM_keymap_add_item(keymap, "MESH_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "TRANSFORM_OT_shrink_fatten", SKEY, KM_PRESS, KM_ALT, 0);

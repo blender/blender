@@ -26,6 +26,8 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "PyObjectPlus.h"
 
+#include "KX_PythonInit.h"
+
 #include <RAS_GLExtensionManager.h>
 
 #include <RAS_IPolygonMaterial.h>
@@ -46,10 +48,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 
 // get material id
-static PyObject * getMaterialID (PyObject *self, PyObject *args)
+static PyObject *getMaterialID (PyObject *self, PyObject *args)
 {
 	// parameters - game object with video texture
-	PyObject * obj = NULL;
+	PyObject *obj = NULL;
 	// material name
 	char * matName;
 
@@ -70,13 +72,13 @@ static PyObject * getMaterialID (PyObject *self, PyObject *args)
 
 
 // get last error description
-static PyObject * getLastError (PyObject *self, PyObject *args)
+static PyObject *getLastError (PyObject *self, PyObject *args)
 {
 	return PyUnicode_FromString(Exception::m_lastError.c_str());
 }
 
 // set log file
-static PyObject * setLogFile (PyObject *self, PyObject *args)
+static PyObject *setLogFile (PyObject *self, PyObject *args)
 {
 	// get parameters
 	if (!PyArg_ParseTuple(args, "s:setLogFile", &Exception::m_logFile))
@@ -87,10 +89,10 @@ static PyObject * setLogFile (PyObject *self, PyObject *args)
 
 
 // image to numpy array
-static PyObject * imageToArray (PyObject * self, PyObject *args)
+static PyObject *imageToArray(PyObject *self, PyObject *args)
 {
 	// parameter is Image object
-	PyObject * pyImg;
+	PyObject *pyImg;
 	char *mode = NULL;
 	if (!PyArg_ParseTuple(args, "O|s:imageToArray", &pyImg, &mode) || !pyImageTypes.in(Py_TYPE(pyImg)))
 	{
@@ -168,9 +170,9 @@ static struct PyModuleDef VideoTexture_module_def = {
 	0,  /* m_free */
 };
 
-PyObject* initVideoTexture(void) 
+PyObject *initVideoTexture(void)
 {
-	PyObject * m;
+	PyObject *m;
 	
 	// initialize GL extensions
 	//bgl::InitExtensions(0);
@@ -208,7 +210,7 @@ PyObject* initVideoTexture(void)
 	pyFilterTypes.reg(m);
 
 	Py_INCREF(&TextureType);
-	PyModule_AddObject(m, (char*)"Texture", (PyObject*)&TextureType);
+	PyModule_AddObject(m, (char*)"Texture", (PyObject *)&TextureType);
 	PyModule_AddIntConstant(m, (char*)"SOURCE_ERROR", SourceError);
 	PyModule_AddIntConstant(m, (char*)"SOURCE_EMPTY", SourceEmpty);
 	PyModule_AddIntConstant(m, (char*)"SOURCE_READY", SourceReady);

@@ -67,7 +67,7 @@ void    BKE_curve_editNurb_free(struct Curve *cu);
 
 int     mouse_nurb(struct bContext *C, const int mval[2], int extend, int deselect, int toggle);
 
-struct Nurb *add_nurbs_primitive(struct bContext *C, float mat[4][4], int type, int newob);
+struct Nurb *add_nurbs_primitive(struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
 
 int     isNurbsel(struct Nurb *nu);
 void    ED_nurb_set_spline_type(struct Nurb *nu, int type);

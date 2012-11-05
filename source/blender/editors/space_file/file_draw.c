@@ -257,21 +257,23 @@ static int get_file_icon(struct direntry *file)
 	else if (file->flags & BLENDERFILE)
 		return ICON_FILE_BLEND;
 	else if (file->flags & BLENDERFILE_BACKUP)
-		return ICON_FILE_BLEND;
+		return ICON_FILE_BACKUP;
 	else if (file->flags & IMAGEFILE)
 		return ICON_FILE_IMAGE;
 	else if (file->flags & MOVIEFILE)
 		return ICON_FILE_MOVIE;
 	else if (file->flags & PYSCRIPTFILE)
 		return ICON_FILE_SCRIPT;
-	else if (file->flags & SOUNDFILE) 
+	else if (file->flags & SOUNDFILE)
 		return ICON_FILE_SOUND;
-	else if (file->flags & FTFONTFILE) 
+	else if (file->flags & FTFONTFILE)
 		return ICON_FILE_FONT;
-	else if (file->flags & BTXFILE) 
+	else if (file->flags & BTXFILE)
 		return ICON_FILE_BLANK;
-	else if (file->flags & COLLADAFILE) 
+	else if (file->flags & COLLADAFILE)
 		return ICON_FILE_BLANK;
+	else if (file->flags & TEXTFILE)
+		return ICON_FILE_TEXT;
 	else
 		return ICON_FILE_BLANK;
 }
@@ -280,7 +282,7 @@ static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon,
 {
 	uiBut *but;
 	int x, y;
-	/*float alpha=1.0f;*/
+	// float alpha = 1.0f;
 	
 	x = sx;
 	y = sy - height;
@@ -494,7 +496,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		sx += (int)(v2d->tot.xmin + 2.0f);
 		sy = (int)(v2d->tot.ymax - sy);
 
-		file = filelist_file(files, i);	
+		file = filelist_file(files, i);
 		
 		UI_ThemeColor4(TH_TEXT);
 
@@ -544,7 +546,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		if (params->display == FILE_SHORTDISPLAY) {
 			sx += (int)layout->column_widths[COLUMN_NAME] + 12;
 			if (!(file->type & S_IFDIR)) {
-				file_draw_string(sx, sy, file->size, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);	
+				file_draw_string(sx, sy, file->size, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);
 				sx += (int)layout->column_widths[COLUMN_SIZE] + 12;
 			}
 		}

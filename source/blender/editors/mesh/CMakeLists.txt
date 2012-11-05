@@ -21,6 +21,7 @@
 set(INC
 	../include
 	../uvedit
+	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
@@ -66,6 +67,14 @@ if(WITH_GAMEENGINE)
 	list(APPEND SRC
 		mesh_navmesh.c
 	)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_BULLET)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}")

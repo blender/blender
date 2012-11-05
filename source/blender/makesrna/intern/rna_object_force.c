@@ -820,10 +820,13 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "File Path", "Cache file path");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
+	/* removed, see PTCACHE_QUICK_CACHE */
+#if 0
 	prop = RNA_def_property(srna, "use_quick_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_QUICK_CACHE);
 	RNA_def_property_ui_text(prop, "Quick Cache", "Update simulation with cache steps");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+#endif
 
 	prop = RNA_def_property(srna, "info", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "info");
@@ -1056,6 +1059,13 @@ static void rna_def_effector_weight(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Drag", "Drag effector weight");
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
+
+	prop = RNA_def_property(srna, "smokeflow", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "weight[13]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Smoke Flow", "Smoke Flow effector weight");
+	RNA_def_property_update(prop, 0, "rna_EffectorWeight_update");
 }
 
 static void rna_def_field(BlenderRNA *brna)
@@ -1082,6 +1092,7 @@ static void rna_def_field(BlenderRNA *brna)
 		{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
 		{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", "Create turbulence with a noise field"},
 		{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", "Create a force that dampens motion"},
+		{PFIELD_SMOKEFLOW, "SMOKE_FLOW", ICON_FORCE_SMOKEFLOW, "Smoke Flow", "Create a force based on smoke simulation air flow"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1307,7 +1318,7 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_2d_force", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_TEX_2D);
-	RNA_def_property_ui_text(prop, "2D", "Apply force only in 2d");
+	RNA_def_property_ui_text(prop, "2D", "Apply force only in 2D");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop = RNA_def_property(srna, "use_root_coords", PROP_BOOLEAN, PROP_NONE);
@@ -1334,6 +1345,11 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_MULTIPLE_SPRINGS);
 	RNA_def_property_ui_text(prop, "Multiple Springs", "Every point is effected by multiple springs");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop = RNA_def_property(srna, "use_smoke_density", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_SMOKE_DENSITY);
+	RNA_def_property_ui_text(prop, "Apply Density", "Adjust force strength based on smoke density");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/* Pointer */
 	
@@ -1341,6 +1357,12 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "tex");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture", "Texture to use as force");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop = RNA_def_property(srna, "source_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "f_source");
+	RNA_def_property_ui_text(prop, "Domain Object", "Select domain object of the smoke simulation");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/********** Curve Guide Field Settings **********/

@@ -367,7 +367,6 @@ void mesh_update_customdata_pointers(Mesh *me, const short do_ensure_tess_cd)
 
 	me->mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
 	me->dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
-	me->msticky = CustomData_get_layer(&me->vdata, CD_MSTICKY);
 
 	me->medge = CustomData_get_layer(&me->edata, CD_MEDGE);
 
@@ -470,15 +469,17 @@ void free_dverts(MDeformVert *dvert, int totvert)
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 {
-	if (free_customdata)
+	if (free_customdata) {
 		CustomData_free(&mesh->fdata, mesh->totface);
+	}
+	else {
+		CustomData_reset(&mesh->fdata);
+	}
 
 	mesh->mface = NULL;
 	mesh->mtface = NULL;
 	mesh->mcol = NULL;
 	mesh->totface = 0;
-
-	memset(&mesh->fdata, 0, sizeof(mesh->fdata));
 }
 
 Mesh *BKE_mesh_add(const char *name)
@@ -492,7 +493,13 @@ Mesh *BKE_mesh_add(const char *name)
 	me->texflag = ME_AUTOSPACE;
 	me->flag = ME_TWOSIDED;
 	me->drawflag = ME_DRAWEDGES | ME_DRAWFACES | ME_DRAWCREASES;
-	
+
+	CustomData_reset(&me->vdata);
+	CustomData_reset(&me->edata);
+	CustomData_reset(&me->fdata);
+	CustomData_reset(&me->pdata);
+	CustomData_reset(&me->ldata);
+
 	return me;
 }
 
@@ -577,7 +584,7 @@ static void expand_local_mesh(Mesh *me)
 
 		for (i = 0; i < me->pdata.totlayer; i++) {
 			if (me->pdata.layers[i].type == CD_MTEXPOLY) {
-				MTexPoly *txface = (MTexPoly *)me->fdata.layers[i].data;
+				MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
 
 				for (a = 0; a < me->totpoly; a++, txface++) {
 					/* special case: ima always local immediately */
@@ -736,7 +743,7 @@ float *BKE_mesh_orco_verts_get(Object *ob)
 	/* Get appropriate vertex coordinates */
 	vcos = MEM_callocN(sizeof(*vcos) * me->totvert, "orco mesh");
 	mvert = tme->mvert;
-	totvert = MIN2(tme->totvert, me->totvert);
+	totvert = min_ii(tme->totvert, me->totvert);
 
 	for (a = 0; a < totvert; a++, mvert++) {
 		copy_v3_v3(vcos[a], mvert->co);
@@ -789,7 +796,7 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		nr--;
 	}
 
-	/* check corrupt cases, bowtie geometry, cant handle these because edge data wont exist so just return 0 */
+	/* check corrupt cases, bow-tie geometry, cant handle these because edge data wont exist so just return 0 */
 	if (nr == 3) {
 		if (
 		    /* real edges */
@@ -1865,7 +1872,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 		/* only calc poly normals */
 		mp = mpolys;
 		for (i = 0; i < numPolys; i++, mp++) {
-			mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
+			BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
 		}
 	}
 
@@ -1915,7 +1922,7 @@ void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpo
 
 	mp = mpolys;
 	for (i = 0; i < numPolys; i++, mp++) {
-		mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
+		BKE_mesh_calc_poly_normal(mp, mloop + mp->loopstart, mverts, pnors[i]);
 		ml = mloop + mp->loopstart;
 
 		BLI_array_empty(vertcos);
@@ -1944,8 +1951,9 @@ void BKE_mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpo
 		MVert *mv = &mverts[i];
 		float *no = tnorms[i];
 
-		if (normalize_v3(no) == 0.0f)
+		if (UNLIKELY(normalize_v3(no) == 0.0f)) {
 			normalize_v3_v3(no, mv->co);
+		}
 
 		normal_float_to_short_v3(mv->no, no);
 	}
@@ -1981,8 +1989,9 @@ void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, 
 		MVert *mv = &mverts[i];
 		float *no = tnorms[i];
 		
-		if (normalize_v3(no) == 0.0f)
+		if (UNLIKELY(normalize_v3(no) == 0.0f)) {
 			normalize_v3_v3(no, mv->co);
+		}
 
 		normal_float_to_short_v3(mv->no, no);
 	}
@@ -2038,11 +2047,11 @@ static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata,
 		MDisps *ld = CustomData_get(ldata, loopstart, CD_MDISPS);
 		MDisps *fd = CustomData_get(fdata, findex, CD_MDISPS);
 		float (*disps)[3] = fd->disps;
-		int i, tot = mf->v4 ? 4 : 3;
+		int tot = mf->v4 ? 4 : 3;
 		int side, corners;
 
 		if (CustomData_external_test(fdata, CD_MDISPS)) {
-			if (id) {
+			if (id && fdata->external) {
 				CustomData_external_add(ldata, id, CD_MDISPS,
 				                        totloop, fdata->external->filename);
 			}
@@ -2124,8 +2133,6 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 	/* just in case some of these layers are filled in (can happen with python created meshes) */
 	CustomData_free(ldata, totloop_i);
 	CustomData_free(pdata, totpoly_i);
-	memset(ldata, 0, sizeof(*ldata));
-	memset(pdata, 0, sizeof(*pdata));
 
 	totpoly = totface_i;
 	mpoly = MEM_callocN(sizeof(MPoly) * totpoly, "mpoly converted");
@@ -2162,7 +2169,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData 
 		me->flag &= ~ME_FGON;
 	}
 
-	polyindex = CustomData_get_layer(fdata, CD_POLYINDEX);
+	polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
 
 	j = 0; /* current loop index */
 	ml = mloop;
@@ -2504,12 +2511,9 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	ScanFillContext sf_ctx;
 	ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
 	ScanFillFace *sf_tri;
-	int *mface_orig_index = NULL;
-	BLI_array_declare(mface_orig_index);
 	int *mface_to_poly_map = NULL;
 	BLI_array_declare(mface_to_poly_map);
 	int lindex[4]; /* only ever use 3 in this case */
-	int *poly_orig_index;
 	int poly_index, j, mface_index;
 
 	const int numTex = CustomData_number_of_layers(pdata, CD_MTEXPOLY);
@@ -2527,7 +2531,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 
 	mface_index = 0;
 	mp = mpoly;
-	poly_orig_index = CustomData_get_layer(pdata, CD_ORIGINDEX);
 	for (poly_index = 0; poly_index < totpoly; poly_index++, mp++) {
 		if (mp->totloop < 3) {
 			/* do nothing */
@@ -2547,10 +2550,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 		mf->v4 = 0;                                                           \
 		mf->mat_nr = mp->mat_nr;                                              \
 		mf->flag = mp->flag;                                                  \
-		if (poly_orig_index) {                                                \
-			BLI_array_append(mface_orig_index,                                \
-		                     poly_orig_index[poly_index]);                    \
-		}                                                                     \
 		(void)0
 
 /* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
@@ -2566,10 +2565,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 		mf->v4 = mp->loopstart + 3; /* EXCEPTION */                           \
 		mf->mat_nr = mp->mat_nr;                                              \
 		mf->flag = mp->flag;                                                  \
-		if (poly_orig_index) {                                                \
-			BLI_array_append(mface_orig_index,                                \
-		                     poly_orig_index[poly_index]);                    \
-		}                                                                     \
 		mf->edcode |= TESSFACE_IS_QUAD; /* EXCEPTION */                       \
 		(void)0
 
@@ -2616,9 +2611,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			if (totfilltri) {
 				BLI_array_grow_items(mface_to_poly_map, totfilltri);
 				BLI_array_grow_items(mface, totfilltri);
-				if (poly_orig_index) {
-					BLI_array_grow_items(mface_orig_index, totfilltri);
-				}
 
 				for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next, mf++) {
 					mface_to_poly_map[mface_index] = poly_index;
@@ -2637,10 +2629,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 					mf->edcode |= TESSFACE_SCANFILL; /* tag for sorting loop indices */
 #endif
 
-					if (poly_orig_index) {
-						mface_orig_index[mface_index] = poly_orig_index[poly_index];
-					}
-
 					mface_index++;
 				}
 			}
@@ -2650,7 +2638,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	}
 
 	CustomData_free(fdata, totface);
-	memset(fdata, 0, sizeof(CustomData));
 	totface = mface_index;
 
 
@@ -2658,23 +2645,13 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	if (LIKELY((MEM_allocN_len(mface) / sizeof(*mface)) != totface)) {
 		mface = MEM_reallocN(mface, sizeof(*mface) * totface);
 		mface_to_poly_map = MEM_reallocN(mface_to_poly_map, sizeof(*mface_to_poly_map) * totface);
-		if (mface_orig_index) {
-			mface_orig_index = MEM_reallocN(mface_orig_index, sizeof(*mface_orig_index) * totface);
-		}
 	}
 
 	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);
 
-	/* CD_POLYINDEX will contain an array of indices from tessfaces to the polygons
+	/* CD_ORIGINDEX will contain an array of indices from tessfaces to the polygons
 	 * they are directly tessellated from */
-	CustomData_add_layer(fdata, CD_POLYINDEX, CD_ASSIGN, mface_to_poly_map, totface);
-	if (mface_orig_index) {
-		/* If polys had a CD_ORIGINDEX layer, then the tessellated faces will get this
-		 * layer as well, pointing to polys from the original mesh (not the polys
-		 * that just got tessellated) */
-		CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, mface_orig_index, totface);
-	}
-
+	CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, mface_to_poly_map, totface);
 	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
 
 	if (do_face_nor_cpy) {
@@ -2805,7 +2782,6 @@ int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
 	}
 
 	CustomData_free(fdata, totface);
-	memset(fdata, 0, sizeof(CustomData));
 
 	totface = k;
 
@@ -2899,8 +2875,8 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 	}
 }
 
-void mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart, 
-                           MVert *mvarray, float no[3])
+void BKE_mesh_calc_poly_normal(MPoly *mpoly, MLoop *loopstart,
+                               MVert *mvarray, float no[3])
 {
 	if (mpoly->totloop > 4) {
 		mesh_calc_ngon_normal(mpoly, loopstart, mvarray, no);
@@ -3015,7 +2991,7 @@ void BKE_mesh_calc_poly_center(MPoly *mpoly, MLoop *loopstart,
 
 /* note, passing polynormal is only a speedup so we can skip calculating it */
 float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
-                              MVert *mvarray, float polynormal[3])
+                              MVert *mvarray, const float polynormal[3])
 {
 	if (mpoly->totloop == 3) {
 		return area_tri_v3(mvarray[loopstart[0].v].co,
@@ -3034,7 +3010,7 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 		int i;
 		MLoop *l_iter = loopstart;
 		float area, polynorm_local[3], (*vertexcos)[3];
-		float *no = polynormal ? polynormal : polynorm_local;
+		const float *no = polynormal ? polynormal : polynorm_local;
 		BLI_array_fixedstack_declare(vertexcos, BM_NGON_STACK_SIZE, mpoly->totloop, __func__);
 
 		/* pack vertex cos into an array for area_poly_v3 */
@@ -3044,7 +3020,7 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 
 		/* need normal for area_poly_v3 as well */
 		if (polynormal == NULL) {
-			mesh_calc_poly_normal(mpoly, loopstart, mvarray, no);
+			BKE_mesh_calc_poly_normal(mpoly, loopstart, mvarray, polynorm_local);
 		}
 
 		/* finally calculate the area */
@@ -3172,6 +3148,32 @@ int BKE_mesh_center_bounds(Mesh *me, float cent[3])
 	}
 
 	return 0;
+}
+
+int BKE_mesh_center_centroid(Mesh *me, float cent[3])
+{
+	int i = me->totpoly;
+	MPoly *mpoly;
+	float poly_area;
+	float total_area = 0.0f;
+	float poly_cent[3];
+	
+	zero_v3(cent);
+	
+	/* calculate a weighted average of polygon centroids */
+	for (mpoly = me->mpoly; i--; mpoly++) {
+		BKE_mesh_calc_poly_center(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
+		poly_area = BKE_mesh_calc_poly_area(mpoly, me->mloop + mpoly->loopstart, me->mvert, NULL);
+		
+		madd_v3_v3fl(cent, poly_cent, poly_area);
+		total_area += poly_area;
+	}
+	/* otherwise we get NAN for 0 polys */
+	if (me->totpoly) {
+		mul_v3_fl(cent, 1.0f / total_area);
+	}
+
+	return (me->totpoly != 0);
 }
 
 void BKE_mesh_translate(Mesh *me, float offset[3], int do_keys)

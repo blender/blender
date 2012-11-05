@@ -79,7 +79,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		CompositorQuality quality = context->getQuality();
 
 		/* initialize node data */
-		NodeBlurData *data = (NodeBlurData *)&this->m_alpha_blur;
+		NodeBlurData *data = &this->m_alpha_blur;
 		memset(data, 0, sizeof(*data));
 		data->filtertype = R_FILTER_GAUSS;
 
@@ -95,6 +95,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		operationx->setbNode(editorNode);
 		operationx->setData(data);
 		operationx->setQuality(quality);
+		operationx->setFalloff(PROP_SMOOTH);
 		this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
 		// this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph); // no size input yet
 		graph->addOperation(operationx);
@@ -102,6 +103,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		operationy->setbNode(editorNode);
 		operationy->setData(data);
 		operationy->setQuality(quality);
+		operationy->setFalloff(PROP_SMOOTH);
 		this->getOutputSocket(0)->relinkConnections(operationy->getOutputSocket());
 		graph->addOperation(operationy);
 		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));

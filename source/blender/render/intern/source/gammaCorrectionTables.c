@@ -38,7 +38,7 @@
 /* result remain identical (ton)                                            */   
 
 /* gamma is only used here for correcting adding colors or alpha */
-#define RE_DEFAULT_GAMMA 2.0
+// #define RE_DEFAULT_GAMMA 2.0 // UNUSED
 
 /* This 400 is sort of based on the number of intensity levels needed for    */
 /* the typical dynamic range of a medium, in this case CRTs. (Foley)         */
@@ -107,13 +107,13 @@ void makeGammaTables(float gamma)
 	color_step        = 1.0 / RE_GAMMA_TABLE_SIZE;
 	inv_color_step    = (float) RE_GAMMA_TABLE_SIZE; 
 
-	/* We could squeeze out the two range tables to gain some memory.        */	
+	/* We could squeeze out the two range tables to gain some memory.        */
 	for (i = 0; i < RE_GAMMA_TABLE_SIZE; i++) {
-		color_domain_table[i]   = i * color_step;
+		color_domain_table[i]    = i * color_step;
 		gamma_range_table[i]     = pow(color_domain_table[i],
-										valid_gamma);
+		                               valid_gamma);
 		inv_gamma_range_table[i] = pow(color_domain_table[i],
-										valid_inv_gamma);
+		                               valid_inv_gamma);
 	}
 
 	/* The end of the table should match 1.0 carefully. In order to avoid    */

@@ -685,7 +685,7 @@ static PyObject *bpy_bmlayercollection_subscript(BPy_BMLayerCollection *self, Py
 				/* only get the length for negative values */
 				Py_ssize_t len = bpy_bmlayercollection_length(self);
 				if (start < 0) start += len;
-				if (stop < 0) start += len;
+				if (stop  < 0) stop  += len;
 			}
 
 			if (stop - start <= 0) {
@@ -1079,7 +1079,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 				ret = -1;
 			}
 			else {
-				BLI_strncpy(mstring->s, tmp_val, sizeof(mstring->s));
+				BLI_strncpy(mstring->s, tmp_val, min_ii(PyBytes_Size(py_value), sizeof(mstring->s)));
 			}
 			break;
 		}

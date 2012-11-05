@@ -1063,6 +1063,7 @@ static int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupT
 	const int iNrMaxGroups = iNrTrianglesIn*3;
 	int iNrActiveGroups = 0;
 	int iOffset = 0, f=0, i=0;
+	(void)iNrMaxGroups;  /* quiet warnings in non debug mode */
 	for (f=0; f<iNrTrianglesIn; f++)
 	{
 		for (i=0; i<3; i++)
@@ -1094,6 +1095,7 @@ static int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupT
 					const tbool bOrPre2 = (pTriInfos[neigh_indexL].iFlag&ORIENT_PRESERVING)!=0 ? TTRUE : TFALSE;
 					const tbool bDiff = bOrPre!=bOrPre2 ? TTRUE : TFALSE;
 					assert(bAnswer || bDiff);
+					(void)bAnswer, (void)bDiff;  /* quiet warnings in non debug mode */
 				}
 				if (neigh_indexR>=0) // neighbor
 				{
@@ -1104,6 +1106,7 @@ static int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupT
 					const tbool bOrPre2 = (pTriInfos[neigh_indexR].iFlag&ORIENT_PRESERVING)!=0 ? TTRUE : TFALSE;
 					const tbool bDiff = bOrPre!=bOrPre2 ? TTRUE : TFALSE;
 					assert(bAnswer || bDiff);
+					(void)bAnswer, (void)bDiff;  /* quiet warnings in non debug mode */
 				}
 
 				// update offset

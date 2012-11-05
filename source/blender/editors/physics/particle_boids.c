@@ -273,7 +273,7 @@ static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
 	/* there must be at least one state */
 	if (!part->boids->states.first) {
 		state = boid_new_state(part->boids);
-		BLI_addtail(&part->boids->states, state);	
+		BLI_addtail(&part->boids->states, state);
 	}
 	else
 		state = part->boids->states.first;

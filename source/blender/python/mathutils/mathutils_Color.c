@@ -35,8 +35,8 @@
 
 #define COLOR_SIZE 3
 
-//----------------------------------mathutils.Color() -------------------
-//makes a new color for you to play with
+/* ----------------------------------mathutils.Color() ------------------- */
+/* makes a new color for you to play with */
 static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	float col[3] = {0.0f, 0.0f, 0.0f};
@@ -64,7 +64,7 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return Color_CreatePyObject(col, Py_NEW, type);
 }
 
-//-----------------------------METHODS----------------------------
+/* -----------------------------METHODS---------------------------- */
 
 /* note: BaseMath_ReadCallback must be called beforehand */
 static PyObject *Color_ToTupleExt(ColorObject *self, int ndigits)
@@ -113,8 +113,8 @@ static PyObject *Color_deepcopy(ColorObject *self, PyObject *args)
 	return Color_copy(self);
 }
 
-//----------------------------print object (internal)--------------
-//print the object to screen
+/* ----------------------------print object (internal)-------------- */
+/* print the object to screen */
 
 static PyObject *Color_repr(ColorObject *self)
 {
@@ -146,8 +146,8 @@ static PyObject *Color_str(ColorObject *self)
 	return mathutils_dynstr_to_py(ds); /* frees ds */
 }
 
-//------------------------tp_richcmpr
-//returns -1 exception, 0 false, 1 true
+/* ------------------------tp_richcmpr */
+/* returns -1 exception, 0 false, 1 true */
 static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 {
 	PyObject *res;
@@ -184,15 +184,15 @@ static PyObject *Color_richcmpr(PyObject *a, PyObject *b, int op)
 	return Py_INCREF(res), res;
 }
 
-//---------------------SEQUENCE PROTOCOLS------------------------
-//----------------------------len(object)------------------------
-//sequence length
+/* ---------------------SEQUENCE PROTOCOLS------------------------ */
+/* ----------------------------len(object)------------------------ */
+/* sequence length */
 static int Color_len(ColorObject *UNUSED(self))
 {
 	return COLOR_SIZE;
 }
-//----------------------------object[]---------------------------
-//sequence accessor (get)
+/* ----------------------------object[]--------------------------- */
+/* sequence accessor (get) */
 static PyObject *Color_item(ColorObject *self, int i)
 {
 	if (i < 0) i = COLOR_SIZE - i;
@@ -210,13 +210,13 @@ static PyObject *Color_item(ColorObject *self, int i)
 	return PyFloat_FromDouble(self->col[i]);
 
 }
-//----------------------------object[]-------------------------
-//sequence accessor (set)
+/* ----------------------------object[]------------------------- */
+/* sequence accessor (set) */
 static int Color_ass_item(ColorObject *self, int i, PyObject *value)
 {
 	float f = PyFloat_AsDouble(value);
 
-	if (f == -1 && PyErr_Occurred()) { // parsed item not a number
+	if (f == -1 && PyErr_Occurred()) {  /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
 		                "color[item] = x: "
 		                "argument not a number");
@@ -238,8 +238,8 @@ static int Color_ass_item(ColorObject *self, int i, PyObject *value)
 
 	return 0;
 }
-//----------------------------object[z:y]------------------------
-//sequence slice (get)
+/* ----------------------------object[z:y]------------------------ */
+/* sequence slice (get) */
 static PyObject *Color_slice(ColorObject *self, int begin, int end)
 {
 	PyObject *tuple;
@@ -260,8 +260,8 @@ static PyObject *Color_slice(ColorObject *self, int begin, int end)
 
 	return tuple;
 }
-//----------------------------object[z:y]------------------------
-//sequence slice (set)
+/* ----------------------------object[z:y]------------------------ */
+/* sequence slice (set) */
 static int Color_ass_slice(ColorObject *self, int begin, int end, PyObject *seq)
 {
 	int i, size;
@@ -361,7 +361,7 @@ static int Color_ass_subscript(ColorObject *self, PyObject *item, PyObject *valu
 	}
 }
 
-//-----------------PROTCOL DECLARATIONS--------------------------
+/* -----------------PROTCOL DECLARATIONS-------------------------- */
 static PySequenceMethods Color_SeqMethods = {
 	(lenfunc) Color_len,                    /* sq_length */
 	(binaryfunc) NULL,                      /* sq_concat */
@@ -565,7 +565,7 @@ static PyObject *Color_div(PyObject *v1, PyObject *v2)
 	return NULL;
 }
 
-/* mulplication in-place: obj *= obj */
+/* multiplication in-place: obj *= obj */
 static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 {
 	ColorObject *color = (ColorObject *)v1;
@@ -591,7 +591,7 @@ static PyObject *Color_imul(PyObject *v1, PyObject *v2)
 	return v1;
 }
 
-/* mulplication in-place: obj *= obj */
+/* multiplication in-place: obj *= obj */
 static PyObject *Color_idiv(PyObject *v1, PyObject *v2)
 {
 	ColorObject *color = (ColorObject *)v1;
@@ -792,7 +792,7 @@ static PyGetSetDef Color_getseters[] = {
 };
 
 
-//-----------------------METHOD DEFINITIONS ----------------------
+/* -----------------------METHOD DEFINITIONS ---------------------- */
 static struct PyMethodDef Color_methods[] = {
 	{"copy", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
 	{"__copy__", (PyCFunction) Color_copy, METH_NOARGS, Color_copy_doc},
@@ -800,65 +800,65 @@ static struct PyMethodDef Color_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-//------------------PY_OBECT DEFINITION--------------------------
+/* ------------------PY_OBECT DEFINITION-------------------------- */
 PyDoc_STRVAR(color_doc,
 "This object gives access to Colors in Blender."
 );
 PyTypeObject color_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	"Color",                        //tp_name
-	sizeof(ColorObject),            //tp_basicsize
-	0,                              //tp_itemsize
-	(destructor)BaseMathObject_dealloc,     //tp_dealloc
-	NULL,                           //tp_print
-	NULL,                           //tp_getattr
-	NULL,                           //tp_setattr
-	NULL,                           //tp_compare
-	(reprfunc) Color_repr,          //tp_repr
-	&Color_NumMethods,              //tp_as_number
-	&Color_SeqMethods,              //tp_as_sequence
-	&Color_AsMapping,               //tp_as_mapping
-	NULL,                           //tp_hash
-	NULL,                           //tp_call
-	(reprfunc) Color_str,           //tp_str
-	NULL,                           //tp_getattro
-	NULL,                           //tp_setattro
-	NULL,                           //tp_as_buffer
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, //tp_flags
-	color_doc, //tp_doc
-	(traverseproc)BaseMathObject_traverse,  //tp_traverse
-	(inquiry)BaseMathObject_clear,  //tp_clear
-	(richcmpfunc)Color_richcmpr,    //tp_richcompare
-	0,                              //tp_weaklistoffset
-	NULL,                           //tp_iter
-	NULL,                           //tp_iternext
-	Color_methods,                  //tp_methods
-	NULL,                           //tp_members
-	Color_getseters,                //tp_getset
-	NULL,                           //tp_base
-	NULL,                           //tp_dict
-	NULL,                           //tp_descr_get
-	NULL,                           //tp_descr_set
-	0,                              //tp_dictoffset
-	NULL,                           //tp_init
-	NULL,                           //tp_alloc
-	Color_new,                      //tp_new
-	NULL,                           //tp_free
-	NULL,                           //tp_is_gc
-	NULL,                           //tp_bases
-	NULL,                           //tp_mro
-	NULL,                           //tp_cache
-	NULL,                           //tp_subclasses
-	NULL,                           //tp_weaklist
-	NULL                            //tp_del
+	"Color",                        /* tp_name */
+	sizeof(ColorObject),            /* tp_basicsize */
+	0,                              /* tp_itemsize */
+	(destructor)BaseMathObject_dealloc,  /* tp_dealloc */
+	NULL,                           /* tp_print */
+	NULL,                           /* tp_getattr */
+	NULL,                           /* tp_setattr */
+	NULL,                           /* tp_compare */
+	(reprfunc) Color_repr,          /* tp_repr */
+	&Color_NumMethods,              /* tp_as_number */
+	&Color_SeqMethods,              /* tp_as_sequence */
+	&Color_AsMapping,               /* tp_as_mapping */
+	NULL,                           /* tp_hash */
+	NULL,                           /* tp_call */
+	(reprfunc) Color_str,           /* tp_str */
+	NULL,                           /* tp_getattro */
+	NULL,                           /* tp_setattro */
+	NULL,                           /* tp_as_buffer */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC, /* tp_flags */
+	color_doc, /* tp_doc */
+	(traverseproc)BaseMathObject_traverse,  /* tp_traverse */
+	(inquiry)BaseMathObject_clear,  /* tp_clear */
+	(richcmpfunc)Color_richcmpr,    /* tp_richcompare */
+	0,                              /* tp_weaklistoffset */
+	NULL,                           /* tp_iter */
+	NULL,                           /* tp_iternext */
+	Color_methods,                  /* tp_methods */
+	NULL,                           /* tp_members */
+	Color_getseters,                /* tp_getset */
+	NULL,                           /* tp_base */
+	NULL,                           /* tp_dict */
+	NULL,                           /* tp_descr_get */
+	NULL,                           /* tp_descr_set */
+	0,                              /* tp_dictoffset */
+	NULL,                           /* tp_init */
+	NULL,                           /* tp_alloc */
+	Color_new,                      /* tp_new */
+	NULL,                           /* tp_free */
+	NULL,                           /* tp_is_gc */
+	NULL,                           /* tp_bases */
+	NULL,                           /* tp_mro */
+	NULL,                           /* tp_cache */
+	NULL,                           /* tp_subclasses */
+	NULL,                           /* tp_weaklist */
+	NULL                            /* tp_del */
 };
-//------------------------Color_CreatePyObject (internal)-------------
-//creates a new color object
+/* ------------------------Color_CreatePyObject (internal)------------- */
+/* creates a new color object */
 /* pass Py_WRAP - if vector is a WRAPPER for data allocated by BLENDER
  *  (i.e. it was allocated elsewhere by MEM_mallocN())
  *   pass Py_NEW - if vector is not a WRAPPER and managed by PYTHON
  *  (i.e. it must be created here with PyMEM_malloc())*/
-PyObject *Color_CreatePyObject(float *col, int type, PyTypeObject *base_type)
+PyObject *Color_CreatePyObject(float col[3], int type, PyTypeObject *base_type)
 {
 	ColorObject *self;
 

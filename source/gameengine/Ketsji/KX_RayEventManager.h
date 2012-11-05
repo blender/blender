@@ -50,5 +50,4 @@ public:
 #endif
 };
 
-#endif //__KX_RAYEVENTMANAGER_H__
-
+#endif  /* __KX_RAYEVENTMANAGER_H__ */

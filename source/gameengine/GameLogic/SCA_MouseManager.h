@@ -63,7 +63,7 @@ public:
 	 * mouse related events. Can also flag mouse movement.
 	 */
 	bool IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode);
-	virtual void 	NextFrame();	
+	virtual void 	NextFrame();
 	SCA_IInputDevice* GetInputDevice();
 
 
@@ -72,5 +72,4 @@ public:
 #endif
 };
 
-#endif //__SCA_MOUSEMANAGER_H__
-
+#endif  /* __SCA_MOUSEMANAGER_H__ */

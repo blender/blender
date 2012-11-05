@@ -314,7 +314,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 	}
 }
 
-void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
+static void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
 {
 	do_colorband(coba, position, color);
 }
@@ -329,12 +329,27 @@ static CBData *rna_ColorRampElement_new(struct ColorBand *coba, ReportList *repo
 	return element;
 }
 
-static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *reports, CBData *element)
+static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *reports, PointerRNA *element_ptr)
 {
+	CBData *element = element_ptr->data;
 	int index = (int)(element - coba->data);
-	if (colorband_element_remove(coba, index) == 0)
+	if (colorband_element_remove(coba, index) == FALSE) {
 		BKE_report(reports, RPT_ERROR, "Element not found in element collection or last element");
+		return;
+	}
 
+	RNA_POINTER_INVALIDATE(element_ptr);
+}
+
+void rna_CurveMap_remove_point(CurveMap *cuma, ReportList *reports, PointerRNA *point_ptr)
+{
+	CurveMapPoint *point = point_ptr->data;
+	if (curvemap_remove_point(cuma, point) == FALSE) {
+		BKE_report(reports, RPT_ERROR, "Unable to remove curve point");
+		return;
+	}
+
+	RNA_POINTER_INVALIDATE(point_ptr);
 }
 
 static void rna_Scopes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -376,6 +391,9 @@ static EnumPropertyItem *rna_ColorManagedDisplaySettings_display_device_itemf(bC
 static void rna_ColorManagedDisplaySettings_display_device_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
+
+	if (!id)
+		return;
 
 	if (GS(id->name) == ID_SCE) {
 		Scene *scene = (Scene *) id;
@@ -471,14 +489,20 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 	if (GS(id->name) == ID_IM) {
 		Image *ima = (Image *) id;
 
-		BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+		DAG_id_tag_update(&ima->id, 0);
+
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_COLORMANAGE);
+
 		WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
+		WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 	}
 	else if (GS(id->name) == ID_MC) {
 		MovieClip *clip = (MovieClip *) id;
 
 		BKE_movieclip_reload(clip);
+
 		WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
+		WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, &clip->id);
 	}
 }
 
@@ -486,13 +510,16 @@ static void rna_ColorManagement_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 {
 	ID *id = ptr->id.data;
 
+	if (!id)
+		return;
+
 	if (GS(id->name) == ID_SCE) {
 		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 	}
 }
 
 /* this function only exists because #curvemap_evaluateF uses a 'const' qualifier */
-float rna_CurveMap_evaluateF(struct CurveMap *cuma, float value)
+static float rna_CurveMap_evaluateF(struct CurveMap *cuma, float value)
 {
 	return curvemap_evaluateF(cuma, value);
 }
@@ -547,10 +574,12 @@ static void rna_def_curvemap_points_api(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "point", "CurveMapPoint", "", "New point");
 	RNA_def_function_return(func, parm);
 
-	func = RNA_def_function(srna, "remove", "curvemap_remove_point");
+	func = RNA_def_function(srna, "remove", "rna_CurveMap_remove_point");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Delete point from CurveMap");
 	parm = RNA_def_pointer(func, "point", "CurveMapPoint", "", "PointElement to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_curvemap(BlenderRNA *brna)
@@ -699,7 +728,8 @@ static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Delete element from ColorRamp");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "element", "ColorRampElement", "", "Element to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
 static void rna_def_color_ramp(BlenderRNA *brna)
@@ -860,7 +890,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ColorManagedDisplaySettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedDisplaySettings", "Color management specific to display device");
 
-	prop= RNA_def_property(srna, "display_device", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "display_device", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, display_device_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedDisplaySettings_display_device_get",
 	                                  "rna_ColorManagedDisplaySettings_display_device_set",
@@ -872,7 +902,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ColorManagedViewSettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedViewSettings", "Color management settings used for displaying images on the display");
 
-	prop= RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, view_transform_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedViewSettings_view_transform_get",
 	                                  "rna_ColorManagedViewSettings_view_transform_set",
@@ -909,7 +939,7 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ColorManagedColorspaceSettings", NULL);
 	RNA_def_struct_ui_text(srna, "ColorManagedColorspaceSettings", "Input color space settings");
 
-	prop= RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, color_space_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedColorspaceSettings_colorspace_get",
 	                                  "rna_ColorManagedColorspaceSettings_colorspace_set",

@@ -94,8 +94,8 @@ static void write_buffer_rect(rcti *rect, const bNodeTree *tree,
 
 
 OutputSingleLayerOperation::OutputSingleLayerOperation(
-    const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
-    const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
+        const RenderData *rd, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path,
+        const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings)
 {
 	this->m_rd = rd;
 	this->m_tree = tree;
@@ -129,7 +129,7 @@ void OutputSingleLayerOperation::deinitExecution()
 	if (this->getWidth() * this->getHeight() != 0) {
 		
 		int size = get_datatype_size(this->m_datatype);
-		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), size * 8, 0);
+		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), this->m_format->planes, 0);
 		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 		
@@ -138,8 +138,9 @@ void OutputSingleLayerOperation::deinitExecution()
 		ibuf->mall |= IB_rectfloat; 
 		ibuf->dither = this->m_rd->dither_intensity;
 		
-		IMB_display_buffer_to_imbuf_rect(ibuf, m_viewSettings, m_displaySettings);
-		
+		IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, m_viewSettings, m_displaySettings,
+		                                    this->m_format);
+
 		BKE_makepicstring(filename, this->m_path, bmain->name, this->m_rd->cfra, this->m_format->imtype,
 		                  (this->m_rd->scemode & R_EXTENSION), true);
 		
@@ -148,7 +149,7 @@ void OutputSingleLayerOperation::deinitExecution()
 		else
 			printf("Saved: %s\n", filename);
 		
-		IMB_freeImBuf(ibuf);	
+		IMB_freeImBuf(ibuf);
 	}
 	this->m_outputBuffer = NULL;
 	this->m_imageInput = NULL;

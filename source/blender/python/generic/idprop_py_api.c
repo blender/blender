@@ -43,43 +43,39 @@
 #include "py_capi_utils.h"
 #endif
 
-extern PyTypeObject BPy_IDArray_Type;
-extern PyTypeObject BPy_IDGroup_Iter_Type;
-extern PyTypeObject BPy_IDGroup_Type;
-
 /*********************** ID Property Main Wrapper Stuff ***************/
 
 /* ----------------------------------------------------------------------------
  * static conversion functions to avoid duplicate code, no type checking.
  */
 
-static PyObject *idprop_py_from_idp_string(IDProperty *prop)
+static PyObject *idprop_py_from_idp_string(const IDProperty *prop)
 {
 	if (prop->subtype == IDP_STRING_SUB_BYTE) {
-		return PyBytes_FromStringAndSize(IDP_Array(prop), prop->len);
+		return PyBytes_FromStringAndSize(IDP_String(prop), prop->len);
 	}
 	else {
 #ifdef USE_STRING_COERCE
 		return PyC_UnicodeFromByteAndSize(IDP_Array(prop), prop->len - 1);
 #else
-		return PyUnicode_FromStringAndSize(IDP_Array(prop), prop->len - 1);
+		return PyUnicode_FromStringAndSize(IDP_String(prop), prop->len - 1);
 #endif
 	}
 }
 
-static PyObject *idprop_py_from_idp_int(IDProperty *prop)
+static PyObject *idprop_py_from_idp_int(const IDProperty *prop)
 {
-	return PyLong_FromLong((long)prop->data.val);
+	return PyLong_FromLong((long)IDP_Int(prop));
 }
 
-static PyObject *idprop_py_from_idp_float(IDProperty *prop)
+static PyObject *idprop_py_from_idp_float(const IDProperty *prop)
 {
-	return PyFloat_FromDouble((double)(*(float *)(&prop->data.val)));
+	return PyFloat_FromDouble((double)IDP_Float(prop));
 }
 
-static PyObject *idprop_py_from_idp_double(IDProperty *prop)
+static PyObject *idprop_py_from_idp_double(const IDProperty *prop)
 {
-	return PyFloat_FromDouble((*(double *)(&prop->data.val)));
+	return PyFloat_FromDouble(IDP_Double(prop));
 }
 
 static PyObject *idprop_py_from_idp_group(ID *id, IDProperty *prop, IDProperty *parent)
@@ -193,7 +189,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 				PyErr_SetString(PyExc_TypeError, "expected an int type");
 				return -1;
 			}
-			prop->data.val = ivalue;
+			IDP_Int(prop) = ivalue;
 			break;
 		}
 		case IDP_FLOAT:
@@ -203,7 +199,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
-			*(float *)&self->prop->data.val = fvalue;
+			IDP_Float(self->prop) = fvalue;
 			break;
 		}
 		case IDP_DOUBLE:
@@ -213,7 +209,7 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
 				PyErr_SetString(PyExc_TypeError, "expected a float");
 				return -1;
 			}
-			*(double *)&self->prop->data.val = dvalue;
+			IDP_Double(self->prop) = dvalue;
 			break;
 		}
 		default:
@@ -300,40 +296,34 @@ static PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
 }
 
 /* returns NULL on success, error string on failure */
-static int idp_sequence_type(PyObject *seq)
+static int idp_sequence_type(PyObject *seq_fast)
 {
 	PyObject *item;
 	int type = IDP_INT;
 
-	Py_ssize_t i, len = PySequence_Size(seq);
+	Py_ssize_t i, len = PySequence_Fast_GET_SIZE(seq_fast);
 	for (i = 0; i < len; i++) {
-		item = PySequence_GetItem(seq, i);
+		item = PySequence_Fast_GET_ITEM(seq_fast, i);
 		if (PyFloat_Check(item)) {
 			if (type == IDP_IDPARRAY) { /* mixed dict/int */
-				Py_DECREF(item);
 				return -1;
 			}
 			type = IDP_DOUBLE;
 		}
 		else if (PyLong_Check(item)) {
 			if (type == IDP_IDPARRAY) { /* mixed dict/int */
-				Py_DECREF(item);
 				return -1;
 			}
 		}
 		else if (PyMapping_Check(item)) {
 			if (i != 0 && (type != IDP_IDPARRAY)) { /* mixed dict/int */
-				Py_DECREF(item);
 				return -1;
 			}
 			type = IDP_IDPARRAY;
 		}
 		else {
-			Py_XDECREF(item);
 			return -1;
 		}
-
-		Py_DECREF(item);
 	}
 
 	return type;
@@ -386,48 +376,61 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		//prop->subtype = IDP_STRING_SUB_BYTE;
 	}
 	else if (PySequence_Check(ob)) {
+		PyObject *ob_seq_fast = PySequence_Fast(ob, "py -> idprop");
 		PyObject *item;
 		int i;
 
-		if ((val.array.type = idp_sequence_type(ob)) == -1)
+		if (ob_seq_fast == NULL) {
+			PyErr_Print();
+			PyErr_Clear();
+			return "error converting the sequence";
+		}
+
+		if ((val.array.type = idp_sequence_type(ob_seq_fast)) == -1) {
+			Py_DECREF(ob_seq_fast);
 			return "only floats, ints and dicts are allowed in ID property arrays";
+		}
 
 		/* validate sequence and derive type.
 		 * we assume IDP_INT unless we hit a float
 		 * number; then we assume it's */
 
-		val.array.len = PySequence_Size(ob);
+		val.array.len = PySequence_Fast_GET_SIZE(ob_seq_fast);
 
 		switch (val.array.type) {
 			case IDP_DOUBLE:
 				prop = IDP_New(IDP_ARRAY, &val, name);
 				for (i = 0; i < val.array.len; i++) {
-					item = PySequence_GetItem(ob, i);
+					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
 					((double *)IDP_Array(prop))[i] = (float)PyFloat_AsDouble(item);
-					Py_DECREF(item);
 				}
 				break;
 			case IDP_INT:
 				prop = IDP_New(IDP_ARRAY, &val, name);
 				for (i = 0; i < val.array.len; i++) {
-					item = PySequence_GetItem(ob, i);
+					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
 					((int *)IDP_Array(prop))[i] = (int)PyLong_AsSsize_t(item);
-					Py_DECREF(item);
 				}
 				break;
 			case IDP_IDPARRAY:
 				prop = IDP_NewIDPArray(name);
 				for (i = 0; i < val.array.len; i++) {
 					const char *error;
-					item = PySequence_GetItem(ob, i);
+					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
 					error = BPy_IDProperty_Map_ValidateAndCreate(NULL, prop, item);
-					Py_DECREF(item);
 
-					if (error)
+					if (error) {
+						Py_DECREF(ob_seq_fast);
 						return error;
+					}
 				}
 				break;
+			default:
+				Py_DECREF(ob_seq_fast);
+				return "internal error with idp array.type";
 		}
+
+		Py_DECREF(ob_seq_fast);
 	}
 	else if (PyMapping_Check(ob)) {
 		PyObject *keys, *vals, *key, *pval;
@@ -471,7 +474,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 
 	if (group->type == IDP_IDPARRAY) {
 		IDP_AppendArray(group, prop);
-		// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory
+		// IDP_FreeProperty(item);  /* IDP_AppendArray does a shallow copy (memcpy), only free memory */
 		MEM_freeN(prop);
 	}
 	else {
@@ -802,17 +805,28 @@ static PyObject *BPy_IDGroup_Update(BPy_IDProperty *self, PyObject *value)
 	PyObject *pkey, *pval;
 	Py_ssize_t i = 0;
 
-	if (!PyDict_Check(value)) {
+	if (BPy_IDGroup_Check(value)) {
+		BPy_IDProperty *other = (BPy_IDProperty *)value;
+		if (UNLIKELY(self->prop == other->prop)) {
+			Py_RETURN_NONE;
+		}
+
+		/* XXX, possible one is inside the other */
+		IDP_MergeGroup(self->prop, other->prop, TRUE);
+	}
+	else if (PyDict_Check(value)) {
+		while (PyDict_Next(value, &i, &pkey, &pval)) {
+			BPy_IDGroup_Map_SetItem(self, pkey, pval);
+			if (PyErr_Occurred()) return NULL;
+		}
+	}
+	else {
 		PyErr_Format(PyExc_TypeError,
-		             "expected a dict not a %.200s",
+		             "expected a dict or an IDPropertyGroup type, not a %.200s",
 		             Py_TYPE(value)->tp_name);
 		return NULL;
 	}
 
-	while (PyDict_Next(value, &i, &pkey, &pval)) {
-		BPy_IDGroup_Map_SetItem(self, pkey, pval);
-		if (PyErr_Occurred()) return NULL;
-	}
 
 	Py_RETURN_NONE;
 }
@@ -1416,15 +1430,15 @@ void IDProp_Init_Types(void)
 /* --- */
 
 static struct PyModuleDef IDProp_types_module_def = {
-    PyModuleDef_HEAD_INIT,
-    "idprop.types",  /* m_name */
-    NULL,  /* m_doc */
-    0,  /* m_size */
-    NULL,  /* m_methods */
-    NULL,  /* m_reload */
-    NULL,  /* m_traverse */
-    NULL,  /* m_clear */
-    NULL,  /* m_free */
+	PyModuleDef_HEAD_INIT,
+	"idprop.types",  /* m_name */
+	NULL,  /* m_doc */
+	0,  /* m_size */
+	NULL,  /* m_methods */
+	NULL,  /* m_reload */
+	NULL,  /* m_traverse */
+	NULL,  /* m_clear */
+	NULL,  /* m_free */
 };
 
 static PyObject *BPyInit_idprop_types(void)
@@ -1483,3 +1497,40 @@ PyObject *BPyInit_idprop(void)
 
 	return mod;
 }
+
+
+#ifdef DEBUG
+/* -------------------------------------------------------------------- */
+/* debug only function */
+
+void IDP_spit(IDProperty *prop)
+{
+	if (prop) {
+		PyGILState_STATE gilstate;
+		int use_gil = TRUE; /* !PYC_INTERPRETER_ACTIVE; */
+		PyObject *ret_dict;
+		PyObject *ret_str;
+
+		if (use_gil) {
+			gilstate = PyGILState_Ensure();
+		}
+
+		/* to_dict() */
+		ret_dict = BPy_IDGroup_MapDataToPy(prop);
+		ret_str = PyObject_Repr(ret_dict);
+		Py_DECREF(ret_dict);
+
+		printf("IDProperty: %s\n", _PyUnicode_AsString(ret_str));
+
+		Py_DECREF(ret_str);
+
+		if (use_gil) {
+			PyGILState_Release(gilstate);
+		}
+	}
+	else {
+		printf("IDProperty: <NIL>\n");
+	}
+}
+
+#endif

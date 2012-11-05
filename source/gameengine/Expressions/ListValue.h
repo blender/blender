@@ -64,7 +64,7 @@ public:
 	bool CheckEqual(CValue* first,CValue* second);
 
 #ifdef WITH_PYTHON
-	virtual PyObject* py_repr(void) {
+	virtual PyObject *py_repr(void) {
 		PyObject *py_proxy= this->GetProxy();
 		PyObject *py_list= PySequence_List(py_proxy);
 		PyObject *py_string= PyObject_Repr(py_list);
@@ -87,5 +87,5 @@ private:
 	bool	m_bReleaseContents;
 };
 
-#endif // !defined __LISTVALUE_H__
+#endif  /* __LISTVALUE_H__ */
 

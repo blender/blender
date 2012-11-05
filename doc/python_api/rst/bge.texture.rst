@@ -351,6 +351,15 @@ When the texture object is deleted, the new texture is deleted and the old textu
 
       use whole viewport to render
 
+   .. attribute:: depth
+
+      use depth component of render as array of float -  not suitable for texture source,
+      should only be used with bge.texture.imageToArray(mode='F')
+
+   .. attribute:: zbuff
+
+      use depth component of render as grey scale color -  suitable for texture source
+
 .. class:: ImageViewport()
 
    Image source from viewport
@@ -398,6 +407,15 @@ When the texture object is deleted, the new texture is deleted and the old textu
    .. attribute:: whole
 
       use whole viewport to capture
+
+   .. attribute:: depth
+
+      use depth component of viewport as array of float -  not suitable for texture source,
+      should only be used with bge.texture.imageToArray(mode='F')
+
+   .. attribute:: zbuff
+
+      use depth component of viewport as grey scale color -  suitable for texture source
 
 .. class:: Texture(gameObj)
 
@@ -518,13 +536,16 @@ When the texture object is deleted, the new texture is deleted and the old textu
       0 to force a fixed 0 color channel and 1 to force a fixed 255 color channel.
       Example: "BGR" will return 3 bytes per pixel with the Blue, Green and Red channels in that order.
       "RGB1" will return 4 bytes per pixel with the Red, Green, Blue channels in that order and the alpha channel forced to 255.
+      A special mode "F" allows to return the image as an array of float. This mode should only be used to retrieve
+      the depth buffer of the ImageViewport and ImageRender object.
       The default mode is "RGBA".
+          
 
    :type mode: string
    :rtype: :class:`~bgl.buffer`
    :return: A object representing the image as one dimensional array of bytes of size (pixel_size*width*height),
       line by line starting from the bottom of the image. The pixel size and format is determined by the mode
-      parameter.
+      parameter. For mode 'F', the array is a one dimensional array of float of size (width*height).
 
 .. function:: materialID(object,name)
 

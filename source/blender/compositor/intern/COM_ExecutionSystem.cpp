@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "PIL_time.h"
+#include "BLI_utildefines.h"
 #include "BKE_node.h"
 
 #include "COM_Converter.h"
@@ -50,7 +51,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
 	this->m_context.setbNodeTree(editingtree);
 	this->m_context.setFastCalculation(fastcalculation);
 	bNode *gnode;
-	for (gnode = (bNode *)editingtree->nodes.first; gnode; gnode = (bNode *)gnode->next) {
+	for (gnode = (bNode *)editingtree->nodes.first; gnode; gnode = gnode->next) {
 		if (gnode->type == NODE_GROUP && gnode->typeinfo->group_edit_get(gnode)) {
 			this->m_context.setActivegNode(gnode);
 			break;
@@ -240,12 +241,32 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 	}
 }
 
+#ifndef NDEBUG
+/* if this fails, there are still connection to/from this node,
+ * which have not been properly relinked to operations!
+ */
+static void debug_check_node_connections(Node *node)
+{
+	for (int i = 0; i < node->getNumberOfInputSockets(); ++i) {
+		BLI_assert(!node->getInputSocket(i)->isConnected());
+	}
+	for (int i = 0; i < node->getNumberOfOutputSockets(); ++i) {
+		BLI_assert(!node->getOutputSocket(i)->isConnected());
+	}
+}
+#else
+/* stub */
+#define debug_check_node_connections(node)
+#endif
+
 void ExecutionSystem::convertToOperations()
 {
 	unsigned int index;
 	for (index = 0; index < this->m_nodes.size(); index++) {
 		Node *node = (Node *)this->m_nodes[index];
 		node->convertToOperations(this, &this->m_context);
+
+		debug_check_node_connections(node);
 	}
 
 	for (index = 0; index < this->m_connections.size(); index++) {
@@ -313,6 +334,16 @@ void ExecutionSystem::groupOperations()
 void ExecutionSystem::addSocketConnection(SocketConnection *connection)
 {
 	this->m_connections.push_back(connection);
+}
+
+void ExecutionSystem::removeSocketConnection(SocketConnection *connection)
+{
+	for (vector<SocketConnection *>::iterator it = m_connections.begin(); it != m_connections.end(); ++it) {
+		if (*it == connection) {
+			this->m_connections.erase(it);
+			return;
+		}
+	}
 }
 
 

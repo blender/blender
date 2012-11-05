@@ -4,27 +4,14 @@
 // Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Mathieu Gautier <mathieu.gautier@cea.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_QUATERNION_H
 #define EIGEN_QUATERNION_H
+namespace Eigen { 
+
 
 /***************************************************************************
 * Definition of QuaternionBase<Derived>
@@ -38,6 +25,12 @@ template<typename Other,
 struct quaternionbase_assign_impl;
 }
 
+/** \geometry_module \ingroup Geometry_Module
+  * \class QuaternionBase
+  * \brief Base class for quaternion expressions
+  * \tparam Derived derived type (CRTP)
+  * \sa class Quaternion
+  */
 template<class Derived>
 class QuaternionBase : public RotationBase<Derived, 3>
 {
@@ -109,7 +102,7 @@ public:
   /** \returns a quaternion representing an identity rotation
     * \sa MatrixBase::Identity()
     */
-  inline static Quaternion<Scalar> Identity() { return Quaternion<Scalar>(1, 0, 0, 0); }
+  static inline Quaternion<Scalar> Identity() { return Quaternion<Scalar>(1, 0, 0, 0); }
 
   /** \sa QuaternionBase::Identity(), MatrixBase::setIdentity()
     */
@@ -278,6 +271,9 @@ public:
   explicit inline Quaternion(const Quaternion<OtherScalar, OtherOptions>& other)
   { m_coeffs = other.coeffs().template cast<Scalar>(); }
 
+  template<typename Derived1, typename Derived2>
+  static Quaternion FromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
+
   inline Coefficients& coeffs() { return m_coeffs;}
   inline const Coefficients& coeffs() const { return m_coeffs;}
 
@@ -287,7 +283,7 @@ protected:
   Coefficients m_coeffs;
   
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    EIGEN_STRONG_INLINE static void _check_template_params()
+    static EIGEN_STRONG_INLINE void _check_template_params()
     {
       EIGEN_STATIC_ASSERT( (_Options & DontAlign) == _Options,
         INVALID_MATRIX_TEMPLATE_PARAMETERS)
@@ -434,7 +430,7 @@ typedef Map<Quaternion<double>, Aligned>  QuaternionMapAlignedd;
 namespace internal {
 template<int Arch, class Derived1, class Derived2, typename Scalar, int _Options> struct quat_product
 {
-  EIGEN_STRONG_INLINE static Quaternion<Scalar> run(const QuaternionBase<Derived1>& a, const QuaternionBase<Derived2>& b){
+  static EIGEN_STRONG_INLINE Quaternion<Scalar> run(const QuaternionBase<Derived1>& a, const QuaternionBase<Derived2>& b){
     return Quaternion<Scalar>
     (
       a.w() * b.w() - a.x() * b.x() - a.y() * b.y() - a.z() * b.z(),
@@ -544,9 +540,9 @@ QuaternionBase<Derived>::toRotationMatrix(void) const
   // it has to be inlined, and so the return by value is not an issue
   Matrix3 res;
 
-  const Scalar tx  = 2*this->x();
-  const Scalar ty  = 2*this->y();
-  const Scalar tz  = 2*this->z();
+  const Scalar tx  = Scalar(2)*this->x();
+  const Scalar ty  = Scalar(2)*this->y();
+  const Scalar tz  = Scalar(2)*this->z();
   const Scalar twx = tx*this->w();
   const Scalar twy = ty*this->w();
   const Scalar twz = tz*this->w();
@@ -557,15 +553,15 @@ QuaternionBase<Derived>::toRotationMatrix(void) const
   const Scalar tyz = tz*this->y();
   const Scalar tzz = tz*this->z();
 
-  res.coeffRef(0,0) = 1-(tyy+tzz);
+  res.coeffRef(0,0) = Scalar(1)-(tyy+tzz);
   res.coeffRef(0,1) = txy-twz;
   res.coeffRef(0,2) = txz+twy;
   res.coeffRef(1,0) = txy+twz;
-  res.coeffRef(1,1) = 1-(txx+tzz);
+  res.coeffRef(1,1) = Scalar(1)-(txx+tzz);
   res.coeffRef(1,2) = tyz-twx;
   res.coeffRef(2,0) = txz-twy;
   res.coeffRef(2,1) = tyz+twx;
-  res.coeffRef(2,2) = 1-(txx+tyy);
+  res.coeffRef(2,2) = Scalar(1)-(txx+tyy);
 
   return res;
 }
@@ -617,6 +613,27 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
 
   return derived();
 }
+
+
+/** Returns a quaternion representing a rotation between
+  * the two arbitrary vectors \a a and \a b. In other words, the built
+  * rotation represent a rotation sending the line of direction \a a
+  * to the line of direction \a b, both lines passing through the origin.
+  *
+  * \returns resulting quaternion
+  *
+  * Note that the two input vectors do \b not have to be normalized, and
+  * do not need to have the same norm.
+  */
+template<typename Scalar, int Options>
+template<typename Derived1, typename Derived2>
+Quaternion<Scalar,Options> Quaternion<Scalar,Options>::FromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b)
+{
+    Quaternion quat;
+    quat.setFromTwoVectors(a, b);
+    return quat;
+}
+
 
 /** \returns the multiplicative inverse of \c *this
   * Note that in most cases, i.e., if you simply want the opposite rotation,
@@ -709,7 +726,7 @@ struct quaternionbase_assign_impl<Other,3,3>
 {
   typedef typename Other::Scalar Scalar;
   typedef DenseIndex Index;
-  template<class Derived> inline static void run(QuaternionBase<Derived>& q, const Other& mat)
+  template<class Derived> static inline void run(QuaternionBase<Derived>& q, const Other& mat)
   {
     // This algorithm comes from  "Quaternion Calculus and Fast Animation",
     // Ken Shoemake, 1987 SIGGRAPH course notes
@@ -748,12 +765,14 @@ template<typename Other>
 struct quaternionbase_assign_impl<Other,4,1>
 {
   typedef typename Other::Scalar Scalar;
-  template<class Derived> inline static void run(QuaternionBase<Derived>& q, const Other& vec)
+  template<class Derived> static inline void run(QuaternionBase<Derived>& q, const Other& vec)
   {
     q.coeffs() = vec;
   }
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_QUATERNION_H

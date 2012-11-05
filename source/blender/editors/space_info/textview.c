@@ -36,8 +36,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-
-
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -66,8 +64,8 @@ typedef struct ConsoleDrawContext {
 static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth, int lheight)
 {
 	if (sel[0] <= str_len_draw && sel[1] >= 0) {
-		int sta = MAX2(sel[0], 0);
-		int end = MIN2(sel[1], str_len_draw);
+		int sta = max_ii(sel[0], 0);
+		int end = min_ii(sel[1], str_len_draw);
 
 		glEnable(GL_POLYGON_STIPPLE);
 		glPolygonStipple(stipple_halftone);
@@ -128,7 +126,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		return 1;
 	}
 
-	if (str_len > cdc->console_width) { /* wrap? */
+	if (tot_lines > 1) { /* wrap? */
 		const int initial_offset = ((tot_lines - 1) * cdc->console_width);
 		const char *line_stride = str + initial_offset;  /* advance to the last line and draw it first */
 		

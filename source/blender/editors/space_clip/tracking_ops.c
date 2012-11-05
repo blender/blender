@@ -154,7 +154,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Location of marker on frame", -1.0f, 1.0f);
 }
 
@@ -372,8 +372,8 @@ static int mouse_on_slide_zone(SpaceClip *sc, MovieTrackingMarker *marker,
 	dx = size / width / sc->zoom;
 	dy = size / height / sc->zoom;
 
-	dx = minf(dx, (max[0] - min[0]) / 6.0f);
-	dy = minf(dy, (max[1] - min[1]) / 6.0f);
+	dx = min_ff(dx, (max[0] - min[0]) / 6.0f);
+	dy = min_ff(dy, (max[1] - min[1]) / 6.0f);
 
 	return IN_RANGE_INCL(co[0], slide_zone[0] - dx, slide_zone[0] + dx) &&
 	       IN_RANGE_INCL(co[1], slide_zone[1] - dy, slide_zone[1] + dy);
@@ -424,14 +424,14 @@ static int get_mouse_pattern_corner(SpaceClip *sc, MovieTrackingMarker *marker, 
 
 		cur_len = len_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
 
-		len = minf(cur_len, len);
+		len = min_ff(cur_len, len);
 	}
 
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
 
-	dx = minf(dx, len * 2.0f / 3.0f);
-	dy = minf(dy, len * width / height * 2.0f / 3.0f);
+	dx = min_ff(dx, len * 2.0f / 3.0f);
+	dy = min_ff(dy, len * width / height * 2.0f / 3.0f);
 
 	for (i = 0; i < 4; i++) {
 		float crn[2];
@@ -462,8 +462,8 @@ static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 	dx = 12.0f / width / sc->zoom;
 	dy = 12.0f / height / sc->zoom;
 
-	dx = minf(dx, (pat_max[0] - pat_min[0]) / 2.0f);
-	dy = minf(dy, (pat_max[1] - pat_min[1]) / 2.0f);
+	dx = min_ff(dx, (pat_max[0] - pat_min[0]) / 2.0f);
+	dy = min_ff(dy, (pat_max[1] - pat_min[1]) / 2.0f);
 
 	return co[0] >= pos[0] - dx && co[0] <= pos[0] + dx && co[1] >= pos[1] - dy && co[1] <= pos[1] + dy;
 }
@@ -855,8 +855,8 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 						vec[0] *= data->width;
 						vec[1] *= data->height;
 
-						data->corners[a][0] = (vec[0] * cos(angle) - vec[1] * sin(angle)) / data->width;
-						data->corners[a][1] = (vec[1] * cos(angle) + vec[0] * sin(angle)) / data->height;
+						data->corners[a][0] = (vec[0] * cosf(angle) - vec[1] * sinf(angle)) / data->width;
+						data->corners[a][1] = (vec[1] * cosf(angle) + vec[0] * sinf(angle)) / data->height;
 					}
 
 					BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
@@ -1018,7 +1018,7 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip, int *frames_limit
 					if (frames_limit == 0)
 						frames_limit = track->frames_limit;
 					else
-						frames_limit = MIN2(frames_limit, track->frames_limit);
+						frames_limit = min_ii(frames_limit, (int)track->frames_limit);
 				}
 			}
 		}
@@ -1343,7 +1343,6 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	Scene *scene = CTX_data_scene(C);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingSettings *settings = &clip->tracking.settings;
 	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 	int width, height;
 
@@ -1359,7 +1358,7 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	scj->user = sc->user;
 
 	scj->context = BKE_tracking_reconstruction_context_new(tracking, object,
-	                                                       settings->keyframe1, settings->keyframe2, width, height);
+	                                                       object->keyframe1, object->keyframe2, width, height);
 
 	tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
 
@@ -1397,11 +1396,10 @@ static void solve_camera_freejob(void *scv)
 	}
 
 	solved = BKE_tracking_reconstruction_finish(scj->context, tracking);
-
 	if (!solved)
-		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
+		BKE_report(scj->reports, RPT_WARNING, "Some data failed to reconstruct (see console for details)");
 	else
-		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error %.3f", tracking->reconstruction.error);
+		BKE_reportf(scj->reports, RPT_INFO, "Average re-projection error: %.3f", tracking->reconstruction.error);
 
 	/* set currently solved clip as active for scene */
 	if (scene->clip)
@@ -1411,7 +1409,7 @@ static void solve_camera_freejob(void *scv)
 	id_us_plus(&clip->id);
 
 	/* set blender camera focal length so result would look fine there */
-	if (scene->camera) {
+	if (scene->camera && GS(scene->camera->id.name) == ID_CA) {
 		Camera *camera = (Camera *)scene->camera->data;
 		int width, height;
 
@@ -2767,7 +2765,7 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 		next = track->next;
 
 		if (TRACK_VIEW_SELECTED(sc, track) && track != act_track) {
-			BKE_tracking_tracks_join(act_track, track);
+			BKE_tracking_tracks_join(tracking, act_track, track);
 
 			if (tracking->stabilization.rot_track == track)
 				tracking->stabilization.rot_track = act_track;
@@ -2859,14 +2857,14 @@ static int set_solver_keyframe_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingSettings *settings = &tracking->settings;
+	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 	int keyframe = RNA_enum_get(op->ptr, "keyframe");
 	int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
 
 	if (keyframe == 0)
-		settings->keyframe1 = framenr;
+		object->keyframe1 = framenr;
 	else
-		settings->keyframe2 = framenr;
+		object->keyframe2 = framenr;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 
@@ -3373,7 +3371,7 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 	object = BKE_tracking_object_get_active(tracking);
 
 	if (object->flag & TRACKING_OBJECT_CAMERA) {
-		BKE_report(op->reports, RPT_WARNING, "Object used for camera tracking can't be deleted");
+		BKE_report(op->reports, RPT_WARNING, "Object used for camera tracking cannot be deleted");
 		return OPERATOR_CANCELLED;
 	}
 

@@ -29,10 +29,9 @@
  *  \ingroup bgeconv
  */
 
-
-#if defined(WIN32) && !defined(FREE_WINDOWS)
-// don't show stl-warnings
-#pragma warning (disable:4786)
+#ifdef _MSC_VER
+   /* don't show stl-warnings */
+#  pragma warning (disable:4786)
 #endif
 
 #include "BKE_material.h" /* give_current_material */
@@ -76,12 +75,12 @@ static BL_InterpolatorList *GetAdtList(struct bAction *for_act, KX_BlenderSceneC
 {
 	BL_InterpolatorList *adtList= converter->FindInterpolatorList(for_act);
 
-	if (!adtList) {		
+	if (!adtList) {
 		adtList = new BL_InterpolatorList(for_act);
 		converter->RegisterInterpolatorList(adtList, for_act);
 	}
 			
-	return adtList;	
+	return adtList;
 }
 
 SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_BlenderSceneConverter *converter)
@@ -97,7 +96,7 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 
 	const char *rotmode, *drotmode;
 
-	switch(blenderobject->rotmode) {
+	switch (blenderobject->rotmode) {
 	case ROT_MODE_AXISANGLE:
 		rotmode = "rotation_axis_angle";
 		drotmode = "delta_rotation_axis_angle";
@@ -441,7 +440,7 @@ static void ConvertMaterialIpos(
 			}
 			interpolator= new KX_ScalarInterpolator(&ipocontr->m_ref, sinterp);
 			ipocontr->AddInterpolator(interpolator);
-		}	
+		}
 		
 		if ((sinterp = adtList->GetScalarInterpolator("emit", 0))) {
 			if (!ipocontr) {
@@ -452,7 +451,7 @@ static void ConvertMaterialIpos(
 			interpolator= new KX_ScalarInterpolator(&ipocontr->m_emit, sinterp);
 			ipocontr->AddInterpolator(interpolator);
 		}
-	}		
+	}
 }
 
 void BL_ConvertMaterialIpos(

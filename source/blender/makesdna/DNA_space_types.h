@@ -264,8 +264,8 @@ typedef enum eSpaceOutliner_Mode {
 	SO_SAME_TYPE = 5,
 	SO_GROUPS = 6,
 	SO_LIBRARIES = 7,
-	SO_VERSE_SESSION = 8,
-	SO_VERSE_MS = 9,
+	/* SO_VERSE_SESSION = 8, */  /* deprecated! */
+	/* SO_VERSE_MS = 9, */       /* deprecated!*/
 	SO_SEQUENCE = 10,
 	SO_DATABLOCKS = 11,
 	SO_USERDEF = 12,
@@ -376,7 +376,7 @@ typedef struct SpaceNla {
 
 /* nla->flag */
 typedef enum eSpaceNla_Flag {
-	/* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old verisons */
+	/* flags (1<<0), (1<<1), and (1<<3) are deprecated flags from old verisons */
 
 	/* draw timing in seconds instead of frames */
 	SNLA_DRAWTIME          = (1 << 2),
@@ -618,7 +618,7 @@ enum FileSortTypeE {
 #define FILE_MAXFILE        256
 #define FILE_MAX            1024
 
-#define FILE_MAX_LIBEXTRA   (FILE_MAX + 32)
+#define FILE_MAX_LIBEXTRA   (FILE_MAX + MAX_ID_NAME)
 
 /* filesel types */
 #define FILE_UNIX           8
@@ -792,10 +792,10 @@ typedef struct SpaceText {
 	float blockscale DNA_DEPRECATED;
 	short blockhandler[8]  DNA_DEPRECATED;
 
-	struct Text *text;	
+	struct Text *text;
 
 	int top, viewlines;
-	short flags, menunr;	
+	short flags, menunr;
 
 	short lheight;      /* user preference */
 	char cwidth, linenrs_tot;       /* runtime computed, character width and the number of chars to use when showing line numbers */

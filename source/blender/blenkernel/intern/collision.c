@@ -161,8 +161,6 @@ void bvhtree_update_from_mvert(BVHTree * bvhtree, MFace *faces, int numfaces, MV
 /***********************************
 Collision modifier code end
 ***********************************/
-#define mySWAP(a, b) do { double tmp = b ; b = a ; a = tmp ; } while (0)
-
 
 // w3 is not perfect
 static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3 )
@@ -199,6 +197,9 @@ static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3
 
 	w3[0] = 1.0f - w1[0] - w2[0];
 }
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
 
 DO_INLINE void collision_interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3 )
 {
@@ -274,7 +275,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 
 			/* Decrease in magnitude of relative tangential velocity due to coulomb friction
 			 * in original formula "magrelVel" should be the "change of relative velocity in normal direction" */
-			magtangent = minf(clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf(dot_v3v3(vrel_t_pre, vrel_t_pre)));
+			magtangent = min_ff(clmd->coll_parms->friction * 0.01f * magrelVel, sqrtf(dot_v3v3(vrel_t_pre, vrel_t_pre)));
 
 			/* Apply friction impulse. */
 			if ( magtangent > ALMOST_ZERO ) {
@@ -314,8 +315,8 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 
 				/* stay on the safe side and clamp repulse */
 				if ( impulse > ALMOST_ZERO )
-					repulse = MIN2 ( repulse, 5.0*impulse );
-				repulse = MAX2 ( impulse, repulse );
+					repulse = min_ff( repulse, 5.0*impulse );
+				repulse = max_ff(impulse, repulse);
 
 				impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); /* original 2.0 / 0.25 */
 				VECADDMUL ( i1, collpair->normal,  impulse );
@@ -333,12 +334,12 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			 * We don't use dt!! */
 			float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
 
-			float d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
+			float d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - (float)collpair->distance;
 			if ( d > ALMOST_ZERO) {
 				/* stay on the safe side and clamp repulse */
 				float repulse = d*1.0f/spf;
 
-				float impulse = repulse / ( 3.0 * ( 1.0f + w1*w1 + w2*w2 + w3*w3 )); /* original 2.0 / 0.25 */
+				float impulse = repulse / ( 3.0f * ( 1.0f + w1*w1 + w2*w2 + w3*w3 )); /* original 2.0 / 0.25 */
 
 				VECADDMUL ( i1, collpair->normal,  impulse );
 				VECADDMUL ( i2, collpair->normal,  impulse );
@@ -369,6 +370,8 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 	}
 	return result;
 }
+
+#pragma GCC diagnostic pop
 
 //Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
 static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
@@ -460,7 +463,8 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 		distance = 2.0 * (double)( epsilon1 + epsilon2 + ALMOST_ZERO );
 #endif
 
-		if (distance <= (epsilon1 + epsilon2 + ALMOST_ZERO)) {
+		// distance -1 means no collision result
+		if (distance != -1.0 && (distance <= (double)(epsilon1 + epsilon2 + ALMOST_ZERO))) {
 			normalize_v3_v3(collpair->normal, collpair->vector);
 
 			collpair->distance = distance;
@@ -516,7 +520,7 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 	if (((modifier_type == eModifierType_Collision) && ob->pd && ob->pd->deflect) || (modifier_type != eModifierType_Collision))
 		cmd= (CollisionModifierData *)modifiers_findByType(ob, modifier_type);
 	
-	if (cmd) {	
+	if (cmd) {
 		/* extend array */
 		if (*numobj >= *maxobj) {
 			*maxobj *= 2;
@@ -535,7 +539,7 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 		/* add objects */
 		for (go= group->gobject.first; go; go= go->next)
 			add_collision_object(objs, numobj, maxobj, go->ob, self, level+1, modifier_type);
-	}	
+	}
 }
 
 // return all collision objects in scene
@@ -581,7 +585,7 @@ static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self,
 	if (ob->pd && ob->pd->deflect)
 		cmd =(CollisionModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 	
-	if (cmd && cmd->bvhtree) {	
+	if (cmd && cmd->bvhtree) {
 		if (*objs == NULL)
 			*objs = MEM_callocN(sizeof(ListBase), "ColliderCache array");
 
@@ -739,8 +743,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData * clmd, float step, flo
 		collision_move_object ( collmd, step + dt, step );
 	}
 
-	do
-	{
+	do {
 		CollPair **collisions, **collisions_index;
 		
 		ret2 = 0;
@@ -871,7 +874,7 @@ int cloth_bvh_objcollision(Object *ob, ClothModifierData * clmd, float step, flo
 								VECADD ( verts[i].tx, verts[i].tx, temp );
 							}
 							else {
-								mul_v3_fl(temp, correction * -0.5);
+								mul_v3_fl(temp, correction * -0.5f);
 								VECADD ( verts[j].tx, verts[j].tx, temp );
 	
 								sub_v3_v3v3(verts[i].tx, verts[i].tx, temp);

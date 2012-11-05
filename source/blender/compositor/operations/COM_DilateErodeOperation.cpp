@@ -79,7 +79,7 @@ void DilateErodeThresholdOperation::executePixel(float output[4], int x, int y, 
 	const int miny = max(y - this->m_scope, rect->ymin);
 	const int maxx = min(x + this->m_scope, rect->xmax);
 	const int maxy = min(y + this->m_scope, rect->ymax);
-	const int bufferWidth = BLI_RCT_SIZE_X(rect);
+	const int bufferWidth = BLI_rcti_size_x(rect);
 	int offset;
 
 	this->m_inputProgram->read(inputValue, x, y, NULL);
@@ -199,7 +199,7 @@ void DilateDistanceOperation::executePixel(float output[4], int x, int y, void *
 	const int miny = max(y - this->m_scope, rect->ymin);
 	const int maxx = min(x + this->m_scope, rect->xmax);
 	const int maxy = min(y + this->m_scope, rect->ymax);
-	const int bufferWidth = BLI_RCT_SIZE_X(rect);
+	const int bufferWidth = BLI_rcti_size_x(rect);
 	int offset;
 	
 	float value = 0.0f;
@@ -273,7 +273,7 @@ void ErodeDistanceOperation::executePixel(float output[4], int x, int y, void *d
 	const int miny = max(y - this->m_scope, rect->ymin);
 	const int maxx = min(x + this->m_scope, rect->xmax);
 	const int maxy = min(y + this->m_scope, rect->ymax);
-	const int bufferWidth = BLI_RCT_SIZE_X(rect);
+	const int bufferWidth = BLI_rcti_size_x(rect);
 	int offset;
 	
 	float value = 1.0f;
@@ -344,28 +344,28 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 			for (y = 0; y < bheight; y++) {
 				for (x = 0; x < bwidth - 1; x++) {
 					p = rectf + (bwidth * y + x);
-					*p = MAX2(*p, *(p + 1));
+					*p = max(*p, *(p + 1));
 				}
 			}
 		
 			for (y = 0; y < bheight; y++) {
 				for (x = bwidth - 1; x >= 1; x--) {
 					p = rectf + (bwidth * y + x);
-					*p = MAX2(*p, *(p - 1));
+					*p = max(*p, *(p - 1));
 				}
 			}
 		
 			for (x = 0; x < bwidth; x++) {
 				for (y = 0; y < bheight - 1; y++) {
 					p = rectf + (bwidth * y + x);
-					*p = MAX2(*p, *(p + bwidth));
+					*p = max(*p, *(p + bwidth));
 				}
 			}
 		
 			for (x = 0; x < bwidth; x++) {
 				for (y = bheight - 1; y >= 1; y--) {
 					p = rectf + (bwidth * y + x);
-					*p = MAX2(*p, *(p - bwidth));
+					*p = max(*p, *(p - bwidth));
 				}
 			}
 		}
