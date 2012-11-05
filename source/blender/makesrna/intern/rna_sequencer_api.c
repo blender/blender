@@ -89,6 +89,8 @@ static Sequence *alloc_generic_sequence(Editing *ed, const char *name, int start
 	if (file) {
 		strip->stripdata = se = MEM_callocN(sizeof(StripElem), "stripelem");
 		BLI_split_dirfile(file, strip->dir, se->name, sizeof(strip->dir), sizeof(se->name));
+
+		BKE_sequence_init_colorspace(seq);
 	}
 	else {
 		strip->stripdata = NULL;
