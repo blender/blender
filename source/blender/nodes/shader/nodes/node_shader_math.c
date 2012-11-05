@@ -142,7 +142,7 @@ bNodeStack **out)
 				out[0]->vec[0] = pow(in[0]->vec[0], in[1]->vec[0]);
 			}
 			else {
-				float y_mod_1 = fmod(in[1]->vec[0], 1);
+				float y_mod_1 = ABS(fmod(in[1]->vec[0], 1));
 				
 				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
 				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
