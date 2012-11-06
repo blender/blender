@@ -1275,6 +1275,14 @@ static void alloc_node_type_items(EnumPropertyItem *items, int category)
 	
 	item++;
 	
+	item->value = NODE_FRAME;
+	item->identifier = "FRAME";
+	item->icon = 0;
+	item->name = "Frame";
+	item->description = "";
+	
+	item++;
+	
 	/* NOTE!, increase 'count' when adding items here */
 	
 	memset(item, 0, sizeof(EnumPropertyItem));
