@@ -325,8 +325,9 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Cannot add property to built in keying set");
 		return OPERATOR_CANCELLED;
 	}
-	else
+	else {
 		ks = BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1);
+	}
 	
 	/* try to add to keyingset using property retrieved from UI */
 	uiContextActiveProperty(C, &ptr, &prop, &index);
@@ -360,9 +361,10 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 	if (success) {
 		/* send updates */
 		DAG_ids_flush_update(bmain, 0);
-		
-		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
+		
+		/* show notification/report header, so that users notice that something changed */
+		BKE_reportf(op->reports, RPT_INFO, "Property added to Keying Set: '%s'", ks->name);
 	}
 	
 	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
@@ -411,8 +413,9 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Cannot remove property from built in keying set");
 		return OPERATOR_CANCELLED;
 	}
-	else
+	else {
 		ks = BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1);
+	}
 	
 	/* try to add to keyingset using property retrieved from UI */
 	uiContextActiveProperty(C, &ptr, &prop, &index);
@@ -425,7 +428,7 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 			
 			/* try to find a path matching this description */
 			ksp = BKE_keyingset_find_path(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
-
+			
 			if (ksp) {
 				BKE_keyingset_free_path(ks, ksp);
 				success = 1;
@@ -440,9 +443,10 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 	if (success) {
 		/* send updates */
 		DAG_ids_flush_update(bmain, 0);
-		
-		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
+		
+		/* show warning */
+		BKE_report(op->reports, RPT_INFO, "Property removed from Keying Set");
 	}
 	
 	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
@@ -891,11 +895,13 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 				ksi->iter(ksi, C, ks);
 				
 			/* if we don't have any paths now, then this still qualifies as invalid context */
+			// FIXME: we need some error conditions (to be retrieved from the iterator why this failed!)
 			if (ks->paths.first == NULL)
 				return MODIFYKEY_INVALID_CONTEXT;
 		}
 		else {
 			/* poll callback tells us that KeyingSet is useless in current context */
+			// FIXME: the poll callback needs to give us more info why
 			return MODIFYKEY_INVALID_CONTEXT;
 		}
 	}
