@@ -176,7 +176,25 @@ struct uiBut {
 
 	char *poin;
 	float hardmin, hardmax, softmin, softmax;
-	float a1, a2;
+
+	/* both these values use depends on the button type
+	 * (polymorphic struct or union would be nicer for this stuff) */
+
+	/* (type == COLOR),      Use UI_GRAD_* values.
+	 * (type == NUM),        Use to store RNA 'step' value, for dragging and click-step.
+	 * (type == LABEL),      Use (a1 == 1.0f) to use a2 as a blending factor (wow, this is imaginative!).
+	 * (type == SCROLL)      Use as scroll size.
+	 * (type == SEARCH_MENU) Use as number or rows.
+	 */
+	float a1;
+
+	/* (type == HSVCIRCLE ), Use to store the luminosity.
+	 * (type == NUM),        Use to store RNA 'precision' value, for dragging and click-step.
+	 * (type == LABEL),      If (a1 == 1.0f) use a2 as a blending factor.
+	 * (type == SEARCH_MENU) Use as number or columns.
+	 */
+	float a2;
+
 	float aspect;
 	unsigned char col[4];
 
