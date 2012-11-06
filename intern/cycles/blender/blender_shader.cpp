@@ -573,6 +573,9 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			node = sky;
 			break;
 		}
+		case BL::ShaderNode::type_FRAME: {
+			break;
+		}
 	}
 
 	if(node && node != graph->output())
