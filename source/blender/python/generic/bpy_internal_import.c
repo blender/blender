@@ -1,4 +1,4 @@
-/* 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ static ListBase bpy_import_main_list;
 
 static PyMethodDef bpy_import_meth;
 static PyMethodDef bpy_reload_meth;
+static PyObject   *imp_reload_orig = NULL;
 
 /* 'builtins' is most likely PyEval_GetBuiltins() */
 void bpy_import_init(PyObject *builtins)
@@ -69,7 +70,13 @@ void bpy_import_init(PyObject *builtins)
 	 * XXX, use import hooks */
 	mod = PyImport_ImportModuleLevel((char *)"imp", NULL, NULL, NULL, 0);
 	if (mod) {
-		PyDict_SetItemString(PyModule_GetDict(mod), "reload", item = PyCFunction_New(&bpy_reload_meth, NULL)); Py_DECREF(item);
+		PyObject *mod_dict = PyModule_GetDict(mod);
+
+		/* blender owns the function */
+		imp_reload_orig = PyDict_GetItemString(mod_dict, "reload");
+		Py_INCREF(imp_reload_orig);
+
+		PyDict_SetItemString(mod_dict, "reload", item = PyCFunction_New(&bpy_reload_meth, NULL)); Py_DECREF(item);
 		Py_DECREF(mod);
 	}
 	else {
@@ -250,7 +257,8 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	PyObject *exception, *err, *tb;
-	char *name;
+	//char *name;
+	PyObject *name;
 	int found = 0;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
 	int level = 0; /* relative imports */
@@ -259,14 +267,14 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	//PyObject_Print(args, stderr, 0);
 	static const char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", NULL};
 	
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|OOOi:bpy_import_meth", (char **)kwlist,
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "U|OOOi:bpy_import_meth", (char **)kwlist,
 	                                 &name, &globals, &locals, &fromlist, &level))
 	{
 		return NULL;
 	}
 
 	/* import existing builtin modules or modules that have been imported already */
-	newmodule = PyImport_ImportModuleLevel(name, globals, locals, fromlist, level);
+	newmodule = PyImport_ImportModuleLevelObject(name, globals, locals, fromlist, level);
 	
 	if (newmodule)
 		return newmodule;
@@ -274,7 +282,7 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	PyErr_Fetch(&exception, &err, &tb); /* get the python error in case we cant import as blender text either */
 	
 	/* importing from existing modules failed, see if we have this module as blender text */
-	newmodule = bpy_text_import_name(name, &found);
+	newmodule = bpy_text_import_name(_PyUnicode_AsString(name), &found);
 	
 	if (newmodule) { /* found module as blender text, ignore above exception */
 		PyErr_Clear();
@@ -309,7 +317,12 @@ static PyObject *blender_reload(PyObject *UNUSED(self), PyObject *module)
 	int found = 0;
 
 	/* try reimporting from file */
-	newmodule = PyImport_ReloadModule(module);
+
+	/* in Py3.3 this just calls imp.reload() which we overwrite, causing recursive calls */
+	//newmodule = PyImport_ReloadModule(module);
+
+	newmodule = PyObject_CallFunctionObjArgs(imp_reload_orig, module, NULL);
+
 	if (newmodule)
 		return newmodule;
 
