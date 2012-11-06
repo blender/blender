@@ -257,8 +257,7 @@ PyObject *bpy_text_reimport(PyObject *module, int *found)
 static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	PyObject *exception, *err, *tb;
-	//char *name;
-	PyObject *name;
+	char *name;
 	int found = 0;
 	PyObject *globals = NULL, *locals = NULL, *fromlist = NULL;
 	int level = 0; /* relative imports */
@@ -267,14 +266,14 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	//PyObject_Print(args, stderr, 0);
 	static const char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", NULL};
 	
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "U|OOOi:bpy_import_meth", (char **)kwlist,
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|OOOi:bpy_import_meth", (char **)kwlist,
 	                                 &name, &globals, &locals, &fromlist, &level))
 	{
 		return NULL;
 	}
 
 	/* import existing builtin modules or modules that have been imported already */
-	newmodule = PyImport_ImportModuleLevelObject(name, globals, locals, fromlist, level);
+	newmodule = PyImport_ImportModuleLevel(name, globals, locals, fromlist, level);
 	
 	if (newmodule)
 		return newmodule;
@@ -282,7 +281,7 @@ static PyObject *blender_import(PyObject *UNUSED(self), PyObject *args, PyObject
 	PyErr_Fetch(&exception, &err, &tb); /* get the python error in case we cant import as blender text either */
 	
 	/* importing from existing modules failed, see if we have this module as blender text */
-	newmodule = bpy_text_import_name(_PyUnicode_AsString(name), &found);
+	newmodule = bpy_text_import_name(name, &found);
 	
 	if (newmodule) { /* found module as blender text, ignore above exception */
 		PyErr_Clear();
