@@ -90,6 +90,8 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
 		return SHADER_SOCKET_COLOR;
 	case BL::NodeSocket::type_SHADER:
 		return SHADER_SOCKET_CLOSURE;
+	case BL::NodeSocket::type_STRING:
+		return SHADER_SOCKET_STRING;
 	
 	case BL::NodeSocket::type_BOOLEAN:
 	case BL::NodeSocket::type_MESH:
@@ -98,7 +100,7 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
 	}
 }
 
-static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
+static void set_default_value(ShaderInput *input, BL::NodeSocket sock, BL::BlendData b_data, BL::ID b_id)
 {
 	/* copy values for non linked inputs */
 	switch(input->type) {
@@ -122,6 +124,11 @@ static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
 	case SHADER_SOCKET_VECTOR: {
 		BL::NodeSocketVectorNone vec_sock(sock);
 		input->set(get_float3(vec_sock.default_value()));
+		break;
+	}
+	case SHADER_SOCKET_STRING: {
+		BL::NodeSocketStringNone string_sock(sock);
+		input->set((ustring)blender_absolute_path(b_data, b_id, string_sock.default_value()));
 		break;
 	}
 	case SHADER_SOCKET_CLOSURE:
@@ -457,7 +464,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			for (b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
 				script_node->input_names.push_back(ustring(b_input->name()));
 				ShaderInput *input = script_node->add_input(script_node->input_names.back().c_str(), convert_socket_type(b_input->type()));
-				set_default_value(input, *b_input);
+				set_default_value(input, *b_input, b_data, b_ntree);
 			}
 
 			BL::Node::outputs_iterator b_output;
@@ -726,7 +733,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				group_sockmap[b_input->group_socket().ptr.data] = SocketPair(proxy, proxy->outputs[0]->name);
 				
 				/* default input values of the group node */
-				set_default_value(proxy->inputs[0], *b_input);
+				set_default_value(proxy->inputs[0], *b_input, b_data, b_group_ntree);
 			}
 			
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
@@ -740,7 +747,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				group_sockmap[b_output->group_socket().ptr.data] = SocketPair(proxy, proxy->inputs[0]->name);
 				
 				/* default input values of internal, unlinked group outputs */
-				set_default_value(proxy->inputs[0], b_output->group_socket());
+				set_default_value(proxy->inputs[0], b_output->group_socket(), b_data, b_group_ntree);
 			}
 			
 			add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_sockmap);
@@ -760,7 +767,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 					assert(input);
 					
 					/* copy values for non linked inputs */
-					set_default_value(input, *b_input);
+					set_default_value(input, *b_input, b_data, b_ntree);
 				}
 			}
 		}

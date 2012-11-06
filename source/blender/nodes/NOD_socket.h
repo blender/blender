@@ -60,6 +60,7 @@ void node_socket_set_default_value_vector(void *default_value, PropertySubType s
 void node_socket_set_default_value_rgba(void *default_value, float r, float g, float b, float a);
 void node_socket_set_default_value_shader(void *default_value);
 void node_socket_set_default_value_mesh(void *default_value);
+void node_socket_set_default_value_string(void *default_value, PropertySubType subtype, const char *value);
 
 struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp);
 struct bNodeSocket *node_add_output_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp);

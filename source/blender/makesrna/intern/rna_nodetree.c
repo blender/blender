@@ -92,6 +92,7 @@ EnumPropertyItem node_socket_type_items[] = {
 	{SOCK_BOOLEAN, "BOOLEAN",   0,    "Boolean",   ""},
 	{SOCK_MESH,    "MESH",      0,    "Mesh",      ""},
 	{SOCK_INT,     "INT",       0,    "Int",       ""},
+	{SOCK_STRING,  "STRING",    0,    "String",    ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -192,6 +193,10 @@ EnumPropertyItem prop_wave_items[] = {
     SUBTYPE(FLOAT, Float, TIME, Time) \
     SUBTYPE(FLOAT, Float, DISTANCE, Distance)
 
+#define NODE_DEFINE_SUBTYPES_STRING \
+    SUBTYPE(STRING, String, NONE, None) \
+    SUBTYPE(STRING, String, FILEPATH, Filepath)
+
 #define NODE_DEFINE_SUBTYPES_VECTOR \
     SUBTYPE(VECTOR, Vector, NONE, None) \
     SUBTYPE(VECTOR, Vector, TRANSLATION, Translation) \
@@ -204,7 +209,8 @@ EnumPropertyItem prop_wave_items[] = {
 #define NODE_DEFINE_SUBTYPES \
     NODE_DEFINE_SUBTYPES_INT \
     NODE_DEFINE_SUBTYPES_FLOAT \
-    NODE_DEFINE_SUBTYPES_VECTOR
+    NODE_DEFINE_SUBTYPES_STRING \
+    NODE_DEFINE_SUBTYPES_VECTOR \
 
 #ifdef RNA_RUNTIME
 
@@ -291,6 +297,9 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 				return &RNA_NodeSocketBoolean;
 			case SOCK_VECTOR:
 				NODE_DEFINE_SUBTYPES_VECTOR
+				break;
+			case SOCK_STRING:
+				NODE_DEFINE_SUBTYPES_STRING
 				break;
 			case SOCK_RGBA:
 				return &RNA_NodeSocketRGBA;
@@ -4530,6 +4539,20 @@ static void rna_def_node_socket_subtype(BlenderRNA *brna, int type, int subtype,
 
 			prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_COLOR);
 			RNA_def_property_float_sdna(prop, NULL, "value");
+			RNA_def_property_ui_text(prop, "Default Value", "");
+			RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
+			break;
+		case SOCK_STRING:
+			RNA_def_struct_sdna_from(srna, "bNodeSocketValueString", "default_value");
+
+			prop = RNA_def_property(srna, "subtype", PROP_ENUM, PROP_NONE);
+			RNA_def_property_enum_sdna(prop, NULL, "subtype");
+			RNA_def_property_enum_items(prop, subtype_items);
+			RNA_def_property_ui_text(prop, "Subtype", "Subtype defining the socket value details");
+			RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
+			
+			prop = RNA_def_property(srna, "default_value", PROP_STRING, PROP_FILEPATH);
+			RNA_def_property_string_sdna(prop, NULL, "value");
 			RNA_def_property_ui_text(prop, "Default Value", "");
 			RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
 			break;

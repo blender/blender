@@ -403,6 +403,9 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 				case SHADER_SOCKET_INT:
 					parameter(param_name.c_str(), (int)input->value.x);
 					break;
+				case SHADER_SOCKET_STRING:
+					parameter(param_name.c_str(), input->value_string);
+					break;
 				case SHADER_SOCKET_CLOSURE:
 					break;
 			}

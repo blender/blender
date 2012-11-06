@@ -108,6 +108,43 @@ static void node_socket_button_default(const bContext *C, uiBlock *block,
 	}
 }
 
+static void node_socket_button_string(const bContext *C, uiBlock *block,
+                                       bNodeTree *ntree, bNode *node, bNodeSocket *sock,
+                                       const char *name, int x, int y, int width)
+{
+	if (sock->link || (sock->flag & SOCK_HIDE_VALUE))
+		node_socket_button_label(C, block, ntree, node, sock, name, x, y, width);
+	else {
+		PointerRNA ptr;
+		uiBut *bt;
+
+		SpaceNode *snode = CTX_wm_space_node(C);
+		const char *ui_name = IFACE_(name);
+		float slen;
+
+		UI_ThemeColor(TH_TEXT);
+		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
+		while (slen > (width * 0.5) && *ui_name) {
+			ui_name = BLI_str_find_next_char_utf8(ui_name, NULL);
+			slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
+		}
+
+		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
+		
+		if (name[0] == '\0')
+			slen = 0.0;
+		
+		bt = uiDefButR(block, TEX, B_NODE_EXEC, "",
+		               x, y + 1, width - slen, NODE_DY - 2,
+		               &ptr, "default_value", 0, 0, 0, -1, -1, "");
+		if (node)
+			uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
+		
+		if (slen > 0.0)
+			uiDefBut(block, LABEL, 0, IFACE_(name), x + (width - slen), y + 2, slen, NODE_DY - 2, NULL, 0, 0, 0, 0, "");
+	}
+}
+
 typedef struct SocketComponentMenuArgs {
 	PointerRNA ptr;
 	int x, y, width;
@@ -3135,6 +3172,9 @@ void ED_node_init_butfuncs(void)
 				case SOCK_INT:
 				case SOCK_BOOLEAN:
 					stype->buttonfunc = node_socket_button_default;
+					break;
+				case SOCK_STRING:
+					stype->buttonfunc = node_socket_button_string;
 					break;
 				case SOCK_VECTOR:
 					stype->buttonfunc = node_socket_button_components;
