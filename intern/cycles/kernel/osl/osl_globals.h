@@ -59,6 +59,7 @@ struct OSLGlobals {
 
 	vector<AttributeMap> attribute_map;
 	ObjectNameMap object_name_map;
+	vector<ustring> object_names;
 
 	/* thread key for thread specific data lookup */
 	struct ThreadData {

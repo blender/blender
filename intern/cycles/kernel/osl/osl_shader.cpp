@@ -93,6 +93,7 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
 	
 	/* shader data to be used in services callbacks */
 	globals->renderstate = sd; 
+	globals->tracedata = NULL;
 
 	/* hacky, we leave it to services to fetch actual object matrix */
 	globals->shader2common = sd;
@@ -219,6 +220,10 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 	if (kg->osl.surface_state[shader])
 		ss->execute(*ctx, *(kg->osl.surface_state[shader]), *globals);
 
+	/* free trace data */
+	if(globals->tracedata)
+		delete (OSLRenderServices::TraceData*)globals->tracedata;
+
 	/* flatten closure tree */
 	sd->num_closure = 0;
 	sd->randb_closure = randb;
@@ -273,6 +278,10 @@ float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, int path_fl
 	/* execute shader for this point */
 	if (kg->osl.background_state)
 		ss->execute(*ctx, *(kg->osl.background_state), *globals);
+
+	/* free trace data */
+	if(globals->tracedata)
+		delete (OSLRenderServices::TraceData*)globals->tracedata;
 
 	/* return background color immediately */
 	if (globals->Ci)
@@ -352,6 +361,10 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 	if (kg->osl.volume_state[shader])
 		ss->execute(*ctx, *(kg->osl.volume_state[shader]), *globals);
 
+	/* free trace data */
+	if(globals->tracedata)
+		delete (OSLRenderServices::TraceData*)globals->tracedata;
+
 	if (globals->Ci)
 		flatten_volume_closure_tree(sd, globals->Ci);
 }
@@ -374,6 +387,10 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 
 	if (kg->osl.displacement_state[shader])
 		ss->execute(*ctx, *(kg->osl.displacement_state[shader]), *globals);
+
+	/* free trace data */
+	if(globals->tracedata)
+		delete (OSLRenderServices::TraceData*)globals->tracedata;
 
 	/* get back position */
 	sd->P = TO_FLOAT3(globals->P);
