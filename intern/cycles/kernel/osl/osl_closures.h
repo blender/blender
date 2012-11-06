@@ -47,11 +47,13 @@ OSL::ClosureParam *closure_emission_params();
 OSL::ClosureParam *closure_background_params();
 OSL::ClosureParam *closure_holdout_params();
 OSL::ClosureParam *closure_ambient_occlusion_params();
+OSL::ClosureParam *closure_bsdf_phong_ramp_params();
 
 void closure_emission_prepare(OSL::RendererServices *, int id, void *data);
 void closure_background_prepare(OSL::RendererServices *, int id, void *data);
 void closure_holdout_prepare(OSL::RendererServices *, int id, void *data);
 void closure_ambient_occlusion_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_phong_ramp_prepare(OSL::RendererServices *, int id, void *data);
 
 enum {
 	AmbientOcclusion = 100
