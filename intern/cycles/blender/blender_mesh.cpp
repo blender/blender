@@ -302,11 +302,11 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 			/* UV tangent */
 			std = (active_render)? ATTR_STD_UV_TANGENT: ATTR_STD_NONE;
-			name = ustring((string(name.c_str()) + ".tangent").c_str());
+			name = ustring((string(l->name().c_str()) + ".tangent").c_str());
 
 			if(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)) {
 				std = (active_render)? ATTR_STD_UV_TANGENT_SIGN: ATTR_STD_NONE;
-				name = ustring((string(name.c_str()) + ".tangent_sign").c_str());
+				name = ustring((string(l->name().c_str()) + ".tangent_sign").c_str());
 				bool need_sign = (mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std));
 
 				mikk_compute_tangents(b_mesh, *l, mesh, nverts, need_sign, active_render);

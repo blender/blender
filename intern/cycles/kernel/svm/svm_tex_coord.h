@@ -244,7 +244,7 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 		int attr_offset = find_attribute(kg, sd, node.z);
 		int attr_sign_offset = find_attribute(kg, sd, node.w);
 
-		if(attr_offset == ATTR_STD_NOT_FOUND || attr_offset == ATTR_STD_NOT_FOUND) {
+		if(attr_offset == ATTR_STD_NOT_FOUND || attr_sign_offset == ATTR_STD_NOT_FOUND) {
 			stack_store_float3(stack, normal_offset, make_float3(0.0f, 0.0f, 0.0f));
 			return;
 		}
