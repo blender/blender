@@ -320,9 +320,9 @@ enum {
 	WM_JOB_SUSPEND      = (1 << 3)
 };
 
-/* identifying jobs by owner alone is unreliable, this isnt saved, order can change */
+/* identifying jobs by owner alone is unreliable, this isnt saved, order can change (keep 0 for 'any') */
 enum {
-	WM_JOB_TYPE_ANY = -1,
+	WM_JOB_TYPE_ANY = 0,
 	WM_JOB_TYPE_COMPOSITE,
 	WM_JOB_TYPE_RENDER,
 	WM_JOB_TYPE_RENDER_PREVIEW,  /* UI preview */

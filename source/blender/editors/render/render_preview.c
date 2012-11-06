@@ -237,6 +237,14 @@ static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)
 	return 0;
 }
 
+static Scene *preview_get_scene(void)
+{
+	if (pr_main == NULL) return NULL;
+	
+	return pr_main->scene.first;
+}
+
+
 /* call this with a pointer to initialize preview scene */
 /* call this with NULL to restore assigned ID pointers in preview scene */
 static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPreview *sp)
@@ -244,9 +252,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 	Scene *sce;
 	Base *base;
 	
-	if (pr_main == NULL) return NULL;
-	
-	sce = pr_main->scene.first;
+	sce = preview_get_scene();
 	if (sce) {
 		
 		/* this flag tells render to not execute depsgraph or ipos etc */
@@ -665,8 +671,23 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	char name[32];
 	int sizex;
 	
+	/* in case of split preview, use border render */
+	if (split) {
+		if (first) sizex = sp->sizex / 2;
+		else sizex = sp->sizex - sp->sizex / 2;
+	}
+	else sizex = sp->sizex;
+	
+	/* we have to set preview variables first */
+	sce = preview_get_scene();
+	if (sce) {
+		sce->r.xsch = sizex;
+		sce->r.ysch = sp->sizey;
+		sce->r.size = 100;
+	}
+	
 	/* get the stuff from the builtin preview dbase */
-	sce = preview_prepare_scene(sp->scene, id, idtype, sp); // XXX sizex
+	sce = preview_prepare_scene(sp->scene, id, idtype, sp);
 	if (sce == NULL) return;
 	
 	if (!split || first) sprintf(name, "Preview %p", sp->owner);
@@ -694,17 +715,6 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		sce->r.mode |= R_OSA;
 	}
 
-	/* in case of split preview, use border render */
-	if (split) {
-		if (first) sizex = sp->sizex / 2;
-		else sizex = sp->sizex - sp->sizex / 2;
-	}
-	else sizex = sp->sizex;
-
-	/* allocates or re-uses render result */
-	sce->r.xsch = sizex;
-	sce->r.ysch = sp->sizey;
-	sce->r.size = 100;
 
 	/* callbacs are cleared on GetRender() */
 	if (ELEM(sp->pr_method, PR_BUTS_RENDER, PR_NODE_RENDER)) {
