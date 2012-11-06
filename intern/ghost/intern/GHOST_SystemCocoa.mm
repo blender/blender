@@ -423,7 +423,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 
 
 #pragma mark defines for 10.6 api not documented in 10.5
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5 and 0
 enum {
 	/* The following event types are available on some hardware on 10.5.2 and later */
 	NSEventTypeGesture          = 29,
