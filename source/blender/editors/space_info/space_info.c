@@ -58,6 +58,7 @@
 #include "UI_view2d.h"
 
 #include "info_intern.h"  /* own include */
+#include "BLO_readfile.h"
 
 /* ******************** default callbacks for info space ***************** */
 
@@ -271,11 +272,16 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
 	struct RecentFile *recent;
+	char file [FILE_MAX];
 	uiLayout *layout = menu->layout;
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	if (G.recent_files.first) {
 		for (recent = G.recent_files.first; (recent); recent = recent->next) {
-			uiItemStringO(layout, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
+			BLI_split_file_part(recent->filepath, file, sizeof(file));
+			if (BLO_has_bfile_extension(file))
+				uiItemStringO(layout, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
+			else
+				uiItemStringO(layout, BLI_path_basename(recent->filepath), ICON_FILE_BACKUP, "WM_OT_open_mainfile", "filepath", recent->filepath);
 		}
 	}
 	else {
