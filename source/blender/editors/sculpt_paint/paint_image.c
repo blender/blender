@@ -288,9 +288,11 @@ typedef struct ProjPaintState {
 	char *vertFlags;                    /* store options per vert, now only store if the vert is pointing away from the view */
 	int buckets_x;                      /* The size of the bucket grid, the grid span's screenMin/screenMax so you can paint outsize the screen or with 2 brushes at once */
 	int buckets_y;
-	
+
 	ProjPaintImage *projImages;
 	
+	int pixel_sizeof;           /* result of project_paint_pixel_sizeof(), constant per stroke */
+
 	int image_tot;              /* size of projectImages array */
 	
 	float (*screenCoords)[4];   /* verts projected into floating point screen space */
@@ -1491,6 +1493,16 @@ static float project_paint_uvpixel_mask(
 	return mask;
 }
 
+static int project_paint_pixel_sizeof(const short tool)
+{
+	if ((tool == PAINT_TOOL_CLONE) || (tool == PAINT_TOOL_SMEAR)) {
+		return sizeof(ProjPixelClone);
+	}
+	else {
+		return sizeof(ProjPixel);
+	}
+}
+
 /* run this function when we know a bucket's, face's pixel can be initialized,
  * return the ProjPixel which is added to 'ps->bucketRect[bucket_index]' */
 static ProjPixel *project_paint_uvpixel_init(
@@ -1506,33 +1518,23 @@ static ProjPixel *project_paint_uvpixel_init(
         const float w[3])
 {
 	ProjPixel *projPixel;
-	short size;
-	
+
 	/* wrap pixel location */
 	x_px = x_px % ibuf->x;
 	if (x_px < 0) x_px += ibuf->x;
 	y_px = y_px % ibuf->y;
 	if (y_px < 0) y_px += ibuf->y;
-	
-	if (ps->tool == PAINT_TOOL_CLONE) {
-		size = sizeof(ProjPixelClone);
-	}
-	else if (ps->tool == PAINT_TOOL_SMEAR) {
-		size = sizeof(ProjPixelClone);
-	}
-	else {
-		size = sizeof(ProjPixel);
-	}
-	
-	projPixel = (ProjPixel *)BLI_memarena_alloc(arena, size);
+
+	BLI_assert(ps->pixel_sizeof == project_paint_pixel_sizeof(ps->tool));
+	projPixel = (ProjPixel *)BLI_memarena_alloc(arena, ps->pixel_sizeof);
 	//memset(projPixel, 0, size);
 	
 	if (ibuf->rect_float) {
 		projPixel->pixel.f_pt = ibuf->rect_float + ((x_px + y_px * ibuf->x) * 4);
-		projPixel->origColor.f[0] = projPixel->newColor.f[0] = projPixel->pixel.f_pt[0];  
-		projPixel->origColor.f[1] = projPixel->newColor.f[1] = projPixel->pixel.f_pt[1];  
-		projPixel->origColor.f[2] = projPixel->newColor.f[2] = projPixel->pixel.f_pt[2];  
-		projPixel->origColor.f[3] = projPixel->newColor.f[3] = projPixel->pixel.f_pt[3];  
+		projPixel->origColor.f[0] = projPixel->newColor.f[0] = projPixel->pixel.f_pt[0];
+		projPixel->origColor.f[1] = projPixel->newColor.f[1] = projPixel->pixel.f_pt[1];
+		projPixel->origColor.f[2] = projPixel->newColor.f[2] = projPixel->pixel.f_pt[2];
+		projPixel->origColor.f[3] = projPixel->newColor.f[3] = projPixel->pixel.f_pt[3];
 	}
 	else {
 		projPixel->pixel.ch_pt = ((unsigned char *)ibuf->rect + ((x_px + y_px * ibuf->x) * 4));
@@ -4841,6 +4843,10 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->brush = brush;
 	ps->tool = brush->imagepaint_tool;
 	ps->blend = brush->blend;
+
+	/* sizeof ProjPixel, since we alloc this a _lot_ */
+	ps->pixel_sizeof = project_paint_pixel_sizeof(ps->tool);
+	BLI_assert(ps->pixel_sizeof >= sizeof(ProjPixel));
 
 	ps->is_airbrush = (brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
 	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
