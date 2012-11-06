@@ -103,7 +103,7 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 				out[0] = pow(in[0], in2[0]);
 			}
 			else {
-				float y_mod_1 = ABS(fmod(in2[0], 1));
+				float y_mod_1 = fabsf(fmodf(in2[0], 1.0f));
 				
 				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
 				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {

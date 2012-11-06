@@ -88,7 +88,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 
 	v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for (i = 0; i < ototvert; i++) {
-		if (ABS(v->co[axis]) <= dist) {
+		if (fabsf(v->co[axis]) <= dist) {
 			BMO_slot_map_ptr_insert(bm, &weldop, "targetmap", vmap[i], v);
 		}
 		v = BM_iter_step(&iter);
