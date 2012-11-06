@@ -1869,7 +1869,7 @@ static void def_sh_normal_map(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "UV Map", "Name of the UV Map for for tangent space maps");
+	RNA_def_property_ui_text(prop, "UV Map", "UV Map for for tangent space maps");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "bNode", NULL);
@@ -1905,7 +1905,7 @@ static void def_sh_tangent(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "UV Map", "Name of the UV Map for for tangent generated from UV");
+	RNA_def_property_ui_text(prop, "UV Map", "UV Map for for tangent generated from UV");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "bNode", NULL);

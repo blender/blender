@@ -1379,15 +1379,23 @@ static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "from_dupli", 0, NULL, 0);
 }
 
-static void node_shader_buts_normal_map(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "space", 0, "", 0);
 
-	if(RNA_enum_get(ptr, "space") == SHD_NORMAL_MAP_TANGENT)
-		uiItemR(layout, ptr, "uv_map", 0, NULL, 0);
+	if(RNA_enum_get(ptr, "space") == SHD_NORMAL_MAP_TANGENT) {
+		PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+
+		if(obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+			PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+			uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_textures", "", ICON_NONE);
+		}
+		else
+			uiItemR(layout, ptr, "uv_map", 0, "", 0);
+	}
 }
 
-static void node_shader_buts_tangent(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiLayout *split, *row;
 
@@ -1397,8 +1405,16 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *UNUSED(C), Poin
 
 	row = uiLayoutRow(split, FALSE);
 
-	if(RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP)
-		uiItemR(row, ptr, "uv_map", 0, "", 0);
+	if(RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
+		PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
+
+		if(obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+			PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
+			uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_textures", "", ICON_NONE);
+		}
+		else
+			uiItemR(row, ptr, "uv_map", 0, "", 0);
+	}
 	else
 		uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, NULL, 0);
 }
