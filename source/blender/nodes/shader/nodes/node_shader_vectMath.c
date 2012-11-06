@@ -119,12 +119,16 @@ static int gpu_shader_vect_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in,
 		case 5:
 			if (in[0].hasinput || !in[1].hasinput) {
 				/* use only first item and terminator */
-				GPUNodeStack tmp_in[2] = {in[0], in[2]};
+				GPUNodeStack tmp_in[2];
+				memcpy(&tmp_in[0], &in[0], sizeof(GPUNodeStack));
+				memcpy(&tmp_in[1], &in[2], sizeof(GPUNodeStack));
 				GPU_stack_link(mat, names[node->custom1], tmp_in, out);
 			}
 			else {
 				/* use only second item and terminator */
-				GPUNodeStack tmp_in[2] = {in[1], in[2]};
+				GPUNodeStack tmp_in[2];
+				memcpy(&tmp_in[0], &in[1], sizeof(GPUNodeStack));
+				memcpy(&tmp_in[1], &in[2], sizeof(GPUNodeStack));
 				GPU_stack_link(mat, names[node->custom1], tmp_in, out);
 			}
 			break;
