@@ -381,6 +381,18 @@ typedef struct ProjPixelClone {
 	PixelStore clonepx;
 } ProjPixelClone;
 
+/* blur, store surrounding colors */
+#define PROJ_PIXEL_SOFTEN_TOT 4
+/* blur picking offset (in screenspace) */
+#define PROJ_PIXEL_SOFTEN_OFS_PX 1.0f
+
+static const float proj_pixel_soften_v2[PROJ_PIXEL_SOFTEN_TOT][2] = {
+	{-PROJ_PIXEL_SOFTEN_OFS_PX,                         0.0f},
+	{ 0.0f,                        -PROJ_PIXEL_SOFTEN_OFS_PX},
+	{ 0.0f,                         PROJ_PIXEL_SOFTEN_OFS_PX},
+	{ PROJ_PIXEL_SOFTEN_OFS_PX,                         0.0f},
+};
+
 /* Finish projection painting structs */
 
 typedef struct UndoImageTile {
@@ -3816,6 +3828,84 @@ static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
 }
 
+/* do_projectpaint_soften for float & byte
+ */
+static float inv_pow2(float f)
+{
+	f = 1.0f - f;
+	f = f * f;
+	return 1.0f - f;
+}
+
+static void do_projectpaint_soften_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask, MemArena *softenArena, LinkNode **softenPixels)
+{
+	unsigned int accum_tot = 0;
+	unsigned int i;
+
+	float *rgba = projPixel->newColor.f;
+
+	/* sigh, alpha values tend to need to be a _lot_ stronger with blur */
+	mask  = inv_pow2(mask);
+	alpha = inv_pow2(alpha);
+
+	/* rather then painting, accumulate surrounding colors */
+	zero_v4(rgba);
+
+	for (i = 0; i < PROJ_PIXEL_SOFTEN_TOT; i++) {
+		float co_ofs[2];
+		float rgba_tmp[4];
+		sub_v2_v2v2(co_ofs, projPixel->projCoSS, proj_pixel_soften_v2[i]);
+		if (project_paint_PickColor(ps, co_ofs, rgba_tmp, NULL, TRUE)) {
+			add_v4_v4(rgba, rgba_tmp);
+			accum_tot++;
+		}
+	}
+
+	if (LIKELY(accum_tot != 0)) {
+		mul_v4_fl(rgba, 1.0f / (float)accum_tot);
+		blend_color_mix_float(rgba, projPixel->pixel.f_pt, rgba, alpha);
+		if (mask < 1.0f) blend_color_mix_float(rgba, projPixel->origColor.f, rgba, mask);
+		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
+	}
+}
+
+static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask, MemArena *softenArena, LinkNode **softenPixels)
+{
+	unsigned int accum_tot = 0;
+	unsigned int i;
+
+	float rgba[4];  /* convert to byte after */
+
+	/* sigh, alpha values tend to need to be a _lot_ stronger with blur */
+	mask  = inv_pow2(mask);
+	alpha = inv_pow2(alpha);
+
+	/* rather then painting, accumulate surrounding colors */
+	zero_v4(rgba);
+
+	for (i = 0; i < PROJ_PIXEL_SOFTEN_TOT; i++) {
+		float co_ofs[2];
+		float rgba_tmp[4];
+		sub_v2_v2v2(co_ofs, projPixel->projCoSS, proj_pixel_soften_v2[i]);
+		if (project_paint_PickColor(ps, co_ofs, rgba_tmp, NULL, TRUE)) {
+			add_v4_v4(rgba, rgba_tmp);
+			accum_tot++;
+		}
+	}
+
+	if (LIKELY(accum_tot != 0)) {
+		unsigned char *rgba_ub = projPixel->newColor.ch;
+
+		mul_v4_fl(rgba, 1.0f / (float)accum_tot);
+		IMAPAINT_FLOAT_RGBA_TO_CHAR(rgba_ub, rgba);
+
+		blend_color_mix(rgba_ub, projPixel->pixel.ch_pt, rgba_ub, (int)(alpha * 255));
+		if (mask != 1.0f) blend_color_mix(rgba_ub, projPixel->origColor.ch, rgba_ub, (int)(mask * 255));
+		BLI_linklist_prepend_arena(softenPixels, (void *)projPixel, softenArena);
+	}
+}
+
+
 static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const float rgba[4], float alpha, float mask)
 {
 	unsigned char rgba_ub[4];
@@ -3914,12 +4004,19 @@ static void *do_projectpaint_thread(void *ph_v)
 	LinkNode *smearPixels = NULL;
 	LinkNode *smearPixels_f = NULL;
 	MemArena *smearArena = NULL; /* mem arena for this brush projection only */
+
+	LinkNode *softenPixels = NULL;
+	LinkNode *softenPixels_f = NULL;
+	MemArena *softenArena = NULL; /* mem arena for this brush projection only */
 	
 	if (tool == PAINT_TOOL_SMEAR) {
 		pos_ofs[0] = pos[0] - lastpos[0];
 		pos_ofs[1] = pos[1] - lastpos[1];
 		
 		smearArena = BLI_memarena_new(1 << 16, "paint smear arena");
+	}
+	else if (tool == PAINT_TOOL_SOFTEN) {
+		softenArena = BLI_memarena_new(1 << 16, "paint soften arena");
 	}
 	
 	/* printf("brush bounds %d %d %d %d\n", bucketMin[0], bucketMin[1], bucketMax[0], bucketMax[1]); */
@@ -4060,6 +4157,10 @@ static void *do_projectpaint_thread(void *ph_v)
 									if (is_floatbuf) do_projectpaint_smear_f(ps, projPixel, alpha, mask, smearArena, &smearPixels_f, co);
 									else do_projectpaint_smear(ps, projPixel, alpha, mask, smearArena, &smearPixels, co);
 									break;
+								case PAINT_TOOL_SOFTEN:
+									if (is_floatbuf) do_projectpaint_soften_f(ps, projPixel, alpha, mask, softenArena, &softenPixels_f);
+									else do_projectpaint_soften(ps, projPixel, alpha, mask, softenArena, &softenPixels);
+									break;
 								default:
 									if (is_floatbuf) do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask, use_color_correction);
 									else do_projectpaint_draw(ps, projPixel, rgba, alpha, mask);
@@ -4094,7 +4195,21 @@ static void *do_projectpaint_thread(void *ph_v)
 		
 		BLI_memarena_free(smearArena);
 	}
-	
+	else if (tool == PAINT_TOOL_SOFTEN) {
+
+		for (node = softenPixels; node; node = node->next) { /* this wont run for a float image */
+			projPixel = node->link;
+			*projPixel->pixel.uint_pt = projPixel->newColor.uint;
+		}
+
+		for (node = softenPixels_f; node; node = node->next) {
+			projPixel = node->link;
+			copy_v4_v4(projPixel->pixel.f_pt, projPixel->newColor.f);
+		}
+
+		BLI_memarena_free(softenArena);
+	}
+
 	return NULL;
 }
 
@@ -4913,13 +5028,6 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 
 	pop->first = 1;
 	op->customdata = pop;
-	
-	/* XXX: Soften tool does not support projection painting atm, so just disable
-	 *      projection for this brush */
-	if (brush->imagepaint_tool == PAINT_TOOL_SOFTEN) {
-		settings->imapaint.flag |= IMAGEPAINT_PROJECT_DISABLE;
-		pop->restore_projection = 1;
-	}
 
 	/* initialize from context */
 	if (CTX_wm_region_view3d(C)) {
