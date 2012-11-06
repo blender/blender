@@ -176,7 +176,7 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
 	ImBuf *ibuf;
 	int file;
 	char filepath_tx[IB_FILENAME_SIZE];
-	char colorspace[IM_MAX_SPACE];
+	char colorspace[IM_MAX_SPACE] = "\0";
 
 	imb_cache_filename(filepath_tx, filepath, flags);
 
