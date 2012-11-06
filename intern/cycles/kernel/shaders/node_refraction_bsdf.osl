@@ -18,34 +18,22 @@
 
 #include "stdosl.h"
 
-shader node_ward_bsdf(
+shader node_refraction_bsdf(
 	color Color = color(0.8, 0.8, 0.8),
-	float Roughness = 0.0,
-	float Anisotropy = 0.0,
-	float Rotation = 0.0,
+	string distribution = "Sharp",
+	float Roughness = 0.2,
+	float IOR = 1.45,
 	normal Normal = N,
-	normal Tangent = normalize(dPdu),
 	output closure color BSDF = diffuse(Normal))
 {
-	/* rotate tangent around normal */
-	vector T = Tangent;
+	float f = max(IOR, 1.0 + 1e-5);
+	float eta = backfacing() ? 1.0 / f: f;
 
-	if(Rotation != 0.0)
-		T = rotate(T, Rotation*2.0*M_PI, point(0.0, 0.0, 0.0), Normal);
-
-	/* compute roughness */
-	float RoughnessU, RoughnessV;
-	float aniso = clamp(Anisotropy, -0.99, 0.99);
-
-	if(aniso < 0.0) {
-		RoughnessU = Roughness/(1.0 + aniso);
-		RoughnessV = Roughness*(1.0 + aniso);
-	}
-	else {
-		RoughnessU = Roughness*(1.0 - aniso);
-		RoughnessV = Roughness/(1.0 - aniso);
-	}
-
-	BSDF = Color * ward(Normal, T, RoughnessU, RoughnessV);
+	if (distribution == "Sharp")
+		BSDF = Color * refraction(Normal, eta);
+	else if (distribution == "Beckmann")
+		BSDF = Color * microfacet_beckmann_refraction(Normal, Roughness, eta);
+	else if (distribution == "GGX")
+		BSDF = Color * microfacet_ggx_refraction(Normal, Roughness, eta);
 }
 

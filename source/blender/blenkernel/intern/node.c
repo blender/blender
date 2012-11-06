@@ -2293,17 +2293,21 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_particle_info(ttype);
 	register_node_type_sh_bump(ttype);
 	register_node_type_sh_script(ttype);
+	register_node_type_sh_tangent(ttype);
+	register_node_type_sh_normal_map(ttype);
 
 	register_node_type_sh_background(ttype);
 	register_node_type_sh_bsdf_anisotropic(ttype);
 	register_node_type_sh_bsdf_diffuse(ttype);
 	register_node_type_sh_bsdf_glossy(ttype);
 	register_node_type_sh_bsdf_glass(ttype);
+	register_node_type_sh_bsdf_refraction(ttype);
 	register_node_type_sh_bsdf_translucent(ttype);
 	register_node_type_sh_bsdf_transparent(ttype);
 	register_node_type_sh_bsdf_velvet(ttype);
 	register_node_type_sh_emission(ttype);
 	register_node_type_sh_holdout(ttype);
+	register_node_type_sh_ambient_occlusion(ttype);
 	//register_node_type_sh_volume_transparent(ttype);
 	//register_node_type_sh_volume_isotropic(ttype);
 	register_node_type_sh_mix_shader(ttype);

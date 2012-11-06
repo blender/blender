@@ -159,6 +159,20 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					sd->closure[sd->num_closure++] = sc;
 					break;
 				}
+				case AmbientOcclusion: {
+					if (sd->num_closure == MAX_CLOSURE)
+						return;
+
+					/* sample weight */
+					float sample_weight = fabsf(average(weight));
+
+					sc.sample_weight = sample_weight;
+					sc.type = CLOSURE_AMBIENT_OCCLUSION_ID;
+
+					sd->closure[sd->num_closure++] = sc;
+					sd->flag |= SD_AO;
+					break;
+				}
 				case OSL::ClosurePrimitive::Holdout:
 					if (sd->num_closure == MAX_CLOSURE)
 						return;

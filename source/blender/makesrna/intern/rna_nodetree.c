@@ -1850,6 +1850,67 @@ static void def_glossy(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_normal_map(StructRNA *srna)
+{
+	static EnumPropertyItem prop_space_items[] = {
+		{SHD_NORMAL_MAP_TANGENT, "TANGENT", 0, "Tangent Space", "Tangent space normal mapping"},
+		{SHD_NORMAL_MAP_OBJECT, "OBJECT", 0, "Object Space", "Object space normal mapping"},
+		{SHD_NORMAL_MAP_WORLD, "WORLD", 0, "World Space", "World space normal mapping"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeShaderNormalMap", "storage");
+
+	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_space_items);
+	RNA_def_property_ui_text(prop, "Space", "Space of the input normal");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "UV Map", "Name of the UV Map for for tangent space maps");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "bNode", NULL);
+}
+
+static void def_sh_tangent(StructRNA *srna)
+{
+	static EnumPropertyItem prop_direction_type_items[] = {
+		{SHD_TANGENT_RADIAL, "RADIAL", 0, "Radial", "Radial tangent around the X, Y or Z axis"},
+		{SHD_TANGENT_UVMAP, "UV_MAP", 0, "UV Map", "Tangent from UV map"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_axis_items[] = {
+		{SHD_TANGENT_AXIS_X, "X", 0, "X", "X axis"},
+		{SHD_TANGENT_AXIS_Y, "Y", 0, "Y", "Y axis"},
+		{SHD_TANGENT_AXIS_Z, "Z", 0, "Z", "Z axis"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeShaderTangent", "storage");
+
+	prop = RNA_def_property(srna, "direction_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_direction_type_items);
+	RNA_def_property_ui_text(prop, "Direction", "Method to use for the tangent");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_axis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Axis for radial tangents");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "UV Map", "Name of the UV Map for for tangent generated from UV");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "bNode", NULL);
+}
+
 static void def_sh_script(StructRNA *srna)
 {
 	FunctionRNA *func;

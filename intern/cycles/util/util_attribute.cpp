@@ -30,8 +30,10 @@ const char *attribute_standard_name(AttributeStandard std)
 		return "uv";
 	else if(std == ATTR_STD_GENERATED)
 		return "generated";
-	else if(std == ATTR_STD_TANGENT)
+	else if(std == ATTR_STD_UV_TANGENT)
 		return "tangent";
+	else if(std == ATTR_STD_UV_TANGENT_SIGN)
+		return "tangent_sign";
 	else if(std == ATTR_STD_POSITION_UNDEFORMED)
 		return "undeformed";
 	else if(std == ATTR_STD_POSITION_UNDISPLACED)

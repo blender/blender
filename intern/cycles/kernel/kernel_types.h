@@ -393,16 +393,17 @@ enum ShaderDataFlag {
 	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
 	SD_HOLDOUT = 32,		/* have holdout closure? */
 	SD_VOLUME = 64,			/* have volume closure? */
+	SD_AO = 128,			/* have ao closure? */
 
 	/* shader flags */
-	SD_SAMPLE_AS_LIGHT = 128,			/* direct light sample */
-	SD_HAS_SURFACE_TRANSPARENT = 256,	/* has surface transparency */
-	SD_HAS_VOLUME = 512,				/* has volume shader */
-	SD_HOMOGENEOUS_VOLUME = 1024,		/* has homogeneous volume */
+	SD_SAMPLE_AS_LIGHT = 256,			/* direct light sample */
+	SD_HAS_SURFACE_TRANSPARENT = 512,	/* has surface transparency */
+	SD_HAS_VOLUME = 1024,				/* has volume shader */
+	SD_HOMOGENEOUS_VOLUME = 2048,		/* has homogeneous volume */
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 2048,				/* holdout for camera rays */
-	SD_OBJECT_MOTION = 4096				/* has object motion blur */
+	SD_HOLDOUT_MASK = 4096,				/* holdout for camera rays */
+	SD_OBJECT_MOTION = 8192				/* has object motion blur */
 };
 
 typedef struct ShaderData {

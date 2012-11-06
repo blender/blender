@@ -1379,6 +1379,30 @@ static void node_shader_buts_tex_coord(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "from_dupli", 0, NULL, 0);
 }
 
+static void node_shader_buts_normal_map(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "space", 0, "", 0);
+
+	if(RNA_enum_get(ptr, "space") == SHD_NORMAL_MAP_TANGENT)
+		uiItemR(layout, ptr, "uv_map", 0, NULL, 0);
+}
+
+static void node_shader_buts_tangent(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *split, *row;
+
+	split = uiLayoutSplit(layout, 0.0f, FALSE);
+
+	uiItemR(split, ptr, "direction_type", 0, "", 0);
+
+	row = uiLayoutRow(split, FALSE);
+
+	if(RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP)
+		uiItemR(row, ptr, "uv_map", 0, "", 0);
+	else
+		uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, NULL, 0);
+}
+
 static void node_shader_buts_glossy(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "distribution", 0, "", ICON_NONE);
@@ -1491,8 +1515,15 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		case SH_NODE_TEX_COORD:
 			ntype->uifunc = node_shader_buts_tex_coord;
 			break;
+		case SH_NODE_NORMAL_MAP:
+			ntype->uifunc = node_shader_buts_normal_map;
+			break;
+		case SH_NODE_TANGENT:
+			ntype->uifunc = node_shader_buts_tangent;
+			break;
 		case SH_NODE_BSDF_GLOSSY:
 		case SH_NODE_BSDF_GLASS:
+		case SH_NODE_BSDF_REFRACTION:
 			ntype->uifunc = node_shader_buts_glossy;
 			break;
 		case SH_NODE_SCRIPT:

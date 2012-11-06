@@ -1284,10 +1284,8 @@ void WardBsdfNode::attributes(AttributeRequestSet *attributes)
 {
 	ShaderInput *tangent_in = input("Tangent");
 
-	if(!tangent_in->link) {
-		attributes->add(ATTR_STD_TANGENT);
+	if(!tangent_in->link)
 		attributes->add(ATTR_STD_GENERATED);
-	}
 
 	ShaderNode::attributes(attributes);
 }
@@ -1346,9 +1344,9 @@ static ShaderEnum glass_distribution_init()
 {
 	ShaderEnum enm;
 
-	enm.insert("Sharp", CLOSURE_BSDF_REFRACTION_ID);
-	enm.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID);
-	enm.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
+	enm.insert("Sharp", CLOSURE_BSDF_SHARP_GLASS_ID);
+	enm.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID);
+	enm.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
 
 	return enm;
 }
@@ -1367,7 +1365,7 @@ void GlassBsdfNode::compile(SVMCompiler& compiler)
 {
 	closure = (ClosureType)distribution_enum[distribution];
 
-	if(closure == CLOSURE_BSDF_REFRACTION_ID)
+	if(closure == CLOSURE_BSDF_SHARP_GLASS_ID)
 		BsdfNode::compile(compiler, NULL, input("IOR"));
 	else
 		BsdfNode::compile(compiler, input("Roughness"), input("IOR"));
@@ -1377,6 +1375,45 @@ void GlassBsdfNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("distribution", distribution);
 	compiler.add(this, "node_glass_bsdf");
+}
+
+/* Refraction BSDF Closure */
+
+static ShaderEnum refraction_distribution_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Sharp", CLOSURE_BSDF_REFRACTION_ID);
+	enm.insert("Beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID);
+	enm.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID);
+
+	return enm;
+}
+
+ShaderEnum RefractionBsdfNode::distribution_enum = refraction_distribution_init();
+
+RefractionBsdfNode::RefractionBsdfNode()
+{
+	distribution = ustring("Sharp");
+
+	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.0f);
+	add_input("IOR", SHADER_SOCKET_FLOAT, 0.3f);
+}
+
+void RefractionBsdfNode::compile(SVMCompiler& compiler)
+{
+	closure = (ClosureType)distribution_enum[distribution];
+
+	if(closure == CLOSURE_BSDF_REFRACTION_ID)
+		BsdfNode::compile(compiler, NULL, input("IOR"));
+	else
+		BsdfNode::compile(compiler, input("Roughness"), input("IOR"));
+}
+
+void RefractionBsdfNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter("distribution", distribution);
+	compiler.add(this, "node_refraction_bsdf");
 }
 
 /* Velvet BSDF Closure */
@@ -1536,6 +1573,34 @@ void HoldoutNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_holdout");
 }
 
+/* Ambient Occlusion */
+
+AmbientOcclusionNode::AmbientOcclusionNode()
+: ShaderNode("ambient_occlusion")
+{
+	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
+	add_output("AO", SHADER_SOCKET_CLOSURE);
+}
+
+void AmbientOcclusionNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *color_in = input("Color");
+
+	if(color_in->link) {
+		compiler.stack_assign(color_in);
+		compiler.add_node(NODE_CLOSURE_WEIGHT, color_in->stack_offset);
+	}
+	else
+		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color_in->value);
+
+	compiler.add_node(NODE_CLOSURE_AMBIENT_OCCLUSION, compiler.closure_mix_weight_offset());
+}
+
+void AmbientOcclusionNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_ambient_occlusion");
+}
+
 /* Volume Closure */
 
 VolumeNode::VolumeNode()
@@ -1635,10 +1700,8 @@ GeometryNode::GeometryNode()
 
 void GeometryNode::attributes(AttributeRequestSet *attributes)
 {
-	if(!output("Tangent")->links.empty()) {
-		attributes->add(ATTR_STD_TANGENT);
+	if(!output("Tangent")->links.empty())
 		attributes->add(ATTR_STD_GENERATED);
-	}
 
 	ShaderNode::attributes(attributes);
 }
@@ -2075,13 +2138,14 @@ void ParticleInfoNode::compile(SVMCompiler& compiler)
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LOCATION, out->stack_offset);
 	}
 	
-	#if 0	/* XXX Quaternion data is not yet supported by Cycles */
+	/* quaternion data is not yet supported by Cycles */
+#if 0
 	out = output("Rotation");
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_ROTATION, out->stack_offset);
 	}
-	#endif
+#endif
 	
 	out = output("Size");
 	if(!out->links.empty()) {
@@ -2944,6 +3008,182 @@ void OSLScriptNode::compile(OSLCompiler& compiler)
 		compiler.add(this, filepath.c_str(), true);
 	else
 		compiler.add(this, bytecode_hash.c_str(), false);
+}
+
+/* Normal Map */
+
+static ShaderEnum normal_map_space_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Tangent", NODE_NORMAL_MAP_TANGENT);
+	enm.insert("Object", NODE_NORMAL_MAP_OBJECT);
+	enm.insert("World", NODE_NORMAL_MAP_WORLD);
+
+	return enm;
+}
+
+ShaderEnum NormalMapNode::space_enum = normal_map_space_init();
+
+NormalMapNode::NormalMapNode()
+: ShaderNode("normal_map")
+{
+	space = ustring("Tangent");
+	attribute = ustring("");
+
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("Color", SHADER_SOCKET_COLOR);
+	add_output("Normal", SHADER_SOCKET_NORMAL);
+}
+
+void NormalMapNode::attributes(AttributeRequestSet *attributes)
+{
+	if(space == ustring("Tangent")) {
+		if(attribute == ustring("")) {
+			attributes->add(ATTR_STD_UV_TANGENT);
+			attributes->add(ATTR_STD_UV_TANGENT_SIGN);
+		}
+		else {
+			attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+			attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+		}
+	}
+	
+	ShaderNode::attributes(attributes);
+}
+
+void NormalMapNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput  *color_in = input("Color");
+	ShaderOutput *normal_out = output("Normal");
+	int attr = 0, attr_sign = 0;
+
+	if(space == ustring("Tangent")) {
+		if(attribute == ustring("")) {
+			attr = compiler.attribute(ATTR_STD_UV_TANGENT);
+			attr_sign = compiler.attribute(ATTR_STD_UV_TANGENT_SIGN);
+		}
+		else {
+			attr = compiler.attribute(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+			attr_sign = compiler.attribute(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+		}
+	}
+
+	compiler.stack_assign(color_in);
+	compiler.stack_assign(normal_out);
+
+	compiler.add_node(NODE_NORMAL_MAP,
+		compiler.encode_uchar4(
+			color_in->stack_offset,
+			normal_out->stack_offset,
+			space_enum[space]),
+		attr, attr_sign);
+}
+
+void NormalMapNode::compile(OSLCompiler& compiler)
+{
+	if(space == ustring("Tangent")) {
+		if(attribute == ustring("")) {
+			compiler.parameter("attr_name", ustring("geom:tangent"));
+			compiler.parameter("attr_sign_name", ustring("geom:tangent_sign"));
+		}
+		else {
+			compiler.parameter("attr_name", ustring((string(attribute.c_str()) + ".tangent").c_str()));
+			compiler.parameter("attr_sign_name", ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
+		}
+	}
+
+	compiler.parameter("space", space);
+
+	compiler.add(this, "node_normal_map"); 
+}
+
+/* Tangent */
+
+static ShaderEnum tangent_direction_type_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("Radial", NODE_TANGENT_RADIAL);
+	enm.insert("UV Map", NODE_TANGENT_UVMAP);
+
+	return enm;
+}
+
+static ShaderEnum tangent_axis_init()
+{
+	ShaderEnum enm;
+
+	enm.insert("X", NODE_TANGENT_AXIS_X);
+	enm.insert("Y", NODE_TANGENT_AXIS_Y);
+	enm.insert("Z", NODE_TANGENT_AXIS_Z);
+
+	return enm;
+}
+
+ShaderEnum TangentNode::direction_type_enum = tangent_direction_type_init();
+ShaderEnum TangentNode::axis_enum = tangent_axis_init();
+
+TangentNode::TangentNode()
+: ShaderNode("normal_map")
+{
+	direction_type = ustring("Radial");
+	axis = ustring("X");
+	attribute = ustring("");
+
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_output("Tangent", SHADER_SOCKET_NORMAL);
+}
+
+void TangentNode::attributes(AttributeRequestSet *attributes)
+{
+	if(direction_type == ustring("UV Map")) {
+		if(attribute == ustring(""))
+			attributes->add(ATTR_STD_UV_TANGENT);
+		else
+			attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+	}
+	else
+		attributes->add(ATTR_STD_GENERATED);
+	
+	ShaderNode::attributes(attributes);
+}
+
+void TangentNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *tangent_out = output("Tangent");
+	int attr;
+
+	if(direction_type == ustring("UV Map")) {
+		if(attribute == ustring(""))
+			attr = compiler.attribute(ATTR_STD_UV_TANGENT);
+		else
+			attr = compiler.attribute(ustring((string(attribute.c_str()) + ".tangent").c_str()));
+	}
+	else
+		attr = compiler.attribute(ATTR_STD_GENERATED);
+
+	compiler.stack_assign(tangent_out);
+
+	compiler.add_node(NODE_TANGENT,
+		compiler.encode_uchar4(
+			tangent_out->stack_offset,
+			direction_type_enum[direction_type],
+			axis_enum[axis]), attr);
+}
+
+void TangentNode::compile(OSLCompiler& compiler)
+{
+	if(direction_type == ustring("UV Map")) {
+		if(attribute == ustring(""))
+			compiler.parameter("attr_name", ustring("geom:tangent"));
+		else
+			compiler.parameter("attr_name", ustring((string(attribute.c_str()) + ".tangent").c_str()));
+	}
+
+	compiler.parameter("direction_type", direction_type);
+	compiler.parameter("axis", axis);
+	compiler.add(this, "node_tangent"); 
 }
 
 CCL_NAMESPACE_END

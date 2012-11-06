@@ -190,6 +190,8 @@ void OSLShader::register_closures(OSL::ShadingSystem *ss)
 		closure_background_params(), closure_background_prepare);
 	register_closure(ss, "holdout", id++,
 		closure_holdout_params(), closure_holdout_prepare);
+	register_closure(ss, "ambient_occlusion", id++,
+		closure_ambient_occlusion_params(), closure_ambient_occlusion_prepare);
 }
 
 CCL_NAMESPACE_END
