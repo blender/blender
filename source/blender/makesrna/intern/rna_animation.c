@@ -468,7 +468,7 @@ static void rna_NlaTrack_remove(AnimData *adt, bContext *C, ReportList *reports,
 	NlaTrack *track = track_ptr->data;
 
 	if (BLI_findindex(&adt->nla_tracks, track) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "NlaTrack '%s' can't be removed", track->name);
+		BKE_reportf(reports, RPT_ERROR, "NlaTrack '%s' cannot be removed", track->name);
 		return;
 	}
 

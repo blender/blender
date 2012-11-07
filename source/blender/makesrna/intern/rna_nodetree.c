@@ -1175,7 +1175,7 @@ static EnumPropertyItem node_glossy_items[] = {
 
 static EnumPropertyItem node_script_mode_items[] = {
 	{NODE_SCRIPT_INTERNAL, "INTERNAL", 0, "Internal", "Use internal text datablock"},
-	{NODE_SCRIPT_EXTERNAL, "EXTERNAL", 0, "External", "Use external .osl or oso file"},
+	{NODE_SCRIPT_EXTERNAL, "EXTERNAL", 0, "External", "Use external .osl or .oso file"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1878,7 +1878,7 @@ static void def_sh_normal_map(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "UV Map", "UV Map for for tangent space maps");
+	RNA_def_property_ui_text(prop, "UV Map", "UV Map for tangent space maps");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "bNode", NULL);
@@ -1914,7 +1914,7 @@ static void def_sh_tangent(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "UV Map", "UV Map for for tangent generated from UV");
+	RNA_def_property_ui_text(prop, "UV Map", "UV Map for tangent generated from UV");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	RNA_def_struct_sdna_from(srna, "bNode", NULL);
@@ -1947,11 +1947,12 @@ static void def_sh_script(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "use_auto_update", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_SCRIPT_AUTO_UPDATE);
-	RNA_def_property_ui_text(prop, "Auto Update", "Automatically updates the shader when the .osl file changes - external scripts only");
+	RNA_def_property_ui_text(prop, "Auto Update",
+	                         "Automatically update the shader when the .osl file changes (external scripts only)");
 	
 	prop = RNA_def_property(srna, "bytecode", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_ShaderNodeScript_bytecode_get",
-		"rna_ShaderNodeScript_bytecode_length", "rna_ShaderNodeScript_bytecode_set");
+	RNA_def_property_string_funcs(prop, "rna_ShaderNodeScript_bytecode_get", "rna_ShaderNodeScript_bytecode_length",
+	                              "rna_ShaderNodeScript_bytecode_set");
 	RNA_def_property_ui_text(prop, "Bytecode", "Compile bytecode for shader script node");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

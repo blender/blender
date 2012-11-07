@@ -2232,7 +2232,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 				ntreetype->foreach_nodetree(bmain, &data, node_shader_script_update_text);
 
 			if (!data.found)
-				BKE_report(op->reports, RPT_INFO, "Text not used by any node, no update done.");
+				BKE_report(op->reports, RPT_INFO, "Text not used by any node, no update done");
 		}
 	}
 
