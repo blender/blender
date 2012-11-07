@@ -94,7 +94,7 @@ IF((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
           ${_python_SEARCH_DIRS}
         PATH_SUFFIXES
           include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
-          include/x86_64-linux-gnu/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+          include/${CMAKE_LIBRARY_ARCHITECTURE}/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
       )
     ENDIF()
 
@@ -106,7 +106,7 @@ IF((NOT _IS_INC_DEF) OR (NOT _IS_INC_CONF_DEF) OR (NOT _IS_LIB_DEF) OR (NOT _IS_
           ${_python_SEARCH_DIRS}
         PATH_SUFFIXES
           include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
-          include/x86_64-linux-gnu/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+          include/${CMAKE_LIBRARY_ARCHITECTURE}/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
       )
       IF(NOT PYTHON_INCLUDE_CONFIG_DIR AND PYTHON_INCLUDE_DIR)
         # Fallback...
