@@ -107,18 +107,13 @@ float BLI_quadric_evaluate(const Quadric *q, const float v[3])
 	         q->d2);
 }
 
-int BLI_quadric_optimize(const Quadric *q, float v[3])
+int BLI_quadric_optimize(const Quadric *q, float v[3], const float epsilon)
 {
 	float m[3][3];
-	float det;
 
 	BLI_quadric_to_tensor_m3(q, m);
-	det = determinant_m3(m[0][0], m[0][1], m[0][2],
-	                     m[1][0], m[1][1], m[1][2],
-	                     m[2][0], m[2][1], m[2][2]);
 
-	if (fabsf(det) > FLT_EPSILON) {
-		invert_m3(m);
+	if (invert_m3_ex(m, epsilon)) {
 		BLI_quadric_to_vector_v3(q, v);
 		mul_m3_v3(m, v);
 		negate_v3(v);

@@ -51,6 +51,7 @@
 #define USE_SAFETY_CHECKS
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
+#define OPTIMIZE_EPS 0.01f  /* FLT_EPSILON is too small, see [#33106] */
 
 typedef enum CD_UseFlag {
 	CD_DO_VERT = (1 << 0),
@@ -123,7 +124,7 @@ static void bm_decim_calc_target_co(BMEdge *e, float optimize_co[3],
 	                        &vquadrics[BM_elem_index_get(e->v2)]);
 
 
-	if (BLI_quadric_optimize(&q, optimize_co)) {
+	if (BLI_quadric_optimize(&q, optimize_co, OPTIMIZE_EPS)) {
 		return;  /* all is good */
 	}
 	else {

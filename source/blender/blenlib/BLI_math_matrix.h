@@ -98,6 +98,9 @@ void mul_m3_fl(float R[3][3], float f);
 void mul_m4_fl(float R[4][4], float f);
 void mul_mat3_m4_fl(float R[4][4], float f);
 
+int invert_m3_ex(float m[3][3], const float epsilon);
+int invert_m3_m3_ex(float m1[3][3], float m2[3][3], const float epsilon);
+
 int invert_m3(float R[3][3]);
 int invert_m3_m3(float R[3][3], float A[3][3]);
 int invert_m4(float R[4][4]);
