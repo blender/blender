@@ -35,7 +35,7 @@ namespace KDL {
      */
     class Chain {
     private:
-#if !defined(__APPLE__) && MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if !defined(__APPLE__)
         // Eigen allocator is needed for alignment of Eigen data types
         std::vector<Segment, Eigen::aligned_allocator<Segment> > segments;
 #else
