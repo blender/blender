@@ -1117,7 +1117,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 		data[j]->overlap = (BVHTreeOverlap *)malloc(sizeof(BVHTreeOverlap) * max_ii(tree1->totleaf, tree2->totleaf));
 		data[j]->tree1 = tree1;
 		data[j]->tree2 = tree2;
-		data[j]->max_overlap = MAX2(tree1->totleaf, tree2->totleaf);
+		data[j]->max_overlap = max_ii(tree1->totleaf, tree2->totleaf);
 		data[j]->i = 0;
 		data[j]->start_axis = min_axis(tree1->start_axis, tree2->start_axis);
 		data[j]->stop_axis  = min_axis(tree1->stop_axis,  tree2->stop_axis);

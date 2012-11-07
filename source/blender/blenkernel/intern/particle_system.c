@@ -467,13 +467,7 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 	mv++;
 
 	for (i=1; i<totvert; i++, mv++) {
-		min[0]=MIN2(min[0],mv->co[0]);
-		min[1]=MIN2(min[1],mv->co[1]);
-		min[2]=MIN2(min[2],mv->co[2]);
-
-		max[0]=MAX2(max[0],mv->co[0]);
-		max[1]=MAX2(max[1],mv->co[1]);
-		max[2]=MAX2(max[2],mv->co[2]);
+		minmax_v3v3_v3(min, max, mv->co);
 	}
 
 	sub_v3_v3v3(delta, max, min);

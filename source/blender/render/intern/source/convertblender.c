@@ -4296,7 +4296,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				
 				/* compute average bounding box of strandpoint itself (width) */
 				if (obr->strandbuf->flag & R_STRAND_B_UNITS)
-					obr->strandbuf->maxwidth= MAX2(obr->strandbuf->ma->strand_sta, obr->strandbuf->ma->strand_end);
+					obr->strandbuf->maxwidth = max_ff(obr->strandbuf->ma->strand_sta, obr->strandbuf->ma->strand_end);
 				else
 					obr->strandbuf->maxwidth= 0.0f;
 				

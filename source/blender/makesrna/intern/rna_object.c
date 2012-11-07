@@ -547,8 +547,7 @@ static void rna_Object_active_vertex_group_index_range(PointerRNA *ptr, int *min
 	Object *ob = (Object *)ptr->id.data;
 
 	*min = 0;
-	*max = BLI_countlist(&ob->defbase) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&ob->defbase) - 1);
 }
 
 void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
@@ -658,7 +657,7 @@ static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, in
 {
 	Object *ob = (Object *)ptr->id.data;
 	*min = 0;
-	*max = MAX2(ob->totcol - 1, 0);
+	*max = max_ii(ob->totcol - 1, 0);
 }
 
 /* returns active base material */
@@ -684,8 +683,7 @@ static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *
 {
 	Object *ob = (Object *)ptr->id.data;
 	*min = 0;
-	*max = BLI_countlist(&ob->particlesystem) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&ob->particlesystem) - 1);
 }
 
 static int rna_Object_active_particle_system_index_get(PointerRNA *ptr)

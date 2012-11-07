@@ -54,6 +54,8 @@ EnumPropertyItem keyingset_path_grouping_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_math_base.h"
+
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
@@ -371,8 +373,7 @@ static void rna_KeyingSet_active_ksPath_index_range(PointerRNA *ptr, int *min, i
 	KeyingSet *ks = (KeyingSet *)ptr->data;
 
 	*min = 0;
-	*max = BLI_countlist(&ks->paths) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&ks->paths) - 1);
 }
 
 static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)

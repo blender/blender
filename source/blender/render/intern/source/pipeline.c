@@ -2507,8 +2507,8 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 
 	if (env->type == ENV_CUBE) {
 		for (i = 0; i < 12; i += 2) {
-			maxX = MAX2(maxX, layout[i] + 1);
-			maxY = MAX2(maxY, layout[i + 1] + 1);
+			maxX = max_ii(maxX, (int)layout[i] + 1);
+			maxY = max_ii(maxY, (int)layout[i + 1] + 1);
 		}
 
 		ibuf = IMB_allocImBuf(maxX * dx, maxY * dx, 24, IB_rectfloat);
