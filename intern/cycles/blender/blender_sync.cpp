@@ -379,7 +379,10 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	params.start_resolution = get_int(cscene, "preview_start_resolution");
 
 	/* other parameters */
-	params.threads = b_scene.render().threads();
+	if(b_scene.render().threads_mode() == BL::RenderSettings::threads_mode_FIXED)
+		params.threads = b_scene.render().threads();
+	else
+		params.threads = 0;
 
 	params.cancel_timeout = get_float(cscene, "debug_cancel_timeout");
 	params.reset_timeout = get_float(cscene, "debug_reset_timeout");

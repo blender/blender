@@ -78,13 +78,13 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 		glDisable(GL_BLEND);
 }
 
-Device *Device::create(DeviceInfo& info, Stats &stats, bool background, int threads)
+Device *Device::create(DeviceInfo& info, Stats &stats, bool background)
 {
 	Device *device;
 
 	switch(info.type) {
 		case DEVICE_CPU:
-			device = device_cpu_create(info, stats, threads);
+			device = device_cpu_create(info, stats);
 			break;
 #ifdef WITH_CUDA
 		case DEVICE_CUDA:

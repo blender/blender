@@ -49,7 +49,7 @@ Session::Session(const SessionParams& params_)
 
 	TaskScheduler::init(params.threads);
 
-	device = Device::create(params.device, stats, params.background, params.threads);
+	device = Device::create(params.device, stats, params.background);
 
 	if(params.background) {
 		buffers = NULL;
