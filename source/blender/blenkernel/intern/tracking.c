@@ -1624,6 +1624,9 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 	double warped_position_x, warped_position_y;
 	float *mask = NULL;
 
+	if (num_samples_x <= 0 || num_samples_y <= 0)
+		return NULL;
+
 	pattern_ibuf = IMB_allocImBuf(num_samples_x, num_samples_y, 32, IB_rectfloat);
 
 	if (!search_ibuf->rect_float) {
@@ -1690,10 +1693,15 @@ ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 
 	search_ibuf = BKE_tracking_get_search_imbuf(ibuf, track, marker, anchored, disable_channels);
 
-	pattern_ibuf = BKE_tracking_sample_pattern(ibuf->x, ibuf->y, search_ibuf, track, marker,
-	                                           FALSE, num_samples_x, num_samples_y, NULL);
+	if (search_ibuf) {
+		pattern_ibuf = BKE_tracking_sample_pattern(ibuf->x, ibuf->y, search_ibuf, track, marker,
+		                                           FALSE, num_samples_x, num_samples_y, NULL);
 
-	IMB_freeImBuf(search_ibuf);
+		IMB_freeImBuf(search_ibuf);
+	}
+	else {
+		pattern_ibuf = NULL;
+	}
 
 	return pattern_ibuf;
 }
@@ -1717,6 +1725,9 @@ ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mov
 
 	w = (marker->search_max[0] - marker->search_min[0]) * ibuf->x;
 	h = (marker->search_max[1] - marker->search_min[1]) * ibuf->y;
+
+	if (w <= 0 || h <= 0)
+		return NULL;
 
 	searchibuf = IMB_allocImBuf(w, h, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
 
@@ -2187,6 +2198,12 @@ static float *track_get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, 
 
 	searchibuf = BKE_tracking_get_search_imbuf(ibuf, track, marker, FALSE, TRUE);
 
+	if (!searchibuf) {
+		*width_r = 0;
+		*height_r = 0;
+		return NULL;
+	}
+
 	width = searchibuf->x;
 	height = searchibuf->y;
 
@@ -2505,6 +2522,9 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 				/* convert the marker corners and center into pixel coordinates in the search/destination images. */
 				get_marker_coords_for_tracking(frame_width, frame_height, &track_context->marker, src_pixel_x, src_pixel_y);
 				get_marker_coords_for_tracking(frame_width, frame_height, marker, dst_pixel_x, dst_pixel_y);
+
+				if (!patch_new || !track_context->search_area)
+					continue;
 
 				/* run the tracker! */
 				tracked = libmv_trackRegion(&options,
