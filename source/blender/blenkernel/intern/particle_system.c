@@ -367,11 +367,12 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");
 		nodearray= MEM_callocN(sizeof(LinkNode *)*totelem, "psys node array");
 		
-		for (i=0, node=nodedmelem; i<totdmelem; i++, origindex++, node++) {
+		for (i=0, node=nodedmelem; i<totdmelem; i++, node++) {
 			int origindex_final;
 			node->link = SET_INT_IN_POINTER(i);
 
-			origindex_final = *origindex;
+			/* may be vertex or face origindex */
+			origindex_final = origindex ? origindex[i] : ORIGINDEX_NONE;
 
 			/* if we have a poly source, do an index lookup */
 			if (origindex_poly && origindex_final != ORIGINDEX_NONE) {
