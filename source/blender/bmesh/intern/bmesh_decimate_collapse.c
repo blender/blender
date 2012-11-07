@@ -52,6 +52,7 @@
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
 #define OPTIMIZE_EPS 0.01f  /* FLT_EPSILON is too small, see [#33106] */
+#define COST_INVALID FLT_MAX
 
 typedef enum CD_UseFlag {
 	CD_DO_VERT = (1 << 0),
@@ -198,6 +199,16 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 	// print("COST %.12f\n");
 
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
+}
+
+
+/* use this for degenerate cases - add back to the heap with an invalid cost,
+ * this way it may be calculated again if surrounding geometry changes */
+static void bm_decim_invalid_edge_cost_single(BMEdge *e,
+                                              Heap *eheap, HeapNode **eheap_table)
+{
+	BLI_assert(eheap_table[BM_elem_index_get(e)] == NULL);
+	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, COST_INVALID, e);
 }
 
 static void bm_decim_build_edge_cost(BMesh *bm,
@@ -525,7 +536,7 @@ BLI_INLINE int bm_edge_is_manifold_or_boundary(BMLoop *l)
 #endif
 }
 
-static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
+static int bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 {
 	/* simply check that there is no overlap between faces and edges of each vert,
 	 * (excluding the 2 faces attached to 'e' and 'e' its self) */
@@ -628,11 +639,6 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e
                             )
 {
 	BMVert *v_other;
-
-	/* disallow collapsing which results in degenerate cases */
-	if (bm_edge_collapse_is_degenerate(e_clear)) {
-		return FALSE;
-	}
 
 	v_other = BM_edge_other_vert(e_clear, v_clear);
 	BLI_assert(v_other != NULL);
@@ -781,12 +787,17 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 	copy_v3_v3(v_clear_no, e->v2->no);
 #endif
 
+	/* disallow collapsing which results in degenerate cases */
+	if (UNLIKELY(bm_edge_collapse_is_degenerate_topology(e))) {
+		bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);  /* add back with a high cost */
+		return;
+	}
+
 	bm_decim_calc_target_co(e, optimize_co, vquadrics);
 
 	/* use for customdata merging */
 	if (LIKELY(compare_v3v3(e->v1->co, e->v2->co, FLT_EPSILON) == FALSE)) {
 		customdata_fac = line_point_factor_v3(optimize_co, e->v1->co, e->v2->co);
-
 #if 0
 		/* simple test for stupid collapse */
 		if (customdata_fac < 0.0 - FLT_EPSILON || customdata_fac > 1.0f + FLT_EPSILON) {
@@ -870,6 +881,10 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		/* end optional update */
 #endif
 	}
+	else {
+		/* add back with a high cost */
+		bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);
+	}
 }
 
 
@@ -925,7 +940,10 @@ void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, c
 #endif
 
 	/* iterative edge collapse and maintain the eheap */
-	while ((bm->totface > face_tot_target) && (BLI_heap_is_empty(eheap) == FALSE)) {
+	while ((bm->totface > face_tot_target) &&
+	       (BLI_heap_is_empty(eheap) == FALSE) &&
+	       (BLI_heap_node_value(BLI_heap_top(eheap)) != COST_INVALID))
+	{
 		// const float value = BLI_heap_node_value(BLI_heap_top(eheap));
 		BMEdge *e = BLI_heap_popmin(eheap);
 		BLI_assert(BM_elem_index_get(e) < tot_edge_orig);  /* handy to detect corruptions elsewhere */
