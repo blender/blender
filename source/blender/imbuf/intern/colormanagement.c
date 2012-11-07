@@ -2385,7 +2385,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
                                        const ColorManagedDisplaySettings *display_settings,
                                        int xmin, int ymin, int xmax, int ymax, int update_orig_byte_buffer)
 {
-	if ((ibuf->rect && ibuf->rect_float) || update_orig_byte_buffer)  {
+	if ((ibuf->rect && ibuf->rect_float) || update_orig_byte_buffer) {
 		/* update byte buffer created by legacy color management */
 
 		unsigned char *rect = (unsigned char *) ibuf->rect;

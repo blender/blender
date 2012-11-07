@@ -306,7 +306,7 @@ void RE_engine_report(RenderEngine *engine, int type, const char *msg)
 
 	if (re)
 		BKE_report(engine->re->reports, type, msg);
-	else if(engine->reports)
+	else if (engine->reports)
 		BKE_report(engine->reports, type, msg);
 }
 

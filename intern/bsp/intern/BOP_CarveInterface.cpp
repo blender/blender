@@ -205,7 +205,7 @@ static void Carve_getIntersectedOperandMeshes(std::vector<MeshSet<3>::mesh_t*> &
 	std::vector<MeshSet<3>::mesh_t*>::iterator it = meshes.begin();
 	std::vector< RTreeNode<3, Face<3> *> *> meshRTree;
 
-	while(it != meshes.end()) {
+	while (it != meshes.end()) {
 		MeshSet<3>::mesh_t *mesh = *it;
 		bool isAdded = false;
 
@@ -279,7 +279,7 @@ static MeshSet<3> *Carve_unionIntersectingMeshes(MeshSet<3> *poly,
 		return poly;
 	}
 
-	while(orig_meshes.size()) {
+	while (orig_meshes.size()) {
 		MeshSet<3> *right = Carve_getIntersectedOperand(orig_meshes, otherAABB);
 
 		if (!right) {

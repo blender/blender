@@ -1420,10 +1420,10 @@ static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRN
 {
 	uiItemR(layout, ptr, "space", 0, "", 0);
 
-	if(RNA_enum_get(ptr, "space") == SHD_NORMAL_MAP_TANGENT) {
+	if (RNA_enum_get(ptr, "space") == SHD_NORMAL_MAP_TANGENT) {
 		PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
 
-		if(obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
 			PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
 			uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_textures", "", ICON_NONE);
 		}
@@ -1442,10 +1442,10 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
 
 	row = uiLayoutRow(split, FALSE);
 
-	if(RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
+	if (RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
 		PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
 
-		if(obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
+		if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
 			PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
 			uiItemPointerR(row, ptr, "uv_map", &dataptr, "uv_textures", "", ICON_NONE);
 		}
@@ -1485,7 +1485,7 @@ static void node_shader_buts_script_details(uiLayout *layout, bContext *C, Point
 	node_shader_buts_script(layout, C, ptr);
 
 	/* not implemented yet
-	if(RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL)
+	if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL)
 		uiItemR(layout, ptr, "use_auto_update", 0, NULL, ICON_NONE);*/
 }
 

@@ -2267,7 +2267,8 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 	}
 }
 
-struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm){
+struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
+{
 	smokeModifier_process(smd, scene, ob, dm);
 
 	/* return generated geometry for adaptive domain */
