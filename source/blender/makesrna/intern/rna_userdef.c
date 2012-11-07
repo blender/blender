@@ -3424,7 +3424,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
 	/* 3D view */
 	prop = RNA_def_property(srna, "ndof_view_rotate_method", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ndof_flag");
 	RNA_def_property_enum_items(prop, ndof_view_rotation_items);
 	RNA_def_property_ui_text(prop, "NDOF View Rotation", "Rotation style in the viewport");
 

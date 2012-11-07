@@ -992,8 +992,10 @@ void ndof_to_quat(struct wmNDOFMotionData *ndof, float q[4])
  * -- zooming
  * -- panning in rotationally-locked views
  */
-static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ViewOpsData *vod = op->customdata;
+	
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
 	else {
@@ -1074,6 +1076,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 					rot[1] = rot[2] = 0.0;
 					rot[3] = sin(angle);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+					
 				}
 				else {
 					float rot[4];
@@ -1088,6 +1091,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 
 					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						axis[1] = -axis[1];
+					
 
 					/* transform rotation axis from view to world coordinates */
 					mul_qt_v3(view_inv, axis);
@@ -1100,7 +1104,22 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 
 					/* apply rotation */
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
+					
+				}
+				
+				/* rotate around custom center */
+				if (vod && vod->use_dyn_ofs) {
+					float q1[4];
+					
+					/* compute the post multiplication quat, to rotate the offset correctly */
+					conjugate_qt_qt(q1, vod->oldquat);
+					mul_qt_qtqt(q1, q1, rv3d->viewquat);
+					
+					conjugate_qt(q1); /* conj == inv for unit quat */
+					copy_v3_v3(rv3d->ofs, vod->ofs);
+					sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
+					mul_qt_v3(q1, rv3d->ofs);
+					add_v3_v3(rv3d->ofs, vod->dyn_ofs);
 				}
 			}
 		}
@@ -1267,6 +1286,9 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			float axis[3];
 #endif
 
+			/* inverse view */
+			invert_qt_qt(view_inv, rv3d->viewquat);
+			
 			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
 				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
 			else
@@ -1285,12 +1307,11 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mul_v3_fl(pan_vec, speed * dt);
 
 			/* transform motion from view to world coordinates */
-			invert_qt_qt(view_inv, rv3d->viewquat);
 			mul_qt_v3(view_inv, pan_vec);
 
 			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
 			sub_v3_v3(rv3d->ofs, pan_vec);
-
+			
 			if (U.ndof_flag & NDOF_TURNTABLE) {
 				/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
 				float angle, rot[4];
@@ -1350,8 +1371,24 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 				/* apply rotation */
 				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
+				
 			}
+			
+			/* rotate around custom center */
+			if (vod && vod->use_dyn_ofs) {
+				float q1[4];
+				
+				/* compute the post multiplication quat, to rotate the offset correctly */
+				conjugate_qt_qt(q1, vod->oldquat);
+				mul_qt_qtqt(q1, q1, rv3d->viewquat);
+				
+				conjugate_qt(q1); /* conj == inv for unit quat */
+				copy_v3_v3(rv3d->ofs, vod->ofs);
+				sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
+				mul_qt_v3(q1, rv3d->ofs);
+				add_v3_v3(rv3d->ofs, vod->dyn_ofs);
+			}
+
 		}
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 
