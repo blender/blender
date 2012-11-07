@@ -1902,8 +1902,9 @@ void ui_set_but_default(bContext *C, short all)
 
 static double soft_range_round_up(double value, double max)
 {
-	/* round up to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */
-	double newmax = pow(10.0, ceil(log(value) / M_LN10));
+	/* round up to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, ..
+	 * checking for 0.0 prevents floating point exceptions */
+	double newmax = (value != 0.0) ? pow(10.0, ceil(log(value) / M_LN10)) : 0.0;
 
 	if (newmax * 0.2 >= max && newmax * 0.2 >= value)
 		return newmax * 0.2;
@@ -1915,8 +1916,9 @@ static double soft_range_round_up(double value, double max)
 
 static double soft_range_round_down(double value, double max)
 {
-	/* round down to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */
-	double newmax = pow(10.0, floor(log(value) / M_LN10));
+	/* round down to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, ..
+	 * checking for 0.0 prevents floating point exceptions */
+	double newmax = (value != 0.0) ? pow(10.0, floor(log(value) / M_LN10)) : 0.0;
 
 	if (newmax * 5.0 <= max && newmax * 5.0 <= value)
 		return newmax * 5.0;
