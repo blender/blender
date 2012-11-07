@@ -101,7 +101,7 @@ void DeviceTask::update_progress(RenderTile &rtile)
 	if(update_tile_sample) {
 		double current_time = time_dt();
 
-		if (current_time - last_update_time >= 1.0f) {
+		if (current_time - last_update_time >= 1.0) {
 			update_tile_sample(rtile);
 
 			last_update_time = current_time;

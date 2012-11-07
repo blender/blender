@@ -818,7 +818,7 @@ bool Session::update_progressive_refine(bool cancel)
 
 	double current_time = time_dt();
 
-	if (current_time - last_update_time < 1.0f) {
+	if (current_time - last_update_time < 1.0) {
 		/* if last sample was processed, we need to write buffers anyway  */
 		if (!write)
 			return false;
