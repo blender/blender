@@ -133,6 +133,56 @@ static void bm_decim_calc_target_co(BMEdge *e, float optimize_co[3],
 	}
 }
 
+static int bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_co[3])
+{
+	BMIter liter;
+	BMLoop *l;
+	unsigned int i;
+
+	for (i = 0; i < 2; i++) {
+		/* loop over both verts */
+		BMVert *v = *((&e->v1) + i);
+
+		BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+			if (l->e != e && l->prev->e != e) {
+				float *co_prev = l->prev->v->co;
+				float *co_next = l->next->v->co;
+				float cross_exist[3];
+				float cross_optim[3];
+
+#if 1
+				float vec_other[3];  /* line between the two outer verts, re-use for both cross products */
+				float vec_exist[3];  /* before collapse */
+				float vec_optim[3];  /* after collapse */
+
+				sub_v3_v3v3(vec_other, co_prev, co_next);
+				sub_v3_v3v3(vec_exist, co_prev, v->co);
+				sub_v3_v3v3(vec_optim, co_prev, optimize_co);
+
+				cross_v3_v3v3(cross_exist, vec_other, vec_exist);
+				cross_v3_v3v3(cross_optim, vec_other, vec_optim);
+
+				/* normalize isn't really needed, but ensures the value at a unit we can compare against */
+				normalize_v3(cross_exist);
+				normalize_v3(cross_optim);
+#else
+				normal_tri_v3(cross_exist, v->co,       co_prev, co_next);
+				normal_tri_v3(cross_optim, optimize_co, co_prev, co_next);
+#endif
+
+				/* use a small value rather then zero so we don't flip a face in multiple steps
+				 * (first making it zero area, then flipping again)*/
+				if (dot_v3v3(cross_exist, cross_optim) <= FLT_EPSILON) {
+					//printf("no flip\n");
+					return TRUE;
+				}
+			}
+		}
+	}
+
+	return FALSE;
+}
+
 static void bm_decim_build_edge_cost_single(BMEdge *e,
                                             const Quadric *vquadrics, const float *vweights,
                                             Heap *eheap, HeapNode **eheap_table)
@@ -795,6 +845,12 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 
 	bm_decim_calc_target_co(e, optimize_co, vquadrics);
 
+	/* check if this would result in an overlapping face */
+	if (UNLIKELY(bm_edge_collapse_is_degenerate_flip(e, optimize_co))) {
+		bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);  /* add back with a high cost */
+		return;
+	}
+
 	/* use for customdata merging */
 	if (LIKELY(compare_v3v3(e->v1->co, e->v2->co, FLT_EPSILON) == FALSE)) {
 		customdata_fac = line_point_factor_v3(optimize_co, e->v1->co, e->v2->co);
@@ -859,7 +915,10 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 			} while ((e_iter = bmesh_disk_edge_next(e_iter, v_other)) != e_first);
 		}
 
-#if 0
+		/* this block used to be disabled,
+		 * but enable now since surrounding faces may have been
+		 * set to COST_INVALID because of a face overlap that no longer occurs */
+#if 1
 		/* optional, update edges around the vertex face fan */
 		{
 			BMIter liter;
@@ -874,7 +933,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 
 					BLI_assert(BM_vert_in_edge(e_outer, l->v) == FALSE);
 
-					bm_decim_build_edge_cost_single(e_outer, vquadrics, eheap, eheap_table);
+					bm_decim_build_edge_cost_single(e_outer, vquadrics, vweights, eheap, eheap_table);
 				}
 			}
 		}
