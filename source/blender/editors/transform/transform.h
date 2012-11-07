@@ -197,6 +197,7 @@ typedef struct TransDataSlideVert {
 
 	float edge_len;
 
+	/* add origvert.co to get the original locations */
 	float upvec[3], downvec[3];
 
 	int loop_nr;
