@@ -72,6 +72,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
+#include "BKE_utildefines.h"
 
 #include "BKE_idcode.h"
 
@@ -2077,7 +2078,6 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
 	int fileflags;
-	int copy = 0;
 
 	save_set_compress(op);
 	
@@ -2087,29 +2087,27 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(path, G.main->name, FILE_MAX);
 		untitled(path);
 	}
-
-	if (RNA_struct_property_is_set(op->ptr, "copy"))
-		copy = RNA_boolean_get(op->ptr, "copy");
 	
 	fileflags = G.fileflags;
 
 	/* set compression flag */
-	if (RNA_boolean_get(op->ptr, "compress")) fileflags |=  G_FILE_COMPRESS;
-	else fileflags &= ~G_FILE_COMPRESS;
-	if (RNA_boolean_get(op->ptr, "relative_remap")) fileflags |=  G_FILE_RELATIVE_REMAP;
-	else fileflags &= ~G_FILE_RELATIVE_REMAP;
+	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "compress"),
+	                 G_FILE_COMPRESS);
+	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "relative_remap"),
+	                 G_FILE_RELATIVE_REMAP);
+	BKE_BIT_TEST_SET(fileflags,
+	                 (RNA_struct_property_is_set(op->ptr, "copy") &&
+	                  RNA_boolean_get(op->ptr, "copy")),
+	                 G_FILE_SAVE_COPY);
+
 #ifdef USE_BMESH_SAVE_AS_COMPAT
-	/* property only exists for 'Save As' */
-	if (RNA_struct_find_property(op->ptr, "use_mesh_compat")) {
-		if (RNA_boolean_get(op->ptr, "use_mesh_compat")) fileflags |=  G_FILE_MESH_COMPAT;
-		else fileflags &= ~G_FILE_MESH_COMPAT;
-	}
-	else {
-		fileflags &= ~G_FILE_MESH_COMPAT;
-	}
+	BKE_BIT_TEST_SET(fileflags,
+	                 (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
+	                  RNA_boolean_get(op->ptr, "use_mesh_compat")),
+	                 G_FILE_MESH_COMPAT);
 #endif
 
-	if (WM_file_write(C, path, fileflags, op->reports, copy) != 0)
+	if (WM_file_write(C, path, fileflags, op->reports) != 0)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);

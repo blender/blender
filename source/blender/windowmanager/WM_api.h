@@ -106,7 +106,7 @@ int			WM_homefile_read_exec(struct bContext *C, struct wmOperator *op);
 int			WM_homefile_read(struct bContext *C, struct ReportList *reports, short from_memory);
 int			WM_homefile_write_exec(struct bContext *C, struct wmOperator *op);
 void		WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
-int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
+int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports);
 void		WM_autosave_init(struct wmWindowManager *wm);
 
 			/* mouse cursors */
