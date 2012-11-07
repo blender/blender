@@ -45,6 +45,7 @@
 /* defines for testing */
 #define USE_CUSTOMDATA
 #define USE_TRIANGULATE
+#define USE_VERT_NORMAL_INTERP  /* has the advantage that flipped faces don't mess up vertex normals */
 
 /* these checks are for rare cases that we can't avoid since they are valid meshes still */
 #define USE_SAFETY_CHECKS
@@ -774,6 +775,11 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 	float optimize_co[3];
 	float customdata_fac;
 
+#ifdef USE_VERT_NORMAL_INTERP
+	float v_clear_no[3];
+	copy_v3_v3(v_clear_no, e->v2->no);
+#endif
+
 	bm_decim_calc_target_co(e, optimize_co, vquadrics);
 
 	/* use for customdata merging */
@@ -822,7 +828,13 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 
 		/* in fact face normals are not used for progressive updates, no need to update them */
 		// BM_vert_normal_update_all(v);
+#ifdef USE_VERT_NORMAL_INTERP
+		interp_v3_v3v3(v_other->no, v_other->no, v_clear_no, customdata_fac);
+		normalize_v3(v_other->no);
+#else
 		BM_vert_normal_update(v_other);
+#endif
+
 
 		/* update error costs and the eheap */
 		if (LIKELY(v_other->e)) {
