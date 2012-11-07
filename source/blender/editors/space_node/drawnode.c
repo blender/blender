@@ -124,7 +124,7 @@ static void node_socket_button_string(const bContext *C, uiBlock *block,
 
 		UI_ThemeColor(TH_TEXT);
 		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
-		while (slen > (width * 0.5) && *ui_name) {
+		while (slen > (width * 0.5f) && *ui_name) {
 			ui_name = BLI_str_find_next_char_utf8(ui_name, NULL);
 			slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
 		}
@@ -140,7 +140,7 @@ static void node_socket_button_string(const bContext *C, uiBlock *block,
 		if (node)
 			uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
 		
-		if (slen > 0.0)
+		if (slen > 0.0f)
 			uiDefBut(block, LABEL, 0, IFACE_(name), x + (width - slen), y + 2, slen, NODE_DY - 2, NULL, 0, 0, 0, 0, "");
 	}
 }
@@ -246,9 +246,9 @@ static void node_draw_output_default(const bContext *C, uiBlock *block,
 	
 	if (*ui_name) {
 		uiDefBut(block, LABEL, 0, ui_name,
-				 (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
-				 (short)slen, (short)NODE_DY,
-				 NULL, 0, 0, 0, 0, "");
+		         (int)(sock->locx - slen), (int)(sock->locy - 9.0f),
+		         (short)slen, (short)NODE_DY,
+		         NULL, 0, 0, 0, 0, "");
 	}
 }
 
@@ -523,8 +523,9 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		bNodeSocket *sock, *gsock;
 		float locx, locy;
 		rctf *rect = &gnode->totr;
-		float node_group_frame = U.dpi * NODE_GROUP_FRAME / 72;
-		float group_header = 26 * U.dpi / 72;
+		const float dpi_fac = UI_DPI_ICON_FAC;
+		const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
+		const float group_header = 26 * dpi_fac;
 		int counter;
 		int dy;
 		
@@ -701,7 +702,7 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *ntree, bNode *gnode,
                               bNodeSocket *sock, bNodeSocket *gsock, int index, int in_out)
 {
-	const float dpi_fac = U.dpi / 72.0f;
+	const float dpi_fac = UI_DPI_ICON_FAC;
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeSocketType *stype = ntreeGetSocketType(gsock ? gsock->type : sock->type);
 	uiBut *bt;
@@ -813,9 +814,9 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		uiLayout *layout;
 		PointerRNA ptr;
 		rctf rect = gnode->totr;
-		const float dpi_fac = U.dpi / 72.0f;
-		float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
-		float group_header = 26 * dpi_fac;
+		const float dpi_fac = UI_DPI_ICON_FAC;
+		const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
+		const float group_header = 26 * dpi_fac;
 		
 		int index;
 		

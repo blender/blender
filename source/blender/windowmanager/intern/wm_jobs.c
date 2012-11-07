@@ -172,6 +172,9 @@ wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *
 	}
 	/* else: a running job, be careful */
 	
+	/* prevent creating a job with an invalid type */
+	BLI_assert(wm_job->job_type != WM_JOB_TYPE_ANY);
+
 	return wm_job;
 }
 
