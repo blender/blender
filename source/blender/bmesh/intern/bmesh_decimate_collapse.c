@@ -96,7 +96,7 @@ static void bm_decim_build_quadrics(BMesh *bm, Quadric *vquadrics)
 			f = e->l->f;
 			cross_v3_v3v3(edge_cross, edge_vector, f->no);
 
-			if (fabsf(normalize_v3(edge_cross)) > FLT_EPSILON) {
+			if (normalize_v3(edge_cross) > FLT_EPSILON) {
 				Quadric q;
 				BLI_quadric_from_v3_dist(&q, edge_cross, -dot_v3v3(edge_cross, e->v1->co));
 				BLI_quadric_mul(&q, BOUNDARY_PRESERVE_WEIGHT);
