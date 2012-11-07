@@ -37,13 +37,14 @@ typedef unsigned int uint;
 bool EuclideanResection(const Mat2X &x_camera, 
                         const Mat3X &X_world,
                         Mat3 *R, Vec3 *t,
-                        ResectionMethod method) {
+                        ResectionMethod method,
+                        double success_threshold) {
   switch (method) {
     case RESECTION_ANSAR_DANIILIDIS:
       EuclideanResectionAnsarDaniilidis(x_camera, X_world, R, t);
       break;
     case RESECTION_EPNP:
-      return EuclideanResectionEPnP(x_camera, X_world, R, t);      
+      return EuclideanResectionEPnP(x_camera, X_world, R, t, success_threshold);
       break;
     default:
       LOG(FATAL) << "Unknown resection method.";
@@ -435,8 +436,9 @@ static void ComputePointsCoordinatesInCameraFrame(
 }
 
 bool EuclideanResectionEPnP(const Mat2X &x_camera,
-                            const Mat3X &X_world, 
-                            Mat3 *R, Vec3 *t) {
+                            const Mat3X &X_world,
+                            Mat3 *R, Vec3 *t,
+                            double success_threshold) {
   CHECK(x_camera.cols() == X_world.cols());
   CHECK(x_camera.cols() > 3);
   size_t num_points = X_world.cols();
@@ -544,7 +546,12 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
   //
   // TODO(keir): Decide if setting this to infinity, effectively disabling the
   // check, is the right approach. So far this seems the case.
-  double kSuccessThreshold = std::numeric_limits<double>::max();
+  //
+  // TODO(sergey): Made it an option for now, in some cases it makes sense to
+  // still fallback to reprojection solution (see bug [#32765] from Blender bug tracker)
+
+  // double kSuccessThreshold = std::numeric_limits<double>::max();
+  double kSuccessThreshold = success_threshold;
 
   // Find the first possible solution for R, t corresponding to:
   // Betas          = [b00 b01 b11 b02 b12 b22 b03 b13 b23 b33]

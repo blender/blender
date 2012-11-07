@@ -46,8 +46,12 @@
 
 #ifdef RNA_RUNTIME
 
-#include "ED_keyframing.h"
+#include "BLI_math_base.h"
+
 #include "BKE_fcurve.h"
+
+#include "ED_keyframing.h"
+
 
 static void rna_ActionGroup_channels_next(CollectionPropertyIterator *iter)
 {
@@ -191,8 +195,7 @@ static void rna_Action_active_pose_marker_index_range(PointerRNA *ptr, int *min,
 	bAction *act = (bAction *)ptr->data;
 
 	*min = 0;
-	*max = BLI_countlist(&act->markers) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&act->markers) - 1);
 }
 
 

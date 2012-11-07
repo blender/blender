@@ -1218,6 +1218,12 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				else view_editmove(event->type);
 				t->redraw = 1;
 				break;
+			case LEFTALTKEY:
+			case RIGHTALTKEY:
+				if (t->spacetype == SPACE_SEQ)
+					t->flag |= T_ALT_TRANSFORM;
+
+				break;
 			default:
 				handled = 0;
 				break;
@@ -1251,6 +1257,12 @@ int transformEvent(TransInfo *t, wmEvent *event)
 ////			if (t->options & CTX_TWEAK)
 //				t->state = TRANS_CONFIRM;
 //			break;
+			case LEFTALTKEY:
+			case RIGHTALTKEY:
+				if (t->spacetype == SPACE_SEQ)
+					t->flag &= ~T_ALT_TRANSFORM;
+
+				break;
 			default:
 				handled = 0;
 				break;
@@ -4835,14 +4847,9 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const flo
 		float dist = 0;
 		float min_dist = FLT_MAX;
 
-		float up_p[3];
-		float dw_p[3];
-
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			/* Set length */
-			add_v3_v3v3(up_p, sv->origvert.co, sv->upvec);
-			add_v3_v3v3(dw_p, sv->origvert.co, sv->downvec);
-			sv->edge_len = len_v3v3(dw_p, up_p);
+			sv->edge_len = len_v3v3(sv->upvec, sv->downvec);
 
 			mul_v3_m4v3(v_proj, t->obedit->obmat, sv->v->co);
 			if (ED_view3d_project_float_global(t->ar, v_proj, v_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
@@ -5583,7 +5590,6 @@ static int doEdgeSlide(TransInfo *t, float perc)
 {
 	SlideData *sld = t->customData;
 	TransDataSlideVert *svlist = sld->sv, *sv;
-	float vec[3];
 	int i;
 
 	sld->perc = perc;
@@ -5591,6 +5597,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 
 	if (sld->is_proportional == TRUE) {
 		for (i = 0; i < sld->totsv; i++, sv++) {
+			float vec[3];
 			if (perc > 0.0f) {
 				copy_v3_v3(vec, sv->upvec);
 				mul_v3_fl(vec, perc);
@@ -5608,20 +5615,29 @@ static int doEdgeSlide(TransInfo *t, float perc)
 		 * Implementation note, non proportional mode ignores the starting positions and uses only the
 		 * up/down verts, this could be changed/improved so the distance is still met but the verts are moved along
 		 * their original path (which may not be straight), however how it works now is OK and matches 2.4x - Campbell
+		 *
+		 * \note len_v3v3(curr_sv->upvec, curr_sv->downvec)
+		 * is the same as the distance between the original vert locations, same goes for the lines below.
 		 */
 		TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
-		const float curr_length_perc = len_v3v3(curr_sv->up->co, curr_sv->down->co) *
-		                               (((sld->flipped_vtx ? perc : -perc) + 1.0f) / 2.0f);
+		const float curr_length_perc = curr_sv->edge_len * (((sld->flipped_vtx ? perc : -perc) + 1.0f) / 2.0f);
+
+		float down_co[3];
+		float up_co[3];
 
 		for (i = 0; i < sld->totsv; i++, sv++) {
-			const float sv_length = len_v3v3(sv->up->co, sv->down->co);
-			const float fac = min_ff(sv_length, curr_length_perc) / sv_length;
+			if (sv->edge_len > FLT_EPSILON) {
+				const float fac = min_ff(sv->edge_len, curr_length_perc) / sv->edge_len;
 
-			if (sld->flipped_vtx) {
-				interp_v3_v3v3(sv->v->co, sv->down->co, sv->up->co, fac);
-			}
-			else {
-				interp_v3_v3v3(sv->v->co, sv->up->co, sv->down->co, fac);
+				add_v3_v3v3(up_co, sv->origvert.co, sv->upvec);
+				add_v3_v3v3(down_co, sv->origvert.co, sv->downvec);
+
+				if (sld->flipped_vtx) {
+					interp_v3_v3v3(sv->v->co, down_co, up_co, fac);
+				}
+				else {
+					interp_v3_v3v3(sv->v->co, up_co, down_co, fac);
+				}
 			}
 		}
 	}

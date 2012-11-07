@@ -40,6 +40,7 @@
 #endif
 
 class PHY_IVehicle;
+class PHY_ICharacter;
 class RAS_MeshObject;
 class PHY_IPhysicsController;
 
@@ -155,6 +156,9 @@ class PHY_IPhysicsEnvironment
 
 		//complex constraint for vehicles
 		virtual PHY_IVehicle*	getVehicleConstraint(int constraintId) =0;
+
+		// Character physics wrapper
+		virtual PHY_ICharacter*	getCharacterController(class KX_GameObject* ob) =0;
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ)=0;
 

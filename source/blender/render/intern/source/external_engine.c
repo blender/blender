@@ -290,13 +290,23 @@ void RE_engine_update_progress(RenderEngine *engine, float progress)
 	}
 }
 
+void RE_engine_update_memory_stats(RenderEngine *engine, float mem_used, float mem_peak)
+{
+	Render *re = engine->re;
+
+	if (re) {
+		re->i.mem_used = mem_used;
+		re->i.mem_peak = mem_peak;
+	}
+}
+
 void RE_engine_report(RenderEngine *engine, int type, const char *msg)
 {
 	Render *re = engine->re;
 
 	if (re)
 		BKE_report(engine->re->reports, type, msg);
-	else if(engine->reports)
+	else if (engine->reports)
 		BKE_report(engine->reports, type, msg);
 }
 

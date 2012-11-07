@@ -755,7 +755,7 @@ extern AUD_Sound *AUD_getPythonSound(void *sound);
 #ifdef __cplusplus
 }
 
-#include "AUD_Reference.h"
+#include <boost/shared_ptr.hpp>
 class AUD_IDevice;
 class AUD_I3DDevice;
 
@@ -763,7 +763,7 @@ class AUD_I3DDevice;
  * Returns the current playback device.
  * \return The playback device.
  */
-AUD_Reference<AUD_IDevice> AUD_getDevice();
+boost::shared_ptr<AUD_IDevice> AUD_getDevice();
 
 /**
  * Returns the current playback 3D device.

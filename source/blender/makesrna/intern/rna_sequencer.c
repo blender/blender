@@ -1688,6 +1688,16 @@ static void rna_def_effect_inputs(StructRNA *srna, int count)
 #endif
 }
 
+static void rna_def_color_management(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "strip->colorspace_settings");
+	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
+	RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
+}
+
 static void rna_def_image(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1714,6 +1724,7 @@ static void rna_def_image(BlenderRNA *brna)
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
 	rna_def_input(srna);
+	rna_def_color_management(srna);
 }
 
 static void rna_def_meta(BlenderRNA *brna)
@@ -1799,6 +1810,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
 	rna_def_input(srna);
+	rna_def_color_management(srna);
 }
 
 static void rna_def_movieclip(BlenderRNA *brna)

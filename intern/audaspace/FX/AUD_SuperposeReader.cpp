@@ -34,7 +34,7 @@
 static const char* specs_error = "AUD_SuperposeReader: Both readers have to "
 								 "have the same specs.";
 
-AUD_SuperposeReader::AUD_SuperposeReader(AUD_Reference<AUD_IReader> reader1, AUD_Reference<AUD_IReader> reader2) :
+AUD_SuperposeReader::AUD_SuperposeReader(boost::shared_ptr<AUD_IReader> reader1, boost::shared_ptr<AUD_IReader> reader2) :
 	m_reader1(reader1), m_reader2(reader2)
 {
 }

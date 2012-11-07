@@ -29,7 +29,7 @@
 
 #include "AUD_ConverterReader.h"
 
-AUD_ConverterReader::AUD_ConverterReader(AUD_Reference<AUD_IReader> reader,
+AUD_ConverterReader::AUD_ConverterReader(boost::shared_ptr<AUD_IReader> reader,
 										 AUD_DeviceSpecs specs) :
 	AUD_EffectReader(reader),
 	m_format(specs.format)

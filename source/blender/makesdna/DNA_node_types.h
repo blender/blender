@@ -118,7 +118,8 @@ typedef struct bNodeSocket {
 #define SOCK_BOOLEAN		4
 #define SOCK_MESH			5
 #define SOCK_INT			6
-#define NUM_SOCKET_TYPES	7	/* must be last! */
+#define SOCK_STRING			7
+#define NUM_SOCKET_TYPES	8	/* must be last! */
 
 /* socket side (input/output) */
 #define SOCK_IN		1
@@ -353,6 +354,11 @@ typedef struct bNodeSocketValueRGBA {
 	float value[4];
 } bNodeSocketValueRGBA;
 
+typedef struct bNodeSocketValueString {
+	int subtype;
+	int pad;
+	char value[1024];	/* 1024 = FILEMAX */
+} bNodeSocketValueString;
 
 /* data structs, for node->storage */
 enum {
@@ -716,6 +722,17 @@ typedef struct NodeShaderScript {
 	IDProperty *prop;
 } NodeShaderScript;
 
+typedef struct NodeShaderTangent {
+	int direction_type;
+	int axis;
+	char uv_map[64];
+} NodeShaderTangent;
+
+typedef struct NodeShaderNormalMap {
+	int space;
+	char uv_map[64];
+} NodeShaderNormalMap;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL		0
 #define NODE_SCRIPT_EXTERNAL		1
@@ -799,6 +816,20 @@ typedef struct NodeShaderScript {
 /* image texture */
 #define SHD_PROJ_FLAT				0
 #define SHD_PROJ_BOX				1
+
+/* tangent */
+#define SHD_TANGENT_RADIAL			0
+#define SHD_TANGENT_UVMAP			1
+
+/* tangent */
+#define SHD_TANGENT_AXIS_X			0
+#define SHD_TANGENT_AXIS_Y			1
+#define SHD_TANGENT_AXIS_Z			2
+
+/* normal map space */
+#define SHD_NORMAL_MAP_TANGENT		0
+#define SHD_NORMAL_MAP_OBJECT		1
+#define SHD_NORMAL_MAP_WORLD		2
 
 /* blur node */
 #define CMP_NODE_BLUR_ASPECT_NONE		0

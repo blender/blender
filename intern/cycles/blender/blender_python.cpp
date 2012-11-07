@@ -217,6 +217,7 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 		float default_float4[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 		float default_float = 0.0f;
 		int default_int = 0;
+		std::string default_string = "";
 		
 		if(param->isclosure) {
 			socket_type = BL::NodeSocket::type_SHADER;
@@ -252,6 +253,11 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 				if(param->validdefault)
 					default_float = param->fdefault[0];
 			}
+			else if(param->type.basetype == TypeDesc::STRING) {
+				socket_type =  BL::NodeSocket::type_STRING;
+				if(param->validdefault)
+					default_string = param->sdefault[0];
+			}
 		}
 		else
 			continue;
@@ -285,6 +291,10 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 			else if(socket_type == BL::NodeSocket::type_VECTOR) {
 				BL::NodeSocketVectorNone b_vector_sock(b_sock.ptr);
 				b_vector_sock.default_value(default_float4);
+			}
+			else if(socket_type == BL::NodeSocket::type_STRING) {
+				BL::NodeSocketStringNone b_string_sock(b_sock.ptr);
+				b_string_sock.default_value(default_string);
 			}
 		}
 

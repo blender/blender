@@ -84,7 +84,8 @@ __device_inline Transform object_fetch_transform_motion_test(KernelGlobals *kg, 
 	}
 	else {
 		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-		*itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+		if(itfm)
+			*itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 
 		return tfm;
 	}

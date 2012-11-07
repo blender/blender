@@ -32,7 +32,7 @@
 
 #include "AUD_IReader.h"
 #include "AUD_ReadDevice.h"
-#include "AUD_SequencerFactory.h"
+#include "AUD_Sequencer.h"
 #include "AUD_SequencerHandle.h"
 
 /**
@@ -52,22 +52,22 @@ private:
 	AUD_ReadDevice m_device;
 
 	/**
-	 * Saves the SequencerFactory the reader belongs to.
+	 * Saves the sequence the reader belongs to.
 	 */
-	AUD_Reference<AUD_SequencerFactory> m_factory;
+	boost::shared_ptr<AUD_Sequencer> m_sequence;
 
 	/**
 	 * The list of playback handles for the entries.
 	 */
-	std::list<AUD_Reference<AUD_SequencerHandle> > m_handles;
+	std::list<boost::shared_ptr<AUD_SequencerHandle> > m_handles;
 
 	/**
-	 * Last status read from the factory.
+	 * Last status read from the sequence.
 	 */
 	int m_status;
 
 	/**
-	 * Last entry status read from the factory.
+	 * Last entry status read from the sequence.
 	 */
 	int m_entry_status;
 
@@ -81,7 +81,7 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory, bool quality = false);
+	AUD_SequencerReader(boost::shared_ptr<AUD_Sequencer> sequence, bool quality = false);
 
 	/**
 	 * Destroys the reader.

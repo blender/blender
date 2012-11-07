@@ -4,6 +4,21 @@ float exp_blender(float f)
 	return pow(2.71828182846, f);
 }
 
+float compatible_pow(float x, float y)
+{
+	/* glsl pow doesn't accept negative x */
+	if(x < 0.0) {
+		if(mod(-y, 2.0) == 0.0)
+			return pow(-x, y);
+		else
+			return -pow(-x, y);
+	}
+	else if(x == 0.0)
+		return 0.0;
+
+	return pow(x, y);
+}
+
 void rgb_to_hsv(vec4 rgb, out vec4 outcol)
 {
 	float cmax, cmin, h, s, v, cdelta;
@@ -212,10 +227,17 @@ void math_atan(float val, out float outval)
 
 void math_pow(float val1, float val2, out float outval)
 {
-	if (val1 >= 0.0)
-		outval = pow(val1, val2);
-	else
-		outval = 0.0;
+	if (val1 >= 0.0) {
+		outval = compatible_pow(val1, val2);
+	}
+	else {
+		float val2_mod_1 = mod(abs(val2), 1.0);
+
+	 	if (val2_mod_1 > 0.999 || val2_mod_1 < 0.001)
+			outval = compatible_pow(val1, floor(val2 + 0.5));
+		else
+			outval = 0.0;
+	}
 }
 
 void math_log(float val1, float val2, out float outval)
@@ -2013,7 +2035,7 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 	result = vec4(L*color.rgb, 1.0);
 }
 
-void node_bsdf_anisotropic(vec4 color, float roughnessU, float roughnessV, vec3 N, vec3 T, out vec4 result)
+void node_bsdf_anisotropic(vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T, out vec4 result)
 {
 	node_bsdf_diffuse(color, 0.0, N, result);
 }

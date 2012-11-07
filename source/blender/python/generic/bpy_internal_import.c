@@ -1,4 +1,4 @@
-/* 
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ static ListBase bpy_import_main_list;
 
 static PyMethodDef bpy_import_meth;
 static PyMethodDef bpy_reload_meth;
+static PyObject   *imp_reload_orig = NULL;
 
 /* 'builtins' is most likely PyEval_GetBuiltins() */
 void bpy_import_init(PyObject *builtins)
@@ -69,7 +70,13 @@ void bpy_import_init(PyObject *builtins)
 	 * XXX, use import hooks */
 	mod = PyImport_ImportModuleLevel((char *)"imp", NULL, NULL, NULL, 0);
 	if (mod) {
-		PyDict_SetItemString(PyModule_GetDict(mod), "reload", item = PyCFunction_New(&bpy_reload_meth, NULL)); Py_DECREF(item);
+		PyObject *mod_dict = PyModule_GetDict(mod);
+
+		/* blender owns the function */
+		imp_reload_orig = PyDict_GetItemString(mod_dict, "reload");
+		Py_INCREF(imp_reload_orig);
+
+		PyDict_SetItemString(mod_dict, "reload", item = PyCFunction_New(&bpy_reload_meth, NULL)); Py_DECREF(item);
 		Py_DECREF(mod);
 	}
 	else {
@@ -309,7 +316,12 @@ static PyObject *blender_reload(PyObject *UNUSED(self), PyObject *module)
 	int found = 0;
 
 	/* try reimporting from file */
-	newmodule = PyImport_ReloadModule(module);
+
+	/* in Py3.3 this just calls imp.reload() which we overwrite, causing recursive calls */
+	//newmodule = PyImport_ReloadModule(module);
+
+	newmodule = PyObject_CallFunctionObjArgs(imp_reload_orig, module, NULL);
+
 	if (newmodule)
 		return newmodule;
 

@@ -120,8 +120,7 @@ static void rna_tracking_active_object_index_range(PointerRNA *ptr, int *min, in
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 
 	*min = 0;
-	*max = clip->tracking.tot_object - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, clip->tracking.tot_object - 1);
 }
 
 static PointerRNA rna_tracking_active_track_get(PointerRNA *ptr)
@@ -263,8 +262,7 @@ static void rna_tracking_stabTracks_active_index_range(PointerRNA *ptr, int *min
 	MovieClip *clip = (MovieClip *)ptr->id.data;
 
 	*min = 0;
-	*max = clip->tracking.stabilization.tot_track - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, clip->tracking.stabilization.tot_track - 1);
 }
 
 static void rna_tracking_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
@@ -452,7 +450,7 @@ static void rna_trackingObject_remove(MovieTracking *tracking, ReportList *repor
 {
 	MovieTrackingObject *object = object_ptr->data;
 	if (BKE_tracking_object_delete(tracking, object) == FALSE) {
-		BKE_reportf(reports, RPT_ERROR, "MovieTracking '%s' can't be removed", object->name);
+		BKE_reportf(reports, RPT_ERROR, "MovieTracking '%s' cannot be removed", object->name);
 		return;
 	}
 
@@ -574,6 +572,22 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	                         "Limit speed of tracking to make visual feedback easier "
 	                         "(this does not affect the tracking quality)");
 
+	/* reconstruction success_threshold */
+	prop = RNA_def_property(srna, "reconstruction_success_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_default(prop, 0.001f);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Success Threshold",
+	                         "Threshold value of reconstruction error which is still considered successful");
+
+	/* use fallback reconstruction */
+	prop = RNA_def_property(srna, "use_fallback_reconstruction", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "reconstruction_flag", TRACKING_USE_FALLBACK_RECONSTRUCTION);
+	RNA_def_property_ui_text(prop, "Use Fallback",
+	                         "Use fallback reconstruction algorithm in cases main reconstruction algorithm failed "
+	                         "(could give better solution with bad tracks)");
+
 	/* intrinsics refinement during bundle adjustment */
 	prop = RNA_def_property(srna, "refine_intrinsics", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "refine_camera_intrinsics");
@@ -623,7 +637,8 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_tripod_solver", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "motion_flag", TRACKING_MOTION_TRIPOD);
-	RNA_def_property_ui_text(prop, "Tripod Motion", "Use special solver to track a stable camera position, such as a tripod");
+	RNA_def_property_ui_text(prop, "Tripod Motion",
+	                         "Use special solver to track a stable camera position, such as a tripod");
 
 	/* default_limit_frames */
 	prop = RNA_def_property(srna, "default_frames_limit", PROP_INT, PROP_NONE);
@@ -663,7 +678,9 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	/* default_use_brute */
 	prop = RNA_def_property(srna, "use_default_mask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_MASK);
-	RNA_def_property_ui_text(prop, "Use Mask", "Use a grease pencil datablock as a mask to use only specified areas of pattern when tracking");
+	RNA_def_property_ui_text(prop, "Use Mask",
+	                         "Use a grease pencil datablock as a mask to use only specified areas of pattern "
+	                         "when tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* default_use_normalization */
@@ -1000,7 +1017,9 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	/* use_brute */
 	prop = RNA_def_property(srna, "use_mask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_MASK);
-	RNA_def_property_ui_text(prop, "Use Mask", "Use a grease pencil datablock as a mask to use only specified areas of pattern when tracking");
+	RNA_def_property_ui_text(prop, "Use Mask",
+	                         "Use a grease pencil datablock as a mask to use only specified areas of pattern "
+	                         "when tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* use_normalization */
@@ -1447,7 +1466,8 @@ static void rna_def_trackingDopesheet(BlenderRNA *brna)
 		{TRACKING_DOPE_SORT_NAME, "NAME", 0, "Name", "Sort channels by their names"},
 		{TRACKING_DOPE_SORT_LONGEST, "LONGEST", 0, "Longest", "Sort channels by longest tracked segment"},
 		{TRACKING_DOPE_SORT_TOTAL, "TOTAL", 0, "Total", "Sort channels by overall amount of tracked segments"},
-		{TRACKING_DOPE_SORT_AVERAGE_ERROR, "AVERAGE_ERROR", 0, "Average Error", "Sort channels by average reprojection error of tracks after solve"},
+		{TRACKING_DOPE_SORT_AVERAGE_ERROR, "AVERAGE_ERROR", 0, "Average Error",
+		                                   "Sort channels by average reprojection error of tracks after solve"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

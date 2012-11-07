@@ -497,7 +497,7 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((void *)item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx(item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0)
 			return NULL;
 
 		if (slicelength <= 0) {
@@ -534,7 +534,7 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
 	else if (PySlice_Check(item)) {
 		Py_ssize_t start, stop, step, slicelength;
 
-		if (PySlice_GetIndicesEx((void *)item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0)
+		if (PySlice_GetIndicesEx(item, EULER_SIZE, &start, &stop, &step, &slicelength) < 0)
 			return -1;
 
 		if (step == 1)

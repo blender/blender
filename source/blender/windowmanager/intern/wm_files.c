@@ -765,7 +765,7 @@ int write_crash_blend(void)
 	}
 }
 
-int WM_file_write(bContext *C, const char *target, int fileflags, ReportList *reports, int copy)
+int WM_file_write(bContext *C, const char *target, int fileflags, ReportList *reports)
 {
 	Library *li;
 	int len;
@@ -821,7 +821,7 @@ int WM_file_write(bContext *C, const char *target, int fileflags, ReportList *re
 	fileflags |= G_FILE_HISTORY; /* write file history */
 
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {
-		if (!copy) {
+		if (!(fileflags & G_FILE_SAVE_COPY)) {
 			G.relbase_valid = 1;
 			BLI_strncpy(G.main->name, filepath, sizeof(G.main->name));  /* is guaranteed current file */
 	

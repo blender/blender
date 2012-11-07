@@ -7357,7 +7357,36 @@ static void do_version_logic_264(ListBase *regionbase)
 	
 
 }
-	
+
+static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
+{
+	int i;
+
+	for (i = 0; i < track->markersnr; i++) {
+		MovieTrackingMarker *marker = &track->markers[i];
+
+		if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
+		    is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3]))
+			{
+				marker->pattern_corners[0][0] = track->pat_min[0];
+				marker->pattern_corners[0][1] = track->pat_min[1];
+
+				marker->pattern_corners[1][0] = track->pat_max[0];
+				marker->pattern_corners[1][1] = track->pat_min[1];
+
+				marker->pattern_corners[2][0] = track->pat_max[0];
+				marker->pattern_corners[2][1] = track->pat_max[1];
+
+				marker->pattern_corners[3][0] = track->pat_min[0];
+				marker->pattern_corners[3][1] = track->pat_max[1];
+			}
+
+		if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
+			copy_v2_v2(marker->search_min, track->search_min);
+			copy_v2_v2(marker->search_max, track->search_max);
+		}
+	}
+}
 
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -8128,32 +8157,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			track = clip->tracking.tracks.first;
 			while (track) {
-				int i;
-
-				for (i = 0; i < track->markersnr; i++) {
-					MovieTrackingMarker *marker = &track->markers[i];
-
-					if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
-					    is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3]))
-					{
-						marker->pattern_corners[0][0] = track->pat_min[0];
-						marker->pattern_corners[0][1] = track->pat_min[1];
-
-						marker->pattern_corners[1][0] = track->pat_max[0];
-						marker->pattern_corners[1][1] = track->pat_min[1];
-
-						marker->pattern_corners[2][0] = track->pat_max[0];
-						marker->pattern_corners[2][1] = track->pat_max[1];
-
-						marker->pattern_corners[3][0] = track->pat_min[0];
-						marker->pattern_corners[3][1] = track->pat_max[1];
-					}
-
-					if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
-						copy_v2_v2(marker->search_min, track->search_min);
-						copy_v2_v2(marker->search_max, track->search_max);
-					}
-				}
+				do_versions_affine_tracker_track(track);
 
 				track = track->next;
 			}
@@ -8486,15 +8490,62 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-
 	}
-	
-	{
-		Object *ob;
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			if (ob->col_group == 0) {
-				ob->col_group = 0x01;
-				ob->col_mask = 0xff;
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 7)) {
+		/* convert tiles size from resolution and number of tiles */
+		{
+			Scene *scene;
+
+			for (scene = main->scene.first; scene; scene = scene->id.next) {
+				if (scene->r.tilex == 0 || scene->r.tiley == 1) {
+					/* scene could be set for panoramic rendering, so clamp with the
+					 * lowest possible tile size value
+					 */
+					scene->r.tilex = max_ii(scene->r.xsch * scene->r.size / scene->r.xparts / 100, 8);
+					scene->r.tiley = max_ii(scene->r.ysch * scene->r.size / scene->r.yparts / 100, 8);
+				}
+			}
+		}
+
+		/* collision masks */
+		{
+			Object *ob;
+			for (ob = main->object.first; ob; ob = ob->id.next) {
+				if (ob->col_group == 0) {
+					ob->col_group = 0x01;
+					ob->col_mask = 0xff;
+				}
+			}
+		}
+
+		/* fallbck resection method settings */
+		{
+			MovieClip *clip;
+
+			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+				if (clip->tracking.settings.reconstruction_success_threshold == 0.0f) {
+					clip->tracking.settings.reconstruction_success_threshold = 1e-3;
+				}
+			}
+		}
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 7)) {
+		MovieClip *clip;
+
+		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+			MovieTrackingTrack *track;
+			MovieTrackingObject *object;
+
+			for (track = clip->tracking.tracks.first; track; track = track->next) {
+				do_versions_affine_tracker_track(track);
+			}
+
+			for (object = clip->tracking.objects.first; object; object = object->next) {
+				for (track = object->tracks.first; track; track = track->next) {
+					do_versions_affine_tracker_track(track);
+				}
 			}
 		}
 	}

@@ -90,7 +90,8 @@ struct EuclideanResectCostFunction {
 
 }  // namespace
 
-bool EuclideanResect(const vector<Marker> &markers,
+bool EuclideanResect(const ReconstructionOptions &options,
+                     const vector<Marker> &markers,
                      EuclideanReconstruction *reconstruction, bool final_pass) {
   if (markers.size() < 5) {
     return false;
@@ -104,13 +105,24 @@ bool EuclideanResect(const vector<Marker> &markers,
 
   Mat3 R;
   Vec3 t;
-  if (0 || !euclidean_resection::EuclideanResection(points_2d, points_3d, &R, &t)) {
+
+  double success_threshold = std::numeric_limits<double>::max();
+
+  if(options.use_fallback_reconstruction)
+    success_threshold = options.success_threshold;
+
+  if (0 || !euclidean_resection::EuclideanResection(points_2d, points_3d, &R, &t,
+                                                    euclidean_resection::RESECTION_EPNP,
+                                                    success_threshold))
+  {
     // printf("Resection for image %d failed\n", markers[0].image);
     LG << "Resection for image " << markers[0].image << " failed;"
        << " trying fallback projective resection.";
 
-    LG << "No fallback; failing resection for " << markers[0].image;
-    return false;
+    if (!options.use_fallback_reconstruction) {
+        LG << "No fallback; failing resection for " << markers[0].image;
+        return false;
+    }
 
     if (!final_pass) return false;
     // Euclidean resection failed. Fall back to projective resection, which is

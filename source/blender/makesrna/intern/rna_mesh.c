@@ -1010,8 +1010,7 @@ static void rna_MeshPoly_material_index_range(PointerRNA *ptr, int *min, int *ma
 {
 	Mesh *me = rna_mesh(ptr);
 	*min = 0;
-	*max = me->totcol - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, me->totcol - 1);
 }
 
 static int rna_MeshVertex_index_get(PointerRNA *ptr)

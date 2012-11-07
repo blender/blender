@@ -61,7 +61,7 @@ public:
 	 * \exception AUD_Exception Thrown if the reader specified has an
 	 *            undeterminable/infinite length or is not seekable.
 	 */
-	AUD_ReverseReader(AUD_Reference<AUD_IReader> reader);
+	AUD_ReverseReader(boost::shared_ptr<AUD_IReader> reader);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

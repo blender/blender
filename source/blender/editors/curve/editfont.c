@@ -1289,32 +1289,6 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 				insert_into_textbuf(obedit, ascii);
 				accentcode = 0;
 			}
-			else if (cu->len < MAXTEXT - 1) {
-				if (alt) {
-					/* might become obsolete, apple has default values for this, other OS's too? */
-					if (ascii == 't') ascii = 137;
-					else if (ascii == 'c') ascii = 169;
-					else if (ascii == 'f') ascii = 164;
-					else if (ascii == 'g') ascii = 176;
-					else if (ascii == 'l') ascii = 163;
-					else if (ascii == 'r') ascii = 174;
-					else if (ascii == 's') ascii = 223;
-					else if (ascii == 'y') ascii = 165;
-					else if (ascii == '.') ascii = 138;
-					else if (ascii == '1') ascii = 185;
-					else if (ascii == '2') ascii = 178;
-					else if (ascii == '3') ascii = 179;
-					else if (ascii == '%') ascii = 139;
-					else if (ascii == '?') ascii = 191;
-					else if (ascii == '!') ascii = 161;
-					else if (ascii == 'x') ascii = 215;
-					else if (ascii == '>') ascii = 187;
-					else if (ascii == '<') ascii = 171;
-				}
-
-				inserted_text[0] = ascii;
-				insert_into_textbuf(obedit, ascii);
-			}
 			
 			kill_selection(obedit, 1);
 			text_update_edited(C, scene, obedit, 1, FO_EDIT);

@@ -34,7 +34,7 @@
 static const char* props_error = "AUD_ReverseReader: The reader has to be "
 								 "seekable and a finite length.";
 
-AUD_ReverseReader::AUD_ReverseReader(AUD_Reference<AUD_IReader> reader) :
+AUD_ReverseReader::AUD_ReverseReader(boost::shared_ptr<AUD_IReader> reader) :
 		AUD_EffectReader(reader),
 		m_length(reader->getLength()),
 		m_position(0)

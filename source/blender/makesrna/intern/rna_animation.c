@@ -54,6 +54,8 @@ EnumPropertyItem keyingset_path_grouping_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_math_base.h"
+
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
@@ -296,6 +298,43 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 
 /* ****************************** */
 
+static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
+{
+	KeyingSet *ks = (KeyingSet *)ptr->data;
+	
+	/* update names of corresponding groups if name changes */
+	if (strcmp(ks->name, value)) {
+		KS_Path *ksp;
+		
+		for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
+			if ((ksp->groupmode == KSP_GROUP_KSNAME) && (ksp->id)) {
+				AnimData *adt = BKE_animdata_from_id(ksp->id);
+				
+				/* TODO: NLA strips? */
+				if (adt && adt->action) {
+					bActionGroup *agrp;
+					
+					/* lazy check - should really find the F-Curve for the affected path and check its group 
+					 * but this way should be faster and work well for most cases, as long as there are no
+					 * conflicts
+					 */
+					for (agrp = adt->action->groups.first; agrp; agrp = agrp->next) {
+						if (strcmp(ks->name, agrp->name) == 0) {
+							/* there should only be one of these in the action, so can stop... */
+							BLI_strncpy(agrp->name, value, sizeof(agrp->name));
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	/* finally, update name to new value */
+	BLI_strncpy(ks->name, value, sizeof(ks->name));
+}
+
+
 static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr)
 {
 	KeyingSet *ks = (KeyingSet *)ptr->data;
@@ -334,8 +373,7 @@ static void rna_KeyingSet_active_ksPath_index_range(PointerRNA *ptr, int *min, i
 	KeyingSet *ks = (KeyingSet *)ptr->data;
 
 	*min = 0;
-	*max = BLI_countlist(&ks->paths) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&ks->paths) - 1);
 }
 
 static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
@@ -430,7 +468,7 @@ static void rna_NlaTrack_remove(AnimData *adt, bContext *C, ReportList *reports,
 	NlaTrack *track = track_ptr->data;
 
 	if (BLI_findindex(&adt->nla_tracks, track) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "NlaTrack '%s' can't be removed", track->name);
+		BKE_reportf(reports, RPT_ERROR, "NlaTrack '%s' cannot be removed", track->name);
 		return;
 	}
 
@@ -721,19 +759,20 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "KeyingSet", NULL);
 	RNA_def_struct_ui_text(srna, "Keying Set", "Settings that should be keyframed together");
 	
-	/* Id/Label. */
+	/* Id/Label */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "idname");
 	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name", KEYINGSET_IDNAME_DOC);
-	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_RENAME, NULL);
+/*	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_RENAME, NULL); */ /* NOTE: disabled, as ID name shouldn't be editable */
 	
 	prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_KeyingSet_name_set");
 	RNA_def_property_ui_text(prop, "UI Name", "");
 	RNA_def_struct_ui_icon(srna, ICON_KEYINGSET);
 	RNA_def_struct_name_property(srna, prop);
-/*	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_RENAME, NULL);*/
+	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_RENAME, NULL);
 	
 	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "description");

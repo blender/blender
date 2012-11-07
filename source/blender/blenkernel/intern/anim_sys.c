@@ -980,9 +980,8 @@ KeyingSet *BKE_keyingset_add(ListBase *list, const char idname[], const char nam
 	/* allocate new KeyingSet */
 	ks = MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 
-	BLI_strncpy(ks->idname, idname ? idname : name ? name : "KeyingSet", sizeof(ks->idname));
-
-	BLI_strncpy(ks->name, name ? name : idname ? idname : "Keying Set", sizeof(ks->name));
+	BLI_strncpy(ks->idname, (idname) ? idname : (name) ? name     : "KeyingSet",  sizeof(ks->idname));
+	BLI_strncpy(ks->name,   (name) ? name     : (idname) ? idname : "Keying Set", sizeof(ks->name));
 
 	ks->flag = flag;
 	ks->keyingflag = keyingflag;
@@ -990,10 +989,10 @@ KeyingSet *BKE_keyingset_add(ListBase *list, const char idname[], const char nam
 	/* add KeyingSet to list */
 	BLI_addtail(list, ks);
 	
-	/* Make sure KeyingSet has a unique idname. */
+	/* Make sure KeyingSet has a unique idname */
 	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, idname), sizeof(ks->idname));
 	
-	/* Make sure KeyingSet has a unique label (this helps with identification). */
+	/* Make sure KeyingSet has a unique label (this helps with identification) */
 	BLI_uniquename(list, ks, "Keying Set", '.', offsetof(KeyingSet, name), sizeof(ks->name));
 	
 	/* return new KeyingSet for further editing */

@@ -22,31 +22,31 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_ReferenceHandler.cpp
- *  \ingroup audaspaceintern
+/** \file audaspace/FX/AUD_IDynamicIIRFilterCalculator.h
+ *  \ingroup audfx
  */
 
-#include "AUD_Reference.h"
+#ifndef AUD_IDYNAMICIIRFILTERCALCULATOR_H
+#define AUD_IDYNAMICIIRFILTERCALCULATOR_H
 
-std::map<void*, unsigned int> AUD_ReferenceHandler::m_references;
-pthread_mutex_t AUD_ReferenceHandler::m_mutex;
-bool AUD_ReferenceHandler::m_mutex_initialised = false;
+#include <vector>
 
-pthread_mutex_t *AUD_ReferenceHandler::getMutex()
+/**
+ * This interface calculates dynamic filter coefficients which depend on the
+ * sampling rate for AUD_DynamicIIRFilterReaders.
+ */
+class AUD_IDynamicIIRFilterCalculator
 {
-	if(!m_mutex_initialised)
-	{
-		pthread_mutexattr_t attr;
-		pthread_mutexattr_init(&attr);
-		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+public:
+	/**
+	 * Recalculates the filter coefficients.
+	 * \param rate The sample rate of the audio data.
+	 * \param[out] b The input filter coefficients.
+	 * \param[out] a The output filter coefficients.
+	 */
+	virtual void recalculateCoefficients(AUD_SampleRate rate,
+										 std::vector<float>& b,
+										 std::vector<float>& a)=0;
+};
 
-		pthread_mutex_init(&m_mutex, &attr);
-
-		pthread_mutexattr_destroy(&attr);
-
-		m_mutex_initialised = true;
-	}
-
-	return &m_mutex;
-}
-
+#endif // AUD_IDYNAMICIIRFILTERCALCULATOR_H

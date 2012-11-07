@@ -96,21 +96,24 @@ static void compute_gradient_screen(RenderData *rd, NodeKeyingScreenData *keying
 		int j;
 
 		zero_v3(site->color);
-		for (j = 0; j < pattern_ibuf->x * pattern_ibuf->y; j++) {
-			if (pattern_ibuf->rect_float) {
-				add_v3_v3(site->color, &pattern_ibuf->rect_float[4 * j]);
-			}
-			else {
-				unsigned char *rrgb = (unsigned char *)pattern_ibuf->rect;
 
-				site->color[0] += srgb_to_linearrgb((float)rrgb[4 * j + 0] / 255.0f);
-				site->color[1] += srgb_to_linearrgb((float)rrgb[4 * j + 1] / 255.0f);
-				site->color[2] += srgb_to_linearrgb((float)rrgb[4 * j + 2] / 255.0f);
+		if (pattern_ibuf) {
+			for (j = 0; j < pattern_ibuf->x * pattern_ibuf->y; j++) {
+				if (pattern_ibuf->rect_float) {
+					add_v3_v3(site->color, &pattern_ibuf->rect_float[4 * j]);
+				}
+				else {
+					unsigned char *rrgb = (unsigned char *)pattern_ibuf->rect;
+
+					site->color[0] += srgb_to_linearrgb((float)rrgb[4 * j + 0] / 255.0f);
+					site->color[1] += srgb_to_linearrgb((float)rrgb[4 * j + 1] / 255.0f);
+					site->color[2] += srgb_to_linearrgb((float)rrgb[4 * j + 2] / 255.0f);
+				}
 			}
+
+			mul_v3_fl(site->color, 1.0f / (pattern_ibuf->x * pattern_ibuf->y));
+			IMB_freeImBuf(pattern_ibuf);
 		}
-
-		mul_v3_fl(site->color, 1.0f / (pattern_ibuf->x * pattern_ibuf->y));
-		IMB_freeImBuf(pattern_ibuf);
 
 		site->co[0] = marker->pos[0] * screenbuf->x;
 		site->co[1] = marker->pos[1] * screenbuf->y;

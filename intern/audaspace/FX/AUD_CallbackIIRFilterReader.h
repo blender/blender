@@ -74,7 +74,7 @@ public:
 	 * \param endFilter The finishing callback.
 	 * \param data Data pointer for the callbacks.
 	 */
-	AUD_CallbackIIRFilterReader(AUD_Reference<AUD_IReader> reader, int in, int out,
+	AUD_CallbackIIRFilterReader(boost::shared_ptr<AUD_IReader> reader, int in, int out,
 								doFilterIIR doFilter,
 								endFilterIIR endFilter = 0,
 								void* data = 0);

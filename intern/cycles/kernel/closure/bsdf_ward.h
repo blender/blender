@@ -68,7 +68,10 @@ __device float3 bsdf_ward_eval_reflect(const ShaderClosure *sc, const float3 I, 
 	float cosNO = dot(N, I);
 	float cosNI = dot(N, omega_in);
 
-	if(cosNI > 0 && cosNO > 0) {
+	if(cosNI > 0.0f && cosNO > 0.0f) {
+		cosNO = max(cosNO, 1e-4f);
+		cosNI = max(cosNI, 1e-4f);
+
 		// get half vector and get x,y basis on the surface for anisotropy
 		float3 H = normalize(omega_in + I); // normalize needed for pdf
 		float3 X, Y;
@@ -103,7 +106,7 @@ __device int bsdf_ward_sample(const ShaderClosure *sc, float3 Ng, float3 I, floa
 	float3 T = sc->T;
 
 	float cosNO = dot(N, I);
-	if(cosNO > 0) {
+	if(cosNO > 0.0f) {
 		// get x,y basis on the surface for anisotropy
 		float3 X, Y;
 		make_orthonormals_tangent(N, T, &X, &Y);
@@ -165,6 +168,9 @@ __device int bsdf_ward_sample(const ShaderClosure *sc, float3 Ng, float3 I, floa
 		if(dot(Ng, *omega_in) > 0) {
 			float cosNI = dot(N, *omega_in);
 			if(cosNI > 0) {
+				cosNO = max(cosNO, 1e-4f);
+				cosNI = max(cosNI, 1e-4f);
+
 				// eq. 9
 				float exp_arg = (dotx * dotx + doty * doty) / (dotn * dotn);
 				float denom = 4 * M_PI_F * m_ax * m_ay * oh * dotn * dotn * dotn;

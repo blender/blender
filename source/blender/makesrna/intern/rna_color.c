@@ -45,6 +45,7 @@
 #include "DNA_material_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
+#include "DNA_sequence_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -53,6 +54,7 @@
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
+#include "BKE_sequencer.h"
 #include "BKE_texture.h"
 #include "BKE_linestyle.h"
 
@@ -531,8 +533,43 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 
 		BKE_movieclip_reload(clip);
 
+		/* all sequencers for now, we don't know which scenes are using this clip as a strip */
+		BKE_sequencer_cache_cleanup();
+		BKE_sequencer_preprocessed_cache_cleanup();
+
 		WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
 		WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, &clip->id);
+	}
+	else if (GS(id->name) == ID_SCE) {
+		Scene *scene = (Scene *) id;
+
+		if (scene->ed) {
+			ColorManagedColorspaceSettings *colorspace_settings = (ColorManagedColorspaceSettings *) ptr->data;
+			Sequence *seq;
+			int seq_found = FALSE;
+
+			if (&scene->sequencer_colorspace_settings != colorspace_settings) {
+				SEQ_BEGIN(scene->ed, seq);
+				{
+					if (seq->strip && &seq->strip->colorspace_settings == colorspace_settings) {
+						seq_found = TRUE;
+						break;
+					}
+				}
+				SEQ_END;
+			}
+
+			if (seq_found) {
+				BKE_sequence_invalidate_cache(scene, seq);
+				BKE_sequencer_preprocessed_cache_cleanup_sequence(seq);
+			}
+			else {
+				BKE_sequencer_cache_cleanup();
+				BKE_sequencer_preprocessed_cache_cleanup();
+			}
+
+			WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+		}
 	}
 }
 

@@ -463,6 +463,7 @@ void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) {}
 ListBase R_engines = {NULL, NULL};
 void RE_engine_free(struct RenderEngine *engine) {}
 struct RenderEngineType *RE_engines_find(const char *idname) { return NULL; }
+void RE_engine_update_memory_stats(struct RenderEngine *engine, float mem_used, float mem_peak) {};
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet) {return (struct wmOperatorType *) NULL;}

@@ -326,6 +326,7 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 					
 					/* transfer the default input value to the target socket */
 					to->set(input->value);
+					to->set(input->value_string);
 				}
 			}
 			

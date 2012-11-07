@@ -48,9 +48,9 @@ public:
 	 * Creates a new rectify factory.
 	 * \param factory The input factory.
 	 */
-	AUD_RectifyFactory(AUD_Reference<AUD_IFactory> factory);
+	AUD_RectifyFactory(boost::shared_ptr<AUD_IFactory> factory);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 
 	static sample_t rectifyFilter(AUD_CallbackIIRFilterReader* reader, void* useless);
 };

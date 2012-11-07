@@ -46,15 +46,16 @@ static void node_free_script(bNode *node)
 	NodeShaderScript *nss = node->storage;
 
 	if (nss) {
-		if (nss->bytecode)
+		if (nss->bytecode) {
 			MEM_freeN(nss->bytecode);
+		}
+
+		if (nss->prop) {
+			IDP_FreeProperty(nss->prop);
+			MEM_freeN(nss->prop);
+		}
 
 		MEM_freeN(nss);
-	}
-
-	if (nss->prop) {
-		IDP_FreeProperty(nss->prop);
-		MEM_freeN(nss->prop);
 	}
 }
 
@@ -63,7 +64,7 @@ static void node_copy_script(bNode *orig_node, bNode *new_node)
 	NodeShaderScript *orig_nss = orig_node->storage;
 	NodeShaderScript *new_nss = MEM_dupallocN(orig_nss);
 
-	if(orig_nss->bytecode)
+	if (orig_nss->bytecode)
 		new_nss->bytecode = MEM_dupallocN(orig_nss->bytecode);
 
 	if (orig_nss->prop)

@@ -31,7 +31,7 @@
 
 #include <cstring>
 
-AUD_FaderReader::AUD_FaderReader(AUD_Reference<AUD_IReader> reader, AUD_FadeType type,
+AUD_FaderReader::AUD_FaderReader(boost::shared_ptr<AUD_IReader> reader, AUD_FadeType type,
 								 float start,float length) :
 		AUD_EffectReader(reader),
 		m_type(type),

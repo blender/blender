@@ -29,7 +29,7 @@
 
 #include "AUD_IIRFilterReader.h"
 
-AUD_IIRFilterReader::AUD_IIRFilterReader(AUD_Reference<AUD_IReader> reader,
+AUD_IIRFilterReader::AUD_IIRFilterReader(boost::shared_ptr<AUD_IReader> reader,
 										 const std::vector<float>& b,
 										 const std::vector<float>& a) :
 	AUD_BaseIIRFilterReader(reader, b.size(), a.size()), m_a(a), m_b(b)

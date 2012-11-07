@@ -78,36 +78,36 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int dy, int w
 		glDisable(GL_BLEND);
 }
 
-Device *Device::create(DeviceInfo& info, bool background, int threads)
+Device *Device::create(DeviceInfo& info, Stats &stats, bool background, int threads)
 {
 	Device *device;
 
 	switch(info.type) {
 		case DEVICE_CPU:
-			device = device_cpu_create(info, threads);
+			device = device_cpu_create(info, stats, threads);
 			break;
 #ifdef WITH_CUDA
 		case DEVICE_CUDA:
 			if(cuLibraryInit())
-				device = device_cuda_create(info, background);
+				device = device_cuda_create(info, stats, background);
 			else
 				device = NULL;
 			break;
 #endif
 #ifdef WITH_MULTI
 		case DEVICE_MULTI:
-			device = device_multi_create(info, background);
+			device = device_multi_create(info, stats, background);
 			break;
 #endif
 #ifdef WITH_NETWORK
 		case DEVICE_NETWORK:
-			device = device_network_create(info, "127.0.0.1");
+			device = device_network_create(info, stats, "127.0.0.1");
 			break;
 #endif
 #ifdef WITH_OPENCL
 		case DEVICE_OPENCL:
 			if(clLibraryInit())
-				device = device_opencl_create(info, background);
+				device = device_opencl_create(info, stats, background);
 			else
 				device = NULL;
 			break;

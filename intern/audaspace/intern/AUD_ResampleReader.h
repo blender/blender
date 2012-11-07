@@ -47,7 +47,7 @@ protected:
 	 * \param reader The reader to mix.
 	 * \param rate The target sampling rate.
 	 */
-	AUD_ResampleReader(AUD_Reference<AUD_IReader> reader, AUD_SampleRate rate);
+	AUD_ResampleReader(boost::shared_ptr<AUD_IReader> reader, AUD_SampleRate rate);
 
 public:
 	/**

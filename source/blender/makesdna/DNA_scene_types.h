@@ -401,11 +401,16 @@ typedef struct RenderData {
 	/**
 	 * The number of part to use in the x direction
 	 */
-	short xparts;
+	short xparts DNA_DEPRECATED;
 	/**
 	 * The number of part to use in the y direction
 	 */
-	short yparts;
+	short yparts DNA_DEPRECATED;
+
+	/**
+	 * render tile dimensions
+	 */
+	short tilex, tiley;
 
 	short planes  DNA_DEPRECATED, imtype  DNA_DEPRECATED, subimtype  DNA_DEPRECATED, quality  DNA_DEPRECATED; /*deprecated!*/
 	
@@ -452,6 +457,8 @@ typedef struct RenderData {
 	short osa;
 
 	short frs_sec, edgeint;
+
+	int pad;
 
 	
 	/* safety, border and display rect */

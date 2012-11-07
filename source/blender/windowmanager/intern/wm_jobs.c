@@ -131,31 +131,34 @@ struct wmJob {
 };
 
 /* finds:
- * 1st priority: job with same owner and name
- * 2nd priority: job with same owner
+ * if type, compare for it, otherwise any matching job 
  */
-static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const char *name)
+static wmJob *wm_job_find(wmWindowManager *wm, void *owner, const int job_type)
 {
-	wmJob *wm_job, *found = NULL;
+	wmJob *wm_job;
 	
 	for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next)
 		if (wm_job->owner == owner) {
-			found = wm_job;
-			if (name && strcmp(wm_job->name, name) == 0)
+			
+			if (job_type) {
+				if ( wm_job->job_type == job_type)
+					return wm_job;
+			}
+			else
 				return wm_job;
 		}
 	
-	return found;
+	return NULL;
 }
 
 /* ******************* public API ***************** */
 
 /* returns current or adds new job, but doesnt run it */
-/* every owner only gets a single job, adding a new one will stop running stop and 
+/* every owner only gets a single job, adding a new one will stop running job and 
  * when stopped it starts the new one */
 wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *name, int flag, int job_type)
 {
-	wmJob *wm_job = wm_job_find(wm, owner, name);
+	wmJob *wm_job = wm_job_find(wm, owner, job_type);
 	
 	if (wm_job == NULL) {
 		wm_job = MEM_callocN(sizeof(wmJob), "new job");
@@ -167,7 +170,11 @@ wmJob *WM_jobs_get(wmWindowManager *wm, wmWindow *win, void *owner, const char *
 		wm_job->job_type = job_type;
 		BLI_strncpy(wm_job->name, name, sizeof(wm_job->name));
 	}
+	/* else: a running job, be careful */
 	
+	/* prevent creating a job with an invalid type */
+	BLI_assert(wm_job->job_type != WM_JOB_TYPE_ANY);
+
 	return wm_job;
 }
 
@@ -192,7 +199,7 @@ int WM_jobs_test(wmWindowManager *wm, void *owner, int job_type)
 
 float WM_jobs_progress(wmWindowManager *wm, void *owner)
 {
-	wmJob *wm_job = wm_job_find(wm, owner, NULL);
+	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
 	
 	if (wm_job && wm_job->flag & WM_JOB_PROGRESS)
 		return wm_job->progress;
@@ -202,7 +209,7 @@ float WM_jobs_progress(wmWindowManager *wm, void *owner)
 
 char *WM_jobs_name(wmWindowManager *wm, void *owner)
 {
-	wmJob *wm_job = wm_job_find(wm, owner, NULL);
+	wmJob *wm_job = wm_job_find(wm, owner, WM_JOB_TYPE_ANY);
 	
 	if (wm_job)
 		return wm_job->name;

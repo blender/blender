@@ -123,7 +123,7 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_JOSResampleReader(AUD_Reference<AUD_IReader> reader, AUD_Specs specs);
+	AUD_JOSResampleReader(boost::shared_ptr<AUD_IReader> reader, AUD_Specs specs);
 
 	virtual void seek(int position);
 	virtual int getLength() const;

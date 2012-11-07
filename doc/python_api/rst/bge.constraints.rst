@@ -78,6 +78,14 @@ Physics Constraints (bge.constraints)
 
    :return: a vehicle constraint object.
    :rtype: :class:`bge.types.KX_VehicleWrapper`
+   
+.. function:: getCharacter(gameobj)
+
+   :arg gameobj: The game object with the character physics.
+   :type gameobj: :class:`bge.types.KX_GameObject`
+
+   :return: character wrapper
+   :rtype: :class:`bge.types.KX_CharacterWrapper`
 
 .. function:: removeConstraint(constraintId)
 

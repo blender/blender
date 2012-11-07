@@ -3,8 +3,8 @@ BF_INSTALLDIR = '../blender-install/linux-glibc27-x86_64'
 BF_NUMJOBS = 2
 
 # Python configuration
-BF_PYTHON_VERSION = '3.2'
-BF_PYTHON_ABI_FLAGS = 'mu'
+BF_PYTHON_VERSION = '3.3'
+BF_PYTHON_ABI_FLAGS = 'm'
 BF_PYTHON = '/opt/python3'
 
 WITH_BF_STATICPYTHON = True
@@ -89,6 +89,13 @@ BF_OCIO = '/opt/ocio'
 BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB_STATIC = '${BF_OCIO_LIBPATH}/libOpenColorIO.a ${BF_OCIO_LIBPATH}/libtinyxml.a ${BF_OCIO_LIBPATH}/libyaml-cpp.a'
 BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
+
+WITH_BF_BOOST = True
+WITH_BF_STATICBOOST = True
+BF_BOOST = '/opt/boost'
+BF_BOOST_INC = '${BF_BOOST}/include'
+BF_BOOST_LIB_STATIC = '${BF_BOOST_LIBPATH}/libboost_filesystem.a ${BF_BOOST_LIBPATH}/libboost_date_time.a ${BF_BOOST_LIBPATH}/libboost_regex.a ${BF_BOOST_LIBPATH}/libboost_system.a ${BF_BOOST_LIBPATH}/libboost_thread.a'
+BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 # JACK
 WITH_BF_JACK = True

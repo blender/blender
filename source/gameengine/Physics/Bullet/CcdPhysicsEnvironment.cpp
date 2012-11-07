@@ -37,6 +37,7 @@ subject to the following restrictions:
 
 
 #include "PHY_IMotionState.h"
+#include "PHY_ICharacter.h"
 #include "KX_GameObject.h"
 #include "RAS_MeshObject.h"
 #include "RAS_Polygon.h"
@@ -265,6 +266,36 @@ public:
 
 };
 #endif //NEW_BULLET_VEHICLE_SUPPORT
+
+class CharacterWrapper : public PHY_ICharacter
+{
+private:
+	btKinematicCharacterController* m_controller;
+
+public:
+	CharacterWrapper(btKinematicCharacterController* cont)
+		: m_controller(cont)
+	{}
+
+	virtual void Jump()
+	{
+		m_controller->jump();
+	}
+
+	virtual bool OnGround()
+	{
+		return m_controller->onGround();
+	}
+
+	virtual float GetGravity()
+	{
+		return m_controller->getGravity();
+	}
+	virtual void SetGravity(float gravity)
+	{
+		m_controller->setGravity(gravity);
+	}
+};
 
 class CcdOverlapFilterCallBack : public btOverlapFilterCallback
 {
@@ -2284,6 +2315,15 @@ PHY_IVehicle*	CcdPhysicsEnvironment::getVehicleConstraint(int constraintId)
 
 #endif //NEW_BULLET_VEHICLE_SUPPORT
 
+
+PHY_ICharacter* CcdPhysicsEnvironment::getCharacterController(KX_GameObject *ob)
+{
+	CcdPhysicsController* controller = (CcdPhysicsController*)ob->GetPhysicsController()->GetUserData();
+	if (controller->GetCharacterController())
+		return new CharacterWrapper(controller->GetCharacterController());
+
+	return NULL;
+}
 
 int currentController = 0;
 int numController = 0;

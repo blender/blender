@@ -320,6 +320,13 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col.label(text="Refine:")
         col.prop(settings, "refine_intrinsics", text="")
 
+        col = layout.column(align=True)
+        col.active = not settings.use_tripod_solver
+        col.prop(settings, "use_fallback_reconstruction", text="Allow Fallback")
+        sub = col.column()
+        sub.active = settings.use_fallback_reconstruction
+        sub.prop(settings, "reconstruction_success_threshold")
+
 
 class CLIP_PT_tools_cleanup(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'

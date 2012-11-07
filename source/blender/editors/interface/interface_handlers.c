@@ -3306,7 +3306,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	ui_get_but_vectorf(but, rgb);
 
-	if (color_profile && (int)but->a1)
+	if (color_profile && (int)but->a1 != UI_GRAD_SV)
 		ui_block_to_display_space_v3(but->block, rgb);
 
 	rgb_to_hsv_compat_v(rgb, hsv);
@@ -3352,7 +3352,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	hsv_to_rgb_v(hsv, rgb);
 
-	if (color_profile && (int)but->a1)
+	if (color_profile && ((int)but->a1 != UI_GRAD_SV))
 		ui_block_to_scene_linear_v3(but->block, rgb);
 
 	copy_v3_v3(data->vec, rgb);
@@ -3378,7 +3378,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 
 	ui_get_but_vectorf(but, rgb);
 
-	if (color_profile && (int)but->a1)
+	if (color_profile && (int)but->a1 != UI_GRAD_SV)
 		ui_block_to_display_space_v3(but->block, rgb);
 
 	rgb_to_hsv_compat_v(rgb, hsv);
@@ -3418,7 +3418,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 
 	hsv_to_rgb_v(hsv, rgb);
 
-	if (color_profile && (int)but->a1)
+	if (color_profile && (int)but->a1 != UI_GRAD_SV)
 		ui_block_to_scene_linear_v3(but->block, rgb);
 
 	copy_v3_v3(data->vec, rgb);

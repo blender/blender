@@ -42,13 +42,14 @@ Session::Session(const SessionParams& params_)
 : params(params_),
   tile_manager(params.progressive, params.samples, params.tile_size, params.start_resolution,
        params.background == false || params.progressive_refine, params.background,
-       max(params.device.multi_devices.size(), 1))
+       max(params.device.multi_devices.size(), 1)),
+  stats()
 {
 	device_use_gl = ((params.device.type != DEVICE_CPU) && !params.background);
 
 	TaskScheduler::init(params.threads);
 
-	device = Device::create(params.device, params.background, params.threads);
+	device = Device::create(params.device, stats, params.background, params.threads);
 
 	if(params.background) {
 		buffers = NULL;
@@ -711,10 +712,13 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	string status, substatus;
 
 	if(!params.progressive) {
+		bool is_gpu = params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL;
+		bool is_multidevice = params.device.multi_devices.size() > 1;
+		bool is_cpu = params.device.type == DEVICE_CPU;
+
 		substatus = string_printf("Path Tracing Tile %d/%d", tile, num_tiles);
 
-		if(params.device.type == DEVICE_CUDA || params.device.type == DEVICE_OPENCL ||
-			(params.device.type == DEVICE_CPU && num_tiles == 1)) {
+		if((is_gpu && !is_multidevice) || (is_cpu && num_tiles == 1)) {
 			/* when rendering on GPU multithreading happens within single tile, as in
 			 * tiles are handling sequentially and in this case we could display
 			 * currently rendering sample number

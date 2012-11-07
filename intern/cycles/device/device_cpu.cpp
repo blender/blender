@@ -45,7 +45,7 @@ public:
 	TaskPool task_pool;
 	KernelGlobals *kg;
 	
-	CPUDevice(int threads_num)
+	CPUDevice(Stats &stats, int threads_num) : Device(stats)
 	{
 		kg = kernel_globals_create();
 
@@ -67,6 +67,8 @@ public:
 	void mem_alloc(device_memory& mem, MemoryType type)
 	{
 		mem.device_pointer = mem.data_pointer;
+
+		stats.mem_alloc(mem.memory_size());
 	}
 
 	void mem_copy_to(device_memory& mem)
@@ -87,6 +89,8 @@ public:
 	void mem_free(device_memory& mem)
 	{
 		mem.device_pointer = 0;
+
+		stats.mem_free(mem.memory_size());
 	}
 
 	void const_copy_to(const char *name, void *host, size_t size)
@@ -98,11 +102,15 @@ public:
 	{
 		kernel_tex_copy(kg, name, mem.data_pointer, mem.data_width, mem.data_height);
 		mem.device_pointer = mem.data_pointer;
+
+		stats.mem_alloc(mem.memory_size());
 	}
 
 	void tex_free(device_memory& mem)
 	{
 		mem.device_pointer = 0;
+
+		stats.mem_free(mem.memory_size());
 	}
 
 	void *osl_memory()
@@ -283,9 +291,9 @@ public:
 	}
 };
 
-Device *device_cpu_create(DeviceInfo& info, int threads)
+Device *device_cpu_create(DeviceInfo& info, Stats &stats, int threads)
 {
-	return new CPUDevice(threads);
+	return new CPUDevice(stats, threads);
 }
 
 void device_cpu_info(vector<DeviceInfo>& devices)

@@ -33,11 +33,14 @@
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_ConstraintWrapper.h"
 #include "KX_VehicleWrapper.h"
+#include "KX_CharacterWrapper.h"
 #include "KX_PhysicsObjectWrapper.h"
 #include "PHY_IPhysicsController.h"
 #include "PHY_IVehicle.h"
 #include "PHY_DynamicTypes.h"
 #include "MT_Matrix3x3.h"
+
+#include "KX_GameObject.h" // ConvertPythonToGameObject()
 
 #include "PyObjectPlus.h" 
 
@@ -81,6 +84,7 @@ static char gPySetSolverType__doc__[] = "setSolverType(int solverType) Very expe
 
 static char gPyCreateConstraint__doc__[] = "createConstraint(ob1,ob2,float restLength,float restitution,float damping)";
 static char gPyGetVehicleConstraint__doc__[] = "getVehicleConstraint(int constraintId)";
+static char gPyGetCharacter__doc__[] = "getCharacter(KX_GameObject obj)";
 static char gPyRemoveConstraint__doc__[] = "removeConstraint(int constraintId)";
 static char gPyGetAppliedImpulse__doc__[] = "getAppliedImpulse(int constraintId)";
 
@@ -402,6 +406,33 @@ static PyObject *gPyGetVehicleConstraint(PyObject *self,
 	Py_RETURN_NONE;
 }
 
+static PyObject* gPyGetCharacter(PyObject* self,
+                                 PyObject* args,
+                                 PyObject* kwds)
+{
+	PyObject* pyob;
+	KX_GameObject *ob;
+
+	if (!PyArg_ParseTuple(args,"O", &pyob))
+		return NULL;
+
+	if (!ConvertPythonToGameObject(pyob, &ob, false, "bge.constraints.getCharacter(value)"))
+		return NULL;
+
+	if (PHY_GetActiveEnvironment())
+	{
+			
+		PHY_ICharacter* character= PHY_GetActiveEnvironment()->getCharacterController(ob);
+		if (character)
+		{
+			KX_CharacterWrapper* pyWrapper = new KX_CharacterWrapper(character);
+			return pyWrapper->NewProxy(true);
+		}
+
+	}
+
+	Py_RETURN_NONE;
+}
 
 static PyObject *gPyCreateConstraint(PyObject *self,
                                      PyObject *args,
@@ -630,6 +661,9 @@ static struct PyMethodDef physicsconstraints_methods[] = {
 	 METH_VARARGS, (const char *)gPyCreateConstraint__doc__},
 	{"getVehicleConstraint",(PyCFunction) gPyGetVehicleConstraint,
 	 METH_VARARGS, (const char *)gPyGetVehicleConstraint__doc__},
+
+	{"getCharacter",(PyCFunction) gPyGetCharacter,
+	 METH_VARARGS, (const char *)gPyGetCharacter__doc__},
 
 	{"removeConstraint",(PyCFunction) gPyRemoveConstraint,
 	 METH_VARARGS, (const char *)gPyRemoveConstraint__doc__},

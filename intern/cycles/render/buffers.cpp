@@ -101,7 +101,7 @@ RenderTile::RenderTile()
 
 RenderBuffers::RenderBuffers(Device *device_)
 {
-	device = device_;
+  device = device_;
 }
 
 RenderBuffers::~RenderBuffers()

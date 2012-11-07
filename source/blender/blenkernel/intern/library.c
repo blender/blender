@@ -1013,7 +1013,6 @@ void free_main(Main *mainvar)
 #endif
 		}
 	}
-	a = set_listbasepointers(mainvar, lbarray);
 
 	MEM_freeN(mainvar);
 }

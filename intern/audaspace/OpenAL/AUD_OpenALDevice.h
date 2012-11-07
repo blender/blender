@@ -58,7 +58,7 @@ private:
 		bool m_isBuffered;
 
 		/// The reader source.
-		AUD_Reference<AUD_IReader> m_reader;
+		boost::shared_ptr<AUD_IReader> m_reader;
 
 		/// Whether to keep the source if end of it is reached.
 		bool m_keep;
@@ -105,7 +105,7 @@ private:
 		 * \param reader The reader this handle plays.
 		 * \param keep Whether to keep the handle alive when the reader ends.
 		 */
-		AUD_OpenALHandle(AUD_OpenALDevice* device, ALenum format, AUD_Reference<AUD_IReader> reader, bool keep);
+		AUD_OpenALHandle(AUD_OpenALDevice* device, ALenum format, boost::shared_ptr<AUD_IReader> reader, bool keep);
 
 		virtual ~AUD_OpenALHandle() {}
 		virtual bool pause();
@@ -150,7 +150,7 @@ private:
 		virtual bool setConeVolumeOuter(float volume);
 	};
 
-	typedef std::list<AUD_Reference<AUD_OpenALHandle> >::iterator AUD_HandleIterator;
+	typedef std::list<boost::shared_ptr<AUD_OpenALHandle> >::iterator AUD_HandleIterator;
 
 	/**
 	 * The OpenAL device handle.
@@ -175,12 +175,12 @@ private:
 	/**
 	 * The list of sounds that are currently playing.
 	 */
-	std::list<AUD_Reference<AUD_OpenALHandle> > m_playingSounds;
+	std::list<boost::shared_ptr<AUD_OpenALHandle> > m_playingSounds;
 
 	/**
 	 * The list of sounds that are currently paused.
 	 */
-	std::list<AUD_Reference<AUD_OpenALHandle> > m_pausedSounds;
+	std::list<boost::shared_ptr<AUD_OpenALHandle> > m_pausedSounds;
 
 	/**
 	 * The list of buffered factories.
@@ -255,8 +255,8 @@ public:
 	virtual ~AUD_OpenALDevice();
 
 	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
+	virtual boost::shared_ptr<AUD_IHandle> play(boost::shared_ptr<AUD_IReader> reader, bool keep = false);
+	virtual boost::shared_ptr<AUD_IHandle> play(boost::shared_ptr<AUD_IFactory> factory, bool keep = false);
 	virtual void stopAll();
 	virtual void lock();
 	virtual void unlock();

@@ -145,8 +145,6 @@ struct Render
 	/* final picture width and height (within disprect) */
 	int rectx, recty;
 	
-	/* real maximum amount of xparts/yparts after correction for minimum */
-	int xparts, yparts;
 	/* real maximum size of parts after correction for minimum 
 	 * partx*xparts can be larger than rectx, in that case last part is smaller */
 	int partx, party;

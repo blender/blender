@@ -1184,6 +1184,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
 	/* to be used for halos en infos */
 	float abs4;
 	short c=0;
+	int xparts = (re->rectx + re->partx - 1) / re->partx;
 
 	if (do_pano == FALSE) {
 		return testclip(v);
@@ -1197,7 +1198,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
 	if ( v[1]>abs4) c+=4;
 	else if ( v[1]< -abs4) c+=8;
 
-	abs4*= re->xparts;
+	abs4*= xparts;
 	if ( v[0]>abs4) c+=2;
 	else if ( v[0]< -abs4) c+=1;
 

@@ -242,16 +242,14 @@ static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max, 
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	*min = 0;
-	*max = cu->totcol - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, cu->totcol - 1);
 }
 
 static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	*min = 0;
-	*max = cu->totbox - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, cu->totbox - 1);
 }
 
 

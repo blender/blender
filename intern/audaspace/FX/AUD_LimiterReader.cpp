@@ -30,7 +30,7 @@
 #include "AUD_LimiterReader.h"
 #include "AUD_Buffer.h"
 
-AUD_LimiterReader::AUD_LimiterReader(AUD_Reference<AUD_IReader> reader,
+AUD_LimiterReader::AUD_LimiterReader(boost::shared_ptr<AUD_IReader> reader,
 									 float start, float end) :
 		AUD_EffectReader(reader),
 		m_start(start),

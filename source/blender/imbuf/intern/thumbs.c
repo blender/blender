@@ -436,7 +436,7 @@ ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source)
 	struct stat st;
 	ImBuf *img = NULL;
 	
-	if (stat(path, &st)) {
+	if (BLI_stat(path, &st)) {
 		return NULL;
 	}
 	if (!uri_from_filename(path, uri)) {

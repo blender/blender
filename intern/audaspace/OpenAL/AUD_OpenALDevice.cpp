@@ -67,7 +67,7 @@ static const char* queue_error = "AUD_OpenALDevice: Buffer couldn't be "
 static const char* bufferdata_error = "AUD_OpenALDevice: Buffer couldn't be "
 									  "filled with data.";
 
-AUD_OpenALDevice::AUD_OpenALHandle::AUD_OpenALHandle(AUD_OpenALDevice* device, ALenum format, AUD_Reference<AUD_IReader> reader, bool keep) :
+AUD_OpenALDevice::AUD_OpenALHandle::AUD_OpenALHandle(AUD_OpenALDevice* device, ALenum format, boost::shared_ptr<AUD_IReader> reader, bool keep) :
 	m_isBuffered(false), m_reader(reader), m_keep(keep), m_format(format), m_current(0),
 	m_eos(false), m_loopcount(0), m_stop(NULL), m_stop_data(NULL), m_status(AUD_STATUS_PLAYING),
 	m_device(device)
@@ -130,14 +130,22 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::pause()
 
 		if(m_status == AUD_STATUS_PLAYING)
 		{
-			m_device->m_playingSounds.remove(this);
-			m_device->m_pausedSounds.push_back(this);
+			for(AUD_HandleIterator it = m_device->m_playingSounds.begin(); it != m_device->m_playingSounds.end(); it++)
+			{
+				if(it->get() == this)
+				{
+					boost::shared_ptr<AUD_OpenALHandle> This = *it;
 
-			alSourcePause(m_source);
+					m_device->m_playingSounds.erase(it);
+					m_device->m_pausedSounds.push_back(This);
 
-			m_status = AUD_STATUS_PAUSED;
+					alSourcePause(m_source);
 
-			return true;
+					m_status = AUD_STATUS_PAUSED;
+
+					return true;
+				}
+			}
 		}
 	}
 
@@ -152,12 +160,21 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::resume()
 
 		if(m_status == AUD_STATUS_PAUSED)
 		{
-			m_device->m_pausedSounds.remove(this);
-			m_device->m_playingSounds.push_back(this);
+			for(AUD_HandleIterator it = m_device->m_pausedSounds.begin(); it != m_device->m_pausedSounds.end(); it++)
+			{
+				if(it->get() == this)
+				{
+					boost::shared_ptr<AUD_OpenALHandle> This = *it;
 
-			m_device->start();
-			m_status = AUD_STATUS_PLAYING;
-			return true;
+					m_device->m_pausedSounds.erase(it);
+					m_device->m_playingSounds.push_back(This);
+
+					m_device->start();
+					m_status = AUD_STATUS_PLAYING;
+
+					return true;
+				}
+			}
 		}
 	}
 
@@ -184,7 +201,7 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::stop()
 	{
 		if(it->get() == this)
 		{
-			AUD_Reference<AUD_OpenALHandle> This = *it;
+			boost::shared_ptr<AUD_OpenALHandle> This = *it;
 
 			m_device->m_playingSounds.erase(it);
 
@@ -838,15 +855,15 @@ void AUD_OpenALDevice::start(bool join)
 
 void AUD_OpenALDevice::updateStreams()
 {
-	AUD_Reference<AUD_OpenALHandle> sound;
+	boost::shared_ptr<AUD_OpenALHandle> sound;
 
 	int length;
 
 	ALint info;
 	AUD_DeviceSpecs specs = m_specs;
 	ALCenum cerr;
-	std::list<AUD_Reference<AUD_OpenALHandle> > stopSounds;
-	std::list<AUD_Reference<AUD_OpenALHandle> > pauseSounds;
+	std::list<boost::shared_ptr<AUD_OpenALHandle> > stopSounds;
+	std::list<boost::shared_ptr<AUD_OpenALHandle> > pauseSounds;
 	AUD_HandleIterator it;
 
 	while(1)
@@ -1204,32 +1221,32 @@ bool AUD_OpenALDevice::getFormat(ALenum &format, AUD_Specs specs)
 	return valid;
 }
 
-AUD_Reference<AUD_IHandle> AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
+boost::shared_ptr<AUD_IHandle> AUD_OpenALDevice::play(boost::shared_ptr<AUD_IReader> reader, bool keep)
 {
 	AUD_Specs specs = reader->getSpecs();
 
 	// check format
 	if(specs.channels == AUD_CHANNELS_INVALID)
-		return AUD_Reference<AUD_IHandle>();
+		return boost::shared_ptr<AUD_IHandle>();
 
 	if(m_specs.format != AUD_FORMAT_FLOAT32)
-		reader = new AUD_ConverterReader(reader, m_specs);
+		reader = boost::shared_ptr<AUD_IReader>(new AUD_ConverterReader(reader, m_specs));
 
 	ALenum format;
 
 	if(!getFormat(format, specs))
-		return AUD_Reference<AUD_IHandle>();
+		return boost::shared_ptr<AUD_IHandle>();
 
 	AUD_MutexLock lock(*this);
 
 	alcSuspendContext(m_context);
 
-	AUD_Reference<AUD_OpenALDevice::AUD_OpenALHandle> sound;
+	boost::shared_ptr<AUD_OpenALDevice::AUD_OpenALHandle> sound;
 
 	try
 	{
 		// create the handle
-		sound = new AUD_OpenALDevice::AUD_OpenALHandle(this, format, reader, keep);
+		sound = boost::shared_ptr<AUD_OpenALDevice::AUD_OpenALHandle>(new AUD_OpenALDevice::AUD_OpenALHandle(this, format, reader, keep));
 	}
 	catch(AUD_Exception&)
 	{
@@ -1244,10 +1261,10 @@ AUD_Reference<AUD_IHandle> AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> rea
 
 	start();
 
-	return AUD_Reference<AUD_IHandle>(sound);
+	return boost::shared_ptr<AUD_IHandle>(sound);
 }
 
-AUD_Reference<AUD_IHandle> AUD_OpenALDevice::play(AUD_Reference<AUD_IFactory> factory, bool keep)
+boost::shared_ptr<AUD_IHandle> AUD_OpenALDevice::play(boost::shared_ptr<AUD_IFactory> factory, bool keep)
 {
 	/* AUD_XXX disabled
 	AUD_OpenALHandle* sound = NULL;

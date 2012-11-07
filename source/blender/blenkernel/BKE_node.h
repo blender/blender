@@ -553,6 +553,10 @@ struct ShadeResult;
 #define SH_NODE_TEX_BRICK				169
 #define SH_NODE_BUMP					170
 #define SH_NODE_SCRIPT					171
+#define SH_NODE_AMBIENT_OCCLUSION		172
+#define SH_NODE_BSDF_REFRACTION			173
+#define SH_NODE_TANGENT					174
+#define SH_NODE_NORMAL_MAP				175
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

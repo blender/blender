@@ -4275,8 +4275,7 @@ static void freeSeqData(TransInfo *t)
 						}
 					}
 
-#if 1               /* (mango hack! - for Ian) this is truely bad - should _never_ be in a release :| */
-					if (CTX_wm_window(t->context)->eventstate->alt) {
+					if (t->flag & T_ALT_TRANSFORM) {
 						int minframe = MAXFRAME;
 						td = t->data;
 						seq_prev = NULL;
@@ -4313,9 +4312,6 @@ static void freeSeqData(TransInfo *t)
 					else {
 						BKE_sequence_base_shuffle_time(seqbasep, t->scene);
 					}
-#else
-					BKE_sequence_base_shuffle_time(seqbasep, t->scene);
-#endif
 
 					if (has_effect) {
 						/* update effects strips based on strips just moved in time */

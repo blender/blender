@@ -2731,47 +2731,45 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 	event = *evt;
 	
 	switch (type) {
-		/* mouse move */
+		/* mouse move, also to inactive window (X11 does this) */
 		case GHOST_kEventCursorMove:
 		{
-			if (win->active) {
-				GHOST_TEventCursorData *cd = customdata;
-				wmEvent *lastevent = win->queue.last;
-				int cx, cy;
-				
-				GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
-				evt->x = cx;
-				evt->y = (win->sizey - 1) - cy;
-				
-				event.x = evt->x;
-				event.y = evt->y;
+			GHOST_TEventCursorData *cd = customdata;
+			wmEvent *lastevent = win->queue.last;
+			int cx, cy;
+			
+			GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
+			evt->x = cx;
+			evt->y = (win->sizey - 1) - cy;
+			
+			event.x = evt->x;
+			event.y = evt->y;
 
-				event.type = MOUSEMOVE;
+			event.type = MOUSEMOVE;
 
-				/* some painting operators want accurate mouse events, they can
-				 * handle in between mouse move moves, others can happily ignore
-				 * them for better performance */
-				if (lastevent && lastevent->type == MOUSEMOVE)
-					lastevent->type = INBETWEEN_MOUSEMOVE;
+			/* some painting operators want accurate mouse events, they can
+			 * handle in between mouse move moves, others can happily ignore
+			 * them for better performance */
+			if (lastevent && lastevent->type == MOUSEMOVE)
+				lastevent->type = INBETWEEN_MOUSEMOVE;
 
-				update_tablet_data(win, &event);
-				wm_event_add(win, &event);
+			update_tablet_data(win, &event);
+			wm_event_add(win, &event);
+			
+			/* also add to other window if event is there, this makes overdraws disappear nicely */
+			/* it remaps mousecoord to other window in event */
+			owin = wm_event_cursor_other_windows(wm, win, &event);
+			if (owin) {
+				wmEvent oevent = *(owin->eventstate);
 				
-				/* also add to other window if event is there, this makes overdraws disappear nicely */
-				/* it remaps mousecoord to other window in event */
-				owin = wm_event_cursor_other_windows(wm, win, &event);
-				if (owin) {
-					wmEvent oevent = *(owin->eventstate);
-					
-					oevent.x = owin->eventstate->x = event.x;
-					oevent.y = owin->eventstate->y = event.y;
-					oevent.type = MOUSEMOVE;
-					
-					update_tablet_data(owin, &oevent);
-					wm_event_add(owin, &oevent);
-				}
+				oevent.x = owin->eventstate->x = event.x;
+				oevent.y = owin->eventstate->y = event.y;
+				oevent.type = MOUSEMOVE;
 				
+				update_tablet_data(owin, &oevent);
+				wm_event_add(owin, &oevent);
 			}
+				
 			break;
 		}
 		case GHOST_kEventTrackpad:

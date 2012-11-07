@@ -225,5 +225,91 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 #endif
 }
 
+__device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+{
+	uint color_offset, normal_offset, space;
+	decode_node_uchar4(node.y, &color_offset, &normal_offset, &space, NULL);
+
+	float3 color = stack_load_float3(stack, color_offset);
+	color = 2.0f*make_float3(color.x - 0.5f, color.y - 0.5f, color.z - 0.5f);
+
+	if(space == NODE_NORMAL_MAP_TANGENT) {
+		/* tangent space */
+		if(sd->object == ~0) {
+			stack_store_float3(stack, normal_offset, make_float3(0.0f, 0.0f, 0.0f));
+			return;
+		}
+
+		/* first try to get tangent attribute */
+		int attr_offset = find_attribute(kg, sd, node.z);
+		int attr_sign_offset = find_attribute(kg, sd, node.w);
+
+		if(attr_offset == ATTR_STD_NOT_FOUND || attr_sign_offset == ATTR_STD_NOT_FOUND) {
+			stack_store_float3(stack, normal_offset, make_float3(0.0f, 0.0f, 0.0f));
+			return;
+		}
+
+		/* ensure orthogonal and normalized (interpolation breaks it) */
+		float3 tangent = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, attr_offset, NULL, NULL);
+		float sign = triangle_attribute_float(kg, sd, ATTR_ELEMENT_CORNER, attr_sign_offset, NULL, NULL);
+
+		object_normal_transform(kg, sd, &tangent);
+		tangent = cross(sd->N, normalize(cross(tangent, sd->N)));;
+
+		float3 B = sign * cross(sd->N, tangent);
+		float3 N = color.x * tangent + color.y * B + color.z * sd->N;
+
+		stack_store_float3(stack, normal_offset, normalize(N));
+	}
+	else {
+		/* object, world space */
+		float3 N = color;
+
+		if(space == NODE_NORMAL_MAP_OBJECT)
+			object_normal_transform(kg, sd, &N);
+
+		stack_store_float3(stack, normal_offset, normalize(N));
+	}
+}
+
+__device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
+{
+	uint tangent_offset, direction_type, axis;
+	decode_node_uchar4(node.y, &tangent_offset, &direction_type, &axis, NULL);
+
+	float3 tangent;
+
+	if(direction_type == NODE_TANGENT_UVMAP) {
+		/* UV map */
+		int attr_offset = find_attribute(kg, sd, node.z);
+
+		if(attr_offset == ATTR_STD_NOT_FOUND)
+			tangent = make_float3(0.0f, 0.0f, 0.0f);
+		else
+			tangent = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, attr_offset, NULL, NULL);
+	}
+	else {
+		/* radial */
+		int attr_offset = find_attribute(kg, sd, node.z);
+		float3 generated;
+
+		if(attr_offset == ATTR_STD_NOT_FOUND)
+			generated = sd->P;
+		else
+			generated = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
+
+		if(axis == NODE_TANGENT_AXIS_X)
+			tangent = make_float3(0.0f, -(generated.z - 0.5f), (generated.y - 0.5f));
+		else if(axis == NODE_TANGENT_AXIS_Y)
+			tangent = make_float3(-(generated.z - 0.5f), 0.0f, (generated.x - 0.5f));
+		else
+			tangent = make_float3(-(generated.y - 0.5f), (generated.x - 0.5f), 0.0f);
+	}
+
+	object_normal_transform(kg, sd, &tangent);
+	tangent = cross(sd->N, normalize(cross(tangent, sd->N)));
+	stack_store_float3(stack, tangent_offset, tangent);
+}
+
 CCL_NAMESPACE_END
 

@@ -84,8 +84,6 @@ void TileManager::gen_tiles_global()
 
 	int tile_w = (tile_size.x >= image_w)? 1: (image_w + tile_size.x - 1)/tile_size.x;
 	int tile_h = (tile_size.y >= image_h)? 1: (image_h + tile_size.y - 1)/tile_size.y;
-	int sub_w = (image_w + tile_w - 1)/tile_w;
-	int sub_h = (image_h + tile_h - 1)/tile_h;
 
 	int num_logical_devices = preserve_tile_device? num_devices: 1;
 	int num = min(image_h, num_logical_devices);
@@ -96,10 +94,10 @@ void TileManager::gen_tiles_global()
 
 	for(int tile_y = 0; tile_y < tile_h; tile_y++) {
 		for(int tile_x = 0; tile_x < tile_w; tile_x++, tile_index++) {
-			int x = tile_x * sub_w;
-			int y = tile_y * sub_h;
-			int w = (tile_x == tile_w-1)? image_w - x: sub_w;
-			int h = (tile_y == tile_h-1)? image_h - y: sub_h;
+			int x = tile_x * tile_size.x;
+			int y = tile_y * tile_size.y;
+			int w = (tile_x == tile_w-1)? image_w - x: tile_size.x;
+			int h = (tile_y == tile_h-1)? image_h - y: tile_size.y;
 
 			state.tiles.push_back(Tile(tile_index, x, y, w, h, cur_device));
 			cur_tiles++;
@@ -131,15 +129,13 @@ void TileManager::gen_tiles_sliced()
 
 		int tile_w = (tile_size.x >= image_w)? 1: (image_w + tile_size.x - 1)/tile_size.x;
 		int tile_h = (tile_size.y >= device_h)? 1: (device_h + tile_size.y - 1)/tile_size.y;
-		int sub_w = (image_w + tile_w - 1)/tile_w;
-		int sub_h = (device_h + tile_h - 1)/tile_h;
 
 		for(int tile_y = 0; tile_y < tile_h; tile_y++) {
 			for(int tile_x = 0; tile_x < tile_w; tile_x++, tile_index++) {
-				int x = tile_x * sub_w;
-				int y = tile_y * sub_h;
-				int w = (tile_x == tile_w-1)? image_w - x: sub_w;
-				int h = (tile_y == tile_h-1)? device_h - y: sub_h;
+				int x = tile_x * tile_size.x;
+				int y = tile_y * tile_size.y;
+				int w = (tile_x == tile_w-1)? image_w - x: tile_size.x;
+				int h = (tile_y == tile_h-1)? device_h - y: tile_size.y;
 
 				state.tiles.push_back(Tile(tile_index, x, y + device_y, w, h, device));
 			}

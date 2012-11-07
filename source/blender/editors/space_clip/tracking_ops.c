@@ -2944,6 +2944,19 @@ void CLIP_OT_track_copy_color(wmOperatorType *ot)
 
 /********************** add 2d stabilization tracks operator *********************/
 
+static int stabilize_2d_poll(bContext *C)
+{
+	if (ED_space_clip_tracking_poll(C)) {
+		SpaceClip *sc = CTX_wm_space_clip(C);
+		MovieClip *clip = ED_space_clip_get_clip(sc);
+		MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+
+		return tracking_object->flag & TRACKING_OBJECT_CAMERA;
+	}
+
+	return FALSE;
+}
+
 static int stabilize_2d_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -2985,7 +2998,7 @@ void CLIP_OT_stabilize_2d_add(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = stabilize_2d_add_exec;
-	ot->poll = ED_space_clip_tracking_poll;
+	ot->poll = stabilize_2d_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3045,7 +3058,7 @@ void CLIP_OT_stabilize_2d_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = stabilize_2d_remove_exec;
-	ot->poll = ED_space_clip_tracking_poll;
+	ot->poll = stabilize_2d_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3088,7 +3101,7 @@ void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = stabilize_2d_select_exec;
-	ot->poll = ED_space_clip_tracking_poll;
+	ot->poll = stabilize_2d_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3125,7 +3138,7 @@ void CLIP_OT_stabilize_2d_set_rotation(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = stabilize_2d_set_rotation_exec;
-	ot->poll = ED_space_clip_tracking_poll;
+	ot->poll = stabilize_2d_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

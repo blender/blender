@@ -2857,14 +2857,8 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 
 		engine = RE_engine_create(type);
 
-		engine->tile_x = ceil(ar->winx / (float)scene->r.xparts);
-		engine->tile_y = ceil(ar->winy / (float)scene->r.yparts);
-
-		/* clamp small tile sizes to prevent inefficient threading utilization
-		 * the same happens for final renders as well
-		 */
-		engine->tile_x = max_ii(engine->tile_x, 64);
-		engine->tile_y = max_ii(engine->tile_x, 64);
+		engine->tile_x = scene->r.tilex;
+		engine->tile_y = scene->r.tiley;
 
 		type->view_update(engine, C);
 

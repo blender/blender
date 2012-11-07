@@ -100,6 +100,9 @@ typedef struct Strip {
 	StripCrop *crop;
 	StripTransform *transform;
 	StripColorBalance *color_balance DNA_DEPRECATED;
+
+	/* color management */
+	ColorManagedColorspaceSettings colorspace_settings;
 } Strip;
 
 /**

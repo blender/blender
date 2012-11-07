@@ -680,6 +680,7 @@ float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
 	float borderfac = (float)BLI_rcti_size_x(&re->disprect) / (float)re->winx;
+	int xparts = (re->rectx + re->partx - 1) / re->partx;
 	
 	/* size of 1 pixel mapped to viewplane coords */
 	psize = BLI_rctf_size_x(&re->viewplane) / (float)re->winx;
@@ -687,7 +688,7 @@ float panorama_pixel_rot(Render *re)
 	phi = atan(psize / re->clipsta);
 	
 	/* correction factor for viewplane shifting, first calculate how much the viewplane angle is */
-	xfac = borderfac * BLI_rctf_size_x(&re->viewplane) / (float)re->xparts;
+	xfac = borderfac * BLI_rctf_size_x(&re->viewplane) / (float)xparts;
 	xfac = atan(0.5f * xfac / re->clipsta);
 	/* and how much the same viewplane angle is wrapped */
 	psize = 0.5f * phi * ((float)re->partx);
@@ -2596,8 +2597,8 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 
 	if (env->type == ENV_CUBE) {
 		for (i = 0; i < 12; i += 2) {
-			maxX = MAX2(maxX, layout[i] + 1);
-			maxY = MAX2(maxY, layout[i + 1] + 1);
+			maxX = max_ii(maxX, (int)layout[i] + 1);
+			maxY = max_ii(maxY, (int)layout[i + 1] + 1);
 		}
 
 		ibuf = IMB_allocImBuf(maxX * dx, maxY * dx, 24, IB_rectfloat);

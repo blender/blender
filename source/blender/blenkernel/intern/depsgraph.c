@@ -400,7 +400,8 @@ static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Mat
 	}
 }
 
-static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node, int skip_forcefield){
+static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node, int skip_forcefield)
+{
 	Base *base;
 	DagNode *node2;
 

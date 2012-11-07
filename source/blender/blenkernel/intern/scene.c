@@ -375,8 +375,8 @@ Scene *BKE_scene_add(const char *name)
 	sce->r.ysch = 1080;
 	sce->r.xasp = 1;
 	sce->r.yasp = 1;
-	sce->r.xparts = 8;
-	sce->r.yparts = 8;
+	sce->r.tilex = 256;
+	sce->r.tiley = 256;
 	sce->r.mblur_samples = 1;
 	sce->r.filtertype = R_FILTER_MITCH;
 	sce->r.size = 50;
@@ -1026,8 +1026,10 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 		if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
 			group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
 			
-		/* always update layer, so that animating layers works */
-		base->lay = ob->lay;
+		/* always update layer, so that animating layers works (joshua july 2010) */
+		/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
+		   (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
+		// base->lay = ob->lay;
 	}
 	
 	/* scene drivers... */

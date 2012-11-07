@@ -35,7 +35,7 @@ AUD_SilenceFactory::AUD_SilenceFactory()
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_SilenceFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_SilenceFactory::createReader()
 {
-	return new AUD_SilenceReader();
+	return boost::shared_ptr<AUD_IReader>(new AUD_SilenceReader());
 }

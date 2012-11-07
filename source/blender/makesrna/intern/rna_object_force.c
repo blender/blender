@@ -51,6 +51,9 @@ static EnumPropertyItem effector_shape_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_math_base.h"
+
+
 /* type specific return values only used from functions */
 static EnumPropertyItem curve_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
@@ -239,8 +242,7 @@ static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, 
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {
-			*max = BLI_countlist(pid->ptcaches) - 1;
-			*max = MAX2(0, *max);
+			*max = max_ii(0, BLI_countlist(pid->ptcaches) - 1);
 			break;
 		}
 	}

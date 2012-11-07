@@ -5,7 +5,7 @@ def FindPython():
 
     python = "/usr"
     abi_flags = "m"  # Most common for linux distros
-    version = "3.2"
+    version = "3.3"
 
     # Determine ABI flags used on this system
     include = os.path.join(python, "include")

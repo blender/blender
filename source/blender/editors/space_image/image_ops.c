@@ -618,7 +618,7 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View All";
 	ot->idname = "IMAGE_OT_view_all";
-	ot->description = "View the whole picture";
+	ot->description = "View the entire image";
 	
 	/* api callbacks */
 	ot->exec = image_view_all_exec;
@@ -805,7 +805,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom Ratio";
 	ot->idname = "IMAGE_OT_view_zoom_ratio";
-	ot->description = "Set zoom ration of the view";
+	ot->description = "Set zoom ratio of the view";
 	
 	/* api callbacks */
 	ot->exec = image_view_zoom_ratio_exec;

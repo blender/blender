@@ -31,8 +31,9 @@
 #define __AUD_BUFFERREADER_H__
 
 #include "AUD_IReader.h"
-#include "AUD_Reference.h"
 class AUD_Buffer;
+
+#include <boost/shared_ptr.hpp>
 
 /**
  * This class represents a simple reader from a buffer that exists in memory.
@@ -50,7 +51,7 @@ private:
 	/**
 	 * The buffer that is read.
 	 */
-	AUD_Reference<AUD_Buffer> m_buffer;
+	boost::shared_ptr<AUD_Buffer> m_buffer;
 
 	/**
 	 * The specification of the sample data in the buffer.
@@ -67,7 +68,7 @@ public:
 	 * \param buffer The buffer to read from.
 	 * \param specs The specification of the sample data in the buffer.
 	 */
-	AUD_BufferReader(AUD_Reference<AUD_Buffer> buffer, AUD_Specs specs);
+	AUD_BufferReader(boost::shared_ptr<AUD_Buffer> buffer, AUD_Specs specs);
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

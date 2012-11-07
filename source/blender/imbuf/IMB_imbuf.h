@@ -103,7 +103,7 @@ struct ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, 
  *
  * \attention Defined in readimage.c
  */
-struct ImBuf *IMB_testiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
+struct ImBuf *IMB_testiffname(const char *filepath, int flags);
 
 /**
  *

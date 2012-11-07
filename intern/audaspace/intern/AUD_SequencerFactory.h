@@ -32,7 +32,8 @@
 
 #include "AUD_IFactory.h"
 #include "AUD_AnimateableProperty.h"
-#include "AUD_ILockable.h"
+//#include "AUD_ILockable.h"
+#include "AUD_Sequencer.h"
 
 #include <list>
 #include <pthread.h>
@@ -42,51 +43,12 @@ class AUD_SequencerEntry;
 /**
  * This factory represents sequenced entries to play a sound scene.
  */
-class AUD_SequencerFactory : public AUD_IFactory, public AUD_ILockable
+class AUD_SequencerFactory : public AUD_IFactory//, public AUD_ILockable
 {
 	friend class AUD_SequencerReader;
 private:
-	/// The target specification.
-	AUD_Specs m_specs;
-
-	/// The status of the factory. Changes every time a non-animated parameter changes.
-	int m_status;
-
-	/// The entry status. Changes every time an entry is removed or added.
-	int m_entry_status;
-
-	/// The next unused ID for the entries.
-	int m_id;
-
-	/// The sequenced entries.
-	std::list<AUD_Reference<AUD_SequencerEntry> > m_entries;
-
-	/// Whether the whole scene is muted.
-	bool m_muted;
-
-	/// The FPS of the scene.
-	float m_fps;
-
-	/// Speed of Sound.
-	float m_speed_of_sound;
-
-	/// Doppler factor.
-	float m_doppler_factor;
-
-	/// Distance model.
-	AUD_DistanceModel m_distance_model;
-
-	/// The animated volume.
-	AUD_AnimateableProperty m_volume;
-
-	/// The animated listener location.
-	AUD_AnimateableProperty m_location;
-
-	/// The animated listener orientation.
-	AUD_AnimateableProperty m_orientation;
-
-	/// The mutex for locking.
-	pthread_mutex_t m_mutex;
+	/// The sequence.
+	boost::shared_ptr<AUD_Sequencer> m_sequence;
 
 	// hide copy constructor and operator=
 	AUD_SequencerFactory(const AUD_SequencerFactory&);
@@ -100,8 +62,8 @@ public:
 	 * \param muted Whether the whole scene is muted.
 	 */
 	AUD_SequencerFactory(AUD_Specs specs, float fps, bool muted);
-	~AUD_SequencerFactory();
 
+#if 0
 	/**
 	 * Locks the factory.
 	 */
@@ -111,6 +73,7 @@ public:
 	 * Unlocks the previously locked factory.
 	 */
 	virtual void unlock();
+#endif
 
 	/**
 	 * Sets the audio output specification.
@@ -194,21 +157,21 @@ public:
 	 * \param skip How much seconds should be skipped at the beginning.
 	 * \return The entry added.
 	 */
-	AUD_Reference<AUD_SequencerEntry> add(AUD_Reference<AUD_IFactory> sound, float begin, float end, float skip);
+	boost::shared_ptr<AUD_SequencerEntry> add(boost::shared_ptr<AUD_IFactory> sound, float begin, float end, float skip);
 
 	/**
 	 * Removes an entry from the scene.
 	 * \param entry The entry to remove.
 	 */
-	void remove(AUD_Reference<AUD_SequencerEntry> entry);
+	void remove(boost::shared_ptr<AUD_SequencerEntry> entry);
 
 	/**
 	 * Creates a new reader with high quality resampling.
 	 * \return The new reader.
 	 */
-	AUD_Reference<AUD_IReader> createQualityReader();
+	boost::shared_ptr<AUD_IReader> createQualityReader();
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_SEQUENCERFACTORY_H__

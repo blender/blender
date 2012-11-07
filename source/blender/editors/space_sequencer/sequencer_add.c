@@ -719,7 +719,9 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 			seq->endstill = seq_load.end_frame - seq_load.start_frame;
 		}
 	}
-	
+
+	BKE_sequence_init_colorspace(seq);
+
 	BKE_sequence_calc_disp(scene, seq);
 
 	BKE_sequencer_sort(scene);

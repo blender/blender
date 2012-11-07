@@ -31,10 +31,10 @@
 #define __AUD_FFMPEGFACTORY_H__
 
 #include "AUD_IFactory.h"
-#include "AUD_Reference.h"
 #include "AUD_Buffer.h"
 
 #include <string>
+#include <boost/shared_ptr.hpp>
 
 /**
  * This factory reads a sound file via ffmpeg.
@@ -52,7 +52,7 @@ private:
 	/**
 	 * The buffer to read from.
 	 */
-	AUD_Reference<AUD_Buffer> m_buffer;
+	boost::shared_ptr<AUD_Buffer> m_buffer;
 
 	// hide copy constructor and operator=
 	AUD_FFMPEGFactory(const AUD_FFMPEGFactory&);
@@ -72,7 +72,7 @@ public:
 	 */
 	AUD_FFMPEGFactory(const data_t* buffer, int size);
 
-	virtual AUD_Reference<AUD_IReader> createReader();
+	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
 
 #endif //__AUD_FFMPEGFACTORY_H__

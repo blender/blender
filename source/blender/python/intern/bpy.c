@@ -32,6 +32,9 @@
 
 #include <Python.h>
 
+#include "RNA_types.h"
+#include "RNA_access.h"
+
 #include "bpy.h" 
 #include "bpy_util.h" 
 #include "bpy_rna.h"
@@ -48,8 +51,6 @@
 #include "BKE_main.h"
 #include "BKE_global.h" /* XXX, G.main only */
 #include "BKE_blender.h"
-
-#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 

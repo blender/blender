@@ -31,8 +31,9 @@
 #define __AUD_IFACTORY_H__
 
 #include "AUD_Space.h"
-#include "AUD_Reference.h"
 #include "AUD_IReader.h"
+
+#include <boost/shared_ptr.hpp>
 
 /**
  * This class represents a type of sound source and saves the necessary values
@@ -54,7 +55,7 @@ public:
 	 * \exception AUD_Exception An exception may be thrown if there has been
 	 *            a more unexpected error during reader creation.
 	 */
-	virtual AUD_Reference<AUD_IReader> createReader()=0;
+	virtual boost::shared_ptr<AUD_IReader> createReader()=0;
 };
 
 #endif //__AUD_IFACTORY_H__

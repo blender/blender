@@ -29,7 +29,7 @@
 
 #include "AUD_EffectReader.h"
 
-AUD_EffectReader::AUD_EffectReader(AUD_Reference<AUD_IReader> reader)
+AUD_EffectReader::AUD_EffectReader(boost::shared_ptr<AUD_IReader> reader)
 {
 	m_reader = reader;
 }

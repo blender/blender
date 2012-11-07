@@ -3464,6 +3464,26 @@ Types
       :arg wheelIndex: the wheel index
       :type wheelIndex: integer
 
+.. class:: KX_CharacterWrapper(PyObjectPlus)
+
+   A wrapper to expose character physics options.
+
+   .. attribute:: onGround
+
+      Whether or not the character is on the ground. (read-only)
+
+	  :type: boolean
+
+   .. attribute:: gravity
+
+      The gravity value used for the character.
+
+      :type: float
+
+   .. method:: jump()
+
+      The character jumps based on it's jump speed.
+
 .. class:: KX_VertexProxy(SCA_IObject)
 
    A vertex holds position, UV, color and normal information.

@@ -72,6 +72,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
+#include "BKE_utildefines.h"
 
 #include "BKE_idcode.h"
 
@@ -903,6 +904,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	
 	prop = RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "filter_backup", (filter & BLENDERFILE_BACKUP), "Filter .blend files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
@@ -1332,6 +1335,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	int i;
 	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[96];
+	char file [FILE_MAX];
 
 #ifndef WITH_HEADLESS
 	extern char datatoc_splash_png[];
@@ -1419,7 +1423,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 	uiItemL(col, IFACE_("Recent"), ICON_NONE);
 	for (recent = G.recent_files.first, i = 0; (i < 5) && (recent); recent = recent->next, i++) {
-		uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
+		BLI_split_file_part(recent->filepath, file, sizeof(file));
+		if (BLO_has_bfile_extension(file))
+			uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
+		else
+			uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BACKUP, "WM_OT_open_mainfile", "filepath", recent->filepath);
 	}
 
 	uiItemS(col);
@@ -2070,7 +2078,6 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
 	int fileflags;
-	int copy = 0;
 
 	save_set_compress(op);
 	
@@ -2080,29 +2087,27 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(path, G.main->name, FILE_MAX);
 		untitled(path);
 	}
-
-	if (RNA_struct_property_is_set(op->ptr, "copy"))
-		copy = RNA_boolean_get(op->ptr, "copy");
 	
 	fileflags = G.fileflags;
 
 	/* set compression flag */
-	if (RNA_boolean_get(op->ptr, "compress")) fileflags |=  G_FILE_COMPRESS;
-	else fileflags &= ~G_FILE_COMPRESS;
-	if (RNA_boolean_get(op->ptr, "relative_remap")) fileflags |=  G_FILE_RELATIVE_REMAP;
-	else fileflags &= ~G_FILE_RELATIVE_REMAP;
+	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "compress"),
+	                 G_FILE_COMPRESS);
+	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "relative_remap"),
+	                 G_FILE_RELATIVE_REMAP);
+	BKE_BIT_TEST_SET(fileflags,
+	                 (RNA_struct_property_is_set(op->ptr, "copy") &&
+	                  RNA_boolean_get(op->ptr, "copy")),
+	                 G_FILE_SAVE_COPY);
+
 #ifdef USE_BMESH_SAVE_AS_COMPAT
-	/* property only exists for 'Save As' */
-	if (RNA_struct_find_property(op->ptr, "use_mesh_compat")) {
-		if (RNA_boolean_get(op->ptr, "use_mesh_compat")) fileflags |=  G_FILE_MESH_COMPAT;
-		else fileflags &= ~G_FILE_MESH_COMPAT;
-	}
-	else {
-		fileflags &= ~G_FILE_MESH_COMPAT;
-	}
+	BKE_BIT_TEST_SET(fileflags,
+	                 (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
+	                  RNA_boolean_get(op->ptr, "use_mesh_compat")),
+	                 G_FILE_MESH_COMPAT);
 #endif
 
-	if (WM_file_write(C, path, fileflags, op->reports, copy) != 0)
+	if (WM_file_write(C, path, fileflags, op->reports) != 0)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);

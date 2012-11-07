@@ -145,36 +145,40 @@ set(SRC
 	shader/nodes/node_shader_valToRgb.c
 	shader/nodes/node_shader_value.c
 	shader/nodes/node_shader_vectMath.c
+	shader/nodes/node_shader_add_shader.c
+	shader/nodes/node_shader_ambient_occlusion.c
 	shader/nodes/node_shader_attribute.c
 	shader/nodes/node_shader_background.c
 	shader/nodes/node_shader_bsdf_anisotropic.c
 	shader/nodes/node_shader_bsdf_diffuse.c
-	shader/nodes/node_shader_bsdf_glossy.c
 	shader/nodes/node_shader_bsdf_glass.c
+	shader/nodes/node_shader_bsdf_glossy.c
+	shader/nodes/node_shader_bsdf_refraction.c
 	shader/nodes/node_shader_bsdf_translucent.c
 	shader/nodes/node_shader_bsdf_transparent.c
 	shader/nodes/node_shader_bsdf_velvet.c
 	shader/nodes/node_shader_bump.c
 	shader/nodes/node_shader_emission.c
 	shader/nodes/node_shader_fresnel.c
-	shader/nodes/node_shader_layer_weight.c
 	shader/nodes/node_shader_geometry.c
 	shader/nodes/node_shader_holdout.c
-	shader/nodes/node_shader_volume_transparent.c
-	shader/nodes/node_shader_volume_isotropic.c
-	shader/nodes/node_shader_light_path.c
+	shader/nodes/node_shader_layer_weight.c
 	shader/nodes/node_shader_light_falloff.c
-	shader/nodes/node_shader_object_info.c
-	shader/nodes/node_shader_script.c
-	shader/nodes/node_shader_particle_info.c
+	shader/nodes/node_shader_light_path.c
 	shader/nodes/node_shader_mix_shader.c
-	shader/nodes/node_shader_add_shader.c
+	shader/nodes/node_shader_normal_map.c
+	shader/nodes/node_shader_object_info.c
 	shader/nodes/node_shader_output_lamp.c
 	shader/nodes/node_shader_output_material.c
 	shader/nodes/node_shader_output_world.c
-	shader/nodes/node_shader_tex_gradient.c
+	shader/nodes/node_shader_particle_info.c
+	shader/nodes/node_shader_script.c
+	shader/nodes/node_shader_tangent.c
+	shader/nodes/node_shader_tex_brick.c
+	shader/nodes/node_shader_tex_checker.c
 	shader/nodes/node_shader_tex_coord.c
 	shader/nodes/node_shader_tex_environment.c
+	shader/nodes/node_shader_tex_gradient.c
 	shader/nodes/node_shader_tex_image.c
 	shader/nodes/node_shader_tex_magic.c
 	shader/nodes/node_shader_tex_musgrave.c
@@ -182,8 +186,8 @@ set(SRC
 	shader/nodes/node_shader_tex_sky.c
 	shader/nodes/node_shader_tex_voronoi.c
 	shader/nodes/node_shader_tex_wave.c
-	shader/nodes/node_shader_tex_checker.c
-	shader/nodes/node_shader_tex_brick.c
+	shader/nodes/node_shader_volume_isotropic.c
+	shader/nodes/node_shader_volume_transparent.c
 	shader/node_shader_tree.c
 	shader/node_shader_util.c
 

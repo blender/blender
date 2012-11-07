@@ -106,7 +106,7 @@ int			WM_homefile_read_exec(struct bContext *C, struct wmOperator *op);
 int			WM_homefile_read(struct bContext *C, struct ReportList *reports, short from_memory);
 int			WM_homefile_write_exec(struct bContext *C, struct wmOperator *op);
 void		WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
-int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
+int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports);
 void		WM_autosave_init(struct wmWindowManager *wm);
 
 			/* mouse cursors */
@@ -320,9 +320,9 @@ enum {
 	WM_JOB_SUSPEND      = (1 << 3)
 };
 
-/* identifying jobs by owner alone is unreliable, this isnt saved, order can change */
+/* identifying jobs by owner alone is unreliable, this isnt saved, order can change (keep 0 for 'any') */
 enum {
-	WM_JOB_TYPE_ANY = -1,
+	WM_JOB_TYPE_ANY = 0,
 	WM_JOB_TYPE_COMPOSITE,
 	WM_JOB_TYPE_RENDER,
 	WM_JOB_TYPE_RENDER_PREVIEW,  /* UI preview */

@@ -24,6 +24,7 @@ incs += ' #extern/recastnavigation/Recast/Include #extern/recastnavigation/Detou
 
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
+incs += ' ' + env['BF_BOOST_INC']
 
 if  env['WITH_BF_SDL']:
     incs += ' ' + env['BF_SDL_INC']

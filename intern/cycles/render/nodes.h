@@ -193,7 +193,7 @@ class BsdfNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(BsdfNode)
 
-	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2);
+	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2, ShaderInput *param3 = NULL);
 
 	ClosureType closure;
 };
@@ -240,6 +240,14 @@ public:
 	static ShaderEnum distribution_enum;
 };
 
+class RefractionBsdfNode : public BsdfNode {
+public:
+	SHADER_NODE_CLASS(RefractionBsdfNode)
+
+	ustring distribution;
+	static ShaderEnum distribution_enum;
+};
+
 class EmissionNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(EmissionNode)
@@ -255,6 +263,11 @@ public:
 class HoldoutNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(HoldoutNode)
+};
+
+class AmbientOcclusionNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(AmbientOcclusionNode)
 };
 
 class VolumeNode : public ShaderNode {
@@ -455,6 +468,31 @@ public:
 	 * The actual socket names have to be stored externally to avoid memory errors. */
 	vector<ustring> input_names;
 	vector<ustring> output_names;
+};
+
+class NormalMapNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(NormalMapNode)
+	void attributes(AttributeRequestSet *attributes);
+
+	ustring space;
+	static ShaderEnum space_enum;
+
+	ustring attribute;
+};
+
+class TangentNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(TangentNode)
+	void attributes(AttributeRequestSet *attributes);
+
+	ustring direction_type;
+	static ShaderEnum direction_type_enum;
+
+	ustring axis;
+	static ShaderEnum axis_enum;
+
+	ustring attribute;
 };
 
 CCL_NAMESPACE_END

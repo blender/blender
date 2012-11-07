@@ -30,11 +30,11 @@
 #include "AUD_SequencerReader.h"
 #include "AUD_MutexLock.h"
 
-typedef std::list<AUD_Reference<AUD_SequencerHandle> >::iterator AUD_HandleIterator;
-typedef std::list<AUD_Reference<AUD_SequencerEntry> >::iterator AUD_EntryIterator;
+typedef std::list<boost::shared_ptr<AUD_SequencerHandle> >::iterator AUD_HandleIterator;
+typedef std::list<boost::shared_ptr<AUD_SequencerEntry> >::iterator AUD_EntryIterator;
 
-AUD_SequencerReader::AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory, bool quality) :
-	m_position(0), m_device(factory->m_specs), m_factory(factory), m_status(0), m_entry_status(0)
+AUD_SequencerReader::AUD_SequencerReader(boost::shared_ptr<AUD_Sequencer> sequence, bool quality) :
+	m_position(0), m_device(sequence->m_specs), m_sequence(sequence), m_status(0), m_entry_status(0)
 {
 	m_device.setQuality(quality);
 }
@@ -57,7 +57,7 @@ void AUD_SequencerReader::seek(int position)
 
 	for(AUD_HandleIterator it = m_handles.begin(); it != m_handles.end(); it++)
 	{
-		(*it)->seek(position / m_factory->m_specs.rate);
+		(*it)->seek(position / m_sequence->m_specs.rate);
 	}
 }
 
@@ -73,37 +73,37 @@ int AUD_SequencerReader::getPosition() const
 
 AUD_Specs AUD_SequencerReader::getSpecs() const
 {
-	return m_factory->m_specs;
+	return m_sequence->m_specs;
 }
 
 void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	AUD_MutexLock lock(*m_factory);
+	AUD_MutexLock lock(*m_sequence);
 
-	if(m_factory->m_status != m_status)
+	if(m_sequence->m_status != m_status)
 	{
-		m_device.changeSpecs(m_factory->m_specs);
-		m_device.setSpeedOfSound(m_factory->m_speed_of_sound);
-		m_device.setDistanceModel(m_factory->m_distance_model);
-		m_device.setDopplerFactor(m_factory->m_doppler_factor);
+		m_device.changeSpecs(m_sequence->m_specs);
+		m_device.setSpeedOfSound(m_sequence->m_speed_of_sound);
+		m_device.setDistanceModel(m_sequence->m_distance_model);
+		m_device.setDopplerFactor(m_sequence->m_doppler_factor);
 
-		m_status = m_factory->m_status;
+		m_status = m_sequence->m_status;
 	}
 
-	if(m_factory->m_entry_status != m_entry_status)
+	if(m_sequence->m_entry_status != m_entry_status)
 	{
-		std::list<AUD_Reference<AUD_SequencerHandle> > handles;
+		std::list<boost::shared_ptr<AUD_SequencerHandle> > handles;
 
 		AUD_HandleIterator hit = m_handles.begin();
-		AUD_EntryIterator  eit = m_factory->m_entries.begin();
+		AUD_EntryIterator  eit = m_sequence->m_entries.begin();
 
 		int result;
-		AUD_Reference<AUD_SequencerHandle> handle;
+		boost::shared_ptr<AUD_SequencerHandle> handle;
 
-		while(hit != m_handles.end() && eit != m_factory->m_entries.end())
+		while(hit != m_handles.end() && eit != m_sequence->m_entries.end())
 		{
 			handle = *hit;
-			AUD_Reference<AUD_SequencerEntry> entry = *eit;
+			boost::shared_ptr<AUD_SequencerEntry> entry = *eit;
 
 			result = handle->compare(entry);
 
@@ -111,7 +111,7 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 			{
 				try
 				{
-					handle = new AUD_SequencerHandle(entry, m_device);
+					handle = boost::shared_ptr<AUD_SequencerHandle>(new AUD_SequencerHandle(entry, m_device));
 					handles.push_front(handle);
 				}
 				catch(AUD_Exception&)
@@ -138,11 +138,11 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 			hit++;
 		}
 
-		while(eit != m_factory->m_entries.end())
+		while(eit != m_sequence->m_entries.end())
 		{
 			try
 			{
-				handle = new AUD_SequencerHandle(*eit, m_device);
+				handle = boost::shared_ptr<AUD_SequencerHandle>(new AUD_SequencerHandle(*eit, m_device));
 				handles.push_front(handle);
 			}
 			catch(AUD_Exception&)
@@ -153,10 +153,10 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 
 		m_handles = handles;
 
-		m_entry_status = m_factory->m_entry_status;
+		m_entry_status = m_sequence->m_entry_status;
 	}
 
-	AUD_Specs specs = m_factory->m_specs;
+	AUD_Specs specs = m_sequence->m_specs;
 	int pos = 0;
 	float time = float(m_position) / float(specs.rate);
 	float volume, frame;
@@ -167,30 +167,30 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 
 	while(pos < length)
 	{
-		frame = time * m_factory->m_fps;
+		frame = time * m_sequence->m_fps;
 		cfra = int(floor(frame));
 
-		len = int(ceil((cfra + 1) / m_factory->m_fps * specs.rate)) - m_position;
+		len = int(ceil((cfra + 1) / m_sequence->m_fps * specs.rate)) - m_position;
 		len = AUD_MIN(length - pos, len);
 		len = AUD_MAX(len, 1);
 
 		for(AUD_HandleIterator it = m_handles.begin(); it != m_handles.end(); it++)
 		{
-			(*it)->update(time, frame, m_factory->m_fps);
+			(*it)->update(time, frame, m_sequence->m_fps);
 		}
 
-		m_factory->m_volume.read(frame, &volume);
-		if(m_factory->m_muted)
+		m_sequence->m_volume.read(frame, &volume);
+		if(m_sequence->m_muted)
 			volume = 0.0f;
 		m_device.setVolume(volume);
 
-		m_factory->m_orientation.read(frame, q.get());
+		m_sequence->m_orientation.read(frame, q.get());
 		m_device.setListenerOrientation(q);
-		m_factory->m_location.read(frame, v.get());
+		m_sequence->m_location.read(frame, v.get());
 		m_device.setListenerLocation(v);
-		m_factory->m_location.read(frame + 1, v2.get());
+		m_sequence->m_location.read(frame + 1, v2.get());
 		v2 -= v;
-		m_device.setListenerVelocity(v2 * m_factory->m_fps);
+		m_device.setListenerVelocity(v2 * m_sequence->m_fps);
 
 		m_device.read(reinterpret_cast<data_t*>(buffer + specs.channels * pos), len);
 

@@ -73,6 +73,22 @@ public:
 	void print_on(std::ostream &out) const { out << name() << " ()"; }
 };
 
+/// ambient occlusion closure
+///
+/// We only have a ambient occlusion closure for the shaders
+/// to return a color in ambient occlusion shaders. No methods,
+/// only the weight is taking into account
+///
+class AmbientOcclusionClosure : public ClosurePrimitive {
+public:
+	AmbientOcclusionClosure () : ClosurePrimitive((ClosurePrimitive::Category)AmbientOcclusion) {}
+
+	void setup() {};
+	size_t memsize() const { return sizeof(*this); }
+	const char *name() const { return "ambient_occlusion"; }
+	void print_on(std::ostream &out) const { out << name() << " ()"; }
+};
+
 ClosureParam *closure_background_params()
 {
 	static ClosureParam params[] = {
@@ -93,6 +109,17 @@ ClosureParam *closure_holdout_params()
 }
 
 CLOSURE_PREPARE(closure_holdout_prepare, HoldoutClosure)
+
+ClosureParam *closure_ambient_occlusion_params()
+{
+	static ClosureParam params[] = {
+	    CLOSURE_STRING_KEYPARAM("label"),
+	    CLOSURE_FINISH_PARAM(AmbientOcclusionClosure)
+	};
+	return params;
+}
+
+CLOSURE_PREPARE(closure_ambient_occlusion_prepare, AmbientOcclusionClosure)
 
 CCL_NAMESPACE_END
 

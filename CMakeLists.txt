@@ -291,7 +291,7 @@ if(APPLE)
 	message(STATUS "Detected system-version: " ${OSX_SYSTEM})
 	
 	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.5" CACHE STRING "" FORCE) # 10.5 is our minimum target, if you have higher sdk, weak linking happens
+			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6" CACHE STRING "" FORCE) # 10.6 is our min. target, if you use higher sdk, weak linking happens - with 10.5 we have still not solved problems, build those with 10.5.sdk for now !!!
 	endif()
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")

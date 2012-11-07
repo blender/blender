@@ -53,7 +53,7 @@ public:
 	 * \param factory The input factory.
 	 * \param frequency The cutoff frequency.
 	 */
-	AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> factory, float frequency);
+	AUD_ButterworthFactory(boost::shared_ptr<AUD_IFactory> factory, float frequency);
 
 	virtual void recalculateCoefficients(AUD_SampleRate rate,
 	                                     std::vector<float>& b,

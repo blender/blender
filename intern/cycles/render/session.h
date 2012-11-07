@@ -24,6 +24,7 @@
 #include "tile.h"
 
 #include "util_progress.h"
+#include "util_stats.h"
 #include "util_thread.h"
 #include "util_vector.h"
 
@@ -112,6 +113,7 @@ public:
 	Progress progress;
 	SessionParams params;
 	TileManager tile_manager;
+	Stats stats;
 
 	boost::function<void(RenderTile&)> write_render_tile_cb;
 	boost::function<void(RenderTile&)> update_render_tile_cb;

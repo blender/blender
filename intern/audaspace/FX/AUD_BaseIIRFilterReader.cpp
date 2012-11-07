@@ -33,7 +33,7 @@
 
 #define CC m_specs.channels + m_channel
 
-AUD_BaseIIRFilterReader::AUD_BaseIIRFilterReader(AUD_Reference<AUD_IReader> reader, int in,
+AUD_BaseIIRFilterReader::AUD_BaseIIRFilterReader(boost::shared_ptr<AUD_IReader> reader, int in,
 												 int out) :
 		AUD_EffectReader(reader),
 		m_specs(reader->getSpecs()),

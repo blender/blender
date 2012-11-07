@@ -30,14 +30,14 @@
 #include "AUD_IIRFilterFactory.h"
 #include "AUD_IIRFilterReader.h"
 
-AUD_IIRFilterFactory::AUD_IIRFilterFactory(AUD_Reference<AUD_IFactory> factory,
+AUD_IIRFilterFactory::AUD_IIRFilterFactory(boost::shared_ptr<AUD_IFactory> factory,
 										   std::vector<float> b,
 										   std::vector<float> a) :
 		AUD_EffectFactory(factory), m_a(a), m_b(b)
 {
 }
 
-AUD_Reference<AUD_IReader> AUD_IIRFilterFactory::createReader()
+boost::shared_ptr<AUD_IReader> AUD_IIRFilterFactory::createReader()
 {
-	return new AUD_IIRFilterReader(getReader(), m_b, m_a);
+	return boost::shared_ptr<AUD_IReader>(new AUD_IIRFilterReader(getReader(), m_b, m_a));
 }

@@ -38,7 +38,7 @@
 
 #include "AUD_ChannelMapperReader.h"
 
-AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_Reference<AUD_IReader> reader,
+AUD_ChannelMapperReader::AUD_ChannelMapperReader(boost::shared_ptr<AUD_IReader> reader,
 												 AUD_Channels channels) :
 		AUD_EffectReader(reader), m_target_channels(channels),
 	m_source_channels(AUD_CHANNELS_INVALID), m_mapping(0), m_map_size(0), m_mono_angle(0)

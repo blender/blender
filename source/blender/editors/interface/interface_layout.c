@@ -1780,7 +1780,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 
 		if (item->flag) {
 			/* fixed minimum size items */
-			itemw = ui_item_fit(minw, fixedx, fixedw, MIN2(w, fixedw), !item->next, litem->alignment, NULL);
+			itemw = ui_item_fit(minw, fixedx, fixedw, min_ii(w, fixedw), !item->next, litem->alignment, NULL);
 			fixedx += itemw;
 		}
 		else {
@@ -1959,9 +1959,9 @@ static void ui_litem_estimate_column_flow(uiLayout *litem)
 		ui_item_size(item, &itemw, &itemh);
 
 		y -= itemh + style->buttonspacey;
-		miny = MIN2(miny, y);
+		miny = min_ii(miny, y);
 		emy -= itemh;
-		maxw = MAX2(itemw, maxw);
+		maxw = max_ii(itemw, maxw);
 
 		/* decide to go to next one */
 		if (col < flow->totcol - 1 && emy <= -emh) {

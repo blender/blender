@@ -167,6 +167,9 @@ typedef struct MovieTrackingSettings {
 		                             * were moved to per-tracking object settings
 		                             */
 
+	float reconstruction_success_threshold;
+	int reconstruction_flag;
+
 	/* which camera intrinsics to refine. uses on the REFINE_* flags */
 	short refine_camera_intrinsics, pad2;
 
@@ -224,6 +227,7 @@ typedef struct MovieTrackingObject {
 	ListBase tracks;        /* list of tracks use to tracking this object */
 	MovieTrackingReconstruction reconstruction; /* reconstruction data for this object */
 
+	/* reconstruction options */
 	int keyframe1, keyframe2;   /* two keyframes for reconstrution initialization */
 } MovieTrackingObject;
 
@@ -280,92 +284,129 @@ enum {
 };
 
 /* MovieTrackingMarker->flag */
-#define MARKER_DISABLED (1 << 0)
-#define MARKER_TRACKED  (1 << 1)
-#define MARKER_GRAPH_SEL_X (1 << 2)
-#define MARKER_GRAPH_SEL_Y (1 << 3)
-#define MARKER_GRAPH_SEL    (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y)
+enum {
+	MARKER_DISABLED    = (1 << 0),
+	MARKER_TRACKED     = (1 << 1),
+	MARKER_GRAPH_SEL_X = (1 << 2),
+	MARKER_GRAPH_SEL_Y = (1 << 3),
+	MARKER_GRAPH_SEL   = (MARKER_GRAPH_SEL_X | MARKER_GRAPH_SEL_Y)
+};
 
 /* MovieTrackingTrack->flag */
-#define TRACK_HAS_BUNDLE    (1 << 1)
-#define TRACK_DISABLE_RED   (1 << 2)
-#define TRACK_DISABLE_GREEN (1 << 3)
-#define TRACK_DISABLE_BLUE  (1 << 4)
-#define TRACK_HIDDEN        (1 << 5)
-#define TRACK_LOCKED        (1 << 6)
-#define TRACK_CUSTOMCOLOR   (1 << 7)
-#define TRACK_USE_2D_STAB   (1 << 8)
-#define TRACK_PREVIEW_GRAYSCALE (1 << 9)
-#define TRACK_DOPE_SEL      (1 << 10)
-#define TRACK_PREVIEW_ALPHA (1 << 11)
+enum {
+	TRACK_HAS_BUNDLE        = (1 << 1),
+	TRACK_DISABLE_RED       = (1 << 2),
+	TRACK_DISABLE_GREEN     = (1 << 3),
+	TRACK_DISABLE_BLUE      = (1 << 4),
+	TRACK_HIDDEN            = (1 << 5),
+	TRACK_LOCKED            = (1 << 6),
+	TRACK_CUSTOMCOLOR       = (1 << 7),
+	TRACK_USE_2D_STAB       = (1 << 8),
+	TRACK_PREVIEW_GRAYSCALE = (1 << 9),
+	TRACK_DOPE_SEL          = (1 << 10),
+	TRACK_PREVIEW_ALPHA     = (1 << 11)
+};
 
 /* MovieTrackingTrack->motion_model */
-#define TRACK_MOTION_MODEL_TRANSLATION                 0
-#define TRACK_MOTION_MODEL_TRANSLATION_ROTATION        1
-#define TRACK_MOTION_MODEL_TRANSLATION_SCALE           2
-#define TRACK_MOTION_MODEL_TRANSLATION_ROTATION_SCALE  3
-#define TRACK_MOTION_MODEL_AFFINE                      4
-#define TRACK_MOTION_MODEL_HOMOGRAPHY                  5
+enum {
+	TRACK_MOTION_MODEL_TRANSLATION                 = 0,
+	TRACK_MOTION_MODEL_TRANSLATION_ROTATION        = 1,
+	TRACK_MOTION_MODEL_TRANSLATION_SCALE           = 2,
+	TRACK_MOTION_MODEL_TRANSLATION_ROTATION_SCALE  = 3,
+	TRACK_MOTION_MODEL_AFFINE                      = 4,
+	TRACK_MOTION_MODEL_HOMOGRAPHY                  = 5
+};
 
 /* MovieTrackingTrack->algorithm_flag */
-#define TRACK_ALGORITHM_FLAG_USE_BRUTE			(1 << 0)
-#define TRACK_ALGORITHM_FLAG_USE_NORMALIZATION	(1 << 2)
-#define TRACK_ALGORITHM_FLAG_USE_MASK			(1 << 3)
+enum {
+	TRACK_ALGORITHM_FLAG_USE_BRUTE			= (1 << 0),
+	TRACK_ALGORITHM_FLAG_USE_NORMALIZATION	= (1 << 2),
+	TRACK_ALGORITHM_FLAG_USE_MASK			= (1 << 3)
+};
 
 /* MovieTrackingTrack->adjframes */
-#define TRACK_MATCH_KEYFRAME        0
-#define TRACK_MATCH_PREVFRAME       1
+enum {
+	TRACK_MATCH_KEYFRAME  = 0,
+	TRACK_MATCH_PREVFRAME = 1
+};
 
 /* MovieTrackingSettings->flag */
-#define TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED (1 << 0)
+enum {
+	TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED = (1 << 0)
+};
 
 /* MovieTrackingSettings->motion_flag */
-#define TRACKING_MOTION_TRIPOD      (1 << 0)
+enum {
+	TRACKING_MOTION_TRIPOD = (1 << 0),
 
-#define TRACKING_MOTION_MODAL       (TRACKING_MOTION_TRIPOD)
+	TRACKING_MOTION_MODAL  = (TRACKING_MOTION_TRIPOD)
+};
 
 /* MovieTrackingSettings->speed */
-#define TRACKING_SPEED_FASTEST      0
-#define TRACKING_SPEED_REALTIME     1
-#define TRACKING_SPEED_HALF         2
-#define TRACKING_SPEED_QUARTER      4
-#define TRACKING_SPEED_DOUBLE       5
+enum {
+	TRACKING_SPEED_FASTEST  = 0,
+	TRACKING_SPEED_REALTIME = 1,
+	TRACKING_SPEED_HALF     = 2,
+	TRACKING_SPEED_QUARTER  = 4,
+	TRACKING_SPEED_DOUBLE   = 5
+};
+
+/* MovieTrackingObject->reconstruction_flag */
+enum {
+	TRACKING_USE_FALLBACK_RECONSTRUCTION = (1 << 0)
+};
 
 /* MovieTrackingSettings->refine_camera_intrinsics */
-#define REFINE_FOCAL_LENGTH         (1 << 0)
-#define REFINE_PRINCIPAL_POINT      (1 << 1)
-#define REFINE_RADIAL_DISTORTION_K1 (1 << 2)
-#define REFINE_RADIAL_DISTORTION_K2 (1 << 4)
+enum {
+	REFINE_FOCAL_LENGTH         = (1 << 0),
+	REFINE_PRINCIPAL_POINT      = (1 << 1),
+	REFINE_RADIAL_DISTORTION_K1 = (1 << 2),
+	REFINE_RADIAL_DISTORTION_K2 = (1 << 4)
+};
 
 /* MovieTrackingStrabilization->flag */
-#define TRACKING_2D_STABILIZATION   (1 << 0)
-#define TRACKING_AUTOSCALE          (1 << 1)
-#define TRACKING_STABILIZE_ROTATION (1 << 2)
+enum {
+	TRACKING_2D_STABILIZATION   = (1 << 0),
+	TRACKING_AUTOSCALE          = (1 << 1),
+	TRACKING_STABILIZE_ROTATION = (1 << 2)
+};
 
 /* MovieTrackingStrabilization->filter */
-#define TRACKING_FILTER_NEAREAST    0
-#define TRACKING_FILTER_BILINEAR    1
-#define TRACKING_FILTER_BICUBIC     2
+enum {
+	TRACKING_FILTER_NEAREAST = 0,
+	TRACKING_FILTER_BILINEAR = 1,
+	TRACKING_FILTER_BICUBIC  = 2
+};
 
 /* MovieTrackingReconstruction->flag */
-#define TRACKING_RECONSTRUCTED  (1 << 0)
+enum {
+	TRACKING_RECONSTRUCTED = (1 << 0)
+};
 
 /* MovieTrackingObject->flag */
-#define TRACKING_OBJECT_CAMERA      (1 << 0)
+enum {
+	TRACKING_OBJECT_CAMERA = (1 << 0)
+};
 
-#define TRACKING_CLEAN_SELECT           0
-#define TRACKING_CLEAN_DELETE_TRACK     1
-#define TRACKING_CLEAN_DELETE_SEGMENT   2
+enum {
+	TRACKING_CLEAN_SELECT         = 0,
+	TRACKING_CLEAN_DELETE_TRACK   = 1,
+	TRACKING_CLEAN_DELETE_SEGMENT = 2
+};
 
 /* MovieTrackingDopesheet->sort_method */
-#define TRACKING_DOPE_SORT_NAME          0
-#define TRACKING_DOPE_SORT_LONGEST       1
-#define TRACKING_DOPE_SORT_TOTAL         2
-#define TRACKING_DOPE_SORT_AVERAGE_ERROR 3
+enum {
+	TRACKING_DOPE_SORT_NAME          = 0,
+	TRACKING_DOPE_SORT_LONGEST       = 1,
+	TRACKING_DOPE_SORT_TOTAL         = 2,
+	TRACKING_DOPE_SORT_AVERAGE_ERROR = 3
+};
 
 /* MovieTrackingDopesheet->flag */
-#define TRACKING_DOPE_SORT_INVERSE    (1 << 0)
-#define TRACKING_DOPE_SELECTED_ONLY   (1 << 1)
-#define TRACKING_DOPE_SHOW_HIDDEN     (1 << 2)
+enum {
+	TRACKING_DOPE_SORT_INVERSE  = (1 << 0),
+	TRACKING_DOPE_SELECTED_ONLY = (1 << 1),
+	TRACKING_DOPE_SHOW_HIDDEN   = (1 << 2)
+};
 
 #endif

@@ -1069,6 +1069,29 @@ __device_inline float3 safe_divide_color(float3 a, float3 b)
 	return make_float3(x, y, z);
 }
 
+/* Rotation of point around axis and angle */
+
+__device_inline float3 rotate_around_axis(float3 p, float3 axis, float angle)
+{
+	float costheta = cosf(angle);
+	float sintheta = sinf(angle);
+	float3 r;
+
+	r.x = ((costheta + (1 - costheta) * axis.x * axis.x) * p.x) +
+		(((1 - costheta) * axis.x * axis.y - axis.z * sintheta) * p.y) +
+		(((1 - costheta) * axis.x * axis.z + axis.y * sintheta) * p.z);
+
+	r.y = (((1 - costheta) * axis.x * axis.y + axis.z * sintheta) * p.x) +
+		((costheta + (1 - costheta) * axis.y * axis.y) * p.y) +
+		(((1 - costheta) * axis.y * axis.z - axis.x * sintheta) * p.z);
+
+	r.z = (((1 - costheta) * axis.x * axis.z - axis.y * sintheta) * p.x) +
+		(((1 - costheta) * axis.y * axis.z + axis.x * sintheta) * p.y) +
+		((costheta + (1 - costheta) * axis.z * axis.z) * p.z);
+
+	return r;
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MATH_H__ */
