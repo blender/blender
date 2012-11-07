@@ -423,7 +423,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 
 
 #pragma mark defines for 10.6 api not documented in 10.5
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5 and 0
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 enum {
 	/* The following event types are available on some hardware on 10.5.2 and later */
 	NSEventTypeGesture          = 29,
@@ -435,12 +435,10 @@ enum {
 };
 
 @interface NSEvent(GestureEvents)
-/* This message is valid for events of type NSEventTypeMagnify, on 10.5.2 or later */
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 - (float)magnification;       // change in magnification.
 #else
-- (CGFloat)magnification;       // change in magnification.
-#endif
+@interface NSEvent(GestureEvents)
+- (CGFloat)magnification;       // change in magnification on 10.5.2 or later.
 @end 
 
 #endif
