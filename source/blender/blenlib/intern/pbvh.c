@@ -1707,11 +1707,14 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 	}
 }
 
-void BLI_pbvh_grids_update(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj, void **gridfaces)
+void BLI_pbvh_grids_update(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj, void **gridfaces,
+                           DMFlagMat *flagmats, BLI_bitmap *grid_hidden)
 {
 	bvh->grids = grids;
 	bvh->gridadj = gridadj;
 	bvh->gridfaces = gridfaces;
+	bvh->grid_flag_mats = flagmats;
+	bvh->grid_hidden = grid_hidden;
 }
 
 float (*BLI_pbvh_get_vertCos(PBVH * pbvh))[3]

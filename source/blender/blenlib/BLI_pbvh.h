@@ -28,6 +28,7 @@
 
 #include "BLI_bitmap.h"
 
+struct BLI_bitmap;
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
@@ -153,7 +154,8 @@ void BLI_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
 void BLI_pbvh_redraw_BB(PBVH * bvh, float bb_min[3], float bb_max[3]);
 void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *totface);
 void BLI_pbvh_grids_update(PBVH *bvh, struct CCGElem **grid_elems,
-                           struct DMGridAdjacency *gridadj, void **gridfaces);
+                           struct DMGridAdjacency *gridadj, void **gridfaces,
+                           struct DMFlagMat *flagmats, struct BLI_bitmap *grid_hidden);
 
 /* vertex deformer */
 float (*BLI_pbvh_get_vertCos(struct PBVH *pbvh))[3];
