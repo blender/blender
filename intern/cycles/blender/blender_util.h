@@ -284,6 +284,12 @@ public:
 		return recalc;
 	}
 
+	bool is_used(const K& key)
+	{
+		T *data = find(key);
+		return (data)? used_set.find(data) != used_set.end(): NULL;
+	}
+
 	void used(T *data)
 	{
 		/* tag data as still in use */
@@ -343,27 +349,49 @@ protected:
 
 /* Object Key */
 
+enum { OBJECT_PERSISTENT_ID_SIZE = 8 };
+
 struct ObjectKey {
 	void *parent;
-	int index;
+	int id[OBJECT_PERSISTENT_ID_SIZE];
 	void *ob;
 
-	ObjectKey(void *parent_, int index_, void *ob_)
-	: parent(parent_), index(index_), ob(ob_) {}
+	ObjectKey(void *parent_, int id_[OBJECT_PERSISTENT_ID_SIZE], void *ob_)
+	: parent(parent_), ob(ob_)
+	{
+		if(id_)
+			memcpy(id, id_, sizeof(id));
+		else
+			memset(id, 0, sizeof(id));
+	}
 
 	bool operator<(const ObjectKey& k) const
-	{ return (parent < k.parent || (parent == k.parent && (index < k.index || (index == k.index && ob < k.ob)))); }
+	{
+		return (parent < k.parent) ||
+		       (parent == k.parent && (memcmp(id, k.id, sizeof(id)) < 0)) ||
+		       (memcmp(id, k.id, sizeof(id)) == 0 && ob < k.ob);
+	}
 };
 
 struct ParticleSystemKey {
 	void *ob;
-	void *psys;
+	int id[OBJECT_PERSISTENT_ID_SIZE];
 
-	ParticleSystemKey(void *ob_, void *psys_)
-	: ob(ob_), psys(psys_) {}
+	ParticleSystemKey(void *ob_, int id_[OBJECT_PERSISTENT_ID_SIZE])
+	: ob(ob_)
+	{
+		if(id_)
+			memcpy(id, id_, sizeof(id));
+		else
+			memset(id, 0, sizeof(id));
+	}
 
 	bool operator<(const ParticleSystemKey& k) const
-	{ return (ob < k.ob && psys < k.psys); }
+	{
+		/* first id is particle index, we don't compare that */
+		return (ob < k.ob) ||
+		       (ob == k.ob && (memcmp(id+1, k.id+1, sizeof(int)*(OBJECT_PERSISTENT_ID_SIZE-1)) < 0));
+	}
 };
 
 CCL_NAMESPACE_END

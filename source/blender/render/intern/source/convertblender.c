@@ -4501,7 +4501,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	ParticleSystem *psys;
 	int show_emitter, allow_render= 1, index, psysindex, i;
 
-	index= (dob)? dob->index: 0;
+	index= (dob)? dob->persistent_id[0]: 0;
 
 	/* the emitter has to be processed first (render levels of modifiers) */
 	/* so here we only check if the emitter should be rendered */
@@ -4900,7 +4900,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						if (dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, 0))) {
 							mult_m4_m4m4(mat, re->viewmat, dob->mat);
 														/* ob = particle system, use that layer */
-							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat, ob->lay); 
+							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], 0, mat, ob->lay); 
 
 							/* fill in instance variables for texturing */
 							set_dupli_tex_mat(re, obi, dob);
@@ -4927,7 +4927,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 							if (dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, psysindex))) {
 								if (obi == NULL)
 									mult_m4_m4m4(mat, re->viewmat, dob->mat);
-								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat, obd->lay);
+								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], psysindex++, mat, obd->lay);
 
 								set_dupli_tex_mat(re, obi, dob);
 								if (dob->type != OB_DUPLIGROUP) {
