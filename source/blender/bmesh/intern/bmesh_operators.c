@@ -354,7 +354,7 @@ void BMO_slot_mat_set(BMOperator *op, const char *slot_name, const float *mat, i
 	else {
 		fprintf(stderr, "%s: invalid size argument %d (bmesh internal error)\n", __func__, size);
 
-		memset(slot->data.p, 0, sizeof(float) * 4 * 4);
+		zero_m4(slot->data.p);
 	}
 }
 
@@ -365,7 +365,12 @@ void BMO_slot_mat4_get(BMOperator *op, const char *slot_name, float r_mat[4][4])
 	if (!(slot->slot_type == BMO_OP_SLOT_MAT))
 		return;
 
-	copy_m4_m4(r_mat, (float (*)[4])slot->data.p);
+	if (slot->data.p) {
+		copy_m4_m4(r_mat, (float (*)[4])slot->data.p);
+	}
+	else {
+		unit_m4(r_mat);
+	}
 }
 
 void BMO_slot_mat3_set(BMOperator *op, const char *slot_name, float r_mat[3][3])
@@ -375,7 +380,12 @@ void BMO_slot_mat3_set(BMOperator *op, const char *slot_name, float r_mat[3][3])
 	if (!(slot->slot_type == BMO_OP_SLOT_MAT))
 		return;
 
-	copy_m3_m4(r_mat, slot->data.p);
+	if (slot->data.p) {
+		copy_m3_m4(r_mat, slot->data.p);
+	}
+	else {
+		unit_m3(r_mat);
+	}
 }
 
 void BMO_slot_ptr_set(BMOperator *op, const char *slot_name, void *p)
