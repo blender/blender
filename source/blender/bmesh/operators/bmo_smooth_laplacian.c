@@ -43,8 +43,8 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-#define SMOOTH_LAPLACIAN_AREA_FACTOR 4.0f
-#define SMOOTH_LAPLACIAN_EDGE_FACTOR 2.0f
+// #define SMOOTH_LAPLACIAN_AREA_FACTOR 4.0f  /* UNUSED */
+// #define SMOOTH_LAPLACIAN_EDGE_FACTOR 2.0f  /* UNUSED */
 #define SMOOTH_LAPLACIAN_MAX_EDGE_PERCENTAGE 1.8f
 #define SMOOTH_LAPLACIAN_MIN_EDGE_PERCENTAGE 0.15f
 

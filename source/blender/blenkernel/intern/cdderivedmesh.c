@@ -1956,12 +1956,11 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 
 	/* avoid this where possiblem, takes extra memory */
 	if (use_tessface) {
-		int *polyindex;
 
 		BM_mesh_elem_index_ensure(bm, BM_FACE);
 
 		index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-		for (i = 0; i < dm->numTessFaceData; i++, index++, polyindex++) {
+		for (i = 0; i < dm->numTessFaceData; i++, index++) {
 			MFace *mf = &mface[i];
 			const BMLoop **l = em_looptris[i];
 			efa = l[0]->f;

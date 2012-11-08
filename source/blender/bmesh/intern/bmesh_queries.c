@@ -401,6 +401,7 @@ BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step)
 	}
 	else {
 		BLI_assert(0);
+		return NULL;
 	}
 
 	if (BM_edge_is_manifold(e_next)) {

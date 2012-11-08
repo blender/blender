@@ -282,7 +282,7 @@ void bmo_region_extend_exec(BMesh *bm, BMOperator *op)
 
 #define FACE_VIS	1
 #define FACE_FLAG	2
-#define FACE_MARK	4
+// #define FACE_MARK	4  /* UNUSED */
 #define FACE_FLIP	8
 
 /* NOTE: these are the original recalc_face_normals comment in editmesh_mods.c,

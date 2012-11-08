@@ -1199,8 +1199,8 @@ static float step_cost_3_v3(const float v1[3], const float v2[3], const float v3
 
 static float edgetag_cut_cost(BMEdge *e1, BMEdge *e2, BMVert *v)
 {
-	BMVert *v1 = (e1->v1 == v) ? e1->v2 : e1->v1;
-	BMVert *v2 = (e2->v1 == v) ? e2->v2 : e2->v1;
+	BMVert *v1 = BM_edge_other_vert(e1, v);
+	BMVert *v2 = BM_edge_other_vert(e2, v);
 	return step_cost_3_v3(v1->co, v->co, v2->co);
 }
 
