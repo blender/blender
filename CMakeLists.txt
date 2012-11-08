@@ -1383,7 +1383,7 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_JACK)
-		set(JACK /usr)
+		set(JACK /usr/local)
 		set(JACK_INCLUDE_DIRS ${JACK}/include/jack)
 		set(JACK_LIBRARIES jack)
 		set(JACK_LIBPATH ${JACK}/lib)
