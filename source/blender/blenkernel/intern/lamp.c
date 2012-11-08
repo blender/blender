@@ -73,7 +73,7 @@ Lamp *BKE_lamp_add(const char *name)
 	la->soft = 3.0f;
 	la->compressthresh = 0.05f;
 	la->ray_samp = la->ray_sampy = la->ray_sampz = 1;
-	la->area_size = la->area_sizey = la->area_sizez = 1.0f;
+	la->area_size = la->area_sizey = la->area_sizez = 0.1f;
 	la->buffers = 1;
 	la->buftype = LA_SHADBUF_HALFWAY;
 	la->ray_samp_method = LA_SAMP_HALTON;
