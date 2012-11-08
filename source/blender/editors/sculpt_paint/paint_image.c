@@ -109,19 +109,25 @@
 #include "paint_intern.h"
 
 /* Defines and Structs */
+/* FTOCHAR as inline function */
+BLI_INLINE unsigned char f_to_char(const float val)
+{
+	return FTOCHAR(val);
+}
+
 
 #define IMAPAINT_CHAR_TO_FLOAT(c) ((c) / 255.0f)
 
 #define IMAPAINT_FLOAT_RGB_TO_CHAR(c, f)  {                                   \
-	(c)[0] = FTOCHAR((f)[0]);                                                  \
-	(c)[1] = FTOCHAR((f)[1]);                                                  \
-	(c)[2] = FTOCHAR((f)[2]);                                                  \
+	(c)[0] = f_to_char((f)[0]);                                               \
+	(c)[1] = f_to_char((f)[1]);                                               \
+	(c)[2] = f_to_char((f)[2]);                                               \
 } (void)0
 #define IMAPAINT_FLOAT_RGBA_TO_CHAR(c, f)  {                                  \
-	(c)[0] = FTOCHAR((f)[0]);                                                  \
-	(c)[1] = FTOCHAR((f)[1]);                                                  \
-	(c)[2] = FTOCHAR((f)[2]);                                                  \
-	(c)[3] = FTOCHAR((f)[3]);                                                  \
+	(c)[0] = f_to_char((f)[0]);                                               \
+	(c)[1] = f_to_char((f)[1]);                                               \
+	(c)[2] = f_to_char((f)[2]);                                               \
+	(c)[3] = f_to_char((f)[3]);                                               \
 } (void)0
 #define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c)  {                                   \
 	(f)[0] = IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
@@ -3905,16 +3911,20 @@ static void do_projectpaint_soften(ProjPaintState *ps, ProjPixel *projPixel, flo
 	}
 }
 
+BLI_INLINE void rgba_float_to_uchar__mul_v3(unsigned char rgba_ub[4], const float rgba[4], const float rgb[3])
+{
+	rgba_ub[0] = f_to_char(rgba[0] * rgb[0]);
+	rgba_ub[1] = f_to_char(rgba[1] * rgb[1]);
+	rgba_ub[2] = f_to_char(rgba[2] * rgb[3]);
+	rgba_ub[3] = f_to_char(rgba[3]);
+}
 
 static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const float rgba[4], float alpha, float mask)
 {
 	unsigned char rgba_ub[4];
 	
 	if (ps->is_texbrush) {
-		rgba_ub[0] = FTOCHAR(rgba[0] * ps->brush->rgb[0]);
-		rgba_ub[1] = FTOCHAR(rgba[1] * ps->brush->rgb[1]);
-		rgba_ub[2] = FTOCHAR(rgba[2] * ps->brush->rgb[2]);
-		rgba_ub[3] = FTOCHAR(rgba[3]);
+		rgba_float_to_uchar__mul_v3(rgba_ub, rgba, ps->brush->rgb);
 	}
 	else {
 		IMAPAINT_FLOAT_RGB_TO_CHAR(rgba_ub, ps->brush->rgb);
