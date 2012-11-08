@@ -4011,12 +4011,15 @@ static char *rna_idp_path(PointerRNA *ptr, IDProperty *haystack, IDProperty *nee
 	BLI_assert(haystack->type == IDP_GROUP);
 
 	link.up = parent_link;
+	/* always set both name and index,
+	 * else a stale value might get used */
 	link.name = NULL;
 	link.index = -1;
 
 	for (i = 0, iter = haystack->data.group.first; iter; iter = iter->next, i++) {
 		if (needle == iter) {  /* found! */
 			link.name = iter->name;
+			link.index = -1;
 			path = rna_idp_path_create(&link);
 			break;
 		}
@@ -4026,6 +4029,7 @@ static char *rna_idp_path(PointerRNA *ptr, IDProperty *haystack, IDProperty *nee
 				PointerRNA child_ptr = RNA_pointer_get(ptr, iter->name);
 				if (child_ptr.type) {
 					link.name = iter->name;
+					link.index = -1;
 					if ((path = rna_idp_path(&child_ptr, iter, needle, &link))) {
 						break;
 					}
