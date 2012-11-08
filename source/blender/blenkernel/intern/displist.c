@@ -630,7 +630,7 @@ static void curve_to_filledpoly(Curve *cu, ListBase *UNUSED(nurb), ListBase *dis
  * - first point left, last point right
  * - based on subdivided points in original curve, not on points in taper curve (still)
  */
-float BKE_displist_calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
+static float displist_calc_taper(Scene *scene, Object *taperobj, float fac)
 {
 	DispList *dl;
 
@@ -643,7 +643,6 @@ float BKE_displist_calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 		dl = taperobj->disp.first;
 	}
 	if (dl) {
-		float fac = ((float)cur) / (float)(tot - 1);
 		float minx, dx, *fp;
 		int a;
 
@@ -669,6 +668,13 @@ float BKE_displist_calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
 	}
 
 	return 1.0;
+}
+
+float BKE_displist_calc_taper(Scene *scene, Object *taperobj, int cur, int tot)
+{
+	float fac = ((float)cur) / (float)(tot - 1);
+
+	return displist_calc_taper(scene, taperobj, fac);
 }
 
 void BKE_displist_make_mball(Scene *scene, Object *ob)
@@ -1240,7 +1246,7 @@ void BKE_displist_make_surf(Scene *scene, Object *ob, ListBase *dispbase,
 	}
 }
 
-static void rotateBevelPiece(Curve *cu, BevPoint *bevp, DispList *dlb, float widfac, float fac, float **data_r)
+static void rotateBevelPiece(Curve *cu, BevPoint *bevp, BevPoint *nbevp, DispList *dlb, float bev_blend, float widfac, float fac, float **data_r)
 {
 	float *fp, *data = *data_r;
 	int b;
@@ -1248,22 +1254,48 @@ static void rotateBevelPiece(Curve *cu, BevPoint *bevp, DispList *dlb, float wid
 	fp = dlb->verts;
 	for (b = 0; b < dlb->nr; b++, fp += 3, data += 3) {
 		if (cu->flag & CU_3D) {
-			float vec[3];
+			float vec[3], quat[4];
 
 			vec[0] = fp[1] + widfac;
 			vec[1] = fp[2];
 			vec[2] = 0.0;
 
-			mul_qt_v3(bevp->quat, vec);
+			if (nbevp == NULL) {
+				copy_v3_v3(data, bevp->vec);
+				copy_qt_qt(quat, bevp->quat);
+			}
+			else {
+				interp_v3_v3v3(data, bevp->vec, nbevp->vec, bev_blend);
+				interp_qt_qtqt(quat, bevp->quat, nbevp->quat, bev_blend);
+			}
 
-			data[0] = bevp->vec[0] + fac * vec[0];
-			data[1] = bevp->vec[1] + fac * vec[1];
-			data[2] = bevp->vec[2] + fac * vec[2];
+			mul_qt_v3(quat, vec);
+
+			data[0] += fac * vec[0];
+			data[1] += fac * vec[1];
+			data[2] += fac * vec[2];
 		}
 		else {
-			data[0] = bevp->vec[0] + fac * (widfac + fp[1]) * bevp->sina;
-			data[1] = bevp->vec[1] + fac * (widfac + fp[1]) * bevp->cosa;
-			data[2] = bevp->vec[2] + fac * fp[2];
+			float sina, cosa;
+
+			if (nbevp == NULL) {
+				copy_v3_v3(data, bevp->vec);
+				sina = bevp->sina;
+				cosa = bevp->cosa;
+			}
+			else {
+				interp_v3_v3v3(data, bevp->vec, nbevp->vec, bev_blend);
+
+				/* perhaps we need to interpolate angles instead. but the thing is
+				 * cosa and sina are not actually sine and cosine
+				 */
+				sina = nbevp->sina * bev_blend + bevp->sina * (1.0f - bev_blend);
+				cosa = nbevp->cosa * bev_blend + bevp->cosa * (1.0f - bev_blend);
+			}
+
+			data[0] += fac * (widfac + fp[1]) * sina;
+			data[1] += fac * (widfac + fp[1]) * cosa;
+			data[2] += fac * fp[2];
 		}
 	}
 
@@ -1399,8 +1431,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							firstblend = 1.0f - (bevfac1 * (bl->nr - 1) - (int)(bevfac1 * (bl->nr - 1)));
 							lastblend  =         bevfac2 * (bl->nr - 1) - (int)(bevfac2 * (bl->nr - 1));
 
-							if (steps > bl->nr) {
-								steps = bl->nr;
+							if (start + steps > bl->nr) {
+								steps = bl->nr - start;
 								lastblend = 1.0f;
 							}
 
@@ -1438,7 +1470,29 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 										fac = bevp->radius;
 								}
 								else {
-									fac = BKE_displist_calc_taper(scene, cu->taperobj, i, bl->nr);
+									float len, taper_fac;
+
+									if (cu->flag & CU_MAP_TAPER) {
+										len = (steps - 3) + firstblend + lastblend;
+
+										if (a == 0)
+											taper_fac = 0.0f;
+										else if (a == steps - 1)
+											taper_fac = 1.0f;
+										else
+											taper_fac = ((float) a - (1.0f - firstblend)) / len;
+									}
+									else {
+										len = bl->nr - 1;
+										taper_fac = (float) i / len;
+
+										if (a == 0)
+											taper_fac += (1.0f - firstblend) / len;
+										else if (a == steps - 1)
+											taper_fac -= (1.0f - lastblend) / len;
+									}
+
+									fac = displist_calc_taper(scene, cu->taperobj, taper_fac);
 								}
 
 								if (bevp->split_tag) {
@@ -1446,27 +1500,12 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 								}
 
 								/* rotate bevel piece and write in data */
-								rotateBevelPiece(cu, bevp, dlb, widfac, fac, &data);
-
-								if (a == 1 || a == steps - 1) {
-									float *cur_fp = cur_data, *prev_fp = cur_data - 3 * dlb->nr;
-									int b;
-
-									for (b = 0; b < dlb->nr; b++, prev_fp += 3, cur_fp += 3) {
-										float cur[3], prev[3];
-
-										copy_v3_v3(cur, cur_fp);
-										copy_v3_v3(prev, prev_fp);
-
-										if (a == 1)
-											interp_v3_v3v3(prev, cur_fp, prev_fp, firstblend);
-										if (a == steps - 1)
-											interp_v3_v3v3(cur, prev_fp, cur_fp, lastblend);
-
-										copy_v3_v3(cur_fp, cur);
-										copy_v3_v3(prev_fp, prev);
-									}
-								}
+								if (a == 0)
+									rotateBevelPiece(cu, bevp, bevp + 1, dlb, 1.0f - firstblend, widfac, fac, &data);
+								else if (a == steps - 1)
+									rotateBevelPiece(cu, bevp, bevp - 1, dlb, 1.0f - lastblend, widfac, fac, &data);
+								else
+									rotateBevelPiece(cu, bevp, NULL, dlb, 0.0f, widfac, fac, &data);
 
 								if (cu->bevobj && (cu->flag & CU_FILL_CAPS)) {
 									if (a == 1)
