@@ -227,11 +227,13 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 
 __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
-	uint color_offset, normal_offset, space;
-	decode_node_uchar4(node.y, &color_offset, &normal_offset, &space, NULL);
+	uint color_offset, strength_offset, normal_offset, space;
+	decode_node_uchar4(node.y, &color_offset, &strength_offset, &normal_offset, &space);
 
 	float3 color = stack_load_float3(stack, color_offset);
 	color = 2.0f*make_float3(color.x - 0.5f, color.y - 0.5f, color.z - 0.5f);
+
+	float3 N;
 
 	if(space == NODE_NORMAL_MAP_TANGENT) {
 		/* tangent space */
@@ -257,19 +259,26 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 		tangent = cross(sd->N, normalize(cross(tangent, sd->N)));;
 
 		float3 B = sign * cross(sd->N, tangent);
-		float3 N = color.x * tangent + color.y * B + color.z * sd->N;
-
-		stack_store_float3(stack, normal_offset, normalize(N));
+		N = normalize(color.x * tangent + color.y * B + color.z * sd->N);
 	}
 	else {
 		/* object, world space */
-		float3 N = color;
+		N = color;
 
 		if(space == NODE_NORMAL_MAP_OBJECT)
 			object_normal_transform(kg, sd, &N);
 
-		stack_store_float3(stack, normal_offset, normalize(N));
+		N = normalize(N);
 	}
+
+	float strength = stack_load_float(stack, strength_offset);
+
+	if(strength != 1.0f) {
+		strength = max(strength, 0.0f);
+		N = normalize(sd->N + (N - sd->N)*strength);
+	}
+
+	stack_store_float3(stack, normal_offset, normalize(N));
 }
 
 __device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)

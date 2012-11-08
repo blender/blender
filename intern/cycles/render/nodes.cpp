@@ -3032,7 +3032,9 @@ NormalMapNode::NormalMapNode()
 	attribute = ustring("");
 
 	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("Strength", SHADER_SOCKET_FLOAT, 1.0f);
 	add_input("Color", SHADER_SOCKET_COLOR);
+
 	add_output("Normal", SHADER_SOCKET_NORMAL);
 }
 
@@ -3055,6 +3057,7 @@ void NormalMapNode::attributes(AttributeRequestSet *attributes)
 void NormalMapNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput  *color_in = input("Color");
+	ShaderInput  *strength_in = input("Strength");
 	ShaderOutput *normal_out = output("Normal");
 	int attr = 0, attr_sign = 0;
 
@@ -3070,11 +3073,13 @@ void NormalMapNode::compile(SVMCompiler& compiler)
 	}
 
 	compiler.stack_assign(color_in);
+	compiler.stack_assign(strength_in);
 	compiler.stack_assign(normal_out);
 
 	compiler.add_node(NODE_NORMAL_MAP,
 		compiler.encode_uchar4(
 			color_in->stack_offset,
+			strength_in->stack_offset,
 			normal_out->stack_offset,
 			space_enum[space]),
 		attr, attr_sign);
