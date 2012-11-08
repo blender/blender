@@ -1350,21 +1350,15 @@ static int edgetag_shortest_path(Scene *scene, BMesh *bm, BMEdge *e_src, BMEdge 
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static int mouse_mesh_shortest_path(bContext *C, int mval[2])
+static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
 {
-	ViewContext vc;
-	BMEditMesh *em;
+	BMEditMesh *em = vc->em;
 	BMEdge *e;
 	float dist = 75.0f;
 	
-	em_setup_viewcontext(C, &vc);
-	vc.mval[0] = mval[0];
-	vc.mval[1] = mval[1];
-	em = vc.em;
-	
-	e = EDBM_edge_find_nearest(&vc, &dist);
+	e = EDBM_edge_find_nearest(vc, &dist);
 	if (e) {
-		Mesh *me = vc.obedit->data;
+		Mesh *me = vc->obedit->data;
 		int path = 0;
 		
 		if (em->bm->selected.last) {
@@ -1374,7 +1368,7 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 				BMEdge *e_act;
 				e_act = (BMEdge *)ese->ele;
 				if (e_act != e) {
-					if (edgetag_shortest_path(vc.scene, em->bm, e_act, e)) {
+					if (edgetag_shortest_path(vc->scene, em->bm, e_act, e)) {
 						BM_select_history_remove(em->bm, e_act);
 						path = 1;
 					}
@@ -1382,14 +1376,14 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 			}
 		}
 		if (path == 0) {
-			int act = (edgetag_context_check(vc.scene, em->bm, e) == 0);
-			edgetag_context_set(em->bm, vc.scene, e, act); /* switch the edge option */
+			int act = (edgetag_context_check(vc->scene, em->bm, e) == 0);
+			edgetag_context_set(em->bm, vc->scene, e, act); /* switch the edge option */
 		}
 		
 		EDBM_selectmode_flush(em);
 
 		/* even if this is selected it may not be in the selection list */
-		if (edgetag_context_check(vc.scene, em->bm, e) == 0)
+		if (edgetag_context_check(vc->scene, em->bm, e) == 0)
 			BM_select_history_remove(em->bm, e);
 		else
 			BM_select_history_store(em->bm, e);
@@ -1399,7 +1393,7 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 			
 			case EDGE_MODE_TAG_SEAM:
 				me->drawflag |= ME_DRAWSEAMS;
-				ED_uvedit_live_unwrap(vc.scene, vc.obedit);
+				ED_uvedit_live_unwrap(vc->scene, vc->obedit);
 				break;
 			case EDGE_MODE_TAG_SHARP:
 				me->drawflag |= ME_DRAWSHARP;
@@ -1422,17 +1416,241 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 }
 
 
-static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
-{
-	
-	view3d_operator_needs_opengl(C);
+/* ******************* facetag_shortest_path and helpers ****************** */
 
-	if (mouse_mesh_shortest_path(C, event->mval)) {
-		return OPERATOR_FINISHED;
+
+static float facetag_cut_cost(BMFace *f1, BMFace *f2, BMEdge *e)
+{
+	float cost, d1[3], d2[3];
+
+	float f1_cent[3];
+	float f2_cent[3];
+	float e_cent[3];
+
+	BM_face_calc_center_mean(f1, f1_cent);
+	BM_face_calc_center_mean(f2, f2_cent);
+	mid_v3_v3v3(e_cent, e->v1->co, e->v2->co);
+
+	/* The cost is based on the simple sum of the length of the two edgees... */
+	sub_v3_v3v3(d1, e_cent, f1_cent);
+	sub_v3_v3v3(d2, f2_cent, e_cent);
+	cost = len_v3(d1) + len_v3(d2);
+
+	/* but is biased to give higher values to sharp turns, so that it will take
+	 * paths with fewer "turns" when selecting between equal-weighted paths between
+	 * the two edges */
+	cost = cost + 0.5f * cost * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2))));
+
+	return cost;
+}
+
+static void facetag_add_adjacent(Heap *heap, BMFace *f1, BMFace **faces_prev, float *cost)
+{
+	BMIter liter;
+	BMLoop *l2;
+	BMFace *f2;
+
+	const int f1_index = BM_elem_index_get(f1);
+
+	/* loop over faces of face, but do so by first looping over loops */
+	BM_ITER_ELEM (l2, &liter, f1, BM_LOOPS_OF_FACE) {
+		BMLoop *l_first;
+		BMLoop *l_iter;
+
+		l_iter = l_first = l2;
+		do {
+			f2 = l_iter->f;
+			if (!BM_elem_flag_test(f2, BM_ELEM_TAG)) {
+				/* we know 'f2' is not visited, check it out! */
+				const int f2_index = BM_elem_index_get(f2);
+				const float cost_cut = facetag_cut_cost(f1, f2, l_iter->e);
+				const float cost_new = cost[f1_index] + cost_cut;
+
+				if (cost[f2_index] > cost_new) {
+					cost[f2_index] = cost_new;
+					faces_prev[f2_index] = f1;
+					BLI_heap_insert(heap, cost_new, f2);
+				}
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
+}
+
+static void facetag_context_set(BMesh *bm, Scene *UNUSED(scene), BMFace *f, int val)
+{
+	BM_face_select_set(bm, f, val);
+}
+
+static int facetag_context_check(Scene *UNUSED(scene), BMesh *UNUSED(bm), BMFace *f)
+{
+	return BM_elem_flag_test(f, BM_ELEM_SELECT) ? 1 : 0;
+}
+
+static int facetag_shortest_path(Scene *scene, BMesh *bm, BMFace *f_src, BMFace *f_dst)
+{
+	/* BM_ELEM_TAG flag is used to store visited edges */
+	BMFace *f;
+	BMIter fiter;
+	Heap *heap;
+	float *cost;
+	BMFace **faces_prev;
+	int i, totface;
+
+	/* note, would pass BM_EDGE except we are looping over all faces anyway */
+	// BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
+
+	BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
+		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN) == FALSE) {
+			BM_elem_flag_disable(f, BM_ELEM_TAG);
+		}
+		else {
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
+		}
+
+		BM_elem_index_set(f, i); /* set_inline */
+	}
+	bm->elem_index_dirty &= ~BM_FACE;
+
+	/* alloc */
+	totface = bm->totface;
+	faces_prev = MEM_callocN(sizeof(*faces_prev) * totface, "SeamPathPrevious");
+	cost = MEM_mallocN(sizeof(*cost) * totface, "SeamPathCost");
+
+	fill_vn_fl(cost, totface, 1e20f);
+
+	/*
+	 * Arrays are now filled as follows:
+	 *
+	 * As the search continues, faces_prev[n] will be the previous face on the shortest
+	 * path found so far to face n. The visitedhash will of course contain entries
+	 * for faces that have been visited, cost[n] will contain the length of the shortest
+	 * path to face n found so far, Finally, heap is a priority heap which is built on the
+	 * the same data as the cost array, but inverted: it is a worklist of faces prioritized
+	 * by the shortest path found so far to the face.
+	 */
+
+	/* regular dijkstra shortest path, but over faces instead of vertices */
+	heap = BLI_heap_new();
+	BLI_heap_insert(heap, 0.0f, f_src);
+	cost[BM_elem_index_get(f_src)] = 0.0f;
+
+	f = NULL;
+
+	while (!BLI_heap_is_empty(heap)) {
+		f = BLI_heap_popmin(heap);
+
+		if (f == f_dst)
+			break;
+
+		if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
+			facetag_add_adjacent(heap, f, faces_prev, cost);
+		}
+	}
+
+	if (f == f_dst) {
+		short allseams = 1;
+
+		/* Check whether the path is already completely tagged.
+		 * if it is, the tags will be cleared instead of set. */
+		f = f_dst;
+		do {
+			if (!facetag_context_check(scene, bm, f)) {
+				allseams = 0;
+				break;
+			}
+		} while ((f = faces_prev[BM_elem_index_get(f)]));
+
+		/* Follow path back and source and add or remove tags */
+		f = f_dst;
+		do {
+			facetag_context_set(bm, scene, f, !allseams);
+		} while ((f = faces_prev[BM_elem_index_get(f)]));
+	}
+
+	MEM_freeN(faces_prev);
+	MEM_freeN(cost);
+	BLI_heap_free(heap, NULL);
+
+	return 1;
+}
+
+static int mouse_mesh_shortest_path_face(bContext *C, ViewContext *vc)
+{
+	BMEditMesh *em = vc->em;
+	BMFace *f;
+	float dist = 75.0f;
+
+	f = EDBM_face_find_nearest(vc, &dist);
+	if (f) {
+		int path = 0;
+		BMFace *f_act = BM_active_face_get(em->bm, FALSE, TRUE);
+
+		if (f_act) {
+			if (f_act != f) {
+				if (facetag_shortest_path(vc->scene, em->bm, f_act, f)) {
+					BM_select_history_remove(em->bm, f_act);
+					path = 1;
+				}
+			}
+		}
+		if (path == 0) {
+			int act = (facetag_context_check(vc->scene, em->bm, f) == 0);
+			facetag_context_set(em->bm, vc->scene, f, act); /* switch the face option */
+		}
+
+		EDBM_selectmode_flush(em);
+
+		/* even if this is selected it may not be in the selection list */
+		if (facetag_context_check(vc->scene, em->bm, f) == 0)
+			BM_select_history_remove(em->bm, f);
+		else
+			BM_select_history_store(em->bm, f);
+
+		BM_active_face_set(em->bm, f);
+
+		EDBM_update_generic(C, em, FALSE);
+
+		return TRUE;
 	}
 	else {
-		return OPERATOR_PASS_THROUGH;
+		return FALSE;
 	}
+}
+
+
+/* ******************* operator for edge and face tag ****************** */
+
+static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+{
+	ViewContext vc;
+	BMEditMesh *em;
+
+	view3d_operator_needs_opengl(C);
+
+	em_setup_viewcontext(C, &vc);
+	vc.mval[0] = event->mval[0];
+	vc.mval[1] = event->mval[1];
+	em = vc.em;
+
+	if (em->selectmode & SCE_SELECT_EDGE) {
+		if (mouse_mesh_shortest_path_edge(C, &vc)) {
+			return OPERATOR_FINISHED;
+		}
+		else {
+			return OPERATOR_PASS_THROUGH;
+		}
+	}
+	else if (em->selectmode & SCE_SELECT_FACE) {
+		if (mouse_mesh_shortest_path_face(C, &vc)) {
+			return OPERATOR_FINISHED;
+		}
+		else {
+			return OPERATOR_PASS_THROUGH;
+		}
+	}
+
+	return OPERATOR_PASS_THROUGH;
 }
 
 static int edbm_shortest_path_select_poll(bContext *C)
@@ -1440,7 +1658,7 @@ static int edbm_shortest_path_select_poll(bContext *C)
 	if (ED_operator_editmesh_region_view3d(C)) {
 		Object *obedit = CTX_data_edit_object(C);
 		BMEditMesh *em = BMEdit_FromObject(obedit);
-		return (em->selectmode & SCE_SELECT_EDGE) != 0;
+		return (em->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_FACE)) != 0;
 	}
 	return 0;
 }
