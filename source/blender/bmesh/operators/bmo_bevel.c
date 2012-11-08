@@ -40,8 +40,8 @@
 #define NEW_BEVEL 1
 
 #ifdef NEW_BEVEL
-#define BEVEL_FLAG	1
-#define EDGE_SELECTED	2
+#define BEVEL_FLAG      1
+#define EDGE_SELECTED   2
 
 #define BEVEL_EPSILON  1e-6
 
@@ -55,68 +55,68 @@ struct BoundVert;
 
 /* Data for one end of an edge involved in a bevel */
 typedef struct EdgeHalf {
-	struct EdgeHalf *next, *prev;	/* in CCW order */
-	BMEdge *e;			/* original mesh edge */
-	int isbev;			/* is this edge beveled? */
-	int isrev;			/* is e->v2 the vertex at this end? */
-	int seg;			/* how many segments for the bevel */
-	float offset;			/* offset for this edge */
-	BMFace *fprev;			/* face between this edge and previous, if any */
-	BMFace *fnext;			/* face between this edge and next, if any */
-	struct BoundVert *leftv;	/* left boundary vert (looking along edge to end) */
-	struct BoundVert *rightv;	/* right boundary vert, if beveled */
+	struct EdgeHalf *next, *prev;   /* in CCW order */
+	BMEdge *e;                  /* original mesh edge */
+	int isbev;                  /* is this edge beveled? */
+	int isrev;                  /* is e->v2 the vertex at this end? */
+	int seg;                    /* how many segments for the bevel */
+	float offset;               /* offset for this edge */
+	BMFace *fprev;              /* face between this edge and previous, if any */
+	BMFace *fnext;              /* face between this edge and next, if any */
+	struct BoundVert *leftv;    /* left boundary vert (looking along edge to end) */
+	struct BoundVert *rightv;   /* right boundary vert, if beveled */
 } EdgeHalf;
 
 /* An element in a cyclic boundary of a Vertex Mesh (VMesh) */
 typedef struct BoundVert {
-	struct BoundVert *next, *prev;	/* in CCW order */
-	int index;			/* used for vmesh indexing */
+	struct BoundVert *next, *prev;  /* in CCW order */
+	int index;          /* used for vmesh indexing */
 	NewVert nv;
-	EdgeHalf *efirst;		/* first of edges attached here: in CCW order */
+	EdgeHalf *efirst;   /* first of edges attached here: in CCW order */
 	EdgeHalf *elast;
-	EdgeHalf *ebev;			/* beveled edge whose left side is attached here, if any */
+	EdgeHalf *ebev;     /* beveled edge whose left side is attached here, if any */
 } BoundVert;
 
 /* Mesh structure replacing a vertex */
 typedef struct VMesh {
 	enum {
-		M_NONE,			/* no polygon mesh needed */
-		M_POLY,			/* a simple polygon */
-		M_ADJ,			/* "adjacent edges" mesh pattern */
-		M_CROSS,		/* "cross edges" mesh pattern */
+		M_NONE,         /* no polygon mesh needed */
+		M_POLY,         /* a simple polygon */
+		M_ADJ,          /* "adjacent edges" mesh pattern */
+		M_CROSS,        /* "cross edges" mesh pattern */
 	} mesh_kind;
-	int count;			/* number of vertices in the boundary */
-	int seg;			/* common # of segments for segmented edges */
-	BoundVert *boundstart;		/* start of boundary double-linked list */
-	NewVert *mesh;			/* allocated array - size and structure depends on kind */
+	int count;          /* number of vertices in the boundary */
+	int seg;            /* common # of segments for segmented edges */
+	BoundVert *boundstart;      /* start of boundary double-linked list */
+	NewVert *mesh;          /* allocated array - size and structure depends on kind */
 } VMesh;
 
 /* Data for a vertex involved in a bevel */
 typedef struct BevVert {
 	struct BevVert *next, *prev;
-	BMVert *v;			/* original mesh vertex */
-	int edgecount;			/* total number of edges around the vertex */
-	int selcount;			/* number of selected edges around the vertex */
-	EdgeHalf *edges;		/* array of size edgecount; CCW order from vertex normal side */
-	VMesh *vmesh;			/* mesh structure for replacing vertex */
+	BMVert *v;          /* original mesh vertex */
+	int edgecount;          /* total number of edges around the vertex */
+	int selcount;           /* number of selected edges around the vertex */
+	EdgeHalf *edges;        /* array of size edgecount; CCW order from vertex normal side */
+	VMesh *vmesh;           /* mesh structure for replacing vertex */
 } BevVert;
 
 /*
  * Bevel parameters and state
  */
 typedef struct BevelParams {
-	ListBase vertList;		/* list of BevVert for each vertex involved in bevel */
-	float offset;			/* blender units to offset each side of a beveled edge */
-	int seg;				/* number of segments in beveled edge profile */
+	ListBase vertList;      /* list of BevVert for each vertex involved in bevel */
+	float offset;           /* blender units to offset each side of a beveled edge */
+	int seg;                /* number of segments in beveled edge profile */
 
 	BMOperator *op;
 } BevelParams;
 
 /* Make a new BoundVert of the given kind, insert it at the end of the circular linked
  * list with entry point bv->boundstart, and return it. */
-static BoundVert * add_new_bound_vert(VMesh *vm, float co[3])
+static BoundVert *add_new_bound_vert(VMesh *vm, float co[3])
 {
-	BoundVert *ans = (BoundVert*) MEM_callocN(sizeof(BoundVert), "BoundVert");
+	BoundVert *ans = (BoundVert *) MEM_callocN(sizeof(BoundVert), "BoundVert");
 	copy_v3_v3(ans->nv.co, co);
 	if (!vm->boundstart) {
 		ans->index = 0;
@@ -140,22 +140,22 @@ static BoundVert * add_new_bound_vert(VMesh *vm, float co[3])
  * j = ring index (0 <= j <= ns2)
  * k = segment index (0 <= k <= ns)
  * Not all of these are used, and some will share BMVerts */
-static NewVert* mesh_vert(VMesh* vm, int i, int j, int k)
+static NewVert *mesh_vert(VMesh *vm, int i, int j, int k)
 {
-	int nj = (vm -> seg / 2) + 1;
+	int nj = (vm->seg / 2) + 1;
 	int nk = vm->seg + 1;
 
 	return &vm->mesh[i * nk * nj  + j * nk + k];
 }
 
-static void create_mesh_bmvert(BMesh* bm, VMesh *vm, int i, int j, int k, BMVert *eg)
+static void create_mesh_bmvert(BMesh *bm, VMesh *vm, int i, int j, int k, BMVert *eg)
 {
 	NewVert *nv = mesh_vert(vm, i, j, k);
 	nv->v = BM_vert_create(bm, nv->co, eg);
 }
 
 static void copy_mesh_vert(VMesh *vm, int ito, int jto, int kto,
-		int ifrom, int jfrom, int kfrom)
+                           int ifrom, int jfrom, int kfrom)
 {
 	NewVert *nvto, *nvfrom;
 
@@ -166,7 +166,7 @@ static void copy_mesh_vert(VMesh *vm, int ito, int jto, int kto,
 }
 
 /* find the EdgeHalf in bv's array that has edge bme */
-static EdgeHalf* find_edge_half(BevVert *bv, BMEdge *bme)
+static EdgeHalf *find_edge_half(BevVert *bv, BMEdge *bme)
 {
 	int i;
 
@@ -179,12 +179,12 @@ static EdgeHalf* find_edge_half(BevVert *bv, BMEdge *bme)
 
 /* Return the next EdgeHalf after from_e that is beveled.
  * If from_e is NULL, find the first beveled edge. */
-static EdgeHalf* next_bev(BevVert *bv, EdgeHalf *from_e)
+static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 {
 	EdgeHalf *e;
 
 	if (from_e == NULL)
-		from_e = &bv->edges[bv->edgecount -1];
+		from_e = &bv->edges[bv->edgecount - 1];
 	e = from_e;
 	do {
 		if (e->isbev)
@@ -195,7 +195,7 @@ static EdgeHalf* next_bev(BevVert *bv, EdgeHalf *from_e)
 }
 
 /* find the BevVert corresponding to BMVert bmv */
-static BevVert* find_bevvert(BevelParams *bp, BMVert *bmv)
+static BevVert *find_bevvert(BevelParams *bp, BMVert *bmv)
 {
 	BevVert *bv;
 
@@ -208,7 +208,7 @@ static BevVert* find_bevvert(BevelParams *bp, BMVert *bmv)
 
 /* Return a good respresentative face (for materials, etc.) for faces
  * created around/near BoundVert v */
-static BMFace* boundvert_rep_face(BoundVert *v)
+static BMFace *boundvert_rep_face(BoundVert *v)
 {
 	BMFace *fans = NULL;
 	BMFace *firstf = NULL;
@@ -219,10 +219,10 @@ static BMFace* boundvert_rep_face(BoundVert *v)
 	BLI_assert(v->efirst != NULL && v->elast != NULL);
 	e1 = v->efirst->e;
 	e2 = v->elast->e;
-	BM_ITER_ELEM(f1, &iter1, e1, BM_FACES_OF_EDGE) {
+	BM_ITER_ELEM (f1, &iter1, e1, BM_FACES_OF_EDGE) {
 		if (!firstf)
 			firstf = f1;
-		BM_ITER_ELEM(f2, &iter2, e2, BM_FACES_OF_EDGE) {
+		BM_ITER_ELEM (f2, &iter2, e2, BM_FACES_OF_EDGE) {
 			if (f1 == f2) {
 				fans = f1;
 				break;
@@ -246,11 +246,11 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, int totv, BMFace *f
 
 	if (totv == 3) {
 		f = BM_face_create_quad_tri(bm,
-			vert_arr[0], vert_arr[1], vert_arr[2], NULL, facerep, 0);
+		                            vert_arr[0], vert_arr[1], vert_arr[2], NULL, facerep, 0);
 	}
 	else if (totv == 4) {
 		f = BM_face_create_quad_tri(bm,
-			vert_arr[0], vert_arr[1], vert_arr[2], vert_arr[3], facerep, 0);
+		                            vert_arr[0], vert_arr[1], vert_arr[2], vert_arr[3], facerep, 0);
 	}
 	else {
 		int i;
@@ -268,7 +268,7 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, int totv, BMFace *f
 	if (facerep && f) {
 		int has_mdisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 		BM_elem_attrs_copy(bm, bm, facerep, f);
-		BM_ITER_ELEM(l, &iter, f, BM_LOOPS_OF_FACE) {
+		BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
 			BM_loop_interp_from_face(bm, l, facerep, TRUE, TRUE);
 			if (has_mdisps)
 				BM_loop_interp_multires(bm, l, facerep);
@@ -278,7 +278,7 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, int totv, BMFace *f
 }
 
 static BMFace *bev_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-		BMFace *facerep)
+                                   BMFace *facerep)
 {
 	BMVert *varr[4];
 
@@ -303,7 +303,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
                         int on_right, float meetco[3])
 {
 	float dir1[3], dir2[3], norm_v[3], norm_perp1[3], norm_perp2[3],
-		off1a[3], off1b[3], off2a[3], off2b[3], isect2[3];
+	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3];
 
 	/* get direction vectors for two offset lines */
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
@@ -362,7 +362,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
                                  BMFace *f1, BMFace *f2, float meetco[3])
 {
 	float dir1[3], dir2[3], norm_perp1[3], norm_perp2[3],
-		off1a[3], off1b[3], off2a[3], off2b[3], isect2[3];
+	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3];
 
 	BLI_assert(f1 != NULL && f2 != NULL);
 
@@ -399,9 +399,9 @@ static void offset_in_plane(EdgeHalf *e, float plane_no[3], int left, float r[3]
 	float dir[3], no[3];
 	BMVert *v;
 
-	v = e->isrev? e->e->v1 : e->e->v2;
+	v = e->isrev ? e->e->v1 : e->e->v2;
 
-	sub_v3_v3v3(dir,BM_edge_other_vert(e->e, v)->co, v->co);
+	sub_v3_v3v3(dir, BM_edge_other_vert(e->e, v)->co, v->co);
 	normalize_v3(dir);
 	if (plane_no) {
 		copy_v3_v3(no, plane_no);
@@ -441,7 +441,7 @@ static void project_to_edge(BMEdge *e, float co_a[3], float co_b[3], float projc
 	float otherco[3];
 
 	if (!isect_line_line_v3(e->v1->co, e->v2->co, co_a, co_b,
-			projco, otherco)) {
+	                        projco, otherco)) {
 		BLI_assert(!"project meet failure");
 		copy_v3_v3(projco, e->v1->co);
 	}
@@ -464,16 +464,16 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
 }
 
 /*
-*   Search for crossing the line and line
-*   a1-a2 lineA
-*   b1-b2 line B
-*	r - result, coordinate of crossing point
-*/
+ *   Search for crossing the line and line
+ *   a1-a2 lineA
+ *   b1-b2 line B
+ *	r - result, coordinate of crossing point
+ */
 static int find_intersection_point(float r[3], float a1[3], float a2[3], float b1[3], float b2[3])
 {
 	double s, t, z1, z2;
 	double mx, my, nx, ny;
-	int flag =0;
+	int flag = 0;
 
 	mx = a2[0] - a1[0];
 	my = a2[1] - a1[1];
@@ -481,14 +481,14 @@ static int find_intersection_point(float r[3], float a1[3], float a2[3], float b
 	nx = b2[0] - b1[0];
 	ny = b2[1] - b1[1];
 
-	s = ((b1[1] - a1[1]) / my + (a1[0] - b1[0])/ mx ) / (nx / mx - ny / my);
+	s = ((b1[1] - a1[1]) / my + (a1[0] - b1[0]) / mx) / (nx / mx - ny / my);
 	t = (b1[0] - a1[0] + s * nx) / mx;
 
 
-	z1 = a1[2] + t * (a2[2] -a1[2]);
-	z2 = b1[2] + s * (b2[2] -b1[2]);
+	z1 = a1[2] + t * (a2[2] - a1[2]);
+	z2 = b1[2] + s * (b2[2] - b1[2]);
 
-	if ( fabs(z1-z2) < BEVEL_EPSILON ){
+	if (fabs(z1 - z2) < BEVEL_EPSILON) {
 		flag = 1;
 		r[0] = a1[0]  + t * mx;
 		r[1] = a1[1]  + t * my;
@@ -501,14 +501,14 @@ static int find_intersection_point(float r[3], float a1[3], float a2[3], float b
 }
 
 /*
-* Search for crossing the line and plane
-* p1, p2, p3 points which is given by the plane
-* a - line vector
-* m - point through which the line
-* r - result;
-*/
+ * Search for crossing the line and plane
+ * p1, p2, p3 points which is given by the plane
+ * a - line vector
+ * m - point through which the line
+ * r - result;
+ */
 static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], float p3[3],
-								  float a[3], float m[3])
+                                          float a[3], float m[3])
 {
 	float P[3], N[3], A[3], M[3];
 	float vv1[3], vv2[3];
@@ -527,7 +527,7 @@ static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], 
 	copy_v3_v3(M, m);
 
 
-	if (fabs(N[0] * (A[0]-P[0]) + N[1] * (A[1]-P[1]) + N[2] * (A[2]-P[2])) < BEVEL_EPSILON) {
+	if (fabs(N[0] * (A[0] - P[0]) + N[1] * (A[1] - P[1]) + N[2] * (A[2] - P[2])) < BEVEL_EPSILON) {
 		/* point located on plane */
 		float tmp[3], line[3];
 		add_v3_v3v3(line, a, m);
@@ -544,14 +544,14 @@ static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], 
 		D = N[0] * M[0] + N[1] * M[1] + N[2] * M[2];
 		E = (A[0] * N[0] + A[1] * N[1] + A[2] * N[2]);
 
-		if (fabs(E)< null)
+		if (fabs(E) < null)
 			t = 0;
 		else
-			t = (C-D)/E;
+			t = (C - D) / E;
 
-		r[0] = m[0] + t * a [0];
-		r[1] = m[1] + t * a [1];
-		r[2] = m[2] + t * a [2];
+		r[0] = m[0] + t * a[0];
+		r[1] = m[1] + t * a[1];
+		r[2] = m[2] + t * a[2];
 	}
 
 }
@@ -567,7 +567,7 @@ static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], 
  * of that segment in r.
  */
 static void get_point_on_round_profile(float r[3], float offset, int i, int count,
-								float va[3], float v[3], float vb[3])
+                                       float va[3], float v[3], float vb[3])
 {
 	float vva[3], vvb[3], angle, center[3], rv[3], axis[3], co[3];
 
@@ -580,14 +580,14 @@ static void get_point_on_round_profile(float r[3], float offset, int i, int coun
 	add_v3_v3v3(center, vva, vvb);
 	normalize_v3(center);
 	mul_v3_fl(center, offset * (1.0 / cos(0.5 * angle)));
-	add_v3_v3(center, v);			/* coordinates of the center of the inscribed circle */
+	add_v3_v3(center, v);           /* coordinates of the center of the inscribed circle */
 
 
-	sub_v3_v3v3(rv, va, center);	/* radius vector */
+	sub_v3_v3v3(rv, va, center);    /* radius vector */
 
 
 	sub_v3_v3v3(co, v, center);
-	cross_v3_v3v3(axis, rv, co);	/* calculate axis */
+	cross_v3_v3v3(axis, rv, co);    /* calculate axis */
 
 	sub_v3_v3v3(vva, va, center);
 	sub_v3_v3v3(vvb, vb, center);
@@ -610,7 +610,7 @@ static void get_point_on_round_profile(float r[3], float offset, int i, int coun
  * If va, vmid, and vb are all on the same plane, just interpolate between va and vb.
  */
 static void get_point_on_round_edge(EdgeHalf *e, int i,
-			float va[3], float vmid[3], float vb[3], float profileco[3])
+                                    float va[3], float vmid[3], float vb[3], float profileco[3])
 {
 	float vva[3], vvb[3],  point[3], dir[3], vaadj[3], vbadj[3];
 	int n = e->seg;
@@ -622,7 +622,7 @@ static void get_point_on_round_edge(EdgeHalf *e, int i,
 	else
 		sub_v3_v3v3(dir, e->e->v2->co, e->e->v1->co);
 	normalize_v3(dir);
-	if (fabs(angle_v3v3(vva, vvb)- M_PI) > BEVEL_EPSILON) {
+	if (fabs(angle_v3v3(vva, vvb) - M_PI) > BEVEL_EPSILON) {
 		copy_v3_v3(vaadj, va);
 		madd_v3_v3fl(vaadj, dir, -len_v3(vva) * cosf(angle_v3v3(vva, dir)));
 		copy_v3_v3(vbadj, vb);
@@ -664,12 +664,12 @@ static void build_boundary(BevVert *bv)
 
 	if (bv->edgecount == 2 && bv->selcount == 1) {
 		/* special case: beveled edge meets non-beveled one at valence 2 vert */
-		no = e->fprev ? e->fprev->no : (e->fnext? e->fnext->no : NULL);
+		no = e->fprev ? e->fprev->no : (e->fnext ? e->fnext->no : NULL);
 		offset_in_plane(e, no, TRUE, co);
 		v = add_new_bound_vert(vm, co);
 		v->efirst = v->elast = v->ebev = e;
 		e->leftv = v;
-		no = e->fnext ? e->fnext->no : (e->fprev? e->fprev->no : NULL);
+		no = e->fnext ? e->fnext->no : (e->fprev ? e->fprev->no : NULL);
 		offset_in_plane(e, no, FALSE, co);
 		v = add_new_bound_vert(vm, co);
 		v->efirst = v->elast = e;
@@ -703,7 +703,7 @@ static void build_boundary(BevVert *bv)
 					/* find meet point between e->prev->prev and e and attach e->prev there */
 					/* TODO: fix case when one or both faces in following are NULL */
 					offset_in_two_planes(e->prev->prev, e, bv->v,
-							e->prev->prev->fnext, e->fprev, co);
+					                     e->prev->prev->fnext, e->fprev, co);
 					v = add_new_bound_vert(vm, co);
 					v->efirst = e->prev->prev;
 					v->elast = v->ebev = e;
@@ -775,7 +775,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	BoundVert *v, *vprev, *vnext;
 	NewVert *nv, *nvprev, *nvnext;
 	BMVert *bmv, *bmv1, *bmv2, *bmv3, *bmv4;
-    BMFace *f;
+	BMFace *f;
 	float co[3], coa[3], cob[3], midco[3];
 
 	n = vm->count;
@@ -888,7 +888,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 						create_mesh_bmvert(bm, vm, i, k, ns2, bv->v);
 						copy_mesh_vert(vm, vprev->index, ns2, ns - k, i, k, ns2);
 						copy_mesh_vert(vm, vnext->index, ns2, k, i, k, ns2);
-						
+
 					}
 					else if (vprev->ebev) {
 						mid_v3_v3v3(co, nvprev->co, nv->co);
@@ -922,7 +922,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			}
 			v = v->next;
 		} while (v != vm->boundstart);
-		mul_v3_fl(midco, 1.0f/nn);
+		mul_v3_fl(midco, 1.0f / nn);
 		bmv = BM_vert_create(bm, midco, NULL);
 		v = vm->boundstart;
 		do {
@@ -1003,21 +1003,21 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				if (!v->prev->ebev) {
 					for (k = 0; k < ns2; k++) {
 						bmv1 = mesh_vert(vm, i, ns2, k)->v;
-						if (!(j > 0 && bmv1 == vv[j-1])) {
+						if (!(j > 0 && bmv1 == vv[j - 1])) {
 							BLI_array_append(vv, bmv1);
 							j++;
 						}
 					}
 				}
 				bmv1 = mesh_vert(vm, i, ns2, ns2)->v;
-				if (!(j > 0 && bmv1 == vv[j-1])) {
+				if (!(j > 0 && bmv1 == vv[j - 1])) {
 					BLI_array_append(vv, bmv1);
 					j++;
 				}
 				if (!v->next->ebev) {
-					for (k = ns -ns2; k < ns; k++) {
+					for (k = ns - ns2; k < ns; k++) {
 						bmv1 = mesh_vert(vm, i, ns2, k)->v;
-						if (!(j > 0 && bmv1 == vv[j-1])) {
+						if (!(j > 0 && bmv1 == vv[j - 1])) {
 							BLI_array_append(vv, bmv1);
 							j++;
 						}
@@ -1030,7 +1030,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			}
 			v = v->next;
 		} while (v != vm->boundstart);
-		if (vv[0] == vv[j-1])
+		if (vv[0] == vv[j - 1])
 			j--;
 		bev_create_ngon(bm, vv, j, f);
 
@@ -1078,11 +1078,11 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 	ns = vm->seg;
 	ns2 = ns / 2;
 
-	vm->mesh = (NewVert*)MEM_callocN(n * (ns2 + 1) * (ns + 1) * sizeof(NewVert), "NewVert");
+	vm->mesh = (NewVert *)MEM_callocN(n * (ns2 + 1) * (ns + 1) * sizeof(NewVert), "NewVert");
 
 	/* special case: two beveled ends welded together */
 	weld = (bv->selcount == 2) && (vm->count == 2);
-	weld1 = weld2 = NULL;	/* will hold two BoundVerts involved in weld */
+	weld1 = weld2 = NULL;   /* will hold two BoundVerts involved in weld */
 
 	/* make (i, 0, 0) mesh verts for all i */
 	v = vm->boundstart;
@@ -1122,7 +1122,7 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 	if (weld) {
 		for (k = 1; k < ns; k++) {
 			mid_v3_v3v3(co, mesh_vert(vm, weld1->index, 0, k)->co,
-					mesh_vert(vm, weld2->index, 0, ns - k)->co);
+			            mesh_vert(vm, weld2->index, 0, ns - k)->co);
 			copy_v3_v3(mesh_vert(vm, weld1->index, 0, k)->co, co);
 			create_mesh_bmvert(bm, vm, weld1->index, 0, k, bv->v);
 		}
@@ -1155,10 +1155,10 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 	/* Gather input selected edges.
 	 * Only bevel selected edges that have exactly two incident faces. */
 	BMO_ITER (bme, &siter, bm, op, "geom", BM_EDGE) {
-		if ((bme->v1 == v)|| (BM_edge_other_vert(bme, bme->v1) == v))
+		if ((bme->v1 == v) || (BM_edge_other_vert(bme, bme->v1) == v))
 		{
 			if (BM_edge_face_count(bme) == 2) {
-				BMO_elem_flag_enable (bm, bme, EDGE_SELECTED);
+				BMO_elem_flag_enable(bm, bme, EDGE_SELECTED);
 				nsel++;
 			}
 		}
@@ -1168,11 +1168,11 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 		return;
 
 	ntot = BM_vert_edge_count(v);
-	bv = (BevVert*)MEM_callocN(sizeof(BevVert), "BevVert");
+	bv = (BevVert *)MEM_callocN(sizeof(BevVert), "BevVert");
 	bv->v = v;
 	bv->edgecount = ntot;
 	bv->selcount = nsel;
-	bv->edges = (EdgeHalf*)MEM_callocN(ntot * sizeof(EdgeHalf), "EdgeHalf");
+	bv->edges = (EdgeHalf *)MEM_callocN(ntot * sizeof(EdgeHalf), "EdgeHalf");
 	bv->vmesh = (VMesh *)MEM_callocN(sizeof(VMesh), "VMesh");
 	bv->vmesh->seg = bp->seg;
 	BLI_addtail(&bp->vertList, bv);
@@ -1189,12 +1189,12 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 			/* find an unflagged edge bme2 that shares a face f with previous bme */
 			found_shared_face = 0;
 			unflagged_bme = NULL;
-			BM_ITER_ELEM(bme2, &iter, v, BM_EDGES_OF_VERT) {
+			BM_ITER_ELEM (bme2, &iter, v, BM_EDGES_OF_VERT) {
 				if (BMO_elem_flag_test(bm, bme2, BEVEL_FLAG))
 					continue;
 				if (!unflagged_bme)
 					unflagged_bme = bme2;
-				BM_ITER_ELEM(f, &iter2, bme2, BM_FACES_OF_EDGE) {
+				BM_ITER_ELEM (f, &iter2, bme2, BM_FACES_OF_EDGE) {
 					if (BM_face_edge_share_loop(f, bme)) {
 						found_shared_face = 1;
 						break;
@@ -1207,8 +1207,9 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 			if (found_shared_face) {
 				e->e = bme2;
 				e->fprev = f;
-				bv->edges[i-1].fnext = f;
-			} else {
+				bv->edges[i - 1].fnext = f;
+			}
+			else {
 				e->e = unflagged_bme;
 			}
 		}
@@ -1217,7 +1218,8 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 		if (BMO_elem_flag_test(bm, bme, EDGE_SELECTED)) {
 			e->isbev = 1;
 			e->seg = bp->seg;
-		} else {
+		}
+		else {
 			e->isbev = 0;
 			e->seg = 0;
 		}
@@ -1225,11 +1227,11 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 		e->offset = e->isbev ? bp->offset : 0.0f;
 	}
 	/* find wrap-around shared face */
-	BM_ITER_ELEM(f, &iter2, bme, BM_FACES_OF_EDGE) {
+	BM_ITER_ELEM (f, &iter2, bme, BM_FACES_OF_EDGE) {
 		if (BM_face_edge_share_loop(f, bv->edges[0].e)) {
 			if (bv->edges[0].fnext == f)
-				continue;	/* if two shared faces, want the other one now */
-			bv->edges[ntot-1].fnext = f;
+				continue;   /* if two shared faces, want the other one now */
+			bv->edges[ntot - 1].fnext = f;
 			bv->edges[0].fprev = f;
 			break;
 		}
@@ -1245,16 +1247,16 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 		ccw_test_sum = 0;
 		for (i = 0; i < ntot; i++)
 			ccw_test_sum += bev_ccw_test(bv->edges[i].e, bv->edges[(i + 1) % ntot].e,
-			                         bv->edges[i].fnext);
+			                             bv->edges[i].fnext);
 		if (ccw_test_sum < 0) {
-			for (i = 0; i <= (ntot / 2) - 1; i++ ) {
+			for (i = 0; i <= (ntot / 2) - 1; i++) {
 				SWAP(EdgeHalf, bv->edges[i], bv->edges[ntot - i - 1]);
-				SWAP(BMFace*, bv->edges[i].fprev, bv->edges[i].fnext);
-				SWAP(BMFace*, bv->edges[ntot - i - 1].fprev, bv->edges[ntot - i - 1].fnext);
+				SWAP(BMFace *, bv->edges[i].fprev, bv->edges[i].fnext);
+				SWAP(BMFace *, bv->edges[ntot - i - 1].fprev, bv->edges[ntot - i - 1].fnext);
 			}
 			if (ntot % 2 == 1) {
 				i = ntot / 2;
-				SWAP(BMFace*, bv->edges[i].fprev,  bv->edges[i].fnext);
+				SWAP(BMFace *, bv->edges[i].fprev,  bv->edges[i].fnext);
 			}
 		}
 	}
@@ -1262,7 +1264,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 	for (i = 0; i < ntot; i++) {
 		e = &bv->edges[i];
 		e->next = &bv->edges[(i + 1) % ntot];
-		e->prev = &bv->edges[(i + ntot -1) % ntot];
+		e->prev = &bv->edges[(i + ntot - 1) % ntot];
 	}
 
 	build_boundary(bv);
@@ -1283,7 +1285,7 @@ static void rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 	BMVert **vv = NULL;
 	BLI_array_declare(vv);
 
-	BM_ITER_ELEM(l, &liter, f, BM_LOOPS_OF_FACE) {
+	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		bv = find_bevvert(bp, l->v);
 		if (bv) {
 			lprev = l->prev;
@@ -1331,8 +1333,8 @@ static void bevel_rebuild_existing_polygons(BMesh *bm, BevelParams *bp, BMVert *
 		BMLoop *l = f->l_first;
 		do {
 			if (l->v == v) {
-				rebuild_polygon (bm, bp, f);
-				BM_face_kill(bm,f);
+				rebuild_polygon(bm, bp, f);
+				BM_face_kill(bm, f);
 			}
 			l = l->next;
 		} while (l != f->l_first);
@@ -1342,8 +1344,8 @@ static void bevel_rebuild_existing_polygons(BMesh *bm, BevelParams *bp, BMVert *
 
 
 /*
-* Build the polygons along the selected Edge
-*/
+ * Build the polygons along the selected Edge
+ */
 static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 {
 	BevVert *bv1, *bv2;
@@ -1367,10 +1369,10 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	BLI_assert(e1 && e2);
 
 	/*	v4                       v3
-	*        \                      /
-	*         e->v1 - e->v2
-	*        /                      \
-	*       v1                       v2 */
+	 *       \                      /
+	 *        e->v1 - e->v2
+	 *       /                      \
+	 *      v1                       v2 */
 
 	nseg = e1->seg;
 	BLI_assert(nseg > 0 && nseg == e2->seg);
@@ -1413,7 +1415,7 @@ static void free_bevel_params(BevelParams *bp)
 	VMesh *vm;
 	BoundVert *v, *vnext;
 
-	for (bv = bp->vertList.first; bv ; bv = bv->next) {
+	for (bv = bp->vertList.first; bv; bv = bv->next) {
 		MEM_freeN(bv->edges);
 		vm = bv->vmesh;
 		v = vm->boundstart;
@@ -1442,7 +1444,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	bp.op = op;
 	bp.seg = BMO_slot_int_get(op, "segments");
 
-	if (bp.offset > 0 ) {
+	if (bp.offset > 0) {
 		bp.vertList.first = bp.vertList.last = NULL;
 
 		/* The analysis of the input vertices and execution additional constructions */
@@ -1450,12 +1452,12 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			bevel_vert_construct(bm, &bp, op, v);
 		}
 		/* Build polygons for edges */
-		BMO_ITER(e, &siter, bm, op, "geom", BM_EDGE) {
+		BMO_ITER (e, &siter, bm, op, "geom", BM_EDGE) {
 			bevel_build_edge_polygons(bm, &bp, e);
 		}
 
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
-			bevel_rebuild_existing_polygons(bm, &bp,v);
+			bevel_rebuild_existing_polygons(bm, &bp, v);
 		}
 
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
@@ -1468,14 +1470,14 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 }
 
 #else
-#define BEVEL_FLAG	1
-#define BEVEL_DEL	2
-#define FACE_NEW	4
-#define EDGE_OLD	8
-#define FACE_OLD	16
-#define VERT_OLD	32
-#define FACE_SPAN	64
-#define FACE_HOLE	128
+#define BEVEL_FLAG  1
+#define BEVEL_DEL   2
+#define FACE_NEW    4
+#define EDGE_OLD    8
+#define FACE_OLD    16
+#define VERT_OLD    32
+#define FACE_SPAN   64
+#define FACE_HOLE   128
 
 typedef struct LoopTag {
 	BMVert *newv;
@@ -1488,7 +1490,7 @@ typedef struct EdgeTag {
 static void calc_corner_co(BMLoop *l, const float fac, float r_co[3],
                            const short do_dist, const short do_even)
 {
-	float  no[3], l_vec_prev[3], l_vec_next[3], l_co_prev[3], l_co[3], l_co_next[3], co_ofs[3];
+	float no[3], l_vec_prev[3], l_vec_next[3], l_co_prev[3], l_co[3], l_co_next[3], co_ofs[3];
 	int is_concave;
 
 	/* first get the prev/next verts */
@@ -1731,7 +1733,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		
 		/* find all faces surrounding e->v1 and, e->v2 */
 		for (i = 0; i < 2; i++) {
-			BM_ITER_ELEM (l, &liter, i ? e->v2:e->v1, BM_LOOPS_OF_VERT) {
+			BM_ITER_ELEM (l, &liter, i ? e->v2 : e->v1, BM_LOOPS_OF_VERT) {
 				BMLoop *l2;
 				BMIter liter2;
 				
