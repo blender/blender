@@ -4602,11 +4602,15 @@ void MESH_OT_noise(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 }
 
+#define NEW_BEVEL 1
+
 typedef struct {
 	BMEditMesh *em;
 	BMBackup mesh_backup;
+#ifndef NEW_BEVEL
 	float *weights;
 	int li;
+#endif
 	int mcenter[2];
 	float initial_length;
 	float pixel_size;  /* use when mouse input is interpreted as spatial distance */
@@ -4619,13 +4623,28 @@ typedef struct {
 
 static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 {
+#ifdef NEW_BEVEL
+	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), offset: %s, segments: %d";
+#else
 	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), factor: %s, Use Dist (D): %s: Use Even (E): %s";
+#endif
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
 	BevelData *opdata = op->customdata;
 
 	if (sa) {
+#ifdef NEW_BEVEL
+		char offset_str[NUM_STR_REP_LEN];
+		if (hasNumInput(&opdata->num_input))
+			outputNumInput(&opdata->num_input, offset_str);
+		else
+			BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "offset"));
+		BLI_snprintf(msg, HEADER_LENGTH, str,
+		             offset_str,
+		             RNA_int_get(op->ptr, "segments")
+		            );
+#else
 		char factor_str[NUM_STR_REP_LEN];
 		if (hasNumInput(&opdata->num_input))
 			outputNumInput(&opdata->num_input, factor_str);
@@ -4636,11 +4655,13 @@ static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 		             RNA_boolean_get(op->ptr, "use_dist") ? "On" : "Off",
 		             RNA_boolean_get(op->ptr, "use_even") ? "On" : "Off"
 		            );
+#endif
 
 		ED_area_headerprint(sa, msg);
 	}
 }
 
+#ifndef NEW_BEVEL
 static void edbm_bevel_recalc_weights(wmOperator *op)
 {
 	float df, s, ftot;
@@ -4668,15 +4689,20 @@ static void edbm_bevel_recalc_weights(wmOperator *op)
 
 	mul_vn_fl(opdata->weights, recursion, 1.0f / (float)ftot);
 }
+#endif
 
 static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+#ifdef NEW_BEVEL
+	BevelData *opdata;
+#else
 	BMIter iter;
 	BMEdge *eed;
 	BevelData *opdata;
 	int li;
+#endif
 	
 	if (em == NULL) {
 		return 0;
@@ -4684,6 +4710,7 @@ static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
 
 	op->customdata = opdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
 
+#ifndef NEW_BEVEL
 	BM_data_layer_add(em->bm, &em->bm->edata, CD_PROP_FLT);
 	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT) - 1;
 	
@@ -4693,10 +4720,12 @@ static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
 		
 		*dv = d;
 	}
-	
-	opdata->em = em;
+
 	opdata->li = li;
 	opdata->weights = NULL;
+#endif
+	
+	opdata->em = em;
 	opdata->is_modal = is_modal;
 	opdata->shift_factor = -1.0f;
 
@@ -4706,7 +4735,9 @@ static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
 	/* avoid the cost of allocating a bm copy */
 	if (is_modal)
 		opdata->mesh_backup = EDBM_redo_state_store(em);
+#ifndef NEW_BEVEL
 	edbm_bevel_recalc_weights(op);
+#endif
 
 	return 1;
 }
@@ -4716,6 +4747,26 @@ static int edbm_bevel_calc(bContext *C, wmOperator *op)
 	BevelData *opdata = op->customdata;
 	BMEditMesh *em = opdata->em;
 	BMOperator bmop;
+#ifdef NEW_BEVEL
+	float offset = RNA_float_get(op->ptr, "offset");
+	int segments = RNA_int_get(op->ptr, "segments");
+
+	/* revert to original mesh */
+	if (opdata->is_modal) {
+		EDBM_redo_state_restore(opdata->mesh_backup, em, FALSE);
+	}
+
+	if (!EDBM_op_init(em, &bmop, op,
+		              "bevel geom=%hev offset=%f segments=%i",
+		              BM_ELEM_SELECT, offset, segments))
+		{
+			return 0;
+		}
+		
+	BMO_op_exec(em->bm, &bmop);
+	if (!EDBM_op_finish(em, &bmop, op, TRUE))
+		return 0;
+#else
 	int i;
 
 	float factor = RNA_float_get(op->ptr, "percent") /*, dfac */ /* UNUSED */;
@@ -4743,6 +4794,7 @@ static int edbm_bevel_calc(bContext *C, wmOperator *op)
 		if (!EDBM_op_finish(em, &bmop, op, TRUE))
 			return 0;
 	}
+#endif
 	
 	EDBM_mesh_normals_update(opdata->em);
 	
@@ -4760,10 +4812,12 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 	if (sa) {
 		ED_area_headerprint(sa, NULL);
 	}
+#ifndef NEW_BEVEL
 	BM_data_layer_free_n(opdata->em->bm, &opdata->em->bm->edata, CD_PROP_FLT, opdata->li);
 
 	if (opdata->weights)
 		MEM_freeN(opdata->weights);
+#endif
 	if (opdata->is_modal) {
 		EDBM_redo_state_free(&opdata->mesh_backup, NULL, FALSE);
 	}
@@ -4844,7 +4898,11 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
 {
 	BevelData *opdata = op->customdata;
+#ifdef NEW_BEVEL
+	int use_dist = TRUE;
+#else
 	int use_dist =  RNA_boolean_get(op->ptr, "use_dist");
+#endif
 	float mdiff[2];
 	float factor;
 
@@ -4907,7 +4965,11 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			if (!hasNumInput(&opdata->num_input)) {
 				const float factor = edbm_bevel_mval_factor(op, event);
+#ifdef NEW_BEVEL
+				RNA_float_set(op->ptr, "offset", factor);
+#else
 				RNA_float_set(op->ptr, "percent", factor);
+#endif
 
 				edbm_bevel_calc(C, op);
 				edbm_bevel_update_header(op, C);
@@ -4967,6 +5029,10 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_POINTER | OPTYPE_BLOCKING;
 
+#ifdef NEW_BEVEL
+	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Offset", "", 0.0f, 1.0f);
+	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
+#else
 	/* take note, used as a factor _and_ a distance depending on 'use_dist' */
 	RNA_def_float(ot->srna, "percent", 0.0f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
 	/* XXX, disabled for 2.63 release, needs to work much better without overlap before we can give to users. */
@@ -4974,6 +5040,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_even", FALSE, "Even",     "Calculate evenly spaced bevel");
 	RNA_def_boolean(ot->srna, "use_dist", FALSE, "Distance", "Interpret the percent in blender units");
+#endif
 
 }
 
