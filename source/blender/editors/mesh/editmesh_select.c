@@ -1186,8 +1186,7 @@ static float edgetag_cut_cost(BMEditMesh *UNUSED(em), BMEdge *e1, BMEdge *e2, BM
 	/* The cost is based on the simple sum of the length of the two edgees... */
 	sub_v3_v3v3(d1, v->co, v1->co);
 	sub_v3_v3v3(d2, v2->co, v->co);
-	cost = len_v3(d1);
-	cost += len_v3(d2);
+	cost = len_v3(d1) + len_v3(d2);
 
 	/* but is biased to give higher values to sharp turns, so that it will take
 	 * paths with fewer "turns" when selecting between equal-weighted paths between
@@ -1197,29 +1196,26 @@ static float edgetag_cut_cost(BMEditMesh *UNUSED(em), BMEdge *e1, BMEdge *e2, BM
 	return cost;
 }
 
-static void edgetag_add_adjacent(BMEditMesh *em, SmallHash *visithash, Heap *heap, int mednum, int vertnum, 
-                                 int *nedges, int *edges, int *prevedge, float *cost)
+static void edgetag_add_adjacent(BMEditMesh *em, Heap *heap,
+                                 BMEdge *e1, BMVert *v,
+                                 int *prevedge, float *cost)
 {
-	BMEdge *e1 = EDBM_edge_at_index(em, mednum);
-	BMVert *v = EDBM_vert_at_index(em, vertnum);
-	int startadj, endadj = nedges[vertnum + 1];
+	BMIter eiter;
+	BMEdge *e2;
 
-	for (startadj = nedges[vertnum]; startadj < endadj; startadj++) {
-		int adjnum = edges[startadj];
-		BMEdge *e2 = EDBM_edge_at_index(em, adjnum);
-		float newcost;
-		float cutcost;
+	const int e1_index = BM_elem_index_get(e1);
 
-		if (BLI_smallhash_haskey(visithash, (uintptr_t)e2))
-			continue;
+	BM_ITER_ELEM (e2, &eiter, v, BM_EDGES_OF_VERT) {
+		if (!BM_elem_flag_test(e2, BM_ELEM_TAG)) {
+			const int e2_index = BM_elem_index_get(e2);
+			const float cost_cut = edgetag_cut_cost(em, e1, e2, v);
+			const float cost_new = cost[e1_index] + cost_cut;
 
-		cutcost = edgetag_cut_cost(em, e1, e2, v);
-		newcost = cost[mednum] + cutcost;
-
-		if (cost[adjnum] > newcost) {
-			cost[adjnum] = newcost;
-			prevedge[adjnum] = mednum;
-			BLI_heap_insert(heap, newcost, SET_INT_IN_POINTER(adjnum));
+			if (cost[e2_index] > cost_new) {
+				cost[e2_index] = cost_new;
+				prevedge[e2_index] = e1_index;
+				BLI_heap_insert(heap, cost_new, e2);
+			}
 		}
 	}
 }
@@ -1269,66 +1265,43 @@ static int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *e)
 	return 0;
 }
 
-static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *target)
+static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *e_src, BMEdge *e_dst)
 {
+	/* BM_ELEM_TAG flag is used to store visited edges */
 	BMEdge *e;
-	BMIter iter;
+	BMIter eiter;
 	Heap *heap;
-	SmallHash visithash;
 	float *cost;
-	int i, totvert = 0, totedge = 0, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
-	int targetnum;
-
-	BLI_smallhash_init(&visithash);
+	int *prevedge;
+	int i, totedge;
 
 	/* note, would pass BM_EDGE except we are looping over all edges anyway */
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT /* | BM_EDGE */);
 
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-			BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
+	BM_ITER_MESH_INDEX (e, &eiter, em->bm, BM_EDGES_OF_MESH, i) {
+		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == FALSE) {
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
+		}
+		else {
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
 		}
 
-		BM_elem_index_set(e, totedge); /* set_inline */
-		totedge++;
+		BM_elem_index_set(e, i); /* set_inline */
 	}
 	em->bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* alloc */
-	totvert = em->bm->totvert;
-	nedges = MEM_callocN(sizeof(*nedges) * totvert + 1, "SeamPathNEdges");
-	edges = MEM_mallocN(sizeof(*edges) * totedge * 2, "SeamPathEdges");
+	totedge = em->bm->totedge;
 	prevedge = MEM_mallocN(sizeof(*prevedge) * totedge, "SeamPathPrevious");
 	cost = MEM_mallocN(sizeof(*cost) * totedge, "SeamPathCost");
 
-	/* count edges, compute adjacent edges offsets and fill adjacent */
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		nedges[BM_elem_index_get(e->v1) + 1]++;
-		nedges[BM_elem_index_get(e->v2) + 1]++;
-	}
-
-	for (i = 1; i < totvert; i++) {
-		int newswap = nedges[i + 1];
-		nedges[i + 1] = nedgeswap + nedges[i];
-		nedgeswap = newswap;
-	}
-	nedges[0] = nedges[1] = 0;
-
-	i = 0;
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		edges[nedges[BM_elem_index_get(e->v1) + 1]++] = i;
-		edges[nedges[BM_elem_index_get(e->v2) + 1]++] = i;
-
+	for (i = 0; i < totedge; i++) {
 		cost[i] = 1e20f;
 		prevedge[i] = -1;
-		i++;
 	}
 
 	/*
 	 * Arrays are now filled as follows:
-	 *
-	 *	nedges[n] = sum of the # of edges incident to all vertices numbered 0 through n - 1
-	 *	edges[edges[n]..edges[n - 1]] = the indices of of the edges incident to vertex n
 	 *
 	 * As the search continues, prevedge[n] will be the previous edge on the shortest
 	 * path found so far to edge n. The visitedhash will of course contain entries
@@ -1340,61 +1313,59 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();
-	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(BM_elem_index_get(source)));
-	cost[BM_elem_index_get(source)] = 0.0f;
+	BLI_heap_insert(heap, 0.0f, e_src);
+	cost[BM_elem_index_get(e_src)] = 0.0f;
 	EDBM_index_arrays_init(em, 1, 1, 0);
-	targetnum = BM_elem_index_get(target);
 
+	e = NULL;
 	while (!BLI_heap_is_empty(heap)) {
-		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
-		e = EDBM_edge_at_index(em, mednum);
+		e = BLI_heap_popmin(heap);
 
-		if (mednum == targetnum)
+		if (e == e_dst)
 			break;
 
-		if (BLI_smallhash_haskey(&visithash, (uintptr_t)e))
+		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			continue;
+		}
 
-		BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
+		BM_elem_flag_enable(e, BM_ELEM_TAG);
 
-		edgetag_add_adjacent(em, &visithash, heap, mednum, BM_elem_index_get(e->v1), nedges, edges, prevedge, cost);
-		edgetag_add_adjacent(em, &visithash, heap, mednum, BM_elem_index_get(e->v2), nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(em, heap, e, e->v1, prevedge, cost);
+		edgetag_add_adjacent(em, heap, e, e->v2, prevedge, cost);
 	}
 	
-	if (mednum == targetnum) {
+	if (e == e_dst) {
 		short allseams = 1;
+		int e_index;
 
 		/* Check whether the path is already completely tagged.
 		 * if it is, the tags will be cleared instead of set. */
-		mednum = targetnum;
+		e_index = BM_elem_index_get(e_dst);
 		do {
-			e = EDBM_edge_at_index(em, mednum);
+			e = EDBM_edge_at_index(em, e_index);
 			if (!edgetag_context_check(scene, em, e)) {
 				allseams = 0;
 				break;
 			}
-			mednum = prevedge[mednum];
-		} while (mednum != BM_elem_index_get(source));
+			e_index = prevedge[e_index];
+		} while (e != e_src);
 
 		/* Follow path back and source and add or remove tags */
-		mednum = targetnum;
+		e_index = BM_elem_index_get(e_dst);
 		do {
-			e = EDBM_edge_at_index(em, mednum);
+			e = EDBM_edge_at_index(em, e_index);
 			if (allseams)
 				edgetag_context_set(em, scene, e, 0);
 			else
 				edgetag_context_set(em, scene, e, 1);
-			mednum = prevedge[mednum];
-		} while (mednum != -1);
+			e_index = prevedge[e_index];
+		} while (e_index != -1);
 	}
 
 	EDBM_index_arrays_free(em);
-	MEM_freeN(nedges);
-	MEM_freeN(edges);
 	MEM_freeN(prevedge);
 	MEM_freeN(cost);
 	BLI_heap_free(heap, NULL);
-	BLI_smallhash_release(&visithash);
 
 	return 1;
 }
