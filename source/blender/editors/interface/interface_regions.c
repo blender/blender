@@ -2254,13 +2254,11 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 		show_picker = (but->block->flag & UI_BLOCK_POPUP) == 0;
 	}
 	
-	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
-	
 	copy_v3_v3(handle->retvec, but->editvec);
 	
 	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop, show_picker);
 	
-	block->flag = UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_KEEP_OPEN | UI_BLOCK_OUT_1;
+	block->flag = UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_KEEP_OPEN | UI_BLOCK_OUT_1 | UI_BLOCK_MOVEMOUSE_QUIT;
 	uiBoundsBlock(block, 10);
 	
 	block->block_event_func = ui_picker_small_wheel_cb;

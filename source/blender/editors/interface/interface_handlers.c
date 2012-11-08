@@ -6050,38 +6050,22 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 		switch (event->type) {
 			case MOUSEMOVE:
 			{
-				/* if the mouse is over the button, do nothing */
-				if (ui_mouse_inside_button(data->region, but, event->x, event->y)) {
-					break;
-				}
+				uiBut *bt;
 
-				/* if the mouse is over the menu, also do nothing */
 				if (data->menu && data->menu->region) {
 					if (ui_mouse_inside_region(data->menu->region, event->x, event->y)) {
 						break;
 					}
-					else {
-						/* make a rectangle between the menu and the button that opened it,
-						 * this avoids any space between them exiting the popup. see [#29072] - campbell */
-						rctf rct_all = but->rect;
-						rctf rct_win;
+				}
 
-						ui_block_to_window_fl(ar, block, &rct_all.xmin, &rct_all.ymin);
-						ui_block_to_window_fl(ar, block, &rct_all.xmax, &rct_all.ymax);
-
-						BLI_rctf_rcti_copy(&rct_win, &data->menu->region->winrct);
-						BLI_rctf_union(&rct_all, &rct_win);
-
-						if (BLI_rctf_isect_pt(&rct_all, event->x, event->y)) {
-							break;
-						}
+				bt = ui_but_find_mouse_over(ar, event->x, event->y);
+				
+				if (bt && bt->active != data) {
+					if (but->type != COLOR) {  /* exception */
+						data->cancel = TRUE;
 					}
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
-
-				if (but->type != COLOR) {  /* exception */
-					data->cancel = TRUE;
-				}
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				break;
 			}
 		}
