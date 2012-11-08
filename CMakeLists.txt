@@ -372,8 +372,8 @@ if(WITH_CYCLES)
 	set(WITH_OPENIMAGEIO ON)
 endif()
 
-# auto enable boost for cycles and booleans
-if(WITH_CYCLES OR WITH_MOD_BOOLEAN)
+# auto enable boost for cycles, booleans or audaspace
+if(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE)
 	set(WITH_BOOST ON)
 endif()
 
