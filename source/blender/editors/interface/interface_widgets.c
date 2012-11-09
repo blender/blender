@@ -2114,7 +2114,7 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 		sx1 = rect->xmin +  dx               * BLI_rcti_size_x(rect);
 		sx2 = rect->xmin + (dx + color_step) * BLI_rcti_size_x(rect);
 		sy = rect->ymin;
-		dy = (float)BLI_rcti_size_y(rect) / 3.0;
+		dy = (float)BLI_rcti_size_y(rect) / 3.0f;
 		
 		glBegin(GL_QUADS);
 		for (a = 0; a < 3; a++, sy += dy) {
