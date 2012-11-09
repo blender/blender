@@ -719,7 +719,7 @@ if(UNIX AND NOT APPLE)
 		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
 		set(LLVM_VERSION "3.0" CACHE STRING	"Version of LLVM to use")
 		set(LLVM_STATIC YES)
-		if(LLVM_DIRECTORY)
+		if(EXISTS "${LLVM_DIRECTORY}/bin/llvm-config")
 			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
 		else()
 			set(LLVM_CONFIG llvm-config)
@@ -734,7 +734,7 @@ if(UNIX AND NOT APPLE)
 		                OUTPUT_VARIABLE LLVM_LIB_DIR
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		find_library(LLVM_LIBRARY
-		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
+		             NAMES LLVMAnalysis # first of a whole bunch of libs to get
 		             PATHS ${LLVM_LIB_DIR})
 		message(STATUS "LLVM version  = ${LLVM_VERSION}")
 		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
@@ -1596,7 +1596,7 @@ elseif(APPLE)
 		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
 		set(LLVM_VERSION "3.1" CACHE STRING	"Version of LLVM to use")
 		set(LLVM_STATIC YES)
-		if(LLVM_DIRECTORY)
+		if(EXISTS "${LLVM_DIRECTORY}/bin/llvm-config")
 			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
 		else()
 			set(LLVM_CONFIG llvm-config)
@@ -1611,7 +1611,7 @@ elseif(APPLE)
 		                OUTPUT_VARIABLE LLVM_LIB_DIR
 		                OUTPUT_STRIP_TRAILING_WHITESPACE)
 		find_library(LLVM_LIBRARY
-		             NAMES libLLVMAnalysis.a # first of a whole bunch of libs to get
+		             NAMES LLVMAnalysis # first of a whole bunch of libs to get
 		             PATHS ${LLVM_LIB_DIR})
 		message(STATUS "LLVM version  = ${LLVM_VERSION}")
 		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
