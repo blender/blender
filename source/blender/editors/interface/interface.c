@@ -2424,7 +2424,7 @@ void uiBlockEndAlign(uiBlock *block)
 
 int ui_but_can_align(uiBut *but)
 {
-	return !ELEM3(but->type, LABEL, OPTION, OPTIONN);
+	return !ELEM4(but->type, LABEL, OPTION, OPTIONN, SEPR);
 }
 
 static void ui_block_do_align_but(uiBut *first, short nr)
