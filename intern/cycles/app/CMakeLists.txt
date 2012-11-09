@@ -35,10 +35,6 @@ if(WITH_CYCLES_OSL)
 	list(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES})
 endif()
 
-if(WITH_CYCLES_PARTIO)
-	list(APPEND LIBRARIES ${PARTIO_LIBRARIES})
-endif()
-
 include_directories(${INC})
 include_directories(SYSTEM ${INC_SYS})
 
