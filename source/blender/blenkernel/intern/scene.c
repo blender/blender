@@ -1074,6 +1074,7 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 	 * when trying to find materials with drivers that need evaluating [#32017] 
 	 */
 	tag_main_idcode(bmain, ID_MA, FALSE);
+	tag_main_idcode(bmain, ID_LA, FALSE);
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
 	 * by depgraph or manual, no layer check here, gets correct flushed
@@ -1143,6 +1144,7 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 * when trying to find materials with drivers that need evaluating [#32017] 
 	 */
 	tag_main_idcode(bmain, ID_MA, FALSE);
+	tag_main_idcode(bmain, ID_LA, FALSE);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);

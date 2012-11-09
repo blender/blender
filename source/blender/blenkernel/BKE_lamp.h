@@ -37,12 +37,15 @@ extern "C" {
 #endif
 
 struct Lamp;
+struct Scene;
 
 struct Lamp *BKE_lamp_add(const char *name) WARN_UNUSED;
 struct Lamp *BKE_lamp_copy(struct Lamp *la) WARN_UNUSED;
 struct Lamp *localize_lamp(struct Lamp *la) WARN_UNUSED;
 void BKE_lamp_make_local(struct Lamp *la);
 void BKE_lamp_free(struct Lamp *la);
+
+void lamp_drivers_update(struct Scene *scene, struct Lamp *la, float ctime);
 
 #ifdef __cplusplus
 }

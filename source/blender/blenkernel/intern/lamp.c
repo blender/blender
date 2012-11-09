@@ -33,9 +33,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_listbase.h"
@@ -230,5 +233,40 @@ void BKE_lamp_free(Lamp *la)
 	BKE_previewimg_free(&la->preview);
 	BKE_icon_delete(&la->id);
 	la->id.icon_id = 0;
+}
+
+/* Calculate all drivers for lamps, see material_drivers_update for why this is a bad hack */
+
+static void lamp_node_drivers_update(Scene *scene, bNodeTree *ntree, float ctime)
+{
+	bNode *node;
+
+	/* nodetree itself */
+	if (ntree->adt && ntree->adt->drivers.first)
+		BKE_animsys_evaluate_animdata(scene, &ntree->id, ntree->adt, ctime, ADT_RECALC_DRIVERS);
+	
+	/* nodes */
+	for (node = ntree->nodes.first; node; node = node->next)
+		if (node->id && node->type == NODE_GROUP)
+			lamp_node_drivers_update(scene, (bNodeTree *)node->id, ctime);
+}
+
+void lamp_drivers_update(Scene *scene, Lamp *la, float ctime)
+{
+	/* Prevent infinite recursion by checking (and tagging the lamp) as having been visited already
+	 * (see BKE_scene_update_tagged()). This assumes la->id.flag & LIB_DOIT isn't set by anything else
+	 * in the meantime... [#32017] */
+	if (la->id.flag & LIB_DOIT)
+		return;
+	else
+		la->id.flag |= LIB_DOIT;
+	
+	/* lamp itself */
+	if (la->adt && la->adt->drivers.first)
+		BKE_animsys_evaluate_animdata(scene, &la->id, la->adt, ctime, ADT_RECALC_DRIVERS);
+	
+	/* nodes */
+	if (la->nodetree)
+		lamp_node_drivers_update(scene, la->nodetree, ctime);
 }
 
