@@ -464,99 +464,6 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
 }
 
 /*
- *   Search for crossing the line and line
- *   a1-a2 lineA
- *   b1-b2 line B
- *	r - result, coordinate of crossing point
- */
-static int find_intersection_point(float r[3], float a1[3], float a2[3], float b1[3], float b2[3])
-{
-	double s, t, z1, z2;
-	double mx, my, nx, ny;
-	int flag = 0;
-
-	mx = a2[0] - a1[0];
-	my = a2[1] - a1[1];
-
-	nx = b2[0] - b1[0];
-	ny = b2[1] - b1[1];
-
-	s = ((double)(b1[1] - a1[1]) / my + (double)(a1[0] - b1[0]) / mx) / (nx / mx - ny / my);
-	t = ((double)(b1[0] - a1[0]) + s * nx) / mx;
-
-
-	z1 = (double)a1[2] + t * (double)(a2[2] - a1[2]);
-	z2 = (double)b1[2] + s * (double)(b2[2] - b1[2]);
-
-	if (fabs(z1 - z2) < BEVEL_EPSILON) {
-		flag = 1;
-		r[0] = (double)a1[0] + t * mx;
-		r[1] = (double)a1[1] + t * my;
-		r[2] = z1;
-	}
-	else
-		flag = 0;
-
-	return flag;
-}
-
-/*
- * Search for crossing the line and plane
- * p1, p2, p3 points which is given by the plane
- * a - line vector
- * m - point through which the line
- * r - result;
- */
-static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], float p3[3],
-                                          float a[3], float m[3])
-{
-	const double isect_epsilon = 1e-20;
-	float P[3], N[3], A[3], M[3];
-	float vv1[3], vv2[3];
-	double t;
-	double C, D, E;
-
-
-	/* calculation of the normal to the surface */
-	sub_v3_v3v3(vv1, p1, p2);
-	sub_v3_v3v3(vv2, p3, p2);
-	cross_v3_v3v3(N, vv1, vv2);
-
-	copy_v3_v3(A, a);
-	copy_v3_v3(P, p2);
-	copy_v3_v3(M, m);
-
-
-	if (fabs(N[0] * (A[0] - P[0]) + N[1] * (A[1] - P[1]) + N[2] * (A[2] - P[2])) < BEVEL_EPSILON) {
-		/* point located on plane */
-		float tmp[3], line[3];
-		add_v3_v3v3(line, a, m);
-		if (find_intersection_point(tmp, m, a, p1, p2))
-			copy_v3_v3(r, tmp);
-		else {
-			if (find_intersection_point(tmp, m, a, p2, p3))
-				copy_v3_v3(r, tmp);
-		}
-
-	}
-	else {
-		C = N[0] * P[0] + N[1] * P[1] + N[2] * P[2];
-		D = N[0] * M[0] + N[1] * M[1] + N[2] * M[2];
-		E = A[0] * N[0] + A[1] * N[1] + A[2] * N[2];
-
-		if (fabs(E) < isect_epsilon)
-			t = 0;
-		else
-			t = (C - D) / E;
-
-		r[0] = (double)m[0] + t * (double)a[0];
-		r[1] = (double)m[1] + t * (double)a[1];
-		r[2] = (double)m[2] + t * (double)a[2];
-	}
-
-}
-
-/*
  * calculation of points on the round profile
  * r - result, coordinate of point on round profile
  * method:
@@ -612,7 +519,7 @@ static void get_point_on_round_profile(float r[3], float offset, int i, int coun
 static void get_point_on_round_edge(EdgeHalf *e, int i,
                                     float va[3], float vmid[3], float vb[3], float profileco[3])
 {
-	float vva[3], vvb[3],  point[3], dir[3], vaadj[3], vbadj[3];
+	float vva[3], vvb[3],  point[3], dir[3], vaadj[3], vbadj[3], p2[3], pn[3];
 	int n = e->seg;
 
 	sub_v3_v3v3(vva, va, vmid);
@@ -630,7 +537,12 @@ static void get_point_on_round_edge(EdgeHalf *e, int i,
 
 		get_point_on_round_profile(point, e->offset, i, n, vaadj, vmid, vbadj);
 
-		find_intersection_point_plane(profileco, va, vmid, vb, dir, point);
+		add_v3_v3v3(p2, profileco, dir);
+		cross_v3_v3v3(pn, vva, vvb);
+		if (!isect_line_plane_v3(profileco, point, p2, vmid, pn, 0)) {
+			BLI_assert(!"bevel: unexpected non-intersection");
+			copy_v3_v3(profileco, point);
+		}
 	}
 	else {
 		/* planar case */
@@ -908,7 +820,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 		} while (v != vm->boundstart);
 
 		/* center point need to be average of all centers of rings */
-		/* TODO: this is wrong if not all verts have ebev: could hae
+		/* TODO: this is wrong if not all verts have ebev: could have
 		 * several disconnected sections of mesh. */
 		zero_v3(midco);
 		nn = 0;
