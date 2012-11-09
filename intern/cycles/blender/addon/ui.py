@@ -957,7 +957,7 @@ def draw_device(self, context):
         elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
             layout.prop(cscene, "device")
 
-        if engine.with_osl() and (cscene.device == 'CPU' or device_type == 'None'):
+        if engine.with_osl() and (cscene.device == 'CPU' or device_type == 'NONE'):
             layout.prop(cscene, "shading_system")
 
 
