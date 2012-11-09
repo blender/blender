@@ -172,7 +172,7 @@ static BOOL scr_saver_init(int argc, char **argv)
 
 #endif /* WIN32 */
 
-void usage(const char* program, bool isBlenderPlayer)
+static void usage(const char* program, bool isBlenderPlayer)
 {
 	const char * consoleoption;
 	const char * example_filename = "";
@@ -332,7 +332,7 @@ static BlendFileData *load_game_data(const char *progname, char *filename = NULL
 	return bfd;
 }
 
-bool GPG_NextFrame(GHOST_ISystem* system, GPG_Application *app, int &exitcode, STR_String &exitstring, GlobalSettings *gs)
+static bool GPG_NextFrame(GHOST_ISystem* system, GPG_Application *app, int &exitcode, STR_String &exitstring, GlobalSettings *gs)
 {
 	bool run = true;
 	system->processEvents(false);
@@ -352,7 +352,7 @@ struct GPG_NextFrameState {
 	GlobalSettings *gs;
 } gpg_nextframestate;
 
-int GPG_PyNextFrame(void *state0)
+static int GPG_PyNextFrame(void *state0)
 {
 	GPG_NextFrameState *state = (GPG_NextFrameState *) state0;
 	int exitcode;
