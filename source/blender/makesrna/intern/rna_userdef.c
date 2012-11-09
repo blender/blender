@@ -3162,6 +3162,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, color_picker_types);
 	RNA_def_property_enum_sdna(prop, NULL, "color_picker_type");
 	RNA_def_property_ui_text(prop, "Color Picker Type", "Different styles of displaying the color picker widget");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop = RNA_def_property(srna, "use_preview_images", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ALLWINCODECS);

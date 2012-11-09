@@ -2059,7 +2059,7 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 	
 	/* old below */
 	
-	for (dx = 0.0f; dx < 1.0f; dx += color_step) {
+	for (dx = 0.0f; dx < 0.999f; dx += color_step) { /* 0.999 = prevent float inaccuracy for steps */
 		/* previous color */
 		copy_v3_v3(col0[0], col1[0]);
 		copy_v3_v3(col0[1], col1[1]);
@@ -2114,7 +2114,7 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 		sx1 = rect->xmin +  dx               * BLI_rcti_size_x(rect);
 		sx2 = rect->xmin + (dx + color_step) * BLI_rcti_size_x(rect);
 		sy = rect->ymin;
-		dy = BLI_rcti_size_y(rect) / 3.0;
+		dy = (float)BLI_rcti_size_y(rect) / 3.0;
 		
 		glBegin(GL_QUADS);
 		for (a = 0; a < 3; a++, sy += dy) {

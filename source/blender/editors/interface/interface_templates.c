@@ -1951,10 +1951,11 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, const char *propn
 	MEM_freeN(cb);
 }
 
-/********************* ColorWheel Template ************************/
+/********************* ColorPicker Template ************************/
 
 #define WHEEL_SIZE  100
 
+/* This template now follows User Preference for type - name is not correct anymore... */
 void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
@@ -1970,10 +1971,24 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propnam
 
 	RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 	
-	col = uiLayoutColumn(layout, FALSE);
+	col = uiLayoutColumn(layout, TRUE);
 	row = uiLayoutRow(col, TRUE);
 	
-	but = uiDefButR_prop(block, HSVCIRCLE, 0, "",   0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, 0, 0, "");
+	switch (U.color_picker_type) {
+		case USER_CP_CIRCLE:
+			but = uiDefButR_prop(block, HSVCIRCLE, 0, "",   0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, 0, 0, "");
+			break;
+		case USER_CP_SQUARE_SV:
+			but = uiDefButR_prop(block, HSVCUBE, 0, "",   0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, UI_GRAD_SV, 0, "");
+			break;
+		case USER_CP_SQUARE_HS:
+			but = uiDefButR_prop(block, HSVCUBE, 0, "",   0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, UI_GRAD_HS, 0, "");
+			break;
+		case USER_CP_SQUARE_HV:
+			but = uiDefButR_prop(block, HSVCUBE, 0, "",   0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, UI_GRAD_HV, 0, "");
+			break;
+	}
+	
 
 	if (lock) {
 		but->flag |= UI_BUT_COLOR_LOCK;
@@ -1989,10 +2004,29 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propnam
 	if (cubic)
 		but->flag |= UI_BUT_COLOR_CUBIC;
 
-	uiItemS(row);
 	
-	if (value_slider)
-		uiDefButR_prop(block, HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop, -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
+	if (value_slider) {
+		
+		switch (U.color_picker_type) {
+			case USER_CP_CIRCLE:
+				uiItemS(row);
+				uiDefButR_prop(block, HSVCUBE, 0, "", WHEEL_SIZE + 6, 0, 14, WHEEL_SIZE, ptr, prop, -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
+				break;
+			case USER_CP_SQUARE_SV:
+				uiItemS(col);
+				uiDefButR_prop(block, HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop, -1, softmin, softmax, UI_GRAD_SV + 3, 0, "");
+				break;
+			case USER_CP_SQUARE_HS:
+				uiItemS(col);
+				uiDefButR_prop(block, HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop, -1, softmin, softmax, UI_GRAD_HS + 3, 0, "");
+				break;
+			case USER_CP_SQUARE_HV:
+				uiItemS(col);
+				uiDefButR_prop(block, HSVCUBE, 0, "", 0, 4, WHEEL_SIZE, 18, ptr, prop, -1, softmin, softmax, UI_GRAD_HV + 3, 0, "");
+				break;
+		}
+		
+	}
 }
 
 /********************* Layer Buttons Template ************************/
