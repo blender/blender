@@ -130,6 +130,7 @@ public:
 	void set_samples(int samples);
 	void set_pause(bool pause);
 
+	void device_free();
 protected:
 	struct DelayedReset {
 		thread_mutex mutex;

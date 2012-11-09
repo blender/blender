@@ -216,6 +216,10 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.label(text="Viewport:")
         sub.prop(cscene, "preview_start_resolution")
 
+        sub = col.column(align=True)
+        sub.label(text="Final Render:")
+        sub.prop(cscene, "use_persistent_images")
+
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"

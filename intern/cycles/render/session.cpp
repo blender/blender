@@ -842,4 +842,18 @@ bool Session::update_progressive_refine(bool cancel)
 	return write;
 }
 
+void Session::device_free()
+{
+	scene->device_free();
+
+	foreach(RenderBuffers *buffers, tile_buffers)
+		delete buffers;
+
+	tile_buffers.clear();
+
+	/* used from background render only, so no need to
+	 * re-create render/display buffers here
+	 */
+}
+
 CCL_NAMESPACE_END

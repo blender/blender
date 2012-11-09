@@ -387,6 +387,9 @@ void RE_InitRenderCB(Render *re)
 /* only call this while you know it will remove the link too */
 void RE_FreeRender(Render *re)
 {
+	if (re->engine)
+		RE_engine_free(re->engine);
+
 	BLI_rw_mutex_end(&re->resultmutex);
 	
 	free_renderdata_tables(re);

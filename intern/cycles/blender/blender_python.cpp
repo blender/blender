@@ -146,6 +146,32 @@ static PyObject *draw_func(PyObject *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
+static PyObject *reset_func(PyObject *self, PyObject *args)
+{
+	PyObject *pysession, *pydata, *pyscene;
+
+	if(!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pyscene))
+		return NULL;
+
+	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
+
+	PointerRNA dataptr;
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pydata), &dataptr);
+	BL::BlendData b_data(dataptr);
+
+	PointerRNA sceneptr;
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
+	BL::Scene b_scene(sceneptr);
+
+	Py_BEGIN_ALLOW_THREADS
+
+	session->reset_session(b_data, b_scene);
+
+	Py_END_ALLOW_THREADS
+
+	Py_RETURN_NONE;
+}
+
 static PyObject *sync_func(PyObject *self, PyObject *value)
 {
 	Py_BEGIN_ALLOW_THREADS
@@ -352,6 +378,7 @@ static PyMethodDef methods[] = {
 	{"render", render_func, METH_O, ""},
 	{"draw", draw_func, METH_VARARGS, ""},
 	{"sync", sync_func, METH_O, ""},
+	{"reset", reset_func, METH_VARARGS, ""},
 #ifdef WITH_OSL
 	{"osl_update_node", osl_update_node_func, METH_VARARGS, ""},
 	{"osl_compile", osl_compile_func, METH_VARARGS, ""},

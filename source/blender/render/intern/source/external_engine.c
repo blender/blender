@@ -349,7 +349,12 @@ int RE_engine_render(Render *re, int do_all)
 	re->i.totface = re->i.totvert = re->i.totstrand = re->i.totlamp = re->i.tothalo = 0;
 
 	/* render */
-	engine = RE_engine_create(type);
+	if(!re->engine)
+		re->engine = RE_engine_create(type);
+
+	engine = re->engine;
+
+	/* TODO: actually link to a parent which shouldn't happen */
 	engine->re = re;
 
 	if (re->flag & R_ANIMATION)
@@ -388,8 +393,6 @@ int RE_engine_render(Render *re, int do_all)
 	freeparts(re);
 
 	render_result_free_list(&engine->fullresult, engine->fullresult.first);
-
-	RE_engine_free(engine);
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))
 		G.is_break = TRUE;

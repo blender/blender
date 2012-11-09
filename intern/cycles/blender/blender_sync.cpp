@@ -294,6 +294,8 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
 	params.use_bvh_cache = (background)? RNA_boolean_get(&cscene, "use_cache"): false;
 
+	params.persistent_images = (background)? RNA_boolean_get(&cscene, "use_persistent_images"): false;
+
 	return params;
 }
 
