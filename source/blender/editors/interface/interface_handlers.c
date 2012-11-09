@@ -279,12 +279,7 @@ static int ui_is_a_warp_but(uiBut *but)
 
 static float ui_mouse_scale_warp_factor(const short shift)
 {
-	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
-		return shift ? 0.05f : 1.0f;
-	}
-	else {
-		return 1.0f;
-	}
+	return shift ? 0.05f : 1.0f;
 }
 
 static void ui_mouse_scale_warp(uiHandleButtonData *data,
@@ -292,16 +287,11 @@ static void ui_mouse_scale_warp(uiHandleButtonData *data,
                                 float *r_mx, float *r_my,
                                 const short shift)
 {
-	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
-		const float fac = ui_mouse_scale_warp_factor(shift);
-		/* slow down the mouse, this is fairly picky */
-		*r_mx = (data->dragstartx * (1.0f - fac) + mx * fac);
-		*r_my = (data->dragstarty * (1.0f - fac) + my * fac);
-	}
-	else {
-		*r_mx = mx;
-		*r_my = my;
-	}
+	const float fac = ui_mouse_scale_warp_factor(shift);
+	
+	/* slow down the mouse, this is fairly picky */
+	*r_mx = (data->dragstartx * (1.0f - fac) + mx * fac);
+	*r_my = (data->dragstarty * (1.0f - fac) + my * fac);
 }
 
 /* file selectors are exempt from utf-8 checks */
