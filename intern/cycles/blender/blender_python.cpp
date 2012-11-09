@@ -284,6 +284,8 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 				if(param->validdefault)
 					default_string = param->sdefault[0];
 			}
+			else
+				continue;
 		}
 		else
 			continue;
