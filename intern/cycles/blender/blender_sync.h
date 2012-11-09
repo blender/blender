@@ -116,7 +116,8 @@ private:
 
 	struct RenderLayerInfo {
 		RenderLayerInfo()
-		: scene_layer(0), layer(0), holdout_layer(0),
+		: scene_layer(0), layer(0),
+		  holdout_layer(0), exclude_layer(0),
 		  material_override(PointerRNA_NULL),
 		  use_background(true),
 		  use_viewport_visibility(false),
@@ -127,6 +128,7 @@ private:
 		uint scene_layer;
 		uint layer;
 		uint holdout_layer;
+		uint exclude_layer;
 		BL::Material material_override;
 		bool use_background;
 		bool use_viewport_visibility;

@@ -241,6 +241,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.use_localview = (b_v3d.local_view() ? true : false);
 			render_layer.scene_layer = get_layer(b_v3d.layers(), b_v3d.layers_local_view(), render_layer.use_localview);
 			render_layer.layer = render_layer.scene_layer;
+			render_layer.exclude_layer = 0;
 			render_layer.holdout_layer = 0;
 			render_layer.material_override = PointerRNA_NULL;
 			render_layer.use_background = true;
@@ -258,10 +259,16 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 	for(r.layers.begin(b_rlay); b_rlay != r.layers.end(); ++b_rlay) {
 		if((!layer && first_layer) || (layer && b_rlay->name() == layer)) {
 			render_layer.name = b_rlay->name();
-			render_layer.scene_layer = get_layer(b_scene.layers()) & ~get_layer(b_rlay->layers_exclude());
-			render_layer.layer = get_layer(b_rlay->layers());
+
 			render_layer.holdout_layer = get_layer(b_rlay->layers_zmask());
+			render_layer.exclude_layer = get_layer(b_rlay->layers_exclude());
+
+			render_layer.scene_layer = get_layer(b_scene.layers()) & ~render_layer.exclude_layer;
+			render_layer.scene_layer |= render_layer.exclude_layer & render_layer.holdout_layer;
+
+			render_layer.layer = get_layer(b_rlay->layers());
 			render_layer.layer |= render_layer.holdout_layer;
+
 			render_layer.material_override = b_rlay->material_override();
 			render_layer.use_background = b_rlay->use_sky();
 			render_layer.use_viewport_visibility = false;

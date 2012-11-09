@@ -253,6 +253,7 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	if(use_holdout != object->use_holdout) {
 		object->use_holdout = use_holdout;
 		scene->object_manager->tag_update(scene);
+		object_updated = true;
 	}
 
 	/* object sync
@@ -277,6 +278,10 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 			object->visibility &= object_ray_visibility(b_parent);
 			object->random_id ^= hash_int(hash_string(b_parent.name().c_str()));
 		}
+
+		/* make holdout objects on excluded layer invisible for non-camera rays */
+		if(use_holdout && (layer_flag & render_layer.exclude_layer))
+			object->visibility &= ~(PATH_RAY_ALL - PATH_RAY_CAMERA);
 
 		/* camera flag is not actually used, instead is tested
 		 * against render layer flags */
