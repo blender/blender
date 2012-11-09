@@ -1223,7 +1223,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
-				if (ELEM(t->spacetype ,SPACE_SEQ, SPACE_VIEW3D)) {
+				if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
 					t->flag |= T_ALT_TRANSFORM;
 					t->redraw |= TREDRAW_HARD;
 				}

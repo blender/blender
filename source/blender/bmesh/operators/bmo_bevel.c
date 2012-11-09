@@ -1155,8 +1155,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 	/* Gather input selected edges.
 	 * Only bevel selected edges that have exactly two incident faces. */
 	BMO_ITER (bme, &siter, bm, op, "geom", BM_EDGE) {
-		if ((bme->v1 == v) || (BM_edge_other_vert(bme, bme->v1) == v))
-		{
+		if ((bme->v1 == v) || (BM_edge_other_vert(bme, bme->v1) == v)) {
 			if (BM_edge_face_count(bme) == 2) {
 				BMO_elem_flag_enable(bm, bme, EDGE_SELECTED);
 				nsel++;

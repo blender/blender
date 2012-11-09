@@ -1024,7 +1024,12 @@ float BM_vert_calc_shell_factor(BMVert *v)
 		accum_angle += face_angle;
 	}
 
-	return accum_shell / accum_angle;
+	if (accum_angle != 0.0f) {
+		return accum_shell / accum_angle;
+	}
+	else {
+		return 1.0f;
+	}
 }
 
 /**
@@ -1045,7 +1050,12 @@ float BM_vert_calc_mean_tagged_edge_length(BMVert *v)
 		}
 	}
 
-	return length / (float)tot;
+	if (tot) {
+		return length / (float)tot;
+	}
+	else {
+		return 0.0f;
+	}
 }
 
 

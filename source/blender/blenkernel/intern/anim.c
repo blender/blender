@@ -727,7 +727,7 @@ static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], i
 	 * goes first in the array. */
 	dob->persistent_id[0] = index;
 	for (i = 1; i < level; i++)
-		dob->persistent_id[i] = persistent_id[level-1-i];
+		dob->persistent_id[i] = persistent_id[level - 1 - i];
 	
 	/* metaballs never draw in duplis, they are instead merged into one by the basis
 	 * mball outside of the group. this does mean that if that mball is not in the
@@ -1647,7 +1647,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 
 	/* keep track of persistent id */
 	if (level > 0)
-		persistent_id[level-1] = index;
+		persistent_id[level - 1] = index;
 
 	if (ob->transflag & OB_DUPLIPARTS) {
 		ParticleSystem *psys = ob->particlesystem.first;
@@ -1694,7 +1694,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 
 	/* clear persistent id */
 	if (level > 0)
-		persistent_id[level-1] = 0;
+		persistent_id[level - 1] = 0;
 }
 
 /* Returns a list of DupliObject

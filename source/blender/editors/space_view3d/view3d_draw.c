@@ -1214,7 +1214,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 			hmargin = 0.1f  * (x2 - x1);
 			vmargin = 0.05f * (y2 - y1);
-			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1+vmargin, x2 - hmargin, y2 - vmargin, 2.0f);
+			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1 + vmargin, x2 - hmargin, y2 - vmargin, 2.0f);
 
 			hmargin = 0.035f * (x2 - x1);
 			vmargin = 0.035f * (y2 - y1);

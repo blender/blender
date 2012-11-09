@@ -2979,9 +2979,12 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.keymodifier = 0;
 			
 			/* if test_break set, it catches this. Do not set with modifier presses. XXX Keep global for now? */
-			if (event.type == ESCKEY && event.val == KM_PRESS && 
-				event.shift == 0 && event.ctrl == 0 && event.alt == 0)
-					G.is_break = TRUE;
+			if ((event.type == ESCKEY && event.val == KM_PRESS) &&
+			    /* check other modifiers because ms-windows uses these to bring up the task manager */
+			    (event.shift == 0 && event.ctrl == 0 && event.alt == 0))
+			{
+				G.is_break = TRUE;
+			}
 			
 			/* double click test - only for press */
 			if (event.val == KM_PRESS) {
