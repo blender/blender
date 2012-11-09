@@ -430,7 +430,7 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 	len = len_v3(dir);
 	normalize_v3(dir);
 	if (d > len)
-		d = len - 50 * BEVEL_EPSILON;
+		d = len - (float)(50 * BEVEL_EPSILON);
 	copy_v3_v3(slideco, v->co);
 	madd_v3_v3fl(slideco, dir, -d);
 }
@@ -481,17 +481,17 @@ static int find_intersection_point(float r[3], float a1[3], float a2[3], float b
 	nx = b2[0] - b1[0];
 	ny = b2[1] - b1[1];
 
-	s = ((b1[1] - a1[1]) / my + (a1[0] - b1[0]) / mx) / (nx / mx - ny / my);
-	t = (b1[0] - a1[0] + s * nx) / mx;
+	s = ((double)(b1[1] - a1[1]) / my + (double)(a1[0] - b1[0]) / mx) / (nx / mx - ny / my);
+	t = ((double)(b1[0] - a1[0]) + s * nx) / mx;
 
 
-	z1 = a1[2] + t * (a2[2] - a1[2]);
-	z2 = b1[2] + s * (b2[2] - b1[2]);
+	z1 = (double)a1[2] + t * (double)(a2[2] - a1[2]);
+	z2 = (double)b1[2] + s * (double)(b2[2] - b1[2]);
 
 	if (fabs(z1 - z2) < BEVEL_EPSILON) {
 		flag = 1;
-		r[0] = a1[0]  + t * mx;
-		r[1] = a1[1]  + t * my;
+		r[0] = (double)a1[0] + t * mx;
+		r[1] = (double)a1[1] + t * my;
 		r[2] = z1;
 	}
 	else
@@ -510,11 +510,11 @@ static int find_intersection_point(float r[3], float a1[3], float a2[3], float b
 static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], float p3[3],
                                           float a[3], float m[3])
 {
+	const double null = 1e-20;
 	float P[3], N[3], A[3], M[3];
 	float vv1[3], vv2[3];
 	double t;
 	double C, D, E;
-	float null = 1e-20;
 
 
 	/* calculation of the normal to the surface */
@@ -549,9 +549,9 @@ static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], 
 		else
 			t = (C - D) / E;
 
-		r[0] = m[0] + t * a[0];
-		r[1] = m[1] + t * a[1];
-		r[2] = m[2] + t * a[2];
+		r[0] = (double)m[0] + t * (double)a[0];
+		r[1] = (double)m[1] + t * (double)a[1];
+		r[2] = (double)m[2] + t * (double)a[2];
 	}
 
 }
@@ -579,7 +579,7 @@ static void get_point_on_round_profile(float r[3], float offset, int i, int coun
 
 	add_v3_v3v3(center, vva, vvb);
 	normalize_v3(center);
-	mul_v3_fl(center, offset * (1.0 / cos(0.5 * angle)));
+	mul_v3_fl(center, offset * (1.0f / cosf(0.5f * angle)));
 	add_v3_v3(center, v);           /* coordinates of the center of the inscribed circle */
 
 
@@ -622,7 +622,7 @@ static void get_point_on_round_edge(EdgeHalf *e, int i,
 	else
 		sub_v3_v3v3(dir, e->e->v2->co, e->e->v1->co);
 	normalize_v3(dir);
-	if (fabs(angle_v3v3(vva, vvb) - M_PI) > BEVEL_EPSILON) {
+	if (fabsf(angle_v3v3(vva, vvb) - (float)M_PI) > (float)BEVEL_EPSILON) {
 		copy_v3_v3(vaadj, va);
 		madd_v3_v3fl(vaadj, dir, -len_v3(vva) * cosf(angle_v3v3(vva, dir)));
 		copy_v3_v3(vbadj, vb);

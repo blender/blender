@@ -287,7 +287,7 @@ public:
 	bool is_used(const K& key)
 	{
 		T *data = find(key);
-		return (data)? used_set.find(data) != used_set.end(): NULL;
+		return (data) ? used_set.find(data) != used_set.end() : false;
 	}
 
 	void used(T *data)
