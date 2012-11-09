@@ -911,14 +911,16 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 		/* only consider if F-Curve involves sequence_editor.sequences */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
 			Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-			Sequence *seq;
+			Sequence *seq = NULL;
 			char *seq_name;
-			
-			/* get strip name, and check if this strip is selected */
-			seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
-			seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, FALSE);
-			if (seq_name) MEM_freeN(seq_name);
-			
+
+			if (ed) {
+				/* get strip name, and check if this strip is selected */
+				seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
+				seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, FALSE);
+				if (seq_name) MEM_freeN(seq_name);
+			}
+
 			/* can only add this F-Curve if it is selected */
 			if (ads->filterflag & ADS_FILTER_ONLYSEL) {
 				if ((seq == NULL) || (seq->flag & SELECT) == 0)

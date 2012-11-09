@@ -58,8 +58,10 @@
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
+#include "BKE_action.h"
 #include "BKE_colortools.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_idprop.h"
@@ -111,6 +113,24 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 			MEM_freeN(qcd->cdParms);
 			qcd->cdParms = NULL;
 			qcd->cdSize = 0;
+		}
+	}
+}
+
+static void remove_sequencer_fcurves(Scene *sce)
+{
+	AnimData *ad = BKE_animdata_from_id(&sce->id);
+
+	if (ad && ad->action) {
+		FCurve *fcu, *nextfcu;
+
+		for (fcu = ad->action->curves.first; fcu; fcu = nextfcu)  {
+			nextfcu = fcu->next;
+
+			if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
+				action_groups_remove_channel(ad->action, fcu);
+				free_fcurve(fcu);
+			}
 		}
 	}
 }
@@ -179,6 +199,10 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 
 		BLI_strncpy(scen->sequencer_colorspace_settings.name, sce->sequencer_colorspace_settings.name,
 		            sizeof(scen->sequencer_colorspace_settings.name));
+
+		/* remove animation used by sequencer */
+		if (type != SCE_COPY_FULL)
+			remove_sequencer_fcurves(scen);
 	}
 
 	/* tool settings */
