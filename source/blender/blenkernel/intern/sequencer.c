@@ -2344,6 +2344,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	int do_seq;
 	int have_seq = FALSE;
 	Scene *scene;
+	int is_thread_main = BLI_thread_is_main();
 
 	/* don't refer to seq->scene above this point!, it can be NULL */
 	if (seq->scene == NULL) {
@@ -2373,7 +2374,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 
 	/* prevent eternal loop */
 	do_seq = context.scene->r.scemode & R_DOSEQ;
-	context.scene->r.scemode &= ~R_DOSEQ;
+	scene->r.scemode &= ~R_DOSEQ;
 	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
@@ -2383,9 +2384,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	(void)oldmarkers;
 #endif
 
-	if ((sequencer_view3d_cb && do_seq_gl && camera) &&
-	    (BLI_thread_is_main() == TRUE) &&
-	    ((have_seq == FALSE) || (scene == context.scene)))
+	if ((sequencer_view3d_cb && do_seq_gl && camera) && is_thread_main)
 	{
 		char err_out[256] = "unknown";
 		/* for old scened this can be uninitialized,
@@ -2405,8 +2404,12 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		Render *re = RE_GetRender(scene->id.name);
 		RenderResult rres;
 
-		/* XXX: this if can be removed when sequence preview rendering uses the job system */
-		if (is_rendering || context.scene != scene) {
+		/* XXX: this if can be removed when sequence preview rendering uses the job system
+		 *
+		 * disable rendered preview for sequencer while rendering -- it's very much possible
+		 * that preview render will went into conflict with final render
+		 */
+		if (!is_thread_main || is_rendering == FALSE) {
 			if (re == NULL)
 				re = RE_NewRender(scene->id.name);
 			
@@ -2440,7 +2443,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	}
 	
 	/* restore */
-	context.scene->r.scemode |= do_seq;
+	scene->r.scemode |= do_seq;
 	
 	scene->r.cfra = oldcfra;
 

@@ -913,6 +913,13 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	unsigned char *display_buffer;
 	void *cache_handle = NULL;
 
+	if (G.is_rendering == FALSE) {
+		/* stop all running jobs, except screen one. currently previews frustrate Render
+		 * needed to make so sequencer's rendering doesn't conflict with compositor
+		 */
+		WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
+	}
+
 	render_size = sseq->render_size;
 	if (render_size == 0) {
 		render_size = scene->r.size;
