@@ -726,8 +726,14 @@ static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], i
 	 * dupli object between frames, which is needed for motion blur. last level
 	 * goes first in the array. */
 	dob->persistent_id[0] = index;
-	for(i = 1; i < level; i++)
+	for (i = 1; i < level; i++)
 		dob->persistent_id[i] = persistent_id[level-1-i];
+	
+	/* metaballs never draw in duplis, they are instead merged into one by the basis
+	 * mball outside of the group. this does mean that if that mball is not in the
+	 * scene, they will not show up at all, limitation that should be solved once. */
+	if (ob->type == OB_MBALL)
+		dob->no_draw = TRUE;
 	
 	return dob;
 }
@@ -780,9 +786,6 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persiste
 			    ((G.is_rendering == TRUE)  && dob->ob->restrictflag & OB_RESTRICT_RENDER))
 			{
 				dob->no_draw = TRUE;
-			}
-			else {
-				dob->no_draw = FALSE;
 			}
 
 			if (go->ob->transflag & OB_DUPLI) {
@@ -1643,7 +1646,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 	}
 
 	/* keep track of persistent id */
-	if(level > 0)
+	if (level > 0)
 		persistent_id[level-1] = index;
 
 	if (ob->transflag & OB_DUPLIPARTS) {
@@ -1690,7 +1693,7 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 	}
 
 	/* clear persistent id */
-	if(level > 0)
+	if (level > 0)
 		persistent_id[level-1] = 0;
 }
 
