@@ -45,6 +45,8 @@ CCL_NAMESPACE_BEGIN
 
 OSLShaderManager::OSLShaderManager()
 {
+	thread_data_initialized = false;
+
 	services = new OSLRenderServices();
 
 	shading_system_init();
@@ -91,8 +93,6 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	og->background_state = og->surface_state[background_id & SHADER_MASK];
 	og->use = true;
 
-	tls_create(OSLGlobals::ThreadData, og->thread_data);
-
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update = false;
 
@@ -102,6 +102,11 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	scene->image_manager->set_osl_texture_system((void*)ts);
 
 	device_update_common(device, dscene, scene, progress);
+
+	if(!thread_data_initialized) {
+		og->thread_data_init();
+		thread_data_initialized = true;
+	}
 }
 
 void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
@@ -114,12 +119,15 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
 	og->use = false;
 	og->ss = NULL;
 
-	tls_delete(OSLGlobals::ThreadData, og->thread_data);
-
 	og->surface_state.clear();
 	og->volume_state.clear();
 	og->displacement_state.clear();
 	og->background_state.reset();
+
+	if(thread_data_initialized) {
+		og->thread_data_free();
+		thread_data_initialized = false;
+	}
 }
 
 void OSLShaderManager::texture_system_init()
