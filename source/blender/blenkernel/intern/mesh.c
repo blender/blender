@@ -2388,7 +2388,7 @@ void create_vert_poly_map(MeshElemMap **map, int **mem,
  * of edges that use that vertex as an endpoint. The lists are allocated
  * from one memory pool. */
 void create_vert_edge_map(MeshElemMap **map, int **mem,
-						  const MEdge *medge, int totvert, int totedge)
+                          const MEdge *medge, int totvert, int totedge)
 {
 	int i, *indices;
 

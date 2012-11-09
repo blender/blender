@@ -92,7 +92,7 @@ void TrackPositionOperation::initExecution()
 			}
 			else if (this->m_position == POSITION_RELATIVE_FRAME) {
 				int relative_clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(this->m_movieClip,
-						this->m_relativeFrame);
+				                                                                    this->m_relativeFrame);
 
 				marker = BKE_tracking_marker_get(track, relative_clip_framenr);
 				copy_v2_v2(this->m_relativePos, marker->pos);

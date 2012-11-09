@@ -175,7 +175,7 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			return 1;
 			
 		case SACTCONT_MASK: /* Mask */ /* XXX review how this mode is handled... */
-{
+		{
 			/* TODO, other methods to get the mask */
 			// Sequence *seq = BKE_sequencer_active_get(ac->scene);
 			//MovieClip *clip = ac->scene->clip;
@@ -189,7 +189,7 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			
 			ac->mode = saction->mode;
 			return 1;
-}
+		}
 		case SACTCONT_DOPESHEET: /* DopeSheet */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;

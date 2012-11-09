@@ -2809,7 +2809,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "skin_vertices", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "vdata.layers", "vdata.totlayer");
 	RNA_def_property_collection_funcs(prop, "rna_Mesh_skin_vertices_begin", NULL, NULL, NULL,
-									  "rna_Mesh_skin_vertices_length", NULL, NULL, NULL);
+	                                  "rna_Mesh_skin_vertices_length", NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "MeshSkinVertexLayer");
 	RNA_def_property_ui_text(prop, "Skin Vertices", "All skin vertices");
 	rna_def_skin_vertices(brna, prop);

@@ -349,9 +349,9 @@ static void hue_correct_apply_threaded(int width, int height, unsigned char *rec
 			hsv_to_rgb(hsv[0], hsv[1], hsv[2], result, result + 1, result + 2);
 
 			if (mask_rect_float)
-					copy_v3_v3(mask, mask_rect_float + pixel_index);
+				copy_v3_v3(mask, mask_rect_float + pixel_index);
 			else if (mask_rect)
-					rgb_uchar_to_float(mask, mask_rect + pixel_index);
+				rgb_uchar_to_float(mask, mask_rect + pixel_index);
 
 			result[0] = pixel[0] * (1.0f - mask[0]) + result[0] * mask[0];
 			result[1] = pixel[1] * (1.0f - mask[1]) + result[1] * mask[1];

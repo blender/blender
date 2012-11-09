@@ -1204,7 +1204,7 @@ typedef struct NodeInfo {
 static NodeInfo nodes[MaxNodes];
 
 static void reg_node(int ID, int category, const char *enum_name, const char *struct_name,
-		const char *base_name, const char *ui_name, const char *ui_desc)
+                     const char *base_name, const char *ui_name, const char *ui_desc)
 {
 	NodeInfo *ni = nodes + ID;
 	

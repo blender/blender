@@ -644,8 +644,8 @@ typedef struct {
 } EdgeStackElem;
 
 static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
-							  const MeshElemMap *emap, const MEdge *medge,
-							  const MVertSkin *vs, const MVert *mvert)
+                              const MeshElemMap *emap, const MEdge *medge,
+                              const MVertSkin *vs, const MVert *mvert)
 {
 	EdgeStackElem stack_elem;
 	float axis[3], angle;
@@ -673,7 +673,7 @@ static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
 	/* If parent is a branch node, start a new edge chain */
 	if (parent_is_branch) {
 		calc_edge_mat(emat[e].mat, mvert[parent_v].co,
-					  mvert[v].co);
+		              mvert[v].co);
 	}
 	else {
 		/* Build edge matrix guided by parent matrix */
@@ -959,12 +959,12 @@ static void add_poly(SkinOutput *so,
 
 static void connect_frames(SkinOutput *so,
                            BMVert *frame1[4],
-                           BMVert *frame2[4])
+BMVert *frame2[4])
 {
 	BMVert *q[4][4] = {{frame2[0], frame2[1], frame1[1], frame1[0]},
-					   {frame2[1], frame2[2], frame1[2], frame1[1]},
-					   {frame2[2], frame2[3], frame1[3], frame1[2]},
-					   {frame2[3], frame2[0], frame1[0], frame1[3]}};
+	                   {frame2[1], frame2[2], frame1[2], frame1[1]},
+	                   {frame2[2], frame2[3], frame1[3], frame1[2]},
+	                   {frame2[3], frame2[0], frame1[0], frame1[3]}};
 	float p[3], no[3];
 	int i, swap;
 

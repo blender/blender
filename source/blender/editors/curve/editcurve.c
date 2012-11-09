@@ -6465,8 +6465,8 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 						fac = (float)b - 1.5f;
 						bp->vec[1] += fac * grid;
 						if (a == 1 || a == 2) if (b == 1 || b == 2) {
-								bp->vec[2] += grid;
-							}
+							bp->vec[2] += grid;
+						}
 						mul_m4_v3(mat, bp->vec);
 						bp->vec[3] = 1.0;
 						bp++;

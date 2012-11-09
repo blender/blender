@@ -1117,12 +1117,12 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 			sumdiv += *fp;
 		}
 		if (sumdiv != 0.0f) if (sumdiv < 0.999f || sumdiv > 1.001f) {
-				/* is normalizing needed? */
-				fp = sum;
-				for (i = istart; i <= iend; i++, fp++) {
-					*fp /= sumdiv;
-				}
+			/* is normalizing needed? */
+			fp = sum;
+			for (i = istart; i <= iend; i++, fp++) {
+				*fp /= sumdiv;
 			}
+		}
 
 		/* one! (1.0) real point */
 		fp = sum;
@@ -2481,8 +2481,8 @@ void BKE_curve_bevelList_make(Object *ob)
 				else
 					bevp2 = bevp1 + 1;
 
-				inp = (bevp1->vec[0] - bevp0->vec[0]) * (bevp0->vec[1] - bevp2->vec[1]) +
-						(bevp0->vec[1] - bevp1->vec[1]) * (bevp0->vec[0] - bevp2->vec[0]);
+				inp = ((bevp1->vec[0] - bevp0->vec[0]) * (bevp0->vec[1] - bevp2->vec[1]) +
+				       (bevp0->vec[1] - bevp1->vec[1]) * (bevp0->vec[0] - bevp2->vec[0]));
 
 				if (inp > 0.0f)
 					sd->dir = 1;

@@ -245,7 +245,7 @@ static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int e
 		}
 		else {
 			bucket->segments = MEM_reallocN(bucket->segments,
-					(alloc_delta + bucket->tot_segment) * sizeof(*bucket->segments));
+			                                (alloc_delta + bucket->tot_segment) * sizeof(*bucket->segments));
 		}
 
 		bucket->alloc_segment += alloc_delta;

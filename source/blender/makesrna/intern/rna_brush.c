@@ -146,8 +146,8 @@ static int rna_SculptCapabilities_has_overlay_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
 	return ELEM(br->mtex.brush_map_mode,
-				MTEX_MAP_MODE_VIEW,
-				MTEX_MAP_MODE_TILED);
+	            MTEX_MAP_MODE_VIEW,
+	            MTEX_MAP_MODE_TILED);
 }
 
 static int rna_SculptCapabilities_has_persistence_get(PointerRNA *ptr)

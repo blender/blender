@@ -247,12 +247,13 @@ int locateGlyph(bmFont *bmfont, unsigned short unicode)
 	return(current);
 }
 
-void matrixGlyph(ImBuf * ibuf, unsigned short unicode,
-		float *centerx, float *centery,
-		float *sizex,   float *sizey,
-		float *transx,  float *transy,
-		float *movex,   float *movey,
-		float *advance)
+void matrixGlyph(
+        ImBuf * ibuf, unsigned short unicode,
+        float *centerx, float *centery,
+        float *sizex,   float *sizey,
+        float *transx,  float *transy,
+        float *movex,   float *movey,
+        float *advance)
 {
 	int index;
 	bmFont *bmfont;

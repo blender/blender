@@ -1042,7 +1042,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					/* Default */
 					case eModifierType_None:
 					case eModifierType_ShapeKey:
-			        case NUM_MODIFIER_TYPES:
+					case NUM_MODIFIER_TYPES:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
 				break;
