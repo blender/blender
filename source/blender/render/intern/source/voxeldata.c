@@ -265,7 +265,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 
 				/* map velocities between 0 and 0.3f */
 				for (i = 0; i < totRes; i++) {
-					vd->dataset[i] = sqrt(xvel[i] * xvel[i] + yvel[i] * yvel[i] + zvel[i] * zvel[i]) * 3.0f;
+					vd->dataset[i] = sqrtf(xvel[i] * xvel[i] + yvel[i] * yvel[i] + zvel[i] * zvel[i]) * 3.0f;
 				}
 
 			}

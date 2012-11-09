@@ -63,10 +63,10 @@ const MT_Point3& RAS_TexVert::xyz()
 void RAS_TexVert::SetRGBA(const MT_Vector4& rgba)
 {
 	unsigned char *colp = (unsigned char*) &m_rgba;
-	colp[0] = (unsigned char) (rgba[0]*255.0f);
-	colp[1] = (unsigned char) (rgba[1]*255.0f);
-	colp[2] = (unsigned char) (rgba[2]*255.0f);
-	colp[3] = (unsigned char) (rgba[3]*255.0f);
+	colp[0] = (unsigned char) (rgba[0] * 255.0);
+	colp[1] = (unsigned char) (rgba[1] * 255.0);
+	colp[2] = (unsigned char) (rgba[2] * 255.0);
+	colp[3] = (unsigned char) (rgba[3] * 255.0);
 }
 
 
