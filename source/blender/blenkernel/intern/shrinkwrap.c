@@ -277,6 +277,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 
 	/* Options about projection direction */
 	const char use_normal   = calc->smd->shrinkOpts;
+	const float proj_limit_squared = calc->smd->projLimit * calc->smd->projLimit;
 	float proj_axis[3]      = {0.0f, 0.0f, 0.0f};
 
 	/* Raycast and tree stuff */
@@ -393,6 +394,13 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 				                                 treeData.raycast_callback, &treeData);
 			}
 
+			/* don't set the initial dist (which is more efficient),
+			 * because its calculated in the targets space, we want the dist in our own space */
+			if (proj_limit_squared != 0.0f) {
+				if (len_squared_v3v3(hit.co, co) > proj_limit_squared) {
+					hit.index = -1;
+				}
+			}
 
 			if (hit.index != -1) {
 				madd_v3_v3v3fl(hit.co, hit.co, tmp_no, calc->keepDist);
