@@ -162,7 +162,8 @@ typedef struct ThemeUI {
 	char iconfile[256];	// FILE_MAXFILE length
 	float icon_alpha;
 
-	float pad;
+	/* Axis Colors */
+	char xaxis[4], yaxis[4], zaxis[4];
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well

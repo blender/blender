@@ -728,6 +728,29 @@ class USERPREF_PT_theme(Panel):
             colsub = padding.column()
             colsub.row().prop(ui, "header")
 
+            col.separator()
+            col.separator()
+
+            ui = theme.user_interface
+            col.label("Axis Colors:")
+
+            row = col.row()
+
+            subsplit = row.split(percentage=0.95)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "axis_x")
+            colsub.row().prop(ui, "axis_y")
+            colsub.row().prop(ui, "axis_z")
+            
+            subsplit = row.split(percentage=0.85)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            
             layout.separator()
             layout.separator()
         elif theme.theme_area == 'BONE_COLOR_SETS':

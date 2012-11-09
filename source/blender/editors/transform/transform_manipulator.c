@@ -744,7 +744,7 @@ static char axisBlendAngle(float angle)
 	return (char)(255.0f * (angle - 5) / 15.0f);
 }
 
-/* three colors can be set;
+/* three colors can be set:
  * gray for ghosting
  * moving: in transform theme color
  * else the red/green/blue
@@ -776,15 +776,13 @@ static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned c
 				}
 				break;
 			case 'X':
-				col[0] = 220;
+				UI_GetThemeColor3ubv(TH_AXIS_X, col);
 				break;
 			case 'Y':
-				col[1] = 220;
+				UI_GetThemeColor3ubv(TH_AXIS_Y, col);
 				break;
 			case 'Z':
-				col[0] = 30;
-				col[1] = 30;
-				col[2] = 220;
+				UI_GetThemeColor3ubv(TH_AXIS_Z, col);
 				break;
 			default:
 				BLI_assert(!"invalid axis arg");

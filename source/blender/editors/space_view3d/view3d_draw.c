@@ -545,12 +545,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 			}
 		}
 	}
-
-
-
-
-	if (v3d->zbuf && scene->obedit) glDepthMask(1);
 	
+	if (v3d->zbuf && scene->obedit) glDepthMask(1);
 }
 
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
@@ -600,8 +596,8 @@ static void draw_view_axis(RegionView3D *rv3d)
 	mul_qt_v3(rv3d->viewquat, vec);
 	dx = vec[0] * k;
 	dy = vec[1] * k;
-
-	glColor4ub(220, 0, 0, bright);
+	
+	UI_ThemeColorShadeAlpha(TH_AXIS_X, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -620,8 +616,8 @@ static void draw_view_axis(RegionView3D *rv3d)
 	mul_qt_v3(rv3d->viewquat, vec);
 	dx = vec[0] * k;
 	dy = vec[1] * k;
-
-	glColor4ub(0, 220, 0, bright);
+	
+	UI_ThemeColorShadeAlpha(TH_AXIS_Y, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -640,7 +636,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 
-	glColor4ub(30, 30, 220, bright);
+	UI_ThemeColorShadeAlpha(TH_AXIS_Z, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);

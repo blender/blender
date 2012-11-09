@@ -770,6 +770,25 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "icon_alpha", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_ui_text(prop, "Icon Alpha", "Transparency of icons in the interface, to reduce contrast");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	/* axis */
+	prop = RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "xaxis");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "X Axis", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "axis_y", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "yaxis");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Y Axis", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "axis_z", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "zaxis");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Z Axis", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_theme_space_generic(BlenderRNA *brna)

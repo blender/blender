@@ -381,7 +381,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short rest
 						return RAD2DEGF(1.0f);  /* radians to degrees */
 				}
 			}
-
+			
 			/* TODO: other rotation types here as necessary */
 		}
 	}
