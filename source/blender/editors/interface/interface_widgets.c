@@ -1044,6 +1044,8 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 				ui_text_clip_give_prev_off(but);
 			len = strlen(but->drawstr);
 			bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + len));
+			if (bytes < 0)
+				bytes = 1;
 			but->drawstr[len - bytes] = 0;
 		}
 

@@ -317,12 +317,12 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 /* end wchar_t / utf8 functions  */
 /* --------------------------------------------------------------------------*/
 
-/* copied from glib's gutf8.c */
+/* copied from glib's gutf8.c, added 'Err' arg */
 
 /* note, glib uses unsigned int for unicode, best we do the same,
  * though we don't typedef it - campbell */
 
-#define UTF8_COMPUTE(Char, Mask, Len)                                         \
+#define UTF8_COMPUTE(Char, Mask, Len, Err)                                    \
 	if (Char < 128) {                                                         \
 		Len = 1;                                                              \
 		Mask = 0x7f;                                                          \
@@ -348,7 +348,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 		Mask = 0x01;                                                          \
 	}                                                                         \
 	else {                                                                    \
-		Len = -1;                                                             \
+		Len = Err;  /* -1 is the typical error value or 1 to skip */          \
 	} (void)0
 
 /* same as glib define but added an 'Err' arg */
@@ -371,7 +371,20 @@ int BLI_str_utf8_size(const char *p)
 	int mask = 0, len;
 	unsigned char c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len);
+	UTF8_COMPUTE (c, mask, len, -1);
+
+	(void)mask; /* quiet warning */
+
+	return len;
+}
+
+/* use when we want to skip errors */
+int BLI_str_utf8_size_safe(const char *p)
+{
+	int mask = 0, len;
+	unsigned char c = (unsigned char) *p;
+
+	UTF8_COMPUTE (c, mask, len, 1);
 
 	(void)mask; /* quiet warning */
 
@@ -397,7 +410,7 @@ unsigned int BLI_str_utf8_as_unicode(const char *p)
 	unsigned int result;
 	unsigned char c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len);
+	UTF8_COMPUTE (c, mask, len, -1);
 	if (len == -1)
 		return BLI_UTF8_ERR;
 	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
@@ -412,7 +425,7 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index)
 	unsigned int result;
 	unsigned char c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len);
+	UTF8_COMPUTE (c, mask, len, -1);
 	if (len == -1)
 		return BLI_UTF8_ERR;
 	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
@@ -431,7 +444,7 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
 	p += *index;
 	c = (unsigned char) *p;
 
-	UTF8_COMPUTE (c, mask, len);
+	UTF8_COMPUTE (c, mask, len, -1);
 	if (len == -1) {
 		/* when called with NULL end, result will never be NULL,
 		 * checks for a NULL character */

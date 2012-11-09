@@ -37,6 +37,7 @@ int          BLI_utf8_invalid_byte(const char *str, int length);
 int          BLI_utf8_invalid_strip(char *str, int length);
 
 int          BLI_str_utf8_size(const char *p); /* warning, can return -1 on bad chars */
+int          BLI_str_utf8_size_safe(const char *p);
 /* copied from glib */
 unsigned int BLI_str_utf8_as_unicode(const char *p);
 unsigned int BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *__restrict index);
