@@ -218,7 +218,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
 
         sub = col.column(align=True)
         sub.label(text="Final Render:")
-        sub.prop(cscene, "use_persistent_images")
+        sub.prop(rd, "use_persistent_data", text="Persistent Images")
 
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):

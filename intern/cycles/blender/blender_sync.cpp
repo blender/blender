@@ -284,6 +284,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 
 SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 {
+	BL::RenderSettings r = b_scene.render();
 	SceneParams params;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 	int shadingsystem = RNA_enum_get(&cscene, "shading_system");
@@ -301,7 +302,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
 	params.use_bvh_cache = (background)? RNA_boolean_get(&cscene, "use_cache"): false;
 
-	params.persistent_images = (background)? RNA_boolean_get(&cscene, "use_persistent_images"): false;
+	params.persistent_images = (background)? r.use_persistent_data(): false;
 
 	return params;
 }

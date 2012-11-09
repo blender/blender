@@ -382,6 +382,11 @@ int RE_engine_render(Render *re, int do_all)
 	if (type->render)
 		type->render(engine, re->scene);
 
+	if(!(re->r.mode & R_PERSISTENT_DATA)) {
+		RE_engine_free(re->engine);
+		re->engine = NULL;
+	}
+
 	if (re->result->do_exr_tile) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 		render_result_exr_file_end(re);

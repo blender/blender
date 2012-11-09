@@ -58,6 +58,7 @@
 #include "GPU_material.h"
 
 #include "RE_engine.h"
+#include "RE_pipeline.h"
 
 #include "ED_node.h"
 #include "ED_render.h"
@@ -157,6 +158,8 @@ void ED_render_engine_changed(Main *bmain)
 	for (sc = bmain->screen.first; sc; sc = sc->id.next)
 		for (sa = sc->areabase.first; sa; sa = sa->next)
 			ED_render_engine_area_exit(sa);
+
+	RE_FreePersistentData();
 }
 
 /***************************** Updates ***********************************

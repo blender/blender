@@ -297,12 +297,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 default=False,
                 )
 
-        cls.use_persistent_images = BoolProperty(
-                name="Persistent Images",
-                description="Keep images loaded on the device so they could be reused by next render",
-                default=False,
-                )
-
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.cycles
