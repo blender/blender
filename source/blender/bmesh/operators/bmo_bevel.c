@@ -510,7 +510,7 @@ static int find_intersection_point(float r[3], float a1[3], float a2[3], float b
 static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], float p3[3],
                                           float a[3], float m[3])
 {
-	const double null = 1e-20;
+	const double isect_epsilon = 1e-20;
 	float P[3], N[3], A[3], M[3];
 	float vv1[3], vv2[3];
 	double t;
@@ -542,9 +542,9 @@ static void find_intersection_point_plane(float r[3], float p1[3], float p2[3], 
 	else {
 		C = N[0] * P[0] + N[1] * P[1] + N[2] * P[2];
 		D = N[0] * M[0] + N[1] * M[1] + N[2] * M[2];
-		E = (A[0] * N[0] + A[1] * N[1] + A[2] * N[2]);
+		E = A[0] * N[0] + A[1] * N[1] + A[2] * N[2];
 
-		if (fabs(E) < null)
+		if (fabs(E) < isect_epsilon)
 			t = 0;
 		else
 			t = (C - D) / E;

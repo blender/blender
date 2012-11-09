@@ -56,32 +56,15 @@
 #include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
 
+/* for timing... */
+#if 0
+#  include "PIL_time.h"
+#else
+#  define TIMEIT_BENCH(expr, id) (expr)
+#endif
+
 /* Util macros */
 #define OUT_OF_MEMORY() ((void)printf("Shrinkwrap: Out of memory\n"))
-
-/* Benchmark macros */
-#if !defined(_WIN32) && 0
-
-#include <sys/time.h>
-
-#define BENCH(a)	\
-	do {			\
-		double _t1, _t2;				\
-		struct timeval _tstart, _tend;	\
-		clock_t _clock_init = clock();	\
-		gettimeofday ( &_tstart, NULL);	\
-		(a);							\
-		gettimeofday ( &_tend, NULL);	\
-		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
-		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
-		printf("%s: %fs (real) %fs (cpu)\n", #a, _t2-_t1, (float)(clock()-_clock_init)/CLOCKS_PER_SEC);\
-	} while (0)
-
-#else
-
-#define BENCH(a)    (a)
-
-#endif
 
 /* get derived mesh */
 /* TODO is anyfunction that does this? returning the derivedFinal without we caring if its in edit mode or not? */
@@ -143,7 +126,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
 
-	BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6));
+	TIMEIT_BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6), bvhtree_verts);
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
@@ -437,7 +420,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
 	/* Create a bvh-tree of the given target */
-	BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 2, 6));
+	TIMEIT_BENCH(bvhtree_from_mesh_faces(&treeData, calc->target, 0.0, 2, 6), bvhtree_faces);
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
@@ -584,15 +567,15 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 	if (calc.target) {
 		switch (smd->shrinkType) {
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
-				BENCH(shrinkwrap_calc_nearest_surface_point(&calc));
+				TIMEIT_BENCH(shrinkwrap_calc_nearest_surface_point(&calc), deform_surface);
 				break;
 
 			case MOD_SHRINKWRAP_PROJECT:
-				BENCH(shrinkwrap_calc_normal_projection(&calc));
+				TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc), deform_project);
 				break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:
-				BENCH(shrinkwrap_calc_nearest_vertex(&calc));
+				TIMEIT_BENCH(shrinkwrap_calc_nearest_vertex(&calc), deform_vertex);
 				break;
 		}
 	}

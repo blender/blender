@@ -76,6 +76,14 @@ void    PIL_sleep_ms(int ms);
 	fflush(stdout);                                                           \
 } (void)0
 
+
+#define TIMEIT_BENCH(expr, id)                                                \
+	{                                                                         \
+		TIMEIT_START(id);                                                     \
+		(expr);                                                               \
+		TIMEIT_END(id);                                                       \
+	} (void)0
+
 #ifdef __cplusplus
 }
 #endif
