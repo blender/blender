@@ -825,7 +825,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* make sure the two edges have a valid angle to each other */
-		if (totesel == 2 && BM_edge_share_vert_count(e1, e2)) {
+		if (totesel == 2 && BM_edge_share_vert_check(e1, e2)) {
 			sub_v3_v3v3(vec1, e1->v2->co, e1->v1->co);
 			sub_v3_v3v3(vec2, e2->v2->co, e2->v1->co);
 			normalize_v3(vec1);

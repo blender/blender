@@ -118,7 +118,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		e = v->e;
 		do {
 			e = bmesh_disk_edge_next(e, v);
-			if (!(BM_edge_share_face_count(e, v->e))) {
+			if (!(BM_edge_share_face_check(e, v->e))) {
 				keepedge = e;
 				baseedge = v->e;
 				break;

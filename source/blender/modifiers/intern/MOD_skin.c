@@ -1354,24 +1354,6 @@ static void add_quad_from_tris(SkinOutput *so, BMEdge *e, BMFace *adj[2])
 	add_poly(so, quad[0], quad[1], quad[2], quad[3]);
 }
 
-/* Returns the number of faces that are adjacent to both f1 and f2 */
-static int BM_face_share_face_count(BMFace *f1, BMFace *f2)
-{
-	BMIter iter1, iter2;
-	BMEdge *e;
-	BMFace *f;
-	int count = 0;
-
-	BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
-		BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
-			if (f != f1 && f != f2 && BM_face_share_edge_count(f, f2))
-				count++;
-		}
-	}
-
-	return count;
-}
-
 static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 {
 	BMIter iter;
@@ -1434,7 +1416,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 			 * share a border with another face, output as a quad */
 			if (!BM_elem_flag_test(adj[0], BM_ELEM_TAG) &&
 			    !BM_elem_flag_test(adj[1], BM_ELEM_TAG) &&
-			    !BM_face_share_face_count(adj[0], adj[1]))
+			    !BM_face_share_face_check(adj[0], adj[1]))
 			{
 				add_quad_from_tris(so, e, adj);
 				BM_elem_flag_enable(adj[0], BM_ELEM_TAG);

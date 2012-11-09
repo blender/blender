@@ -84,9 +84,13 @@ int     BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface);
 int     BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len);
 int     BM_face_exists_multi_edge(BMEdge **earr, int len);
 
+int     BM_face_share_face_count(BMFace *f1, BMFace *f2);
 int     BM_face_share_edge_count(BMFace *f1, BMFace *f2);
-int     BM_edge_share_face_count(BMEdge *e1, BMEdge *e2);
-int     BM_edge_share_vert_count(BMEdge *e1, BMEdge *e2);
+
+int     BM_face_share_face_check(BMFace *f1, BMFace *f2);
+int     BM_face_share_edge_check(BMFace *f1, BMFace *f2);
+int     BM_edge_share_face_check(BMEdge *e1, BMEdge *e2);
+int     BM_edge_share_vert_check(BMEdge *e1, BMEdge *e2);
 
 BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2);
 BMLoop *BM_face_vert_share_loop(BMFace *f, BMVert *v);

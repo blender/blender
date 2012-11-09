@@ -828,8 +828,6 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		mcol = DM_get_tessface_data_layer(dm, colType);
 	}
 
-	printf("%s: %p(%d/%d)\n", __func__, mcol, CD_ID_MCOL, colType);
-
 	cdDM_update_normals_from_pbvh(dm);
 
 	/* back-buffer always uses legacy since VBO's would need the
