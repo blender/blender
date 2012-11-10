@@ -360,36 +360,39 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr)
 }
 
 /* for libdata, nr has ID code, no increment */
-static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib) 
+static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib)
 {
-	int i;
-	
-	if (addr == NULL) return NULL;
-	
+	if (addr == NULL) {
+		return NULL;
+	}
+
 	/* lasthit works fine for non-libdata, linking there is done in same sequence as writing */
 	if (onm->sorted) {
 		OldNew entry_s, *entry;
-		
+
 		entry_s.old = addr;
-		
+
 		entry = bsearch(&entry_s, onm->entries, onm->nentries, sizeof(OldNew), verg_oldnewmap);
 		if (entry) {
 			ID *id = entry->newp;
-			
+
 			if (id && (!lib || id->lib)) {
-				return entry->newp;
+				return id;
 			}
 		}
 	}
-	
-	for (i = 0; i < onm->nentries; i++) {
-		OldNew *entry = &onm->entries[i];
-		
-		if (entry->old == addr) {
-			ID *id = entry->newp;
-			
-			if (id && (!lib || id->lib)) {
-				return entry->newp;
+	else {
+		/* note, this can be a bottle neck when loading some files */
+		unsigned int nentries = (unsigned int)onm->nentries;
+		unsigned int i;
+		OldNew *entry;
+
+		for (i = 0, entry = onm->entries; i < nentries; i++, entry++) {
+			if (entry->old == addr) {
+				ID *id = id = entry->newp;
+				if (id && (!lib || id->lib)) {
+					return id;
+				}
 			}
 		}
 	}
