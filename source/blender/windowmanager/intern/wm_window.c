@@ -345,7 +345,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	                              (GHOST_TWindowState)win->windowstate,
 	                              GHOST_kDrawingContextTypeOpenGL,
 	                              0 /* no stereo */,
-	                              0 /* no AA */);
+								  U.ogl_multisamples /* AA */);
 	
 	if (ghostwin) {
 		/* needed so we can detect the graphics card below */
@@ -373,7 +373,6 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		
 		/* standard state vars for window */
 		glEnable(GL_SCISSOR_TEST);
-		
 		GPU_state_init();
 	}
 }

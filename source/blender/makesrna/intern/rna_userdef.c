@@ -3018,6 +3018,15 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
+	static EnumPropertyItem multi_sample_levels[] = {
+		{USER_MULTISAMPLE_NONE, "MULTISAMPLE_NONE", 0, "No MultiSample", "Do not use OpenGL MultiSample"},
+		{USER_MULTISAMPLE_2, "MULTISAMPLE_2", 0, "MultiSample: 2", "Use 2x OpenGL MultiSample (requires restart)"},
+		{USER_MULTISAMPLE_4, "MULTISAMPLE_4", 0, "MultiSample: 4", "Use 4x OpenGL MultiSample (requires restart)"},
+		{USER_MULTISAMPLE_8, "MULTISAMPLE_8", 0, "MultiSample: 8", "Use 8x OpenGL MultiSample (requires restart)"},
+		{USER_MULTISAMPLE_16, "MULTISAMPLE_16", 0, "MultiSample: 16", "Use 16x OpenGL MultiSample (requires restart)"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 #if 0
 	/* hardcoded here, could become dynamic somehow */
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
@@ -3312,6 +3321,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
 	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 	
+	/* Full scene anti-aliasing */
+	prop = RNA_def_property(srna, "ogl_multisamples", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ogl_multisamples");
+	RNA_def_property_enum_items(prop, multi_sample_levels);
+	RNA_def_property_ui_text(prop, "MultiSample", "Enable OpenGL multi-sampling, only for systems that support it, requires restart");
+
 #ifdef WITH_CYCLES
 	prop = RNA_def_property(srna, "compute_device_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
@@ -3441,7 +3456,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_SHOW_GUIDE);
 	RNA_def_property_ui_text(prop, "Show Navigation Guide", "Display the center and axis during rotation");
 	/* TODO: update description when fly-mode visuals are in place  ("projected position in fly mode")*/
-
+	
 	/* 3D view */
 	prop = RNA_def_property(srna, "ndof_view_rotate_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ndof_flag");

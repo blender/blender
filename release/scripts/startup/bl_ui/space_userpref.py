@@ -446,6 +446,7 @@ class USERPREF_PT_system(Panel):
         #~ col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
         col.prop(system, "window_draw_method", text="")
+        col.prop(system, "ogl_multisamples", text="")
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
         col.label(text="Textures:")
