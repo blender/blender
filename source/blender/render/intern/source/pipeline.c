@@ -432,7 +432,7 @@ void RE_FreePersistentData(void)
 	/* render engines can be kept around for quick re-render, this clears all */
 	for (re = RenderGlobal.renderlist.first; re; re = re->next) {
 		if (re->engine) {
-			RE_engine_free(re);
+			RE_engine_free(re->engine);
 			re->engine = NULL;
 		}
 	}
