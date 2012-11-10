@@ -49,7 +49,9 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperat
 	this->m_movieClip = NULL;
 	this->m_cache = NULL;
 	this->m_distortion = distortion;
+	setComplex(true);
 }
+
 void MovieDistortionOperation::initExecution()
 {
 	this->m_inputOperation = this->getInputSocketReader(0);
@@ -105,10 +107,10 @@ void MovieDistortionOperation::executePixel(float output[4], float x, float y, P
 	if (this->m_cache != NULL) {
 		float u, v;
 		this->m_cache->getUV(&this->m_movieClip->tracking, x, y, &u, &v);
-		this->m_inputOperation->read(output, u, v, sampler);
+		this->m_inputOperation->read(output, u, v, COM_PS_BILINEAR);
 	}
 	else {
-		this->m_inputOperation->read(output, x, y, sampler);
+		this->m_inputOperation->read(output, x, y, COM_PS_BILINEAR);
 	}
 }
 
