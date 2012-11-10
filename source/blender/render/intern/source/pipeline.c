@@ -425,7 +425,7 @@ void RE_FreeAllRenderResults(void)
 	}
 }
 
-void RE_FreePersistentData()
+void RE_FreePersistentData(void)
 {
 	Render *re;
 
