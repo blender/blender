@@ -49,7 +49,6 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperat
 	this->m_movieClip = NULL;
 	this->m_cache = NULL;
 	this->m_distortion = distortion;
-	setComplex(true);
 }
 
 void MovieDistortionOperation::initExecution()

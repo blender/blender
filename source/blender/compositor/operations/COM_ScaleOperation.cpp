@@ -29,7 +29,16 @@
  * note: use bilinear because bicubic makes fuzzy even when not scaling at all (1:1)
  */
 
-ScaleOperation::ScaleOperation() : NodeOperation()
+BaseScaleOperation::BaseScaleOperation()
+{
+#ifdef USE_FORCE_BILINEAR
+	m_sampler = (int) COM_PS_BILINEAR;
+#else
+	m_sampler = -1;
+#endif
+}
+
+ScaleOperation::ScaleOperation() : BaseScaleOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
@@ -59,22 +68,20 @@ void ScaleOperation::deinitExecution()
 
 void ScaleOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BILINEAR
-	sampler = COM_PS_BILINEAR;
-#endif
+	PixelSampler effective_sampler = getEffectiveSampler(sampler);
 
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, x, y, sampler);
-	this->m_inputYOperation->read(scaleY, x, y, sampler);
+	this->m_inputXOperation->read(scaleX, x, y, effective_sampler);
+	this->m_inputYOperation->read(scaleY, x, y, effective_sampler);
 
 	const float scx = scaleX[0];
 	const float scy = scaleY[0];
 
 	float nx = this->m_centerX + (x - this->m_centerX) / scx;
 	float ny = this->m_centerY + (y - this->m_centerY) / scy;
-	this->m_inputOperation->read(output, nx, ny, sampler);
+	this->m_inputOperation->read(output, nx, ny, effective_sampler);
 }
 
 bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -94,12 +101,12 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOpe
 	newInput.ymax = this->m_centerY + (input->ymax - this->m_centerY) / scy;
 	newInput.ymin = this->m_centerY + (input->ymin - this->m_centerY) / scy;
 
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+	return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 
 // SCALE ABSOLUTE
-ScaleAbsoluteOperation::ScaleAbsoluteOperation() : NodeOperation()
+ScaleAbsoluteOperation::ScaleAbsoluteOperation() : BaseScaleOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
@@ -129,15 +136,13 @@ void ScaleAbsoluteOperation::deinitExecution()
 
 void ScaleAbsoluteOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BILINEAR
-	sampler = COM_PS_BILINEAR;
-#endif
+	PixelSampler effective_sampler = getEffectiveSampler(sampler);
 
 	float scaleX[4];
 	float scaleY[4];
 
-	this->m_inputXOperation->read(scaleX, x, y, sampler);
-	this->m_inputYOperation->read(scaleY, x, y, sampler);
+	this->m_inputXOperation->read(scaleX, x, y, effective_sampler);
+	this->m_inputYOperation->read(scaleY, x, y, effective_sampler);
 
 	const float scx = scaleX[0]; // target absolute scale
 	const float scy = scaleY[0]; // target absolute scale
@@ -151,7 +156,7 @@ void ScaleAbsoluteOperation::executePixel(float output[4], float x, float y, Pix
 	float nx = this->m_centerX + (x - this->m_centerX) / relativeXScale;
 	float ny = this->m_centerY + (y - this->m_centerY) / relativeYScale;
 
-	this->m_inputOperation->read(output, nx, ny, sampler);
+	this->m_inputOperation->read(output, nx, ny, effective_sampler);
 }
 
 bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
@@ -176,12 +181,12 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	newInput.ymax = this->m_centerY + (input->ymax - this->m_centerY) / relateveYScale;
 	newInput.ymin = this->m_centerY + (input->ymin - this->m_centerY) / relateveYScale;
 
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+	return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 
 // Absolute fixed siez
-ScaleFixedSizeOperation::ScaleFixedSizeOperation() : NodeOperation()
+ScaleFixedSizeOperation::ScaleFixedSizeOperation() : BaseScaleOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -250,17 +255,15 @@ void ScaleFixedSizeOperation::deinitExecution()
 
 void ScaleFixedSizeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
-#ifdef USE_FORCE_BILINEAR
-	sampler = COM_PS_BILINEAR;
-#endif
+	PixelSampler effective_sampler = getEffectiveSampler(sampler);
 
 	if (this->m_is_offset) {
 		float nx = ((x - this->m_offsetX) * this->m_relX);
 		float ny = ((y - this->m_offsetY) * this->m_relY);
-		this->m_inputOperation->read(output, nx, ny, sampler);
+		this->m_inputOperation->read(output, nx, ny, effective_sampler);
 	}
 	else {
-		this->m_inputOperation->read(output, x * this->m_relX, y * this->m_relY, sampler);
+		this->m_inputOperation->read(output, x * this->m_relX, y * this->m_relY, effective_sampler);
 	}
 }
 
@@ -273,7 +276,7 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, Read
 	newInput.ymax = input->ymax * this->m_relY;
 	newInput.ymin = input->ymin * this->m_relY;
 
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+	return BaseScaleOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
@@ -281,7 +284,7 @@ void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[2], un
 	unsigned int nr[2];
 	nr[0] = this->m_newWidth;
 	nr[1] = this->m_newHeight;
-	NodeOperation::determineResolution(resolution, nr);
+	BaseScaleOperation::determineResolution(resolution, nr);
 	resolution[0] = this->m_newWidth;
 	resolution[1] = this->m_newHeight;
 }

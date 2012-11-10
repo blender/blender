@@ -58,6 +58,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_interp.h"
 
 #endif /* __BLI_MATH_H__ */
 

@@ -70,6 +70,7 @@ set(SRC
 	intern/math_color_inline.c
 	intern/math_geom.c
 	intern/math_geom_inline.c
+	intern/math_interp.c
 	intern/math_matrix.c
 	intern/math_rotation.c
 	intern/math_vector.c

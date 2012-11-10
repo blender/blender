@@ -72,6 +72,8 @@ void Stabilize2dNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	addLink(graph, scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(1));
 	addLink(graph, scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(2));
 	
+	scaleOperation->setSampler((PixelSampler)this->getbNode()->custom1);
+	
 	addLink(graph, scaleOperation->getOutputSocket(), rotateOperation->getInputSocket(0));
 	addLink(graph, angleAttribute->getOutputSocket(), rotateOperation->getInputSocket(1));
 	rotateOperation->setDoDegree2RadConversion(false);
