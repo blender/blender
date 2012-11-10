@@ -423,64 +423,55 @@ static void SetDefaultLightMode(Scene* scene)
 
 
 // --
-static void GetRGB(short type,
-	MFace* mface,
-	MCol* mmcol,
-	Material *mat,
-	unsigned int &c0, 
-	unsigned int &c1, 
-	unsigned int &c2, 
-	unsigned int &c3)
+static void GetRGB(
+        const bool use_mcol,
+        MFace *mface,
+        MCol *mmcol,
+        Material *mat,
+        unsigned int &c0,
+        unsigned int &c1,
+        unsigned int &c2,
+        unsigned int &c3)
 {
 	unsigned int color = 0xFFFFFFFFL;
-	switch (type) {
-		case 0:	// vertex colors
-		{
-			if (mmcol) {
-				c0 = KX_Mcol2uint_new(mmcol[0]);
-				c1 = KX_Mcol2uint_new(mmcol[1]);
-				c2 = KX_Mcol2uint_new(mmcol[2]);
-				if (mface->v4)
-					c3 = KX_Mcol2uint_new(mmcol[3]);
-			}
-			else { // backup white
-				c0 = KX_rgbaint2uint_new(color);
-				c1 = KX_rgbaint2uint_new(color);
-				c2 = KX_rgbaint2uint_new(color);
-				if (mface->v4)
-					c3 = KX_rgbaint2uint_new( color );
-			}
-		} break;
-		
-	
-		case 1: // material rgba
-		{
-			if (mat) {
-				union {
-					unsigned char cp[4];
-					unsigned int integer;
-				} col_converter;
-				col_converter.cp[3] = (unsigned char) (mat->r     * 255.0f);
-				col_converter.cp[2] = (unsigned char) (mat->g     * 255.0f);
-				col_converter.cp[1] = (unsigned char) (mat->b     * 255.0f);
-				col_converter.cp[0] = (unsigned char) (mat->alpha * 255.0f);
-				color = col_converter.integer;
-			}
+	if (use_mcol) {
+		// vertex colors
+
+		if (mmcol) {
+			c0 = KX_Mcol2uint_new(mmcol[0]);
+			c1 = KX_Mcol2uint_new(mmcol[1]);
+			c2 = KX_Mcol2uint_new(mmcol[2]);
+			if (mface->v4)
+				c3 = KX_Mcol2uint_new(mmcol[3]);
+		}
+		else { // backup white
 			c0 = KX_rgbaint2uint_new(color);
 			c1 = KX_rgbaint2uint_new(color);
 			c2 = KX_rgbaint2uint_new(color);
 			if (mface->v4)
-				c3 = KX_rgbaint2uint_new(color);
-		} break;
-		
-		default: // white
-		{
-			c0 = KX_rgbaint2uint_new(color);
-			c1 = KX_rgbaint2uint_new(color);
-			c2 = KX_rgbaint2uint_new(color);
-			if (mface->v4)
-				c3 = KX_rgbaint2uint_new(color);
-		} break;
+				c3 = KX_rgbaint2uint_new( color );
+		}
+	}
+	else {
+		// material rgba
+		if (mat) {
+			union {
+				unsigned char cp[4];
+				unsigned int integer;
+			} col_converter;
+			col_converter.cp[3] = (unsigned char) (mat->r     * 255.0f);
+			col_converter.cp[2] = (unsigned char) (mat->g     * 255.0f);
+			col_converter.cp[1] = (unsigned char) (mat->b     * 255.0f);
+			col_converter.cp[0] = (unsigned char) (mat->alpha * 255.0f);
+			color = col_converter.integer;
+		}
+		// backup white is fallback
+
+		c0 = KX_rgbaint2uint_new(color);
+		c1 = KX_rgbaint2uint_new(color);
+		c2 = KX_rgbaint2uint_new(color);
+		if (mface->v4)
+			c3 = KX_rgbaint2uint_new(color);
 	}
 }
 
@@ -504,10 +495,7 @@ static bool ConvertMaterial(
 	int numchan =	-1, texalpha = 0;
 	bool validmat	= (mat!=0);
 	bool validface	= (tface!=0);
-	
-	short type = 0;
-	if ( validmat )
-		type = 1; // material color 
+	bool use_mcol = true;
 	
 	material->IdMode = DEFAULT_BLENDER;
 	material->glslmat = (validmat)? glslmat: false;
@@ -515,11 +503,7 @@ static bool ConvertMaterial(
 
 	// --------------------------------
 	if (validmat) {
-
-		// use vertex colors by explicitly setting
-		if (mat->mode &MA_VERTEXCOLP || glslmat)
-			type = 0;
-
+		use_mcol = (mat->mode & MA_VERTEXCOLP || glslmat) ? true: false;
 		// use lighting?
 		material->ras_mode |= ( mat->mode & MA_SHLESS )?0:USE_LIGHT;
 		material->ras_mode |= ( mat->game.flag & GEMAT_BACKCULL )?0:TWOSIDED;
@@ -869,10 +853,10 @@ static bool ConvertMaterial(
 	}
 
 	unsigned int rgb[4];
-	GetRGB(type,mface,mmcol,mat,rgb[0],rgb[1],rgb[2], rgb[3]);
+	GetRGB(use_mcol, mface, mmcol, mat, rgb[0], rgb[1], rgb[2], rgb[3]);
 
 	// swap the material color, so MCol on bitmap font works
-	if (validmat && type==1 && (mat->game.flag & GEMAT_TEXT))
+	if (validmat && use_mcol == false && (mat->game.flag & GEMAT_TEXT))
 	{
 		rgb[0] = KX_rgbaint2uint_new(rgb[0]);
 		rgb[1] = KX_rgbaint2uint_new(rgb[1]);
