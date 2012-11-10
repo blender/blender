@@ -189,7 +189,6 @@ elseif(APPLE)
 		if(WITH_INPUT_NDOF)
 			list(APPEND SRC
 				intern/GHOST_NDOFManagerCocoa.mm
-
 				intern/GHOST_NDOFManagerCocoa.h
 			)
 		endif()
