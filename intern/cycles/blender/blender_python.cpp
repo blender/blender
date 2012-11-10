@@ -418,14 +418,23 @@ static CCLDeviceInfo *compute_device_list(DeviceType type)
 			if(info.type == type ||
 			   (info.type == DEVICE_MULTI && info.multi_devices[0].type == type))
 			{
-				CCLDeviceInfo cinfo = {info.id.c_str(), info.description.c_str(), i++};
+				CCLDeviceInfo cinfo;
+
+				strncpy(cinfo.identifier, info.id.c_str(), sizeof(cinfo.identifier));
+				cinfo.identifier[info.id.length()] = '\0';
+
+				strncpy(cinfo.name, info.description.c_str(), sizeof(cinfo.name));
+				cinfo.name[info.description.length()] = '\0';
+
+				cinfo.value = i++;
+
 				device_list.push_back(cinfo);
 			}
 		}
 
 		/* null terminate */
 		if(!device_list.empty()) {
-			CCLDeviceInfo cinfo = {NULL, NULL, 0};
+			CCLDeviceInfo cinfo = {"", "", 0};
 			device_list.push_back(cinfo);
 		}
 	}

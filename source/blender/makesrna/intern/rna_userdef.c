@@ -395,7 +395,7 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 		int a;
 
 		if (devices) {
-			for (a = 0; devices[a].name; a++) {
+			for (a = 0; devices[a].identifier[0]; a++) {
 				tmp.value = devices[a].value;
 				tmp.identifier = devices[a].identifier;
 				tmp.name = devices[a].name;
