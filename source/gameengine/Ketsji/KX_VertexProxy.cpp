@@ -61,19 +61,19 @@ PyTypeObject KX_VertexProxy::Type = {
 };
 
 PyMethodDef KX_VertexProxy::Methods[] = {
-{"getXYZ", (PyCFunction)KX_VertexProxy::sPyGetXYZ,METH_NOARGS},
-{"setXYZ", (PyCFunction)KX_VertexProxy::sPySetXYZ,METH_O},
-{"getUV", (PyCFunction)KX_VertexProxy::sPyGetUV,METH_NOARGS},
-{"setUV", (PyCFunction)KX_VertexProxy::sPySetUV,METH_O},
+	{"getXYZ", (PyCFunction)KX_VertexProxy::sPyGetXYZ,METH_NOARGS},
+	{"setXYZ", (PyCFunction)KX_VertexProxy::sPySetXYZ,METH_O},
+	{"getUV", (PyCFunction)KX_VertexProxy::sPyGetUV,METH_NOARGS},
+	{"setUV", (PyCFunction)KX_VertexProxy::sPySetUV,METH_O},
 
-{"getUV2", (PyCFunction)KX_VertexProxy::sPyGetUV2,METH_NOARGS},
-{"setUV2", (PyCFunction)KX_VertexProxy::sPySetUV2,METH_VARARGS},
+	{"getUV2", (PyCFunction)KX_VertexProxy::sPyGetUV2,METH_NOARGS},
+	{"setUV2", (PyCFunction)KX_VertexProxy::sPySetUV2,METH_VARARGS},
 
-{"getRGBA", (PyCFunction)KX_VertexProxy::sPyGetRGBA,METH_NOARGS},
-{"setRGBA", (PyCFunction)KX_VertexProxy::sPySetRGBA,METH_O},
-{"getNormal", (PyCFunction)KX_VertexProxy::sPyGetNormal,METH_NOARGS},
-{"setNormal", (PyCFunction)KX_VertexProxy::sPySetNormal,METH_O},
-  {NULL,NULL} //Sentinel
+	{"getRGBA", (PyCFunction)KX_VertexProxy::sPyGetRGBA,METH_NOARGS},
+	{"setRGBA", (PyCFunction)KX_VertexProxy::sPySetRGBA,METH_O},
+	{"getNormal", (PyCFunction)KX_VertexProxy::sPyGetNormal,METH_NOARGS},
+	{"setNormal", (PyCFunction)KX_VertexProxy::sPySetNormal,METH_O},
+	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_VertexProxy::Attributes[] = {

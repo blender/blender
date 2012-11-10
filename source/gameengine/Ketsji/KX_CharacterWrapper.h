@@ -30,10 +30,6 @@ public:
 
 private:
 	PHY_ICharacter*			 m_character;
-
-#ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("GE:KX_CharacterWrapper")
-#endif
 };
 
-#endif //__KX_CHARACTERWRAPPER_H__
+#endif  /* __KX_CHARACTERWRAPPER_H__ */

@@ -259,7 +259,7 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
  * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
 ------------------------------*/
 PyMethodDef PyObjectPlus::Methods[] = {
-  {NULL, NULL}		/* Sentinel */
+	{NULL, NULL}		/* Sentinel */
 };
 
 #define BGE_PY_ATTR_INVALID (&(PyObjectPlus::Attributes[0]))

@@ -70,13 +70,13 @@ PyTypeObject KX_MeshProxy::Type = {
 };
 
 PyMethodDef KX_MeshProxy::Methods[] = {
-{"getMaterialName", (PyCFunction)KX_MeshProxy::sPyGetMaterialName,METH_VARARGS},
-{"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
-{"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
-{"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
-{"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
-//{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
-  {NULL,NULL} //Sentinel
+	{"getMaterialName", (PyCFunction)KX_MeshProxy::sPyGetMaterialName,METH_VARARGS},
+	{"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
+	{"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
+	{"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
+	{"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
+	//{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
+	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_MeshProxy::Attributes[] = {
