@@ -1383,10 +1383,13 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_JACK)
-		set(JACK /usr/local)
-		set(JACK_INCLUDE_DIRS ${JACK}/include/jack)
-		set(JACK_LIBRARIES jack)
-		set(JACK_LIBPATH ${JACK}/lib)
+		find_library(JACK_FRAMEWORK
+			NAMES jackmp
+		)
+		set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
+		if(NOT JACK_FRAMEWORK)
+			set(WITH_JACK OFF)
+		endif()
 	endif()
 
 	if(WITH_CODEC_SNDFILE)
@@ -1497,10 +1500,10 @@ elseif(APPLE)
 		if(WITH_INPUT_NDOF)
 			# This thread it *should* work and check the framework - campbell
 			# http://www.cmake.org/pipermail/cmake/2005-December/007740.html
-			find_library(3D_CONNEXION_CLIENT_LIBRARY
+			find_library(3DCONNEXION_CLIENT_FRAMEWORK
 				NAMES 3DconnexionClient
 			)
-			if(NOT 3D_CONNEXION_CLIENT_LIBRARY)
+			if(NOT 3DCONNEXION_CLIENT_FRAMEWORK)
 				set(WITH_INPUT_NDOF OFF)
 			endif()
 
@@ -1508,7 +1511,11 @@ elseif(APPLE)
 				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework 3DconnexionClient")
 			endif()
 		endif()
-
+		
+	if(WITH_JACK)
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework jackmp")
+	endif()
+	
 	else()
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char")
 		set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
