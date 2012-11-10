@@ -4627,19 +4627,16 @@ static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), offset: %s, segments: %d";
 #else
 	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), factor: %s, Use Dist (D): %s: Use Even (E): %s";
+	BevelData *opdata = op->customdata;
 #endif
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
-	BevelData *opdata = op->customdata;
 
 	if (sa) {
 #ifdef NEW_BEVEL
 		char offset_str[NUM_STR_REP_LEN];
-		if (hasNumInput(&opdata->num_input))
-			outputNumInput(&opdata->num_input, offset_str);
-		else
-			BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "offset"));
+		BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "offset"));
 		BLI_snprintf(msg, HEADER_LENGTH, str,
 		             offset_str,
 		             RNA_int_get(op->ptr, "segments")
@@ -4940,9 +4937,21 @@ static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
 static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	BevelData *opdata = op->customdata;
+	int segments = RNA_int_get(op->ptr, "segments");
 
 	if (event->val == KM_PRESS) {
 		/* Try to handle numeric inputs... */
+#ifdef NEW_BEVEL
+		float value;
+
+		if (handleNumInput(&opdata->num_input, event)) {
+			applyNumInput(&opdata->num_input, &value);
+			RNA_float_set(op->ptr, "offset", value);
+			edbm_bevel_calc(C, op);
+			edbm_bevel_update_header(op, C);
+			return OPERATOR_RUNNING_MODAL;
+		}
+#else
 		float factor;
 
 		if (handleNumInput(&opdata->num_input, event)) {
@@ -4954,6 +4963,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			edbm_bevel_update_header(op, C);
 			return OPERATOR_RUNNING_MODAL;
 		}
+#endif
 	}
 
 	switch (event->type) {
@@ -4983,6 +4993,28 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			edbm_bevel_exit(C, op);
 			return OPERATOR_FINISHED;
 
+#ifdef NEW_BEVEL
+		case WHEELUPMOUSE:  /* change number of segments */
+			if (event->val == KM_RELEASE)
+				break;
+
+			segments++;
+			RNA_int_set(op->ptr, "segments", segments);
+			edbm_bevel_calc(C, op);
+			edbm_bevel_update_header(op, C);
+			break;
+
+		case WHEELDOWNMOUSE:  /* change number of segments */
+			if (event->val == KM_RELEASE)
+				break;
+
+			segments = max_ii(segments - 1, 1);
+			RNA_int_set(op->ptr, "segments", segments);
+			edbm_bevel_calc(C, op);
+			edbm_bevel_update_header(op, C);
+			break;
+
+#else
 		case EKEY:
 			if (event->val == KM_PRESS) {
 				int use_even =  RNA_boolean_get(op->ptr, "use_even");
@@ -5007,6 +5039,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 				edbm_bevel_update_header(op, C);
 			}
 			break;
+#endif
 	}
 
 	return OPERATOR_RUNNING_MODAL;
