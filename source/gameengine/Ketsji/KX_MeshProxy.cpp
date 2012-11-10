@@ -260,7 +260,8 @@ PyObject *KX_MeshProxy::PyTransform(PyObject *args, PyObject *kwds)
 		for (slot->begin(it); !slot->end(it); slot->next(it)) {
 			size_t i;
 			for (i = it.startvertex; i < it.endvertex; i++) {
-				it.vertex[i].Transform(transform, ntransform);
+				RAS_TexVert *vert = &it.vertex[i];
+				vert->Transform(transform, ntransform);
 			}
 		}
 
@@ -286,11 +287,12 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 	int matindex;
 	PyObject *pymat;
 	int uvindex = -1;
+	int uvindex_from = -1;
 	bool ok = false;
 
 	MT_Matrix4x4 transform;
 
-	if (!PyArg_ParseTuple(args,"iO|ii:transform_uv", &matindex, &pymat, &uvindex) ||
+	if (!PyArg_ParseTuple(args,"iO|iii:transform_uv", &matindex, &pymat, &uvindex, &uvindex_from) ||
 	    !PyMatTo(pymat, transform))
 	{
 		return NULL;
@@ -298,8 +300,16 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 
 	if (uvindex < -1 || uvindex > 1) {
 		PyErr_Format(PyExc_ValueError,
-		             "mesh.transform_uv(...): invalid uv index %d", uvindex);
+		             "mesh.transform_uv(...): invalid uv_index %d", uvindex);
 		return NULL;
+	}
+	if (uvindex_from < -1 || uvindex_from > 1 || uvindex == -1) {
+		PyErr_Format(PyExc_ValueError,
+		             "mesh.transform_uv(...): invalid uv_index_from %d", uvindex);
+		return NULL;
+	}
+	if (uvindex_from == uvindex) {
+		uvindex_from = -1;
 	}
 
 	/* transform mesh verts */
@@ -326,16 +336,22 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 			size_t i;
 
 			for (i = it.startvertex; i < it.endvertex; i++) {
+				RAS_TexVert *vert = &it.vertex[i];
+				if (uvindex_from != -1) {
+					if (uvindex_from == 0) vert->SetUV2(vert->getUV1());
+					else                   vert->SetUV1(vert->getUV2());
+				}
+
 				switch (uvindex) {
 					case 0:
-						it.vertex[i].TransformUV(transform);
+						vert->TransformUV1(transform);
 						break;
 					case 1:
-						it.vertex[i].TransformUV2(transform);
+						vert->TransformUV2(transform);
 						break;
 					case -1:
-						it.vertex[i].TransformUV(transform);
-						it.vertex[i].TransformUV2(transform);
+						vert->TransformUV1(transform);
+						vert->TransformUV2(transform);
 						break;
 				}
 			}

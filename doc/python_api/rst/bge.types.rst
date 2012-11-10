@@ -1966,7 +1966,7 @@ Types
       :arg matrix: transformation matrix.
       :type matrix: 4x4 matrix [[float]]
 
-   .. method:: transform_uv(matid, matrix, uv_index=-1)
+   .. method:: transform_uv(matid, matrix, uv_index=-1, uv_index_from=-1)
 
       Transforms the vertices UV's of a mesh.
 
@@ -1974,8 +1974,10 @@ Types
       :type matid: integer
       :arg matrix: transformation matrix.
       :type matrix: 4x4 matrix [[float]]
-      :arg matid: optional uv index, -1 for all, otherwise 0 or 1.
-      :type matid: integer
+      :arg uv_index: optional uv index, -1 for all, otherwise 0 or 1.
+      :type uv_index: integer
+      :arg uv_index_from: optional uv index to copy from, -1 to transform the current uv.
+      :type uv_index_from: integer
 
 .. class:: SCA_MouseSensor(SCA_ISensor)
 

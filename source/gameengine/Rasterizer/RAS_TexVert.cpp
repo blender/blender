@@ -75,14 +75,20 @@ void RAS_TexVert::SetXYZ(const MT_Point3& xyz)
 	xyz.getValue(m_localxyz);
 }
 
-void RAS_TexVert::SetXYZ(const float *xyz)
+void RAS_TexVert::SetXYZ(const float xyz[3])
 {
 	m_localxyz[0] = xyz[0]; m_localxyz[1] = xyz[1]; m_localxyz[2] = xyz[2];
 }
 
-void RAS_TexVert::SetUV(const MT_Point2& uv)
+void RAS_TexVert::SetUV1(const MT_Point2& uv)
 {
 	uv.getValue(m_uv1);
+}
+
+void RAS_TexVert::SetUV1(const float uv[3])
+{
+	m_uv1[0] = uv[0];
+	m_uv1[1] = uv[1];
 }
 
 void RAS_TexVert::SetUV2(const MT_Point2& uv)
@@ -90,6 +96,11 @@ void RAS_TexVert::SetUV2(const MT_Point2& uv)
 	uv.getValue(m_uv2);
 }
 
+void RAS_TexVert::SetUV2(const float uv[3])
+{
+	m_uv2[0] = uv[0];
+	m_uv2[1] = uv[1];
+}
 
 void RAS_TexVert::SetRGBA(const unsigned int rgba)
 { 
@@ -151,9 +162,9 @@ void RAS_TexVert::Transform(const MT_Matrix4x4& mat, const MT_Matrix4x4& nmat)
 	SetTangent((nmat*MT_Vector4(m_tangent[0], m_tangent[1], m_tangent[2], 1.0)).getValue());
 }
 
-void RAS_TexVert::TransformUV(const MT_Matrix4x4& mat)
+void RAS_TexVert::TransformUV1(const MT_Matrix4x4& mat)
 {
-	SetUV((mat * MT_Vector4(m_uv1[0], m_uv1[1], 0.0, 1.0)).getValue());
+	SetUV1((mat * MT_Vector4(m_uv1[0], m_uv1[1], 0.0, 1.0)).getValue());
 }
 
 void RAS_TexVert::TransformUV2(const MT_Matrix4x4& mat)
