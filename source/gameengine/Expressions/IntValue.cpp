@@ -286,7 +286,7 @@ cInt CIntValue::GetInt()
 
 double CIntValue::GetNumber()
 {
-	return (float) m_int;
+	return (double) m_int;
 }
 
 
