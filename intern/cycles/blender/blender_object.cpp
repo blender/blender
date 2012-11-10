@@ -267,10 +267,15 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 		object->motion.post = tfm;
 		object->use_motion = false;
 
+		/* random number */
 		object->random_id = hash_string(object->name.c_str());
-		if(persistent_id)
+
+		if(persistent_id) {
 			for(int i = 0; i < OBJECT_PERSISTENT_ID_SIZE; i++)
 				object->random_id = hash_int_2d(object->random_id, persistent_id[i]);
+		}
+		else
+			object->random_id = hash_int_2d(object->random_id, 0);
 
 		/* visibility flags for both parent */
 		object->visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL;

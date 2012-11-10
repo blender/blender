@@ -422,7 +422,7 @@ class USERPREF_PT_system(Panel):
         col.separator()
         col.separator()
 
-        if hasattr(system, "compute_device"):
+        if hasattr(system, "compute_device_type"):
             col.label(text="Compute Device:")
             col.row().prop(system, "compute_device_type", expand=True)
             sub = col.row()
