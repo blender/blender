@@ -168,7 +168,7 @@ GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 extern "C" {
 	bool GHOST_NDOFManagerCocoa::available()
 	{
-		extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
+		extern OSErr InstallConnexionHandlers(); // (testing whole framework weak) __attribute__((weak_import));
 		// Make the linker happy for the framework check (see link below for more info)
 		// http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html
 		return InstallConnexionHandlers != NULL;
@@ -177,7 +177,7 @@ extern "C" {
 
 	bool GHOST_NDOFManagerCocoa::oldDRV()
 	{
-		extern OSErr SetConnexionClientButtonMask() __attribute__((weak_import));
+		extern OSErr SetConnexionClientButtonMask(); // (testing whole framework weak)  __attribute__((weak_import));
 		// Make the linker happy for the framework check (see link below for more info)
 		// http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html
 		return SetConnexionClientButtonMask != NULL;
