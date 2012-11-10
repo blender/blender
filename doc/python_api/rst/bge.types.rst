@@ -1957,6 +1957,26 @@ Types
       :return: a polygon object.
       :rtype: :class:`PolyProxy`
 
+   .. method:: transform(matid, matrix)
+
+      Transforms the vertices of a mesh.
+
+      :arg matid: material index, -1 transforms all.
+      :type matid: integer
+      :arg matrix: transformation matrix.
+      :type matrix: 4x4 matrix [[float]]
+
+   .. method:: transform_uv(matid, matrix, uv_index=-1)
+
+      Transforms the vertices UV's of a mesh.
+
+      :arg matid: material index, -1 transforms all.
+      :type matid: integer
+      :arg matrix: transformation matrix.
+      :type matrix: 4x4 matrix [[float]]
+      :arg matid: optional uv index, -1 for all, otherwise 0 or 1.
+      :type matid: integer
+
 .. class:: SCA_MouseSensor(SCA_ISensor)
 
    Mouse Sensor logic brick.

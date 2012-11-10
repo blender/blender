@@ -151,3 +151,12 @@ void RAS_TexVert::Transform(const MT_Matrix4x4& mat, const MT_Matrix4x4& nmat)
 	SetTangent((nmat*MT_Vector4(m_tangent[0], m_tangent[1], m_tangent[2], 1.0)).getValue());
 }
 
+void RAS_TexVert::TransformUV(const MT_Matrix4x4& mat)
+{
+	SetUV((mat * MT_Vector4(m_uv1[0], m_uv1[1], 0.0, 1.0)).getValue());
+}
+
+void RAS_TexVert::TransformUV2(const MT_Matrix4x4& mat)
+{
+	SetUV2((mat * MT_Vector4(m_uv2[0], m_uv2[1], 0.0, 1.0)).getValue());
+}

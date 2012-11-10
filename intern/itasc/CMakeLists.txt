@@ -22,7 +22,7 @@
 # Contributor(s): Jacques Beaurain.
 #
 # ***** END GPL LICENSE BLOCK *****
-
+remove_strict_flags()
 set(INC
 
 )

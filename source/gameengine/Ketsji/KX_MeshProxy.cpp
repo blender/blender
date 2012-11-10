@@ -75,6 +75,8 @@ PyMethodDef KX_MeshProxy::Methods[] = {
 	{"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
 	{"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
 	{"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
+	{"transform", (PyCFunction)KX_MeshProxy::sPyTransform,METH_VARARGS},
+	{"transform_uv", (PyCFunction)KX_MeshProxy::sPyTransformUV,METH_VARARGS},
 	//{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
@@ -216,6 +218,144 @@ PyObject *KX_MeshProxy::PyGetPolygon(PyObject *args, PyObject *kwds)
 		PyErr_SetString(PyExc_AttributeError, "mesh.getPolygon(int): KX_MeshProxy, polygon is NULL, unknown reason");
 	}
 	return polyob;
+}
+
+PyObject *KX_MeshProxy::PyTransform(PyObject *args, PyObject *kwds)
+{
+	int matindex;
+	PyObject *pymat;
+	bool ok = false;
+
+	MT_Matrix4x4 transform;
+
+	if (!PyArg_ParseTuple(args,"iO:transform", &matindex, &pymat) ||
+	    !PyMatTo(pymat, transform))
+	{
+		return NULL;
+	}
+
+	MT_Matrix4x4 ntransform = transform.inverse().transposed();
+	ntransform[0][3] = ntransform[1][3] = ntransform[2][3] = 0.0f;
+
+	/* transform mesh verts */
+	unsigned int mit_index = 0;
+	for (list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();
+	     (mit != m_meshobj->GetLastMaterial());
+	     ++mit, ++mit_index)
+	{
+		if (matindex == -1) {
+			/* always transform */
+		}
+		else if (matindex == mit_index) {
+			/* we found the right index! */
+		}
+		else {
+			continue;
+		}
+
+		RAS_MeshSlot *slot = mit->m_baseslot;
+		RAS_MeshSlot::iterator it;
+		ok = true;
+
+		for (slot->begin(it); !slot->end(it); slot->next(it)) {
+			size_t i;
+			for (i = it.startvertex; i < it.endvertex; i++) {
+				it.vertex[i].Transform(transform, ntransform);
+			}
+		}
+
+		/* if we set a material index, quit when done */
+		if (matindex == mit_index) {
+			break;
+		}
+	}
+
+	if (ok == false) {
+		PyErr_Format(PyExc_ValueError,
+		             "mesh.transform(...): invalid material index %d", matindex);
+		return NULL;
+	}
+
+	m_meshobj->SetMeshModified(true);
+
+	Py_RETURN_NONE;
+}
+
+PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
+{
+	int matindex;
+	PyObject *pymat;
+	int uvindex = -1;
+	bool ok = false;
+
+	MT_Matrix4x4 transform;
+
+	if (!PyArg_ParseTuple(args,"iO|ii:transform_uv", &matindex, &pymat, &uvindex) ||
+	    !PyMatTo(pymat, transform))
+	{
+		return NULL;
+	}
+
+	if (uvindex < -1 || uvindex > 1) {
+		PyErr_Format(PyExc_ValueError,
+		             "mesh.transform_uv(...): invalid uv index %d", uvindex);
+		return NULL;
+	}
+
+	/* transform mesh verts */
+	unsigned int mit_index = 0;
+	for (list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();
+	     (mit != m_meshobj->GetLastMaterial());
+	     ++mit, ++mit_index)
+	{
+		if (matindex == -1) {
+			/* always transform */
+		}
+		else if (matindex == mit_index) {
+			/* we found the right index! */
+		}
+		else {
+			continue;
+		}
+
+		RAS_MeshSlot *slot = mit->m_baseslot;
+		RAS_MeshSlot::iterator it;
+		ok = true;
+
+		for (slot->begin(it); !slot->end(it); slot->next(it)) {
+			size_t i;
+
+			for (i = it.startvertex; i < it.endvertex; i++) {
+				switch (uvindex) {
+					case 0:
+						it.vertex[i].TransformUV(transform);
+						break;
+					case 1:
+						it.vertex[i].TransformUV2(transform);
+						break;
+					case -1:
+						it.vertex[i].TransformUV(transform);
+						it.vertex[i].TransformUV2(transform);
+						break;
+				}
+			}
+		}
+
+		/* if we set a material index, quit when done */
+		if (matindex == mit_index) {
+			break;
+		}
+	}
+
+	if (ok == false) {
+		PyErr_Format(PyExc_ValueError,
+		             "mesh.transform_uv(...): invalid material index %d", matindex);
+		return NULL;
+	}
+
+	m_meshobj->SetMeshModified(true);
+
+	Py_RETURN_NONE;
 }
 
 PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
