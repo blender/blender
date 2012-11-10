@@ -112,15 +112,3 @@ void MovieDistortionOperation::executePixel(float output[4], float x, float y, P
 		this->m_inputOperation->read(output, x, y, COM_PS_BILINEAR);
 	}
 }
-
-bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
-{
-	rcti newInput;
-	
-	newInput.xmax = input->xmax + 100;
-	newInput.xmin = input->xmin - 100;
-	newInput.ymax = input->ymax + 100;
-	newInput.ymin = input->ymin - 100;
-	
-	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
-}
