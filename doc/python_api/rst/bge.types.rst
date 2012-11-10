@@ -3113,6 +3113,12 @@ Types
 
       :type: list
 
+   .. attribute:: gravity
+
+      The scene gravity using the world x, y and z axis.
+
+      :type: list [fx, fy, fz]
+
    .. method:: addObject(object, other, time=0)
 
       Adds an object to the scene like the Add Object Actuator would.
