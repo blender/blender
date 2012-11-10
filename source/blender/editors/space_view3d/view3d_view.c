@@ -247,9 +247,9 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 			copy_qt_qt(rv3d->viewquat, sms.new_quat);
 			rv3d->dist = sms.new_dist;
 			v3d->lens = sms.new_lens;
-		}
 
-		ED_view3d_camera_lock_sync(v3d, rv3d);
+			ED_view3d_camera_lock_sync(v3d, rv3d);
+		}
 
 		if (rv3d->viewlock & RV3D_BOXVIEW)
 			view3d_boxview_copy(sa, ar);
