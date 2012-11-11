@@ -349,7 +349,7 @@ int RE_engine_render(Render *re, int do_all)
 	re->i.totface = re->i.totvert = re->i.totstrand = re->i.totlamp = re->i.tothalo = 0;
 
 	/* render */
-	if(!re->engine)
+	if (!re->engine)
 		re->engine = RE_engine_create(type);
 
 	engine = re->engine;
@@ -382,7 +382,7 @@ int RE_engine_render(Render *re, int do_all)
 	if (type->render)
 		type->render(engine, re->scene);
 
-	if(!(re->r.mode & R_PERSISTENT_DATA)) {
+	if (!(re->r.mode & R_PERSISTENT_DATA)) {
 		RE_engine_free(re->engine);
 		re->engine = NULL;
 	}

@@ -2304,9 +2304,9 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 	}
 
 	/* Don't remap vertices in cddm->mloop, because we need to know the original
-	   indices in order to skip faces with all vertices merged.
-	   The "update loop indices..." section further down remaps vertices in mloop.
-	*/
+	 * indices in order to skip faces with all vertices merged.
+	 * The "update loop indices..." section further down remaps vertices in mloop.
+	 */
 
 	/* now go through and fix edges and faces */
 	med = cddm->medge;
@@ -2351,8 +2351,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 				}
 			}
 
-			if (UNLIKELY(all_vertices_merged))
-			{
+			if (UNLIKELY(all_vertices_merged)) {
 				continue;
 			}
 		}

@@ -2384,8 +2384,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	(void)oldmarkers;
 #endif
 
-	if ((sequencer_view3d_cb && do_seq_gl && camera) && is_thread_main)
-	{
+	if ((sequencer_view3d_cb && do_seq_gl && camera) && is_thread_main) {
 		char err_out[256] = "unknown";
 		/* for old scened this can be uninitialized,
 		 * should probably be added to do_versions at some point if the functionality stays */
