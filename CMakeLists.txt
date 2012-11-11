@@ -1079,13 +1079,11 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_JACK)
-			find_library(JACK_FRAMEWORK
-				NAMES jackmp
+			set(JACK_INCLUDE_DIRS
+				${LIBDIR}/jack/include/jack
+				${LIBDIR}/jack/include
 			)
-			set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
-			if(NOT JACK_FRAMEWORK)
-				set(WITH_JACK OFF)
-			endif()
+			set(JACK_LIBRARIES ${LIBDIR}/jack/lib/libjack.lib)
 		endif()
 
 		if(WITH_PYTHON)
@@ -1358,10 +1356,13 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_JACK)
-		set(JACK /usr/local)
-		set(JACK_INCLUDE_DIRS ${JACK}/include/jack)
-		set(JACK_LIBRARIES jack)
-		set(JACK_LIBPATH ${JACK}/lib)
+		find_library(JACK_FRAMEWORK
+			NAMES jackmp
+		)
+		set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
+		if(NOT JACK_FRAMEWORK)
+			set(WITH_JACK OFF)
+		endif()
 	endif()
 
 	if(WITH_CODEC_SNDFILE)
