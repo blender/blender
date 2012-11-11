@@ -1800,7 +1800,7 @@ static void gpencil_stroke_end(wmOperator *op)
 static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p = op->customdata;
-	int estate = OPERATOR_RUNNING_MODAL; /* default exit state - we don't pass on events, GP is used with key-modifiers */
+	int estate = OPERATOR_PASS_THROUGH; /* default exit state */
 	
 	/* if (event->type == NDOF_MOTION)
 	 *    return OPERATOR_PASS_THROUGH;
@@ -1815,7 +1815,11 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 	 * in 3D space.
 	 */
 
-	/* printf("\tGP - handle modal event...\n"); */
+	/* we don't pass on key events, GP is used with key-modifiers - prevents Dkey to insert drivers */
+	if (ISKEYBOARD(event->type))
+		estate = OPERATOR_RUNNING_MODAL;
+	
+	//printf("\tGP - handle modal event...\n");
 	
 	/* exit painting mode (and/or end current stroke) 
 	 * NOTE: cannot do RIGHTMOUSE (as is standard for cancelling) as that would break polyline [#32647] 

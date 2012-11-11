@@ -30,6 +30,7 @@
 
 
 #include <string.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -52,6 +53,7 @@
 #include "BKE_writeavi.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -278,6 +280,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 typedef struct ScreenshotJob {
 	Main *bmain;
 	Scene *scene;
+	wmWindowManager *wm;
 	unsigned int *dumprect;
 	int x, y, dumpsx, dumpsy;
 	short *stop;
@@ -395,6 +398,54 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	BKE_report(&sj->reports, RPT_INFO, "Screencast job stopped");
 }
 
+/* Helper callback for drawing the cursor itself */
+static void screencast_draw_cursor(bContext *UNUSED(C), int x, int y, void *UNUSED(p_ptr))
+{
+	
+	glPushMatrix();
+	
+	glTranslatef((float)x, (float)y, 0.0f);
+	
+	
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	
+	glColor4ub(0, 0, 0, 32);
+	glutil_draw_filled_arc(0.0, M_PI * 2.0, 20, 40);
+	
+	glColor4ub(255, 255, 255, 128);
+	glutil_draw_lined_arc(0.0, M_PI * 2.0, 20, 40);
+	
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+	
+	glPopMatrix();
+}
+
+/* Turn brush cursor in 3D view on/off */
+static void screencast_cursor_toggle(wmWindowManager *wm, short enable)
+{
+	static void *cursor = NULL;
+	
+	if (cursor && !enable) {
+		/* clear cursor */
+		WM_paint_cursor_end(wm, cursor);
+		cursor = NULL;
+	}
+	else if (enable) {
+		/* enable cursor */
+		cursor = WM_paint_cursor_activate(wm, NULL, screencast_draw_cursor, NULL);
+	}
+}
+
+static void screenshot_endjob(void *sjv)
+{
+	ScreenshotJob *sj = sjv;
+	
+	screencast_cursor_toggle(sj->wm, 0);
+}
+
+
 static int screencast_exec(bContext *C, wmOperator *op)
 {
 	bScreen *screen = CTX_wm_screen(C);
@@ -418,15 +469,18 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	}
 	sj->bmain = CTX_data_main(C);
 	sj->scene = CTX_data_scene(C);
-
+	sj->wm = CTX_wm_manager(C);
+	
 	BKE_reports_init(&sj->reports, RPT_PRINT);
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, sj, screenshot_freejob);
 	WM_jobs_timer(wm_job, 0.1, 0, NC_SCREEN | ND_SCREENCAST);
-	WM_jobs_callbacks(wm_job, screenshot_startjob, NULL, screenshot_updatejob, NULL);
+	WM_jobs_callbacks(wm_job, screenshot_startjob, NULL, screenshot_updatejob, screenshot_endjob);
 	
-	WM_jobs_start(CTX_wm_manager(C), wm_job);
+	WM_jobs_start(sj->wm, wm_job);
+	
+	screencast_cursor_toggle(sj->wm, 1);
 	
 	WM_event_add_notifier(C, NC_SCREEN | ND_SCREENCAST, screen);
 	

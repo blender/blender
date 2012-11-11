@@ -945,7 +945,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_GPENCIL:
-			if (wmn->data == ND_DATA)
+ 			if (wmn->data == ND_DATA || wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 	}
