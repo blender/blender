@@ -296,11 +296,11 @@ if(APPLE)
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 	
-		##### workaround for actual official cmake incompatibility with xcode 4.3 #####
+		##### cmake incompatibility with xcode  4.3 and higher #####
 		if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
-			message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
+			message(FATAL_ERROR "Xcode 4.3 and higher must be used with cmake 2.8-8 or higher")
 		endif()
-		### end workaround for actual official cmake incompatibility with xcode 4.3 ###
+		### end cmake incompatibility with xcode 4.3 and higher ###
 		
 		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4 AND ${XCODE_VERSION} VERSION_LESS 4.3)
 			# Xcode 4 defaults to the Apple LLVM Compiler.
