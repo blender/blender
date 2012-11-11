@@ -28,7 +28,6 @@
  *  \ingroup blf
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -149,10 +148,10 @@ static int blf_global_font_init(void)
 
 	if (global_font_default == -1) {
 		printf("Warning: Can't find default font!\n");
-		return FALSE;
+		return 0;
 	}
 	else {
-		return TRUE;
+		return 1;
 	}
 }
 
