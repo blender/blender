@@ -1297,9 +1297,9 @@ elseif(WIN32)
 				boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
 			if(WITH_INTERNATIONAL)
 				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-					optimized libboost_locale-${BOOST_POSTFIX}
-					debug libboost_locale-${BOOST_DEBUG_POSTFIX}) 
-			endif(WITH_CYCLES_OSL)
+					optimized boost_locale-${BOOST_POSTFIX}
+					debug boost_locale-${BOOST_DEBUG_POSTFIX}) 
+			endif()
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
