@@ -333,7 +333,13 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
+	static int multisamples = -1;
 	int scr_w, scr_h, posy;
+	
+	/* force setting multisamples only once, it requires restart - and you cannot 
+	   mix it, either all windows have it, or none (tested in OSX opengl) */
+	if (multisamples == -1)
+		multisamples = U.ogl_multisamples;
 	
 	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
@@ -345,7 +351,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	                              (GHOST_TWindowState)win->windowstate,
 	                              GHOST_kDrawingContextTypeOpenGL,
 	                              0 /* no stereo */,
-	                              U.ogl_multisamples /* AA */);
+								  multisamples /* AA */);
 	
 	if (ghostwin) {
 		/* needed so we can detect the graphics card below */
