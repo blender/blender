@@ -152,13 +152,11 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 				 */
 				if (result==false && dynamic_cast<CFloatValue *>(orgprop) != NULL) {
 					float f;
-					
-					if (EOF == sscanf(m_checkpropval.ReadPtr(), "%f", &f))
-					{
-						//error
+					if (sscanf(m_checkpropval.ReadPtr(), "%f", &f) == 1) {
+						result = (f == ((CFloatValue *)orgprop)->GetFloat());
 					} 
 					else {
-						result = (f == ((CFloatValue *)orgprop)->GetFloat());
+						/* error */
 					}
 				}
 				/* end patch */

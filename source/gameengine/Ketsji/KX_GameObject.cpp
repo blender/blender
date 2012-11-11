@@ -99,6 +99,7 @@ KX_GameObject::KX_GameObject(
       m_bSuspendDynamics(false),
       m_bUseObjectColor(false),
       m_bIsNegativeScaling(false),
+      m_objectColor(1.0, 1.0, 1.0, 1.0),
       m_bVisible(true),
       m_bCulled(true),
       m_bOccluder(false),
