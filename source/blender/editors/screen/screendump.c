@@ -30,12 +30,12 @@
 
 
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
