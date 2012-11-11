@@ -296,11 +296,11 @@ if(APPLE)
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 	
-		##### cmake incompatibility with xcode  4.3 and higher #####
+		##### workaround for actual official cmake incompatibility with xcode 4.3 #####
 		if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
-			message(FATAL_ERROR "Xcode 4.3 and higher must be used with cmake 2.8-8 or higher")
+			message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
 		endif()
-		### end cmake incompatibility with xcode 4.3 and higher ###
+		### end workaround for actual official cmake incompatibility with xcode 4.3 ###
 		
 		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4 AND ${XCODE_VERSION} VERSION_LESS 4.3)
 			# Xcode 4 defaults to the Apple LLVM Compiler.
@@ -376,8 +376,8 @@ if(WITH_CYCLES)
 	set(WITH_OPENIMAGEIO ON)
 endif()
 
-# auto enable boost for cycles, booleans or audaspace
-if(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE)
+# auto enable boost for cycles, booleans, audaspace or i18n
+if(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
 	set(WITH_BOOST ON)
 endif()
 
@@ -593,28 +593,6 @@ if(UNIX AND NOT APPLE)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
 	endif()
 
-	if(WITH_INTERNATIONAL)
-		find_library(INTL_LIBRARY
-			NAMES intl
-			PATHS
-			/sw/lib
-		)
-
-		find_library(ICONV_LIBRARY
-			NAMES iconv
-			PATHS
-			/sw/lib
-		)
-		mark_as_advanced(
-			ICONV_LIBRARY
-			INTL_LIBRARY
-		)
-
-		if(INTL_LIBRARY AND ICONV_LIBRARY)
-			set(GETTEXT_LIBRARIES ${INTL_LIBRARY} ${ICONV_LIBRARY})
-		endif()
-	endif()
-
 	if(WITH_FFTW3)
 		find_package(Fftw3)
 		if(NOT FFTW3_FOUND)
@@ -662,7 +640,11 @@ if(UNIX AND NOT APPLE)
 			else()
 				set(Boost_USE_MULTITHREADED ON)
 			endif()
-			find_package(Boost 1.34 COMPONENTS filesystem regex system thread)
+			set(__boost_packages filesystem regex system thread)
+			if (WITH_INTERNATIONAL)
+				list(APPEND __boost_packages locale)
+			endif()
+			find_package(Boost 1.34 COMPONENTS ${__boost_packages})
 			mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
 		endif()
 
@@ -879,13 +861,6 @@ elseif(WIN32)
 		
 	add_definitions(-DWIN32)
 
-	if(WITH_INTERNATIONAL)
-		set(ICONV ${LIBDIR}/iconv)
-		set(ICONV_INCLUDE_DIRS ${ICONV}/include)
-		set(ICONV_LIBRARIES iconv)
-		set(ICONV_LIBPATH ${ICONV}/lib)
-	endif()
-
 	set(JPEG "${LIBDIR}/jpeg")
 	set(JPEG_INCLUDE_DIR "${JPEG}/include")
 	set(JPEG_LIBPATH ${JPEG}/lib) # not cmake defined
@@ -978,13 +953,6 @@ elseif(WIN32)
 		set(CXX_WARNINGS "${_WARNINGS}")
 		unset(_WARNINGS)
 
-		if(WITH_INTERNATIONAL)
-			set(GETTEXT ${LIBDIR}/gettext)
-			set(GETTEXT_INCLUDE_DIRS ${GETTEXT}/include)
-			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
-			set(GETTEXT_LIBRARIES gnu_gettext)
-		endif()
-		
 		if(WITH_MOD_CLOTH_ELTOPO)
 			set(LAPACK ${LIBDIR}/lapack)
 			# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
@@ -1137,6 +1105,11 @@ elseif(WIN32)
 				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
 				debug libboost_regex-${BOOST_DEBUG_POSTFIX}
 				debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
+			if(WITH_INTERNATIONAL)
+				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+					optimized libboost_locale-${BOOST_POSTFIX}
+					debug libboost_locale-${BOOST_DEBUG_POSTFIX})
+			endif(WITH_INTERNATIONAL)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()
 			
@@ -1190,16 +1163,8 @@ elseif(WIN32)
 
 		add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
 
-
 		add_definitions(-DFREE_WINDOWS)
 
-		if(WITH_INTERNATIONAL)
-			set(GETTEXT ${LIBDIR}/gettext)
-			set(GETTEXT_INCLUDE_DIRS ${GETTEXT}/include)
-			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
-			set(GETTEXT_LIBRARIES intl)
-		endif()
-		
 		set(PNG "${LIBDIR}/png")
 		set(PNG_INCLUDE_DIR "${PNG}/include")
 		set(PNG_LIBPATH ${PNG}/lib) # not cmake defined
@@ -1317,6 +1282,11 @@ elseif(WIN32)
 				debug boost_date_time-${BOOST_DEBUG_POSTFIX} boost_filesystem-${BOOST_DEBUG_POSTFIX}
 				boost_regex-${BOOST_DEBUG_POSTFIX}
 				boost_system-${BOOST_DEBUG_POSTFIX} boost_thread-${BOOST_DEBUG_POSTFIX})
+			if(WITH_INTERNATIONAL)
+				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+					optimized libboost_locale-${BOOST_POSTFIX}
+					debug libboost_locale-${BOOST_DEBUG_POSTFIX}) 
+			endif(WITH_CYCLES_OSL)
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
@@ -1383,13 +1353,10 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_JACK)
-		find_library(JACK_FRAMEWORK
-			NAMES jackmp
-		)
-		set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
-		if(NOT JACK_FRAMEWORK)
-			set(WITH_JACK OFF)
-		endif()
+		set(JACK /usr/local)
+		set(JACK_INCLUDE_DIRS ${JACK}/include/jack)
+		set(JACK_LIBRARIES jack)
+		set(JACK_LIBPATH ${JACK}/lib)
 	endif()
 
 	if(WITH_CODEC_SNDFILE)
@@ -1425,13 +1392,6 @@ elseif(APPLE)
 		# uncached vars
 		set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 		set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
-	endif()
-
-	if(WITH_INTERNATIONAL)
-		set(GETTEXT ${LIBDIR}/gettext)
-		set(GETTEXT_INCLUDE_DIRS "${GETTEXT}/include")
-		set(GETTEXT_LIBRARIES intl iconv)
-		set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 	endif()
 
 	if(WITH_FFTW3)
@@ -1500,10 +1460,10 @@ elseif(APPLE)
 		if(WITH_INPUT_NDOF)
 			# This thread it *should* work and check the framework - campbell
 			# http://www.cmake.org/pipermail/cmake/2005-December/007740.html
-			find_library(3DCONNEXION_CLIENT_FRAMEWORK
+			find_library(3D_CONNEXION_CLIENT_LIBRARY
 				NAMES 3DconnexionClient
 			)
-			if(NOT 3DCONNEXION_CLIENT_FRAMEWORK)
+			if(NOT 3D_CONNEXION_CLIENT_LIBRARY)
 				set(WITH_INPUT_NDOF OFF)
 			endif()
 
@@ -1511,11 +1471,7 @@ elseif(APPLE)
 				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework 3DconnexionClient")
 			endif()
 		endif()
-		
-	if(WITH_JACK)
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework jackmp")
-	endif()
-	
+
 	else()
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char")
 		set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
@@ -1579,6 +1535,9 @@ elseif(APPLE)
 		set(BOOST ${LIBDIR}/boost)
 		set(BOOST_INCLUDE_DIR ${BOOST}/include)
 		set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt)
+		if (WITH_INTERNATIONAL)
+			list(APPEND BOOST_LIBRARIES boost_locale-mt)
+		endif()
 		set(BOOST_LIBPATH ${BOOST}/lib)
 		set(BOOST_DEFINITIONS)
 	endif()
@@ -1704,6 +1663,11 @@ if(WITH_CYCLES)
 	endif()
 endif()
 
+if(WITH_INTERNATIONAL)
+	if(NOT WITH_BOOST)
+		message(FATAL_ERROR "Internationalization reqires WITH_BOOST, the library may not have been found. Configure BOOST or disable WITH_INTERNATIONAL")
+	endif()
+endif()
 
 # See TEST_SSE_SUPPORT() for how this is defined.
 

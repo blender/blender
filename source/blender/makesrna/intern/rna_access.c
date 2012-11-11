@@ -1224,10 +1224,10 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 				if (prop->translation_context)
 					nitem[i].name = BLF_pgettext(prop->translation_context, nitem[i].name);
 				else
-					nitem[i].name = BLF_gettext(nitem[i].name);
+					nitem[i].name = BLF_pgettext(NULL, nitem[i].name);
 			}
 			if (nitem[i].description)
-				nitem[i].description = BLF_gettext(nitem[i].description);
+				nitem[i].description = BLF_pgettext(NULL, nitem[i].description);
 		}
 
 		*item = nitem;

@@ -14,51 +14,31 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2008, Blender Foundation
+# The Original Code is Copyright (C) 2012, Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
+#
+# Contributor(s): Bastien Montagne.
 #
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
 	.
-	../blenkernel
-	../blenlib
-	../blenloader
-	../editors/include
-	../makesdna
-	../makesrna
-	../imbuf
-	../../../intern/guardedalloc
-	../../../intern/locale
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
-	${FREETYPE_INCLUDE_DIRS}
 )
 
 set(SRC
-	intern/blf.c
-	intern/blf_dir.c
-	intern/blf_font.c
-	intern/blf_glyph.c
-	intern/blf_lang.c
-	intern/blf_translation.c
-	intern/blf_util.c
-
-	BLF_api.h
-	BLF_translation.h
-	intern/blf_internal.h
-	intern/blf_internal_types.h
+	boost_locale_wrapper.cpp
 )
 
 if(WITH_INTERNATIONAL)
+	list(APPEND INC_SYS
+		${BOOST_INCLUDE_DIR}
+	)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
-add_definitions(-DGLEW_STATIC)
-
-blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}")
-
+blender_add_lib(bf_intern_locale "${SRC}" "${INC}" "${INC_SYS}")

@@ -169,6 +169,8 @@ WITH_BF_BOOST = True
 BF_BOOST = '${LIBDIR}/boost'
 BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB = 'libboost_date_time-vc90-mt-s-1_49 libboost_filesystem-vc90-mt-s-1_49 libboost_regex-vc90-mt-s-1_49 libboost_system-vc90-mt-s-1_49 libboost_thread-vc90-mt-s-1_49'
+if WITH_BF_INTERNATIONAL:
+    BF_BOOST_LIB += ' libboost_locale-vc90-mt-s-1_49'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 #CUDA

@@ -35,16 +35,6 @@
 
 #define TEXT_DOMAIN_NAME "blender"
 
-/* blf_translation.c  */
-
-#ifdef WITH_INTERNATIONAL
-unsigned char *BLF_get_unifont(int *unifont_size);
-void BLF_free_unifont(void);
-#endif
-
-const char *BLF_gettext(const char *msgid);
-const char *BLF_pgettext(const char *context, const char *message);
-
 /* blf_lang.c */
 
 /* Search the path directory to the locale files, this try all
@@ -61,17 +51,23 @@ void BLF_lang_set(const char *);
 /* Get the current locale (short code, e.g. es_ES). */
 const char *BLF_lang_get(void);
 
-/* Set the current encoding name. */
-void BLF_lang_encoding(const char *str);
-
 /* Get EnumPropertyItem's for translations menu. */
 struct EnumPropertyItem *BLF_RNA_lang_enum_properties(void);
+
+/* blf_translation.c  */
+
+#ifdef WITH_INTERNATIONAL
+unsigned char *BLF_get_unifont(int *unifont_size);
+void BLF_free_unifont(void);
+#endif
+
+const char *BLF_pgettext(const char *msgctxt, const char *msgid);
 
 /* translation */
 int BLF_translate_iface(void);
 int BLF_translate_tooltips(void);
-const char *BLF_translate_do_iface(const char *contex, const char *msgid);
-const char *BLF_translate_do_tooltip(const char *contex, const char *msgid);
+const char *BLF_translate_do_iface(const char *msgctxt, const char *msgid);
+const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 
 
 /* The "translation-marker" macro. */
