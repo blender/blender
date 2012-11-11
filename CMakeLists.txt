@@ -292,11 +292,11 @@ if(APPLE)
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 	
-		##### workaround for actual official cmake incompatibility with xcode 4.3 #####
+		##### cmake incompatibility with xcode  4.3 and higher #####
 		if(${XCODE_VERSION} MATCHES '') # cmake fails due looking for xcode in the wrong path, thus will be empty var
-			message("Official cmake does not yet support Xcode 4.3, get a patched version here: http://www.jensverwiebe.de/Blender/CMake%202.8-7patched.zip")
+			message(FATAL_ERROR "Xcode 4.3 and higher must be used with cmake 2.8-8 or higher")
 		endif()
-		### end workaround for actual official cmake incompatibility with xcode 4.3 ###
+		### end cmake incompatibility with xcode 4.3 and higher ###
 		
 		if(${XCODE_VERSION} VERSION_EQUAL 4 OR ${XCODE_VERSION} VERSION_GREATER 4 AND ${XCODE_VERSION} VERSION_LESS 4.3)
 			# Xcode 4 defaults to the Apple LLVM Compiler.
@@ -308,10 +308,6 @@ if(APPLE)
 		execute_process(COMMAND xcodebuild -version OUTPUT_VARIABLE XCODE_VERS_BUILD_NR)
 		string(SUBSTRING "${XCODE_VERS_BUILD_NR}" 6 3 XCODE_VERSION) # truncate away build-nr
 		unset(XCODE_VERS_BUILD_NR)
-		# force CMAKE_OSX_DEPLOYMENT_TARGET for makefiles, will not work else ( cmake bug ? )
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
-		add_definitions ("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
 	endif()
 	
 	message(STATUS "Detected Xcode-version: " ${XCODE_VERSION})
@@ -330,6 +326,13 @@ if(APPLE)
 			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.5" CACHE STRING "" FORCE) # 10.5 is our min. target, if you use higher sdk, weak linking happens
 	endif()
 	
+	if(NOT ${CMAKE_GENERATOR} MATCHES "Xcode")
+		# force CMAKE_OSX_DEPLOYMENT_TARGET for makefiles, will not work else ( cmake bug ? )
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+		add_definitions ("-DMACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+	endif()
+
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
 	option(WITH_LIBS10.5  "Use 10.5 libs (needed for 64bit builds)" OFF)
@@ -1076,11 +1079,13 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_JACK)
-			set(JACK_INCLUDE_DIRS
-				${LIBDIR}/jack/include/jack
-				${LIBDIR}/jack/include
+			find_library(JACK_FRAMEWORK
+				NAMES jackmp
 			)
-			set(JACK_LIBRARIES ${LIBDIR}/jack/lib/libjack.lib)
+			set(JACK_INCLUDE_DIRS ${JACK_FRAMEWORK}/headers)
+			if(NOT JACK_FRAMEWORK)
+				set(WITH_JACK OFF)
+			endif()
 		endif()
 
 		if(WITH_PYTHON)
@@ -1460,17 +1465,21 @@ elseif(APPLE)
 		if(WITH_INPUT_NDOF)
 			# This thread it *should* work and check the framework - campbell
 			# http://www.cmake.org/pipermail/cmake/2005-December/007740.html
-			find_library(3D_CONNEXION_CLIENT_LIBRARY
+			find_library(3DCONNEXION_CLIENT_FRAMEWORK
 				NAMES 3DconnexionClient
 			)
-			if(NOT 3D_CONNEXION_CLIENT_LIBRARY)
+			if(NOT 3DCONNEXION_CLIENT_FRAMEWORK)
 				set(WITH_INPUT_NDOF OFF)
 			endif()
 
 			if(WITH_INPUT_NDOF)
-				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework 3DconnexionClient")
+				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework /Library/Frameworks/3DconnexionClient.framework/3DconnexionClient")
 			endif()
 		endif()
+
+	if(WITH_JACK)
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework jackmp")
+	endif()
 
 	else()
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char")
