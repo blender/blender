@@ -1881,50 +1881,45 @@ void EDBM_selectmode_convert(BMEditMesh *em, const short selectmode_old, const s
 	BMFace *efa;
 	BMIter iter;
 
+	/* first tag-to-select, then select --- this avoids a feedback loop */
+
 	/* have to find out what the selectionmode was previously */
 	if (selectmode_old == SCE_SELECT_VERTEX) {
 		if (selectmode_new == SCE_SELECT_EDGE) {
-			/* select all edges associated with every selected vertex */
-			eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-			for (; eed; eed = BM_iter_step(&iter)) {
-				if ((BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-				     BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
-				{
+			/* select all edges associated with every selected vert */
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				BM_elem_flag_set(eed, BM_ELEM_TAG, BM_edge_is_any_vert_flag_test(eed, BM_ELEM_SELECT));
+			}
+
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
 					BM_edge_select_set(em->bm, eed, TRUE);
 				}
 			}
 		}
 		else if (selectmode_new == SCE_SELECT_FACE) {
-			BMIter liter;
-			BMLoop *l;
+			/* select all faces associated with every selected vert */
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				BM_elem_flag_set(efa, BM_ELEM_TAG, BM_face_is_any_vert_flag_test(efa, BM_ELEM_SELECT));
+			}
 
-			/* select all faces associated with every selected vertex */
-			efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-			for (; efa; efa = BM_iter_step(&iter)) {
-				l = BM_iter_new(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
-				for (; l; l = BM_iter_step(&liter)) {
-					if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
-						BM_face_select_set(em->bm, efa, TRUE);
-						break;
-					}
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+					BM_face_select_set(em->bm, efa, TRUE);
 				}
 			}
 		}
 	}
 	else if (selectmode_old == SCE_SELECT_EDGE) {
 		if (selectmode_new == SCE_SELECT_FACE) {
-			BMIter liter;
-			BMLoop *l;
+			/* select all faces associated with every selected edge */
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				BM_elem_flag_set(efa, BM_ELEM_TAG, BM_face_is_any_edge_flag_test(efa, BM_ELEM_SELECT));
+			}
 
-			/* select all faces associated with every selected vertex */
-			efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-			for (; efa; efa = BM_iter_step(&iter)) {
-				l = BM_iter_new(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
-				for (; l; l = BM_iter_step(&liter)) {
-					if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
-						BM_face_select_set(em->bm, efa, TRUE);
-						break;
-					}
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+					BM_face_select_set(em->bm, efa, TRUE);
 				}
 			}
 		}

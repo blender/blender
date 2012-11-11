@@ -139,6 +139,25 @@ MINLINE int power_of_2_min_i(int n)
 	return n;
 }
 
+MINLINE unsigned int highest_order_bit_i(unsigned int n)
+{
+	n |= (n >>  1);
+	n |= (n >>  2);
+	n |= (n >>  4);
+	n |= (n >>  8);
+	n |= (n >> 16);
+	return n - (n >> 1);
+}
+
+MINLINE unsigned short highest_order_bit_s(unsigned short n)
+{
+	n |= (n >>  1);
+	n |= (n >>  2);
+	n |= (n >>  4);
+	n |= (n >>  8);
+	return n - (n >> 1);
+}
+
 MINLINE float min_ff(float a, float b)
 {
 	return (a < b) ? a : b;

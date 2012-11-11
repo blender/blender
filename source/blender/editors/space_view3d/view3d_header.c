@@ -319,7 +319,7 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 	View3D *v3d = sa->spacedata.first;
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = NULL;
-	int ctrl = win->eventstate->ctrl, shift = win->eventstate->shift;
+	const int ctrl = win->eventstate->ctrl, shift = win->eventstate->shift;
 	PointerRNA props_ptr;
 	
 	if (obedit && obedit->type == OB_MESH) {
@@ -348,8 +348,11 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		case B_SEL_EDGE:
 			if (em) {
 				if (shift == 0 || em->selectmode == 0) {
-					if ((em->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX) {
-						if (ctrl) EDBM_selectmode_convert(em, SCE_SELECT_VERTEX, SCE_SELECT_EDGE);
+					if (ctrl) {
+						const short selmode_max = highest_order_bit_s(ts->selectmode);
+						if (selmode_max == SCE_SELECT_VERTEX) {
+							EDBM_selectmode_convert(em, selmode_max, SCE_SELECT_EDGE);
+						}
 					}
 					em->selectmode = SCE_SELECT_EDGE;
 				}
@@ -362,11 +365,13 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 		case B_SEL_FACE:
 			if (em) {
 				if (shift == 0 || em->selectmode == 0) {
-					if (((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) ||
-					    ((ts->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE))
-					{
-						if (ctrl) EDBM_selectmode_convert(em, (ts->selectmode ^ SCE_SELECT_FACE), SCE_SELECT_FACE);
+					if (ctrl) {
+						const short selmode_max = highest_order_bit_s(ts->selectmode);
+						if (ELEM(selmode_max, SCE_SELECT_VERTEX, SCE_SELECT_EDGE)) {
+							EDBM_selectmode_convert(em, selmode_max, SCE_SELECT_FACE);
+						}
 					}
+
 					em->selectmode = SCE_SELECT_FACE;
 				}
 				ts->selectmode = em->selectmode;
@@ -430,9 +435,15 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 
 		row = uiLayoutRow(layout, TRUE);
 		block = uiLayoutGetBlock(row);
-		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Vertex select - Shift-Click for multiple modes");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Edge select - Shift-Click for multiple modes");
-		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0, "Face select - Shift-Click for multiple modes");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL,
+		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
+		                 "Vertex select - Shift-Click for multiple modes");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL,
+		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
+		                 "Edge select - Shift-Click for multiple modes, Ctrl-Click expands selection");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL,
+		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &em->selectmode, 1.0, 0.0, 0, 0,
+		                 "Face select - Shift-Click for multiple modes, Ctrl-Click expands selection");
 	}
 }
 

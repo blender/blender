@@ -1419,3 +1419,38 @@ int BM_face_exists_multi_edge(BMEdge **earr, int len)
 
 	return ok;
 }
+
+/* convenience functiosn for checking flags */
+int BM_edge_is_any_vert_flag_test(BMEdge *e, const char hflag)
+{
+	return (BM_elem_flag_test(e->v1, hflag) ||
+	        BM_elem_flag_test(e->v2, hflag));
+}
+
+int BM_face_is_any_vert_flag_test(BMFace *f, const char hflag)
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (BM_elem_flag_test(l_iter->v, hflag)) {
+			return TRUE;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+	return FALSE;
+}
+
+int BM_face_is_any_edge_flag_test(BMFace *f, const char hflag)
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (BM_elem_flag_test(l_iter->e, hflag)) {
+			return TRUE;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+	return FALSE;
+}
