@@ -487,15 +487,14 @@ static bool ConvertMaterial(
 	MTFace* tface,  
 	const char *tfaceName,
 	MFace* mface, 
-	MCol* mmcol,
+	MCol* mmcol,  /* only for text, use first mcol, weak */
 	MTF_localLayer *layers,
-	bool glslmat)
+	const bool glslmat)
 {
 	material->Initialize();
 	int numchan =	-1, texalpha = 0;
 	bool validmat	= (mat!=0);
 	bool validface	= (tface!=0);
-	bool use_mcol = true;
 	
 	material->IdMode = DEFAULT_BLENDER;
 	material->glslmat = (validmat)? glslmat: false;
@@ -503,7 +502,6 @@ static bool ConvertMaterial(
 
 	// --------------------------------
 	if (validmat) {
-		use_mcol = (mat->mode & MA_VERTEXCOLP || glslmat) ? true: false;
 		// use lighting?
 		material->ras_mode |= ( mat->mode & MA_SHLESS )?0:USE_LIGHT;
 		material->ras_mode |= ( mat->game.flag & GEMAT_BACKCULL )?0:TWOSIDED;
@@ -852,19 +850,9 @@ static bool ConvertMaterial(
 		}
 	}
 
-	unsigned int rgb[4];
-	GetRGB(use_mcol, mface, mmcol, mat, rgb[0], rgb[1], rgb[2], rgb[3]);
-
-	// swap the material color, so MCol on bitmap font works
-	if (validmat && use_mcol == false && (mat->game.flag & GEMAT_TEXT))
-	{
-		rgb[0] = KX_rgbaint2uint_new(rgb[0]);
-		rgb[1] = KX_rgbaint2uint_new(rgb[1]);
-		rgb[2] = KX_rgbaint2uint_new(rgb[2]);
-		rgb[3] = KX_rgbaint2uint_new(rgb[3]);
+	if (validmat && mmcol) { /* color is only for text */
+		material->m_mcol = *(unsigned int *)mmcol;
 	}
-
-	material->SetConversionRGB(rgb);
 	material->SetConversionUV(uvName, uv);
 	material->SetConversionUV2(uv2Name, uv2);
 
@@ -1009,20 +997,19 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 			bool twoside = false;
 
 			if (converter->GetMaterials()) {
+				const bool glslmat = converter->GetGLSLMaterials();
+				const bool use_mcol = ma ? (ma->mode & MA_VERTEXCOLP || glslmat) : true;
 				/* do Blender Multitexture and Blender GLSL materials */
-				unsigned int rgb[4];
 				MT_Point2 uv[4];
 
 				/* first is the BL_Material */
 				if (!bl_mat)
 					bl_mat = new BL_Material();
 				ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
-					layers, converter->GetGLSLMaterials());
+				                layers, glslmat);
 
 				/* vertex colors and uv's were stored in bl_mat temporarily */
-				bl_mat->GetConversionRGB(rgb);
-				rgb0 = rgb[0]; rgb1 = rgb[1];
-				rgb2 = rgb[2]; rgb3 = rgb[3];
+				GetRGB(use_mcol, mface, mcol, ma, rgb0, rgb1, rgb2, rgb3);
 
 				bl_mat->GetConversionUV(uv);
 				uv0 = uv[0]; uv1 = uv[1];

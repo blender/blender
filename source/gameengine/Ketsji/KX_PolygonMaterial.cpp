@@ -109,7 +109,7 @@ void KX_PolygonMaterial::Initialize(
 		m_mcol = *mcol;
 	}
 	else {
-		memset(&m_mcol, 0, sizeof(m_mcol));
+		m_mcol = 0;
 	}
 
 	m_material = ma;

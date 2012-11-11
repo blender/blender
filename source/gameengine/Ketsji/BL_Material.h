@@ -87,16 +87,13 @@ public:
 	MTFace				tface; /* copy of the derived meshes tface */
 	Image*				img[MAXTEX];
 	EnvMap*				cubemap[MAXTEX];
+	unsigned int		m_mcol; /* for text color (only) */
 
-	unsigned int rgb[4];
 	MT_Point2 uv[4];
 	MT_Point2 uv2[4];
 
 	STR_String uvName;
 	STR_String uv2Name;
-
-	void SetConversionRGB(unsigned int *rgb);
-	void GetConversionRGB(unsigned int *rgb);
 
 	void SetConversionUV(const STR_String& name, MT_Point2 *uv);
 	void GetConversionUV(MT_Point2 *uv);

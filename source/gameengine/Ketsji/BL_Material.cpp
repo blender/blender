@@ -36,10 +36,7 @@ BL_Material::BL_Material()
 
 void BL_Material::Initialize()
 {
-	rgb[0] = 0;
-	rgb[1] = 0;
-	rgb[2] = 0;
-	rgb[3] = 0;
+	m_mcol = 0xFFFFFFFFL;
 	IdMode = 0;
 	ras_mode = 0;
 	glslmat = 0;
@@ -96,22 +93,6 @@ void BL_Material::Initialize()
 		img[i] = 0;
 		cubemap[i] = 0;
 	}
-}
-
-void BL_Material::SetConversionRGB(unsigned int *nrgb)
-{
-	rgb[0]=*nrgb++;
-	rgb[1]=*nrgb++;
-	rgb[2]=*nrgb++;
-	rgb[3]=*nrgb;
-}
-
-void BL_Material::GetConversionRGB(unsigned int *nrgb)
-{
-	*nrgb++ = rgb[0];
-	*nrgb++ = rgb[1];
-	*nrgb++ = rgb[2];
-	*nrgb   = rgb[3];
 }
 
 void BL_Material::SetConversionUV(const STR_String& name, MT_Point2 *nuv)

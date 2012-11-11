@@ -124,7 +124,7 @@ MTFace* KX_BlenderMaterial::GetMTFace(void) const
 unsigned int* KX_BlenderMaterial::GetMCol(void) const 
 {
 	// fonts on polys
-	return mMaterial->rgb;
+	return &mMaterial->m_mcol;
 }
 
 void KX_BlenderMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
@@ -136,6 +136,11 @@ void KX_BlenderMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
 		*rgba++ = (unsigned char)(mMaterial->matcolor[3] * 255.0f);
 	} else
 		RAS_IPolyMaterial::GetMaterialRGBAColor(rgba);
+}
+
+bool KX_BlenderMaterial::IsMaterial(BL_Material *bl_mat) const
+{
+	return (mMaterial == bl_mat);
 }
 
 Material *KX_BlenderMaterial::GetBlenderMaterial() const
