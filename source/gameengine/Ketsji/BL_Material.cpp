@@ -63,11 +63,6 @@ void BL_Material::Initialize()
 	share = false;
 
 	int i;
-	for (i=0; i<4; i++)
-	{
-		uv[i] = MT_Point2(0.f,1.f);
-		uv2[i] = MT_Point2(0.f, 1.f);
-	}
 
 	for (i=0; i<MAXTEX; i++) // :(
 	{
@@ -95,39 +90,14 @@ void BL_Material::Initialize()
 	}
 }
 
-void BL_Material::SetConversionUV(const STR_String& name, MT_Point2 *nuv)
+void BL_Material::SetUVLayerName(const STR_String& name)
 {
 	uvName = name;
-	uv[0] = *nuv++;
-	uv[1] = *nuv++;
-	uv[2] = *nuv++;
-	uv[3] = *nuv;
 }
-
-void BL_Material::GetConversionUV(MT_Point2 *nuv)
-{
-	*nuv++ = uv[0];
-	*nuv++ = uv[1];
-	*nuv++ = uv[2];
-	*nuv   = uv[3];
-}
-void BL_Material::SetConversionUV2(const STR_String& name, MT_Point2 *nuv)
+void BL_Material::SetUVLayerName2(const STR_String& name)
 {
 	uv2Name = name;
-	uv2[0] = *nuv++;
-	uv2[1] = *nuv++;
-	uv2[2] = *nuv++;
-	uv2[3] = *nuv;
 }
-
-void BL_Material::GetConversionUV2(MT_Point2 *nuv)
-{
-	*nuv++ = uv2[0];
-	*nuv++ = uv2[1];
-	*nuv++ = uv2[2];
-	*nuv   = uv2[3];
-}
-
 
 void BL_Material::SetSharedMaterial(bool v)
 {

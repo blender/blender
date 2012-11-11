@@ -138,7 +138,7 @@ void KX_BlenderMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
 		RAS_IPolyMaterial::GetMaterialRGBAColor(rgba);
 }
 
-bool KX_BlenderMaterial::IsMaterial(BL_Material *bl_mat) const
+bool KX_BlenderMaterial::IsMaterial(const BL_Material *bl_mat) const
 {
 	return (mMaterial == bl_mat);
 }

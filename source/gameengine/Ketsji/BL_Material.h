@@ -89,17 +89,11 @@ public:
 	EnvMap*				cubemap[MAXTEX];
 	unsigned int		m_mcol; /* for text color (only) */
 
-	MT_Point2 uv[4];
-	MT_Point2 uv2[4];
-
 	STR_String uvName;
 	STR_String uv2Name;
 
-	void SetConversionUV(const STR_String& name, MT_Point2 *uv);
-	void GetConversionUV(MT_Point2 *uv);
-
-	void SetConversionUV2(const STR_String& name, MT_Point2 *uv);
-	void GetConversionUV2(MT_Point2 *uv);
+	void SetUVLayerName(const STR_String &name);
+	void SetUVLayerName2(const STR_String &name);
 
 	void SetSharedMaterial(bool v);
 	bool IsShared();
