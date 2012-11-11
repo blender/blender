@@ -623,7 +623,7 @@ static void gp_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd, int *nb
 }
 
 static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu,
-                                                   Curve *cu, tGpTimingData *gtd, float cfra, float time_range,
+                                                   Curve *cu, tGpTimingData *gtd, float time_range,
                                                    int nbr_gaps, float tot_gaps_time)
 {
 	/* Use actual recorded timing! */
@@ -638,6 +638,7 @@ static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerR
 	int nbr_done_gaps = 0;
 
 	int i;
+	float cfra;
 
 	/* This is a bit tricky, as:
 	 * - We can't add arbitrarily close points on FCurve (in time).
@@ -709,7 +710,6 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 	PointerRNA ptr;
 	PropertyRNA *prop = NULL;
 
-	float cfra;
 	int nbr_gaps = 0, i;
 
 	if (gtd->mode == GP_STROKECONVERT_TIMING_NONE)
@@ -739,6 +739,8 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 	}
 
 	if (gtd->mode == GP_STROKECONVERT_TIMING_LINEAR) {
+		float cfra;
+
 		/* Linear extrapolation! */
 		fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
 
@@ -778,7 +780,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 			printf("Starting keying!\n");
 		}
 
-		gp_stroke_path_animation_add_keyframes(reports, ptr, prop, fcu, cu, gtd, cfra, time_range,
+		gp_stroke_path_animation_add_keyframes(reports, ptr, prop, fcu, cu, gtd, time_range,
 		                                       nbr_gaps, tot_gaps_time);
 
 	}
