@@ -1567,8 +1567,8 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_gpencil_convertmodes, 0, "Type", "Which type of curve to convert to");
 	RNA_def_boolean(ot->srna, "use_normalize_weights", TRUE, "Normalize Weight",
 	                "Normalize weight (set from stroke width)");
-	RNA_def_float(ot->srna, "radius_multiplier", 1.0f, 0.0f, 10.0f, "Radius Fac",
-	              "Multiplier for the points' radii (set from stroke width)", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "radius_multiplier", 1.0f, 0.0f, 1000.0f, "Radius Fac",
+	              "Multiplier for the points' radii (set from stroke width)", 0.0f, 10.0f);
 	RNA_def_boolean(ot->srna, "use_link_strokes", TRUE, "Link Strokes",
 	                "Whether to link strokes with zero-radius sections of curves");
 	prop = RNA_def_enum(ot->srna, "timing_mode", prop_gpencil_convert_timingmodes, GP_STROKECONVERT_TIMING_FULL,
@@ -1583,13 +1583,13 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
 	prop = RNA_def_int(ot->srna, "end_frame", 250, 1, 100000, "End Frame",
 	                   "The end frame of the path control curve (if Realtime is not set)", 1, 100000);
 	RNA_def_property_update_runtime(prop, gp_convert_set_end_frame);
-	RNA_def_float(ot->srna, "gap_duration", 0.0f, 0.0f, 1000.0f, "Gap Duration",
+	RNA_def_float(ot->srna, "gap_duration", 0.0f, 0.0f, 10000.0f, "Gap Duration",
 	              "Custom Gap mode: (Average) length of gaps, in frames "
-	              "(note: realtime value, will be scaled if Realtime is not set)", 0.0f, 10000.0f);
-	RNA_def_float(ot->srna, "gap_randomness", 0.0f, 0.0f, 100.0f, "Gap Randomness",
+	              "(note: realtime value, will be scaled if Realtime is not set)", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "gap_randomness", 0.0f, 0.0f, 10000.0f, "Gap Randomness",
 	              "Custom Gap mode: Number of frames that gap lengths can vary", 0.0f, 1000.0f);
-	RNA_def_int(ot->srna, "seed", 0, 0, 100, "Random Seed",
-	            "Custom Gap mode: Random generator seed", 0, 1000);
+	RNA_def_int(ot->srna, "seed", 0, 0, 1000, "Random Seed",
+	            "Custom Gap mode: Random generator seed", 0, 100);
 	/* Note: Internal use, this one will always be hidden by UI code... */
 	prop = RNA_def_boolean(ot->srna, "use_timing_data", FALSE, "Has Valid Timing",
 	                       "Whether the converted grease pencil layer has valid timing data (internal use)");
