@@ -289,10 +289,6 @@ if(APPLE)
 		set(OSX_SYSTEM unsupported)
 	endif()
 	message(STATUS "Detected system-version: " ${OSX_SYSTEM})
-	
-	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6" CACHE STRING "" FORCE) # 10.6 is our min. target, if you use higher sdk, weak linking happens - with 10.5 we have still not solved problems, build those with 10.5.sdk for now !!!
-	endif()
 
 	if(${CMAKE_GENERATOR} MATCHES "Xcode")
 	
@@ -319,6 +315,20 @@ if(APPLE)
 	endif()
 	
 	message(STATUS "Detected Xcode-version: " ${XCODE_VERSION})
+
+	if(${XCODE_VERSION} VERSION_LESS 4.3)
+		set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk CACHE PATH "" FORCE)  # use guaranteed existing sdk
+	else()
+		# note: i don't use xcode-select path on purpose, cause also /Applications/Xcode.app would be allowed
+		# absolute pathes are more foolproof here !
+		set(OSX_SYSROOT_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform)
+		set(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk
+		set(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
+	endif()
+	
+	if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+			set(CMAKE_OSX_DEPLOYMENT_TARGET "10.5" CACHE STRING "" FORCE) # 10.5 is our min. target, if you use higher sdk, weak linking happens
+	endif()
 	
 	option(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	option(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
@@ -1321,16 +1331,6 @@ elseif(APPLE)
 		set(WITH_LIBS10.5 ON CACHE BOOL "Use 10.5 libs" FORCE) # valid also for 10.6/10.7
 	endif()
 
-	if(${XCODE_VERSION} VERSION_LESS 4.3)
-		set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk CACHE PATH "" FORCE)  # use guaranteed existing sdk
-	else()
-		# note: i don't use xcode-select path on purpose, cause also /Applications/Xcode.app would be allowed
-		# absolute pathes are more foolproof here !
-		set(OSX_SYSROOT_PREFIX /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform)
-		set(OSX_DEVELOPER_PREFIX /Developer/SDKs/MacOSX${OSX_SYSTEM}.sdk) # use guaranteed existing sdk
-		set(CMAKE_OSX_SYSROOT ${OSX_SYSROOT_PREFIX}/${OSX_DEVELOPER_PREFIX} CACHE PATH "" FORCE)
-	endif()
-	
 	if(WITH_LIBS10.5)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
 	else()
