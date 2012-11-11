@@ -83,11 +83,6 @@ BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = True
 
-BF_GETTEXT = LIBDIR + '/gettext'
-BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'intl'
-BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
 WITH_BF_OPENJPEG = True
 BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''

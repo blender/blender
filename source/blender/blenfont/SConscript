@@ -8,7 +8,6 @@ incs = '. intern  #/intern/guardedalloc #/intern/locale ../blenkernel ../blenlib
 incs += ' ../makesdna ../makesrna ../imbuf ../editors/include'
 incs += ' #/extern/glew/include'
 incs += ' ' + env['BF_FREETYPE_INC']
-incs += ' ' + env['BF_GETTEXT_INC']
 
 defs = ['GLEW_STATIC']
 
