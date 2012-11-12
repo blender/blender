@@ -125,7 +125,8 @@ __attribute__((warn_unused_result))
 #endif
 ;
 int     BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, const int len);
-void   *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len)
+void   *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
+                          void **stack_array, int stack_array_size)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))
 #endif

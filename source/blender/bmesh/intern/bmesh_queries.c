@@ -1393,7 +1393,7 @@ int BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
 int BM_face_exists_multi_edge(BMEdge **earr, int len)
 {
 	BMVert **varr;
-	BLI_array_fixedstack_declare(varr, BM_NGON_STACK_SIZE, len, __func__);
+	BLI_array_fixedstack_declare(varr, BM_DEFAULT_NGON_STACK_SIZE, len, __func__);
 
 	int ok;
 	int i, i_next;

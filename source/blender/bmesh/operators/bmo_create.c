@@ -168,7 +168,7 @@ static void rotsys_reverse(BMEdge *UNUSED(e), BMVert *v, EdgeData *edata, VertDa
 	BMEdge **edges = NULL;
 	BMEdge *e_first;
 	BMEdge *e;
-	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(edges, BM_DEFAULT_NGON_STACK_SIZE);
 	int i, totedge;
 	
 	e = e_first = vdata[BM_elem_index_get(v)].e;
@@ -359,10 +359,10 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	BMIter iter;
 	BMEdge *e;
 	BMEdge **edges = NULL;
-	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(edges, BM_DEFAULT_NGON_STACK_SIZE);
 	BMVert *v;
 	/* BMVert **verts = NULL; */
-	/* BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE); */ /* UNUSE */
+	/* BLI_array_staticdeclare(verts, BM_DEFAULT_NGON_STACK_SIZE); */ /* UNUSE */
 	int i;
 	
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

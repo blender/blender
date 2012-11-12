@@ -174,9 +174,9 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
 {
 	BMEdge **edges2 = NULL;
-	BLI_array_staticdeclare(edges2, BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(edges2, BM_DEFAULT_NGON_STACK_SIZE);
 	BMVert **verts = NULL;
-	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(verts, BM_DEFAULT_NGON_STACK_SIZE);
 	BMFace *f = NULL;
 	BMEdge *e;
 	BMVert *v, *ev1, *ev2;

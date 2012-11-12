@@ -2573,8 +2573,8 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 	int nco = BLI_countlist(chain) - 1;
 	float (*cos)[3] = NULL;
 	KnifeVert **kverts;
-	BLI_array_fixedstack_declare(cos, BM_NGON_STACK_SIZE, nco, __func__);
-	BLI_array_fixedstack_declare(kverts, BM_NGON_STACK_SIZE, nco, __func__);
+	BLI_array_fixedstack_declare(cos, BM_DEFAULT_NGON_STACK_SIZE, nco, __func__);
+	BLI_array_fixedstack_declare(kverts, BM_DEFAULT_NGON_STACK_SIZE, nco, __func__);
 
 	kfe = ((Ref *)chain->first)->ref;
 	v1 = kfe->v1->v ? kfe->v1->v : kfe->v2->v;

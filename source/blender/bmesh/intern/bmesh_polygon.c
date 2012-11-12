@@ -162,7 +162,7 @@ float BM_face_calc_area(BMFace *f)
 	float area;
 	int i;
 
-	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
+	BLI_array_fixedstack_declare(verts, BM_DEFAULT_NGON_STACK_SIZE, f->len, __func__);
 
 	BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
 		copy_v3_v3(verts[i], l->v->co);
@@ -965,8 +965,8 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a = 0, clen;
 
-	BLI_array_fixedstack_declare(projverts, BM_NGON_STACK_SIZE, f->len,      "projvertsb");
-	BLI_array_fixedstack_declare(edgeverts, BM_NGON_STACK_SIZE * 2, len * 2, "edgevertsb");
+	BLI_array_fixedstack_declare(projverts, BM_DEFAULT_NGON_STACK_SIZE, f->len,      "projvertsb");
+	BLI_array_fixedstack_declare(edgeverts, BM_DEFAULT_NGON_STACK_SIZE * 2, len * 2, "edgevertsb");
 	
 	i = 0;
 	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
