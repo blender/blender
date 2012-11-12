@@ -163,7 +163,7 @@ typedef struct MovieTrackingSettings {
 
 	/* ** reconstruction settings ** */
 	int keyframe1 DNA_DEPRECATED,
-		keyframe2 DNA_DEPRECATED;   /* two keyframes for reconstrution initialization
+		keyframe2 DNA_DEPRECATED;   /* two keyframes for reconstruction initialization
 		                             * were moved to per-tracking object settings
 		                             */
 
@@ -228,7 +228,7 @@ typedef struct MovieTrackingObject {
 	MovieTrackingReconstruction reconstruction; /* reconstruction data for this object */
 
 	/* reconstruction options */
-	int keyframe1, keyframe2;   /* two keyframes for reconstrution initialization */
+	int keyframe1, keyframe2;   /* two keyframes for reconstruction initialization */
 } MovieTrackingObject;
 
 typedef struct MovieTrackingStats {

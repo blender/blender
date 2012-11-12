@@ -1026,7 +1026,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 
 			labdao = ddalabda;
 			
-			/* traversing ocree nodes need careful detection of smallest values, with proper
+			/* traversing octree nodes need careful detection of smallest values, with proper
 			 * exceptions for equal labdas */
 			eqval = (labdax == labday);
 			if (labday == labdaz) eqval += 2;

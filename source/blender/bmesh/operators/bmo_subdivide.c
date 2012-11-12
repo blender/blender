@@ -165,7 +165,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 	}
 
 	/* apply the new difference to the rest of the shape keys,
-	 * note that this doent take rotations into account, we _could_ support
+	 * note that this dosn't take rotations into account, we _could_ support
 	 * this by getting the normals and coords for each shape key and
 	 * re-calculate the smooth value for each but this is quite involved.
 	 * for now its ok to simply apply the difference IMHO - campbell */

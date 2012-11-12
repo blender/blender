@@ -1821,7 +1821,7 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 
 	/* we can't modify the vert while iterating so first allocate an array of loops */
 	loops = BM_iter_as_arrayN(bm, BM_LOOPS_OF_VERT, v, &loops_tot,
-	                          (void **)loops_stack, BM_DEFAULT_ITER_STACK_SIZE);
+	                          loops_stack, BM_DEFAULT_ITER_STACK_SIZE);
 
 	if (LIKELY(loops != NULL)) {
 		for (i = 0; i < loops_tot; i++) {

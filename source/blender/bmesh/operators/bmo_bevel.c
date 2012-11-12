@@ -1094,9 +1094,13 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 	int nsel = 0;
 
 	/* Gather input selected edges.
-	 * Only bevel selected edges that have exactly two incident faces. */
+	 * Only bevel selected edges that have exactly two incident faces.
+	 *
+	 * TODO, optimization - we could tag edges in 'geom'
+	 * and then just iterate edges-of-vert, checking tags.
+	 */
 	BMO_ITER (bme, &siter, bm, op, "geom", BM_EDGE) {
-		if ((bme->v1 == v) || (BM_edge_other_vert(bme, bme->v1) == v)) {
+		if (BM_vert_in_edge(bme, v)) {
 			if (BM_edge_is_manifold(bme)) {
 				BMO_elem_flag_enable(bm, bme, EDGE_SELECTED);
 				nsel++;
@@ -1310,12 +1314,12 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 
 	BLI_assert(e1 && e2);
 
-	/*	v4                       v3
-	 *       \                      /
-	 *        e->v1 - e->v2
-	 *       /                      \
-	 *      v1                       v2 */
-
+	/*   v4             v3
+	 *    \            /
+	 *     e->v1 - e->v2
+	 *    /            \
+	 *   v1             v2
+	 */
 	nseg = e1->seg;
 	BLI_assert(nseg > 0 && nseg == e2->seg);
 
@@ -1380,15 +1384,13 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMVert *v;
 	BMEdge *e;
-	BevelParams bp;
+	BevelParams bp = {{NULL}};
 
 	bp.offset = BMO_slot_float_get(op, "offset");
 	bp.op = op;
 	bp.seg = BMO_slot_int_get(op, "segments");
 
 	if (bp.offset > 0) {
-		bp.vertList.first = bp.vertList.last = NULL;
-
 		/* The analysis of the input vertices and execution additional constructions */
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
 			bevel_vert_construct(bm, &bp, op, v);

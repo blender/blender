@@ -624,7 +624,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 /** set all props to their default,
  * \param do_update Only update un-initialized props.
  *
- * \note, theres nothing spesific to operators here.
+ * \note, theres nothing specific to operators here.
  * this could be made a general function.
  */
 int WM_operator_properties_default(PointerRNA *ptr, const int do_update)

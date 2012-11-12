@@ -358,7 +358,7 @@ struct uiBlock {
 
 	char color_profile;         /* color profile for correcting linear colors for display */
 
-	char *display_device;       /* display devide name used to display this block,
+	char *display_device;       /* display device name used to display this block,
 	                             * used by color widgets to transform colors from/to scene linear
 	                             */
 };

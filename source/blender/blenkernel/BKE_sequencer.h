@@ -248,7 +248,7 @@ void BKE_sequencer_cache_cleanup(void);
 struct ImBuf *BKE_sequencer_cache_get(SeqRenderData context, struct Sequence *seq, float cfra, seq_stripelem_ibuf_t type);
 
 /* passed ImBuf is properly refed, so ownership is *not* 
- * transfered to the cache.
+ * transferred to the cache.
  * you can pass the same ImBuf multiple times to the cache without problems.
  */
 

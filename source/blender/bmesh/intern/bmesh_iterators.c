@@ -117,7 +117,7 @@ int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, cons
  * Caller needs to free the array.
  */
 void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
-                        /* optional static vars to avoid an alloc */
+                        /* optional args to avoid an alloc (normally stack array) */
                         void **stack_array, int stack_array_size)
 {
 	BMIter iter;

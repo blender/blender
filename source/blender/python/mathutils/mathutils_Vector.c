@@ -2784,7 +2784,7 @@ static struct PyMethodDef Vector_methods[] = {
 /* Note
  * Py_TPFLAGS_CHECKTYPES allows us to avoid casting all types to Vector when coercing
  * but this means for eg that
- * (vec * mat) and (mat * vec) both get sent to Vector_mul and it neesd to sort out the order
+ * (vec * mat) and (mat * vec) both get sent to Vector_mul and it needs to sort out the order
  */
 
 PyDoc_STRVAR(vector_doc,
