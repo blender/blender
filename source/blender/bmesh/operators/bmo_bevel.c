@@ -84,6 +84,7 @@ typedef struct VMesh {
 		M_POLY,         /* a simple polygon */
 		M_ADJ,          /* "adjacent edges" mesh pattern */
 		M_CROSS,        /* "cross edges" mesh pattern */
+		M_FAN,          /* a simple polygon - fan filled */
 	} mesh_kind;
 	int count;          /* number of vertices in the boundary */
 	int seg;            /* common # of segments for segmented edges */
@@ -669,7 +670,7 @@ static void build_boundary(BevVert *bv)
 	if (vm->count == 2 && bv->edgecount == 3)
 		vm->mesh_kind = M_NONE;
 	else if (efirst->seg == 1 || bv->selcount == 1)
-		vm->mesh_kind = M_POLY;
+		vm->mesh_kind = M_FAN;  /* was M_POLY */
 	else
 		vm->mesh_kind = M_ADJ;
 	/* TODO: if vm->count == 4 and bv->selcount == 4, use M_CROSS pattern */
@@ -977,8 +978,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	}
 }
 
-static void bevel_build_poly(BMesh *bm, BevVert *bv)
+static BMFace *bevel_build_poly_ex(BMesh *bm, BevVert *bv)
 {
+	BMFace *f;
 	int n, k;
 	VMesh *vm = bv->vmesh;
 	BoundVert *v;
@@ -999,10 +1001,56 @@ static void bevel_build_poly(BMesh *bm, BevVert *bv)
 		}
 		v = v->next;
 	} while (v != vm->boundstart);
-	if (n > 2)
-		bev_create_ngon(bm, vv, n, boundvert_rep_face(v));
+	if (n > 2) {
+		f = bev_create_ngon(bm, vv, n, boundvert_rep_face(v));
+	}
+	else {
+		f = NULL;
+	}
 	BLI_array_free(vv);
+	return f;
 }
+
+static void bevel_build_poly(BMesh *bm, BevVert *bv)
+{
+	bevel_build_poly_ex(bm, bv);
+}
+
+static void bevel_build_fan(BMesh *bm, BevVert *bv)
+{
+	BMFace *f;
+	BLI_assert(next_bev(bv, NULL)->seg == 1 || bv->selcount == 1);
+
+	f = bevel_build_poly_ex(bm, bv);
+
+	if (f) {
+		/* we have a polygon which we know starts at the previous vertex, make it into a fan */
+		BMLoop *l_fan = BM_FACE_FIRST_LOOP(f)->prev;
+		BMVert *v_fan = l_fan->v;
+
+		while (f->len > 3) {
+			BMLoop *l_new;
+			BMFace *f_new;
+			BLI_assert(v_fan == l_fan->v);
+			f_new = BM_face_split(bm, f, l_fan->v, l_fan->next->next->v, &l_new, NULL, FALSE);
+
+			if (f_new->len > f->len) {
+				f = f_new;
+				if      (l_new->v ==       v_fan) { l_fan = l_new; }
+				else if (l_new->next->v == v_fan) { l_fan = l_new->next; }
+				else if (l_new->prev->v == v_fan) { l_fan = l_new->prev; }
+				else { BLI_assert(0); }
+			}
+			else {
+				if      (l_fan->v ==       v_fan) { l_fan = l_fan; }
+				else if (l_fan->next->v == v_fan) { l_fan = l_fan->next; }
+				else if (l_fan->prev->v == v_fan) { l_fan = l_fan->prev; }
+				else { BLI_assert(0); }
+			}
+		}
+	}
+}
+
 
 /* Given that the boundary is built, now make the actual BMVerts
  * for the boundary and the interior of the vertex mesh. */
@@ -1075,6 +1123,8 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 		bevel_build_rings(bm, bv);
 	else if (vm->mesh_kind == M_POLY)
 		bevel_build_poly(bm, bv);
+	else if (vm->mesh_kind == M_FAN)
+		bevel_build_fan(bm, bv);
 }
 
 /*
