@@ -100,8 +100,8 @@ typedef struct tGPsdata {
 	
 	short radius;       /* radius of influence for eraser */
 	short flags;        /* flags that can get set during runtime */
-
-	/* Those needs to be doubles, as (at least under unix) they are in seconds since epoch,
+	
+	/* These need to be doubles, as (at least under unix) they are in seconds since epoch,
 	 * float (and its 7 digits precision) is definitively not enough here!
 	 * double, with its 15 digits precision, ensures us millisecond precision for a few centuries at least.
 	 */
@@ -110,7 +110,7 @@ typedef struct tGPsdata {
 	double ocurtime;    /* Used when converting to path */
 
 	float imat[4][4];   /* inverted transformation matrix applying when converting coords from screen-space
-	                     * to region space */
+	                        * to region space */
 	
 	float custom_color[4]; /* custom color - hack for enforcing a particular color for track/mask editing */
 	
@@ -455,11 +455,13 @@ static void gp_stroke_smooth(tGPsdata *p)
 	if ((cmx <= 2) || (gpd->sbuffer == NULL))
 		return;
 	
-	/* Calculate smoothing coordinates using weighted-averages */
-	/* XXX DO NOT smooth first and last points! */
+	/* Calculate smoothing coordinates using weighted-averages 
+	 * WARNING: we do NOT smooth first and last points (to avoid shrinkage)
+	 */
 	spt = (tGPspoint *)gpd->sbuffer;
-	/* This small array stores the last two points' org coordinates, we don't want to use already averaged ones!
-	 * Note it is used as a cyclic buffer...
+	
+	/* This (tmp_spt) small array stores the last two points' original coordinates, 
+	 * as we don't want to use already averaged ones! It is used as a cyclic buffer...
 	 */
 	tmp_spt[0] = *spt;
 	for (i = 1, spt++; i < cmx - 1; i++, spt++) {
@@ -469,7 +471,7 @@ static void gp_stroke_smooth(tGPsdata *p)
 		const tGPspoint *pd = pc + 1;
 		const tGPspoint *pe = (i + 2 < cmx) ? (pc + 2) : (pd);
 		
-		/* Store current point's org state for the two next points! */
+		/* Store current point's original state for the two next points! */
 		tmp_spt[i % 3] = *spt;
 		
 		spt->x = (int)(0.1 * pa->x + 0.2 * pb->x + 0.4 * pc->x + 0.2 * pd->x + 0.1 * pe->x);
@@ -588,7 +590,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			return;
 		}
 	}
-
+	
 	/* allocate memory for a new stroke */
 	gps = MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
 	
@@ -600,10 +602,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	
 	/* allocate enough memory for a continuous array for storage points */
 	gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
-
+	
 	/* set pointer to first non-initialized point */
 	pt = gps->points + (gps->totpoints - totelem);
-
+	
 	/* copy points from the buffer to the stroke */
 	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
 		/* straight lines only -> only endpoints */
@@ -722,7 +724,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		if (depth_arr)
 			MEM_freeN(depth_arr);
 	}
-
+	
 	/* add stroke to frame */
 	BLI_addtail(&p->gpf->strokes, gps);
 	gp_stroke_added_enable(p);
@@ -735,7 +737,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 {
 	bGPDspoint *pt_tmp = gps->points;
 	bGPDstroke *gsn = NULL;
-
+	
 	/* if stroke only had two points, get rid of stroke */
 	if (gps->totpoints == 2) {
 		/* free stroke points, then stroke */
@@ -745,7 +747,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 		/* nothing left in stroke, so stop */
 		return 1;
 	}
-
+	
 	/* if last segment, just remove segment from the stroke */
 	else if (i == gps->totpoints - 2) {
 		/* allocate new points array, and assign most of the old stroke there */
@@ -759,14 +761,14 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 		/* nothing left in stroke, so stop */
 		return 1;
 	}
-
+	
 	/* if first segment, just remove segment from the stroke */
 	else if (i == 0) {
 		/* allocate new points array, and assign most of the old stroke there */
 		gps->totpoints--;
 		gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
 		memcpy(gps->points, pt_tmp + 1, sizeof(bGPDspoint) * gps->totpoints);
-
+		
 		/* We must adjust timings!
 		 * Each point's timing data is a delta from stroke's inittime, so as we erase the first
 		 * point of the stroke, we have to offset this inittime and all remaing points' delta values.
@@ -777,9 +779,9 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 			bGPDspoint *pts;
 			float delta = pt_tmp[1].time;
 			int j;
-
+			
 			gps->inittime += delta;
-
+			
 			pts = gps->points;
 			for (j = 0; j < gps->totpoints; j++, pts++) {
 				pts->time -= delta;
@@ -792,7 +794,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 		/* no break here, as there might still be stuff to remove in this stroke */
 		return 0;
 	}
-
+	
 	/* segment occurs in 'middle' of stroke, so split */
 	else {
 		/* duplicate stroke, and assign 'later' data to that stroke */
@@ -814,15 +816,15 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 			bGPDspoint *pts;
 			float delta = pt_tmp[i].time;
 			int j;
-
+			
 			gsn->inittime += delta;
-
+			
 			pts = gsn->points;
 			for (j = 0; j < gsn->totpoints; j++, pts++) {
 				pts->time -= delta;
 			}
 		}
-
+		
 		/* adjust existing stroke  */
 		gps->totpoints = i;
 		gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
@@ -844,7 +846,7 @@ static short gp_stroke_eraser_strokeinside(const int mval[], const int UNUSED(mv
 	const float mval_fl[2]     = {mval[0], mval[1]};
 	const float screen_co_a[2] = {x0, y0};
 	const float screen_co_b[2] = {x1, y1};
-
+	
 	if (edge_inside_circle(mval_fl, rad, screen_co_a, screen_co_b)) {
 		return TRUE;
 	}
@@ -904,7 +906,6 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, gps->points, &x0, &y0);
 		
 		/* do boundbox check first */
-
 		if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
 			/* only check if point is inside */
 			if (((x0 - mval[0]) * (x0 - mval[0]) + (y0 - mval[1]) * (y0 - mval[1])) <= rad * rad) {
@@ -922,10 +923,10 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			/* get points to work with */
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
-
+			
 			gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, pt1, &x0, &y0);
 			gp_point_to_xy(p->ar, p->v2d, p->subrect, gps, pt2, &x1, &y1);
-
+			
 			/* check that point segment of the boundbox of the eraser stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
 			    ((!ELEM(V2D_IS_CLIPPED, x1, y1)) && BLI_rcti_isect_pt(rect, x1, y1))) {
@@ -1033,7 +1034,7 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 			}
 		}
 		break;
-
+		
 		case SPACE_NODE:
 		{
 			/* SpaceNode *snode = curarea->spacedata.first; */
@@ -1554,14 +1555,14 @@ static void gpencil_draw_apply_event(wmOperator *op, wmEvent *event)
 	PointerRNA itemptr;
 	float mousef[2];
 	int tablet = 0;
-
+	
 	/* convert from window-space to area-space mouse coordinates
 	 * NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding...
 	 */
 	p->mval[0] = event->mval[0] + 1;
 	p->mval[1] = event->mval[1] + 1;
 	p->curtime = PIL_check_seconds_timer();
-
+	
 	/* handle pressure sensitivity (which is supplied by tablets) */
 	if (event->custom == EVT_DATA_TABLET) {
 		wmTabletData *wmtab = event->customdata;
@@ -1592,7 +1593,7 @@ static void gpencil_draw_apply_event(wmOperator *op, wmEvent *event)
 		p->mvalo[1] = p->mval[1];
 		p->opressure = p->pressure;
 		p->inittime = p->ocurtime = p->curtime;
-
+		
 		/* special exception here for too high pressure values on first touch in
 		 *  windows for some tablets, then we just skip first touch...
 		 */
@@ -1601,7 +1602,7 @@ static void gpencil_draw_apply_event(wmOperator *op, wmEvent *event)
 	}
 	
 	RNA_float_set(&itemptr, "time", p->curtime - p->inittime);
-
+	
 	/* apply the current latest drawing point */
 	gpencil_draw_apply(op, p);
 	
@@ -1754,7 +1755,7 @@ static int gpencil_area_exists(bContext *C, ScrArea *sa_test)
 static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 {
 	tGPsdata *p = op->customdata;
-
+	
 	/* we must check that we're still within the area that we're set up to work from
 	 * otherwise we could crash (see bug #20586)
 	 */
@@ -1762,20 +1763,20 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 		printf("\t\t\tGP - wrong area execution abort!\n");
 		p->status = GP_STATUS_ERROR;
 	}
-
+	
 	/* printf("\t\tGP - start stroke\n"); */
-
+	
 	/* we may need to set up paint env again if we're resuming */
 	/* XXX: watch it with the paintmode! in future,
 	 *      it'd be nice to allow changing paint-mode when in sketching-sessions */
 	/* XXX: with tablet events, we may event want to check for eraser here, for nicer tablet support */
-
+	
 	if (gp_session_initdata(C, p))
 		gp_paint_initstroke(p, p->paintmode);
-
+	
 	if (p->status != GP_STATUS_ERROR)
 		p->status = GP_STATUS_PAINTING;
-
+	
 	return op->customdata;
 }
 
@@ -1800,7 +1801,7 @@ static void gpencil_stroke_end(wmOperator *op)
 static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p = op->customdata;
-	int estate = OPERATOR_PASS_THROUGH; /* default exit state */
+	int estate = OPERATOR_PASS_THROUGH; /* default exit state - pass through to support MMB view nav, etc. */
 	
 	/* if (event->type == NDOF_MOTION)
 	 *    return OPERATOR_PASS_THROUGH;
@@ -1814,7 +1815,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 	 * better in tools that immediately apply
 	 * in 3D space.
 	 */
-
+	
 	/* we don't pass on key events, GP is used with key-modifiers - prevents Dkey to insert drivers */
 	if (ISKEYBOARD(event->type))
 		estate = OPERATOR_RUNNING_MODAL;
