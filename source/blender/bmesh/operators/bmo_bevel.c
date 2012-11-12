@@ -1063,7 +1063,7 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 		for (k = 1; k < ns; k++) {
 			va = mesh_vert(vm, weld1->index, 0, k)->co;
 			vb = mesh_vert(vm, weld2->index, 0, ns - k)->co;
-			mid_v3_v3v3(co,va, vb);
+			mid_v3_v3v3(co, va, vb);
 			copy_v3_v3(mesh_vert(vm, weld1->index, 0, k)->co, co);
 			create_mesh_bmvert(bm, vm, weld1->index, 0, k, bv->v);
 		}
