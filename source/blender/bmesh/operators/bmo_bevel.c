@@ -188,10 +188,10 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 		from_e = &bv->edges[bv->edgecount - 1];
 	e = from_e;
 	do {
-		if (e->isbev)
+		if (e->isbev) {
 			return e;
-		e = e->next;
-	} while (e != from_e);
+		}
+	} while ((e = e->next) != from_e);
 	return NULL;
 }
 
@@ -440,8 +440,7 @@ static void project_to_edge(BMEdge *e, float co_a[3], float co_b[3], float projc
 {
 	float otherco[3];
 
-	if (!isect_line_line_v3(e->v1->co, e->v2->co, co_a, co_b,
-	                        projco, otherco)) {
+	if (!isect_line_line_v3(e->v1->co, e->v2->co, co_a, co_b, projco, otherco)) {
 		BLI_assert(!"project meet failure");
 		copy_v3_v3(projco, e->v1->co);
 	}
@@ -639,10 +638,9 @@ static void build_boundary(BevVert *bv)
 			/* e is not beveled */
 			if (e->next->isbev) {
 				/* next iteration will place e between beveled previous and next edges */
-				e = e->next;
-				continue;
+				/* do nothing... */
 			}
-			if (e->prev->isbev) {
+			else if (e->prev->isbev) {
 				/* on-edge meet between e->prev and e */
 				offset_meet(e->prev, e, bv->v, e->fprev, TRUE, co);
 				v = add_new_bound_vert(vm, co);
@@ -663,8 +661,7 @@ static void build_boundary(BevVert *bv)
 				e->leftv = v;
 			}
 		}
-		e = e->next;
-	} while (e != efirst);
+	} while ((e = e->next) != efirst);
 
 	BLI_assert(vm->count >= 2);
 	if (vm->count == 2 && bv->edgecount == 3)
@@ -733,8 +730,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					copy_v3_v3(mesh_vert(vm, i, ring, k)->co, co);
 				}
 			}
-			v = v->next;
-		} while (v != vm->boundstart);
+		} while ((v = v->next) != vm->boundstart);
 	}
 
 	/* Now make sure cross points of rings share coordinates and vertices.
@@ -783,8 +779,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				}
 			}
 		}
-		v = v->next;
-	} while (v != vm->boundstart);
+	} while ((v = v->next) != vm->boundstart);
 
 	if (ns % 2 == 0) {
 		/* Do special case center lines.
@@ -829,8 +824,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					}
 				}
 			}
-			v = v->next;
-		} while (v != vm->boundstart);
+		} while ((v = v->next) != vm->boundstart);
 
 		/* center point need to be average of all centers of rings */
 		/* TODO: this is wrong if not all verts have ebev: could have
@@ -845,8 +839,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				add_v3_v3(midco, nv->co);
 				nn++;
 			}
-			v = v->next;
-		} while (v != vm->boundstart);
+		} while ((v = v->next) != vm->boundstart);
 		mul_v3_fl(midco, 1.0f / nn);
 		bmv = BM_vert_create(bm, midco, NULL);
 		v = vm->boundstart;
@@ -857,8 +850,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				copy_v3_v3(nv->co, midco);
 				nv->v = bmv;
 			}
-			v = v->next;
-		} while (v != vm->boundstart);
+		} while ((v = v->next) != vm->boundstart);
 	}
 
 	/* Make the ring quads */
@@ -896,8 +888,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					bev_create_quad_tri(bm, bmv1, bmv2, bmv3, bmv4, f);
 				}
 			}
-			v = v->next;
-		} while (v != vm->boundstart);
+		} while ((v = v->next) != vm->boundstart);
 	}
 
 	/* Make center ngon if odd number of segments and fully beveled */
@@ -910,8 +901,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			i = v->index;
 			BLI_assert(v->ebev);
 			BLI_array_append(vv, mesh_vert(vm, i, ns2, ns2)->v);
-			v = v->next;
-		} while (v != vm->boundstart);
+		} while ((v = v->next) != vm->boundstart);
 		f = boundvert_rep_face(vm->boundstart);
 		bev_create_ngon(bm, vv, BLI_array_count(vv), f);
 
@@ -968,8 +958,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				BLI_array_append(vv, mesh_vert(vm, i, 0, 0)->v);
 				j++;
 			}
-			v = v->next;
-		} while (v != vm->boundstart);
+		} while ((v = v->next) != vm->boundstart);
 		if (vv[0] == vv[j - 1])
 			j--;
 		bev_create_ngon(bm, vv, j, f);
@@ -999,8 +988,7 @@ static BMFace *bevel_build_poly_ex(BMesh *bm, BevVert *bv)
 				n++;
 			}
 		}
-		v = v->next;
-	} while (v != vm->boundstart);
+	} while ((v = v->next) != vm->boundstart);
 	if (n > 2) {
 		f = bev_create_ngon(bm, vv, n, boundvert_rep_face(v));
 	}
@@ -1036,13 +1024,13 @@ static void bevel_build_fan(BMesh *bm, BevVert *bv)
 
 			if (f_new->len > f->len) {
 				f = f_new;
-				if      (l_new->v ==       v_fan) { l_fan = l_new; }
+				if      (l_new->v       == v_fan) { l_fan = l_new; }
 				else if (l_new->next->v == v_fan) { l_fan = l_new->next; }
 				else if (l_new->prev->v == v_fan) { l_fan = l_new->prev; }
 				else { BLI_assert(0); }
 			}
 			else {
-				if      (l_fan->v ==       v_fan) { l_fan = l_fan; }
+				if      (l_fan->v       == v_fan) { l_fan = l_fan; }
 				else if (l_fan->next->v == v_fan) { l_fan = l_fan->next; }
 				else if (l_fan->prev->v == v_fan) { l_fan = l_fan->prev; }
 				else { BLI_assert(0); }
@@ -1084,8 +1072,7 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 			else
 				weld2 = v;
 		}
-		v = v->next;
-	} while (v != vm->boundstart);
+	} while ((v = v->next) != vm->boundstart);
 
 	/* copy other ends to (i, 0, ns) for all i, and fill in profiles for beveled edges */
 	v = vm->boundstart;
@@ -1103,8 +1090,7 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 					create_mesh_bmvert(bm, vm, i, 0, k, bv->v);
 			}
 		}
-		v = v->next;
-	} while (v != vm->boundstart);
+	} while ((v = v->next) != vm->boundstart);
 
 	if (weld) {
 		vm->mesh_kind = M_NONE;
@@ -1419,8 +1405,7 @@ static void free_bevel_params(BevelParams *bp)
 			do {
 				vnext = v->next;
 				MEM_freeN(v);
-				v = vnext;
-			} while (v != vm->boundstart);
+			} while ((v = vnext) != vm->boundstart);
 		}
 		if (vm->mesh)
 			MEM_freeN(vm->mesh);
