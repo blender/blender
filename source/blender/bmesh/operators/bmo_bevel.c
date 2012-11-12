@@ -1265,19 +1265,17 @@ static void rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 /* All polygons touching v need rebuilding because beveling v has made new vertices */
 static void bevel_rebuild_existing_polygons(BMesh *bm, BevelParams *bp, BMVert *v)
 {
-	BMFace *f;
-	BMIter iter;
+	int      faces_len, f_index;
+	BMFace **faces = BM_iter_as_arrayN(bm, BM_FACES_OF_VERT, v, &faces_len);
 
-	/* TODO: don't iterate through all faces, but just local geometry around v */
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		BMLoop *l = f->l_first;
-		do {
-			if (l->v == v) {
-				rebuild_polygon(bm, bp, f);
-				BM_face_kill(bm, f);
-			}
-			l = l->next;
-		} while (l != f->l_first);
+	if (LIKELY(faces != NULL)) {
+		for (f_index = 0; f_index < faces_len; f_index++) {
+			BMFace *f = faces[f_index];
+			rebuild_polygon(bm, bp, f);
+			BM_face_kill(bm, f);
+		}
+
+		MEM_freeN(faces);
 	}
 }
 
