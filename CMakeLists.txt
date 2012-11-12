@@ -1482,7 +1482,7 @@ elseif(APPLE)
 			endif()
 
 			if(WITH_INPUT_NDOF)
-				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework /Library/Frameworks/3DconnexionClient.framework/3DconnexionClient")
+				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework 3DconnexionClient")
 			endif()
 		endif()
 
