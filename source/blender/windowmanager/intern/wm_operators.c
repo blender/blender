@@ -1280,6 +1280,31 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
 }
 
+/* ***************** Operator defaults ************************* */
+static int wm_operator_defaults_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "active_operator", &RNA_Operator);
+
+	if (!ptr.data) {
+		BKE_report(op->reports, RPT_ERROR, "No operator in context");
+		return OPERATOR_CANCELLED;
+	}
+
+	WM_operator_properties_reset((wmOperator *)ptr.data);
+	return OPERATOR_FINISHED;
+}
+
+/* used by operator preset menu. pre-2.65 this was a 'Reset' button */
+static void WM_OT_operator_defaults(wmOperatorType *ot)
+{
+	ot->name = "Restore Defaults";
+	ot->idname = "WM_OT_operator_defaults";
+	ot->description = "Set the active operator to its default values";
+
+	ot->exec = wm_operator_defaults_exec;
+
+	ot->flag = OPTYPE_INTERNAL;
+}
 
 /* ***************** Splash Screen ************************* */
 
@@ -3748,6 +3773,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_dependency_relations);
 	WM_operatortype_append(WM_OT_debug_menu);
+	WM_operatortype_append(WM_OT_operator_defaults);
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);

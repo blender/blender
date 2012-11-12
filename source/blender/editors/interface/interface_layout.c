@@ -68,6 +68,8 @@
 #define EM_SEPR_X       6
 #define EM_SEPR_Y       6
 
+// #define USE_OP_RESET_BUT  // we may want to make this optional, disable for now.
+
 #define UI_OPERATOR_ERROR_RET(_ot, _opname, return_statement)                 \
 	if (ot == NULL) {                                                         \
 		ui_item_disabled(layout, _opname);                                    \
@@ -2840,10 +2842,12 @@ const char *uiLayoutIntrospect(uiLayout *layout)
 	return str;
 }
 
+#ifdef USE_OP_RESET_BUT
 static void ui_layout_operator_buts__reset_cb(bContext *UNUSED(C), void *op_pt, void *UNUSED(arg_dummy2))
 {
 	WM_operator_properties_reset((wmOperator *)op_pt);
 }
+#endif
 
 /* this function does not initialize the layout, functions can be called on the layout before and after */
 void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,
@@ -2911,6 +2915,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,
 		}
 	}
 
+#ifdef USE_OP_RESET_BUT
 	/* its possible that reset can do nothing if all have PROP_SKIP_SAVE enabled
 	 * but this is not so important if this button is drawn in those cases
 	 * (which isn't all that likely anyway) - campbell */
@@ -2925,6 +2930,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,
 		                       NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Reset operator defaults"));
 		uiButSetFunc(but, ui_layout_operator_buts__reset_cb, op, NULL);
 	}
+#endif
 
 	/* set various special settings for buttons */
 	{
