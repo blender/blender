@@ -771,7 +771,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 		
 		/* We must adjust timings!
 		 * Each point's timing data is a delta from stroke's inittime, so as we erase the first
-		 * point of the stroke, we have to offset this inittime and all remaing points' delta values.
+		 * point of the stroke, we have to offset this inittime and all remaining points' delta values.
 		 * This way we get a new stroke with exactly the same timing as if user had started drawing from
 		 * the second point...
 		 */

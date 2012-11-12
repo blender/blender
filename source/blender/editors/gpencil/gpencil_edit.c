@@ -139,11 +139,11 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 				return &sseq->gpd;
 			}
 			break;
-
+			
 			case SPACE_IMAGE: /* Image/UV Editor */
 			{
 				SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
-
+				
 				/* for now, Grease Pencil data is associated with the space... */
 				/* XXX our convention for everything else is to link to data though... */
 				if (ptr) RNA_pointer_create(screen_id, &RNA_SpaceImageEditor, sima, ptr);
@@ -159,19 +159,19 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 				if (clip) {
 					if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
 						MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
-
+						
 						if (!track)
 							return NULL;
-
+						
 						if (ptr)
 							RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track, ptr);
-
+						
 						return &track->gpd;
 					}
 					else {
 						if (ptr)
 							RNA_id_pointer_create(&clip->id, ptr);
-
+						
 						return &clip->gpd;
 					}
 				}
@@ -535,15 +535,19 @@ static void gp_timing_data_add_point(tGpTimingData *gtd, double stroke_inittime,
 {
 	if (time < 0.0f) {
 		/* This is a gap, negative value! */
-		gtd->tot_time = -(gtd->times[gtd->cur_point] = -(((float)(stroke_inittime - gtd->inittime)) + time));
+		gtd->times[gtd->cur_point] = -(((float)(stroke_inittime - gtd->inittime)) + time);
+		gtd->tot_time = -gtd->times[gtd->cur_point];
+		
 		gtd->gap_tot_time += gtd->times[gtd->cur_point] - gtd->times[gtd->cur_point - 1];
 	}
 	else {
-		gtd->tot_time = (gtd->times[gtd->cur_point] = (((float)(stroke_inittime - gtd->inittime)) + time));
+		gtd->times[gtd->cur_point] = (((float)(stroke_inittime - gtd->inittime)) + time);
+		gtd->tot_time = (gtd->times[gtd->cur_point]);
 	}
 	
 	gtd->tot_dist += delta_dist;
 	gtd->dists[gtd->cur_point] = gtd->tot_dist;
+	
 	gtd->cur_point++;
 }
 
@@ -569,13 +573,14 @@ static int gp_find_end_of_stroke_idx(tGpTimingData *gtd, int idx, int nbr_gaps, 
 					/* We want gaps that are in gtd->gap_duration +/- gtd->gap_randomness range,
 					 * and which sum to exactly tot_gaps_time...
 					 */
-					int rem_gaps = nbr_gaps - *nbr_done_gaps;
+					int rem_gaps = nbr_gaps - (*nbr_done_gaps);
 					if (rem_gaps < 2) {
 						/* Last gap, just give remaining time! */
 						*next_delta_time = tot_gaps_time;
 					}
 					else {
 						float delta, min, max;
+						
 						/* This code ensures that if the first gaps have been shorter than average gap_duration,
 						 * next gaps will tend to be longer (i.e. try to recover the lateness), and vice-versa!
 						 */
