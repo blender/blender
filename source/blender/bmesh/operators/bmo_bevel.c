@@ -1097,7 +1097,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 	 * Only bevel selected edges that have exactly two incident faces. */
 	BMO_ITER (bme, &siter, bm, op, "geom", BM_EDGE) {
 		if ((bme->v1 == v) || (BM_edge_other_vert(bme, bme->v1) == v)) {
-			if (BM_edge_face_count(bme) == 2) {
+			if (BM_edge_is_manifold(bme)) {
 				BMO_elem_flag_enable(bm, bme, EDGE_SELECTED);
 				nsel++;
 			}
@@ -1295,7 +1295,7 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	BMFace *f1, *f2, *f;
 	int k, nseg, i1, i2;
 
-	if (BM_edge_face_count(bme) != 2)
+	if (!BM_edge_is_manifold(bme))
 		return;
 
 	bv1 = find_bevvert(bp, bme->v1);
@@ -1592,7 +1592,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			BMO_elem_flag_disable(bm, e->v2, BEVEL_DEL);
 		}
 #if 0
-		if (BM_edge_face_count(e) == 0) {
+		if (BM_edge_is_wire(e)) {
 			BMVert *verts[2] = {e->v1, e->v2};
 			BMEdge *edges[2] = {e, BM_edge_create(bm, e->v1, e->v2, e, 0)};
 			
