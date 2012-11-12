@@ -1444,18 +1444,22 @@ static int stitch_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		case PADENTER:
 		case RETKEY:
-			if (stitch_process_data(stitch_state, scene, 1)) {
-				stitch_exit(C, op, 1);
-				return OPERATOR_FINISHED;
+			if (event->val == KM_PRESS) {
+				if (stitch_process_data(stitch_state, scene, 1)) {
+					stitch_exit(C, op, 1);
+					return OPERATOR_FINISHED;
+				}
+				else {
+					return stitch_cancel(C, op);
+				}
 			}
 			else {
-				return stitch_cancel(C, op);
+				return OPERATOR_PASS_THROUGH;
 			}
-
 		/* Increase limit */
 		case PADPLUSKEY:
 		case WHEELUPMOUSE:
-			if (event->alt) {
+			if (event->val == KM_PRESS && event->alt) {
 				stitch_state->limit_dist += 0.01f;
 				if (!stitch_process_data(stitch_state, scene, 0)) {
 					return stitch_cancel(C, op);
@@ -1468,7 +1472,7 @@ static int stitch_modal(bContext *C, wmOperator *op, wmEvent *event)
 		/* Decrease limit */
 		case PADMINUS:
 		case WHEELDOWNMOUSE:
-			if (event->alt) {
+			if (event->val == KM_PRESS && event->alt) {
 				stitch_state->limit_dist -= 0.01f;
 				stitch_state->limit_dist = MAX2(0.01f, stitch_state->limit_dist);
 				if (!stitch_process_data(stitch_state, scene, 0)) {
