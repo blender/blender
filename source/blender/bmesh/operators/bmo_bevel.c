@@ -664,12 +664,20 @@ static void build_boundary(BevVert *bv)
 	} while ((e = e->next) != efirst);
 
 	BLI_assert(vm->count >= 2);
-	if (vm->count == 2 && bv->edgecount == 3)
+	if (vm->count == 2 && bv->edgecount == 3) {
 		vm->mesh_kind = M_NONE;
-	else if (efirst->seg == 1 || bv->selcount == 1)
-		vm->mesh_kind = M_FAN;  /* was M_POLY */
-	else
+	}
+	else if (efirst->seg == 1 || bv->selcount == 1) {
+		if (vm->count == 3 && bv->selcount == 1) {
+			vm->mesh_kind = M_FAN;
+		}
+		else {
+			vm->mesh_kind = M_POLY;
+		}
+	}
+	else {
 		vm->mesh_kind = M_ADJ;
+	}
 	/* TODO: if vm->count == 4 and bv->selcount == 4, use M_CROSS pattern */
 }
 
