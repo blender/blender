@@ -684,7 +684,7 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
 
         if brush:
             col = layout.column()
-            col.template_color_wheel(brush, "color", value_slider=True)
+            col.template_color_picker(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)

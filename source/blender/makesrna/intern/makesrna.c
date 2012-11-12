@@ -80,13 +80,15 @@ static void rna_generate_static_parameter_prototypes(FILE *f, StructRNA *srna, F
                                                      const char *name_override, int close_prototype);
 
 /* helpers */
-#define WRITE_COMMA { \
+#define WRITE_COMMA \
+	{ \
 		if (!first) \
 			fprintf(f, ", "); \
 		first = 0; \
 	} (void)0
 
-#define WRITE_PARAM(param) { \
+#define WRITE_PARAM(param) \
+	{ \
 		WRITE_COMMA; \
 		fprintf(f, param); \
 	}
@@ -3580,10 +3582,10 @@ static void rna_generate_header_class_cpp(StructDefRNA *ds, FILE *f)
 	fprintf(f, "class %s : public %s {\n", srna->identifier, (srna->base) ? srna->base->identifier : "Pointer");
 	fprintf(f, "public:\n");
 	fprintf(f, "\t%s(const PointerRNA &ptr_arg) :\n\t\t%s(ptr_arg)", srna->identifier,
-			(srna->base) ? srna->base->identifier : "Pointer");
+	        (srna->base) ? srna->base->identifier : "Pointer");
 	for (dp = ds->cont.properties.first; dp; dp = dp->next)
 		if (rna_is_collection_prop(dp->prop))
-				fprintf(f, ",\n\t\t%s(ptr_arg)", dp->prop->identifier);
+			fprintf(f, ",\n\t\t%s(ptr_arg)", dp->prop->identifier);
 	fprintf(f, "\n\t\t{}\n\n");
 
 	for (dp = ds->cont.properties.first; dp; dp = dp->next)

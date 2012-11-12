@@ -563,13 +563,13 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 					
 					switch (fcu->array_index) {
 						case 0:
-							col[0] = 1.0f; col[1] = 0.0f; col[2] = 0.0f;
+							UI_GetThemeColor3fv(TH_AXIS_X, col);
 							break;
 						case 1:
-							col[0] = 0.0f; col[1] = 1.0f; col[2] = 0.0f;
+							UI_GetThemeColor3fv(TH_AXIS_Y, col);
 							break;
 						case 2:
-							col[0] = 0.0f; col[1] = 0.0f; col[2] = 1.0f;
+							UI_GetThemeColor3fv(TH_AXIS_Z, col);
 							break;
 						default:
 							/* 'unknown' color - bluish so as to not conflict with handles */

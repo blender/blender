@@ -45,7 +45,7 @@ public:
 	TaskPool task_pool;
 	KernelGlobals *kg;
 	
-	CPUDevice(Stats &stats, int threads_num) : Device(stats)
+	CPUDevice(Stats &stats) : Device(stats)
 	{
 		kg = kernel_globals_create();
 
@@ -274,7 +274,7 @@ public:
 		/* split task into smaller ones, more than number of threads for uneven
 		 * workloads where some parts of the image render slower than others */
 		list<DeviceTask> tasks;
-		task.split(tasks, TaskScheduler::num_threads()+1);
+		task.split(tasks, TaskScheduler::num_threads());
 
 		foreach(DeviceTask& task, tasks)
 			task_pool.push(new CPUDeviceTask(this, task));
@@ -291,9 +291,9 @@ public:
 	}
 };
 
-Device *device_cpu_create(DeviceInfo& info, Stats &stats, int threads)
+Device *device_cpu_create(DeviceInfo& info, Stats &stats)
 {
-	return new CPUDevice(stats, threads);
+	return new CPUDevice(stats);
 }
 
 void device_cpu_info(vector<DeviceInfo>& devices)

@@ -19,31 +19,22 @@
 #ifndef __UTIL_STATS_H__
 #define __UTIL_STATS_H__
 
-#include "util_thread.h"
-
 CCL_NAMESPACE_BEGIN
 
 class Stats {
 public:
-	Stats() : lock(), mem_used(0), mem_peak(0) {}
+	Stats() : mem_used(0), mem_peak(0) {}
 
 	void mem_alloc(size_t size) {
-		lock.lock();
-
 		mem_used += size;
 		if(mem_used > mem_peak)
 			mem_peak = mem_used;
-
-		lock.unlock();
 	}
 
 	void mem_free(size_t size) {
-		lock.lock();
 		mem_used -= size;
-		lock.unlock();
 	}
 
-	spin_lock lock;
 	size_t mem_used;
 	size_t mem_peak;
 };

@@ -665,7 +665,8 @@ typedef struct ShrinkwrapModifierData {
 	float keepDist;			/* distance offset to keep from mesh/projection point */
 	short shrinkType;		/* shrink type projection */
 	short shrinkOpts;		/* shrink options */
-	char projAxis;			/* axis to project over */
+	float projLimit;		/* limit the projection ray cast */
+	char  projAxis;			/* axis to project over */
 
 	/*
 	 * if using projection over vertex normal this controls the
@@ -674,7 +675,7 @@ typedef struct ShrinkwrapModifierData {
 	 */
 	char subsurfLevels;
 
-	char pad[6];
+	char pad[2];
 
 } ShrinkwrapModifierData;
 

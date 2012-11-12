@@ -56,6 +56,7 @@ struct wmKeyConfig;
 typedef struct tGPspoint {
 	int x, y;               /* x and y coordinates of cursor (in relative to area) */
 	float pressure;         /* pressure of tablet at this point */
+	float time;             /* Time relative to stroke start (used when converting to path) */
 } tGPspoint;
 
 

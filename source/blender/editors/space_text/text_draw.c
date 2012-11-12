@@ -95,7 +95,7 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 static int text_font_draw_character_utf8(SpaceText *st, int x, int y, const char *c)
 {
 	char str[BLI_UTF8_MAX + 1];
-	size_t len = BLI_str_utf8_size(c);
+	size_t len = BLI_str_utf8_size_safe(c);
 	memcpy(str, c, len);
 	str[len] = '\0';
 
@@ -158,7 +158,7 @@ int flatten_string(SpaceText *st, FlattenString *fs, const char *in)
 			in++;
 		}
 		else {
-			size_t len = BLI_str_utf8_size(in);
+			size_t len = BLI_str_utf8_size_safe(in);
 			flatten_string_append(fs, in, r, len);
 			in += len;
 			total++;
@@ -342,7 +342,7 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 		if (*str == '\\') {
 			*fmt = prev; fmt++; str++;
 			if (*str == '\0') break;
-			*fmt = prev; fmt++; str += BLI_str_utf8_size(str);
+			*fmt = prev; fmt++; str += BLI_str_utf8_size_safe(str);
 			continue;
 		}
 		/* Handle continuations */
@@ -363,14 +363,14 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 			}
 
 			*fmt = 'l';
-			str += BLI_str_utf8_size(str) - 1;
+			str += BLI_str_utf8_size_safe(str) - 1;
 		}
 		/* Not in a string... */
 		else {
 			/* Deal with comments first */
 			if (prev == '#' || *str == '#') {
 				*fmt = '#';
-				str += BLI_str_utf8_size(str) - 1;
+				str += BLI_str_utf8_size_safe(str) - 1;
 			}
 			else if (*str == '"' || *str == '\'') {
 				/* Strings */
@@ -399,7 +399,7 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 					*fmt = 'n';
 				}
 				else {
-					str += BLI_str_utf8_size(str) - 1;
+					str += BLI_str_utf8_size_safe(str) - 1;
 					*fmt = 'q';
 				}
 			/* Punctuation */
@@ -407,7 +407,7 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 				*fmt = '!';
 			/* Identifiers and other text (no previous ws. or delims. so text continues) */
 			else if (prev == 'q') {
-				str += BLI_str_utf8_size(str) - 1;
+				str += BLI_str_utf8_size_safe(str) - 1;
 				*fmt = 'q';
 			}
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
@@ -427,7 +427,7 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 					*fmt = prev;
 				}
 				else {
-					str += BLI_str_utf8_size(str) - 1;
+					str += BLI_str_utf8_size_safe(str) - 1;
 					*fmt = 'q';
 				}
 			}
@@ -575,7 +575,7 @@ void wrap_offset(SpaceText *st, ARegion *ar, TextLine *linein, int cursin, int *
 		end = max;
 		chop = 1;
 		*offc = 0;
-		for (i = 0, j = 0; linep->line[j]; j += BLI_str_utf8_size(linep->line + j)) {
+		for (i = 0, j = 0; linep->line[j]; j += BLI_str_utf8_size_safe(linep->line + j)) {
 			int chars;
 
 			/* Mimic replacement of tabs */
@@ -640,7 +640,7 @@ void wrap_offset_in_line(SpaceText *st, ARegion *ar, TextLine *linein, int cursi
 	*offc = 0;
 	cursin = txt_utf8_offset_to_index(linein->line, cursin);
 
-	for (i = 0, j = 0; linein->line[j]; j += BLI_str_utf8_size(linein->line + j)) {
+	for (i = 0, j = 0; linein->line[j]; j += BLI_str_utf8_size_safe(linein->line + j)) {
 
 		/* Mimic replacement of tabs */
 		ch = linein->line[j];
@@ -685,7 +685,7 @@ int text_get_char_pos(SpaceText *st, const char *line, int cur)
 {
 	int a = 0, i;
 	
-	for (i = 0; i < cur && line[i]; i += BLI_str_utf8_size(line + i)) {
+	for (i = 0; i < cur && line[i]; i += BLI_str_utf8_size_safe(line + i)) {
 		if (line[i] == '\t')
 			a += st->tabnumber - a % st->tabnumber;
 		else
@@ -698,7 +698,7 @@ static const char *txt_utf8_get_nth(const char *str, int n)
 {
 	int pos = 0;
 	while (str[pos] && n--) {
-		pos += BLI_str_utf8_size(str + pos);
+		pos += BLI_str_utf8_size_safe(str + pos);
 	}
 	return str + pos;
 }
@@ -719,7 +719,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 	start = 0; mstart = 0;
 	end = max; mend = txt_utf8_get_nth(str, max) - str;
 	
-	for (i = 0, mi = 0; str[mi]; i++, mi += BLI_str_utf8_size(str + mi)) {
+	for (i = 0, mi = 0; str[mi]; i++, mi += BLI_str_utf8_size_safe(str + mi)) {
 		if (i - start >= max) {
 			/* skip hidden part of line */
 			if (skip) {
@@ -730,7 +730,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 			}
 
 			/* Draw the visible portion of text on the overshot line */
-			for (a = start, ma = mstart; a < end; a++, ma += BLI_str_utf8_size(str + ma)) {
+			for (a = start, ma = mstart; a < end; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
 				if (st->showsyntax && format) format_draw_color(format[a]);
 				x += text_font_draw_character_utf8(st, x, y, str + ma);
 			}
@@ -748,7 +748,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 	}
 
 	/* Draw the remaining text */
-	for (a = start, ma = mstart; str[ma] && y > 0; a++, ma += BLI_str_utf8_size(str + ma)) {
+	for (a = start, ma = mstart; str[ma] && y > 0; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
 		if (st->showsyntax && format)
 			format_draw_color(format[a]);
 
@@ -786,7 +786,7 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 			for (a = 0; a < amount; a++) {
 				format_draw_color(format[a]);
 				x += text_font_draw_character_utf8(st, x, y, in + str_shift);
-				str_shift += BLI_str_utf8_size(in + str_shift);
+				str_shift += BLI_str_utf8_size_safe(in + str_shift);
 			}
 		}
 		else text_font_draw(st, x, y, in);
@@ -1016,7 +1016,7 @@ int text_get_visible_lines(SpaceText *st, ARegion *ar, const char *str)
 	lines = 1;
 	start = 0;
 	end = max;
-	for (i = 0, j = 0; str[j]; j += BLI_str_utf8_size(str + j)) {
+	for (i = 0, j = 0; str[j]; j += BLI_str_utf8_size_safe(str + j)) {
 		/* Mimic replacement of tabs */
 		ch = str[j];
 		if (ch == '\t') {
@@ -1639,7 +1639,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	if (b > 0) {
 		/* opening bracket, search forward for close */
 		fc++;
-		c += BLI_str_utf8_size(linep->line + c);
+		c += BLI_str_utf8_size_safe(linep->line + c);
 		while (linep) {
 			while (c < linep->len) {
 				if (linep->format && linep->format[fc] != 'l' && linep->format[fc] != '#') {
@@ -1657,7 +1657,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 					}
 				}
 				fc++;
-				c += BLI_str_utf8_size(linep->line + c);
+				c += BLI_str_utf8_size_safe(linep->line + c);
 			}
 			if (endl) break;
 			linep = linep->next;

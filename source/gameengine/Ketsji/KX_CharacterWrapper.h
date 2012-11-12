@@ -32,4 +32,4 @@ private:
 	PHY_ICharacter*			 m_character;
 };
 
-#endif //__KX_CHARACTERWRAPPER_H__
+#endif  /* __KX_CHARACTERWRAPPER_H__ */

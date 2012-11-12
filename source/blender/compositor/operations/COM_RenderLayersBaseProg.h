@@ -80,6 +80,7 @@ protected:
 	 */
 	inline float *getInputBuffer() { return this->m_inputBuffer; }
 
+	void doInterpolation(float output[4], float x, float y, PixelSampler sampler);
 public:
 	/**
 	 * setter for the scene field. Will be called from

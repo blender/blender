@@ -319,7 +319,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr
 	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
 	
 	col = uiLayoutColumn(layout, FALSE);
-	uiTemplateColorWheel(col, &sockptr, "default_value", 1, 0, 0, 0);
+	uiTemplateColorPicker(col, &sockptr, "default_value", 1, 0, 0, 0);
 	uiItemR(col, &sockptr, "default_value", 0, "", ICON_NONE);
 }
 
@@ -2258,17 +2258,17 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
 	
 		split = uiLayoutSplit(layout, 0.0f, FALSE);
 		col = uiLayoutColumn(split, FALSE);
-		uiTemplateColorWheel(col, ptr, "lift", 1, 1, 0, 1);
+		uiTemplateColorPicker(col, ptr, "lift", 1, 1, 0, 1);
 		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "lift", 0, NULL, ICON_NONE);
 		
 		col = uiLayoutColumn(split, FALSE);
-		uiTemplateColorWheel(col, ptr, "gamma", 1, 1, 1, 1);
+		uiTemplateColorPicker(col, ptr, "gamma", 1, 1, 1, 1);
 		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "gamma", 0, NULL, ICON_NONE);
 		
 		col = uiLayoutColumn(split, FALSE);
-		uiTemplateColorWheel(col, ptr, "gain", 1, 1, 1, 1);
+		uiTemplateColorPicker(col, ptr, "gain", 1, 1, 1, 1);
 		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "gain", 0, NULL, ICON_NONE);
 
@@ -2277,17 +2277,17 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *UNUSED(C
 		
 		split = uiLayoutSplit(layout, 0.0f, FALSE);
 		col = uiLayoutColumn(split, FALSE);
-		uiTemplateColorWheel(col, ptr, "offset", 1, 1, 0, 1);
+		uiTemplateColorPicker(col, ptr, "offset", 1, 1, 0, 1);
 		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "offset", 0, NULL, ICON_NONE);
 		
 		col = uiLayoutColumn(split, FALSE);
-		uiTemplateColorWheel(col, ptr, "power", 1, 1, 0, 1);
+		uiTemplateColorPicker(col, ptr, "power", 1, 1, 0, 1);
 		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "power", 0, NULL, ICON_NONE);
 		
 		col = uiLayoutColumn(split, FALSE);
-		uiTemplateColorWheel(col, ptr, "slope", 1, 1, 0, 1);
+		uiTemplateColorPicker(col, ptr, "slope", 1, 1, 0, 1);
 		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, ptr, "slope", 0, NULL, ICON_NONE);
 	}
@@ -2299,23 +2299,23 @@ static void node_composit_buts_colorbalance_but(uiLayout *layout, bContext *UNUS
 
 	if (RNA_enum_get(ptr, "correction_method") == 0) {
 
-		uiTemplateColorWheel(layout, ptr, "lift", 1, 1, 0, 1);
+		uiTemplateColorPicker(layout, ptr, "lift", 1, 1, 0, 1);
 		uiItemR(layout, ptr, "lift", 0, NULL, ICON_NONE);
 
-		uiTemplateColorWheel(layout, ptr, "gamma", 1, 1, 1, 1);
+		uiTemplateColorPicker(layout, ptr, "gamma", 1, 1, 1, 1);
 		uiItemR(layout, ptr, "gamma", 0, NULL, ICON_NONE);
 
-		uiTemplateColorWheel(layout, ptr, "gain", 1, 1, 1, 1);
+		uiTemplateColorPicker(layout, ptr, "gain", 1, 1, 1, 1);
 		uiItemR(layout, ptr, "gain", 0, NULL, ICON_NONE);
 	}
 	else {
-		uiTemplateColorWheel(layout, ptr, "offset", 1, 1, 0, 1);
+		uiTemplateColorPicker(layout, ptr, "offset", 1, 1, 0, 1);
 		uiItemR(layout, ptr, "offset", 0, NULL, ICON_NONE);
 
-		uiTemplateColorWheel(layout, ptr, "power", 1, 1, 0, 1);
+		uiTemplateColorPicker(layout, ptr, "power", 1, 1, 0, 1);
 		uiItemR(layout, ptr, "power", 0, NULL, ICON_NONE);
 
-		uiTemplateColorWheel(layout, ptr, "slope", 1, 1, 0, 1);
+		uiTemplateColorPicker(layout, ptr, "slope", 1, 1, 0, 1);
 		uiItemR(layout, ptr, "slope", 0, NULL, ICON_NONE);
 	}
 }

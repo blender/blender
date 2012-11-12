@@ -76,6 +76,8 @@ public:
 		TCachingInfo& cachingInfo
 	)const;
 
+	/* mMaterial is private, but need this for conversion */
+	bool IsMaterial(const BL_Material *bl_mat) const;
 	Material* GetBlenderMaterial() const;
 	MTFace* GetMTFace(void) const;
 	unsigned int* GetMCol(void) const;

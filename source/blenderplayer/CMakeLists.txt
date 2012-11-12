@@ -191,6 +191,10 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_guardedalloc_cpp)
 	endif()
 
+	if(WITH_INTERNATIONAL)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_locale)
+	endif()
+
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})
 		set(REMLIB ${SORTLIB})
 		foreach(SEARCHLIB ${BLENDER_LINK_LIBS})

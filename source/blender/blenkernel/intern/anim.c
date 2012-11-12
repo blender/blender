@@ -76,8 +76,8 @@
 /* --------------------- */
 /* forward declarations */
 
-static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int par_index,
-                                       int level, short flag);
+static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4],
+                                       int persistent_id[MAX_DUPLI_RECUR], int level, int index, short flag);
 
 /* ******************************************************************** */
 /* Animation Visualization */
@@ -706,31 +706,45 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 #define DUPLILIST_FOR_RENDER	2
 #define DUPLILIST_ANIMATED		4
 
-static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index, int par_index, int type, short flag)
+static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay,
+                                     int persistent_id[MAX_DUPLI_RECUR], int level, int index, int type, short flag)
 {
 	DupliObject *dob = MEM_callocN(sizeof(DupliObject), "dupliobject");
-	
+	int i;
+
 	BLI_addtail(lb, dob);
 	dob->ob = ob;
 	copy_m4_m4(dob->mat, mat);
 	copy_m4_m4(dob->omat, ob->obmat);
 	dob->origlay = ob->lay;
-	dob->index = index;
-	dob->particle_index = par_index;
 	dob->type = type;
 	dob->animated = (type == OB_DUPLIGROUP) && (flag & DUPLILIST_ANIMATED);
 	ob->lay = lay;
+
+	/* set persistent id, which is an array with a persistent index for each level
+	 * (particle number, vertex number, ..). by comparing this we can find the same
+	 * dupli object between frames, which is needed for motion blur. last level
+	 * goes first in the array. */
+	dob->persistent_id[0] = index;
+	for (i = 1; i < level; i++)
+		dob->persistent_id[i] = persistent_id[level - 1 - i];
+	
+	/* metaballs never draw in duplis, they are instead merged into one by the basis
+	 * mball outside of the group. this does mean that if that mball is not in the
+	 * scene, they will not show up at all, limitation that should be solved once. */
+	if (ob->type == OB_MBALL)
+		dob->no_draw = TRUE;
 	
 	return dob;
 }
 
-static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_index,
+static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int persistent_id[MAX_DUPLI_RECUR],
                             int level, short flag)
 {
 	DupliObject *dob;
 	Group *group;
 	GroupObject *go;
-	float mat[4][4], tmat[4][4];
+	float mat[4][4], tmat[4][4], id;
 	
 	if (ob->dup_group == NULL) return;
 	group = ob->dup_group;
@@ -750,7 +764,7 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_inde
 	if (group_is_animated(ob, group))
 		flag |= DUPLILIST_ANIMATED;
 	
-	for (go = group->gobject.first; go; go = go->next) {
+	for (go = group->gobject.first, id = 0; go; go = go->next, id++) {
 		/* note, if you check on layer here, render goes wrong... it still deforms verts and uses parent imat */
 		if (go->ob != ob) {
 			
@@ -764,7 +778,7 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_inde
 				mult_m4_m4m4(mat, ob->obmat, go->ob->obmat);
 			}
 			
-			dob = new_dupli_object(lb, go->ob, mat, ob->lay, 0, par_index, OB_DUPLIGROUP, flag);
+			dob = new_dupli_object(lb, go->ob, mat, ob->lay, persistent_id, level, id, OB_DUPLIGROUP, flag);
 
 			/* check the group instance and object layers match, also that the object visible flags are ok. */
 			if ((dob->origlay & group->layer) == 0 ||
@@ -773,20 +787,17 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_inde
 			{
 				dob->no_draw = TRUE;
 			}
-			else {
-				dob->no_draw = FALSE;
-			}
 
 			if (go->ob->transflag & OB_DUPLI) {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
-				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob->obmat, par_index, level + 1, flag);
+				object_duplilist_recursive(&group->id, scene, go->ob, lb, ob->obmat, persistent_id, level + 1, id, flag);
 				copy_m4_m4(dob->ob->obmat, dob->omat);
 			}
 		}
 	}
 }
 
-static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_index, int level, short flag)
+static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int persistent_id[MAX_DUPLI_RECUR], int level, short flag)
 {
 	extern int enable_cu_speed; /* object.c */
 	Object copyob;
@@ -834,7 +845,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_ind
 			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 			BKE_object_where_is_calc_time(scene, ob, (float)scene->r.cfra);
 			
-			dob = new_dupli_object(lb, ob, ob->obmat, ob->lay, scene->r.cfra, par_index, OB_DUPLIFRAMES, flag);
+			dob = new_dupli_object(lb, ob, ob->obmat, ob->lay, persistent_id, level, scene->r.cfra, OB_DUPLIFRAMES, flag);
 			copy_m4_m4(dob->omat, copyob.obmat);
 		}
 	}
@@ -865,7 +876,7 @@ typedef struct VertexDupliData {
 	Scene *scene;
 	Object *ob, *par;
 	float (*orco)[3];
-	int par_index;
+	int *persistent_id;
 } VertexDupliData;
 
 /* ------------- */
@@ -902,7 +913,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 
 	origlay = vdd->ob->lay;
 	
-	dob = new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, index, vdd->par_index, OB_DUPLIVERTS, vdd->flag);
+	dob = new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, vdd->persistent_id, vdd->level, index, OB_DUPLIVERTS, vdd->flag);
 
 	/* restore the original layer so that each dupli will have proper dob->origlay */
 	vdd->ob->lay = origlay;
@@ -914,12 +925,12 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 		float tmpmat[4][4];
 		copy_m4_m4(tmpmat, vdd->ob->obmat);
 		copy_m4_m4(vdd->ob->obmat, obmat); /* pretend we are really this mat */
-		object_duplilist_recursive((ID *)vdd->id, vdd->scene, vdd->ob, vdd->lb, obmat, vdd->par_index, vdd->level + 1, vdd->flag);
+		object_duplilist_recursive((ID *)vdd->id, vdd->scene, vdd->ob, vdd->lb, obmat, vdd->persistent_id, vdd->level + 1, index, vdd->flag);
 		copy_m4_m4(vdd->ob->obmat, tmpmat);
 	}
 }
 
-static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int par_index,
+static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int persistent_id[MAX_DUPLI_RECUR],
                              int level, short flag)
 {
 	Object *ob, *ob_iter;
@@ -1004,7 +1015,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 					vdd.scene = scene;
 					vdd.par = par;
 					copy_m4_m4(vdd.pmat, pmat);
-					vdd.par_index = par_index;
+					vdd.persistent_id = persistent_id;
 					
 					/* mballs have a different dupli handling */
 					if (ob->type != OB_MBALL) ob->flag |= OB_DONE;  /* doesnt render */
@@ -1043,7 +1054,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	dm->release(dm);
 }
 
-static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int par_index,
+static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int persistent_id[MAX_DUPLI_RECUR],
                            int level, short flag)
 {
 	Object *ob, *ob_iter;
@@ -1186,7 +1197,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						copy_m4_m4(tmat, obmat);
 						mul_m4_m4m3(obmat, tmat, mat);
 						
-						dob = new_dupli_object(lb, ob, obmat, par->lay, a, par_index, OB_DUPLIFACES, (flag & DUPLILIST_ANIMATED));
+						dob = new_dupli_object(lb, ob, obmat, par->lay, persistent_id, level, a, OB_DUPLIFACES, (flag & DUPLILIST_ANIMATED));
 						if (flag & DUPLILIST_FOR_RENDER) {
 							w = 1.0f / (float)mp->totloop;
 
@@ -1209,7 +1220,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 							float tmpmat[4][4];
 							copy_m4_m4(tmpmat, ob->obmat);
 							copy_m4_m4(ob->obmat, obmat); /* pretend we are really this mat */
-							object_duplilist_recursive((ID *)id, scene, ob, lb, ob->obmat, par_index, level + 1, flag);
+							object_duplilist_recursive((ID *)id, scene, ob, lb, ob->obmat, persistent_id, level + 1, a, flag);
 							copy_m4_m4(ob->obmat, tmpmat);
 						}
 					}
@@ -1229,7 +1240,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	dm->release(dm);
 }
 
-static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int UNUSED(par_index), ParticleSystem *psys,
+static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int persistent_id[MAX_DUPLI_RECUR], ParticleSystem *psys,
                                    int level, short flag)
 {
 	GroupObject *go;
@@ -1244,7 +1255,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size = 0.0;
 	float (*obmat)[4], (*oldobmat)[4];
-	int a, b, counter, index, hair = 0;
+	int a, b, hair = 0;
 	int totpart, totchild, totgroup = 0 /*, pa_num */;
 
 	int no_draw_flag = PARS_UNEXIST;
@@ -1360,8 +1371,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		else
 			a = totpart;
 
-		index = 0;
-		for (pa = psys->particles, counter = 0; a < totpart + totchild; a++, pa++, counter++) {
+		for (pa = psys->particles; a < totpart + totchild; a++, pa++) {
 			if (a < totpart) {
 				/* handle parent particle */
 				if (pa->flag & no_draw_flag)
@@ -1456,7 +1466,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					else
 						copy_m4_m4(mat, tmat);
 
-					dob = new_dupli_object(lb, go->ob, mat, par->lay, counter, index, OB_DUPLIPARTS, (flag & DUPLILIST_ANIMATED));
+					dob = new_dupli_object(lb, go->ob, mat, par->lay, persistent_id, level, a, OB_DUPLIPARTS, (flag & DUPLILIST_ANIMATED));
+					dob->particle_system = psys;
 					copy_m4_m4(dob->omat, obcopylist[b].obmat);
 					if (flag & DUPLILIST_FOR_RENDER)
 						psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
@@ -1516,14 +1527,12 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				if (part->draw & PART_DRAW_GLOBAL_OB)
 					add_v3_v3v3(mat[3], mat[3], vec);
 
-				dob = new_dupli_object(lb, ob, mat, ob->lay, counter, index, GS(id->name) == ID_GR ? OB_DUPLIGROUP : OB_DUPLIPARTS, (flag & DUPLILIST_ANIMATED));
+				dob = new_dupli_object(lb, ob, mat, ob->lay, persistent_id, level, a, GS(id->name) == ID_GR ? OB_DUPLIGROUP : OB_DUPLIPARTS, (flag & DUPLILIST_ANIMATED));
+				dob->particle_system = psys;
 				copy_m4_m4(dob->omat, oldobmat);
 				if (flag & DUPLILIST_FOR_RENDER)
 					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
 			}
-
-			/* only counts visible particles */
-			index++;
 		}
 
 		/* restore objects since they were changed in BKE_object_where_is_calc_time */
@@ -1570,7 +1579,7 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 }
 
 
-static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int par_index, int level, short flag)
+static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persistent_id[MAX_DUPLI_RECUR], int level, short flag)
 {
 	Object *ob, *obar[256] = {NULL};
 	Curve *cu;
@@ -1609,7 +1618,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int par_inde
 			copy_m4_m4(obmat, par->obmat);
 			copy_v3_v3(obmat[3], vec);
 			
-			new_dupli_object(lb, ob, obmat, par->lay, a, par_index, OB_DUPLIVERTS, flag);
+			new_dupli_object(lb, ob, obmat, par->lay, persistent_id, level, a, OB_DUPLIVERTS, flag);
 		}
 	}
 	
@@ -1618,8 +1627,8 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int par_inde
 
 /* ------------- */
 
-static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int par_index,
-                                       int level, short flag)
+static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4],
+                                       int persistent_id[MAX_DUPLI_RECUR], int level, int index, short flag)
 {	
 	if ((ob->transflag & OB_DUPLI) == 0)
 		return;
@@ -1636,34 +1645,45 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 		}
 	}
 
+	/* keep track of persistent id */
+	if (level > 0)
+		persistent_id[level - 1] = index;
+
 	if (ob->transflag & OB_DUPLIPARTS) {
 		ParticleSystem *psys = ob->particlesystem.first;
-		for (; psys; psys = psys->next)
-			new_particle_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, psys, level + 1, flag);
+		int psysid = 0;
+
+		/* particle system take up one level in id, the particles another */
+		for (; psys; psys = psys->next, psysid++) {
+			persistent_id[level] = psysid;
+			new_particle_duplilist(duplilist, id, scene, ob, par_space_mat, persistent_id, psys, level + 2, flag);
+		}
+
+		persistent_id[level] = 0;
 	}
 	else if (ob->transflag & OB_DUPLIVERTS) {
 		if (ob->type == OB_MESH) {
-			vertex_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, level + 1, flag);
+			vertex_duplilist(duplilist, id, scene, ob, par_space_mat, persistent_id, level + 1, flag);
 		}
 		else if (ob->type == OB_FONT) {
 			if (GS(id->name) == ID_SCE) { /* TODO - support dupligroups */
-				font_duplilist(duplilist, scene, ob, par_index, level + 1, flag);
+				font_duplilist(duplilist, scene, ob, persistent_id, level + 1, flag);
 			}
 		}
 	}
 	else if (ob->transflag & OB_DUPLIFACES) {
 		if (ob->type == OB_MESH)
-			face_duplilist(duplilist, id, scene, ob, par_space_mat, par_index, level + 1, flag);
+			face_duplilist(duplilist, id, scene, ob, par_space_mat, persistent_id, level + 1, flag);
 	}
 	else if (ob->transflag & OB_DUPLIFRAMES) {
 		if (GS(id->name) == ID_SCE) { /* TODO - support dupligroups */
-			frames_duplilist(duplilist, scene, ob, par_index, level + 1, flag);
+			frames_duplilist(duplilist, scene, ob, persistent_id, level + 1, flag);
 		}
 	}
 	else if (ob->transflag & OB_DUPLIGROUP) {
 		DupliObject *dob;
 		
-		group_duplilist(duplilist, scene, ob, par_index, level + 1, flag); /* now recursive */
+		group_duplilist(duplilist, scene, ob, persistent_id, level + 1, flag); /* now recursive */
 
 		if (level == 0) {
 			for (dob = duplilist->first; dob; dob = dob->next)
@@ -1671,6 +1691,10 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 					copy_m4_m4(dob->ob->obmat, dob->mat);
 		}
 	}
+
+	/* clear persistent id */
+	if (level > 0)
+		persistent_id[level - 1] = 0;
 }
 
 /* Returns a list of DupliObject
@@ -1678,13 +1702,14 @@ static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBas
 ListBase *object_duplilist_ex(Scene *sce, Object *ob, int update, int for_render)
 {
 	ListBase *duplilist = MEM_mallocN(sizeof(ListBase), "duplilist");
+	int persistent_id[MAX_DUPLI_RECUR] = {0};
 	int flag = 0;
 
 	if (update)     flag |= DUPLILIST_DO_UPDATE;
 	if (for_render) flag |= DUPLILIST_FOR_RENDER;
 
 	duplilist->first = duplilist->last = NULL;
-	object_duplilist_recursive((ID *)sce, sce, ob, duplilist, NULL, 0, 0, flag);
+	object_duplilist_recursive((ID *)sce, sce, ob, duplilist, NULL, persistent_id, 0, 0, flag);
 	return duplilist;
 }
 

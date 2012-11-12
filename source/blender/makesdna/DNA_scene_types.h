@@ -1196,11 +1196,12 @@ typedef struct Scene {
 		/* Use the same flag for autothreads */
 #define R_FIXED_THREADS		0x80000 
 
-#define R_SPEED			0x100000
-#define R_SSS			0x200000
-#define R_NO_OVERWRITE	0x400000 /* skip existing files */
-#define R_TOUCH			0x800000 /* touch files before rendering */
-#define R_SIMPLIFY		0x1000000
+#define R_SPEED				0x100000
+#define R_SSS				0x200000
+#define R_NO_OVERWRITE		0x400000  /* skip existing files */
+#define R_TOUCH				0x800000  /* touch files before rendering */
+#define R_SIMPLIFY			0x1000000
+#define R_PERSISTENT_DATA	0x2000000 /* keep data around for re-render */
 #define R_EDGE_FRS		0x2000000 /* R_EDGE for Freestyle */
 
 /* seq_flag */

@@ -202,7 +202,7 @@ PyTypeObject SCA_ILogicBrick::Type = {
 };
 
 PyMethodDef SCA_ILogicBrick::Methods[] = {
-  {NULL,NULL} //Sentinel
+	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef SCA_ILogicBrick::Attributes[] = {

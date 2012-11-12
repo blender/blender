@@ -609,9 +609,9 @@ static int voronoi_getNextSideCoord(ListBase *edges, float coord[2], int dim, in
 static void voronoi_createBoundaryEdges(ListBase *edges, int width, int height)
 {
 	const float corners[4][2] = {{width - 1, 0.0f},
-								 {width - 1, height - 1},
-								 {0.0f, height - 1},
-								 {0.0f, 0.0f}};
+	                             {width - 1, height - 1},
+	                             {0.0f, height - 1},
+	                             {0.0f, 0.0f}};
 	int i, dim = 0, dir = 1;
 
 	float coord[2] = {0.0f, 0.0f};

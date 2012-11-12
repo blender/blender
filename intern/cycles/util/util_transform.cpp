@@ -251,6 +251,13 @@ void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *
 	transform_decompose(&decomp->pre, &motion->pre);
 	transform_decompose(&decomp->mid, mid);
 	transform_decompose(&decomp->post, &motion->post);
+
+	/* ensure rotation around shortest angle, negated quaternions are the same
+	 * but this means we don't have to do the check in quat_interpolate */
+	if(dot(decomp->mid.x, decomp->post.x) < 0.0f)
+		decomp->mid.x = -decomp->mid.x;
+	if(dot(decomp->pre.x, decomp->mid.x) < 0.0f)
+		decomp->pre.x = -decomp->pre.x;
 }
 
 CCL_NAMESPACE_END

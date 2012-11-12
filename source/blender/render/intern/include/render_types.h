@@ -59,6 +59,7 @@ struct RenderBuckets;
 struct ObjectInstanceRen;
 struct RayObject;
 struct RayFace;
+struct RenderEngine;
 struct ReportList;
 struct Main;
 
@@ -182,6 +183,9 @@ struct Render
 	unsigned int lay;
 	
 	ListBase parts;
+	
+	/* render engine */
+	struct RenderEngine *engine;
 	
 	/* octree tables and variables for raytrace */
 	struct RayObject *raytree;

@@ -28,20 +28,17 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "BKE_global.h"
-
-#include "BLF_api.h"
 #include "BLF_translation.h" /* own include */
 
 #ifdef WITH_INTERNATIONAL
 
-#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "libintl.h"
+#include "boost_locale_wrapper.h"
+
+#include "BKE_global.h"
 
 #include "DNA_userdef_types.h"
 
@@ -49,52 +46,33 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
-#include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
-
-#define SYSTEM_ENCODING_DEFAULT "UTF-8"
-#define FONT_SIZE_DEFAULT 12
+#include "BLI_utildefines.h"
 
 /* Locale options. */
-static char global_messagepath[1024];
-static char global_language[32];
-static char global_encoding_name[32];
-
 static const char **locales = NULL;
-static char **long_locales = NULL; /* XXX Temp fix until we get a final solution with modern intl lib under windows! */
 static int num_locales = 0;
 static EnumPropertyItem *locales_menu = NULL;
 static int num_locales_menu = 0;
 
 #define ULANGUAGE ((U.language >= 0 && U.language < num_locales) ? U.language : 0)
 #define LOCALE(_id) (locales ? locales[_id] : "")
-#define LONG_LOCALE(_id) (long_locales ? long_locales[_id] : "")
 
 static void free_locales(void)
 {
 	if (locales) {
 		int idx = num_locales_menu - 1; /* Last item does not need to be freed! */
 		while (idx--) {
-			MEM_freeN((void*)locales_menu[idx].identifier);
-			MEM_freeN((void*)locales_menu[idx].name);
-			MEM_freeN((void*)locales_menu[idx].description); /* Also frees locales's relevant value! */
-		}
-
-		idx = num_locales;
-		while (idx--) {
-			if (long_locales[idx]) {
-				MEM_freeN(long_locales[idx]);
-			}
+			MEM_freeN((void *)locales_menu[idx].identifier);
+			MEM_freeN((void *)locales_menu[idx].name);
+			MEM_freeN((void *)locales_menu[idx].description); /* Also frees locales's relevant value! */
 		}
 
 		MEM_freeN(locales);
 		locales = NULL;
-		MEM_freeN(long_locales);
-		long_locales = NULL;
 	}
 	if (locales_menu) {
 		MEM_freeN(locales_menu);
@@ -140,7 +118,6 @@ static void fill_locales(void)
 	/* Do not allocate locales with zero-sized mem, as LOCALE macro uses NULL locales as invalid marker! */
 	if (num_locales > 0) {
 		locales = MEM_callocN(num_locales * sizeof(char*), __func__);
-		long_locales = MEM_callocN(num_locales * sizeof(char*), __func__);
 		while (line) {
 			int id;
 			char *loc, *sep1, *sep2, *sep3;
@@ -163,26 +140,28 @@ static void fill_locales(void)
 
 					sep2++;
 					sep3 = strchr(sep2, ':');
+
 					if (sep3) {
 						locales_menu[idx].identifier = loc = BLI_strdupn(sep2, sep3 - sep2);
-
-						if (id == 0) {
-							/* The DEFAULT item... */
-							if (BLI_strnlen(loc, 2)) {
-								locales[id] = locales_menu[idx].description = BLI_strdup("");
-								long_locales[id] = BLI_strdup("");
-							}
-							/* Menu "label", not to be stored in locales! */
-							else {
-								locales_menu[idx].description = BLI_strdup("");
-							}
-						}
-						else {
-							locales[id] = locales_menu[idx].description = BLI_strdup(loc);
-							long_locales[id] = BLI_strdup(sep3 + 1);
-						}
-						idx++;
 					}
+					else {
+						locales_menu[idx].identifier = loc = BLI_strdup(sep2);
+					}
+
+					if (id == 0) {
+						/* The DEFAULT item... */
+						if (BLI_strnlen(loc, 2)) {
+							locales[id] = locales_menu[idx].description = BLI_strdup("");
+						}
+						/* Menu "label", not to be stored in locales! */
+						else {
+							locales_menu[idx].description = BLI_strdup("");
+						}
+					}
+					else {
+						locales[id] = locales_menu[idx].description = BLI_strdup(loc);
+					}
+					idx++;
 				}
 			}
 
@@ -207,15 +186,12 @@ void BLF_lang_init(void)
 {
 	char *messagepath = BLI_get_folder(BLENDER_DATAFILES, "locale");
 
-	BLI_strncpy(global_encoding_name, SYSTEM_ENCODING_DEFAULT, sizeof(global_encoding_name));
-
 	if (messagepath) {
-		BLI_strncpy(global_messagepath, messagepath, sizeof(global_messagepath));
+		bl_locale_init(messagepath, TEXT_DOMAIN_NAME);
 		fill_locales();
 	}
 	else {
 		printf("%s: 'locale' data path for translations not found, continuing\n", __func__);
-		global_messagepath[0] = '\0';
 	}
 }
 
@@ -224,171 +200,43 @@ void BLF_lang_free(void)
 	free_locales();
 }
 
-/* Get LANG/LANGUAGE environment variable. */
-static void get_language_variable(const char *varname, char *var, const size_t maxlen)
-{
-	char *env = getenv(varname);
-
-	if (env) {
-		char *s;
-
-		/* Store defaul locale. */
-		BLI_strncpy(var, env, maxlen);
-
-		/* Use first language as default. */
-		s = strchr(var, ':');
-		if (s)
-			s[0] = 0;
-	}
-}
-
-/* Get language to be used based on locale (which might be empty when using default language) and
- * LANG environment variable.
- */
-static void get_language(const char *locale, const char *lang, char *language, const size_t maxlen)
-{
-	if (locale[0]) {
-		BLI_strncpy(language, locale, maxlen);
-	}
-	else {
-		char *s;
-
-		BLI_strncpy(language, lang, maxlen);
-
-		s = strchr(language, '.');
-		if (s)
-			s[0] = 0;
-	}
-}
-
-/* XXX WARNING!!! In osx somehow the previous function call jumps in this one??? (ton, ppc) */
 void BLF_lang_set(const char *str)
 {
-	char *locreturn;
-	int ok = TRUE;
 	int ulang = ULANGUAGE;
+	const char *short_locale = str ? str : LOCALE(ulang);
+	const char *short_locale_utf8 = NULL;
 
 	if ((U.transopts & USER_DOTRANSLATE) == 0)
 		return;
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
-	{
-		const char *long_locale = str ? str : LONG_LOCALE(ulang);
-		if (long_locale) {
-			char *envStr;
-
-			if (ulang)
-				envStr = BLI_sprintfN("LANG=%s", long_locale);
-			else /* Use system setting. */
-				envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
-
-			gettext_putenv(envStr);
-			MEM_freeN(envStr);
-		}
-
-		locreturn = setlocale(LC_ALL, long_locale);
-
-		if (locreturn == NULL) {
-			if (G.debug & G_DEBUG)
-				printf("Could not change locale to %s\n", long_locale);
-
-			ok = FALSE;
-		}
-	}
-#else
-	{
-		const char *short_locale = str ? str : LOCALE(ulang);
-		static char default_lang[64] = "\0";
-		static char default_language[64] = "\0";
-
-		if (default_lang[0] == 0)
-			get_language_variable("LANG", default_lang, sizeof(default_lang));
-
-		if (default_language[0] == 0)
-			get_language_variable("LANGUAGE", default_language, sizeof(default_language));
-
-		if (short_locale[0]) {
-			char *short_locale_utf8 = BLI_sprintfN("%s.UTF-8", short_locale);
-
-			if (G.debug & G_DEBUG)
-				printf("Setting LANG and LANGUAGE to %s\n", short_locale_utf8);
-
-			locreturn = setlocale(LC_ALL, short_locale_utf8);
-
-			if (locreturn != NULL) {
-				BLI_setenv("LANG", short_locale_utf8);
-				BLI_setenv("LANGUAGE", short_locale_utf8);
-			}
-			else {
-				if (G.debug & G_DEBUG)
-					printf("Setting LANG and LANGUAGE to %s\n", short_locale);
-
-				locreturn = setlocale(LC_ALL, short_locale);
-
-				if (locreturn != NULL) {
-					BLI_setenv("LANG", short_locale);
-					BLI_setenv("LANGUAGE", short_locale);
-				}
-			}
-
-			if (G.debug & G_DEBUG && locreturn == NULL)
-				printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
-
-			MEM_freeN(short_locale_utf8);
+	/* We want to avoid locales like '.UTF-8'! */
+	if (short_locale[0]) {
+		/* Hurrey! encoding needs to be placed *before* variant! */
+		char *variant = strchr(short_locale, '@');
+		if (variant) {
+			char *locale = BLI_strdupn(short_locale, variant - short_locale);
+			short_locale_utf8 = BLI_sprintfN("%s.UTF-8%s", locale, variant);
+			MEM_freeN(locale);
 		}
 		else {
-			if (G.debug & G_DEBUG)
-				printf("Setting LANG=%s and LANGUAGE=%s\n", default_lang, default_language);
-
-			BLI_setenv("LANG", default_lang);
-			BLI_setenv("LANGUAGE", default_language);
-			locreturn = setlocale(LC_ALL, "");
-
-			if (G.debug & G_DEBUG && locreturn == NULL)
-				printf("Could not reset locale\n");
-		}
-
-		if (locreturn == NULL) {
-			char language[65];
-
-			get_language(short_locale, default_lang, language, sizeof(language));
-
-			if (G.debug & G_DEBUG)
-				printf("Fallback to LANG=%s and LANGUAGE=%s\n", default_lang, language);
-
-			/* Fallback to default settings. */
-			BLI_setenv("LANG", default_lang);
-			BLI_setenv("LANGUAGE", language);
-
-			locreturn = setlocale(LC_ALL, "");
-
-			ok = FALSE;
+			short_locale_utf8 = BLI_sprintfN("%s.UTF-8", short_locale);
 		}
 	}
-#endif
-
-	if (ok) {
-		/*printf("Change locale to %s\n", locreturn ); */
-		BLI_strncpy(global_language, locreturn, sizeof(global_language));
+	else {
+		short_locale_utf8 = short_locale;
 	}
 
-	setlocale(LC_NUMERIC, "C");
+	bl_locale_set(short_locale_utf8);
 
-	textdomain(TEXT_DOMAIN_NAME);
-	bindtextdomain(TEXT_DOMAIN_NAME, global_messagepath);
-	bind_textdomain_codeset(TEXT_DOMAIN_NAME, global_encoding_name);
+	if (short_locale[0]) {
+		MEM_freeN((void*)short_locale_utf8);
+	}
 }
 
 const char *BLF_lang_get(void)
 {
 	int uilang = ULANGUAGE;
 	return LOCALE(uilang);
-}
-
-void BLF_lang_encoding(const char *str)
-{
-	BLI_strncpy(global_encoding_name, str, sizeof(global_encoding_name));
-	/* bind_textdomain_codeset(TEXT_DOMAIN_NAME, encoding_name); */
 }
 
 #undef LOCALE
@@ -403,12 +251,6 @@ void BLF_lang_init(void)
 
 void BLF_lang_free(void)
 {
-	return;
-}
-
-void BLF_lang_encoding(const char *str)
-{
-	(void)str;
 	return;
 }
 

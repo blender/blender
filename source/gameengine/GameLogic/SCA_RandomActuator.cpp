@@ -220,11 +220,11 @@ bool SCA_RandomActuator::Update()
 			 * this will be quite sufficient here.
 			 */
 			do {
-				x = 2.0 * m_base->DrawFloat() - 1.0;
-				y = 2.0 * m_base->DrawFloat() - 1.0;
-				s = x*x + y*y;
-			} while ( (s >= 1.0) || (s == 0.0) );
-			t = x * sqrt( (-2.0 * log(s)) / s);
+				x = 2.0f * m_base->DrawFloat() - 1.0f;
+				y = 2.0f * m_base->DrawFloat() - 1.0f;
+				s = x * x + y * y;
+			} while ((s >= 1.0f) || (s == 0.0f));
+			t = x * sqrtf((-2.0 * log(s)) / s);
 			tmpval = new CFloatValue(m_parameter1 + m_parameter2 * t);
 		}
 	}

@@ -633,7 +633,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
         elif context.image_paint_object and brush:
             col = layout.column()
-            col.template_color_wheel(brush, "color", value_slider=True)
+            col.template_color_picker(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
@@ -681,7 +681,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         # Vertex Paint Mode #
         elif context.vertex_paint_object and brush:
             col = layout.column()
-            col.template_color_wheel(brush, "color", value_slider=True)
+            col.template_color_picker(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)

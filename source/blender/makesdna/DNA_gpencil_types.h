@@ -41,6 +41,7 @@
 typedef struct bGPDspoint {
 	float x, y, z;			/* co-ordinates of point (usually 2d, but can be 3d as well) */
 	float pressure;			/* pressure of input device (from 0 to 1) at this point */
+	float time;				/* seconds since start of stroke */
 } bGPDspoint;
 
 /* Grease-Pencil Annotations - 'Stroke'
@@ -55,6 +56,7 @@ typedef struct bGPDstroke {
 	
 	short thickness;		/* thickness of stroke (currently not used) */
 	short flag;				/* various settings about this stroke */
+	double inittime;		/* Init time of stroke */
 } bGPDstroke;
 
 /* bGPDstroke->flag */

@@ -984,7 +984,7 @@ static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *gri
 
 /* Construct 3x3 tangent-space matrix in 'mat' */
 static void grid_tangent_matrix(float mat[3][3], const CCGKey *key,
-								int x, int y, CCGElem *grid)
+                                int x, int y, CCGElem *grid)
 {
 	grid_tangent(key, x, y, 0, grid, mat[0]);
 	normalize_v3(mat[0]);

@@ -478,9 +478,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		c->time_base.den = 2997;
 		c->time_base.num = 100;
 	}
-	else if ((double) ((int) rd->frs_sec_base) ==
-	         rd->frs_sec_base)
-	{
+	else if ((float) ((int) rd->frs_sec_base) == rd->frs_sec_base) {
 		c->time_base.den = rd->frs_sec;
 		c->time_base.num = (int) rd->frs_sec_base;
 	}
@@ -999,7 +997,7 @@ int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, i
 	}
 
 #ifdef WITH_AUDASPACE
-	write_audio_frames((frame - rd->sfra) / (((double)rd->frs_sec) / rd->frs_sec_base));
+	write_audio_frames((frame - rd->sfra) / (((double)rd->frs_sec) / (double)rd->frs_sec_base));
 #endif
 	return success;
 }

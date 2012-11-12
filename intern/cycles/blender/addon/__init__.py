@@ -48,7 +48,11 @@ class CyclesRender(bpy.types.RenderEngine):
 
     # final render
     def update(self, data, scene):
-        engine.create(self, data, scene)
+        if not self.session:
+            engine.create(self, data, scene)
+        else:
+            engine.reset(self, data, scene)
+
         engine.update(self, data, scene)
 
     def render(self, scene):

@@ -52,6 +52,7 @@
 
 #define BOUNDARY_PRESERVE_WEIGHT 100.0f
 #define OPTIMIZE_EPS 0.01f  /* FLT_EPSILON is too small, see [#33106] */
+#define COST_INVALID FLT_MAX
 
 typedef enum CD_UseFlag {
 	CD_DO_VERT = (1 << 0),
@@ -132,6 +133,56 @@ static void bm_decim_calc_target_co(BMEdge *e, float optimize_co[3],
 	}
 }
 
+static int bm_edge_collapse_is_degenerate_flip(BMEdge *e, const float optimize_co[3])
+{
+	BMIter liter;
+	BMLoop *l;
+	unsigned int i;
+
+	for (i = 0; i < 2; i++) {
+		/* loop over both verts */
+		BMVert *v = *((&e->v1) + i);
+
+		BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+			if (l->e != e && l->prev->e != e) {
+				float *co_prev = l->prev->v->co;
+				float *co_next = l->next->v->co;
+				float cross_exist[3];
+				float cross_optim[3];
+
+#if 1
+				float vec_other[3];  /* line between the two outer verts, re-use for both cross products */
+				float vec_exist[3];  /* before collapse */
+				float vec_optim[3];  /* after collapse */
+
+				sub_v3_v3v3(vec_other, co_prev, co_next);
+				sub_v3_v3v3(vec_exist, co_prev, v->co);
+				sub_v3_v3v3(vec_optim, co_prev, optimize_co);
+
+				cross_v3_v3v3(cross_exist, vec_other, vec_exist);
+				cross_v3_v3v3(cross_optim, vec_other, vec_optim);
+
+				/* normalize isn't really needed, but ensures the value at a unit we can compare against */
+				normalize_v3(cross_exist);
+				normalize_v3(cross_optim);
+#else
+				normal_tri_v3(cross_exist, v->co,       co_prev, co_next);
+				normal_tri_v3(cross_optim, optimize_co, co_prev, co_next);
+#endif
+
+				/* use a small value rather then zero so we don't flip a face in multiple steps
+				 * (first making it zero area, then flipping again)*/
+				if (dot_v3v3(cross_exist, cross_optim) <= FLT_EPSILON) {
+					//printf("no flip\n");
+					return TRUE;
+				}
+			}
+		}
+	}
+
+	return FALSE;
+}
+
 static void bm_decim_build_edge_cost_single(BMEdge *e,
                                             const Quadric *vquadrics, const float *vweights,
                                             Heap *eheap, HeapNode **eheap_table)
@@ -198,6 +249,16 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 	// print("COST %.12f\n");
 
 	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, cost, e);
+}
+
+
+/* use this for degenerate cases - add back to the heap with an invalid cost,
+ * this way it may be calculated again if surrounding geometry changes */
+static void bm_decim_invalid_edge_cost_single(BMEdge *e,
+                                              Heap *eheap, HeapNode **eheap_table)
+{
+	BLI_assert(eheap_table[BM_elem_index_get(e)] == NULL);
+	eheap_table[BM_elem_index_get(e)] = BLI_heap_insert(eheap, COST_INVALID, e);
 }
 
 static void bm_decim_build_edge_cost(BMesh *bm,
@@ -525,7 +586,7 @@ BLI_INLINE int bm_edge_is_manifold_or_boundary(BMLoop *l)
 #endif
 }
 
-static int bm_edge_collapse_is_degenerate(BMEdge *e_first)
+static int bm_edge_collapse_is_degenerate_topology(BMEdge *e_first)
 {
 	/* simply check that there is no overlap between faces and edges of each vert,
 	 * (excluding the 2 faces attached to 'e' and 'e' its self) */
@@ -629,11 +690,6 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e
 {
 	BMVert *v_other;
 
-	/* disallow collapsing which results in degenerate cases */
-	if (bm_edge_collapse_is_degenerate(e_clear)) {
-		return FALSE;
-	}
-
 	v_other = BM_edge_other_vert(e_clear, v_clear);
 	BLI_assert(v_other != NULL);
 
@@ -704,8 +760,11 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e
 
 		BM_edge_kill(bm, e_clear);
 
+		v_other->head.hflag |= v_clear->head.hflag;
 		BM_vert_splice(bm, v_clear, v_other);
 
+		e_a_other[1]->head.hflag |= e_a_other[0]->head.hflag;
+		e_b_other[1]->head.hflag |= e_b_other[0]->head.hflag;
 		BM_edge_splice(bm, e_a_other[0], e_a_other[1]);
 		BM_edge_splice(bm, e_b_other[0], e_b_other[1]);
 
@@ -750,8 +809,10 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e
 
 		BM_edge_kill(bm, e_clear);
 
+		v_other->head.hflag |= v_clear->head.hflag;
 		BM_vert_splice(bm, v_clear, v_other);
 
+		e_a_other[1]->head.hflag |= e_a_other[0]->head.hflag;
 		BM_edge_splice(bm, e_a_other[0], e_a_other[1]);
 
 		// BM_mesh_validate(bm);
@@ -781,12 +842,23 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 	copy_v3_v3(v_clear_no, e->v2->no);
 #endif
 
+	/* disallow collapsing which results in degenerate cases */
+	if (UNLIKELY(bm_edge_collapse_is_degenerate_topology(e))) {
+		bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);  /* add back with a high cost */
+		return;
+	}
+
 	bm_decim_calc_target_co(e, optimize_co, vquadrics);
+
+	/* check if this would result in an overlapping face */
+	if (UNLIKELY(bm_edge_collapse_is_degenerate_flip(e, optimize_co))) {
+		bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);  /* add back with a high cost */
+		return;
+	}
 
 	/* use for customdata merging */
 	if (LIKELY(compare_v3v3(e->v1->co, e->v2->co, FLT_EPSILON) == FALSE)) {
 		customdata_fac = line_point_factor_v3(optimize_co, e->v1->co, e->v2->co);
-
 #if 0
 		/* simple test for stupid collapse */
 		if (customdata_fac < 0.0 - FLT_EPSILON || customdata_fac > 1.0f + FLT_EPSILON) {
@@ -848,7 +920,10 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 			} while ((e_iter = bmesh_disk_edge_next(e_iter, v_other)) != e_first);
 		}
 
-#if 0
+		/* this block used to be disabled,
+		 * but enable now since surrounding faces may have been
+		 * set to COST_INVALID because of a face overlap that no longer occurs */
+#if 1
 		/* optional, update edges around the vertex face fan */
 		{
 			BMIter liter;
@@ -863,12 +938,16 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 
 					BLI_assert(BM_vert_in_edge(e_outer, l->v) == FALSE);
 
-					bm_decim_build_edge_cost_single(e_outer, vquadrics, eheap, eheap_table);
+					bm_decim_build_edge_cost_single(e_outer, vquadrics, vweights, eheap, eheap_table);
 				}
 			}
 		}
 		/* end optional update */
 #endif
+	}
+	else {
+		/* add back with a high cost */
+		bm_decim_invalid_edge_cost_single(e, eheap, eheap_table);
 	}
 }
 
@@ -925,7 +1004,10 @@ void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, c
 #endif
 
 	/* iterative edge collapse and maintain the eheap */
-	while ((bm->totface > face_tot_target) && (BLI_heap_is_empty(eheap) == FALSE)) {
+	while ((bm->totface > face_tot_target) &&
+	       (BLI_heap_is_empty(eheap) == FALSE) &&
+	       (BLI_heap_node_value(BLI_heap_top(eheap)) != COST_INVALID))
+	{
 		// const float value = BLI_heap_node_value(BLI_heap_top(eheap));
 		BMEdge *e = BLI_heap_popmin(eheap);
 		BLI_assert(BM_elem_index_get(e) < tot_edge_orig);  /* handy to detect corruptions elsewhere */

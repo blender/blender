@@ -57,8 +57,7 @@ void ParticleSystemManager::device_update_particles(Device *device, DeviceScene 
 {
 	/* count particles.
 	 * adds one dummy particle at the beginning to avoid invalid lookups,
-	 * in case a shader uses particle info without actual particle data.
-	 */
+	 * in case a shader uses particle info without actual particle data. */
 	int num_particles = 1;
 	foreach(ParticleSystem *psys, scene->particle_systems)
 		num_particles += psys->particles.size();

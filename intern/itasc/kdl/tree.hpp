@@ -27,19 +27,30 @@
 
 #include <string>
 #include <map>
-#if !defined(__APPLE__)
-#include <Eigen/Core>
+#if defined(__APPLE__)
+#  if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5
+    //no include
+#  else
+#    include <Eigen/Core>
+#  endif /* MAC_OS_X_VERSION_MIN_REQUIRED */
+#else
+#  include <Eigen/Core>
 #endif
 
 namespace KDL
 {
     //Forward declaration
     class TreeElement;
-#if !defined(__APPLE__)
+#if defined(__APPLE__)
+#  if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5
+    typedef std::map<std::string,TreeElement> SegmentMap;
+#  else
     // Eigen allocator is needed for alignment of Eigen data types
     typedef std::map<std::string,TreeElement, std::less<std::string>, Eigen::aligned_allocator<std::pair<std::string, TreeElement> > > SegmentMap;
+#  endif /* MAC_OS_X_VERSION_MIN_REQUIRED */
 #else
-    typedef std::map<std::string,TreeElement> SegmentMap;
+    // Eigen allocator is needed for alignment of Eigen data types
+    typedef std::map<std::string,TreeElement, std::less<std::string>, Eigen::aligned_allocator<std::pair<std::string, TreeElement> > > SegmentMap;
 #endif
     class TreeElement
     {

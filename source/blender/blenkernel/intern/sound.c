@@ -353,17 +353,17 @@ void sound_load(struct Main *bmain, bSound *sound)
 		}
 // XXX unused currently
 #if 0
-		break;
+			break;
+		}
+		case SOUND_TYPE_BUFFER:
+			if (sound->child_sound && sound->child_sound->handle)
+				sound->handle = AUD_bufferSound(sound->child_sound->handle);
+			break;
+		case SOUND_TYPE_LIMITER:
+			if (sound->child_sound && sound->child_sound->handle)
+				sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
+			break;
 	}
-	case SOUND_TYPE_BUFFER:
-		if (sound->child_sound && sound->child_sound->handle)
-			sound->handle = AUD_bufferSound(sound->child_sound->handle);
-		break;
-	case SOUND_TYPE_LIMITER:
-		if (sound->child_sound && sound->child_sound->handle)
-			sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
-		break;
-}
 #endif
 		if (sound->flags & SOUND_FLAGS_MONO) {
 			void *handle = AUD_monoSound(sound->handle);

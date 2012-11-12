@@ -401,6 +401,7 @@ BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step)
 	}
 	else {
 		BLI_assert(0);
+		return NULL;
 	}
 
 	if (BM_edge_is_manifold(e_next)) {
@@ -724,6 +725,47 @@ int BM_edge_is_boundary(BMEdge *e)
 #endif
 
 /**
+ * Returns the number of faces that are adjacent to both f1 and f2,
+ * \note Could be sped up a bit by not using iterators and by tagging
+ * faces on either side, then count the tags rather then searching.
+ */
+int BM_face_share_face_count(BMFace *f1, BMFace *f2)
+{
+	BMIter iter1, iter2;
+	BMEdge *e;
+	BMFace *f;
+	int count = 0;
+
+	BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
+		BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
+			if (f != f1 && f != f2 && BM_face_share_edge_check(f, f2))
+				count++;
+		}
+	}
+
+	return count;
+}
+
+/**
+ * same as #BM_face_share_face_count but returns a bool
+ */
+int BM_face_share_face_check(BMFace *f1, BMFace *f2)
+{
+	BMIter iter1, iter2;
+	BMEdge *e;
+	BMFace *f;
+
+	BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
+		BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
+			if (f != f1 && f != f2 && BM_face_share_edge_check(f, f2))
+				return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+/**
  *  Counts the number of edges two faces share (if any)
  */
 int BM_face_share_edge_count(BMFace *f1, BMFace *f2)
@@ -743,9 +785,27 @@ int BM_face_share_edge_count(BMFace *f1, BMFace *f2)
 }
 
 /**
+ *  Returns TRUE if the faces share an edge
+ */
+int BM_face_share_edge_check(BMFace *f1, BMFace *f2)
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f1);
+	do {
+		if (bmesh_radial_face_find(l_iter->e, f2)) {
+			return TRUE;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return FALSE;
+}
+
+/**
  *	Test if e1 shares any faces with e2
  */
-int BM_edge_share_face_count(BMEdge *e1, BMEdge *e2)
+int BM_edge_share_face_check(BMEdge *e1, BMEdge *e2)
 {
 	BMLoop *l;
 	BMFace *f;
@@ -766,7 +826,7 @@ int BM_edge_share_face_count(BMEdge *e1, BMEdge *e2)
 /**
  *	Tests to see if e1 shares a vertex with e2
  */
-int BM_edge_share_vert_count(BMEdge *e1, BMEdge *e2)
+int BM_edge_share_vert_check(BMEdge *e1, BMEdge *e2)
 {
 	return (e1->v1 == e2->v1 ||
 	        e1->v1 == e2->v2 ||
@@ -1023,7 +1083,12 @@ float BM_vert_calc_shell_factor(BMVert *v)
 		accum_angle += face_angle;
 	}
 
-	return accum_shell / accum_angle;
+	if (accum_angle != 0.0f) {
+		return accum_shell / accum_angle;
+	}
+	else {
+		return 1.0f;
+	}
 }
 
 /**
@@ -1044,7 +1109,12 @@ float BM_vert_calc_mean_tagged_edge_length(BMVert *v)
 		}
 	}
 
-	return length / (float)tot;
+	if (tot) {
+		return length / (float)tot;
+	}
+	else {
+		return 0.0f;
+	}
 }
 
 

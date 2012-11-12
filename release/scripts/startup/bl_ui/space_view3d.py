@@ -168,6 +168,8 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base):
 
         # generic...
         layout = self.layout
+        layout.operator("transform.shrink_fatten", text="Shrink Fatten")
+
         layout.separator()
 
         layout.operator("transform.translate", text="Move Texture Space").texture_space = True

@@ -259,7 +259,7 @@ void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
  * PyObjectPlus Methods 	-- Every class, even the abstract one should have a Methods
 ------------------------------*/
 PyMethodDef PyObjectPlus::Methods[] = {
-  {NULL, NULL}		/* Sentinel */
+	{NULL, NULL}		/* Sentinel */
 };
 
 #define BGE_PY_ATTR_INVALID (&(PyObjectPlus::Attributes[0]))
@@ -486,8 +486,8 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 
 static bool py_check_attr_float(float *var, PyObject *value, const PyAttributeDef *attrdef)
 {
-	double val = PyFloat_AsDouble(value);
-	if (val == -1.0 && PyErr_Occurred())
+	float val = PyFloat_AsDouble(value);
+	if (val == -1.0f && PyErr_Occurred())
 	{
 		PyErr_Format(PyExc_TypeError, "expected float value for attribute \"%s\"", attrdef->m_name);
 		return false;
@@ -664,13 +664,13 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				{
 					float *var = reinterpret_cast<float*>(ptr);
 					ptr += sizeof(float);
-					double val = PyFloat_AsDouble(item);
-					if (val == -1.0 && PyErr_Occurred())
+					float val = PyFloat_AsDouble(item);
+					if (val == -1.0f && PyErr_Occurred())
 					{
 						PyErr_Format(PyExc_TypeError, "expected a float for attribute \"%s\"", attrdef->m_name);
 						goto UNDO_AND_ERROR;
 					}
-					else if (attrdef->m_clamp) 
+					else if (attrdef->m_clamp)
 					{
 						if (val < attrdef->m_fmin)
 							val = attrdef->m_fmin;
@@ -985,10 +985,10 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				for (int i=0; i<3; i++)
 				{
 					item = PySequence_GetItem(value, i); /* new ref */
-					double val = PyFloat_AsDouble(item);
+					float val = PyFloat_AsDouble(item);
 					Py_DECREF(item);
 					item = NULL;
-					if (val == -1.0 && PyErr_Occurred())
+					if (val == -1.0f && PyErr_Occurred())
 					{
 						PyErr_Format(PyExc_TypeError, "expected a sequence of 3 floats for attribute \"%s\"", attrdef->m_name);
 						goto RESTORE_AND_ERROR;

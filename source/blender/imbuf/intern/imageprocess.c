@@ -43,6 +43,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_threads.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -95,132 +96,15 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
 		*outF = ibuf->rect_float + offset;
 }
 
-/**************************************************************************
- *                            INTERPOLATIONS
- *
- * Reference and docs:
- * http://wiki.blender.org/index.php/User:Damiles#Interpolations_Algorithms
- ***************************************************************************/
-
-/* BICUBIC Interpolation functions
- *  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
- * function assumes out to be zero'ed, only does RGBA */
-
-static float P(float k)
-{
-	float p1, p2, p3, p4;
-	p1 = MAX2(k + 2.0f, 0);
-	p2 = MAX2(k + 1.0f, 0);
-	p3 = MAX2(k, 0);
-	p4 = MAX2(k - 1.0f, 0);
-	return (float)(1.0f / 6.0f) * (p1 * p1 * p1 - 4.0f * p2 * p2 * p2 + 6.0f * p3 * p3 * p3 - 4.0f * p4 * p4 * p4);
-}
-
-
-#if 0
-/* older, slower function, works the same as above */
-static float P(float k)
-{
-	return (float)(1.0f / 6.0f) * (pow(MAX2(k + 2.0f, 0), 3.0f) - 4.0f * pow(MAX2(k + 1.0f, 0), 3.0f) + 6.0f * pow(MAX2(k, 0), 3.0f) - 4.0f * pow(MAX2(k - 1.0f, 0), 3.0f));
-}
-#endif
+/* BICUBIC Interpolation */
 
 void bicubic_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
-	int i, j, n, m, x1, y1;
-	unsigned char *dataI;
-	float a, b, w, wx, wy[4], outR, outG, outB, outA, *dataF;
-
-	/* sample area entirely outside image? */
-	if (ceil(u) < 0 || floor(u) > in->x - 1 || ceil(v) < 0 || floor(v) > in->y - 1) {
-		return;
-	}
-
-	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
-
-	i = (int)floor(u);
-	j = (int)floor(v);
-	a = u - i;
-	b = v - j;
-
-	outR = outG = outB = outA = 0.0f;
-	
-/* Optimized and not so easy to read */
-	
-	/* avoid calling multiple times */
-	wy[0] = P(b - (-1));
-	wy[1] = P(b -  0);
-	wy[2] = P(b -  1);
-	wy[3] = P(b -  2);
-
-	for (n = -1; n <= 2; n++) {
-		x1 = i + n;
-		CLAMP(x1, 0, in->x - 1);
-		wx = P(n - a);
-		for (m = -1; m <= 2; m++) {
-			y1 = j + m;
-			CLAMP(y1, 0, in->y - 1);
-			/* normally we could do this */
-			/* w = P(n-a) * P(b-m); */
-			/* except that would call P() 16 times per pixel therefor pow() 64 times, better precalc these */
-			w = wx * wy[m + 1];
-
-			if (outF) {
-				dataF = in->rect_float + in->x * y1 * 4 + 4 * x1;
-				outR += dataF[0] * w;
-				outG += dataF[1] * w;
-				outB += dataF[2] * w;
-				outA += dataF[3] * w;
-			}
-			if (outI) {
-				dataI = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x1;
-				outR += dataI[0] * w;
-				outG += dataI[1] * w;
-				outB += dataI[2] * w;
-				outA += dataI[3] * w;
-			}
-		}
-	}
-
-/* Done with optimized part */
-	
-#if 0 
-	/* older, slower function, works the same as above */
-	for (n = -1; n <= 2; n++) {
-		for (m = -1; m <= 2; m++) {
-			x1 = i + n;
-			y1 = j + m;
-			if (x1 > 0 && x1 < in->x && y1 > 0 && y1 < in->y) {
-				if (do_float) {
-					dataF = in->rect_float + in->x * y1 * 4 + 4 * x1;
-					outR += dataF[0] * P(n - a) * P(b - m);
-					outG += dataF[1] * P(n - a) * P(b - m);
-					outB += dataF[2] * P(n - a) * P(b - m);
-					outA += dataF[3] * P(n - a) * P(b - m);
-				}
-				if (do_rect) {
-					dataI = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x1;
-					outR += dataI[0] * P(n - a) * P(b - m);
-					outG += dataI[1] * P(n - a) * P(b - m);
-					outB += dataI[2] * P(n - a) * P(b - m);
-					outA += dataI[3] * P(n - a) * P(b - m);
-				}
-			}
-		}
-	}
-#endif
-	
-	if (outI) {
-		outI[0] = (int)outR;
-		outI[1] = (int)outG;
-		outI[2] = (int)outB;
-		outI[3] = (int)outA;
-	}
 	if (outF) {
-		outF[0] = outR;
-		outF[1] = outG;
-		outF[2] = outB;
-		outF[3] = outA;
+		BLI_bicubic_interpolation_fl(in->rect_float, outF, in->x, in->y, 4, u, v);
+	}
+	else {
+		BLI_bicubic_interpolation_char((unsigned char*) in->rect, outI, in->x, in->y, 4, u, v);
 	}
 }
 
@@ -239,77 +123,14 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, in
 	bicubic_interpolation_color(in, outI, outF, u, v);
 }
 
-/* function assumes out to be zero'ed, only does RGBA */
 /* BILINEAR INTERPOLATION */
 void bilinear_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
-	float *row1, *row2, *row3, *row4, a, b;
-	unsigned char *row1I, *row2I, *row3I, *row4I;
-	float a_b, ma_b, a_mb, ma_mb;
-	float empty[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	unsigned char emptyI[4] = {0, 0, 0, 0};
-	int y1, y2, x1, x2;
-	
-	
-	/* ImBuf in must have a valid rect or rect_float, assume this is already checked */
-
-	x1 = (int)floor(u);
-	x2 = (int)ceil(u);
-	y1 = (int)floor(v);
-	y2 = (int)ceil(v);
-
-	/* sample area entirely outside image? */
-	if (x2 < 0 || x1 > in->x - 1 || y2 < 0 || y1 > in->y - 1) {
-		return;
-	}
-
 	if (outF) {
-		/* sample including outside of edges of image */
-		if (x1 < 0 || y1 < 0) row1 = empty;
-		else row1 = in->rect_float + in->x * y1 * 4 + 4 * x1;
-		
-		if (x1 < 0 || y2 > in->y - 1) row2 = empty;
-		else row2 = in->rect_float + in->x * y2 * 4 + 4 * x1;
-		
-		if (x2 > in->x - 1 || y1 < 0) row3 = empty;
-		else row3 = in->rect_float + in->x * y1 * 4 + 4 * x2;
-		
-		if (x2 > in->x - 1 || y2 > in->y - 1) row4 = empty;
-		else row4 = in->rect_float + in->x * y2 * 4 + 4 * x2;
-
-		a = u - floorf(u);
-		b = v - floorf(v);
-		a_b = a * b; ma_b = (1.0f - a) * b; a_mb = a * (1.0f - b); ma_mb = (1.0f - a) * (1.0f - b);
-
-		outF[0] = ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0];
-		outF[1] = ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1];
-		outF[2] = ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2];
-		outF[3] = ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3];
+		BLI_bilinear_interpolation_fl(in->rect_float, outF, in->x, in->y, 4, u, v);
 	}
-	if (outI) {
-		/* sample including outside of edges of image */
-		if (x1 < 0 || y1 < 0) row1I = emptyI;
-		else row1I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x1;
-		
-		if (x1 < 0 || y2 > in->y - 1) row2I = emptyI;
-		else row2I = (unsigned char *)in->rect + in->x * y2 * 4 + 4 * x1;
-		
-		if (x2 > in->x - 1 || y1 < 0) row3I = emptyI;
-		else row3I = (unsigned char *)in->rect + in->x * y1 * 4 + 4 * x2;
-		
-		if (x2 > in->x - 1 || y2 > in->y - 1) row4I = emptyI;
-		else row4I = (unsigned char *)in->rect + in->x * y2 * 4 + 4 * x2;
-		
-		a = u - floorf(u);
-		b = v - floorf(v);
-		a_b = a * b; ma_b = (1.0f - a) * b; a_mb = a * (1.0f - b); ma_mb = (1.0f - a) * (1.0f - b);
-		
-		/* need to add 0.5 to avoid rounding down (causes darken with the smear brush)
-		 * tested with white images and this should not wrap back to zero */
-		outI[0] = (ma_mb * row1I[0] + a_mb * row3I[0] + ma_b * row2I[0] + a_b * row4I[0]) + 0.5f;
-		outI[1] = (ma_mb * row1I[1] + a_mb * row3I[1] + ma_b * row2I[1] + a_b * row4I[1]) + 0.5f;
-		outI[2] = (ma_mb * row1I[2] + a_mb * row3I[2] + ma_b * row2I[2] + a_b * row4I[2]) + 0.5f;
-		outI[3] = (ma_mb * row1I[3] + a_mb * row3I[3] + ma_b * row2I[3] + a_b * row4I[3]) + 0.5f;
+	else {
+		BLI_bilinear_interpolation_char((unsigned char*) in->rect, outI, in->x, in->y, 4, u, v);
 	}
 }
 

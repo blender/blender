@@ -20,6 +20,7 @@
 
 shader node_normal_map(
 	normal NormalIn = N,
+	float Strength = 1.0,
 	color Color = color(0.5, 0.5, 1.0),
 	string space = "Tangent",
 	string attr_name = "geom:tangent",
@@ -44,5 +45,8 @@ shader node_normal_map(
 		Normal = normalize(transform("object", "world", vector(mcolor)));
 	else if (space == "World")
 		Normal = normalize(vector(mcolor));
+	
+	if (Strength != 1.0)
+		Normal = normalize(NormalIn + (Normal - NormalIn)*max(Strength, 0.0));
 }
 

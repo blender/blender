@@ -2664,6 +2664,8 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 					}
 				}
 			}
+			else if (ob->type == OB_LAMP)
+				lamp_drivers_update(scene, ob->data, ctime);
 			
 			/* particles */
 			if (ob->particlesystem.first) {

@@ -426,12 +426,12 @@ static int hull_input_vert_count(BMesh *bm, BMOperator *op)
 }
 
 static BMVert **hull_input_verts_copy(BMesh *bm, BMOperator *op,
-									  const int num_input_verts)
+                                      const int num_input_verts)
 {
 	BMOIter oiter;
 	BMVert *v;
 	BMVert **input_verts = MEM_callocN(sizeof(*input_verts) *
-									   num_input_verts, AT);
+	                                   num_input_verts, AT);
 	int i = 0;
 
 	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
@@ -442,7 +442,7 @@ static BMVert **hull_input_verts_copy(BMesh *bm, BMOperator *op,
 }
 
 static float (*hull_verts_for_bullet(BMVert **input_verts,
-									 const int num_input_verts))[3]
+                                     const int num_input_verts))[3]
 {
 	float (*coords)[3] = MEM_callocN(sizeof(*coords) * num_input_verts, AT);
 	int i;
@@ -455,12 +455,12 @@ static float (*hull_verts_for_bullet(BMVert **input_verts,
 }
 
 static BMVert **hull_verts_from_bullet(plConvexHull hull,
-									   BMVert **input_verts,
-									   const int num_input_verts)
+                                       BMVert **input_verts,
+                                       const int num_input_verts)
 {
 	const int num_verts = plConvexHullNumVertices(hull);
 	BMVert **hull_verts = MEM_mallocN(sizeof(*hull_verts) *
-									  num_verts, AT);
+	                                  num_verts, AT);
 	int i;
 
 	for (i = 0; i < num_verts; i++) {
@@ -479,8 +479,8 @@ static BMVert **hull_verts_from_bullet(plConvexHull hull,
 }
 
 static void hull_from_bullet(BMesh *bm, BMOperator *op,
-							 GHash *hull_triangles,
-							 BLI_mempool *pool)
+                             GHash *hull_triangles,
+                             BLI_mempool *pool)
 {
 	int *fvi = NULL;
 	BLI_array_declare(fvi);
@@ -523,7 +523,7 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op,
 				fv[2] = hull_verts[fvi[j]];
 
 				hull_add_triangle(bm, hull_triangles, pool,
-								  fv[0], fv[1], fv[2]);
+				                  fv[0], fv[1], fv[2]);
 			}
 		}
 	}

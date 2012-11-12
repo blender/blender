@@ -1680,8 +1680,8 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				nextmask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, nextmask | CD_MASK_ORIGINDEX |
-								 (mti->requiredDataMask ?
-								  mti->requiredDataMask(ob, md) : 0));
+				                 (mti->requiredDataMask ?
+				                  mti->requiredDataMask(ob, md) : 0));
 				ndm = mti->applyModifier(md, ob, orcodm, app_flags & ~MOD_APPLY_USECACHE);
 
 				if (ndm) {

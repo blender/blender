@@ -109,9 +109,53 @@ void BlenderSession::create_session()
 	session->reset(buffer_params, session_params.samples);
 }
 
+void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
+{
+	b_data = b_data_;
+	b_scene = b_scene_;
+
+	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
+	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
+
+	width = b_engine.resolution_x();
+	height = b_engine.resolution_y();
+
+	if(scene->params.modified(scene_params) ||
+	   session->params.modified(session_params))
+	{
+		/* if scene or session parameters changed, it's easier to simply re-create
+		 * them rather than trying to distinguish which settings need to be updated
+		 */
+
+		delete session;
+
+		create_session();
+
+		return;
+	}
+
+	session->progress.reset();
+	scene->reset();
+
+	/* peak memory usage should show current render peak, not peak for all renders
+	 * made by this render session
+	 */
+	session->stats.mem_peak = session->stats.mem_used;
+
+	/* sync object should be re-created */
+	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
+	sync->sync_data(b_v3d, b_engine.camera_override());
+	sync->sync_camera(b_engine.camera_override(), width, height);
+
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, PointerRNA_NULL, PointerRNA_NULL, scene->camera, width, height);
+	session->reset(buffer_params, session_params.samples);
+}
+
 void BlenderSession::free_session()
 {
-	delete sync;
+	if(sync)
+		delete sync;
+
 	delete session;
 }
 
@@ -304,6 +348,15 @@ void BlenderSession::render()
 	/* clear callback */
 	session->write_render_tile_cb = NULL;
 	session->update_render_tile_cb = NULL;
+
+	/* free all memory used (host and device), so we wouldn't leave render
+	 * engine with extra memory allocated
+	 */
+
+	session->device_free();
+
+	delete sync;
+	sync = NULL;
 }
 
 void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only)

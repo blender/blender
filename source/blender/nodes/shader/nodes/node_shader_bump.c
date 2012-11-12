@@ -36,7 +36,7 @@
 
 /* **************** BUMP ******************** */ 
 static bNodeSocketTemplate sh_node_bump_in[] = {
-	{ SOCK_FLOAT, 1, "Strength",	0.1f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+	{ SOCK_FLOAT, 1, "Strength",	0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 10.0f},
 	{ SOCK_FLOAT, 1, "Height",		1.0f, 1.0f, 1.0f, 1.0f, -1000.0f, 1000.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{ -1, 0, "" }
 };

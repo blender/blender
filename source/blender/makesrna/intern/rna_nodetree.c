@@ -220,6 +220,7 @@ EnumPropertyItem prop_wave_items[] = {
 
 #include "ED_node.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #include "DNA_scene_types.h"
@@ -1133,6 +1134,22 @@ static IDProperty *rna_ShaderNodeScript_idprops(PointerRNA *ptr, int create)
 	return nss->prop;
 }
 
+static void rna_ShaderNodeScript_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	bNode *node = (bNode *)ptr->data;
+	RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+
+	if (engine_type && engine_type->update_script_node) {
+		/* auto update node */
+		RenderEngine *engine = RE_engine_create(engine_type);
+		engine_type->update_script_node(engine, ntree, node);
+		RE_engine_free(engine);
+	}
+
+	node_update(bmain, scene, ntree, node);
+}
+
 #else
 
 static EnumPropertyItem prop_image_layer_items[] = {
@@ -1204,7 +1221,7 @@ typedef struct NodeInfo {
 static NodeInfo nodes[MaxNodes];
 
 static void reg_node(int ID, int category, const char *enum_name, const char *struct_name,
-		const char *base_name, const char *ui_name, const char *ui_desc)
+                     const char *base_name, const char *ui_name, const char *ui_desc)
 {
 	NodeInfo *ni = nodes + ID;
 	
@@ -1930,14 +1947,14 @@ static void def_sh_script(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Text");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Script", "Internal shader script to define the shader");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodeScript_update");
 	
 	RNA_def_struct_sdna_from(srna, "NodeShaderScript", "storage");
 	RNA_def_struct_idprops_func(srna, "rna_ShaderNodeScript_idprops");
 	
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File Path", "Shader script path");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodeScript_update");
 
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ShaderNodeScript_mode_set", NULL);

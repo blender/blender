@@ -297,22 +297,19 @@ typedef struct ObHook {
 typedef struct DupliObject {
 	struct DupliObject *next, *prev;
 	struct Object *ob;
-	unsigned int origlay;
-	int index;
+	unsigned int origlay, pad;
 	float mat[4][4], omat[4][4];
 	float orco[3], uv[2];
 
 	short type; /* from Object.transflag */
 	char no_draw, animated;
 
-	/* Lowest-level particle index.
-	 * Note: This is needed for particle info in shaders.
-	 * Otherwise dupli groups in particle systems would override the
-	 * index value from higher dupli levels. Would be nice to have full generic access
-	 * to all dupli levels somehow, but for now this should cover most use-cases.
-	 */
-	int particle_index;
-	int pad;
+	/* persistent identifier for a dupli object, for inter-frame matching of
+	 * objects with motion blur, or inter-update matching for syncing */
+	int persistent_id[8]; /* MAX_DUPLI_RECUR */
+
+	/* particle this dupli was generated from */
+	struct ParticleSystem *particle_system;
 } DupliObject;
 
 /* **************** OBJECT ********************* */

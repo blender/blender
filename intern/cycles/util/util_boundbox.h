@@ -31,6 +31,8 @@ using namespace std;
 
 CCL_NAMESPACE_BEGIN
 
+/* 3D BoundBox */
+
 class BoundBox
 {
 public:
@@ -159,6 +161,75 @@ __forceinline BoundBox intersect(const BoundBox& a, const BoundBox& b, const Bou
 {
 	return intersect(a, intersect(b, c));
 }
+
+/* 2D BoundBox */
+
+class BoundBox2D {
+public:
+	float left;
+	float right;
+	float bottom;
+	float top;
+
+	BoundBox2D()
+	: left(0.0f), right(1.0f), bottom(0.0f), top(1.0f)
+	{
+	}
+
+	bool operator==(const BoundBox2D& other) const
+	{
+		return (left == other.left && right == other.right &&
+		        bottom == other.bottom && top == other.top);
+	}
+
+	BoundBox2D operator*(float f) const
+	{
+		BoundBox2D result;
+
+		result.left = left*f;
+		result.right = right*f;
+		result.bottom = bottom*f;
+		result.top = top*f;
+
+		return result;
+	}
+
+	BoundBox2D subset(const BoundBox2D& other) const
+	{
+		BoundBox2D subset;
+
+		subset.left = left + other.left*(right - left);
+		subset.right = left + other.right*(right - left);
+		subset.bottom = bottom + other.bottom*(top - bottom);
+		subset.top = bottom + other.top*(top - bottom);
+
+		return subset;
+	}
+
+	BoundBox2D make_relative_to(const BoundBox2D& other) const
+	{
+		BoundBox2D result;
+
+		result.left = ((left - other.left) / (other.right - other.left));
+		result.right = ((right - other.left) / (other.right - other.left));
+		result.bottom = ((bottom - other.bottom) / (other.top - other.bottom));
+		result.top = ((top - other.bottom) / (other.top - other.bottom));
+
+		return result;
+	}
+
+	BoundBox2D clamp(float mn = 0.0f, float mx = 1.0f)
+	{
+		BoundBox2D result;
+
+		result.left = ccl::clamp(left, mn, mx);
+		result.right = ccl::clamp(right, mn, mx);
+		result.bottom = ccl::clamp(bottom, mn, mx);
+		result.top = ccl::clamp(top, mn, mx);
+
+		return result;
+	}
+};
 
 CCL_NAMESPACE_END
 

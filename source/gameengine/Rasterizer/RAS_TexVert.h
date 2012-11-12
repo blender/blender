@@ -122,9 +122,11 @@ public:
 	}
 
 	void				SetXYZ(const MT_Point3& xyz);
-	void				SetXYZ(const float *xyz);
-	void				SetUV(const MT_Point2& uv);
+	void				SetXYZ(const float xyz[3]);
+	void				SetUV1(const MT_Point2& uv);
 	void				SetUV2(const MT_Point2& uv);
+	void				SetUV1(const float uv[2]);
+	void				SetUV2(const float uv[2]);
 
 	void				SetRGBA(const unsigned int rgba);
 	void				SetNormal(const MT_Vector3& normal);
@@ -137,6 +139,8 @@ public:
 
 	void				Transform(const class MT_Matrix4x4& mat,
 	                              const class MT_Matrix4x4& nmat);
+	void				TransformUV1(const MT_Matrix4x4& mat);
+	void				TransformUV2(const MT_Matrix4x4& mat);
 
 	// compare two vertices, to test if they can be shared, used for
 	// splitting up based on uv's, colors, etc

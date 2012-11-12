@@ -113,7 +113,7 @@ PyTypeObject KX_SCA_EndObjectActuator::Type = {
 };
 
 PyMethodDef KX_SCA_EndObjectActuator::Methods[] = {
-  {NULL,NULL} //Sentinel
+	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_SCA_EndObjectActuator::Attributes[] = {

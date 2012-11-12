@@ -425,7 +425,7 @@ void uiTemplateEditModeSelection(struct uiLayout *layout, struct bContext *C) {}
 void uiTemplateTextureImage(struct uiLayout *layout, struct bContext *C, struct Tex *tex) {}
 void uiTemplateImage(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact) {}
 void uiTemplateDopeSheetFilter(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr) {}
-void uiTemplateColorWheel(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider) {}
+void uiTemplateColorPicker(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider) {}
 void uiTemplateHistogram(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand) {}
 void uiTemplateReportsBanner(struct uiLayout *layout, struct bContext *C, struct wmOperator *op) {}
 void uiTemplateWaveform(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand) {}
@@ -464,6 +464,8 @@ ListBase R_engines = {NULL, NULL};
 void RE_engine_free(struct RenderEngine *engine) {}
 struct RenderEngineType *RE_engines_find(const char *idname) { return NULL; }
 void RE_engine_update_memory_stats(struct RenderEngine *engine, float mem_used, float mem_peak) {};
+struct RenderEngine *RE_engine_create(struct RenderEngineType *type) { return NULL; };
+void RE_FreePersistentData(void) {}
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet) {return (struct wmOperatorType *) NULL;}

@@ -49,7 +49,7 @@ Session::Session(const SessionParams& params_)
 
 	TaskScheduler::init(params.threads);
 
-	device = Device::create(params.device, stats, params.background, params.threads);
+	device = Device::create(params.device, stats, params.background);
 
 	if(params.background) {
 		buffers = NULL;
@@ -818,7 +818,7 @@ bool Session::update_progressive_refine(bool cancel)
 
 	double current_time = time_dt();
 
-	if (current_time - last_update_time < 1.0f) {
+	if (current_time - last_update_time < 1.0) {
 		/* if last sample was processed, we need to write buffers anyway  */
 		if (!write)
 			return false;
@@ -840,6 +840,20 @@ bool Session::update_progressive_refine(bool cancel)
 	last_update_time = current_time;
 
 	return write;
+}
+
+void Session::device_free()
+{
+	scene->device_free();
+
+	foreach(RenderBuffers *buffers, tile_buffers)
+		delete buffers;
+
+	tile_buffers.clear();
+
+	/* used from background render only, so no need to
+	 * re-create render/display buffers here
+	 */
 }
 
 CCL_NAMESPACE_END

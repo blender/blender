@@ -32,8 +32,31 @@
 CCL_NAMESPACE_BEGIN
 
 tls_ptr(OSLGlobals::ThreadData, OSLGlobals::thread_data);
+volatile int OSLGlobals::thread_data_users = 0;
+thread_mutex OSLGlobals::thread_data_mutex;
 
 /* Threads */
+
+void OSLGlobals::thread_data_init()
+{
+	thread_scoped_lock thread_data_lock(thread_data_mutex);
+
+	if(thread_data_users == 0)
+		tls_create(OSLGlobals::ThreadData, thread_data);
+
+	thread_data_users++;
+}
+
+void OSLGlobals::thread_data_free()
+{
+	/* thread local storage delete */
+	thread_scoped_lock thread_data_lock(thread_data_mutex);
+
+	thread_data_users--;
+
+	if(thread_data_users == 0)
+		tls_delete(OSLGlobals::ThreadData, thread_data);
+}
 
 void OSLShader::thread_init(KernelGlobals *kg)
 {

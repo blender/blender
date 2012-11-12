@@ -61,6 +61,13 @@ def render(engine):
         _cycles.render(engine.session)
 
 
+def reset(engine, data, scene):
+    import _cycles
+    data = data.as_pointer()
+    scene = scene.as_pointer()
+    _cycles.reset(engine.session, data, scene)
+
+
 def update(engine, data, scene):
     import _cycles
     _cycles.sync(engine.session)

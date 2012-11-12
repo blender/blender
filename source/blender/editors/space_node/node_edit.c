@@ -2226,7 +2226,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 		data.text = CTX_data_pointer_get_type(C, "edit_text", &RNA_Text).data;
 
 		if (data.text) {
-        	bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
+			bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
 
 			if (ntreetype && ntreetype->foreach_nodetree)
 				ntreetype->foreach_nodetree(bmain, &data, node_shader_script_update_text);

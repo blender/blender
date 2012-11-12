@@ -1003,7 +1003,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	/* FOR DEBUG */
 	if (debugSDNA > 1) {
 		int a, b;
-/*          short *elem; */
+		/* short *elem; */
 		short num_types;
 
 		printf("nr_names %d nr_types %d nr_structs %d\n", nr_names, nr_types, nr_structs);

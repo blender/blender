@@ -326,7 +326,7 @@ using namespace ccl;
 
 int main(int argc, const char **argv)
 {
-	path_init("../build/bin/2.59/scripts/addons/cycles/");
+	path_init();
 
 	options_parse(argc, argv);
 

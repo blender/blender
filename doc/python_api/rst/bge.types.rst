@@ -1957,6 +1957,28 @@ Types
       :return: a polygon object.
       :rtype: :class:`PolyProxy`
 
+   .. method:: transform(matid, matrix)
+
+      Transforms the vertices of a mesh.
+
+      :arg matid: material index, -1 transforms all.
+      :type matid: integer
+      :arg matrix: transformation matrix.
+      :type matrix: 4x4 matrix [[float]]
+
+   .. method:: transform_uv(matid, matrix, uv_index=-1, uv_index_from=-1)
+
+      Transforms the vertices UV's of a mesh.
+
+      :arg matid: material index, -1 transforms all.
+      :type matid: integer
+      :arg matrix: transformation matrix.
+      :type matrix: 4x4 matrix [[float]]
+      :arg uv_index: optional uv index, -1 for all, otherwise 0 or 1.
+      :type uv_index: integer
+      :arg uv_index_from: optional uv index to copy from, -1 to transform the current uv.
+      :type uv_index_from: integer
+
 .. class:: SCA_MouseSensor(SCA_ISensor)
 
    Mouse Sensor logic brick.
@@ -3112,6 +3134,12 @@ Types
       A list of callables to be run after the render step.
 
       :type: list
+
+   .. attribute:: gravity
+
+      The scene gravity using the world x, y and z axis.
+
+      :type: list [fx, fy, fz]
 
    .. method:: addObject(object, other, time=0)
 

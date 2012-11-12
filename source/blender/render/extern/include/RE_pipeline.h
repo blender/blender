@@ -170,6 +170,8 @@ void RE_FreeRender (struct Render *re);
 void RE_FreeAllRender (void);
 /* only call on file load */
 void RE_FreeAllRenderResults(void);
+/* for external render engines that can keep persistent data */
+void RE_FreePersistentData(void);
 
 /* get results and statistics */
 void RE_FreeRenderResult(struct RenderResult *rr);

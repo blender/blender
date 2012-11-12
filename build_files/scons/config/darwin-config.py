@@ -223,11 +223,6 @@ BF_ZLIB_LIB = 'z'
 
 WITH_BF_INTERNATIONAL = True
 
-BF_GETTEXT = LIBDIR + '/gettext'
-BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'intl'
-BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = True
 WITH_BF_OCEANSIM = True
@@ -297,6 +292,8 @@ WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
 BF_BOOST_INC = BF_BOOST + '/include'
 BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
+if WITH_BF_INTERNATIONAL:
+    BF_BOOST_LIB += ' boost_locale-mt'
 BF_BOOST_LIBPATH = BF_BOOST + '/lib'
 
 WITH_BF_CYCLES_CUDA_BINARIES = False

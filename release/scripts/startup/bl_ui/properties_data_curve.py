@@ -174,10 +174,13 @@ class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
         col.prop(curve, "bevel_object", text="")
 
         col = layout.column(align=True)
-        col.active = (curve.bevel_object is not None)
-        col.prop(curve, "use_fill_caps")
         col.prop(curve, "bevel_factor_start")
         col.prop(curve, "bevel_factor_end")
+
+        row = col.row()
+        row.active = (curve.bevel_object is not None)
+        row.prop(curve, "use_fill_caps")
+        row.prop(curve, "use_map_taper")
 
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):

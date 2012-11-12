@@ -48,7 +48,7 @@ struct Scene;
 void multires_customdata_delete(struct Mesh *me);
 
 void multires_set_tot_level(struct Object *ob,
-							struct MultiresModifierData *mmd, int lvl);
+                            struct MultiresModifierData *mmd, int lvl);
 
 void multires_mark_as_modified(struct Object *ob, enum MultiresModifiedFlags flags);
 

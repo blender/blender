@@ -639,7 +639,6 @@ PyTypeObject BL_ArmatureObject::Type = {
 };
 
 PyMethodDef BL_ArmatureObject::Methods[] = {
-
 	KX_PYMETHODTABLE_NOARGS(BL_ArmatureObject, update),
 	{NULL,NULL} //Sentinel
 };

@@ -2400,6 +2400,13 @@ static void rna_def_modifier_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Offset", "Distance to keep from the target");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "project_limit", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "projLimit");
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 100, 1, 2);
+	RNA_def_property_ui_text(prop, "Project Limit", "Limit the distance used for projection (zero disables)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "use_project_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "projAxis", MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS);
 	RNA_def_property_ui_text(prop, "X", "");

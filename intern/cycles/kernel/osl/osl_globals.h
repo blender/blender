@@ -68,6 +68,11 @@ struct OSLGlobals {
 	};
 
 	static tls_ptr(ThreadData, thread_data);
+	static thread_mutex thread_data_mutex;
+	static volatile int thread_data_users;
+
+	void thread_data_init();
+	void thread_data_free();
 };
 
 CCL_NAMESPACE_END

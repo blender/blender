@@ -196,10 +196,6 @@ macro(SETUP_LIBDIRS)
 	if(WITH_PYTHON)  #  AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		link_directories(${PYTHON_LIBPATH})
 	endif()
-	if(WITH_INTERNATIONAL)
-		link_directories(${ICONV_LIBPATH})
-		link_directories(${GETTEXT_LIBPATH})
-	endif()
 	if(WITH_SDL)
 		link_directories(${SDL_LIBPATH})
 	endif()
@@ -285,14 +281,6 @@ macro(setup_liblinks
 
 	if(WITH_SYSTEM_GLEW)
 		target_link_libraries(${target} ${GLEW_LIBRARY})
-	endif()
-
-	if(WITH_INTERNATIONAL)
-		target_link_libraries(${target} ${GETTEXT_LIBRARIES})
-
-		if(WIN32 AND NOT UNIX)
-			target_link_libraries(${target} ${ICONV_LIBRARIES})
-		endif()
 	endif()
 
 	if(WITH_OPENAL)

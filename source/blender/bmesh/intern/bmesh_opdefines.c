@@ -1064,6 +1064,7 @@ static BMOpDefine bmo_create_cube_def = {
 	0,
 };
 
+#define NEW_BEVEL 1
 /*
  * Bevel
  *
@@ -1071,6 +1072,12 @@ static BMOpDefine bmo_create_cube_def = {
  */
 static BMOpDefine bmo_bevel_def = {
 	"bevel",
+#ifdef NEW_BEVEL
+	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
+	 {BMO_OP_SLOT_FLT, "offset"}, /* amount to offset beveled edge */
+	 {BMO_OP_SLOT_INT, "segments"}, /* number of segments in bevel */
+	 {0} /* null-terminating sentinel */},
+#else
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "face_spans"}, /* new geometry */
 	 {BMO_OP_SLOT_ELEMENT_BUF, "face_holes"}, /* new geometry */
@@ -1081,6 +1088,7 @@ static BMOpDefine bmo_bevel_def = {
 	 {BMO_OP_SLOT_INT, "lengthlayer"}, /* which PROP_FLT layer to us */
 	 {BMO_OP_SLOT_FLT, "percent"}, /* percentage to expand beveled edge */
 	 {0} /* null-terminating sentinel */},
+#endif
 	bmo_bevel_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };

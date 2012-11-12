@@ -782,7 +782,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 	ANIMDATA_NODETREE_IDS_CB(mainptr->tex.first, Tex);
 		
 	/* lamps */
-	ANIMDATA_IDS_CB(mainptr->lamp.first);
+	ANIMDATA_NODETREE_IDS_CB(mainptr->lamp.first, Lamp);
 	
 	/* materials */
 	ANIMDATA_NODETREE_IDS_CB(mainptr->mat.first, Material);
@@ -824,7 +824,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 	ANIMDATA_IDS_CB(mainptr->mask.first);
 	
 	/* worlds */
-	ANIMDATA_IDS_CB(mainptr->world.first);
+	ANIMDATA_NODETREE_IDS_CB(mainptr->world.first, World);
 
 	/* scenes */
 	ANIMDATA_NODETREE_IDS_CB(mainptr->scene.first, Scene);
@@ -872,7 +872,7 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->tex.first, Tex);
 	
 	/* lamps */
-	RENAMEFIX_ANIM_IDS(mainptr->lamp.first);
+	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->lamp.first, Lamp);
 	
 	/* materials */
 	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->mat.first, Material);
@@ -914,7 +914,7 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 	RENAMEFIX_ANIM_IDS(mainptr->mask.first);
 	
 	/* worlds */
-	RENAMEFIX_ANIM_IDS(mainptr->world.first);
+	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->world.first, World);
 	
 	/* linestyles */
 	RENAMEFIX_ANIM_IDS(mainptr->linestyle.first);

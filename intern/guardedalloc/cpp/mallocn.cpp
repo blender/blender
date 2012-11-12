@@ -28,6 +28,9 @@
 #include <new>
 #include "../MEM_guardedalloc.h"
 
+void *operator new(size_t size, const char *str) throw(std::bad_alloc);
+void *operator new[](size_t size, const char *str) throw(std::bad_alloc);
+
 /* not default but can be used when needing to set a string */
 void *operator new(size_t size, const char *str) throw(std::bad_alloc)
 {

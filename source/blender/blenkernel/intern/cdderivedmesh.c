@@ -828,8 +828,6 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		mcol = DM_get_tessface_data_layer(dm, colType);
 	}
 
-	printf("%s: %p(%d/%d)\n", __func__, mcol, CD_ID_MCOL, colType);
-
 	cdDM_update_normals_from_pbvh(dm);
 
 	/* back-buffer always uses legacy since VBO's would need the
@@ -1956,12 +1954,11 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 
 	/* avoid this where possiblem, takes extra memory */
 	if (use_tessface) {
-		int *polyindex;
 
 		BM_mesh_elem_index_ensure(bm, BM_FACE);
 
 		index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-		for (i = 0; i < dm->numTessFaceData; i++, index++, polyindex++) {
+		for (i = 0; i < dm->numTessFaceData; i++, index++) {
 			MFace *mf = &mface[i];
 			const BMLoop **l = em_looptris[i];
 			efa = l[0]->f;
@@ -2257,6 +2254,11 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
  * this is a really horribly written function.  ger. - joeedh
  *
  * note, CDDM_recalc_tessellation has to run on the returned DM if you want to access tessfaces.
+ *
+ * Note: This function is currently only used by the Mirror modifier, so it
+ *       skips any faces that have all vertices merged (to avoid creating pairs
+ *       of faces sharing the same set of vertices). If used elsewhere, it may
+ *       be necessary to make this functionality optional.
  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 {
@@ -2300,14 +2302,11 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 			newv[i] = newv[vtargetmap[i]];
 		}
 	}
-	
-	/* find-replace merged vertices with target vertices */
-	ml = cddm->mloop;
-	for (i = 0; i < totloop; i++, ml++) {
-		if (vtargetmap[ml->v] != -1) {
-			ml->v = vtargetmap[ml->v];
-		}
-	}
+
+	/* Don't remap vertices in cddm->mloop, because we need to know the original
+	 * indices in order to skip faces with all vertices merged.
+	 * The "update loop indices..." section further down remaps vertices in mloop.
+	 */
 
 	/* now go through and fix edges and faces */
 	med = cddm->medge;
@@ -2339,6 +2338,24 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 	for (i = 0; i < totpoly; i++, mp++) {
 		MPoly *mp2;
 		
+		ml = cddm->mloop + mp->loopstart;
+
+		/* skip faces with all vertices merged */
+		{
+			int all_vertices_merged = TRUE;
+
+			for (j = 0; j < mp->totloop; j++, ml++) {
+				if (vtargetmap[ml->v] == -1) {
+					all_vertices_merged = FALSE;
+					break;
+				}
+			}
+
+			if (UNLIKELY(all_vertices_merged)) {
+				continue;
+			}
+		}
+
 		ml = cddm->mloop + mp->loopstart;
 
 		c = 0;

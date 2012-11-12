@@ -333,7 +333,13 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
+	static int multisamples = -1;
 	int scr_w, scr_h, posy;
+	
+	/* force setting multisamples only once, it requires restart - and you cannot 
+	   mix it, either all windows have it, or none (tested in OSX opengl) */
+	if (multisamples == -1)
+		multisamples = U.ogl_multisamples;
 	
 	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
@@ -345,7 +351,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	                              (GHOST_TWindowState)win->windowstate,
 	                              GHOST_kDrawingContextTypeOpenGL,
 	                              0 /* no stereo */,
-	                              0 /* no AA */);
+								  multisamples /* AA */);
 	
 	if (ghostwin) {
 		/* needed so we can detect the graphics card below */
@@ -373,7 +379,6 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		
 		/* standard state vars for window */
 		glEnable(GL_SCISSOR_TEST);
-		
 		GPU_state_init();
 	}
 }
@@ -749,6 +754,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				state = GHOST_GetWindowState(win->ghostwin);
 				win->windowstate = state;
 
+				/* stop screencast if resize */
+				if (type == GHOST_kEventWindowSize) {
+					WM_jobs_stop(CTX_wm_manager(C), win->screen, NULL);
+				}
+				
 				/* win32: gives undefined window size when minimized */
 				if (state != GHOST_kWindowStateMinimized) {
 					GHOST_RectangleHandle client_rect;

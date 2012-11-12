@@ -890,7 +890,7 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 {
 	ColorSpace *colorspace = colormanage_colorspace_get_named(from_colorspace);
 
-	if (colorspace->is_data) {
+	if (colorspace && colorspace->is_data) {
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 		return;
 	}
@@ -1083,7 +1083,7 @@ void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name)
 {
 	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
 
-	if (colorspace->is_data)
+	if (colorspace && colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
@@ -1095,7 +1095,7 @@ void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name)
 
 	ibuf->float_colorspace = colorspace;
 
-	if (colorspace->is_data)
+	if (colorspace && colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
@@ -1107,7 +1107,7 @@ void IMB_colormanagement_assign_rect_colorspace(ImBuf *ibuf, const char *name)
 
 	ibuf->rect_colorspace = colorspace;
 
-	if (colorspace->is_data)
+	if (colorspace && colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;

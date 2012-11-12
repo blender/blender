@@ -25,7 +25,19 @@
 
 #include "COM_NodeOperation.h"
 
-class ScaleOperation : public NodeOperation {
+class BaseScaleOperation : public NodeOperation {
+public:
+	void setSampler(PixelSampler sampler) { this->m_sampler = (int) sampler; }
+
+protected:
+	BaseScaleOperation();
+
+	PixelSampler getEffectiveSampler(PixelSampler sampler) { return (m_sampler == -1) ? sampler : (PixelSampler) m_sampler;  }
+
+	int m_sampler;
+};
+
+class ScaleOperation : public BaseScaleOperation {
 private:
 	SocketReader *m_inputOperation;
 	SocketReader *m_inputXOperation;
@@ -41,7 +53,7 @@ public:
 	void deinitExecution();
 };
 
-class ScaleAbsoluteOperation : public NodeOperation {
+class ScaleAbsoluteOperation : public BaseScaleOperation {
 	SocketReader *m_inputOperation;
 	SocketReader *m_inputXOperation;
 	SocketReader *m_inputYOperation;
@@ -57,7 +69,7 @@ public:
 	void deinitExecution();
 };
 
-class ScaleFixedSizeOperation : public NodeOperation {
+class ScaleFixedSizeOperation : public BaseScaleOperation {
 	SocketReader *m_inputOperation;
 	int m_newWidth;
 	int m_newHeight;

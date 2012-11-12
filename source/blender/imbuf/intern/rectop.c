@@ -587,7 +587,7 @@ void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, i
 {
 	if (!ibuf) return;
 	buf_rectfill_area((unsigned char *) ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y, col, display,
-					  x1, y1, x2, y2);
+	                  x1, y1, x2, y2);
 }
 
 

@@ -247,6 +247,7 @@ Render *RE_GetRender(const char *name)
 	return re;
 }
 
+
 /* if you want to know exactly what has been done */
 RenderResult *RE_AcquireResultRead(Render *re)
 {
@@ -390,6 +391,9 @@ void RE_InitRenderCB(Render *re)
 /* only call this while you know it will remove the link too */
 void RE_FreeRender(Render *re)
 {
+	if (re->engine)
+		RE_engine_free(re->engine);
+
 	BLI_rw_mutex_end(&re->resultmutex);
 	
 	free_renderdata_tables(re);
@@ -421,6 +425,19 @@ void RE_FreeAllRenderResults(void)
 
 		re->result = NULL;
 		re->pushedresult = NULL;
+	}
+}
+
+void RE_FreePersistentData(void)
+{
+	Render *re;
+
+	/* render engines can be kept around for quick re-render, this clears all */
+	for (re = RenderGlobal.renderlist.first; re; re = re->next) {
+		if (re->engine) {
+			RE_engine_free(re->engine);
+			re->engine = NULL;
+		}
 	}
 }
 

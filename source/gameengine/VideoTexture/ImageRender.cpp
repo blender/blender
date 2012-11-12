@@ -375,7 +375,7 @@ static PyMethodDef imageRenderMethods[] =
 static PyGetSetDef imageRenderGetSets[] =
 { 
 	{(char*)"background", (getter)getBackground, (setter)setBackground, (char*)"background color", NULL},
-    // attribute from ImageViewport
+	// attribute from ImageViewport
 	{(char*)"capsize", (getter)ImageViewport_getCaptureSize, (setter)ImageViewport_setCaptureSize, (char*)"size of render area", NULL},
 	{(char*)"alpha", (getter)ImageViewport_getAlpha, (setter)ImageViewport_setAlpha, (char*)"use alpha in texture", NULL},
 	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to render", NULL},

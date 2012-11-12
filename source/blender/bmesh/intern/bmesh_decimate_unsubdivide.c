@@ -247,9 +247,9 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int 
 #ifdef USE_WALKER
 			/* Walk over selected elements starting at active */
 			BMW_init(&walker, bm, BMW_CONNECTED_VERTEX,
-					 ELE_VERT_TAG, BMW_MASK_NOP, BMW_MASK_NOP,
-					 BMW_FLAG_NOP, /* don't use BMW_FLAG_TEST_HIDDEN here since we want to desel all */
-					 BMW_NIL_LAY);
+			         ELE_VERT_TAG, BMW_MASK_NOP, BMW_MASK_NOP,
+			         BMW_FLAG_NOP, /* don't use BMW_FLAG_TEST_HIDDEN here since we want to desel all */
+			         BMW_NIL_LAY);
 
 			BLI_assert(walker.order == BMW_BREADTH_FIRST);
 			for (v = BMW_begin(&walker, v_first); v != NULL; v = BMW_step(&walker)) {

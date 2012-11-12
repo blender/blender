@@ -43,8 +43,8 @@ private:
 	// candidates for shared/common implementation class
 	bool m_online;
 public:
-	NG_NetworkDeviceInterface() {};
-	virtual ~NG_NetworkDeviceInterface() {};
+	NG_NetworkDeviceInterface() {}
+	virtual ~NG_NetworkDeviceInterface() {}
 
 	virtual void NextFrame()=0;
 

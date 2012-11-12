@@ -162,7 +162,8 @@ typedef struct ThemeUI {
 	char iconfile[256];	// FILE_MAXFILE length
 	float icon_alpha;
 
-	float pad;
+	/* Axis Colors */
+	char xaxis[4], yaxis[4], zaxis[4];
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well
@@ -418,9 +419,11 @@ typedef struct UserDef {
 
 	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
 	float ndof_orbit_sensitivity;
-	float pad4;
 	int ndof_flag;			/* flags for 3D mouse */
 
+	short ogl_multisamples;	/* amount of samples for OpenGL FSA, if zero no FSA */
+	short pad4;
+	
 	float glalphaclip;
 	
 	short autokey_mode;		/* autokeying mode */
@@ -702,6 +705,17 @@ typedef enum eCompute_Device_Type {
 	USER_COMPUTE_DEVICE_OPENCL	= 1,
 	USER_COMPUTE_DEVICE_CUDA	= 2,
 } eCompute_Device_Type;
+
+	
+typedef enum eMultiSample_Type {
+	USER_MULTISAMPLE_NONE	= 0,
+	USER_MULTISAMPLE_2	= 2,
+	USER_MULTISAMPLE_4	= 4,
+	USER_MULTISAMPLE_8	= 8,
+	USER_MULTISAMPLE_16	= 16,
+} eMultiSample_Type;
+	
+	
 
 #ifdef __cplusplus
 }

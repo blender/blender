@@ -4,11 +4,10 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
-incs = '. intern  #/intern/guardedalloc ../blenkernel ../blenlib ../blenloader'
+incs = '. intern  #/intern/guardedalloc #/intern/locale ../blenkernel ../blenlib ../blenloader'
 incs += ' ../makesdna ../makesrna ../imbuf ../editors/include'
 incs += ' #/extern/glew/include'
 incs += ' ' + env['BF_FREETYPE_INC']
-incs += ' ' + env['BF_GETTEXT_INC']
 
 defs = ['GLEW_STATIC']
 

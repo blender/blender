@@ -205,9 +205,9 @@ public:
 	void SetUniformfv(int location,int type, float *param, int size,bool transpose=false);
 	void SetUniformiv(int location,int type, int *param, int size,bool transpose=false);
 
-	int GetAttribLocation(const STR_String& name);
-	void BindAttribute(const STR_String& attr, int loc);
-	int GetUniformLocation(const STR_String& name);
+	int GetAttribLocation(const char *name);
+	void BindAttribute(const char *attr, int loc);
+	int GetUniformLocation(const char *name);
 
 	void SetUniform(int uniform, const MT_Tuple2& vec);
 	void SetUniform(int uniform, const MT_Tuple3& vec);

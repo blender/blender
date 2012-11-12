@@ -134,7 +134,7 @@ public:
 	virtual int device_number(Device *sub_device) { return 0; }
 
 	/* static */
-	static Device *create(DeviceInfo& info, Stats &stats, bool background = true, int threads = 0);
+	static Device *create(DeviceInfo& info, Stats &stats, bool background = true);
 
 	static DeviceType type_from_string(const char *name);
 	static string string_from_type(DeviceType type);

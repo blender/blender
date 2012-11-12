@@ -526,6 +526,10 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 		/* if autokeying is enabled, send notifiers that keyframes were added */
 		if (IS_AUTOKEY_ON(t->scene))
 			WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+		/* redraw UV editor */
+		if (t->mode == TFM_EDGE_SLIDE && (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 		
 		/* XXX temp, first hack to get auto-render in compositor work (ton) */
 		WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM_DONE, CTX_data_scene(C));
@@ -1220,8 +1224,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
-				if (t->spacetype == SPACE_SEQ)
+				if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
 					t->flag |= T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+				}
 
 				break;
 			default:
@@ -1259,8 +1265,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 //			break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
-				if (t->spacetype == SPACE_SEQ)
+				if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
 					t->flag &= ~T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+				}
 
 				break;
 			default:
@@ -3947,10 +3955,8 @@ void initShrinkFatten(TransInfo *t)
 }
 
 
-
 int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
-	float vec[3];
 	float distance;
 	int i;
 	char str[64];
@@ -3978,17 +3984,20 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	t->values[0] = -distance;
 
 	for (i = 0; i < t->total; i++, td++) {
+		float tdistance;  /* temp dist */
 		if (td->flag & TD_NOACTION)
 			break;
 
 		if (td->flag & TD_SKIP)
 			continue;
 
-		copy_v3_v3(vec, td->axismtx[2]);
-		mul_v3_fl(vec, distance);
-		mul_v3_fl(vec, td->factor);
+		/* get the final offset */
+		tdistance = distance * td->factor;
+		if (td->ext && (t->flag & T_ALT_TRANSFORM)) {
+			tdistance *= td->ext->isize[0];  /* shell factor */
+		}
 
-		add_v3_v3v3(td->loc, td->iloc, vec);
+		madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
 	}
 
 	recalcData(t);

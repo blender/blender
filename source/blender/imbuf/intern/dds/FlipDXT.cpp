@@ -140,10 +140,10 @@ static void FlipDXT5BlockFull(uint8_t *block)
 	unsigned int line_2_3 = block[5] + 256 * (block[6] + 256 * block[7]);
 	// swap lines 0 and 1 in line_0_1.
 	unsigned int line_1_0 = ((line_0_1 & 0x000fff) << 12) |
-			((line_0_1 & 0xfff000) >> 12);
+	                        ((line_0_1 & 0xfff000) >> 12);
 	// swap lines 2 and 3 in line_2_3.
 	unsigned int line_3_2 = ((line_2_3 & 0x000fff) << 12) |
-			((line_2_3 & 0xfff000) >> 12);
+	                        ((line_2_3 & 0xfff000) >> 12);
 
 	block[2] = line_3_2 & 0xff;
 	block[3] = (line_3_2 & 0xff00) >> 8;
@@ -162,7 +162,7 @@ static void FlipDXT5BlockHalf(uint8_t *block)
 	// See layout above.
 	unsigned int line_0_1 = block[2] + 256 * (block[3] + 256 * block[4]);
 	unsigned int line_1_0 = ((line_0_1 & 0x000fff) << 12) |
-			((line_0_1 & 0xfff000) >> 12);
+	                        ((line_0_1 & 0xfff000) >> 12);
 	block[2] = line_1_0 & 0xff;
 	block[3] = (line_1_0 & 0xff00) >> 8;
 	block[4] = (line_1_0 & 0xff0000) >> 8;

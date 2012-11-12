@@ -44,6 +44,10 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	device = NULL;
 	memset(&dscene.data, 0, sizeof(dscene.data));
 
+	/* OSL only works on the CPU */
+	if(device_info_.type != DEVICE_CPU)
+		params.shadingsystem = SceneParams::SVM;
+
 	camera = new Camera();
 	filter = new Filter();
 	film = new Film();
@@ -62,33 +66,11 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 
 Scene::~Scene()
 {
-	if(device) camera->device_free(device, &dscene);
-	delete camera;
+	free_memory(true);
+}
 
-	if(device) filter->device_free(device, &dscene);
-	delete filter;
-
-	if(device) film->device_free(device, &dscene);
-	delete film;
-
-	if(device) background->device_free(device, &dscene);
-	delete background;
-
-	if(device) mesh_manager->device_free(device, &dscene);
-	delete mesh_manager;
-
-	if(device) object_manager->device_free(device, &dscene);
-	delete object_manager;
-
-	if(device) integrator->device_free(device, &dscene);
-	delete integrator;
-
-	if(device) shader_manager->device_free(device, &dscene);
-	delete shader_manager;
-
-	if(device) light_manager->device_free(device, &dscene);
-	delete light_manager;
-
+void Scene::free_memory(bool final)
+{
 	foreach(Shader *s, shaders)
 		delete s;
 	foreach(Mesh *m, meshes)
@@ -100,11 +82,44 @@ Scene::~Scene()
 	foreach(ParticleSystem *p, particle_systems)
 		delete p;
 
-	if(device) image_manager->device_free(device, &dscene);
-	delete image_manager;
+	if(device) {
+		camera->device_free(device, &dscene);
+		filter->device_free(device, &dscene);
+		film->device_free(device, &dscene);
+		background->device_free(device, &dscene);
+		integrator->device_free(device, &dscene);
 
-	if(device) particle_system_manager->device_free(device, &dscene);
-	delete particle_system_manager;
+		object_manager->device_free(device, &dscene);
+		mesh_manager->device_free(device, &dscene);
+		shader_manager->device_free(device, &dscene);
+		light_manager->device_free(device, &dscene);
+
+		particle_system_manager->device_free(device, &dscene);
+
+		if(!params.persistent_images || final)
+			image_manager->device_free(device, &dscene);
+	}
+
+	if(final) {
+		delete filter;
+		delete camera;
+		delete film;
+		delete background;
+		delete integrator;
+		delete object_manager;
+		delete mesh_manager;
+		delete shader_manager;
+		delete light_manager;
+		delete particle_system_manager;
+		delete image_manager;
+	}
+	else {
+		shaders.clear();
+		meshes.clear();
+		objects.clear();
+		lights.clear();
+		particle_systems.clear();
+	}
 }
 
 void Scene::device_update(Device *device_, Progress& progress)
@@ -227,6 +242,23 @@ bool Scene::need_reset()
 		|| integrator->need_update
 		|| shader_manager->need_update
 		|| particle_system_manager->need_update);
+}
+
+void Scene::reset()
+{
+	shader_manager->add_default(this);
+
+	/* ensure all objects are updated */
+	camera->tag_update();
+	filter->tag_update(this);
+	film->tag_update(this);
+	background->tag_update(this);
+	integrator->tag_update(this);
+}
+
+void Scene::device_free()
+{
+	free_memory(false);
 }
 
 CCL_NAMESPACE_END

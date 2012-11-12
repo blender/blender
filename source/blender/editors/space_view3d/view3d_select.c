@@ -1064,11 +1064,11 @@ static EnumPropertyItem *object_select_menu_enum_itemf(bContext *C, PointerRNA *
 static int object_select_menu_exec(bContext *C, wmOperator *op)
 {
 	int name_index = RNA_enum_get(op->ptr, "name");
-	short extend = RNA_boolean_get(op->ptr, "extend");
+	short toggle = RNA_boolean_get(op->ptr, "toggle");
 	short changed = 0;
 	const char *name = object_mouse_select_menu_data[name_index].idname;
 
-	if (!extend) {
+	if (!toggle) {
 		CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 		{
 			if (base->flag & SELECT) {
@@ -1125,7 +1125,7 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	ot->prop = prop;
 
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle selection instead of deselecting everything first");
 }
 
 static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b */
@@ -1141,7 +1141,7 @@ static void deselectall_except(Scene *scene, Base *b)   /* deselect all except b
 	}
 }
 
-static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffer, int hits, const int mval[2], short extend)
+static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int *buffer, int hits, const int mval[2], short toggle)
 {
 	short baseCount = 0;
 	short ok;
@@ -1207,7 +1207,7 @@ static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int
 			PointerRNA ptr;
 
 			WM_operator_properties_create(&ptr, "VIEW3D_OT_select_menu");
-			RNA_boolean_set(&ptr, "extend", extend);
+			RNA_boolean_set(&ptr, "toggle", toggle);
 			WM_operator_name_call(C, "VIEW3D_OT_select_menu", WM_OP_INVOKE_DEFAULT, &ptr);
 			WM_operator_properties_free(&ptr);
 		}
@@ -1440,7 +1440,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 		
 		/* note; shift+alt goes to group-flush-selecting */
 		if (enumerate) {
-			basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, extend);
+			basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, toggle);
 		}
 		else {
 			base = startbase;
@@ -1480,7 +1480,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 
 			/* note; shift+alt goes to group-flush-selecting */
 			if (has_bones == 0 && enumerate) {
-				basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, extend);
+				basact = object_mouse_select_menu(C, &vc, buffer, hits, mval, toggle);
 			}
 			else {
 				basact = mouse_select_eval_buffer(&vc, buffer, hits, mval, startbase, has_bones);

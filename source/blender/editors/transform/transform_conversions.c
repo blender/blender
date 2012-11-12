@@ -1917,6 +1917,10 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 		tx->size = vs->radius;
 		td->val = vs->radius;
 	}
+	else if (t->mode == TFM_SHRINKFATTEN) {
+		td->ext = tx;
+		tx->isize[0] = BM_vert_calc_shell_factor(eve);
+	}
 }
 
 static void createTransEditVerts(TransInfo *t)
@@ -2029,7 +2033,11 @@ static void createTransEditVerts(TransInfo *t)
 	else t->total = countsel;
 
 	tob = t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Mesh EditMode)");
-	if (t->mode == TFM_SKIN_RESIZE) {
+	if (ELEM(t->mode, TFM_SKIN_RESIZE, TFM_SHRINKFATTEN)) {
+		/* warning, this is overkill, we only need 2 extra floats,
+		 * but this stores loads of extra stuff, for TFM_SHRINKFATTEN its even more overkill
+		 * since we may not use the 'alt' transform mode to maintain shell thickness,
+		 * but with generic transform code its hard to lazy init vars */
 		tx = t->ext = MEM_callocN(t->total * sizeof(TransDataExtension),
 		                          "TransObData ext");
 	}
@@ -5029,9 +5037,10 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 	if (t->scene->nodetree) {
 		/* tracks can be used for stabilization nodes,
 		 * flush update for such nodes */
-		//if (nodeUpdateID(t->scene->nodetree, &mask->id)) {
+		//if (nodeUpdateID(t->scene->nodetree, &mask->id))
+		{
 			WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
-		//}
+		}
 	}
 
 	/* TODO - dont key all masks... */

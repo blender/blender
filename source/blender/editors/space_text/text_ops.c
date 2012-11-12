@@ -1503,7 +1503,7 @@ static int text_get_cursor_rel(SpaceText *st, ARegion *ar, TextLine *linein, int
 	end = max;
 	chop = loop = 1;
 
-	for (i = 0, j = 0; loop; j += BLI_str_utf8_size(linein->line + j)) {
+	for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe(linein->line + j)) {
 		int chars;
 		/* Mimic replacement of tabs */
 		ch = linein->line[j];
@@ -1682,7 +1682,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	chop = loop = 1;
 	*charp = 0;
 
-	for (i = 0, j = 0; loop; j += BLI_str_utf8_size((*linep)->line + j)) {
+	for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe((*linep)->line + j)) {
 		int chars;
 		/* Mimic replacement of tabs */
 		ch = (*linep)->line[j];
@@ -1750,7 +1750,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 	chop = loop = 1;
 	*charp = 0;
 
-	for (i = 0, j = 0; loop; j += BLI_str_utf8_size((*linep)->line + j)) {
+	for (i = 0, j = 0; loop; j += BLI_str_utf8_size_safe((*linep)->line + j)) {
 		int chars;
 		/* Mimic replacement of tabs */
 		ch = (*linep)->line[j];
@@ -2462,7 +2462,7 @@ static int flatten_len(SpaceText *st, const char *str)
 {
 	int i, total = 0;
 
-	for (i = 0; str[i]; i += BLI_str_utf8_size(str + i)) {
+	for (i = 0; str[i]; i += BLI_str_utf8_size_safe(str + i)) {
 		if (str[i] == '\t') {
 			total += st->tabnumber - total % st->tabnumber;
 		}
@@ -2475,7 +2475,7 @@ static int flatten_len(SpaceText *st, const char *str)
 static int flatten_index_to_offset(SpaceText *st, const char *str, int index)
 {
 	int i, j;
-	for (i = 0, j = 0; i < index; j += BLI_str_utf8_size(str + j))
+	for (i = 0, j = 0; i < index; j += BLI_str_utf8_size_safe(str + j))
 		if (str[j] == '\t')
 			i += st->tabnumber - i % st->tabnumber;
 		else
@@ -2519,7 +2519,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 		int j = 0, curs = 0, endj = 0;   /* mem */
 		int chop = 1;                    /* flags */
 		
-		for (; loop; j += BLI_str_utf8_size(linep->line + j)) {
+		for (; loop; j += BLI_str_utf8_size_safe(linep->line + j)) {
 			int chars;
 			
 			/* Mimic replacement of tabs */
@@ -2945,7 +2945,7 @@ static int text_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			size_t len;
 			
 			if (event->utf8_buf[0]) {
-				len = BLI_str_utf8_size(event->utf8_buf);
+				len = BLI_str_utf8_size_safe(event->utf8_buf);
 				memcpy(str, event->utf8_buf, len);
 			}
 			else {

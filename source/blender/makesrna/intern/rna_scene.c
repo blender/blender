@@ -1257,6 +1257,12 @@ static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr
 		rna_Scene_use_simplify_update(bmain, scene, ptr);
 }
 
+static void rna_Scene_use_persistent_data_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	if (!(scene->r.mode & R_PERSISTENT_DATA))
+		RE_FreePersistentData();
+}
+
 static int rna_Scene_use_audio_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->data;
@@ -4482,6 +4488,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_simplify_triangulate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", R_SIMPLE_NO_TRIANGULATE);
 	RNA_def_property_ui_text(prop, "Skip Quad to Triangles", "Disable non-planar quads being triangulated");
+
+	/* persistent data */
+	prop = RNA_def_property(srna, "use_persistent_data", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_PERSISTENT_DATA);
+	RNA_def_property_ui_text(prop, "Persistent Data", "Keep render data around for faster re-renders");
+	RNA_def_property_update(prop, 0, "rna_Scene_use_persistent_data_update");
 
 	/* Freestyle line thickness options */
 	prop = RNA_def_property(srna, "line_thickness_mode", PROP_ENUM, PROP_NONE);

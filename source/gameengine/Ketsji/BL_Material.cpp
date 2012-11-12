@@ -36,10 +36,7 @@ BL_Material::BL_Material()
 
 void BL_Material::Initialize()
 {
-	rgb[0] = 0;
-	rgb[1] = 0;
-	rgb[2] = 0;
-	rgb[3] = 0;
+	m_mcol = 0xFFFFFFFFL;
 	IdMode = 0;
 	ras_mode = 0;
 	glslmat = 0;
@@ -66,11 +63,6 @@ void BL_Material::Initialize()
 	share = false;
 
 	int i;
-	for (i=0; i<4; i++)
-	{
-		uv[i] = MT_Point2(0.f,1.f);
-		uv2[i] = MT_Point2(0.f, 1.f);
-	}
 
 	for (i=0; i<MAXTEX; i++) // :(
 	{
@@ -98,55 +90,14 @@ void BL_Material::Initialize()
 	}
 }
 
-void BL_Material::SetConversionRGB(unsigned int *nrgb)
-{
-	rgb[0]=*nrgb++;
-	rgb[1]=*nrgb++;
-	rgb[2]=*nrgb++;
-	rgb[3]=*nrgb;
-}
-
-void BL_Material::GetConversionRGB(unsigned int *nrgb)
-{
-	*nrgb++ = rgb[0];
-	*nrgb++ = rgb[1];
-	*nrgb++ = rgb[2];
-	*nrgb   = rgb[3];
-}
-
-void BL_Material::SetConversionUV(const STR_String& name, MT_Point2 *nuv)
+void BL_Material::SetUVLayerName(const STR_String& name)
 {
 	uvName = name;
-	uv[0] = *nuv++;
-	uv[1] = *nuv++;
-	uv[2] = *nuv++;
-	uv[3] = *nuv;
 }
-
-void BL_Material::GetConversionUV(MT_Point2 *nuv)
-{
-	*nuv++ = uv[0];
-	*nuv++ = uv[1];
-	*nuv++ = uv[2];
-	*nuv   = uv[3];
-}
-void BL_Material::SetConversionUV2(const STR_String& name, MT_Point2 *nuv)
+void BL_Material::SetUVLayerName2(const STR_String& name)
 {
 	uv2Name = name;
-	uv2[0] = *nuv++;
-	uv2[1] = *nuv++;
-	uv2[2] = *nuv++;
-	uv2[3] = *nuv;
 }
-
-void BL_Material::GetConversionUV2(MT_Point2 *nuv)
-{
-	*nuv++ = uv2[0];
-	*nuv++ = uv2[1];
-	*nuv++ = uv2[2];
-	*nuv   = uv2[3];
-}
-
 
 void BL_Material::SetSharedMaterial(bool v)
 {

@@ -236,7 +236,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->shade2; break;
 				case TH_HILITE:
 					cp = ts->hilite; break;
-
+				
 				case TH_GRID:
 					cp = ts->grid; break;
 				case TH_WIRE:
@@ -514,6 +514,13 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_NLA_SOUND_SEL:
 					cp = ts->nla_sound_sel;
 					break;
+					
+				case TH_AXIS_X:
+					cp = btheme->tui.xaxis; break;
+				case TH_AXIS_Y:
+					cp = btheme->tui.yaxis; break;
+				case TH_AXIS_Z:
+					cp = btheme->tui.zaxis; break;
 			}
 		}
 	}
@@ -659,9 +666,14 @@ void ui_theme_init_default(void)
 
 	/* UI buttons */
 	ui_widget_color_init(&btheme->tui);
+	
 	btheme->tui.iconfile[0] = 0;
 	btheme->tui.panel.show_header = FALSE;
 	rgba_char_args_set(btheme->tui.panel.header, 0, 0, 0, 25);
+	
+	rgba_char_args_set(btheme->tui.xaxis, 220,   0,   0, 255);
+	rgba_char_args_set(btheme->tui.yaxis,   0, 220,   0, 255);
+	rgba_char_args_set(btheme->tui.zaxis,   0,   0, 220, 255);
 
 	/* Bone Color Sets */
 	ui_theme_init_boneColorSets(btheme);
@@ -1078,7 +1090,6 @@ float UI_GetThemeValuef(int colorid)
 	
 	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	return ((float)cp[0]);
-
 }
 
 /* get individual values, not scaled */
@@ -1088,7 +1099,6 @@ int UI_GetThemeValue(int colorid)
 	
 	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
 	return ((int) cp[0]);
-
 }
 
 
@@ -1250,21 +1260,20 @@ void UI_ThemeClearColor(int colorid)
 
 void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], const char axis)
 {
+	unsigned char col[3];
+	
 	switch (axis) {
 		case 'X':
-			dst_col[0] = src_col[0] > 219 ? 255 : src_col[0] + 36;
-			dst_col[1] = src_col[1] < 26 ? 0 : src_col[1] - 26;
-			dst_col[2] = src_col[2] < 26 ? 0 : src_col[2] - 26;
+			UI_GetThemeColor3ubv(TH_AXIS_X, col);
+			UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
 			break;
 		case 'Y':
-			dst_col[0] = src_col[0] < 46 ? 0 : src_col[0] - 36;
-			dst_col[1] = src_col[1] > 189 ? 255 : src_col[1] + 66;
-			dst_col[2] = src_col[2] < 46 ? 0 : src_col[2] - 36;
+			UI_GetThemeColor3ubv(TH_AXIS_Y, col);
+			UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
 			break;
 		case 'Z':
-			dst_col[0] = src_col[0] < 26 ? 0 : src_col[0] - 26;
-			dst_col[1] = src_col[1] < 26 ? 0 : src_col[1] - 26;
-			dst_col[2] = src_col[2] > 209 ? 255 : src_col[2] + 46;
+			UI_GetThemeColor3ubv(TH_AXIS_Z, col);
+			UI_GetColorPtrBlendShade3ubv(src_col, col, dst_col, 0.5f, -10);
 			break;
 		default:
 			BLI_assert(!"invalid axis arg");
@@ -1950,6 +1959,16 @@ void init_userdef_do_versions(void)
 
 			if (btheme->tv3d.skin_root[3] == 0)
 				rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
+		}
+	}
+	
+	if (bmain->versionfile < 264 || (bmain->versionfile == 264 && bmain->subversionfile < 9)) {
+		bTheme *btheme;
+		
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_set(btheme->tui.xaxis, 220,   0,   0, 255);
+			rgba_char_args_set(btheme->tui.yaxis,   0, 220,   0, 255);
+			rgba_char_args_set(btheme->tui.zaxis,   0,   0, 220, 255);
 		}
 	}
 
