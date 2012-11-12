@@ -84,7 +84,8 @@ typedef struct VMesh {
 		M_POLY,         /* a simple polygon */
 		M_ADJ,          /* "adjacent edges" mesh pattern */
 		M_CROSS,        /* "cross edges" mesh pattern */
-		M_FAN,          /* a simple polygon - fan filled */
+		M_TRI_FAN,      /* a simple polygon - fan filled */
+		M_QUAD_STRIP,   /* a simple polygon - cut into paralelle strips */
 	} mesh_kind;
 	int count;          /* number of vertices in the boundary */
 	int seg;            /* common # of segments for segmented edges */
@@ -669,14 +670,19 @@ static void build_boundary(BevVert *bv)
 	}
 	else if (efirst->seg == 1 || bv->selcount == 1) {
 		if (vm->count == 3 && bv->selcount == 1) {
-			vm->mesh_kind = M_FAN;
+			vm->mesh_kind = M_TRI_FAN;
 		}
 		else {
 			vm->mesh_kind = M_POLY;
 		}
 	}
 	else {
-		vm->mesh_kind = M_ADJ;
+		if (bv->selcount == 2) {
+			vm->mesh_kind = M_QUAD_STRIP;
+		}
+		else {
+			vm->mesh_kind = M_ADJ;
+		}
 	}
 	/* TODO: if vm->count == 4 and bv->selcount == 4, use M_CROSS pattern */
 }
@@ -1012,7 +1018,7 @@ static void bevel_build_poly(BMesh *bm, BevVert *bv)
 	bevel_build_poly_ex(bm, bv);
 }
 
-static void bevel_build_fan(BMesh *bm, BevVert *bv)
+static void bevel_build_trifan(BMesh *bm, BevVert *bv)
 {
 	BMFace *f;
 	BLI_assert(next_bev(bv, NULL)->seg == 1 || bv->selcount == 1);
@@ -1047,6 +1053,41 @@ static void bevel_build_fan(BMesh *bm, BevVert *bv)
 	}
 }
 
+static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
+{
+	BMFace *f;
+	BLI_assert(bv->selcount == 2);
+
+	f = bevel_build_poly_ex(bm, bv);
+
+	if (f) {
+		/* we have a polygon which we know starts at this vertex, make it into strips */
+		BMVert *v_first = bv->vmesh->boundstart->efirst->next->next->leftv->nv.v;  /* magic? */
+		//BMLoop *l_start = BM_FACE_FIRST_LOOP(f);
+		BMLoop *l_start = BM_face_vert_share_loop(f, v_first);
+		BMLoop *l_a = l_start->prev, *l_a_step;
+		BMLoop *l_b = l_start->next, *l_b_step;
+
+		while (f->len > 4) {
+			// BMLoop *l_new;
+			BMFace *f_new;
+			BLI_assert(l_a->f == f);
+			BLI_assert(l_b->f == f);
+
+			l_a_step = l_a->prev;
+			l_b_step = l_b->next;
+
+			f_new = BM_face_split(bm, f, l_a->v, l_b->v, NULL, NULL, FALSE);
+
+			if (f_new->len > f->len) {
+				f = f_new;
+			}
+
+			l_a = l_a_step;
+			l_b = l_b_step;
+		}
+	}
+}
 
 /* Given that the boundary is built, now make the actual BMVerts
  * for the boundary and the interior of the vertex mesh. */
@@ -1117,8 +1158,10 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 		bevel_build_rings(bm, bv);
 	else if (vm->mesh_kind == M_POLY)
 		bevel_build_poly(bm, bv);
-	else if (vm->mesh_kind == M_FAN)
-		bevel_build_fan(bm, bv);
+	else if (vm->mesh_kind == M_TRI_FAN)
+		bevel_build_trifan(bm, bv);
+	else if (vm->mesh_kind == M_QUAD_STRIP)
+		bevel_build_quadstrip(bm, bv);
 }
 
 /*
