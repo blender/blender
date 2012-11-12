@@ -1420,7 +1420,7 @@ int BM_face_exists_multi_edge(BMEdge **earr, int len)
 	return ok;
 }
 
-/* convenience functiosn for checking flags */
+/* convenience functions for checking flags */
 int BM_edge_is_any_vert_flag_test(BMEdge *e, const char hflag)
 {
 	return (BM_elem_flag_test(e->v1, hflag) ||
