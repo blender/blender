@@ -422,16 +422,22 @@ if not quickie and do_clean:
 # with _any_ library but since we used a fixed python version this tends to
 # be most problematic.
 if env['WITH_BF_PYTHON']:
-    py_h = os.path.join(Dir(env.subst('${BF_PYTHON_INC}')).abspath, "Python.h")
+    found_python_h = found_pyconfig_h = False
+    for bf_python_inc in env.subst('${BF_PYTHON_INC}').split():
+        py_h = os.path.join(Dir(bf_python_inc).abspath, "Python.h")
+        if os.path.exists(py_h):
+            found_python_h = True
+        py_h = os.path.join(Dir(bf_python_inc).abspath, "pyconfig.h")
+        if os.path.exists(py_h):
+            found_pyconfig_h = True
 
-    if not os.path.exists(py_h):
-        print("\nMissing: \"" + env.subst('${BF_PYTHON_INC}') + os.sep + "Python.h\",\n"
+    if not (found_python_h and found_pyconfig_h):
+        print("\nMissing: Python.h and/or pyconfig.h in\"" + env.subst('${BF_PYTHON_INC}') + "\",\n"
               "  Set 'BF_PYTHON_INC' to point "
-              "to a valid python include path.\n  Containing "
-              "Python.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
+              "to valid python include path(s).\n Containing "
+              "Python.h and pyconfig.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
 
         Exit()
-    del py_h
 
 
 if not os.path.isdir ( B.root_build_dir):

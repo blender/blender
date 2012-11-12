@@ -11,4 +11,4 @@ if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
     incs += ' ' + env['BF_BOOST_INC']
 
-env.BlenderLib( 'bf_intern_locale', sources, Split(incs), defs, libtype=['extern','player'], priority=[10, 185])
+env.BlenderLib( 'bf_intern_locale', sources, Split(incs), defs, libtype=['intern','player'], priority=[10, 185])
