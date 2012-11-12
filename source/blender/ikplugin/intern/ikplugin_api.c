@@ -80,6 +80,8 @@ static IKPlugin ikplugin_tab[] = {
 		itasc_test_constraint,
 	},
 	#endif
+
+	{ NULL }
 };
 
 static IKPlugin *get_plugin(bPose *pose)
