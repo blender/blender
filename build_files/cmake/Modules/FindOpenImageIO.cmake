@@ -33,6 +33,7 @@ SET(_openimageio_SEARCH_DIRS
   /sw # Fink
   /opt/local # DarwinPorts
   /opt/csw # Blastwave
+  /opt/lib/oiio
 )
 
 FIND_PATH(OPENIMAGEIO_INCLUDE_DIR
