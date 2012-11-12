@@ -780,7 +780,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 			float delta = pt_tmp[1].time;
 			int j;
 			
-			gps->inittime += delta;
+			gps->inittime += (double)delta;
 			
 			pts = gps->points;
 			for (j = 0; j < gps->totpoints; j++, pts++) {
@@ -817,7 +817,7 @@ static short gp_stroke_eraser_splitdel(bGPDframe *gpf, bGPDstroke *gps, int i)
 			float delta = pt_tmp[i].time;
 			int j;
 			
-			gsn->inittime += delta;
+			gsn->inittime += (double)delta;
 			
 			pts = gsn->points;
 			for (j = 0; j < gsn->totpoints; j++, pts++) {

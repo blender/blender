@@ -56,10 +56,8 @@ typedef struct bGPDstroke {
 	
 	short thickness;		/* thickness of stroke (currently not used) */
 	short flag;				/* various settings about this stroke */
-	
-	float pad;
+
 	double inittime;		/* Init time of stroke */
-	float pad2;
 } bGPDstroke;
 
 /* bGPDstroke->flag */

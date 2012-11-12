@@ -130,7 +130,7 @@ In this situation you can...
 * Exit edit-mode before running the tool.
 * Explicitly update the mesh by calling :class:`bmesh.types.BMesh.to_mesh`.
 * Modify the script to support working on the edit-mode data directly, see: :mod:`bmesh.from_edit_mesh`.
-* Report the context as incorrect and only allow the script to run when editmode is disabled.
+* Report the context as incorrect and only allow the script to run outside edit-mode.
 
 
 .. _info_gotcha_mesh_faces:
