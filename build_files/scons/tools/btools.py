@@ -590,6 +590,7 @@ def read_opts(env, cfg, args):
         ('BF_BOOST', 'Boost root path', ''),
         ('BF_BOOST_INC', 'Boost include path', ''),
         ('BF_BOOST_LIB', 'Boost library', ''),
+        ('BF_BOOST_LIB_INTERNATIONAL', 'Boost library', ''),
         ('BF_BOOST_LIBPATH', 'Boost library path', ''),
         ('BF_BOOST_LIB_STATIC', 'Boost static library', ''),
 
