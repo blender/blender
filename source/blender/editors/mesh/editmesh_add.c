@@ -420,7 +420,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	if (!view_aligned)
 		rot[0] += (float)M_PI / 2.0f;
 
-	obedit = make_prim_init(C, "Monkey", &dia, mat, &state, loc, rot, layer);
+	obedit = make_prim_init(C, "Suzanne", &dia, mat, &state, loc, rot, layer);
 	mat[0][0] *= dia;
 	mat[1][1] *= dia;
 	mat[2][2] *= dia;
