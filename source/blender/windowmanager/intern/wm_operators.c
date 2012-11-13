@@ -1186,6 +1186,8 @@ static void wm_operator_ui_popup_ok(struct bContext *C, void *arg, int retval)
 
 	if (op && retval > 0)
 		WM_operator_call(C, op);
+	
+	MEM_freeN(data);
 }
 
 int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)

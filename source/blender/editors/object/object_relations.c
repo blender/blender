@@ -1233,7 +1233,7 @@ static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		move_to_layer_init(C, op);
-		return WM_operator_props_popup(C, op, event);
+		return WM_operator_props_dialog_popup(C, op, 260, 30);
 	}
 }
 
