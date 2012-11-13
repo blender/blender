@@ -1693,8 +1693,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",		KX_GameObject, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("parent",	KX_GameObject, pyattr_get_parent),
-	KX_PYATTRIBUTE_RO_FUNCTION("group_children",	KX_GameObject, pyattr_get_group_children),
-	KX_PYATTRIBUTE_RO_FUNCTION("group_parent",		KX_GameObject, pyattr_get_group_parent),
+	KX_PYATTRIBUTE_RO_FUNCTION("groupMembers",	KX_GameObject, pyattr_get_group_members),
+	KX_PYATTRIBUTE_RO_FUNCTION("groupObject",	KX_GameObject, pyattr_get_group_object),
 	KX_PYATTRIBUTE_RO_FUNCTION("scene",		KX_GameObject, pyattr_get_scene),
 	KX_PYATTRIBUTE_RO_FUNCTION("life",		KX_GameObject, pyattr_get_life),
 	KX_PYATTRIBUTE_RW_FUNCTION("mass",		KX_GameObject, pyattr_get_mass,		pyattr_set_mass),
@@ -1991,7 +1991,7 @@ PyObject *KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DE
 	Py_RETURN_NONE;
 }
 
-PyObject *KX_GameObject::pyattr_get_group_children(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_GameObject::pyattr_get_group_members(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	CListValue* instances = self->GetInstanceObjects();
@@ -2012,7 +2012,7 @@ PyObject* KX_GameObject::pyattr_get_scene(void *self_v, const KX_PYATTRIBUTE_DEF
 	Py_RETURN_NONE;
 }
 
-PyObject *KX_GameObject::pyattr_get_group_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_GameObject::pyattr_get_group_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	KX_GameObject* pivot = self->GetDupliGroupObject();
