@@ -60,6 +60,7 @@ struct Scene;
 #define RE_ENGINE_PREVIEW		2
 #define RE_ENGINE_DO_DRAW		4
 #define RE_ENGINE_DO_UPDATE		8
+#define RE_ENGINE_RENDERING		16
 
 extern ListBase R_engines;
 
