@@ -989,13 +989,13 @@ Types
 
       :type: :class:`KX_GameObject` or None
 	  
-   .. attribute:: group_children
+   .. attribute:: groupMembers
 
       Returns the list of group members if the object is a group object, otherwise None is returned.
 
       :type: :class:`CListValue` of :class:`KX_GameObject` or None
 
-   .. attribute:: group_parent
+   .. attribute:: groupObject
 
       Returns the group object that the object belongs to or None if the object is not part of a group.
 
@@ -1966,7 +1966,7 @@ Types
       :arg matrix: transformation matrix.
       :type matrix: 4x4 matrix [[float]]
 
-   .. method:: transform_uv(matid, matrix, uv_index=-1, uv_index_from=-1)
+   .. method:: transformUV(matid, matrix, uv_index=-1, uv_index_from=-1)
 
       Transforms the vertices UV's of a mesh.
 
