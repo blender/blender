@@ -42,7 +42,7 @@ detect_distro() {
 }
 
 prepare_opt() {
-  INFO "Ensuring /opt/lib exists and vritabele by us"
+  INFO "Ensuring /opt/lib exists and writable by us"
   sudo mkdir -p /opt/lib
   sudo chown $USER /opt/lib
   sudo chmod 775 /opt/lib
@@ -98,12 +98,12 @@ compile_Boost() {
     fi
 
     cd $SRC/boost_$BOOST_VERSION
-    ./bootstrap.sh
-    ./b2 install --prefix=/opt/lib/boost-$version_dots
+    ./bootstrap.sh --with-libraries=system,filesystem,thread,regex,locale --prefix=/opt/lib/boost-$version_dots
+    ./b2 install
     ./b2 --clean
 
     rm -f /opt/lib/boost
-    ln -s boost-$BOOST_VERSION /opt/lib/boost
+    ln -s boost-$version_dots /opt/lib/boost
 
     cd $CWD
   fi
