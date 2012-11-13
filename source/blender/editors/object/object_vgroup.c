@@ -860,10 +860,12 @@ static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 			dv = CustomData_bmesh_get(&me->edit_btmesh->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 		}
 		else {
-			if (vertnum >= me->totvert) {
-				return 0.0f;
+			if (me->dvert) {
+				if (vertnum >= me->totvert) {
+					return 0.0f;
+				}
+				dv = &me->dvert[vertnum];
 			}
-			dv = &me->dvert[vertnum];
 		}
 	}
 	else if (ob->type == OB_LATTICE) {
