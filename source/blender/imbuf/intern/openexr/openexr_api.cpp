@@ -881,7 +881,7 @@ void IMB_exr_close(void *handle)
 /* get a substring from the end of the name, separated by '.' */
 static int imb_exr_split_token(const char *str, const char *end, const char **token)
 {
-	int64_t maxlen = end - str;
+	ptrdiff_t maxlen = end - str;
 	int len = 0;
 	while (len < maxlen && *(end - len - 1) != '.') {
 		len++;
