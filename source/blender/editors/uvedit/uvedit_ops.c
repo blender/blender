@@ -1553,7 +1553,112 @@ static void UV_OT_align(wmOperatorType *ot)
 	/* properties */
 	RNA_def_enum(ot->srna, "axis", axis_items, 'a', "Axis", "Axis to align UV locations on");
 }
+/* ******************** weld near operator **************** */
 
+typedef struct UVvert {
+	MLoopUV *uv_loop;
+	int weld;
+} UVvert;
+
+static int remove_doubles_exec(bContext *C, wmOperator *op)
+{
+	SpaceImage *sima;
+	Scene *scene;
+	Object *obedit;
+	Image *ima;
+	BMEditMesh *em;
+	MTexPoly *tf;
+	int UV_a;
+	int UV_b;
+	float UVp1[2];
+	float UVp2[2];
+	float weld_dist;
+	MLoopUV **loop_arr = NULL;
+	BLI_array_declare(loop_arr);
+
+	UVvert *vert_arr = NULL;
+	BLI_array_declare(vert_arr);
+	BMIter iter, liter;
+	BMFace *efa;
+	BMLoop *l;
+
+	sima = CTX_wm_space_image(C);
+	scene = CTX_data_scene(C);
+	obedit = CTX_data_edit_object(C);
+	em = BMEdit_FromObject(obedit);
+	ima = CTX_data_edit_image(C);
+
+	weld_dist = RNA_float_get(op->ptr, "weld_dist");
+
+
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		if (!uvedit_face_visible_test(scene, ima, efa, tf))
+			continue;
+
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			if (uvedit_uv_select_test(em, scene, l)) {
+				MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				UVvert vert;
+				vert.uv_loop = luv;
+				vert.weld = FALSE;
+				BLI_array_append(vert_arr, vert);
+			}
+
+		}
+	}
+
+	for (UV_a = 0; UV_a<BLI_array_count(vert_arr); UV_a++){
+		if (vert_arr[UV_a].weld == FALSE){
+			float far_UV [2];
+			float near_UV [2];
+
+			BLI_array_empty(loop_arr);
+			BLI_array_append(loop_arr, vert_arr[UV_a].uv_loop);
+
+			copy_v2_v2(UVp1, vert_arr[UV_a].uv_loop->uv);
+
+			copy_v2_v2(near_UV, UVp1);
+			copy_v2_v2(far_UV, UVp1);
+
+			vert_arr[UV_a].weld = TRUE;
+			for (UV_b = 0; UV_b<BLI_array_count(vert_arr); UV_b++){
+				copy_v2_v2(UVp2, vert_arr[UV_b].uv_loop->uv);
+				if (UV_b != UV_a && vert_arr[UV_b].weld == FALSE && UVp1[0]-UVp2[0] > -weld_dist && UVp1[0] - UVp2[0] < weld_dist && UVp1[1] - UVp2[1] > -weld_dist && UVp1[1] - UVp2[1] < weld_dist){
+					minmax_v2v2_v2(near_UV, far_UV, UVp2);
+					BLI_array_append(loop_arr, vert_arr[UV_b].uv_loop);
+					vert_arr[UV_b].weld = TRUE;
+				}
+			}
+			for (UV_b = 0; UV_b<BLI_array_count(loop_arr); UV_b++){
+				mid_v2_v2v2(loop_arr[UV_b]->uv, far_UV, near_UV);
+			}
+		}
+	}
+	BLI_array_free(loop_arr);
+	BLI_array_free(vert_arr);
+
+	uvedit_live_unwrap_update(sima, scene, obedit);
+	DAG_id_tag_update(obedit->data, 0);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+static void UV_OT_remove_doubles(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Doubles";
+	ot->description = "Selected UV vertices that are within a radius of eachother are welded together";
+	ot->idname = "UV_OT_remove_doubles";
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->exec = remove_doubles_exec;
+	ot->poll = ED_operator_uvedit;
+
+	RNA_def_float(ot->srna, "weld_dist", 0.02f, 0.0f, 1.0f, "Weld Distance", "Maximum distance between welded vertices", 0.001f, 10.0f);
+}
 /* ******************** weld operator **************** */
 
 static int weld_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3776,6 +3881,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_seams_from_islands);
 	WM_operatortype_append(UV_OT_mark_seam);
 	WM_operatortype_append(UV_OT_weld);
+	WM_operatortype_append(UV_OT_remove_doubles);
 	WM_operatortype_append(UV_OT_pin);
 
 	WM_operatortype_append(UV_OT_average_islands_scale);

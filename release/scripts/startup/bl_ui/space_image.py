@@ -249,6 +249,7 @@ class IMAGE_MT_uvs_weldalign(Menu):
         layout = self.layout
 
         layout.operator("uv.weld")  # W, 1
+        layout.operator("uv.remove_doubles")
         layout.operator_enum("uv.align", "axis")  # W, 2/3/4
 
 
