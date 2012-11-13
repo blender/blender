@@ -866,7 +866,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 				uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
 				uiItemEnumO(row, "OBJECT_OT_modifier_apply", IFACE_("Apply"), 0, "apply_as", MODIFIER_APPLY_DATA);
 				
-				if (modifier_sameTopology(md) && !modifier_nonGeometrical(md))
+				if (modifier_isSameTopology(md) && !modifier_isNonGeometrical(md))
 					uiItemEnumO(row, "OBJECT_OT_modifier_apply", IFACE_("Apply as Shape Key"), 0, "apply_as", MODIFIER_APPLY_SHAPE);
 			}
 			

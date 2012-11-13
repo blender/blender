@@ -1149,7 +1149,8 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 			savedlines += 1;
 	}
 
-	/* test for nicer distribution even - non standard, leave it out for a while
+	/* test for nicer distribution even - non standard, leave it out for a while */
+#if 0
 	for (x = 0; x < 256; x++) {
 		bin_lum[x] = sqrt (bin_lum[x]);
 		bin_r[x] = sqrt(bin_r[x]);
@@ -1157,7 +1158,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 		bin_b[x] = sqrt(bin_b[x]);
 		bin_a[x] = sqrt(bin_a[x]);
 	}
-	*/
+#endif
 	
 	/* convert hist data to float (proportional to max count) */
 	nl = na = nr = nb = ng = 0;

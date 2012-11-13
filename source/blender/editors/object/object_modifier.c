@@ -555,7 +555,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		Key *key = me->key;
 		KeyBlock *kb;
 		
-		if (!modifier_sameTopology(md) || mti->type == eModifierTypeType_NonGeometrical) {
+		if (!modifier_isSameTopology(md) || mti->type == eModifierTypeType_NonGeometrical) {
 			BKE_report(reports, RPT_ERROR, "Only deforming modifiers can be applied to shapes");
 			return 0;
 		}
@@ -686,6 +686,13 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	}
 	else if (((ID *) ob->data)->us > 1) {
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied to multi-user data");
+		return 0;
+	}
+	else if ((ob->mode & OB_MODE_SCULPT) &&
+	         (find_multires_modifier_before(scene, md)) &&
+	         (modifier_isSameTopology(md) == FALSE))
+	{
+		BKE_report(reports, RPT_ERROR, "Constructive modifier cannot be applied to multi-res data in sculpt mode");
 		return 0;
 	}
 
@@ -1000,7 +1007,7 @@ static int modifier_apply_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int apply_as = RNA_enum_get(op->ptr, "apply_as");
-	
+
 	if (!ob || !md || !ED_object_modifier_apply(op->reports, scene, ob, md, apply_as)) {
 		return OPERATOR_CANCELLED;
 	}
