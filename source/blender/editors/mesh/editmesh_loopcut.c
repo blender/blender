@@ -308,7 +308,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 {
 	RingSelOpData *lcd = op->customdata;
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
-	const float smoothness = RNA_float_get(op->ptr, "smoothness");
+	const float smoothness = 0.292f * RNA_float_get(op->ptr, "smoothness");
 
 	if (lcd->eed) {
 		BMEditMesh *em = lcd->em;
@@ -504,7 +504,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 				show_cuts = TRUE;
 			}
 			else {
-				smoothness = min_ff(smoothness + 0.05f, 1.0f);
+				smoothness = min_ff(smoothness + 0.05f, 4.0f);
 				RNA_float_set(op->ptr, "smoothness", smoothness);
 				show_cuts = TRUE;
 			}
@@ -624,6 +624,6 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 	/* avoid re-using last var because it can cause _very_ high poly meshes and annoy users (or worse crash) */
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-	prop = RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor", 0.0f, 1.0f);
+	prop = RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor", 0.0f, 4.0f);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
