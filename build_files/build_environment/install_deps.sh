@@ -19,6 +19,11 @@ HASX264=false
 HASOPENJPEG=false
 HASSCHRO=false
 
+# Switch to english language, else some things (like check_package_DEB()) won't work!
+LANG_BACK=$LANG
+LANG=""
+export LANG
+
 ERROR() {
   echo "${@}"
 }
@@ -261,7 +266,7 @@ compile_FFmpeg() {
         --disable-outdev=alsa --disable-indev=sdl --disable-indev=alsa --disable-indev=jack \
         --disable-indev=lavfi $extra
 
-    make -j$THERADS
+    make -j$THREADS
     make install
     make clean
 
@@ -300,6 +305,12 @@ install_DEB() {
 
   HASOPENJPEG=true
   HASSCHRO=true
+
+  check_package_DEB libxvidcore-dev
+  if [ $? -eq 0 ]; then
+    sudo apt-get install -y libxvidcore-dev
+    HASXVID=true
+  fi
 
   check_package_DEB libxvidcore4-dev
   if [ $? -eq 0 ]; then
@@ -373,18 +384,22 @@ install_DEB() {
     compile_OIIO
   fi
 
-  check_package_DEB ffmpeg
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y ffmpeg
-    ffmpeg_version=`deb_version ffmpeg`
-    if [ ! -z "$ffmpeg_version" ]; then
-      if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
-        sudo apt-get install -y libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
-      else
-        compile_FFmpeg
-      fi
-    fi
-  fi
+#  XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
+#      So for now, always build our own ffmpeg.
+#  check_package_DEB ffmpeg
+#  if [ $? -eq 0 ]; then
+#    sudo apt-get install -y ffmpeg
+#    ffmpeg_version=`deb_version ffmpeg`
+#    INFO "ffmpeg version: $ffmpeg_version"
+#    if [ ! -z "$ffmpeg_version" ]; then
+#      if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
+#        sudo apt-get install -y libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
+#      else
+#        compile_FFmpeg
+#      fi
+#    fi
+#  fi
+  compile_FFmpeg
 }
 
 check_package_RPM() {
@@ -559,3 +574,7 @@ elif [ "$DISTRO" = "SUSE" ]; then
 fi
 
 print_info
+
+# Switch back to user language.
+LANG=LANG_BACK
+export LANG
