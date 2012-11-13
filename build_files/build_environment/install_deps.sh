@@ -11,8 +11,10 @@ BOOST_VERSION="1_51_0"
 OIIO_VERSION="1.1.0"
 OCIO_VERSION="1.0.7"
 FFMPEG_VERSION="1.0"
+_ffmpeg_list_sep=";"
 
 HASXVID=false
+XVIDDEV=""
 HASVPX=false
 HASMP3LAME=false
 HASX264=false
@@ -310,12 +312,14 @@ install_DEB() {
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libxvidcore-dev
     HASXVID=true
+    XVIDDEV="libxvidcore-dev"
   fi
 
   check_package_DEB libxvidcore4-dev
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libxvidcore4-dev
     HASXVID=true
+    XVIDDEV="libxvidcore4-dev"
   fi
 
   check_package_DEB libmp3lame-dev
@@ -521,6 +525,52 @@ install_SUSE() {
   compile_FFmpeg
 }
 
+print_info_ffmpeglink_DEB() {
+  _packages="libtheora-dev"
+
+  if $HASXVID; then
+    _packages="$_packages $XVIDDEV"
+  fi
+
+  if $HASVPX; then
+    _packages="$_packages libvpx-dev"
+  fi
+
+  if $HASMP3LAME; then
+    _packages="$_packages libmp3lame-dev"
+  fi
+
+  if $HASX264; then
+    _packages="$_packages libx264-dev"
+  fi
+
+  if $HASOPENJPEG; then
+    _packages="$_packages libopenjpeg-dev"
+  fi
+
+  if $HASSCHRO; then
+    _packages="$_packages libschroedinger-dev"
+  fi
+
+  dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | awk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+}
+
+print_info_ffmpeglink() {
+  # This func must only print a ';'-separated list of libs...
+  if [ -z "$DISTRO" ]; then
+    ERROR "Failed to detect distribution type"
+    exit 1
+  elif [ "$DISTRO" = "DEB" ]; then
+    print_info_ffmpeglink_DEB
+  # XXX TODO!
+  else INFO "<Could not determine additional link libraries needed for ffmpeg, replace this by valid list of libs...>"
+#  elif [ "$DISTRO" = "RPM" ]; then
+#    print_info_ffmpeglink_RPM
+#  elif [ "$DISTRO" = "SUSE" ]; then
+#    print_info_ffmpeglink_SUSE
+  fi
+}
+
 print_info() {
   INFO ""
   INFO "If you're using CMake add this to your configuration flags:"
@@ -531,7 +581,9 @@ print_info() {
   fi
 
   if [ -d /opt/lib/ffmpeg ]; then
+    INFO "  -D WITH_CODEC_FFMPEG=ON"
     INFO "  -D FFMPEG=/opt/lib/ffmpeg"
+    INFO "  -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;`print_info_ffmpeglink`'"
   fi
 
   INFO ""
@@ -547,7 +599,7 @@ print_info() {
   fi
 
   if [ -d /opt/lib/oiio ]; then
-    INFO "BF_OCIO='/opt/lib/oiio'"
+    INFO "BF_OIIO='/opt/lib/oiio'"
   fi
 
   if [ -d /opt/lib/boost ]; then
@@ -556,6 +608,8 @@ print_info() {
 
   if [ -d /opt/lib/ffmpeg ]; then
     INFO "BF_FFMPEG='/opt/lib/ffmpeg'"
+    _ffmpeg_list_sep=" "
+    INFO "BF_FFMPEG_LIB='avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
   fi
 }
 
@@ -563,7 +617,7 @@ print_info() {
 detect_distro
 
 if [ -z "$DISTRO" ]; then
-  ERROR "Failed to detect distribytive type"
+  ERROR "Failed to detect distribution type"
   exit 1
 elif [ "$DISTRO" = "DEB" ]; then
   install_DEB
