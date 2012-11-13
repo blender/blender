@@ -757,7 +757,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	if(preview_time == 0.0 && resolution == 1)
 		preview_time = time_dt();
 	
-	double tile_time = (tile == 0)? 0.0: (time_dt() - preview_time - paused_time)/(sample);
+	double tile_time = (tile == 0 || sample == 0)? 0.0: (time_dt() - preview_time - paused_time) / sample;
 
 	/* negative can happen when we pause a bit before rendering, can discard that */
 	if(preview_time < 0.0) preview_time = 0.0;
