@@ -589,8 +589,8 @@ print_info() {
   INFO ""
   INFO "If you're using SCons add this to your user-config:"
 
-  if [ -d /opt/lib/python3.3 ]; then
-    INFO "BF_PYTHON='/opt/lib/puthon-3.3'"
+  if [ -d /opt/lib/python-3.3 ]; then
+    INFO "BF_PYTHON='/opt/lib/python-3.3'"
     INFO "BF_PYTHON_ABI_FLAGS='m'"
   fi
 
