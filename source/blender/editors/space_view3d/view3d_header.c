@@ -310,21 +310,14 @@ static char *view3d_modeselect_pup(Scene *scene)
 	return (string);
 }
 
-
 static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 {
 	wmWindow *win = CTX_wm_window(C);
-	ToolSettings *ts = CTX_data_tool_settings(C);
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = NULL;
 	const int ctrl = win->eventstate->ctrl, shift = win->eventstate->shift;
 	PointerRNA props_ptr;
-	
-	if (obedit && obedit->type == OB_MESH) {
-		em = BMEdit_FromObject(obedit);
-	}
+
 	/* watch it: if sa->win does not exist, check that when calling direct drawing routines */
 
 	switch (event) {
@@ -336,47 +329,17 @@ static void do_view3d_header_buttons(bContext *C, void *UNUSED(arg), int event)
 			break;
 
 		case B_SEL_VERT:
-			if (em) {
-				if (shift == 0 || em->selectmode == 0)
-					em->selectmode = SCE_SELECT_VERTEX;
-				ts->selectmode = em->selectmode;
-				EDBM_selectmode_set(em);
-				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+			if (EDBM_selectmode_toggle(C, SCE_SELECT_VERTEX, -1, shift, ctrl)) {
 				ED_undo_push(C, "Selectmode Set: Vertex");
 			}
 			break;
 		case B_SEL_EDGE:
-			if (em) {
-				if (shift == 0 || em->selectmode == 0) {
-					if (ctrl) {
-						const short selmode_max = highest_order_bit_s(ts->selectmode);
-						if (selmode_max == SCE_SELECT_VERTEX) {
-							EDBM_selectmode_convert(em, selmode_max, SCE_SELECT_EDGE);
-						}
-					}
-					em->selectmode = SCE_SELECT_EDGE;
-				}
-				ts->selectmode = em->selectmode;
-				EDBM_selectmode_set(em);
-				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+			if (EDBM_selectmode_toggle(C, SCE_SELECT_EDGE, -1, shift, ctrl)) {
 				ED_undo_push(C, "Selectmode Set: Edge");
 			}
 			break;
 		case B_SEL_FACE:
-			if (em) {
-				if (shift == 0 || em->selectmode == 0) {
-					if (ctrl) {
-						const short selmode_max = highest_order_bit_s(ts->selectmode);
-						if (ELEM(selmode_max, SCE_SELECT_VERTEX, SCE_SELECT_EDGE)) {
-							EDBM_selectmode_convert(em, selmode_max, SCE_SELECT_FACE);
-						}
-					}
-
-					em->selectmode = SCE_SELECT_FACE;
-				}
-				ts->selectmode = em->selectmode;
-				EDBM_selectmode_set(em);
-				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+			if (EDBM_selectmode_toggle(C, SCE_SELECT_FACE, -1, shift, ctrl)) {
 				ED_undo_push(C, "Selectmode Set: Face");
 			}
 			break;
