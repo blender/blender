@@ -488,7 +488,7 @@ install_SUSE() {
   sudo zypper --non-interactive install --auto-agree-with-licenses \
     gcc gcc-c++ libSDL-devel openal-soft-devel libpng12-devel libjpeg62-devel \
     libtiff-devel OpenEXR-devel yasm libtheora-devel libvorbis-devel cmake \
-    scons
+    scons patch
 
   check_package_version_SUSE python3-devel 3.3.
   if [ $? -eq 0 ]; then
