@@ -552,7 +552,7 @@ print_info_ffmpeglink_DEB() {
     _packages="$_packages libschroedinger-dev"
   fi
 
-  dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | awk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | awk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
 }
 
 print_info_ffmpeglink() {
