@@ -278,22 +278,22 @@ WITH_BF_CYCLES = True
 
 WITH_BF_OIIO = True
 BF_OIIO = LIBDIR + '/openimageio'
-BF_OIIO_INC = BF_OIIO + '/include'
+BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
-BF_OIIO_LIBPATH = BF_OIIO + '/lib'
+BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
 WITH_BF_OCIO = True
 BF_OCIO = LIBDIR + '/opencolorio'
-BF_OCIO_INC = BF_OCIO + '/include'
+BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB = 'OpenColorIO tinyxml yaml-cpp'
-BF_OCIO_LIBPATH = BF_OCIO + '/lib'
+BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
-BF_BOOST_INC = BF_BOOST + '/include'
+BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
 BF_BOOST_LIB_INTERNATIONAL = 'boost_locale-mt'
-BF_BOOST_LIBPATH = BF_BOOST + '/lib'
+BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 WITH_BF_CYCLES_CUDA_BINARIES = False
 BF_CYCLES_CUDA_NVCC = '/usr/local/cuda/bin/nvcc'

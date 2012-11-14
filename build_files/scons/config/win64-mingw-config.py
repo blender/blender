@@ -162,10 +162,10 @@ BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
-BF_BOOST_INC = BF_BOOST + '/include'
+BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB = 'boost_date_time-mgw47-mt-s-1_49 boost_date_time-mgw47-mt-sd-1_49 boost_filesystem-mgw47-mt-s-1_49 boost_filesystem-mgw47-mt-sd-1_49 boost_regex-mgw47-mt-s-1_49 boost_regex-mgw47-mt-sd-1_49 boost_system-mgw47-mt-s-1_49 boost_system-mgw47-mt-sd-1_49 boost_thread-mgw47-mt-s-1_49 boost_thread-mgw47-mt-sd-1_49'
 BF_BOOST_LIB_INTERNATIONAL = ' boost_locale-mgw47-mt-s-1_49 boost_locale-mgw47-mt-sd-1_49'
-BF_BOOST_LIBPATH = BF_BOOST + '/lib'
+BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True

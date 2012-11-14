@@ -204,9 +204,9 @@ BF_OIIO = LIBDIR + '/oiio'
 if not os.path.exists(LCGDIR + '/oiio'):
     WITH_BF_OIIO = False
     BF_OIIO = '/usr'
-BF_OIIO_INC = BF_OIIO + '/include'
+BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
-BF_OIIO_LIBPATH = BF_OIIO + '/lib'
+BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
 WITH_BF_OCIO = True
 WITH_BF_STATICOCIO = False
@@ -214,9 +214,9 @@ BF_OCIO = LIBDIR + '/ocio'
 if not os.path.exists(LCGDIR + '/ocio'):
     WITH_BF_OCIO = False
     BF_OCIO = '/usr'
-BF_OCIO_INC = BF_OCIO + '/include'
+BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB = 'OpenColorIO yaml-cpp tinyxml'
-BF_OCIO_LIBPATH = BF_OCIO + '/lib'
+BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
 WITH_BF_STATICBOOST = False
@@ -224,10 +224,10 @@ BF_BOOST = LIBDIR + '/boost'
 if not os.path.exists(LCGDIR + '/boost'):
     WITH_BF_BOOST = False
     BF_BOOST = '/usr'
-BF_BOOST_INC = BF_BOOST + '/include'
+BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB = 'boost_date_time boost_filesystem boost_regex boost_system boost_thread'
 BF_BOOST_LIB_INTERNATIONAL = 'boost_locale'
-BF_BOOST_LIBPATH = BF_BOOST + '/lib'
+BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 WITH_BF_CYCLES = WITH_BF_OIIO and WITH_BF_BOOST
 
