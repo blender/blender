@@ -83,7 +83,7 @@ void	txt_sel_line		(struct Text *text);
 char*	txt_sel_to_buf		(struct Text *text);
 void	txt_insert_buf		(struct Text *text, const char *in_buffer);
 void	txt_print_undo		(struct Text *text);
-void	txt_undo_add_toop	(struct Text *text, int op, unsigned int froml, unsigned short fromc, unsigned int tol, unsigned short toc);
+void	txt_undo_add_op		(struct Text *text, int op);
 void	txt_do_undo			(struct Text *text);
 void	txt_do_redo			(struct Text *text);
 void	txt_split_curline	(struct Text *text);
@@ -123,24 +123,6 @@ enum {
 
 /* Undo opcodes */
 
-/* Simple main cursor movement */
-#define UNDO_CLEFT		001
-#define UNDO_CRIGHT		002
-#define UNDO_CUP		003
-#define UNDO_CDOWN		004
-
-/* Simple selection cursor movement */
-#define UNDO_SLEFT		005
-#define UNDO_SRIGHT		006
-#define UNDO_SUP		007
-#define UNDO_SDOWN		010
-
-/* Complex movement (opcode is followed
- * by 4 character line ID + a 2 character
- * position ID and opcode (repeat)) */
-#define UNDO_CTO		011
-#define UNDO_STO		012
-
 /* Complex editing */
 /* 1 - opcode is followed by 1 byte for ascii character and opcode (repeat)) */
 /* 2 - opcode is followed by 2 bytes for utf-8 character and opcode (repeat)) */
@@ -169,8 +151,6 @@ enum {
 #define UNDO_IBLOCK     030 /* Insert block */
 
 /* Misc */
-#define UNDO_SWAP       031	/* Swap cursors */
-
 #define UNDO_INDENT     032
 #define UNDO_UNINDENT   033
 #define UNDO_COMMENT    034

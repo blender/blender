@@ -1664,7 +1664,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
-	int oldl, oldc, i, j, max, start, end, endj, chop, loop;
+	int oldc, i, j, max, start, end, endj, chop, loop;
 	char ch;
 
 	text_update_character_width(st);
@@ -1673,7 +1673,6 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	else linep = &text->curl, charp = &text->curc;
 
 	oldc = *charp;
-	oldl = txt_get_span(text->lines.first, *linep);
 
 	max = wrap_width(st, ar);
 
@@ -1724,7 +1723,6 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	}
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, oldl, *charp);
 }
 
 static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
@@ -1732,7 +1730,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
-	int oldl, oldc, i, j, max, start, end, endj, chop, loop;
+	int oldc, i, j, max, start, end, endj, chop, loop;
 	char ch;
 
 	text_update_character_width(st);
@@ -1741,7 +1739,6 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 	else linep = &text->curl, charp = &text->curc;
 
 	oldc = *charp;
-	oldl = txt_get_span(text->lines.first, *linep);
 
 	max = wrap_width(st, ar);
 
@@ -1790,7 +1787,6 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 	}
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, oldl, *charp);
 }
 
 static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
@@ -1798,22 +1794,17 @@ static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
-	int oldl, oldc, offl, offc, col, newl;
+	int offl, offc, col;
 
 	text_update_character_width(st);
 
 	if (sel) linep = &text->sell, charp = &text->selc;
 	else linep = &text->curl, charp = &text->curc;
 
-	/* store previous position */
-	oldc = *charp;
-	newl = oldl = txt_get_span(text->lines.first, *linep);
-
 	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
 	col = text_get_char_pos(st, (*linep)->line, *charp) + offc;
 	if (offl) {
 		*charp = text_get_cursor_rel(st, ar, *linep, offl - 1, col);
-		newl = BLI_findindex(&text->lines, linep);
 	}
 	else {
 		if ((*linep)->prev) {
@@ -1822,13 +1813,11 @@ static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 			*linep = (*linep)->prev;
 			visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
 			*charp = text_get_cursor_rel(st, ar, *linep, visible_lines - 1, col);
-			newl--;
 		}
 		else *charp = 0;
 	}
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, newl, *charp);
 }
 
 static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
@@ -1836,35 +1825,28 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
-	int oldl, oldc, offl, offc, col, newl, visible_lines;
+	int offl, offc, col, newl, visible_lines;
 
 	text_update_character_width(st);
 
 	if (sel) linep = &text->sell, charp = &text->selc;
 	else linep = &text->curl, charp = &text->curc;
 
-	/* store previous position */
-	oldc = *charp;
-	newl = oldl = txt_get_span(text->lines.first, *linep);
-
 	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
 	col = text_get_char_pos(st, (*linep)->line, *charp) + offc;
 	visible_lines = text_get_visible_lines(st, ar, (*linep)->line);
 	if (offl < visible_lines - 1) {
 		*charp = text_get_cursor_rel(st, ar, *linep, offl + 1, col);
-		newl = BLI_findindex(&text->lines, linep);
 	}
 	else {
 		if ((*linep)->next) {
 			*linep = (*linep)->next;
 			*charp = text_get_cursor_rel(st, ar, *linep, 0, col);
-			newl++;
 		}
 		else *charp = (*linep)->len;
 	}
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, newl, *charp);
 }
 
 /* Moves the cursor vertically by the specified number of lines.
@@ -1876,12 +1858,10 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, int sel)
 {
 	TextLine **linep;
-	int oldl, oldc, *charp;
+	int *charp;
 	
 	if (sel) linep = &text->sell, charp = &text->selc;
 	else linep = &text->curl, charp = &text->curc;
-	oldl = txt_get_span(text->lines.first, *linep);
-	oldc = *charp;
 
 	if (st && ar && st->wordwrap) {
 		int rell, relc;
@@ -1904,7 +1884,6 @@ static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, int s
 	if (*charp > (*linep)->len) *charp = (*linep)->len;
 
 	if (!sel) txt_pop_sel(text);
-	txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, *linep), *charp);
 }
 
 static int text_move_cursor(bContext *C, int type, int select)
@@ -2696,7 +2675,6 @@ static void text_cursor_set_exit(bContext *C, wmOperator *op)
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = st->text;
 	SetSelection *ssel = op->customdata;
-	int linep2, charp2;
 	char *buffer;
 
 	if (txt_has_sel(text)) {
@@ -2704,12 +2682,6 @@ static void text_cursor_set_exit(bContext *C, wmOperator *op)
 		WM_clipboard_text_set(buffer, 1);
 		MEM_freeN(buffer);
 	}
-
-	linep2 = txt_get_span(st->text->lines.first, st->text->sell);
-	charp2 = st->text->selc;
-		
-	if (ssel->sell != linep2 || ssel->selc != charp2)
-		txt_undo_add_toop(st->text, UNDO_STO, ssel->sell, ssel->selc, linep2, charp2);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
@@ -2786,18 +2758,11 @@ void TEXT_OT_selection_set(wmOperatorType *ot)
 static int text_cursor_set_exec(bContext *C, wmOperator *op)
 {
 	SpaceText *st = CTX_wm_space_text(C);
-	Text *text = st->text;
 	ARegion *ar = CTX_wm_region(C);
 	int x = RNA_int_get(op->ptr, "x");
 	int y = RNA_int_get(op->ptr, "y");
-	int oldl, oldc;
-
-	oldl = txt_get_span(text->lines.first, text->curl);
-	oldc = text->curc;
 
 	text_cursor_set_to_pos(st, ar, x, y, 0);
-
-	txt_undo_add_toop(text, UNDO_CTO, oldl, oldc, txt_get_span(text->lines.first, text->curl), text->curc);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
