@@ -2438,7 +2438,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
 	if (totshape == 0 || shape < 0 || shape >= totshape)
 		return OPERATOR_CANCELLED;
-	
+
 	/* get shape key - needed for finding reference shape (for add mode only) */
 	if (key) {
 		kb = BLI_findlink(&key->block, shape);
@@ -2517,7 +2517,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = edbm_blend_from_shape_exec;
-	ot->invoke = WM_operator_props_popup;
+	ot->invoke = WM_operator_props_popup_call;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
