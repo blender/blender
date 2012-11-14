@@ -13,6 +13,7 @@ OCIO_VERSION="1.0.7"
 FFMPEG_VERSION="1.0"
 _ffmpeg_list_sep=";"
 
+# XXX Looks like ubuntu has libxvidcore4-dev, while debian has libxvidcore-dev...
 HASXVID=false
 XVIDDEV=""
 HASVPX=false
@@ -32,6 +33,46 @@ ERROR() {
 
 INFO() {
   echo "${@}"
+}
+
+# Return 1 if $1 >= $2, else 0.
+# $1 and $2 should be version numbers made of numbers only.
+version_ge() {
+  if [ $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Return 1 if $1 is into $2 (e.g. 3.3.2 is into 3.3, but not 3.3.0 or 3.3.5)
+# $1 and $2 should be version numbers made of numbers only.
+# $1 should be at least as long as $2!
+version_match() {
+  backIFS=$IFS
+	IFS='.'
+
+  # Split both version numbers into their numeric elements.
+  arr1=( $1 )
+  arr2=( $2 )
+
+  ret=0
+
+  count1=${#arr1[@]}
+  count2=${#arr2[@]}
+  if [ $count1 -ge $count2 ]; then
+    ret=1
+    for (( i=0; $i < $count2; i++ ))
+    do
+      if [ $(( 10#${arr1[$i]} )) -ne $(( 10#${arr2[$i]} )) ]; then
+        ret=0
+        break
+      fi
+    done
+  fi
+
+	IFS=$backIFS
+  return $ret
 }
 
 detect_distro() {
@@ -101,7 +142,7 @@ compile_Boost() {
     fi
 
     cd $SRC/boost_$BOOST_VERSION
-    ./bootstrap.sh --with-libraries=system,filesystem,thread,regex,locale --prefix=/opt/lib/boost-$version_dots
+    ./bootstrap.sh --with-libraries=system,filesystem,thread,regex,locale,date-time --prefix=/opt/lib/boost-$version_dots
     ./b2 install
     ./b2 --clean
 
@@ -297,7 +338,8 @@ install_DEB() {
   INFO "Installing dependencies for DEB-based distributive"
 
   sudo apt-get update
-  sudo apt-get -y upgrade
+# XXX Why in hell? Let's let this stuff to the user's responsability!!!
+#  sudo apt-get -y upgrade
 
   sudo apt-get install -y cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
@@ -416,17 +458,18 @@ check_package_RPM() {
   fi
 }
 
-check_package_version_RPM() {
+check_package_version_match_RPM() {
   v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
 
-  # for now major and minor versions only (as if x.y, not x.y.z)
-  r=`echo $v | grep -c $2`
+  version_match $v $2
+  return $?
+}
 
-  if [ $r -ge 1 ]; then
-    return 0
-  else
-    return 1
-  fi
+check_package_version_ge_RPM() {
+  v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
+
+  version_ge $v $2
+  return $?
 }
 
 install_RPM() {
@@ -438,14 +481,39 @@ install_RPM() {
     freetype-devel libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
     readline-devel openjpeg-devel openexr-devel openal-soft-devel \
     glew-devel yasm schroedinger-devel libtheora-devel libvorbis-devel SDL-devel \
-    fftw-devel lame-libs jack-audio-connection-kit-devel x264-devel libspnav-devel \
+    fftw-devel lame-libs jack-audio-connection-kit-devel libspnav-devel \
     libjpeg-devel patch python-devel
 
   HASOPENJPEG=true
   HASSCHRO=true
 
-  check_package_version_RPM python-devel 3.3.
+  check_package_RPM x264-devel
   if [ $? -eq 0 ]; then
+    sudo yum install -y x264-devel
+    HASX264=true
+  fi
+
+  check_package_RPM xvidcore-devel
+  if [ $? -eq 0 ]; then
+    sudo yum install -y xvidcore-devel
+    HASXVID=true
+    XVIDDEV="xvidcore-devel"
+  fi
+
+  check_package_version_ge_RPM libvpx-devel 0.9.7
+  if [ $? -eq 1 ]; then
+    sudo yum install -y libvpx-devel
+    HASVPX=true
+  fi
+
+  check_package_RPM lame-devel
+  if [ $? -eq 0 ]; then
+    sudo yum install -y lame-devel
+    HASMP3LAME=true
+  fi
+
+  check_package_version_match_RPM python3-devel 3.3
+  if [ $? -eq 1 ]; then
     sudo yum install -y python-devel
   else
     compile_Python
@@ -555,6 +623,36 @@ print_info_ffmpeglink_DEB() {
   dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | awk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
 }
 
+print_info_ffmpeglink_RPM() {
+  _packages="libtheora-devel"
+
+  if $HASXVID; then
+    _packages="$_packages $XVIDDEV"
+  fi
+
+  if $HASVPX; then
+    _packages="$_packages libvpx-devel"
+  fi
+
+  if $HASMP3LAME; then
+    _packages="$_packages lame-devel"
+  fi
+
+  if $HASX264; then
+    _packages="$_packages x264-devel"
+  fi
+
+  if $HASOPENJPEG; then
+    _packages="$_packages openjpeg-devel"
+  fi
+
+  if $HASSCHRO; then
+    _packages="$_packages schroedinger-devel"
+  fi
+
+  rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | awk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+}
+
 print_info_ffmpeglink() {
   # This func must only print a ';'-separated list of libs...
   if [ -z "$DISTRO" ]; then
@@ -562,10 +660,10 @@ print_info_ffmpeglink() {
     exit 1
   elif [ "$DISTRO" = "DEB" ]; then
     print_info_ffmpeglink_DEB
+  elif [ "$DISTRO" = "RPM" ]; then
+    print_info_ffmpeglink_RPM
   # XXX TODO!
   else INFO "<Could not determine additional link libraries needed for ffmpeg, replace this by valid list of libs...>"
-#  elif [ "$DISTRO" = "RPM" ]; then
-#    print_info_ffmpeglink_RPM
 #  elif [ "$DISTRO" = "SUSE" ]; then
 #    print_info_ffmpeglink_SUSE
   fi
