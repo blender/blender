@@ -92,7 +92,6 @@ typedef struct VMesh {
 
 /* Data for a vertex involved in a bevel */
 typedef struct BevVert {
-	struct BevVert *next, *prev;
 	BMVert *v;          /* original mesh vertex */
 	int edgecount;          /* total number of edges around the vertex */
 	int selcount;           /* number of selected edges around the vertex */
@@ -104,7 +103,10 @@ typedef struct BevVert {
  * Bevel parameters and state
  */
 typedef struct BevelParams {
-	ListBase vertList;      /* list of BevVert for each vertex involved in bevel */
+	/* hash of BevVert for each vertex involved in bevel
+	 * GHash: (key=(BMVert *), value=(BevVert *)) */
+	GHash *vert_hash;
+
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int seg;                /* number of segments in beveled edge profile */
 } BevelParams;
@@ -194,13 +196,7 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 /* find the BevVert corresponding to BMVert bmv */
 static BevVert *find_bevvert(BevelParams *bp, BMVert *bmv)
 {
-	BevVert *bv;
-
-	for (bv = bp->vertList.first; bv; bv = bv->next) {
-		if (bv->v == bmv)
-			return bv;
-	}
-	return NULL;
+	return BLI_ghash_lookup(bp->vert_hash, bmv);
 }
 
 /* Return a good respresentative face (for materials, etc.) for faces
@@ -1197,7 +1193,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	bv->edges = (EdgeHalf *)MEM_callocN(ntot * sizeof(EdgeHalf), "EdgeHalf");
 	bv->vmesh = (VMesh *)MEM_callocN(sizeof(VMesh), "VMesh");
 	bv->vmesh->seg = bp->seg;
-	BLI_addtail(&bp->vertList, bv);
+	BLI_ghash_insert(bp->vert_hash, v, bv);
 
 	/* add edges to bv->edges in order that keeps adjacent edges sharing
 	 * a face, if possible */
@@ -1435,11 +1431,17 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 
 static void free_bevel_params(BevelParams *bp)
 {
-	BevVert *bv;
 	VMesh *vm;
 	BoundVert *v, *vnext;
 
-	for (bv = bp->vertList.first; bv; bv = bv->next) {
+
+	GHashIterator ghi;
+
+	/* look on deform bones first */
+	BLI_ghashIterator_init(&ghi, bp->vert_hash);
+
+	for (; !BLI_ghashIterator_isDone(&ghi); BLI_ghashIterator_step(&ghi)) {
+		BevVert *bv = (BevVert *)BLI_ghashIterator_getValue(&ghi);
 		MEM_freeN(bv->edges);
 		vm = bv->vmesh;
 		v = vm->boundstart;
@@ -1452,8 +1454,9 @@ static void free_bevel_params(BevelParams *bp)
 		if (vm->mesh)
 			MEM_freeN(vm->mesh);
 		MEM_freeN(vm);
+		MEM_freeN(bv);
 	}
-	BLI_freelistN(&bp->vertList);
+	BLI_ghash_free(bp->vert_hash, NULL, NULL);
 }
 
 void bmo_bevel_exec(BMesh *bm, BMOperator *op)
@@ -1462,12 +1465,14 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMVert *v;
 	BMEdge *e;
-	BevelParams bp = {{NULL}};
+	BevelParams bp = {NULL};
 
 	bp.offset = BMO_slot_float_get(op, "offset");
 	bp.seg = BMO_slot_int_get(op, "segments");
 
 	if (bp.offset > 0) {
+		bp.vert_hash = BLI_ghash_ptr_new(__func__);
+
 		/* first flush 'geom' into flags, this makes it possible to check connected data */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE, BM_ELEM_TAG, FALSE);
 
