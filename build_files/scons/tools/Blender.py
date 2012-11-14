@@ -790,6 +790,20 @@ class BlenderEnvironment(SConsEnvironment):
 
     def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None, cc_compileflags=None, cxx_compileflags=None, cc_compilerchange=None, cxx_compilerchange=None):
         global vcp
+        
+        # sanity check
+        # run once in a while to check we dont have duplicates
+        if 0:
+            for name, dirs in (("source", sources), ("include", includes)):
+                files_clean = [os.path.normpath(f) for f in dirs]
+                files_clean_set = set(files_clean)
+                if len(files_clean) != len(files_clean_set):
+                    for f in sorted(files_clean_set):
+                        if f != '.' and files_clean.count(f) > 1:
+                            raise Exception("Found duplicate %s %r" % (name, f))
+            del name, dirs, files_clean, files_clean_set, f
+        # end sanity check
+
         if not self or not libname or not sources:
             print bc.FAIL+'Cannot continue. Missing argument for BuildBlenderLib '+libname+bc.ENDC
             self.Exit()

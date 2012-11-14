@@ -8,7 +8,7 @@ defs = [ 'GLEW_STATIC' ]
 incs = '. #intern/string #intern/moto/include #source/gameengine/Rasterizer #source/gameengine/BlenderRoutines '
 incs += ' #intern/container #source/blender/gpu #extern/glew/include ' + env['BF_OPENGL_INC']
 incs += ' #source/blender/gameengine/Ketsji #source/gameengine/SceneGraph #source/blender/makesdna #source/blender/blenkernel'
-incs += ' #intern/guardedalloc #source/blender/blenlib #source/gameengine/BlenderRoutines'
+incs += ' #intern/guardedalloc #source/blender/blenlib'
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')

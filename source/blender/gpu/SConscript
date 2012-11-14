@@ -27,7 +27,6 @@ sources.extend((
 	os.path.join(env['DATA_SOURCES'], "gpu_shader_vertex.glsl.c"),
 	os.path.join(env['DATA_SOURCES'], "gpu_shader_sep_gaussian_blur_frag.glsl.c"),
 	os.path.join(env['DATA_SOURCES'], "gpu_shader_sep_gaussian_blur_vert.glsl.c"),
-	os.path.join(env['DATA_SOURCES'], "gpu_shader_material.glsl.c"),
 	os.path.join(env['DATA_SOURCES'], "gpu_shader_vsm_store_frag.glsl.c"),
 	os.path.join(env['DATA_SOURCES'], "gpu_shader_vsm_store_vert.glsl.c"),
 	))
