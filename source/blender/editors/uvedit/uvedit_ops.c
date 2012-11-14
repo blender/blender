@@ -1570,8 +1570,8 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	MTexPoly *tf;
 	int uv_a_index;
 	int uv_b_index;
-	float uv_a[2];
-	float uv_b[2];
+	float *uv_a;
+	float *uv_b;
 	float weld_dist;
 	MLoopUV **loop_arr = NULL;
 	BLI_array_declare(loop_arr);
@@ -1616,16 +1616,15 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 			BLI_array_empty(loop_arr);
 			BLI_array_append(loop_arr, vert_arr[uv_a_index].uv_loop);
 
-			copy_v2_v2(uv_a, vert_arr[uv_a_index].uv_loop->uv);
+			uv_a = vert_arr[uv_a_index].uv_loop->uv;
 
 			copy_v2_v2(uv_max, uv_a);
 			copy_v2_v2(uv_min, uv_a);
 
 			vert_arr[uv_a_index].weld = TRUE;
-			for (uv_b_index = 0; uv_b_index < BLI_array_count(vert_arr); uv_b_index++) {
-				copy_v2_v2(uv_b, vert_arr[uv_b_index].uv_loop->uv);
-				if ((uv_a_index != uv_b_index) &&
-				    (vert_arr[uv_b_index].weld == FALSE) &&
+			for (uv_b_index = uv_a_index + 1; uv_b_index < BLI_array_count(vert_arr); uv_b_index++) {
+				uv_b = vert_arr[uv_b_index].uv_loop->uv;
+				if ((vert_arr[uv_b_index].weld == FALSE) &&
 				    (len_manhattan_v2v2(uv_a, uv_b) < weld_dist))
 				{
 					minmax_v2v2_v2(uv_max, uv_min, uv_b);
@@ -1633,8 +1632,12 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 					vert_arr[uv_b_index].weld = TRUE;
 				}
 			}
-			for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr); uv_b_index++) {
-				mid_v2_v2v2(loop_arr[uv_b_index]->uv, uv_min, uv_max);
+			if (BLI_array_count(loop_arr)) {
+				float uv_mid[2];
+				mid_v2_v2v2(uv_mid, uv_min, uv_max);
+				for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr); uv_b_index++) {
+					copy_v2_v2(loop_arr[uv_b_index]->uv, uv_mid);
+				}
 			}
 		}
 	}
