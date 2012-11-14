@@ -75,7 +75,7 @@ protected:
  * Boost implementation is a bit slow, and Mac OS X __thread is not supported
  * but the pthreads implementation is optimized, so we use these macros. */
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(_WIN32)
 
 #define tls_ptr(type, name) \
 	pthread_key_t name
@@ -89,10 +89,6 @@ protected:
 	pthread_key_delete(name);
 
 #else
-
-#ifdef __WIN32
-#define __thread __declspec(thread)
-#endif
 
 #define tls_ptr(type, name) \
 	__thread type *name
