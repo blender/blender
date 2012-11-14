@@ -2183,7 +2183,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
-	const float mergedist = RNA_float_get(op->ptr, "mergedist");
+	const float threshold = RNA_float_get(op->ptr, "threshold");
 	int use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
 	int totvert_orig = em->bm->totvert;
 	int count;
@@ -2191,7 +2191,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	if (use_unselected) {
 		EDBM_op_init(em, &bmop, op,
 		             "automerge verts=%hv dist=%f",
-		             BM_ELEM_SELECT, mergedist);
+		             BM_ELEM_SELECT, threshold);
 		BMO_op_exec(em->bm, &bmop);
 
 		if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
@@ -2201,7 +2201,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	else {
 		EDBM_op_init(em, &bmop, op,
 		             "find_doubles verts=%hv dist=%f",
-		             BM_ELEM_SELECT, mergedist);
+		             BM_ELEM_SELECT, threshold);
 		BMO_op_exec(em->bm, &bmop);
 
 		if (!EDBM_op_callf(em, op, "weld_verts targetmap=%s", &bmop, "targetmapout")) {
@@ -2236,8 +2236,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "mergedist", 0.0001f, 0.000001f, 50.0f, 
-	              "Merge Distance",
+	RNA_def_float(ot->srna, "threshold", 0.0001f, 0.000001f, 50.0f,  "Merge Distance",
 	              "Minimum distance between elements to merge", 0.00001, 10.0);
 	RNA_def_boolean(ot->srna, "use_unselected", 0, "Unselected", "Merge selected to other unselected vertices");
 }

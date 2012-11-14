@@ -1562,6 +1562,8 @@ typedef struct UVvert {
 
 static int remove_doubles_exec(bContext *C, wmOperator *op)
 {
+	const float threshold = RNA_float_get(op->ptr, "threshold");
+
 	SpaceImage *sima;
 	Scene *scene;
 	Object *obedit;
@@ -1572,7 +1574,6 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	int uv_b_index;
 	float *uv_a;
 	float *uv_b;
-	float weld_dist;
 	MLoopUV **loop_arr = NULL;
 	BLI_array_declare(loop_arr);
 
@@ -1587,9 +1588,6 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	obedit = CTX_data_edit_object(C);
 	em = BMEdit_FromObject(obedit);
 	ima = CTX_data_edit_image(C);
-
-	weld_dist = RNA_float_get(op->ptr, "weld_dist");
-
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
@@ -1625,7 +1623,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 			for (uv_b_index = uv_a_index + 1; uv_b_index < BLI_array_count(vert_arr); uv_b_index++) {
 				uv_b = vert_arr[uv_b_index].uv_loop->uv;
 				if ((vert_arr[uv_b_index].weld == FALSE) &&
-				    (len_manhattan_v2v2(uv_a, uv_b) < weld_dist))
+				    (len_manhattan_v2v2(uv_a, uv_b) < threshold))
 				{
 					minmax_v2v2_v2(uv_max, uv_min, uv_b);
 					BLI_array_append(loop_arr, vert_arr[uv_b_index].uv_loop);
@@ -1663,7 +1661,8 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
 	ot->exec = remove_doubles_exec;
 	ot->poll = ED_operator_uvedit;
 
-	RNA_def_float(ot->srna, "weld_dist", 0.02f, 0.0f, 10.0f, "Weld Distance", "Maximum distance between welded vertices", 0.0f, 1.0f);
+	RNA_def_float(ot->srna, "threshold", 0.02f, 0.0f, 10.0f,
+	              "Merge Distance", "Maximum distance between welded vertices", 0.0f, 1.0f);
 }
 /* ******************** weld operator **************** */
 
