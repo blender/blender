@@ -1568,10 +1568,10 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	Image *ima;
 	BMEditMesh *em;
 	MTexPoly *tf;
-	int UV_a;
-	int UV_b;
-	float UVp1[2];
-	float UVp2[2];
+	int uv_a_index;
+	int uv_b_index;
+	float uv_a[2];
+	float uv_b[2];
 	float weld_dist;
 	MLoopUV **loop_arr = NULL;
 	BLI_array_declare(loop_arr);
@@ -1608,30 +1608,33 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	for (UV_a = 0; UV_a<BLI_array_count(vert_arr); UV_a++){
-		if (vert_arr[UV_a].weld == FALSE){
-			float far_UV [2];
-			float near_UV [2];
+	for (uv_a_index = 0; uv_a_index < BLI_array_count(vert_arr); uv_a_index++) {
+		if (vert_arr[uv_a_index].weld == FALSE) {
+			float uv_min[2];
+			float uv_max[2];
 
 			BLI_array_empty(loop_arr);
-			BLI_array_append(loop_arr, vert_arr[UV_a].uv_loop);
+			BLI_array_append(loop_arr, vert_arr[uv_a_index].uv_loop);
 
-			copy_v2_v2(UVp1, vert_arr[UV_a].uv_loop->uv);
+			copy_v2_v2(uv_a, vert_arr[uv_a_index].uv_loop->uv);
 
-			copy_v2_v2(near_UV, UVp1);
-			copy_v2_v2(far_UV, UVp1);
+			copy_v2_v2(uv_max, uv_a);
+			copy_v2_v2(uv_min, uv_a);
 
-			vert_arr[UV_a].weld = TRUE;
-			for (UV_b = 0; UV_b<BLI_array_count(vert_arr); UV_b++){
-				copy_v2_v2(UVp2, vert_arr[UV_b].uv_loop->uv);
-				if (UV_b != UV_a && vert_arr[UV_b].weld == FALSE && UVp1[0]-UVp2[0] > -weld_dist && UVp1[0] - UVp2[0] < weld_dist && UVp1[1] - UVp2[1] > -weld_dist && UVp1[1] - UVp2[1] < weld_dist){
-					minmax_v2v2_v2(near_UV, far_UV, UVp2);
-					BLI_array_append(loop_arr, vert_arr[UV_b].uv_loop);
-					vert_arr[UV_b].weld = TRUE;
+			vert_arr[uv_a_index].weld = TRUE;
+			for (uv_b_index = 0; uv_b_index < BLI_array_count(vert_arr); uv_b_index++) {
+				copy_v2_v2(uv_b, vert_arr[uv_b_index].uv_loop->uv);
+				if ((uv_a_index != uv_b_index) &&
+				    (vert_arr[uv_b_index].weld == FALSE) &&
+				    (len_manhattan_v2v2(uv_a, uv_b) < weld_dist))
+				{
+					minmax_v2v2_v2(uv_max, uv_min, uv_b);
+					BLI_array_append(loop_arr, vert_arr[uv_b_index].uv_loop);
+					vert_arr[uv_b_index].weld = TRUE;
 				}
 			}
-			for (UV_b = 0; UV_b<BLI_array_count(loop_arr); UV_b++){
-				mid_v2_v2v2(loop_arr[UV_b]->uv, far_UV, near_UV);
+			for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr); uv_b_index++) {
+				mid_v2_v2v2(loop_arr[uv_b_index]->uv, uv_min, uv_max);
 			}
 		}
 	}
@@ -1648,7 +1651,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 static void UV_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Remove Doubles";
+	ot->name = "Remove Doubles UV";
 	ot->description = "Selected UV vertices that are within a radius of eachother are welded together";
 	ot->idname = "UV_OT_remove_doubles";
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1657,7 +1660,7 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
 	ot->exec = remove_doubles_exec;
 	ot->poll = ED_operator_uvedit;
 
-	RNA_def_float(ot->srna, "weld_dist", 0.02f, 0.0f, 1.0f, "Weld Distance", "Maximum distance between welded vertices", 0.001f, 10.0f);
+	RNA_def_float(ot->srna, "weld_dist", 0.02f, 0.0f, 10.0f, "Weld Distance", "Maximum distance between welded vertices", 0.0f, 1.0f);
 }
 /* ******************** weld operator **************** */
 
