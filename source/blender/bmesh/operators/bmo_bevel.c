@@ -26,10 +26,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
-#include "BLI_smallhash.h"
+#include "BLI_memarena.h"
 
 #include "BKE_customdata.h"
 
@@ -44,8 +43,8 @@
 
 /* Constructed vertex, sometimes later instantiated as BMVert */
 typedef struct NewVert {
-	float co[3];
 	BMVert *v;
+	float co[3];
 } NewVert;
 
 struct BoundVert;
@@ -105,7 +104,8 @@ typedef struct BevVert {
 typedef struct BevelParams {
 	/* hash of BevVert for each vertex involved in bevel
 	 * GHash: (key=(BMVert *), value=(BevVert *)) */
-	GHash *vert_hash;
+	GHash    *vert_hash;
+	MemArena *mem_arena;    /* use for all allocs while bevel runs, if we need to free we can switch to mempool */
 
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int seg;                /* number of segments in beveled edge profile */
@@ -113,9 +113,10 @@ typedef struct BevelParams {
 
 /* Make a new BoundVert of the given kind, insert it at the end of the circular linked
  * list with entry point bv->boundstart, and return it. */
-static BoundVert *add_new_bound_vert(VMesh *vm, float co[3])
+static BoundVert *add_new_bound_vert(MemArena *mem_arena, VMesh *vm, float co[3])
 {
-	BoundVert *ans = (BoundVert *) MEM_callocN(sizeof(BoundVert), "BoundVert");
+	BoundVert *ans = (BoundVert *)BLI_memarena_alloc(mem_arena, sizeof(BoundVert));
+
 	copy_v3_v3(ans->nv.co, co);
 	if (!vm->boundstart) {
 		ans->index = 0;
@@ -552,7 +553,7 @@ static void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], cons
  * of a vertex on the the boundary of the beveled vertex bv->v.
  * Also decide on the mesh pattern that will be used inside the boundary.
  * Doesn't make the actual BMVerts */
-static void build_boundary(BevVert *bv)
+static void build_boundary(MemArena *mem_arena, BevVert *bv)
 {
 	EdgeHalf *efirst, *e;
 	BoundVert *v;
@@ -569,17 +570,17 @@ static void build_boundary(BevVert *bv)
 		/* special case: beveled edge meets non-beveled one at valence 2 vert */
 		no = e->fprev ? e->fprev->no : (e->fnext ? e->fnext->no : NULL);
 		offset_in_plane(e, no, TRUE, co);
-		v = add_new_bound_vert(vm, co);
+		v = add_new_bound_vert(mem_arena, vm, co);
 		v->efirst = v->elast = v->ebev = e;
 		e->leftv = v;
 		no = e->fnext ? e->fnext->no : (e->fprev ? e->fprev->no : NULL);
 		offset_in_plane(e, no, FALSE, co);
-		v = add_new_bound_vert(vm, co);
+		v = add_new_bound_vert(mem_arena, vm, co);
 		v->efirst = v->elast = e;
 		e->rightv = v;
 		/* make artifical extra point along unbeveled edge, and form triangle */
 		slide_dist(e->next, bv->v, e->offset, co);
-		v = add_new_bound_vert(vm, co);
+		v = add_new_bound_vert(mem_arena, vm, co);
 		v->efirst = v->elast = e->next;
 		vm->mesh_kind = M_POLY;
 		return;
@@ -593,7 +594,7 @@ static void build_boundary(BevVert *bv)
 			if (e->prev->isbev) {
 				BLI_assert(e->prev != e);  /* see: wire edge special case */
 				offset_meet(e->prev, e, bv->v, e->fprev, TRUE, co);
-				v = add_new_bound_vert(vm, co);
+				v = add_new_bound_vert(mem_arena, vm, co);
 				v->efirst = e->prev;
 				v->elast = v->ebev = e;
 				e->leftv = v;
@@ -607,7 +608,7 @@ static void build_boundary(BevVert *bv)
 					/* TODO: fix case when one or both faces in following are NULL */
 					offset_in_two_planes(e->prev->prev, e, bv->v,
 					                     e->prev->prev->fnext, e->fprev, co);
-					v = add_new_bound_vert(vm, co);
+					v = add_new_bound_vert(mem_arena, vm, co);
 					v->efirst = e->prev->prev;
 					v->elast = v->ebev = e;
 					e->leftv = v;
@@ -617,7 +618,7 @@ static void build_boundary(BevVert *bv)
 				else {
 					/* neither e->prev nor e->prev->prev are beveled: make on-edge on e->prev */
 					offset_meet(e->prev, e, bv->v, e->fprev, TRUE, co);
-					v = add_new_bound_vert(vm, co);
+					v = add_new_bound_vert(mem_arena, vm, co);
 					v->efirst = e->prev;
 					v->elast = v->ebev = e;
 					e->leftv = v;
@@ -635,7 +636,7 @@ static void build_boundary(BevVert *bv)
 			else if (e->prev->isbev) {
 				/* on-edge meet between e->prev and e */
 				offset_meet(e->prev, e, bv->v, e->fprev, TRUE, co);
-				v = add_new_bound_vert(vm, co);
+				v = add_new_bound_vert(mem_arena, vm, co);
 				v->efirst = e->prev;
 				v->elast = e;
 				e->leftv = v;
@@ -648,7 +649,7 @@ static void build_boundary(BevVert *bv)
 				 * Could slide to make an even bevel plane but for now will
 				 * just use last distance a meet point moved from bv->v. */
 				slide_dist(e, bv->v, lastd, co);
-				v = add_new_bound_vert(vm, co);
+				v = add_new_bound_vert(mem_arena, vm, co);
 				v->efirst = v->elast = e;
 				e->leftv = v;
 			}
@@ -1082,7 +1083,7 @@ static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
 
 /* Given that the boundary is built, now make the actual BMVerts
  * for the boundary and the interior of the vertex mesh. */
-static void build_vmesh(BMesh *bm, BevVert *bv)
+static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 {
 	VMesh *vm = bv->vmesh;
 	BoundVert *v, *weld1, *weld2;
@@ -1093,7 +1094,7 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 	ns = vm->seg;
 	ns2 = ns / 2;
 
-	vm->mesh = (NewVert *)MEM_callocN(n * (ns2 + 1) * (ns + 1) * sizeof(NewVert), "NewVert");
+	vm->mesh = (NewVert *)BLI_memarena_alloc(mem_arena, n * (ns2 + 1) * (ns + 1) * sizeof(NewVert));
 
 	/* special case: two beveled ends welded together */
 	weld = (bv->selcount == 2) && (vm->count == 2);
@@ -1186,12 +1187,12 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		return;
 
 	ntot = BM_vert_edge_count(v);
-	bv = (BevVert *)MEM_callocN(sizeof(BevVert), "BevVert");
+	bv = (BevVert *)BLI_memarena_alloc(bp->mem_arena, (sizeof(BevVert)));
 	bv->v = v;
 	bv->edgecount = ntot;
 	bv->selcount = nsel;
-	bv->edges = (EdgeHalf *)MEM_callocN(ntot * sizeof(EdgeHalf), "EdgeHalf");
-	bv->vmesh = (VMesh *)MEM_callocN(sizeof(VMesh), "VMesh");
+	bv->edges = (EdgeHalf *)BLI_memarena_alloc(bp->mem_arena, ntot * sizeof(EdgeHalf));
+	bv->vmesh = (VMesh *)BLI_memarena_alloc(bp->mem_arena, sizeof(VMesh));
 	bv->vmesh->seg = bp->seg;
 	BLI_ghash_insert(bp->vert_hash, v, bv);
 
@@ -1285,8 +1286,8 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		e->prev = &bv->edges[(i + ntot - 1) % ntot];
 	}
 
-	build_boundary(bv);
-	build_vmesh(bm, bv);
+	build_boundary(bp->mem_arena, bv);
+	build_vmesh(bp->mem_arena, bm, bv);
 }
 
 /* Face f has at least one beveled vertex.  Rebuild f */
@@ -1428,37 +1429,6 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	}
 }
 
-
-static void free_bevel_params(BevelParams *bp)
-{
-	VMesh *vm;
-	BoundVert *v, *vnext;
-
-
-	GHashIterator ghi;
-
-	/* look on deform bones first */
-	BLI_ghashIterator_init(&ghi, bp->vert_hash);
-
-	for (; !BLI_ghashIterator_isDone(&ghi); BLI_ghashIterator_step(&ghi)) {
-		BevVert *bv = (BevVert *)BLI_ghashIterator_getValue(&ghi);
-		MEM_freeN(bv->edges);
-		vm = bv->vmesh;
-		v = vm->boundstart;
-		if (v) {
-			do {
-				vnext = v->next;
-				MEM_freeN(v);
-			} while ((v = vnext) != vm->boundstart);
-		}
-		if (vm->mesh)
-			MEM_freeN(vm->mesh);
-		MEM_freeN(vm);
-		MEM_freeN(bv);
-	}
-	BLI_ghash_free(bp->vert_hash, NULL, NULL);
-}
-
 void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter iter;
@@ -1471,7 +1441,10 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	bp.seg = BMO_slot_int_get(op, "segments");
 
 	if (bp.offset > 0) {
+		/* primary alloc */
 		bp.vert_hash = BLI_ghash_ptr_new(__func__);
+		bp.mem_arena = BLI_memarena_new((1 << 16), __func__);
+		BLI_memarena_use_calloc(bp.mem_arena);
 
 		/* first flush 'geom' into flags, this makes it possible to check connected data */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE, BM_ELEM_TAG, FALSE);
@@ -1508,6 +1481,8 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		free_bevel_params(&bp);
+		/* primary free */
+		BLI_ghash_free(bp.vert_hash, NULL, NULL);
+		BLI_memarena_free(bp.mem_arena);
 	}
 }
