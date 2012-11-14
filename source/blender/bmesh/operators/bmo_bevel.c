@@ -107,8 +107,6 @@ typedef struct BevelParams {
 	ListBase vertList;      /* list of BevVert for each vertex involved in bevel */
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int seg;                /* number of segments in beveled edge profile */
-
-	BMOperator *op;
 } BevelParams;
 
 /* Make a new BoundVert of the given kind, insert it at the end of the circular linked
@@ -1164,10 +1162,8 @@ static void build_vmesh(BMesh *bm, BevVert *bv)
 /*
  * Construction around the vertex
  */
-static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMVert *v)
+static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 {
-
-	BMOIter siter;
 	BMEdge *bme;
 	BevVert *bv;
 	BMEdge *bme2, *unflagged_bme;
@@ -1179,12 +1175,10 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMOperator *op, BMV
 
 	/* Gather input selected edges.
 	 * Only bevel selected edges that have exactly two incident faces.
-	 *
-	 * TODO, optimization - we could tag edges in 'geom'
-	 * and then just iterate edges-of-vert, checking tags.
 	 */
-	BMO_ITER (bme, &siter, bm, op, "geom", BM_EDGE) {
-		if (BM_vert_in_edge(bme, v)) {
+
+	BM_ITER_ELEM (bme, &iter, v, BM_EDGES_OF_VERT) {
+		if (BM_elem_flag_test(bme, BM_ELEM_TAG)) {
 			if (BM_edge_is_manifold(bme)) {
 				BMO_elem_flag_enable(bm, bme, EDGE_SELECTED);
 				nsel++;
@@ -1464,33 +1458,51 @@ static void free_bevel_params(BevelParams *bp)
 
 void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 {
+	BMIter iter;
 	BMOIter siter;
 	BMVert *v;
 	BMEdge *e;
 	BevelParams bp = {{NULL}};
 
 	bp.offset = BMO_slot_float_get(op, "offset");
-	bp.op = op;
 	bp.seg = BMO_slot_int_get(op, "segments");
 
 	if (bp.offset > 0) {
+		/* first flush 'geom' into flags, this makes it possible to check connected data */
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE, BM_ELEM_TAG, FALSE);
+
+		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT | BM_EDGE) {
+			BM_elem_flag_enable(v, BM_ELEM_TAG);
+		}
+
 		/* The analysis of the input vertices and execution additional constructions */
-		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
-			bevel_vert_construct(bm, &bp, op, v);
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				bevel_vert_construct(bm, &bp, v);
+			}
 		}
+
 		/* Build polygons for edges */
-		BMO_ITER (e, &siter, bm, op, "geom", BM_EDGE) {
-			bevel_build_edge_polygons(bm, &bp, e);
+		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+				bevel_build_edge_polygons(bm, &bp, e);
+			}
 		}
 
-		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
-			bevel_rebuild_existing_polygons(bm, &bp, v);
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				bevel_rebuild_existing_polygons(bm, &bp, v);
+			}
 		}
 
-		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
-			if (find_bevvert(&bp, v))
-				BM_vert_kill(bm, v);
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				if (find_bevvert(&bp, v)) {
+					BM_vert_kill(bm, v);
+				}
+			}
 		}
+
 		free_bevel_params(&bp);
 	}
 }
