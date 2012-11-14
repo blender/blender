@@ -153,6 +153,11 @@ int  EDBM_select_pick(struct bContext *C, const int mval[2], short extend, short
 void EDBM_selectmode_set(struct BMEditMesh *em);
 void EDBM_selectmode_convert(struct BMEditMesh *em, const short selectmode_old, const short selectmode_new);
 
+/* user access this */
+int EDBM_selectmode_toggle(struct bContext *C, const short selectmode_new,
+                           const int action, const int use_extend, const int use_expand);
+
+
 void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
 
 void EDBM_select_toggle_all(struct BMEditMesh *em);

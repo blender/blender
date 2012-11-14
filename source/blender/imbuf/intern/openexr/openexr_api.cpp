@@ -881,7 +881,7 @@ void IMB_exr_close(void *handle)
 /* get a substring from the end of the name, separated by '.' */
 static int imb_exr_split_token(const char *str, const char *end, const char **token)
 {
-	int maxlen = end - str;
+	ptrdiff_t maxlen = end - str;
 	int len = 0;
 	while (len < maxlen && *(end - len - 1) != '.') {
 		len++;
@@ -1183,7 +1183,7 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 					frameBuffer.insert(exr_rgba_channelname(file, "B"),
 					                   Slice(Imf::FLOAT,  (char *) (first + 2), xstride, ystride));
 
-					/* 1.0 is fill value, this still neesd to be assigned even when (is_alpha == 0) */
+					/* 1.0 is fill value, this still needs to be assigned even when (is_alpha == 0) */
 					frameBuffer.insert(exr_rgba_channelname(file, "A"),
 					                   Slice(Imf::FLOAT,  (char *) (first + 3), xstride, ystride, 1, 1, 1.0f));
 

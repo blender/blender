@@ -116,9 +116,13 @@ int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, cons
  *
  * Caller needs to free the array.
  */
-void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len)
+void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
+                        /* optional args to avoid an alloc (normally stack array) */
+                        void **stack_array, int stack_array_size)
 {
 	BMIter iter;
+
+	BLI_assert(stack_array_size == 0 || (stack_array_size && stack_array));
 
 	/* we can't rely on coun't being set */
 	switch (itype) {
@@ -137,7 +141,9 @@ void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len)
 
 	if (BM_iter_init(&iter, bm, itype, data) && iter.count > 0) {
 		BMElem *ele;
-		BMElem **array = MEM_mallocN(sizeof(ele) * iter.count, __func__);
+		BMElem **array = iter.count > stack_array_size ?
+		                 MEM_mallocN(sizeof(ele) * iter.count, __func__) :
+		                 stack_array;
 		int i = 0;
 
 		*r_len = iter.count;  /* set before iterating */

@@ -845,25 +845,26 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
 static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 {
 	MDeformVert *dv = NULL;
-	BMVert *eve;
-	Mesh *me;
 
 	/* get the deform vertices corresponding to the vertnum */
 	if (ob->type == OB_MESH) {
-		me = ob->data;
+		Mesh *me = ob->data;
 
 		if (me->edit_btmesh) {
-			eve = BM_vert_at_index(me->edit_btmesh->bm, vertnum);
+			/* warning, this lookup is _not_ fast */
+			BMVert *eve = BM_vert_at_index(me->edit_btmesh->bm, vertnum);
 			if (!eve) {
 				return 0.0f;
 			}
 			dv = CustomData_bmesh_get(&me->edit_btmesh->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 		}
 		else {
-			if (vertnum >= me->totvert) {
-				return 0.0f;
+			if (me->dvert) {
+				if (vertnum >= me->totvert) {
+					return 0.0f;
+				}
+				dv = &me->dvert[vertnum];
 			}
-			dv = &me->dvert[vertnum];
 		}
 	}
 	else if (ob->type == OB_LATTICE) {

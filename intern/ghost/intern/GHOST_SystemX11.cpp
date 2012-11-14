@@ -256,7 +256,7 @@ createWindow(
 
 	window = new GHOST_WindowX11(this, m_display, title,
 	                             left, top, width, height,
-	                             state, parentWindow, type, stereoVisual);
+	                             state, parentWindow, type, stereoVisual, numOfAASamples);
 
 	if (window) {
 		/* Both are now handle in GHOST_WindowX11.cpp

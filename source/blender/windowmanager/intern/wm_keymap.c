@@ -545,7 +545,7 @@ static wmKeyMap *wm_keymap_patch_update(ListBase *lb, wmKeyMap *defaultmap, wmKe
 
 	/* copy new keymap from an existing one */
 	if (usermap && !(usermap->flag & KEYMAP_DIFF)) {
-		/* for compatibiltiy with old user preferences with non-diff
+		/* for compatibility with old user preferences with non-diff
 		 * keymaps we override the original entirely */
 		wmKeyMapItem *kmi, *orig_kmi;
 

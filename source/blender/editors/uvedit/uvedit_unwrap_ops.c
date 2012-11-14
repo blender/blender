@@ -1414,7 +1414,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 	BMIter liter;
 	MLoopUV *luv;
 	float **uvs = NULL;
-	BLI_array_fixedstack_declare(uvs, BM_NGON_STACK_SIZE, efa->len, __func__);
+	BLI_array_fixedstack_declare(uvs, BM_DEFAULT_NGON_STACK_SIZE, efa->len, __func__);
 	float dx;
 	int i, mi;
 

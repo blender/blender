@@ -1225,7 +1225,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	return lay;
 }
 
-static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d && v3d->localvd) {
@@ -1233,7 +1233,7 @@ static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		move_to_layer_init(C, op);
-		return WM_operator_props_popup(C, op, event);
+		return WM_operator_props_dialog_popup(C, op, 260, 30);
 	}
 }
 

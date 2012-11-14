@@ -64,8 +64,8 @@ public:
 	 * Writes a reader to a writer.
 	 * \param reader The reader to read from.
 	 * \param writer The writer to write to.
-	 * \param length How many samples should be transfered.
-	 * \param buffersize How many samples should be transfered at once.
+	 * \param length How many samples should be transferred.
+	 * \param buffersize How many samples should be transferred at once.
 	 */
 	static void writeReader(boost::shared_ptr<AUD_IReader> reader, boost::shared_ptr<AUD_IWriter> writer, unsigned int length, unsigned int buffersize);
 
@@ -73,8 +73,8 @@ public:
 	 * Writes a reader to several writers.
 	 * \param reader The reader to read from.
 	 * \param writers The writers to write to.
-	 * \param length How many samples should be transfered.
-	 * \param buffersize How many samples should be transfered at once.
+	 * \param length How many samples should be transferred.
+	 * \param buffersize How many samples should be transferred at once.
 	 */
 	static void writeReader(boost::shared_ptr<AUD_IReader> reader, std::vector<boost::shared_ptr<AUD_IWriter> >& writers, unsigned int length, unsigned int buffersize);
 };

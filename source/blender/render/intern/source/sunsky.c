@@ -118,8 +118,8 @@ static void DirectionToThetaPhi(float *toSun, float *theta, float *phi)
 
 /**
  * PerezFunction:
- * compute perez function value based on input paramters
- * */
+ * compute perez function value based on input parameters
+ */
 static float PerezFunction(struct SunSky *sunsky, const float *lam, float theta, float gamma, float lvz)
 {
 	float den, num;

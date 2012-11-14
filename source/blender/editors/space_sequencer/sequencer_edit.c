@@ -1686,7 +1686,7 @@ static int sequencer_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
 		/* bounding box of 30 pixels is used for markers shortcuts,
-		 * prevent conflict with markers shortcurts here
+		 * prevent conflict with markers shortcuts here
 		 */
 		if (event->mval[1] <= 30)
 			return OPERATOR_PASS_THROUGH;

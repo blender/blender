@@ -351,7 +351,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	                              (GHOST_TWindowState)win->windowstate,
 	                              GHOST_kDrawingContextTypeOpenGL,
 	                              0 /* no stereo */,
-								  multisamples /* AA */);
+	                              multisamples /* AA */);
 	
 	if (ghostwin) {
 		/* needed so we can detect the graphics card below */

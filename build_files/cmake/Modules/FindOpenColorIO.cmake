@@ -39,6 +39,7 @@ SET(_opencolorio_SEARCH_DIRS
   /sw # Fink
   /opt/local # DarwinPorts
   /opt/csw # Blastwave
+  /opt/lib/ocio
 )
 
 FIND_PATH(OPENCOLORIO_INCLUDE_DIR

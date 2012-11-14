@@ -671,8 +671,9 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			}
 		}
 	}
-	else if(ob->type == OB_LAMP)
+	else if (ob->type == OB_LAMP) {
 		dag_add_lamp_driver_relations(dag, node, ob->data);
+	}
 	
 	/* particles */
 	psys = ob->particlesystem.first;

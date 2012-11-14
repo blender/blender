@@ -1008,8 +1008,8 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
                    const ColorManagedDisplaySettings *display_settings)
 {
 	int x, y, c;
-	unsigned int n, nl;
-	double div, divl;
+	unsigned int nl, na, nr, ng, nb;
+	double divl, diva, divr, divg, divb;
 	float *rf = NULL;
 	unsigned char *rc = NULL;
 	unsigned int *bin_lum, *bin_r, *bin_g, *bin_b, *bin_a;
@@ -1149,24 +1149,37 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 			savedlines += 1;
 	}
 
+	/* test for nicer distribution even - non standard, leave it out for a while */
+#if 0
+	for (x = 0; x < 256; x++) {
+		bin_lum[x] = sqrt (bin_lum[x]);
+		bin_r[x] = sqrt(bin_r[x]);
+		bin_g[x] = sqrt(bin_g[x]);
+		bin_b[x] = sqrt(bin_b[x]);
+		bin_a[x] = sqrt(bin_a[x]);
+	}
+#endif
+	
 	/* convert hist data to float (proportional to max count) */
-	n = 0;
-	nl = 0;
+	nl = na = nr = nb = ng = 0;
 	for (x = 0; x < 256; x++) {
 		if (bin_lum[x] > nl) nl = bin_lum[x];
-		if (bin_r[x]   > n) n = bin_r[x];
-		if (bin_g[x]   > n) n = bin_g[x];
-		if (bin_b[x]   > n) n = bin_b[x];
-		if (bin_a[x]   > n) n = bin_a[x];
+		if (bin_r[x]   > nr) nr = bin_r[x];
+		if (bin_g[x]   > ng) ng = bin_g[x];
+		if (bin_b[x]   > nb) nb = bin_b[x];
+		if (bin_a[x]   > na) na = bin_a[x];
 	}
-	div = 1.0 / (double)n;
 	divl = 1.0 / (double)nl;
+	diva = 1.0 / (double)na;
+	divr = 1.0 / (double)nr;
+	divg = 1.0 / (double)ng;
+	divb = 1.0 / (double)nb;
 	for (x = 0; x < 256; x++) {
 		scopes->hist.data_luma[x] = bin_lum[x] * divl;
-		scopes->hist.data_r[x] = bin_r[x] * div;
-		scopes->hist.data_g[x] = bin_g[x] * div;
-		scopes->hist.data_b[x] = bin_b[x] * div;
-		scopes->hist.data_a[x] = bin_a[x] * div;
+		scopes->hist.data_r[x] = bin_r[x] * divr;
+		scopes->hist.data_g[x] = bin_g[x] * divg;
+		scopes->hist.data_b[x] = bin_b[x] * divb;
+		scopes->hist.data_a[x] = bin_a[x] * diva;
 	}
 	MEM_freeN(bin_lum);
 	MEM_freeN(bin_r);

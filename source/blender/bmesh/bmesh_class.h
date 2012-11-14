@@ -244,10 +244,16 @@ enum {
 #  define BM_FACE_FIRST_LOOP(p) ((p)->l_first)
 #endif
 
-/* size to use for static arrays when dealing with NGons,
+/**
+ * size to use for stack arrays when dealing with NGons,
  * alloc after this limit is reached.
  * this value is rather arbitrary */
-#define BM_NGON_STACK_SIZE 32
+#define BM_DEFAULT_NGON_STACK_SIZE 32
+/**
+ * size to use for stack arrays dealing with connected mesh data
+ * verts of faces, edges of vert - etc.
+ * often used with #BM_iter_as_arrayN() */
+#define BM_DEFAULT_ITER_STACK_SIZE 16
 
 /* avoid inf loop, this value is arbitrary
  * but should not error on valid cases */

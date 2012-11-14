@@ -50,12 +50,13 @@ typedef struct bGPDspoint {
  */
 typedef struct bGPDstroke {
 	struct bGPDstroke *next, *prev;
-	
 	bGPDspoint *points;		/* array of data-points for stroke */
+	void *pad;				/* keep 4 pointers at the beginning, padding for 'inittime' is tricky 64/32bit */
 	int totpoints;			/* number of data-points in array */
 	
 	short thickness;		/* thickness of stroke (currently not used) */
 	short flag;				/* various settings about this stroke */
+
 	double inittime;		/* Init time of stroke */
 } bGPDstroke;
 

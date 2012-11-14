@@ -348,25 +348,12 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 							g = *buffer++;
 							b = *buffer++;
 							k = *buffer++;
-							
-							k = 255 - k;
-							r -= k;
-							if (r & 0xffffff00) {
-								if (r < 0) r = 0;
-								else r = 255;
-							}
-							g -= k;
-							if (g & 0xffffff00) {
-								if (g < 0) g = 0;
-								else g = 255;
-							}
-							b -= k;
-							if (b & 0xffffff00) {
-								if (b < 0) b = 0;
-								else b = 255;
-							}
-							
-							rect[3] = 255 - k;
+
+							r = (r * k) / 255;
+							g = (g * k) / 255;
+							b = (b * k) / 255;
+
+							rect[3] = 255;
 							rect[2] = b;
 							rect[1] = g;
 							rect[0] = r;

@@ -1497,7 +1497,7 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 
 	if (onlyv2d) {
 		/* if manual calibration is used then grease pencil data is already
-		 * drawed in draw_distortion */
+		 * drawn in draw_distortion */
 		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0 || sc->mode != SC_MODE_DISTORTION) {
 			glPushMatrix();
 			glMultMatrixf(sc->unistabmat);

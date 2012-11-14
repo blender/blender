@@ -198,18 +198,18 @@ int BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
 	return TRUE;
 }
 
-void BKE_object_link_modifiers(struct Object *ob, struct Object *from)
+void BKE_object_link_modifiers(struct Object *ob_dst, struct Object *ob_src)
 {
 	ModifierData *md;
-	BKE_object_free_modifiers(ob);
+	BKE_object_free_modifiers(ob_dst);
 
-	if (!ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
+	if (!ELEM5(ob_dst->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 		/* only objects listed above can have modifiers and linking them to objects
 		 * which doesn't have modifiers stack is quite silly */
 		return;
 	}
 
-	for (md = from->modifiers.first; md; md = md->next) {
+	for (md = ob_src->modifiers.first; md; md = md->next) {
 		ModifierData *nmd = NULL;
 
 		if (ELEM4(md->type,
@@ -221,16 +221,18 @@ void BKE_object_link_modifiers(struct Object *ob, struct Object *from)
 			continue;
 		}
 
-		if (!BKE_object_support_modifier_type_check(ob, md->type))
+		if (!BKE_object_support_modifier_type_check(ob_dst, md->type))
 			continue;
 
 		nmd = modifier_new(md->type);
+		BLI_strncpy(nmd->name, md->name, sizeof(nmd->name));
 		modifier_copyData(md, nmd);
-		BLI_addtail(&ob->modifiers, nmd);
+		BLI_addtail(&ob_dst->modifiers, nmd);
+		modifier_unique_name(&ob_dst->modifiers, nmd);
 	}
 
-	BKE_object_copy_particlesystems(ob, from);
-	BKE_object_copy_softbody(ob, from);
+	BKE_object_copy_particlesystems(ob_dst, ob_src);
+	BKE_object_copy_softbody(ob_dst, ob_src);
 
 	/* TODO: smoke?, cloth? */
 }

@@ -76,7 +76,7 @@ PyMethodDef KX_MeshProxy::Methods[] = {
 	{"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
 	{"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
 	{"transform", (PyCFunction)KX_MeshProxy::sPyTransform,METH_VARARGS},
-	{"transform_uv", (PyCFunction)KX_MeshProxy::sPyTransformUV,METH_VARARGS},
+	{"transformUV", (PyCFunction)KX_MeshProxy::sPyTransformUV,METH_VARARGS},
 	//{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };

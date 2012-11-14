@@ -617,7 +617,7 @@ static void symm_kill_unused(Symm *symm)
 		    !symmetric)
 		{
 			/* The edge might be used by a face outside the input set */
-			if (BM_edge_face_count(e) == 0)
+			if (BM_edge_is_wire(e))
 				BM_edge_kill(symm->bm, e);
 		}
 	}

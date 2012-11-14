@@ -170,7 +170,7 @@ public :
 	}
 
 	/** 
-	 * Assignment operator - ownership is transfered from rhs to lhs. 
+	 * Assignment operator - ownership is transferred from rhs to lhs.
 	 * There is an intenional side-effect of function of transferring
 	 * ownership from the const parameter rhs. This is to insure 
 	 * the 1-1 relationship.

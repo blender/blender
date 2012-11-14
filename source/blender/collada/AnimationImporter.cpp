@@ -844,7 +844,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
  * This function returns the aspet ration from the Collada camera.
  *
  * Note:COLLADA allows to specify either XFov, or YFov alone. 
- * In tghat case the aspect ratio can be determined from 
+ * In that case the aspect ratio can be determined from
  * the viewport aspect ratio (which is 1:1 ?)
  * XXX: check this: its probably wrong!
  * If both values are specified, then the aspect ration is simply xfov/yfov

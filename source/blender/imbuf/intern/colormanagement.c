@@ -164,7 +164,7 @@ typedef struct ColormanageProcessor {
  *       but they holds indexes of all transformations and color spaces, not
  *       their names.
  *
- *       This helps avoid extra colorsmace / display / view lookup without
+ *       This helps avoid extra colorspace / display / view lookup without
  *       requiring to pass all variables which affects on display buffer
  *       to color management cache system and keeps calls small and nice.
  */

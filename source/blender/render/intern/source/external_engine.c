@@ -316,6 +316,7 @@ int RE_engine_render(Render *re, int do_all)
 {
 	RenderEngineType *type = RE_engines_find(re->r.engine);
 	RenderEngine *engine;
+	int persistent_data = re->r.mode & R_PERSISTENT_DATA;
 
 	/* verify if we can render */
 	if (!type->render)
@@ -349,10 +350,16 @@ int RE_engine_render(Render *re, int do_all)
 	re->i.totface = re->i.totvert = re->i.totstrand = re->i.totlamp = re->i.tothalo = 0;
 
 	/* render */
-	if (!re->engine)
-		re->engine = RE_engine_create(type);
-
 	engine = re->engine;
+
+	if (!engine) {
+		engine = RE_engine_create(type);
+
+		if (persistent_data)
+			re->engine = engine;
+	}
+
+	engine->flag |= RE_ENGINE_RENDERING;
 
 	/* TODO: actually link to a parent which shouldn't happen */
 	engine->re = re;
@@ -382,8 +389,13 @@ int RE_engine_render(Render *re, int do_all)
 	if (type->render)
 		type->render(engine, re->scene);
 
-	if (!(re->r.mode & R_PERSISTENT_DATA)) {
-		RE_engine_free(re->engine);
+	engine->tile_x = 0;
+	engine->tile_y = 0;
+	engine->flag &= ~RE_ENGINE_RENDERING;
+
+	/* re->engine becomes zero if user changed active render engine during render */
+	if (!persistent_data || !re->engine) {
+		RE_engine_free(engine);
 		re->engine = NULL;
 	}
 
@@ -393,8 +405,6 @@ int RE_engine_render(Render *re, int do_all)
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 
-	engine->tile_x = 0;
-	engine->tile_y = 0;
 	freeparts(re);
 
 	render_result_free_list(&engine->fullresult, engine->fullresult.first);

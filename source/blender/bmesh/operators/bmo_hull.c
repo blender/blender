@@ -385,7 +385,7 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 	BMO_ITER (f, &oiter, bm, op, "input", BM_FACE) {
 		if (BMO_elem_flag_test(bm, f, HULL_FLAG_HOLE)) {
 			BM_ITER_ELEM (e, &iter, f, BM_EDGES_OF_FACE) {
-				if (BM_edge_face_count(e) == 1) {
+				if (BM_edge_is_boundary(e)) {
 					BMO_elem_flag_disable(bm, f, HULL_FLAG_HOLE);
 					break;
 				}

@@ -435,7 +435,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 /*
  * Helper code
  * PARTITION code / used on mean-split
- * basicly this a std::nth_element (like on C++ STL algorithm)
+ * basically this a std::nth_element (like on C++ STL algorithm)
  */
 #if 0
 static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis)

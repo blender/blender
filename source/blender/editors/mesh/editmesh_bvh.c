@@ -157,13 +157,13 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 
 
 		if (flag & BMBVH_RESPECT_SELECT) {
-			/* note, the arrays wont allign now! take care */
+			/* note, the arrays wont align now! take care */
 			if (!BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_SELECT)) {
 				continue;
 			}
 		}
 		else if (flag & BMBVH_RESPECT_HIDDEN) {
-			/* note, the arrays wont allign now! take care */
+			/* note, the arrays wont align now! take care */
 			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
 				continue;
 			}
