@@ -65,8 +65,14 @@ void MapRangeOperation::executePixel(float output[4], float x, float y, PixelSam
 	value = (value - source_min) / (source_max - source_min);
 	value = dest_min + value * (dest_max - dest_min);
 
-	if (this->m_useClamp)
-		CLAMP(value, dest_min, dest_max);
+	if (this->m_useClamp) {
+		if (dest_max > dest_min) {
+			CLAMP(value, dest_min, dest_max);
+		}
+		else {
+			CLAMP(value, dest_max, dest_min);
+		}
+	}
 
 	output[0] = value;
 }
