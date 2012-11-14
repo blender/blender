@@ -1563,6 +1563,7 @@ typedef struct UVvert {
 static int remove_doubles_exec(bContext *C, wmOperator *op)
 {
 	const float threshold = RNA_float_get(op->ptr, "threshold");
+	const int use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
 
 	SpaceImage *sima;
 	Scene *scene;
@@ -1574,11 +1575,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	int uv_b_index;
 	float *uv_a;
 	float *uv_b;
-	MLoopUV **loop_arr = NULL;
-	BLI_array_declare(loop_arr);
 
-	UVvert *vert_arr = NULL;
-	BLI_array_declare(vert_arr);
 	BMIter iter, liter;
 	BMFace *efa;
 	BMLoop *l;
@@ -1589,58 +1586,113 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	em = BMEdit_FromObject(obedit);
 	ima = CTX_data_edit_image(C);
 
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-		if (!uvedit_face_visible_test(scene, ima, efa, tf))
-			continue;
+	if (use_unselected == FALSE) {
+		UVvert *vert_arr = NULL;
+		BLI_array_declare(vert_arr);
+		MLoopUV **loop_arr = NULL;
+		BLI_array_declare(loop_arr);
 
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_select_test(em, scene, l)) {
+		/* TODO, use qsort as with MESH_OT_remove_doubles, this isn't optimal */
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			if (!uvedit_face_visible_test(scene, ima, efa, tf))
+				continue;
+
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (uvedit_uv_select_test(em, scene, l)) {
+					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+					UVvert vert;
+					vert.uv_loop = luv;
+					vert.weld = FALSE;
+					BLI_array_append(vert_arr, vert);
+				}
+
+			}
+		}
+
+		for (uv_a_index = 0; uv_a_index < BLI_array_count(vert_arr); uv_a_index++) {
+			if (vert_arr[uv_a_index].weld == FALSE) {
+				float uv_min[2];
+				float uv_max[2];
+
+				BLI_array_empty(loop_arr);
+				BLI_array_append(loop_arr, vert_arr[uv_a_index].uv_loop);
+
+				uv_a = vert_arr[uv_a_index].uv_loop->uv;
+
+				copy_v2_v2(uv_max, uv_a);
+				copy_v2_v2(uv_min, uv_a);
+
+				vert_arr[uv_a_index].weld = TRUE;
+				for (uv_b_index = uv_a_index + 1; uv_b_index < BLI_array_count(vert_arr); uv_b_index++) {
+					uv_b = vert_arr[uv_b_index].uv_loop->uv;
+					if ((vert_arr[uv_b_index].weld == FALSE) &&
+					    (len_manhattan_v2v2(uv_a, uv_b) < threshold))
+					{
+						minmax_v2v2_v2(uv_max, uv_min, uv_b);
+						BLI_array_append(loop_arr, vert_arr[uv_b_index].uv_loop);
+						vert_arr[uv_b_index].weld = TRUE;
+					}
+				}
+				if (BLI_array_count(loop_arr)) {
+					float uv_mid[2];
+					mid_v2_v2v2(uv_mid, uv_min, uv_max);
+					for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr); uv_b_index++) {
+						copy_v2_v2(loop_arr[uv_b_index]->uv, uv_mid);
+					}
+				}
+			}
+		}
+
+		BLI_array_free(vert_arr);
+		BLI_array_free(loop_arr);
+	}
+	else {
+		/* selected -> unselected
+		 *
+		 * No need to use 'UVvert' here */
+		MLoopUV **loop_arr = NULL;
+		BLI_array_declare(loop_arr);
+		MLoopUV **loop_arr_unselected = NULL;
+		BLI_array_declare(loop_arr_unselected);
+
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			if (!uvedit_face_visible_test(scene, ima, efa, tf))
+				continue;
+
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				UVvert vert;
-				vert.uv_loop = luv;
-				vert.weld = FALSE;
-				BLI_array_append(vert_arr, vert);
-			}
-
-		}
-	}
-
-	for (uv_a_index = 0; uv_a_index < BLI_array_count(vert_arr); uv_a_index++) {
-		if (vert_arr[uv_a_index].weld == FALSE) {
-			float uv_min[2];
-			float uv_max[2];
-
-			BLI_array_empty(loop_arr);
-			BLI_array_append(loop_arr, vert_arr[uv_a_index].uv_loop);
-
-			uv_a = vert_arr[uv_a_index].uv_loop->uv;
-
-			copy_v2_v2(uv_max, uv_a);
-			copy_v2_v2(uv_min, uv_a);
-
-			vert_arr[uv_a_index].weld = TRUE;
-			for (uv_b_index = uv_a_index + 1; uv_b_index < BLI_array_count(vert_arr); uv_b_index++) {
-				uv_b = vert_arr[uv_b_index].uv_loop->uv;
-				if ((vert_arr[uv_b_index].weld == FALSE) &&
-				    (len_manhattan_v2v2(uv_a, uv_b) < threshold))
-				{
-					minmax_v2v2_v2(uv_max, uv_min, uv_b);
-					BLI_array_append(loop_arr, vert_arr[uv_b_index].uv_loop);
-					vert_arr[uv_b_index].weld = TRUE;
+				if (uvedit_uv_select_test(em, scene, l)) {
+					BLI_array_append(loop_arr, luv);
 				}
-			}
-			if (BLI_array_count(loop_arr)) {
-				float uv_mid[2];
-				mid_v2_v2v2(uv_mid, uv_min, uv_max);
-				for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr); uv_b_index++) {
-					copy_v2_v2(loop_arr[uv_b_index]->uv, uv_mid);
+				else {
+					BLI_array_append(loop_arr_unselected, luv);
 				}
 			}
 		}
+
+		for (uv_a_index = 0; uv_a_index < BLI_array_count(loop_arr); uv_a_index++) {
+			float dist_best = FLT_MAX, dist;
+			float *uv_best = NULL;
+
+			uv_a = loop_arr[uv_a_index]->uv;
+			for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr_unselected); uv_b_index++) {
+				uv_b = loop_arr_unselected[uv_b_index]->uv;
+				dist = len_manhattan_v2v2(uv_a, uv_b);
+				if ((dist < threshold) && (dist < dist_best)) {
+					uv_best = uv_b;
+					dist_best = dist;
+				}
+			}
+			if (uv_best) {
+				copy_v2_v2(uv_a, uv_best);
+			}
+		}
+
+		BLI_array_free(loop_arr);
+		BLI_array_free(loop_arr_unselected);
 	}
-	BLI_array_free(loop_arr);
-	BLI_array_free(vert_arr);
 
 	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
@@ -1663,6 +1715,7 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "threshold", 0.02f, 0.0f, 10.0f,
 	              "Merge Distance", "Maximum distance between welded vertices", 0.0f, 1.0f);
+	RNA_def_boolean(ot->srna, "use_unselected", 0, "Unselected", "Merge selected to other unselected vertices");
 }
 /* ******************** weld operator **************** */
 
