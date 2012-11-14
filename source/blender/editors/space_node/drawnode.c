@@ -1887,6 +1887,14 @@ static void node_composit_buts_double_edge_mask(uiLayout *layout, bContext *UNUS
 	uiItemR(col, ptr, "edge_mode", 0, "", ICON_NONE);
 }
 
+static void node_composit_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+
+	col = uiLayoutColumn(layout, TRUE);
+	uiItemR(col, ptr, "use_clamp", 0, NULL, ICON_NONE);
+}
+
 static void node_composit_buts_map_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *sub, *col;
@@ -2824,6 +2832,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MAP_VALUE:
 			ntype->uifunc = node_composit_buts_map_value;
+			break;
+		case CMP_NODE_MAP_RANGE:
+			ntype->uifunc = node_composit_buts_map_range;
 			break;
 		case CMP_NODE_TIME:
 			ntype->uifunc = node_buts_time;

@@ -114,6 +114,7 @@ DefNode( CompositorNode, CMP_NODE_ALPHAOVER,      def_cmp_alpha_over,     "ALPHA
 DefNode( CompositorNode, CMP_NODE_BLUR,           def_cmp_blur,           "BLUR",           Blur,             "Blur",              ""              )
 DefNode( CompositorNode, CMP_NODE_FILTER,         def_cmp_filter,         "FILTER",         Filter,           "Filter",            ""              )
 DefNode( CompositorNode, CMP_NODE_MAP_VALUE,      def_cmp_map_value,      "MAP_VALUE",      MapValue,         "Map Value",         ""              )
+DefNode( CompositorNode, CMP_NODE_MAP_RANGE,      def_cmp_map_range,      "MAP_RANGE",      MapRange,         "Map Range",         ""              )
 DefNode( CompositorNode, CMP_NODE_TIME,           def_time,               "TIME",           Time,             "Time",              ""              )
 DefNode( CompositorNode, CMP_NODE_VECBLUR,        def_cmp_vector_blur,    "VECBLUR",        VecBlur,          "Vector Blur",       ""              )
 DefNode( CompositorNode, CMP_NODE_SEPRGBA,        0,                      "SEPRGBA",        SepRGBA,          "Separate RGBA",     ""              )
