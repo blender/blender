@@ -50,7 +50,7 @@ version_ge() {
 # $1 should be at least as long as $2!
 version_match() {
   backIFS=$IFS
-	IFS='.'
+  IFS='.'
 
   # Split both version numbers into their numeric elements.
   arr1=( $1 )
@@ -71,7 +71,7 @@ version_match() {
     done
   fi
 
-	IFS=$backIFS
+  IFS=$backIFS
   return $ret
 }
 
@@ -380,8 +380,8 @@ install_DEB() {
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libvpx-dev
     vpx_version=`deb_version libvpx-dev`
-    if [ ! -z "$vpx_version" ]; then
-      if  dpkg --compare-versions $vpx_version gt 0.9.7; then
+    if  dpkg --compare-versions $vpx_version gt 0.9.7; then
+      if version_ge $vpx_version 0.9.7; then
         HASVPX=true
       fi
     fi
@@ -624,7 +624,7 @@ print_info_ffmpeglink_DEB() {
 }
 
 print_info_ffmpeglink_RPM() {
-  _packages="libtheora-devel"
+  _packages="libtheora-devel libvorbis-devel"
 
   if $HASXVID; then
     _packages="$_packages $XVIDDEV"
@@ -681,7 +681,7 @@ print_info() {
   if [ -d /opt/lib/ffmpeg ]; then
     INFO "  -D WITH_CODEC_FFMPEG=ON"
     INFO "  -D FFMPEG=/opt/lib/ffmpeg"
-    INFO "  -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;`print_info_ffmpeglink`'"
+    INFO "  -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
   fi
 
   INFO ""
