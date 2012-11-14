@@ -1251,7 +1251,7 @@ def pyrna2sphinx(basepath):
             bases = list(reversed(struct.get_bases()))
 
             # props
-            lines[:] = []
+            del lines[:]
 
             if _BPY_STRUCT_FAKE:
                 descr_items = [(key, descr) for key, descr in sorted(bpy.types.Struct.__bases__[0].__dict__.items()) if not key.startswith("__")]
@@ -1282,7 +1282,7 @@ def pyrna2sphinx(basepath):
                 fw("\n")
 
             # funcs
-            lines[:] = []
+            del lines[:]
 
             if _BPY_STRUCT_FAKE:
                 for key, descr in descr_items:
@@ -1305,7 +1305,7 @@ def pyrna2sphinx(basepath):
                     fw(line)
                 fw("\n")
 
-            lines[:] = []
+            del lines[:]
 
         if struct.references:
             # use this otherwise it gets in the index for a normal heading.

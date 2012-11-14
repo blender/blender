@@ -222,8 +222,8 @@ def cmake_get_src(f):
             '''
 
             # reset
-            sources_h[:] = []
-            sources_c[:] = []
+            del sources_h[:]
+            del sources_c[:]
 
     filen.close()
 

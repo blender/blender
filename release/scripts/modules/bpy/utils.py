@@ -216,7 +216,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         for mod in _global_loaded_modules:
             test_reload(mod)
 
-        _global_loaded_modules[:] = []
+        del _global_loaded_modules[:]
 
     for base_path in script_paths():
         for path_subdir in _script_module_dirs:

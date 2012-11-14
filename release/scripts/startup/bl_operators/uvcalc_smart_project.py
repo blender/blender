@@ -517,7 +517,7 @@ def mergeUvIslands(islandList):
                                     for uv in f.uv:
                                         uv+= offset
 
-                                sourceIsland[0][:] = [] # Empty
+                                del sourceIsland[0][:]  # Empty
 
 
                                 # Move edge loop into new and offset.
@@ -527,7 +527,7 @@ def mergeUvIslands(islandList):
                                      (e[0]+offset, e[1]+offset, e[2])\
                                 ) for e in sourceIsland[6] ] )
 
-                                sourceIsland[6][:] = [] # Empty
+                                del sourceIsland[6][:]  # Empty
 
                                 # Sort by edge length, reverse so biggest are first.
 
@@ -540,7 +540,7 @@ def mergeUvIslands(islandList):
                                 for p in sourceIsland[7]:
                                     p+= offset
 
-                                sourceIsland[7][:] = []
+                                del sourceIsland[7][:]
 
 
                                 # Decrement the efficiency

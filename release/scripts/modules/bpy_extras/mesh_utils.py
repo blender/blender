@@ -223,7 +223,7 @@ def edge_loops_from_tessfaces(mesh, tessfaces=None, seams=()):
             else:
                 other_dir = None
 
-            ed_adj[:] = []
+            del ed_adj[:]
 
             flipped = False
 
@@ -235,22 +235,22 @@ def edge_loops_from_tessfaces(mesh, tessfaces=None, seams=()):
                     if other_dir and flipped is False:
                         flipped = True  # only flip the list once
                         context_loop.reverse()
-                        ed_adj[:] = []
+                        del ed_adj[:]
                         context_loop.append(other_dir)  # save 1 look-up
 
                         ed_adj = edges[context_loop[-1]]
                         if len(ed_adj) != 2:
-                            ed_adj[:] = []
+                            del ed_adj[:]
                             break
                     else:
-                        ed_adj[:] = []
+                        del ed_adj[:]
                         break
 
                 i = ed_adj.index(context_loop[-2])
                 context_loop.append(ed_adj[not  i])
 
                 # Dont look at this again
-                ed_adj[:] = []
+                del ed_adj[:]
 
     return edge_loops
 
@@ -436,7 +436,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
             if s1[0][1] == s1[-1][1]:  # remove endpoints double
                 s1.pop()
 
-            s2[:] = []  # Empty this segment s2 so we don't use it again.
+            del s2[:]  # Empty this segment s2 so we don't use it again.
             return True
 
         joining_segments = True
