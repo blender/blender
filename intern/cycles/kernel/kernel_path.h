@@ -331,12 +331,15 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 			float bsdf_u = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF_U);
 			float bsdf_v = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF_V);
 
+			float ao_factor = kernel_data.background.ao_factor;
+			float3 ao_N;
+			float3 ao_bsdf = shader_bsdf_ao(kg, &sd, ao_factor, &ao_N);
 			float3 ao_D;
 			float ao_pdf;
 
-			sample_cos_hemisphere(sd.N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
+			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
+			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f && average(ao_bsdf) != 0.0f) {
 				Ray light_ray;
 				float3 ao_shadow;
 
@@ -347,11 +350,8 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 				light_ray.time = sd.time;
 #endif
 
-				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow)) {
-					float3 ao_bsdf = shader_bsdf_diffuse(kg, &sd)*kernel_data.background.ao_factor;
-					ao_bsdf += shader_bsdf_ao(kg, &sd);
+				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow))
 					path_radiance_accum_ao(&L, throughput, ao_bsdf, ao_shadow, state.bounce);
-				}
 			}
 		}
 #endif
@@ -509,12 +509,15 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 			float bsdf_u = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF_U);
 			float bsdf_v = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF_V);
 
+			float ao_factor = kernel_data.background.ao_factor;
+			float3 ao_N;
+			float3 ao_bsdf = shader_bsdf_ao(kg, &sd, ao_factor, &ao_N);
 			float3 ao_D;
 			float ao_pdf;
 
-			sample_cos_hemisphere(sd.N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
+			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
+			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f && average(ao_bsdf) != 0.0f) {
 				Ray light_ray;
 				float3 ao_shadow;
 
@@ -525,11 +528,8 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 				light_ray.time = sd.time;
 #endif
 
-				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow)) {
-					float3 ao_bsdf = shader_bsdf_diffuse(kg, &sd)*kernel_data.background.ao_factor;
-					ao_bsdf += shader_bsdf_ao(kg, &sd);
+				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow))
 					path_radiance_accum_ao(L, throughput, ao_bsdf, ao_shadow, state.bounce);
-				}
 			}
 		}
 #endif
@@ -712,6 +712,8 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 			int num_samples = kernel_data.integrator.ao_samples;
 			float num_samples_inv = 1.0f/num_samples;
 			float ao_factor = kernel_data.background.ao_factor;
+			float3 ao_N;
+			float3 ao_bsdf = shader_bsdf_ao(kg, &sd, ao_factor, &ao_N);
 
 			for(int j = 0; j < num_samples; j++) {
 				/* todo: solve correlation */
@@ -721,9 +723,9 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				float3 ao_D;
 				float ao_pdf;
 
-				sample_cos_hemisphere(sd.N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
+				sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-				if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
+				if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f && average(ao_bsdf) != 0.0f) {
 					Ray light_ray;
 					float3 ao_shadow;
 
@@ -734,11 +736,8 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 					light_ray.time = sd.time;
 #endif
 
-					if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow)) {
-						float3 ao_bsdf = shader_bsdf_diffuse(kg, &sd)*ao_factor;
-						ao_bsdf += shader_bsdf_ao(kg, &sd);
+					if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow))
 						path_radiance_accum_ao(&L, throughput*num_samples_inv, ao_bsdf, ao_shadow, state.bounce);
-					}
 				}
 			}
 		}
