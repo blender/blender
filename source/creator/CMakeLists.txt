@@ -618,18 +618,7 @@ elseif(WIN32)
 	install( # x86 builds can run on x64 Windows, so this is required at all times
 		FILES ${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
 		DESTINATION ${TARGETDIR}
-	)	
-
-	if(WITH_OPENIMAGEIO)
-		set(OIIODLL ${LIBDIR}/openimageio/bin/OpenImageIO.dll)
-		if(NOT MINGW AND EXISTS ${OIIODLL})
-			install(
-				FILES
-					${OIIODLL}
-				DESTINATION ${TARGETDIR}
-			)
-		endif()
-	endif()
+	)
 
 	if(WITH_OPENCOLORIO)
 		set(OCIOBIN ${LIBDIR}/opencolorio/bin)
