@@ -2399,6 +2399,33 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 
 #undef IS_ZERO
 
+/* reverse of the functions above */
+void interp_bilinear_quad_v3(float data[4][3], float u, float v, float res[3])
+{
+	float vec[3];
+
+	copy_v3_v3(res, data[0]);
+	mul_v3_fl(res, (1 - u) * (1 - v));
+	copy_v3_v3(vec, data[1]);
+	mul_v3_fl(vec, u * (1 - v)); add_v3_v3(res, vec);
+	copy_v3_v3(vec, data[2]);
+	mul_v3_fl(vec, u * v); add_v3_v3(res, vec);
+	copy_v3_v3(vec, data[3]);
+	mul_v3_fl(vec, (1 - u) * v); add_v3_v3(res, vec);
+}
+
+void interp_barycentric_tri_v3(float data[3][3], float u, float v, float res[3])
+{
+	float vec[3];
+
+	copy_v3_v3(res, data[0]);
+	mul_v3_fl(res, u);
+	copy_v3_v3(vec, data[1]);
+	mul_v3_fl(vec, v); add_v3_v3(res, vec);
+	copy_v3_v3(vec, data[2]);
+	mul_v3_fl(vec, 1.0f - u - v); add_v3_v3(res, vec);
+}
+
 /***************************** View & Projection *****************************/
 
 void orthographic_m4(float matrix[][4], const float left, const float right, const float bottom, const float top,

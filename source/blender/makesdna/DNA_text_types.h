@@ -78,7 +78,6 @@ typedef struct Text {
 
 /* text flags */
 #define TXT_ISDIRTY             0x0001
-#define TXT_DEPRECATED          0x0004 /* deprecated ISTMP flag */
 #define TXT_ISMEM               0x0004
 #define TXT_ISEXT               0x0008
 #define TXT_ISSCRIPT            0x0010 /* used by space handler scriptlinks */

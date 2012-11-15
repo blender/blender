@@ -451,32 +451,6 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, MPassKnownData
 	}
 }
 
-static void interp_bilinear_quad_data(float data[4][3], float u, float v, float res[3])
-{
-	float vec[3];
-
-	copy_v3_v3(res, data[0]);
-	mul_v3_fl(res, (1 - u) * (1 - v));
-	copy_v3_v3(vec, data[1]);
-	mul_v3_fl(vec, u * (1 - v)); add_v3_v3(res, vec);
-	copy_v3_v3(vec, data[2]);
-	mul_v3_fl(vec, u * v); add_v3_v3(res, vec);
-	copy_v3_v3(vec, data[3]);
-	mul_v3_fl(vec, (1 - u) * v); add_v3_v3(res, vec);
-}
-
-static void interp_barycentric_tri_data(float data[3][3], float u, float v, float res[3])
-{
-	float vec[3];
-
-	copy_v3_v3(res, data[0]);
-	mul_v3_fl(res, u);
-	copy_v3_v3(vec, data[1]);
-	mul_v3_fl(vec, v); add_v3_v3(res, vec);
-	copy_v3_v3(vec, data[2]);
-	mul_v3_fl(vec, 1.0f - u - v); add_v3_v3(res, vec);
-}
-
 /* mode = 0: interpolate normals,
  * mode = 1: interpolate coord */
 static void interp_bilinear_grid(CCGKey *key, CCGElem *grid, float crn_x, float crn_y, int mode, float res[3])
@@ -507,7 +481,7 @@ static void interp_bilinear_grid(CCGKey *key, CCGElem *grid, float crn_x, float 
 		copy_v3_v3(data[3], CCG_grid_elem_co(key, grid, x0, y1));
 	}
 
-	interp_bilinear_quad_data(data, u, v, res);
+	interp_bilinear_quad_v3(data, u, v, res);
 }
 
 static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm,
@@ -579,7 +553,7 @@ static void interp_bilinear_mface(DerivedMesh *dm, MFace *mface, const float u, 
 		dm->getVertCo(dm, mface->v4, data[3]);
 	}
 
-	interp_bilinear_quad_data(data, u, v, res);
+	interp_bilinear_quad_v3(data, u, v, res);
 }
 
 /* mode = 0: interpolate normals,
@@ -599,7 +573,7 @@ static void interp_barycentric_mface(DerivedMesh *dm, MFace *mface, const float 
 		dm->getVertCo(dm, mface->v3, data[2]);
 	}
 
-	interp_barycentric_tri_data(data, u, v, res);
+	interp_barycentric_tri_v3(data, u, v, res);
 }
 
 static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)

@@ -115,7 +115,7 @@ typedef struct BevelParams {
 
 /* Make a new BoundVert of the given kind, insert it at the end of the circular linked
  * list with entry point bv->boundstart, and return it. */
-static BoundVert *add_new_bound_vert(MemArena *mem_arena, VMesh *vm, float co[3])
+static BoundVert *add_new_bound_vert(MemArena *mem_arena, VMesh *vm, const float co[3])
 {
 	BoundVert *ans = (BoundVert *)BLI_memarena_alloc(mem_arena, sizeof(BoundVert));
 
@@ -383,7 +383,8 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
 	if (fabs(angle_v3v3(dir1, dir2)) < BEVEL_EPSILON) {
 		/* lines are parallel; off1a is a good meet point */
 		copy_v3_v3(meetco, off1a);
-        } else if (!isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2)) {
+	}
+	else if (!isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2)) {
 		/* another test says they are parallel */
 		copy_v3_v3(meetco, off1a);
 	}
@@ -392,7 +393,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
 /* Offset by e->offset in plane with normal plane_no, on left if left==TRUE,
  * else on right.  If no is NULL, choose an arbitrary plane different
  * from eh's direction. */
-static void offset_in_plane(EdgeHalf *e, float plane_no[3], int left, float r[3])
+static void offset_in_plane(EdgeHalf *e, const float plane_no[3], int left, float r[3])
 {
 	float dir[3], no[3];
 	BMVert *v;
@@ -434,7 +435,7 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 }
 
 /* Calculate the point on e where line (co_a, co_b) comes closest to and return it in projco */
-static void project_to_edge(BMEdge *e, float co_a[3], float co_b[3], float projco[3])
+static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3], float projco[3])
 {
 	float otherco[3];
 
@@ -471,7 +472,7 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
  * of that segment in r.
  */
 static void get_point_on_round_profile(float r[3], float offset, int i, int count,
-                                       float va[3], float v[3], float vb[3])
+                                       const float va[3], const float v[3], const float vb[3])
 {
 	float vva[3], vvb[3], angle, center[3], rv[3], axis[3], co[3];
 
@@ -514,7 +515,8 @@ static void get_point_on_round_profile(float r[3], float offset, int i, int coun
  * If va, vmid, and vb are all on the same plane, just interpolate between va and vb.
  */
 static void get_point_on_round_edge(EdgeHalf *e, int i,
-                                    float va[3], float vmid[3], float vb[3], float profileco[3])
+                                    const float va[3], const float vmid[3], const float vb[3],
+                                    float profileco[3])
 {
 	float vva[3], vvb[3],  point[3], dir[3], vaadj[3], vbadj[3], p2[3], pn[3];
 	int n = e->seg;
@@ -545,13 +547,6 @@ static void get_point_on_round_edge(EdgeHalf *e, int i,
 		/* planar case */
 		interp_v3_v3v3(profileco, va, vb, (float) i / (float) n);
 	}
-}
-
-static void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float v3[3])
-{
-	v[0] = (v1[0] + v2[0] + v3[0]) / 3.0f;
-	v[1] = (v1[1] + v2[1] + v3[1]) / 3.0f;
-	v[2] = (v1[2] + v2[2] + v3[2]) / 3.0f;
 }
 
 /* Make a circular list of BoundVerts for bv, each of which has the coordinates
