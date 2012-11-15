@@ -347,7 +347,7 @@ void xdnd_set_dnd_aware (DndClass * dnd, Window window, Atom * typelist)
                     &nchildren_return);
     if (children_return)
         XFree (children_return);
-    if (r)
+    if (r && parent != root_return)
         xdnd_set_dnd_aware (dnd, parent, typelist);
 }
 
