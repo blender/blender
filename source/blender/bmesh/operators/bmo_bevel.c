@@ -36,6 +36,9 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
+/* experemental - Campbell */
+// #define USE_ALTERNATE_ADJ
+
 #define BEVEL_FLAG      1
 #define EDGE_SELECTED   2
 
@@ -434,6 +437,7 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 	madd_v3_v3fl(slideco, dir, -d);
 }
 
+#ifndef USE_ALTERNATE_ADJ
 /* Calculate the point on e where line (co_a, co_b) comes closest to and return it in projco */
 static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3], float projco[3])
 {
@@ -444,7 +448,7 @@ static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3],
 		copy_v3_v3(projco, e->v1->co);
 	}
 }
-
+#endif
 
 /* return 1 if a and b are in CCW order on the normal side of f,
  * and -1 if they are reversed, and 0 if there is no shared face f */
@@ -460,6 +464,68 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
 		return 0;
 	return lb->next == la ? 1 : -1;
 }
+
+#ifdef USE_ALTERNATE_ADJ
+
+static void vmesh_cent(VMesh *vm, float r_cent[3])
+{
+	BoundVert *v;
+	int tot = 0;
+	zero_v3(r_cent);
+
+	v = vm->boundstart;
+	do {
+		add_v3_v3(r_cent, v->nv.co);
+		tot++;
+	} while ((v = v->next) != vm->boundstart);
+	mul_v3_fl(r_cent, 1.0f / (float)tot);
+}
+
+/**
+ *
+ * This example shows a tri fan of quads,
+ * but could be an NGon fan of quads too.
+ * <pre>
+ *      The whole triangle   X
+ *      represents the      / \
+ *      new bevel face.    /   \
+ *                        /     \
+ *       Split into      /       \
+ *       a quad fan.    /         \
+ *                     /           \
+ *                    /             \
+ *                   /               \
+ *          co_prev +-.             .-+
+ *                 /   `-._     _.-'   \
+ *                / co_cent`-+-'        \
+ *               /           |           \
+ * Quad of      /            |            \
+ * interest -- / ---> X      |             \
+ *            /              |              \
+ *           /               |               \
+ *          /         co_next|                \
+ * co_orig +-----------------+-----------------+
+ *
+ *         For each quad, calcualte UV's based on the following:
+ *           U = k    / (vm->seg * 2)
+ *           V = ring / (vm->seg * 2)
+ *           quad = (co_orig, co_prev, co_cent, co_next)
+ *           ... note that co_cent is the same for all quads in the fan.
+ * </pre>
+ *
+ */
+
+static void get_point_on_round_edge(EdgeHalf *e, int ring, int k,
+                                    float quad[4][3],
+                                    float r_co[3])
+{
+	const float n = e->seg;
+	const float uv[2] = {(ring / n) * 2.0f, (k / n) * 2.0f};
+
+	interp_bilinear_quad_v3(quad, uv[0], uv[1], r_co);
+}
+
+#else  /* USE_ALTERNATE_ADJ */
 
 /*
  * calculation of points on the round profile
@@ -548,6 +614,8 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
 		interp_v3_v3v3(r_co, va, vb, (float)k / (float)n);
 	}
 }
+
+#endif  /* !USE_ALTERNATE_ADJ */
 
 /* Make a circular list of BoundVerts for bv, each of which has the coordinates
  * of a vertex on the the boundary of the beveled vertex bv->v.
@@ -693,6 +761,13 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	BMFace *f;
 	float co[3], coa[3], cob[3], midco[3];
 
+#ifdef USE_ALTERNATE_ADJ
+	/* ordered as follows (orig, prev, center, next)*/
+	float quad[4][3];
+	/* the rest are initialized inline, this remains the same for all */
+	vmesh_cent(vm, quad[2]);
+#endif
+
 	n = vm->count;
 	ns = vm->seg;
 	ns2 = ns / 2;
@@ -702,6 +777,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	 * BoundVert for i has a bevel, 0 <= r <= ns2, 0 <= k <= ns */
 	for (ring = 1; ring <= ns2; ring++) {
 		v = vm->boundstart;
+
 		do {
 			i = v->index;
 			if (v->ebev) {
@@ -728,6 +804,19 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				copy_v3_v3(nv->co, cob);
 				nv->v = nvnext->v;
 
+#ifdef USE_ALTERNATE_ADJ
+				copy_v3_v3(quad[0], v->nv.co);
+				mid_v3_v3v3(quad[1], v->nv.co, v->prev->nv.co);
+				/* quad[2] is set */
+				mid_v3_v3v3(quad[3], v->nv.co, v->next->nv.co);
+#endif
+
+#ifdef USE_ALTERNATE_ADJ
+				for (k = 1; k < ns; k++) {
+					get_point_on_round_edge(v->ebev, ring, k, quad, co);
+					copy_v3_v3(mesh_vert(vm, i, ring, k)->co, co);
+				}
+#else
 				/* TODO: better calculation of new midarc point? */
 				project_to_edge(v->ebev->e, coa, cob, midco);
 
@@ -735,6 +824,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					get_point_on_round_edge(v->ebev, k, coa, midco, cob, co);
 					copy_v3_v3(mesh_vert(vm, i, ring, k)->co, co);
 				}
+#endif
 			}
 		} while ((v = v->next) != vm->boundstart);
 	}
@@ -759,7 +849,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 						nv = mesh_vert(vm, i, ring, k);
 						nvprev = mesh_vert(vm, vprev->index, k, ns - ring);
 						mid_v3_v3v3(co, nv->co, nvprev->co);
+#ifndef USE_ALTERNATE_ADJ
 						copy_v3_v3(nv->co, co);
+#endif
 						BLI_assert(nv->v == NULL && nvprev->v == NULL);
 						create_mesh_bmvert(bm, vm, i, ring, k, bv->v);
 						copy_mesh_vert(vm, vprev->index, k, ns - ring, i, ring, k);
@@ -806,7 +898,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 						nvnext = mesh_vert(vm, vnext->index, ns2, k);
 					if (vprev->ebev && vnext->ebev) {
 						mid_v3_v3v3v3(co, nvprev->co, nv->co, nvnext->co);
+#ifndef USE_ALTERNATE_ADJ
 						copy_v3_v3(nv->co, co);
+#endif
 						create_mesh_bmvert(bm, vm, i, k, ns2, bv->v);
 						copy_mesh_vert(vm, vprev->index, ns2, ns - k, i, k, ns2);
 						copy_mesh_vert(vm, vnext->index, ns2, k, i, k, ns2);
@@ -814,7 +908,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					}
 					else if (vprev->ebev) {
 						mid_v3_v3v3(co, nvprev->co, nv->co);
+#ifndef USE_ALTERNATE_ADJ
 						copy_v3_v3(nv->co, co);
+#endif
 						create_mesh_bmvert(bm, vm, i, k, ns2, bv->v);
 						copy_mesh_vert(vm, vprev->index, ns2, ns - k, i, k, ns2);
 
@@ -822,7 +918,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					}
 					else if (vnext->ebev) {
 						mid_v3_v3v3(co, nv->co, nvnext->co);
+#ifndef USE_ALTERNATE_ADJ
 						copy_v3_v3(nv->co, co);
+#endif
 						create_mesh_bmvert(bm, vm, i, k, ns2, bv->v);
 						copy_mesh_vert(vm, vnext->index, ns2, k, i, k, ns2);
 
@@ -1088,7 +1186,19 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 	VMesh *vm = bv->vmesh;
 	BoundVert *v, *weld1, *weld2;
 	int n, ns, ns2, i, k, weld;
-	float *va, *vb, co[3], midco[3];
+	float *va, *vb, co[3];
+
+#ifdef USE_ALTERNATE_ADJ
+	/* ordered as follows (orig, prev, center, next)*/
+	float quad[4][3];
+#else
+	float midco[3];
+#endif
+
+#ifdef USE_ALTERNATE_ADJ
+	/* the rest are initialized inline, this remains the same for all */
+	vmesh_cent(vm, quad[2]);
+#endif
 
 	n = vm->count;
 	ns = vm->seg;
@@ -1118,9 +1228,25 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 	/* copy other ends to (i, 0, ns) for all i, and fill in profiles for beveled edges */
 	v = vm->boundstart;
 	do {
+
+#ifdef USE_ALTERNATE_ADJ
+		copy_v3_v3(quad[0], v->nv.co);
+		mid_v3_v3v3(quad[1], v->nv.co, v->prev->nv.co);
+		/* quad[2] is set */
+		mid_v3_v3v3(quad[3], v->nv.co, v->next->nv.co);
+#endif
+
 		i = v->index;
 		copy_mesh_vert(vm, i, 0, ns, v->next->index, 0, 0);
 		if (v->ebev) {
+#ifdef USE_ALTERNATE_ADJ
+			for (k = 1; k < ns; k++) {
+				get_point_on_round_edge(v->ebev, 0, k, quad, co);
+				copy_v3_v3(mesh_vert(vm, i, 0, k)->co, co);
+				if (!weld)
+					create_mesh_bmvert(bm, vm, i, 0, k, bv->v);
+			}
+#else
 			va = mesh_vert(vm, i, 0, 0)->co;
 			vb = mesh_vert(vm, i, 0, ns)->co;
 			project_to_edge(v->ebev->e, va, vb, midco);
@@ -1130,6 +1256,7 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 				if (!weld)
 					create_mesh_bmvert(bm, vm, i, 0, k, bv->v);
 			}
+#endif
 		}
 	} while ((v = v->next) != vm->boundstart);
 
