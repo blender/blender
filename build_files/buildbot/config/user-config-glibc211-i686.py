@@ -162,4 +162,6 @@ WITH_BF_OCEANSIM = True
 BF_DEBUG = False
 REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
 PLATFORM_LINKFLAGS = ['-lrt']
-BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive']
+
+if WITH_BF_CYCLES_OSL:
+	BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive']
