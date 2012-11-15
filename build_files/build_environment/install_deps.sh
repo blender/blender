@@ -2,25 +2,58 @@
 
 DISTRO=""
 SRC="$HOME/src/blender-deps"
+INST="/opt/lib"
 CWD=$PWD
 
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
 
 PYTHON_VERSION="3.3.0"
-BOOST_VERSION="1_51_0"
-OIIO_VERSION="1.1.0"
+PYTHON_VERSION_MIN="3.3"
+PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.bz2"
+
+BOOST_VERSION="1.51.0"
+_boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
+BOOST_SOURCE="http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download"
+BOOST_VERSION_MIN="1.49"
+
 OCIO_VERSION="1.0.7"
+OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
+OCIO_VERSION_MIN="1.0"
+
+OIIO_VERSION="1.1.0"
+OIIO_SOURCE="https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION"
+OIIO_VERSION_MIN="1.1"
+
+LLVM_VERSION="3.1"
+LLVM_VERSION_MIN="3.0"
+
+# OSL needs to be compiled for now!
+OSL_VERSION="1.2.0"
+OSL_SOURCE="https://github.com/DingTo/OpenShadingLanguage/archive/blender-fixes.zip"
+
 FFMPEG_VERSION="1.0"
+FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
+FFMPEG_VERSION_MIN="0.7.6"
 _ffmpeg_list_sep=";"
 
-# XXX Looks like ubuntu has libxvidcore4-dev, while debian has libxvidcore-dev...
-HASXVID=false
-XVIDDEV=""
-HASVPX=false
-HASMP3LAME=false
-HASX264=false
-HASOPENJPEG=false
-HASSCHRO=false
+# FFMPEG optional libs.
+VORBIS_USE=false
+VORBIS_DEV=""
+SCHRO_USE=false
+SCRHO_DEV=""
+THEORA_USE=false
+THEORA_DEV=""
+XVID_USE=false
+XVID_DEV=""
+X264_USE=false
+X264_DEV=""
+VPX_USE=false
+VPX_VERSION_MIN=0.9.7
+VPX_DEV=""
+MP3LAME_USE=false
+MP3LAME_DEV=""
+OPENJPEG_USE=false
+OPENJPEG_DEV=""
 
 # Switch to english language, else some things (like check_package_DEB()) won't work!
 LANG_BACK=$LANG
@@ -35,17 +68,17 @@ INFO() {
   echo "${@}"
 }
 
-# Return 1 if $1 >= $2, else 0.
+# Return 0 if $1 >= $2, else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_ge() {
   if [ $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
-    return 0
-  else
     return 1
+  else
+    return 0
   fi
 }
 
-# Return 1 if $1 is into $2 (e.g. 3.3.2 is into 3.3, but not 3.3.0 or 3.3.5)
+# Return 0 if $1 is into $2 (e.g. 3.3.2 is into 3.3, but not 3.3.0 or 3.3.5), else 1.
 # $1 and $2 should be version numbers made of numbers only.
 # $1 should be at least as long as $2!
 version_match() {
@@ -56,16 +89,16 @@ version_match() {
   arr1=( $1 )
   arr2=( $2 )
 
-  ret=0
+  ret=1
 
   count1=${#arr1[@]}
   count2=${#arr2[@]}
   if [ $count1 -ge $count2 ]; then
-    ret=1
+    ret=0
     for (( i=0; $i < $count2; i++ ))
     do
       if [ $(( 10#${arr1[$i]} )) -ne $(( 10#${arr2[$i]} )) ]; then
-        ret=0
+        ret=1
         break
       fi
     done
@@ -86,21 +119,44 @@ detect_distro() {
 }
 
 prepare_opt() {
-  INFO "Ensuring /opt/lib exists and writable by us"
-  sudo mkdir -p /opt/lib
-  sudo chown $USER /opt/lib
-  sudo chmod 775 /opt/lib
+  INFO "Ensuring $INST exists and is writable by us"
+  sudo mkdir -p $INST
+  sudo chown $USER $INST
+  sudo chmod 775 $INST
+}
+
+# Check whether the current package needs to be recompiled, based on a dummy file containing a magic number in its name...
+magic_compile_check() {
+  if [ -f $INST/.$1-magiccheck-$2 ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+magic_compile_set() {
+  rm -f $INST/.$1-magiccheck-*
+  touch $INST/.$1-magiccheck-$2
 }
 
 compile_Python() {
-  if [ ! -d /opt/lib/python-$PYTHON_VERSION ]; then
+  # To be changed each time we make edits that would modify the compiled result!
+  py_magic=0
+
+  # Clean install if needed!
+  magic_compile_check python-$PYTHON_VERSION $py_magic
+  if [ $? -eq 1 ]; then
+    rm -rf $INST/python-$PYTHON_VERSION
+  fi
+
+  if [ ! -d $INST/python-$PYTHON_VERSION ]; then
     INFO "Building Python-$PYTHON_VERSION"
 
     prepare_opt
 
     if [ ! -d $SRC/Python-$PYTHON_VERSION ]; then
       mkdir -p $SRC
-      wget -c http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.bz2 -P $SRC
+      wget -c $PYTHON_SOURCE -P $SRC
 
       INFO "Unpacking Python-$PYTHON_VERSION"
       tar -C $SRC -xf $SRC/Python-$PYTHON_VERSION.tar.bz2
@@ -108,7 +164,7 @@ compile_Python() {
 
     cd $SRC/Python-$PYTHON_VERSION
 
-    ./configure --prefix=/opt/lib/python-$PYTHON_VERSION --enable-ipv6 \
+    ./configure --prefix=$INST/python-$PYTHON_VERSION --enable-ipv6 \
         --enable-loadable-sqlite-extensions --with-dbmliborder=bdb \
         --with-computed-gotos --with-pymalloc
 
@@ -116,61 +172,88 @@ compile_Python() {
     make install
     make clean
 
-    rm -f /opt/lib/python-3.3
-    ln -s python-$PYTHON_VERSION /opt/lib/python-3.3
+    rm -f $INST/python-3.3
+    ln -s python-$PYTHON_VERSION $INST/python-3.3
+
+    magic_compile_set python-$PYTHON_VERSION $py_magic
 
     cd $CWD
+  else
+    INFO "Own Python-$PYTHON_VERSION is up to date, nothing to do!"
   fi
 }
 
 compile_Boost() {
-  INFO "Building boost"
+  # To be changed each time we make edits that would modify the compiled result!
+  boost_magic=7
 
-  version_dots=`echo "$BOOST_VERSION" | sed -r 's/_/./g'`
+  # Clean install if needed!
+  magic_compile_check boost-$BOOST_VERSION $boost_magic
+  if [ $? -eq 1 ]; then
+    rm -rf $INST/boost-$BOOST_VERSION
+  fi
 
-  if [ ! -d /opt/lib/boost-$version_dots ]; then
-    INFO "Building Boost-$version_dots"
+  if [ ! -d $INST/boost-$BOOST_VERSION ]; then
+    INFO "Building Boost-$BOOST_VERSION"
 
     prepare_opt
 
-    if [ ! -d $SRC/boost_$BOOST_VERSION ]; then
-      INFO "Downloading Boost-$version_dots"
+    if [ ! -d $SRC/boost-$BOOST_VERSION ]; then
+      INFO "Downloading Boost-$BOOST_VERSION"
       mkdir -p $SRC
-      wget -c http://sourceforge.net/projects/boost/files/boost/$version_dots/boost_$BOOST_VERSION.tar.bz2/download \
-        -O $SRC/boost_$BOOST_VERSION.tar.bz2
-      tar -C $SRC -xf $SRC/boost_$BOOST_VERSION.tar.bz2
+      wget -c $BOOST_SOURCE -O $SRC/boost-$BOOST_VERSION.tar.bz2
+      tar -C $SRC --transform "s,(.*/?)boost_1_[^/]+(.*),\1boost-$BOOST_VERSION\2,x" -xf $SRC/boost-$BOOST_VERSION.tar.bz2
     fi
 
-    cd $SRC/boost_$BOOST_VERSION
-    ./bootstrap.sh --with-libraries=system,filesystem,thread,regex,locale,date-time --prefix=/opt/lib/boost-$version_dots
-    ./b2 install
+    cd $SRC/boost-$BOOST_VERSION
+    if [ ! -f $SRC/boost-$BOOST_VERSION/b2 ]; then
+      ./bootstrap.sh
+    fi
+    ./b2 -j$THREADS -a --with-system --with_filesystem --with-thread --with-regex --with-locale --with-date_time \
+         --prefix=$INST/boost-$BOOST_VERSION --disable-icu boost.locale.icu=off install
     ./b2 --clean
 
-    rm -f /opt/lib/boost
-    ln -s boost-$version_dots /opt/lib/boost
+    rm -f $INST/boost
+    ln -s boost-$BOOST_VERSION $INST/boost
+
+    magic_compile_set boost-$BOOST_VERSION $boost_magic
 
     cd $CWD
+  else
+    INFO "Own Boost-$BOOST_VERSION is up to date, nothing to do!"
   fi
 }
 
 compile_OCIO() {
-  if [ ! -d /opt/lib/ocio-$OCIO_VERSION ]; then
+  # To be changed each time we make edits that would modify the compiled result!
+  ocio_magic=1
+
+  # Clean install if needed!
+  magic_compile_check ocio-$OCIO_VERSION $ocio_magic
+  if [ $? -eq 1 ]; then
+    rm -rf $INST/ocio-$OCIO_VERSION
+  fi
+
+  if [ ! -d $INST/ocio-$OCIO_VERSION ]; then
     INFO "Building OpenColorIO-$OCIO_VERSION"
 
     prepare_opt
 
     if [ ! -d $SRC/OpenColorIO-$OCIO_VERSION ]; then
-        INFO "Downloading OpenColorIO-$OCIO_VERSION"
-        mkdir -p $SRC
-        wget -c http://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION \
-          -O $SRC/OpenColorIO-$OCIO_VERSION.tar.gz
+      INFO "Downloading OpenColorIO-$OCIO_VERSION"
+      mkdir -p $SRC
+      wget -c $OCIO_SOURCE -O $SRC/OpenColorIO-$OCIO_VERSION.tar.gz
 
-        INFO "Unpacking OpenColorIO-$OCIO_VERSION"
-        tar -C "$SRC" -xf $SRC/OpenColorIO-$OCIO_VERSION.tar.gz
-        mv $SRC/imageworks-OpenColorIO* $SRC/OpenColorIO-$OCIO_VERSION
+      INFO "Unpacking OpenColorIO-$OCIO_VERSION"
+      tar -C $SRC --transform "s,(.*/?)imageworks-OpenColorIO[^/]*(.*),\1OpenColorIO-$OCIO_VERSION\2,x" \
+          -xf $SRC/OpenColorIO-$OCIO_VERSION.tar.gz
     fi
 
     cd $SRC/OpenColorIO-$OCIO_VERSION
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi    
     mkdir build
     cd build
 
@@ -181,8 +264,8 @@ compile_OCIO() {
     fi
 
     cmake -D CMAKE_BUILD_TYPE=Release \
-        -D CMAKE_PREFIX_PATH=/opt/lib/ocio-$OCIO_VERSION \
-        -D CMAKE_INSTALL_PREFIX=/opt/lib/ocio-$OCIO_VERSION \
+        -D CMAKE_PREFIX_PATH=$INST/ocio-$OCIO_VERSION \
+        -D CMAKE_INSTALL_PREFIX=$INST/ocio-$OCIO_VERSION \
         -D CMAKE_CXX_FLAGS="$cflags" \
         -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
         ..
@@ -190,43 +273,59 @@ compile_OCIO() {
     make -j$THREADS
     make install
 
-    # Force linking against sttaic libs
-    rm -f /opt/lib/ocio-$OCIO_VERSION/lib/*.so*
+    # Force linking against static libs
+    rm -f $INST/ocio-$OCIO_VERSION/lib/*.so*
 
     # Additional depencencies
-    cp ext/dist/lib/libtinyxml.a /opt/lib/ocio-$OCIO_VERSION/lib
-    cp ext/dist/lib/libyaml-cpp.a /opt/lib/ocio-$OCIO_VERSION/lib
+    cp ext/dist/lib/libtinyxml.a $INST/ocio-$OCIO_VERSION/lib
+    cp ext/dist/lib/libyaml-cpp.a $INST/ocio-$OCIO_VERSION/lib
 
     make clean
 
-    rm -f /opt/lib/ocio
-    ln -s ocio-$OCIO_VERSION /opt/lib/ocio
+    rm -f $INST/ocio
+    ln -s ocio-$OCIO_VERSION $INST/ocio
+
+    magic_compile_set ocio-$OCIO_VERSION $ocio_magic
 
     cd $CWD
+  else
+    INFO "Own OpenColorIO-$OCIO_VERSION is up to date, nothing to do!"
   fi
 }
 
 compile_OIIO() {
-  if [ ! -d /opt/lib/oiio-$OIIO_VERSION ]; then
+  # To be changed each time we make edits that would modify the compiled result!
+  oiio_magic=1
+
+  # Clean install if needed!
+  magic_compile_check oiio-$OIIO_VERSION $oiio_magic
+  if [ $? -eq 1 ]; then
+    rm -rf $INST/oiio-$OIIO_VERSION
+  fi
+
+  if [ ! -d $INST/oiio-$OIIO_VERSION ]; then
     INFO "Building OpenImageIO-$OIIO_VERSION"
 
     prepare_opt
 
     if [ ! -d $SRC/OpenImageIO-$OIIO_VERSION ]; then
-      wget -c https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION \
-          -O "$SRC/OpenImageIO-$OIIO_VERSION.tar.gz"
+      wget -c $OIIO_SOURCE -O "$SRC/OpenImageIO-$OIIO_VERSION.tar.gz"
 
       INFO "Unpacking OpenImageIO-$OIIO_VERSION"
-      tar -C $SRC -xf $SRC/OpenImageIO-$OIIO_VERSION.tar.gz
-      mv $SRC/OpenImageIO-oiio* $SRC/OpenImageIO-$OIIO_VERSION
+      tar -C $SRC --transform "s,(.*/?)OpenImageIO-oiio[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
+          -xf $SRC/OpenImageIO-$OIIO_VERSION.tar.gz
     fi
 
     cd $SRC/OpenImageIO-$OIIO_VERSION
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi    
     mkdir build
     cd build
 
-    if [ -d /opt/lib/boost ]; then
-      boost_root="/opt/lib/boost"
+    if [ -d $INST/boost ]; then
+      boost_root="$INST/boost"
     else
       boost_root="/usr"
     fi
@@ -238,36 +337,49 @@ compile_OIIO() {
     fi
 
     cmake -D CMAKE_BUILD_TYPE=Release \
-        -D CMAKE_PREFIX_PATH=/opt/lib/oiio-$OIIO_VERSION \
-        -D CMAKE_INSTALL_PREFIX=/opt/lib/oiio-$OIIO_VERSION \
-        -D BUILDSTATIC=ON \
-        -D CMAKE_CXX_FLAGS="$cflags" \
-        -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
-        -D BOOST_ROOT="$boost_root" \
-        ../src
+          -D CMAKE_PREFIX_PATH=$INST/oiio-$OIIO_VERSION \
+          -D CMAKE_INSTALL_PREFIX=$INST/oiio-$OIIO_VERSION \
+          -D BUILDSTATIC=ON \
+          -D CMAKE_CXX_FLAGS="$cflags" \
+          -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
+          -D BOOST_ROOT="$boost_root" \
+          ../src
 
     make -j$THREADS
     make install
     make clean
 
-    rm -f /opt/lib/oiio
-    ln -s oiio-$OIIO_VERSION /opt/lib/oiio
+    rm -f $INST/oiio
+    ln -s oiio-$OIIO_VERSION $INST/oiio
+
+    magic_compile_set oiio-$OIIO_VERSION $oiio_magic
 
     cd $CWD
+  else
+    INFO "Own OpenImageIO-$OIIO_VERSION is up to date, nothing to do!"
   fi
 }
 
 compile_FFmpeg() {
-  if [ ! -d /opt/lib/ffmpeg-$FFMPEG_VERSION ]; then
-    INFO "Building FFmpeg-$FFMPEG_VERSION"
+  # To be changed each time we make edits that would modify the compiled result!
+  ffmpeg_magic=0
+
+  # Clean install if needed!
+  magic_compile_check ffmpeg-$FFMPEG_VERSION $ffmpeg_magic
+  if [ $? -eq 1 ]; then
+    rm -rf $INST/ffmpeg-$FFMPEG_VERSION
+  fi
+
+  if [ ! -d $INST/ffmpeg-$FFMPEG_VERSION ]; then
+    INFO "Building ffmpeg-$FFMPEG_VERSION"
 
     prepare_opt
 
     if [ ! -d $SRC/ffmpeg-$FFMPEG_VERSION ]; then
-      INFO "Downloading FFmpeg-$FFMPEG_VERSION"
-      wget -c http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2 -P $SRC
+      INFO "Downloading ffmpeg-$FFMPEG_VERSION"
+      wget -c $FFMPEG_SOURCE -P $SRC
 
-      INFO "Unpacking FFmpeg-$FFMPEG_VERSION"
+      INFO "Unpacking ffmpeg-$FFMPEG_VERSION"
       tar -C $SRC -xf $SRC/ffmpeg-$FFMPEG_VERSION.tar.bz2
     fi
 
@@ -275,34 +387,42 @@ compile_FFmpeg() {
 
     extra=""
 
-    if $HASXVID; then
-      extra="$extra --enable-libxvid"
+    if $VORBIS_USE; then
+      extra="$extra --enable-libvorbis"
     fi
 
-    if $HASVPX; then
-      extra="$extra --enable-libvpx"
+    if $THEORA_USE; then
+      extra="$extra --enable-libtheora"
     fi
 
-    if $HASMP3LAME; then
-      extra="$extra --enable-libmp3lame"
-    fi
-
-    if $HASX264; then
-      extra="$extra --enable-libx264"
-    fi
-
-    if $HASOPENJPEG; then
-      extra="$extra --enable-libopenjpeg"
-    fi
-
-    if $HASSCHRO; then
+    if $SCHRO_USE; then
       extra="$extra --enable-libschroedinger"
     fi
 
+    if $XVID_USE; then
+      extra="$extra --enable-libxvid"
+    fi
+
+    if $X264_USE; then
+      extra="$extra --enable-libx264"
+    fi
+
+    if $VPX_USE; then
+      extra="$extra --enable-libvpx"
+    fi
+
+    if $MP3LAME_USE; then
+      extra="$extra --enable-libmp3lame"
+    fi
+
+    if $OPENJPEG_USE; then
+      extra="$extra --enable-libopenjpeg"
+    fi
+
     ./configure --cc="gcc -Wl,--as-needed" --extra-ldflags="-pthread -static-libgcc" \
-        --prefix=/opt/lib/ffmpeg-$FFMPEG_VERSION --enable-static --enable-avfilter --disable-vdpau \
-        --disable-bzlib --disable-libgsm --disable-libspeex --enable-libtheora \
-        --enable-libvorbis --enable-pthreads --enable-zlib --enable-stripping --enable-runtime-cpudetect \
+        --prefix=$INST/ffmpeg-$FFMPEG_VERSION --enable-static --enable-avfilter --disable-vdpau \
+        --disable-bzlib --disable-libgsm --disable-libspeex \
+        --enable-pthreads --enable-zlib --enable-stripping --enable-runtime-cpudetect \
         --disable-vaapi  --disable-libfaac --disable-nonfree --enable-gpl \
         --disable-postproc --disable-x11grab  --disable-librtmp  --disable-libopencore-amrnb \
         --disable-libopencore-amrwb --disable-libdc1394 --disable-version3  --disable-outdev=sdl \
@@ -313,10 +433,14 @@ compile_FFmpeg() {
     make install
     make clean
 
-    rm -f /opt/lib/ffmpeg
-    ln -s ffmpeg-$FFMPEG_VERSION /opt/lib/ffmpeg
+    rm -f $INST/ffmpeg
+    ln -s ffmpeg-$FFMPEG_VERSION $INST/ffmpeg
+
+    magic_compile_set ffmpeg-$FFMPEG_VERSION $ffmpeg_magic
 
     cd $CWD
+  else
+    INFO "Own ffmpeg-$FFMPEG_VERSION is up to date, nothing to do!"
   fi
 }
 
@@ -334,57 +458,89 @@ check_package_DEB() {
   fi
 }
 
+check_package_version_match_DEB() {
+  v=`apt-cache policy $1 | grep 'Candidate:' | sed -r 's/.*:\s*(([0-9]+\.?)+).*/\1/'`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_match $v $2
+  return $?
+}
+
+check_package_version_ge_DEB() {
+  v=`apt-cache policy $1 | grep 'Candidate:' | sed -r 's/.*:\s*(([0-9]+\.?)+).*/\1/'`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_ge $v $2
+  return $?
+}
+
 install_DEB() {
-  INFO "Installing dependencies for DEB-based distributive"
+  INFO "Installing dependencies for DEB-based distribution"
+  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
+  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
+  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
 
   sudo apt-get update
 # XXX Why in hell? Let's let this stuff to the user's responsability!!!
 #  sudo apt-get -y upgrade
 
+  # These libs should always be available in debian/ubuntu official repository...
+  OPENJPEG_DEV="libopenjpeg-dev"
+  SCHRO_DEV="libschroedinger-dev"
+  VORBIS_DEV="libvorbis-dev"
+  THEORA_DEV="libtheora-dev"
+
   sudo apt-get install -y cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
-    libssl-dev liblzma-dev libreadline-dev libopenjpeg-dev libopenexr-dev libopenal-dev \
-    libglew-dev yasm libschroedinger-dev libtheora-dev libvorbis-dev libsdl1.2-dev \
-    libfftw3-dev libjack-dev python-dev patch
+    libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
+    libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
+    libfftw3-dev libjack-dev python-dev patch flex bison
 
-  HASOPENJPEG=true
-  HASSCHRO=true
+  OPENJPEG_USE=true
+  SCHRO_USE=true
+  VORBIS_USE=true
+  THEORA_USE=true
 
-  check_package_DEB libxvidcore-dev
+  # Grmpf, debian is libxvidcore-dev and ubuntu libxvidcore4-dev!
+  XVID_DEV="libxvidcore-dev"
+  check_package_DEB $XVID_DEV
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y libxvidcore-dev
-    HASXVID=true
-    XVIDDEV="libxvidcore-dev"
-  fi
-
-  check_package_DEB libxvidcore4-dev
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y libxvidcore4-dev
-    HASXVID=true
-    XVIDDEV="libxvidcore4-dev"
-  fi
-
-  check_package_DEB libmp3lame-dev
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y libmp3lame-dev
-    HASMP3LAME=true
-  fi
-
-  check_package_DEB libx264-dev
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y libx264-dev
-    HASX264=true
-  fi
-
-  check_package_DEB libvpx-dev
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y libvpx-dev
-    vpx_version=`deb_version libvpx-dev`
-    if  dpkg --compare-versions $vpx_version gt 0.9.7; then
-      if version_ge $vpx_version 0.9.7; then
-        HASVPX=true
-      fi
+    sudo apt-get install -y $XVID_DEV
+    XVID_USE=true
+  else
+    XVID_DEV="libxvidcore4-dev"
+    check_package_DEB $XVID_DEV
+    if [ $? -eq 0 ]; then
+      sudo apt-get install -y $XVID_DEV
+      XVID_USE=true
     fi
+  fi
+
+  MP3LAME_DEV="libmp3lame-dev"
+  check_package_DEB $MP3LAME_DEV
+  if [ $? -eq 0 ]; then
+    sudo apt-get install -y $MP3LAME_DEV
+    MP3LAME_USE=true
+  fi
+
+  X264_DEV="libx264-dev"
+  check_package_DEB $X264_DEV
+  if [ $? -eq 0 ]; then
+    sudo apt-get install -y $X264_DEV
+    X264_USE=true
+  fi
+
+  VPX_DEV="libvpx-dev"
+  check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    sudo apt-get install -y $VPX_DEV
+    VPX_USE=true
   fi
 
   check_package_DEB libspnav-dev
@@ -399,7 +555,7 @@ install_DEB() {
     compile_Python
   fi
 
-  check_package_DEB libboost-dev
+  check_package_version_ge_DEB libboost-dev $BOOST_VERSION_MIN
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libboost-dev
 
@@ -416,14 +572,14 @@ install_DEB() {
     compile_Boost
   fi
 
-  check_package_DEB libopencolorio-dev
+  check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libopencolorio-dev
   else
     compile_OCIO
   fi
 
-  check_package_DEB libopenimageio-dev
+  check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libopenimageio-dev
   else
@@ -461,6 +617,10 @@ check_package_RPM() {
 check_package_version_match_RPM() {
   v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
 
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
   version_match $v $2
   return $?
 }
@@ -468,12 +628,19 @@ check_package_version_match_RPM() {
 check_package_version_ge_RPM() {
   v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
 
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
   version_ge $v $2
   return $?
 }
 
 install_RPM() {
-  INFO "Installing dependencies for RPM-based distributive"
+  INFO "Installing dependencies for RPM-based distribution"
+  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
+  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
+  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
 
   sudo yum -y update
 
@@ -484,36 +651,36 @@ install_RPM() {
     fftw-devel lame-libs jack-audio-connection-kit-devel libspnav-devel \
     libjpeg-devel patch python-devel
 
-  HASOPENJPEG=true
-  HASSCHRO=true
+  OPENJPEG_USE=true
+  SCHRO_USE=true
 
   check_package_RPM x264-devel
   if [ $? -eq 0 ]; then
     sudo yum install -y x264-devel
-    HASX264=true
+    X264_USE=true
   fi
 
   check_package_RPM xvidcore-devel
   if [ $? -eq 0 ]; then
     sudo yum install -y xvidcore-devel
-    HASXVID=true
-    XVIDDEV="xvidcore-devel"
+    XVID_USE=true
+    XVID_DEV="xvidcore-devel"
   fi
 
   check_package_version_ge_RPM libvpx-devel 0.9.7
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 0 ]; then
     sudo yum install -y libvpx-devel
-    HASVPX=true
+    VPX_USE=true
   fi
 
   check_package_RPM lame-devel
   if [ $? -eq 0 ]; then
     sudo yum install -y lame-devel
-    HASMP3LAME=true
+    MP3LAME_USE=true
   fi
 
   check_package_version_match_RPM python3-devel 3.3
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 0 ]; then
     sudo yum install -y python-devel
   else
     compile_Python
@@ -568,7 +735,10 @@ check_package_version_SUSE() {
 }
 
 install_SUSE() {
-  INFO "Installing dependencies for SuSE-based distributive"
+  INFO "Installing dependencies for SuSE-based distribution"
+  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
+  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
+  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
 
   sudo zypper --non-interactive update --auto-agree-with-licenses
 
@@ -596,27 +766,27 @@ install_SUSE() {
 print_info_ffmpeglink_DEB() {
   _packages="libtheora-dev"
 
-  if $HASXVID; then
-    _packages="$_packages $XVIDDEV"
+  if $XVID_USE; then
+    _packages="$_packages $XVID_DEV"
   fi
 
-  if $HASVPX; then
+  if $VPX_USE; then
     _packages="$_packages libvpx-dev"
   fi
 
-  if $HASMP3LAME; then
+  if $MP3LAME_USE; then
     _packages="$_packages libmp3lame-dev"
   fi
 
-  if $HASX264; then
+  if $X264_USE; then
     _packages="$_packages libx264-dev"
   fi
 
-  if $HASOPENJPEG; then
+  if $OPENJPEG_USE; then
     _packages="$_packages libopenjpeg-dev"
   fi
 
-  if $HASSCHRO; then
+  if $SCHRO_USE; then
     _packages="$_packages libschroedinger-dev"
   fi
 
@@ -626,27 +796,27 @@ print_info_ffmpeglink_DEB() {
 print_info_ffmpeglink_RPM() {
   _packages="libtheora-devel libvorbis-devel"
 
-  if $HASXVID; then
-    _packages="$_packages $XVIDDEV"
+  if $XVID_USE; then
+    _packages="$_packages $XVID_DEV"
   fi
 
-  if $HASVPX; then
+  if $VPX_USE; then
     _packages="$_packages libvpx-devel"
   fi
 
-  if $HASMP3LAME; then
+  if $MP3LAME_USE; then
     _packages="$_packages lame-devel"
   fi
 
-  if $HASX264; then
+  if $X264_USE; then
     _packages="$_packages x264-devel"
   fi
 
-  if $HASOPENJPEG; then
+  if $OPENJPEG_USE; then
     _packages="$_packages openjpeg-devel"
   fi
 
-  if $HASSCHRO; then
+  if $SCHRO_USE; then
     _packages="$_packages schroedinger-devel"
   fi
 
@@ -673,39 +843,39 @@ print_info() {
   INFO ""
   INFO "If you're using CMake add this to your configuration flags:"
 
-  if [ -d /opt/lib/boost ]; then
-    INFO "  -D BOOST_ROOT=/opt/lib/boost"
+  if [ -d $INST/boost ]; then
+    INFO "  -D BOOST_ROOT=$INST/boost"
     INFO "  -D Boost_NO_SYSTEM_PATHS=ON"
   fi
 
-  if [ -d /opt/lib/ffmpeg ]; then
+  if [ -d $INST/ffmpeg ]; then
     INFO "  -D WITH_CODEC_FFMPEG=ON"
-    INFO "  -D FFMPEG=/opt/lib/ffmpeg"
+    INFO "  -D FFMPEG=$INST/ffmpeg"
     INFO "  -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
   fi
 
   INFO ""
   INFO "If you're using SCons add this to your user-config:"
 
-  if [ -d /opt/lib/python-3.3 ]; then
-    INFO "BF_PYTHON='/opt/lib/python-3.3'"
+  if [ -d $INST/python-3.3 ]; then
+    INFO "BF_PYTHON='$INST/python-3.3'"
     INFO "BF_PYTHON_ABI_FLAGS='m'"
   fi
 
-  if [ -d /opt/lib/ocio ]; then
-    INFO "BF_OCIO='/opt/lib/ocio'"
+  if [ -d $INST/ocio ]; then
+    INFO "BF_OCIO='$INST/ocio'"
   fi
 
-  if [ -d /opt/lib/oiio ]; then
-    INFO "BF_OIIO='/opt/lib/oiio'"
+  if [ -d $INST/oiio ]; then
+    INFO "BF_OIIO='$INST/oiio'"
   fi
 
-  if [ -d /opt/lib/boost ]; then
-    INFO "BF_BOOST='/opt/lib/boost'"
+  if [ -d $INST/boost ]; then
+    INFO "BF_BOOST='$INST/boost'"
   fi
 
-  if [ -d /opt/lib/ffmpeg ]; then
-    INFO "BF_FFMPEG='/opt/lib/ffmpeg'"
+  if [ -d $INST/ffmpeg ]; then
+    INFO "BF_FFMPEG='$INST/ffmpeg'"
     _ffmpeg_list_sep=" "
     INFO "BF_FFMPEG_LIB='avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
   fi
