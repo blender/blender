@@ -1128,14 +1128,14 @@ elseif(WIN32)
 			set(BOOST_LIBRARIES
 				optimized libboost_date_time-${BOOST_POSTFIX} optimized libboost_filesystem-${BOOST_POSTFIX}
 				optimized libboost_regex-${BOOST_POSTFIX}
-				optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX}
+				optimized libboost_system-${BOOST_POSTFIX} optimized libboost_thread-${BOOST_POSTFIX})
 				#debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
 				#debug libboost_regex-${BOOST_DEBUG_POSTFIX}
-				#debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
+				#debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX}
 			if(WITH_INTERNATIONAL)
 				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-					optimized libboost_locale-${BOOST_POSTFIX}
-					#debug libboost_locale-${BOOST_DEBUG_POSTFIX})
+					optimized libboost_locale-${BOOST_POSTFIX})
+					#debug libboost_locale-${BOOST_DEBUG_POSTFIX}
 			endif(WITH_INTERNATIONAL)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()
