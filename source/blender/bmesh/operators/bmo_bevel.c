@@ -471,7 +471,7 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
  * angle va - center -vb, and put the endpoint
  * of that segment in r.
  */
-static void get_point_on_round_profile(float r[3], float offset, int i, int count,
+static void get_point_on_round_profile(float r_co[3], float offset, int k, int count,
                                        const float va[3], const float v[3], const float vb[3])
 {
 	float vva[3], vvb[3], angle, center[3], rv[3], axis[3], co[3];
@@ -498,14 +498,14 @@ static void get_point_on_round_profile(float r[3], float offset, int i, int coun
 	sub_v3_v3v3(vvb, vb, center);
 	angle = angle_v3v3(vva, vvb);
 
-	rotate_v3_v3v3fl(co, rv, axis, angle * (float)(i) / (float)(count));
+	rotate_v3_v3v3fl(co, rv, axis, angle * (float)k / (float)count);
 
 	add_v3_v3(co, center);
-	copy_v3_v3(r, co);
+	copy_v3_v3(r_co, co);
 }
 
 /*
- * Find the point (i/n) of the way around the round profile for e,
+ * Find the point (/n) of the way around the round profile for e,
  * where start point is va, midarc point is vmid, and end point is vb.
  * Return the answer in profileco.
  * Method:
@@ -514,9 +514,9 @@ static void get_point_on_round_profile(float r[3], float offset, int i, int coun
  * back onto original va - vmid - vb plane.
  * If va, vmid, and vb are all on the same plane, just interpolate between va and vb.
  */
-static void get_point_on_round_edge(EdgeHalf *e, int i,
+static void get_point_on_round_edge(EdgeHalf *e, int k,
                                     const float va[3], const float vmid[3], const float vb[3],
-                                    float profileco[3])
+                                    float r_co[3])
 {
 	float vva[3], vvb[3],  point[3], dir[3], vaadj[3], vbadj[3], p2[3], pn[3];
 	int n = e->seg;
@@ -534,18 +534,18 @@ static void get_point_on_round_edge(EdgeHalf *e, int i,
 		copy_v3_v3(vbadj, vb);
 		madd_v3_v3fl(vbadj, dir, -len_v3(vvb) * cosf(angle_v3v3(vvb, dir)));
 
-		get_point_on_round_profile(point, e->offset, i, n, vaadj, vmid, vbadj);
+		get_point_on_round_profile(point, e->offset, k, n, vaadj, vmid, vbadj);
 
 		add_v3_v3v3(p2, point, dir);
 		cross_v3_v3v3(pn, vva, vvb);
-		if (!isect_line_plane_v3(profileco, point, p2, vmid, pn, 0)) {
+		if (!isect_line_plane_v3(r_co, point, p2, vmid, pn, 0)) {
 			/* TODO: track down why this sometimes fails */
-			copy_v3_v3(profileco, point);
+			copy_v3_v3(r_co, point);
 		}
 	}
 	else {
 		/* planar case */
-		interp_v3_v3v3(profileco, va, vb, (float) i / (float) n);
+		interp_v3_v3v3(r_co, va, vb, (float)k / (float)n);
 	}
 }
 
