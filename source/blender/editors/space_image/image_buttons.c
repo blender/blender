@@ -593,7 +593,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 		if (ima->source == IMA_SRC_VIEWER) {
 			ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 			image_info(scene, iuser, ima, ibuf, str);
-			BKE_image_release_ibuf(ima, lock);
+			BKE_image_release_ibuf(ima, ibuf, lock);
 
 			uiItemL(layout, ima->id.name + 2, ICON_NONE);
 			uiItemL(layout, str, ICON_NONE);
@@ -663,7 +663,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				if (compact == 0) {
 					ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
 					image_info(scene, iuser, ima, ibuf, str);
-					BKE_image_release_ibuf(ima, lock);
+					BKE_image_release_ibuf(ima, ibuf, lock);
 					uiItemL(layout, str, ICON_NONE);
 				}
 			}
@@ -722,7 +722,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 				split = uiLayoutSplit(layout, 0.0f, FALSE);
 
 				col = uiLayoutColumn(split, TRUE);
-				uiLayoutSetEnabled(col, 0);
 				uiItemR(col, &imaptr, "generated_width", 0, "X", ICON_NONE);
 				uiItemR(col, &imaptr, "generated_height", 0, "Y", ICON_NONE);
 				

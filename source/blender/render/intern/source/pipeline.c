@@ -63,6 +63,7 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_threads.h"
 #include "BLI_rand.h"
 #include "BLI_callbacks.h"
 

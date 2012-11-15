@@ -1270,6 +1270,7 @@ int main(int argc, const char **argv)
 	initglobals();  /* blender.c */
 
 	IMB_init();
+	BKE_images_init();
 
 #ifdef WITH_FFMPEG
 	IMB_ffmpeg_init();

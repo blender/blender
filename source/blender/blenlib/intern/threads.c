@@ -400,6 +400,42 @@ void BLI_mutex_end(ThreadMutex *mutex)
 	pthread_mutex_destroy(mutex);
 }
 
+/* Spin Locks */
+
+void BLI_spin_init(SpinLock *spin)
+{
+#ifdef __APPLE__
+	*spin = OS_SPINLOCK_INIT;
+#else
+	pthread_spin_init(spin, 0);
+#endif
+}
+
+void BLI_spin_lock(SpinLock *spin)
+{
+#ifdef __APPLE__
+	OSSpinLockLock(spin);
+#else
+	pthread_spin_lock(spin);
+#endif
+}
+
+void BLI_spin_unlock(SpinLock *spin)
+{
+#ifdef __APPLE__
+	OSSpinLockUnlock(spin);
+#else
+	pthread_spin_unlock(spin);
+#endif
+}
+
+void BLI_spin_end(SpinLock *spin)
+{
+#ifndef __APPLE__
+	pthread_spin_destroy(spin);
+#endif
+}
+
 /* Read/Write Mutex Lock */
 
 void BLI_rw_mutex_init(ThreadRWMutex *mutex)

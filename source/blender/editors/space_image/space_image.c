@@ -780,7 +780,7 @@ static void image_scope_area_draw(const bContext *C, ARegion *ar)
 		}
 		scopes_update(&sima->scopes, ibuf, &scene->view_settings, &scene->display_settings);
 	}
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 	
 	ED_region_panels(C, ar, 1, NULL, -1);
 }

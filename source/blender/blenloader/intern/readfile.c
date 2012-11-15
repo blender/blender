@@ -3043,7 +3043,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 		link_ibuf_list(fd, &ima->ibufs);
 	else
 		ima->ibufs.first = ima->ibufs.last = NULL;
-	
+
 	/* if not restored, we keep the binded opengl index */
 	if (ima->ibufs.first == NULL) {
 		ima->bindcode = 0;

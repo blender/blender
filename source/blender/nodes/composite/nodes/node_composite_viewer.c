@@ -112,7 +112,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			free_compbuf(zbuf);
 		}
 
-		BKE_image_release_ibuf(ima, lock);
+		BKE_image_release_ibuf(ima, ibuf, lock);
 
 		generate_preview(data, node, cbuf);
 		free_compbuf(cbuf);

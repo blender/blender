@@ -241,7 +241,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if (ibuf == NULL) {
-		BKE_image_release_ibuf(ima, lock);
+		BKE_image_release_ibuf(ima, ibuf, lock);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -255,7 +255,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	nvm->ymin = -(ar->winy / 2) - (ibuf->y * (0.5f * snode->zoom)) + pad;
 	nvm->ymax =  (ar->winy / 2) + (ibuf->y * (0.5f * snode->zoom)) - pad;
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
@@ -403,7 +403,7 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 		}
 	}
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 
 	return ret;
 }
@@ -493,7 +493,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		ED_node_sample_set(NULL);
 	}
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 }

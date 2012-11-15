@@ -117,8 +117,12 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
 #endif
 		ibuf = BKE_image_acquire_ibuf(sima->image, &sima->iuser, lock_r);
 
-		if (ibuf && (ibuf->rect || ibuf->rect_float))
-			return ibuf;
+		if (ibuf) {
+			if (ibuf->rect || ibuf->rect_float)
+				return ibuf;
+
+			BKE_image_release_ibuf(sima->image, ibuf, NULL);
+		}
 	}
 	else
 		*lock_r = NULL;
@@ -126,10 +130,10 @@ ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
 	return NULL;
 }
 
-void ED_space_image_release_buffer(SpaceImage *sima, void *lock)
+void ED_space_image_release_buffer(SpaceImage *sima, ImBuf *ibuf, void *lock)
 {
 	if (sima && sima->image)
-		BKE_image_release_ibuf(sima->image, lock);
+		BKE_image_release_ibuf(sima->image, ibuf, lock);
 }
 
 int ED_space_image_has_buffer(SpaceImage *sima)
@@ -140,7 +144,7 @@ int ED_space_image_has_buffer(SpaceImage *sima)
 
 	ibuf = ED_space_image_acquire_buffer(sima, &lock);
 	has_buffer = (ibuf != NULL);
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 
 	return has_buffer;
 }
@@ -175,7 +179,7 @@ void ED_space_image_get_size(SpaceImage *sima, int *width, int *height)
 		*height = IMG_SIZE_FALLBACK;
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 }
 
 void ED_space_image_get_size_fl(SpaceImage *sima, float size[2])

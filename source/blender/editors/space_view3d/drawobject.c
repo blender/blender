@@ -530,7 +530,7 @@ void drawaxes(float size, char drawtype)
 static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Image *ima = (Image *)ob->data;
-	ImBuf *ibuf = ima ? BKE_image_get_ibuf(ima, NULL) : NULL;
+	ImBuf *ibuf = ima ? BKE_image_acquire_ibuf(ima, NULL, NULL) : NULL;
 
 	float scale, ofs_x, ofs_y, sca_x, sca_y;
 	int ima_x, ima_y;
@@ -615,6 +615,8 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	/* Reset GL settings */
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
 static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, float tmat[][4])

@@ -61,6 +61,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1082,6 +1083,7 @@ void WM_main_playanim(int argc, const char **argv)
 	/* we still miss freeing a lot!,
 	 * but many areas could skip initialization too for anim play */
 	IMB_exit();
+	BKE_images_exit();
 	BLF_exit();
 #endif
 	GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);

@@ -625,7 +625,7 @@ __device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_facto
 #else
 	*N = sd->N;
 
-	if(CLOSURE_IS_DIFFUSE(sd->closure.type))
+	if(CLOSURE_IS_BSDF_DIFFUSE(sd->closure.type))
 		return sd->closure.weight*ao_factor;
 	else if(CLOSURE_IS_AMBIENT_OCCLUSION(sd->closure.type))
 		return sd->closure.weight;

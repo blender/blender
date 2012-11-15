@@ -318,7 +318,7 @@ static void gpu_make_repbind(Image *ima)
 {
 	ImBuf *ibuf;
 	
-	ibuf = BKE_image_get_ibuf(ima, NULL);
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	if (ibuf==NULL)
 		return;
 
@@ -333,6 +333,8 @@ static void gpu_make_repbind(Image *ima)
 
 	if (ima->totbind>1)
 		ima->repbind= MEM_callocN(sizeof(int)*ima->totbind, "repbind");
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
 static void gpu_clear_tpage(void)
@@ -479,7 +481,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		return 0;
 
 	/* check if we have a valid image buffer */
-	ibuf= BKE_image_get_ibuf(ima, iuser);
+	ibuf= BKE_image_acquire_ibuf(ima, iuser, NULL);
 
 	if (ibuf==NULL)
 		return 0;
@@ -574,6 +576,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	if (*bind != 0) {
 		/* enable opengl drawing with textures */
 		glBindTexture(GL_TEXTURE_2D, *bind);
+		BKE_image_release_ibuf(ima, ibuf, NULL);
 		return *bind;
 	}
 
@@ -634,6 +637,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		MEM_freeN(ftilerect);
 	if (srgb_frect)
 		MEM_freeN(srgb_frect);
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 
 	return *bind;
 }
@@ -896,7 +901,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 {
 	ImBuf *ibuf;
 	
-	ibuf = BKE_image_get_ibuf(ima, NULL);
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	
 	if (ima->repbind || (GPU_get_mipmap() && !GTS.gpu_mipmap) || !ima->bindcode || !ibuf ||
 	    (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
@@ -935,6 +940,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 			}
 
+			BKE_image_release_ibuf(ima, ibuf, NULL);
 			return;
 		}
 		
@@ -959,6 +965,8 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
 		}
 	}
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
 void GPU_update_images_framechange(void)

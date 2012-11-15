@@ -3313,7 +3313,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			glPopMatrix();
 		}
 
-		BKE_image_release_ibuf(ima, lock);
+		BKE_image_release_ibuf(ima, ibuf, lock);
 	}
 }
 
@@ -3326,7 +3326,7 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 	
 	if (snode->flag & SNODE_BACKDRAW) {
 		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-		ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 		if (ibuf) {
 			int x, y;
 			float zoom = 1.0;
@@ -3362,6 +3362,8 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 			glPopMatrix();
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
+
+			BKE_image_release_ibuf(ima, ibuf, NULL);
 		}
 	}
 }

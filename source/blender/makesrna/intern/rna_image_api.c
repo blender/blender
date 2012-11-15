@@ -99,7 +99,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 				IMB_freeImBuf(write_ibuf);
 		}
 
-		BKE_image_release_ibuf(image, lock);
+		BKE_image_release_ibuf(image, ibuf, lock);
 	}
 	else {
 		BKE_report(reports, RPT_ERROR, "Scene not in context, could not get save parameters");
@@ -108,7 +108,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 
 static void rna_Image_save(Image *image, ReportList *reports)
 {
-	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 	if (ibuf) {
 		char filename[FILE_MAX];
 		BLI_strncpy(filename, image->name, sizeof(filename));
@@ -136,11 +136,13 @@ static void rna_Image_save(Image *image, ReportList *reports)
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
 	}
+
+	BKE_image_release_ibuf(image, ibuf, NULL);
 }
 
 static void rna_Image_pack(Image *image, ReportList *reports, int as_png)
 {
-	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 
 	if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
 		BKE_report(reports, RPT_ERROR, "Cannot pack edited image from disk, only as internal PNG");
@@ -153,6 +155,8 @@ static void rna_Image_pack(Image *image, ReportList *reports, int as_png)
 			image->packedfile = newPackedFile(reports, image->name, ID_BLEND_PATH(G.main, &image->id));
 		}
 	}
+
+	BKE_image_release_ibuf(image, ibuf, NULL);
 }
 
 static void rna_Image_unpack(Image *image, ReportList *reports, int method)
@@ -177,7 +181,7 @@ static void rna_Image_reload(Image *image)
 
 static void rna_Image_update(Image *image, ReportList *reports)
 {
-	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 
 	if (ibuf == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
@@ -188,6 +192,8 @@ static void rna_Image_update(Image *image, ReportList *reports)
 		IMB_rect_from_float(ibuf);
 
 	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
+	BKE_image_release_ibuf(image, ibuf, NULL);
 }
 
 static void rna_Image_scale(Image *image, ReportList *reports, int width, int height)
@@ -206,10 +212,11 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 	if (*bind)
 		return error;
 
-	ibuf = BKE_image_get_ibuf(image, NULL);
+	ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 
 	if (ibuf == NULL || ibuf->rect == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
+		BKE_image_release_ibuf(image, ibuf, NULL);
 		return (int)GL_INVALID_OPERATION;
 	}
 
@@ -237,6 +244,8 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 		glDeleteTextures(1, (GLuint *)bind);
 		image->bindcode = 0;
 	}
+
+	BKE_image_release_ibuf(image, ibuf, NULL);
 
 	return error;
 }

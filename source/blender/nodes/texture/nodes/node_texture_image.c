@@ -46,7 +46,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(i
 	ImageUser *iuser= (ImageUser *)node->storage;
 	
 	if ( ima ) {
-		ImBuf *ibuf = BKE_image_get_ibuf(ima, iuser);
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 		if ( ibuf ) {
 			float xsize, ysize;
 			float xoff, yoff;
@@ -77,6 +77,8 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(i
 			
 			result = ibuf->rect_float + py*ibuf->x*4 + px*4;
 			copy_v4_v4(out, result);
+
+			BKE_image_release_ibuf(ima, ibuf, NULL);
 		}
 	}
 }

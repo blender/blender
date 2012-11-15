@@ -1380,7 +1380,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene * scene, View3D * v3d)
 						if (ma->mtex[b] && ma->mtex[b]->tex) {
 							tex = ma->mtex[b]->tex;
 							if (tex->type == TEX_IMAGE && tex->ima) {
-								ImBuf *ibuf = BKE_image_get_ibuf(tex->ima, NULL);
+								ImBuf *ibuf = BKE_image_acquire_ibuf(tex->ima, NULL, NULL);
 								
 								/* texturespace */
 								space = 1.0;
@@ -1402,6 +1402,8 @@ static void UNUSED_FUNCTION(image_aspect) (Scene * scene, View3D * v3d)
 								
 								done = TRUE;
 								DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+
+								BKE_image_release_ibuf(tex->ima, ibuf, NULL);
 							}
 						}
 						if (done) break;
