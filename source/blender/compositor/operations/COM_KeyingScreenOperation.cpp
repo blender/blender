@@ -202,9 +202,9 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 
 			INIT_MINMAX2(min, max);
 
-			DO_MINMAX2(a->co, min, max);
-			DO_MINMAX2(b->co, min, max);
-			DO_MINMAX2(c->co, min, max);
+			minmax_v2v2_v2(min, max, a->co);
+			minmax_v2v2_v2(min, max, b->co);
+			minmax_v2v2_v2(min, max, c->co);
 
 			rect->xmin = min[0];
 			rect->ymin = min[1];

@@ -1124,10 +1124,10 @@ void BKE_tracking_marker_pattern_minmax(const MovieTrackingMarker *marker, float
 {
 	INIT_MINMAX2(min, max);
 
-	DO_MINMAX2(marker->pattern_corners[0], min, max);
-	DO_MINMAX2(marker->pattern_corners[1], min, max);
-	DO_MINMAX2(marker->pattern_corners[2], min, max);
-	DO_MINMAX2(marker->pattern_corners[3], min, max);
+	minmax_v2v2_v2(min, max, marker->pattern_corners[0]);
+	minmax_v2v2_v2(min, max, marker->pattern_corners[1]);
+	minmax_v2v2_v2(min, max, marker->pattern_corners[2]);
+	minmax_v2v2_v2(min, max, marker->pattern_corners[3]);
 }
 
 void BKE_tracking_marker_get_subframe_position(MovieTrackingTrack *track, float framenr, float pos[2])
@@ -3161,7 +3161,7 @@ static int stabilization_median_point_get(MovieTracking *tracking, int framenr, 
 		if (track->flag & TRACK_USE_2D_STAB) {
 			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
-			DO_MINMAX2(marker->pos, min, max);
+			minmax_v2v2_v2(min, max, marker->pos);
 
 			ok = TRUE;
 		}

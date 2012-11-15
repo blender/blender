@@ -761,7 +761,7 @@ static void layerDoMinMax_mloopuv(void *data, void *vmin, void *vmax)
 {
 	MLoopUV *min = vmin, *max = vmax, *luv = data;
 
-	DO_MINMAX2(luv->uv, min->uv, max->uv);
+	minmax_v2v2_v2(min->uv, max->uv, luv->uv);
 }
 
 static void layerAdd_mloopuv(void *data1, void *data2)
@@ -833,7 +833,7 @@ static void layerDoMinMax_mloop_origspace(void *data, void *vmin, void *vmax)
 {
 	OrigSpaceLoop *min = vmin, *max = vmax, *luv = data;
 
-	DO_MINMAX2(luv->uv, min->uv, max->uv);
+	minmax_v2v2_v2(min->uv, max->uv, luv->uv);
 }
 
 static void layerAdd_mloop_origspace(void *data1, void *data2)

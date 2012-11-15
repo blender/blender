@@ -616,7 +616,7 @@ int ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], f
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (uvedit_uv_select_test(em, scene, l)) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				DO_MINMAX2(luv->uv, r_min, r_max);
+				minmax_v2v2_v2(r_min, r_max, luv->uv);
 				sel = 1;
 			}
 		}
@@ -1327,7 +1327,7 @@ static void weld_align_uv(bContext *C, int tool)
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				if (uvedit_uv_select_test(em, scene, l)) {
 					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					DO_MINMAX2(luv->uv, min, max);
+					minmax_v2v2_v2(min, max, luv->uv);
 				}
 			}
 		}

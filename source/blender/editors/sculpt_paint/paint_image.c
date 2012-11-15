@@ -1059,11 +1059,11 @@ static int pixel_bounds_uv(
 	
 	INIT_MINMAX2(min_uv, max_uv);
 	
-	DO_MINMAX2(uv1, min_uv, max_uv);
-	DO_MINMAX2(uv2, min_uv, max_uv);
-	DO_MINMAX2(uv3, min_uv, max_uv);
+	minmax_v2v2_v2(min_uv, max_uv, uv1);
+	minmax_v2v2_v2(min_uv, max_uv, uv2);
+	minmax_v2v2_v2(min_uv, max_uv, uv3);
 	if (is_quad)
-		DO_MINMAX2(uv4, min_uv, max_uv);
+		minmax_v2v2_v2(min_uv, max_uv, uv4);
 	
 	bounds_px->xmin = (int)(ibuf_x * min_uv[0]);
 	bounds_px->ymin = (int)(ibuf_y * min_uv[1]);
@@ -1089,7 +1089,7 @@ static int pixel_bounds_array(float (*uv)[2], rcti *bounds_px, const int ibuf_x,
 	INIT_MINMAX2(min_uv, max_uv);
 	
 	while (tot--) {
-		DO_MINMAX2((*uv), min_uv, max_uv);
+		minmax_v2v2_v2(min_uv, max_uv, (*uv));
 		uv++;
 	}
 	
@@ -2940,7 +2940,7 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 	fidx = mf->v4 ? 3 : 2;
 	do {
 		vCoSS = ps->screenCoords[*(&mf->v1 + fidx)];
-		DO_MINMAX2(vCoSS, min, max);
+		minmax_v2v2_v2(min, max, vCoSS);
 	} while (fidx--);
 	
 	project_paint_bucket_bounds(ps, min, max, bucketMin, bucketMax);
@@ -3205,7 +3205,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			/* screen space, not clamped */
 			projScreenCo[0] = (float)(ps->winx / 2.0f) + (ps->winx / 2.0f) * projScreenCo[0];
 			projScreenCo[1] = (float)(ps->winy / 2.0f) + (ps->winy / 2.0f) * projScreenCo[1];
-			DO_MINMAX2(projScreenCo, ps->screenMin, ps->screenMax);
+			minmax_v2v2_v2(ps->screenMin, ps->screenMax, projScreenCo);
 		}
 	}
 	else {
@@ -3220,7 +3220,7 @@ static void project_paint_begin(ProjPaintState *ps)
 				projScreenCo[0] = (float)(ps->winx / 2.0f) + (ps->winx / 2.0f) * projScreenCo[0] / projScreenCo[3];
 				projScreenCo[1] = (float)(ps->winy / 2.0f) + (ps->winy / 2.0f) * projScreenCo[1] / projScreenCo[3];
 				projScreenCo[2] = projScreenCo[2] / projScreenCo[3]; /* Use the depth for bucket point occlusion */
-				DO_MINMAX2(projScreenCo, ps->screenMin, ps->screenMax);
+				minmax_v2v2_v2(ps->screenMin, ps->screenMax, projScreenCo);
 			}
 			else {
 				/* TODO - deal with cases where 1 side of a face goes behind the view ?

@@ -2486,7 +2486,7 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	max[0] = aspx; max[1] = aspy;
 
 	for (a = 0, td = t->data; a < t->total; a++, td++) {
-		DO_MINMAX2(td->loc, min, max);
+		minmax_v2v2_v2(min, max, td->loc);
 	}
 
 	if (resize) {
