@@ -10,6 +10,7 @@ incs = '. .. ../svm ../../render ../../util ../../device'
 incs += ' ' + env['BF_OIIO_INC']
 incs += ' ' + env['BF_BOOST_INC']
 incs += ' ' + env['BF_OSL_INC']
+incs += ' ' + env['BF_OPENEXR_INC']
 
 defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
 defs.append('CCL_NAMESPACE_END=}')

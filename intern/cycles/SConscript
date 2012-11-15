@@ -36,6 +36,7 @@ incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.sp
 incs.extend('#extern/glew/include #intern/mikktspace'.split())
 incs.append(cycles['BF_OIIO_INC'])
 incs.append(cycles['BF_BOOST_INC'])
+incs.append(cycles['BF_OPENEXR_INC'].split())
 incs.extend(cycles['BF_PYTHON_INC'].split())
 
 if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):

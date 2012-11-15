@@ -306,6 +306,9 @@ if env['OURPLATFORM']=='darwin':
         else:
             env.Append(LINKFLAGS=['-Xlinker','-weak_framework','-Xlinker','Jackmp'])
 
+    if env['WITH_BF_CYCLES_OSL'] == 1:
+        env.Append(LINKFLAGS=['-force_load','../lib/darwin-9.x.universal/osl/lib/liboslexec.a'])
+		
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
                 env['CCFLAGS'].append('/openmp')
