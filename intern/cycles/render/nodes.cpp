@@ -1578,6 +1578,8 @@ void HoldoutNode::compile(OSLCompiler& compiler)
 AmbientOcclusionNode::AmbientOcclusionNode()
 : ShaderNode("ambient_occlusion")
 {
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_output("AO", SHADER_SOCKET_CLOSURE);
 }
