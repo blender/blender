@@ -4651,18 +4651,22 @@ static void rna_def_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_SELECT);
 	RNA_def_property_ui_text(prop, "Select", "");
+	RNA_def_property_update(prop, NC_NODE | NA_SELECTED, NULL);
 
 	prop = RNA_def_property(srna, "show_options", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_OPTIONS);
 	RNA_def_property_ui_text(prop, "Show Options", "");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "show_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_PREVIEW);
 	RNA_def_property_ui_text(prop, "Show Preview", "");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_HIDDEN);
 	RNA_def_property_ui_text(prop, "Hide", "");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_MUTED);
