@@ -13,7 +13,7 @@ oso_files = []
 if env['WITH_BF_CYCLES_OSL']:
     shaders = env.Clone()
 
-    # cuda info
+    # osl compiler info
     osl_compiler = env['BF_OSL_COMPILER']
 
     # build directory
