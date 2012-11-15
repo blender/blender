@@ -339,7 +339,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 
 			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f && average(ao_bsdf) != 0.0f) {
+			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
 				Ray light_ray;
 				float3 ao_shadow;
 
@@ -517,7 +517,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 
 			sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f && average(ao_bsdf) != 0.0f) {
+			if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
 				Ray light_ray;
 				float3 ao_shadow;
 
@@ -725,7 +725,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 
 				sample_cos_hemisphere(ao_N, bsdf_u, bsdf_v, &ao_D, &ao_pdf);
 
-				if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f && average(ao_bsdf) != 0.0f) {
+				if(dot(sd.Ng, ao_D) > 0.0f && ao_pdf != 0.0f) {
 					Ray light_ray;
 					float3 ao_shadow;
 
