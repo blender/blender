@@ -725,6 +725,22 @@ if env['OURPLATFORM']!='darwin':
                     cubin_file = os.path.join(kernel_build_dir, "kernel_%s.cubin" % arch)
                     scriptinstall.append(env.Install(dir=dir,source=cubin_file))
 
+            # osl shaders
+            if env['WITH_BF_CYCLES_OSL']:
+                dir=os.path.join(env['BF_INSTALLDIR'], VERSION, 'scripts', 'addons','cycles', 'shader')
+
+                osl_source_dir = Dir('./intern/cycles/kernel/shaders').srcnode().path
+                oso_build_dir = os.path.join(B.root_build_dir, 'intern/cycles/kernel/shaders')
+
+                headers='node_color.h node_fresnel.h node_texture.h oslutil.h stdosl.h'.split()
+                source=['intern/cycles/kernel/shaders/'+s for s in headers]
+                scriptinstall.append(env.Install(dir=dir,source=source))
+
+                for f in os.listdir(osl_source_dir):
+                    if f.endswith('.osl'):
+                        oso_file = os.path.join(oso_build_dir, f.replace('.osl', '.oso'))
+                        scriptinstall.append(env.Install(dir=dir,source=oso_file))
+
     if env['WITH_BF_OCIO']:
         colormanagement = os.path.join('release', 'datafiles', 'colormanagement')
 

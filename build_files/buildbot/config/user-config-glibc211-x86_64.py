@@ -119,6 +119,24 @@ BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/libOpenImageIO.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_JPEG}/lib/libjpeg.a'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
+WITH_BF_CYCLES_OSL = True
+WITH_BF_STATICOSL = False
+BF_OSL = '/opt/lib/osl'
+BF_OSL_INC = '${BF_OSL}/include'
+# note oslexec would passed via program linkflags, which is needed to
+# make llvm happy with osl_allocate_closure_component
+BF_OSL_LIB = 'oslcomp oslexec oslquery'
+BF_OSL_LIBPATH = '${BF_OSL}/lib'
+BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
+
+WITH_BF_LLVM = True
+WITH_BF_STATICLLVM = False
+BF_LLVM = '/opt/lib/llvm-3.1'
+BF_LLVM_LIB = 'LLVMBitReader LLVMJIT LLVMipo LLVMVectorize LLVMBitWriter LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMX86AsmPrinter ' + \
+    'LLVMX86Utils LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMInstCombine LLVMTransformUtils LLVMipa LLVMAnalysis LLVMExecutionEngine ' + \
+    'LLVMTarget LLVMMC LLVMCore LLVMSupport'
+BF_LLVM_LIBPATH = '${BF_LLVM}/lib'
+
 # Color management
 WITH_BF_OCIO = True
 WITH_BF_STATICOCIO = True
@@ -143,3 +161,4 @@ WITH_BF_OCEANSIM = True
 BF_DEBUG = False
 REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
 PLATFORM_LINKFLAGS = ['-lrt']
+BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive']

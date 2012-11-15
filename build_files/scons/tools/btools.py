@@ -164,7 +164,9 @@ def validate_arguments(args, bc):
             'WITH_BF_OIIO', 'WITH_BF_STATICOIIO', 'BF_OIIO', 'BF_OIIO_INC', 'BF_OIIO_LIB', 'BF_OIIO_LIB_STATIC', 'BF_OIIO_LIBPATH',
             'WITH_BF_OCIO', 'WITH_BF_STATICOCIO', 'BF_OCIO', 'BF_OCIO_INC', 'BF_OCIO_LIB', 'BF_OCIO_LIB_STATIC', 'BF_OCIO_LIBPATH',
             'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_INTERNATIONAL', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH',
-            'WITH_BF_LIBMV'
+            'WITH_BF_LIBMV',
+            'WITH_BF_CYCLES_OSL', 'WITH_BF_STATICOSL', 'BF_OSL', 'BF_OSL_INC', 'BF_OSL_LIB', 'BF_OSL_LIBPATH', 'BF_OSL_LIB_STATIC', 'BF_OSL_COMPILER',
+            'WITH_BF_LLVM', 'WITH_BF_STATICLLVM', 'BF_LLVM', 'BF_LLVM_LIB', 'BF_LLVM_LIBPATH', 'BF_LLVM_LIB_STATIC', 'BF_PROGRAM_LINKFLAGS'
             ]
     
     # Have options here that scons expects to be lists
@@ -178,7 +180,7 @@ def validate_arguments(args, bc):
             'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
             'C_WARN', 'CC_WARN', 'CXX_WARN',
             'LLIBS', 'PLATFORM_LINKFLAGS','MACOSX_ARCHITECTURE', 'MACOSX_SDK_CHECK', 'XCODE_CUR_VER',
-            'BF_CYCLES_CUDA_BINARIES_ARCH',
+            'BF_CYCLES_CUDA_BINARIES_ARCH', 'BF_PROGRAM_LINKFLAGS'
     ]
     
     
@@ -595,7 +597,25 @@ def read_opts(env, cfg, args):
         ('BF_BOOST_LIB_STATIC', 'Boost static library', ''),
 
         (BoolVariable('WITH_GHOST_XDND', 'Build with drag-n-drop support on Linux platforms using XDND protocol', True)),
-        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', False))
+        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', False)),
+
+        (BoolVariable('WITH_BF_CYCLES_OSL', 'Build with OSL sypport in Cycles', False)),
+        (BoolVariable('WITH_BF_STATICOSL', 'Staticly link to OSL', False)),
+        ('BF_OSL', 'OSL root path', ''),
+        ('BF_OSL_INC', 'OSL include path', ''),
+        ('BF_OSL_LIB', 'OSL library', ''),
+        ('BF_OSL_LIBPATH', 'OSL library path', ''),
+        ('BF_OSL_LIB_STATIC', 'OSL static library', ''),
+        ('BF_OSL_COMPILER', 'OSL compiler', ''),
+
+        (BoolVariable('WITH_BF_LLVM', 'Build with LLVM sypport (required for OSL)', False)),
+        (BoolVariable('WITH_BF_STATICLLVM', 'Staticly link to LLVM', False)),
+        ('BF_LLVM', 'LLVM root path', ''),
+        ('BF_LLVM_LIB', 'LLVM library', ''),
+        ('BF_LLVM_LIBPATH', 'LLVM library path', ''),
+        ('BF_LLVM_LIB_STATIC', 'LLVM static library', ''),
+
+        ('BF_PROGRAM_LINKFLAGS', 'Link flags applied only to final binaries (blender and blenderplayer, not makesrna/makesdna)', '')
     ) # end of opts.AddOptions()
 
     return localopts

@@ -222,6 +222,16 @@ def setup_staticlibs(lenv):
         if lenv['WITH_BF_STATICBOOST']:
             statlibs += Split(lenv['BF_BOOST_LIB_STATIC'])
 
+    if lenv['WITH_BF_CYCLES_OSL']:
+        libincs += Split(lenv['BF_OSL_LIBPATH'])
+        if lenv['WITH_BF_STATICOSL']:
+            statlibs += Split(lenv['BF_OSL_LIB_STATIC'])
+
+    if lenv['WITH_BF_LLVM']:
+        libincs += Split(lenv['BF_LLVM_LIBPATH'])
+        if lenv['WITH_BF_STATICLLVM']:
+            statlibs += Split(lenv['BF_LLVM_LIB_STATIC'])
+
     # setting this last so any overriding of manually libs could be handled
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross', 'win64-mingw'):
         libincs.append('/usr/lib')
@@ -313,6 +323,12 @@ def setup_syslibs(lenv):
         
         if lenv['WITH_BF_INTERNATIONAL']:
             syslibs += Split(lenv['BF_BOOST_LIB_INTERNATIONAL'])
+
+    if lenv['WITH_BF_CYCLES_OSL'] and not lenv['WITH_BF_STATICOSL']:
+        syslibs += Split(lenv['BF_OSL_LIB'])
+
+    if lenv['WITH_BF_LLVM'] and not lenv['WITH_BF_STATICLLVM']:
+        syslibs += Split(lenv['BF_LLVM_LIB'])
 
     if not lenv['WITH_BF_STATICJPEG']:
         syslibs += Split(lenv['BF_JPEG_LIB'])
@@ -883,6 +899,7 @@ class BlenderEnvironment(SConsEnvironment):
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
         lenv = self.Clone()
         lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
+        lenv.Append(LINKFLAGS = lenv['BF_PROGRAM_LINKFLAGS'])
         if lenv['OURPLATFORM'] in ('win32-mingw', 'win64-mingw', 'linuxcross', 'cygwin', 'linux'):
             lenv.Replace(LINK = '$CXX')
         if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):

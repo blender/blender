@@ -23,6 +23,10 @@ defs.append('WITH_OPENCL')
 defs.append('WITH_MULTI')
 defs.append('WITH_CUDA')
 
+if env['WITH_BF_CYCLES_OSL']:
+    defs.append('WITH_OSL')
+    incs.append(cycles['BF_OSL_INC'])
+
 if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     defs.append('WITH_CUDA_BINARIES')
 
@@ -61,6 +65,12 @@ if env['WITH_BF_RAYOPTIMIZATION']:
     cycles_optim.BlenderLib('bf_intern_cycles_optimized', optim_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=optim_cxxflags)
 
 cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], cxx_compileflags=cxxflags)
+
+if env['WITH_BF_CYCLES_OSL']:
+    oso_files = SConscript(['kernel/shaders/SConscript'])
+    cycles.Depends("kernel/osl/osl_shader.o", oso_files)
+
+    SConscript(['kernel/osl/SConscript'])
 
 # cuda kernel binaries
 if env['WITH_BF_CYCLES_CUDA_BINARIES']:
