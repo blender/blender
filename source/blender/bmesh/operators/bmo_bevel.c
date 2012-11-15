@@ -110,6 +110,7 @@ typedef struct BevelParams {
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int seg;                /* number of segments in beveled edge profile */
 } BevelParams;
+#include "bevdebug.c"
 
 /* Make a new BoundVert of the given kind, insert it at the end of the circular linked
  * list with entry point bv->boundstart, and return it. */
@@ -378,8 +379,11 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
 	madd_v3_v3fl(off2a, norm_perp2, e2->offset);
 	add_v3_v3v3(off2b, off2a, dir2);
 
-	if (!isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2)) {
+	if (fabs(angle_v3v3(dir1, dir2)) < BEVEL_EPSILON) {
 		/* lines are parallel; off1a is a good meet point */
+		copy_v3_v3(meetco, off1a);
+        } else if (!isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2)) {
+		/* another test says they are parallel */
 		copy_v3_v3(meetco, off1a);
 	}
 }
