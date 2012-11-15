@@ -179,12 +179,14 @@ void BlenderSync::sync_integrator()
 
 	integrator->sample_clamp = get_float(cscene, "sample_clamp");
 #ifdef __CAMERA_MOTION__
-	if(integrator->motion_blur != r.use_motion_blur()) {
-		scene->object_manager->tag_update(scene);
-		scene->camera->tag_update();
-	}
+	if(!preview) {
+		if(integrator->motion_blur != r.use_motion_blur()) {
+			scene->object_manager->tag_update(scene);
+			scene->camera->tag_update();
+		}
 
-	integrator->motion_blur = (!preview && r.use_motion_blur());
+		integrator->motion_blur = r.use_motion_blur();
+	}
 #endif
 
 	integrator->diffuse_samples = get_int(cscene, "diffuse_samples");
