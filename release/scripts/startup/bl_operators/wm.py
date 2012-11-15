@@ -41,12 +41,17 @@ class MESH_OT_delete_edgeloop(Operator):
         return bpy.ops.transform.edge_slide.poll()
 
     def execute(self, context):
+        mesh = context.object.data
+        use_mirror_x = mesh.use_mirror_x
+        mesh.use_mirror_x = False
         if 'FINISHED' in bpy.ops.transform.edge_slide(value=1.0):
             bpy.ops.mesh.select_more()
             bpy.ops.mesh.remove_doubles()
-            return {'FINISHED'}
-
-        return {'CANCELLED'}
+            ret = {'FINISHED'}
+        else:
+            ret = {'CANCELLED'}
+        mesh.use_mirror_x = use_mirror_x
+        return ret
 
 rna_path_prop = StringProperty(
         name="Context Attributes",
