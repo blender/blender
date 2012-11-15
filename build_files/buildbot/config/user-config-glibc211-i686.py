@@ -120,7 +120,7 @@ BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/libOpenImageIO.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_JPEG}/lib/libjpeg.a'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
-WITH_BF_CYCLES_OSL = False
+WITH_BF_CYCLES_OSL = True
 WITH_BF_STATICOSL = False
 BF_OSL = '/opt/lib/osl'
 BF_OSL_INC = '${BF_OSL}/include'
@@ -130,7 +130,7 @@ BF_OSL_LIB = 'oslcomp oslexec oslquery'
 BF_OSL_LIBPATH = '${BF_OSL}/lib'
 BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
 
-WITH_BF_LLVM = False
+WITH_BF_LLVM = True
 WITH_BF_STATICLLVM = False
 BF_LLVM = '/opt/lib/llvm-3.1'
 BF_LLVM_LIB = 'LLVMBitReader LLVMJIT LLVMipo LLVMVectorize LLVMBitWriter LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMX86AsmPrinter ' + \
@@ -162,6 +162,4 @@ WITH_BF_OCEANSIM = True
 BF_DEBUG = False
 REL_CCFLAGS = ['-O2', '-msse', '-msse2']  # C & C++
 PLATFORM_LINKFLAGS = ['-lrt']
-
-if WITH_BF_CYCLES_OSL:
-	BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive']
+BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive']
