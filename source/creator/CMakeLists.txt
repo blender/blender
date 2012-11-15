@@ -621,11 +621,11 @@ elseif(WIN32)
 	)	
 
 	if(WITH_OPENIMAGEIO)
-		if(NOT MINGW)
-			set(OIIOBIN ${LIBDIR}/openimageio/bin)
+		set(OIIODLL ${LIBDIR}/openimageio/bin/OpenImageIO.dll)
+		if(NOT MINGW AND EXISTS ${OIIODLL})
 			install(
 				FILES
-					${OIIOBIN}/OpenImageIO.dll
+					${OIIODLL}
 				DESTINATION ${TARGETDIR}
 			)
 		endif()
@@ -647,20 +647,6 @@ elseif(WIN32)
 			)
 		endif()
 	endif()
-
-	if(WITH_CYCLES AND WITH_CYCLES_OSL)
-		if(NOT MINGW)
-			set(OSLBIN ${LIBDIR}/osl/bin)
-			install(
-				FILES
-					${OSLBIN}/oslexec.dll
-					${OSLBIN}/oslquery.dll
-					${OSLBIN}/oslcomp.dll
-				DESTINATION ${TARGETDIR}
-			)
-		endif()
-	endif()
-
 
 elseif(APPLE)
 

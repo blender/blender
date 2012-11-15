@@ -700,7 +700,11 @@ macro(delayed_install
 	destination)
 
 	foreach(f ${files})
-		set_property(GLOBAL APPEND PROPERTY DELAYED_INSTALL_FILES ${base}/${f})
+		if(IS_ABSOLUTE ${f})
+			set_property(GLOBAL APPEND PROPERTY DELAYED_INSTALL_FILES ${f})
+		else()
+			set_property(GLOBAL APPEND PROPERTY DELAYED_INSTALL_FILES ${base}/${f})
+		endif()
 		set_property(GLOBAL APPEND PROPERTY DELAYED_INSTALL_DESTINATIONS ${destination})
 	endforeach()
 endmacro()

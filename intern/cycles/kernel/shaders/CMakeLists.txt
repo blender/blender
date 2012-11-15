@@ -89,7 +89,7 @@ foreach(_file ${SRC_OSL})
 	list(APPEND SRC_OSO
 		${_OSO_FILE}
 	)
-	
+
 	unset(_OSL_FILE)
 	unset(_OSO_FILE)
 endforeach()

@@ -217,7 +217,7 @@ C_WARN = []
 CC_WARN = []
 CXX_WARN = []
 
-LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
+LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid', 'psapi']
 
 PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/STACK:2097152','/INCREMENTAL:NO', '/LARGEADDRESSAWARE', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 

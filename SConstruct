@@ -887,7 +887,9 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
 
     if env['WITH_BF_OIIO'] and env['OURPLATFORM'] != 'win32-mingw':
-        dllsources.append('${LCGDIR}/openimageio/bin/OpenImageIO.dll')
+        dllpath = '${LCGDIR}/openimageio/bin/OpenImageIO.dll'
+        if os.path.exists(env.subst(dllpath)):
+            dllsources.append(dllpath)
 
     if env['WITH_BF_OCIO']:
         if not env['OURPLATFORM'] in ('win32-mingw', 'linuxcross'):

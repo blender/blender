@@ -403,7 +403,7 @@ if(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
 endif()
 
 # auto enable llvm for cycles_osl
-if(WITH_CYCLES_OSL AND NOT WIN32)
+if(WITH_CYCLES_OSL)
 	set(WITH_LLVM ON CACHE BOOL "ON" FORCE)
 endif()
 
@@ -941,6 +941,13 @@ elseif(WIN32)
 			message(STATUS "OSL not found")
 		endif()
 	endif()
+
+	if(WITH_LLVM)
+		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+		file(GLOB LLVM_LIBRARY ${LLVM_DIRECTORY}/lib/*.lib)
+		set(LLVM_STATIC YES)
+	endif()
+
 
 	if(MSVC)
 		set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid)
@@ -1675,7 +1682,7 @@ if(WITH_CYCLES)
 		message(FATAL_ERROR "Cycles reqires WITH_BOOST, the library may not have been found. Configure BOOST or disable WITH_CYCLES")
 	endif()
 
-	if(WITH_CYCLES_OSL AND NOT WIN32)
+	if(WITH_CYCLES_OSL)
 		if(NOT WITH_LLVM)
 			message(FATAL_ERROR "Cycles OSL reqires WITH_LLVM, the library may not have been found. Configure LLVM or disable WITH_CYCLES_OSL")
 		endif()
