@@ -1135,7 +1135,8 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 	
 	tmp = text->lines.first;
 	
-	//first convert to all space, this make it a lot easier to convert to tabs because there is no mixtures of ' ' && '\t'
+	/* first convert to all space, this make it a lot easier to convert to tabs
+	 * because there is no mixtures of ' ' && '\t' */
 	while (tmp) {
 		text_check_line = tmp->line;
 		number = flatten_string(st, &fs, text_check_line) + 1;
@@ -1669,8 +1670,8 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 
 	text_update_character_width(st);
 
-	if (sel) linep = &text->sell, charp = &text->selc;
-	else linep = &text->curl, charp = &text->curc;
+	if (sel) { linep = &text->sell; charp = &text->selc; }
+	else     { linep = &text->curl; charp = &text->curc; }
 
 	oldc = *charp;
 
@@ -1735,8 +1736,8 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 
 	text_update_character_width(st);
 
-	if (sel) linep = &text->sell, charp = &text->selc;
-	else linep = &text->curl, charp = &text->curc;
+	if (sel) { linep = &text->sell; charp = &text->selc; }
+	else     { linep = &text->curl; charp = &text->curc; }
 
 	oldc = *charp;
 
@@ -1798,8 +1799,8 @@ static void txt_wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 
 	text_update_character_width(st);
 
-	if (sel) linep = &text->sell, charp = &text->selc;
-	else linep = &text->curl, charp = &text->curc;
+	if (sel) { linep = &text->sell; charp = &text->selc; }
+	else     { linep = &text->curl; charp = &text->curc; }
 
 	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
 	col = text_get_char_pos(st, (*linep)->line, *charp) + offc;
@@ -1825,12 +1826,12 @@ static void txt_wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 	Text *text = st->text;
 	TextLine **linep;
 	int *charp;
-	int offl, offc, col, newl, visible_lines;
+	int offl, offc, col, visible_lines;
 
 	text_update_character_width(st);
 
-	if (sel) linep = &text->sell, charp = &text->selc;
-	else linep = &text->curl, charp = &text->curc;
+	if (sel) { linep = &text->sell; charp = &text->selc; }
+	else     { linep = &text->curl; charp = &text->curc; }
 
 	wrap_offset_in_line(st, ar, *linep, *charp, &offl, &offc);
 	col = text_get_char_pos(st, (*linep)->line, *charp) + offc;
@@ -1860,8 +1861,8 @@ static void cursor_skip(SpaceText *st, ARegion *ar, Text *text, int lines, int s
 	TextLine **linep;
 	int *charp;
 	
-	if (sel) linep = &text->sell, charp = &text->selc;
-	else linep = &text->curl, charp = &text->curc;
+	if (sel) { linep = &text->sell; charp = &text->selc; }
+	else     { linep = &text->curl; charp = &text->curc; }
 
 	if (st && ar && st->wordwrap) {
 		int rell, relc;
@@ -2590,7 +2591,7 @@ static void text_cursor_set_to_pos_wrapped(SpaceText *st, ARegion *ar, int x, in
 
 	if (linep && charp != -1) {
 		if (sel) { text->sell = linep; text->selc = charp; }
-		else { text->curl = linep; text->curc = charp; }
+		else     { text->curl = linep; text->curc = charp; }
 	}
 }
 
@@ -2615,7 +2616,7 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 		int w;
 		
 		if (sel) { linep = &text->sell; charp = &text->selc; }
-		else { linep = &text->curl; charp = &text->curc; }
+		else     { linep = &text->curl; charp = &text->curc; }
 		
 		y -= txt_get_span(text->lines.first, *linep) - st->top;
 		

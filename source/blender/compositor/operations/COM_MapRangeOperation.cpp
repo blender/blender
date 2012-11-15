@@ -51,10 +51,10 @@ void MapRangeOperation::executePixel(float output[4], float x, float y, PixelSam
 	float dest_min, dest_max;
 
 	this->m_inputOperation->read(inputs, x, y, sampler);
-	this->m_sourceMinOperation->read(inputs+1, x, y, sampler);
-	this->m_sourceMaxOperation->read(inputs+2, x, y, sampler);
-	this->m_destMinOperation->read(inputs+3, x, y, sampler);
-	this->m_destMaxOperation->read(inputs+4, x, y, sampler);
+	this->m_sourceMinOperation->read(inputs + 1, x, y, sampler);
+	this->m_sourceMaxOperation->read(inputs + 2, x, y, sampler);
+	this->m_destMinOperation->read(inputs + 3, x, y, sampler);
+	this->m_destMaxOperation->read(inputs + 4, x, y, sampler);
 	
 	value = inputs[0];
 	source_min = inputs[1];

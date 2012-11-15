@@ -1764,7 +1764,7 @@ void txt_undo_add_op(Text *text, int op)
 	txt_undo_store_cursors(text);
 		
 	text->undo_buf[text->undo_pos] = op;
-	text->undo_buf[text->undo_pos+1] = 0;
+	text->undo_buf[text->undo_pos + 1] = 0;
 }
 
 /* store an operator for a single character */
@@ -2386,20 +2386,22 @@ void txt_split_curline(Text *text)
 static void txt_delete_line(Text *text, TextLine *line)
 {
 	TextMarker *mrk = NULL, *nxt;
-	int lineno = -1;
 
 	if (!text) return;
 	if (!text->curl) return;
 
-	lineno = txt_get_span(text->lines.first, line);
-	mrk = text->markers.first;
-	while (mrk) {
-		nxt = mrk->next;
-		if (mrk->lineno == lineno)
-			BLI_freelinkN(&text->markers, mrk);
-		else if (mrk->lineno > lineno)
-			mrk->lineno--;
-		mrk = nxt;
+	/* warning, this can be _slow_ when deleting many lines! */
+	if ((mrk = text->markers.first)) {
+		int lineno = txt_get_span(text->lines.first, line);
+		mrk = text->markers.first;
+		while (mrk) {
+			nxt = mrk->next;
+			if (mrk->lineno == lineno)
+				BLI_freelinkN(&text->markers, mrk);
+			else if (mrk->lineno > lineno)
+				mrk->lineno--;
+			mrk = nxt;
+		}
 	}
 
 	BLI_remlink(&text->lines, line);
@@ -2417,14 +2419,14 @@ static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 {
 	char *tmp;
 	TextMarker *mrk = NULL;
-	int lineno = -1;
-	
+
 	if (!text) return;
 	
 	if (!linea || !lineb) return;
 
 	mrk = txt_find_marker_region(text, lineb, 0, lineb->len, 0, 0);
 	if (mrk) {
+		int lineno;
 		lineno = mrk->lineno;
 		do {
 			mrk->lineno--;
@@ -2433,8 +2435,11 @@ static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
 			mrk = mrk->next;
 		} while (mrk && mrk->lineno == lineno);
 	}
-	if (lineno == -1) lineno = txt_get_span(text->lines.first, lineb);
-	
+#if 0  /* UNUSED */
+	if (lineno == -1)
+		lineno = txt_get_span(text->lines.first, lineb);
+#endif
+
 	tmp = MEM_mallocN(linea->len + lineb->len + 1, "textline_string");
 	
 	strcpy(tmp, linea->line);

@@ -110,7 +110,8 @@ typedef struct BevelParams {
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int seg;                /* number of segments in beveled edge profile */
 } BevelParams;
-#include "bevdebug.c"
+
+//#include "bevdebug.c"
 
 /* Make a new BoundVert of the given kind, insert it at the end of the circular linked
  * list with entry point bv->boundstart, and return it. */
