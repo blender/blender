@@ -95,6 +95,16 @@
 
 #include "view3d_intern.h"  /* own include */
 
+/* handy utility for drawing shapes in the viewport for arbitrary code.
+ * could add lines and points too */
+// #define DEBUG_DRAW
+#ifdef DEBUG_DRAW
+static void bl_debug_draw(void);
+/* add these locally when using these functions for testing */
+extern void bl_debug_draw_quad_clear(void);
+extern void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2[3], const float v3[3]);
+extern void bl_debug_draw_edge_add(const float v0[3], const float v1[3]);
+#endif
 
 static void star_stuff_init_func(void)
 {
@@ -3207,6 +3217,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(C) || draw_border) {
 		view3d_main_area_draw_objects(C, ar, &grid_unit);
+#ifdef DEBUG_DRAW
+		bl_debug_draw();
+#endif
 		ED_region_pixelspace(ar);
 	}
 
@@ -3219,3 +3232,57 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
 
+#ifdef DEBUG_DRAW
+/* debug drawing */
+#define _DEBUG_DRAW_QUAD_TOT 1024
+static float _bl_debug_draw_quads[_DEBUG_DRAW_QUAD_TOT][4][3];
+static int   _bl_debug_draw_quads_tot = 0;
+
+void bl_debug_draw_quad_clear(void)
+{
+	_bl_debug_draw_quads_tot = 0;
+}
+void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2[3], const float v3[3])
+{
+	if (_bl_debug_draw_quads_tot >= _DEBUG_DRAW_QUAD_TOT) {
+		printf("%s: max quad count hit %d!", __func__, _bl_debug_draw_quads_tot);
+	}
+	else {
+		float *pt = &_bl_debug_draw_quads[_bl_debug_draw_quads_tot][0][0];
+		copy_v3_v3(pt, v0); pt += 3;
+		copy_v3_v3(pt, v1); pt += 3;
+		copy_v3_v3(pt, v2); pt += 3;
+		copy_v3_v3(pt, v3); pt += 3;
+		_bl_debug_draw_quads_tot++;
+	}
+}
+void bl_debug_draw_edge_add(const float v0[3], const float v1[3])
+{
+	if (_bl_debug_draw_quads_tot >= _DEBUG_DRAW_QUAD_TOT) {
+		printf("%s: max edge count hit %d!", __func__, _bl_debug_draw_quads_tot);
+	}
+	else {
+		float *pt = &_bl_debug_draw_quads[_bl_debug_draw_quads_tot][0][0];
+		copy_v3_v3(pt, v0); pt += 3;
+		copy_v3_v3(pt, v1); pt += 3;
+		copy_v3_v3(pt, v0); pt += 3;
+		copy_v3_v3(pt, v1); pt += 3;
+		_bl_debug_draw_quads_tot++;
+	}
+}
+static void bl_debug_draw(void)
+{
+	if (_bl_debug_draw_quads_tot) {
+		int i;
+		cpack(0x00FF0000);
+		glBegin(GL_LINE_LOOP);
+		for(i=0; i < _bl_debug_draw_quads_tot; i ++) {
+			glVertex3fv(_bl_debug_draw_quads[i][0]);
+			glVertex3fv(_bl_debug_draw_quads[i][1]);
+			glVertex3fv(_bl_debug_draw_quads[i][2]);
+			glVertex3fv(_bl_debug_draw_quads[i][3]);
+		}
+		glEnd();
+	}
+}
+#endif
