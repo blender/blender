@@ -652,6 +652,14 @@ def AppIt(target=None, source=None, env=None):
             cmd = 'cp -R %s/../intern/cycles/kernel/*.cubin %s/lib/' % (builddir, cinstalldir)
             commands.getoutput(cmd)
 
+            if env['WITH_BF_CYCLES_OSL']:
+                cmd = 'mkdir %s/shader' % (cinstalldir)
+                commands.getoutput(cmd)
+                cmd = 'cp -R %s/kernel/shaders/*.h %s/shader' % (croot, cinstalldir)
+                commands.getoutput(cmd)
+                cmd = 'cp -R %s/../intern/cycles/kernel/shaders/*.oso %s/shader' % (builddir, cinstalldir)
+                commands.getoutput(cmd)
+
     if env['WITH_OSX_STATICPYTHON']:
         cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
         commands.getoutput(cmd)

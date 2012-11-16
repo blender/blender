@@ -14,7 +14,10 @@ if env['WITH_BF_CYCLES_OSL']:
     shaders = env.Clone()
 
     # osl compiler info
-    osl_compiler = env['BF_OSL_COMPILER']
+    if env['OURPLATFORM']=='darwin':
+        osl_compiler = '../lib/darwin-9.x.universal/osl/bin/oslc' # temporary hack to get the leading "#" away that breaks shadercompile
+    else:
+        osl_compiler = env['BF_OSL_COMPILER']
 
     # build directory
     root_build_dir = normpath(env['BF_BUILDDIR'])
