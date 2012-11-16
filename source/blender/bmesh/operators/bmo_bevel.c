@@ -37,7 +37,7 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 /* experemental - Campbell */
-//#define USE_ALTERNATE_ADJ
+// #define USE_ALTERNATE_ADJ
 
 #define BEVEL_FLAG      1
 #define EDGE_SELECTED   2
@@ -64,8 +64,8 @@ typedef struct EdgeHalf {
 	BMFace *fnext;              /* face between this edge and next, if any */
 	struct BoundVert *leftv;    /* left boundary vert (looking along edge to end) */
 	struct BoundVert *rightv;   /* right boundary vert, if beveled */
-	short isbev;                /* is this edge beveled? */
-	short isrev;                /* is e->v2 the vertex at this end? */
+	short is_bev;               /* is this edge beveled? */
+	short is_rev;               /* is e->v2 the vertex at this end? */
 	int   seg;                  /* how many segments for the bevel */
 	float offset;               /* offset for this edge */
 //	int _pad;
@@ -199,7 +199,7 @@ static EdgeHalf *next_bev(BevVert *bv, EdgeHalf *from_e)
 		from_e = &bv->edges[bv->edgecount - 1];
 	e = from_e;
 	do {
-		if (e->isbev) {
+		if (e->is_bev) {
 			return e;
 		}
 	} while ((e = e->next) != from_e);
@@ -338,7 +338,6 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 		/* get vectors perp to each edge, perp to norm_v, and pointing into face */
 		if (f) {
 			copy_v3_v3(norm_v, f->no);
-			normalize_v3(norm_v);
 		}
 		cross_v3_v3v3(norm_perp1, dir1, norm_v);
 		cross_v3_v3v3(norm_perp2, dir2, norm_v);
@@ -408,7 +407,7 @@ static void offset_in_plane(EdgeHalf *e, const float plane_no[3], int left, floa
 	float dir[3], no[3];
 	BMVert *v;
 
-	v = e->isrev ? e->e->v1 : e->e->v2;
+	v = e->is_rev ? e->e->v1 : e->e->v2;
 
 	sub_v3_v3v3(dir, BM_edge_other_vert(e->e, v)->co, v->co);
 	normalize_v3(dir);
@@ -436,8 +435,7 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 	float dir[3], len;
 
 	sub_v3_v3v3(dir, v->co, BM_edge_other_vert(e->e, v)->co);
-	len = len_v3(dir);
-	normalize_v3(dir);
+	len = normalize_v3(dir);
 	if (d > len)
 		d = len - (float)(50 * BEVEL_EPSILON);
 	copy_v3_v3(slideco, v->co);
@@ -607,7 +605,7 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
 
 	sub_v3_v3v3(vva, va, vmid);
 	sub_v3_v3v3(vvb, vb, vmid);
-	if (e->isrev)
+	if (e->is_rev)
 		sub_v3_v3v3(dir, e->e->v1->co, e->e->v2->co);
 	else
 		sub_v3_v3v3(dir, e->e->v2->co, e->e->v1->co);
@@ -644,7 +642,8 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 	EdgeHalf *efirst, *e;
 	BoundVert *v;
 	VMesh *vm;
-	float co[3], *no;
+	float co[3];
+	const float  *no;
 	float lastd;
 
 	e = efirst = next_bev(bv, NULL);
@@ -675,9 +674,9 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 	lastd = e->offset;
 	vm->boundstart = NULL;
 	do {
-		if (e->isbev) {
+		if (e->is_bev) {
 			/* handle only left side of beveled edge e here: next iteration should do right side */
-			if (e->prev->isbev) {
+			if (e->prev->is_bev) {
 				BLI_assert(e->prev != e);  /* see: wire edge special case */
 				offset_meet(e->prev, e, bv->v, e->fprev, TRUE, co);
 				v = add_new_bound_vert(mem_arena, vm, co);
@@ -688,7 +687,7 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 			}
 			else {
 				/* e->prev is not beveled */
-				if (e->prev->prev->isbev) {
+				if (e->prev->prev->is_bev) {
 					BLI_assert(e->prev->prev != e); /* see: edgecount 2, selcount 1 case */
 					/* find meet point between e->prev->prev and e and attach e->prev there */
 					/* TODO: fix case when one or both faces in following are NULL */
@@ -715,11 +714,11 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 		}
 		else {
 			/* e is not beveled */
-			if (e->next->isbev) {
+			if (e->next->is_bev) {
 				/* next iteration will place e between beveled previous and next edges */
 				/* do nothing... */
 			}
-			else if (e->prev->isbev) {
+			else if (e->prev->is_bev) {
 				/* on-edge meet between e->prev and e */
 				offset_meet(e->prev, e, bv->v, e->fprev, TRUE, co);
 				v = add_new_bound_vert(mem_arena, vm, co);
@@ -1447,15 +1446,15 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		bme = e->e;
 		BMO_elem_flag_enable(bm, bme, BEVEL_FLAG);
 		if (BMO_elem_flag_test(bm, bme, EDGE_SELECTED)) {
-			e->isbev = 1;
+			e->is_bev = TRUE;
 			e->seg = bp->seg;
 		}
 		else {
-			e->isbev = 0;
+			e->is_bev = FALSE;
 			e->seg = 0;
 		}
-		e->isrev = (bme->v2 == v);
-		e->offset = e->isbev ? bp->offset : 0.0f;
+		e->is_rev = (bme->v2 == v);
+		e->offset = e->is_bev ? bp->offset : 0.0f;
 	}
 	/* find wrap-around shared face */
 	BM_ITER_ELEM (f, &iter2, bme, BM_FACES_OF_EDGE) {
@@ -1524,7 +1523,7 @@ static void rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 			eprev = find_edge_half(bv, lprev->e);
 			BLI_assert(e != NULL && eprev != NULL);
 			vstart = eprev->leftv;
-			if (e->isbev)
+			if (e->is_bev)
 				vend = e->rightv;
 			else
 				vend = e->leftv;
