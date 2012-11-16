@@ -29,7 +29,7 @@ LLVM_VERSION_MIN="3.0"
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.2.0"
-OSL_SOURCE="https://github.com/DingTo/OpenShadingLanguage/archive/blender-fixes.zip"
+OSL_SOURCE="https://github.com/DingTo/OpenShadingLanguage/archive/blender-fixes.tar.gz"
 
 FFMPEG_VERSION="1.0"
 FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
@@ -264,11 +264,11 @@ compile_OCIO() {
     fi
 
     cmake -D CMAKE_BUILD_TYPE=Release \
-        -D CMAKE_PREFIX_PATH=$INST/ocio-$OCIO_VERSION \
-        -D CMAKE_INSTALL_PREFIX=$INST/ocio-$OCIO_VERSION \
-        -D CMAKE_CXX_FLAGS="$cflags" \
-        -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
-        ..
+          -D CMAKE_PREFIX_PATH=$INST/ocio-$OCIO_VERSION \
+          -D CMAKE_INSTALL_PREFIX=$INST/ocio-$OCIO_VERSION \
+          -D CMAKE_CXX_FLAGS="$cflags" \
+          -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
+          ..
 
     make -j$THREADS
     make install
@@ -295,7 +295,7 @@ compile_OCIO() {
 
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=1
+  oiio_magic=5
 
   # Clean install if needed!
   magic_compile_check oiio-$OIIO_VERSION $oiio_magic
@@ -324,11 +324,19 @@ compile_OIIO() {
     mkdir build
     cd build
 
+    cmake_d="-D CMAKE_BUILD_TYPE=Release \
+             -D CMAKE_PREFIX_PATH=$INST/oiio-$OIIO_VERSION \
+             -D CMAKE_INSTALL_PREFIX=$INST/oiio-$OIIO_VERSION \
+             -D BUILDSTATIC=ON"
+
     if [ -d $INST/boost ]; then
-      boost_root="$INST/boost"
-    else
-      boost_root="/usr"
+      cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
     fi
+
+    # Looks like we do not need ocio in oiio for now...
+#    if [ -d $INST/ocio ]; then
+#      cmake_d="$cmake_d -D OCIO_PATH=$INST/ocio"
+#    fi
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
@@ -336,14 +344,7 @@ compile_OIIO() {
       cflags="-fPIC"
     fi
 
-    cmake -D CMAKE_BUILD_TYPE=Release \
-          -D CMAKE_PREFIX_PATH=$INST/oiio-$OIIO_VERSION \
-          -D CMAKE_INSTALL_PREFIX=$INST/oiio-$OIIO_VERSION \
-          -D BUILDSTATIC=ON \
-          -D CMAKE_CXX_FLAGS="$cflags" \
-          -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
-          -D BOOST_ROOT="$boost_root" \
-          ../src
+    cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ../src
 
     make -j$THREADS
     make install
@@ -357,6 +358,67 @@ compile_OIIO() {
     cd $CWD
   else
     INFO "Own OpenImageIO-$OIIO_VERSION is up to date, nothing to do!"
+  fi
+}
+
+compile_OSL() {
+  # To be changed each time we make edits that would modify the compiled result!
+  osl_magic=0
+
+  # Clean install if needed!
+  magic_compile_check osl-$OSL_VERSION $osl_magic
+  if [ $? -eq 1 ]; then
+    rm -rf $INST/osl-$OSL_VERSION
+  fi
+
+  if [ ! -d $INST/osl-$OSL_VERSION ]; then
+    INFO "Building OpenShadingLanguage-$OSL_VERSION"
+
+    prepare_opt
+
+    if [ ! -d $SRC/OpenShadingLanguage-$OSL_VERSION ]; then
+      wget -c $OSL_SOURCE -O "$SRC/OpenShadingLanguage-$OSL_VERSION.tar.gz"
+
+      INFO "Unpacking OpenShadingLanguage-$OSL_VERSION"
+      tar -C $SRC --transform "s,(.*/?)OpenShadingLanguage-[^/]*(.*),\1OpenShadingLanguage-$OSL_VERSION\2,x" \
+          -xf $SRC/OpenShadingLanguage-$OSL_VERSION.tar.gz
+    fi
+
+    cd $SRC/OpenShadingLanguage-$OSL_VERSION
+    # Always refresh the whole build!
+#    if [ -d build ]; then
+#      rm -rf build
+#    fi    
+#    mkdir build
+    cd build
+
+    cmake_d="-D CMAKE_BUILD_TYPE=Release \
+             -D CMAKE_INSTALL_PREFIX=$INST/osl-$OSL_VERSION
+             -D BUILDSTATIC=ON \
+             -D BUILD_TESTING=OFF"
+
+    if [ -d $INST/boost ]; then
+      cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
+    fi
+
+    if [ -d $INST/oiio ]; then
+      cmake_d="$cmake_d -D OPENIMAGEIOHOME=$INST/oiio"
+    fi
+
+    cmake $cmake_d -D CMAKE_CXX_FLAGS="-Wall" ../src
+
+    make -j$THREADS
+    make install
+    make clean
+
+    rm -f $INST/osl
+    ln -s osl-$OSL_VERSION $INST/osl
+
+    magic_compile_set osl-$OSL_VERSION $osl_magic
+
+    cd $CWD
+  else
+    INFO "Own OpenShadingLanguage-$OSL_VERSION is up to date, nothing to do!"
   fi
 }
 
@@ -500,7 +562,7 @@ install_DEB() {
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
     libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
-    libfftw3-dev libjack-dev python-dev patch flex bison
+    libfftw3-dev libjack-dev python-dev patch flex bison llvm-dev clang libtbb-dev
 
   OPENJPEG_USE=true
   SCHRO_USE=true
@@ -564,7 +626,8 @@ install_DEB() {
     check_package_DEB libboost-locale$boost_version-dev
     if [ $? -eq 0 ]; then
       sudo apt-get install -y libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
-        libboost-regex$boost_version-dev libboost-system$boost_version-dev libboost-thread$boost_version-dev
+                              libboost-regex$boost_version-dev libboost-system$boost_version-dev \
+                              libboost-thread$boost_version-dev
     else
       compile_Boost
     fi
@@ -585,6 +648,9 @@ install_DEB() {
   else
     compile_OIIO
   fi
+
+  # No package currently!
+  compile_OSL
 
 #  XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
 #      So for now, always build our own ffmpeg.
@@ -617,23 +683,23 @@ check_package_RPM() {
 check_package_version_match_RPM() {
   v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
 
-  if [ -z "$v" ]; then
+  if [ $v -ge 1 ]; then
+    version_match $v $2
+    return $?
+  else
     return 1
   fi
-
-  version_match $v $2
-  return $?
 }
 
 check_package_version_ge_RPM() {
   v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
 
-  if [ -z "$v" ]; then
+  if [ $v -ge 1 ]; then
+    version_ge $v $2
+    return $?
+  else
     return 1
   fi
-
-  version_ge $v $2
-  return $?
 }
 
 install_RPM() {
