@@ -37,17 +37,21 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 /* experemental - Campbell */
-// #define USE_ALTERNATE_ADJ
+//#define USE_ALTERNATE_ADJ
 
 #define BEVEL_FLAG      1
 #define EDGE_SELECTED   2
 
 #define BEVEL_EPSILON  1e-6
 
+/* for testing */
+// #pragma GCC diagnostic error "-Wpadded"
+
 /* Constructed vertex, sometimes later instantiated as BMVert */
 typedef struct NewVert {
 	BMVert *v;
 	float co[3];
+	int _pad;
 } NewVert;
 
 struct BoundVert;
@@ -56,28 +60,34 @@ struct BoundVert;
 typedef struct EdgeHalf {
 	struct EdgeHalf *next, *prev;   /* in CCW order */
 	BMEdge *e;                  /* original mesh edge */
-	int isbev;                  /* is this edge beveled? */
-	int isrev;                  /* is e->v2 the vertex at this end? */
-	int seg;                    /* how many segments for the bevel */
-	float offset;               /* offset for this edge */
 	BMFace *fprev;              /* face between this edge and previous, if any */
 	BMFace *fnext;              /* face between this edge and next, if any */
 	struct BoundVert *leftv;    /* left boundary vert (looking along edge to end) */
 	struct BoundVert *rightv;   /* right boundary vert, if beveled */
+	short isbev;                /* is this edge beveled? */
+	short isrev;                /* is e->v2 the vertex at this end? */
+	int   seg;                  /* how many segments for the bevel */
+	float offset;               /* offset for this edge */
+//	int _pad;
 } EdgeHalf;
 
 /* An element in a cyclic boundary of a Vertex Mesh (VMesh) */
 typedef struct BoundVert {
 	struct BoundVert *next, *prev;  /* in CCW order */
-	int index;          /* used for vmesh indexing */
 	NewVert nv;
 	EdgeHalf *efirst;   /* first of edges attached here: in CCW order */
 	EdgeHalf *elast;
 	EdgeHalf *ebev;     /* beveled edge whose left side is attached here, if any */
+	int index;          /* used for vmesh indexing */
+//	int _pad;
 } BoundVert;
 
 /* Mesh structure replacing a vertex */
 typedef struct VMesh {
+	NewVert *mesh;           /* allocated array - size and structure depends on kind */
+	BoundVert *boundstart;   /* start of boundary double-linked list */
+	int count;               /* number of vertices in the boundary */
+	int seg;                 /* common # of segments for segmented edges */
 	enum {
 		M_NONE,         /* no polygon mesh needed */
 		M_POLY,         /* a simple polygon */
@@ -86,10 +96,7 @@ typedef struct VMesh {
 		M_TRI_FAN,      /* a simple polygon - fan filled */
 		M_QUAD_STRIP,   /* a simple polygon - cut into paralelle strips */
 	} mesh_kind;
-	int count;          /* number of vertices in the boundary */
-	int seg;            /* common # of segments for segmented edges */
-	BoundVert *boundstart;      /* start of boundary double-linked list */
-	NewVert *mesh;          /* allocated array - size and structure depends on kind */
+//	int _pad;
 } VMesh;
 
 /* Data for a vertex involved in a bevel */
@@ -101,9 +108,7 @@ typedef struct BevVert {
 	VMesh *vmesh;           /* mesh structure for replacing vertex */
 } BevVert;
 
-/*
- * Bevel parameters and state
- */
+/* Bevel parameters and state */
 typedef struct BevelParams {
 	/* hash of BevVert for each vertex involved in bevel
 	 * GHash: (key=(BMVert *), value=(BevVert *)) */
@@ -113,6 +118,8 @@ typedef struct BevelParams {
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int seg;                /* number of segments in beveled edge profile */
 } BevelParams;
+
+// #pragma GCC diagnostic ignored "-Wpadded"
 
 //#include "bevdebug.c"
 
