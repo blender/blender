@@ -1193,32 +1193,53 @@ static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
 
 	if (f) {
 		/* we have a polygon which we know starts at this vertex, make it into strips */
-		EdgeHalf *efirst = bv->vmesh->boundstart->efirst;
-		BMVert *v_first = efirst->is_bev ?
-		                  efirst->next->leftv->nv.v :
-		                  efirst->next->next->leftv->nv.v;  /* magic? */
-		//BMLoop *l_start = BM_FACE_FIRST_LOOP(f);
-		BMLoop *l_start = BM_face_vert_share_loop(f, v_first);
-		BMLoop *l_a = l_start->prev, *l_a_step;
-		BMLoop *l_b = l_start->next, *l_b_step;
+		EdgeHalf *eh_first, *eh_iter;
+		EdgeHalf *eh_a = NULL, *eh_b = NULL;
+		BMVert *v_a_first, *v_b_first;
+
+		BMLoop *l_a;
+		BMLoop *l_b;
+
+		/* find both edges */
+		eh_iter = eh_first = bv->vmesh->boundstart->efirst;
+		do {
+			if (eh_iter->seg) {
+				if (eh_a == NULL) {
+					eh_a = eh_iter;
+				}
+				else if (eh_b == NULL) {
+					eh_b = eh_iter;
+					break;
+				}
+			}
+		} while ((eh_iter = eh_iter->next) != NULL);
+
+		v_a_first = eh_a->rightv->nv.v;
+		v_b_first = eh_b->leftv->nv.v;
+
+		l_a = BM_face_vert_share_loop(f, v_a_first);
+		l_b = BM_face_vert_share_loop(f, v_b_first);
+		if (l_a == l_b) {
+			/* step once around if we hit the same loop */
+			l_a = l_a->prev;
+			l_b = l_b->next;
+		}
 
 		while (f->len > 4) {
-			// BMLoop *l_new;
-			BMFace *f_new;
+			BMLoop *l_new;
 			BLI_assert(l_a->f == f);
 			BLI_assert(l_b->f == f);
 
-			l_a_step = l_a->prev;
-			l_b_step = l_b->next;
+			BM_face_split(bm, f, l_a->v, l_b->v, &l_new, NULL, FALSE);
 
-			f_new = BM_face_split(bm, f, l_a->v, l_b->v, NULL, NULL, FALSE);
-
-			if (f_new->len > f->len) {
-				f = f_new;
+			if (l_new->f->len < l_new->radial_next->f->len) {
+				l_new = l_new->radial_next;
 			}
+			f = l_new->f;
 
-			l_a = l_a_step;
-			l_b = l_b_step;
+			/* walk around the new face to get the next verts to split */
+			l_a = l_new->prev;
+			l_b = l_new->next->next;
 		}
 	}
 }
