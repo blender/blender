@@ -92,7 +92,7 @@ typedef struct VMesh {
 		M_NONE,         /* no polygon mesh needed */
 		M_POLY,         /* a simple polygon */
 		M_ADJ,          /* "adjacent edges" mesh pattern */
-		M_CROSS,        /* "cross edges" mesh pattern */
+//		M_CROSS,        /* "cross edges" mesh pattern */
 		M_TRI_FAN,      /* a simple polygon - fan filled */
 		M_QUAD_STRIP,   /* a simple polygon - cut into paralelle strips */
 	} mesh_kind;
@@ -745,6 +745,9 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 	if (vm->count == 2 && bv->edgecount == 3) {
 		vm->mesh_kind = M_NONE;
 	}
+	else if (bv->selcount == 2) {
+		vm->mesh_kind = M_QUAD_STRIP;
+	}
 	else if (efirst->seg == 1 || bv->selcount == 1) {
 		if (vm->count == 3 && bv->selcount == 1) {
 			vm->mesh_kind = M_TRI_FAN;
@@ -754,12 +757,7 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 		}
 	}
 	else {
-		if (bv->selcount == 2) {
-			vm->mesh_kind = M_QUAD_STRIP;
-		}
-		else {
-			vm->mesh_kind = M_ADJ;
-		}
+		vm->mesh_kind = M_ADJ;
 	}
 	/* TODO: if vm->count == 4 and bv->selcount == 4, use M_CROSS pattern */
 }
@@ -1219,7 +1217,7 @@ static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
 			}
 
 			/* turns out we don't need this,
-			 * because of how BM_face_split works we always get the loop of the larger face */
+			 * because of how BM_face_split works we always get the loop of the next face */
 #if 0
 			if (l_new->f->len < l_new->radial_next->f->len) {
 				l_new = l_new->radial_next;
@@ -1371,14 +1369,23 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 			copy_mesh_vert(vm, weld2->index, 0, ns - k, weld1->index, 0, k);
 	}
 
-	if (vm->mesh_kind == M_ADJ)
-		bevel_build_rings(bm, bv);
-	else if (vm->mesh_kind == M_POLY)
-		bevel_build_poly(bm, bv);
-	else if (vm->mesh_kind == M_TRI_FAN)
-		bevel_build_trifan(bm, bv);
-	else if (vm->mesh_kind == M_QUAD_STRIP)
-		bevel_build_quadstrip(bm, bv);
+	switch (vm->mesh_kind) {
+		case M_NONE:
+			/* do nothing */
+			break;
+		case M_POLY:
+			bevel_build_poly(bm, bv);
+			break;
+		case M_ADJ:
+			bevel_build_rings(bm, bv);
+			break;
+		case M_TRI_FAN:
+			bevel_build_trifan(bm, bv);
+			break;
+		case M_QUAD_STRIP:
+			bevel_build_quadstrip(bm, bv);
+			break;
+	}
 }
 
 /*
