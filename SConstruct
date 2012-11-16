@@ -309,7 +309,7 @@ if env['OURPLATFORM']=='darwin':
     if env['WITH_BF_CYCLES_OSL'] == 1:
         # this is kinda hardcoded atm due not understood path issues, also look that we need 2 variants of passing the oslexec with the force_load option, why ?
         env.Append(LINKFLAGS=['-L../lib/darwin-9.x.universal/osl/lib','-loslcomp','-force_load ../lib/darwin-9.x.universal/osl/lib/liboslexec.a','-loslquery'])
-        env.Append(BF_PROGRAM_LINKFLAGS=['-loslcomp','-force_load','../lib/darwin-9.x.universal/osl/lib/liboslexec.a'])
+        env.Append(BF_PROGRAM_LINKFLAGS=['-loslcomp','-Xlinker','-force_load','-Xlinker','../lib/darwin-9.x.universal/osl/lib/liboslexec.a'])
 			
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
