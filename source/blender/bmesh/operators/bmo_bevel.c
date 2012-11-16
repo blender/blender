@@ -1193,7 +1193,10 @@ static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
 
 	if (f) {
 		/* we have a polygon which we know starts at this vertex, make it into strips */
-		BMVert *v_first = bv->vmesh->boundstart->efirst->next->next->leftv->nv.v;  /* magic? */
+		EdgeHalf *efirst = bv->vmesh->boundstart->efirst;
+		BMVert *v_first = efirst->is_bev ?
+		                  efirst->next->leftv->nv.v :
+		                  efirst->next->next->leftv->nv.v;  /* magic? */
 		//BMLoop *l_start = BM_FACE_FIRST_LOOP(f);
 		BMLoop *l_start = BM_face_vert_share_loop(f, v_first);
 		BMLoop *l_a = l_start->prev, *l_a_step;
