@@ -2202,10 +2202,10 @@ static void text_scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (!tsc->scrollbar) {
 		txtdelta[0] = -tsc->delta[0] / st->cwidth;
-		txtdelta[1] = tsc->delta[1] / st->lheight;
+		txtdelta[1] = tsc->delta[1] / (st->lheight + TXT_LINE_SPACING);
 
 		tsc->delta[0] %= st->cwidth;
-		tsc->delta[1] %= st->lheight;
+		tsc->delta[1] %= (st->lheight + TXT_LINE_SPACING);
 	}
 	else {
 		txtdelta[1] = -tsc->delta[1] * st->pix_per_line;
@@ -2599,7 +2599,7 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 {
 	Text *text = st->text;
 	text_update_character_width(st);
-	y = (ar->winy - 2 - y) / st->lheight;
+	y = (ar->winy - 2 - y) / (st->lheight + TXT_LINE_SPACING);
 
 	if (st->showlinenrs) x -= TXT_OFFSET + TEXTXLOC;
 	else x -= TXT_OFFSET;

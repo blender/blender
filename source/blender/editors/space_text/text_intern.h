@@ -57,6 +57,7 @@ void text_update_cursor_moved(struct bContext *C);
 #define TXT_OFFSET 15
 #define TXT_SCROLL_WIDTH 20
 #define TXT_SCROLL_SPACE 2
+#define TXT_LINE_SPACING 4 /* space between lines */
 
 #define TEXTXLOC		(st->cwidth * st->linenrs_tot)
 
