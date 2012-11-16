@@ -164,13 +164,11 @@ BF_OIIO = '${LIBDIR}/openimageio'
 BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
-BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
 WITH_BF_OCIO = True
 BF_OCIO = '${LIBDIR}/opencolorio'
 BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB = 'OpenColorIO'
-BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
@@ -216,7 +214,7 @@ C_WARN = []
 CC_WARN = []
 CXX_WARN = []
 
-LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
+LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid', 'psapi']
 
 PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 
