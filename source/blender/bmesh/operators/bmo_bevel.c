@@ -437,7 +437,6 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 	madd_v3_v3fl(slideco, dir, -d);
 }
 
-#ifndef USE_ALTERNATE_ADJ
 /* Calculate the point on e where line (co_a, co_b) comes closest to and return it in projco */
 static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3], float projco[3])
 {
@@ -448,7 +447,6 @@ static void project_to_edge(BMEdge *e, const float co_a[3], const float co_b[3],
 		copy_v3_v3(projco, e->v1->co);
 	}
 }
-#endif
 
 /* return 1 if a and b are in CCW order on the normal side of f,
  * and -1 if they are reversed, and 0 if there is no shared face f */
@@ -515,13 +513,26 @@ static void vmesh_cent(VMesh *vm, float r_cent[3])
  *
  */
 
-static void get_point_on_round_edge(EdgeHalf *e, int ring, int k,
+static void get_point_uv(float uv[2],
+                         /* all these args are int's originally
+                          * but pass as floats to the function */
+                         const float seg, const float ring, const float k)
+{
+	uv[0] = (ring / seg) * 2.0f;
+	uv[1] = (k    / seg) * 2.0f;
+}
+
+/* TODO: make this a lot smarter!,
+ * this is the main reason USE_ALTERNATE_ADJ isn't so good right now :S */
+static float get_point_uv_factor(const float uv[2])
+{
+	return sinf(1.0f - max_ff(uv[0], uv[1]) / 2.0f);
+}
+
+static void get_point_on_round_edge(const float uv[2],
                                     float quad[4][3],
                                     float r_co[3])
 {
-	const float n = e->seg;
-	const float uv[2] = {(ring / n) * 2.0f, (k / n) * 2.0f};
-
 	interp_bilinear_quad_v3(quad, uv[0], uv[1], r_co);
 }
 
@@ -763,9 +774,15 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 
 #ifdef USE_ALTERNATE_ADJ
 	/* ordered as follows (orig, prev, center, next)*/
-	float quad[4][3];
+	float quad_plane[4][3];
+	float quad_orig[4][3];
+#endif
+
+
+#ifdef USE_ALTERNATE_ADJ
 	/* the rest are initialized inline, this remains the same for all */
-	vmesh_cent(vm, quad[2]);
+	vmesh_cent(vm, quad_plane[2]);
+	copy_v3_v3(quad_orig[2], bv->v->co);
 #endif
 
 	n = vm->count;
@@ -805,15 +822,33 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 				nv->v = nvnext->v;
 
 #ifdef USE_ALTERNATE_ADJ
-				copy_v3_v3(quad[0], v->nv.co);
-				mid_v3_v3v3(quad[1], v->nv.co, v->prev->nv.co);
+				/* plane */
+				copy_v3_v3(quad_plane[0], v->nv.co);
+				mid_v3_v3v3(quad_plane[1], v->nv.co, v->prev->nv.co);
 				/* quad[2] is set */
-				mid_v3_v3v3(quad[3], v->nv.co, v->next->nv.co);
+				mid_v3_v3v3(quad_plane[3], v->nv.co, v->next->nv.co);
+
+				/* orig */
+				copy_v3_v3(quad_orig[0], v->nv.co);  /* only shared location between 2 quads */
+				project_to_edge(v->ebev->prev->e, v->nv.co, v->prev->nv.co, quad_orig[1]);
+				project_to_edge(v->ebev->e,       v->nv.co, v->next->nv.co, quad_orig[3]);
+
+				//bl_debug_draw_quad_add(UNPACK4(quad_plane));
+				//bl_debug_draw_quad_add(UNPACK4(quad_orig));
 #endif
 
 #ifdef USE_ALTERNATE_ADJ
 				for (k = 1; k < ns; k++) {
-					get_point_on_round_edge(v->ebev, ring, k, quad, co);
+					float uv[2];
+					float fac;
+					float co_plane[3];
+					float co_orig[3];
+
+					get_point_uv(uv, v->ebev->seg, ring, k);
+					get_point_on_round_edge(uv, quad_plane, co_plane);
+					get_point_on_round_edge(uv, quad_orig,  co_orig);
+					fac = get_point_uv_factor(uv);
+					interp_v3_v3v3(co, co_plane, co_orig, fac);
 					copy_v3_v3(mesh_vert(vm, i, ring, k)->co, co);
 				}
 #else
@@ -1190,14 +1225,20 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 
 #ifdef USE_ALTERNATE_ADJ
 	/* ordered as follows (orig, prev, center, next)*/
-	float quad[4][3];
+	float quad_plane[4][3];
+	float quad_orig_a[4][3];
+	float quad_orig_b[4][3];
+	const int is_odd = (vm->seg % 2);
 #else
 	float midco[3];
 #endif
 
 #ifdef USE_ALTERNATE_ADJ
 	/* the rest are initialized inline, this remains the same for all */
-	vmesh_cent(vm, quad[2]);
+	/* NOTE; in this usage we only interpolate on the 'V' so cent and next points are unused (2,3)*/
+	vmesh_cent(vm, quad_plane[2]);
+	copy_v3_v3(quad_orig_a[2], bv->v->co);
+	copy_v3_v3(quad_orig_b[2], bv->v->co);
 #endif
 
 	n = vm->count;
@@ -1228,25 +1269,62 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 	/* copy other ends to (i, 0, ns) for all i, and fill in profiles for beveled edges */
 	v = vm->boundstart;
 	do {
-
-#ifdef USE_ALTERNATE_ADJ
-		copy_v3_v3(quad[0], v->nv.co);
-		mid_v3_v3v3(quad[1], v->nv.co, v->prev->nv.co);
-		/* quad[2] is set */
-		mid_v3_v3v3(quad[3], v->nv.co, v->next->nv.co);
-#endif
-
 		i = v->index;
 		copy_mesh_vert(vm, i, 0, ns, v->next->index, 0, 0);
 		if (v->ebev) {
+
+#ifdef USE_ALTERNATE_ADJ
+			copy_v3_v3(quad_plane[0], v->nv.co);
+			mid_v3_v3v3(quad_plane[1], v->nv.co, v->prev->nv.co);
+			/* quad[2] is set */
+			mid_v3_v3v3(quad_plane[3], v->nv.co, v->next->nv.co);
+
+			/* orig 'A' */
+			copy_v3_v3(quad_orig_a[0], v->nv.co);  /* only shared location between 2 quads */
+			project_to_edge(v->ebev->prev->e, v->nv.co, v->prev->nv.co, quad_orig_a[1]);
+			project_to_edge(v->ebev->e,       v->nv.co, v->next->nv.co, quad_orig_a[3]);
+
+			/* orig 'B' */
+			copy_v3_v3(quad_orig_b[3], v->next->nv.co);  /* only shared location between 2 quads */
+			project_to_edge(v->ebev->prev->e, v->nv.co, v->prev->nv.co, quad_orig_b[1]);
+			project_to_edge(v->ebev->e,       v->nv.co, v->next->nv.co, quad_orig_b[0]);
+
+			//bl_debug_draw_quad_add(UNPACK4(quad_plane));
+			//bl_debug_draw_quad_add(UNPACK4(quad_orig_a));
+			//bl_debug_draw_quad_add(UNPACK4(quad_orig_b));
+#endif  /* USE_ALTERNATE_ADJ */
+
 #ifdef USE_ALTERNATE_ADJ
 			for (k = 1; k < ns; k++) {
-				get_point_on_round_edge(v->ebev, 0, k, quad, co);
+				float uv[2];
+				float fac;
+				float co_plane[3];
+				float co_orig[3];
+
+				/* quad_plane */
+				get_point_uv(uv, v->ebev->seg, 0, k);
+				get_point_on_round_edge(uv, quad_plane, co_plane);
+
+				/* quad_orig */
+				/* each half has different UV's */
+				if (k <= ns2) {
+					get_point_uv(uv, v->ebev->seg, 0, k);
+					get_point_on_round_edge(uv, quad_orig_a, co_orig);
+				}
+				else {
+					get_point_uv(uv, v->ebev->seg, 0, (k - ns2) - (is_odd ? 0.5f : 0.0f));
+					get_point_on_round_edge(uv, quad_orig_b, co_orig);
+					uv[1] = 1.0f - uv[1];  /* so we can get the factor */
+				}
+				fac = get_point_uv_factor(uv);
+
+				/* done. interp */
+				interp_v3_v3v3(co, co_plane, co_orig, fac);
 				copy_v3_v3(mesh_vert(vm, i, 0, k)->co, co);
 				if (!weld)
 					create_mesh_bmvert(bm, vm, i, 0, k, bv->v);
 			}
-#else
+#else  /* USE_ALTERNATE_ADJ */
 			va = mesh_vert(vm, i, 0, 0)->co;
 			vb = mesh_vert(vm, i, 0, ns)->co;
 			project_to_edge(v->ebev->e, va, vb, midco);
@@ -1256,7 +1334,7 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 				if (!weld)
 					create_mesh_bmvert(bm, vm, i, 0, k, bv->v);
 			}
-#endif
+#endif  /* !USE_ALTERNATE_ADJ */
 		}
 	} while ((v = v->next) != vm->boundstart);
 
