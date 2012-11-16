@@ -389,7 +389,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
 	madd_v3_v3fl(off2a, norm_perp2, e2->offset);
 	add_v3_v3v3(off2b, off2a, dir2);
 
-	if (fabs(angle_v3v3(dir1, dir2)) < BEVEL_EPSILON) {
+	if (angle_v3v3(dir1, dir2) < (float)BEVEL_EPSILON) {
 		/* lines are parallel; off1a is a good meet point */
 		copy_v3_v3(meetco, off1a);
 	}
@@ -437,7 +437,7 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 	sub_v3_v3v3(dir, v->co, BM_edge_other_vert(e->e, v)->co);
 	len = normalize_v3(dir);
 	if (d > len)
-		d = len - (float)(50 * BEVEL_EPSILON);
+		d = len - (float)(50.0 * BEVEL_EPSILON);
 	copy_v3_v3(slideco, v->co);
 	madd_v3_v3fl(slideco, dir, -d);
 }
@@ -562,7 +562,7 @@ static void get_point_on_round_profile(float r_co[3], float offset, int k, int c
 	sub_v3_v3v3(vvb, vb, v);
 	normalize_v3(vva);
 	normalize_v3(vvb);
-	angle = angle_v3v3(vva, vvb);
+	angle = angle_normalized_v3v3(vva, vvb);
 
 	add_v3_v3v3(center, vva, vvb);
 	normalize_v3(center);
