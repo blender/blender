@@ -283,7 +283,7 @@ BF_OSL = LIBDIR + '/osl'
 BF_OSL_INC = '${BF_OSL}/include'
 # note oslexec would passed via program linkflags, which is needed to
 # make llvm happy with osl_allocate_closure_component
-BF_OSL_LIB = 'oslcomp oslquery'
+#BF_OSL_LIB = 'oslcomp oslquery'
 BF_OSL_LIBPATH = '${BF_OSL}/lib'
 BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
 
