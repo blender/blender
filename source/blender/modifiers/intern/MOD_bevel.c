@@ -92,7 +92,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 #ifdef USE_BM_BEVEL_OP_AS_MOD
 
-#define EDGE_MARK   1
+#define GEOM_MARK   1
 
 /* BMESH_TODO
  *
@@ -116,7 +116,8 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	BMIter iter;
 	BMEdge *e;
 	BevelModifierData *bmd = (BevelModifierData *) md;
-	float threshold = cos((bmd->bevel_angle + 0.00001f) * M_PI / 180.0f);
+	float threshold = cos((bmd->bevel_angle + 0.00001f) * (float)M_PI / 180.0f);
+	const int segments = 16;  /* XXX */
 
 	bm = DM_to_bmesh(dm);
 
@@ -131,7 +132,9 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 			    (l2 = e->l->radial_next) != l1)
 			{
 				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
-					BMO_elem_flag_enable(bm, e, EDGE_MARK);
+					BMO_elem_flag_enable(bm, e, GEOM_MARK);
+					BMO_elem_flag_enable(bm, e->v1, GEOM_MARK);
+					BMO_elem_flag_enable(bm, e->v2, GEOM_MARK);
 				}
 			}
 		}
@@ -139,13 +142,15 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	else {
 		/* crummy, is there a way just to operator on all? - campbell */
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			BMO_elem_flag_enable(bm, e, EDGE_MARK);
+			BMO_elem_flag_enable(bm, e, GEOM_MARK);
+			BMO_elem_flag_enable(bm, e->v1, GEOM_MARK);
+			BMO_elem_flag_enable(bm, e->v2, GEOM_MARK);
 		}
 	}
 
 	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
-	             "bevel geom=%fe percent=%f use_even=%b use_dist=%b",
-	             EDGE_MARK, bmd->value, (bmd->flags & BME_BEVEL_EVEN) != 0, (bmd->flags & BME_BEVEL_DIST) != 0);
+	             "bevel geom=%fve offset=%f segments=%i",
+	             GEOM_MARK, bmd->value, segments);
 	BMO_pop(bm);
 
 	result = CDDM_from_bmesh(bm, TRUE);
