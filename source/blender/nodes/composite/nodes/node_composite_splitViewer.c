@@ -77,7 +77,7 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		ibuf= BKE_image_acquire_ibuf(ima, node->storage, &lock);
 		if (ibuf==NULL) {
 			printf("node_composit_exec_viewer error\n");
-			BKE_image_release_ibuf(ima, lock);
+			BKE_image_release_ibuf(ima, ibuf, lock);
 			return;
 		}
 		
