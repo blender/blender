@@ -590,11 +590,13 @@ install_DEB() {
   VORBIS_DEV="libvorbis-dev"
   THEORA_DEV="libtheora-dev"
 
+  have_llvm=false
+
   sudo apt-get install -y cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
     libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
-    libfftw3-dev libjack-dev python-dev patch flex bison llvm-dev clang libtbb-dev git
+    libfftw3-dev libjack-dev python-dev patch flex bison libtbb-dev git
 
   OPENJPEG_USE=true
   SCHRO_USE=true
@@ -681,8 +683,22 @@ install_DEB() {
     compile_OIIO
   fi
 
-  # No package currently!
-  compile_OSL
+  check_package_DEB llvm-$LLVM_VERSION-dev
+  if [ $? -eq 0 ]; then
+    sudo apt-get install -y llvm-$LLVM_VERSION-dev clang
+    have_llvm=true
+  else
+    check_package_DEB llvm-$LLVM_VERSION_MIN-dev
+    if [ $? -eq 0 ]; then
+      sudo apt-get install -y llvm-$LLVM_VERSION_MIN-dev clang
+      have_llvm=true
+    fi
+  fi
+
+  if $have_llvm; then
+    # No package currently!
+    compile_OSL
+  fi
 
 #  XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
 #      So for now, always build our own ffmpeg.
