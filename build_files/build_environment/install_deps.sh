@@ -216,7 +216,7 @@ compile_Boost() {
     if [ ! -f $_src/b2 ]; then
       ./bootstrap.sh
     fi
-    ./b2 -j$THREADS -a --with-system --with_filesystem --with-thread --with-regex --with-locale --with-date_time \
+    ./b2 -j$THREADS -a --with-system --with-filesystem --with-thread --with-regex --with-locale --with-date_time \
          --prefix=$_inst --disable-icu boost.locale.icu=off install
     ./b2 --clean
 

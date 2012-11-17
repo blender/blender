@@ -582,11 +582,11 @@ B.init_lib_dict()
 
 Export('env')
 
-BuildDir(B.root_build_dir+'/source', 'source', duplicate=0)
+VariantDir(B.root_build_dir+'/source', 'source', duplicate=0)
 SConscript(B.root_build_dir+'/source/SConscript')
-BuildDir(B.root_build_dir+'/intern', 'intern', duplicate=0)
+VariantDir(B.root_build_dir+'/intern', 'intern', duplicate=0)
 SConscript(B.root_build_dir+'/intern/SConscript')
-BuildDir(B.root_build_dir+'/extern', 'extern', duplicate=0)
+VariantDir(B.root_build_dir+'/extern', 'extern', duplicate=0)
 SConscript(B.root_build_dir+'/extern/SConscript')
 
 # now that we have read all SConscripts, we know what
