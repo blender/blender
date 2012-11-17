@@ -171,12 +171,13 @@ compile_Python() {
         --enable-loadable-sqlite-extensions --with-dbmliborder=bdb \
         --with-computed-gotos --with-pymalloc
 
-    make -j$THREADS
-    make install
+    make -j$THREADS && make install
     make clean
 
-    rm -f $INST/python-3.3
-    ln -s python-$PYTHON_VERSION $INST/python-3.3
+    if [ -d $_inst ]; then
+      rm -f $INST/python-3.3
+      ln -s python-$PYTHON_VERSION $INST/python-3.3
+    fi
 
     magic_compile_set python-$PYTHON_VERSION $py_magic
 
@@ -220,8 +221,10 @@ compile_Boost() {
          --prefix=$_inst --disable-icu boost.locale.icu=off install
     ./b2 --clean
 
-    rm -f $INST/boost
-    ln -s boost-$BOOST_VERSION $INST/boost
+    if [ -d $_inst ]; then
+      rm -f $INST/boost
+      ln -s boost-$BOOST_VERSION $INST/boost
+    fi
 
     magic_compile_set boost-$BOOST_VERSION $boost_magic
 
@@ -281,8 +284,7 @@ compile_OCIO() {
           -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
           ..
 
-    make -j$THREADS
-    make install
+    make -j$THREADS && make install
 
     # Force linking against static libs
     rm -f $_inst/lib/*.so*
@@ -293,8 +295,10 @@ compile_OCIO() {
 
     make clean
 
-    rm -f $INST/ocio
-    ln -s ocio-$OCIO_VERSION $INST/ocio
+    if [ -d $_inst ]; then
+      rm -f $INST/ocio
+      ln -s ocio-$OCIO_VERSION $INST/ocio
+    fi
 
     magic_compile_set ocio-$OCIO_VERSION $ocio_magic
 
@@ -361,12 +365,13 @@ compile_OIIO() {
 
     cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ../src
 
-    make -j$THREADS
-    make install
+    make -j$THREADS && make install
     make clean
 
-    rm -f $INST/oiio
-    ln -s oiio-$OIIO_VERSION $INST/oiio
+    if [ -d $_inst ]; then
+      rm -f $INST/oiio
+      ln -s oiio-$OIIO_VERSION $INST/oiio
+    fi
 
     magic_compile_set oiio-$OIIO_VERSION $oiio_magic
 
@@ -434,12 +439,13 @@ compile_OSL() {
 
     cmake $cmake_d ../src
 
-    make -j$THREADS
-    make install
+    make -j$THREADS && make install
     make clean
 
-    rm -f $INST/osl
-    ln -s osl-$OSL_VERSION $INST/osl
+    if [ -d $_inst ]; then
+      rm -f $INST/osl
+      ln -s osl-$OSL_VERSION $INST/osl
+    fi
 
     magic_compile_set osl-$OSL_VERSION $osl_magic
 
@@ -522,12 +528,13 @@ compile_FFmpeg() {
         --disable-outdev=alsa --disable-indev=sdl --disable-indev=alsa --disable-indev=jack \
         --disable-indev=lavfi $extra
 
-    make -j$THREADS
-    make install
+    make -j$THREADS && make install
     make clean
 
-    rm -f $INST/ffmpeg
-    ln -s ffmpeg-$FFMPEG_VERSION $INST/ffmpeg
+    if [ -d $_inst ]; then
+      rm -f $INST/ffmpeg
+      ln -s ffmpeg-$FFMPEG_VERSION $INST/ffmpeg
+    fi
 
     magic_compile_set ffmpeg-$FFMPEG_VERSION $ffmpeg_magic
 
