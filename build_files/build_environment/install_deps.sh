@@ -20,7 +20,7 @@ OCIO_VERSION="1.0.7"
 OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
 OCIO_VERSION_MIN="1.0"
 
-OIIO_VERSION="1.1.0"
+OIIO_VERSION="1.1.1"
 OIIO_SOURCE="https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION"
 OIIO_VERSION_MIN="1.1"
 
