@@ -347,6 +347,25 @@ compile_OIIO() {
       INFO "Unpacking OpenImageIO-$OIIO_VERSION"
       tar -C $SRC --transform "s,(.*/?)OpenImageIO-oiio[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
           -xf $_src.tar.gz
+
+      cd $_src
+      cat << EOF | patch -p1
+diff --git a/src/libutil/SHA1.cpp b/src/libutil/SHA1.cpp
+index b9e6c8b..c761185 100644
+--- a/src/libutil/SHA1.cpp
++++ b/src/libutil/SHA1.cpp
+@@ -8,9 +8,9 @@
+ 
+ // If compiling with MFC, you might want to add #include "StdAfx.h"
+ 
++#include "SHA1.h"
+ #include "hash.h"
+ #include "dassert.h"
+-#include "SHA1.h"
+ 
+ #ifdef SHA1_UTILITY_FUNCTIONS
+ #define SHA1_MAX_FILE_BUFFER 8000
+EOF
     fi
 
     cd $_src
