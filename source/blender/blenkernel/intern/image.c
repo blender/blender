@@ -2173,6 +2173,8 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			break;
 	}
 
+	BLI_spin_unlock(&image_spin);
+
 	/* don't use notifiers because they are not 100% sure to succeeded
 	 * this also makes sure all scenes are accounted for. */
 	{
@@ -2183,8 +2185,6 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			}
 		}
 	}
-
-	BLI_spin_unlock(&image_spin);
 }
 
 /* if layer or pass changes, we need an index for the imbufs list */

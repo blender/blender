@@ -67,6 +67,7 @@ ImBuf *BaseImageOperation::getImBuf()
 	
 	ibuf = BKE_image_acquire_ibuf(this->m_image, this->m_imageUser, NULL);
 	if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
+		BKE_image_release_ibuf(this->m_image, ibuf, NULL);
 		return NULL;
 	}
 	
@@ -93,7 +94,7 @@ void BaseImageOperation::initExecution()
 void BaseImageOperation::deinitExecution()
 {
 	this->m_imageBuffer = NULL;
-	IMB_freeImBuf(this->m_buffer);
+	BKE_image_release_ibuf(this->m_image, this->m_buffer, NULL);
 }
 
 void BaseImageOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
