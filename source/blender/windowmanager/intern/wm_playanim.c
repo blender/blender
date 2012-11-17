@@ -235,7 +235,7 @@ static void playanim_toscreen(PlayAnimPict *picture, struct ImBuf *ibuf, int fon
 {
 
 	if (ibuf == NULL) {
-		printf("no ibuf !\n");
+		printf("%s: no ibuf for picture '%s'\n", __func__, picture ? picture->name : "<NIL>");
 		return;
 	}
 	if (ibuf->rect == NULL && ibuf->rect_float) {
