@@ -75,6 +75,9 @@
 
 #include "WM_api.h"  /* only for WM_main_playanim */
 
+struct PlayState;
+static void playanim_window_zoom(const struct PlayState *ps, const float zoom_offset);
+
 typedef struct PlayState {
 
 	/* playback state */
@@ -596,27 +599,12 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					break;
 				case GHOST_kKeyNumpadPlus:
 					if (val == 0) break;
-					zoomx += 2.0f;
-					zoomy += 2.0f;
-					/* no break??? - is this intentional? - campbell XXX25 */
+					playanim_window_zoom(ps, 1.0f);
+					break;
 				case GHOST_kKeyNumpadMinus:
 				{
-					int sizex, sizey;
-					/* int ofsx, ofsy; */ /* UNUSED */
-
 					if (val == 0) break;
-					if (zoomx > 1.0f) zoomx -= 1.0f;
-					if (zoomy > 1.0f) zoomy -= 1.0f;
-					// playanim_window_get_position(&ofsx, &ofsy);
-					playanim_window_get_size(&sizex, &sizey);
-					/* ofsx += sizex / 2; */ /* UNUSED */
-					/* ofsy += sizey / 2; */ /* UNUSED */
-					sizex = zoomx * ps->ibufx;
-					sizey = zoomy * ps->ibufy;
-					/* ofsx -= sizex / 2; */ /* UNUSED */
-					/* ofsy -= sizey / 2; */ /* UNUSED */
-					// window_set_position(g_WS.ghost_window,sizex,sizey);
-					GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
+					playanim_window_zoom(ps, -1.0f);
 					break;
 				}
 				case GHOST_kKeyEsc:
@@ -722,6 +710,25 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
 	                                       FALSE /* no stereo */, FALSE);
 }
 
+static void playanim_window_zoom(const PlayState *ps, const float zoom_offset)
+{
+	int sizex, sizey;
+	/* int ofsx, ofsy; */ /* UNUSED */
+
+	if (zoomx + zoom_offset > 0.0f) zoomx += zoom_offset;
+	if (zoomy + zoom_offset > 0.0f) zoomy += zoom_offset;
+
+	// playanim_window_get_position(&ofsx, &ofsy);
+	playanim_window_get_size(&sizex, &sizey);
+	/* ofsx += sizex / 2; */ /* UNUSED */
+	/* ofsy += sizey / 2; */ /* UNUSED */
+	sizex = zoomx * ps->ibufx;
+	sizey = zoomy * ps->ibufy;
+	/* ofsx -= sizex / 2; */ /* UNUSED */
+	/* ofsy -= sizey / 2; */ /* UNUSED */
+	// window_set_position(g_WS.ghost_window,sizex,sizey);
+	GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
+}
 
 void WM_main_playanim(int argc, const char **argv)
 {
@@ -742,7 +749,7 @@ void WM_main_playanim(int argc, const char **argv)
 	/* ps.doubleb   = TRUE;*/ /* UNUSED */
 	ps.go        = TRUE;
 	ps.direction = TRUE;
-	ps.next      = TRUE;
+	ps.next      = 1;
 	ps.once      = FALSE;
 	ps.turbo     = FALSE;
 	ps.pingpong  = FALSE;
