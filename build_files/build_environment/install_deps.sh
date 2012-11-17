@@ -5,6 +5,11 @@ SRC="$HOME/src/blender-deps"
 INST="/opt/lib"
 CWD=$PWD
 
+# OSL is horror for manual building even
+# i would want it to be setteled for manual build first,
+# and only then do it automatically
+BUILD_OSL=false
+
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
 
 PYTHON_VERSION="3.3.0"
@@ -597,8 +602,6 @@ install_DEB() {
   VORBIS_DEV="libvorbis-dev"
   THEORA_DEV="libtheora-dev"
 
-  have_llvm=false
-
   sudo apt-get install -y cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
@@ -690,21 +693,25 @@ install_DEB() {
     compile_OIIO
   fi
 
-  check_package_DEB llvm-$LLVM_VERSION-dev
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y llvm-$LLVM_VERSION-dev clang
-    have_llvm=true
-  else
-    check_package_DEB llvm-$LLVM_VERSION_MIN-dev
-    if [ $? -eq 0 ]; then
-      sudo apt-get install -y llvm-$LLVM_VERSION_MIN-dev clang
-      have_llvm=true
-    fi
-  fi
+  if $BUILD_OSL; then
+    have_llvm=false
 
-  if $have_llvm; then
-    # No package currently!
-    compile_OSL
+    check_package_DEB llvm-$LLVM_VERSION-dev
+    if [ $? -eq 0 ]; then
+      sudo apt-get install -y llvm-$LLVM_VERSION-dev clang
+      have_llvm=true
+    else
+      check_package_DEB llvm-$LLVM_VERSION_MIN-dev
+      if [ $? -eq 0 ]; then
+        sudo apt-get install -y llvm-$LLVM_VERSION_MIN-dev clang
+        have_llvm=true
+      fi
+    fi
+
+    if $have_llvm; then
+      # No package currently!
+      compile_OSL
+    fi
   fi
 
 #  XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
