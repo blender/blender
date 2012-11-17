@@ -41,9 +41,14 @@ void NormalNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	SetVectorOperation *operationSet = new SetVectorOperation();
 	bNodeSocket *insock = (bNodeSocket *)editorNode->outputs.first;
 	bNodeSocketValueVector *dval = (bNodeSocketValueVector *)insock->default_value;
-	operationSet->setX(dval->value[0]);
-	operationSet->setY(dval->value[1]);
-	operationSet->setZ(dval->value[2]);
+	float normal[3];
+
+	/* animation can break normalization, this restores it */
+	normalize_v3_v3(normal, dval->value);
+
+	operationSet->setX(normal[0]);
+	operationSet->setY(normal[1]);
+	operationSet->setZ(normal[2]);
 	operationSet->setW(0.0f);
 	
 	outputSocket->relinkConnections(operationSet->getOutputSocket(0));

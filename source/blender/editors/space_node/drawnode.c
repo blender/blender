@@ -398,29 +398,15 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'c', 0, 0);
 }
 
-static void node_normal_cb(bContext *C, void *ntree_v, void *node_v)
-{
-	Main *bmain = CTX_data_main(C);
-
-	ED_node_generic_update(bmain, ntree_v, node_v);
-	WM_event_add_notifier(C, NC_NODE | NA_EDITED, ntree_v);
-}
-
 static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiBlock *block = uiLayoutAbsoluteBlock(layout);
-	bNodeTree *ntree = ptr->id.data;
-	bNode *node = ptr->data;
-	rctf *butr = &node->butr;
+	bNodeTree *ntree = (bNodeTree*)ptr->id.data;
+	bNode *node = (bNode*)ptr->data;
 	bNodeSocket *sock = node->outputs.first;     /* first socket stores normal */
-	float *nor = ((bNodeSocketValueVector *)sock->default_value)->value;
-	uiBut *bt;
-	
-	bt = uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "",
-	               (int)butr->xmin, (int)butr->xmin,
-	               (short)BLI_rctf_size_x(butr), (short)BLI_rctf_size_x(butr),
-	               nor, 0.0f, 1.0f, 0, 0, "");
-	uiButSetFunc(bt, node_normal_cb, ntree, node);
+	PointerRNA sockptr;
+
+	RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &sockptr);
+	uiItemR(layout, &sockptr, "default_value", 0, "", ICON_NONE);
 }
 #if 0 /* not used in 2.5x yet */
 static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
