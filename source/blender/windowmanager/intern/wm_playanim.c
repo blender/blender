@@ -433,6 +433,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 		ps->stopped = FALSE;
 	}
 
+	if (ps->wait2) {
+		pupdate_time();
+		ptottime = 0;
+	}
+
 	switch (type) {
 		case GHOST_kEventKeyDown:
 		case GHOST_kEventKeyUp:
@@ -940,6 +945,7 @@ void WM_main_playanim(int argc, const char **argv)
 		if (ptottime > 0.0) ptottime = 0.0;
 
 		while (ps.picture) {
+			int hasevent;
 #ifndef USE_IMB_CACHE
 			if (ibuf != NULL && ibuf->ftype == 0) IMB_freeImBuf(ibuf);
 #endif
@@ -993,19 +999,10 @@ void WM_main_playanim(int argc, const char **argv)
 			ps.next = ps.direction;
 
 
-			{
-				int hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0);
+			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0) || ps.wait2 != 0)) {
 				if (hasevent) {
 					GHOST_DispatchEvents(g_WS.ghost_system);
 				}
-			}
-
-			/* XXX25 - we should not have to do this, but it makes scrubbing functional! */
-			if (g_WS.qual & WS_QUAL_LMOUSE) {
-				ps.next = 0;
-			}
-			else {
-				ps.sstep = 0;
 			}
 
 			ps.wait2 = ps.sstep;
