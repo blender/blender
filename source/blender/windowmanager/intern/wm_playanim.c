@@ -136,6 +136,7 @@ typedef enum eWS_Qual {
 	WS_QUAL_ALT     = (WS_QUAL_LALT | WS_QUAL_RALT),
 	WS_QUAL_LCTRL   = (1 << 4),
 	WS_QUAL_RCTRL   = (1 << 5),
+	WS_QUAL_CTRL    = (WS_QUAL_LCTRL | WS_QUAL_RCTRL),
 	WS_QUAL_LMOUSE  = (1 << 16),
 	WS_QUAL_MMOUSE  = (1 << 17),
 	WS_QUAL_RMOUSE  = (1 << 18),
@@ -183,12 +184,12 @@ static void playanim_event_qual_update(void)
 
 	/* Alt */
 	GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyLeftAlt, &val);
-	if (val) g_WS.qual |=  WS_QUAL_LCTRL;
-	else     g_WS.qual &= ~WS_QUAL_LCTRL;
+	if (val) g_WS.qual |=  WS_QUAL_LALT;
+	else     g_WS.qual &= ~WS_QUAL_LALT;
 
 	GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyRightAlt, &val);
-	if (val) g_WS.qual |=  WS_QUAL_RCTRL;
-	else     g_WS.qual &= ~WS_QUAL_RCTRL;
+	if (val) g_WS.qual |=  WS_QUAL_RALT;
+	else     g_WS.qual &= ~WS_QUAL_RALT;
 
 	/* LMB */
 	GHOST_GetButtonState(g_WS.ghost_system, GHOST_kButtonMaskLeft, &val);
@@ -548,28 +549,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						}
 					}
 					break;
-				case GHOST_kKeyEqual:
-					if (val) {
-						if (g_WS.qual & WS_QUAL_SHIFT) {
-							ps->pause++;
-							printf("pause:%d\n", ps->pause);
-						}
-						else {
-							swaptime /= 1.1;
-						}
-					}
-					break;
-				case GHOST_kKeyMinus:
-					if (val) {
-						if (g_WS.qual & WS_QUAL_SHIFT) {
-							ps->pause--;
-							printf("pause:%d\n", ps->pause);
-						}
-						else {
-							swaptime *= 1.1;
-						}
-					}
-					break;
 				case GHOST_kKeyNumpad0:
 					if (val) {
 						if (ps->once) {
@@ -597,14 +576,28 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						}
 					}
 					break;
+				case GHOST_kKeyEqual:
 				case GHOST_kKeyNumpadPlus:
+				{
 					if (val == 0) break;
-					playanim_window_zoom(ps, 1.0f);
+					if (g_WS.qual & WS_QUAL_CTRL) {
+						playanim_window_zoom(ps, 1.0f);
+					}
+					else {
+						swaptime /= 1.1;
+					}
 					break;
+				}
+				case GHOST_kKeyMinus:
 				case GHOST_kKeyNumpadMinus:
 				{
 					if (val == 0) break;
-					playanim_window_zoom(ps, -1.0f);
+					if (g_WS.qual & WS_QUAL_CTRL) {
+						playanim_window_zoom(ps, -1.0f);
+					}
+					else {
+						swaptime *= 1.1;
+					}
 					break;
 				}
 				case GHOST_kKeyEsc:
@@ -1009,6 +1002,18 @@ void WM_main_playanim(int argc, const char **argv)
 			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0) || ps.wait2 != 0)) {
 				if (hasevent) {
 					GHOST_DispatchEvents(g_WS.ghost_system);
+				}
+				if (ps.wait2) {
+					if (hasevent) {
+						if (ibuf) {
+							while (pupdate_time()) PIL_sleep_ms(1);
+							ptottime -= swaptime;
+							playanim_toscreen(ps.picture, ibuf, ps.fontid, ps.fstep);
+						}
+					}
+				}
+				if (!ps.go) {
+					break;
 				}
 			}
 
