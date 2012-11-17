@@ -345,7 +345,7 @@ compile_OIIO() {
              -D BUILDSTATIC=ON"
 
     if [ -d $INST/boost ]; then
-      cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
+      cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
     fi
 
     # Looks like we do not need ocio in oiio for now...
