@@ -180,7 +180,7 @@ def validate_arguments(args, bc):
             'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
             'C_WARN', 'CC_WARN', 'CXX_WARN',
             'LLIBS', 'PLATFORM_LINKFLAGS','MACOSX_ARCHITECTURE', 'MACOSX_SDK_CHECK', 'XCODE_CUR_VER',
-            'BF_CYCLES_CUDA_BINARIES_ARCH', 'BF_PROGRAM_LINKFLAGS'
+            'BF_CYCLES_CUDA_BINARIES_ARCH', 'BF_PROGRAM_LINKFLAGS', 'MACOSX_DEPLOYMENT_TARGET'
     ]
     
     
@@ -502,8 +502,9 @@ def read_opts(env, cfg, args):
         ('LLIBS', 'Platform libs', []),
         ('PLATFORM_LINKFLAGS', 'Platform linkflags', []),
         ('MACOSX_ARCHITECTURE', 'python_arch.zip select', ''),
-        ('MACOSX_SDK_CHECK', 'detect available OSX sdk`s', ''),
-        ('XCODE_CUR_VER', 'detect XCode version', ''),
+        ('MACOSX_SDK_CHECK', 'Detect available OS X SDK`s', ''),
+        ('XCODE_CUR_VER', 'Detect XCode version', ''),
+        ('MACOSX_DEPLOYMENT_TARGET', 'Detect OS X target version', ''),
 
         (BoolVariable('BF_PROFILE', 'Add profiling information if true', False)),
         ('BF_PROFILE_CFLAGS', 'C only profiling flags', []),
@@ -686,7 +687,7 @@ def buildslave(target=None, source=None, env=None):
         elif bitness == '32bit':
             platform = 'linux-' + glibc + '-i686'
     if platform == 'darwin':
-        platform = 'OSX-' + env['MACOSX_ARCHITECTURE']
+        platform = 'OSX-' + env['MACOSX_DEPLOYMENT_TARGET'] + '-' + env['MACOSX_ARCHITECTURE']
 
     branch = env['BUILDBOT_BRANCH']
 
