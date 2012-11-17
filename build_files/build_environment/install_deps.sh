@@ -182,6 +182,9 @@ compile_Python() {
     if [ -d $_inst ]; then
       rm -f $INST/python-3.3
       ln -s python-$PYTHON_VERSION $INST/python-3.3
+    else
+      ERROR "Python--$PYTHON_VERSION failed to compile, exiting"
+      exit 1
     fi
 
     magic_compile_set python-$PYTHON_VERSION $py_magic
@@ -229,6 +232,9 @@ compile_Boost() {
     if [ -d $_inst ]; then
       rm -f $INST/boost
       ln -s boost-$BOOST_VERSION $INST/boost
+    else
+      ERROR "Boost-$BOOST_VERSION failed to compile, exiting"
+      exit 1
     fi
 
     magic_compile_set boost-$BOOST_VERSION $boost_magic
@@ -303,6 +309,9 @@ compile_OCIO() {
     if [ -d $_inst ]; then
       rm -f $INST/ocio
       ln -s ocio-$OCIO_VERSION $INST/ocio
+    else
+      ERROR "OpenColorIO-$OCIO_VERSION failed to compile, exiting"
+      exit 1
     fi
 
     magic_compile_set ocio-$OCIO_VERSION $ocio_magic
@@ -376,6 +385,9 @@ compile_OIIO() {
     if [ -d $_inst ]; then
       rm -f $INST/oiio
       ln -s oiio-$OIIO_VERSION $INST/oiio
+    else
+      ERROR "OpenImageIO-$OIIO_VERSION failed to compile, exiting"
+      exit 1
     fi
 
     magic_compile_set oiio-$OIIO_VERSION $oiio_magic
@@ -450,6 +462,9 @@ compile_OSL() {
     if [ -d $_inst ]; then
       rm -f $INST/osl
       ln -s osl-$OSL_VERSION $INST/osl
+    else
+      ERROR "OpenShadingLanguage-$OSL_VERSION failed to compile, exiting"
+      exit 1
     fi
 
     magic_compile_set osl-$OSL_VERSION $osl_magic
@@ -539,6 +554,9 @@ compile_FFmpeg() {
     if [ -d $_inst ]; then
       rm -f $INST/ffmpeg
       ln -s ffmpeg-$FFMPEG_VERSION $INST/ffmpeg
+    else
+      ERROR "FFmpeg-$FFMPEG_VERSION failed to compile, exiting"
+      exit 1
     fi
 
     magic_compile_set ffmpeg-$FFMPEG_VERSION $ffmpeg_magic
