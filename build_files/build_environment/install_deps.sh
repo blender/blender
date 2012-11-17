@@ -11,6 +11,9 @@ CWD=$PWD
 BUILD_OSL=false
 
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
+if [ -z "$v" ]; then
+  THREADS=1
+fi
 
 PYTHON_VERSION="3.3.0"
 PYTHON_VERSION_MIN="3.3"
@@ -639,7 +642,7 @@ install_DEB() {
   VORBIS_DEV="libvorbis-dev"
   THEORA_DEV="libtheora-dev"
 
-  sudo apt-get install -y cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
+  sudo apt-get install -y gawk cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
     libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
@@ -809,7 +812,7 @@ install_RPM() {
 
   sudo yum -y update
 
-  sudo yum -y install gcc gcc-c++ cmake scons libpng-devel libtiff-devel \
+  sudo yum -y install gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel \
     freetype-devel libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
     readline-devel openjpeg-devel openexr-devel openal-soft-devel \
     glew-devel yasm schroedinger-devel libtheora-devel libvorbis-devel SDL-devel \
