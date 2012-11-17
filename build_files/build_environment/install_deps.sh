@@ -55,6 +55,7 @@ XVID_USE=false
 XVID_DEV=""
 X264_USE=false
 X264_DEV=""
+X264_VERSION_MIN=0.118
 VPX_USE=false
 VPX_VERSION_MIN=0.9.7
 VPX_DEV=""
@@ -605,7 +606,7 @@ check_package_DEB() {
 }
 
 check_package_version_match_DEB() {
-  v=`apt-cache policy $1 | grep 'Candidate:' | sed -r 's/.*:\s*(([0-9]+\.?)+).*/\1/'`
+  v=`apt-cache policy $1 | grep 'Candidate:' | sed -r 's/.*:\s*([0-9]+:)(([0-9]+\.?)+).*/\2/'`
 
   if [ -z "$v" ]; then
     return 1
@@ -616,7 +617,7 @@ check_package_version_match_DEB() {
 }
 
 check_package_version_ge_DEB() {
-  v=`apt-cache policy $1 | grep 'Candidate:' | sed -r 's/.*:\s*(([0-9]+\.?)+).*/\1/'`
+  v=`apt-cache policy $1 | grep 'Candidate:' | sed -r 's/.*:\s*([0-9]+:)?(([0-9]+\.?)+).*/\2/'`
 
   if [ -z "$v" ]; then
     return 1
@@ -676,7 +677,7 @@ install_DEB() {
   fi
 
   X264_DEV="libx264-dev"
-  check_package_DEB $X264_DEV
+  check_package_version_ge_DEB $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
     sudo apt-get install -y $X264_DEV
     X264_USE=true
