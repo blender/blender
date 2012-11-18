@@ -17,6 +17,10 @@ defs.append('CCL_NAMESPACE_END=}')
 defs.append('WITH_OSL')
 
 cxxflags = env['CXXFLAGS']
-cxxflags = "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID"
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+    cxxflags = "/EHsc -DBOOST_NO_RTTI -DBOOST_NO_TYPEID"
+    incs += ' ' + env['BF_PTHREADS_INC']
+else:
+    cxxflags = "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID"
 
 env.BlenderLib ('cycles_kernel_osl', sources, Split(incs), defs, libtype=['intern'], priority=[10], cxx_compileflags=Split(cxxflags))

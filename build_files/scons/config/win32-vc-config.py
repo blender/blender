@@ -151,8 +151,7 @@ WITH_BF_OPENMP = True
 WITH_BF_CYCLES = True 
 
 #OSL
-'''
-WITH_BF_CYCLES_OSL = True
+WITH_BF_CYCLES_OSL = False
 WITH_BF_STATICOSL = True
 BF_OSL = LIBDIR + '/osl'
 BF_OSL_INC = '${BF_OSL}/include'
@@ -161,7 +160,6 @@ BF_OSL_INC = '${BF_OSL}/include'
 BF_OSL_LIB = 'oslcomp oslexec oslquery'
 BF_OSL_LIBPATH = '${BF_OSL}/lib'
 BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
-'''
 
 WITH_BF_OIIO = True
 BF_OIIO = '${LIBDIR}/openimageio'
