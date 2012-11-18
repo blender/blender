@@ -32,18 +32,25 @@
 
 void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 {
-	BMOIter siter;
-	BMVert *v;
-
 	const float offset = BMO_slot_float_get(op, "offset");
 	const int seg = BMO_slot_int_get(op, "segments");
 
 	if (offset > 0) {
+		BMOIter siter;
+		BMEdge *e;
+		BMVert *v;
+
 		/* first flush 'geom' into flags, this makes it possible to check connected data */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE, BM_ELEM_TAG, FALSE);
 
-		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT | BM_EDGE) {
+		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
+		}
+
+		BMO_ITER (e, &siter, bm, op, "geom", BM_EDGE) {
+			if (BM_edge_is_manifold(e)) {
+				BM_elem_flag_enable(e, BM_ELEM_TAG);
+			}
 		}
 
 		BM_mesh_bevel(bm, offset, seg);

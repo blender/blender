@@ -134,9 +134,11 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	else {
 		/* crummy, is there a way just to operator on all? - campbell */
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			BM_elem_flag_enable(e, BM_ELEM_TAG);
-			BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
-			BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
+			if (BM_edge_is_manifold(e)) {
+				BM_elem_flag_enable(e, BM_ELEM_TAG);
+				BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+				BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
+			}
 		}
 	}
 

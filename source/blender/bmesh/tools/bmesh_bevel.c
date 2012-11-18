@@ -1414,12 +1414,8 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 
 	BM_ITER_ELEM (bme, &iter, v, BM_EDGES_OF_VERT) {
 		if (BM_elem_flag_test(bme, BM_ELEM_TAG)) {
-			if (BM_edge_is_manifold(bme)) {
-				nsel++;
-			}
-			else {
-				BM_elem_flag_disable(bme, BM_ELEM_TAG);
-			}
+			BLI_assert(BM_edge_is_manifold(bme));
+			nsel++;
 		}
 	}
 
@@ -1672,6 +1668,7 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 
 /**
  * currently only bevels BM_ELEM_TAG'd verts and edges
+ * all tagged edges _must_ be manifold.
  */
 void BM_mesh_bevel(BMesh *bm, const float offset, const float segments)
 {
