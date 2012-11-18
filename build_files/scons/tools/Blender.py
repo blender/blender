@@ -596,8 +596,8 @@ def AppIt(target=None, source=None, env=None):
     bldroot = env.Dir('.').abspath
     binary = env['BINARYKIND']
      
-    sourcedir = bldroot + '/source/darwin/%s.app'%binary
-    sourceinfo = bldroot + "/source/darwin/%s.app/Contents/Info.plist"%binary
+    sourcedir = bldroot + '/release/darwin/%s.app' % binary
+    sourceinfo = bldroot + "/release/darwin/%s.app/Contents/Info.plist"%binary
     targetinfo = installdir +'/' + "%s.app/Contents/Info.plist"%binary
     cmd = installdir + '/' +'%s.app'%binary
     
@@ -686,7 +686,7 @@ def AppIt(target=None, source=None, env=None):
         commands.getoutput(cmd)
         cmd = 'rm -rf  %s/set_simulation_threads.app'%(installdir) # first clear omp_num_threads applescript
         commands.getoutput(cmd)
-        cmd = 'cp -R %s/source/darwin/set_simulation_threads.app %s/'%(bldroot, installdir) # copy the omp_num_threads applescript
+        cmd = 'cp -R %s/release/darwin/set_simulation_threads.app %s/'%(bldroot, installdir) # copy the omp_num_threads applescript
         commands.getoutput(cmd)
 
 # extract copy system python, be sure to update other build systems
