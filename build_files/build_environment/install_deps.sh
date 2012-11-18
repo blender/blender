@@ -827,63 +827,74 @@ install_RPM() {
 
   sudo yum -y update
 
+  # These libs should always be available in debian/ubuntu official repository...
+  OPENJPEG_DEV="openjpeg-devel"
+  SCHRO_DEV="schroedinger-devel"
+  VORBIS_DEV="libvorbis-devel"
+  THEORA_DEV="libtheora-devel"
+
   sudo yum -y install gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel \
     freetype-devel libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
-    readline-devel openjpeg-devel openexr-devel openal-soft-devel \
-    glew-devel yasm schroedinger-devel libtheora-devel libvorbis-devel SDL-devel \
+    readline-devel $OPENJPEG_DEV openexr-devel openal-soft-devel \
+    glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV SDL-devel \
     fftw-devel lame-libs jack-audio-connection-kit-devel libspnav-devel \
     libjpeg-devel patch python-devel
 
   OPENJPEG_USE=true
   SCHRO_USE=true
+  VORBIS_USE=true
+  THEORA_USE=true
 
-  check_package_RPM x264-devel
+  X264_DEV="x264-devel"
+  check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y x264-devel
+    sudo yum install -y $X264_DEV
     X264_USE=true
   fi
 
-  check_package_RPM xvidcore-devel
+  XVID_DEV="xvidcore-devel"
+  check_package_RPM $XVID_DEV
   if [ $? -eq 0 ]; then
-    sudo yum install -y xvidcore-devel
+    sudo yum install -y $XVID_DEV
     XVID_USE=true
-    XVID_DEV="xvidcore-devel"
   fi
 
-  check_package_version_ge_RPM libvpx-devel 0.9.7
+  VPX_DEV="libvpx-devel"
+  check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y libvpx-devel
+    sudo yum install -y $VPX_DEV
     VPX_USE=true
   fi
 
-  check_package_RPM lame-devel
+  MP3LAME_DEV="lame-devel"
+  check_package_RPM $MP3LAME_DEV
   if [ $? -eq 0 ]; then
-    sudo yum install -y lame-devel
+    sudo yum install -y $MP3LAME_DEV
     MP3LAME_USE=true
   fi
 
-  check_package_version_match_RPM python3-devel 3.3
+  check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y python-devel
+    sudo yum install -y python3-devel
   else
     compile_Python
   fi
 
-  check_package_RPM boost-devel
+  check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
   if [ $? -eq 0 ]; then
     sudo yum install -y boost-devel
   else
     compile_Boost
   fi
 
-  check_package_RPM OpenColorIO-devel
+  check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
   if [ $? -eq 0 ]; then
     sudo yum install -y OpenColorIO-devel
   else
     compile_OCIO
   fi
 
-  check_package_RPM OpenImageIO-devel
+  check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
   if [ $? -eq 0 ]; then
     sudo yum install -y OpenImageIO-devel
   else
@@ -949,63 +960,11 @@ install_SUSE() {
 }
 
 print_info_ffmpeglink_DEB() {
-  _packages="libtheora-dev"
-
-  if $XVID_USE; then
-    _packages="$_packages $XVID_DEV"
-  fi
-
-  if $VPX_USE; then
-    _packages="$_packages libvpx-dev"
-  fi
-
-  if $MP3LAME_USE; then
-    _packages="$_packages libmp3lame-dev"
-  fi
-
-  if $X264_USE; then
-    _packages="$_packages libx264-dev"
-  fi
-
-  if $OPENJPEG_USE; then
-    _packages="$_packages libopenjpeg-dev"
-  fi
-
-  if $SCHRO_USE; then
-    _packages="$_packages libschroedinger-dev"
-  fi
-
-  dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | awk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
 }
 
 print_info_ffmpeglink_RPM() {
-  _packages="libtheora-devel libvorbis-devel"
-
-  if $XVID_USE; then
-    _packages="$_packages $XVID_DEV"
-  fi
-
-  if $VPX_USE; then
-    _packages="$_packages libvpx-devel"
-  fi
-
-  if $MP3LAME_USE; then
-    _packages="$_packages lame-devel"
-  fi
-
-  if $X264_USE; then
-    _packages="$_packages x264-devel"
-  fi
-
-  if $OPENJPEG_USE; then
-    _packages="$_packages openjpeg-devel"
-  fi
-
-  if $SCHRO_USE; then
-    _packages="$_packages schroedinger-devel"
-  fi
-
-  rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | awk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
 }
 
 print_info_ffmpeglink() {
@@ -1013,7 +972,44 @@ print_info_ffmpeglink() {
   if [ -z "$DISTRO" ]; then
     ERROR "Failed to detect distribution type"
     exit 1
-  elif [ "$DISTRO" = "DEB" ]; then
+  fi
+
+  # Create list of packages from which to get libs names...
+  _packages=""
+
+  if $THEORA_USE; then
+    _packages="$_packages $THEORA_DEV"
+  fi
+
+  if $VORBIS_USE; then
+    _packages="$_packages $VORBIS_DEV"
+  fi
+
+  if $XVID_USE; then
+    _packages="$_packages $XVID_DEV"
+  fi
+
+  if $VPX_USE; then
+    _packages="$_packages $VPX_DEV"
+  fi
+
+  if $MP3LAME_USE; then
+    _packages="$_packages $MP3LAME_DEV"
+  fi
+
+  if $X264_USE; then
+    _packages="$_packages $X264_DEV"
+  fi
+
+  if $OPENJPEG_USE; then
+    _packages="$_packages $OPENJPEG_DEV"
+  fi
+
+  if $SCHRO_USE; then
+    _packages="$_packages $SCHRO_DEV"
+  fi
+
+  if [ "$DISTRO" = "DEB" ]; then
     print_info_ffmpeglink_DEB
   elif [ "$DISTRO" = "RPM" ]; then
     print_info_ffmpeglink_RPM
