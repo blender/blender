@@ -11,7 +11,7 @@ CWD=$PWD
 BUILD_OSL=false
 
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
-if [ -z "$v" ]; then
+if [ -z "$THREADS" ]; then
   THREADS=1
 fi
 
@@ -196,7 +196,7 @@ compile_Python() {
     cd $CWD
   else
     INFO "Own Python-$PYTHON_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' directory."
+    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
   fi
 }
 
@@ -246,7 +246,7 @@ compile_Boost() {
     cd $CWD
   else
     INFO "Own Boost-$BOOST_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' directory."
+    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
   fi
 }
 
@@ -323,7 +323,7 @@ compile_OCIO() {
     cd $CWD
   else
     INFO "Own OpenColorIO-$OCIO_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' directory."
+    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
   fi
 }
 
@@ -353,6 +353,8 @@ compile_OIIO() {
           -xf $_src.tar.gz
 
       cd $_src
+
+      # XXX Ugly patching hack!
       cat << EOF | patch -p1
 diff --git a/src/libutil/SHA1.cpp b/src/libutil/SHA1.cpp
 index b9e6c8b..c761185 100644
@@ -370,6 +372,7 @@ index b9e6c8b..c761185 100644
  #ifdef SHA1_UTILITY_FUNCTIONS
  #define SHA1_MAX_FILE_BUFFER 8000
 EOF
+
     fi
 
     cd $_src
@@ -418,7 +421,7 @@ EOF
     cd $CWD
   else
     INFO "Own OpenImageIO-$OIIO_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' directory."
+    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
   fi
 }
 
@@ -495,7 +498,7 @@ compile_OSL() {
     cd $CWD
   else
     INFO "Own OpenShadingLanguage-$OSL_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' directory."
+    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
   fi
 }
 
@@ -587,7 +590,7 @@ compile_FFmpeg() {
     cd $CWD
   else
     INFO "Own ffmpeg-$FFMPEG_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' directory."
+    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
   fi
 }
 
@@ -1032,27 +1035,36 @@ print_info() {
   INFO "If you're using SCons add this to your user-config:"
 
   if [ -d $INST/python-3.3 ]; then
-    INFO "BF_PYTHON='$INST/python-3.3'"
-    INFO "BF_PYTHON_ABI_FLAGS='m'"
+    INFO "BF_PYTHON = '$INST/python-3.3'"
+    INFO "BF_PYTHON_ABI_FLAGS = 'm'"
   fi
 
   if [ -d $INST/ocio ]; then
-    INFO "BF_OCIO='$INST/ocio'"
+    INFO "BF_OCIO = '$INST/ocio'"
   fi
 
   if [ -d $INST/oiio ]; then
-    INFO "BF_OIIO='$INST/oiio'"
+    INFO "BF_OIIO = '$INST/oiio'"
   fi
 
   if [ -d $INST/boost ]; then
-    INFO "BF_BOOST='$INST/boost'"
+    INFO "BF_BOOST = '$INST/boost'"
   fi
 
   if [ -d $INST/ffmpeg ]; then
-    INFO "BF_FFMPEG='$INST/ffmpeg'"
+    INFO "BF_FFMPEG = '$INST/ffmpeg'"
     _ffmpeg_list_sep=" "
-    INFO "BF_FFMPEG_LIB='avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
+    INFO "BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice `print_info_ffmpeglink`'"
   fi
+
+  INFO ""
+  INFO ""
+  INFO "WARNING: If this script had to build boost into $INST, and you are dynamically linking "
+  INFO "         blender against it, you will have to run those commands as root user:"
+  INFO ""
+  INFO "    echo \"$INST/boost/lib\" > /etc/ld.so.conf.d/boost.conf"
+  INFO "    ldconfig"
+  INFO ""
 }
 
 # Detect distributive type used on this machine
