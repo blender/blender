@@ -502,20 +502,6 @@ set(PLATFORM_LINKFLAGS_DEBUG "")
 #Platform specifics
 
 if(UNIX AND NOT APPLE)
-
-	# set lib directory if it exists
-	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-		if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/linux64)
-		else()
-			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/linux)
-		endif()
-
-		if(NOT EXISTS ${LIBDIR})
-			unset(LIBDIR)
-		endif()
-	endif()
-
 	find_package(JPEG REQUIRED)
 	find_package(PNG REQUIRED)
 	find_package(ZLIB REQUIRED)
@@ -590,15 +576,8 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		# use lib dir if available and nothing else specified
-		if(LIBDIR AND NOT FFMPEG)
-			set(FFMPEG ${LIBDIR}/ffmpeg CACHE PATH "FFMPEG Directory")
-			# XXX, some distros might need 'theoraenc theoradec' too
-			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale dirac_encoder mp3lame ogg orc-0.4 schroedinger-1.0 theora vorbis vorbisenc vpx x264 xvidcore faad asound CACHE STRING "FFMPEG Libraries")
-		else()
-			set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
-			set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
-		endif()
+		set(FFMPEG /usr CACHE PATH "FFMPEG Directory")
+		set(FFMPEG_LIBRARIES avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
 
 		mark_as_advanced(FFMPEG)
 
@@ -654,9 +633,8 @@ if(UNIX AND NOT APPLE)
 	if(WITH_BOOST)
 		# uses in build instructions to override include and library variables
 		if(NOT BOOST_CUSTOM)
-			# use lib dir if available and nothing else specified
-			if(LIBDIR AND NOT BOOST_ROOT)
-				set(BOOST_ROOT ${LIBDIR}/boost)
+			# XXX No more lib dir, is this multithread stuff still needed?
+			if(NOT BOOST_ROOT)
 				set(Boost_USE_MULTITHREADED OFF)
 			else()
 				set(Boost_USE_MULTITHREADED ON)
@@ -676,11 +654,6 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENIMAGEIO)
-		# use lib dir if available and nothing else specified
-		if(LIBDIR AND NOT OPENIMAGEIO_ROOT_DIR)
-			set(OPENIMAGEIO_ROOT_DIR ${LIBDIR}/oiio)
-		endif()
-
 		find_package(OpenImageIO)
 
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
@@ -701,11 +674,6 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENCOLORIO)
-		# use lib dir if available and nothing else specified
-		if(LIBDIR AND NOT OPENCOLORIO_ROOT_DIR)
-			set(OPENCOLORIO_ROOT_DIR ${LIBDIR}/ocio)
-		endif()
-
 		find_package(OpenColorIO)
 
 		set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBRARIES})
@@ -718,14 +686,16 @@ if(UNIX AND NOT APPLE)
 		endif()
 	endif()
 
+	# XXX Maybe most of this section should go into an llvm module?
 	if(WITH_LLVM)
-		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
-		set(LLVM_VERSION "3.0" CACHE STRING	"Version of LLVM to use")
+		# Set llvm version if not specified
+		if(NOT LLVM_VERSION)
+			set(LLVM_VERSION "3.0")
+		endif()
 		set(LLVM_STATIC YES)
-		if(EXISTS "${LLVM_DIRECTORY}/bin/llvm-config")
-			set(LLVM_CONFIG "${LLVM_DIRECTORY}/bin/llvm-config")
-		else()
-			set(LLVM_CONFIG llvm-config)
+		FIND_PROGRAM(LLVM_CONFIG llvm-config-${LLVM_VERSION} HINTS ${LLVM_DIRECTORY})
+		if(NOT LLVM_CONFIG)
+			FIND_PROGRAM(LLVM_CONFIG llvm-config HINTS ${LLVM_DIRECTORY})
 		endif()
 		execute_process(COMMAND ${LLVM_CONFIG} --version
 		                OUTPUT_VARIABLE LLVM_VERSION
@@ -742,6 +712,8 @@ if(UNIX AND NOT APPLE)
 		message(STATUS "LLVM version  = ${LLVM_VERSION}")
 		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
 		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
+		set(LLVM_VERSION ${LLVM_VERSION} CACHE STRING "Version of LLVM to use")
+		set(LLVM_DIRECTORY ${LLVM_DIRECTORY} CACHE PATH "Path to the LLVM installation")
 
 		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
 			if(LLVM_STATIC)
