@@ -187,8 +187,10 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 	 *  _and_ the old bmesh_mf functions, so its kindof smashed together
 	 * - joeedh */
 
-	if (!len || !v1 || !v2 || !edges || !bm)
+	if (!len || !v1 || !v2 || !edges || !bm) {
+		BLI_assert(0);
 		return NULL;
+	}
 
 	/* put edges in correct order */
 	for (i = 0; i < len; i++) {

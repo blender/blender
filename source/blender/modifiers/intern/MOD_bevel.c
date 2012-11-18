@@ -111,7 +111,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	BMIter iter;
 	BMEdge *e;
 	BevelModifierData *bmd = (BevelModifierData *) md;
-	float threshold = cosf((bmd->bevel_angle + 0.00001f) * (float)M_PI / 180.0f);
+	const float threshold = cosf((bmd->bevel_angle + 0.00001f) * (float)M_PI / 180.0f);
 	const int segments = 16;  /* XXX */
 
 	bm = DM_to_bmesh(dm);
@@ -119,11 +119,9 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	if (bmd->lim_flags & BME_BEVEL_ANGLE) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			/* check for 1 edge having 2 face users */
-			BMLoop *l1, *l2;
-			if ((l1 = e->l) &&
-			    (l2 = e->l->radial_next) != l1)
-			{
-				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
+			BMLoop *l_a, *l_b;
+			if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+				if (dot_v3v3(l_a->f->no, l_b->f->no) < threshold) {
 					BM_elem_flag_enable(e, BM_ELEM_TAG);
 					BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
 					BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
