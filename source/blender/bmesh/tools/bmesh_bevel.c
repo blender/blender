@@ -15,12 +15,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Joseph Eagar, Aleksandr Mokhov, Howard Trickey
+ * Contributor(s):
+ *         Joseph Eagar,
+ *         Aleksandr Mokhov,
+ *         Howard Trickey,
+ *         Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmo_bevel.c
+/** \file blender/bmesh/tools/bmesh_bevel.c
  *  \ingroup bmesh
  */
 
@@ -34,7 +38,7 @@
 
 #include "bmesh.h"
 
-#include "intern/bmesh_operators_private.h" /* own include */
+
 
 /* experemental - Campbell */
 // #define USE_ALTERNATE_ADJ
@@ -1661,29 +1665,24 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 	}
 }
 
-void bmo_bevel_exec(BMesh *bm, BMOperator *op)
+/**
+ * currently only bevels BM_ELEM_TAG'd verts and edges
+ */
+void BM_mesh_bevel(BMesh *bm, const float offset, const float segments)
 {
 	BMIter iter;
-	BMOIter siter;
 	BMVert *v;
 	BMEdge *e;
 	BevelParams bp = {NULL};
 
-	bp.offset = BMO_slot_float_get(op, "offset");
-	bp.seg = BMO_slot_int_get(op, "segments");
+	bp.offset = offset;
+	bp.seg    = segments;
 
 	if (bp.offset > 0) {
 		/* primary alloc */
 		bp.vert_hash = BLI_ghash_ptr_new(__func__);
 		bp.mem_arena = BLI_memarena_new((1 << 16), __func__);
 		BLI_memarena_use_calloc(bp.mem_arena);
-
-		/* first flush 'geom' into flags, this makes it possible to check connected data */
-		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE, BM_ELEM_TAG, FALSE);
-
-		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT | BM_EDGE) {
-			BM_elem_flag_enable(v, BM_ELEM_TAG);
-		}
 
 		/* The analysis of the input vertices and execution additional constructions */
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

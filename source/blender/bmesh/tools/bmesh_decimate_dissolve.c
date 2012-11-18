@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_decimate_dissolve.c
+/** \file blender/bmesh/tools/bmesh_decimate_dissolve.c
  *  \ingroup bmesh
  *
  * BMesh decimator that dissolves flat areas into polygons (ngons).

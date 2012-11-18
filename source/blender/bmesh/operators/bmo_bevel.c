@@ -15,27 +15,37 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Campbell Barton
+ * Contributor(s):
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BMESH_DECIMATE_H__
-#define __BMESH_DECIMATE_H__
-
-/** \file blender/bmesh/tools/bmesh_decimate.h
+/** \file blender/bmesh/operators/bmesh_bevel.c
  *  \ingroup bmesh
  */
 
-void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, const int do_triangulate);
+#include "BLI_utildefines.h"
 
-void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int tag_only);
-void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations);
+#include "bmesh.h"
 
-void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries,
-                                  BMVert **vinput_arr, const int vinput_len,
-                                  BMEdge **einput_arr, const int einput_len);
-void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries);
+#include "intern/bmesh_operators_private.h" /* own include */
 
+void bmo_bevel_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMVert *v;
 
-#endif /* __BMESH_DECIMATE_H__ */
+	const float offset = BMO_slot_float_get(op, "offset");
+	const int seg = BMO_slot_int_get(op, "segments");
+
+	if (offset > 0) {
+		/* first flush 'geom' into flags, this makes it possible to check connected data */
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE, BM_ELEM_TAG, FALSE);
+
+		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT | BM_EDGE) {
+			BM_elem_flag_enable(v, BM_ELEM_TAG);
+		}
+
+		BM_mesh_bevel(bm, offset, seg);
+	}
+}

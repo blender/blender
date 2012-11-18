@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_decimate_collapse.c
+/** \file blender/bmesh/tools/bmesh_decimate_collapse.c
  *  \ingroup bmesh
  *
  * BMesh decimator that uses an edge collapse method.

@@ -105,6 +105,8 @@ set(SRC
 	intern/bmesh_error.h
 
 	tools/BME_bevel.c
+	tools/bmesh_bevel.c
+	tools/bmesh_bevel.h
 	tools/bmesh_decimate_collapse.c
 	tools/bmesh_decimate_dissolve.c
 	tools/bmesh_decimate_unsubdivide.c
