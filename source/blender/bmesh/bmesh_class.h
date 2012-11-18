@@ -133,7 +133,10 @@ typedef struct BMLoop {
 /* can cast BMFace/BMEdge/BMVert, but NOT BMLoop, since these don't have a flag layer */
 typedef struct BMElemF {
 	BMHeader head;
-	struct BMFlagLayer *oflags; /* keep after header, an array of flags, mostly used by the operator stack */
+
+	/* keep directly after header,
+	 * optional array of flags, only used by the operator stack */
+	struct BMFlagLayer *oflags;
 } BMElemF;
 
 /* can cast anything to this, including BMLoop */

@@ -3006,6 +3006,8 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	BMesh *bm_new;
 
 	bm_new = BM_mesh_create(&bm_mesh_allocsize_default);
+	BM_mesh_elem_toolflags_ensure(bm_new);  /* needed for 'duplicate' bmo */
+
 	CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm_old->edata, &bm_new->edata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm_old->ldata, &bm_new->ldata, CD_MASK_BMESH, CD_CALLOC, 0);

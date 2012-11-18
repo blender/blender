@@ -143,6 +143,8 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	BM_mesh_bevel(bm, bmd->value, segments);
 
 	result = CDDM_from_bmesh(bm, TRUE);
+
+	BLI_assert(bm->toolflagpool == NULL);  /* make sure we never alloc'd this */
 	BM_mesh_free(bm);
 
 	CDDM_calc_normals(result);

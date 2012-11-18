@@ -101,6 +101,8 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 {
 	bm->stackdepth++;
 
+	BLI_assert(bm->totflags > 0);
+
 	/* add flag layer, if appropriate */
 	if (bm->stackdepth > 1)
 		bmo_flag_layer_alloc(bm);
@@ -172,7 +174,9 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
  */
 void BMO_op_exec(BMesh *bm, BMOperator *op)
 {
-	
+	/* allocate tool flags on demand */
+	BM_mesh_elem_toolflags_ensure(bm);
+
 	BMO_push(bm, op);
 
 	if (bm->stackdepth == 2)
@@ -1056,7 +1060,9 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 
 	/* store memcpy size for reuse */
 	const size_t old_totflags_size = (bm->totflags * sizeof(BMFlagLayer));
-	
+
+	BLI_assert(oldpool != NULL);
+
 	bm->totflags++;
 
 	/* allocate new flag poo */

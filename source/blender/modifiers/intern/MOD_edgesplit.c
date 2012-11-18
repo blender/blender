@@ -67,8 +67,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	float threshold = cosf((emd->split_angle + 0.00001f) * (float)M_PI / 180.0f);
 
 	bm = DM_to_bmesh(dm);
-
-	BMO_push(bm, NULL);
+	BM_mesh_elem_toolflags_ensure(bm);
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
@@ -103,8 +102,6 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	
 	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
 	             "split_edges edges=%fe", EDGE_MARK);
-	
-	BMO_pop(bm);
 
 	/* BM_mesh_validate(bm); */ /* for troubleshooting */
 

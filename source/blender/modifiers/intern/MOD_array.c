@@ -408,6 +408,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	 * cleaner way to do this. One possibility: a "mirror" BMOp would
 	 * certainly help by compressing it all into one top-level BMOp that
 	 * executes a lot of second-level BMOps. */
+	BM_mesh_elem_toolflags_ensure(bm);
 	BMO_push(bm, NULL);
 	bmesh_edit_begin(bm, 0);
 

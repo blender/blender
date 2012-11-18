@@ -76,7 +76,9 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 	}
 
 	/* allocate flag */
-	v->oflags = BLI_mempool_calloc(bm->toolflagpool);
+	if (bm->toolflagpool) {
+		v->oflags = BLI_mempool_calloc(bm->toolflagpool);
+	}
 
 	CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 	
@@ -125,7 +127,9 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	e->head.htype = BM_EDGE;
 	
 	/* allocate flag */
-	e->oflags = BLI_mempool_calloc(bm->toolflagpool);
+	if (bm->toolflagpool) {
+		e->oflags = BLI_mempool_calloc(bm->toolflagpool);
+	}
 
 	e->v1 = v1;
 	e->v2 = v2;
@@ -278,7 +282,9 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 	f->head.htype = BM_FACE;
 
 	/* allocate flag */
-	f->oflags = BLI_mempool_calloc(bm->toolflagpool);
+	if (bm->toolflagpool) {
+		f->oflags = BLI_mempool_calloc(bm->toolflagpool);
+	}
 
 	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
 
@@ -495,7 +501,9 @@ static void bm_kill_only_vert(BMesh *bm, BMVert *v)
 	if (v->head.data)
 		CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
 
-	BLI_mempool_free(bm->toolflagpool, v->oflags);
+	if (bm->toolflagpool) {
+		BLI_mempool_free(bm->toolflagpool, v->oflags);
+	}
 	BLI_mempool_free(bm->vpool, v);
 }
 
@@ -513,7 +521,9 @@ static void bm_kill_only_edge(BMesh *bm, BMEdge *e)
 	if (e->head.data)
 		CustomData_bmesh_free_block(&bm->edata, &e->head.data);
 
-	BLI_mempool_free(bm->toolflagpool, e->oflags);
+	if (bm->toolflagpool) {
+		BLI_mempool_free(bm->toolflagpool, e->oflags);
+	}
 	BLI_mempool_free(bm->epool, e);
 }
 
@@ -534,7 +544,9 @@ static void bm_kill_only_face(BMesh *bm, BMFace *f)
 	if (f->head.data)
 		CustomData_bmesh_free_block(&bm->pdata, &f->head.data);
 
-	BLI_mempool_free(bm->toolflagpool, f->oflags);
+	if (bm->toolflagpool) {
+		BLI_mempool_free(bm->toolflagpool, f->oflags);
+	}
 	BLI_mempool_free(bm->fpool, f);
 }
 
@@ -1773,14 +1785,18 @@ BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
 	bmesh_disk_edge_remove(f1loop->e, f1loop->e->v2);
 	
 	/* deallocate edge and its two loops as well as f2 */
-	BLI_mempool_free(bm->toolflagpool, f1loop->e->oflags);
+	if (bm->toolflagpool) {
+		BLI_mempool_free(bm->toolflagpool, f1loop->e->oflags);
+	}
 	BLI_mempool_free(bm->epool, f1loop->e);
 	bm->totedge--;
 	BLI_mempool_free(bm->lpool, f1loop);
 	bm->totloop--;
 	BLI_mempool_free(bm->lpool, f2loop);
 	bm->totloop--;
-	BLI_mempool_free(bm->toolflagpool, f2->oflags);
+	if (bm->toolflagpool) {
+		BLI_mempool_free(bm->toolflagpool, f2->oflags);
+	}
 	BLI_mempool_free(bm->fpool, f2);
 	bm->totface--;
 	/* account for both above */

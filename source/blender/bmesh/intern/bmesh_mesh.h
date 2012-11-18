@@ -29,6 +29,7 @@
 
 struct BMAllocTemplate;
 
+void   BM_mesh_elem_toolflags_ensure(BMesh *bm);
 BMesh *BM_mesh_create(struct BMAllocTemplate *allocsize);
 
 void   BM_mesh_free(BMesh *bm);
@@ -57,5 +58,9 @@ typedef struct BMAllocTemplate {
 
 extern BMAllocTemplate bm_mesh_allocsize_default;
 extern BMAllocTemplate bm_mesh_chunksize_default;
+
+enum {
+	BM_MESH_CREATE_USE_TOOLFLAGS = (1 << 0)
+};
 
 #endif /* __BMESH_MESH_H__ */

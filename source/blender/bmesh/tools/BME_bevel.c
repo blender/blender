@@ -1110,9 +1110,12 @@ BMesh *BME_bevel(BMesh *bm, float value, int res, int options, int defgrp_index,
 	td = BME_init_transdata(BLI_MEMARENA_STD_BUFSIZE);
 	/* recursion math courtesy of Martin Poirier (theeth) */
 	for (i = 0; i < res - 1; i++) {
-		if (i == 0) fac += 1.0 / 3.0; else fac += 1.0 / (3.0 * i * 2.0);
+		if (i == 0) fac += 1.0 / 3.0;
+		else        fac += 1.0 / (3.0 * i * 2.0);
 	}
 	d = 1.0 / fac;
+
+	BM_mesh_elem_toolflags_ensure(bm);
 
 	for (i = 0; i < res || (res == 0 && i == 0); i++) {
 		BMO_push(bm, NULL);
