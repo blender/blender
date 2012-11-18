@@ -1045,7 +1045,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 			
 		/* always update layer, so that animating layers works (joshua july 2010) */
 		/* XXX commented out, this has depsgraph issues anyway - and this breaks setting scenes
-		   (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
+		 * (on scene-set, the base-lay is copied to ob-lay (ton nov 2012) */
 		// base->lay = ob->lay;
 	}
 	

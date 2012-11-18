@@ -1471,9 +1471,10 @@ static void node_shader_buts_script_details(uiLayout *layout, bContext *C, Point
 
 	node_shader_buts_script(layout, C, ptr);
 
-	/* not implemented yet
+#if 0  /* not implemented yet */
 	if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL)
-		uiItemR(layout, ptr, "use_auto_update", 0, NULL, ICON_NONE);*/
+		uiItemR(layout, ptr, "use_auto_update", 0, NULL, ICON_NONE);
+#endif
 }
 
 /* only once called */

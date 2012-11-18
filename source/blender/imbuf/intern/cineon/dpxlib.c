@@ -457,7 +457,7 @@ LogImageFile *dpxCreate(const char *filename, int width, int height, int bitsPer
 	}
 
 	/* Header should be rounded to next 8k block
-	   6044 = 8092 - sizeof(DpxMainHeader) */
+	 * 6044 = 8092 - sizeof(DpxMainHeader) */
 	memset(&pad, 0, 6044);
 	if (fwrite(&pad, 6044, 1, dpx->file) == 0) {
 		if (verbose) printf("DPX: Couldn't write image header\n");

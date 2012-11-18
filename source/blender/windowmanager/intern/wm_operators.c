@@ -1228,7 +1228,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
 }
 
 /* Same as WM_operator_props_popup but call the operator first,
- * This way - the button values corraspond to the result of the operator.
+ * This way - the button values correspond to the result of the operator.
  * Without this, first access to a button will make the result jump,
  * see [#32452] */
 int WM_operator_props_popup_call(bContext *C, wmOperator *op, wmEvent *UNUSED(event))

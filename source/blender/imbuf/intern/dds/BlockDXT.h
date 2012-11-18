@@ -147,7 +147,7 @@ struct BlockDXT3
 struct AlphaBlockDXT5
 {
 	// uint64 unions do not compile on all platforms
-	/*
+#if 0
 	union {
 		struct {
 			uint64 alpha0 : 8;	// 8
@@ -171,7 +171,7 @@ struct AlphaBlockDXT5
 		};
 		uint64 u;
 	};
-	*/
+#endif
 	uint64 u;
 	uint8 alpha0() const { return u & 0xffLL; }
 	uint8 alpha1() const { return (u >> 8) & 0xffLL; }

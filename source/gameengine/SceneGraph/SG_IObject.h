@@ -152,8 +152,8 @@ struct	SG_Callbacks
 };
 
 /**
-base object that can be part of the scenegraph.
-*/
+ * base object that can be part of the scenegraph.
+ */
 class SG_IObject : public SG_QList
 {
 private :

@@ -985,7 +985,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedu
 
 
 	/* CURRENT STATUS:
-	 * - eve->f       :1 = availalble in edges
+	 * - eve->f       :1 = available in edges
 	 * - eve->xs      :polynumber
 	 * - eve->h       :amount of edges connected to vertex
 	 * - eve->tmp.v   :store! original vertex number

@@ -88,7 +88,6 @@ typedef struct PlayState {
 	short pingpong;
 	short noskip;
 	short sstep;
-	short pause;
 	short wait2;
 	short stopped;
 	short go;
@@ -748,7 +747,6 @@ void WM_main_playanim(int argc, const char **argv)
 	ps.pingpong  = FALSE;
 	ps.noskip    = FALSE;
 	ps.sstep     = FALSE;
-	ps.pause     = FALSE;
 	ps.wait2     = FALSE;
 	ps.stopped   = FALSE;
 	ps.picture   = NULL;
