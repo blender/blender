@@ -43,9 +43,6 @@
 /* experemental - Campbell */
 // #define USE_ALTERNATE_ADJ
 
-#define BEVEL_FLAG      1
-#define EDGE_SELECTED   2
-
 #define BEVEL_EPSILON  1e-6
 
 /* for testing */
@@ -1392,6 +1389,11 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 	}
 }
 
+/* take care, this flag isn't cleared before use, it just so happens that its not set */
+#define BM_BEVEL_EDGE_TAG_ENABLE(bme)  BM_elem_flag_enable(  (bme)->l, BM_ELEM_TAG)
+#define BM_BEVEL_EDGE_TAG_DISABLE(bme) BM_elem_flag_disable( (bme)->l, BM_ELEM_TAG)
+#define BM_BEVEL_EDGE_TAG_TEST(bme)    BM_elem_flag_test(    (bme)->l, BM_ELEM_TAG)
+
 /*
  * Construction around the vertex
  */
@@ -1413,8 +1415,10 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	BM_ITER_ELEM (bme, &iter, v, BM_EDGES_OF_VERT) {
 		if (BM_elem_flag_test(bme, BM_ELEM_TAG)) {
 			if (BM_edge_is_manifold(bme)) {
-				BMO_elem_flag_enable(bm, bme, EDGE_SELECTED);
 				nsel++;
+			}
+			else {
+				BM_elem_flag_disable(bme, BM_ELEM_TAG);
 			}
 		}
 	}
@@ -1436,7 +1440,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	 * a face, if possible */
 	i = 0;
 	bme = v->e;
-	BMO_elem_flag_enable(bm, bme, BEVEL_FLAG);
+	BM_BEVEL_EDGE_TAG_ENABLE(bme);
 	e = &bv->edges[0];
 	e->e = bme;
 	for (i = 0; i < ntot; i++) {
@@ -1445,7 +1449,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			found_shared_face = 0;
 			unflagged_bme = NULL;
 			BM_ITER_ELEM (bme2, &iter, v, BM_EDGES_OF_VERT) {
-				if (BMO_elem_flag_test(bm, bme2, BEVEL_FLAG))
+				if (BM_BEVEL_EDGE_TAG_TEST(bme2))
 					continue;
 				if (!unflagged_bme)
 					unflagged_bme = bme2;
@@ -1469,8 +1473,8 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			}
 		}
 		bme = e->e;
-		BMO_elem_flag_enable(bm, bme, BEVEL_FLAG);
-		if (BMO_elem_flag_test(bm, bme, EDGE_SELECTED)) {
+		BM_BEVEL_EDGE_TAG_ENABLE(bme);
+		if (BM_elem_flag_test(bme, BM_ELEM_TAG)) {
 			e->is_bev = TRUE;
 			e->seg = bp->seg;
 		}
@@ -1492,9 +1496,10 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		}
 	}
 
-	/* remove BEVEL_FLAG now that we are finished with it*/
-	for (i = 0; i < ntot; i++)
-		BMO_elem_flag_disable(bm, bv->edges[i].e, BEVEL_FLAG);
+	/* clear BEVEL_EDGE_TAG now that we are finished with it*/
+	for (i = 0; i < ntot; i++) {
+		BM_BEVEL_EDGE_TAG_DISABLE(bv->edges[i].e);
+	}
 
 	/* if edge array doesn't go CCW around vertex from average normal side,
 	 * reverse the array, being careful to reverse face pointers too */
