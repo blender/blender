@@ -558,7 +558,7 @@ class WM_MT_operator_presets(Menu):
         # dummy 'default' menu item
         layout = self.layout
         layout.operator("wm.operator_defaults")
-        layout.seperator()
+        layout.separator()
 
         Menu.draw_preset(self, context)
 
