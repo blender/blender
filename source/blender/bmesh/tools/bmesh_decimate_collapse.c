@@ -39,8 +39,9 @@
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
-#include "bmesh_structure.h"
 #include "bmesh_decimate.h"  /* own include */
+
+#include "../intern/bmesh_structure.h"
 
 /* defines for testing */
 #define USE_CUSTOMDATA
