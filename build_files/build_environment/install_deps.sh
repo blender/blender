@@ -34,6 +34,7 @@ OIIO_VERSION_MIN="1.1"
 
 LLVM_VERSION="3.1"
 LLVM_VERSION_MIN="3.0"
+LLVM_VERSION_FOUND=""
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.2.0"
@@ -427,7 +428,7 @@ EOF
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=4
+  osl_magic=5
 
   _src=$SRC/OpenShadingLanguage-$OSL_VERSION
   _inst=$INST/osl-$OSL_VERSION
@@ -467,10 +468,10 @@ compile_OSL() {
     mkdir build
     cd build
 
-    cmake_d="-D CMAKE_BUILD_TYPE=Release \
-             -D CMAKE_INSTALL_PREFIX=$_inst
-             -D BUILDSTATIC=ON \
-             -D BUILD_TESTING=OFF"
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D BUILDSTATIC=ON"
+    cmake_d="$cmake_d -D BUILD_TESTING=OFF"
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
@@ -478,6 +479,10 @@ compile_OSL() {
 
     if [ -d $INST/oiio ]; then
       cmake_d="$cmake_d -D OPENIMAGEIOHOME=$INST/oiio"
+    fi
+
+    if [ ! -z $LLVM_VERSION_FOUND ]; then
+      cmake_d="$cmake_d -D LLVM_VERSION=$LLVM_VERSION_FOUND"
     fi
 
     cmake $cmake_d ../src
@@ -631,10 +636,12 @@ check_package_version_ge_DEB() {
 }
 
 install_DEB() {
+  INFO ""
   INFO "Installing dependencies for DEB-based distribution"
   INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
   INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
   INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO ""
 
   sudo apt-get update
 # XXX Why in hell? Let's let this stuff to the user's responsability!!!
@@ -744,11 +751,13 @@ install_DEB() {
     if [ $? -eq 0 ]; then
       sudo apt-get install -y llvm-$LLVM_VERSION-dev clang
       have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
     else
       check_package_DEB llvm-$LLVM_VERSION_MIN-dev
       if [ $? -eq 0 ]; then
         sudo apt-get install -y llvm-$LLVM_VERSION_MIN-dev clang
         have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
       fi
     fi
 
@@ -809,10 +818,12 @@ check_package_version_ge_RPM() {
 }
 
 install_RPM() {
+  INFO ""
   INFO "Installing dependencies for RPM-based distribution"
   INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
   INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
   INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO ""
 
   sudo yum -y update
 
@@ -907,10 +918,12 @@ check_package_version_SUSE() {
 }
 
 install_SUSE() {
+  INFO ""
   INFO "Installing dependencies for SuSE-based distribution"
   INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
   INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
   INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO ""
 
   sudo zypper --non-interactive update --auto-agree-with-licenses
 
@@ -1023,6 +1036,7 @@ print_info() {
   if [ -d $INST/osl ]; then
     INFO "  -D CYCLES_OSL=$INST/osl"
     INFO "  -D WITH_CYCLES_OSL=ON"
+    INFO "  -D LLVM_VERSION=$LLVM_VERSION_FOUND"
   fi
 
   if [ -d $INST/ffmpeg ]; then
