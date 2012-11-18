@@ -81,7 +81,9 @@ INFO() {
 # Return 0 if $1 >= $2, else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_ge() {
-  if [ $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
+  # XXX Not yet perfect, won't always work as expected with e.g. 1.0.0 and 1.0... :/
+  if [ "$1" != "$2" ] &&
+     [ $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
     return 1
   else
     return 0
@@ -599,8 +601,8 @@ compile_FFmpeg() {
   fi
 }
 
-deb_version() {
-    dpkg-query -W -f '${Version}' $1 | sed -r 's/^([0-9]\.[0-9]+).*/\1/'
+get_package_version_DEB() {
+    dpkg-query -W -f '${Version}' $1 | sed -r 's/.*:\s*([0-9]+:)(([0-9]+\.?)+).*/\2/'
 }
 
 check_package_DEB() {
@@ -657,7 +659,7 @@ install_DEB() {
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
     libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
-    libfftw3-dev libjack-dev python-dev patch flex bison libtbb-dev git
+    libfftw3-dev libjack-dev python-dev patch
 
   OPENJPEG_USE=true
   SCHRO_USE=true
@@ -716,7 +718,7 @@ install_DEB() {
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libboost-dev
 
-    boost_version=`deb_version libboost-dev`
+    boost_version=`get_package_version_DEB libboost-dev`
 
     check_package_DEB libboost-locale$boost_version-dev
     if [ $? -eq 0 ]; then
@@ -749,19 +751,20 @@ install_DEB() {
 
     check_package_DEB llvm-$LLVM_VERSION-dev
     if [ $? -eq 0 ]; then
-      sudo apt-get install -y llvm-$LLVM_VERSION-dev clang
+      sudo apt-get install -y llvm-$LLVM_VERSION-dev
       have_llvm=true
       LLVM_VERSION_FOUND=$LLVM_VERSION
     else
       check_package_DEB llvm-$LLVM_VERSION_MIN-dev
       if [ $? -eq 0 ]; then
-        sudo apt-get install -y llvm-$LLVM_VERSION_MIN-dev clang
+        sudo apt-get install -y llvm-$LLVM_VERSION_MIN-dev
         have_llvm=true
         LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
       fi
     fi
 
     if $have_llvm; then
+      sudo apt-get install -y clang flex bison libtbb-dev git
       # No package currently!
       compile_OSL
     fi
@@ -772,7 +775,7 @@ install_DEB() {
 #  check_package_DEB ffmpeg
 #  if [ $? -eq 0 ]; then
 #    sudo apt-get install -y ffmpeg
-#    ffmpeg_version=`deb_version ffmpeg`
+#    ffmpeg_version=`get_package_version_DEB ffmpeg`
 #    INFO "ffmpeg version: $ffmpeg_version"
 #    if [ ! -z "$ffmpeg_version" ]; then
 #      if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
@@ -783,6 +786,10 @@ install_DEB() {
 #    fi
 #  fi
   compile_FFmpeg
+}
+
+get_package_version_RPM() {
+  yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
 }
 
 check_package_RPM() {
@@ -899,6 +906,37 @@ install_RPM() {
     sudo yum install -y OpenImageIO-devel
   else
     compile_OIIO
+  fi
+
+  if $BUILD_OSL; then
+    have_llvm=false
+
+    check_package_RPM llvm-$LLVM_VERSION-devel
+    if [ $? -eq 0 ]; then
+      sudo yum install -y llvm-$LLVM_VERSION-devel
+      have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
+    else
+      check_package_RPM llvm-$LLVM_VERSION_MIN-devel
+      if [ $? -eq 0 ]; then
+        sudo yum install -y llvm-$LLVM_VERSION_MIN-devel
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+      else
+        check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
+        if [ $? -eq 0 ]; then
+          sudo yum install -y llvm-devel
+          have_llvm=true
+          LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
+        fi
+      fi
+    fi
+
+    if $have_llvm; then
+      sudo yum install -y flex bison clang tbb-devel git
+      # No package currently!
+      compile_OSL
+    fi
   fi
 
   # Always for now, not sure which packages should be installed
