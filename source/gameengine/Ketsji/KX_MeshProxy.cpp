@@ -292,7 +292,7 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 
 	MT_Matrix4x4 transform;
 
-	if (!PyArg_ParseTuple(args,"iO|iii:transform_uv", &matindex, &pymat, &uvindex, &uvindex_from) ||
+	if (!PyArg_ParseTuple(args,"iO|iii:transformUV", &matindex, &pymat, &uvindex, &uvindex_from) ||
 	    !PyMatTo(pymat, transform))
 	{
 		return NULL;
@@ -300,12 +300,12 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 
 	if (uvindex < -1 || uvindex > 1) {
 		PyErr_Format(PyExc_ValueError,
-		             "mesh.transform_uv(...): invalid uv_index %d", uvindex);
+		             "mesh.transformUV(...): invalid uv_index %d", uvindex);
 		return NULL;
 	}
 	if (uvindex_from < -1 || uvindex_from > 1 || uvindex == -1) {
 		PyErr_Format(PyExc_ValueError,
-		             "mesh.transform_uv(...): invalid uv_index_from %d", uvindex);
+		             "mesh.transformUV(...): invalid uv_index_from %d", uvindex);
 		return NULL;
 	}
 	if (uvindex_from == uvindex) {
@@ -365,7 +365,7 @@ PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
 
 	if (ok == false) {
 		PyErr_Format(PyExc_ValueError,
-		             "mesh.transform_uv(...): invalid material index %d", matindex);
+		             "mesh.transformUV(...): invalid material index %d", matindex);
 		return NULL;
 	}
 
