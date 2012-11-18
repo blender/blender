@@ -8364,6 +8364,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		Object *ob;
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			if (ob->step_height == 0.0) {
+				ob->step_height = 0.150;
+				ob->jump_speed = 10.0;
+				ob->fall_speed = 55.0;
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
