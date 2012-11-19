@@ -753,6 +753,15 @@ void wm_draw_update(bContext *C)
 	GPU_free_unused_buffers();
 	
 	for (win = wm->windows.first; win; win = win->next) {
+		int state = GHOST_GetWindowState(win->ghostwin);;
+
+		if (state == GHOST_kWindowStateMinimized) {
+			/* do not update minimized windows, it gives issues on intel drivers (see [#33223])
+			 * anyway, it seems logical to skip update for invisile windows
+			 */
+			continue;
+		}
+
 		if (win->drawmethod != U.wmdrawmethod) {
 			wm_draw_window_clear(win);
 			win->drawmethod = U.wmdrawmethod;
