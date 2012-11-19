@@ -644,6 +644,9 @@ if(UNIX AND NOT APPLE)
 				list(APPEND __boost_packages locale)
 			endif()
 			find_package(Boost 1.34 COMPONENTS ${__boost_packages})
+			if(Boost_USE_STATIC_LIBS AND Boost_USE_ICU)
+				find_package(IcuLinux)
+			endif()
 			mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
 		endif()
 
