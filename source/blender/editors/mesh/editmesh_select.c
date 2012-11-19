@@ -2330,6 +2330,8 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		}
 
 		if (limit) {
+			/* grr, shouldn't need to alloca BMO flags here */
+			BM_mesh_elem_toolflags_ensure(bm);
 			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 				/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
 				BMO_elem_flag_set(bm, e, BM_ELEM_SELECT, !BM_elem_flag_test(e, BM_ELEM_SEAM));
@@ -2350,6 +2352,10 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			}
 		}
 		BMW_end(&walker);
+
+		if (limit) {
+			BM_mesh_elem_toolflags_clear(bm);
+		}
 	}
 	else {
 		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {

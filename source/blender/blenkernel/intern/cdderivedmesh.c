@@ -2560,7 +2560,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
 		j = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
 
-		if(j == 0) {
+		if (j == 0) {
 			med->flag = ME_EDGEDRAW | ME_EDGERENDER;
 			*index = ORIGINDEX_NONE;
 		}

@@ -1119,9 +1119,13 @@ enum {
 
 typedef struct TriangulateModifierData {
 	ModifierData modifier;
-	int beauty;
+	int flag;
 	int pad;
 } TriangulateModifierData;
+
+enum {
+	MOD_TRIANGULATE_BEAUTY = (1 << 0),
+};
 
 /* Smooth modifier flags */
 #define MOD_LAPLACIANSMOOTH_X (1<<1)

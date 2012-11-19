@@ -92,6 +92,14 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 	}
 }
 
+void BM_mesh_elem_toolflags_clear(BMesh *bm)
+{
+	if (bm->toolflagpool) {
+		BLI_mempool_destroy(bm->toolflagpool);
+		bm->toolflagpool = NULL;
+	}
+}
+
 /**
  * \brief BMesh Make Mesh
  *
@@ -171,9 +179,7 @@ void BM_mesh_data_free(BMesh *bm)
 	BLI_mempool_destroy(bm->fpool);
 
 	/* destroy flag pool */
-	if (bm->toolflagpool) {
-		BLI_mempool_destroy(bm->toolflagpool);
-	}
+	BM_mesh_elem_toolflags_clear(bm);
 
 #ifdef USE_BMESH_HOLES
 	BLI_mempool_destroy(bm->looplistpool);

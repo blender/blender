@@ -24,47 +24,40 @@
 /** \file blender/modifiers/intern/MOD_triangulate.c
  *  \ingroup modifiers
  */
-#include <string.h>
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_modifier_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_string.h"
-#include "BLI_array.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_tessmesh.h"
 
-#include "MOD_util.h"
-
 /* triangulation modifier, directly calls the bmesh operator */
 
-static DerivedMesh *triangulate(DerivedMesh *dm, char use_beauty)
+static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 {
 	DerivedMesh *result;
 	BMesh *bm;
 
 	bm = DM_to_bmesh(dm);
+
 	BM_mesh_elem_toolflags_ensure(bm);
 	BMO_push(bm, NULL);
-	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
-				  "triangulate faces=%af use_beauty=%b", use_beauty);
 
+	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
+	             "triangulate faces=%af use_beauty=%b",
+	             (flag & MOD_TRIANGULATE_BEAUTY));
 	BMO_pop(bm);
 
 	result = CDDM_from_bmesh(bm, FALSE);
 	BM_mesh_free(bm);
 
+	/* we don't really need to calc edges,
+	 * this is called to update the origindex values
+	 * This could be made into a different function? - Campbell */
 	CDDM_calc_edges(result);
+
 	CDDM_calc_normals(result);
 
 	return result;
@@ -77,7 +70,7 @@ static void initData(ModifierData *md)
 
 	/* Enable in editmode by default */
 	md->mode |= eModifierMode_Editmode;
-	tmd->beauty = TRUE;
+	tmd->flag = MOD_TRIANGULATE_BEAUTY;
 }
 
 
@@ -96,7 +89,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md,
 {
 	TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 	DerivedMesh *result;
-	if (!(result = triangulate(dm, tmd->beauty))) {
+	if (!(result = triangulate_dm(dm, tmd->flag))) {
 		return dm;
 	}
 
@@ -110,7 +103,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 {
 	TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 	DerivedMesh *result;
-	if(!(result = triangulate(dm, tmd->beauty))) {
+	if (!(result = triangulate_dm(dm, tmd->flag))) {
 		return dm;
 	}
 
@@ -123,10 +116,10 @@ ModifierTypeInfo modifierType_Triangulate = {
 	/* structSize */        sizeof(TriangulateModifierData),
 	/* type */              eModifierTypeType_Constructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
-							eModifierTypeFlag_SupportsEditmode |
-							eModifierTypeFlag_SupportsMapping |
-							eModifierTypeFlag_EnableInEditmode |
-							eModifierTypeFlag_AcceptsCVs,
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_EnableInEditmode |
+	                        eModifierTypeFlag_AcceptsCVs,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

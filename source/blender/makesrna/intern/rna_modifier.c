@@ -3375,10 +3375,9 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_MOD_TRIANGULATE);
 
 	prop = RNA_def_property(srna, "use_beauty", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "beauty", 1);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_TRIANGULATE_BEAUTY);
 	RNA_def_property_ui_text(prop, "Beauty Subdivide", "Subdivide across shortest diagonal");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
 }
 
 void RNA_def_modifier(BlenderRNA *brna)
