@@ -146,28 +146,34 @@ WITH_BF_OPENMP = True
 #Cycles
 WITH_BF_CYCLES = True
 
-#OSL
 WITH_BF_CYCLES_OSL = False
 WITH_BF_STATICOSL = True
-BF_OSL = LIBDIR + '/osl'
+BF_OSL = '${LIBDIR}/osl'
 BF_OSL_INC = '${BF_OSL}/include'
-# note oslexec would passed via program linkflags, which is needed to
-# make llvm happy with osl_allocate_closure_component
-BF_OSL_LIB = 'oslcomp oslexec oslquery'
 BF_OSL_LIBPATH = '${BF_OSL}/lib'
+BF_OSL_LIB_STATIC = '${BF_OSL_LIBPATH}/oslcomp.lib ${BF_OSL_LIBPATH}/oslexec.lib ${BF_OSL_LIBPATH}/oslquery.lib '
 BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
+
+WITH_BF_LLVM = True
+BF_LLVM = LIBDIR + '/llvm'
+BF_LLVM_LIB = 'LLVMBitReader LLVMJIT LLVMipo LLVMVectorize LLVMBitWriter LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMX86AsmPrinter ' + \
+    'LLVMX86Utils LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMInstCombine LLVMTransformUtils LLVMipa LLVMAnalysis LLVMExecutionEngine ' + \
+    'LLVMTarget LLVMMC LLVMCore LLVMSupport'
+BF_LLVM_LIBPATH = '${BF_LLVM}/lib'
 
 WITH_BF_OIIO = True
 BF_OIIO = '${LIBDIR}/openimageio'
 BF_OIIO_INC = '${BF_OIIO}/include'
-BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
+BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/OpenImageIO.lib'
+WITH_BF_STATICOIIO = True
 
 WITH_BF_OCIO = True
 BF_OCIO = '${LIBDIR}/opencolorio'
 BF_OCIO_INC = '${BF_OCIO}/include'
-BF_OCIO_LIB = 'OpenColorIO'
 BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
+BF_OCIO_LIB_STATIC = '${BF_OCIO_LIBPATH}/OpenColorIO.lib'
+WITH_BF_STATICOCIO = True
 
 WITH_BF_BOOST = True
 BF_BOOST = '${LIBDIR}/boost'
