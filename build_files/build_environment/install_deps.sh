@@ -8,7 +8,7 @@ CWD=$PWD
 # OSL is horror for manual building even
 # i would want it to be setteled for manual build first,
 # and only then do it automatically
-BUILD_OSL=false
+BUILD_OSL=true
 
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
 if [ -z "$THREADS" ]; then
@@ -519,7 +519,7 @@ compile_OSL() {
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
 
     if [ -d $INST/boost ]; then
-      cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
+      cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
     fi
 
     if [ -d $INST/oiio ]; then
