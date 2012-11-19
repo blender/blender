@@ -1108,8 +1108,8 @@ elseif(WIN32)
 				#debug libboost_regex-${BOOST_DEBUG_POSTFIX}
 				#debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX}
 			if(WITH_INTERNATIONAL)
-				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-					optimized libboost_locale-${BOOST_POSTFIX})
+				set(BOOST_LIBRARIES ${BOOST_LIBRARIES} libboost_locale-${BOOST_POSTFIX})
+					#optimized libboost_locale-${BOOST_POSTFIX})
 					#debug libboost_locale-${BOOST_DEBUG_POSTFIX}
 			endif(WITH_INTERNATIONAL)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
