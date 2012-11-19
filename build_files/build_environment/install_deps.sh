@@ -355,6 +355,7 @@ compile_OCIO() {
           -D CMAKE_CXX_FLAGS="$cflags" \
           -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
           -D OCIO_BUILD_APPS=OFF \
+          -D OCIO_BUILD_PYGLUE=OFF \
           ..
 
     make -j$THREADS && make install
@@ -572,7 +573,7 @@ compile_OSL() {
 
 compile_FFmpeg() {
   # To be changed each time we make edits that would modify the compiled result!
-  ffmpeg_magic=0
+  ffmpeg_magic=3
 
   _src=$SRC/ffmpeg-$FFMPEG_VERSION
   _inst=$INST/ffmpeg-$FFMPEG_VERSION
@@ -608,7 +609,8 @@ compile_FFmpeg() {
       extra="$extra --enable-libtheora"
     fi
 
-    if $SCHRO_USE; then
+    # XXX At under Debian, static schro gives problem at blender linking time... :/
+    if $SCHRO_USE && ! $ALL_STATIC; then
       extra="$extra --enable-libschroedinger"
     fi
 
@@ -632,8 +634,12 @@ compile_FFmpeg() {
       extra="$extra --enable-libopenjpeg"
     fi
 
-    ./configure --cc="gcc -Wl,--as-needed" --extra-ldflags="-pthread -static-libgcc" \
-        --prefix=$_inst --enable-static --enable-avfilter --disable-vdpau \
+    ./configure --cc="gcc -Wl,--as-needed" \
+        --extra-ldflags="-pthread -static-libgcc" \
+        --prefix=$_inst --enable-static \
+        --disable-ffplay --disable-ffserver --disable-doc \
+        --enable-gray \
+        --enable-avfilter --disable-vdpau \
         --disable-bzlib --disable-libgsm --disable-libspeex \
         --enable-pthreads --enable-zlib --enable-stripping --enable-runtime-cpudetect \
         --disable-vaapi  --disable-libfaac --disable-nonfree --enable-gpl \
@@ -1053,11 +1059,19 @@ install_SUSE() {
 }
 
 print_info_ffmpeglink_DEB() {
-  dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  if $ALL_STATIC; then
+    dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
+  else
+    dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  fi
 }
 
 print_info_ffmpeglink_RPM() {
-  rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  if $ALL_STATIC; then
+    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
+  else
+    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  fi
 }
 
 print_info_ffmpeglink() {
@@ -1098,7 +1112,8 @@ print_info_ffmpeglink() {
     _packages="$_packages $OPENJPEG_DEV"
   fi
 
-  if $SCHRO_USE; then
+  # XXX At least under Debian, static schro give problem at blender linking time... :/
+  if $SCHRO_USE && ! $ALL_STATIC; then
     _packages="$_packages $SCHRO_DEV"
   fi
 
