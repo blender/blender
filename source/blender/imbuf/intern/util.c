@@ -228,7 +228,7 @@ static int isqtime(const char *name)
 
 #ifdef WITH_FFMPEG
 
-#ifdef _MS_VER
+#ifdef _MSC_VER
 #define va_copy(dst, src) ((dst) = (src))
 #endif
 
