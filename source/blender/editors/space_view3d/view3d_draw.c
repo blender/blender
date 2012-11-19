@@ -1422,8 +1422,8 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	
 	ibuf = IMB_allocImBuf((xmaxc - xminc + 1), (ymaxc - yminc + 1), 32, IB_rect);
 
-	view3d_validate_backbuf(vc); 
-	
+	view3d_validate_backbuf(vc);
+
 	glReadPixels(vc->ar->winrct.xmin + xminc,
 	             vc->ar->winrct.ymin + yminc,
 	             (xmaxc - xminc + 1),

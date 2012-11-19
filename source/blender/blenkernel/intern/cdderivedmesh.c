@@ -2516,7 +2516,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	EdgeHashIterator *ehi;
 	MPoly *mp = cddm->mpoly;
 	MLoop *ml;
-	MEdge *med;
+	MEdge *med, *origmed;
 	EdgeHash *eh = BLI_edgehash_new();
 	int v1, v2;
 	int *eindex;
@@ -2549,6 +2549,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
 
+	origmed = cddm->medge;
 	med = CustomData_get_layer(&edgeData, CD_MEDGE);
 	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
 
@@ -2559,8 +2560,14 @@ void CDDM_calc_edges(DerivedMesh *dm)
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
 		j = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
 
-		med->flag = ME_EDGEDRAW | ME_EDGERENDER;
-		*index = j == 0 ? ORIGINDEX_NONE : eindex[j - 1];
+		if(j == 0) {
+			med->flag = ME_EDGEDRAW | ME_EDGERENDER;
+			*index = ORIGINDEX_NONE;
+		}
+		else {
+			med->flag = ME_EDGEDRAW | ME_EDGERENDER | origmed[j - 1].flag;
+			*index = eindex[j - 1];
+		}
 
 		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(i));
 	}

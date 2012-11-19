@@ -1038,6 +1038,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_WARP); break;
 					case eModifierType_Skin:
 						UI_icon_draw(x, y, ICON_MOD_SKIN); break;
+					case eModifierType_Triangulate:
+						UI_icon_draw(x, y, ICON_MOD_SKIN); break;
 
 					/* Default */
 					case eModifierType_None:
