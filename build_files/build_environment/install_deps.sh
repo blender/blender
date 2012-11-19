@@ -8,12 +8,24 @@ CWD=$PWD
 # OSL is horror for manual building even
 # i would want it to be setteled for manual build first,
 # and only then do it automatically
-BUILD_OSL=true
+BUILD_OSL=false
+
+# Try to link everything statically. Use this to produce protable versions of blender.
+ALL_STATIC=false
 
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
 if [ -z "$THREADS" ]; then
   THREADS=1
 fi
+
+COMMON_INFO="Source code of dependencies needed to be compiled will be downloaded and extracted into '$SRC'.
+Built libs of dependencies needed to be compiled will be installed into '$INST'.
+Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!
+
+Number of threads for building: $THREADS.
+Building OSL: $BUILD_OSL (edit \$BUILD_OSL var to change this).
+All static linking: $ALL_STATIC (edit \$ALL_STATIC var to change this)."
+
 
 PYTHON_VERSION="3.3.0"
 PYTHON_VERSION_MIN="3.3"
@@ -436,6 +448,9 @@ EOF
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
+      if $ALL_STATIC; then
+        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"        
+      fi
     fi
 
     # Looks like we do not need ocio in oiio for now...
@@ -473,7 +488,7 @@ EOF
 
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=5
+  osl_magic=6
 
   _src=$SRC/OpenShadingLanguage-$OSL_VERSION
   _inst=$INST/osl-$OSL_VERSION
@@ -520,6 +535,9 @@ compile_OSL() {
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
+      if $ALL_STATIC; then
+        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"        
+      fi
     fi
 
     if [ -d $INST/oiio ]; then
@@ -683,9 +701,7 @@ check_package_version_ge_DEB() {
 install_DEB() {
   INFO ""
   INFO "Installing dependencies for DEB-based distribution"
-  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
-  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
-  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO "$COMMON_INFO"
   INFO ""
 
   sudo apt-get update
@@ -870,9 +886,7 @@ check_package_version_ge_RPM() {
 install_RPM() {
   INFO ""
   INFO "Installing dependencies for RPM-based distribution"
-  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
-  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
-  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO "$COMMON_INFO"
   INFO ""
 
   sudo yum -y update
@@ -1012,9 +1026,7 @@ check_package_version_SUSE() {
 install_SUSE() {
   INFO ""
   INFO "Installing dependencies for SuSE-based distribution"
-  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
-  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
-  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO "$COMMON_INFO"
   INFO ""
 
   sudo zypper --non-interactive update --auto-agree-with-licenses
@@ -1108,6 +1120,12 @@ print_info() {
   if [ -d $INST/boost ]; then
     INFO "  -D BOOST_ROOT=$INST/boost"
     INFO "  -D Boost_NO_SYSTEM_PATHS=ON"
+    if $ALL_STATIC; then
+      INFO "  -D Boost_USE_STATIC_LIBS=ON"
+    fi
+  elif $ALL_STATIC; then
+    INFO "  -D Boost_USE_STATIC_LIBS=ON"
+    INFO "  -D Boost_USE_ICU=ON"
   fi
 
   if [ -d $INST/osl ]; then
