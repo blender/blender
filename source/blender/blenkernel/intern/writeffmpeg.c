@@ -599,11 +599,13 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 /* Prepare an audio stream for the output file */
 
-static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContext *of)
+static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContext *of, char *error, int error_size)
 {
 	AVStream *st;
 	AVCodecContext *c;
 	AVCodec *codec;
+
+	error[0] = '\0';
 
 	st = av_new_stream(of, 1);
 	if (!st) return NULL;
@@ -626,6 +628,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	if (avcodec_open(c, codec) < 0) {
 		//XXX error("Couldn't initialize audio codec");
+		BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
 		return NULL;
 	}
 
@@ -801,9 +804,12 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	}
 
 	if (ffmpeg_audio_codec != CODEC_ID_NONE) {
-		audio_stream = alloc_audio_stream(rd, fmt->audio_codec, of);
+		audio_stream = alloc_audio_stream(rd, fmt->audio_codec, of, error, sizeof(error));
 		if (!audio_stream) {
-			BKE_report(reports, RPT_ERROR, "Error initializing audio stream");
+			if (error[0])
+				BKE_report(reports, RPT_ERROR, error);
+			else
+				BKE_report(reports, RPT_ERROR, "Error initializing audio stream");
 			av_dict_free(&opts);
 			return 0;
 		}

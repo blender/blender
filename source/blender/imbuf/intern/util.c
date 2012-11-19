@@ -228,6 +228,10 @@ static int isqtime(const char *name)
 
 #ifdef WITH_FFMPEG
 
+#ifdef _MS_VER
+#define va_copy(dst, src) ((dst) = (src))
+#endif
+
 /* BLI_vsnprintf in ffmpeg_log_callback() causes invalid warning */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-format-attribute"
@@ -237,7 +241,12 @@ static char ffmpeg_last_error[1024];
 static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_list arg)
 {
 	if (ELEM(level, AV_LOG_FATAL, AV_LOG_ERROR)) {
-		size_t n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, arg);
+		size_t n;
+		va_list arg2;
+
+		va_copy(arg2, arg);
+
+		n = BLI_vsnprintf(ffmpeg_last_error, sizeof(ffmpeg_last_error), format, arg2);
 
 		/* strip trailing \n */
 		ffmpeg_last_error[n - 1] = '\0';
