@@ -2920,7 +2920,20 @@ void BKE_image_release_ibuf(Image *ima, ImBuf *ibuf, void *lock)
 /* checks whether there's an image buffer for given image and user */
 int BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
 {
-	ImBuf *ibuf = image_get_ibuf_threadsafe(ima, iuser, NULL, NULL);
+	ImBuf *ibuf;
+
+	/* quick reject tests */
+	if (ima == NULL)
+		return FALSE;
+
+	if (iuser) {
+		if (iuser->ok == 0)
+			return FALSE;
+	}
+	else if (ima->ok == 0)
+		return FALSE;
+
+	ibuf = image_get_ibuf_threadsafe(ima, iuser, NULL, NULL);
 
 	if (!ibuf) {
 		BLI_spin_lock(&image_spin);
