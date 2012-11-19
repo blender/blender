@@ -234,6 +234,7 @@ option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" 
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON)
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
+	option(WITH_STATIC_LIBS "Try to link with static libraries, as much as possible, to make blender more portable across distributions" OFF)
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install folder"  ON)
@@ -502,10 +503,23 @@ set(PLATFORM_LINKFLAGS_DEBUG "")
 #Platform specifics
 
 if(UNIX AND NOT APPLE)
-	find_package(JPEG REQUIRED)
-	find_package(PNG REQUIRED)
-	find_package(ZLIB REQUIRED)
-	find_package(Freetype REQUIRED)
+	macro(find_package_wrapper)
+		STRING(TOUPPER ${ARGV0} _NAME_UPPER)
+		if(${WITH_STATIC_LIBS})
+			set(_cmake_find_library_suffixes_back ${CMAKE_FIND_LIBRARY_SUFFIXES})
+			set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+		endif()
+		find_package(${ARGV})
+		if(${WITH_STATIC_LIBS})
+			set(CMAKE_FIND_LIBRARY_SUFFIXES ${_cmake_find_library_suffixes_back})
+			unset(_cmake_find_library_suffixes_back)
+		endif()
+	endmacro()
+
+	find_package_wrapper(JPEG REQUIRED)
+	find_package_wrapper(PNG REQUIRED)
+	find_package_wrapper(ZLIB REQUIRED)
+	find_package_wrapper(Freetype REQUIRED)
 
 	if(WITH_PYTHON)
 		# No way to set py32. remove for now.
@@ -513,25 +527,28 @@ if(UNIX AND NOT APPLE)
 
 		# Use our own instead, since wothout py is such a rare case,
 		# require this package
+		# XXX Linking errors with debian static python :/
+#		find_package_wrapper(PythonLibsUnix REQUIRED)
 		find_package(PythonLibsUnix REQUIRED)
 	endif()
 
-
 	if(WITH_IMAGE_OPENEXR)
-		find_package(OpenEXR)  # our own module
+		find_package_wrapper(OpenEXR)  # our own module
 		if(NOT OPENEXR_FOUND)
 			set(WITH_IMAGE_OPENEXR OFF)
 		endif()
 	endif()
 
 	if(WITH_IMAGE_OPENJPEG)
-		find_package(OpenJPEG)
+		find_package_wrapper(OpenJPEG)
 		if(NOT OPENJPEG_FOUND)
 			set(WITH_IMAGE_OPENJPEG OFF)
 		endif()
 	endif()
 
 	if(WITH_IMAGE_TIFF)
+		# XXX Linking errors with debian static tiff :/
+#		find_package_wrapper(TIFF)
 		find_package(TIFF)
 		if(NOT TIFF_FOUND)
 			set(WITH_IMAGE_TIFF OFF)
@@ -540,14 +557,14 @@ if(UNIX AND NOT APPLE)
 
 	# Audio IO
 	if(WITH_OPENAL)
-		find_package(OpenAL)
+		find_package_wrapper(OpenAL)
 		if(NOT OPENAL_FOUND)
 			set(WITH_OPENAL OFF)
 		endif()
 	endif()
 
 	if(WITH_SDL)
-		find_package(SDL)
+		find_package_wrapper(SDL)
 		mark_as_advanced(
 			SDLMAIN_LIBRARY
 			SDL_INCLUDE_DIR
@@ -561,7 +578,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_JACK)
-		find_package(Jack)
+		find_package_wrapper(Jack)
 		if(NOT JACK_FOUND)
 			set(WITH_JACK OFF)
 		endif()
@@ -569,7 +586,7 @@ if(UNIX AND NOT APPLE)
 
 	# Codecs
 	if(WITH_CODEC_SNDFILE)
-		find_package(SndFile)
+		find_package_wrapper(SndFile)
 		if(NOT SNDFILE_FOUND)
 			set(WITH_CODEC_SNDFILE OFF)
 		endif()
@@ -594,31 +611,31 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_FFTW3)
-		find_package(Fftw3)
+		find_package_wrapper(Fftw3)
 		if(NOT FFTW3_FOUND)
 			set(WITH_FFTW3 OFF)
 		endif()
 	endif()
 
 	if(WITH_OPENCOLLADA)
-		find_package(OpenCOLLADA)
+		find_package_wrapper(OpenCOLLADA)
 		if(OPENCOLLADA_FOUND)
-			find_package(XML2)
-			find_package(PCRE)
+			find_package_wrapper(XML2)
+			find_package_wrapper(PCRE)
 		else()
 			set(WITH_OPENCOLLADA OFF)
 		endif()
 	endif()
 
 	if(WITH_MEM_JEMALLOC)
-		find_package(JeMalloc)
+		find_package_wrapper(JeMalloc)
 		if(NOT JEMALLOC_FOUND)
 			set(WITH_MEM_JEMALLOC OFF)
 		endif()
 	endif()
 
 	if (WITH_INPUT_NDOF)
-		find_package(Spacenav)
+		find_package_wrapper(Spacenav)
 		if(NOT SPACENAV_FOUND)
 			set(WITH_INPUT_NDOF OFF)
 		endif()
@@ -634,6 +651,9 @@ if(UNIX AND NOT APPLE)
 		# uses in build instructions to override include and library variables
 		if(NOT BOOST_CUSTOM)
 			# XXX No more lib dir, is this multithread stuff still needed?
+			if(${WITH_STATIC_LIBS})
+				set(Boost_USE_STATIC_LIBS ON)
+			endif()
 			if(NOT BOOST_ROOT)
 				set(Boost_USE_MULTITHREADED OFF)
 			else()
@@ -657,7 +677,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENIMAGEIO)
-		find_package(OpenImageIO)
+		find_package_wrapper(OpenImageIO)
 
 		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
@@ -677,7 +697,7 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENCOLORIO)
-		find_package(OpenColorIO)
+		find_package_wrapper(OpenColorIO)
 
 		set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBRARIES})
 		set(OPENCOLORIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
