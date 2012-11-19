@@ -1364,13 +1364,13 @@ elseif(APPLE)
 
 	if(WITH_PYTHON)
 		if(NOT WITH_PYTHON_MODULE)
-			# we use precompiled libraries for py 3.2 and up by default
+			# we use precompiled libraries for py 3.3 and up by default
 
 			# normally cached but not since we include them with blender
-			set(PYTHON_VERSION 3.2)
-			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
+			set(PYTHON_VERSION 3.3)
+			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}m")
 			# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
-			set(PYTHON_LIBRARY python${PYTHON_VERSION})
+			set(PYTHON_LIBRARY python${PYTHON_VERSION}m)
 			set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
 			# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 		else()
