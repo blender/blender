@@ -78,7 +78,7 @@ EnumPropertyItem modifier_type_items[] = {
 	{eModifierType_Skin, "SKIN", ICON_MOD_SKIN, "Skin", ""},
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
-	{eModifierType_Triangulate, "TRIANGULATE", ICON_MOD_SKIN, "Triangulate", ""},
+	{eModifierType_Triangulate, "TRIANGULATE", ICON_MOD_TRIANGULATE, "Triangulate", ""},
 	{0, "", 0, N_("Deform"), ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
@@ -3372,7 +3372,7 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "TriangulateModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Triangulate Modifier", "Triangulate Mesh");
 	RNA_def_struct_sdna(srna, "TriangulateModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_SKIN);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_TRIANGULATE);
 
 	prop = RNA_def_property(srna, "use_beauty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "beauty", 1);
