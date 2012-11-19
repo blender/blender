@@ -134,12 +134,12 @@ extern float BM_vert_calc_mean_tagged_edge_length(BMVert *v);
 
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 {
-	const int use_boundary        = BMO_slot_bool_get(op,  "use_boundary");
-	const int use_even_offset     = BMO_slot_bool_get(op,  "use_even_offset");
-	const int use_relative_offset = BMO_slot_bool_get(op,  "use_relative_offset");
-	const int use_crease          = (BMO_slot_bool_get(op,  "use_crease") &&
+	const int use_boundary        = BMO_slot_bool_get(op->slots_in,  "use_boundary");
+	const int use_even_offset     = BMO_slot_bool_get(op->slots_in,  "use_even_offset");
+	const int use_relative_offset = BMO_slot_bool_get(op->slots_in,  "use_relative_offset");
+	const int use_crease          = (BMO_slot_bool_get(op->slots_in,  "use_crease") &&
 	                                 CustomData_has_layer(&bm->edata, CD_CREASE));
-	const float depth             = BMO_slot_float_get(op, "thickness");
+	const float depth             = BMO_slot_float_get(op->slots_in, "thickness");
 	const float inset             = depth;
 
 	const int totvert_orig = bm->totvert;
@@ -184,7 +184,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	/* setup tags, all faces and verts will be tagged which will be duplicated */
 	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
 
-	BMO_ITER (f_src, &oiter, bm, op, "faces", BM_FACE) {
+	BMO_ITER (f_src, &oiter, op->slots_in, "faces", BM_FACE) {
 		verts_loop_tot += f_src->len;
 		BM_elem_flag_enable(f_src, BM_ELEM_TAG);
 		BM_ITER_ELEM (l, &itersub, f_src, BM_LOOPS_OF_FACE) {
@@ -230,7 +230,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	verts_loop = MEM_mallocN(sizeof(BMVert **) * verts_loop_tot, __func__);
 	verts_loop_tot = 0; /* count up again */
 
-	BMO_ITER (f_src, &oiter, bm, op, "faces", BM_FACE) {
+	BMO_ITER (f_src, &oiter, op->slots_in, "faces", BM_FACE) {
 		BM_ITER_ELEM (l, &itersub, f_src, BM_LOOPS_OF_FACE) {
 			BM_elem_index_set(l, verts_loop_tot); /* set_loop */
 
@@ -288,7 +288,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_ITER (f_src, &oiter, bm, op, "faces", BM_FACE) {
+	BMO_ITER (f_src, &oiter, op->slots_in, "faces", BM_FACE) {
 		BM_elem_flag_disable(f_src, BM_ELEM_TAG);
 		BM_ITER_ELEM (l, &itersub, f_src, BM_LOOPS_OF_FACE) {
 			BMFace *f_new;
@@ -400,5 +400,5 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(verts_pos);
 	MEM_freeN(verts_loop);
 
-	BMO_slot_buffer_from_enabled_hflag(bm, op, "faceout", BM_FACE, BM_ELEM_TAG);
+	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faceout", BM_FACE, BM_ELEM_TAG);
 }

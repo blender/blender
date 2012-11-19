@@ -39,9 +39,9 @@ void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;
 	BMIter iter;
 
-	const int iterations = max_ii(1, BMO_slot_int_get(op, "iterations"));
+	const int iterations = max_ii(1, BMO_slot_int_get(op->slots_in, "iterations"));
 
-	BMOpSlot *vinput = BMO_slot_get(op, "verts");
+	BMOpSlot *vinput = BMO_slot_get(op->slots_in, "verts");
 	BMVert **vinput_arr = (BMVert **)vinput->data.p;
 	int v_index;
 

@@ -249,14 +249,14 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 	}
 
 	/* Apply face attributes to hull output */
-	BMO_ITER (f, &oiter, bm, &op, "geomout", BM_FACE) {
+	BMO_ITER (f, &oiter, op.slots_out, "geomout", BM_FACE) {
 		if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
 			BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 		f->mat_nr = so->mat_nr;
 	}
 
 	/* Mark interior frames */
-	BMO_ITER (v, &oiter, bm, &op, "interior_geom", BM_VERT) {
+	BMO_ITER (v, &oiter, op.slots_out, "interior_geom_out", BM_VERT) {
 		for (i = 0; i < totframe; i++) {
 			Frame *frame = frames[i];
 			
@@ -309,7 +309,7 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 
 	/* Check if removing triangles above will create wire triangles,
 	 * mark them too */
-	BMO_ITER (e, &oiter, bm, &op, "geomout", BM_EDGE) {
+	BMO_ITER (e, &oiter, op.slots_out, "geomout", BM_EDGE) {
 		int is_wire = TRUE;
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 			if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
@@ -1090,7 +1090,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		v_safe = shortest_edge->v1;
 		v_merge = shortest_edge->v2;
 		mid_v3_v3v3(v_safe->co, v_safe->co, v_merge->co);
-		BMO_slot_map_ptr_insert(bm, &op, "targetmap", v_merge, v_safe);
+		BMO_slot_map_ptr_insert(&op, op.slots_in, "targetmap", v_merge, v_safe);
 		BMO_op_exec(bm, &op);
 		BMO_op_finish(bm, &op);
 
@@ -1229,7 +1229,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	/* Update split face (should only be one new face created
 	 * during extrusion) */
 	split_face = NULL;
-	BMO_ITER (f, &oiter, bm, &op, "faceout", BM_FACE) {
+	BMO_ITER (f, &oiter, op.slots_out, "faceout", BM_FACE) {
 		BLI_assert(!split_face);
 		split_face = f;
 	}
@@ -1282,7 +1282,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BMO_op_init(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	            "weld_verts");
 	for (i = 0; i < 4; i++) {
-		BMO_slot_map_ptr_insert(bm, &op, "targetmap",
+		BMO_slot_map_ptr_insert(&op, op.slots_in, "targetmap",
 		                        verts[i], frame->verts[best_order[i]]);
 	}
 	BMO_op_exec(bm, &op);

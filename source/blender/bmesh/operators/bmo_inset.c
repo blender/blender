@@ -92,13 +92,13 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 
 void bmo_inset_exec(BMesh *bm, BMOperator *op)
 {
-	const int use_outset          = BMO_slot_bool_get(op, "use_outset");
-	const int use_boundary        = BMO_slot_bool_get(op, "use_boundary") && (use_outset == FALSE);
-	const int use_even_offset     = BMO_slot_bool_get(op, "use_even_offset");
+	const int use_outset          = BMO_slot_bool_get(op->slots_in, "use_outset");
+	const int use_boundary        = BMO_slot_bool_get(op->slots_in, "use_boundary") && (use_outset == FALSE);
+	const int use_even_offset     = BMO_slot_bool_get(op->slots_in, "use_even_offset");
 	const int use_even_boundry    = use_even_offset; /* could make own option */
-	const int use_relative_offset = BMO_slot_bool_get(op, "use_relative_offset");
-	const float thickness         = BMO_slot_float_get(op, "thickness");
-	const float depth             = BMO_slot_float_get(op, "depth");
+	const int use_relative_offset = BMO_slot_bool_get(op->slots_in, "use_relative_offset");
+	const float thickness         = BMO_slot_float_get(op->slots_in, "thickness");
+	const float depth             = BMO_slot_float_get(op->slots_in, "depth");
 
 	int edge_info_len = 0;
 
@@ -113,11 +113,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	if (use_outset == FALSE) {
 		BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
-		BMO_slot_buffer_hflag_enable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+		BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 	}
 	else {
 		BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
-		BMO_slot_buffer_hflag_disable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+		BMO_slot_buffer_hflag_disable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 	}
 
 	/* first count all inset edges we will split */
@@ -481,7 +481,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* we could flag new edges/verts too, is it useful? */
-	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faceout", BM_FACE, ELE_NEW);
 
 	/* cheap feature to add depth to the inset */
 	if (depth != 0.0f) {
@@ -514,7 +514,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
 
 		/* tag face verts */
-		BMO_ITER (f, &oiter, bm, op, "faces", BM_FACE) {
+		BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
 			BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
 				BM_elem_flag_enable(v, BM_ELEM_TAG);
 			}

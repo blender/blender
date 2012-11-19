@@ -122,7 +122,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 		Py_ssize_t pos = 0;
 		while (PyDict_Next(kw, &pos, &key, &value)) {
 			const char *slot_name = _PyUnicode_AsString(key);
-			BMOpSlot *slot = BMO_slot_get(&bmop, slot_name);
+			BMOpSlot *slot = BMO_slot_get(bmop.slots_in, slot_name);
 
 			if (slot == NULL) {
 				PyErr_Format(PyExc_TypeError,
@@ -210,7 +210,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						return NULL;
 					}
 
-					BMO_slot_mat_set(&bmop, slot_name, ((MatrixObject *)value)->matrix, size);
+					BMO_slot_mat_set(&bmop, bmop.slots_in, slot_name, ((MatrixObject *)value)->matrix, size);
 					break;
 				}
 				case BMO_OP_SLOT_VEC:
@@ -243,15 +243,15 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 
 					if (BPy_BMVertSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("verts");
-						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_VERT);
+						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_VERT);
 					}
 					else if (BPy_BMEdgeSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("edges");
-						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_EDGE);
+						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_EDGE);
 					}
 					else if (BPy_BMFaceSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("faces");
-						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_FACE);
+						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_FACE);
 					}
 					else if (BPy_BMElemSeq_Check(value)) {
 						BMIter iter;
@@ -266,7 +266,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						/* calls bpy_bmelemseq_length() */
 						tot = Py_TYPE(value)->tp_as_sequence->sq_length((PyObject *)self);
 
-						BMO_slot_buffer_alloc(&bmop, slot_name, tot);
+						BMO_slot_buffer_alloc(&bmop, bmop.slots_in, slot_name, tot);
 
 						i = 0;
 						BM_ITER_BPY_BM_SEQ (ele, &iter, ((BPy_BMElemSeq *)value)) {
@@ -288,7 +288,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 							return NULL;
 						}
 
-						BMO_slot_buffer_alloc(&bmop, slot_name, elem_array_len);
+						BMO_slot_buffer_alloc(&bmop, bmop.slots_in, slot_name, elem_array_len);
 						memcpy(slot->data.buf, elem_array, sizeof(void *) * elem_array_len);
 						PyMem_FREE(elem_array);
 					}
@@ -413,17 +413,17 @@ static PyObject *bpy_bmesh_fmod_getattro(PyObject *UNUSED(self), PyObject *pynam
 {
 	const unsigned int tot = bmesh_total_ops;
 	unsigned int i;
-	const char *name = _PyUnicode_AsString(pyname);
+	const char *opname = _PyUnicode_AsString(pyname);
 
 	for (i = 0; i < tot; i++) {
-		if (strcmp(opdefines[i]->name, name) == 0) {
-			return bpy_bmesh_op_CreatePyObject(opdefines[i]->name);
+		if (strcmp(opdefines[i]->opname, opname) == 0) {
+			return bpy_bmesh_op_CreatePyObject(opdefines[i]->opname);
 		}
 	}
 
 	PyErr_Format(PyExc_AttributeError,
 	             "BMeshOpsModule: operator \"%.200s\" doesn't exist",
-	             name);
+	             opname);
 	return NULL;
 }
 
@@ -436,7 +436,7 @@ static PyObject *bpy_bmesh_fmod_dir(PyObject *UNUSED(self))
 	ret = PyList_New(bmesh_total_ops);
 
 	for (i = 0; i < tot; i++) {
-		PyList_SET_ITEM(ret, i, PyUnicode_FromString(opdefines[i]->name));
+		PyList_SET_ITEM(ret, i, PyUnicode_FromString(opdefines[i]->opname));
 	}
 
 	return ret;

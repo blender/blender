@@ -102,7 +102,7 @@ static BMEdge *copy_edge(BMOperator *op, BMesh *source_mesh,
 	if (rlen < 2) {
 		/* not sure what non-manifold cases of greater then three
 		 * radial should do. */
-		BMO_slot_map_ptr_insert(source_mesh, op, "boundarymap",
+		BMO_slot_map_ptr_insert(op, op->slots_out, "boundarymap_out",
 		                        source_edge, target_edge);
 	}
 
@@ -154,8 +154,8 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
 	
 	/* create new face */
 	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, FALSE);
-	BMO_slot_map_ptr_insert(source_mesh, op, "facemap", source_face, target_face);
-	BMO_slot_map_ptr_insert(source_mesh, op, "facemap", target_face, source_face);
+	BMO_slot_map_ptr_insert(op, op->slots_out, "facemap_out", source_face, target_face);
+	BMO_slot_map_ptr_insert(op, op->slots_out, "facemap_out", target_face, source_face);
 
 	BM_elem_attrs_copy(source_mesh, target_mesh, source_face, target_face);
 
@@ -227,7 +227,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *source, BMesh *target)
 			}
 
 			if (isolated) {
-				BMO_slot_map_ptr_insert(source, op, "isovertmap", v, v2);
+				BMO_slot_map_ptr_insert(op, op->slots_out, "isovertmap_out", v, v2);
 			}
 
 			BMO_elem_flag_enable(source, v, DUPE_DONE);
@@ -317,23 +317,24 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *source, BMesh *target)
 void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator *dupeop = op;
-	BMesh *bm2 = BMO_slot_ptr_get(op, "dest");
+	BMesh *bm2 = BMO_slot_ptr_get(op->slots_in, "dest");
 	
 	if (!bm2)
 		bm2 = bm;
 
 	/* flag input */
-	BMO_slot_buffer_flag_enable(bm, dupeop, "geom", BM_ALL, DUPE_INPUT);
+	BMO_slot_buffer_flag_enable(bm, dupeop->slots_in, "geom", BM_ALL, DUPE_INPUT);
 
 	/* use the internal copy function */
 	bmo_mesh_copy(dupeop, bm, bm2);
 	
 	/* Output */
 	/* First copy the input buffers to output buffers - original data */
-	BMO_slot_copy(dupeop, dupeop, "geom", "origout");
+	BMO_slot_copy(dupeop, slots_in,  "geom",
+	              dupeop, slots_out, "origout");
 
 	/* Now alloc the new output buffers */
-	BMO_slot_buffer_from_enabled_flag(bm, dupeop, "newout", BM_ALL, DUPE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, dupeop, dupeop->slots_out, "newout", BM_ALL, DUPE_NEW);
 }
 
 #if 0 /* UNUSED */
@@ -378,16 +379,17 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	BMOperator *splitop = op;
 	BMOperator dupeop;
 	BMOperator delop;
-	const short use_only_faces = BMO_slot_bool_get(op, "use_only_faces");
+	const short use_only_faces = BMO_slot_bool_get(op->slots_in, "use_only_faces");
 
 	/* initialize our sub-operator */
 	BMO_op_init(bm, &dupeop, op->flag, "duplicate");
 	BMO_op_init(bm, &delop, op->flag, "delete");
 	
-	BMO_slot_copy(splitop, &dupeop, "geom", "geom");
+	BMO_slot_copy(splitop, slots_in, "geom",
+	              &dupeop, slots_in, "geom");
 	BMO_op_exec(bm, &dupeop);
 	
-	BMO_slot_buffer_flag_enable(bm, splitop, "geom", BM_ALL, SPLIT_INPUT);
+	BMO_slot_buffer_flag_enable(bm, splitop->slots_in, "geom", BM_ALL, SPLIT_INPUT);
 
 	if (use_only_faces) {
 		BMVert *v;
@@ -427,16 +429,22 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* connect outputs of dupe to delete, exluding keep geometry */
-	BMO_slot_int_set(&delop, "context", DEL_FACES);
-	BMO_slot_buffer_from_enabled_flag(bm, &delop, "geom", BM_ALL, SPLIT_INPUT);
+	BMO_slot_int_set(delop.slots_in, "context", DEL_FACES);
+	BMO_slot_buffer_from_enabled_flag(bm, &delop, delop.slots_in, "geom", BM_ALL, SPLIT_INPUT);
 	
 	BMO_op_exec(bm, &delop);
 
 	/* now we make our outputs by copying the dupe output */
-	BMO_slot_copy(&dupeop, splitop, "newout", "geomout");
-	BMO_slot_copy(&dupeop, splitop, "boundarymap", "boundarymap");
-	BMO_slot_copy(&dupeop, splitop, "isovertmap", "isovertmap");
-	
+	BMO_slot_copy(&dupeop, slots_out, "newout",
+	              splitop, slots_out, "geomout");
+
+	BMO_slot_copy(&dupeop, slots_out, "boundarymap_out",
+	              splitop, slots_out, "boundarymap_out");
+
+	BMO_slot_copy(&dupeop, slots_out, "isovertmap_out",
+	              splitop, slots_out, "isovertmap_out");
+
+
 	/* cleanup */
 	BMO_op_finish(bm, &delop);
 	BMO_op_finish(bm, &dupeop);
@@ -450,9 +458,9 @@ void bmo_delete_exec(BMesh *bm, BMOperator *op)
 	BMOperator *delop = op;
 
 	/* Mark Buffer */
-	BMO_slot_buffer_flag_enable(bm, delop, "geom", BM_ALL, DEL_INPUT);
+	BMO_slot_buffer_flag_enable(bm, delop->slots_in, "geom", BM_ALL, DEL_INPUT);
 
-	BMO_remove_tagged_context(bm, DEL_INPUT, BMO_slot_int_get(op, "context"));
+	BMO_remove_tagged_context(bm, DEL_INPUT, BMO_slot_int_get(op->slots_in, "context"));
 
 #undef DEL_INPUT
 }
@@ -473,43 +481,46 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	float phi;
 	int steps, do_dupli, a, usedvec;
 
-	BMO_slot_vec_get(op, "cent", cent);
-	BMO_slot_vec_get(op, "axis", axis);
+	BMO_slot_vec_get(op->slots_in, "cent", cent);
+	BMO_slot_vec_get(op->slots_in, "axis", axis);
 	normalize_v3(axis);
-	BMO_slot_vec_get(op, "dvec", dvec);
+	BMO_slot_vec_get(op->slots_in, "dvec", dvec);
 	usedvec = !is_zero_v3(dvec);
-	steps = BMO_slot_int_get(op, "steps");
-	phi = BMO_slot_float_get(op, "ang") * DEG2RADF(1.0f) / steps;
-	do_dupli = BMO_slot_bool_get(op, "do_dupli");
+	steps    = BMO_slot_int_get(op->slots_in,   "steps");
+	phi      = BMO_slot_float_get(op->slots_in, "ang") * DEG2RADF(1.0f) / steps;
+	do_dupli = BMO_slot_bool_get(op->slots_in,  "do_dupli");
 
 	axis_angle_to_mat3(rmat, axis, phi);
 
-	BMO_slot_copy(op, op, "geom", "lastout");
+	BMO_slot_copy(op, slots_in,  "geom",
+	              op, slots_out, "lastout");
 	for (a = 0; a < steps; a++) {
 		if (do_dupli) {
-			BMO_op_initf(bm, &dupop, op->flag, "duplicate geom=%s", op, "lastout");
+			BMO_op_initf(bm, &dupop, op->flag, "duplicate geom=%S", op, "lastout");
 			BMO_op_exec(bm, &dupop);
 			BMO_op_callf(bm, op->flag,
-			             "rotate cent=%v mat=%m3 verts=%s",
+			             "rotate cent=%v mat=%m3 verts=%S",
 			             cent, rmat, &dupop, "newout");
-			BMO_slot_copy(&dupop, op, "newout", "lastout");
+			BMO_slot_copy(&dupop, slots_out, "newout",
+			              op,     slots_out, "lastout");
 			BMO_op_finish(bm, &dupop);
 		}
 		else {
-			BMO_op_initf(bm, &extop, op->flag, "extrude_face_region edgefacein=%s",
+			BMO_op_initf(bm, &extop, op->flag, "extrude_face_region edgefacein=%S",
 			             op, "lastout");
 			BMO_op_exec(bm, &extop);
 			BMO_op_callf(bm, op->flag,
-			             "rotate cent=%v mat=%m3 verts=%s",
+			             "rotate cent=%v mat=%m3 verts=%S",
 			             cent, rmat, &extop, "geomout");
-			BMO_slot_copy(&extop, op, "geomout", "lastout");
+			BMO_slot_copy(&extop, slots_out, "geomout",
+			              op,     slots_out, "lastout");
 			BMO_op_finish(bm, &extop);
 		}
 
 		if (usedvec) {
 			mul_m3_v3(rmat, dvec);
 			BMO_op_callf(bm, op->flag,
-			             "translate vec=%v verts=%s",
+			             "translate vec=%v verts=%S",
 			             dvec, op, "lastout");
 		}
 	}

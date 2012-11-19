@@ -96,7 +96,7 @@ static void symm_verts_mirror(Symm *symm)
 
 	symm->vert_symm_map = BLI_ghash_ptr_new(AT);
 
-	BMO_ITER (src_v, &oiter, symm->bm, symm->op, "input", BM_VERT) {
+	BMO_ITER (src_v, &oiter, symm->op->slots_in, "input", BM_VERT) {
 		SymmSide side = symm_co_side(symm, src_v->co);
 		float co[3];
 
@@ -145,7 +145,7 @@ static void symm_split_asymmetric_edges(Symm *symm)
 
 	symm->edge_split_map = BLI_ghash_ptr_new(AT);
 
-	BMO_ITER (e, &oiter, symm->bm, symm->op, "input", BM_EDGE) {
+	BMO_ITER (e, &oiter, symm->op->slots_in, "input", BM_EDGE) {
 		float flipped[3];
 
 		copy_v3_v3(flipped, e->v1->co);
@@ -195,7 +195,7 @@ static void symm_mirror_edges(Symm *symm)
 	BMOIter oiter;
 	BMEdge *e;
 
-	BMO_ITER (e, &oiter, symm->bm, symm->op, "input", BM_EDGE) {
+	BMO_ITER (e, &oiter, symm->op->slots_in, "input", BM_EDGE) {
 		BMVert *v1 = NULL, *v2 = NULL;
 		BMEdge *e_new;
 
@@ -448,7 +448,7 @@ static void symm_mirror_polygons(Symm *symm)
 	BLI_array_declare(fv);
 	BLI_array_declare(fe);
 
-	BMO_ITER (f, &oiter, symm->bm, symm->op, "input", BM_FACE) {
+	BMO_ITER (f, &oiter, symm->op->slots_in, "input", BM_FACE) {
 		BMIter iter;
 		BMLoop *l;
 		int mirror_all = TRUE, ignore_all = TRUE;
@@ -607,7 +607,7 @@ static void symm_kill_unused(Symm *symm)
 	BMVert *v;
 
 	/* Kill unused edges */
-	BMO_ITER (e, &oiter, symm->bm, symm->op, "input", BM_EDGE) {
+	BMO_ITER (e, &oiter, symm->op->slots_in, "input", BM_EDGE) {
 		const int crosses = symm_edge_crosses_axis(symm, e);
 		const int symmetric = (crosses &&
 		                       (!BLI_ghash_haskey(symm->edge_split_map, e)));
@@ -623,7 +623,7 @@ static void symm_kill_unused(Symm *symm)
 	}
 
 	/* Kill unused vertices */
-	BMO_ITER (v, &oiter, symm->bm, symm->op, "input", BM_VERT) {
+	BMO_ITER (v, &oiter, symm->op->slots_in, "input", BM_VERT) {
 		if (symm_co_side(symm, v->co) == SYMM_SIDE_KILL) {
 			if (BM_vert_edge_count(v) == 0)
 				BM_vert_kill(symm->bm, v);
@@ -634,7 +634,7 @@ static void symm_kill_unused(Symm *symm)
 void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 {
 	Symm symm;
-	BMO_SymmDirection direction = BMO_slot_int_get(op, "direction");
+	BMO_SymmDirection direction = BMO_slot_int_get(op->slots_in, "direction");
 
 	symm.bm = bm;
 	symm.op = op;
@@ -658,6 +658,6 @@ void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 	BLI_ghash_free(symm.vert_symm_map, NULL, NULL);
 	BLI_ghash_free(symm.edge_split_map, NULL, NULL);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL,
-	                                  SYMM_OUTPUT_GEOM);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geomout",
+	                                  BM_ALL, SYMM_OUTPUT_GEOM);
 }

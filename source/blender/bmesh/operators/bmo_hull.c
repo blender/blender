@@ -304,14 +304,14 @@ static void hull_mark_interior_elements(BMesh *bm, BMOperator *op,
 	BMOIter oiter;
 
 	/* Check for interior edges too */
-	BMO_ITER (e, &oiter, bm, op, "input", BM_EDGE) {
+	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
 		if (!hull_final_edges_lookup(final_edges, e->v1, e->v2))
 			BMO_elem_flag_enable(bm, e, HULL_FLAG_INTERIOR_ELE);
 	}
 
 	/* Mark all input faces as interior, some may be unmarked in
 	 * hull_remove_overlapping() */
-	BMO_ITER (f, &oiter, bm, op, "input", BM_FACE) {
+	BMO_ITER (f, &oiter, op->slots_in, "input", BM_FACE) {
 		BMO_elem_flag_enable(bm, f, HULL_FLAG_INTERIOR_ELE);
 	}
 }
@@ -328,7 +328,7 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 	 * interior (i.e. were already part of the input, but not part of
 	 * the hull), but that aren't also used by elements outside the
 	 * input set */
-	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
+	BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
 		if (BMO_elem_flag_test(bm, v, HULL_FLAG_INTERIOR_ELE)) {
 			int del = TRUE;
 		
@@ -351,7 +351,7 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_ITER (e, &oiter, bm, op, "input", BM_EDGE) {
+	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
 		if (BMO_elem_flag_test(bm, e, HULL_FLAG_INTERIOR_ELE)) {
 			int del = TRUE;
 
@@ -367,7 +367,7 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_ITER (f, &oiter, bm, op, "input", BM_FACE) {
+	BMO_ITER (f, &oiter, op->slots_in, "input", BM_FACE) {
 		if (BMO_elem_flag_test(bm, f, HULL_FLAG_INTERIOR_ELE))
 			BMO_elem_flag_enable(bm, f, HULL_FLAG_DEL);
 	}
@@ -382,7 +382,7 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 
 	/* Unmark any hole faces if they are isolated or part of a
 	 * border */
-	BMO_ITER (f, &oiter, bm, op, "input", BM_FACE) {
+	BMO_ITER (f, &oiter, op->slots_in, "input", BM_FACE) {
 		if (BMO_elem_flag_test(bm, f, HULL_FLAG_HOLE)) {
 			BM_ITER_ELEM (e, &iter, f, BM_EDGES_OF_FACE) {
 				if (BM_edge_is_boundary(e)) {
@@ -395,7 +395,7 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 
 	/* Mark edges too if all adjacent faces are holes and the edge is
 	 * not already isolated */
-	BMO_ITER (e, &oiter, bm, op, "input", BM_EDGE) {
+	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
 		int hole = TRUE;
 		int any_faces = FALSE;
 		
@@ -412,20 +412,20 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 	}
 }
 
-static int hull_input_vert_count(BMesh *bm, BMOperator *op)
+static int hull_input_vert_count(BMOperator *op)
 {
 	BMOIter oiter;
 	BMVert *v;
 	int count = 0;
 
-	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
+	BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
 		count++;
 	}
 
 	return count;
 }
 
-static BMVert **hull_input_verts_copy(BMesh *bm, BMOperator *op,
+static BMVert **hull_input_verts_copy(BMOperator *op,
                                       const int num_input_verts)
 {
 	BMOIter oiter;
@@ -434,7 +434,7 @@ static BMVert **hull_input_verts_copy(BMesh *bm, BMOperator *op,
 	                                   num_input_verts, AT);
 	int i = 0;
 
-	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
+	BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
 		input_verts[i++] = v;
 	}
 
@@ -492,9 +492,9 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op,
 	plConvexHull hull;
 	int i, count = 0;
 
-	const int num_input_verts = hull_input_vert_count(bm, op);
+	const int num_input_verts = hull_input_vert_count(op);
 
-	input_verts = hull_input_verts_copy(bm, op, num_input_verts);
+	input_verts = hull_input_verts_copy(op, num_input_verts);
 	coords = hull_verts_for_bullet(input_verts, num_input_verts);
 
 	hull = plConvexHullCompute(coords, num_input_verts);
@@ -535,13 +535,13 @@ static void hull_from_bullet(BMesh *bm, BMOperator *op,
 }
 
 /* Check that there are at least three vertices in the input */
-static int hull_num_input_verts_is_ok(BMesh *bm, BMOperator *op)
+static int hull_num_input_verts_is_ok(BMOperator *op)
 {
 	BMOIter oiter;
 	BMVert *v;
 	int partial_num_verts = 0;
 
-	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
+	BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
 		partial_num_verts++;
 		if (partial_num_verts >= 3)
 			break;
@@ -559,14 +559,14 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	GHash *hull_triangles;
 
 	/* Verify that at least three verts in the input */
-	if (!hull_num_input_verts_is_ok(bm, op)) {
+	if (!hull_num_input_verts_is_ok(op)) {
 		BMO_error_raise(bm, op, BMERR_CONVEX_HULL_FAILED,
 		                "Requires at least three vertices");
 		return;
 	}
 
 	/* Tag input elements */
-	BMO_ITER (ele, &oiter, bm, op, "input", BM_ALL) {
+	BMO_ITER (ele, &oiter, op->slots_in, "input", BM_ALL) {
 		BMO_elem_flag_enable(bm, ele, HULL_FLAG_INPUT);
 		
 		/* Mark all vertices as interior to begin with */
@@ -584,7 +584,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	hull_mark_interior_elements(bm, op, final_edges);
 
 	/* Remove hull triangles covered by an existing face */
-	if (BMO_slot_bool_get(op, "use_existing_faces")) {
+	if (BMO_slot_bool_get(op->slots_in, "use_existing_faces")) {
 		hull_remove_overlapping(bm, hull_triangles, final_edges);
 
 		hull_tag_holes(bm, op);
@@ -603,23 +603,23 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 
 	/* Output slot of input elements that ended up inside the hull
 	 * rather than part of it */
-	BMO_slot_buffer_from_enabled_flag(bm, op, "interior_geom", BM_ALL,
-	                                  HULL_FLAG_INTERIOR_ELE);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "interior_geom_out",
+	                                  BM_ALL, HULL_FLAG_INTERIOR_ELE);
 
 	/* Output slot of input elements that ended up inside the hull and
 	 * are are unused by other geometry. */
-	BMO_slot_buffer_from_enabled_flag(bm, op, "unused_geom", BM_ALL,
-	                                  HULL_FLAG_DEL);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "unused_geom_out",
+	                                  BM_ALL, HULL_FLAG_DEL);
 
 	/* Output slot of faces and edges that were in the input and on
 	 * the hull (useful for cases like bridging where you want to
 	 * delete some input geometry) */
-	BMO_slot_buffer_from_enabled_flag(bm, op, "holes_geom", BM_ALL,
-	                                  HULL_FLAG_HOLE);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "holes_geom_out",
+	                                  BM_ALL, HULL_FLAG_HOLE);
 
 	/* Output slot of all hull vertices, faces, and edges */
-	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL,
-	                                  HULL_FLAG_OUTPUT_GEOM);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geomout",
+	                                  BM_ALL, HULL_FLAG_OUTPUT_GEOM);
 }
 
 #endif  /* WITH_BULLET */
