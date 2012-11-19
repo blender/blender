@@ -1132,14 +1132,14 @@ print_info() {
   INFO ""
   INFO "If you're using CMake add this to your configuration flags:"
 
+  if $ALL_STATIC; then
+    INFO "  -D WITH_STATIC_LIBS=ON"
+  fi
+
   if [ -d $INST/boost ]; then
     INFO "  -D BOOST_ROOT=$INST/boost"
     INFO "  -D Boost_NO_SYSTEM_PATHS=ON"
-    if $ALL_STATIC; then
-      INFO "  -D Boost_USE_STATIC_LIBS=ON"
-    fi
   elif $ALL_STATIC; then
-    INFO "  -D Boost_USE_STATIC_LIBS=ON"
     INFO "  -D Boost_USE_ICU=ON"
   fi
 
