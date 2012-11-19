@@ -393,6 +393,8 @@ int RE_engine_render(Render *re, int do_all)
 	engine->tile_y = 0;
 	engine->flag &= ~RE_ENGINE_RENDERING;
 
+	render_result_free_list(&engine->fullresult, engine->fullresult.first);
+
 	/* re->engine becomes zero if user changed active render engine during render */
 	if (!persistent_data || !re->engine) {
 		RE_engine_free(engine);
@@ -406,8 +408,6 @@ int RE_engine_render(Render *re, int do_all)
 	}
 
 	freeparts(re);
-
-	render_result_free_list(&engine->fullresult, engine->fullresult.first);
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))
 		G.is_break = TRUE;
