@@ -309,7 +309,7 @@ BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
 BF_BOOST_INC = '${BF_BOOST}/include'
-BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
+BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt boost_wave-mt'
 BF_BOOST_LIB_INTERNATIONAL = 'boost_locale-mt'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
