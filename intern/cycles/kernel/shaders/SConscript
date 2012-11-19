@@ -14,7 +14,7 @@ if env['WITH_BF_CYCLES_OSL']:
     shaders = env.Clone()
 
     # osl compiler
-    osl_compiler = env._canonicalize(env.subst(env['BF_OSL_COMPILER']))
+    osl_compiler = File(env.subst(env['BF_OSL_COMPILER'])).abspath
 
     # build directory
     root_build_dir = normpath(env['BF_BUILDDIR'])
