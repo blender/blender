@@ -52,4 +52,6 @@ if(WITH_IMAGE_OPENEXR)
 	add_definitions(-DWITH_OPENEXR)
 endif()
 
+message(STATUS "EXR ${INC_SYS}")
+
 blender_add_lib(bf_imbuf_openexr "${SRC}" "${INC}" "${INC_SYS}")

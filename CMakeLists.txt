@@ -1046,6 +1046,7 @@ elseif(WIN32)
 		if(WITH_IMAGE_OPENEXR)
 			set_lib_path(OPENEXR "openexr")
 			set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
+			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 			set(OPENEXR_LIBRARIES
 				${OPENEXR_LIBPATH}/Iex.lib
@@ -1053,12 +1054,6 @@ elseif(WIN32)
 				${OPENEXR_LIBPATH}/IlmImf.lib
 				${OPENEXR_LIBPATH}/Imath.lib
 				${OPENEXR_LIBPATH}/IlmThread.lib
-			)
-			set(OPENEXR_INCLUDE_DIRS
-				${OPENEXR_INCLUDE_DIR}
-				${OPENEXR_INCLUDE_DIR}/IlmImf
-				${OPENEXR_INCLUDE_DIR}/Iex
-				${OPENEXR_INCLUDE_DIR}/Imath
 			)
 		endif()
 

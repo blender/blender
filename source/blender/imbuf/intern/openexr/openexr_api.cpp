@@ -72,21 +72,6 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 
 #include <iostream>
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
-#include <half.h>
-#include <Iex/Iex.h>
-#include <IlmImf/ImfVersion.h>
-#include <IlmImf/ImfArray.h>
-#include <IlmImf/ImfIO.h>
-#include <IlmImf/ImfChannelList.h>
-#include <IlmImf/ImfPixelType.h>
-#include <IlmImf/ImfInputFile.h>
-#include <IlmImf/ImfOutputFile.h>
-#include <IlmImf/ImfCompression.h>
-#include <IlmImf/ImfCompressionAttribute.h>
-#include <IlmImf/ImfStringAttribute.h>
-#include <Imath/ImathBox.h>
-#else
 #include <half.h>
 #include <Iex.h>
 #include <ImfVersion.h>
@@ -100,7 +85,6 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #include <ImfCompression.h>
 #include <ImfCompressionAttribute.h>
 #include <ImfStringAttribute.h>
-#endif
 
 using namespace Imf;
 using namespace Imath;
