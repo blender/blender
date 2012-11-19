@@ -4757,13 +4757,23 @@ static int edbm_bevel_calc(bContext *C, wmOperator *op)
 	if (!EDBM_op_init(em, &bmop, op,
 		              "bevel geom=%hev offset=%f segments=%i",
 		              BM_ELEM_SELECT, offset, segments))
-		{
-			return 0;
-		}
-		
+	{
+		return 0;
+	}
+
 	BMO_op_exec(em->bm, &bmop);
+
+	/* no need to de-select existing geometry */
 	if (!EDBM_op_finish(em, &bmop, op, TRUE))
 		return 0;
+
+	if (offset != 0.0f) {
+		/* not essential, but we may have some loose geometry that
+		 * won't get bevel'd and better not leave it selected */
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+	}
+
 #else
 	int i;
 

@@ -40,8 +40,9 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		BMEdge *e;
 		BMVert *v;
 
-		/* first flush 'geom' into flags, this makes it possible to check connected data */
-		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE, BM_ELEM_TAG, FALSE);
+		/* first flush 'geom' into flags, this makes it possible to check connected data,
+		 * BM_FACE is cleared so we can put newly created faces into a bmesh slot. */
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, FALSE);
 
 		BMO_ITER (v, &siter, bm, op, "geom", BM_VERT) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
@@ -54,5 +55,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 
 		BM_mesh_bevel(bm, offset, seg);
+
+		BMO_slot_buffer_from_enabled_hflag(bm, op, "faceout", BM_FACE, BM_ELEM_TAG);
 	}
 }

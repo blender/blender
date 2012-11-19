@@ -1076,6 +1076,7 @@ static BMOpDefine bmo_bevel_def = {
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
 	 {BMO_OP_SLOT_FLT, "offset"}, /* amount to offset beveled edge */
 	 {BMO_OP_SLOT_INT, "segments"}, /* number of segments in bevel */
+	 {BMO_OP_SLOT_ELEMENT_BUF, "faceout"}, /* output faces */
 	 {0} /* null-terminating sentinel */},
 #else
 	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */

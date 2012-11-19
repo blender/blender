@@ -242,20 +242,24 @@ static BMFace *boundvert_rep_face(BoundVert *v)
 	return fans;
 }
 
-/* Make ngon from verts alone.
+/**
+ * Make ngon from verts alone.
  * Make sure to properly copy face attributes and do custom data interpolation from
- * example face, facerep. */
-static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, int totv, BMFace *facerep)
+ * example face, facerep.
+ *
+ * \note ALL face creation goes through this function, this is important to keep!
+ */
+static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMFace *facerep)
 {
 	BMIter iter;
 	BMLoop *l;
 	BMFace *f;
 
 	if (totv == 3) {
-		f = BM_face_create_quad_tri_v(bm, vert_arr, 3, facerep, 0);
+		f = BM_face_create_quad_tri_v(bm, vert_arr, 3, facerep, FALSE);
 	}
 	else if (totv == 4) {
-		f = BM_face_create_quad_tri_v(bm, vert_arr, 4, facerep, 0);
+		f = BM_face_create_quad_tri_v(bm, vert_arr, 4, facerep, FALSE);
 	}
 	else {
 		int i;
@@ -278,6 +282,13 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, int totv, BMFace *f
 				BM_loop_interp_multires(bm, l, facerep);
 		}
 	}
+
+	/* not essential for bevels own internal logic,
+	 * this is done so the operator can select newly created faces */
+	if (f) {
+		BM_elem_flag_enable(f, BM_ELEM_TAG);
+	}
+
 	return f;
 }
 
@@ -1416,8 +1427,11 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		}
 	}
 
-	if (nsel == 0)
+	if (nsel == 0) {
+		/* signal this vert isn't being beveled */
+		BM_elem_flag_disable(v, BM_ELEM_TAG);
 		return;
+	}
 
 	ntot = BM_vert_edge_count(v);
 	bv = (BevVert *)BLI_memarena_alloc(bp->mem_arena, (sizeof(BevVert)));
@@ -1525,7 +1539,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 }
 
 /* Face f has at least one beveled vertex.  Rebuild f */
-static void rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
+static int bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 {
 	BMIter liter;
 	BMLoop *l, *lprev;
@@ -1534,9 +1548,10 @@ static void rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 	EdgeHalf *e, *eprev;
 	VMesh *vm;
 	int i, k;
+	int do_rebuild = FALSE;
 	BMVert *bmv;
 	BMVert **vv = NULL;
-	BLI_array_declare(vv);
+	BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		bv = find_bevvert(bp, l->v);
@@ -1566,13 +1581,24 @@ static void rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 				v = v->prev;
 				BLI_array_append(vv, v->nv.v);
 			}
+
+			do_rebuild = TRUE;
 		}
 		else {
 			BLI_array_append(vv, l->v);
 		}
 	}
-	bev_create_ngon(bm, vv, BLI_array_count(vv), f);
+	if (do_rebuild) {
+		BMFace *f_new = bev_create_ngon(bm, vv, BLI_array_count(vv), f);
+
+		/* don't select newly created boundary faces... */
+		if (f_new) {
+			BM_elem_flag_disable(f_new, BM_ELEM_TAG);
+		}
+	}
+
 	BLI_array_free(vv);
+	return do_rebuild;
 }
 
 /* All polygons touching v need rebuilding because beveling v has made new vertices */
@@ -1586,8 +1612,9 @@ static void bevel_rebuild_existing_polygons(BMesh *bm, BevelParams *bp, BMVert *
 	if (LIKELY(faces != NULL)) {
 		for (f_index = 0; f_index < faces_len; f_index++) {
 			BMFace *f = faces[f_index];
-			rebuild_polygon(bm, bp, f);
-			BM_face_kill(bm, f);
+			if (bev_rebuild_polygon(bm, bp, f)) {
+				BM_face_kill(bm, f);
+			}
 		}
 
 		if (faces != (BMFace **)faces_stack) {
@@ -1664,8 +1691,13 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
 }
 
 /**
- * currently only bevels BM_ELEM_TAG'd verts and edges
- * all tagged edges _must_ be manifold.
+ * - Currently only bevels BM_ELEM_TAG'd verts and edges.
+ *
+ * - Newly created faces are BM_ELEM_TAG'd too,
+ *   the caller needs to ensure this is cleared before calling
+ *   if its going to use this face tag.
+ *
+ * \warning all tagged edges _must_ be manifold.
  */
 void BM_mesh_bevel(BMesh *bm, const float offset, const float segments)
 {
@@ -1705,9 +1737,8 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments)
 
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-				if (find_bevvert(&bp, v)) {
-					BM_vert_kill(bm, v);
-				}
+				BLI_assert(find_bevvert(&bp, v) != NULL);
+				BM_vert_kill(bm, v);
 			}
 		}
 
