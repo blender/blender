@@ -78,12 +78,54 @@ INFO() {
   echo "${@}"
 }
 
+# Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
+# $1 and $2 should be version numbers made of numbers only.
+version_eq() {
+  backIFS=$IFS
+  IFS='.'
+
+  # Split both version numbers into their numeric elements.
+  arr1=( $1 )
+  arr2=( $2 )
+
+  ret=1
+
+  count1=${#arr1[@]}
+  count2=${#arr2[@]}
+  if [ $count2 -ge $count1 ]; then
+    _t=$count1
+    count1=$count2
+    count2=$_t
+    arr1=( $2 )
+    arr2=( $1 )
+  fi
+
+  ret=0
+  for (( i=0; $i < $count2; i++ ))
+  do
+    if [ $(( 10#${arr1[$i]} )) -ne $(( 10#${arr2[$i]} )) ]; then
+      ret=1
+      break
+    fi
+  done
+
+  for (( i=$count2; $i < $count1; i++ ))
+  do
+    if [ $(( 10#${arr1[$i]} )) -ne 0 ]; then
+      ret=1
+      break
+    fi
+  done
+
+  IFS=$backIFS
+  return $ret
+}
+
 # Return 0 if $1 >= $2, else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_ge() {
-  # XXX Not yet perfect, won't always work as expected with e.g. 1.0.0 and 1.0... :/
-  if [ "$1" != "$2" ] &&
-     [ $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
+  version_eq $1 $2
+  if [ $? -eq 1 -a $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
     return 1
   else
     return 0
@@ -300,6 +342,7 @@ compile_OCIO() {
           -D CMAKE_INSTALL_PREFIX=$_inst \
           -D CMAKE_CXX_FLAGS="$cflags" \
           -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
+          -D OCIO_BUILD_APPS=OFF \
           ..
 
     make -j$THREADS && make install
@@ -718,7 +761,7 @@ install_DEB() {
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libboost-dev
 
-    boost_version=`get_package_version_DEB libboost-dev`
+    boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
     check_package_DEB libboost-locale$boost_version-dev
     if [ $? -eq 0 ]; then
