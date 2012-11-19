@@ -28,7 +28,7 @@
  */
 
 int     BM_vert_in_face(BMFace *f, BMVert *v);
-int     BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len);
+int     BM_verts_in_face(BMFace *f, BMVert **varr, int len);
 
 int     BM_edge_in_face(BMFace *f, BMEdge *e);
 int     BM_edge_in_loop(BMEdge *e, BMLoop *l);
@@ -77,9 +77,9 @@ BMLoop *BM_face_find_longest_loop(BMFace *f);
 BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2);
 BMEdge *BM_edge_find_double(BMEdge *e);
 
-int     BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_existface);
+int     BM_face_exists_overlap(BMVert **varr, int len, BMFace **r_existface);
 
-int     BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface);
+int     BM_face_exists(BMVert **varr, int len, BMFace **r_existface);
 
 int     BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len);
 int     BM_face_exists_multi_edge(BMEdge **earr, int len);

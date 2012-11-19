@@ -311,7 +311,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 
 	if (nodouble) {
 		/* Check if face already exists */
-		overlap = BM_face_exists(bm, verts, len, &f);
+		overlap = BM_face_exists(verts, len, &f);
 		if (overlap) {
 			return f;
 		}

@@ -769,7 +769,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 				verts[i] = node->v;
 			}
 
-			if (BM_face_exists(bm, verts, i, &f)) {
+			if (BM_face_exists(verts, i, &f)) {
 				if (!BMO_elem_flag_test(bm, f, FACE_IGNORE)) {
 					BLI_ghash_remove(gh, endv, NULL, NULL);
 					continue;

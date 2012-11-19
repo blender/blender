@@ -1790,7 +1790,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		}
 
 		/* check if the face exists */
-		if (BM_face_exists(bm, vert_array, vert_seq_len, NULL)) {
+		if (BM_face_exists(vert_array, vert_seq_len, NULL)) {
 			PyErr_SetString(PyExc_ValueError,
 			                "faces.new(verts): face already exists");
 			goto cleanup;
@@ -2012,7 +2012,7 @@ static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 			return NULL;
 		}
 
-		if (BM_face_exists(bm, vert_array, vert_seq_len, &f)) {
+		if (BM_face_exists(vert_array, vert_seq_len, &f)) {
 			ret = BPy_BMFace_CreatePyObject(bm, f);
 		}
 		else {

@@ -8367,10 +8367,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		Object *ob;
 		for (ob = main->object.first; ob; ob = ob->id.next) {
-			if (ob->step_height == 0.0) {
-				ob->step_height = 0.150;
-				ob->jump_speed = 10.0;
-				ob->fall_speed = 55.0;
+			if (ob->step_height == 0.0f) {
+				ob->step_height = 0.15f;
+				ob->jump_speed = 10.0f;
+				ob->fall_speed = 55.0f;
 			}
 		}
 	}

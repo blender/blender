@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmesh_bevel.c
+/** \file blender/bmesh/operators/bmo_bevel.c
  *  \ingroup bmesh
  */
 
