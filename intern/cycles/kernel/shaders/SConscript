@@ -15,7 +15,7 @@ if env['WITH_BF_CYCLES_OSL']:
 
     # osl compiler info
     if env['OURPLATFORM']=='darwin':
-        osl_compiler = '../lib/darwin-9.x.universal/osl/bin/oslc' # temporary hack to get the leading "#" away that breaks shadercompile
+        osl_compiler = env['LCGDIR'][1:] + '/osl/bin/oslc' # get the leading "#" away that breaks shadercompile
     else:
         osl_compiler = env['BF_OSL_COMPILER']
 
