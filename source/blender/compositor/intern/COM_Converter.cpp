@@ -83,6 +83,7 @@
 #include "COM_LuminanceMatteNode.h"
 #include "COM_MapUVNode.h"
 #include "COM_MapValueNode.h"
+#include "COM_MapRangeNode.h"
 #include "COM_MaskNode.h"
 #include "COM_MathNode.h"
 #include "COM_MixNode.h"
@@ -350,6 +351,9 @@ Node *Converter::convert(bNode *b_node, bool fast)
 			break;
 		case CMP_NODE_MAP_VALUE:
 			node = new MapValueNode(b_node);
+			break;
+		case CMP_NODE_MAP_RANGE:
+			node = new MapRangeNode(b_node);
 			break;
 		case CMP_NODE_TRANSFORM:
 			node = new TransformNode(b_node);

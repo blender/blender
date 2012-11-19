@@ -1467,10 +1467,10 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int
 		return ibuf;
 	}
 
-	if (newx < ibuf->x) if (newx) scaledownx(ibuf, newx);
-	if (newy < ibuf->y) if (newy) scaledowny(ibuf, newy);
-	if (newx > ibuf->x) if (newx) scaleupx(ibuf, newx);
-	if (newy > ibuf->y) if (newy) scaleupy(ibuf, newy);
+	if (newx && (newx < ibuf->x)) scaledownx(ibuf, newx);
+	if (newy && (newy < ibuf->y)) scaledowny(ibuf, newy);
+	if (newx && (newx > ibuf->x)) scaleupx(ibuf, newx);
+	if (newy && (newy > ibuf->y)) scaleupy(ibuf, newy);
 	
 	return(ibuf);
 }

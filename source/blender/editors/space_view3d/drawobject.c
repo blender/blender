@@ -530,7 +530,7 @@ void drawaxes(float size, char drawtype)
 static void draw_empty_image(Object *ob, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Image *ima = (Image *)ob->data;
-	ImBuf *ibuf = ima ? BKE_image_get_ibuf(ima, NULL) : NULL;
+	ImBuf *ibuf = ima ? BKE_image_acquire_ibuf(ima, NULL, NULL) : NULL;
 
 	float scale, ofs_x, ofs_y, sca_x, sca_y;
 	int ima_x, ima_y;
@@ -615,6 +615,8 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	/* Reset GL settings */
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
 static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, float tmat[][4])
@@ -3630,9 +3632,12 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 	return 0;
 }
 
-/* returns 1 when nothing was drawn */
-static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                        const short dt, const short dflag, const unsigned char ob_wire_col[4])
+/**
+ * Only called by #drawDispList
+ * \return 1 when nothing was drawn
+ */
+static int drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
+                                   const short dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	ListBase *lb = NULL;
@@ -3640,20 +3645,9 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	Curve *cu;
 	const short render_only = (v3d->flag2 & V3D_RENDER_OVERRIDE);
 	const short solid = (dt > OB_WIRE);
-	int retval = 0;
-
-	/* backface culling */
-	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
-		/* not all displists use same in/out normal direction convention */
-		glEnable(GL_CULL_FACE);
-		glCullFace((ob->type == OB_MBALL) ? GL_BACK : GL_FRONT);
-	}
 
 	if (drawCurveDerivedMesh(scene, v3d, rv3d, base, dt) == 0) {
-		if (v3d->flag2 & V3D_BACKFACE_CULLING)
-			glDisable(GL_CULL_FACE);
-
-		return 0;
+		return FALSE;
 	}
 
 	switch (ob->type) {
@@ -3665,7 +3659,9 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 
 			if (solid) {
 				dl = lb->first;
-				if (dl == NULL) return 1;
+				if (dl == NULL) {
+					return TRUE;
+				}
 
 				if (dl->nors == NULL) BKE_displist_normals_add(lb);
 				index3_nors_incr = 0;
@@ -3699,9 +3695,11 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			}
 			else {
 				if (!render_only || (render_only && BKE_displist_has_faces(lb))) {
+					int retval;
 					draw_index_wire = 0;
 					retval = drawDispListwire(lb);
 					draw_index_wire = 1;
+					return retval;
 				}
 			}
 			break;
@@ -3711,7 +3709,9 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 
 			if (solid) {
 				dl = lb->first;
-				if (dl == NULL) return 1;
+				if (dl == NULL) {
+					return TRUE;
+				}
 
 				if (dl->nors == NULL) BKE_displist_normals_add(lb);
 
@@ -3727,7 +3727,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				}
 			}
 			else {
-				retval = drawDispListwire(lb);
+				return drawDispListwire(lb);
 			}
 			break;
 		case OB_MBALL:
@@ -3735,7 +3735,9 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			if (BKE_mball_is_basis(ob)) {
 				lb = &ob->disp;
 				if (lb->first == NULL) BKE_displist_make_mball(scene, ob);
-				if (lb->first == NULL) return 1;
+				if (lb->first == NULL) {
+					return TRUE;
+				}
 
 				if (solid) {
 
@@ -3752,14 +3754,31 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				}
 				else {
 					/* MetaBalls use DL_INDEX4 type of DispList */
-					retval = drawDispListwire(lb);
+					return drawDispListwire(lb);
 				}
 			}
 			break;
 	}
-	
-	if (v3d->flag2 & V3D_BACKFACE_CULLING)
+
+	return FALSE;
+}
+static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
+                        const short dt, const short dflag, const unsigned char ob_wire_col[4])
+{
+	int retval;
+
+	/* backface culling */
+	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
+		/* not all displists use same in/out normal direction convention */
+		glEnable(GL_CULL_FACE);
+		glCullFace((base->object->type == OB_MBALL) ? GL_BACK : GL_FRONT);
+	}
+
+	retval = drawDispList_nobackface(scene, v3d, rv3d, base, dt, dflag, ob_wire_col);
+
+	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
 		glDisable(GL_CULL_FACE);
+	}
 
 	return retval;
 }

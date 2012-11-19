@@ -107,14 +107,14 @@ typedef struct BMIter {
 	BMesh *bm;
 	void (*begin)(struct BMIter *iter);
 	void *(*step)(struct BMIter *iter);
-	/*
+#if 0
 	union {
 		void       *p;
 		int         i;
 		long        l;
 		float       f;
 	} filter;
-	*/
+#endif
 	int count;  /* note, only some iterators set this, don't rely on it */
 	char itype;
 } BMIter;

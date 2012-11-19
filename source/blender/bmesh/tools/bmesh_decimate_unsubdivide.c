@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_decimate_unsubdivide.c
+/** \file blender/bmesh/tools/bmesh_decimate_unsubdivide.c
  *  \ingroup bmesh
  *
  * BMesh decimator that uses a grid un-subdivide method.

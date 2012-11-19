@@ -113,7 +113,7 @@ static void rna_Image_fields_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 			BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
 	}
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
 static void rna_Image_free_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -187,8 +187,12 @@ static EnumPropertyItem *rna_Image_source_itemf(bContext *UNUSED(C), PointerRNA 
 static int rna_Image_file_format_get(PointerRNA *ptr)
 {
 	Image *image = (Image *)ptr->data;
-	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
-	return BKE_ftype_to_imtype(ibuf ? ibuf->ftype : 0);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+	int imtype = BKE_ftype_to_imtype(ibuf ? ibuf->ftype : 0);
+
+	BKE_image_release_ibuf(image, ibuf, NULL);
+
+	return imtype;
 }
 
 static void rna_Image_file_format_set(PointerRNA *ptr, int value)
@@ -199,12 +203,13 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 		int ftype = BKE_imtype_to_ftype(value);
 
 #if 0
-		ibuf = BKE_image_get_ibuf(image, NULL);
+		ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
 		if (ibuf)
 			ibuf->ftype = ftype;
 #endif
 
 		/* to be safe change all buffer file types */
+		/* TODO: this is never threadsafe */
 		for (ibuf = image->ibufs.first; ibuf; ibuf = ibuf->next) {
 			ibuf->ftype = ftype;
 		}
@@ -237,7 +242,7 @@ static void rna_Image_size_get(PointerRNA *ptr, int *values)
 		values[1] = 0;
 	}
 
-	BKE_image_release_ibuf(im, lock);
+	BKE_image_release_ibuf(im, ibuf, lock);
 }
 
 static void rna_Image_resolution_get(PointerRNA *ptr, float *values)
@@ -256,7 +261,7 @@ static void rna_Image_resolution_get(PointerRNA *ptr, float *values)
 		values[1] = 0;
 	}
 
-	BKE_image_release_ibuf(im, lock);
+	BKE_image_release_ibuf(im, ibuf, lock);
 }
 
 static void rna_Image_resolution_set(PointerRNA *ptr, const float *values)
@@ -271,7 +276,7 @@ static void rna_Image_resolution_set(PointerRNA *ptr, const float *values)
 		ibuf->ppm[1] = values[1];
 	}
 
-	BKE_image_release_ibuf(im, lock);
+	BKE_image_release_ibuf(im, ibuf, lock);
 }
 
 static int rna_Image_depth_get(PointerRNA *ptr)
@@ -290,7 +295,7 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 	else
 		planes = ibuf->planes;
 
-	BKE_image_release_ibuf(im, lock);
+	BKE_image_release_ibuf(im, ibuf, lock);
 
 	return planes;
 }
@@ -317,7 +322,7 @@ static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY
 	else
 		length[0] = 0;
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 
 	return length[0];
 }
@@ -343,7 +348,7 @@ static void rna_Image_pixels_get(PointerRNA *ptr, float *values)
 		}
 	}
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
 static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
@@ -369,7 +374,7 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
 		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
 	}
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
 #else

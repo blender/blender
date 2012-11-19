@@ -3786,14 +3786,22 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 	return 1;
 }
 
-#define SET_PARTICLE_TEXTURE(type, pvalue, texfac)  \
-	if ((event & mtex->mapto) & type) { pvalue = texture_value_blend(def, pvalue, value, texfac, blend); } (void)0
+#define SET_PARTICLE_TEXTURE(type, pvalue, texfac)                            \
+	if ((event & mtex->mapto) & type) {                                       \
+		pvalue = texture_value_blend(def, pvalue, value, texfac, blend);      \
+	} (void)0
 
-#define CLAMP_PARTICLE_TEXTURE_POS(type, pvalue)  \
-	if (event & type) { if (pvalue < 0.0f) pvalue = 1.0f + pvalue; CLAMP(pvalue, 0.0f, 1.0f); } (void)0
+#define CLAMP_PARTICLE_TEXTURE_POS(type, pvalue)                              \
+	if (event & type) {                                                       \
+		if (pvalue < 0.0f)                                                    \
+			pvalue = 1.0f + pvalue;                                           \
+		CLAMP(pvalue, 0.0f, 1.0f);                                            \
+	} (void)0
 
-#define CLAMP_PARTICLE_TEXTURE_POSNEG(type, pvalue)  \
-	if (event & type) { CLAMP(pvalue, -1.0f, 1.0f); } (void)0
+#define CLAMP_PARTICLE_TEXTURE_POSNEG(type, pvalue)                           \
+	if (event & type) {                                                       \
+		CLAMP(pvalue, -1.0f, 1.0f);                                           \
+	} (void)0
 
 static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par, int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra)
 {
@@ -3802,8 +3810,8 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 	float value, rgba[4], texvec[3];
 
 	ptex->ivel = ptex->life = ptex->exist = ptex->size = ptex->damp =
-	                                                         ptex->gravity = ptex->field = ptex->time = ptex->clump = ptex->kink =
-	                                                                                                                      ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.f;
+	ptex->gravity = ptex->field = ptex->time = ptex->clump = ptex->kink =
+	ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.0f;
 
 	ptex->length = 1.0f - part->randlength * PSYS_FRAND(child_index + 26);
 	ptex->length *= part->clength_thres < PSYS_FRAND(child_index + 27) ? part->clength : 1.0f;

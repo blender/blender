@@ -375,7 +375,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		/* make jobs timer to send notifier */
 		*(rj->do_update) = TRUE;
 	}
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
 static void render_startjob(void *rjv, short *stop, short *do_update, float *progress)

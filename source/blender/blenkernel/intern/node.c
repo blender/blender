@@ -2184,6 +2184,7 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_normal(ttype);
 	register_node_type_cmp_curve_vec(ttype);
 	register_node_type_cmp_map_value(ttype);
+	register_node_type_cmp_map_range(ttype);
 	register_node_type_cmp_normalize(ttype);
 	
 	register_node_type_cmp_filter(ttype);

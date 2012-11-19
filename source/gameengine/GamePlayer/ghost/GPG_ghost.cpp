@@ -60,6 +60,7 @@ extern "C"
 #include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
+#include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_library.h"
@@ -446,6 +447,7 @@ int main(int argc, char** argv)
 	G.main = NULL;
 
 	IMB_init();
+	BKE_images_init();
 
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
 	BLF_init(11, U.dpi);
@@ -1067,6 +1069,7 @@ int main(int argc, char** argv)
 #endif
 
 	IMB_exit();
+	BKE_images_exit();
 	free_nodesystem();
 
 	SYS_DeleteSystem(syshandle);

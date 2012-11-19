@@ -2506,21 +2506,26 @@ static int get_next_bake_face(BakeShade *bs)
 
 				if (tface && tface->tpage) {
 					Image *ima= tface->tpage;
-					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+					ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, NULL);
 					const float vec_alpha[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 					const float vec_solid[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 					
 					if (ibuf==NULL)
 						continue;
 					
-					if (ibuf->rect==NULL && ibuf->rect_float==NULL)
+					if (ibuf->rect==NULL && ibuf->rect_float==NULL) {
+						BKE_image_release_ibuf(ima, ibuf, NULL);
 						continue;
+					}
 					
-					if (ibuf->rect_float && !(ibuf->channels==0 || ibuf->channels==4))
+					if (ibuf->rect_float && !(ibuf->channels==0 || ibuf->channels==4)) {
+						BKE_image_release_ibuf(ima, ibuf, NULL);
 						continue;
+					}
 					
 					if (ima->flag & IMA_USED_FOR_RENDER) {
 						ima->id.flag &= ~LIB_DOIT;
+						BKE_image_release_ibuf(ima, ibuf, NULL);
 						continue;
 					}
 					
@@ -2548,6 +2553,9 @@ static int get_next_bake_face(BakeShade *bs)
 					v++;
 					
 					BLI_unlock_thread(LOCK_CUSTOM1);
+
+					BKE_image_release_ibuf(ima, ibuf, NULL);
+
 					return 1;
 				}
 			}
@@ -2571,8 +2579,10 @@ static void shade_tface(BakeShade *bs)
 	
 	/* check valid zspan */
 	if (ima!=bs->ima) {
+		BKE_image_release_ibuf(bs->ima, bs->ibuf, NULL);
+
 		bs->ima= ima;
-		bs->ibuf= BKE_image_get_ibuf(ima, NULL);
+		bs->ibuf= BKE_image_acquire_ibuf(ima, NULL, NULL);
 		/* note, these calls only free/fill contents of zspan struct, not zspan itself */
 		zbuf_free_span(bs->zspan);
 		zbuf_alloc_span(bs->zspan, bs->ibuf->x, bs->ibuf->y, R.clipcrop);
@@ -2638,7 +2648,9 @@ static void *do_bake_thread(void *bs_v)
 			*bs->do_update= TRUE;
 	}
 	bs->ready= 1;
-	
+
+	BKE_image_release_ibuf(bs->ima, bs->ibuf, NULL);
+
 	return NULL;
 }
 
@@ -2689,12 +2701,13 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	
 	/* baker uses this flag to detect if image was initialized */
 	for (ima= G.main->image.first; ima; ima= ima->id.next) {
-		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+		ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, NULL);
 		ima->id.flag |= LIB_DOIT;
 		ima->flag&= ~IMA_USED_FOR_RENDER;
 		if (ibuf) {
 			ibuf->userdata = NULL; /* use for masking if needed */
 		}
+		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
 	
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
@@ -2747,7 +2760,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	/* filter and refresh images */
 	for (ima= G.main->image.first; ima; ima= ima->id.next) {
 		if ((ima->id.flag & LIB_DOIT)==0) {
-			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
+			ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, NULL);
 
 			if (ima->flag & IMA_USED_FOR_RENDER)
 				result= BAKE_RESULT_FEEDBACK_LOOP;
@@ -2758,6 +2771,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 			RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, re->r.bake_filter);
 
 			ibuf->userflags |= IB_BITMAPDIRTY;
+			BKE_image_release_ibuf(ima, ibuf, NULL);
 		}
 	}
 	

@@ -599,21 +599,35 @@ __device float3 shader_bsdf_transmission(KernelGlobals *kg, ShaderData *sd)
 #endif
 }
 
-__device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd)
+__device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_factor, float3 *N)
 {
 #ifdef __MULTI_CLOSURE__
 	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
 
+	*N = make_float3(0.0f, 0.0f, 0.0f);
+
 	for(int i = 0; i< sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
 
-		if(CLOSURE_IS_AMBIENT_OCCLUSION(sc->type))
+		if(CLOSURE_IS_BSDF_DIFFUSE(sc->type)) {
+			eval += sc->weight*ao_factor;
+			*N += sc->N*average(sc->weight);
+		}
+		if(CLOSURE_IS_AMBIENT_OCCLUSION(sc->type)) {
 			eval += sc->weight;
+			*N += sd->N*average(sc->weight);
+		}
 	}
+
+	*N = normalize(*N);
 
 	return eval;
 #else
-	if(CLOSURE_IS_AMBIENT_OCCLUSION(sd->closure.type))
+	*N = sd->N;
+
+	if(CLOSURE_IS_BSDF_DIFFUSE(sd->closure.type))
+		return sd->closure.weight*ao_factor;
+	else if(CLOSURE_IS_AMBIENT_OCCLUSION(sd->closure.type))
 		return sd->closure.weight;
 	else
 		return make_float3(0.0f, 0.0f, 0.0f);

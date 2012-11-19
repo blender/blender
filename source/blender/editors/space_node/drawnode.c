@@ -398,29 +398,15 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'c', 0, 0);
 }
 
-static void node_normal_cb(bContext *C, void *ntree_v, void *node_v)
-{
-	Main *bmain = CTX_data_main(C);
-
-	ED_node_generic_update(bmain, ntree_v, node_v);
-	WM_event_add_notifier(C, NC_NODE | NA_EDITED, ntree_v);
-}
-
 static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiBlock *block = uiLayoutAbsoluteBlock(layout);
-	bNodeTree *ntree = ptr->id.data;
-	bNode *node = ptr->data;
-	rctf *butr = &node->butr;
+	bNodeTree *ntree = (bNodeTree*)ptr->id.data;
+	bNode *node = (bNode*)ptr->data;
 	bNodeSocket *sock = node->outputs.first;     /* first socket stores normal */
-	float *nor = ((bNodeSocketValueVector *)sock->default_value)->value;
-	uiBut *bt;
-	
-	bt = uiDefButF(block, BUT_NORMAL, B_NODE_EXEC, "",
-	               (int)butr->xmin, (int)butr->xmin,
-	               (short)BLI_rctf_size_x(butr), (short)BLI_rctf_size_x(butr),
-	               nor, 0.0f, 1.0f, 0, 0, "");
-	uiButSetFunc(bt, node_normal_cb, ntree, node);
+	PointerRNA sockptr;
+
+	RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &sockptr);
+	uiItemR(layout, &sockptr, "default_value", 0, "", ICON_NONE);
 }
 #if 0 /* not used in 2.5x yet */
 static void node_browse_tex_cb(bContext *C, void *ntree_v, void *node_v)
@@ -1485,9 +1471,10 @@ static void node_shader_buts_script_details(uiLayout *layout, bContext *C, Point
 
 	node_shader_buts_script(layout, C, ptr);
 
-	/* not implemented yet
+#if 0  /* not implemented yet */
 	if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL)
-		uiItemR(layout, ptr, "use_auto_update", 0, NULL, ICON_NONE);*/
+		uiItemR(layout, ptr, "use_auto_update", 0, NULL, ICON_NONE);
+#endif
 }
 
 /* only once called */
@@ -1885,6 +1872,14 @@ static void node_composit_buts_double_edge_mask(uiLayout *layout, bContext *UNUS
 	uiItemR(col, ptr, "inner_mode", 0, "", ICON_NONE);
 	uiItemL(col, IFACE_("Buffer Edge:"), ICON_NONE);
 	uiItemR(col, ptr, "edge_mode", 0, "", ICON_NONE);
+}
+
+static void node_composit_buts_map_range(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+
+	col = uiLayoutColumn(layout, TRUE);
+	uiItemR(col, ptr, "use_clamp", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_map_value(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -2825,6 +2820,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_MAP_VALUE:
 			ntype->uifunc = node_composit_buts_map_value;
 			break;
+		case CMP_NODE_MAP_RANGE:
+			ntype->uifunc = node_composit_buts_map_range;
+			break;
 		case CMP_NODE_TIME:
 			ntype->uifunc = node_buts_time;
 			break;
@@ -3302,7 +3300,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			glPopMatrix();
 		}
 
-		BKE_image_release_ibuf(ima, lock);
+		BKE_image_release_ibuf(ima, ibuf, lock);
 	}
 }
 
@@ -3315,7 +3313,7 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 	
 	if (snode->flag & SNODE_BACKDRAW) {
 		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-		ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 		if (ibuf) {
 			int x, y;
 			float zoom = 1.0;
@@ -3351,6 +3349,8 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 			glPopMatrix();
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
+
+			BKE_image_release_ibuf(ima, ibuf, NULL);
 		}
 	}
 }

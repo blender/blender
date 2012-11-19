@@ -157,10 +157,10 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 
 	/* find the first valid ibuf and use it to initialize the resolution of the data set */
 	/* need to do this in advance so we know how much memory to allocate */
-	ibuf = BKE_image_get_ibuf(ima, &iuser);
+	ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
 	while (!ibuf && (iuser.framenr < iuser.frames)) {
 		iuser.framenr++;
-		ibuf = BKE_image_get_ibuf(ima, &iuser);
+		ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
 	}
 	if (!ibuf) return;
 	if (!ibuf->rect_float) IMB_float_from_rect(ibuf);
@@ -175,7 +175,8 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 		/* get a new ibuf for each frame */
 		if (z > 0) {
 			iuser.framenr++;
-			ibuf = BKE_image_get_ibuf(ima, &iuser);
+			BKE_image_release_ibuf(ima, ibuf, NULL);
+			ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
 			if (!ibuf) break;
 			if (!ibuf->rect_float) IMB_float_from_rect(ibuf);
 		}
@@ -191,7 +192,9 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 		
 		BKE_image_free_anim_ibufs(ima, iuser.framenr);
 	}
-	
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
+
 	vd->ok = 1;
 	return;
 }

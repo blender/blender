@@ -1410,7 +1410,7 @@ static float ray_nearest_hit(BVHRayCastData *data, const float bv[6])
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  * [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  *
- * TODO this doens't has data->ray.radius in consideration */
+ * TODO this doesn't take data->ray.radius into consideration */
 static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *node)
 {
 	const float *bv = node->bv;

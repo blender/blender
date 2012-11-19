@@ -101,6 +101,8 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
 {
 	bm->stackdepth++;
 
+	BLI_assert(bm->totflags > 0);
+
 	/* add flag layer, if appropriate */
 	if (bm->stackdepth > 1)
 		bmo_flag_layer_alloc(bm);
@@ -172,7 +174,9 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
  */
 void BMO_op_exec(BMesh *bm, BMOperator *op)
 {
-	
+	/* allocate tool flags on demand */
+	BM_mesh_elem_toolflags_ensure(bm);
+
 	BMO_push(bm, op);
 
 	if (bm->stackdepth == 2)
@@ -1056,7 +1060,9 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 
 	/* store memcpy size for reuse */
 	const size_t old_totflags_size = (bm->totflags * sizeof(BMFlagLayer));
-	
+
+	BLI_assert(oldpool != NULL);
+
 	bm->totflags++;
 
 	/* allocate new flag poo */
@@ -1068,18 +1074,21 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, old_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
+		BM_ELEM_API_FLAG_CLEAR((BMElemF *)ele);
 	}
 	BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, old_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
+		BM_ELEM_API_FLAG_CLEAR((BMElemF *)ele);
 	}
 	BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, old_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
+		BM_ELEM_API_FLAG_CLEAR((BMElemF *)ele);
 	}
 
 	bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
@@ -1113,18 +1122,21 @@ static void bmo_flag_layer_free(BMesh *bm)
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, new_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
+		BM_ELEM_API_FLAG_CLEAR((BMElemF *)ele);
 	}
 	BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, new_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
+		BM_ELEM_API_FLAG_CLEAR((BMElemF *)ele);
 	}
 	BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
 		memcpy(ele->oflags, oldflags, new_totflags_size);
 		BM_elem_index_set(ele, i); /* set_inline */
+		BM_ELEM_API_FLAG_CLEAR((BMElemF *)ele);
 	}
 
 	bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);

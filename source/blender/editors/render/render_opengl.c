@@ -288,7 +288,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		}
 	}
 	
-	BKE_image_release_ibuf(oglrender->ima, lock);
+	BKE_image_release_ibuf(oglrender->ima, ibuf, lock);
 }
 
 static int screen_opengl_render_init(bContext *C, wmOperator *op)
@@ -613,7 +613,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		IMB_freeImBuf(ibuf);
 	}
 
-	BKE_image_release_ibuf(oglrender->ima, lock);
+	BKE_image_release_ibuf(oglrender->ima, ibuf, lock);
 
 	/* movie stats prints have no line break */
 	printf("\n");

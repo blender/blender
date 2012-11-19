@@ -49,14 +49,14 @@ static bNodeSocketTemplate cmp_node_colorbalance_out[] = {
 #ifdef WITH_COMPOSITOR_LEGACY
 
 /* this function implements ASC-CDL according to the spec at http://www.asctech.org/
- Slope
-       S = in * slope
- Offset
-       O = S + offset 
-         = (in * slope) + offset
- Power
-     out = Clamp(O) ^ power
-         = Clamp((in * slope) + offset) ^ power
+ * Slope
+ *       S = in * slope
+ * Offset
+ *       O = S + offset
+ *         = (in * slope) + offset
+ * Power
+ *     out = Clamp(O) ^ power
+ *         = Clamp((in * slope) + offset) ^ power
  */
 DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slope)
 {

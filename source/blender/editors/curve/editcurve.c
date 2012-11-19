@@ -3678,10 +3678,12 @@ static int is_u_selected(Nurb *nu, int u)
 	/* what about resolu == 2? */
 	bp = &nu->bp[u];
 	for (v = 0; v < nu->pntsv - 1; v++, bp += nu->pntsu) {
-		if (v) if (bp->f1 & SELECT) return 1;
+		if ((v != 0) && (bp->f1 & SELECT)) {
+			return TRUE;
+		}
 	}
 	
-	return 0;
+	return FALSE;
 }
 
 typedef struct NurbSort {
@@ -6464,7 +6466,7 @@ Nurb *add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4], int type
 						bp->vec[0] += fac * grid;
 						fac = (float)b - 1.5f;
 						bp->vec[1] += fac * grid;
-						if (a == 1 || a == 2) if (b == 1 || b == 2) {
+						if ((a == 1 || a == 2) && (b == 1 || b == 2)) {
 							bp->vec[2] += grid;
 						}
 						mul_m4_v3(mat, bp->vec);

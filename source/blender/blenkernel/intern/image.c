@@ -100,6 +100,8 @@
 
 #include "WM_api.h"
 
+static SpinLock image_spin;
+
 /* max int, to indicate we don't store sequences in ibuf */
 #define IMA_NO_INDEX    0x7FEFEFEF
 
@@ -107,6 +109,16 @@
 #define IMA_MAKE_INDEX(frame, index)    ((frame) << 10) + index
 #define IMA_INDEX_FRAME(index)          (index >> 10)
 #define IMA_INDEX_PASS(index)           (index & ~1023)
+
+void BKE_images_init(void)
+{
+	BLI_spin_init(&image_spin);
+}
+
+void BKE_images_exit(void)
+{
+	BLI_spin_end(&image_spin);
+}
 
 /* ******** IMAGE PROCESSING ************* */
 
@@ -168,13 +180,14 @@ static void de_interlace_st(struct ImBuf *ibuf) /* standard fields */
 
 void BKE_image_de_interlace(Image *ima, int odd)
 {
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	if (ibuf) {
 		if (odd)
 			de_interlace_st(ibuf);
 		else
 			de_interlace_ng(ibuf);
 	}
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
 /* ***************** ALLOC & FREE, DATA MANAGING *************** */
@@ -260,8 +273,9 @@ static ImBuf *image_get_ibuf(Image *ima, int index, int frame)
 	/* this function is intended to be thread safe. with IMA_NO_INDEX this
 	 * should be OK, but when iterating over the list this is more tricky
 	 * */
-	if (index == IMA_NO_INDEX)
+	if (index == IMA_NO_INDEX) {
 		return ima->ibufs.first;
+	}
 	else {
 		ImBuf *ibuf;
 
@@ -269,9 +283,9 @@ static ImBuf *image_get_ibuf(Image *ima, int index, int frame)
 		for (ibuf = ima->ibufs.first; ibuf; ibuf = ibuf->next)
 			if (ibuf->index == index)
 				return ibuf;
-
-		return NULL;
 	}
+
+	return NULL;
 }
 
 /* no ima->ibuf anymore, but listbase */
@@ -534,7 +548,7 @@ int BKE_image_scale(Image *image, int width, int height)
 		ibuf->userflags |= IB_BITMAPDIRTY;
 	}
 
-	BKE_image_release_ibuf(image, lock);
+	BKE_image_release_ibuf(image, ibuf, lock);
 
 	return (ibuf != NULL);
 }
@@ -2081,6 +2095,8 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 	if (ima == NULL)
 		return;
 
+	BLI_spin_lock(&image_spin);
+
 	switch (signal) {
 		case IMA_SIGNAL_FREE:
 			image_free_buffers(ima);
@@ -2156,6 +2172,8 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 
 			break;
 	}
+
+	BLI_spin_unlock(&image_spin);
 
 	/* don't use notifiers because they are not 100% sure to succeeded
 	 * this also makes sure all scenes are accounted for. */
@@ -2320,7 +2338,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 
 	if (ibuf) {
 #ifdef WITH_OPENEXR
-		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_get_ibuf */
+		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_acquire_ibuf */
 		if (ibuf->ftype == OPENEXR && ibuf->userdata) {
 			image_create_multilayer(ima, ibuf, frame);
 			ima->type = IMA_TYPE_MULTILAYER;
@@ -2482,7 +2500,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 	}
 
 	if (ibuf) {
-		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_get_ibuf */
+		/* handle multilayer case, don't assign ibuf. will be handled in BKE_image_acquire_ibuf */
 		if (ibuf->ftype == OPENEXR && ibuf->userdata) {
 			image_create_multilayer(ima, ibuf, cfra);
 			ima->type = IMA_TYPE_MULTILAYER;
@@ -2751,31 +2769,24 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 		 * a big bottleneck */
 	}
 
-	*frame_r = frame;
-	*index_r = index;
+	if (frame_r)
+		*frame_r = frame;
+
+	if (index_r)
+		*index_r = index;
 
 	return ibuf;
 }
 
-/* Checks optional ImageUser and verifies/creates ImBuf. */
-/* use this one if you want to get a render result in progress,
- * if not, use BKE_image_get_ibuf which doesn't require a release */
-ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
+/* Checks optional ImageUser and verifies/creates ImBuf.
+ *
+ * not thread-safe, so callee should worry about thread locks
+ */
+static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 {
 	ImBuf *ibuf = NULL;
 	float color[] = {0, 0, 0, 1};
 	int frame = 0, index = 0;
-
-	/* This function is intended to be thread-safe. It postpones the mutex lock
-	 * until it needs to load the image, if the image is already there it
-	 * should just get the pointer and return. The reason is that a lot of mutex
-	 * locks appears to be very slow on certain multicore macs, causing a render
-	 * with image textures to actually slow down as more threads are used.
-	 *
-	 * Note that all the image loading functions should also make sure they do
-	 * things in a threadsafe way for image_get_ibuf_threadsafe to work correct.
-	 * That means, the last two steps must be, 1) add the ibuf to the list and
-	 * 2) set ima/iuser->ok to 0 to IMA_OK_LOADED */
 
 	if (lock_r)
 		*lock_r = NULL;
@@ -2783,6 +2794,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 	/* quick reject tests */
 	if (ima == NULL)
 		return NULL;
+
 	if (iuser) {
 		if (iuser->ok == 0)
 			return NULL;
@@ -2790,95 +2802,71 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 	else if (ima->ok == 0)
 		return NULL;
 
-	/* try to get the ibuf without locking */
 	ibuf = image_get_ibuf_threadsafe(ima, iuser, &frame, &index);
 
 	if (ibuf == NULL) {
-		/* couldn't get ibuf and image is not ok, so let's lock and try to
-		 * load the image */
-		BLI_lock_thread(LOCK_IMAGE);
-
-		/* need to check ok flag and loading ibuf again, because the situation
-		 * might have changed in the meantime */
-		if (iuser) {
-			if (iuser->ok == 0) {
-				BLI_unlock_thread(LOCK_IMAGE);
-				return NULL;
+		/* we are sure we have to load the ibuf, using source and type */
+		if (ima->source == IMA_SRC_MOVIE) {
+			/* source is from single file, use flipbook to store ibuf */
+			ibuf = image_load_movie_file(ima, iuser, frame);
+		}
+		else if (ima->source == IMA_SRC_SEQUENCE) {
+			if (ima->type == IMA_TYPE_IMAGE) {
+				/* regular files, ibufs in flipbook, allows saving */
+				ibuf = image_load_sequence_file(ima, iuser, frame);
+			}
+			/* no else; on load the ima type can change */
+			if (ima->type == IMA_TYPE_MULTILAYER) {
+				/* only 1 layer/pass stored in imbufs, no exrhandle anim storage, no saving */
+				ibuf = image_load_sequence_multilayer(ima, iuser, frame);
 			}
 		}
-		else if (ima->ok == 0) {
-			BLI_unlock_thread(LOCK_IMAGE);
-			return NULL;
+		else if (ima->source == IMA_SRC_FILE) {
+
+			if (ima->type == IMA_TYPE_IMAGE)
+				ibuf = image_load_image_file(ima, iuser, frame);  /* cfra only for '#', this global is OK */
+			/* no else; on load the ima type can change */
+			if (ima->type == IMA_TYPE_MULTILAYER)
+				/* keeps render result, stores ibufs in listbase, allows saving */
+				ibuf = image_get_ibuf_multilayer(ima, iuser);
+
 		}
-
-		ibuf = image_get_ibuf_threadsafe(ima, iuser, &frame, &index);
-
-		if (ibuf == NULL) {
-			/* we are sure we have to load the ibuf, using source and type */
-			if (ima->source == IMA_SRC_MOVIE) {
-				/* source is from single file, use flipbook to store ibuf */
-				ibuf = image_load_movie_file(ima, iuser, frame);
+		else if (ima->source == IMA_SRC_GENERATED) {
+			/* generated is: ibuf is allocated dynamically */
+			/* UV testgrid or black or solid etc */
+			if (ima->gen_x == 0) ima->gen_x = 1024;
+			if (ima->gen_y == 0) ima->gen_y = 1024;
+			ibuf = add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type,
+			                     color, &ima->colorspace_settings);
+			image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+			ima->ok = IMA_OK_LOADED;
+		}
+		else if (ima->source == IMA_SRC_VIEWER) {
+			if (ima->type == IMA_TYPE_R_RESULT) {
+				/* always verify entirely, and potentially
+				 * returns pointer to release later */
+				ibuf = image_get_render_result(ima, iuser, lock_r);
 			}
-			else if (ima->source == IMA_SRC_SEQUENCE) {
-				if (ima->type == IMA_TYPE_IMAGE) {
-					/* regular files, ibufs in flipbook, allows saving */
-					ibuf = image_load_sequence_file(ima, iuser, frame);
-				}
-				/* no else; on load the ima type can change */
-				if (ima->type == IMA_TYPE_MULTILAYER) {
-					/* only 1 layer/pass stored in imbufs, no exrhandle anim storage, no saving */
-					ibuf = image_load_sequence_multilayer(ima, iuser, frame);
-				}
-			}
-			else if (ima->source == IMA_SRC_FILE) {
+			else if (ima->type == IMA_TYPE_COMPOSITE) {
+				/* requires lock/unlock, otherwise don't return image */
+				if (lock_r) {
+					/* unlock in BKE_image_release_ibuf */
+					BLI_lock_thread(LOCK_VIEWER);
+					*lock_r = ima;
 
-				if (ima->type == IMA_TYPE_IMAGE)
-					ibuf = image_load_image_file(ima, iuser, frame);  /* cfra only for '#', this global is OK */
-				/* no else; on load the ima type can change */
-				if (ima->type == IMA_TYPE_MULTILAYER)
-					/* keeps render result, stores ibufs in listbase, allows saving */
-					ibuf = image_get_ibuf_multilayer(ima, iuser);
+					/* XXX anim play for viewer nodes not yet supported */
+					frame = 0; // XXX iuser?iuser->framenr:0;
+					ibuf = image_get_ibuf(ima, 0, frame);
 
-			}
-			else if (ima->source == IMA_SRC_GENERATED) {
-				/* generated is: ibuf is allocated dynamically */
-				/* UV testgrid or black or solid etc */
-				if (ima->gen_x == 0) ima->gen_x = 1024;
-				if (ima->gen_y == 0) ima->gen_y = 1024;
-				ibuf = add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type,
-				                     color, &ima->colorspace_settings);
-				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
-				ima->ok = IMA_OK_LOADED;
-			}
-			else if (ima->source == IMA_SRC_VIEWER) {
-				if (ima->type == IMA_TYPE_R_RESULT) {
-					/* always verify entirely, and potentially
-					 * returns pointer to release later */
-					ibuf = image_get_render_result(ima, iuser, lock_r);
-				}
-				else if (ima->type == IMA_TYPE_COMPOSITE) {
-					/* requires lock/unlock, otherwise don't return image */
-					if (lock_r) {
-						/* unlock in BKE_image_release_ibuf */
-						BLI_lock_thread(LOCK_VIEWER);
-						*lock_r = ima;
-
-						/* XXX anim play for viewer nodes not yet supported */
-						frame = 0; // XXX iuser?iuser->framenr:0;
-						ibuf = image_get_ibuf(ima, 0, frame);
-
-						if (!ibuf) {
-							/* Composite Viewer, all handled in compositor */
-							/* fake ibuf, will be filled in compositor */
-							ibuf = IMB_allocImBuf(256, 256, 32, IB_rect);
-							image_assign_ibuf(ima, ibuf, 0, frame);
-						}
+					if (!ibuf) {
+						/* Composite Viewer, all handled in compositor */
+						/* fake ibuf, will be filled in compositor */
+						ibuf = IMB_allocImBuf(256, 256, 32, IB_rect);
+						image_assign_ibuf(ima, ibuf, 0, frame);
 					}
 				}
 			}
 		}
-
-		BLI_unlock_thread(LOCK_IMAGE);
 	}
 
 	BKE_image_tag_time(ima);
@@ -2886,23 +2874,66 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 	return ibuf;
 }
 
-void BKE_image_release_ibuf(Image *ima, void *lock)
+/* return image buffer for given image and user
+ *
+ * - will lock render result if image type is render result and lock is not NULL
+ * - will return NULL if image type if render or composite result and lock is NULL
+ *
+ * references the result, BKE_image_release_ibuf should be used to de-reference
+ */
+ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 {
-	/* for getting image during threaded render / compositing, need to release */
-	if (lock == ima) {
-		BLI_unlock_thread(LOCK_VIEWER); /* viewer image */
+	ImBuf *ibuf;
+
+	BLI_spin_lock(&image_spin);
+
+	ibuf = image_acquire_ibuf(ima, iuser, lock_r);
+
+	if (ibuf)
+		IMB_refImBuf(ibuf);
+
+	BLI_spin_unlock(&image_spin);
+
+	return ibuf;
+}
+
+void BKE_image_release_ibuf(Image *ima, ImBuf *ibuf, void *lock)
+{
+	if (lock) {
+		/* for getting image during threaded render / compositing, need to release */
+		if (lock == ima) {
+			BLI_unlock_thread(LOCK_VIEWER); /* viewer image */
+		}
+		else if (lock) {
+			RE_ReleaseResultImage(lock); /* render result */
+			BLI_unlock_thread(LOCK_VIEWER); /* view image imbuf */
+		}
 	}
-	else if (lock) {
-		RE_ReleaseResultImage(lock); /* render result */
-		BLI_unlock_thread(LOCK_VIEWER); /* view image imbuf */
+
+	if (ibuf) {
+		BLI_spin_lock(&image_spin);
+		IMB_freeImBuf(ibuf);
+		BLI_spin_unlock(&image_spin);
 	}
 }
 
-/* warning, this can allocate generated images */
-ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
+/* checks whether there's an image buffer for given image and user */
+int BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
 {
-	/* here (+fie_ima/2-1) makes sure that division happens correctly */
-	return BKE_image_acquire_ibuf(ima, iuser, NULL);
+	ImBuf *ibuf = image_get_ibuf_threadsafe(ima, iuser, NULL, NULL);
+
+	if (!ibuf) {
+		BLI_spin_lock(&image_spin);
+
+		ibuf = image_get_ibuf_threadsafe(ima, iuser, NULL, NULL);
+
+		if (!ibuf)
+			ibuf = image_acquire_ibuf(ima, iuser, NULL);
+
+		BLI_spin_unlock(&image_spin);
+	}
+
+	return ibuf != NULL;
 }
 
 int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, short *r_is_in_range)
@@ -3020,7 +3051,7 @@ int BKE_image_has_alpha(struct Image *image)
 
 	ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 	planes = (ibuf ? ibuf->planes : 0);
-	BKE_image_release_ibuf(image, lock);
+	BKE_image_release_ibuf(image, ibuf, lock);
 
 	if (planes == 32)
 		return 1;
@@ -3044,7 +3075,7 @@ void BKE_image_get_size(Image *image, ImageUser *iuser, int *width, int *height)
 		*height = IMG_SIZE_FALLBACK;
 	}
 
-	BKE_image_release_ibuf(image, lock);
+	BKE_image_release_ibuf(image, ibuf, lock);
 }
 
 void BKE_image_get_size_fl(Image *image, ImageUser *iuser, float size[2])

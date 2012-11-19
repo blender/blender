@@ -31,6 +31,7 @@
 #include "COM_FastGaussianBlurOperation.h"
 #include "COM_MathBaseOperation.h"
 #include "COM_SetValueOperation.h"
+#include "COM_GammaCorrectOperation.h"
 
 BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {
@@ -48,16 +49,17 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 	const float size = ((const bNodeSocketValueFloat *)sock->default_value)->value;
 	
 	CompositorQuality quality = context->getQuality();
-	
+	NodeOperation *input_operation = NULL, *output_operation = NULL;
+
 	if (data->filtertype == R_FILTER_FAST_GAUSS) {
 		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
 		operationfgb->setData(data);
 		operationfgb->setbNode(editorNode);
-		this->getInputSocket(0)->relinkConnections(operationfgb->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operationfgb->getInputSocket(1), 1, graph);
-		this->getOutputSocket(0)->relinkConnections(operationfgb->getOutputSocket(0));
 		graph->addOperation(operationfgb);
-		addPreviewOperation(graph, context, operationfgb->getOutputSocket());
+
+		input_operation = operationfgb;
+		output_operation = operationfgb;
 	}
 	else if (editorNode->custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE) {
 		MathAddOperation *clamp = new MathAddOperation();
@@ -93,48 +95,68 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *co
 		operation->setData(data);
 		operation->setbNode(editorNode);
 		operation->setQuality(quality);
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		addLink(graph, operationy->getOutputSocket(), operation->getInputSocket(1));
 		graph->addOperation(operation);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-		addPreviewOperation(graph, context, operation->getOutputSocket());
+
+		output_operation = operation;
+		input_operation = operation;
 	}
 	else if (!data->bokeh) {
 		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
 		operationx->setData(data);
 		operationx->setbNode(editorNode);
 		operationx->setQuality(quality);
-		this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph);
 		graph->addOperation(operationx);
 		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
 		operationy->setData(data);
 		operationy->setbNode(editorNode);
 		operationy->setQuality(quality);
-		this->getOutputSocket(0)->relinkConnections(operationy->getOutputSocket());
+
 		graph->addOperation(operationy);
 		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
 		addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1));
-		addPreviewOperation(graph, context, operationy->getOutputSocket());
 
 		if (!connectedSizeSocket) {
 			operationx->setSize(size);
 			operationy->setSize(size);
 		}
+
+		input_operation = operationx;
+		output_operation = operationy;
 	}
 	else {
 		GaussianBokehBlurOperation *operation = new GaussianBokehBlurOperation();
 		operation->setData(data);
 		operation->setbNode(editorNode);
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 		operation->setQuality(quality);
 		graph->addOperation(operation);
-		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-		addPreviewOperation(graph, context, operation->getOutputSocket());
 
 		if (!connectedSizeSocket) {
 			operation->setSize(size);
 		}
+
+		input_operation = operation;
+		output_operation = operation;
+	}
+
+	if (data->gamma) {
+		GammaCorrectOperation *correct = new GammaCorrectOperation();
+		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
+
+		this->getInputSocket(0)->relinkConnections(correct->getInputSocket(0), 0, graph);
+		addLink(graph, correct->getOutputSocket(), input_operation->getInputSocket(0));
+		addLink(graph, output_operation->getOutputSocket(), inverse->getInputSocket(0));
+		this->getOutputSocket()->relinkConnections(inverse->getOutputSocket());
+		graph->addOperation(correct);
+		graph->addOperation(inverse);
+
+		addPreviewOperation(graph, context, inverse->getOutputSocket());
+	}
+	else {
+		this->getInputSocket(0)->relinkConnections(input_operation->getInputSocket(0), 0, graph);
+		this->getOutputSocket()->relinkConnections(output_operation->getOutputSocket());
+		addPreviewOperation(graph, context, output_operation->getOutputSocket());
 	}
 }

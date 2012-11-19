@@ -146,18 +146,27 @@ WITH_BF_OPENMP = True
 #Cycles
 WITH_BF_CYCLES = True
 
+#OSL
+WITH_BF_CYCLES_OSL = False
+WITH_BF_STATICOSL = True
+BF_OSL = LIBDIR + '/osl'
+BF_OSL_INC = '${BF_OSL}/include'
+# note oslexec would passed via program linkflags, which is needed to
+# make llvm happy with osl_allocate_closure_component
+BF_OSL_LIB = 'oslcomp oslexec oslquery'
+BF_OSL_LIBPATH = '${BF_OSL}/lib'
+BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
+
 WITH_BF_OIIO = True
 BF_OIIO = '${LIBDIR}/openimageio'
 BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
-BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
 WITH_BF_OCIO = True
 BF_OCIO = '${LIBDIR}/opencolorio'
 BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB = 'OpenColorIO'
-BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
@@ -203,7 +212,7 @@ C_WARN = []
 CC_WARN = []
 CXX_WARN = []
 
-LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
+LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid', 'psapi']
 
 PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 

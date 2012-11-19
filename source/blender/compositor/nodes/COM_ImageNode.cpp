@@ -73,7 +73,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 	/* force a load, we assume iuser index will be set OK anyway */
 	if (image && image->type == IMA_TYPE_MULTILAYER) {
 		bool is_multilayer_ok = false;
-		BKE_image_get_ibuf(image, imageuser);
+		ImBuf *ibuf = BKE_image_acquire_ibuf(image, imageuser, NULL);
 		if (image->rr) {
 			RenderLayer *rl = (RenderLayer *)BLI_findlink(&image->rr->layers, imageuser->layer);
 			if (rl) {
@@ -118,6 +118,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 				}
 			}
 		}
+		BKE_image_release_ibuf(image, ibuf, NULL);
 
 		/* without this, multilayer that fail to load will crash blender [#32490] */
 		if (is_multilayer_ok == false) {

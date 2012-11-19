@@ -1289,6 +1289,13 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 				insert_into_textbuf(obedit, ascii);
 				accentcode = 0;
 			}
+			else if (ascii) {
+				insert_into_textbuf(obedit, ascii);
+				accentcode = 0;
+			}
+			else {
+				BLI_assert(0);
+			}
 			
 			kill_selection(obedit, 1);
 			text_update_edited(C, scene, obedit, 1, FO_EDIT);

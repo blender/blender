@@ -70,6 +70,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -113,6 +114,7 @@ void free_blender(void)
 	BKE_spacetypes_free();      /* after free main, it uses space callbacks */
 	
 	IMB_exit();
+	BKE_images_exit();
 
 	BLI_callback_global_finalize();
 

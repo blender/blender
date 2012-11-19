@@ -537,6 +537,7 @@ static int connection_node_mat(float mat[3][3], int v, const MeshElemMap *emap, 
 	/* Get axis and angle to rotate frame by */
 	angle = angle_normalized_v3v3(ine[0], oute[0]) / 2.0f;
 	cross_v3_v3v3(axis, ine[0], oute[0]);
+	normalize_v3(axis);
 
 	/* Build frame matrix (don't care about X axis here) */
 	copy_v3_v3(mat[0], ine[0]);

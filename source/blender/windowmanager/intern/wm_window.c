@@ -337,7 +337,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	int scr_w, scr_h, posy;
 	
 	/* force setting multisamples only once, it requires restart - and you cannot 
-	   mix it, either all windows have it, or none (tested in OSX opengl) */
+	 * mix it, either all windows have it, or none (tested in OSX opengl) */
 	if (multisamples == -1)
 		multisamples = U.ogl_multisamples;
 	

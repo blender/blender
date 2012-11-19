@@ -62,9 +62,10 @@ int bmesh_disk_count(BMVert *v);
 #define _FLAG_MF	2 /* make face */
 #define _FLAG_MV	2 /* make face, vertex */
 
-#define BM_ELEM_API_FLAG_ENABLE(element, f)  ((element)->oflags[0].pflag |=  (f))
-#define BM_ELEM_API_FLAG_DISABLE(element, f) ((element)->oflags[0].pflag &= ~(f))
-#define BM_ELEM_API_FLAG_TEST(element, f)    ((element)->oflags[0].pflag &   (f))
+#define BM_ELEM_API_FLAG_ENABLE(element, f)  ((element)->head.api_flag |=  (f))
+#define BM_ELEM_API_FLAG_DISABLE(element, f) ((element)->head.api_flag &= ~(f))
+#define BM_ELEM_API_FLAG_TEST(element, f)    ((element)->head.api_flag &   (f))
+#define BM_ELEM_API_FLAG_CLEAR(element)      ((element)->head.api_flag = 0)
 
 void calc_poly_plane(float (*verts)[3], const int nverts);
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts);

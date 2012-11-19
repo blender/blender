@@ -2623,6 +2623,11 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	
 }
 
+static void widget_normal(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
+{
+	ui_draw_but_NORMAL(but, wcol, rect);
+}
+
 static void widget_icon_has_anim(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
 {
 	if (state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_REDALERT)) {
@@ -3030,6 +3035,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 		case UI_WTYPE_NORMAL:
+			wt.custom = widget_normal;
 			break;
 
 		case UI_WTYPE_SCROLL:
@@ -3269,7 +3275,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case BUT_NORMAL:
-				ui_draw_but_NORMAL(but, &tui->wcol_regular, rect);
+				wt = widget_type(UI_WTYPE_NORMAL);
 				break;
 				
 			case BUT_IMAGE:

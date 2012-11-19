@@ -252,7 +252,6 @@ extern "C" {
 
 #include "intern/bmesh_construct.h"
 #include "intern/bmesh_core.h"
-#include "intern/bmesh_decimate.h"
 #include "intern/bmesh_interp.h"
 #include "intern/bmesh_iterators.h"
 #include "intern/bmesh_marking.h"
@@ -266,6 +265,9 @@ extern "C" {
 #include "intern/bmesh_walkers.h"
 
 #include "intern/bmesh_inline.h"
+
+#include "tools/bmesh_decimate.h"
+#include "tools/bmesh_bevel.h"
 
 #ifdef __cplusplus
 }

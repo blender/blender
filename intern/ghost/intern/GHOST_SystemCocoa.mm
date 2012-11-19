@@ -1591,13 +1591,17 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					if ((dx == 0) && (dy == 0)) break;
 					
 					/* Quadratic acceleration */
-					dx = dx*(fabs(dx)+0.5);
-					if (dx<0.0) dx-=0.5; else dx+=0.5;
-					if (dx< -deltaMax) dx= -deltaMax; else if (dx>deltaMax) dx=deltaMax;
+					dx = dx*(fabs(dx) + 0.5);
+					if (dx < 0.0) dx -= 0.5;
+					else          dx += 0.5;
+					if      (dx < -deltaMax) dx = -deltaMax;
+					else if (dx >  deltaMax) dx =  deltaMax;
 					
-					dy = dy*(fabs(dy)+0.5);
-					if (dy<0.0) dy-=0.5; else dy+=0.5;
-					if (dy< -deltaMax) dy= -deltaMax; else if (dy>deltaMax) dy=deltaMax;
+					dy = dy*(fabs(dy) + 0.5);
+					if (dy < 0.0) dy -= 0.5;
+					else          dy += 0.5;
+					if      (dy < -deltaMax) dy= -deltaMax;
+					else if (dy >  deltaMax) dy=  deltaMax;
 
 					window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 					dy = -dy;

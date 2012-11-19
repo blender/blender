@@ -1,0 +1,45 @@
+#!/usr/bin/python
+import sys
+import os
+import Blender as B
+
+def normpath(path):
+    return os.path.abspath(os.path.normpath(path))
+
+Import ('env')
+
+oso_files = []
+
+if env['WITH_BF_CYCLES_OSL']:
+    shaders = env.Clone()
+
+    # osl compiler info
+    if env['OURPLATFORM']=='darwin':
+        osl_compiler = '../lib/darwin-9.x.universal/osl/bin/oslc' # temporary hack to get the leading "#" away that breaks shadercompile
+    else:
+        osl_compiler = env['BF_OSL_COMPILER']
+
+    # build directory
+    root_build_dir = normpath(env['BF_BUILDDIR'])
+    build_dir = os.path.join(root_build_dir, 'intern/cycles/kernel/shaders')
+
+    # source directories and files
+    source_dir = Dir('.').srcnode().path
+
+    # dependencies
+    dependencies = shaders.Glob('*.h')
+
+    for f in os.listdir(source_dir):
+        if f.endswith('.osl'):
+            osl_file = os.path.join(source_dir, f)
+            oso_file = os.path.join(build_dir, f.replace('.osl', '.oso'))
+
+            command = "%s -O2 -I%s -o %s %s" % (osl_compiler, source_dir, oso_file, osl_file)
+
+            shaders.Command(oso_file, f, command)
+            shaders.Depends(oso_file, [f] + dependencies)
+
+            oso_files.append(oso_file)
+
+
+Return('oso_files')

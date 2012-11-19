@@ -1284,7 +1284,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 			BKE_tracking_undistort_v2(tracking, pos, tpos);
 
-			DO_MINMAX2(tpos, min, max);
+			minmax_v2v2_v2(min, max, tpos);
 		}
 
 		copy_v2_v2(pos, min);

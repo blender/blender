@@ -109,7 +109,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 		return mOk;
 	}
 
-	ibuf= BKE_image_get_ibuf(img, NULL);
+	ibuf= BKE_image_acquire_ibuf(img, NULL, NULL);
 	if (ibuf==NULL)
 	{
 		img->ok = 0;
@@ -128,6 +128,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 	if (mTexture != 0) {
 		glBindTexture(GL_TEXTURE_2D, mTexture );
 		Validate();
+		BKE_image_release_ibuf(img, ibuf, NULL);
 		return mOk;
 	}
 
@@ -140,6 +141,7 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 			mTexture = mapLook->second.gl_texture;
 			glBindTexture(GL_TEXTURE_2D, mTexture);
 			mOk = IsValid();
+			BKE_image_release_ibuf(img, ibuf, NULL);
 			return mOk;
 		}
 	}
@@ -166,6 +168,9 @@ bool BL_Texture::InitFromImage(int unit,  Image *img, bool mipmap)
 	glDisable(GL_TEXTURE_2D);
 	ActivateUnit(0);
 	Validate();
+
+	BKE_image_release_ibuf(img, ibuf, NULL);
+
 	return mOk;
 }
 
@@ -251,7 +256,7 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 		return mOk;
 	}
 
-	ImBuf *ibuf= BKE_image_get_ibuf(cubemap->ima, NULL);
+	ImBuf *ibuf= BKE_image_acquire_ibuf(cubemap->ima, NULL, NULL);
 	if (ibuf==0)
 	{
 		cubemap->ima->ok = 0;
@@ -274,6 +279,7 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 			mTexture = mapLook->second.gl_texture;
 			glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, mTexture);
 			mOk = IsValid();
+			BKE_image_release_ibuf(cubemap->ima, ibuf, NULL);
 			return mOk;
 		}
 	}
@@ -307,6 +313,7 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 
 		my_free_envmapdata(cubemap);
 		mOk = false;
+		BKE_image_release_ibuf(cubemap->ima, ibuf, NULL);
 		return mOk;
 	}
 
@@ -341,6 +348,9 @@ bool BL_Texture::InitCubeMap(int unit,  EnvMap *cubemap)
 	ActivateUnit(0);
 
 	mOk = IsValid();
+
+	BKE_image_release_ibuf(cubemap->ima, ibuf, NULL);
+
 	return mOk;
 }
 
@@ -646,9 +656,11 @@ int BL_Texture::GetPow2(int n)
 void BL_Texture::SplitEnvMap(EnvMap *map)
 {
 	if (!map || !map->ima || (map->ima && !map->ima->ok)) return;
-	ImBuf *ibuf= BKE_image_get_ibuf(map->ima, NULL);
-	if (ibuf)
+	ImBuf *ibuf= BKE_image_acquire_ibuf(map->ima, NULL, NULL);
+	if (ibuf) {
 		my_envmap_split_ima(map, ibuf);
+		BKE_image_release_ibuf(map->ima, ibuf, NULL);
+	}
 }
 
 unsigned int BL_Texture::mDisableState = 0;

@@ -2437,7 +2437,8 @@ void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX, "Threshold", "Threshold distance withing which particles are removed", 0.00001f, 0.1f);
+	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX,
+	              "Merge Distance", "Threshold distance withing which particles are removed", 0.00001f, 0.1f);
 }
 
 

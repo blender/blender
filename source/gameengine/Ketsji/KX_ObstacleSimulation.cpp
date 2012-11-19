@@ -1,6 +1,4 @@
 /*
- * Simulation for obstacle avoidance behavior
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +18,12 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file gameengine/Ketsji/KX_ObstacleSimulation.cpp
+ *  \ingroup ketsji
+ *
+ * Simulation for obstacle avoidance behavior
  */
 
 #include "KX_ObstacleSimulation.h"

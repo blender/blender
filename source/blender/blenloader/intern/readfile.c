@@ -8553,6 +8553,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	{
+		Object *ob;
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			if (ob->step_height == 0.0) {
+				ob->step_height = 0.150;
+				ob->jump_speed = 10.0;
+				ob->fall_speed = 55.0;
+			}
+		}
+	}
+
 	/* default values in Freestyle settings */
 	{
 		Scene *sce;

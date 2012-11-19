@@ -110,7 +110,7 @@ typedef struct tGPsdata {
 	double ocurtime;    /* Used when converting to path */
 
 	float imat[4][4];   /* inverted transformation matrix applying when converting coords from screen-space
-	                        * to region space */
+	                     * to region space */
 	
 	float custom_color[4]; /* custom color - hack for enforcing a particular color for track/mask editing */
 	

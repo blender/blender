@@ -22,11 +22,16 @@
 #ifdef WITH_OSL
 
 #include <OSL/oslexec.h>
+#include <cmath>
 
 #include "util_map.h"
 #include "util_param.h"
 #include "util_thread.h"
 #include "util_vector.h"
+
+#ifndef WIN32
+using std::isfinite;
+#endif
 
 CCL_NAMESPACE_BEGIN
 

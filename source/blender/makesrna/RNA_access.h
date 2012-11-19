@@ -148,6 +148,7 @@ extern StructRNA RNA_CompositorNodeLevels;
 extern StructRNA RNA_CompositorNodeLumaMatte;
 extern StructRNA RNA_CompositorNodeMapUV;
 extern StructRNA RNA_CompositorNodeMapValue;
+extern StructRNA RNA_CompositorNodeMapRange;
 extern StructRNA RNA_CompositorNodeMath;
 extern StructRNA RNA_CompositorNodeMask;
 extern StructRNA RNA_CompositorNodeMixRGB;

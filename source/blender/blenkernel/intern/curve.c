@@ -1116,7 +1116,7 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 			*fp = basisu[i] * bp->vec[3];
 			sumdiv += *fp;
 		}
-		if (sumdiv != 0.0f) if (sumdiv < 0.999f || sumdiv > 1.001f) {
+		if ((sumdiv != 0.0f) && (sumdiv < 0.999f || sumdiv > 1.001f)) {
 			/* is normalizing needed? */
 			fp = sum;
 			for (i = istart; i <= iend; i++, fp++) {

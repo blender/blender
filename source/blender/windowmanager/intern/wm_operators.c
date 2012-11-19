@@ -1201,8 +1201,11 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* operator menu needs undo, for redo callback */
-int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+/**
+ * For use by #WM_operator_props_popup_call, #WM_operator_props_popup only.
+ *
+ * \note operator menu needs undo flag enabled , for redo callback */
+static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_call)
 {
 	
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
@@ -1210,13 +1213,32 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		            "Operator '%s' does not have register enabled, incorrect invoke function", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	ED_undo_push_op(C, op);
+
 	wm_operator_register(C, op);
 
 	uiPupBlock(C, wm_block_create_redo, op);
 
+	if (do_call) {
+		WM_operator_repeat(C, op);
+	}
+
 	return OPERATOR_RUNNING_MODAL;
+}
+
+/* Same as WM_operator_props_popup but call the operator first,
+ * This way - the button values correspond to the result of the operator.
+ * Without this, first access to a button will make the result jump,
+ * see [#32452] */
+int WM_operator_props_popup_call(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	return wm_operator_props_popup_ex(C, op, TRUE);
+}
+
+int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	return wm_operator_props_popup_ex(C, op, FALSE);
 }
 
 int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)

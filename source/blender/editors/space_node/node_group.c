@@ -29,13 +29,18 @@
  *  \ingroup spnode
  */
 
+#include <stdlib.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_anim_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_rect.h"
+#include "BLI_math.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
@@ -865,7 +870,7 @@ static void node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min,
 		if (node == gnode)
 			continue;
 		if (node->flag & NODE_SELECT) {
-			DO_MINMAX2((&node->locx), min, max);
+			minmax_v2v2_v2(min, max, &node->locx);
 		}
 	}
 }

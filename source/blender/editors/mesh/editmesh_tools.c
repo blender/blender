@@ -2183,7 +2183,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMOperator bmop;
-	const float mergedist = RNA_float_get(op->ptr, "mergedist");
+	const float threshold = RNA_float_get(op->ptr, "threshold");
 	int use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
 	int totvert_orig = em->bm->totvert;
 	int count;
@@ -2191,7 +2191,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	if (use_unselected) {
 		EDBM_op_init(em, &bmop, op,
 		             "automerge verts=%hv dist=%f",
-		             BM_ELEM_SELECT, mergedist);
+		             BM_ELEM_SELECT, threshold);
 		BMO_op_exec(em->bm, &bmop);
 
 		if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
@@ -2201,7 +2201,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	else {
 		EDBM_op_init(em, &bmop, op,
 		             "find_doubles verts=%hv dist=%f",
-		             BM_ELEM_SELECT, mergedist);
+		             BM_ELEM_SELECT, threshold);
 		BMO_op_exec(em->bm, &bmop);
 
 		if (!EDBM_op_callf(em, op, "weld_verts targetmap=%s", &bmop, "targetmapout")) {
@@ -2236,8 +2236,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "mergedist", 0.0001f, 0.000001f, 50.0f, 
-	              "Merge Distance",
+	RNA_def_float(ot->srna, "threshold", 0.0001f, 0.000001f, 50.0f,  "Merge Distance",
 	              "Minimum distance between elements to merge", 0.00001, 10.0);
 	RNA_def_boolean(ot->srna, "use_unselected", 0, "Unselected", "Merge selected to other unselected vertices");
 }
@@ -2439,7 +2438,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
 	if (totshape == 0 || shape < 0 || shape >= totshape)
 		return OPERATOR_CANCELLED;
-	
+
 	/* get shape key - needed for finding reference shape (for add mode only) */
 	if (key) {
 		kb = BLI_findlink(&key->block, shape);
@@ -2518,7 +2517,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = edbm_blend_from_shape_exec;
-	ot->invoke = WM_operator_props_popup;
+	ot->invoke = WM_operator_props_popup_call;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
@@ -3007,6 +3006,8 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	BMesh *bm_new;
 
 	bm_new = BM_mesh_create(&bm_mesh_allocsize_default);
+	BM_mesh_elem_toolflags_ensure(bm_new);  /* needed for 'duplicate' bmo */
+
 	CustomData_copy(&bm_old->vdata, &bm_new->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm_old->edata, &bm_new->edata, CD_MASK_BMESH, CD_CALLOC, 0);
 	CustomData_copy(&bm_old->ldata, &bm_new->ldata, CD_MASK_BMESH, CD_CALLOC, 0);

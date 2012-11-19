@@ -167,7 +167,7 @@ static int space_image_file_exists_poll(bContext *C)
 				ret = TRUE;
 			}
 		}
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 
 		return ret;
 	}
@@ -1188,7 +1188,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		BKE_color_managed_view_settings_copy(&simopts->im_format.view_settings, &scene->view_settings);
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 
 	return (ibuf != NULL);
 }
@@ -1328,7 +1328,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			IMB_freeImBuf(colormanaged_ibuf);
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 }
 
 static void image_save_as_free(wmOperator *op)
@@ -1743,17 +1743,14 @@ void IMAGE_OT_new(wmOperatorType *ot)
 static int image_invert_poll(bContext *C)
 {
 	Image *ima = CTX_data_edit_image(C);
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
-	
-	if (ibuf != NULL)
-		return 1;
-	return 0;
+
+	return BKE_image_has_ibuf(ima, NULL);
 }
 
 static int image_invert_exec(bContext *C, wmOperator *op)
 {
 	Image *ima = CTX_data_edit_image(C);
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
 	/* flags indicate if this channel should be inverted */
 	const short r = RNA_boolean_get(op->ptr, "invert_r");
@@ -1792,6 +1789,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
+		BKE_image_release_ibuf(ima, ibuf, NULL);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1800,6 +1798,9 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 		ibuf->userflags |= IB_MIPMAP_INVALID;
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1848,7 +1849,7 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 {
 	struct Main *bmain = CTX_data_main(C);
 	Image *ima = CTX_data_edit_image(C);
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	int as_png = RNA_boolean_get(op->ptr, "as_png");
 
 	if (!image_pack_test(C, op))
@@ -1865,29 +1866,37 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 		ima->packedfile = newPackedFile(op->reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
-	
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
 static int image_pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Image *ima = CTX_data_edit_image(C);
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+	ImBuf *ibuf;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int as_png = RNA_boolean_get(op->ptr, "as_png");
 
 	if (!image_pack_test(C, op))
 		return OPERATOR_CANCELLED;
-	
+
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+
 	if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
 		pup = uiPupMenuBegin(C, "OK", ICON_QUESTION);
 		layout = uiPupMenuLayout(pup);
 		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", ICON_NONE, op->idname, "as_png", 1);
 		uiPupMenuEnd(C, pup);
 
+		BKE_image_release_ibuf(ima, ibuf, NULL);
+
 		return OPERATOR_CANCELLED;
 	}
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 
 	return image_pack_exec(C, op);
 }
@@ -2032,7 +2041,7 @@ int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], floa
 	int ret = FALSE;
 
 	if (ibuf == NULL) {
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 		return FALSE;
 	}
 
@@ -2058,7 +2067,7 @@ int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], floa
 		}
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 	return ret;
 }
 
@@ -2074,7 +2083,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	CurveMapping *curve_mapping = scene->view_settings.curve_mapping;
 
 	if (ibuf == NULL) {
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 		info->draw = 0;
 		return;
 	}
@@ -2175,7 +2184,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->draw = 0;
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
@@ -2266,12 +2275,12 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	float x1f, y1f, x2f, y2f;
 	
 	if (ibuf == NULL) {
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 		return OPERATOR_CANCELLED;
 	}
 	/* hmmmm */
 	if (ibuf->channels < 3) {
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -2288,7 +2297,7 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	/* reset y zoom */
 	hist->ymax = 1.0f;
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 	
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
@@ -2383,11 +2392,13 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
-	ibuf = BKE_image_get_ibuf(sima->image, &sima->iuser);
+	ibuf = BKE_image_acquire_ibuf(sima->image, &sima->iuser, NULL);
 	/* save memory in flipbooks */
 	if (ibuf)
 		imb_freerectfloatImBuf(ibuf);
-	
+
+	BKE_image_release_ibuf(sima->image, ibuf, NULL);
+
 	scene->r.cfra++;
 
 	return (scene->r.cfra <= rcd->efra);

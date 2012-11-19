@@ -115,6 +115,13 @@ void mid_v2_v2v2(float v[2], const float v1[2], const float v2[2])
 	v[1] = 0.5f * (v1[1] + v2[1]);
 }
 
+void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float v3[3])
+{
+	v[0] = (v1[0] + v2[0] + v3[0]) / 3.0f;
+	v[1] = (v1[1] + v2[1] + v3[1]) / 3.0f;
+	v[2] = (v1[2] + v2[2] + v3[2]) / 3.0f;
+}
+
 /********************************** Angles ***********************************/
 
 /* Return the angle in radians between vecs 1-2 and 2-3 in radians
@@ -201,6 +208,13 @@ float angle_signed_v2v2(const float v1[2], const float v2[2])
 
 float angle_normalized_v3v3(const float v1[3], const float v2[3])
 {
+	/* double check they are normalized */
+#ifdef DEBUG
+	float test;
+	BLI_assert(fabsf((test = len_squared_v3(v1)) - 1.0f) < 0.0001f || fabsf(test) < 0.0001f);
+	BLI_assert(fabsf((test = len_squared_v3(v2)) - 1.0f) < 0.0001f || fabsf(test) < 0.0001f);
+#endif
+
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
 	if (dot_v3v3(v1, v2) < 0.0f) {
 		float vec[3];
@@ -217,6 +231,13 @@ float angle_normalized_v3v3(const float v1[3], const float v2[3])
 
 float angle_normalized_v2v2(const float v1[2], const float v2[2])
 {
+	/* double check they are normalized */
+#ifdef DEBUG
+	float test;
+	BLI_assert(fabsf((test = len_squared_v2(v1)) - 1.0f) < 0.0001f || fabsf(test) < 0.0001f);
+	BLI_assert(fabsf((test = len_squared_v2(v2)) - 1.0f) < 0.0001f || fabsf(test) < 0.0001f);
+#endif
+
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
 	if (dot_v2v2(v1, v2) < 0.0f) {
 		float vec[2];
@@ -400,6 +421,12 @@ void rotate_normalized_v3_v3v3fl(float r[3], const float p[3], const float axis[
 {
 	const float costheta = cos(angle);
 	const float sintheta = sin(angle);
+
+	/* double check they are normalized */
+#ifdef DEBUG
+	float test;
+	BLI_assert(fabsf((test = len_squared_v3(axis)) - 1.0f) < 0.0001f || fabsf(test) < 0.0001f);
+#endif
 
 	r[0] = ((costheta + (1 - costheta) * axis[0] * axis[0]) * p[0]) +
 	       (((1 - costheta) * axis[0] * axis[1] - axis[2] * sintheta) * p[1]) +

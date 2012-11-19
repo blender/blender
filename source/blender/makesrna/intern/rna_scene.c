@@ -1126,6 +1126,12 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 	}
 }
 
+static char *rna_SceneRenderLayer_path(PointerRNA *ptr)
+{
+	SceneRenderLayer *srl = (SceneRenderLayer*)ptr->data;
+	return BLI_sprintfN("render.layers[\"%s\"]", srl->name);
+}
+
 static int rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))
 {
 	return (BLI_countlist(&R_engines) > 1);
@@ -3202,6 +3208,7 @@ static void rna_def_scene_render_layer(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "SceneRenderLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Scene Render Layer", "Render layer");
 	RNA_def_struct_ui_icon(srna, ICON_RENDERLAYERS);
+	RNA_def_struct_path_func(srna, "rna_SceneRenderLayer_path");
 
 	rna_def_render_layer_common(srna, 1);
 

@@ -398,7 +398,8 @@ static float orgBlenderNoise(float x, float y, float z)
 	h = hashvectf + 3 * hash[b21 + b11];
 	n += i * (h[0] * jx + h[1] * jy + h[2] * jz);
 
-	if (n < 0.0f) n = 0.0f; else if (n > 1.0f) n = 1.0f;
+	if      (n < 0.0f) n = 0.0f;
+	else if (n > 1.0f) n = 1.0f;
 	return n;
 }
 
@@ -1890,7 +1891,8 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 		y *= lacunarity;
 		z *= lacunarity;
 		weight = signal * gain;
-		if (weight > 1.0f) weight = 1.0f; else if (weight < 0.0f) weight = 0.0f;
+		if      (weight > 1.0f) weight = 1.0f;
+		else if (weight < 0.0f) weight = 0.0f;
 		signal = offset - fabsf(noisefunc(x, y, z));
 		signal *= signal;
 		signal *= weight;

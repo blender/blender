@@ -349,7 +349,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 
 				mul_v3_m4v3(pos, sc->stabmat, pos);
 
-				DO_MINMAX2(pos, min, max);
+				minmax_v2v2_v2(min, max, pos);
 
 				ok = TRUE;
 			}

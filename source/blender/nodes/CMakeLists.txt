@@ -84,6 +84,7 @@ set(SRC
 	composite/nodes/node_composite_lummaMatte.c
 	composite/nodes/node_composite_mapUV.c
 	composite/nodes/node_composite_mapValue.c
+	composite/nodes/node_composite_mapRange.c
 	composite/nodes/node_composite_math.c
 	composite/nodes/node_composite_mask.c
 	composite/nodes/node_composite_mixrgb.c

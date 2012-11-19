@@ -23,7 +23,7 @@
 #ifndef __BMESH_DECIMATE_H__
 #define __BMESH_DECIMATE_H__
 
-/** \file blender/bmesh/intern/bmesh_decimate.h
+/** \file blender/bmesh/tools/bmesh_decimate.h
  *  \ingroup bmesh
  */
 

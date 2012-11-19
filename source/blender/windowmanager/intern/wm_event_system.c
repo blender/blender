@@ -340,7 +340,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	int retval;
 	
 	/* UI code doesn't handle return values - it just always returns break. 
-	   to make the DBL_CLICK conversion work, we just don't send this to UI */
+	 * to make the DBL_CLICK conversion work, we just don't send this to UI */
 	if (event->val == KM_DBL_CLICK)
 		return WM_HANDLER_CONTINUE;
 	
@@ -1288,9 +1288,9 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 
 	/* the matching rules */
 	if (kmitype == KM_TEXTINPUT)
-		if (winevent->val == KM_PRESS) { // prevent double clicks			
+		if (winevent->val == KM_PRESS) {  /* prevent double clicks */
 			/* NOT using ISTEXTINPUT anymore because (at least on Windows) some key codes above 255
-			could have printable ascii keys - BUG [#30479] */
+			 * could have printable ascii keys - BUG [#30479] */
 			if (ISKEYBOARD(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) return 1; 
 		}
 
@@ -1550,8 +1550,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				if (handler->op->reports->list.first) {
 
 					/* FIXME, temp setting window, this is really bad!
-						 * only have because lib linking errors need to be seen by users :(
-						 * it can be removed without breaking anything but then no linking errors - campbell */
+					 * only have because lib linking errors need to be seen by users :(
+					 * it can be removed without breaking anything but then no linking errors - campbell */
 					wmWindow *win_prev = CTX_wm_window(C);
 					ScrArea *area_prev = CTX_wm_area(C);
 					ARegion *ar_prev = CTX_wm_region(C);

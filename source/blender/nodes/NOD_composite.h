@@ -72,6 +72,7 @@ void register_node_type_cmp_huecorrect(struct bNodeTreeType *ttype);
 void register_node_type_cmp_normal(struct bNodeTreeType *ttype);
 void register_node_type_cmp_curve_vec(struct bNodeTreeType *ttype);
 void register_node_type_cmp_map_value(struct bNodeTreeType *ttype);
+void register_node_type_cmp_map_range(struct bNodeTreeType *ttype);
 void register_node_type_cmp_normalize(struct bNodeTreeType *ttype);
 
 void register_node_type_cmp_filter(struct bNodeTreeType *ttype);

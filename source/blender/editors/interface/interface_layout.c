@@ -430,7 +430,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 				but->type = NUMSLI;
 		}
 	}
-	else if (subtype == PROP_DIRECTION) {
+	else if (subtype == PROP_DIRECTION && !expand) {
 		uiDefButR_prop(block, BUT_NORMAL, 0, name, x, y, UI_UNIT_X * 3, UI_UNIT_Y * 3, ptr, prop, 0, 0, 0, -1, -1, NULL);
 	}
 	else {
