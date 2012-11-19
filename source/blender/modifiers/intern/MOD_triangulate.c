@@ -54,7 +54,7 @@ static DerivedMesh *triangulate(DerivedMesh *dm, char use_beauty)
 	BMesh *bm;
 
 	bm = DM_to_bmesh(dm);
-
+	BM_mesh_elem_toolflags_ensure(bm);
 	BMO_push(bm, NULL);
 	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
 				  "triangulate faces=%af use_beauty=%b", use_beauty);
