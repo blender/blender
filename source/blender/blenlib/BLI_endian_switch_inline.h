@@ -38,41 +38,43 @@
 /* *** 16 *** */
 BLI_INLINE void BLI_endian_switch_int16(short *val)
 {
-	short tval = *val;
-	*val = (tval >> 8) |
-	       (tval << 8);
-
+	BLI_endian_switch_uint16((unsigned short *)val);
 }
 BLI_INLINE void BLI_endian_switch_uint16(unsigned short *val)
 {
-	BLI_endian_switch_int16((short *)val);
+	unsigned short tval = *val;
+	*val = (tval >> 8) |
+	       (tval << 8);
 }
 
 
 /* *** 32 *** */
 BLI_INLINE void BLI_endian_switch_int32(int *val)
 {
-	int tval = *val;
+	BLI_endian_switch_uint32((unsigned int *)val);
+}
+BLI_INLINE void BLI_endian_switch_uint32(unsigned int *val)
+{
+	unsigned int tval = *val;
 	*val = ((tval >> 24))             |
 	       ((tval << 8) & 0x00ff0000) |
 	       ((tval >> 8) & 0x0000ff00) |
 	       ((tval << 24));
-
-}
-BLI_INLINE void BLI_endian_switch_uint32(unsigned int *val)
-{
-	BLI_endian_switch_int32((int *)val);
 }
 BLI_INLINE void BLI_endian_switch_float(float *val)
 {
-	BLI_endian_switch_int32((int *)val);
+	BLI_endian_switch_uint32((unsigned int *)val);
 }
 
 
 /* *** 64 *** */
 BLI_INLINE void BLI_endian_switch_int64(int64_t *val)
 {
-	int64_t tval = *val;
+	BLI_endian_switch_uint64((uint64_t *)val);
+}
+BLI_INLINE void BLI_endian_switch_uint64(uint64_t *val)
+{
+	uint64_t tval = *val;
 	*val = ((tval >> 56)) |
 	       ((tval << 40) & 0x00ff000000000000ll) |
 	       ((tval << 24) & 0x0000ff0000000000ll) |
@@ -82,13 +84,9 @@ BLI_INLINE void BLI_endian_switch_int64(int64_t *val)
 	       ((tval >> 40) & 0x000000000000ff00ll) |
 	       ((tval << 56));
 }
-BLI_INLINE void BLI_endian_switch_uint64(uint64_t *val)
-{
-	BLI_endian_switch_int64((int64_t *)val);
-}
 BLI_INLINE void BLI_endian_switch_double(double *val)
 {
-	BLI_endian_switch_int64((int64_t *)val);
+	BLI_endian_switch_uint64((uint64_t *)val);
 }
 
 #endif  /* __BLI_ENDIAN_SWITCH_INLINE_H__ */
