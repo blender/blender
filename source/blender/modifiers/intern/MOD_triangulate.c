@@ -39,6 +39,8 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 {
 	DerivedMesh *result;
 	BMesh *bm;
+	int total_edges, i;
+	MEdge *me;
 
 	bm = DM_to_bmesh(dm);
 
@@ -53,7 +55,12 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 	result = CDDM_from_bmesh(bm, FALSE);
 	BM_mesh_free(bm);
 
-	CDDM_calc_edges(result);
+	total_edges = result->getNumEdges(result);
+	me = CDDM_get_edges(result);
+
+	/* force drawing of all edges (seems to be omitted in CDDM_from_bmesh) */
+	for (i = 0; i < total_edges; i++, me++)
+		me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
 
 	CDDM_calc_normals(result);
 
