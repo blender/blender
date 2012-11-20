@@ -133,7 +133,7 @@ static void bmo_op_slots_init(BMOSlotType *slot_types, BMOpSlot *slot_args)
 	for (i = 0; slot_types[i].type; i++) {
 		slot_args[i].slot_name = slot_types[i].name;
 		slot_args[i].slot_type = slot_types[i].type;
-		slot_args[i].index = i;
+		// slot_args[i].index = i;  // UNUSED
 	}
 }
 

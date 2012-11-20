@@ -43,9 +43,9 @@ color xyY_to_xyz(float x, float y, float Y)
 
 color xyz_to_rgb(float x, float y, float z)
 {
-	return color(3.240479 * x + -1.537150 * y + -0.498535 * z,
-				 -0.969256 * x + 1.875991 * y + 0.041556 * z,
-				 0.055648 * x + -0.204043 * y + 1.057311 * z);
+	return color( 3.240479 * x + -1.537150 * y + -0.498535 * z,
+	             -0.969256 * x +  1.875991 * y +  0.041556 * z,
+	              0.055648 * x + -0.204043 * y +  1.057311 * z);
 }
 
 float sky_angle_between(float thetav, float phiv, float theta, float phi)

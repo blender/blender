@@ -119,8 +119,8 @@ typedef struct BMOpSlot {
 	const char *slot_name;  /* pointer to BMOpDefine.slot_args */
 	int slot_type;
 	int len;
-	int flag;
-	int index; /* index within slot array */
+//	int flag;  /* UNUSED */
+//	int index; /* index within slot array */  /* UNUSED */
 	union {
 		int i;
 		float f;
