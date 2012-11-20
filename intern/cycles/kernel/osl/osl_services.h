@@ -84,6 +84,23 @@ public:
 	bool getmessage(OSL::ShaderGlobals *sg, ustring source, ustring name,
 	                TypeDesc type, void *val, bool derivatives);
 
+	bool texture(ustring filename, TextureOpt &options,
+	             OSL::ShaderGlobals *sg,
+	             float s, float t, float dsdx, float dtdx,
+	             float dsdy, float dtdy, float *result);
+
+	bool texture3d(ustring filename, TextureOpt &options,
+	               OSL::ShaderGlobals *sg, const OSL::Vec3 &P,
+	               const OSL::Vec3 &dPdx, const OSL::Vec3 &dPdy,
+	               const OSL::Vec3 &dPdz, float *result);
+
+	bool environment(ustring filename, TextureOpt &options,
+	                 OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
+	                 const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy, float *result);
+
+	bool get_texture_info(ustring filename, int subimage,
+	                      ustring dataname, TypeDesc datatype, void *data);
+
 	struct TraceData {
 		Ray ray;
 		Intersection isect;

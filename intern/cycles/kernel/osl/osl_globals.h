@@ -43,6 +43,7 @@ struct OSLGlobals {
 
 	/* shading system */
 	OSL::ShadingSystem *ss;
+	OSL::TextureSystem *ts;
 	OSLRenderServices *services;
 
 	/* shader states */
