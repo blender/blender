@@ -150,7 +150,7 @@ WITH_BF_OPENMP = True
 #Cycles
 WITH_BF_CYCLES = True 
 
-WITH_BF_CYCLES_OSL = False
+WITH_BF_CYCLES_OSL = True
 WITH_BF_STATICOSL = True
 BF_OSL = '${LIBDIR}/osl'
 BF_OSL_INC = '${BF_OSL}/include'
