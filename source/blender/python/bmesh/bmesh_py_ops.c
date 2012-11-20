@@ -376,7 +376,20 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 				item = (Py_INCREF(Py_None), Py_None);
 			}
 
+#if 1
+			/* temp code, strip off '.out' while we keep this convention */
+			{
+				char slot_name_strip[MAX_SLOTNAME];
+				char *ch = strchr(slot->slot_name, '.');  /* can't fail! */
+				int tot = ch - slot->slot_name;
+				BLI_assert(ch != NULL);
+				memcpy(slot_name_strip, slot->slot_name, tot);
+				slot_name_strip[tot] = '\0';
+				PyDict_SetItemString(ret, slot_name_strip, item);
+			}
+#else
 			PyDict_SetItemString(ret, slot->slot_name, item);
+#endif
 			Py_DECREF(item);
 		}
 	}
