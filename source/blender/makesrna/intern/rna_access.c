@@ -2551,7 +2551,10 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 		pprop = (PointerPropertyRNA *)prop;
 
 		/* for groups, data is idprop itself */
-		return rna_pointer_inherit_refine(ptr, pprop->type, idprop);
+		if (pprop->typef)
+			return rna_pointer_inherit_refine(ptr, pprop->typef(ptr), idprop);
+		else
+			return rna_pointer_inherit_refine(ptr, pprop->type, idprop);
 	}
 	else if (pprop->get) {
 		return pprop->get(ptr);
