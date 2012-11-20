@@ -486,6 +486,6 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 	const int do_dissolve_boundaries = BMO_slot_bool_get(op->slots_in, "use_dissolve_boundaries");
 
 	BM_mesh_decimate_dissolve_ex(bm, angle_limit, do_dissolve_boundaries,
-	                             vinput->data.p, vinput->len,
-	                             einput->data.p, einput->len);
+	                             (BMVert **)BMO_SLOT_AS_BUFFER(vinput), vinput->len,
+	                             (BMEdge **)BMO_SLOT_AS_BUFFER(einput), einput->len);
 }

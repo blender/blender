@@ -53,9 +53,6 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 	result = CDDM_from_bmesh(bm, FALSE);
 	BM_mesh_free(bm);
 
-	/* we don't really need to calc edges,
-	 * this is called to update the origindex values
-	 * This could be made into a different function? - Campbell */
 	CDDM_calc_edges(result);
 
 	CDDM_calc_normals(result);

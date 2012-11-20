@@ -913,7 +913,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 	/* go through and split edges */
 	for (i = 0; i < einput->len; i++) {
-		edge = ((BMEdge **)einput->data.p)[i];
+		edge = einput->data.buf[i];
 		bm_subdivide_multicut(bm, edge, &params, edge->v1, edge->v2);
 	}
 

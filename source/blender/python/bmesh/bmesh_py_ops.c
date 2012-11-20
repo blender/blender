@@ -147,7 +147,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						return NULL;
 					}
 					else {
-						slot->data.i = param;
+						BMO_SLOT_AS_BOOL(slot) = param;
 					}
 
 					break;
@@ -170,7 +170,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						return NULL;
 					}
 					else {
-						slot->data.i = (int)param;
+						BMO_SLOT_AS_INT(slot) = (int)param;
 					}
 					break;
 				}
@@ -184,7 +184,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						return NULL;
 					}
 					else {
-						slot->data.f = param;
+						BMO_SLOT_AS_FLOAT(slot) = param;
 					}
 					break;
 				}
@@ -217,7 +217,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 				case BMO_OP_SLOT_VEC:
 				{
 					/* passing slot name here is a bit non-descriptive */
-					if (mathutils_array_parse(slot->data.vec, 3, 3, value, slot_name) == -1) {
+					if (mathutils_array_parse(BMO_SLOT_AS_VECTOR(slot), 3, 3, value, slot_name) == -1) {
 						return NULL;
 					}
 					break;
@@ -271,7 +271,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 
 						i = 0;
 						BM_ITER_BPY_BM_SEQ (ele, &iter, ((BPy_BMElemSeq *)value)) {
-							((void **)slot->data.buf)[i] = (void *)ele;
+							slot->data.buf[i] = ele;
 							i++;
 						}
 					}
@@ -339,28 +339,29 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 			/* keep switch in same order as above */
 			switch (slot->slot_type) {
 				case BMO_OP_SLOT_BOOL:
-					item = PyBool_FromLong(slot->data.i);
+					item = PyBool_FromLong((BMO_SLOT_AS_BOOL(slot)));
 					break;
 				case BMO_OP_SLOT_INT:
-					item = PyLong_FromSsize_t((Py_ssize_t)slot->data.i);
+					item = PyLong_FromSsize_t(BMO_SLOT_AS_INT(slot));
 					break;
 				case BMO_OP_SLOT_FLT:
-					item = PyFloat_FromDouble((double)slot->data.f);
+					item = PyFloat_FromDouble((double)BMO_SLOT_AS_FLOAT(slot));
 					break;
 				case BMO_OP_SLOT_MAT:
-					item = Matrix_CreatePyObject(slot->data.p, 4, 4, Py_NEW, NULL);
+					item = Matrix_CreatePyObject((float *)BMO_SLOT_AS_MATRIX(slot), 4, 4, Py_NEW, NULL);
 					break;
 				case BMO_OP_SLOT_VEC:
-					item = Vector_CreatePyObject(slot->data.vec, slot->len, Py_NEW, NULL);
+					item = Vector_CreatePyObject(BMO_SLOT_AS_VECTOR(slot), slot->len, Py_NEW, NULL);
 					break;
 				case BMO_OP_SLOT_ELEMENT_BUF:
 				{
 					const int size = slot->len;
+					void **buffer = BMO_SLOT_AS_BUFFER(slot);
 					int j;
 
 					item = PyList_New(size);
 					for (j = 0; j < size; j++) {
-						BMHeader *ele = ((BMHeader **)slot->data.buf)[i];
+						BMHeader *ele = buffer[i];
 						PyList_SET_ITEM(item, j, ele ? BPy_BMElem_CreatePyObject(bm, ele) : (Py_INCREF(Py_None), Py_None));
 					}
 					break;

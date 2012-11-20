@@ -126,23 +126,31 @@ typedef struct BMOpSlot {
 		float f;
 		void *p;
 		float vec[3];
-		void *buf;
+		void **buf;
 		GHash *ghash;
 	} data;
 } BMOpSlot;
+
+/* mainly for use outside bmesh internal code */
+#define BMO_SLOT_AS_BOOL(slot)         ((slot)->data.i)
+#define BMO_SLOT_AS_INT(slot)          ((slot)->data.i)
+#define BMO_SLOT_AS_FLOAT(slot)        ((slot)->data.f)
+#define BMO_SLOT_AS_VECTOR(slot)       ((slot)->data.vec)
+#define BMO_SLOT_AS_MATRIX(slot )      ((float (*)[4])((slot)->data.p))
+#define BMO_SLOT_AS_BUFFER(slot )      ((slot)->data.buf)
+#define BMO_SLOT_AS_GHASH(slot )       ((slot)->data.ghash)
 
 /* way more than probably needed, compiler complains if limit hit */
 #define BMO_OP_MAX_SLOTS 16
 
 typedef struct BMOperator {
-	int type;
-	int slot_type;
-	int type_flag;
-	int flag;  /* runtime options */
 	struct BMOpSlot slots_in[BMO_OP_MAX_SLOTS];
 	struct BMOpSlot slots_out[BMO_OP_MAX_SLOTS];
 	void (*exec)(BMesh *bm, struct BMOperator *op);
 	struct MemArena *arena;
+	int type;
+	int type_flag;
+	int flag;  /* runtime options */
 } BMOperator;
 
 enum {
