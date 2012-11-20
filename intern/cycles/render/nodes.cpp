@@ -329,6 +329,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("filename", filename.c_str());
+	compiler.parameter("projection", projection);
 	if(is_float || color_space != "Color")
 		compiler.parameter("color_space", "Linear");
 	else

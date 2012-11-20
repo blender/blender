@@ -19,14 +19,44 @@
 #include "stdosl.h"
 #include "node_color.h"
 
+vector environment_texture_direction_to_equirectangular(vector dir) {
+	float u = -atan2(dir[1], dir[0])/(2.0*M_PI) + 0.5;
+	float v = atan2(dir[2], hypot(dir[0], dir[1]))/M_PI + 0.5;
+
+	return vector(u, v, 0.0);
+}
+
+vector environment_texture_direction_to_mirrorball(vector dir) {
+	dir[1] -= 1.0;
+
+	float div = 2.0*sqrt(max(-0.5*dir[1], 0.0));
+	if(div > 0.0)
+		dir /= div;
+
+	float u = 0.5*(dir[0] + 1.0);
+	float v = 0.5*(dir[2] + 1.0);
+
+	return vector(u, v, 0.0);
+}
+
 shader node_environment_texture(
 	vector Vector = P,
 	string filename = "",
+	string projection = "Equirectangular",
 	string color_space = "sRGB",
 	output color Color = color(0.0, 0.0, 0.0),
 	output float Alpha = 1.0)
 {
-	Color = (color)environment(filename, Vector, "alpha", Alpha);
+	vector Vec = normalize(Vector);
+
+	if (projection == "Equirectangular") {
+		Vec = environment_texture_direction_to_equirectangular(Vec);
+	}
+	else {
+		Vec = environment_texture_direction_to_mirrorball(Vec);
+	}
+
+	Color = (color)texture(filename, Vec[0], 1.0 - Vec[1], "wrap", "periodic", "alpha", Alpha);
 
 	if (color_space == "sRGB")
 		Color = color_srgb_to_scene_linear(Color);
