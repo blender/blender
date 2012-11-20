@@ -187,6 +187,8 @@ float noise_musgrave_ridged_multi_fractal(point p, string basis, float H,
 /* Shader */
 
 shader node_musgrave_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	string Type = "fBM",
 	float Dimension = 2.0,
 	float Lacunarity = 1.0,
@@ -204,7 +206,12 @@ shader node_musgrave_texture(
 	string Basis = "Perlin";
 	float intensity = 1.0;
 
-	point p = Vector * Scale;
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
+	p = p * Scale;
 
 	if (Type == "Multifractal")
 		Fac = intensity * noise_musgrave_multi_fractal(p, Basis, dimension, lacunarity, octaves);

@@ -30,6 +30,8 @@ color image_texture_lookup(string filename, string color_space, float u, float v
 }
 
 shader node_image_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	point Vector = P,
 	string filename = "",
 	string color_space = "sRGB",
@@ -38,8 +40,13 @@ shader node_image_texture(
 	output color Color = color(0.0, 0.0, 0.0),
 	output float Alpha = 1.0)
 {
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
 	if (projection == "Flat") {
-		Color = image_texture_lookup(filename, color_space, Vector[0], Vector[1], Alpha);
+		Color = image_texture_lookup(filename, color_space, p[0], p[1], Alpha);
 	}
 	else if (projection == "Box") {
 		/* object space normal */
@@ -104,15 +111,15 @@ shader node_image_texture(
 		float tmp_alpha;
 
 		if (weight[0] > 0.0) {
-			Color += weight[0]*image_texture_lookup(filename, color_space, Vector[1], Vector[2], tmp_alpha);
+			Color += weight[0]*image_texture_lookup(filename, color_space, p[1], p[2], tmp_alpha);
 			Alpha += weight[0]*tmp_alpha;
 		}
 		if (weight[1] > 0.0) {
-			Color += weight[1]*image_texture_lookup(filename, color_space, Vector[0], Vector[2], tmp_alpha);
+			Color += weight[1]*image_texture_lookup(filename, color_space, p[0], p[2], tmp_alpha);
 			Alpha += weight[1]*tmp_alpha;
 		}
 		if (weight[2] > 0.0) {
-			Color += weight[2]*image_texture_lookup(filename, color_space, Vector[1], Vector[0], tmp_alpha);
+			Color += weight[2]*image_texture_lookup(filename, color_space, p[1], p[0], tmp_alpha);
 			Alpha += weight[2]*tmp_alpha;
 		}
 	}

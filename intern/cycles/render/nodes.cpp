@@ -100,6 +100,16 @@ void TextureMapping::compile(SVMCompiler& compiler, int offset_in, int offset_ou
 	}
 }
 
+void TextureMapping::compile(OSLCompiler &compiler)
+{
+	if(!skip()) {
+		Transform tfm = transform_transpose(compute_transform());
+
+		compiler.parameter("mapping", tfm);
+		compiler.parameter("use_mapping", 1);
+	}
+}
+
 /* Image Texture */
 
 static ShaderEnum color_space_init()
@@ -130,7 +140,7 @@ ImageTextureNode::ImageTextureNode()
 {
 	image_manager = NULL;
 	slot = -1;
-	is_float = false;
+	is_float = -1;
 	filename = "";
 	color_space = ustring("Color");
 	projection = ustring("Flat");;
@@ -152,7 +162,7 @@ ShaderNode *ImageTextureNode::clone() const
 	ImageTextureNode *node = new ImageTextureNode(*this);
 	node->image_manager = NULL;
 	node->slot = -1;
-	node->is_float = false;
+	node->is_float = -1;
 	return node;
 }
 
@@ -163,8 +173,11 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 	ShaderOutput *alpha_out = output("Alpha");
 
 	image_manager = compiler.image_manager;
-	if(slot == -1)
-		slot = image_manager->add_image(filename, is_float);
+	if(is_float == -1) {
+		bool is_float_bool;
+		slot = image_manager->add_image(filename, is_float_bool);
+		is_float = (int)is_float_bool;
+	}
 
 	if(!color_out->links.empty())
 		compiler.stack_assign(color_out);
@@ -220,6 +233,11 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 
 void ImageTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
+	if(is_float == -1)
+		is_float = (int)image_manager->is_float_image(filename);
+
 	compiler.parameter("filename", filename.c_str());
 	if(is_float || color_space != "Color")
 		compiler.parameter("color_space", "Linear");
@@ -250,7 +268,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 {
 	image_manager = NULL;
 	slot = -1;
-	is_float = false;
+	is_float = -1;
 	filename = "";
 	color_space = ustring("Color");
 	projection = ustring("Equirectangular");
@@ -271,7 +289,7 @@ ShaderNode *EnvironmentTextureNode::clone() const
 	EnvironmentTextureNode *node = new EnvironmentTextureNode(*this);
 	node->image_manager = NULL;
 	node->slot = -1;
-	node->is_float = false;
+	node->is_float = -1;
 	return node;
 }
 
@@ -282,8 +300,11 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 	ShaderOutput *alpha_out = output("Alpha");
 
 	image_manager = compiler.image_manager;
-	if(slot == -1)
-		slot = image_manager->add_image(filename, is_float);
+	if(slot == -1) {
+		bool is_float_bool;
+		slot = image_manager->add_image(filename, is_float_bool);
+		is_float = (int)is_float_bool;
+	}
 
 	if(!color_out->links.empty())
 		compiler.stack_assign(color_out);
@@ -328,6 +349,11 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 
 void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
+	if(is_float == -1)
+		is_float = (int)image_manager->is_float_image(filename);
+
 	compiler.parameter("filename", filename.c_str());
 	compiler.parameter("projection", projection);
 	if(is_float || color_space != "Color")
@@ -439,6 +465,8 @@ void SkyTextureNode::compile(SVMCompiler& compiler)
 
 void SkyTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.parameter_vector("sun_direction", sun_direction);
 	compiler.parameter("turbidity", turbidity);
 	compiler.add(this, "node_sky_texture");
@@ -502,6 +530,8 @@ void GradientTextureNode::compile(SVMCompiler& compiler)
 
 void GradientTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.parameter("Type", type);
 	compiler.add(this, "node_gradient_texture");
 }
@@ -560,6 +590,8 @@ void NoiseTextureNode::compile(SVMCompiler& compiler)
 
 void NoiseTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.add(this, "node_noise_texture");
 }
 
@@ -620,6 +652,8 @@ void VoronoiTextureNode::compile(SVMCompiler& compiler)
 
 void VoronoiTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.parameter("Coloring", coloring);
 	compiler.add(this, "node_voronoi_texture");
 }
@@ -707,6 +741,8 @@ void MusgraveTextureNode::compile(SVMCompiler& compiler)
 
 void MusgraveTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.parameter("Type", type);
 
 	compiler.add(this, "node_musgrave_texture");
@@ -785,6 +821,8 @@ void WaveTextureNode::compile(SVMCompiler& compiler)
 
 void WaveTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.parameter("Type", type);
 
 	compiler.add(this, "node_wave_texture");
@@ -842,6 +880,8 @@ void MagicTextureNode::compile(SVMCompiler& compiler)
 
 void MagicTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.parameter("Depth", depth);
 	compiler.add(this, "node_magic_texture");
 }
@@ -898,6 +938,8 @@ void CheckerTextureNode::compile(SVMCompiler& compiler)
 
 void CheckerTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.add(this, "node_checker_texture");
 }
 
@@ -986,6 +1028,8 @@ void BrickTextureNode::compile(SVMCompiler& compiler)
 
 void BrickTextureNode::compile(OSLCompiler& compiler)
 {
+	tex_mapping.compile(compiler);
+
 	compiler.parameter("Offset", offset);
 	compiler.parameter("OffsetFrequency", offset_frequency);
 	compiler.parameter("Squash", squash);

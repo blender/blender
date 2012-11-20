@@ -67,7 +67,7 @@ void ImageManager::set_extended_image_limits(void)
 	tex_image_byte_start = TEX_EXTENDED_IMAGE_BYTE_START;
 }
 
-static bool is_float_image(const string& filename)
+bool ImageManager::is_float_image(const string& filename)
 {
 	ImageInput *in = ImageInput::create(filename);
 	bool is_float = false;

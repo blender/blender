@@ -81,7 +81,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		if(shader->sample_as_light && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
-		OSLCompiler compiler((void*)this, (void*)ss);
+		OSLCompiler compiler((void*)this, (void*)ss, scene->image_manager);
 		compiler.background = (shader == scene->shaders[scene->default_background]);
 		compiler.compile(og, shader);
 	}
@@ -286,10 +286,11 @@ const char *OSLShaderManager::shader_load_bytecode(const string& hash, const str
 
 /* Graph Compiler */
 
-OSLCompiler::OSLCompiler(void *manager_, void *shadingsys_)
+OSLCompiler::OSLCompiler(void *manager_, void *shadingsys_, ImageManager *image_manager_)
 {
 	manager = manager_;
 	shadingsys = shadingsys_;
+	image_manager = image_manager_;
 	current_type = SHADER_TYPE_SURFACE;
 	current_shader = NULL;
 	background = false;

@@ -40,6 +40,8 @@ vector environment_texture_direction_to_mirrorball(vector dir) {
 }
 
 shader node_environment_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	vector Vector = P,
 	string filename = "",
 	string projection = "Equirectangular",
@@ -47,16 +49,20 @@ shader node_environment_texture(
 	output color Color = color(0.0, 0.0, 0.0),
 	output float Alpha = 1.0)
 {
-	vector Vec = normalize(Vector);
+	vector p = Vector;
 
-	if (projection == "Equirectangular") {
-		Vec = environment_texture_direction_to_equirectangular(Vec);
-	}
-	else {
-		Vec = environment_texture_direction_to_mirrorball(Vec);
-	}
+	if (use_mapping)
+		p = transform(mapping, p);
+	
+	p = normalize(p);
 
-	Color = (color)texture(filename, Vec[0], 1.0 - Vec[1], "wrap", "periodic", "alpha", Alpha);
+	if (projection == "Equirectangular")
+		p = environment_texture_direction_to_equirectangular(p);
+	else
+		p = environment_texture_direction_to_mirrorball(p);
+
+	/* todo: use environment for better texture filtering of equirectangular */
+	Color = (color)texture(filename, p[0], 1.0 - p[1], "wrap", "periodic", "alpha", Alpha);
 
 	if (color_space == "sRGB")
 		Color = color_srgb_to_scene_linear(Color);

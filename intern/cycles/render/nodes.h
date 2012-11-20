@@ -36,6 +36,7 @@ public:
 	Transform compute_transform();
 	bool skip();
 	void compile(SVMCompiler& compiler, int offset_in, int offset_out);
+	void compile(OSLCompiler &compiler);
 
 	float3 translation;
 	float3 rotation;
@@ -67,7 +68,7 @@ public:
 
 	ImageManager *image_manager;
 	int slot;
-	bool is_float;
+	int is_float;
 	string filename;
 	ustring color_space;
 	ustring projection;
@@ -85,7 +86,7 @@ public:
 
 	ImageManager *image_manager;
 	int slot;
-	bool is_float;
+	int is_float;
 	string filename;
 	ustring color_space;
 	ustring projection;

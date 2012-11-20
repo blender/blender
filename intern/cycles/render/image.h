@@ -53,6 +53,7 @@ public:
 
 	int add_image(const string& filename, bool& is_float);
 	void remove_image(const string& filename);
+	bool is_float_image(const string& filename);
 
 	void device_update(Device *device, DeviceScene *dscene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);

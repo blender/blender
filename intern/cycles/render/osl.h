@@ -83,7 +83,7 @@ protected:
 
 class OSLCompiler {
 public:
-	OSLCompiler(void *manager, void *shadingsys);
+	OSLCompiler(void *manager, void *shadingsys, ImageManager *image_manager);
 	void compile(OSLGlobals *og, Shader *shader);
 
 	void add(ShaderNode *node, const char *name, bool isfilepath = false);
@@ -110,6 +110,7 @@ public:
 	ShaderType output_type() { return current_type; }
 
 	bool background;
+	ImageManager *image_manager;
 
 private:
 	string id(ShaderNode *node);
