@@ -256,7 +256,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 
 	/* transfer all marked faces to the output slot */
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faceout", BM_FACE, FACE_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_MARK);
 #undef FACE_MARK
 }
 
@@ -474,7 +474,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 
 	/* transfer all marked edges to the output slot */
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edgeout", BM_EDGE, EDGE_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_MARK);
 
 #undef EDGE_MARK
 }
@@ -608,7 +608,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 	MEM_freeN(v_ext);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "vertout", BM_VERT, VERT_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 
 #undef VERT_MARK
 }

@@ -108,7 +108,7 @@ void bmo_slide_vert_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* Return the new edge. The same previously marked with VERT_MARK */
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "vertout", BM_VERT, VERT_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 	return;
 }
 

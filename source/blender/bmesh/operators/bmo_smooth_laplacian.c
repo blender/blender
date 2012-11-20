@@ -78,7 +78,7 @@ static void delete_laplacian_system(LaplacianSystem *sys);
 static void delete_void_pointer(void *data);
 static void fill_laplacian_matrix(LaplacianSystem *sys);
 static void memset_laplacian_system(LaplacianSystem *sys, int val);
-static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int volumepreservation);
+static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int preserve_volume);
 static void volume_preservation(BMOperator *op, float vini, float vend, int usex, int usey, int usez);
 
 static void delete_void_pointer(void *data)
@@ -478,7 +478,7 @@ static void volume_preservation(BMOperator *op, float vini, float vend, int usex
 	}
 }
 
-static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int volumepreservation)
+static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int preserve_volume)
 {
 	int m_vertex_id;
 	float leni, lene;
@@ -509,7 +509,7 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 		}
 	}
 
-	if (volumepreservation) {
+	if (preserve_volume) {
 		vini = compute_volume(sys->bm);
 	}
 	BMO_ITER (v, &siter, sys->op->slots_in, "verts", BM_VERT) {
@@ -526,7 +526,7 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 			}
 		}
 	}
-	if (volumepreservation) {
+	if (preserve_volume) {
 		vend = compute_volume(sys->bm);
 		volume_preservation(sys->op, vini, vend, usex, usey, usez);
 	}
@@ -537,7 +537,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 {
 	int i;
 	int m_vertex_id;
-	int usex, usey, usez, volumepreservation;
+	int usex, usey, usez, preserve_volume;
 	float lambda, lambda_border;
 	float w;
 	BMOIter siter;
@@ -558,7 +558,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	usex = BMO_slot_bool_get(op->slots_in, "use_x");
 	usey = BMO_slot_bool_get(op->slots_in, "use_y");
 	usez = BMO_slot_bool_get(op->slots_in, "use_z");
-	volumepreservation = BMO_slot_bool_get(op->slots_in, "volume_preservation");
+	preserve_volume = BMO_slot_bool_get(op->slots_in, "preserve_volume");
 
 
 	nlNewContext();
@@ -612,7 +612,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	nlEnd(NL_SYSTEM);
 
 	if (nlSolveAdvanced(NULL, NL_TRUE) ) {
-		validate_solution(sys, usex, usey, usez, volumepreservation);
+		validate_solution(sys, usex, usey, usez, preserve_volume);
 	}
 
 	delete_laplacian_system(sys);

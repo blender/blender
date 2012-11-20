@@ -184,7 +184,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		goto cleanup;
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "regionout", BM_FACE, FACE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
 
 cleanup:
 	/* free/cleanup */
@@ -237,7 +237,7 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	//BMO_op_initf(bm, &fop, "dissolve_faces faces=%ff", FACE_MARK);
 	//BMO_op_exec(bm, &fop);
 
-	//BMO_slot_copy(op, &fop, "regionout", "regionout");
+	//BMO_slot_copy(op, &fop, "region.out", "region.out");
 
 	//BMO_op_finish(bm, &fop);
 }

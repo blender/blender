@@ -658,6 +658,6 @@ void bmo_symmetrize_exec(BMesh *bm, BMOperator *op)
 	BLI_ghash_free(symm.vert_symm_map, NULL, NULL);
 	BLI_ghash_free(symm.edge_split_map, NULL, NULL);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geomout",
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out",
 	                                  BM_ALL, SYMM_OUTPUT_GEOM);
 }

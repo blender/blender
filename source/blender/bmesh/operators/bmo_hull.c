@@ -139,17 +139,17 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 				f = BM_face_create_quad_tri_v(bm, t->v, 3, example, TRUE);
 				BM_face_copy_shared(bm, f);
 			}
-			/* Mark face for 'geomout' slot and select */
+			/* Mark face for 'geom.out' slot and select */
 			BMO_elem_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
 			BM_face_select_set(bm, f, TRUE);
 
-			/* Mark edges for 'geomout' slot */
+			/* Mark edges for 'geom.out' slot */
 			for (i = 0; i < 3; i++) {
 				BMO_elem_flag_enable(bm, edges[i], HULL_FLAG_OUTPUT_GEOM);
 			}
 		}
 		else {
-			/* Mark input edges for 'geomout' slot */
+			/* Mark input edges for 'geom.out' slot */
 			for (i = 0; i < 3; i++) {
 				const int next = (i == 2 ? 0 : i + 1);
 				BMEdge *e = BM_edge_exists(t->v[i], t->v[next]);
@@ -161,7 +161,7 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 			}
 		}
 
-		/* Mark verts for 'geomout' slot */
+		/* Mark verts for 'geom.out' slot */
 		for (i = 0; i < 3; i++) {
 			BMO_elem_flag_enable(bm, t->v[i], HULL_FLAG_OUTPUT_GEOM);
 		}
@@ -603,22 +603,22 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 
 	/* Output slot of input elements that ended up inside the hull
 	 * rather than part of it */
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "interior_geom_out",
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_interior.out",
 	                                  BM_ALL, HULL_FLAG_INTERIOR_ELE);
 
 	/* Output slot of input elements that ended up inside the hull and
 	 * are are unused by other geometry. */
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "unused_geom_out",
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_unused.out",
 	                                  BM_ALL, HULL_FLAG_DEL);
 
 	/* Output slot of faces and edges that were in the input and on
 	 * the hull (useful for cases like bridging where you want to
 	 * delete some input geometry) */
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "holes_geom_out",
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_holes.out",
 	                                  BM_ALL, HULL_FLAG_HOLE);
 
 	/* Output slot of all hull vertices, faces, and edges */
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geomout",
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out",
 	                                  BM_ALL, HULL_FLAG_OUTPUT_GEOM);
 }
 

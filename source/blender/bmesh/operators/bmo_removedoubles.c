@@ -573,7 +573,7 @@ void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op)
 void bmo_find_doubles_exec(BMesh *bm, BMOperator *op)
 {
 	bmesh_find_doubles_common(bm, op,
-	                          op, op->slots_out, "targetmapout");
+	                          op, op->slots_out, "targetmap.out");
 }
 
 void bmo_automerge_exec(BMesh *bm, BMOperator *op)
@@ -601,7 +601,7 @@ void bmo_automerge_exec(BMesh *bm, BMOperator *op)
 
 	/* weld the vertices */
 	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
-	BMO_slot_copy(&findop, slots_out, "targetmapout",
+	BMO_slot_copy(&findop, slots_out, "targetmap.out",
 	              &weldop, slots_in,  "targetmap");
 	BMO_op_exec(bm, &weldop);
 

@@ -423,5 +423,5 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(verts_pos);
 	MEM_freeN(verts_loop);
 
-	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faceout", BM_FACE, BM_ELEM_TAG);
+	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 }

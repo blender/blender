@@ -1131,7 +1131,7 @@ enum {
 #define MOD_LAPLACIANSMOOTH_X (1<<1)
 #define MOD_LAPLACIANSMOOTH_Y (1<<2)
 #define MOD_LAPLACIANSMOOTH_Z (1<<3)
-#define MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION (1<<4)
+#define MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME (1 << 4)
 
 typedef struct LaplacianSmoothModifierData {
 	ModifierData modifier;

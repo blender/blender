@@ -50,7 +50,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	float mtx[4][4];
 	float imtx[4][4];
 	float scale[3] = {1.0f, 1.0f, 1.0f};
-	float dist = BMO_slot_float_get(op->slots_in, "mergedist");
+	float dist = BMO_slot_float_get(op->slots_in, "merge_dist");
 	int i, ototvert /*, ototedge */;
 	int axis = BMO_slot_int_get(op->slots_in, "axis");
 	int mirroru = BMO_slot_bool_get(op->slots_in, "mirror_u");
@@ -65,12 +65,12 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_initf(bm, &dupeop, op->flag, "duplicate geom=%s", op, "geom");
 	BMO_op_exec(bm, &dupeop);
 	
-	BMO_slot_buffer_flag_enable(bm, dupeop.slots_out, "newout", BM_ALL, ELE_NEW);
+	BMO_slot_buffer_flag_enable(bm, dupeop.slots_out, "geom.out", BM_ALL, ELE_NEW);
 
 	/* create old -> new mappin */
 	i = 0;
 	/* v2 = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); */ /* UNUSED */
-	BMO_ITER (v, &siter, dupeop.slots_out, "newout", BM_VERT) {
+	BMO_ITER (v, &siter, dupeop.slots_out, "geom.out", BM_VERT) {
 		BLI_array_grow_one(vmap);
 		vmap[i] = v;
 		/* v2 = BM_iter_step(&iter); */ /* UNUSED */
@@ -101,7 +101,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 		int totlayer;
 		BMIter liter;
 
-		BMO_ITER (f, &siter, dupeop.slots_out, "newout", BM_FACE) {
+		BMO_ITER (f, &siter, dupeop.slots_out, "geom.out", BM_FACE) {
 			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 				totlayer = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
 				for (i = 0; i < totlayer; i++) {
@@ -120,7 +120,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &weldop);
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "newout", BM_ALL, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL, ELE_NEW);
 
 	BLI_array_free(vmap);
 	BLI_array_free(emap);

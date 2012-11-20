@@ -117,7 +117,7 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edgeout", BM_EDGE, EDGE_OUT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
 
 	BLI_array_free(loops_split);
 	BLI_array_free(verts_pair);
@@ -523,7 +523,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faceout", BM_FACE, FACE_OUT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 
 cleanup:
 	BLI_array_free(ee1);

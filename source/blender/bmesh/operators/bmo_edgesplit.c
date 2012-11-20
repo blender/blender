@@ -169,5 +169,5 @@ void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edgeout", BM_EDGE, BM_ELEM_INTERNAL_TAG);
+	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_INTERNAL_TAG);
 }

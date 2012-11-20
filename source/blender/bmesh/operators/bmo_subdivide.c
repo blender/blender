@@ -719,12 +719,12 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, SUBD_SPLIT);
 	
-	numcuts = BMO_slot_int_get(op->slots_in, "numcuts");
+	numcuts = BMO_slot_int_get(op->slots_in, "cuts");
 	seed = BMO_slot_int_get(op->slots_in, "seed");
 	smooth = BMO_slot_float_get(op->slots_in, "smooth");
 	fractal = BMO_slot_float_get(op->slots_in, "fractal");
 	along_normal = BMO_slot_float_get(op->slots_in, "along_normal");
-	cornertype = BMO_slot_int_get(op->slots_in, "quadcornertype");
+	cornertype = BMO_slot_int_get(op->slots_in, "quad_corner_type");
 
 	use_singleedge = BMO_slot_bool_get(op->slots_in, "use_singleedge");
 	use_gridfill   = BMO_slot_bool_get(op->slots_in, "use_gridfill");
@@ -1074,10 +1074,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(loops_split);
 	BLI_array_free(loops);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "innerout", BM_ALL, ELE_INNER);
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "splitout", BM_ALL, ELE_SPLIT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_inner.out", BM_ALL, ELE_INNER);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_split.out", BM_ALL, ELE_SPLIT);
 	
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geomout", BM_ALL, ELE_INNER | ELE_SPLIT | SUBD_SPLIT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL, ELE_INNER | ELE_SPLIT | SUBD_SPLIT);
 }
 
 /* editmesh-emulating function */
@@ -1094,8 +1094,8 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	BMO_op_initf(bm, &op, BMO_FLAG_DEFAULTS,
 	             "subdivide_edges edges=%he "
 	             "smooth=%f fractal=%f along_normal=%f "
-	             "numcuts=%i "
-	             "quadcornertype=%i "
+	             "cuts=%i "
+	             "quad_corner_type=%i "
 	             "use_singleedge=%b use_gridfill=%b "
 	             "seed=%i",
 	             edge_hflag,
@@ -1111,7 +1111,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 		BMOIter iter;
 		BMElem *ele;
 
-		for (ele = BMO_iter_new(&iter, op.slots_out, "innerout", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
+		for (ele = BMO_iter_new(&iter, op.slots_out, "geom_inner.out", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
 			BM_elem_select_set(bm, ele, TRUE);
 		}
 	}
@@ -1122,7 +1122,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 		/* deselect input */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 
-		for (ele = BMO_iter_new(&iter, op.slots_out, "innerout", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
+		for (ele = BMO_iter_new(&iter, op.slots_out, "geom_inner.out", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
 			BM_elem_select_set(bm, ele, TRUE);
 
 			if (ele->head.htype == BM_VERT) {
@@ -1157,7 +1157,7 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 	SubDParams params = {0};
 	int skey;
 	
-	params.numcuts = BMO_slot_int_get(op->slots_in, "numcuts");
+	params.numcuts = BMO_slot_int_get(op->slots_in, "cuts");
 	params.op = op;
 	
 	BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
@@ -1170,7 +1170,7 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 		bm_subdivide_multicut(bm, e, &params, e->v1, e->v2);
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "splitout", BM_ALL, ELE_SPLIT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_split.out", BM_ALL, ELE_SPLIT);
 
 	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
 }

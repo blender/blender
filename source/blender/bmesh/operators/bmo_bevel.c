@@ -56,6 +56,6 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 
 		BM_mesh_bevel(bm, offset, seg);
 
-		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faceout", BM_FACE, BM_ELEM_TAG);
+		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 	}
 }

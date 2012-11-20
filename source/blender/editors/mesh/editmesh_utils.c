@@ -494,11 +494,11 @@ void EDBM_select_more(BMEditMesh *em)
 	int use_faces = em->selectmode == SCE_SELECT_FACE;
 
 	BMO_op_initf(em->bm, &bmop, BMO_FLAG_DEFAULTS,
-	             "region_extend geom=%hvef constrict=%b use_faces=%b",
+	             "region_extend geom=%hvef use_constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, FALSE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
 	/* don't flush selection in edge/vertex mode  */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geomout", BM_ALL, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_select_flush(em);
@@ -510,11 +510,11 @@ void EDBM_select_less(BMEditMesh *em)
 	int use_faces = em->selectmode == SCE_SELECT_FACE;
 
 	BMO_op_initf(em->bm, &bmop, BMO_FLAG_DEFAULTS,
-	             "region_extend geom=%hvef constrict=%b use_faces=%b",
+	             "region_extend geom=%hvef use_constrict=%b use_faces=%b",
 	             BM_ELEM_SELECT, TRUE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
 	/* don't flush selection in edge/vertex mode  */
-	BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "geomout", BM_ALL, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
+	BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "geom.out", BM_ALL, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);

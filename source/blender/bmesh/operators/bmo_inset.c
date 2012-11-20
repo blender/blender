@@ -481,7 +481,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* we could flag new edges/verts too, is it useful? */
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faceout", BM_FACE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_NEW);
 
 	/* cheap feature to add depth to the inset */
 	if (depth != 0.0f) {

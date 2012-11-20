@@ -911,7 +911,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	vdata = MEM_callocN(sizeof(VertData) * bm->totvert, "VertData");
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
-	BMO_slot_buffer_flag_enable(bm, op->slots_in, "excludefaces", BM_FACE, FACE_IGNORE);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "exclude_faces", BM_FACE, FACE_IGNORE);
 	
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
@@ -1055,7 +1055,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				}
 
 				if (use_restrict) {
-					BMO_slot_map_int_insert(op, op->slots_out, "face_groupmap_out", f, path->group);
+					BMO_slot_map_int_insert(op, op->slots_out, "face_groupmap.out", f, path->group);
 				}
 			}
 		}
@@ -1063,7 +1063,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 		edge_free_path(pathbase, path);
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faceout", BM_FACE, FACE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_NEW);
 
 	BLI_array_free(edges);
 	BLI_array_free(verts);
@@ -1260,7 +1260,7 @@ void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edgeout", BM_EDGE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_NEW);
 
 	BLI_array_free(edges1);
 	BLI_array_free(edges2);
@@ -1366,7 +1366,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	/* call edgenet prepare op so additional face creation cases wore */
 	BMO_op_initf(bm, &op2, op->flag, "edgenet_prepare edges=%fe", ELE_NEW);
 	BMO_op_exec(bm, &op2);
-	BMO_slot_buffer_flag_enable(bm, op2.slots_out, "edgeout", BM_EDGE, ELE_NEW);
+	BMO_slot_buffer_flag_enable(bm, op2.slots_out, "edges.out", BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &op2);
 
 	BMO_op_initf(bm, &op2, op->flag,
@@ -1376,9 +1376,9 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_op_exec(bm, &op2);
 
 	/* return if edge net create did something */
-	if (BMO_slot_buffer_count(op2.slots_out, "faceout")) {
-		BMO_slot_copy(&op2, slots_out, "faceout",
-		              op,   slots_out, "faceout");
+	if (BMO_slot_buffer_count(op2.slots_out, "faces.out")) {
+		BMO_slot_copy(&op2, slots_out, "faces.out",
+		              op,   slots_out, "faces.out");
 		BMO_op_finish(bm, &op2);
 		return;
 	}
@@ -1390,9 +1390,9 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMO_op_exec(bm, &op2);
 	
 	/* if we dissolved anything, then return */
-	if (BMO_slot_buffer_count(op2.slots_out, "regionout")) {
-		BMO_slot_copy(&op2, slots_out, "regionout",
-		              op,   slots_out,  "faceout");
+	if (BMO_slot_buffer_count(op2.slots_out, "region.out")) {
+		BMO_slot_copy(&op2, slots_out, "region.out",
+		              op,   slots_out,  "faces.out");
 		BMO_op_finish(bm, &op2);
 		return;
 	}
@@ -1416,7 +1416,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		/* create edge */
 		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
 		BMO_elem_flag_enable(bm, e, ELE_OUT);
-		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edgeout", BM_EDGE, ELE_OUT);
+		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_OUT);
 	}
 	else if (0) { /* nice feature but perhaps it should be a different tool? */
 
@@ -1462,7 +1462,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 				}
 			}
 		}
-		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edgeout", BM_EDGE, ELE_OUT);
+		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_OUT);
 		/* done creating edges */
 	}
 	else if (amount > 2) {

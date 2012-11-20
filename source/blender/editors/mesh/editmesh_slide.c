@@ -741,7 +741,7 @@ static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_u
 	BMO_slot_buffer_hflag_disable(bm, bmop.slots_in, "edge", BM_ALL, BM_ELEM_SELECT, TRUE);
 
 	/* Select the output vert */
-	BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "vertout", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "verts.out", BM_ALL, BM_ELEM_SELECT, TRUE);
 
 	/* Flush the select buffers */
 	EDBM_selectmode_flush(em);

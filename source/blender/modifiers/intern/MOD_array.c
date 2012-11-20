@@ -185,7 +185,7 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 		i++;
 	}
 
-	BMO_ITER (ele, &oiter, dupe_op->slots_out, "newout", BM_ALL) {
+	BMO_ITER (ele, &oiter, dupe_op->slots_out, "geom.out", BM_ALL) {
 		BM_elem_index_set(ele, i); /* set_dirty */
 		i++;
 	}
@@ -197,7 +197,7 @@ static int *find_doubles_index_map(BMesh *bm, BMOperator *dupe_op,
 	index_map = MEM_callocN(sizeof(int) * (*index_map_length), "index_map");
 
 	/*element type argument doesn't do anything here*/
-	BMO_ITER (v, &oiter, find_op.slots_out, "targetmapout", 0) {
+	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
 		v2 = BMO_iter_map_value_p(&oiter);
 
 		index_map[BM_elem_index_get(v)] = BM_elem_index_get(v2) + 1;
@@ -267,7 +267,7 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 		BMO_op_exec(bm, &find_op);
 
 		/* add new merge targets to weld operator */
-		BMO_ITER (v, &oiter, find_op.slots_out, "targetmapout", 0) {
+		BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
 			v2 = BMO_iter_map_value_p(&oiter);
 			/* check in case the target vertex (v2) is already marked
 			 * for merging */
@@ -307,12 +307,12 @@ static void merge_first_last(BMesh *bm,
 
 	/* append the last dupe's geom to the findop input verts */
 	BMO_slot_buffer_append(&find_op,  slots_in,  "verts",
-	                       dupe_last, slots_out, "newout");
+	                       dupe_last, slots_out, "geom.out");
 
 	BMO_op_exec(bm, &find_op);
 
 	/* add new merge targets to weld operator */
-	BMO_ITER (v, &oiter, find_op.slots_out, "targetmapout", 0) {
+	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
 		v2 = BMO_iter_map_value_p(&oiter);
 		BMO_slot_map_ptr_insert(weld_op, weld_op->slots_in, "targetmap", v, v2);
 	}
@@ -437,18 +437,18 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	for (j = 0; j < count - 1; j++) {
 		BMVert *v, *v2, *v3;
 		BMOpSlot *geom_slot;
-		BMOpSlot *newout_slot;
+		BMOpSlot *geom_out_slot;
 		BMOIter oiter;
 
 		if (j != 0) {
 			BMO_op_initf(bm, &dupe_op,
 			             (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
-			             "duplicate geom=%S", &old_dupe_op, "newout");
+			             "duplicate geom=%S", &old_dupe_op, "geom.out");
 		}
 		BMO_op_exec(bm, &dupe_op);
 
 		geom_slot   = BMO_slot_get(dupe_op.slots_in,  "geom");
-		newout_slot = BMO_slot_get(dupe_op.slots_out, "newout");
+		geom_out_slot = BMO_slot_get(dupe_op.slots_out, "geom.out");
 
 		if ((amd->flags & MOD_ARR_MERGEFINAL) && j == 0) {
 			int first_geom_bytes = sizeof(BMVert *) * geom_slot->len;
@@ -460,7 +460,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		}
 
 		/* apply transformation matrix */
-		BMO_ITER (v, &oiter, dupe_op.slots_out, "newout", BM_VERT) {
+		BMO_ITER (v, &oiter, dupe_op.slots_out, "geom.out", BM_VERT) {
 			mul_m4_v3(offset, v->co);
 		}
 
@@ -479,8 +479,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			for (i = 0; i < index_len; i++) {
 				if (!indexMap[i]) continue;
 
-				/* merge v (from 'newout') into v2 (from old 'geom') */
-				v = _E(newout_slot, i - geom_slot->len);
+				/* merge v (from 'geom.out') into v2 (from old 'geom') */
+				v = _E(geom_out_slot, i - geom_slot->len);
 				v2 = _E(geom_slot, indexMap[i] - 1);
 
 				/* check in case the target vertex (v2) is already marked
@@ -533,7 +533,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			mult_m4_m4m4(endoffset, offset, final_offset);
 			bm_merge_dm_transform(bm, end_cap, endoffset, amd,
 			                      &dupe_op, (count == 1) ? dupe_op.slots_in : dupe_op.slots_out,
-			                      (count == 1) ? "geom" : "newout", &weld_op);
+			                      (count == 1) ? "geom" : "geom.out", &weld_op);
 		}
 	}
 	/* done capping */
