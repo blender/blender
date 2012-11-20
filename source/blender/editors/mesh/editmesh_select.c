@@ -2238,6 +2238,8 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 			return OPERATOR_CANCELLED;
 
 		if (limit) {
+			/* grr, shouldn't need to alloc BMO flags here */
+			BM_mesh_elem_toolflags_ensure(bm);
 			/* hflag no-seam --> bmo-tag */
 			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 				/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
@@ -2330,7 +2332,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		}
 
 		if (limit) {
-			/* grr, shouldn't need to alloca BMO flags here */
+			/* grr, shouldn't need to alloc BMO flags here */
 			BM_mesh_elem_toolflags_ensure(bm);
 			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 				/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
@@ -2500,6 +2502,9 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 			mask_face = BM_ELEM_SELECT;
 			break;
 	}
+
+	/* grr, shouldn't need to alloc BMO flags here */
+	BM_mesh_elem_toolflags_ensure(bm);
 
 	/* Walker restrictions uses BMO flags, not header flags,
 	 * so transfer BM_ELEM_SELECT from HFlags onto a BMO flag layer. */
