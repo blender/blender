@@ -367,9 +367,28 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 					break;
 				}
 				case BMO_OP_SLOT_MAPPING:
-					item = (Py_INCREF(Py_None), Py_None);
-					// TODO
+				{
+					GHash *slot_hash = BMO_SLOT_AS_GHASH(slot);
+					GHashIterator *hash_iter;
+					item = PyDict_New();
+
+					for (hash_iter = BLI_ghashIterator_new(slot_hash);
+					     !BLI_ghashIterator_isDone(hash_iter);
+					     BLI_ghashIterator_step(hash_iter) )
+					{
+						BMHeader  *ele_key = BLI_ghashIterator_getKey(hash_iter);
+						BMHeader **ele_val = BLI_ghashIterator_getValue(hash_iter);
+
+						PyObject *py_key =  ele_key ? BPy_BMElem_CreatePyObject(bm,  ele_key) : (Py_INCREF(Py_None), Py_None);
+						PyObject *py_val = *ele_val ? BPy_BMElem_CreatePyObject(bm, *ele_val) : (Py_INCREF(Py_None), Py_None);
+
+						PyDict_SetItem(ret, py_key, py_val);
+						Py_DECREF(py_key);
+						Py_DECREF(py_val);
+					}
+					BLI_ghashIterator_free(hash_iter);
 					break;
+				}
 			}
 			BLI_assert(item != NULL);
 			if (item == NULL) {
