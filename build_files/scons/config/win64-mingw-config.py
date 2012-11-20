@@ -113,7 +113,7 @@ BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
 WITH_BF_QUICKTIME = False
 
-WITH_BF_ICONV = True
+WITH_BF_ICONV = False
 BF_ICONV = LIBDIR + "/iconv"
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
