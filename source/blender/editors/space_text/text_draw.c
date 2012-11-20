@@ -734,7 +734,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 				if (st->showsyntax && format) format_draw_color(format[a]);
 				x += text_font_draw_character_utf8(st, x, y, str + ma);
 			}
-			y -= st->lheight;
+			y -= st->lheight + TXT_LINE_SPACING;
 			x = basex;
 			lines++;
 			start = end; mstart = mend;
@@ -1834,16 +1834,14 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		if (st->wordwrap) {
 			/* draw word wrapped text */
 			int lines = text_draw_wrapped(st, tmp->line, x, y, winx - x, tmp->format, wrap_skip);
-			y -= lines * st->lheight;
+			y -= lines * (st->lheight + TXT_LINE_SPACING);
 		}
 		else {
 			/* draw unwrapped text */
 			text_draw(st, tmp->line, st->left, ar->winx / st->cwidth, 1, x, y, tmp->format);
-			y -= st->lheight;
+			y -= st->lheight + TXT_LINE_SPACING;
 		}
 		
-		y-= TXT_LINE_SPACING;
-
 		wrap_skip = 0;
 	}
 	
