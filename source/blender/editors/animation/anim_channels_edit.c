@@ -1560,6 +1560,8 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 /* duplicate of 'ANIM_OT_channels_setting_toggle' for menu title only, weak! */
 static void ANIM_OT_channels_setting_enable(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Enable Channel Setting";
 	ot->idname = "ANIM_OT_channels_setting_enable";
@@ -1575,13 +1577,16 @@ static void ANIM_OT_channels_setting_enable(wmOperatorType *ot)
 	
 	/* props */
 	/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_ADD, "Mode", "");
+	prop = RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_ADD, "Mode", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	/* setting to set */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 /* duplicate of 'ANIM_OT_channels_setting_toggle' for menu title only, weak! */
 static void ANIM_OT_channels_setting_disable(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Disable Channel Setting";
 	ot->idname = "ANIM_OT_channels_setting_disable";
@@ -1597,13 +1602,16 @@ static void ANIM_OT_channels_setting_disable(wmOperatorType *ot)
 	
 	/* props */
 	/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_CLEAR, "Mode", "");
+	prop = RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_CLEAR, "Mode", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN); /* internal hack - don't expose */
 	/* setting to set */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 static void ANIM_OT_channels_setting_toggle(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Toggle Channel Setting";
 	ot->idname = "ANIM_OT_channels_setting_toggle";
@@ -1619,13 +1627,16 @@ static void ANIM_OT_channels_setting_toggle(wmOperatorType *ot)
 	
 	/* props */
 	/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
+	prop = RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN); /* internal hack - don't expose */
 	/* setting to set */
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 static void ANIM_OT_channels_editable_toggle(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	
 	/* identifiers */
 	ot->name = "Toggle Channel Editability";
 	ot->idname = "ANIM_OT_channels_editable_toggle";
@@ -1642,7 +1653,8 @@ static void ANIM_OT_channels_editable_toggle(wmOperatorType *ot)
 	/* flag-setting mode */
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
 	/* setting to set */
-	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, ACHANNEL_SETTING_PROTECT, "Type", "");
+	prop = RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, ACHANNEL_SETTING_PROTECT, "Type", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN); /* internal hack - don't expose */
 }
 
 /* ********************** Expand Channels Operator *********************** */
