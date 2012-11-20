@@ -1054,6 +1054,11 @@ __attribute__ ((format(printf, 1, 2)))
 #endif
 ;
 
+/* Equals test (skips pointers and collections) */
+
+int RNA_property_equals(struct PointerRNA *a, struct PointerRNA *b, struct PropertyRNA *prop);
+int RNA_struct_equals(struct PointerRNA *a, struct PointerRNA *b);
+
 #ifdef __cplusplus
 }
 #endif

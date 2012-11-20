@@ -101,11 +101,8 @@ static int wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 	if (strcmp(a->idname, b->idname) != 0)
 		return 0;
 	
-	if (!((a->ptr == NULL && b->ptr == NULL) ||
-	      (a->ptr && b->ptr && IDP_EqualsProperties(a->ptr->data, b->ptr->data))))
-	{
+	if (!RNA_struct_equals(a->ptr, b->ptr))
 		return 0;
-	}
 	
 	if ((a->flag & KMI_INACTIVE) != (b->flag & KMI_INACTIVE))
 		return 0;
