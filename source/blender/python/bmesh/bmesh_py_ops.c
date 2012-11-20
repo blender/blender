@@ -90,6 +90,7 @@ static PyObject *bpy_bmesh_op_repr(BPy_BMeshOpFunc *self)
 
 static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 {
+	PyObject *ret;
 	BPy_BMesh *py_bm;
 	BMesh *bm;
 
@@ -316,13 +317,71 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 	}
 
 	BMO_op_exec(bm, &bmop);
-	BMO_op_finish(bm, &bmop);
 
-	if (bpy_bm_op_as_py_error(bm) == -1) {
-		return NULL;
+	/* from here until the end of the function, no returns, just set 'ret' */
+	if (UNLIKELY(bpy_bm_op_as_py_error(bm) == -1)) {
+		ret = NULL;  /* exception raised above */
+	}
+	else if (bmop.slots_out[0].slot_name == NULL) {
+		ret = (Py_INCREF(Py_None), Py_None);
+	}
+	else {
+		/* build return value */
+		int i;
+		ret = PyDict_New();
+
+		for (i = 0; bmop.slots_out[i].slot_name; i++) {
+			// BMOpDefine *op_def = opdefines[bmop.type];
+			// BMOSlotType *slot_type = op_def->slot_types_out[i];
+			BMOpSlot *slot = &bmop.slots_out[i];
+			PyObject *item = NULL;
+
+			/* keep switch in same order as above */
+			switch (slot->slot_type) {
+				case BMO_OP_SLOT_BOOL:
+					item = PyBool_FromLong(slot->data.i);
+					break;
+				case BMO_OP_SLOT_INT:
+					item = PyLong_FromSsize_t((Py_ssize_t)slot->data.i);
+					break;
+				case BMO_OP_SLOT_FLT:
+					item = PyFloat_FromDouble((double)slot->data.f);
+					break;
+				case BMO_OP_SLOT_MAT:
+					item = Matrix_CreatePyObject(slot->data.p, 4, 4, Py_NEW, NULL);
+					break;
+				case BMO_OP_SLOT_VEC:
+					item = Vector_CreatePyObject(slot->data.vec, slot->len, Py_NEW, NULL);
+					break;
+				case BMO_OP_SLOT_ELEMENT_BUF:
+				{
+					const int size = slot->len;
+					int j;
+
+					item = PyList_New(size);
+					for (j = 0; j < size; j++) {
+						BMHeader *ele = ((BMHeader **)slot->data.buf)[i];
+						PyList_SET_ITEM(item, j, ele ? BPy_BMElem_CreatePyObject(bm, ele) : (Py_INCREF(Py_None), Py_None));
+					}
+					break;
+				}
+				case BMO_OP_SLOT_MAPPING:
+					item = (Py_INCREF(Py_None), Py_None);
+					// TODO
+					break;
+			}
+			BLI_assert(item != NULL);
+			if (item == NULL) {
+				item = (Py_INCREF(Py_None), Py_None);
+			}
+
+			PyDict_SetItemString(ret, slot->slot_name, item);
+			Py_DECREF(item);
+		}
 	}
 
-	Py_RETURN_NONE;
+	BMO_op_finish(bm, &bmop);
+	return ret;
 }
 
 
