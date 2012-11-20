@@ -109,7 +109,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	em = BMEdit_FromObject(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
-	                              "create_grid xsegments=%i ysegments=%i size=%f mat=%m4", 1, 1, dia, mat))
+	                              "create_grid x_segments=%i y_segments=%i size=%f mat=%m4", 1, 1, dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
