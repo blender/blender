@@ -235,6 +235,7 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 		
 		BMOIter oiter;
 		BMOperator find_op;
+		BMOpSlot *slot_targetmap;
 
 		BMO_op_initf(bm, &find_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 		             is_input ?  /* ugh */
@@ -266,15 +267,17 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 
 		BMO_op_exec(bm, &find_op);
 
+		slot_targetmap = BMO_slot_get(weld_op->slots_in, "targetmap");
+
 		/* add new merge targets to weld operator */
 		BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
 			v2 = BMO_iter_map_value_p(&oiter);
 			/* check in case the target vertex (v2) is already marked
 			 * for merging */
-			while ((v3 = BMO_slot_map_ptr_get(weld_op->slots_in, "targetmap", v2))) {
+			while ((v3 = BMO_slot_map_ptr_get(slot_targetmap, v2))) {
 				v2 = v3;
 			}
-			BMO_slot_map_ptr_insert(weld_op, weld_op->slots_in, "targetmap", v, v2);
+			BMO_slot_map_ptr_insert(weld_op, slot_targetmap, v, v2);
 		}
 
 		BMO_op_finish(bm, &find_op);
@@ -299,6 +302,7 @@ static void merge_first_last(BMesh *bm,
 	BMOperator find_op;
 	BMOIter oiter;
 	BMVert *v, *v2;
+	BMOpSlot *slot_targetmap;
 
 	BMO_op_initf(bm, &find_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "find_doubles verts=%s dist=%f keep_verts=%s",
@@ -312,9 +316,10 @@ static void merge_first_last(BMesh *bm,
 	BMO_op_exec(bm, &find_op);
 
 	/* add new merge targets to weld operator */
+	slot_targetmap = BMO_slot_get(weld_op->slots_out, "targetmap");
 	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
 		v2 = BMO_iter_map_value_p(&oiter);
-		BMO_slot_map_ptr_insert(weld_op, weld_op->slots_in, "targetmap", v, v2);
+		BMO_slot_map_ptr_insert(weld_op, slot_targetmap, v, v2);
 	}
 
 	BMO_op_finish(bm, &find_op);
@@ -339,6 +344,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	int *indexMap = NULL;
 	DerivedMesh *start_cap = NULL, *end_cap = NULL;
 	MVert *src_mvert;
+	BMOpSlot *slot_targetmap = NULL;  /* for weldop */
 
 	/* need to avoid infinite recursion here */
 	if (amd->start_cap && amd->start_cap != ob)
@@ -426,9 +432,12 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	BMO_push(bm, NULL);
 	bmesh_edit_begin(bm, 0);
 
-	if (amd->flags & MOD_ARR_MERGE)
+	if (amd->flags & MOD_ARR_MERGE) {
 		BMO_op_init(bm, &weld_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 		            "weld_verts");
+
+		slot_targetmap = BMO_slot_get(weld_op.slots_in, "targetmap");
+	}
 
 	BMO_op_initf(bm, &dupe_op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	             "duplicate geom=%avef");
@@ -485,11 +494,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 				/* check in case the target vertex (v2) is already marked
 				 * for merging */
-				while ((v3 = BMO_slot_map_ptr_get(weld_op.slots_in, "targetmap", v2))) {
+				while ((v3 = BMO_slot_map_ptr_get(slot_targetmap, v2))) {
 					v2 = v3;
 				}
 
-				BMO_slot_map_ptr_insert(&weld_op, weld_op.slots_in, "targetmap", v, v2);
+				BMO_slot_map_ptr_insert(&weld_op, slot_targetmap, v, v2);
 			}
 
 			#undef _E

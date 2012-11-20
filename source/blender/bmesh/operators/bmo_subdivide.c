@@ -225,8 +225,9 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	BMVert *ev;
 	float percent, percent2 = 0.0f;
 
-	if (BMO_elem_flag_test(bm, edge, EDGE_PERCENT) && totpoint == 1)
-		percent = BMO_slot_map_float_get(params->op->slots_in, "edgepercents", edge);
+	if (BMO_elem_flag_test(bm, edge, EDGE_PERCENT) && totpoint == 1) {
+		percent = BMO_slot_map_float_get(params->slot_edgepercents, edge);
+	}
 	else {
 		percent = 1.0f / (float)(totpoint + 1 - curpoint);
 		percent2 = (float)(curpoint + 1) / (float)(totpoint + 1);
@@ -778,6 +779,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 	params.numcuts = numcuts;
 	params.op = op;
+	params.slot_edgepercents   = BMO_slot_get(op->slots_in, "edgepercents");
+	params.slot_custompatterns = BMO_slot_get(op->slots_in, "custompatterns");
 	params.smooth = smooth;
 	params.seed = seed;
 	params.fractal = fractal;
@@ -837,7 +840,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (BMO_elem_flag_test(bm, face, FACE_CUSTOMFILL)) {
-			pat = BMO_slot_map_data_get(op->slots_in, "custompatterns", face);
+			pat = BMO_slot_map_data_get(params.slot_custompatterns, face);
 			for (i = 0; i < pat->len; i++) {
 				matched = 1;
 				for (j = 0; j < pat->len; j++) {
@@ -1159,6 +1162,7 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 	
 	params.numcuts = BMO_slot_int_get(op->slots_in, "cuts");
 	params.op = op;
+	params.slot_edgepercents = BMO_slot_get(op->slots_in, "edgepercents");
 	
 	BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
 	skey = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) - 1;

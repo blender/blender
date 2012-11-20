@@ -741,7 +741,10 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 	BMVert *startv;
 	BMVert *endv;
 	EPathNode *node;
-	int i, use_restrict = BMO_slot_bool_get(op->slots_in, "use_restrict");
+	int i;
+	const int use_restrict = BMO_slot_bool_get(op->slots_in, "use_restrict");
+	BMOpSlot *slot_restrict = BMO_slot_get(op->slots_in, "restrict");
+
 
 	startv = edata[BM_elem_index_get(edge)].ftag ? edge->v2 : edge->v1;
 	endv = edata[BM_elem_index_get(edge)].ftag ? edge->v1 : edge->v2;
@@ -806,12 +809,13 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 				continue;
 			}
 			
-			if (use_restrict && BMO_slot_map_contains(op->slots_in, "restrict", e)) {
-				int group = BMO_slot_map_int_get(op->slots_in, "restrict", e);
-				
-				if (!(group & path->group)) {
-					v2 = NULL;
-					continue;
+			if (use_restrict) {
+				int *group = (int *)BMO_slot_map_data_get(slot_restrict, e);
+				if (group) {
+					if (!(*group & path->group)) {
+						v2 = NULL;
+						continue;
+					}
 				}
 			}
 
@@ -901,6 +905,8 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	const short use_smooth = BMO_slot_bool_get(op->slots_in, "use_smooth");
 	int i, j, group = 0;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
+	BMOpSlot *slot_restrict          = BMO_slot_get(op->slots_in, "restrict");
+	BMOpSlot *slot_face_groupmap_out = BMO_slot_get(op->slots_out, "face_groupmap.out");
 
 	if (!bm->totvert || !bm->totedge)
 		return;
@@ -932,14 +938,14 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	bm->elem_index_dirty &= ~BM_EDGE;
 
 	init_rotsys(bm, edata, vdata);
-	
+
 	while (1) {
 		edge = NULL;
 		group = 0;
 		
 		BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 			/* if restrict is on, only start on faces in the restrict map */
-			if (use_restrict && !BMO_slot_map_contains(op->slots_in, "restrict", e))
+			if (use_restrict && !BMO_slot_map_contains(slot_restrict, e))
 				continue;
 
 			if (edata[BM_elem_index_get(e)].tag < 2) {
@@ -948,7 +954,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				if (use_restrict) {
 					int i = 0, j = 0, gi = 0;
 					
-					group = BMO_slot_map_int_get(op->slots_in, "restrict", e);
+					group = BMO_slot_map_int_get(slot_restrict, e);
 					
 					for (i = 0; i < 30; i++) {
 						if (group & (1 << i)) {
@@ -1055,7 +1061,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				}
 
 				if (use_restrict) {
-					BMO_slot_map_int_insert(op, op->slots_out, "face_groupmap.out", f, path->group);
+					BMO_slot_map_int_insert(op, slot_face_groupmap_out, f, path->group);
 				}
 			}
 		}

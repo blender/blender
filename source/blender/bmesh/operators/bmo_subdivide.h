@@ -39,6 +39,8 @@ typedef struct SubDParams {
 	int seed;
 	int origkey; /* shapekey holding displaced vertex coordinates for current geometry */
 	BMOperator *op;
+	BMOpSlot *slot_edgepercents;  /* BMO_slot_get(params->op->slots_in, "edgepercents"); */
+	BMOpSlot *slot_custompatterns;  /* BMO_slot_get(params->op->slots_in, "custompatterns"); */
 	float off[3];
 } SubDParams;
 

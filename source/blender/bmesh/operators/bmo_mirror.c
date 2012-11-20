@@ -55,6 +55,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	int axis = BMO_slot_int_get(op->slots_in, "axis");
 	int mirroru = BMO_slot_bool_get(op->slots_in, "mirror_u");
 	int mirrorv = BMO_slot_bool_get(op->slots_in, "mirror_v");
+	BMOpSlot *slot_targetmap;
 
 	ototvert = bm->totvert;
 	/* ototedge = bm->totedge; */ /* UNUSED */
@@ -86,10 +87,12 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 
+	slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
+
 	v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for (i = 0; i < ototvert; i++) {
 		if (fabsf(v->co[axis]) <= dist) {
-			BMO_slot_map_ptr_insert(&weldop, weldop.slots_in, "targetmap", vmap[i], v);
+			BMO_slot_map_ptr_insert(&weldop, slot_targetmap, vmap[i], v);
 		}
 		v = BM_iter_step(&iter);
 	}

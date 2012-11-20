@@ -1080,9 +1080,12 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		BMOperator op;
 		BMIter iter;
 		int i;
+		BMOpSlot *slot_targetmap;
 
 		shortest_edge = BM_face_find_shortest_loop(f)->e;
 		BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE), "weld_verts");
+
+		slot_targetmap = BMO_slot_get(op.slots_in, "targetmap");
 
 		/* Note: could probably calculate merges in one go to be
 		 * faster */
@@ -1090,7 +1093,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		v_safe = shortest_edge->v1;
 		v_merge = shortest_edge->v2;
 		mid_v3_v3v3(v_safe->co, v_safe->co, v_merge->co);
-		BMO_slot_map_ptr_insert(&op, op.slots_in, "targetmap", v_merge, v_safe);
+		BMO_slot_map_ptr_insert(&op, slot_targetmap, v_merge, v_safe);
 		BMO_op_exec(bm, &op);
 		BMO_op_finish(bm, &op);
 
@@ -1216,6 +1219,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BMOIter oiter;
 	BMOperator op;
 	int i, best_order[4];
+	BMOpSlot *slot_targetmap;
 
 	BLI_assert(split_face->len >= 3);
 
@@ -1281,8 +1285,9 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BM_face_kill(bm, split_face);
 	BMO_op_init(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	            "weld_verts");
+	slot_targetmap = BMO_slot_get(op.slots_in, "targetmap");
 	for (i = 0; i < 4; i++) {
-		BMO_slot_map_ptr_insert(&op, op.slots_in, "targetmap",
+		BMO_slot_map_ptr_insert(&op, slot_targetmap,
 		                        verts[i], frame->verts[best_order[i]]);
 	}
 	BMO_op_exec(bm, &op);

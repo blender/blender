@@ -308,9 +308,12 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 	BMFace *f;
 	ModifierData *md;
 	BMElem *ele;
+	BMOpSlot *slot_edges_exclude;
 	
 	BMO_op_init(bm, &extop, BMO_FLAG_DEFAULTS, "extrude_face_region");
 	BMO_slot_buffer_from_enabled_hflag(bm, &extop, extop.slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE, hflag);
+
+	slot_edges_exclude = BMO_slot_get(extop.slots_in, "edges_exclude");
 
 	/* If a mirror modifier with clipping is on, we need to adjust some 
 	 * of the cases above to handle edges on the line of symmetry.
@@ -350,21 +353,21 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 							if ((fabsf(co1[0]) < mmd->tolerance) &&
 							    (fabsf(co2[0]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, extop.slots_in, "edges_exclude", edge, NULL);
+								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Y) {
 							if ((fabsf(co1[1]) < mmd->tolerance) &&
 							    (fabsf(co2[1]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, extop.slots_in, "edges_exclude", edge, NULL);
+								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Z) {
 							if ((fabsf(co1[2]) < mmd->tolerance) &&
 							    (fabsf(co2[2]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, extop.slots_in, "edges_exclude", edge, NULL);
+								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
 							}
 						}
 					}
@@ -2868,6 +2871,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	float isect = 0.0f;
 	int len = 0, isected, i;
 	short numcuts = 1, mode = RNA_int_get(op->ptr, "type");
+	BMOpSlot *slot_edgepercents;
 
 	/* allocd vars */
 	float (*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
@@ -2922,6 +2926,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/* store percentage of edge cut for KNIFE_EXACT here.*/
+	slot_edgepercents = BMO_slot_get(bmop.slots_in, "edgepercents");
 	for (be = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be = BM_iter_step(&iter)) {
 		int is_cut = FALSE;
 		if (BM_elem_flag_test(be, BM_ELEM_SELECT)) {
@@ -2934,9 +2939,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 
 				if (isect != 0.0f) {
 					if (mode != KNIFE_MULTICUT && mode != KNIFE_MIDPOINT) {
-						BMO_slot_map_float_insert(&bmop, bmop.slots_in,
-						                          "edgepercents",
-						                          be, isect);
+						BMO_slot_map_float_insert(&bmop, slot_edgepercents, be, isect);
 					}
 				}
 			}

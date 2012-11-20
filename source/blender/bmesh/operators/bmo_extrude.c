@@ -264,6 +264,8 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, *v2;
 	BMFace *f;
 	int found, fwd, delorig = FALSE;
+	BMOpSlot *slot_facemap_out;
+	BMOpSlot *slot_edges_exclude;
 
 	/* initialize our sub-operators */
 	BMO_op_init(bm, &dupeop, op->flag, "duplicate");
@@ -350,8 +352,10 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (bm->act_face && BMO_elem_flag_test(bm, bm->act_face, EXT_INPUT))
-		bm->act_face = BMO_slot_map_ptr_get(dupeop.slots_out, "facemap.out", bm->act_face);
+	slot_facemap_out = BMO_slot_get(dupeop.slots_out, "facemap.out");
+	if (bm->act_face && BMO_elem_flag_test(bm, bm->act_face, EXT_INPUT)) {
+		bm->act_face = BMO_slot_map_ptr_get(slot_facemap_out, bm->act_face);
+	}
 
 	if (delorig) {
 		BMO_op_exec(bm, &delop);
@@ -369,11 +373,12 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(&dupeop, slots_out, "geom.out",
 	              op,      slots_out, "geom.out");
 
+	slot_edges_exclude = BMO_slot_get(op->slots_in, "edges_exclude");
 	for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundarymap.out", 0); e; e = BMO_iter_step(&siter)) {
 		BMVert *f_verts[4];
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
-		if (BM_edge_is_wire(e) && BMO_slot_map_contains(op->slots_in, "edges_exclude", e)) {
+		if (BM_edge_is_wire(e) && BMO_slot_map_contains(slot_edges_exclude, e)) {
 			BMVert *v1 = e->v1, *v2 = e->v2;
 
 			/* The original edge was excluded,

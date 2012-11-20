@@ -36,7 +36,7 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
+static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot *slot_targetmap)
 {
 	BMIter liter;
 	BMLoop *l;
@@ -44,7 +44,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 	int split = FALSE;
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		v2 = BMO_slot_map_ptr_get(op->slots_in, "targetmap", l->v);
+		v2 = BMO_slot_map_ptr_get(slot_targetmap, l->v);
 		/* ok: if v2 is NULL (e.g. not in the map) then it's
 		 *     a target vert, otherwise it's a double */
 		if ((v2 && BM_vert_in_face(f, v2)) &&
@@ -61,8 +61,8 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 		BMLoop *nl;
 		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL, FALSE);
 
-		remdoubles_splitface(f, bm, op);
-		remdoubles_splitface(f2, bm, op);
+		remdoubles_splitface(f, bm, op, slot_targetmap);
+		remdoubles_splitface(f2, bm, op, slot_targetmap);
 	}
 }
 
@@ -106,10 +106,11 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(loops);
 	BMFace *f, *f2;
 	int a, b;
+	BMOpSlot *slot_targetmap = BMO_slot_get(op->slots_in, "targetmap");
 
 	/* mark merge verts for deletion */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		if ((v2 = BMO_slot_map_ptr_get(op->slots_in, "targetmap", v))) {
+		if ((v2 = BMO_slot_map_ptr_get(slot_targetmap, v))) {
 			BMO_elem_flag_enable(bm, v, ELE_DEL);
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
@@ -120,13 +121,13 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 	/* check if any faces are getting their own corners merged
 	 * together, split face if so */
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		remdoubles_splitface(f, bm, op);
+		remdoubles_splitface(f, bm, op, slot_targetmap);
 	}
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e->v1, ELE_DEL) || BMO_elem_flag_test(bm, e->v2, ELE_DEL)) {
-			v  = BMO_slot_map_ptr_get(op->slots_in, "targetmap", e->v1);
-			v2 = BMO_slot_map_ptr_get(op->slots_in, "targetmap", e->v2);
+			v  = BMO_slot_map_ptr_get(slot_targetmap, e->v1);
+			v2 = BMO_slot_map_ptr_get(slot_targetmap, e->v2);
 			
 			if (!v) v = e->v1;
 			if (!v2) v2 = e->v2;
@@ -174,10 +175,10 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			v = l->v;
 			v2 = l->next->v;
 			if (BMO_elem_flag_test(bm, v, ELE_DEL)) {
-				v = BMO_slot_map_ptr_get(op->slots_in, "targetmap", v);
+				v = BMO_slot_map_ptr_get(slot_targetmap, v);
 			}
 			if (BMO_elem_flag_test(bm, v2, ELE_DEL)) {
-				v2 = BMO_slot_map_ptr_get(op->slots_in, "targetmap", v2);
+				v2 = BMO_slot_map_ptr_get(slot_targetmap, v2);
 			}
 			
 			e2 = v != v2 ? BM_edge_exists(v, v2) : NULL;
@@ -207,10 +208,10 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 		v2 = loops[1]->v;
 
 		if (BMO_elem_flag_test(bm, v, ELE_DEL)) {
-			v = BMO_slot_map_ptr_get(op->slots_in, "targetmap", v);
+			v = BMO_slot_map_ptr_get(slot_targetmap, v);
 		}
 		if (BMO_elem_flag_test(bm, v2, ELE_DEL)) {
-			v2 = BMO_slot_map_ptr_get(op->slots_in, "targetmap", v2);
+			v2 = BMO_slot_map_ptr_get(slot_targetmap, v2);
 		}
 		
 		f2 = BM_face_create_ngon(bm, v, v2, edges, a, TRUE);
@@ -344,19 +345,22 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMVert *v, *snapv = NULL;
 	float vec[3];
+	BMOpSlot *slot_targetmap;
 	
 	BMO_slot_vec_get(op->slots_in, "merge_co", vec);
 
 	//BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
 	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
-	
+
+	slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
+
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		if (!snapv) {
 			snapv = v;
 			copy_v3_v3(snapv->co, vec);
 		}
 		else {
-			BMO_slot_map_ptr_insert(&weldop, weldop.slots_in, "targetmap", v, snapv);
+			BMO_slot_map_ptr_insert(&weldop, slot_targetmap, v, snapv);
 		}
 	}
 
@@ -373,9 +377,11 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(edges);
 	float min[3], max[3], center[3];
 	int i, tot;
+	BMOpSlot *slot_targetmap;
 	
 	BMO_op_callf(bm, op->flag, "collapse_uvs edges=%s", op, "edges");
 	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
+	slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
 
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
 
@@ -408,9 +414,9 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 			copy_v3_v3(edges[i]->v2->co, center);
 			
 			if (edges[i]->v1 != edges[0]->v1)
-				BMO_slot_map_ptr_insert(&weldop, weldop.slots_in, "targetmap", edges[i]->v1, edges[0]->v1);
+				BMO_slot_map_ptr_insert(&weldop, slot_targetmap, edges[i]->v1, edges[0]->v1);
 			if (edges[i]->v2 != edges[0]->v1)
-				BMO_slot_map_ptr_insert(&weldop, weldop.slots_in, "targetmap", edges[i]->v2, edges[0]->v1);
+				BMO_slot_map_ptr_insert(&weldop, slot_targetmap, edges[i]->v2, edges[0]->v1);
 		}
 	}
 	
@@ -487,9 +493,7 @@ void bmo_collapse_uvs_exec(BMesh *bm, BMOperator *op)
 }
 
 static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
-                                      BMOperator *optarget,
-                                      BMOpSlot optarget_slot_args[BMO_OP_MAX_SLOTS],
-                                      const char *targetmapname)
+                                      BMOperator *optarget, BMOpSlot *optarget_slot)
 {
 	BMVert  **verts;
 	int       verts_len;
@@ -550,7 +554,7 @@ static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
 				BMO_elem_flag_enable(bm, v_other, VERT_DOUBLE);
 				BMO_elem_flag_enable(bm, v_check, VERT_TARGET);
 
-				BMO_slot_map_ptr_insert(optarget, optarget_slot_args, targetmapname, v_other, v_check);
+				BMO_slot_map_ptr_insert(optarget, optarget_slot, v_other, v_check);
 			}
 		}
 	}
@@ -561,10 +565,12 @@ static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
 void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
+	BMOpSlot *slot_targetmap;
 
 	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
+	slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
 	bmesh_find_doubles_common(bm, op,
-	                          &weldop, weldop.slots_in, "targetmap");
+	                          &weldop, slot_targetmap);
 	BMO_op_exec(bm, &weldop);
 	BMO_op_finish(bm, &weldop);
 }
@@ -572,8 +578,10 @@ void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op)
 
 void bmo_find_doubles_exec(BMesh *bm, BMOperator *op)
 {
+	BMOpSlot *slot_targetmap_out;
+	slot_targetmap_out = BMO_slot_get(op->slots_out, "targetmap");
 	bmesh_find_doubles_common(bm, op,
-	                          op, op->slots_out, "targetmap.out");
+	                          op, slot_targetmap_out);
 }
 
 void bmo_automerge_exec(BMesh *bm, BMOperator *op)

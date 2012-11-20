@@ -140,6 +140,10 @@ typedef struct BMOpSlot {
 #define BMO_SLOT_AS_BUFFER(slot )      ((slot)->data.buf)
 #define BMO_SLOT_AS_GHASH(slot )       ((slot)->data.ghash)
 
+#define BMO_ASSERT_SLOT_IN_OP(slot, op) \
+	BLI_assert(((slot >= (op)->slots_in)  && (slot < &(op)->slots_in[BMO_OP_MAX_SLOTS])) || \
+	           ((slot >= (op)->slots_out) && (slot < &(op)->slots_out[BMO_OP_MAX_SLOTS])))
+
 /* way more than probably needed, compiler complains if limit hit */
 #define BMO_OP_MAX_SLOTS 16
 
@@ -385,8 +389,8 @@ void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op,
 int BMO_slot_buffer_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 
-void BMO_slot_map_insert(BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
-                         void *element, void *data, int len);
+void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
+                         const void *element, void *data, int len);
 
 /* Counts the number of edges with tool flag toolflag around
  */
