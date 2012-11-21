@@ -298,3 +298,7 @@ BF_INSTALLDIR='../install/linux'
 #Link against pthread
 PLATFORM_LINKFLAGS = ['-pthread']
 
+#Fix for LLVM conflict with Mesa llvmpipe
+if WITH_BF_LLVM:
+    PLATFORM_LINKFLAGS += ['-Wl,--version-script=source/creator/blender.map']
+

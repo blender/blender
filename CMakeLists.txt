@@ -759,6 +759,9 @@ if(UNIX AND NOT APPLE)
 		else()
 			message(FATAL_ERROR "LLVM not found.")
 		endif()
+
+		# Fix for conflict with Mesa llvmpipe
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -Wl,--version-script=${CMAKE_SOURCE_DIR}/source/creator/blender.map")
 	endif()
 
 	if(WITH_CYCLES_OSL)
@@ -821,7 +824,7 @@ if(UNIX AND NOT APPLE)
 		endif()
 	endif()
 
-	set(PLATFORM_LINKFLAGS "-pthread")
+	set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -pthread")
 
 	# lfs on glibc, all compilers should use
 	add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
