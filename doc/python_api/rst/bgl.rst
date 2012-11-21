@@ -1510,7 +1510,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg mode: Specifies a symbolic value representing a shading technique.
 
 
-.. function:: glStencilFuc(func, ref, mask):
+.. function:: glStencilFunc(func, ref, mask):
 
    Set function and reference value for stencil testing
 

@@ -40,6 +40,7 @@
 #include "BL_ArmatureConstraint.h"
 #include "BL_ArmatureObject.h"
 #include "BL_ArmatureChannel.h"
+#include "KX_ArmatureSensor.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_CameraActuator.h"
 #include "KX_CharacterWrapper.h"
@@ -185,8 +186,10 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, BL_ArmatureConstraint, init_getset);
 		PyType_Ready_AttrPtr(dict, BL_ArmatureBone, init_getset);
 		PyType_Ready_AttrPtr(dict, BL_ArmatureChannel, init_getset);
+		// PyType_Ready_Attr(dict, CPropValue, init_getset);  // doesn't use Py_Header
 		PyType_Ready_Attr(dict, CListValue, init_getset);
 		PyType_Ready_Attr(dict, CValue, init_getset);
+		PyType_Ready_Attr(dict, KX_ArmatureSensor, init_getset);
 		PyType_Ready_Attr(dict, KX_BlenderMaterial, init_getset);
 		PyType_Ready_Attr(dict, KX_Camera, init_getset);
 		PyType_Ready_Attr(dict, KX_CameraActuator, init_getset);
@@ -228,6 +231,7 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, PyObjectPlus, init_getset);
 		PyType_Ready_Attr(dict, SCA_2DFilterActuator, init_getset);
 		PyType_Ready_Attr(dict, SCA_ANDController, init_getset);
+		// PyType_Ready_Attr(dict, SCA_Actuator, init_getset);  // doesn't use Py_Header
 		PyType_Ready_Attr(dict, SCA_ActuatorSensor, init_getset);
 		PyType_Ready_Attr(dict, SCA_AlwaysSensor, init_getset);
 		PyType_Ready_Attr(dict, SCA_DelaySensor, init_getset);

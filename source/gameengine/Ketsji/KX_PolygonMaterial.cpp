@@ -266,8 +266,6 @@ PyAttributeDef KX_PolygonMaterial::Attributes[] = {
 	
 	KX_PYATTRIBUTE_RO_FUNCTION("tface",	KX_PolygonMaterial, pyattr_get_tface), /* How the heck is this even useful??? - Campbell */
 	KX_PYATTRIBUTE_RO_FUNCTION("gl_texture", KX_PolygonMaterial, pyattr_get_gl_texture), /* could be called 'bindcode' */
-	
-	/* triangle used to be an attribute, removed for 2.49, nobody should be using it */
 	{ NULL }	//Sentinel
 };
 

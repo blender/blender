@@ -254,13 +254,6 @@ General functions
    
    :rtype: list [float], len(getSpectrum()) == 512
 
-.. function:: stopDSP()
-
-   Stops the sound driver using DSP effects.
-   
-   Only the fmod sound driver supports this.
-   DSP can be computationally expensive.
-
 .. function:: getMaxLogicFrame()
 
    Gets the maximum number of logic frames per render frame.
@@ -493,31 +486,31 @@ See :class:`bge.types.KX_ConstraintActuator.option`
 
 * Applicable to Distance constraint:
 
-  .. data:: KX_ACT_CONSTRAINT_NORMAL
+  .. data:: KX_CONSTRAINT_NORMAL
 
      Activate alignment to surface
    
-  .. data:: KX_ACT_CONSTRAINT_DISTANCE
+  .. data:: KX_CONSTRAINT_DISTANCE
 
      Activate distance control
 
-  .. data:: KX_ACT_CONSTRAINT_LOCAL
+  .. data:: KX_CONSTRAINT_LOCAL
 
      Direction of the ray is along the local axis
 
 * Applicable to Force field constraint:
 
-  .. data:: KX_ACT_CONSTRAINT_DOROTFH
+  .. data:: KX_CONSTRAINT_DOROTFH
 
      Force field act on rotation as well
 
 * Applicable to both:
 
-  .. data:: KX_ACT_CONSTRAINT_MATERIAL
+  .. data:: KX_CONSTRAINT_MATERIAL
 
      Detect material rather than property
    
-  .. data:: KX_ACT_CONSTRAINT_PERMANENT
+  .. data:: KX_CONSTRAINTACT_PERMANENT
 
      No deactivation if ray does not hit target
 
@@ -585,27 +578,27 @@ See :class:`bge.types.KX_ConstraintActuator.limit`
 
    Set orientation of Z axis
    
-.. data:: KX_ACT_CONSTRAINT_FHNX
+.. data:: KX_CONSTRAINTACT_FHNX
 
    Set force field along negative X axis
    
-.. data:: KX_ACT_CONSTRAINT_FHNY
+.. data:: KX_CONSTRAINTACT_FHNY
 
    Set force field along negative Y axis
    
-.. data:: KX_ACT_CONSTRAINT_FHNZ
+.. data:: KX_CONSTRAINTACT_FHNZ
 
    Set force field along negative Z axis
    
-.. data:: KX_ACT_CONSTRAINT_FHPX
+.. data:: KX_CONSTRAINTACT_FHPX
 
    Set force field along positive X axis
 
-.. data:: KX_ACT_CONSTRAINT_FHPY
+.. data:: KX_CONSTRAINTACT_FHPY
 
    Set force field along positive Y axis
    
-.. data:: KX_ACT_CONSTRAINT_FHPZ
+.. data:: KX_CONSTRAINTACT_FHPZ
 
    Set force field along positive Z axis
 

@@ -762,12 +762,6 @@ Types
 
       :type: float
 
-   .. attribute:: useXY
-
-      axis this actuator is tracking, True=X, False=Y.
-
-      :type: boolean
-
    .. attribute:: object
 
       the object this actuator tracks.
@@ -1810,10 +1804,6 @@ Types
 
       :type: list [r, g, b]
 
-   .. attribute:: colour
-
-      Synonym for color.
-
    .. attribute:: lin_attenuation
 
       The linear component of this light's attenuation. (SPOT and NORMAL lights only).
@@ -1898,11 +1888,6 @@ Types
 
       :type: integer
 
-   .. method:: getNumMaterials()
-
-      :return: number of materials associated with this object
-      :rtype: integer
-
    .. method:: getMaterialName(matid)
 
       Gets the name of the specified material.
@@ -1942,11 +1927,6 @@ Types
       :type index: integer
       :return: a vertex object.
       :rtype: :class:`KX_VertexProxy`
-
-   .. method:: getNumPolygons()
-
-      :return: The number of polygon in the mesh.
-      :rtype: integer
 
    .. method:: getPolygon(index)
 
@@ -2382,7 +2362,7 @@ Types
    The polygon attributes are read-only, you need to retrieve the vertex proxy if you want
    to change the vertex settings.
 
-   .. attribute:: matname
+   .. attribute:: material_name
 
       The name of polygon material, empty if no material.
 
@@ -2394,13 +2374,13 @@ Types
 
       :type: :class:`KX_PolygonMaterial` or :class:`KX_BlenderMaterial`
 
-   .. attribute:: texture
+   .. attribute:: texture_name
 
       The texture name of the polygon.
 
       :type: string
 
-   .. attribute:: matid
+   .. attribute:: material_id
 
       The material index of the polygon, use this to retrieve vertex proxy from mesh proxy.
 
@@ -2628,18 +2608,6 @@ Types
       Transparent polygons in meshes with this material will be sorted back to
       front before rendering.
       Non-Transparent polygons will be sorted front to back before rendering.
-
-      :type: boolean
-
-   .. attribute:: lightlayer
-
-      Light layers this material affects.
-
-      :type: bitfield.
-
-   .. attribute:: triangle
-
-      Mesh data with this material is triangles. It's probably not safe to change this.
 
       :type: boolean
 
@@ -3228,13 +3196,7 @@ Types
 
    Sound Actuator.
 
-   The :data:`startSound`, :data:`pauseSound` and :data:`stopSound` do not requirethe actuator to be activated - they act instantly provided that the actuator has been activated once at least.
-
-   .. attribute:: fileName
-
-      The filename of the sound this actuator plays.
-
-      :type: string
+   The :data:`startSound`, :data:`pauseSound` and :data:`stopSound` do not require the actuator to be activated - they act instantly provided that the actuator has been activated once at least.
 
    .. attribute:: volume
 
@@ -3247,36 +3209,6 @@ Types
       The pitch of the sound.
 
       :type: float
-
-   .. attribute:: rollOffFactor
-
-      The roll off factor. Rolloff defines the rate of attenuation as the sound gets further away.
-
-      :type: float
-
-   .. attribute:: looping
-
-      The loop mode of the actuator.
-
-      :type: integer
-
-   .. attribute:: position
-
-      The position of the sound as a list: [x, y, z].
-
-      :type: float array
-
-   .. attribute:: velocity
-
-      The velocity of the emitter as a list: [x, y, z]. The relative velocity to the observer determines the pitch. List of 3 floats: [x, y, z].
-
-      :type: float array
-
-   .. attribute:: orientation
-
-      The orientation of the sound. When setting the orientation you can also use quaternion [float, float, float, float] or euler angles [float, float, float].
-
-      :type: 3x3 matrix [[float]]
 
    .. attribute:: mode
 
@@ -3545,10 +3477,6 @@ Types
       :type: list [r, g, b, a]
 
       Black = [0.0, 0.0, 0.0, 1.0], White = [1.0, 1.0, 1.0, 1.0]
-
-   .. attribute:: colour
-
-      Synonym for color.
 
    .. attribute:: x
 
@@ -4269,24 +4197,6 @@ Types
       The seed of the random number generator.
 
       :type: integer
-
-   .. method:: setSeed(seed)
-
-      Sets the seed of the random number generator.
-
-      If the seed is 0, the generator will produce the same value on every call.
-
-      :type seed: integer
-
-   .. method:: getSeed()
-
-      :return: The initial seed of the generator.  Equal seeds produce equal random series.
-      :rtype: integer
-
-   .. method:: getLastDraw()
-
-      :return: The last random number generated.
-      :rtype: integer
 
 .. class:: SCA_XNORController(SCA_IController)
 
