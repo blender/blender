@@ -376,7 +376,7 @@ int RE_engine_render(Render *re, int do_all)
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE | R_PREVIEWBUTS)) == 0)
 		BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
 
-	initparts(re, FALSE);
+	RE_parts_init(re, FALSE);
 	engine->tile_x = re->partx;
 	engine->tile_y = re->party;
 
@@ -407,7 +407,7 @@ int RE_engine_render(Render *re, int do_all)
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 
-	freeparts(re);
+	RE_parts_free(re);
 
 	if (BKE_reports_contain(re->reports, RPT_ERROR))
 		G.is_break = TRUE;

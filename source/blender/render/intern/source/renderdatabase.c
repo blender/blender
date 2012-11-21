@@ -1179,30 +1179,36 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 /* -------------------------- operations on entire database ----------------------- */
 
 /* ugly function for halos in panorama */
-static int panotestclip(Render *re, int do_pano, float *v)
+static int panotestclip(Render *re, int do_pano, float v[4])
 {
-	/* to be used for halos en infos */
-	float abs4;
-	short c=0;
-	int xparts = (re->rectx + re->partx - 1) / re->partx;
+	/* part size (ensure we run RE_parts_clamp first) */
+	BLI_assert(re->partx == min_ii(re->r.tilex, re->rectx));
+	BLI_assert(re->party == min_ii(re->r.tiley, re->recty));
 
 	if (do_pano == FALSE) {
 		return testclip(v);
 	}
+	else {
+		/* to be used for halos en infos */
+		float abs4;
+		short c = 0;
 
-	abs4= fabs(v[3]);
+		int xparts = (re->rectx + re->partx - 1) / re->partx;
 
-	if (v[2]< -abs4) c=16;		/* this used to be " if (v[2]<0) ", see clippz() */
-	else if (v[2]> abs4) c+= 32;
+		abs4= fabsf(v[3]);
 
-	if ( v[1]>abs4) c+=4;
-	else if ( v[1]< -abs4) c+=8;
+		if (v[2]< -abs4) c=16;		/* this used to be " if (v[2]<0) ", see clippz() */
+		else if (v[2]> abs4) c+= 32;
 
-	abs4*= xparts;
-	if ( v[0]>abs4) c+=2;
-	else if ( v[0]< -abs4) c+=1;
+		if ( v[1]>abs4) c+=4;
+		else if ( v[1]< -abs4) c+=8;
 
-	return c;
+		abs4*= xparts;
+		if ( v[0]>abs4) c+=2;
+		else if ( v[0]< -abs4) c+=1;
+
+		return c;
+	}
 }
 
 /**

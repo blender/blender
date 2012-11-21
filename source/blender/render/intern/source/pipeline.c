@@ -693,7 +693,7 @@ static void *do_part_thread(void *pa_v)
 
 /* calculus for how much 1 pixel rendered should rotate the 3d geometry */
 /* is not that simple, needs to be corrected for errors of larger viewplane sizes */
-/* called in initrender.c, initparts() and convertblender.c, for speedvectors */
+/* called in initrender.c, RE_parts_init() and convertblender.c, for speedvectors */
 float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
@@ -836,7 +836,7 @@ static void threaded_tile_processor(Render *re)
 	
 	/* warning; no return here without closing exr file */
 	
-	initparts(re, TRUE);
+	RE_parts_init(re, TRUE);
 
 	if (re->result->do_exr_tile)
 		render_result_exr_file_begin(re);
@@ -928,7 +928,7 @@ static void threaded_tile_processor(Render *re)
 	g_break = 0;
 	
 	BLI_end_threads(&threads);
-	freeparts(re);
+	RE_parts_free(re);
 	re->viewplane = viewplane; /* restore viewplane, modified by pano render */
 }
 
@@ -947,6 +947,7 @@ static void do_render_3d(Render *re)
 		return;
 
 	/* internal */
+	RE_parts_clamp(re);
 	
 //	re->cfra= cfra;	/* <- unused! */
 	re->scene->r.subframe = re->mblur_offs + re->field_offs;
