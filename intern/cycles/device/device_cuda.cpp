@@ -60,7 +60,7 @@ public:
 		return (CUdeviceptr)mem;
 	}
 
-	const char *cuda_error_string(CUresult result)
+	static const char *cuda_error_string(CUresult result)
 	{
 		switch(result) {
 			case CUDA_SUCCESS: return "No errors";
@@ -915,12 +915,21 @@ Device *device_cuda_create(DeviceInfo& info, Stats &stats, bool background)
 
 void device_cuda_info(vector<DeviceInfo>& devices)
 {
+	CUresult result;
 	int count = 0;
 
-	if(cuInit(0) != CUDA_SUCCESS)
+	result = cuInit(0);
+	if(result != CUDA_SUCCESS) {
+		if(result != CUDA_ERROR_NO_DEVICE)
+			fprintf(stderr, "CUDA cuInit: %s\n", CUDADevice::cuda_error_string(result));
 		return;
-	if(cuDeviceGetCount(&count) != CUDA_SUCCESS)
+	}
+
+	result = cuDeviceGetCount(&count);
+	if(result != CUDA_SUCCESS) {
+		fprintf(stderr, "CUDA cuDeviceGetCount: %s\n", CUDADevice::cuda_error_string(result));
 		return;
+	}
 	
 	vector<DeviceInfo> display_devices;
 	

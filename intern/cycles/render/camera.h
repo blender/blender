@@ -82,9 +82,15 @@ public:
 	Transform screentoworld;
 	Transform rastertoworld;
 	Transform ndctoworld;
-	Transform rastertocamera;
 	Transform cameratoworld;
+
 	Transform worldtoraster;
+	Transform worldtoscreen;
+	Transform worldtondc;
+	Transform worldtocamera;
+
+	Transform rastertocamera;
+	Transform cameratoraster;;
 
 	float3 dx;
 	float3 dy;
