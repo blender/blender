@@ -30,6 +30,10 @@
 
 #include "boost_locale_wrapper.h"
 
+#if defined (__APPLE__)
+	#include "stdio.h"
+#endif
+
 static std::string messages_path;
 static std::string default_domain;
 
@@ -60,7 +64,19 @@ void bl_locale_set(const char *locale)
 		std::locale::global(gen(locale));
 	}
 	else {
+#if defined (__APPLE__)
+		// workaround to get osx system locale from user defaults
+		FILE* fp;
+		char result [10];
+		char osx_locale [10];
+		fp = popen("defaults read .GlobalPreferences AppleLocale","r");
+		fread(result,1,sizeof(result),fp);
+		fclose (fp);
+		sprintf(osx_locale, """%s.UTF-8""", result);
+		std::locale::global(gen(osx_locale));
+#else
 		std::locale::global(gen(""));
+#endif
 	}
 	// Note: boost always uses "C" LC_NUMERIC by default!
 }
