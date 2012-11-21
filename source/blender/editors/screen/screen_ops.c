@@ -293,29 +293,35 @@ int ED_operator_console_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_CONSOLE);
 }
 
+static int ed_object_hidden(Object *ob)
+{
+	/* if hidden but in edit mode, we still display, can happen with animation */
+	return ((ob->restrictflag & OB_RESTRICT_VIEW) && !(ob->mode & OB_MODE_EDIT));
+}
+
 int ED_operator_object_active(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->restrictflag & OB_RESTRICT_VIEW));
+	return ((ob != NULL) && !ed_object_hidden(ob));
 }
 
 int ED_operator_object_active_editable(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW));
+	return ((ob != NULL) && !(ob->id.lib) && !ed_object_hidden(ob));
 }
 
 int ED_operator_object_active_editable_mesh(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) &&
+	return ((ob != NULL) && !(ob->id.lib) && !ed_object_hidden(ob) &&
 	        (ob->type == OB_MESH) && !(((ID *)ob->data)->lib));
 }
 
 int ED_operator_object_active_editable_font(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) &&
+	return ((ob != NULL) && !(ob->id.lib) && !ed_object_hidden(ob) &&
 	        (ob->type == OB_FONT));
 }
 

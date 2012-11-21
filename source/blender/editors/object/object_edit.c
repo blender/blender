@@ -550,7 +550,8 @@ static int editmode_toggle_poll(bContext *C)
 	if (ELEM(NULL, ob, ob->data) || ((ID *)ob->data)->lib)
 		return 0;
 
-	if (ob->restrictflag & OB_RESTRICT_VIEW)
+	/* if hidden but in edit mode, we still display */
+	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(ob->mode & OB_MODE_EDIT))
 		return 0;
 
 	return (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
