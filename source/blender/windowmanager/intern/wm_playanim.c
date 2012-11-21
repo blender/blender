@@ -189,21 +189,6 @@ static void playanim_event_qual_update(void)
 	GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyRightAlt, &val);
 	if (val) g_WS.qual |=  WS_QUAL_RALT;
 	else     g_WS.qual &= ~WS_QUAL_RALT;
-
-	/* LMB */
-	GHOST_GetButtonState(g_WS.ghost_system, GHOST_kButtonMaskLeft, &val);
-	if (val) g_WS.qual |=  WS_QUAL_LMOUSE;
-	else     g_WS.qual &= ~WS_QUAL_LMOUSE;
-
-	/* MMB */
-	GHOST_GetButtonState(g_WS.ghost_system, GHOST_kButtonMaskMiddle, &val);
-	if (val) g_WS.qual |=  WS_QUAL_MMOUSE;
-	else     g_WS.qual &= ~WS_QUAL_MMOUSE;
-
-	/* RMB */
-	GHOST_GetButtonState(g_WS.ghost_system, GHOST_kButtonMaskRight, &val);
-	if (val) g_WS.qual |=  WS_QUAL_RMOUSE;
-	else     g_WS.qual &= ~WS_QUAL_RMOUSE;
 }
 
 typedef struct PlayAnimPict {
@@ -455,33 +440,42 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyP:
 					if (val) ps->pingpong = !ps->pingpong;
 					break;
+				case GHOST_kKey1:
 				case GHOST_kKeyNumpad1:
 					if (val) swaptime = ps->fstep / 60.0;
 					break;
+				case GHOST_kKey2:
 				case GHOST_kKeyNumpad2:
 					if (val) swaptime = ps->fstep / 50.0;
 					break;
+				case GHOST_kKey3:
 				case GHOST_kKeyNumpad3:
 					if (val) swaptime = ps->fstep / 30.0;
 					break;
+				case GHOST_kKey4:
 				case GHOST_kKeyNumpad4:
 					if (g_WS.qual & WS_QUAL_SHIFT)
 						swaptime = ps->fstep / 24.0;
 					else
 						swaptime = ps->fstep / 25.0;
 					break;
+				case GHOST_kKey5:
 				case GHOST_kKeyNumpad5:
 					if (val) swaptime = ps->fstep / 20.0;
 					break;
+				case GHOST_kKey6:
 				case GHOST_kKeyNumpad6:
 					if (val) swaptime = ps->fstep / 15.0;
 					break;
+				case GHOST_kKey7:
 				case GHOST_kKeyNumpad7:
 					if (val) swaptime = ps->fstep / 12.0;
 					break;
+				case GHOST_kKey8:
 				case GHOST_kKeyNumpad8:
 					if (val) swaptime = ps->fstep / 10.0;
 					break;
+				case GHOST_kKey9:
 				case GHOST_kKeyNumpad9:
 					if (val) swaptime = ps->fstep / 6.0;
 					break;
@@ -548,6 +542,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						}
 					}
 					break;
+				case GHOST_kKey0:
 				case GHOST_kKeyNumpad0:
 					if (val) {
 						if (ps->once) {
@@ -566,6 +561,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						ps->wait2 = ps->sstep = FALSE;
 					}
 					break;
+				case GHOST_kKeyPeriod:
 				case GHOST_kKeyNumpadPeriod:
 					if (val) {
 						if (ps->sstep) ps->wait2 = FALSE;
@@ -607,6 +603,44 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 			}
 			break;
 		}
+		case GHOST_kEventButtonDown:
+		case GHOST_kEventButtonUp:
+		{
+			GHOST_TEventButtonData *bd = GHOST_GetEventData(evt);
+			int cx, cy, sizex, sizey, inside_window;
+			
+			GHOST_GetCursorPosition(g_WS.ghost_system, &cx, &cy);
+			GHOST_ScreenToClient(g_WS.ghost_window, cx, cy, &cx, &cy);
+			playanim_window_get_size(&sizex, &sizey);
+
+			inside_window = (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
+			
+			if (bd->button == GHOST_kButtonMaskLeft) {
+				if (type == GHOST_kEventButtonDown) {
+					if (inside_window)
+						g_WS.qual |= WS_QUAL_LMOUSE;
+				}
+				else
+					g_WS.qual &= ~WS_QUAL_LMOUSE;
+			}
+			else if (bd->button == GHOST_kButtonMaskMiddle) {
+				if (type == GHOST_kEventButtonDown) {
+					if (inside_window)
+						g_WS.qual |= WS_QUAL_MMOUSE;
+				}
+				else
+					g_WS.qual &= ~WS_QUAL_MMOUSE;
+			}
+			else if (bd->button == GHOST_kButtonMaskRight) {
+				if (type == GHOST_kEventButtonDown) {
+					if (inside_window)
+						g_WS.qual |= WS_QUAL_RMOUSE;
+				}
+				else
+					g_WS.qual &= ~WS_QUAL_RMOUSE;
+			}
+			break;
+		}
 		case GHOST_kEventCursorMove:
 		{
 			if (g_WS.qual & WS_QUAL_LMOUSE) {
@@ -636,6 +670,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				ps->wait2 = FALSE;
 				ps->next = 0;
 			}
+			break;
+		}
+		case GHOST_kEventWindowActivate:
+		case GHOST_kEventWindowDeactivate: {
+			g_WS.qual &= ~WS_QUAL_MOUSE;
 			break;
 		}
 		case GHOST_kEventWindowSize:

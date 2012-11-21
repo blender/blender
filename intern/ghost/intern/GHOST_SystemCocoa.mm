@@ -551,7 +551,6 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	char *rstring = NULL;
 	
 	m_modifierMask =0;
-	m_pressedMouseButtons =0;
 	m_isGestureInProgress = false;
 	m_cursorDelta_x=0;
 	m_cursorDelta_y=0;
@@ -848,12 +847,14 @@ GHOST_TSuccess GHOST_SystemCocoa::getModifierKeys(GHOST_ModifierKeys& keys) cons
 
 GHOST_TSuccess GHOST_SystemCocoa::getButtons(GHOST_Buttons& buttons) const
 {
+	UInt32 button_state = GetCurrentEventButtonState();
+
 	buttons.clear();
-	buttons.set(GHOST_kButtonMaskLeft, m_pressedMouseButtons & GHOST_kButtonMaskLeft);
-	buttons.set(GHOST_kButtonMaskRight, m_pressedMouseButtons & GHOST_kButtonMaskRight);
-	buttons.set(GHOST_kButtonMaskMiddle, m_pressedMouseButtons & GHOST_kButtonMaskMiddle);
-	buttons.set(GHOST_kButtonMaskButton4, m_pressedMouseButtons & GHOST_kButtonMaskButton4);
-	buttons.set(GHOST_kButtonMaskButton5, m_pressedMouseButtons & GHOST_kButtonMaskButton5);
+	buttons.set(GHOST_kButtonMaskLeft, button_state & (1 << 0));
+	buttons.set(GHOST_kButtonMaskRight, button_state & (1 << 1));
+	buttons.set(GHOST_kButtonMaskMiddle, button_state & (1 << 2));
+	buttons.set(GHOST_kButtonMaskButton4, button_state & (1 << 3));
+	buttons.set(GHOST_kButtonMaskButton5, button_state & (1 << 4));
 	return GHOST_kSuccess;
 }
 
