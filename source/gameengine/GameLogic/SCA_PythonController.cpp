@@ -168,12 +168,16 @@ void SCA_PythonController::SetNamespace(PyObject*	pythondictionary)
 }
 #endif
 
-int SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
+bool SCA_PythonController::IsTriggered(class SCA_ISensor* sensor)
 {
 	if (std::find(m_triggeredSensors.begin(), m_triggeredSensors.end(), sensor) != 
 		m_triggeredSensors.end())
-		return 1;
-	return 0;
+	{
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 #ifdef WITH_PYTHON

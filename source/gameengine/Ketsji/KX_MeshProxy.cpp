@@ -172,7 +172,7 @@ PyObject *KX_MeshProxy::PyGetVertexArrayLength(PyObject *args, PyObject *kwds)
 			length = m_meshobj->NumVertices(mat);
 	}
 	
-	return PyLong_FromSsize_t(length);
+	return PyLong_FromLong(length);
 }
 
 
@@ -406,13 +406,13 @@ PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 PyObject * KX_MeshProxy::pyattr_get_numMaterials(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef)
 {
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
-	return PyLong_FromSsize_t(self->m_meshobj->NumMaterials());
+	return PyLong_FromLong(self->m_meshobj->NumMaterials());
 }
 
 PyObject * KX_MeshProxy::pyattr_get_numPolygons(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef)
 {
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
-	return PyLong_FromSsize_t(self->m_meshobj->NumPolygons());
+	return PyLong_FromLong(self->m_meshobj->NumPolygons());
 }
 
 /* a close copy of ConvertPythonToGameObject but for meshes */

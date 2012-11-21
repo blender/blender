@@ -146,7 +146,7 @@ bool KX_PolygonMaterial::Activate(RAS_IRasterizer* rasty, TCachingInfo& cachingI
 		PyObject *ret = PyObject_CallMethod(m_pymaterial, (char *)"activate", (char *)"(NNO)", pyRasty, pyCachingInfo, (PyObject *) this->m_proxy);
 		if (ret)
 		{
-			bool value = PyLong_AsSsize_t(ret);
+			bool value = PyLong_AsLong(ret);
 			Py_DECREF(ret);
 			dopass = value;
 		}
@@ -381,7 +381,7 @@ PyObject *KX_PolygonMaterial::pyattr_get_gl_texture(void *self_v, const KX_PYATT
 	if (self->m_tface.tpage)
 		bindcode= self->m_tface.tpage->bindcode;
 	
-	return PyLong_FromSsize_t(bindcode);
+	return PyLong_FromLong(bindcode);
 }
 
 

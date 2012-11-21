@@ -256,7 +256,7 @@ bool SCA_ILogicBrick::PyArgToBool(int boolArg)
 
 PyObject *SCA_ILogicBrick::BoolToPyArg(bool boolarg)
 {
-	return PyLong_FromSsize_t(boolarg? KX_TRUE: KX_FALSE);
+	return PyLong_FromLong(boolarg ? KX_TRUE: KX_FALSE);
 }
 
 #endif // WITH_PYTHON

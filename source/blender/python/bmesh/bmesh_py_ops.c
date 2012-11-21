@@ -342,7 +342,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 					item = PyBool_FromLong((BMO_SLOT_AS_BOOL(slot)));
 					break;
 				case BMO_OP_SLOT_INT:
-					item = PyLong_FromSsize_t(BMO_SLOT_AS_INT(slot));
+					item = PyLong_FromLong(BMO_SLOT_AS_INT(slot));
 					break;
 				case BMO_OP_SLOT_FLT:
 					item = PyFloat_FromDouble((double)BMO_SLOT_AS_FLOAT(slot));

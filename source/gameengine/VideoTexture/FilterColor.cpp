@@ -151,7 +151,7 @@ static int setMatrix (PyFilter *self, PyObject *value, void *closure)
 			valid = PyLong_Check(PySequence_Fast_GET_ITEM(row, c));
 			// if it is valid, save it in matrix
 			if (valid)
-				mat[r][c] = short(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(row, c)));
+				mat[r][c] = short(PyLong_AsLong(PySequence_Fast_GET_ITEM(row, c)));
 		}
 	}
 	// if parameter is not valid, report error
@@ -284,7 +284,7 @@ static int setLevels (PyFilter *self, PyObject *value, void *closure)
 			valid = PyLong_Check(PySequence_Fast_GET_ITEM(row, c));
 			// if it is valid, save it in matrix
 			if (valid)
-				lev[r][c] = (unsigned short)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(row, c)));
+				lev[r][c] = (unsigned short)(PyLong_AsLong(PySequence_Fast_GET_ITEM(row, c)));
 		}
 	}
 	// if parameter is not valid, report error

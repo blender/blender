@@ -494,13 +494,13 @@ PyObject *KX_VertexProxy::PySetNormal(PyObject *value)
 PyObject *KX_VertexProxy::PyGetRGBA()
 {
 	int *rgba = (int *) m_vertex->getRGBA();
-	return PyLong_FromSsize_t(*rgba);
+	return PyLong_FromLong(*rgba);
 }
 
 PyObject *KX_VertexProxy::PySetRGBA(PyObject *value)
 {
 	if (PyLong_Check(value)) {
-		int rgba = PyLong_AsSsize_t(value);
+		int rgba = PyLong_AsLong(value);
 		m_vertex->SetRGBA(rgba);
 		m_mesh->SetMeshModified(true);
 		Py_RETURN_NONE;

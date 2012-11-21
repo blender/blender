@@ -51,7 +51,7 @@
 #ifdef WITH_PYTHON
 
 // macro copied from KX_PythonInit.cpp
-#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyLong_FromSsize_t(name2)); Py_DECREF(item)
+#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyLong_FromLong(name2)); Py_DECREF(item)
 
 // nasty glob variable to connect scripting language
 // if there is a better way (without global), please do so!

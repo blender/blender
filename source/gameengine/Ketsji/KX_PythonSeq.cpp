@@ -100,7 +100,7 @@ static Py_ssize_t KX_PythonSeq_len( PyObject *self )
 	}
 }
 
-static PyObject *KX_PythonSeq_getIndex(PyObject *self, int index)
+static PyObject *KX_PythonSeq_getIndex(PyObject *self, Py_ssize_t index)
 {
 	PyObjectPlus *self_plus= BGE_PROXY_REF(((KX_PythonSeq *)self)->base);
 	 
@@ -273,8 +273,8 @@ static PyObject * KX_PythonSeq_subscript(PyObject *self, PyObject *key)
 		return NULL;
 	}
 	
-	if (PyLong_Check(key)) {
-		return KX_PythonSeq_getIndex(self, PyLong_AsSsize_t( key ));
+	if (PyIndex_Check(key)) {
+		return KX_PythonSeq_getIndex(self, PyLong_AsSsize_t(key));
 	}
 	else if ( PyUnicode_Check(key) ) {
 		const char *name = _PyUnicode_AsString(key);
