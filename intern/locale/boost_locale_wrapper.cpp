@@ -26,13 +26,10 @@
  *
  */
 
+#include <stdio.h>
 #include <boost/locale.hpp>
 
 #include "boost_locale_wrapper.h"
-
-#if defined (__APPLE__)
-	#include "stdio.h"
-#endif
 
 static std::string messages_path;
 static std::string default_domain;
@@ -59,24 +56,38 @@ void bl_locale_set(const char *locale)
 	gen.add_messages_path(messages_path);
 	gen.add_messages_domain(default_domain);
 	//gen.set_default_messages_domain(default_domain);	
-#if defined (__APPLE__)
-	// workaround to get osx system locale from user defaults
-	FILE* fp;
-	char result [10];
-	char osx_locale [10];
-	fp = popen("defaults read .GlobalPreferences AppleLocale","r");
-	fread(result,1,sizeof(result),fp);
-	fclose (fp);
-	sprintf(osx_locale, """%s.UTF-8""", result);
-	locale = osx_locale;
-#endif
+
 	if (locale && locale[0]) {
 		std::locale::global(gen(locale));
 	}
-
 	else {
+#if defined (__APPLE__)
+		// workaround to get osx system locale from user defaults
+		FILE* fp;
+		std::string locale_osx = "";
+		char result[16];
+		int result_len = 0;
 
+		fp = popen("defaults read .GlobalPreferences AppleLocale", "r");
+
+		if(fp) {
+			result_len = fread(result, 1, sizeof(result) - 1, fp);
+
+			if(result_len > 0) {
+				result[result_len-1] = '\0'; // \0 terminate and remove \n
+				locale_osx = std::string(result) + std::string(".UTF-8");
+			}
+
+			pclose(fp);
+		}
+
+		if(locale_osx == "")
+			fprintf(stderr, "Locale set: failed to read AppleLocale read from defaults\n");
+
+		std::locale::global(gen(locale_osx.c_str()));
+#else
 		std::locale::global(gen(""));
+#endif
 	}
 	// Note: boost always uses "C" LC_NUMERIC by default!
 }
