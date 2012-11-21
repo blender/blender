@@ -278,13 +278,21 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	/* standard mouse selection goes via space_view3d */
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "toggle", FALSE);
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_edgering_select", SELECTMOUSE, KM_PRESS, KM_ALT | KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "toggle", FALSE);
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_edgering_select", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT | KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_shortest_path", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 
