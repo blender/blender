@@ -617,7 +617,7 @@ compile_OSL() {
 
     cd $_src
     # XXX For now, always update from latest repo...
-    git checkout .
+    git pull origin
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -1347,8 +1347,8 @@ print_info() {
     INFO "  -D WITH_CYCLES_OSL=ON"
     INFO "  -D LLVM_VERSION=$LLVM_VERSION_FOUND"
     if [ -d $INST/llvm ]; then
-      cmake_d="$cmake_d -D LLVM_DIRECTORY=$INST/llvm"
-      cmake_d="$cmake_d -D LLVM_STATIC=ON"
+      INFO "  -D LLVM_DIRECTORY=$INST/llvm"
+      INFO "  -D LLVM_STATIC=ON"
     fi
   fi
 
