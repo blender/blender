@@ -2343,6 +2343,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	            (context.scene->r.seq_flag & R_SEQ_GL_PREV);
 	int do_seq;
 	int have_seq = FALSE;
+	int have_comp = FALSE;
 	Scene *scene;
 	int is_thread_main = BLI_thread_is_main();
 
@@ -2355,6 +2356,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	frame = scene->r.sfra + nr + seq->anim_startofs;
 
 	have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
+	have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->nodetree;
 
 	oldcfra = scene->r.cfra;
 	scene->r.cfra = frame;
@@ -2367,7 +2369,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		camera = scene->camera;
 	}
 
-	if (have_seq == FALSE && camera == NULL) {
+	if (have_comp == FALSE && camera == NULL) {
 		scene->r.cfra = oldcfra;
 		return NULL;
 	}

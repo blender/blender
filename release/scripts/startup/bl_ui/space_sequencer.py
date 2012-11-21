@@ -707,8 +707,6 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         layout.template_ID(strip, "scene")
 
         scene = strip.scene
-        if scene:
-            layout.prop(scene.render, "use_sequencer")
 
         layout.label(text="Camera Override")
         layout.template_ID(strip, "scene_camera")

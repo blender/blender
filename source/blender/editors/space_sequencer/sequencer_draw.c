@@ -822,6 +822,7 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	int rectx, recty;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
+	short is_break = G.is_break;
 
 	render_size = sseq->render_size;
 	if (render_size == 0) {
@@ -840,12 +841,20 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 
 	context = BKE_sequencer_new_render_data(bmain, scene, rectx, recty, proxy_size);
 
+	/* sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
+	 * by Esc pressed somewhere in the past
+	 */
+	G.is_break = FALSE;
+
 	if (special_seq_update)
 		ibuf = BKE_sequencer_give_ibuf_direct(context, cfra + frame_ofs, special_seq_update);
 	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
 		ibuf = BKE_sequencer_give_ibuf(context, cfra + frame_ofs, sseq->chanshown);
 	else
 		ibuf = BKE_sequencer_give_ibuf_threaded(context, cfra + frame_ofs, sseq->chanshown);
+
+	/* restore state so real rendering would be canceled (if needed) */
+	G.is_break = is_break;
 
 	return ibuf;
 }
