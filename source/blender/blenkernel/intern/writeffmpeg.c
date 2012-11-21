@@ -111,6 +111,11 @@ static void delete_picture(AVFrame *f)
 	}
 }
 
+static int use_float_audio_buffer(int codec_id)
+{
+	return codec_id == CODEC_ID_AAC || codec_id == CODEC_ID_AC3 || codec_id == CODEC_ID_VORBIS;
+}
+
 #ifdef WITH_AUDASPACE
 static int write_audio_frame(void) 
 {
@@ -618,6 +623,10 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->bit_rate = ffmpeg_audio_bitrate * 1000;
 	c->sample_fmt = AV_SAMPLE_FMT_S16;
 	c->channels = rd->ffcodecdata.audio_channels;
+	if (use_float_audio_buffer(codec_id)) {
+		c->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
+		c->sample_fmt = AV_SAMPLE_FMT_FLT;
+	}
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec) {
 		//XXX error("Couldn't find a valid audio codec");
@@ -649,7 +658,12 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	audio_output_buffer = (uint8_t *) av_malloc(audio_outbuf_size);
 
-	audio_input_buffer = (uint8_t *) av_malloc(audio_input_samples * c->channels * sizeof(int16_t));
+	if (use_float_audio_buffer(codec_id)) {
+		audio_input_buffer = (uint8_t *) av_malloc(audio_input_samples * c->channels * sizeof(float));
+	}
+	else {
+		audio_input_buffer = (uint8_t *) av_malloc(audio_input_samples * c->channels * sizeof(int16_t));
+	}
 
 	audio_time = 0.0f;
 
@@ -949,7 +963,12 @@ int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, 
 		AVCodecContext *c = audio_stream->codec;
 		AUD_DeviceSpecs specs;
 		specs.channels = c->channels;
-		specs.format = AUD_FORMAT_S16;
+		if (use_float_audio_buffer(c->codec_id)) {
+			specs.format = AUD_FORMAT_FLOAT32;
+		}
+		else {
+			specs.format = AUD_FORMAT_S16;
+		}
 		specs.rate = rd->ffcodecdata.audio_mixrate;
 		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->ffcodecdata.audio_volume);
 #ifdef FFMPEG_CODEC_TIME_BASE
