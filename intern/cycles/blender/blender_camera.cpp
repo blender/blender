@@ -279,7 +279,21 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 
 	/* sensor */
 	cam->sensorwidth = bcam->sensor_width;
-	cam->sensorheight = bcam->sensor_height;
+
+	if (bcam->type == CAMERA_PANORAMA &&
+	   (bcam->sensor_fit == BlenderCamera::AUTO &&
+		bcam->panorama_type == PANORAMA_FISHEYE_EQUISOLID)
+	   ) {
+
+		float sensor_aspectratio = bcam->pano_viewplane.width() /
+								  (bcam->pano_viewplane.height() *
+								  (aspectratio));
+
+		cam->sensorheight = bcam->sensor_width * sensor_aspectratio;
+	}
+	else {
+		cam->sensorheight = bcam->sensor_height;
+	}
 
 	/* clipping distances */
 	cam->nearclip = bcam->nearclip;
