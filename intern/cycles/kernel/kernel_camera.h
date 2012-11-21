@@ -229,5 +229,20 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 		camera_sample_panorama(kg, raster_x, raster_y, lens_u, lens_v, ray);
 }
 
+/* Utilities */
+
+__device_inline float camera_distance(KernelGlobals *kg, float3 P)
+{
+	Transform cameratoworld = kernel_data.cam.cameratoworld;
+	float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+
+	if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+		float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
+		return fabsf(dot((P - camP), camD));
+	}
+	else
+		return len(P - camP);
+}
+
 CCL_NAMESPACE_END
 

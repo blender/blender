@@ -20,17 +20,19 @@ CCL_NAMESPACE_BEGIN
 
 /* Texture Coordinate Node */
 
-__device_inline float3 svm_background_offset(KernelGlobals *kg)
+__device_inline float3 svm_background_position(KernelGlobals *kg, float3 P)
 {
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
-	return make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+	float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+
+	return camP + P;
 }
 
 __device_inline float3 svm_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float3 P)
 {
 	if(kernel_data.cam.type != CAMERA_PANORAMA) {
 		if(sd->object == ~0)
-			P += svm_background_offset(kg);
+			P = svm_background_position(kg, P);
 
 		Transform tfm = kernel_data.cam.worldtondc;
 		return transform_perspective(&tfm, P);
@@ -78,11 +80,12 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 			if(sd->object != ~0)
 				data = transform_point(&tfm, sd->P);
 			else
-				data = transform_point(&tfm, sd->P + svm_background_offset(kg));
+				data = transform_point(&tfm, svm_background_position(kg, sd->P));
 			break;
 		}
 		case NODE_TEXCO_WINDOW: {
 			data = svm_world_to_ndc(kg, sd, sd->P);
+			data.z = 0.0f;
 			break;
 		}
 		case NODE_TEXCO_REFLECTION: {
@@ -135,11 +138,12 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 			if(sd->object != ~0)
 				data = transform_point(&tfm, sd->P + sd->dP.dx);
 			else
-				data = transform_point(&tfm, sd->P + sd->dP.dx + svm_background_offset(kg));
+				data = transform_point(&tfm, svm_background_position(kg, sd->P + sd->dP.dx));
 			break;
 		}
 		case NODE_TEXCO_WINDOW: {
 			data = svm_world_to_ndc(kg, sd, sd->P + sd->dP.dx);
+			data.z = 0.0f;
 			break;
 		}
 		case NODE_TEXCO_REFLECTION: {
@@ -195,11 +199,12 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 			if(sd->object != ~0)
 				data = transform_point(&tfm, sd->P + sd->dP.dy);
 			else
-				data = transform_point(&tfm, sd->P + sd->dP.dy + svm_background_offset(kg));
+				data = transform_point(&tfm, svm_background_position(kg, sd->P + sd->dP.dy));
 			break;
 		}
 		case NODE_TEXCO_WINDOW: {
 			data = svm_world_to_ndc(kg, sd, sd->P + sd->dP.dy);
+			data.z = 0.0f;
 			break;
 		}
 		case NODE_TEXCO_REFLECTION: {
