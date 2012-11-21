@@ -43,6 +43,10 @@ void MuteNode::reconnect(ExecutionSystem *graph, OutputSocket *output)
 		if (input->getDataType() == output->getDataType()) {
 			if (input->isConnected()) {
 				output->relinkConnections(input->getConnection()->getFromSocket(), false);
+				/* output connections have been redirected,
+				 * remove the input connection to completely unlink the node.
+				 */
+				input->unlinkConnections(graph);
 				return;
 			}
 		}
