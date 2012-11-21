@@ -390,7 +390,7 @@ compile_OCIO() {
 
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=5
+  oiio_magic=6
 
   _src=$SRC/OpenImageIO-$OIIO_VERSION
   _inst=$INST/oiio-$OIIO_VERSION
@@ -446,10 +446,11 @@ EOF
     mkdir build
     cd build
 
-    cmake_d="-D CMAKE_BUILD_TYPE=Release \
-             -D CMAKE_PREFIX_PATH=$_inst \
-             -D CMAKE_INSTALL_PREFIX=$_inst \
-             -D BUILDSTATIC=ON"
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D BUILDSTATIC=ON"
+    cmake_d="$cmake_d -D LINKSTATIC=ON"
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
@@ -556,6 +557,10 @@ EOF
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D LLVM_ENABLE_FFI=ON"
+
+    if [ -d $_FFI_INCLUDE_DIR ]; then
+      cmake_d="$cmake_d -D FFI_INCLUDE_DIR=$_FFI_INCLUDE_DIR"
+    fi
 
     cmake $cmake_d ..
 
@@ -705,7 +710,7 @@ compile_FFmpeg() {
       extra="$extra --enable-libtheora"
     fi
 
-    # XXX At under Debian, static schro gives problem at blender linking time... :/
+    # XXX At least under Debian, static schro gives problem at blender linking time... :/
     if $SCHRO_USE && ! $ALL_STATIC; then
       extra="$extra --enable-libschroedinger"
     fi
@@ -1076,19 +1081,25 @@ install_RPM() {
       have_llvm=true
       LLVM_VERSION_FOUND=$LLVM_VERSION
     else
-      check_package_RPM llvm-$LLVM_VERSION_MIN-devel
-      if [ $? -eq 0 ]; then
-        sudo yum install -y llvm-$LLVM_VERSION_MIN-devel
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
-      else
-        check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
-        if [ $? -eq 0 ]; then
-          sudo yum install -y llvm-devel
-          have_llvm=true
-          LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
-        fi
-      fi
+#      check_package_RPM llvm-$LLVM_VERSION_MIN-devel
+#      if [ $? -eq 0 ]; then
+#        sudo yum install -y llvm-$LLVM_VERSION_MIN-devel
+#        have_llvm=true
+#        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+#      else
+#        check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
+#        if [ $? -eq 0 ]; then
+#          sudo yum install -y llvm-devel
+#          have_llvm=true
+#          LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
+#        fi
+#      fi
+    sudo yum install -y libffi-devel
+    # XXX Stupid fedora puts ffi header into a darn stupid dir!
+    _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+    compile_LLVM
+    have_llvm=true
+    LLVM_VERSION_FOUND=$LLVM_VERSION
     fi
 
     if $have_llvm; then
