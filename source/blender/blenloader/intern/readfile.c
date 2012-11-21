@@ -8313,11 +8313,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			for (scene = main->scene.first; scene; scene = scene->id.next) {
 				if (scene->r.tilex == 0 || scene->r.tiley == 1) {
-					/* scene could be set for panoramic rendering, so clamp with the
-					 * lowest possible tile size value
-					 */
-					scene->r.tilex = max_ii(scene->r.xsch * scene->r.size / scene->r.xparts / 100, 8);
-					scene->r.tiley = max_ii(scene->r.ysch * scene->r.size / scene->r.yparts / 100, 8);
+					if (scene->r.xparts && scene->r.yparts) {
+						/* scene could be set for panoramic rendering, so clamp with the
+						 * lowest possible tile size value
+						 */
+						scene->r.tilex = max_ii(scene->r.xsch * scene->r.size / scene->r.xparts / 100, 8);
+						scene->r.tiley = max_ii(scene->r.ysch * scene->r.size / scene->r.yparts / 100, 8);
+					}
+					else {
+						/* happens when mixing using current trunk and previous release */
+						scene->r.tilex = scene->r.tiley = 64;
+					}
 				}
 			}
 		}
