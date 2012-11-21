@@ -677,6 +677,7 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, floa
 	BMLoop *l_first;
 
 	const float cos_threshold = 0.9f;
+	const float bias = 1.0f + 1e-6f;
 
 	if (f->len == 4) {
 		BMLoop *larr[4];
@@ -691,7 +692,7 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, floa
 		/* pick 0/1 based on best lenth */
 		/* XXX Can't only rely on such test, also must check we do not get (too much) degenerated triangles!!! */
 		i = (((len_squared_v3v3(larr[0]->v->co, larr[2]->v->co) >
-		     len_squared_v3v3(larr[1]->v->co, larr[3]->v->co))) != use_beauty);
+		     len_squared_v3v3(larr[1]->v->co, larr[3]->v->co) * bias)) != use_beauty);
 		i4 = (i + 3) % 4;
 		/* Check produced tris aren’t too flat/narrow...
 		 * Probably not the best test, but is quite efficient and should at least avoid null-area faces! */
