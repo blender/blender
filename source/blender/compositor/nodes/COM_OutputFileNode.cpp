@@ -41,6 +41,12 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 		 * otherwise, it overwrites the output files just
 		 * scrubbing through the timeline when the compositor updates.
 		 */
+		
+		/* still, need to unlink input sockets to remove the node from the graph completely */
+		int num_inputs = getNumberOfInputSockets();
+		for (int i = 0; i < num_inputs; ++i) {
+			getInputSocket(i)->unlinkConnections(graph);
+		}
 		return;
 	}
 	
