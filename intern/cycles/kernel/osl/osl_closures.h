@@ -66,6 +66,8 @@ void name(RendererServices *, int id, void *data) \
 	new (data) classname();                       \
 }
 
+#define CLOSURE_PREPARE_STATIC(name, classname) static CLOSURE_PREPARE(name, classname)
+
 #define TO_VEC3(v) (*(OSL::Vec3 *)&(v))
 #define TO_COLOR3(v) (*(OSL::Color3 *)&(v))
 #define TO_FLOAT3(v) make_float3(v[0], v[1], v[2])
@@ -151,7 +153,7 @@ public: \
 	} \
 }; \
 \
-ClosureParam *bsdf_##lower##_params() \
+static ClosureParam *bsdf_##lower##_params() \
 { \
 	static ClosureParam params[] = {
 
@@ -164,7 +166,7 @@ ClosureParam *bsdf_##lower##_params() \
 	return params; \
 } \
 \
-CLOSURE_PREPARE(bsdf_##lower##_prepare, Upper##Closure)
+CLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
 
 CCL_NAMESPACE_END
 
