@@ -36,6 +36,7 @@ ImageManager::ImageManager()
 	need_update = true;
 	pack_images = false;
 	osl_texture_system = NULL;
+	animation_frame = 0;
 
 	tex_num_images = TEX_NUM_IMAGES;
 	tex_num_float_images = TEX_NUM_FLOAT_IMAGES;
@@ -67,6 +68,23 @@ void ImageManager::set_extended_image_limits(void)
 	tex_image_byte_start = TEX_EXTENDED_IMAGE_BYTE_START;
 }
 
+bool ImageManager::set_animation_frame_update(int frame)
+{
+	if(frame != animation_frame) {
+		animation_frame = frame;
+
+		for(size_t slot = 0; slot < images.size(); slot++)
+			if(images[slot] && images[slot]->animated)
+				return true;
+
+		for(size_t slot = 0; slot < float_images.size(); slot++)
+			if(float_images[slot] && float_images[slot]->animated)
+				return true;
+	}
+	
+	return false;
+}
+
 bool ImageManager::is_float_image(const string& filename)
 {
 	ImageInput *in = ImageInput::create(filename);
@@ -95,7 +113,7 @@ bool ImageManager::is_float_image(const string& filename)
 	return is_float;
 }
 
-int ImageManager::add_image(const string& filename, bool& is_float)
+int ImageManager::add_image(const string& filename, bool animated, bool& is_float)
 {
 	Image *img;
 	size_t slot;
@@ -133,6 +151,7 @@ int ImageManager::add_image(const string& filename, bool& is_float)
 		img = new Image();
 		img->filename = filename;
 		img->need_load = true;
+		img->animated = animated;
 		img->users = 1;
 
 		float_images[slot] = img;
@@ -166,6 +185,7 @@ int ImageManager::add_image(const string& filename, bool& is_float)
 		img = new Image();
 		img->filename = filename;
 		img->need_load = true;
+		img->animated = animated;
 		img->users = 1;
 
 		images[slot] = img;

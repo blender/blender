@@ -73,6 +73,7 @@ public:
 	ustring color_space;
 	ustring projection;
 	float projection_blend;
+	bool animated;
 
 	static ShaderEnum color_space_enum;
 	static ShaderEnum projection_enum;
@@ -90,6 +91,7 @@ public:
 	string filename;
 	ustring color_space;
 	ustring projection;
+	bool animated;
 
 	static ShaderEnum color_space_enum;
 	static ShaderEnum projection_enum;

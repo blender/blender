@@ -145,6 +145,7 @@ ImageTextureNode::ImageTextureNode()
 	color_space = ustring("Color");
 	projection = ustring("Flat");;
 	projection_blend = 0.0f;
+	animated = false;
 
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_UV);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -175,7 +176,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, is_float_bool);
+		slot = image_manager->add_image(filename, animated, is_float_bool);
 		is_float = (int)is_float_bool;
 	}
 
@@ -272,6 +273,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 	filename = "";
 	color_space = ustring("Color");
 	projection = ustring("Equirectangular");
+	animated = false;
 
 	add_input("Vector", SHADER_SOCKET_VECTOR, ShaderInput::POSITION);
 	add_output("Color", SHADER_SOCKET_COLOR);
@@ -302,7 +304,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(slot == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, is_float_bool);
+		slot = image_manager->add_image(filename, animated, is_float_bool);
 		is_float = (int)is_float_bool;
 	}
 

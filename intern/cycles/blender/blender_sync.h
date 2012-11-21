@@ -68,14 +68,14 @@ public:
 
 private:
 	/* sync */
-	void sync_lamps();
-	void sync_materials();
+	void sync_lamps(bool update_all);
+	void sync_materials(bool update_all);
 	void sync_objects(BL::SpaceView3D b_v3d, int motion = 0);
 	void sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override);
 	void sync_film();
 	void sync_integrator();
 	void sync_view();
-	void sync_world();
+	void sync_world(bool update_all);
 	void sync_render_layers(BL::SpaceView3D b_v3d, const char *layer);
 	void sync_shaders();
 
