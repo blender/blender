@@ -47,6 +47,8 @@ OIIO_VERSION_MIN="1.1"
 LLVM_VERSION="3.1"
 LLVM_VERSION_MIN="3.0"
 LLVM_VERSION_FOUND=""
+LLVM_SOURCE="http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz"
+LLVM_CLANG_SOURCE="http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz"
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.2.0"
@@ -432,6 +434,8 @@ index b9e6c8b..c761185 100644
  #define SHA1_MAX_FILE_BUFFER 8000
 EOF
 
+      cd $CWD
+
     fi
 
     cd $_src
@@ -487,9 +491,97 @@ EOF
   fi
 }
 
+compile_LLVM() {
+  # To be changed each time we make edits that would modify the compiled result!
+  llvm_magic=1
+
+  _src=$SRC/LLVM-$LLVM_VERSION
+  _inst=$INST/llvm-$LLVM_VERSION
+  _src_clang=$SRC/CLANG-$LLVM_VERSION
+
+  # Clean install if needed!
+  magic_compile_check llvm-$LLVM_VERSION $llvm_magic
+  if [ $? -eq 1 ]; then
+    rm -rf $_inst
+    rm -rf $_inst_clang
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building LLVM-$LLVM_VERSION (CLANG included!)"
+
+    prepare_opt
+
+    if [ ! -d $_src -o true ]; then
+      wget -c $LLVM_SOURCE -O "$_src.tar.gz"
+      wget -c $LLVM_CLANG_SOURCE -O "$_src_clang.tar.gz"
+
+      INFO "Unpacking LLVM-$LLVM_VERSION"
+      tar -C $SRC --transform "s,([^/]*/?)llvm-[^/]*(.*),\1LLVM-$LLVM_VERSION\2,x" \
+          -xf $_src.tar.gz
+      INFO "Unpacking CLANG-$LLVM_VERSION to $_src/tools/clang"
+      tar -C $_src/tools \
+          --transform "s,([^/]*/?)clang-[^/]*(.*),\1clang\2,x" \
+          -xf $_src_clang.tar.gz
+
+      cd $_src
+
+      # XXX Ugly patching hack!
+      cat << EOF | patch -p1
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -13,7 +13,7 @@
+ set(LLVM_VERSION_MAJOR 3)
+ set(LLVM_VERSION_MINOR 1)
+ 
+-set(PACKAGE_VERSION "\${LLVM_VERSION_MAJOR}.\${LLVM_VERSION_MINOR}svn")
++set(PACKAGE_VERSION "\${LLVM_VERSION_MAJOR}.\${LLVM_VERSION_MINOR}")
+ 
+ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+ 
+EOF
+
+      cd $CWD
+
+    fi
+
+    cd $_src
+
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi    
+    mkdir build
+    cd build
+
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D LLVM_ENABLE_FFI=ON"
+
+    cmake $cmake_d ..
+
+    make -j$THREADS && make install
+    make clean
+
+    if [ -d $_inst ]; then
+      rm -f $INST/llvm
+      ln -s llvm-$LLVM_VERSION $INST/llvm
+    else
+      ERROR "LLVM-$LLVM_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set llvm-$LLVM_VERSION $llvm_magic
+
+    cd $CWD
+  else
+    INFO "Own LLVM-$LLVM_VERSION (CLANG included) is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+  fi
+}
+
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=6
+  osl_magic=7
 
   _src=$SRC/OpenShadingLanguage-$OSL_VERSION
   _inst=$INST/osl-$OSL_VERSION
@@ -547,6 +639,10 @@ compile_OSL() {
 
     if [ ! -z $LLVM_VERSION_FOUND ]; then
       cmake_d="$cmake_d -D LLVM_VERSION=$LLVM_VERSION_FOUND"
+      if [ -d $INST/llvm ]; then
+        cmake_d="$cmake_d -D LLVM_DIRECTORY=$INST/llvm"
+        cmake_d="$cmake_d -D LLVM_STATIC=ON"
+      fi
     fi
 
     cmake $cmake_d ../src
@@ -868,7 +964,7 @@ check_package_RPM() {
 }
 
 check_package_version_match_RPM() {
-  v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
+  v=`get_package_version_RPM $1`
 
   if [ -z "$v" ]; then
     return 1
@@ -879,7 +975,7 @@ check_package_version_match_RPM() {
 }
 
 check_package_version_ge_RPM() {
-  v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
+  v=`get_package_version_RPM $1`
 
   if [ -z "$v" ]; then
     return 1
@@ -1006,6 +1102,10 @@ install_RPM() {
   compile_FFmpeg
 }
 
+get_package_version_SUSE() {
+  zypper info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
+}
+
 check_package_SUSE() {
   r=`zypper info $1 | grep -c 'Summary'`
 
@@ -1016,17 +1116,26 @@ check_package_SUSE() {
   fi
 }
 
-check_package_version_SUSE() {
-  v=`zypper info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
+check_package_version_match_SUSE() {
+  v=`get_package_version_SUSE $1`
 
-  # for now major and minor versions only (as if x.y, not x.y.z)
-  r=`echo $v | grep -c $2`
-
-  if [ $r -ge 1 ]; then
-    return 0
-  else
+  if [ -z "$v" ]; then
     return 1
   fi
+
+  version_match $v $2
+  return $?
+}
+
+check_package_version_ge_SUSE() {
+  v=`get_package_version_SUSE $1`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_ge $v $2
+  return $?
 }
 
 install_SUSE() {
@@ -1037,24 +1146,95 @@ install_SUSE() {
 
   sudo zypper --non-interactive update --auto-agree-with-licenses
 
-  sudo zypper --non-interactive install --auto-agree-with-licenses \
-    gcc gcc-c++ libSDL-devel openal-soft-devel libpng12-devel libjpeg62-devel \
-    libtiff-devel OpenEXR-devel yasm libtheora-devel libvorbis-devel cmake \
-    scons patch
+  # These libs should always be available in debian/ubuntu official repository...
+  OPENJPEG_DEV="openjpeg-devel"
+  SCHRO_DEV="schroedinger-devel"
+  VORBIS_DEV="libvorbis-devel"
+  THEORA_DEV="libtheora-devel"
 
-  check_package_version_SUSE python3-devel 3.3.
+  sudo zypper --non-interactive install --auto-agree-with-licenses \
+    gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel \
+    freetype-devel libX11-devel libXi-devel wget sqlite3-devel ncurses-devel \
+    readline-devel $OPENJPEG_DEV libopenexr-devel openal-soft-devel \
+    glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libSDL-devel \
+    fftw3-devel libjack-devel libspnav-devel \
+    libjpeg62-devel patch python-devel
+
+  OPENJPEG_USE=true
+  SCHRO_USE=true
+  VORBIS_USE=true
+  THEORA_USE=true
+
+  X264_DEV="x264-devel"
+  check_package_version_ge_SUSE $X264_DEV $X264_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $X264_DEV
+    X264_USE=true
+  fi
+
+  XVID_DEV="xvidcore-devel"
+  check_package_SUSE $XVID_DEV
+  if [ $? -eq 0 ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $XVID_DEV
+    XVID_USE=true
+  fi
+
+  VPX_DEV="libvpx-devel"
+  check_package_version_ge_SUSE $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $VPX_DEV
+    VPX_USE=true
+  fi
+
+  # No mp3 in suse, it seems.
+  MP3LAME_DEV="lame-devel"
+  check_package_SUSE $MP3LAME_DEV
+  if [ $? -eq 0 ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $MP3LAME_DEV
+    MP3LAME_USE=true
+  fi
+
+  check_package_version_match_SUSE python3-devel 3.3.
   if [ $? -eq 0 ]; then
     sudo zypper --non-interactive install --auto-agree-with-licenses python3-devel
   else
     compile_Python
   fi
 
-  # can not see boost_locale in repo, so let's build own boost
+  # No boost_locale currently available, so let's build own boost.
   compile_Boost
 
-  # this libraries are also missing in the repo
+  # No ocio currently available, so let's build own boost.
   compile_OCIO
+
+  # No oiio currently available, so let's build own boost.
   compile_OIIO
+
+  if $BUILD_OSL; then
+    have_llvm=false
+
+    # Suse llvm package *_$SUCKS$_* (tm) !!!
+#    check_package_version_ge_SUSE llvm-devel $LLVM_VERSION_MIN
+#    if [ $? -eq 0 ]; then
+#      sudo zypper --non-interactive install --auto-agree-with-licenses llvm-devel
+#      have_llvm=true
+#      LLVM_VERSION_FOUND=`get_package_version_SUSE llvm-devel`
+#    fi
+
+    sudo zypper --non-interactive install --auto-agree-with-licenses libffi47-devel
+    compile_LLVM
+    have_llvm=true
+    LLVM_VERSION_FOUND=$LLVM_VERSION
+
+    if $have_llvm; then
+      # XXX No tbb lib!
+      sudo zypper --non-interactive install --auto-agree-with-licenses flex bison git
+      # No package currently!
+      compile_OSL
+    fi
+  fi
+
+  # No ffmpeg currently available, so let's build own boost.
   compile_FFmpeg
 }
 
@@ -1067,6 +1247,14 @@ print_info_ffmpeglink_DEB() {
 }
 
 print_info_ffmpeglink_RPM() {
+  if $ALL_STATIC; then
+    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
+  else
+    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  fi
+}
+
+print_info_ffmpeglink_SUSE() {
   if $ALL_STATIC; then
     rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
   else
@@ -1121,10 +1309,10 @@ print_info_ffmpeglink() {
     print_info_ffmpeglink_DEB
   elif [ "$DISTRO" = "RPM" ]; then
     print_info_ffmpeglink_RPM
+  elif [ "$DISTRO" = "SUSE" ]; then
+    print_info_ffmpeglink_SUSE
   # XXX TODO!
   else INFO "<Could not determine additional link libraries needed for ffmpeg, replace this by valid list of libs...>"
-#  elif [ "$DISTRO" = "SUSE" ]; then
-#    print_info_ffmpeglink_SUSE
   fi
 }
 
@@ -1147,6 +1335,10 @@ print_info() {
     INFO "  -D CYCLES_OSL=$INST/osl"
     INFO "  -D WITH_CYCLES_OSL=ON"
     INFO "  -D LLVM_VERSION=$LLVM_VERSION_FOUND"
+    if [ -d $INST/llvm ]; then
+      cmake_d="$cmake_d -D LLVM_DIRECTORY=$INST/llvm"
+      cmake_d="$cmake_d -D LLVM_STATIC=ON"
+    fi
   fi
 
   if [ -d $INST/ffmpeg ]; then
