@@ -107,7 +107,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	const int maxLoops = dm->getNumLoops(dm);
 	const int maxPolys = dm->getNumPolys(dm);
 	MVert *mv, *mv_prev;
-	MEdge *me, *orig_me;
+	MEdge *me;
 	MLoop *ml;
 	MPoly *mp;
 	float mtx[4][4];
@@ -209,14 +209,11 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		}
 	}
 	
-	/* adjust mirrored edge vertex indices, also set visibility to true */
-	orig_me = CDDM_get_edges(result);
-	me = orig_me + maxEdges;
-	for (i = 0; i < maxEdges; i++, me++, orig_me++) {
+	/* adjust mirrored edge vertex indices */
+	me = CDDM_get_edges(result) + maxEdges;
+	for (i = 0; i < maxEdges; i++, me++) {
 		me->v1 += maxVerts;
 		me->v2 += maxVerts;
-		me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
-		orig_me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
 	}
 	
 	/* adjust mirrored poly loopstart indices, and reverse loop order (normals) */
