@@ -80,7 +80,7 @@ const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
 };
 
 /* Dummy slot so there is something to return when slot name lookup fails */
-static BMOpSlot BMOpEmptySlot = {0};
+// static BMOpSlot BMOpEmptySlot = {0};
 
 void BMO_op_flag_enable(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
 {
@@ -252,8 +252,10 @@ BMOpSlot *BMO_slot_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identif
 {
 	int slot_code = bmo_name_to_slotcode_check(slot_args, identifier);
 
-	if (slot_code < 0) {
-		return &BMOpEmptySlot;
+	if (UNLIKELY(slot_code < 0)) {
+		//return &BMOpEmptySlot;
+		BLI_assert(0);
+		NULL;  /* better crash */
 	}
 
 	return &slot_args[slot_code];

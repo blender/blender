@@ -579,7 +579,7 @@ void bmo_remove_doubles_exec(BMesh *bm, BMOperator *op)
 void bmo_find_doubles_exec(BMesh *bm, BMOperator *op)
 {
 	BMOpSlot *slot_targetmap_out;
-	slot_targetmap_out = BMO_slot_get(op->slots_out, "targetmap");
+	slot_targetmap_out = BMO_slot_get(op->slots_out, "targetmap.out");
 	bmesh_find_doubles_common(bm, op,
 	                          op, slot_targetmap_out);
 }
