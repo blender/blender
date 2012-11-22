@@ -3204,6 +3204,10 @@ Types
       Return the value matching key, or the default value if its not found.
       :return: The key value or a default.
 
+   .. method:: drawObstacleSimulation()
+
+      Draw debug visualization of obstacle simulation.
+
 .. class:: KX_SceneActuator(SCA_IActuator)
 
    Scene Actuator logic brick.
