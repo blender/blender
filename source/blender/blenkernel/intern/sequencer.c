@@ -2338,6 +2338,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	 */
 
 	const short is_rendering = G.is_rendering;
+	const short is_background = G.background;
 	const int do_seq_gl = G.is_rendering ?
 	            0 /* (context.scene->r.seq_flag & R_SEQ_GL_REND) */ :
 	            (context.scene->r.seq_flag & R_SEQ_GL_PREV);
@@ -2409,8 +2410,11 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		 *
 		 * disable rendered preview for sequencer while rendering -- it's very much possible
 		 * that preview render will went into conflict with final render
+		 *
+		 * When rendering from command line renderer is called from main thread, in this
+		 * case it's always safe to render scene here
 		 */
-		if (!is_thread_main || is_rendering == FALSE) {
+		if (!is_thread_main || is_rendering == FALSE || is_background) {
 			if (re == NULL)
 				re = RE_NewRender(scene->id.name);
 			
