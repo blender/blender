@@ -827,114 +827,6 @@ See :class:`bge.types.KX_SteeringActuator.behavior`
 Various
 =======
 
-.. _input-status:
-
-------------
-Input Status
-------------
-
-See :class:`bge.types.SCA_PythonKeyboard`, :class:`bge.types.SCA_PythonMouse`, :class:`bge.types.SCA_MouseSensor`, :class:`bge.types.SCA_KeyboardSensor`
-
-.. data:: KX_INPUT_NONE
-.. data:: KX_INPUT_JUST_ACTIVATED
-.. data:: KX_INPUT_ACTIVE
-.. data:: KX_INPUT_JUST_RELEASED
-
--------------
-Mouse Buttons
--------------
-
-See :class:`bge.types.SCA_MouseSensor`
-
-.. data:: KX_MOUSE_BUT_LEFT
-.. data:: KX_MOUSE_BUT_MIDDLE
-.. data:: KX_MOUSE_BUT_RIGHT
-
-------------
-Navigation Mesh Draw Modes
-------------
-
-.. _navmesh-draw-mode:
-
-.. data:: RM_WALLS
-
-   Draw only the walls.
-
-.. data:: RM_POLYS
-
-   Draw only polygons.
- 
-.. data:: RM_TRIS
-
-   Draw triangle mesh.
-
-------
-States
-------
-
-See :class:`bge.types.KX_StateActuator`
-
-.. data:: KX_STATE1
-.. data:: KX_STATE2
-.. data:: KX_STATE3
-.. data:: KX_STATE4
-.. data:: KX_STATE5
-.. data:: KX_STATE6
-.. data:: KX_STATE7
-.. data:: KX_STATE8
-.. data:: KX_STATE9
-.. data:: KX_STATE10
-.. data:: KX_STATE11
-.. data:: KX_STATE12
-.. data:: KX_STATE13
-.. data:: KX_STATE14
-.. data:: KX_STATE15
-.. data:: KX_STATE16
-.. data:: KX_STATE17
-.. data:: KX_STATE18
-.. data:: KX_STATE19
-.. data:: KX_STATE20
-.. data:: KX_STATE21
-.. data:: KX_STATE22
-.. data:: KX_STATE23
-.. data:: KX_STATE24
-.. data:: KX_STATE25
-.. data:: KX_STATE26
-.. data:: KX_STATE27
-.. data:: KX_STATE28
-.. data:: KX_STATE29
-.. data:: KX_STATE30
-
-.. _state-actuator-operation:
-
-See :class:`bge.types.KX_StateActuator.operation`
-
-.. data:: KX_STATE_OP_CLR
-
-   Substract bits to state mask
-   
-   :value: 0
-
-.. data:: KX_STATE_OP_CPY
-
-   Copy state mask
-   
-   :value: 1
-   
-.. data:: KX_STATE_OP_NEG
-
-   Invert bits to state mask
-   
-   :value: 2
-   
-.. data:: KX_STATE_OP_SET
-
-   Add bits to state mask
-   
-   :value: 3
-   
-.. _Two-D-FilterActuator-mode:
-
 ---------
 2D Filter
 ---------
@@ -1008,48 +900,6 @@ See :class:`bge.types.KX_StateActuator.operation`
 .. data:: RAS_2DFILTER_SOBEL
 
    :value: 7
-   
-------
-Shader
-------
-
-.. data:: VIEWMATRIX
-.. data:: VIEWMATRIX_INVERSE
-.. data:: VIEWMATRIX_INVERSETRANSPOSE
-.. data:: VIEWMATRIX_TRANSPOSE
-.. data:: MODELMATRIX
-.. data:: MODELMATRIX_INVERSE
-.. data:: MODELMATRIX_INVERSETRANSPOSE
-.. data:: MODELMATRIX_TRANSPOSE
-.. data:: MODELVIEWMATRIX
-.. data:: MODELVIEWMATRIX_INVERSE
-.. data:: MODELVIEWMATRIX_INVERSETRANSPOSE
-.. data:: MODELVIEWMATRIX_TRANSPOSE
-.. data:: CAM_POS
-
-   Current camera position
-
-.. data:: CONSTANT_TIMER
-
-   User a timer for the uniform value.
-
-.. data:: SHD_TANGENT
-
-----------------
-Blender Material
-----------------
-
-.. data:: BL_DST_ALPHA
-.. data:: BL_DST_COLOR
-.. data:: BL_ONE
-.. data:: BL_ONE_MINUS_DST_ALPHA
-.. data:: BL_ONE_MINUS_DST_COLOR
-.. data:: BL_ONE_MINUS_SRC_ALPHA
-.. data:: BL_ONE_MINUS_SRC_COLOR
-.. data:: BL_SRC_ALPHA
-.. data:: BL_SRC_ALPHA_SATURATE
-.. data:: BL_SRC_COLOR
-.. data:: BL_ZERO
 
 ----------------
 Armature Channel
@@ -1128,63 +978,213 @@ See :class:`bge.types.BL_ArmatureConstraint.type`
 See :class:`bge.types.BL_ArmatureConstraint.ik_type`
   
 .. data:: CONSTRAINT_IK_COPYPOSE
-  
-  constraint is trying to match the position and eventually the rotation of the target.
-  
-  :value: 0
+
+   constraint is trying to match the position and eventually the rotation of the target.
+
+   :value: 0
 
 .. data:: CONSTRAINT_IK_DISTANCE
-  
-  Constraint is maintaining a certain distance to target subject to ik_mode
-  
-  :value: 1
+
+   Constraint is maintaining a certain distance to target subject to ik_mode
+
+   :value: 1
 
 .. _armatureconstraint-constants-ik-flag:
 
 See :class:`bge.types.BL_ArmatureConstraint.ik_flag`
 
 .. data:: CONSTRAINT_IK_FLAG_TIP
-  
-  Set when the constraint operates on the head of the bone and not the tail
-  
-  :value: 1
-  
+
+   Set when the constraint operates on the head of the bone and not the tail
+
+   :value: 1
+
 .. data:: CONSTRAINT_IK_FLAG_ROT
-  
-  Set when the constraint tries to match the orientation of the target
-  
-  :value: 2
-  
+
+   Set when the constraint tries to match the orientation of the target
+
+   :value: 2
+
 .. data:: CONSTRAINT_IK_FLAG_STRETCH
-  
-  Set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
-  
-  :value: 16
-  
+
+   Set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
+
+   :value: 16
+   
 .. data:: CONSTRAINT_IK_FLAG_POS
-  
-  Set when the constraint tries to match the position of the target.
-  
-  :value: 32
-  
+
+   Set when the constraint tries to match the position of the target.
+
+   :value: 32
+
 .. _armatureconstraint-constants-ik-mode:
 
 See :class:`bge.types.BL_ArmatureConstraint.ik_mode`
 
 .. data:: CONSTRAINT_IK_MODE_INSIDE
-  
-  The constraint tries to keep the bone within ik_dist of target
-  
-  :value: 0
-  
+
+   The constraint tries to keep the bone within ik_dist of target
+
+   :value: 0
+
 .. data:: CONSTRAINT_IK_MODE_OUTSIDE
-  
-  The constraint tries to keep the bone outside ik_dist of the target
-  
-  :value: 1
-  
+
+   The constraint tries to keep the bone outside ik_dist of the target
+
+   :value: 1
+   
 .. data:: CONSTRAINT_IK_MODE_ONSURFACE
-  
-  The constraint tries to keep the bone exactly at ik_dist of the target.
-  
-  :value: 2
+
+   The constraint tries to keep the bone exactly at ik_dist of the target.
+
+   :value: 2
+
+.. _input-status:
+
+----------------
+Blender Material
+----------------
+
+.. data:: BL_DST_ALPHA
+.. data:: BL_DST_COLOR
+.. data:: BL_ONE
+.. data:: BL_ONE_MINUS_DST_ALPHA
+.. data:: BL_ONE_MINUS_DST_COLOR
+.. data:: BL_ONE_MINUS_SRC_ALPHA
+.. data:: BL_ONE_MINUS_SRC_COLOR
+.. data:: BL_SRC_ALPHA
+.. data:: BL_SRC_ALPHA_SATURATE
+.. data:: BL_SRC_COLOR
+.. data:: BL_ZERO
+
+------------
+Input Status
+------------
+
+See :class:`bge.types.SCA_PythonKeyboard`, :class:`bge.types.SCA_PythonMouse`, :class:`bge.types.SCA_MouseSensor`, :class:`bge.types.SCA_KeyboardSensor`
+
+.. data:: KX_INPUT_NONE
+.. data:: KX_INPUT_JUST_ACTIVATED
+.. data:: KX_INPUT_ACTIVE
+.. data:: KX_INPUT_JUST_RELEASED
+
+-------------
+Mouse Buttons
+-------------
+
+See :class:`bge.types.SCA_MouseSensor`
+
+.. data:: KX_MOUSE_BUT_LEFT
+.. data:: KX_MOUSE_BUT_MIDDLE
+.. data:: KX_MOUSE_BUT_RIGHT
+
+------------
+Navigation Mesh Draw Modes
+------------
+
+.. _navmesh-draw-mode:
+
+.. data:: RM_WALLS
+
+   Draw only the walls.
+
+.. data:: RM_POLYS
+
+   Draw only polygons.
+ 
+.. data:: RM_TRIS
+
+   Draw triangle mesh.
+   
+------
+Shader
+------
+
+.. data:: VIEWMATRIX
+.. data:: VIEWMATRIX_INVERSE
+.. data:: VIEWMATRIX_INVERSETRANSPOSE
+.. data:: VIEWMATRIX_TRANSPOSE
+.. data:: MODELMATRIX
+.. data:: MODELMATRIX_INVERSE
+.. data:: MODELMATRIX_INVERSETRANSPOSE
+.. data:: MODELMATRIX_TRANSPOSE
+.. data:: MODELVIEWMATRIX
+.. data:: MODELVIEWMATRIX_INVERSE
+.. data:: MODELVIEWMATRIX_INVERSETRANSPOSE
+.. data:: MODELVIEWMATRIX_TRANSPOSE
+.. data:: CAM_POS
+
+   Current camera position
+
+.. data:: CONSTANT_TIMER
+
+   User a timer for the uniform value.
+
+.. data:: SHD_TANGENT
+
+------
+States
+------
+
+See :class:`bge.types.KX_StateActuator`
+
+.. data:: KX_STATE1
+.. data:: KX_STATE2
+.. data:: KX_STATE3
+.. data:: KX_STATE4
+.. data:: KX_STATE5
+.. data:: KX_STATE6
+.. data:: KX_STATE7
+.. data:: KX_STATE8
+.. data:: KX_STATE9
+.. data:: KX_STATE10
+.. data:: KX_STATE11
+.. data:: KX_STATE12
+.. data:: KX_STATE13
+.. data:: KX_STATE14
+.. data:: KX_STATE15
+.. data:: KX_STATE16
+.. data:: KX_STATE17
+.. data:: KX_STATE18
+.. data:: KX_STATE19
+.. data:: KX_STATE20
+.. data:: KX_STATE21
+.. data:: KX_STATE22
+.. data:: KX_STATE23
+.. data:: KX_STATE24
+.. data:: KX_STATE25
+.. data:: KX_STATE26
+.. data:: KX_STATE27
+.. data:: KX_STATE28
+.. data:: KX_STATE29
+.. data:: KX_STATE30
+
+.. _state-actuator-operation:
+
+See :class:`bge.types.KX_StateActuator.operation`
+
+.. data:: KX_STATE_OP_CLR
+
+   Substract bits to state mask
+   
+   :value: 0
+
+.. data:: KX_STATE_OP_CPY
+
+   Copy state mask
+   
+   :value: 1
+   
+.. data:: KX_STATE_OP_NEG
+
+   Invert bits to state mask
+   
+   :value: 2
+   
+.. data:: KX_STATE_OP_SET
+
+   Add bits to state mask
+   
+   :value: 3
+   
+.. _Two-D-FilterActuator-mode:
