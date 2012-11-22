@@ -534,21 +534,20 @@ bool KX_KetsjiEngine::NextFrame()
 {
 	double timestep = 1.0/m_ticrate;
 	double framestep = timestep;
-//	static hidden::Clock sClock;
+	//	static hidden::Clock sClock;
 
-m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(),true);
+	m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(),true);
 
-//float dt = sClock.getTimeMicroseconds() * 0.000001f;
-//sClock.reset();
+	//float dt = sClock.getTimeMicroseconds() * 0.000001f;
+	//sClock.reset();
 
-if (m_bFixedTime)
-	m_clockTime += timestep;
-else
-{
-
-//	m_clockTime += dt;
-	m_clockTime = m_kxsystem->GetTimeInSeconds();
-}
+	if (m_bFixedTime) {
+		m_clockTime += timestep;
+	}
+	else {
+		// m_clockTime += dt;
+		m_clockTime = m_kxsystem->GetTimeInSeconds();
+	}
 	
 	double deltatime = m_clockTime - m_frameTime;
 	if (deltatime<0.f)
