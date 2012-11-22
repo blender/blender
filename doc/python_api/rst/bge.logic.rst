@@ -1068,6 +1068,32 @@ See :class:`bge.types.SCA_PythonKeyboard`, :class:`bge.types.SCA_PythonMouse`, :
 .. data:: KX_INPUT_ACTIVE
 .. data:: KX_INPUT_JUST_RELEASED
 
+------------
+KX_GameObject
+-----------
+.. _gameobject-playaction-mode:
+
+See :class:`bge.types.KX_GameObject.playAction`
+
+.. data:: KX_ACTION_MODE_PLAY
+
+   Play the action once.
+   
+   :value: 0
+
+.. data:: KX_ACTION_MODE_LOOP
+
+   Loop the action (repeat it).
+   
+   :value: 1
+
+.. data:: KX_ACTION_MODE_PING_PONG
+
+   Play the action one direct then back the other way when it has completed.
+   
+   :value: 2
+
+
 -------------
 Mouse Buttons
 -------------
