@@ -56,7 +56,7 @@ shader node_texture_coordinate(
 		Camera = transform("camera", P);
 		Window = transform("NDC", P);
 		Normal = transform("world", "object", NormalIn);
-		Reflection = reflect(I, NormalIn);
+		Reflection = -reflect(I, NormalIn);
 	}
 
 	if (bump_offset == "dx") {
