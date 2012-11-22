@@ -791,6 +791,24 @@ See :class:`bge.types.SCA_MouseSensor`
 .. data:: KX_MOUSE_BUT_MIDDLE
 .. data:: KX_MOUSE_BUT_RIGHT
 
+------------
+Navigation Mesh Draw Modes
+------------
+
+.. _navmesh-draw-mode:
+
+.. data:: RM_WALLS
+
+   Draw only the walls.
+
+.. data:: RM_POLYS
+
+   Draw only polygons.
+ 
+.. data:: RM_TRIS
+
+   Draw triangle mesh.
+
 ------
 States
 ------

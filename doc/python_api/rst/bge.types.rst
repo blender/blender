@@ -2245,7 +2245,7 @@ Types
 
       Draws a debug mesh for the navigation mesh.
 
-      :arg mode: the drawing mode (WALLS=0, POLYS=1, TRIS=2)
+      :arg mode: the drawing mode (one of :ref:`these constants <navmesh-draw-mode>`)
       :arg mode: integer
       :return: None
 
