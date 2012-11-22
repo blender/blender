@@ -576,9 +576,10 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	sysctl( mib, 2, rstring, &len, NULL, 0 );
 	
 	//Hack on MacBook revision, as multitouch avail. function missing
+	//MacbookAir or MacBook version >= 5 (retina is MacBookPro10,1)
 	if (strstr(rstring,"MacBookAir") ||
 		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')) ||
-		(strstr(rstring,"MacBookPro") && (rstring[strlen(rstring)-4]=='1') && (rstring[strlen(rstring)-3]<='0'))) // Retina Models MacBookPro10,1 +
+		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-4]>='1') && (rstring[strlen(rstring)-4]<='9')))
 		m_hasMultiTouchTrackpad = true;
 	else m_hasMultiTouchTrackpad = false;
 	
