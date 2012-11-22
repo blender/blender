@@ -762,7 +762,27 @@ See :class:`bge.types.KX_SoundActuator`
 .. data:: KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP
 
    :value: 6
-   
+
+--------------
+Steering Actuator
+--------------
+
+.. _logic-steering-actuator:
+
+See :class:`bge.types.KX_SteeringActuator.behavior`
+
+.. data:: KX_STEERING_SEEK
+
+   :value: 1
+
+.. data:: KX_STEERING_FLEE
+
+   :value: 2
+
+.. data:: KX_STEERING_PATHFOLLOWING
+
+   :value: 3
+
 
 =======
 Various
