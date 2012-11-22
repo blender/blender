@@ -491,6 +491,52 @@ See :class:`bge.types.BL_ActionActuator`
 .. data:: KX_ACTIONACT_LOOPEND
 .. data:: KX_ACTIONACT_PROPERTY
 
+---------------
+Armature Actuator
+---------------
+
+ .. _armatureactuator-constants-type:
+   
+   See :class:`bge.types.BL_ArmatureActuator.type`
+   
+   .. data:: KX_ACT_ARMATURE_RUN
+
+      Just make sure the armature will be updated on the next graphic frame.
+      This is the only persistent mode of the actuator:
+      it executes automatically once per frame until stopped by a controller
+      
+      :value: 0
+
+   .. data:: KX_ACT_ARMATURE_ENABLE
+
+      Enable the constraint.
+            
+      :value: 1
+
+   .. data:: KX_ACT_ARMATURE_DISABLE
+
+      Disable the constraint (runtime constraint values are not updated).
+            
+      :value: 2
+
+   .. data:: KX_ACT_ARMATURE_SETTARGET
+
+      Change target and subtarget of constraint.
+      
+      :value: 3
+
+   .. data:: KX_ACT_ARMATURE_SETWEIGHT
+
+      Change weight of constraint (IK only).
+
+      :value: 4
+
+   .. data:: KX_ACT_ARMATURE_SETINFLUENCE
+
+      Change influence of constraint.
+
+      :value: 5
+
 -------------------
 Constraint Actuator
 -------------------
