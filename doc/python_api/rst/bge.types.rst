@@ -4626,40 +4626,6 @@ Types
 
    Armature sensor detect conditions on armatures.
 
-   .. _armaturesensor-type:
-
-   Constants related to :data:`type`
-
-   .. data:: KX_ARMSENSOR_STATE_CHANGED
-   
-      Detect that the constraint is changing state (active/inactive)
-
-      :value: 0
-      
-   .. data:: KX_ARMSENSOR_LIN_ERROR_BELOW
-   
-      Detect that the constraint linear error is above a threshold
-      
-      :value: 1
-      
-   .. data:: KX_ARMSENSOR_LIN_ERROR_ABOVE
-   
-      Detect that the constraint linear error is below a threshold
-
-      :value: 2
-      
-   .. data:: KX_ARMSENSOR_ROT_ERROR_BELOW
-   
-      Detect that the constraint rotation error is above a threshold
-      
-      :value: 3
-      
-   .. data:: KX_ARMSENSOR_ROT_ERROR_ABOVE
-   
-      Detect that the constraint rotation error is below a threshold
-      
-      :value: 4
-      
    .. attribute:: type
 
       The type of measurement that the sensor make when it is active.
