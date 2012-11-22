@@ -501,27 +501,27 @@ See :class:`bge.types.KX_ConstraintActuator.option`
 
 * Applicable to Distance constraint:
 
-  .. data:: KX_CONSTRAINT_NORMAL
+  .. data:: KX_CONSTRAINTACT_NORMAL
 
      Activate alignment to surface
    
-  .. data:: KX_CONSTRAINT_DISTANCE
+  .. data:: KX_CONSTRAINTACT_DISTANCE
 
      Activate distance control
 
-  .. data:: KX_CONSTRAINT_LOCAL
+  .. data:: KX_CONSTRAINTACT_LOCAL
 
      Direction of the ray is along the local axis
 
 * Applicable to Force field constraint:
 
-  .. data:: KX_CONSTRAINT_DOROTFH
+  .. data:: KX_CONSTRAINTACT_DOROTFH
 
      Force field act on rotation as well
 
 * Applicable to both:
 
-  .. data:: KX_CONSTRAINT_MATERIAL
+  .. data:: KX_CONSTRAINTACT_MATERIAL
 
      Detect material rather than property
    
