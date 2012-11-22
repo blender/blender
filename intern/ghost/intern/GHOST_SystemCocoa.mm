@@ -577,7 +577,8 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	
 	//Hack on MacBook revision, as multitouch avail. function missing
 	if (strstr(rstring,"MacBookAir") ||
-		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')))
+		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')) ||
+		(strstr(rstring,"MacBookPro") && (rstring[strlen(rstring)-3]>='10'))) // Retina Models
 		m_hasMultiTouchTrackpad = true;
 	else m_hasMultiTouchTrackpad = false;
 	
