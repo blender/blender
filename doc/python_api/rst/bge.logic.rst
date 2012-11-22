@@ -497,45 +497,45 @@ Armature Actuator
 
  .. _armatureactuator-constants-type:
    
-   See :class:`bge.types.BL_ArmatureActuator.type`
-   
-   .. data:: KX_ACT_ARMATURE_RUN
+See :class:`bge.types.BL_ArmatureActuator.type`
 
-      Just make sure the armature will be updated on the next graphic frame.
-      This is the only persistent mode of the actuator:
-      it executes automatically once per frame until stopped by a controller
-      
-      :value: 0
+.. data:: KX_ACT_ARMATURE_RUN
 
-   .. data:: KX_ACT_ARMATURE_ENABLE
+  Just make sure the armature will be updated on the next graphic frame.
+  This is the only persistent mode of the actuator:
+  it executes automatically once per frame until stopped by a controller
+  
+  :value: 0
 
-      Enable the constraint.
-            
-      :value: 1
+.. data:: KX_ACT_ARMATURE_ENABLE
 
-   .. data:: KX_ACT_ARMATURE_DISABLE
+  Enable the constraint.
+		
+  :value: 1
 
-      Disable the constraint (runtime constraint values are not updated).
-            
-      :value: 2
+.. data:: KX_ACT_ARMATURE_DISABLE
 
-   .. data:: KX_ACT_ARMATURE_SETTARGET
+  Disable the constraint (runtime constraint values are not updated).
+		
+  :value: 2
 
-      Change target and subtarget of constraint.
-      
-      :value: 3
+.. data:: KX_ACT_ARMATURE_SETTARGET
 
-   .. data:: KX_ACT_ARMATURE_SETWEIGHT
+  Change target and subtarget of constraint.
+  
+  :value: 3
 
-      Change weight of constraint (IK only).
+.. data:: KX_ACT_ARMATURE_SETWEIGHT
 
-      :value: 4
+  Change weight of constraint (IK only).
 
-   .. data:: KX_ACT_ARMATURE_SETINFLUENCE
+  :value: 4
 
-      Change influence of constraint.
+.. data:: KX_ACT_ARMATURE_SETINFLUENCE
 
-      :value: 5
+  Change influence of constraint.
+
+  :value: 5
 
 -------------------
 Constraint Actuator
@@ -547,31 +547,31 @@ See :class:`bge.types.KX_ConstraintActuator.option`
 
 * Applicable to Distance constraint:
 
-  .. data:: KX_CONSTRAINTACT_NORMAL
+.. data:: KX_CONSTRAINTACT_NORMAL
 
      Activate alignment to surface
    
-  .. data:: KX_CONSTRAINTACT_DISTANCE
+.. data:: KX_CONSTRAINTACT_DISTANCE
 
      Activate distance control
 
-  .. data:: KX_CONSTRAINTACT_LOCAL
+.. data:: KX_CONSTRAINTACT_LOCAL
 
      Direction of the ray is along the local axis
 
 * Applicable to Force field constraint:
 
-  .. data:: KX_CONSTRAINTACT_DOROTFH
+.. data:: KX_CONSTRAINTACT_DOROTFH
 
      Force field act on rotation as well
 
 * Applicable to both:
 
-  .. data:: KX_CONSTRAINTACT_MATERIAL
+.. data:: KX_CONSTRAINTACT_MATERIAL
 
      Detect material rather than property
    
-  .. data:: KX_CONSTRAINTACT_PERMANENT
+.. data:: KX_CONSTRAINTACT_PERMANENT
 
      No deactivation if ray does not hit target
 
@@ -1017,135 +1017,135 @@ Armature Channel
 ----------------
 .. _armaturechannel-constants-rotation-mode:
 
-   See :class:`bge.types.BL_ArmatureChannel.rotation_mode`
-   
-   .. note:
-      euler mode are named as in Blender UI but the actual axis order is reversed
+See :class:`bge.types.BL_ArmatureChannel.rotation_mode`
 
-   .. data:: ROT_QUAT
-   
-      Use quaternion in rotation attribute to update bone rotation.
+.. note:
+  euler mode are named as in Blender UI but the actual axis order is reversed
 
-      :value: 0
+.. data:: ROT_QUAT
 
-   .. data:: ROT_XYZ
-   
-      Use euler_rotation and apply angles on bone's Z, Y, X axis successively.
+  Use quaternion in rotation attribute to update bone rotation.
 
-      :value: 1
+  :value: 0
 
-   .. data:: ROT_XZY
-   
-      Use euler_rotation and apply angles on bone's Y, Z, X axis successively.
+.. data:: ROT_XYZ
 
-      :value: 2
+  Use euler_rotation and apply angles on bone's Z, Y, X axis successively.
 
-   .. data:: ROT_YXZ
-   
-      Use euler_rotation and apply angles on bone's Z, X, Y axis successively.
+  :value: 1
 
-      :value: 3
+.. data:: ROT_XZY
 
-   .. data:: ROT_YZX
-   
-      Use euler_rotation and apply angles on bone's X, Z, Y axis successively.
+  Use euler_rotation and apply angles on bone's Y, Z, X axis successively.
 
-      :value: 4
+  :value: 2
 
-   .. data:: ROT_ZXY
-   
-      Use euler_rotation and apply angles on bone's Y, X, Z axis successively.
+.. data:: ROT_YXZ
 
-      :value: 5
+  Use euler_rotation and apply angles on bone's Z, X, Y axis successively.
 
-   .. data:: ROT_ZYX
-   
-      Use euler_rotation and apply angles on bone's X, Y, Z axis successively.
+  :value: 3
 
-      :value: 6
+.. data:: ROT_YZX
+
+  Use euler_rotation and apply angles on bone's X, Z, Y axis successively.
+
+  :value: 4
+
+.. data:: ROT_ZXY
+
+  Use euler_rotation and apply angles on bone's Y, X, Z axis successively.
+
+  :value: 5
+
+.. data:: ROT_ZYX
+
+  Use euler_rotation and apply angles on bone's X, Y, Z axis successively.
+
+  :value: 6
 
 
 ----------------
 Armature Constraint
 ----------------
-   .. _armatureconstraint-constants-type:
+.. _armatureconstraint-constants-type:
 
-   See :class:`bge.types.BL_ArmatureConstraint.type`
+See :class:`bge.types.BL_ArmatureConstraint.type`
 
-   .. data:: CONSTRAINT_TYPE_TRACKTO
-   .. data:: CONSTRAINT_TYPE_KINEMATIC
-   .. data:: CONSTRAINT_TYPE_ROTLIKE
-   .. data:: CONSTRAINT_TYPE_LOCLIKE
-   .. data:: CONSTRAINT_TYPE_MINMAX
-   .. data:: CONSTRAINT_TYPE_SIZELIKE
-   .. data:: CONSTRAINT_TYPE_LOCKTRACK
-   .. data:: CONSTRAINT_TYPE_STRETCHTO
-   .. data:: CONSTRAINT_TYPE_CLAMPTO
-   .. data:: CONSTRAINT_TYPE_TRANSFORM
-   .. data:: CONSTRAINT_TYPE_DISTLIMIT
+.. data:: CONSTRAINT_TYPE_TRACKTO
+.. data:: CONSTRAINT_TYPE_KINEMATIC
+.. data:: CONSTRAINT_TYPE_ROTLIKE
+.. data:: CONSTRAINT_TYPE_LOCLIKE
+.. data:: CONSTRAINT_TYPE_MINMAX
+.. data:: CONSTRAINT_TYPE_SIZELIKE
+.. data:: CONSTRAINT_TYPE_LOCKTRACK
+.. data:: CONSTRAINT_TYPE_STRETCHTO
+.. data:: CONSTRAINT_TYPE_CLAMPTO
+.. data:: CONSTRAINT_TYPE_TRANSFORM
+.. data:: CONSTRAINT_TYPE_DISTLIMIT
 
-   .. _armatureconstraint-constants-ik-type:
+.. _armatureconstraint-constants-ik-type:
 
-   See :class:`bge.types.BL_ArmatureConstraint.ik_type`
-      
-   .. data:: CONSTRAINT_IK_COPYPOSE
-      
-      constraint is trying to match the position and eventually the rotation of the target.
-      
-      :value: 0
-   
-   .. data:: CONSTRAINT_IK_DISTANCE
-      
-      Constraint is maintaining a certain distance to target subject to ik_mode
-      
-      :value: 1
+See :class:`bge.types.BL_ArmatureConstraint.ik_type`
+  
+.. data:: CONSTRAINT_IK_COPYPOSE
+  
+  constraint is trying to match the position and eventually the rotation of the target.
+  
+  :value: 0
 
-   .. _armatureconstraint-constants-ik-flag:
+.. data:: CONSTRAINT_IK_DISTANCE
+  
+  Constraint is maintaining a certain distance to target subject to ik_mode
+  
+  :value: 1
 
-   See :class:`bge.types.BL_ArmatureConstraint.ik_flag`
+.. _armatureconstraint-constants-ik-flag:
 
-   .. data:: CONSTRAINT_IK_FLAG_TIP
-      
-      Set when the constraint operates on the head of the bone and not the tail
-      
-      :value: 1
-      
-   .. data:: CONSTRAINT_IK_FLAG_ROT
-      
-      Set when the constraint tries to match the orientation of the target
-      
-      :value: 2
-      
-   .. data:: CONSTRAINT_IK_FLAG_STRETCH
-      
-      Set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
-      
-      :value: 16
-      
-   .. data:: CONSTRAINT_IK_FLAG_POS
-      
-      Set when the constraint tries to match the position of the target.
-      
-      :value: 32
-      
-   .. _armatureconstraint-constants-ik-mode:
+See :class:`bge.types.BL_ArmatureConstraint.ik_flag`
 
-   See :class:`bge.types.BL_ArmatureConstraint.ik_mode`
-   
-   .. data:: CONSTRAINT_IK_MODE_INSIDE
-      
-      The constraint tries to keep the bone within ik_dist of target
-      
-      :value: 0
-      
-   .. data:: CONSTRAINT_IK_MODE_OUTSIDE
-      
-      The constraint tries to keep the bone outside ik_dist of the target
-      
-      :value: 1
-      
-   .. data:: CONSTRAINT_IK_MODE_ONSURFACE
-      
-      The constraint tries to keep the bone exactly at ik_dist of the target.
-      
-      :value: 2
+.. data:: CONSTRAINT_IK_FLAG_TIP
+  
+  Set when the constraint operates on the head of the bone and not the tail
+  
+  :value: 1
+  
+.. data:: CONSTRAINT_IK_FLAG_ROT
+  
+  Set when the constraint tries to match the orientation of the target
+  
+  :value: 2
+  
+.. data:: CONSTRAINT_IK_FLAG_STRETCH
+  
+  Set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
+  
+  :value: 16
+  
+.. data:: CONSTRAINT_IK_FLAG_POS
+  
+  Set when the constraint tries to match the position of the target.
+  
+  :value: 32
+  
+.. _armatureconstraint-constants-ik-mode:
+
+See :class:`bge.types.BL_ArmatureConstraint.ik_mode`
+
+.. data:: CONSTRAINT_IK_MODE_INSIDE
+  
+  The constraint tries to keep the bone within ik_dist of target
+  
+  :value: 0
+  
+.. data:: CONSTRAINT_IK_MODE_OUTSIDE
+  
+  The constraint tries to keep the bone outside ik_dist of the target
+  
+  :value: 1
+  
+.. data:: CONSTRAINT_IK_MODE_ONSURFACE
+  
+  The constraint tries to keep the bone exactly at ik_dist of the target.
+  
+  :value: 2

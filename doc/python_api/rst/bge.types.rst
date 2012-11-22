@@ -2241,7 +2241,7 @@ Types
       :return: the hit factor
       :rtype: float
 
-  .. method:: draw(mode)
+   .. method:: draw(mode)
 
       Draws a debug mesh for the navigation mesh.
 
@@ -2249,7 +2249,7 @@ Types
       :arg mode: integer
       :return: None
 
-  .. method:: rebuild()
+   .. method:: rebuild()
 
       Rebuild the navigation mesh.
 
