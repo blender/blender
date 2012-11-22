@@ -1022,43 +1022,43 @@ See :class:`bge.types.BL_ArmatureChannel.rotation_mode`
 .. note:
   euler mode are named as in Blender UI but the actual axis order is reversed
 
-.. data:: ROT_QUAT
+.. data:: ROT_MODE_QUAT
 
   Use quaternion in rotation attribute to update bone rotation.
 
   :value: 0
 
-.. data:: ROT_XYZ
+.. data:: ROT_MODE_XYZ
 
   Use euler_rotation and apply angles on bone's Z, Y, X axis successively.
 
   :value: 1
 
-.. data:: ROT_XZY
+.. data:: ROT_MODE_XZY
 
   Use euler_rotation and apply angles on bone's Y, Z, X axis successively.
 
   :value: 2
 
-.. data:: ROT_YXZ
+.. data:: ROT_MODE_YXZ
 
   Use euler_rotation and apply angles on bone's Z, X, Y axis successively.
 
   :value: 3
 
-.. data:: ROT_YZX
+.. data:: ROT_MODE_YZX
 
   Use euler_rotation and apply angles on bone's X, Z, Y axis successively.
 
   :value: 4
 
-.. data:: ROT_ZXY
+.. data:: ROT_MODE_ZXY
 
   Use euler_rotation and apply angles on bone's Y, X, Z axis successively.
 
   :value: 5
 
-.. data:: ROT_ZYX
+.. data:: ROT_MODE_ZYX
 
   Use euler_rotation and apply angles on bone's X, Y, Z axis successively.
 
