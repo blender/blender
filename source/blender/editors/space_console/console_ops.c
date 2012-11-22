@@ -157,10 +157,9 @@ static ConsoleLine *console_lb_add__internal(ListBase *lb, ConsoleLine *from)
 	ConsoleLine *ci = MEM_callocN(sizeof(ConsoleLine), "ConsoleLine Add");
 	
 	if (from) {
-		ci->line = BLI_strdup(from->line);
-		ci->len = strlen(ci->line);
-		ci->len_alloc = ci->len;
-		
+		BLI_assert(strlen(from->line) == from->len);
+		ci->line = BLI_strdupn(from->line, from->len);
+		ci->len = ci->len_alloc = from->len;
 		ci->cursor = from->cursor;
 		ci->type = from->type;
 	}
@@ -625,6 +624,7 @@ static int console_clear_line_exec(bContext *C, wmOperator *UNUSED(op))
 
 	console_history_add(C, ci);
 	console_history_add(C, NULL);
+	console_select_offset(sc, -ci->len);
 
 	console_textview_update_rect(sc, ar);
 
