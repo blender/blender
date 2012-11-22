@@ -262,10 +262,16 @@ The calculation of some of the uniforms is based on matrices available in the sc
 
 .. data:: GPU_DYNAMIC_SAMPLER_2DSHADOW
 
+   The uniform is an float representing the bumpmap scaling.
+
+   :value: 14
+
+.. data:: GPU_DYNAMIC_OBJECT_AUTOBUMPSCALE
+
    The uniform is an integer representing a shadow buffer corresponding to a lamp
    casting shadow.
 
-   :value: 14
+   :value: 15
 
 
 GLSL attribute type

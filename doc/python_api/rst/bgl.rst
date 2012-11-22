@@ -689,7 +689,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    Return the specified pixel map
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glGetPixelMap.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetPixelMap.xml>`_
 
    :type map:  Enumerated constant
    :arg map: Specifies the name of the pixel map to return.
@@ -701,7 +701,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    Return the polygon stipple pattern
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glGetPolygonStipple.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glGetPolygonStipple.xml>`_
 
    :type mask: :class:`bgl.Buffer` object I{type GL_BYTE}
    :arg mask: Returns the stipple pattern. The initial value is all 1's.
@@ -824,11 +824,23 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    Set the current color index
 
-   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glIndex.xml>`_
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIndex.xml>`_
 
    :type c: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg c: Specifies a pointer to a one element array that contains the new value for
       the current color index.
+
+
+.. function:: glIndexMask(mask):
+
+   Control the writing of individual bits in the color index buffers
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man2/xhtml/glIndexMask.xml>`_
+
+   :type mask: int
+   :arg mask: Specifies a bit mask to enable and disable the writing of individual bits
+      in the color index buffers.
+      Initially, the mask is all 1's.
 
 
 .. function:: glInitNames():
@@ -1835,7 +1847,238 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg objx, objy, objz: Return the computed object coordinates.
 
 
-class Buffer:
+.. function:: glUseProgram(program):
+
+   Installs a program object as part of current rendering state
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glUseProgram.xml>`_
+
+   :type program: int
+   :arg program: Specifies the handle of the program object whose executables are to be used as part of current rendering state.
+
+
+.. function:: glValidateProgram(program):
+
+   Validates a program object
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glValidateProgram.xml>`_
+
+   :type program: int
+   :arg program: Specifies the handle of the program object to be validated.
+
+
+.. function:: glLinkProgram(program):
+
+   Links a program object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glLinkProgram.xml>`_
+
+   :type program: int
+   :arg program: Specifies the handle of the program object to be linked.
+
+
+.. function:: glActiveTexture(texture):
+
+   Select active texture unit.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glActiveTexture.xml>`_
+
+   :type texture: int
+   :arg texture: Constant in ``GL_TEXTURE0`` 0 - 8
+
+
+.. function:: glAttachShader(program, shader):
+
+   Attaches a shader object to a program object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glAttachShader.xml>`_
+
+   :type program: int
+   :arg program: Specifies the program object to which a shader object will be attached.
+   :type shader: int
+   :arg shader: Specifies the shader object that is to be attached.
+
+
+.. function:: glCompileShader(shader):
+
+   Compiles a shader object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glCompileShader.xml>`_
+
+   :type shader: int
+   :arg shader: Specifies the shader object to be compiled.
+
+
+.. function:: glCreateProgram():
+
+   Creates a program object
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glCreateProgram.xml>`_
+
+   :rtype: int
+   :return: The new program or zero if an error occurs.
+
+
+.. function:: glCreateShader(shaderType):
+
+   Creates a shader object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glCreateShader.xml>`_
+
+   :type shaderType: Specifies the type of shader to be created.
+      Must be one of ``GL_VERTEX_SHADER``,
+      ``GL_TESS_CONTROL_SHADER``,
+      ``GL_TESS_EVALUATION_SHADER``,
+      ``GL_GEOMETRY_SHADER``,
+      or ``GL_FRAGMENT_SHADER``.
+   :arg shaderType:
+   :rtype: int
+   :return: 0 if an error occurs.
+
+
+.. function:: glDeleteProgram(program):
+
+   Deletes a program object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glDeleteProgram.xml>`_
+
+   :type program: int
+   :arg program: Specifies the program object to be deleted.
+
+
+.. function:: glDeleteShader(shader):
+
+   Deletes a shader object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glDeleteShader.xml>`_
+
+   :type shader: int
+   :arg shader: Specifies the shader object to be deleted.
+
+
+.. function:: glDetachShader(program, shader):
+
+   Detaches a shader object from a program object to which it is attached.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glDetachShader.xml>`_
+
+   :type program: int
+   :arg program: Specifies the program object from which to detach the shader object.
+   :type shader: int
+   :arg shader: pecifies the program object from which to detach the shader object.
+
+
+.. function:: glGetAttachedShaders(program, maxCount, count, shaders):
+
+   Returns the handles of the shader objects attached to a program object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glGetAttachedShaders.xml>`_
+
+   :type program: int
+   :arg program: Specifies the program object to be queried.
+   :type maxCount: int
+   :arg maxCount: Specifies the size of the array for storing the returned object names.
+   :type count: :class:`bgl.Buffer` int buffer.
+   :arg count: Returns the number of names actually returned in objects.
+   :type shaders: :class:`bgl.Buffer` int buffer.
+   :arg shaders: Specifies an array that is used to return the names of attached shader objects.
+
+
+.. function:: glGetProgramInfoLog(program, maxLength, length, infoLog):
+
+   Returns the information log for a program object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glGetProgramInfoLog.xml>`_
+
+   :type program: int
+   :arg program: Specifies the program object whose information log is to be queried.
+   :type maxLength: int
+   :arg maxLength: Specifies the size of the character buffer for storing the returned information log.
+   :type length: :class:`bgl.Buffer` int buffer.
+   :arg length: Returns the length of the string returned in **infoLog** (excluding the null terminator).
+   :type infoLog: :class:`bgl.Buffer` char buffer.
+   :arg infoLog: Specifies an array of characters that is used to return the information log.
+
+
+.. function:: glGetShaderInfoLog(program, maxLength, length, infoLog):
+
+   Returns the information log for a shader object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glGetShaderInfoLog.xml>`_
+
+   :type shader: int
+   :arg shader: Specifies the shader object whose information log is to be queried.
+   :type maxLength: int
+   :arg maxLength: Specifies the size of the character buffer for storing the returned information log.
+   :type length: :class:`bgl.Buffer` int buffer.
+   :arg length: Returns the length of the string returned in **infoLog** (excluding the null terminator).
+   :type infoLog: :class:`bgl.Buffer` char buffer.
+   :arg infoLog: Specifies an array of characters that is used to return the information log.
+
+
+.. function:: glGetProgramiv(program, pname, params):
+
+   Returns a parameter from a program object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glGetProgram.xml>`_
+
+   :type program: int
+   :arg program: Specifies the program object to be queried.
+   :type pname: int
+   :arg pname: Specifies the object parameter.
+   :type params: :class:`bgl.Buffer` int buffer.
+   :arg params: Returns the requested object parameter.
+
+
+.. function:: glIsShader(shader):
+
+   Determines if a name corresponds to a shader object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glIsShader.xml>`_
+
+   :type shader: int
+   :arg shader: Specifies a potential shader object.
+
+
+.. function:: glIsProgram(program):
+
+   Determines if a name corresponds to a program object
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glIsProgram.xml>`_
+
+   :type program: int
+   :arg program: Specifies a potential program object.
+
+
+.. function:: glGetShaderSource(shader, bufSize, length, source):
+
+   Returns the source code string from a shader object
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glGetShaderSource.xml>`_
+
+   :type shader: int
+   :arg shader: Specifies the shader object to be queried.
+   :type bufSize: int
+   :arg bufSize: Specifies the size of the character buffer for storing the returned source code string.
+   :type length: :class:`bgl.Buffer` int buffer.
+   :arg length: Returns the length of the string returned in source (excluding the null terminator).
+   :type source: :class:`bgl.Buffer` char.
+   :arg source: Specifies an array of characters that is used to return the source code string.
+   
+
+.. function:: glShaderSource(shader, shader_string):
+
+   Replaces the source code in a shader object.
+
+   .. seealso:: `OpenGL Docs <http://www.opengl.org/sdk/docs/man/xhtml/glShaderSource.xml>`_
+
+   :type shader: int
+   :arg shader: Specifies the handle of the shader object whose source code is to be replaced.
+   :type shader_string: string
+   :arg shader_string: The shader string.
+
+
+.. class:: Buffer
 
    The Buffer object is simply a block of memory that is delineated and initialized by the
    user. Many OpenGL functions return data to a C-style pointer, however, because this

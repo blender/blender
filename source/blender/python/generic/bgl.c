@@ -613,15 +613,15 @@ static PyObject *Buffer_repr(Buffer *self)
 }
 
 
-BGL_Wrap(2, Accum,          void,     (GLenum, GLfloat))
-BGL_Wrap(1, ActiveTexture,  void,     (GLenum))
-BGL_Wrap(2, AlphaFunc,      void,     (GLenum, GLclampf))
+BGL_Wrap(2, Accum,          void,       (GLenum, GLfloat))
+BGL_Wrap(1, ActiveTexture,  void,       (GLenum))
+BGL_Wrap(2, AlphaFunc,      void,       (GLenum, GLclampf))
 BGL_Wrap(3, AreTexturesResident,  GLboolean,  (GLsizei, GLuintP, GLbooleanP))
 BGL_Wrap(2, AttachShader,   void,       (GLuint, GLuint))
-BGL_Wrap(1, Begin,          void,     (GLenum))
-BGL_Wrap(2, BindTexture,    void,   (GLenum, GLuint))
-BGL_Wrap(7, Bitmap,         void,     (GLsizei, GLsizei, GLfloat,
-                                       GLfloat, GLfloat, GLfloat, GLubyteP))
+BGL_Wrap(1, Begin,          void,       (GLenum))
+BGL_Wrap(2, BindTexture,    void,       (GLenum, GLuint))
+BGL_Wrap(7, Bitmap,         void,       (GLsizei, GLsizei, GLfloat,
+                                         GLfloat, GLfloat, GLfloat, GLubyteP))
 BGL_Wrap(2, BlendFunc,        void,     (GLenum, GLenum))
 BGL_Wrap(1, CallList,         void,     (GLuint))
 BGL_Wrap(3, CallLists,        void,     (GLsizei, GLenum, GLvoidP))
@@ -675,7 +675,7 @@ BGL_Wrap(1, CullFace,         void,     (GLenum))
 BGL_Wrap(2, DeleteLists,      void,     (GLuint, GLsizei))
 BGL_Wrap(1, DeleteProgram,    void,     (GLuint))
 BGL_Wrap(1, DeleteShader,     void,     (GLuint))
-BGL_Wrap(2, DeleteTextures,   void,   (GLsizei, GLuintP))
+BGL_Wrap(2, DeleteTextures,   void,     (GLsizei, GLuintP))
 BGL_Wrap(1, DepthFunc,        void,     (GLenum))
 BGL_Wrap(1, DepthMask,        void,     (GLboolean))
 BGL_Wrap(2, DepthRange,       void,     (GLclampd, GLclampd))
@@ -773,7 +773,7 @@ BGL_Wrap(3, Lighti,         void,     (GLenum, GLenum, GLint))
 BGL_Wrap(3, Lightiv,        void,     (GLenum, GLenum, GLintP))
 BGL_Wrap(2, LineStipple,    void,     (GLint, GLushort))
 BGL_Wrap(1, LineWidth,      void,     (GLfloat))
-BGL_Wrap(1, LinkProgram,   void,      (GLuint))
+BGL_Wrap(1, LinkProgram,    void,     (GLuint))
 BGL_Wrap(1, ListBase,       void,     (GLuint))
 BGL_Wrap(1, LoadIdentity,   void,     (void))
 BGL_Wrap(1, LoadMatrixd,    void,     (GLdoubleP))
@@ -1907,9 +1907,9 @@ PyObject *BPyInit_bgl(void)
 	return submodule;
 }
 
-static PyObject *Method_ShaderSource (PyObject *UNUSED(self), PyObject *args)
+static PyObject *Method_ShaderSource(PyObject *UNUSED(self), PyObject *args)
 {
-	int shader;
+	unsigned int shader;
 	char *source;
 
 	if (!PyArg_ParseTuple(args, "Is", &shader, &source))

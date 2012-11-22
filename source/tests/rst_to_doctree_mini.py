@@ -47,7 +47,8 @@ def parse_rst_py(filepath):
     re_prefix = re.compile(r"^\.\.\s([a-zA-Z09\-]+)::\s*(.*)\s*$")
     
     tree = collections.defaultdict(list)
-    
+    indent_map = {}
+    indent_prev = 0
     f = open(filepath, encoding="utf-8")
     indent_lists = []
     for i, line in enumerate(f):
@@ -70,12 +71,11 @@ def parse_rst_py(filepath):
                              members=[])
 
             tree[indent].append(item)
+            if indent_prev < indent:
+                indent_map[indent] = indent_prev
             if indent > 0:
-                # get the previous indent, ok this isn't fast but no matter.
-                keys = list(sorted(tree.keys()))
-                key_index = keys.index(indent)
-                parent_indent = keys[key_index - 1]
-                tree[parent_indent][-1].members.append(item)
+                tree[indent_map[indent]][-1].members.append(item)
+            indent_prev = indent
     f.close()
 
     return tree[0]

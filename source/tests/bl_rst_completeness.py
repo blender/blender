@@ -29,6 +29,7 @@ exec(compile(open(filepath).read(), filepath, 'exec'))
 '''
 
 import os
+
 THIS_DIR = os.path.dirname(__file__)
 RST_DIR = os.path.normpath(os.path.join(THIS_DIR, "..", "..", "doc", "python_api", "rst"))
 
@@ -138,7 +139,6 @@ def main():
     
     if bge is None:
         print("Skipping BGE modules!")
-        continue
 
     for filename, modname, partial_ok in modules:
         if bge is None and modname.startswith("bge"):
