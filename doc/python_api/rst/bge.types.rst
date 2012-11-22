@@ -1026,7 +1026,7 @@ Types
       The object's parent object. (read-only).
 
       :type: :class:`KX_GameObject` or None
-	  
+
    .. attribute:: groupMembers
 
       Returns the list of group members if the object is a group object, otherwise None is returned.
@@ -1138,30 +1138,30 @@ Types
       The object's world space transform matrix. 4x4 Matrix.
 
       :type: :class:`mathutils.Matrix`
-	  
+
    .. attribute:: localLinearVelocity
       
-	  The object's local linear velocity. [x, y, z]
-	  
-	  :type: :class:`mathutils.Vector`
-	  
+      The object's local linear velocity. [x, y, z]
+
+      :type: :class:`mathutils.Vector`
+
    .. attribute:: worldLinearVelocity
    
       The object's world linear velocity. [x, y, z]
-	  
-	  :type: :class:`mathutils.Vector`
-	  
+
+      :type: :class:`mathutils.Vector`
+
    .. attribute:: localAngularVelocity
    
       The object's local angular velocity. [x, y, z]
-	  
-	  :type: :class:`mathutils.Vector`
-	  
+
+      :type: :class:`mathutils.Vector`
+
    .. attribute:: worldAngularVelocity
    
       The object's world angular velocity. [x, y, z]
-	  
-	  :type: :class:`mathutils.Vector`
+
+      :type: :class:`mathutils.Vector`
 
    .. attribute:: timeOffset
 
@@ -2930,8 +2930,8 @@ Types
    .. method:: instantAddObject()
 
       adds the object without needing to calling SCA_PythonController.activate()
-	  
-	  .. note:: Use objectLastCreated to get the newly created object.
+
+      .. note:: Use objectLastCreated to get the newly created object.
 
 .. class:: KX_SCA_DynamicActuator(SCA_IActuator)
 
@@ -3486,7 +3486,7 @@ Types
 
       Whether or not the character is on the ground. (read-only)
 
-	  :type: boolean
+      :type: boolean
 
    .. attribute:: gravity
 
@@ -4319,7 +4319,7 @@ Types
    .. attribute:: projection_matrix
 
       This camera's 4x4 projection matrix.
-	  
+
       .. note::
       
          This is the identity matrix prior to rendering the first frame (any Python done on frame 1). 
