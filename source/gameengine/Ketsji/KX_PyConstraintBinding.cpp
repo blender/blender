@@ -34,7 +34,6 @@
 #include "KX_ConstraintWrapper.h"
 #include "KX_VehicleWrapper.h"
 #include "KX_CharacterWrapper.h"
-#include "KX_PhysicsObjectWrapper.h"
 #include "PHY_IPhysicsController.h"
 #include "PHY_IVehicle.h"
 #include "PHY_DynamicTypes.h"

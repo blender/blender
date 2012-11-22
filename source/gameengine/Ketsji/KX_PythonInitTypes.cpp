@@ -55,7 +55,6 @@
 #include "KX_NetworkMessageSensor.h"
 #include "KX_ObjectActuator.h"
 #include "KX_ParentActuator.h"
-#include "KX_PhysicsObjectWrapper.h"
 #include "KX_PolyProxy.h"
 #include "KX_PolygonMaterial.h"
 #include "KX_PythonSeq.h"
@@ -208,7 +207,6 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, KX_NetworkMessageSensor, init_getset);
 		PyType_Ready_Attr(dict, KX_ObjectActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_ParentActuator, init_getset);
-		PyType_Ready_Attr(dict, KX_PhysicsObjectWrapper, init_getset);
 		PyType_Ready_Attr(dict, KX_PolyProxy, init_getset);
 		PyType_Ready_Attr(dict, KX_PolygonMaterial, init_getset);
 		PyType_Ready_Attr(dict, KX_RadarSensor, init_getset);

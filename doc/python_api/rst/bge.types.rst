@@ -2373,49 +2373,6 @@ Types
 
       :type: boolean
 
-.. class:: KX_PhysicsObjectWrapper(PyObjectPlus)
-
-   KX_PhysicsObjectWrapper
-
-   .. method:: setActive(active)
-
-      Set the object to be active.
-
-      :arg active: set to True to be active
-      :type active: boolean
-
-   .. method:: setAngularVelocity(x, y, z, local)
-
-      Set the angular velocity of the object.
-
-      :arg x: angular velocity for the x-axis
-      :type x: float
-
-      :arg y: angular velocity for the y-axis
-      :type y: float
-
-      :arg z: angular velocity for the z-axis
-      :type z: float
-
-      :arg local: set to True for local axis
-      :type local: boolean
-
-   .. method:: setLinearVelocity(x, y, z, local)
-
-      Set the linear velocity of the object.
-
-      :arg x: linear velocity for the x-axis
-      :type x: float
-
-      :arg y: linear velocity for the y-axis
-      :type y: float
-
-      :arg z: linear velocity for the z-axis
-      :type z: float
-
-      :arg local: set to True for local axis
-      :type local: boolean
-
 .. class:: KX_PolyProxy(SCA_IObject)
 
    A polygon holds the index of the vertex forming the poylgon.
