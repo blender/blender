@@ -110,7 +110,8 @@ BF_JACK_LIB_STATIC = '${BF_ZLIB}/lib/libjack.a'
 # Cycles
 WITH_BF_CYCLES = True
 WITH_BF_CYCLES_CUDA_BINARIES = True
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
+#BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30']
 
 WITH_BF_OIIO = True
 WITH_BF_STATICOIIO = True
