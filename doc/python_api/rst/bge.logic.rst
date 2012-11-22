@@ -336,8 +336,11 @@ General functions
    Sets the key used to exit the game engine
 
    :arg key: A key constant from :mod:`bge.events`
-   :rtype key: int
+   :type key: int
 
+.. function:: NextFrame()
+
+   Render next frame (if Python has control)
 
 *****************
 Utility functions
@@ -381,6 +384,10 @@ Utility functions
 .. function:: PrintGLInfo()
 
    Prints GL Extension Info into the console
+
+.. function:: PrintMemInfo()
+
+   Prints engine statistics into the console
    
 *********
 Constants
