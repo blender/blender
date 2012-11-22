@@ -205,6 +205,18 @@ Types
       
       :type: boolean
 
+   .. attribute:: pos_ticks
+
+      The number of ticks since the last positive pulse (read-only).
+      
+      :type: int
+
+   .. attribute:: neg_ticks
+
+      The number of ticks since the last negative pulse (read-only).
+      
+      :type: int
+
    .. attribute:: status
 
       The status of the sensor (read-only): can be one of :ref:`these constants<sensor-status>`.
@@ -743,7 +755,13 @@ Types
       strength of of the camera following movement.
 
       :type: float
-   
+
+   .. attribute:: axis
+
+      The camera axis (0, 1, 2) for positive ``XYZ``, (3, 4, 5) for negative ``XYZ``.
+
+      :type: int
+
    .. attribute:: min
 
       minimum distance to the target object maintained by the actuator.
