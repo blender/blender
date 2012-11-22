@@ -4812,16 +4812,6 @@ Types
    Proxy to armature pose channel. Allows to read and set armature pose.
    The attributes are identical to RNA attributes, but mostly in read-only mode.
 
-   See :data:`rotation_mode`
-
-   .. data:: PCHAN_ROT_QUAT
-   .. data:: PCHAN_ROT_XYZ
-   .. data:: PCHAN_ROT_XZY
-   .. data:: PCHAN_ROT_YXZ
-   .. data:: PCHAN_ROT_YZX
-   .. data:: PCHAN_ROT_ZXY
-   .. data:: PCHAN_ROT_ZYX
-
    .. attribute:: name
 
       channel name (=bone name), read-only.
@@ -4955,17 +4945,7 @@ Types
 
       Method of updating the bone rotation, read-write.
 
-      :type: integer
-
-      Use the following constants (euler mode are named as in Blender UI but the actual axis order is reversed).
-
-      * PCHAN_ROT_QUAT(0) : use quaternioin in rotation attribute to update bone rotation
-      * PCHAN_ROT_XYZ(1) : use euler_rotation and apply angles on bone's Z, Y, X axis successively
-      * PCHAN_ROT_XZY(2) : use euler_rotation and apply angles on bone's Y, Z, X axis successively
-      * PCHAN_ROT_YXZ(3) : use euler_rotation and apply angles on bone's Z, X, Y axis successively
-      * PCHAN_ROT_YZX(4) : use euler_rotation and apply angles on bone's X, Z, Y axis successively
-      * PCHAN_ROT_ZXY(5) : use euler_rotation and apply angles on bone's Y, X, Z axis successively
-      * PCHAN_ROT_ZYX(6) : use euler_rotation and apply angles on bone's X, Y, Z axis successively
+      :type: integer (one of :ref:`these constants <armaturechannel-constants-rotation-mode>`)
 
    .. attribute:: channel_matrix
 

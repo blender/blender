@@ -993,6 +993,59 @@ Blender Material
 .. data:: BL_ZERO
 
 ----------------
+Armature Channel
+----------------
+.. _armaturechannel-constants-rotation-mode:
+
+   See :class:`bge.types.BL_ArmatureChannel.rotation_mode`
+   
+   .. note:
+      euler mode are named as in Blender UI but the actual axis order is reversed
+
+   .. data:: ROT_QUAT
+   
+      Use quaternion in rotation attribute to update bone rotation.
+	  
+      :value: 0
+
+   .. data:: ROT_XYZ
+   
+      Use euler_rotation and apply angles on bone's Z, Y, X axis successively.
+	  
+      :value: 1
+
+   .. data:: ROT_XZY
+   
+      Use euler_rotation and apply angles on bone's Y, Z, X axis successively.
+	  
+      :value: 2
+
+   .. data:: ROT_YXZ
+   
+      Use euler_rotation and apply angles on bone's Z, X, Y axis successively.
+	  
+      :value: 3
+
+   .. data:: ROT_YZX
+   
+      Use euler_rotation and apply angles on bone's X, Z, Y axis successively.
+	  
+      :value: 4
+
+   .. data:: ROT_ZXY
+   
+      Use euler_rotation and apply angles on bone's Y, X, Z axis successively.
+	  
+      :value: 5
+
+   .. data:: ROT_ZYX
+   
+      Use euler_rotation and apply angles on bone's X, Y, Z axis successively.
+	  
+      :value: 6
+
+
+----------------
 Armature Constraint
 ----------------
    .. _armatureconstraint-constants-type:
