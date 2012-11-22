@@ -6883,8 +6883,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			/* Sneaky workaround to use the class name as the bl_idname */
 
 #define     BPY_REPLACEMENT_STRING(rna_attr, py_attr)                         \
-	if (strcmp(identifier, rna_attr) == 0) {                                  \
-		item = PyObject_GetAttrString(py_class, py_attr);                     \
+	(strcmp(identifier, rna_attr) == 0) {                                     \
+		item = PyObject_GetAttr(py_class, py_attr);                           \
 		if (item && item != Py_None) {                                        \
 			if (pyrna_py_to_prop(dummyptr, prop, NULL,                        \
 			                     item, "validating class:") != 0)             \
@@ -6894,11 +6894,10 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			}                                                                 \
 		}                                                                     \
 		Py_XDECREF(item);                                                     \
-	} (void)0
+	}  /* intendionally allow else here */
 
-
-			BPY_REPLACEMENT_STRING("bl_idname", "__name__");
-			BPY_REPLACEMENT_STRING("bl_description", "__doc__");
+			if      BPY_REPLACEMENT_STRING("bl_idname",      bpy_intern_str___name__)
+			else if BPY_REPLACEMENT_STRING("bl_description", bpy_intern_str___doc__)
 
 #undef      BPY_REPLACEMENT_STRING
 
@@ -6912,10 +6911,11 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			PyErr_Clear();
 		}
 		else {
-			Py_DECREF(item); /* no need to keep a ref, the class owns it */
-
-			if (pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class:") != 0)
+			if (pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class:") != 0) {
+				Py_DECREF(item);
 				return -1;
+			}
+			Py_DECREF(item);
 		}
 	}
 
