@@ -324,6 +324,21 @@ General functions
 
    .. warning: Not implimented yet
 
+.. function:: getExitKey()
+
+   Gets the key used to exit the game engine
+
+   :return: The key (defaults to :mod:`bge.events.ESCKEY`)
+   :rtype: int
+
+.. function:: setExitKey(key)
+
+   Sets the key used to exit the game engine
+
+   :arg key: A key constant from :mod:`bge.events`
+   :rtype key: int
+
+
 *****************
 Utility functions
 *****************

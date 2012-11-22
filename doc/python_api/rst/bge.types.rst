@@ -633,6 +633,14 @@ Types
 
       :type: string
 
+
+.. class:: KX_SteeringActuator(SCA_IActuator)
+
+   SteeringActuator for navigation.
+
+   TODO.
+
+
 .. class:: CListValue(CPropValue)
 
    This is a list like object used in the game engine internally that behaves similar to a python list in most ways.
@@ -697,6 +705,24 @@ Types
 .. class:: KX_BlenderMaterial(PyObjectPlus)
 
    KX_BlenderMaterial
+
+   .. attribute:: shader
+
+      The materials shader.
+
+      :type: :class:`BL_Shader`
+
+   .. attribute:: blending
+
+      Ints used for pixel blending, (src, dst), matching the setBlending method.
+
+      :type: (integer, integer)
+
+   .. attribute:: material_index
+
+      The material's index.
+
+      :type: integer
 
    .. method:: getShader()
 
@@ -1222,6 +1248,13 @@ Types
       all children of this object including childrens children, (read-only).
 
       :type: :class:`CListValue` of :class:`KX_GameObject`'s
+
+   .. attribute:: life
+
+      The number of seconds until the object ends, assumes 50fps.
+      (when added with an add object actuator), (read-only).
+
+      :type: float
 
    .. method:: endObject()
 
@@ -2175,6 +2208,17 @@ Types
       The list of message bodies received. (read-only).
 
       :type: list of strings
+
+
+.. class:: KX_FontObject(KX_GameObject)
+
+   TODO.
+
+
+.. class:: KX_NavMeshObject(KX_GameObject)
+
+   TODO.
+
 
 .. class:: KX_ObjectActuator(SCA_IActuator)
 
