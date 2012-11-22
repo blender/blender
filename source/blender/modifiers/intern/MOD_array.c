@@ -316,7 +316,7 @@ static void merge_first_last(BMesh *bm,
 	BMO_op_exec(bm, &find_op);
 
 	/* add new merge targets to weld operator */
-	slot_targetmap = BMO_slot_get(weld_op->slots_out, "targetmap");
+	slot_targetmap = BMO_slot_get(weld_op->slots_in, "targetmap");
 	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
 		v2 = BMO_iter_map_value_p(&oiter);
 		BMO_slot_map_ptr_insert(weld_op, slot_targetmap, v, v2);
