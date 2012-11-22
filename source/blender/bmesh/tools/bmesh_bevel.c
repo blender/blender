@@ -1554,9 +1554,9 @@ static int bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 	BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		bv = find_bevvert(bp, l->v);
-		if (bv) {
+		if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
 			lprev = l->prev;
+			bv = find_bevvert(bp, l->v);
 			e = find_edge_half(bv, l->e);
 			eprev = find_edge_half(bv, lprev->e);
 			BLI_assert(e != NULL && eprev != NULL);
@@ -1622,7 +1622,6 @@ static void bevel_rebuild_existing_polygons(BMesh *bm, BevelParams *bp, BMVert *
 		}
 	}
 }
-
 
 
 /*
