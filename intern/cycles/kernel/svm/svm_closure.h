@@ -225,7 +225,6 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 
 			break;
 		}
-#ifdef __DPDU__
 		case CLOSURE_BSDF_WARD_ID: {
 #ifdef __CAUSTICS_TRICKS__
 			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
@@ -233,8 +232,10 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 #endif
 			ShaderClosure *sc = svm_node_closure_get(sd);
 			sc->N = N;
-			sc->T = stack_load_float3(stack, data_node.z);
 			svm_node_closure_set_mix_weight(sc, mix_weight);
+
+#ifdef __ANISOTROPIC__
+			sc->T = stack_load_float3(stack, data_node.z);
 
 			/* rotate tangent */
 			float rotation = stack_load_float(stack, data_node.w);
@@ -256,9 +257,11 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			}
 
 			sd->flag |= bsdf_ward_setup(sc);
+#else
+			sd->flag |= bsdf_diffuse_setup(sc);
+#endif
 			break;
 		}
-#endif
 		case CLOSURE_BSDF_ASHIKHMIN_VELVET_ID: {
 			ShaderClosure *sc = svm_node_closure_get(sd);
 			sc->N = N;

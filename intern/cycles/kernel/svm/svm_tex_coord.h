@@ -283,7 +283,7 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 		N = normalize(sd->N + (N - sd->N)*strength);
 	}
 
-	stack_store_float3(stack, normal_offset, normalize(N));
+	stack_store_float3(stack, normal_offset, N);
 }
 
 __device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)

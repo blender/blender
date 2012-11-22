@@ -24,7 +24,7 @@
 #include "../closure/bsdf_reflection.h"
 #include "../closure/bsdf_refraction.h"
 #include "../closure/bsdf_transparent.h"
-#ifdef __DPDU__
+#ifdef __ANISOTROPIC__
 #include "../closure/bsdf_ward.h"
 #endif
 #include "../closure/bsdf_westin.h"
@@ -75,7 +75,7 @@ __device int svm_bsdf_sample(const ShaderData *sd, const ShaderClosure *sc, floa
 			label = bsdf_microfacet_beckmann_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
-#ifdef __DPDU__
+#ifdef __ANISOTROPIC__
 		case CLOSURE_BSDF_WARD_ID:
 			label = bsdf_ward_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
@@ -138,7 +138,7 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
 				eval = bsdf_microfacet_beckmann_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
-#ifdef __DPDU__
+#ifdef __ANISOTROPIC__
 			case CLOSURE_BSDF_WARD_ID:
 				eval = bsdf_ward_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;
@@ -187,7 +187,7 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 			case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
 				eval = bsdf_microfacet_beckmann_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
-#ifdef __DPDU__
+#ifdef __ANISOTROPIC__
 			case CLOSURE_BSDF_WARD_ID:
 				eval = bsdf_ward_eval_transmit(sc, sd->I, omega_in, pdf);
 				break;
@@ -244,7 +244,7 @@ __device void svm_bsdf_blur(ShaderClosure *sc, float roughness)
 		case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID:
 			bsdf_microfacet_beckmann_blur(sc, roughness);
 			break;
-#ifdef __DPDU__
+#ifdef __ANISOTROPIC__
 		case CLOSURE_BSDF_WARD_ID:
 			bsdf_ward_blur(sc, roughness);
 			break;
