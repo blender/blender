@@ -173,10 +173,8 @@ static ConsoleLine *console_lb_add__internal(ListBase *lb, ConsoleLine *from)
 	return ci;
 }
 
-static ConsoleLine *console_history_add(const bContext *C, ConsoleLine *from)
+static ConsoleLine *console_history_add(SpaceConsole *sc, ConsoleLine *from)
 {
-	SpaceConsole *sc = CTX_wm_space_console(C);
-	
 	return console_lb_add__internal(&sc->history, from);
 }
 
@@ -216,7 +214,7 @@ ConsoleLine *console_history_verify(const bContext *C)
 	SpaceConsole *sc = CTX_wm_space_console(C);
 	ConsoleLine *ci = sc->history.last;
 	if (ci == NULL)
-		ci = console_history_add(C, NULL);
+		ci = console_history_add(sc, NULL);
 	
 	return ci;
 }
@@ -622,8 +620,8 @@ static int console_clear_line_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	}
 
-	console_history_add(C, ci);
-	console_history_add(C, NULL);
+	console_history_add(sc, ci);
+	console_history_add(sc, NULL);
 	console_select_offset(sc, -ci->len);
 
 	console_textview_update_rect(sc, ar);
@@ -727,7 +725,7 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
 		while ((cl = console_history_find(sc, ci->line, ci)))
 			console_history_free(sc, cl);
 
-		console_history_add(C, (ConsoleLine *)sc->history.last);
+		console_history_add(sc, (ConsoleLine *)sc->history.last);
 	}
 	
 	ci = sc->history.last;
