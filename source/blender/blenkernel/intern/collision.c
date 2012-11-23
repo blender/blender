@@ -198,8 +198,10 @@ static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3
 	w3[0] = 1.0f - w1[0] - w2[0];
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdouble-promotion"
+#endif
 
 DO_INLINE void collision_interpolateOnTriangle ( float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3 )
 {
@@ -371,7 +373,9 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 	return result;
 }
 
-#pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
 
 //Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
 static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,

@@ -233,8 +233,10 @@ static int isqtime(const char *name)
 #endif
 
 /* BLI_vsnprintf in ffmpeg_log_callback() causes invalid warning */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-format-attribute"
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wmissing-format-attribute"
+#endif
 
 static char ffmpeg_last_error[1024];
 
@@ -258,7 +260,9 @@ static void ffmpeg_log_callback(void *ptr, int level, const char *format, va_lis
 	}
 }
 
-#pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
 
 void IMB_ffmpeg_init(void)
 {
