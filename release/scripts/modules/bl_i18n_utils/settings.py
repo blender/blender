@@ -114,6 +114,9 @@ DOMAIN = "blender"
 # File type (ext) to parse.
 PYGETTEXT_ALLOWED_EXTS = {".c", ".cpp", ".cxx", ".hpp", ".hxx", ".h"}
 
+# Max number of contexts into a BLF_I18N_MSGID_MULTI_CTXT macro...
+PYGETTEXT_MAX_MULTI_CTXT = 16
+
 # Where to search contexts definitions, relative to SOURCE_DIR (defined below).
 PYGETTEXT_CONTEXTS_DEFSRC = os.path.join("source", "blender", "blenfont",
                                          "BLF_translation.h")
@@ -149,7 +152,10 @@ _str_whole_re = (
     # End of loop.
     "))*"
 )
-_ctxt_re = r"(?P<ctxt_raw>(?:" + _str_whole_re.format(_="_ctxt") + r")|(?:[A-Z_0-9]+))"
+_ctxt_re_gen = lambda uid : r"(?P<ctxt_raw{uid}>(?:".format(uid=uid) + \
+                            _str_whole_re.format(_="_ctxt{uid}".format(uid=uid)) + \
+                            r")|(?:[A-Z_0-9]+))"
+_ctxt_re = _ctxt_re_gen("")
 _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
 PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
@@ -165,7 +171,11 @@ PYGETTEXT_KEYWORDS = (() +
           for it in ("BMO_error_raise",)) +
 
     tuple(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("modifier_setError",))
+          for it in ("modifier_setError",)) +
+
+    tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" + \
+           r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*\)").format(it)
+          for it in ("BLF_I18N_MSGID_MULTI_CTXT",))
 )
 
 ESCAPE_RE = (

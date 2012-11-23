@@ -52,6 +52,7 @@ SRC_POTFILES = settings.FILE_NAME_SRC_POTFILES
 
 CONTEXT_DEFAULT = settings.CONTEXT_DEFAULT
 PYGETTEXT_ALLOWED_EXTS = settings.PYGETTEXT_ALLOWED_EXTS
+PYGETTEXT_MAX_MULTI_CTXT = settings.PYGETTEXT_MAX_MULTI_CTXT
 
 SVN_EXECUTABLE = settings.SVN_EXECUTABLE
 
@@ -79,6 +80,31 @@ clean_str = lambda s: "".join(m.group("clean") for m in _clean_str(s))
 
 
 def check_file(path, rel_path, messages):
+    def process_entry(ctxt, msg):
+        # Context.
+        if ctxt:
+            if ctxt in CONTEXTS:
+                ctxt = CONTEXTS[ctxt]
+            elif '"' in ctxt or "'" in ctxt:
+                ctxt = clean_str(ctxt)
+            else:
+                print("WARNING: raw context “{}” couldn’t be resolved!"
+                      "".format(ctxt))
+                ctxt = CONTEXT_DEFAULT
+        else:
+            ctxt = CONTEXT_DEFAULT
+        # Message.
+        if msg:
+            if '"' in msg or "'" in msg:
+                msg = clean_str(msg)
+            else:
+                print("WARNING: raw message “{}” couldn’t be resolved!"
+                      "".format(msg))
+                msg = ""
+        else:
+            msg = ""
+        return (ctxt, msg)
+
     with open(path, encoding="utf-8") as f:
         f = f.read()
         for srch in pygettexts:
@@ -86,34 +112,23 @@ def check_file(path, rel_path, messages):
             line = pos = 0
             while m:
                 d = m.groupdict()
-                # Context.
-                ctxt = d.get("ctxt_raw")
-                if ctxt:
-                    if ctxt in CONTEXTS:
-                        ctxt = CONTEXTS[ctxt]
-                    elif '"' in ctxt or "'" in ctxt:
-                        ctxt = clean_str(ctxt)
-                    else:
-                        print("WARNING: raw context “{}” couldn’t be resolved!"
-                              "".format(ctxt))
-                        ctxt = CONTEXT_DEFAULT
-                else:
-                    ctxt = CONTEXT_DEFAULT
-                # Message.
-                msg = d.get("msg_raw")
-                if msg:
-                    if '"' in msg or "'" in msg:
-                        msg = clean_str(msg)
-                    else:
-                        print("WARNING: raw message “{}” couldn’t be resolved!"
-                              "".format(msg))
-                        msg = ""
-                else:
-                    msg = ""
                 # Line.
                 line += f[pos:m.start()].count('\n')
-                # And we are done for this item!
-                messages.setdefault((ctxt, msg), []).append(":".join((rel_path, str(line))))
+                msg = d.get("msg_raw")
+                # First, try the "multi-contexts" stuff!
+                ctxts = tuple(d.get("ctxt_raw{}".format(i)) for i in range(PYGETTEXT_MAX_MULTI_CTXT))
+                if ctxts[0]:
+                    for ctxt in ctxts:
+                        if not ctxt:
+                            break
+                        ctxt, _msg = process_entry(ctxt, msg)
+                        # And we are done for this item!
+                        messages.setdefault((ctxt, _msg), []).append(":".join((rel_path, str(line))))
+                else:
+                    ctxt = d.get("ctxt_raw")
+                    ctxt, msg = process_entry(ctxt, msg)
+                    # And we are done for this item!
+                    messages.setdefault((ctxt, msg), []).append(":".join((rel_path, str(line))))
                 pos = m.end()
                 line += f[m.start():pos].count('\n')
                 m = srch(f, pos)
@@ -138,12 +153,12 @@ def py_xgettext(messages):
             rel_path = os.path.relpath(path, SOURCE_DIR)
             if rel_path in forbidden:
                 continue
-            elif rel_path in forced:
-                forced.remove(rel_path)
-            check_file(path, rel_path, messages)
-    for path in forced:
+            elif rel_path not in forced:
+                forced.add(rel_path)
+    for rel_path in sorted(forced):
+        path = os.path.join(SOURCE_DIR, rel_path)
         if os.path.exists(path):
-            check_file(os.path.join(SOURCE_DIR, path), path, messages)
+            check_file(path, rel_path, messages)
 
 
 # Spell checking!
