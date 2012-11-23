@@ -100,14 +100,6 @@ void	txt_move_lines		(struct Text *text, const int direction);
 void	txt_duplicate_line	(struct Text *text);
 int	setcurr_tab_spaces	(struct Text *text, int space);
 
-void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, const unsigned char color[4], int group, int flags);
-short	txt_clear_marker_region				(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
-short	txt_clear_markers					(struct Text *text, int group, int flags);
-struct TextMarker	*txt_find_marker		(struct Text *text, struct TextLine *line, int curs, int group, int flags);
-struct TextMarker	*txt_find_marker_region	(struct Text *text, struct TextLine *line, int start, int end, int group, int flags);
-struct TextMarker	*txt_prev_marker		(struct Text *text, struct TextMarker *marker);
-struct TextMarker	*txt_next_marker		(struct Text *text, struct TextMarker *marker);
-
 /* utility functions, could be moved somewhere more generic but are python/text related  */
 int text_check_bracket(const char ch);
 int text_check_delim(const char ch);
@@ -160,10 +152,6 @@ enum {
 #define UNDO_MOVE_LINES_DOWN    037
 
 #define UNDO_DUPLICATE  040
-
-/* Marker flags */
-#define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */
-#define TMARK_EDITALL	0x02	/* Edit all markers of the same group as one */
 
 #ifdef __cplusplus
 }

@@ -526,7 +526,6 @@ extern StructRNA RNA_TextBox;
 extern StructRNA RNA_TextCharacterFormat;
 extern StructRNA RNA_TextCurve;
 extern StructRNA RNA_TextLine;
-extern StructRNA RNA_TextMarker;
 extern StructRNA RNA_Texture;
 extern StructRNA RNA_TextureNode;
 extern StructRNA RNA_TextureNodeBricks;

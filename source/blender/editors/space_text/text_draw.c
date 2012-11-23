@@ -1070,40 +1070,6 @@ int text_get_total_lines(SpaceText *st, ARegion *ar)
 	return drawcache->total_lines;
 }
 
-/* Move pointer to first visible line (top) */
-static TextLine *first_visible_line(SpaceText *st, ARegion *ar, int *wrap_top)
-{
-	Text *text = st->text;
-	TextLine *pline = text->lines.first;
-	int i = st->top, lineno = 0;
-
-	text_update_drawcache(st, ar);
-
-	if (wrap_top) *wrap_top = 0;
-
-	if (st->wordwrap) {
-		while (i > 0 && pline) {
-			int lines = text_get_visible_lines_no(st, lineno);
-
-			if (i - lines < 0) {
-				if (wrap_top) *wrap_top = i;
-				break;
-			}
-			else {
-				pline = pline->next;
-				i -= lines;
-				lineno++;
-			}
-		}
-	}
-	else {
-		for (i = st->top; pline->next && i > 0; i--)
-			pline = pline->next;
-	}
-
-	return pline;
-}
-
 /************************ draw scrollbar *****************************/
 
 static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
@@ -1239,90 +1205,6 @@ static void draw_textscroll(SpaceText *st, rcti *scroll, rcti *back)
 	glEnable(GL_BLEND);
 	uiRoundBox(st->txtscroll.xmin + 1, st->txtscroll.ymin, st->txtscroll.xmax - 1, st->txtscroll.ymax, rad);
 	glDisable(GL_BLEND);
-}
-
-/************************** draw markers **************************/
-
-static void draw_markers(SpaceText *st, ARegion *ar)
-{
-	Text *text = st->text;
-	TextMarker *marker, *next;
-	TextLine *top, *line;
-	int offl, offc, i, x1, x2, y1, y2, x, y;
-	int topi, topy;
-
-	/* Move pointer to first visible line (top) */
-	top = first_visible_line(st, ar, NULL);
-	topi = BLI_findindex(&text->lines, top);
-
-	topy = txt_get_span(text->lines.first, top);
-
-	for (marker = text->markers.first; marker; marker = next) {
-		next = marker->next;
-
-		/* invisible line (before top) */
-		if (marker->lineno < topi) continue;
-
-		line = BLI_findlink(&text->lines, marker->lineno);
-
-		/* Remove broken markers */
-		if (marker->end > line->len || marker->start > marker->end) {
-			BLI_freelinkN(&text->markers, marker);
-			continue;
-		}
-
-		wrap_offset(st, ar, line, marker->start, &offl, &offc);
-		y1 = txt_get_span(top, line) - st->top + offl + topy;
-		x1 = text_get_char_pos(st, line->line, marker->start) - st->left + offc;
-
-		wrap_offset(st, ar, line, marker->end, &offl, &offc);
-		y2 = txt_get_span(top, line) - st->top + offl + topy;
-		x2 = text_get_char_pos(st, line->line, marker->end) - st->left + offc;
-
-		/* invisible part of line (before top, after last visible line) */
-		if (y2 < 0 || y1 > st->top + st->viewlines) continue;
-
-		glColor3ubv(marker->color);
-		x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-		y = ar->winy - 3;
-
-		if (y1 == y2) {
-			y -= y1 * st->lheight;
-			glBegin(GL_LINE_LOOP);
-			glVertex2i(x + x2 * st->cwidth + 1, y);
-			glVertex2i(x + x1 * st->cwidth - 2, y);
-			glVertex2i(x + x1 * st->cwidth - 2, y - st->lheight);
-			glVertex2i(x + x2 * st->cwidth + 1, y - st->lheight);
-			glEnd();
-		}
-		else {
-			y -= y1 * st->lheight;
-			glBegin(GL_LINE_STRIP);
-			glVertex2i(ar->winx, y);
-			glVertex2i(x + x1 * st->cwidth - 2, y);
-			glVertex2i(x + x1 * st->cwidth - 2, y - st->lheight);
-			glVertex2i(ar->winx, y - st->lheight);
-			glEnd();
-			y -= st->lheight;
-
-			for (i = y1 + 1; i < y2; i++) {
-				glBegin(GL_LINES);
-				glVertex2i(x, y);
-				glVertex2i(ar->winx, y);
-				glVertex2i(x, y - st->lheight);
-				glVertex2i(ar->winx, y - st->lheight);
-				glEnd();
-				y -= st->lheight;
-			}
-
-			glBegin(GL_LINE_STRIP);
-			glVertex2i(x, y);
-			glVertex2i(x + x2 * st->cwidth + 1, y);
-			glVertex2i(x + x2 * st->cwidth + 1, y - st->lheight);
-			glVertex2i(x, y - st->lheight);
-			glEnd();
-		}
-	}
 }
 
 /*********************** draw documentation *******************************/
@@ -1860,7 +1742,6 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 	/* draw other stuff */
 	draw_brackets(st, ar);
-	draw_markers(st, ar);
 	glTranslatef(GLA_PIXEL_OFS, GLA_PIXEL_OFS, 0.0f); /* XXX scroll requires exact pixel space */
 	draw_textscroll(st, &scroll, &back);
 	draw_documentation(st, ar);
