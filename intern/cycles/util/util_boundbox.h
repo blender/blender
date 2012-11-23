@@ -182,9 +182,15 @@ public:
 		        bottom == other.bottom && top == other.top);
 	}
 
-	float width() {return right - left;}
+	float width()
+	{
+		return right - left;
+	}
 
-	float height() {return bottom - top;}
+	float height()
+	{
+		return top - bottom;
+	}
 
 	BoundBox2D operator*(float f) const
 	{

@@ -56,13 +56,16 @@ struct BlenderCamera {
 	float sensor_width;
 	float sensor_height;
 
+	int full_width;
+	int full_height;
+
 	BoundBox2D border;
 	BoundBox2D pano_viewplane;
 
 	Transform matrix;
 };
 
-static void blender_camera_init(BlenderCamera *bcam)
+static void blender_camera_init(BlenderCamera *bcam, BL::Scene b_scene)
 {
 	memset(bcam, 0, sizeof(BlenderCamera));
 
@@ -77,6 +80,12 @@ static void blender_camera_init(BlenderCamera *bcam)
 	bcam->border.top = 1.0f;
 	bcam->pano_viewplane.right = 1.0f;
 	bcam->pano_viewplane.top = 1.0f;
+
+	/* render resolution */
+	BL::RenderSettings r = b_scene.render();
+
+	bcam->full_width = (int)(r.resolution_x()*r.resolution_percentage()/100);
+	bcam->full_height = (int)(r.resolution_y()*r.resolution_percentage()/100);
 }
 
 static float blender_camera_focal_distance(BL::Object b_ob, BL::Camera b_camera)
@@ -207,10 +216,9 @@ static void blender_camera_viewplane(BlenderCamera *bcam, int width, int height,
 
 	/* compute x/y aspect and ratio */
 	float xaspect, yaspect;
-
-	/* sensor fitting */
 	bool horizontal_fit;
 
+	/* sensor fitting */
 	if(bcam->sensor_fit == BlenderCamera::AUTO) {
 		horizontal_fit = (xratio > yratio);
 		*sensor_size = bcam->sensor_width;
@@ -277,22 +285,34 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	blender_camera_viewplane(bcam, width, height,
 		&cam->viewplane, &aspectratio, &sensor_size);
 
-	/* sensor */
-	cam->sensorwidth = bcam->sensor_width;
+	/* panorama sensor */
+	if (bcam->type == CAMERA_PANORAMA && bcam->panorama_type == PANORAMA_FISHEYE_EQUISOLID) {
+		float fit_xratio = bcam->full_width*bcam->pixelaspect.x;
+		float fit_yratio = bcam->full_height*bcam->pixelaspect.y;
+		bool horizontal_fit;
+		float sensor_size;
 
-	if (bcam->type == CAMERA_PANORAMA &&
-	   (bcam->sensor_fit == BlenderCamera::AUTO &&
-		bcam->panorama_type == PANORAMA_FISHEYE_EQUISOLID)
-	   ) {
+		if(bcam->sensor_fit == BlenderCamera::AUTO) {
+			horizontal_fit = (fit_xratio > fit_yratio);
+			sensor_size = bcam->sensor_width;
+		}
+		else if(bcam->sensor_fit == BlenderCamera::HORIZONTAL) {
+			horizontal_fit = true;
+			sensor_size = bcam->sensor_width;
+		}
+		else if(bcam->sensor_fit == BlenderCamera::VERTICAL) {
+			horizontal_fit = false;
+			sensor_size = bcam->sensor_height;
+		}
 
-		float sensor_aspectratio = bcam->pano_viewplane.width() /
-								  (bcam->pano_viewplane.height() *
-								  (aspectratio));
-
-		cam->sensorheight = bcam->sensor_width * sensor_aspectratio;
-	}
-	else {
-		cam->sensorheight = bcam->sensor_height;
+		if(horizontal_fit) {
+			cam->sensorwidth = sensor_size;
+			cam->sensorheight = sensor_size * fit_yratio / fit_xratio;
+		}
+		else {
+			cam->sensorwidth = sensor_size * fit_xratio / fit_yratio;
+			cam->sensorheight = sensor_size;
+		}
 	}
 
 	/* clipping distances */
@@ -334,7 +354,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 void BlenderSync::sync_camera(BL::Object b_override, int width, int height)
 {
 	BlenderCamera bcam;
-	blender_camera_init(&bcam);
+	blender_camera_init(&bcam, b_scene);
 
 	/* pixel aspect */
 	BL::RenderSettings r = b_scene.render();
@@ -455,7 +475,7 @@ static void blender_camera_view_subset(BL::Scene b_scene, BL::Object b_ob, BL::S
 
 	/* get viewport viewplane */
 	BlenderCamera view_bcam;
-	blender_camera_init(&view_bcam);
+	blender_camera_init(&view_bcam, b_scene);
 	blender_camera_from_view(&view_bcam, b_scene, b_v3d, b_rv3d, width, height, true);
 
 	blender_camera_viewplane(&view_bcam, width, height,
@@ -463,13 +483,10 @@ static void blender_camera_view_subset(BL::Scene b_scene, BL::Object b_ob, BL::S
 
 	/* get camera viewplane */
 	BlenderCamera cam_bcam;
-	blender_camera_init(&cam_bcam);
+	blender_camera_init(&cam_bcam, b_scene);
 	blender_camera_from_object(&cam_bcam, b_ob, true);
 
-	width = (int)(r.resolution_x()*r.resolution_percentage()/100);
-	height = (int)(r.resolution_y()*r.resolution_percentage()/100);
-
-	blender_camera_viewplane(&cam_bcam, width, height,
+	blender_camera_viewplane(&cam_bcam, cam_bcam.full_width, cam_bcam.full_height,
 		&cam, &cam_aspect, &sensor_size);
 	
 	/* return */
@@ -527,7 +544,7 @@ static void blender_camera_border(BlenderCamera *bcam, BL::Scene b_scene, BL::Sp
 void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height)
 {
 	BlenderCamera bcam;
-	blender_camera_init(&bcam);
+	blender_camera_init(&bcam, b_scene);
 	blender_camera_from_view(&bcam, b_scene, b_v3d, b_rv3d, width, height);
 	blender_camera_border(&bcam, b_scene, b_v3d, b_rv3d, width, height);
 
