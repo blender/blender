@@ -469,7 +469,7 @@ static void blender_camera_from_view(BlenderCamera *bcam, BL::Scene b_scene, BL:
 static void blender_camera_view_subset(BL::Scene b_scene, BL::Object b_ob, BL::SpaceView3D b_v3d,
 	BL::RegionView3D b_rv3d, int width, int height, BoundBox2D *view_box, BoundBox2D *cam_box)
 {
-	BL::RenderSettings r = b_scene.render();
+//	BL::RenderSettings r = b_scene.render();  /* UNUSED */
 	BoundBox2D cam, view;
 	float view_aspect, cam_aspect, sensor_size;
 

@@ -715,12 +715,15 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			uiItemL(row, IFACE_("Value:"), ICON_NONE);
 			
 			if ((dvar->type == DVAR_TYPE_ROT_DIFF) ||
-				(dvar->type == DVAR_TYPE_TRANSFORM_CHAN &&
-				 dvar->targets[0].transChan >= DTAR_TRANSCHAN_ROTX &&
-				 dvar->targets[0].transChan < DTAR_TRANSCHAN_SCALEX))
+			    (dvar->type == DVAR_TYPE_TRANSFORM_CHAN &&
+			     dvar->targets[0].transChan >= DTAR_TRANSCHAN_ROTX &&
+			     dvar->targets[0].transChan < DTAR_TRANSCHAN_SCALEX))
+			{
 				BLI_snprintf(valBuf, sizeof(valBuf), "%.3f (%4.1f°)", dvar->curval, RAD2DEGF(dvar->curval));
-			else
+			}
+			else {
 				BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", dvar->curval);
+			}
 
 			uiItemL(row, valBuf, ICON_NONE);
 		}
