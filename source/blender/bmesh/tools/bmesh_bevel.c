@@ -52,7 +52,7 @@
 typedef struct NewVert {
 	BMVert *v;
 	float co[3];
-	int _pad;
+//	int _pad;
 } NewVert;
 
 struct BoundVert;
@@ -295,12 +295,7 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMF
 static BMFace *bev_create_quad_tri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
                                    BMFace *facerep)
 {
-	BMVert *varr[4];
-
-	varr[0] = v1;
-	varr[1] = v2;
-	varr[2] = v3;
-	varr[3] = v4;
+	BMVert *varr[4] = {v1, v2, v3, v4};
 	return bev_create_ngon(bm, varr, v4 ? 4 : 3, facerep);
 }
 
@@ -482,15 +477,13 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
 static void vmesh_cent(VMesh *vm, float r_cent[3])
 {
 	BoundVert *v;
-	int tot = 0;
 	zero_v3(r_cent);
 
 	v = vm->boundstart;
 	do {
 		add_v3_v3(r_cent, v->nv.co);
-		tot++;
 	} while ((v = v->next) != vm->boundstart);
-	mul_v3_fl(r_cent, 1.0f / (float)tot);
+	mul_v3_fl(r_cent, 1.0f / (float)vm->count);
 }
 
 /**
@@ -1413,8 +1406,9 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	BMFace *f;
 	BMIter iter, iter2;
 	EdgeHalf *e;
-	int i, ntot, found_shared_face, ccw_test_sum;
+	int i, found_shared_face, ccw_test_sum;
 	int nsel = 0;
+	int ntot = 0;
 
 	/* Gather input selected edges.
 	 * Only bevel selected edges that have exactly two incident faces.
@@ -1425,6 +1419,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			BLI_assert(BM_edge_is_manifold(bme));
 			nsel++;
 		}
+		ntot++;
 	}
 
 	if (nsel == 0) {
@@ -1433,7 +1428,10 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		return;
 	}
 
-	ntot = BM_vert_edge_count(v);
+	/* avoid calling BM_vert_edge_count since we loop over edges already */
+	// ntot = BM_vert_edge_count(v);
+	// BLI_assert(ntot == BM_vert_edge_count(v));
+
 	bv = (BevVert *)BLI_memarena_alloc(bp->mem_arena, (sizeof(BevVert)));
 	bv->v = v;
 	bv->edgecount = ntot;
@@ -1503,10 +1501,13 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		}
 	}
 
+	/* do later when we loop over edges */
+#if 0
 	/* clear BEVEL_EDGE_TAG now that we are finished with it*/
 	for (i = 0; i < ntot; i++) {
 		BM_BEVEL_EDGE_TAG_DISABLE(bv->edges[i].e);
 	}
+#endif
 
 	/* if edge array doesn't go CCW around vertex from average normal side,
 	 * reverse the array, being careful to reverse face pointers too */
@@ -1528,10 +1529,10 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		}
 	}
 
-	for (i = 0; i < ntot; i++) {
-		e = &bv->edges[i];
+	for (i = 0, e = bv->edges; i < ntot; i++, e++) {
 		e->next = &bv->edges[(i + 1) % ntot];
 		e->prev = &bv->edges[(i + ntot - 1) % ntot];
+		BM_BEVEL_EDGE_TAG_DISABLE(e->e);
 	}
 
 	build_boundary(bp->mem_arena, bv);
