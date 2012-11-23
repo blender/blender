@@ -619,7 +619,10 @@ __device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_facto
 		}
 	}
 
-	*N = normalize(*N);
+	if(is_zero(*N))
+		*N = sd->N;
+	else
+		*N = normalize(*N);
 
 	return eval;
 #else
