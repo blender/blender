@@ -4766,10 +4766,6 @@ static int edbm_bevel_calc(bContext *C, wmOperator *op)
 
 	BMO_op_exec(em->bm, &bmop);
 
-	/* no need to de-select existing geometry */
-	if (!EDBM_op_finish(em, &bmop, op, TRUE))
-		return 0;
-
 	if (offset != 0.0f) {
 		/* not essential, but we may have some loose geometry that
 		 * won't get bevel'd and better not leave it selected */
@@ -4777,6 +4773,9 @@ static int edbm_bevel_calc(bContext *C, wmOperator *op)
 		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, TRUE);
 	}
 
+	/* no need to de-select existing geometry */
+	if (!EDBM_op_finish(em, &bmop, op, TRUE))
+		return 0;
 #else
 	int i;
 
