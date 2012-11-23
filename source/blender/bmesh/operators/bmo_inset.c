@@ -477,7 +477,44 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		/* copy for loop data, otherwise UV's and vcols are no good.
 		 * tiny speedup here we could be more clever and copy from known adjacent data
 		 * also - we could attempt to interpolate the loop data, this would be much slower but more useful too */
+#if 0
+		/* don't use this because face boundaries have no adjacent loops and won't be filled in.
+		 * instead copy from the opposite side with the code below */
 		BM_face_copy_shared(bm, f);
+#else
+		{
+			/* 2 inner loops on the edge between the new face and the original */
+			BMLoop *l_a;
+			BMLoop *l_b;
+			BMLoop *l_a_other;
+			BMLoop *l_b_other;
+
+			l_a = BM_FACE_FIRST_LOOP(f);
+			l_b = l_a->next;
+
+			/* we know this side has a radial_next because of the order of created verts in the quad */
+			l_a_other = BM_edge_other_loop(l_a->e, l_a);
+			l_b_other = BM_edge_other_loop(l_a->e, l_b);
+			BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
+			BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
+
+			/* step around to the opposite side of the quad - warning, this may have no other edges! */
+			l_a = l_a->next->next;
+			l_b = l_a->next;
+			if (!BM_edge_is_boundary(l_a->e)) {
+				/* same as above */
+				l_a_other = BM_edge_other_loop(l_a->e, l_a);
+				l_b_other = BM_edge_other_loop(l_a->e, l_b);
+				BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
+				BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
+			}
+			else {  /* boundary edges have no useful data to copy from, use opposite side of face */
+				/* swap a<->b intentionally */
+				BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
+				BM_elem_attrs_copy(bm, bm, l_b_other, l_a);
+			}
+		}
+#endif
 	}
 
 	/* we could flag new edges/verts too, is it useful? */
