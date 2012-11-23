@@ -636,10 +636,67 @@ Types
 
 .. class:: KX_SteeringActuator(SCA_IActuator)
 
-   SteeringActuator for navigation.
+   Steering Actuator for navigation.
 
-   TODO.
+   .. attribute:: behavior
 
+      The steering behavior to use.
+
+      :type: one of :ref:`these constants <logic-steering-actuator>`
+
+   .. attribute:: velocity
+
+      Velocity magnitude
+
+      :type: float
+
+   .. attribute:: acceleration
+
+      Max acceleration
+
+      :type: float
+
+   .. attribute:: turnspeed
+
+      Max turn speed
+
+      :type: float
+
+   .. attribute:: distance
+
+      Relax distance
+
+      :type: float
+
+   .. attribute:: target
+
+      Target object
+
+      :type: :class:`KX_GameObject`
+
+   .. attribute:: navmesh
+
+      Navigation mesh
+
+      :type: :class:`KX_GameObject`
+
+   .. attribute:: selfterminated
+
+      Terminate when target is reached
+
+      :type: boolean
+
+   .. attribute:: enableVisualization
+
+      Enable debug visualization
+
+      :type: boolean
+
+   .. attribute:: pathUpdatePeriod
+
+      Path update period
+
+      :type: int
 
 .. class:: CListValue(CPropValue)
 
