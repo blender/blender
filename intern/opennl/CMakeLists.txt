@@ -28,7 +28,11 @@ remove_strict_flags()
 
 # remove debug flag here since this is not a blender maintained library
 # and debug gives a lot of prints on UV unwrapping. developers can enable if they need to.
-add_definitions(-UDEBUG)
+if(MSVC)
+	remove_definitions(-DDEBUG)
+else()
+	add_definitions(-UDEBUG)
+endif()
 
 
 # quiet compiler warnings about undefined defines

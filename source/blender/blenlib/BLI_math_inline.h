@@ -35,9 +35,10 @@ extern "C" {
 #endif
 
 /* add platform/compiler checks here if it is not supported */
-#define __BLI_MATH_INLINE_H__
+/* all platforms support forcing inline so this is always enabled */
+#define BLI_MATH_DO_INLINE 1
 
-#ifdef __BLI_MATH_INLINE_H__
+#if BLI_MATH_DO_INLINE
 #  ifdef _MSC_VER
 #    define MINLINE static __forceinline
 #    define MALWAYS_INLINE MINLINE

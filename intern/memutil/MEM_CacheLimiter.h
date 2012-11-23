@@ -247,8 +247,10 @@ private:
 			if (!elem->can_destroy())
 				continue;
 
-			/* by default 0 means higherst priority element */
-			int priority = -(queue.size() - i - 1);
+			/* by default 0 means highest priority element */
+			/* casting a size type to int is questionable,
+			   but unlikely to cause problems */
+			int priority = -((int)(queue.size()) - i - 1);
 			priority = getItemPriority(elem->get()->get_data(), priority);
 
 			if (priority < best_match_priority || best_match_elem == NULL) {

@@ -27,11 +27,10 @@
  *  \ingroup bli
  */
 
-
-#include "BLI_math.h"
-
 #ifndef __MATH_VECTOR_INLINE_C__
 #define __MATH_VECTOR_INLINE_C__
+
+#include "BLI_math.h"
 
 /********************************** Init *************************************/
 

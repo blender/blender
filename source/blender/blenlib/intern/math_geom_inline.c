@@ -27,11 +27,12 @@
  *  \ingroup bli
  */
 
+#ifndef __MATH_GEOM_INLINE_C__
+#define __MATH_GEOM_INLINE_C__
 
 #include "BLI_math.h"
 
-#ifndef __MATH_GEOM_INLINE_C__
-#define __MATH_GEOM_INLINE_C__
+#include <string.h>
 
 /****************************** Spherical Harmonics **************************/
 
