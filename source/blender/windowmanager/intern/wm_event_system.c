@@ -1310,7 +1310,8 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 	if (kmi->oskey != KM_ANY)
 		if (winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
 	
-	if (winevent->keymodifier != kmi->keymodifier) return 0;
+	if (kmi->keymodifier)
+		if (winevent->keymodifier != kmi->keymodifier) return 0;
 		
 	
 	return 1;
