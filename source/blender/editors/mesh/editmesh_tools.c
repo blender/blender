@@ -2177,7 +2177,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use");
 	RNA_def_enum_funcs(ot->prop, merge_type_itemf);
-	RNA_def_boolean(ot->srna, "uvs", 1, "UVs", "Move UVs according to merge");
+	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge");
 }
 
 
