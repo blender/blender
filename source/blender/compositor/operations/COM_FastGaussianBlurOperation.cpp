@@ -230,6 +230,7 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation() : NodeOperation
 	this->m_iirgaus = NULL;
 	this->m_inputprogram = NULL;
 	this->m_sigma = 1.0f;
+	this->m_overlay = 0;
 	setComplex(true);
 }
 
