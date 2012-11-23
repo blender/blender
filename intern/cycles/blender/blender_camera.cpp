@@ -300,7 +300,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 			horizontal_fit = true;
 			sensor_size = bcam->sensor_width;
 		}
-		else if(bcam->sensor_fit == BlenderCamera::VERTICAL) {
+		else { /* vertical */
 			horizontal_fit = false;
 			sensor_size = bcam->sensor_height;
 		}

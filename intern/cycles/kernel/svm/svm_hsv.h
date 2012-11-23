@@ -110,7 +110,7 @@ __device void svm_node_hsv(KernelGlobals *kg, ShaderData *sd, float *stack, uint
 
 	color = rgb_to_hsv(color);
 
-	// remember: fmod doesn't work for negative numbers
+	/* remember: fmod doesn't work for negative numbers here */
 	color.x += hue + 0.5f;
 	color.x = fmod(color.x, 1.0f);
 	color.y *= sat;
