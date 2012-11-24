@@ -487,7 +487,39 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 	}
 }
 
-void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, uint in_offset)
+void SVMCompiler::count_closure_users(ShaderNode *node, map<ShaderNode*, MultiClosureData>& closure_data)
+{
+	/* here we count the number of times each closure node is used, so that
+	 * the last time we encounter it we can run the actually code with the
+	 * weights from all other places added together */
+
+	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
+		ShaderInput *cl1in = node->input("Closure1");
+		ShaderInput *cl2in = node->input("Closure2");
+
+		if(cl1in->link)
+			count_closure_users(cl1in->link->parent, closure_data);
+		if(cl2in->link)
+			count_closure_users(cl2in->link->parent, closure_data);
+	}
+	else {
+		MultiClosureData data;
+
+		if(closure_data.find(node) == closure_data.end()) {
+			data.stack_offset = SVM_STACK_INVALID;
+			data.users = 1;
+		}
+		else {
+			data = closure_data[node];
+			data.users++;
+		}
+
+		closure_data[node] = data;
+	}
+}
+
+void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done,
+	map<ShaderNode*, MultiClosureData>& closure_data, uint in_offset)
 {
 	/* todo: the weaks point here is that unlike the single closure sampling 
 	 * we will evaluate all nodes even if they are used as input for closures
@@ -524,21 +556,37 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			out2_offset = in_offset;
 		}
 
-		if(cl1in->link) {
-			generate_multi_closure(cl1in->link->parent, done, out1_offset);
+		if(cl1in->link)
+			generate_multi_closure(cl1in->link->parent, done, closure_data, out1_offset);
 
-			if(fin)
-				stack_clear_offset(SHADER_SOCKET_FLOAT, out1_offset);
-		}
+		if(cl2in->link)
+			generate_multi_closure(cl2in->link->parent, done, closure_data, out2_offset);
 
-		if(cl2in->link) {
-			generate_multi_closure(cl2in->link->parent, done, out2_offset);
-
-			if(fin)
-				stack_clear_offset(SHADER_SOCKET_FLOAT, out2_offset);
-		}
+		if(in_offset != SVM_STACK_INVALID)
+			stack_clear_offset(SHADER_SOCKET_FLOAT, in_offset);
 	}
 	else {
+		MultiClosureData data = closure_data[node];
+
+		if(data.stack_offset == SVM_STACK_INVALID) {
+			/* first time using closure, use stack position for weight */
+			data.stack_offset = in_offset;
+		}
+		else {
+			/* not first time using, add weights together */
+			add_node(NODE_MATH, NODE_MATH_ADD, data.stack_offset, in_offset);
+			add_node(NODE_MATH, data.stack_offset);
+
+			stack_clear_offset(SHADER_SOCKET_FLOAT, in_offset);
+		}
+
+		data.users--;
+		closure_data[node] = data;
+
+		/* still users coming? skip generating closure code */
+		if(data.users > 0)
+			return;
+
 		/* execute dependencies for closure */
 		foreach(ShaderInput *in, node->inputs) {
 			if(!node_skip_input(node, in) && in->link) {
@@ -548,7 +596,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			}
 		}
 
-		mix_weight_offset = in_offset;
+		mix_weight_offset = data.stack_offset;
 
 		/* compile closure itself */
 		node->compile(*this);
@@ -563,6 +611,9 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 			current_shader->has_surface_transparent = true;
 
 		/* end node is added outside of this */
+
+		if(data.stack_offset != SVM_STACK_INVALID)
+			stack_clear_offset(SHADER_SOCKET_FLOAT, data.stack_offset);
 	}
 }
 
@@ -634,8 +685,12 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 			if(generate) {
 				set<ShaderNode*> done;
 
-				if(use_multi_closure)
-					generate_multi_closure(clin->link->parent, done, SVM_STACK_INVALID);
+				if(use_multi_closure) {
+					map<ShaderNode*, MultiClosureData> closure_data;
+
+					count_closure_users(clin->link->parent, closure_data);
+					generate_multi_closure(clin->link->parent, done, closure_data, SVM_STACK_INVALID);
+				}
 				else
 					generate_closure(clin->link->parent, done);
 			}
