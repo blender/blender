@@ -552,10 +552,9 @@ bool KX_KetsjiEngine::NextFrame()
 	double deltatime = m_clockTime - m_frameTime;
 	if (deltatime<0.f)
 	{
-		printf("problem with clock\n");
-		deltatime = 0.f;
-		m_clockTime = 0.f;
-		m_frameTime = 0.f;
+		// We got here too quickly, which means there is nothing todo, just return and don't render.
+		// Not sure if this is the best fix, but it seems to stop the jumping framerate issue (#33088)
+		return false;
 	}
 
 
