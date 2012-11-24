@@ -4150,7 +4150,7 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		path = BLI_sprintfN(is_rna ? "%s.%s" : "%s[\"%s\"]", ptrpath, propname);
 		MEM_freeN(ptrpath);
 	}
-	else {
+	else if(RNA_struct_is_ID(ptr->type)) {
 		if (is_rna)
 			path = BLI_strdup(propname);
 		else
