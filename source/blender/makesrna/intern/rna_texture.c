@@ -233,6 +233,7 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 			break;
 		case ID_LA:
 			WM_main_add_notifier(NC_LAMP | ND_LIGHTING, id);
+			WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, id);
 			break;
 		case ID_BR:
 			WM_main_add_notifier(NC_BRUSH, id);
