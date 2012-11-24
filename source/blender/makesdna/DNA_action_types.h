@@ -372,7 +372,7 @@ typedef enum ePose_Flags {
 
 /* bPose->iksolver and bPose->ikparam->iksolver */
 typedef enum ePose_IKSolverType {
-	IKSOLVER_LEGACY = 0,
+	IKSOLVER_STANDARD = 0,
 	IKSOLVER_ITASC = 1
 } ePose_IKSolverType;
 

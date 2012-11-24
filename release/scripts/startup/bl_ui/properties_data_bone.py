@@ -244,7 +244,6 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
         pchan = ob.pose.bones[bone.name]
 
         row = layout.row()
-        row.prop(ob.pose, "ik_solver")
 
         active = pchan.is_in_ik_chain
 

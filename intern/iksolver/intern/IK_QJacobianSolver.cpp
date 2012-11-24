@@ -377,7 +377,7 @@ bool IK_QJacobianSolver::Solve(
 			norm = maxnorm;
 
 		// check for convergence
-		if (norm < 1e-3) {
+		if (norm < 1e-3 && iterations > 10) {
 			solved = true;
 			break;
 		}

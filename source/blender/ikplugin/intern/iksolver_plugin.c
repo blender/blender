@@ -379,6 +379,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 
 		copy_v3_v3(goalpos, goal[3]);
 		copy_m3_m4(goalrot, goal);
+		normalize_m3(goalrot);
 
 		/* same for pole vector target */
 		if (data->poletar) {
@@ -433,7 +434,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 
 		iktarget = iktree[target->tip];
 
-		if (data->weight != 0.0f) {
+		if ((data->flag & CONSTRAINT_IK_POS) && data->weight != 0.0f) {
 			if (poleconstrain)
 				IK_SolverSetPoleVectorConstraint(solver, iktarget, goalpos,
 				                                 polepos, data->poleangle, (poleangledata == data));
