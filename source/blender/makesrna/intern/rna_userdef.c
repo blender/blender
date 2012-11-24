@@ -3236,10 +3236,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* this isn't essential but nice to check if VBO draws any differently */
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
+#if 0
 	prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_AA);
 	RNA_def_property_ui_text(prop, "Anti-aliasing",
 	                         "Use anti-aliasing for the 3D view (may impact redraw performance)");
+#endif
 
 	prop = RNA_def_property(srna, "anisotropic_filter", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "anisotropic_filter");

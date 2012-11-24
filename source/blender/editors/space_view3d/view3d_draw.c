@@ -2996,9 +2996,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		v3d->zbuf = FALSE;
 
 	/* enables anti-aliasing for 3D view drawing */
-	if (U.ogl_multisamples)
-		if (!(U.gameflags & USER_DISABLE_AA))
-			glEnable(GL_MULTISAMPLE_ARB);
+	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+		// if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);
+	}
 
 
 	/* needs to be done always, gridview is adjusted in drawgrid() now */
@@ -3113,9 +3114,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	BIF_draw_manipulator(C);
 
 	/* Disable back anti-aliasing */
-	if (U.ogl_multisamples)
-		if (!(U.gameflags & USER_DISABLE_AA))
-			glDisable(GL_MULTISAMPLE_ARB);
+	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+		// if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);
+	}
 
 	
 	if (v3d->zbuf) {
