@@ -1384,6 +1384,12 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		but->rnasearchprop = searchprop;
 		but->flag |= UI_ICON_LEFT | UI_TEXT_LEFT;
 
+		if (RNA_property_type(prop) == PROP_ENUM) {
+			/* XXX, this will have a menu string,
+			 * but in this case we just want the text */
+			but->str[0] = 0;
+		}
+
 		uiButSetSearchFunc(but, rna_search_cb, but, NULL, NULL);
 	}
 }
@@ -1407,8 +1413,8 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	}
 	
 	type = RNA_property_type(prop);
-	if (!ELEM(type, PROP_POINTER, PROP_STRING)) {
-		RNA_warning("Property %s must be a pointer or string", propname);
+	if (!ELEM3(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
+		RNA_warning("Property %s must be a pointer, string or enum", propname);
 		return;
 	}
 
