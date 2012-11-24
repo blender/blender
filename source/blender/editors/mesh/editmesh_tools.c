@@ -72,6 +72,7 @@
 #include "RE_render_ext.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "mesh_intern.h"
 
@@ -2508,6 +2509,22 @@ static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  Prop
 	return item;
 }
 
+static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	PointerRNA ptr;
+	Object *obedit = CTX_data_edit_object(C);
+	Mesh *me = obedit->data;
+	PointerRNA ptr_key;
+
+	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+	RNA_id_pointer_create((ID *)me->key, &ptr_key);
+
+	uiItemPointerR(layout, &ptr, "shape", &ptr_key, "key_blocks", "", ICON_SHAPEKEY_DATA);
+	uiItemR(layout, &ptr, "blend", 0, NULL, ICON_NONE);
+	uiItemR(layout, &ptr, "add", 0, NULL, ICON_NONE);
+}
+
 void MESH_OT_blend_from_shape(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -2520,7 +2537,8 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = edbm_blend_from_shape_exec;
-	ot->invoke = WM_operator_props_popup_call;
+//	ot->invoke = WM_operator_props_popup_call;  /* disable because search popup closes too easily */
+	ot->ui = edbm_blend_from_shape_ui;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
