@@ -81,6 +81,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "PIL_time.h"
+
 #include "image_intern.h"
 
 /******************** view navigation utilities *********************/
@@ -367,10 +369,18 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 /********************** view zoom operator *********************/
 
 typedef struct ViewZoomData {
-	float x, y;
+	float origx, origy;
 	float zoom;
 	int event_type;
 	float location[2];
+
+	/* needed for continuous zoom */
+	wmTimer *timer;
+	double timer_lastdraw;
+
+	/* */
+	SpaceImage *sima;
+	ARegion *ar;
 } ViewZoomData;
 
 static void image_view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
@@ -382,12 +392,21 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata = vpd = MEM_callocN(sizeof(ViewZoomData), "ImageViewZoomData");
 	WM_cursor_modal(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
 
-	vpd->x = event->x;
-	vpd->y = event->y;
+	vpd->origx = event->x;
+	vpd->origy = event->y;
 	vpd->zoom = sima->zoom;
 	vpd->event_type = event->type;
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &vpd->location[0], &vpd->location[1]);
+
+	if (U.viewzoom == USER_ZOOM_CONT) {
+		/* needs a timer to continue redrawing */
+		vpd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+		vpd->timer_lastdraw = PIL_check_seconds_timer();
+	}
+
+	vpd->sima = sima;
+	vpd->ar = ar;
 
 	WM_event_add_modal_handler(C, op);
 }
@@ -401,6 +420,9 @@ static void image_view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 		sima->zoom = vpd->zoom;
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
+
+	if (vpd->timer)
+		WM_event_remove_timer(CTX_wm_manager(C), vpd->timer->win, vpd->timer);
 
 	WM_cursor_restore(CTX_wm_window(C));
 	MEM_freeN(op->customdata);
@@ -426,6 +448,12 @@ static int image_view_zoom_exec(bContext *C, wmOperator *op)
 	
 	return OPERATOR_FINISHED;
 }
+
+enum {
+	VIEW_PASS = 0,
+	VIEW_APPLY,
+	VIEW_CONFIRM
+};
 
 static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -454,31 +482,72 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
+static void image_zoom_apply(ViewZoomData *vpd, wmOperator *op, const int x, const int y, const short viewzoom, const short zoom_invert)
+{
+	float factor;
+
+	if (viewzoom == USER_ZOOM_CONT) {
+		double time = PIL_check_seconds_timer();
+		float time_step = (float)(time - vpd->timer_lastdraw);
+		float fac;
+		float zfac;
+
+		if (U.uiflag & USER_ZOOM_HORIZ) {
+			fac = (float)(x - vpd->origx);
+		}
+		else {
+			fac = (float)(y - vpd->origy);
+		}
+
+		if (zoom_invert) {
+			fac = -fac;
+		}
+
+		/* oldstyle zoom */
+		zfac = 1.0f + ((fac / 20.0f) * time_step);
+		vpd->timer_lastdraw = time;
+		/* this is the final zoom, but instead make it into a factor */
+		//zoom = vpd->sima->zoom * zfac;
+		factor = (vpd->sima->zoom * zfac) / vpd->zoom;
+	}
+	else {
+		/* for now do the same things for scale and dolly */
+		float delta = x - vpd->origx + y - vpd->origy;
+
+		if (zoom_invert)
+			delta *= -1.0f;
+
+		factor = 1.0f + delta / 300.0f;
+	}
+
+	RNA_float_set(op->ptr, "factor", factor);
+	sima_zoom_set(vpd->sima, vpd->ar, vpd->zoom * factor, vpd->location);
+	ED_region_tag_redraw(vpd->ar);
+}
+
 static int image_view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima = CTX_wm_space_image(C);
-	ARegion *ar = CTX_wm_region(C);
 	ViewZoomData *vpd = op->customdata;
-	float delta, factor;
+	short event_code = VIEW_PASS;
 
-	switch (event->type) {
-		case MOUSEMOVE:
-			delta = event->x - vpd->x + event->y - vpd->y;
+	/* execute the events */
+	if (event->type == TIMER && event->customdata == vpd->timer) {
+		/* continuous zoom */
+		event_code = VIEW_APPLY;
+	}
+	else if (event->type == MOUSEMOVE) {
+		event_code = VIEW_APPLY;
+	}
+	else if (event->type == vpd->event_type && event->val == KM_RELEASE) {
+		event_code = VIEW_CONFIRM;
+	}
 
-			if (U.uiflag & USER_ZOOM_INVERT)
-				delta *= -1;
-
-			factor = 1.0f + delta / 300.0f;
-			RNA_float_set(op->ptr, "factor", factor);
-			sima_zoom_set(sima, ar, vpd->zoom * factor, vpd->location);
-			ED_region_tag_redraw(CTX_wm_region(C));
-			break;
-		default:
-			if (event->type == vpd->event_type && event->val == KM_RELEASE) {
-				image_view_zoom_exit(C, op, 0);
-				return OPERATOR_FINISHED;
-			}
-			break;
+	if (event_code == VIEW_APPLY) {
+		image_zoom_apply(vpd, op, event->x, event->y, U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
+	}
+	else if (event_code == VIEW_CONFIRM) {
+		image_view_zoom_exit(C, op, 0);
+		return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
