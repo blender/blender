@@ -319,12 +319,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
 	sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, v)->co, v->co);
 
-	/* get normal to plane where meet point should be */
-	cross_v3_v3v3(norm_v, dir2, dir1);
-	normalize_v3(norm_v);
-	if (!on_right)
-		negate_v3(norm_v);
-	if (is_zero_v3(norm_v)) {
+	if (angle_v3v3(dir1, dir2) < 100.0f * (float)BEVEL_EPSILON) {
 		/* special case: e1 and e2 are parallel; put offset point perp to both, from v.
 		 * need to find a suitable plane.
 		 * if offsets are different, we're out of luck: just use e1->offset */
@@ -339,6 +334,12 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 		copy_v3_v3(meetco, off1a);
 	}
 	else {
+		/* get normal to plane where meet point should be */
+		cross_v3_v3v3(norm_v, dir2, dir1);
+		normalize_v3(norm_v);
+		if (!on_right)
+			negate_v3(norm_v);
+
 		/* get vectors perp to each edge, perp to norm_v, and pointing into face */
 		if (f) {
 			copy_v3_v3(norm_v, f->no);
@@ -612,7 +613,7 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
 	else
 		sub_v3_v3v3(dir, e->e->v2->co, e->e->v1->co);
 	normalize_v3(dir);
-	if (fabsf(angle_v3v3(vva, vvb) - (float)M_PI) > (float)BEVEL_EPSILON) {
+	if (fabsf(angle_v3v3(vva, vvb) - (float)M_PI) > 100.f *(float)BEVEL_EPSILON) {
 		copy_v3_v3(vaadj, va);
 		madd_v3_v3fl(vaadj, dir, -len_v3(vva) * cosf(angle_v3v3(vva, dir)));
 		copy_v3_v3(vbadj, vb);
