@@ -1653,7 +1653,7 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 }
 
 
-static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom, const short zoom_invert)
+static void viewzoom_apply(ViewOpsData *vod, const int x, const int y, const short viewzoom, const short zoom_invert)
 {
 	float zfac = 1.0;
 	short use_cam_zoom;
@@ -1674,10 +1674,10 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 		float fac;
 
 		if (U.uiflag & USER_ZOOM_HORIZ) {
-			fac = (float)(x - vod->origx);
+			fac = (float)(vod->origx - x);
 		}
 		else {
-			fac = (float)(y - vod->origy);
+			fac = (float)(vod->origy - y);
 		}
 
 		if (zoom_invert) {
