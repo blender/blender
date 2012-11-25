@@ -5954,7 +5954,11 @@ int RNA_struct_equals(PointerRNA *a, PointerRNA *b)
 	PropertyRNA *iterprop;
 	int equals = 1;
 
-	if (a->type != b->type)
+	if (a == NULL && b == NULL)
+		return 1;
+	else if (a == NULL || b == NULL)
+		return 0;
+	else if (a->type != b->type)
 		return 0;
 
 	iterprop = RNA_struct_iterator_property(a->type);
