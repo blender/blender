@@ -1931,10 +1931,17 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	for (; dob; dob_prev = dob, dob = dob_next, dob_next = dob_next ? dupli_step(dob_next->next) : NULL) {
 		tbase.object = dob->ob;
 
-		/* extra service: draw the duplicator in drawtype of parent */
-		/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
-		dt = tbase.object->dt;   tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
-		dtx = tbase.object->dtx; tbase.object->dtx = base->object->dtx;
+		/* extra service: draw the duplicator in drawtype of parent, minimum taken
+		 * to allow e.g. boundbox box objects in groups for LOD */
+		dt = tbase.object->dt;
+		tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
+
+		/* inherit draw extra, but not if a boundbox under the assumption that this
+		 * is intended to speed up drawing, and drawing extra (especially wire) can
+		 * slow it down too much */
+		dtx = tbase.object->dtx;
+		if(tbase.object->dt != OB_BOUNDBOX)
+			tbase.object->dtx = base->object->dtx;
 
 		/* negative scale flag has to propagate */
 		transflag = tbase.object->transflag;
