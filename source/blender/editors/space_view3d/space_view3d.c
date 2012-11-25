@@ -702,6 +702,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_GEOM:
 			switch (wmn->data) {
 				case ND_DATA:
+				case ND_VERTEX_GROUP:
 				case ND_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
@@ -920,6 +921,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_GEOM:
 			switch (wmn->data) {
 				case ND_DATA:
+				case ND_VERTEX_GROUP:
 				case ND_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
