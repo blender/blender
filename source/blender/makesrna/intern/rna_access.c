@@ -4156,6 +4156,9 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		else
 			path = BLI_sprintfN("[\"%s\"]", propname);
 	}
+	else {
+		path = NULL;
+	}
 
 	return path;
 }
