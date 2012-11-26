@@ -806,7 +806,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		float vec1[3], vec2[3];
 
 		/* skip non-quads if requested */
-		if(use_onlyquads && face->len != 4)
+		if (use_onlyquads && face->len != 4)
 			continue;
 
 		/* figure out which pattern to use */

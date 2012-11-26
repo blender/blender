@@ -732,7 +732,7 @@ static void ed_marker_move_apply(bContext *C, wmOperator *op)
 	/* so we get view3d redraws */
 	BKE_scene_camera_switch_update(scene);
 
-	if(camera != scene->camera) {
+	if (camera != scene->camera) {
 		BKE_screen_view3d_scene_sync(sc);
 		WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
 	}

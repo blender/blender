@@ -64,7 +64,7 @@ static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 
 	/* don't do notifier when we're rendering, avoid some viewport crashes
 	 * redrawing while the data is being modified for render */
-	if(!G.is_rendering) {
+	if (!G.is_rendering) {
 		/* cant use NC_SCENE|ND_FRAME because this causes wm_event_do_notifiers to call
 		 * BKE_scene_update_for_newframe which will loose any un-keyed changes [#24690] */
 		/* WM_main_add_notifier(NC_SCENE|ND_FRAME, scene); */
