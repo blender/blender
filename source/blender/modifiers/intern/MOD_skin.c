@@ -249,14 +249,14 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 	}
 
 	/* Apply face attributes to hull output */
-	BMO_ITER (f, &oiter, bm, &op, "geomout", BM_FACE) {
+	BMO_ITER (f, &oiter, op.slots_out, "geom.out", BM_FACE) {
 		if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
 			BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 		f->mat_nr = so->mat_nr;
 	}
 
 	/* Mark interior frames */
-	BMO_ITER (v, &oiter, bm, &op, "interior_geom", BM_VERT) {
+	BMO_ITER (v, &oiter, op.slots_out, "geom_interior.out", BM_VERT) {
 		for (i = 0; i < totframe; i++) {
 			Frame *frame = frames[i];
 			
@@ -309,7 +309,7 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 
 	/* Check if removing triangles above will create wire triangles,
 	 * mark them too */
-	BMO_ITER (e, &oiter, bm, &op, "geomout", BM_EDGE) {
+	BMO_ITER (e, &oiter, op.slots_out, "geom.out", BM_EDGE) {
 		int is_wire = TRUE;
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 			if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
@@ -1080,9 +1080,12 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		BMOperator op;
 		BMIter iter;
 		int i;
+		BMOpSlot *slot_targetmap;
 
 		shortest_edge = BM_face_find_shortest_loop(f)->e;
 		BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE), "weld_verts");
+
+		slot_targetmap = BMO_slot_get(op.slots_in, "targetmap");
 
 		/* Note: could probably calculate merges in one go to be
 		 * faster */
@@ -1090,7 +1093,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		v_safe = shortest_edge->v1;
 		v_merge = shortest_edge->v2;
 		mid_v3_v3v3(v_safe->co, v_safe->co, v_merge->co);
-		BMO_slot_map_ptr_insert(bm, &op, "targetmap", v_merge, v_safe);
+		BMO_slot_map_ptr_insert(&op, slot_targetmap, v_merge, v_safe);
 		BMO_op_exec(bm, &op);
 		BMO_op_finish(bm, &op);
 
@@ -1216,6 +1219,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BMOIter oiter;
 	BMOperator op;
 	int i, best_order[4];
+	BMOpSlot *slot_targetmap;
 
 	BLI_assert(split_face->len >= 3);
 
@@ -1229,7 +1233,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	/* Update split face (should only be one new face created
 	 * during extrusion) */
 	split_face = NULL;
-	BMO_ITER (f, &oiter, bm, &op, "faceout", BM_FACE) {
+	BMO_ITER (f, &oiter, op.slots_out, "faces.out", BM_FACE) {
 		BLI_assert(!split_face);
 		split_face = f;
 	}
@@ -1247,7 +1251,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 		BM_elem_flag_enable(longest_edge, BM_ELEM_TAG);
 
 		BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
-		             "subdivide_edges edges=%he numcuts=%i quadcornertype=%i",
+		             "subdivide_edges edges=%he cuts=%i quad_corner_type=%i",
 		             BM_ELEM_TAG, 1, SUBD_STRAIGHT_CUT);
 	}
 	else if (split_face->len > 4) {
@@ -1281,8 +1285,9 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BM_face_kill(bm, split_face);
 	BMO_op_init(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	            "weld_verts");
+	slot_targetmap = BMO_slot_get(op.slots_in, "targetmap");
 	for (i = 0; i < 4; i++) {
-		BMO_slot_map_ptr_insert(bm, &op, "targetmap",
+		BMO_slot_map_ptr_insert(&op, slot_targetmap,
 		                        verts[i], frame->verts[best_order[i]]);
 	}
 	BMO_op_exec(bm, &op);

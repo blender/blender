@@ -27,6 +27,8 @@
  *  \ingroup bli
  */
 
+#ifndef __MATH_BASE_INLINE_C__
+#define __MATH_BASE_INLINE_C__
 
 #include <float.h>
 #include <stdio.h>
@@ -34,9 +36,6 @@
 #include <string.h>
 
 #include "BLI_math.h"
-
-#ifndef __MATH_BASE_INLINE_C__
-#define __MATH_BASE_INLINE_C__
 
 /* A few small defines. Keep'em local! */
 #define SMALL_NUMBER  1.e-8f

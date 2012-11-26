@@ -424,7 +424,12 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		/* setup ray */
 		ray.P = ray_offset(sd.P, (label & LABEL_TRANSMIT)? -sd.Ng: sd.Ng);
 		ray.D = bsdf_omega_in;
-		ray.t = FLT_MAX;
+
+		if(state.bounce == 0)
+			ray.t -= sd.ray_length; /* clipping works through transparent */
+		else
+			ray.t = FLT_MAX;
+
 #ifdef __RAY_DIFFERENTIALS__
 		ray.dP = sd.dP;
 		ray.dD = bsdf_domega_in;
@@ -887,6 +892,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 
 		path_state_next(kg, &state, LABEL_TRANSPARENT);
 		ray.P = ray_offset(sd.P, -sd.Ng);
+		ray.t -= sd.ray_length; /* clipping works through transparent */
 	}
 
 	float3 L_sum = path_radiance_sum(kg, &L);

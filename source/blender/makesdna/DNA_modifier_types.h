@@ -76,6 +76,7 @@ typedef enum ModifierType {
 	eModifierType_Remesh            = 41,
 	eModifierType_Skin              = 42,
 	eModifierType_LaplacianSmooth   = 43,
+	eModifierType_Triangulate		= 44,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1114,11 +1115,23 @@ enum {
 	MOD_SKIN_SMOOTH_SHADING = 1
 };
 
+/* Triangulate modifier */
+
+typedef struct TriangulateModifierData {
+	ModifierData modifier;
+	int flag;
+	int pad;
+} TriangulateModifierData;
+
+enum {
+	MOD_TRIANGULATE_BEAUTY = (1 << 0),
+};
+
 /* Smooth modifier flags */
 #define MOD_LAPLACIANSMOOTH_X (1<<1)
 #define MOD_LAPLACIANSMOOTH_Y (1<<2)
 #define MOD_LAPLACIANSMOOTH_Z (1<<3)
-#define MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION (1<<4)
+#define MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME (1 << 4)
 
 typedef struct LaplacianSmoothModifierData {
 	ModifierData modifier;

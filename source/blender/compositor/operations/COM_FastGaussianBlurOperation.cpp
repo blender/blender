@@ -230,6 +230,7 @@ FastGaussianBlurValueOperation::FastGaussianBlurValueOperation() : NodeOperation
 	this->m_iirgaus = NULL;
 	this->m_inputprogram = NULL;
 	this->m_sigma = 1.0f;
+	this->m_overlay = 0;
 	setComplex(true);
 }
 
@@ -281,7 +282,7 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
 		if (this->m_overlay == FAST_GAUSS_OVERLAY_MIN) {
 			float *src = newBuf->getBuffer();
 			float *dst = copy->getBuffer();
-			for (int i = copy->getWidth() * copy->getHeight() * COM_NUMBER_OF_CHANNELS; i != 0; i--, src++, dst++) {
+			for (int i = copy->getWidth() * copy->getHeight(); i != 0; i--, src += COM_NUMBER_OF_CHANNELS, dst += COM_NUMBER_OF_CHANNELS) {
 				if (*src < *dst) {
 					*dst = *src;
 				}
@@ -290,7 +291,7 @@ void *FastGaussianBlurValueOperation::initializeTileData(rcti *rect)
 		else if (this->m_overlay == FAST_GAUSS_OVERLAY_MAX) {
 			float *src = newBuf->getBuffer();
 			float *dst = copy->getBuffer();
-			for (int i = copy->getWidth() * copy->getHeight() * COM_NUMBER_OF_CHANNELS; i != 0; i--, src++, dst++) {
+			for (int i = copy->getWidth() * copy->getHeight(); i != 0; i--, src += COM_NUMBER_OF_CHANNELS, dst += COM_NUMBER_OF_CHANNELS) {
 				if (*src > *dst) {
 					*dst = *src;
 				}

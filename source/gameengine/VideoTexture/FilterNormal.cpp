@@ -85,7 +85,7 @@ static int setColor (PyFilter *self, PyObject *value, void *closure)
 		return -1;
 	}
 	// set color index
-	getFilter(self)->setColor((unsigned short)(PyLong_AsSsize_t(value)));
+	getFilter(self)->setColor((unsigned short)(PyLong_AsLong(value)));
 	// success
 	return 0;
 }

@@ -52,7 +52,7 @@ KX_ConstraintWrapper::~KX_ConstraintWrapper()
 
 PyObject *KX_ConstraintWrapper::PyGetConstraintId()
 {
-	return PyLong_FromSsize_t(m_constraintId);
+	return PyLong_FromLong(m_constraintId);
 }
 
 

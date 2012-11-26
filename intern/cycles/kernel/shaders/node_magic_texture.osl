@@ -93,12 +93,19 @@ color magic(point p, int n, float distortion)
 }
 
 shader node_magic_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	int Depth = 2,
 	float Distortion = 5.0,
 	float Scale = 5.0,
 	point Vector = P,
 	output color Color = color(0.0, 0.0, 0.0))
 {
-	Color = magic(Vector * Scale, Depth, Distortion);
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
+	Color = magic(p * Scale, Depth, Distortion);
 }
 

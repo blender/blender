@@ -81,13 +81,14 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		if(shader->sample_as_light && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
-		OSLCompiler compiler((void*)this, (void*)ss);
+		OSLCompiler compiler((void*)this, (void*)ss, scene->image_manager);
 		compiler.background = (shader == scene->shaders[scene->default_background]);
 		compiler.compile(og, shader);
 	}
 
 	/* setup shader engine */
 	og->ss = ss;
+	og->ts = ts;
 	og->services = services;
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
 	og->background_state = og->surface_state[background_id & SHADER_MASK];
@@ -118,6 +119,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
 	/* clear shader engine */
 	og->use = false;
 	og->ss = NULL;
+	og->ts = NULL;
 
 	og->surface_state.clear();
 	og->volume_state.clear();
@@ -286,10 +288,11 @@ const char *OSLShaderManager::shader_load_bytecode(const string& hash, const str
 
 /* Graph Compiler */
 
-OSLCompiler::OSLCompiler(void *manager_, void *shadingsys_)
+OSLCompiler::OSLCompiler(void *manager_, void *shadingsys_, ImageManager *image_manager_)
 {
 	manager = manager_;
 	shadingsys = shadingsys_;
+	image_manager = image_manager_;
 	current_type = SHADER_TYPE_SURFACE;
 	current_shader = NULL;
 	background = false;
@@ -333,7 +336,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
 	while((i = sname.find(" ")) != string::npos)
 		sname.replace(i, 1, "");
 	
-	/* if output exists with the same name, add "In" suffix */
+	/* if input exists with the same name, add "Out" suffix */
 	foreach(ShaderInput *input, node->inputs) {
 		if (strcmp(input->name, output->name)==0) {
 			sname += "Out";

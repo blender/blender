@@ -39,6 +39,7 @@ if(WITH_INTERNATIONAL)
 		${BOOST_INCLUDE_DIR}
 	)
 	add_definitions(-DWITH_INTERNATIONAL)
+	add_definitions(${BOOST_DEFINITIONS})
 endif()
 
 blender_add_lib(bf_intern_locale "${SRC}" "${INC}" "${INC_SYS}")

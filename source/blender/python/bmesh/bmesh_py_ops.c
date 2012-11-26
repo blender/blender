@@ -90,6 +90,7 @@ static PyObject *bpy_bmesh_op_repr(BPy_BMeshOpFunc *self)
 
 static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 {
+	PyObject *ret;
 	BPy_BMesh *py_bm;
 	BMesh *bm;
 
@@ -122,7 +123,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 		Py_ssize_t pos = 0;
 		while (PyDict_Next(kw, &pos, &key, &value)) {
 			const char *slot_name = _PyUnicode_AsString(key);
-			BMOpSlot *slot = BMO_slot_get(&bmop, slot_name);
+			BMOpSlot *slot = BMO_slot_get(bmop.slots_in, slot_name);
 
 			if (slot == NULL) {
 				PyErr_Format(PyExc_TypeError,
@@ -146,7 +147,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						return NULL;
 					}
 					else {
-						slot->data.i = param;
+						BMO_SLOT_AS_BOOL(slot) = param;
 					}
 
 					break;
@@ -169,7 +170,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						return NULL;
 					}
 					else {
-						slot->data.i = (int)param;
+						BMO_SLOT_AS_INT(slot) = (int)param;
 					}
 					break;
 				}
@@ -183,7 +184,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						return NULL;
 					}
 					else {
-						slot->data.f = param;
+						BMO_SLOT_AS_FLOAT(slot) = param;
 					}
 					break;
 				}
@@ -210,13 +211,13 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						return NULL;
 					}
 
-					BMO_slot_mat_set(&bmop, slot_name, ((MatrixObject *)value)->matrix, size);
+					BMO_slot_mat_set(&bmop, bmop.slots_in, slot_name, ((MatrixObject *)value)->matrix, size);
 					break;
 				}
 				case BMO_OP_SLOT_VEC:
 				{
 					/* passing slot name here is a bit non-descriptive */
-					if (mathutils_array_parse(slot->data.vec, 3, 3, value, slot_name) == -1) {
+					if (mathutils_array_parse(BMO_SLOT_AS_VECTOR(slot), 3, 3, value, slot_name) == -1) {
 						return NULL;
 					}
 					break;
@@ -243,15 +244,15 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 
 					if (BPy_BMVertSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("verts");
-						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_VERT);
+						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_VERT);
 					}
 					else if (BPy_BMEdgeSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("edges");
-						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_EDGE);
+						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_EDGE);
 					}
 					else if (BPy_BMFaceSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("faces");
-						BMO_slot_buffer_from_all(bm, &bmop, slot_name, BM_FACE);
+						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_FACE);
 					}
 					else if (BPy_BMElemSeq_Check(value)) {
 						BMIter iter;
@@ -266,11 +267,11 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						/* calls bpy_bmelemseq_length() */
 						tot = Py_TYPE(value)->tp_as_sequence->sq_length((PyObject *)self);
 
-						BMO_slot_buffer_alloc(&bmop, slot_name, tot);
+						BMO_slot_buffer_alloc(&bmop, bmop.slots_in, slot_name, tot);
 
 						i = 0;
 						BM_ITER_BPY_BM_SEQ (ele, &iter, ((BPy_BMElemSeq *)value)) {
-							((void **)slot->data.buf)[i] = (void *)ele;
+							slot->data.buf[i] = ele;
 							i++;
 						}
 					}
@@ -288,7 +289,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 							return NULL;
 						}
 
-						BMO_slot_buffer_alloc(&bmop, slot_name, elem_array_len);
+						BMO_slot_buffer_alloc(&bmop, bmop.slots_in, slot_name, elem_array_len);
 						memcpy(slot->data.buf, elem_array, sizeof(void *) * elem_array_len);
 						PyMem_FREE(elem_array);
 					}
@@ -316,13 +317,104 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 	}
 
 	BMO_op_exec(bm, &bmop);
-	BMO_op_finish(bm, &bmop);
 
-	if (bpy_bm_op_as_py_error(bm) == -1) {
-		return NULL;
+	/* from here until the end of the function, no returns, just set 'ret' */
+	if (UNLIKELY(bpy_bm_op_as_py_error(bm) == -1)) {
+		ret = NULL;  /* exception raised above */
+	}
+	else if (bmop.slots_out[0].slot_name == NULL) {
+		ret = (Py_INCREF(Py_None), Py_None);
+	}
+	else {
+		/* build return value */
+		int i;
+		ret = PyDict_New();
+
+		for (i = 0; bmop.slots_out[i].slot_name; i++) {
+			// BMOpDefine *op_def = opdefines[bmop.type];
+			// BMOSlotType *slot_type = op_def->slot_types_out[i];
+			BMOpSlot *slot = &bmop.slots_out[i];
+			PyObject *item = NULL;
+
+			/* keep switch in same order as above */
+			switch (slot->slot_type) {
+				case BMO_OP_SLOT_BOOL:
+					item = PyBool_FromLong((BMO_SLOT_AS_BOOL(slot)));
+					break;
+				case BMO_OP_SLOT_INT:
+					item = PyLong_FromLong(BMO_SLOT_AS_INT(slot));
+					break;
+				case BMO_OP_SLOT_FLT:
+					item = PyFloat_FromDouble((double)BMO_SLOT_AS_FLOAT(slot));
+					break;
+				case BMO_OP_SLOT_MAT:
+					item = Matrix_CreatePyObject((float *)BMO_SLOT_AS_MATRIX(slot), 4, 4, Py_NEW, NULL);
+					break;
+				case BMO_OP_SLOT_VEC:
+					item = Vector_CreatePyObject(BMO_SLOT_AS_VECTOR(slot), slot->len, Py_NEW, NULL);
+					break;
+				case BMO_OP_SLOT_ELEMENT_BUF:
+				{
+					const int size = slot->len;
+					void **buffer = BMO_SLOT_AS_BUFFER(slot);
+					int j;
+
+					item = PyList_New(size);
+					for (j = 0; j < size; j++) {
+						BMHeader *ele = buffer[i];
+						PyList_SET_ITEM(item, j, ele ? BPy_BMElem_CreatePyObject(bm, ele) : (Py_INCREF(Py_None), Py_None));
+					}
+					break;
+				}
+				case BMO_OP_SLOT_MAPPING:
+				{
+					GHash *slot_hash = BMO_SLOT_AS_GHASH(slot);
+					GHashIterator *hash_iter;
+					item = PyDict_New();
+
+					for (hash_iter = BLI_ghashIterator_new(slot_hash);
+					     !BLI_ghashIterator_isDone(hash_iter);
+					     BLI_ghashIterator_step(hash_iter) )
+					{
+						BMHeader  *ele_key = BLI_ghashIterator_getKey(hash_iter);
+						BMHeader **ele_val = BLI_ghashIterator_getValue(hash_iter);
+
+						PyObject *py_key =  ele_key ? BPy_BMElem_CreatePyObject(bm,  ele_key) : (Py_INCREF(Py_None), Py_None);
+						PyObject *py_val = *ele_val ? BPy_BMElem_CreatePyObject(bm, *ele_val) : (Py_INCREF(Py_None), Py_None);
+
+						PyDict_SetItem(ret, py_key, py_val);
+						Py_DECREF(py_key);
+						Py_DECREF(py_val);
+					}
+					BLI_ghashIterator_free(hash_iter);
+					break;
+				}
+			}
+			BLI_assert(item != NULL);
+			if (item == NULL) {
+				item = (Py_INCREF(Py_None), Py_None);
+			}
+
+#if 1
+			/* temp code, strip off '.out' while we keep this convention */
+			{
+				char slot_name_strip[MAX_SLOTNAME];
+				char *ch = strchr(slot->slot_name, '.');  /* can't fail! */
+				int tot = ch - slot->slot_name;
+				BLI_assert(ch != NULL);
+				memcpy(slot_name_strip, slot->slot_name, tot);
+				slot_name_strip[tot] = '\0';
+				PyDict_SetItemString(ret, slot_name_strip, item);
+			}
+#else
+			PyDict_SetItemString(ret, slot->slot_name, item);
+#endif
+			Py_DECREF(item);
+		}
 	}
 
-	Py_RETURN_NONE;
+	BMO_op_finish(bm, &bmop);
+	return ret;
 }
 
 
@@ -413,17 +505,17 @@ static PyObject *bpy_bmesh_fmod_getattro(PyObject *UNUSED(self), PyObject *pynam
 {
 	const unsigned int tot = bmesh_total_ops;
 	unsigned int i;
-	const char *name = _PyUnicode_AsString(pyname);
+	const char *opname = _PyUnicode_AsString(pyname);
 
 	for (i = 0; i < tot; i++) {
-		if (strcmp(opdefines[i]->name, name) == 0) {
-			return bpy_bmesh_op_CreatePyObject(opdefines[i]->name);
+		if (strcmp(opdefines[i]->opname, opname) == 0) {
+			return bpy_bmesh_op_CreatePyObject(opdefines[i]->opname);
 		}
 	}
 
 	PyErr_Format(PyExc_AttributeError,
 	             "BMeshOpsModule: operator \"%.200s\" doesn't exist",
-	             name);
+	             opname);
 	return NULL;
 }
 
@@ -436,7 +528,7 @@ static PyObject *bpy_bmesh_fmod_dir(PyObject *UNUSED(self))
 	ret = PyList_New(bmesh_total_ops);
 
 	for (i = 0; i < tot; i++) {
-		PyList_SET_ITEM(ret, i, PyUnicode_FromString(opdefines[i]->name));
+		PyList_SET_ITEM(ret, i, PyUnicode_FromString(opdefines[i]->opname));
 	}
 
 	return ret;

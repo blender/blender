@@ -1028,17 +1028,14 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 static void movieclip_main_area_set_view2d(const bContext *C, ARegion *ar)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip_get_clip(sc);
-	float x1, y1, w, h;
+	float x1, y1, w, h, aspx, aspy;
 	int width, height, winx, winy;
 
 	ED_space_clip_get_size(sc, &width, &height);
+	ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-	w = width;
-	h = height;
-
-	if (clip)
-		h *= clip->aspy / clip->aspx / clip->tracking.camera.pixel_aspect;
+	w = width * aspx;
+	h = height * aspy;
 
 	winx = BLI_rcti_size_x(&ar->winrct) + 1;
 	winy = BLI_rcti_size_y(&ar->winrct) + 1;

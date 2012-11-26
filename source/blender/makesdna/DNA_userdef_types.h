@@ -601,7 +601,7 @@ typedef enum eOpenGL_RenderingOptions {
 	                                     /* backwards compatibilty in do_versions! */
 	USER_DISABLE_MIPMAP		= (1 << 2),
 	USER_DISABLE_VBO		= (1 << 3),
-	USER_DISABLE_AA			= (1 << 4),
+	/* USER_DISABLE_AA			= (1 << 4), */ /* DEPRECATED */
 } eOpenGL_RenderingOptions;
 
 /* wm draw method */

@@ -78,6 +78,7 @@ EnumPropertyItem modifier_type_items[] = {
 	{eModifierType_Skin, "SKIN", ICON_MOD_SKIN, "Skin", ""},
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
+	{eModifierType_Triangulate, "TRIANGULATE", ICON_MOD_TRIANGULATE, "Triangulate", ""},
 	{0, "", 0, N_("Deform"), ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
@@ -213,6 +214,8 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_SkinModifier;
 		case eModifierType_LaplacianSmooth:
 			return &RNA_LaplacianSmoothModifier;
+		case eModifierType_Triangulate:
+			return &RNA_TriangulateModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -1814,7 +1817,7 @@ static void rna_def_modifier_laplaciansmooth(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_volume_preserve", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME);
 	RNA_def_property_ui_text(prop, "Preserve Volume", "Apply volume preservation after smooth");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -3361,6 +3364,22 @@ static void rna_def_modifier_skin(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
+static void rna_def_modifier_triangulate(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "TriangulateModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Triangulate Modifier", "Triangulate Mesh");
+	RNA_def_struct_sdna(srna, "TriangulateModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_TRIANGULATE);
+
+	prop = RNA_def_property(srna, "use_beauty", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_TRIANGULATE_BEAUTY);
+	RNA_def_property_ui_text(prop, "Beauty Subdivide", "Subdivide across shortest diagonal");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3468,6 +3487,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_remesh(brna);
 	rna_def_modifier_skin(brna);
 	rna_def_modifier_laplaciansmooth(brna);
+	rna_def_modifier_triangulate(brna);
 }
 
 #endif

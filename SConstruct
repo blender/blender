@@ -306,11 +306,12 @@ if env['OURPLATFORM']=='darwin':
         else:
             env.Append(LINKFLAGS=['-Xlinker','-weak_framework','-Xlinker','Jackmp'])
 
-    if env['WITH_BF_CYCLES_OSL'] == 1:
-        # this is kinda hardcoded atm due not understood path issues, also look that we need 2 variants of passing the oslexec with the force_load option, why ?
-        env.Append(LINKFLAGS=['-L../lib/darwin-9.x.universal/osl/lib','-loslcomp','-force_load ../lib/darwin-9.x.universal/osl/lib/liboslexec.a','-loslquery'])
-        env.Append(BF_PROGRAM_LINKFLAGS=['-Xlinker','-force_load','-Xlinker','../lib/darwin-9.x.universal/osl/lib/liboslexec.a'])
-			
+    if env['WITH_BF_CYCLES_OSL'] == 1:	
+        OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
+        # we need 2 variants of passing the oslexec with the force_load option, string and list type atm
+        env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-force_load '+ OSX_OSL_LIBPATH +'/liboslexec.a','-loslquery'])
+        env.Append(BF_PROGRAM_LINKFLAGS=['-Xlinker','-force_load','-Xlinker',OSX_OSL_LIBPATH +'/liboslexec.a'])
+
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
                 env['CCFLAGS'].append('/openmp')

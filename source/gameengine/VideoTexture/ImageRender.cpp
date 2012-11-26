@@ -360,10 +360,11 @@ static int setBackground (PyImage *self, PyObject *value, void *closure)
 		return -1;
 	}
 	// set background color
-	getImageRender(self)->setBackground((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 3))));
+	getImageRender(self)->setBackground(
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 2))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 3))));
 	// success
 	return 0;
 }

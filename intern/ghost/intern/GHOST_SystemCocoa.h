@@ -282,9 +282,6 @@ protected:
 	/** Raised window is not yet known by the window manager, so delay application become active event handling */
 	bool m_needDelayedApplicationBecomeActiveEventProcessing;
 	
-	/** Mouse buttons state */
-	GHOST_TUns32 m_pressedMouseButtons;
-	
 	/** State of the modifiers. */
 	GHOST_TUns32 m_modifierMask;
 

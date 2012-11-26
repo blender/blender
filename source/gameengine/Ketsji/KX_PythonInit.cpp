@@ -193,10 +193,10 @@ static PyObject *gp_OrigPythonSysPath= NULL;
 static PyObject *gp_OrigPythonSysModules= NULL;
 
 /* Macro for building the keyboard translation */
-//#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyLong_FromSsize_t(SCA_IInputDevice::KX_##name))
-#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, item=PyLong_FromSsize_t(name)); Py_DECREF(item)
+//#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyLong_FromLong(SCA_IInputDevice::KX_##name))
+#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, item=PyLong_FromLong(name)); Py_DECREF(item)
 /* For the defines for types from logic bricks, we do stuff explicitly... */
-#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyLong_FromSsize_t(name2)); Py_DECREF(item)
+#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyLong_FromLong(name2)); Py_DECREF(item)
 
 
 // temporarily python stuff, will be put in another place later !
@@ -429,7 +429,7 @@ static PyObject *gPySetExitKey(PyObject *, PyObject *args)
 
 static PyObject *gPyGetExitKey(PyObject *)
 {
-	return PyLong_FromSsize_t(KX_KetsjiEngine::GetExitKey());
+	return PyLong_FromLong(KX_KetsjiEngine::GetExitKey());
 }
 
 static PyObject *gPySetMaxLogicFrame(PyObject *, PyObject *args)
@@ -444,7 +444,7 @@ static PyObject *gPySetMaxLogicFrame(PyObject *, PyObject *args)
 
 static PyObject *gPyGetMaxLogicFrame(PyObject *)
 {
-	return PyLong_FromSsize_t(KX_KetsjiEngine::GetMaxLogicFrame());
+	return PyLong_FromLong(KX_KetsjiEngine::GetMaxLogicFrame());
 }
 
 static PyObject *gPySetMaxPhysicsFrame(PyObject *, PyObject *args)
@@ -459,7 +459,7 @@ static PyObject *gPySetMaxPhysicsFrame(PyObject *, PyObject *args)
 
 static PyObject *gPyGetMaxPhysicsFrame(PyObject *)
 {
-	return PyLong_FromSsize_t(KX_KetsjiEngine::GetMaxPhysicsFrame());
+	return PyLong_FromLong(KX_KetsjiEngine::GetMaxPhysicsFrame());
 }
 
 static PyObject *gPySetPhysicsTicRate(PyObject *, PyObject *args)
@@ -862,14 +862,14 @@ static struct PyMethodDef game_methods[] = {
 
 static PyObject *gPyGetWindowHeight(PyObject *, PyObject *args)
 {
-	return PyLong_FromSsize_t((gp_Canvas ? gp_Canvas->GetHeight() : 0));
+	return PyLong_FromLong((gp_Canvas ? gp_Canvas->GetHeight() : 0));
 }
 
 
 
 static PyObject *gPyGetWindowWidth(PyObject *, PyObject *args)
 {
-	return PyLong_FromSsize_t((gp_Canvas ? gp_Canvas->GetWidth() : 0));
+	return PyLong_FromLong((gp_Canvas ? gp_Canvas->GetWidth() : 0));
 }
 
 
@@ -1203,7 +1203,7 @@ static PyObject *gPyGetGLSLMaterialSetting(PyObject *,
 	}
 
 	enabled = ((gs->glslflag & flag) != 0);
-	return PyLong_FromSsize_t(enabled);
+	return PyLong_FromLong(enabled);
 }
 
 #define KX_TEXFACE_MATERIAL				0
@@ -1246,7 +1246,7 @@ static PyObject *gPyGetMaterialType(PyObject *)
 	else
 		flag = KX_TEXFACE_MATERIAL;
 	
-	return PyLong_FromSsize_t(flag);
+	return PyLong_FromLong(flag);
 }
 
 static PyObject *gPySetAnisotropicFiltering(PyObject *, PyObject *args)
@@ -1688,6 +1688,7 @@ PyObject *initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_DISABLE, ACT_ARM_DISABLE);
 	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_SETTARGET, ACT_ARM_SETTARGET);
 	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_SETWEIGHT, ACT_ARM_SETWEIGHT);
+	KX_MACRO_addTypesToDict(d, KX_ACT_ARMATURE_SETINFLUENCE, ACT_ARM_SETINFLUENCE);
 
 	/* BL_Armature Channel rotation_mode */
 	KX_MACRO_addTypesToDict(d, ROT_MODE_QUAT, ROT_MODE_QUAT);

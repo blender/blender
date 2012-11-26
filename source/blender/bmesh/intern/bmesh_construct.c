@@ -99,7 +99,7 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 
 	if (nodouble) {
 		/* check if face exists or overlaps */
-		is_overlap = BM_face_exists(bm, verts, len, &f);
+		is_overlap = BM_face_exists(verts, len, &f);
 	}
 
 	/* make new face */

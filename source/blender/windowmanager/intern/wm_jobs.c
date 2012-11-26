@@ -405,9 +405,11 @@ void WM_jobs_kill_all(wmWindowManager *wm)
 /* wait until every job ended, except for one owner (used in undo to keep screen job alive) */
 void WM_jobs_kill_all_except(wmWindowManager *wm, void *owner)
 {
-	wmJob *wm_job;
+	wmJob *wm_job, *next_job;
 	
-	for (wm_job = wm->jobs.first; wm_job; wm_job = wm_job->next) {
+	for (wm_job = wm->jobs.first; wm_job; wm_job = next_job) {
+		next_job = wm_job->next;
+
 		if (wm_job->owner != owner)
 			wm_jobs_kill_job(wm, wm_job);
 	}

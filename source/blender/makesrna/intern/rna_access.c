@@ -2551,7 +2551,10 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 		pprop = (PointerPropertyRNA *)prop;
 
 		/* for groups, data is idprop itself */
-		return rna_pointer_inherit_refine(ptr, pprop->type, idprop);
+		if (pprop->typef)
+			return rna_pointer_inherit_refine(ptr, pprop->typef(ptr), idprop);
+		else
+			return rna_pointer_inherit_refine(ptr, pprop->type, idprop);
 	}
 	else if (pprop->get) {
 		return pprop->get(ptr);
@@ -4147,11 +4150,14 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 		path = BLI_sprintfN(is_rna ? "%s.%s" : "%s[\"%s\"]", ptrpath, propname);
 		MEM_freeN(ptrpath);
 	}
-	else {
+	else if (RNA_struct_is_ID(ptr->type)) {
 		if (is_rna)
 			path = BLI_strdup(propname);
 		else
 			path = BLI_sprintfN("[\"%s\"]", propname);
+	}
+	else {
+		path = NULL;
 	}
 
 	return path;
@@ -5718,7 +5724,7 @@ int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, i
 
 	/* get the length of the array to work with */
 	len = RNA_property_array_length(ptr, prop);
-	fromlen = RNA_property_array_length(ptr, prop);
+	fromlen = RNA_property_array_length(fromptr, prop);
 
 	if (len != fromlen)
 		return 0;
@@ -5832,3 +5838,146 @@ void _RNA_warning(const char *format, ...)
 	}
 #endif
 }
+
+int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
+{
+	/* get the length of the array to work with */
+	int len = RNA_property_array_length(a, prop);
+	int fromlen = RNA_property_array_length(b, prop);
+
+	if (len != fromlen)
+		return 0;
+
+	/* get and set the default values as appropriate for the various types */
+	switch (RNA_property_type(prop)) {
+		case PROP_BOOLEAN: {
+			if (len) {
+				int fixed_a[16], fixed_b[16];
+				int *array_a, *array_b;
+				int equals;
+
+				array_a = (len > 16)? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_a;
+				array_b = (len > 16)? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_b;
+
+				RNA_property_boolean_get_array(a, prop, array_a);
+				RNA_property_boolean_get_array(b, prop, array_b);
+
+				equals = memcmp(array_a, array_b, sizeof(int) * len) == 0;
+
+				if (array_a != fixed_a) MEM_freeN(array_a);
+				if (array_b != fixed_b) MEM_freeN(array_b);
+
+				return equals;
+			}
+			else {
+				int value = RNA_property_boolean_get(a, prop);
+				return value == RNA_property_boolean_get(b, prop);
+			}
+		}
+
+		case PROP_INT: {
+			if (len) {
+				int fixed_a[16], fixed_b[16];
+				int *array_a, *array_b;
+				int equals;
+
+				array_a = (len > 16)? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_a;
+				array_b = (len > 16)? MEM_callocN(sizeof(int) * len, "RNA equals"): fixed_b;
+
+				RNA_property_int_get_array(a, prop, array_a);
+				RNA_property_int_get_array(b, prop, array_b);
+
+				equals = memcmp(array_a, array_b, sizeof(int) * len) == 0;
+
+				if (array_a != fixed_a) MEM_freeN(array_a);
+				if (array_b != fixed_b) MEM_freeN(array_b);
+
+				return equals;
+			}
+			else {
+				int value = RNA_property_int_get(a, prop);
+				return value == RNA_property_int_get(b, prop);
+			}
+		}
+
+		case PROP_FLOAT: {
+			if (len) {
+				float fixed_a[16], fixed_b[16];
+				float *array_a, *array_b;
+				int equals;
+
+				array_a = (len > 16)? MEM_callocN(sizeof(float) * len, "RNA equals"): fixed_a;
+				array_b = (len > 16)? MEM_callocN(sizeof(float) * len, "RNA equals"): fixed_b;
+
+				RNA_property_float_get_array(a, prop, array_a);
+				RNA_property_float_get_array(b, prop, array_b);
+
+				equals = memcmp(array_a, array_b, sizeof(float) * len) == 0;
+
+				if (array_a != fixed_a) MEM_freeN(array_a);
+				if (array_b != fixed_b) MEM_freeN(array_b);
+
+				return equals;
+			}
+			else {
+				float value = RNA_property_float_get(a, prop);
+				return value == RNA_property_float_get(b, prop);
+			}
+		}
+
+		case PROP_ENUM: {
+			int value = RNA_property_enum_get(a, prop);
+			return value == RNA_property_enum_get(b, prop);
+		}
+
+		case PROP_STRING: {
+			char fixed_a[128], fixed_b[128];
+			int len_a, len_b;
+			char *value_a = RNA_property_string_get_alloc(a, prop, fixed_a, sizeof(fixed_a), &len_a);
+			char *value_b = RNA_property_string_get_alloc(b, prop, fixed_b, sizeof(fixed_b), &len_b);
+			int equals = strcmp(value_a, value_b) == 0;
+
+			if (value_a != fixed_a) MEM_freeN(value_a);
+			if (value_b != fixed_b) MEM_freeN(value_b);
+
+			return equals;
+		}
+
+		default:
+			break;
+	}
+
+	return 1;
+}
+
+int RNA_struct_equals(PointerRNA *a, PointerRNA *b)
+{
+	CollectionPropertyIterator iter;
+//	CollectionPropertyRNA *citerprop;  /* UNUSED */
+	PropertyRNA *iterprop;
+	int equals = 1;
+
+	if (a == NULL && b == NULL)
+		return 1;
+	else if (a == NULL || b == NULL)
+		return 0;
+	else if (a->type != b->type)
+		return 0;
+
+	iterprop = RNA_struct_iterator_property(a->type);
+//	citerprop = (CollectionPropertyRNA *)rna_ensure_property(iterprop);  /* UNUSED */
+
+	RNA_property_collection_begin(a, iterprop, &iter);
+	for (; iter.valid; RNA_property_collection_next(&iter)) {
+		PropertyRNA *prop = iter.ptr.data;
+
+		if (!RNA_property_equals(a, b, prop)) {
+			equals = 0;
+			break;
+		}
+	}
+	RNA_property_collection_end(&iter);
+
+	return equals;
+}
+

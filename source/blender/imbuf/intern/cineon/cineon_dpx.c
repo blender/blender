@@ -139,9 +139,19 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 	if (ibuf->rect_float != 0 && bitspersample != 8) {
 		/* don't use the float buffer to save 8 bpp picture to prevent color banding
 		   (there's no dithering algorithm behing the logImageSetDataRGBA function) */
-		IMB_flipy(ibuf);
-		rvalue = (logImageSetDataRGBA(logImage, ibuf->rect_float, 1) == 0);
-		IMB_flipy(ibuf);
+
+		fbuf = (float *)MEM_mallocN(ibuf->x * ibuf->y * 4 * sizeof(float), "fbuf in imb_save_dpx_cineon");
+
+		for (y = 0; y < ibuf->y; y++) {
+			float *dst_ptr = fbuf + 4 * ((ibuf->y - y - 1) * ibuf->x);
+			float *src_ptr = ibuf->rect_float + 4 * (y * ibuf->x);
+
+			memcpy(dst_ptr, src_ptr, 4 * ibuf->x * sizeof(float));
+		}
+
+		rvalue = (logImageSetDataRGBA(logImage, fbuf, 1) == 0);
+
+		MEM_freeN(fbuf);
 	}
 	else {
 		if (ibuf->rect == 0)

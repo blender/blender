@@ -2984,7 +2984,6 @@ static void direct_link_text(FileData *fd, Text *text)
 #endif
 	
 	link_list(fd, &text->lines);
-	link_list(fd, &text->markers);
 	
 	text->curl = newdataadr(fd, text->curl);
 	text->sell = newdataadr(fd, text->sell);
@@ -8502,11 +8501,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			for (scene = main->scene.first; scene; scene = scene->id.next) {
 				if (scene->r.tilex == 0 || scene->r.tiley == 1) {
-					/* scene could be set for panoramic rendering, so clamp with the
-					 * lowest possible tile size value
-					 */
-					scene->r.tilex = max_ii(scene->r.xsch * scene->r.size / scene->r.xparts / 100, 8);
-					scene->r.tiley = max_ii(scene->r.ysch * scene->r.size / scene->r.yparts / 100, 8);
+					if (scene->r.xparts && scene->r.yparts) {
+						/* scene could be set for panoramic rendering, so clamp with the
+						 * lowest possible tile size value
+						 */
+						scene->r.tilex = max_ii(scene->r.xsch * scene->r.size / scene->r.xparts / 100, 8);
+						scene->r.tiley = max_ii(scene->r.ysch * scene->r.size / scene->r.yparts / 100, 8);
+					}
+					else {
+						/* happens when mixing using current trunk and previous release */
+						scene->r.tilex = scene->r.tiley = 64;
+					}
 				}
 			}
 		}
@@ -8556,10 +8561,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		Object *ob;
 		for (ob = main->object.first; ob; ob = ob->id.next) {
-			if (ob->step_height == 0.0) {
-				ob->step_height = 0.150;
-				ob->jump_speed = 10.0;
-				ob->fall_speed = 55.0;
+			if (ob->step_height == 0.0f) {
+				ob->step_height = 0.15f;
+				ob->jump_speed = 10.0f;
+				ob->fall_speed = 55.0f;
 			}
 		}
 	}

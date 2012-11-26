@@ -1843,8 +1843,8 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").direction = 'CW'
-        layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").direction = 'CCW'
+        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").use_ccw = False
+        layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").use_ccw = True
 
         layout.separator()
 
@@ -1898,13 +1898,13 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").direction = 'CW'
+        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").use_ccw = False
 
         layout.separator()
 
-        layout.operator_menu_enum("mesh.uvs_rotate", "direction")
+        layout.operator("mesh.uvs_rotate")
         layout.operator("mesh.uvs_reverse")
-        layout.operator_menu_enum("mesh.colors_rotate", "direction")
+        layout.operator("mesh.colors_rotate")
         layout.operator("mesh.colors_reverse")
 
 

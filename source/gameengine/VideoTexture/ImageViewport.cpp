@@ -89,7 +89,7 @@ void ImageViewport::setWhole (bool whole)
 	setPosition();
 }
 
-void ImageViewport::setCaptureSize (short * size)
+void ImageViewport::setCaptureSize (short size[2])
 {
 	m_whole = false;
 	if (size == NULL) 
@@ -109,7 +109,7 @@ void ImageViewport::setCaptureSize (short * size)
 }
 
 // set position of capture rectangle
-void ImageViewport::setPosition (GLint * pos)
+void ImageViewport::setPosition (GLint pos[2])
 {
 	// if new position is not provided, use existing position
 	if (pos == NULL) pos = m_position;
@@ -258,25 +258,30 @@ int ImageViewport_setAlpha (PyImage *self, PyObject *value, void *closure)
 // get position
 static PyObject *ImageViewport_getPosition (PyImage *self, void *closure)
 {
-	return Py_BuildValue("(ii)", getImageViewport(self)->getPosition()[0],
-		getImageViewport(self)->getPosition()[1]);
+	GLint *pos = getImageViewport(self)->getPosition();
+	PyObject *ret = PyTuple_New(2);
+	PyTuple_SET_ITEM(ret, 0, PyLong_FromLong(pos[0]));
+	PyTuple_SET_ITEM(ret, 1, PyLong_FromLong(pos[1]));
+	return ret;
 }
 
 // set position
 static int ImageViewport_setPosition (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
+	if (value == NULL ||
+	    !(PyTuple_Check(value) || PyList_Check(value)) ||
+	    PySequence_Fast_GET_SIZE(value) != 2 ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0)) ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 ints");
 		return -1;
 	}
 	// set position
-	GLint pos [] = {
-		GLint(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
-			GLint(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1)))
+	GLint pos[2] = {
+	    GLint(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+	    GLint(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1)))
 	};
 	getImageViewport(self)->setPosition(pos);
 	// success
@@ -286,25 +291,30 @@ static int ImageViewport_setPosition (PyImage *self, PyObject *value, void *clos
 // get capture size
 PyObject *ImageViewport_getCaptureSize (PyImage *self, void *closure)
 {
-	return Py_BuildValue("(ii)", getImageViewport(self)->getCaptureSize()[0],
-		getImageViewport(self)->getCaptureSize()[1]);
+	short *size = getImageViewport(self)->getCaptureSize();
+	PyObject *ret = PyTuple_New(2);
+	PyTuple_SET_ITEM(ret, 0, PyLong_FromLong(size[0]));
+	PyTuple_SET_ITEM(ret, 1, PyLong_FromLong(size[1]));
+	return ret;
 }
 
 // set capture size
 int ImageViewport_setCaptureSize (PyImage *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
+	if (value == NULL ||
+	    !(PyTuple_Check(value) || PyList_Check(value)) ||
+	    PySequence_Fast_GET_SIZE(value) != 2 ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0)) ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 ints");
 		return -1;
 	}
 	// set capture size
-	short size [] = {
-		short(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
-			short(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1)))
+	short size[2] = {
+	    short(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+	    short(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1)))
 	};
 	try
 	{

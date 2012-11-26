@@ -665,15 +665,60 @@ class TransformsToDeltasAnim(Operator):
         return (obs is not None)
 
     def execute(self, context):
+        # map from standard transform paths to "new" transform paths
+        STANDARD_TO_DELTA_PATHS = {
+            "location"             : "delta_location",
+            "rotation_euler"       : "delta_rotation_euler",
+            "rotation_quaternion"  : "delta_rotation_quaternion",
+            #"rotation_axis_angle" : "delta_rotation_axis_angle",
+            "scale"                : "delta_scale"
+        }
+        DELTA_PATHS = STANDARD_TO_DELTA_PATHS.values()
+        
+        # try to apply on each selected object
+        success = False
         for obj in context.selected_editable_objects:
-            # get animation data
             adt = obj.animation_data
             if (adt is None) or (adt.action is None):
                 self.report({'WARNING'},
                             "No animation data to convert on object: %r" %
                             obj.name)
                 continue
-
+            
+            # first pass over F-Curves: ensure that we don't have conflicting
+            # transforms already (e.g. if this was applied already) [#29110]
+            existingFCurves = {}
+            for fcu in adt.action.fcurves:
+                # get "delta" path - i.e. the final paths which may clash
+                path = fcu.data_path
+                if path in STANDARD_TO_DELTA_PATHS:
+                    # to be converted - conflicts may exist...
+                    dpath = STANDARD_TO_DELTA_PATHS[path]
+                elif path in DELTA_PATHS:
+                    # already delta - check for conflicts...
+                    dpath = path
+                else:
+                    # non-transform - ignore
+                    continue
+                    
+                # a delta path like this for the same index shouldn't
+                # exist already, otherwise we've got a conflict
+                if dpath in existingFCurves:
+                    # ensure that this index hasn't occurred before
+                    if fcu.array_index in existingFCurves[dpath]:
+                        # conflict
+                        self.report({'ERROR'},
+                            "Object '%r' already has '%r' F-Curve(s). Remove these before trying again" %
+                            (obj.name, dpath))
+                        return {'CANCELLED'}
+                    else:
+                        # no conflict here
+                        existingFCurves[dpath] += [fcu.array_index]
+                else:
+                    # no conflict yet
+                    existingFCurves[dpath] = [fcu.array_index]
+                
+            
             # if F-Curve uses standard transform path
             # just append "delta_" to this path
             for fcu in adt.action.fcurves:

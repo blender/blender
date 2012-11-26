@@ -40,6 +40,8 @@ float checker(point p)
 }
 
 shader node_checker_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	float Scale = 5.0,
 	point Vector = P,
 	color Color1 = color(0.8, 0.8, 0.8),
@@ -47,7 +49,12 @@ shader node_checker_texture(
 	output float Fac = 0.0,
 	output color Color = color(0.0, 0.0, 0.0))
 {
-	Fac = checker(Vector * Scale);
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
+	Fac = checker(p * Scale);
 	if (Fac == 1.0) {
 		Color = Color1;
 	}

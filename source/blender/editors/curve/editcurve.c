@@ -1069,7 +1069,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 	Nurb *nu = editnurb->nurbs.first;
 	CVKeyIndex *keyIndex;
 	char rna_path[64], orig_rna_path[64];
-	AnimData *ad = BKE_animdata_from_id(&cu->id);
+	AnimData *adt = BKE_animdata_from_id(&cu->id);
 	ListBase curves = {NULL, NULL};
 	FCurve *fcu, *next;
 
@@ -1089,14 +1089,14 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 						char handle_path[64], orig_handle_path[64];
 						BLI_snprintf(orig_handle_path, sizeof(orig_rna_path), "%s.handle_left", orig_rna_path);
 						BLI_snprintf(handle_path, sizeof(rna_path), "%s.handle_right", rna_path);
-						fcurve_path_rename(ad, orig_handle_path, handle_path, orig_curves, &curves);
+						fcurve_path_rename(adt, orig_handle_path, handle_path, orig_curves, &curves);
 
 						BLI_snprintf(orig_handle_path, sizeof(orig_rna_path), "%s.handle_right", orig_rna_path);
 						BLI_snprintf(handle_path, sizeof(rna_path), "%s.handle_left", rna_path);
-						fcurve_path_rename(ad, orig_handle_path, handle_path, orig_curves, &curves);
+						fcurve_path_rename(adt, orig_handle_path, handle_path, orig_curves, &curves);
 					}
 
-					fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
+					fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
 
 					keyIndex->nu_index = nu_index;
 					keyIndex->pt_index = pt_index;
@@ -1116,7 +1116,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 				if (keyIndex) {
 					BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d].points[%d]", nu_index, pt_index);
 					BLI_snprintf(orig_rna_path, sizeof(orig_rna_path), "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
-					fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
+					fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
 
 					keyIndex->nu_index = nu_index;
 					keyIndex->pt_index = pt_index;
@@ -1140,7 +1140,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 			char *ch = strchr(fcu->rna_path, '.');
 
 			if (ch && (!strncmp(ch, ".bezier_points", 14) || !strncmp(ch, ".points", 7)))
-				fcurve_remove(ad, orig_curves, fcu);
+				fcurve_remove(adt, orig_curves, fcu);
 		}
 	}
 
@@ -1156,7 +1156,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 		if (keyIndex) {
 			BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d]", nu_index);
 			BLI_snprintf(orig_rna_path, sizeof(orig_rna_path), "splines[%d]", keyIndex->nu_index);
-			fcurve_path_rename(ad, orig_rna_path, rna_path, orig_curves, &curves);
+			fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
 		}
 
 		nu_index++;
@@ -1168,7 +1168,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 	for (fcu = orig_curves->first; fcu; fcu = next) {
 		next = fcu->next;
 
-		if (!strncmp(fcu->rna_path, "splines", 7)) fcurve_remove(ad, orig_curves, fcu);
+		if (!strncmp(fcu->rna_path, "splines", 7)) fcurve_remove(adt, orig_curves, fcu);
 		else BLI_addtail(&curves, fcu);
 	}
 
@@ -1178,14 +1178,14 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 /* return 0 if animation data wasn't changed, 1 otherwise */
 int ED_curve_updateAnimPaths(Curve *cu)
 {
-	AnimData *ad = BKE_animdata_from_id(&cu->id);
+	AnimData *adt = BKE_animdata_from_id(&cu->id);
 
 	if (!curve_is_animated(cu)) return 0;
 
-	if (ad->action)
-		curve_rename_fcurves(cu, &ad->action->curves);
+	if (adt->action)
+		curve_rename_fcurves(cu, &adt->action->curves);
 
-	curve_rename_fcurves(cu, &ad->drivers);
+	curve_rename_fcurves(cu, &adt->drivers);
 
 	return 1;
 }

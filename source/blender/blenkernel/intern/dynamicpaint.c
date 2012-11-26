@@ -86,11 +86,13 @@
 #include "RE_shader_ext.h"
 
 #ifdef _OPENMP
-#include <omp.h>
+#  include <omp.h>
 #endif
 
 /* could enable at some point but for now there are far too many conversions */
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wdouble-promotion"
+#endif
 
 /* precalculated gaussian factors for 5x super sampling	*/
 static float gaussianFactors[5] = {0.996849f,

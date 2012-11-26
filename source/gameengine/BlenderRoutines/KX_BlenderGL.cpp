@@ -95,35 +95,29 @@ static void DisableForText()
 {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); /* needed for texture fonts otherwise they render as wireframe */
 
-	if (glIsEnabled(GL_BLEND)) glDisable(GL_BLEND);
-	if (glIsEnabled(GL_ALPHA_TEST)) glDisable(GL_ALPHA_TEST);
+	glDisable(GL_BLEND);
+	glDisable(GL_ALPHA_TEST);
 
-	if (glIsEnabled(GL_LIGHTING)) {
-		glDisable(GL_LIGHTING);
-		glDisable(GL_COLOR_MATERIAL);
-	}
+	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
 
 	if (GLEW_ARB_multitexture) {
 		for (int i=0; i<MAXTEX; i++) {
 			glActiveTextureARB(GL_TEXTURE0_ARB+i);
 
 			if (GLEW_ARB_texture_cube_map)
-				if (glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
-					glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
 
-			if (glIsEnabled(GL_TEXTURE_2D))
-				glDisable(GL_TEXTURE_2D);
+			glDisable(GL_TEXTURE_2D);
 		}
 
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 	}
 	else {
 		if (GLEW_ARB_texture_cube_map)
-			if (glIsEnabled(GL_TEXTURE_CUBE_MAP_ARB))
-				glDisable(GL_TEXTURE_CUBE_MAP_ARB);
+			glDisable(GL_TEXTURE_CUBE_MAP_ARB);
 
-		if (glIsEnabled(GL_TEXTURE_2D))
-			glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_2D);
 	}
 }
 

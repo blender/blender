@@ -507,7 +507,7 @@ static void py_to_float(PyObject *py, char *data)
 
 static void py_to_int(PyObject *py, char *data)
 {
-	*(int *)data = (int)PyLong_AsSsize_t(py);
+	*(int *)data = (int)PyLong_AsLong(py);
 }
 
 static void py_to_bool(PyObject *py, char *data)
@@ -609,7 +609,7 @@ PyObject *pyrna_array_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 			item = PyBool_FromLong(RNA_property_boolean_get_index(ptr, prop, index));
 			break;
 		case PROP_INT:
-			item = PyLong_FromSsize_t(RNA_property_int_get_index(ptr, prop, index));
+			item = PyLong_FromLong(RNA_property_int_get_index(ptr, prop, index));
 			break;
 		default:
 			PyErr_SetString(PyExc_TypeError, "not an array type");
@@ -766,7 +766,7 @@ int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value)
 		case PROP_BOOLEAN:
 		case PROP_INT:
 		{
-			int value_i = PyLong_AsSsize_t(value);
+			int value_i = PyLong_AsLong(value);
 			if (value_i == -1 && PyErr_Occurred()) {
 				PyErr_Clear();
 				return 0;

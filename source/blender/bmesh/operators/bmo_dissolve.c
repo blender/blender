@@ -85,7 +85,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 	BMWalker regwalker;
 	int i;
 
-	int use_verts = BMO_slot_bool_get(op, "use_verts");
+	int use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
 
 	if (use_verts) {
 		/* tag verts that start out with only 2 edges,
@@ -98,10 +98,10 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_flag_enable(bm, op, "faces", BM_FACE, FACE_MARK);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "faces", BM_FACE, FACE_MARK);
 	
 	/* collect region */
-	BMO_ITER (f, &oiter, bm, op, "faces", BM_FACE) {
+	BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
 
 		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) {
 			continue;
@@ -184,7 +184,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		goto cleanup;
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, "regionout", BM_FACE, FACE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
 
 cleanup:
 	/* free/cleanup */
@@ -208,7 +208,7 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	int i;
 
 
-	BMO_ITER (e, &oiter, bm, op, "edges", BM_EDGE) {
+	BMO_ITER (e, &oiter, op->slots_in, "edges", BM_EDGE) {
 		if (BM_edge_face_pair(e, &fa, &fb)) {
 			BMO_elem_flag_enable(bm, e->v1, VERT_MARK);
 			BMO_elem_flag_enable(bm, e->v2, VERT_MARK);
@@ -237,7 +237,7 @@ void bmo_dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 	//BMO_op_initf(bm, &fop, "dissolve_faces faces=%ff", FACE_MARK);
 	//BMO_op_exec(bm, &fop);
 
-	//BMO_slot_copy(op, &fop, "regionout", "regionout");
+	//BMO_slot_copy(op, &fop, "region.out", "region.out");
 
 	//BMO_op_finish(bm, &fop);
 }
@@ -254,7 +254,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 	BMIter viter;
 	BMVert *v;
 
-	int use_verts = BMO_slot_bool_get(op, "use_verts");
+	int use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
 
 	if (use_verts) {
 		BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
@@ -262,7 +262,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_ITER (e, &eiter, bm, op, "edges", BM_EDGE) {
+	BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
 		BMFace *fa, *fb;
 
 		if (BM_edge_face_pair(e, &fa, &fb)) {
@@ -338,7 +338,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	/* int i; */
 
-	BMO_slot_buffer_flag_enable(bm, op, "verts", BM_VERT, VERT_MARK);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts", BM_VERT, VERT_MARK);
 	
 	for (v = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v = BM_iter_step(&iter)) {
 		if (BMO_elem_flag_test(bm, v, VERT_MARK)) {
@@ -479,13 +479,13 @@ void dummy_exec(BMesh *bm, BMOperator *op)
 /* Limited Dissolve */
 void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op)
 {
-	BMOpSlot *einput = BMO_slot_get(op, "edges");
-	BMOpSlot *vinput = BMO_slot_get(op, "verts");
+	BMOpSlot *einput = BMO_slot_get(op->slots_in, "edges");
+	BMOpSlot *vinput = BMO_slot_get(op->slots_in, "verts");
 	const float angle_max = (float)M_PI / 2.0f;
-	const float angle_limit = min_ff(angle_max, BMO_slot_float_get(op, "angle_limit"));
-	const int do_dissolve_boundaries = BMO_slot_bool_get(op, "use_dissolve_boundaries");
+	const float angle_limit = min_ff(angle_max, BMO_slot_float_get(op->slots_in, "angle_limit"));
+	const int do_dissolve_boundaries = BMO_slot_bool_get(op->slots_in, "use_dissolve_boundaries");
 
 	BM_mesh_decimate_dissolve_ex(bm, angle_limit, do_dissolve_boundaries,
-	                             vinput->data.p, vinput->len,
-	                             einput->data.p, einput->len);
+	                             (BMVert **)BMO_SLOT_AS_BUFFER(vinput), vinput->len,
+	                             (BMEdge **)BMO_SLOT_AS_BUFFER(einput), einput->len);
 }

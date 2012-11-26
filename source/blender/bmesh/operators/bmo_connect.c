@@ -52,7 +52,7 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(verts_pair);
 	int i;
 	
-	BMO_slot_buffer_flag_enable(bm, op, "verts", BM_VERT, VERT_INPUT);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts", BM_VERT, VERT_INPUT);
 
 	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
 		BLI_array_empty(loops_split);
@@ -117,7 +117,7 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_OUT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_OUT);
 
 	BLI_array_free(loops_split);
 	BLI_array_free(verts_pair);
@@ -219,12 +219,12 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	int c = 0, cl1 = 0, cl2 = 0;
 
 	/* merge-bridge support */
-	const int   use_merge    = BMO_slot_bool_get(op, "use_merge");
-	const float merge_factor = BMO_slot_float_get(op, "merge_factor");
+	const int   use_merge    = BMO_slot_bool_get(op->slots_in,  "use_merge");
+	const float merge_factor = BMO_slot_float_get(op->slots_in, "merge_factor");
 
-	BMO_slot_buffer_flag_enable(bm, op, "edges", BM_EDGE, EDGE_MARK);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
 
-	BMO_ITER (e, &siter, bm, op, "edges", BM_EDGE) {
+	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 		if (!BMO_elem_flag_test(bm, e, EDGE_DONE)) {
 			BMVert *v, *ov;
 			/* BMEdge *e2, *e3, *oe = e; */ /* UNUSED */
@@ -523,7 +523,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_OUT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_OUT);
 
 cleanup:
 	BLI_array_free(ee1);

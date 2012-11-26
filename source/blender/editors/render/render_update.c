@@ -250,6 +250,24 @@ static void material_changed(Main *bmain, Material *ma)
 	}
 }
 
+static void lamp_changed(Main *bmain, Lamp *la)
+{
+	Object *ob;
+	Material *ma;
+
+	/* icons */
+	BKE_icon_changed(BKE_icon_getid(&la->id));
+
+	/* glsl */
+	for (ob = bmain->object.first; ob; ob = ob->id.next)
+		if (ob->data == la && ob->gpulamp.first)
+			GPU_lamp_free(ob);
+
+	for (ma = bmain->mat.first; ma; ma = ma->id.next)
+		if (ma->gpumaterial.first)
+			GPU_material_free(ma);
+}
+
 static void texture_changed(Main *bmain, Tex *tex)
 {
 	Material *ma;
@@ -282,16 +300,14 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* find lamps */
 	for (la = bmain->lamp.first; la; la = la->id.next) {
 		if (mtex_use_tex(la->mtex, MAX_MTEX, tex)) {
-			/* pass */
+			lamp_changed(bmain, la);
 		}
 		else if (la->nodetree && nodes_use_tex(la->nodetree, tex)) {
-			/* pass */
+			lamp_changed(bmain, la);
 		}
 		else {
 			continue;
 		}
-
-		BKE_icon_changed(BKE_icon_getid(&la->id));
 	}
 
 	/* find worlds */
@@ -318,24 +334,6 @@ static void texture_changed(Main *bmain, Tex *tex)
 			}
 		}
 	}
-}
-
-static void lamp_changed(Main *bmain, Lamp *la)
-{
-	Object *ob;
-	Material *ma;
-
-	/* icons */
-	BKE_icon_changed(BKE_icon_getid(&la->id));
-
-	/* glsl */
-	for (ob = bmain->object.first; ob; ob = ob->id.next)
-		if (ob->data == la && ob->gpulamp.first)
-			GPU_lamp_free(ob);
-
-	for (ma = bmain->mat.first; ma; ma = ma->id.next)
-		if (ma->gpumaterial.first)
-			GPU_material_free(ma);
 }
 
 static void world_changed(Main *bmain, World *wo)

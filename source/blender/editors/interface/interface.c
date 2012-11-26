@@ -1677,7 +1677,7 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 {
 	if (but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		PropertyType type;
-		char *buf = NULL;
+		const char *buf = NULL;
 		int buf_len;
 
 		type = RNA_property_type(but->rnaprop);
@@ -1686,10 +1686,21 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 			/* RNA string */
 			buf = RNA_property_string_get_alloc(&but->rnapoin, but->rnaprop, str, maxlen, &buf_len);
 		}
+		else if (type == PROP_ENUM) {
+			/* RNA enum */
+			int value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
+			if (RNA_property_enum_name(but->block->evil_C, &but->rnapoin, but->rnaprop, value, &buf)) {
+				BLI_strncpy(str, buf, maxlen);
+				buf = str;
+			}
+		}
 		else if (type == PROP_POINTER) {
 			/* RNA pointer */
 			PointerRNA ptr = RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
 			buf = RNA_struct_name_get_alloc(&ptr, str, maxlen, &buf_len);
+		}
+		else {
+			BLI_assert(0);
 		}
 
 		if (!buf) {
@@ -1698,7 +1709,7 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 		else if (buf && buf != str) {
 			/* string was too long, we have to truncate */
 			memcpy(str, buf, MIN2(maxlen, (size_t)buf_len + 1));
-			MEM_freeN(buf);
+			MEM_freeN((void *)buf);
 		}
 	}
 	else if (but->type == IDPOIN) {
@@ -1840,6 +1851,17 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				}
 
 				return 0;
+			}
+			else if (type == PROP_ENUM) {
+				int value;
+				if (RNA_property_enum_value(but->block->evil_C, &but->rnapoin, but->rnaprop, str, &value)) {
+					RNA_property_enum_set(&but->rnapoin, but->rnaprop, value);
+					return 1;
+				}
+				return 0;
+			}
+			else {
+				BLI_assert(0);
 			}
 		}
 	}

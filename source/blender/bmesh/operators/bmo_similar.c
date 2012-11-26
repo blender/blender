@@ -103,10 +103,10 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	SimSel_FaceExt *f_ext = NULL;
 	int *indices = NULL;
 	float t_no[3];	/* temporary normal */
-	const int type = BMO_slot_int_get(op, "type");
-	const float thresh = BMO_slot_float_get(op, "thresh");
+	const int type = BMO_slot_int_get(op->slots_in, "type");
+	const float thresh = BMO_slot_float_get(op->slots_in, "thresh");
 	const float thresh_radians = thresh * (float)M_PI;
-	const int compare = BMO_slot_int_get(op, "compare");
+	const int compare = BMO_slot_int_get(op->slots_in, "compare");
 
 	/* initial_elem - other_elem */
 	float delta_fl;
@@ -121,7 +121,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	 * so the overall complexity will be less than $O(mn)$ where is the total number of selected faces,
 	 * and n is the total number of faces
 	 */
-	BMO_ITER (fs, &fs_iter, bm, op, "faces", BM_FACE) {
+	BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
 		if (!BMO_elem_flag_test(bm, fs, FACE_MARK)) {	/* is this really needed ? */
 			BMO_elem_flag_enable(bm, fs, FACE_MARK);
 			num_sels++;
@@ -262,7 +262,7 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 
 	/* transfer all marked faces to the output slot */
-	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, FACE_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_MARK);
 #undef FACE_MARK
 }
 
@@ -305,9 +305,9 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 	float angle;
 
 	int num_sels = 0, num_total = 0;
-	const int type = BMO_slot_int_get(op, "type");
-	const float thresh = BMO_slot_float_get(op, "thresh");
-	const int compare = BMO_slot_int_get(op, "compare");
+	const int type = BMO_slot_int_get(op->slots_in, "type");
+	const float thresh = BMO_slot_float_get(op->slots_in, "thresh");
+	const int compare = BMO_slot_int_get(op->slots_in, "compare");
 
 	/* initial_elem - other_elem */
 	float delta_fl;
@@ -330,7 +330,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 	num_total = BM_mesh_elem_count(bm, BM_EDGE);
 
 	/* iterate through all selected edges and mark them */
-	BMO_ITER (es, &es_iter, bm, op, "edges", BM_EDGE) {
+	BMO_ITER (es, &es_iter, op->slots_in, "edges", BM_EDGE) {
 		BMO_elem_flag_enable(bm, es, EDGE_MARK);
 		num_sels++;
 	}
@@ -486,7 +486,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 
 	/* transfer all marked edges to the output slot */
-	BMO_slot_buffer_from_enabled_flag(bm, op, "edgeout", BM_EDGE, EDGE_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_MARK);
 
 #undef EDGE_MARK
 }
@@ -519,10 +519,10 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 	SimSel_VertExt *v_ext = NULL;
 	int *indices = NULL;
 	int num_total = 0, num_sels = 0, i = 0, idx = 0;
-	const int type = BMO_slot_int_get(op, "type");
-	const float thresh = BMO_slot_float_get(op, "thresh");
+	const int type = BMO_slot_int_get(op->slots_in, "type");
+	const float thresh = BMO_slot_float_get(op->slots_in, "thresh");
 	const float thresh_radians = thresh * (float)M_PI;
-	const int compare = BMO_slot_int_get(op, "compare");
+	const int compare = BMO_slot_int_get(op->slots_in, "compare");
 
 	/* initial_elem - other_elem */
 //	float delta_fl;
@@ -531,7 +531,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 	num_total = BM_mesh_elem_count(bm, BM_VERT);
 
 	/* iterate through all selected edges and mark them */
-	BMO_ITER (vs, &vs_iter, bm, op, "verts", BM_VERT) {
+	BMO_ITER (vs, &vs_iter, op->slots_in, "verts", BM_VERT) {
 		BMO_elem_flag_enable(bm, vs, VERT_MARK);
 		num_sels++;
 	}
@@ -620,7 +620,7 @@ void bmo_similar_verts_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(indices);
 	MEM_freeN(v_ext);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, "vertout", BM_VERT, VERT_MARK);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 
 #undef VERT_MARK
 }

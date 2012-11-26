@@ -69,9 +69,6 @@ void text_update_cursor_moved(struct bContext *C);
 #define TOOL_SUGG_LIST	0x01
 #define TOOL_DOCUMENT	0x02
 
-#define TMARK_GRP_CUSTOM	0x00010000	/* Lower 2 bytes used for Python groups */
-#define TMARK_GRP_FINDALL	0x00020000
-
 typedef struct FlattenString {
 	char fixedbuf[256];
 	int fixedaccum[256];
@@ -130,10 +127,6 @@ void TEXT_OT_indent(struct wmOperatorType *ot);
 void TEXT_OT_line_break(struct wmOperatorType *ot);
 void TEXT_OT_insert(struct wmOperatorType *ot);
 
-void TEXT_OT_markers_clear(struct wmOperatorType *ot);
-void TEXT_OT_next_marker(struct wmOperatorType *ot);
-void TEXT_OT_previous_marker(struct wmOperatorType *ot);
-
 void TEXT_OT_select_line(struct wmOperatorType *ot);
 void TEXT_OT_select_all(struct wmOperatorType *ot);
 void TEXT_OT_select_word(struct wmOperatorType *ot);
@@ -158,7 +151,6 @@ void TEXT_OT_find(struct wmOperatorType *ot);
 void TEXT_OT_find_set_selected(struct wmOperatorType *ot);
 void TEXT_OT_replace(struct wmOperatorType *ot);
 void TEXT_OT_replace_set_selected(struct wmOperatorType *ot);
-void TEXT_OT_mark_all(struct wmOperatorType *ot);
 
 void TEXT_OT_to_3d_object(struct wmOperatorType *ot);
 

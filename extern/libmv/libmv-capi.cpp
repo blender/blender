@@ -192,7 +192,7 @@ static void imageToFloatBuf(const libmv::FloatImage *image, int channels, float 
 }
 
 #if defined(DUMP_FAILURE) || defined (DUMP_ALWAYS)
-void savePNGImage(png_bytep *row_pointers, int width, int height, int depth, int color_type, char *file_name)
+static void savePNGImage(png_bytep *row_pointers, int width, int height, int depth, int color_type, char *file_name)
 {
 	png_infop info_ptr;
 	png_structp png_ptr;
@@ -437,6 +437,9 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 #endif
 		saveImage("old_patch", old_patch, x1[4], y1[4]);
 		saveImage("new_patch", new_patch, x2[4], y2[4]);
+
+		if (options->image1_mask)
+			saveImage("mask", image1_mask, x2[4], y2[4]);
 	}
 #endif
 

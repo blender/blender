@@ -175,3 +175,9 @@ if(WIN32)
 endif()
 
 blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}")
+
+if(MSVC)
+	# Quiet warning about inline math library files that do not export symbols.
+	# (normally you'd exclude from project, but we still want to see the files in MSVC)
+	set_target_properties(bf_blenlib PROPERTIES STATIC_LIBRARY_FLAGS /ignore:4221)
+endif()

@@ -45,8 +45,8 @@
 static void bmo_flag_layer_alloc(BMesh *bm);
 static void bmo_flag_layer_free(BMesh *bm);
 static void bmo_flag_layer_clear(BMesh *bm);
-static int bmo_name_to_slotcode(BMOpDefine *def, const char *name);
-static int bmo_name_to_slotcode_check(BMOpDefine *def, const char *name);
+static int bmo_name_to_slotcode(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier);
+static int bmo_name_to_slotcode_check(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier);
 static int bmo_opname_to_opcode(const char *opname);
 
 static const char *bmo_error_messages[] = {
@@ -80,7 +80,7 @@ const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES] = {
 };
 
 /* Dummy slot so there is something to return when slot name lookup fails */
-static BMOpSlot BMOpEmptySlot = {0};
+// static BMOpSlot BMOpEmptySlot = {0};
 
 void BMO_op_flag_enable(BMesh *UNUSED(bm), BMOperator *op, const int op_flag)
 {
@@ -125,6 +125,18 @@ void BMO_pop(BMesh *bm)
 	bm->stackdepth--;
 }
 
+
+/* use for both slot_types_in and slot_types_out */
+static void bmo_op_slots_init(BMOSlotType *slot_types, BMOpSlot *slot_args)
+{
+	unsigned int i;
+	for (i = 0; slot_types[i].type; i++) {
+		slot_args[i].slot_name = slot_types[i].name;
+		slot_args[i].slot_type = slot_types[i].type;
+		// slot_args[i].index = i;  // UNUSED
+	}
+}
+
 /**
  * \brief BMESH OPSTACK INIT OP
  *
@@ -132,7 +144,7 @@ void BMO_pop(BMesh *bm)
  */
 void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
 {
-	int i, opcode = bmo_opname_to_opcode(opname);
+	int opcode = bmo_opname_to_opcode(opname);
 
 #ifdef DEBUG
 	BM_ELEM_INDEX_VALIDATE(bm, "pre bmo", opname);
@@ -150,10 +162,8 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
 	op->flag = flag;
 	
 	/* initialize the operator slot types */
-	for (i = 0; opdefines[opcode]->slot_types[i].type; i++) {
-		op->slot_args[i].slot_type = opdefines[opcode]->slot_types[i].type;
-		op->slot_args[i].index = i;
-	}
+	bmo_op_slots_init(opdefines[opcode]->slot_types_in,  op->slots_in);
+	bmo_op_slots_init(opdefines[opcode]->slot_types_out, op->slots_out);
 
 	/* callback */
 	op->exec = opdefines[opcode]->exec;
@@ -189,6 +199,20 @@ void BMO_op_exec(BMesh *bm, BMOperator *op)
 	BMO_pop(bm);
 }
 
+static void bmo_op_slots_free(BMOSlotType *slot_types, BMOpSlot *slot_args)
+{
+	BMOpSlot *slot;
+	unsigned int i;
+	for (i = 0; slot_types[i].type; i++) {
+		slot = &slot_args[i];
+		if (slot->slot_type == BMO_OP_SLOT_MAPPING) {
+			if (slot->data.ghash) {
+				BLI_ghash_free(slot->data.ghash, NULL, NULL);
+			}
+		}
+	}
+}
+
 /**
  * \brief BMESH OPSTACK FINISH OP
  *
@@ -196,21 +220,13 @@ void BMO_op_exec(BMesh *bm, BMOperator *op)
  */
 void BMO_op_finish(BMesh *bm, BMOperator *op)
 {
-	BMOpSlot *slot;
-	int i;
-
-	for (i = 0; opdefines[op->type]->slot_types[i].type; i++) {
-		slot = &op->slot_args[i];
-		if (slot->slot_type == BMO_OP_SLOT_MAPPING) {
-			if (slot->data.ghash)
-				BLI_ghash_free(slot->data.ghash, NULL, NULL);
-		}
-	}
+	bmo_op_slots_free(opdefines[op->type]->slot_types_in,  op->slots_in);
+	bmo_op_slots_free(opdefines[op->type]->slot_types_out, op->slots_out);
 
 	BLI_memarena_free(op->arena);
 
 #ifdef DEBUG
-	BM_ELEM_INDEX_VALIDATE(bm, "post bmo", opdefines[op->type]->name);
+	BM_ELEM_INDEX_VALIDATE(bm, "post bmo", opdefines[op->type]->opname);
 #else
 	(void)bm;
 #endif
@@ -221,9 +237,9 @@ void BMO_op_finish(BMesh *bm, BMOperator *op)
  *
  * \return Success if the slot if found.
  */
-int BMO_slot_exists(BMOperator *op, const char *slot_name)
+int BMO_slot_exists(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier)
 {
-	int slot_code = bmo_name_to_slotcode(opdefines[op->type], slot_name);
+	int slot_code = bmo_name_to_slotcode(slot_args, identifier);
 	return (slot_code >= 0);
 }
 
@@ -232,73 +248,78 @@ int BMO_slot_exists(BMOperator *op, const char *slot_name)
  *
  * Returns a pointer to the slot of type 'slot_code'
  */
-BMOpSlot *BMO_slot_get(BMOperator *op, const char *slot_name)
+BMOpSlot *BMO_slot_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier)
 {
-	int slot_code = bmo_name_to_slotcode_check(opdefines[op->type], slot_name);
+	int slot_code = bmo_name_to_slotcode_check(slot_args, identifier);
 
-	if (slot_code < 0) {
-		return &BMOpEmptySlot;
+	if (UNLIKELY(slot_code < 0)) {
+		//return &BMOpEmptySlot;
+		BLI_assert(0);
+		NULL;  /* better crash */
 	}
 
-	return &(op->slot_args[slot_code]);
+	return &slot_args[slot_code];
 }
 
 /**
  * \brief BMESH OPSTACK COPY SLOT
  *
+ * define used.
  * Copies data from one slot to another.
  */
-void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, const char *dst)
+void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_name_src,
+                    BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const char *slot_name_dst,
+                    struct MemArena *arena_dst)
 {
-	BMOpSlot *source_slot = BMO_slot_get(source_op, src);
-	BMOpSlot *dest_slot = BMO_slot_get(dest_op, dst);
+	BMOpSlot *slot_src = BMO_slot_get(slot_args_src, slot_name_src);
+	BMOpSlot *slot_dst = BMO_slot_get(slot_args_dst, slot_name_dst);
 
-	if (source_slot == dest_slot)
+	if (slot_src == slot_dst)
 		return;
 
-	if (source_slot->slot_type != dest_slot->slot_type) {
-		/* possibly assert here? */
+	BLI_assert(slot_src->slot_type == slot_dst->slot_type);
+	if (slot_src->slot_type != slot_dst->slot_type) {
 		return;
 	}
 
-	if (dest_slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF) {
+	if (slot_dst->slot_type == BMO_OP_SLOT_ELEMENT_BUF) {
 		/* do buffer copy */
-		dest_slot->data.buf = NULL;
-		dest_slot->len = source_slot->len;
-		if (dest_slot->len) {
-			const int slot_alloc_size = BMO_OPSLOT_TYPEINFO[dest_slot->slot_type] * dest_slot->len;
-			dest_slot->data.buf = BLI_memarena_alloc(dest_op->arena, slot_alloc_size);
-			memcpy(dest_slot->data.buf, source_slot->data.buf, slot_alloc_size);
+		slot_dst->data.buf = NULL;
+		slot_dst->len = slot_src->len;
+		if (slot_dst->len) {
+			const int slot_alloc_size = BMO_OPSLOT_TYPEINFO[slot_dst->slot_type] * slot_dst->len;
+			slot_dst->data.buf = BLI_memarena_alloc(arena_dst, slot_alloc_size);
+			memcpy(slot_dst->data.buf, slot_src->data.buf, slot_alloc_size);
 		}
 	}
-	else if (dest_slot->slot_type == BMO_OP_SLOT_MAPPING) {
+	else if (slot_dst->slot_type == BMO_OP_SLOT_MAPPING) {
 		GHashIterator it;
 		BMOElemMapping *srcmap, *dstmap;
 
 		/* sanity check */
-		if (!source_slot->data.ghash) {
+		if (!slot_src->data.ghash) {
 			return;
 		}
 
-		if (!dest_slot->data.ghash) {
-			dest_slot->data.ghash = BLI_ghash_ptr_new("bmesh operator 2");
+		if (!slot_dst->data.ghash) {
+			slot_dst->data.ghash = BLI_ghash_ptr_new("bmesh operator 2");
 		}
 
-		BLI_ghashIterator_init(&it, source_slot->data.ghash);
-		for ( ; (srcmap = BLI_ghashIterator_getValue(&it));
-			  BLI_ghashIterator_step(&it))
+		for (BLI_ghashIterator_init(&it, slot_src->data.ghash);
+		     (srcmap = BLI_ghashIterator_getValue(&it));
+		     BLI_ghashIterator_step(&it))
 		{
-			dstmap = BLI_memarena_alloc(dest_op->arena, sizeof(*dstmap) + srcmap->len);
+			dstmap = BLI_memarena_alloc(arena_dst, sizeof(*dstmap) + srcmap->len);
 
 			dstmap->element = srcmap->element;
 			dstmap->len = srcmap->len;
 			memcpy(dstmap + 1, srcmap + 1, srcmap->len);
 
-			BLI_ghash_insert(dest_slot->data.ghash, dstmap->element, dstmap);
+			BLI_ghash_insert(slot_dst->data.ghash, dstmap->element, dstmap);
 		}
 	}
 	else {
-		dest_slot->data = source_slot->data;
+		slot_dst->data = slot_src->data;
 	}
 }
 
@@ -308,9 +329,9 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
  * Sets the value of a slot depending on it's type
  */
 
-void BMO_slot_float_set(BMOperator *op, const char *slot_name, const float f)
+void BMO_slot_float_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const float f)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_FLT);
 	if (!(slot->slot_type == BMO_OP_SLOT_FLT))
 		return;
@@ -318,9 +339,9 @@ void BMO_slot_float_set(BMOperator *op, const char *slot_name, const float f)
 	slot->data.f = f;
 }
 
-void BMO_slot_int_set(BMOperator *op, const char *slot_name, const int i)
+void BMO_slot_int_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const int i)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_INT);
 	if (!(slot->slot_type == BMO_OP_SLOT_INT))
 		return;
@@ -328,9 +349,9 @@ void BMO_slot_int_set(BMOperator *op, const char *slot_name, const int i)
 	slot->data.i = i;
 }
 
-void BMO_slot_bool_set(BMOperator *op, const char *slot_name, const int i)
+void BMO_slot_bool_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const int i)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_BOOL);
 	if (!(slot->slot_type == BMO_OP_SLOT_BOOL))
 		return;
@@ -339,9 +360,9 @@ void BMO_slot_bool_set(BMOperator *op, const char *slot_name, const int i)
 }
 
 /* only supports square mats */
-void BMO_slot_mat_set(BMOperator *op, const char *slot_name, const float *mat, int size)
+void BMO_slot_mat_set(BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const float *mat, int size)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAT);
 	if (!(slot->slot_type == BMO_OP_SLOT_MAT))
 		return;
@@ -362,39 +383,39 @@ void BMO_slot_mat_set(BMOperator *op, const char *slot_name, const float *mat, i
 	}
 }
 
-void BMO_slot_mat4_get(BMOperator *op, const char *slot_name, float r_mat[4][4])
+void BMO_slot_mat4_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, float r_mat[4][4])
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAT);
 	if (!(slot->slot_type == BMO_OP_SLOT_MAT))
 		return;
 
 	if (slot->data.p) {
-		copy_m4_m4(r_mat, (float (*)[4])slot->data.p);
+		copy_m4_m4(r_mat, BMO_SLOT_AS_MATRIX(slot));
 	}
 	else {
 		unit_m4(r_mat);
 	}
 }
 
-void BMO_slot_mat3_set(BMOperator *op, const char *slot_name, float r_mat[3][3])
+void BMO_slot_mat3_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, float r_mat[3][3])
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAT);
 	if (!(slot->slot_type == BMO_OP_SLOT_MAT))
 		return;
 
 	if (slot->data.p) {
-		copy_m3_m4(r_mat, slot->data.p);
+		copy_m3_m4(r_mat, BMO_SLOT_AS_MATRIX(slot));
 	}
 	else {
 		unit_m3(r_mat);
 	}
 }
 
-void BMO_slot_ptr_set(BMOperator *op, const char *slot_name, void *p)
+void BMO_slot_ptr_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, void *p)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_PTR);
 	if (!(slot->slot_type == BMO_OP_SLOT_PTR))
 		return;
@@ -402,9 +423,9 @@ void BMO_slot_ptr_set(BMOperator *op, const char *slot_name, void *p)
 	slot->data.p = p;
 }
 
-void BMO_slot_vec_set(BMOperator *op, const char *slot_name, const float vec[3])
+void BMO_slot_vec_set(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const float vec[3])
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_VEC);
 	if (!(slot->slot_type == BMO_OP_SLOT_VEC))
 		return;
@@ -413,9 +434,9 @@ void BMO_slot_vec_set(BMOperator *op, const char *slot_name, const float vec[3])
 }
 
 
-float BMO_slot_float_get(BMOperator *op, const char *slot_name)
+float BMO_slot_float_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_FLT);
 	if (!(slot->slot_type == BMO_OP_SLOT_FLT))
 		return 0.0f;
@@ -423,9 +444,9 @@ float BMO_slot_float_get(BMOperator *op, const char *slot_name)
 	return slot->data.f;
 }
 
-int BMO_slot_int_get(BMOperator *op, const char *slot_name)
+int BMO_slot_int_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_INT);
 	if (!(slot->slot_type == BMO_OP_SLOT_INT))
 		return 0;
@@ -433,9 +454,9 @@ int BMO_slot_int_get(BMOperator *op, const char *slot_name)
 	return slot->data.i;
 }
 
-int BMO_slot_bool_get(BMOperator *op, const char *slot_name)
+int BMO_slot_bool_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_BOOL);
 	if (!(slot->slot_type == BMO_OP_SLOT_BOOL))
 		return 0;
@@ -444,23 +465,23 @@ int BMO_slot_bool_get(BMOperator *op, const char *slot_name)
 }
 
 /* if you want a copy of the elem buffer */
-void *BMO_slot_as_arrayN(BMOperator *op, const char *slot_name, int *len)
+void *BMO_slot_as_arrayN(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, int *len)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	void *ret;
 
 	/* could add support for mapping type */
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
 
-	ret = MEM_mallocN(sizeof(void *) * slot->len, __func__);
-	memcpy(ret, slot->data.buf, sizeof(void *) * slot->len);
+	ret = MEM_mallocN(sizeof(void **) * slot->len, __func__);
+	memcpy(ret, slot->data.buf, sizeof(void **) * slot->len);
 	*len = slot->len;
 	return ret;
 }
 
-void *BMO_slot_ptr_get(BMOperator *op, const char *slot_name)
+void *BMO_slot_ptr_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_PTR);
 	if (!(slot->slot_type == BMO_OP_SLOT_PTR))
 		return NULL;
@@ -468,9 +489,9 @@ void *BMO_slot_ptr_get(BMOperator *op, const char *slot_name)
 	return slot->data.p;
 }
 
-void BMO_slot_vec_get(BMOperator *op, const char *slot_name, float r_vec[3])
+void BMO_slot_vec_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, float r_vec[3])
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_VEC);
 	if (!(slot->slot_type == BMO_OP_SLOT_VEC))
 		return;
@@ -546,9 +567,9 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 	}
 }
 
-int BMO_slot_buffer_count(BMesh *UNUSED(bm), BMOperator *op, const char *slot_name)
+int BMO_slot_buffer_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
 	
 	/* check if its actually a buffer */
@@ -558,9 +579,9 @@ int BMO_slot_buffer_count(BMesh *UNUSED(bm), BMOperator *op, const char *slot_na
 	return slot->len;
 }
 
-int BMO_slot_map_count(BMesh *UNUSED(bm), BMOperator *op, const char *slot_name)
+int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
 	
 	/* check if its actually a buffer */
@@ -573,12 +594,12 @@ int BMO_slot_map_count(BMesh *UNUSED(bm), BMOperator *op, const char *slot_name)
 /* inserts a key/value mapping into a mapping slot.  note that it copies the
  * value, it doesn't store a reference to it. */
 
-void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slot_name,
-                         void *element, void *data, int len)
+void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
+                         const void *element, void *data, int len)
 {
 	BMOElemMapping *mapping;
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
+	BMO_ASSERT_SLOT_IN_OP(slot, op);
 
 	mapping = (BMOElemMapping *) BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
 
@@ -590,7 +611,7 @@ void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slot_nam
 		slot->data.ghash = BLI_ghash_ptr_new("bmesh slot map hash");
 	}
 
-	BLI_ghash_insert(slot->data.ghash, element, mapping);
+	BLI_ghash_insert(slot->data.ghash, (void *)element, mapping);
 }
 
 #if 0
@@ -636,11 +657,11 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
 }
 #endif
 
-void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_map_to_flag(BMesh *bm, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                           const char htype, const short oflag)
 {
 	GHashIterator it;
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BMElemF *ele_f;
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
@@ -656,18 +677,22 @@ void BMO_slot_map_to_flag(BMesh *bm, BMOperator *op, const char *slot_name,
 	}
 }
 
-void *BMO_slot_buffer_alloc(BMOperator *op, const char *slot_name, const int len)
+void *BMO_slot_buffer_alloc(BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name, const int len)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
-	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 
 	/* check if its actually a buffer */
 	if (slot->slot_type != BMO_OP_SLOT_ELEMENT_BUF)
 		return NULL;
 	
 	slot->len = len;
-	if (len)
+	if (len) {
 		slot->data.buf = BLI_memarena_alloc(op->arena, BMO_OPSLOT_TYPEINFO[slot->slot_type] * len);
+	}
+	else {
+		slot->data.buf = NULL;
+	}
+
 	return slot->data.buf;
 }
 
@@ -676,9 +701,10 @@ void *BMO_slot_buffer_alloc(BMOperator *op, const char *slot_name, const int len
  *
  * Copies all elements of a certain type into an operator slot.
  */
-void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot_name, const char htype)
+void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS],
+                              const char *slot_name, const char htype)
 {
-	BMOpSlot *output = BMO_slot_get(op, slot_name);
+	BMOpSlot *output = BMO_slot_get(slot_args, slot_name);
 	int totelement = 0, i = 0;
 	
 	if (htype & BM_VERT) totelement += bm->totvert;
@@ -689,27 +715,27 @@ void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot_name, 
 		BMIter iter;
 		BMHeader *ele;
 
-		BMO_slot_buffer_alloc(op, slot_name, totelement);
+		BMO_slot_buffer_alloc(op, slot_args, slot_name, totelement);
 
 		/* TODO - collapse these loops into one */
 
 		if (htype & BM_VERT) {
 			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
-				((BMHeader **)output->data.p)[i] = ele;
+				output->data.buf[i] = ele;
 				i++;
 			}
 		}
 
 		if (htype & BM_EDGE) {
 			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
-				((BMHeader **)output->data.p)[i] = ele;
+				output->data.buf[i] = ele;
 				i++;
 			}
 		}
 
 		if (htype & BM_FACE) {
 			BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
-				((BMHeader **)output->data.p)[i] = ele;
+				output->data.buf[i] = ele;
 				i++;
 			}
 		}
@@ -722,11 +748,11 @@ void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, const char *slot_name, 
  * Copies elements of a certain type, which have a certain header flag
  * enabled/disabled into a slot for an operator.
  */
-static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *slot_name,
+static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                        const char htype, const char hflag,
                                        const short test_for_enabled)
 {
-	BMOpSlot *output = BMO_slot_get(op, slot_name);
+	BMOpSlot *output = BMO_slot_get(slot_args, slot_name);
 	int totelement = 0, i = 0;
 	const int respecthide = (op->flag & BMO_FLAG_RESPECT_HIDE) != 0;
 
@@ -741,7 +767,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 		BMIter iter;
 		BMElem *ele;
 
-		BMO_slot_buffer_alloc(op, slot_name, totelement);
+		BMO_slot_buffer_alloc(op, slot_args, slot_name, totelement);
 
 		/* TODO - collapse these loops into one */
 
@@ -750,7 +776,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 				if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
 				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
-					((BMElem **)output->data.p)[i] = ele;
+					output->data.buf[i] = ele;
 					i++;
 				}
 			}
@@ -761,7 +787,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 				if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
 				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
-					((BMElem **)output->data.p)[i] = ele;
+					output->data.buf[i] = ele;
 					i++;
 				}
 			}
@@ -772,7 +798,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 				if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
 				    BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
 				{
-					((BMElem **)output->data.p)[i] = ele;
+					output->data.buf[i] = ele;
 					i++;
 				}
 			}
@@ -783,46 +809,51 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 	}
 }
 
-void BMO_slot_buffer_from_enabled_hflag(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_buffer_from_enabled_hflag(BMesh *bm, BMOperator *op,
+                                        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                         const char htype, const char hflag)
 {
-	bmo_slot_buffer_from_hflag(bm, op, slot_name, htype, hflag, TRUE);
+	bmo_slot_buffer_from_hflag(bm, op, slot_args, slot_name, htype, hflag, TRUE);
 }
 
-void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op,
+                                         BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                          const char htype, const char hflag)
 {
-	bmo_slot_buffer_from_hflag(bm, op, slot_name, htype, hflag, FALSE);
+	bmo_slot_buffer_from_hflag(bm, op, slot_args, slot_name, htype, hflag, FALSE);
 }
 
 /**
  * Copies the values from another slot to the end of the output slot.
  */
-void BMO_slot_buffer_append(BMOperator *output_op, const char *output_slot_name,
-                            BMOperator *other_op, const char *other_slot_name)
+void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS], const char *slot_name_dst,
+                             BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_name_src,
+                             struct MemArena *arena_dst)
 {
-	BMOpSlot *output_slot = BMO_slot_get(output_op, output_slot_name);
-	BMOpSlot *other_slot = BMO_slot_get(other_op, other_slot_name);
+	BMOpSlot *slot_dst = BMO_slot_get(slot_args_dst, slot_name_dst);
+	BMOpSlot *slot_src  = BMO_slot_get(slot_args_src,  slot_name_src);
 
-	BLI_assert(output_slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF &&
-	           other_slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(slot_dst->slot_type == BMO_OP_SLOT_ELEMENT_BUF &&
+	           slot_src->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
 
-	if (output_slot->len == 0) {
+	if (slot_dst->len == 0) {
 		/* output slot is empty, copy rather than append */
-		BMO_slot_copy(other_op, output_op, other_slot_name, output_slot_name);
+		_bmo_slot_copy(slot_args_src, slot_name_src,
+		               slot_args_dst, slot_name_dst,
+		               arena_dst);
 	}
-	else if (other_slot->len != 0) {
-		int elem_size = BMO_OPSLOT_TYPEINFO[output_slot->slot_type];
-		int alloc_size = elem_size * (output_slot->len + other_slot->len);
+	else if (slot_src->len != 0) {
+		int elem_size = BMO_OPSLOT_TYPEINFO[slot_dst->slot_type];
+		int alloc_size = elem_size * (slot_dst->len + slot_src->len);
 		/* allocate new buffer */
-		void *buf = BLI_memarena_alloc(output_op->arena, alloc_size);
+		void *buf = BLI_memarena_alloc(arena_dst, alloc_size);
 
 		/* copy slot data */
-		memcpy(buf, output_slot->data.buf, elem_size * output_slot->len);
-		memcpy(((char *)buf) + elem_size * output_slot->len, other_slot->data.buf, elem_size * other_slot->len);
+		memcpy(buf, slot_dst->data.buf, elem_size * slot_dst->len);
+		memcpy(((char *)buf) + elem_size * slot_dst->len, slot_src->data.buf, elem_size * slot_src->len);
 
-		output_slot->data.buf = buf;
-		output_slot->len += other_slot->len;
+		slot_dst->data.buf = buf;
+		slot_dst->len += slot_src->len;
 	}
 }
 
@@ -832,13 +863,15 @@ void BMO_slot_buffer_append(BMOperator *output_op, const char *output_slot_name,
  * Copies elements of a certain type, which have a certain flag set
  * into an output slot for an operator.
  */
-static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slot_name,
+static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op,
+                                      BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                       const char htype, const short oflag,
                                       const short test_for_enabled)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	int totelement, i = 0;
 
+	BLI_assert(op->slots_in == slot_args || op->slots_out == slot_args);
 	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
 
 	if (test_for_enabled)
@@ -853,9 +886,9 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 		BMHeader *ele;
 		BMHeader **ele_array;
 
-		BMO_slot_buffer_alloc(op, slot_name, totelement);
+		BMO_slot_buffer_alloc(op, slot_args, slot_name, totelement);
 
-		ele_array = (BMHeader **)slot->data.p;
+		ele_array = (BMHeader **)slot->data.buf;
 
 		/* TODO - collapse these loops into one */
 
@@ -891,16 +924,18 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op, const char *slo
 	}
 }
 
-void BMO_slot_buffer_from_enabled_flag(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_buffer_from_enabled_flag(BMesh *bm, BMOperator *op,
+                                       BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                        const char htype, const short oflag)
 {
-	bmo_slot_buffer_from_flag(bm, op, slot_name, htype, oflag, TRUE);
+	bmo_slot_buffer_from_flag(bm, op, slot_args, slot_name, htype, oflag, TRUE);
 }
 
-void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op,
+                                        BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                         const char htype, const short oflag)
 {
-	bmo_slot_buffer_from_flag(bm, op, slot_name, htype, oflag, FALSE);
+	bmo_slot_buffer_from_flag(bm, op, slot_args, slot_name, htype, oflag, FALSE);
 }
 
 /**
@@ -909,11 +944,12 @@ void BMO_slot_buffer_from_disabled_flag(BMesh *bm, BMOperator *op, const char *s
  * Header Flags elements in a slots buffer, automatically
  * using the selection API where appropriate.
  */
-void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_buffer_hflag_enable(BMesh *bm,
+                                  BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                   const char htype, const char hflag, const char do_flush)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
-	BMElem **data =  slot->data.p;
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
+	BMElem **data =  (BMElem **)slot->data.buf;
 	int i;
 	const char do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
 	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
@@ -942,11 +978,12 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm, BMOperator *op, const char *slot_na
  * Removes flags from elements in a slots buffer, automatically
  * using the selection API where appropriate.
  */
-void BMO_slot_buffer_hflag_disable(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_buffer_hflag_disable(BMesh *bm,
+                                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                    const char htype, const char hflag, const char do_flush)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
-	BMElem **data =  slot->data.p;
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
+	BMElem **data =  (BMElem **)slot->data.buf;
 	int i;
 	const char do_flush_select = (do_flush && (hflag & BM_ELEM_SELECT));
 	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
@@ -993,10 +1030,11 @@ int BMO_vert_edge_flags_count(BMesh *bm, BMVert *v, const short oflag)
  *
  * Flags elements in a slots buffer
  */
-void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_buffer_flag_enable(BMesh *bm,
+                                 BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                  const char htype, const short oflag)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BMHeader **data =  slot->data.p;
 	int i;
 
@@ -1015,11 +1053,12 @@ void BMO_slot_buffer_flag_enable(BMesh *bm, BMOperator *op, const char *slot_nam
  *
  * Removes flags from elements in a slots buffer
  */
-void BMO_slot_buffer_flag_disable(BMesh *bm, BMOperator *op, const char *slot_name,
+void BMO_slot_buffer_flag_disable(BMesh *bm,
+                                  BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
                                   const char htype, const short oflag)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
-	BMHeader **data =  slot->data.p;
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
+	BMHeader **data = (BMHeader **)slot->data.buf;
 	int i;
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
@@ -1171,14 +1210,14 @@ static void bmo_flag_layer_clear(BMesh *bm)
 	bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 }
 
-void *BMO_slot_buffer_elem_first(BMOperator *op, const char *slot_name)
+void *BMO_slot_buffer_elem_first(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	
 	if (slot->slot_type != BMO_OP_SLOT_ELEMENT_BUF)
 		return NULL;
 
-	return slot->data.buf ? *(void **)slot->data.buf : NULL;
+	return slot->data.buf ? *slot->data.buf : NULL;
 }
 
 /**
@@ -1187,10 +1226,11 @@ void *BMO_slot_buffer_elem_first(BMOperator *op, const char *slot_name)
  * \param restrictmask restricts the iteration to certain element types
  * (e.g. combination of BM_VERT, BM_EDGE, BM_FACE), if iterating
  * over an element buffer (not a mapping). */
-void *BMO_iter_new(BMOIter *iter, BMesh *UNUSED(bm), BMOperator *op,
-                   const char *slot_name, const char restrictmask)
+void *BMO_iter_new(BMOIter *iter,
+                   BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name,
+                   const char restrictmask)
 {
-	BMOpSlot *slot = BMO_slot_get(op, slot_name);
+	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 
 	memset(iter, 0, sizeof(BMOIter));
 
@@ -1219,13 +1259,13 @@ void *BMO_iter_step(BMOIter *iter)
 			return NULL;
 		}
 
-		h = ((void **)iter->slot->data.buf)[iter->cur++];
+		h = iter->slot->data.buf[iter->cur++];
 		while (!(iter->restrictmask & h->htype)) {
 			if (iter->cur >= iter->slot->len) {
 				return NULL;
 			}
 
-			h = ((void **)iter->slot->data.buf)[iter->cur++];
+			h = iter->slot->data.buf[iter->cur++];
 		}
 
 		return h;
@@ -1324,24 +1364,26 @@ int BMO_error_pop(BMesh *bm, const char **msg, BMOperator **op)
 
 #define NEXT_CHAR(fmt) ((fmt)[0] != 0 ? (fmt)[1] : 0)
 
-static int bmo_name_to_slotcode(BMOpDefine *def, const char *name)
+static int bmo_name_to_slotcode(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier)
 {
-	int i;
+	int i = 0;
 
-	for (i = 0; def->slot_types[i].type; i++) {
-		if (!strncmp(name, def->slot_types[i].name, MAX_SLOTNAME)) {
+	while (slot_args->slot_name) {
+		if (strncmp(identifier, slot_args->slot_name, MAX_SLOTNAME) == 0) {
 			return i;
 		}
+		slot_args++;
+		i++;
 	}
 
 	return -1;
 }
 
-static int bmo_name_to_slotcode_check(BMOpDefine *def, const char *name)
+static int bmo_name_to_slotcode_check(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identifier)
 {
-	int i = bmo_name_to_slotcode(def, name);
+	int i = bmo_name_to_slotcode(slot_args, identifier);
 	if (i < 0) {
-		fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, name);
+		fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, identifier);
 	}
 
 	return i;
@@ -1352,12 +1394,12 @@ static int bmo_opname_to_opcode(const char *opname)
 	int i;
 
 	for (i = 0; i < bmesh_total_ops; i++) {
-		if (!strcmp(opname, opdefines[i]->name)) {
+		if (!strcmp(opname, opdefines[i]->opname)) {
 			return i;
 		}
 	}
 
-	fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, opname);
+	fprintf(stderr, "%s: could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, opname);
 	return -1;
 }
 
@@ -1367,6 +1409,8 @@ static int bmo_opname_to_opcode(const char *opname)
  *  i - int
  *  b - boolean (same as int but 1/0 only)
  *  f - float
+ *  s - slot_in
+ *  S - slot_out
  *  hv - header flagged verts (hflag)
  *  he - header flagged edges (hflag)
  *  hf - header flagged faces (hflag)
@@ -1380,7 +1424,7 @@ static int bmo_opname_to_opcode(const char *opname)
 
 int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, va_list vlist)
 {
-	BMOpDefine *def;
+//	BMOpDefine *def;
 	char *opname, *ofmt, *fmt;
 	char slot_name[64] = {0};
 	int i /*, n = strlen(fmt) */, stop /*, slot_code = -1 */, type, state;
@@ -1419,7 +1463,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 	}
 
 	BMO_op_init(bm, op, flag, opname);
-	def = opdefines[i];
+//	def = opdefines[i];
 	
 	i = 0;
 	state = 1; /* 0: not inside slot_code name, 1: inside slot_code name */
@@ -1442,7 +1486,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 
 			fmt[i] = 0;
 
-			if (bmo_name_to_slotcode_check(def, fmt) < 0) {
+			if (bmo_name_to_slotcode_check(op->slots_in, fmt) < 0) {
 				GOTO_ERROR("name to slot code check failed");
 			}
 			
@@ -1468,47 +1512,57 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 					else if (c == '4') size = 4;
 					else GOTO_ERROR("matrix size was not 3 or 4");
 
-					BMO_slot_mat_set(op, slot_name, va_arg(vlist, void *), size);
+					BMO_slot_mat_set(op, op->slots_in, slot_name, va_arg(vlist, void *), size);
 					state = 1;
 					break;
 				}
 				case 'v':
 				{
-					BMO_slot_vec_set(op, slot_name, va_arg(vlist, float *));
+					BMO_slot_vec_set(op->slots_in, slot_name, va_arg(vlist, float *));
 					state = 1;
 					break;
 				}
 				case 'e':
 				{
 					BMHeader *ele = va_arg(vlist, void *);
-					BMOpSlot *slot = BMO_slot_get(op, slot_name);
+					BMOpSlot *slot = BMO_slot_get(op->slots_in, slot_name);
 
 					slot->data.buf = BLI_memarena_alloc(op->arena, sizeof(void *) * 4);
 					slot->len = 1;
-					*((void **)slot->data.buf) = ele;
+					*slot->data.buf = ele;
 
 					state = 1;
 					break;
 				}
 				case 's':
+				case 'S':
 				{
-					BMOperator *op2 = va_arg(vlist, void *);
-					const char *slot_name2 = va_arg(vlist, char *);
+					BMOperator *op_other        = va_arg(vlist, void *);
+					const char *slot_name_other = va_arg(vlist, char *);
 
-					BMO_slot_copy(op2, op, slot_name2, slot_name);
+					if (*fmt == 's') {
+						BLI_assert(bmo_name_to_slotcode_check(op_other->slots_in, slot_name_other) != -1);
+						BMO_slot_copy(op_other, slots_in, slot_name_other,
+						              op,       slots_in, slot_name);
+					}
+					else {
+						BLI_assert(bmo_name_to_slotcode_check(op_other->slots_out, slot_name_other) != -1);
+						BMO_slot_copy(op_other, slots_out, slot_name_other,
+						              op,       slots_in, slot_name);
+					}
 					state = 1;
 					break;
 				}
 				case 'i':
-					BMO_slot_int_set(op, slot_name, va_arg(vlist, int));
+					BMO_slot_int_set(op->slots_in, slot_name, va_arg(vlist, int));
 					state = 1;
 					break;
 				case 'b':
-					BMO_slot_bool_set(op, slot_name, va_arg(vlist, int));
+					BMO_slot_bool_set(op->slots_in, slot_name, va_arg(vlist, int));
 					state = 1;
 					break;
 				case 'p':
-					BMO_slot_ptr_set(op, slot_name, va_arg(vlist, void *));
+					BMO_slot_ptr_set(op->slots_in, slot_name, va_arg(vlist, void *));
 					state = 1;
 					break;
 				case 'f':
@@ -1519,7 +1573,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 					type = *fmt;
 
 					if (NEXT_CHAR(fmt) == ' ' || NEXT_CHAR(fmt) == '\0') {
-						BMO_slot_float_set(op, slot_name, va_arg(vlist, double));
+						BMO_slot_float_set(op->slots_in, slot_name, va_arg(vlist, double));
 					}
 					else {
 						htype = 0;
@@ -1541,19 +1595,19 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 						}
 
 						if (type == 'h') {
-							BMO_slot_buffer_from_enabled_hflag(bm, op, slot_name, htype, va_arg(vlist, int));
+							BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_in, slot_name, htype, va_arg(vlist, int));
 						}
 						else if (type == 'H') {
-							BMO_slot_buffer_from_disabled_hflag(bm, op, slot_name, htype, va_arg(vlist, int));
+							BMO_slot_buffer_from_disabled_hflag(bm, op, op->slots_in, slot_name, htype, va_arg(vlist, int));
 						}
 						else if (type == 'a') {
-							BMO_slot_buffer_from_all(bm, op, slot_name, htype);
+							BMO_slot_buffer_from_all(bm, op, op->slots_in, slot_name, htype);
 						}
 						else if (type == 'f') {
-							BMO_slot_buffer_from_enabled_flag(bm, op, slot_name, htype, va_arg(vlist, int));
+							BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_in, slot_name, htype, va_arg(vlist, int));
 						}
 						else if (type == 'F') {
-							BMO_slot_buffer_from_disabled_flag(bm, op, slot_name, htype, va_arg(vlist, int));
+							BMO_slot_buffer_from_disabled_flag(bm, op, op->slots_in, slot_name, htype, va_arg(vlist, int));
 						}
 					}
 

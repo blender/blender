@@ -1422,8 +1422,8 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	
 	ibuf = IMB_allocImBuf((xmaxc - xminc + 1), (ymaxc - yminc + 1), 32, IB_rect);
 
-	view3d_validate_backbuf(vc); 
-	
+	view3d_validate_backbuf(vc);
+
 	glReadPixels(vc->ar->winrct.xmin + xminc,
 	             vc->ar->winrct.ymin + yminc,
 	             (xmaxc - xminc + 1),
@@ -1931,10 +1931,17 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	for (; dob; dob_prev = dob, dob = dob_next, dob_next = dob_next ? dupli_step(dob_next->next) : NULL) {
 		tbase.object = dob->ob;
 
-		/* extra service: draw the duplicator in drawtype of parent */
-		/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
-		dt = tbase.object->dt;   tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
-		dtx = tbase.object->dtx; tbase.object->dtx = base->object->dtx;
+		/* extra service: draw the duplicator in drawtype of parent, minimum taken
+		 * to allow e.g. boundbox box objects in groups for LOD */
+		dt = tbase.object->dt;
+		tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
+
+		/* inherit draw extra, but not if a boundbox under the assumption that this
+		 * is intended to speed up drawing, and drawing extra (especially wire) can
+		 * slow it down too much */
+		dtx = tbase.object->dtx;
+		if(tbase.object->dt != OB_BOUNDBOX)
+			tbase.object->dtx = base->object->dtx;
 
 		/* negative scale flag has to propagate */
 		transflag = tbase.object->transflag;
@@ -2996,9 +3003,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		v3d->zbuf = FALSE;
 
 	/* enables anti-aliasing for 3D view drawing */
-	if (U.ogl_multisamples)
-		if (!(U.gameflags & USER_DISABLE_AA))
-			glEnable(GL_MULTISAMPLE_ARB);
+	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+		// if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);
+	}
 
 
 	/* needs to be done always, gridview is adjusted in drawgrid() now */
@@ -3113,9 +3121,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	BIF_draw_manipulator(C);
 
 	/* Disable back anti-aliasing */
-	if (U.ogl_multisamples)
-		if (!(U.gameflags & USER_DISABLE_AA))
-			glDisable(GL_MULTISAMPLE_ARB);
+	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+		// if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);
+	}
 
 	
 	if (v3d->zbuf) {
@@ -3235,12 +3244,16 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 #ifdef DEBUG_DRAW
 /* debug drawing */
 #define _DEBUG_DRAW_QUAD_TOT 1024
+#define _DEBUG_DRAW_EDGE_TOT 1024
 static float _bl_debug_draw_quads[_DEBUG_DRAW_QUAD_TOT][4][3];
 static int   _bl_debug_draw_quads_tot = 0;
+static float _bl_debug_draw_edges[_DEBUG_DRAW_QUAD_TOT][2][3];
+static int   _bl_debug_draw_edges_tot = 0;
 
 void bl_debug_draw_quad_clear(void)
 {
 	_bl_debug_draw_quads_tot = 0;
+	_bl_debug_draw_edges_tot = 0;
 }
 void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2[3], const float v3[3])
 {
@@ -3258,16 +3271,14 @@ void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2
 }
 void bl_debug_draw_edge_add(const float v0[3], const float v1[3])
 {
-	if (_bl_debug_draw_quads_tot >= _DEBUG_DRAW_QUAD_TOT) {
-		printf("%s: max edge count hit %d!", __func__, _bl_debug_draw_quads_tot);
+	if (_bl_debug_draw_quads_tot >= _DEBUG_DRAW_EDGE_TOT) {
+		printf("%s: max edge count hit %d!", __func__, _bl_debug_draw_edges_tot);
 	}
 	else {
-		float *pt = &_bl_debug_draw_quads[_bl_debug_draw_quads_tot][0][0];
+		float *pt = &_bl_debug_draw_edges[_bl_debug_draw_edges_tot][0][0];
 		copy_v3_v3(pt, v0); pt += 3;
 		copy_v3_v3(pt, v1); pt += 3;
-		copy_v3_v3(pt, v0); pt += 3;
-		copy_v3_v3(pt, v1); pt += 3;
-		_bl_debug_draw_quads_tot++;
+		_bl_debug_draw_edges_tot++;
 	}
 }
 static void bl_debug_draw(void)
@@ -3281,6 +3292,23 @@ static void bl_debug_draw(void)
 			glVertex3fv(_bl_debug_draw_quads[i][1]);
 			glVertex3fv(_bl_debug_draw_quads[i][2]);
 			glVertex3fv(_bl_debug_draw_quads[i][3]);
+		}
+		glEnd();
+	}
+	if (_bl_debug_draw_edges_tot) {
+		int i;
+		cpack(0x00FFFF00);
+		glBegin(GL_LINES);
+		for (i = 0; i < _bl_debug_draw_edges_tot; i ++) {
+			glVertex3fv(_bl_debug_draw_edges[i][0]);
+			glVertex3fv(_bl_debug_draw_edges[i][1]);
+		}
+		glEnd();
+		glPointSize(4.0);
+		glBegin(GL_POINTS);
+		for (i = 0; i < _bl_debug_draw_edges_tot; i ++) {
+			glVertex3fv(_bl_debug_draw_edges[i][0]);
+			glVertex3fv(_bl_debug_draw_edges[i][1]);
 		}
 		glEnd();
 	}

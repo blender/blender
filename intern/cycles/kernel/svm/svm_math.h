@@ -38,6 +38,21 @@ __device float safe_acosf(float a)
 	return acosf(a);
 }
 
+__device float compatible_powf(float x, float y)
+{
+	/* GPU pow doesn't accept negative x, do manual checks here */
+	if(x < 0.0f) {
+		if(fmod(-y, 2.0f) == 0.0f)
+			return powf(-x, y);
+		else
+			return -powf(-x, y);
+	}
+	else if(x == 0.0f)
+		return 0.0f;
+
+	return powf(x, y);
+}
+
 __device float safe_powf(float a, float b)
 {
 	if(b == 0.0f)
@@ -47,7 +62,7 @@ __device float safe_powf(float a, float b)
 	if(a < 0.0f && b != (int)b)
 		return 0.0f;
 	
-	return powf(a, b);
+	return compatible_powf(a, b);
 }
 
 __device float safe_logf(float a, float b)

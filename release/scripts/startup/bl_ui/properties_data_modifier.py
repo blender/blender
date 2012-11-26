@@ -1029,5 +1029,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "use_y_symmetry")
         col.prop(md, "use_z_symmetry")
 
+    def TRIANGULATE(self, layout, ob, md):
+        layout.prop(md, "use_beauty")
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

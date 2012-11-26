@@ -89,13 +89,12 @@ void Camera::update()
 	Transform ndctoraster = transform_scale(width, height, 1.0f);
 
 	/* raster to screen */
-	Transform screentoraster = ndctoraster;
-
-	screentoraster = ndctoraster *
+	Transform screentondc = 
 		transform_scale(1.0f/(viewplane.right - viewplane.left),
 		                1.0f/(viewplane.top - viewplane.bottom), 1.0f) *
 		transform_translate(-viewplane.left, -viewplane.bottom, 0.0f);
 
+	Transform screentoraster = ndctoraster * screentondc;
 	Transform rastertoscreen = transform_inverse(screentoraster);
 
 	/* screen to camera */
@@ -105,14 +104,24 @@ void Camera::update()
 		screentocamera = transform_inverse(transform_orthographic(nearclip, farclip));
 	else
 		screentocamera = transform_identity();
+	
+	Transform cameratoscreen = transform_inverse(screentocamera);
 
 	rastertocamera = screentocamera * rastertoscreen;
+	cameratoraster = screentoraster * cameratoscreen;
 
 	cameratoworld = matrix;
 	screentoworld = cameratoworld * screentocamera;
 	rastertoworld = cameratoworld * rastertocamera;
 	ndctoworld = rastertoworld * ndctoraster;
-	worldtoraster = transform_inverse(rastertoworld);
+
+	/* note we recompose matrices instead of taking inverses of the above, this
+	 * is needed to avoid inverting near degenerate matrices that happen due to
+	 * precision issues with large scenes */
+	worldtocamera = transform_inverse(matrix);
+	worldtoscreen = cameratoscreen * worldtocamera;
+	worldtondc = screentondc * worldtoscreen;
+	worldtoraster = ndctoraster * worldtondc;
 
 	/* differentials */
 	if(type == CAMERA_ORTHOGRAPHIC) {
@@ -160,10 +169,10 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->rastertoworld = rastertoworld;
 	kcam->rastertocamera = rastertocamera;
 	kcam->cameratoworld = cameratoworld;
-	kcam->worldtoscreen = transform_inverse(screentoworld);
+	kcam->worldtocamera = worldtocamera;
+	kcam->worldtoscreen = worldtoscreen;
 	kcam->worldtoraster = worldtoraster;
-	kcam->worldtondc = transform_inverse(ndctoworld);
-	kcam->worldtocamera = transform_inverse(cameratoworld);
+	kcam->worldtondc = worldtondc;
 
 	/* camera motion */
 	kcam->have_motion = 0;
@@ -181,8 +190,8 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 		}
 		else {
 			if(use_motion) {
-				kcam->motion.pre = transform_inverse(motion.pre * rastertocamera);
-				kcam->motion.post = transform_inverse(motion.post * rastertocamera);
+				kcam->motion.pre = cameratoraster * transform_inverse(motion.pre);
+				kcam->motion.post = cameratoraster * transform_inverse(motion.post);
 			}
 			else {
 				kcam->motion.pre = worldtoraster;

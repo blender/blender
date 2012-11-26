@@ -369,8 +369,6 @@ static int initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *event
 		}
 
 		/* store the original camera loc and rot */
-		/* TODO. axis angle etc */
-
 		fly->obtfm = BKE_object_tfm_backup(ob_back);
 
 		BKE_object_where_is_calc(fly->scene, fly->v3d->camera);

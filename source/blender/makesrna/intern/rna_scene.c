@@ -3575,7 +3575,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
-	RNA_def_property_translation_context(prop, "Audio");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_SOUND);
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 #endif
 
@@ -4408,6 +4408,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_sequencer_gl_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_PREV);
 	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
 
 #if 0  /* see R_SEQ_GL_REND comment */
 	prop = RNA_def_property(srna, "use_sequencer_gl_render", PROP_BOOLEAN, PROP_NONE);
@@ -5017,7 +5018,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "audio.volume");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
-	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_AUDIO);
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_SOUND);
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	RNA_def_property_float_funcs(prop, NULL, "rna_Scene_volume_set", NULL);
 

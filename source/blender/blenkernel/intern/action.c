@@ -512,7 +512,7 @@ const char *BKE_pose_ikparam_get_name(bPose *pose)
 {
 	if (pose) {
 		switch (pose->iksolver) {
-			case IKSOLVER_LEGACY:
+			case IKSOLVER_STANDARD:
 				return NULL;
 			case IKSOLVER_ITASC:
 				return "bItasc";
@@ -587,7 +587,7 @@ void BKE_pose_ikparam_init(bPose *pose)
 			BKE_pose_itasc_init(itasc);
 			pose->ikparam = itasc;
 			break;
-		case IKSOLVER_LEGACY:
+		case IKSOLVER_STANDARD:
 		default:
 			pose->ikparam = NULL;
 			break;

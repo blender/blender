@@ -787,7 +787,7 @@ ntlVec3Gfx ntlGeometryObject::getTranslation(double t) {
 }
 /*! get active flag time t*/
 float ntlGeometryObject::getGeoActive(double t) {
-	float act = mcGeoActive.get(t); // if <= 0.0 -> off
+	float act = (mcGeoActive.get(t) >= 1.) ? 1.0 : 0.0; 
 	return act;
 }
 

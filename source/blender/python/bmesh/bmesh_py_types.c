@@ -801,34 +801,92 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-/* note: rna_Object_to_mesh() also has apply_modifiers arg that works the same way */
 PyDoc_STRVAR(bpy_bmesh_from_object_doc,
-".. method:: from_object(mesh, apply_modifiers=True)\n"
+".. method:: from_object(object, scene, deform=True, render=False, cage=False)\n"
 "\n"
-"   Initialize this bmesh from existing object datablock.\n"
+"   Initialize this bmesh from existing object datablock (currently only meshes are supported).\n"
 "\n"
 "   :arg object: The object data to load.\n"
 "   :type object: :class:`Object`\n"
-"   :arg apply_modifiers: Use the final display mesh rather then the deformed cage.\n"
-"   :type apply_modifiers: boolean\n"
+"   :arg deform: Apply deformation modifiers.\n"
+"   :type deform: boolean\n"
+"   :arg render: Use render settings.\n"
+"   :type render: boolean\n"
+"   :arg cage: Get the mesh as a deformed cage.\n"
+"   :type cage: boolean\n"
 );
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 {
 	PyObject *py_object;
+	PyObject *py_scene;
 	Object *ob;
+	struct Scene *scene;
 	BMesh *bm;
-	int apply_modifiers = TRUE;
+	int use_deform = TRUE;
+	int use_render = FALSE;
+	int use_cage   = FALSE;
 	DerivedMesh *dm;
+	const int mask = CD_MASK_BMESH;
 
 	BPY_BM_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTuple(args, "O|i:from_object", &py_object, &apply_modifiers) ||
-	    !(ob = PyC_RNA_AsPointer(py_object, "Object")))
+	if (!PyArg_ParseTuple(args, "OO|iii:from_object", &py_object, &py_scene, &use_render, &use_cage) ||
+	    !(ob    = PyC_RNA_AsPointer(py_object, "Object")) ||
+	    !(scene = PyC_RNA_AsPointer(py_scene,  "Scene")))
 	{
 		return NULL;
 	}
 
-	dm = apply_modifiers ? ob->derivedFinal : ob->derivedDeform;
+	if (ob->type != OB_MESH) {
+		PyErr_SetString(PyExc_ValueError,
+		                "from_object(...): currently only mesh objects are supported");
+		return NULL;
+	}
+
+	/* Write the display mesh into the dummy mesh */
+	if (use_deform) {
+		if (use_render) {
+			if (use_cage) {
+				PyErr_SetString(PyExc_ValueError,
+				                "from_object(...): cage arg is unsupported when (render=True)");
+				return NULL;
+			}
+			else {
+				dm = mesh_create_derived_render(scene, ob, mask);
+			}
+		}
+		else {
+			if (use_cage) {
+				dm = mesh_get_derived_deform(scene, ob, mask);  /* ob->derivedDeform */
+			}
+			else {
+				dm = mesh_get_derived_final(scene, ob, mask);  /* ob->derivedFinal */
+			}
+		}
+	}
+	else {
+		/* !use_deform */
+		if (use_render) {
+			if (use_cage) {
+				PyErr_SetString(PyExc_ValueError,
+				                "from_object(...): cage arg is unsupported when (render=True)");
+				return NULL;
+			}
+			else {
+				dm = mesh_create_derived_no_deform_render(scene, ob, NULL, mask);
+			}
+		}
+		else {
+			if (use_cage) {
+				PyErr_SetString(PyExc_ValueError,
+				                "from_object(...): cage arg is unsupported when (deform=False, render=False)");
+				return NULL;
+			}
+			else {
+				dm = mesh_create_derived_no_deform(scene, ob, NULL, mask);
+			}
+		}
+	}
 
 	if (dm == NULL) {
 		PyErr_Format(PyExc_ValueError,
@@ -839,6 +897,8 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 	bm = self->bm;
 
 	DM_to_bmesh_ex(dm, bm);
+
+	dm->release(dm);
 
 	Py_RETURN_NONE;
 }
@@ -1790,7 +1850,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 		}
 
 		/* check if the face exists */
-		if (BM_face_exists(bm, vert_array, vert_seq_len, NULL)) {
+		if (BM_face_exists(vert_array, vert_seq_len, NULL)) {
 			PyErr_SetString(PyExc_ValueError,
 			                "faces.new(verts): face already exists");
 			goto cleanup;
@@ -2012,7 +2072,7 @@ static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 			return NULL;
 		}
 
-		if (BM_face_exists(bm, vert_array, vert_seq_len, &f)) {
+		if (BM_face_exists(vert_array, vert_seq_len, &f)) {
 			ret = BPy_BMFace_CreatePyObject(bm, f);
 		}
 		else {
@@ -3306,6 +3366,7 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele)
 		case BM_LOOP:
 			return BPy_BMLoop_CreatePyObject(bm, (BMLoop *)ele);
 		default:
+			BLI_assert(0);
 			PyErr_SetString(PyExc_SystemError, "internal error");
 			return NULL;
 	}

@@ -58,6 +58,8 @@ float brick(point p, float mortar_size, float bias,
 }
 
 shader node_brick_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	float Offset = 0.5,
 	int OffsetFrequency = 2,
 	float Squash = 1.0,
@@ -74,10 +76,15 @@ shader node_brick_texture(
 	output float Fac = 0.0,
 	output color Color = color(0.2, 0.2, 0.2))
 {
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
 	float tint = 0.0;
 	color Col = Color1;
 	
-	Fac = brick(Vector * Scale, MortarSize, Bias, BrickWidth, RowHeight,
+	Fac = brick(p * Scale, MortarSize, Bias, BrickWidth, RowHeight,
 		Offset, OffsetFrequency, Squash, SquashFrequency, tint);
 		
 	if (Fac != 1.0) {

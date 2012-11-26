@@ -117,7 +117,7 @@ PyObject *SCA_PythonKeyboard::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 	{
 		const SCA_InputEvent & inevent = self->m_keyboard->GetEventValue((SCA_IInputDevice::KX_EnumInputs)i);
 		
-		PyDict_SetItem(self->m_event_dict, PyLong_FromSsize_t(i), PyLong_FromSsize_t(inevent.m_status));
+		PyDict_SetItem(self->m_event_dict, PyLong_FromLong(i), PyLong_FromLong(inevent.m_status));
 	}
 	Py_INCREF(self->m_event_dict);
 	return self->m_event_dict;
@@ -134,7 +134,7 @@ PyObject *SCA_PythonKeyboard::pyattr_get_active_events(void *self_v, const KX_PY
 		const SCA_InputEvent & inevent = self->m_keyboard->GetEventValue((SCA_IInputDevice::KX_EnumInputs)i);
 		
 		if (inevent.m_status != SCA_InputEvent::KX_NO_INPUTSTATUS)
-			PyDict_SetItem(self->m_event_dict, PyLong_FromSsize_t(i), PyLong_FromSsize_t(inevent.m_status));
+			PyDict_SetItem(self->m_event_dict, PyLong_FromLong(i), PyLong_FromLong(inevent.m_status));
 	}
 	Py_INCREF(self->m_event_dict);
 	return self->m_event_dict;

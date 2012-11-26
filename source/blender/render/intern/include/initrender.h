@@ -40,8 +40,9 @@ struct Object;
 void free_sample_tables(Render *re);
 void make_sample_tables(Render *re);
 
-void initparts(Render *re, int do_crop);
-void freeparts(Render *re);
+void RE_parts_clamp(Render *re);
+void RE_parts_init(Render *re, int do_crop);
+void RE_parts_free(Render *re);
 
 
 #endif /* __INITRENDER_H__ */

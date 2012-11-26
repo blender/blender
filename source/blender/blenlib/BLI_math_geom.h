@@ -36,7 +36,7 @@ extern "C" {
 
 #include "BLI_math_inline.h"
 
-#ifdef __BLI_MATH_INLINE_H__
+#if BLI_MATH_DO_INLINE
 #include "intern/math_geom_inline.c"
 #endif
 

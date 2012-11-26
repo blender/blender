@@ -205,6 +205,18 @@ Types
       
       :type: boolean
 
+   .. attribute:: pos_ticks
+
+      The number of ticks since the last positive pulse (read-only).
+      
+      :type: int
+
+   .. attribute:: neg_ticks
+
+      The number of ticks since the last negative pulse (read-only).
+      
+      :type: int
+
    .. attribute:: status
 
       The status of the sensor (read-only): can be one of :ref:`these constants<sensor-status>`.
@@ -621,6 +633,71 @@ Types
 
       :type: string
 
+
+.. class:: KX_SteeringActuator(SCA_IActuator)
+
+   Steering Actuator for navigation.
+
+   .. attribute:: behavior
+
+      The steering behavior to use.
+
+      :type: one of :ref:`these constants <logic-steering-actuator>`
+
+   .. attribute:: velocity
+
+      Velocity magnitude
+
+      :type: float
+
+   .. attribute:: acceleration
+
+      Max acceleration
+
+      :type: float
+
+   .. attribute:: turnspeed
+
+      Max turn speed
+
+      :type: float
+
+   .. attribute:: distance
+
+      Relax distance
+
+      :type: float
+
+   .. attribute:: target
+
+      Target object
+
+      :type: :class:`KX_GameObject`
+
+   .. attribute:: navmesh
+
+      Navigation mesh
+
+      :type: :class:`KX_GameObject`
+
+   .. attribute:: selfterminated
+
+      Terminate when target is reached
+
+      :type: boolean
+
+   .. attribute:: enableVisualization
+
+      Enable debug visualization
+
+      :type: boolean
+
+   .. attribute:: pathUpdatePeriod
+
+      Path update period
+
+      :type: int
+
 .. class:: CListValue(CPropValue)
 
    This is a list like object used in the game engine internally that behaves similar to a python list in most ways.
@@ -686,6 +763,24 @@ Types
 
    KX_BlenderMaterial
 
+   .. attribute:: shader
+
+      The materials shader.
+
+      :type: :class:`BL_Shader`
+
+   .. attribute:: blending
+
+      Ints used for pixel blending, (src, dst), matching the setBlending method.
+
+      :type: (integer, integer)
+
+   .. attribute:: material_index
+
+      The material's index.
+
+      :type: integer
+
    .. method:: getShader()
 
       Returns the material's shader.
@@ -743,7 +838,13 @@ Types
       strength of of the camera following movement.
 
       :type: float
-   
+
+   .. attribute:: axis
+
+      The camera axis (0, 1, 2) for positive ``XYZ``, (3, 4, 5) for negative ``XYZ``.
+
+      :type: int
+
    .. attribute:: min
 
       minimum distance to the target object maintained by the actuator.
@@ -761,12 +862,6 @@ Types
       height to stay above the target object.
 
       :type: float
-
-   .. attribute:: useXY
-
-      axis this actuator is tracking, True=X, False=Y.
-
-      :type: boolean
 
    .. attribute:: object
 
@@ -988,7 +1083,7 @@ Types
       The object's parent object. (read-only).
 
       :type: :class:`KX_GameObject` or None
-	  
+
    .. attribute:: groupMembers
 
       Returns the list of group members if the object is a group object, otherwise None is returned.
@@ -1100,30 +1195,30 @@ Types
       The object's world space transform matrix. 4x4 Matrix.
 
       :type: :class:`mathutils.Matrix`
-	  
+
    .. attribute:: localLinearVelocity
       
-	  The object's local linear velocity. [x, y, z]
-	  
-	  :type: :class:`mathutils.Vector`
-	  
+      The object's local linear velocity. [x, y, z]
+
+      :type: :class:`mathutils.Vector`
+
    .. attribute:: worldLinearVelocity
    
       The object's world linear velocity. [x, y, z]
-	  
-	  :type: :class:`mathutils.Vector`
-	  
+
+      :type: :class:`mathutils.Vector`
+
    .. attribute:: localAngularVelocity
    
       The object's local angular velocity. [x, y, z]
-	  
-	  :type: :class:`mathutils.Vector`
-	  
+
+      :type: :class:`mathutils.Vector`
+
    .. attribute:: worldAngularVelocity
    
       The object's world angular velocity. [x, y, z]
-	  
-	  :type: :class:`mathutils.Vector`
+
+      :type: :class:`mathutils.Vector`
 
    .. attribute:: timeOffset
 
@@ -1210,6 +1305,13 @@ Types
       all children of this object including childrens children, (read-only).
 
       :type: :class:`CListValue` of :class:`KX_GameObject`'s
+
+   .. attribute:: life
+
+      The number of seconds until the object ends, assumes 50fps.
+      (when added with an add object actuator), (read-only).
+
+      :type: float
 
    .. method:: endObject()
 
@@ -1653,7 +1755,7 @@ Types
       :arg blendin: the amount of blending between this animation and the previous one on this layer
       :type blendin: float
       :arg play_mode: the play mode
-      :type play_mode: KX_ACTION_MODE_PLAY, KX_ACTION_MODE_LOOP, or KX_ACTION_MODE_PING_PONG
+      :type play_mode: one of :ref:`these constants <gameobject-playaction-mode>`
       :arg layer_weight: how much of the previous layer to use for blending (0 = add)
       :type layer_weight: float
       :arg ipo_flags: flags for the old IPO behaviors (force, etc)
@@ -1810,10 +1912,6 @@ Types
 
       :type: list [r, g, b]
 
-   .. attribute:: colour
-
-      Synonym for color.
-
    .. attribute:: lin_attenuation
 
       The linear component of this light's attenuation. (SPOT and NORMAL lights only).
@@ -1898,11 +1996,6 @@ Types
 
       :type: integer
 
-   .. method:: getNumMaterials()
-
-      :return: number of materials associated with this object
-      :rtype: integer
-
    .. method:: getMaterialName(matid)
 
       Gets the name of the specified material.
@@ -1942,11 +2035,6 @@ Types
       :type index: integer
       :return: a vertex object.
       :rtype: :class:`KX_VertexProxy`
-
-   .. method:: getNumPolygons()
-
-      :return: The number of polygon in the mesh.
-      :rtype: integer
 
    .. method:: getPolygon(index)
 
@@ -2178,6 +2266,52 @@ Types
 
       :type: list of strings
 
+
+.. class:: KX_FontObject(KX_GameObject)
+
+   TODO.
+
+
+.. class:: KX_NavMeshObject(KX_GameObject)
+
+   Python interface for using and controlling navigation meshes. 
+
+   .. method:: findPath(start, goal)
+
+      Finds the path from start to goal points.
+
+      :arg start: the start point
+      :arg start: 3D Vector
+      :arg goal: the goal point
+      :arg start: 3D Vector
+      :return: a path as a list of points
+      :rtype: list of points
+
+   .. method:: raycast(start, goal)
+
+      Raycast from start to goal points.
+
+      :arg start: the start point
+      :arg start: 3D Vector
+      :arg goal: the goal point
+      :arg start: 3D Vector
+      :return: the hit factor
+      :rtype: float
+
+   .. method:: draw(mode)
+
+      Draws a debug mesh for the navigation mesh.
+
+      :arg mode: the drawing mode (one of :ref:`these constants <navmesh-draw-mode>`)
+      :arg mode: integer
+      :return: None
+
+   .. method:: rebuild()
+
+      Rebuild the navigation mesh.
+
+      :return: None
+
 .. class:: KX_ObjectActuator(SCA_IActuator)
 
    The object actuator ("Motion Actuator") applies force, torque, displacement, angular displacement, 
@@ -2331,49 +2465,6 @@ Types
 
       :type: boolean
 
-.. class:: KX_PhysicsObjectWrapper(PyObjectPlus)
-
-   KX_PhysicsObjectWrapper
-
-   .. method:: setActive(active)
-
-      Set the object to be active.
-
-      :arg active: set to True to be active
-      :type active: boolean
-
-   .. method:: setAngularVelocity(x, y, z, local)
-
-      Set the angular velocity of the object.
-
-      :arg x: angular velocity for the x-axis
-      :type x: float
-
-      :arg y: angular velocity for the y-axis
-      :type y: float
-
-      :arg z: angular velocity for the z-axis
-      :type z: float
-
-      :arg local: set to True for local axis
-      :type local: boolean
-
-   .. method:: setLinearVelocity(x, y, z, local)
-
-      Set the linear velocity of the object.
-
-      :arg x: linear velocity for the x-axis
-      :type x: float
-
-      :arg y: linear velocity for the y-axis
-      :type y: float
-
-      :arg z: linear velocity for the z-axis
-      :type z: float
-
-      :arg local: set to True for local axis
-      :type local: boolean
-
 .. class:: KX_PolyProxy(SCA_IObject)
 
    A polygon holds the index of the vertex forming the poylgon.
@@ -2382,7 +2473,7 @@ Types
    The polygon attributes are read-only, you need to retrieve the vertex proxy if you want
    to change the vertex settings.
 
-   .. attribute:: matname
+   .. attribute:: material_name
 
       The name of polygon material, empty if no material.
 
@@ -2394,13 +2485,13 @@ Types
 
       :type: :class:`KX_PolygonMaterial` or :class:`KX_BlenderMaterial`
 
-   .. attribute:: texture
+   .. attribute:: texture_name
 
       The texture name of the polygon.
 
       :type: string
 
-   .. attribute:: matid
+   .. attribute:: material_id
 
       The material index of the polygon, use this to retrieve vertex proxy from mesh proxy.
 
@@ -2628,18 +2719,6 @@ Types
       Transparent polygons in meshes with this material will be sorted back to
       front before rendering.
       Non-Transparent polygons will be sorted front to back before rendering.
-
-      :type: boolean
-
-   .. attribute:: lightlayer
-
-      Light layers this material affects.
-
-      :type: bitfield.
-
-   .. attribute:: triangle
-
-      Mesh data with this material is triangles. It's probably not safe to change this.
 
       :type: boolean
 
@@ -2908,8 +2987,8 @@ Types
    .. method:: instantAddObject()
 
       adds the object without needing to calling SCA_PythonController.activate()
-	  
-	  .. note:: Use objectLastCreated to get the newly created object.
+
+      .. note:: Use objectLastCreated to get the newly created object.
 
 .. class:: KX_SCA_DynamicActuator(SCA_IActuator)
 
@@ -3182,6 +3261,10 @@ Types
       Return the value matching key, or the default value if its not found.
       :return: The key value or a default.
 
+   .. method:: drawObstacleSimulation()
+
+      Draw debug visualization of obstacle simulation.
+
 .. class:: KX_SceneActuator(SCA_IActuator)
 
    Scene Actuator logic brick.
@@ -3228,17 +3311,17 @@ Types
 
    Sound Actuator.
 
-   The :data:`startSound`, :data:`pauseSound` and :data:`stopSound` do not requirethe actuator to be activated - they act instantly provided that the actuator has been activated once at least.
-
-   .. attribute:: fileName
-
-      The filename of the sound this actuator plays.
-
-      :type: string
+   The :data:`startSound`, :data:`pauseSound` and :data:`stopSound` do not require the actuator to be activated - they act instantly provided that the actuator has been activated once at least.
 
    .. attribute:: volume
 
       The volume (gain) of the sound.
+
+      :type: float
+
+   .. attribute:: time
+
+      The current position in the audio stream (in seconds).
 
       :type: float
 
@@ -3248,41 +3331,89 @@ Types
 
       :type: float
 
-   .. attribute:: rollOffFactor
-
-      The roll off factor. Rolloff defines the rate of attenuation as the sound gets further away.
-
-      :type: float
-
-   .. attribute:: looping
-
-      The loop mode of the actuator.
-
-      :type: integer
-
-   .. attribute:: position
-
-      The position of the sound as a list: [x, y, z].
-
-      :type: float array
-
-   .. attribute:: velocity
-
-      The velocity of the emitter as a list: [x, y, z]. The relative velocity to the observer determines the pitch. List of 3 floats: [x, y, z].
-
-      :type: float array
-
-   .. attribute:: orientation
-
-      The orientation of the sound. When setting the orientation you can also use quaternion [float, float, float, float] or euler angles [float, float, float].
-
-      :type: 3x3 matrix [[float]]
-
    .. attribute:: mode
 
       The operation mode of the actuator. Can be one of :ref:`these constants<logic-sound-actuator>`
 
       :type: integer
+
+   .. attribute:: sound
+
+      The sound the actuator should play.
+
+      :type: Audaspace factory
+
+   .. attribute:: is3D
+
+      Whether or not the actuator should be using 3D sound. (read-only)
+
+      :type: boolean
+
+   .. attribute:: volume_maximum
+
+      The maximum gain of the sound, no matter how near it is.
+
+      :type: float
+
+   .. attribute:: volume_minimum
+
+      The minimum gain of the sound, no matter how far it is away.
+
+      :type: float
+
+   .. attribute:: distance_reference
+
+      The distance where the sound has a gain of 1.0.
+
+      :type: float
+
+   .. attribute:: distance_maximum
+
+      The maximum distance at which you can hear the sound.
+
+      :type: float
+
+   .. attribute:: attenuation
+
+      The influence factor on volume depending on distance.
+
+      :type: float
+
+   .. attribute:: cone_angle_inner
+
+      The angle of the inner cone.
+
+      :type: float
+
+   .. attribute:: cone_angle_outer
+
+      The angle of the outer cone.
+
+      :type: float
+
+   .. attribute:: cone_volume_outer
+
+      The gain outside the outer cone (the gain in the outer cone will be interpolated between this value and the normal gain in the inner cone).
+
+      :type: float
+
+   .. method:: startSound()
+
+      Starts the sound.
+
+      :return: None
+
+   .. method:: pauseSound()
+
+      Pauses the sound.
+
+      :return: None
+
+   .. method:: stopSound()
+
+      Stops the sound.
+
+      :return: None
 
 .. class:: KX_StateActuator(SCA_IActuator)
 
@@ -3500,7 +3631,7 @@ Types
 
       Whether or not the character is on the ground. (read-only)
 
-	  :type: boolean
+      :type: boolean
 
    .. attribute:: gravity
 
@@ -3545,10 +3676,6 @@ Types
       :type: list [r, g, b, a]
 
       Black = [0.0, 0.0, 0.0, 1.0], White = [1.0, 1.0, 1.0, 1.0]
-
-   .. attribute:: colour
-
-      Synonym for color.
 
    .. attribute:: x
 
@@ -4270,24 +4397,6 @@ Types
 
       :type: integer
 
-   .. method:: setSeed(seed)
-
-      Sets the seed of the random number generator.
-
-      If the seed is 0, the generator will produce the same value on every call.
-
-      :type seed: integer
-
-   .. method:: getSeed()
-
-      :return: The initial seed of the generator.  Equal seeds produce equal random series.
-      :rtype: integer
-
-   .. method:: getLastDraw()
-
-      :return: The last random number generated.
-      :rtype: integer
-
 .. class:: SCA_XNORController(SCA_IController)
 
    An XNOR controller activates when all linked sensors are the same (activated or inative).
@@ -4355,7 +4464,7 @@ Types
    .. attribute:: projection_matrix
 
       This camera's 4x4 projection matrix.
-	  
+
       .. note::
       
          This is the identity matrix prior to rendering the first frame (any Python done on frame 1). 
@@ -4608,48 +4717,6 @@ Types
 
    Armature Actuators change constraint condition on armatures.
 
-   .. _armatureactuator-constants-type:
-   
-   Constants related to :data:`~bge.types.BL_ArmatureActuator.type`
-   
-   .. data:: KX_ACT_ARMATURE_RUN
-
-      Just make sure the armature will be updated on the next graphic frame.
-      This is the only persistent mode of the actuator:
-      it executes automatically once per frame until stopped by a controller
-      
-      :value: 0
-
-   .. data:: KX_ACT_ARMATURE_ENABLE
-
-      Enable the constraint.
-            
-      :value: 1
-
-   .. data:: KX_ACT_ARMATURE_DISABLE
-
-      Disable the constraint (runtime constraint values are not updated).
-            
-      :value: 2
-
-   .. data:: KX_ACT_ARMATURE_SETTARGET
-
-      Change target and subtarget of constraint.
-      
-      :value: 3
-
-   .. data:: KX_ACT_ARMATURE_SETWEIGHT
-
-      Change weight of constraint (IK only).
-
-      :value: 4
-
-   .. data:: KX_ACT_ARMATURE_SETINFLUENCE
-
-      Change influence of constraint.
-
-      :value: 5
-
    .. attribute:: type
 
       The type of action that the actuator executes when it is active.
@@ -4704,40 +4771,6 @@ Types
 
    Armature sensor detect conditions on armatures.
 
-   .. _armaturesensor-type:
-
-   Constants related to :data:`type`
-
-   .. data:: KX_ARMSENSOR_STATE_CHANGED
-   
-      Detect that the constraint is changing state (active/inactive)
-
-      :value: 0
-      
-   .. data:: KX_ARMSENSOR_LIN_ERROR_BELOW
-   
-      Detect that the constraint linear error is above a threshold
-      
-      :value: 1
-      
-   .. data:: KX_ARMSENSOR_LIN_ERROR_ABOVE
-   
-      Detect that the constraint linear error is below a threshold
-
-      :value: 2
-      
-   .. data:: KX_ARMSENSOR_ROT_ERROR_BELOW
-   
-      Detect that the constraint rotation error is above a threshold
-      
-      :value: 3
-      
-   .. data:: KX_ARMSENSOR_ROT_ERROR_ABOVE
-   
-      Detect that the constraint rotation error is below a threshold
-      
-      :value: 4
-      
    .. attribute:: type
 
       The type of measurement that the sensor make when it is active.
@@ -4772,87 +4805,6 @@ Types
    
       Not all armature constraints are supported in the GE.
 
-   .. _armatureconstraint-constants-type:
-
-   Constants related to :data:`type`
-
-   .. data:: CONSTRAINT_TYPE_TRACKTO
-   .. data:: CONSTRAINT_TYPE_KINEMATIC
-   .. data:: CONSTRAINT_TYPE_ROTLIKE
-   .. data:: CONSTRAINT_TYPE_LOCLIKE
-   .. data:: CONSTRAINT_TYPE_MINMAX
-   .. data:: CONSTRAINT_TYPE_SIZELIKE
-   .. data:: CONSTRAINT_TYPE_LOCKTRACK
-   .. data:: CONSTRAINT_TYPE_STRETCHTO
-   .. data:: CONSTRAINT_TYPE_CLAMPTO
-   .. data:: CONSTRAINT_TYPE_TRANSFORM
-   .. data:: CONSTRAINT_TYPE_DISTLIMIT
-
-   .. _armatureconstraint-constants-ik-type:
-
-   Constants related to :data:`ik_type`
-      
-   .. data:: CONSTRAINT_IK_COPYPOSE
-      
-      constraint is trying to match the position and eventually the rotation of the target.
-      
-      :value: 0
-   
-   .. data:: CONSTRAINT_IK_DISTANCE
-      
-      Constraint is maintaining a certain distance to target subject to ik_mode
-      
-      :value: 1
-
-   .. _armatureconstraint-constants-ik-flag:
-
-   Constants related to :data:`ik_flag`
-
-   .. data:: CONSTRAINT_IK_FLAG_TIP
-      
-      Set when the constraint operates on the head of the bone and not the tail
-      
-      :value: 1
-      
-   .. data:: CONSTRAINT_IK_FLAG_ROT
-      
-      Set when the constraint tries to match the orientation of the target
-      
-      :value: 2
-      
-   .. data:: CONSTRAINT_IK_FLAG_STRETCH
-      
-      Set when the armature is allowed to stretch (only the bones with stretch factor > 0.0)
-      
-      :value: 16
-      
-   .. data:: CONSTRAINT_IK_FLAG_POS
-      
-      Set when the constraint tries to match the position of the target.
-      
-      :value: 32
-      
-   .. _armatureconstraint-constants-ik-mode:
-
-   Constants related to :data:`ik_mode`
-   
-   .. data:: CONSTRAINT_IK_MODE_INSIDE
-      
-      The constraint tries to keep the bone within ik_dist of target
-      
-      :value: 0
-      
-   .. data:: CONSTRAINT_IK_MODE_OUTSIDE
-      
-      The constraint tries to keep the bone outside ik_dist of the target
-      
-      :value: 1
-      
-   .. data:: CONSTRAINT_IK_MODE_ONSURFACE
-      
-      The constraint tries to keep the bone exactly at ik_dist of the target.
-      
-      :value: 2
       
    .. attribute:: type
 
@@ -4970,16 +4922,6 @@ Types
 
    Proxy to armature pose channel. Allows to read and set armature pose.
    The attributes are identical to RNA attributes, but mostly in read-only mode.
-
-   See :data:`rotation_mode`
-
-   .. data:: PCHAN_ROT_QUAT
-   .. data:: PCHAN_ROT_XYZ
-   .. data:: PCHAN_ROT_XZY
-   .. data:: PCHAN_ROT_YXZ
-   .. data:: PCHAN_ROT_YZX
-   .. data:: PCHAN_ROT_ZXY
-   .. data:: PCHAN_ROT_ZYX
 
    .. attribute:: name
 
@@ -5114,17 +5056,7 @@ Types
 
       Method of updating the bone rotation, read-write.
 
-      :type: integer
-
-      Use the following constants (euler mode are named as in Blender UI but the actual axis order is reversed).
-
-      * PCHAN_ROT_QUAT(0) : use quaternioin in rotation attribute to update bone rotation
-      * PCHAN_ROT_XYZ(1) : use euler_rotation and apply angles on bone's Z, Y, X axis successively
-      * PCHAN_ROT_XZY(2) : use euler_rotation and apply angles on bone's Y, Z, X axis successively
-      * PCHAN_ROT_YXZ(3) : use euler_rotation and apply angles on bone's Z, X, Y axis successively
-      * PCHAN_ROT_YZX(4) : use euler_rotation and apply angles on bone's X, Z, Y axis successively
-      * PCHAN_ROT_ZXY(5) : use euler_rotation and apply angles on bone's Y, X, Z axis successively
-      * PCHAN_ROT_ZYX(6) : use euler_rotation and apply angles on bone's X, Y, Z axis successively
+      :type: integer (one of :ref:`these constants <armaturechannel-constants-rotation-mode>`)
 
    .. attribute:: channel_matrix
 

@@ -90,11 +90,6 @@ enum {
 	OPUVC_AXIS_Y
 };
 
-enum {
-	DIRECTION_CW = 1,
-	DIRECTION_CCW
-};
-
 /* vertex path selection values */
 enum {
 	VPATH_SELECT_EDGE_LENGTH = 0,

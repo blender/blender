@@ -1822,8 +1822,15 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 		 */
 
 		/* only happens on reload file, but violates depsgraph still... fix! */
-		if ((cu->path == NULL) || (cu->path->data == NULL))
+		if (ELEM(NULL, cu->path, cu->path->data)) {
 			BKE_displist_make_curveTypes(scene, ikData->tar, 0);
+			
+			/* path building may fail in EditMode after removing verts [#33268]*/
+			if (ELEM(NULL, cu->path, cu->path->data)) {
+				/* BLI_assert(cu->path != NULL); */
+				return;
+			}
+		}
 	}
 
 	/* find the root bone and the chain of bones from the root to the tip

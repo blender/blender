@@ -184,7 +184,7 @@ int Video_setRepeat(PyImage *self, PyObject *value, void *closure)
 		return -1;
 	}
 	// set repeat
-	getVideo(self)->setRepeat(int(PyLong_AsSsize_t(value)));
+	getVideo(self)->setRepeat(int(PyLong_AsLong(value)));
 	// success
 	return 0;
 }

@@ -1384,6 +1384,12 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 		but->rnasearchprop = searchprop;
 		but->flag |= UI_ICON_LEFT | UI_TEXT_LEFT;
 
+		if (RNA_property_type(prop) == PROP_ENUM) {
+			/* XXX, this will have a menu string,
+			 * but in this case we just want the text */
+			but->str[0] = 0;
+		}
+
 		uiButSetSearchFunc(but, rna_search_cb, but, NULL, NULL);
 	}
 }
@@ -1401,13 +1407,14 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	prop = RNA_struct_find_property(ptr, propname);
 
 	if (!prop) {
-		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		RNA_warning("property not found: %s.%s",
+		            RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 	
 	type = RNA_property_type(prop);
-	if (!ELEM(type, PROP_POINTER, PROP_STRING)) {
-		RNA_warning("Property %s must be a pointer or string", propname);
+	if (!ELEM3(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
+		RNA_warning("Property %s must be a pointer, string or enum", propname);
 		return;
 	}
 
@@ -1415,11 +1422,13 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 
 
 	if (!searchprop) {
-		RNA_warning("search collection property not found: %s.%s", RNA_struct_identifier(ptr->type), searchpropname);
+		RNA_warning("search collection property not found: %s.%s",
+		            RNA_struct_identifier(searchptr->type), searchpropname);
 		return;
 	}
 	else if (RNA_property_type(searchprop) != PROP_COLLECTION) {
-		RNA_warning("search collection property is not a collection type: %s.%s", RNA_struct_identifier(ptr->type), searchpropname);
+		RNA_warning("search collection property is not a collection type: %s.%s",
+		            RNA_struct_identifier(searchptr->type), searchpropname);
 		return;
 	}
 

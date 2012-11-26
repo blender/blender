@@ -118,16 +118,16 @@ BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg bz2'
 #bz2 is a standard osx dynlib
 
-BF_PYTHON_VERSION = '3.2'
+BF_PYTHON_VERSION = '3.3'
 WITH_OSX_STATICPYTHON = True
 
 if WITH_OSX_STATICPYTHON:
-    # python 3.2 uses precompiled libraries in bf svn /lib by default
+    # python 3.3 uses precompiled libraries in bf svn /lib by default
 
     BF_PYTHON = LIBDIR + '/python'
-    BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+    BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}m'
     # BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
-    BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
+    BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}m'
     BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
     # BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
 else:
@@ -309,7 +309,7 @@ BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
 BF_BOOST_INC = '${BF_BOOST}/include'
-BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
+BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt boost_wave-mt'
 BF_BOOST_LIB_INTERNATIONAL = 'boost_locale-mt'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 

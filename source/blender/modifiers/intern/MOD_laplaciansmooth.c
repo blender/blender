@@ -199,7 +199,7 @@ static void init_data(ModifierData *md)
 	smd->lambda = 0.00001f;
 	smd->lambda_border = 0.00005f;
 	smd->repeat = 1;
-	smd->flag = MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z | MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION;
+	smd->flag = MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z | MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME;
 	smd->defgrp_name[0] = '\0';
 }
 
@@ -511,7 +511,7 @@ static void validate_solution(LaplacianSystem *sys, short flag)
 	float leni, lene;
 	float vini, vend;
 	float *vi1, *vi2, ve1[3], ve2[3];
-	if (flag & MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION) {
+	if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
 		vini = compute_volume(sys->vertexCos, sys->mfaces, sys->numFaces);
 	}
 	for (i = 0; i < sys->numEdges; i++) {
@@ -545,7 +545,7 @@ static void validate_solution(LaplacianSystem *sys, short flag)
 			}
 		}
 	}
-	if (flag & MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION) {
+	if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
 		vend = compute_volume(sys->vertexCos, sys->mfaces, sys->numFaces);
 		volume_preservation(sys, vini, vend, flag);
 	}

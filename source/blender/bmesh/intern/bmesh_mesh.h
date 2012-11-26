@@ -30,6 +30,7 @@
 struct BMAllocTemplate;
 
 void   BM_mesh_elem_toolflags_ensure(BMesh *bm);
+void   BM_mesh_elem_toolflags_clear(BMesh *bm);
 BMesh *BM_mesh_create(struct BMAllocTemplate *allocsize);
 
 void   BM_mesh_free(BMesh *bm);

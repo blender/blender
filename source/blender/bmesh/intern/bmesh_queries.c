@@ -39,8 +39,6 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-#define BM_OVERLAP (1 << 13)
-
 /**
  * Returns whether or not a given vertex is
  * is part of a given edge.
@@ -240,7 +238,7 @@ int BM_vert_in_face(BMFace *f, BMVert *v)
  * Compares the number of vertices in an array
  * that appear in a given face
  */
-int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
+int BM_verts_in_face(BMFace *f, BMVert **varr, int len)
 {
 	BMLoop *l_iter, *l_first;
 
@@ -251,7 +249,7 @@ int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 	int i, count = 0;
 	
 	for (i = 0; i < len; i++) {
-		BMO_elem_flag_enable(bm, varr[i], BM_OVERLAP);
+		BM_ELEM_API_FLAG_ENABLE(varr[i], _FLAG_OVERLAP);
 	}
 
 #ifdef USE_BMESH_HOLES
@@ -266,14 +264,16 @@ int BM_verts_in_face(BMesh *bm, BMFace *f, BMVert **varr, int len)
 #endif
 
 		do {
-			if (BMO_elem_flag_test(bm, l_iter->v, BM_OVERLAP)) {
+			if (BM_ELEM_API_FLAG_TEST(l_iter->v, _FLAG_OVERLAP)) {
 				count++;
 			}
 
 		} while ((l_iter = l_iter->next) != l_first);
 	}
 
-	for (i = 0; i < len; i++) BMO_elem_flag_disable(bm, varr[i], BM_OVERLAP);
+	for (i = 0; i < len; i++) {
+		BM_ELEM_API_FLAG_DISABLE(varr[i], _FLAG_OVERLAP);
+	}
 
 	return count;
 }
@@ -1217,7 +1217,7 @@ BMEdge *BM_edge_find_double(BMEdge *e)
  * \returns TRUE for overlap
  *
  */
-int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlapface)
+int BM_face_exists_overlap(BMVert **varr, int len, BMFace **r_overlapface)
 {
 	BMIter viter;
 	BMFace *f;
@@ -1225,7 +1225,7 @@ int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlap
 
 	for (i = 0; i < len; i++) {
 		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
-			amount = BM_verts_in_face(bm, f, varr, len);
+			amount = BM_verts_in_face(f, varr, len);
 			if (amount >= len) {
 				if (r_overlapface) {
 					*r_overlapface = f;
@@ -1247,7 +1247,7 @@ int BM_face_exists_overlap(BMesh *bm, BMVert **varr, int len, BMFace **r_overlap
  * there is a face with exactly those vertices
  * (and only those vertices).
  */
-int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
+int BM_face_exists(BMVert **varr, int len, BMFace **r_existface)
 {
 	BMIter viter;
 	BMFace *f;
@@ -1255,7 +1255,7 @@ int BM_face_exists(BMesh *bm, BMVert **varr, int len, BMFace **r_existface)
 
 	for (i = 0; i < len; i++) {
 		BM_ITER_ELEM (f, &viter, varr[i], BM_FACES_OF_VERT) {
-			amount = BM_verts_in_face(bm, f, varr, len);
+			amount = BM_verts_in_face(f, varr, len);
 			if (amount == len && amount == f->len) {
 				if (r_existface) {
 					*r_existface = f;

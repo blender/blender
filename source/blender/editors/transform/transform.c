@@ -2860,11 +2860,21 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 	(void)spos;
 }
 
-#define SIGN(a)     (a<-FLT_EPSILON ? 1 : a>FLT_EPSILON ? 2 : 3)
-#define VECSIGNFLIP(a, b) ((SIGN(a[0]) & SIGN(b[0])) == 0 || (SIGN(a[1]) & SIGN(b[1])) == 0 || (SIGN(a[2]) & SIGN(b[2])) == 0)
+/* FLT_EPSILON is too small [#29633], 0.0000001f starts to flip */
+#define TX_FLIP_EPS 0.00001f
+BLI_INLINE int tx_sign(const float a)
+{
+	return (a < -TX_FLIP_EPS ? 1 : a > TX_FLIP_EPS ? 2 : 3);
+}
+BLI_INLINE int tx_vec_sign_flip(const float a[3], const float b[3])
+{
+	return ((tx_sign(a[0]) & tx_sign(b[0])) == 0 ||
+	        (tx_sign(a[1]) & tx_sign(b[1])) == 0 ||
+	        (tx_sign(a[2]) & tx_sign(b[2])) == 0);
+}
 
 /* smat is reference matrix, only scaled */
-static void TransMat3ToSize(float mat[][3], float smat[][3], float *size)
+static void TransMat3ToSize(float mat[][3], float smat[][3], float size[3])
 {
 	float vec[3];
 	
@@ -2876,9 +2886,9 @@ static void TransMat3ToSize(float mat[][3], float smat[][3], float *size)
 	size[2] = normalize_v3(vec);
 	
 	/* first tried with dotproduct... but the sign flip is crucial */
-	if (VECSIGNFLIP(mat[0], smat[0]) ) size[0] = -size[0];
-	if (VECSIGNFLIP(mat[1], smat[1]) ) size[1] = -size[1];
-	if (VECSIGNFLIP(mat[2], smat[2]) ) size[2] = -size[2];
+	if (tx_vec_sign_flip(mat[0], smat[0]) ) size[0] = -size[0];
+	if (tx_vec_sign_flip(mat[1], smat[1]) ) size[1] = -size[1];
+	if (tx_vec_sign_flip(mat[2], smat[2]) ) size[2] = -size[2];
 }
 
 

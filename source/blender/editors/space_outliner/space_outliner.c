@@ -337,8 +337,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_GEOM:
 			switch (wmn->data) {
-				case ND_DATA:
-					/* needed for vertex groups only, no special notifier atm so use NC_GEOM|ND_DATA */
+				case ND_VERTEX_GROUP:
 					ED_region_tag_redraw(ar);
 					break;
 			}

@@ -1377,104 +1377,6 @@ void TEXT_OT_move_lines(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", direction_items, 1, "Direction", "");
 }
 
-/******************* previous marker operator *********************/
-
-static int text_previous_marker_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Text *text = CTX_data_edit_text(C);
-	TextMarker *mrk;
-	int lineno;
-
-	lineno = txt_get_span(text->lines.first, text->curl);
-	mrk = text->markers.last;
-	while (mrk && (mrk->lineno > lineno || (mrk->lineno == lineno && mrk->end > text->curc)))
-		mrk = mrk->prev;
-	if (!mrk) mrk = text->markers.last;
-	if (mrk) {
-		txt_move_to(text, mrk->lineno, mrk->start, 0);
-		txt_move_to(text, mrk->lineno, mrk->end, 1);
-	}
-
-	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-
-	return OPERATOR_FINISHED;
-}
-
-void TEXT_OT_previous_marker(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Previous Marker";
-	ot->idname = "TEXT_OT_previous_marker";
-	ot->description = "Move to previous marker";
-	
-	/* api callbacks */
-	ot->exec = text_previous_marker_exec;
-	ot->poll = text_edit_poll;
-}
-
-/******************* next marker operator *********************/
-
-static int text_next_marker_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Text *text = CTX_data_edit_text(C);
-	TextMarker *mrk;
-	int lineno;
-
-	lineno = txt_get_span(text->lines.first, text->curl);
-	mrk = text->markers.first;
-	while (mrk && (mrk->lineno < lineno || (mrk->lineno == lineno && mrk->start <= text->curc)))
-		mrk = mrk->next;
-	if (!mrk) mrk = text->markers.first;
-	if (mrk) {
-		txt_move_to(text, mrk->lineno, mrk->start, 0);
-		txt_move_to(text, mrk->lineno, mrk->end, 1);
-	}
-
-	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-
-	return OPERATOR_FINISHED;
-}
-
-void TEXT_OT_next_marker(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Next Marker";
-	ot->idname = "TEXT_OT_next_marker";
-	ot->description = "Move to next marker";
-	
-	/* api callbacks */
-	ot->exec = text_next_marker_exec;
-	ot->poll = text_edit_poll;
-}
-
-/******************* clear all markers operator *********************/
-
-static int text_clear_all_markers_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Text *text = CTX_data_edit_text(C);
-
-	txt_clear_markers(text, 0, 0);
-
-	text_update_cursor_moved(C);
-	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-
-	return OPERATOR_FINISHED;
-}
-
-void TEXT_OT_markers_clear(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Clear All Markers";
-	ot->idname = "TEXT_OT_markers_clear";
-	ot->description = "Clear all markers";
-	
-	/* api callbacks */
-	ot->exec = text_clear_all_markers_exec;
-	ot->poll = text_edit_poll;
-}
-
 /************************ move operator ************************/
 
 static EnumPropertyItem move_type_items[] = {
@@ -2956,14 +2858,13 @@ void TEXT_OT_insert(wmOperatorType *ot)
 /* mode */
 #define TEXT_FIND       0
 #define TEXT_REPLACE    1
-#define TEXT_MARK_ALL   2
 
 static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
 {
 	Main *bmain = CTX_data_main(C);
 	SpaceText *st = CTX_wm_space_text(C);
-	Text *start = NULL, *text = st->text;
-	int flags, first = 1;
+	Text *text = st->text;
+	int flags;
 	int found = 0;
 	char *tmp;
 
@@ -2972,79 +2873,48 @@ static int text_find_and_replace(bContext *C, wmOperator *op, short mode)
 
 	flags = st->flags;
 	if (flags & ST_FIND_ALL)
-		flags ^= ST_FIND_WRAP;
+		flags &= ~ST_FIND_WRAP;
 
-	do {
-		int proceed = 0;
+	/* Replace current */
+	if (mode != TEXT_FIND && txt_has_sel(text)) {
+		tmp = txt_sel_to_buf(text);
 
-		if (first) {
-			if (text->markers.first)
+		if (flags & ST_MATCH_CASE) found = strcmp(st->findstr, tmp) == 0;
+		else found = BLI_strcasecmp(st->findstr, tmp) == 0;
+
+		if (found) {
+			if (mode == TEXT_REPLACE) {
+				txt_insert_buf(text, st->replacestr);
+				if (text->curl && text->curl->format) {
+					MEM_freeN(text->curl->format);
+					text->curl->format = NULL;
+				}
+				text_update_cursor_moved(C);
 				WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-
-			txt_clear_markers(text, TMARK_GRP_FINDALL, 0);
-		}
-
-		first = 0;
-		
-		/* Replace current */
-		if (mode != TEXT_FIND && txt_has_sel(text)) {
-			tmp = txt_sel_to_buf(text);
-
-			if (flags & ST_MATCH_CASE) proceed = strcmp(st->findstr, tmp) == 0;
-			else proceed = BLI_strcasecmp(st->findstr, tmp) == 0;
-
-			if (proceed) {
-				if (mode == TEXT_REPLACE) {
-					txt_insert_buf(text, st->replacestr);
-					if (text->curl && text->curl->format) {
-						MEM_freeN(text->curl->format);
-						text->curl->format = NULL;
-					}
-					text_update_cursor_moved(C);
-					WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-					text_drawcache_tag_update(CTX_wm_space_text(C), 1);
-				}
-				else if (mode == TEXT_MARK_ALL) {
-					unsigned char color[4];
-					UI_GetThemeColor4ubv(TH_SHADE2, color);
-
-					if (txt_find_marker(text, text->curl, text->selc, TMARK_GRP_FINDALL, 0)) {
-						if (tmp) MEM_freeN(tmp), tmp = NULL;
-						break;
-					}
-
-					txt_add_marker(text, text->curl, text->curc, text->selc, color, TMARK_GRP_FINDALL, TMARK_EDITALL);
-					text_update_cursor_moved(C);
-					WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-				}
+				text_drawcache_tag_update(CTX_wm_space_text(C), 1);
 			}
-			MEM_freeN(tmp);
-			tmp = NULL;
 		}
+		MEM_freeN(tmp);
+		tmp = NULL;
+	}
 
-		/* Find next */
-		if (txt_find_string(text, st->findstr, flags & ST_FIND_WRAP, flags & ST_MATCH_CASE)) {
-			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
-		}
-		else if (flags & ST_FIND_ALL) {
-			if (text == start) break;
-			if (!start) start = text;
-			if (text->id.next)
-				text = st->text = text->id.next;
-			else
-				text = st->text = bmain->text.first;
-			txt_move_toline(text, 0, 0);
-			text_update_cursor_moved(C);
-			WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
-			first = 1;
-		}
-		else {
-			if (!found && !proceed) BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
-			break;
-		}
-		found = 1;
-	} while (mode == TEXT_MARK_ALL);
+	/* Find next */
+	if (txt_find_string(text, st->findstr, flags & ST_FIND_WRAP, flags & ST_MATCH_CASE)) {
+		text_update_cursor_moved(C);
+		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
+	}
+	else if (flags & ST_FIND_ALL) {
+		if (text->id.next)
+			text = st->text = text->id.next;
+		else
+			text = st->text = bmain->text.first;
+		txt_move_toline(text, 0, 0);
+		text_update_cursor_moved(C);
+		WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, text);
+	}
+	else {
+		if (!found) BKE_reportf(op->reports, RPT_ERROR, "Text not found: %s", st->findstr);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -3082,25 +2952,6 @@ void TEXT_OT_replace(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = text_replace_exec;
-	ot->poll = text_space_edit_poll;
-}
-
-/******************* mark all operator *********************/
-
-static int text_mark_all_exec(bContext *C, wmOperator *op)
-{
-	return text_find_and_replace(C, op, TEXT_MARK_ALL);
-}
-
-void TEXT_OT_mark_all(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Mark All";
-	ot->idname = "TEXT_OT_mark_all";
-	ot->description = "Mark all specified text";
-	
-	/* api callbacks */
-	ot->exec = text_mark_all_exec;
 	ot->poll = text_space_edit_poll;
 }
 

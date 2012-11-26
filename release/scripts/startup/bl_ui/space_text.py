@@ -137,9 +137,6 @@ class TEXT_PT_find(Panel):
         row.operator("text.replace_set_selected", text="", icon='TEXT')
         col.operator("text.replace")
 
-        # mark
-        layout.operator("text.mark_all")
-
         # settings
         layout.prop(st, "use_match_case")
         row = layout.row()
@@ -216,17 +213,6 @@ class TEXT_MT_edit_select(Menu):
         layout.operator("text.select_line")
 
 
-class TEXT_MT_edit_markers(Menu):
-    bl_label = "Markers"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("text.markers_clear")
-        layout.operator("text.next_marker")
-        layout.operator("text.previous_marker")
-
-
 class TEXT_MT_format(Menu):
     bl_label = "Format"
 
@@ -290,7 +276,6 @@ class TEXT_MT_edit(Menu):
         layout.separator()
 
         layout.menu("TEXT_MT_edit_select")
-        layout.menu("TEXT_MT_edit_markers")
 
         layout.separator()
 

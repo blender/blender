@@ -649,6 +649,80 @@ bool OSLRenderServices::has_userdata(ustring name, TypeDesc type, void *renderst
 	return false; /* never called by OSL */
 }
 
+bool OSLRenderServices::texture(ustring filename, TextureOpt &options,
+                                OSL::ShaderGlobals *sg,
+                                float s, float t, float dsdx, float dtdx,
+                                float dsdy, float dtdy, float *result)
+{
+	OSL::TextureSystem *ts = kernel_globals->osl.ts;
+	bool status = ts->texture(filename, options, s, t, dsdx, dtdx, dsdy, dtdy, result);
+
+	if(!status) {
+		if(options.nchannels == 3 || options.nchannels == 4) {
+			result[0] = 1.0f;
+			result[1] = 0.0f;
+			result[2] = 1.0f;
+
+			if(options.nchannels == 4)
+				result[3] = 1.0f;
+		}
+	}
+
+	return status;
+}
+
+bool OSLRenderServices::texture3d(ustring filename, TextureOpt &options,
+                                  OSL::ShaderGlobals *sg, const OSL::Vec3 &P,
+                                  const OSL::Vec3 &dPdx, const OSL::Vec3 &dPdy,
+                                  const OSL::Vec3 &dPdz, float *result)
+{
+	OSL::TextureSystem *ts = kernel_globals->osl.ts;
+	bool status = ts->texture3d(filename, options, P, dPdx, dPdy, dPdz, result);
+
+	if(!status) {
+		if(options.nchannels == 3 || options.nchannels == 4) {
+			result[0] = 1.0f;
+			result[1] = 0.0f;
+			result[2] = 1.0f;
+
+			if(options.nchannels == 4)
+				result[3] = 1.0f;
+		}
+
+	}
+
+	return status;
+}
+
+bool OSLRenderServices::environment(ustring filename, TextureOpt &options,
+                                    OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
+                                    const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy, float *result)
+{
+	OSL::TextureSystem *ts = kernel_globals->osl.ts;
+	bool status = ts->environment(filename, options, R, dRdx, dRdy, result);
+
+	if(!status) {
+		if(options.nchannels == 3 || options.nchannels == 4) {
+			result[0] = 1.0f;
+			result[1] = 0.0f;
+			result[2] = 1.0f;
+
+			if(options.nchannels == 4)
+				result[3] = 1.0f;
+		}
+	}
+
+	return status;
+}
+
+bool OSLRenderServices::get_texture_info(ustring filename, int subimage,
+                                         ustring dataname,
+                                         TypeDesc datatype, void *data)
+{
+	OSL::TextureSystem *ts = kernel_globals->osl.ts;
+	return ts->get_texture_info(filename, subimage, dataname, datatype, data);
+}
+
 int OSLRenderServices::pointcloud_search(OSL::ShaderGlobals *sg, ustring filename, const OSL::Vec3 &center,
                                          float radius, int max_points, bool sort,
                                          size_t *out_indices, float *out_distances, int derivs_offset)

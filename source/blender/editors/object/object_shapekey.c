@@ -137,9 +137,11 @@ static int ED_object_shape_key_remove(bContext *C, Object *ob)
 	}
 	
 	if (key->totkey == 0) {
-		if (GS(key->from->name) == ID_ME) ((Mesh *)key->from)->key = NULL;
-		else if (GS(key->from->name) == ID_CU) ((Curve *)key->from)->key = NULL;
-		else if (GS(key->from->name) == ID_LT) ((Lattice *)key->from)->key = NULL;
+		switch (GS(key->from->name)) {
+			case ID_ME: ((Mesh *)key->from)->key    = NULL; break;
+			case ID_CU: ((Curve *)key->from)->key   = NULL; break;
+			case ID_LT: ((Lattice *)key->from)->key = NULL; break;
+		}
 
 		BKE_libblock_free_us(&(bmain->key), key);
 	}

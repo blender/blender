@@ -87,18 +87,21 @@ static PyObject *getColor (PyFilter *self, void *closure)
 static int setColor (PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 3
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2)))
+	if (value == NULL ||
+	    !(PyTuple_Check(value) || PyList_Check(value)) ||
+	    PySequence_Fast_GET_SIZE(value) != 3 ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0)) ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)) ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 3 ints");
 		return -1;
 	}
 	// set color
-	getFilter(self)->setColor((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))));
+	getFilter(self)->setColor(
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 2))));
 	// success
 	return 0;
 }
@@ -114,16 +117,19 @@ static PyObject *getLimits (PyFilter *self, void *closure)
 static int setLimits (PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
+	if (value == NULL ||
+	    !(PyTuple_Check(value) || PyList_Check(value)) ||
+	    PySequence_Fast_GET_SIZE(value) != 2 ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0)) ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 ints");
 		return -1;
 	}
 	// set limits
-	getFilter(self)->setLimits((unsigned short)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned short)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))));
+	getFilter(self)->setLimits(
+	        (unsigned short)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+	        (unsigned short)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1))));
 	// success
 	return 0;
 }
@@ -163,14 +169,14 @@ PyTypeObject FilterBlueScreenType =
 	0,                         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Filter for Blue Screen objects",       /* tp_doc */
-	0,		               /* tp_traverse */
-	0,		               /* tp_clear */
-	0,		               /* tp_richcompare */
-	0,		               /* tp_weaklistoffset */
-	0,		               /* tp_iter */
-	0,		               /* tp_iternext */
-	NULL,                /* tp_methods */
-	0,                   /* tp_members */
+	0,                         /* tp_traverse */
+	0,                         /* tp_clear */
+	0,                         /* tp_richcompare */
+	0,                         /* tp_weaklistoffset */
+	0,                         /* tp_iter */
+	0,                         /* tp_iternext */
+	NULL,                      /* tp_methods */
+	0,                         /* tp_members */
 	filterBSGetSets,           /* tp_getset */
 	0,                         /* tp_base */
 	0,                         /* tp_dict */

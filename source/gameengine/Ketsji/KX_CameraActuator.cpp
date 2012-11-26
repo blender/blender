@@ -388,8 +388,8 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("min",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_minHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("max",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_maxHeight),
 	KX_PYATTRIBUTE_FLOAT_RW("height",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_height),
-	KX_PYATTRIBUTE_SHORT_RW("axis", 0, 3, true, KX_CameraActuator,m_axis),
-	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_CameraActuator, pyattr_get_object,	pyattr_set_object),
+	KX_PYATTRIBUTE_SHORT_RW("axis", 0, 5, true, KX_CameraActuator, m_axis),
+	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_CameraActuator, pyattr_get_object, pyattr_set_object),
 	KX_PYATTRIBUTE_FLOAT_RW("damping",0.f,10.f,KX_CameraActuator,m_damping),
 	{NULL}
 };

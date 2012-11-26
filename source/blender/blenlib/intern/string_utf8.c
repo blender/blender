@@ -184,7 +184,7 @@ static const size_t utf8_skip_data[256] = {
 		*dst = '\0';                                                          \
 	} (void)0
 
-char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
+char *BLI_strncpy_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
 {
 	char *dst_r = dst;
 
@@ -196,7 +196,7 @@ char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
 	return dst_r;
 }
 
-char *BLI_strncat_utf8(char *dst, const char *src, size_t maxncpy)
+char *BLI_strncat_utf8(char *__restrict dst, const char *__restrict src, size_t maxncpy)
 {
 	while (*dst && maxncpy > 0) {
 		dst++;
@@ -213,7 +213,7 @@ char *BLI_strncat_utf8(char *dst, const char *src, size_t maxncpy)
 /* --------------------------------------------------------------------------*/
 /* wchar_t / utf8 functions  */
 
-size_t BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxncpy)
+size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst, const wchar_t *__restrict src, const size_t maxncpy)
 {
 	size_t len = 0;
 
@@ -289,7 +289,7 @@ size_t BLI_strnlen_utf8(const char *start, const size_t maxlen)
 	return len;
 }
 
-size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size_t maxncpy)
+size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w, const char *__restrict src_c, const size_t maxncpy)
 {
 	int len = 0;
 
@@ -419,7 +419,7 @@ unsigned int BLI_str_utf8_as_unicode(const char *p)
 }
 
 /* variant that increments the length */
-unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index)
+unsigned int BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *__restrict index)
 {
 	int i, mask = 0, len;
 	unsigned int result;
@@ -435,7 +435,7 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index)
 
 /* another variant that steps over the index,
  * note, currently this also falls back to latin1 for text drawing. */
-unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index)
+unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict index)
 {
 	int i, mask = 0, len;
 	unsigned int result;

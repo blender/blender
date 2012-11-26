@@ -2574,7 +2574,7 @@ static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ED_vgroup_add(ob);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob->data);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
@@ -2605,7 +2605,7 @@ static int vertex_group_remove_exec(bContext *C, wmOperator *op)
 		vgroup_delete(ob);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob->data);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
@@ -2771,7 +2771,7 @@ static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	vgroup_duplicate(ob);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3199,7 +3199,7 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 
 				DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, base->object);
-				WM_event_add_notifier(C, NC_GEOM | ND_DATA, base->object->data);
+				WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, base->object->data);
 
 				retval = OPERATOR_FINISHED;
 			}
@@ -3356,7 +3356,7 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 	ob->actdef = nr + 1;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob);
+	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -3520,7 +3520,7 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 
 	if (ret != OPERATOR_CANCELLED) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob);
 	}
 
 	if (name_array) MEM_freeN(name_array);
@@ -3575,7 +3575,7 @@ static int vgroup_move_exec(bContext *C, wmOperator *op)
 
 	if (ret != OPERATOR_CANCELLED) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob);
 	}
 
 	return ret;

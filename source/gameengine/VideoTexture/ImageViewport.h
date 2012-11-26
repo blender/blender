@@ -60,12 +60,12 @@ public:
 	/// get capture size in viewport
 	short * getCaptureSize (void) { return m_capSize; }
 	/// set capture size in viewport
-	void setCaptureSize (short * size = NULL);
+	void setCaptureSize (short size[2] = NULL);
 
 	/// get position in viewport
 	GLint * getPosition (void) { return m_position; }
 	/// set position in viewport
-	void setPosition (GLint * pos = NULL);
+	void setPosition (GLint pos[2] = NULL);
 
 protected:
 	/// frame buffer rectangle

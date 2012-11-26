@@ -66,6 +66,8 @@ void name(RendererServices *, int id, void *data) \
 	new (data) classname();                       \
 }
 
+#define CLOSURE_PREPARE_STATIC(name, classname) static CLOSURE_PREPARE(name, classname)
+
 #define TO_VEC3(v) (*(OSL::Vec3 *)&(v))
 #define TO_COLOR3(v) (*(OSL::Color3 *)&(v))
 #define TO_FLOAT3(v) make_float3(v[0], v[1], v[2])
@@ -77,26 +79,26 @@ public:
 	ShaderClosure sc;
 	OSL::Vec3 N, T;
 
-    CBSDFClosure(int scattering) : OSL::ClosurePrimitive(BSDF),
-        m_scattering_label(scattering), m_shaderdata_flag(0) { }
-    ~CBSDFClosure() { }
+	CBSDFClosure(int scattering) : OSL::ClosurePrimitive(BSDF),
+	  m_scattering_label(scattering), m_shaderdata_flag(0) { }
+	~CBSDFClosure() { }
 
-    int scattering() const { return m_scattering_label; }
-    int shaderdata_flag() const { return m_shaderdata_flag; }
+	int scattering() const { return m_scattering_label; }
+	int shaderdata_flag() const { return m_shaderdata_flag; }
 	ClosureType shaderclosure_type() const { return sc.type; }
 
-    virtual void blur(float roughness) = 0;
-    virtual float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
-    virtual float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
+	virtual void blur(float roughness) = 0;
+	virtual float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
+	virtual float3 eval_transmit(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
 
-    virtual int sample(const float3 &Ng,
-                        const float3 &omega_out, const float3 &domega_out_dx, const float3 &domega_out_dy,
-                        float randu, float randv,
-                        float3 &omega_in, float3 &domega_in_dx, float3 &domega_in_dy,
-                        float &pdf, float3 &eval) const = 0;
+	virtual int sample(const float3 &Ng,
+	                   const float3 &omega_out, const float3 &domega_out_dx, const float3 &domega_out_dy,
+	                   float randu, float randv,
+	                   float3 &omega_in, float3 &domega_in_dx, float3 &domega_in_dy,
+	                   float &pdf, float3 &eval) const = 0;
 
 protected:
-    int m_scattering_label;
+	int m_scattering_label;
 	int m_shaderdata_flag;
 };
 
@@ -151,7 +153,7 @@ public: \
 	} \
 }; \
 \
-ClosureParam *bsdf_##lower##_params() \
+static ClosureParam *bsdf_##lower##_params() \
 { \
 	static ClosureParam params[] = {
 
@@ -164,7 +166,7 @@ ClosureParam *bsdf_##lower##_params() \
 	return params; \
 } \
 \
-CLOSURE_PREPARE(bsdf_##lower##_prepare, Upper##Closure)
+CLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
 
 CCL_NAMESPACE_END
 

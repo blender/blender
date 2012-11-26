@@ -140,21 +140,21 @@ PyObject *KX_PolyProxy::pyattr_get_v1(void *self_v, const KX_PYATTRIBUTE_DEF *at
 {
 	KX_PolyProxy* self = static_cast<KX_PolyProxy*>(self_v);
 
-	return PyLong_FromSsize_t(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 0));
+	return PyLong_FromLong(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 0));
 }
 
 PyObject *KX_PolyProxy::pyattr_get_v2(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self = static_cast<KX_PolyProxy*>(self_v);
 
-	return PyLong_FromSsize_t(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 1));
+	return PyLong_FromLong(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 1));
 }
 
 PyObject *KX_PolyProxy::pyattr_get_v3(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_PolyProxy* self = static_cast<KX_PolyProxy*>(self_v);
 
-	return PyLong_FromSsize_t(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 2));
+	return PyLong_FromLong(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 2));
 }
 
 PyObject *KX_PolyProxy::pyattr_get_v4(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -163,9 +163,9 @@ PyObject *KX_PolyProxy::pyattr_get_v4(void *self_v, const KX_PYATTRIBUTE_DEF *at
 
 	if (3 < self->m_polygon->VertexCount())
 	{
-		return PyLong_FromSsize_t(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 3));
+		return PyLong_FromLong(self->m_polygon->GetVertexOffsetAbs(self->m_mesh, 3));
 	}
-	return PyLong_FromSsize_t(0);
+	return PyLong_FromLong(0);
 }
 
 PyObject *KX_PolyProxy::pyattr_get_visible(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -192,25 +192,25 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialIndex,
 			// found it
 			break;
 	}
-	return PyLong_FromSsize_t(matid);
+	return PyLong_FromLong(matid);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getNumVertex,
 "getNumVertex() : returns the number of vertex of the polygon, 3 or 4\n")
 {
-	return PyLong_FromSsize_t(m_polygon->VertexCount());
+	return PyLong_FromLong(m_polygon->VertexCount());
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, isVisible,
 "isVisible() : returns whether the polygon is visible or not\n")
 {
-	return PyLong_FromSsize_t(m_polygon->IsVisible());
+	return PyLong_FromLong(m_polygon->IsVisible());
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, isCollider,
 "isCollider() : returns whether the polygon is receives collision or not\n")
 {
-	return PyLong_FromSsize_t(m_polygon->IsCollider());
+	return PyLong_FromLong(m_polygon->IsCollider());
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMaterialName,
@@ -243,9 +243,9 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 	}
 	if (index < m_polygon->VertexCount())
 	{
-		return PyLong_FromSsize_t(m_polygon->GetVertexOffsetAbs(m_mesh, index));
+		return PyLong_FromLong(m_polygon->GetVertexOffsetAbs(m_mesh, index));
 	}
-	return PyLong_FromSsize_t(0);
+	return PyLong_FromLong(0);
 }
 
 KX_PYMETHODDEF_DOC_NOARGS(KX_PolyProxy, getMesh,

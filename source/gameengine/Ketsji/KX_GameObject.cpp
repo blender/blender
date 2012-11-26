@@ -2475,13 +2475,13 @@ PyObject *KX_GameObject::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	int state = 0;
 	state |= self->GetState();
-	return PyLong_FromSsize_t(state);
+	return PyLong_FromLong(state);
 }
 
 int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
-	int state_i = PyLong_AsSsize_t(value);
+	int state_i = PyLong_AsLong(value);
 	unsigned int state = 0;
 	
 	if (state_i == -1 && PyErr_Occurred()) {
@@ -2897,7 +2897,7 @@ PyObject *KX_GameObject::PyGetPhysicsId()
 	{
 		physid= (uint_ptr)ctrl->GetUserData();
 	}
-	return PyLong_FromSsize_t((long)physid);
+	return PyLong_FromLong((long)physid);
 }
 
 PyObject *KX_GameObject::PyGetPropertyNames()

@@ -1705,7 +1705,7 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Doubles UV";
-	ot->description = "Selected UV vertices that are within a radius of eachother are welded together";
+	ot->description = "Selected UV vertices that are within a radius of each other are welded together";
 	ot->idname = "UV_OT_remove_doubles";
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

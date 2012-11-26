@@ -111,6 +111,7 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND_MIS__
 #define __AO__
 #define __CAMERA_MOTION__
+#define __ANISOTROPIC__
 
 #ifndef __KERNEL_CUDA__
 #define __OBJECT_MOTION__
@@ -375,7 +376,9 @@ typedef struct ShaderClosure {
 	float data1;
 
 	float3 N;
+#ifdef __ANISOTROPIC__
 	float3 T;
+#endif
 
 } ShaderClosure;
 

@@ -561,7 +561,6 @@ extern StructRNA RNA_TextBox;
 extern StructRNA RNA_TextCharacterFormat;
 extern StructRNA RNA_TextCurve;
 extern StructRNA RNA_TextLine;
-extern StructRNA RNA_TextMarker;
 extern StructRNA RNA_Texture;
 extern StructRNA RNA_TextureNode;
 extern StructRNA RNA_TextureNodeBricks;
@@ -1088,6 +1087,11 @@ void _RNA_warning(const char *format, ...)
 __attribute__ ((format(printf, 1, 2)))
 #endif
 ;
+
+/* Equals test (skips pointers and collections) */
+
+int RNA_property_equals(struct PointerRNA *a, struct PointerRNA *b, struct PropertyRNA *prop);
+int RNA_struct_equals(struct PointerRNA *a, struct PointerRNA *b);
 
 #ifdef __cplusplus
 }

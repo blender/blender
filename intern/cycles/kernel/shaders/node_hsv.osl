@@ -27,7 +27,6 @@ shader node_hsv(
 	color ColorIn = color(0.0, 0.0, 0.0),
 	output color ColorOut = color(0.0, 0.0, 0.0))
 {
-	float t = clamp(Fac, 0.0, 1.0);
 	color Color = rgb_to_hsv(ColorIn);
 
 	// remember: fmod doesn't work for negative numbers
@@ -38,6 +37,6 @@ shader node_hsv(
 
 	Color = hsv_to_rgb(Color);
 
-	ColorOut = mix(Color, ColorIn, t);
+	ColorOut = mix(ColorIn, Color, Fac);
 }
 

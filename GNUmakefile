@@ -241,13 +241,13 @@ test_style_c_qtc:
 
 test_style_osl:
 	# run our own checks on C/C++ style
-	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/intern/cycles/kernel/osl
+	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/intern/cycles/kernel/shaders
 
 
 test_style_osl_qtc:
 	# run our own checks on C/C++ style
 	USE_QTC_TASK=1 \
-	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/intern/cycles/kernel/osl > \
+	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/intern/cycles/kernel/shaders > \
 	test_style.tasks
 	@echo "written: test_style.tasks"
 
@@ -308,7 +308,7 @@ check_spelling_c_qtc:
 	$(BLENDER_DIR)/check_spelling_c.tasks
 
 check_spelling_osl:
-	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/intern/cycles/kernel/osl
+	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/intern/cycles/kernel/shaders
 
 # -----------------------------------------------------------------------------
 # Utilities

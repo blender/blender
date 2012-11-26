@@ -78,8 +78,8 @@ static void delete_laplacian_system(LaplacianSystem *sys);
 static void delete_void_pointer(void *data);
 static void fill_laplacian_matrix(LaplacianSystem *sys);
 static void memset_laplacian_system(LaplacianSystem *sys, int val);
-static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int volumepreservation);
-static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float vend, int usex, int usey, int usez);
+static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int preserve_volume);
+static void volume_preservation(BMOperator *op, float vini, float vend, int usex, int usey, int usez);
 
 static void delete_void_pointer(void *data)
 {
@@ -455,7 +455,7 @@ static float compute_volume(BMesh *bm)
 	return fabs(vol);
 }
 
-static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float vend, int usex, int usey, int usez)
+static void volume_preservation(BMOperator *op, float vini, float vend, int usex, int usey, int usez)
 {
 	float beta;
 	BMOIter siter;
@@ -463,9 +463,9 @@ static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float ven
 
 	if (vend != 0.0f) {
 		beta  = pow(vini / vend, 1.0f / 3.0f);
-		BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
+		BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 			if (usex) {
-				v->co[0] *=  beta;
+				v->co[0] *= beta;
 			}
 			if (usey) {
 				v->co[1] *= beta;
@@ -478,7 +478,7 @@ static void volume_preservation(BMesh *bm, BMOperator *op, float vini, float ven
 	}
 }
 
-static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int volumepreservation)
+static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez, int preserve_volume)
 {
 	int m_vertex_id;
 	float leni, lene;
@@ -509,10 +509,10 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 		}
 	}
 
-	if (volumepreservation) {
+	if (preserve_volume) {
 		vini = compute_volume(sys->bm);
 	}
-	BMO_ITER (v, &siter, sys->bm, sys->op, "verts", BM_VERT) {
+	BMO_ITER (v, &siter, sys->op->slots_in, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
 		if (sys->zerola[m_vertex_id] == 0) {
 			if (usex) {
@@ -526,9 +526,9 @@ static void validate_solution(LaplacianSystem *sys, int usex, int usey, int usez
 			}
 		}
 	}
-	if (volumepreservation) {
+	if (preserve_volume) {
 		vend = compute_volume(sys->bm);
-		volume_preservation(sys->bm, sys->op, vini, vend, usex, usey, usez);
+		volume_preservation(sys->op, vini, vend, usex, usey, usez);
 	}
 
 }
@@ -537,7 +537,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 {
 	int i;
 	int m_vertex_id;
-	int usex, usey, usez, volumepreservation;
+	int usex, usey, usez, preserve_volume;
 	float lambda, lambda_border;
 	float w;
 	BMOIter siter;
@@ -552,13 +552,13 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	memset_laplacian_system(sys, 0);
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
-	lambda = BMO_slot_float_get(op, "lambda");
-	lambda_border = BMO_slot_float_get(op, "lambda_border");
+	lambda = BMO_slot_float_get(op->slots_in, "lambda");
+	lambda_border = BMO_slot_float_get(op->slots_in, "lambda_border");
 	sys->min_area = 0.00001f;
-	usex = BMO_slot_bool_get(op, "use_x");
-	usey = BMO_slot_bool_get(op, "use_y");
-	usez = BMO_slot_bool_get(op, "use_z");
-	volumepreservation = BMO_slot_bool_get(op, "volume_preservation");
+	usex = BMO_slot_bool_get(op->slots_in, "use_x");
+	usey = BMO_slot_bool_get(op->slots_in, "use_y");
+	usez = BMO_slot_bool_get(op->slots_in, "use_z");
+	preserve_volume = BMO_slot_bool_get(op->slots_in, "preserve_volume");
 
 
 	nlNewContext();
@@ -573,7 +573,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	for (i = 0; i < bm->totvert; i++) {
 		nlLockVariable(i);
 	}
-	BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
+	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
 		nlUnlockVariable(m_vertex_id);
 		nlSetVariable(0, m_vertex_id, v->co[0]);
@@ -583,7 +583,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 
 	nlBegin(NL_MATRIX);
 	init_laplacian_matrix(sys);
-	BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
+	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		m_vertex_id = BM_elem_index_get(v);
 		nlRightHandSideAdd(0, m_vertex_id, v->co[0]);
 		nlRightHandSideAdd(1, m_vertex_id, v->co[1]);
@@ -612,7 +612,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	nlEnd(NL_SYSTEM);
 
 	if (nlSolveAdvanced(NULL, NL_TRUE) ) {
-		validate_solution(sys, usex, usey, usez, volumepreservation);
+		validate_solution(sys, usex, usey, usez, preserve_volume);
 	}
 
 	delete_laplacian_system(sys);

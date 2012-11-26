@@ -500,8 +500,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			BL::Image b_image(b_image_node.image());
 			ImageTextureNode *image = new ImageTextureNode();
 			/* todo: handle generated/builtin images */
-			if(b_image && b_image.source() != BL::Image::source_MOVIE)
+			if(b_image && b_image.source() != BL::Image::source_MOVIE) {
 				image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
+				image->animated = b_image_node.image_user().use_auto_refresh();
+			}
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
 			image->projection = ImageTextureNode::projection_enum[(int)b_image_node.projection()];
 			image->projection_blend = b_image_node.projection_blend();
@@ -513,8 +515,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			BL::ShaderNodeTexEnvironment b_env_node(b_node);
 			BL::Image b_image(b_env_node.image());
 			EnvironmentTextureNode *env = new EnvironmentTextureNode();
-			if(b_image && b_image.source() != BL::Image::source_MOVIE)
+			if(b_image && b_image.source() != BL::Image::source_MOVIE) {
 				env->filename = image_user_file_path(b_env_node.image_user(), b_image, b_scene.frame_current());
+				env->animated = b_env_node.image_user().use_auto_refresh();
+			}
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
 			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];
 			get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
@@ -821,7 +825,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 
 /* Sync Materials */
 
-void BlenderSync::sync_materials()
+void BlenderSync::sync_materials(bool update_all)
 {
 	shader_map.set_default(scene->shaders[scene->default_surface]);
 
@@ -832,7 +836,7 @@ void BlenderSync::sync_materials()
 		Shader *shader;
 		
 		/* test if we need to sync */
-		if(shader_map.sync(&shader, *b_mat)) {
+		if(shader_map.sync(&shader, *b_mat) || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
 
 			shader->name = b_mat->name().c_str();
@@ -868,14 +872,14 @@ void BlenderSync::sync_materials()
 
 /* Sync World */
 
-void BlenderSync::sync_world()
+void BlenderSync::sync_world(bool update_all)
 {
 	Background *background = scene->background;
 	Background prevbackground = *background;
 
 	BL::World b_world = b_scene.world();
 
-	if(world_recalc || b_world.ptr.data != world_map) {
+	if(world_recalc || update_all || b_world.ptr.data != world_map) {
 		Shader *shader = scene->shaders[scene->default_background];
 		ShaderGraph *graph = new ShaderGraph();
 
@@ -922,7 +926,7 @@ void BlenderSync::sync_world()
 
 /* Sync Lamps */
 
-void BlenderSync::sync_lamps()
+void BlenderSync::sync_lamps(bool update_all)
 {
 	shader_map.set_default(scene->shaders[scene->default_light]);
 
@@ -933,7 +937,7 @@ void BlenderSync::sync_lamps()
 		Shader *shader;
 		
 		/* test if we need to sync */
-		if(shader_map.sync(&shader, *b_lamp)) {
+		if(shader_map.sync(&shader, *b_lamp) || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
 
 			/* create nodes */
@@ -972,11 +976,20 @@ void BlenderSync::sync_lamps()
 
 void BlenderSync::sync_shaders()
 {
+	/* for auto refresh images */
+	bool auto_refresh_update = false;
+
+	if(preview) {
+		ImageManager *image_manager = scene->image_manager;
+		int frame = b_scene.frame_current();
+		auto_refresh_update = image_manager->set_animation_frame_update(frame);
+	}
+
 	shader_map.pre_sync();
 
-	sync_world();
-	sync_lamps();
-	sync_materials();
+	sync_world(auto_refresh_update);
+	sync_lamps(auto_refresh_update);
+	sync_materials(auto_refresh_update);
 
 	/* false = don't delete unused shaders, not supported */
 	shader_map.post_sync(false);

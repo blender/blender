@@ -10,10 +10,22 @@ CWD=$PWD
 # and only then do it automatically
 BUILD_OSL=false
 
+# Try to link everything statically. Use this to produce protable versions of blender.
+ALL_STATIC=false
+
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
 if [ -z "$THREADS" ]; then
   THREADS=1
 fi
+
+COMMON_INFO="Source code of dependencies needed to be compiled will be downloaded and extracted into '$SRC'.
+Built libs of dependencies needed to be compiled will be installed into '$INST'.
+Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!
+
+Number of threads for building: $THREADS.
+Building OSL: $BUILD_OSL (edit \$BUILD_OSL var to change this).
+All static linking: $ALL_STATIC (edit \$ALL_STATIC var to change this)."
+
 
 PYTHON_VERSION="3.3.0"
 PYTHON_VERSION_MIN="3.3"
@@ -35,6 +47,8 @@ OIIO_VERSION_MIN="1.1"
 LLVM_VERSION="3.1"
 LLVM_VERSION_MIN="3.0"
 LLVM_VERSION_FOUND=""
+LLVM_SOURCE="http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz"
+LLVM_CLANG_SOURCE="http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz"
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.2.0"
@@ -78,12 +92,54 @@ INFO() {
   echo "${@}"
 }
 
+# Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
+# $1 and $2 should be version numbers made of numbers only.
+version_eq() {
+  backIFS=$IFS
+  IFS='.'
+
+  # Split both version numbers into their numeric elements.
+  arr1=( $1 )
+  arr2=( $2 )
+
+  ret=1
+
+  count1=${#arr1[@]}
+  count2=${#arr2[@]}
+  if [ $count2 -ge $count1 ]; then
+    _t=$count1
+    count1=$count2
+    count2=$_t
+    arr1=( $2 )
+    arr2=( $1 )
+  fi
+
+  ret=0
+  for (( i=0; $i < $count2; i++ ))
+  do
+    if [ $(( 10#${arr1[$i]} )) -ne $(( 10#${arr2[$i]} )) ]; then
+      ret=1
+      break
+    fi
+  done
+
+  for (( i=$count2; $i < $count1; i++ ))
+  do
+    if [ $(( 10#${arr1[$i]} )) -ne 0 ]; then
+      ret=1
+      break
+    fi
+  done
+
+  IFS=$backIFS
+  return $ret
+}
+
 # Return 0 if $1 >= $2, else 1.
 # $1 and $2 should be version numbers made of numbers only.
 version_ge() {
-  # XXX Not yet perfect, won't always work as expected with e.g. 1.0.0 and 1.0... :/
-  if [ "$1" != "$2" ] &&
-     [ $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
+  version_eq $1 $2
+  if [ $? -eq 1 -a $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
     return 1
   else
     return 0
@@ -300,6 +356,8 @@ compile_OCIO() {
           -D CMAKE_INSTALL_PREFIX=$_inst \
           -D CMAKE_CXX_FLAGS="$cflags" \
           -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" \
+          -D OCIO_BUILD_APPS=OFF \
+          -D OCIO_BUILD_PYGLUE=OFF \
           ..
 
     make -j$THREADS && make install
@@ -332,7 +390,7 @@ compile_OCIO() {
 
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=5
+  oiio_magic=6
 
   _src=$SRC/OpenImageIO-$OIIO_VERSION
   _inst=$INST/oiio-$OIIO_VERSION
@@ -376,6 +434,8 @@ index b9e6c8b..c761185 100644
  #define SHA1_MAX_FILE_BUFFER 8000
 EOF
 
+      cd $CWD
+
     fi
 
     cd $_src
@@ -386,13 +446,17 @@ EOF
     mkdir build
     cd build
 
-    cmake_d="-D CMAKE_BUILD_TYPE=Release \
-             -D CMAKE_PREFIX_PATH=$_inst \
-             -D CMAKE_INSTALL_PREFIX=$_inst \
-             -D BUILDSTATIC=ON"
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D BUILDSTATIC=ON"
+    cmake_d="$cmake_d -D LINKSTATIC=ON"
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
+      if $ALL_STATIC; then
+        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"        
+      fi
     fi
 
     # Looks like we do not need ocio in oiio for now...
@@ -428,9 +492,101 @@ EOF
   fi
 }
 
+compile_LLVM() {
+  # To be changed each time we make edits that would modify the compiled result!
+  llvm_magic=1
+
+  _src=$SRC/LLVM-$LLVM_VERSION
+  _inst=$INST/llvm-$LLVM_VERSION
+  _src_clang=$SRC/CLANG-$LLVM_VERSION
+
+  # Clean install if needed!
+  magic_compile_check llvm-$LLVM_VERSION $llvm_magic
+  if [ $? -eq 1 ]; then
+    rm -rf $_inst
+    rm -rf $_inst_clang
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building LLVM-$LLVM_VERSION (CLANG included!)"
+
+    prepare_opt
+
+    if [ ! -d $_src -o true ]; then
+      wget -c $LLVM_SOURCE -O "$_src.tar.gz"
+      wget -c $LLVM_CLANG_SOURCE -O "$_src_clang.tar.gz"
+
+      INFO "Unpacking LLVM-$LLVM_VERSION"
+      tar -C $SRC --transform "s,([^/]*/?)llvm-[^/]*(.*),\1LLVM-$LLVM_VERSION\2,x" \
+          -xf $_src.tar.gz
+      INFO "Unpacking CLANG-$LLVM_VERSION to $_src/tools/clang"
+      tar -C $_src/tools \
+          --transform "s,([^/]*/?)clang-[^/]*(.*),\1clang\2,x" \
+          -xf $_src_clang.tar.gz
+
+      cd $_src
+
+      # XXX Ugly patching hack!
+      cat << EOF | patch -p1
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -13,7 +13,7 @@
+ set(LLVM_VERSION_MAJOR 3)
+ set(LLVM_VERSION_MINOR 1)
+ 
+-set(PACKAGE_VERSION "\${LLVM_VERSION_MAJOR}.\${LLVM_VERSION_MINOR}svn")
++set(PACKAGE_VERSION "\${LLVM_VERSION_MAJOR}.\${LLVM_VERSION_MINOR}")
+ 
+ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+ 
+EOF
+
+      cd $CWD
+
+    fi
+
+    cd $_src
+
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi    
+    mkdir build
+    cd build
+
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D LLVM_ENABLE_FFI=ON"
+
+    if [ -d $_FFI_INCLUDE_DIR ]; then
+      cmake_d="$cmake_d -D FFI_INCLUDE_DIR=$_FFI_INCLUDE_DIR"
+    fi
+
+    cmake $cmake_d ..
+
+    make -j$THREADS && make install
+    make clean
+
+    if [ -d $_inst ]; then
+      rm -f $INST/llvm
+      ln -s llvm-$LLVM_VERSION $INST/llvm
+    else
+      ERROR "LLVM-$LLVM_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set llvm-$LLVM_VERSION $llvm_magic
+
+    cd $CWD
+  else
+    INFO "Own LLVM-$LLVM_VERSION (CLANG included) is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+  fi
+}
+
 compile_OSL() {
   # To be changed each time we make edits that would modify the compiled result!
-  osl_magic=5
+  osl_magic=7
 
   _src=$SRC/OpenShadingLanguage-$OSL_VERSION
   _inst=$INST/osl-$OSL_VERSION
@@ -461,7 +617,7 @@ compile_OSL() {
 
     cd $_src
     # XXX For now, always update from latest repo...
-    git checkout .
+    git pull origin
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -476,7 +632,10 @@ compile_OSL() {
     cmake_d="$cmake_d -D BUILD_TESTING=OFF"
 
     if [ -d $INST/boost ]; then
-      cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost"
+      cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
+      if $ALL_STATIC; then
+        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"        
+      fi
     fi
 
     if [ -d $INST/oiio ]; then
@@ -485,6 +644,10 @@ compile_OSL() {
 
     if [ ! -z $LLVM_VERSION_FOUND ]; then
       cmake_d="$cmake_d -D LLVM_VERSION=$LLVM_VERSION_FOUND"
+      if [ -d $INST/llvm ]; then
+        cmake_d="$cmake_d -D LLVM_DIRECTORY=$INST/llvm"
+        cmake_d="$cmake_d -D LLVM_STATIC=ON"
+      fi
     fi
 
     cmake $cmake_d ../src
@@ -511,7 +674,7 @@ compile_OSL() {
 
 compile_FFmpeg() {
   # To be changed each time we make edits that would modify the compiled result!
-  ffmpeg_magic=0
+  ffmpeg_magic=3
 
   _src=$SRC/ffmpeg-$FFMPEG_VERSION
   _inst=$INST/ffmpeg-$FFMPEG_VERSION
@@ -547,7 +710,8 @@ compile_FFmpeg() {
       extra="$extra --enable-libtheora"
     fi
 
-    if $SCHRO_USE; then
+    # XXX At least under Debian, static schro gives problem at blender linking time... :/
+    if $SCHRO_USE && ! $ALL_STATIC; then
       extra="$extra --enable-libschroedinger"
     fi
 
@@ -571,8 +735,12 @@ compile_FFmpeg() {
       extra="$extra --enable-libopenjpeg"
     fi
 
-    ./configure --cc="gcc -Wl,--as-needed" --extra-ldflags="-pthread -static-libgcc" \
-        --prefix=$_inst --enable-static --enable-avfilter --disable-vdpau \
+    ./configure --cc="gcc -Wl,--as-needed" \
+        --extra-ldflags="-pthread -static-libgcc" \
+        --prefix=$_inst --enable-static \
+        --disable-ffplay --disable-ffserver --disable-doc \
+        --enable-gray \
+        --enable-avfilter --disable-vdpau \
         --disable-bzlib --disable-libgsm --disable-libspeex \
         --enable-pthreads --enable-zlib --enable-stripping --enable-runtime-cpudetect \
         --disable-vaapi  --disable-libfaac --disable-nonfree --enable-gpl \
@@ -640,9 +808,7 @@ check_package_version_ge_DEB() {
 install_DEB() {
   INFO ""
   INFO "Installing dependencies for DEB-based distribution"
-  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
-  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
-  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO "$COMMON_INFO"
   INFO ""
 
   sudo apt-get update
@@ -718,7 +884,7 @@ install_DEB() {
   if [ $? -eq 0 ]; then
     sudo apt-get install -y libboost-dev
 
-    boost_version=`get_package_version_DEB libboost-dev`
+    boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
     check_package_DEB libboost-locale$boost_version-dev
     if [ $? -eq 0 ]; then
@@ -803,7 +969,7 @@ check_package_RPM() {
 }
 
 check_package_version_match_RPM() {
-  v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
+  v=`get_package_version_RPM $1`
 
   if [ -z "$v" ]; then
     return 1
@@ -814,7 +980,7 @@ check_package_version_match_RPM() {
 }
 
 check_package_version_ge_RPM() {
-  v=`yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
+  v=`get_package_version_RPM $1`
 
   if [ -z "$v" ]; then
     return 1
@@ -827,9 +993,7 @@ check_package_version_ge_RPM() {
 install_RPM() {
   INFO ""
   INFO "Installing dependencies for RPM-based distribution"
-  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
-  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
-  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO "$COMMON_INFO"
   INFO ""
 
   sudo yum -y update
@@ -917,19 +1081,25 @@ install_RPM() {
       have_llvm=true
       LLVM_VERSION_FOUND=$LLVM_VERSION
     else
-      check_package_RPM llvm-$LLVM_VERSION_MIN-devel
-      if [ $? -eq 0 ]; then
-        sudo yum install -y llvm-$LLVM_VERSION_MIN-devel
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
-      else
-        check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
-        if [ $? -eq 0 ]; then
-          sudo yum install -y llvm-devel
-          have_llvm=true
-          LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
-        fi
-      fi
+#      check_package_RPM llvm-$LLVM_VERSION_MIN-devel
+#      if [ $? -eq 0 ]; then
+#        sudo yum install -y llvm-$LLVM_VERSION_MIN-devel
+#        have_llvm=true
+#        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+#      else
+#        check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
+#        if [ $? -eq 0 ]; then
+#          sudo yum install -y llvm-devel
+#          have_llvm=true
+#          LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
+#        fi
+#      fi
+    sudo yum install -y libffi-devel
+    # XXX Stupid fedora puts ffi header into a darn stupid dir!
+    _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+    compile_LLVM
+    have_llvm=true
+    LLVM_VERSION_FOUND=$LLVM_VERSION
     fi
 
     if $have_llvm; then
@@ -943,6 +1113,10 @@ install_RPM() {
   compile_FFmpeg
 }
 
+get_package_version_SUSE() {
+  zypper info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
+}
+
 check_package_SUSE() {
   r=`zypper info $1 | grep -c 'Summary'`
 
@@ -953,56 +1127,150 @@ check_package_SUSE() {
   fi
 }
 
-check_package_version_SUSE() {
-  v=`zypper info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'`
+check_package_version_match_SUSE() {
+  v=`get_package_version_SUSE $1`
 
-  # for now major and minor versions only (as if x.y, not x.y.z)
-  r=`echo $v | grep -c $2`
-
-  if [ $r -ge 1 ]; then
-    return 0
-  else
+  if [ -z "$v" ]; then
     return 1
   fi
+
+  version_match $v $2
+  return $?
+}
+
+check_package_version_ge_SUSE() {
+  v=`get_package_version_SUSE $1`
+
+  if [ -z "$v" ]; then
+    return 1
+  fi
+
+  version_ge $v $2
+  return $?
 }
 
 install_SUSE() {
   INFO ""
   INFO "Installing dependencies for SuSE-based distribution"
-  INFO "Source code of dependencies needed to be compiled will be downloaded and extracted into $SRC"
-  INFO "Built libs of dependencies needed to be compiled will be installed into $INST"
-  INFO "Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!"
+  INFO "$COMMON_INFO"
   INFO ""
 
   sudo zypper --non-interactive update --auto-agree-with-licenses
 
-  sudo zypper --non-interactive install --auto-agree-with-licenses \
-    gcc gcc-c++ libSDL-devel openal-soft-devel libpng12-devel libjpeg62-devel \
-    libtiff-devel OpenEXR-devel yasm libtheora-devel libvorbis-devel cmake \
-    scons patch
+  # These libs should always be available in debian/ubuntu official repository...
+  OPENJPEG_DEV="openjpeg-devel"
+  SCHRO_DEV="schroedinger-devel"
+  VORBIS_DEV="libvorbis-devel"
+  THEORA_DEV="libtheora-devel"
 
-  check_package_version_SUSE python3-devel 3.3.
+  sudo zypper --non-interactive install --auto-agree-with-licenses \
+    gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel \
+    freetype-devel libX11-devel libXi-devel wget sqlite3-devel ncurses-devel \
+    readline-devel $OPENJPEG_DEV libopenexr-devel openal-soft-devel \
+    glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libSDL-devel \
+    fftw3-devel libjack-devel libspnav-devel \
+    libjpeg62-devel patch python-devel
+
+  OPENJPEG_USE=true
+  SCHRO_USE=true
+  VORBIS_USE=true
+  THEORA_USE=true
+
+  X264_DEV="x264-devel"
+  check_package_version_ge_SUSE $X264_DEV $X264_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $X264_DEV
+    X264_USE=true
+  fi
+
+  XVID_DEV="xvidcore-devel"
+  check_package_SUSE $XVID_DEV
+  if [ $? -eq 0 ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $XVID_DEV
+    XVID_USE=true
+  fi
+
+  VPX_DEV="libvpx-devel"
+  check_package_version_ge_SUSE $VPX_DEV $VPX_VERSION_MIN
+  if [ $? -eq 0 ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $VPX_DEV
+    VPX_USE=true
+  fi
+
+  # No mp3 in suse, it seems.
+  MP3LAME_DEV="lame-devel"
+  check_package_SUSE $MP3LAME_DEV
+  if [ $? -eq 0 ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $MP3LAME_DEV
+    MP3LAME_USE=true
+  fi
+
+  check_package_version_match_SUSE python3-devel 3.3.
   if [ $? -eq 0 ]; then
     sudo zypper --non-interactive install --auto-agree-with-licenses python3-devel
   else
     compile_Python
   fi
 
-  # can not see boost_locale in repo, so let's build own boost
+  # No boost_locale currently available, so let's build own boost.
   compile_Boost
 
-  # this libraries are also missing in the repo
+  # No ocio currently available, so let's build own boost.
   compile_OCIO
+
+  # No oiio currently available, so let's build own boost.
   compile_OIIO
+
+  if $BUILD_OSL; then
+    have_llvm=false
+
+    # Suse llvm package *_$SUCKS$_* (tm) !!!
+#    check_package_version_ge_SUSE llvm-devel $LLVM_VERSION_MIN
+#    if [ $? -eq 0 ]; then
+#      sudo zypper --non-interactive install --auto-agree-with-licenses llvm-devel
+#      have_llvm=true
+#      LLVM_VERSION_FOUND=`get_package_version_SUSE llvm-devel`
+#    fi
+
+    sudo zypper --non-interactive install --auto-agree-with-licenses libffi47-devel
+    compile_LLVM
+    have_llvm=true
+    LLVM_VERSION_FOUND=$LLVM_VERSION
+
+    if $have_llvm; then
+      # XXX No tbb lib!
+      sudo zypper --non-interactive install --auto-agree-with-licenses flex bison git
+      # No package currently!
+      compile_OSL
+    fi
+  fi
+
+  # No ffmpeg currently available, so let's build own boost.
   compile_FFmpeg
 }
 
 print_info_ffmpeglink_DEB() {
-  dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  if $ALL_STATIC; then
+    dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
+  else
+    dpkg -L $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  fi
 }
 
 print_info_ffmpeglink_RPM() {
-  rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  if $ALL_STATIC; then
+    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
+  else
+    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  fi
+}
+
+print_info_ffmpeglink_SUSE() {
+  if $ALL_STATIC; then
+    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
+  else
+    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+  fi
 }
 
 print_info_ffmpeglink() {
@@ -1043,7 +1311,8 @@ print_info_ffmpeglink() {
     _packages="$_packages $OPENJPEG_DEV"
   fi
 
-  if $SCHRO_USE; then
+  # XXX At least under Debian, static schro give problem at blender linking time... :/
+  if $SCHRO_USE && ! $ALL_STATIC; then
     _packages="$_packages $SCHRO_DEV"
   fi
 
@@ -1051,10 +1320,10 @@ print_info_ffmpeglink() {
     print_info_ffmpeglink_DEB
   elif [ "$DISTRO" = "RPM" ]; then
     print_info_ffmpeglink_RPM
+  elif [ "$DISTRO" = "SUSE" ]; then
+    print_info_ffmpeglink_SUSE
   # XXX TODO!
   else INFO "<Could not determine additional link libraries needed for ffmpeg, replace this by valid list of libs...>"
-#  elif [ "$DISTRO" = "SUSE" ]; then
-#    print_info_ffmpeglink_SUSE
   fi
 }
 
@@ -1062,15 +1331,25 @@ print_info() {
   INFO ""
   INFO "If you're using CMake add this to your configuration flags:"
 
+  if $ALL_STATIC; then
+    INFO "  -D WITH_STATIC_LIBS=ON"
+  fi
+
   if [ -d $INST/boost ]; then
     INFO "  -D BOOST_ROOT=$INST/boost"
     INFO "  -D Boost_NO_SYSTEM_PATHS=ON"
+  elif $ALL_STATIC; then
+    INFO "  -D Boost_USE_ICU=ON"
   fi
 
   if [ -d $INST/osl ]; then
     INFO "  -D CYCLES_OSL=$INST/osl"
     INFO "  -D WITH_CYCLES_OSL=ON"
     INFO "  -D LLVM_VERSION=$LLVM_VERSION_FOUND"
+    if [ -d $INST/llvm ]; then
+      INFO "  -D LLVM_DIRECTORY=$INST/llvm"
+      INFO "  -D LLVM_STATIC=ON"
+    fi
   fi
 
   if [ -d $INST/ffmpeg ]; then

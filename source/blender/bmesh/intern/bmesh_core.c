@@ -134,7 +134,7 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	e->v1 = v1;
 	e->v2 = v2;
 	
-	BM_elem_flag_enable(e, BM_ELEM_SMOOTH);
+	BM_elem_flag_enable(e, BM_ELEM_SMOOTH | BM_ELEM_DRAW);
 	
 	CustomData_bmesh_set_default(&bm->edata, &e->head.data);
 	
@@ -311,7 +311,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 
 	if (nodouble) {
 		/* Check if face already exists */
-		overlap = BM_face_exists(bm, verts, len, &f);
+		overlap = BM_face_exists(verts, len, &f);
 		if (overlap) {
 			return f;
 		}

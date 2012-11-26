@@ -147,4 +147,4 @@ WITH_BF_OCEANSIM = True
 BF_DEBUG = False
 REL_CCFLAGS = ['-O2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib32']
-BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive']
+BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive', '-Wl,--version-script=source/creator/blender.map']

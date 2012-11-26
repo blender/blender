@@ -1142,7 +1142,7 @@ static int VideoFFmpeg_setPreseek(PyImage *self, PyObject *value, void *closure)
 		return -1;
 	}
 	// set preseek
-	getFFmpeg(self)->setPreseek(PyLong_AsSsize_t(value));
+	getFFmpeg(self)->setPreseek(PyLong_AsLong(value));
 	// success
 	return 0;
 }
