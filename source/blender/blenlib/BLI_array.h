@@ -77,11 +77,13 @@
 	    MEM_allocN_len(arr) / sizeof(*arr)                                    \
 )
 
+#define _bli_array_totalsize_static(arr)  \
+	(sizeof(_##arr##_static) / sizeof(*arr))
 
 #define BLI_array_totalsize(arr)  (                                           \
 	(size_t)                                                                  \
 	(((void *)(arr) == (void *)_##arr##_static && (void *)(arr) != NULL) ?    \
-	    (sizeof(_##arr##_static) / sizeof(*arr)) :                            \
+	    _bli_array_totalsize_static(arr) :                                    \
 	    BLI_array_totalsize_dyn(arr))                                         \
 )
 
@@ -93,8 +95,18 @@
  *
  * Allow for a large 'num' value when the new size is more then double
  * to allocate the exact sized array. */
-#define _bli_array_grow_items(arr, num)  (                                    \
-	(BLI_array_totalsize(arr) >= _##arr##_count + num) ?                      \
+
+/* grow an array by a specified number of items */
+#define BLI_array_grow_items(arr, num)  (                                     \
+	(((void *)(arr) == NULL) &&                                               \
+	 ((void *)(_##arr##_static) != NULL) &&                                   \
+	/* dont add _##arr##_count below because it must be zero */               \
+	 (_bli_array_totalsize_static(arr) >= _##arr##_count + num)) ?            \
+	/* we have an empty array and a static var big enough */                  \
+	((arr = (void *)_##arr##_static), (_##arr##_count += (num)))              \
+	    :                                                                     \
+	/* use existing static array or allocate */                               \
+	((BLI_array_totalsize(arr) >= _##arr##_count + num) ?                     \
 	    (_##arr##_count += num) :                                             \
 	    (                                                                     \
 	        (void) (_##arr##_tmp = MEM_callocN(                               \
@@ -115,14 +127,7 @@
 	        (void) (arr = _##arr##_tmp                                        \
 	                ),                                                        \
 	        (_##arr##_count += num)                                           \
-	    )                                                                     \
-)
-
-/* grow an array by a specified number of items */
-#define BLI_array_grow_items(arr, num)  (                                     \
-	((void *)(arr) == NULL && (void *)(_##arr##_static) != NULL) ?            \
-	    ((arr = (void *)_##arr##_static), (_##arr##_count += num)) :          \
-	    _bli_array_grow_items(arr, num)                                       \
+	    ))                                                                    \
 )
 
 /* returns length of array */
