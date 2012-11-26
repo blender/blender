@@ -264,14 +264,13 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMF
 	else {
 		int i;
 		BMEdge **ee = NULL;
-		BLI_array_staticdeclare(ee, BM_DEFAULT_NGON_STACK_SIZE);
+		BLI_array_fixedstack_declare(ee, BM_DEFAULT_NGON_STACK_SIZE, totv, __func__);
 
-		BLI_array_grow_items(ee, totv);
 		for (i = 0; i < totv; i++) {
 			ee[i] = BM_edge_create(bm, vert_arr[i], vert_arr[(i + 1) % totv], NULL, TRUE);
 		}
 		f = BM_face_create_ngon(bm, vert_arr[0], vert_arr[1], ee, totv, FALSE);
-		BLI_array_free(ee);
+		BLI_array_fixedstack_free(ee);
 	}
 	if (facerep && f) {
 		int has_mdisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
