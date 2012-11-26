@@ -261,7 +261,11 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 		lasteed = eed;
 	}
 	
+#ifdef BMW_EDGERING_NGON
 	if (lasteed != startedge && BM_edge_share_face_check(lasteed, startedge)) {
+#else
+	if (lasteed != startedge && BM_edge_share_quad_check(lasteed, startedge)) {
+#endif
 		v[1][0] = v[0][0];
 		v[1][1] = v[0][1];
 
@@ -309,6 +313,11 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 	RingSelOpData *lcd = op->customdata;
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
 	const float smoothness = 0.292f * RNA_float_get(op->ptr, "smoothness");
+#ifdef BMW_EDGERING_NGON
+	const int use_onlyquads = FALSE;
+#else
+	const int use_onlyquads = TRUE;
+#endif
 
 	if (lcd->eed) {
 		BMEditMesh *em = lcd->em;
@@ -322,7 +331,8 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
 			                   smoothness, 0.0f, 0.0f,
 			                   cuts,
-			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, TRUE, 0);
+			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, TRUE,
+							   use_onlyquads, 0);
 
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {

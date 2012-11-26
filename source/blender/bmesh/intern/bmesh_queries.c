@@ -824,6 +824,29 @@ int BM_edge_share_face_check(BMEdge *e1, BMEdge *e2)
 }
 
 /**
+ *	Test if e1 shares any quad faces with e2
+ */
+int BM_edge_share_quad_check(BMEdge *e1, BMEdge *e2)
+{
+	BMLoop *l;
+	BMFace *f;
+
+	if (e1->l && e2->l) {
+		l = e1->l;
+		do {
+			f = l->f;
+			if (f->len == 4) {
+				if (bmesh_radial_face_find(e2, f)) {
+					return TRUE;
+				}
+			}
+			l = l->radial_next;
+		} while (l != e1->l);
+	}
+	return FALSE;
+}
+
+/**
  *	Tests to see if e1 shares a vertex with e2
  */
 int BM_edge_share_vert_check(BMEdge *e1, BMEdge *e2)

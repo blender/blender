@@ -715,7 +715,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BMFace *face;
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
-	int use_sphere, cornertype, use_singleedge, use_gridfill;
+	int use_sphere, cornertype, use_singleedge, use_gridfill, use_onlyquads;
 	int skey, seed, i, j, matched, a, b, numcuts, totesel;
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, SUBD_SPLIT);
@@ -729,6 +729,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 	use_singleedge = BMO_slot_bool_get(op->slots_in, "use_singleedge");
 	use_gridfill   = BMO_slot_bool_get(op->slots_in, "use_gridfill");
+	use_onlyquads  = BMO_slot_bool_get(op->slots_in, "use_onlyquads");
 	use_sphere     = BMO_slot_bool_get(op->slots_in, "use_sphere");
 	
 	BLI_srandom(seed);
@@ -803,6 +804,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BM_ITER_MESH (face, &fiter, bm, BM_FACES_OF_MESH) {
 		BMEdge *e1 = NULL, *e2 = NULL;
 		float vec1[3], vec2[3];
+
+		/* skip non-quads if requested */
+		if(use_onlyquads && face->len != 4)
+			continue;
 
 		/* figure out which pattern to use */
 
@@ -1089,6 +1094,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
                         int numcuts,
                         int seltype, int cornertype,
                         const short use_singleedge, const short use_gridfill,
+                        const short use_onlyquads,
                         int seed)
 {
 	BMOperator op;
@@ -1100,12 +1106,14 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	             "cuts=%i "
 	             "quad_corner_type=%i "
 	             "use_singleedge=%b use_gridfill=%b "
+				 "use_onlyquads=%b "
 	             "seed=%i",
 	             edge_hflag,
 	             smooth, fractal, along_normal,
 	             numcuts,
 	             cornertype,
 	             use_singleedge, use_gridfill,
+				 use_onlyquads,
 	             seed);
 	
 	BMO_op_exec(bm, &op);

@@ -911,6 +911,7 @@ static BMOpDefine bmo_subdivide_edges_def = {
 	 {"quad_corner_type",  BMO_OP_SLOT_INT}, /* quad corner type, see bmesh_operators.h */
 	 {"use_gridfill", BMO_OP_SLOT_BOOL},   /* fill in fully-selected faces with a grid */
 	 {"use_singleedge", BMO_OP_SLOT_BOOL}, /* tessellate the case of one edge selected in a quad or triangle */
+	 {"use_onlyquads", BMO_OP_SLOT_BOOL},  /* only subdivide quads (for loopcut) */
 	 {"use_sphere", BMO_OP_SLOT_BOOL},     /* for making new primitives only */
 	 {{'\0'}},
 	},

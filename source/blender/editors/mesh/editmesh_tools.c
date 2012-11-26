@@ -109,7 +109,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	                   smooth, fractal, along_normal,
 	                   cuts,
 	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
-	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
+	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE, FALSE,
 	                   RNA_int_get(op->ptr, "seed"));
 
 	EDBM_update_generic(C, em, TRUE);
