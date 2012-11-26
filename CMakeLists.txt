@@ -487,14 +487,14 @@ set(PLATFORM_LINKFLAGS_DEBUG "")
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix:
 #   cmake ../blender \
-#         -D PYTHON_VERSION=3.2 \
-#         -D PYTHON_INCLUDE_DIR=/opt/py32/include/python3.2d \
-#         -D PYTHON_LIBRARY=/opt/py32/lib/libpython3.2d.so
+#         -D PYTHON_VERSION=3.3 \
+#         -D PYTHON_INCLUDE_DIR=/opt/py33/include/python3.3d \
+#         -D PYTHON_LIBRARY=/opt/py33/lib/libpython3.3d.so
 #
 # On Macs:
 #   cmake ../blender \
-#         -D PYTHON_INCLUDE_DIR=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 \
-#         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.2/lib/python3.2/config \
+#         -D PYTHON_INCLUDE_DIR=/System/Library/Frameworks/Python.framework/Versions/3.3/include/python3.3 \
+#         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.3/lib/python3.3/config \
 #         -G Xcode
 #
 # When changing any of this remember to update the notes in doc/build_systems/cmake.txt
@@ -522,7 +522,7 @@ if(UNIX AND NOT APPLE)
 	find_package_wrapper(Freetype REQUIRED)
 
 	if(WITH_PYTHON)
-		# No way to set py32. remove for now.
+		# No way to set py33. remove for now.
 		# find_package(PythonLibs)
 
 		# Use our own instead, since wothout py is such a rare case,
