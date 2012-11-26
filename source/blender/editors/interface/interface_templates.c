@@ -514,7 +514,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		                                 BLF_I18NCONTEXT_ID_NODETREE,
 		                                 BLF_I18NCONTEXT_ID_BRUSH,
 		                                 BLF_I18NCONTEXT_ID_PARTICLESETTINGS,
-		                                 BLF_I18NCONTEXT_ID_GPENCIL);
+		                                 BLF_I18NCONTEXT_ID_GPENCIL,
+										 BLF_I18NCONTEXT_ID_FREESTYLELINESTYLE);
 		
 		if (newop) {
 			but = uiDefIconTextButO(block, BUT, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
