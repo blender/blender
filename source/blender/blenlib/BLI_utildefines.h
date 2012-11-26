@@ -324,11 +324,13 @@
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)
 #  define BLI_INLINE static __forceinline
-#elif defined(__GNUC__)
-#  define BLI_INLINE static inline __attribute((always_inline))
 #else
-/* #warning "MSC/GNUC defines not found, inline non-functional" */
-#  define BLI_INLINE static
+#  if (defined(__APPLE__) && defined(__ppc__))
+/* static inline __attribute__ here breaks osx ppc gcc42 build */
+#    define BLI_INLINE static __attribute__((always_inline))
+#  else
+#    define BLI_INLINE static inline __attribute__((always_inline))
+#  endif
 #endif
 
 
