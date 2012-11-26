@@ -115,7 +115,6 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 #define BLF_I18NCONTEXT_ID_BRUSH                "Brush"
 #define BLF_I18NCONTEXT_ID_CAMERA               "Camera"
 #define BLF_I18NCONTEXT_ID_CURVE                "Curve"
-#define BLF_I18NCONTEXT_ID_FREESTYLELINESTYLE   "FreestyleLineStyle"
 #define BLF_I18NCONTEXT_ID_GPENCIL              "GPencil"
 #define BLF_I18NCONTEXT_ID_GROUP                "Group"
 #define BLF_I18NCONTEXT_ID_ID                   "ID"
