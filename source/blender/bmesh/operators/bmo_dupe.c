@@ -104,8 +104,7 @@ static BMEdge *copy_edge(BMOperator *op,
 	if (rlen < 2) {
 		/* not sure what non-manifold cases of greater then three
 		 * radial should do. */
-		BMO_slot_map_ptr_insert(op, slot_boundarymap_out,
-		                        source_edge, target_edge);
+		BMO_slot_map_elem_insert(op, slot_boundarymap_out, source_edge, target_edge);
 	}
 
 	/* Insert new edge into the edge hash */
@@ -158,8 +157,8 @@ static BMFace *copy_face(BMOperator *op,
 
 	/* create new face */
 	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, FALSE);
-	BMO_slot_map_ptr_insert(op, slot_facemap_out, source_face, target_face);
-	BMO_slot_map_ptr_insert(op, slot_facemap_out, target_face, source_face);
+	BMO_slot_map_elem_insert(op, slot_facemap_out, source_face, target_face);
+	BMO_slot_map_elem_insert(op, slot_facemap_out, target_face, source_face);
 
 	BM_elem_attrs_copy(source_mesh, target_mesh, source_face, target_face);
 
@@ -235,7 +234,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 			}
 
 			if (isolated) {
-				BMO_slot_map_ptr_insert(op, slot_isovertmap_out, v, v2);
+				BMO_slot_map_elem_insert(op, slot_isovertmap_out, v, v2);
 			}
 
 			BMO_elem_flag_enable(bm_src, v, DUPE_DONE);

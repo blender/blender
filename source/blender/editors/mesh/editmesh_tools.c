@@ -354,21 +354,21 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 							if ((fabsf(co1[0]) < mmd->tolerance) &&
 							    (fabsf(co2[0]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
+								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Y) {
 							if ((fabsf(co1[1]) < mmd->tolerance) &&
 							    (fabsf(co2[1]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
+								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Z) {
 							if ((fabsf(co1[2]) < mmd->tolerance) &&
 							    (fabsf(co2[2]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
+								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
 							}
 						}
 					}

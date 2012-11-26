@@ -131,8 +131,9 @@ static void bmo_op_slots_init(const BMOSlotType *slot_types, BMOpSlot *slot_args
 {
 	unsigned int i;
 	for (i = 0; slot_types[i].type; i++) {
-		slot_args[i].slot_name = slot_types[i].name;
-		slot_args[i].slot_type = slot_types[i].type;
+		slot_args[i].slot_name    = slot_types[i].name;
+		slot_args[i].slot_type    = slot_types[i].type;
+		slot_args[i].slot_subtype = slot_types[i].subtype;
 		// slot_args[i].index = i;  // UNUSED
 	}
 }
@@ -609,6 +610,9 @@ void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
 
 	if (!slot->data.ghash) {
 		slot->data.ghash = BLI_ghash_ptr_new("bmesh slot map hash");
+	}
+	else {
+		BLI_assert(slot->data.ghash);
 	}
 
 	BLI_ghash_insert(slot->data.ghash, (void *)element, mapping);

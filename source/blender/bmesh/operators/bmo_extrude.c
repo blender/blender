@@ -354,7 +354,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 	slot_facemap_out = BMO_slot_get(dupeop.slots_out, "facemap.out");
 	if (bm->act_face && BMO_elem_flag_test(bm, bm->act_face, EXT_INPUT)) {
-		bm->act_face = BMO_slot_map_ptr_get(slot_facemap_out, bm->act_face);
+		bm->act_face = BMO_slot_map_elem_get(slot_facemap_out, bm->act_face);
 	}
 
 	if (delorig) {

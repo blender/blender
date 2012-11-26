@@ -65,9 +65,9 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 
 		BM_face_triangulate(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces, use_beauty);
 
-		BMO_slot_map_ptr_insert(op, slot_facemap_out, face, face);
+		BMO_slot_map_elem_insert(op, slot_facemap_out, face, face);
 		for (i = 0; newfaces[i]; i++) {
-			BMO_slot_map_ptr_insert(op, slot_facemap_out, newfaces[i], face);
+			BMO_slot_map_elem_insert(op, slot_facemap_out, newfaces[i], face);
 		}
 	}
 	

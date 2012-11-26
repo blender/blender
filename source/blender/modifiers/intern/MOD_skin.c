@@ -1093,7 +1093,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		v_safe = shortest_edge->v1;
 		v_merge = shortest_edge->v2;
 		mid_v3_v3v3(v_safe->co, v_safe->co, v_merge->co);
-		BMO_slot_map_ptr_insert(&op, slot_targetmap, v_merge, v_safe);
+		BMO_slot_map_elem_insert(&op, slot_targetmap, v_merge, v_safe);
 		BMO_op_exec(bm, &op);
 		BMO_op_finish(bm, &op);
 
@@ -1287,8 +1287,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	            "weld_verts");
 	slot_targetmap = BMO_slot_get(op.slots_in, "targetmap");
 	for (i = 0; i < 4; i++) {
-		BMO_slot_map_ptr_insert(&op, slot_targetmap,
-		                        verts[i], frame->verts[best_order[i]]);
+		BMO_slot_map_elem_insert(&op, slot_targetmap, verts[i], frame->verts[best_order[i]]);
 	}
 	BMO_op_exec(bm, &op);
 	BMO_op_finish(bm, &op);
