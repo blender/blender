@@ -5025,6 +5025,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 #ifdef NEW_BEVEL
 		case WHEELUPMOUSE:  /* change number of segments */
+		case PAGEUPKEY:
 			if (event->val == KM_RELEASE)
 				break;
 
@@ -5035,6 +5036,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 
 		case WHEELDOWNMOUSE:  /* change number of segments */
+		case PAGEDOWNKEY:
 			if (event->val == KM_RELEASE)
 				break;
 
