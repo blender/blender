@@ -2607,7 +2607,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			}
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert_first);
 			
-			totfilltri = BLI_scanfill_calc(&sf_ctx, FALSE);
+			totfilltri = BLI_scanfill_calc(&sf_ctx, 0);
 			if (totfilltri) {
 				BLI_array_grow_items(mface_to_poly_map, totfilltri);
 				BLI_array_grow_items(mface, totfilltri);

@@ -190,7 +190,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		/* sf_edge->tmp.p = e; */ /* UNUSED */
 	}
 	
-	BLI_scanfill_calc(&sf_ctx, FALSE);
+	BLI_scanfill_calc(&sf_ctx, 0);
 	
 	for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,
