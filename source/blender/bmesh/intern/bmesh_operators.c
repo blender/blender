@@ -127,7 +127,7 @@ void BMO_pop(BMesh *bm)
 
 
 /* use for both slot_types_in and slot_types_out */
-static void bmo_op_slots_init(BMOSlotType *slot_types, BMOpSlot *slot_args)
+static void bmo_op_slots_init(const BMOSlotType *slot_types, BMOpSlot *slot_args)
 {
 	unsigned int i;
 	for (i = 0; slot_types[i].type; i++) {
@@ -158,15 +158,15 @@ void BMO_op_init(BMesh *bm, BMOperator *op, const int flag, const char *opname)
 
 	memset(op, 0, sizeof(BMOperator));
 	op->type = opcode;
-	op->type_flag = opdefines[opcode]->type_flag;
+	op->type_flag = bmo_opdefines[opcode]->type_flag;
 	op->flag = flag;
 	
 	/* initialize the operator slot types */
-	bmo_op_slots_init(opdefines[opcode]->slot_types_in,  op->slots_in);
-	bmo_op_slots_init(opdefines[opcode]->slot_types_out, op->slots_out);
+	bmo_op_slots_init(bmo_opdefines[opcode]->slot_types_in,  op->slots_in);
+	bmo_op_slots_init(bmo_opdefines[opcode]->slot_types_out, op->slots_out);
 
 	/* callback */
-	op->exec = opdefines[opcode]->exec;
+	op->exec = bmo_opdefines[opcode]->exec;
 
 	/* memarena, used for operator's slot buffers */
 	op->arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -199,7 +199,7 @@ void BMO_op_exec(BMesh *bm, BMOperator *op)
 	BMO_pop(bm);
 }
 
-static void bmo_op_slots_free(BMOSlotType *slot_types, BMOpSlot *slot_args)
+static void bmo_op_slots_free(const BMOSlotType *slot_types, BMOpSlot *slot_args)
 {
 	BMOpSlot *slot;
 	unsigned int i;
@@ -220,13 +220,13 @@ static void bmo_op_slots_free(BMOSlotType *slot_types, BMOpSlot *slot_args)
  */
 void BMO_op_finish(BMesh *bm, BMOperator *op)
 {
-	bmo_op_slots_free(opdefines[op->type]->slot_types_in,  op->slots_in);
-	bmo_op_slots_free(opdefines[op->type]->slot_types_out, op->slots_out);
+	bmo_op_slots_free(bmo_opdefines[op->type]->slot_types_in,  op->slots_in);
+	bmo_op_slots_free(bmo_opdefines[op->type]->slot_types_out, op->slots_out);
 
 	BLI_memarena_free(op->arena);
 
 #ifdef DEBUG
-	BM_ELEM_INDEX_VALIDATE(bm, "post bmo", opdefines[op->type]->opname);
+	BM_ELEM_INDEX_VALIDATE(bm, "post bmo", bmo_opdefines[op->type]->opname);
 #else
 	(void)bm;
 #endif
@@ -631,7 +631,7 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
 		if (slot->len >= slot->size) {
 			slot->size = (slot->size + 1 + totadd) * 2;
 
-			allocsize = BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slot_types[slot_code].type] * slot->size;
+			allocsize = BMO_OPSLOT_TYPEINFO[bmo_opdefines[op->type]->slot_types[slot_code].type] * slot->size;
 
 			tmp = slot->data.buf;
 			slot->data.buf = MEM_callocN(allocsize, "opslot dynamic array");
@@ -646,7 +646,7 @@ void *bmo_slot_buffer_grow(BMesh *bm, BMOperator *op, int slot_code, int totadd)
 		slot->len += totadd;
 		slot->size = slot->len + 2;
 
-		allocsize = BMO_OPSLOT_TYPEINFO[opdefines[op->type]->slot_types[slot_code].type] * slot->len;
+		allocsize = BMO_OPSLOT_TYPEINFO[bmo_opdefines[op->type]->slot_types[slot_code].type] * slot->len;
 
 		tmp = slot->data.buf;
 		slot->data.buf = MEM_callocN(allocsize, "opslot dynamic array");
@@ -1393,8 +1393,8 @@ static int bmo_opname_to_opcode(const char *opname)
 {
 	int i;
 
-	for (i = 0; i < bmesh_total_ops; i++) {
-		if (!strcmp(opname, opdefines[i]->opname)) {
+	for (i = 0; i < bmo_opdefines_total; i++) {
+		if (!strcmp(opname, bmo_opdefines[i]->opname)) {
 			return i;
 		}
 	}
@@ -1463,7 +1463,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 	}
 
 	BMO_op_init(bm, op, flag, opname);
-//	def = opdefines[i];
+//	def = bmo_opdefines[i];
 	
 	i = 0;
 	state = 1; /* 0: not inside slot_code name, 1: inside slot_code name */

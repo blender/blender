@@ -100,39 +100,39 @@
 static BMOpDefine bmo_smooth_vert_def = {
 	"smooth_vert",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* input vertices */
-	 {BMO_OP_SLOT_BOOL, "mirror_clip_x"},   /* set vertices close to the x axis before the operation to 0 */
-	 {BMO_OP_SLOT_BOOL, "mirror_clip_y"},   /* set vertices close to the y axis before the operation to 0 */
-	 {BMO_OP_SLOT_BOOL, "mirror_clip_z"},   /* set vertices close to the z axis before the operation to 0 */
-	 {BMO_OP_SLOT_FLT,  "clip_dist"},       /* clipping threshod for the above three slots */
-	 {BMO_OP_SLOT_BOOL, "use_axis_x"},      /* smooth vertices along X axis */
-	 {BMO_OP_SLOT_BOOL, "use_axis_y"},      /* smooth vertices along Y axis */
-	 {BMO_OP_SLOT_BOOL, "use_axis_z"},      /* smooth vertices along Z axis */
-	{0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF},    /* input vertices */
+	 {"mirror_clip_x", BMO_OP_SLOT_BOOL},   /* set vertices close to the x axis before the operation to 0 */
+	 {"mirror_clip_y", BMO_OP_SLOT_BOOL},   /* set vertices close to the y axis before the operation to 0 */
+	 {"mirror_clip_z", BMO_OP_SLOT_BOOL},   /* set vertices close to the z axis before the operation to 0 */
+	 {"clip_dist",  BMO_OP_SLOT_FLT},       /* clipping threshod for the above three slots */
+	 {"use_axis_x", BMO_OP_SLOT_BOOL},      /* smooth vertices along X axis */
+	 {"use_axis_y", BMO_OP_SLOT_BOOL},      /* smooth vertices along Y axis */
+	 {"use_axis_z", BMO_OP_SLOT_BOOL},      /* smooth vertices along Z axis */
+	{{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_smooth_vert_exec,
 	0
 };
 
 /*
- * Vertext Smooth Laplacian 
+ * Vertext Smooth Laplacian
  * Smooths vertices by using Laplacian smoothing propose by.
  * Desbrun, et al. Implicit Fairing of Irregular Meshes using Diffusion and Curvature Flow
  */
 static BMOpDefine bmo_smooth_laplacian_vert_def = {
 	"smooth_laplacian_vert",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* input vertices */
-	 {BMO_OP_SLOT_FLT, "lambda"},           /* lambda param */
-	 {BMO_OP_SLOT_FLT, "lambda_border"},    /* lambda param in border */
-	 {BMO_OP_SLOT_BOOL, "use_x"},           /* Smooth object along X axis */
-	 {BMO_OP_SLOT_BOOL, "use_y"},           /* Smooth object along Y axis */
-	 {BMO_OP_SLOT_BOOL, "use_z"},           /* Smooth object along Z axis */
-	 {BMO_OP_SLOT_BOOL, "preserve_volume"}, /* Apply volume preservation after smooth */
-	{0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF},    /* input vertices */
+	 {"lambda", BMO_OP_SLOT_FLT},           /* lambda param */
+	 {"lambda_border", BMO_OP_SLOT_FLT},    /* lambda param in border */
+	 {"use_x", BMO_OP_SLOT_BOOL},           /* Smooth object along X axis */
+	 {"use_y", BMO_OP_SLOT_BOOL},           /* Smooth object along Y axis */
+	 {"use_z", BMO_OP_SLOT_BOOL},           /* Smooth object along Z axis */
+	 {"preserve_volume", BMO_OP_SLOT_BOOL}, /* Apply volume preservation after smooth */
+	{{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_smooth_laplacian_vert_exec,
 	0
 };
@@ -146,11 +146,11 @@ static BMOpDefine bmo_smooth_laplacian_vert_def = {
 static BMOpDefine bmo_recalc_face_normals_def = {
 	"recalc_face_normals",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},
-	 {BMO_OP_SLOT_BOOL, "use_flip"},        /* internal flag, used by bmesh_rationalize_normals */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"use_flip", BMO_OP_SLOT_BOOL},        /* internal flag, used by bmesh_rationalize_normals */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_recalc_face_normals_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
@@ -168,14 +168,14 @@ static BMOpDefine bmo_recalc_face_normals_def = {
 static BMOpDefine bmo_region_extend_def = {
 	"region_extend",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},     /* input geometry */
-	 {BMO_OP_SLOT_BOOL, "use_constrict"},   /* find boundary inside the regions, not outside. */
-	 {BMO_OP_SLOT_BOOL, "use_faces"},       /* extend from faces instead of edges */
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},     /* input geometry */
+	 {"use_constrict", BMO_OP_SLOT_BOOL},   /* find boundary inside the regions, not outside. */
+	 {"use_faces", BMO_OP_SLOT_BOOL},       /* extend from faces instead of edges */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"}, /* output slot, computed boundary geometry. */
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output slot, computed boundary geometry. */
+	 {{'\0'}},
 	},
 	bmo_region_extend_exec,
 	0
@@ -190,13 +190,13 @@ static BMOpDefine bmo_region_extend_def = {
 static BMOpDefine bmo_rotate_edges_def = {
 	"rotate_edges",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input edges */
-	 {BMO_OP_SLOT_BOOL, "use_ccw"},         /* rotate edge counter-clockwise if true, othewise clockwise */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},    /* input edges */
+	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate edge counter-clockwise if true, othewise clockwise */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges.out"}, /* newly spun edges */
-	 {0},
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF}, /* newly spun edges */
+	 {{'\0'}},
 	},
 	bmo_rotate_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -211,10 +211,10 @@ static BMOpDefine bmo_rotate_edges_def = {
 static BMOpDefine bmo_reverse_faces_def = {
 	"reverse_faces",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},    /* input faces */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_reverse_faces_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
@@ -228,13 +228,13 @@ static BMOpDefine bmo_reverse_faces_def = {
 static BMOpDefine bmo_bisect_edges_def = {
 	"bisect_edges",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edges */
-	 {BMO_OP_SLOT_INT, "cuts"}, /* number of cuts */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF}, /* input edges */
+	 {"cuts", BMO_OP_SLOT_INT}, /* number of cuts */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom_split.out"}, /* newly created vertices and edges */
-	 {0},
+	{{"geom_split.out", BMO_OP_SLOT_ELEMENT_BUF}, /* newly created vertices and edges */
+	 {{'\0'}},
 	},
 	bmo_bisect_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -251,17 +251,17 @@ static BMOpDefine bmo_bisect_edges_def = {
 static BMOpDefine bmo_mirror_def = {
 	"mirror",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},     /* input geometry */
-	 {BMO_OP_SLOT_MAT,         "mat"},      /* matrix defining the mirror transformation */
-	 {BMO_OP_SLOT_FLT, "merge_dist"},       /* maximum distance for merging.  does no merging if 0. */
-	 {BMO_OP_SLOT_INT,         "axis"},     /* the axis to use, 0, 1, or 2 for x, y, z */
-	 {BMO_OP_SLOT_BOOL,        "mirror_u"}, /* mirror UVs across the u axis */
-	 {BMO_OP_SLOT_BOOL,        "mirror_v"}, /* mirror UVs across the v axis */
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},     /* input geometry */
+	 {"mat",         BMO_OP_SLOT_MAT},      /* matrix defining the mirror transformation */
+	 {"merge_dist", BMO_OP_SLOT_FLT},       /* maximum distance for merging.  does no merging if 0. */
+	 {"axis",         BMO_OP_SLOT_INT},     /* the axis to use, 0, 1, or 2 for x, y, z */
+	 {"mirror_u",        BMO_OP_SLOT_BOOL}, /* mirror UVs across the u axis */
+	 {"mirror_v",        BMO_OP_SLOT_BOOL}, /* mirror UVs across the v axis */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"}, /* output geometry, mirrored */
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output geometry, mirrored */
+	 {{'\0'}},
 	},
 	bmo_mirror_exec,
 	0,
@@ -279,14 +279,14 @@ static BMOpDefine bmo_mirror_def = {
 static BMOpDefine bmo_find_doubles_def = {
 	"find_doubles",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertices */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "keep_verts"}, /* list of verts to keep */
-	 {BMO_OP_SLOT_FLT,         "dist"}, /* minimum distance */
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF}, /* input vertices */
+	 {"keep_verts", BMO_OP_SLOT_ELEMENT_BUF}, /* list of verts to keep */
+	 {"dist",         BMO_OP_SLOT_FLT}, /* minimum distance */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_MAPPING, "targetmap.out"},
-	 {0},
+	{{"targetmap.out", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	 {{'\0'}},
 	},
 	bmo_find_doubles_exec,
 	0,
@@ -301,11 +301,11 @@ static BMOpDefine bmo_find_doubles_def = {
 static BMOpDefine bmo_remove_doubles_def = {
 	"remove_doubles",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input verts */
-	 {BMO_OP_SLOT_FLT,         "dist"}, /* minimum distance */
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF}, /* input verts */
+	 {"dist",         BMO_OP_SLOT_FLT}, /* minimum distance */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_remove_doubles_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
@@ -320,11 +320,11 @@ static BMOpDefine bmo_remove_doubles_def = {
 static BMOpDefine bmo_automerge_def = {
 	"automerge",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input verts */
-	 {BMO_OP_SLOT_FLT,         "dist"}, /* minimum distance */
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF}, /* input verts */
+	 {"dist",         BMO_OP_SLOT_FLT}, /* minimum distance */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_automerge_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
@@ -337,10 +337,10 @@ static BMOpDefine bmo_automerge_def = {
 static BMOpDefine bmo_collapse_def = {
 	"collapse",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edge */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF}, /* input edge */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_collapse_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
@@ -354,11 +354,11 @@ static BMOpDefine bmo_collapse_def = {
 static BMOpDefine bmo_pointmerge_facedata_def = {
 	"pointmerge_facedata",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* input vertices */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "snapv"},    /* snap vertex */
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF},    /* input vertices */
+	 {"snapv", BMO_OP_SLOT_ELEMENT_BUF},    /* snap vertex */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_pointmerge_facedata_exec,
 	0,
 };
@@ -373,10 +373,10 @@ static BMOpDefine bmo_pointmerge_facedata_def = {
 static BMOpDefine bmo_average_vert_facedata_def = {
 	"average_vert_facedata",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertice */
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF}, /* input vertice */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_average_vert_facedata_exec,
 	0,
 };
@@ -389,11 +389,11 @@ static BMOpDefine bmo_average_vert_facedata_def = {
 static BMOpDefine bmo_pointmerge_def = {
 	"pointmerge",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertice */
-	 {BMO_OP_SLOT_VEC,         "merge_co"},
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF}, /* input vertice */
+	 {"merge_co",         BMO_OP_SLOT_VEC},
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_pointmerge_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
@@ -406,10 +406,10 @@ static BMOpDefine bmo_pointmerge_def = {
 static BMOpDefine bmo_collapse_uvs_def = {
 	"collapse_uvs",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edge */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF}, /* input edge */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_collapse_uvs_exec,
 	0,
 };
@@ -424,10 +424,11 @@ static BMOpDefine bmo_collapse_uvs_def = {
 static BMOpDefine bmo_weld_verts_def = {
 	"weld_verts",
 	/* slots_in */
-	{{BMO_OP_SLOT_MAPPING, "targetmap"}, /* maps welded vertices to verts they should weld to */
-	 {0},
+	/* maps welded vertices to verts they should weld to */
+	{{"targetmap", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_weld_verts_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
@@ -441,12 +442,12 @@ static BMOpDefine bmo_weld_verts_def = {
 static BMOpDefine bmo_create_vert_def = {
 	"create_vert",
 	/* slots_in */
-	{{BMO_OP_SLOT_VEC, "co"},  /* the coordinate of the new vert */
-	 {0},
+	{{"co", BMO_OP_SLOT_VEC},  /* the coordinate of the new vert */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "vert.out"},  /* the new vert */
-	 {0},
+	{{"vert.out", BMO_OP_SLOT_ELEMENT_BUF},  /* the new vert */
+	 {{'\0'}},
 	},
 	bmo_create_vert_exec,
 	0,
@@ -461,17 +462,17 @@ static BMOpDefine bmo_create_vert_def = {
 static BMOpDefine bmo_join_triangles_def = {
 	"join_triangles",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input geometry. */
-	 {BMO_OP_SLOT_BOOL, "cmp_sharp"},
-	 {BMO_OP_SLOT_BOOL, "cmp_uvs"},
-	 {BMO_OP_SLOT_BOOL, "cmp_vcols"},
-	 {BMO_OP_SLOT_BOOL, "cmp_materials"},
-	 {BMO_OP_SLOT_FLT, "limit"},
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},    /* input geometry. */
+	 {"cmp_sharp", BMO_OP_SLOT_BOOL},
+	 {"cmp_uvs", BMO_OP_SLOT_BOOL},
+	 {"cmp_vcols", BMO_OP_SLOT_BOOL},
+	 {"cmp_materials", BMO_OP_SLOT_BOOL},
+	 {"limit", BMO_OP_SLOT_FLT},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces.out"},  /* joined faces */
-	 {0},
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF},  /* joined faces */
+	 {{'\0'}},
 	},
 	bmo_join_triangles_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
@@ -491,16 +492,16 @@ static BMOpDefine bmo_join_triangles_def = {
 static BMOpDefine bmo_contextual_create_def = {
 	"contextual_create",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},     /* input geometry. */
-	 {BMO_OP_SLOT_INT,         "mat_nr"},   /* material to use */
-	 {BMO_OP_SLOT_BOOL,        "use_smooth"}, /* smooth to use */
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},     /* input geometry. */
+	 {"mat_nr",         BMO_OP_SLOT_INT},   /* material to use */
+	 {"use_smooth",        BMO_OP_SLOT_BOOL}, /* smooth to use */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces.out"}, /* newly-made face(s) */
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF}, /* newly-made face(s) */
 	/* note, this is for stand-alone edges only, not edges which are apart of newly created faces */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edges.out"}, /* newly-made edge(s) */
-	 {0},
+	 {"edges.out", BMO_OP_SLOT_ELEMENT_BUF}, /* newly-made edge(s) */
+	 {{'\0'}},
 	},
 	bmo_contextual_create_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES,
@@ -512,14 +513,14 @@ static BMOpDefine bmo_contextual_create_def = {
 static BMOpDefine bmo_bridge_loops_def = {
 	"bridge_loops",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edge */
-	 {BMO_OP_SLOT_BOOL,        "use_merge"},
-	 {BMO_OP_SLOT_FLT,         "merge_factor"},
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF}, /* input edge */
+	 {"use_merge",        BMO_OP_SLOT_BOOL},
+	 {"merge_factor",         BMO_OP_SLOT_FLT},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces.out"}, /* new faces */
-	 {0},
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF}, /* new faces */
+	 {{'\0'}},
 	},
 	bmo_bridge_loops_exec,
 	0,
@@ -528,19 +529,21 @@ static BMOpDefine bmo_bridge_loops_def = {
 static BMOpDefine bmo_edgenet_fill_def = {
 	"edgenet_fill",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"}, /* input edge */
-	 {BMO_OP_SLOT_MAPPING,     "restrict"}, /* restricts edges to groups.  maps edges to integer */
-	 {BMO_OP_SLOT_BOOL,        "use_restrict"},
-	 {BMO_OP_SLOT_BOOL,        "use_fill_check"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "exclude_faces"}, /* list of faces to ignore for manifold check */
-	 {BMO_OP_SLOT_INT,         "mat_nr"},      /* material to use */
-	 {BMO_OP_SLOT_BOOL,        "use_smooth"},  /* material to use */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF}, /* input edge */
+	/* restricts edges to groups.  maps edges to integer */
+	 {"restrict",     BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_BOOL},
+	 {"use_restrict",        BMO_OP_SLOT_BOOL},
+	 {"use_fill_check",        BMO_OP_SLOT_BOOL},
+	 {"exclude_faces", BMO_OP_SLOT_ELEMENT_BUF}, /* list of faces to ignore for manifold check */
+	 {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
+	 {"use_smooth",        BMO_OP_SLOT_BOOL},  /* material to use */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_MAPPING,     "face_groupmap.out"}, /* maps new faces to the group numbers they came from */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "faces.out"},     /* new face */
-	 {0},
+	/* maps new faces to the group numbers they came from */
+	{{"face_groupmap.out",     BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF},     /* new face */
+	 {{'\0'}},
 	},
 	bmo_edgenet_fill_exec,
 	0,
@@ -559,12 +562,12 @@ static BMOpDefine bmo_edgenet_fill_def = {
 static BMOpDefine bmo_edgenet_prepare_def = {
 	"edgenet_prepare",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input edges */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},    /* input edges */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges.out"},  /* new edges */
-	 {0},
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF},  /* new edges */
+	 {{'\0'}},
 	},
 	bmo_edgenet_prepare,
 	0,
@@ -579,12 +582,12 @@ static BMOpDefine bmo_edgenet_prepare_def = {
 static BMOpDefine bmo_rotate_def = {
 	"rotate",
 	/* slots_in */
-	{{BMO_OP_SLOT_VEC, "cent"},  /* center of rotation */
-	 {BMO_OP_SLOT_MAT, "mat"},   /* matrix defining rotation */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},  /* input vertices */
-	 {0},
+	{{"cent", BMO_OP_SLOT_VEC},  /* center of rotation */
+	 {"mat", BMO_OP_SLOT_MAT},   /* matrix defining rotation */
+	 {"verts", BMO_OP_SLOT_ELEMENT_BUF},  /* input vertices */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_rotate_exec,
 	0,
 };
@@ -598,11 +601,11 @@ static BMOpDefine bmo_rotate_def = {
 static BMOpDefine bmo_translate_def = {
 	"translate",
 	/* slots_in */
-	{{BMO_OP_SLOT_VEC, "vec"},  /* translation offset */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},  /* input vertices */
-	 {0},
+	{{"vec", BMO_OP_SLOT_VEC},  /* translation offset */
+	 {"verts", BMO_OP_SLOT_ELEMENT_BUF},  /* input vertices */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_translate_exec,
 	0,
 };
@@ -615,11 +618,11 @@ static BMOpDefine bmo_translate_def = {
 static BMOpDefine bmo_scale_def = {
 	"scale",
 	/* slots_in */
-	{{BMO_OP_SLOT_VEC, "vec"},  /* scale factor */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},  /* input vertices */
-	 {0},
+	{{"vec", BMO_OP_SLOT_VEC},  /* scale factor */
+	 {"verts", BMO_OP_SLOT_ELEMENT_BUF},  /* input vertices */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_scale_exec,
 	0,
 };
@@ -634,11 +637,11 @@ static BMOpDefine bmo_scale_def = {
 static BMOpDefine bmo_transform_def = {
 	"transform",
 	/* slots_in */
-	{{BMO_OP_SLOT_MAT, "mat"},  /* transform matrix */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},  /* input vertices */
-	 {0},
+	{{"mat", BMO_OP_SLOT_MAT},  /* transform matrix */
+	 {"verts", BMO_OP_SLOT_ELEMENT_BUF},  /* input vertices */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_transform_exec,
 	0,
 };
@@ -652,11 +655,11 @@ static BMOpDefine bmo_transform_def = {
 static BMOpDefine bmo_object_load_bmesh_def = {
 	"object_load_bmesh",
 	/* slots_in */
-	{{BMO_OP_SLOT_PTR, "scene"},
-	 {BMO_OP_SLOT_PTR, "object"},
-	 {0},
+	{{"scene", BMO_OP_SLOT_PTR, BMO_OP_SLOT_SUBTYPE_PTR_SCENE},
+	 {"object", BMO_OP_SLOT_PTR, BMO_OP_SLOT_SUBTYPE_PTR_OBJECT},
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_object_load_bmesh_exec,
 	0,
 };
@@ -670,12 +673,15 @@ static BMOpDefine bmo_object_load_bmesh_def = {
 static BMOpDefine bmo_bmesh_to_mesh_def = {
 	"bmesh_to_mesh",
 	/* slots_in */
-	{{BMO_OP_SLOT_PTR, "mesh"},    /* pointer to a mesh structure to fill in */
-	 {BMO_OP_SLOT_PTR, "object"},  /* pointer to an object structure */
-	 {BMO_OP_SLOT_BOOL, "skip_tessface"},  /* don't calculate mfaces */
-	 {0},
+	{
+	/* pointer to a mesh structure to fill in */
+	 {"mesh", BMO_OP_SLOT_PTR, BMO_OP_SLOT_SUBTYPE_PTR_MESH},
+	/* pointer to an object structure */
+	 {"object", BMO_OP_SLOT_PTR, BMO_OP_SLOT_SUBTYPE_PTR_OBJECT},
+	 {"skip_tessface", BMO_OP_SLOT_BOOL},  /* don't calculate mfaces */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_bmesh_to_mesh_exec,
 	0,
 };
@@ -689,12 +695,15 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
 static BMOpDefine bmo_mesh_to_bmesh_def = {
 	"mesh_to_bmesh",
 	/* slots_in */
-	{{BMO_OP_SLOT_PTR, "mesh"},    /* pointer to a Mesh structure */
-	 {BMO_OP_SLOT_PTR, "object"},  /* pointer to an Object structure */
-	 {BMO_OP_SLOT_BOOL, "use_shapekey"},  /* load active shapekey coordinates into verts */
-	 {0},
+	{
+	/* pointer to a Mesh structure */
+	 {"mesh", BMO_OP_SLOT_PTR, BMO_OP_SLOT_SUBTYPE_PTR_MESH},
+	/* pointer to an Object structure */
+	 {"object", BMO_OP_SLOT_PTR, BMO_OP_SLOT_SUBTYPE_PTR_OBJECT},
+	 {"use_shapekey", BMO_OP_SLOT_BOOL},  /* load active shapekey coordinates into verts */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_mesh_to_bmesh_exec,
 	0
 };
@@ -707,13 +716,13 @@ static BMOpDefine bmo_mesh_to_bmesh_def = {
 static BMOpDefine bmo_extrude_discrete_faces_def = {
 	"extrude_discrete_faces",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},     /* input faces */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},     /* input faces */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces.out"},   /* output faces */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geom_skirt.out"},  /* output skirt geometry, faces and edges */
-	 {0},
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF},   /* output faces */
+	 {"geom_skirt.out", BMO_OP_SLOT_ELEMENT_BUF},  /* output skirt geometry, faces and edges */
+	 {{'\0'}},
 	},
 	bmo_extrude_discrete_faces_exec,
 	0
@@ -728,12 +737,12 @@ static BMOpDefine bmo_extrude_discrete_faces_def = {
 static BMOpDefine bmo_extrude_edge_only_def = {
 	"extrude_edge_only",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input vertices */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},    /* input vertices */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},  /* output geometry */
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF},  /* output geometry */
+	 {{'\0'}},
 	},
 	bmo_extrude_edge_only_exec,
 	0
@@ -747,13 +756,13 @@ static BMOpDefine bmo_extrude_edge_only_def = {
 static BMOpDefine bmo_extrude_vert_indiv_def = {
 	"extrude_vert_indiv",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* input vertices */
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF},    /* input vertices */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges.out"},  /* output wire edges */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts.out"},  /* output vertices */
-	 {0},
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF},  /* output wire edges */
+	 {"verts.out", BMO_OP_SLOT_ELEMENT_BUF},  /* output vertices */
+	 {{'\0'}},
 	},
 	bmo_extrude_vert_indiv_exec,
 	0
@@ -762,12 +771,12 @@ static BMOpDefine bmo_extrude_vert_indiv_def = {
 static BMOpDefine bmo_connect_verts_def = {
 	"connect_verts",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges.out"},
-	 {0},
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_connect_verts_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -776,14 +785,14 @@ static BMOpDefine bmo_connect_verts_def = {
 static BMOpDefine bmo_extrude_face_region_def = {
 	"extrude_face_region",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},     /* edges and faces */
-	 {BMO_OP_SLOT_MAPPING, "edges_exclude"},
-	 {BMO_OP_SLOT_BOOL, "use_keep_orig"},   /* keep original geometry */
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},     /* edges and faces */
+	 {"edges_exclude", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_EMPTY},
+	 {"use_keep_orig", BMO_OP_SLOT_BOOL},   /* keep original geometry */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_extrude_face_region_exec,
 	0
@@ -792,10 +801,10 @@ static BMOpDefine bmo_extrude_face_region_def = {
 static BMOpDefine bmo_dissolve_verts_def = {
 	"dissolve_verts",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_dissolve_verts_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
@@ -803,13 +812,13 @@ static BMOpDefine bmo_dissolve_verts_def = {
 static BMOpDefine bmo_dissolve_edges_def = {
 	"dissolve_edges",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
-	 {BMO_OP_SLOT_BOOL, "use_verts"},  /* dissolve verts left between only 2 edges. */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"use_verts", BMO_OP_SLOT_BOOL},  /* dissolve verts left between only 2 edges. */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "region.out"},
-	 {0},
+	{{"region.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_dissolve_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -818,12 +827,12 @@ static BMOpDefine bmo_dissolve_edges_def = {
 static BMOpDefine bmo_dissolve_edge_loop_def = {
 	"dissolve_edge_loop",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "region.out"},
-	 {0},
+	{{"region.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_dissolve_edgeloop_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -832,13 +841,13 @@ static BMOpDefine bmo_dissolve_edge_loop_def = {
 static BMOpDefine bmo_dissolve_faces_def = {
 	"dissolve_faces",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},
-	 {BMO_OP_SLOT_BOOL, "use_verts"},  /* dissolve verts left between only 2 edges. */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"use_verts", BMO_OP_SLOT_BOOL},  /* dissolve verts left between only 2 edges. */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "region.out"},
-	 {0},
+	{{"region.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_dissolve_faces_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -847,13 +856,13 @@ static BMOpDefine bmo_dissolve_faces_def = {
 static BMOpDefine bmo_dissolve_limit_def = {
 	"dissolve_limit",
 	/* slots_in */
-	{{BMO_OP_SLOT_FLT, "angle_limit"}, /* total rotation angle (degrees) */
-	 {BMO_OP_SLOT_BOOL, "use_dissolve_boundaries"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edges"},
-	 {0},
+	{{"angle_limit", BMO_OP_SLOT_FLT}, /* total rotation angle (degrees) */
+	 {"use_dissolve_boundaries", BMO_OP_SLOT_BOOL},
+	 {"verts", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"edges", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_dissolve_limit_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
@@ -861,15 +870,15 @@ static BMOpDefine bmo_dissolve_limit_def = {
 static BMOpDefine bmo_triangulate_def = {
 	"triangulate",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},
-	 {BMO_OP_SLOT_BOOL, "use_beauty"},
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"use_beauty", BMO_OP_SLOT_BOOL},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges.out"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "faces.out"},
-	 {BMO_OP_SLOT_MAPPING, "facemap.out"},
-	 {0},
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"facemap.out", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	 {{'\0'}},
 	},
 	bmo_triangulate_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -878,11 +887,11 @@ static BMOpDefine bmo_triangulate_def = {
 static BMOpDefine bmo_unsubdivide_def = {
 	"unsubdivide",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"}, /* input vertices */
-	 {BMO_OP_SLOT_INT, "iterations"},
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF}, /* input vertices */
+	 {"iterations", BMO_OP_SLOT_INT},
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_unsubdivide_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
@@ -890,27 +899,27 @@ static BMOpDefine bmo_unsubdivide_def = {
 static BMOpDefine bmo_subdivide_edges_def = {
 	"subdivide_edges",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},
-	 {BMO_OP_SLOT_FLT, "smooth"},
-	 {BMO_OP_SLOT_FLT, "fractal"},
-	 {BMO_OP_SLOT_FLT, "along_normal"},
-	 {BMO_OP_SLOT_INT, "cuts"},
-	 {BMO_OP_SLOT_INT, "seed"},
-	 {BMO_OP_SLOT_MAPPING, "custompatterns"},
-	 {BMO_OP_SLOT_MAPPING, "edgepercents"},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"smooth", BMO_OP_SLOT_FLT},
+	 {"fractal", BMO_OP_SLOT_FLT},
+	 {"along_normal", BMO_OP_SLOT_FLT},
+	 {"cuts", BMO_OP_SLOT_INT},
+	 {"seed", BMO_OP_SLOT_INT},
+	 {"custompatterns", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL},  /* uses custom pointers */
+	 {"edgepercents", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_FLOAT},
 
-	 {BMO_OP_SLOT_INT,  "quad_corner_type"}, /* quad corner type, see bmesh_operators.h */
-	 {BMO_OP_SLOT_BOOL, "use_gridfill"},   /* fill in fully-selected faces with a grid */
-	 {BMO_OP_SLOT_BOOL, "use_singleedge"}, /* tessellate the case of one edge selected in a quad or triangle */
-	 {BMO_OP_SLOT_BOOL, "use_sphere"},     /* for making new primitives only */
-	 {0},
+	 {"quad_corner_type",  BMO_OP_SLOT_INT}, /* quad corner type, see bmesh_operators.h */
+	 {"use_gridfill", BMO_OP_SLOT_BOOL},   /* fill in fully-selected faces with a grid */
+	 {"use_singleedge", BMO_OP_SLOT_BOOL}, /* tessellate the case of one edge selected in a quad or triangle */
+	 {"use_sphere", BMO_OP_SLOT_BOOL},     /* for making new primitives only */
+	 {{'\0'}},
 	},
 	/* slots_out */
 	{/* these next three can have multiple types of elements in them */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geom_inner.out"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geom_split.out"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geom.out"}, /* contains all output geometr */
-	 {0},
+	 {"geom_inner.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"geom_split.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"geom.out", BMO_OP_SLOT_ELEMENT_BUF}, /* contains all output geometr */
+	 {{'\0'}},
 	},
 	bmo_subdivide_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -919,11 +928,11 @@ static BMOpDefine bmo_subdivide_edges_def = {
 static BMOpDefine bmo_delete_def = {
 	"delete",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},
-	 {BMO_OP_SLOT_INT, "context"},
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"context", BMO_OP_SLOT_INT},
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_delete_exec,
 	0
 };
@@ -931,19 +940,20 @@ static BMOpDefine bmo_delete_def = {
 static BMOpDefine bmo_duplicate_def = {
 	"duplicate",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},
-	 {BMO_OP_SLOT_PTR, "dest"}, /* destination bmesh, if NULL will use current on */
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},
+	/* destination bmesh, if NULL will use current on */
+	 {"dest", BMO_OP_SLOT_PTR, BMO_OP_SLOT_SUBTYPE_PTR_BMESH},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom_orig.out"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},
+	{{"geom_orig.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"geom.out", BMO_OP_SLOT_ELEMENT_BUF},
 	/* facemap maps from source faces to dupe
 	 * faces, and from dupe faces to source faces */
-	 {BMO_OP_SLOT_MAPPING, "facemap.out"},
-	 {BMO_OP_SLOT_MAPPING, "boundarymap.out"},
-	 {BMO_OP_SLOT_MAPPING, "isovertmap.out"},
-	{0},
+	 {"facemap.out", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	 {"boundarymap.out", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	 {"isovertmap.out", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	{{'\0'}},
 	},
 	bmo_duplicate_exec,
 	0
@@ -952,16 +962,17 @@ static BMOpDefine bmo_duplicate_def = {
 static BMOpDefine bmo_split_def = {
 	"split",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},
-	 {BMO_OP_SLOT_PTR, "dest"},             /* destination bmesh, if NULL will use current one */
-	 {BMO_OP_SLOT_BOOL, "use_only_faces"},  /* when enabled. don't duplicate loose verts/edges */
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},
+	/* destination bmesh, if NULL will use current one */
+	 {"dest", BMO_OP_SLOT_PTR, BMO_OP_SLOT_SUBTYPE_PTR_BMESH},
+	 {"use_only_faces", BMO_OP_SLOT_BOOL},  /* when enabled. don't duplicate loose verts/edges */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},
-	 {BMO_OP_SLOT_MAPPING, "boundarymap.out"},
-	 {BMO_OP_SLOT_MAPPING, "isovertmap.out"},
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"boundarymap.out", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	 {"isovertmap.out", BMO_OP_SLOT_MAPPING, BMO_OP_SLOT_SUBTYPE_MAP_ELEM},
+	 {{'\0'}},
 	},
 	bmo_split_exec,
 	0
@@ -976,18 +987,18 @@ static BMOpDefine bmo_split_def = {
 static BMOpDefine bmo_spin_def = {
 	"spin",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},
-	 {BMO_OP_SLOT_VEC, "cent"},             /* rotation center */
-	 {BMO_OP_SLOT_VEC, "axis"},             /* rotation axis */
-	 {BMO_OP_SLOT_VEC, "dvec"},             /* translation delta per step */
-	 {BMO_OP_SLOT_FLT, "angle"},            /* total rotation angle (degrees) */
-	 {BMO_OP_SLOT_INT, "steps"},            /* number of steps */
-	 {BMO_OP_SLOT_BOOL, "use_duplicate"},   /* duplicate or extrude? */
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"cent", BMO_OP_SLOT_VEC},             /* rotation center */
+	 {"axis", BMO_OP_SLOT_VEC},             /* rotation axis */
+	 {"dvec", BMO_OP_SLOT_VEC},             /* translation delta per step */
+	 {"angle", BMO_OP_SLOT_FLT},            /* total rotation angle (degrees) */
+	 {"steps", BMO_OP_SLOT_INT},            /* number of steps */
+	 {"use_duplicate", BMO_OP_SLOT_BOOL},   /* duplicate or extrude? */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom_last.out"}, /* result of last step */
-	 {0},
+	{{"geom_last.out", BMO_OP_SLOT_ELEMENT_BUF}, /* result of last step */
+	 {{'\0'}},
 	},
 	bmo_spin_exec,
 	0
@@ -1002,15 +1013,15 @@ static BMOpDefine bmo_spin_def = {
 static BMOpDefine bmo_similar_faces_def = {
 	"similar_faces",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
-	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
-	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},    /* input faces */
+	 {"type", BMO_OP_SLOT_INT},             /* type of selection */
+	 {"thresh", BMO_OP_SLOT_FLT},           /* threshold of selection */
+	 {"compare", BMO_OP_SLOT_INT},          /* comparison method */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces.out"},  /* output faces */
-	 {0},
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF},  /* output faces */
+	 {{'\0'}},
 	},
 	bmo_similar_faces_exec,
 	0
@@ -1024,15 +1035,15 @@ static BMOpDefine bmo_similar_faces_def = {
 static BMOpDefine bmo_similar_edges_def = {
 	"similar_edges",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input edges */
-	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
-	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},    /* input edges */
+	 {"type", BMO_OP_SLOT_INT},             /* type of selection */
+	 {"thresh", BMO_OP_SLOT_FLT},           /* threshold of selection */
+	 {"compare", BMO_OP_SLOT_INT},          /* comparison method */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges.out"},  /* output edges */
-	 {0},
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF},  /* output edges */
+	 {{'\0'}},
 	},
 	bmo_similar_edges_exec,
 	0
@@ -1046,15 +1057,15 @@ static BMOpDefine bmo_similar_edges_def = {
 static BMOpDefine bmo_similar_verts_def = {
 	"similar_verts",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* input vertices */
-	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
-	 {BMO_OP_SLOT_FLT, "thresh"},           /* threshold of selection */
-	 {BMO_OP_SLOT_INT, "compare"},          /* comparison method */
-	 {0},
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF},    /* input vertices */
+	 {"type", BMO_OP_SLOT_INT},             /* type of selection */
+	 {"thresh", BMO_OP_SLOT_FLT},           /* threshold of selection */
+	 {"compare", BMO_OP_SLOT_INT},          /* comparison method */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"},  /* output vertices */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF},  /* output vertices */
+	 {{'\0'}},
 	},
 	bmo_similar_verts_exec,
 	0
@@ -1067,12 +1078,12 @@ static BMOpDefine bmo_similar_verts_def = {
 static BMOpDefine bmo_rotate_uvs_def = {
 	"rotate_uvs",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
-	 {BMO_OP_SLOT_BOOL, "use_ccw"},         /* rotate counter-clockwise if true, othewise clockwise */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},    /* input faces */
+	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate counter-clockwise if true, othewise clockwise */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_rotate_uvs_exec,
 	0
 };
@@ -1084,10 +1095,10 @@ static BMOpDefine bmo_rotate_uvs_def = {
 static BMOpDefine bmo_reverse_uvs_def = {
 	"reverse_uvs",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},    /* input faces */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_reverse_uvs_exec,
 	0
 };
@@ -1099,11 +1110,11 @@ static BMOpDefine bmo_reverse_uvs_def = {
 static BMOpDefine bmo_rotate_colors_def = {
 	"rotate_colors",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
-	 {BMO_OP_SLOT_BOOL, "use_ccw"},         /* rotate counter-clockwise if true, othewise clockwise */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},    /* input faces */
+	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate counter-clockwise if true, othewise clockwise */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_rotate_colors_exec,
 	0
 };
@@ -1115,10 +1126,10 @@ static BMOpDefine bmo_rotate_colors_def = {
 static BMOpDefine bmo_reverse_colors_def = {
 	"reverse_colors",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},    /* input faces */
+	 {{'\0'}},
 	},
-	{{0}},  /* no output */
+	{{{'\0'}}},  /* no output */
 	bmo_reverse_colors_exec,
 	0
 };
@@ -1131,14 +1142,14 @@ static BMOpDefine bmo_reverse_colors_def = {
 static BMOpDefine bmo_shortest_path_def = {
 	"shortest_path",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "startv"},   /* start vertex */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "endv"},     /* end vertex */
-	 {BMO_OP_SLOT_INT, "type"},             /* type of selection */
-	 {0},
+	{{"startv", BMO_OP_SLOT_ELEMENT_BUF},   /* start vertex */
+	 {"endv", BMO_OP_SLOT_ELEMENT_BUF},     /* end vertex */
+	 {"type", BMO_OP_SLOT_INT},             /* type of selection */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"}, /* output vertices */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output vertices */
+	 {{'\0'}},
 	},
 	bmo_shortest_path_exec,
 	0
@@ -1152,15 +1163,15 @@ static BMOpDefine bmo_shortest_path_def = {
 static BMOpDefine bmo_split_edges_def = {
 	"split_edges",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input edges */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},    /* input edges */
 	 /* needed for vertex rip so we can rip only half an edge at a boundary wich would otherwise split off */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "verts"},    /* optional tag verts, use to have greater control of splits */
-	 {BMO_OP_SLOT_BOOL,        "use_verts"}, /* use 'verts' for splitting, else just find verts to split from edges */
-	 {0},
+	 {"verts", BMO_OP_SLOT_ELEMENT_BUF},    /* optional tag verts, use to have greater control of splits */
+	 {"use_verts",        BMO_OP_SLOT_BOOL}, /* use 'verts' for splitting, else just find verts to split from edges */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges.out"}, /* old output disconnected edges */
-	 {0},
+	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF}, /* old output disconnected edges */
+	 {{'\0'}},
 	},
 	bmo_split_edges_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -1174,15 +1185,15 @@ static BMOpDefine bmo_split_edges_def = {
 static BMOpDefine bmo_create_grid_def = {
 	"create_grid",
 	/* slots_in */
-	{{BMO_OP_SLOT_INT,         "x_segments"}, /* number of x segments */
-	 {BMO_OP_SLOT_INT,         "y_segments"}, /* number of y segments */
-	 {BMO_OP_SLOT_FLT,         "size"},     /* size of the grid */
-	 {BMO_OP_SLOT_MAT,         "mat"},      /* matrix to multiply the new geometry with */
-	 {0},
+	{{"x_segments",         BMO_OP_SLOT_INT}, /* number of x segments */
+	 {"y_segments",         BMO_OP_SLOT_INT}, /* number of y segments */
+	 {"size",         BMO_OP_SLOT_FLT},     /* size of the grid */
+	 {"mat",         BMO_OP_SLOT_MAT},      /* matrix to multiply the new geometry with */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"}, /* output verts */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output verts */
+	 {{'\0'}},
 	},
 	bmo_create_grid_exec,
 	0,
@@ -1196,15 +1207,15 @@ static BMOpDefine bmo_create_grid_def = {
 static BMOpDefine bmo_create_uvsphere_def = {
 	"create_uvsphere",
 	/* slots_in */
-	{{BMO_OP_SLOT_INT,         "u_segments"}, /* number of u segments */
-	 {BMO_OP_SLOT_INT,         "v_segments"}, /* number of v segment */
-	 {BMO_OP_SLOT_FLT,         "diameter"}, /* diameter */
-	 {BMO_OP_SLOT_MAT,         "mat"}, /* matrix to multiply the new geometry with */
-	 {0},
+	{{"u_segments",         BMO_OP_SLOT_INT}, /* number of u segments */
+	 {"v_segments",         BMO_OP_SLOT_INT}, /* number of v segment */
+	 {"diameter",         BMO_OP_SLOT_FLT}, /* diameter */
+	 {"mat",         BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"}, /* output verts */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output verts */
+	 {{'\0'}},
 	},
 	bmo_create_uvsphere_exec,
 	0,
@@ -1218,14 +1229,14 @@ static BMOpDefine bmo_create_uvsphere_def = {
 static BMOpDefine bmo_create_icosphere_def = {
 	"create_icosphere",
 	/* slots_in */
-	{{BMO_OP_SLOT_INT,         "subdivisions"}, /* how many times to recursively subdivide the sphere */
-	 {BMO_OP_SLOT_FLT,         "diameter"}, /* diameter */
-	 {BMO_OP_SLOT_MAT,         "mat"}, /* matrix to multiply the new geometry with */
-	 {0},
+	{{"subdivisions",         BMO_OP_SLOT_INT}, /* how many times to recursively subdivide the sphere */
+	 {"diameter",         BMO_OP_SLOT_FLT}, /* diameter */
+	 {"mat",         BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"}, /* output verts */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output verts */
+	 {{'\0'}},
 	},
 	bmo_create_icosphere_exec,
 	0,
@@ -1239,12 +1250,12 @@ static BMOpDefine bmo_create_icosphere_def = {
 static BMOpDefine bmo_create_monkey_def = {
 	"create_monkey",
 	/* slots_in */
-	{{BMO_OP_SLOT_MAT, "mat"}, /* matrix to multiply the new geometry with */
-	 {0},
+	{{"mat", BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"}, /* output verts */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output verts */
+	 {{'\0'}},
 	},
 	bmo_create_monkey_exec,
 	0,
@@ -1258,18 +1269,18 @@ static BMOpDefine bmo_create_monkey_def = {
 static BMOpDefine bmo_create_cone_def = {
 	"create_cone",
 	/* slots_in */
-	{{BMO_OP_SLOT_BOOL, "cap_ends"},        /* wheter or not to fill in the ends with faces */
-	 {BMO_OP_SLOT_BOOL, "cap_tris"},        /* fill ends with triangles instead of ngons */
-	 {BMO_OP_SLOT_INT, "segments"},
-	 {BMO_OP_SLOT_FLT, "diameter1"},        /* diameter of one end */
-	 {BMO_OP_SLOT_FLT, "diameter2"},        /* diameter of the opposite */
-	 {BMO_OP_SLOT_FLT, "depth"},            /* distance between ends */
-	 {BMO_OP_SLOT_MAT, "mat"},              /* matrix to multiply the new geometry with */
-	 {0},
+	{{"cap_ends", BMO_OP_SLOT_BOOL},        /* wheter or not to fill in the ends with faces */
+	 {"cap_tris", BMO_OP_SLOT_BOOL},        /* fill ends with triangles instead of ngons */
+	 {"segments", BMO_OP_SLOT_INT},
+	 {"diameter1", BMO_OP_SLOT_FLT},        /* diameter of one end */
+	 {"diameter2", BMO_OP_SLOT_FLT},        /* diameter of the opposite */
+	 {"depth", BMO_OP_SLOT_FLT},            /* distance between ends */
+	 {"mat", BMO_OP_SLOT_MAT},              /* matrix to multiply the new geometry with */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"}, /* output verts */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output verts */
+	 {{'\0'}},
 	},
 	bmo_create_cone_exec,
 	0,
@@ -1281,16 +1292,16 @@ static BMOpDefine bmo_create_cone_def = {
 static BMOpDefine bmo_create_circle_def = {
 	"create_circle",
 	/* slots_in */
-	{{BMO_OP_SLOT_BOOL, "cap_ends"},        /* wheter or not to fill in the ends with faces */
-	 {BMO_OP_SLOT_BOOL, "cap_tris"},        /* fill ends with triangles instead of ngons */
-	 {BMO_OP_SLOT_INT, "segments"},
-	 {BMO_OP_SLOT_FLT, "diameter"},         /* diameter of one end */
-	 {BMO_OP_SLOT_MAT, "mat"},              /* matrix to multiply the new geometry with */
-	 {0},
+	{{"cap_ends", BMO_OP_SLOT_BOOL},        /* wheter or not to fill in the ends with faces */
+	 {"cap_tris", BMO_OP_SLOT_BOOL},        /* fill ends with triangles instead of ngons */
+	 {"segments", BMO_OP_SLOT_INT},
+	 {"diameter", BMO_OP_SLOT_FLT},         /* diameter of one end */
+	 {"mat", BMO_OP_SLOT_MAT},              /* matrix to multiply the new geometry with */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"}, /* output verts */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output verts */
+	 {{'\0'}},
 	},
 	bmo_create_circle_exec,
 	0,
@@ -1304,13 +1315,13 @@ static BMOpDefine bmo_create_circle_def = {
 static BMOpDefine bmo_create_cube_def = {
 	"create_cube",
 	/* slots_in */
-	{{BMO_OP_SLOT_FLT, "size"},             /* size of the cube */
-	 {BMO_OP_SLOT_MAT, "mat"},              /* matrix to multiply the new geometry with */
-	 {0},
+	{{"size", BMO_OP_SLOT_FLT},             /* size of the cube */
+	 {"mat", BMO_OP_SLOT_MAT},              /* matrix to multiply the new geometry with */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"}, /* output verts */
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output verts */
+	 {{'\0'}},
 	},
 	bmo_create_cube_exec,
 	0,
@@ -1324,26 +1335,26 @@ static BMOpDefine bmo_create_cube_def = {
 static BMOpDefine bmo_bevel_def = {
 	"bevel",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},     /* input edges and vertices */
-	 {BMO_OP_SLOT_FLT, "offset"},           /* amount to offset beveled edge */
-	 {BMO_OP_SLOT_INT, "segments"},         /* number of segments in bevel */
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},     /* input edges and vertices */
+	 {"offset", BMO_OP_SLOT_FLT},           /* amount to offset beveled edge */
+	 {"segments", BMO_OP_SLOT_INT},         /* number of segments in bevel */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces.out"}, /* output faces */
-	 {0},
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output faces */
+	 {{'\0'}},
 	},
 #if 0  /* old bevel*/
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"}, /* input edges and vertices */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "face_spans"}, /* new geometry */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "face_holes"}, /* new geometry */
-	 {BMO_OP_SLOT_BOOL, "use_lengths"}, /* grab edge lengths from a PROP_FLT customdata layer */
-	 {BMO_OP_SLOT_BOOL, "use_even"}, /* corner vert placement: use shell/angle calculations  */
-	 {BMO_OP_SLOT_BOOL, "use_dist"}, /* corner vert placement: evaluate percent as a distance,
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF}, /* input edges and vertices */
+	 {"face_spans", BMO_OP_SLOT_ELEMENT_BUF}, /* new geometry */
+	 {"face_holes", BMO_OP_SLOT_ELEMENT_BUF}, /* new geometry */
+	 {"use_lengths", BMO_OP_SLOT_BOOL}, /* grab edge lengths from a PROP_FLT customdata layer */
+	 {"use_even", BMO_OP_SLOT_BOOL}, /* corner vert placement: use shell/angle calculations  */
+	 {"use_dist", BMO_OP_SLOT_BOOL}, /* corner vert placement: evaluate percent as a distance,
 	                                  * modifier uses this. We could do this as another float setting */
-	 {BMO_OP_SLOT_INT, "lengthlayer"}, /* which PROP_FLT layer to us */
-	 {BMO_OP_SLOT_FLT, "percent"}, /* percentage to expand beveled edge */
-	 {0},
+	 {"lengthlayer", BMO_OP_SLOT_INT}, /* which PROP_FLT layer to us */
+	 {"percent", BMO_OP_SLOT_FLT}, /* percentage to expand beveled edge */
+	 {{'\0'}},
 	},
 #endif
 	bmo_bevel_exec,
@@ -1358,13 +1369,13 @@ static BMOpDefine bmo_bevel_def = {
 static BMOpDefine bmo_beautify_fill_def = {
 	"beautify_fill",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"}, /* input faces */
-	 {BMO_OP_SLOT_ELEMENT_BUF, "constrain_edges"}, /* edges that can't be flipped */
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF}, /* input faces */
+	 {"constrain_edges", BMO_OP_SLOT_ELEMENT_BUF}, /* edges that can't be flipped */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"}, /* new flipped faces and edges */
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF}, /* new flipped faces and edges */
+	 {{'\0'}},
 	},
 	bmo_beautify_fill_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -1378,12 +1389,12 @@ static BMOpDefine bmo_beautify_fill_def = {
 static BMOpDefine bmo_triangle_fill_def = {
 	"triangle_fill",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "edges"},    /* input edges */
-	 {0},
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF},    /* input edges */
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"}, /* new faces and edges */
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF}, /* new faces and edges */
+	 {{'\0'}},
 	},
 	bmo_triangle_fill_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -1397,13 +1408,13 @@ static BMOpDefine bmo_triangle_fill_def = {
 static BMOpDefine bmo_solidify_def = {
 	"solidify",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom"},
-	 {BMO_OP_SLOT_FLT, "thickness"},
-	 {0},
+	{{"geom", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"thickness", BMO_OP_SLOT_FLT},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_solidify_face_region_exec,
 	0
@@ -1417,18 +1428,18 @@ static BMOpDefine bmo_solidify_def = {
 static BMOpDefine bmo_inset_def = {
 	"inset",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},    /* input faces */
-	 {BMO_OP_SLOT_BOOL, "use_boundary"},
-	 {BMO_OP_SLOT_BOOL, "use_even_offset"},
-	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},
-	 {BMO_OP_SLOT_FLT, "thickness"},
-	 {BMO_OP_SLOT_FLT, "depth"},
-	 {BMO_OP_SLOT_BOOL, "use_outset"},
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},    /* input faces */
+	 {"use_boundary", BMO_OP_SLOT_BOOL},
+	 {"use_even_offset", BMO_OP_SLOT_BOOL},
+	 {"use_relative_offset", BMO_OP_SLOT_BOOL},
+	 {"thickness", BMO_OP_SLOT_FLT},
+	 {"depth", BMO_OP_SLOT_FLT},
+	 {"use_outset", BMO_OP_SLOT_BOOL},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces.out"}, /* output faces */
-	 {0},
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output faces */
+	 {{'\0'}},
 	},
 	bmo_inset_exec,
 	0
@@ -1442,18 +1453,18 @@ static BMOpDefine bmo_inset_def = {
 static BMOpDefine bmo_wireframe_def = {
 	"wireframe",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces"},   /* input faces */
-	 {BMO_OP_SLOT_BOOL, "use_boundary"},
-	 {BMO_OP_SLOT_BOOL, "use_even_offset"},
-	 {BMO_OP_SLOT_BOOL, "use_crease"},
-	 {BMO_OP_SLOT_FLT, "thickness"},
-	 {BMO_OP_SLOT_BOOL, "use_relative_offset"},
-	 {BMO_OP_SLOT_FLT, "depth"},
-	 {0},
+	{{"faces", BMO_OP_SLOT_ELEMENT_BUF},   /* input faces */
+	 {"use_boundary", BMO_OP_SLOT_BOOL},
+	 {"use_even_offset", BMO_OP_SLOT_BOOL},
+	 {"use_crease", BMO_OP_SLOT_BOOL},
+	 {"thickness", BMO_OP_SLOT_FLT},
+	 {"use_relative_offset", BMO_OP_SLOT_BOOL},
+	 {"depth", BMO_OP_SLOT_FLT},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "faces.out"}, /* output faces */
-	 {0},
+	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF}, /* output faces */
+	 {{'\0'}},
 	},
 	bmo_wireframe_exec,
 	0
@@ -1467,14 +1478,14 @@ static BMOpDefine bmo_wireframe_def = {
 static BMOpDefine bmo_slide_vert_def = {
 	"slide_vert",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "vert"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "edge"},
-	 {BMO_OP_SLOT_FLT, "distance_t"},
-	 {0},
+	{{"vert", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"edge", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"distance_t", BMO_OP_SLOT_FLT},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "verts.out"},
-	 {0},
+	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_slide_vert_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
@@ -1499,16 +1510,16 @@ static BMOpDefine bmo_slide_vert_def = {
 static BMOpDefine bmo_convex_hull_def = {
 	"convex_hull",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "input"},
-	 {BMO_OP_SLOT_BOOL, "use_existing_faces"},
-	 {0},
+	{{"input", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"use_existing_faces", BMO_OP_SLOT_BOOL},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geom_interior.out"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geom_unused.out"},
-	 {BMO_OP_SLOT_ELEMENT_BUF, "geom_holes.out"},
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"geom_interior.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"geom_unused.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"geom_holes.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_convex_hull_exec,
 	0
@@ -1528,19 +1539,19 @@ static BMOpDefine bmo_convex_hull_def = {
 static BMOpDefine bmo_symmetrize_def = {
 	"symmetrize",
 	/* slots_in */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "input"},
-	 {BMO_OP_SLOT_INT, "direction"},
-	 {0},
+	{{"input", BMO_OP_SLOT_ELEMENT_BUF},
+	 {"direction", BMO_OP_SLOT_INT},
+	 {{'\0'}},
 	},
 	/* slots_out */
-	{{BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},
-	 {0},
+	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF},
+	 {{'\0'}},
 	},
 	bmo_symmetrize_exec,
 	0
 };
 
-BMOpDefine *opdefines[] = {
+const BMOpDefine *bmo_opdefines[] = {
 	&bmo_automerge_def,
 	&bmo_average_vert_facedata_def,
 	&bmo_beautify_fill_def,
@@ -1615,7 +1626,6 @@ BMOpDefine *opdefines[] = {
 	&bmo_unsubdivide_def,
 	&bmo_weld_verts_def,
 	&bmo_wireframe_def,
-
 };
 
-int bmesh_total_ops = (sizeof(opdefines) / sizeof(void *));
+const int bmo_opdefines_total = (sizeof(bmo_opdefines) / sizeof(void *));

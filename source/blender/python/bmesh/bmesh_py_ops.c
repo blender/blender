@@ -353,6 +353,10 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 				case BMO_OP_SLOT_VEC:
 					item = Vector_CreatePyObject(BMO_SLOT_AS_VECTOR(slot), slot->len, Py_NEW, NULL);
 					break;
+				case BMO_OP_SLOT_PTR:
+					BLI_assert(0);  /* currently we don't have any pointer return values in use */
+					item = (Py_INCREF(Py_None), Py_None);
+					break;
 				case BMO_OP_SLOT_ELEMENT_BUF:
 				{
 					const int size = slot->len;
@@ -501,15 +505,15 @@ PyTypeObject bmesh_op_Type = {
 /* bmesh fake module 'bmesh.ops'
  * ***************************** */
 
-static PyObject *bpy_bmesh_fmod_getattro(PyObject *UNUSED(self), PyObject *pyname)
+static PyObject *bpy_bmesh_ops_fakemod_getattro(PyObject *UNUSED(self), PyObject *pyname)
 {
-	const unsigned int tot = bmesh_total_ops;
+	const unsigned int tot = bmo_opdefines_total;
 	unsigned int i;
 	const char *opname = _PyUnicode_AsString(pyname);
 
 	for (i = 0; i < tot; i++) {
-		if (strcmp(opdefines[i]->opname, opname) == 0) {
-			return bpy_bmesh_op_CreatePyObject(opdefines[i]->opname);
+		if (strcmp(bmo_opdefines[i]->opname, opname) == 0) {
+			return bpy_bmesh_op_CreatePyObject(opname);
 		}
 	}
 
@@ -519,23 +523,23 @@ static PyObject *bpy_bmesh_fmod_getattro(PyObject *UNUSED(self), PyObject *pynam
 	return NULL;
 }
 
-static PyObject *bpy_bmesh_fmod_dir(PyObject *UNUSED(self))
+static PyObject *bpy_bmesh_ops_fakemod_dir(PyObject *UNUSED(self))
 {
-	const unsigned int tot = bmesh_total_ops;
+	const unsigned int tot = bmo_opdefines_total;
 	unsigned int i;
 	PyObject *ret;
 
-	ret = PyList_New(bmesh_total_ops);
+	ret = PyList_New(bmo_opdefines_total);
 
 	for (i = 0; i < tot; i++) {
-		PyList_SET_ITEM(ret, i, PyUnicode_FromString(opdefines[i]->opname));
+		PyList_SET_ITEM(ret, i, PyUnicode_FromString(bmo_opdefines[i]->opname));
 	}
 
 	return ret;
 }
 
-static struct PyMethodDef bpy_bmesh_fmod_methods[] = {
-	{"__dir__", (PyCFunction)bpy_bmesh_fmod_dir, METH_NOARGS, NULL},
+static struct PyMethodDef bpy_bmesh_ops_fakemod_methods[] = {
+	{"__dir__", (PyCFunction)bpy_bmesh_ops_fakemod_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -565,7 +569,7 @@ static PyTypeObject bmesh_ops_fakemod_Type = {
 	NULL,                       /* reprfunc tp_str; */
 
 	/* will only use these if this is a subtype of a py class */
-	bpy_bmesh_fmod_getattro,    /* getattrofunc tp_getattro; */
+	bpy_bmesh_ops_fakemod_getattro,    /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
@@ -594,7 +598,7 @@ static PyTypeObject bmesh_ops_fakemod_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
 	/*** Attribute descriptor and subclassing stuff ***/
-	bpy_bmesh_fmod_methods,  /* struct PyMethodDef *tp_methods; */
+	bpy_bmesh_ops_fakemod_methods,  /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	NULL,                       /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */

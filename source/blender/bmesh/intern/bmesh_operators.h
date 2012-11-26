@@ -89,8 +89,8 @@ enum {
 	VPATH_SELECT_TOPOLOGICAL
 };
 
-extern BMOpDefine *opdefines[];
-extern int bmesh_total_ops;
+extern const BMOpDefine *bmo_opdefines[];
+extern const int         bmo_opdefines_total;
 
 /*------specific operator helper functions-------*/
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
