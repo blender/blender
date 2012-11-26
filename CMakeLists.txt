@@ -872,7 +872,7 @@ elseif(WIN32)
 
 		# Setup 64bit and 64bit windows systems
 		if(WITH_MINGW64)
-			message("Set 64 bit compiler for MinGW.")
+			message("Compiling for 64 bit with MinGW-w64.")
 			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
 		endif()
 	else()
@@ -1220,7 +1220,7 @@ elseif(WIN32)
 		#comes with own pthread library
 		if(NOT WITH_MINGW64)
 			set(PTHREADS ${LIBDIR}/pthreads)
-			set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
+			#set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
 			set(PTHREADS_LIBPATH ${PTHREADS}/lib)
 			set(PTHREADS_LIBRARIES pthreadGC2)
 		endif()
