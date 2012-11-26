@@ -826,9 +826,15 @@ int uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int icon
 	return 1;
 }
 
-int uiSearchBoxhHeight(void)
+int uiSearchBoxHeight(void)
 {
 	return SEARCH_ITEMS * UI_UNIT_Y + 2 * MENU_TOP;
+}
+
+int uiSearchBoxWidth(void)
+{
+	/* was hardcoded at 150 */
+	return 9 * UI_UNIT_X;
 }
 
 /* ar is the search box itself */
@@ -1191,10 +1197,11 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	else {
+		const int searchbox_width = uiSearchBoxWidth();
 		rect_fl.xmin = but->rect.xmin - 5;   /* align text with button */
 		rect_fl.xmax = but->rect.xmax + 5;   /* symmetrical */
 		rect_fl.ymax = but->rect.ymin;
-		rect_fl.ymin = rect_fl.ymax - uiSearchBoxhHeight();
+		rect_fl.ymin = rect_fl.ymax - uiSearchBoxHeight();
 
 		ofsx = (but->block->panel) ? but->block->panel->ofsx : 0;
 		ofsy = (but->block->panel) ? but->block->panel->ofsy : 0;
@@ -1202,8 +1209,8 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_rctf_translate(&rect_fl, ofsx, ofsy);
 	
 		/* minimal width */
-		if (BLI_rctf_size_x(&rect_fl) < 150) {
-			rect_fl.xmax = rect_fl.xmin + 150;  /* XXX arbitrary */
+		if (BLI_rctf_size_x(&rect_fl) < searchbox_width) {
+			rect_fl.xmax = rect_fl.xmin + searchbox_width;
 		}
 		
 		/* copy to int, gets projected if possible too */

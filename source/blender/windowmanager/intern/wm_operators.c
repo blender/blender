@@ -793,7 +793,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9 * UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
 
 	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
@@ -1566,7 +1566,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 	
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9 * UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
 	
 	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);

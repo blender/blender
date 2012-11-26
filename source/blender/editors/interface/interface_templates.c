@@ -191,10 +191,12 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	}
 	/* list view */
 	else {
+		const int searchbox_width  = uiSearchBoxWidth();
+		const int searchbox_height = uiSearchBoxHeight();
 		/* fake button, it holds space for search items */
-		uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+		uiDefBut(block, LABEL, 0, "", 10, 15, searchbox_width, searchbox_height, NULL, 0, 0, 0, 0, NULL);
 		
-		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, 150, 19, 0, 0, "");
+		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, searchbox_width, UI_UNIT_Y - 1, 0, 0, "");
 		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
 	}
 		
