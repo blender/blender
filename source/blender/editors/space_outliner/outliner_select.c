@@ -222,7 +222,7 @@ static int tree_element_active_material(bContext *C, Scene *scene, SpaceOops *so
 		}
 	}
 	if (set) {
-		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, NULL);
+		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, NULL);
 	}
 	return 0;
 }

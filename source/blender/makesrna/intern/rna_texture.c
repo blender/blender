@@ -46,6 +46,9 @@
 
 #include "BKE_node.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
@@ -109,9 +112,6 @@ EnumPropertyItem blend_type_items[] = {
 #include "BKE_main.h"
 
 #include "ED_node.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
@@ -603,7 +603,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture", "Texture datablock used by this texture slot");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, "rna_TextureSlot_update");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_TextureSlot_name_get", "rna_TextureSlot_name_length", NULL);

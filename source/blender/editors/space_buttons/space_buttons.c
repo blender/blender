@@ -297,6 +297,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_PHYSICS);
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
+				case ND_SHADING_LINKS:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview = 1;
 					break;
@@ -319,6 +320,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			switch (wmn->data) {
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
+				case ND_SHADING_LINKS:
 				case ND_NODES:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview = 1;

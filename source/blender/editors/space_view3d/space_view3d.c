@@ -724,6 +724,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_MATERIAL:
 			switch (wmn->data) {
 				case ND_SHADING_DRAW:
+				case ND_SHADING_LINKS:
 					ED_region_tag_redraw(ar);
 					break;
 			}

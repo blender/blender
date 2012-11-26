@@ -1871,7 +1871,7 @@ int EDBM_select_pick(bContext *C, const int mval[2], short extend, short deselec
 			vc.obedit->actcol = efa->mat_nr + 1;
 			vc.em->mat_nr = efa->mat_nr;
 
-			WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, NULL);
+			WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, NULL);
 
 		}
 
