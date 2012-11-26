@@ -224,7 +224,9 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-			if (uvedit_face_visible_test(scene, previma, efa, tf)) {
+			if (uvedit_face_visible_test(scene, previma, efa, tf) &&
+			    (selected == TRUE || uvedit_face_select_test(scene, em, efa)))
+			{
 				if (ima) {
 					tf->tpage = ima;
 					
