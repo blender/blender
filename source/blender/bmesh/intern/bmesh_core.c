@@ -1334,10 +1334,10 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
  * will be attached to that end and is returned in \a r_e.
  *
  * \par Examples:
+ *
  * <pre>
  *                     E
  *     Before: OV-------------TV
- *
  *                 E       RE
  *     After:  OV------NV-----TV
  * </pre>

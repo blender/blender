@@ -960,7 +960,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
  * \brief BM_mesh_decimate
  * \param bm The mesh
  * \param factor face count multiplier [0 - 1]
- * \param vertex_weights Optional array of vertex  aligned weights [0 - 1],
+ * \param vweights Optional array of vertex  aligned weights [0 - 1],
  *        a vertex group is the usual source for this.
  */
 void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, const int do_triangulate)

@@ -83,11 +83,6 @@ enum {
 	SIMVERT_EDGE
 };
 
-enum {
-	OPUVC_AXIS_X = 1,
-	OPUVC_AXIS_Y
-};
-
 /* vertex path selection values */
 enum {
 	VPATH_SELECT_EDGE_LENGTH = 0,
@@ -98,9 +93,6 @@ extern BMOpDefine *opdefines[];
 extern int bmesh_total_ops;
 
 /*------specific operator helper functions-------*/
-
-struct Object;
-
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
                         float smooth, float fractal, float along_normal,
                         int numcuts,
