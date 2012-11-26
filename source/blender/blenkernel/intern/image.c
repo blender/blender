@@ -663,6 +663,13 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 			BKE_image_buf_fill_color(rect, rect_float, width, height, color);
 	}
 
+	if (rect_float) {
+		/* both byte and float buffers are filling in sRGB space, need to linearize float buffer after BKE_image_buf_fill* functions */
+
+		IMB_buffer_float_from_float(rect_float, rect_float, ibuf->channels, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB,
+		                            ibuf->flags & IB_cm_predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	}
+
 	return ibuf;
 }
 
