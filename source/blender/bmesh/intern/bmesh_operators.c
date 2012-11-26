@@ -314,7 +314,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_n
 
 			dstmap->element = srcmap->element;
 			dstmap->len = srcmap->len;
-			memcpy(dstmap + 1, srcmap + 1, srcmap->len);
+			memcpy(BMO_OP_SLOT_MAPPING_DATA(dstmap), BMO_OP_SLOT_MAPPING_DATA(srcmap), srcmap->len);
 
 			BLI_ghash_insert(slot_dst->data.ghash, dstmap->element, dstmap);
 		}
@@ -596,7 +596,7 @@ int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
  * value, it doesn't store a reference to it. */
 
 void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
-                         const void *element, void *data, int len)
+                         const void *element, const void *data, const int len)
 {
 	BMOElemMapping *mapping;
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
@@ -606,7 +606,7 @@ void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
 
 	mapping->element = (BMHeader *) element;
 	mapping->len = len;
-	memcpy(mapping + 1, data, len);
+	memcpy(BMO_OP_SLOT_MAPPING_DATA(mapping), data, len);
 
 	if (!slot->data.ghash) {
 		slot->data.ghash = BLI_ghash_ptr_new("bmesh slot map hash");
@@ -1279,7 +1279,7 @@ void *BMO_iter_step(BMOIter *iter)
 		void *ret = BLI_ghashIterator_getKey(&iter->giter);
 		map = BLI_ghashIterator_getValue(&iter->giter);
 		
-		iter->val = map + 1;
+		iter->val = BMO_OP_SLOT_MAPPING_DATA(map);
 
 		BLI_ghashIterator_step(&iter->giter);
 

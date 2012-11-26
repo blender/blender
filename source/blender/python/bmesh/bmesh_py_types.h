@@ -55,6 +55,8 @@ extern PyTypeObject BPy_BMIter_Type;
 #define BPy_BMFaceSeq_Check(v)  (Py_TYPE(v) == &BPy_BMFaceSeq_Type)
 #define BPy_BMLoopSeq_Check(v)  (Py_TYPE(v) == &BPy_BMLoopSeq_Type)
 #define BPy_BMIter_Check(v)     (Py_TYPE(v) == &BPy_BMIter_Type)
+/* trick since we know they share a hash function */
+#define BPy_BMElem_Check(v)     (Py_TYPE(v)->tp_hash == BPy_BMVert_Type.tp_hash)
 
 /* cast from _any_ bmesh type - they all have BMesh first */
 typedef struct BPy_BMGeneric {

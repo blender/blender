@@ -305,6 +305,179 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 
 					break;
 				}
+				case BMO_OP_SLOT_MAPPING:
+				{
+					/* first check types */
+					if (slot->slot_subtype != BMO_OP_SLOT_SUBTYPE_MAP_EMPTY) {
+						if (!PyDict_Check(value)) {
+							PyErr_Format(PyExc_TypeError,
+							             "%.200s: keyword \"%.200s\" expected "
+							             "a dict, not %.200s",
+							             self->opname, slot_name, Py_TYPE(value)->tp_name);
+							return NULL;
+						}
+					}
+					else {
+						if (!PySet_Check(value)) {
+							PyErr_Format(PyExc_TypeError,
+							             "%.200s: keyword \"%.200s\" expected "
+							             "a set, not %.200s",
+							             self->opname, slot_name, Py_TYPE(value)->tp_name);
+							return NULL;
+						}
+					}
+
+					switch (slot->slot_subtype) {
+
+						/* this could be a static function */
+#define BPY_BM_MAPPING_KEY_CHECK(arg_key)  \
+						if (!BPy_BMElem_Check(arg_key)) { \
+							PyErr_Format(PyExc_TypeError, \
+							             "%.200s: keyword \"%.200s\" expected " \
+							             "a dict with bmesh element keys, not %.200s", \
+							             self->opname, slot_name, Py_TYPE(arg_key)->tp_name); \
+							return NULL; \
+						} \
+						else if (((BPy_BMGeneric *)arg_key)->bm == NULL) { \
+							PyErr_Format(PyExc_TypeError, \
+							             "%.200s: keyword \"%.200s\" invalidated element key in dict", \
+							             self->opname, slot_name); \
+							return NULL; \
+						} (void)0
+
+
+						case BMO_OP_SLOT_SUBTYPE_MAP_ELEM:
+						{
+							if (PyDict_Size(value) > 0) {
+								PyObject *arg_key, *arg_value;
+								Py_ssize_t arg_pos = 0;
+								while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
+									/* TODO, check the elements come from the right mesh? */
+									BPY_BM_MAPPING_KEY_CHECK(arg_key);
+
+									if (!BPy_BMElem_Check(arg_value)) {
+										PyErr_Format(PyExc_TypeError,
+										             "%.200s: keyword \"%.200s\" expected "
+										             "a dict with bmesh element values, not %.200s",
+										             self->opname, slot_name, Py_TYPE(arg_value)->tp_name);
+										return NULL;
+									}
+									else if (((BPy_BMGeneric *)arg_value)->bm == NULL) {
+										PyErr_Format(PyExc_TypeError,
+										             "%.200s: keyword \"%.200s\" invalidated element value in dict",
+										             self->opname, slot_name);
+										return NULL;
+									}
+
+									BMO_slot_map_elem_insert(&bmop, slot,
+									                         ((BPy_BMElem *)arg_key)->ele, ((BPy_BMElem *)arg_value)->ele);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_FLOAT:
+						{
+							if (PyDict_Size(value) > 0) {
+								PyObject *arg_key, *arg_value;
+								Py_ssize_t arg_pos = 0;
+								while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
+									float value_f;
+									/* TODO, check the elements come from the right mesh? */
+									BPY_BM_MAPPING_KEY_CHECK(arg_key);
+									value_f = PyFloat_AsDouble(arg_value);
+
+									if (value_f == -1.0f && PyErr_Occurred()) {
+										PyErr_Format(PyExc_TypeError,
+										             "%.200s: keyword \"%.200s\" expected "
+										             "a dict with float values, not %.200s",
+										             self->opname, slot_name, Py_TYPE(arg_value)->tp_name);
+										return NULL;
+									}
+
+									BMO_slot_map_float_insert(&bmop, slot,
+									                          ((BPy_BMElem *)arg_key)->ele, value_f);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_INT:
+						{
+							if (PyDict_Size(value) > 0) {
+								PyObject *arg_key, *arg_value;
+								Py_ssize_t arg_pos = 0;
+								while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
+									int value_i;
+									/* TODO, check the elements come from the right mesh? */
+									BPY_BM_MAPPING_KEY_CHECK(arg_key);
+									value_i = PyLong_AsLong(arg_value);
+
+									if (value_i == -1 && PyErr_Occurred()) {
+										PyErr_Format(PyExc_TypeError,
+										             "%.200s: keyword \"%.200s\" expected "
+										             "a dict with int values, not %.200s",
+										             self->opname, slot_name, Py_TYPE(arg_value)->tp_name);
+										return NULL;
+									}
+
+									BMO_slot_map_int_insert(&bmop, slot,
+									                        ((BPy_BMElem *)arg_key)->ele, value_i);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_BOOL:
+						{
+							if (PyDict_Size(value) > 0) {
+								PyObject *arg_key, *arg_value;
+								Py_ssize_t arg_pos = 0;
+								while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
+									int value_i;
+									/* TODO, check the elements come from the right mesh? */
+									BPY_BM_MAPPING_KEY_CHECK(arg_key);
+									value_i = PyLong_AsLong(arg_value);
+
+									if (value_i == -1 && PyErr_Occurred()) {
+										PyErr_Format(PyExc_TypeError,
+										             "%.200s: keyword \"%.200s\" expected "
+										             "a dict with bool values, not %.200s",
+										             self->opname, slot_name, Py_TYPE(arg_value)->tp_name);
+										return NULL;
+									}
+
+									BMO_slot_map_bool_insert(&bmop, slot,
+									                         ((BPy_BMElem *)arg_key)->ele, value_i != 0);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_EMPTY:
+						{
+							if (PySet_Size(value) > 0) {
+								PyObject *arg_key;
+								Py_ssize_t arg_pos = 0;
+								Py_ssize_t arg_hash = 0;
+								while (_PySet_NextEntry(value, &arg_pos, &arg_key, &arg_hash)) {
+									/* TODO, check the elements come from the right mesh? */
+									BPY_BM_MAPPING_KEY_CHECK(arg_key);
+
+									BMO_slot_map_empty_insert(&bmop, slot,
+									                         ((BPy_BMElem *)arg_key)->ele);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
+						default:
+						{
+							/* can't convert from these */
+							PyErr_Format(PyExc_NotImplementedError,
+							             "This arguments mapping subtype %d is not supported", slot->slot_subtype);
+							break;
+						}
+#undef BPY_BM_MAPPING_KEY_CHECK
+
+					}
+				}
 				default:
 					/* TODO --- many others */
 					PyErr_Format(PyExc_NotImplementedError,
@@ -373,24 +546,103 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 				case BMO_OP_SLOT_MAPPING:
 				{
 					GHash *slot_hash = BMO_SLOT_AS_GHASH(slot);
-					GHashIterator *hash_iter;
-					item = PyDict_New();
+					GHashIterator hash_iter;
 
-					for (hash_iter = BLI_ghashIterator_new(slot_hash);
-					     !BLI_ghashIterator_isDone(hash_iter);
-					     BLI_ghashIterator_step(hash_iter) )
-					{
-						BMHeader  *ele_key = BLI_ghashIterator_getKey(hash_iter);
-						BMHeader **ele_val = BLI_ghashIterator_getValue(hash_iter);
+					switch (slot->slot_subtype) {
+						case BMO_OP_SLOT_SUBTYPE_MAP_ELEM:
+						{
+							item = PyDict_New();
+							if (slot_hash) {
+								GHASH_ITER (hash_iter, slot_hash) {
+									BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+									BMOElemMapping *ele_val = BLI_ghashIterator_getValue(&hash_iter);
 
-						PyObject *py_key =  ele_key ? BPy_BMElem_CreatePyObject(bm,  ele_key) : (Py_INCREF(Py_None), Py_None);
-						PyObject *py_val = *ele_val ? BPy_BMElem_CreatePyObject(bm, *ele_val) : (Py_INCREF(Py_None), Py_None);
+									PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
+									PyObject *py_val =  BPy_BMElem_CreatePyObject(bm, *(void **)BMO_OP_SLOT_MAPPING_DATA(ele_val));
 
-						PyDict_SetItem(ret, py_key, py_val);
-						Py_DECREF(py_key);
-						Py_DECREF(py_val);
+									PyDict_SetItem(ret, py_key, py_val);
+									Py_DECREF(py_key);
+									Py_DECREF(py_val);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_FLOAT:
+						{
+							item = PyDict_New();
+							if (slot_hash) {
+								GHASH_ITER (hash_iter, slot_hash) {
+									BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+									BMOElemMapping *ele_val = BLI_ghashIterator_getValue(&hash_iter);
+
+									PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
+									PyObject *py_val =  PyFloat_FromDouble(*(float *)BMO_OP_SLOT_MAPPING_DATA(ele_val));
+
+									PyDict_SetItem(ret, py_key, py_val);
+									Py_DECREF(py_key);
+									Py_DECREF(py_val);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_INT:
+						{
+							item = PyDict_New();
+							if (slot_hash) {
+								GHASH_ITER (hash_iter, slot_hash) {
+									BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+									BMOElemMapping *ele_val = BLI_ghashIterator_getValue(&hash_iter);
+
+									PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
+									PyObject *py_val =  PyLong_FromLong(*(int *)BMO_OP_SLOT_MAPPING_DATA(ele_val));
+
+									PyDict_SetItem(ret, py_key, py_val);
+									Py_DECREF(py_key);
+									Py_DECREF(py_val);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_BOOL:
+						{
+							item = PyDict_New();
+							if (slot_hash) {
+								GHASH_ITER (hash_iter, slot_hash) {
+									BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+									BMOElemMapping *ele_val = BLI_ghashIterator_getValue(&hash_iter);
+
+									PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
+									PyObject *py_val =  PyBool_FromLong(*(int *)BMO_OP_SLOT_MAPPING_DATA(ele_val));
+
+									PyDict_SetItem(ret, py_key, py_val);
+									Py_DECREF(py_key);
+									Py_DECREF(py_val);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_EMPTY:
+						{
+							item = PySet_New(NULL);
+							if (slot_hash) {
+								GHASH_ITER (hash_iter, slot_hash) {
+									BMHeader       *ele_key = BLI_ghashIterator_getKey(&hash_iter);
+
+									PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
+
+									PySet_Add(item, py_key);
+
+									Py_DECREF(py_key);
+								}
+							}
+							break;
+						}
+						case BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
+						default:
+							/* can't convert from these */
+							item = (Py_INCREF(Py_None), Py_None);
+							break;
 					}
-					BLI_ghashIterator_free(hash_iter);
 					break;
 				}
 			}

@@ -70,14 +70,14 @@ BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const shor
 }
 
 BLI_INLINE void BMO_slot_map_int_insert(BMOperator *op, BMOpSlot *slot,
-                                        void *element, int val)
+                                        void *element, const int val)
 {
 	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_INT);
 	BMO_slot_map_insert(op, slot, element, &val, sizeof(int));
 }
 
 BLI_INLINE void BMO_slot_map_bool_insert(BMOperator *op, BMOpSlot *slot,
-                                        void *element, int val)
+                                        void *element, const int val)
 {
 	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
 	BLI_assert(val == FALSE || val == TRUE);
@@ -85,7 +85,7 @@ BLI_INLINE void BMO_slot_map_bool_insert(BMOperator *op, BMOpSlot *slot,
 }
 
 BLI_INLINE void BMO_slot_map_float_insert(BMOperator *op, BMOpSlot *slot,
-                                          void *element, float val)
+                                          void *element, const float val)
 {
 	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_FLOAT);
 	BMO_slot_map_insert(op, slot, element, &val, sizeof(float));

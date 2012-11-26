@@ -414,7 +414,7 @@ int BMO_slot_buffer_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot
 int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_name);
 
 void BMO_slot_map_insert(BMOperator *op, BMOpSlot *slot,
-                         const void *element, void *data, int len);
+                         const void *element, const void *data, const int len);
 
 /* Counts the number of edges with tool flag toolflag around
  */
@@ -501,6 +501,9 @@ typedef struct BMOElemMapping {
 	BMHeader *element;
 	int len;
 } BMOElemMapping;
+
+/* pointer after BMOElemMapping */
+#define BMO_OP_SLOT_MAPPING_DATA(var) (void *)(((BMOElemMapping *)var) + 1)
 
 extern const int BMO_OPSLOT_TYPEINFO[BMO_OP_SLOT_TOTAL_TYPES];
 

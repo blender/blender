@@ -3032,7 +3032,8 @@ void BPy_BM_init_types(void)
 	BPy_BMLoopSeq_Type.tp_methods = bpy_bmloopseq_methods;
 	BPy_BMIter_Type.tp_methods    = NULL;
 
-
+	/*BPy_BMElem_Check() uses bpy_bm_elem_hash() to check types.
+	 * if this changes update the macro */
 	BPy_BMesh_Type.tp_hash     = bpy_bm_hash;
 	BPy_BMVert_Type.tp_hash    = bpy_bm_elem_hash;
 	BPy_BMEdge_Type.tp_hash    = bpy_bm_elem_hash;
