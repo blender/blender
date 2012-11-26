@@ -822,8 +822,8 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	facearea = MEM_callocN(sizeof(float) * totorigface, "SimplifyFaceArea");
@@ -1645,8 +1645,8 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, const f
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	mpoly = dm->getPolyArray(dm);

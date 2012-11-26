@@ -1707,8 +1707,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			totface= psmd->dm->getNumTessFaces(psmd->dm);
 			index_mf_to_mpoly = psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
 			index_mp_to_orig = psmd->dm->getPolyDataArray(psmd->dm, CD_ORIGINDEX);
-			if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-				index_mf_to_mpoly = index_mp_to_orig = NULL;
+			if (index_mf_to_mpoly == NULL) {
+				index_mp_to_orig = NULL;
 			}
 			for (a=0; a<totface; a++)
 				strandbuf->totbound = max_ii(strandbuf->totbound, (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a): a);

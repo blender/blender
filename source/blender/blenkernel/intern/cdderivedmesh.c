@@ -623,8 +623,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	colType = CD_TEXTURE_MCOL;
@@ -812,8 +812,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 
@@ -1048,8 +1048,8 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	cdDM_update_normals_from_pbvh(dm);
@@ -1349,8 +1349,8 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	cdDM_update_normals_from_pbvh(dm);
