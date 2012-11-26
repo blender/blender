@@ -1257,6 +1257,7 @@ BsdfNode::BsdfNode()
 
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL);
+	add_input("SurfaceMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
 
 	add_output("BSDF", SHADER_SOCKET_CLOSURE);
 }
@@ -1544,6 +1545,8 @@ EmissionNode::EmissionNode()
 
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Strength", SHADER_SOCKET_FLOAT, 10.0f);
+	add_input("SurfaceMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
+
 	add_output("Emission", SHADER_SOCKET_CLOSURE);
 }
 
@@ -1578,6 +1581,8 @@ BackgroundNode::BackgroundNode()
 {
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Strength", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("SurfaceMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
+
 	add_output("Background", SHADER_SOCKET_CLOSURE);
 }
 
@@ -1607,6 +1612,9 @@ void BackgroundNode::compile(OSLCompiler& compiler)
 HoldoutNode::HoldoutNode()
 : ShaderNode("holdout")
 {
+	add_input("SurfaceMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
+	add_input("VolumeMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
+
 	add_output("Holdout", SHADER_SOCKET_CLOSURE);
 }
 
@@ -1625,9 +1633,10 @@ void HoldoutNode::compile(OSLCompiler& compiler)
 AmbientOcclusionNode::AmbientOcclusionNode()
 : ShaderNode("ambient_occlusion")
 {
-	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
-
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
+	add_input("SurfaceMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
+
 	add_output("AO", SHADER_SOCKET_CLOSURE);
 }
 
@@ -1659,6 +1668,7 @@ VolumeNode::VolumeNode()
 
 	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
 	add_input("Density", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("VolumeMixWeight", SHADER_SOCKET_FLOAT, 0.0f, ShaderInput::USE_SVM);
 
 	add_output("Volume", SHADER_SOCKET_CLOSURE);
 }
@@ -1737,7 +1747,7 @@ void IsotropicVolumeNode::compile(OSLCompiler& compiler)
 GeometryNode::GeometryNode()
 : ShaderNode("geometry")
 {
-	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_output("Position", SHADER_SOCKET_POINT);
 	add_output("Normal", SHADER_SOCKET_NORMAL);
 	add_output("Tangent", SHADER_SOCKET_NORMAL);
@@ -1825,7 +1835,7 @@ void GeometryNode::compile(OSLCompiler& compiler)
 TextureCoordinateNode::TextureCoordinateNode()
 : ShaderNode("texture_coordinate")
 {
-	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_output("Generated", SHADER_SOCKET_POINT);
 	add_output("Normal", SHADER_SOCKET_NORMAL);
 	add_output("UV", SHADER_SOCKET_POINT);
@@ -2315,6 +2325,39 @@ void MixClosureNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_mix_closure");
 }
 
+/* Mix Closure */
+
+MixClosureWeightNode::MixClosureWeightNode()
+: ShaderNode("mix_closure_weight")
+{
+	add_input("Weight", SHADER_SOCKET_FLOAT, 1.0f);
+	add_input("Fac", SHADER_SOCKET_FLOAT, 1.0f);
+	add_output("Weight1", SHADER_SOCKET_FLOAT);
+	add_output("Weight2", SHADER_SOCKET_FLOAT);
+}
+
+void MixClosureWeightNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *weight_in = input("Weight");
+	ShaderInput *fac_in = input("Fac");
+	ShaderOutput *weight1_out = output("Weight1");
+	ShaderOutput *weight2_out = output("Weight2");
+
+	compiler.stack_assign(weight_in);
+	compiler.stack_assign(fac_in);
+	compiler.stack_assign(weight1_out);
+	compiler.stack_assign(weight2_out);
+
+	compiler.add_node(NODE_MIX_CLOSURE,
+		compiler.encode_uchar4(fac_in->stack_offset, weight_in->stack_offset,
+			weight1_out->stack_offset, weight2_out->stack_offset));
+}
+
+void MixClosureWeightNode::compile(OSLCompiler& compiler)
+{
+	assert(0);
+}
+
 /* Invert */
 
 InvertNode::InvertNode()
@@ -2680,7 +2723,7 @@ void CameraNode::compile(OSLCompiler& compiler)
 FresnelNode::FresnelNode()
 : ShaderNode("Fresnel")
 {
-	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_input("IOR", SHADER_SOCKET_FLOAT, 1.45f);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
@@ -2705,7 +2748,7 @@ void FresnelNode::compile(OSLCompiler& compiler)
 LayerWeightNode::LayerWeightNode()
 : ShaderNode("LayerWeight")
 {
-	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_input("Blend", SHADER_SOCKET_FLOAT, 0.5f);
 
 	add_output("Fresnel", SHADER_SOCKET_FLOAT);
@@ -3080,7 +3123,7 @@ NormalMapNode::NormalMapNode()
 	space = ustring("Tangent");
 	attribute = ustring("");
 
-	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_input("Strength", SHADER_SOCKET_FLOAT, 1.0f);
 	add_input("Color", SHADER_SOCKET_COLOR);
 
@@ -3185,7 +3228,7 @@ TangentNode::TangentNode()
 	axis = ustring("X");
 	attribute = ustring("");
 
-	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("NormalIn", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, ShaderInput::USE_OSL);
 	add_output("Tangent", SHADER_SOCKET_NORMAL);
 }
 
