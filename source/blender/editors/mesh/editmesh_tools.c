@@ -4973,9 +4973,9 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->val == KM_PRESS) {
 		/* Try to handle numeric inputs... */
 #ifdef NEW_BEVEL
-		float value;
 
 		if (handleNumInput(&opdata->num_input, event)) {
+			float value = RNA_float_get(op->ptr, "offset");
 			applyNumInput(&opdata->num_input, &value);
 			RNA_float_set(op->ptr, "offset", value);
 			edbm_bevel_calc(C, op);
@@ -4983,9 +4983,8 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_RUNNING_MODAL;
 		}
 #else
-		float factor;
-
 		if (handleNumInput(&opdata->num_input, event)) {
+			float factor = RNA_float_get(op->ptr, "percent");
 			applyNumInput(&opdata->num_input, &factor);
 			CLAMP(factor, 0.0f, 1.0f);
 			RNA_float_set(op->ptr, "percent", factor);
@@ -5365,9 +5364,10 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (event->val == KM_PRESS) {
 		/* Try to handle numeric inputs... */
-		float amounts[2];
 
 		if (handleNumInput(&opdata->num_input, event)) {
+			float amounts[2] = {RNA_float_get(op->ptr, "thickness"),
+			                    RNA_float_get(op->ptr, "depth")};
 			applyNumInput(&opdata->num_input, amounts);
 			amounts[0] = max_ff(amounts[0], 0.0f);
 			RNA_float_set(op->ptr, "thickness", amounts[0]);

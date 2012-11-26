@@ -552,9 +552,9 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 	/* using the keyboard to input the number of cuts */
 	if (event->val == KM_PRESS) {
 		/* init as zero so backspace clears */
-		float value = 0.0f;
 		
 		if (handleNumInput(&lcd->num, event)) {
+			float value = RNA_int_get(op->ptr, "number_cuts");
 			applyNumInput(&lcd->num, &value);
 			
 			/* allow zero so you can backspace and type in a value

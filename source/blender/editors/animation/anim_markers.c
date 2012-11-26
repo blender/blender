@@ -860,16 +860,21 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 	}
 
 	if (evt->val == KM_PRESS) {
-		float vec;
-		char str_tx[NUM_STR_REP_LEN];
-		
 		if (handleNumInput(&mm->num, evt)) {
-			applyNumInput(&mm->num, &vec);
-			outputNumInput(&mm->num, str_tx);
-			
-			RNA_int_set(op->ptr, "frames", vec);
+			char str_tx[NUM_STR_REP_LEN];
+			float value = RNA_int_get(op->ptr, "frames");
+			applyNumInput(&mm->num, &value);
+
+			if (hasNumInput(&mm->num)) {
+				outputNumInput(&mm->num, str_tx);
+			}
+			else {
+				BLI_snprintf(str_tx, sizeof(str_tx), "%d", (int)value);
+			}
+
+			RNA_int_set(op->ptr, "frames", value);
 			ed_marker_move_apply(C, op);
-			// ed_marker_header_update(C, op, str, (int)vec[0]);
+			// ed_marker_header_update(C, op, str, (int)value);
 			// strcat(str, str_tx);
 			BLI_snprintf(str, sizeof(str), "Marker offset %s", str_tx);
 			ED_area_headerprint(CTX_wm_area(C), str);

@@ -185,7 +185,7 @@ BLI_INLINE int BMO_slot_map_bool_get(BMOpSlot *slot, const void *element)
 	return 0;
 }
 
-BLI_INLINE void *BMO_slot_map_ptr_get_(BMOpSlot *slot, const void *element)
+BLI_INLINE void *BMO_slot_map_ptr_get(BMOpSlot *slot, const void *element)
 {
 	void **val = (void **) BMO_slot_map_data_get(slot, element);
 	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL);
