@@ -1850,6 +1850,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = sequencer_separate_images_exec;
+	ot->invoke = WM_operator_props_popup;
 	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
