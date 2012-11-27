@@ -60,6 +60,84 @@ static int bpy_bm_op_as_py_error(BMesh *bm)
 }
 
 /**
+ * \brief Utility function to check BMVert/BMEdge/BMFace's
+ *
+ * \param value
+ * \param bm Check the \a value against this.
+ * \param htype Test \a value matches this type.
+ * \param descr Description text.
+ */
+static int bpy_slot_from_py_elem_check(BPy_BMElem *value, BMesh *bm, const char htype,
+                                       /* for error messages */
+                                       const char *opname, const char *slot_name, const char *descr)
+{
+	if (!BPy_BMElem_Check(value) ||
+	    !(value->ele->head.htype & htype))
+	{
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: keyword \"%.200s\" %.200s, expected a %.200s not *.200s",
+		             opname, slot_name, descr,
+		             BPy_BMElem_StringFromHType(htype),
+		             Py_TYPE(value)->tp_name);
+		return -1;
+	}
+	else if (value->bm == NULL) {
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: keyword \"%.200s\" %.200s invalidated element",
+		             opname, slot_name, descr);
+		return -1;
+	}
+	else if (value->bm != bm) {  /* we may want to make this check optional by setting 'bm' to NULL */
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: keyword \"%.200s\" %.200s invalidated element",
+		             opname, slot_name, descr);
+		return -1;
+	}
+	return 0;
+}
+
+/**
+ * \brief Utility function to check BMVertSeq/BMEdgeSeq/BMFaceSeq's
+ *
+ * \param value Caller must check its a BMeshSeq
+ * \param bm Check the \a value against this.
+ * \param htype_py The type(s) of \a value.
+ * \param htype_bmo The type(s) supported by the target slot.
+ * \param descr Description text.
+ */
+static int bpy_slot_from_py_elemseq_check(BPy_BMGeneric *value, BMesh *bm,
+                                          const char htype_py, const char htype_bmo,
+                                          /* for error messages */
+                                          const char *opname, const char *slot_name, const char *descr)
+{
+	if (value->bm == NULL) {
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: keyword \"%.200s\" %.200s, invalidated sequence",
+		             opname, slot_name, descr);
+		return -1;
+	}
+	else if (value->bm != bm) {  /* we may want to make this check optional by setting 'bm' to NULL */
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: keyword \"%.200s\" %.200s, invalidated sequence",
+		             opname, slot_name, descr);
+		return -1;
+	}
+	else if ((htype_py & htype_bmo) == 0) {
+		char str_bmo[32];
+		char str_py[32];
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s: keyword \"%.200s\" %.200s, expected "
+		             "a sequence of %.200s not %.200s",
+		             opname, slot_name, descr,
+		             BPy_BMElem_StringFromHType_ex(htype_bmo, str_bmo),
+		             BPy_BMElem_StringFromHType_ex(htype_py,  str_py));
+		return -1;
+	}
+
+	return 0;
+}
+
+/**
  * Use for giving py args to an operator.
  */
 static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObject *value,
@@ -158,21 +236,10 @@ static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObjec
 		case BMO_OP_SLOT_ELEMENT_BUF:
 		{
 			if (slot->slot_subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE) {
-				if (!BPy_BMElem_Check(value) ||
-				    !(((BPy_BMElem *)value)->ele->head.htype & slot->slot_subtype.elem))
+				if (bpy_slot_from_py_elem_check((BPy_BMElem *)value, bm, (slot->slot_subtype.elem & BM_ALL_NOLOOP),
+				                                opname, slot_name, "single element") == -1)
 				{
-					PyErr_Format(PyExc_TypeError,
-					             "%.200s: keyword \"%.200s\" expected a %.200s not *.200s",
-					             opname, slot_name,
-					             BPy_BMElem_StringFromHType(slot->slot_subtype.elem & BM_ALL_NOLOOP),
-					             Py_TYPE(value)->tp_name);
-					return -1;
-				}
-				else if (((BPy_BMElem *)value)->bm == NULL) {
-					PyErr_Format(PyExc_TypeError,
-					             "%.200s: keyword \"%.200s\" invalidated element",
-					             opname, slot_name);
-					return -1;
+					return -1;  /* error is set in bpy_slot_from_py_elem_check() */
 				}
 
 				BMO_slot_buffer_from_single(bmop, slot, &((BPy_BMElem *)value)->ele->head);
@@ -188,42 +255,35 @@ static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObjec
 				 *   ('VERT', {'TAG'})
 				 */
 
-#define BPY_BM_GENERIC_MESH_TEST(type_string)  \
-if (((BPy_BMGeneric *)value)->bm != bm) {                                             \
-	PyErr_Format(PyExc_NotImplementedError,                                           \
-	             "%.200s: keyword \"%.200s\" " type_string " are from another bmesh", \
-	             opname, slot_name, slot->slot_type);                           \
-	return -1;                                                                        \
-	} (void)0
-
-#define BPY_BM_ELEM_TYPE_TEST(type_string)  \
-	if ((slot->slot_subtype.elem & BM_VERT) == 0) { \
-	PyErr_Format(PyExc_TypeError, \
-	             "%.200s: keyword \"%.200s\" expected " \
-	             "a list of %.200s not " type_string, \
-	             opname, slot_name, \
-	             BPy_BMElem_StringFromHType(slot->slot_subtype.elem & BM_ALL_NOLOOP)); \
-	return -1; \
-	} (void)0
-
 				if (BPy_BMVertSeq_Check(value)) {
-					BPY_BM_GENERIC_MESH_TEST("verts");
-					BPY_BM_ELEM_TYPE_TEST("verts");
+					if (bpy_slot_from_py_elemseq_check((BPy_BMGeneric *)value, bm,
+					                                   BM_VERT, (slot->slot_subtype.elem & BM_ALL_NOLOOP),
+					                                   opname, slot_name, "element buffer") == -1)
+					{
+						return -1;  /* error is set in bpy_slot_from_py_elem_check() */
+					}
 
 					BMO_slot_buffer_from_all(bm, bmop, bmop->slots_in, slot_name, BM_VERT);
 				}
 				else if (BPy_BMEdgeSeq_Check(value)) {
-					BPY_BM_GENERIC_MESH_TEST("edges");
-					BPY_BM_ELEM_TYPE_TEST("edges");
+					if (bpy_slot_from_py_elemseq_check((BPy_BMGeneric *)value, bm,
+					                                   BM_EDGE, (slot->slot_subtype.elem & BM_ALL_NOLOOP),
+					                                   opname, slot_name, "element buffer") == -1)
+					{
+						return -1;  /* error is set in bpy_slot_from_py_elem_check() */
+					}
+
 					BMO_slot_buffer_from_all(bm, bmop, bmop->slots_in, slot_name, BM_EDGE);
 				}
 				else if (BPy_BMFaceSeq_Check(value)) {
-					BPY_BM_GENERIC_MESH_TEST("faces");
-					BPY_BM_ELEM_TYPE_TEST("faces");
+					if (bpy_slot_from_py_elemseq_check((BPy_BMGeneric *)value, bm,
+					                                   BM_FACE, (slot->slot_subtype.elem & BM_ALL_NOLOOP),
+					                                   opname, slot_name, "element buffer") == -1)
+					{
+						return -1;  /* error is set in bpy_slot_from_py_elem_check() */
+					}
 					BMO_slot_buffer_from_all(bm, bmop, bmop->slots_in, slot_name, BM_FACE);
 				}
-
-#undef BPY_BM_ELEM_TYPE_TEST
 
 				else if (BPy_BMElemSeq_Check(value)) {
 					BMIter iter;
@@ -231,12 +291,18 @@ if (((BPy_BMGeneric *)value)->bm != bm) {                                       
 					int tot;
 					unsigned int i;
 
-					BPY_BM_GENERIC_MESH_TEST("elements");
+					if (bpy_slot_from_py_elemseq_check((BPy_BMGeneric *)value, bm,
+					                                   bm_iter_itype_htype_map[((BPy_BMElemSeq *)value)->itype],
+					                                   (slot->slot_subtype.elem & BM_ALL_NOLOOP),
+					                                   opname, slot_name, "element buffer") == -1)
+					{
+						return -1;  /* error is set in bpy_slot_from_py_elem_check() */
+					}
 
 					/* this will loop over all elements which is a shame but
 					 * we need to know this before alloc */
 					/* calls bpy_bmelemseq_length() */
-					tot = Py_TYPE(value)->tp_as_sequence->sq_length((PyObject *)value);
+					tot = Py_TYPE(value)->tp_as_sequence->sq_length(value);
 
 					BMO_slot_buffer_alloc(bmop, bmop->slots_in, slot_name, tot);
 
@@ -272,8 +338,6 @@ if (((BPy_BMGeneric *)value)->bm != bm) {                                       
 					return -1;
 				}
 			}
-#undef BPY_BM_GENERIC_MESH_TEST
-
 			break;
 		}
 		case BMO_OP_SLOT_MAPPING:
@@ -299,45 +363,22 @@ if (((BPy_BMGeneric *)value)->bm != bm) {                                       
 			}
 
 			switch (slot->slot_subtype.map) {
-
-				/* this could be a static function */
-#define BPY_BM_MAPPING_KEY_CHECK(arg_key)  \
-				if (!BPy_BMElem_Check(arg_key)) { \
-					PyErr_Format(PyExc_TypeError, \
-					             "%.200s: keyword \"%.200s\" expected " \
-					             "a dict with bmesh element keys, not %.200s", \
-					             opname, slot_name, Py_TYPE(arg_key)->tp_name); \
-					return -1; \
-				} \
-				else if (((BPy_BMGeneric *)arg_key)->bm == NULL) { \
-					PyErr_Format(PyExc_TypeError, \
-					             "%.200s: keyword \"%.200s\" invalidated element key in dict", \
-					             opname, slot_name); \
-					return -1; \
-				} (void)0
-
-
 				case BMO_OP_SLOT_SUBTYPE_MAP_ELEM:
 				{
 					if (PyDict_Size(value) > 0) {
 						PyObject *arg_key, *arg_value;
 						Py_ssize_t arg_pos = 0;
 						while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
-							/* TODO, check the elements come from the right mesh? */
-							BPY_BM_MAPPING_KEY_CHECK(arg_key);
-
-							if (!BPy_BMElem_Check(arg_value)) {
-								PyErr_Format(PyExc_TypeError,
-								             "%.200s: keyword \"%.200s\" expected "
-								             "a dict with bmesh element values, not %.200s",
-								             opname, slot_name, Py_TYPE(arg_value)->tp_name);
-								return -1;
+							if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key, bm, BM_ALL_NOLOOP,
+							                                opname, slot_name, "invalid key in dict") == -1)
+							{
+								return -1;  /* error is set in bpy_slot_from_py_elem_check() */
 							}
-							else if (((BPy_BMGeneric *)arg_value)->bm == NULL) {
-								PyErr_Format(PyExc_TypeError,
-								             "%.200s: keyword \"%.200s\" invalidated element value in dict",
-								             opname, slot_name);
-								return -1;
+
+							if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_value, bm, BM_ALL_NOLOOP,
+							                                opname, slot_name, "invalid value in dict") == -1)
+							{
+								return -1;  /* error is set in bpy_slot_from_py_elem_check() */
 							}
 
 							BMO_slot_map_elem_insert(bmop, slot,
@@ -353,8 +394,13 @@ if (((BPy_BMGeneric *)value)->bm != bm) {                                       
 						Py_ssize_t arg_pos = 0;
 						while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
 							float value_f;
-							/* TODO, check the elements come from the right mesh? */
-							BPY_BM_MAPPING_KEY_CHECK(arg_key);
+
+							if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key, bm, BM_ALL_NOLOOP,
+							                                opname, slot_name, "invalid key in dict") == -1)
+							{
+								return -1;  /* error is set in bpy_slot_from_py_elem_check() */
+							}
+
 							value_f = PyFloat_AsDouble(arg_value);
 
 							if (value_f == -1.0f && PyErr_Occurred()) {
@@ -378,8 +424,13 @@ if (((BPy_BMGeneric *)value)->bm != bm) {                                       
 						Py_ssize_t arg_pos = 0;
 						while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
 							int value_i;
-							/* TODO, check the elements come from the right mesh? */
-							BPY_BM_MAPPING_KEY_CHECK(arg_key);
+
+							if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key, bm, BM_ALL_NOLOOP,
+							                                opname, slot_name, "invalid key in dict") == -1)
+							{
+								return -1;  /* error is set in bpy_slot_from_py_elem_check() */
+							}
+
 							value_i = PyLong_AsLong(arg_value);
 
 							if (value_i == -1 && PyErr_Occurred()) {
@@ -403,8 +454,13 @@ if (((BPy_BMGeneric *)value)->bm != bm) {                                       
 						Py_ssize_t arg_pos = 0;
 						while (PyDict_Next(value, &arg_pos, &arg_key, &arg_value)) {
 							int value_i;
-							/* TODO, check the elements come from the right mesh? */
-							BPY_BM_MAPPING_KEY_CHECK(arg_key);
+
+							if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key, bm, BM_ALL_NOLOOP,
+							                                opname, slot_name, "invalid key in dict") == -1)
+							{
+								return -1;  /* error is set in bpy_slot_from_py_elem_check() */
+							}
+
 							value_i = PyLong_AsLong(arg_value);
 
 							if (value_i == -1 && PyErr_Occurred()) {
@@ -428,8 +484,12 @@ if (((BPy_BMGeneric *)value)->bm != bm) {                                       
 						Py_ssize_t arg_pos = 0;
 						Py_ssize_t arg_hash = 0;
 						while (_PySet_NextEntry(value, &arg_pos, &arg_key, &arg_hash)) {
-							/* TODO, check the elements come from the right mesh? */
-							BPY_BM_MAPPING_KEY_CHECK(arg_key);
+
+							if (bpy_slot_from_py_elem_check((BPy_BMElem *)arg_key, bm, BM_ALL_NOLOOP,
+							                                opname, slot_name, "invalid key in set") == -1)
+							{
+								return -1;  /* error is set in bpy_slot_from_py_elem_check() */
+							}
 
 							BMO_slot_map_empty_insert(bmop, slot,
 							                         ((BPy_BMElem *)arg_key)->ele);
@@ -444,8 +504,6 @@ if (((BPy_BMGeneric *)value)->bm != bm) {                                       
 					             "This arguments mapping subtype %d is not supported", slot->slot_subtype);
 					return -1;
 				}
-#undef BPY_BM_MAPPING_KEY_CHECK
-
 			}
 		}
 		default:
