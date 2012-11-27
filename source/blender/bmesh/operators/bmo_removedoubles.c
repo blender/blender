@@ -258,19 +258,19 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter iter;
-	BMVert *v, *snapv;
+	BMVert *v, *vert_snap;
 	BMLoop *l, *firstl = NULL;
 	float fac;
 	int i, tot;
 
-	snapv = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "snapv"));
-	tot = BM_vert_face_count(snapv);
+	vert_snap = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_snap"));
+	tot = BM_vert_face_count(vert_snap);
 
 	if (!tot)
 		return;
 
 	fac = 1.0f / tot;
-	BM_ITER_ELEM (l, &iter, snapv, BM_LOOPS_OF_VERT) {
+	BM_ITER_ELEM (l, &iter, vert_snap, BM_LOOPS_OF_VERT) {
 		if (!firstl) {
 			firstl = l;
 		}
@@ -343,7 +343,7 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 	BMOIter siter;
-	BMVert *v, *snapv = NULL;
+	BMVert *v, *vert_snap = NULL;
 	float vec[3];
 	BMOpSlot *slot_targetmap;
 	
@@ -355,12 +355,12 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 	slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
 
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
-		if (!snapv) {
-			snapv = v;
-			copy_v3_v3(snapv->co, vec);
+		if (!vert_snap) {
+			vert_snap = v;
+			copy_v3_v3(vert_snap->co, vec);
 		}
 		else {
-			BMO_slot_map_elem_insert(&weldop, slot_targetmap, v, snapv);
+			BMO_slot_map_elem_insert(&weldop, slot_targetmap, v, vert_snap);
 		}
 	}
 

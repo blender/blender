@@ -711,8 +711,8 @@ void bmo_shortest_path_exec(BMesh *bm, BMOperator *op)
 	int num_total = 0 /*, num_sels = 0 */, i = 0;
 	const int type = BMO_slot_int_get(op->slots_in, "type");
 
-	sv = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "startv"));
-	ev = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "endv"));
+	sv = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_start"));
+	ev = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_end"));
 
 	num_total = BM_mesh_elem_count(bm, BM_VERT);
 

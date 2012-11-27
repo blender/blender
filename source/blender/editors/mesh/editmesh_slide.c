@@ -695,7 +695,7 @@ static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_u
 	BMOperator bmop;
 	BMEditSelection *ese = (BMEditSelection *)em->bm->selected.last;
 
-	float distance_t = 0.0f;
+	float factor = 0.0f;
 
 	/* Invoked modally? */
 	if (op->type->modal == edbm_vertex_slide_modal && op->customdata) {
@@ -711,12 +711,12 @@ static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_u
 			BM_select_history_store(em->bm, vso->start_vtx);
 			ese = (BMEditSelection *)em->bm->selected.last;
 		}
-		distance_t = vso->distance;
-		RNA_float_set(op->ptr, "distance_t", distance_t);
+		factor = vso->distance;
+		RNA_float_set(op->ptr, "factor", factor);
 	}
 	else {
 		/* Get Properties */
-		distance_t = RNA_float_get(op->ptr, "distance_t");
+		factor = RNA_float_get(op->ptr, "factor");
 	}
 
 	/* Is there a starting vertex  ? */
@@ -729,8 +729,8 @@ static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_u
 
 	/* Prepare operator */
 	if (!EDBM_op_init(em, &bmop, op,
-	                  "slide_vert vert=%e edges=%he distance_t=%f",
-	                  start_vert, BM_ELEM_SELECT, distance_t))
+	                  "slide_vert vert=%e edges=%he factor=%f",
+	                  start_vert, BM_ELEM_SELECT, factor))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -787,7 +787,7 @@ void MESH_OT_vert_slide(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* Properties for vertex slide */
-	prop = RNA_def_float(ot->srna, "distance_t", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "Distance", -5.0f, 5.0f);
+	prop = RNA_def_float(ot->srna, "factor", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "Distance", -5.0f, 5.0f);
 	RNA_def_property_ui_range(prop, -5.0f, 5.0f, 0.1, 4);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }

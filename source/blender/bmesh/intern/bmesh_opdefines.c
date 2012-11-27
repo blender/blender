@@ -356,7 +356,7 @@ static BMOpDefine bmo_pointmerge_facedata_def = {
 	"pointmerge_facedata",
 	/* slots_in */
 	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},    /* input vertices */
-	 {"snapv", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},    /* snap vertex */
+	 {"vert_snap", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},    /* snap vertex */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -1209,8 +1209,8 @@ static BMOpDefine bmo_reverse_colors_def = {
 static BMOpDefine bmo_shortest_path_def = {
 	"shortest_path",
 	/* slots_in */
-	{{"startv", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},   /* start vertex */
-	 {"endv", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},     /* end vertex */
+	{{"vert_start", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},   /* start vertex */
+	 {"vert_end", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},     /* end vertex */
 	 {"type", BMO_OP_SLOT_INT},             /* type of selection */
 	 {{'\0'}},
 	},
@@ -1547,7 +1547,7 @@ static BMOpDefine bmo_slide_vert_def = {
 	/* slots_in */
 	{{"vert", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},
 	 {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
-	 {"distance_t", BMO_OP_SLOT_FLT},
+	 {"factor", BMO_OP_SLOT_FLT},
 	 {{'\0'}},
 	},
 	/* slots_out */

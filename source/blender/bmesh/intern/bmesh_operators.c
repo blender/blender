@@ -1490,6 +1490,7 @@ static int bmo_opname_to_opcode(const char *opname)
  *  f - float
  *  s - slot_in
  *  S - slot_out
+ *  e - single vert/edge/face
  *  hv - header flagged verts (hflag)
  *  he - header flagged edges (hflag)
  *  hf - header flagged faces (hflag)
@@ -1601,9 +1602,8 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 					state = 1;
 					break;
 				}
-				case 'e':
+				case 'e':  /* single vert/edge/face */
 				{
-					/* XXX we have 'e' but no equivalent for verts/faces - why? we could use (V/E/P)*/
 					BMHeader *ele = va_arg(vlist, void *);
 					BMOpSlot *slot = BMO_slot_get(op->slots_in, slot_name);
 

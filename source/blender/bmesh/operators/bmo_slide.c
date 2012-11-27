@@ -53,7 +53,7 @@ void bmo_slide_vert_exec(BMesh *bm, BMOperator *op)
 	int selected_edges = 0;
 
 	/* Get slide amount */
-	const float distance_t = BMO_slot_float_get(op->slots_in, "distance_t");
+	const float factor = BMO_slot_float_get(op->slots_in, "factor");
 
 	/* Get start vertex */
 	vertex = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert"));
@@ -101,7 +101,7 @@ void bmo_slide_vert_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, vertex, VERT_MARK);
 
 		/* Interpolate */
-		interp_v3_v3v3(vertex->co, vertex->co, other->co, distance_t);
+		interp_v3_v3v3(vertex->co, vertex->co, other->co, factor);
 	}
 
 	/* Return the new edge. The same previously marked with VERT_MARK */
