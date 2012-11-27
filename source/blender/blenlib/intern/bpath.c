@@ -499,12 +499,15 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		{
 			Material *ma = (Material *)id;
 			bNodeTree *ntree = ma->nodetree;
-			bNode *node;
 
-			for (node = ntree->nodes.first; node; node = node->next) {
-				if (node->type == SH_NODE_SCRIPT) {
-					NodeShaderScript *nss = (NodeShaderScript *)node->storage;
-					rewrite_path_fixed(nss->filepath, visit_cb, absbase, bpath_user_data);
+			if(ntree) {
+				bNode *node;
+
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == SH_NODE_SCRIPT) {
+						NodeShaderScript *nss = (NodeShaderScript *)node->storage;
+						rewrite_path_fixed(nss->filepath, visit_cb, absbase, bpath_user_data);
+					}
 				}
 			}
 			break;
