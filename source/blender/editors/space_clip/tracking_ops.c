@@ -1409,7 +1409,7 @@ static void solve_camera_freejob(void *scv)
 	id_us_plus(&clip->id);
 
 	/* set blender camera focal length so result would look fine there */
-	if (scene->camera && GS(scene->camera->id.name) == ID_CA) {
+	if (scene->camera && scene->camera->data && GS(((ID *) scene->camera->data)->name) == ID_CA) {
 		Camera *camera = (Camera *)scene->camera->data;
 		int width, height;
 
