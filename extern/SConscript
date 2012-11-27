@@ -8,8 +8,11 @@ SConscript(['colamd/SConscript'])
 if env['WITH_BF_GAMEENGINE']:
     SConscript(['recastnavigation/SConscript'])
 
+# now only available in a branch
+'''
 if env['WITH_BF_ELTOPO']:
     SConscript(['eltopo/SConscript'])
+'''
 
 if env['WITH_BF_BULLET']:
     SConscript(['bullet2/src/SConscript'])
