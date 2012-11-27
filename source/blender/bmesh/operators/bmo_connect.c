@@ -54,6 +54,8 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts", BM_VERT, VERT_INPUT);
 
+	/* BMESH_TODO, loop over vert faces:
+	 * faster then looping over all faces, then searching each for flagged verts*/
 	for (f = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL); f; f = BM_iter_step(&iter)) {
 		BLI_array_empty(loops_split);
 		BLI_array_empty(verts_pair);

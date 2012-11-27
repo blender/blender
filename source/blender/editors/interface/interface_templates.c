@@ -786,7 +786,7 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
-/* Check wheter Modifier is a simulation or not, this is used for switching to the physics/particles context tab */
+/* Check whether Modifier is a simulation or not, this is used for switching to the physics/particles context tab */
 static int modifier_is_simulation(ModifierData *md)
 {
 	/* Physic Tab */

@@ -59,8 +59,10 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
 
-/* ok, I'm going to write a little docgen script. so all
- * bmop comments must conform to the following template/rules:
+/* The formatting of these bmesh operators is parsed by
+ * 'doc/python_api/rst_from_bmesh_opdefines.py'
+ * for use in python docs, so reStructuredText may be used
+ * rather then doxygen syntax.
  *
  * template (py quotes used because nested comments don't work
  * on all C compilers):
@@ -79,21 +81,22 @@
  * so the first line is the "title" of the bmop.
  * subsequent line blocks separated by blank lines
  * are paragraphs.  individual descriptions of slots
- * would be extracted from comments
- * next to them, e.g.
+ * are extracted from comments next to them.
  *
- * {BMO_OP_SLOT_ELEMENT_BUF, "geom.out"}, //output slot, boundary region
+ * eg:
+ *     {BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},  """ output slot, boundary region """
  *
- * the doc generator would automatically detect the presence of "output slot"
- * and flag the slot as an output.  the same happens for "input slot".  also
- * note that "edges", "faces", "verts", "loops", and "geometry" are valid
- * substitutions for "slot".
+ * ... or:
  *
- * note that slots default to being input slots.
+ * """ output slot, boundary region """
+ *     {BMO_OP_SLOT_ELEMENT_BUF, "geom.out"},
+ *
+ * Both are acceptable.
+ * note that '//' comments are ignored.
  */
 
 /*
- * Vertex Smooth
+ * Vertex Smooth.
  *
  * Smooths vertices by using a basic vertex averaging scheme.
  */
@@ -104,7 +107,7 @@ static BMOpDefine bmo_smooth_vert_def = {
 	 {"mirror_clip_x", BMO_OP_SLOT_BOOL},   /* set vertices close to the x axis before the operation to 0 */
 	 {"mirror_clip_y", BMO_OP_SLOT_BOOL},   /* set vertices close to the y axis before the operation to 0 */
 	 {"mirror_clip_z", BMO_OP_SLOT_BOOL},   /* set vertices close to the z axis before the operation to 0 */
-	 {"clip_dist",  BMO_OP_SLOT_FLT},       /* clipping threshod for the above three slots */
+	 {"clip_dist",  BMO_OP_SLOT_FLT},       /* clipping threshold for the above three slots */
 	 {"use_axis_x", BMO_OP_SLOT_BOOL},      /* smooth vertices along X axis */
 	 {"use_axis_y", BMO_OP_SLOT_BOOL},      /* smooth vertices along Y axis */
 	 {"use_axis_z", BMO_OP_SLOT_BOOL},      /* smooth vertices along Z axis */
@@ -116,9 +119,10 @@ static BMOpDefine bmo_smooth_vert_def = {
 };
 
 /*
- * Vertext Smooth Laplacian
+ * Vertext Smooth Laplacian.
+ *
  * Smooths vertices by using Laplacian smoothing propose by.
- * Desbrun, et al. Implicit Fairing of Irregular Meshes using Diffusion and Curvature Flow
+ * Desbrun, et al. Implicit Fairing of Irregular Meshes using Diffusion and Curvature Flow.
  */
 static BMOpDefine bmo_smooth_laplacian_vert_def = {
 	"smooth_laplacian_vert",
@@ -138,16 +142,15 @@ static BMOpDefine bmo_smooth_laplacian_vert_def = {
 };
 
 /*
- * Right-Hand Faces
+ * Right-Hand Faces.
  *
  * Computes an "outside" normal for the specified input faces.
  */
-
 static BMOpDefine bmo_recalc_face_normals_def = {
 	"recalc_face_normals",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
-	 {"use_flip", BMO_OP_SLOT_BOOL},        /* internal flag, used by bmesh_rationalize_normals */
+	 {"use_flip", BMO_OP_SLOT_BOOL},  /* Reverse the result */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -156,13 +159,13 @@ static BMOpDefine bmo_recalc_face_normals_def = {
 };
 
 /*
- * Region Extend
+ * Region Extend.
  *
  * used to implement the select more/less tools.
  * this puts some geometry surrounding regions of
  * geometry in geom into geom.out.
  *
- * if usefaces is 0 then geom.out spits out verts and edges,
+ * if use_faces is 0 then geom.out spits out verts and edges,
  * otherwise it spits out faces.
  */
 static BMOpDefine bmo_region_extend_def = {
@@ -182,16 +185,16 @@ static BMOpDefine bmo_region_extend_def = {
 };
 
 /*
- * Edge Rotate
+ * Edge Rotate.
  *
  * Rotates edges topologically.  Also known as "spin edge" to some people.
- * Simple example: [/] becomes [|] then [\].
+ * Simple example: ``[/] becomes [|] then [\]``.
  */
 static BMOpDefine bmo_rotate_edges_def = {
 	"rotate_edges",
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input edges */
-	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate edge counter-clockwise if true, othewise clockwise */
+	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate edge counter-clockwise if true, otherwise clockwise */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -203,10 +206,10 @@ static BMOpDefine bmo_rotate_edges_def = {
 };
 
 /*
- * Reverse Faces
+ * Reverse Faces.
  *
- * Reverses the winding (vertex order) of faces.  This has the effect of
- * flipping the normal.
+ * Reverses the winding (vertex order) of faces.
+ * This has the effect of flipping the normal.
  */
 static BMOpDefine bmo_reverse_faces_def = {
 	"reverse_faces",
@@ -220,7 +223,7 @@ static BMOpDefine bmo_reverse_faces_def = {
 };
 
 /*
- * Edge Bisect
+ * Edge Bisect.
  *
  * Splits input edges (but doesn't do anything else).
  * This creates a 2-valence vert.
@@ -241,13 +244,12 @@ static BMOpDefine bmo_bisect_edges_def = {
 };
 
 /*
- * Mirror
+ * Mirror.
  *
  * Mirrors geometry along an axis.  The resulting geometry is welded on using
  * merge_dist.  Pairs of original/mirrored vertices are welded using the merge_dist
  * parameter (which defines the minimum distance for welding to happen).
  */
-
 static BMOpDefine bmo_mirror_def = {
 	"mirror",
 	/* slots_in */
@@ -268,10 +270,10 @@ static BMOpDefine bmo_mirror_def = {
 };
 
 /*
- * Find Doubles
+ * Find Doubles.
  *
- * Takes input verts and find vertices they should weld to.  Outputs a
- * mapping slot suitable for use with the weld verts bmop.
+ * Takes input verts and find vertices they should weld to.
+ * Outputs a mapping slot suitable for use with the weld verts bmop.
  *
  * If keep_verts is used, vertices outside that set can only be merged
  * with vertices in that set.
@@ -293,7 +295,7 @@ static BMOpDefine bmo_find_doubles_def = {
 };
 
 /*
- * Remove Doubles
+ * Remove Doubles.
  *
  * Finds groups of vertices closer then dist and merges them together,
  * using the weld verts bmop.
@@ -311,11 +313,11 @@ static BMOpDefine bmo_remove_doubles_def = {
 };
 
 /*
- * Auto Merge
+ * Auto Merge.
  *
- * Finds groups of vertices closer then dist and merges them together,
+ * Finds groups of vertices closer then **dist** and merges them together,
  * using the weld verts bmop.  The merges must go from a vert not in
- * verts to one in verts.
+ * **verts** to one in **verts**.
  */
 static BMOpDefine bmo_automerge_def = {
 	"automerge",
@@ -330,7 +332,7 @@ static BMOpDefine bmo_automerge_def = {
 };
 
 /*
- * Collapse Connected
+ * Collapse Connected.
  *
  * Collapses connected vertices
  */
@@ -345,9 +347,8 @@ static BMOpDefine bmo_collapse_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES,
 };
 
-
 /*
- * Facedata point Merge
+ * Face-Data Point Merge.
  *
  * Merge uv/vcols at a specific vertex.
  */
@@ -364,7 +365,7 @@ static BMOpDefine bmo_pointmerge_facedata_def = {
 };
 
 /*
- * Average Vertices Facevert Data
+ * Average Vertices Facevert Data.
  *
  * Merge uv/vcols associated with the input vertices at
  * the bounding box center. (I know, it's not averaging but
@@ -382,7 +383,7 @@ static BMOpDefine bmo_average_vert_facedata_def = {
 };
 
 /*
- * Point Merge
+ * Point Merge.
  *
  * Merge verts together at a point.
  */
@@ -399,7 +400,7 @@ static BMOpDefine bmo_pointmerge_def = {
 };
 
 /*
- * Collapse Connected UVs
+ * Collapse Connected UV's.
  *
  * Collapses connected UV vertices.
  */
@@ -415,9 +416,9 @@ static BMOpDefine bmo_collapse_uvs_def = {
 };
 
 /*
- * Weld Verts
+ * Weld Verts.
  *
- * Welds verts together (kindof like remove doubles, merge, etc, all of which
+ * Welds verts together (kind-of like remove doubles, merge, etc, all of which
  * use or will use this bmop).  You pass in mappings from vertices to the vertices
  * they weld with.
  */
@@ -434,7 +435,7 @@ static BMOpDefine bmo_weld_verts_def = {
 };
 
 /*
- * Make Vertex
+ * Make Vertex.
  *
  * Creates a single vertex; this bmop was necessary
  * for click-create-vertex.
@@ -454,7 +455,7 @@ static BMOpDefine bmo_create_vert_def = {
 };
 
 /*
- * Join Triangles
+ * Join Triangles.
  *
  * Tries to intelligently join triangles according
  * to various settings and stuff.
@@ -479,12 +480,11 @@ static BMOpDefine bmo_join_triangles_def = {
 };
 
 /*
- * Contextual Create
+ * Contextual Create.
  *
- * This is basically fkey, it creates
+ * This is basically F-key, it creates
  * new faces from vertices, makes stuff from edge nets,
- * makes wire edges, etc.  It also dissolves
- * faces.
+ * makes wire edges, etc.  It also dissolves faces.
  *
  * Three verts become a triangle, four become a quad.  Two
  * become a wire edge.
@@ -508,7 +508,7 @@ static BMOpDefine bmo_contextual_create_def = {
 };
 
 /*
- * Bridge edge loops with faces
+ * Bridge edge loops with faces.
  */
 static BMOpDefine bmo_bridge_loops_def = {
 	"bridge_loops",
@@ -526,6 +526,11 @@ static BMOpDefine bmo_bridge_loops_def = {
 	0,
 };
 
+/*
+ * Edge Net Fill.
+ *
+ * Create faces defined by enclosed edges.
+ */
 static BMOpDefine bmo_edgenet_fill_def = {
 	"edgenet_fill",
 	/* slots_in */
@@ -550,7 +555,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
 };
 
 /*
- * Edgenet Prepare
+ * Edgenet Prepare.
  *
  * Identifies several useful edge loop cases and modifies them so
  * they'll become a face when edgenet_fill is called.  The cases covered are:
@@ -574,7 +579,7 @@ static BMOpDefine bmo_edgenet_prepare_def = {
 };
 
 /*
- * Rotate
+ * Rotate.
  *
  * Rotate vertices around a center, using a 3x3 rotation
  * matrix.  Equivalent of the old rotateflag function.
@@ -593,7 +598,7 @@ static BMOpDefine bmo_rotate_def = {
 };
 
 /*
- * Translate
+ * Translate.
  *
  * Translate vertices by an offset.  Equivalent of the
  * old translateflag function.
@@ -611,7 +616,7 @@ static BMOpDefine bmo_translate_def = {
 };
 
 /*
- * Scale
+ * Scale.
  *
  * Scales vertices by an offset.
  */
@@ -629,7 +634,7 @@ static BMOpDefine bmo_scale_def = {
 
 
 /*
- * Transform
+ * Transform.
  *
  * Transforms a set of vertices by a matrix.  Multiplies
  * the vertex coordinates with the matrix.
@@ -647,7 +652,7 @@ static BMOpDefine bmo_transform_def = {
 };
 
 /*
- * Object Load BMesh
+ * Object Load BMesh.
  *
  * Loads a bmesh into an object/mesh.  This is a "private"
  * bmop.
@@ -666,7 +671,7 @@ static BMOpDefine bmo_object_load_bmesh_def = {
 
 
 /*
- * BMesh to Mesh
+ * BMesh to Mesh.
  *
  * Converts a bmesh to a Mesh.  This is reserved for exiting editmode.
  */
@@ -687,7 +692,7 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
 };
 
 /*
- * Mesh to BMesh
+ * Mesh to BMesh.
  *
  * Load the contents of a mesh into the bmesh.  this bmop is private, it's
  * reserved exclusively for entering editmode.
@@ -709,7 +714,7 @@ static BMOpDefine bmo_mesh_to_bmesh_def = {
 };
 
 /*
- * Individual Face Extrude
+ * Individual Face Extrude.
  *
  * Extrudes faces individually.
  */
@@ -728,7 +733,7 @@ static BMOpDefine bmo_extrude_discrete_faces_def = {
 };
 
 /*
- * Extrude Only Edges
+ * Extrude Only Edges.
  *
  * Extrudes Edges into faces, note that this is very simple, there's no fancy
  * winged extrusion.
@@ -748,7 +753,7 @@ static BMOpDefine bmo_extrude_edge_only_def = {
 };
 
 /*
- * Individual Vertex Extrude
+ * Individual Vertex Extrude.
  *
  * Extrudes wire edges from vertices.
  */
@@ -767,6 +772,11 @@ static BMOpDefine bmo_extrude_vert_indiv_def = {
 	0
 };
 
+/*
+ * Connect Verts.
+ *
+ * Split faces by adding edges that connect **verts**.
+ */
 static BMOpDefine bmo_connect_verts_def = {
 	"connect_verts",
 	/* slots_in */
@@ -781,6 +791,11 @@ static BMOpDefine bmo_connect_verts_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Extrude Faces.
+ *
+ * Extrude operator (does not transform)
+ */
 static BMOpDefine bmo_extrude_face_region_def = {
 	"extrude_face_region",
 	/* slots_in */
@@ -797,6 +812,9 @@ static BMOpDefine bmo_extrude_face_region_def = {
 	0
 };
 
+/*
+ * Dissolve Verts.
+ */
 static BMOpDefine bmo_dissolve_verts_def = {
 	"dissolve_verts",
 	/* slots_in */
@@ -808,6 +826,9 @@ static BMOpDefine bmo_dissolve_verts_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Dissolve Edges.
+ */
 static BMOpDefine bmo_dissolve_edges_def = {
 	"dissolve_edges",
 	/* slots_in */
@@ -823,6 +844,9 @@ static BMOpDefine bmo_dissolve_edges_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Dissolve Edge Loop.
+ */
 static BMOpDefine bmo_dissolve_edge_loop_def = {
 	"dissolve_edge_loop",
 	/* slots_in */
@@ -837,6 +861,9 @@ static BMOpDefine bmo_dissolve_edge_loop_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Dissolve Faces.
+ */
 static BMOpDefine bmo_dissolve_faces_def = {
 	"dissolve_faces",
 	/* slots_in */
@@ -852,6 +879,11 @@ static BMOpDefine bmo_dissolve_faces_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Limited Dissolve.
+ *
+ * Dissolve planar faces and co-linear edges.
+ */
 static BMOpDefine bmo_dissolve_limit_def = {
 	"dissolve_limit",
 	/* slots_in */
@@ -866,6 +898,9 @@ static BMOpDefine bmo_dissolve_limit_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Triangulate.
+ */
 static BMOpDefine bmo_triangulate_def = {
 	"triangulate",
 	/* slots_in */
@@ -883,6 +918,11 @@ static BMOpDefine bmo_triangulate_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Un-Subdivide.
+ *
+ * Reduce detail in geometry containing grids.
+ */
 static BMOpDefine bmo_unsubdivide_def = {
 	"unsubdivide",
 	/* slots_in */
@@ -895,6 +935,12 @@ static BMOpDefine bmo_unsubdivide_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Subdivide Edges.
+ *
+ * Advanced operator for subdividing edges
+ * with options for face patterns, smoothing and randomization.
+ */
 static BMOpDefine bmo_subdivide_edges_def = {
 	"subdivide_edges",
 	/* slots_in */
@@ -925,6 +971,11 @@ static BMOpDefine bmo_subdivide_edges_def = {
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
+/*
+ * Delete Geometry.
+ *
+ * Utility operator to delete geometry.
+ */
 static BMOpDefine bmo_delete_def = {
 	"delete",
 	/* slots_in */
@@ -937,6 +988,12 @@ static BMOpDefine bmo_delete_def = {
 	0
 };
 
+/*
+ * Duplicate Geometry.
+ *
+ * Utility operator to duplicate geometry,
+ * optionally into a destination mesh.
+ */
 static BMOpDefine bmo_duplicate_def = {
 	"duplicate",
 	/* slots_in */
@@ -959,6 +1016,12 @@ static BMOpDefine bmo_duplicate_def = {
 	0
 };
 
+/*
+ * Split Off Geometry.
+ *
+ * Disconnect geometry from adjacent edges and faces,
+ * optionally into a destination mesh.
+ */
 static BMOpDefine bmo_split_def = {
 	"split",
 	/* slots_in */
@@ -979,7 +1042,7 @@ static BMOpDefine bmo_split_def = {
 };
 
 /*
- * Spin
+ * Spin.
  *
  * Extrude or duplicate geometry a number of times,
  * rotating and possibly translating after each step
@@ -1006,7 +1069,7 @@ static BMOpDefine bmo_spin_def = {
 
 
 /*
- * Similar faces search
+ * Similar Faces Search.
  *
  * Find similar faces (area/material/perimeter, ...).
  */
@@ -1028,7 +1091,7 @@ static BMOpDefine bmo_similar_faces_def = {
 };
 
 /*
- * Similar edges search
+ * Similar Edges Search.
  *
  *  Find similar edges (length, direction, edge, seam, ...).
  */
@@ -1050,7 +1113,7 @@ static BMOpDefine bmo_similar_edges_def = {
 };
 
 /*
- * Similar vertices search
+ * Similar Verts Search.
  *
  * Find similar vertices (normal, face, vertex group, ...).
  */
@@ -1072,14 +1135,15 @@ static BMOpDefine bmo_similar_verts_def = {
 };
 
 /*
- * uv rotation
- * cycle the uvs
+ * UV Rotation.
+ *
+ * Cycle the loop UV's
  */
 static BMOpDefine bmo_rotate_uvs_def = {
 	"rotate_uvs",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input faces */
-	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate counter-clockwise if true, othewise clockwise */
+	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate counter-clockwise if true, otherwise clockwise */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -1089,8 +1153,9 @@ static BMOpDefine bmo_rotate_uvs_def = {
 };
 
 /*
- * uv reverse
- * reverse the uvs
+ * UV Reverse.
+ *
+ * Reverse the UV's
  */
 static BMOpDefine bmo_reverse_uvs_def = {
 	"reverse_uvs",
@@ -1104,14 +1169,15 @@ static BMOpDefine bmo_reverse_uvs_def = {
 };
 
 /*
- * color rotation
- * cycle the colors
+ * Color Rotation.
+ *
+ * Cycle the loop colors
  */
 static BMOpDefine bmo_rotate_colors_def = {
 	"rotate_colors",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input faces */
-	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate counter-clockwise if true, othewise clockwise */
+	 {"use_ccw", BMO_OP_SLOT_BOOL},         /* rotate counter-clockwise if true, otherwise clockwise */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -1120,8 +1186,9 @@ static BMOpDefine bmo_rotate_colors_def = {
 };
 
 /*
- * color reverse
- * reverse the colors
+ * Color Reverse
+ *
+ * Reverse the loop colors.
  */
 static BMOpDefine bmo_reverse_colors_def = {
 	"reverse_colors",
@@ -1135,9 +1202,9 @@ static BMOpDefine bmo_reverse_colors_def = {
 };
 
 /*
- * Similar vertices search
+ * Shortest Path.
  *
- * Find similar vertices (normal, face, vertex group, ...).
+ * Select the shortest path between 2 verts.
  */
 static BMOpDefine bmo_shortest_path_def = {
 	"shortest_path",
@@ -1156,7 +1223,7 @@ static BMOpDefine bmo_shortest_path_def = {
 };
 
 /*
- * Edge Split
+ * Edge Split.
  *
  * Disconnects faces along input edges.
  */
@@ -1178,7 +1245,7 @@ static BMOpDefine bmo_split_edges_def = {
 };
 
 /*
- * Create Grid
+ * Create Grid.
  *
  * Creates a grid with a variable number of subdivisions
  */
@@ -1200,7 +1267,7 @@ static BMOpDefine bmo_create_grid_def = {
 };
 
 /*
- * Create UV Sphere
+ * Create UV Sphere.
  *
  * Creates a grid with a variable number of subdivisions
  */
@@ -1222,7 +1289,7 @@ static BMOpDefine bmo_create_uvsphere_def = {
 };
 
 /*
- * Create Ico Sphere
+ * Create Ico-Sphere.
  *
  * Creates a grid with a variable number of subdivisions
  */
@@ -1243,9 +1310,9 @@ static BMOpDefine bmo_create_icosphere_def = {
 };
 
 /*
- * Create Suzanne
+ * Create Suzanne.
  *
- * Creates a monkey.  Be wary.
+ * Creates a monkey (standard blender primitive).
  */
 static BMOpDefine bmo_create_monkey_def = {
 	"create_monkey",
@@ -1262,14 +1329,14 @@ static BMOpDefine bmo_create_monkey_def = {
 };
 
 /*
- * Create Cone
+ * Create Cone.
  *
  * Creates a cone with variable depth at both ends
  */
 static BMOpDefine bmo_create_cone_def = {
 	"create_cone",
 	/* slots_in */
-	{{"cap_ends", BMO_OP_SLOT_BOOL},        /* wheter or not to fill in the ends with faces */
+	{{"cap_ends", BMO_OP_SLOT_BOOL},        /* whether or not to fill in the ends with faces */
 	 {"cap_tris", BMO_OP_SLOT_BOOL},        /* fill ends with triangles instead of ngons */
 	 {"segments", BMO_OP_SLOT_INT},
 	 {"diameter1", BMO_OP_SLOT_FLT},        /* diameter of one end */
@@ -1287,12 +1354,12 @@ static BMOpDefine bmo_create_cone_def = {
 };
 
 /*
- * Creates a circle
+ * Creates a Circle.
  */
 static BMOpDefine bmo_create_circle_def = {
 	"create_circle",
 	/* slots_in */
-	{{"cap_ends", BMO_OP_SLOT_BOOL},        /* wheter or not to fill in the ends with faces */
+	{{"cap_ends", BMO_OP_SLOT_BOOL},        /* whether or not to fill in the ends with faces */
 	 {"cap_tris", BMO_OP_SLOT_BOOL},        /* fill ends with triangles instead of ngons */
 	 {"segments", BMO_OP_SLOT_INT},
 	 {"diameter", BMO_OP_SLOT_FLT},         /* diameter of one end */
@@ -1308,9 +1375,9 @@ static BMOpDefine bmo_create_circle_def = {
 };
 
 /*
- * Create Cone
+ * Create Cube
  *
- * Creates a cone with variable depth at both ends
+ * Creates a cube.
  */
 static BMOpDefine bmo_create_cube_def = {
 	"create_cube",
@@ -1328,7 +1395,7 @@ static BMOpDefine bmo_create_cube_def = {
 };
 
 /*
- * Bevel
+ * Bevel.
  *
  * Bevels edges and vertices
  */
@@ -1344,27 +1411,27 @@ static BMOpDefine bmo_bevel_def = {
 	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
 	 {{'\0'}},
 	},
-#if 0  /* old bevel*/
-	{{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* input edges and vertices */
-	 {"face_spans", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* new geometry */
-	 {"face_holes", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* new geometry */
-	 {"use_lengths", BMO_OP_SLOT_BOOL}, /* grab edge lengths from a PROP_FLT customdata layer */
-	 {"use_even", BMO_OP_SLOT_BOOL}, /* corner vert placement: use shell/angle calculations  */
-	 {"use_dist", BMO_OP_SLOT_BOOL}, /* corner vert placement: evaluate percent as a distance,
-	                                  * modifier uses this. We could do this as another float setting */
-	 {"lengthlayer", BMO_OP_SLOT_INT}, /* which PROP_FLT layer to us */
-	 {"percent", BMO_OP_SLOT_FLT}, /* percentage to expand beveled edge */
-	 {{'\0'}},
-	},
-#endif
+/* old bevel*/
+//	{{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* input edges and vertices */
+//	 {"face_spans", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* new geometry */
+//	 {"face_holes", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* new geometry */
+//	 {"use_lengths", BMO_OP_SLOT_BOOL}, /* grab edge lengths from a PROP_FLT customdata layer */
+//	 {"use_even", BMO_OP_SLOT_BOOL}, /* corner vert placement: use shell/angle calculations  */
+//	 {"use_dist", BMO_OP_SLOT_BOOL}, /* corner vert placement: evaluate percent as a distance,
+//	                                  * modifier uses this. We could do this as another float setting */
+//	 {"lengthlayer", BMO_OP_SLOT_INT}, /* which PROP_FLT layer to us */
+//	 {"percent", BMO_OP_SLOT_FLT}, /* percentage to expand beveled edge */
+//	 {{'\0'}},
+//	},
+
 	bmo_bevel_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES
 };
 
 /*
- * Beautify Fill
+ * Beautify Fill.
  *
- * Makes triangle a bit nicer
+ * Rotate edges to create more evenly spaced triangles.
  */
 static BMOpDefine bmo_beautify_fill_def = {
 	"beautify_fill",
@@ -1382,7 +1449,7 @@ static BMOpDefine bmo_beautify_fill_def = {
 };
 
 /*
- * Triangle Fill
+ * Triangle Fill.
  *
  * Fill edges with triangles
  */
@@ -1401,7 +1468,7 @@ static BMOpDefine bmo_triangle_fill_def = {
 };
 
 /*
- * Solidify
+ * Solidify.
  *
  * Turns a mesh into a shell with thickness
  */
@@ -1421,9 +1488,9 @@ static BMOpDefine bmo_solidify_def = {
 };
 
 /*
- * Face Inset
+ * Face Inset.
  *
- * Extrudes faces individually.
+ * Inset or outset faces.
  */
 static BMOpDefine bmo_inset_def = {
 	"inset",
@@ -1446,9 +1513,9 @@ static BMOpDefine bmo_inset_def = {
 };
 
 /*
- * Wire Frame
+ * Wire Frame.
  *
- * Makes a wire copy of faces.
+ * Makes a wire-frame copy of faces.
  */
 static BMOpDefine bmo_wireframe_def = {
 	"wireframe",
@@ -1471,9 +1538,9 @@ static BMOpDefine bmo_wireframe_def = {
 };
 
 /*
- * Vertex Slide
+ * Vertex Slide.
  *
- * Translates vertes along an edge
+ * Translates verts along an edge
  */
 static BMOpDefine bmo_slide_vert_def = {
 	"slide_vert",
@@ -1527,9 +1594,9 @@ static BMOpDefine bmo_convex_hull_def = {
 #endif
 
 /*
- * Symmetrize
+ * Symmetrize.
  *
- * Mekes the mesh elements in the "input" slot symmetrical. Unlike
+ * Makes the mesh elements in the "input" slot symmetrical. Unlike
  * normal mirroring, it only copies in one direction, as specified by
  * the "direction" slot. The edges and faces that cross the plane of
  * symmetry are split as needed to enforce symmetry.
