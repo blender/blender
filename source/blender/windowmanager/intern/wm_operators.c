@@ -1207,12 +1207,16 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
  * \note operator menu needs undo flag enabled , for redo callback */
 static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_call)
 {
-	
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Operator '%s' does not have register enabled, incorrect invoke function", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
+
+	/* if we don't have global undo, we can't do undo push for automatic redo,
+	 * so we require manual OK clicking in this popup */
+	if(!(U.uiflag & USER_GLOBALUNDO))
+		return WM_operator_props_dialog_popup(C, op, 300, UI_UNIT_Y);
 
 	ED_undo_push_op(C, op);
 
