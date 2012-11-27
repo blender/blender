@@ -545,6 +545,7 @@ static void get_point_on_round_edge(const float uv[2],
 
 #else  /* USE_ALTERNATE_ADJ */
 
+#ifdef OLD_ROUND_EDGE
 /*
  * calculation of points on the round profile
  * r - result, coordinate of point on round profile
@@ -632,6 +633,66 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
 		interp_v3_v3v3(r_co, va, vb, (float)k / (float)n);
 	}
 }
+#else
+
+/*
+ * Find the point (/n) of the way around the round profile for e,
+ * where start point is va, midarc point is vmid, and end point is vb.
+ * Return the answer in profileco.
+ * Method:
+ * Find vo, the origin of the parallelogram with other three points va, vmid, vb.
+ * Also find vd, which is in direction normal to parallelogram and 1 unit away
+ * from the origin.
+ * The quarter circle in first quadrant of unit square will be mapped to the
+ * quadrant of a sheared ellipse in the parallelgram, using a matrix.
+ * The matrix mat is calculated to map:
+ *    (0,1,0) -> va
+ *    (1,1,0) -> vmid
+ *    (1,0,0) -> vb
+ *    (0,1,1) -> vd
+ * However if va -- vmid -- vb is approximately a straight line, just
+ * interpolate along the line.
+ */
+static void get_point_on_round_edge(EdgeHalf *e, int k,
+                                    const float va[3], const float vmid[3], const float vb[3],
+                                    float r_co[3])
+{
+	float vo[3], vd[3], vb_vmid[3], va_vmid[3], vddir[3], p[3], angle;
+	float m[4][4] = MAT4_UNITY;
+	int n = e->seg;
+
+	sub_v3_v3v3(va_vmid, vmid, va);
+	sub_v3_v3v3(vb_vmid, vmid, vb);
+	if (fabs(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) > 100.f *(float)BEVEL_EPSILON) {
+		sub_v3_v3v3(vo, va, vb_vmid);
+		cross_v3_v3v3(vddir, vb_vmid, va_vmid);
+		normalize_v3(vddir);
+		add_v3_v3v3(vd, vo, vddir);
+
+		/* The cols of m are: {vmid - va, vmid - vb, vmid + vd - va -vb, va + vb - vmid;
+		  * blender transform matrices are stored such that m[i][*] is ith column;
+		  * the last elements of each col remain as they are in unity matrix */
+		sub_v3_v3v3(&m[0][0], vmid, va);
+		sub_v3_v3v3(&m[1][0], vmid, vb);
+		add_v3_v3v3(&m[2][0], vmid, vd);
+		sub_v3_v3(&m[2][0], va);
+		sub_v3_v3(&m[2][0], vb);
+		add_v3_v3v3(&m[3][0], va, vb);
+		sub_v3_v3(&m[3][0], vmid);
+
+		/* Now find point k/(e->seg) along quarter circle from (0,1,0) to (1,0,0) */
+		angle = (float)M_PI * (float)k / (2.0f * (float)n);  /* angle from y axis */
+		p[0] = sinf(angle);
+		p[1] = cosf(angle);
+		p[2] = 0.0f;
+		mul_v3_m4v3(r_co, m, p);
+	}
+	else {
+		/* planar case */
+		interp_v3_v3v3(r_co, va, vb, (float)k / (float)n);
+	}
+}
+#endif  /* ! OLD_ROUND_EDGE */
 
 #endif  /* !USE_ALTERNATE_ADJ */
 
