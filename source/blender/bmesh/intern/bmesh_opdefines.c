@@ -1546,7 +1546,7 @@ static BMOpDefine bmo_slide_vert_def = {
 	"slide_vert",
 	/* slots_in */
 	{{"vert", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},
-	 {"edge", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE | BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE}},
+	 {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
 	 {"distance_t", BMO_OP_SLOT_FLT},
 	 {{'\0'}},
 	},

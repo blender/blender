@@ -701,9 +701,8 @@ typedef struct ElemNode {
 
 void bmo_shortest_path_exec(BMesh *bm, BMOperator *op)
 {
-	BMOIter vs_iter /* , vs2_iter */;	/* selected verts iterator */
 	BMIter v_iter;		/* mesh verts iterator */
-	BMVert *vs, *sv, *ev;	/* starting vertex, ending vertex */
+	BMVert *sv, *ev;	/* starting vertex, ending vertex */
 	BMVert *v;		/* mesh vertex */
 	Heap *h = NULL;
 
@@ -712,13 +711,8 @@ void bmo_shortest_path_exec(BMesh *bm, BMOperator *op)
 	int num_total = 0 /*, num_sels = 0 */, i = 0;
 	const int type = BMO_slot_int_get(op->slots_in, "type");
 
-	/* BMESH_TODO use BMO_slot_buffer_elem_first here? */
-	BMO_ITER (vs, &vs_iter, op->slots_in, "startv", BM_VERT) {
-		sv = vs;
-	}
-	BMO_ITER (vs, &vs_iter, op->slots_in, "endv", BM_VERT) {
-		ev = vs;
-	}
+	sv = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "startv"));
+	ev = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "endv"));
 
 	num_total = BM_mesh_elem_count(bm, BM_VERT);
 

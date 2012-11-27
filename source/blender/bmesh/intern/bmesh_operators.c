@@ -867,6 +867,29 @@ void BMO_slot_buffer_from_disabled_hflag(BMesh *bm, BMOperator *op,
 	bmo_slot_buffer_from_hflag(bm, op, slot_args, slot_name, htype, hflag, FALSE);
 }
 
+void BMO_slot_buffer_from_single(BMOperator *op, BMOpSlot *slot, BMHeader *ele)
+{
+	BMO_ASSERT_SLOT_IN_OP(slot, op);
+	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(slot->slot_subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE);
+	BLI_assert(slot->len == 0 || slot->len == 1);
+
+	BLI_assert(slot->slot_subtype.elem & ele->htype);
+
+	slot->data.buf = BLI_memarena_alloc(op->arena, sizeof(void *) * 4);  /* XXX, why 'x4' ? */
+	slot->len = 1;
+	*slot->data.buf = ele;
+}
+
+void *BMO_slot_buffer_get_single(BMOpSlot *slot)
+{
+	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(slot->slot_subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE);
+	BLI_assert(slot->len == 0 || slot->len == 1);
+
+	return slot->len ? (BMHeader *)slot->data.buf[0] : NULL;
+}
+
 /**
  * Copies the values from another slot to the end of the output slot.
  */
@@ -1580,12 +1603,11 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 				}
 				case 'e':
 				{
+					/* XXX we have 'e' but no equivalent for verts/faces - why? we could use (V/E/P)*/
 					BMHeader *ele = va_arg(vlist, void *);
 					BMOpSlot *slot = BMO_slot_get(op->slots_in, slot_name);
 
-					slot->data.buf = BLI_memarena_alloc(op->arena, sizeof(void *) * 4);
-					slot->len = 1;
-					*slot->data.buf = ele;
+					BMO_slot_buffer_from_single(op, slot, ele);
 
 					state = 1;
 					break;

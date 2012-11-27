@@ -224,15 +224,36 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 				}
 				case BMO_OP_SLOT_ELEMENT_BUF:
 				{
-					/* there are many ways we could interpret arguments, for now...
-					 * - verts/edges/faces from the mesh direct,
-					 *   this way the operator takes every item.
-					 * - `TODO` a plain python sequence (list) of elements.
-					 * - `TODO`  an iterator. eg.
-					 *   face.verts
-					 * - `TODO`  (type, flag) pair, eg.
-					 *   ('VERT', {'TAG'})
-					 */
+					if (slot->slot_subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE) {
+						if (!BPy_BMElem_Check(value) ||
+						    !(((BPy_BMElem *)value)->ele->head.htype & slot->slot_subtype.elem))
+						{
+							PyErr_Format(PyExc_TypeError,
+							             "%.200s: keyword \"%.200s\" expected a %.200s not *.200s",
+							             self->opname, slot_name,
+							             BPy_BMElem_StringFromHType(slot->slot_subtype.elem & BM_ALL_NOLOOP),
+							             Py_TYPE(value)->tp_name);
+							return NULL;
+						}
+						else if (((BPy_BMElem *)value)->bm == NULL) {
+							PyErr_Format(PyExc_TypeError,
+							             "%.200s: keyword \"%.200s\" invalidated element",
+							             self->opname, slot_name);
+							return NULL;
+						}
+
+						BMO_slot_buffer_from_single(&bmop, slot, &((BPy_BMElem *)value)->ele->head);
+					}
+					else {
+						/* there are many ways we could interpret arguments, for now...
+						 * - verts/edges/faces from the mesh direct,
+						 *   this way the operator takes every item.
+						 * - `TODO` a plain python sequence (list) of elements.
+						 * - `TODO`  an iterator. eg.
+						 *   face.verts
+						 * - `TODO`  (type, flag) pair, eg.
+						 *   ('VERT', {'TAG'})
+						 */
 
 #define BPY_BM_GENERIC_MESH_TEST(type_string)  \
 	if (((BPy_BMGeneric *)value)->bm != bm) {                                             \
@@ -248,76 +269,76 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 	                 "%.200s: keyword \"%.200s\" expected " \
 	                 "a list of %.200s not " type_string, \
 	                 self->opname, slot_name, \
-	                 BPy_BMElem_StringFromHType(slot->slot_subtype.elem & BM_ALL)); \
+	                 BPy_BMElem_StringFromHType(slot->slot_subtype.elem & BM_ALL_NOLOOP)); \
 	    return NULL; \
 	} (void)0
 
-					if (BPy_BMVertSeq_Check(value)) {
-						BPY_BM_GENERIC_MESH_TEST("verts");
-						BPY_BM_ELEM_TYPE_TEST("verts");
+						if (BPy_BMVertSeq_Check(value)) {
+							BPY_BM_GENERIC_MESH_TEST("verts");
+							BPY_BM_ELEM_TYPE_TEST("verts");
 
-						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_VERT);
-					}
-					else if (BPy_BMEdgeSeq_Check(value)) {
-						BPY_BM_GENERIC_MESH_TEST("edges");
-						BPY_BM_ELEM_TYPE_TEST("edges");
-						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_EDGE);
-					}
-					else if (BPy_BMFaceSeq_Check(value)) {
-						BPY_BM_GENERIC_MESH_TEST("faces");
-						BPY_BM_ELEM_TYPE_TEST("faces");
-						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_FACE);
-					}
+							BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_VERT);
+						}
+						else if (BPy_BMEdgeSeq_Check(value)) {
+							BPY_BM_GENERIC_MESH_TEST("edges");
+							BPY_BM_ELEM_TYPE_TEST("edges");
+							BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_EDGE);
+						}
+						else if (BPy_BMFaceSeq_Check(value)) {
+							BPY_BM_GENERIC_MESH_TEST("faces");
+							BPY_BM_ELEM_TYPE_TEST("faces");
+							BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_FACE);
+						}
 
 #undef BPY_BM_ELEM_TYPE_TEST
 
-					else if (BPy_BMElemSeq_Check(value)) {
-						BMIter iter;
-						BMHeader *ele;
-						int tot;
-						unsigned int i;
+						else if (BPy_BMElemSeq_Check(value)) {
+							BMIter iter;
+							BMHeader *ele;
+							int tot;
+							unsigned int i;
 
-						BPY_BM_GENERIC_MESH_TEST("elements");
+							BPY_BM_GENERIC_MESH_TEST("elements");
 
-						/* this will loop over all elements which is a shame but
-						 * we need to know this before alloc */
-						/* calls bpy_bmelemseq_length() */
-						tot = Py_TYPE(value)->tp_as_sequence->sq_length((PyObject *)self);
+							/* this will loop over all elements which is a shame but
+							 * we need to know this before alloc */
+							/* calls bpy_bmelemseq_length() */
+							tot = Py_TYPE(value)->tp_as_sequence->sq_length((PyObject *)self);
 
-						BMO_slot_buffer_alloc(&bmop, bmop.slots_in, slot_name, tot);
+							BMO_slot_buffer_alloc(&bmop, bmop.slots_in, slot_name, tot);
 
-						i = 0;
-						BM_ITER_BPY_BM_SEQ (ele, &iter, ((BPy_BMElemSeq *)value)) {
-							slot->data.buf[i] = ele;
-							i++;
+							i = 0;
+							BM_ITER_BPY_BM_SEQ (ele, &iter, ((BPy_BMElemSeq *)value)) {
+								slot->data.buf[i] = ele;
+								i++;
+							}
 						}
-					}
-					/* keep this last */
-					else if (PySequence_Check(value)) {
-						BMElem **elem_array = NULL;
-						Py_ssize_t elem_array_len;
+						/* keep this last */
+						else if (PySequence_Check(value)) {
+							BMElem **elem_array = NULL;
+							Py_ssize_t elem_array_len;
 
-						elem_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
-						                                       &elem_array_len, (slot->slot_subtype.elem & BM_ALL_NOLOOP),
-						                                       TRUE, TRUE, slot_name);
+							elem_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
+							                                       &elem_array_len, (slot->slot_subtype.elem & BM_ALL_NOLOOP),
+							                                       TRUE, TRUE, slot_name);
 
-						/* error is set above */
-						if (elem_array == NULL) {
+							/* error is set above */
+							if (elem_array == NULL) {
+								return NULL;
+							}
+
+							BMO_slot_buffer_alloc(&bmop, bmop.slots_in, slot_name, elem_array_len);
+							memcpy(slot->data.buf, elem_array, sizeof(void *) * elem_array_len);
+							PyMem_FREE(elem_array);
+						}
+						else {
+							PyErr_Format(PyExc_TypeError,
+							             "%.200s: keyword \"%.200s\" expected "
+							             "a bmesh sequence, list, (htype, flag) pair, not %.200s",
+							             self->opname, slot_name, Py_TYPE(value)->tp_name);
 							return NULL;
 						}
-
-						BMO_slot_buffer_alloc(&bmop, bmop.slots_in, slot_name, elem_array_len);
-						memcpy(slot->data.buf, elem_array, sizeof(void *) * elem_array_len);
-						PyMem_FREE(elem_array);
 					}
-					else {
-						PyErr_Format(PyExc_TypeError,
-						             "%.200s: keyword \"%.200s\" expected "
-						             "a bmesh sequence, list, (htype, flag) pair, not %.200s",
-						             self->opname, slot_name, Py_TYPE(value)->tp_name);
-						return NULL;
-					}
-
 #undef BPY_BM_GENERIC_MESH_TEST
 
 					break;
@@ -548,14 +569,20 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 					break;
 				case BMO_OP_SLOT_ELEMENT_BUF:
 				{
-					const int size = slot->len;
-					void **buffer = BMO_SLOT_AS_BUFFER(slot);
-					int j;
+					if (slot->slot_subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE) {
+						BMHeader *ele = BMO_slot_buffer_get_single(slot);
+						item = ele ? BPy_BMElem_CreatePyObject(bm, ele) : (Py_INCREF(Py_None), Py_None);
+					}
+					else {
+						const int size = slot->len;
+						void **buffer = BMO_SLOT_AS_BUFFER(slot);
+						int j;
 
-					item = PyList_New(size);
-					for (j = 0; j < size; j++) {
-						BMHeader *ele = buffer[i];
-						PyList_SET_ITEM(item, j, ele ? BPy_BMElem_CreatePyObject(bm, ele) : (Py_INCREF(Py_None), Py_None));
+						item = PyList_New(size);
+						for (j = 0; j < size; j++) {
+							BMHeader *ele = buffer[i];
+							PyList_SET_ITEM(item, j, BPy_BMElem_CreatePyObject(bm, ele));
+						}
 					}
 					break;
 				}

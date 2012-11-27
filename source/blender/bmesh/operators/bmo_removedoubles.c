@@ -263,7 +263,7 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 	float fac;
 	int i, tot;
 
-	snapv = BMO_iter_new(&siter, op->slots_in, "snapv", BM_VERT);
+	snapv = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "snapv"));
 	tot = BM_vert_face_count(snapv);
 
 	if (!tot)
