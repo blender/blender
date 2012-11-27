@@ -240,16 +240,10 @@ static struct GPUTextureState {
 
 /* Mipmap settings */
 
-void GPU_set_gpu_mipmapping(int gpu_mipmap)
+void GPU_set_gpu_mipmapping()
 {
-	int old_value = GTS.gpu_mipmap;
-
-	/* only actually enable if it's supported */
-	GTS.gpu_mipmap = gpu_mipmap && GLEW_EXT_framebuffer_object;
-
-	if (old_value != GTS.gpu_mipmap) {
-		GPU_free_images();
-	}
+	/* always enable if it's supported */
+	GTS.gpu_mipmap = GLEW_EXT_framebuffer_object;
 }
 
 void GPU_set_mipmap(int mipmap)
