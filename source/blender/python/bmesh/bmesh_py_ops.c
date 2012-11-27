@@ -242,18 +242,35 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 	    return NULL;                                                                      \
 	} (void)0
 
+#define BPY_BM_ELEM_TYPE_TEST(type_string)  \
+	if ((slot->slot_subtype.elem & BM_VERT) == 0) { \
+	    PyErr_Format(PyExc_TypeError, \
+	                 "%.200s: keyword \"%.200s\" expected " \
+	                 "a list of %.200s not " type_string, \
+	                 self->opname, slot_name, \
+	                 BPy_BMElem_StringFromHType(slot->slot_subtype.elem & BM_ALL)); \
+	    return NULL; \
+	} (void)0
+
 					if (BPy_BMVertSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("verts");
+						BPY_BM_ELEM_TYPE_TEST("verts");
+
 						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_VERT);
 					}
 					else if (BPy_BMEdgeSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("edges");
+						BPY_BM_ELEM_TYPE_TEST("edges");
 						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_EDGE);
 					}
 					else if (BPy_BMFaceSeq_Check(value)) {
 						BPY_BM_GENERIC_MESH_TEST("faces");
+						BPY_BM_ELEM_TYPE_TEST("faces");
 						BMO_slot_buffer_from_all(bm, &bmop, bmop.slots_in, slot_name, BM_FACE);
 					}
+
+#undef BPY_BM_ELEM_TYPE_TEST
+
 					else if (BPy_BMElemSeq_Check(value)) {
 						BMIter iter;
 						BMHeader *ele;
@@ -281,7 +298,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						Py_ssize_t elem_array_len;
 
 						elem_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
-						                                       &elem_array_len, BM_VERT | BM_EDGE | BM_FACE,
+						                                       &elem_array_len, (slot->slot_subtype.elem & BM_ALL_NOLOOP),
 						                                       TRUE, TRUE, slot_name);
 
 						/* error is set above */
@@ -308,7 +325,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 				case BMO_OP_SLOT_MAPPING:
 				{
 					/* first check types */
-					if (slot->slot_subtype != BMO_OP_SLOT_SUBTYPE_MAP_EMPTY) {
+					if (slot->slot_subtype.map != BMO_OP_SLOT_SUBTYPE_MAP_EMPTY) {
 						if (!PyDict_Check(value)) {
 							PyErr_Format(PyExc_TypeError,
 							             "%.200s: keyword \"%.200s\" expected "
@@ -327,7 +344,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 						}
 					}
 
-					switch (slot->slot_subtype) {
+					switch (slot->slot_subtype.map) {
 
 						/* this could be a static function */
 #define BPY_BM_MAPPING_KEY_CHECK(arg_key)  \
@@ -467,7 +484,6 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 							break;
 						}
 						case BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
-						default:
 						{
 							/* can't convert from these */
 							PyErr_Format(PyExc_NotImplementedError,
@@ -548,7 +564,7 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 					GHash *slot_hash = BMO_SLOT_AS_GHASH(slot);
 					GHashIterator hash_iter;
 
-					switch (slot->slot_subtype) {
+					switch (slot->slot_subtype.map) {
 						case BMO_OP_SLOT_SUBTYPE_MAP_ELEM:
 						{
 							item = PyDict_New();
@@ -559,6 +575,8 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 
 									PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
 									PyObject *py_val =  BPy_BMElem_CreatePyObject(bm, *(void **)BMO_OP_SLOT_MAPPING_DATA(ele_val));
+
+									BLI_assert(slot->slot_subtype.elem & ((BPy_BMElem *)py_val)->ele->head.htype);
 
 									PyDict_SetItem(ret, py_key, py_val);
 									Py_DECREF(py_key);
@@ -638,7 +656,6 @@ static PyObject *pyrna_op_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *
 							break;
 						}
 						case BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
-						default:
 							/* can't convert from these */
 							item = (Py_INCREF(Py_None), Py_None);
 							break;

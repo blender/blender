@@ -112,35 +112,43 @@ typedef enum eBMOpSlotType {
 } eBMOpSlotType;
 #define BMO_OP_SLOT_TOTAL_TYPES 11
 
-/* leave zero for invalid/unset */
-typedef enum eBMOpSlotSubType {
-	/* BMO_OP_SLOT_MAPPING */
-#define BMO_OP_SLOT_SUBTYPE_MAP__FIRST BMO_OP_SLOT_SUBTYPE_MAP_EMPTY
-	BMO_OP_SLOT_SUBTYPE_MAP_EMPTY    = 1,  /* use as a set(), unused value */
-	BMO_OP_SLOT_SUBTYPE_MAP_ELEM     = 2,
-	BMO_OP_SLOT_SUBTYPE_MAP_FLOAT    = 3,
-	BMO_OP_SLOT_SUBTYPE_MAP_INT      = 4,
-	BMO_OP_SLOT_SUBTYPE_MAP_BOOL     = 5,
-	BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL = 6,  /* python can't convert these */
-#define BMO_OP_SLOT_SUBTYPE_MAP__LAST BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL
+/* don't overlap values to avoid confusion */
+typedef enum eBMOpSlotSubType_Elem {
+	/* use as flags */
+	BMO_OP_SLOT_SUBTYPE_ELEM_VERT = BM_VERT,
+	BMO_OP_SLOT_SUBTYPE_ELEM_EDGE = BM_EDGE,
+	BMO_OP_SLOT_SUBTYPE_ELEM_FACE = BM_FACE,
+	BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE = (BM_FACE << 1),
+} eBMOpSlotSubType_Elem;
+typedef enum eBMOpSlotSubType_Map {
+	BMO_OP_SLOT_SUBTYPE_MAP_EMPTY    = 64,  /* use as a set(), unused value */
+	BMO_OP_SLOT_SUBTYPE_MAP_ELEM     = 65,
+	BMO_OP_SLOT_SUBTYPE_MAP_FLOAT    = 66,
+	BMO_OP_SLOT_SUBTYPE_MAP_INT      = 67,
+	BMO_OP_SLOT_SUBTYPE_MAP_BOOL     = 68,
+	BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL = 69,  /* python can't convert these */
+} eBMOpSlotSubType_Map;
+typedef enum eBMOpSlotSubType_Ptr {
+	BMO_OP_SLOT_SUBTYPE_PTR_BMESH  = 100,
+	BMO_OP_SLOT_SUBTYPE_PTR_SCENE  = 101,
+	BMO_OP_SLOT_SUBTYPE_PTR_OBJECT = 102,
+	BMO_OP_SLOT_SUBTYPE_PTR_MESH   = 103,
+} eBMOpSlotSubType_Ptr;
 
-	/* BMO_OP_SLOT_PTR */
-#define BMO_OP_SLOT_SUBTYPE_PTR__FIRST BMO_OP_SLOT_SUBTYPE_PTR_BMESH
-	BMO_OP_SLOT_SUBTYPE_PTR_BMESH  = 10,
-	BMO_OP_SLOT_SUBTYPE_PTR_SCENE  = 11,
-	BMO_OP_SLOT_SUBTYPE_PTR_OBJECT = 12,
-	BMO_OP_SLOT_SUBTYPE_PTR_MESH   = 13,
-#define BMO_OP_SLOT_SUBTYPE_PTR__LAST BMO_OP_SLOT_SUBTYPE_PTR_MESH
-
-} eBMOpSlotSubType;
+typedef union eBMOpSlotSubType_Union {
+	eBMOpSlotSubType_Map elem;
+	eBMOpSlotSubType_Map ptr;
+	eBMOpSlotSubType_Map map;
+} eBMOpSlotSubType_Union;
 
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine.*/
 
 typedef struct BMOpSlot {
 	const char *slot_name;  /* pointer to BMOpDefine.slot_args */
-	eBMOpSlotType    slot_type;
-	eBMOpSlotSubType slot_subtype;
+	eBMOpSlotType          slot_type;
+	eBMOpSlotSubType_Union slot_subtype;
+
 	int len;
 //	int flag;  /* UNUSED */
 //	int index; /* index within slot array */  /* UNUSED */
@@ -190,8 +198,8 @@ enum {
 
 typedef struct BMOSlotType {
 	char name[MAX_SLOTNAME];
-	eBMOpSlotType    type;
-	eBMOpSlotSubType subtype;
+	eBMOpSlotType          type;
+	eBMOpSlotSubType_Union subtype;
 } BMOSlotType;
 
 typedef struct BMOpDefine {

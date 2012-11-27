@@ -1082,10 +1082,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(loops_split);
 	BLI_array_free(loops);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_inner.out", BM_ALL, ELE_INNER);
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_split.out", BM_ALL, ELE_SPLIT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_inner.out", BM_ALL_NOLOOP, ELE_INNER);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_split.out", BM_ALL_NOLOOP, ELE_SPLIT);
 	
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL, ELE_INNER | ELE_SPLIT | SUBD_SPLIT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, ELE_INNER | ELE_SPLIT | SUBD_SPLIT);
 }
 
 /* editmesh-emulating function */
@@ -1182,7 +1182,7 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 		bm_subdivide_multicut(bm, e, &params, e->v1, e->v2);
 	}
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_split.out", BM_ALL, ELE_SPLIT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_split.out", BM_ALL_NOLOOP, ELE_SPLIT);
 
 	BM_data_layer_free_n(bm, &bm->vdata, CD_SHAPEKEY, skey);
 }

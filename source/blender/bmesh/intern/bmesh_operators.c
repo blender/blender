@@ -884,6 +884,7 @@ static void bmo_slot_buffer_from_flag(BMesh *bm, BMOperator *op,
 		totelement = BMO_mesh_disabled_flag_count(bm, htype, oflag);
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(((slot->slot_subtype.elem & BM_ALL_NOLOOP) & htype) == htype);
 
 	if (totelement) {
 		BMIter iter;
@@ -959,6 +960,7 @@ void BMO_slot_buffer_hflag_enable(BMesh *bm,
 	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(((slot->slot_subtype.elem & BM_ALL_NOLOOP) & htype) == htype);
 
 	for (i = 0; i < slot->len; i++, data++) {
 		if (!(htype & (*data)->head.htype))
@@ -993,6 +995,7 @@ void BMO_slot_buffer_hflag_disable(BMesh *bm,
 	const char do_flush_hide = (do_flush && (hflag & BM_ELEM_HIDDEN));
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(((slot->slot_subtype.elem & BM_ALL_NOLOOP) & htype) == htype);
 
 	for (i = 0; i < slot->len; i++, data++) {
 		if (!(htype & (*data)->head.htype))
@@ -1043,6 +1046,7 @@ void BMO_slot_buffer_flag_enable(BMesh *bm,
 	int i;
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(((slot->slot_subtype.elem & BM_ALL_NOLOOP) & htype) == htype);
 
 	for (i = 0; i < slot->len; i++) {
 		if (!(htype & data[i]->htype))
@@ -1066,6 +1070,7 @@ void BMO_slot_buffer_flag_disable(BMesh *bm,
 	int i;
 
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF);
+	BLI_assert(((slot->slot_subtype.elem & BM_ALL_NOLOOP) & htype) == htype);
 
 	for (i = 0; i < slot->len; i++) {
 		if (!(htype & data[i]->htype))
@@ -1256,25 +1261,29 @@ void *BMO_iter_new(BMOIter *iter,
 
 void *BMO_iter_step(BMOIter *iter)
 {
-	if (iter->slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF) {
-		BMHeader *h;
+	BMOpSlot *slot = iter->slot;
+	if (slot->slot_type == BMO_OP_SLOT_ELEMENT_BUF) {
+		BMHeader *ele;
 
-		if (iter->cur >= iter->slot->len) {
+		if (iter->cur >= slot->len) {
 			return NULL;
 		}
 
-		h = iter->slot->data.buf[iter->cur++];
-		while (!(iter->restrictmask & h->htype)) {
-			if (iter->cur >= iter->slot->len) {
+		ele = slot->data.buf[iter->cur++];
+		while (!(iter->restrictmask & ele->htype)) {
+			if (iter->cur >= slot->len) {
 				return NULL;
 			}
 
-			h = iter->slot->data.buf[iter->cur++];
+			ele = slot->data.buf[iter->cur++];
+			BLI_assert((ele == NULL) || (slot->slot_subtype.elem & ele->htype));
 		}
 
-		return h;
+		BLI_assert((ele == NULL) || (slot->slot_subtype.elem & ele->htype));
+
+		return ele;
 	}
-	else if (iter->slot->slot_type == BMO_OP_SLOT_MAPPING) {
+	else if (slot->slot_type == BMO_OP_SLOT_MAPPING) {
 		BMOElemMapping *map;
 		void *ret = BLI_ghashIterator_getKey(&iter->giter);
 		map = BLI_ghashIterator_getValue(&iter->giter);
@@ -1284,6 +1293,9 @@ void *BMO_iter_step(BMOIter *iter)
 		BLI_ghashIterator_step(&iter->giter);
 
 		return ret;
+	}
+	else {
+		BLI_assert(0);
 	}
 
 	return NULL;

@@ -1343,7 +1343,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 	BMO_op_exec(em->bm, &bmop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -2317,7 +2317,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 	/* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 
 	/* finish the operator */
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
@@ -3596,7 +3596,7 @@ static int edbm_split_exec(bContext *C, wmOperator *op)
 	EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, FALSE);
 	BMO_op_exec(em->bm, &bmop);
 	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -3658,7 +3658,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	}
 	BMO_op_exec(bm, &spinop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 	if (!EDBM_op_finish(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -3782,7 +3782,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	}
 	BMO_op_exec(bm, &spinop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 	if (!EDBM_op_finish(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}

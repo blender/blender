@@ -268,14 +268,14 @@ void bmo_region_extend_exec(BMesh *bm, BMOperator *op)
 	int use_faces = BMO_slot_bool_get(op->slots_in, "use_faces");
 	int constrict = BMO_slot_bool_get(op->slots_in, "use_constrict");
 
-	BMO_slot_buffer_flag_enable(bm, op->slots_in, "geom", BM_ALL, SEL_ORIG);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "geom", BM_ALL_NOLOOP, SEL_ORIG);
 
 	if (constrict)
 		bmo_region_extend_constrict(bm, op, use_faces);
 	else
 		bmo_region_extend_extend(bm, op, use_faces);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL, SEL_FLAG);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, SEL_FLAG);
 }
 
 /********* righthand faces implementation ****** */

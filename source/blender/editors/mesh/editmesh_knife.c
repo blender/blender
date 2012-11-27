@@ -2067,7 +2067,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			}
 		}
 
-		BLI_scanfill_calc(&sf_ctx, FALSE);
+		BLI_scanfill_calc(&sf_ctx, 0);
 
 		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 			BMVert *v1 = sf_tri->v3->tmp.p, *v2 = sf_tri->v2->tmp.p, *v3 = sf_tri->v1->tmp.p;

@@ -330,7 +330,7 @@ void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
 		bm2 = bm;
 
 	/* flag input */
-	BMO_slot_buffer_flag_enable(bm, dupeop->slots_in, "geom", BM_ALL, DUPE_INPUT);
+	BMO_slot_buffer_flag_enable(bm, dupeop->slots_in, "geom", BM_ALL_NOLOOP, DUPE_INPUT);
 
 	/* use the internal copy function */
 	bmo_mesh_copy(dupeop, bm, bm2);
@@ -341,7 +341,7 @@ void bmo_duplicate_exec(BMesh *bm, BMOperator *op)
 	              dupeop, slots_out, "geom_orig.out");
 
 	/* Now alloc the new output buffers */
-	BMO_slot_buffer_from_enabled_flag(bm, dupeop, dupeop->slots_out, "geom.out", BM_ALL, DUPE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, dupeop, dupeop->slots_out, "geom.out", BM_ALL_NOLOOP, DUPE_NEW);
 }
 
 #if 0 /* UNUSED */
@@ -396,7 +396,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	              &dupeop, slots_in, "geom");
 	BMO_op_exec(bm, &dupeop);
 	
-	BMO_slot_buffer_flag_enable(bm, splitop->slots_in, "geom", BM_ALL, SPLIT_INPUT);
+	BMO_slot_buffer_flag_enable(bm, splitop->slots_in, "geom", BM_ALL_NOLOOP, SPLIT_INPUT);
 
 	if (use_only_faces) {
 		BMVert *v;
@@ -437,7 +437,7 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 
 	/* connect outputs of dupe to delete, exluding keep geometry */
 	BMO_slot_int_set(delop.slots_in, "context", DEL_FACES);
-	BMO_slot_buffer_from_enabled_flag(bm, &delop, delop.slots_in, "geom", BM_ALL, SPLIT_INPUT);
+	BMO_slot_buffer_from_enabled_flag(bm, &delop, delop.slots_in, "geom", BM_ALL_NOLOOP, SPLIT_INPUT);
 	
 	BMO_op_exec(bm, &delop);
 
@@ -465,7 +465,7 @@ void bmo_delete_exec(BMesh *bm, BMOperator *op)
 	BMOperator *delop = op;
 
 	/* Mark Buffer */
-	BMO_slot_buffer_flag_enable(bm, delop->slots_in, "geom", BM_ALL, DEL_INPUT);
+	BMO_slot_buffer_flag_enable(bm, delop->slots_in, "geom", BM_ALL_NOLOOP, DEL_INPUT);
 
 	BMO_remove_tagged_context(bm, DEL_INPUT, BMO_slot_int_get(op->slots_in, "context"));
 

@@ -230,7 +230,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL, EXT_KEEP);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, EXT_KEEP);
 }
 
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)

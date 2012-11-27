@@ -72,14 +72,14 @@ BLI_INLINE void _bmo_elem_flag_toggle(BMesh *bm, BMFlagLayer *oflags, const shor
 BLI_INLINE void BMO_slot_map_int_insert(BMOperator *op, BMOpSlot *slot,
                                         void *element, const int val)
 {
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_INT);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_INT);
 	BMO_slot_map_insert(op, slot, element, &val, sizeof(int));
 }
 
 BLI_INLINE void BMO_slot_map_bool_insert(BMOperator *op, BMOpSlot *slot,
                                         void *element, const int val)
 {
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
 	BLI_assert(val == FALSE || val == TRUE);
 	BMO_slot_map_insert(op, slot, element, &val, sizeof(int));
 }
@@ -87,7 +87,7 @@ BLI_INLINE void BMO_slot_map_bool_insert(BMOperator *op, BMOpSlot *slot,
 BLI_INLINE void BMO_slot_map_float_insert(BMOperator *op, BMOpSlot *slot,
                                           void *element, const float val)
 {
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_FLOAT);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_FLOAT);
 	BMO_slot_map_insert(op, slot, element, &val, sizeof(float));
 }
 
@@ -100,14 +100,14 @@ BLI_INLINE void BMO_slot_map_float_insert(BMOperator *op, BMOpSlot *slot,
 BLI_INLINE void BMO_slot_map_ptr_insert(BMOperator *op, BMOpSlot *slot,
                                         const void *element, void *val)
 {
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL);
 	BMO_slot_map_insert(op, slot, element, &val, sizeof(void *));
 }
 
 BLI_INLINE void BMO_slot_map_elem_insert(BMOperator *op, BMOpSlot *slot,
                                         const void *element, void *val)
 {
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_ELEM);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_ELEM);
 	BMO_slot_map_insert(op, slot, element, &val, sizeof(void *));
 }
 
@@ -116,7 +116,7 @@ BLI_INLINE void BMO_slot_map_elem_insert(BMOperator *op, BMOpSlot *slot,
 BLI_INLINE void BMO_slot_map_empty_insert(BMOperator *op, BMOpSlot *slot,
                                         const void *element)
 {
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_EMPTY);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_EMPTY);
 	BMO_slot_map_insert(op, slot, element, NULL, 0);
 }
 
@@ -154,7 +154,7 @@ BLI_INLINE void *BMO_slot_map_data_get(BMOpSlot *slot, const void *element)
 BLI_INLINE float BMO_slot_map_float_get(BMOpSlot *slot, const void *element)
 {
 	float *val;
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_FLOAT);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_FLOAT);
 
 	val = (float *) BMO_slot_map_data_get(slot, element);
 	if (val) return *val;
@@ -165,7 +165,7 @@ BLI_INLINE float BMO_slot_map_float_get(BMOpSlot *slot, const void *element)
 BLI_INLINE int BMO_slot_map_int_get(BMOpSlot *slot, const void *element)
 {
 	int *val;
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_INT);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_INT);
 
 	val = (int *) BMO_slot_map_data_get(slot, element);
 	if (val) return *val;
@@ -176,7 +176,7 @@ BLI_INLINE int BMO_slot_map_int_get(BMOpSlot *slot, const void *element)
 BLI_INLINE int BMO_slot_map_bool_get(BMOpSlot *slot, const void *element)
 {
 	int *val;
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_BOOL);
 
 	val = (int *) BMO_slot_map_data_get(slot, element);
 	BLI_assert(val == NULL || *val == FALSE || *val == TRUE);
@@ -188,7 +188,7 @@ BLI_INLINE int BMO_slot_map_bool_get(BMOpSlot *slot, const void *element)
 BLI_INLINE void *BMO_slot_map_ptr_get(BMOpSlot *slot, const void *element)
 {
 	void **val = (void **) BMO_slot_map_data_get(slot, element);
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL);
 	if (val) return *val;
 
 	return NULL;
@@ -197,7 +197,7 @@ BLI_INLINE void *BMO_slot_map_ptr_get(BMOpSlot *slot, const void *element)
 BLI_INLINE void *BMO_slot_map_elem_get(BMOpSlot *slot, const void *element)
 {
 	void **val = (void **) BMO_slot_map_data_get(slot, element);
-	BLI_assert(slot->slot_subtype == BMO_OP_SLOT_SUBTYPE_MAP_ELEM);
+	BLI_assert(slot->slot_subtype.map == BMO_OP_SLOT_SUBTYPE_MAP_ELEM);
 	if (val) return *val;
 
 	return NULL;

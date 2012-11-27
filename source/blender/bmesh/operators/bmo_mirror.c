@@ -66,7 +66,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_initf(bm, &dupeop, op->flag, "duplicate geom=%s", op, "geom");
 	BMO_op_exec(bm, &dupeop);
 	
-	BMO_slot_buffer_flag_enable(bm, dupeop.slots_out, "geom.out", BM_ALL, ELE_NEW);
+	BMO_slot_buffer_flag_enable(bm, dupeop.slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW);
 
 	/* create old -> new mappin */
 	i = 0;
@@ -123,7 +123,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &weldop);
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, ELE_NEW);
 
 	BLI_array_free(vmap);
 	BLI_array_free(emap);
