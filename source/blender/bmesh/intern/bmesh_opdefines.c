@@ -569,7 +569,7 @@ static BMOpDefine bmo_edgenet_prepare_def = {
 	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},  /* new edges */
 	 {{'\0'}},
 	},
-	bmo_edgenet_prepare,
+	bmo_edgenet_prepare_exec,
 	0,
 };
 

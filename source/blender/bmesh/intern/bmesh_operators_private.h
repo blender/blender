@@ -61,7 +61,7 @@ void bmo_dissolve_limit_exec(BMesh *bm, BMOperator *op);
 void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op);
 void bmo_duplicate_exec(BMesh *bm, BMOperator *op);
 void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op);
-void bmo_edgenet_prepare(BMesh *bm, BMOperator *op);
+void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op);
 void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op);
 void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op);
 void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op);

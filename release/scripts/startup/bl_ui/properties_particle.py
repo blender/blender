@@ -148,7 +148,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             #row.label(text="Render")
 
             if part.is_fluid:
-                layout.label(text="{} fluid particles for this frame".format(str(part.count)))
+                layout.label(text="%d fluid particles for this frame" % part.count)
                 return
 
             row = col.row()

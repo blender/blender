@@ -136,8 +136,8 @@ typedef enum eBMOpSlotSubType_Ptr {
 } eBMOpSlotSubType_Ptr;
 
 typedef union eBMOpSlotSubType_Union {
-	eBMOpSlotSubType_Map elem;
-	eBMOpSlotSubType_Map ptr;
+	eBMOpSlotSubType_Elem elem;
+	eBMOpSlotSubType_Ptr ptr;
 	eBMOpSlotSubType_Map map;
 } eBMOpSlotSubType_Union;
 

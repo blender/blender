@@ -288,9 +288,49 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS], const char *slot_n
 		slot_dst->data.buf = NULL;
 		slot_dst->len = slot_src->len;
 		if (slot_dst->len) {
-			const int slot_alloc_size = BMO_OPSLOT_TYPEINFO[slot_dst->slot_type] * slot_dst->len;
-			slot_dst->data.buf = BLI_memarena_alloc(arena_dst, slot_alloc_size);
-			memcpy(slot_dst->data.buf, slot_src->data.buf, slot_alloc_size);
+			/* check dest has all flags enabled that the source has */
+			const eBMOpSlotSubType_Elem src_elem_flag = (slot_src->slot_subtype.elem & BM_ALL_NOLOOP);
+			const eBMOpSlotSubType_Elem dst_elem_flag = (slot_dst->slot_subtype.elem & BM_ALL_NOLOOP);
+
+			if ((src_elem_flag | dst_elem_flag) == dst_elem_flag) {
+				/* pass */
+			}
+			else {
+				/* check types */
+				const unsigned int tot = slot_src->len;
+				unsigned int i;
+				unsigned int out = 0;
+				BMElem **ele_src = (BMElem **)slot_src->data.buf;
+				for (i = 0; i < tot; i++, ele_src++) {
+					if ((*ele_src)->head.htype & dst_elem_flag) {
+						out++;
+					}
+				}
+				if (out != tot) {
+					slot_dst->len = out;
+				}
+			}
+
+			if (slot_dst->len) {
+				const int slot_alloc_size = BMO_OPSLOT_TYPEINFO[slot_dst->slot_type] * slot_dst->len;
+				slot_dst->data.buf = BLI_memarena_alloc(arena_dst, slot_alloc_size);
+				if (slot_src->len == slot_dst->len) {
+					memcpy(slot_dst->data.buf, slot_src->data.buf, slot_alloc_size);
+				}
+				else {
+					/* only copy compatible elements */
+					const unsigned int tot = slot_src->len;
+					unsigned int i;
+					BMElem **ele_src = (BMElem **)slot_src->data.buf;
+					BMElem **ele_dst = (BMElem **)slot_dst->data.buf;
+					for (i = 0; i < tot; i++, ele_src++) {
+						if ((*ele_src)->head.htype & dst_elem_flag) {
+							*ele_dst = *ele_src;
+							ele_dst++;
+						}
+					}
+				}
+			}
 		}
 	}
 	else if (slot_dst->slot_type == BMO_OP_SLOT_MAPPING) {

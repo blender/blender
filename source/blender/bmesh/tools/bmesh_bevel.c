@@ -663,7 +663,7 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
 
 	sub_v3_v3v3(va_vmid, vmid, va);
 	sub_v3_v3v3(vb_vmid, vmid, vb);
-	if (fabs(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) > 100.f *(float)BEVEL_EPSILON) {
+	if (fabsf(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) > 100.f *(float)BEVEL_EPSILON) {
 		sub_v3_v3v3(vo, va, vb_vmid);
 		cross_v3_v3v3(vddir, vb_vmid, va_vmid);
 		normalize_v3(vddir);

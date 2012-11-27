@@ -1098,7 +1098,7 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
 	return NULL;
 }
 
-void bmo_edgenet_prepare(BMesh *bm, BMOperator *op)
+void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e;
