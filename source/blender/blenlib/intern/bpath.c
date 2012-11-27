@@ -64,6 +64,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
+#include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
@@ -76,6 +78,7 @@
 #include "BKE_font.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_image.h" /* so we can check the image's type */
@@ -382,7 +385,6 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 /* Run visitor function 'visit' on all paths contained in 'id'. */
 void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
-	Image *ima;
 	const char *absbase = (flag & BLI_BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
 
 	if ((flag & BLI_BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
@@ -391,6 +393,8 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 
 	switch (GS(id->name)) {
 		case ID_IM:
+		{
+			Image *ima;
 			ima = (Image *)id;
 			if (ima->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -398,15 +402,20 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 				}
 			}
 			break;
+		}
 		case ID_BR:
 		{
 			Brush *brush = (Brush *)id;
 			if (brush->icon_filepath[0]) {
 				rewrite_path_fixed(brush->icon_filepath, visit_cb, absbase, bpath_user_data);
 			}
+			break;
 		}
-		break;
 		case ID_OB:
+		{
+			Object *ob = (Object *)id;
+			ModifierData *md;
+			ParticleSystem *psys;
 
 #define BPATH_TRAVERSE_POINTCACHE(ptcaches)                                    \
 	{                                                                          \
@@ -421,62 +430,56 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		}                                                                      \
 	} (void)0
 
-
-			{
-				Object *ob = (Object *)id;
-				ModifierData *md;
-				ParticleSystem *psys;
-
-				/* do via modifiers instead */
+			/* do via modifiers instead */
 #if 0
-				if (ob->fluidsimSettings) {
-					rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, bpath_user_data);
-				}
+			if (ob->fluidsimSettings) {
+				rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, bpath_user_data);
+			}
 #endif
 
-				for (md = ob->modifiers.first; md; md = md->next) {
-					if (md->type == eModifierType_Fluidsim) {
-						FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
-						if (fluidmd->fss) {
-							rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, bpath_user_data);
-						}
-					}
-					else if (md->type == eModifierType_Smoke) {
-						SmokeModifierData *smd = (SmokeModifierData *)md;
-						if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-							BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
-						}
-					}
-					else if (md->type == eModifierType_Cloth) {
-						ClothModifierData *clmd = (ClothModifierData *) md;
-						BPATH_TRAVERSE_POINTCACHE(clmd->ptcaches);
-					}
-					else if (md->type == eModifierType_Ocean) {
-						OceanModifierData *omd = (OceanModifierData *) md;
-						rewrite_path_fixed(omd->cachepath, visit_cb, absbase, bpath_user_data);
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Fluidsim) {
+					FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
+					if (fluidmd->fss) {
+						rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, bpath_user_data);
 					}
 				}
+				else if (md->type == eModifierType_Smoke) {
+					SmokeModifierData *smd = (SmokeModifierData *)md;
+					if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+						BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
+					}
+				}
+				else if (md->type == eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData *) md;
+					BPATH_TRAVERSE_POINTCACHE(clmd->ptcaches);
+				}
+				else if (md->type == eModifierType_Ocean) {
+					OceanModifierData *omd = (OceanModifierData *) md;
+					rewrite_path_fixed(omd->cachepath, visit_cb, absbase, bpath_user_data);
+				}
+			}
 
-				if (ob->soft) {
-					BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
-				}
+			if (ob->soft) {
+				BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
+			}
 
-				for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-					BPATH_TRAVERSE_POINTCACHE(psys->ptcaches);
-				}
+			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+				BPATH_TRAVERSE_POINTCACHE(psys->ptcaches);
 			}
 
 #undef BPATH_TRAVERSE_POINTCACHE
 
 			break;
+		}
 		case ID_SO:
 		{
 			bSound *sound = (bSound *)id;
 			if (sound->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				rewrite_path_fixed(sound->name, visit_cb, absbase, bpath_user_data);
 			}
+			break;
 		}
-		break;
 		case ID_TXT:
 			if (((Text *)id)->name) {
 				rewrite_path_alloc(&((Text *)id)->name, visit_cb, absbase, bpath_user_data);
@@ -490,17 +493,46 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
 				}
 			}
+			break;
 		}
-		break;
+		case ID_MA:
+		{
+			Material *ma = (Material *)id;
+			bNodeTree *ntree = ma->nodetree;
+			bNode *node;
+
+			for (node = ntree->nodes.first; node; node = node->next) {
+				if (node->type == SH_NODE_SCRIPT) {
+					NodeShaderScript *nss = (NodeShaderScript *)node->storage;
+					rewrite_path_fixed(nss->filepath, visit_cb, absbase, bpath_user_data);
+				}
+			}
+			break;
+		}
+		case ID_NT:
+		{
+			bNodeTree *ntree = (bNodeTree *)id;
+			bNode *node;
+
+			if (ntree->type == NTREE_SHADER) {
+				/* same as lines above */
+				for (node = ntree->nodes.first; node; node = node->next) {
+					if (node->type == SH_NODE_SCRIPT) {
+						NodeShaderScript *nss = (NodeShaderScript *)node->storage;
+						rewrite_path_fixed(nss->filepath, visit_cb, absbase, bpath_user_data);
+					}
+				}
+			}
+			break;
+		}
 		case ID_TE:
 		{
 			Tex *tex = (Tex *)id;
 			if (tex->type == TEX_VOXELDATA && TEX_VD_IS_SOURCE_PATH(tex->vd->file_format)) {
 				rewrite_path_fixed(tex->vd->source_path, visit_cb, absbase, bpath_user_data);
 			}
+			break;
 		}
-		break;
-
 		case ID_SCE:
 		{
 			Scene *scene = (Scene *)id;
@@ -539,30 +571,30 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 				}
 				SEQ_END
 			}
+			break;
 		}
-		break;
 		case ID_ME:
 		{
 			Mesh *me = (Mesh *)id;
 			if (me->ldata.external) {
 				rewrite_path_fixed(me->ldata.external->filename, visit_cb, absbase, bpath_user_data);
 			}
+			break;
 		}
-		break;
 		case ID_LI:
 		{
 			Library *lib = (Library *)id;
 			if (rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
 				BKE_library_filepath_set(lib, lib->name);
 			}
+			break;
 		}
-		break;
 		case ID_MC:
 		{
 			MovieClip *clip = (MovieClip *)id;
 			rewrite_path_fixed(clip->name, visit_cb, absbase, bpath_user_data);
+			break;
 		}
-		break;
 		default:
 			/* Nothing to do for other IDs that don't contain file paths. */
 			break;
