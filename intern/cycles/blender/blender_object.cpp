@@ -360,8 +360,9 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 						bool emitter_hide = false;
 
 						if(b_dup_ob.is_duplicator()) {
-							/* duplicators hidden by default */
-							emitter_hide = true;
+							/* duplicators hidden by default, except dupliframes which duplicate self */
+							if(b_dup_ob.dupli_type() != BL::Object::dupli_type_FRAMES)
+								emitter_hide = true;
 							
 							/* check if we should render or hide particle emitter */
 							BL::Object::particle_systems_iterator b_psys;
