@@ -1482,24 +1482,57 @@ static int bmo_opname_to_opcode(const char *opname)
 	return -1;
 }
 
-/* Example:
- * BMO_op_callf(bm, BMO_FLAG_DEFAULTS, "delete %i %hv", DEL_ONLYFACES, BM_ELEM_SELECT);
+/**
+ * \brief Format Strings for #BMOperator Initialization.
  *
- *  i - int
- *  b - boolean (same as int but 1/0 only)
- *  f - float
- *  s - slot_in
- *  S - slot_out
- *  e - single vert/edge/face
- *  hv - header flagged verts (hflag)
- *  he - header flagged edges (hflag)
- *  hf - header flagged faces (hflag)
- *  fv - flagged verts (oflag)
- *  fe - flagged edges (oflag)
- *  ff - flagged faces (oflag)
+ * Example:
  *
- * capitals - H, F to use the flag flipped (when the flag is off)
- * Hv, He, Hf, Fv, Fe, Ff,
+ * \code{.c}
+ *     BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
+ *                  "delete context=%i geom=%hv",
+ *                  DEL_ONLYFACES, BM_ELEM_SELECT);
+ * \endcode
+ *
+ *
+ * **Primitive Types**
+ * - `b` - boolean (same as int but 1/0 only). #BMO_OP_SLOT_BOOL
+ * - `i` - int. #BMO_OP_SLOT_INT
+ * - `f` - float. #BMO_OP_SLOT_FLT
+ * - `p` - pointer (normally to a Scene/Mesh/Object/BMesh). #BMO_OP_SLOT_PTR
+ * - `m3` - 3x3 matrix of floats. #BMO_OP_SLOT_MAT
+ * - `m4` - 4x4 matrix of floats. #BMO_OP_SLOT_MAT
+ * - `v` - 3D vector of floats. #BMO_OP_SLOT_VEC
+ *
+ *
+ * **Utility**
+ *
+ * Pass an existing slot which is copied to either an input or output slot.
+ * Taking the operator and slot-name pair of args.
+ * - `s` - slot_in (lower case)
+ * - `S` - slot_out (upper case)
+ *
+ *
+ * **Element Buffer** (#BMO_OP_SLOT_ELEMENT_BUF)
+ * - `e` - single element vert/edge/face (use with #BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE).
+ * - `av` - all verts
+ * - `ae` - all edges
+ * - `af` - all faces
+ * - `hv` - header flagged verts (hflag)
+ * - `he` - header flagged edges (hflag)
+ * - `hf` - header flagged faces (hflag)
+ * - `Hv` - header flagged verts (hflag off)
+ * - `He` - header flagged edges (hflag off)
+ * - `Hf` - header flagged faces (hflag off)
+ * - `fv` - flagged verts (oflag)
+ * - `fe` - flagged edges (oflag)
+ * - `ff` - flagged faces (oflag)
+ * - `Fv` - flagged verts (oflag off)
+ * - `Fe` - flagged edges (oflag off)
+ * - `Ff` - flagged faces (oflag off)
+ *
+ * \note The common v/e/f suffix can be mixed,
+ * so `avef` is can be used for all verts, edges and faces.
+ * Order is not important so `Hfev` is also valid (all unflagged verts, edges and faces).
  */
 
 int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, va_list vlist)
