@@ -407,6 +407,7 @@ compile_OIIO() {
     prepare_opt
 
     if [ ! -d $_src ]; then
+      mkdir -p $SRC
       wget -c $OIIO_SOURCE -O "$_src.tar.gz"
 
       INFO "Unpacking OpenImageIO-$OIIO_VERSION"
@@ -513,6 +514,7 @@ compile_LLVM() {
     prepare_opt
 
     if [ ! -d $_src -o true ]; then
+      mkdir -p $SRC
       wget -c $LLVM_SOURCE -O "$_src.tar.gz"
       wget -c $LLVM_CLANG_SOURCE -O "$_src_clang.tar.gz"
 
@@ -603,6 +605,8 @@ compile_OSL() {
     prepare_opt
 
     if [ ! -d $_src ]; then
+      mkdir -p $SRC
+
       # XXX Using git on my own repo for now, looks like archives are not updated immediately... :/
 #      wget -c $OSL_SOURCE -O "$_src.tar.gz"
 
@@ -692,6 +696,7 @@ compile_FFmpeg() {
 
     if [ ! -d $_src ]; then
       INFO "Downloading ffmpeg-$FFMPEG_VERSION"
+      mkdir -p $SRC
       wget -c $FFMPEG_SOURCE -O "$_src.tar.bz2"
 
       INFO "Unpacking ffmpeg-$FFMPEG_VERSION"
