@@ -821,6 +821,29 @@ install_DEB() {
   INFO "$COMMON_INFO"
   INFO ""
 
+  if [ ! -z "`cat /etc/debian_version | grep ^6`"  ]; then
+    if [ -z "`cat /etc/apt/sources.list | grep backports.debian.org`"  ]; then
+      INFO "Looks like you're using Debian Squeeze which does have broken CMake"
+      INFO "It is highly recommended to install cmake from backports, otherwise"
+      INFO "compilation of some libraries could fail"
+      INFO ""
+      INFO "You could install newer CMake from debian-backports repository"
+      INFO "Add this this line to your /etc/apt/sources.lixt:"
+      INFO ""
+      INFO "deb http://backports.debian.org/debian-backports squeeze-backports main"
+      INFO ""
+      INFO "and then run:"
+      INFO ""
+      INFO "sudo apt-get update && sudo apt-get install cmake=2.8.7-4~bpo60+1 sudo apt-get install cmake=2.8.7-4~bpo60+1"
+      INFO ""
+      INFO "(you could also add this reporisotry using GUI like synaptic)"
+      INFO ""
+      INFO "Hit Enter to continue running the script, or hit Ctrl-C to abort the script"
+
+      read
+    fi
+  fi
+
   sudo apt-get update
 # XXX Why in hell? Let's let this stuff to the user's responsability!!!
 #  sudo apt-get -y upgrade
@@ -835,7 +858,7 @@ install_DEB() {
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
     libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
-    libfftw3-dev libjack-dev python-dev patch
+    libfftw3-dev libjack-dev python-dev patch bzip2
 
   OPENJPEG_USE=true
   SCHRO_USE=true
