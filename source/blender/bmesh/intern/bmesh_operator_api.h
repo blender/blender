@@ -123,7 +123,7 @@ typedef enum eBMOpSlotSubType_Elem {
 typedef enum eBMOpSlotSubType_Map {
 	BMO_OP_SLOT_SUBTYPE_MAP_EMPTY    = 64,  /* use as a set(), unused value */
 	BMO_OP_SLOT_SUBTYPE_MAP_ELEM     = 65,
-	BMO_OP_SLOT_SUBTYPE_MAP_FLOAT    = 66,
+	BMO_OP_SLOT_SUBTYPE_MAP_FLT      = 66,
 	BMO_OP_SLOT_SUBTYPE_MAP_INT      = 67,
 	BMO_OP_SLOT_SUBTYPE_MAP_BOOL     = 68,
 	BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL = 69,  /* python can't convert these */

@@ -3636,14 +3636,14 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	float cent[3], axis[3], imat[3][3];
 	float d[3] = {0.0f, 0.0f, 0.0f};
 	int steps, dupli;
-	float degr;
+	float angle;
 
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	steps = RNA_int_get(op->ptr, "steps");
-	degr = RNA_float_get(op->ptr, "degrees");
+	angle = RNA_float_get(op->ptr, "angle");
 	//if (ts->editbutflag & B_CLOCKWISE)
-	degr = -degr;
+	angle = -angle;
 	dupli = RNA_boolean_get(op->ptr, "dupli");
 
 	/* undo object transformation */
@@ -3654,7 +3654,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_init(em, &spinop, op,
 	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f use_duplicate=%b",
-	                  BM_ELEM_SELECT, cent, axis, d, steps, degr, dupli))
+	                  BM_ELEM_SELECT, cent, axis, d, steps, angle, dupli))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3685,6 +3685,8 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 
 void MESH_OT_spin(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Spin";
 	ot->description = "Extrude selected vertices in a circle around the cursor in indicated viewport";
@@ -3701,7 +3703,8 @@ void MESH_OT_spin(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
 	RNA_def_boolean(ot->srna, "dupli", 0, "Dupli", "Make Duplicates");
-	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, "Degrees", "Degrees", -360.0f, 360.0f);
+	prop = RNA_def_float(ot->srna, "angle", DEG2RADF(90.0f), -FLT_MAX, FLT_MAX, "Angle", "Angle", DEG2RADF(-360.0f), DEG2RADF(360.0f));
+	RNA_def_property_subtype(prop, PROP_ANGLE);
 
 	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -FLT_MAX, FLT_MAX, "Axis", "Axis in global view space", -1.0f, 1.0f);
@@ -3739,15 +3742,11 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	v1 = NULL;
 	v2 = NULL;
 	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL); eve; eve = BM_iter_step(&iter)) {
-
 		valence = 0;
-
 		for (eed = BM_iter_new(&eiter, em->bm, BM_EDGES_OF_VERT, eve); eed; eed = BM_iter_step(&eiter)) {
-
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				valence++;
 			}
-
 		}
 
 		if (valence == 1) {

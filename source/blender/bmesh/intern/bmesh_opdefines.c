@@ -887,7 +887,7 @@ static BMOpDefine bmo_dissolve_faces_def = {
 static BMOpDefine bmo_dissolve_limit_def = {
 	"dissolve_limit",
 	/* slots_in */
-	{{"angle_limit", BMO_OP_SLOT_FLT}, /* total rotation angle (degrees) */
+	{{"angle_limit", BMO_OP_SLOT_FLT}, /* total rotation angle (radians) */
 	 {"use_dissolve_boundaries", BMO_OP_SLOT_BOOL},
 	 {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},
 	 {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
@@ -951,7 +951,7 @@ static BMOpDefine bmo_subdivide_edges_def = {
 	 {"cuts", BMO_OP_SLOT_INT},
 	 {"seed", BMO_OP_SLOT_INT},
 	 {"custom_patterns", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL}},  /* uses custom pointers */
-	 {"edge_percents", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_FLOAT}},
+	 {"edge_percents", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_FLT}},
 
 	 {"quad_corner_type",  BMO_OP_SLOT_INT}, /* quad corner type, see bmesh_operators.h */
 	 {"use_grid_fill", BMO_OP_SLOT_BOOL},   /* fill in fully-selected faces with a grid */
@@ -1054,7 +1054,7 @@ static BMOpDefine bmo_spin_def = {
 	 {"cent", BMO_OP_SLOT_VEC},             /* rotation center */
 	 {"axis", BMO_OP_SLOT_VEC},             /* rotation axis */
 	 {"dvec", BMO_OP_SLOT_VEC},             /* translation delta per step */
-	 {"angle", BMO_OP_SLOT_FLT},            /* total rotation angle (degrees) */
+	 {"angle", BMO_OP_SLOT_FLT},            /* total rotation angle (radians) */
 	 {"steps", BMO_OP_SLOT_INT},            /* number of steps */
 	 {"use_duplicate", BMO_OP_SLOT_BOOL},   /* duplicate or extrude? */
 	 {{'\0'}},

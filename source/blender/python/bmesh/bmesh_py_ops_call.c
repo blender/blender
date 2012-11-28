@@ -387,7 +387,7 @@ static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObjec
 					}
 					break;
 				}
-				case BMO_OP_SLOT_SUBTYPE_MAP_FLOAT:
+				case BMO_OP_SLOT_SUBTYPE_MAP_FLT:
 				{
 					if (PyDict_Size(value) > 0) {
 						PyObject *arg_key, *arg_value;
@@ -593,7 +593,7 @@ static PyObject* bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 					}
 					break;
 				}
-				case BMO_OP_SLOT_SUBTYPE_MAP_FLOAT:
+				case BMO_OP_SLOT_SUBTYPE_MAP_FLT:
 				{
 					item = PyDict_New();
 					if (slot_hash) {

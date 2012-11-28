@@ -494,7 +494,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_vec_get(op->slots_in, "dvec", dvec);
 	usedvec = !is_zero_v3(dvec);
 	steps    = BMO_slot_int_get(op->slots_in,   "steps");
-	phi      = BMO_slot_float_get(op->slots_in, "angle") * DEG2RADF(1.0f) / steps;
+	phi      = BMO_slot_float_get(op->slots_in, "angle") / steps;
 	do_dupli = BMO_slot_bool_get(op->slots_in,  "use_duplicate");
 
 	axis_angle_to_mat3(rmat, axis, phi);
