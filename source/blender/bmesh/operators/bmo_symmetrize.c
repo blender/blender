@@ -245,6 +245,8 @@ typedef struct {
 
 	/* True only if none of the polygon's edges were split */
 	int already_symmetric;
+
+	BMFace *src_face;
 } SymmPoly;
 
 static void symm_poly_with_splits(const Symm *symm,
@@ -254,6 +256,8 @@ static void symm_poly_with_splits(const Symm *symm,
 	BMIter iter;
 	BMLoop *l;
 	int i;
+
+	out->src_face = f;
 
 	/* Count vertices and check for edge splits */
 	out->len = f->len;
@@ -351,7 +355,8 @@ static int symm_poly_next_crossing(const Symm *symm,
 	return FALSE;
 }
 
-static BMFace *symm_face_create_v(BMesh *bm, BMVert **fv, BMEdge **fe, int len)
+static BMFace *symm_face_create_v(BMesh *bm, BMFace *example,
+								  BMVert **fv, BMEdge **fe, int len)
 {
 	BMFace *f_new;
 	int i;
@@ -365,6 +370,8 @@ static BMFace *symm_face_create_v(BMesh *bm, BMVert **fv, BMEdge **fe, int len)
 		}
 	}
 	f_new = BM_face_create(bm, fv, fe, len, TRUE);
+	if (example)
+		BM_elem_attrs_copy(bm, bm, example, f_new);
 	BM_face_select_set(bm, f_new, TRUE);
 	BMO_elem_flag_enable(bm, f_new, SYMM_OUTPUT_GEOM);
 	return f_new;
@@ -399,7 +406,7 @@ static void symm_mesh_output_poly_zero_splits(Symm *symm,
 		}
 	}
 
-	symm_face_create_v(symm->bm, fv, fe, j);
+	symm_face_create_v(symm->bm, sp->src_face, fv, fe, j);
 }
 
 static void symm_mesh_output_poly_with_splits(Symm *symm,
@@ -422,7 +429,7 @@ static void symm_mesh_output_poly_with_splits(Symm *symm,
 		fv[i] = v;
 	}
 
-	symm_face_create_v(symm->bm, fv, fe, segment_len);
+	symm_face_create_v(symm->bm, sp->src_face, fv, fe, segment_len);
 
 	/* Output the kill side of the input polygon */
 
@@ -434,7 +441,7 @@ static void symm_mesh_output_poly_with_splits(Symm *symm,
 
 	}
 
-	symm_face_create_v(symm->bm, fv, fe, segment_len);
+	symm_face_create_v(symm->bm, sp->src_face, fv, fe, segment_len);
 }
 
 static void symm_mirror_polygons(Symm *symm)
@@ -482,7 +489,7 @@ static void symm_mirror_polygons(Symm *symm)
 					fv[i] = l->v;
 			}
 
-			symm_face_create_v(symm->bm, fv, fe, f->len);
+			symm_face_create_v(symm->bm, f, fv, fe, f->len);
 		}
 		else if (ignore_all) {
 			BM_face_kill(symm->bm, f);
@@ -589,7 +596,7 @@ static void symm_mirror_polygons(Symm *symm)
 
 				BLI_assert(fv[0] && fv[1] && fv[2]);
 
-				symm_face_create_v(symm->bm, fv, fe, 3);
+				symm_face_create_v(symm->bm, NULL, fv, fe, 3);
 			}
 		}
 	}
