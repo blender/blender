@@ -473,6 +473,35 @@ void node_socket_convert_default_value(int to_type, void *to_default_value, int 
 	}
 }
 
+static void node_socket_set_minmax_subtype(bNodeSocket *sock, struct bNodeSocketTemplate *stemp)
+{
+	switch (sock->type) {
+		case SOCK_FLOAT:
+		{
+			bNodeSocketValueFloat *dval= sock->default_value;
+			dval->min = stemp->min;
+			dval->max = stemp->max;
+			dval->subtype = stemp->subtype;
+			break;
+		}
+		case SOCK_INT:
+		{
+			bNodeSocketValueInt *dval= sock->default_value;
+			dval->min = stemp->min;
+			dval->max = stemp->max;
+			dval->subtype = stemp->subtype;
+			break;
+		}
+		case SOCK_VECTOR:
+		{
+			bNodeSocketValueVector *dval= sock->default_value;
+			dval->min = stemp->min;
+			dval->max = stemp->max;
+			dval->subtype = stemp->subtype;
+			break;
+		}
+	}
+}
 
 struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp)
 {
@@ -512,6 +541,7 @@ struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct
 struct bNodeSocket *node_add_output_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp)
 {
 	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_OUT, stemp->name, stemp->type);
+	node_socket_set_minmax_subtype(sock, stemp);
 	return sock;
 }
 
@@ -532,32 +562,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 		/* Copy the property range and subtype parameters in case the template changed.
 		 * NOT copying the actual value here, only button behavior changes!
 		 */
-		switch (sock->type) {
-			case SOCK_FLOAT:
-			{
-				bNodeSocketValueFloat *dval= sock->default_value;
-				dval->min = stemp->min;
-				dval->max = stemp->max;
-				dval->subtype = stemp->subtype;
-				break;
-			}
-			case SOCK_INT:
-			{
-				bNodeSocketValueInt *dval= sock->default_value;
-				dval->min = stemp->min;
-				dval->max = stemp->max;
-				dval->subtype = stemp->subtype;
-				break;
-			}
-			case SOCK_VECTOR:
-			{
-				bNodeSocketValueVector *dval= sock->default_value;
-				dval->min = stemp->min;
-				dval->max = stemp->max;
-				dval->subtype = stemp->subtype;
-				break;
-			}
-		}
+		node_socket_set_minmax_subtype(sock, stemp);
 		
 		BLI_remlink(socklist, sock);
 		
