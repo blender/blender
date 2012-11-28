@@ -223,8 +223,8 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 	}
 
 	if (vweights) {
-		if ((vweights[BM_elem_index_get(e->v1)] < FLT_EPSILON) &&
-		    (vweights[BM_elem_index_get(e->v2)] < FLT_EPSILON))
+		if ((vweights[BM_elem_index_get(e->v1)] >= BM_MESH_DECIM_WEIGHT_MAX) &&
+		    (vweights[BM_elem_index_get(e->v2)] >= BM_MESH_DECIM_WEIGHT_MAX))
 		{
 			/* skip collapsing this edge */
 			eheap_table[BM_elem_index_get(e)] = NULL;
@@ -244,8 +244,9 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 		        BLI_quadric_evaluate(q2, optimize_co));
 	}
 	else {
-		cost = ((BLI_quadric_evaluate(q1, optimize_co) * vweights[BM_elem_index_get(e->v1)]) +
-		        (BLI_quadric_evaluate(q2, optimize_co) * vweights[BM_elem_index_get(e->v2)]));
+		/* add 1.0 so planar edges are still weighted against */
+		cost = (((BLI_quadric_evaluate(q1, optimize_co) + 1.0f) * vweights[BM_elem_index_get(e->v1)]) +
+		        ((BLI_quadric_evaluate(q2, optimize_co) + 1.0f) * vweights[BM_elem_index_get(e->v2)]));
 	}
 	// print("COST %.12f\n");
 
@@ -877,9 +878,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		int i;
 
 		if (vweights) {
-			const int fac = CLAMPIS(customdata_fac, 0.0f, 1.0f);
-			vweights[BM_elem_index_get(v_other)] = (vweights[v_clear_index]              * (1.0f - fac)) +
-			                                       (vweights[BM_elem_index_get(v_other)] * fac);
+			vweights[BM_elem_index_get(v_other)] = vweights[v_clear_index] + vweights[BM_elem_index_get(v_other)];
 		}
 
 		e = NULL;  /* paranoid safety check */
