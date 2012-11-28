@@ -314,9 +314,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
 	const float smoothness = 0.292f * RNA_float_get(op->ptr, "smoothness");
 #ifdef BMW_EDGERING_NGON
-	const int use_onlyquads = FALSE;
+	const int use_only_quads = FALSE;
 #else
-	const int use_onlyquads = TRUE;
+	const int use_only_quads = TRUE;
 #endif
 
 	if (lcd->eed) {
@@ -332,7 +332,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			                   smoothness, 0.0f, 0.0f,
 			                   cuts,
 			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, TRUE,
-							   use_onlyquads, 0);
+							   use_only_quads, 0);
 
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {

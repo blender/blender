@@ -199,9 +199,9 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 	BMIter viter, eiter, fiter;
 	GHash *vhash, *ehash;
 
-	BMOpSlot *slot_boundarymap_out = BMO_slot_get(op->slots_out, "boundarymap.out");
-	BMOpSlot *slot_facemap_out     = BMO_slot_get(op->slots_out, "facemap.out");
-	BMOpSlot *slot_isovertmap_out  = BMO_slot_get(op->slots_out, "isovertmap.out");
+	BMOpSlot *slot_boundary_map_out = BMO_slot_get(op->slots_out, "boundary_map.out");
+	BMOpSlot *slot_face_map_out     = BMO_slot_get(op->slots_out, "face_map.out");
+	BMOpSlot *slot_isovert_map_out  = BMO_slot_get(op->slots_out, "isovert_map.out");
 
 	/* initialize pointer hashes */
 	vhash = BLI_ghash_ptr_new("bmesh dupeops v");
@@ -234,7 +234,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 			}
 
 			if (isolated) {
-				BMO_slot_map_elem_insert(op, slot_isovertmap_out, v, v2);
+				BMO_slot_map_elem_insert(op, slot_isovert_map_out, v, v2);
 			}
 
 			BMO_elem_flag_enable(bm_src, v, DUPE_DONE);
@@ -256,7 +256,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 				BMO_elem_flag_enable(bm_src, e->v2, DUPE_DONE);
 			}
 			/* now copy the actual edge */
-			copy_edge(op, slot_boundarymap_out, bm_src, e, bm_dst, vhash, ehash);
+			copy_edge(op, slot_boundary_map_out, bm_src, e, bm_dst, vhash, ehash);
 			BMO_elem_flag_enable(bm_src, e, DUPE_DONE);
 		}
 	}
@@ -275,7 +275,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 			/* edge pass */
 			BM_ITER_ELEM (e, &eiter, f, BM_EDGES_OF_FACE) {
 				if (!BMO_elem_flag_test(bm_src, e, DUPE_DONE)) {
-					copy_edge(op, slot_boundarymap_out, bm_src, e, bm_dst, vhash, ehash);
+					copy_edge(op, slot_boundary_map_out, bm_src, e, bm_dst, vhash, ehash);
 					BMO_elem_flag_enable(bm_src, e, DUPE_DONE);
 				}
 			}
@@ -287,7 +287,7 @@ static void bmo_mesh_copy(BMOperator *op, BMesh *bm_src, BMesh *bm_dst)
 			BLI_array_grow_items(vtar, f->len);
 			BLI_array_grow_items(edar, f->len);
 
-			copy_face(op, slot_facemap_out, bm_src, f, bm_dst, vtar, edar, vhash, ehash);
+			copy_face(op, slot_face_map_out, bm_src, f, bm_dst, vtar, edar, vhash, ehash);
 			BMO_elem_flag_enable(bm_src, f, DUPE_DONE);
 		}
 	}
@@ -445,11 +445,11 @@ void bmo_split_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_copy(&dupeop, slots_out, "geom.out",
 	              splitop, slots_out, "geom.out");
 
-	BMO_slot_copy(&dupeop, slots_out, "boundarymap.out",
-	              splitop, slots_out, "boundarymap.out");
+	BMO_slot_copy(&dupeop, slots_out, "boundary_map.out",
+	              splitop, slots_out, "boundary_map.out");
 
-	BMO_slot_copy(&dupeop, slots_out, "isovertmap.out",
-	              splitop, slots_out, "isovertmap.out");
+	BMO_slot_copy(&dupeop, slots_out, "isovert_map.out",
+	              splitop, slots_out, "isovert_map.out");
 
 
 	/* cleanup */
@@ -506,7 +506,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 			BMO_op_initf(bm, &dupop, op->flag, "duplicate geom=%S", op, "geom_last.out");
 			BMO_op_exec(bm, &dupop);
 			BMO_op_callf(bm, op->flag,
-			             "rotate cent=%v mat=%m3 verts=%S",
+			             "rotate cent=%v matrix=%m3 verts=%S",
 			             cent, rmat, &dupop, "geom.out");
 			BMO_slot_copy(&dupop, slots_out, "geom.out",
 			              op,     slots_out, "geom_last.out");
@@ -517,7 +517,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 			             op, "geom_last.out");
 			BMO_op_exec(bm, &extop);
 			BMO_op_callf(bm, op->flag,
-			             "rotate cent=%v mat=%m3 verts=%S",
+			             "rotate cent=%v matrix=%m3 verts=%S",
 			             cent, rmat, &extop, "geom.out");
 			BMO_slot_copy(&extop, slots_out, "geom.out",
 			              op,     slots_out, "geom_last.out");

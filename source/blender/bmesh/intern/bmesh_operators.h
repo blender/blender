@@ -97,8 +97,8 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
                         float smooth, float fractal, float along_normal,
                         int numcuts,
                         int seltype, int cornertype,
-                        const short use_singleedge, const short use_gridfill,
-                        const short use_onlyquads,
+                        const short use_single_edge, const short use_grid_fill,
+                        const short use_only_quads,
                         int seed);
 
 #include "intern/bmesh_operator_api_inline.h"

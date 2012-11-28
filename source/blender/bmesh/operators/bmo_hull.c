@@ -604,22 +604,22 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	/* Output slot of input elements that ended up inside the hull
 	 * rather than part of it */
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_interior.out",
-	                                  BM_ALL, HULL_FLAG_INTERIOR_ELE);
+	                                  BM_ALL_NOLOOP, HULL_FLAG_INTERIOR_ELE);
 
 	/* Output slot of input elements that ended up inside the hull and
 	 * are are unused by other geometry. */
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_unused.out",
-	                                  BM_ALL, HULL_FLAG_DEL);
+	                                  BM_ALL_NOLOOP, HULL_FLAG_DEL);
 
 	/* Output slot of faces and edges that were in the input and on
 	 * the hull (useful for cases like bridging where you want to
 	 * delete some input geometry) */
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_holes.out",
-	                                  BM_ALL, HULL_FLAG_HOLE);
+	                                  BM_ALL_NOLOOP, HULL_FLAG_HOLE);
 
 	/* Output slot of all hull vertices, faces, and edges */
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out",
-	                                  BM_ALL, HULL_FLAG_OUTPUT_GEOM);
+	                                  BM_ALL_NOLOOP, HULL_FLAG_OUTPUT_GEOM);
 }
 
 #endif  /* WITH_BULLET */

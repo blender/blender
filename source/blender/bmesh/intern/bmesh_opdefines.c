@@ -254,11 +254,11 @@ static BMOpDefine bmo_mirror_def = {
 	"mirror",
 	/* slots_in */
 	{{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},     /* input geometry */
-	 {"mat",         BMO_OP_SLOT_MAT},      /* matrix defining the mirror transformation */
-	 {"merge_dist", BMO_OP_SLOT_FLT},       /* maximum distance for merging.  does no merging if 0. */
-	 {"axis",         BMO_OP_SLOT_INT},     /* the axis to use, 0, 1, or 2 for x, y, z */
-	 {"mirror_u",        BMO_OP_SLOT_BOOL}, /* mirror UVs across the u axis */
-	 {"mirror_v",        BMO_OP_SLOT_BOOL}, /* mirror UVs across the v axis */
+	 {"matrix",          BMO_OP_SLOT_MAT},   /* matrix defining the mirror transformation */
+	 {"merge_dist",      BMO_OP_SLOT_FLT},   /* maximum distance for merging.  does no merging if 0. */
+	 {"axis",            BMO_OP_SLOT_INT},   /* the axis to use, 0, 1, or 2 for x, y, z */
+	 {"mirror_u",        BMO_OP_SLOT_BOOL},  /* mirror UVs across the u axis */
+	 {"mirror_v",        BMO_OP_SLOT_BOOL},  /* mirror UVs across the v axis */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -587,9 +587,9 @@ static BMOpDefine bmo_edgenet_prepare_def = {
 static BMOpDefine bmo_rotate_def = {
 	"rotate",
 	/* slots_in */
-	{{"cent", BMO_OP_SLOT_VEC},  /* center of rotation */
-	 {"mat", BMO_OP_SLOT_MAT},   /* matrix defining rotation */
-	 {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+	{{"cent",            BMO_OP_SLOT_VEC},  /* center of rotation */
+	 {"matrix",          BMO_OP_SLOT_MAT},  /* matrix defining rotation */
+	 {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -642,8 +642,8 @@ static BMOpDefine bmo_scale_def = {
 static BMOpDefine bmo_transform_def = {
 	"transform",
 	/* slots_in */
-	{{"mat", BMO_OP_SLOT_MAT},  /* transform matrix */
-	 {"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
+	{{"matrix",          BMO_OP_SLOT_MAT},  /* transform matrix */
+	 {"verts",           BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* input vertices */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -911,7 +911,7 @@ static BMOpDefine bmo_triangulate_def = {
 	/* slots_out */
 	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},
 	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},
-	 {"facemap.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
+	 {"face_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
 	 {{'\0'}},
 	},
 	bmo_triangulate_exec,
@@ -950,13 +950,13 @@ static BMOpDefine bmo_subdivide_edges_def = {
 	 {"along_normal", BMO_OP_SLOT_FLT},
 	 {"cuts", BMO_OP_SLOT_INT},
 	 {"seed", BMO_OP_SLOT_INT},
-	 {"custompatterns", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL}},  /* uses custom pointers */
-	 {"edgepercents", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_FLOAT}},
+	 {"custom_patterns", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL}},  /* uses custom pointers */
+	 {"edge_percents", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_FLOAT}},
 
 	 {"quad_corner_type",  BMO_OP_SLOT_INT}, /* quad corner type, see bmesh_operators.h */
-	 {"use_gridfill", BMO_OP_SLOT_BOOL},   /* fill in fully-selected faces with a grid */
-	 {"use_singleedge", BMO_OP_SLOT_BOOL}, /* tessellate the case of one edge selected in a quad or triangle */
-	 {"use_onlyquads", BMO_OP_SLOT_BOOL},  /* only subdivide quads (for loopcut) */
+	 {"use_grid_fill", BMO_OP_SLOT_BOOL},   /* fill in fully-selected faces with a grid */
+	 {"use_single_edge", BMO_OP_SLOT_BOOL}, /* tessellate the case of one edge selected in a quad or triangle */
+	 {"use_only_quads", BMO_OP_SLOT_BOOL},  /* only subdivide quads (for loopcut) */
 	 {"use_sphere", BMO_OP_SLOT_BOOL},     /* for making new primitives only */
 	 {{'\0'}},
 	},
@@ -980,7 +980,7 @@ static BMOpDefine bmo_delete_def = {
 	"delete",
 	/* slots_in */
 	{{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-	 {"context", BMO_OP_SLOT_INT},
+	 {"context", BMO_OP_SLOT_INT},  /* enum DEL_VERTS ... */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -1007,9 +1007,9 @@ static BMOpDefine bmo_duplicate_def = {
 	 {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
 	/* facemap maps from source faces to dupe
 	 * faces, and from dupe faces to source faces */
-	 {"facemap.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
-	 {"boundarymap.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
-	 {"isovertmap.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
+	 {"face_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
+	 {"boundary_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
+	 {"isovert_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
 	{{'\0'}},
 	},
 	bmo_duplicate_exec,
@@ -1033,8 +1033,8 @@ static BMOpDefine bmo_split_def = {
 	},
 	/* slots_out */
 	{{"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-	 {"boundarymap.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
-	 {"isovertmap.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
+	 {"boundary_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
+	 {"isovert_map.out", BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
 	 {{'\0'}},
 	},
 	bmo_split_exec,
@@ -1252,10 +1252,10 @@ static BMOpDefine bmo_split_edges_def = {
 static BMOpDefine bmo_create_grid_def = {
 	"create_grid",
 	/* slots_in */
-	{{"x_segments",         BMO_OP_SLOT_INT}, /* number of x segments */
-	 {"y_segments",         BMO_OP_SLOT_INT}, /* number of y segments */
-	 {"size",         BMO_OP_SLOT_FLT},     /* size of the grid */
-	 {"mat",         BMO_OP_SLOT_MAT},      /* matrix to multiply the new geometry with */
+	{{"x_segments",      BMO_OP_SLOT_INT},  /* number of x segments */
+	 {"y_segments",      BMO_OP_SLOT_INT},  /* number of y segments */
+	 {"size",            BMO_OP_SLOT_FLT},  /* size of the grid */
+	 {"matrix",          BMO_OP_SLOT_MAT},  /* matrix to multiply the new geometry with */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -1274,10 +1274,10 @@ static BMOpDefine bmo_create_grid_def = {
 static BMOpDefine bmo_create_uvsphere_def = {
 	"create_uvsphere",
 	/* slots_in */
-	{{"u_segments",         BMO_OP_SLOT_INT}, /* number of u segments */
-	 {"v_segments",         BMO_OP_SLOT_INT}, /* number of v segment */
-	 {"diameter",         BMO_OP_SLOT_FLT}, /* diameter */
-	 {"mat",         BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
+	{{"u_segments",      BMO_OP_SLOT_INT}, /* number of u segments */
+	 {"v_segments",      BMO_OP_SLOT_INT}, /* number of v segment */
+	 {"diameter",        BMO_OP_SLOT_FLT}, /* diameter */
+	 {"matrix",          BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -1296,9 +1296,9 @@ static BMOpDefine bmo_create_uvsphere_def = {
 static BMOpDefine bmo_create_icosphere_def = {
 	"create_icosphere",
 	/* slots_in */
-	{{"subdivisions",         BMO_OP_SLOT_INT}, /* how many times to recursively subdivide the sphere */
-	 {"diameter",         BMO_OP_SLOT_FLT}, /* diameter */
-	 {"mat",         BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
+	{{"subdivisions",    BMO_OP_SLOT_INT}, /* how many times to recursively subdivide the sphere */
+	 {"diameter",        BMO_OP_SLOT_FLT}, /* diameter */
+	 {"matrix",          BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -1317,7 +1317,7 @@ static BMOpDefine bmo_create_icosphere_def = {
 static BMOpDefine bmo_create_monkey_def = {
 	"create_monkey",
 	/* slots_in */
-	{{"mat", BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
+	{{"matrix", BMO_OP_SLOT_MAT}, /* matrix to multiply the new geometry with */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -1336,13 +1336,13 @@ static BMOpDefine bmo_create_monkey_def = {
 static BMOpDefine bmo_create_cone_def = {
 	"create_cone",
 	/* slots_in */
-	{{"cap_ends", BMO_OP_SLOT_BOOL},        /* whether or not to fill in the ends with faces */
-	 {"cap_tris", BMO_OP_SLOT_BOOL},        /* fill ends with triangles instead of ngons */
-	 {"segments", BMO_OP_SLOT_INT},
-	 {"diameter1", BMO_OP_SLOT_FLT},        /* diameter of one end */
-	 {"diameter2", BMO_OP_SLOT_FLT},        /* diameter of the opposite */
-	 {"depth", BMO_OP_SLOT_FLT},            /* distance between ends */
-	 {"mat", BMO_OP_SLOT_MAT},              /* matrix to multiply the new geometry with */
+	{{"cap_ends",        BMO_OP_SLOT_BOOL},  /* whether or not to fill in the ends with faces */
+	 {"cap_tris",        BMO_OP_SLOT_BOOL},  /* fill ends with triangles instead of ngons */
+	 {"segments",        BMO_OP_SLOT_INT},
+	 {"diameter1",       BMO_OP_SLOT_FLT},  /* diameter of one end */
+	 {"diameter2",       BMO_OP_SLOT_FLT},  /* diameter of the opposite */
+	 {"depth",           BMO_OP_SLOT_FLT},  /* distance between ends */
+	 {"matrix",          BMO_OP_SLOT_MAT},  /* matrix to multiply the new geometry with */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -1359,11 +1359,11 @@ static BMOpDefine bmo_create_cone_def = {
 static BMOpDefine bmo_create_circle_def = {
 	"create_circle",
 	/* slots_in */
-	{{"cap_ends", BMO_OP_SLOT_BOOL},        /* whether or not to fill in the ends with faces */
-	 {"cap_tris", BMO_OP_SLOT_BOOL},        /* fill ends with triangles instead of ngons */
-	 {"segments", BMO_OP_SLOT_INT},
-	 {"diameter", BMO_OP_SLOT_FLT},         /* diameter of one end */
-	 {"mat", BMO_OP_SLOT_MAT},              /* matrix to multiply the new geometry with */
+	{{"cap_ends",        BMO_OP_SLOT_BOOL},  /* whether or not to fill in the ends with faces */
+	 {"cap_tris",        BMO_OP_SLOT_BOOL},  /* fill ends with triangles instead of ngons */
+	 {"segments",        BMO_OP_SLOT_INT},
+	 {"diameter",        BMO_OP_SLOT_FLT},  /* diameter of one end */
+	 {"matrix",          BMO_OP_SLOT_MAT},  /* matrix to multiply the new geometry with */
 	 {{'\0'}},
 	},
 	/* slots_out */
@@ -1382,8 +1382,8 @@ static BMOpDefine bmo_create_circle_def = {
 static BMOpDefine bmo_create_cube_def = {
 	"create_cube",
 	/* slots_in */
-	{{"size", BMO_OP_SLOT_FLT},             /* size of the cube */
-	 {"mat", BMO_OP_SLOT_MAT},              /* matrix to multiply the new geometry with */
+	{{"size",            BMO_OP_SLOT_FLT},  /* size of the cube */
+	 {"matrix",          BMO_OP_SLOT_MAT},  /* matrix to multiply the new geometry with */
 	 {{'\0'}},
 	},
 	/* slots_out */

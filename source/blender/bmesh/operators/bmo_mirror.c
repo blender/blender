@@ -60,7 +60,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	ototvert = bm->totvert;
 	/* ototedge = bm->totedge; */ /* UNUSED */
 	
-	BMO_slot_mat4_get(op->slots_in, "mat", mtx);
+	BMO_slot_mat4_get(op->slots_in, "matrix", mtx);
 	invert_m4_m4(imtx, mtx);
 	
 	BMO_op_initf(bm, &dupeop, op->flag, "duplicate geom=%s", op, "geom");
@@ -81,9 +81,9 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 
 	/* feed old data to transform bmo */
 	scale[axis] = -1.0f;
-	BMO_op_callf(bm, op->flag, "transform verts=%fv mat=%m4", ELE_NEW, mtx);
+	BMO_op_callf(bm, op->flag, "transform verts=%fv matrix=%m4", ELE_NEW, mtx);
 	BMO_op_callf(bm, op->flag, "scale verts=%fv vec=%v", ELE_NEW, scale);
-	BMO_op_callf(bm, op->flag, "transform verts=%fv mat=%m4", ELE_NEW, imtx);
+	BMO_op_callf(bm, op->flag, "transform verts=%fv matrix=%m4", ELE_NEW, imtx);
 	
 	BMO_op_init(bm, &weldop, op->flag, "weld_verts");
 

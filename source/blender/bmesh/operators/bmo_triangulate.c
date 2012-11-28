@@ -53,7 +53,7 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(projectverts);
 	int i;
 	const int use_beauty = BMO_slot_bool_get(op->slots_in, "use_beauty");
-	BMOpSlot *slot_facemap_out = BMO_slot_get(op->slots_out, "facemap.out");
+	BMOpSlot *slot_facemap_out = BMO_slot_get(op->slots_out, "face_map.out");
 
 	for (face = BMO_iter_new(&siter, op->slots_in, "faces", BM_FACE); face; face = BMO_iter_step(&siter)) {
 

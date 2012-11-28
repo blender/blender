@@ -1485,6 +1485,12 @@ static int bmo_opname_to_opcode(const char *opname)
 /**
  * \brief Format Strings for #BMOperator Initialization.
  *
+ * This system is used to execute or initialize an operator,
+ * using a formatted-string system.
+ *
+ * The basic format for the format string is:
+ * `[operatorname] [slot_name]=%[code] [slot_name]=%[code]`
+ *
  * Example:
  *
  * \code{.c}

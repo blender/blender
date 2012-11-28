@@ -891,7 +891,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		}
 		
 		if (rot_src) {
-			EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
+			EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v matrix=%m3",
 			              BM_ELEM_SELECT, cent, mat);
 
 			/* also project the source, for retopo workflow */
@@ -900,7 +900,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		}
 
 		edbm_extrude_edge(vc.obedit, vc.em, BM_ELEM_SELECT, nor);
-		EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
+		EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v matrix=%m3",
 		              BM_ELEM_SELECT, cent, mat);
 		EDBM_op_callf(vc.em, op, "translate verts=%hv vec=%v",
 		              BM_ELEM_SELECT, min);
@@ -2891,7 +2891,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	float isect = 0.0f;
 	int len = 0, isected, i;
 	short numcuts = 1, mode = RNA_int_get(op->ptr, "type");
-	BMOpSlot *slot_edgepercents;
+	BMOpSlot *slot_edge_percents;
 
 	/* allocd vars */
 	float (*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
@@ -2946,7 +2946,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/* store percentage of edge cut for KNIFE_EXACT here.*/
-	slot_edgepercents = BMO_slot_get(bmop.slots_in, "edgepercents");
+	slot_edge_percents = BMO_slot_get(bmop.slots_in, "edge_percents");
 	for (be = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be = BM_iter_step(&iter)) {
 		int is_cut = FALSE;
 		if (BM_elem_flag_test(be, BM_ELEM_SELECT)) {
@@ -2959,7 +2959,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 
 				if (isect != 0.0f) {
 					if (mode != KNIFE_MULTICUT && mode != KNIFE_MIDPOINT) {
-						BMO_slot_map_float_insert(&bmop, slot_edgepercents, be, isect);
+						BMO_slot_map_float_insert(&bmop, slot_edge_percents, be, isect);
 					}
 				}
 			}
@@ -2980,8 +2980,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	BMO_slot_int_set(bmop.slots_in, "cuts", numcuts);
 
 	BMO_slot_int_set(bmop.slots_in, "quad_corner_type", SUBD_STRAIGHT_CUT);
-	BMO_slot_bool_set(bmop.slots_in, "use_singleedge", FALSE);
-	BMO_slot_bool_set(bmop.slots_in, "use_gridfill", FALSE);
+	BMO_slot_bool_set(bmop.slots_in, "use_single_edge", FALSE);
+	BMO_slot_bool_set(bmop.slots_in, "use_grid_fill", FALSE);
 
 	BMO_slot_float_set(bmop.slots_in, "radius", 0);
 	

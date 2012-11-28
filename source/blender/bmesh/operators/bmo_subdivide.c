@@ -226,7 +226,7 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	float percent, percent2 = 0.0f;
 
 	if (BMO_elem_flag_test(bm, edge, EDGE_PERCENT) && totpoint == 1) {
-		percent = BMO_slot_map_float_get(params->slot_edgepercents, edge);
+		percent = BMO_slot_map_float_get(params->slot_edge_percents, edge);
 	}
 	else {
 		percent = 1.0f / (float)(totpoint + 1 - curpoint);
@@ -715,7 +715,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BMFace *face;
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
-	int use_sphere, cornertype, use_singleedge, use_gridfill, use_onlyquads;
+	int use_sphere, cornertype, use_single_edge, use_grid_fill, use_only_quads;
 	int skey, seed, i, j, matched, a, b, numcuts, totesel;
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, SUBD_SPLIT);
@@ -727,10 +727,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	along_normal = BMO_slot_float_get(op->slots_in, "along_normal");
 	cornertype = BMO_slot_int_get(op->slots_in, "quad_corner_type");
 
-	use_singleedge = BMO_slot_bool_get(op->slots_in, "use_singleedge");
-	use_gridfill   = BMO_slot_bool_get(op->slots_in, "use_gridfill");
-	use_onlyquads  = BMO_slot_bool_get(op->slots_in, "use_onlyquads");
-	use_sphere     = BMO_slot_bool_get(op->slots_in, "use_sphere");
+	use_single_edge = BMO_slot_bool_get(op->slots_in, "use_single_edge");
+	use_grid_fill = BMO_slot_bool_get(op->slots_in, "use_grid_fill");
+	use_only_quads = BMO_slot_bool_get(op->slots_in, "use_only_quads");
+	use_sphere = BMO_slot_bool_get(op->slots_in, "use_sphere");
 	
 	BLI_srandom(seed);
 	
@@ -748,7 +748,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			break;
 	}
 	
-	if (use_singleedge) {
+	if (use_single_edge) {
 		patterns[0] = &quad_1edge;
 		patterns[2] = &tri_1edge;
 	}
@@ -757,7 +757,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		patterns[2] = NULL;
 	}
 
-	if (use_gridfill) {
+	if (use_grid_fill) {
 		patterns[3] = &quad_4edge;
 		patterns[5] = &tri_3edge;
 	}
@@ -780,8 +780,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 	params.numcuts = numcuts;
 	params.op = op;
-	params.slot_edgepercents   = BMO_slot_get(op->slots_in, "edgepercents");
-	params.slot_custompatterns = BMO_slot_get(op->slots_in, "custompatterns");
+	params.slot_edge_percents   = BMO_slot_get(op->slots_in, "edge_percents");
+	params.slot_custom_patterns = BMO_slot_get(op->slots_in, "custom_patterns");
 	params.smooth = smooth;
 	params.seed = seed;
 	params.fractal = fractal;
@@ -794,10 +794,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	params.off[1] = (float)BLI_drand() * 200.0f;
 	params.off[2] = (float)BLI_drand() * 200.0f;
 	
-	BMO_slot_map_to_flag(bm, op->slots_in, "custompatterns",
+	BMO_slot_map_to_flag(bm, op->slots_in, "custom_patterns",
 	                     BM_FACE, FACE_CUSTOMFILL);
 
-	BMO_slot_map_to_flag(bm, op->slots_in, "edgepercents",
+	BMO_slot_map_to_flag(bm, op->slots_in, "edge_percents",
 	                     BM_EDGE, EDGE_PERCENT);
 
 
@@ -806,7 +806,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		float vec1[3], vec2[3];
 
 		/* skip non-quads if requested */
-		if (use_onlyquads && face->len != 4)
+		if (use_only_quads && face->len != 4)
 			continue;
 
 		/* figure out which pattern to use */
@@ -845,7 +845,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (BMO_elem_flag_test(bm, face, FACE_CUSTOMFILL)) {
-			pat = BMO_slot_map_data_get(params.slot_custompatterns, face);
+			pat = BMO_slot_map_data_get(params.slot_custom_patterns, face);
 			for (i = 0; i < pat->len; i++) {
 				matched = 1;
 				for (j = 0; j < pat->len; j++) {
@@ -1093,8 +1093,8 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
                         float smooth, float fractal, float along_normal,
                         int numcuts,
                         int seltype, int cornertype,
-                        const short use_singleedge, const short use_gridfill,
-                        const short use_onlyquads,
+                        const short use_single_edge, const short use_grid_fill,
+                        const short use_only_quads,
                         int seed)
 {
 	BMOperator op;
@@ -1105,15 +1105,15 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	             "smooth=%f fractal=%f along_normal=%f "
 	             "cuts=%i "
 	             "quad_corner_type=%i "
-	             "use_singleedge=%b use_gridfill=%b "
-				 "use_onlyquads=%b "
+	             "use_single_edge=%b use_grid_fill=%b "
+	             "use_only_quads=%b "
 	             "seed=%i",
 	             edge_hflag,
 	             smooth, fractal, along_normal,
 	             numcuts,
 	             cornertype,
-	             use_singleedge, use_gridfill,
-				 use_onlyquads,
+	             use_single_edge, use_grid_fill,
+	             use_only_quads,
 	             seed);
 	
 	BMO_op_exec(bm, &op);
@@ -1170,7 +1170,7 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 	
 	params.numcuts = BMO_slot_int_get(op->slots_in, "cuts");
 	params.op = op;
-	params.slot_edgepercents = BMO_slot_get(op->slots_in, "edgepercents");
+	params.slot_edge_percents = BMO_slot_get(op->slots_in, "edge_percents");
 	
 	BM_data_layer_add(bm, &bm->vdata, CD_SHAPEKEY);
 	skey = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) - 1;

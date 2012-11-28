@@ -57,7 +57,7 @@ void bmo_transform_exec(BMesh *UNUSED(bm), BMOperator *op)
 	BMVert *v;
 	float mat[4][4];
 
-	BMO_slot_mat4_get(op->slots_in, "mat", mat);
+	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
 	BMO_ITER (v, &iter, op->slots_in, "verts", BM_VERT) {
 		mul_m4_v3(mat, v->co);
@@ -73,7 +73,7 @@ void bmo_translate_exec(BMesh *bm, BMOperator *op)
 	unit_m4(mat);
 	copy_v3_v3(mat[3], vec);
 
-	BMO_op_callf(bm, op->flag, "transform mat=%m4 verts=%s", mat, op, "verts");
+	BMO_op_callf(bm, op->flag, "transform matrix=%m4 verts=%s", mat, op, "verts");
 }
 
 void bmo_scale_exec(BMesh *bm, BMOperator *op)
@@ -87,7 +87,7 @@ void bmo_scale_exec(BMesh *bm, BMOperator *op)
 	mat[1][1] = vec[1];
 	mat[2][2] = vec[2];
 
-	BMO_op_callf(bm, op->flag, "transform mat=%m3 verts=%s", mat, op, "verts");
+	BMO_op_callf(bm, op->flag, "transform matrix=%m3 verts=%s", mat, op, "verts");
 }
 
 void bmo_rotate_exec(BMesh *bm, BMOperator *op)
@@ -102,7 +102,7 @@ void bmo_rotate_exec(BMesh *bm, BMOperator *op)
 	mul_v3_fl(vec, -1.0f);
 	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
 
-	BMO_op_callf(bm, op->flag, "transform mat=%s verts=%s", op, "mat", op, "verts");
+	BMO_op_callf(bm, op->flag, "transform matrix=%s verts=%s", op, "matrix", op, "verts");
 
 	mul_v3_fl(vec, -1.0f);
 	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
