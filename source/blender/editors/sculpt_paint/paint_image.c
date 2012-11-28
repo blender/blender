@@ -656,7 +656,7 @@ static float VecZDepthPersp(const float pt[2],
 	 * barycentric_weights_v2 would return, in this case its easiest just to
 	 * undo the 4th axis division and make it unit-sum
 	 *
-	 * don't call barycentric_weights_v2() becaue our callers expect 'w'
+	 * don't call barycentric_weights_v2() because our callers expect 'w'
 	 * to be weighted from the perspective */
 	w_tmp[0] = w[0] * v1[3];
 	w_tmp[1] = w[1] * v2[3];

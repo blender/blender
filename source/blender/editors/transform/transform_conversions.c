@@ -938,7 +938,7 @@ static short pose_grab_with_ik(Object *ob)
 	}
 
 	/* iTaSC needs clear for new IK constraints */
-	if(tot_ik)
+	if (tot_ik)
 		BIK_clear_data(ob->pose);
 
 	return (tot_ik) ? 1 : 0;

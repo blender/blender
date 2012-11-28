@@ -332,7 +332,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			                   smoothness, 0.0f, 0.0f,
 			                   cuts,
 			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, TRUE,
-							   use_only_quads, 0);
+			                   use_only_quads, 0);
 
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {

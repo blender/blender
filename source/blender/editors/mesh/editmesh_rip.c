@@ -60,7 +60,7 @@
  *
  * \param inset is used so we get some useful distance
  * when comparing multiple edges that meet at the same
- * point and would result in teh same distance.
+ * point and would result in the same distance.
  */
 #define INSET_DEFAULT 0.00001f
 static float edbm_rip_edgedist(ARegion *ar, float mat[][4],

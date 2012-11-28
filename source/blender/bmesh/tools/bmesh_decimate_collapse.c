@@ -878,7 +878,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		int i;
 
 		if (vweights) {
-			vweights[BM_elem_index_get(v_other)] = vweights[v_clear_index] + vweights[BM_elem_index_get(v_other)];
+			vweights[BM_elem_index_get(v_other)] += vweights[v_clear_index];
 		}
 
 		e = NULL;  /* paranoid safety check */

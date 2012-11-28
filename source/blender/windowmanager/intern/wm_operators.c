@@ -1215,7 +1215,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
 
 	/* if we don't have global undo, we can't do undo push for automatic redo,
 	 * so we require manual OK clicking in this popup */
-	if(!(U.uiflag & USER_GLOBALUNDO))
+	if (!(U.uiflag & USER_GLOBALUNDO))
 		return WM_operator_props_dialog_popup(C, op, 300, UI_UNIT_Y);
 
 	ED_undo_push_op(C, op);

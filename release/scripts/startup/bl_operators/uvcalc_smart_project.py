@@ -993,7 +993,7 @@ def main(context,
             if mostUniqueAngle < USER_PROJECTION_LIMIT_CONVERTED:
                 #print 'adding', mostUniqueAngle, USER_PROJECTION_LIMIT, len(newProjectMeshFaces)
                 # Now weight the vector to all its faces, will give a more direct projection
-                # if the face its self was not representive of the normal from surrounding faces.
+                # if the face its self was not representative of the normal from surrounding faces.
 
                 newProjectVec = tempMeshFaces[mostUniqueIndex].no
                 newProjectMeshFaces = [tempMeshFaces.pop(mostUniqueIndex)]

@@ -85,6 +85,10 @@ size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restri
 {
 	size_t n;
 
+	BLI_assert(buffer != NULL);
+	BLI_assert(count > 0);
+	BLI_assert(format != NULL);
+
 	n = vsnprintf(buffer, count, format, arg);
 
 	if (n != -1 && n < count) {
@@ -114,6 +118,8 @@ char *BLI_sprintfN(const char *__restrict format, ...)
 	DynStr *ds;
 	va_list arg;
 	char *n;
+
+	BLI_assert(format != NULL);
 
 	va_start(arg, format);
 

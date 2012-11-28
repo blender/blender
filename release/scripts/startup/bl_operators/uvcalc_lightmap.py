@@ -552,7 +552,7 @@ class LightMapPack(Operator):
     # Disable REGISTER flag for now because this operator might create new
     # images. This leads to non-proper operator redo because current undo
     # stack is local for edit mode and can not remove images created by this
-    # oprtator.
+    # operator.
     # Proper solution would be to make undo stack aware of such things,
     # but for now just disable redo. Keep undo here so unwanted changes to uv
     # coords might be undone.
