@@ -53,6 +53,11 @@ to perform useful operations.
    This API us new in 2.65 and not yet well tested.
 
 
+Operator Example
+++++++++++++++++
+This script shows how operators can be used to model a link of a chain.
+
+.. literalinclude:: ../examples/bmesh.ops.1.py
 """
 
 
