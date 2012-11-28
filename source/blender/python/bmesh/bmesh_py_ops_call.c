@@ -584,8 +584,6 @@ static PyObject* bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 							PyObject *py_key =  BPy_BMElem_CreatePyObject(bm,  ele_key);
 							PyObject *py_val =  BPy_BMElem_CreatePyObject(bm, *(void **)BMO_OP_SLOT_MAPPING_DATA(ele_val));
 
-							BLI_assert(slot->slot_subtype.elem & ((BPy_BMElem *)py_val)->ele->head.htype);
-
 							PyDict_SetItem(item, py_key, py_val);
 							Py_DECREF(py_key);
 							Py_DECREF(py_val);
@@ -714,19 +712,23 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 		Py_ssize_t pos = 0;
 		while (PyDict_Next(kw, &pos, &key, &value)) {
 			const char *slot_name = _PyUnicode_AsString(key);
-			BMOpSlot *slot = BMO_slot_get(bmop.slots_in, slot_name);
+			BMOpSlot *slot;
 
-			if (slot == NULL) {
+			if (!BMO_slot_exists(bmop.slots_in, slot_name)) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s: keyword \"%.200s\" is invalid for this operator",
 				             self->opname, slot_name);
+				BMO_op_finish(bm, &bmop);
 				return NULL;
 			}
+
+			 slot = BMO_slot_get(bmop.slots_in, slot_name);
 
 			/* now assign the value */
 			if (bpy_slot_from_py(bm, &bmop, slot, value,
 			                     self->opname, slot_name) == -1)
 			{
+				BMO_op_finish(bm, &bmop);
 				return NULL;
 			}
 		}
