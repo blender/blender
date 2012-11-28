@@ -188,9 +188,14 @@ detect_distro() {
 
 prepare_opt() {
   INFO "Ensuring $INST exists and is writable by us"
-  sudo mkdir -p $INST
-  sudo chown $USER $INST
-  sudo chmod 775 $INST
+  if [ ! -d  $INST ]; then
+    sudo mkdir -p $INST
+  fi
+
+  if [ ! -w $INST ]; then
+    sudo chown $USER $INST
+    sudo chmod 775 $INST
+  fi
 }
 
 # Check whether the current package needs to be recompiled, based on a dummy file containing a magic number in its name...
