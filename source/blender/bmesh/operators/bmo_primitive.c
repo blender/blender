@@ -560,7 +560,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	if (!a)
 		return;
 
-	BM_edge_create(bm, lastv1, firstv1, NULL, FALSE);
+	BM_edge_create(bm, firstv1, lastv1, NULL, FALSE);
 
 	if (cap_ends) {
 		BMFace *f;
