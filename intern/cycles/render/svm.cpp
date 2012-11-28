@@ -487,7 +487,7 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 	}
 }
 
-void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done)
+void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done)
 {
 	/* todo: the weaks point here is that unlike the single closure sampling 
 	 * we will evaluate all nodes even if they are used as input for closures
@@ -495,10 +495,10 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 	 * nodes at runtime, especially if they are tangled up  */
 	
 	/* only generate once */
-	if(done.find(node) != done.end())
+	if(closure_done.find(node) != closure_done.end())
 		return;
 
-	done.insert(node);
+	closure_done.insert(node);
 
 	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
 		/* weighting is already taken care of in ShaderGraph::transform_multi_closure */
@@ -506,9 +506,9 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 		ShaderInput *cl2in = node->input("Closure2");
 
 		if(cl1in->link)
-			generate_multi_closure(cl1in->link->parent, done);
+			generate_multi_closure(cl1in->link->parent, done, closure_done);
 		if(cl2in->link)
-			generate_multi_closure(cl2in->link->parent, done);
+			generate_multi_closure(cl2in->link->parent, done, closure_done);
 	}
 	else {
 		/* execute dependencies for closure */
@@ -543,6 +543,8 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 		if(node->name == ustring("transparent"))
 			current_shader->has_surface_transparent = true;
 	}
+
+	done.insert(node);
 }
 
 
@@ -613,8 +615,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 			if(generate) {
 				set<ShaderNode*> done;
 
-				if(use_multi_closure)
-					generate_multi_closure(clin->link->parent, done);
+				if(use_multi_closure) {
+					set<ShaderNode*> closure_done;
+					generate_multi_closure(clin->link->parent, done, closure_done);
+				}
 				else
 					generate_closure(clin->link->parent, done);
 			}

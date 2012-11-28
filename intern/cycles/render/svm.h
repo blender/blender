@@ -130,7 +130,7 @@ protected:
 	void generate_closure(ShaderNode *node, set<ShaderNode*>& done);
 
 	/* multi closure */
-	void generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done);
+	void generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done);
 
 	/* compile */
 	void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
