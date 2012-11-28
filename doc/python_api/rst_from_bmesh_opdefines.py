@@ -38,8 +38,8 @@ FILE_OP_DEFINES_C = os.path.join(SOURCE_DIR, "source", "blender", "bmesh", "inte
 OUT_RST = os.path.join(CURRENT_DIR, "rst", "bmesh.ops.rst")
 
 HEADER = r"""
-BMesh Operators
-===============
+BMesh Operators (bmesh.ops)
+===========================
 
 .. module:: bmesh.ops
 
@@ -123,7 +123,7 @@ def main():
         "BMO_OP_SLOT_SUBTYPE_MAP_ELEM",
         "BMO_OP_SLOT_SUBTYPE_MAP_BOOL",
         "BMO_OP_SLOT_SUBTYPE_MAP_INT",
-        "BMO_OP_SLOT_SUBTYPE_MAP_FLOAT",
+        "BMO_OP_SLOT_SUBTYPE_MAP_FLT",
         "BMO_OP_SLOT_SUBTYPE_MAP_EMPTY",
         "BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL",
 
@@ -211,7 +211,7 @@ def main():
         if args_out is not None:
             args_out_index[:] = [i for (i, a) in enumerate(args_out) if type(a) == tuple]
 
-        fw(".. function:: %s(%s)\n\n" % (b[0], ", ".join([args_in[i][0] for i in args_in_index])))
+        fw(".. function:: %s(bm, %s)\n\n" % (b[0], ", ".join([args_in[i][0] for i in args_in_index])))
         
         # -- wash the comment
         comment_washed = []
@@ -233,7 +233,7 @@ def main():
 
 
         # get the args
-        def get_args_wash(args, args_index):
+        def get_args_wash(args, args_index, is_ret):
             args_wash = []
             for i in args_index:
                 arg = args[i]
@@ -277,20 +277,22 @@ def main():
                 elif tp == BMO_OP_SLOT_BOOL:
                     tp_str = "bool"
                 elif tp == BMO_OP_SLOT_MAT:
-                    tp_str = "matrix"
+                    tp_str = ":class:`mathutils.Matrix`"
                 elif tp == BMO_OP_SLOT_VEC:
-                    tp_str = "matrix"
+                    tp_str = ":class:`mathutils.Vector`"
+                    if not is_ret:
+                        tp_str += " or any sequence of 3 floats"
                 elif tp == BMO_OP_SLOT_PTR:
                     tp_str = "dict"
                     assert(tp_sub is not None)
                     if tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_BMESH:
-                        tp_str = "BMesh"
+                        tp_str = ":class:`bmesh.types.BMesh`"
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_SCENE:
-                        tp_str = "Scene"
+                        tp_str = ":class:`bpy.types.Scene`"
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_OBJECT:
-                        tp_str = "Object"
+                        tp_str = ":class:`bpy.types.Object`"
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_MESH:
-                        tp_str = "Mesh"
+                        tp_str = ":class:`bpy.types.Mesh`"
                     else:
                         print("Cant find", vars_dict_reverse[tp_sub])
                         assert(0)
@@ -299,9 +301,9 @@ def main():
                     assert(tp_sub is not None)
                     
                     ls = []
-                    if tp_sub & BM_VERT: ls.append("vert")
-                    if tp_sub & BM_EDGE: ls.append("edge")
-                    if tp_sub & BM_FACE: ls.append("face")
+                    if tp_sub & BM_VERT: ls.append(":class:`bmesh.types.BMVert`")
+                    if tp_sub & BM_EDGE: ls.append(":class:`bmesh.types.BMEdge`")
+                    if tp_sub & BM_FACE: ls.append(":class:`bmesh.types.BMFace`")
                     assert(ls)  # must be at least one
 
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE:
@@ -319,10 +321,10 @@ def main():
                             tp_str += "bool"
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INT:
                             tp_str += "int"
-                        elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_FLOAT:
+                        elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_FLT:
                             tp_str += "float"
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_ELEM:
-                            tp_str += "vert/edge/face elements"
+                            tp_str += ":class:`bmesh.types.BMVert`/:class:`bmesh.types.BMEdge`/:class:`bmesh.types.BMFace`"
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
                             tp_str += "unknown internal data, not compatible with python"
                         else:
@@ -336,9 +338,12 @@ def main():
             return args_wash
         # end get_args_wash
 
+        # all ops get this arg
+        fw("   :arg bm: The bmesh to operate on.\n")
+        fw("   :type bm: :class:`bmesh.types.BMesh`\n")
 
-        args_in_wash = get_args_wash(args_in, args_in_index)
-        args_out_wash = get_args_wash(args_out, args_out_index)
+        args_in_wash = get_args_wash(args_in, args_in_index, False)
+        args_out_wash = get_args_wash(args_out, args_out_index, True)
 
         for (name, tp, comment) in args_in_wash:
             if comment == "":

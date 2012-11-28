@@ -325,10 +325,12 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
     fgon to create from existing verts.
 
     from_data: either a mesh, or a list/tuple of vectors.
-    indices: a list of indices to use this list is the ordered closed polyline
+    :arg indices: a list of indices to use this list is the ordered closed polyline
        to fill, and can be a subset of the data given.
-    fix_loops: If this is enabled polylines that use loops to make multiple
+    :type indices: list
+    :arg fix_loops: If this is enabled polylines that use loops to make multiple
        polylines are delt with correctly.
+    :type fix_loops: bool
     """
 
     from mathutils.geometry import tessellate_polygon
