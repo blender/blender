@@ -1835,6 +1835,8 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		StripCrop c = {0};
 		StripTransform t = {0};
 		int sx, sy, dx, dy;
+		double xscale = 1.0;
+		double yscale = 1.0;
 
 		if (is_proxy_image) {
 			double f = seq_rendersize_to_scale_factor(context.preview_render_size);
@@ -1850,6 +1852,17 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		if (seq->flag & SEQ_USE_TRANSFORM && seq->strip->transform) {
 			t = *seq->strip->transform;
 		}
+
+		xscale = context.scene->r.xsch ? ((float) context.rectx / (float) context.scene->r.xsch) : 1.0;
+		yscale = context.scene->r.ysch ? ((float) context.recty / (float) context.scene->r.ysch) : 1.0;
+
+		xscale /= (float) context.rectx / ibuf->x;
+		yscale /= (float) context.recty / ibuf->y;
+
+		c.left *= xscale; c.right *= xscale;
+		c.top *= yscale; c.bottom *= yscale;
+
+		t.xofs *= xscale; t.yofs *= yscale;
 
 		sx = ibuf->x - c.left - c.right;
 		sy = ibuf->y - c.top - c.bottom;
