@@ -416,6 +416,18 @@ void WM_jobs_kill_all_except(wmWindowManager *wm, void *owner)
 }
 
 
+void WM_jobs_kill_type(struct wmWindowManager *wm, int job_type)
+{
+	wmJob *wm_job, *next_job;
+	
+	for (wm_job = wm->jobs.first; wm_job; wm_job = next_job) {
+		next_job = wm_job->next;
+
+		if (wm_job->job_type == job_type)
+			wm_jobs_kill_job(wm, wm_job);
+	}
+}
+
 /* signal job(s) from this owner or callback to stop, timer is required to get handled */
 void WM_jobs_stop(wmWindowManager *wm, void *owner, void *startjob)
 {

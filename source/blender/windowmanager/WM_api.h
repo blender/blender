@@ -360,8 +360,9 @@ void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
 void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void (*)(void *, short int *, short int *, float *));
 void		WM_jobs_kill_all(struct wmWindowManager *wm);
-	void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
-	
+void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
+void		WM_jobs_kill_type(struct wmWindowManager *wm, int job_type);
+
 int			WM_jobs_has_running(struct wmWindowManager *wm);
 
 			/* clipboard */
