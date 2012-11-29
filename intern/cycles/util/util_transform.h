@@ -311,6 +311,10 @@ __device_inline Transform transform_clear_scale(const Transform& tfm)
 
 __device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
+	/* use simpe nlerp instead of slerp. it's faster and almost the same */
+	return normalize((1.0f - t)*q1 + t*q2);
+
+#if 0
 	/* note: this does not ensure rotation around shortest angle, q1 and q2
 	 * are assumed to be matched already in transform_motion_decompose */
 	float costheta = dot(q1, q2);
@@ -328,6 +332,7 @@ __device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 		float thetap = theta * t;
 		return q1 * cosf(thetap) + qperp * sinf(thetap);
 	}
+#endif
 }
 
 __device_inline Transform transform_quick_inverse(Transform M)
