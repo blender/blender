@@ -759,6 +759,10 @@ Types
 
          The id is derived from a memory location and will be different each time the game engine starts.
 
+      .. warning::
+
+         The id can't be stored as an integer in game object properties, as those only have a limited range that the id may not be contained in. Instead an id can be stored as a string game property and converted back to an integer for use in from_id lookups.
+
 .. class:: KX_BlenderMaterial(PyObjectPlus)
 
    KX_BlenderMaterial
