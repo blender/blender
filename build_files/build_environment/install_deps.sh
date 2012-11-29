@@ -456,12 +456,16 @@ EOF
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D BUILDSTATIC=ON"
-    cmake_d="$cmake_d -D LINKSTATIC=ON"
+
+    # linking statically could give issues on Debian/Ubuntu (and probably other distros
+    # which doesn't like static linking) when linking shared oiio library due to missing
+    # text symbols (static libs should be compiled with -fPIC)
+    # cmake_d="$cmake_d -D LINKSTATIC=ON"
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
       if $ALL_STATIC; then
-        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"        
+        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"
       fi
     fi
 
