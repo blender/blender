@@ -581,8 +581,7 @@ static BMOpDefine bmo_edgenet_prepare_def = {
 /*
  * Rotate.
  *
- * Rotate vertices around a center, using a 3x3 rotation
- * matrix.  Equivalent of the old rotateflag function.
+ * Rotate vertices around a center, using a 3x3 rotation matrix.
  */
 static BMOpDefine bmo_rotate_def = {
 	"rotate",
@@ -600,8 +599,7 @@ static BMOpDefine bmo_rotate_def = {
 /*
  * Translate.
  *
- * Translate vertices by an offset.  Equivalent of the
- * old translateflag function.
+ * Translate vertices by an offset.
  */
 static BMOpDefine bmo_translate_def = {
 	"translate",

@@ -51,7 +51,6 @@
 
 #include "bmesh_py_api.h" /* own include */
 
-
 PyDoc_STRVAR(bpy_bm_new_doc,
 ".. method:: new()\n"
 "\n"
@@ -73,6 +72,8 @@ PyDoc_STRVAR(bpy_bm_from_edit_mesh_doc,
 "\n"
 "   Return a BMesh from this mesh, currently the mesh must already be in editmode.\n"
 "\n"
+"   :arg mesh: The editmode mesh.\n"
+"   :type mesh: :class:`bpy.types.Mesh`\n"
 "   :return: the BMesh associated with this mesh.\n"
 "   :rtype: :class:`bmesh.types.BMesh`\n"
 );
@@ -96,9 +97,56 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)
 	return BPy_BMesh_CreatePyObject(bm, BPY_BMFLAG_IS_WRAPPED);
 }
 
+PyDoc_STRVAR(bpy_bm_update_edit_mesh_doc,
+".. method:: update_edit_mesh(mesh, tessface=True)\n"
+"\n"
+"   Update the mesh after changes to the BMesh in editmode, \n"
+"   optionally recalculating n-gon tessellation.\n"
+"\n"
+"   :arg mesh: The editmode mesh.\n"
+"   :type mesh: :class:`bpy.types.Mesh`\n"
+"   :arg tessface: Option to recalculate n-gon tessellation.\n"
+"   :type tessface: boolean\n"
+);
+static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *py_me;
+	Mesh *me;
+	int do_tessface = TRUE;
+
+	if (!PyArg_ParseTuple(args, "O|i:update_edit_mesh", &py_me, &do_tessface)) {
+		return NULL;
+	}
+
+	me = PyC_RNA_AsPointer(py_me, "Mesh");
+
+	if (me == NULL) {
+		return NULL;
+	}
+
+	if (me->edit_btmesh == NULL) {
+		PyErr_SetString(PyExc_ValueError,
+		                "The mesh must be in editmode");
+		return NULL;
+	}
+
+	{
+		/* XXX, not great - infact this function could just not use the context at all
+		 * postpone that change until after release: BMESH_TODO - campbell */
+		extern struct bContext *BPy_GetContext(void);
+		extern void EDBM_update_generic(struct bContext *C, BMEditMesh *em, const short do_tessface);
+
+		struct bContext *C = BPy_GetContext();
+		EDBM_update_generic(C, me->edit_btmesh, do_tessface);
+	}
+
+	Py_RETURN_NONE;
+}
+
 static struct PyMethodDef BPy_BM_methods[] = {
 	{"new",            (PyCFunction)bpy_bm_new,            METH_NOARGS,  bpy_bm_new_doc},
 	{"from_edit_mesh", (PyCFunction)bpy_bm_from_edit_mesh, METH_O,       bpy_bm_from_edit_mesh_doc},
+	{"update_edit_mesh", (PyCFunction)bpy_bm_update_edit_mesh, METH_VARARGS, bpy_bm_update_edit_mesh_doc},
 	{NULL, NULL, 0, NULL}
 };
 
