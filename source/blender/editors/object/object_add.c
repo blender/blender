@@ -271,7 +271,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], fl
 		if (RNA_struct_property_is_set(op->ptr, "enter_editmode") && enter_editmode)
 			*enter_editmode = RNA_boolean_get(op->ptr, "enter_editmode");
 		else {
-			*enter_editmode = U.flag & USER_ADD_EDITMODE;
+			*enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
 			RNA_boolean_set(op->ptr, "enter_editmode", *enter_editmode);
 		}
 	}
