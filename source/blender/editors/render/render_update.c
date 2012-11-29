@@ -65,6 +65,8 @@
 
 #include "render_intern.h"  // own include
 
+extern Material defmaterial;
+
 /***************************** Render Engines ********************************/
 
 void ED_render_scene_update(Main *bmain, Scene *scene, int updated)
@@ -266,6 +268,9 @@ static void lamp_changed(Main *bmain, Lamp *la)
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(ma);
+
+	if (defmaterial.gpumaterial.first)
+		GPU_material_free(&defmaterial);
 }
 
 static void texture_changed(Main *bmain, Tex *tex)
@@ -347,6 +352,9 @@ static void world_changed(Main *bmain, World *wo)
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(ma);
+
+	if (defmaterial.gpumaterial.first)
+		GPU_material_free(&defmaterial);
 }
 
 static void image_changed(Main *bmain, Image *ima)
@@ -375,6 +383,9 @@ static void scene_changed(Main *bmain, Scene *UNUSED(scene))
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(ma);
+
+	if (defmaterial.gpumaterial.first)
+		GPU_material_free(&defmaterial);
 }
 
 void ED_render_id_flush_update(Main *bmain, ID *id)

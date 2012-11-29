@@ -553,12 +553,19 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->win = CTX_wm_window(C);
 	rj->srl = srl;
 	rj->camera_override = camera_override;
-	rj->lay = (v3d) ? v3d->lay : scene->lay;
+	rj->lay = scene->lay;
 	rj->anim = is_animation;
 	rj->write_still = is_write_still && !is_animation;
 	rj->iuser.scene = scene;
 	rj->iuser.ok = 1;
 	rj->reports = op->reports;
+
+	if(v3d) {
+		rj->lay = v3d->lay;
+
+		if(v3d->localvd)
+			rj->lay |= v3d->localvd->lay;
+	}
 
 	/* setup job */
 	if (RE_seq_render_active(scene, &scene->r)) name = "Sequence Render";
@@ -611,6 +618,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 /* contextual render, using current scene, view3d? */
 void RENDER_OT_render(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Render";
 	ot->description = "Render active scene";
@@ -625,7 +634,9 @@ void RENDER_OT_render(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
-	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render (used only when animation is disabled)");
-	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME - 2, "Scene", "Scene to render, current scene if not specified");
+	prop = RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render (used only when animation is disabled)");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME - 2, "Scene", "Scene to render, current scene if not specified");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
