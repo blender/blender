@@ -555,6 +555,53 @@ static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self, void *htype)
 	return BPy_BMLayerAccess_CreatePyObject(self->bm, GET_INT_FROM_POINTER(htype));
 }
 
+/* FaceSeq
+ * ^^^^^^^ */
+
+PyDoc_STRVAR(bpy_bmfaceseq_active_doc,
+"active face.\n\n:type: :class:`BMFace` or None"
+);
+static PyObject *bpy_bmfaceseq_active_get(BPy_BMElemSeq *self, void *UNUSED(closure))
+{
+	BMesh *bm = self->bm;
+	BPY_BM_CHECK_OBJ(self);
+
+	if (bm->act_face) {
+		return BPy_BMElem_CreatePyObject(bm, (BMHeader *)bm->act_face);
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+
+static int bpy_bmfaceseq_active_set(BPy_BMElem *self, PyObject *value, void *UNUSED(closure))
+{
+	BMesh *bm = self->bm;
+	if (value == Py_None) {
+		bm->act_face = NULL;
+		return 0;
+	}
+	else if (BPy_BMFace_Check(value)) {
+		BPY_BM_CHECK_INT(value);
+
+		if (((BPy_BMFace *)value)->bm != bm) {
+			PyErr_SetString(PyExc_ValueError,
+			                "faces.active = f: f is from another mesh");
+			return -1;
+		}
+		else {
+			bm->act_face = ((BPy_BMFace *)value)->f;
+			return 0;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+		             "faces.active = f: expected BMFace or None, not %.200s",
+		             Py_TYPE(value)->tp_name);
+		return -1;
+	}
+}
+
 static PyGetSetDef bpy_bmesh_getseters[] = {
 	{(char *)"verts", (getter)bpy_bmvertseq_get, (setter)NULL, (char *)bpy_bmvertseq_doc, NULL},
 	{(char *)"edges", (getter)bpy_bmedgeseq_get, (setter)NULL, (char *)bpy_bmedgeseq_doc, NULL},
@@ -676,6 +723,8 @@ static PyGetSetDef bpy_bmedgeseq_getseters[] = {
 };
 static PyGetSetDef bpy_bmfaceseq_getseters[] = {
 	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_FACE},
+	/* face only */
+	{(char *)"active",    (getter)bpy_bmfaceseq_active_get, (setter)bpy_bmfaceseq_active_set, (char *)bpy_bmfaceseq_active_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 static PyGetSetDef bpy_bmloopseq_getseters[] = {
