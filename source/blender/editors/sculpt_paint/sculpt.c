@@ -3356,7 +3356,10 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	sculpt_init_mirror_clipping(ob, ss);
 
 	/* Initial mouse location */
-	copy_v2_v2(ss->cache->initial_mouse, mouse);
+	if (mouse)
+		copy_v2_v2(ss->cache->initial_mouse, mouse);
+	else
+		zero_v2(ss->cache->initial_mouse);
 
 	mode = RNA_enum_get(op->ptr, "mode");
 	cache->invert = mode == BRUSH_STROKE_INVERT;
@@ -3890,8 +3893,8 @@ static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
                                     const float mouse[2])
 {
 	/* Don't start the stroke until mouse goes over the mesh.
-	 * note: event will only be null when re-executing the saved stroke. */
-	if (over_mesh(C, op, mouse[0], mouse[1])) {
+	 * note: mouse will only be null when re-executing the saved stroke. */
+	if (!mouse || over_mesh(C, op, mouse[0], mouse[1])) {
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
