@@ -941,18 +941,18 @@ static void add_poly(SkinOutput *so,
 	BLI_assert(v3 != v4);
 	BLI_assert(v1 && v2 && v3);
 
-	edges[0] = BM_edge_create(so->bm, v1, v2, NULL, TRUE);
-	edges[1] = BM_edge_create(so->bm, v2, v3, NULL, TRUE);
+	edges[0] = BM_edge_create(so->bm, v1, v2, NULL, BM_CREATE_NO_DOUBLE);
+	edges[1] = BM_edge_create(so->bm, v2, v3, NULL, BM_CREATE_NO_DOUBLE);
 	if (v4) {
-		edges[2] = BM_edge_create(so->bm, v3, v4, NULL, TRUE);
-		edges[3] = BM_edge_create(so->bm, v4, v1, NULL, TRUE);
+		edges[2] = BM_edge_create(so->bm, v3, v4, NULL, BM_CREATE_NO_DOUBLE);
+		edges[3] = BM_edge_create(so->bm, v4, v1, NULL, BM_CREATE_NO_DOUBLE);
 	}
 	else {
-		edges[2] = BM_edge_create(so->bm, v3, v1, NULL, TRUE);
+		edges[2] = BM_edge_create(so->bm, v3, v1, NULL, BM_CREATE_NO_DOUBLE);
 		edges[3] = NULL;
 	}
 
-	f = BM_face_create(so->bm, verts, edges, v4 ? 4 : 3, TRUE);
+	f = BM_face_create(so->bm, verts, edges, v4 ? 4 : 3, BM_CREATE_NO_DOUBLE);
 	if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
 		BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 	f->mat_nr = so->mat_nr;
@@ -996,7 +996,7 @@ static void output_frames(BMesh *bm,
 		f = &sn->frames[i];
 		for (j = 0; j < 4; j++) {
 			if (!f->merge[j].frame) {
-				BMVert *v = f->verts[j] = BM_vert_create(bm, f->co[j], NULL);
+				BMVert *v = f->verts[j] = BM_vert_create(bm, f->co[j], NULL, 0);
 
 				if (input_dvert) {
 					MDeformVert *dv;
@@ -1309,7 +1309,7 @@ static void skin_hole_detach_partially_attached_frame(BMesh *bm, Frame *frame)
 	/* Detach everything */
 	for (i = 0; i < totattached; i++) {
 		BMVert **av = &frame->verts[attached[i]];
-		(*av) = BM_vert_create(bm, (*av)->co, *av);
+		(*av) = BM_vert_create(bm, (*av)->co, *av, 0);
 	}
 }
 

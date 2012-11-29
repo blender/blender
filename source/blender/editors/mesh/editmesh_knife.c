@@ -1965,7 +1965,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			kfe->e = NULL;
 		}
 
-		kfe->e = BM_edge_create(bm, kfe->v1->v, kfe->v2->v, NULL, TRUE);
+		kfe->e = BM_edge_create(bm, kfe->v1->v, kfe->v2->v, NULL, BM_CREATE_NO_DOUBLE);
 		BMO_elem_flag_enable(bm, kfe->e, BOUNDARY);
 
 		for (ref = kfe->faces.first; ref; ref = ref->next) {

@@ -206,7 +206,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
 
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL);
+		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD);
 		BM_elem_index_set(v, i); /* set_ok */
 		vt[i] = v;
 
@@ -254,7 +254,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 	medge = me->medge;
 	for (i = 0; i < me->totedge; i++, medge++) {
-		e = BM_edge_create(bm, vt[medge->v1], vt[medge->v2], NULL, FALSE);
+		e = BM_edge_create(bm, vt[medge->v1], vt[medge->v2], NULL, BM_CREATE_SKIP_CD);
 		BM_elem_index_set(e, i); /* set_ok */
 		et[i] = e;
 
@@ -312,7 +312,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		}
 #endif
 
-		f = BM_face_create(bm, verts, fedges, mpoly->totloop, FALSE);
+		f = BM_face_create(bm, verts, fedges, mpoly->totloop, BM_CREATE_SKIP_CD);
 
 		if (UNLIKELY(f == NULL)) {
 			printf("%s: Warning! Bad face in mesh"

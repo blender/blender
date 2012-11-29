@@ -49,7 +49,7 @@ static BMVert *copy_vertex(BMesh *source_mesh, BMVert *source_vertex, BMesh *tar
 	BMVert *target_vertex = NULL;
 
 	/* Create a new vertex */
-	target_vertex = BM_vert_create(target_mesh, source_vertex->co, NULL);
+	target_vertex = BM_vert_create(target_mesh, source_vertex->co, NULL, BM_CREATE_SKIP_CD);
 	
 	/* Insert new vertex into the vert hash */
 	BLI_ghash_insert(vhash, source_vertex, target_vertex);
@@ -98,7 +98,7 @@ static BMEdge *copy_edge(BMOperator *op,
 	target_vert2 = BLI_ghash_lookup(vhash, source_edge->v2);
 	
 	/* Create a new edge */
-	target_edge = BM_edge_create(target_mesh, target_vert1, target_vert2, NULL, FALSE);
+	target_edge = BM_edge_create(target_mesh, target_vert1, target_vert2, NULL, BM_CREATE_SKIP_CD);
 	
 	/* add to new/old edge map if necassary */
 	if (rlen < 2) {
@@ -156,7 +156,7 @@ static BMFace *copy_face(BMOperator *op,
 	}
 
 	/* create new face */
-	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, FALSE);
+	target_face = BM_face_create(target_mesh, vtar, edar, source_face->len, BM_CREATE_SKIP_CD);
 	BMO_slot_map_elem_insert(op, slot_facemap_out, source_face, target_face);
 	BMO_slot_map_elem_insert(op, slot_facemap_out, target_face, source_face);
 

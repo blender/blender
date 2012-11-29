@@ -47,7 +47,7 @@ void bmo_create_vert_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_vec_get(op->slots_in, "co", vec);
 
-	BMO_elem_flag_enable(bm, BM_vert_create(bm, vec, NULL), 1);
+	BMO_elem_flag_enable(bm, BM_vert_create(bm, vec, NULL, 0), 1);
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "vert.out", BM_VERT, 1);
 }
 

@@ -136,7 +136,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				BMO_elem_flag_enable(bm, e, EDGE_COL);
 			}
 			else if (!BM_edge_exists(v, v2)) {
-				BM_edge_create(bm, v, v2, e, TRUE);
+				BM_edge_create(bm, v, v2, e, BM_CREATE_NO_DOUBLE);
 			}
 
 			BMO_elem_flag_enable(bm, e, ELE_DEL);
@@ -214,7 +214,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 		}
 		
-		f2 = BM_face_create_ngon(bm, v, v2, edges, a, TRUE);
+		f2 = BM_face_create_ngon(bm, v, v2, edges, a, BM_CREATE_NO_DOUBLE);
 		if (f2 && (f2 != f)) {
 			BM_elem_attrs_copy(bm, bm, f, f2);
 

@@ -274,7 +274,7 @@ static int UNUSED_FUNCTION(rotsys_fill_faces)(BMesh *bm, EdgeData *edata, VertDa
 			if (!ok || BLI_array_count(edges) < 3)
 				continue;
 			
-			f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), TRUE);
+			f = BM_face_create_ngon(bm, verts[0], verts[1], edges, BLI_array_count(edges), BM_CREATE_NO_DOUBLE);
 			if (UNLIKELY(f == NULL)) {
 				continue;
 			}
@@ -611,11 +611,11 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			
 			v2 = BM_vert_create(bm, co, NULL);
 			BM_elem_index_set(v2, -1); /* set_dirty! */
-			//BM_edge_create(bm, cv, v2, NULL, FALSE);
+			//BM_edge_create(bm, cv, v2, NULL, 0);
 			
 			BM_vert_select_set(bm, v2, TRUE);
 			if (lastv) {
-				e2 = BM_edge_create(bm, lastv, v2, NULL, FALSE);
+				e2 = BM_edge_create(bm, lastv, v2, NULL, 0);
 				BM_edge_select_set(bm, e2, TRUE);
 			}
 			
@@ -1051,7 +1051,7 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 			    /* fairly expensive check - see if there are already faces filling this area */
 			    (BM_face_exists_multi_edge(edges, i) == FALSE))
 			{
-				f = BM_face_create_ngon(bm, v1, v2, edges, i, TRUE);
+				f = BM_face_create_ngon(bm, v1, v2, edges, i, BM_CREATE_NO_DOUBLE);
 				if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
 					BMO_elem_flag_enable(bm, f, FACE_NEW);
 					f->mat_nr = mat_nr;
@@ -1249,9 +1249,9 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 			SWAP(BMVert *, v3, v4);
 		}
 
-		e = BM_edge_create(bm, v1, v3, NULL, TRUE);
+		e = BM_edge_create(bm, v1, v3, NULL, BM_CREATE_NO_DOUBLE);
 		BMO_elem_flag_enable(bm, e, ELE_NEW);
-		e = BM_edge_create(bm, v2, v4, NULL, TRUE);
+		e = BM_edge_create(bm, v2, v4, NULL, BM_CREATE_NO_DOUBLE);
 		BMO_elem_flag_enable(bm, e, ELE_NEW);
 	}
 	else if (edges1) {
@@ -1261,7 +1261,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
 			v1 = BM_vert_in_edge(edges1[1], edges1[0]->v1) ? edges1[0]->v2 : edges1[0]->v1;
 			i  = BLI_array_count(edges1) - 1;
 			v2 = BM_vert_in_edge(edges1[i - 1], edges1[i]->v1) ? edges1[i]->v2 : edges1[i]->v1;
-			e  = BM_edge_create(bm, v1, v2, NULL, TRUE);
+			e  = BM_edge_create(bm, v1, v2, NULL, BM_CREATE_NO_DOUBLE);
 			BMO_elem_flag_enable(bm, e, ELE_NEW);
 		}
 	}
@@ -1359,10 +1359,10 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 		}
 
 		if (ok == TRUE && v_free && v_a && v_b) {
-			e = BM_edge_create(bm, v_free, v_a, NULL, TRUE);
+			e = BM_edge_create(bm, v_free, v_a, NULL, BM_CREATE_NO_DOUBLE);
 			BMO_elem_flag_enable(bm, e, ELE_NEW);
 
-			e = BM_edge_create(bm, v_free, v_b, NULL, TRUE);
+			e = BM_edge_create(bm, v_free, v_b, NULL, BM_CREATE_NO_DOUBLE);
 			BMO_elem_flag_enable(bm, e, ELE_NEW);
 		}
 	}
@@ -1420,7 +1420,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	if (amount == 2) {
 		/* create edge */
-		e = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
+		e = BM_edge_create(bm, verts[0], verts[1], NULL, BM_CREATE_NO_DOUBLE);
 		BMO_elem_flag_enable(bm, e, ELE_OUT);
 		BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, ELE_OUT);
 	}
@@ -1461,7 +1461,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 				if (ese->htype == BM_VERT) {
 					v = (BMVert *)ese->ele;
 					if (v_prev) {
-						e = BM_edge_create(bm, v, v_prev, NULL, TRUE);
+						e = BM_edge_create(bm, v, v_prev, NULL, BM_CREATE_NO_DOUBLE);
 						BMO_elem_flag_enable(bm, e, ELE_OUT);
 					}
 					v_prev = v;
@@ -1483,7 +1483,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 			i++;
 		}
 
-		f = BM_face_create_ngon_vcloud(bm, vert_arr, totv, TRUE);
+		f = BM_face_create_ngon_vcloud(bm, vert_arr, totv, BM_CREATE_NO_DOUBLE);
 
 		if (f) {
 			BMO_elem_flag_enable(bm, f, ELE_OUT);

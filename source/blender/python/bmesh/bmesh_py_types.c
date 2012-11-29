@@ -728,7 +728,7 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
 
 static PyGetSetDef bpy_bmvertseq_getseters[] = {
 	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_VERT},
-		{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 static PyGetSetDef bpy_bmedgeseq_getseters[] = {
 	{(char *)"layers",    (getter)bpy_bmelemseq_layers_get, (setter)NULL, (char *)bpy_bmelemseq_layers_doc, (void *)BM_EDGE},
@@ -1746,7 +1746,7 @@ static PyObject *bpy_bmvertseq_new(BPy_BMElemSeq *self, PyObject *args)
 			return NULL;
 		}
 
-		v = BM_vert_create(bm, co, NULL);
+		v = BM_vert_create(bm, co, NULL, 0);
 
 		if (v == NULL) {
 			PyErr_SetString(PyExc_ValueError,
@@ -1815,7 +1815,7 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 			goto cleanup;
 		}
 
-		e = BM_edge_create(bm, vert_array[0], vert_array[1], NULL, FALSE);
+		e = BM_edge_create(bm, vert_array[0], vert_array[1], NULL, 0);
 
 		if (e == NULL) {
 			PyErr_SetString(PyExc_ValueError,
@@ -1901,10 +1901,10 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 		/* ensure edges */
 		for (i = vert_seq_len - 1, i_next = 0; i_next < vert_seq_len; (i = i_next++)) {
-			edge_array[i] = BM_edge_create(bm, vert_array[i], vert_array[i_next], NULL, TRUE);
+			edge_array[i] = BM_edge_create(bm, vert_array[i], vert_array[i_next], NULL, BM_CREATE_NO_DOUBLE);
 		}
 
-		f_new = BM_face_create(bm, vert_array, edge_array, vert_seq_len, FALSE);
+		f_new = BM_face_create(bm, vert_array, edge_array, vert_seq_len, 0);
 
 		if (UNLIKELY(f_new == NULL)) {
 			PyErr_SetString(PyExc_ValueError,

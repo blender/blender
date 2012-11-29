@@ -181,7 +181,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 		if (es->e_new == es->e_old) { /* happens on boundary edges */
 			/* take care here, we're creating this double edge which _must_ have its verts replaced later on */
-			es->e_old = BM_edge_create(bm, es->e_new->v1, es->e_new->v2, es->e_new, FALSE);
+			es->e_old = BM_edge_create(bm, es->e_new->v1, es->e_new->v2, es->e_new, 0);
 		}
 
 		/* store index back to original in 'edge_info' */
@@ -205,7 +205,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		v1 = BM_vert_create(bm, tvec, NULL);
 		v2 = BM_vert_create(bm, tvec, NULL);
 		madd_v3_v3fl(v2->co, es->no, 0.1f);
-		BM_edge_create(bm, v1, v2, NULL, FALSE);
+		BM_edge_create(bm, v1, v2, NULL, 0);
 	}
 #endif
 

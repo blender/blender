@@ -164,7 +164,7 @@ static NewVert *mesh_vert(VMesh *vm, int i, int j, int k)
 static void create_mesh_bmvert(BMesh *bm, VMesh *vm, int i, int j, int k, BMVert *eg)
 {
 	NewVert *nv = mesh_vert(vm, i, j, k);
-	nv->v = BM_vert_create(bm, nv->co, eg);
+	nv->v = BM_vert_create(bm, nv->co, eg, 0);
 }
 
 static void copy_mesh_vert(VMesh *vm, int ito, int jto, int kto,
@@ -267,9 +267,9 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMF
 		BLI_array_fixedstack_declare(ee, BM_DEFAULT_NGON_STACK_SIZE, totv, __func__);
 
 		for (i = 0; i < totv; i++) {
-			ee[i] = BM_edge_create(bm, vert_arr[i], vert_arr[(i + 1) % totv], NULL, TRUE);
+			ee[i] = BM_edge_create(bm, vert_arr[i], vert_arr[(i + 1) % totv], NULL, BM_CREATE_NO_DOUBLE);
 		}
-		f = BM_face_create_ngon(bm, vert_arr[0], vert_arr[1], ee, totv, FALSE);
+		f = BM_face_create_ngon(bm, vert_arr[0], vert_arr[1], ee, totv, 0);
 		BLI_array_fixedstack_free(ee);
 	}
 	if (facerep && f) {
@@ -1064,7 +1064,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			}
 		} while ((v = v->next) != vm->boundstart);
 		mul_v3_fl(midco, 1.0f / nn);
-		bmv = BM_vert_create(bm, midco, NULL);
+		bmv = BM_vert_create(bm, midco, NULL, 0);
 		v = vm->boundstart;
 		do {
 			i = v->index;
