@@ -80,7 +80,12 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 
 		if (object != ~0) {
 #ifdef __OBJECT_MOTION__
-			Transform tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
+			Transform tfm;
+
+			if(time == sd->time)
+				tfm = sd->ob_tfm;
+			else
+				tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
 #else
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
@@ -106,7 +111,11 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 		if (object != ~0) {
 #ifdef __OBJECT_MOTION__
 			Transform itfm;
-			object_fetch_transform_motion_test(kg, object, time, &itfm);
+
+			if(time == sd->time)
+				itfm = sd->ob_itfm;
+			else
+				object_fetch_transform_motion_test(kg, object, time, &itfm);
 #else
 			Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 #endif
