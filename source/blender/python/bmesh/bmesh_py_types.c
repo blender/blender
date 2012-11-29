@@ -541,6 +541,24 @@ static PyObject *bpy_bmloop_link_loop_prev_get(BPy_BMLoop *self)
 	return BPy_BMLoop_CreatePyObject(self->bm, self->l->prev);
 }
 
+PyDoc_STRVAR(bpy_bmloop_link_loop_radial_next_doc,
+"The next loop around the edge (read-only).\n\n:type: :class:`BMLoop`"
+);
+static PyObject *bpy_bmloop_link_loop_radial_next_get(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMLoop_CreatePyObject(self->bm, self->l->radial_next);
+}
+
+PyDoc_STRVAR(bpy_bmloop_link_loop_radial_prev_doc,
+"The previous loop around the edge (read-only).\n\n:type: :class:`BMLoop`"
+);
+static PyObject *bpy_bmloop_link_loop_radial_prev_get(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return BPy_BMLoop_CreatePyObject(self->bm, self->l->radial_prev);
+}
+
 /* ElemSeq
  * ^^^^^^^ */
 
@@ -699,6 +717,8 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
 	{(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmloops_link_loops_doc, (void *)BM_LOOPS_OF_LOOP},
 	{(char *)"link_loop_next", (getter)bpy_bmloop_link_loop_next_get, (setter)NULL, (char *)bpy_bmloop_link_loop_next_doc, NULL},
 	{(char *)"link_loop_prev", (getter)bpy_bmloop_link_loop_prev_get, (setter)NULL, (char *)bpy_bmloop_link_loop_prev_doc, NULL},
+	{(char *)"link_loop_radial_next", (getter)bpy_bmloop_link_loop_radial_next_get, (setter)NULL, (char *)bpy_bmloop_link_loop_radial_next_doc, NULL},
+	{(char *)"link_loop_radial_prev", (getter)bpy_bmloop_link_loop_radial_prev_get, (setter)NULL, (char *)bpy_bmloop_link_loop_radial_prev_doc, NULL},
 
 	/* readonly checks */
 	{(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
