@@ -546,7 +546,7 @@ static PyObject *bpy_bmloop_link_loop_prev_get(BPy_BMLoop *self)
 
 /* note: use for bmvert/edge/face/loop seq's use these, not bmelemseq directly */
 PyDoc_STRVAR(bpy_bmelemseq_layers_doc,
-"blah blah (read-only).\n\n:type: :class:`BMLayerAccess`"
+"custom-data layers (read-only).\n\n:type: :class:`BMLayerAccess`"
 );
 static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self, void *htype)
 {
