@@ -158,9 +158,6 @@ PyObject *BPy_BMIter_CreatePyObject(BMesh *bm);
 
 PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele); /* just checks type and creates v/e/f/l */
 
-int  bpy_bm_generic_valid_check(BPy_BMGeneric *self);
-void bpy_bm_generic_invalidate(BPy_BMGeneric *self);
-
 void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_ssize_t max, Py_ssize_t *r_size,
                                 const char htype,
                                 const char do_unique_check, const char do_bm_check,
@@ -171,9 +168,20 @@ int       BPy_BMElem_CheckHType(PyTypeObject *type, const char htype);
 char     *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32]);
 char     *BPy_BMElem_StringFromHType(const char htype);
 
+void bpy_bm_generic_invalidate(BPy_BMGeneric *self);
+int  bpy_bm_generic_valid_check(BPy_BMGeneric *self);
+int  bpy_bm_generic_valid_check_source(BPy_BMGeneric *self, BMesh *bm_source, const char *error_prefix);
 
-#define BPY_BM_CHECK_OBJ(obj) if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return NULL; } (void)0
-#define BPY_BM_CHECK_INT(obj) if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return -1; }   (void)0
+#define BPY_BM_CHECK_OBJ(obj) \
+	if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return NULL; } (void)0
+#define BPY_BM_CHECK_INT(obj) \
+	if (UNLIKELY(bpy_bm_generic_valid_check((BPy_BMGeneric *)obj) == -1)) { return -1; }   (void)0
+
+/* macros like BPY_BM_CHECK_OBJ/BPY_BM_CHECK_INT that ensure we're from the right BMesh */
+#define BPY_BM_CHECK_SOURCE_OBJ(obj, bm, errmsg) \
+	if (UNLIKELY(bpy_bm_generic_valid_check_source((BPy_BMGeneric *)obj, bm, errmsg) == -1)) { return NULL; } (void)0
+#define BPY_BM_CHECK_SOURCE_INT(obj, bm, errmsg) \
+	if (UNLIKELY(bpy_bm_generic_valid_check_source((BPy_BMGeneric *)obj, bm, errmsg) == -1)) { return -1; }   (void)0
 
 #define BPY_BM_IS_VALID(obj) (LIKELY((obj)->bm != NULL))
 

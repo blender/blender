@@ -582,17 +582,10 @@ static int bpy_bmfaceseq_active_set(BPy_BMElem *self, PyObject *value, void *UNU
 		return 0;
 	}
 	else if (BPy_BMFace_Check(value)) {
-		BPY_BM_CHECK_INT(value);
+		BPY_BM_CHECK_SOURCE_INT(value, bm, "faces.active = f");
 
-		if (((BPy_BMFace *)value)->bm != bm) {
-			PyErr_SetString(PyExc_ValueError,
-			                "faces.active = f: f is from another mesh");
-			return -1;
-		}
-		else {
-			bm->act_face = ((BPy_BMFace *)value)->f;
-			return 0;
-		}
+		bm->act_face = ((BPy_BMFace *)value)->f;
+		return 0;
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
@@ -1281,13 +1274,7 @@ static PyObject *bpy_bmvert_copy_from_face_interp(BPy_BMVert *self, PyObject *ar
 	else {
 		BMesh *bm = self->bm;
 
-		BPY_BM_CHECK_OBJ(py_face);
-
-		if (py_face->bm != bm) {
-			PyErr_SetString(PyExc_ValueError,
-			                "BMVert.copy_from_face_interp(face): face is from another mesh");
-			return NULL;
-		}
+		BPY_BM_CHECK_SOURCE_OBJ(py_face, bm, "copy_from_face_interp()");
 
 		BM_vert_interp_from_face(bm, self->v, py_face->f);
 
@@ -1421,13 +1408,7 @@ static PyObject *bpy_bmedge_other_vert(BPy_BMEdge *self, BPy_BMVert *value)
 		return NULL;
 	}
 
-	BPY_BM_CHECK_OBJ(value);
-
-	if (self->bm != value->bm) {
-		PyErr_SetString(PyExc_ValueError,
-		                "BMEdge.other_vert(vert): vert is from another mesh");
-		return NULL;
-	}
+	BPY_BM_CHECK_SOURCE_OBJ(value, self->bm, "BMEdge.other_vert(vert)");
 
 	other = BM_edge_other_vert(self->e, value->v);
 
@@ -1481,13 +1462,7 @@ static PyObject *bpy_bmface_copy_from_face_interp(BPy_BMFace *self, PyObject *ar
 	else {
 		BMesh *bm = self->bm;
 
-		BPY_BM_CHECK_OBJ(py_face);
-
-		if (py_face->bm != bm) {
-			PyErr_SetString(PyExc_ValueError,
-			                "BMFace.copy_from_face_interp(face): face is from another mesh");
-			return NULL;
-		}
+		BPY_BM_CHECK_SOURCE_OBJ(py_face, bm, "BMFace.copy_from_face_interp(face)");
 
 		BM_face_interp_from_face(bm, self->f, py_face->f);
 
@@ -1653,13 +1628,7 @@ static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *ar
 	else {
 		BMesh *bm = self->bm;
 
-		BPY_BM_CHECK_OBJ(py_face);
-
-		if (py_face->bm != bm) {
-			PyErr_SetString(PyExc_ValueError,
-			                "BMLoop.copy_from_face_interp(face): face is from another mesh");
-			return NULL;
-		}
+		BPY_BM_CHECK_SOURCE_OBJ(py_face, bm, "BMLoop.copy_from_face_interp(face)");
 
 		BM_loop_interp_from_face(bm, self->l, py_face->f, do_vertex, do_multires);
 
@@ -1955,13 +1924,7 @@ static PyObject *bpy_bmvertseq_remove(BPy_BMElemSeq *self, BPy_BMVert *value)
 	else {
 		BMesh *bm = self->bm;
 
-		BPY_BM_CHECK_OBJ(value);
-
-		if (value->bm != bm) {
-			PyErr_SetString(PyExc_ValueError,
-			                "verts.remove(vert): vert is from another mesh");
-			return NULL;
-		}
+		BPY_BM_CHECK_SOURCE_OBJ(value, bm, "verts.remove(vert)");
 
 		BM_vert_kill(bm, value->v);
 		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
@@ -1985,13 +1948,7 @@ static PyObject *bpy_bmedgeseq_remove(BPy_BMElemSeq *self, BPy_BMEdge *value)
 	else {
 		BMesh *bm = self->bm;
 
-		BPY_BM_CHECK_OBJ(value);
-
-		if (value->bm != bm) {
-			PyErr_SetString(PyExc_ValueError,
-			                "edges.remove(edge): edge is from another mesh");
-			return NULL;
-		}
+		BPY_BM_CHECK_SOURCE_OBJ(value, bm, "edges.remove(edges)");
 
 		BM_edge_kill(bm, value->e);
 		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
@@ -2015,13 +1972,7 @@ static PyObject *bpy_bmfaceseq_remove(BPy_BMElemSeq *self, BPy_BMFace *value)
 	else {
 		BMesh *bm = self->bm;
 
-		BPY_BM_CHECK_OBJ(value);
-
-		if (value->bm != bm) {
-			PyErr_SetString(PyExc_ValueError,
-			                "faces.remove(face): face is from another mesh");
-			return NULL;
-		}
+		BPY_BM_CHECK_SOURCE_OBJ(value, bm, "faces.remove(face)");
 
 		BM_face_kill(bm, value->f);
 		bpy_bm_generic_invalidate((BPy_BMGeneric *)value);
@@ -3448,6 +3399,21 @@ int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 		             Py_TYPE(self)->tp_name);
 		return -1;
 	}
+}
+
+int bpy_bm_generic_valid_check_source(BPy_BMGeneric *self, BMesh *bm_source, const char *error_prefix)
+{
+	int ret = bpy_bm_generic_valid_check(self);
+	if (LIKELY(ret == 0)) {
+		if (UNLIKELY(self->bm != bm_source)) {
+			/* could give more info here */
+			PyErr_Format(PyExc_ValueError,
+			             "%.200s: BMesh data of type %.200s is from another mesh",
+			             error_prefix, Py_TYPE(self)->tp_name);
+			ret = -1;
+		}
+	}
+	return ret;
 }
 
 void bpy_bm_generic_invalidate(BPy_BMGeneric *self)
