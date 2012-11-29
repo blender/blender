@@ -121,7 +121,7 @@ bool	KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode,short val)
 	// only process it, if it's a key
 	if (kxevent > KX_BEGINMOUSE && kxevent < KX_ENDMOUSEBUTTONS)
 	{
-		if (val == KM_PRESS)
+		if (val == KM_PRESS || val == KM_DBL_CLICK)
 		{
 			m_eventStatusTables[m_currentTable][kxevent].m_eventval = val ; //???
 
