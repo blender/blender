@@ -271,6 +271,9 @@ mark_as_advanced(WITH_ASSERT_ABORT)
 
 
 if(APPLE)
+	cmake_minimum_required(VERSION 2.8.8)
+	cmake_policy(VERSION 2.8.8)
+
 	if(NOT CMAKE_OSX_ARCHITECTURES)
 		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
 		"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
