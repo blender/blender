@@ -365,13 +365,19 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 }
 
 /* Like offset_meet, but here f1 and f2 must not be NULL and give the
- * planes in which to run the offset lines.  They may not meet exactly,
- * but the line intersection routine will find the closest approach point. */
-static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
-                                 BMFace *f1, BMFace *f2, float meetco[3])
+ * planes in which to run the offset lines.
+ * They may not meet exactly: the offsets for the edges may be different
+ * or both the planes and the lines may be angled so that they can't meet.
+ * In that case, pick a close point on emid, which should be the dividing
+ * edge between the two planes.
+ * TODO: should have a global 'offset consistency' prepass to adjust offset
+ * widths so that all edges have the same offset at both ends. */
+static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
+                                 BMVert *v, BMFace *f1, BMFace *f2, float meetco[3])
 {
 	float dir1[3], dir2[3], norm_perp1[3], norm_perp2[3],
-	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3];
+	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], co[3];
+	int iret;
 
 	BLI_assert(f1 != NULL && f2 != NULL);
 
@@ -397,9 +403,21 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
 		/* lines are parallel; off1a is a good meet point */
 		copy_v3_v3(meetco, off1a);
 	}
-	else if (!isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2)) {
-		/* another test says they are parallel */
-		copy_v3_v3(meetco, off1a);
+	else {
+		iret =isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
+		if (iret == 0) {
+			/* lines colinear: another test says they are parallel. so shouldn't happen */
+			copy_v3_v3(meetco, off1a);
+		}
+		else if (iret == 2) {
+			/* lines are not coplanar; meetco and isect2 are nearest to first and second lines */
+			if (len_v3v3(meetco, isect2) > 100.0f * (float)BEVEL_EPSILON) {
+				/* offset lines don't meet: project average onto emid; this is not ideal (see TODO above) */
+				mid_v3_v3v3(co, meetco, isect2);
+				closest_to_line_v3(meetco, co, v->co, BM_edge_other_vert(emid->e, v)->co);
+			}
+		}
+		/* else iret == 1 and the lines are coplanar so meetco has the intersection */
 	}
 }
 
@@ -753,8 +771,7 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 				if (e->prev->prev->is_bev) {
 					BLI_assert(e->prev->prev != e); /* see: edgecount 2, selcount 1 case */
 					/* find meet point between e->prev->prev and e and attach e->prev there */
-					/* TODO: fix case when one or both faces in following are NULL */
-					offset_in_two_planes(e->prev->prev, e, bv->v,
+					offset_in_two_planes(e->prev->prev, e, e->prev, bv->v,
 					                     e->prev->prev->fnext, e->fprev, co);
 					v = add_new_bound_vert(mem_arena, vm, co);
 					v->efirst = e->prev->prev;
