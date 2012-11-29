@@ -246,18 +246,30 @@ static void transform_decompose(Transform *decomp, const Transform *tfm)
 	decomp->w = make_float4(scale.y.z, scale.z.x, scale.z.y, scale.z.z);
 }
 
-void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion, const Transform *mid)
+void transform_motion_decompose(DecompMotionTransform *decomp, const MotionTransform *motion, const Transform *mid)
 {
-	transform_decompose(&decomp->pre, &motion->pre);
+	Transform pre, post;
+
+	transform_decompose(&pre, &motion->pre);
 	transform_decompose(&decomp->mid, mid);
-	transform_decompose(&decomp->post, &motion->post);
+	transform_decompose(&post, &motion->post);
 
 	/* ensure rotation around shortest angle, negated quaternions are the same
 	 * but this means we don't have to do the check in quat_interpolate */
-	if(dot(decomp->mid.x, decomp->post.x) < 0.0f)
+	if(dot(decomp->mid.x, post.x) < 0.0f)
 		decomp->mid.x = -decomp->mid.x;
-	if(dot(decomp->pre.x, decomp->mid.x) < 0.0f)
-		decomp->pre.x = -decomp->pre.x;
+	if(dot(pre.x, decomp->mid.x) < 0.0f)
+		pre.x = -pre.x;
+	
+	/* drop scale of pre/post */
+	pre.y.w = decomp->mid.y.w;
+	post.y.w = decomp->mid.y.w;
+
+	/* store translation/rotation part of pre/post */
+	decomp->pre_x = pre.x;
+	decomp->pre_y = pre.y;
+	decomp->post_x = post.x;
+	decomp->post_y = post.y;
 }
 
 CCL_NAMESPACE_END

@@ -65,7 +65,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
-		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+		transform_motion_interpolate(&cameratoworld, (const DecompMotionTransform*)&kernel_data.cam.motion, ray->time);
 #endif
 
 	ray->P = transform_point(&cameratoworld, ray->P);
@@ -108,7 +108,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
-		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+		transform_motion_interpolate(&cameratoworld, (const DecompMotionTransform*)&kernel_data.cam.motion, ray->time);
 #endif
 
 	ray->P = transform_point(&cameratoworld, ray->P);
@@ -182,7 +182,7 @@ __device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float ra
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
-		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+		transform_motion_interpolate(&cameratoworld, (const DecompMotionTransform*)&kernel_data.cam.motion, ray->time);
 #endif
 
 	ray->P = transform_point(&cameratoworld, ray->P);
