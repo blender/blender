@@ -43,6 +43,9 @@ void MapRangeOperation::initExecution()
 	this->m_destMaxOperation = this->getInputSocketReader(4);
 }
 
+/* The code below assumes all data is inside range +- this, and that input buffer is single channel */
+#define BLENDER_ZMAX 10000.0f
+
 void MapRangeOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputs[8]; /* includes the 5 inputs + 3 pads */
@@ -61,9 +64,15 @@ void MapRangeOperation::executePixel(float output[4], float x, float y, PixelSam
 	source_max = inputs[2];
 	dest_min = inputs[3];
 	dest_max = inputs[4];
-	
-	value = (value - source_min) / (source_max - source_min);
-	value = dest_min + value * (dest_max - dest_min);
+
+	if (value >= -BLENDER_ZMAX && value <= BLENDER_ZMAX) {
+		value = (value - source_min) / (source_max - source_min);
+		value = dest_min + value * (dest_max - dest_min);
+	}
+	else if (value > BLENDER_ZMAX)
+		value = dest_max;
+	else
+		value = dest_min;
 
 	if (this->m_useClamp) {
 		if (dest_max > dest_min) {
