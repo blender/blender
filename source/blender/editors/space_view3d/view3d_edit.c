@@ -2224,6 +2224,8 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 		/* fix up zoom distance if needed */
 
 		if (rv3d->is_persp) {
+			/* offset the view based on the lens */
+			size = ED_view3d_dist_from_radius(v3d, size / 2.0f);
 			if (size <= v3d->near * 1.5f) {
 				/* do not zoom closer than the near clipping plane */
 				size = v3d->near * 1.5f;

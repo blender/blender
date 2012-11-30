@@ -1511,13 +1511,20 @@ static void UNUSED_FUNCTION(view3d_align_axis_to_vector)(View3D *v3d, RegionView
 	}
 }
 
-float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3])
+float ED_view3d_pixel_size(RegionView3D *rv3d, const float co[3])
 {
 	return (rv3d->persmat[3][3] + (
 	            rv3d->persmat[0][3] * co[0] +
 	            rv3d->persmat[1][3] * co[1] +
 	            rv3d->persmat[2][3] * co[2])
 	        ) * rv3d->pixsize;
+}
+
+/* use for perspective view only */
+float ED_view3d_dist_from_radius(View3D *v3d, const float radius)
+{
+	const float angle  = (((float)M_PI) - focallength_to_fov(v3d->lens, DEFAULT_SENSOR_WIDTH));
+	return radius * fabsf(1.0f / cosf(angle / 2.0f));
 }
 
 /* view matrix properties utilities */
