@@ -2154,8 +2154,6 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_reroute(ttype);
 	
 	register_node_type_cmp_group(ttype);
-//	register_node_type_cmp_forloop(ttype);
-//	register_node_type_cmp_whileloop(ttype);
 	
 	register_node_type_cmp_rlayers(ttype);
 	register_node_type_cmp_image(ttype);
@@ -2256,8 +2254,6 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_reroute(ttype);
 	
 	register_node_type_sh_group(ttype);
-	//register_node_type_sh_forloop(ttype);
-	//register_node_type_sh_whileloop(ttype);
 
 	register_node_type_sh_output(ttype);
 	register_node_type_sh_material(ttype);
@@ -2338,8 +2334,6 @@ static void registerTextureNodes(bNodeTreeType *ttype)
 	register_node_type_reroute(ttype);
 	
 	register_node_type_tex_group(ttype);
-//	register_node_type_tex_forloop(ttype);
-//	register_node_type_tex_whileloop(ttype);
 	
 	register_node_type_tex_math(ttype);
 	register_node_type_tex_mix_rgb(ttype);

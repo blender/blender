@@ -41,8 +41,6 @@ extern struct bNodeTreeType ntreeType_Shader;
 /* ****************** types array for all shaders ****************** */
 
 void register_node_type_sh_group(struct bNodeTreeType *ttype);
-void register_node_type_sh_forloop(struct bNodeTreeType *ttype);
-void register_node_type_sh_whileloop(struct bNodeTreeType *ttype);
 
 void register_node_type_sh_output(struct bNodeTreeType *ttype);
 void register_node_type_sh_material(struct bNodeTreeType *ttype);
