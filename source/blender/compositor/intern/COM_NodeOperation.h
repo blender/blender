@@ -77,7 +77,7 @@ private:
 	ThreadMutex m_mutex;
 	
 	/**
-	 * @brief reference to the editing bNodeTree only used for break callback
+	 * @brief reference to the editing bNodeTree, used for break and update callback
 	 */
 	const bNodeTree *m_btree;
 
@@ -247,6 +247,9 @@ public:
 		return this->m_btree->test_break(this->m_btree->tbh);
 	}
 
+	inline void updateDraw() {
+		this->m_btree->update_draw(this->m_btree->udh);
+	}
 protected:
 	NodeOperation();
 

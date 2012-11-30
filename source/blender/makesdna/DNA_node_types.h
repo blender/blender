@@ -294,7 +294,8 @@ typedef struct bNodeTree {
 	void (*progress)(void *, float progress);
 	void (*stats_draw)(void *, char *str);
 	int (*test_break)(void *);
-	void *tbh, *prh, *sdh;
+	void (*update_draw)(void *);
+	void *tbh, *prh, *sdh, *udh;
 	
 } bNodeTree;
 

@@ -352,7 +352,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 				startEvaluated = true;
 				numberEvaluated++;
 
-				WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
+				bTree->update_draw(bTree->udh);
 			}
 			else if (state == COM_ES_SCHEDULED) {
 				finished = false;
