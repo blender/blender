@@ -427,17 +427,17 @@ static void brightcontrast_apply_threaded(int width, int height, unsigned char *
 				unsigned char *pixel = rect + pixel_index;
 
 				for (c = 0; c < 3; c++) {
-					i = pixel[c];
+					i = (float) pixel[c] / 255.0f;
 					v = a * i + b;
 
 					if (mask_rect) {
 						unsigned char *m = mask_rect + pixel_index;
 						float t = (float) m[c] / 255.0f;
 
-						pixel[c] = pixel[c] * (1.0f - t) + v * t;
+						v = (float) pixel[c] * (1.0f - t) + v * t;
 					}
-					else
-						pixel[c] = v;
+
+					pixel[c] = FTOCHAR(v);
 				}
 			}
 			else if (rect_float) {
