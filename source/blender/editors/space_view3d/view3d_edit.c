@@ -2240,10 +2240,8 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 			}
 			size = ED_view3d_dist_from_radius(focallength_to_fov(lens, sensor_size), size / 2.0f);
 
-			if (size <= v3d->near * 1.5f) {
-				/* do not zoom closer than the near clipping plane */
-				size = v3d->near * 1.5f;
-			}
+			/* do not zoom closer than the near clipping plane */
+			size = max_ff(size, v3d->near * 1.5f);
 		}
 		else { /* ortho */
 			if (size < 0.0001f) {

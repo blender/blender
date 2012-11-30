@@ -1028,7 +1028,8 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 {
 	View3D *v3d = sa->spacedata.first;
 	Base *base;
-	float size = 0.0, min[3], max[3], box[3];
+	float min[3], max[3], box[3];
+	float size = 0.0, size_persp;
 	unsigned int locallay;
 	int ok = FALSE;
 
@@ -1068,7 +1069,12 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 		box[1] = (max[1] - min[1]);
 		box[2] = (max[2] - min[2]);
 		size = MAX3(box[0], box[1], box[2]);
-		if (size <= 0.01f) size = 0.01f;
+
+		/* do not zoom closer than the near clipping plane */
+		size = max_ff(size, v3d->near * 1.5f);
+
+		/* perspective size (we always switch out of camera view so no need to use its lens size) */
+		size_persp = ED_view3d_dist_from_radius(focallength_to_fov(v3d->lens, DEFAULT_SENSOR_WIDTH), size / 2.0f);
 	}
 	
 	if (ok == TRUE) {
@@ -1085,14 +1091,20 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 				rv3d->localvd = MEM_mallocN(sizeof(RegionView3D), "localview region");
 				memcpy(rv3d->localvd, rv3d, sizeof(RegionView3D));
 				
-				rv3d->ofs[0] = -(min[0] + max[0]) / 2.0f;
-				rv3d->ofs[1] = -(min[1] + max[1]) / 2.0f;
-				rv3d->ofs[2] = -(min[2] + max[2]) / 2.0f;
+				mid_v3_v3v3(v3d->cursor, min, max);
+				negate_v3_v3(rv3d->ofs, v3d->cursor);
 
-				rv3d->dist = size;
+				if (rv3d->persp == RV3D_CAMOB) {
+					rv3d->persp = RV3D_PERSP;
+				}
+
 				/* perspective should be a bit farther away to look nice */
-				if (rv3d->persp == RV3D_ORTHO)
-					rv3d->dist *= 0.7f;
+				if (rv3d->persp != RV3D_ORTHO) {
+					rv3d->dist = size_persp;
+				}
+				else {
+					rv3d->dist = size * 0.7f;
+				}
 
 				/* correction for window aspect ratio */
 				if (ar->winy > 2 && ar->winx > 2) {
@@ -1100,12 +1112,6 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 					if (asp < 1.0f) asp = 1.0f / asp;
 					rv3d->dist *= asp;
 				}
-				
-				if (rv3d->persp == RV3D_CAMOB) rv3d->persp = RV3D_PERSP;
-				
-				v3d->cursor[0] = -rv3d->ofs[0];
-				v3d->cursor[1] = -rv3d->ofs[1];
-				v3d->cursor[2] = -rv3d->ofs[2];
 			}
 		}
 		
