@@ -1624,6 +1624,9 @@ HoldoutNode::HoldoutNode()
 
 void HoldoutNode::compile(SVMCompiler& compiler)
 {
+	float3 value = make_float3(1.0f, 1.0f, 1.0f);
+
+	compiler.add_node(NODE_CLOSURE_SET_WEIGHT, value);
 	compiler.add_node(NODE_CLOSURE_HOLDOUT, compiler.closure_mix_weight_offset());
 }
 
