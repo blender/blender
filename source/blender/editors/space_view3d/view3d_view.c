@@ -1029,7 +1029,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 	View3D *v3d = sa->spacedata.first;
 	Base *base;
 	float min[3], max[3], box[3];
-	float size = 0.0, size_persp;
+	float size = 0.0f, size_persp = 0.0f, size_ortho = 0.0f;
 	unsigned int locallay;
 	int ok = FALSE;
 
@@ -1074,7 +1074,8 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 		size = max_ff(size, v3d->near * 1.5f);
 
 		/* perspective size (we always switch out of camera view so no need to use its lens size) */
-		size_persp = ED_view3d_dist_from_radius(focallength_to_fov(v3d->lens, DEFAULT_SENSOR_WIDTH), size / 2.0f);
+		size_persp = ED_view3d_radius_to_persp_dist(focallength_to_fov(v3d->lens, DEFAULT_SENSOR_WIDTH), size / 2.0f);
+		size_ortho = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f);
 	}
 	
 	if (ok == TRUE) {
@@ -1103,7 +1104,7 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 					rv3d->dist = size_persp;
 				}
 				else {
-					rv3d->dist = size * 0.7f;
+					rv3d->dist = size_ortho;
 				}
 
 				/* correction for window aspect ratio */
@@ -1526,10 +1527,14 @@ float ED_view3d_pixel_size(RegionView3D *rv3d, const float co[3])
 	        ) * rv3d->pixsize;
 }
 
-/* use for perspective view only */
-float ED_view3d_dist_from_radius(const float angle, const float radius)
+float ED_view3d_radius_to_persp_dist(const float angle, const float radius)
 {
-	return radius * fabsf(1.0f / cosf((((float)M_PI) - angle) / 2.0f));
+	return (radius / 2.0f) * fabsf(1.0f / cosf((((float)M_PI) - angle) / 2.0f));
+}
+
+float ED_view3d_radius_to_ortho_dist(const float lens, const float radius)
+{
+	return radius / (DEFAULT_SENSOR_WIDTH / lens);
 }
 
 /* view matrix properties utilities */
