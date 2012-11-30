@@ -138,6 +138,7 @@ void OSLShaderManager::texture_system_init()
 	ts = TextureSystem::create(true);
 	ts->attribute("automip",  1);
 	ts->attribute("autotile", 64);
+	ts->attribute("gray_to_rgb", 1);
 
 	/* effectively unlimited for now, until we support proper mipmap lookups */
 	ts->attribute("max_memory_MB", 16384);
