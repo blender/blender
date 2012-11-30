@@ -1521,10 +1521,9 @@ float ED_view3d_pixel_size(RegionView3D *rv3d, const float co[3])
 }
 
 /* use for perspective view only */
-float ED_view3d_dist_from_radius(View3D *v3d, const float radius)
+float ED_view3d_dist_from_radius(const float angle, const float radius)
 {
-	const float angle  = (((float)M_PI) - focallength_to_fov(v3d->lens, DEFAULT_SENSOR_WIDTH));
-	return radius * fabsf(1.0f / cosf(angle / 2.0f));
+	return radius * fabsf(1.0f / cosf((((float)M_PI) - angle) / 2.0f));
 }
 
 /* view matrix properties utilities */

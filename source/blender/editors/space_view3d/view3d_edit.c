@@ -2224,8 +2224,22 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 		/* fix up zoom distance if needed */
 
 		if (rv3d->is_persp) {
+			float lens, sensor_size;
 			/* offset the view based on the lens */
-			size = ED_view3d_dist_from_radius(v3d, size / 2.0f);
+			if (rv3d->persp == RV3D_CAMOB && ED_view3d_camera_lock_check(v3d, rv3d)) {
+				CameraParams params;
+				BKE_camera_params_init(&params);
+				BKE_camera_params_from_object(&params, v3d->camera);
+
+				lens = params.lens;
+				sensor_size = BKE_camera_sensor_size(params.sensor_fit, params.sensor_x, params.sensor_y);
+			}
+			else {
+				lens = v3d->lens;
+				sensor_size = DEFAULT_SENSOR_WIDTH;
+			}
+			size = ED_view3d_dist_from_radius(focallength_to_fov(lens, sensor_size), size / 2.0f);
+
 			if (size <= v3d->near * 1.5f) {
 				/* do not zoom closer than the near clipping plane */
 				size = v3d->near * 1.5f;
