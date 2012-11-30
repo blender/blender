@@ -248,7 +248,8 @@ public:
 	}
 
 	inline void updateDraw() {
-		this->m_btree->update_draw(this->m_btree->udh);
+		if (this->m_btree->update_draw)
+			this->m_btree->update_draw(this->m_btree->udh);
 	}
 protected:
 	NodeOperation();

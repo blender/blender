@@ -352,7 +352,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 				startEvaluated = true;
 				numberEvaluated++;
 
-				bTree->update_draw(bTree->udh);
+				if (bTree->update_draw)
+					bTree->update_draw(bTree->udh);
 			}
 			else if (state == COM_ES_SCHEDULED) {
 				finished = false;
