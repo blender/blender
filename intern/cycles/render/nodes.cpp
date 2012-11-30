@@ -1124,6 +1124,8 @@ ConvertNode::ConvertNode(ShaderSocketType from_, ShaderSocketType to_)
 		add_input("Point", SHADER_SOCKET_POINT);
 	else if(from == SHADER_SOCKET_NORMAL)
 		add_input("Normal", SHADER_SOCKET_NORMAL);
+	else if(from == SHADER_SOCKET_STRING)
+		add_input("String", SHADER_SOCKET_STRING);
 	else
 		assert(0);
 
@@ -1139,6 +1141,8 @@ ConvertNode::ConvertNode(ShaderSocketType from_, ShaderSocketType to_)
 		add_output("Point", SHADER_SOCKET_POINT);
 	else if(to == SHADER_SOCKET_NORMAL)
 		add_output("Normal", SHADER_SOCKET_NORMAL);
+	else if(to == SHADER_SOCKET_STRING)
+		add_output("String", SHADER_SOCKET_STRING);
 	else
 		assert(0);
 }
