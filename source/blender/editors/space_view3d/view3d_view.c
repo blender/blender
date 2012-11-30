@@ -323,8 +323,14 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	
 	if (rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
-	
+
+	/* note: this doesn't work right because the v3d->lens is now used in ortho mode r51636,
+	 * when switching camera in quad-view the other ortho views would zoom & reset. */
+#if 0
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+#else
+	ED_region_tag_redraw(CTX_wm_region(C));
+#endif
 	
 	return OPERATOR_FINISHED;
 }
