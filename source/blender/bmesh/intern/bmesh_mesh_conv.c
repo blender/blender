@@ -220,10 +220,10 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		normal_short_to_float_v3(v->no, mvert->no);
 
-		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
-
-		/* Copy Custom Dat */
+		/* Copy Custom Data */
 		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
+
+		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
 
 		/* set shapekey data */
 		if (me->key) {
