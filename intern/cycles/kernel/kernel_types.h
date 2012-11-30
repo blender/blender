@@ -102,6 +102,7 @@ CCL_NAMESPACE_BEGIN
 #define __IMAGE_TEXTURES__
 #define __EXTRA_NODES__
 #define __HOLDOUT__
+#define __NORMAL_MAP__
 #endif
 
 #ifdef __KERNEL_ADV_SHADING__

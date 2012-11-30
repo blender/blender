@@ -28,9 +28,9 @@ __device_noinline float brick_noise(int n) /* fast integer noise */
 	return 0.5f * ((float)nn / 1073741824.0f);
 }
 
-__device_noinline float svm_brick(float3 p, float scale, float mortar_size, float bias,
+__device_noinline float2 svm_brick(float3 p, float scale, float mortar_size, float bias,
 	float brick_width, float row_height, float offset_amount, int offset_frequency,
-	float squash_amount, int squash_frequency, float *tint)
+	float squash_amount, int squash_frequency)
 {	
 	p *= scale;
 
@@ -50,11 +50,12 @@ __device_noinline float svm_brick(float3 p, float scale, float mortar_size, floa
 	x = (p.x+offset) - brick_width*bricknum;
 	y = p.y - row_height*rownum;
 
-	*tint = clamp((brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias), 0.0f, 1.0f);
+	return make_float2(
+		clamp((brick_noise((rownum << 16) + (bricknum & 0xFFFF)) + bias), 0.0f, 1.0f),
 
-	return (x < mortar_size || y < mortar_size ||
+		(x < mortar_size || y < mortar_size ||
 		x > (brick_width - mortar_size) ||
-		y > (row_height - mortar_size)) ? 1.0f : 0.0f;
+		y > (row_height - mortar_size)) ? 1.0f : 0.0f);
 }
 
 __device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
@@ -70,8 +71,6 @@ __device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *stack
 	/* RNA properties */
 	uint offset_frequency, squash_frequency;
 	
-	float tint = 0.0f;
-
 	decode_node_uchar4(node.y, &co_offset, &color1_offset, &color2_offset, &mortar_offset);
 	decode_node_uchar4(node.z, &scale_offset, &mortar_size_offset, &bias_offset, &brick_width_offset);
 	decode_node_uchar4(node.w, &row_height_offset, &color_offset, &fac_offset, NULL);
@@ -92,9 +91,11 @@ __device void svm_node_tex_brick(KernelGlobals *kg, ShaderData *sd, float *stack
 	float offset_amount = __int_as_float(node3.z);
 	float squash_amount = __int_as_float(node3.w);
 	
-	float f = svm_brick(co, scale, mortar_size, bias, brick_width, row_height,
-		offset_amount, offset_frequency, squash_amount, squash_frequency,
-		&tint);
+	float2 f2 = svm_brick(co, scale, mortar_size, bias, brick_width, row_height,
+		offset_amount, offset_frequency, squash_amount, squash_frequency);
+
+	float tint = f2.x;
+	float f = f2.y;
 	
 	if(f != 1.0f) {
 		float facm = 1.0f - tint;
