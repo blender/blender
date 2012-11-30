@@ -1080,8 +1080,8 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 		size = max_ff(size, v3d->near * 1.5f);
 
 		/* perspective size (we always switch out of camera view so no need to use its lens size) */
-		size_persp = ED_view3d_radius_to_persp_dist(focallength_to_fov(v3d->lens, DEFAULT_SENSOR_WIDTH), size / 2.0f);
-		size_ortho = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f);
+		size_persp = ED_view3d_radius_to_persp_dist(focallength_to_fov(v3d->lens, DEFAULT_SENSOR_WIDTH), size / 2.0f) * VIEW3D_MARGIN;
+		size_ortho = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f) * VIEW3D_MARGIN;
 	}
 	
 	if (ok == TRUE) {

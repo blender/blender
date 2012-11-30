@@ -2238,7 +2238,7 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 				lens = v3d->lens;
 				sensor_size = DEFAULT_SENSOR_WIDTH;
 			}
-			size = ED_view3d_radius_to_persp_dist(focallength_to_fov(lens, sensor_size), size / 2.0f);
+			size = ED_view3d_radius_to_persp_dist(focallength_to_fov(lens, sensor_size), size / 2.0f) * VIEW3D_MARGIN;
 
 			/* do not zoom closer than the near clipping plane */
 			size = max_ff(size, v3d->near * 1.5f);
@@ -2250,7 +2250,7 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 			}
 			else {
 				/* adjust zoom so it looks nicer */
-				size = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f);
+				size = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f) * VIEW3D_MARGIN;
 			}
 		}
 	}
