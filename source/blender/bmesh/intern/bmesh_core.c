@@ -1049,7 +1049,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 	}
 
 	/* create region face */
-	newf = BM_face_create_ngon(bm, v1, v2, edges, tote, 0);
+	newf = tote ? BM_face_create_ngon(bm, v1, v2, edges, tote, 0) : NULL;
 	if (UNLIKELY(!newf || BMO_error_occurred(bm))) {
 		if (!BMO_error_occurred(bm))
 			err = N_("Invalid boundary region to join faces");
@@ -1239,7 +1239,7 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	}
 
 	/* allocate new edge between v1 and v2 */
-	e = BM_edge_create(bm, v1, v2, example, nodouble);
+	e = BM_edge_create(bm, v1, v2, example, nodouble ? BM_CREATE_NO_DOUBLE : 0);
 
 	f2 = bm_face_create__sfme(bm, f);
 	f1loop = bm_loop_create(bm, v2, e, f, v2loop, 0);

@@ -142,9 +142,10 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 			return FALSE;
 		}
 #else
-		BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
-
-		if (!BM_vert_collapse_faces(bm, v->e, v, 1.0, FALSE, TRUE)) {
+		if (UNLIKELY(!BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE))) {
+			return FALSE;
+		}
+		else if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, FALSE, TRUE))) {
 			return FALSE;
 		}
 #endif
