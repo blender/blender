@@ -43,6 +43,12 @@ void NormalizeOperation::executePixel(float output[4], int x, int y, void *data)
 	this->m_imageReader->read(output, x, y, NULL);
 
 	output[0] = (output[0] - minmult->x) * minmult->y;
+
+	/* clamp infinities */
+	if (output[0] > 1.0f)
+		output[0] = 1.0f;
+	else if (output[0] < 0.0f)
+		output[0] = 0.0f;
 }
 
 void NormalizeOperation::deinitExecution()
