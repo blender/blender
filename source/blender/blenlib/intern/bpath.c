@@ -500,7 +500,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			Material *ma = (Material *)id;
 			bNodeTree *ntree = ma->nodetree;
 
-			if(ntree) {
+			if (ntree) {
 				bNode *node;
 
 				for (node = ntree->nodes.first; node; node = node->next) {

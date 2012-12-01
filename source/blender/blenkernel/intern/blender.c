@@ -279,7 +279,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	/* this can happen when active scene was lib-linked, and doesn't exist anymore */
 	if (CTX_data_scene(C) == NULL) {
 		/* in case we don't even have a local scene, add one */
-		if(!G.main->scene.first)
+		if (!G.main->scene.first)
 			BKE_scene_add("Scene");
 
 		CTX_data_scene_set(C, G.main->scene.first);
