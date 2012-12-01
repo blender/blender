@@ -431,10 +431,10 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
  * from eh's direction. */
 static void offset_in_plane(EdgeHalf *e, const float plane_no[3], int left, float r[3])
 {
-	float dir[3], no[3];
+	float dir[3], no[3], fdir[3];
 	BMVert *v;
 
-	v = e->is_rev ? e->e->v1 : e->e->v2;
+	v = e->is_rev ? e->e->v2 : e->e->v1;
 
 	sub_v3_v3v3(dir, BM_edge_other_vert(e->e, v)->co, v->co);
 	normalize_v3(dir);
@@ -449,11 +449,12 @@ static void offset_in_plane(EdgeHalf *e, const float plane_no[3], int left, floa
 			no[1] = 1.0f;
 	}
 	if (left)
-		cross_v3_v3v3(r, no, dir);
+		cross_v3_v3v3(fdir, dir, no);
 	else
-		cross_v3_v3v3(r, dir, no);
-	normalize_v3(r);
-	mul_v3_fl(r, e->offset);
+		cross_v3_v3v3(fdir, no, dir);
+	normalize_v3(fdir);
+	copy_v3_v3(r, v->co);
+	madd_v3_v3fl(r, fdir, e->offset);
 }
 
 /* Calculate coordinates of a point a distance d from v on e->e and return it in slideco */
@@ -753,6 +754,7 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 		slide_dist(e->next, bv->v, e->offset, co);
 		v = add_new_bound_vert(mem_arena, vm, co);
 		v->efirst = v->elast = e->next;
+		e->next->leftv = e->next->rightv = v;
 		vm->mesh_kind = M_POLY;
 		return;
 	}
@@ -844,7 +846,6 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 	else {
 		vm->mesh_kind = M_ADJ;
 	}
-	/* TODO: if vm->count == 4 and bv->selcount == 4, use M_CROSS pattern */
 }
 
 /*
