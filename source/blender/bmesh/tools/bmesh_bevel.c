@@ -375,8 +375,9 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
                                  BMVert *v, BMFace *f1, BMFace *f2, float meetco[3])
 {
-	float dir1[3], dir2[3], norm_perp1[3], norm_perp2[3],
-	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], co[3];
+	float dir1[3], dir2[3], dirmid[3], norm_perp1[3], norm_perp2[3],
+	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], co[3],
+	      f1no[3], f2no[3];
 	int iret;
 
 	BLI_assert(f1 != NULL && f2 != NULL);
@@ -384,17 +385,21 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 	/* get direction vectors for two offset lines */
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
 	sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, v)->co, v->co);
+	sub_v3_v3v3(dirmid, BM_edge_other_vert(emid->e, v)->co, v->co);
 
 	/* get directions into offset planes */
-	cross_v3_v3v3(norm_perp1, dir1, f1->no);
+	/* calculate face normals at corner in case faces are nonplanar */
+	cross_v3_v3v3(f1no, dirmid, dir1);
+	cross_v3_v3v3(f2no, dirmid, dir2);
+	cross_v3_v3v3(norm_perp1, dir1, f1no);
 	normalize_v3(norm_perp1);
-	cross_v3_v3v3(norm_perp2, dir2, f2->no);
+	cross_v3_v3v3(norm_perp2, dir2, f2no);
 	normalize_v3(norm_perp2);
 
 	/* get points that are offset distances from each line, then another point on each line */
 	copy_v3_v3(off1a, v->co);
 	madd_v3_v3fl(off1a, norm_perp1, e1->offset);
-	add_v3_v3v3(off1b, off1a, dir1);
+	sub_v3_v3v3(off1b, off1a, dir1);
 	copy_v3_v3(off2a, v->co);
 	madd_v3_v3fl(off2a, norm_perp2, e2->offset);
 	add_v3_v3v3(off2b, off2a, dir2);
@@ -404,7 +409,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 		copy_v3_v3(meetco, off1a);
 	}
 	else {
-		iret =isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
+		iret = isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
 		if (iret == 0) {
 			/* lines colinear: another test says they are parallel. so shouldn't happen */
 			copy_v3_v3(meetco, off1a);
