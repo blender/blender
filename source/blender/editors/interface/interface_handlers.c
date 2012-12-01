@@ -1886,6 +1886,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			retval = WM_UI_HANDLER_BREAK;
 			break;
 		case LEFTMOUSE:
+		case MIDDLEMOUSE:
 		{
 			/* exit on LMB only on RELEASE for searchbox, to mimic other popups, and allow multiple menu levels */
 			if (data->searchbox)
@@ -2249,11 +2250,11 @@ int ui_button_open_menu_direction(uiBut *but)
 static int ui_do_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
 			return WM_UI_HANDLER_BREAK;
 		}
-		else if (event->type == LEFTMOUSE && but->block->handle) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && but->block->handle) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -2263,7 +2264,7 @@ static int ui_do_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data, wmEv
 		}
 	}
 	else if (data->state == BUTTON_STATE_WAIT_RELEASE) {
-		if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			if (!(but->flag & UI_SELECT))
 				data->cancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -2277,7 +2278,7 @@ static int ui_do_but_BUT(bContext *C, uiBut *but, uiHandleButtonData *data, wmEv
 static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+		if (ELEM4(event->type, LEFTMOUSE, MIDDLEMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			but->drawstr[0] = 0;
 			but->modifier_key = 0;
 			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
@@ -2338,7 +2339,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data
 static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+		if (ELEM4(event->type, LEFTMOUSE, MIDDLEMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -2363,7 +2364,7 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, w
 static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN) && event->val == KM_PRESS) {
+		if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, EVT_BUT_OPEN) && event->val == KM_PRESS) {
 			if (but->dt == UI_EMBOSSN && !event->ctrl) {
 				/* pass */
 			}
@@ -2388,7 +2389,7 @@ static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+		if (ELEM4(event->type, LEFTMOUSE, MIDDLEMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			data->togdual = event->ctrl;
 			data->togonly = !event->shift;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -2404,7 +2405,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 
 		/* first handle click on icondrag type button */
-		if (event->type == LEFTMOUSE && but->dragpoin) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && but->dragpoin) {
 			if (ui_but_mouse_inside_icon(but, data->region, event)) {
 				
 				/* tell the button to wait and keep checking further events to
@@ -2416,7 +2417,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 			}
 		}
 		
-		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+		if (ELEM4(event->type, LEFTMOUSE, MIDDLEMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			int ret = WM_UI_HANDLER_BREAK;
 			/* XXX (a bit ugly) Special case handling for filebrowser drag button */
 			if (but->dragpoin && but->imb && ui_but_mouse_inside_icon(but, data->region, event)) {
@@ -2436,7 +2437,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 		/* If the mouse has been pressed and released, getting to 
 		 * this point without triggering a drag, then clear the 
 		 * drag state for this button and continue to pass on the event */
-		if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_RELEASE) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_CONTINUE;
 		}
@@ -2678,11 +2679,11 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			click = 1;
 		}
 		else if (event->val == KM_PRESS) {
-			if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->ctrl) {
+			if (ELEM4(event->type, LEFTMOUSE, MIDDLEMOUSE, PADENTER, RETKEY) && event->ctrl) {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval = WM_UI_HANDLER_BREAK;
 			}
-			else if (event->type == LEFTMOUSE) {
+			else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE)) {
 				data->dragstartx = data->draglastx = ui_is_a_warp_but(but) ? screen_mx : mx;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				retval = WM_UI_HANDLER_BREAK;
@@ -2705,7 +2706,7 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			if (data->dragchange)
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			else
@@ -2902,12 +2903,12 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			click = 2;
 		}
 		else if (event->val == KM_PRESS) {
-			if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->ctrl) {
+			if (ELEM4(event->type, LEFTMOUSE, MIDDLEMOUSE, PADENTER, RETKEY) && event->ctrl) {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 				retval = WM_UI_HANDLER_BREAK;
 			}
 			/* alt-click on sides to get "arrows" like in NUM buttons, and match wheel usage above */
-			else if (event->type == LEFTMOUSE && event->alt) {
+			else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->alt) {
 				int halfpos = BLI_rctf_cent_x(&but->rect);
 				click = 2;
 				if (mx < halfpos)
@@ -2915,7 +2916,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				else
 					mx = but->rect.xmax;
 			}
-			else if (event->type == LEFTMOUSE) {
+			else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE)) {
 				data->dragstartx = mx;
 				data->draglastx = mx;
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
@@ -2938,7 +2939,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			if (data->dragchange)
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			else
@@ -3030,7 +3031,7 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->val == KM_PRESS) {
-			if (event->type == LEFTMOUSE) {
+			if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE)) {
 				if (horizontal) {
 					data->dragstartx = mx;
 					data->draglastx = mx;
@@ -3055,7 +3056,7 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			data->escapecancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		else if (event->type == MOUSEMOVE) {
@@ -3076,7 +3077,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		
 		/* first handle click on icondrag type button */
-		if (event->type == LEFTMOUSE && but->dragpoin && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && but->dragpoin && event->val == KM_PRESS) {
 			if (ui_but_mouse_inside_icon(but, data->region, event)) {
 				button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 				data->dragstartx = event->x;
@@ -3086,7 +3087,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 		}
 		
 		/* regular open menu */
-		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+		if (ELEM4(event->type, LEFTMOUSE, MIDDLEMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -3158,7 +3159,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 			return WM_UI_HANDLER_BREAK;
 		}
 		
-		if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_RELEASE) {
 			button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -3238,7 +3239,7 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -3259,7 +3260,7 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 
@@ -3424,7 +3425,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -3493,7 +3494,7 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		
@@ -3623,7 +3624,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	ui_window_to_block(data->region, block, &mx, &my);
 	
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -3703,7 +3704,7 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		return WM_UI_HANDLER_BREAK;
@@ -3745,7 +3746,7 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			coba = (ColorBand *)but->poin;
 
 			if (event->ctrl) {
@@ -3785,7 +3786,7 @@ static int ui_do_but_COLORBAND(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		
@@ -3907,7 +3908,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			CurveMapping *cumap = (CurveMapping *)but->poin;
 			CurveMap *cuma = cumap->cm + cumap->cur;
 			CurveMapPoint *cmp;
@@ -4012,7 +4013,7 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			if (data->dragsel != -1) {
 				CurveMapping *cumap = (CurveMapping *)but->poin;
 				CurveMap *cuma = cumap->cm + cumap->cur;
@@ -4089,7 +4090,7 @@ static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	ui_window_to_block(data->region, block, &mx, &my);
 	
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -4123,7 +4124,7 @@ static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		return WM_UI_HANDLER_BREAK;
@@ -4172,7 +4173,7 @@ static int ui_do_but_WAVEFORM(bContext *C, uiBlock *block, uiBut *but, uiHandleB
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -4206,7 +4207,7 @@ static int ui_do_but_WAVEFORM(bContext *C, uiBlock *block, uiBut *but, uiHandleB
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		return WM_UI_HANDLER_BREAK;
@@ -4247,7 +4248,7 @@ static int ui_do_but_VECTORSCOPE(bContext *C, uiBlock *block, uiBut *but, uiHand
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -4273,7 +4274,7 @@ static int ui_do_but_VECTORSCOPE(bContext *C, uiBlock *block, uiBut *but, uiHand
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		return WM_UI_HANDLER_BREAK;
@@ -4297,7 +4298,7 @@ static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut 
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+		if (ELEM4(event->type, LEFTMOUSE, MIDDLEMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			/* Calculate the size of the button */
 			width  = abs(BLI_rctf_size_x(&but->rect));
 			height = abs(BLI_rctf_size_y(&but->rect));
@@ -4393,18 +4394,18 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	VECCOPY2D(but->linkto, event->mval);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_RELEASE);
 			return WM_UI_HANDLER_BREAK;
 		}
-		else if (event->type == LEFTMOUSE && but->block->handle) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && but->block->handle) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
 	}
 	else if (data->state == BUTTON_STATE_WAIT_RELEASE) {
 		
-		if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			if (!(but->flag & UI_SELECT))
 				data->cancel = TRUE;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -4464,7 +4465,7 @@ static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHan
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
+		if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val == KM_PRESS) {
 			data->dragstartx = mx;
 			data->dragstarty = my;
 			data->draglastx = mx;
@@ -4490,7 +4491,7 @@ static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHan
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if (event->type == LEFTMOUSE && event->val != KM_PRESS) {
+		else if (ELEM(event->type, LEFTMOUSE, MIDDLEMOUSE) && event->val != KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		return WM_UI_HANDLER_BREAK;
@@ -5000,7 +5001,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	}
 
 	/* verify if we can edit this button */
-	if (ELEM(event->type, LEFTMOUSE, RETKEY)) {
+	if (ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RETKEY)) {
 		/* this should become disabled button .. */
 		if (but->lock == TRUE) {
 			if (but->lockstr) {
