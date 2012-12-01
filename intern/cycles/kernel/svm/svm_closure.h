@@ -73,7 +73,7 @@ __device_inline ShaderClosure *svm_node_closure_get_bsdf(ShaderData *sd, float m
 #ifdef __MULTI_CLOSURE__
 	ShaderClosure *sc = &sd->closure[sd->num_closure];
 	float3 weight = sc->weight * mix_weight;
-	float sample_weight = fabsf(average(sc->weight));
+	float sample_weight = fabsf(average(weight));
 
 	if(sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE) {
 		sc->weight = weight;
