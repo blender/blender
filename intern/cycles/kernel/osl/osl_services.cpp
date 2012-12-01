@@ -23,6 +23,7 @@
 #include "scene.h"
 
 #include "osl_closures.h"
+#include "osl_globals.h"
 #include "osl_services.h"
 #include "osl_shader.h"
 
@@ -36,6 +37,8 @@
 #include "kernel_differential.h"
 #include "kernel_object.h"
 #include "kernel_bvh.h"
+#include "kernel_attribute.h"
+#include "kernel_projection.h"
 #include "kernel_triangle.h"
 #include "kernel_accumulate.h"
 #include "kernel_shader.h"
@@ -53,6 +56,34 @@ ustring OSLRenderServices::u_camera("camera");
 ustring OSLRenderServices::u_screen("screen");
 ustring OSLRenderServices::u_raster("raster");
 ustring OSLRenderServices::u_ndc("NDC");
+ustring OSLRenderServices::u_object_location("object:location");
+ustring OSLRenderServices::u_object_index("object:index");
+ustring OSLRenderServices::u_geom_dupli_generated("geom:dupli_generated");
+ustring OSLRenderServices::u_geom_dupli_uv("geom:dupli_uv");
+ustring OSLRenderServices::u_material_index("material:index");
+ustring OSLRenderServices::u_object_random("object:random");
+ustring OSLRenderServices::u_particle_index("particle:index");
+ustring OSLRenderServices::u_particle_age("particle:age");
+ustring OSLRenderServices::u_particle_lifetime("particle:lifetime");
+ustring OSLRenderServices::u_particle_location("particle:location");
+ustring OSLRenderServices::u_particle_rotation("particle:rotation");
+ustring OSLRenderServices::u_particle_size("particle:size");
+ustring OSLRenderServices::u_particle_velocity("particle:velocity");
+ustring OSLRenderServices::u_particle_angular_velocity("particle:angular_velocity");
+ustring OSLRenderServices::u_geom_numpolyvertices("geom:numpolyvertices");
+ustring OSLRenderServices::u_geom_trianglevertices("geom:trianglevertices");
+ustring OSLRenderServices::u_geom_polyvertices("geom:polyvertices");
+ustring OSLRenderServices::u_geom_name("geom:name");
+ustring OSLRenderServices::u_path_ray_length("path:ray_length");
+ustring OSLRenderServices::u_trace("trace");
+ustring OSLRenderServices::u_hit("hit");
+ustring OSLRenderServices::u_hitdist("hitdist");
+ustring OSLRenderServices::u_N("N");
+ustring OSLRenderServices::u_Ng("Ng");
+ustring OSLRenderServices::u_P("P");
+ustring OSLRenderServices::u_I("I");
+ustring OSLRenderServices::u_u("u");
+ustring OSLRenderServices::u_v("v");
 ustring OSLRenderServices::u_empty;
 
 OSLRenderServices::OSLRenderServices()
@@ -488,104 +519,108 @@ static void get_object_attribute(const OSLGlobals::Attribute& attr, bool derivat
 		memset((char *)val + datasize, 0, datasize * 2);
 }
 
-static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
-                                          TypeDesc type, bool derivatives, void *val)
+bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
+                                                      TypeDesc type, bool derivatives, void *val)
 {
-	/* todo: turn this into hash table returning int, which can be used in switch */
+	/* todo: turn this into hash table? */
 
 	/* Object Attributes */
-	if (name == "object:location") {
+	if (name == u_object_location) {
 		float3 f = object_location(kg, sd);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
-	else if (name == "object:index") {
+	else if (name == u_object_index) {
 		float f = object_pass_id(kg, sd->object);
 		return set_attribute_float(f, type, derivatives, val);
 	}
-	else if (name == "geom:dupli_generated") {
+	else if (name == u_geom_dupli_generated) {
 		float3 f = object_dupli_generated(kg, sd->object);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
-	else if (name == "geom:dupli_uv") {
+	else if (name == u_geom_dupli_uv) {
 		float3 f = object_dupli_uv(kg, sd->object);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
-	else if (name == "material:index") {
+	else if (name == u_material_index) {
 		float f = shader_pass_id(kg, sd);
 		return set_attribute_float(f, type, derivatives, val);
 	}
-	else if (name == "object:random") {
+	else if (name == u_object_random) {
 		float f = object_random_number(kg, sd->object);
 		return set_attribute_float(f, type, derivatives, val);
 	}
 
 	/* Particle Attributes */
-	else if (name == "particle:index") {
+	else if (name == u_particle_index) {
 		uint particle_id = object_particle_id(kg, sd->object);
 		float f = particle_index(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
-	else if (name == "particle:age") {
+	else if (name == u_particle_age) {
 		uint particle_id = object_particle_id(kg, sd->object);
 		float f = particle_age(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
-	else if (name == "particle:lifetime") {
+	else if (name == u_particle_lifetime) {
 		uint particle_id = object_particle_id(kg, sd->object);
 		float f= particle_lifetime(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
-	else if (name == "particle:location") {
+	else if (name == u_particle_location) {
 		uint particle_id = object_particle_id(kg, sd->object);
 		float3 f = particle_location(kg, particle_id);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
 #if 0	/* unsupported */
-	else if (name == "particle:rotation") {
+	else if (name == u_particle_rotation) {
 		uint particle_id = object_particle_id(kg, sd->object);
 		float4 f = particle_rotation(kg, particle_id);
 		return set_attribute_float4(f, type, derivatives, val);
 	}
 #endif
-	else if (name == "particle:size") {
+	else if (name == u_particle_size) {
 		uint particle_id = object_particle_id(kg, sd->object);
 		float f = particle_size(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
-	else if (name == "particle:velocity") {
+	else if (name == u_particle_velocity) {
 		uint particle_id = object_particle_id(kg, sd->object);
 		float3 f = particle_velocity(kg, particle_id);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
-	else if (name == "particle:angular_velocity") {
+	else if (name == u_particle_angular_velocity) {
 		uint particle_id = object_particle_id(kg, sd->object);
 		float3 f = particle_angular_velocity(kg, particle_id);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
-	else if (name == "geom:numpolyvertices") {
+	else if (name == u_geom_numpolyvertices) {
 		return set_attribute_int(3, type, derivatives, val);
 	}
-	else if (name == "geom:trianglevertices" || name == "geom:polyvertices") {
+	else if (name == u_geom_trianglevertices || name == u_geom_polyvertices) {
 		float3 P[3];
 		triangle_vertices(kg, sd->prim, P);
-		object_position_transform(kg, sd, &P[0]);
-		object_position_transform(kg, sd, &P[1]);
-		object_position_transform(kg, sd, &P[2]);
+
+		if(!(sd->flag & SD_TRANSFORM_APPLIED)) {
+			object_position_transform(kg, sd, &P[0]);
+			object_position_transform(kg, sd, &P[1]);
+			object_position_transform(kg, sd, &P[2]);
+		}
+
 		return set_attribute_float3_3(P, type, derivatives, val);
 	}
-	else if(name == "geom:name") {
-		ustring object_name = kg->osl.object_names[sd->object];
+	else if(name == u_geom_name) {
+		ustring object_name = kg->osl->object_names[sd->object];
 		return set_attribute_string(object_name, type, derivatives, val);
 	}
 	else
 		return false;
 }
 
-static bool get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
-                                     TypeDesc type, bool derivatives, void *val)
+bool OSLRenderServices::get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
+                                                 TypeDesc type, bool derivatives, void *val)
 {
 	/* Ray Length */
-	if (name == "path:ray_length") {
+	if (name == u_path_ray_length) {
 		float f = sd->ray_length;
 		return set_attribute_float(f, type, derivatives, val);
 	}
@@ -604,9 +639,9 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 
 	/* lookup of attribute on another object */
 	if (object_name != u_empty) {
-		OSLGlobals::ObjectNameMap::iterator it = kg->osl.object_name_map.find(object_name);
+		OSLGlobals::ObjectNameMap::iterator it = kg->osl->object_name_map.find(object_name);
 
-		if (it == kg->osl.object_name_map.end())
+		if (it == kg->osl->object_name_map.end())
 			return false;
 
 		object = it->second;
@@ -617,7 +652,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	}
 
 	/* find attribute on object */
-	OSLGlobals::AttributeMap& attribute_map = kg->osl.attribute_map[object];
+	OSLGlobals::AttributeMap& attribute_map = kg->osl->attribute_map[object];
 	OSLGlobals::AttributeMap::iterator it = attribute_map.find(name);
 
 	if (it != attribute_map.end()) {
@@ -663,7 +698,7 @@ bool OSLRenderServices::texture(ustring filename, TextureOpt &options,
                                 float s, float t, float dsdx, float dtdx,
                                 float dsdy, float dtdy, float *result)
 {
-	OSL::TextureSystem *ts = kernel_globals->osl.ts;
+	OSL::TextureSystem *ts = kernel_globals->osl->ts;
 	bool status = ts->texture(filename, options, s, t, dsdx, dtdx, dsdy, dtdy, result);
 
 	if(!status) {
@@ -685,7 +720,7 @@ bool OSLRenderServices::texture3d(ustring filename, TextureOpt &options,
                                   const OSL::Vec3 &dPdx, const OSL::Vec3 &dPdy,
                                   const OSL::Vec3 &dPdz, float *result)
 {
-	OSL::TextureSystem *ts = kernel_globals->osl.ts;
+	OSL::TextureSystem *ts = kernel_globals->osl->ts;
 	bool status = ts->texture3d(filename, options, P, dPdx, dPdy, dPdz, result);
 
 	if(!status) {
@@ -707,7 +742,7 @@ bool OSLRenderServices::environment(ustring filename, TextureOpt &options,
                                     OSL::ShaderGlobals *sg, const OSL::Vec3 &R,
                                     const OSL::Vec3 &dRdx, const OSL::Vec3 &dRdy, float *result)
 {
-	OSL::TextureSystem *ts = kernel_globals->osl.ts;
+	OSL::TextureSystem *ts = kernel_globals->osl->ts;
 	bool status = ts->environment(filename, options, R, dRdx, dRdy, result);
 
 	if(!status) {
@@ -728,7 +763,7 @@ bool OSLRenderServices::get_texture_info(ustring filename, int subimage,
                                          ustring dataname,
                                          TypeDesc datatype, void *data)
 {
-	OSL::TextureSystem *ts = kernel_globals->osl.ts;
+	OSL::TextureSystem *ts = kernel_globals->osl->ts;
 	return ts->get_texture_info(filename, subimage, dataname, datatype, data);
 }
 
@@ -798,12 +833,12 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg, ustring source, ustri
 {
 	TraceData *tracedata = (TraceData*)sg->tracedata;
 
-	if(source == "trace" && tracedata) {
-		if(name == "hit") {
+	if(source == u_trace && tracedata) {
+		if(name == u_hit) {
 			return set_attribute_int((tracedata->isect.prim != ~0), type, derivatives, val);
 		}
 		else if(tracedata->isect.prim != ~0) {
-			if(name == "hitdist") {
+			if(name == u_hitdist) {
 				float f[3] = {tracedata->isect.t, 0.0f, 0.0f};
 				return set_attribute_float(f, type, derivatives, val);
 			}
@@ -817,25 +852,25 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg, ustring source, ustri
 					tracedata->setup = true;
 				}
 
-				if(name == "N") {
+				if(name == u_N) {
 					return set_attribute_float3(sd->N, type, derivatives, val);
 				}
-				else if(name == "Ng") {
+				else if(name == u_Ng) {
 					return set_attribute_float3(sd->Ng, type, derivatives, val);
 				}
-				else if(name == "P") {
+				else if(name == u_P) {
 					float3 f[3] = {sd->P, sd->dP.dx, sd->dP.dy};
 					return set_attribute_float3(f, type, derivatives, val);
 				}
-				else if(name == "I") {
+				else if(name == u_I) {
 					float3 f[3] = {sd->I, sd->dI.dx, sd->dI.dy};
 					return set_attribute_float3(f, type, derivatives, val);
 				}
-				else if(name == "u") {
+				else if(name == u_u) {
 					float f[3] = {sd->u, sd->du.dx, sd->du.dy};
 					return set_attribute_float(f, type, derivatives, val);
 				}
-				else if(name == "v") {
+				else if(name == u_v) {
 					float f[3] = {sd->v, sd->dv.dx, sd->dv.dy};
 					return set_attribute_float(f, type, derivatives, val);
 				}

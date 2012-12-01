@@ -45,8 +45,6 @@ CCL_NAMESPACE_BEGIN
 
 OSLShaderManager::OSLShaderManager()
 {
-	thread_data_initialized = false;
-
 	services = new OSLRenderServices();
 
 	shading_system_init();
@@ -103,11 +101,6 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	scene->image_manager->set_osl_texture_system((void*)ts);
 
 	device_update_common(device, dscene, scene, progress);
-
-	if(!thread_data_initialized) {
-		og->thread_data_init();
-		thread_data_initialized = true;
-	}
 }
 
 void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
@@ -125,11 +118,6 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
 	og->volume_state.clear();
 	og->displacement_state.clear();
 	og->background_state.reset();
-
-	if(thread_data_initialized) {
-		og->thread_data_free();
-		thread_data_initialized = false;
-	}
 }
 
 void OSLShaderManager::texture_system_init()
@@ -170,7 +158,7 @@ void OSLShaderManager::shading_system_init()
 	const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);
 	ss->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), raytypes);
 
-	OSLShader::register_closures(ss);
+	OSLShader::register_closures((OSLShadingSystem*)ss);
 
 	loaded_shaders.clear();
 }

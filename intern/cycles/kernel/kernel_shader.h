@@ -26,10 +26,6 @@
  *
  */
 
-#ifdef __OSL__
-#include "osl_shader.h"
-#endif
-
 #include "closure/bsdf.h"
 #include "closure/emissive.h"
 #include "closure/volume.h"
@@ -61,7 +57,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
 {
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		OSLShader::init(kg, sd);
 #endif
 
@@ -147,7 +143,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	int shader, int object, int prim, float u, float v, float t, float time)
 {
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		OSLShader::init(kg, sd);
 #endif
 
@@ -278,7 +274,7 @@ __device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData *sd, const Ray *ray)
 {
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		OSLShader::init(kg, sd);
 #endif
 
@@ -387,7 +383,7 @@ __device void shader_bsdf_eval(KernelGlobals *kg, const ShaderData *sd,
 	bsdf_eval_init(eval, NBUILTIN_CLOSURES, make_float3(0.0f, 0.0f, 0.0f), kernel_data.film.use_light_pass);
 
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		return _shader_bsdf_multi_eval_osl(sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
 	else
 #endif
@@ -444,7 +440,7 @@ __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 
 	*pdf = 0.0f;
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		label = OSLShader::bsdf_sample(sd, sc, randu, randv, eval, *omega_in, *domega_in, *pdf);
 	else
 #endif
@@ -456,7 +452,7 @@ __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 		if(sd->num_closure > 1) {
 			float sweight = sc->sample_weight;
 #ifdef __OSL__
-			if (kernel_osl_use(kg))
+			if (kg->osl)
 				_shader_bsdf_multi_eval_osl(sd, *omega_in, pdf, sampled, bsdf_eval, *pdf*sweight, sweight);
 			else
 #endif
@@ -483,7 +479,7 @@ __device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *sd,
 
 	*pdf = 0.0f;
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		label = OSLShader::bsdf_sample(sd, sc, randu, randv, eval, *omega_in, *domega_in, *pdf);
 	else
 #endif
@@ -503,7 +499,7 @@ __device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughnes
 
 		if(CLOSURE_IS_BSDF(sc->type)) {
 #ifdef __OSL__
-			if (kernel_osl_use(kg))
+			if (kg->osl)
 				OSLShader::bsdf_blur(sc, roughness);
 			else
 #endif
@@ -650,7 +646,7 @@ __device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 
 		if(CLOSURE_IS_EMISSION(sc->type)) {
 #ifdef __OSL__
-			if (kernel_osl_use(kg))
+			if (kg->osl)
 				eval += OSLShader::emissive_eval(sd, sc)*sc->weight;
 			else
 #endif
@@ -694,7 +690,7 @@ __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 	float randb, int path_flag)
 {
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		OSLShader::eval_surface(kg, sd, randb, path_flag);
 	else
 #endif
@@ -713,7 +709,7 @@ __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 __device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag)
 {
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		return OSLShader::eval_background(kg, sd, path_flag);
 	else
 #endif
@@ -759,7 +755,7 @@ __device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 
 		if(CLOSURE_IS_VOLUME(sc->type)) {
 #ifdef __OSL__
-			if (kernel_osl_use(kg))
+			if (kg->osl)
 				eval += OSLShader::volume_eval_phase(sc, omega_in, omega_out);
 			else
 #endif
@@ -780,7 +776,7 @@ __device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 {
 #ifdef __SVM__
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		OSLShader::eval_volume(kg, sd, randb, path_flag);
 	else
 #endif
@@ -795,7 +791,7 @@ __device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd)
 	/* this will modify sd->P */
 #ifdef __SVM__
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		OSLShader::eval_displacement(kg, sd);
 	else
 #endif
@@ -851,7 +847,7 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 __device void shader_release(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __OSL__
-	if (kernel_osl_use(kg))
+	if (kg->osl)
 		OSLShader::release(kg, sd);
 #endif
 }

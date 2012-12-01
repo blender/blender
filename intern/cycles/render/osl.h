@@ -73,8 +73,6 @@ protected:
 	OSLRenderServices *services;
 	OSL::ErrorHandler errhandler;
 	set<string> loaded_shaders;
-
-	bool thread_data_initialized;
 };
 
 #endif

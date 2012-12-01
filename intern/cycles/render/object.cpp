@@ -148,10 +148,9 @@ ObjectManager::~ObjectManager()
 {
 }
 
-void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, uint *object_flag, Progress& progress)
 {
 	float4 *objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
-	uint *object_flag = dscene->object_flag.resize(scene->objects.size());
 	int i = 0;
 	map<Mesh*, float> surface_area_map;
 	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
@@ -257,7 +256,6 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	}
 
 	device->tex_alloc("__objects", dscene->objects);
-	device->tex_alloc("__object_flag", dscene->object_flag);
 
 	dscene->data.bvh.have_motion = have_motion;
 }
@@ -272,9 +270,12 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	if(scene->objects.size() == 0)
 		return;
 
+	/* object info flag */
+	uint *object_flag = dscene->object_flag.resize(scene->objects.size());
+
 	/* set object transform matrices, before applying static transforms */
 	progress.set_status("Updating Objects", "Copying Transformations to device");
-	device_update_transforms(device, dscene, scene, progress);
+	device_update_transforms(device, dscene, scene, object_flag, progress);
 
 	if(progress.get_cancel()) return;
 
@@ -282,10 +283,11 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	/* todo: do before to support getting object level coords? */
 	if(scene->params.bvh_type == SceneParams::BVH_STATIC) {
 		progress.set_status("Updating Objects", "Applying Static Transformations");
-		apply_static_transforms(scene, progress);
+		apply_static_transforms(scene, object_flag, progress);
 	}
 
-	if(progress.get_cancel()) return;
+	/* allocate object flag */
+	device->tex_alloc("__object_flag", dscene->object_flag);
 
 	need_update = false;
 }
@@ -299,7 +301,7 @@ void ObjectManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->object_flag.clear();
 }
 
-void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
+void ObjectManager::apply_static_transforms(Scene *scene, uint *object_flag, Progress& progress)
 {
 	/* todo: normals and displacement should be done before applying transform! */
 	/* todo: create objects/meshes in right order! */
@@ -312,6 +314,7 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 #else
 	bool motion_blur = false;
 #endif
+	int i = 0;
 
 	foreach(Object *object, scene->objects) {
 		map<Mesh*, int>::iterator it = mesh_users.find(object->mesh);
@@ -334,8 +337,12 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 
 					if(progress.get_cancel()) return;
 				}
+
+				object_flag[i] |= SD_TRANSFORM_APPLIED;
 			}
 		}
+
+		i++;
 	}
 }
 
