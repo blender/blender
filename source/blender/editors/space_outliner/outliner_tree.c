@@ -133,7 +133,7 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 }
 
 /* XXX - THIS FUNCTION IS INCREDIBLY SLOW
- * ... it can bring blenders tools and viewport to a grinding halt becuase of searching
+ * ... it can bring blenders tools and viewport to a grinding halt because of searching
  * for duplicate items every times they are added.
  *
  * TODO (possible speedups)

@@ -1416,7 +1416,7 @@ void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const int do
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
-			int has_auto = FALSE;
+			int need_handle_recalc = FALSE;
 
 			BKE_mask_spline_ensure_deform(spline);
 
@@ -1436,16 +1436,16 @@ void BKE_mask_layer_evaluate(MaskLayer *masklay, const float ctime, const int do
 					add_v2_v2(point_deform->bezt.vec[2], delta);
 				}
 
-				if (point->bezt.h1 == HD_AUTO) {
-					has_auto = TRUE;
+				if (ELEM(point->bezt.h1, HD_AUTO, HD_VECT)) {
+					need_handle_recalc = TRUE;
 				}
 			}
 
-			/* if the spline has auto handles, these need to be recalculated after deformation */
-			if (has_auto) {
+			/* if the spline has auto or vector handles, these need to be recalculated after deformation */
+			if (need_handle_recalc) {
 				for (i = 0; i < spline->tot_point; i++) {
 					MaskSplinePoint *point_deform = &spline->points_deform[i];
-					if (point_deform->bezt.h1 == HD_AUTO) {
+					if (ELEM(point_deform->bezt.h1, HD_AUTO, HD_VECT)) {
 						BKE_mask_calc_handle_point(spline, point_deform);
 					}
 				}

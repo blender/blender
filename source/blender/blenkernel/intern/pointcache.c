@@ -686,7 +686,7 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 
 	/* reallocate fluid if needed*/
 	if (reallocate) {
-		sds->active_fields = active_fields;
+		sds->active_fields = active_fields | cache_fields;
 		smoke_reallocate_fluid(sds, ch_dx, ch_res, 1);
 		sds->dx = ch_dx;
 		VECCOPY(sds->res, ch_res);
@@ -755,6 +755,7 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 			if (cache_fields & SM_ACTIVE_FIRE) {
 				ptcache_file_compressed_read(pf, (unsigned char *)flame, out_len_big);
 				ptcache_file_compressed_read(pf, (unsigned char *)fuel, out_len_big);
+				ptcache_file_compressed_read(pf, (unsigned char *)react, out_len_big);
 			}
 			if (cache_fields & SM_ACTIVE_COLORS) {
 				ptcache_file_compressed_read(pf, (unsigned char *)r, out_len_big);

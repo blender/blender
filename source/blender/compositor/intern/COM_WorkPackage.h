@@ -44,7 +44,7 @@ private:
 	unsigned int m_chunkNumber;
 public:
 	/**
-	 * @constructor
+	 * constructor
 	 * @param group the ExecutionGroup
 	 * @param chunkNumber the number of the chunk
 	 */

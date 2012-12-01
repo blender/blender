@@ -164,7 +164,7 @@ static NewVert *mesh_vert(VMesh *vm, int i, int j, int k)
 static void create_mesh_bmvert(BMesh *bm, VMesh *vm, int i, int j, int k, BMVert *eg)
 {
 	NewVert *nv = mesh_vert(vm, i, j, k);
-	nv->v = BM_vert_create(bm, nv->co, eg);
+	nv->v = BM_vert_create(bm, nv->co, eg, 0);
 }
 
 static void copy_mesh_vert(VMesh *vm, int ito, int jto, int kto,
@@ -264,14 +264,13 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMF
 	else {
 		int i;
 		BMEdge **ee = NULL;
-		BLI_array_staticdeclare(ee, BM_DEFAULT_NGON_STACK_SIZE);
+		BLI_array_fixedstack_declare(ee, BM_DEFAULT_NGON_STACK_SIZE, totv, __func__);
 
-		BLI_array_grow_items(ee, totv);
 		for (i = 0; i < totv; i++) {
-			ee[i] = BM_edge_create(bm, vert_arr[i], vert_arr[(i + 1) % totv], NULL, TRUE);
+			ee[i] = BM_edge_create(bm, vert_arr[i], vert_arr[(i + 1) % totv], NULL, BM_CREATE_NO_DOUBLE);
 		}
-		f = BM_face_create_ngon(bm, vert_arr[0], vert_arr[1], ee, totv, FALSE);
-		BLI_array_free(ee);
+		f = BM_face_create_ngon(bm, vert_arr[0], vert_arr[1], ee, totv, 0);
+		BLI_array_fixedstack_free(ee);
 	}
 	if (facerep && f) {
 		int has_mdisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
@@ -366,13 +365,19 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 }
 
 /* Like offset_meet, but here f1 and f2 must not be NULL and give the
- * planes in which to run the offset lines.  They may not meet exactly,
- * but the line intersection routine will find the closest approach point. */
-static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
-                                 BMFace *f1, BMFace *f2, float meetco[3])
+ * planes in which to run the offset lines.
+ * They may not meet exactly: the offsets for the edges may be different
+ * or both the planes and the lines may be angled so that they can't meet.
+ * In that case, pick a close point on emid, which should be the dividing
+ * edge between the two planes.
+ * TODO: should have a global 'offset consistency' prepass to adjust offset
+ * widths so that all edges have the same offset at both ends. */
+static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
+                                 BMVert *v, BMFace *f1, BMFace *f2, float meetco[3])
 {
 	float dir1[3], dir2[3], norm_perp1[3], norm_perp2[3],
-	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3];
+	      off1a[3], off1b[3], off2a[3], off2b[3], isect2[3], co[3];
+	int iret;
 
 	BLI_assert(f1 != NULL && f2 != NULL);
 
@@ -398,9 +403,21 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, BMVert *v,
 		/* lines are parallel; off1a is a good meet point */
 		copy_v3_v3(meetco, off1a);
 	}
-	else if (!isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2)) {
-		/* another test says they are parallel */
-		copy_v3_v3(meetco, off1a);
+	else {
+		iret =isect_line_line_v3(off1a, off1b, off2a, off2b, meetco, isect2);
+		if (iret == 0) {
+			/* lines colinear: another test says they are parallel. so shouldn't happen */
+			copy_v3_v3(meetco, off1a);
+		}
+		else if (iret == 2) {
+			/* lines are not coplanar; meetco and isect2 are nearest to first and second lines */
+			if (len_v3v3(meetco, isect2) > 100.0f * (float)BEVEL_EPSILON) {
+				/* offset lines don't meet: project average onto emid; this is not ideal (see TODO above) */
+				mid_v3_v3v3(co, meetco, isect2);
+				closest_to_line_v3(meetco, co, v->co, BM_edge_other_vert(emid->e, v)->co);
+			}
+		}
+		/* else iret == 1 and the lines are coplanar so meetco has the intersection */
 	}
 }
 
@@ -546,6 +563,7 @@ static void get_point_on_round_edge(const float uv[2],
 
 #else  /* USE_ALTERNATE_ADJ */
 
+#ifdef OLD_ROUND_EDGE
 /*
  * calculation of points on the round profile
  * r - result, coordinate of point on round profile
@@ -633,6 +651,66 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
 		interp_v3_v3v3(r_co, va, vb, (float)k / (float)n);
 	}
 }
+#else
+
+/*
+ * Find the point (/n) of the way around the round profile for e,
+ * where start point is va, midarc point is vmid, and end point is vb.
+ * Return the answer in profileco.
+ * Method:
+ * Find vo, the origin of the parallelogram with other three points va, vmid, vb.
+ * Also find vd, which is in direction normal to parallelogram and 1 unit away
+ * from the origin.
+ * The quarter circle in first quadrant of unit square will be mapped to the
+ * quadrant of a sheared ellipse in the parallelgram, using a matrix.
+ * The matrix mat is calculated to map:
+ *    (0,1,0) -> va
+ *    (1,1,0) -> vmid
+ *    (1,0,0) -> vb
+ *    (0,1,1) -> vd
+ * However if va -- vmid -- vb is approximately a straight line, just
+ * interpolate along the line.
+ */
+static void get_point_on_round_edge(EdgeHalf *e, int k,
+                                    const float va[3], const float vmid[3], const float vb[3],
+                                    float r_co[3])
+{
+	float vo[3], vd[3], vb_vmid[3], va_vmid[3], vddir[3], p[3], angle;
+	float m[4][4] = MAT4_UNITY;
+	int n = e->seg;
+
+	sub_v3_v3v3(va_vmid, vmid, va);
+	sub_v3_v3v3(vb_vmid, vmid, vb);
+	if (fabsf(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) > 100.f *(float)BEVEL_EPSILON) {
+		sub_v3_v3v3(vo, va, vb_vmid);
+		cross_v3_v3v3(vddir, vb_vmid, va_vmid);
+		normalize_v3(vddir);
+		add_v3_v3v3(vd, vo, vddir);
+
+		/* The cols of m are: {vmid - va, vmid - vb, vmid + vd - va -vb, va + vb - vmid;
+		  * blender transform matrices are stored such that m[i][*] is ith column;
+		  * the last elements of each col remain as they are in unity matrix */
+		sub_v3_v3v3(&m[0][0], vmid, va);
+		sub_v3_v3v3(&m[1][0], vmid, vb);
+		add_v3_v3v3(&m[2][0], vmid, vd);
+		sub_v3_v3(&m[2][0], va);
+		sub_v3_v3(&m[2][0], vb);
+		add_v3_v3v3(&m[3][0], va, vb);
+		sub_v3_v3(&m[3][0], vmid);
+
+		/* Now find point k/(e->seg) along quarter circle from (0,1,0) to (1,0,0) */
+		angle = (float)M_PI * (float)k / (2.0f * (float)n);  /* angle from y axis */
+		p[0] = sinf(angle);
+		p[1] = cosf(angle);
+		p[2] = 0.0f;
+		mul_v3_m4v3(r_co, m, p);
+	}
+	else {
+		/* planar case */
+		interp_v3_v3v3(r_co, va, vb, (float)k / (float)n);
+	}
+}
+#endif  /* ! OLD_ROUND_EDGE */
 
 #endif  /* !USE_ALTERNATE_ADJ */
 
@@ -693,8 +771,7 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 				if (e->prev->prev->is_bev) {
 					BLI_assert(e->prev->prev != e); /* see: edgecount 2, selcount 1 case */
 					/* find meet point between e->prev->prev and e and attach e->prev there */
-					/* TODO: fix case when one or both faces in following are NULL */
-					offset_in_two_planes(e->prev->prev, e, bv->v,
+					offset_in_two_planes(e->prev->prev, e, e->prev, bv->v,
 					                     e->prev->prev->fnext, e->fprev, co);
 					v = add_new_bound_vert(mem_arena, vm, co);
 					v->efirst = e->prev->prev;
@@ -987,7 +1064,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			}
 		} while ((v = v->next) != vm->boundstart);
 		mul_v3_fl(midco, 1.0f / nn);
-		bmv = BM_vert_create(bm, midco, NULL);
+		bmv = BM_vert_create(bm, midco, NULL, 0);
 		v = vm->boundstart;
 		do {
 			i = v->index;

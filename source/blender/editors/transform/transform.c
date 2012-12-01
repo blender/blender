@@ -2427,6 +2427,8 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 		bConstraintTypeInfo *cti = get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
 		bConstraintOb cob = {NULL};
 		bConstraint *con;
+		float size_sign[3], size_abs[3];
+		int i;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
 		 *  - they only care that cob->matrix is correctly set ;-)
@@ -2440,8 +2442,14 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			/* Reset val if SINGLESIZE but using a constraint */
 			if (td->flag & TD_SINGLESIZE)
 				return;
+
+			/* separate out sign to apply back later */
+			for (i = 0; i < 3; i++) {
+				size_sign[i] = signf(td->ext->size[i]);
+				size_abs[i] = fabsf(td->ext->size[i]);
+			}
 			
-			size_to_mat4(cob.matrix, td->ext->size);
+			size_to_mat4(cob.matrix, size_abs);
 		}
 		
 		/* Evaluate valid constraints */
@@ -2489,7 +2497,9 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			if (td->flag & TD_SINGLESIZE)
 				return;
 
+			/* extrace scale from matrix and apply back sign */
 			mat4_to_size(td->ext->size, cob.matrix);
+			mul_v3_v3(td->ext->size, size_sign);
 		}
 	}
 }

@@ -23,21 +23,18 @@ CCL_NAMESPACE_BEGIN
 __device_noinline float4 svm_voronoi(NodeVoronoiColoring coloring, float scale, float3 p)
 {
 	/* compute distance and point coordinate of 4 nearest neighbours */
-	float da[4];
-	float3 pa[4];
-
-	voronoi(p*scale, NODE_VORONOI_DISTANCE_SQUARED, 1.0f, da, pa);
+	float4 dpa0 = voronoi_Fn(p*scale, 1.0f, 0, -1);
 
 	/* output */
 	float fac;
 	float3 color;
 
 	if(coloring == NODE_VORONOI_INTENSITY) {
-		fac = fabsf(da[0]);
+		fac = fabsf(dpa0.w);
 		color = make_float3(fac, fac, fac);
 	}
 	else {
-		color = cellnoise_color(pa[0]);
+		color = cellnoise_color(float4_to_float3(dpa0));
 		fac = average(color);
 	}
 

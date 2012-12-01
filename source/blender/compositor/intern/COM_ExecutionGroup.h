@@ -193,7 +193,7 @@ private:
 	
 	/**
 	 * @brief try to schedule a specific chunk.
-	 * @note scheduling succeeds when all input requirements are met and the chunks hasen't been scheduled yet.
+	 * @note scheduling succeeds when all input requirements are met and the chunks hasn't been scheduled yet.
 	 * @param graph
 	 * @param xChunk
 	 * @param yChunk
@@ -245,7 +245,7 @@ public:
 	
 	/**
 	 * @brief add an operation to this ExecutionGroup
-	 * @note this method will add input of the operations recursivly
+	 * @note this method will add input of the operations recursively
 	 * @note this method can create multiple ExecutionGroup's
 	 * @param system
 	 * @param operation
@@ -369,7 +369,7 @@ public:
 	/**
 	 * @brief this method determines the MemoryProxy's where this execution group depends on.
 	 * @note After this method determineDependingAreaOfInterest can be called to determine
-	 * @note the area of the MemoryProxy.creator thas has to be executed.
+	 * @note the area of the MemoryProxy.creator that has to be executed.
 	 * @param memoryProxies result
 	 */
 	void determineDependingMemoryProxies(vector<MemoryProxy *> *memoryProxies);

@@ -306,7 +306,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
 
-			BLI_scanfill_calc_ex(&sf_ctx, TRUE, efa->no);
+			BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 				int i;
 				ls[0] = sf_tri->v1->tmp.p;

@@ -1835,6 +1835,8 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		StripCrop c = {0};
 		StripTransform t = {0};
 		int sx, sy, dx, dy;
+		double xscale = 1.0;
+		double yscale = 1.0;
 
 		if (is_proxy_image) {
 			double f = seq_rendersize_to_scale_factor(context.preview_render_size);
@@ -1850,6 +1852,17 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		if (seq->flag & SEQ_USE_TRANSFORM && seq->strip->transform) {
 			t = *seq->strip->transform;
 		}
+
+		xscale = context.scene->r.xsch ? ((double)context.rectx / (double)context.scene->r.xsch) : 1.0;
+		yscale = context.scene->r.ysch ? ((double)context.recty / (double)context.scene->r.ysch) : 1.0;
+
+		xscale /= (double)context.rectx / (double)ibuf->x;
+		yscale /= (double)context.recty / (double)ibuf->y;
+
+		c.left *= xscale; c.right *= xscale;
+		c.top *= yscale; c.bottom *= yscale;
+
+		t.xofs *= xscale; t.yofs *= yscale;
 
 		sx = ibuf->x - c.left - c.right;
 		sy = ibuf->y - c.top - c.bottom;
@@ -2343,7 +2356,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	            0 /* (context.scene->r.seq_flag & R_SEQ_GL_REND) */ :
 	            (context.scene->r.seq_flag & R_SEQ_GL_PREV);
 	int do_seq;
-	int have_seq = FALSE;
+	// int have_seq = FALSE;  /* UNUSED */
 	int have_comp = FALSE;
 	Scene *scene;
 	int is_thread_main = BLI_thread_is_main();
@@ -2356,7 +2369,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	scene = seq->scene;
 	frame = scene->r.sfra + nr + seq->anim_startofs;
 
-	have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
+	// have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;  /* UNUSED */
 	have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->nodetree;
 
 	oldcfra = scene->r.cfra;

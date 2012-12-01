@@ -1940,7 +1940,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		 * is intended to speed up drawing, and drawing extra (especially wire) can
 		 * slow it down too much */
 		dtx = tbase.object->dtx;
-		if(tbase.object->dt != OB_BOUNDBOX)
+		if (tbase.object->dt != OB_BOUNDBOX)
 			tbase.object->dtx = base->object->dtx;
 
 		/* negative scale flag has to propagate */

@@ -69,9 +69,6 @@ static int dissolve_elem_cmp(const void *a1, const void *a2)
 	return 0;
 }
 
-/**
- * \param do_all_verts Collapse all verts between 2 faces - don't check their edge angle.
- */
 void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries,
                                   BMVert **vinput_arr, const int vinput_len,
                                   BMEdge **einput_arr, const int einput_len)

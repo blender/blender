@@ -20,6 +20,7 @@
 
 shader node_convert_from_float(
 	float Val = 0.0,
+	output string String = "",
 	output int ValInt = 0,
 	output color Color = color(0.0, 0.0, 0.0),
 	output vector Vector = vector(0.0, 0.0, 0.0),

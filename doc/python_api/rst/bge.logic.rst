@@ -416,9 +416,9 @@ Sensor Status
 .. data:: KX_SENSOR_ACTIVE
 .. data:: KX_SENSOR_JUST_DEACTIVATED
 
--------------
+---------------
 Armature Sensor
--------------
+---------------
 
 .. _armaturesensor-type:
 
@@ -537,9 +537,9 @@ See :class:`bge.types.BL_ActionActuator`
 .. data:: KX_ACTIONACT_LOOPEND
 .. data:: KX_ACTIONACT_PROPERTY
 
----------------
+-----------------
 Armature Actuator
----------------
+-----------------
 
  .. _armatureactuator-constants-type:
    
@@ -556,13 +556,13 @@ See :class:`bge.types.BL_ArmatureActuator.type`
 .. data:: KX_ACT_ARMATURE_ENABLE
 
   Enable the constraint.
-		
+
   :value: 1
 
 .. data:: KX_ACT_ARMATURE_DISABLE
 
   Disable the constraint (runtime constraint values are not updated).
-		
+
   :value: 2
 
 .. data:: KX_ACT_ARMATURE_SETTARGET
@@ -809,9 +809,9 @@ See :class:`bge.types.KX_SoundActuator`
 
    :value: 6
 
---------------
+-----------------
 Steering Actuator
---------------
+-----------------
 
 .. _logic-steering-actuator:
 
@@ -961,9 +961,9 @@ See :class:`bge.types.BL_ArmatureChannel.rotation_mode`
   :value: 6
 
 
-----------------
+-------------------
 Armature Constraint
-----------------
+-------------------
 .. _armatureconstraint-constants-type:
 
 See :class:`bge.types.BL_ArmatureConstraint.type`
@@ -1075,9 +1075,9 @@ See :class:`bge.types.SCA_PythonKeyboard`, :class:`bge.types.SCA_PythonMouse`, :
 .. data:: KX_INPUT_ACTIVE
 .. data:: KX_INPUT_JUST_RELEASED
 
-------------
+-------------
 KX_GameObject
------------
+-------------
 .. _gameobject-playaction-mode:
 
 See :class:`bge.types.KX_GameObject.playAction`
@@ -1111,9 +1111,9 @@ See :class:`bge.types.SCA_MouseSensor`
 .. data:: KX_MOUSE_BUT_MIDDLE
 .. data:: KX_MOUSE_BUT_RIGHT
 
-------------
+--------------------------
 Navigation Mesh Draw Modes
-------------
+--------------------------
 
 .. _navmesh-draw-mode:
 
@@ -1199,25 +1199,25 @@ See :class:`bge.types.KX_StateActuator.operation`
 .. data:: KX_STATE_OP_CLR
 
    Substract bits to state mask
-   
+
    :value: 0
 
 .. data:: KX_STATE_OP_CPY
 
    Copy state mask
-   
+
    :value: 1
    
 .. data:: KX_STATE_OP_NEG
 
    Invert bits to state mask
-   
+
    :value: 2
-   
+
 .. data:: KX_STATE_OP_SET
 
    Add bits to state mask
-   
+
    :value: 3
-   
+
 .. _Two-D-FilterActuator-mode:

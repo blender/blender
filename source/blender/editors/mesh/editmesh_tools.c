@@ -109,7 +109,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	                   smooth, fractal, along_normal,
 	                   cuts,
 	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
-	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
+	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE, FALSE,
 	                   RNA_int_get(op->ptr, "seed"));
 
 	EDBM_update_generic(C, em, TRUE);
@@ -354,21 +354,21 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 							if ((fabsf(co1[0]) < mmd->tolerance) &&
 							    (fabsf(co2[0]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
+								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Y) {
 							if ((fabsf(co1[1]) < mmd->tolerance) &&
 							    (fabsf(co2[1]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
+								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
 							}
 						}
 						if (mmd->flag & MOD_MIR_AXIS_Z) {
 							if ((fabsf(co1[2]) < mmd->tolerance) &&
 							    (fabsf(co2[2]) < mmd->tolerance))
 							{
-								BMO_slot_map_ptr_insert(&extop, slot_edges_exclude, edge, NULL);
+								BMO_slot_map_empty_insert(&extop, slot_edges_exclude, edge);
 							}
 						}
 					}
@@ -891,7 +891,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		}
 		
 		if (rot_src) {
-			EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
+			EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v matrix=%m3",
 			              BM_ELEM_SELECT, cent, mat);
 
 			/* also project the source, for retopo workflow */
@@ -900,7 +900,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		}
 
 		edbm_extrude_edge(vc.obedit, vc.em, BM_ELEM_SELECT, nor);
-		EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v mat=%m3",
+		EDBM_op_callf(vc.em, op, "rotate verts=%hv cent=%v matrix=%m3",
 		              BM_ELEM_SELECT, cent, mat);
 		EDBM_op_callf(vc.em, op, "translate verts=%hv vec=%v",
 		              BM_ELEM_SELECT, min);
@@ -1343,7 +1343,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 	BMO_op_exec(em->bm, &bmop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
@@ -2018,7 +2018,7 @@ static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *w
 		return OPERATOR_CANCELLED;
 	
 	if (uvmerge) {
-		if (!EDBM_op_callf(em, wmop, "pointmerge_facedata verts=%hv snapv=%e", BM_ELEM_SELECT, mergevert))
+		if (!EDBM_op_callf(em, wmop, "pointmerge_facedata verts=%hv vert_snap=%e", BM_ELEM_SELECT, mergevert))
 			return OPERATOR_CANCELLED;
 	}
 
@@ -2308,7 +2308,9 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 	}
 
 	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op, "shortest_path startv=%e endv=%e type=%i", svert, evert, type);
+	EDBM_op_init(em, &bmop, op,
+	             "shortest_path vert_start=%e vert_end=%e type=%i",
+	             svert, evert, type);
 
 	/* execute the operator */
 	BMO_op_exec(em->bm, &bmop);
@@ -2317,7 +2319,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 	/* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_VERT, BM_ELEM_SELECT, TRUE);
 
 	/* finish the operator */
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
@@ -2889,7 +2891,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	float isect = 0.0f;
 	int len = 0, isected, i;
 	short numcuts = 1, mode = RNA_int_get(op->ptr, "type");
-	BMOpSlot *slot_edgepercents;
+	BMOpSlot *slot_edge_percents;
 
 	/* allocd vars */
 	float (*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
@@ -2944,7 +2946,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/* store percentage of edge cut for KNIFE_EXACT here.*/
-	slot_edgepercents = BMO_slot_get(bmop.slots_in, "edgepercents");
+	slot_edge_percents = BMO_slot_get(bmop.slots_in, "edge_percents");
 	for (be = BM_iter_new(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be = BM_iter_step(&iter)) {
 		int is_cut = FALSE;
 		if (BM_elem_flag_test(be, BM_ELEM_SELECT)) {
@@ -2957,7 +2959,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 
 				if (isect != 0.0f) {
 					if (mode != KNIFE_MULTICUT && mode != KNIFE_MIDPOINT) {
-						BMO_slot_map_float_insert(&bmop, slot_edgepercents, be, isect);
+						BMO_slot_map_float_insert(&bmop, slot_edge_percents, be, isect);
 					}
 				}
 			}
@@ -2978,8 +2980,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	BMO_slot_int_set(bmop.slots_in, "cuts", numcuts);
 
 	BMO_slot_int_set(bmop.slots_in, "quad_corner_type", SUBD_STRAIGHT_CUT);
-	BMO_slot_bool_set(bmop.slots_in, "use_singleedge", FALSE);
-	BMO_slot_bool_set(bmop.slots_in, "use_gridfill", FALSE);
+	BMO_slot_bool_set(bmop.slots_in, "use_single_edge", FALSE);
+	BMO_slot_bool_set(bmop.slots_in, "use_grid_fill", FALSE);
 
 	BMO_slot_float_set(bmop.slots_in, "radius", 0);
 	
@@ -3596,7 +3598,7 @@ static int edbm_split_exec(bContext *C, wmOperator *op)
 	EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, FALSE);
 	BMO_op_exec(em->bm, &bmop);
 	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -3634,14 +3636,14 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	float cent[3], axis[3], imat[3][3];
 	float d[3] = {0.0f, 0.0f, 0.0f};
 	int steps, dupli;
-	float degr;
+	float angle;
 
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	steps = RNA_int_get(op->ptr, "steps");
-	degr = RNA_float_get(op->ptr, "degrees");
+	angle = RNA_float_get(op->ptr, "angle");
 	//if (ts->editbutflag & B_CLOCKWISE)
-	degr = -degr;
+	angle = -angle;
 	dupli = RNA_boolean_get(op->ptr, "dupli");
 
 	/* undo object transformation */
@@ -3652,13 +3654,13 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_init(em, &spinop, op,
 	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f use_duplicate=%b",
-	                  BM_ELEM_SELECT, cent, axis, d, steps, degr, dupli))
+	                  BM_ELEM_SELECT, cent, axis, d, steps, angle, dupli))
 	{
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &spinop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 	if (!EDBM_op_finish(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -3683,6 +3685,8 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 
 void MESH_OT_spin(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Spin";
 	ot->description = "Extrude selected vertices in a circle around the cursor in indicated viewport";
@@ -3699,7 +3703,8 @@ void MESH_OT_spin(wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
 	RNA_def_boolean(ot->srna, "dupli", 0, "Dupli", "Make Duplicates");
-	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, "Degrees", "Degrees", -360.0f, 360.0f);
+	prop = RNA_def_float(ot->srna, "angle", DEG2RADF(90.0f), -FLT_MAX, FLT_MAX, "Angle", "Angle", DEG2RADF(-360.0f), DEG2RADF(360.0f));
+	RNA_def_property_subtype(prop, PROP_ANGLE);
 
 	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -FLT_MAX, FLT_MAX, "Axis", "Axis in global view space", -1.0f, 1.0f);
@@ -3737,15 +3742,11 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	v1 = NULL;
 	v2 = NULL;
 	for (eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL); eve; eve = BM_iter_step(&iter)) {
-
 		valence = 0;
-
 		for (eed = BM_iter_new(&eiter, em->bm, BM_EDGES_OF_VERT, eve); eed; eed = BM_iter_step(&eiter)) {
-
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				valence++;
 			}
-
 		}
 
 		if (valence == 1) {
@@ -3782,7 +3783,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 	}
 	BMO_op_exec(bm, &spinop);
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, TRUE);
 	if (!EDBM_op_finish(em, &spinop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -4947,8 +4948,13 @@ static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
 
 	/* Fake shift-transform... */
 	if (event->shift) {
-		if (opdata->shift_factor < 0.0f)
+		if (opdata->shift_factor < 0.0f) {
+#ifdef NEW_BEVEL
+			opdata->shift_factor = RNA_float_get(op->ptr, "factor");
+#else
 			opdata->shift_factor = RNA_float_get(op->ptr, "percent");
+#endif
+		}
 		factor = (factor - opdata->shift_factor) * 0.1f + opdata->shift_factor;
 	}
 	else if (opdata->shift_factor >= 0.0f)
@@ -4973,9 +4979,9 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if (event->val == KM_PRESS) {
 		/* Try to handle numeric inputs... */
 #ifdef NEW_BEVEL
-		float value;
 
 		if (handleNumInput(&opdata->num_input, event)) {
+			float value = RNA_float_get(op->ptr, "offset");
 			applyNumInput(&opdata->num_input, &value);
 			RNA_float_set(op->ptr, "offset", value);
 			edbm_bevel_calc(C, op);
@@ -4983,9 +4989,8 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_RUNNING_MODAL;
 		}
 #else
-		float factor;
-
 		if (handleNumInput(&opdata->num_input, event)) {
+			float factor = RNA_float_get(op->ptr, "percent");
 			applyNumInput(&opdata->num_input, &factor);
 			CLAMP(factor, 0.0f, 1.0f);
 			RNA_float_set(op->ptr, "percent", factor);
@@ -5026,6 +5031,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 #ifdef NEW_BEVEL
 		case WHEELUPMOUSE:  /* change number of segments */
+		case PAGEUPKEY:
 			if (event->val == KM_RELEASE)
 				break;
 
@@ -5036,6 +5042,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 
 		case WHEELDOWNMOUSE:  /* change number of segments */
+		case PAGEDOWNKEY:
 			if (event->val == KM_RELEASE)
 				break;
 
@@ -5365,9 +5372,10 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (event->val == KM_PRESS) {
 		/* Try to handle numeric inputs... */
-		float amounts[2];
 
 		if (handleNumInput(&opdata->num_input, event)) {
+			float amounts[2] = {RNA_float_get(op->ptr, "thickness"),
+			                    RNA_float_get(op->ptr, "depth")};
 			applyNumInput(&opdata->num_input, amounts);
 			amounts[0] = max_ff(amounts[0], 0.0f);
 			RNA_float_set(op->ptr, "thickness", amounts[0]);

@@ -257,8 +257,8 @@ void imapaint_pick_uv(Scene *scene, Object *ob, unsigned int faceindex, const in
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	minabsw = 1e10;

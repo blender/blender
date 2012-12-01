@@ -113,9 +113,9 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 
 		if (!t->skip) {
 			BMEdge *edges[3] = {
-				BM_edge_create(bm, t->v[0], t->v[1], NULL, TRUE),
-				BM_edge_create(bm, t->v[1], t->v[2], NULL, TRUE),
-				BM_edge_create(bm, t->v[2], t->v[0], NULL, TRUE)
+				BM_edge_create(bm, t->v[0], t->v[1], NULL, BM_CREATE_NO_DOUBLE),
+				BM_edge_create(bm, t->v[1], t->v[2], NULL, BM_CREATE_NO_DOUBLE),
+				BM_edge_create(bm, t->v[2], t->v[0], NULL, BM_CREATE_NO_DOUBLE)
 			};
 			BMFace *f, *example = NULL;
 
@@ -604,22 +604,22 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	/* Output slot of input elements that ended up inside the hull
 	 * rather than part of it */
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_interior.out",
-	                                  BM_ALL, HULL_FLAG_INTERIOR_ELE);
+	                                  BM_ALL_NOLOOP, HULL_FLAG_INTERIOR_ELE);
 
 	/* Output slot of input elements that ended up inside the hull and
 	 * are are unused by other geometry. */
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_unused.out",
-	                                  BM_ALL, HULL_FLAG_DEL);
+	                                  BM_ALL_NOLOOP, HULL_FLAG_DEL);
 
 	/* Output slot of faces and edges that were in the input and on
 	 * the hull (useful for cases like bridging where you want to
 	 * delete some input geometry) */
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom_holes.out",
-	                                  BM_ALL, HULL_FLAG_HOLE);
+	                                  BM_ALL_NOLOOP, HULL_FLAG_HOLE);
 
 	/* Output slot of all hull vertices, faces, and edges */
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out",
-	                                  BM_ALL, HULL_FLAG_OUTPUT_GEOM);
+	                                  BM_ALL_NOLOOP, HULL_FLAG_OUTPUT_GEOM);
 }
 
 #endif  /* WITH_BULLET */

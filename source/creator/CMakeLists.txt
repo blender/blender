@@ -472,14 +472,17 @@ elseif(WIN32)
 
 	if(WITH_PYTHON)
 		set_lib_path(PYLIB "python")
+
+		STRING(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
+
 		install(
-			FILES ${PYLIB}/lib/python32.dll
+			FILES ${PYLIB}/lib/python${_PYTHON_VERSION_NO_DOTS}.dll
 			DESTINATION ${TARGETDIR}
 			CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
 		)
 
 		install(
-			FILES ${PYLIB}/lib/python32_d.dll
+			FILES ${PYLIB}/lib/python${_PYTHON_VERSION_NO_DOTS}_d.dll
 			DESTINATION ${TARGETDIR}
 			CONFIGURATIONS Debug
 		)
@@ -503,10 +506,10 @@ elseif(WIN32)
 				"
 				if(\"\${CMAKE_INSTALL_CONFIG_NAME}\" STREQUAL \"Debug\")
 					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32_d.tar.gz\")
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}_d.tar.gz\")
 				else()
 					execute_process(COMMAND \"${CMAKE_COMMAND}\" -E chdir \"${TARGETDIR_VER}/python/lib\"
-						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python32.tar.gz\")
+						\"${CMAKE_COMMAND}\" -E tar xzfv \"${LIBDIR}/release/python${_PYTHON_VERSION_NO_DOTS}.tar.gz\")
 				endif()
 				"
 			)
@@ -514,6 +517,8 @@ elseif(WIN32)
 			# doesnt work, todo
 			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
 		endif()
+
+		unset(_PYTHON_VERSION_NO_DOTS)
 	endif()
 
 	if(CMAKE_CL_64)

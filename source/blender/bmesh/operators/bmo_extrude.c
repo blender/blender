@@ -67,11 +67,11 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 		i = 0;
 		firstv = lastv = NULL;
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-			v = BM_vert_create(bm, l->v->co, l->v);
+			v = BM_vert_create(bm, l->v->co, l->v, 0);
 
 			/* skip on the first iteration */
 			if (lastv) {
-				e = BM_edge_create(bm, lastv, v, l->e, FALSE);
+				e = BM_edge_create(bm, lastv, v, l->e, 0);
 				edges[i++] = e;
 			}
 
@@ -81,12 +81,12 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* this fits in the array because we skip one in the loop above */
-		e = BM_edge_create(bm, v, firstv, laste, FALSE);
+		e = BM_edge_create(bm, v, firstv, laste, 0);
 		edges[i++] = e;
 
 		BMO_elem_flag_enable(bm, f, EXT_DEL);
 
-		f2 = BM_face_create_ngon(bm, firstv, BM_edge_other_vert(edges[0], firstv), edges, f->len, FALSE);
+		f2 = BM_face_create_ngon(bm, firstv, BM_edge_other_vert(edges[0], firstv), edges, f->len, 0);
 		if (UNLIKELY(f2 == NULL)) {
 			BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Extrude failed: could not create face");
 			BLI_array_free(edges);
@@ -198,7 +198,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundarymap.out", 0); e; e = BMO_iter_step(&siter)) {
+	for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundary_map.out", 0); e; e = BMO_iter_step(&siter)) {
 		BMVert *f_verts[4];
 		e_new = *(BMEdge **)BMO_iter_map_value(&siter);
 
@@ -230,7 +230,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_finish(bm, &dupeop);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL, EXT_KEEP);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, EXT_KEEP);
 }
 
 void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
@@ -241,11 +241,11 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	const int has_vskin = CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN);
 
 	for (v = BMO_iter_new(&siter, op->slots_in, "verts", BM_VERT); v; v = BMO_iter_step(&siter)) {
-		dupev = BM_vert_create(bm, v->co, v);
+		dupev = BM_vert_create(bm, v->co, v, 0);
 		if (has_vskin)
 			bm_extrude_disable_skin_root(bm, v);
 
-		e = BM_edge_create(bm, v, dupev, NULL, FALSE);
+		e = BM_edge_create(bm, v, dupev, NULL, 0);
 
 		BMO_elem_flag_enable(bm, e, EXT_KEEP);
 		BMO_elem_flag_enable(bm, dupev, EXT_KEEP);
@@ -352,9 +352,9 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	slot_facemap_out = BMO_slot_get(dupeop.slots_out, "facemap.out");
+	slot_facemap_out = BMO_slot_get(dupeop.slots_out, "face_map.out");
 	if (bm->act_face && BMO_elem_flag_test(bm, bm->act_face, EXT_INPUT)) {
-		bm->act_face = BMO_slot_map_ptr_get(slot_facemap_out, bm->act_face);
+		bm->act_face = BMO_slot_map_elem_get(slot_facemap_out, bm->act_face);
 	}
 
 	if (delorig) {
@@ -374,7 +374,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	              op,      slots_out, "geom.out");
 
 	slot_edges_exclude = BMO_slot_get(op->slots_in, "edges_exclude");
-	for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundarymap.out", 0); e; e = BMO_iter_step(&siter)) {
+	for (e = BMO_iter_new(&siter, dupeop.slots_out, "boundary_map.out", 0); e; e = BMO_iter_step(&siter)) {
 		BMVert *f_verts[4];
 
 		/* this should always be wire, so this is mainly a speedup to avoid map lookup */
@@ -428,9 +428,9 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* link isolated vert */
-	for (v = BMO_iter_new(&siter, dupeop.slots_out, "isovertmap.out", 0); v; v = BMO_iter_step(&siter)) {
+	for (v = BMO_iter_new(&siter, dupeop.slots_out, "isovert_map.out", 0); v; v = BMO_iter_step(&siter)) {
 		v2 = *((void **)BMO_iter_map_value(&siter));
-		BM_edge_create(bm, v, v2, v->e, TRUE);
+		BM_edge_create(bm, v, v2, v->e, BM_CREATE_NO_DOUBLE);
 	}
 
 	/* cleanup */

@@ -274,10 +274,10 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 			v2 = BMO_iter_map_value_p(&oiter);
 			/* check in case the target vertex (v2) is already marked
 			 * for merging */
-			while ((v3 = BMO_slot_map_ptr_get(slot_targetmap, v2))) {
+			while ((v3 = BMO_slot_map_elem_get(slot_targetmap, v2))) {
 				v2 = v3;
 			}
-			BMO_slot_map_ptr_insert(weld_op, slot_targetmap, v, v2);
+			BMO_slot_map_elem_insert(weld_op, slot_targetmap, v, v2);
 		}
 
 		BMO_op_finish(bm, &find_op);
@@ -319,7 +319,7 @@ static void merge_first_last(BMesh *bm,
 	slot_targetmap = BMO_slot_get(weld_op->slots_in, "targetmap");
 	BMO_ITER (v, &oiter, find_op.slots_out, "targetmap.out", 0) {
 		v2 = BMO_iter_map_value_p(&oiter);
-		BMO_slot_map_ptr_insert(weld_op, slot_targetmap, v, v2);
+		BMO_slot_map_elem_insert(weld_op, slot_targetmap, v, v2);
 	}
 
 	BMO_op_finish(bm, &find_op);
@@ -494,11 +494,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 				/* check in case the target vertex (v2) is already marked
 				 * for merging */
-				while ((v3 = BMO_slot_map_ptr_get(slot_targetmap, v2))) {
+				while ((v3 = BMO_slot_map_elem_get(slot_targetmap, v2))) {
 					v2 = v3;
 				}
 
-				BMO_slot_map_ptr_insert(&weld_op, slot_targetmap, v, v2);
+				BMO_slot_map_elem_insert(&weld_op, slot_targetmap, v, v2);
 			}
 
 			#undef _E

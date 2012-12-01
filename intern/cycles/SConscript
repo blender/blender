@@ -49,7 +49,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 
 # optimized kernel
 if env['WITH_BF_RAYOPTIMIZATION']:
-    optim_cxxflags = []
+    optim_cxxflags = Split(env['CXXFLAGS'])
 
     if env['OURPLATFORM'] == 'win32-vc':
         optim_cxxflags.append('/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())

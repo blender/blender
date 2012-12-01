@@ -33,6 +33,9 @@
  *  \ingroup bli
  */
 
+#include "DNA_vec_types.h"
+#include "BLI_utildefines.h"
+
 struct rctf;
 struct rcti;
 
@@ -75,17 +78,6 @@ void BLI_rctf_rcti_copy(struct rctf *dst, const struct rcti *src);
 void print_rctf(const char *str, const struct rctf *rect);
 void print_rcti(const char *str, const struct rcti *rect);
 
-/* hrmf, we need to work out this inline stuff */
-#if defined(_MSC_VER)
-#  define BLI_INLINE static __forceinline
-#elif defined(__GNUC__)
-#  define BLI_INLINE static inline __attribute((always_inline))
-#else
-/* #warning "MSC/GNUC defines not found, inline non-functional" */
-#  define BLI_INLINE static
-#endif
-
-#include "DNA_vec_types.h"
 BLI_INLINE float BLI_rcti_cent_x_fl(const struct rcti *rct) { return (float)(rct->xmin + rct->xmax) / 2.0f; }
 BLI_INLINE float BLI_rcti_cent_y_fl(const struct rcti *rct) { return (float)(rct->ymin + rct->ymax) / 2.0f; }
 BLI_INLINE int   BLI_rcti_cent_x(const struct rcti *rct) { return (rct->xmin + rct->xmax) / 2; }

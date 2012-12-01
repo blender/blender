@@ -756,6 +756,7 @@ int main(int argc, char** argv)
 		}
 
 		GPU_set_anisotropic(U.anisotropic_filter);
+		GPU_set_gpu_mipmapping();
 		
 		// Create the system
 		if (GHOST_ISystem::createSystem() == GHOST_kSuccess)

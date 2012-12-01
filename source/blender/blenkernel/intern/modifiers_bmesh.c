@@ -79,7 +79,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	/*do verts*/
 	mv = mvert = dm->dupVertArray(dm);
 	for (i = 0; i < totvert; i++, mv++) {
-		v = BM_vert_create(bm, mv->co, NULL);
+		v = BM_vert_create(bm, mv->co, NULL, BM_CREATE_SKIP_CD);
 		normal_short_to_float_v3(v->no, mv->no);
 		v->head.hflag = BM_vert_flag_from_mflag(mv->flag);
 		BM_elem_index_set(v, i); /* set_inline */
@@ -97,7 +97,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	me = medge = dm->dupEdgeArray(dm);
 	for (i = 0; i < totedge; i++, me++) {
 		//BLI_assert(BM_edge_exists(vtable[me->v1], vtable[me->v2]) == NULL);
-		e = BM_edge_create(bm, vtable[me->v1], vtable[me->v2], NULL, FALSE);
+		e = BM_edge_create(bm, vtable[me->v1], vtable[me->v2], NULL, BM_CREATE_SKIP_CD);
 
 		e->head.hflag = BM_edge_flag_from_mflag(me->flag);
 		BM_elem_index_set(e, i); /* set_inline */
@@ -134,7 +134,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 			edges[j] = etable[ml->e];
 		}
 
-		f = BM_face_create_ngon(bm, verts[0], verts[1], edges, mp->totloop, FALSE);
+		f = BM_face_create_ngon(bm, verts[0], verts[1], edges, mp->totloop, BM_CREATE_SKIP_CD);
 
 		if (UNLIKELY(f == NULL)) {
 			continue;

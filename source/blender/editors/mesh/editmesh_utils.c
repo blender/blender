@@ -265,9 +265,11 @@ int EDBM_op_callf(BMEditMesh *em, wmOperator *op, const char *fmt, ...)
 
 int EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op, const char *select_slot_out, const char *fmt, ...)
 {
+	BMOpSlot *slot_select_out;
 	BMesh *bm = em->bm;
 	BMOperator bmop;
 	va_list list;
+	char hflag;
 
 	va_start(list, fmt);
 
@@ -283,9 +285,12 @@ int EDBM_op_call_and_selectf(BMEditMesh *em, wmOperator *op, const char *select_
 
 	BMO_op_exec(bm, &bmop);
 
+	slot_select_out = BMO_slot_get(bmop.slots_out, select_slot_out);
+	hflag = slot_select_out->slot_subtype.elem & BM_ALL_NOLOOP;
+
 	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
 
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, select_slot_out, BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, select_slot_out, hflag, BM_ELEM_SELECT, TRUE);
 
 	va_end(list);
 	return EDBM_op_finish(em, &bmop, op, TRUE);
@@ -498,7 +503,7 @@ void EDBM_select_more(BMEditMesh *em)
 	             BM_ELEM_SELECT, FALSE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
 	/* don't flush selection in edge/vertex mode  */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_select_flush(em);
@@ -514,7 +519,7 @@ void EDBM_select_less(BMEditMesh *em)
 	             BM_ELEM_SELECT, TRUE, use_faces);
 	BMO_op_exec(em->bm, &bmop);
 	/* don't flush selection in edge/vertex mode  */
-	BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "geom.out", BM_ALL, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
+	BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);

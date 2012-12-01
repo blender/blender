@@ -35,13 +35,16 @@ op_blacklist = (
     "*.open_*",
     "*.link_append",
     "render.render",
+    "render.play_rendered_anim",
     "*.*_export",
     "*.*_import",
     "wm.blenderplayer_start",
     "wm.url_open",
     "wm.doc_view",
     "wm.path_open",
-    "help.operator_cheat_sheet",
+    "wm.theme_install",
+    "wm.context_*",
+    "wm.operator_cheat_sheet",
     "wm.keyconfig_test",     # just annoying - but harmless
     "wm.memory_statistics",  # another annoying one
     "console.*",             # just annoying - but harmless

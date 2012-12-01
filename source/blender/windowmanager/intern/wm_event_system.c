@@ -135,6 +135,7 @@ static int wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, vo
 /* XXX: in future, which notifiers to send to other windows? */
 void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference)
 {
+	ARegion *ar;
 	wmNotifier *note = MEM_callocN(sizeof(wmNotifier), "notifier");
 	
 	note->wm = CTX_wm_manager(C);
@@ -142,8 +143,9 @@ void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference
 	
 	note->window = CTX_wm_window(C);
 	
-	if (CTX_wm_region(C))
-		note->swinid = CTX_wm_region(C)->swinid;
+	ar = CTX_wm_region(C);
+	if (ar)
+		note->swinid = ar->swinid;
 	
 	note->category = type & NOTE_CATEGORY;
 	note->data = type & NOTE_DATA;

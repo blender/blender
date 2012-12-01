@@ -793,7 +793,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9 * UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
 
 	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
@@ -1025,6 +1025,23 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 	return op;
 }
 
+static void wm_block_redo_cb(bContext *C, void *arg_op, int UNUSED(arg_event))
+{
+	wmOperator *op = arg_op;
+
+	if (op == WM_operator_last_redo(C)) {
+		/* operator was already executed once? undo & repeat */
+		ED_undo_operator_repeat(C, op);
+	}
+	else {
+		/* operator not executed yet, call it */
+		ED_undo_push_op(C, op);
+		wm_operator_register(C, op);
+
+		WM_operator_repeat(C, op);
+	}
+}
+
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 {
 	wmOperator *op = arg_op;
@@ -1032,7 +1049,6 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiLayout *layout;
 	uiStyle *style = UI_GetStyle();
 	int width = 300;
-	
 
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
@@ -1042,11 +1058,12 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	 * ui_apply_but_funcs_after calls ED_undo_operator_repeate_cb and crashes */
 	assert(op->type->flag & OPTYPE_REGISTER);
 
-	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, arg_op);
+	uiBlockSetHandleFunc(block, wm_block_redo_cb, arg_op);
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, style);
 
-	if (!WM_operator_check_ui_enabled(C, op->type->name))
-		uiLayoutSetEnabled(layout, FALSE);
+	if (op == WM_operator_last_redo(C))
+		if (!WM_operator_check_ui_enabled(C, op->type->name))
+			uiLayoutSetEnabled(layout, FALSE);
 
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {
@@ -1058,7 +1075,6 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 		uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 	}
 	
-
 	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
 
@@ -1207,22 +1223,21 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
  * \note operator menu needs undo flag enabled , for redo callback */
 static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_call)
 {
-	
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Operator '%s' does not have register enabled, incorrect invoke function", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
 
-	ED_undo_push_op(C, op);
-
-	wm_operator_register(C, op);
+	/* if we don't have global undo, we can't do undo push for automatic redo,
+	 * so we require manual OK clicking in this popup */
+	if (!(U.uiflag & USER_GLOBALUNDO))
+		return WM_operator_props_dialog_popup(C, op, 300, UI_UNIT_Y);
 
 	uiPupBlock(C, wm_block_create_redo, op);
 
-	if (do_call) {
-		WM_operator_repeat(C, op);
-	}
+	if (do_call)
+		wm_block_redo_cb(C, op, 0);
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1566,7 +1581,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 	
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9 * UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
 	
 	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);

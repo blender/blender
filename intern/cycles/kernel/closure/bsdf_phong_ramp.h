@@ -131,7 +131,7 @@ __device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colors
 			}
 		}
 	}
-	return LABEL_REFLECT;
+	return LABEL_REFLECT|LABEL_GLOSSY;
 }
 
 

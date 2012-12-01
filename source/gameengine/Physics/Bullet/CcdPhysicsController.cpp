@@ -1507,8 +1507,8 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = (const int *)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = (const int *)dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == false) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	m_shapeType = (polytope) ? PHY_SHAPE_POLYTOPE : PHY_SHAPE_MESH;
@@ -1816,8 +1816,8 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 		/* double lookup */
 		const int *index_mf_to_mpoly = (const int *)dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		const int *index_mp_to_orig  = (const int *)dm->getPolyDataArray(dm, CD_ORIGINDEX);
-		if ((index_mf_to_mpoly && index_mp_to_orig) == false) {
-			index_mf_to_mpoly = index_mp_to_orig = NULL;
+		if (index_mf_to_mpoly == NULL) {
+			index_mp_to_orig = NULL;
 		}
 
 		MFace *mf;

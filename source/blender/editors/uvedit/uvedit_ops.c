@@ -224,7 +224,9 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-			if (uvedit_face_visible_test(scene, previma, efa, tf)) {
+			if (uvedit_face_visible_test(scene, previma, efa, tf) &&
+			    (selected == TRUE || uvedit_face_select_test(scene, em, efa)))
+			{
 				if (ima) {
 					tf->tpage = ima;
 					
@@ -2667,10 +2669,12 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 	else { /* SI_STICKY_DISABLE or ts->uv_flag & UV_SYNC_SELECTION */
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-				if (select)
+				if (select) {
 					uvedit_face_select_enable(scene, em, efa, FALSE);
-				else
+				}
+				else {
 					uvedit_face_select_disable(scene, em, efa);
+				}
 			}
 		}
 	}
@@ -2692,7 +2696,10 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	MLoopUV *luv;
 	rcti rect;
 	rctf rectf;
-	int change, pinned, select, faces, extend;
+	int change, pinned, select, extend;
+	const int use_face_center = (ts->uv_flag & UV_SYNC_SELECTION) ?
+	                            (ts->selectmode == SCE_SELECT_FACE) :
+	                            (ts->uv_selectmode == UV_SELECT_FACE);
 
 	/* get rectangle from operator */
 	WM_operator_properties_border_to_rcti(op, &rect);
@@ -2707,14 +2714,9 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 	if (!extend)
 		select_all_perform(scene, ima, em, SEL_DESELECT);
-	
-	if (ts->uv_flag & UV_SYNC_SELECTION)
-		faces = (ts->selectmode == SCE_SELECT_FACE);
-	else
-		faces = (ts->uv_selectmode == UV_SELECT_FACE);
 
 	/* do actual selection */
-	if (faces && !pinned) {
+	if (use_face_center && !pinned) {
 		/* handle face selection mode */
 		float cent[2];
 
@@ -2735,8 +2737,9 @@ static int border_select_exec(bContext *C, wmOperator *op)
 		}
 
 		/* (de)selects all tagged faces and deals with sticky modes */
-		if (change)
+		if (change) {
 			uv_faces_do_sticky(sima, scene, obedit, select);
+		}
 	}
 	else {
 		/* other selection modes */
@@ -2805,19 +2808,19 @@ static void UV_OT_select_border(wmOperatorType *ot)
 
 /* ******************** circle select operator **************** */
 
-static int select_uv_inside_ellipse(BMEditMesh *em, SpaceImage *UNUSED(sima), Scene *scene, int select,
-                                    float *offset, float *ell, BMLoop *l, MLoopUV *luv)
+static int uv_inside_circle(const float uv[2], const float offset[2], const float ellipse[2])
 {
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
-	float x, y, r2, *uv;
+	float x, y;
+	x = (uv[0] - offset[0]) * ellipse[0];
+	y = (uv[1] - offset[1]) * ellipse[1];
+	return ((x * x + y * y) < 1.0f);
+}
 
-	uv = luv->uv;
-
-	x = (uv[0] - offset[0]) * ell[0];
-	y = (uv[1] - offset[1]) * ell[1];
-
-	r2 = x * x + y * y;
-	if (r2 < 1.0f) {
+static int select_uv_inside_ellipse(BMEditMesh *em, Scene *scene, const int select,
+                                    const float offset[2], const float ellipse[2], BMLoop *l, MLoopUV *luv)
+{
+	if (uv_inside_circle(luv->uv, offset, ellipse)) {
 		if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
 		else        uvedit_uv_select_disable(em, scene, l);
 		return TRUE;
@@ -2843,6 +2846,9 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	float zoomx, zoomy, offset[2], ellipse[2];
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
 	int change = FALSE;
+	const int use_face_center = (ts->uv_flag & UV_SYNC_SELECTION) ?
+	                            (ts->selectmode == SCE_SELECT_FACE) :
+	                            (ts->uv_selectmode == UV_SELECT_FACE);
 
 	/* get operator properties */
 	select = (gesture_mode == GESTURE_MODAL_SELECT);
@@ -2861,10 +2867,32 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view(&ar->v2d, x, y, &offset[0], &offset[1]);
 	
 	/* do selection */
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			change |= select_uv_inside_ellipse(em, sima, scene, select, offset, ellipse, l, luv);
+	if (use_face_center) {
+		change = FALSE;
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_elem_flag_disable(efa, BM_ELEM_TAG);
+			/* assume not touched */
+			if ((select) != (uvedit_face_select_test(scene, em, efa))) {
+				float cent[2];
+				uv_poly_center(em, efa, cent);
+				if (uv_inside_circle(cent, offset, ellipse)) {
+					BM_elem_flag_enable(efa, BM_ELEM_TAG);
+					change = TRUE;
+				}
+			}
+		}
+
+		/* (de)selects all tagged faces and deals with sticky modes */
+		if (change) {
+			uv_faces_do_sticky(sima, scene, obedit, select);
+		}
+	}
+	else {
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				change |= select_uv_inside_ellipse(em, scene, select, offset, ellipse, l, luv);
+			}
 		}
 	}
 
@@ -2906,12 +2934,16 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 
 static int do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short moves, short select)
 {
+	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = CTX_data_edit_image(C);
 	ARegion *ar = CTX_wm_region(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	const int use_face_center = (ts->uv_flag & UV_SYNC_SELECTION) ?
+	                            (ts->selectmode == SCE_SELECT_FACE) :
+	                            (ts->uv_selectmode == UV_SELECT_FACE);
 
 	BMIter iter, liter;
 
@@ -2923,9 +2955,10 @@ static int do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mov
 
 	BLI_lasso_boundbox(&rect, mcords, moves);
 
-	if (ts->uv_selectmode == UV_SELECT_FACE) { /* Face Center Sel */
+	if (use_face_center) { /* Face Center Sel */
 		change = FALSE;
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			/* assume not touched */
 			if ((select) != (uvedit_face_select_test(scene, em, efa))) {
 				float cent[2];
@@ -2934,10 +2967,15 @@ static int do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mov
 				if (BLI_rcti_isect_pt_v(&rect, screen_uv) &&
 				    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
 				{
-					uvedit_face_select_enable(scene, em, efa, FALSE);
+					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 					change = TRUE;
 				}
 			}
+		}
+
+		/* (de)selects all tagged faces and deals with sticky modes */
+		if (change) {
+			uv_faces_do_sticky(sima, scene, obedit, select);
 		}
 	}
 	else { /* Vert Sel */
@@ -3395,7 +3433,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	MTexPoly *tf;
 	int swap = RNA_boolean_get(op->ptr, "unselected");
 	Image *ima = sima ? sima->image : NULL;
-	int facemode = (ts->uv_selectmode == UV_SELECT_FACE);
+	const int use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_mesh_hide(em, swap);
@@ -3425,7 +3463,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 		if (hide) {
 			/* note, a special case for edges could be used,
 			 * for now edges act like verts and get flushed */
-			if (facemode) {
+			if (use_face_center) {
 				if (em->selectmode == SCE_SELECT_FACE) {
 					/* check that every UV is selected */
 					if (bm_face_is_all_uv_sel(em->bm, efa, TRUE) == !swap) {
@@ -3443,8 +3481,6 @@ static int hide_exec(bContext *C, wmOperator *op)
 						}
 					}
 					if (!swap) uvedit_face_select_disable(scene, em, efa);
-
-
 				}
 			}
 			else if (em->selectmode == SCE_SELECT_FACE) {
@@ -3507,8 +3543,8 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
-	int facemode = (ts->uv_selectmode == UV_SELECT_FACE);
-	int stickymode = sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
+	const int use_face_center = (ts->uv_selectmode == UV_SELECT_FACE);
+	const int stickymode = sima ? (sima->sticky != SI_STICKY_DISABLE) : 1;
 
 	/* note on tagging, selecting faces needs to be delayed so it doesn't select the verts and
 	 * confuse our checks on selected verts. */
@@ -3520,7 +3556,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 
 		return OPERATOR_FINISHED;
 	}
-	if (facemode) {
+	if (use_face_center) {
 		if (em->selectmode == SCE_SELECT_FACE) {
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				BM_elem_flag_disable(efa, BM_ELEM_TAG);

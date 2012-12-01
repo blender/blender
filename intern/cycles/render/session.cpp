@@ -637,6 +637,15 @@ void Session::reset(BufferParams& buffer_params, int samples)
 		reset_gpu(buffer_params, samples);
 	else
 		reset_cpu(buffer_params, samples);
+
+	if(params.progressive_refine) {
+		thread_scoped_lock buffers_lock(buffers_mutex);
+
+		foreach(RenderBuffers *buffers, tile_buffers)
+			delete buffers;
+
+		tile_buffers.clear();
+	}
 }
 
 void Session::set_samples(int samples)

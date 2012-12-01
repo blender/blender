@@ -86,6 +86,7 @@ typedef struct CompoJob {
 	short *stop;
 	short *do_update;
 	float *progress;
+	short need_sync;
 } CompoJob;
 
 /* called by compo, only to check job 'stop' value */
@@ -102,8 +103,17 @@ static int compo_breakjob(void *cjv)
 	        );
 }
 
+/* called by compo, wmJob sends notifier, old compositor system only */
+static void compo_statsdrawjob(void *cjv, char *UNUSED(str))
+{
+	CompoJob *cj = cjv;
+	
+	*(cj->do_update) = TRUE;
+	cj->need_sync = TRUE;
+}
+
 /* called by compo, wmJob sends notifier */
-static void compo_redrawjob(void *cjv, char *UNUSED(str))
+static void compo_redrawjob(void *cjv)
 {
 	CompoJob *cj = cjv;
 	
@@ -133,8 +143,15 @@ static void compo_initjob(void *cjv)
 static void compo_updatejob(void *cjv)
 {
 	CompoJob *cj = cjv;
-	
-	ntreeLocalSync(cj->localtree, cj->ntree);
+
+	if (cj->need_sync) {
+		/* was used by old compositor system only */
+		ntreeLocalSync(cj->localtree, cj->ntree);
+
+		cj->need_sync = FALSE;
+	}
+
+	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
 }
 
 static void compo_progressjob(void *cjv, float progress)
@@ -161,11 +178,13 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 
 	ntree->test_break = compo_breakjob;
 	ntree->tbh = cj;
-	ntree->stats_draw = compo_redrawjob;
+	ntree->stats_draw = compo_statsdrawjob;
 	ntree->sdh = cj;
 	ntree->progress = compo_progressjob;
 	ntree->prh = cj;
-	
+	ntree->update_draw = compo_redrawjob;
+	ntree->udh = cj;
+
 	// XXX BIF_store_spare();
 	
 	ntreeCompositExecTree(ntree, &cj->scene->r, 0, 1, &scene->view_settings, &scene->display_settings);  /* 1 is do_previews */
@@ -177,7 +196,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 }
 
 /**
- * \param sa_owner is the owner of the job,
+ * \param scene_owner is the owner of the job,
  * we don't use it for anything else currently so could also be a void pointer,
  * but for now keep it an 'Scene' for consistency.
  *

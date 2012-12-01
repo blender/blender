@@ -86,7 +86,8 @@ static void make_prim_finish(bContext *C, Object *obedit, int *state, int enter_
 	 * to push this up to edges & faces. */
 	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
-	EDBM_update_generic(C, em, TRUE);
+	/* only recalc editmode tessface if we are staying in editmode */
+	EDBM_update_generic(C, em, enter_editmode);
 
 	/* userdef */
 	if (*state && !enter_editmode) {
@@ -109,7 +110,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	em = BMEdit_FromObject(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
-	                              "create_grid x_segments=%i y_segments=%i size=%f mat=%m4", 1, 1, dia, mat))
+	                              "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4", 1, 1, dia, mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -149,7 +150,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	obedit = make_prim_init(C, "Cube", &dia, mat, &state, loc, rot, layer);
 	em = BMEdit_FromObject(obedit);
 
-	if (!EDBM_op_call_and_selectf(em, op, "verts.out", "create_cube mat=%m4 size=%f", mat, dia * 2.0f)) {
+	if (!EDBM_op_call_and_selectf(em, op, "verts.out", "create_cube matrix=%m4 size=%f", mat, dia * 2.0f)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -199,7 +200,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 	em = BMEdit_FromObject(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
-	                              "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b mat=%m4",
+	                              "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b matrix=%m4",
 	                              RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius") * dia,
 	                              cap_end, cap_tri, mat))
 	{
@@ -254,7 +255,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out",
-	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f mat=%m4",
+	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f matrix=%m4",
 	        RNA_int_get(op->ptr, "vertices"),
 	        RNA_float_get(op->ptr, "radius") * dia,
 	        RNA_float_get(op->ptr, "radius") * dia,
@@ -314,7 +315,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out",
-	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f mat=%m4",
+	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f matrix=%m4",
 	        RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius1") * dia,
 	        RNA_float_get(op->ptr, "radius2") * dia, cap_end, cap_tri, RNA_float_get(op->ptr, "depth") * dia, mat))
 	{
@@ -369,7 +370,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	em = BMEdit_FromObject(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
-	                              "create_grid x_segments=%i y_segments=%i size=%f mat=%m4",
+	                              "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4",
 	                              RNA_int_get(op->ptr, "x_subdivisions"),
 	                              RNA_int_get(op->ptr, "y_subdivisions"),
 	                              RNA_float_get(op->ptr, "size") * dia, mat))
@@ -427,7 +428,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 
 	em = BMEdit_FromObject(obedit);
 
-	if (!EDBM_op_call_and_selectf(em, op, "verts.out", "create_monkey mat=%m4", mat)) {
+	if (!EDBM_op_call_and_selectf(em, op, "verts.out", "create_monkey matrix=%m4", mat)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -467,7 +468,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	em = BMEdit_FromObject(obedit);
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
-	                              "create_uvsphere u_segments=%i v_segments=%i diameter=%f mat=%m4",
+	                              "create_uvsphere u_segments=%i v_segments=%i diameter=%f matrix=%m4",
 	                              RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
 	                              RNA_float_get(op->ptr, "size") * dia, mat))
 	{
@@ -519,7 +520,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out",
-	        "create_icosphere subdivisions=%i diameter=%f mat=%m4",
+	        "create_icosphere subdivisions=%i diameter=%f matrix=%m4",
 	        RNA_int_get(op->ptr, "subdivisions"),
 	        RNA_float_get(op->ptr, "size") * dia, mat))
 	{

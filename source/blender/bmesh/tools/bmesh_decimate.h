@@ -37,5 +37,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
                                   BMEdge **einput_arr, const int einput_len);
 void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries);
 
+/* these weights are accumulated so too high values may reach 'inf' too quickly */
+#define BM_MESH_DECIM_WEIGHT_MAX 100000.0f
+#define BM_MESH_DECIM_WEIGHT_EPS (1.0f / BM_MESH_DECIM_WEIGHT_MAX)
 
 #endif /* __BMESH_DECIMATE_H__ */

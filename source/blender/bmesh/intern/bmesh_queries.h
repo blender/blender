@@ -90,6 +90,7 @@ int     BM_face_share_edge_count(BMFace *f1, BMFace *f2);
 int     BM_face_share_face_check(BMFace *f1, BMFace *f2);
 int     BM_face_share_edge_check(BMFace *f1, BMFace *f2);
 int     BM_edge_share_face_check(BMEdge *e1, BMEdge *e2);
+int     BM_edge_share_quad_check(BMEdge *e1, BMEdge *e2);
 int     BM_edge_share_vert_check(BMEdge *e1, BMEdge *e2);
 
 BMVert *BM_edge_share_vert(BMEdge *e1, BMEdge *e2);

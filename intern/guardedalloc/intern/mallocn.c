@@ -58,7 +58,7 @@
  * store original buffer's name when doing MEM_dupallocN
  * helpful to profile issues with non-freed "dup_alloc" buffers,
  * but this introduces some overhead to memory header and makes
- * things slower a bit, so betterto keep disabled by default
+ * things slower a bit, so better to keep disabled by default
  */
 //#define DEBUG_MEMDUPLINAME
 

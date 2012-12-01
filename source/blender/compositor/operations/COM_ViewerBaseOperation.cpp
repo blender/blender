@@ -103,7 +103,7 @@ void ViewerBaseOperation:: updateImage(rcti *rect)
 	                                  this->m_viewSettings, this->m_displaySettings,
 	                                  rect->xmin, rect->ymin, rect->xmax, rect->ymax, FALSE);
 
-	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
+	this->updateDraw();
 }
 
 void ViewerBaseOperation::deinitExecution()

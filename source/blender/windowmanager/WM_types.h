@@ -301,6 +301,7 @@ typedef struct wmNotifier {
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)
 #define	ND_SHADING_DRAW		(31<<16)
+#define	ND_SHADING_LINKS	(32<<16)
 
 	/* NC_LAMP Lamp */
 #define	ND_LIGHTING			(40<<16)

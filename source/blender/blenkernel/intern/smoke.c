@@ -165,7 +165,7 @@ void flame_get_spectrum(unsigned char *UNUSED(spec), int UNUSED(width), float UN
 void smoke_reallocate_fluid(SmokeDomainSettings *sds, float dx, int res[3], int free_old)
 {
 	int use_heat = (sds->active_fields & SM_ACTIVE_HEAT);
-	int use_fire = (sds->active_fields & (SM_ACTIVE_HEAT | SM_ACTIVE_FIRE));
+	int use_fire = (sds->active_fields & SM_ACTIVE_FIRE);
 	int use_colors = (sds->active_fields & SM_ACTIVE_COLORS);
 
 	if (free_old && sds->fluid)

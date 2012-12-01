@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/object/view3d_iterators.c
+/** \file blender/editors/space_view3d/view3d_iterators.c
  *  \ingroup spview3d
  */
 

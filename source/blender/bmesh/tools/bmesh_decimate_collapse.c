@@ -223,8 +223,8 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 	}
 
 	if (vweights) {
-		if ((vweights[BM_elem_index_get(e->v1)] < FLT_EPSILON) &&
-		    (vweights[BM_elem_index_get(e->v2)] < FLT_EPSILON))
+		if ((vweights[BM_elem_index_get(e->v1)] >= BM_MESH_DECIM_WEIGHT_MAX) &&
+		    (vweights[BM_elem_index_get(e->v2)] >= BM_MESH_DECIM_WEIGHT_MAX))
 		{
 			/* skip collapsing this edge */
 			eheap_table[BM_elem_index_get(e)] = NULL;
@@ -244,8 +244,9 @@ static void bm_decim_build_edge_cost_single(BMEdge *e,
 		        BLI_quadric_evaluate(q2, optimize_co));
 	}
 	else {
-		cost = ((BLI_quadric_evaluate(q1, optimize_co) * vweights[BM_elem_index_get(e->v1)]) +
-		        (BLI_quadric_evaluate(q2, optimize_co) * vweights[BM_elem_index_get(e->v2)]));
+		/* add 1.0 so planar edges are still weighted against */
+		cost = (((BLI_quadric_evaluate(q1, optimize_co) + 1.0f) * vweights[BM_elem_index_get(e->v1)]) +
+		        ((BLI_quadric_evaluate(q2, optimize_co) + 1.0f) * vweights[BM_elem_index_get(e->v2)]));
 	}
 	// print("COST %.12f\n");
 
@@ -877,9 +878,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
 		int i;
 
 		if (vweights) {
-			const int fac = CLAMPIS(customdata_fac, 0.0f, 1.0f);
-			vweights[BM_elem_index_get(v_other)] = (vweights[v_clear_index]              * (1.0f - fac)) +
-			                                       (vweights[BM_elem_index_get(v_other)] * fac);
+			vweights[BM_elem_index_get(v_other)] += vweights[v_clear_index];
 		}
 
 		e = NULL;  /* paranoid safety check */
@@ -960,7 +959,7 @@ static void bm_decim_edge_collapse(BMesh *bm, BMEdge *e,
  * \brief BM_mesh_decimate
  * \param bm The mesh
  * \param factor face count multiplier [0 - 1]
- * \param vertex_weights Optional array of vertex  aligned weights [0 - 1],
+ * \param vweights Optional array of vertex  aligned weights [0 - 1],
  *        a vertex group is the usual source for this.
  */
 void BM_mesh_decimate_collapse(BMesh *bm, const float factor, float *vweights, const int do_triangulate)

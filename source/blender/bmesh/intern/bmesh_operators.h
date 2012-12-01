@@ -85,29 +85,22 @@ enum {
 	SIMVERT_EDGE
 };
 
-enum {
-	OPUVC_AXIS_X = 1,
-	OPUVC_AXIS_Y
-};
-
 /* vertex path selection values */
 enum {
 	VPATH_SELECT_EDGE_LENGTH = 0,
 	VPATH_SELECT_TOPOLOGICAL
 };
 
-extern BMOpDefine *opdefines[];
-extern int bmesh_total_ops;
+extern const BMOpDefine *bmo_opdefines[];
+extern const int         bmo_opdefines_total;
 
 /*------specific operator helper functions-------*/
-
-struct Object;
-
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
                         float smooth, float fractal, float along_normal,
                         int numcuts,
                         int seltype, int cornertype,
-                        const short use_singleedge, const short use_gridfill,
+                        const short use_single_edge, const short use_grid_fill,
+                        const short use_only_quads,
                         int seed);
 
 #include "intern/bmesh_operator_api_inline.h"

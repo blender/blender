@@ -188,9 +188,14 @@ detect_distro() {
 
 prepare_opt() {
   INFO "Ensuring $INST exists and is writable by us"
-  sudo mkdir -p $INST
-  sudo chown $USER $INST
-  sudo chmod 775 $INST
+  if [ ! -d  $INST ]; then
+    sudo mkdir -p $INST
+  fi
+
+  if [ ! -w $INST ]; then
+    sudo chown $USER $INST
+    sudo chmod 775 $INST
+  fi
 }
 
 # Check whether the current package needs to be recompiled, based on a dummy file containing a magic number in its name...
@@ -407,6 +412,7 @@ compile_OIIO() {
     prepare_opt
 
     if [ ! -d $_src ]; then
+      mkdir -p $SRC
       wget -c $OIIO_SOURCE -O "$_src.tar.gz"
 
       INFO "Unpacking OpenImageIO-$OIIO_VERSION"
@@ -450,12 +456,16 @@ EOF
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D BUILDSTATIC=ON"
-    cmake_d="$cmake_d -D LINKSTATIC=ON"
+
+    # linking statically could give issues on Debian/Ubuntu (and probably other distros
+    # which doesn't like static linking) when linking shared oiio library due to missing
+    # text symbols (static libs should be compiled with -fPIC)
+    # cmake_d="$cmake_d -D LINKSTATIC=ON"
 
     if [ -d $INST/boost ]; then
       cmake_d="$cmake_d -D BOOST_ROOT=$INST/boost -D Boost_NO_SYSTEM_PATHS=ON"
       if $ALL_STATIC; then
-        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"        
+        cmake_d="$cmake_d -D Boost_USE_STATIC_LIBS=ON"
       fi
     fi
 
@@ -513,6 +523,7 @@ compile_LLVM() {
     prepare_opt
 
     if [ ! -d $_src -o true ]; then
+      mkdir -p $SRC
       wget -c $LLVM_SOURCE -O "$_src.tar.gz"
       wget -c $LLVM_CLANG_SOURCE -O "$_src_clang.tar.gz"
 
@@ -603,6 +614,8 @@ compile_OSL() {
     prepare_opt
 
     if [ ! -d $_src ]; then
+      mkdir -p $SRC
+
       # XXX Using git on my own repo for now, looks like archives are not updated immediately... :/
 #      wget -c $OSL_SOURCE -O "$_src.tar.gz"
 
@@ -692,6 +705,7 @@ compile_FFmpeg() {
 
     if [ ! -d $_src ]; then
       INFO "Downloading ffmpeg-$FFMPEG_VERSION"
+      mkdir -p $SRC
       wget -c $FFMPEG_SOURCE -O "$_src.tar.bz2"
 
       INFO "Unpacking ffmpeg-$FFMPEG_VERSION"
@@ -811,6 +825,29 @@ install_DEB() {
   INFO "$COMMON_INFO"
   INFO ""
 
+  if [ ! -z "`cat /etc/debian_version | grep ^6`"  ]; then
+    if [ -z "`cat /etc/apt/sources.list | grep backports.debian.org`"  ]; then
+      INFO "Looks like you're using Debian Squeeze which does have broken CMake"
+      INFO "It is highly recommended to install cmake from backports, otherwise"
+      INFO "compilation of some libraries could fail"
+      INFO ""
+      INFO "You could install newer CMake from debian-backports repository"
+      INFO "Add this this line to your /etc/apt/sources.lixt:"
+      INFO ""
+      INFO "deb http://backports.debian.org/debian-backports squeeze-backports main"
+      INFO ""
+      INFO "and then run:"
+      INFO ""
+      INFO "sudo apt-get update && sudo apt-get install cmake=2.8.7-4~bpo60+1 sudo apt-get install cmake=2.8.7-4~bpo60+1"
+      INFO ""
+      INFO "(you could also add this reporisotry using GUI like synaptic)"
+      INFO ""
+      INFO "Hit Enter to continue running the script, or hit Ctrl-C to abort the script"
+
+      read
+    fi
+  fi
+
   sudo apt-get update
 # XXX Why in hell? Let's let this stuff to the user's responsability!!!
 #  sudo apt-get -y upgrade
@@ -825,7 +862,7 @@ install_DEB() {
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
     libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
-    libfftw3-dev libjack-dev python-dev patch
+    libfftw3-dev libjack-dev python-dev patch bzip2
 
   OPENJPEG_USE=true
   SCHRO_USE=true

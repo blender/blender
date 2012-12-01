@@ -206,7 +206,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
 
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL);
+		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD);
 		BM_elem_index_set(v, i); /* set_ok */
 		vt[i] = v;
 
@@ -220,10 +220,10 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		normal_short_to_float_v3(v->no, mvert->no);
 
-		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
-
-		/* Copy Custom Dat */
+		/* Copy Custom Data */
 		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
+
+		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
 
 		/* set shapekey data */
 		if (me->key) {
@@ -254,7 +254,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 	medge = me->medge;
 	for (i = 0; i < me->totedge; i++, medge++) {
-		e = BM_edge_create(bm, vt[medge->v1], vt[medge->v2], NULL, FALSE);
+		e = BM_edge_create(bm, vt[medge->v1], vt[medge->v2], NULL, BM_CREATE_SKIP_CD);
 		BM_elem_index_set(e, i); /* set_ok */
 		et[i] = e;
 
@@ -312,7 +312,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		}
 #endif
 
-		f = BM_face_create(bm, verts, fedges, mpoly->totloop, FALSE);
+		f = BM_face_create(bm, verts, fedges, mpoly->totloop, BM_CREATE_SKIP_CD);
 
 		if (UNLIKELY(f == NULL)) {
 			printf("%s: Warning! Bad face in mesh"
@@ -338,7 +338,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		j = 0;
 		BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, j) {
 			/* Save index of correspsonding MLoop */
-			BM_elem_index_set(l, mpoly->loopstart + j); /* set_loop */
+			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart + j, &l->head.data);
 		}
 
 		/* Copy Custom Data */
@@ -346,23 +346,6 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	}
 
 	bm->elem_index_dirty &= ~BM_FACE; /* added in order, clear dirty flag */
-
-	{
-		BMIter fiter;
-		BMIter liter;
-
-		/* Copy over loop CustomData. Doing this in a separate loop isn't necessary
-		 * but is an optimization, to avoid copying a bunch of interpolated customdata
-		 * for each BMLoop (from previous BMLoops using the same edge), always followed
-		 * by freeing the interpolated data and overwriting it with data from the Mesh. */
-		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-				int li = BM_elem_index_get(l);
-				CustomData_to_bmesh_block(&me->ldata, &bm->ldata, li, &l->head.data);
-				BM_elem_index_set(l, 0); /* set_loop */
-			}
-		}
-	}
 
 	if (me->mselect && me->totselect != 0) {
 

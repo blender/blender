@@ -130,14 +130,7 @@ protected:
 	void generate_closure(ShaderNode *node, set<ShaderNode*>& done);
 
 	/* multi closure */
-	struct MultiClosureData {
-		int stack_offset;
-		int users;
-	};
-
-	void generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done,
-		map<ShaderNode*,MultiClosureData>& closure_data, uint in_offset);
-	void count_closure_users(ShaderNode *node, map<ShaderNode*, MultiClosureData>& closure_data);
+	void generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done);
 
 	/* compile */
 	void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);

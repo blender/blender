@@ -110,5 +110,5 @@ WITH_BF_OCEANSIM = True
 
 # Compilation and optimization
 BF_DEBUG = False
-REL_CCFLAGS = ['-O2']  # C & C++
+REL_CCFLAGS = ['-DNDEBUG', '-O2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib32']

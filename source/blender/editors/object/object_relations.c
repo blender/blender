@@ -1225,7 +1225,7 @@ static unsigned int move_to_layer_init(bContext *C, wmOperator *op)
 	return lay;
 }
 
-static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d && v3d->localvd) {
@@ -1233,7 +1233,7 @@ static int move_to_layer_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	}
 	else {
 		move_to_layer_init(C, op);
-		return WM_operator_props_dialog_popup(C, op, 260, 30);
+		return WM_operator_props_popup(C, op, event);
 	}
 }
 
@@ -2148,7 +2148,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
-	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, ma);
+	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 	
 	return OPERATOR_FINISHED;
 }

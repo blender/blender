@@ -431,7 +431,7 @@ static int key_test_depth(PEData *data, const float co[3], const int screen_co[2
 #else /* faster to use depths, these are calculated in PE_set_view3d_data */
 
 	/* check if screen_co is within bounds because brush_cut uses out of screen coords */
-	if(screen_co[0] >= 0 && screen_co[0] < vd->w && screen_co[1] >= 0 && screen_co[1] < vd->h) {
+	if (screen_co[0] >= 0 && screen_co[0] < vd->w && screen_co[1] >= 0 && screen_co[1] < vd->h) {
 		BLI_assert(vd && vd->depths);
 		/* we know its not clipped */
 		depth = vd->depths[screen_co[1] * vd->w + screen_co[0]];

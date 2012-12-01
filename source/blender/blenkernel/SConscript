@@ -41,11 +41,12 @@ if env['WITH_BF_PYTHON']:
     if env['BF_DEBUG']:
         defs.append('DEBUG')
 
+'''
 if env['WITH_BF_ELTOPO']:
     incs += ' #/extern/eltopo'
     incs += ' #/extern/eltopo/eltopo3d'
     defs.append('WITH_ELTOPO')
-        
+'''
 if env['WITH_BF_QUICKTIME']:
     incs += ' ../quicktime'
 

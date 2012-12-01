@@ -105,7 +105,7 @@ bool	KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode,short v
 	{
 		int previousTable = 1-m_currentTable;
 
-		if (val == KM_PRESS)
+		if (val == KM_PRESS || val == KM_DBL_CLICK)
 		{
 			if (kxevent == KX_KetsjiEngine::GetExitKey() && val != 0 && !m_hookesc)
 				result = true;

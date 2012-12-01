@@ -544,6 +544,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	BMVert *v;
 	LaplacianSystem *sys;
 
+	if (bm->totface == 0) return;
 	sys = init_laplacian_system(bm->totedge, bm->totface, bm->totvert);
 	if (!sys) return;
 	sys->bm = bm;

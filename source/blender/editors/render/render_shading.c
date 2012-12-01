@@ -1480,7 +1480,7 @@ static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
 
 	paste_matcopybuf(ma);
 
-	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_DRAW, ma);
+	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 
 	return OPERATOR_FINISHED;
 }
@@ -1642,7 +1642,7 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 
 	paste_mtex_copybuf(id);
 
-	WM_event_add_notifier(C, NC_TEXTURE | ND_SHADING_DRAW, NULL);
+	WM_event_add_notifier(C, NC_TEXTURE | ND_SHADING_LINKS, NULL);
 
 	return OPERATOR_FINISHED;
 }

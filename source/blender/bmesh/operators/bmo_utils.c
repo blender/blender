@@ -47,7 +47,7 @@ void bmo_create_vert_exec(BMesh *bm, BMOperator *op)
 
 	BMO_slot_vec_get(op->slots_in, "co", vec);
 
-	BMO_elem_flag_enable(bm, BM_vert_create(bm, vec, NULL), 1);
+	BMO_elem_flag_enable(bm, BM_vert_create(bm, vec, NULL, 0), 1);
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "vert.out", BM_VERT, 1);
 }
 
@@ -57,7 +57,7 @@ void bmo_transform_exec(BMesh *UNUSED(bm), BMOperator *op)
 	BMVert *v;
 	float mat[4][4];
 
-	BMO_slot_mat4_get(op->slots_in, "mat", mat);
+	BMO_slot_mat4_get(op->slots_in, "matrix", mat);
 
 	BMO_ITER (v, &iter, op->slots_in, "verts", BM_VERT) {
 		mul_m4_v3(mat, v->co);
@@ -73,7 +73,7 @@ void bmo_translate_exec(BMesh *bm, BMOperator *op)
 	unit_m4(mat);
 	copy_v3_v3(mat[3], vec);
 
-	BMO_op_callf(bm, op->flag, "transform mat=%m4 verts=%s", mat, op, "verts");
+	BMO_op_callf(bm, op->flag, "transform matrix=%m4 verts=%s", mat, op, "verts");
 }
 
 void bmo_scale_exec(BMesh *bm, BMOperator *op)
@@ -87,7 +87,7 @@ void bmo_scale_exec(BMesh *bm, BMOperator *op)
 	mat[1][1] = vec[1];
 	mat[2][2] = vec[2];
 
-	BMO_op_callf(bm, op->flag, "transform mat=%m3 verts=%s", mat, op, "verts");
+	BMO_op_callf(bm, op->flag, "transform matrix=%m3 verts=%s", mat, op, "verts");
 }
 
 void bmo_rotate_exec(BMesh *bm, BMOperator *op)
@@ -102,7 +102,7 @@ void bmo_rotate_exec(BMesh *bm, BMOperator *op)
 	mul_v3_fl(vec, -1.0f);
 	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
 
-	BMO_op_callf(bm, op->flag, "transform mat=%s verts=%s", op, "mat", op, "verts");
+	BMO_op_callf(bm, op->flag, "transform matrix=%s verts=%s", op, "matrix", op, "verts");
 
 	mul_v3_fl(vec, -1.0f);
 	BMO_op_callf(bm, op->flag, "translate verts=%s vec=%v", op, "verts", vec);
@@ -268,14 +268,14 @@ void bmo_region_extend_exec(BMesh *bm, BMOperator *op)
 	int use_faces = BMO_slot_bool_get(op->slots_in, "use_faces");
 	int constrict = BMO_slot_bool_get(op->slots_in, "use_constrict");
 
-	BMO_slot_buffer_flag_enable(bm, op->slots_in, "geom", BM_ALL, SEL_ORIG);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "geom", BM_ALL_NOLOOP, SEL_ORIG);
 
 	if (constrict)
 		bmo_region_extend_constrict(bm, op, use_faces);
 	else
 		bmo_region_extend_extend(bm, op, use_faces);
 
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL, SEL_FLAG);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_ALL_NOLOOP, SEL_FLAG);
 }
 
 /********* righthand faces implementation ****** */
@@ -701,9 +701,8 @@ typedef struct ElemNode {
 
 void bmo_shortest_path_exec(BMesh *bm, BMOperator *op)
 {
-	BMOIter vs_iter /* , vs2_iter */;	/* selected verts iterator */
 	BMIter v_iter;		/* mesh verts iterator */
-	BMVert *vs, *sv, *ev;	/* starting vertex, ending vertex */
+	BMVert *sv, *ev;	/* starting vertex, ending vertex */
 	BMVert *v;		/* mesh vertex */
 	Heap *h = NULL;
 
@@ -712,13 +711,8 @@ void bmo_shortest_path_exec(BMesh *bm, BMOperator *op)
 	int num_total = 0 /*, num_sels = 0 */, i = 0;
 	const int type = BMO_slot_int_get(op->slots_in, "type");
 
-	/* BMESH_TODO use BMO_slot_buffer_elem_first here? */
-	BMO_ITER (vs, &vs_iter, op->slots_in, "startv", BM_VERT) {
-		sv = vs;
-	}
-	BMO_ITER (vs, &vs_iter, op->slots_in, "endv", BM_VERT) {
-		ev = vs;
-	}
+	sv = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_start"));
+	ev = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_end"));
 
 	num_total = BM_mesh_elem_count(bm, BM_VERT);
 

@@ -262,16 +262,10 @@ static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerIte
 	}
 
 	BPY_BM_CHECK_OBJ(self);
-	BPY_BM_CHECK_OBJ(value);
+	BPY_BM_CHECK_SOURCE_OBJ(value, self->bm, "layer.copy_from()");
 
-	if (self->bm != value->bm) {
-		PyErr_SetString(PyExc_ValueError,
-		                "layer.copy_from(): layer is from another mesh");
-		return NULL;
-	}
-
-	else if ((self->htype != value->htype) ||
-	         (self->type  != value->type))
+	if ((self->htype != value->htype) ||
+	    (self->type  != value->type))
 	{
 		PyErr_SetString(PyExc_ValueError,
 		                "layer.copy_from(other): layer type mismatch");

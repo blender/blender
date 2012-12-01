@@ -2826,6 +2826,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 			EnumPropertyItem *item;
 			int i, totitem, free;
 
+			/* TODO, translate after getting the item, saves many lookups */
 			RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
 			for (i = 0; i < totitem; i++) {
 				if (item[i].identifier[0] && item[i].value == (int)max) {

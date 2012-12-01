@@ -178,7 +178,7 @@ def rna2xml(fw=print_ln,
         fw("%s</%s>\n" % (ident, value_type_name))
 
     # -------------------------------------------------------------------------
-    # needs re-workign to be generic
+    # needs re-working to be generic
 
     if root_node:
         fw("%s<%s>\n" % (root_ident, root_node))

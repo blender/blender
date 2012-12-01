@@ -1965,7 +1965,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			kfe->e = NULL;
 		}
 
-		kfe->e = BM_edge_create(bm, kfe->v1->v, kfe->v2->v, NULL, TRUE);
+		kfe->e = BM_edge_create(bm, kfe->v1->v, kfe->v2->v, NULL, BM_CREATE_NO_DOUBLE);
 		BMO_elem_flag_enable(bm, kfe->e, BOUNDARY);
 
 		for (ref = kfe->faces.first; ref; ref = ref->next) {
@@ -2067,7 +2067,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			}
 		}
 
-		BLI_scanfill_calc(&sf_ctx, FALSE);
+		BLI_scanfill_calc(&sf_ctx, 0);
 
 		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 			BMVert *v1 = sf_tri->v3->tmp.p, *v2 = sf_tri->v2->tmp.p, *v3 = sf_tri->v1->tmp.p;

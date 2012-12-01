@@ -20,6 +20,7 @@
 
 shader node_convert_from_normal(
 	normal Normal = normal(0.0, 0.0, 0.0),
+	output string String = "",
 	output float Val = 0.0,
 	output int ValInt = 0,
 	output vector Vector = vector(0.0, 0.0, 0.0),

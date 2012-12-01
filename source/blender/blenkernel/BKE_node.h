@@ -34,8 +34,6 @@
 
 #include "DNA_listBase.h"
 
-#include "RNA_types.h"
-
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET	64
 
@@ -82,7 +80,7 @@ typedef struct bNodeSocketTemplate {
 	char name[64];	/* MAX_NAME */
 	float val1, val2, val3, val4;   /* default alloc value for inputs */
 	float min, max;
-	PropertySubType subtype;
+	int subtype;  /* would use PropertySubType but this is a bad level include to use RNA */
 	int flag;
 	
 	/* after this line is used internal only */

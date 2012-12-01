@@ -836,6 +836,8 @@ static int outliner_one_level_exec(bContext *C, wmOperator *op)
 
 void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Show/Hide One Level";
 	ot->idname = "OUTLINER_OT_show_one_level";
@@ -848,7 +850,8 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 	/* no undo or registry, UI option */
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep");
+	prop = RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* Show Hierarchy ----------------------------------------------- */
@@ -1859,7 +1862,7 @@ static int material_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		DAG_ids_flush_update(bmain, 0);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
-		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, ma);
+		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 
 		return OPERATOR_FINISHED;
 	}

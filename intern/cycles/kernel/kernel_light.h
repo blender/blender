@@ -350,10 +350,9 @@ __device int light_distribution_sample(KernelGlobals *kg, float randt)
 		}
 	}
 
-	first = max(0, first-1);
-	kernel_assert(first >= 0 && first < kernel_data.integrator.num_distribution);
-
-	return first;
+	/* clamping should not be needed but float rounding errors seem to
+	 * make this fail on rare occasions */
+	return clamp(first-1, 0, kernel_data.integrator.num_distribution-1);
 }
 
 /* Generic Light */

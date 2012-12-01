@@ -1072,16 +1072,22 @@ static int stitch_init(bContext *C, wmOperator *op)
 	BMEditMesh *em;
 	GHashIterator *ghi;
 	UvEdge *all_edges;
-	StitchState *state = MEM_mallocN(sizeof(StitchState), "stitch state");
+	StitchState *state;
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
+	ARegion *ar = CTX_wm_region(C);
 
 	Object *obedit = CTX_data_edit_object(C);
 
-	op->customdata = state;
+	if (!ar)
+		return 0;
+
+	state = MEM_mallocN(sizeof(StitchState), "stitch state");
 
 	if (!state)
 		return 0;
+
+	op->customdata = state;
 
 	/* initialize state */
 	state->use_limit = RNA_boolean_get(op->ptr, "use_limit");
@@ -1091,7 +1097,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	state->static_island = RNA_int_get(op->ptr, "static_island");
 	state->midpoints = RNA_boolean_get(op->ptr, "midpoint_snap");
 	state->clear_seams = RNA_boolean_get(op->ptr, "clear_seams");
-	state->draw_handle = ED_region_draw_cb_activate(CTX_wm_region(C)->type, stitch_draw, NULL, REGION_DRAW_POST_VIEW);
+	state->draw_handle = ED_region_draw_cb_activate(ar->type, stitch_draw, NULL, REGION_DRAW_POST_VIEW);
 	/* in uv synch selection, all uv's are visible */
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		state->element_map = EDBM_uv_element_map_create(state->em, 0, 1);

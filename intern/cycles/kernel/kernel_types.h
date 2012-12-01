@@ -29,7 +29,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* constants */
-#define OBJECT_SIZE 		22
+#define OBJECT_SIZE 		18
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
 #define RAMP_TABLE_SIZE		256
@@ -102,6 +102,7 @@ CCL_NAMESPACE_BEGIN
 #define __IMAGE_TEXTURES__
 #define __EXTRA_NODES__
 #define __HOLDOUT__
+#define __NORMAL_MAP__
 #endif
 
 #ifdef __KERNEL_ADV_SHADING__
@@ -112,11 +113,7 @@ CCL_NAMESPACE_BEGIN
 #define __AO__
 #define __CAMERA_MOTION__
 #define __ANISOTROPIC__
-
-#ifndef __KERNEL_CUDA__
 #define __OBJECT_MOTION__
-#endif
-
 #endif
 
 //#define __SOBOL_FULL_SCREEN__

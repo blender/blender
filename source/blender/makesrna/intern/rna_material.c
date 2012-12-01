@@ -2121,13 +2121,13 @@ void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
 		RNA_def_property_editable_func(prop, activeeditable);
 	RNA_def_property_pointer_funcs(prop, activeget, activeset, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed");
-	RNA_def_property_update(prop, 0, update);
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, update);
 
 	prop = RNA_def_property(srna, "active_texture_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "texact");
 	RNA_def_property_range(prop, 0, MAX_MTEX - 1);
 	RNA_def_property_ui_text(prop, "Active Texture Index", "Index of active texture slot");
-	RNA_def_property_update(prop, 0, update);
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, update);
 }
 
 #endif

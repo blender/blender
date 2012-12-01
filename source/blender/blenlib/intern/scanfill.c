@@ -503,8 +503,7 @@ static void splitlist(ScanFillContext *sf_ctx, ListBase *tempve, ListBase *tempe
 	}
 }
 
-
-static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
+static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 {
 	ScanFillVertLink *sc = NULL, *sc1;
 	ScanFillVert *eve, *v1, *v2, *v3;
@@ -530,26 +529,28 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 #endif
 
 	/* STEP 0: remove zero sized edges */
-	eed = sf_ctx->filledgebase.first;
-	while (eed) {
-		if (equals_v2v2(eed->v1->xy, eed->v2->xy)) {
-			if (eed->v1->f == SF_VERT_ZERO_LEN && eed->v2->f != SF_VERT_ZERO_LEN) {
-				eed->v2->f = SF_VERT_ZERO_LEN;
-				eed->v2->tmp.v = eed->v1->tmp.v;
+	if (flag & BLI_SCANFILL_CALC_REMOVE_DOUBLES) {
+		eed = sf_ctx->filledgebase.first;
+		while (eed) {
+			if (equals_v2v2(eed->v1->xy, eed->v2->xy)) {
+				if (eed->v1->f == SF_VERT_ZERO_LEN && eed->v2->f != SF_VERT_ZERO_LEN) {
+					eed->v2->f = SF_VERT_ZERO_LEN;
+					eed->v2->tmp.v = eed->v1->tmp.v;
+				}
+				else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f != SF_VERT_ZERO_LEN) {
+					eed->v1->f = SF_VERT_ZERO_LEN;
+					eed->v1->tmp.v = eed->v2->tmp.v;
+				}
+				else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f == SF_VERT_ZERO_LEN) {
+					eed->v1->tmp.v = eed->v2->tmp.v;
+				}
+				else {
+					eed->v2->f = SF_VERT_ZERO_LEN;
+					eed->v2->tmp.v = eed->v1;
+				}
 			}
-			else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f != SF_VERT_ZERO_LEN) {
-				eed->v1->f = SF_VERT_ZERO_LEN;
-				eed->v1->tmp.v = eed->v2->tmp.v;
-			}
-			else if (eed->v2->f == SF_VERT_ZERO_LEN && eed->v1->f == SF_VERT_ZERO_LEN) {
-				eed->v1->tmp.v = eed->v2->tmp.v;
-			}
-			else {
-				eed->v2->f = SF_VERT_ZERO_LEN;
-				eed->v2->tmp.v = eed->v1;
-			}
+			eed = eed->next;
 		}
-		eed = eed->next;
 	}
 
 	/* STEP 1: make using FillVert and FillEdge lists a sorted
@@ -572,28 +573,42 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 
 	qsort(sf_ctx->_scdata, verts, sizeof(ScanFillVertLink), vergscdata);
 
-	eed = sf_ctx->filledgebase.first;
-	while (eed) {
-		nexted = eed->next;
-		BLI_remlink(&sf_ctx->filledgebase, eed);
-		/* This code is for handling zero-length edges that get
-		 * collapsed in step 0. It was removed for some time to
-		 * fix trunk bug #4544, so if that comes back, this code
-		 * may need some work, or there will have to be a better
-		 * fix to #4544. */
-		if (eed->v1->f == SF_VERT_ZERO_LEN) {
-			v1 = eed->v1;
-			while ((eed->v1->f == SF_VERT_ZERO_LEN) && (eed->v1->tmp.v != v1) && (eed->v1 != eed->v1->tmp.v))
-				eed->v1 = eed->v1->tmp.v;
+	if (flag & BLI_SCANFILL_CALC_REMOVE_DOUBLES) {
+		for (eed = sf_ctx->filledgebase.first; eed; eed = nexted) {
+			nexted = eed->next;
+			BLI_remlink(&sf_ctx->filledgebase, eed);
+			/* This code is for handling zero-length edges that get
+			 * collapsed in step 0. It was removed for some time to
+			 * fix trunk bug #4544, so if that comes back, this code
+			 * may need some work, or there will have to be a better
+			 * fix to #4544.
+			 *
+			 * warning, this can hang on un-ordered edges, see: [#33281]
+			 * for now disable 'BLI_SCANFILL_CALC_REMOVE_DOUBLES' for ngons.
+			 */
+			if (eed->v1->f == SF_VERT_ZERO_LEN) {
+				v1 = eed->v1;
+				while ((eed->v1->f == SF_VERT_ZERO_LEN) && (eed->v1->tmp.v != v1) && (eed->v1 != eed->v1->tmp.v))
+					eed->v1 = eed->v1->tmp.v;
+			}
+			if (eed->v2->f == SF_VERT_ZERO_LEN) {
+				v2 = eed->v2;
+				while ((eed->v2->f == SF_VERT_ZERO_LEN) && (eed->v2->tmp.v != v2) && (eed->v2 != eed->v2->tmp.v))
+					eed->v2 = eed->v2->tmp.v;
+			}
+			if (eed->v1 != eed->v2) {
+				addedgetoscanlist(sf_ctx, eed, verts);
+			}
 		}
-		if (eed->v2->f == SF_VERT_ZERO_LEN) {
-			v2 = eed->v2;
-			while ((eed->v2->f == SF_VERT_ZERO_LEN) && (eed->v2->tmp.v != v2) && (eed->v2 != eed->v2->tmp.v))
-				eed->v2 = eed->v2->tmp.v;
+	}
+	else {
+		for (eed = sf_ctx->filledgebase.first; eed; eed = nexted) {
+			nexted = eed->next;
+			BLI_remlink(&sf_ctx->filledgebase, eed);
+			if (eed->v1 != eed->v2) {
+				addedgetoscanlist(sf_ctx, eed, verts);
+			}
 		}
-		if (eed->v1 != eed->v2) addedgetoscanlist(sf_ctx, eed, verts);
-
-		eed = nexted;
 	}
 #if 0
 	sc = scdata;
@@ -775,12 +790,12 @@ int BLI_scanfill_begin(ScanFillContext *sf_ctx)
 	return 1;
 }
 
-int BLI_scanfill_calc(ScanFillContext *sf_ctx, const short do_quad_tri_speedup)
+int BLI_scanfill_calc(ScanFillContext *sf_ctx, const int flag)
 {
-	return BLI_scanfill_calc_ex(sf_ctx, do_quad_tri_speedup, NULL);
+	return BLI_scanfill_calc_ex(sf_ctx, flag, NULL);
 }
 
-int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, const float nor_proj[3])
+int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float nor_proj[3])
 {
 	/*
 	 * - fill works with its own lists, so create that first (no faces!)
@@ -810,30 +825,32 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedu
 		a += 1;
 	}
 
-	if (do_quad_tri_speedup && (a == 3)) {
-		eve = sf_ctx->fillvertbase.first;
+	if (flag & BLI_SCANFILL_CALC_QUADTRI_FASTPATH) {
+		if (a == 3) {
+			eve = sf_ctx->fillvertbase.first;
 
-		addfillface(sf_ctx, eve, eve->next, eve->next->next);
-		return 1;
-	}
-	else if (do_quad_tri_speedup && (a == 4)) {
-		float vec1[3], vec2[3];
-
-		eve = sf_ctx->fillvertbase.first;
-		/* no need to check 'eve->next->next->next' is valid, already counted */
-		/* use shortest diagonal for quad */
-		sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
-		sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
-
-		if (dot_v3v3(vec1, vec1) < dot_v3v3(vec2, vec2)) {
 			addfillface(sf_ctx, eve, eve->next, eve->next->next);
-			addfillface(sf_ctx, eve->next->next, eve->next->next->next, eve);
+			return 1;
 		}
-		else {
-			addfillface(sf_ctx, eve->next, eve->next->next, eve->next->next->next);
-			addfillface(sf_ctx, eve->next->next->next, eve, eve->next);
+		else if (a == 4) {
+			float vec1[3], vec2[3];
+
+			eve = sf_ctx->fillvertbase.first;
+			/* no need to check 'eve->next->next->next' is valid, already counted */
+			/* use shortest diagonal for quad */
+			sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
+			sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
+
+			if (dot_v3v3(vec1, vec1) < dot_v3v3(vec2, vec2)) {
+				addfillface(sf_ctx, eve, eve->next, eve->next->next);
+				addfillface(sf_ctx, eve->next->next, eve->next->next->next, eve);
+			}
+			else {
+				addfillface(sf_ctx, eve->next, eve->next->next, eve->next->next->next);
+				addfillface(sf_ctx, eve->next->next->next, eve, eve->next);
+			}
+			return 2;
 		}
-		return 2;
 	}
 
 	/* first test vertices if they are in edges */
@@ -1091,7 +1108,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedu
 	for (a = 0; a < poly; a++) {
 		if (pf->edges > 1) {
 			splitlist(sf_ctx, &tempve, &temped, pf->nr);
-			totfaces += scanfill(sf_ctx, pf);
+			totfaces += scanfill(sf_ctx, pf, flag);
 		}
 		pf++;
 	}

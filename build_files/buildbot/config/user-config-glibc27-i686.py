@@ -97,8 +97,7 @@ WITH_BF_JACK = True
 # Cycles
 WITH_BF_CYCLES = True
 WITH_BF_CYCLES_CUDA_BINARIES = True
-#BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30']
+BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
 
 WITH_BF_OIIO = True
 WITH_BF_STATICOIIO = True
@@ -145,6 +144,6 @@ WITH_BF_OCEANSIM = True
 
 # Compilation and optimization
 BF_DEBUG = False
-REL_CCFLAGS = ['-O2']  # C & C++
+REL_CCFLAGS = ['-DNDEBUG', '-DNDEBUG', '-O2']  # C & C++
 PLATFORM_LINKFLAGS = ['-L/home/sources/staticlibs/lib32']
 BF_PROGRAM_LINKFLAGS = ['-Wl,--whole-archive', '-loslexec', '-Wl,--no-whole-archive', '-Wl,--version-script=source/creator/blender.map']

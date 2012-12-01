@@ -91,6 +91,7 @@
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
 
+#include "BIK_api.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -773,6 +774,9 @@ static void pose_grab_with_ik_clear(Object *ob)
 			if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
 				data = con->data;
 				if (data->flag & CONSTRAINT_IK_TEMP) {
+					/* iTaSC needs clear for removed constraints */
+					BIK_clear_data(ob->pose);
+
 					BLI_remlink(&pchan->constraints, con);
 					MEM_freeN(con->data);
 					MEM_freeN(con);
@@ -839,7 +843,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	}
 	else
 		data->flag = CONSTRAINT_IK_TIP;
-	data->flag |= CONSTRAINT_IK_TEMP | CONSTRAINT_IK_AUTO;
+	data->flag |= CONSTRAINT_IK_TEMP | CONSTRAINT_IK_AUTO | CONSTRAINT_IK_POS;
 	copy_v3_v3(data->grabtarget, pchan->pose_tail);
 	data->rootbone = 0; /* watch-it! has to be 0 here, since we're still on the same bone for the first time through the loop [#25885] */
 	
@@ -932,6 +936,10 @@ static short pose_grab_with_ik(Object *ob)
 			}
 		}
 	}
+
+	/* iTaSC needs clear for new IK constraints */
+	if (tot_ik)
+		BIK_clear_data(ob->pose);
 
 	return (tot_ik) ? 1 : 0;
 }

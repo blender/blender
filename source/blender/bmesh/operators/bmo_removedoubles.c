@@ -44,7 +44,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 	int split = FALSE;
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-		v2 = BMO_slot_map_ptr_get(slot_targetmap, l->v);
+		v2 = BMO_slot_map_elem_get(slot_targetmap, l->v);
 		/* ok: if v2 is NULL (e.g. not in the map) then it's
 		 *     a target vert, otherwise it's a double */
 		if ((v2 && BM_vert_in_face(f, v2)) &&
@@ -110,7 +110,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
 	/* mark merge verts for deletion */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		if ((v2 = BMO_slot_map_ptr_get(slot_targetmap, v))) {
+		if ((v2 = BMO_slot_map_elem_get(slot_targetmap, v))) {
 			BMO_elem_flag_enable(bm, v, ELE_DEL);
 
 			/* merge the vertex flags, else we get randomly selected/unselected verts */
@@ -126,8 +126,8 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 		if (BMO_elem_flag_test(bm, e->v1, ELE_DEL) || BMO_elem_flag_test(bm, e->v2, ELE_DEL)) {
-			v  = BMO_slot_map_ptr_get(slot_targetmap, e->v1);
-			v2 = BMO_slot_map_ptr_get(slot_targetmap, e->v2);
+			v  = BMO_slot_map_elem_get(slot_targetmap, e->v1);
+			v2 = BMO_slot_map_elem_get(slot_targetmap, e->v2);
 			
 			if (!v) v = e->v1;
 			if (!v2) v2 = e->v2;
@@ -136,7 +136,7 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 				BMO_elem_flag_enable(bm, e, EDGE_COL);
 			}
 			else if (!BM_edge_exists(v, v2)) {
-				BM_edge_create(bm, v, v2, e, TRUE);
+				BM_edge_create(bm, v, v2, e, BM_CREATE_NO_DOUBLE);
 			}
 
 			BMO_elem_flag_enable(bm, e, ELE_DEL);
@@ -175,10 +175,10 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 			v = l->v;
 			v2 = l->next->v;
 			if (BMO_elem_flag_test(bm, v, ELE_DEL)) {
-				v = BMO_slot_map_ptr_get(slot_targetmap, v);
+				v = BMO_slot_map_elem_get(slot_targetmap, v);
 			}
 			if (BMO_elem_flag_test(bm, v2, ELE_DEL)) {
-				v2 = BMO_slot_map_ptr_get(slot_targetmap, v2);
+				v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 			}
 			
 			e2 = v != v2 ? BM_edge_exists(v, v2) : NULL;
@@ -208,13 +208,13 @@ void bmo_weld_verts_exec(BMesh *bm, BMOperator *op)
 		v2 = loops[1]->v;
 
 		if (BMO_elem_flag_test(bm, v, ELE_DEL)) {
-			v = BMO_slot_map_ptr_get(slot_targetmap, v);
+			v = BMO_slot_map_elem_get(slot_targetmap, v);
 		}
 		if (BMO_elem_flag_test(bm, v2, ELE_DEL)) {
-			v2 = BMO_slot_map_ptr_get(slot_targetmap, v2);
+			v2 = BMO_slot_map_elem_get(slot_targetmap, v2);
 		}
 		
-		f2 = BM_face_create_ngon(bm, v, v2, edges, a, TRUE);
+		f2 = BM_face_create_ngon(bm, v, v2, edges, a, BM_CREATE_NO_DOUBLE);
 		if (f2 && (f2 != f)) {
 			BM_elem_attrs_copy(bm, bm, f, f2);
 
@@ -258,19 +258,19 @@ void bmo_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMIter iter;
-	BMVert *v, *snapv;
+	BMVert *v, *vert_snap;
 	BMLoop *l, *firstl = NULL;
 	float fac;
 	int i, tot;
 
-	snapv = BMO_iter_new(&siter, op->slots_in, "snapv", BM_VERT);
-	tot = BM_vert_face_count(snapv);
+	vert_snap = BMO_slot_buffer_get_single(BMO_slot_get(op->slots_in, "vert_snap"));
+	tot = BM_vert_face_count(vert_snap);
 
 	if (!tot)
 		return;
 
 	fac = 1.0f / tot;
-	BM_ITER_ELEM (l, &iter, snapv, BM_LOOPS_OF_VERT) {
+	BM_ITER_ELEM (l, &iter, vert_snap, BM_LOOPS_OF_VERT) {
 		if (!firstl) {
 			firstl = l;
 		}
@@ -343,7 +343,7 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 	BMOIter siter;
-	BMVert *v, *snapv = NULL;
+	BMVert *v, *vert_snap = NULL;
 	float vec[3];
 	BMOpSlot *slot_targetmap;
 	
@@ -355,12 +355,12 @@ void bmo_pointmerge_exec(BMesh *bm, BMOperator *op)
 	slot_targetmap = BMO_slot_get(weldop.slots_in, "targetmap");
 
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
-		if (!snapv) {
-			snapv = v;
-			copy_v3_v3(snapv->co, vec);
+		if (!vert_snap) {
+			vert_snap = v;
+			copy_v3_v3(vert_snap->co, vec);
 		}
 		else {
-			BMO_slot_map_ptr_insert(&weldop, slot_targetmap, v, snapv);
+			BMO_slot_map_elem_insert(&weldop, slot_targetmap, v, vert_snap);
 		}
 	}
 
@@ -414,9 +414,9 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 			copy_v3_v3(edges[i]->v2->co, center);
 			
 			if (edges[i]->v1 != edges[0]->v1)
-				BMO_slot_map_ptr_insert(&weldop, slot_targetmap, edges[i]->v1, edges[0]->v1);
+				BMO_slot_map_elem_insert(&weldop, slot_targetmap, edges[i]->v1, edges[0]->v1);
 			if (edges[i]->v2 != edges[0]->v1)
-				BMO_slot_map_ptr_insert(&weldop, slot_targetmap, edges[i]->v2, edges[0]->v1);
+				BMO_slot_map_elem_insert(&weldop, slot_targetmap, edges[i]->v2, edges[0]->v1);
 		}
 	}
 	
@@ -554,7 +554,7 @@ static void bmesh_find_doubles_common(BMesh *bm, BMOperator *op,
 				BMO_elem_flag_enable(bm, v_other, VERT_DOUBLE);
 				BMO_elem_flag_enable(bm, v_check, VERT_TARGET);
 
-				BMO_slot_map_ptr_insert(optarget, optarget_slot, v_other, v_check);
+				BMO_slot_map_elem_insert(optarget, optarget_slot, v_other, v_check);
 			}
 		}
 	}

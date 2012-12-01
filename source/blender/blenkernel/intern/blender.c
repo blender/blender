@@ -268,7 +268,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		G.winpos = bfd->winpos;
 		G.displaymode = bfd->displaymode;
 		G.fileflags = bfd->fileflags;
-		CTX_wm_manager_set(C, bfd->main->wm.first);
+		CTX_wm_manager_set(C, G.main->wm.first);
 		CTX_wm_screen_set(C, bfd->curscreen);
 		CTX_data_scene_set(C, bfd->curscreen->scene);
 		CTX_wm_area_set(C, NULL);
@@ -278,7 +278,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	
 	/* this can happen when active scene was lib-linked, and doesn't exist anymore */
 	if (CTX_data_scene(C) == NULL) {
-		CTX_data_scene_set(C, bfd->main->scene.first);
+		/* in case we don't even have a local scene, add one */
+		if(!G.main->scene.first)
+			BKE_scene_add("Scene");
+
+		CTX_data_scene_set(C, G.main->scene.first);
 		CTX_wm_screen(C)->scene = CTX_data_scene(C);
 		curscene = CTX_data_scene(C);
 	}

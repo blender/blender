@@ -190,8 +190,8 @@ option(WITH_MOD_FLUID           "Enable Elbeem Modifier (Fluid Simulation)" ON)
 option(WITH_MOD_SMOKE           "Enable Smoke Modifier (Smoke Simulation)" ON)
 option(WITH_MOD_BOOLEAN         "Enable Boolean Modifier" ON)
 option(WITH_MOD_REMESH          "Enable Remesh Modifier" ON)
-option(WITH_MOD_CLOTH_ELTOPO    "Enable Experimental cloth solver" OFF)
-mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
+# option(WITH_MOD_CLOTH_ELTOPO    "Enable Experimental cloth solver" OFF)  # this is now only available in a branch
+# mark_as_advanced(WITH_MOD_CLOTH_ELTOPO)
 option(WITH_MOD_OCEANSIM        "Enable Ocean Modifier" OFF)
 
 # Image format support
@@ -271,6 +271,9 @@ mark_as_advanced(WITH_ASSERT_ABORT)
 
 
 if(APPLE)
+	cmake_minimum_required(VERSION 2.8.8)
+	cmake_policy(VERSION 2.8.8)
+
 	if(NOT CMAKE_OSX_ARCHITECTURES)
 		set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING
 		"Choose the architecture you want to build Blender for: i386, x86_64 or ppc"
@@ -487,14 +490,14 @@ set(PLATFORM_LINKFLAGS_DEBUG "")
 # For alternate Python locations the commandline can be used to override detected/default cache settings, e.g:
 # On Unix:
 #   cmake ../blender \
-#         -D PYTHON_VERSION=3.2 \
-#         -D PYTHON_INCLUDE_DIR=/opt/py32/include/python3.2d \
-#         -D PYTHON_LIBRARY=/opt/py32/lib/libpython3.2d.so
+#         -D PYTHON_VERSION=3.3 \
+#         -D PYTHON_INCLUDE_DIR=/opt/py33/include/python3.3d \
+#         -D PYTHON_LIBRARY=/opt/py33/lib/libpython3.3d.so
 #
 # On Macs:
 #   cmake ../blender \
-#         -D PYTHON_INCLUDE_DIR=/System/Library/Frameworks/Python.framework/Versions/3.2/include/python3.2 \
-#         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.2/lib/python3.2/config \
+#         -D PYTHON_INCLUDE_DIR=/System/Library/Frameworks/Python.framework/Versions/3.3/include/python3.3 \
+#         -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/3.3/lib/python3.3/config \
 #         -G Xcode
 #
 # When changing any of this remember to update the notes in doc/build_systems/cmake.txt
@@ -522,7 +525,7 @@ if(UNIX AND NOT APPLE)
 	find_package_wrapper(Freetype REQUIRED)
 
 	if(WITH_PYTHON)
-		# No way to set py32. remove for now.
+		# No way to set py33. remove for now.
 		# find_package(PythonLibs)
 
 		# Use our own instead, since wothout py is such a rare case,
@@ -755,7 +758,6 @@ if(UNIX AND NOT APPLE)
 				                OUTPUT_STRIP_TRAILING_WHITESPACE)
 				string(REPLACE " " ";" LLVM_LIBRARY ${LLVM_LIBRARY})
 			endif()
-			message(STATUS "LLVM library  = ${LLVM_LIBRARY}")
 		else()
 			message(FATAL_ERROR "LLVM not found.")
 		endif()
@@ -872,7 +874,7 @@ elseif(WIN32)
 
 		# Setup 64bit and 64bit windows systems
 		if(WITH_MINGW64)
-			message("Set 64 bit compiler for MinGW.")
+			message("Compiling for 64 bit with MinGW-w64.")
 			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
 		endif()
 	else()
@@ -928,8 +930,6 @@ elseif(WIN32)
 	if(WITH_CYCLES_OSL)
 		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
 	
-		message(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
-	
 		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_QUERY NAMES oslquery PATHS ${CYCLES_OSL}/lib)
@@ -939,9 +939,6 @@ elseif(WIN32)
 	
 		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
 			set(OSL_FOUND TRUE)
-			message(STATUS "OSL includes = ${OSL_INCLUDES}")
-			message(STATUS "OSL library = ${OSL_LIBRARIES}")
-			message(STATUS "OSL compiler = ${OSL_COMPILER}")
 		else()
 			message(STATUS "OSL not found")
 		endif()
@@ -1102,9 +1099,17 @@ elseif(WIN32)
 
 		if(WITH_PYTHON)
 			# normally cached but not since we include them with blender
-			set(PYTHON_VERSION 3.2) # CACHE STRING)
+			if(MSVC10)
+				set(PYTHON_VERSION 3.2) # CACHE STRING)
+			else()
+				set(PYTHON_VERSION 3.3) # CACHE STRING)
+			endif()
+
 			set_lib_path(PYTHON "python")
-			set(PYTHON_LIBRARY ${PYTHON}/lib/python32.lib) #CACHE FILEPATH
+			STRING(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
+			set(PYTHON_LIBRARY ${PYTHON}/lib/python${_PYTHON_VERSION_NO_DOTS}.lib) #CACHE FILEPATH
+			unset(_PYTHON_VERSION_NO_DOTS)
+
 			#Shared includes for both vc2008 and vc2010
 			set(PYTHON_INCLUDE_DIR ${LIBDIR}/python/include/python${PYTHON_VERSION})
 
@@ -1212,7 +1217,7 @@ elseif(WIN32)
 		#comes with own pthread library
 		if(NOT WITH_MINGW64)
 			set(PTHREADS ${LIBDIR}/pthreads)
-			set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
+			#set(PTHREADS_INCLUDE_DIRS ${PTHREADS}/include)
 			set(PTHREADS_LIBPATH ${PTHREADS}/lib)
 			set(PTHREADS_LIBRARIES pthreadGC2)
 		endif()
@@ -1284,9 +1289,9 @@ elseif(WIN32)
 
 		if(WITH_PYTHON)
 			# normally cached but not since we include them with blender
-			set(PYTHON_VERSION 3.2) #  CACHE STRING)
+			set(PYTHON_VERSION 3.3) #  CACHE STRING)
 			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")  # CACHE PATH)
-			set(PYTHON_LIBRARY "${LIBDIR}/python/lib/python32mw.lib")  # CACHE FILEPATH)
+			set(PYTHON_LIBRARY "${LIBDIR}/python/lib/python33mw.lib")  # CACHE FILEPATH)
 
 			# uncached vars
 			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
@@ -1605,9 +1610,6 @@ elseif(APPLE)
 		find_library(LLVM_LIBRARY
 		             NAMES LLVMAnalysis # first of a whole bunch of libs to get
 		             PATHS ${LLVM_LIB_DIR})
-		message(STATUS "LLVM version  = ${LLVM_VERSION}")
-		message(STATUS "LLVM dir      = ${LLVM_DIRECTORY}")
-		message(STATUS "LLVM lib dir  = ${LLVM_LIB_DIR}")
 
 		if(LLVM_LIBRARY AND LLVM_DIRECTORY AND LLVM_LIB_DIR)
 			if(LLVM_STATIC)
@@ -1619,7 +1621,6 @@ elseif(APPLE)
 				                OUTPUT_STRIP_TRAILING_WHITESPACE)
 				string(REPLACE " " ";" LLVM_LIBRARY ${LLVM_LIBRARY})
 			endif()
-			message(STATUS "LLVM library  = ${LLVM_LIBRARY}")
 		else()
 			message(FATAL_ERROR "LLVM not found.")
 		endif()
@@ -1627,8 +1628,6 @@ elseif(APPLE)
 
 	if(WITH_CYCLES_OSL)
 		set(CYCLES_OSL ${LIBDIR}/osl CACHE PATH "Path to OpenShadingLanguage installation")
-	
-		message(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
 	
 		find_library(OSL_LIB_EXEC NAMES oslexec PATHS ${CYCLES_OSL}/lib)
 		find_library(OSL_LIB_COMP NAMES oslcomp PATHS ${CYCLES_OSL}/lib)
@@ -1640,9 +1639,6 @@ elseif(APPLE)
 	
 		if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
 			set(OSL_FOUND TRUE)
-			message(STATUS "OSL includes = ${OSL_INCLUDES}")
-			message(STATUS "OSL library = ${OSL_LIBRARIES}")
-			message(STATUS "OSL compiler = ${OSL_COMPILER}")
 		else()
 			message(STATUS "OSL not found")
 		endif()

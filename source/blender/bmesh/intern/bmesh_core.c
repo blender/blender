@@ -54,7 +54,7 @@
 /**
  * \brief Main function for creating a new vertex.
  */
-BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
+BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example, const eBMCreateFlag create_flag)
 {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
 
@@ -63,6 +63,9 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 #else
 	BM_elem_index_set(v, -1); /* set_ok_invalid */
 #endif
+
+	/* disallow this flag for verts - its meaningless */
+	BLI_assert((create_flag & BM_CREATE_NO_DOUBLE) == 0);
 
 	bm->elem_index_dirty |= BM_VERT; /* may add to middle of the pool */
 
@@ -80,17 +83,20 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
 		v->oflags = BLI_mempool_calloc(bm->toolflagpool);
 	}
 
-	CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
-	
-	if (example) {
-		int *keyi;
+	if (!(create_flag & BM_CREATE_SKIP_CD)) {
+		if (example) {
+			int *keyi;
 
-		BM_elem_attrs_copy(bm, bm, example, v);
+			BM_elem_attrs_copy(bm, bm, example, v);
 
-		/* exception: don't copy the original shapekey index */
-		keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
-		if (keyi) {
-			*keyi = ORIGINDEX_NONE;
+			/* exception: don't copy the original shapekey index */
+			keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
+			if (keyi) {
+				*keyi = ORIGINDEX_NONE;
+			}
+		}
+		else {
+			CustomData_bmesh_set_default(&bm->vdata, &v->head.data);
 		}
 	}
 
@@ -105,11 +111,11 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
  * \note Duplicate edges are supported by the API however users should _never_ see them.
  * so unless you need a unique edge or know the edge won't exist, you should call with \a nodouble = TRUE
  */
-BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble)
+BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, const eBMCreateFlag create_flag)
 {
 	BMEdge *e;
 	
-	if (nodouble && (e = BM_edge_exists(v1, v2)))
+	if ((create_flag & BM_CREATE_NO_DOUBLE) && (e = BM_edge_exists(v1, v2)))
 		return e;
 	
 	e = BLI_mempool_calloc(bm->epool);
@@ -136,20 +142,26 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 	
 	BM_elem_flag_enable(e, BM_ELEM_SMOOTH | BM_ELEM_DRAW);
 	
-	CustomData_bmesh_set_default(&bm->edata, &e->head.data);
-	
 	bmesh_disk_edge_append(e, e->v1);
 	bmesh_disk_edge_append(e, e->v2);
 	
-	if (example)
-		BM_elem_attrs_copy(bm, bm, example, e);
+	if (!(create_flag & BM_CREATE_SKIP_CD)) {
+		if (example) {
+			BM_elem_attrs_copy(bm, bm, example, e);
+		}
+		else {
+			CustomData_bmesh_set_default(&bm->edata, &e->head.data);
+		}
+	}
+
 	
 	BM_CHECK_ELEMENT(e);
 
 	return e;
 }
 
-static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, const BMLoop *example)
+static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f,
+                              const BMLoop *example, const eBMCreateFlag create_flag)
 {
 	BMLoop *l = NULL;
 
@@ -164,22 +176,24 @@ static BMLoop *bm_loop_create(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, const 
 
 	bm->totloop++;
 
-	if (example) {
-		CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->head.data, &l->head.data);
-	}
-	else {
-		CustomData_bmesh_set_default(&bm->ldata, &l->head.data);
+	if (!(create_flag & BM_CREATE_SKIP_CD)) {
+		if (example) {
+			CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, example->head.data, &l->head.data);
+		}
+		else {
+			CustomData_bmesh_set_default(&bm->ldata, &l->head.data);
+		}
 	}
 
 	return l;
 }
 
-static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte)
+static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge *starte, const int create_flag)
 {
 #ifdef USE_BMESH_HOLES
 	BMLoopList *lst = BLI_mempool_calloc(bm->looplistpool);
 #endif
-	BMLoop *l = bm_loop_create(bm, startv, starte, f, NULL);
+	BMLoop *l = bm_loop_create(bm, startv, starte, f, starte->l, create_flag);
 	
 	bmesh_radial_append(starte, l);
 
@@ -211,7 +225,7 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 	i = 0;
 	do {
 		if (copyverts) {
-			verts[i] = BM_vert_create(bm, l_iter->v->co, l_iter->v);
+			verts[i] = BM_vert_create(bm, l_iter->v->co, l_iter->v, 0);
 		}
 		else {
 			verts[i] = l_iter->v;
@@ -234,7 +248,7 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 				v1 = verts[(i + 1) % f->len];
 			}
 			
-			edges[i] = BM_edge_create(bm,  v1, v2, l_iter->e, FALSE);
+			edges[i] = BM_edge_create(bm,  v1, v2, l_iter->e, 0);
 		}
 		else {
 			edges[i] = l_iter->e;
@@ -242,7 +256,7 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 	
-	f_copy = BM_face_create(bm, verts, edges, f->len, FALSE);
+	f_copy = BM_face_create(bm, verts, edges, f->len, BM_CREATE_SKIP_CD);
 	
 	BM_elem_attrs_copy(bm, bm, f, f_copy);
 	
@@ -263,7 +277,7 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
  * only create the face, since this calloc's the length is initialized to 0,
  * leave adding loops to the caller.
  */
-BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
+BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm, const eBMCreateFlag create_flag)
 {
 	BMFace *f;
 
@@ -286,7 +300,9 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 		f->oflags = BLI_mempool_calloc(bm->toolflagpool);
 	}
 
-	CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
+	if (!(create_flag & BM_CREATE_SKIP_CD)) {
+		CustomData_bmesh_set_default(&bm->pdata, &f->head.data);
+	}
 
 #ifdef USE_BMESH_HOLES
 	f->totbounds = 0;
@@ -298,7 +314,7 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 /**
  * \brief Main face creation function
  */
-BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, int nodouble)
+BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len, const eBMCreateFlag create_flag)
 {
 	BMFace *f = NULL;
 	BMLoop *l, *startl, *lastl;
@@ -309,7 +325,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 		return NULL;
 	}
 
-	if (nodouble) {
+	if (create_flag & BM_CREATE_NO_DOUBLE) {
 		/* Check if face already exists */
 		overlap = BM_face_exists(verts, len, &f);
 		if (overlap) {
@@ -320,14 +336,14 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 		}
 	}
 
-	f = bm_face_create__internal(bm);
+	f = bm_face_create__internal(bm, create_flag);
 
-	startl = lastl = bm_face_boundary_add(bm, f, verts[0], edges[0]);
+	startl = lastl = bm_face_boundary_add(bm, f, verts[0], edges[0], create_flag);
 	
 	startl->v = verts[0];
 	startl->e = edges[0];
 	for (i = 1; i < len; i++) {
-		l = bm_loop_create(bm, verts[i], edges[i], f, edges[i]->l);
+		l = bm_loop_create(bm, verts[i], edges[i], f, edges[i]->l, create_flag);
 		
 		l->f = f;
 		bmesh_radial_append(edges[i], l);
@@ -1033,7 +1049,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 	}
 
 	/* create region face */
-	newf = BM_face_create_ngon(bm, v1, v2, edges, tote, FALSE);
+	newf = tote ? BM_face_create_ngon(bm, v1, v2, edges, tote, 0) : NULL;
 	if (UNLIKELY(!newf || BMO_error_occurred(bm))) {
 		if (!BMO_error_occurred(bm))
 			err = N_("Invalid boundary region to join faces");
@@ -1139,7 +1155,7 @@ static BMFace *bm_face_create__sfme(BMesh *bm, BMFace *UNUSED(example))
 	BMLoopList *lst;
 #endif
 
-	f = bm_face_create__internal(bm);
+	f = bm_face_create__internal(bm, 0);
 
 #ifdef USE_BMESH_HOLES
 	lst = BLI_mempool_calloc(bm->looplistpool);
@@ -1223,11 +1239,11 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
 	}
 
 	/* allocate new edge between v1 and v2 */
-	e = BM_edge_create(bm, v1, v2, example, nodouble);
+	e = BM_edge_create(bm, v1, v2, example, nodouble ? BM_CREATE_NO_DOUBLE : 0);
 
 	f2 = bm_face_create__sfme(bm, f);
-	f1loop = bm_loop_create(bm, v2, e, f, v2loop);
-	f2loop = bm_loop_create(bm, v1, e, f2, v1loop);
+	f1loop = bm_loop_create(bm, v2, e, f, v2loop, 0);
+	f2loop = bm_loop_create(bm, v1, e, f2, v1loop, 0);
 
 	f1loop->prev = v2loop->prev;
 	f2loop->prev = v1loop->prev;
@@ -1334,10 +1350,10 @@ BMFace *bmesh_sfme(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2,
  * will be attached to that end and is returned in \a r_e.
  *
  * \par Examples:
+ *
  * <pre>
  *                     E
  *     Before: OV-------------TV
- *
  *                 E       RE
  *     After:  OV------NV-----TV
  * </pre>
@@ -1359,8 +1375,8 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 
 	valence2 = bmesh_disk_count(tv);
 
-	nv = BM_vert_create(bm, tv->co, tv);
-	ne = BM_edge_create(bm, nv, tv, e, FALSE);
+	nv = BM_vert_create(bm, tv->co, tv, 0);
+	ne = BM_edge_create(bm, nv, tv, e, 0);
 
 	bmesh_disk_edge_remove(ne, tv);
 	bmesh_disk_edge_remove(ne, nv);
@@ -1403,7 +1419,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 			nextl = nextl != nextl->radial_next ? nextl->radial_next : NULL;
 			bmesh_radial_loop_remove(l, NULL);
 
-			nl = bm_loop_create(bm, NULL, NULL, l->f, l);
+			nl = bm_loop_create(bm, NULL, NULL, l->f, l, 0);
 			nl->prev = l;
 			nl->next = (l->next);
 			nl->prev->next = nl;
@@ -1919,7 +1935,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	verts = MEM_callocN(sizeof(BMVert *) * maxindex, __func__);
 	verts[0] = v;
 	for (i = 1; i < maxindex; i++) {
-		verts[i] = BM_vert_create(bm, v->co, v);
+		verts[i] = BM_vert_create(bm, v->co, v, 0);
 	}
 
 	/* Replace v with the new verts in each group */
@@ -2085,7 +2101,7 @@ int bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
 		e->l = l_sep->radial_next;
 	}
 
-	ne = BM_edge_create(bm, e->v1, e->v2, e, FALSE);
+	ne = BM_edge_create(bm, e->v1, e->v2, e, 0);
 	bmesh_radial_loop_remove(l_sep, e);
 	bmesh_radial_append(ne, l_sep);
 	l_sep->e = ne;
