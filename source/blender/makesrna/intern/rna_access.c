@@ -46,6 +46,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
+#include "BKE_idcode.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
