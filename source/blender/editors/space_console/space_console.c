@@ -170,16 +170,13 @@ static int id_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event
 
 static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	char text[64];
+	char *text;
 	ID *id = drag->poin;
-	char id_esc[(sizeof(id->name) - 2) * 2];
-
-	BLI_strescape(id_esc, id->name + 2, sizeof(id_esc));
-
-	BLI_snprintf(text, sizeof(text), "bpy.data.%s[\"%s\"]", BKE_idcode_to_name_plural(GS(id->name)), id_esc);
 
 	/* copy drag path to properties */
+	text = RNA_path_from_ID_python(id);
 	RNA_string_set(drop->ptr, "text", text);
+	MEM_freeN(text);
 }
 
 static int path_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(event))

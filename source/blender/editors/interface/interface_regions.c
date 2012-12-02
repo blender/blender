@@ -46,6 +46,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_idcode.h"
 #include "BKE_global.h"
 
 #include "WM_api.h"
@@ -443,46 +444,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	/* special case, enum rna buttons only have enum item description,
 	 * use general enum description too before the specific one */
-#if 0
-	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
-		const char *descr = RNA_property_description(but->rnaprop);
-		if (descr && descr[0]) {
-			BLI_strncpy(data->lines[data->totline], descr, sizeof(data->lines[0]));
-			data->color_id[data->totline] = UI_TIP_LC_MAIN;
-			data->totline++;
-		}
 
-		if (ELEM(but->type, ROW, MENU)) {
-			EnumPropertyItem *item;
-			int totitem, free;
-			int value = (but->type == ROW) ? (int)but->hardmax : (int)ui_get_but_val(but);
-
-			RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &item, &totitem, &free);
-
-			for (i = 0; i < totitem; i++) {
-				if (item[i].identifier[0] && item[i].value == value) {
-					if (item[i].description && item[i].description[0]) {
-						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s",
-						             item[i].name, item[i].description);
-						data->color_id[data->totline] = UI_TIP_LC_SUBMENU;
-						data->totline++;
-					}
-					break;
-				}
-			}
-
-			if (free) {
-				MEM_freeN(item);
-			}
-		}
-	}
-	
-	if (but->tip && but->tip[0] != '\0') {
-		BLI_strncpy(data->lines[data->totline], but->tip, sizeof(data->lines[0]));
-		data->color_id[data->totline] = UI_TIP_LC_MAIN;
-		data->totline++;
-	}
-#else
 	/* Tip */
 	if (but_tip.strinfo) {
 		BLI_strncpy(data->lines[data->totline], but_tip.strinfo, sizeof(data->lines[0]));
@@ -496,29 +458,13 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->color_id[data->totline] = UI_TIP_LC_SUBMENU;
 		data->totline++;
 	}
-#endif
 
-#if 0
-	if (but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
-		/* operator keymap (not menus, they already have it) */
-		prop = (but->opptr) ? but->opptr->data : NULL;
-
-		if (WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, TRUE,
-		                                 buf, sizeof(buf)))
-		{
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), buf);
-			data->color_id[data->totline] = UI_TIP_LC_NORMAL;
-			data->totline++;
-		}
-	}
-#else
 	/* Op shortcut */
 	if (op_keymap.strinfo) {
 		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Shortcut: %s"), op_keymap.strinfo);
 		data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 		data->totline++;
 	}
-#endif
 
 	if (ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		/* full string */
@@ -552,15 +498,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 				data->totline++;
 			}
 		}
-#if 0
-		/* rna info */
-		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s.%s"),
-			             RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
-			data->color_id[data->totline] = UI_TIP_LC_PYTHON;
-			data->totline++;
-		}
-#endif
+
 		if (but->rnapoin.id.data) {
 			ID *id = but->rnapoin.id.data;
 			if (id->lib && id->lib->name) {
@@ -602,23 +540,12 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			}
 		}
 	}
-#if 0
-	else if (ELEM(but->type, MENU, PULLDOWN)) {
-		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
-			MenuType *mt = uiButGetMenuType(but);
-			if (mt) {
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), mt->idname);
-				data->color_id[data->totline] = UI_TIP_LC_PYTHON;
-				data->totline++;
-			}
-		}
-	}
-#else
 	if ((U.flag & USER_TOOLTIPS_PYTHON) == 0 && !but->optype && rna_struct.strinfo) {
 		if (rna_prop.strinfo) {
 			/* Struct and prop */
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
-			             TIP_("Python: %s.%s"), rna_struct.strinfo, rna_prop.strinfo);
+			             TIP_("Python: %s.%s"),
+			             rna_struct.strinfo, rna_prop.strinfo);
 		}
 		else {
 			/* Only struct (e.g. menus) */
@@ -627,8 +554,41 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 		data->color_id[data->totline] = UI_TIP_LC_PYTHON;
 		data->totline++;
+
+		if (but->rnapoin.id.data) {
+			/* this could get its own 'BUT_GET_...' type */
+			PointerRNA *ptr = &but->rnapoin;
+			PropertyRNA *prop = but->rnaprop;
+			ID *id = ptr->id.data;
+
+			char *id_path;
+			char *data_path = NULL;
+
+			/* never fails */
+			id_path = RNA_path_from_ID_python(id);
+
+			if (ptr->id.data && ptr->data && prop) {
+				data_path = RNA_path_from_ID_to_property(ptr, prop);
+			}
+
+			if (data_path) {
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
+				             "%s.%s",  /* no need to translate */
+				             id_path, data_path);
+				MEM_freeN(data_path);
+			}
+			else if (prop) {
+				/* can't find the path. be explicit in our ignorance "..." */
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
+				             "%s ... %s",  /* no need to translate */
+				             id_path, rna_prop.strinfo ? rna_prop.strinfo : RNA_property_identifier(prop));
+			}
+			MEM_freeN(id_path);
+
+			data->color_id[data->totline] = UI_TIP_LC_PYTHON;
+			data->totline++;
+		}
 	}
-#endif
 
 	/* Free strinfo's... */
 	if (but_tip.strinfo)
@@ -644,7 +604,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	if (rna_prop.strinfo)
 		MEM_freeN(rna_prop.strinfo);
 
-	assert(data->totline < MAX_TOOLTIP_LINES);
+	BLI_assert(data->totline < MAX_TOOLTIP_LINES);
 	
 	if (data->totline == 0) {
 		MEM_freeN(data);

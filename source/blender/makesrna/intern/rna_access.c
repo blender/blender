@@ -4163,6 +4163,19 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 	return path;
 }
 
+/**
+ * Get the ID as a python representation, eg:
+ *   bpy.data.foo["bar"]
+ */
+char *RNA_path_from_ID_python(ID *id)
+{
+	char id_esc[(sizeof(id->name) - 2) * 2];
+
+	BLI_strescape(id_esc, id->name + 2, sizeof(id_esc));
+
+	return BLI_sprintfN("bpy.data.%s[\"%s\"]", BKE_idcode_to_name_plural(GS(id->name)), id_esc);
+}
+
 /* Quick name based property access */
 
 int RNA_boolean_get(PointerRNA *ptr, const char *name)
