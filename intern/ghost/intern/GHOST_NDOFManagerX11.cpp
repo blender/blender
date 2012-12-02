@@ -90,8 +90,8 @@ bool GHOST_NDOFManagerX11::processEvents()
 				case SPNAV_EVENT_MOTION:
 				{
 					/* convert to blender view coords */
-					short t[3] = {e.motion.x, e.motion.y, -e.motion.z};
-					short r[3] = {-e.motion.rx, -e.motion.ry, e.motion.rz};
+					short t[3] = {(short)e.motion.x, (short)e.motion.y, (short)-e.motion.z};
+					short r[3] = {(short)-e.motion.rx, (short)-e.motion.ry, (short)e.motion.rz};
 
 					updateTranslation(t, now);
 					updateRotation(r, now);
