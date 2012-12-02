@@ -178,7 +178,6 @@ struct anim {
 	struct ImBuf *last_frame;
 	int64_t last_pts;
 	int64_t next_pts;
-	AVPacket next_packet;
 #endif
 
 #ifdef WITH_REDCODE
