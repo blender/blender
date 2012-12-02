@@ -721,8 +721,8 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 	GLint format = 0;
 	int blocksize, height, width, i, size, offset = 0;
 
-	height = ibuf->x;
-	width = ibuf->y;
+	width = ibuf->x;
+	height = ibuf->y;
 
 	if (GLEW_EXT_texture_compression_s3tc) {
 		if (ibuf->dds_data.fourcc == FOURCC_DXT1)
