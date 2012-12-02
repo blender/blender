@@ -73,7 +73,7 @@ GHOST_SystemSDL::createWindow(const STR_String& title,
 {
 	GHOST_WindowSDL *window = NULL;
 
-	window = new GHOST_WindowSDL(this, title, left, top, width, height, state, parentWindow, type, stereoVisual, 1);
+	window = new GHOST_WindowSDL(this, title, left, top, width, height, state, parentWindow, type, stereoVisual, numOfAASamples);
 
 	if (window) {
 		if (GHOST_kWindowStateFullScreen == state) {
