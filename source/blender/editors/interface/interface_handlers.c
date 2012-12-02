@@ -4634,7 +4634,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int length;
-	char *name;
+	const char *name;
 	uiStringInfo label = {BUT_GET_LABEL, NULL};
 
 /*	if ((but->rnapoin.data && but->rnaprop) == 0 && but->optype == NULL)*/
@@ -4642,7 +4642,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	
 	button_timers_tooltip_remove(C, but);
 
-	uiButGetStrInfo(C, but, 1, &label);
+	uiButGetStrInfo(C, but, &label, NULL);
 	name = label.strinfo;
 
 	pup = uiPupMenuBegin(C, name, ICON_NONE);

@@ -218,6 +218,14 @@ The next example is an equivalent single line version of the script above which 
 ``code.interact`` can be added at any line in the script and will pause the script an launch an interactive interpreter in the terminal, when you're done you can quit the interpreter and the script will continue execution.
 
 
+If you have **IPython** installed you can use their ``embed()`` function which will implicitly use the current namespace, this has autocomplete and some useful features that the standard python eval-loop doesn't have.
+
+.. code-block:: python
+
+   import IPython
+   IPython.embed()
+
+
 Admittedly this highlights the lack of any python debugging support built into blender, but its still handy to know.
 
 .. note::

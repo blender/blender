@@ -302,7 +302,7 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 
 /*---------------------- EXPP_VectorsAreEqual -------------------------
  * Builds on EXPP_FloatsAreEqual to test vectors */
-int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
+int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps)
 {
 	int x;
 	for (x = 0; x < size; x++) {

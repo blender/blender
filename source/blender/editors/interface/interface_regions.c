@@ -426,7 +426,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	rctf rect_fl;
 	rcti rect_i;
 
-	const int nbr_info = 6;
 	uiStringInfo but_tip = {BUT_GET_TIP, NULL};
 	uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
 	uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, NULL};
@@ -440,7 +439,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create tooltip data */
 	data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-	uiButGetStrInfo(C, but, nbr_info, &but_tip, &enum_label, &enum_tip, &op_keymap, &rna_struct, &rna_prop);
+	uiButGetStrInfo(C, but, &but_tip, &enum_label, &enum_tip, &op_keymap, &rna_struct, &rna_prop, NULL);
 
 	/* special case, enum rna buttons only have enum item description,
 	 * use general enum description too before the specific one */
@@ -616,13 +615,16 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 #else
 	if ((U.flag & USER_TOOLTIPS_PYTHON) == 0 && !but->optype && rna_struct.strinfo) {
-		if (rna_prop.strinfo)
+		if (rna_prop.strinfo) {
 			/* Struct and prop */
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
 			             TIP_("Python: %s.%s"), rna_struct.strinfo, rna_prop.strinfo);
-		else
+		}
+		else {
 			/* Only struct (e.g. menus) */
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s"), rna_struct.strinfo);
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]),
+			             TIP_("Python: %s"), rna_struct.strinfo);
+		}
 		data->color_id[data->totline] = UI_TIP_LC_PYTHON;
 		data->totline++;
 	}

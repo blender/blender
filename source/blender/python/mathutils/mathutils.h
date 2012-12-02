@@ -74,7 +74,7 @@ void BaseMathObject_dealloc(BaseMathObject * self);
 PyMODINIT_FUNC PyInit_mathutils(void);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
-int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
+int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps);
 
 #define Py_NEW  1
 #define Py_WRAP 2
