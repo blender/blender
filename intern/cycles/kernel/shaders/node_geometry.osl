@@ -51,7 +51,12 @@ shader node_geometry(
 
 	/* try to create spherical tangent from generated coordinates */
 	if (getattribute("geom:generated", generated)) {
-		vector T = vector(-(generated[1] - 0.5), (generated[0] - 0.5), 0.0);
+		matrix project = matrix(0.0, 1.0, 0.0, 0.0,
+		                  -1.0, 0.0, 0.0, 0.0,
+						  0.0, 0.0, 0.0, 0.0,
+						  0.5, -0.5, 0.0, 1.0);
+
+		vector T = transform(project, generated);
 		T = transform("object", "world", T);
 		Tangent = cross(Normal, normalize(cross(T, Normal)));
 	}
