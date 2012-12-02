@@ -703,6 +703,7 @@ static int bm_edge_collapse(BMesh *bm, BMEdge *e_clear, BMVert *v_clear, int r_e
 		ok = BM_edge_loop_pair(e_clear, &l_a, &l_b);
 
 		BLI_assert(ok == TRUE);
+		(void)ok;
 		BLI_assert(l_a->f->len == 3);
 		BLI_assert(l_b->f->len == 3);
 

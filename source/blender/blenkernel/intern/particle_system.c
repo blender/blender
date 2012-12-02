@@ -2140,16 +2140,22 @@ static void psys_update_effectors(ParticleSimulationData *sim)
 	precalc_guides(sim, sim->psys->effectors);
 }
 
-static void integrate_particle(ParticleSettings *part, ParticleData *pa, float dtime, float *external_acceleration, void (*force_func)(void *forcedata, ParticleKey *state, float *force, float *impulse), void *forcedata)
+static void integrate_particle(ParticleSettings *part, ParticleData *pa, float dtime, float *external_acceleration,
+                               void (*force_func)(void *forcedata, ParticleKey *state, float *force, float *impulse),
+                               void *forcedata)
 {
+#define ZERO_F43 {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}
+
 	ParticleKey states[5];
-	float force[3],acceleration[3],impulse[3],dx[4][3],dv[4][3],oldpos[3];
+	float force[3], acceleration[3], impulse[3], dx[4][3] = ZERO_F43, dv[4][3] = ZERO_F43, oldpos[3];
 	float pa_mass= (part->flag & PART_SIZEMASS ? part->mass * pa->size : part->mass);
 	int i, steps=1;
 	int integrator = part->integrator;
 
+#undef ZERO_F43
+
 	copy_v3_v3(oldpos, pa->state.co);
-	
+
 	/* Verlet integration behaves strangely with moving emitters, so do first step with euler. */
 	if (pa->prev_state.time < 0.f && integrator == PART_INT_VERLET)
 		integrator = PART_INT_EULER;

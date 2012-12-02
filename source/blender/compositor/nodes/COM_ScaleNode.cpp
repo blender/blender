@@ -39,7 +39,7 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 	InputSocket *inputXSocket = this->getInputSocket(1);
 	InputSocket *inputYSocket = this->getInputSocket(2);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
-	BaseScaleOperation *scaleoperation;
+	BaseScaleOperation *scaleoperation = NULL;
 	bNode *bnode = this->getbNode();
 
 	switch (bnode->custom1) {

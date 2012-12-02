@@ -178,6 +178,7 @@ static void symm_split_asymmetric_edges(Symm *symm)
 			                       plane_co[symm->axis][2],
 			                       &lambda, TRUE);
 			BLI_assert(r);
+			(void)r;
 
 			madd_v3_v3v3fl(co, e->v1->co, edge_dir, lambda);
 			co[symm->axis] = 0;

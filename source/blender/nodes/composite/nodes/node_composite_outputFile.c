@@ -242,7 +242,7 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 			ImageFormatData *format = (sockdata->use_node_format ? &nimf->format : &sockdata->format);
 			char path[FILE_MAX];
 			char filename[FILE_MAX];
-			CompBuf *cbuf;
+			CompBuf *cbuf = NULL;
 			ImBuf *ibuf;
 			
 			switch (format->planes) {

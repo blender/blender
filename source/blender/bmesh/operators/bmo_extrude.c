@@ -55,8 +55,8 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 	BMIter liter, liter2;
 	BMFace *f, *f2, *f3;
 	BMLoop *l, *l2, *l3, *l4, *l_tmp;
-	BMEdge **edges = NULL, *e, *laste;
-	BMVert *v, *lastv, *firstv;
+	BMEdge **edges = NULL, *e, *laste = NULL;
+	BMVert *v = NULL, *lastv, *firstv;
 	BLI_array_declare(edges);
 	int i;
 

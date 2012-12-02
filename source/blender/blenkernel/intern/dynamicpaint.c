@@ -3366,7 +3366,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							    (!hit_found || (brush->flags & MOD_DPAINT_INVERSE_PROX)))
 							{
 								float proxDist = -1.0f;
-								float hitCo[3];
+								float hitCo[3] = {0.0f, 0.0f, 0.0f};
 								short hQuad;
 								int face;
 
@@ -3723,6 +3723,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					float smooth_range = smooth * (1.0f - strength), dist;
 					/* calculate max range that can have particles with higher influence than the nearest one */
 					float max_range = smooth - strength * smooth + solidradius;
+					/* Make gcc happy! */
+					dist = max_range;
 
 					particles = BLI_kdtree_range_search(tree, max_range, bData->realCoord[bData->s_pos[index]].v, NULL, &nearest);
 

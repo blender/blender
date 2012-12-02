@@ -2367,8 +2367,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	UvElementMap *elementmap;
-	char *island_enabled;
+	UvElementMap *elementmap = NULL;
+	char *island_enabled = NULL;
 	int count = 0, countsel = 0, count_rejected = 0;
 	int propmode = t->flag & T_PROP_EDIT;
 	int propconnected = t->flag & T_PROP_CONNECTED;
