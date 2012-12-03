@@ -493,7 +493,7 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* copy keyframes */
-	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+	if (ac.datatype == ANIMCONT_GPENCIL) {
 		/* FIXME... */
 		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for grease pencil mode");
 		return OPERATOR_CANCELLED;
