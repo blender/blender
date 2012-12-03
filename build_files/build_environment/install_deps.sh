@@ -4,8 +4,9 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,threads:,help,with-osl,all-static,force-all,force-python,
-force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-ffmpeg \
+--long source:,install:,threads:,help,with-osl,all-static,force-all,force-python,\
+force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-ffmpeg,\
+skip-python,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg \
 -- "$@" \
 )
 
@@ -27,7 +28,7 @@ fi
 
 COMMON_INFO="\"Source code of dependencies needed to be compiled will be downloaded and extracted into '\$SRC'.
 Built libs of dependencies needed to be compiled will be installed into '\$INST'.
-Please edit \\\$SRC and/or \\\$INST variables at the begining of this script,
+Please edit \\\$SRC and/or \\\$INST variables at the beginning of this script,
 or use --source/--install options, if you want to use other paths!
 
 Number of threads for building: \$THREADS (automatically detected, use --threads=<nbr> to override it).
@@ -82,31 +83,56 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     Note about the --force-foo options:
         * They obviously only have an effect if those libraries are built by this script
-          (i.e. if there is no available and satisfatory package)!
-        * If the “force-rebuilt” library is a dependency of anothers, it will force the rebuild
+          (i.e. if there is no available and satisfactory package)!
+        * If the “force-rebuilt” library is a dependency of others, it will force the rebuild
           of those libraries too (e.g. --force-boost will also rebuild oiio and osl...).
-        * Do not forget --with-osl if you built it and still want it!\""
+        * Do not forget --with-osl if you built it and still want it!
+
+    --skip-python
+        Unconditionally skip Python installation/building.
+
+    --skip-boost
+        Unconditionally skip Boost installation/building.
+
+    --skip-ocio
+        Unconditionally skip OpenColorIO installation/building.
+
+    --skip-oiio
+        Unconditionally skip OpenImageIO installation/building.
+
+    --skip-llvm
+        Unconditionally skip LLVM installation/building.
+
+    --skip-osl
+        Unconditionally skip OpenShadingLanguage installation/building.
+
+    --skip-ffmpeg
+        Unconditionally skip FFMpeg installation/building.\""
 
 PYTHON_VERSION="3.3.0"
 PYTHON_VERSION_MIN="3.3"
 PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.bz2"
 PYTHON_FORCE_REBUILD=false
+PYTHON_SKIP=false
 
 BOOST_VERSION="1.51.0"
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
 BOOST_SOURCE="http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download"
 BOOST_VERSION_MIN="1.49"
 BOOST_FORCE_REBUILD=false
+BOOST_SKIP=false
 
 OCIO_VERSION="1.0.7"
 OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
 OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
+OCIO_SKIP=false
 
 OIIO_VERSION="1.1.1"
 OIIO_SOURCE="https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION"
 OIIO_VERSION_MIN="1.1"
 OIIO_FORCE_REBUILD=false
+OIIO_SKIP=false
 
 LLVM_VERSION="3.1"
 LLVM_VERSION_MIN="3.0"
@@ -114,16 +140,19 @@ LLVM_VERSION_FOUND=""
 LLVM_SOURCE="http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz"
 LLVM_CLANG_SOURCE="http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz"
 LLVM_FORCE_REBUILD=false
+LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.2.0"
 OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage/archive/blender-fixes.tar.gz"
 OSL_FORCE_REBUILD=false
+OSL_SKIP=false
 
 FFMPEG_VERSION="1.0"
 FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
 FFMPEG_VERSION_MIN="0.7.6"
 FFMPEG_FORCE_REBUILD=false
+FFMPEG_SKIP=false
 _ffmpeg_list_sep=";"
 
 # FFMPEG optional libs.
@@ -227,6 +256,27 @@ while true; do
     ;;
     --force-ffmpeg)
       FFMPEG_FORCE_REBUILD=true; shift; continue
+    ;;
+    --skip-python)
+      PYTHON_SKIP=true; shift; continue
+    ;;
+    --skip-boost)
+      BOOST_SKIP=true; shift; continue
+    ;;
+    --skip-ocio)
+      OCIO_SKIP=true; shift; continue
+    ;;
+    --skip-oiio)
+      OIIO_SKIP=true; shift; continue
+    ;;
+    --skip-llvm)
+      LLVM_SKIP=true; shift; continue
+    ;;
+    --skip-osl)
+      OSL_SKIP=true; shift; continue
+    ;;
+    --skip-ffmpeg)
+      FFMPEG_SKIP=true; shift; continue
     ;;
     --)
       # no more arguments to parse
@@ -1041,7 +1091,7 @@ install_DEB() {
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
     libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
-    libfftw3-dev libjack-dev python-dev patch bzip2
+    libfftw3-dev libjack0 libjack-dev python-dev patch bzip2
 
   OPENJPEG_USE=true
   SCHRO_USE=true
@@ -1095,98 +1145,128 @@ install_DEB() {
   fi
 
   INFO ""
-  check_package_DEB python3.3-dev
-  if [ $? -eq 0 ]; then
-    install_packages_DEB python3.3-dev
+  if $PYTHON_SKIP; then
+    INFO "WARNING! Skipping Python installation, as requested..."
   else
-    compile_Python
+    check_package_DEB python3.3-dev
+    if [ $? -eq 0 ]; then
+      install_packages_DEB python3.3-dev
+    else
+      compile_Python
+    fi
   fi
 
   INFO ""
-  check_package_version_ge_DEB libboost-dev $BOOST_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_DEB libboost-dev
-
-    boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
-
-    check_package_DEB libboost-locale$boost_version-dev
+  if $BOOST_SKIP; then
+    INFO "WARNING! Skipping Boost installation, as requested..."
+  else
+    check_package_version_ge_DEB libboost-dev $BOOST_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_DEB libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
-                           libboost-regex$boost_version-dev libboost-system$boost_version-dev \
-                           libboost-thread$boost_version-dev
+      install_packages_DEB libboost-dev
+
+      boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
+
+      check_package_DEB libboost-locale$boost_version-dev
+      if [ $? -eq 0 ]; then
+        install_packages_DEB libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
+                             libboost-regex$boost_version-dev libboost-system$boost_version-dev \
+                             libboost-thread$boost_version-dev
+      else
+        compile_Boost
+      fi
     else
       compile_Boost
     fi
-  else
-    compile_Boost
   fi
 
   INFO ""
-  check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_DEB libopencolorio-dev
+  if $OCIO_SKIP; then
+    INFO "WARNING! Skipping OpenColorIO installation, as requested..."
   else
-    compile_OCIO
+    check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libopencolorio-dev
+    else
+      compile_OCIO
+    fi
   fi
 
   INFO ""
-  check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_DEB libopenimageio-dev
+  if $OIIO_SKIP; then
+    INFO "WARNING! Skipping OpenImageIO installation, as requested..."
   else
-    compile_OIIO
+    check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libopenimageio-dev
+    else
+      compile_OIIO
+    fi
   fi
 
   if $BUILD_OSL; then
     have_llvm=false
 
-    INFO ""
-    check_package_DEB llvm-$LLVM_VERSION-dev
-    if [ $? -eq 0 ]; then
-      install_packages_DEB llvm-$LLVM_VERSION-dev
-      have_llvm=true
-      LLVM_VERSION_FOUND=$LLVM_VERSION
+    if $LLVM_SKIP; then
+      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
     else
-      check_package_DEB llvm-$LLVM_VERSION_MIN-dev
+      INFO ""
+      check_package_DEB llvm-$LLVM_VERSION-dev
       if [ $? -eq 0 ]; then
-        install_packages_DEB llvm-$LLVM_VERSION_MIN-dev
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
-      else
-        install_packages_DEB libffi-dev
-        INFO ""
-        compile_LLVM
+        install_packages_DEB llvm-$LLVM_VERSION-dev
         have_llvm=true
         LLVM_VERSION_FOUND=$LLVM_VERSION
+      else
+        check_package_DEB llvm-$LLVM_VERSION_MIN-dev
+        if [ $? -eq 0 ]; then
+          install_packages_DEB llvm-$LLVM_VERSION_MIN-dev
+          have_llvm=true
+          LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+        else
+          install_packages_DEB libffi-dev
+          INFO ""
+          compile_LLVM
+          have_llvm=true
+          LLVM_VERSION_FOUND=$LLVM_VERSION
+        fi
       fi
     fi
 
-    if $have_llvm; then
+    if $OSL_SKIP; then
       INFO ""
-      install_packages_DEB clang flex bison libtbb-dev git
-      # No package currently!
-      INFO ""
-      compile_OSL
+      INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+    else
+      if $have_llvm; then
+        INFO ""
+        install_packages_DEB clang flex bison libtbb-dev git
+        # No package currently!
+        INFO ""
+        compile_OSL
+      fi
     fi
   fi
 
-#  XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
-#      So for now, always build our own ffmpeg.
-#  check_package_DEB ffmpeg
-#  if [ $? -eq 0 ]; then
-#    install_packages_DEB ffmpeg
-#    ffmpeg_version=`get_package_version_DEB ffmpeg`
-#    INFO "ffmpeg version: $ffmpeg_version"
-#    if [ ! -z "$ffmpeg_version" ]; then
-#      if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
-#        install_packages_DEB libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
-#      else
-#        compile_FFmpeg
+
+  INFO ""
+  if $FFMPEG_SKIP; then
+    INFO "WARNING! Skipping FFMpeg installation, as requested..."
+  else
+#    XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
+#        So for now, always build our own ffmpeg.
+#    check_package_DEB ffmpeg
+#    if [ $? -eq 0 ]; then
+#      install_packages_DEB ffmpeg
+#      ffmpeg_version=`get_package_version_DEB ffmpeg`
+#      INFO "ffmpeg version: $ffmpeg_version"
+#      if [ ! -z "$ffmpeg_version" ]; then
+#        if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
+#          install_packages_DEB libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
+#        else
+#          compile_FFmpeg
+#        fi
 #      fi
 #    fi
-#  fi
-  INFO ""
-  compile_FFmpeg
+    compile_FFmpeg
+  fi
 }
 
 get_package_version_RPM() {
@@ -1294,81 +1374,110 @@ install_RPM() {
   fi
 
   INFO ""
-  check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_RPM python3-devel
+  if $PYTHON_SKIP; then
+    INFO "WARNING! Skipping Python installation, as requested..."
   else
-    compile_Python
+    check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM python3-devel
+    else
+      compile_Python
+    fi
   fi
 
   INFO ""
-  check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_RPM boost-devel
+  if $BOOST_SKIP; then
+    INFO "WARNING! Skipping Boost installation, as requested..."
   else
-    compile_Boost
+    check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM boost-devel
+    else
+      compile_Boost
+    fi
   fi
 
   INFO ""
-  check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_RPM OpenColorIO-devel
+  if $OCIO_SKIP; then
+    INFO "WARNING! Skipping OpenColorIO installation, as requested..."
   else
-    compile_OCIO
+    check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM OpenColorIO-devel
+    else
+      compile_OCIO
+    fi
   fi
 
   INFO ""
-  check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_RPM OpenImageIO-devel
+  if $OIIO_SKIP; then
+    INFO "WARNING! Skipping OpenImageIO installation, as requested..."
   else
-    compile_OIIO
+    check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM OpenImageIO-devel
+    else
+      compile_OIIO
+    fi
   fi
 
   if $BUILD_OSL; then
     have_llvm=false
 
     INFO ""
-    check_package_RPM llvm-$LLVM_VERSION-devel
-    if [ $? -eq 0 ]; then
-      install_packages_RPM llvm-$LLVM_VERSION-devel
+    if $LLVM_SKIP; then
+      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    else
+      check_package_RPM llvm-$LLVM_VERSION-devel
+      if [ $? -eq 0 ]; then
+        install_packages_RPM llvm-$LLVM_VERSION-devel
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION
+      else
+#        check_package_RPM llvm-$LLVM_VERSION_MIN-devel
+#        if [ $? -eq 0 ]; then
+#          install_packages_RPM llvm-$LLVM_VERSION_MIN-devel
+#          have_llvm=true
+#          LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+#        else
+#          check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
+#          if [ $? -eq 0 ]; then
+#            install_packages_RPM llvm-devel
+#            have_llvm=true
+#            LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
+#          fi
+#        fi
+      install_packages_RPM libffi-devel
+      # XXX Stupid fedora puts ffi header into a darn stupid dir!
+      _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+      INFO ""
+      compile_LLVM
       have_llvm=true
       LLVM_VERSION_FOUND=$LLVM_VERSION
-    else
-#      check_package_RPM llvm-$LLVM_VERSION_MIN-devel
-#      if [ $? -eq 0 ]; then
-#        install_packages_RPM llvm-$LLVM_VERSION_MIN-devel
-#        have_llvm=true
-#        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
-#      else
-#        check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
-#        if [ $? -eq 0 ]; then
-#          install_packages_RPM llvm-devel
-#          have_llvm=true
-#          LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
-#        fi
-#      fi
-    install_packages_RPM libffi-devel
-    # XXX Stupid fedora puts ffi header into a darn stupid dir!
-    _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
-    INFO ""
-    compile_LLVM
-    have_llvm=true
-    LLVM_VERSION_FOUND=$LLVM_VERSION
+      fi
     fi
 
-    if $have_llvm; then
+    if $OSL_SKIP; then
       INFO ""
-      install_packages_RPM flex bison clang tbb-devel git
-      # No package currently!
-      INFO ""
-      compile_OSL
+      INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+    else
+      if $have_llvm; then
+        INFO ""
+        install_packages_RPM flex bison clang tbb-devel git
+        # No package currently!
+        INFO ""
+        compile_OSL
+      fi
     fi
   fi
 
-  # Always for now, not sure which packages should be installed
   INFO ""
-  compile_FFmpeg
+  if $FFMPEG_SKIP; then
+    INFO "WARNING! Skipping FFMpeg installation, as requested..."
+  else
+    # Always for now, not sure which packages should be installed
+    compile_FFmpeg
+  fi
 }
 
 get_package_version_SUSE() {
@@ -1478,56 +1587,85 @@ install_SUSE() {
   fi
 
   INFO ""
-  check_package_version_match_SUSE python3-devel 3.3.
-  if [ $? -eq 0 ]; then
-    install_packages_SUSE python3-devel
+  if $PYTHON_SKIP; then
+    INFO "WARNING! Skipping Python installation, as requested..."
   else
-    compile_Python
+    check_package_version_match_SUSE python3-devel 3.3.
+    if [ $? -eq 0 ]; then
+      install_packages_SUSE python3-devel
+    else
+      compile_Python
+    fi
   fi
 
   INFO ""
-  # No boost_locale currently available, so let's build own boost.
-  compile_Boost
+  if $BOOST_SKIP; then
+    INFO "WARNING! Skipping Boost installation, as requested..."
+  else
+    # No boost_locale currently available, so let's build own boost.
+    compile_Boost
+  fi
 
   INFO ""
-  # No ocio currently available, so let's build own boost.
-  compile_OCIO
+  if $OCIO_SKIP; then
+    INFO "WARNING! Skipping OpenColorIO installation, as requested..."
+  else
+    # No ocio currently available, so let's build own boost.
+    compile_OCIO
+  fi
 
   INFO ""
-  # No oiio currently available, so let's build own boost.
-  compile_OIIO
+  if $OIIO_SKIP; then
+    INFO "WARNING! Skipping OpenImageIO installation, as requested..."
+  else
+    # No oiio currently available, so let's build own boost.
+    compile_OIIO
+  fi
 
   if $BUILD_OSL; then
     have_llvm=false
 
     INFO ""
-    # Suse llvm package *_$SUCKS$_* (tm) !!!
-#    check_package_version_ge_SUSE llvm-devel $LLVM_VERSION_MIN
-#    if [ $? -eq 0 ]; then
-#      install_packages_SUSE llvm-devel
-#      have_llvm=true
-#      LLVM_VERSION_FOUND=`get_package_version_SUSE llvm-devel`
-#    fi
+    if $LLVM_SKIP; then
+      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    else
+      # Suse llvm package *_$SUCKS$_* (tm) !!!
+#      check_package_version_ge_SUSE llvm-devel $LLVM_VERSION_MIN
+#      if [ $? -eq 0 ]; then
+#        install_packages_SUSE llvm-devel
+#        have_llvm=true
+#        LLVM_VERSION_FOUND=`get_package_version_SUSE llvm-devel`
+#      fi
 
-    install_packages_SUSE libffi47-devel
-    INFO ""
-    compile_LLVM
-    have_llvm=true
-    LLVM_VERSION_FOUND=$LLVM_VERSION
+      install_packages_SUSE libffi47-devel
+      INFO ""
+      compile_LLVM
+      have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
+    fi
 
-    if $have_llvm; then
+    if $OSL_SKIP; then
       INFO ""
-      # XXX No tbb lib!
-      install_packages_SUSE flex bison git
-      # No package currently!
-      INFO ""
-      compile_OSL
+      INFO "WARNING! Skipping OpenShaderLanguage installation, as requested..."
+    else
+      if $have_llvm; then
+        INFO ""
+        # XXX No tbb lib!
+        install_packages_SUSE flex bison git
+        # No package currently!
+        INFO ""
+        compile_OSL
+      fi
     fi
   fi
 
-  # No ffmpeg currently available, so let's build own boost.
   INFO ""
-  compile_FFmpeg
+  if $FFMPEG_SKIP; then
+    INFO "WARNING! Skipping FFMpeg installation, as requested..."
+  else
+    # No ffmpeg currently available, so let's build own boost.
+    compile_FFmpeg
+  fi
 }
 
 print_info_ffmpeglink_DEB() {
