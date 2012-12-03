@@ -30,9 +30,7 @@
 
 /** \file BKE_icons.h
  *  \ingroup bke
- */
-
-/*
+ *
  * Resizable Icons for Blender
  */
 
