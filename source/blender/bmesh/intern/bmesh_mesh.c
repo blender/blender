@@ -206,6 +206,11 @@ void BM_mesh_clear(BMesh *bm)
 
 	bm->stackdepth = 1;
 	bm->totflags = 1;
+
+	CustomData_reset(&bm->vdata);
+	CustomData_reset(&bm->edata);
+	CustomData_reset(&bm->ldata);
+	CustomData_reset(&bm->pdata);
 }
 
 /**
