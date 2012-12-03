@@ -189,7 +189,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 #endif /* USE_TESSFACE_SPEEDUP */
 
 		else {
-			ScanFillVert *sf_vert = NULL, *sf_vert_last = NULL, *sf_vert_first = NULL;
+			ScanFillVert *sf_vert, *sf_vert_last = NULL, *sf_vert_first = NULL;
 			/* ScanFillEdge *e; */ /* UNUSED */
 			ScanFillFace *sf_tri;
 			int totfilltri;
