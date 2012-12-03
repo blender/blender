@@ -987,6 +987,14 @@ check_package_version_ge_DEB() {
   return $?
 }
 
+install_packages_DEB() {
+  sudo apt-get install -y $@
+  if [ $? -ge 1 ]; then
+    ERROR "apt-get failed to install requested packages, exiting."
+    exit 1
+  fi
+}
+
 install_DEB() {
   INFO ""
   INFO "Installing dependencies for DEB-based distribution"
@@ -1029,7 +1037,7 @@ install_DEB() {
   THEORA_DEV="libtheora-dev"
 
   INFO ""
-  sudo apt-get install -y gawk cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
+  install_packages_DEB gawk cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
     libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
     libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
     libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
@@ -1045,13 +1053,13 @@ install_DEB() {
   XVID_DEV="libxvidcore-dev"
   check_package_DEB $XVID_DEV
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y $XVID_DEV
+    install_packages_DEB $XVID_DEV
     XVID_USE=true
   else
     XVID_DEV="libxvidcore4-dev"
     check_package_DEB $XVID_DEV
     if [ $? -eq 0 ]; then
-      sudo apt-get install -y $XVID_DEV
+      install_packages_DEB $XVID_DEV
       XVID_USE=true
     fi
   fi
@@ -1060,7 +1068,7 @@ install_DEB() {
   MP3LAME_DEV="libmp3lame-dev"
   check_package_DEB $MP3LAME_DEV
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y $MP3LAME_DEV
+    install_packages_DEB $MP3LAME_DEV
     MP3LAME_USE=true
   fi
 
@@ -1068,7 +1076,7 @@ install_DEB() {
   X264_DEV="libx264-dev"
   check_package_version_ge_DEB $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y $X264_DEV
+    install_packages_DEB $X264_DEV
     X264_USE=true
   fi
 
@@ -1076,20 +1084,20 @@ install_DEB() {
   VPX_DEV="libvpx-dev"
   check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y $VPX_DEV
+    install_packages_DEB $VPX_DEV
     VPX_USE=true
   fi
 
   INFO ""
   check_package_DEB libspnav-dev
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y libspnav-dev
+    install_packages_DEB libspnav-dev
   fi
 
   INFO ""
   check_package_DEB python3.3-dev
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y python3.3-dev
+    install_packages_DEB python3.3-dev
   else
     compile_Python
   fi
@@ -1097,15 +1105,15 @@ install_DEB() {
   INFO ""
   check_package_version_ge_DEB libboost-dev $BOOST_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y libboost-dev
+    install_packages_DEB libboost-dev
 
     boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
 
     check_package_DEB libboost-locale$boost_version-dev
     if [ $? -eq 0 ]; then
-      sudo apt-get install -y libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
-                              libboost-regex$boost_version-dev libboost-system$boost_version-dev \
-                              libboost-thread$boost_version-dev
+      install_packages_DEB libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
+                           libboost-regex$boost_version-dev libboost-system$boost_version-dev \
+                           libboost-thread$boost_version-dev
     else
       compile_Boost
     fi
@@ -1116,7 +1124,7 @@ install_DEB() {
   INFO ""
   check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y libopencolorio-dev
+    install_packages_DEB libopencolorio-dev
   else
     compile_OCIO
   fi
@@ -1124,7 +1132,7 @@ install_DEB() {
   INFO ""
   check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y libopenimageio-dev
+    install_packages_DEB libopenimageio-dev
   else
     compile_OIIO
   fi
@@ -1135,17 +1143,17 @@ install_DEB() {
     INFO ""
     check_package_DEB llvm-$LLVM_VERSION-dev
     if [ $? -eq 0 ]; then
-      sudo apt-get install -y llvm-$LLVM_VERSION-dev
+      install_packages_DEB llvm-$LLVM_VERSION-dev
       have_llvm=true
       LLVM_VERSION_FOUND=$LLVM_VERSION
     else
       check_package_DEB llvm-$LLVM_VERSION_MIN-dev
       if [ $? -eq 0 ]; then
-        sudo apt-get install -y llvm-$LLVM_VERSION_MIN-dev
+        install_packages_DEB llvm-$LLVM_VERSION_MIN-dev
         have_llvm=true
         LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
       else
-        sudo apt-get install -y libffi-dev
+        install_packages_DEB libffi-dev
         INFO ""
         compile_LLVM
         have_llvm=true
@@ -1155,7 +1163,7 @@ install_DEB() {
 
     if $have_llvm; then
       INFO ""
-      sudo apt-get install -y clang flex bison libtbb-dev git
+      install_packages_DEB clang flex bison libtbb-dev git
       # No package currently!
       INFO ""
       compile_OSL
@@ -1166,12 +1174,12 @@ install_DEB() {
 #      So for now, always build our own ffmpeg.
 #  check_package_DEB ffmpeg
 #  if [ $? -eq 0 ]; then
-#    sudo apt-get install -y ffmpeg
+#    install_packages_DEB ffmpeg
 #    ffmpeg_version=`get_package_version_DEB ffmpeg`
 #    INFO "ffmpeg version: $ffmpeg_version"
 #    if [ ! -z "$ffmpeg_version" ]; then
 #      if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
-#        sudo apt-get install -y libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
+#        install_packages_DEB libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
 #      else
 #        compile_FFmpeg
 #      fi
@@ -1217,6 +1225,14 @@ check_package_version_ge_RPM() {
   return $?
 }
 
+install_packages_RPM() {
+  sudo yum install -y $@
+  if [ $? -ge 1 ]; then
+    ERROR "yum failed to install requested packages, exiting."
+    exit 1
+  fi
+}
+
 install_RPM() {
   INFO ""
   INFO "Installing dependencies for RPM-based distribution"
@@ -1233,7 +1249,7 @@ install_RPM() {
   THEORA_DEV="libtheora-devel"
 
   INFO ""
-  sudo yum -y install gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel \
+  install_packages_RPM gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel \
     freetype-devel libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
     readline-devel $OPENJPEG_DEV openexr-devel openal-soft-devel \
     glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV SDL-devel \
@@ -1249,7 +1265,7 @@ install_RPM() {
   X264_DEV="x264-devel"
   check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y $X264_DEV
+    install_packages_RPM $X264_DEV
     X264_USE=true
   fi
 
@@ -1257,7 +1273,7 @@ install_RPM() {
   XVID_DEV="xvidcore-devel"
   check_package_RPM $XVID_DEV
   if [ $? -eq 0 ]; then
-    sudo yum install -y $XVID_DEV
+    install_packages_RPM $XVID_DEV
     XVID_USE=true
   fi
 
@@ -1265,7 +1281,7 @@ install_RPM() {
   VPX_DEV="libvpx-devel"
   check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y $VPX_DEV
+    install_packages_RPM $VPX_DEV
     VPX_USE=true
   fi
 
@@ -1273,14 +1289,14 @@ install_RPM() {
   MP3LAME_DEV="lame-devel"
   check_package_RPM $MP3LAME_DEV
   if [ $? -eq 0 ]; then
-    sudo yum install -y $MP3LAME_DEV
+    install_packages_RPM $MP3LAME_DEV
     MP3LAME_USE=true
   fi
 
   INFO ""
   check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y python3-devel
+    install_packages_RPM python3-devel
   else
     compile_Python
   fi
@@ -1288,7 +1304,7 @@ install_RPM() {
   INFO ""
   check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y boost-devel
+    install_packages_RPM boost-devel
   else
     compile_Boost
   fi
@@ -1296,7 +1312,7 @@ install_RPM() {
   INFO ""
   check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y OpenColorIO-devel
+    install_packages_RPM OpenColorIO-devel
   else
     compile_OCIO
   fi
@@ -1304,7 +1320,7 @@ install_RPM() {
   INFO ""
   check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y OpenImageIO-devel
+    install_packages_RPM OpenImageIO-devel
   else
     compile_OIIO
   fi
@@ -1315,24 +1331,24 @@ install_RPM() {
     INFO ""
     check_package_RPM llvm-$LLVM_VERSION-devel
     if [ $? -eq 0 ]; then
-      sudo yum install -y llvm-$LLVM_VERSION-devel
+      install_packages_RPM llvm-$LLVM_VERSION-devel
       have_llvm=true
       LLVM_VERSION_FOUND=$LLVM_VERSION
     else
 #      check_package_RPM llvm-$LLVM_VERSION_MIN-devel
 #      if [ $? -eq 0 ]; then
-#        sudo yum install -y llvm-$LLVM_VERSION_MIN-devel
+#        install_packages_RPM llvm-$LLVM_VERSION_MIN-devel
 #        have_llvm=true
 #        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
 #      else
 #        check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
 #        if [ $? -eq 0 ]; then
-#          sudo yum install -y llvm-devel
+#          install_packages_RPM llvm-devel
 #          have_llvm=true
 #          LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
 #        fi
 #      fi
-    sudo yum install -y libffi-devel
+    install_packages_RPM libffi-devel
     # XXX Stupid fedora puts ffi header into a darn stupid dir!
     _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
     INFO ""
@@ -1343,7 +1359,7 @@ install_RPM() {
 
     if $have_llvm; then
       INFO ""
-      sudo yum install -y flex bison clang tbb-devel git
+      install_packages_RPM flex bison clang tbb-devel git
       # No package currently!
       INFO ""
       compile_OSL
@@ -1391,6 +1407,15 @@ check_package_version_ge_SUSE() {
   return $?
 }
 
+install_packages_SUSE() {
+  sudo zypper --non-interactive install --auto-agree-with-licenses $@
+  if [ $? -ge 1 ]; then
+    ERROR "zypper failed to install requested packages, exiting."
+    exit 1
+  fi
+}
+
+
 install_SUSE() {
   INFO ""
   INFO "Installing dependencies for SuSE-based distribution"
@@ -1407,8 +1432,7 @@ install_SUSE() {
   THEORA_DEV="libtheora-devel"
 
   INFO ""
-  sudo zypper --non-interactive install --auto-agree-with-licenses \
-    gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel \
+  install_packages_SUSE gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel \
     freetype-devel libX11-devel libXi-devel wget sqlite3-devel ncurses-devel \
     readline-devel $OPENJPEG_DEV libopenexr-devel openal-soft-devel \
     glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libSDL-devel \
@@ -1424,7 +1448,7 @@ install_SUSE() {
   X264_DEV="x264-devel"
   check_package_version_ge_SUSE $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses $X264_DEV
+    install_packages_SUSE $X264_DEV
     X264_USE=true
   fi
 
@@ -1432,7 +1456,7 @@ install_SUSE() {
   XVID_DEV="xvidcore-devel"
   check_package_SUSE $XVID_DEV
   if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses $XVID_DEV
+    install_packages_SUSE $XVID_DEV
     XVID_USE=true
   fi
 
@@ -1440,7 +1464,7 @@ install_SUSE() {
   VPX_DEV="libvpx-devel"
   check_package_version_ge_SUSE $VPX_DEV $VPX_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses $VPX_DEV
+    install_packages_SUSE $VPX_DEV
     VPX_USE=true
   fi
 
@@ -1449,14 +1473,14 @@ install_SUSE() {
   MP3LAME_DEV="lame-devel"
   check_package_SUSE $MP3LAME_DEV
   if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses $MP3LAME_DEV
+    install_packages_SUSE $MP3LAME_DEV
     MP3LAME_USE=true
   fi
 
   INFO ""
   check_package_version_match_SUSE python3-devel 3.3.
   if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses python3-devel
+    install_packages_SUSE python3-devel
   else
     compile_Python
   fi
@@ -1480,12 +1504,12 @@ install_SUSE() {
     # Suse llvm package *_$SUCKS$_* (tm) !!!
 #    check_package_version_ge_SUSE llvm-devel $LLVM_VERSION_MIN
 #    if [ $? -eq 0 ]; then
-#      sudo zypper --non-interactive install --auto-agree-with-licenses llvm-devel
+#      install_packages_SUSE llvm-devel
 #      have_llvm=true
 #      LLVM_VERSION_FOUND=`get_package_version_SUSE llvm-devel`
 #    fi
 
-    sudo zypper --non-interactive install --auto-agree-with-licenses libffi47-devel
+    install_packages_SUSE libffi47-devel
     INFO ""
     compile_LLVM
     have_llvm=true
@@ -1494,7 +1518,7 @@ install_SUSE() {
     if $have_llvm; then
       INFO ""
       # XXX No tbb lib!
-      sudo zypper --non-interactive install --auto-agree-with-licenses flex bison git
+      install_packages_SUSE flex bison git
       # No package currently!
       INFO ""
       compile_OSL
