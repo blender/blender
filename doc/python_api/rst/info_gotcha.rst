@@ -537,6 +537,13 @@ Here are some general hints to avoid running into these problems.
 
 * Crashes may not happen every time, they may happen more on some configurations/operating-systems.
 
+.. note::
+
+   To find the line of your script that crashes you can use the ``faulthandler`` module.
+   See `faulthandler docs<http://docs.python.org/dev/library/faulthandler.html>`_.
+
+   While the crash may be in Blenders C/C++ code, this can help a lot to track down the area of the script that causes the crash.
+
 
 Undo/Redo
 ---------
