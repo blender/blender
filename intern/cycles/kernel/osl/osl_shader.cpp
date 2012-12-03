@@ -150,13 +150,14 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
 
-					sd->flag |= bsdf->shaderdata_flag();
-
 					sc.sample_weight = sample_weight;
 					sc.type = bsdf->shaderclosure_type();
 
 					/* add */
-					sd->closure[sd->num_closure++] = sc;
+					if(sc.sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= bsdf->shaderdata_flag();
+					}
 					break;
 				}
 				case OSL::ClosurePrimitive::Emissive: {
@@ -170,9 +171,10 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					sc.type = CLOSURE_EMISSION_ID;
 
 					/* flag */
-					sd->flag |= SD_EMISSION;
-
-					sd->closure[sd->num_closure++] = sc;
+					if(sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= SD_EMISSION;
+					}
 					break;
 				}
 				case AmbientOcclusion: {
@@ -185,8 +187,10 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					sc.sample_weight = sample_weight;
 					sc.type = CLOSURE_AMBIENT_OCCLUSION_ID;
 
-					sd->closure[sd->num_closure++] = sc;
-					sd->flag |= SD_AO;
+					if(sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= SD_AO;
+					}
 					break;
 				}
 				case OSL::ClosurePrimitive::Holdout:
@@ -195,8 +199,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 
 					sc.sample_weight = 0.0f;
 					sc.type = CLOSURE_HOLDOUT_ID;
-					sd->flag |= SD_HOLDOUT;
-					sd->closure[sd->num_closure++] = sc;
+
+					if(sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= SD_HOLDOUT;
+					}
 					break;
 				case OSL::ClosurePrimitive::BSSRDF:
 				case OSL::ClosurePrimitive::Debug:
@@ -334,7 +341,8 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 					sc.type = CLOSURE_VOLUME_ID;
 
 					/* add */
-					sd->closure[sd->num_closure++] = sc;
+					if(sc.sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE)
+						sd->closure[sd->num_closure++] = sc;
 					break;
 				}
 				case OSL::ClosurePrimitive::Holdout:
