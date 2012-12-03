@@ -83,12 +83,13 @@ void  ED_mask_select_frame(struct MaskLayer *masklay, int selx, short select_mod
 void ED_masklayer_frames_delete(struct MaskLayer *masklay);
 void ED_masklayer_frames_duplicate(struct MaskLayer *masklay);
 
+void ED_masklayer_snap_frames(struct MaskLayer *masklay, struct Scene *scene, short mode);
+
 #if 0
 void free_gpcopybuf(void);
 void copy_gpdata(void);
 void paste_gpdata(void);
 
-void snap_masklayer_frames(struct MaskLayer *masklay, short mode);
 void mirror_masklayer_frames(struct MaskLayer *masklay, short mode);
 #endif
 

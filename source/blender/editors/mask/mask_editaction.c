@@ -49,6 +49,7 @@
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
 #include "ED_mask.h"  /* own include */
+#include "ED_markers.h"
 
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
@@ -249,3 +250,57 @@ void ED_masklayer_frames_duplicate(MaskLayer *masklay)
 		}
 	}
 }
+
+/* -------------------------------------- */
+/* Snap Tools */
+
+static short snap_masklayer_nearest(MaskLayerShape *masklay_shape, Scene *UNUSED(scene))
+{
+	if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		masklay_shape->frame = (int)(floor(masklay_shape->frame + 0.5));
+	return 0;
+}
+
+static short snap_masklayer_nearestsec(MaskLayerShape *masklay_shape, Scene *scene)
+{
+	float secf = (float)FPS;
+	if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		masklay_shape->frame = (int)(floor(masklay_shape->frame / secf + 0.5f) * secf);
+	return 0;
+}
+
+static short snap_masklayer_cframe(MaskLayerShape *masklay_shape, Scene *scene)
+{
+	if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		masklay_shape->frame = (int)CFRA;
+	return 0;
+}
+
+static short snap_masklayer_nearmarker(MaskLayerShape *masklay_shape, Scene *scene)
+{
+	if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		masklay_shape->frame = (int)ED_markers_find_nearest_marker_time(&scene->markers, (float)masklay_shape->frame);
+	return 0;
+}
+
+/* snap selected frames to ... */
+void ED_masklayer_snap_frames(MaskLayer *masklay, Scene *scene, short mode)
+{
+	switch (mode) {
+		case SNAP_KEYS_NEARFRAME: /* snap to nearest frame */
+			ED_masklayer_frames_looper(masklay, scene, snap_masklayer_nearest);
+			break;
+		case SNAP_KEYS_CURFRAME: /* snap to current frame */
+			ED_masklayer_frames_looper(masklay, scene, snap_masklayer_cframe);
+			break;
+		case SNAP_KEYS_NEARMARKER: /* snap to nearest marker */
+			ED_masklayer_frames_looper(masklay, scene, snap_masklayer_nearmarker);
+			break;
+		case SNAP_KEYS_NEARSEC: /* snap to nearest second */
+			ED_masklayer_frames_looper(masklay, scene, snap_masklayer_nearestsec);
+			break;
+		default: /* just in case */
+			break;
+	}
+}
+
