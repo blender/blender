@@ -4,6 +4,13 @@
    ./blender.bin -b -noaudio -P doc/python_api/sphinx_doc_gen.py -- --partial bmesh* ; cd doc/python_api ; sphinx-build sphinx-in sphinx-out ; cd ../../
 
 
+Submodules:
+
+* :mod:`bmesh.ops`
+* :mod:`bmesh.types`
+* :mod:`bmesh.utils`
+
+
 Intro
 -----
 

@@ -153,13 +153,6 @@ static struct PyMethodDef BPy_BM_methods[] = {
 PyDoc_STRVAR(BPy_BM_doc,
 "This module provides access to blenders bmesh data structures.\n"
 "\n"
-"\n"
-"Submodules:\n"
-"\n"
-"* :mod:`bmesh.utils`\n"
-"* :mod:`bmesh.types`\n"
-"\n"
-"\n"
 ".. include:: include__bmesh.rst\n"
 );
 static struct PyModuleDef BPy_BM_module_def = {
