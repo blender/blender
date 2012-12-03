@@ -18,13 +18,13 @@
  * The Original Code is Copyright (C) 2008, Blender Foundation
  * This is a new part of Blender
  *
- * Contributor(s): Joshua Leung
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/editors/mask/mask_editaction.c
- *  \ingroup edgpencil
+ *  \ingroup edmask
  */
 
 #include <stdio.h>
@@ -52,14 +52,14 @@
 
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
- *  This file contains code for editing Grease Pencil data in the Action Editor
- *  as a 'keyframes', so that a user can adjust the timing of Grease Pencil drawings.
- *  Therefore, this file mostly contains functions for selecting Grease-Pencil frames.
+ *  This file contains code for editing Mask data in the Action Editor
+ *  as a 'keyframes', so that a user can adjust the timing of Mask shapekeys.
+ *  Therefore, this file mostly contains functions for selecting Mask frames (shapekeys).
  */
 /* ***************************************** */
 /* Generics - Loopers */
 
-/* Loops over the gp-frames for a gp-layer, and applies the given callback */
+/* Loops over the mask-frames for a mask-layer, and applies the given callback */
 short ED_masklayer_frames_looper(MaskLayer *masklay, Scene *scene, short (*masklay_shape_cb)(MaskLayerShape *, Scene *))
 {
 	MaskLayerShape *masklay_shape;
@@ -82,7 +82,7 @@ short ED_masklayer_frames_looper(MaskLayer *masklay, Scene *scene, short (*maskl
 /* ****************************************** */
 /* Data Conversion Tools */
 
-/* make a listing all the gp-frames in a layer as cfraelems */
+/* make a listing all the mask-frames in a layer as cfraelems */
 void ED_masklayer_make_cfra_list(MaskLayer *masklay, ListBase *elems, short onlysel)
 {
 	MaskLayerShape *masklay_shape;
@@ -92,7 +92,7 @@ void ED_masklayer_make_cfra_list(MaskLayer *masklay, ListBase *elems, short only
 	if (ELEM(NULL, masklay, elems))
 		return;
 
-	/* loop through gp-frames, adding */
+	/* loop through mask-frames, adding */
 	for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
 		if ((onlysel == 0) || (masklay_shape->flag & MASK_SHAPE_SELECT)) {
 			ce = MEM_callocN(sizeof(CfraElem), "CfraElem");
@@ -127,7 +127,7 @@ short ED_masklayer_frame_select_check(MaskLayer *masklay)
 	return 0;
 }
 
-/* helper function - select gp-frame based on SELECT_* mode */
+/* helper function - select mask-frame based on SELECT_* mode */
 static void masklayshape_select(MaskLayerShape *masklay_shape, short select_mode)
 {
 	if (masklay_shape == NULL)
@@ -223,7 +223,7 @@ void ED_masklayer_frames_delete(MaskLayer *masklay)
 	}
 }
 
-/* Duplicate selected frames from given gp-layer */
+/* Duplicate selected frames from given mask-layer */
 void ED_masklayer_frames_duplicate(MaskLayer *masklay)
 {
 	MaskLayerShape *masklay_shape, *gpfn;
