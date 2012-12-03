@@ -389,6 +389,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				if (len < min) {
 					min = len;
 					starti = i;
+					dir1 = 1;
 				}
 
 				/* compute summed length between vertices in backward direction */
