@@ -229,7 +229,10 @@ static int check_alpha_pass(Base *base)
 
 	if (G.f & G_PICKSEL)
 		return 0;
-	
+
+	if (base->object->mode & OB_MODE_ALL_PAINT)
+		return 0;
+
 	return (base->object->dtx & OB_DRAWTRANSP);
 }
 
