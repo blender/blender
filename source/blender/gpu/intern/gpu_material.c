@@ -1497,6 +1497,16 @@ static GPUNodeLink *GPU_blender_material(GPUMaterial *mat, Material *ma)
 	return shr.combined;
 }
 
+static GPUNodeLink *gpu_material_diffuse_bsdf(GPUMaterial *mat, Material *ma)
+{
+	static float roughness = 0.0f;
+	GPUNodeLink *outlink;
+
+	GPU_link(mat, "node_bsdf_diffuse", GPU_uniform(&ma->r), GPU_uniform(&roughness), GPU_builtin(GPU_VIEW_NORMAL), &outlink);
+
+	return outlink;
+}
+
 GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 {
 	GPUMaterial *mat;
@@ -1516,8 +1526,15 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		ntreeGPUMaterialNodes(ma->nodetree, mat);
 	}
 	else {
-		/* create material */
-		outlink = GPU_blender_material(mat, ma);
+		if(BKE_scene_use_new_shading_nodes(scene)) {
+			/* create simple diffuse material instead of nodes */
+			outlink = gpu_material_diffuse_bsdf(mat, ma);
+		}
+		else {
+			/* create blender material */
+			outlink = GPU_blender_material(mat, ma);
+		}
+
 		GPU_material_output_link(mat, outlink);
 	}
 

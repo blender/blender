@@ -253,6 +253,9 @@ static void GPU_print_framebuffer_error(GLenum status, char err_out[256])
 	switch (status) {
 		case GL_FRAMEBUFFER_COMPLETE_EXT:
 			break;
+		case GL_INVALID_OPERATION:
+			err= "Invalid operation";
+			break;
 		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
 			err= "Incomplete attachment";
 			break;
@@ -754,6 +757,7 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err
 {
 	GLenum status;
 	GLenum attachment;
+	GLenum error;
 
 	if (tex->depth)
 		attachment = GL_DEPTH_ATTACHMENT_EXT;
@@ -765,6 +769,14 @@ int GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, char err
 
 	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, attachment, 
 		tex->target, tex->bindcode, 0);
+
+	error = glGetError();
+
+	if (error == GL_INVALID_OPERATION) {
+		GPU_framebuffer_restore();
+		GPU_print_framebuffer_error(error, err_out);
+		return 0;
+	}
 
 	if (tex->depth) {
 		glDrawBuffer(GL_NONE);
