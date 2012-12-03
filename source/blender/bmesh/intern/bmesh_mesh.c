@@ -42,8 +42,8 @@
 #include "intern/bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
-BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
-BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
+const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
+const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 
 static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 {
@@ -109,7 +109,7 @@ void BM_mesh_elem_toolflags_clear(BMesh *bm)
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(BMAllocTemplate *allocsize)
+BMesh *BM_mesh_create(const BMAllocTemplate *allocsize)
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
