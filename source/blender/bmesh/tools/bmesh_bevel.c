@@ -571,100 +571,11 @@ static void get_point_on_round_edge(const float uv[2],
 
 #else  /* USE_ALTERNATE_ADJ */
 
-#ifdef OLD_ROUND_EDGE
-/*
- * calculation of points on the round profile
- * r - result, coordinate of point on round profile
- * method:
- * Inscribe a circle in angle va - v -vb
- * such that it touches the arms at offset from v.
- * Rotate the center-va segment by (i/n) of the
- * angle va - center -vb, and put the endpoint
- * of that segment in r.
- */
-static void get_point_on_round_profile(float r_co[3], float offset, int k, int count,
-                                       const float va[3], const float v[3], const float vb[3])
-{
-	float vva[3], vvb[3], angle, center[3], rv[3], axis[3], co[3];
-
-	sub_v3_v3v3(vva, va, v);
-	sub_v3_v3v3(vvb, vb, v);
-	normalize_v3(vva);
-	normalize_v3(vvb);
-	angle = angle_normalized_v3v3(vva, vvb);
-
-	add_v3_v3v3(center, vva, vvb);
-	normalize_v3(center);
-	mul_v3_fl(center, offset * (1.0f / cosf(0.5f * angle)));
-	add_v3_v3(center, v);           /* coordinates of the center of the inscribed circle */
-
-
-	sub_v3_v3v3(rv, va, center);    /* radius vector */
-
-
-	sub_v3_v3v3(co, v, center);
-	cross_v3_v3v3(axis, rv, co);    /* calculate axis */
-
-	sub_v3_v3v3(vva, va, center);
-	sub_v3_v3v3(vvb, vb, center);
-	angle = angle_v3v3(vva, vvb);
-
-	rotate_v3_v3v3fl(co, rv, axis, angle * (float)k / (float)count);
-
-	add_v3_v3(co, center);
-	copy_v3_v3(r_co, co);
-}
-
-/*
- * Find the point (/n) of the way around the round profile for e,
- * where start point is va, midarc point is vmid, and end point is vb.
- * Return the answer in profileco.
- * Method:
- * Adjust va and vb (along edge direction) so that they are perpendicular
- * to edge at v, then use get_point_on_round_profile, then project
- * back onto original va - vmid - vb plane.
- * If va, vmid, and vb are all on the same plane, just interpolate between va and vb.
- */
-static void get_point_on_round_edge(EdgeHalf *e, int k,
-                                    const float va[3], const float vmid[3], const float vb[3],
-                                    float r_co[3])
-{
-	float vva[3], vvb[3],  point[3], dir[3], vaadj[3], vbadj[3], p2[3], pn[3];
-	int n = e->seg;
-
-	sub_v3_v3v3(vva, va, vmid);
-	sub_v3_v3v3(vvb, vb, vmid);
-	if (e->is_rev)
-		sub_v3_v3v3(dir, e->e->v1->co, e->e->v2->co);
-	else
-		sub_v3_v3v3(dir, e->e->v2->co, e->e->v1->co);
-	normalize_v3(dir);
-	if (fabsf(angle_v3v3(vva, vvb) - (float)M_PI) > 100.f *(float)BEVEL_EPSILON) {
-		copy_v3_v3(vaadj, va);
-		madd_v3_v3fl(vaadj, dir, -len_v3(vva) * cosf(angle_v3v3(vva, dir)));
-		copy_v3_v3(vbadj, vb);
-		madd_v3_v3fl(vbadj, dir, -len_v3(vvb) * cosf(angle_v3v3(vvb, dir)));
-
-		get_point_on_round_profile(point, e->offset, k, n, vaadj, vmid, vbadj);
-
-		add_v3_v3v3(p2, point, dir);
-		cross_v3_v3v3(pn, vva, vvb);
-		if (!isect_line_plane_v3(r_co, point, p2, vmid, pn, 0)) {
-			/* TODO: track down why this sometimes fails */
-			copy_v3_v3(r_co, point);
-		}
-	}
-	else {
-		/* planar case */
-		interp_v3_v3v3(r_co, va, vb, (float)k / (float)n);
-	}
-}
-#else
-
-/*
- * Find the point (/n) of the way around the round profile for e,
- * where start point is va, midarc point is vmid, and end point is vb.
- * Return the answer in profileco.
+/* Fill matrix r_mat so that a point in the sheared parallelogram with corners
+ * va, vmid, vb (and the 4th that is implied by it being a parallelogram)
+ * is transformed to the unit square by multiplication with r_mat.
+ * If it can't be done because the parallelogram is degenerate, return FALSE
+ * else return TRUE.
  * Method:
  * Find vo, the origin of the parallelogram with other three points va, vmid, vb.
  * Also find vd, which is in direction normal to parallelogram and 1 unit away
@@ -676,16 +587,14 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
  *    (1,1,0) -> vmid
  *    (1,0,0) -> vb
  *    (0,1,1) -> vd
- * However if va -- vmid -- vb is approximately a straight line, just
- * interpolate along the line.
- */
-static void get_point_on_round_edge(EdgeHalf *e, int k,
-                                    const float va[3], const float vmid[3], const float vb[3],
-                                    float r_co[3])
+ * We want M to make M*A=B where A has the left side above, as columns
+ * and B has the right side as columns - both extended into homogeneous coords.
+ * So M = B*(Ainverse).  Doing Ainverse by hand gives the code below.
+*/
+static int make_unit_square_map(const float va[3], const float vmid[3], const float vb[3],
+				 float r_mat[4][4])
 {
-	float vo[3], vd[3], vb_vmid[3], va_vmid[3], vddir[3], p[3], angle;
-	float m[4][4] = MAT4_UNITY;
-	int n = e->seg;
+	float vo[3], vd[3], vb_vmid[3], va_vmid[3], vddir[3];
 
 	sub_v3_v3v3(va_vmid, vmid, va);
 	sub_v3_v3v3(vb_vmid, vmid, vb);
@@ -698,15 +607,41 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
 		/* The cols of m are: {vmid - va, vmid - vb, vmid + vd - va -vb, va + vb - vmid;
 		  * blender transform matrices are stored such that m[i][*] is ith column;
 		  * the last elements of each col remain as they are in unity matrix */
-		sub_v3_v3v3(&m[0][0], vmid, va);
-		sub_v3_v3v3(&m[1][0], vmid, vb);
-		add_v3_v3v3(&m[2][0], vmid, vd);
-		sub_v3_v3(&m[2][0], va);
-		sub_v3_v3(&m[2][0], vb);
-		add_v3_v3v3(&m[3][0], va, vb);
-		sub_v3_v3(&m[3][0], vmid);
+		sub_v3_v3v3(&r_mat[0][0], vmid, va);
+		r_mat[0][3] = 0.0f;
+		sub_v3_v3v3(&r_mat[1][0], vmid, vb);
+		r_mat[1][3] = 0.0f;
+		add_v3_v3v3(&r_mat[2][0], vmid, vd);
+		sub_v3_v3(&r_mat[2][0], va);
+		sub_v3_v3(&r_mat[2][0], vb);
+		r_mat[2][3] = 0.0f;
+		add_v3_v3v3(&r_mat[3][0], va, vb);
+		sub_v3_v3(&r_mat[3][0], vmid);
+		r_mat[3][3] = 1.0f;
 
-		/* Now find point k/(e->seg) along quarter circle from (0,1,0) to (1,0,0) */
+		return TRUE;
+	}
+	else
+		return FALSE;
+}
+
+/*
+ * Find the point (/n) of the way around the round profile for e,
+ * where start point is va, midarc point is vmid, and end point is vb.
+ * Return the answer in profileco.
+ * If va -- vmid -- vb is approximately a straight line, just
+ * interpolate along the line.
+ */
+static void get_point_on_round_edge(EdgeHalf *e, int k,
+                                    const float va[3], const float vmid[3], const float vb[3],
+                                    float r_co[3])
+{
+	float p[3], angle;
+	float m[4][4];
+	int n = e->seg;
+
+	if (make_unit_square_map(va, vmid, vb, m)) {
+		/* Find point k/(e->seg) along quarter circle from (0,1,0) to (1,0,0) */
 		angle = (float)M_PI * (float)k / (2.0f * (float)n);  /* angle from y axis */
 		p[0] = sinf(angle);
 		p[1] = cosf(angle);
@@ -714,11 +649,47 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
 		mul_v3_m4v3(r_co, m, p);
 	}
 	else {
-		/* planar case */
+		/* degenerate case: profile is a line */
 		interp_v3_v3v3(r_co, va, vb, (float)k / (float)n);
 	}
 }
-#endif  /* ! OLD_ROUND_EDGE */
+
+/* Calculate a snapped point to the transformed profile of edge e, extended as
+ * in a cylinder-like surface in the direction of e.
+ * co is the point to snap and is modified in place.
+ * va and vb are the limits of the profile (with peak on e). */
+static void snap_to_edge_profile(EdgeHalf *e, const float va[3], const float vb[3],
+				 float co[3])
+{
+	float m[4][4], minv[4][4];
+	float edir[3], va0[3], vb0[3], vmid0[3], p[3], snap[3];
+
+	sub_v3_v3v3(edir, e->e->v1->co, e->e->v2->co);
+	normalize_v3(edir);
+
+	/* project va and vb onto plane P, with normal edir and containing co */
+	closest_to_plane_v3(va0, co, edir, va);
+	closest_to_plane_v3(vb0, co, edir, vb);
+	project_to_edge(e->e, va0, vb0, vmid0);
+	if (make_unit_square_map(va0, vmid0, vb0, m)) {
+		/* Transform co and project it onto the unit circle.
+		 * Projecting is in fact just normalizing the transformed co */
+		if (!invert_m4_m4(minv, m)) {
+			/* shouldn't happen, by angle test and construction of vd */
+			BLI_assert(!"failed inverse during profile snap");
+			return;
+		}
+		mul_v3_m4v3(p, minv, co);
+		normalize_v3(p);
+		mul_v3_m4v3(snap, m, p);
+		copy_v3_v3(co, snap);
+	}
+	else {
+		/* planar case: just snap to line va--vb */
+		closest_to_line_segment_v3(p, co, va, vb);
+		copy_v3_v3(co, p);
+	}
+}
 
 #endif  /* !USE_ALTERNATE_ADJ */
 
@@ -860,9 +831,11 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	VMesh *vm = bv->vmesh;
 	BoundVert *v, *vprev, *vnext;
 	NewVert *nv, *nvprev, *nvnext;
+	EdgeHalf *e1, *e2, *epipe;
 	BMVert *bmv, *bmv1, *bmv2, *bmv3, *bmv4;
 	BMFace *f;
-	float co[3], coa[3], cob[3], midco[3];
+	float co[3], coa[3], cob[3], midco[3], dir1[3], dir2[3];
+	float va_pipe[3], vb_pipe[3];
 
 #ifdef USE_ALTERNATE_ADJ
 	/* ordered as follows (orig, prev, center, next)*/
@@ -882,6 +855,27 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	ns2 = ns / 2;
 	BLI_assert(n > 2 && ns > 1);
 	(void)n;
+
+	/* special case: two beveled edges are in line and share a face, making a "pipe" */
+	epipe = NULL;
+	if (bv->selcount > 2) {
+		for (e1 = &bv->edges[0]; epipe == NULL && e1 != &bv->edges[bv->edgecount]; e1++) {
+			if (e1->is_bev) {
+				for (e2 = &bv->edges[0]; e2 != &bv->edges[bv->edgecount]; e2++) {
+					if (e1 != e2 && e2->is_bev) {
+						sub_v3_v3v3(dir1, bv->v->co, BM_edge_other_vert(e1->e, bv->v)->co);
+						sub_v3_v3v3(dir2,BM_edge_other_vert(e2->e, bv->v)->co, bv->v->co);
+						if (angle_v3v3(dir1, dir2) < 100.0f * (float)BEVEL_EPSILON &&
+						    (e1->fnext == e2->fprev || e1->fprev == e2->fnext)) {
+							epipe = e1;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/* Make initial rings, going between points on neighbors.
 	 * After this loop, will have coords for all (i, r, k) where
 	 * BoundVert for i has a bevel, 0 <= r <= ns2, 0 <= k <= ns */
@@ -952,6 +946,12 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					get_point_on_round_edge(v->ebev, k, coa, midco, cob, co);
 					copy_v3_v3(mesh_vert(vm, i, ring, k)->co, co);
 				}
+
+				if (v->ebev == epipe) {
+					/* save profile extremes for later snapping */
+					copy_v3_v3(va_pipe, mesh_vert(vm, i, 0, 0)->co);
+					copy_v3_v3(vb_pipe, mesh_vert(vm, i, 0, ns)->co);
+				}
 #endif
 			}
 		} while ((v = v->next) != vm->boundstart);
@@ -977,6 +977,9 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 						nv = mesh_vert(vm, i, ring, k);
 						nvprev = mesh_vert(vm, vprev->index, k, ns - ring);
 						mid_v3_v3v3(co, nv->co, nvprev->co);
+						if (epipe)
+							snap_to_edge_profile(epipe, va_pipe, vb_pipe, co);
+
 #ifndef USE_ALTERNATE_ADJ
 						copy_v3_v3(nv->co, co);
 #endif
@@ -1026,6 +1029,8 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 						nvnext = mesh_vert(vm, vnext->index, ns2, k);
 					if (vprev->ebev && vnext->ebev) {
 						mid_v3_v3v3v3(co, nvprev->co, nv->co, nvnext->co);
+						if (epipe)
+							snap_to_edge_profile(epipe, va_pipe, vb_pipe, co);
 #ifndef USE_ALTERNATE_ADJ
 						copy_v3_v3(nv->co, co);
 #endif
@@ -1036,6 +1041,8 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					}
 					else if (vprev->ebev) {
 						mid_v3_v3v3(co, nvprev->co, nv->co);
+						if (epipe)
+							snap_to_edge_profile(epipe, va_pipe, vb_pipe, co);
 #ifndef USE_ALTERNATE_ADJ
 						copy_v3_v3(nv->co, co);
 #endif
@@ -1046,6 +1053,8 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 					}
 					else if (vnext->ebev) {
 						mid_v3_v3v3(co, nv->co, nvnext->co);
+						if (epipe)
+							snap_to_edge_profile(epipe, va_pipe, vb_pipe, co);
 #ifndef USE_ALTERNATE_ADJ
 						copy_v3_v3(nv->co, co);
 #endif
@@ -1073,6 +1082,8 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			}
 		} while ((v = v->next) != vm->boundstart);
 		mul_v3_fl(midco, 1.0f / nn);
+		if (epipe)
+			snap_to_edge_profile(epipe, va_pipe, vb_pipe, midco);
 		bmv = BM_vert_create(bm, midco, NULL, 0);
 		v = vm->boundstart;
 		do {
