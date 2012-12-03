@@ -4,8 +4,8 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,threads:,help,with-osl,all-static,force-python,force-boost,\
-force-ocio,force-oiio,force-llvm,force-osl,force-ffmpeg \
+--long source:,install:,threads:,help,with-osl,all-static,force-all,force-python,
+force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-ffmpeg \
 -- "$@" \
 )
 
@@ -56,6 +56,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --all-static
         Build libraries as statically as possible, to create static builds of Blender.
 
+    --force-all
+        Force the rebuild of all built libraries.
+
     --force-python
         Force the rebuild of Python.
 
@@ -81,7 +84,8 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         * They obviously only have an effect if those libraries are built by this script
           (i.e. if there is no available and satisfatory package)!
         * If the “force-rebuilt” library is a dependency of anothers, it will force the rebuild
-          of those libraries too (e.g. --force-boost will also rebuild oiio and osl...).\""
+          of those libraries too (e.g. --force-boost will also rebuild oiio and osl...).
+        * Do not forget --with-osl if you built it and still want it!\""
 
 PYTHON_VERSION="3.3.0"
 PYTHON_VERSION_MIN="3.3"
@@ -192,6 +196,16 @@ while true; do
     ;;
     --all-static)
       ALL_STATIC=true; shift; continue
+    ;;
+    --force-all)
+      PYTHON_FORCE_REBUILD=true
+      BOOST_FORCE_REBUILD=true
+      OCIO_FORCE_REBUILD=true
+      OIIO_FORCE_REBUILD=true
+      LLVM_FORCE_REBUILD=true
+      OSL_FORCE_REBUILD=true
+      FFMPEG_FORCE_REBUILD=true
+      shift; continue
     ;;
     --force-python)
       PYTHON_FORCE_REBUILD=true; shift; continue
