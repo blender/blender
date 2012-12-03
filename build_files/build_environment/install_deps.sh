@@ -32,7 +32,56 @@ or use --source/--install options, if you want to use other paths!
 
 Number of threads for building: \$THREADS (automatically detected, use --threads=<nbr> to override it).
 Building OSL: \$BUILD_OSL (use --with-osl option to enable it).
-All static linking: \$ALL_STATIC (use --all-static option to enable it).\""
+All static linking: \$ALL_STATIC (use --all-static option to enable it).
+
+Use --help to show all available options!\""
+
+ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
+    -h, --help
+        Show this message and exit.
+
+    -s <path>, --source=<path>
+        Use a specific path where to store downloaded libraries sources (defaults to '\$SRC').
+
+    -i <path>, --install=<path>
+        Use a specific path where to install built libraries (defaults to '\$INST').
+
+    -t n, --threads=n
+        Use a specific number of threads when building the libraries (auto-detected as '\$THREADS').
+
+    --with-osl
+        Try to install or build the OpenShadingLanguage libraries (and their dependencies).
+        Still experimental!
+
+    --all-static
+        Build libraries as statically as possible, to create static builds of Blender.
+
+    --force-python
+        Force the rebuild of Python.
+
+    --force-boost
+        Force the rebuild of Boost.
+
+    --force-ocio
+        Force the rebuild of OpenColorIO.
+
+    --force-oiio
+        Force the rebuild of OpenImageIO.
+
+    --force-llvm
+        Force the rebuild of LLVM.
+
+    --force-osl
+        Force the rebuild of OpenShadingLanguage.
+
+    --force-ffmpeg
+        Force the rebuild of FFMpeg.
+
+    Note about the --force-foo options:
+        * They obviously only have an effect if those libraries are built by this script
+          (i.e. if there is no available and satisfatory package)!
+        * If the “force-rebuilt” library is a dependency of anothers, it will force the rebuild
+          of those libraries too (e.g. --force-boost will also rebuild oiio and osl...).\""
 
 PYTHON_VERSION="3.3.0"
 PYTHON_VERSION_MIN="3.3"
@@ -133,6 +182,8 @@ while true; do
       INFO "USAGE:"
       INFO ""
       INFO "`eval _echo "$COMMON_INFO"`"
+      INFO ""
+      INFO "`eval _echo "$ARGUMENTS_INFO"`"
       INFO ""
       exit 0
     ;;
