@@ -268,6 +268,19 @@ void BPY_python_start(int argc, const char **argv)
 
 	Py_Initialize();
 
+	/* THIS IS BAD: see http://bugs.python.org/issue16129 */
+#if 1
+	/* until python provides a reliable way to set the env var */
+	PyRun_SimpleString("import sys, io\n"
+	                   "sys.__backup_stdio__ = sys.__stdout__, sys.__stderr__\n"  /* else we loose the FD's [#32720] */
+	                   "sys.__stdout__ = sys.stdout = io.TextIOWrapper(io.open(sys.stdout.fileno(), 'wb', -1), "
+	                   "encoding='utf-8', errors='surrogateescape', newline='\\n', line_buffering=True)\n"
+	                   "sys.__stderr__ = sys.stderr = io.TextIOWrapper(io.open(sys.stderr.fileno(), 'wb', -1), "
+	                   "ncoding='utf-8', errors='surrogateescape', newline='\\n', line_buffering=True)\n");
+#endif
+	/* end the baddness */
+
+
 	// PySys_SetArgv(argc, argv);  /* broken in py3, not a huge deal */
 	/* sigh, why do python guys not have a (char **) version anymore? */
 	{
