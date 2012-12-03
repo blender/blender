@@ -265,7 +265,7 @@ static short snap_masklayer_nearestsec(MaskLayerShape *masklay_shape, Scene *sce
 {
 	float secf = (float)FPS;
 	if (masklay_shape->flag & MASK_SHAPE_SELECT)
-		masklay_shape->frame = (int)(floor(masklay_shape->frame / secf + 0.5f) * secf);
+		masklay_shape->frame = (int)(floorf(masklay_shape->frame / secf + 0.5f) * secf);
 	return 0;
 }
 

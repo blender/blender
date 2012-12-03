@@ -52,9 +52,9 @@ shader node_geometry(
 	/* try to create spherical tangent from generated coordinates */
 	if (getattribute("geom:generated", generated)) {
 		matrix project = matrix(0.0, 1.0, 0.0, 0.0,
-		                  -1.0, 0.0, 0.0, 0.0,
-						  0.0, 0.0, 0.0, 0.0,
-						  0.5, -0.5, 0.0, 1.0);
+		                        -1.0, 0.0, 0.0, 0.0,
+		                        0.0, 0.0, 0.0, 0.0,
+		                        0.5, -0.5, 0.0, 1.0);
 
 		vector T = transform(project, generated);
 		T = transform("object", "world", T);

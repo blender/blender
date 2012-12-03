@@ -477,7 +477,7 @@ static short snap_gpf_nearestsec(bGPDframe *gpf, Scene *scene)
 {
 	float secf = (float)FPS;
 	if (gpf->flag & GP_FRAME_SELECT)
-		gpf->framenum = (int)(floor(gpf->framenum / secf + 0.5f) * secf);
+		gpf->framenum = (int)(floorf(gpf->framenum / secf + 0.5f) * secf);
 	return 0;
 }
 

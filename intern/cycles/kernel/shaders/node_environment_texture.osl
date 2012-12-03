@@ -21,8 +21,8 @@
 
 vector environment_texture_direction_to_equirectangular(vector dir)
 {
-	float u = -atan2(dir[1], dir[0])/(2.0*M_PI) + 0.5;
-	float v = atan2(dir[2], hypot(dir[0], dir[1]))/M_PI + 0.5;
+	float u = -atan2(dir[1], dir[0]) / (2.0 * M_PI) + 0.5;
+	float v = atan2(dir[2], hypot(dir[0], dir[1])) / M_PI + 0.5;
 
 	return vector(u, v, 0.0);
 }
@@ -31,8 +31,8 @@ vector environment_texture_direction_to_mirrorball(vector dir)
 {
 	dir[1] -= 1.0;
 
-	float div = 2.0*sqrt(max(-0.5*dir[1], 0.0));
-	if(div > 0.0)
+	float div = 2.0 * sqrt(max(-0.5 * dir[1], 0.0));
+	if (div > 0.0)
 		dir /= div;
 
 	float u = 0.5*(dir[0] + 1.0);
