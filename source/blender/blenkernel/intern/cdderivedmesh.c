@@ -653,12 +653,26 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			else {
 				if (index_mf_to_mpoly) {
 					orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i);
-					if (orig == ORIGINDEX_NONE) { if (nors) nors += 3; continue; }
-					if (drawParamsMapped)       { draw_option = drawParamsMapped(userData, orig); }
-					else                        { if (nors) nors += 3; continue; }
+					if (orig == ORIGINDEX_NONE) {
+						draw_option = DM_DRAW_OPTION_NORMAL;
+					}
+					else if (drawParamsMapped) {
+						draw_option = drawParamsMapped(userData, orig);
+					}
+					else {
+						if (nors) {
+							nors += 3; continue;
+						}
+					}
 				}
-				else if (drawParamsMapped) { draw_option = drawParamsMapped(userData, i); }
-				else                       { if (nors) nors += 3; continue; }
+				else if (drawParamsMapped) {
+					draw_option = drawParamsMapped(userData, i);
+				}
+				else {
+					if (nors) {
+						nors += 3; continue;
+					}
+				}
 			}
 			
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
@@ -742,9 +756,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					if (index_mf_to_mpoly) {
 						orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace);
 						if (orig == ORIGINDEX_NONE) {
-							continue;
+							draw_option = DM_DRAW_OPTION_NORMAL;
 						}
-						if (drawParamsMapped) {
+						else if (drawParamsMapped) {
 							draw_option = drawParamsMapped(userData, orig);
 						}
 					}
