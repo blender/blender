@@ -481,7 +481,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	OGLRender *oglrender = op->customdata;
 	Scene *scene = oglrender->scene;
-	ImBuf *ibuf;
+	ImBuf *ibuf, *ibuf_save = NULL;
 	void *lock;
 	char name[FILE_MAX];
 	int ok = 0;
@@ -549,47 +549,46 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if (ibuf) {
 		int needs_free = FALSE;
 
+		ibuf_save = ibuf;
+
 		if (is_movie || !BKE_imtype_requires_linear_float(scene->r.im_format.imtype)) {
-			ImBuf *colormanage_ibuf;
+			ibuf_save = IMB_colormanagement_imbuf_for_write(ibuf, TRUE, TRUE, &scene->view_settings,
+			                                                &scene->display_settings, &scene->r.im_format);
 
-			colormanage_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, TRUE, TRUE, &scene->view_settings,
-			                                                       &scene->display_settings, &scene->r.im_format);
-
-			// IMB_freeImBuf(ibuf); /* owned by the image */
-			ibuf = colormanage_ibuf;
 			needs_free = TRUE;
 		}
 
 		/* color -> grayscale */
 		/* editing directly would alter the render view */
 		if (scene->r.im_format.planes == R_IMF_PLANES_BW) {
-			 ImBuf *ibuf_bw = IMB_dupImBuf(ibuf);
+			ImBuf *ibuf_bw = IMB_dupImBuf(ibuf_save);
 			IMB_color_to_bw(ibuf_bw);
 
 			if (needs_free)
-				IMB_freeImBuf(ibuf);
+				IMB_freeImBuf(ibuf_save);
 
-			ibuf = ibuf_bw;
+			ibuf_save = ibuf_bw;
 		}
 		else {
 			/* this is lightweight & doesnt re-alloc the buffers, only do this
 			 * to save the correct bit depth since the image is always RGBA */
-			ImBuf *ibuf_cpy = IMB_allocImBuf(ibuf->x, ibuf->y, scene->r.im_format.planes, 0);
-			ibuf_cpy->rect = ibuf->rect;
-			ibuf_cpy->rect_float = ibuf->rect_float;
-			ibuf_cpy->zbuf_float = ibuf->zbuf_float;
+			ImBuf *ibuf_cpy = IMB_allocImBuf(ibuf_save->x, ibuf_save->y, scene->r.im_format.planes, 0);
+
+			ibuf_cpy->rect = ibuf_save->rect;
+			ibuf_cpy->rect_float = ibuf_save->rect_float;
+			ibuf_cpy->zbuf_float = ibuf_save->zbuf_float;
 
 			if (needs_free) {
-				ibuf_cpy->mall = ibuf->mall;
-				ibuf->mall = 0;
-				IMB_freeImBuf(ibuf);
+				ibuf_cpy->mall = ibuf_save->mall;
+				ibuf_save->mall = 0;
+				IMB_freeImBuf(ibuf_save);
 			}
 
-			ibuf = ibuf_cpy;
+			ibuf_save = ibuf_cpy;
 		}
 
 		if (is_movie) {
-			ok = oglrender->mh->append_movie(&scene->r, SFRA, CFRA, (int *)ibuf->rect,
+			ok = oglrender->mh->append_movie(&scene->r, SFRA, CFRA, (int *)ibuf_save->rect,
 			                                 oglrender->sizex, oglrender->sizey, oglrender->reports);
 			if (ok) {
 				printf("Append frame %d", scene->r.cfra);
@@ -597,7 +596,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 			}
 		}
 		else {
-			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
+			ok = BKE_imbuf_write_stamp(scene, camera, ibuf_save, name, &scene->r.im_format);
 
 			if (ok == 0) {
 				printf("Write error: cannot save %s\n", name);
@@ -609,8 +608,8 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 			}
 		}
 
-		/* imbuf knows which rects are not part of ibuf */
-		IMB_freeImBuf(ibuf);
+		if (needs_free)
+			IMB_freeImBuf(ibuf_save);
 	}
 
 	BKE_image_release_ibuf(oglrender->ima, ibuf, lock);
