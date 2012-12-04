@@ -1523,49 +1523,6 @@ static void WM_OT_splash(wmOperatorType *ot)
 
 
 /* ***************** Search menu ************************* */
-static void operator_call_cb(struct bContext *C, void *UNUSED(arg1), void *arg2)
-{
-	wmOperatorType *ot = arg2;
-	
-	if (ot)
-		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
-}
-
-static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
-{
-	GHashIterator *iter = WM_operatortype_iter();
-
-	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
-		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
-
-		if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0)
-			continue;
-
-		if (BLI_strcasestr(ot->name, str)) {
-			if (WM_operator_poll((bContext *)C, ot)) {
-				char name[256];
-				int len = strlen(ot->name);
-				
-				/* display name for menu, can hold hotkey */
-				BLI_strncpy(name, ot->name, sizeof(name));
-				
-				/* check for hotkey */
-				if (len < sizeof(name) - 6) {
-					if (WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE,
-					                                 &name[len + 1], sizeof(name) - len - 1))
-					{
-						name[len] = '|';
-					}
-				}
-				
-				if (0 == uiSearchItemAdd(items, name, ot, 0))
-					break;
-			}
-		}
-	}
-	BLI_ghashIterator_free(iter);
-}
-
 static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_op))
 {
 	static char search[256] = "";
@@ -1578,7 +1535,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
 	
 	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9 * UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
-	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
+	uiOperatorSearch_But(but);
 	
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
