@@ -128,6 +128,7 @@ set(SRC
 	BLI_math_color.h
 	BLI_math_geom.h
 	BLI_math_inline.h
+	BLI_math_interp.h
 	BLI_math_matrix.h
 	BLI_math_rotation.h
 	BLI_math_vector.h

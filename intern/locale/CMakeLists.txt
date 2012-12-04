@@ -32,6 +32,8 @@ set(INC_SYS
 
 set(SRC
 	boost_locale_wrapper.cpp
+
+	boost_locale_wrapper.h
 )
 
 if(WITH_INTERNATIONAL)

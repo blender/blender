@@ -102,6 +102,8 @@ set(SRC
 	libmv/multiview/conditioning.h
 	libmv/multiview/euclidean_resection.h
 	libmv/multiview/fundamental.h
+	libmv/multiview/homography.h
+	libmv/multiview/homography_parameterization.h
 	libmv/multiview/nviewtriangulation.h
 	libmv/multiview/projection.h
 	libmv/multiview/resection.h
@@ -131,6 +133,7 @@ set(SRC
 	libmv/tracking/pyramid_region_tracker.h
 	libmv/tracking/region_tracker.h
 	libmv/tracking/retrack_region_tracker.h
+	libmv/tracking/track_region.h
 	libmv/tracking/trklt_region_tracker.h
 
 	third_party/fast/fast.h
