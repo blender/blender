@@ -183,7 +183,7 @@ class RENDERLAYER_PT_freestyle(RenderLayerButtonsPanel, Panel):
         freestyle = rl.freestyle_settings
 
         layout = self.layout
-        layout.enabled = rl.use_freestyle
+        layout.active = rl.use_freestyle
         layout.prop(freestyle, "mode", text="Control mode")
 
         col = layout.column()
@@ -200,17 +200,17 @@ class RENDERLAYER_PT_freestyle(RenderLayerButtonsPanel, Panel):
         if freestyle.use_advanced_options:
             split = col.split()
             sub = split.column()
-            sub.enabled = freestyle.use_advanced_options
-            if freestyle.mode == "SCRIPT":
+            sub.active = freestyle.use_advanced_options
+            if freestyle.mode == 'SCRIPT':
                 sub.prop(freestyle, "use_ridges_and_valleys")
             sub.prop(freestyle, "sphere_radius")
             sub = split.column()
-            sub.enabled = freestyle.use_advanced_options
-            if freestyle.mode == "SCRIPT":
+            sub.active = freestyle.use_advanced_options
+            if freestyle.mode == 'SCRIPT':
                 sub.prop(freestyle, "use_suggestive_contours")
             sub.prop(freestyle, "kr_derivative_epsilon")
 
-        if freestyle.mode == "SCRIPT":
+        if freestyle.mode == 'SCRIPT':
             split = layout.split()
             split.label("Style modules:")
             split.operator("scene.freestyle_module_add", text="Add")
@@ -236,7 +236,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
             return False
         rd = scene.render
         rl = rd.layers.active
-        return rd.use_freestyle and rl and rl.freestyle_settings.mode == "EDITOR"
+        return rd.use_freestyle and rl and rl.freestyle_settings.mode == 'EDITOR'
 
     def draw_edge_type_buttons(self, box, lineset, edge_type):
         # property names
@@ -247,7 +247,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
         row.prop(lineset, select_edge_type)
         sub = row.column()
         sub.prop(lineset, exclude_edge_type, text="")
-        sub.enabled = getattr(lineset, select_edge_type)
+        sub.active = getattr(lineset, select_edge_type)
 
     def draw(self, context):
         rd = context.scene.render
@@ -256,15 +256,11 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
         lineset = freestyle.linesets.active
 
         layout = self.layout
-        layout.enabled = rl.use_freestyle
+        layout.active = rl.use_freestyle
 
-        split = layout.split()
-
-        col = split.column()
+        col = layout.column()
         row = col.row()
-        rows = 2
-        if lineset:
-            rows = 5
+        rows = 5 if lineset else 2
         row.template_list(freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
 
         sub = row.column()
@@ -278,56 +274,56 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
             subsub.operator("scene.freestyle_lineset_move", icon='TRIA_UP', text="").direction = 'UP'
             subsub.operator("scene.freestyle_lineset_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-            #col = split.column()
             col.prop(lineset, "name")
 
-            col.prop(lineset, "select_by_visibility")
-            if lineset.select_by_visibility:
-                sub = col.row(align=True)
-                sub.prop(lineset, "visibility", expand=True)
-                if lineset.visibility == "RANGE":
-                    sub = col.row(align=True)
-                    sub.prop(lineset, "qi_start")
-                    sub.prop(lineset, "qi_end")
-                col.separator() # XXX
+            col = layout.column()
+            col.label(text="Selection By:")
+            row = col.row(align=True)
+            row.prop(lineset, "select_by_visibility", text="Visibility", toggle=True)
+            row.prop(lineset, "select_by_edge_types", text="Edge Types", toggle=True)
+            row.prop(lineset, "select_by_face_marks", text="Face Marks", toggle=True)
+            row.prop(lineset, "select_by_group", text="Group", toggle=True)
+            row.prop(lineset, "select_by_image_border", text="Image Border", toggle=True)
 
-            col.prop(lineset, "select_by_edge_types")
+            if lineset.select_by_visibility:
+                col.label(text="Visibility:")
+                row = col.row(align=True)
+                row.prop(lineset, "visibility", expand=True)
+                if lineset.visibility == 'RANGE':
+                    row = col.row(align=True)
+                    row.prop(lineset, "qi_start")
+                    row.prop(lineset, "qi_end")
+
             if lineset.select_by_edge_types:
+                col.label(text="Edge Types:")
                 row = col.row()
                 row.prop(lineset, "edge_type_negation", expand=True)
-                row = col.row()
                 row.prop(lineset, "edge_type_combination", expand=True)
 
-                row = col.row()
-                sub = row.column()
+                split = col.split()
+                sub = split.column()
                 self.draw_edge_type_buttons(sub, lineset, "silhouette")
                 self.draw_edge_type_buttons(sub, lineset, "border")
                 self.draw_edge_type_buttons(sub, lineset, "contour")
                 self.draw_edge_type_buttons(sub, lineset, "suggestive_contour")
                 self.draw_edge_type_buttons(sub, lineset, "ridge_valley")
-                sub = row.column()
+                sub = split.column()
                 self.draw_edge_type_buttons(sub, lineset, "crease")
                 self.draw_edge_type_buttons(sub, lineset, "edge_mark")
                 self.draw_edge_type_buttons(sub, lineset, "external_contour")
                 self.draw_edge_type_buttons(sub, lineset, "material_boundary")
-                col.separator() # XXX
 
-            col.prop(lineset, "select_by_face_marks")
             if lineset.select_by_face_marks:
+                col.label(text="Face Marks:")
                 row = col.row()
                 row.prop(lineset, "face_mark_negation", expand=True)
-                row = col.row()
                 row.prop(lineset, "face_mark_condition", expand=True)
-                col.separator() # XXX
 
-            col.prop(lineset, "select_by_group")
             if lineset.select_by_group:
-                col.prop(lineset, "group")
+                col.label(text="Group:")
                 row = col.row()
+                row.prop(lineset, "group", text="")
                 row.prop(lineset, "group_negation", expand=True)
-                col.separator() # XXX
-
-            col.prop(lineset, "select_by_image_border")
 
 
 class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
@@ -342,24 +338,29 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
             return False
         rd = scene.render
         rl = rd.layers.active
-        return rd.use_freestyle and rl and rl.freestyle_settings.mode == "EDITOR"
+        return rd.use_freestyle and rl and rl.freestyle_settings.mode == 'EDITOR'
 
     def draw_modifier_box_header(self, box, modifier):
         row = box.row()
         row.context_pointer_set("modifier", modifier)
         if modifier.expanded:
-            icon = "TRIA_DOWN"
+            icon = 'TRIA_DOWN'
         else:
-            icon = "TRIA_RIGHT"
+            icon = 'TRIA_RIGHT'
         row.prop(modifier, "expanded", text="", icon=icon, emboss=False)
+        # TODO: Use icons rather than text label, would save some room!
         row.label(text=modifier.rna_type.name)
         row.prop(modifier, "name", text="")
-        row.prop(modifier, "use", text="")
-        row.operator("scene.freestyle_modifier_copy", icon='NONE', text="Copy")
+        if modifier.use:
+            icon = 'RESTRICT_RENDER_OFF'
+        else:
+            icon = 'RESTRICT_RENDER_ON'
+        row.prop(modifier, "use", text="", icon=icon)
         sub = row.row(align=True)
+        sub.operator("scene.freestyle_modifier_copy", icon='NONE', text="Copy")
         sub.operator("scene.freestyle_modifier_move", icon='TRIA_UP', text="").direction = 'UP'
         sub.operator("scene.freestyle_modifier_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-        row.operator("scene.freestyle_modifier_remove", icon='X', text="")
+        sub.operator("scene.freestyle_modifier_remove", icon='X', text="")
 
     def draw_modifier_common(self, box, modifier):
         row = box.row()
@@ -378,8 +379,8 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
         row.prop(modifier, "mapping", text="")
         sub = row.column()
         sub.prop(modifier, "invert")
-        if modifier.mapping == "CURVE":
-            sub.enabled = False
+        if modifier.mapping == 'CURVE':
+            sub.active = False
             box.template_curve_mapping(modifier, "curve")
         if has_range:
             row = box.row(align=True)
@@ -399,32 +400,32 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
             box = col.box()
             self.draw_modifier_common(box, modifier)
 
-            if modifier.type == "ALONG_STROKE":
+            if modifier.type == 'ALONG_STROKE':
                 self.draw_modifier_color_ramp_common(box, modifier, False)
 
-            elif modifier.type == "DISTANCE_FROM_OBJECT":
+            elif modifier.type == 'DISTANCE_FROM_OBJECT':
                 box.prop(modifier, "target")
                 self.draw_modifier_color_ramp_common(box, modifier, True)
                 prop = box.operator("scene.freestyle_fill_range_by_selection")
                 prop.type = 'COLOR'
                 prop.name = modifier.name
 
-            elif modifier.type == "DISTANCE_FROM_CAMERA":
+            elif modifier.type == 'DISTANCE_FROM_CAMERA':
                 self.draw_modifier_color_ramp_common(box, modifier, True)
                 prop = box.operator("scene.freestyle_fill_range_by_selection")
                 prop.type = 'COLOR'
                 prop.name = modifier.name
 
-            elif modifier.type == "MATERIAL":
+            elif modifier.type == 'MATERIAL':
                 row = box.row()
                 row.prop(modifier, "material_attr", text="")
                 sub = row.column()
                 sub.prop(modifier, "use_ramp")
-                if modifier.material_attr in ["DIFF", "SPEC"]:
-                    sub.enabled = True
+                if modifier.material_attr in {'DIFF', 'SPEC'}:
+                    sub.active = True
                     show_ramp = modifier.use_ramp
                 else:
-                    sub.enabled = False
+                    sub.active = False
                     show_ramp = True
                 if show_ramp:
                     self.draw_modifier_color_ramp_common(box, modifier, False)
@@ -438,23 +439,23 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
             box = col.box()
             self.draw_modifier_common(box, modifier)
 
-            if modifier.type == "ALONG_STROKE":
+            if modifier.type == 'ALONG_STROKE':
                 self.draw_modifier_curve_common(box, modifier, False, False)
 
-            elif modifier.type == "DISTANCE_FROM_OBJECT":
+            elif modifier.type == 'DISTANCE_FROM_OBJECT':
                 box.prop(modifier, "target")
                 self.draw_modifier_curve_common(box, modifier, True, False)
                 prop = box.operator("scene.freestyle_fill_range_by_selection")
                 prop.type = 'ALPHA'
                 prop.name = modifier.name
 
-            elif modifier.type == "DISTANCE_FROM_CAMERA":
+            elif modifier.type == 'DISTANCE_FROM_CAMERA':
                 self.draw_modifier_curve_common(box, modifier, True, False)
                 prop = box.operator("scene.freestyle_fill_range_by_selection")
                 prop.type = 'ALPHA'
                 prop.name = modifier.name
 
-            elif modifier.type == "MATERIAL":
+            elif modifier.type == 'MATERIAL':
                 box.prop(modifier, "material_attr", text="")
                 self.draw_modifier_curve_common(box, modifier, False, False)
 
@@ -467,31 +468,31 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
             box = col.box()
             self.draw_modifier_common(box, modifier)
 
-            if modifier.type == "ALONG_STROKE":
+            if modifier.type == 'ALONG_STROKE':
                 self.draw_modifier_curve_common(box, modifier, False, True)
 
-            elif modifier.type == "DISTANCE_FROM_OBJECT":
+            elif modifier.type == 'DISTANCE_FROM_OBJECT':
                 box.prop(modifier, "target")
                 self.draw_modifier_curve_common(box, modifier, True, True)
                 prop = box.operator("scene.freestyle_fill_range_by_selection")
                 prop.type = 'THICKNESS'
                 prop.name = modifier.name
 
-            elif modifier.type == "DISTANCE_FROM_CAMERA":
+            elif modifier.type == 'DISTANCE_FROM_CAMERA':
                 self.draw_modifier_curve_common(box, modifier, True, True)
                 prop = box.operator("scene.freestyle_fill_range_by_selection")
                 prop.type = 'THICKNESS'
                 prop.name = modifier.name
 
-            elif modifier.type == "MATERIAL":
+            elif modifier.type == 'MATERIAL':
                 box.prop(modifier, "material_attr", text="")
                 self.draw_modifier_curve_common(box, modifier, False, True)
 
-            elif modifier.type == "CALLIGRAPHY":
-                col = box.column()
-                col.prop(modifier, "orientation")
-                col.prop(modifier, "min_thickness")
-                col.prop(modifier, "max_thickness")
+            elif modifier.type == 'CALLIGRAPHY':
+                box.prop(modifier, "orientation")
+                row = box.row(align=True)
+                row.prop(modifier, "min_thickness")
+                row.prop(modifier, "max_thickness")
 
     def draw_geometry_modifier(self, context, modifier):
         layout = self.layout
@@ -501,63 +502,75 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
         if modifier.expanded:
             box = col.box()
 
-            if modifier.type == "SAMPLING":
+            if modifier.type == 'SAMPLING':
                 box.prop(modifier, "sampling")
 
-            elif modifier.type == "BEZIER_CURVE":
+            elif modifier.type == 'BEZIER_CURVE':
                 box.prop(modifier, "error")
 
-            elif modifier.type == "SINUS_DISPLACEMENT":
-                box.prop(modifier, "wavelength")
-                box.prop(modifier, "amplitude")
-                box.prop(modifier, "phase")
+            elif modifier.type == 'SINUS_DISPLACEMENT':
+                split = box.split()
+                col = split.column()
+                col.prop(modifier, "wavelength")
+                col.prop(modifier, "amplitude")
+                col = split.column()
+                col.prop(modifier, "phase")
 
-            elif modifier.type == "SPATIAL_NOISE":
-                box.prop(modifier, "amplitude")
-                box.prop(modifier, "scale")
-                box.prop(modifier, "octaves")
-                sub = box.row()
-                sub.prop(modifier, "smooth")
-                sub.prop(modifier, "pure_random")
+            elif modifier.type == 'SPATIAL_NOISE':
+                split = box.split()
+                col = split.column()
+                col.prop(modifier, "amplitude")
+                col.prop(modifier, "scale")
+                col.prop(modifier, "octaves")
+                col = split.column()
+                col.prop(modifier, "smooth")
+                col.prop(modifier, "pure_random")
 
-            elif modifier.type == "PERLIN_NOISE_1D":
-                box.prop(modifier, "frequency")
-                box.prop(modifier, "amplitude")
-                box.prop(modifier, "octaves")
-                box.prop(modifier, "angle")
-                box.prop(modifier, "seed")
+            elif modifier.type == 'PERLIN_NOISE_1D':
+                split = box.split()
+                col = split.column()
+                col.prop(modifier, "frequency")
+                col.prop(modifier, "amplitude")
+                col.prop(modifier, "seed")
+                col = split.column()
+                col.prop(modifier, "octaves")
+                col.prop(modifier, "angle")
 
-            elif modifier.type == "PERLIN_NOISE_2D":
-                box.prop(modifier, "frequency")
-                box.prop(modifier, "amplitude")
-                box.prop(modifier, "octaves")
-                box.prop(modifier, "angle")
-                box.prop(modifier, "seed")
+            elif modifier.type == 'PERLIN_NOISE_2D':
+                split = box.split()
+                col = split.column()
+                col.prop(modifier, "frequency")
+                col.prop(modifier, "amplitude")
+                col.prop(modifier, "seed")
+                col = split.column()
+                col.prop(modifier, "octaves")
+                col.prop(modifier, "angle")
 
-            elif modifier.type == "BACKBONE_STRETCHER":
+            elif modifier.type == 'BACKBONE_STRETCHER':
                 box.prop(modifier, "backbone_length")
 
-            elif modifier.type == "TIP_REMOVER":
+            elif modifier.type == 'TIP_REMOVER':
                 box.prop(modifier, "tip_length")
 
-            elif modifier.type == "POLYGONIZATION":
+            elif modifier.type == 'POLYGONIZATION':
                 box.prop(modifier, "error")
 
-            elif modifier.type == "GUIDING_LINES":
+            elif modifier.type == 'GUIDING_LINES':
                 box.prop(modifier, "offset")
 
-            elif modifier.type == "BLUEPRINT":
+            elif modifier.type == 'BLUEPRINT':
                 row = box.row()
                 row.prop(modifier, "shape", expand=True)
                 box.prop(modifier, "rounds")
-                if modifier.shape in ["CIRCLES", "ELLIPSES"]:
-                    box.prop(modifier, "random_radius")
-                    box.prop(modifier, "random_center")
-                elif modifier.shape == "SQUARES":
-                    box.prop(modifier, "backbone_length")
-                    box.prop(modifier, "random_backbone")
+                row = box.row()
+                if modifier.shape in {'CIRCLES', 'ELLIPSES'}:
+                    row.prop(modifier, "random_radius")
+                    row.prop(modifier, "random_center")
+                elif modifier.shape == 'SQUARES':
+                    row.prop(modifier, "backbone_length")
+                    row.prop(modifier, "random_backbone")
 
-            elif modifier.type == "2D_OFFSET":
+            elif modifier.type == '2D_OFFSET':
                 row = box.row(align=True)
                 row.prop(modifier, "start")
                 row.prop(modifier, "end")
@@ -565,11 +578,11 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
                 row.prop(modifier, "x")
                 row.prop(modifier, "y")
 
-            elif modifier.type == "2D_TRANSFORM":
+            elif modifier.type == '2D_TRANSFORM':
                 box.prop(modifier, "pivot")
-                if modifier.pivot == "PARAM":
+                if modifier.pivot == 'PARAM':
                     box.prop(modifier, "pivot_u")
-                elif modifier.pivot == "ABSOLUTE":
+                elif modifier.pivot == 'ABSOLUTE':
                     row = box.row(align=True)
                     row.prop(modifier, "pivot_x")
                     row.prop(modifier, "pivot_y")
@@ -584,7 +597,7 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
         lineset = rl.freestyle_settings.linesets.active
 
         layout = self.layout
-        layout.enabled = rl.use_freestyle
+        layout.active = rl.use_freestyle
 
         if lineset is None:
             return
@@ -593,121 +606,139 @@ class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
         layout.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
         row = layout.row(align=True)
         row.prop(linestyle, "panel", expand=True)
-        if linestyle.panel == "STROKES":
-            # Chaining
-            col = layout.column()
-            col.prop(linestyle, "use_chaining", text="Chaining:")
-            sub = col.column()
-            sub.enabled = linestyle.use_chaining
-            sub.prop(linestyle, "chaining", text="")
-            if linestyle.chaining == "PLAIN":
-                sub.prop(linestyle, "same_object")
-            elif linestyle.chaining == "SKETCHY":
-                subsub = sub.row()
-                subsub.prop(linestyle, "same_object")
-                subsub.prop(linestyle, "rounds")
-            # Splitting
+        if linestyle.panel == 'STROKES':
+            ## Chaining
+            layout.label(text="Chaining:")
+            split = layout.split(align=True)
+            # First column
+            col = split.column()
+            col.prop(linestyle, "use_chaining", text="Enable Chaining")
+            sub = col.row()
+            sub.active = linestyle.use_chaining
+            sub.prop(linestyle, "same_object")
+            # Second column
+            col = split.column()
+            col.active = linestyle.use_chaining
+            col.prop(linestyle, "chaining", text="")
+            if linestyle.chaining == 'SKETCHY':
+                col.prop(linestyle, "rounds")
+
+            ## Splitting
             layout.label(text="Splitting:")
-            row = layout.row()
-            col = row.column()
-            sub = col.row(align=True)
-            sub.prop(linestyle, "use_min_angle", text="")
-            subsub = sub.row()
-            subsub.enabled = linestyle.use_min_angle
-            subsub.prop(linestyle, "min_angle")
-            sub = col.row(align=True)
-            sub.prop(linestyle, "use_max_angle", text="")
-            subsub = sub.row()
-            subsub.enabled = linestyle.use_max_angle
-            subsub.prop(linestyle, "max_angle")
-            col.prop(linestyle, "use_split_pattern", text="Split Pattern")
-            col = row.column()
-            sub = col.row(align=True)
-            sub.prop(linestyle, "use_split_length", text="")
-            subsub = sub.row()
-            subsub.enabled = linestyle.use_split_length
-            subsub.prop(linestyle, "split_length", text="2D Length")
-            col.prop(linestyle, "material_boundary")
+            split = layout.split(align=True)
+            # First column
+            col = split.column()
+            row = col.row(align=True)
+            row.prop(linestyle, "use_min_angle", text="")
+            sub = row.row()
+            sub.active = linestyle.use_min_angle
+            sub.prop(linestyle, "min_angle")
+            row = col.row(align=True)
+            row.prop(linestyle, "use_max_angle", text="")
+            sub = row.row()
+            sub.active = linestyle.use_max_angle
+            sub.prop(linestyle, "max_angle")
+            # Second column
+            col = split.column()
+            row = col.row(align=True)
+            row.prop(linestyle, "use_split_length", text="")
+            sub = row.row()
+            sub.active = linestyle.use_split_length
+            sub.prop(linestyle, "split_length", text="2D Length")
+            row = col.row(align=True)
+            row.prop(linestyle, "material_boundary")
+            # End of columns
             row = layout.row(align=True)
-            row.enabled = linestyle.use_split_pattern
-            row.prop(linestyle, "split_dash1")
-            row.prop(linestyle, "split_gap1")
-            row.prop(linestyle, "split_dash2")
-            row.prop(linestyle, "split_gap2")
-            row.prop(linestyle, "split_dash3")
-            row.prop(linestyle, "split_gap3")
+            row.prop(linestyle, "use_split_pattern", text="")
+            sub = row.row()
+            sub.active = linestyle.use_split_pattern
+            sub.prop(linestyle, "split_dash1", text="D1")
+            sub.prop(linestyle, "split_gap1", text="G1")
+            sub.prop(linestyle, "split_dash2", text="D2")
+            sub.prop(linestyle, "split_gap2", text="G2")
+            sub.prop(linestyle, "split_dash3", text="D3")
+            sub.prop(linestyle, "split_gap3", text="G3")
 
-            # Selection
+            ## Selection
             layout.label(text="Selection:")
-            row = layout.row()
-            col = row.column()
-            sub = col.row(align=True)
-            sub.prop(linestyle, "use_min_length", text="")
-            subsub = sub.row()
-            subsub.enabled = linestyle.use_min_length
-            subsub.prop(linestyle, "min_length")
-            col = row.column()
-            sub = col.row(align=True)
-            sub.prop(linestyle, "use_max_length", text="")
-            subsub = sub.row()
-            subsub.enabled = linestyle.use_max_length
-            subsub.prop(linestyle, "max_length")
-            # Caps
-            layout.label(text="Caps:")
+            split = layout.split(align=True)
+            # First column
+            col = split.column()
+            row = col.row(align=True)
+            row.prop(linestyle, "use_min_length", text="")
+            sub = row.row()
+            sub.active = linestyle.use_min_length
+            sub.prop(linestyle, "min_length")
+            # Second column
+            col = split.column()
+            row = col.row(align=True)
+            row.prop(linestyle, "use_max_length", text="")
+            sub = row.row()
+            sub.active = linestyle.use_max_length
+            sub.prop(linestyle, "max_length")
 
+            ## Caps
+            layout.label(text="Caps:")
             row = layout.row(align=True)
             row.prop(linestyle, "caps", expand=True)
 
-            layout.prop(linestyle, "use_dashed_line")
+            ## Dashed lines
+            layout.label(text="Dashed Line:")
             row = layout.row(align=True)
-            row.enabled = linestyle.use_dashed_line
-            row.prop(linestyle, "dash1")
-            row.prop(linestyle, "gap1")
-            row.prop(linestyle, "dash2")
-            row.prop(linestyle, "gap2")
-            row.prop(linestyle, "dash3")
-            row.prop(linestyle, "gap3")
+            row.prop(linestyle, "use_dashed_line", text="")
+            sub = row.row()
+            sub.active = linestyle.use_dashed_line
+            sub.prop(linestyle, "dash1", text="D1")
+            sub.prop(linestyle, "gap1", text="G1")
+            sub.prop(linestyle, "dash2", text="D2")
+            sub.prop(linestyle, "gap2", text="G2")
+            sub.prop(linestyle, "dash3", text="D3")
+            sub.prop(linestyle, "gap3", text="G3")
 
-        elif linestyle.panel == "COLOR":
+        elif linestyle.panel == 'COLOR':
             col = layout.column()
-            col.label(text="Base Color:")
-            col.prop(linestyle, "color", text="")
-            col = layout.column()
+            row = col.row()
+            row.label(text="Base Color:")
+            row.prop(linestyle, "color", text="")
             col.label(text="Modifiers:")
             col.operator_menu_enum("scene.freestyle_color_modifier_add", "type", text="Add Modifier")
             for modifier in linestyle.color_modifiers:
                 self.draw_color_modifier(context, modifier)
-        elif linestyle.panel == "ALPHA":
+
+        elif linestyle.panel == 'ALPHA':
             col = layout.column()
-            col.label(text="Base Transparency:")
-            col.prop(linestyle, "alpha")
-            col = layout.column()
+            row = col.row()
+            row.label(text="Base Transparency:")
+            row.prop(linestyle, "alpha")
             col.label(text="Modifiers:")
             col.operator_menu_enum("scene.freestyle_alpha_modifier_add", "type", text="Add Modifier")
             for modifier in linestyle.alpha_modifiers:
                 self.draw_alpha_modifier(context, modifier)
-        elif linestyle.panel == "THICKNESS":
+
+        elif linestyle.panel == 'THICKNESS':
             col = layout.column()
-            col.label(text="Base Thickness:")
-            col.prop(linestyle, "thickness")
-            col = layout.column()
+            row = col.row()
+            row.label(text="Base Thickness:")
+            row.prop(linestyle, "thickness")
             row = col.row()
             row.prop(linestyle, "thickness_position", expand=True)
             row = col.row()
             row.prop(linestyle, "thickness_ratio")
-            row.enabled = linestyle.thickness_position == "RELATIVE"
+            row.active = (linestyle.thickness_position == 'RELATIVE')
             col = layout.column()
             col.label(text="Modifiers:")
             col.operator_menu_enum("scene.freestyle_thickness_modifier_add", "type", text="Add Modifier")
             for modifier in linestyle.thickness_modifiers:
                 self.draw_thickness_modifier(context, modifier)
-        elif linestyle.panel == "GEOMETRY":
+
+        elif linestyle.panel == 'GEOMETRY':
             col = layout.column()
             col.label(text="Modifiers:")
             col.operator_menu_enum("scene.freestyle_geometry_modifier_add", "type", text="Add Modifier")
             for modifier in linestyle.geometry_modifiers:
                 self.draw_geometry_modifier(context, modifier)
-        elif linestyle.panel == "MISC":
+
+        elif linestyle.panel == 'MISC':
             pass
 
 

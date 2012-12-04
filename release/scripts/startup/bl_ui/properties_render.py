@@ -304,20 +304,19 @@ class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
 
     def draw_header(self, context):
         rd = context.scene.render
-
         self.layout.prop(rd, "use_freestyle", text="")
 
     def draw(self, context):
         rd = context.scene.render
 
         layout = self.layout
-        layout.enabled = rd.use_freestyle
+        layout.active = rd.use_freestyle
 
         row = layout.row()
         row.label(text="Line Thickness:")
         row.prop(rd, "line_thickness_mode", expand=True)
         row = layout.row()
-        row.enabled = (rd.line_thickness_mode == "ABSOLUTE")
+        row.active = (rd.line_thickness_mode == 'ABSOLUTE')
         row.prop(rd, "unit_line_thickness")
 
 
