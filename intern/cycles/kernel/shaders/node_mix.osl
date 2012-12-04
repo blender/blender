@@ -272,7 +272,7 @@ color node_mix_clamp(color col)
 	color outcol = col;
 
 	outcol[0] = clamp(col[0], 0.0, 1.0);
-	outcol[1] = clamp(col[2], 0.0, 1.0);
+	outcol[1] = clamp(col[1], 0.0, 1.0);
 	outcol[2] = clamp(col[2], 0.0, 1.0);
 
 	return outcol;
