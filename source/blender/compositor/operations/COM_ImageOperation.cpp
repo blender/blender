@@ -109,7 +109,7 @@ void BaseImageOperation::determineResolution(unsigned int resolution[2], unsigne
 		resolution[1] = stackbuf->y;
 	}
 
-	IMB_freeImBuf(stackbuf);
+	BKE_image_release_ibuf(this->m_image, stackbuf, NULL);
 }
 
 void ImageOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
