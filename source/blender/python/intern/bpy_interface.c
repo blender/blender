@@ -276,7 +276,11 @@ void BPY_python_start(int argc, const char **argv)
 	                   "sys.__stdout__ = sys.stdout = io.TextIOWrapper(io.open(sys.stdout.fileno(), 'wb', -1), "
 	                   "encoding='utf-8', errors='surrogateescape', newline='\\n', line_buffering=True)\n"
 	                   "sys.__stderr__ = sys.stderr = io.TextIOWrapper(io.open(sys.stderr.fileno(), 'wb', -1), "
-	                   "ncoding='utf-8', errors='surrogateescape', newline='\\n', line_buffering=True)\n");
+	                   "encoding='utf-8', errors='surrogateescape', newline='\\n', line_buffering=True)\n");
+	if (PyErr_Occurred()) {
+		PyErr_Print();
+		PyErr_Clear();
+	}
 #endif
 	/* end the baddness */
 
