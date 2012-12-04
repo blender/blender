@@ -121,12 +121,12 @@ ShaderManager::~ShaderManager()
 {
 }
 
-ShaderManager *ShaderManager::create(Scene *scene)
+ShaderManager *ShaderManager::create(Scene *scene, int shadingsystem)
 {
 	ShaderManager *manager;
 
 #ifdef WITH_OSL
-	if(scene->params.shadingsystem == SceneParams::OSL)
+	if(shadingsystem == SceneParams::OSL)
 		manager = new OSLShaderManager();
 	else
 #endif

@@ -547,7 +547,7 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	}
 
 	/* create attribute lookup maps */
-	if(scene->params.shadingsystem == SceneParams::OSL)
+	if(scene->shader_manager->use_osl())
 		update_osl_attributes(device, scene, mesh_attributes);
 	else
 		update_svm_attributes(device, dscene, scene, mesh_attributes);

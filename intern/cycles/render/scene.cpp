@@ -44,10 +44,6 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	device = NULL;
 	memset(&dscene.data, 0, sizeof(dscene.data));
 
-	/* OSL only works on the CPU */
-	if(device_info_.type != DEVICE_CPU)
-		params.shadingsystem = SceneParams::SVM;
-
 	camera = new Camera();
 	filter = new Filter();
 	film = new Film();
@@ -57,8 +53,13 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	object_manager = new ObjectManager();
 	integrator = new Integrator();
 	image_manager = new ImageManager();
-	shader_manager = ShaderManager::create(this);
 	particle_system_manager = new ParticleSystemManager();
+
+	/* OSL only works on the CPU */
+	if(device_info_.type == DEVICE_CPU)
+		shader_manager = ShaderManager::create(this, params.shadingsystem);
+	else
+		shader_manager = ShaderManager::create(this, SceneParams::SVM);
 
 	if (device_info_.type == DEVICE_CPU)
 		image_manager->set_extended_image_limits();

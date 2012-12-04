@@ -445,7 +445,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		case BL::ShaderNode::type_SCRIPT: {
 #ifdef WITH_OSL
-			if(scene->params.shadingsystem != SceneParams::OSL)
+			if(!scene->shader_manager->use_osl())
 				break;
 
 			/* create script node */
