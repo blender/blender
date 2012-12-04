@@ -340,7 +340,7 @@ version_eq() {
 # $1 and $2 should be version numbers made of numbers only.
 version_ge() {
   version_eq $1 $2
-  if [ $? -eq 1 -a $(_echo "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
+  if [ $? -eq 1 -a $(_echo "$1" "$2" | sort --version-sort | head --lines=1) = "$1" ]; then
     return 1
   else
     return 0
@@ -1730,7 +1730,7 @@ print_info_ffmpeglink() {
     _packages="$_packages $OPENJPEG_DEV"
   fi
 
-  # XXX At least under Debian, static schro give problem at blender linking time... :/
+  # XXX At least under Debian, static schro gives problem at blender linking time... :/
   if $SCHRO_USE && ! $ALL_STATIC; then
     _packages="$_packages $SCHRO_DEV"
   fi
