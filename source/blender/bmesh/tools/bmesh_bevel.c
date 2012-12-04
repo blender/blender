@@ -726,7 +726,8 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 		v = add_new_bound_vert(mem_arena, vm, co);
 		v->efirst = v->elast = e->next;
 		e->next->leftv = e->next->rightv = v;
-		vm->mesh_kind = M_POLY;
+		/* could use M_POLY too, but tri-fan looks nicer)*/
+		vm->mesh_kind = M_TRI_FAN;
 		return;
 	}
 
