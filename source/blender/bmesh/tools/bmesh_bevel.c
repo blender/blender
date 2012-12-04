@@ -590,7 +590,7 @@ static void get_point_on_round_edge(const float uv[2],
  * So M = B*(Ainverse).  Doing Ainverse by hand gives the code below.
 */
 static int make_unit_square_map(const float va[3], const float vmid[3], const float vb[3],
-				 float r_mat[4][4])
+                                float r_mat[4][4])
 {
 	float vo[3], vd[3], vb_vmid[3], va_vmid[3], vddir[3];
 
@@ -603,8 +603,8 @@ static int make_unit_square_map(const float va[3], const float vmid[3], const fl
 		add_v3_v3v3(vd, vo, vddir);
 
 		/* The cols of m are: {vmid - va, vmid - vb, vmid + vd - va -vb, va + vb - vmid;
-		  * blender transform matrices are stored such that m[i][*] is ith column;
-		  * the last elements of each col remain as they are in unity matrix */
+		 * blender transform matrices are stored such that m[i][*] is ith column;
+		 * the last elements of each col remain as they are in unity matrix */
 		sub_v3_v3v3(&r_mat[0][0], vmid, va);
 		r_mat[0][3] = 0.0f;
 		sub_v3_v3v3(&r_mat[1][0], vmid, vb);
@@ -657,7 +657,7 @@ static void get_point_on_round_edge(EdgeHalf *e, int k,
  * co is the point to snap and is modified in place.
  * va and vb are the limits of the profile (with peak on e). */
 static void snap_to_edge_profile(EdgeHalf *e, const float va[3], const float vb[3],
-				 float co[3])
+                                 float co[3])
 {
 	float m[4][4], minv[4][4];
 	float edir[3], va0[3], vb0[3], vmid0[3], p[3], snap[3];
@@ -832,7 +832,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	EdgeHalf *e1, *e2, *epipe;
 	BMVert *bmv, *bmv1, *bmv2, *bmv3, *bmv4;
 	BMFace *f;
-	float co[3], coa[3], cob[3], midco[3], dir1[3], dir2[3];
+	float co[3], coa[3], cob[3], midco[3];
 	float va_pipe[3], vb_pipe[3];
 
 #ifdef USE_ALTERNATE_ADJ
@@ -860,12 +860,14 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 			if (e1->is_bev) {
 				for (e2 = &bv->edges[0]; e2 != &bv->edges[bv->edgecount]; e2++) {
 					if (e1 != e2 && e2->is_bev) {
-						sub_v3_v3v3(dir1, bv->v->co, BM_edge_other_vert(e1->e, bv->v)->co);
-						sub_v3_v3v3(dir2,BM_edge_other_vert(e2->e, bv->v)->co, bv->v->co);
-						if (angle_v3v3(dir1, dir2) < 100.0f * (float)BEVEL_EPSILON &&
-						    (e1->fnext == e2->fprev || e1->fprev == e2->fnext)) {
-							epipe = e1;
-							break;
+						if ((e1->fnext == e2->fprev) || (e1->fprev == e2->fnext)) {
+							float dir1[3], dir2[3];
+							sub_v3_v3v3(dir1, bv->v->co, BM_edge_other_vert(e1->e, bv->v)->co);
+							sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, bv->v)->co, bv->v->co);
+							if (angle_v3v3(dir1, dir2) < 100.0f * (float)BEVEL_EPSILON) {
+								epipe = e1;
+								break;
+							}
 						}
 					}
 				}
