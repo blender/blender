@@ -1815,10 +1815,16 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 	 * better in tools that immediately apply
 	 * in 3D space.
 	 */
-	
+
 	/* we don't pass on key events, GP is used with key-modifiers - prevents Dkey to insert drivers */
-	if (ISKEYBOARD(event->type))
-		estate = OPERATOR_RUNNING_MODAL;
+	if (ISKEYBOARD(event->type)) {
+		if (ELEM4(event->type, LEFTARROWKEY, DOWNARROWKEY, RIGHTARROWKEY, UPARROWKEY)) {
+			/* allow some keys - for frame changing: [#33412] */
+		}
+		else {
+			estate = OPERATOR_RUNNING_MODAL;
+		}
+	}
 	
 	//printf("\tGP - handle modal event...\n");
 	
