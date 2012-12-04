@@ -618,7 +618,7 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 		}
 	}
 
-	PyC_MainModule_Backup(&main_mod);
+	PyC_MainModule_Restore(main_mod);
 	
 	bpy_context_clear(C, &gilstate);
 	
