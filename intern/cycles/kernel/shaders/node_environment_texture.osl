@@ -35,8 +35,8 @@ vector environment_texture_direction_to_mirrorball(vector dir)
 	if (div > 0.0)
 		dir /= div;
 
-	float u = 0.5*(dir[0] + 1.0);
-	float v = 0.5*(dir[2] + 1.0);
+	float u = 0.5 * (dir[0] + 1.0);
+	float v = 0.5 * (dir[2] + 1.0);
 
 	return vector(u, v, 0.0);
 }

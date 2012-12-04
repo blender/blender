@@ -1,4 +1,4 @@
-.TH "BLENDER" "1" "October 04, 2012" "Blender Blender 2\&.64 (sub 0)"
+.TH "BLENDER" "1" "December 04, 2012" "Blender Blender 2\&.65"
 
 .SH NAME
 blender \- a 3D modelling and rendering package
@@ -15,7 +15,7 @@ Use Blender to create TV commercials, to make technical visualizations, business
 http://www.blender.org
 .SH OPTIONS
 
-Blender 2.64 (sub 0)
+Blender 2.65
 Usage: blender [args ...] [file] [args ...]
 .br
 .SS "Render Options:"
@@ -144,6 +144,10 @@ Playback <file(s)>, only operates this way when not running in background.
     \-f <fps> <fps\-base> Specify FPS to start with
 .br
     \-j <frame> Set frame step to <frame>
+.br
+    \-s <frame> Play from <frame>
+.br
+    \-e <frame> Play until <frame>
 .br
 
 .IP
@@ -342,6 +346,12 @@ Enable debug messages for python
 .B \-\-debug\-events
 .br
 Enable debug messages for the event system
+.br
+
+.TP
+.B \-\-debug\-handlers
+.br
+Enable debug messages for event handling
 .br
 
 .TP
