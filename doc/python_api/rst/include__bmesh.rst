@@ -42,7 +42,6 @@ For an overview of BMesh data types and how they reference each other see:
    TODO items are...
 
    * add access to BMesh **walkers**
-   * add api for calling BMesh operators (unrelated to bpy.ops)
    * add custom-data manipulation functions add/remove/rename.
 
 Example Script

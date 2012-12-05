@@ -1538,8 +1538,8 @@ def write_rst_contents(basepath):
         "mathutils", "mathutils.geometry", "mathutils.noise",
         # misc
         "bgl", "blf", "gpu", "aud", "bpy_extras",
-        # bmesh
-        "bmesh", "bmesh.types", "bmesh.utils", "bmesh.ops",
+        # bmesh, submodules are in own page
+        "bmesh",
         )
 
     for mod in standalone_modules:
