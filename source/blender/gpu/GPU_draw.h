@@ -116,7 +116,7 @@ void GPU_set_anisotropic(float value);
 float GPU_get_anisotropic(void);
 
 /* enable gpu mipmapping */
-void GPU_set_gpu_mipmapping(void);
+void GPU_set_gpu_mipmapping(int gpu_mipmap);
 
 /* Image updates and free
  * - these deal with images bound as opengl textures */
