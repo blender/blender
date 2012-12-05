@@ -494,7 +494,7 @@ Heres an example of threading supported by Blender:
        t.join()
 
 
-This an example of a timer which runs many times a second and moves the default cube continuously while Blender runs (Unsupported).
+This an example of a timer which runs many times a second and moves the default cube continuously while Blender runs **(Unsupported)**.
 
 .. code-block:: python
 
@@ -517,7 +517,7 @@ So far, no work has gone into making Blender's python integration thread safe, s
 
 .. note::
 
-   Pythons threads only allow co-currency and won't speed up your scripts on multi-processor systems, the ``subprocess`` and ``multiprocess`` modules can be used with blender and make use of multiple CPU's too.
+   Pythons threads only allow co-currency and won't speed up your scripts on multi-processor systems, the ``subprocess`` and ``multiprocess`` modules can be used with Blender and make use of multiple CPU's too.
 
 
 Help! My script crashes Blender
@@ -540,7 +540,7 @@ Here are some general hints to avoid running into these problems.
 .. note::
 
    To find the line of your script that crashes you can use the ``faulthandler`` module.
-   See `faulthandler docs<http://docs.python.org/dev/library/faulthandler.html>`_.
+   See `faulthandler docs <http://docs.python.org/dev/library/faulthandler.html>`_.
 
    While the crash may be in Blenders C/C++ code, this can help a lot to track down the area of the script that causes the crash.
 
@@ -548,7 +548,7 @@ Here are some general hints to avoid running into these problems.
 Undo/Redo
 ---------
 
-Undo invalidates all :class:`bpy.types.ID` instances (Object, Scene, Mesh etc).
+Undo invalidates all :class:`bpy.types.ID` instances (Object, Scene, Mesh, Lamp... etc).
 
 This example shows how you can tell undo changes the memory locations.
 
@@ -666,9 +666,9 @@ But take care because this is limited to scripts accessing the variable which is
 sys.exit
 ========
 
-Some python modules will call sys.exit() themselves when an error occurs, while not common behavior this is something to watch out for because it may seem as if blender is crashing since sys.exit() will quit blender immediately.
+Some python modules will call ``sys.exit()`` themselves when an error occurs, while not common behavior this is something to watch out for because it may seem as if blender is crashing since ``sys.exit()`` will quit blender immediately.
 
 For example, the ``optparse`` module will print an error and exit if the arguments are invalid.
 
-An ugly way of troubleshooting this is to set ``sys.exit = None`` and see what line of python code is quitting, you could of course replace ``sys.exit``/ with your own function but manipulating python in this way is bad practice.
+An ugly way of troubleshooting this is to set ``sys.exit = None`` and see what line of python code is quitting, you could of course replace ``sys.exit`` with your own function but manipulating python in this way is bad practice.
 
