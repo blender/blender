@@ -167,6 +167,8 @@ static void generatTile_FFT(float* const noiseTileData, std::string filename)
 			for (int x = 0; x < xRes; x++, index++)
 				noise[index] -= forward[index][0] / totalCells;
 
+	// fill noiseTileData
+	memcpy(noiseTileData, noise, sizeof(float) * totalCells);
 	// save out the noise tile
 	saveTile(noise, filename);
 	
