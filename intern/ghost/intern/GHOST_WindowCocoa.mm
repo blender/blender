@@ -609,9 +609,12 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 	[m_openGLView release];
 	
 	if (m_window) {
+		// previously we called [m_window release], but on 10.8 this does not
+		// remove the window from [NSApp orderedWindows] and perhaps other
+		// places, leading to crashes. so instead we set setReleasedWhenClosed
+		// back to YES right before closing
+		[m_window setReleasedWhenClosed:YES];
 		[m_window close];
-		[[m_window delegate] release];
-		[m_window release];
 		m_window = nil;
 	}
 	
