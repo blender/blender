@@ -4,7 +4,7 @@
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,threads:,help,with-osl,all-static,force-all,force-python,\
+--long source:,install:,threads:,help,with-all,with-osl,all-static,force-all,force-python,\
 force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-ffmpeg,\
 skip-python,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg \
 -- "$@" \
@@ -15,10 +15,13 @@ SRC="$HOME/src/blender-deps"
 INST="/opt/lib"
 CWD=$PWD
 
-# Do not yet enable osl, use --build-osl option to try it.
-BUILD_OSL=false
+# Do not install some optional, potentially conflicting libs by default...
+WITH_ALL=false
 
-# Try to link everything statically. Use this to produce protable versions of blender.
+# Do not yet enable osl, use --with-osl (or --with-all) option to try it.
+WITH_OSL=false
+
+# Try to link everything statically. Use this to produce portable versions of blender.
 ALL_STATIC=false
 
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
@@ -32,7 +35,8 @@ Please edit \\\$SRC and/or \\\$INST variables at the beginning of this script,
 or use --source/--install options, if you want to use other paths!
 
 Number of threads for building: \$THREADS (automatically detected, use --threads=<nbr> to override it).
-Building OSL: \$BUILD_OSL (use --with-osl option to enable it).
+Full install: \$WITH_ALL (use --with-all option to enable it).
+Building OSL: \$WITH_OSL (use --with-osl option to enable it).
 All static linking: \$ALL_STATIC (use --all-static option to enable it).
 
 Use --help to show all available options!\""
@@ -49,6 +53,12 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     -t n, --threads=n
         Use a specific number of threads when building the libraries (auto-detected as '\$THREADS').
+
+    --with-all
+        By default, a number of optional and not-so-often needed libraries are not installed.
+        This option will try to install them, at the cost of potential conflicts (depending on
+        how your package system is set…).
+        Note this option also implies all other (more specific) --with-foo options below.
 
     --with-osl
         Try to install or build the OpenShadingLanguage libraries (and their dependencies).
@@ -220,8 +230,11 @@ while true; do
       INFO ""
       exit 0
     ;;
+    --with-all)
+      WITH_ALL=true; shift; continue
+    ;;
     --with-osl)
-      BUILD_OSL=true; shift; continue
+      WITH_OSL=true; shift; continue
     ;;
     --all-static)
       ALL_STATIC=true; shift; continue
@@ -292,6 +305,10 @@ while true; do
     ;;
   esac
 done
+
+if $WITH_ALL; then
+  WITH_OSL=true
+fi
 
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
 # $1 and $2 should be version numbers made of numbers only.
@@ -1086,41 +1103,22 @@ install_DEB() {
   VORBIS_DEV="libvorbis-dev"
   THEORA_DEV="libtheora-dev"
 
-  INFO ""
-  install_packages_DEB gawk cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
-    libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
-    libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
-    libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
-    libfftw3-dev libjack0 libjack-dev python-dev patch bzip2
-
+  _packages="gawk cmake scons build-essential libjpeg-dev libpng-dev libtiff-dev \
+             libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev \
+             libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
+             libopenexr-dev libopenal-dev libglew-dev yasm $THEORA_DEV \
+             $VORBIS_DEV libsdl1.2-dev libfftw3-dev python-dev patch bzip2"
   OPENJPEG_USE=true
-  SCHRO_USE=true
   VORBIS_USE=true
   THEORA_USE=true
 
-  INFO ""
-  # Grmpf, debian is libxvidcore-dev and ubuntu libxvidcore4-dev!
-  XVID_DEV="libxvidcore-dev"
-  check_package_DEB $XVID_DEV
-  if [ $? -eq 0 ]; then
-    install_packages_DEB $XVID_DEV
-    XVID_USE=true
-  else
-    XVID_DEV="libxvidcore4-dev"
-    check_package_DEB $XVID_DEV
-    if [ $? -eq 0 ]; then
-      install_packages_DEB $XVID_DEV
-      XVID_USE=true
-    fi
+  if $WITH_ALL; then
+    _packages="$_packages $SCHRO_DEV libjack0 libjack-dev"
+    SCHRO_USE=true
   fi
 
   INFO ""
-  MP3LAME_DEV="libmp3lame-dev"
-  check_package_DEB $MP3LAME_DEV
-  if [ $? -eq 0 ]; then
-    install_packages_DEB $MP3LAME_DEV
-    MP3LAME_USE=true
-  fi
+  install_packages_DEB $_packages
 
   INFO ""
   X264_DEV="libx264-dev"
@@ -1130,18 +1128,44 @@ install_DEB() {
     X264_USE=true
   fi
 
-  INFO ""
-  VPX_DEV="libvpx-dev"
-  check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_DEB $VPX_DEV
-    VPX_USE=true
-  fi
+  if $WITH_ALL; then
+    INFO ""
+    # Grmpf, debian is libxvidcore-dev and ubuntu libxvidcore4-dev!
+    XVID_DEV="libxvidcore-dev"
+    check_package_DEB $XVID_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_DEB $XVID_DEV
+      XVID_USE=true
+    else
+      XVID_DEV="libxvidcore4-dev"
+      check_package_DEB $XVID_DEV
+      if [ $? -eq 0 ]; then
+        install_packages_DEB $XVID_DEV
+        XVID_USE=true
+      fi
+    fi
 
-  INFO ""
-  check_package_DEB libspnav-dev
-  if [ $? -eq 0 ]; then
-    install_packages_DEB libspnav-dev
+    INFO ""
+    MP3LAME_DEV="libmp3lame-dev"
+    check_package_DEB $MP3LAME_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_DEB $MP3LAME_DEV
+      MP3LAME_USE=true
+    fi
+
+    INFO ""
+    VPX_DEV="libvpx-dev"
+    check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB $VPX_DEV
+      VPX_USE=true
+    fi
+
+    INFO ""
+    check_package_DEB libspnav-dev
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libspnav-dev
+    fi
   fi
 
   INFO ""
@@ -1203,7 +1227,7 @@ install_DEB() {
     fi
   fi
 
-  if $BUILD_OSL; then
+  if $WITH_OSL; then
     have_llvm=false
 
     if $LLVM_SKIP; then
@@ -1328,18 +1352,22 @@ install_RPM() {
   VORBIS_DEV="libvorbis-devel"
   THEORA_DEV="libtheora-devel"
 
-  INFO ""
-  install_packages_RPM gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel \
-    freetype-devel libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
-    readline-devel $OPENJPEG_DEV openexr-devel openal-soft-devel \
-    glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV SDL-devel \
-    fftw-devel lame-libs jack-audio-connection-kit-devel libspnav-devel \
-    libjpeg-devel patch python-devel
-
+  _packages="gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel freetype-devel \
+             libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
+             readline-devel $OPENJPEG_DEV openexr-devel openal-soft-devel \
+             glew-devel yasm $THEORA_DEV $VORBIS_DEV SDL-devel fftw-devel \
+             lame-libs libjpeg-devel patch python-devel"
   OPENJPEG_USE=true
-  SCHRO_USE=true
   VORBIS_USE=true
   THEORA_USE=true
+
+  if $WITH_ALL; then
+    _packages="$_packages $SCHRO_DEV jack-audio-connection-kit-devel libspnav-devel"
+    SCHRO_USE=true
+  fi
+
+  INFO ""
+  install_packages_RPM $_packages
 
   INFO ""
   X264_DEV="x264-devel"
@@ -1349,28 +1377,30 @@ install_RPM() {
     X264_USE=true
   fi
 
-  INFO ""
-  XVID_DEV="xvidcore-devel"
-  check_package_RPM $XVID_DEV
-  if [ $? -eq 0 ]; then
-    install_packages_RPM $XVID_DEV
-    XVID_USE=true
-  fi
+  if $WITH_ALL; then
+    INFO ""
+    XVID_DEV="xvidcore-devel"
+    check_package_RPM $XVID_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $XVID_DEV
+      XVID_USE=true
+    fi
 
-  INFO ""
-  VPX_DEV="libvpx-devel"
-  check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_RPM $VPX_DEV
-    VPX_USE=true
-  fi
+    INFO ""
+    VPX_DEV="libvpx-devel"
+    check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $VPX_DEV
+      VPX_USE=true
+    fi
 
-  INFO ""
-  MP3LAME_DEV="lame-devel"
-  check_package_RPM $MP3LAME_DEV
-  if [ $? -eq 0 ]; then
-    install_packages_RPM $MP3LAME_DEV
-    MP3LAME_USE=true
+    INFO ""
+    MP3LAME_DEV="lame-devel"
+    check_package_RPM $MP3LAME_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $MP3LAME_DEV
+      MP3LAME_USE=true
+    fi
   fi
 
   INFO ""
@@ -1421,7 +1451,7 @@ install_RPM() {
     fi
   fi
 
-  if $BUILD_OSL; then
+  if $WITH_OSL; then
     have_llvm=false
 
     INFO ""
@@ -1540,13 +1570,22 @@ install_SUSE() {
   VORBIS_DEV="libvorbis-devel"
   THEORA_DEV="libtheora-devel"
 
+  _packages="gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel freetype-devel \
+             libX11-devel libXi-devel wget sqlite3-devel ncurses-devel \
+             readline-devel $OPENJPEG_DEV libopenexr-devel openal-soft-devel \
+             glew-devel yasm $THEORA_DEV $VORBIS_DEV libSDL-devel fftw3-devel \
+             libjpeg62-devel patch python-devel"
+  OPENJPEG_USE=true
+  VORBIS_USE=true
+  THEORA_USE=true
+
+  if $WITH_ALL; then
+    _packages="$_packages $SCHRO_DEV libjack-devel libspnav-devel"
+    SCHRO_USE=true
+  fi
+
   INFO ""
-  install_packages_SUSE gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel \
-    freetype-devel libX11-devel libXi-devel wget sqlite3-devel ncurses-devel \
-    readline-devel $OPENJPEG_DEV libopenexr-devel openal-soft-devel \
-    glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libSDL-devel \
-    fftw3-devel libjack-devel libspnav-devel \
-    libjpeg62-devel patch python-devel
+  install_packages_SUSE $_packages
 
   OPENJPEG_USE=true
   SCHRO_USE=true
@@ -1561,29 +1600,31 @@ install_SUSE() {
     X264_USE=true
   fi
 
-  INFO ""
-  XVID_DEV="xvidcore-devel"
-  check_package_SUSE $XVID_DEV
-  if [ $? -eq 0 ]; then
-    install_packages_SUSE $XVID_DEV
-    XVID_USE=true
-  fi
+  if $WITH_ALL; then
+    INFO ""
+    XVID_DEV="xvidcore-devel"
+    check_package_SUSE $XVID_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_SUSE $XVID_DEV
+      XVID_USE=true
+    fi
 
-  INFO ""
-  VPX_DEV="libvpx-devel"
-  check_package_version_ge_SUSE $VPX_DEV $VPX_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_SUSE $VPX_DEV
-    VPX_USE=true
-  fi
+    INFO ""
+    VPX_DEV="libvpx-devel"
+    check_package_version_ge_SUSE $VPX_DEV $VPX_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_SUSE $VPX_DEV
+      VPX_USE=true
+    fi
 
-  INFO ""
-  # No mp3 in suse, it seems.
-  MP3LAME_DEV="lame-devel"
-  check_package_SUSE $MP3LAME_DEV
-  if [ $? -eq 0 ]; then
-    install_packages_SUSE $MP3LAME_DEV
-    MP3LAME_USE=true
+    INFO ""
+    # No mp3 in suse, it seems.
+    MP3LAME_DEV="lame-devel"
+    check_package_SUSE $MP3LAME_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_SUSE $MP3LAME_DEV
+      MP3LAME_USE=true
+    fi
   fi
 
   INFO ""
@@ -1622,7 +1663,7 @@ install_SUSE() {
     compile_OIIO
   fi
 
-  if $BUILD_OSL; then
+  if $WITH_OSL; then
     have_llvm=false
 
     INFO ""
@@ -1761,7 +1802,7 @@ print_info() {
     INFO "  -D Boost_USE_ICU=ON"
   fi
 
-  if [ -d $INST/osl -a $BUILD_OSL == true ]; then
+  if [ -d $INST/osl -a $WITH_OSL == true ]; then
     INFO "  -D CYCLES_OSL=$INST/osl"
     INFO "  -D WITH_CYCLES_OSL=ON"
     INFO "  -D LLVM_VERSION=$LLVM_VERSION_FOUND"
