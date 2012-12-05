@@ -220,21 +220,25 @@ void WTURBULENCE::setNoise(int type)
 {
 	if(type == (1<<1)) // FFT
 	{
+#ifdef WITH_FFTW3
 		// needs fft
-		#ifdef WITH_FFTW3
 		std::string noiseTileFilename = std::string("noise.fft");
 		generatTile_FFT(_noiseTile, noiseTileFilename);
-		#endif
+		return;
+#else
+		fprintf(stderr, "FFTW not enabled, falling back to wavelet noise.\n");
+#endif
 	}
-	else if(type == (1<<2)) // curl
+#if 0
+	if(type == (1<<2)) // curl
 	{
 		// TODO: not supported yet
+		return;
 	}
-	else // standard - wavelet
-	{
-		std::string noiseTileFilename = std::string("noise.wavelets");
-		generateTile_WAVELET(_noiseTile, noiseTileFilename);
-	}
+#endif
+
+	std::string noiseTileFilename = std::string("noise.wavelets");
+	generateTile_WAVELET(_noiseTile, noiseTileFilename);
 }
 
 // init direct access functions from blender
