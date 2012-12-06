@@ -2405,6 +2405,15 @@ static int strip_jump_internal(Scene *scene,
 	return change;
 }
 
+static int sequencer_strip_jump_poll(bContext *C)
+{
+	/* prevent changes during render */
+	if (G.is_rendering)
+		return 0;
+
+	return sequencer_edit_poll(C);
+}
+
 /* jump frame to edit point operator */
 static int sequencer_strip_jump_exec(bContext *C, wmOperator *op)
 {
@@ -2431,7 +2440,7 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = sequencer_strip_jump_exec;
-	ot->poll = sequencer_edit_poll;
+	ot->poll = sequencer_strip_jump_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

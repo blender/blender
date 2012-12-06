@@ -52,6 +52,7 @@
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -1308,6 +1309,15 @@ void ACTION_OT_keyframe_type(wmOperatorType *ot)
 
 /* ***************** Jump to Selected Frames Operator *********************** */
 
+static int actkeys_framejump_poll(bContext *C)
+{
+	/* prevent changes during render */
+	if (G.is_rendering)
+		return 0;
+
+	return ED_operator_action_active(C);
+}
+
 /* snap current-frame indicator to 'average time' of selected keyframe */
 static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1361,7 +1371,7 @@ void ACTION_OT_frame_jump(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = actkeys_framejump_exec;
-	ot->poll = ED_operator_action_active;
+	ot->poll = actkeys_framejump_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
