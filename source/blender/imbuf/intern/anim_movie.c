@@ -557,6 +557,7 @@ static int startffmpeg(struct anim *anim)
 	anim->last_frame = 0;
 	anim->last_pts = -1;
 	anim->next_pts = -1;
+	anim->next_packet.stream_index = -1;
 
 	anim->pFormatCtx = pFormatCtx;
 	anim->pCodecCtx = pCodecCtx;
@@ -763,39 +764,41 @@ static void ffmpeg_postprocess(struct anim *anim)
 	}
 }
 
-/* decode one video frame */
+/* decode one video frame also considering the packet read into next_packet */
 
 static int ffmpeg_decode_video_frame(struct anim *anim)
 {
 	int rval = 0;
-	AVPacket next_packet;
-
-	memset(&next_packet, 0, sizeof(AVPacket));
 
 	av_log(anim->pFormatCtx, AV_LOG_DEBUG, "  DECODE VIDEO FRAME\n");
 
-	while ((rval = av_read_frame(anim->pFormatCtx, &next_packet)) >= 0) {
+	if (anim->next_packet.stream_index == anim->videoStream) {
+		av_free_packet(&anim->next_packet);
+		anim->next_packet.stream_index = -1;
+	}
+	
+	while ((rval = av_read_frame(anim->pFormatCtx, &anim->next_packet)) >= 0) {
 		av_log(anim->pFormatCtx, 
 		       AV_LOG_DEBUG, 
 		       "%sREAD: strID=%d (VID: %d) dts=%lld pts=%lld "
 		       "%s\n",
-		       (next_packet.stream_index == anim->videoStream)
+		       (anim->next_packet.stream_index == anim->videoStream)
 		       ? "->" : "  ",
-		       next_packet.stream_index, 
+		       anim->next_packet.stream_index, 
 		       anim->videoStream,
-		       (next_packet.dts == AV_NOPTS_VALUE) ? -1 :
-		       (long long int)next_packet.dts,
-		       (next_packet.pts == AV_NOPTS_VALUE) ? -1 :
-		       (long long int)next_packet.pts,
-		       (next_packet.flags & AV_PKT_FLAG_KEY) ? 
+		       (anim->next_packet.dts == AV_NOPTS_VALUE) ? -1 :
+		       (long long int)anim->next_packet.dts,
+		       (anim->next_packet.pts == AV_NOPTS_VALUE) ? -1 :
+		       (long long int)anim->next_packet.pts,
+		       (anim->next_packet.flags & AV_PKT_FLAG_KEY) ? 
 		       " KEY" : "");
-		if (next_packet.stream_index == anim->videoStream) {
+		if (anim->next_packet.stream_index == anim->videoStream) {
 			anim->pFrameComplete = 0;
 
 			avcodec_decode_video2(
 			    anim->pCodecCtx,
 			    anim->pFrame, &anim->pFrameComplete,
-			    &next_packet);
+			    &anim->next_packet);
 
 			if (anim->pFrameComplete) {
 				anim->next_pts = av_get_pts_from_frame(
@@ -813,24 +816,28 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
 				break;
 			}
 		}
-		av_free_packet(&next_packet);
+		av_free_packet(&anim->next_packet);
+		anim->next_packet.stream_index = -1;
 	}
-
-	/* this sets size and data fields to zero,
-	   which is necessary to decode the remaining data
-	   in the decoder engine after EOF. It also prevents a memory
-	   leak, since av_read_frame spills out a full size packet even
-	   on EOF... (and: it's save to call on NULL packets) */
-
-	av_free_packet(&next_packet);
 	
 	if (rval == AVERROR_EOF) {
+		/* this sets size and data fields to zero,
+		   which is necessary to decode the remaining data
+		   in the decoder engine after EOF. It also prevents a memory
+		   leak, since av_read_frame spills out a full size packet even
+		   on EOF... (and: it's save to call on NULL packets) */
+
+		av_free_packet(&anim->next_packet);
+
+		anim->next_packet.size = 0;
+		anim->next_packet.data = 0;
+
 		anim->pFrameComplete = 0;
 
 		avcodec_decode_video2(
 			anim->pCodecCtx,
 			anim->pFrame, &anim->pFrameComplete,
-			&next_packet);
+			&anim->next_packet);
 
 		if (anim->pFrameComplete) {
 			anim->next_pts = av_get_pts_from_frame(
@@ -850,6 +857,8 @@ static int ffmpeg_decode_video_frame(struct anim *anim)
 	}
 
 	if (rval < 0) {
+		anim->next_packet.stream_index = -1;
+
 		av_log(anim->pFormatCtx,
 		       AV_LOG_ERROR, "  DECODE READ FAILED: av_read_frame() "
 		       "returned error: %d\n",  rval);
@@ -1086,6 +1095,13 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
 
 		anim->next_pts = -1;
 
+		if (anim->next_packet.stream_index == anim->videoStream) {
+			av_free_packet(&anim->next_packet);
+			anim->next_packet.stream_index = -1;
+		}
+
+		/* memset(anim->pFrame, ...) ?? */
+
 		if (ret >= 0) {
 			ffmpeg_decode_video_frame_scan(anim, pts_to_search);
 		}
@@ -1132,6 +1148,9 @@ static void free_anim_ffmpeg(struct anim *anim)
 		av_free(anim->pFrameDeinterlaced);
 		sws_freeContext(anim->img_convert_ctx);
 		IMB_freeImBuf(anim->last_frame);
+		if (anim->next_packet.stream_index != -1) {
+			av_free_packet(&anim->next_packet);
+		}
 	}
 	anim->duration = 0;
 }
