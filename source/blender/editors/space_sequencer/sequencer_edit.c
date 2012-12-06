@@ -3076,8 +3076,12 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, wmEvent *UN
 {
 	Scene *scene = CTX_data_scene(C);
 	Sequence *seq = BKE_sequencer_active_get(scene);
+	char filepath[FILE_MAX];
+
+	BLI_join_dirfile(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
 
 	RNA_string_set(op->ptr, "directory", seq->strip->dir);
+	RNA_string_set(op->ptr, "filepath",  filepath);
 
 	/* set default display depending on seq type */
 	if (seq->type == SEQ_TYPE_IMAGE) {
