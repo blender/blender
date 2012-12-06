@@ -654,6 +654,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				if (index_mf_to_mpoly) {
 					orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i);
 					if (orig == ORIGINDEX_NONE) {
+						/* XXX, this is not really correct
+						 * it will draw the previous faces context for this one when we don't know its settings.
+						 * but better then skipping it altogether. - campbell */
 						draw_option = DM_DRAW_OPTION_NORMAL;
 					}
 					else if (drawParamsMapped) {
@@ -756,6 +759,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					if (index_mf_to_mpoly) {
 						orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace);
 						if (orig == ORIGINDEX_NONE) {
+							/* XXX, this is not really correct
+							 * it will draw the previous faces context for this one when we don't know its settings.
+							 * but better then skipping it altogether. - campbell */
 							draw_option = DM_DRAW_OPTION_NORMAL;
 						}
 						else if (drawParamsMapped) {
