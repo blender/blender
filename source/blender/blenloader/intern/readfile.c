@@ -8346,7 +8346,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
 				if (clip->tracking.settings.reconstruction_success_threshold == 0.0f) {
-					clip->tracking.settings.reconstruction_success_threshold = 1e-3;
+					clip->tracking.settings.reconstruction_success_threshold = 1e-3f;
 				}
 			}
 		}
