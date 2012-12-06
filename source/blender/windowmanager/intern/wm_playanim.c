@@ -82,7 +82,7 @@ typedef struct PlayState {
 
 	/* playback state */
 	short direction;
-	short next;
+	short next_frame;
 	short once;
 	short turbo;
 	short pingpong;
@@ -206,6 +206,21 @@ static struct ListBase picsbase = {NULL, NULL};
 static int fromdisk = FALSE;
 static float zoomx = 1.0, zoomy = 1.0;
 static double ptottime = 0.0, swaptime = 0.04;
+
+static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
+{
+	if (step > 0) {
+		while (step-- && playanim) {
+			playanim = playanim->next;
+		}
+	}
+	else if (step < 0) {
+		while (step++ && playanim) {
+			playanim = playanim->prev;
+		}
+	}
+	return playanim;
+}
 
 static int pupdate_time(void)
 {
@@ -485,10 +500,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						ps->wait2 = FALSE;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							ps->picture = picsbase.first;
-							ps->next = 0;
+							ps->next_frame = 0;
 						}
 						else {
-							ps->next = -1;
+							ps->next_frame = -1;
 						}
 					}
 					break;
@@ -496,10 +511,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					if (val) {
 						ps->wait2 = FALSE;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
-							ps->next = ps->direction = -1;
+							ps->next_frame = ps->direction = -1;
 						}
 						else {
-							ps->next = -10;
+							ps->next_frame = -10;
 							ps->sstep = TRUE;
 						}
 					}
@@ -510,10 +525,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						ps->wait2 = FALSE;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							ps->picture = picsbase.last;
-							ps->next = 0;
+							ps->next_frame = 0;
 						}
 						else {
-							ps->next = 1;
+							ps->next_frame = 1;
 						}
 					}
 					break;
@@ -521,10 +536,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					if (val) {
 						ps->wait2 = FALSE;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
-							ps->next = ps->direction = 1;
+							ps->next_frame = ps->direction = 1;
 						}
 						else {
-							ps->next = 10;
+							ps->next_frame = 10;
 							ps->sstep = TRUE;
 						}
 					}
@@ -535,7 +550,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					if (val) {
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							if (ps->curframe_ibuf)
-								printf(" Name: %s | Speed: %.2f frames/s\n", ps->curframe_ibuf->name, ps->fstep / swaptime);
+								printf(" Name: %s | Speed: %.2f frames/s\n",
+								       ps->curframe_ibuf->name, ps->fstep / swaptime);
 						}
 						else {
 							swaptime = ps->fstep / 5.0;
@@ -668,7 +684,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				}
 				ps->sstep = TRUE;
 				ps->wait2 = FALSE;
-				ps->next = 0;
+				ps->next_frame = 0;
 			}
 			break;
 		}
@@ -780,7 +796,7 @@ void WM_main_playanim(int argc, const char **argv)
 	/* ps.doubleb   = TRUE;*/ /* UNUSED */
 	ps.go        = TRUE;
 	ps.direction = TRUE;
-	ps.next      = 1;
+	ps.next_frame = 1;
 	ps.once      = FALSE;
 	ps.turbo     = FALSE;
 	ps.pingpong  = FALSE;
@@ -1033,7 +1049,7 @@ void WM_main_playanim(int argc, const char **argv)
 				}
 			}
 
-			ps.next = ps.direction;
+			ps.next_frame = ps.direction;
 
 
 			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0) || ps.wait2 != 0)) {
@@ -1062,15 +1078,10 @@ void WM_main_playanim(int argc, const char **argv)
 
 			pupdate_time();
 
-			if (ps.picture && ps.next) {
+			if (ps.picture && ps.next_frame) {
 				/* always at least set one step */
 				while (ps.picture) {
-					if (ps.next < 0) {
-						ps.picture = ps.picture->prev;
-					}
-					else {
-						ps.picture = ps.picture->next;
-					}
+					ps.picture = playanim_step(ps.picture, ps.next_frame);
 
 					if (ps.once && ps.picture != NULL) {
 						if (ps.picture->next == NULL) {
@@ -1085,12 +1096,7 @@ void WM_main_playanim(int argc, const char **argv)
 					ptottime -= swaptime;
 				}
 				if (ps.picture == NULL && ps.sstep) {
-					if (ps.next < 0) {
-						ps.picture = picsbase.last;
-					}
-					else if (ps.next > 0) {
-						ps.picture = picsbase.first;
-					}
+					ps.picture = playanim_step(ps.picture, ps.next_frame);
 				}
 			}
 			if (ps.go == FALSE) {
