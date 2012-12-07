@@ -1295,39 +1295,27 @@ static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
 		EdgeHalf *eh_b = next_bev(bv, eh_a->next);  /* since (selcount == 2) we know this is valid */
 		BMLoop *l_a = BM_face_vert_share_loop(f, eh_a->rightv->nv.v);
 		BMLoop *l_b = BM_face_vert_share_loop(f, eh_b->leftv->nv.v);
-		int seg_count = bv->vmesh->seg;  /* ensure we don't walk past the segments */
+		int split_count = bv->vmesh->seg + 1;  /* ensure we don't walk past the segments */
 
-		if (l_a == l_b) {
-			/* step once around if we hit the same loop */
-			l_a = l_a->prev;
-			l_b = l_b->next;
-			seg_count--;
-		}
-
-		BLI_assert(l_a != l_b);
-
-		while (f->len > 4) {
+		while (f->len > 4 && split_count > 0) {
 			BMLoop *l_new;
 			BLI_assert(l_a->f == f);
 			BLI_assert(l_b->f == f);
 
-			BM_face_split(bm, f, l_a->v, l_b->v, &l_new, NULL, FALSE);
-			if (seg_count-- == 0) {
-				break;
+			if (l_a-> v == l_b->v || l_a->next == l_b) {
+				/* l_a->v and l_b->v can be the same or such that we'd make a 2-vertex poly */
+				l_a = l_a->prev;
+				l_b = l_b->next;
 			}
+			else {
+				BM_face_split(bm, f, l_a->v, l_b->v, &l_new, NULL, FALSE);
+				f = l_new->f;
 
-			/* turns out we don't need this,
-			 * because of how BM_face_split works we always get the loop of the next face */
-#if 0
-			if (l_new->f->len < l_new->radial_next->f->len) {
-				l_new = l_new->radial_next;
+				/* walk around the new face to get the next verts to split */
+				l_a = l_new->prev;
+				l_b = l_new->next->next;
 			}
-#endif
-			f = l_new->f;
-
-			/* walk around the new face to get the next verts to split */
-			l_a = l_new->prev;
-			l_b = l_new->next->next;
+			split_count--;
 		}
 	}
 }
