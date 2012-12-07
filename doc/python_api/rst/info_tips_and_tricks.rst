@@ -44,15 +44,17 @@ if this can't be generated, only the property name is copied.
 
 .. note::
 
-   This uses the same method for creating the animation path used by :class:`FCurve.data_path` and :class:`DriverTarget.data_path` drivers.
+   This uses the same method for creating the animation path used by :class:`bpy.types.FCurve.data_path` and :class:`bpy.types.DriverTarget.data_path` drivers.
 
+
+.. _info_show_all_operators
 
 Show All Operators
 ==================
 
 While blender logs operators in the Info space, this only reports operators with the ``REGISTER`` option enabeld so as not to flood the Info view with calls to ``bpy.ops.view3d.smoothview`` and ``bpy.ops.view3d.zoom``.
 
-However, for testing it can be useful to see **every** operator called in a terminal, do this by enabling the debug option either by passing the ``--debug`` argument when starting blender or by setting :mod:`bpy.app.debug` to True while blender is running.
+However, for testing it can be useful to see **every** operator called in a terminal, do this by enabling the debug option either by passing the ``--debug-wm`` argument when starting blender or by setting :mod:`bpy.app.debug_wm` to True while blender is running.
 
 
 Use an External Editor

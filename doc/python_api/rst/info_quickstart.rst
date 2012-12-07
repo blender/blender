@@ -1,3 +1,5 @@
+.. _info_quickstart:
+
 ***********************
 Quickstart Introduction
 ***********************

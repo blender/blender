@@ -316,6 +316,8 @@ RST_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "rst"))
 INFO_DOCS = (
     ("info_quickstart.rst", "Blender/Python Quickstart: new to blender/scripting and want to get your feet wet?"),
     ("info_overview.rst", "Blender/Python API Overview: a more complete explanation of python integration"),
+    ("info_tutorial_addon.rst", "Blender/Python Addon Tutorial: a step by step guide on how to write an addon from scratch"),
+    ("info_api_reference.rst", "Blender/Python API Reference Usage: examples of how to use the API reference docs"),
     ("info_best_practice.rst", "Best Practice: Conventions to follow for writing good scripts"),
     ("info_tips_and_tricks.rst", "Tips and Tricks: Hints to help you while writing scripts for blender"),
     ("info_gotcha.rst", "Gotcha's: some of the problems you may come up against when writing scripts"),
@@ -1723,6 +1725,11 @@ def copy_handwritten_rsts(basepath):
 
     # changelog
     shutil.copy2(os.path.join(RST_DIR, "change_log.rst"), basepath)
+
+    # copy images, could be smarter but just glob for now.
+    for f in os.listdir(RST_DIR):
+        if f.endswith(".png"):
+            shutil.copy2(os.path.join(RST_DIR, f), basepath)
 
 
 def rna2sphinx(basepath):

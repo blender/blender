@@ -1,3 +1,5 @@
+.. _info_overview:
+
 *******************
 Python API Overview
 *******************

@@ -5,6 +5,8 @@ Gotchas
 This document attempts to help you work with the Blender API in areas that can be troublesome and avoid practices that are known to give instability.
 
 
+.. _using_operators:
+
 Using Operators
 ===============
 
