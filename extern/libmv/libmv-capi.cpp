@@ -900,7 +900,7 @@ void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics
 		intrinsics->SetFocalLength(focal_length, focal_length);
 
 	if (intrinsics->principal_point_x() != principal_x || intrinsics->principal_point_y() != principal_y)
-		intrinsics->SetFocalLength(focal_length, focal_length);
+		intrinsics->SetPrincipalPoint(principal_x, principal_y);
 
 	if (intrinsics->k1() != k1 || intrinsics->k2() != k2 || intrinsics->k3() != k3)
 		intrinsics->SetRadialDistortion(k1, k2, k3);
